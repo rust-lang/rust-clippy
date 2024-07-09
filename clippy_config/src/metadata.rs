@@ -1,16 +1,16 @@
 use itertools::Itertools;
-use std::fmt;
+use std::fmt::{self, Display};
 
-#[derive(Debug, Clone, Default)]
-pub struct ClippyConfiguration {
-    pub name: String,
+#[expect(clippy::module_name_repetitions)]
+pub struct ConfMetadata {
+    pub name: &'static str,
     pub default: String,
     pub lints: &'static [&'static str],
     pub doc: &'static str,
-    pub deprecation_reason: Option<&'static str>,
+    pub renamed_to: Option<&'static str>,
 }
 
-impl fmt::Display for ClippyConfiguration {
+impl Display for ConfMetadata {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "- `{}`: {}", self.name, self.doc)?;
         if !self.default.is_empty() {
@@ -20,21 +20,42 @@ impl fmt::Display for ClippyConfiguration {
     }
 }
 
-impl ClippyConfiguration {
-    pub fn to_markdown_paragraph(&self) -> String {
-        format!(
-            "## `{}`\n{}\n\n**Default Value:** `{}`\n\n---\n**Affected lints:**\n{}\n\n",
-            self.name,
-            self.doc.lines().map(|x| x.strip_prefix(' ').unwrap_or(x)).join("\n"),
-            self.default,
-            self.lints.iter().format_with("\n", |name, f| f(&format_args!(
-                "* [`{name}`](https://rust-lang.github.io/rust-clippy/master/index.html#{name})"
-            ))),
-        )
+impl ConfMetadata {
+    #[expect(clippy::needless_lifetimes)]
+    pub fn display_markdown_paragraph<'a>(&'a self) -> impl 'a + Display {
+        struct S<'a>(&'a ConfMetadata);
+        impl Display for S<'_> {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                write!(
+                    f,
+                    "## `{}`\n{}\n\n**Default Value:** `{}`\n\n---\n**Affected lints:**\n{}\n\n",
+                    self.0.name,
+                    self.0
+                        .doc
+                        .lines()
+                        .format_with("\n", |doc, f| f(&doc.strip_prefix(" ").unwrap_or(doc))),
+                    self.0.default,
+                    self.0.lints.iter().format_with("\n", |name, f| f(&format_args!(
+                        "* [`{name}`](https://rust-lang.github.io/rust-clippy/master/index.html#{name})"
+                    ))),
+                )
+            }
+        }
+        S(self)
     }
 
-    pub fn to_markdown_link(&self) -> String {
-        const BOOK_CONFIGS_PATH: &str = "https://doc.rust-lang.org/clippy/lint_configuration.html";
-        format!("[`{}`]: {BOOK_CONFIGS_PATH}#{}", self.name, self.name)
+    #[expect(clippy::needless_lifetimes)]
+    pub fn display_markdown_link<'a>(&'a self) -> impl 'a + Display {
+        struct S<'a>(&'a ConfMetadata);
+        impl Display for S<'_> {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                write!(
+                    f,
+                    "[`{}`]: https://doc.rust-lang.org/clippy/lint_configuration.html#{}",
+                    self.0.name, self.0.name,
+                )
+            }
+        }
+        S(self)
     }
 }

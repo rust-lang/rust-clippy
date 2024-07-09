@@ -96,7 +96,7 @@ impl TraitBounds {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
             max_trait_bounds: conf.max_trait_bounds,
-            msrv: conf.msrv.clone(),
+            msrv: conf.msrv.into(),
         }
     }
 }

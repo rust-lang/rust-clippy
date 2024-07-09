@@ -40,9 +40,7 @@ pub struct ManualRemEuclid {
 
 impl ManualRemEuclid {
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: conf.msrv.clone(),
-        }
+        Self { msrv: conf.msrv.into() }
     }
 }
 

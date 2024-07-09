@@ -747,7 +747,7 @@ pub fn create_disallowed_map(
 ) -> DefIdMap<(&'static str, Option<&'static str>)> {
     disallowed
         .iter()
-        .map(|x| (x.path(), x.path().split("::").collect::<Vec<_>>(), x.reason()))
+        .map(|x| (&*x.path, x.path.split("::").collect::<Vec<_>>(), x.reason.as_deref()))
         .flat_map(|(name, path, reason)| def_path_def_ids(tcx, &path).map(move |id| (id, (name, reason))))
         .collect()
 }

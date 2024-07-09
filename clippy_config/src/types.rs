@@ -1,132 +1,202 @@
-use serde::de::{self, Deserializer, Visitor};
-use serde::{ser, Deserialize, Serialize};
-use std::fmt;
+use crate::de::{create_value_list_msg, find_closest_match, Deserialize, DiagCtxt, FromDefault, Item};
+use rustc_errors::Applicability;
+use std::fmt::Display;
 
-#[derive(Debug, Deserialize)]
+macro_rules! concat_expr {
+    ($($e:expr)*) => {
+        concat!($($e),*)
+    }
+}
+
+macro_rules! conf_enum {
+    (
+        $(#[$attrs:meta])*
+        $vis:vis $name:ident {$(
+            $(#[$var_attrs:meta])*
+            $var_name:ident,
+        )*}
+    ) => {
+        $(#[$attrs])*
+        #[derive(Clone, Copy)]
+        $vis enum $name {$(
+            $(#[$var_attrs])*
+            $var_name,
+        )*}
+        impl $name {
+            const NAMES: &[&'static str] = &[$(stringify!($var_name)),*];
+            pub fn name(self) -> &'static str {
+                Self::NAMES[self as usize]
+            }
+            #[expect(clippy::should_implement_trait)]
+            pub fn from_str(s: &str) -> Option<Self> {
+                match s {
+                    $(stringify!($var_name) => Some(Self::$var_name),)*
+                    _ => None,
+                }
+            }
+        }
+        impl FromDefault<$name> for $name {
+            fn from_default(default: $name) -> Self {
+                default
+            }
+            fn display_default(default: $name) -> impl Display {
+                String::display_default(default.name())
+            }
+        }
+        impl Deserialize for $name {
+            fn deserialize(dcx: &DiagCtxt<'_>, value: Item<'_>) -> Option<Self> {
+                let Some(s) = value.as_str() else {
+                    dcx.span_err(value.span(), "expected a string");
+                    return None;
+                };
+                let x = Self::from_str(s);
+                if x.is_none() {
+                    let sp = dcx.make_sp(value.span());
+                    let mut diag = dcx.dcx.struct_span_err(
+                        sp,
+                        concat_expr!("expected one of: " $("`" stringify!($var_name) "`")", "*),
+                    );
+                    if let Some(sugg) = find_closest_match(s, Self::NAMES) {
+                        diag.span_suggestion(sp, "did you mean", sugg, Applicability::MaybeIncorrect);
+                    }
+                    diag.note(create_value_list_msg(dcx.width, Self::NAMES));
+                    diag.emit();
+                }
+                x
+            }
+        }
+    };
+}
+
 pub struct Rename {
     pub path: String,
     pub rename: String,
 }
 
-#[derive(Debug, Deserialize)]
-#[serde(untagged)]
-pub enum DisallowedPath {
-    Simple(String),
-    WithReason { path: String, reason: Option<String> },
-}
-
-impl DisallowedPath {
-    pub fn path(&self) -> &str {
-        let (Self::Simple(path) | Self::WithReason { path, .. }) = self;
-
-        path
-    }
-
-    pub fn reason(&self) -> Option<&str> {
-        match &self {
-            Self::WithReason { reason, .. } => reason.as_deref(),
-            Self::Simple(_) => None,
+impl Deserialize for Rename {
+    fn deserialize(dcx: &DiagCtxt<'_>, value: Item<'_>) -> Option<Self> {
+        if let Some((span, table)) = value.as_table_like() {
+            deserialize_table!(dcx, table,
+                path("path"): String,
+                rename("rename"): String,
+            );
+            let Some(path) = path else {
+                dcx.span_err(span.clone(), "missing required field `path`");
+                return None;
+            };
+            let Some(rename) = rename else {
+                dcx.span_err(span.clone(), "missing required field `rename`");
+                return None;
+            };
+            Some(Rename { path, rename })
+        } else {
+            dcx.span_err(value.span(), "expected an inline table");
+            None
         }
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
-pub enum MatchLintBehaviour {
-    AllTypes,
-    WellKnownTypes,
-    Never,
+pub struct DisallowedPath {
+    pub path: String,
+    pub reason: Option<String>,
 }
 
-#[derive(Debug)]
+impl Deserialize for DisallowedPath {
+    fn deserialize(dcx: &DiagCtxt<'_>, value: Item<'_>) -> Option<Self> {
+        if let Some(s) = value.as_str() {
+            Some(DisallowedPath {
+                path: s.into(),
+                reason: None,
+            })
+        } else if let Some((span, table)) = value.as_table_like() {
+            deserialize_table!(dcx, table,
+                path("path"): String,
+                reason("reason"): String,
+            );
+            let Some(path) = path else {
+                dcx.span_err(span, "missing required field `path`");
+                return None;
+            };
+            Some(DisallowedPath { path, reason })
+        } else {
+            dcx.span_err(value.span(), "expected either a string or an inline table");
+            None
+        }
+    }
+}
+
+conf_enum! {
+    #[derive(PartialEq, Eq)]
+    pub MatchLintBehaviour {
+        AllTypes,
+        WellKnownTypes,
+        Never,
+    }
+}
+
+enum BraceKind {
+    Brace,
+    Bracket,
+    Paren,
+}
+
+impl Deserialize for BraceKind {
+    fn deserialize(dcx: &DiagCtxt<'_>, value: Item<'_>) -> Option<Self> {
+        let msg = if let Some(s) = value.as_str() {
+            match s {
+                "{" | "{}" => return Some(BraceKind::Brace),
+                "[" | "[]" => return Some(BraceKind::Bracket),
+                "(" | "()" => return Some(BraceKind::Paren),
+                _ => "unknown value",
+            }
+        } else {
+            "expected a string"
+        };
+        let mut diag = dcx.dcx.struct_span_err(dcx.make_sp(value.span()), msg);
+        diag.note("possible values: `()`, `[]`, `{}`");
+        diag.emit();
+        None
+    }
+}
+
 pub struct MacroMatcher {
     pub name: String,
     pub braces: (char, char),
 }
 
-impl<'de> Deserialize<'de> for MacroMatcher {
-    fn deserialize<D>(deser: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        #[derive(Deserialize)]
-        #[serde(field_identifier, rename_all = "lowercase")]
-        enum Field {
-            Name,
-            Brace,
+impl Deserialize for MacroMatcher {
+    fn deserialize(dcx: &DiagCtxt<'_>, value: Item<'_>) -> Option<Self> {
+        if let Some((span, table)) = value.as_table_like() {
+            deserialize_table!(dcx, table,
+                name("name"): String,
+                brace("brace"): BraceKind,
+            );
+            let Some(name) = name else {
+                dcx.span_err(span, "missing required field `name`");
+                return None;
+            };
+            let Some(brace) = brace else {
+                dcx.span_err(span, "missing required field `brace`");
+                return None;
+            };
+            Some(MacroMatcher {
+                name,
+                braces: match brace {
+                    BraceKind::Brace => ('{', '}'),
+                    BraceKind::Bracket => ('[', ']'),
+                    BraceKind::Paren => ('(', ')'),
+                },
+            })
+        } else {
+            dcx.span_err(value.span(), "expected an inline table");
+            None
         }
-        struct MacVisitor;
-        impl<'de> Visitor<'de> for MacVisitor {
-            type Value = MacroMatcher;
-
-            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-                formatter.write_str("struct MacroMatcher")
-            }
-
-            fn visit_map<V>(self, mut map: V) -> Result<Self::Value, V::Error>
-            where
-                V: de::MapAccess<'de>,
-            {
-                let mut name = None;
-                let mut brace: Option<char> = None;
-                while let Some(key) = map.next_key()? {
-                    match key {
-                        Field::Name => {
-                            if name.is_some() {
-                                return Err(de::Error::duplicate_field("name"));
-                            }
-                            name = Some(map.next_value()?);
-                        },
-                        Field::Brace => {
-                            if brace.is_some() {
-                                return Err(de::Error::duplicate_field("brace"));
-                            }
-                            brace = Some(map.next_value()?);
-                        },
-                    }
-                }
-                let name = name.ok_or_else(|| de::Error::missing_field("name"))?;
-                let brace = brace.ok_or_else(|| de::Error::missing_field("brace"))?;
-                Ok(MacroMatcher {
-                    name,
-                    braces: [('(', ')'), ('{', '}'), ('[', ']')]
-                        .into_iter()
-                        .find(|b| b.0 == brace)
-                        .map(|(o, c)| (o.to_owned(), c.to_owned()))
-                        .ok_or_else(|| de::Error::custom(format!("expected one of `(`, `{{`, `[` found `{brace}`")))?,
-                })
-            }
-        }
-
-        const FIELDS: &[&str] = &["name", "brace"];
-        deser.deserialize_struct("MacroMatcher", FIELDS, MacVisitor)
     }
 }
 
-// these impls are never actually called but are used by the various config options that default to
-// empty lists
-macro_rules! unimplemented_serialize {
-    ($($t:ty,)*) => {
-        $(
-            impl Serialize for $t {
-                fn serialize<S>(&self, _serializer: S) -> Result<S::Ok, S::Error>
-                where
-                    S: ser::Serializer,
-                {
-                    Err(ser::Error::custom("unimplemented"))
-                }
-            }
-        )*
+conf_enum! {
+    pub PubUnderscoreFieldsBehaviour {
+        PubliclyExported,
+        AllPubFields,
     }
-}
-
-unimplemented_serialize! {
-    DisallowedPath,
-    Rename,
-    MacroMatcher,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
-pub enum PubUnderscoreFieldsBehaviour {
-    PubliclyExported,
-    AllPubFields,
 }

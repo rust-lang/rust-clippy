@@ -69,9 +69,7 @@ pub struct ApproxConstant {
 
 impl ApproxConstant {
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: conf.msrv.clone(),
-        }
+        Self { msrv: conf.msrv.into() }
     }
 
     fn check_lit(&self, cx: &LateContext<'_>, lit: &LitKind, e: &Expr<'_>) {

@@ -42,9 +42,7 @@ pub struct RedundantFieldNames {
 
 impl RedundantFieldNames {
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: conf.msrv.clone(),
-        }
+        Self { msrv: conf.msrv.into() }
     }
 }
 

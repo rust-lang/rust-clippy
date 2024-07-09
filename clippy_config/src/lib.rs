@@ -1,4 +1,4 @@
-#![feature(rustc_private, array_windows, let_chains)]
+#![feature(rustc_private, array_windows, if_let_guard, io_error_more, let_chains)]
 #![cfg_attr(feature = "deny-warnings", deny(warnings))]
 #![warn(
     trivial_casts,
@@ -22,10 +22,12 @@ extern crate rustc_errors;
 extern crate rustc_session;
 extern crate rustc_span;
 
+#[macro_use]
+mod de;
 mod conf;
 mod metadata;
 pub mod msrvs;
 pub mod types;
 
-pub use conf::{get_configuration_metadata, lookup_conf_file, Conf};
-pub use metadata::ClippyConfiguration;
+pub use conf::Conf;
+pub use metadata::ConfMetadata;

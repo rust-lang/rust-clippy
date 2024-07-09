@@ -62,9 +62,7 @@ pub struct DerivableImpls {
 
 impl DerivableImpls {
     pub fn new(conf: &'static Conf) -> Self {
-        DerivableImpls {
-            msrv: conf.msrv.clone(),
-        }
+        DerivableImpls { msrv: conf.msrv.into() }
     }
 }
 

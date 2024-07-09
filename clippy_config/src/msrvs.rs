@@ -2,7 +2,6 @@ use rustc_ast::Attribute;
 use rustc_semver::RustcVersion;
 use rustc_session::Session;
 use rustc_span::{sym, Symbol};
-use serde::Deserialize;
 use std::fmt;
 
 macro_rules! msrv_aliases {
@@ -17,7 +16,7 @@ macro_rules! msrv_aliases {
 
 // names may refer to stabilized feature flags or library items
 msrv_aliases! {
-    1,81,0  { LINT_REASONS_STABILIZATION }
+    1,81,0 { LINT_REASONS_STABILIZATION }
     1,77,0 { C_STR_LITERALS }
     1,76,0 { PTR_FROM_REF, OPTION_RESULT_INSPECT }
     1,71,0 { TUPLE_ARRAY_CONVERSIONS, BUILD_HASHER_HASH_ONE }
@@ -60,7 +59,7 @@ msrv_aliases! {
 }
 
 /// Tracks the current MSRV from `clippy.toml`, `Cargo.toml` or set via `#[clippy::msrv]`
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Msrv {
     stack: Vec<RustcVersion>,
 }
@@ -75,41 +74,15 @@ impl fmt::Display for Msrv {
     }
 }
 
-impl<'de> Deserialize<'de> for Msrv {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let v = String::deserialize(deserializer)?;
-        RustcVersion::parse(&v)
-            .map(|v| Msrv { stack: vec![v] })
-            .map_err(|_| serde::de::Error::custom("not a valid Rust version"))
+impl From<Option<RustcVersion>> for Msrv {
+    fn from(f: Option<RustcVersion>) -> Self {
+        Msrv {
+            stack: f.map(|x| vec![x]).unwrap_or_default(),
+        }
     }
 }
 
 impl Msrv {
-    pub fn empty() -> Msrv {
-        Msrv { stack: Vec::new() }
-    }
-
-    pub fn read_cargo(&mut self, sess: &Session) {
-        let cargo_msrv = std::env::var("CARGO_PKG_RUST_VERSION")
-            .ok()
-            .and_then(|v| RustcVersion::parse(&v).ok());
-
-        match (self.current(), cargo_msrv) {
-            (None, Some(cargo_msrv)) => self.stack = vec![cargo_msrv],
-            (Some(clippy_msrv), Some(cargo_msrv)) => {
-                if clippy_msrv != cargo_msrv {
-                    sess.dcx().warn(format!(
-                        "the MSRV in `clippy.toml` and `Cargo.toml` differ; using `{clippy_msrv}` from `clippy.toml`"
-                    ));
-                }
-            },
-            _ => {},
-        }
-    }
-
     pub fn current(&self) -> Option<RustcVersion> {
         self.stack.last().copied()
     }
