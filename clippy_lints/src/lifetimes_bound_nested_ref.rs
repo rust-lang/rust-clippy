@@ -170,10 +170,12 @@ impl EarlyLintPass for LifetimesBoundNestedRef {
     }
 
     /// For issues 84591 and 100051:
-    /// Ignore the supertrait in issue 84591, just check the trait implementation declaration.
-    /// For issue 100051, check the trait implementation declaration, and also check the projection
-    /// impl ... for ... . For these, get declared lifetimes and declared lifetime bounds,
-    /// and compare these with lifetime bounds implied by nested references.
+    /// Get declared lifetimes and declared lifetime bounds,
+    /// and compare these with lifetime bounds implied by nested references
+    /// in a trait implementation declaration.
+    ///
+    /// For issue 100051 also check for nested references in the `for` projection: `impl ... for
+    /// ...` .
     fn check_item_post(&mut self, early_context: &EarlyContext<'_>, item: &Item) {
         let ItemKind::Impl(box_impl) = &item.kind else {
             return;
@@ -197,22 +199,19 @@ impl EarlyLintPass for LifetimesBoundNestedRef {
 /// A lifetime bound between a pair of lifetime symbols,
 /// e.g. 'long: 'outlived.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)] // use lexicographic ordering
-struct BoundLftPair {
-    long_lft_sym: Symbol,
-    outlived_lft_sym: Symbol,
+struct BoundLftSymbolPair {
+    long_lft: Symbol,
+    outlived_lft: Symbol,
 }
 
-impl BoundLftPair {
-    fn new(long_lft_sym: Symbol, outlived_lft_sym: Symbol) -> Self {
-        BoundLftPair {
-            long_lft_sym,
-            outlived_lft_sym,
-        }
+impl BoundLftSymbolPair {
+    fn new(long_lft: Symbol, outlived_lft: Symbol) -> Self {
+        BoundLftSymbolPair { long_lft, outlived_lft }
     }
 
     /// A declarion for the lifetimes bound
     fn to_declaration(&self) -> String {
-        format!("{}: {}", self.long_lft_sym, self.outlived_lft_sym)
+        format!("{}: {}", self.long_lft, self.outlived_lft)
     }
 }
 
@@ -233,7 +232,7 @@ fn get_declared_lifetimes_spans(generics: &Generics) -> FxHashMap<Symbol, Span> 
 
 /// From a [Generics] provide a [BTreeMap] of the declared lifetime bounds to the spans of the
 /// declarations.
-fn get_declared_bounds_spans(generics: &Generics) -> BTreeMap<BoundLftPair, Span> {
+fn get_declared_bounds_spans(generics: &Generics) -> BTreeMap<BoundLftSymbolPair, Span> {
     let mut declared_bounds = BTreeMap::new();
     generics.params.iter().for_each(|gp| {
         let long_lft_sym = gp.ident.name;
@@ -244,7 +243,10 @@ fn get_declared_bounds_spans(generics: &Generics) -> BTreeMap<BoundLftPair, Span
                 } else {
                     outlived_lft.ident.span
                 };
-                declared_bounds.insert(BoundLftPair::new(long_lft_sym, outlived_lft.ident.name), decl_span);
+                declared_bounds.insert(
+                    BoundLftSymbolPair::new(long_lft_sym, outlived_lft.ident.name),
+                    decl_span,
+                );
             }
         });
     });
@@ -254,7 +256,7 @@ fn get_declared_bounds_spans(generics: &Generics) -> BTreeMap<BoundLftPair, Span
             wrp.bounds.iter().for_each(|bound| {
                 if let GenericBound::Outlives(outlived_lft) = bound {
                     // CHECKME: how to make a good span for the lifetimes bound declaration here?
-                    declared_bounds.insert(BoundLftPair::new(long_lft_sym, outlived_lft.ident.name), wrp.span);
+                    declared_bounds.insert(BoundLftSymbolPair::new(long_lft_sym, outlived_lft.ident.name), wrp.span);
                 }
             });
         }
@@ -265,8 +267,10 @@ fn get_declared_bounds_spans(generics: &Generics) -> BTreeMap<BoundLftPair, Span
 #[derive(Debug)]
 struct ImpliedBoundsLinter {
     declared_lifetimes_spans: FxHashMap<Symbol, Span>,
-    declared_bounds_spans: BTreeMap<BoundLftPair, Span>,
-    implied_bounds_spans: BTreeMap<BoundLftPair, (Span, Span)>,
+    declared_bounds_spans: BTreeMap<BoundLftSymbolPair, Span>,
+    /// Map each implied lifetime bound to the spans of the earliest lifetime identifier pair
+    /// that implies the bound by a nested reference.
+    implied_bounds_span_pairs: BTreeMap<BoundLftSymbolPair, (Span, Span)>,
 }
 
 impl ImpliedBoundsLinter {
@@ -274,14 +278,17 @@ impl ImpliedBoundsLinter {
         ImpliedBoundsLinter {
             declared_lifetimes_spans,
             declared_bounds_spans: get_declared_bounds_spans(generics),
-            implied_bounds_spans: BTreeMap::new(),
+            implied_bounds_span_pairs: BTreeMap::new(),
         }
     }
 
+    /// Collect implied lifetime bounds span pairs from a complete [Path]
     fn collect_implied_lifetime_bounds_path(&mut self, path: &Path) {
         self.collect_nested_ref_bounds_path(path, None);
     }
 
+    /// Collect implied lifetime bounds span pairs from a [Path]
+    /// that is possibly contained in an outlived lifetime
     fn collect_nested_ref_bounds_path(&mut self, path: &Path, opt_outlived_lft_ident: Option<&Ident>) {
         for path_segment in &path.segments {
             if let Some(generic_args) = &path_segment.args {
@@ -294,7 +301,7 @@ impl ImpliedBoundsLinter {
                                     if let Some(outlived_lft_ident) = opt_outlived_lft_ident
                                         && self.is_declared_lifetime_sym(long_lft.ident.name)
                                     {
-                                        self.add_implied_bound_spans(&long_lft.ident, outlived_lft_ident);
+                                        self.add_implied_bound_span_pair(&long_lft.ident, outlived_lft_ident);
                                     }
                                 },
                                 GA::Type(p_ty) => {
@@ -309,14 +316,17 @@ impl ImpliedBoundsLinter {
         }
     }
 
-    fn collect_implied_lifetime_bounds(&mut self, ty: &Ty) {
-        self.collect_nested_ref_bounds(ty, None);
-    }
-
     fn is_declared_lifetime_sym(&self, lft_sym: Symbol) -> bool {
         self.declared_lifetimes_spans.contains_key(&lft_sym)
     }
 
+    /// Collect implied lifetime bounds span pairs from a complete [Ty]
+    fn collect_implied_lifetime_bounds(&mut self, ty: &Ty) {
+        self.collect_nested_ref_bounds(ty, None);
+    }
+
+    /// Collect implied lifetime bounds span pairs from a [Ty]
+    /// that is possibly contained in an outlived lifetime
     fn collect_nested_ref_bounds(&mut self, outliving_ty: &Ty, opt_outlived_lft_ident: Option<&Ident>) {
         let mut outliving_tys = vec![outliving_ty]; // stack to avoid recursion
         while let Some(ty) = outliving_tys.pop() {
@@ -329,7 +339,7 @@ impl ImpliedBoundsLinter {
                         && self.is_declared_lifetime_sym(lifetime.ident.name)
                     {
                         if let Some(outlived_lft_ident) = opt_outlived_lft_ident {
-                            self.add_implied_bound_spans(&lifetime.ident, outlived_lft_ident);
+                            self.add_implied_bound_span_pair(&lifetime.ident, outlived_lft_ident);
                         }
                         // recursion for nested references outliving this lifetime
                         self.collect_nested_ref_bounds(referred_to_ty, Some(&lifetime.ident));
@@ -388,6 +398,8 @@ impl ImpliedBoundsLinter {
         }
     }
 
+    /// Collect implied lifetime bounds span pairs from [GenericBound]s
+    /// that are possibly contained in an outlived lifetime
     fn collect_nested_ref_bounds_gbs(
         &mut self,
         generic_bounds: &Vec<GenericBound>,
@@ -404,7 +416,7 @@ impl ImpliedBoundsLinter {
                                 if let Some(outlived_lft_ident) = opt_outlived_lft_ident
                                     && self.is_declared_lifetime_sym(bgp.ident.name)
                                 {
-                                    self.add_implied_bound_spans(&bgp.ident, outlived_lft_ident);
+                                    self.add_implied_bound_span_pair(&bgp.ident, outlived_lft_ident);
                                 }
                             },
                             GPK::Type { default: opt_p_ty } => {
@@ -428,22 +440,22 @@ impl ImpliedBoundsLinter {
         }
     }
 
-    fn add_implied_bound_spans(&mut self, long_lft_ident: &Ident, outlived_lft_ident: &Ident) {
+    fn add_implied_bound_span_pair(&mut self, long_lft_ident: &Ident, outlived_lft_ident: &Ident) {
         if long_lft_ident.name == outlived_lft_ident.name {
             // only unequal symbols form a lifetime bound
             return;
         }
         match self
-            .implied_bounds_spans
-            .entry(BoundLftPair::new(long_lft_ident.name, outlived_lft_ident.name))
+            .implied_bounds_span_pairs
+            .entry(BoundLftSymbolPair::new(long_lft_ident.name, outlived_lft_ident.name))
         {
             Entry::Vacant(new_entry) => {
                 // in nested references the outlived lifetime occurs first
                 new_entry.insert((outlived_lft_ident.span, long_lft_ident.span));
             },
             Entry::Occupied(mut prev_entry) => {
-                // keep the first occurrence of the nested reference,
-                // the insertion order here depends on the recursion order.
+                // keep the first occurring spans for the nested reference.
+                // (the actual insertion order here depends on the recursion order)
                 let prev_spans = prev_entry.get_mut();
                 if (outlived_lft_ident.span < prev_spans.0)
                     || (outlived_lft_ident.span == prev_spans.0 && (long_lft_ident.span < prev_spans.1))
@@ -457,11 +469,11 @@ impl ImpliedBoundsLinter {
     fn report_lints(self, cx: &EarlyContext<'_>) {
         let bound_implied_here_note = "this lifetimes bound is implied here:";
 
-        for (implied_bound, (outlived_lft_span, long_lft_span)) in &self.implied_bounds_spans {
+        for (implied_bound, (outlived_lft_span, long_lft_span)) in &self.implied_bounds_span_pairs {
             if !self.declared_bounds_spans.contains_key(implied_bound) {
                 let impl_bound_decl = implied_bound.to_declaration();
                 let msg_missing = format!("missing lifetimes bound declaration: {impl_bound_decl}");
-                if let Some(long_lft_decl_span) = self.declared_lifetimes_spans.get(&implied_bound.long_lft_sym) {
+                if let Some(long_lft_decl_span) = self.declared_lifetimes_spans.get(&implied_bound.long_lft) {
                     let nested_ref_span = spans_merge(*outlived_lft_span, *long_lft_span);
                     span_lint_and_fix_sugg_and_note_cause(
                         cx,
@@ -478,7 +490,7 @@ impl ImpliedBoundsLinter {
         }
 
         for (declared_bound, decl_span) in self.declared_bounds_spans {
-            if let Some((outlived_lft_span, long_lft_span)) = self.implied_bounds_spans.get(&declared_bound) {
+            if let Some((outlived_lft_span, long_lft_span)) = self.implied_bounds_span_pairs.get(&declared_bound) {
                 let nested_ref_span = spans_merge(*outlived_lft_span, *long_lft_span);
                 span_lint_and_note(
                     cx,
