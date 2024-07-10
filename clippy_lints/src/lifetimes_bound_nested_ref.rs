@@ -16,7 +16,7 @@
 /// The lint here suggests to declare such lifetime bounds in the hope that
 /// the unsoundness is avoided.
 ///
-/// There is also a reverse lint that suggest to remove lifetime bounds
+/// There is also a reverse lint that suggests to remove lifetime bounds
 /// that are implied by nested references. This reverse lint is intended to be used only
 /// when the compiler has been fixed to handle these lifetime bounds correctly.
 use std::collections::btree_map::Entry;
@@ -40,7 +40,7 @@ use rustc_hash::FxHashMap;
 declare_clippy_lint! {
     /// ### What it does
     /// Checks for nested references with declared generic lifetimes
-    /// in function arguments and return values and in implementation blocks.
+    /// in function arguments and return values and in trait implementation declarations.
     /// Such a nested reference implies a lifetimes bound because the inner reference must
     /// outlive the outer reference.
     ///
@@ -97,7 +97,7 @@ declare_clippy_lint! {
 declare_clippy_lint! {
     /// ### What it does
     /// Checks for nested references with declared generic lifetimes
-    /// in function arguments and return values and in implementation blocks.
+    /// in function arguments and return values and in trait implementation declarations.
     /// Such a nested reference implies a lifetimes bound because the inner reference must
     /// outlive the outer reference.
     ///
@@ -147,10 +147,10 @@ impl_lint_pass!(LifetimesBoundNestedRef => [
 ]);
 
 impl EarlyLintPass for LifetimesBoundNestedRef {
-    /// For issue 25860: from function arguments and return values,
-    /// get declared lifetimes and declared lifetime bounds,
-    /// and compare these with lifetime bounds implied by nested references
-    /// in the function signature.
+    /// For issue 25860: from the generic arguments of a function,
+    /// get the declared lifetimes and the declared lifetime bounds.
+    /// Compare these with lifetime bounds implied by nested references
+    /// in the function arguments and return value.
     fn check_fn(&mut self, early_context: &EarlyContext<'_>, fn_kind: FnKind<'_>, _fn_span: Span, _node_id: NodeId) {
         let FnKind::Fn(_fn_ctxt, _ident, fn_sig, _visibility, generics, _opt_block) = fn_kind else {
             return;
@@ -170,12 +170,13 @@ impl EarlyLintPass for LifetimesBoundNestedRef {
     }
 
     /// For issues 84591 and 100051:
-    /// Get declared lifetimes and declared lifetime bounds,
-    /// and compare these with lifetime bounds implied by nested references
-    /// in a trait implementation declaration.
+    /// From the generic arguments of a trait implementation declaration
+    /// get the declared lifetimes and the declared lifetime bounds.
+    /// Compare these with lifetime bounds implied by nested references
+    /// in the trait implementation declaration.
     ///
-    /// For issue 100051 also check for nested references in the `for` projection: `impl ... for
-    /// ...` .
+    /// For issue 100051 also check for nested references
+    /// in the `for` projection: `impl ... for ...` .
     fn check_item_post(&mut self, early_context: &EarlyContext<'_>, item: &Item) {
         let ItemKind::Impl(box_impl) = &item.kind else {
             return;
@@ -196,7 +197,7 @@ impl EarlyLintPass for LifetimesBoundNestedRef {
     }
 }
 
-/// A lifetime bound between a pair of lifetime symbols,
+/// A lifetimes bound between a pair of lifetime symbols,
 /// e.g. 'long: 'outlived.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)] // use lexicographic ordering
 struct BoundLftSymbolPair {
@@ -455,7 +456,7 @@ impl ImpliedBoundsLinter {
             },
             Entry::Occupied(mut prev_entry) => {
                 // keep the first occurring spans for the nested reference.
-                // (the actual insertion order here depends on the recursion order)
+                // (the insertion order here depends on the recursion order on the input types.)
                 let prev_spans = prev_entry.get_mut();
                 if (outlived_lft_ident.span < prev_spans.0)
                     || (outlived_lft_ident.span == prev_spans.0 && (long_lft_ident.span < prev_spans.1))
