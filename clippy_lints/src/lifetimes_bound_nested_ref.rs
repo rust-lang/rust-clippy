@@ -216,7 +216,7 @@ impl BoundLftSymbolPair {
     }
 }
 
-/// From a [Generics] provide an [FxHashMap] of the declared lifetime symbols to their spans.
+/// From a [`Generics`] provide an [`FxHashMap`] of the declared lifetime symbols to their spans.
 fn get_declared_lifetimes_spans(generics: &Generics) -> FxHashMap<Symbol, Span> {
     generics
         .params
@@ -231,7 +231,7 @@ fn get_declared_lifetimes_spans(generics: &Generics) -> FxHashMap<Symbol, Span> 
         .collect()
 }
 
-/// From a [Generics] provide a [BTreeMap] of the declared lifetime bounds to the spans of the
+/// From a [`Generics`] provide a [`BTreeMap`] of the declared lifetime bounds to the spans of the
 /// declarations.
 fn get_declared_bounds_spans(generics: &Generics) -> BTreeMap<BoundLftSymbolPair, Span> {
     let mut declared_bounds = BTreeMap::new();
@@ -399,7 +399,7 @@ impl ImpliedBoundsLinter {
         }
     }
 
-    /// Collect implied lifetime bounds span pairs from [GenericBound]s
+    /// Collect implied lifetime bounds span pairs from [`GenericBound`]s
     /// that are possibly contained in an outlived lifetime
     fn collect_nested_ref_bounds_gbs(
         &mut self,
