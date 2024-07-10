@@ -2529,11 +2529,11 @@
     "id": "float_cmp",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 602
+      "line": 628
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for (in-)equality comparisons on floating-point\nvalues (apart from zero), except in functions called `*eq*` (which probably\nimplement equality for a type involving floats).\n\n### Why is this bad?\nFloating point calculations are usually imprecise, so\nasking if two values are *exactly* equal is asking for trouble. For a good\nguide on what to do, see [the floating point\nguide](http://www.floating-point-gui.de/errors/comparison).\n\n### Example\n```rust\nlet x = 1.2331f64;\nlet y = 1.2332f64;\n\nif y == 1.23f64 { }\nif y != x {} // where both are floats\n```\n\nUse instead:\n```rust\nlet error_margin = f64::EPSILON; // Use an epsilon for comparison\n// Or, if Rust <= 1.42, use `std::f64::EPSILON` constant instead.\n// let error_margin = std::f64::EPSILON;\nif (y - 1.23f64).abs() < error_margin { }\nif (y - x).abs() > error_margin { }\n```",
+    "docs": "\n### What it does\nChecks for (in-)equality comparisons on floating-point\nvalues (apart from zero), except in functions called `*eq*` (which probably\nimplement equality for a type involving floats).\n\n### Why is this bad?\nFloating point calculations are usually imprecise, so asking if two values are *exactly*\nequal is asking for trouble because arriving at the same logical result via different\nroutes (e.g. calculation versus constant) may yield different values.\n\n### Example\n\n```rust\nlet a: f64 = 1000.1;\nlet b: f64 = 0.2;\nlet x = a + b;\nlet y = 1000.3; // Expected value.\n\n// Actual value: 1000.3000000000001\nprintln!(\"{x}\");\n\nlet are_equal = x == y;\nprintln!(\"{are_equal}\"); // false\n```\n\nThe correct way to compare floating point numbers is to define an allowed error margin. This\nmay be challenging if there is no \"natural\" error margin to permit. Broadly speaking, there\nare two cases:\n\n1. If your values are in a known range and you can define a threshold for \"close enough to\n   be equal\", it may be appropriate to define an absolute error margin. For example, if your\n   data is \"length of vehicle in centimeters\", you may consider 0.1 cm to be \"close enough\".\n1. If your code is more general and you do not know the range of values, you should use a\n   relative error margin, accepting e.g. 0.1% of error regardless of specific values.\n\nFor the scenario where you can define a meaningful absolute error margin, consider using:\n\n```rust\nlet a: f64 = 1000.1;\nlet b: f64 = 0.2;\nlet x = a + b;\nlet y = 1000.3; // Expected value.\n\nconst ALLOWED_ERROR_VEHICLE_LENGTH_CM: f64 = 0.1;\nlet within_tolerance = (x - y).abs() < ALLOWED_ERROR_VEHICLE_LENGTH_CM;\nprintln!(\"{within_tolerance}\"); // true\n```\n\nNB! Do not use `f64::EPSILON` - while the error margin is often called \"epsilon\", this is\na different use of the term that is not suitable for floating point equality comparison.\nIndeed, for the example above using `f64::EPSILON` as the allowed error would return `false`.\n\nFor the scenario where no meaningful absolute error can be defined, refer to\n[the floating point guide](https://www.floating-point-gui.de/errors/comparison)\nfor a reference implementation of relative error based comparison of floating point values.\n`MIN_NORMAL` in the reference implementation is equivalent to `MIN_POSITIVE` in Rust.",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -2544,11 +2544,11 @@
     "id": "float_cmp_const",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 637
+      "line": 691
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for (in-)equality comparisons on floating-point\nvalue and constant, except in functions called `*eq*` (which probably\nimplement equality for a type involving floats).\n\n### Why restrict this?\nFloating point calculations are usually imprecise, so\nasking if two values are *exactly* equal is asking for trouble. For a good\nguide on what to do, see [the floating point\nguide](http://www.floating-point-gui.de/errors/comparison).\n\n### Example\n```rust\nlet x: f64 = 1.0;\nconst ONE: f64 = 1.00;\n\nif x == ONE { } // where both are floats\n```\n\nUse instead:\n```rust\nlet error_margin = f64::EPSILON; // Use an epsilon for comparison\n// Or, if Rust <= 1.42, use `std::f64::EPSILON` constant instead.\n// let error_margin = std::f64::EPSILON;\nif (x - ONE).abs() < error_margin { }\n```",
+    "docs": "\n### What it does\nChecks for (in-)equality comparisons on constant floating-point\nvalues (apart from zero), except in functions called `*eq*` (which probably\nimplement equality for a type involving floats).\n\n### Why restrict this?\nFloating point calculations are usually imprecise, so asking if two values are *exactly*\nequal is asking for trouble because arriving at the same logical result via different\nroutes (e.g. calculation versus constant) may yield different values.\n\n### Example\n\n```rust\nlet a: f64 = 1000.1;\nlet b: f64 = 0.2;\nlet x = a + b;\nconst Y: f64 = 1000.3; // Expected value.\n\n// Actual value: 1000.3000000000001\nprintln!(\"{x}\");\n\nlet are_equal = x == Y;\nprintln!(\"{are_equal}\"); // false\n```\n\nThe correct way to compare floating point numbers is to define an allowed error margin. This\nmay be challenging if there is no \"natural\" error margin to permit. Broadly speaking, there\nare two cases:\n\n1. If your values are in a known range and you can define a threshold for \"close enough to\n   be equal\", it may be appropriate to define an absolute error margin. For example, if your\n   data is \"length of vehicle in centimeters\", you may consider 0.1 cm to be \"close enough\".\n1. If your code is more general and you do not know the range of values, you should use a\n   relative error margin, accepting e.g. 0.1% of error regardless of specific values.\n\nFor the scenario where you can define a meaningful absolute error margin, consider using:\n\n```rust\nlet a: f64 = 1000.1;\nlet b: f64 = 0.2;\nlet x = a + b;\nconst Y: f64 = 1000.3; // Expected value.\n\nconst ALLOWED_ERROR_VEHICLE_LENGTH_CM: f64 = 0.1;\nlet within_tolerance = (x - Y).abs() < ALLOWED_ERROR_VEHICLE_LENGTH_CM;\nprintln!(\"{within_tolerance}\"); // true\n```\n\nNB! Do not use `f64::EPSILON` - while the error margin is often called \"epsilon\", this is\na different use of the term that is not suitable for floating point equality comparison.\nIndeed, for the example above using `f64::EPSILON` as the allowed error would return `false`.\n\nFor the scenario where no meaningful absolute error can be defined, refer to\n[the floating point guide](https://www.floating-point-gui.de/errors/comparison)\nfor a reference implementation of relative error based comparison of floating point values.\n`MIN_NORMAL` in the reference implementation is equivalent to `MIN_POSITIVE` in Rust.",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5774,7 +5774,7 @@
     "id": "modulo_arithmetic",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 683
+      "line": 737
     },
     "group": "restriction",
     "level": "allow",
@@ -5789,7 +5789,7 @@
     "id": "modulo_one",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 661
+      "line": 715
     },
     "group": "correctness",
     "level": "deny",
@@ -6044,7 +6044,7 @@
     "id": "needless_bitwise_bool",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 712
+      "line": 766
     },
     "group": "pedantic",
     "level": "allow",
@@ -7424,7 +7424,7 @@
     "id": "ptr_eq",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 741
+      "line": 795
     },
     "group": "style",
     "level": "warn",
@@ -8390,7 +8390,7 @@
     "id": "self_assignment",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 780
+      "line": 834
     },
     "group": "correctness",
     "level": "deny",
