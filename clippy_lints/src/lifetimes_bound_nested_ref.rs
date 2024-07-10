@@ -22,7 +22,7 @@
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
 
-use clippy_utils::diagnostics::{span_lint, span_lint_and_note, span_lint_and_then};
+use clippy_utils::diagnostics::{span_lint_and_note, span_lint_and_then};
 use rustc_ast::visit::FnKind;
 use rustc_ast::{
     AngleBracketedArg, FnRetTy, GenericArg, GenericArgs, GenericBound, GenericParamKind, Generics, Item, ItemKind,
@@ -210,11 +210,13 @@ impl BoundLftPair {
         }
     }
 
-    fn to_bound_declaration(&self) -> String {
+    /// A declarion for the lifetimes bound
+    fn to_declaration(&self) -> String {
         format!("{}: {}", self.long_lft_sym, self.outlived_lft_sym)
     }
 }
 
+/// From a [Generics] provide an [FxHashMap] of the declared lifetime symbols to their spans.
 fn get_declared_lifetimes_spans(generics: &Generics) -> FxHashMap<Symbol, Span> {
     generics
         .params
@@ -229,6 +231,8 @@ fn get_declared_lifetimes_spans(generics: &Generics) -> FxHashMap<Symbol, Span> 
         .collect()
 }
 
+/// From a [Generics] provide a [BTreeMap] of the declared lifetime bounds to the spans of the
+/// declarations.
 fn get_declared_bounds_spans(generics: &Generics) -> BTreeMap<BoundLftPair, Span> {
     let mut declared_bounds = BTreeMap::new();
     generics.params.iter().for_each(|gp| {
@@ -261,7 +265,6 @@ fn get_declared_bounds_spans(generics: &Generics) -> BTreeMap<BoundLftPair, Span
 #[derive(Debug)]
 struct ImpliedBoundsLinter {
     declared_lifetimes_spans: FxHashMap<Symbol, Span>,
-    generics_span: Span,
     declared_bounds_spans: BTreeMap<BoundLftPair, Span>,
     implied_bounds_spans: BTreeMap<BoundLftPair, (Span, Span)>,
 }
@@ -271,7 +274,6 @@ impl ImpliedBoundsLinter {
         ImpliedBoundsLinter {
             declared_lifetimes_spans,
             declared_bounds_spans: get_declared_bounds_spans(generics),
-            generics_span: generics.span,
             implied_bounds_spans: BTreeMap::new(),
         }
     }
@@ -457,8 +459,8 @@ impl ImpliedBoundsLinter {
 
         for (implied_bound, (outlived_lft_span, long_lft_span)) in &self.implied_bounds_spans {
             if !self.declared_bounds_spans.contains_key(implied_bound) {
-                let declaration = implied_bound.to_bound_declaration();
-                let msg_missing = format!("missing lifetimes bound declaration: {declaration}");
+                let impl_bound_decl = implied_bound.to_declaration();
+                let msg_missing = format!("missing lifetimes bound declaration: {impl_bound_decl}");
                 if let Some(long_lft_decl_span) = self.declared_lifetimes_spans.get(&implied_bound.long_lft_sym) {
                     let nested_ref_span = spans_merge(*outlived_lft_span, *long_lft_span);
                     span_lint_and_fix_sugg_and_note_cause(
@@ -467,13 +469,10 @@ impl ImpliedBoundsLinter {
                         *long_lft_decl_span,
                         &msg_missing,
                         "try",
-                        declaration,
+                        impl_bound_decl,
                         nested_ref_span,
                         bound_implied_here_note,
                     );
-                } else {
-                    // unreachable!(); collected only bounds on declared lifetimes
-                    span_lint(cx, EXPLICIT_LIFETIMES_BOUND, self.generics_span, msg_missing);
                 }
             }
         }
@@ -488,7 +487,7 @@ impl ImpliedBoundsLinter {
                     format!(
                         // only remove these lifetime bounds after the compiler is fixed
                         "declared lifetimes bound: {} is redundant, but do not remove it",
-                        declared_bound.to_bound_declaration(),
+                        declared_bound.to_declaration(),
                     ),
                     Some(nested_ref_span),
                     bound_implied_here_note,
