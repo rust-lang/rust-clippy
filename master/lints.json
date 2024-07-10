@@ -174,11 +174,11 @@
     "id": "as_ptr_cast_mut",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 643
+      "line": 646
     },
     "group": "nursery",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for the result of a `&self`-taking `as_ptr` being cast to a mutable pointer\n\n### Why is this bad?\nSince `as_ptr` takes a `&self`, the pointer won't have write permissions unless interior\nmutability is used, making it unlikely that having it as a mutable pointer is correct.\n\n### Example\n```rust\nlet mut vec = Vec::<u8>::with_capacity(1);\nlet ptr = vec.as_ptr() as *mut u8;\nunsafe { ptr.write(4) }; // UNDEFINED BEHAVIOUR\n```\nUse instead:\n```rust\nlet mut vec = Vec::<u8>::with_capacity(1);\nlet ptr = vec.as_mut_ptr();\nunsafe { ptr.write(4) };\n```",
+    "docs": "\n### What it does\nChecks for the result of a `&self`-taking `as_ptr` being cast to a mutable pointer.\n\n### Why is this bad?\nSince `as_ptr` takes a `&self`, the pointer won't have write permissions unless interior\nmutability is used, making it unlikely that having it as a mutable pointer is correct.\n\n### Example\n```rust\nlet mut vec = Vec::<u8>::with_capacity(1);\nlet ptr = vec.as_ptr() as *mut u8;\nunsafe { ptr.write(4) }; // UNDEFINED BEHAVIOUR\n```\nUse instead:\n```rust\nlet mut vec = Vec::<u8>::with_capacity(1);\nlet ptr = vec.as_mut_ptr();\nunsafe { ptr.write(4) };\n```",
     "version": "1.66.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -189,7 +189,7 @@
     "id": "as_underscore",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 557
+      "line": 560
     },
     "group": "restriction",
     "level": "allow",
@@ -294,11 +294,11 @@
     "id": "await_holding_invalid_type",
     "id_span": {
       "path": "src/await_holding_invalid.rs",
-      "line": 164
+      "line": 168
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does\nAllows users to configure types which should not be held across `await`\nsuspension points.\n\n### Why is this bad?\nThere are some types which are perfectly \"safe\" to be used concurrently\nfrom a memory access perspective but will cause bugs at runtime if they\nare held in such a way.\n\n### Example\n\n```toml\nawait-holding-invalid-types = [\n  # You can specify a type name\n  \"CustomLockType\",\n  # You can (optionally) specify a reason\n  { path = \"OtherCustomLockType\", reason = \"Relies on a thread local\" }\n]\n```\n\n```rust\nstruct CustomLockType;\nstruct OtherCustomLockType;\nasync fn foo() {\n  let _x = CustomLockType;\n  let _y = OtherCustomLockType;\n  baz().await; // Lint violation\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `await-holding-invalid-types`:  (default: `[]`)",
+    "docs": "\n### What it does\nAllows users to configure types which should not be held across await\nsuspension points.\n\n### Why is this bad?\nThere are some types which are perfectly safe to use concurrently from\na memory access perspective, but that will cause bugs at runtime if\nthey are held in such a way.\n\n### Example\n\n```toml\nawait-holding-invalid-types = [\n  # You can specify a type name\n  \"CustomLockType\",\n  # You can (optionally) specify a reason\n  { path = \"OtherCustomLockType\", reason = \"Relies on a thread local\" }\n]\n```\n\n```rust\nstruct CustomLockType;\nstruct OtherCustomLockType;\nasync fn foo() {\n  let _x = CustomLockType;\n  let _y = OtherCustomLockType;\n  baz().await; // Lint violation\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `await-holding-invalid-types`:  (default: `[]`)",
     "version": "1.62.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -309,11 +309,11 @@
     "id": "await_holding_lock",
     "id_span": {
       "path": "src/await_holding_invalid.rs",
-      "line": 69
+      "line": 73
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for calls to await while holding a non-async-aware MutexGuard.\n\n### Why is this bad?\nThe Mutex types found in std::sync and parking_lot\nare not designed to operate in an async context across await points.\n\nThere are two potential solutions. One is to use an async-aware Mutex\ntype. Many asynchronous foundation crates provide such a Mutex type. The\nother solution is to ensure the mutex is unlocked before calling await,\neither by introducing a scope or an explicit call to Drop::drop.\n\n### Known problems\nWill report false positive for explicitly dropped guards\n([#6446](https://github.com/rust-lang/rust-clippy/issues/6446)). A workaround for this is\nto wrap the `.lock()` call in a block instead of explicitly dropping the guard.\n\n### Example\n```rust\nasync fn foo(x: &Mutex<u32>) {\n  let mut guard = x.lock().unwrap();\n  *guard += 1;\n  baz().await;\n}\n\nasync fn bar(x: &Mutex<u32>) {\n  let mut guard = x.lock().unwrap();\n  *guard += 1;\n  drop(guard); // explicit drop\n  baz().await;\n}\n```\n\nUse instead:\n```rust\nasync fn foo(x: &Mutex<u32>) {\n  {\n    let mut guard = x.lock().unwrap();\n    *guard += 1;\n  }\n  baz().await;\n}\n\nasync fn bar(x: &Mutex<u32>) {\n  {\n    let mut guard = x.lock().unwrap();\n    *guard += 1;\n  } // guard dropped here at end of scope\n  baz().await;\n}\n```",
+    "docs": "\n### What it does\nChecks for calls to `await` while holding a non-async-aware\n`MutexGuard`.\n\n### Why is this bad?\nThe Mutex types found in [`std::sync`][https://doc.rust-lang.org/stable/std/sync/] and\n[`parking_lot`](https://docs.rs/parking_lot/latest/parking_lot/) are\nnot designed to operate in an async context across await points.\n\nThere are two potential solutions. One is to use an async-aware `Mutex`\ntype. Many asynchronous foundation crates provide such a `Mutex` type.\nThe other solution is to ensure the mutex is unlocked before calling\n`await`, either by introducing a scope or an explicit call to\n[`Drop::drop`](https://doc.rust-lang.org/std/ops/trait.Drop.html).\n\n### Known problems\nWill report false positive for explicitly dropped guards\n([#6446](https://github.com/rust-lang/rust-clippy/issues/6446)). A\nworkaround for this is to wrap the `.lock()` call in a block instead of\nexplicitly dropping the guard.\n\n### Example\n```rust\nasync fn foo(x: &Mutex<u32>) {\n  let mut guard = x.lock().unwrap();\n  *guard += 1;\n  baz().await;\n}\n\nasync fn bar(x: &Mutex<u32>) {\n  let mut guard = x.lock().unwrap();\n  *guard += 1;\n  drop(guard); // explicit drop\n  baz().await;\n}\n```\n\nUse instead:\n```rust\nasync fn foo(x: &Mutex<u32>) {\n  {\n    let mut guard = x.lock().unwrap();\n    *guard += 1;\n  }\n  baz().await;\n}\n\nasync fn bar(x: &Mutex<u32>) {\n  {\n    let mut guard = x.lock().unwrap();\n    *guard += 1;\n  } // guard dropped here at end of scope\n  baz().await;\n}\n```",
     "version": "1.45.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -324,11 +324,11 @@
     "id": "await_holding_refcell_ref",
     "id_span": {
       "path": "src/await_holding_invalid.rs",
-      "line": 127
+      "line": 131
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for calls to await while holding a `RefCell` `Ref` or `RefMut`.\n\n### Why is this bad?\n`RefCell` refs only check for exclusive mutable access\nat runtime. Holding onto a `RefCell` ref across an `await` suspension point\nrisks panics from a mutable ref shared while other refs are outstanding.\n\n### Known problems\nWill report false positive for explicitly dropped refs\n([#6353](https://github.com/rust-lang/rust-clippy/issues/6353)). A workaround for this is\nto wrap the `.borrow[_mut]()` call in a block instead of explicitly dropping the ref.\n\n### Example\n```rust\nasync fn foo(x: &RefCell<u32>) {\n  let mut y = x.borrow_mut();\n  *y += 1;\n  baz().await;\n}\n\nasync fn bar(x: &RefCell<u32>) {\n  let mut y = x.borrow_mut();\n  *y += 1;\n  drop(y); // explicit drop\n  baz().await;\n}\n```\n\nUse instead:\n```rust\nasync fn foo(x: &RefCell<u32>) {\n  {\n     let mut y = x.borrow_mut();\n     *y += 1;\n  }\n  baz().await;\n}\n\nasync fn bar(x: &RefCell<u32>) {\n  {\n    let mut y = x.borrow_mut();\n    *y += 1;\n  } // y dropped here at end of scope\n  baz().await;\n}\n```",
+    "docs": "\n### What it does\nChecks for calls to `await` while holding a `RefCell`, `Ref`, or `RefMut`.\n\n### Why is this bad?\n`RefCell` refs only check for exclusive mutable access\nat runtime. Holding a `RefCell` ref across an await suspension point\nrisks panics from a mutable ref shared while other refs are outstanding.\n\n### Known problems\nWill report false positive for explicitly dropped refs\n([#6353](https://github.com/rust-lang/rust-clippy/issues/6353)). A workaround for this is\nto wrap the `.borrow[_mut]()` call in a block instead of explicitly dropping the ref.\n\n### Example\n```rust\nasync fn foo(x: &RefCell<u32>) {\n  let mut y = x.borrow_mut();\n  *y += 1;\n  baz().await;\n}\n\nasync fn bar(x: &RefCell<u32>) {\n  let mut y = x.borrow_mut();\n  *y += 1;\n  drop(y); // explicit drop\n  baz().await;\n}\n```\n\nUse instead:\n```rust\nasync fn foo(x: &RefCell<u32>) {\n  {\n     let mut y = x.borrow_mut();\n     *y += 1;\n  }\n  baz().await;\n}\n\nasync fn bar(x: &RefCell<u32>) {\n  {\n    let mut y = x.borrow_mut();\n    *y += 1;\n  } // y dropped here at end of scope\n  baz().await;\n}\n```",
     "version": "1.49.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -358,7 +358,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for the usage of the `to_be_bytes` method and/or the function `from_be_bytes`.\n\n### Why restrict this?\nTo ensure use of little endian or the target’s endianness rather than big endian.\n\n### Example\n```rust\nlet _x = 2i32.to_be_bytes();\nlet _y = 2i64.to_be_bytes();\n```",
+    "docs": "\n### What it does\nChecks for the usage of the `to_be_bytes` method and/or the function `from_be_bytes`.\n\n### Why restrict this?\nTo ensure use of little-endian or the target’s endianness rather than big-endian.\n\n### Example\n```rust\nlet _x = 2i32.to_be_bytes();\nlet _y = 2i64.to_be_bytes();\n```",
     "version": "1.72.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -369,11 +369,11 @@
     "id": "bind_instead_of_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 657
+      "line": 656
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for usage of `_.and_then(|x| Some(y))`, `_.and_then(|x| Ok(y))` or\n`_.or_else(|x| Err(y))`.\n\n### Why is this bad?\nReadability, this can be written more concisely as\n`_.map(|x| y)` or `_.map_err(|x| y)`.\n\n### Example\n```rust\nlet _ = opt().and_then(|s| Some(s.len()));\nlet _ = res().and_then(|s| if s.len() == 42 { Ok(10) } else { Ok(20) });\nlet _ = res().or_else(|s| if s.len() == 42 { Err(10) } else { Err(20) });\n```\n\nThe correct use would be:\n\n```rust\nlet _ = opt().map(|s| s.len());\nlet _ = res().map(|s| if s.len() == 42 { 10 } else { 20 });\nlet _ = res().map_err(|s| if s.len() == 42 { 10 } else { 20 });\n```\n### Past names\n\n* `option_and_then_some`\n\n",
+    "docs": "\n### What it does\nChecks for usage of `_.and_then(|x| Some(y))`, `_.and_then(|x| Ok(y))`\nor `_.or_else(|x| Err(y))`.\n\n### Why is this bad?\nThis can be written more concisely as `_.map(|x| y)` or `_.map_err(|x| y)`.\n\n### Example\n```rust\nlet _ = opt().and_then(|s| Some(s.len()));\nlet _ = res().and_then(|s| if s.len() == 42 { Ok(10) } else { Ok(20) });\nlet _ = res().or_else(|s| if s.len() == 42 { Err(10) } else { Err(20) });\n```\n\nThe correct use would be:\n\n```rust\nlet _ = opt().map(|s| s.len());\nlet _ = res().map(|s| if s.len() == 42 { 10 } else { 20 });\nlet _ = res().map_err(|s| if s.len() == 42 { 10 } else { 20 });\n```\n### Past names\n\n* `option_and_then_some`\n\n",
     "version": "1.45.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -467,7 +467,7 @@
     "id": "borrow_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 590
+      "line": 593
     },
     "group": "pedantic",
     "level": "allow",
@@ -620,7 +620,7 @@
     "id": "bytes_count_to_len",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2543
+      "line": 2542
     },
     "group": "complexity",
     "level": "warn",
@@ -635,7 +635,7 @@
     "id": "bytes_nth",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2022
+      "line": 2021
     },
     "group": "style",
     "level": "warn",
@@ -665,7 +665,7 @@
     "id": "case_sensitive_file_extension_comparisons",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2571
+      "line": 2570
     },
     "group": "pedantic",
     "level": "allow",
@@ -680,7 +680,7 @@
     "id": "cast_abs_to_unsigned",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 529
+      "line": 532
     },
     "group": "suspicious",
     "level": "warn",
@@ -695,7 +695,7 @@
     "id": "cast_enum_constructor",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 506
+      "line": 509
     },
     "group": "suspicious",
     "level": "warn",
@@ -710,11 +710,11 @@
     "id": "cast_enum_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 443
+      "line": 446
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for casts from an enum type to an integral type which will definitely truncate the\nvalue.\n\n### Why is this bad?\nThe resulting integral value will not match the value of the variant it came from.\n\n### Example\n```rust\nenum E { X = 256 };\nlet _ = E::X as u8;\n```",
+    "docs": "\n### What it does\nChecks for casts from an enum type to an integral type that will definitely truncate the\nvalue.\n\n### Why is this bad?\nThe resulting integral value will not match the value of the variant it came from.\n\n### Example\n```rust\nenum E { X = 256 };\nlet _ = E::X as u8;\n```",
     "version": "1.61.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -725,11 +725,11 @@
     "id": "cast_lossless",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 173
+      "line": 172
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for casts between numerical types that may\nbe replaced by safe conversion functions.\n\n### Why is this bad?\nRust's `as` keyword will perform many kinds of\nconversions, including silently lossy conversions. Conversion functions such\nas `i32::from` will only perform lossless conversions. Using the conversion\nfunctions prevents conversions from turning into silent lossy conversions if\nthe types of the input expressions ever change, and make it easier for\npeople reading the code to know that the conversion is lossless.\n\n### Example\n```rust\nfn as_u64(x: u8) -> u64 {\n    x as u64\n}\n```\n\nUsing `::from` would look like this:\n\n```rust\nfn as_u64(x: u8) -> u64 {\n    u64::from(x)\n}\n```",
+    "docs": "\n### What it does\nChecks for casts between numeric types that can be replaced by safe\nconversion functions.\n\n### Why is this bad?\nRust's `as` keyword will perform many kinds of conversions, including\nsilently lossy conversions. Conversion functions such as `i32::from`\nwill only perform lossless conversions. Using the conversion functions\nprevents conversions from becoming silently lossy if the input types\never change, and makes it clear for people reading the code that the\nconversion is lossless.\n\n### Example\n```rust\nfn as_u64(x: u8) -> u64 {\n    x as u64\n}\n```\n\nUsing `::from` would look like this:\n\n```rust\nfn as_u64(x: u8) -> u64 {\n    u64::from(x)\n}\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -740,7 +740,7 @@
     "id": "cast_nan_to_int",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 665
+      "line": 668
     },
     "group": "suspicious",
     "level": "warn",
@@ -759,7 +759,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for casts between numerical types that may\ntruncate large values. This is expected behavior, so the cast is `Allow` by\ndefault. It suggests user either explicitly ignore the lint,\nor use `try_from()` and handle the truncation, default, or panic explicitly.\n\n### Why is this bad?\nIn some problem domains, it is good practice to avoid\ntruncation. This lint can be activated to help assess where additional\nchecks could be beneficial.\n\n### Example\n```rust\nfn as_u8(x: u64) -> u8 {\n    x as u8\n}\n```\nUse instead:\n```rust\nfn as_u8(x: u64) -> u8 {\n    if let Ok(x) = u8::try_from(x) {\n        x\n    } else {\n        todo!();\n    }\n}\n// Or\n#[allow(clippy::cast_possible_truncation)]\nfn as_u16(x: u64) -> u16 {\n    x as u16\n}\n```",
+    "docs": "\n### What it does\nChecks for casts between numeric types that may\ntruncate large values. This is expected behavior, so the cast is `Allow` by\ndefault. It suggests user either explicitly ignore the lint,\nor use `try_from()` and handle the truncation, default, or panic explicitly.\n\n### Why is this bad?\nIn some problem domains, it is good practice to avoid\ntruncation. This lint can be activated to help assess where additional\nchecks could be beneficial.\n\n### Example\n```rust\nfn as_u8(x: u64) -> u8 {\n    x as u8\n}\n```\nUse instead:\n```rust\nfn as_u8(x: u64) -> u8 {\n    if let Ok(x) = u8::try_from(x) {\n        x\n    } else {\n        todo!();\n    }\n}\n// Or\n#[allow(clippy::cast_possible_truncation)]\nfn as_u16(x: u64) -> u16 {\n    x as u16\n}\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -770,11 +770,11 @@
     "id": "cast_possible_wrap",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 140
+      "line": 139
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for casts from an unsigned type to a signed type of\nthe same size, or possibly smaller due to target dependent integers.\nPerforming such a cast is a 'no-op' for the compiler, i.e., nothing is\nchanged at the bit level, and the binary representation of the value is\nreinterpreted. This can cause wrapping if the value is too big\nfor the target signed type. However, the cast works as defined, so this lint\nis `Allow` by default.\n\n### Why is this bad?\nWhile such a cast is not bad in itself, the results can\nbe surprising when this is not the intended behavior, as demonstrated by the\nexample below.\n\n### Example\n```rust\nu32::MAX as i32; // will yield a value of `-1`\n```",
+    "docs": "\n### What it does\nChecks for casts from an unsigned type to a signed type of\nthe same size, or possibly smaller due to target-dependent integers.\nPerforming such a cast is a no-op for the compiler (that is, nothing is\nchanged at the bit level), and the binary representation of the value is\nreinterpreted. This can cause wrapping if the value is too big\nfor the target signed type. However, the cast works as defined, so this lint\nis `Allow` by default.\n\n### Why is this bad?\nWhile such a cast is not bad in itself, the results can\nbe surprising when this is not the intended behavior:\n\n### Example\n```rust\nu32::MAX as i32; // will yield a value of `-1`\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -789,7 +789,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for casts from any numerical to a float type where\nthe receiving type cannot store all values from the original type without\nrounding errors. This possible rounding is to be expected, so this lint is\n`Allow` by default.\n\nBasically, this warns on casting any integer with 32 or more bits to `f32`\nor any 64-bit integer to `f64`.\n\n### Why is this bad?\nIt's not bad at all. But in some applications it can be\nhelpful to know where precision loss can take place. This lint can help find\nthose places in the code.\n\n### Example\n```rust\nlet x = u64::MAX;\nx as f64;\n```",
+    "docs": "\n### What it does\nChecks for casts from any numeric type to a float type where\nthe receiving type cannot store all values from the original type without\nrounding errors. This possible rounding is to be expected, so this lint is\n`Allow` by default.\n\nBasically, this warns on casting any integer with 32 or more bits to `f32`\nor any 64-bit integer to `f64`.\n\n### Why is this bad?\nIt's not bad at all. But in some applications it can be\nhelpful to know where precision loss can take place. This lint can help find\nthose places in the code.\n\n### Example\n```rust\nlet x = u64::MAX;\nx as f64;\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -800,11 +800,11 @@
     "id": "cast_ptr_alignment",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 235
+      "line": 236
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for casts, using `as` or `pointer::cast`,\nfrom a less-strictly-aligned pointer to a more-strictly-aligned pointer\n\n### Why is this bad?\nDereferencing the resulting pointer may be undefined\nbehavior.\n\n### Known problems\nUsing `std::ptr::read_unaligned` and `std::ptr::write_unaligned` or similar\non the resulting pointer is fine. Is over-zealous: Casts with manual alignment checks or casts like\nu64-> u8 -> u16 can be fine. Miri is able to do a more in-depth analysis.\n\n### Example\n```rust\nlet _ = (&1u8 as *const u8) as *const u16;\nlet _ = (&mut 1u8 as *mut u8) as *mut u16;\n\n(&1u8 as *const u8).cast::<u16>();\n(&mut 1u8 as *mut u8).cast::<u16>();\n```",
+    "docs": "\n### What it does\nChecks for casts, using `as` or `pointer::cast`, from a\nless strictly aligned pointer to a more strictly aligned pointer.\n\n### Why is this bad?\nDereferencing the resulting pointer may be undefined behavior.\n\n### Known problems\nUsing [`std::ptr::read_unaligned`](https://doc.rust-lang.org/std/ptr/fn.read_unaligned.html) and [`std::ptr::write_unaligned`](https://doc.rust-lang.org/std/ptr/fn.write_unaligned.html) or\nsimilar on the resulting pointer is fine. Is over-zealous: casts with\nmanual alignment checks or casts like `u64` -> `u8` -> `u16` can be\nfine. Miri is able to do a more in-depth analysis.\n\n### Example\n```rust\nlet _ = (&1u8 as *const u8) as *const u16;\nlet _ = (&mut 1u8 as *mut u8) as *mut u16;\n\n(&1u8 as *const u8).cast::<u16>();\n(&mut 1u8 as *mut u8).cast::<u16>();\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -819,7 +819,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for casts from a signed to an unsigned numerical\ntype. In this case, negative values wrap around to large positive values,\nwhich can be quite surprising in practice. However, as the cast works as\ndefined, this lint is `Allow` by default.\n\n### Why is this bad?\nPossibly surprising results. You can activate this lint\nas a one-time check to see where numerical wrapping can arise.\n\n### Example\n```rust\nlet y: i8 = -1;\ny as u128; // will return 18446744073709551615\n```",
+    "docs": "\n### What it does\nChecks for casts from a signed to an unsigned numeric\ntype. In this case, negative values wrap around to large positive values,\nwhich can be quite surprising in practice. However, since the cast works as\ndefined, this lint is `Allow` by default.\n\n### Why is this bad?\nPossibly surprising results. You can activate this lint\nas a one-time check to see where numeric wrapping can arise.\n\n### Example\n```rust\nlet y: i8 = -1;\ny as u128; // will return 18446744073709551615\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -830,7 +830,7 @@
     "id": "cast_slice_different_sizes",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 488
+      "line": 491
     },
     "group": "correctness",
     "level": "deny",
@@ -845,7 +845,7 @@
     "id": "cast_slice_from_raw_parts",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 617
+      "line": 620
     },
     "group": "suspicious",
     "level": "warn",
@@ -875,11 +875,11 @@
     "id": "char_lit_as_u8",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 367
+      "line": 369
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for expressions where a character literal is cast\nto `u8` and suggests using a byte literal instead.\n\n### Why is this bad?\nIn general, casting values to smaller types is\nerror-prone and should be avoided where possible. In the particular case of\nconverting a character literal to u8, it is easy to avoid by just using a\nbyte literal instead. As an added bonus, `b'a'` is even slightly shorter\nthan `'a' as u8`.\n\n### Example\n```rust\n'x' as u8\n```\n\nA better version, using the byte literal:\n\n```rust\nb'x'\n```",
+    "docs": "\n### What it does\nChecks for expressions where a character literal is cast\nto `u8` and suggests using a byte literal instead.\n\n### Why is this bad?\nIn general, casting values to smaller types is\nerror-prone and should be avoided where possible. In the particular case of\nconverting a character literal to `u8`, it is easy to avoid by just using a\nbyte literal instead. As an added bonus, `b'a'` is also slightly shorter\nthan `'a' as u8`.\n\n### Example\n```rust\n'x' as u8\n```\n\nA better version, using the byte literal:\n\n```rust\nb'x'\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -890,7 +890,7 @@
     "id": "chars_last_cmp",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1467
+      "line": 1466
     },
     "group": "style",
     "level": "warn",
@@ -905,7 +905,7 @@
     "id": "chars_next_cmp",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 896
+      "line": 895
     },
     "group": "style",
     "level": "warn",
@@ -935,7 +935,7 @@
     "id": "clear_with_drain",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3318
+      "line": 3317
     },
     "group": "nursery",
     "level": "allow",
@@ -950,7 +950,7 @@
     "id": "clone_on_copy",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1023
+      "line": 1022
     },
     "group": "complexity",
     "level": "warn",
@@ -965,7 +965,7 @@
     "id": "clone_on_ref_ptr",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1054
+      "line": 1053
     },
     "group": "restriction",
     "level": "allow",
@@ -1148,7 +1148,7 @@
     "id": "const_is_empty",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 4083
+      "line": 4082
     },
     "group": "suspicious",
     "level": "warn",
@@ -1700,7 +1700,7 @@
     "id": "drain_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3377
+      "line": 3376
     },
     "group": "perf",
     "level": "warn",
@@ -2135,7 +2135,7 @@
     "id": "expect_fun_call",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1005
+      "line": 1004
     },
     "group": "perf",
     "level": "warn",
@@ -2289,7 +2289,7 @@
     "id": "extend_with_drain",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1387
+      "line": 1386
     },
     "group": "perf",
     "level": "warn",
@@ -2379,7 +2379,7 @@
     "id": "filetype_is_file",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1749
+      "line": 1748
     },
     "group": "restriction",
     "level": "allow",
@@ -2409,7 +2409,7 @@
     "id": "filter_map_bool_then",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3552
+      "line": 3551
     },
     "group": "style",
     "level": "warn",
@@ -2424,7 +2424,7 @@
     "id": "filter_map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1974
+      "line": 1973
     },
     "group": "complexity",
     "level": "warn",
@@ -2439,7 +2439,7 @@
     "id": "filter_map_next",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 814
+      "line": 813
     },
     "group": "pedantic",
     "level": "allow",
@@ -2454,7 +2454,7 @@
     "id": "filter_next",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 682
+      "line": 681
     },
     "group": "complexity",
     "level": "warn",
@@ -2484,7 +2484,7 @@
     "id": "flat_map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 837
+      "line": 836
     },
     "group": "complexity",
     "level": "warn",
@@ -2604,11 +2604,11 @@
     "id": "fn_to_numeric_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 264
+      "line": 266
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for casts of function pointers to something other than usize\n\n### Why is this bad?\nCasting a function pointer to anything other than usize/isize is not portable across\narchitectures, because you end up losing bits if the target type is too small or end up with a\nbunch of extra bits that waste space and add more instructions to the final binary than\nstrictly necessary for the problem\n\nCasting to isize also doesn't make sense since there are no signed addresses.\n\n### Example\n```rust\nfn fun() -> i32 { 1 }\nlet _ = fun as i64;\n```\n\nUse instead:\n```rust\nlet _ = fun as usize;\n```",
+    "docs": "\n### What it does\nChecks for casts of function pointers to something other than `usize`.\n\n### Why is this bad?\nCasting a function pointer to anything other than `usize`/`isize` is\nnot portable across architectures. If the target type is too small the\naddress would be truncated, and target types larger than `usize` are\nunnecessary.\n\nCasting to `isize` also doesn't make sense, since addresses are never\nsigned.\n\n### Example\n```rust\nfn fun() -> i32 { 1 }\nlet _ = fun as i64;\n```\n\nUse instead:\n```rust\nlet _ = fun as usize;\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -2619,11 +2619,11 @@
     "id": "fn_to_numeric_cast_any",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 339
+      "line": 341
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for casts of a function pointer to any integer type.\n\n### Why restrict this?\nCasting a function pointer to an integer can have surprising results and can occur\naccidentally if parentheses are omitted from a function call. If you aren't doing anything\nlow-level with function pointers then you can opt-out of casting functions to integers in\norder to avoid mistakes. Alternatively, you can use this lint to audit all uses of function\npointer casts in your code.\n\n### Example\n```rust\n// fn1 is cast as `usize`\nfn fn1() -> u16 {\n    1\n};\nlet _ = fn1 as usize;\n```\n\nUse instead:\n```rust\n// maybe you intended to call the function?\nfn fn2() -> u16 {\n    1\n};\nlet _ = fn2() as usize;\n\n// or\n\n// maybe you intended to cast it to a function type?\nfn fn3() -> u16 {\n    1\n}\nlet _ = fn3 as fn() -> u16;\n```",
+    "docs": "\n### What it does\nChecks for casts of a function pointer to any integer type.\n\n### Why restrict this?\nCasting a function pointer to an integer can have surprising results and can occur\naccidentally if parentheses are omitted from a function call. If you aren't doing anything\nlow-level with function pointers then you can opt out of casting functions to integers in\norder to avoid mistakes. Alternatively, you can use this lint to audit all uses of function\npointer casts in your code.\n\n### Example\n```rust\n// fn1 is cast as `usize`\nfn fn1() -> u16 {\n    1\n};\nlet _ = fn1 as usize;\n```\n\nUse instead:\n```rust\n// maybe you intended to call the function?\nfn fn2() -> u16 {\n    1\n};\nlet _ = fn2() as usize;\n\n// or\n\n// maybe you intended to cast it to a function type?\nfn fn3() -> u16 {\n    1\n}\nlet _ = fn3 as fn() -> u16;\n```",
     "version": "1.58.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -2634,11 +2634,11 @@
     "id": "fn_to_numeric_cast_with_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 297
+      "line": 299
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for casts of a function pointer to a numeric type not wide enough to\nstore address.\n\n### Why is this bad?\nSuch a cast discards some bits of the function's address. If this is intended, it would be more\nclearly expressed by casting to usize first, then casting the usize to the intended type (with\na comment) to perform the truncation.\n\n### Example\n```rust\nfn fn1() -> i16 {\n    1\n};\nlet _ = fn1 as i32;\n```\n\nUse instead:\n```rust\n// Cast to usize first, then comment with the reason for the truncation\nfn fn1() -> i16 {\n    1\n};\nlet fn_ptr = fn1 as usize;\nlet fn_ptr_truncated = fn_ptr as i32;\n```",
+    "docs": "\n### What it does\nChecks for casts of a function pointer to a numeric type not wide enough to\nstore an address.\n\n### Why is this bad?\nSuch a cast discards some bits of the function's address. If this is intended, it would be more\nclearly expressed by casting to `usize` first, then casting the `usize` to the intended type (with\na comment) to perform the truncation.\n\n### Example\n```rust\nfn fn1() -> i16 {\n    1\n};\nlet _ = fn1 as i32;\n```\n\nUse instead:\n```rust\n// Cast to usize first, then comment with the reason for the truncation\nfn fn1() -> i16 {\n    1\n};\nlet fn_ptr = fn1 as usize;\nlet fn_ptr_truncated = fn_ptr as i32;\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -2679,7 +2679,7 @@
     "id": "format_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3500
+      "line": 3499
     },
     "group": "perf",
     "level": "warn",
@@ -2739,7 +2739,7 @@
     "id": "from_iter_instead_of_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1921
+      "line": 1920
     },
     "group": "pedantic",
     "level": "allow",
@@ -2814,7 +2814,7 @@
     "id": "get_first",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2597
+      "line": 2596
     },
     "group": "style",
     "level": "warn",
@@ -2829,7 +2829,7 @@
     "id": "get_last_with_len",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1322
+      "line": 1321
     },
     "group": "complexity",
     "level": "warn",
@@ -2844,7 +2844,7 @@
     "id": "get_unwrap",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1359
+      "line": 1358
     },
     "group": "restriction",
     "level": "allow",
@@ -3024,7 +3024,7 @@
     "id": "implicit_clone",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2048
+      "line": 2047
     },
     "group": "pedantic",
     "level": "allow",
@@ -3249,7 +3249,7 @@
     "id": "inefficient_to_string",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1078
+      "line": 1077
     },
     "group": "pedantic",
     "level": "allow",
@@ -3414,7 +3414,7 @@
     "id": "inspect_for_each",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1951
+      "line": 1950
     },
     "group": "complexity",
     "level": "warn",
@@ -3474,7 +3474,7 @@
     "id": "into_iter_on_ref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1605
+      "line": 1604
     },
     "group": "style",
     "level": "warn",
@@ -3567,7 +3567,7 @@
     "id": "is_digit_ascii_radix",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2353
+      "line": 2352
     },
     "group": "style",
     "level": "warn",
@@ -3612,7 +3612,7 @@
     "id": "iter_cloned_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1441
+      "line": 1440
     },
     "group": "style",
     "level": "warn",
@@ -3627,7 +3627,7 @@
     "id": "iter_count",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2078
+      "line": 2077
     },
     "group": "complexity",
     "level": "warn",
@@ -3642,7 +3642,7 @@
     "id": "iter_filter_is_ok",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3863
+      "line": 3862
     },
     "group": "pedantic",
     "level": "allow",
@@ -3657,7 +3657,7 @@
     "id": "iter_filter_is_some",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3837
+      "line": 3836
     },
     "group": "pedantic",
     "level": "allow",
@@ -3672,7 +3672,7 @@
     "id": "iter_kv_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3168
+      "line": 3167
     },
     "group": "complexity",
     "level": "warn",
@@ -3702,7 +3702,7 @@
     "id": "iter_next_slice",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1802
+      "line": 1801
     },
     "group": "style",
     "level": "warn",
@@ -3732,7 +3732,7 @@
     "id": "iter_nth",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1239
+      "line": 1238
     },
     "group": "style",
     "level": "warn",
@@ -3747,7 +3747,7 @@
     "id": "iter_nth_zero",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1213
+      "line": 1212
     },
     "group": "style",
     "level": "warn",
@@ -3762,7 +3762,7 @@
     "id": "iter_on_empty_collections",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2487
+      "line": 2486
     },
     "group": "nursery",
     "level": "allow",
@@ -3777,7 +3777,7 @@
     "id": "iter_on_single_items",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2455
+      "line": 2454
     },
     "group": "nursery",
     "level": "allow",
@@ -3792,7 +3792,7 @@
     "id": "iter_out_of_bounds",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3607
+      "line": 3606
     },
     "group": "suspicious",
     "level": "warn",
@@ -3837,7 +3837,7 @@
     "id": "iter_skip_next",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1264
+      "line": 1263
     },
     "group": "style",
     "level": "warn",
@@ -3852,7 +3852,7 @@
     "id": "iter_skip_zero",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3521
+      "line": 3520
     },
     "group": "correctness",
     "level": "deny",
@@ -3867,7 +3867,7 @@
     "id": "iter_with_drain",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1289
+      "line": 1288
     },
     "group": "nursery",
     "level": "allow",
@@ -3897,7 +3897,7 @@
     "id": "iterator_step_by_zero",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1160
+      "line": 1159
     },
     "group": "correctness",
     "level": "deny",
@@ -3912,7 +3912,7 @@
     "id": "join_absolute_paths",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3763
+      "line": 3762
     },
     "group": "suspicious",
     "level": "warn",
@@ -4261,7 +4261,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for the usage of the `to_le_bytes` method and/or the function `from_le_bytes`.\n\n### Why restrict this?\nTo ensure use of big endian or the target’s endianness rather than little endian.\n\n### Example\n```rust\nlet _x = 2i32.to_le_bytes();\nlet _y = 2i64.to_le_bytes();\n```",
+    "docs": "\n### What it does\nChecks for the usage of the `to_le_bytes` method and/or the function `from_le_bytes`.\n\n### Why restrict this?\nTo ensure use of big-endian or the target’s endianness rather than little-endian.\n\n### Example\n```rust\nlet _x = 2i32.to_le_bytes();\nlet _y = 2i64.to_le_bytes();\n```",
     "version": "1.72.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -4377,7 +4377,7 @@
     "id": "manual_c_str_literals",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 4028
+      "line": 4027
     },
     "group": "pedantic",
     "level": "allow",
@@ -4422,7 +4422,7 @@
     "id": "manual_filter_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 765
+      "line": 764
     },
     "group": "complexity",
     "level": "warn",
@@ -4452,7 +4452,7 @@
     "id": "manual_find_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 791
+      "line": 790
     },
     "group": "complexity",
     "level": "warn",
@@ -4497,7 +4497,7 @@
     "id": "manual_inspect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 4125
+      "line": 4124
     },
     "group": "complexity",
     "level": "warn",
@@ -4572,7 +4572,7 @@
     "id": "manual_is_variant_and",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3890
+      "line": 3889
     },
     "group": "pedantic",
     "level": "allow",
@@ -4647,7 +4647,7 @@
     "id": "manual_next_back",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3341
+      "line": 3340
     },
     "group": "style",
     "level": "warn",
@@ -4677,7 +4677,7 @@
     "id": "manual_ok_or",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2623
+      "line": 2622
     },
     "group": "pedantic",
     "level": "allow",
@@ -4782,7 +4782,7 @@
     "id": "manual_saturating_arithmetic",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1689
+      "line": 1688
     },
     "group": "style",
     "level": "warn",
@@ -4812,7 +4812,7 @@
     "id": "manual_split_once",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2215
+      "line": 2214
     },
     "group": "complexity",
     "level": "warn",
@@ -4827,7 +4827,7 @@
     "id": "manual_str_repeat",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2179
+      "line": 2178
     },
     "group": "perf",
     "level": "warn",
@@ -4887,7 +4887,7 @@
     "id": "manual_try_fold",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3406
+      "line": 3405
     },
     "group": "perf",
     "level": "warn",
@@ -4962,7 +4962,7 @@
     "id": "map_clone",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2652
+      "line": 2651
     },
     "group": "style",
     "level": "warn",
@@ -4977,7 +4977,7 @@
     "id": "map_collect_result_unit",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1890
+      "line": 1889
     },
     "group": "style",
     "level": "warn",
@@ -5007,7 +5007,7 @@
     "id": "map_err_ignore",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2753
+      "line": 2752
     },
     "group": "restriction",
     "level": "allow",
@@ -5022,7 +5022,7 @@
     "id": "map_flatten",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 737
+      "line": 736
     },
     "group": "complexity",
     "level": "warn",
@@ -5037,7 +5037,7 @@
     "id": "map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1997
+      "line": 1996
     },
     "group": "complexity",
     "level": "warn",
@@ -5939,7 +5939,7 @@
     "id": "mut_mutex_lock",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2789
+      "line": 2788
     },
     "group": "style",
     "level": "warn",
@@ -6014,7 +6014,7 @@
     "id": "naive_bytecount",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2518
+      "line": 2517
     },
     "group": "pedantic",
     "level": "allow",
@@ -6137,7 +6137,7 @@
     "id": "needless_character_iteration",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 4104
+      "line": 4103
     },
     "group": "suspicious",
     "level": "warn",
@@ -6152,7 +6152,7 @@
     "id": "needless_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3267
+      "line": 3266
     },
     "group": "nursery",
     "level": "allow",
@@ -6302,7 +6302,7 @@
     "id": "needless_option_as_deref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2326
+      "line": 2325
     },
     "group": "complexity",
     "level": "warn",
@@ -6317,7 +6317,7 @@
     "id": "needless_option_take",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2377
+      "line": 2376
     },
     "group": "complexity",
     "level": "warn",
@@ -6482,7 +6482,7 @@
     "id": "needless_splitn",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2238
+      "line": 2237
     },
     "group": "complexity",
     "level": "warn",
@@ -6572,7 +6572,7 @@
     "id": "new_ret_no_self",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1140
+      "line": 1139
     },
     "group": "style",
     "level": "warn",
@@ -6620,7 +6620,7 @@
     "id": "no_effect_replace",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2395
+      "line": 2394
     },
     "group": "suspicious",
     "level": "warn",
@@ -6776,7 +6776,7 @@
     "id": "nonsensical_open_options",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2810
+      "line": 2809
     },
     "group": "correctness",
     "level": "deny",
@@ -6821,7 +6821,7 @@
     "id": "obfuscated_if_else",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2423
+      "line": 2422
     },
     "group": "style",
     "level": "warn",
@@ -6896,7 +6896,7 @@
     "id": "option_as_ref_cloned",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3944
+      "line": 3943
     },
     "group": "pedantic",
     "level": "allow",
@@ -6911,7 +6911,7 @@
     "id": "option_as_ref_deref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1775
+      "line": 1774
     },
     "group": "complexity",
     "level": "warn",
@@ -6941,7 +6941,7 @@
     "id": "option_filter_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1183
+      "line": 1182
     },
     "group": "complexity",
     "level": "warn",
@@ -6971,7 +6971,7 @@
     "id": "option_map_or_err_ok",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3788
+      "line": 3787
     },
     "group": "style",
     "level": "warn",
@@ -7031,7 +7031,7 @@
     "id": "or_fun_call",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 931
+      "line": 930
     },
     "group": "nursery",
     "level": "allow",
@@ -7046,7 +7046,7 @@
     "id": "or_then_unwrap",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 967
+      "line": 966
     },
     "group": "complexity",
     "level": "warn",
@@ -7202,7 +7202,7 @@
     "id": "path_buf_push_overwrite",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2880
+      "line": 2879
     },
     "group": "nursery",
     "level": "allow",
@@ -7217,7 +7217,7 @@
     "id": "path_ends_with_ext",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3646
+      "line": 3645
     },
     "group": "suspicious",
     "level": "warn",
@@ -7397,11 +7397,11 @@
     "id": "ptr_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 396
+      "line": 399
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for `as` casts between raw pointers without changing its mutability,\nnamely `*const T` to `*const U` and `*mut T` to `*mut U`.\n\n### Why is this bad?\nThough `as` casts between raw pointers are not terrible, `pointer::cast` is safer because\nit cannot accidentally change the pointer's mutability nor cast the pointer to other types like `usize`.\n\n### Example\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr: *mut u32 = &mut 42_u32;\nlet _ = ptr as *const i32;\nlet _ = mut_ptr as *mut i32;\n```\nUse instead:\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr: *mut u32 = &mut 42_u32;\nlet _ = ptr.cast::<i32>();\nlet _ = mut_ptr.cast::<i32>();\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `msrv`: The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`",
+    "docs": "\n### What it does\nChecks for `as` casts between raw pointers that don't change their\nconstness, namely `*const T` to `*const U` and `*mut T` to `*mut U`.\n\n### Why is this bad?\nThough `as` casts between raw pointers are not terrible,\n`pointer::cast` is safer because it cannot accidentally change the\npointer's mutability, nor cast the pointer to other types like `usize`.\n\n### Example\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr: *mut u32 = &mut 42_u32;\nlet _ = ptr as *const i32;\nlet _ = mut_ptr as *mut i32;\n```\nUse instead:\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr: *mut u32 = &mut 42_u32;\nlet _ = ptr.cast::<i32>();\nlet _ = mut_ptr.cast::<i32>();\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `msrv`: The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`",
     "version": "1.51.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -7412,11 +7412,11 @@
     "id": "ptr_cast_constness",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 424
+      "line": 427
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for `as` casts between raw pointers which change its constness, namely `*const T` to\n`*mut T` and `*mut T` to `*const T`.\n\n### Why is this bad?\nThough `as` casts between raw pointers are not terrible, `pointer::cast_mut` and\n`pointer::cast_const` are safer because they cannot accidentally cast the pointer to another\ntype.\n\n### Example\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr = ptr as *mut u32;\nlet ptr = mut_ptr as *const u32;\n```\nUse instead:\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr = ptr.cast_mut();\nlet ptr = mut_ptr.cast_const();\n```",
+    "docs": "\n### What it does\nChecks for `as` casts between raw pointers that change their constness, namely `*const T` to\n`*mut T` and `*mut T` to `*const T`.\n\n### Why is this bad?\nThough `as` casts between raw pointers are not terrible, `pointer::cast_mut` and\n`pointer::cast_const` are safer because they cannot accidentally cast the pointer to another\ntype.\n\n### Example\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr = ptr as *mut u32;\nlet ptr = mut_ptr as *const u32;\n```\nUse instead:\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr = ptr.cast_mut();\nlet ptr = mut_ptr.cast_const();\n```",
     "version": "1.72.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -7607,7 +7607,7 @@
     "id": "range_zip_with_len",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2905
+      "line": 2904
     },
     "group": "complexity",
     "level": "warn",
@@ -7667,7 +7667,7 @@
     "id": "read_line_without_trim",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3437
+      "line": 3436
     },
     "group": "correctness",
     "level": "deny",
@@ -7697,7 +7697,7 @@
     "id": "readonly_write_lock",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3583
+      "line": 3582
     },
     "group": "perf",
     "level": "warn",
@@ -7745,7 +7745,7 @@
     "id": "redundant_as_str",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3674
+      "line": 3673
     },
     "group": "complexity",
     "level": "warn",
@@ -8033,7 +8033,7 @@
     "id": "ref_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 712
+      "line": 715
     },
     "group": "pedantic",
     "level": "allow",
@@ -8123,7 +8123,7 @@
     "id": "repeat_once",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2937
+      "line": 2936
     },
     "group": "complexity",
     "level": "warn",
@@ -8198,7 +8198,7 @@
     "id": "result_filter_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3811
+      "line": 3810
     },
     "group": "complexity",
     "level": "warn",
@@ -8337,7 +8337,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nIt lints if a struct has two methods with the same name:\none from a trait, another not from trait.\n\n### Why restrict this?\nConfusing.\n\n### Example\n```rust\ntrait T {\n    fn foo(&self) {}\n}\n\nstruct S;\n\nimpl T for S {\n    fn foo(&self) {}\n}\n\nimpl S {\n    fn foo(&self) {}\n}\n```",
+    "docs": "\n### What it does\nIt lints if a struct has two methods with the same name:\none from a trait, another not from a trait.\n\n### Why restrict this?\nConfusing.\n\n### Example\n```rust\ntrait T {\n    fn foo(&self) {}\n}\n\nstruct S;\n\nimpl T for S {\n    fn foo(&self) {}\n}\n\nimpl S {\n    fn foo(&self) {}\n}\n```",
     "version": "1.57.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -8348,7 +8348,7 @@
     "id": "search_is_some",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 870
+      "line": 869
     },
     "group": "complexity",
     "level": "warn",
@@ -8363,7 +8363,7 @@
     "id": "seek_from_current",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3211
+      "line": 3210
     },
     "group": "complexity",
     "level": "warn",
@@ -8378,7 +8378,7 @@
     "id": "seek_to_start_instead_of_rewind",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3242
+      "line": 3241
     },
     "group": "complexity",
     "level": "warn",
@@ -8693,7 +8693,7 @@
     "id": "single_char_add_str",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1829
+      "line": 1828
     },
     "group": "style",
     "level": "warn",
@@ -8846,7 +8846,7 @@
     "id": "skip_while_next",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 707
+      "line": 706
     },
     "group": "complexity",
     "level": "warn",
@@ -8876,7 +8876,7 @@
     "id": "stable_sort_primitive",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2975
+      "line": 2974
     },
     "group": "pedantic",
     "level": "allow",
@@ -8921,7 +8921,7 @@
     "id": "str_split_at_newline",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3919
+      "line": 3918
     },
     "group": "pedantic",
     "level": "allow",
@@ -8981,7 +8981,7 @@
     "id": "string_extend_chars",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1417
+      "line": 1416
     },
     "group": "style",
     "level": "warn",
@@ -9026,7 +9026,7 @@
     "id": "string_lit_chars_any",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3465
+      "line": 3464
     },
     "group": "restriction",
     "level": "allow",
@@ -9161,7 +9161,7 @@
     "id": "suspicious_command_arg_space",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3293
+      "line": 3292
     },
     "group": "suspicious",
     "level": "warn",
@@ -9206,7 +9206,7 @@
     "id": "suspicious_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1625
+      "line": 1624
     },
     "group": "suspicious",
     "level": "warn",
@@ -9236,7 +9236,7 @@
     "id": "suspicious_open_options",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2848
+      "line": 2847
     },
     "group": "suspicious",
     "level": "warn",
@@ -9266,7 +9266,7 @@
     "id": "suspicious_splitn",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2157
+      "line": 2156
     },
     "group": "correctness",
     "level": "deny",
@@ -9281,7 +9281,7 @@
     "id": "suspicious_to_owned",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2126
+      "line": 2125
     },
     "group": "suspicious",
     "level": "warn",
@@ -9821,7 +9821,7 @@
     "id": "type_id_on_box",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3015
+      "line": 3014
     },
     "group": "suspicious",
     "level": "warn",
@@ -9941,7 +9941,7 @@
     "id": "uninit_assumed_init",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1660
+      "line": 1659
     },
     "group": "correctness",
     "level": "deny",
@@ -10016,7 +10016,7 @@
     "id": "unit_hash",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3054
+      "line": 3053
     },
     "group": "correctness",
     "level": "deny",
@@ -10061,11 +10061,11 @@
     "id": "unnecessary_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 207
+      "line": 208
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for casts to the same type, casts of int literals to integer types, casts of float\nliterals to float types and casts between raw pointers without changing type or constness.\n\n### Why is this bad?\nIt's just unnecessary.\n\n### Known problems\nWhen the expression on the left is a function call, the lint considers the return type to be\na type alias if it's aliased through a `use` statement\n(like `use std::io::Result as IoResult`). It will not lint such cases.\n\nThis check is also rather primitive. It will only work on primitive types without any\nintermediate references, raw pointers and trait objects may or may not work.\n\n### Example\n```rust\nlet _ = 2i32 as i32;\nlet _ = 0.5 as f32;\n```\n\nBetter:\n\n```rust\nlet _ = 2_i32;\nlet _ = 0.5_f32;\n```",
+    "docs": "\n### What it does\nChecks for casts to the same type, casts of int literals to integer\ntypes, casts of float literals to float types, and casts between raw\npointers that don't change type or constness.\n\n### Why is this bad?\nIt's just unnecessary.\n\n### Known problems\nWhen the expression on the left is a function call, the lint considers\nthe return type to be a type alias if it's aliased through a `use`\nstatement (like `use std::io::Result as IoResult`). It will not lint\nsuch cases.\n\nThis check will only work on primitive types without any intermediate\nreferences: raw pointers and trait objects may or may not work.\n\n### Example\n```rust\nlet _ = 2i32 as i32;\nlet _ = 0.5 as f32;\n```\n\nBetter:\n\n```rust\nlet _ = 2_i32;\nlet _ = 0.5_f32;\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -10091,7 +10091,7 @@
     "id": "unnecessary_fallible_conversions",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3723
+      "line": 3722
     },
     "group": "style",
     "level": "warn",
@@ -10106,7 +10106,7 @@
     "id": "unnecessary_filter_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1548
+      "line": 1547
     },
     "group": "complexity",
     "level": "warn",
@@ -10121,7 +10121,7 @@
     "id": "unnecessary_find_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1578
+      "line": 1577
     },
     "group": "complexity",
     "level": "warn",
@@ -10136,7 +10136,7 @@
     "id": "unnecessary_fold",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1518
+      "line": 1517
     },
     "group": "style",
     "level": "warn",
@@ -10151,7 +10151,7 @@
     "id": "unnecessary_get_then_check",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 4057
+      "line": 4056
     },
     "group": "suspicious",
     "level": "warn",
@@ -10166,7 +10166,7 @@
     "id": "unnecessary_join",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2301
+      "line": 2300
     },
     "group": "pedantic",
     "level": "allow",
@@ -10181,7 +10181,7 @@
     "id": "unnecessary_lazy_evaluations",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1869
+      "line": 1868
     },
     "group": "style",
     "level": "warn",
@@ -10226,7 +10226,7 @@
     "id": "unnecessary_min_or_max",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3969
+      "line": 3968
     },
     "group": "complexity",
     "level": "warn",
@@ -10286,7 +10286,7 @@
     "id": "unnecessary_result_map_or_else",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3994
+      "line": 3993
     },
     "group": "suspicious",
     "level": "warn",
@@ -10346,7 +10346,7 @@
     "id": "unnecessary_sort_by",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3088
+      "line": 3087
     },
     "group": "complexity",
     "level": "warn",
@@ -10376,7 +10376,7 @@
     "id": "unnecessary_to_owned",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2269
+      "line": 2268
     },
     "group": "perf",
     "level": "warn",
@@ -10863,7 +10863,7 @@
     "id": "useless_asref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1493
+      "line": 1492
     },
     "group": "complexity",
     "level": "warn",
@@ -11001,7 +11001,7 @@
     "id": "vec_resize_to_zero",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3110
+      "line": 3109
     },
     "group": "correctness",
     "level": "deny",
@@ -11031,7 +11031,7 @@
     "id": "verbose_file_reads",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3137
+      "line": 3136
     },
     "group": "restriction",
     "level": "allow",
@@ -11046,7 +11046,7 @@
     "id": "waker_clone_wake",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3696
+      "line": 3695
     },
     "group": "perf",
     "level": "warn",
@@ -11301,7 +11301,7 @@
     "id": "zero_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 688
+      "line": 691
     },
     "group": "style",
     "level": "warn",
@@ -11346,7 +11346,7 @@
     "id": "zst_offset",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1707
+      "line": 1706
     },
     "group": "correctness",
     "level": "deny",
