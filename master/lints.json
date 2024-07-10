@@ -7073,21 +7073,6 @@
     }
   },
   {
-    "id": "overflow_check_conditional",
-    "id_span": {
-      "path": "src/overflow_check_conditional.rs",
-      "line": 22
-    },
-    "group": "complexity",
-    "level": "warn",
-    "docs": "\n### What it does\nDetects classic underflow/overflow checks.\n\n### Why is this bad?\nMost classic C underflow/overflow checks will fail in\nRust. Users can use functions like `overflowing_*` and `wrapping_*` instead.\n\n### Example\n```rust\na + b < a;\n```",
-    "version": "pre 1.29.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
     "id": "overly_complex_bool_expr",
     "id_span": {
       "path": "src/booleans.rs",
@@ -7134,6 +7119,24 @@
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
     }
+  },
+  {
+    "id": "panicking_overflow_checks",
+    "id_span": {
+      "path": "src/panicking_overflow_checks.rs",
+      "line": 44
+    },
+    "group": "correctness",
+    "level": "deny",
+    "docs": "\n### What it does\nDetects C-style underflow/overflow checks.\n\n### Why is this bad?\nThese checks will, by default, panic in debug builds rather than check\nwhether the operation caused an overflow.\n\n### Example\n```rust\nif a + b < a {\n    // handle overflow\n}\n```\n\nUse instead:\n```rust\nif a.checked_add(b).is_none() {\n    // handle overflow\n}\n```\n\nOr:\n```rust\nif a.overflowing_add(b).1 {\n    // handle overflow\n}\n```\n### Past names\n\n* `overflow_check_conditional`\n\n",
+    "version": "pre 1.29.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    },
+    "former_ids": [
+      "overflow_check_conditional"
+    ]
   },
   {
     "id": "panicking_unwrap",
