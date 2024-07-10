@@ -240,7 +240,7 @@ fn get_declared_bounds_spans(generics: &Generics) -> BTreeMap<BoundLftSymbolPair
         gp.bounds.iter().for_each(|bound| {
             if let GenericBound::Outlives(outlived_lft) = bound {
                 let decl_span = if let Some(colon_span) = gp.colon_span {
-                    spans_merge(colon_span, outlived_lft.ident.span)
+                    colon_span.to(outlived_lft.ident.span)
                 } else {
                     outlived_lft.ident.span
                 };
@@ -475,7 +475,7 @@ impl ImpliedBoundsLinter {
                 let impl_bound_decl = implied_bound.to_declaration();
                 let msg_missing = format!("missing lifetimes bound declaration: {impl_bound_decl}");
                 if let Some(long_lft_decl_span) = self.declared_lifetimes_spans.get(&implied_bound.long_lft) {
-                    let nested_ref_span = spans_merge(*outlived_lft_span, *long_lft_span);
+                    let nested_ref_span = outlived_lft_span.to(*long_lft_span);
                     span_lint_and_fix_sugg_and_note_cause(
                         cx,
                         EXPLICIT_LIFETIMES_BOUND,
@@ -492,7 +492,7 @@ impl ImpliedBoundsLinter {
 
         for (declared_bound, decl_span) in self.declared_bounds_spans {
             if let Some((outlived_lft_span, long_lft_span)) = self.implied_bounds_span_pairs.get(&declared_bound) {
-                let nested_ref_span = spans_merge(*outlived_lft_span, *long_lft_span);
+                let nested_ref_span = outlived_lft_span.to(*long_lft_span);
                 span_lint_and_note(
                     cx,
                     IMPLICIT_LIFETIMES_BOUND,
@@ -508,15 +508,6 @@ impl ImpliedBoundsLinter {
             }
         }
     }
-}
-
-fn spans_merge(span1: Span, span2: Span) -> Span {
-    Span::new(
-        span1.lo().min(span2.lo()),
-        span1.hi().max(span2.hi()),
-        span1.ctxt(),
-        span1.parent(),
-    )
 }
 
 /// Combine `span_lint_and_sugg` and `span_lint_and_help`:
