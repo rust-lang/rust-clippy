@@ -1595,7 +1595,7 @@
     "id": "doc_lazy_continuation",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 418
+      "line": 419
     },
     "group": "style",
     "level": "warn",
@@ -1610,7 +1610,7 @@
     "id": "doc_link_with_quotes",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 254
+      "line": 255
     },
     "group": "pedantic",
     "level": "allow",
@@ -1625,7 +1625,7 @@
     "id": "doc_markdown",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 74
+      "line": 75
     },
     "group": "pedantic",
     "level": "allow",
@@ -1820,7 +1820,7 @@
     "id": "empty_docs",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 361
+      "line": 362
     },
     "group": "suspicious",
     "level": "warn",
@@ -1869,7 +1869,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nFinds enum variants without fields that are declared with empty brackets.\n\n### Why restrict this?\nEmpty brackets after a enum variant declaration are redundant and can be omitted,\nand it may be desirable to do so consistently for style.\n\nHowever, removing the brackets also introduces a public constant named after the variant,\nso this is not just a syntactic simplification but an an API change, and adding them back\nis a *breaking* API change.\n\n### Example\n```rust\nenum MyEnum {\n    HasData(u8),\n    HasNoData(),       // redundant parentheses\n    NoneHereEither {}, // redundant braces\n}\n```\n\nUse instead:\n```rust\nenum MyEnum {\n    HasData(u8),\n    HasNoData,\n    NoneHereEither,\n}\n```",
+    "docs": "\n### What it does\nFinds enum variants without fields that are declared with empty brackets.\n\n### Why restrict this?\nEmpty brackets after a enum variant declaration are redundant and can be omitted,\nand it may be desirable to do so consistently for style.\n\nHowever, removing the brackets also introduces a public constant named after the variant,\nso this is not just a syntactic simplification but an API change, and adding them back\nis a *breaking* API change.\n\n### Example\n```rust\nenum MyEnum {\n    HasData(u8),\n    HasNoData(),       // redundant parentheses\n    NoneHereEither {}, // redundant braces\n}\n```\n\nUse instead:\n```rust\nenum MyEnum {\n    HasData(u8),\n    HasNoData,\n    NoneHereEither,\n}\n```",
     "version": "1.77.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -1929,7 +1929,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nFinds structs without fields (a so-called \"empty struct\") that are declared with brackets.\n\n### Why restrict this?\nEmpty brackets after a struct declaration can be omitted,\nand it may be desirable to do so consistently for style.\n\nHowever, removing the brackets also introduces a public constant named after the struct,\nso this is not just a syntactic simplification but an an API change, and adding them back\nis a *breaking* API change.\n\n### Example\n```rust\nstruct Cookie {}\nstruct Biscuit();\n```\nUse instead:\n```rust\nstruct Cookie;\nstruct Biscuit;\n```",
+    "docs": "\n### What it does\nFinds structs without fields (a so-called \"empty struct\") that are declared with brackets.\n\n### Why restrict this?\nEmpty brackets after a struct declaration can be omitted,\nand it may be desirable to do so consistently for style.\n\nHowever, removing the brackets also introduces a public constant named after the struct,\nso this is not just a syntactic simplification but an API change, and adding them back\nis a *breaking* API change.\n\n### Example\n```rust\nstruct Cookie {}\nstruct Biscuit();\n```\nUse instead:\n```rust\nstruct Cookie;\nstruct Biscuit;\n```",
     "version": "1.62.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5543,7 +5543,7 @@
     "id": "missing_errors_doc",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 138
+      "line": 139
     },
     "group": "pedantic",
     "level": "allow",
@@ -5588,7 +5588,7 @@
     "id": "missing_panics_doc",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 169
+      "line": 170
     },
     "group": "pedantic",
     "level": "allow",
@@ -5603,7 +5603,7 @@
     "id": "missing_safety_doc",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 109
+      "line": 110
     },
     "group": "style",
     "level": "warn",
@@ -6182,7 +6182,7 @@
     "id": "needless_doctest_main",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 198
+      "line": 199
     },
     "group": "style",
     "level": "warn",
@@ -9176,7 +9176,7 @@
     "id": "suspicious_doc_comments",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 337
+      "line": 338
     },
     "group": "suspicious",
     "level": "warn",
@@ -9371,7 +9371,7 @@
     "id": "test_attr_in_doctest",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 231
+      "line": 232
     },
     "group": "suspicious",
     "level": "warn",
@@ -10316,7 +10316,7 @@
     "id": "unnecessary_safety_doc",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 290
+      "line": 291
     },
     "group": "restriction",
     "level": "allow",
