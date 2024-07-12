@@ -1,5 +1,5 @@
-#[warn(clippy::string_slice)]
-#[allow(clippy::no_effect)]
+#![warn(clippy::string_slice)]
+#![allow(clippy::no_effect)]
 
 fn main() {
     &"Ölkanne"[1..];
