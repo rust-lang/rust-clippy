@@ -744,7 +744,7 @@
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for a known NaN float being cast to an integer\n\n### Why is this bad?\nNaNs are cast into zero, so one could simply use this and make the\ncode more readable. The lint could also hint at a programmer error.\n\n### Example\n```rust\nlet _: (0.0_f32 / 0.0) as u64;\n```\nUse instead:\n```rust\nlet _: = 0_u64;\n```",
+    "docs": "\n### What it does\nChecks for a known NaN float being cast to an integer\n\n### Why is this bad?\nNaNs are cast into zero, so one could simply use this and make the\ncode more readable. The lint could also hint at a programmer error.\n\n### Example\n```rust\nlet _ = (0.0_f32 / 0.0) as u64;\n```\nUse instead:\n```rust\nlet _ = 0_u64;\n```",
     "version": "1.66.0",
     "applicability": {
       "is_multi_part_suggestion": false,
