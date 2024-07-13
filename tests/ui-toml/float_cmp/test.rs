@@ -1,21 +1,21 @@
 //@no-rustfix
+//@revisions: change_detect const_cmp named_const
+//@[change_detect] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/float_cmp/change_detect
+//@[const_cmp] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/float_cmp/const_cmp
+//@[named_const] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/float_cmp/named_const
 
 // FIXME(f16_f128): const casting is not yet supported for these types. Add when available.
 
-#![warn(clippy::float_cmp)]
+#![deny(clippy::float_cmp)]
 #![allow(clippy::op_ref, clippy::eq_op)]
 
 fn main() {
     {
         fn _f(x: f32, y: f32) {
-            let _ = x == y;
-            //~^ ERROR: strict comparison of `f32` or `f64`
-            let _ = x != y;
-            //~^ ERROR: strict comparison of `f32` or `f64`
-            let _ = x == 5.5;
-            //~^ ERROR: strict comparison of `f32` or `f64`
-            let _ = 5.5 == x;
-            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = x == y; //~ float_cmp
+            let _ = x != y; //~ float_cmp
+            let _ = x == 5.5; //~ float_cmp
+            let _ = 5.5 == x; //~ float_cmp
 
             let _ = x < 5.5;
             let _ = x <= 5.5;
@@ -38,14 +38,10 @@ fn main() {
     }
     {
         fn _f(x: f64, y: f64) {
-            let _ = x == y;
-            //~^ ERROR: strict comparison of `f32` or `f64`
-            let _ = x != y;
-            //~^ ERROR: strict comparison of `f32` or `f64`
-            let _ = x == 5.5;
-            //~^ ERROR: strict comparison of `f32` or `f64`
-            let _ = 5.5 == x;
-            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = x == y; //~ float_cmp
+            let _ = x != y; //~ float_cmp
+            let _ = x == 5.5; //~ float_cmp
+            let _ = 5.5 == x; //~ float_cmp
 
             let _ = x < 5.5;
             let _ = x <= 5.5;
@@ -68,16 +64,11 @@ fn main() {
     }
     {
         fn _f(x: [f32; 4], y: [f32; 4]) {
-            let _ = x == y;
-            //~^ ERROR: strict comparison of `f32` or `f64`
-            let _ = x == [5.5; 4];
-            //~^ ERROR: strict comparison of `f32` or `f64`
-            let _ = [5.5; 4] == x;
-            //~^ ERROR: strict comparison of `f32` or `f64`
-            let _ = [0.0, 0.0, 0.0, 5.5] == x;
-            //~^ ERROR: strict comparison of `f32` or `f64`
-            let _ = x == [0.0, 0.0, 0.0, 5.5];
-            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = x == y; //~ float_cmp
+            let _ = x == [5.5; 4]; //~ float_cmp
+            let _ = [5.5; 4] == x; //~ float_cmp
+            let _ = [0.0, 0.0, 0.0, 5.5] == x; //~ float_cmp
+            let _ = x == [0.0, 0.0, 0.0, 5.5]; //~ float_cmp
 
             let _ = [0.0; 4] == x;
             let _ = [-0.0; 4] == x;
@@ -93,16 +84,11 @@ fn main() {
     }
     {
         fn _f(x: [f64; 4], y: [f64; 4]) {
-            let _ = x == y;
-            //~^ ERROR: strict comparison of `f32` or `f64`
-            let _ = x == [5.5; 4];
-            //~^ ERROR: strict comparison of `f32` or `f64`
-            let _ = [5.5; 4] == x;
-            //~^ ERROR: strict comparison of `f32` or `f64`
-            let _ = [0.0, 0.0, 0.0, 5.5] == x;
-            //~^ ERROR: strict comparison of `f32` or `f64`
-            let _ = x == [0.0, 0.0, 0.0, 5.5];
-            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = x == y; //~ float_cmp
+            let _ = x == [5.5; 4]; //~ float_cmp
+            let _ = [5.5; 4] == x; //~ float_cmp
+            let _ = [0.0, 0.0, 0.0, 5.5] == x; //~ float_cmp
+            let _ = x == [0.0, 0.0, 0.0, 5.5]; //~ float_cmp
 
             let _ = [0.0; 4] == x;
             let _ = [-0.0; 4] == x;
@@ -120,17 +106,13 @@ fn main() {
     // Reference comparisons
     {
         fn _f(x: &&&f32, y: &&&f32) {
-            let _ = x == y;
-            //~^ ERROR: strict comparison of `f32` or `f64`
-
+            let _ = x == y; //~ float_cmp
             let _ = x == &&&0.0;
         }
     }
     {
         fn _f(x: &&&[f32; 2], y: &&&[f32; 2]) {
-            let _ = x == y;
-            //~^ ERROR: strict comparison of `f32` or `f64`
-
+            let _ = x == y; //~ float_cmp
             let _ = x == &&&[0.0, -0.0];
         }
     }
@@ -139,26 +121,24 @@ fn main() {
     {
         const C: f32 = 5.5;
         fn _f(x: f32, y: f64) {
-            let _ = x == C;
-            let _ = C == x;
-            let _ = &&x == &&C;
-            let _ = &&C == &&x;
-            let _ = y == C as f64;
-            let _ = C as f64 == y;
+            let _ = x == C; //~[named_const] float_cmp
+            let _ = C == x; //~[named_const] float_cmp
+            let _ = &&x == &&C; //~[named_const] float_cmp
+            let _ = &&C == &&x; //~[named_const] float_cmp
+            let _ = y == C as f64; //~[named_const] float_cmp
+            let _ = C as f64 == y; //~[named_const] float_cmp
 
-            let _ = C * x == x * x;
-            //~^ ERROR: strict comparison of `f32` or `f64`
-            let _ = x * x == C * x;
-            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = C * x == x * x; //~ float_cmp
+            let _ = x * x == C * x; //~ float_cmp
         }
     }
     {
         const C: [f32; 2] = [5.5, 5.5];
         fn _f(x: [f32; 2]) {
-            let _ = x == C;
-            let _ = C == x;
-            let _ = &&x == &&C;
-            let _ = &&C == &&x;
+            let _ = x == C; //~[named_const] float_cmp
+            let _ = C == x; //~[named_const] float_cmp
+            let _ = &&x == &&C; //~[named_const] float_cmp
+            let _ = &&C == &&x; //~[named_const] float_cmp
         }
     }
 
@@ -167,20 +147,17 @@ fn main() {
         const fn f(x: f32) -> f32 {
             todo!()
         }
-        let _ = f(1.0) == f(5.0);
-        let _ = 1.0 == f(5.0);
-        let _ = f(1.0) + 1.0 != 5.0;
+        let _ = f(1.0) == f(5.0); //~[const_cmp] float_cmp
+        let _ = 1.0 == f(5.0); //~[const_cmp] float_cmp
+        let _ = f(1.0) + 1.0 != 5.0; //~[const_cmp] float_cmp
     }
     {
         fn f(x: f32) -> f32 {
             todo!()
         }
-        let _ = f(1.0) == f(5.0);
-        //~^ ERROR: strict comparison of `f32` or `f64`
-        let _ = 1.0 == f(5.0);
-        //~^ ERROR: strict comparison of `f32` or `f64`
-        let _ = f(1.0) + 1.0 != 5.0;
-        //~^ ERROR: strict comparison of `f32` or `f64`
+        let _ = f(1.0) == f(5.0); //~ float_cmp
+        let _ = 1.0 == f(5.0); //~ float_cmp
+        let _ = f(1.0) + 1.0 != 5.0; //~ float_cmp
     }
 
     // Pointer equality
@@ -222,10 +199,8 @@ fn main() {
             let _ = C[0] == x;
             let _ = C[2] == x;
 
-            let _ = x == C[1];
-            //~^ ERROR: strict comparison of `f32` or `f64`
-            let _ = C[1] == x;
-            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = x == C[1]; //~ float_cmp
+            let _ = C[1] == x; //~ float_cmp
         }
     }
 
@@ -284,33 +259,32 @@ fn main() {
         }
 
         fn _f(x: f32, y: f32) {
-            let _ = x == x + 1.0;
-            let _ = x + 1.0 == x;
-            let _ = -x == -x + 1.0;
-            let _ = -x + 1.0 == -x;
-            let _ = x == f1(x);
-            let _ = f1(x) == x;
-            let _ = x == f2(x, y);
-            let _ = f2(x, y) == x;
-            let _ = f1(f1(x)) == f1(x);
-            let _ = f1(x) == f1(f1(x));
+            let _ = x == x + 1.0; //~[change_detect] float_cmp
+            let _ = x + 1.0 == x; //~[change_detect] float_cmp
+            let _ = -x == -x + 1.0; //~[change_detect] float_cmp
+            let _ = -x + 1.0 == -x; //~[change_detect] float_cmp
+            let _ = x == f1(x); //~[change_detect] float_cmp
+            let _ = f1(x) == x; //~[change_detect] float_cmp
+            let _ = x == f2(x, y); //~[change_detect] float_cmp
+            let _ = f2(x, y) == x; //~[change_detect] float_cmp
+            let _ = f1(f1(x)) == f1(x); //~[change_detect] float_cmp
+            let _ = f1(x) == f1(f1(x)); //~[change_detect] float_cmp
 
             let z = (x, y);
-            let _ = z.0 == z.0 + 1.0;
-            let _ = z.0 + 1.0 == z.0;
+            let _ = z.0 == z.0 + 1.0; //~[change_detect] float_cmp
+            let _ = z.0 + 1.0 == z.0; //~[change_detect] float_cmp
         }
 
         fn _f2(x: &f32) {
-            let _ = *x + 1.0 == *x;
-            let _ = *x == *x + 1.0;
-            let _ = *x == f1(*x);
-            let _ = f1(*x) == *x;
+            let _ = *x + 1.0 == *x; //~[change_detect] float_cmp
+            let _ = *x == *x + 1.0; //~[change_detect] float_cmp
+            let _ = *x == f1(*x); //~[change_detect] float_cmp
+            let _ = f1(*x) == *x; //~[change_detect] float_cmp
         }
     }
     {
         fn _f(mut x: impl Iterator<Item = f32>) {
-            let _ = x.next().unwrap() == x.next().unwrap() + 1.0;
-            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = x.next().unwrap() == x.next().unwrap() + 1.0; //~ float_cmp
         }
     }
     {
@@ -326,10 +300,8 @@ fn main() {
         }
 
         fn _f(x: S) {
-            let _ = x.f() + 1.0 == x.f();
-            //~^ ERROR: strict comparison of `f32` or `f64`
-            let _ = x.f() == x.f() + 1.0;
-            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = x.f() + 1.0 == x.f(); //~ float_cmp
+            let _ = x.f() == x.f() + 1.0; //~ float_cmp
         }
     }
     {
