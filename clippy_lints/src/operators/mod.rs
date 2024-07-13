@@ -24,8 +24,11 @@ mod verbose_bit_mask;
 pub(crate) mod arithmetic_side_effects;
 
 use clippy_config::Conf;
+use clippy_utils::def_path_def_ids;
+use rustc_hir::def_id::DefIdSet;
 use rustc_hir::{Body, Expr, ExprKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::ty::TyCtxt;
 use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
@@ -774,9 +777,8 @@ declare_clippy_lint! {
     "explicit self-assignment"
 }
 
-#[derive(Clone, Copy)]
 struct FloatCmpConfig {
-    ignore_named_constants: bool,
+    allowed_constants: DefIdSet,
     ignore_constant_comparisons: bool,
     ignore_change_detection: bool,
 }
@@ -788,13 +790,17 @@ pub struct Operators {
     float_cmp_config: FloatCmpConfig,
 }
 impl Operators {
-    pub fn new(conf: &'static Conf) -> Self {
+    pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {
         Self {
             arithmetic_context: numeric_arithmetic::Context::default(),
             verbose_bit_mask_threshold: conf.verbose_bit_mask_threshold,
             modulo_arithmetic_allow_comparison_to_zero: conf.allow_comparison_to_zero,
             float_cmp_config: FloatCmpConfig {
-                ignore_named_constants: conf.float_cmp_ignore_named_constants,
+                allowed_constants: conf
+                    .float_cmp_allowed_constants
+                    .iter()
+                    .flat_map(|x| def_path_def_ids(tcx, &x.split("::").collect::<Vec<_>>()))
+                    .collect(),
                 ignore_constant_comparisons: conf.float_cmp_ignore_constant_comparisons,
                 ignore_change_detection: conf.float_cmp_ignore_change_detection,
             },
@@ -854,7 +860,7 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                 float_equality_without_abs::check(cx, e, op.node, lhs, rhs);
                 integer_division::check(cx, e, op.node, lhs, rhs);
                 cmp_owned::check(cx, op.node, lhs, rhs);
-                float_cmp::check(cx, self.float_cmp_config, e, op.node, lhs, rhs);
+                float_cmp::check(cx, &self.float_cmp_config, e, op.node, lhs, rhs);
                 modulo_one::check(cx, e, op.node, rhs);
                 modulo_arithmetic::check(
                     cx,

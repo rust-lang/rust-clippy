@@ -245,14 +245,15 @@ pub fn is_inside_always_const_context(tcx: TyCtxt<'_>, hir_id: HirId) -> bool {
     }
 }
 
-/// Checks if the expression is path to either a constant or an associated constant.
-pub fn is_expr_named_const<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> bool {
-    matches!(&e.kind, ExprKind::Path(p)
-        if matches!(
-            cx.qpath_res(p, e.hir_id),
-            Res::Def(DefKind::Const | DefKind::AssocConst, _)
-        )
-    )
+/// If the expression is path to either a constant or an associated constant get the `DefId`.
+pub fn get_named_const_def_id<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> Option<DefId> {
+    if let ExprKind::Path(p) = &e.kind
+        && let Res::Def(DefKind::Const | DefKind::AssocConst, id) = cx.qpath_res(p, e.hir_id)
+    {
+        Some(id)
+    } else {
+        None
+    }
 }
 
 /// Checks if a `Res` refers to a constructor of a `LangItem`

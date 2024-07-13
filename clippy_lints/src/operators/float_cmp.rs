@@ -2,7 +2,7 @@ use clippy_utils::consts::{constant, Constant};
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::visitors::{for_each_expr_without_closures, is_const_evaluatable};
-use clippy_utils::{get_item_name, is_expr_named_const, path_res, peel_hir_expr_while, SpanlessEq};
+use clippy_utils::{get_item_name, get_named_const_def_id, path_res, peel_hir_expr_while, SpanlessEq};
 use core::ops::ControlFlow;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
@@ -14,7 +14,7 @@ use super::{FloatCmpConfig, FLOAT_CMP};
 
 pub(crate) fn check<'tcx>(
     cx: &LateContext<'tcx>,
-    config: FloatCmpConfig,
+    config: &FloatCmpConfig,
     expr: &'tcx Expr<'_>,
     op: BinOpKind,
     left: &'tcx Expr<'_>,
@@ -56,8 +56,8 @@ pub(crate) fn check<'tcx>(
             return;
         }
 
-        if config.ignore_named_constants
-            && (is_expr_named_const(cx, left_reduced) || is_expr_named_const(cx, right_reduced))
+        if get_named_const_def_id(cx, left_reduced).is_some_and(|id| config.allowed_constants.contains(&id))
+            || get_named_const_def_id(cx, right_reduced).is_some_and(|id| config.allowed_constants.contains(&id))
         {
             return;
         }

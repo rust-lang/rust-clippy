@@ -6045,6 +6045,9 @@ Released 2018-09-13
 [`enum-variant-name-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#enum-variant-name-threshold
 [`enum-variant-size-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#enum-variant-size-threshold
 [`excessive-nesting-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#excessive-nesting-threshold
+[`float-cmp-allowed-constants`]: https://doc.rust-lang.org/clippy/lint_configuration.html#float-cmp-allowed-constants
+[`float-cmp-ignore-change-detection`]: https://doc.rust-lang.org/clippy/lint_configuration.html#float-cmp-ignore-change-detection
+[`float-cmp-ignore-constant-comparisons`]: https://doc.rust-lang.org/clippy/lint_configuration.html#float-cmp-ignore-constant-comparisons
 [`future-size-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#future-size-threshold
 [`ignore-interior-mutability`]: https://doc.rust-lang.org/clippy/lint_configuration.html#ignore-interior-mutability
 [`large-error-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#large-error-threshold

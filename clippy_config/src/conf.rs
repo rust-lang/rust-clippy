@@ -647,17 +647,17 @@ define_Conf! {
     (warn_unsafe_macro_metavars_in_private_macros: bool = false),
     /// Lint: FLOAT_CMP
     ///
-    /// Whether to ignore comparisons to a named constnat
+    /// The list of constants which can be checked for exact equality.
     ///
     /// #### Example
     /// ```no_run
     /// const VALUE: f64 = 1.0;
     /// fn is_value(x: f64) -> bool {
-    ///     // Will warn if the config is `false`
+    ///     // Will warn unless `crate_name::VALUE` is allowed
     ///     x == VALUE
     /// }
     /// ```
-    (float_cmp_ignore_named_constants: bool = true),
+    (float_cmp_allowed_constants: Vec<String> = Vec::new()),
     /// Lint: FLOAT_CMP
     ///
     /// Whether to ignore comparisons which have a constant result.

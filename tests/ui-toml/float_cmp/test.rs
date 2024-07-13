@@ -7,7 +7,9 @@
 // FIXME(f16_f128): const casting is not yet supported for these types. Add when available.
 
 #![deny(clippy::float_cmp)]
-#![allow(clippy::op_ref, clippy::eq_op)]
+#![allow(clippy::op_ref, clippy::eq_op, clippy::legacy_numeric_constants)]
+
+const F32_ARRAY: [f32; 2] = [5.5, 5.5];
 
 fn main() {
     {
@@ -119,26 +121,24 @@ fn main() {
 
     // Comparisons to named constant
     {
-        const C: f32 = 5.5;
         fn _f(x: f32, y: f64) {
-            let _ = x == C; //~[named_const] float_cmp
-            let _ = C == x; //~[named_const] float_cmp
-            let _ = &&x == &&C; //~[named_const] float_cmp
-            let _ = &&C == &&x; //~[named_const] float_cmp
-            let _ = y == C as f64; //~[named_const] float_cmp
-            let _ = C as f64 == y; //~[named_const] float_cmp
+            let _ = x == f32::EPSILON; //~[named_const] float_cmp
+            let _ = f32::EPSILON == x; //~[named_const] float_cmp
+            let _ = &&x == &&core::f32::EPSILON; //~[named_const] float_cmp
+            let _ = &&core::f32::EPSILON == &&x; //~[named_const] float_cmp
+            let _ = y == f32::EPSILON as f64; //~[named_const] float_cmp
+            let _ = f32::EPSILON as f64 == y; //~[named_const] float_cmp
 
-            let _ = C * x == x * x; //~ float_cmp
-            let _ = x * x == C * x; //~ float_cmp
+            let _ = f32::EPSILON * x == x * x; //~ float_cmp
+            let _ = x * x == f32::EPSILON * x; //~ float_cmp
         }
     }
     {
-        const C: [f32; 2] = [5.5, 5.5];
         fn _f(x: [f32; 2]) {
-            let _ = x == C; //~[named_const] float_cmp
-            let _ = C == x; //~[named_const] float_cmp
-            let _ = &&x == &&C; //~[named_const] float_cmp
-            let _ = &&C == &&x; //~[named_const] float_cmp
+            let _ = x == F32_ARRAY; //~[named_const] float_cmp
+            let _ = F32_ARRAY == x; //~[named_const] float_cmp
+            let _ = &&x == &&F32_ARRAY; //~[named_const] float_cmp
+            let _ = &&F32_ARRAY == &&x; //~[named_const] float_cmp
         }
     }
 
