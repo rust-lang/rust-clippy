@@ -8,7 +8,7 @@ use rustc_errors::{Applicability, Diag, SuggestionStyle};
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{BinOpKind, Expr, ExprKind, QPath};
 use rustc_lint::LateContext;
-use rustc_middle::ty::{self, FloatTy, Ty};
+use rustc_middle::ty::{self, FloatTy, Ty, TyCtxt};
 use rustc_span::symbol::sym;
 use rustc_span::Span;
 use rustc_target::abi::IntegerType;
@@ -100,6 +100,7 @@ fn apply_reductions(cx: &LateContext<'_>, nbits: u64, expr: &Expr<'_>, signed: b
                 && let Some(def_id) = cx.qpath_res(func_qpath, func.hir_id).opt_def_id()
                 && cx.tcx.is_diagnostic_item(sym::mem_size_of, def_id)
                 && let Some(ty) = cx.typeck_results().node_args(func.hir_id).types().next()
+                && is_valid_sizeof(cx.tcx, ty)
                 && let Ok(layout) = cx.tcx.layout_of(cx.param_env.and(ty))
             {
                 let size: u64 = layout.layout.size().bytes();
@@ -227,4 +228,24 @@ fn offer_suggestion(
         // always show the suggestion in a separate line
         SuggestionStyle::ShowAlways,
     );
+}
+
+// FIXME(@tesuji): May extend this to a validator functions to include:
+// * some ABI-guaranteed STD types,
+// * some non-local crate types suggested in [PR-12962][1].
+// [1]: https://github.com/rust-lang/rust-clippy/pull/12962#discussion_r1661500351
+fn is_valid_sizeof<'tcx>(tcx: TyCtxt<'tcx>, ty: Ty<'tcx>) -> bool {
+    if ty.is_primitive_ty() || ty.is_any_ptr() || ty.is_box() || ty.is_slice() {
+        return true;
+    }
+    if let ty::Adt(def, args) = ty.kind()
+        && def.did().is_local()
+    {
+        def.all_fields().all(|field| {
+            let ty = field.ty(tcx, args);
+            is_valid_sizeof(tcx, ty)
+        })
+    } else {
+        false
+    }
 }

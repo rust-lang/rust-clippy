@@ -511,5 +511,11 @@ pub fn issue_9613() {
     CHUNK as u32;
     u64::MIN as u32;
     //~^ ERROR: casting `u64` to `u32` may truncate the value
+    struct Foo(usize, u32);
+    struct Bar(usize, String);
+    core::mem::size_of::<Foo>() as u32;
+    core::mem::size_of::<Bar>() as u32;
+    //~^ ERROR: casting `usize` to `u32` may truncate
     core::mem::size_of::<String>() as u32;
+    //~^ ERROR: casting `usize` to `u32` may truncate
 }
