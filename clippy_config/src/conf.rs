@@ -405,6 +405,10 @@ define_Conf! {
     ///
     /// The list of disallowed types, written as fully qualified paths.
     (disallowed_types: Vec<DisallowedPath> = Vec::new()),
+    /// Lint: DISALLOWED_TYPES.
+    ///
+    /// Enables lint in external macros.
+    (lint_disallowed_types_in_external_macros: bool = true),
     /// Lint: UNREADABLE_LITERAL.
     ///
     /// Should the fraction of a decimal be linted to include separators.

@@ -563,6 +563,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
         ref disallowed_methods,
         ref disallowed_names,
         ref disallowed_types,
+        lint_disallowed_types_in_external_macros,
         ref doc_valid_idents,
         enable_raw_pointer_heuristic_for_send,
         enforce_iter_loop_reborrow,
@@ -961,7 +962,12 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(bool_assert_comparison::BoolAssertComparison));
     store.register_early_pass(move || Box::new(module_style::ModStyle));
     store.register_late_pass(|_| Box::<unused_async::UnusedAsync>::default());
-    store.register_late_pass(move |_| Box::new(disallowed_types::DisallowedTypes::new(disallowed_types.clone())));
+    store.register_late_pass(move |_| {
+        Box::new(disallowed_types::DisallowedTypes::new(
+            disallowed_types.clone(),
+            lint_disallowed_types_in_external_macros,
+        ))
+    });
     store.register_late_pass(move |_| {
         Box::new(missing_enforced_import_rename::ImportRename::new(
             enforced_import_renames.clone(),
