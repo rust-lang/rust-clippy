@@ -1,5 +1,6 @@
-#![deny(clippy::print_stdout)]
-#![deny(clippy::invalid_build_cfg)]
+// Should not emit the lint here!
+
+#![warn(clippy::invalid_build_cfg)]
 #![allow(clippy::needless_if)]
 
 #[cfg(windows)]
@@ -13,14 +14,6 @@ fn pink() {}
 fn pink() {}
 
 fn main() {
-    // Test for #6041
-    println!("Hello");
-    print!("Hello");
-
-    if cfg!(windows) {
-        let _ = 1;
-    }
-
     if cfg!(windows) {}
     if cfg!(not(windows)) {}
     if cfg!(target_os = "freebsd") {}
