@@ -5,6 +5,7 @@ use clippy_utils::{
     get_expr_use_or_unification_node, get_parent_expr, is_lint_allowed, is_path_diagnostic_item, method_calls,
     peel_blocks, SpanlessEq,
 };
+use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{BinOpKind, BorrowKind, Expr, ExprKind, LangItem, Node, QPath};
@@ -462,6 +463,49 @@ impl<'tcx> LateLintPass<'tcx> for StringToString {
                 "`to_string()` called on a `String`",
                 None,
                 "consider using `.clone()`",
+            );
+        }
+    }
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for calling `str::split` with the ASCII space character instead of `str::split_whitespace`.
+    ///
+    /// ### Why is this bad?
+    /// `split` using the ASCII space character does not handle cases where there is a different space character used. `split_whitespace` handles all whitespace characters.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// "A B C".split(' ');
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// "A B C".split_whitespace();
+    /// ```
+    #[clippy::version = "1.81.0"]
+    pub SPLIT_WITH_SPACE,
+    pedantic,
+    "using `str::split` with the ASCII space character instead of `str::split_whitespace`"
+}
+declare_lint_pass!(SplitWithSpace => [SPLIT_WITH_SPACE]);
+
+impl<'tcx> LateLintPass<'tcx> for SplitWithSpace {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'_>) {
+        if let ExprKind::MethodCall(path, _split_recv, [arg], split_ws_span) = expr.kind
+            && path.ident.name == sym!(split)
+            && let ExprKind::Lit(lit) = arg.kind
+            && (matches!(lit.node, LitKind::Char(' '))
+                || matches!(lit.node, LitKind::Str(str, _) if str.as_str() == " "))
+        {
+            span_lint_and_sugg(
+                cx,
+                SPLIT_WITH_SPACE,
+                split_ws_span.with_hi(split_ws_span.lo()),
+                "found call to `str::split` that uses the ASCII space character as an argument".to_string(),
+                "replace the use of `str::split` with `str::split_whitespace`".to_string(),
+                String::new(),
+                Applicability::MachineApplicable,
             );
         }
     }
