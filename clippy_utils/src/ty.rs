@@ -530,7 +530,7 @@ pub fn needs_ordered_drop<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
 pub fn peel_mid_ty_refs(ty: Ty<'_>) -> (Ty<'_>, usize) {
     fn peel(ty: Ty<'_>, count: usize) -> (Ty<'_>, usize) {
         if let ty::Ref(_, ty, _) = ty.kind() {
-            peel(*ty, count + 1)
+            peel(*ty, count.saturating_add(1))
         } else {
             (ty, count)
         }
@@ -543,8 +543,8 @@ pub fn peel_mid_ty_refs(ty: Ty<'_>) -> (Ty<'_>, usize) {
 pub fn peel_mid_ty_refs_is_mutable(ty: Ty<'_>) -> (Ty<'_>, usize, Mutability) {
     fn f(ty: Ty<'_>, count: usize, mutability: Mutability) -> (Ty<'_>, usize, Mutability) {
         match ty.kind() {
-            ty::Ref(_, ty, Mutability::Mut) => f(*ty, count + 1, mutability),
-            ty::Ref(_, ty, Mutability::Not) => f(*ty, count + 1, Mutability::Not),
+            ty::Ref(_, ty, Mutability::Mut) => f(*ty, count.saturating_add(1), mutability),
+            ty::Ref(_, ty, Mutability::Not) => f(*ty, count.saturating_add(1), Mutability::Not),
             _ => (ty, count, mutability),
         }
     }
@@ -572,7 +572,7 @@ pub fn walk_ptrs_hir_ty<'tcx>(ty: &'tcx hir::Ty<'tcx>) -> &'tcx hir::Ty<'tcx> {
 pub fn walk_ptrs_ty_depth(ty: Ty<'_>) -> (Ty<'_>, usize) {
     fn inner(ty: Ty<'_>, depth: usize) -> (Ty<'_>, usize) {
         match ty.kind() {
-            ty::Ref(_, ty, _) => inner(*ty, depth + 1),
+            ty::Ref(_, ty, _) => inner(*ty, depth.saturating_add(1)),
             _ => (ty, depth),
         }
     }
