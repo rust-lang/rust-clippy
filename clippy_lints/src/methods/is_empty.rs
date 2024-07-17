@@ -1,6 +1,6 @@
 use clippy_utils::consts::constant_is_empty;
 use clippy_utils::diagnostics::span_lint;
-use clippy_utils::{find_binding_init, path_to_local};
+use clippy_utils::{find_binding_init, is_inside_always_const_context, path_to_local};
 use rustc_hir::{Expr, HirId};
 use rustc_lint::{LateContext, LintContext};
 use rustc_middle::lint::in_external_macro;
@@ -12,6 +12,9 @@ use super::CONST_IS_EMPTY;
 /// not trigger the lint.
 pub(super) fn check(cx: &LateContext<'_>, expr: &'_ Expr<'_>, receiver: &Expr<'_>) {
     if in_external_macro(cx.sess(), expr.span) || !receiver.span.eq_ctxt(expr.span) {
+        return;
+    }
+    if is_inside_always_const_context(cx.tcx, expr.hir_id) {
         return;
     }
     let init_expr = expr_or_init(cx, receiver);
