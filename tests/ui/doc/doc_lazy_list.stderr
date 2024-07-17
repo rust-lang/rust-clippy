@@ -135,5 +135,65 @@ help: indent this line
 LL | ///   ]
    |      +
 
-error: aborting due to 11 previous errors
+error: doc list item without indentation
+  --> tests/ui/doc/doc_lazy_list.rs:96:5
+   |
+LL | ///   continuation line that is not ambiguous
+   |     ^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///     continuation line that is not ambiguous
+   |       ++
+
+error: doc list item without indentation
+  --> tests/ui/doc/doc_lazy_list.rs:109:5
+   |
+LL | ///       continuation line that is not ambiguous
+   |     ^^^^^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///         continuation line that is not ambiguous
+   |           ++
+
+error: doc list item without indentation
+  --> tests/ui/doc/doc_lazy_list.rs:120:5
+   |
+LL | ///   continuation line that is not ambiguous
+   |     ^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///     continuation line that is not ambiguous
+   |       ++
+
+error: doc list item without indentation
+  --> tests/ui/doc/doc_lazy_list.rs:129:5
+   |
+LL | ///    continuation line that is not ambiguous
+   |     ^^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///      continuation line that is not ambiguous
+   |        ++
+
+error: doc list item without indentation
+  --> tests/ui/doc/doc_lazy_list.rs:142:5
+   |
+LL | ///        continuation line that is not ambiguous
+   |     ^^^^^^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///          continuation line that is not ambiguous
+   |            ++
+
+error: aborting due to 16 previous errors
 

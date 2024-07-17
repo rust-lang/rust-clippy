@@ -45,7 +45,15 @@ pub(super) fn check(
             }
         })
         .sum();
-    if ccount < blockquote_level || lcount < list_indentation {
+    let list_indentation_less_strict = if list_indentation > 2 && blockquote_level == 0 {
+        // This is technically still a lazy continuation, but it's not very confusing.
+        // To make sure it's not very confusing, we also have to be careful of block quote markers,
+        // because they'll eat a space afterward.
+        list_indentation - 1
+    } else {
+        list_indentation
+    };
+    if ccount < blockquote_level || lcount < list_indentation_less_strict {
         let msg = if ccount < blockquote_level {
             "doc quote line without `>` marker"
         } else {

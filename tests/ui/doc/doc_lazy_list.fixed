@@ -78,3 +78,70 @@ fn seven() {}
 ///   ]
 //~^ ERROR: doc list item without indentation
 fn eight() {}
+
+// Test the lazy list macro's exact behavior.
+// https://github.com/rust-lang/rust-clippy/issues/13001
+
+#[rustfmt::skip]
+/// List
+///
+///  * Item with some
+///   continuation line that is not ambiguous
+///
+/// List
+///
+///   * Item with some
+///    continuation line that is not ambiguous
+///
+/// List
+///
+///   * Item with some
+///     continuation line that is not ambiguous
+//~^ ERROR: doc list item without indentation
+///
+/// List
+///
+///   - Outer list
+///       * Inner list
+///        continuation line that is not ambiguous
+///
+/// List
+///
+///   - Outer list
+///       * Inner list
+///         continuation line that is not ambiguous
+//~^ ERROR: doc list item without indentation
+fn nine() {}
+
+#[rustfmt::skip]
+/// List
+///
+/// 1.  Item with some
+///    continuation line that is not ambiguous
+///
+/// 1.  Item with some
+///     continuation line that is not ambiguous
+//~^ ERROR: doc list item without indentation
+///
+///  1. Item with some
+///    continuation line that is not ambiguous
+///
+/// List
+///
+///  1.  Item with some
+///      continuation line that is not ambiguous
+//~^ ERROR: doc list item without indentation
+///
+/// List
+///
+///  1.  Outer list
+///      1.  Inner list
+///         continuation line that is not ambiguous
+///
+/// List
+///
+///  1.  Outer list
+///      1.  Inner list
+///          continuation line that is not ambiguous
+//~^ ERROR: doc list item without indentation
+fn ten() {}
