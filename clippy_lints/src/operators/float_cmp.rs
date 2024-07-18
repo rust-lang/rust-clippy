@@ -29,6 +29,7 @@ pub(crate) fn check<'tcx>(
         && let left_reduced = peel_hir_expr_while(left, peel_expr)
         && let right_reduced = peel_hir_expr_while(right, peel_expr)
         && is_float(cx, left_reduced)
+        && is_float(cx, right_reduced)
         // Don't lint literal comparisons
         && !(matches!(left_reduced.kind, ExprKind::Lit(_)) && matches!(right_reduced.kind, ExprKind::Lit(_)))
         // Allow comparing the results of signum()

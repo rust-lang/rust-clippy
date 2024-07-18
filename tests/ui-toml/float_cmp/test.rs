@@ -242,9 +242,15 @@ fn main() {
                 false
             }
         }
+        impl PartialEq<S> for f32 {
+            fn eq(&self, _: &S) -> bool {
+                false
+            }
+        }
 
         fn _f(x: S, y: f32) {
             let _ = x == y;
+            let _ = y == x;
         }
     }
 
