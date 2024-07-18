@@ -31,7 +31,9 @@ pub(crate) fn check<'tcx>(
         && is_float(cx, left_reduced)
         && is_float(cx, right_reduced)
         // Don't lint literal comparisons
-        && !(matches!(left_reduced.kind, ExprKind::Lit(_)) && matches!(right_reduced.kind, ExprKind::Lit(_)))
+        && let is_left_lit = matches!(left_reduced.kind, ExprKind::Lit(_))
+        && let is_right_lit = matches!(right_reduced.kind, ExprKind::Lit(_))
+        && !(is_left_lit && is_right_lit)
         // Allow comparing the results of signum()
         && !(is_signum(cx, left_reduced) && is_signum(cx, right_reduced))
         && match (path_res(cx, left_reduced), path_res(cx, right_reduced)) {
@@ -57,8 +59,11 @@ pub(crate) fn check<'tcx>(
             return;
         }
 
-        if get_named_const_def_id(cx, left_reduced).is_some_and(|id| config.allowed_constants.contains(&id))
-            || get_named_const_def_id(cx, right_reduced).is_some_and(|id| config.allowed_constants.contains(&id))
+        // Neither `CONST == lit` or `ALLOWED_CONST == x` should lint.
+        if get_named_const_def_id(cx, left_reduced)
+            .is_some_and(|id| is_right_lit || config.allowed_constants.contains(&id))
+            || get_named_const_def_id(cx, right_reduced)
+                .is_some_and(|id| is_left_lit || config.allowed_constants.contains(&id))
         {
             return;
         }

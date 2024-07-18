@@ -7,7 +7,12 @@
 // FIXME(f16_f128): const casting is not yet supported for these types. Add when available.
 
 #![deny(clippy::float_cmp)]
-#![allow(clippy::op_ref, clippy::eq_op, clippy::legacy_numeric_constants)]
+#![allow(
+    clippy::op_ref,
+    clippy::eq_op,
+    clippy::legacy_numeric_constants,
+    clippy::excessive_precision
+)]
 
 const F32_ARRAY: [f32; 2] = [5.5, 5.5];
 
@@ -328,6 +333,14 @@ fn main() {
             let _ = -x == x;
             let _ = x as f64 == x as f64;
             let _ = &&x == &&x;
+        }
+    }
+
+    // Constant to literal
+    {
+        fn _f(x: f64) {
+            let _ = f64::EPSILON == 2.2204460492503131E-16f64;
+            let _ = 2.2204460492503131E-16f64 == core::f64::EPSILON;
         }
     }
 }
