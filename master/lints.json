@@ -11316,7 +11316,7 @@
     "id": "zero_repeat_side_effects",
     "id_span": {
       "path": "src/zero_repeat_side_effects.rs",
-      "line": 40
+      "line": 41
     },
     "group": "suspicious",
     "level": "warn",
