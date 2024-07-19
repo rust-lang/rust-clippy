@@ -19,13 +19,6 @@ pub fn check(cx: &LateContext<'_>, expr: &Expr<'_>, recv: &Expr<'_>, span: Span,
         {
             subst.type_at(0)
         },
-        _ if is_trait_method(cx, expr, sym::Iterator) && msrv.meets(msrvs::ITERATOR_COPIED) => {
-            match get_iterator_item_ty(cx, recv_ty) {
-                // <T as Iterator>::Item
-                Some(ty) => ty,
-                _ => return,
-            }
-        },
         _ => return,
     };
     match inner_ty.kind() {

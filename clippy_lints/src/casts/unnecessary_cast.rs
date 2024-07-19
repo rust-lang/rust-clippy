@@ -52,7 +52,7 @@ pub(super) fn check<'tcx>(
             UNNECESSARY_CAST,
             expr.span,
             format!(
-                "casting raw pointers to the same type and constness is unnecessary (`{cast_from}` -> `{cast_to}`)"
+                "casting raw pointers to the same type and constness is unnecessary (`{cast_from}` -> `{cast_to}`) :D"
             ),
             "try",
             cast_str.clone(),
@@ -166,7 +166,7 @@ pub(super) fn check<'tcx>(
             cx,
             UNNECESSARY_CAST,
             expr.span,
-            format!("casting to the same type is unnecessary (`{cast_from}` -> `{cast_to}`)"),
+            format!("casting to the same type is unnecessary (`{cast_from}` -> `{cast_to}`) =^.^="),
             "try",
             if needs_block {
                 format!("{{ {cast_str} }}")
@@ -209,7 +209,7 @@ fn lint_unnecessary_cast(
         cx,
         UNNECESSARY_CAST,
         expr.span,
-        format!("casting {literal_kind_name} literal to `{cast_to}` is unnecessary"),
+        format!("casting {literal_kind_name} literal to `{cast_to}` is unnecessary UwU"),
         "try",
         sugg,
         Applicability::MachineApplicable,
