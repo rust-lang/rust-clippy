@@ -36,17 +36,37 @@ pub(super) fn check_if_let<'tcx>(
 ) {
     let ty = cx.typeck_results().expr_ty(let_expr);
     let then_ty = cx.typeck_results().expr_ty(then_expr);
-    // The signature is `fn unwrap_or<T>(self: Option<T>, default: T) -> T`.
-    // When `expr_adjustments(then_expr).is_empty()`, `T` should equate to `default`'s type.
-    // Otherwise, type error will occur.
-    if cx.typeck_results().expr_adjustments(then_expr).is_empty()
-        && let rustc_middle::ty::Adt(_did, args) = ty.kind()
+    if let rustc_middle::ty::Adt(_did, args) = ty.kind()
         && let Some(some_ty) = args.first().and_then(|arg| arg.as_type())
-        && some_ty != then_ty
     {
-        return;
+        let else_expr = else_expr.peel_blocks();
+        // The signature is `fn unwrap_or<T>(self: Option<T>, default: T) -> T`.
+        // When `expr_adjustments(then_expr).is_empty()`, `T` should equate to `default`'s type.
+        // Otherwise, type error will occur.
+        if some_ty == then_ty {
+            check_and_lint(cx, expr, let_pat, let_expr, then_expr, else_expr, ty);
+        }
+        // `unwrap_or` fail type checks, try suggesting `map_or`.
+        // NOTE: Since this is sucessfully compiled by rustc before this lint.
+        // `else_expr` should be able to coerced to `then_ty`.
+        else if let Some((ty_name, or_body_snippet, indent)) =
+            check_pattern_simple(cx, expr, let_pat, then_expr, else_expr, ty)
+        {
+            let reindented_or_body = reindent_multiline(or_body_snippet.into(), true, Some(indent));
+
+            let mut app = Applicability::MachineApplicable;
+            let suggestion = sugg::Sugg::hir_with_context(cx, let_expr, expr.span.ctxt(), "..", &mut app).maybe_par();
+            span_lint_and_sugg(
+                cx,
+                MANUAL_UNWRAP_OR,
+                expr.span,
+                format!("this pattern reimplements `{ty_name}::map_or`"),
+                "replace with",
+                format!("{suggestion}.map_or({reindented_or_body}, |x| x)"),
+                app,
+            );
+        }
     }
-    check_and_lint(cx, expr, let_pat, let_expr, then_expr, peel_blocks(else_expr), ty);
 }
 
 fn check_and_lint<'tcx>(
@@ -58,6 +78,20 @@ fn check_and_lint<'tcx>(
     else_expr: &'tcx Expr<'_>,
     ty: Ty<'tcx>,
 ) {
+    if let Some((ty_name, or_body_snippet, indent)) = check_pattern_simple(cx, expr, let_pat, then_expr, else_expr, ty)
+    {
+        lint(cx, expr, let_expr, ty_name, or_body_snippet, indent);
+    }
+}
+
+fn check_pattern_simple<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'_>,
+    let_pat: &'tcx Pat<'_>,
+    then_expr: &'tcx Expr<'_>,
+    else_expr: &'tcx Expr<'_>,
+    ty: Ty<'tcx>,
+) -> Option<(&'static str, String, usize)> {
     if let PatKind::TupleStruct(ref qpath, [unwrap_pat], _) = let_pat.kind
         && let Res::Def(DefKind::Ctor(..), ctor_id) = cx.qpath_res(qpath, let_pat.hir_id)
         && let Some(variant_id) = cx.tcx.opt_parent(ctor_id)
@@ -71,7 +105,9 @@ fn check_and_lint<'tcx>(
         && let Some(indent) = indent_of(cx, expr.span)
         && constant_simple(cx, cx.typeck_results(), else_expr).is_some()
     {
-        lint(cx, expr, let_expr, ty_name, or_body_snippet, indent);
+        Some((ty_name, or_body_snippet, indent))
+    } else {
+        None
     }
 }
 

@@ -239,7 +239,7 @@ mod issue_13018 {
 
     type RefName = i32;
     pub fn get(index: &HashMap<usize, Vec<RefName>>, id: usize) -> &[RefName] {
-        if let Some(names) = index.get(&id) { names } else { &[] }
+        index.get(&id).map_or(&[], |x| x)
     }
 
     pub fn get_match(index: &HashMap<usize, Vec<RefName>>, id: usize) -> &[RefName] {
