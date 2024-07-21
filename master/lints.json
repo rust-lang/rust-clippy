@@ -7229,6 +7229,21 @@
     }
   },
   {
+    "id": "pathbuf_init_then_push",
+    "id_span": {
+      "path": "src/pathbuf_init_then_push.rs",
+      "line": 41
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for calls to `push` immediately after creating a new `PathBuf`.\n\n### Why is this bad?\nMultiple `.join()` calls are usually easier to read than multiple `.push`\ncalls across multiple statements. It might also be possible to use\n`PathBuf::from` instead.\n\n### Known problems\n`.join()` introduces an implicit `clone()`. `PathBuf::from` can alternativly be\nused when the `PathBuf` is newly constructed. This will avoild the implicit clone.\n\n### Example\n```rust\nlet mut path_buf = PathBuf::new();\npath_buf.push(\"foo\");\n```\nUse instead:\n```rust\nlet path_buf = PathBuf::from(\"foo\");\n// or\nlet path_buf = PathBuf::new().join(\"foo\");\n```",
+    "version": "1.81.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "HasPlaceholders"
+    }
+  },
+  {
     "id": "pattern_type_mismatch",
     "id_span": {
       "path": "src/pattern_type_mismatch.rs",
