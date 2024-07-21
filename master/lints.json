@@ -10376,11 +10376,11 @@
     "id": "unnecessary_struct_initialization",
     "id_span": {
       "path": "src/unnecessary_struct_initialization.rs",
-      "line": 36
+      "line": 42
     },
     "group": "nursery",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for initialization of a `struct` by copying a base without setting\nany field.\n\n### Why is this bad?\nReadability suffers from unnecessary struct building.\n\n### Example\n```rust\nstruct S { s: String }\n\nlet a = S { s: String::from(\"Hello, world!\") };\nlet b = S { ..a };\n```\nUse instead:\n```rust\nstruct S { s: String }\n\nlet a = S { s: String::from(\"Hello, world!\") };\nlet b = a;\n```\n\n### Known Problems\nHas false positives when the base is a place expression that cannot be\nmoved out of, see [#10547](https://github.com/rust-lang/rust-clippy/issues/10547).",
+    "docs": "\n### What it does\nChecks for initialization of an identical `struct` from another instance\nof the type, either by copying a base without setting any field or by\nmoving all fields individually.\n\n### Why is this bad?\nReadability suffers from unnecessary struct building.\n\n### Example\n```rust\nstruct S { s: String }\n\nlet a = S { s: String::from(\"Hello, world!\") };\nlet b = S { ..a };\n```\nUse instead:\n```rust\nstruct S { s: String }\n\nlet a = S { s: String::from(\"Hello, world!\") };\nlet b = a;\n```\n\nThe struct literal ``S { ..a }`` in the assignment to ``b`` could be replaced\nwith just ``a``.\n\n### Known Problems\nHas false positives when the base is a place expression that cannot be\nmoved out of, see [#10547](https://github.com/rust-lang/rust-clippy/issues/10547).\n\nEmpty structs are ignored by the lint.",
     "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
