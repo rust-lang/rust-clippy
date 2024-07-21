@@ -553,5 +553,65 @@ LL -         fn one_input<'a>(x: &'a u8) -> &'a u8 {
 LL +         fn one_input(x: &u8) -> &u8 {
    |
 
-error: aborting due to 46 previous errors
+error: the following explicit lifetimes could be elided: 'a
+  --> tests/ui/needless_lifetimes.rs:554:21
+   |
+LL |         pub fn iter<'a>(&'a self) -> impl Iterator<Item = (&'a u8, &'a u32)> + 'a {
+   |                     ^^   ^^                                 ^^
+   |
+help: elide the lifetimes
+   |
+LL -         pub fn iter<'a>(&'a self) -> impl Iterator<Item = (&'a u8, &'a u32)> + 'a {
+LL +         pub fn iter(&self) -> impl Iterator<Item = (&'_ u8, &'a u32)> + 'a {
+   |
+
+error: the following explicit lifetimes could be elided: 'b
+  --> tests/ui/needless_lifetimes.rs:594:21
+   |
+LL |         fn test<'a, 'b>(test: Test<'a, 'b>) -> &'a i32 {
+   |                     ^^                 ^^
+   |
+help: elide the lifetimes
+   |
+LL -         fn test<'a, 'b>(test: Test<'a, 'b>) -> &'a i32 {
+LL +         fn test<'a>(test: Test<'a, '_>) -> &'a i32 {
+   |
+
+error: the following explicit lifetimes could be elided: 'b
+  --> tests/ui/needless_lifetimes.rs:604:21
+   |
+LL |         fn test<'a, 'b>(test: Test<'a, 'b>) -> &'a i32 {
+   |                     ^^                 ^^
+   |
+help: elide the lifetimes
+   |
+LL -         fn test<'a, 'b>(test: Test<'a, 'b>) -> &'a i32 {
+LL +         fn test<'a>(test: Test<'a, '_>) -> &'a i32 {
+   |
+
+error: the following explicit lifetimes could be elided: 'a
+  --> tests/ui/needless_lifetimes.rs:612:15
+   |
+LL | fn issue12908<'a>(s: &'a str) {
+   |               ^^      ^^
+   |
+help: elide the lifetimes
+   |
+LL - fn issue12908<'a>(s: &'a str) {
+LL + fn issue12908(s: &str) {
+   |
+
+error: the following explicit lifetimes could be elided: 's
+  --> tests/ui/needless_lifetimes.rs:622:13
+   |
+LL |     fn test<'s>(&'s self) -> impl Iterator<Item = i32> + 's;
+   |             ^^   ^^
+   |
+help: elide the lifetimes
+   |
+LL -     fn test<'s>(&'s self) -> impl Iterator<Item = i32> + 's;
+LL +     fn test'_>(&self) -> impl Iterator<Item = i32> + 's;
+   |
+
+error: aborting due to 51 previous errors
 

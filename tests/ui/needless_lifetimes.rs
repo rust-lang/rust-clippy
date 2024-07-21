@@ -543,4 +543,81 @@ mod issue5787 {
     }
 }
 
-fn main() {}
+/// In this test; clippy failed to correctly elide
+/// lifetimes within the iterator definition
+mod issue11291 {
+    use std::collections::HashMap;
+
+    pub struct MyContainer(HashMap<u8, u32>);
+
+    impl MyContainer {
+        pub fn iter<'a>(&'a self) -> impl Iterator<Item = (&'a u8, &'a u32)> + 'a {
+            self.0.iter()
+        }
+    }
+}
+
+/// this issue suggests eliding lifetimes in
+/// impl blocks.
+mod issue12424 {
+    mod should_lint {
+        struct SampleType<'a> {
+            foo:& 'a i32
+        }
+    
+        impl<'a> SampleType<'a> {}
+    }
+
+    mod should_not_lint {
+        struct SampleType<'a> {
+            foo:& 'a i32
+        }
+    
+        impl<'a> SampleType<'a> {
+            fn foo(bar: &'a i32) {
+                todo!()
+            }
+        }
+    }
+}
+
+/// For this issue, we want to config clippy as to whether
+/// it should lint when having multiple lifetimes where one
+/// could be elided.
+mod issue12495 {
+    mod should_lint {
+        struct Test<'a, 'b> {
+            alpha: &'a i32,
+            beta: &'b i32,
+        }
+
+        fn test<'a, 'b>(test: Test<'a, 'b>) -> &'a i32 {
+            test.alpha
+        }
+    }
+
+    mod should_not_lint {
+        struct Test<'a, 'b> {
+            alpha: &'a i32,
+            beta: &'b i32,
+        }
+        fn test<'a, 'b>(test: Test<'a, 'b>) -> &'a i32 {
+            test.alpha
+        }
+    }
+}
+
+/// in this case clippy removed lifetimes that were actually
+/// required
+fn issue12908<'a>(s: &'a str) {
+    let _ = || {
+        let _: &'a str;
+    };
+}
+
+/// in this case, clippy should have elided 's,
+/// but instead it produced something that was unparsable
+/// fn test'_>(&self) -> impl Iterator<Item = i32> + 's;
+pub trait Issue12789 {
+    fn test<'s>(&'s self) -> impl Iterator<Item = i32> + 's;
+}
