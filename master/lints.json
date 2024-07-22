@@ -2889,7 +2889,7 @@
     "id": "if_let_mutex",
     "id_span": {
       "path": "src/if_let_mutex.rs",
-      "line": 38
+      "line": 39
     },
     "group": "correctness",
     "level": "deny",
