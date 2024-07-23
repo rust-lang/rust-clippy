@@ -23,13 +23,13 @@ some explanation and are quite subjective. Good judgement is required.
    done anyway, FP fixes might also be included. If the PR has a lot of changes,
    backports must be considered more carefully.
 
-2. **Is the issue that was fixed by the PR in `beta` already?**
+2. **Is the problem that was fixed by the PR already in `beta`?**
 
-   Maybe the issue being fixed didn't make it to `beta` in the Rust repo, yet.
-   If that's the case, and the fix is already synced to the Rust repo, the fix
-   doesn't need to be backported. If the fix PR is not synced yet, the fix PR
-   either needs to be "backported" to the Rust `master` branch or to `beta` in
-   the next backport cycle.
+   It could be that the problem that was fixed by the PR hasn't made it to the
+   `beta` branch of the Rust repo yet. If that's the case, and the fix is
+   already synced to the Rust repo, the fix doesn't need to be backported. If
+   the fix PR is not synced yet, the fix PR either needs to be "backported" to
+   the Rust `master` branch or to `beta` in the next backport cycle.
 
 3. **Is the fix already synced to `master`?**
 

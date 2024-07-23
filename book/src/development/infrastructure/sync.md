@@ -25,7 +25,7 @@ This process is described in detail in the following sections.
 The sync is done with [JOSH] and fully scripted with `cargo dev sync`. The only
 requirement is to install the `josh-proxy` binary from GitHub
 
-<!-- FIXME: Change to a release version once the fix is merged -->
+<!-- FIXME: Change to a release version once >r23.12.04 is released -->
 
 ```sh
 $ RUSTFLAGS="--cap-lints warn" cargo +stable install josh-proxy --git https://github.com/josh-project/josh
@@ -50,9 +50,11 @@ If there should be merge conflicts, resolve them now and commit with the message
 > Note: If the version tests fail, refer to [bump version] in the release
 > documentation.
 
-Open a PR to `rust-lang/rust-clippy` and wait for it to get merged (to
-accelerate the process ping the `@rust-lang/clippy` team in your PR and/or ask
-them in the [Zulip] stream.)
+Open a PR to `rust-lang/rust-clippy` and if you are a Clippy maintainer, you can
+`r+` the PR yourself. If not, change `r? @ghost` to `r? clippy` and a Clippy
+maintainer will get assigned. To accelerate the process ping the Clippy team in
+[Zulip].
+
 
 [bump version]: release.md#bump-version
 [Zulip]: https://rust-lang.zulipchat.com/#narrow/stream/clippy
@@ -83,9 +85,6 @@ Sync from Clippy commit: rust-lang/rust-clippy@<sha1>
 ```
 
 The title must be kept as is, to [tell triagebot] that this is a sync PR.
-
-If you're a Clippy maintainer, you can `r+` the PR yourself. If not, change `r?
-@ghost` to `r? clippy`.
 
 The second line must be kept as is, to [find the Clippy commit] during a
 release.
