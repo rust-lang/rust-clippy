@@ -2304,7 +2304,7 @@
     "id": "extra_unused_lifetimes",
     "id_span": {
       "path": "src/lifetimes.rs",
-      "line": 86
+      "line": 87
     },
     "group": "complexity",
     "level": "warn",
@@ -6257,7 +6257,7 @@
     "id": "needless_lifetimes",
     "id_span": {
       "path": "src/lifetimes.rs",
-      "line": 55
+      "line": 56
     },
     "group": "complexity",
     "level": "warn",
@@ -7835,7 +7835,7 @@
     "id": "redundant_closure_call",
     "id_span": {
       "path": "src/redundant_closure_call.rs",
-      "line": 37
+      "line": 38
     },
     "group": "complexity",
     "level": "warn",
@@ -9881,7 +9881,7 @@
     "id": "unconditional_recursion",
     "id_span": {
       "path": "src/unconditional_recursion.rs",
-      "line": 46
+      "line": 47
     },
     "group": "suspicious",
     "level": "warn",
@@ -10691,7 +10691,7 @@
     "id": "unused_peekable",
     "id_span": {
       "path": "src/unused_peekable.rs",
-      "line": 40
+      "line": 41
     },
     "group": "nursery",
     "level": "allow",
