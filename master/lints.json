@@ -1077,7 +1077,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nFinds nested `match` or `if let` expressions where the patterns may be \"collapsed\" together\nwithout adding any branches.\n\nNote that this lint is not intended to find _all_ cases where nested match patterns can be merged, but only\ncases where merging would most likely make the code more readable.\n\n### Why is this bad?\nIt is unnecessarily verbose and complex.\n\n### Example\n```rust\nfn func(opt: Option<Result<u64, String>>) {\n    let n = match opt {\n        Some(n) => match n {\n            Ok(n) => n,\n            _ => return,\n        }\n        None => return,\n    };\n}\n```\nUse instead:\n```rust\nfn func(opt: Option<Result<u64, String>>) {\n    let n = match opt {\n        Some(Ok(n)) => n,\n        _ => return,\n    };\n}\n```",
+    "docs": "\n### What it does\nFinds nested `match` or `if let` expressions where the patterns may be \"collapsed\" together\nwithout adding any branches.\n\nNote that this lint is not intended to find _all_ cases where nested match patterns can be merged, but only\ncases where merging would most likely make the code more readable.\n\n### Why is this bad?\nIt is unnecessarily verbose and complex.\n\n### Example\n```rust\nfn func(opt: Option<Result<u64, String>>) {\n    let n = match opt {\n        Some(n) => match n {\n            Ok(n) => n,\n            _ => return,\n        }\n        None => return,\n    };\n}\n```\nUse instead:\n```rust\nfn func(opt: Option<Result<u64, String>>) {\n    let n = match opt {\n        Some(Ok(n)) => n,\n        _ => return,\n    };\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `msrv`: The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`",
     "version": "1.50.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -8128,7 +8128,7 @@
     "group": "restriction",
     "level": "allow",
     "docs": "\n### What it does\nLints when the name of function parameters from trait impl is\ndifferent than its default implementation.\n\n### Why restrict this?\nUsing the default name for parameters of a trait method is more consistent.\n\n### Example\n```rust\nstruct A(u32);\n\nimpl PartialEq for A {\n    fn eq(&self, b: &Self) -> bool {\n        self.0 == b.0\n    }\n}\n```\nUse instead:\n```rust\nstruct A(u32);\n\nimpl PartialEq for A {\n    fn eq(&self, other: &Self) -> bool {\n        self.0 == other.0\n    }\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `allow-renamed-params-for`: List of trait paths to ignore when checking renamed function parameters.\n\n   #### Example\n\n```toml\n   allow-renamed-params-for = [ \"std::convert::From\" ]\n   ```\n\n   #### Noteworthy\n\n   - By default, the following traits are ignored: `From`, `TryFrom`, `FromStr`\n   - `\"..\"` can be used as part of the list to indicate that the configured values should be appended to the\n   default configuration of Clippy. By default, any configuration will replace the default value. (default: `[\"core::convert::From\", \"core::convert::TryFrom\", \"core::str::FromStr\"]`)",
-    "version": "1.74.0",
+    "version": "1.80.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unspecified"
