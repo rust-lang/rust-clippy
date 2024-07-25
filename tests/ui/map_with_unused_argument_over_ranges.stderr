@@ -1,0 +1,94 @@
+error: map of a closure that does not depend on its parameter over a range
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:20:5
+   |
+LL |     (0..10).map(|_| do_something());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(10)`
+   |
+   = note: `-D clippy::map-with-unused-argument-over-ranges` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::map_with_unused_argument_over_ranges)]`
+
+error: map of a closure that does not depend on its parameter over a range
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:21:5
+   |
+LL |     (0..=10).map(|_| do_something());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(11)`
+
+error: map of a closure that does not depend on its parameter over a range
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:22:5
+   |
+LL |     (3..10).map(|_| do_something());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(7)`
+
+error: map of a closure that does not depend on its parameter over a range
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:23:5
+   |
+LL |     (3..=10).map(|_| do_something());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(8)`
+
+error: map of a closure that does not depend on its parameter over a range
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:24:5
+   |
+LL |     (0..10).map(|_| 3);
+   |     ^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| 3).take(10)`
+
+error: map of a closure that does not depend on its parameter over a range
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:25:5
+   |
+LL | /     (0..10).map(|_| {
+LL | |         let x = 3;
+LL | |         x + 2
+LL | |     });
+   | |______^
+   |
+help: use
+   |
+LL ~     std::iter::repeat_with(|| {
+LL +         let x = 3;
+LL +         x + 2
+LL ~     }).take(10);
+   |
+
+error: map of a closure that does not depend on its parameter over a range
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:29:5
+   |
+LL |     (0..10).map(|_| do_something()).collect::<Vec<_>>();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(10)`
+
+error: map of a closure that does not depend on its parameter over a range
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:31:5
+   |
+LL |     (0..upper).map(|_| do_something());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(upper)`
+
+error: map of a closure that does not depend on its parameter over a range
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:33:5
+   |
+LL |     (0..upper_fn()).map(|_| do_something());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(upper_fn())`
+
+error: map of a closure that does not depend on its parameter over a range
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:34:5
+   |
+LL |     (0..=upper_fn()).map(|_| do_something());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(upper_fn() + 1)`
+
+error: map of a closure that does not depend on its parameter over a range
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:35:5
+   |
+LL |     (2..upper_fn()).map(|_| do_something());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(upper_fn() - 2)`
+
+error: map of a closure that does not depend on its parameter over a range
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:36:5
+   |
+LL |     (2..=upper_fn()).map(|_| do_something());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(upper_fn() - 1)`
+
+error: map of a closure that does not depend on its parameter over a range
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:58:5
+   |
+LL |     (0..10).map(|_| do_something());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(10)`
+
+error: aborting due to 13 previous errors
+
