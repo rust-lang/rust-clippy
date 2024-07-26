@@ -346,13 +346,13 @@ pub fn is_const_evaluatable<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> 
                     .cx
                     .qpath_res(p, hir_id)
                     .opt_def_id()
-                    .map_or(false, |id| self.cx.tcx.is_const_fn_raw(id)) => {},
+                    .is_some_and(|id| self.cx.tcx.is_const_fn_raw(id)) => {},
                 ExprKind::MethodCall(..)
                     if self
                         .cx
                         .typeck_results()
                         .type_dependent_def_id(e.hir_id)
-                        .map_or(false, |id| self.cx.tcx.is_const_fn_raw(id)) => {},
+                        .is_some_and(|id| self.cx.tcx.is_const_fn_raw(id)) => {},
                 ExprKind::Binary(_, lhs, rhs)
                     if self.cx.typeck_results().expr_ty(lhs).peel_refs().is_primitive_ty()
                         && self.cx.typeck_results().expr_ty(rhs).peel_refs().is_primitive_ty() => {},
@@ -431,9 +431,7 @@ pub fn is_expr_unsafe<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> bool {
                         .cx
                         .typeck_results()
                         .type_dependent_def_id(e.hir_id)
-                        .map_or(false, |id| {
-                            self.cx.tcx.fn_sig(id).skip_binder().safety() == Safety::Unsafe
-                        }) =>
+                        .is_some_and(|id| self.cx.tcx.fn_sig(id).skip_binder().safety() == Safety::Unsafe) =>
                 {
                     self.is_unsafe = true;
                 },
@@ -449,7 +447,7 @@ pub fn is_expr_unsafe<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> bool {
                         .cx
                         .qpath_res(p, e.hir_id)
                         .opt_def_id()
-                        .map_or(false, |id| self.cx.tcx.is_mutable_static(id)) =>
+                        .is_some_and(|id| self.cx.tcx.is_mutable_static(id)) =>
                 {
                     self.is_unsafe = true;
                 },
