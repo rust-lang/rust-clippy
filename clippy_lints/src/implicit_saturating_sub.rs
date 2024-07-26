@@ -113,6 +113,8 @@ impl<'tcx> LateLintPass<'tcx> for ImplicitSaturatingSub {
             check_manual_check(cx, expr, cond_op, cond_left, cond_right, if_block, else_block);
         }
     }
+
+    extract_msrv_attr!(LateContext);
 }
 
 fn check_manual_check<'tcx>(
