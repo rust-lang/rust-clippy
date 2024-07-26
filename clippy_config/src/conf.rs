@@ -645,6 +645,47 @@ define_Conf! {
     ///
     /// Whether to also emit warnings for unsafe blocks with metavariable expansions in **private** macros.
     (warn_unsafe_macro_metavars_in_private_macros: bool = false),
+    /// Lint: FLOAT_CMP
+    ///
+    /// The list of constants which can be checked for exact equality.
+    ///
+    /// #### Example
+    /// ```no_run
+    /// const VALUE: f64 = 1.0;
+    /// fn is_value(x: f64) -> bool {
+    ///     // Will warn unless `crate_name::VALUE` is allowed
+    ///     x == VALUE
+    /// }
+    /// ```
+    (float_cmp_allowed_constants: Vec<String> = Vec::new()),
+    /// Lint: FLOAT_CMP
+    ///
+    /// Whether to ignore comparisons which have a constant result.
+    ///
+    /// #### Example
+    /// ```no_run
+    /// const fn f(x: f64) -> f64 {
+    ///     todo!()
+    /// }
+    ///
+    /// // Will warn if the config is `false`
+    /// if f(1.0) == f(2.0) {
+    ///     // ...
+    /// }
+    /// ```
+    (float_cmp_ignore_constant_comparisons: bool = true),
+    /// Lint: FLOAT_CMP
+    ///
+    /// Whether to ignore comparisons which check if an operation changes the value of it's operand.
+    ///
+    /// #### Example
+    /// ```no_run
+    /// fn f(x: f64) -> bool {
+    ///     // Will warn if the config is `false`
+    ///     x == x + 1.0
+    /// }
+    /// ```
+    (float_cmp_ignore_change_detection: bool = true),
 }
 
 /// Search for the configuration file.

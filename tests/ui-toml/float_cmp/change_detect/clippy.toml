@@ -1,0 +1,6 @@
+float-cmp-ignore-change-detection = false
+float-cmp-allowed-constants = [
+    "core::f32::EPSILON",
+    "f32::EPSILON",
+    "test::F32_ARRAY",
+]

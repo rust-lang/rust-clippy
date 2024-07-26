@@ -1,0 +1,212 @@
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:22:21
+   |
+LL |             let _ = x == y;
+   |                     ^^^^^^ help: consider comparing them within some margin of error: `(x - y).abs() < error_margin`
+   |
+note: the lint level is defined here
+  --> tests/ui-toml/float_cmp/test.rs:9:9
+   |
+LL | #![deny(clippy::float_cmp)]
+   |         ^^^^^^^^^^^^^^^^^
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:23:21
+   |
+LL |             let _ = x != y;
+   |                     ^^^^^^ help: consider comparing them within some margin of error: `(x - y).abs() > error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:24:21
+   |
+LL |             let _ = x == 5.5;
+   |                     ^^^^^^^^ help: consider comparing them within some margin of error: `(x - 5.5).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:25:21
+   |
+LL |             let _ = 5.5 == x;
+   |                     ^^^^^^^^ help: consider comparing them within some margin of error: `(5.5 - x).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:48:21
+   |
+LL |             let _ = x == y;
+   |                     ^^^^^^ help: consider comparing them within some margin of error: `(x - y).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:49:21
+   |
+LL |             let _ = x != y;
+   |                     ^^^^^^ help: consider comparing them within some margin of error: `(x - y).abs() > error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:50:21
+   |
+LL |             let _ = x == 5.5;
+   |                     ^^^^^^^^ help: consider comparing them within some margin of error: `(x - 5.5).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:51:21
+   |
+LL |             let _ = 5.5 == x;
+   |                     ^^^^^^^^ help: consider comparing them within some margin of error: `(5.5 - x).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64` arrays
+  --> tests/ui-toml/float_cmp/test.rs:74:21
+   |
+LL |             let _ = x == y;
+   |                     ^^^^^^
+
+error: strict comparison of `f32` or `f64` arrays
+  --> tests/ui-toml/float_cmp/test.rs:75:21
+   |
+LL |             let _ = x == [5.5; 4];
+   |                     ^^^^^^^^^^^^^
+
+error: strict comparison of `f32` or `f64` arrays
+  --> tests/ui-toml/float_cmp/test.rs:76:21
+   |
+LL |             let _ = [5.5; 4] == x;
+   |                     ^^^^^^^^^^^^^
+
+error: strict comparison of `f32` or `f64` arrays
+  --> tests/ui-toml/float_cmp/test.rs:77:21
+   |
+LL |             let _ = [0.0, 0.0, 0.0, 5.5] == x;
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: strict comparison of `f32` or `f64` arrays
+  --> tests/ui-toml/float_cmp/test.rs:78:21
+   |
+LL |             let _ = x == [0.0, 0.0, 0.0, 5.5];
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: strict comparison of `f32` or `f64` arrays
+  --> tests/ui-toml/float_cmp/test.rs:94:21
+   |
+LL |             let _ = x == y;
+   |                     ^^^^^^
+
+error: strict comparison of `f32` or `f64` arrays
+  --> tests/ui-toml/float_cmp/test.rs:95:21
+   |
+LL |             let _ = x == [5.5; 4];
+   |                     ^^^^^^^^^^^^^
+
+error: strict comparison of `f32` or `f64` arrays
+  --> tests/ui-toml/float_cmp/test.rs:96:21
+   |
+LL |             let _ = [5.5; 4] == x;
+   |                     ^^^^^^^^^^^^^
+
+error: strict comparison of `f32` or `f64` arrays
+  --> tests/ui-toml/float_cmp/test.rs:97:21
+   |
+LL |             let _ = [0.0, 0.0, 0.0, 5.5] == x;
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: strict comparison of `f32` or `f64` arrays
+  --> tests/ui-toml/float_cmp/test.rs:98:21
+   |
+LL |             let _ = x == [0.0, 0.0, 0.0, 5.5];
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:116:21
+   |
+LL |             let _ = x == y;
+   |                     ^^^^^^ help: consider comparing them within some margin of error: `(x - y).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64` arrays
+  --> tests/ui-toml/float_cmp/test.rs:122:21
+   |
+LL |             let _ = x == y;
+   |                     ^^^^^^
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:137:21
+   |
+LL |             let _ = f32::EPSILON * x == x * x;
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(f32::EPSILON * x - x * x).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:138:21
+   |
+LL |             let _ = x * x == f32::EPSILON * x;
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(x * x - f32::EPSILON * x).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:155:17
+   |
+LL |         let _ = f(1.0) == f(5.0);
+   |                 ^^^^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(f(1.0) - f(5.0)).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:156:17
+   |
+LL |         let _ = 1.0 == f(5.0);
+   |                 ^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(1.0 - f(5.0)).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:157:17
+   |
+LL |         let _ = f(1.0) + 1.0 != 5.0;
+   |                 ^^^^^^^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(f(1.0) + 1.0 - 5.0).abs() > error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:163:17
+   |
+LL |         let _ = f(1.0) == f(5.0);
+   |                 ^^^^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(f(1.0) - f(5.0)).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:164:17
+   |
+LL |         let _ = 1.0 == f(5.0);
+   |                 ^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(1.0 - f(5.0)).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:165:17
+   |
+LL |         let _ = f(1.0) + 1.0 != 5.0;
+   |                 ^^^^^^^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(f(1.0) + 1.0 - 5.0).abs() > error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:207:21
+   |
+LL |             let _ = x == C[1];
+   |                     ^^^^^^^^^ help: consider comparing them within some margin of error: `(x - C[1]).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:208:21
+   |
+LL |             let _ = C[1] == x;
+   |                     ^^^^^^^^^ help: consider comparing them within some margin of error: `(C[1] - x).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:298:21
+   |
+LL |             let _ = x.next().unwrap() == x.next().unwrap() + 1.0;
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(x.next().unwrap() - (x.next().unwrap() + 1.0)).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:314:21
+   |
+LL |             let _ = x.f() + 1.0 == x.f();
+   |                     ^^^^^^^^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(x.f() + 1.0 - x.f()).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:315:21
+   |
+LL |             let _ = x.f() == x.f() + 1.0;
+   |                     ^^^^^^^^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(x.f() - (x.f() + 1.0)).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp/test.rs:324:17
+   |
+LL |         let _ = f(1.0) == f(1.0) + 1.0;
+   |                 ^^^^^^^^^^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(f(1.0) - (f(1.0) + 1.0)).abs() < error_margin`
+
+error: aborting due to 34 previous errors
+

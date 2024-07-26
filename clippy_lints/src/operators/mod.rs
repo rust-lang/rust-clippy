@@ -24,8 +24,11 @@ mod verbose_bit_mask;
 pub(crate) mod arithmetic_side_effects;
 
 use clippy_config::Conf;
+use clippy_utils::def_path_def_ids;
+use rustc_hir::def_id::DefIdSet;
 use rustc_hir::{Body, Expr, ExprKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::ty::TyCtxt;
 use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
@@ -633,70 +636,7 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for (in-)equality comparisons on constant floating-point
-    /// values (apart from zero), except in functions called `*eq*` (which probably
-    /// implement equality for a type involving floats).
-    ///
-    /// ### Why restrict this?
-    /// Floating point calculations are usually imprecise, so asking if two values are *exactly*
-    /// equal is asking for trouble because arriving at the same logical result via different
-    /// routes (e.g. calculation versus constant) may yield different values.
-    ///
-    /// ### Example
-    ///
-    /// ```no_run
-    /// let a: f64 = 1000.1;
-    /// let b: f64 = 0.2;
-    /// let x = a + b;
-    /// const Y: f64 = 1000.3; // Expected value.
-    ///
-    /// // Actual value: 1000.3000000000001
-    /// println!("{x}");
-    ///
-    /// let are_equal = x == Y;
-    /// println!("{are_equal}"); // false
-    /// ```
-    ///
-    /// The correct way to compare floating point numbers is to define an allowed error margin. This
-    /// may be challenging if there is no "natural" error margin to permit. Broadly speaking, there
-    /// are two cases:
-    ///
-    /// 1. If your values are in a known range and you can define a threshold for "close enough to
-    ///    be equal", it may be appropriate to define an absolute error margin. For example, if your
-    ///    data is "length of vehicle in centimeters", you may consider 0.1 cm to be "close enough".
-    /// 1. If your code is more general and you do not know the range of values, you should use a
-    ///    relative error margin, accepting e.g. 0.1% of error regardless of specific values.
-    ///
-    /// For the scenario where you can define a meaningful absolute error margin, consider using:
-    ///
-    /// ```no_run
-    /// let a: f64 = 1000.1;
-    /// let b: f64 = 0.2;
-    /// let x = a + b;
-    /// const Y: f64 = 1000.3; // Expected value.
-    ///
-    /// const ALLOWED_ERROR_VEHICLE_LENGTH_CM: f64 = 0.1;
-    /// let within_tolerance = (x - Y).abs() < ALLOWED_ERROR_VEHICLE_LENGTH_CM;
-    /// println!("{within_tolerance}"); // true
-    /// ```
-    ///
-    /// NB! Do not use `f64::EPSILON` - while the error margin is often called "epsilon", this is
-    /// a different use of the term that is not suitable for floating point equality comparison.
-    /// Indeed, for the example above using `f64::EPSILON` as the allowed error would return `false`.
-    ///
-    /// For the scenario where no meaningful absolute error can be defined, refer to
-    /// [the floating point guide](https://www.floating-point-gui.de/errors/comparison)
-    /// for a reference implementation of relative error based comparison of floating point values.
-    /// `MIN_NORMAL` in the reference implementation is equivalent to `MIN_POSITIVE` in Rust.
-    #[clippy::version = "pre 1.29.0"]
-    pub FLOAT_CMP_CONST,
-    restriction,
-    "using `==` or `!=` on float constants instead of comparing difference with an allowed error"
-}
-
-declare_clippy_lint! {
-    /// ### What it does
-    /// Checks for getting the remainder of integer division by one or minus
+    /// Checks for getting the remainder of a division by one or minus
     /// one.
     ///
     /// ### Why is this bad?
@@ -837,17 +777,33 @@ declare_clippy_lint! {
     "explicit self-assignment"
 }
 
+struct FloatCmpConfig {
+    allowed_constants: DefIdSet,
+    ignore_constant_comparisons: bool,
+    ignore_change_detection: bool,
+}
+
 pub struct Operators {
     arithmetic_context: numeric_arithmetic::Context,
     verbose_bit_mask_threshold: u64,
     modulo_arithmetic_allow_comparison_to_zero: bool,
+    float_cmp_config: FloatCmpConfig,
 }
 impl Operators {
-    pub fn new(conf: &'static Conf) -> Self {
+    pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {
         Self {
             arithmetic_context: numeric_arithmetic::Context::default(),
             verbose_bit_mask_threshold: conf.verbose_bit_mask_threshold,
             modulo_arithmetic_allow_comparison_to_zero: conf.allow_comparison_to_zero,
+            float_cmp_config: FloatCmpConfig {
+                allowed_constants: conf
+                    .float_cmp_allowed_constants
+                    .iter()
+                    .flat_map(|x| def_path_def_ids(tcx, &x.split("::").collect::<Vec<_>>()))
+                    .collect(),
+                ignore_constant_comparisons: conf.float_cmp_ignore_constant_comparisons,
+                ignore_change_detection: conf.float_cmp_ignore_change_detection,
+            },
         }
     }
 }
@@ -873,14 +829,12 @@ impl_lint_pass!(Operators => [
     INTEGER_DIVISION,
     CMP_OWNED,
     FLOAT_CMP,
-    FLOAT_CMP_CONST,
     MODULO_ONE,
     MODULO_ARITHMETIC,
     NEEDLESS_BITWISE_BOOL,
     PTR_EQ,
     SELF_ASSIGNMENT,
 ]);
-
 impl<'tcx> LateLintPass<'tcx> for Operators {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
         eq_op::check_assert(cx, e);
@@ -906,7 +860,7 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                 float_equality_without_abs::check(cx, e, op.node, lhs, rhs);
                 integer_division::check(cx, e, op.node, lhs, rhs);
                 cmp_owned::check(cx, op.node, lhs, rhs);
-                float_cmp::check(cx, e, op.node, lhs, rhs);
+                float_cmp::check(cx, &self.float_cmp_config, e, op.node, lhs, rhs);
                 modulo_one::check(cx, e, op.node, rhs);
                 modulo_arithmetic::check(
                     cx,

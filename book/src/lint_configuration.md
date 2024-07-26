@@ -538,6 +538,59 @@ The maximum amount of nesting a block can reside in
 * [`excessive_nesting`](https://rust-lang.github.io/rust-clippy/master/index.html#excessive_nesting)
 
 
+## `float-cmp-allowed-constants`
+#### Example
+```no_run
+const VALUE: f64 = 1.0;
+fn is_value(x: f64) -> bool {
+    // Will warn unless `crate_name::VALUE` is allowed
+    x == VALUE
+}
+```
+
+**Default Value:** `[]`
+
+---
+**Affected lints:**
+* [`float_cmp`](https://rust-lang.github.io/rust-clippy/master/index.html#float_cmp)
+
+
+## `float-cmp-ignore-change-detection`
+#### Example
+```no_run
+fn f(x: f64) -> bool {
+    // Will warn if the config is `false`
+    x == x + 1.0
+}
+```
+
+**Default Value:** `true`
+
+---
+**Affected lints:**
+* [`float_cmp`](https://rust-lang.github.io/rust-clippy/master/index.html#float_cmp)
+
+
+## `float-cmp-ignore-constant-comparisons`
+#### Example
+```no_run
+const fn f(x: f64) -> f64 {
+    todo!()
+}
+
+// Will warn if the config is `false`
+if f(1.0) == f(2.0) {
+    // ...
+}
+```
+
+**Default Value:** `true`
+
+---
+**Affected lints:**
+* [`float_cmp`](https://rust-lang.github.io/rust-clippy/master/index.html#float_cmp)
+
+
 ## `future-size-threshold`
 The maximum byte size a `Future` can have, before it triggers the `clippy::large_futures` lint
 
