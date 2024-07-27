@@ -5633,7 +5633,7 @@
     "id": "missing_trait_methods",
     "id_span": {
       "path": "src/missing_trait_methods.rs",
-      "line": 54
+      "line": 53
     },
     "group": "restriction",
     "level": "allow",
