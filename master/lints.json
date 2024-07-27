@@ -33,11 +33,11 @@
     "id": "alloc_instead_of_core",
     "id_span": {
       "path": "src/std_instead_of_core.rs",
-      "line": 79
+      "line": 87
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nFinds items imported through `alloc` when available through `core`.\n\n### Why restrict this?\nCrates which have `no_std` compatibility and may optionally require alloc may wish to ensure types are\nimported from core to ensure disabling `alloc` does not cause the crate to fail to compile. This lint\nis also useful for crates migrating to become `no_std` compatible.\n\n### Example\n```rust\nuse alloc::slice::from_ref;\n```\nUse instead:\n```rust\nuse core::slice::from_ref;\n```",
+    "docs": "\n### What it does\nFinds items imported through `alloc` when available through `core`.\n\n### Why restrict this?\nCrates which have `no_std` compatibility and may optionally require alloc may wish to ensure types are\nimported from core to ensure disabling `alloc` does not cause the crate to fail to compile. This lint\nis also useful for crates migrating to become `no_std` compatible.\n\n### Known problems\nThe lint is only partially aware of the required MSRV for items that were originally in `std` but moved\nto `core`.\n\n### Example\n```rust\nuse alloc::slice::from_ref;\n```\nUse instead:\n```rust\nuse core::slice::from_ref;\n```",
     "version": "1.64.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -8906,7 +8906,7 @@
     "id": "std_instead_of_alloc",
     "id_span": {
       "path": "src/std_instead_of_core.rs",
-      "line": 55
+      "line": 59
     },
     "group": "restriction",
     "level": "allow",
@@ -8921,7 +8921,7 @@
     "id": "std_instead_of_core",
     "id_span": {
       "path": "src/std_instead_of_core.rs",
-      "line": 31
+      "line": 35
     },
     "group": "restriction",
     "level": "allow",
