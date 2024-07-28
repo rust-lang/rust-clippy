@@ -345,6 +345,7 @@ mod suspicious_xor_used_as_pow;
 mod swap;
 mod swap_ptr_to_ref;
 mod tabs_in_doc_comments;
+mod tail_expr_drop_order;
 mod temporary_assignment;
 mod tests_outside_test_module;
 mod to_digit_is_some;
@@ -911,6 +912,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(set_contains_or_insert::SetContainsOrInsert));
     store.register_early_pass(|| Box::new(byte_char_slices::ByteCharSlice));
     store.register_early_pass(|| Box::new(cfg_not_test::CfgNotTest));
+    store.register_late_pass(|_| Box::new(tail_expr_drop_order::TailExprDropOrder));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

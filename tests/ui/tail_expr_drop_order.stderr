@@ -1,0 +1,16 @@
+error: discretion required on this expression which generates a value with a significant drop implementation
+  --> tests/ui/tail_expr_drop_order.rs:21:15
+   |
+LL |     x.get() + LoudDropper.get()
+   |               ^^^^^^^^^^^
+   |
+help: one or more locals with a significant drop implementation will observe a visible change in drop order
+  --> tests/ui/tail_expr_drop_order.rs:19:9
+   |
+LL |     let x = LoudDropper;
+   |         ^
+   = note: `-D clippy::tail-expr-drop-order` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::tail_expr_drop_order)]`
+
+error: aborting due to 1 previous error
+

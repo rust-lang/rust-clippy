@@ -681,6 +681,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::swap::MANUAL_SWAP_INFO,
     crate::swap_ptr_to_ref::SWAP_PTR_TO_REF_INFO,
     crate::tabs_in_doc_comments::TABS_IN_DOC_COMMENTS_INFO,
+    crate::tail_expr_drop_order::TAIL_EXPR_DROP_ORDER_INFO,
     crate::temporary_assignment::TEMPORARY_ASSIGNMENT_INFO,
     crate::tests_outside_test_module::TESTS_OUTSIDE_TEST_MODULE_INFO,
     crate::to_digit_is_some::TO_DIGIT_IS_SOME_INFO,
