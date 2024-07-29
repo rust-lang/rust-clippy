@@ -1910,7 +1910,7 @@
     "id": "empty_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 275
+      "line": 276
     },
     "group": "suspicious",
     "level": "warn",
@@ -2199,7 +2199,7 @@
     "id": "explicit_counter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 241
+      "line": 242
     },
     "group": "complexity",
     "level": "warn",
@@ -2229,7 +2229,7 @@
     "id": "explicit_into_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 152
+      "line": 153
     },
     "group": "pedantic",
     "level": "allow",
@@ -2244,7 +2244,7 @@
     "id": "explicit_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 123
+      "line": 124
     },
     "group": "pedantic",
     "level": "allow",
@@ -2649,7 +2649,7 @@
     "id": "for_kv_map",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 331
+      "line": 332
     },
     "group": "style",
     "level": "warn",
@@ -3294,7 +3294,7 @@
     "id": "infinite_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 711
+      "line": 712
     },
     "group": "restriction",
     "level": "allow",
@@ -3687,7 +3687,7 @@
     "id": "iter_next_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 176
+      "line": 177
     },
     "group": "correctness",
     "level": "deny",
@@ -4437,7 +4437,7 @@
     "id": "manual_find",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 612
+      "line": 613
     },
     "group": "complexity",
     "level": "warn",
@@ -4467,7 +4467,7 @@
     "id": "manual_flatten",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 545
+      "line": 546
     },
     "group": "complexity",
     "level": "warn",
@@ -4632,7 +4632,7 @@
     "id": "manual_memcpy",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 58
+      "line": 59
     },
     "group": "perf",
     "level": "warn",
@@ -4932,7 +4932,7 @@
     "id": "manual_while_let_some",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 669
+      "line": 670
     },
     "group": "style",
     "level": "warn",
@@ -5618,7 +5618,7 @@
     "id": "missing_spin_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 581
+      "line": 582
     },
     "group": "perf",
     "level": "warn",
@@ -5954,7 +5954,7 @@
     "id": "mut_range_bound",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 389
+      "line": 390
     },
     "group": "suspicious",
     "level": "warn",
@@ -6407,7 +6407,7 @@
     "id": "needless_range_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 89
+      "line": 90
     },
     "group": "style",
     "level": "warn",
@@ -6557,7 +6557,7 @@
     "id": "never_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 353
+      "line": 354
     },
     "group": "correctness",
     "level": "deny",
@@ -8333,7 +8333,7 @@
     "id": "same_item_push",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 485
+      "line": 486
     },
     "group": "style",
     "level": "warn",
@@ -8771,7 +8771,7 @@
     "id": "single_element_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 513
+      "line": 514
     },
     "group": "complexity",
     "level": "warn",
@@ -10646,7 +10646,7 @@
     "id": "unused_enumerate_index",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 639
+      "line": 640
     },
     "group": "style",
     "level": "warn",
@@ -11076,7 +11076,7 @@
     "id": "while_float",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 449
+      "line": 450
     },
     "group": "nursery",
     "level": "allow",
@@ -11091,7 +11091,7 @@
     "id": "while_immutable_condition",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 416
+      "line": 417
     },
     "group": "correctness",
     "level": "deny",
@@ -11106,7 +11106,7 @@
     "id": "while_let_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 209
+      "line": 210
     },
     "group": "complexity",
     "level": "warn",
@@ -11121,7 +11121,7 @@
     "id": "while_let_on_iterator",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 302
+      "line": 303
     },
     "group": "style",
     "level": "warn",
