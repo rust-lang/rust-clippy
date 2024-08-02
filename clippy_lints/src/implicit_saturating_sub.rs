@@ -94,9 +94,6 @@ impl<'tcx> LateLintPass<'tcx> for ImplicitSaturatingSub {
         if expr.span.from_expansion() {
             return;
         }
-        if in_constant(cx, expr.hir_id) && !self.msrv.meets(msrvs::SATURATING_SUB_CONST) {
-            return;
-        }
         if let Some(higher::If { cond, then, r#else: None }) = higher::If::hir(expr)
 
             // Check if the conditional expression is a binary operation
@@ -110,7 +107,9 @@ impl<'tcx> LateLintPass<'tcx> for ImplicitSaturatingSub {
         }) = higher::If::hir(expr)
             && let ExprKind::Binary(ref cond_op, cond_left, cond_right) = cond.kind
         {
-            check_manual_check(cx, expr, cond_op, cond_left, cond_right, if_block, else_block);
+            check_manual_check(
+                cx, expr, cond_op, cond_left, cond_right, if_block, else_block, &self.msrv,
+            );
         }
     }
 
@@ -125,6 +124,7 @@ fn check_manual_check<'tcx>(
     right_hand: &Expr<'tcx>,
     if_block: &Expr<'tcx>,
     else_block: &Expr<'tcx>,
+    msrv: &Msrv,
 ) {
     let ty = cx.typeck_results().expr_ty(left_hand);
     if ty.is_numeric() && !ty.is_signed() {
@@ -137,6 +137,7 @@ fn check_manual_check<'tcx>(
                 right_hand,
                 if_block,
                 else_block,
+                msrv,
             ),
             BinOpKind::Lt | BinOpKind::Le => check_gt(
                 cx,
@@ -146,6 +147,7 @@ fn check_manual_check<'tcx>(
                 left_hand,
                 if_block,
                 else_block,
+                msrv,
             ),
             _ => {},
         }
@@ -160,11 +162,21 @@ fn check_gt(
     little_var: &Expr<'_>,
     if_block: &Expr<'_>,
     else_block: &Expr<'_>,
+    msrv: &Msrv,
 ) {
     if let Some(big_var) = Var::new(big_var)
         && let Some(little_var) = Var::new(little_var)
     {
-        check_subtraction(cx, condition_span, expr_span, big_var, little_var, if_block, else_block);
+        check_subtraction(
+            cx,
+            condition_span,
+            expr_span,
+            big_var,
+            little_var,
+            if_block,
+            else_block,
+            msrv,
+        );
     }
 }
 
@@ -190,6 +202,7 @@ fn check_subtraction(
     little_var: Var,
     if_block: &Expr<'_>,
     else_block: &Expr<'_>,
+    msrv: &Msrv,
 ) {
     let if_block = peel_blocks(if_block);
     let else_block = peel_blocks(else_block);
@@ -201,7 +214,16 @@ fn check_subtraction(
         }
         // If the subtraction is done in the `else` block, then we need to also revert the two
         // variables as it means that the check was reverted too.
-        check_subtraction(cx, condition_span, expr_span, little_var, big_var, else_block, if_block);
+        check_subtraction(
+            cx,
+            condition_span,
+            expr_span,
+            little_var,
+            big_var,
+            else_block,
+            if_block,
+            msrv,
+        );
         return;
     }
     if is_integer_literal(else_block, 0)
@@ -215,6 +237,7 @@ fn check_subtraction(
             // if `snippet_opt` fails, it won't try the next conditions.
             if let Some(big_var_snippet) = snippet_opt(cx, big_var.span)
                 && let Some(little_var_snippet) = snippet_opt(cx, little_var.span)
+                && (!in_constant(cx, if_block.hir_id) || msrv.meets(msrvs::SATURATING_SUB_CONST))
             {
                 span_lint_and_sugg(
                     cx,
