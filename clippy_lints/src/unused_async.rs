@@ -148,13 +148,13 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsync {
     }
 
     fn check_path(&mut self, cx: &LateContext<'tcx>, path: &rustc_hir::Path<'tcx>, hir_id: rustc_hir::HirId) {
-        fn is_node_func_call(node: Node<'_>, expected_receiver: Span) -> bool {
+        fn is_node_func_value(node: Node<'_>, expected_receiver: Span) -> bool {
             matches!(
                 node,
                 Node::Expr(Expr {
                     kind: ExprKind::Call(Expr { span, .. }, _) | ExprKind::MethodCall(_, Expr { span, .. }, ..),
                     ..
-                }) if *span == expected_receiver
+                }) if *span != expected_receiver
             )
         }
 
@@ -166,7 +166,7 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsync {
             && let Some(local_def_id) = def_id.as_local()
             && cx.tcx.def_kind(def_id) == DefKind::Fn
             && cx.tcx.asyncness(def_id).is_async()
-            && !is_node_func_call(cx.tcx.parent_hir_node(hir_id), path.span)
+            && is_node_func_value(cx.tcx.parent_hir_node(hir_id), path.span)
         {
             self.async_fns_as_value.insert(local_def_id);
         }
