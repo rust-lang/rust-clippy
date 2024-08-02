@@ -1,8 +1,8 @@
 error: unneeded `return` statement
-  --> tests/ui/crashes/ice-12491.rs:5:24
+  --> tests/ui/crashes/ice-12491.rs:6:29
    |
-LL |           // anything一些中文
-   |  ____________________________^
+LL |
+   |  _____________________________^
 LL | |         return;
    | |______________^
    |
@@ -10,9 +10,9 @@ LL | |         return;
    = help: to override `-D warnings` add `#[allow(clippy::needless_return)]`
 help: remove `return`
    |
-LL -         // anything一些中文
+LL -
 LL -         return;
-LL +         // anything一些中文
+LL +
    |
 
 error: aborting due to 1 previous error

@@ -12,15 +12,19 @@ use std::{default, string};
 fn main() {
     let s1: String = Default::default();
 
+
     let s2 = String::default();
 
     let s3: String = D2::default();
 
+
     let s4: String = std::default::Default::default();
+
 
     let s5 = string::String::default();
 
     let s6: String = default::Default::default();
+
 
     let s7 = std::string::String::default();
 
@@ -32,17 +36,21 @@ fn main() {
 
     let s11: GenericDerivedDefault<String> = Default::default();
 
+
     let s12 = GenericDerivedDefault::<String>::default();
 
     let s13 = TupleDerivedDefault::default();
 
     let s14: TupleDerivedDefault = Default::default();
 
+
     let s15: ArrayDerivedDefault = Default::default();
+
 
     let s16 = ArrayDerivedDefault::default();
 
     let s17: TupleStructDerivedDefault = Default::default();
+
 
     let s18 = TupleStructDerivedDefault::default();
 

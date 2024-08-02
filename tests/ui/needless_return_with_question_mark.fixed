@@ -27,6 +27,7 @@ fn c() -> Option<()> {
 
 fn main() -> Result<(), ()> {
     Err(())?;
+    //~^ needless_return_with_question_mark
     return Ok::<(), ()>(());
     Err(())?;
     Ok::<(), ()>(());
@@ -67,7 +68,7 @@ fn issue11616() -> Result<(), ()> {
     };
     let _x: () = {
         Err(())?;
-        //~^ ERROR: unneeded `return` statement with `?` operator
+        //~^ needless_return_with_question_mark
     };
     let _x = match 1 {
         1 => vec![1, 2],

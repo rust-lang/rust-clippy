@@ -78,6 +78,7 @@ error: match can be simplified with `.unwrap_or_default()`
    |
 LL |           Some(_) => match *b {
    |  ____________________^
+LL | |
 LL | |             Some(v) => v,
 LL | |             _ => 0,
 LL | |         },

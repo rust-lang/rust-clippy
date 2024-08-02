@@ -2,38 +2,38 @@
 
 /// 1. nest here
 /// lazy continuation
-//~^ ERROR: doc list item without indentation
+//~^ doc_lazy_continuation
 fn one() {}
 
 /// 1. first line
 /// lazy list continuations don't make warnings with this lint
-//~^ ERROR: doc list item without indentation
+//~^ doc_lazy_continuation
 /// because they don't have the
-//~^ ERROR: doc list item without indentation
+//~^ doc_lazy_continuation
 fn two() {}
 
 ///   - nest here
 /// lazy continuation
-//~^ ERROR: doc list item without indentation
+//~^ doc_lazy_continuation
 fn three() {}
 
 ///   - first line
 /// lazy list continuations don't make warnings with this lint
-//~^ ERROR: doc list item without indentation
+//~^ doc_lazy_continuation
 /// because they don't have the
-//~^ ERROR: doc list item without indentation
+//~^ doc_lazy_continuation
 fn four() {}
 
 ///   - nest here
 /// lazy continuation
-//~^ ERROR: doc list item without indentation
+//~^ doc_lazy_continuation
 fn five() {}
 
 ///   - - first line
 /// this will warn on the lazy continuation
-//~^ ERROR: doc list item without indentation
+//~^ doc_lazy_continuation
 ///     and so should this
-//~^ ERROR: doc list item without indentation
+//~^ doc_lazy_continuation
 fn six() {}
 
 ///   - - first line
@@ -54,7 +54,7 @@ fn seven() {}
 /// * `protocol_descriptors`: A Json Representation of the ProtocolDescriptors
 ///     to set up. Example:
 ///  'protocol_descriptors': [
-//~^ ERROR: doc list item without indentation
+//~^ doc_lazy_continuation
 ///      {
 ///          'protocol': 25,  # u64 Representation of ProtocolIdentifier::AVDTP
 ///          'params': [
@@ -73,5 +73,5 @@ fn seven() {}
 ///          }]
 ///      }
 ///  ]
-//~^ ERROR: doc list item without indentation
+//~^ doc_lazy_continuation
 fn eight() {}

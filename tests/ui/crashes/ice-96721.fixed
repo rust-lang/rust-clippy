@@ -5,6 +5,7 @@ macro_rules! foo {
 }
 
 #[path = "file"] //~ ERROR: malformed `path` attribute
+
 mod abc {}
 
 fn main() {}

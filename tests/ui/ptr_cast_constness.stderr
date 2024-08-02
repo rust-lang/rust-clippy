@@ -8,37 +8,37 @@ LL |     let _: &mut T = std::mem::transmute(p as *mut T);
    = help: to override `-D warnings` add `#[allow(clippy::ptr_cast_constness)]`
 
 error: `as` casting between raw pointers while changing only its constness
-  --> tests/ui/ptr_cast_constness.rs:16:19
+  --> tests/ui/ptr_cast_constness.rs:17:19
    |
 LL |     let _ = &mut *(p as *mut T);
    |                   ^^^^^^^^^^^^^ help: try `pointer::cast_mut`, a safer alternative: `p.cast_mut()`
 
 error: `as` casting between raw pointers while changing only its constness
-  --> tests/ui/ptr_cast_constness.rs:31:17
+  --> tests/ui/ptr_cast_constness.rs:33:17
    |
 LL |         let _ = *ptr_ptr as *mut u32;
    |                 ^^^^^^^^^^^^^^^^^^^^ help: try `pointer::cast_mut`, a safer alternative: `(*ptr_ptr).cast_mut()`
 
 error: `as` casting between raw pointers while changing only its constness
-  --> tests/ui/ptr_cast_constness.rs:34:13
+  --> tests/ui/ptr_cast_constness.rs:37:13
    |
 LL |     let _ = ptr as *mut u32;
    |             ^^^^^^^^^^^^^^^ help: try `pointer::cast_mut`, a safer alternative: `ptr.cast_mut()`
 
 error: `as` casting between raw pointers while changing only its constness
-  --> tests/ui/ptr_cast_constness.rs:35:13
+  --> tests/ui/ptr_cast_constness.rs:39:13
    |
 LL |     let _ = mut_ptr as *const u32;
    |             ^^^^^^^^^^^^^^^^^^^^^ help: try `pointer::cast_const`, a safer alternative: `mut_ptr.cast_const()`
 
 error: `as` casting between raw pointers while changing only its constness
-  --> tests/ui/ptr_cast_constness.rs:68:13
+  --> tests/ui/ptr_cast_constness.rs:73:13
    |
 LL |     let _ = ptr as *mut u32;
    |             ^^^^^^^^^^^^^^^ help: try `pointer::cast_mut`, a safer alternative: `ptr.cast_mut()`
 
 error: `as` casting between raw pointers while changing only its constness
-  --> tests/ui/ptr_cast_constness.rs:69:13
+  --> tests/ui/ptr_cast_constness.rs:75:13
    |
 LL |     let _ = mut_ptr as *const u32;
    |             ^^^^^^^^^^^^^^^^^^^^^ help: try `pointer::cast_const`, a safer alternative: `mut_ptr.cast_const()`

@@ -20,61 +20,57 @@ fn inline_const() {
 fn panic() {
     let a = 2;
     panic!();
-    //~^ ERROR: `panic` should not be present in production code
-    //~| NOTE: `-D clippy::panic` implied by `-D warnings`
+    //~^ panic
     panic!("message");
-    //~^ ERROR: `panic` should not be present in production code
+    //~^ panic
     panic!("{} {}", "panic with", "multiple arguments");
-    //~^ ERROR: `panic` should not be present in production code
+    //~^ panic
     let b = a + 2;
 }
 
 fn todo() {
     let a = 2;
     todo!();
-    //~^ ERROR: `todo` should not be present in production code
-    //~| NOTE: `-D clippy::todo` implied by `-D warnings`
+    //~^ todo
     todo!("message");
-    //~^ ERROR: `todo` should not be present in production code
+    //~^ panic
     todo!("{} {}", "panic with", "multiple arguments");
-    //~^ ERROR: `todo` should not be present in production code
+    //~^ panic
     let b = a + 2;
 }
 
 fn unimplemented() {
     let a = 2;
     unimplemented!();
-    //~^ ERROR: `unimplemented` should not be present in production code
-    //~| NOTE: `-D clippy::unimplemented` implied by `-D warnings`
+    //~^ unimplemented
     unimplemented!("message");
-    //~^ ERROR: `unimplemented` should not be present in production code
+    //~^ panic
     unimplemented!("{} {}", "panic with", "multiple arguments");
-    //~^ ERROR: `unimplemented` should not be present in production code
+    //~^ panic
     let b = a + 2;
 }
 
 fn unreachable() {
     let a = 2;
     unreachable!();
-    //~^ ERROR: usage of the `unreachable!` macro
-    //~| NOTE: `-D clippy::unreachable` implied by `-D warnings`
+    //~^ unreachable
     unreachable!("message");
-    //~^ ERROR: usage of the `unreachable!` macro
+    //~^ panic
     unreachable!("{} {}", "panic with", "multiple arguments");
-    //~^ ERROR: usage of the `unreachable!` macro
+    //~^ panic
     let b = a + 2;
 }
 
 fn core_versions() {
     use core::{panic, todo, unimplemented, unreachable};
     panic!();
-    //~^ ERROR: `panic` should not be present in production code
+    //~^ panic
     todo!();
-    //~^ ERROR: `todo` should not be present in production code
+    //~^ panic
     unimplemented!();
-    //~^ ERROR: `unimplemented` should not be present in production code
+    //~^ panic
     unreachable!();
-    //~^ ERROR: usage of the `unreachable!` macro
+    //~^ panic
 }
 
 fn assert() {

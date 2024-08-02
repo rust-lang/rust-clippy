@@ -20,10 +20,12 @@ fn main() {
     // weird `else` formatting:
     if foo() {
     } {
+    //~^ suspicious_else_formatting
     }
 
     if foo() {
     } if foo() {
+    //~^ suspicious_else_formatting
     }
 
     let _ = { // if as the last expression
@@ -31,6 +33,7 @@ fn main() {
 
         if foo() {
         } if foo() {
+        //~^ suspicious_else_formatting
         }
         else {
         }
@@ -39,6 +42,7 @@ fn main() {
     let _ = { // if in the middle of a block
         if foo() {
         } if foo() {
+        //~^ suspicious_else_formatting
         }
         else {
         }
@@ -48,6 +52,7 @@ fn main() {
 
     if foo() {
     } else
+    //~^ suspicious_else_formatting
     {
     }
 
@@ -60,11 +65,13 @@ fn main() {
 
     if foo() {
     } else
+    //~^ suspicious_else_formatting
     if foo() { // the span of the above error should continue here
     }
 
     if foo() {
     }
+    //~^ suspicious_else_formatting
     else
     if foo() { // the span of the above error should continue here
     }
@@ -92,6 +99,7 @@ fn main() {
     // Almost Allman style braces. Lint these.
     if foo() {
     }
+    //~^ suspicious_else_formatting
 
     else
     {
@@ -100,6 +108,7 @@ fn main() {
 
     if foo() {
     }
+    //~^ suspicious_else_formatting
     else
 
     {

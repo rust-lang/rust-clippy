@@ -211,7 +211,6 @@ error: all fields have the same prefix: `some`
   --> tests/ui/struct_fields.rs:226:13
    |
 LL | /             struct MacroStruct {
-LL | |
 LL | |                 some_a: i32,
 LL | |                 some_b: i32,
 LL | |                 some_c: i32,
@@ -225,7 +224,7 @@ LL |       mk_struct!();
    = note: this error originates in the macro `mk_struct` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: field name starts with the struct's name
-  --> tests/ui/struct_fields.rs:239:17
+  --> tests/ui/struct_fields.rs:238:17
    |
 LL |                 macrobaz_a: i32,
    |                 ^^^^^^^^^^^^^^^
@@ -236,7 +235,7 @@ LL |     mk_struct2!();
    = note: this error originates in the macro `mk_struct2` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: field name starts with the struct's name
-  --> tests/ui/struct_fields.rs:251:17
+  --> tests/ui/struct_fields.rs:249:17
    |
 LL |                 $field: i32,
    |                 ^^^^^^^^^^^
@@ -247,10 +246,9 @@ LL |     mk_struct_with_names!(Foo, foo);
    = note: this error originates in the macro `mk_struct_with_names` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: all fields have the same prefix: `some`
-  --> tests/ui/struct_fields.rs:291:13
+  --> tests/ui/struct_fields.rs:288:13
    |
 LL | /             struct $struct_name {
-LL | |
 LL | |                 $field1: i32,
 LL | |                 $field2: i32,
 LL | |                 $field3: i32,
@@ -264,19 +262,19 @@ LL |       mk_struct_full_def!(PrefixData, some_data, some_meta, some_other);
    = note: this error originates in the macro `mk_struct_full_def` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: field name starts with the struct's name
-  --> tests/ui/struct_fields.rs:339:5
+  --> tests/ui/struct_fields.rs:335:5
    |
 LL |     use_foo: bool,
    |     ^^^^^^^^^^^^^
 
 error: field name starts with the struct's name
-  --> tests/ui/struct_fields.rs:341:5
+  --> tests/ui/struct_fields.rs:337:5
    |
 LL |     use_bar: bool,
    |     ^^^^^^^^^^^^^
 
 error: field name starts with the struct's name
-  --> tests/ui/struct_fields.rs:342:5
+  --> tests/ui/struct_fields.rs:339:5
    |
 LL |     use_baz: bool,
    |     ^^^^^^^^^^^^^

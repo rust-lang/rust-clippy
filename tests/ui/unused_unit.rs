@@ -18,8 +18,12 @@ struct Unitter;
 impl Unitter {
     #[allow(clippy::no_effect)]
     pub fn get_unit<F: Fn() -> (), G>(&self, f: F, _g: G) -> ()
+
+
     where G: Fn() -> () {
+
         let _y: &dyn Fn() -> () = &f;
+
         (); // this should not lint, as it's not in return type position
     }
 }
@@ -27,25 +31,35 @@ impl Unitter {
 impl Into<()> for Unitter {
     #[rustfmt::skip]
     fn into(self) -> () {
+
         ()
+
     }
 }
 
 trait Trait {
     fn redundant<F: FnOnce() -> (), G, H>(&self, _f: F, _g: G, _h: H)
+
     where
         G: FnMut() -> (),
+
         H: Fn() -> ();
+
 }
 
 impl Trait for Unitter {
     fn redundant<F: FnOnce() -> (), G, H>(&self, _f: F, _g: G, _h: H)
+
     where
         G: FnMut() -> (),
+
         H: Fn() -> () {}
+
 }
 
 fn return_unit() -> () { () }
+
+
 
 #[allow(clippy::needless_return)]
 #[allow(clippy::never_loop)]
@@ -56,8 +70,10 @@ fn main() {
     return_unit();
     loop {
         break();
+
     }
     return();
+
 }
 
 // https://github.com/rust-lang/rust-clippy/issues/4076
@@ -76,11 +92,14 @@ fn foo() {
 #[rustfmt::skip]
 fn test()->(){}
 
+
 #[rustfmt::skip]
 fn test2() ->(){}
 
+
 #[rustfmt::skip]
 fn test3()-> (){}
+
 
 fn macro_expr() {
     macro_rules! e {

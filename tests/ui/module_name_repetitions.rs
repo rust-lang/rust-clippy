@@ -6,16 +6,15 @@
 mod foo {
     pub fn foo() {}
     pub fn foo_bar() {}
-    //~^ ERROR: item name starts with its containing module's name
-    //~| NOTE: `-D clippy::module-name-repetitions` implied by `-D warnings`
+    //~^ module_name_repetitions
     pub fn bar_foo() {}
-    //~^ ERROR: item name ends with its containing module's name
+    //~^ module_name_repetitions
     pub struct FooCake;
-    //~^ ERROR: item name starts with its containing module's name
+    //~^ module_name_repetitions
     pub enum CakeFoo {}
-    //~^ ERROR: item name ends with its containing module's name
+    //~^ module_name_repetitions
     pub struct Foo7Bar;
-    //~^ ERROR: item name starts with its containing module's name
+    //~^ module_name_repetitions
 
     // Should not warn
     pub struct Foobar;

@@ -78,7 +78,7 @@ LL |     (1, 2, 3, 4, 5);
    |     ~~~~~~~~~~~~~~~
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui/dbg_macro/dbg_macro.rs:48:5
+  --> tests/ui/dbg_macro/dbg_macro.rs:47:5
    |
 LL |     dbg!();
    |     ^^^^^^^
@@ -89,7 +89,7 @@ LL -     dbg!();
    |
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui/dbg_macro/dbg_macro.rs:51:13
+  --> tests/ui/dbg_macro/dbg_macro.rs:50:13
    |
 LL |     let _ = dbg!();
    |             ^^^^^^
@@ -100,7 +100,7 @@ LL |     let _ = ();
    |             ~~
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui/dbg_macro/dbg_macro.rs:53:9
+  --> tests/ui/dbg_macro/dbg_macro.rs:52:9
    |
 LL |     bar(dbg!());
    |         ^^^^^^
@@ -111,7 +111,7 @@ LL |     bar(());
    |         ~~
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui/dbg_macro/dbg_macro.rs:55:10
+  --> tests/ui/dbg_macro/dbg_macro.rs:54:10
    |
 LL |     foo!(dbg!());
    |          ^^^^^^
@@ -122,7 +122,7 @@ LL |     foo!(());
    |          ~~
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui/dbg_macro/dbg_macro.rs:57:16
+  --> tests/ui/dbg_macro/dbg_macro.rs:56:16
    |
 LL |     foo2!(foo!(dbg!()));
    |                ^^^^^^
@@ -148,7 +148,7 @@ LL -             dbg!();
    |
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui/dbg_macro/dbg_macro.rs:79:9
+  --> tests/ui/dbg_macro/dbg_macro.rs:78:9
    |
 LL |         dbg!(2);
    |         ^^^^^^^
@@ -159,7 +159,7 @@ LL |         2;
    |         ~
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui/dbg_macro/dbg_macro.rs:86:5
+  --> tests/ui/dbg_macro/dbg_macro.rs:85:5
    |
 LL |     dbg!(1);
    |     ^^^^^^^
@@ -170,7 +170,7 @@ LL |     1;
    |     ~
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui/dbg_macro/dbg_macro.rs:92:5
+  --> tests/ui/dbg_macro/dbg_macro.rs:91:5
    |
 LL |     dbg!(1);
    |     ^^^^^^^
@@ -181,7 +181,7 @@ LL |     1;
    |     ~
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui/dbg_macro/dbg_macro.rs:99:9
+  --> tests/ui/dbg_macro/dbg_macro.rs:98:9
    |
 LL |         dbg!(1);
    |         ^^^^^^^
@@ -192,7 +192,7 @@ LL |         1;
    |         ~
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui/dbg_macro/dbg_macro.rs:106:31
+  --> tests/ui/dbg_macro/dbg_macro.rs:105:31
    |
 LL |         println!("dbg: {:?}", dbg!(s));
    |                               ^^^^^^^
@@ -203,7 +203,7 @@ LL |         println!("dbg: {:?}", s);
    |                               ~
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui/dbg_macro/dbg_macro.rs:108:22
+  --> tests/ui/dbg_macro/dbg_macro.rs:107:22
    |
 LL |         print!("{}", dbg!(s));
    |                      ^^^^^^^

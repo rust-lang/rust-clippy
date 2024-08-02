@@ -13,6 +13,7 @@
 
 fn if_same_then_else2() -> Result<&'static str, ()> {
     if true {
+    //~^ if_same_then_else
         for _ in &[42] {
             let foo: &Option<_> = &Some::<u8>(42);
             if foo.is_some() {
@@ -31,21 +32,20 @@ fn if_same_then_else2() -> Result<&'static str, ()> {
             }
         }
     }
-    //~^^^^^^^^^^^^^^^^^^^ ERROR: this `if` has identical blocks
 
     if true {
+    //~^ if_same_then_else
         if let Some(a) = Some(42) {}
     } else {
         if let Some(a) = Some(42) {}
     }
-    //~^^^^^ ERROR: this `if` has identical blocks
 
     if true {
+    //~^ if_same_then_else
         if let (1, .., 3) = (1, 2, 3) {}
     } else {
         if let (1, .., 3) = (1, 2, 3) {}
     }
-    //~^^^^^ ERROR: this `if` has identical blocks
 
     if true {
         if let (1, .., 3) = (1, 2, 3) {}
@@ -91,14 +91,14 @@ fn if_same_then_else2() -> Result<&'static str, ()> {
 
     // Same NaNs
     let _ = if true { f32::NAN } else { f32::NAN };
-    //~^ ERROR: this `if` has identical blocks
+    //~^ if_same_then_else
 
     if true {
+    //~^ if_same_then_else
         Ok("foo")?;
     } else {
         Ok("foo")?;
     }
-    //~^^^^^ ERROR: this `if` has identical blocks
 
     if true {
         let foo = "";
@@ -118,13 +118,13 @@ fn if_same_then_else2() -> Result<&'static str, ()> {
         let foo = "bar";
         return Ok(&foo[0..]);
     } else if true {
+    //~^ if_same_then_else
         let foo = "";
         return Ok(&foo[0..]);
     } else {
         let foo = "";
         return Ok(&foo[0..]);
     }
-    //~^^^^^^^ ERROR: this `if` has identical blocks
 
     // False positive `if_same_then_else`: `let (x, y)` vs. `let (y, x)`; see issue #3559.
     if true {

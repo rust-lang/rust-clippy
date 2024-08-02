@@ -2,7 +2,7 @@
 #![allow(unused)]
 //@no-rustfix
 enum E {
-    //~^ ERROR: this seems like a manual implementation of the non-exhaustive pattern
+//~^ manual_non_exhaustive
     A,
     B,
     #[doc(hidden)]
@@ -27,6 +27,7 @@ enum NoDocHidden {
 
 // name of variant with doc hidden does not start with underscore
 enum NoUnderscore {
+//~^ manual_non_exhaustive
     A,
     B,
     #[doc(hidden)]

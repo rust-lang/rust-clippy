@@ -10,13 +10,16 @@
 extern crate proc_macros;
 
 //// whoops
+//~^ four_forward_slashes
 fn a() {}
 
 //// whoops
+//~^ four_forward_slashes
 #[allow(dead_code)]
 fn b() {}
 
 //// whoops
+//~^ four_forward_slashes
 //// two borked comments!
 #[track_caller]
 fn c() {}
@@ -25,10 +28,12 @@ fn d() {}
 
 #[test]
 //// between attributes
+//~^ four_forward_slashes
 #[allow(dead_code)]
 fn g() {}
 
     //// not very start of contents
+    //~^ four_forward_slashes
 fn h() {}
 
 fn i() {

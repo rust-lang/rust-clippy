@@ -6,7 +6,7 @@ extern crate serde;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
-//~^ ERROR: you are deriving `serde::Deserialize` on a type that has methods using `unsafe
+//~^ unsafe_derive_deserialize
 pub struct A;
 impl A {
     pub unsafe fn new(_a: i32, _b: i32) -> Self {
@@ -15,14 +15,14 @@ impl A {
 }
 
 #[derive(Deserialize)]
-//~^ ERROR: you are deriving `serde::Deserialize` on a type that has methods using `unsafe
+//~^ unsafe_derive_deserialize
 pub struct B;
 impl B {
     pub unsafe fn unsafe_method(&self) {}
 }
 
 #[derive(Deserialize)]
-//~^ ERROR: you are deriving `serde::Deserialize` on a type that has methods using `unsafe
+//~^ unsafe_derive_deserialize
 pub struct C;
 impl C {
     pub fn unsafe_block(&self) {
@@ -31,7 +31,7 @@ impl C {
 }
 
 #[derive(Deserialize)]
-//~^ ERROR: you are deriving `serde::Deserialize` on a type that has methods using `unsafe
+//~^ unsafe_derive_deserialize
 pub struct D;
 impl D {
     pub fn inner_unsafe_fn(&self) {

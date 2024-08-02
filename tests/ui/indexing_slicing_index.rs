@@ -17,7 +17,7 @@ use proc_macros::with_span;
 
 const ARR: [i32; 2] = [1, 2];
 const REF: &i32 = &ARR[idx()]; // This should be linted, since `suppress-restriction-lint-in-const` default is false.
-//~^ ERROR: indexing may panic
+//~^ indexing_slicing
 
 const fn idx() -> usize {
     1
@@ -46,11 +46,13 @@ fn main() {
     let x = [1, 2, 3, 4];
     let index: usize = 1;
     x[index];
-    //~^ ERROR: indexing may panic
+    //~^ indexing_slicing
     // Ok, let rustc's `unconditional_panic` lint handle `usize` indexing on arrays.
     x[4];
+    //~^ out_of_bounds_indexing
     // Ok, let rustc's `unconditional_panic` lint handle `usize` indexing on arrays.
     x[1 << 3];
+    //~^ indexing_slicing
 
     // Ok, should not produce stderr.
     x[0];
@@ -62,24 +64,25 @@ fn main() {
     x[const { idx4() }];
     // This should be linted, since `suppress-restriction-lint-in-const` default is false.
     const { &ARR[idx()] };
-    //~^ ERROR: indexing may panic
+    //~^ indexing_slicing
     // This should be linted, since `suppress-restriction-lint-in-const` default is false.
     const { &ARR[idx4()] };
-    //~^ ERROR: indexing may panic
+    //~^ indexing_slicing
 
     let y = &x;
     // Ok, referencing shouldn't affect this lint. See the issue 6021
     y[0];
     // Ok, rustc will handle references too.
     y[4];
+    //~^ indexing_slicing
 
     let v = vec![0; 5];
     v[0];
-    //~^ ERROR: indexing may panic
+    //~^ indexing_slicing
     v[10];
-    //~^ ERROR: indexing may panic
+    //~^ indexing_slicing
     v[1 << 3];
-    //~^ ERROR: indexing may panic
+    //~^ indexing_slicing
 
     // Out of bounds
     const N: usize = 15;
@@ -87,13 +90,15 @@ fn main() {
     const M: usize = 3;
     // Ok, let rustc's `unconditional_panic` lint handle `usize` indexing on arrays.
     x[N];
+    //~^ indexing_slicing
     // Ok, should not produce stderr.
     x[M];
     v[N];
-    //~^ ERROR: indexing may panic
+    //~^ indexing_slicing
     v[M];
-    //~^ ERROR: indexing may panic
+    //~^ indexing_slicing
 
     let slice = &x;
     let _ = x[4];
+    //~^ indexing_slicing
 }

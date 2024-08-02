@@ -20,6 +20,7 @@ const FROZEN_VARIANT: OptionalCell = OptionalCell::Frozen;
 
 fn borrow_optional_cell() {
     let _ = &UNFROZEN_VARIANT; //~ ERROR: interior mutability
+
     let _ = &FROZEN_VARIANT;
 }
 
@@ -36,9 +37,11 @@ trait AssocConsts {
         // get linted even if it has frozen variants'.
         let _ = &Self::TO_BE_FROZEN_VARIANT; //~ ERROR: interior mutability
 
+
         // The lint ignores default values because an impl of this trait can set
         // an unfrozen variant to `DEFAULTED_ON_FROZEN_VARIANT` and use the default impl for `function`.
         let _ = &Self::DEFAULTED_ON_FROZEN_VARIANT; //~ ERROR: interior mutability
+
     }
 }
 
@@ -48,8 +51,10 @@ impl AssocConsts for u64 {
 
     fn function() {
         let _ = &<Self as AssocConsts>::TO_BE_UNFROZEN_VARIANT; //~ ERROR: interior mutability
+
         let _ = &<Self as AssocConsts>::TO_BE_FROZEN_VARIANT;
         let _ = &Self::DEFAULTED_ON_UNFROZEN_VARIANT; //~ ERROR: interior mutability
+
         let _ = &Self::DEFAULTED_ON_FROZEN_VARIANT;
     }
 }
@@ -72,6 +77,7 @@ impl AssocTypes for u64 {
 
     fn function() {
         let _ = &<Self as AssocTypes>::TO_BE_UNFROZEN_VARIANT; //~ ERROR: interior mutability
+
         let _ = &<Self as AssocTypes>::TO_BE_FROZEN_VARIANT;
     }
 }
@@ -89,7 +95,9 @@ impl<T> BothOfCellAndGeneric<T> {
 
     fn function() {
         let _ = &Self::UNFROZEN_VARIANT; //~ ERROR: interior mutability
+
         let _ = &Self::GENERIC_VARIANT; //~ ERROR: interior mutability
+
         let _ = &Self::FROZEN_VARIANT;
     }
 }
@@ -97,5 +105,6 @@ impl<T> BothOfCellAndGeneric<T> {
 fn main() {
     // constants defined in foreign crates
     let _ = &helper::WRAPPED_PRIVATE_UNFROZEN_VARIANT; //~ ERROR: interior mutability
+
     let _ = &helper::WRAPPED_PRIVATE_FROZEN_VARIANT;
 }

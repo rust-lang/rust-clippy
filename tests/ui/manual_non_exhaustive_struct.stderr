@@ -46,6 +46,7 @@ LL |       struct NoUnderscore {
    |       |
    |  _____help: add the attribute: `#[non_exhaustive] struct NoUnderscore`
    | |
+LL | |
 LL | |         pub a: i32,
 LL | |         pub b: i32,
 LL | |         c: (),
@@ -53,13 +54,13 @@ LL | |     }
    | |_____^
    |
 help: remove this field
-  --> tests/ui/manual_non_exhaustive_struct.rs:32:9
+  --> tests/ui/manual_non_exhaustive_struct.rs:33:9
    |
 LL |         c: (),
    |         ^^^^^
 
 error: this seems like a manual implementation of the non-exhaustive pattern
-  --> tests/ui/manual_non_exhaustive_struct.rs:56:5
+  --> tests/ui/manual_non_exhaustive_struct.rs:57:5
    |
 LL |     struct T(pub i32, pub i32, ());
    |     --------^^^^^^^^^^^^^^^^^^^^^^^
@@ -67,19 +68,19 @@ LL |     struct T(pub i32, pub i32, ());
    |     help: add the attribute: `#[non_exhaustive] struct T`
    |
 help: remove this field
-  --> tests/ui/manual_non_exhaustive_struct.rs:56:32
+  --> tests/ui/manual_non_exhaustive_struct.rs:57:32
    |
 LL |     struct T(pub i32, pub i32, ());
    |                                ^^
 
 error: this seems like a manual implementation of the non-exhaustive pattern
-  --> tests/ui/manual_non_exhaustive_struct.rs:61:5
+  --> tests/ui/manual_non_exhaustive_struct.rs:62:5
    |
 LL |     struct Tp(pub i32, pub i32, ());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 help: remove this field
-  --> tests/ui/manual_non_exhaustive_struct.rs:61:33
+  --> tests/ui/manual_non_exhaustive_struct.rs:62:33
    |
 LL |     struct Tp(pub i32, pub i32, ());
    |                                 ^^

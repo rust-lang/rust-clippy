@@ -30,24 +30,24 @@ fn issue_10741() {
     }
 
     let _x = [build(); 3];
-    //~^ ERROR: allocating a local array larger than 512000 bytes
+    //~^ large_stack_arrays
 
     let _y = [build(), build(), build()];
-    //~^ ERROR: allocating a local array larger than 512000 bytes
+    //~^ large_stack_arrays
 }
 
 fn main() {
     let bad = (
         [0u32; 20_000_000],
-        //~^ ERROR: allocating a local array larger than 512000 bytes
+        //~^ large_stack_arrays
         [S { data: [0; 32] }; 5000],
-        //~^ ERROR: allocating a local array larger than 512000 bytes
+        //~^ large_stack_arrays
         [Some(""); 20_000_000],
-        //~^ ERROR: allocating a local array larger than 512000 bytes
+        //~^ large_stack_arrays
         [E::T(0); 5000],
-        //~^ ERROR: allocating a local array larger than 512000 bytes
+        //~^ large_stack_arrays
         [0u8; usize::MAX],
-        //~^ ERROR: allocating a local array larger than 512000 bytes
+        //~^ large_stack_arrays
     );
 
     let good = (
@@ -68,7 +68,6 @@ fn issue_12586() {
         // Weird rule to test help messages.
         ($a:expr => $b:expr) => {
             [$a, $b, $a, $b]
-            //~^ ERROR: allocating a local array larger than 512000 bytes
         };
         ($id:ident; $n:literal) => {
             dummy!(::std::vec![$id;$n])
@@ -80,7 +79,6 @@ fn issue_12586() {
     macro_rules! create_then_move {
         ($id:ident; $n:literal) => {{
             let _x_ = [$id; $n];
-            //~^ ERROR: allocating a local array larger than 512000 bytes
             _x_
         }};
     }
@@ -91,15 +89,15 @@ fn issue_12586() {
     let y = vec![dummy![[x, x, x, x, x]]];
     let y = dummy![x, x, x, x, x];
     let y = [x, x, dummy!(x), x, x];
-    //~^ ERROR: allocating a local array larger than 512000 bytes
+    //~^ large_stack_arrays
     let y = dummy![x => x];
     let y = dummy![x;5];
     let y = dummy!(vec![dummy![x, x, x, x, x]]);
     let y = dummy![[x, x, x, x, x]];
-    //~^ ERROR: allocating a local array larger than 512000 bytes
+    //~^ large_stack_arrays
 
     let y = proc_macros::make_it_big!([x; 1]);
-    //~^ ERROR: allocating a local array larger than 512000 bytes
+    //~^ large_stack_arrays
     let y = vec![proc_macros::make_it_big!([x; 10])];
     let y = vec![create_then_move![x; 5]; 5];
 }

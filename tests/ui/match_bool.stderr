@@ -99,7 +99,7 @@ LL |     match test && test {
    = note: `#[deny(clippy::eq_op)]` on by default
 
 error: you seem to be trying to match on a boolean expression
-  --> tests/ui/match_bool.rs:48:5
+  --> tests/ui/match_bool.rs:46:5
    |
 LL | /     match test {
 LL | |

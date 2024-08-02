@@ -14,20 +14,22 @@ fn foo() -> Result<(), ()> {
 fn main() {
     match foo() {
         Ok(_) => {},  //~ ERROR: matching over `()` is more explicit
+        //~^ ignored_unit_patterns
         Err(_) => {}, //~ ERROR: matching over `()` is more explicit
+        //~^ ignored_unit_patterns
     }
     if let Ok(_) = foo() {}
-    //~^ ERROR: matching over `()` is more explicit
+    //~^ ignored_unit_patterns
     let _ = foo().map_err(|_| todo!());
-    //~^ ERROR: matching over `()` is more explicit
+    //~^ ignored_unit_patterns
 
     println!(
         "{:?}",
         match foo() {
             Ok(_) => {},
-            //~^ ERROR: matching over `()` is more explicit
+            //~^ ignored_unit_patterns
             Err(_) => {},
-            //~^ ERROR: matching over `()` is more explicit
+            //~^ ignored_unit_patterns
         }
     );
 }
@@ -39,7 +41,7 @@ pub struct B;
 #[allow(unused)]
 pub fn moo(_: ()) {
     let _ = foo().unwrap();
-    //~^ ERROR: matching over `()` is more explicit
+    //~^ ignored_unit_patterns
     let _: () = foo().unwrap();
     let _: () = ();
 }
@@ -48,14 +50,14 @@ fn test_unit_ref_1() {
     let x: (usize, &&&&&()) = (1, &&&&&&());
     match x {
         (1, _) => unimplemented!(),
-        //~^ ERROR: matching over `()` is more explicit
+        //~^ ignored_unit_patterns
         _ => unimplemented!(),
     };
 }
 
 fn test_unit_ref_2(v: &[(usize, ())]) {
     for (x, _) in v {
-        //~^ ERROR: matching over `()` is more explicit
+    //~^ ignored_unit_patterns
         let _ = x;
     }
 }

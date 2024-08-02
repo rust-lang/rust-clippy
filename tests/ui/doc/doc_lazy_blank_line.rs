@@ -21,6 +21,7 @@ pub const A: i32 = 42;
 //pub const B: i32 = 1337;
 
 /// This is yet another constant.
+//~^ doc_lazy_continuation
 ///
 /// This has a similar fate as `B`.
 ///
@@ -30,14 +31,17 @@ pub const A: i32 = 42;
 //pub const C: i32 = 8008;
 
 /// This is still in use.
+//~^ doc_lazy_continuation
 pub const D: i32 = 20;
 
 /// > blockquote code path
 
 /// bottom text
+//~^ doc_lazy_continuation
 pub const E: i32 = 20;
 
 /// > blockquote code path
 #[repr(C)]
 /// bottom text
+//~^ doc_lazy_continuation
 pub struct Foo(i32);

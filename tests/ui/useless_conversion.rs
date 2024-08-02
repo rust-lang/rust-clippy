@@ -3,7 +3,9 @@
 
 fn test_generic<T: Copy>(val: T) -> T {
     let _ = T::from(val);
+
     val.into()
+
 }
 
 fn test_generic2<T: Copy + Into<i32> + Into<U>, U: From<T>>(val: T) {
@@ -16,6 +18,7 @@ fn test_generic2<T: Copy + Into<i32> + Into<U>, U: From<T>>(val: T) {
 fn test_questionmark() -> Result<(), ()> {
     {
         let _: i32 = 0i32.into();
+
         Ok(Ok(()))
     }??;
     Ok(())
@@ -46,28 +49,33 @@ fn lint_into_iter_on_mutable_local_implementing_iterator_in_expr() {
     let text = "foo\r\nbar\n\nbaz\n";
     let mut lines = text.lines();
     if Some("ok") == lines.into_iter().next() {}
+
 }
 
 fn lint_into_iter_on_expr_implementing_iterator() {
     let text = "foo\r\nbar\n\nbaz\n";
     let mut lines = text.lines().into_iter();
+
     if Some("ok") == lines.next() {}
 }
 
 fn lint_into_iter_on_expr_implementing_iterator_2() {
     let text = "foo\r\nbar\n\nbaz\n";
     if Some("ok") == text.lines().into_iter().next() {}
+
 }
 
 #[allow(const_item_mutation)]
 fn lint_into_iter_on_const_implementing_iterator() {
     const NUMBERS: std::ops::Range<i32> = 0..10;
     let _ = NUMBERS.into_iter().next();
+
 }
 
 fn lint_into_iter_on_const_implementing_iterator_2() {
     const NUMBERS: std::ops::Range<i32> = 0..10;
     let mut n = NUMBERS.into_iter();
+
     n.next();
 }
 
@@ -130,27 +138,38 @@ fn main() {
     }
 
     let _: String = "foo".to_string().into();
+
     let _: String = From::from("foo".to_string());
+
     let _ = String::from("foo".to_string());
+
     let _ = String::from(format!("A: {:04}", 123));
+
     let _ = "".lines().into_iter();
+
     let _ = vec![1, 2, 3].into_iter().into_iter();
+
     let _: String = format!("Hello {}", "world").into();
+
 
     // keep parentheses around `a + b` for suggestion (see #4750)
     let a: i32 = 1;
     let b: i32 = 1;
     let _ = i32::from(a + b) * 3;
 
+
     // see #7205
     let s: Foo<'a'> = Foo;
     let _: Foo<'b'> = s.into();
     let s2: Foo<'a'> = Foo;
     let _: Foo<'a'> = s2.into();
+
     let s3: Foo<'a'> = Foo;
     let _ = Foo::<'a'>::from(s3);
+
     let s4: Foo<'a'> = Foo;
     let _ = vec![s4, s4, s4].into_iter().into_iter();
+
 
     issue11300::bar();
 }
@@ -183,12 +202,17 @@ fn explicit_into_iter_fn_arg() {
 
     a(vec![1, 2].into_iter());
     b(vec![1, 2].into_iter());
+
     c(vec![1, 2].into_iter());
+
     d(vec![1, 2].into_iter());
+
     b([&1, &2, &3].into_iter().cloned());
 
     b(vec![1, 2].into_iter().into_iter());
+
     b(vec![1, 2].into_iter().into_iter().into_iter());
+
 
     macro_rules! macro_generated {
         () => {
@@ -236,6 +260,7 @@ mod issue11300 {
         // This should trigger the lint, receiver type [i32; 3] also implements `Helper`
         foo2::<i32, _>([1, 2, 3].into_iter());
 
+
         // This again should *not* lint, since X = () and I = std::array::IntoIter<i32, 3>,
         // and `[i32; 3]: Helper<()>` is not true (only `std::array::IntoIter<i32, 3>: Helper<()>` is).
         foo2::<(), _>([1, 2, 3].into_iter());
@@ -243,6 +268,7 @@ mod issue11300 {
         // This should lint. Removing the `.into_iter()` means that `I` gets substituted with `[i32; 3]`,
         // and `i32: Helper2<[i32, 3]>` is true, so this call is indeed unnecessary.
         foo3([1, 2, 3].into_iter());
+
     }
 
     fn ice() {
@@ -252,6 +278,7 @@ mod issue11300 {
         }
 
         S1.foo([1, 2].into_iter());
+
 
         // ICE that occurred in itertools
         trait Itertools {
@@ -271,6 +298,7 @@ mod issue11300 {
         let v0: Vec<i32> = vec![0, 2, 4];
         let v1: Vec<i32> = vec![1, 3, 5, 7];
         v0.into_iter().interleave_shortest(v1.into_iter());
+
 
         trait TraitWithLifetime<'a> {}
         impl<'a> TraitWithLifetime<'a> for std::array::IntoIter<&'a i32, 2> {}

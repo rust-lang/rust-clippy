@@ -4,7 +4,7 @@ error: this loop never actually loops
 LL | /     loop {
 LL | |
 LL | |
-LL | |
+LL | |         let _ = match iter.next() {
 ...  |
 LL | |
 LL | |     }
@@ -18,7 +18,7 @@ error: this loop could be written as a `while let` loop
 LL | /     loop {
 LL | |
 LL | |
-LL | |
+LL | |         let _ = match iter.next() {
 ...  |
 LL | |
 LL | |     }
@@ -28,7 +28,7 @@ LL | |     }
    = help: to override `-D warnings` add `#[allow(clippy::while_let_loop)]`
 
 error: empty `loop {}` wastes CPU cycles
-  --> tests/ui/crashes/ice-360.rs:13:9
+  --> tests/ui/crashes/ice-360.rs:12:9
    |
 LL |         loop {}
    |         ^^^^^^^

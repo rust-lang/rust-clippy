@@ -3,7 +3,6 @@ error: you should consider adding a `Default` implementation for `Foo`
    |
 LL | /     pub fn new() -> Foo {
 LL | |
-LL | |
 LL | |         Foo
 LL | |     }
    | |_____^
@@ -20,7 +19,7 @@ LL + }
    |
 
 error: you should consider adding a `Default` implementation for `Bar`
-  --> tests/ui/new_without_default.rs:22:5
+  --> tests/ui/new_without_default.rs:21:5
    |
 LL | /     pub fn new() -> Self {
 LL | |
@@ -38,7 +37,7 @@ LL + }
    |
 
 error: you should consider adding a `Default` implementation for `LtKo<'c>`
-  --> tests/ui/new_without_default.rs:87:5
+  --> tests/ui/new_without_default.rs:86:5
    |
 LL | /     pub fn new() -> LtKo<'c> {
 LL | |
@@ -56,9 +55,10 @@ LL + }
    |
 
 error: you should consider adding a `Default` implementation for `Const`
-  --> tests/ui/new_without_default.rs:120:5
+  --> tests/ui/new_without_default.rs:119:5
    |
 LL | /     pub const fn new() -> Const {
+LL | |
 LL | |         Const
 LL | |     } // While Default is not const, it can still call const functions, so we should lint this
    | |_____^
@@ -150,6 +150,7 @@ error: you should consider adding a `Default` implementation for `MyStruct<K, V>
   --> tests/ui/new_without_default.rs:255:5
    |
 LL | /     pub fn new() -> Self {
+LL | |
 LL | |         Self { _kv: None }
 LL | |     }
    | |_____^

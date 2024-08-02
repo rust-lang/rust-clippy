@@ -16,10 +16,13 @@ fn main() {
     let mut vec = vec![1, 2, 3, 4];
 
     for _ in vec.iter() {}
+
     for _ in vec.iter_mut() {}
+
 
     let rvec = &vec;
     for _ in rvec.iter() {}
+
 
     let rmvec = &mut vec;
     for _ in rmvec.iter() {}
@@ -30,35 +33,47 @@ fn main() {
 
     for _ in [1, 2, 3].iter() {}
 
+
     for _ in (&mut [1, 2, 3]).iter() {}
 
     for _ in [0; 32].iter() {}
+
     for _ in [0; 33].iter() {}
+
 
     let ll: LinkedList<()> = LinkedList::new();
     for _ in ll.iter() {}
+
     let rll = &ll;
     for _ in rll.iter() {}
 
+
     let vd: VecDeque<()> = VecDeque::new();
     for _ in vd.iter() {}
+
     let rvd = &vd;
     for _ in rvd.iter() {}
+
 
     let bh: BinaryHeap<()> = BinaryHeap::new();
     for _ in bh.iter() {}
 
+
     let hm: HashMap<(), ()> = HashMap::new();
     for _ in hm.iter() {}
+
 
     let bt: BTreeMap<(), ()> = BTreeMap::new();
     for _ in bt.iter() {}
 
+
     let hs: HashSet<()> = HashSet::new();
     for _ in hs.iter() {}
 
+
     let bs: BTreeSet<()> = BTreeSet::new();
     for _ in bs.iter() {}
+
 
     struct NoIntoIter();
     impl NoIntoIter {
@@ -148,8 +163,11 @@ fn main() {
     }
     let mut x = CustomType;
     for _ in x.iter() {}
+
     for _ in x.iter_mut() {}
+
 
     let r = &x;
     for _ in r.iter() {}
+
 }

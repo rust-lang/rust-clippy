@@ -4,8 +4,7 @@
 fn main() {
     let y = Some(true);
     loop {
-        //~^ ERROR: this loop could be written as a `while let` loop
-        //~| NOTE: `-D clippy::while-let-loop` implied by `-D warnings`
+    //~^ while_let_loop
         if let Some(_x) = y {
             let _v = 1;
         } else {
@@ -23,7 +22,7 @@ fn main() {
     }
 
     loop {
-        //~^ ERROR: this loop could be written as a `while let` loop
+    //~^ while_let_loop
         match y {
             Some(_x) => true,
             None => break,
@@ -31,7 +30,7 @@ fn main() {
     }
 
     loop {
-        //~^ ERROR: this loop could be written as a `while let` loop
+    //~^ while_let_loop
         let x = match y {
             Some(x) => x,
             None => break,
@@ -41,7 +40,7 @@ fn main() {
     }
 
     loop {
-        //~^ ERROR: this loop could be written as a `while let` loop
+    //~^ while_let_loop
         let x = match y {
             Some(x) => x,
             None => break,
@@ -72,7 +71,7 @@ fn main() {
 
     // #675, this used to have a wrong suggestion
     loop {
-        //~^ ERROR: this loop could be written as a `while let` loop
+    //~^ while_let_loop
         let (e, l) = match "".split_whitespace().next() {
             Some(word) => (word.is_empty(), word.len()),
             None => break,

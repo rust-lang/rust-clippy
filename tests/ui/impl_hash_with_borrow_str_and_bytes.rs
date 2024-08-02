@@ -8,7 +8,7 @@ struct ExampleType {
 }
 
 impl Hash for ExampleType {
-    //~^ ERROR: can't
+//~^ impl_hash_borrow_with_str_and_bytes
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.data.hash(state);
     }
@@ -71,7 +71,7 @@ impl Borrow<[u8]> for ShouldNotRaiseForHashBorrowSlice {
 }
 
 #[derive(Hash)]
-//~^ ERROR: can't
+//~^ impl_hash_borrow_with_str_and_bytes
 struct Derived {
     data: String,
 }
@@ -115,7 +115,7 @@ struct GenericExampleType2<T> {
 }
 
 impl Hash for GenericExampleType2<String> {
-    //~^ ERROR: can't
+//~^ impl_hash_borrow_with_str_and_bytes
     // this is correctly throwing an error for generic with concrete impl
     // for all 3 types
     fn hash<H: Hasher>(&self, state: &mut H) {

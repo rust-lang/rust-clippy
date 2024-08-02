@@ -16,6 +16,7 @@ mod some_mod {
 }
 
 /// This should produce a warning
+//~^ empty_line_after_doc_comments
 
 fn with_doc_and_newline() { assert!(true)}
 
@@ -66,8 +67,10 @@ mod foo {
 }
 
 /// This doc comment should produce a warning
+//~^ empty_line_after_doc_comments
 
 /** This is also a doc comment and should produce a warning
+//~^ empty_line_after_doc_comments
  */
 
 // This should *NOT* produce a warning

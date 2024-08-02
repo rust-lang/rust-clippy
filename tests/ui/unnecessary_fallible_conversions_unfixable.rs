@@ -25,18 +25,18 @@ fn main() {
 
     // ... it does impl From<i64> however
     let _: Result<Foo, _> = 0i64.try_into();
-    //~^ ERROR: use of a fallible conversion when an infallible one could be used
+    //~^ unnecessary_fallible_conversions
     let _: Result<Foo, _> = i64::try_into(0i64);
-    //~^ ERROR: use of a fallible conversion when an infallible one could be used
+    //~^ unnecessary_fallible_conversions
     let _: Result<Foo, _> = Foo::try_from(0i64);
-    //~^ ERROR: use of a fallible conversion when an infallible one could be used
+    //~^ unnecessary_fallible_conversions
 
     let _: Result<i64, _> = 0i32.try_into();
-    //~^ ERROR: use of a fallible conversion when an infallible one could be used
+    //~^ unnecessary_fallible_conversions
     let _: Result<i64, _> = i32::try_into(0i32);
-    //~^ ERROR: use of a fallible conversion when an infallible one could be used
+    //~^ unnecessary_fallible_conversions
     let _: Result<i64, _> = <_>::try_from(0i32);
-    //~^ ERROR: use of a fallible conversion when an infallible one could be used
+    //~^ unnecessary_fallible_conversions
 
     // From a macro
     let _: Result<i64, _> = proc_macros::external!(0i32).try_into();

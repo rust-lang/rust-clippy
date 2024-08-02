@@ -26,6 +26,7 @@ mod without_base {
 
         // Should lint.
         Foo { y, x, z };
+        //~^ inconsistent_struct_constructor
 
         // Should NOT lint.
         // issue #7069.
@@ -53,6 +54,7 @@ mod with_base {
 
         // Should lint.
         Foo {
+        //~^ inconsistent_struct_constructor
             z,
             x,
             ..Default::default()

@@ -8,6 +8,7 @@
 extern crate proc_macro_attr;
 
 #[allow(unused)] //~ ERROR: item has both inner and outer attributes
+//~^ mixed_attributes_style
 fn foo1() {
     #![allow(unused)]
 }
@@ -22,7 +23,7 @@ fn foo3() {
 }
 
 /// linux
-//~^ ERROR: item has both inner and outer attributes
+//~^ mixed_attributes_style
 fn foo4() {
     //! windows
 }
@@ -37,6 +38,7 @@ fn foo6() {
 }
 
 #[allow(unused)] //~ ERROR: item has both inner and outer attributes
+//~^ mixed_attributes_style
 mod bar {
     #![allow(unused)]
 }
@@ -67,6 +69,7 @@ mod issue_12530 {
         #![allow(clippy::unreadable_literal)]
 
         #[allow(dead_code)] //~ ERROR: item has both inner and outer attributes
+        //~^ mixed_attributes_style
         mod inner_mod {
             #![allow(dead_code)]
         }
@@ -78,16 +81,19 @@ mod issue_12530 {
     /// Nested mod
     mod nested_mod {
         #[allow(dead_code)] //~ ERROR: item has both inner and outer attributes
+        //~^ mixed_attributes_style
         mod inner_mod {
             #![allow(dead_code)]
         }
     }
     /// Nested mod //~ ERROR: item has both inner and outer attributes
+    //~^ mixed_attributes_style
     #[allow(unused)]
     mod nest_mod_2 {
         #![allow(unused)]
 
         #[allow(dead_code)] //~ ERROR: item has both inner and outer attributes
+        //~^ mixed_attributes_style
         mod inner_mod {
             #![allow(dead_code)]
         }

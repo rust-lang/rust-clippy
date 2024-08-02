@@ -17,6 +17,7 @@ fn foo() -> bool {
 fn match_same_arms() {
     let _ = match 42 {
         42 => {
+        //~^ match_same_arms
             foo();
             let mut a = 42 + [23].len() as i32;
             if true {
@@ -35,17 +36,18 @@ fn match_same_arms() {
             a
         },
     };
-    //~^^^^^^^^^^^^^^^^^^^ ERROR: this match arm has an identical body to the `_` wildcard arm
 
     let _ = match 42 {
         42 => foo(),
         51 => foo(), //~ ERROR: this match arm has an identical body to another arm
+        //~^ match_same_arms
         _ => true,
     };
 
     let _ = match Some(42) {
         Some(_) => 24,
         None => 24, //~ ERROR: this match arm has an identical body to another arm
+        //~^ match_same_arms
     };
 
     let _ = match Some(42) {
@@ -68,6 +70,7 @@ fn match_same_arms() {
     match (Some(42), Some(42)) {
         (Some(a), None) => bar(a),
         (None, Some(a)) => bar(a), //~ ERROR: this match arm has an identical body to another arm
+        //~^ match_same_arms
         _ => (),
     }
 
@@ -82,11 +85,13 @@ fn match_same_arms() {
     let _ = match (Some(42), Some(42)) {
         (Some(a), None) if a == 42 => a,
         (None, Some(a)) if a == 42 => a, //~ ERROR: this match arm has an identical body to another arm
+        //~^ match_same_arms
         _ => 0,
     };
 
     match (Some(42), Some(42)) {
         (Some(a), ..) => bar(a), //~ ERROR: this match arm has an identical body to another arm
+        //~^ match_same_arms
         (.., Some(a)) => bar(a),
         _ => (),
     }
@@ -121,6 +126,7 @@ fn match_same_arms() {
 
     match (x, Some(1i32)) {
         (Ok(x), Some(_)) => println!("ok {}", x), //~ ERROR: this match arm has an identical body to another arm
+        //~^ match_same_arms
         (Ok(_), Some(x)) => println!("ok {}", x),
         _ => println!("err"),
     }
@@ -137,6 +143,7 @@ fn match_same_arms() {
         Ok(_tmp) => println!("ok"),
         Ok(3) => println!("ok"),
         Ok(_) => println!("ok"), //~ ERROR: this match arm has an identical body to another arm
+        //~^ match_same_arms
         Err(_) => {
             unreachable!();
         },
@@ -164,13 +171,13 @@ fn match_same_arms() {
             empty!(0);
         },
         1 => {
+        //~^ match_same_arms
             empty!(0);
         },
         x => {
             empty!(x);
         },
     }
-    //~^^^^^^^ ERROR: this match arm has an identical body to another arm
 
     match_expr_like_matches_macro_priority();
 }
@@ -215,6 +222,7 @@ fn main() {
     // Suggest moving `Foo::Z(_)` up.
     let _ = match Foo::X(0) {
         Foo::X(0) => 1, //~ ERROR: this match arm has an identical body to another arm
+        //~^ match_same_arms
         Foo::X(_) | Foo::Y(_) => 2,
         Foo::Z(_) => 1,
         _ => 0,
@@ -225,6 +233,7 @@ fn main() {
         Foo::X(0) => 1,
         Foo::Y(_) | Foo::Z(0) => 2,
         Foo::Z(_) => 1, //~ ERROR: this match arm has an identical body to another arm
+        //~^ match_same_arms
         _ => 0,
     };
 
@@ -248,6 +257,7 @@ fn main() {
         Some(Bar { y: 10, z: 0, .. }) => 2,
         None => 50,
         Some(Bar { y: 0, x: 5, .. }) => 1, //~ ERROR: this match arm has an identical body to another arm
+        //~^ match_same_arms
         _ => 200,
     };
 
@@ -262,6 +272,7 @@ fn main() {
     let _ = match 0 {
         0 => cfg!(not_enable),
         1 => cfg!(not_enable),
+        //~^ match_same_arms
         _ => false,
     };
 }
@@ -278,7 +289,7 @@ mod with_lifetime {
             match *self {
                 MaybeStaticStr::Static(s) => s,
                 MaybeStaticStr::Borrowed(s) => s,
-                //~^ ERROR: this match arm has an identical body to another arm
+                //~^ match_same_arms
             }
         }
     }

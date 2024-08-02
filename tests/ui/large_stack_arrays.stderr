@@ -57,7 +57,7 @@ LL |         [0u8; usize::MAX],
    = help: consider allocating on the heap with `vec![0u8; usize::MAX].into_boxed_slice()`
 
 error: allocating a local array larger than 512000 bytes
-  --> tests/ui/large_stack_arrays.rs:93:13
+  --> tests/ui/large_stack_arrays.rs:91:13
    |
 LL |     let y = [x, x, dummy!(x), x, x];
    |             ^^^^^^^^^^^^^^^^^^^^^^^
@@ -76,7 +76,7 @@ LL |     let y = dummy![x => x];
    = note: this error originates in the macro `dummy` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: allocating a local array larger than 512000 bytes
-  --> tests/ui/large_stack_arrays.rs:98:20
+  --> tests/ui/large_stack_arrays.rs:96:20
    |
 LL |     let y = dummy![[x, x, x, x, x]];
    |                    ^^^^^^^^^^^^^^^
@@ -84,13 +84,13 @@ LL |     let y = dummy![[x, x, x, x, x]];
    = help: consider allocating on the heap with `vec![x, x, x, x, x].into_boxed_slice()`
 
 error: allocating a local array larger than 512000 bytes
-  --> tests/ui/large_stack_arrays.rs:101:39
+  --> tests/ui/large_stack_arrays.rs:99:39
    |
 LL |     let y = proc_macros::make_it_big!([x; 1]);
    |                                       ^^^^^^
 
 error: allocating a local array larger than 512000 bytes
-  --> tests/ui/large_stack_arrays.rs:82:23
+  --> tests/ui/large_stack_arrays.rs:81:23
    |
 LL |             let _x_ = [$id; $n];
    |                       ^^^^^^^^^

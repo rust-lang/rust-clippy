@@ -3,8 +3,11 @@
 
 fn main() {
     f() && g();
+    //~^ short_circuit_statement
     f() || g();
+    //~^ short_circuit_statement
     1 == 2 || g();
+    //~^ short_circuit_statement
 }
 
 fn f() -> bool {

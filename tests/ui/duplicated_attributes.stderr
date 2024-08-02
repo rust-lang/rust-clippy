@@ -18,18 +18,18 @@ LL | #![allow(dead_code)]
    = help: to override `-D warnings` add `#[allow(clippy::duplicated_attributes)]`
 
 error: duplicated attribute
-  --> tests/ui/duplicated_attributes.rs:14:9
+  --> tests/ui/duplicated_attributes.rs:15:9
    |
 LL | #[allow(dead_code)]
    |         ^^^^^^^^^
    |
 note: first defined here
-  --> tests/ui/duplicated_attributes.rs:13:9
+  --> tests/ui/duplicated_attributes.rs:14:9
    |
 LL | #[allow(dead_code)]
    |         ^^^^^^^^^
 help: remove this attribute
-  --> tests/ui/duplicated_attributes.rs:14:9
+  --> tests/ui/duplicated_attributes.rs:15:9
    |
 LL | #[allow(dead_code)]
    |         ^^^^^^^^^

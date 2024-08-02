@@ -13,6 +13,7 @@ trait ConcreteTypes {
 
     fn function() {
         let _ = &Self::ATOMIC; //~ ERROR: interior mutability
+
         let _ = &Self::STRING;
     }
 }
@@ -24,6 +25,7 @@ impl ConcreteTypes for u64 {
     fn function() {
         // Lint this again since implementers can choose not to borrow it.
         let _ = &Self::ATOMIC; //~ ERROR: interior mutability
+
         let _ = &Self::STRING;
     }
 }
@@ -49,6 +51,7 @@ impl<T: ConstDefault> GenericTypes<T, AtomicUsize> for Vec<T> {
     fn function() {
         let _ = &Self::TO_REMAIN_GENERIC;
         let _ = &Self::TO_BE_CONCRETE; //~ ERROR: interior mutability
+
     }
 }
 
@@ -84,7 +87,9 @@ impl<T: ConstDefault> AssocTypes for Vec<T> {
     fn function() {
         let _ = &Self::TO_BE_FROZEN;
         let _ = &Self::TO_BE_UNFROZEN; //~ ERROR: interior mutability
+
         let _ = &Self::WRAPPED_TO_BE_UNFROZEN; //~ ERROR: interior mutability
+
         let _ = &Self::WRAPPED_TO_BE_GENERIC_PARAM;
     }
 }
@@ -107,6 +112,7 @@ where
     fn function() {
         let _ = &Self::NOT_BOUNDED;
         let _ = &Self::BOUNDED; //~ ERROR: interior mutability
+
     }
 }
 
@@ -120,6 +126,7 @@ where
     fn function() {
         let _ = &Self::NOT_BOUNDED;
         let _ = &Self::BOUNDED; //~ ERROR: interior mutability
+
     }
 }
 
@@ -149,7 +156,9 @@ impl SelfType for AtomicUsize {
 
     fn function() {
         let _ = &Self::SELF; //~ ERROR: interior mutability
+
         let _ = &Self::WRAPPED_SELF; //~ ERROR: interior mutability
+
     }
 }
 
@@ -159,7 +168,9 @@ trait BothOfCellAndGeneric<T> {
 
     fn function() {
         let _ = &Self::DIRECT; //~ ERROR: interior mutability
+
         let _ = &Self::INDIRECT; //~ ERROR: interior mutability
+
     }
 }
 
@@ -169,7 +180,9 @@ impl<T: ConstDefault> BothOfCellAndGeneric<T> for Vec<T> {
 
     fn function() {
         let _ = &Self::DIRECT; //~ ERROR: interior mutability
+
         let _ = &Self::INDIRECT; //~ ERROR: interior mutability
+
     }
 }
 
@@ -189,14 +202,18 @@ where
 
     fn function() {
         let _ = &Self::ATOMIC; //~ ERROR: interior mutability
+
         let _ = &Self::COW;
         let _ = &Self::GENERIC_TYPE;
         let _ = &Self::ASSOC_TYPE;
         let _ = &Self::BOUNDED_ASSOC_TYPE; //~ ERROR: interior mutability
+
     }
 }
 
 fn main() {
     u64::ATOMIC.store(5, Ordering::SeqCst); //~ ERROR: interior mutability
+
     assert_eq!(u64::ATOMIC.load(Ordering::SeqCst), 9); //~ ERROR: interior mutability
+
 }

@@ -21,6 +21,7 @@ fn foo() -> bool {
 
 fn if_same_then_else() {
     if true {
+    //~^ if_same_then_else
         Foo { bar: 42 };
         0..10;
         ..;
@@ -37,7 +38,6 @@ fn if_same_then_else() {
         0..=10;
         foo();
     }
-    //~^^^^^^^^^^^^^^^^^ ERROR: this `if` has identical blocks
 
     if true {
         Foo { bar: 42 };
@@ -65,10 +65,10 @@ fn if_same_then_else() {
     }
 
     let _ = if true { 0.0 } else { 0.0 };
-    //~^ ERROR: this `if` has identical blocks
+    //~^ if_same_then_else
 
     let _ = if true { -0.0 } else { -0.0 };
-    //~^ ERROR: this `if` has identical blocks
+    //~^ if_same_then_else
 
     let _ = if true { 0.0 } else { -0.0 };
 
@@ -80,9 +80,10 @@ fn if_same_then_else() {
     }
 
     let _ = if true { 42 } else { 42 };
-    //~^ ERROR: this `if` has identical blocks
+    //~^ if_same_then_else
 
     if true {
+    //~^ if_same_then_else
         let bar = if true { 42 } else { 43 };
 
         while foo() {
@@ -97,7 +98,6 @@ fn if_same_then_else() {
         }
         bar + 1;
     }
-    //~^^^^^^^^^^^^^^^ ERROR: this `if` has identical blocks
 
     if true {
         let _ = match 42 {
@@ -236,6 +236,7 @@ mod issue_11213 {
     fn do_lint(x: bool) -> bool {
         // but do lint if the type of the literal is the same
         if x {
+        //~^ if_same_then_else
             0_u8.is_power_of_two()
         } else {
             0_u8.is_power_of_two()

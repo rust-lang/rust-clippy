@@ -2,4 +2,5 @@
 
 fn main() {
     true.then_some("a").unwrap_or("b");
+    //~^ obfuscated_if_else
 }

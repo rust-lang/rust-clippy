@@ -9,7 +9,7 @@ fn do_stuff<T>(_: T) {}
 fn if_let() {
     let m = Mutex::new(1_u8);
     if let Err(locked) = m.lock() {
-        //~^ ERROR: calling `Mutex::lock` inside the scope of another `Mutex::lock` causes a d
+    //~^ if_let_mutex
         do_stuff(locked);
     } else {
         let lock = m.lock().unwrap();
@@ -22,7 +22,7 @@ fn if_let() {
 fn if_let_option() {
     let m = Mutex::new(Some(0_u8));
     if let Some(locked) = m.lock().unwrap().deref() {
-        //~^ ERROR: calling `Mutex::lock` inside the scope of another `Mutex::lock` causes a d
+    //~^ if_let_mutex
         do_stuff(locked);
     } else {
         let lock = m.lock().unwrap();
@@ -44,7 +44,7 @@ fn if_let_different_mutex() {
 
 fn mutex_ref(mutex: &Mutex<i32>) {
     if let Ok(i) = mutex.lock() {
-        //~^ ERROR: calling `Mutex::lock` inside the scope of another `Mutex::lock` causes a d
+    //~^ if_let_mutex
         do_stuff(i);
     } else {
         let _x = mutex.lock();
@@ -53,6 +53,7 @@ fn mutex_ref(mutex: &Mutex<i32>) {
 
 fn multiple_mutexes(m1: &Mutex<()>, m2: &Mutex<()>) {
     if let Ok(_) = m1.lock() {
+    //~^ if_let_mutex
         m2.lock();
     } else {
         m1.lock();

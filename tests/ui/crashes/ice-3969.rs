@@ -18,13 +18,12 @@ struct Dst<X: ?Sized> {
 struct TwoStrs(str, str)
 where
     str: Sized;
-//~^ ERROR: trait bound str: std::marker::Sized does not depend on any type or lifetim
-//~| NOTE: `-D trivial-bounds` implied by `-D warnings`
+
 
 fn unsized_local()
 where
     for<'a> Dst<dyn A + 'a>: Sized,
-    //~^ ERROR: trait bound for<'a> Dst<(dyn A + 'a)>: std::marker::Sized does not depend
+
 {
     let x: Dst<dyn A> = *(Box::new(Dst { x: 1 }) as Box<Dst<dyn A>>);
 }
@@ -32,7 +31,7 @@ where
 fn return_str() -> str
 where
     str: Sized,
-    //~^ ERROR: trait bound str: std::marker::Sized does not depend on any type or lifetim
+
 {
     *"Sized".to_string().into_boxed_str()
 }
@@ -40,7 +39,7 @@ where
 fn use_op(s: String) -> String
 where
     String: ::std::ops::Neg<Output = String>,
-    //~^ ERROR: trait bound std::string::String: std::ops::Neg does not depend on any type
+
 {
     -s
 }
@@ -48,7 +47,7 @@ where
 fn use_for()
 where
     i32: Iterator,
-    //~^ ERROR: trait bound i32: std::iter::Iterator does not depend on any type or lifeti
+
 {
     for _ in 2i32 {}
 }
