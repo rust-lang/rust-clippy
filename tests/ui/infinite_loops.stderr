@@ -77,6 +77,7 @@ error: infinite loop detected
   --> tests/ui/infinite_loops.rs:51:5
    |
 LL | /     loop {
+LL | |
 LL | |         fn inner_fn() -> ! {
 LL | |             std::process::exit(0);
 LL | |         }
@@ -90,7 +91,7 @@ LL | fn no_break_never_ret_noise() -> ! {
    |                               ++++
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:94:5
+  --> tests/ui/infinite_loops.rs:95:5
    |
 LL | /     loop {
 LL | |
@@ -107,7 +108,7 @@ LL | fn break_inner_but_not_outer_1(cond: bool) -> ! {
    |                                            ++++
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:105:5
+  --> tests/ui/infinite_loops.rs:106:5
    |
 LL | /     loop {
 LL | |
@@ -124,7 +125,7 @@ LL | fn break_inner_but_not_outer_2(cond: bool) -> ! {
    |                                            ++++
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:119:9
+  --> tests/ui/infinite_loops.rs:120:9
    |
 LL | /         loop {
 LL | |
@@ -138,7 +139,7 @@ LL | fn break_outer_but_not_inner() -> ! {
    |                                ++++
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:142:9
+  --> tests/ui/infinite_loops.rs:143:9
    |
 LL | /         loop {
 LL | |
@@ -155,7 +156,7 @@ LL | fn break_wrong_loop(cond: bool) -> ! {
    |                                 ++++
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:182:5
+  --> tests/ui/infinite_loops.rs:183:5
    |
 LL | /     loop {
 LL | |
@@ -172,7 +173,7 @@ LL | fn match_like() -> ! {
    |                 ++++
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:223:5
+  --> tests/ui/infinite_loops.rs:224:5
    |
 LL | /     loop {
 LL | |
@@ -186,7 +187,7 @@ LL | fn match_like() -> ! {
    |                 ++++
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:228:5
+  --> tests/ui/infinite_loops.rs:229:5
    |
 LL | /     loop {
 LL | |
@@ -203,7 +204,7 @@ LL | fn match_like() -> ! {
    |                 ++++
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:333:9
+  --> tests/ui/infinite_loops.rs:334:9
    |
 LL | /         loop {
 LL | |
@@ -217,7 +218,7 @@ LL |     fn problematic_trait_method() -> ! {
    |                                   ++++
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:343:9
+  --> tests/ui/infinite_loops.rs:344:9
    |
 LL | /         loop {
 LL | |
@@ -231,7 +232,7 @@ LL |     fn could_be_problematic() -> ! {
    |                               ++++
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:352:9
+  --> tests/ui/infinite_loops.rs:353:9
    |
 LL | /         loop {
 LL | |
@@ -245,10 +246,11 @@ LL |     let _loop_forever = || -> ! {
    |                            ++++
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:366:8
+  --> tests/ui/infinite_loops.rs:367:8
    |
 LL |       Ok(loop {
    |  ________^
+LL | |
 LL | |         do_something()
 LL | |     })
    | |_____^

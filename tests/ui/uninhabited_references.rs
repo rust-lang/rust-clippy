@@ -3,6 +3,7 @@
 #![feature(never_type)]
 
 fn ret_uninh_ref() -> &'static std::convert::Infallible {
+//~^ uninhabited_references
     unsafe { std::mem::transmute(&()) }
 }
 
@@ -20,4 +21,5 @@ ret_something!(id_never, !);
 fn main() {
     let x = ret_uninh_ref();
     let _ = *x;
+    //~^ uninhabited_references
 }

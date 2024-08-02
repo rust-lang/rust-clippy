@@ -44,26 +44,26 @@ fn main() {
     if x.is_some() {
         // unnecessary
         x.unwrap();
-        //~^ ERROR: called `unwrap` on `x` after checking its variant with `is_some`
+
         // unnecessary
         x.expect("an error message");
-        //~^ ERROR: called `expect` on `x` after checking its variant with `is_some`
+
     } else {
         // will panic
         x.unwrap();
-        //~^ ERROR: this call to `unwrap()` will always panic
+
         // will panic
         x.expect("an error message");
-        //~^ ERROR: this call to `expect()` will always panic
+
     }
     if x.is_none() {
         // will panic
         x.unwrap();
-        //~^ ERROR: this call to `unwrap()` will always panic
+
     } else {
         // unnecessary
         x.unwrap();
-        //~^ ERROR: called `unwrap` on `x` after checking its variant with `is_none`
+
     }
     m!(x);
     // ok
@@ -76,38 +76,38 @@ fn main() {
     if x.is_ok() {
         // unnecessary
         x.unwrap();
-        //~^ ERROR: called `unwrap` on `x` after checking its variant with `is_ok`
+
         // unnecessary
         x.expect("an error message");
-        //~^ ERROR: called `expect` on `x` after checking its variant with `is_ok`
+
         // will panic
         x.unwrap_err();
-        //~^ ERROR: this call to `unwrap_err()` will always panic
+
     } else {
         // will panic
         x.unwrap();
-        //~^ ERROR: this call to `unwrap()` will always panic
+
         // will panic
         x.expect("an error message");
-        //~^ ERROR: this call to `expect()` will always panic
+
         // unnecessary
         x.unwrap_err();
-        //~^ ERROR: called `unwrap_err` on `x` after checking its variant with `is_ok`
+
     }
     if x.is_err() {
         // will panic
         x.unwrap();
-        //~^ ERROR: this call to `unwrap()` will always panic
+
         // unnecessary
         x.unwrap_err();
-        //~^ ERROR: called `unwrap_err` on `x` after checking its variant with `is_err`
+
     } else {
         // unnecessary
         x.unwrap();
-        //~^ ERROR: called `unwrap` on `x` after checking its variant with `is_err`
+
         // will panic
         x.unwrap_err();
-        //~^ ERROR: this call to `unwrap_err()` will always panic
+
     }
     if x.is_ok() {
         x = Err(());
@@ -132,38 +132,38 @@ fn issue11371() {
 
     if option.is_some() {
         option.as_ref().unwrap();
-        //~^ ERROR: called `unwrap` on `option` after checking its variant with `is_some`
+
     } else {
         option.as_ref().unwrap();
-        //~^ ERROR: this call to `unwrap()` will always panic
+
     }
 
     let result = Ok::<(), ()>(());
 
     if result.is_ok() {
         result.as_ref().unwrap();
-        //~^ ERROR: called `unwrap` on `result` after checking its variant with `is_ok`
+
     } else {
         result.as_ref().unwrap();
-        //~^ ERROR: this call to `unwrap()` will always panic
+
     }
 
     let mut option = Some(());
     if option.is_some() {
         option.as_mut().unwrap();
-        //~^ ERROR: called `unwrap` on `option` after checking its variant with `is_some`
+
     } else {
         option.as_mut().unwrap();
-        //~^ ERROR: this call to `unwrap()` will always panic
+
     }
 
     let mut result = Ok::<(), ()>(());
     if result.is_ok() {
         result.as_mut().unwrap();
-        //~^ ERROR: called `unwrap` on `result` after checking its variant with `is_ok`
+
     } else {
         result.as_mut().unwrap();
-        //~^ ERROR: this call to `unwrap()` will always panic
+
     }
 
     // This should not lint. Statics are, at the time of writing, not linted on anyway,

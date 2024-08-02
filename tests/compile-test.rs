@@ -123,7 +123,7 @@ fn base_config(test_dir: &str) -> (Config, Args) {
         ..Config::rustc(Path::new("tests").join(test_dir))
     };
     config.comment_defaults.base().exit_status = None.into();
-    config.comment_defaults.base().require_annotations = None.into();
+    config.comment_defaults.base().require_annotations = Some(Spanned::dummy(true)).into();
     config
         .comment_defaults
         .base()

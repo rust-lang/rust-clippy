@@ -8,9 +8,10 @@ LL |         Foo { y, x, z };
    = help: to override `-D warnings` add `#[allow(clippy::inconsistent_struct_constructor)]`
 
 error: struct constructor field order is inconsistent with struct definition field order
-  --> tests/ui/inconsistent_struct_constructor.rs:55:9
+  --> tests/ui/inconsistent_struct_constructor.rs:56:9
    |
 LL | /         Foo {
+LL | |
 LL | |             z,
 LL | |             x,
 LL | |             ..Default::default()

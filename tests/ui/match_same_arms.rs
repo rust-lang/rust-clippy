@@ -10,12 +10,14 @@ pub enum Abc {
 fn match_same_arms() {
     let _ = match Abc::A {
         Abc::A => 0, //~ ERROR: this match arm has an identical body to the `_` wildcard arm
+        //~^ match_same_arms
         Abc::B => 1,
         _ => 0,
     };
 
     match (1, 2, 3) {
         (1, .., 3) => 42, //~ ERROR: this match arm has an identical body to another arm
+        //~^ match_same_arms
         (.., 3) => 42,
         _ => 0,
     };
@@ -23,7 +25,9 @@ fn match_same_arms() {
     let _ = match 42 {
         42 => 1,
         51 => 1, //~ ERROR: this match arm has an identical body to another arm
+        //~^ match_same_arms
         41 => 2, //~ ERROR: this match arm has an identical body to another arm
+        //~^ match_same_arms
         52 => 2,
         _ => 0,
     };
@@ -31,8 +35,10 @@ fn match_same_arms() {
     let _ = match 42 {
         1 => 2,
         2 => 2, //~ ERROR: this match arm has an identical body to another arm
-        //~^ ERROR: this match arm has an identical body to another arm
+        //~^ match_same_arms
+        //~| match_same_arms
         3 => 2, //~ ERROR: this match arm has an identical body to another arm
+        //~^ match_same_arms
         4 => 3,
         _ => 0,
     };
@@ -50,7 +56,7 @@ mod issue4244 {
             match self {
                 CommandInfo::BuiltIn { name, .. } => name.to_string(),
                 CommandInfo::External { name, .. } => name.to_string(),
-                //~^ ERROR: this match arm has an identical body to another arm
+                //~^ match_same_arms
             }
         }
     }

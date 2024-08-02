@@ -5,12 +5,12 @@ use std::rc::Rc;
 use std::sync::Arc;
 
 async fn private_future(rc: Rc<[u8]>, cell: &Cell<usize>) -> bool {
-    //~^ ERROR: future cannot be sent between threads safely
+//~^ future_not_send
     async { true }.await
 }
 
 pub async fn public_future(rc: Rc<[u8]>) {
-    //~^ ERROR: future cannot be sent between threads safely
+//~^ future_not_send
     async { true }.await;
 }
 
@@ -19,12 +19,12 @@ pub async fn public_send(arc: Arc<[u8]>) -> bool {
 }
 
 async fn private_future2(rc: Rc<[u8]>, cell: &Cell<usize>) -> bool {
-    //~^ ERROR: future cannot be sent between threads safely
+//~^ future_not_send
     true
 }
 
 pub async fn public_future2(rc: Rc<[u8]>) {}
-//~^ ERROR: future cannot be sent between threads safely
+//~^ future_not_send
 
 pub async fn public_send2(arc: Arc<[u8]>) -> bool {
     false
@@ -36,13 +36,13 @@ struct Dummy {
 
 impl Dummy {
     async fn private_future(&self) -> usize {
-        //~^ ERROR: future cannot be sent between threads safely
+    //~^ future_not_send
         async { true }.await;
         self.rc.len()
     }
 
     pub async fn public_future(&self) {
-        //~^ ERROR: future cannot be sent between threads safely
+    //~^ future_not_send
         self.private_future().await;
     }
 
@@ -53,7 +53,7 @@ impl Dummy {
 }
 
 async fn generic_future<T>(t: T) -> T
-//~^ ERROR: future cannot be sent between threads safely
+//~^ future_not_send
 where
     T: Send,
 {
@@ -71,7 +71,7 @@ where
 }
 
 async fn unclear_future<T>(t: T) {}
-//~^ ERROR: future cannot be sent between threads safely
+//~^ future_not_send
 
 fn main() {
     let rc = Rc::new([1, 2, 3]);

@@ -60,6 +60,7 @@ LL |       if let Ok(_) = m1.lock() {
    |       ^              -- this Mutex will remain locked for the entire `if let`-block...
    |  _____|
    | |
+LL | |
 LL | |         m2.lock();
 LL | |     } else {
 LL | |         m1.lock();

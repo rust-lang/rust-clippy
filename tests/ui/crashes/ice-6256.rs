@@ -11,5 +11,4 @@ impl dyn TT {
 #[rustfmt::skip]
 fn main() {
     let f = |x: &dyn TT| x.func();
-    //~^ ERROR: borrowed data escapes outside of closure
 }

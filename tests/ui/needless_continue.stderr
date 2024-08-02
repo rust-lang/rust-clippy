@@ -26,7 +26,7 @@ LL | |         }
                            println!("lama");
                        }
                        if (zero!(i % 2) || nonzero!(i % 5)) && i % 3 != 0 {
-
+                       
                            continue;
                        } else {
                            println!("Blabber");
@@ -51,7 +51,7 @@ LL | |         }
    |
    = help: consider dropping the `else` clause
                    if (zero!(i % 2) || nonzero!(i % 5)) && i % 3 != 0 {
-
+           
                        continue;
                    }
                    {
@@ -108,7 +108,7 @@ LL | |                 }
                                println!("bar-4");
                                update_condition();
                                if condition() {
-
+                               
                                    continue;
                                } else {
                                    println!("bar-5");
@@ -129,7 +129,7 @@ LL | |                 }
    |
    = help: consider dropping the `else` clause
                            if condition() {
-
+           
                                continue;
                            }
                            {

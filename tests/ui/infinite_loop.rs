@@ -20,15 +20,13 @@ fn immutable_condition() {
     // Should warn when all vars mentioned are immutable
     let y = 0;
     while y < 10 {
-        //~^ ERROR: variables in the condition are not mutated in the loop body
-        //~| NOTE: this may lead to an infinite or to a never running loop
+    //~^ while_immutable_condition
         println!("KO - y is immutable");
     }
 
     let x = 0;
     while y < 10 && x < 3 {
-        //~^ ERROR: variables in the condition are not mutated in the loop body
-        //~| NOTE: this may lead to an infinite or to a never running loop
+    //~^ while_immutable_condition
         let mut k = 1;
         k += 2;
         println!("KO - x and y immutable");
@@ -36,8 +34,7 @@ fn immutable_condition() {
 
     let cond = false;
     while !cond {
-        //~^ ERROR: variables in the condition are not mutated in the loop body
-        //~| NOTE: this may lead to an infinite or to a never running loop
+    //~^ while_immutable_condition
         println!("KO - cond immutable");
     }
 
@@ -82,21 +79,18 @@ fn unused_var() {
     let (mut i, mut j) = (0, 0);
 
     while i < 3 {
-        //~^ ERROR: variables in the condition are not mutated in the loop body
-        //~| NOTE: this may lead to an infinite or to a never running loop
+    //~^ while_immutable_condition
         j = 3;
         println!("KO - i not mentioned");
     }
 
     while i < 3 && j > 0 {
-        //~^ ERROR: variables in the condition are not mutated in the loop body
-        //~| NOTE: this may lead to an infinite or to a never running loop
+    //~^ while_immutable_condition
         println!("KO - i and j not mentioned");
     }
 
     while i < 3 {
-        //~^ ERROR: variables in the condition are not mutated in the loop body
-        //~| NOTE: this may lead to an infinite or to a never running loop
+    //~^ while_immutable_condition
         let mut i = 5;
         fn_mutref(&mut i);
         println!("KO - shadowed");
@@ -112,15 +106,13 @@ fn used_immutable() {
     let mut i = 0;
 
     while i < 3 {
-        //~^ ERROR: variables in the condition are not mutated in the loop body
-        //~| NOTE: this may lead to an infinite or to a never running loop
+    //~^ while_immutable_condition
         fn_constref(&i);
         println!("KO - const reference");
     }
 
     while i < 3 {
-        //~^ ERROR: variables in the condition are not mutated in the loop body
-        //~| NOTE: this may lead to an infinite or to a never running loop
+    //~^ while_immutable_condition
         fn_val(i);
         println!("KO - passed by value");
     }
@@ -187,8 +179,7 @@ impl Counter {
 
     fn print_n(&self, n: usize) {
         while self.count < n {
-            //~^ ERROR: variables in the condition are not mutated in the loop body
-            //~| NOTE: this may lead to an infinite or to a never running loop
+        //~^ while_immutable_condition
             println!("KO - {} is not mutated", self.count);
         }
     }
@@ -197,8 +188,7 @@ impl Counter {
 fn while_loop_with_break_and_return() {
     let y = 0;
     while y < 10 {
-        //~^ ERROR: variables in the condition are not mutated in the loop body
-        //~| NOTE: this may lead to an infinite or to a never running loop
+    //~^ while_immutable_condition
         if y == 0 {
             break;
         }
@@ -206,8 +196,7 @@ fn while_loop_with_break_and_return() {
     }
 
     while y < 10 {
-        //~^ ERROR: variables in the condition are not mutated in the loop body
-        //~| NOTE: this may lead to an infinite or to a never running loop
+    //~^ while_immutable_condition
         if y == 0 {
             return;
         }

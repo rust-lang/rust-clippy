@@ -30,6 +30,7 @@ LL |   enum NoUnderscore {
    |   |
    |  _help: add the attribute: `#[non_exhaustive] enum NoUnderscore`
    | |
+LL | |
 LL | |     A,
 LL | |     B,
 LL | |     #[doc(hidden)]
@@ -38,7 +39,7 @@ LL | | }
    | |_^
    |
 help: remove this variant
-  --> tests/ui/manual_non_exhaustive_enum.rs:33:5
+  --> tests/ui/manual_non_exhaustive_enum.rs:34:5
    |
 LL |     C,
    |     ^

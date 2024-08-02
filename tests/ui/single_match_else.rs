@@ -15,6 +15,7 @@ static NODE: ExprNode = ExprNode::Unicorns;
 
 fn unwrap_addr() -> Option<&'static ExprNode> {
     let _ = match ExprNode::Butterflies {
+    //~^ single_match_else
         ExprNode::ExprAddrOf => Some(&NODE),
         _ => {
             let x = 5;
@@ -80,6 +81,7 @@ fn main() {
 
     // lint here
     match Some(1) {
+    //~^ single_match_else
         Some(a) => println!("${:?}", a),
         None => {
             println!("else block");
@@ -89,6 +91,7 @@ fn main() {
 
     // lint here
     match Some(1) {
+    //~^ single_match_else
         Some(a) => println!("${:?}", a),
         None => {
             println!("else block");
@@ -99,6 +102,7 @@ fn main() {
     // lint here
     use std::convert::Infallible;
     match Result::<i32, Infallible>::Ok(1) {
+    //~^ single_match_else
         Ok(a) => println!("${:?}", a),
         Err(_) => {
             println!("else block");
@@ -108,6 +112,7 @@ fn main() {
 
     use std::borrow::Cow;
     match Cow::from("moo") {
+    //~^ single_match_else
         Cow::Owned(a) => println!("${:?}", a),
         Cow::Borrowed(_) => {
             println!("else block");
@@ -118,6 +123,7 @@ fn main() {
 
 fn issue_10808(bar: Option<i32>) {
     match bar {
+    //~^ single_match_else
         Some(v) => unsafe {
             let r = &v as *const i32;
             println!("{}", *r);
@@ -129,6 +135,7 @@ fn issue_10808(bar: Option<i32>) {
     }
 
     match bar {
+    //~^ single_match_else
         Some(v) => {
             println!("Some");
             println!("{v}");
@@ -141,6 +148,7 @@ fn issue_10808(bar: Option<i32>) {
     }
 
     match bar {
+    //~^ single_match_else
         Some(v) => unsafe {
             let r = &v as *const i32;
             println!("{}", *r);
@@ -153,6 +161,7 @@ fn issue_10808(bar: Option<i32>) {
     }
 
     match bar {
+    //~^ single_match_else
         #[rustfmt::skip]
         Some(v) => {
             unsafe {

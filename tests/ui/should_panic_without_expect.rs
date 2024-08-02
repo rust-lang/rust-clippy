@@ -3,6 +3,7 @@
 
 #[test]
 #[should_panic]
+
 fn no_message() {}
 
 #[test]

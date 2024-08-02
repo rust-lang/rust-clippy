@@ -7,14 +7,15 @@ use std::sync::atomic::AtomicUsize;
 use std::sync::Once;
 
 const ATOMIC: AtomicUsize = AtomicUsize::new(5); //~ ERROR: interior mutable
+//~^ declare_interior_mutable_const
 const CELL: Cell<usize> = Cell::new(6); //~ ERROR: interior mutable
+//~^ declare_interior_mutable_const
 const ATOMIC_TUPLE: ([AtomicUsize; 1], Vec<AtomicUsize>, u8) = ([ATOMIC], Vec::new(), 7);
-//~^ ERROR: interior mutable
+//~^ declare_interior_mutable_const
 
 macro_rules! declare_const {
     ($name:ident: $ty:ty = $e:expr) => {
         const $name: $ty = $e;
-        //~^ ERROR: interior mutable
     };
 }
 declare_const!(_ONCE: Once = Once::new());

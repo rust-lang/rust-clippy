@@ -6,11 +6,11 @@ extern crate proc_macros;
 pub struct S1;
 impl S1 {
     pub fn iter(&self) -> std::slice::Iter<'_, u8> {
-        //~^ ERROR: `iter` method without an `IntoIterator` impl
+    //~^ iter_without_into_iter
         [].iter()
     }
     pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, u8> {
-        //~^ ERROR: `iter_mut` method without an `IntoIterator` impl
+    //~^ iter_without_into_iter
         [].iter_mut()
     }
 }
@@ -26,11 +26,11 @@ impl S2 {
 pub struct S3<'a>(&'a mut [u8]);
 impl<'a> S3<'a> {
     pub fn iter(&self) -> std::slice::Iter<'_, u8> {
-        //~^ ERROR: `iter` method without an `IntoIterator` impl
+    //~^ iter_without_into_iter
         self.0.iter()
     }
     pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, u8> {
-        //~^ ERROR: `iter_mut` method without an `IntoIterator` impl
+    //~^ iter_without_into_iter
         self.0.iter_mut()
     }
 }
@@ -67,6 +67,7 @@ impl<T> S7<T> {
 pub struct S8<T>(T);
 impl<T> S8<T> {
     pub fn iter(&self) -> std::slice::Iter<'static, T> {
+    //~^ iter_without_into_iter
         todo!()
     }
 }
@@ -75,11 +76,11 @@ impl<T> S8<T> {
 pub struct S9<T>(T);
 impl<T> S9<T> {
     pub fn iter(&self) -> std::slice::Iter<'_, T> {
-        //~^ ERROR: `iter` method without an `IntoIterator` impl
+    //~^ iter_without_into_iter
         todo!()
     }
     pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, T> {
-        //~^ ERROR: `iter_mut` method without an `IntoIterator` impl
+    //~^ iter_without_into_iter
         todo!()
     }
 }

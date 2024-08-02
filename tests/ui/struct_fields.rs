@@ -8,7 +8,7 @@ extern crate proc_macros;
 
 struct Data1 {
     field_data1: u8,
-    //~^ ERROR: field name ends with the struct's name
+    //~^ struct_field_names
     another: u8,
     foo: u8,
     bar: u8,
@@ -18,33 +18,33 @@ struct Data2 {
     another: u8,
     foo: u8,
     data2_field: u8,
-    //~^ ERROR: field name starts with the struct's name
+    //~^ struct_field_names
     bar: u8,
 }
 
 struct StructData {
-    //~^ ERROR: all fields have the same postfix: `data`
+//~^ struct_field_names
     movable_data: u8,
     fixed_data: u8,
     invisible_data: u8,
 }
 
 struct DataStruct {
-    //~^ ERROR: all fields have the same prefix: `data`
+//~^ struct_field_names
     data_movable: u8,
     data_fixed: u8,
     data_invisible: u8,
 }
 
 struct DoublePrefix {
-    //~^ ERROR: all fields have the same prefix: `some_data`
+//~^ struct_field_names
     some_data_a: bool,
     some_data_b: i8,
     some_data_c: bool,
 }
 
 struct DoublePostfix {
-    //~^ ERROR: all fields have the same postfix: `some_data`
+//~^ struct_field_names
     a_some_data: bool,
     b_some_data: i8,
     c_some_data: bool,
@@ -52,14 +52,14 @@ struct DoublePostfix {
 
 #[allow(non_snake_case)]
 struct NotSnakeCase {
-    //~^ ERROR: all fields have the same postfix: `someData`
+//~^ struct_field_names
     a_someData: bool,
     b_someData: i8,
     c_someData: bool,
 }
 #[allow(non_snake_case)]
 struct NotSnakeCase2 {
-    //~^ ERROR: all fields have the same prefix: `someData`
+//~^ struct_field_names
     someData_c: bool,
     someData_b: i8,
     someData_a_b: bool,
@@ -72,7 +72,7 @@ struct Fooo {
 }
 
 struct NonCaps {
-    //~^ ERROR: all fields have the same prefix: `prefix`
+//~^ struct_field_names
     prefix_的: u8,
     prefix_tea: u8,
     prefix_cake: u8,
@@ -122,7 +122,7 @@ mod issue8324_from_enum_variant_names {
 
 mod issue9018_from_enum_variant_names {
     struct DoLint {
-        //~^ ERROR: all fields have the same prefix: `_type`
+    //~^ struct_field_names
         _type_create: u8,
         _type_read: u8,
         _type_update: u8,
@@ -130,7 +130,7 @@ mod issue9018_from_enum_variant_names {
     }
 
     struct DoLint2 {
-        //~^ ERROR: all fields have the same prefix: `__type`
+    //~^ struct_field_names
         __type_create: u8,
         __type_read: u8,
         __type_update: u8,
@@ -138,7 +138,7 @@ mod issue9018_from_enum_variant_names {
     }
 
     struct DoLint3 {
-        //~^ ERROR: all fields have the same prefix: `___type`
+    //~^ struct_field_names
         ___type_create: u8,
         ___type_read: u8,
         ___type_update: u8,
@@ -146,7 +146,7 @@ mod issue9018_from_enum_variant_names {
     }
 
     struct DoLint4 {
-        //~^ ERROR: all fields have the same postfix: `_`
+    //~^ struct_field_names
         create_: u8,
         read_: u8,
         update_: u8,
@@ -154,7 +154,7 @@ mod issue9018_from_enum_variant_names {
     }
 
     struct DoLint5 {
-        //~^ ERROR: all fields have the same postfix: `__`
+    //~^ struct_field_names
         create__: u8,
         read__: u8,
         update__: u8,
@@ -162,7 +162,7 @@ mod issue9018_from_enum_variant_names {
     }
 
     struct DoLint6 {
-        //~^ ERROR: all fields have the same postfix: `___`
+    //~^ struct_field_names
         create___: u8,
         read___: u8,
         update___: u8,
@@ -170,7 +170,7 @@ mod issue9018_from_enum_variant_names {
     }
 
     struct DoLintToo {
-        //~^ ERROR: all fields have the same postfix: `type`
+    //~^ struct_field_names
         _create_type: u8,
         _update_type: u8,
         _delete_type: u8,
@@ -208,7 +208,7 @@ struct Foo {
 
 struct Proxy {
     proxy: i32,
-    //~^ ERROR: field name starts with the struct's name
+    //~^ struct_field_names
     unrelated1: bool,
     unrelated2: bool,
 }
@@ -224,7 +224,6 @@ mod macro_tests {
     macro_rules! mk_struct {
         () => {
             struct MacroStruct {
-                //~^ ERROR: all fields have the same prefix: `some`
                 some_a: i32,
                 some_b: i32,
                 some_c: i32,
@@ -237,7 +236,6 @@ mod macro_tests {
         () => {
             struct Macrobaz {
                 macrobaz_a: i32,
-                //~^ ERROR: field name starts with the struct's name
                 some_b: i32,
                 some_c: i32,
             }
@@ -249,7 +247,6 @@ mod macro_tests {
         ($struct_name:ident, $field:ident) => {
             struct $struct_name {
                 $field: i32,
-                //~^ ERROR: field name starts with the struct's name
                 other_something: i32,
                 other_field: i32,
             }
@@ -289,7 +286,6 @@ mod macro_tests {
     macro_rules! mk_struct_full_def {
         ($struct_name:ident, $field1:ident, $field2:ident, $field3:ident) => {
             struct $struct_name {
-                //~^ ERROR: all fields have the same prefix: `some`
                 $field1: i32,
                 $field2: i32,
                 $field3: i32,
@@ -337,9 +333,11 @@ struct Config {
 
 struct Use {
     use_foo: bool,
-    //~^ ERROR: field name starts with the struct's name
+    //~^ struct_field_names
     use_bar: bool,
+    //~^ struct_field_names
     use_baz: bool,
+    //~^ struct_field_names
 }
 
 fn main() {}

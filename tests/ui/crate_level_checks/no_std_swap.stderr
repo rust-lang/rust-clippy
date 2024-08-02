@@ -3,7 +3,6 @@ error: this looks like you are trying to swap `a` and `b`
    |
 LL | /     a = b;
 LL | |
-LL | |
 LL | |     b = a;
    | |_________^ help: try: `core::mem::swap(&mut a, &mut b)`
    |

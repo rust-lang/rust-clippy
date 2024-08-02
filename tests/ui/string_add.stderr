@@ -17,13 +17,13 @@ LL |         x = x + ".";
    = help: to override `-D warnings` add `#[allow(clippy::string_add)]`
 
 error: you added something to a string. Consider using `String::push_str()` instead
-  --> tests/ui/string_add.rs:17:13
+  --> tests/ui/string_add.rs:19:13
    |
 LL |     let z = y + "...";
    |             ^^^^^^^^^
 
 error: manual implementation of an assign operation
-  --> tests/ui/string_add.rs:22:5
+  --> tests/ui/string_add.rs:25:5
    |
 LL |     x = x + 1;
    |     ^^^^^^^^^ help: replace it with: `x += 1`

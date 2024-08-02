@@ -2,6 +2,7 @@ error: item has both inner and outer attributes
   --> tests/ui/mixed_attributes_style.rs:10:1
    |
 LL | / #[allow(unused)]
+LL | |
 LL | | fn foo1() {
 LL | |     #![allow(unused)]
    | |_____________________^
@@ -10,7 +11,7 @@ LL | |     #![allow(unused)]
    = help: to override `-D warnings` add `#[allow(clippy::mixed_attributes_style)]`
 
 error: item has both inner and outer attributes
-  --> tests/ui/mixed_attributes_style.rs:24:1
+  --> tests/ui/mixed_attributes_style.rs:25:1
    |
 LL | / /// linux
 LL | |
@@ -19,42 +20,47 @@ LL | |     //! windows
    | |_______________^
 
 error: item has both inner and outer attributes
-  --> tests/ui/mixed_attributes_style.rs:39:1
+  --> tests/ui/mixed_attributes_style.rs:40:1
    |
 LL | / #[allow(unused)]
+LL | |
 LL | | mod bar {
 LL | |     #![allow(unused)]
    | |_____________________^
 
 error: item has both inner and outer attributes
-  --> tests/ui/mixed_attributes_style.rs:69:9
+  --> tests/ui/mixed_attributes_style.rs:71:9
    |
 LL | /         #[allow(dead_code)]
+LL | |
 LL | |         mod inner_mod {
 LL | |             #![allow(dead_code)]
    | |________________________________^
 
 error: item has both inner and outer attributes
-  --> tests/ui/mixed_attributes_style.rs:80:9
+  --> tests/ui/mixed_attributes_style.rs:83:9
    |
 LL | /         #[allow(dead_code)]
+LL | |
 LL | |         mod inner_mod {
 LL | |             #![allow(dead_code)]
    | |________________________________^
 
 error: item has both inner and outer attributes
-  --> tests/ui/mixed_attributes_style.rs:85:5
+  --> tests/ui/mixed_attributes_style.rs:89:5
    |
 LL | /     /// Nested mod
+LL | |
 LL | |     #[allow(unused)]
 LL | |     mod nest_mod_2 {
 LL | |         #![allow(unused)]
    | |_________________________^
 
 error: item has both inner and outer attributes
-  --> tests/ui/mixed_attributes_style.rs:90:9
+  --> tests/ui/mixed_attributes_style.rs:95:9
    |
 LL | /         #[allow(dead_code)]
+LL | |
 LL | |         mod inner_mod {
 LL | |             #![allow(dead_code)]
    | |________________________________^

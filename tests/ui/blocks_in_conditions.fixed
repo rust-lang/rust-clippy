@@ -28,7 +28,7 @@ fn macro_if() {
 
 fn condition_has_block() -> i32 {
     let res = {
-        //~^ ERROR: in an `if` condition, avoid complex blocks or closures with blocks; instead, move the block or closure higher and bind it with a `let`
+    //~^ blocks_in_conditions
         let x = 3;
         x == 3
     }; if res {
@@ -40,12 +40,13 @@ fn condition_has_block() -> i32 {
 
 fn condition_has_block_with_single_expression() -> i32 {
     if true { 6 } else { 10 }
-    //~^ ERROR: omit braces around single expression condition
+    //~^ blocks_in_conditions
 }
 
 fn condition_is_normal() -> i32 {
     let x = 3;
     if x == 3 { 6 } else { 10 }
+    //~^ nonminimal_bool
 }
 
 fn condition_is_unsafe_block() {
@@ -73,7 +74,7 @@ fn block_in_assert() {
 // issue #11814
 fn block_in_match_expr(num: i32) -> i32 {
     let res = {
-        //~^ ERROR: in a `match` scrutinee, avoid complex blocks or closures with blocks; instead, move the block or closure higher and bind it with a `let`
+    //~^ blocks_in_conditions
         let opt = Some(2);
         opt
     }; match res {

@@ -8,22 +8,16 @@ LL |     let _ = "key=value".splitn(2, '=').nth(1).unwrap();
    = help: to override `-D warnings` add `#[allow(clippy::manual_split_once)]`
 
 error: manual implementation of `split_once`
-  --> tests/ui/manual_split_once.rs:14:13
+  --> tests/ui/manual_split_once.rs:15:13
    |
 LL |     let _ = "key=value".splitn(2, '=').skip(1).next().unwrap();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `"key=value".split_once('=').unwrap().1`
 
 error: manual implementation of `split_once`
-  --> tests/ui/manual_split_once.rs:15:18
+  --> tests/ui/manual_split_once.rs:17:18
    |
 LL |     let (_, _) = "key=value".splitn(2, '=').next_tuple().unwrap();
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `"key=value".split_once('=')`
-
-error: manual implementation of `split_once`
-  --> tests/ui/manual_split_once.rs:18:13
-   |
-LL |     let _ = s.splitn(2, '=').nth(1).unwrap();
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `s.split_once('=').unwrap().1`
 
 error: manual implementation of `split_once`
   --> tests/ui/manual_split_once.rs:21:13
@@ -32,58 +26,65 @@ LL |     let _ = s.splitn(2, '=').nth(1).unwrap();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `s.split_once('=').unwrap().1`
 
 error: manual implementation of `split_once`
-  --> tests/ui/manual_split_once.rs:24:13
+  --> tests/ui/manual_split_once.rs:25:13
+   |
+LL |     let _ = s.splitn(2, '=').nth(1).unwrap();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `s.split_once('=').unwrap().1`
+
+error: manual implementation of `split_once`
+  --> tests/ui/manual_split_once.rs:29:13
    |
 LL |     let _ = s.splitn(2, '=').skip(1).next().unwrap();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `s.split_once('=').unwrap().1`
 
 error: manual implementation of `split_once`
-  --> tests/ui/manual_split_once.rs:27:17
+  --> tests/ui/manual_split_once.rs:33:17
    |
 LL |         let _ = s.splitn(2, '=').nth(1)?;
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `s.split_once('=')?.1`
 
 error: manual implementation of `split_once`
-  --> tests/ui/manual_split_once.rs:28:17
+  --> tests/ui/manual_split_once.rs:35:17
    |
 LL |         let _ = s.splitn(2, '=').skip(1).next()?;
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `s.split_once('=')?.1`
 
 error: manual implementation of `rsplit_once`
-  --> tests/ui/manual_split_once.rs:29:17
+  --> tests/ui/manual_split_once.rs:37:17
    |
 LL |         let _ = s.rsplitn(2, '=').nth(1)?;
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `s.rsplit_once('=')?.0`
 
 error: manual implementation of `rsplit_once`
-  --> tests/ui/manual_split_once.rs:30:17
+  --> tests/ui/manual_split_once.rs:39:17
    |
 LL |         let _ = s.rsplitn(2, '=').skip(1).next()?;
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `s.rsplit_once('=')?.0`
 
 error: manual implementation of `rsplit_once`
-  --> tests/ui/manual_split_once.rs:38:13
+  --> tests/ui/manual_split_once.rs:48:13
    |
 LL |     let _ = "key=value".rsplitn(2, '=').nth(1).unwrap();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `"key=value".rsplit_once('=').unwrap().0`
 
 error: manual implementation of `rsplit_once`
-  --> tests/ui/manual_split_once.rs:39:18
+  --> tests/ui/manual_split_once.rs:50:18
    |
 LL |     let (_, _) = "key=value".rsplitn(2, '=').next_tuple().unwrap();
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `"key=value".rsplit_once('=').map(|(x, y)| (y, x))`
 
 error: manual implementation of `rsplit_once`
-  --> tests/ui/manual_split_once.rs:40:13
+  --> tests/ui/manual_split_once.rs:52:13
    |
 LL |     let _ = s.rsplitn(2, '=').nth(1);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `s.rsplit_once('=').map(|x| x.0)`
 
 error: manual implementation of `split_once`
-  --> tests/ui/manual_split_once.rs:44:5
+  --> tests/ui/manual_split_once.rs:57:5
    |
 LL |     let mut iter = "a.b.c".splitn(2, '.');
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |
 LL |     let l = iter.next().unwrap();
    |     ----------------------------- first usage here
 LL |     let r = iter.next().unwrap();
@@ -103,10 +104,11 @@ LL -     let r = iter.next().unwrap();
    |
 
 error: manual implementation of `split_once`
-  --> tests/ui/manual_split_once.rs:48:5
+  --> tests/ui/manual_split_once.rs:62:5
    |
 LL |     let mut iter = "a.b.c".splitn(2, '.');
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |
 LL |     let l = iter.next()?;
    |     --------------------- first usage here
 LL |     let r = iter.next()?;
@@ -126,10 +128,11 @@ LL -     let r = iter.next()?;
    |
 
 error: manual implementation of `rsplit_once`
-  --> tests/ui/manual_split_once.rs:52:5
+  --> tests/ui/manual_split_once.rs:67:5
    |
 LL |     let mut iter = "a.b.c".rsplitn(2, '.');
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |
 LL |     let r = iter.next().unwrap();
    |     ----------------------------- first usage here
 LL |     let l = iter.next().unwrap();
@@ -149,10 +152,11 @@ LL -     let l = iter.next().unwrap();
    |
 
 error: manual implementation of `rsplit_once`
-  --> tests/ui/manual_split_once.rs:56:5
+  --> tests/ui/manual_split_once.rs:72:5
    |
 LL |     let mut iter = "a.b.c".rsplitn(2, '.');
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |
 LL |     let r = iter.next()?;
    |     --------------------- first usage here
 LL |     let l = iter.next()?;
@@ -172,16 +176,17 @@ LL -     let l = iter.next()?;
    |
 
 error: manual implementation of `split_once`
-  --> tests/ui/manual_split_once.rs:141:13
+  --> tests/ui/manual_split_once.rs:158:13
    |
 LL |     let _ = "key=value".splitn(2, '=').nth(1).unwrap();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `"key=value".split_once('=').unwrap().1`
 
 error: manual implementation of `split_once`
-  --> tests/ui/manual_split_once.rs:143:5
+  --> tests/ui/manual_split_once.rs:161:5
    |
 LL |     let mut iter = "a.b.c".splitn(2, '.');
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |
 LL |     let a = iter.next().unwrap();
    |     ----------------------------- first usage here
 LL |     let b = iter.next().unwrap();

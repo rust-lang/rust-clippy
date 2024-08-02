@@ -5,20 +5,20 @@ fn match_bool() {
     let test: bool = true;
 
     match test {
-        //~^ ERROR: you seem to be trying to match on a boolean expression
+    //~^ nonminimal_bool
         true => 0,
         false => 42,
     };
 
     let option = 1;
     match option == 1 {
-        //~^ ERROR: you seem to be trying to match on a boolean expression
+    //~^ nonminimal_bool
         true => 1,
         false => 0,
     };
 
     match test {
-        //~^ ERROR: you seem to be trying to match on a boolean expression
+    //~^ nonminimal_bool
         true => (),
         false => {
             println!("Noooo!");
@@ -26,7 +26,7 @@ fn match_bool() {
     };
 
     match test {
-        //~^ ERROR: you seem to be trying to match on a boolean expression
+    //~^ nonminimal_bool
         false => {
             println!("Noooo!");
         },
@@ -34,11 +34,9 @@ fn match_bool() {
     };
 
     match test && test {
-        //~^ ERROR: this boolean expression can be simplified
-        //~| NOTE: `-D clippy::nonminimal-bool` implied by `-D warnings`
-        //~| ERROR: you seem to be trying to match on a boolean expression
-        //~| ERROR: equal expressions as operands to `&&`
-        //~| NOTE: `#[deny(clippy::eq_op)]` on by default
+    //~^ nonminimal_bool
+    //~| nonminimal_bool
+    //~| eq_op
         false => {
             println!("Noooo!");
         },
@@ -46,7 +44,7 @@ fn match_bool() {
     };
 
     match test {
-        //~^ ERROR: you seem to be trying to match on a boolean expression
+    //~^ nonminimal_bool
         false => {
             println!("Noooo!");
         },

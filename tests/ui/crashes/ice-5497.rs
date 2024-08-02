@@ -9,5 +9,5 @@ pub trait Foo {
 
 impl<T: Foo> Foo for Vec<T> {
     const OOB: i32 = [1][1] + T::OOB;
-    //~^ ERROR: operation will panic
+
 }

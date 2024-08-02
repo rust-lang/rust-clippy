@@ -10,6 +10,7 @@ use proc_macros::{external, with_span};
 
 // Should lint
 #[allow(dead_code)]
+//~^ allow_attributes
 struct T1;
 
 struct T2; // Should not lint
@@ -19,6 +20,7 @@ struct T3;
 struct T4;
 // `panic = "unwind"` should always be true
 #[cfg_attr(panic = "unwind", allow(dead_code))]
+//~^ allow_attributes
 struct CfgT;
 
 #[allow(clippy::allow_attributes, unused)]
@@ -50,6 +52,8 @@ fn ignore_inner_attr() {
 #[clippy::msrv = "1.81"]
 fn msrv_1_81() {
     #[allow(unused)]
+    //~^ allow_attributes
+    //~| allow_attributes
     let x = 1;
 }
 

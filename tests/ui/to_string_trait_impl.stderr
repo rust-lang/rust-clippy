@@ -2,6 +2,7 @@ error: direct implementation of `ToString`
   --> tests/ui/to_string_trait_impl.rs:11:1
    |
 LL | / impl ToString for Point {
+LL | |
 LL | |     fn to_string(&self) -> String {
 LL | |         format!("({}, {})", self.x, self.y)
 LL | |     }
@@ -13,9 +14,10 @@ LL | | }
    = help: to override `-D warnings` add `#[allow(clippy::to_string_trait_impl)]`
 
 error: direct implementation of `ToString`
-  --> tests/ui/to_string_trait_impl.rs:56:5
+  --> tests/ui/to_string_trait_impl.rs:57:5
    |
 LL | /     impl ToString for S<i32> {
+LL | |
 LL | |         fn to_string(&self) -> String {
 LL | |             todo!()
 LL | |         }

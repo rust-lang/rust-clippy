@@ -39,16 +39,19 @@ fn main() {
     let x = true;
     let y = false;
     if x {
+    //~^ needless_bool
         true
     } else {
         false
     };
     if x {
+    //~^ needless_bool
         false
     } else {
         true
     };
     if x && y {
+    //~^ needless_bool
         false
     } else {
         true
@@ -57,31 +60,37 @@ fn main() {
     let b = 1;
 
     if a == b {
+    //~^ needless_bool
         false
     } else {
         true
     };
     if a != b {
+    //~^ needless_bool
         false
     } else {
         true
     };
     if a < b {
+    //~^ needless_bool
         false
     } else {
         true
     };
     if a <= b {
+    //~^ needless_bool
         false
     } else {
         true
     };
     if a > b {
+    //~^ needless_bool
         false
     } else {
         true
     };
     if a >= b {
+    //~^ needless_bool
         false
     } else {
         true
@@ -110,6 +119,7 @@ fn main() {
 
 fn bool_ret3(x: bool) -> bool {
     if x {
+    //~^ needless_bool
         return true;
     } else {
         return false;
@@ -118,6 +128,7 @@ fn bool_ret3(x: bool) -> bool {
 
 fn bool_ret4(x: bool) -> bool {
     if x {
+    //~^ needless_bool
         return false;
     } else {
         return true;
@@ -126,6 +137,7 @@ fn bool_ret4(x: bool) -> bool {
 
 fn bool_ret5(x: bool, y: bool) -> bool {
     if x && y {
+    //~^ needless_bool
         return true;
     } else {
         return false;
@@ -134,6 +146,7 @@ fn bool_ret5(x: bool, y: bool) -> bool {
 
 fn bool_ret6(x: bool, y: bool) -> bool {
     if x && y {
+    //~^ needless_bool
         return false;
     } else {
         return true;
@@ -142,10 +155,12 @@ fn bool_ret6(x: bool, y: bool) -> bool {
 
 fn needless_bool(x: bool) {
     if x == true {};
+    //~^ bool_comparison
 }
 
 fn needless_bool2(x: bool) {
     if x == false {};
+    //~^ needless_bool
 }
 
 fn needless_bool3(x: bool) {
@@ -156,7 +171,9 @@ fn needless_bool3(x: bool) {
     }
 
     if x == true {};
+    //~^ needless_bool
     if x == false {};
+    //~^ needless_bool
 }
 
 fn needless_bool_in_the_suggestion_wraps_the_predicate_of_if_else_statement_in_brackets() {
@@ -166,6 +183,7 @@ fn needless_bool_in_the_suggestion_wraps_the_predicate_of_if_else_statement_in_b
     let x = if b {
         true
     } else if returns_bool() {
+    //~^ needless_bool
         false
     } else {
         true
@@ -179,14 +197,17 @@ unsafe fn no(v: u8) -> u8 {
 #[allow(clippy::unnecessary_operation)]
 fn needless_bool_condition() -> bool {
     if unsafe { no(4) } & 1 != 0 {
+    //~^ needless_bool
         true
     } else {
         false
     };
     let _brackets_unneeded = if unsafe { no(4) } & 1 != 0 { true } else { false };
+    //~^ needless_bool
     fn foo() -> bool {
         // parentheses are needed here
         if unsafe { no(4) } & 1 != 0 { true } else { false }
+        //~^ needless_bool
     }
 
     foo()
@@ -198,8 +219,11 @@ fn issue12846() {
 
     // parentheses are needed here
     let _x = if a && b { true } else { false }.then(|| todo!());
+    //~^ needless_bool
     let _x = if a && b { true } else { false } as u8;
+    //~^ needless_bool
 
     // parentheses are not needed here
     let _x = if a { true } else { false }.then(|| todo!());
+    //~^ needless_bool
 }

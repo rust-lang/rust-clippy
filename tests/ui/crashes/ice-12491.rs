@@ -3,6 +3,7 @@
 fn main() {
     if (true) {
         // anything一些中文
+        //~^ needless_return
         return;
     }
 }

@@ -86,10 +86,12 @@ impl Deref for DerefToString {
 fn main() {
     let x = [1, 2];
     if x.len() == 0 {
+    //~^ len_zero
         println!("This should not happen!");
     }
 
     if "".len() == 0 {}
+    //~^ len_zero
 
     let s = "Hello, world!";
     let s1 = &s;
@@ -99,14 +101,21 @@ fn main() {
     let s5 = &s4;
     let s6 = &s5;
     println!("{}", *s1 == "");
+    //~^ comparison_to_empty
     println!("{}", **s2 == "");
+    //~^ len_zero
     println!("{}", ***s3 == "");
+    //~^ len_zero
     println!("{}", ****s4 == "");
+    //~^ len_zero
     println!("{}", *****s5 == "");
+    //~^ len_zero
     println!("{}", ******(s6) == "");
+    //~^ len_zero
 
     let d2s = DerefToDerefToString {};
     println!("{}", &**d2s == "");
+    //~^ len_zero
 
     let y = One;
     if y.len() == 0 {
@@ -122,18 +131,23 @@ fn main() {
 
     let has_is_empty = HasIsEmpty;
     if has_is_empty.len() == 0 {
+    //~^ len_zero
         println!("Or this!");
     }
     if has_is_empty.len() != 0 {
+    //~^ len_zero
         println!("Or this!");
     }
     if has_is_empty.len() > 0 {
+    //~^ len_zero
         println!("Or this!");
     }
     if has_is_empty.len() < 1 {
+    //~^ len_zero
         println!("Or this!");
     }
     if has_is_empty.len() >= 1 {
+    //~^ len_zero
         println!("Or this!");
     }
     if has_is_empty.len() > 1 {
@@ -145,18 +159,23 @@ fn main() {
         println!("This can happen.");
     }
     if 0 == has_is_empty.len() {
+    //~^ len_zero
         println!("Or this!");
     }
     if 0 != has_is_empty.len() {
+    //~^ len_zero
         println!("Or this!");
     }
     if 0 < has_is_empty.len() {
+    //~^ len_zero
         println!("Or this!");
     }
     if 1 <= has_is_empty.len() {
+    //~^ len_zero
         println!("Or this!");
     }
     if 1 > has_is_empty.len() {
+    //~^ len_zero
         println!("Or this!");
     }
     if 1 < has_is_empty.len() {
@@ -171,6 +190,7 @@ fn main() {
 
     let with_is_empty: &dyn WithIsEmpty = &Wither;
     if with_is_empty.len() == 0 {
+    //~^ len_zero
         println!("Or this!");
     }
     assert!(!with_is_empty.is_empty());
@@ -183,11 +203,14 @@ fn main() {
 
     // issue #10529
     (has_is_empty.len() > 0).then(|| println!("This can happen."));
+    //~^ len_zero
     (has_is_empty.len() == 0).then(|| println!("Or this!"));
+    //~^ len_zero
 }
 
 fn test_slice(b: &[u8]) {
     if b.len() != 0 {}
+    //~^ len_zero
 }
 
 // issue #11992
@@ -222,7 +245,10 @@ fn binop_with_macros() {
     if has_is_empty.len() == compare_to!(1) {}
 
     if has_is_empty.len() == compare_to!(0) {}
+    //~^ len_zero
     if has_is_empty.len() == zero!() {}
+    //~^ len_zero
 
     (compare_to!(0) < has_is_empty.len()).then(|| println!("This can happen."));
+    //~^ len_zero
 }

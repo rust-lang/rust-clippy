@@ -5,6 +5,5 @@ fn main() {
     -x;
     -(-x);
     --x;
-    //~^ ERROR: `--x` could be misinterpreted as pre-decrement by C programmers, is usually
-    //~| NOTE: `-D clippy::double-neg` implied by `-D warnings`
+    //~^ double_neg
 }

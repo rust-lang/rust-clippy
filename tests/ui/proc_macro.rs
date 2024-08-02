@@ -7,7 +7,7 @@ use proc_macro::TokenStream;
 #[allow(dead_code)]
 fn f() {
     let _x = 3.14;
-    //~^ ERROR: approximate value of `f{32, 64}::consts::PI` found
+    //~^ approx_constant
 }
 
 #[proc_macro]

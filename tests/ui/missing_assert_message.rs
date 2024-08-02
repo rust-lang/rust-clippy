@@ -10,45 +10,45 @@ macro_rules! bar {
 // Should trigger warning
 fn asserts_without_message() {
     assert!(foo());
-    //~^ ERROR: assert without any message
+    //~^ missing_assert_message
     assert_eq!(foo(), foo());
-    //~^ ERROR: assert without any message
+    //~^ missing_assert_message
     assert_ne!(foo(), foo());
-    //~^ ERROR: assert without any message
+    //~^ missing_assert_message
     debug_assert!(foo());
-    //~^ ERROR: assert without any message
+    //~^ missing_assert_message
     debug_assert_eq!(foo(), foo());
-    //~^ ERROR: assert without any message
+    //~^ missing_assert_message
     debug_assert_ne!(foo(), foo());
-    //~^ ERROR: assert without any message
+    //~^ missing_assert_message
 }
 
 // Should trigger warning
 fn asserts_without_message_but_with_macro_calls() {
     assert!(bar!(true));
-    //~^ ERROR: assert without any message
+    //~^ missing_assert_message
     assert!(bar!(true, false));
-    //~^ ERROR: assert without any message
+    //~^ missing_assert_message
     assert_eq!(bar!(true), foo());
-    //~^ ERROR: assert without any message
+    //~^ missing_assert_message
     assert_ne!(bar!(true, true), bar!(true));
-    //~^ ERROR: assert without any message
+    //~^ missing_assert_message
 }
 
 // Should trigger warning
 fn asserts_with_trailing_commas() {
     assert!(foo(),);
-    //~^ ERROR: assert without any message
+    //~^ missing_assert_message
     assert_eq!(foo(), foo(),);
-    //~^ ERROR: assert without any message
+    //~^ missing_assert_message
     assert_ne!(foo(), foo(),);
-    //~^ ERROR: assert without any message
+    //~^ missing_assert_message
     debug_assert!(foo(),);
-    //~^ ERROR: assert without any message
+    //~^ missing_assert_message
     debug_assert_eq!(foo(), foo(),);
-    //~^ ERROR: assert without any message
+    //~^ missing_assert_message
     debug_assert_ne!(foo(), foo(),);
-    //~^ ERROR: assert without any message
+    //~^ missing_assert_message
 }
 
 // Should not trigger warning

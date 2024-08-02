@@ -4,8 +4,8 @@ error: called `map(..).flatten()` on `Option`
 LL |           .map(|x| {
    |  __________^
 LL | |
-LL | |
 LL | |             if x <= 5 {
+LL | |                 Some(x)
 ...  |
 LL | |         })
 LL | |         .flatten();
@@ -17,7 +17,6 @@ help: try replacing `map` with `and_then` and remove the `.flatten()`
    |
 LL ~         .and_then(|x| {
 LL +
-LL +
 LL +             if x <= 5 {
 LL +                 Some(x)
 LL +             } else {
@@ -27,7 +26,7 @@ LL ~         });
    |
 
 error: called `map(..).flatten()` on `Result`
-  --> tests/ui/map_flatten.rs:20:10
+  --> tests/ui/map_flatten.rs:19:10
    |
 LL |           .map(|x| {
    |  __________^
@@ -52,7 +51,7 @@ LL ~         });
    |
 
 error: called `map(..).flatten()` on `Result`
-  --> tests/ui/map_flatten.rs:33:10
+  --> tests/ui/map_flatten.rs:32:10
    |
 LL |           .map(|res| {
    |  __________^
@@ -78,7 +77,7 @@ LL ~         });
    |
 
 error: called `map(..).flatten()` on `Iterator`
-  --> tests/ui/map_flatten.rs:46:10
+  --> tests/ui/map_flatten.rs:45:10
    |
 LL |           .map(|some_value| {
    |  __________^

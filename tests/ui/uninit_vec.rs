@@ -15,34 +15,34 @@ union MyOwnMaybeUninit {
 fn main() {
     // with_capacity() -> set_len() should be detected
     let mut vec: Vec<u8> = Vec::with_capacity(1000);
-    //~^ ERROR: calling `set_len()` immediately after reserving a buffer creates uninitial
+    //~^ uninit_vec
     unsafe {
         vec.set_len(200);
     }
 
     // reserve() -> set_len() should be detected
     vec.reserve(1000);
-    //~^ ERROR: calling `set_len()` immediately after reserving a buffer creates uninitial
+    //~^ uninit_vec
     unsafe {
         vec.set_len(200);
     }
 
     // new() -> set_len() should be detected
     let mut vec: Vec<u8> = Vec::new();
-    //~^ ERROR: calling `set_len()` on empty `Vec` creates out-of-bound values
+    //~^ uninit_vec
     unsafe {
         vec.set_len(200);
     }
 
     // default() -> set_len() should be detected
     let mut vec: Vec<u8> = Default::default();
-    //~^ ERROR: calling `set_len()` on empty `Vec` creates out-of-bound values
+    //~^ uninit_vec
     unsafe {
         vec.set_len(200);
     }
 
     let mut vec: Vec<u8> = Vec::default();
-    //~^ ERROR: calling `set_len()` on empty `Vec` creates out-of-bound values
+    //~^ uninit_vec
     unsafe {
         vec.set_len(200);
     }
@@ -50,16 +50,16 @@ fn main() {
     // test when both calls are enclosed in the same unsafe block
     unsafe {
         let mut vec: Vec<u8> = Vec::with_capacity(1000);
-        //~^ ERROR: calling `set_len()` immediately after reserving a buffer creates unini
+        //~^ uninit_vec
         vec.set_len(200);
 
         vec.reserve(1000);
-        //~^ ERROR: calling `set_len()` immediately after reserving a buffer creates unini
+        //~^ uninit_vec
         vec.set_len(200);
     }
 
     let mut vec: Vec<u8> = Vec::with_capacity(1000);
-    //~^ ERROR: calling `set_len()` immediately after reserving a buffer creates uninitial
+    //~^ uninit_vec
     unsafe {
         // test the case where there are other statements in the following unsafe block
         vec.set_len(200);
@@ -69,13 +69,13 @@ fn main() {
     // handle vec stored in the field of a struct
     let mut my_vec = MyVec::default();
     my_vec.vec.reserve(1000);
-    //~^ ERROR: calling `set_len()` immediately after reserving a buffer creates uninitial
+    //~^ uninit_vec
     unsafe {
         my_vec.vec.set_len(200);
     }
 
     my_vec.vec = Vec::with_capacity(1000);
-    //~^ ERROR: calling `set_len()` immediately after reserving a buffer creates uninitial
+    //~^ uninit_vec
     unsafe {
         my_vec.vec.set_len(200);
     }
@@ -130,7 +130,7 @@ fn main() {
     fn polymorphic<T>() {
         // We are conservative around polymorphic types.
         let mut vec: Vec<T> = Vec::with_capacity(1000);
-        //~^ ERROR: calling `set_len()` immediately after reserving a buffer creates unini
+        //~^ uninit_vec
         unsafe {
             vec.set_len(10);
         }

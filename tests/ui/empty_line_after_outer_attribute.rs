@@ -9,6 +9,7 @@ extern crate proc_macro_attr;
 
 // This should produce a warning
 #[crate_type = "lib"]
+//~^ empty_line_after_outer_attr
 
 /// some comment
 fn with_one_newline_and_comment() { assert!(true) }
@@ -21,11 +22,13 @@ fn with_no_newline_and_comment() { assert!(true) }
 
 // This should produce a warning
 #[crate_type = "lib"]
+//~^ empty_line_after_outer_attr
 
 fn with_one_newline() { assert!(true) }
 
 // This should produce a warning, too
 #[crate_type = "lib"]
+//~^ empty_line_after_outer_attr
 
 
 fn with_two_newlines() { assert!(true) }
@@ -33,6 +36,7 @@ fn with_two_newlines() { assert!(true) }
 
 // This should produce a warning
 #[crate_type = "lib"]
+//~^ empty_line_after_outer_attr
 
 enum Baz {
     One,
@@ -41,6 +45,7 @@ enum Baz {
 
 // This should produce a warning
 #[crate_type = "lib"]
+//~^ empty_line_after_outer_attr
 
 struct Foo {
     one: isize,
@@ -49,6 +54,7 @@ struct Foo {
 
 // This should produce a warning
 #[crate_type = "lib"]
+//~^ empty_line_after_outer_attr
 
 mod foo {
 }

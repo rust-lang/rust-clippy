@@ -3,22 +3,29 @@
 
 fn main() {
     "aaa";
+    //~^ needless_raw_strings
     r#""aaa""#;
     r#"\s"#;
     b"aaa";
+    //~^ needless_raw_strings
     br#""aaa""#;
     br#"\s"#;
     c"aaa";
+    //~^ needless_raw_strings
     cr#""aaa""#;
     cr#"\s"#;
 
     "
+    //~^ needless_raw_strings
         a
         multiline
         string
     ";
 
     "no hashes";
+    //~^ needless_raw_strings
     b"no hashes";
+    //~^ needless_raw_strings
     c"no hashes";
+    //~^ needless_raw_strings
 }

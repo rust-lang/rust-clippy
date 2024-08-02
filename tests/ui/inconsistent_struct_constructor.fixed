@@ -26,6 +26,7 @@ mod without_base {
 
         // Should lint.
         Foo { x, y, z };
+        //~^ inconsistent_struct_constructor
 
         // Should NOT lint.
         // issue #7069.

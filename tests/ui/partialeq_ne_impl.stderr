@@ -3,7 +3,6 @@ error: re-implementing `PartialEq::ne` is unnecessary
    |
 LL | /     fn ne(&self, _: &Foo) -> bool {
 LL | |
-LL | |
 LL | |         false
 LL | |     }
    | |_____^

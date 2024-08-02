@@ -20,6 +20,7 @@ pub fn basic_test() -> Result<i32, i32> {
     // To avoid warnings during rustfix
     if true {
         Err(err)?;
+
     }
     Ok(0)
 }
@@ -30,6 +31,7 @@ pub fn into_test() -> Result<i32, i32> {
     // To avoid warnings during rustfix
     if true {
         Err(err)?;
+
     }
     Ok(0)
 }
@@ -50,6 +52,7 @@ pub fn closure_matches_test() -> Result<i32, i32> {
             // To avoid warnings during rustfix
             if true {
                 Err(err)?;
+
             }
             Ok(i)
         })
@@ -69,6 +72,7 @@ pub fn closure_into_test() -> Result<i32, i32> {
             // To avoid warnings during rustfix
             if true {
                 Err(err)?;
+
             }
             Ok(i)
         })
@@ -89,6 +93,7 @@ fn calling_macro() -> Result<i32, i32> {
         match $(Ok::<_, i32>(5)) {
             Ok(_) => 0,
             Err(_) => Err(1)?,
+
         }
     );
     // `Err` arg is another macro
@@ -96,6 +101,7 @@ fn calling_macro() -> Result<i32, i32> {
         match $(Ok::<_, i32>(5)) {
             Ok(_) => 0,
             Err(_) => Err(inline!(1))?,
+
         }
     );
     Ok(5)
@@ -123,6 +129,7 @@ fn main() {
 pub fn macro_inside(fail: bool) -> Result<i32, String> {
     if fail {
         Err(inline!(inline!(String::from("aasdfasdfasdfa"))))?;
+
     }
     Ok(0)
 }
@@ -130,8 +137,10 @@ pub fn macro_inside(fail: bool) -> Result<i32, String> {
 pub fn poll_write(n: usize) -> Poll<io::Result<usize>> {
     if n == 0 {
         Err(io::ErrorKind::WriteZero)?
+
     } else if n == 1 {
         Err(io::Error::new(io::ErrorKind::InvalidInput, "error"))?
+
     };
 
     Poll::Ready(Ok(n))
@@ -140,6 +149,7 @@ pub fn poll_write(n: usize) -> Poll<io::Result<usize>> {
 pub fn poll_next(ready: bool) -> Poll<Option<io::Result<()>>> {
     if !ready {
         Err(io::ErrorKind::NotFound)?
+
     }
 
     Poll::Ready(None)
@@ -149,6 +159,7 @@ pub fn poll_next(ready: bool) -> Poll<Option<io::Result<()>>> {
 pub fn try_return(x: bool) -> Result<i32, i32> {
     if x {
         return Err(42)?;
+
     }
     Ok(0)
 }

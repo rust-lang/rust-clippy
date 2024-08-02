@@ -3,8 +3,8 @@ error: needless use of `for_each`
    |
 LL | /     v.iter().for_each(|v| {
 LL | |
-LL | |
 LL | |         if *v == 10 {
+LL | |             return;
 ...  |
 LL | |         }
 LL | |     });
@@ -15,7 +15,6 @@ LL | |     });
 help: try
    |
 LL ~     for v in v.iter() {
-LL +
 LL +
 LL +         if *v == 10 {
 LL +             return;

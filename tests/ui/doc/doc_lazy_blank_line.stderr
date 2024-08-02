@@ -14,7 +14,7 @@ LL + ///
    |
 
 error: doc list item without indentation
-  --> tests/ui/doc/doc_lazy_blank_line.rs:32:5
+  --> tests/ui/doc/doc_lazy_blank_line.rs:33:5
    |
 LL | /// This is still in use.
    |     ^
@@ -27,7 +27,7 @@ LL + ///
    |
 
 error: doc quote line without `>` marker
-  --> tests/ui/doc/doc_lazy_blank_line.rs:37:5
+  --> tests/ui/doc/doc_lazy_blank_line.rs:39:5
    |
 LL | /// bottom text
    |     ^
@@ -40,7 +40,7 @@ LL + ///
    |
 
 error: doc quote line without `>` marker
-  --> tests/ui/doc/doc_lazy_blank_line.rs:42:5
+  --> tests/ui/doc/doc_lazy_blank_line.rs:45:5
    |
 LL | /// bottom text
    |     ^

@@ -75,15 +75,13 @@ fn main() {
     issue985_alt();
 
     let mut foo = 0;
-    //~^ ERROR: `if _ { .. } else { .. }` is an expression
-    //~| NOTE: you might not need `mut` at all
+    //~^ useless_let_if_seq
     if f() {
         foo = 42;
     }
 
     let mut bar = 0;
-    //~^ ERROR: `if _ { .. } else { .. }` is an expression
-    //~| NOTE: you might not need `mut` at all
+    //~^ useless_let_if_seq
     if f() {
         f();
         bar = 42;
@@ -92,7 +90,7 @@ fn main() {
     }
 
     let quz;
-    //~^ ERROR: `if _ { .. } else { .. }` is an expression
+    //~^ useless_let_if_seq
     if f() {
         quz = 42;
     } else {
@@ -122,8 +120,7 @@ fn main() {
 
     // baz needs to be mut
     let mut baz = 0;
-    //~^ ERROR: `if _ { .. } else { .. }` is an expression
-    //~| NOTE: you might not need `mut` at all
+    //~^ useless_let_if_seq
     if f() {
         baz = 42;
     }
