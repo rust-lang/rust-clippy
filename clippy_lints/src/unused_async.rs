@@ -128,7 +128,6 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsync {
             walk_fn(&mut visitor, fn_kind, fn_decl, body.id(), def_id);
 
             if !visitor.is_valid {
-                // if !visitor.found_await || !visitor.found_await_in_async_block_all {
                 // Don't lint just yet, but store the necessary information for later.
                 // The actual linting happens in `check_crate_post`, once we've found all
                 // uses of local async functions that do require asyncness to pass typeck
