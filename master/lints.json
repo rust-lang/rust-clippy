@@ -8846,7 +8846,7 @@
     "id": "size_of_ref",
     "id_span": {
       "path": "src/size_of_ref.rs",
-      "line": 51
+      "line": 50
     },
     "group": "suspicious",
     "level": "warn",
