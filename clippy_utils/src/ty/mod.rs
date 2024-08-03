@@ -1422,3 +1422,14 @@ pub fn has_non_owning_mutable_access<'tcx>(cx: &LateContext<'tcx>, iter_ty: Ty<'
     let mut phantoms = FxHashSet::default();
     has_non_owning_mutable_access_inner(cx, &mut phantoms, iter_ty)
 }
+
+/// Gets the index of a field by name.
+pub fn get_field_idx_by_name(ty: Ty<'_>, name: Symbol) -> Option<usize> {
+    match *ty.kind() {
+        ty::Adt(def, _) if def.is_union() || def.is_struct() => {
+            def.non_enum_variant().fields.iter().position(|f| f.name == name)
+        },
+        ty::Tuple(_) => name.as_str().parse::<usize>().ok(),
+        _ => None,
+    }
+}
