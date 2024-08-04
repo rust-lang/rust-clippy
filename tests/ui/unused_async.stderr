@@ -19,14 +19,6 @@ LL |             ready(()).await;
    = help: to override `-D warnings` add `#[allow(clippy::unused_async)]`
 
 error: unused `async` for function with no await statements
-  --> tests/ui/unused_async.rs:43:5
-   |
-LL |     async fn f() {}
-   |     ^^^^^^^^^^^^^^^
-   |
-   = help: consider removing the `async` from this function
-
-error: unused `async` for function with no await statements
   --> tests/ui/unused_async.rs:45:5
    |
 LL |     async fn f3() {}
