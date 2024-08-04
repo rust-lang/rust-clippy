@@ -1,8 +1,6 @@
 #![warn(clippy::manual_async_fn)]
 #![allow(clippy::needless_pub_self, unused)]
 
-//@no-rustfix: need to change the suggestion to a multipart suggestion
-
 use std::future::Future;
 
 fn fut() -> impl Future<Output = i32> {
