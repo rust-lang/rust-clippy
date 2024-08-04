@@ -118,7 +118,7 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsync {
         span: Span,
         def_id: LocalDefId,
     ) {
-        if fn_kind.asyncness().is_async() && !is_def_id_trait_method(cx, def_id) {
+        if !span.from_expansion() && fn_kind.asyncness().is_async() && !is_def_id_trait_method(cx, def_id) {
             let mut visitor = AsyncFnVisitor {
                 cx,
                 await_in_async_block: None,
@@ -131,13 +131,6 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsync {
                 // Don't lint just yet, but store the necessary information for later.
                 // The actual linting happens in `check_crate_post`, once we've found all
                 // uses of local async functions that do require asyncness to pass typeck
-
-                let mut span = span;
-
-                if let Some(info) = span.macro_backtrace().next() {
-                    span = info.call_site
-                }
-
                 self.unused_async_fns.push(UnusedAsyncFn {
                     await_in_async_block: visitor.await_in_async_block,
                     fn_span: span,
