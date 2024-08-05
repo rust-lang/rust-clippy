@@ -351,7 +351,7 @@
     "id": "big_endian_bytes",
     "id_span": {
       "path": "src/endian_bytes.rs",
-      "line": 62
+      "line": 61
     },
     "group": "restriction",
     "level": "allow",
@@ -1258,7 +1258,7 @@
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "MachineApplicable"
+      "applicability": "Unresolved"
     }
   },
   {
@@ -2823,7 +2823,7 @@
     "id": "host_endian_bytes",
     "id_span": {
       "path": "src/endian_bytes.rs",
-      "line": 26
+      "line": 25
     },
     "group": "restriction",
     "level": "allow",
@@ -2906,7 +2906,7 @@
     "version": "1.53.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
+      "applicability": "Unspecified"
     }
   },
   {
@@ -3116,7 +3116,7 @@
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "MachineApplicable"
+      "applicability": "Unresolved"
     }
   },
   {
@@ -3914,7 +3914,7 @@
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "MachineApplicable"
+      "applicability": "Unresolved"
     }
   },
   {
@@ -4206,7 +4206,7 @@
     "id": "little_endian_bytes",
     "id_span": {
       "path": "src/endian_bytes.rs",
-      "line": 44
+      "line": 43
     },
     "group": "restriction",
     "level": "allow",
@@ -5593,7 +5593,7 @@
     "version": "1.30.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "MaybeIncorrect"
+      "applicability": "Unresolved"
     }
   },
   {
@@ -10417,7 +10417,7 @@
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "MachineApplicable"
+      "applicability": "Unresolved"
     }
   },
   {
@@ -10660,7 +10660,7 @@
     "version": "1.49.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "MachineApplicable"
+      "applicability": "Unresolved"
     }
   },
   {
