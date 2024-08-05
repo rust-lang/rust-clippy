@@ -1,0 +1,22 @@
+[package]
+name = "clippy_internal_lints"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+clippy_deprecated_lints = { path = "../clippy_deprecated_lints" }
+clippy_config = { path = "../clippy_config" }
+clippy_utils = { path = "../clippy_utils" }
+itertools = "0.12"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0" }
+tempfile = { version = "3.3.0" }
+regex = { version = "1.5" }
+rustc-semver = "1.1"
+
+[features]
+deny-warnings = ["clippy_config/deny-warnings", "clippy_utils/deny-warnings"]
+
+[package.metadata.rust-analyzer]
+# This crate uses #[feature(rustc_private)]
+rustc_private = true

@@ -1,5 +1,5 @@
 //@aux-build:paths.rs
-#![deny(clippy::internal)]
+#![deny(clippy::unnecessary_def_path)]
 #![feature(rustc_private)]
 
 extern crate clippy_utils;

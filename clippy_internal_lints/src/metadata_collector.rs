@@ -7,7 +7,7 @@
 //! during any comparison or mapping. (Please take care of this, it's not fun to spend time on such
 //! a simple mistake)
 
-use crate::utils::internal_lints::lint_without_lint_pass::{extract_clippy_version_value, is_lint_ref_type};
+use crate::lint_without_lint_pass::{extract_clippy_version_value, is_lint_ref_type};
 use clippy_config::{get_configuration_metadata, ClippyConfiguration};
 
 use clippy_utils::diagnostics::span_lint;
@@ -20,6 +20,7 @@ use rustc_hir::def::DefKind;
 use rustc_hir::intravisit::Visitor;
 use rustc_hir::{self as hir, intravisit, Closure, ExprKind, Item, ItemKind, Mutability, QPath};
 use rustc_lint::{unerased_lint_store, CheckLintNameResult, LateContext, LateLintPass, LintContext, LintId};
+use rustc_lint_defs::declare_tool_lint;
 use rustc_middle::hir::nested_filter;
 use rustc_session::impl_lint_pass;
 use rustc_span::symbol::Ident;
@@ -94,7 +95,7 @@ const VERSION_DEFAULT_STR: &str = "Unknown";
 
 const CHANGELOG_PATH: &str = "../CHANGELOG.md";
 
-declare_clippy_lint! {
+declare_tool_lint! {
     /// ### What it does
     /// Collects metadata about clippy lints for the website.
     ///
@@ -122,9 +123,10 @@ declare_clippy_lint! {
     /// }
     /// ```
     #[clippy::version = "1.56.0"]
-    pub METADATA_COLLECTOR,
-    internal,
-    "A busy bee collection metadata about lints"
+    pub clippy::METADATA_COLLECTOR,
+    Warn,
+    "A busy bee collection metadata about lints",
+    report_in_external_macro: true
 }
 
 impl_lint_pass!(MetadataCollector => [METADATA_COLLECTOR]);
@@ -212,9 +214,9 @@ impl Drop for MetadataCollector {
 
         // Add deprecated lints
         self.lints.extend(
-            crate::deprecated_lints::DEPRECATED
+            clippy_deprecated_lints::DEPRECATED
                 .iter()
-                .zip(crate::deprecated_lints::DEPRECATED_VERSION)
+                .zip(clippy_deprecated_lints::DEPRECATED_VERSION)
                 .filter_map(|((lint, reason), version)| LintMetadata::new_deprecated(lint, reason, version)),
         );
         // Mapping the final data
@@ -784,7 +786,7 @@ fn collect_renames(lints: &mut Vec<LintMetadata>) {
 
         loop {
             if let Some(lint_name) = names.pop() {
-                for (k, v) in crate::deprecated_lints::RENAMED {
+                for (k, v) in clippy_deprecated_lints::RENAMED {
                     if let Some(name) = v.strip_prefix(CLIPPY_LINT_GROUP_PREFIX)
                         && name == lint_name
                         && let Some(past_name) = k.strip_prefix(CLIPPY_LINT_GROUP_PREFIX)

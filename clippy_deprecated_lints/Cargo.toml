@@ -1,0 +1,4 @@
+[package]
+name = "clippy_deprecated_lints"
+version = "0.0.1"
+edition = "2021"
