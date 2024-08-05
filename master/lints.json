@@ -247,13 +247,10 @@
   },
   {
     "id": "assign_ops",
-    "id_span": {
-      "path": "src/deprecated_lints.rs",
-      "line": 107
-    },
+    "id_span": null,
     "group": "deprecated",
     "level": "none",
-    "docs": "\n### What it does\nNothing. This lint has been deprecated.\n\n### Deprecation reason\nThis lint is too subjective, not having a good reason for being in clippy.\nAdditionally, compound assignment operators may be overloaded separately from their non-assigning\ncounterparts, so this lint may suggest a change in behavior or the code may not compile.",
+    "docs": "\n### What it does\n\nNothing. This lint has been deprecated\n\n### Deprecation reason\n\nCompound operators are harmless and linting on them is not in scope for clippy.",
     "version": "1.30.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -2272,13 +2269,10 @@
   },
   {
     "id": "extend_from_slice",
-    "id_span": {
-      "path": "src/deprecated_lints.rs",
-      "line": 42
-    },
+    "id_span": null,
     "group": "deprecated",
     "level": "none",
-    "docs": "\n### What it does\nNothing. This lint has been deprecated.\n\n### Deprecation reason\nThis used to check for `Vec::extend`, which was slower than\n`Vec::extend_from_slice`. Thanks to specialization, this is no longer true.",
+    "docs": "\n### What it does\n\nNothing. This lint has been deprecated\n\n### Deprecation reason\n\n`Vec::extend_from_slice` is no longer faster than `Vec::extend` due to specialization.",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -2391,21 +2385,6 @@
     }
   },
   {
-    "id": "filter_map",
-    "id_span": {
-      "path": "src/deprecated_lints.rs",
-      "line": 191
-    },
-    "group": "deprecated",
-    "level": "none",
-    "docs": "\n### What it does\nNothing. This lint has been deprecated.\n\n### Deprecation reason\nThis lint has been replaced by `manual_filter_map`, a\nmore specific lint.",
-    "version": "1.53.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
     "id": "filter_map_bool_then",
     "id_span": {
       "path": "src/methods/mod.rs",
@@ -2460,21 +2439,6 @@
     "level": "warn",
     "docs": "\n### What it does\nChecks for usage of `_.filter(_).next()`.\n\n### Why is this bad?\nReadability, this can be written more concisely as\n`_.find(_)`.\n\n### Example\n ```rust\nvec.iter().filter(|x| **x == 0).next();\n```\n\nUse instead:\n ```rust\nvec.iter().find(|x| **x == 0);\n```",
     "version": "pre 1.29.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
-    "id": "find_map",
-    "id_span": {
-      "path": "src/deprecated_lints.rs",
-      "line": 179
-    },
-    "group": "deprecated",
-    "level": "none",
-    "docs": "\n### What it does\nNothing. This lint has been deprecated.\n\n### Deprecation reason\nThis lint has been replaced by `manual_find_map`, a\nmore specific lint.",
-    "version": "1.51.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -2895,21 +2859,6 @@
     "level": "deny",
     "docs": "\n### What it does\nChecks for `Mutex::lock` calls in `if let` expression\nwith lock calls in any of the else blocks.\n\n### Why is this bad?\nThe Mutex lock remains held for the whole\n`if let ... else` block and deadlocks.\n\n### Example\n ```rust\nif let Ok(thing) = mutex.lock() {\n    do_thing();\n} else {\n    mutex.lock();\n}\n```\nShould be written\n ```rust\nlet locked = mutex.lock();\nif let Ok(thing) = locked {\n    do_thing(thing);\n} else {\n    use_locked(locked);\n}\n```",
     "version": "1.45.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
-    "id": "if_let_redundant_pattern_matching",
-    "id_span": {
-      "path": "src/deprecated_lints.rs",
-      "line": 120
-    },
-    "group": "deprecated",
-    "level": "none",
-    "docs": "\n### What it does\nNothing. This lint has been deprecated.\n\n### Deprecation reason\nThe original rule will only lint for `if let`. After\nmaking it support to lint `match`, naming as `if let` is not suitable for it.\nSo, this lint is deprecated.",
-    "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -4426,12 +4375,15 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for usage of `_.filter(_).map(_)` that can be written more simply\nas `filter_map(_)`.\n\n### Why is this bad?\nRedundant code in the `filter` and `map` operations is poor style and\nless performant.\n\n### Example\n ```rust\n(0_i32..10)\n    .filter(|n| n.checked_add(1).is_some())\n    .map(|n| n.checked_add(1).unwrap());\n```\n\nUse instead:\n ```rust\n(0_i32..10).filter_map(|n| n.checked_add(1));\n```",
+    "docs": "\n### What it does\nChecks for usage of `_.filter(_).map(_)` that can be written more simply\nas `filter_map(_)`.\n\n### Why is this bad?\nRedundant code in the `filter` and `map` operations is poor style and\nless performant.\n\n### Example\n ```rust\n(0_i32..10)\n    .filter(|n| n.checked_add(1).is_some())\n    .map(|n| n.checked_add(1).unwrap());\n```\n\nUse instead:\n ```rust\n(0_i32..10).filter_map(|n| n.checked_add(1));\n```\n### Past names\n\n* `filter_map`\n\n",
     "version": "1.51.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
-    }
+    },
+    "former_ids": [
+      "filter_map"
+    ]
   },
   {
     "id": "manual_find",
@@ -4456,12 +4408,15 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for usage of `_.find(_).map(_)` that can be written more simply\nas `find_map(_)`.\n\n### Why is this bad?\nRedundant code in the `find` and `map` operations is poor style and\nless performant.\n\n### Example\n ```rust\n(0_i32..10)\n    .find(|n| n.checked_add(1).is_some())\n    .map(|n| n.checked_add(1).unwrap());\n```\n\nUse instead:\n ```rust\n(0_i32..10).find_map(|n| n.checked_add(1));\n```",
+    "docs": "\n### What it does\nChecks for usage of `_.find(_).map(_)` that can be written more simply\nas `find_map(_)`.\n\n### Why is this bad?\nRedundant code in the `find` and `map` operations is poor style and\nless performant.\n\n### Example\n ```rust\n(0_i32..10)\n    .find(|n| n.checked_add(1).is_some())\n    .map(|n| n.checked_add(1).unwrap());\n```\n\nUse instead:\n ```rust\n(0_i32..10).find_map(|n| n.checked_add(1));\n```\n### Past names\n\n* `find_map`\n\n",
     "version": "1.51.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
-    }
+    },
+    "former_ids": [
+      "find_map"
+    ]
   },
   {
     "id": "manual_flatten",
@@ -5267,21 +5222,6 @@
     }
   },
   {
-    "id": "maybe_misused_cfg",
-    "id_span": {
-      "path": "src/deprecated_lints.rs",
-      "line": 228
-    },
-    "group": "deprecated",
-    "level": "none",
-    "docs": "\n### What it does\nNothing. This lint has been deprecated.\n\n### Deprecation reason\nThis lint has been superseded by rustc's own [`unexpected_cfgs`] lint that is able to detect the `#[cfg(features)]` and `#[cfg(tests)]` typos.\n\n[`unexpected_cfgs`]: https://doc.rust-lang.org/rustc/lints/listing/warn-by-default.html#unexpected-cfgs",
-    "version": "1.80.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
     "id": "mem_forget",
     "id_span": {
       "path": "src/drop_forget_ref.rs",
@@ -5373,29 +5313,11 @@
   },
   {
     "id": "misaligned_transmute",
-    "id_span": {
-      "path": "src/deprecated_lints.rs",
-      "line": 94
-    },
+    "id_span": null,
     "group": "deprecated",
     "level": "none",
-    "docs": "\n### What it does\nNothing. This lint has been deprecated.\n\n### Deprecation reason\nThis lint should never have applied to non-pointer types, as transmuting\nbetween non-pointer types of differing alignment is well-defined behavior (it's semantically\nequivalent to a memcpy). This lint has thus been refactored into two separate lints:\ncast_ptr_alignment and transmute_ptr_to_ptr.",
+    "docs": "\n### What it does\n\nNothing. This lint has been deprecated\n\n### Deprecation reason\n\nSplit into `clippy::cast_ptr_alignment` and `clippy::transmute_ptr_to_ptr`.",
     "version": "pre 1.29.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
-    "id": "mismatched_target_os",
-    "id_span": {
-      "path": "src/deprecated_lints.rs",
-      "line": 241
-    },
-    "group": "deprecated",
-    "level": "none",
-    "docs": "\n### What it does\nNothing. This lint has been deprecated.\n\n### Deprecation reason\nThis lint has been superseded by rustc's own [`unexpected_cfgs`] lint that is able to detect invalid `#[cfg(linux)]` attributes.\n\n[`unexpected_cfgs`]: https://doc.rust-lang.org/rustc/lints/listing/warn-by-default.html#unexpected-cfgs",
-    "version": "1.80.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -7470,13 +7392,10 @@
   },
   {
     "id": "pub_enum_variant_names",
-    "id_span": {
-      "path": "src/deprecated_lints.rs",
-      "line": 203
-    },
+    "id_span": null,
     "group": "deprecated",
     "level": "none",
-    "docs": "\n### What it does\nNothing. This lint has been deprecated.\n\n### Deprecation reason\nThe `avoid_breaking_exported_api` config option was added, which\nenables the `enum_variant_names` lint for public items.",
+    "docs": "\n### What it does\n\nNothing. This lint has been deprecated\n\n### Deprecation reason\n\n`clippy::enum_variant_names` now covers this case via the `avoid-breaking-exported-api` config.",
     "version": "1.54.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -7605,13 +7524,10 @@
   },
   {
     "id": "range_step_by_zero",
-    "id_span": {
-      "path": "src/deprecated_lints.rs",
-      "line": 56
-    },
+    "id_span": null,
     "group": "deprecated",
     "level": "none",
-    "docs": "\n### What it does\nNothing. This lint has been deprecated.\n\n### Deprecation reason\n`Range::step_by(0)` used to be linted since it's\nan infinite iterator, which is better expressed by `iter::repeat`,\nbut the method has been removed for `Iterator::step_by` which panics\nif given a zero",
+    "docs": "\n### What it does\n\nNothing. This lint has been deprecated\n\n### Deprecation reason\n\n`Iterator::step_by(0)` now panics and is no longer an infinite iterator.",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -7974,12 +7890,15 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nLint for redundant pattern matching over `Result`, `Option`,\n`std::task::Poll`, `std::net::IpAddr` or `bool`s\n\n### Why is this bad?\nIt's more concise and clear to just use the proper\nutility function or using the condition directly\n\n### Known problems\nFor suggestions involving bindings in patterns, this will change the drop order for the matched type.\nBoth `if let` and `while let` will drop the value at the end of the block, both `if` and `while` will drop the\nvalue before entering the block. For most types this change will not matter, but for a few\ntypes this will not be an acceptable change (e.g. locks). See the\n[reference](https://doc.rust-lang.org/reference/destructors.html#drop-scopes) for more about\ndrop order.\n\n### Example\n ```rust\nif let Ok(_) = Ok::<i32, i32>(42) {}\nif let Err(_) = Err::<i32, i32>(42) {}\nif let None = None::<()> {}\nif let Some(_) = Some(42) {}\nif let Poll::Pending = Poll::Pending::<()> {}\nif let Poll::Ready(_) = Poll::Ready(42) {}\nif let IpAddr::V4(_) = IpAddr::V4(Ipv4Addr::LOCALHOST) {}\nif let IpAddr::V6(_) = IpAddr::V6(Ipv6Addr::LOCALHOST) {}\nmatch Ok::<i32, i32>(42) {\n    Ok(_) => true,\n    Err(_) => false,\n};\n\nlet cond = true;\nif let true = cond {}\nmatches!(cond, true);\n```\n\nThe more idiomatic use would be:\n\n ```rust\nif Ok::<i32, i32>(42).is_ok() {}\nif Err::<i32, i32>(42).is_err() {}\nif None::<()>.is_none() {}\nif Some(42).is_some() {}\nif Poll::Pending::<()>.is_pending() {}\nif Poll::Ready(42).is_ready() {}\nif IpAddr::V4(Ipv4Addr::LOCALHOST).is_ipv4() {}\nif IpAddr::V6(Ipv6Addr::LOCALHOST).is_ipv6() {}\nOk::<i32, i32>(42).is_ok();\n\nlet cond = true;\nif cond {}\ncond;\n```",
+    "docs": "\n### What it does\nLint for redundant pattern matching over `Result`, `Option`,\n`std::task::Poll`, `std::net::IpAddr` or `bool`s\n\n### Why is this bad?\nIt's more concise and clear to just use the proper\nutility function or using the condition directly\n\n### Known problems\nFor suggestions involving bindings in patterns, this will change the drop order for the matched type.\nBoth `if let` and `while let` will drop the value at the end of the block, both `if` and `while` will drop the\nvalue before entering the block. For most types this change will not matter, but for a few\ntypes this will not be an acceptable change (e.g. locks). See the\n[reference](https://doc.rust-lang.org/reference/destructors.html#drop-scopes) for more about\ndrop order.\n\n### Example\n ```rust\nif let Ok(_) = Ok::<i32, i32>(42) {}\nif let Err(_) = Err::<i32, i32>(42) {}\nif let None = None::<()> {}\nif let Some(_) = Some(42) {}\nif let Poll::Pending = Poll::Pending::<()> {}\nif let Poll::Ready(_) = Poll::Ready(42) {}\nif let IpAddr::V4(_) = IpAddr::V4(Ipv4Addr::LOCALHOST) {}\nif let IpAddr::V6(_) = IpAddr::V6(Ipv6Addr::LOCALHOST) {}\nmatch Ok::<i32, i32>(42) {\n    Ok(_) => true,\n    Err(_) => false,\n};\n\nlet cond = true;\nif let true = cond {}\nmatches!(cond, true);\n```\n\nThe more idiomatic use would be:\n\n ```rust\nif Ok::<i32, i32>(42).is_ok() {}\nif Err::<i32, i32>(42).is_err() {}\nif None::<()>.is_none() {}\nif Some(42).is_some() {}\nif Poll::Pending::<()>.is_pending() {}\nif Poll::Ready(42).is_ready() {}\nif IpAddr::V4(Ipv4Addr::LOCALHOST).is_ipv4() {}\nif IpAddr::V6(Ipv6Addr::LOCALHOST).is_ipv6() {}\nOk::<i32, i32>(42).is_ok();\n\nlet cond = true;\nif cond {}\ncond;\n```\n### Past names\n\n* `if_let_redundant_pattern_matching`\n\n",
     "version": "1.31.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
-    }
+    },
+    "former_ids": [
+      "if_let_redundant_pattern_matching"
+    ]
   },
   {
     "id": "redundant_pub_crate",
@@ -8106,13 +8025,10 @@
   },
   {
     "id": "regex_macro",
-    "id_span": {
-      "path": "src/deprecated_lints.rs",
-      "line": 167
-    },
+    "id_span": null,
     "group": "deprecated",
     "level": "none",
-    "docs": "\n### What it does\nNothing. This lint has been deprecated.\n\n### Deprecation reason\nThe regex! macro does not exist anymore.",
+    "docs": "\n### What it does\n\nNothing. This lint has been deprecated\n\n### Deprecation reason\n\nThe `regex!` macro was removed from the regex crate in 2018.",
     "version": "1.47.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -8166,13 +8082,10 @@
   },
   {
     "id": "replace_consts",
-    "id_span": {
-      "path": "src/deprecated_lints.rs",
-      "line": 156
-    },
+    "id_span": null,
     "group": "deprecated",
     "level": "none",
-    "docs": "\n### What it does\nNothing. This lint has been deprecated.\n\n### Deprecation reason\nAssociated-constants are now preferred.",
+    "docs": "\n### What it does\n\nNothing. This lint has been deprecated\n\n### Deprecation reason\n\n`min_value` and `max_value` are now deprecated.",
     "version": "1.44.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -8307,12 +8220,15 @@
     },
     "group": "correctness",
     "level": "deny",
-    "docs": "\n### What it does\nChecks for range expressions `x..y` where both `x` and `y`\nare constant and `x` is greater to `y`. Also triggers if `x` is equal to `y` when they are conditions to a `for` loop.\n\n### Why is this bad?\nEmpty ranges yield no values so iterating them is a no-op.\nMoreover, trying to use a reversed range to index a slice will panic at run-time.\n\n### Example\n ```rust\nfn main() {\n    (10..=0).for_each(|x| println!(\"{}\", x));\n\n    let arr = [1, 2, 3, 4, 5];\n    let sub = &arr[3..1];\n}\n```\nUse instead:\n ```rust\nfn main() {\n    (0..=10).rev().for_each(|x| println!(\"{}\", x));\n\n    let arr = [1, 2, 3, 4, 5];\n    let sub = &arr[1..3];\n}\n```",
+    "docs": "\n### What it does\nChecks for range expressions `x..y` where both `x` and `y`\nare constant and `x` is greater to `y`. Also triggers if `x` is equal to `y` when they are conditions to a `for` loop.\n\n### Why is this bad?\nEmpty ranges yield no values so iterating them is a no-op.\nMoreover, trying to use a reversed range to index a slice will panic at run-time.\n\n### Example\n ```rust\nfn main() {\n    (10..=0).for_each(|x| println!(\"{}\", x));\n\n    let arr = [1, 2, 3, 4, 5];\n    let sub = &arr[3..1];\n}\n```\nUse instead:\n ```rust\nfn main() {\n    (0..=10).rev().for_each(|x| println!(\"{}\", x));\n\n    let arr = [1, 2, 3, 4, 5];\n    let sub = &arr[1..3];\n}\n```\n### Past names\n\n* `reverse_range_loop`\n\n",
     "version": "1.45.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
-    }
+    },
+    "former_ids": [
+      "reverse_range_loop"
+    ]
   },
   {
     "id": "same_functions_in_if_condition",
@@ -8601,13 +8517,10 @@
   },
   {
     "id": "should_assert_eq",
-    "id_span": {
-      "path": "src/deprecated_lints.rs",
-      "line": 30
-    },
+    "id_span": null,
     "group": "deprecated",
     "level": "none",
-    "docs": "\n### What it does\nNothing. This lint has been deprecated.\n\n### Deprecation reason\nThis used to check for `assert!(a == b)` and recommend\nreplacement with `assert_eq!(a, b)`, but this is no longer needed after RFC 2011.",
+    "docs": "\n### What it does\n\nNothing. This lint has been deprecated\n\n### Deprecation reason\n\n`assert!(a == b)` can now print the values the same way `assert_eq!(a, b) can.",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -10539,13 +10452,10 @@
   },
   {
     "id": "unsafe_vector_initialization",
-    "id_span": {
-      "path": "src/deprecated_lints.rs",
-      "line": 134
-    },
+    "id_span": null,
     "group": "deprecated",
     "level": "none",
-    "docs": "\n### What it does\nNothing. This lint has been deprecated.\n\n### Deprecation reason\nThis lint used to suggest replacing `let mut vec =\nVec::with_capacity(n); vec.set_len(n);` with `let vec = vec![0; n];`. The\nreplacement has very different performance characteristics so the lint is\ndeprecated.",
+    "docs": "\n### What it does\n\nNothing. This lint has been deprecated\n\n### Deprecation reason\n\nThe suggested alternative could be substantially slower.",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -10584,13 +10494,10 @@
   },
   {
     "id": "unstable_as_mut_slice",
-    "id_span": {
-      "path": "src/deprecated_lints.rs",
-      "line": 80
-    },
+    "id_span": null,
     "group": "deprecated",
     "level": "none",
-    "docs": "\n### What it does\nNothing. This lint has been deprecated.\n\n### Deprecation reason\nThis used to check for `Vec::as_mut_slice`, which was unstable with good\nstable alternatives. `Vec::as_mut_slice` has now been stabilized.",
+    "docs": "\n### What it does\n\nNothing. This lint has been deprecated\n\n### Deprecation reason\n\n`Vec::as_mut_slice` is now stable.",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -10599,13 +10506,10 @@
   },
   {
     "id": "unstable_as_slice",
-    "id_span": {
-      "path": "src/deprecated_lints.rs",
-      "line": 68
-    },
+    "id_span": null,
     "group": "deprecated",
     "level": "none",
-    "docs": "\n### What it does\nNothing. This lint has been deprecated.\n\n### Deprecation reason\nThis used to check for `Vec::as_slice`, which was unstable with good\nstable alternatives. `Vec::as_slice` has now been stabilized.",
+    "docs": "\n### What it does\n\nNothing. This lint has been deprecated\n\n### Deprecation reason\n\n`Vec::as_slice` is now stable.",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -10629,13 +10533,10 @@
   },
   {
     "id": "unused_collect",
-    "id_span": {
-      "path": "src/deprecated_lints.rs",
-      "line": 145
-    },
+    "id_span": null,
     "group": "deprecated",
     "level": "none",
-    "docs": "\n### What it does\nNothing. This lint has been deprecated.\n\n### Deprecation reason\nThis lint has been superseded by #[must_use] in rustc.",
+    "docs": "\n### What it does\n\nNothing. This lint has been deprecated\n\n### Deprecation reason\n\n`Iterator::collect` is now marked as `#[must_use]`.",
     "version": "1.39.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -11239,13 +11140,10 @@
   },
   {
     "id": "wrong_pub_self_convention",
-    "id_span": {
-      "path": "src/deprecated_lints.rs",
-      "line": 215
-    },
+    "id_span": null,
     "group": "deprecated",
     "level": "none",
-    "docs": "\n### What it does\nNothing. This lint has been deprecated.\n\n### Deprecation reason\nThe `avoid_breaking_exported_api` config option was added, which\nenables the `wrong_self_conversion` lint for public items.",
+    "docs": "\n### What it does\n\nNothing. This lint has been deprecated\n\n### Deprecation reason\n\n`clippy::wrong_self_convention` now covers this case via the `avoid-breaking-exported-api` config.",
     "version": "1.54.0",
     "applicability": {
       "is_multi_part_suggestion": false,
