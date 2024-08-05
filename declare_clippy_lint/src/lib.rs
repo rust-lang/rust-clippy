@@ -145,7 +145,7 @@ pub fn declare_clippy_lint(input: TokenStream) -> TokenStream {
         match category.as_str() {
             "correctness" => "Deny",
             "style" | "suspicious" | "complexity" | "perf" => "Warn",
-            "pedantic" | "restriction" | "cargo" | "nursery" | "internal" => "Allow",
+            "pedantic" | "restriction" | "cargo" | "nursery" => "Allow",
             _ => panic!("unknown category {category}"),
         },
     );

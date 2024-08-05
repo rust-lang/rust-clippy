@@ -42,6 +42,7 @@ fn dogfood() {
     for package in [
         "./",
         "clippy_dev",
+        "clippy_internal_lints",
         "clippy_lints",
         "clippy_utils",
         "clippy_config",
@@ -128,10 +129,7 @@ fn run_clippy_for_package(project: &str, args: &[&str]) -> bool {
     command.arg("--").args(args);
     command.arg("-Cdebuginfo=0"); // disable debuginfo to generate less data in the target dir
 
-    if cfg!(feature = "internal") {
-        // internal lints only exist if we build with the internal feature
-        command.args(["-D", "clippy::internal"]);
-    } else {
+    if !cfg!(feature = "internal") {
         // running a clippy built without internal lints on the clippy source
         // that contains e.g. `allow(clippy::invalid_paths)`
         command.args(["-A", "unknown_lints"]);

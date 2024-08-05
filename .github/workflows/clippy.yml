@@ -8,21 +8,21 @@ on:
       - try
     # Don't run Clippy tests, when only text files were modified
     paths-ignore:
-    - 'COPYRIGHT'
-    - 'LICENSE-*'
-    - '**.md'
-    - '**.txt'
+      - "COPYRIGHT"
+      - "LICENSE-*"
+      - "**.md"
+      - "**.txt"
   pull_request:
     # Don't run Clippy tests, when only text files were modified
     paths-ignore:
-    - 'COPYRIGHT'
-    - 'LICENSE-*'
-    - '**.md'
-    - '**.txt'
+      - "COPYRIGHT"
+      - "LICENSE-*"
+      - "**.md"
+      - "**.txt"
 
 env:
   RUST_BACKTRACE: 1
-  CARGO_TARGET_DIR: '${{ github.workspace }}/target'
+  CARGO_TARGET_DIR: "${{ github.workspace }}/target"
   NO_FMT_TEST: 1
   CARGO_INCREMENTAL: 0
   RUSTFLAGS: -D warnings
@@ -39,37 +39,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Setup
-    - name: Checkout
-      uses: actions/checkout@v4
+      # Setup
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Install toolchain
-      run: rustup show active-toolchain
+      - name: Install toolchain
+        run: rustup show active-toolchain
 
-    # Run
-    - name: Build
-      run: cargo build --tests --features internal
+      # Run
+      - name: Build
+        run: cargo build --tests --features internal
 
-    - name: Test
-      run: cargo test --features internal
+      - name: Test
+        run: cargo test --features internal
 
-    - name: Test clippy_lints
-      run: cargo test --features internal
-      working-directory: clippy_lints
+      - name: Test clippy_lints
+        run: cargo test
+        working-directory: clippy_lints
 
-    - name: Test clippy_utils
-      run: cargo test
-      working-directory: clippy_utils
+      - name: Test clippy_utils
+        run: cargo test
+        working-directory: clippy_utils
 
-    - name: Test rustc_tools_util
-      run: cargo test
-      working-directory: rustc_tools_util
+      - name: Test rustc_tools_util
+        run: cargo test
+        working-directory: rustc_tools_util
 
-    - name: Test clippy_dev
-      run: cargo test
-      working-directory: clippy_dev
+      - name: Test clippy_dev
+        run: cargo test
+        working-directory: clippy_dev
 
-    - name: Test clippy-driver
-      run: .github/driver.sh
-      env:
-        OS: ${{ runner.os }}
+      - name: Test clippy-driver
+        run: .github/driver.sh
+        env:
+          OS: ${{ runner.os }}

@@ -1,12 +1,13 @@
-use crate::utils::internal_lints::lint_without_lint_pass::is_lint_ref_type;
+use crate::lint_without_lint_pass::is_lint_ref_type;
 use clippy_utils::diagnostics::span_lint_and_help;
 use regex::Regex;
 use rustc_ast as ast;
 use rustc_hir::{Item, ItemKind, Mutability};
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint_defs::declare_tool_lint;
 use rustc_session::impl_lint_pass;
 
-declare_clippy_lint! {
+declare_tool_lint! {
     /// ### What it does
     /// Checks if lint formulations have a standardized format.
     ///
@@ -15,9 +16,10 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// `Checks for use...` can be written as `Checks for usage...` .
-    pub ALMOST_STANDARD_LINT_FORMULATION,
-    internal,
-    "lint formulations must have a standardized format."
+    pub clippy::ALMOST_STANDARD_LINT_FORMULATION,
+    Warn,
+    "lint formulations must have a standardized format.",
+    report_in_external_macro: true
 }
 
 impl_lint_pass!(AlmostStandardFormulation => [ALMOST_STANDARD_LINT_FORMULATION]);
