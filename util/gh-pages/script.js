@@ -145,15 +145,6 @@
                 ...GROUPS_FILTER_DEFAULT
             };
 
-            const THEMES_DEFAULT = {
-                light: "Light",
-                rust: "Rust",
-                coal: "Coal",
-                navy: "Navy",
-                ayu: "Ayu"
-            };
-            $scope.themes = THEMES_DEFAULT;
-
             $scope.versionFilters = {
                 "≥": {enabled: false, minorVersion: null },
                 "≤": {enabled: false, minorVersion: null },
@@ -337,10 +328,6 @@
                 }
 
                 $location.path($scope.search);
-            }
-
-            $scope.selectTheme = function (theme) {
-                setTheme(theme, true);
             }
 
             $scope.toggleLevels = function (value) {
@@ -598,6 +585,8 @@ function setTheme(theme, store) {
 
     if (store) {
         storeValue("theme", theme);
+    } else {
+        document.getElementById(`theme-choice`).value = theme;
     }
 }
 
@@ -633,6 +622,48 @@ function changeSetting(elem) {
         storeValue(elem.id, elem.checked);
     }
 }
+
+function onEachLazy(lazyArray, func) {
+    const arr = Array.prototype.slice.call(lazyArray);
+    for (const el of arr) {
+        func(el);
+    }
+}
+
+function handleBlur(event) {
+    const parent = document.getElementById("settings-dropdown");
+    if (!parent.contains(document.activeElement) &&
+        !parent.contains(event.relatedTarget)
+    ) {
+        parent.classList.remove("open");
+    }
+}
+
+function generateSettings() {
+    const THEMES = ["Ayu", "Coal", "Light", "Navy", "Rust"];
+    const themesElem = document.getElementById("theme-choice");
+    let children = '';
+
+    for (const theme of THEMES) {
+        const id = theme.toLowerCase();
+        children += `<option value="${id}">${theme}</option>`;
+    }
+    themesElem.innerHTML = children;
+    themesElem.onblur = handleBlur;
+
+    const settings = document.getElementById("settings-dropdown");
+    const settingsButton = settings.querySelector(".settings-icon")
+    settingsButton.onclick = () => settings.classList.toggle("open");
+    settingsButton.onblur = handleBlur;
+    const settingsMenu = settings.querySelector(".settings-menu");
+    settingsMenu.onblur = handleBlur;
+    onEachLazy(
+        settingsMenu.querySelectorAll("input"),
+        el => el.onblur = handleBlur,
+    );
+}
+
+generateSettings();
 
 // loading the theme after the initial load
 const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
