@@ -96,7 +96,7 @@ jobs:
       run: cargo test --features deny-warnings,internal -- --skip dogfood
 
     - name: Test clippy_lints
-      run: cargo test --features deny-warnings,internal
+      run: cargo test --features deny-warnings
       working-directory: clippy_lints
 
     - name: Test clippy_utils

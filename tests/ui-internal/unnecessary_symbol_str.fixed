@@ -1,5 +1,5 @@
 #![feature(rustc_private)]
-#![deny(clippy::internal)]
+#![deny(clippy::unnecessary_symbol_str)]
 #![allow(
     clippy::borrow_deref_ref,
     clippy::unnecessary_operation,

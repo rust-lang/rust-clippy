@@ -23,6 +23,7 @@ path = "src/driver.rs"
 [dependencies]
 clippy_config = { path = "clippy_config" }
 clippy_lints = { path = "clippy_lints" }
+clippy_internal_lints = { path = "clippy_internal_lints", optional = true }
 rustc_tools_util = "0.3.0"
 tempfile = { version = "3.3", optional = true }
 termize = "0.1"
@@ -51,9 +52,9 @@ tokio = { version = "1", features = ["io-util"] }
 rustc_tools_util = "0.3.0"
 
 [features]
-deny-warnings = ["clippy_lints/deny-warnings"]
-integration = ["tempfile"]
-internal = ["clippy_lints/internal", "tempfile"]
+deny-warnings = ["clippy_lints/deny-warnings", "clippy_internal_lints?/deny-warnings"]
+integration = ["dep:tempfile"]
+internal = ["dep:clippy_internal_lints", "dep:tempfile"]
 
 [package.metadata.rust-analyzer]
 # This package uses #[feature(rustc_private)]

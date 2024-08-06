@@ -65,11 +65,9 @@ extern crate clippy_utils;
 #[macro_use]
 extern crate declare_clippy_lint;
 
-#[cfg_attr(feature = "internal", allow(clippy::missing_clippy_version_attribute))]
 mod utils;
 
 mod declared_lints;
-mod deprecated_lints;
 
 // begin lints modules, do not remove this comment, it’s used in `update_lints`
 mod absolute_paths;
@@ -394,19 +392,6 @@ use clippy_utils::macros::FormatArgsStorage;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_lint::{Lint, LintId};
 
-/// Register all pre expansion lints
-///
-/// Pre-expansion lints run before any macro expansion has happened.
-///
-/// Note that due to the architecture of the compiler, currently `cfg_attr` attributes on crate
-/// level (i.e `#![cfg_attr(...)]`) will still be expanded even when using a pre-expansion pass.
-///
-/// Used in `./src/driver.rs`.
-pub fn register_pre_expansion_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
-    // NOTE: Do not add any more pre-expansion passes. These should be removed eventually.
-    store.register_pre_expansion_pass(move || Box::new(attrs::EarlyAttributes::new(conf)));
-}
-
 #[derive(Default)]
 struct RegistrationGroups {
     all: Vec<LintId>,
@@ -419,8 +404,6 @@ struct RegistrationGroups {
     restriction: Vec<LintId>,
     style: Vec<LintId>,
     suspicious: Vec<LintId>,
-    #[cfg(feature = "internal")]
-    internal: Vec<LintId>,
 }
 
 impl RegistrationGroups {
@@ -436,8 +419,6 @@ impl RegistrationGroups {
         store.register_group(true, "clippy::restriction", Some("clippy_restriction"), self.restriction);
         store.register_group(true, "clippy::style", Some("clippy_style"), self.style);
         store.register_group(true, "clippy::suspicious", Some("clippy_suspicious"), self.suspicious);
-        #[cfg(feature = "internal")]
-        store.register_group(true, "clippy::internal", Some("clippy_internal"), self.internal);
     }
 }
 
@@ -452,8 +433,6 @@ pub(crate) enum LintCategory {
     Restriction,
     Style,
     Suspicious,
-    #[cfg(feature = "internal")]
-    Internal,
 }
 #[allow(clippy::enum_glob_use)]
 use LintCategory::*;
@@ -474,8 +453,6 @@ impl LintCategory {
             Restriction => &mut groups.restriction,
             Style => &mut groups.style,
             Suspicious => &mut groups.suspicious,
-            #[cfg(feature = "internal")]
-            Internal => &mut groups.internal,
         }
     }
 }
@@ -508,7 +485,7 @@ pub fn explain(name: &str) -> i32 {
     }
 }
 
-fn register_categories(store: &mut rustc_lint::LintStore) {
+pub fn register_lints(store: &mut rustc_lint::LintStore) {
     let mut groups = RegistrationGroups::default();
 
     for LintInfo { lint, category, .. } in declared_lints::LINTS {
@@ -523,29 +500,24 @@ fn register_categories(store: &mut rustc_lint::LintStore) {
 
     store.register_lints(&lints);
     groups.register(store);
+
+    for (old_name, new_name) in clippy_deprecated_lints::RENAMED {
+        store.register_renamed(old_name, new_name);
+    }
+    for (name, reason) in clippy_deprecated_lints::DEPRECATED {
+        store.register_removed(name, reason);
+    }
 }
 
 /// Register all lints and lint groups with the rustc lint store
 ///
 /// Used in `./src/driver.rs`.
 #[expect(clippy::too_many_lines)]
-pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
-    register_categories(store);
-
-    for (old_name, new_name) in deprecated_lints::RENAMED {
-        store.register_renamed(old_name, new_name);
-    }
-    for (name, reason) in deprecated_lints::DEPRECATED {
-        store.register_removed(name, reason);
-    }
-
-    #[cfg(feature = "internal")]
-    {
-        if std::env::var("ENABLE_METADATA_COLLECTION").eq(&Ok("1".to_string())) {
-            store.register_late_pass(|_| Box::new(utils::internal_lints::metadata_collector::MetadataCollector::new()));
-            return;
-        }
-    }
+pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
+    // NOTE: Do not add any more pre-expansion passes. These should be removed eventually.
+    // Due to the architecture of the compiler, currently `cfg_attr` attributes on crate
+    // level (i.e `#![cfg_attr(...)]`) will still be expanded even when using a pre-expansion pass.
+    store.register_pre_expansion_pass(move || Box::new(attrs::EarlyAttributes::new(conf)));
 
     let format_args_storage = FormatArgsStorage::default();
     let format_args = format_args_storage.clone();
@@ -554,29 +526,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
             format_args.clone(),
         ))
     });
-
-    // all the internal lints
-    #[cfg(feature = "internal")]
-    {
-        store.register_early_pass(|| {
-            Box::new(utils::internal_lints::unsorted_clippy_utils_paths::UnsortedClippyUtilsPaths)
-        });
-        store.register_early_pass(|| Box::new(utils::internal_lints::produce_ice::ProduceIce));
-        store.register_late_pass(|_| Box::new(utils::internal_lints::collapsible_calls::CollapsibleCalls));
-        store.register_late_pass(|_| Box::new(utils::internal_lints::invalid_paths::InvalidPaths));
-        store.register_late_pass(|_| {
-            Box::<utils::internal_lints::interning_defined_symbol::InterningDefinedSymbol>::default()
-        });
-        store.register_late_pass(|_| {
-            Box::<utils::internal_lints::lint_without_lint_pass::LintWithoutLintPass>::default()
-        });
-        store.register_late_pass(|_| Box::<utils::internal_lints::unnecessary_def_path::UnnecessaryDefPath>::default());
-        store.register_late_pass(|_| Box::new(utils::internal_lints::outer_expn_data_pass::OuterExpnDataPass));
-        store.register_late_pass(|_| Box::new(utils::internal_lints::msrv_attr_impl::MsrvAttrImpl));
-        store.register_late_pass(|_| {
-            Box::new(utils::internal_lints::almost_standard_lint_formulation::AlmostStandardFormulation::new())
-        });
-    }
 
     store.register_late_pass(move |_| Box::new(operators::arithmetic_side_effects::ArithmeticSideEffects::new(conf)));
     store.register_late_pass(|_| Box::new(utils::dump_hir::DumpHir));

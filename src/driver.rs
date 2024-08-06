@@ -149,8 +149,17 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
             }
 
             let conf = clippy_config::Conf::read(sess, &conf_path);
-            clippy_lints::register_lints(lint_store, conf);
-            clippy_lints::register_pre_expansion_lints(lint_store, conf);
+            clippy_lints::register_lints(lint_store);
+            #[cfg(feature = "internal")]
+            {
+                if std::env::var("ENABLE_METADATA_COLLECTION").eq(&Ok("1".to_string())) {
+                    clippy_internal_lints::register_metadata_collector(lint_store);
+                    // Don't register any lint passes.
+                    return;
+                }
+                clippy_internal_lints::register_lints(lint_store);
+            }
+            clippy_lints::register_lint_passes(lint_store, conf);
         }));
 
         // FIXME: #4825; This is required, because Clippy lints that are based on MIR have to be
