@@ -1,1 +1,3 @@
+//@no-rustfix
+
 fn main() {}

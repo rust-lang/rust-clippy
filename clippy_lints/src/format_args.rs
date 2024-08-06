@@ -179,7 +179,7 @@ impl FormatArgs {
     pub fn new(conf: &'static Conf, format_args: FormatArgsStorage) -> Self {
         Self {
             format_args,
-            msrv: conf.msrv.clone(),
+            msrv: conf.msrv.into(),
             ignore_mixed: conf.allow_mixed_uninlined_format_args,
         }
     }

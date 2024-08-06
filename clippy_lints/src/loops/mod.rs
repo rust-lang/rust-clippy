@@ -721,7 +721,7 @@ pub struct Loops {
 impl Loops {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
-            msrv: conf.msrv.clone(),
+            msrv: conf.msrv.into(),
             enforce_iter_loop_reborrow: conf.enforce_iter_loop_reborrow,
         }
     }

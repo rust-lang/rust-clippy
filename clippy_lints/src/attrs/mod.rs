@@ -518,9 +518,7 @@ impl_lint_pass!(Attributes => [
 
 impl Attributes {
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: conf.msrv.clone(),
-        }
+        Self { msrv: conf.msrv.into() }
     }
 }
 
@@ -595,9 +593,7 @@ pub struct EarlyAttributes {
 
 impl EarlyAttributes {
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: conf.msrv.clone(),
-        }
+        Self { msrv: conf.msrv.into() }
     }
 }
 

@@ -60,15 +60,15 @@ impl DisallowedTypes {
         let mut def_ids = DefIdMap::default();
         let mut prim_tys = FxHashMap::default();
         for x in &conf.disallowed_types {
-            let path: Vec<_> = x.path().split("::").collect::<Vec<_>>();
-            let reason = x.reason();
+            let path: Vec<_> = x.path.split("::").collect::<Vec<_>>();
+            let reason = x.reason.as_deref();
             for res in clippy_utils::def_path_res(tcx, &path) {
                 match res {
                     Res::Def(_, id) => {
-                        def_ids.insert(id, (x.path(), reason));
+                        def_ids.insert(id, (&*x.path, reason));
                     },
                     Res::PrimTy(ty) => {
-                        prim_tys.insert(ty, (x.path(), reason));
+                        prim_tys.insert(ty, (&*x.path, reason));
                     },
                     _ => {},
                 }

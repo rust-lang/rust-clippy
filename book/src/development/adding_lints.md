@@ -48,9 +48,11 @@ case), and we don't need type information, so it will have an early pass type
 take a look at our [lint naming guidelines][lint_naming].
 
 ## Defining Our Lint
+
 To get started, there are two ways to define our lint.
 
 ### Standalone
+
 Command: `cargo dev new_lint --name=foo_functions --pass=early --category=pedantic`
 (category will default to nursery if not provided)
 
@@ -58,6 +60,7 @@ This command will create a new file: `clippy_lints/src/foo_functions.rs`, as wel
 as [register the lint](#lint-registration).
 
 ### Specific Type
+
 Command: `cargo dev new_lint --name=foo_functions --type=functions --category=pedantic`
 
 This command will create a new file: `clippy_lints/src/{type}/foo_functions.rs`.
@@ -71,6 +74,7 @@ the example command. These are groupings of lints with common behaviors, so if y
 lint falls into one, it would be best to add it to that type.
 
 ### Tests Location
+
 Both commands will create a file: `tests/ui/foo_functions.rs`. For cargo lints,
 two project hierarchies (fail/pass) will be created by default under `tests/ui-cargo`.
 
@@ -147,9 +151,9 @@ If our new lint is named e.g. `foo_categories`, after running `cargo dev
 new_lint --name=foo_categories --type=cargo --category=cargo` we will find by
 default two new crates, each with its manifest file:
 
-* `tests/ui-cargo/foo_categories/fail/Cargo.toml`: this file should cause the
+- `tests/ui-cargo/foo_categories/fail/Cargo.toml`: this file should cause the
   new lint to raise an error.
-* `tests/ui-cargo/foo_categories/pass/Cargo.toml`: this file should not trigger
+- `tests/ui-cargo/foo_categories/pass/Cargo.toml`: this file should not trigger
   the lint.
 
 If you need more cases, you can copy one of those crates (under
@@ -230,22 +234,22 @@ declare_clippy_lint! {
 }
 ```
 
-* The section of lines prefixed with `///` constitutes the lint documentation
+- The section of lines prefixed with `///` constitutes the lint documentation
   section. This is the default documentation style and will be displayed [like
   this][example_lint_page]. To render and open this documentation locally in a
   browser, run `cargo dev serve`.
-* The `#[clippy::version]` attribute will be rendered as part of the lint
+- The `#[clippy::version]` attribute will be rendered as part of the lint
   documentation. The value should be set to the current Rust version that the
   lint is developed in, it can be retrieved by running `rustc -vV` in the
-  rust-clippy directory. The version is listed under *release*. (Use the version
+  rust-clippy directory. The version is listed under _release_. (Use the version
   without the `-nightly`) suffix.
-* `FOO_FUNCTIONS` is the name of our lint. Be sure to follow the [lint naming
+- `FOO_FUNCTIONS` is the name of our lint. Be sure to follow the [lint naming
   guidelines][lint_naming] here when naming your lint. In short, the name should
   state the thing that is being checked for and read well when used with
   `allow`/`warn`/`deny`.
-* `pedantic` sets the lint level to `Allow`. The exact mapping can be found
+- `pedantic` sets the lint level to `Allow`. The exact mapping can be found
   [here][category_level_mapping]
-* The last part should be a text that explains what exactly is wrong with the
+- The last part should be a text that explains what exactly is wrong with the
   code
 
 The rest of this file contains an empty implementation for our lint pass, which
@@ -330,7 +334,7 @@ We implement the [`check_fn`][check_fn] method from the
 [`EarlyLintPass`][early_lint_pass] trait. This gives us access to various
 information about the function that is currently being checked. More on that in
 the next section. Let's worry about the details later and emit our lint for
-*every* function definition first.
+_every_ function definition first.
 
 Depending on how complex we want our lint message to be, we can choose from a
 variety of lint emission functions. They can all be found in
@@ -459,7 +463,7 @@ pub struct ManualStrip {
 
 impl ManualStrip {
     pub fn new(conf: &'static Conf) -> Self {
-        Self { msrv: conf.msrv.clone() }
+        Self { msrv: conf.msrv.into() }
     }
 }
 ```
@@ -630,9 +634,9 @@ code, creating conflicting diagnostics.
 When you are creating a lint that ends up in this scenario, the following tips should be encouraged to guide
 classification:
 
-* The only case where they should be in the same category is if that category is `restriction`. For example,
+- The only case where they should be in the same category is if that category is `restriction`. For example,
 `semicolon_inside_block` and `semicolon_outside_block`.
-* For all the other cases, they should be in different categories with different levels of allowance. For example,
+- For all the other cases, they should be in different categories with different levels of allowance. For example,
 `implicit_return` (restriction, allow) and `needless_return` (style, warn).
 
 For lints that are in different categories, it is also recommended that at least one of them should be in the
@@ -681,6 +685,7 @@ for some users. Adding a configuration is done in the following steps:
     1. This first requires the definition of a lint impl struct. Lint impl
        structs are usually generated with the `declare_lint_pass!` macro. This
        struct needs to be defined manually to add some kind of metadata to it:
+
        ```rust
        // Generated struct definition
        declare_lint_pass!(StructName => [
@@ -697,6 +702,7 @@ for some users. Adding a configuration is done in the following steps:
 
     2. Next add the configuration value and a corresponding creation method like
        this:
+
        ```rust
        pub struct StructName {
            configuration_ident: Type,
@@ -712,6 +718,7 @@ for some users. Adding a configuration is done in the following steps:
            }
        }
        ```
+
 3. Passing the configuration value to the lint impl struct:
 
    First find the struct construction in the [`clippy_lints` lib file]. The
@@ -750,31 +757,31 @@ for some users. Adding a configuration is done in the following steps:
 
 Here are some pointers to things you are likely going to need for every lint:
 
-* [Clippy utils][utils] - Various helper functions. Maybe the function you need
+- [Clippy utils][utils] - Various helper functions. Maybe the function you need
   is already in here ([`is_type_diagnostic_item`], [`implements_trait`],
   [`snippet`], etc)
-* [Clippy diagnostics][diagnostics]
-* [Let chains][let-chains]
-* [`from_expansion`][from_expansion] and
+- [Clippy diagnostics][diagnostics]
+- [Let chains][let-chains]
+- [`from_expansion`][from_expansion] and
   [`in_external_macro`][in_external_macro]
-* [`Span`][span]
-* [`Applicability`][applicability]
-* [Common tools for writing lints](common_tools_writing_lints.md) helps with
+- [`Span`][span]
+- [`Applicability`][applicability]
+- [Common tools for writing lints](common_tools_writing_lints.md) helps with
   common operations
-* [The rustc-dev-guide][rustc-dev-guide] explains a lot of internal compiler
+- [The rustc-dev-guide][rustc-dev-guide] explains a lot of internal compiler
   concepts
-* [The nightly rustc docs][nightly_docs] which has been linked to throughout
+- [The nightly rustc docs][nightly_docs] which has been linked to throughout
   this guide
 
 For `EarlyLintPass` lints:
 
-* [`EarlyLintPass`][early_lint_pass]
-* [`rustc_ast::ast`][ast]
+- [`EarlyLintPass`][early_lint_pass]
+- [`rustc_ast::ast`][ast]
 
 For `LateLintPass` lints:
 
-* [`LateLintPass`][late_lint_pass]
-* [`Ty::TyKind`][ty]
+- [`LateLintPass`][late_lint_pass]
+- [`Ty::TyKind`][ty]
 
 While most of Clippy's lint utils are documented, most of rustc's internals lack
 documentation currently. This is unfortunate, but in most cases you can probably

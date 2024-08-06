@@ -983,7 +983,7 @@ pub struct Matches {
 impl Matches {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
-            msrv: conf.msrv.clone(),
+            msrv: conf.msrv.into(),
             infallible_destructuring_match_linted: false,
         }
     }

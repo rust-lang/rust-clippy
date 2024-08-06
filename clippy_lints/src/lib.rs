@@ -389,7 +389,7 @@ mod zero_repeat_side_effects;
 mod zero_sized_map_values;
 // end lints modules, do not remove this comment, it’s used in `update_lints`
 
-use clippy_config::{get_configuration_metadata, Conf};
+use clippy_config::Conf;
 use clippy_utils::macros::FormatArgsStorage;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_lint::{Lint, LintId};
@@ -488,11 +488,11 @@ pub(crate) struct LintInfo {
 }
 
 pub fn explain(name: &str) -> i32 {
-    let target = format!("clippy::{}", name.to_ascii_uppercase());
+    let target = format!("clippy::{}", name);
     if let Some(info) = declared_lints::LINTS.iter().find(|info| info.lint.name == target) {
         println!("{}", info.explanation);
         // Check if the lint has configuration
-        let mut mdconf = get_configuration_metadata();
+        let mut mdconf = Conf::get_metadata();
         let name = name.to_ascii_lowercase();
         mdconf.retain(|cconf| cconf.lints.contains(&&*name));
         if !mdconf.is_empty() {

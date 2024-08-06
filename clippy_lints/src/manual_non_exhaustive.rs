@@ -69,9 +69,7 @@ pub struct ManualNonExhaustiveStruct {
 
 impl ManualNonExhaustiveStruct {
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: conf.msrv.clone(),
-        }
+        Self { msrv: conf.msrv.into() }
     }
 }
 
@@ -87,7 +85,7 @@ pub struct ManualNonExhaustiveEnum {
 impl ManualNonExhaustiveEnum {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
-            msrv: conf.msrv.clone(),
+            msrv: conf.msrv.into(),
             constructed_enum_variants: FxHashSet::default(),
             potential_enums: Vec::new(),
         }

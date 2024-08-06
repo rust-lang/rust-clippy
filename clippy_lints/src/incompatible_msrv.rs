@@ -50,7 +50,7 @@ impl_lint_pass!(IncompatibleMsrv => [INCOMPATIBLE_MSRV]);
 impl IncompatibleMsrv {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
-            msrv: conf.msrv.clone(),
+            msrv: conf.msrv.into(),
             is_above_msrv: FxHashMap::default(),
         }
     }

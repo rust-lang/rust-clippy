@@ -4142,7 +4142,7 @@ impl Methods {
 
         Self {
             avoid_breaking_exported_api: conf.avoid_breaking_exported_api,
-            msrv: conf.msrv.clone(),
+            msrv: conf.msrv.into(),
             allow_expect_in_tests: conf.allow_expect_in_tests,
             allow_unwrap_in_tests: conf.allow_unwrap_in_tests,
             allowed_dotfiles,
