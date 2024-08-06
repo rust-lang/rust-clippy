@@ -10604,6 +10604,21 @@
     }
   },
   {
+    "id": "unused_result_ok",
+    "id_span": {
+      "path": "src/unused_result_ok.rs",
+      "line": 30
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for calls to `Result::ok()` without using the returned `Option`.\n\n### Why is this bad?\nUsing `Result::ok()` may look like the result is checked like `unwrap` or `expect` would do\nbut it only silences the warning caused by `#[must_use]` on the `Result`.\n\n### Example\n ```rust\nsome_function().ok();\n```\nUse instead:\n ```rust\nlet _ = some_function();\n```",
+    "version": "1.70.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
+    }
+  },
+  {
     "id": "unused_rounding",
     "id_span": {
       "path": "src/unused_rounding.rs",
