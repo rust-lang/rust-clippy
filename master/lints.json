@@ -7214,15 +7214,15 @@
     "id": "precedence",
     "id_span": {
       "path": "src/precedence.rs",
-      "line": 46
+      "line": 24
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for operations where precedence may be unclear\nand suggests to add parentheses. Currently it catches the following:\n* mixed usage of arithmetic and bit shifting/combining operators without\nparentheses\n* a \"negative\" numeric literal (which is really a unary `-` followed by a\nnumeric literal)\n  followed by a method call\n\n### Why is this bad?\nNot everyone knows the precedence of those operators by\nheart, so expressions like these may trip others trying to reason about the\ncode.\n\n### Example\n* `1 << 2 + 3` equals 32, while `(1 << 2) + 3` equals 7\n* `-1i32.abs()` equals -1, while `(-1i32).abs()` equals 1",
+    "docs": "\n### What it does\nChecks for operations where precedence may be unclear\nand suggests to add parentheses. Currently it catches the following:\n* mixed usage of arithmetic and bit shifting/combining operators without\nparentheses\n\n### Why is this bad?\nNot everyone knows the precedence of those operators by\nheart, so expressions like these may trip others trying to reason about the\ncode.\n\n### Example\n* `1 << 2 + 3` equals 32, while `(1 << 2) + 3` equals 7",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "MachineApplicable"
+      "applicability": "Unresolved"
     }
   },
   {
