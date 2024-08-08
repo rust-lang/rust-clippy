@@ -92,6 +92,7 @@ mod booleans;
 mod borrow_deref_ref;
 mod box_default;
 mod byte_char_slices;
+mod call_missing_target_feature;
 mod cargo;
 mod casts;
 mod cfg_not_test;
@@ -784,6 +785,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(floating_point_arithmetic::FloatingPointArithmetic));
     store.register_late_pass(|_| Box::new(as_conversions::AsConversions));
     store.register_late_pass(|_| Box::new(let_underscore::LetUnderscore));
+    store.register_late_pass(|_| Box::new(call_missing_target_feature::CallMissingTargetFeature));
     store.register_early_pass(|| Box::<single_component_path_imports::SingleComponentPathImports>::default());
     store.register_late_pass(move |_| Box::new(excessive_bools::ExcessiveBools::new(conf)));
     store.register_early_pass(|| Box::new(option_env_unwrap::OptionEnvUnwrap));
