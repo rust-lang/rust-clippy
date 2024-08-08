@@ -2898,7 +2898,7 @@
     "id": "if_then_some_else_none",
     "id_span": {
       "path": "src/if_then_some_else_none.rs",
-      "line": 45
+      "line": 47
     },
     "group": "restriction",
     "level": "allow",
