@@ -1,33 +1,45 @@
 error: doc comments should use a back-slash (\) instead of a double space to indicate a linebreak
-  --> tests/ui/doc/doc_comment_double_space_linebreak.rs:7:1
+  --> tests/ui/doc/doc_comment_double_space_linebreak.rs:7:43
    |
-LL | //! Should warn on double space linebreaks  
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace this double space with a back-slash: `//! Should warn on double space linebreaks\`
+LL |   //! Should warn on double space linebreaks  
+   |  ___________________________________________^
+LL | | //! in file/module doc comment
+   | |____^
    |
    = note: `-D clippy::doc-comment-double-space-linebreak` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::doc_comment_double_space_linebreak)]`
+help: replace this double space with a back-slash
+   |
+LL ~ //! Should warn on double space linebreaks\
+LL ~ //! in file/module doc comment
+   |
 
 error: doc comments should use a back-slash (\) instead of a double space to indicate a linebreak
-  --> tests/ui/doc/doc_comment_double_space_linebreak.rs:35:1
+  --> tests/ui/doc/doc_comment_double_space_linebreak.rs:35:51
    |
-LL | / /// Should warn when doc comment uses double space  
+LL |   /// Should warn when doc comment uses double space  
+   |  ___________________________________________________^
 LL | | /// as a line-break, even when there are multiple  
-   | |___________________________________________________^
+LL | | /// in a row
+   | |____^
    |
 help: replace this double space with a back-slash
    |
-LL + /// Should warn when doc comment uses double space\
-LL + /// as a line-break, even when there are multiple\
+LL ~ /// Should warn when doc comment uses double space\
+LL ~ /// as a line-break, even when there are multiple\
+LL ~ /// in a row
    |
 
 error: doc comments should use a back-slash (\) instead of a double space to indicate a linebreak
-  --> tests/ui/doc/doc_comment_double_space_linebreak.rs:44:1
+  --> tests/ui/doc/doc_comment_double_space_linebreak.rs:44:12
    |
-LL | / /// 🌹 are 🟥  
+LL |   /// 🌹 are 🟥  
+   |  ______________^
 LL | | /// 🌷 are 🟦  
 LL | | /// 📎 is 😎  
 LL | | /// and so are 🫵  
-   | |___________________^
+LL | | /// (hopefully no formatting weirdness linting this)
+   | |____^
    |
 help: replace this double space with a back-slash
    |
@@ -35,6 +47,7 @@ LL ~ /// 🌹 are 🟥\
 LL ~ /// 🌷 are 🟦\
 LL ~ /// 📎 is 😎\
 LL ~ /// and so are 🫵\
+LL ~ /// (hopefully no formatting weirdness linting this)
    |
 
 error: aborting due to 3 previous errors

@@ -2,7 +2,7 @@
 #![rustfmt::skip]
 
 #![warn(clippy::doc_comment_double_space_linebreak)]
-#![allow(unused)]
+#![allow(unused, clippy::empty_docs)]
 
 //! Should warn on double space linebreaks\
 //! in file/module doc comment
@@ -57,5 +57,30 @@ macro_rules! macro_that_makes_function {
 }
 
 macro_that_makes_function!();
+
+// dont lint when its alone on a line
+///  
+fn alone() {}
+
+/// | First column | Second column |  
+/// | ------------ | ------------- |  
+/// | Not a line   | break when    |  
+/// | after a line | in a table    |  
+fn table() {}
+
+/// ```text  
+/// It's also not a hard line break if  
+/// there's two spaces at the end of a  
+/// line in a block code.  
+/// ```  
+fn codeblock() {}
+
+/// It's also not a hard line break `if  
+/// there's` two spaces in the middle of inline code.  
+fn inline() {}
+
+/// It's also not a hard line break [when](  
+/// https://example.com) in a URL.  
+fn url() {}
 
 fn main() {}

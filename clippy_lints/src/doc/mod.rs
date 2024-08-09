@@ -30,12 +30,11 @@ use rustc_resolve::rustdoc::{
 use rustc_session::impl_lint_pass;
 use rustc_span::edition::Edition;
 use rustc_span::{sym, Span};
-use std::borrow::Cow;
 use std::ops::Range;
 use url::Url;
 
-mod empty_line_after;
 mod doc_comment_double_space_linebreak;
+mod empty_line_after;
 mod link_with_quotes;
 mod markdown;
 mod missing_headers;
@@ -814,7 +813,8 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
     let mut paragraph_range = 0..0;
     let mut code_level = 0;
     let mut blockquote_level = 0;
-    let mut collected_breaks: Vec<(Span, (Span, CowStr<'_>), Cow<'_, str>)> = Vec::new();
+    let mut collected_breaks: Vec<Span> = Vec::new();
+
     let mut containers = Vec::new();
 
     let mut events = events.peekable();
@@ -932,19 +932,15 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
                     );
                 }
 
-                if let Some(span) = fragments.span(cx, range.clone()) 
-                    && let Some(ref p) = prev_text
+                if let Some(span) = fragments.span(cx, range.clone())
+                    && !span.from_expansion()
                     && let snippet = snippet(cx, span, "..") 
-                    && !snippet.trim().starts_with("\\")
+                    && !snippet.trim().starts_with('\\')
                     && event == HardBreak {
-                    collected_breaks.push((span, p.clone(), snippet));
-                    prev_text = None;
+                    collected_breaks.push(span);
                 }
             },
             Text(text) => {
-                if let Some(span) = fragments.span(cx, range.clone()) {
-                    prev_text = Some((span, text.clone()));
-                }
                 paragraph_range.end = range.end;
                 let range_ = range.clone();
                 ticks_unbalanced |= text.contains('`')
@@ -993,7 +989,7 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
         }
     }
 
-    doc_comment_double_space_linebreak::check(cx, collected_breaks);
+    doc_comment_double_space_linebreak::check(cx, &collected_breaks);
 
     headers
 }
