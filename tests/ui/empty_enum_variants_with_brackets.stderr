@@ -1,5 +1,5 @@
 error: enum variant has empty brackets
-  --> tests/ui/empty_enum_variants_with_brackets.rs:7:16
+  --> tests/ui/empty_enum_variants_with_brackets.rs:15:16
    |
 LL |     EmptyBraces {},
    |                ^^^
@@ -9,7 +9,7 @@ LL |     EmptyBraces {},
    = help: remove the brackets
 
 error: enum variant has empty brackets
-  --> tests/ui/empty_enum_variants_with_brackets.rs:8:21
+  --> tests/ui/empty_enum_variants_with_brackets.rs:16:21
    |
 LL |     EmptyParentheses(),
    |                     ^^
@@ -17,20 +17,33 @@ LL |     EmptyParentheses(),
    = help: remove the brackets
 
 error: enum variant has empty brackets
-  --> tests/ui/empty_enum_variants_with_brackets.rs:14:16
+  --> tests/ui/empty_enum_variants_with_brackets.rs:26:16
    |
-LL |     EmptyBraces {},
-   |                ^^^
+LL |         Unknown(),
+   |                ^^
    |
    = help: remove the brackets
 
 error: enum variant has empty brackets
-  --> tests/ui/empty_enum_variants_with_brackets.rs:15:21
+  --> tests/ui/empty_enum_variants_with_brackets.rs:44:16
    |
-LL |     EmptyParentheses(),
-   |                     ^^
+LL |         Unknown(),
+   |                ^^
    |
    = help: remove the brackets
 
-error: aborting due to 4 previous errors
+error: enum variant has empty brackets
+  --> tests/ui/empty_enum_variants_with_brackets.rs:49:20
+   |
+LL |         Parentheses(),
+   |                    ^^
+   |
+   = help: remove the brackets
+help: remove the brackets
+   |
+LL -         RedundantParenthesesFunctionCall::Parentheses();
+LL +         RedundantParenthesesFunctionCall::Parentheses;
+   |
+
+error: aborting due to 5 previous errors
 
