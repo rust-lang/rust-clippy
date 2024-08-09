@@ -60,11 +60,11 @@ impl_lint_pass!(UnusedAsync => [UNUSED_ASYNC]);
 
 struct AsyncFnVisitor<'a, 'tcx> {
     cx: &'a LateContext<'tcx>,
-    found_await: bool,
     /// Also keep track of `await`s in nested async blocks so we can mention
     /// it in a note
     await_in_async_block: Option<Span>,
-    async_depth: usize,
+    async_block_await_stack: Vec<bool>,
+    is_valid: bool,
 }
 
 impl<'a, 'tcx> Visitor<'tcx> for AsyncFnVisitor<'a, 'tcx> {
@@ -72,9 +72,11 @@ impl<'a, 'tcx> Visitor<'tcx> for AsyncFnVisitor<'a, 'tcx> {
 
     fn visit_expr(&mut self, ex: &'tcx Expr<'tcx>) {
         if let ExprKind::Yield(_, YieldSource::Await { .. }) = ex.kind {
-            if self.async_depth == 1 {
-                self.found_await = true;
-            } else if self.await_in_async_block.is_none() {
+            if let Some(has_await) = self.async_block_await_stack.last_mut() {
+                *has_await = true;
+            }
+
+            if self.async_block_await_stack.len() > 1 && self.await_in_async_block.is_none() {
                 self.await_in_async_block = Some(ex.span);
             }
         }
@@ -91,13 +93,13 @@ impl<'a, 'tcx> Visitor<'tcx> for AsyncFnVisitor<'a, 'tcx> {
         );
 
         if is_async_block {
-            self.async_depth += 1;
+            self.async_block_await_stack.push(false);
         }
 
         walk_expr(self, ex);
 
         if is_async_block {
-            self.async_depth -= 1;
+            self.is_valid &= self.async_block_await_stack.pop().unwrap();
         }
     }
 
@@ -119,12 +121,13 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsync {
         if !span.from_expansion() && fn_kind.asyncness().is_async() && !is_def_id_trait_method(cx, def_id) {
             let mut visitor = AsyncFnVisitor {
                 cx,
-                found_await: false,
-                async_depth: 0,
                 await_in_async_block: None,
+                async_block_await_stack: Vec::new(),
+                is_valid: true,
             };
             walk_fn(&mut visitor, fn_kind, fn_decl, body.id(), def_id);
-            if !visitor.found_await {
+
+            if !visitor.is_valid {
                 // Don't lint just yet, but store the necessary information for later.
                 // The actual linting happens in `check_crate_post`, once we've found all
                 // uses of local async functions that do require asyncness to pass typeck
@@ -138,13 +141,13 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsync {
     }
 
     fn check_path(&mut self, cx: &LateContext<'tcx>, path: &rustc_hir::Path<'tcx>, hir_id: rustc_hir::HirId) {
-        fn is_node_func_call(node: Node<'_>, expected_receiver: Span) -> bool {
+        fn is_node_func_value(node: Node<'_>, expected_receiver: Span) -> bool {
             matches!(
                 node,
                 Node::Expr(Expr {
                     kind: ExprKind::Call(Expr { span, .. }, _) | ExprKind::MethodCall(_, Expr { span, .. }, ..),
                     ..
-                }) if *span == expected_receiver
+                }) if *span != expected_receiver
             )
         }
 
@@ -156,7 +159,7 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsync {
             && let Some(local_def_id) = def_id.as_local()
             && cx.tcx.def_kind(def_id) == DefKind::Fn
             && cx.tcx.asyncness(def_id).is_async()
-            && !is_node_func_call(cx.tcx.parent_hir_node(hir_id), path.span)
+            && is_node_func_value(cx.tcx.parent_hir_node(hir_id), path.span)
         {
             self.async_fns_as_value.insert(local_def_id);
         }
