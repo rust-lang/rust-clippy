@@ -707,6 +707,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::transmute::WRONG_TRANSMUTE_INFO,
     crate::tuple_array_conversions::TUPLE_ARRAY_CONVERSIONS_INFO,
     crate::types::BORROWED_BOX_INFO,
+    crate::types::BORROWED_OPTION_INFO,
     crate::types::BOX_COLLECTION_INFO,
     crate::types::LINKEDLIST_INFO,
     crate::types::OPTION_OPTION_INFO,
