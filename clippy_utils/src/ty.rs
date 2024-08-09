@@ -1327,7 +1327,7 @@ pub fn get_adt_inherent_method<'a>(cx: &'a LateContext<'_>, ty: Ty<'_>, method_n
     }
 }
 
-/// Get's the type of a field by name.
+/// Gets the type of a field by name.
 pub fn get_field_by_name<'tcx>(tcx: TyCtxt<'tcx>, ty: Ty<'tcx>, name: Symbol) -> Option<Ty<'tcx>> {
     match *ty.kind() {
         ty::Adt(def, args) if def.is_union() || def.is_struct() => def
@@ -1337,6 +1337,17 @@ pub fn get_field_by_name<'tcx>(tcx: TyCtxt<'tcx>, ty: Ty<'tcx>, name: Symbol) ->
             .find(|f| f.name == name)
             .map(|f| f.ty(tcx, args)),
         ty::Tuple(args) => name.as_str().parse::<usize>().ok().and_then(|i| args.get(i).copied()),
+        _ => None,
+    }
+}
+
+/// Gets the index of a field by name.
+pub fn get_field_idx_by_name(ty: Ty<'_>, name: Symbol) -> Option<usize> {
+    match *ty.kind() {
+        ty::Adt(def, _) if def.is_union() || def.is_struct() => {
+            def.non_enum_variant().fields.iter().position(|f| f.name == name)
+        },
+        ty::Tuple(_) => name.as_str().parse::<usize>().ok(),
         _ => None,
     }
 }
