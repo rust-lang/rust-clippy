@@ -1,0 +1,18 @@
+#![warn(clippy::and_then_then_some)]
+
+fn main() {
+    let x = Some("foo".to_string());
+
+    let _y = x.clone().filter(|v| v.starts_with('f'));
+
+    let _z = x.clone().filter(|v| v.starts_with('f'));
+    let _w = x.clone().filter(|v| v.starts_with('f'));
+    #[allow(clippy::needless_return)]
+    let _v = x.clone().filter(|v| v.starts_with('g'));
+    #[derive(Clone)]
+    struct NonCopy;
+    let a = Some(NonCopy);
+    // non-copy value, but it doesn't appear in the predicate.
+    let _a1 = a.clone().filter(|v| true);
+    let _ = Some(true).filter(|&v| v);
+}
