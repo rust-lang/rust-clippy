@@ -161,11 +161,13 @@ impl<'tcx> LateLintPass<'tcx> for ImplicitHasher {
                             continue;
                         }
                         let generics_suggestion_span = generics.span.substitute_dummy({
-                            let range = (item.span.lo()..body.params[0].pat.span.lo()).map_range(cx, |src, range| {
-                                let (pre, post) = src.get(range.clone())?.split_once("fn")?;
-                                let pos = post.find('(')? + pre.len() + 2;
-                                Some(pos..pos)
-                            });
+                            let range = (item.span.lo()..body.params[0].pat.span.lo()).map_range_as_pos_len(
+                                cx,
+                                |src, range| {
+                                    let (pre, post) = src.get(range.clone())?.split_once("fn")?;
+                                    Some((post.find('(')? + pre.len() + 2, 0))
+                                },
+                            );
                             if let Some(range) = range {
                                 range.with_ctxt(item.span.ctxt())
                             } else {
