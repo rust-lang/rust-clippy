@@ -709,7 +709,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_early_pass(|| Box::new(reference::DerefAddrOf));
     store.register_early_pass(|| Box::new(double_parens::DoubleParens));
     let format_args = format_args_storage.clone();
-    store.register_late_pass(move |_| Box::new(format_impl::FormatImpl::new(format_args.clone())));
+    store.register_late_pass(move |_| Box::new(format_impl::FormatImpl::new(conf, format_args.clone())));
     store.register_early_pass(|| Box::new(unsafe_removed_from_name::UnsafeNameRemoval));
     store.register_early_pass(|| Box::new(else_if_without_else::ElseIfWithoutElse));
     store.register_early_pass(|| Box::new(int_plus_one::IntPlusOne));
