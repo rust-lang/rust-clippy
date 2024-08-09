@@ -3123,7 +3123,7 @@
     "id": "inconsistent_struct_constructor",
     "id_span": {
       "path": "src/inconsistent_struct_constructor.rs",
-      "line": 59
+      "line": 60
     },
     "group": "pedantic",
     "level": "allow",
