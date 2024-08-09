@@ -1,12 +1,14 @@
+use std::ops::ControlFlow;
+
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::{fn_def_id, is_from_proc_macro, is_lint_allowed};
 use hir::intravisit::{walk_expr, Visitor};
-use hir::{Expr, ExprKind, FnRetTy, FnSig, Node};
-use rustc_ast::Label;
+use hir::{ClosureKind, Expr, ExprKind, FnRetTy, FnSig, ItemKind, Node, Ty, TyKind};
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::{LateContext, LintContext};
 use rustc_middle::lint::in_external_macro;
+use rustc_span::Span;
 
 use super::INFINITE_LOOP;
 
@@ -14,7 +16,7 @@ pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,
     expr: &Expr<'tcx>,
     loop_block: &'tcx hir::Block<'_>,
-    label: Option<Label>,
+    hir_id: hir::HirId,
 ) {
     if is_lint_allowed(cx, INFINITE_LOOP, expr.hir_id) {
         return;
@@ -24,38 +26,35 @@ pub(super) fn check<'tcx>(
     let Some(parent_fn_ret) = get_parent_fn_ret_ty(cx, expr) else {
         return;
     };
-    // Or, its parent function is already returning `Never`
-    if matches!(
-        parent_fn_ret,
-        FnRetTy::Return(hir::Ty {
-            kind: hir::TyKind::Never,
-            ..
-        })
-    ) {
-        return;
-    }
-
-    if in_external_macro(cx.sess(), expr.span) || is_from_proc_macro(cx, expr) {
+    if parent_fn_ret.is_never() || in_external_macro(cx.sess(), expr.span) || is_from_proc_macro(cx, expr) {
         return;
     }
 
     let mut loop_visitor = LoopVisitor {
         cx,
-        label,
-        is_finite: false,
-        loop_depth: 0,
+        hir_id,
+        nested_loop_count: 0,
     };
-    loop_visitor.visit_block(loop_block);
-
-    let is_finite_loop = loop_visitor.is_finite;
-
-    if !is_finite_loop {
+    let is_finite = loop_visitor.visit_block(loop_block).is_break();
+    if !is_finite {
         span_lint_and_then(cx, INFINITE_LOOP, expr.span, "infinite loop detected", |diag| {
-            if let FnRetTy::DefaultReturn(ret_span) = parent_fn_ret {
+            if let Some(span) = parent_fn_ret.sugg_span() {
+                // Check if the type span is after a `->` or not.
+                let suggestion = if cx
+                    .tcx
+                    .sess
+                    .source_map()
+                    .span_extend_to_prev_str(span, "->", false, true)
+                    .is_none()
+                {
+                    " -> !"
+                } else {
+                    "!"
+                };
                 diag.span_suggestion(
-                    ret_span,
+                    span,
                     "if this is intentional, consider specifying `!` as function return",
-                    " -> !",
+                    suggestion,
                     Applicability::MaybeIncorrect,
                 );
             } else {
@@ -65,11 +64,21 @@ pub(super) fn check<'tcx>(
     }
 }
 
-fn get_parent_fn_ret_ty<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>) -> Option<FnRetTy<'tcx>> {
+fn get_parent_fn_ret_ty<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>) -> Option<RetTy<'tcx>> {
     for (_, parent_node) in cx.tcx.hir().parent_iter(expr.hir_id) {
         match parent_node {
+            // Skip `Coroutine`, these are the body of `async fn`, not the async closures.
+            // This is because we still need to backtrack one parent node to get the `OpaqueDef` ty.
+            Node::Expr(Expr {
+                kind:
+                    ExprKind::Closure(hir::Closure {
+                        kind: ClosureKind::Coroutine(_),
+                        ..
+                    }),
+                ..
+            }) => (),
             Node::Item(hir::Item {
-                kind: hir::ItemKind::Fn(FnSig { decl, .. }, _, _),
+                kind: ItemKind::Fn(FnSig { decl, .. }, _, _),
                 ..
             })
             | Node::TraitItem(hir::TraitItem {
@@ -83,7 +92,7 @@ fn get_parent_fn_ret_ty<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>) -> Option
             | Node::Expr(Expr {
                 kind: ExprKind::Closure(hir::Closure { fn_decl: decl, .. }),
                 ..
-            }) => return Some(decl.output),
+            }) => return Some(RetTy::from_fn_ret_ty(cx, decl.output)),
             _ => (),
         }
     }
@@ -92,39 +101,113 @@ fn get_parent_fn_ret_ty<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>) -> Option
 
 struct LoopVisitor<'hir, 'tcx> {
     cx: &'hir LateContext<'tcx>,
-    label: Option<Label>,
-    loop_depth: usize,
-    is_finite: bool,
+    // `HirId` for the entry (outer most) loop.
+    hir_id: hir::HirId,
+    nested_loop_count: usize,
 }
 
 impl<'hir> Visitor<'hir> for LoopVisitor<'hir, '_> {
-    fn visit_expr(&mut self, ex: &'hir Expr<'_>) {
+    type Result = ControlFlow<()>;
+
+    fn visit_expr(&mut self, ex: &'hir Expr<'_>) -> Self::Result {
         match &ex.kind {
-            ExprKind::Break(hir::Destination { label, .. }, ..) => {
-                // Assuming breaks the loop when `loop_depth` is 0,
-                // as it could only means this `break` breaks current loop or any of its upper loop.
-                // Or, the depth is not zero but the label is matched.
-                if self.loop_depth == 0 || (label.is_some() && *label == self.label) {
-                    self.is_finite = true;
+            ExprKind::Break(hir::Destination { target_id, .. }, ..) => {
+                // When there are no nested loops and we've encountered a `break`, meaning it's either breaking the
+                // current loop or any of the parent loop, assuming that this loop is not infinite.
+                if self.nested_loop_count == 0
+                    || matches!(target_id, Ok(target_loop_hid) if *target_loop_hid == self.hir_id)
+                {
+                    return ControlFlow::Break(());
                 }
             },
-            ExprKind::Ret(..) => self.is_finite = true,
+            ExprKind::Ret(..) => return ControlFlow::Break(()),
             ExprKind::Loop(..) => {
-                self.loop_depth += 1;
-                walk_expr(self, ex);
-                self.loop_depth = self.loop_depth.saturating_sub(1);
+                self.nested_loop_count += 1;
+                let cf = walk_expr(self, ex);
+                self.nested_loop_count = self.nested_loop_count.saturating_sub(1);
+                return cf;
             },
             _ => {
                 // Calls to a function that never return
                 if let Some(did) = fn_def_id(self.cx, ex) {
                     let fn_ret_ty = self.cx.tcx.fn_sig(did).skip_binder().output().skip_binder();
                     if fn_ret_ty.is_never() {
-                        self.is_finite = true;
-                        return;
+                        return ControlFlow::Break(());
                     }
                 }
-                walk_expr(self, ex);
             },
         }
+        walk_expr(self, ex)
+    }
+}
+
+/// Similar to [`FnRetTy`], but reveals the actual type of an `OpaqueDef`.
+enum RetTy<'hir> {
+    DefaultReturn(Span),
+    Return(Ty<'hir>),
+}
+
+impl<'hir> RetTy<'hir> {
+    fn from_fn_ret_ty(cx: &LateContext<'hir>, fn_ret_ty: FnRetTy<'hir>) -> Self {
+        /// Reveal and return the related type of an `opaque`, return `None` if the
+        /// given `ty` is not an `OpaqueDef`.
+        fn inner_<'tcx>(cx: &LateContext<'tcx>, ty: &Ty<'tcx>) -> Option<Ty<'tcx>> {
+            /// Visitor to find the type binding.
+            struct BindingVisitor;
+
+            impl<'tcx> Visitor<'tcx> for BindingVisitor {
+                type Result = ControlFlow<Ty<'tcx>>;
+
+                fn visit_assoc_item_constraint(
+                    &mut self,
+                    constraint: &'tcx hir::AssocItemConstraint<'tcx>,
+                ) -> Self::Result {
+                    if let hir::AssocItemConstraintKind::Equality {
+                        term: hir::Term::Ty(ty),
+                    } = constraint.kind
+                    {
+                        ControlFlow::Break(*ty)
+                    } else {
+                        ControlFlow::Continue(())
+                    }
+                }
+            }
+
+            if let TyKind::OpaqueDef(item_id, ..) = ty.kind
+                && let opaque_ty_item = cx.tcx.hir().item(item_id)
+                && let ItemKind::OpaqueTy(_) = opaque_ty_item.kind
+            {
+                let mut vis = BindingVisitor;
+                // Use `vis.break_value()` once it's stablized.
+                match vis.visit_item(opaque_ty_item) {
+                    ControlFlow::Break(res) => Some(res),
+                    ControlFlow::Continue(()) => None,
+                }
+            } else {
+                None
+            }
+        }
+
+        match fn_ret_ty {
+            FnRetTy::DefaultReturn(span) => Self::DefaultReturn(span),
+            FnRetTy::Return(ty) => Self::Return(inner_(cx, ty).unwrap_or(*ty)),
+        }
+    }
+    /// Returns the span to where the suggestion should be.
+    fn sugg_span(&self) -> Option<Span> {
+        match self {
+            Self::DefaultReturn(span) => Some(*span),
+            Self::Return(ty) if matches!(ty.kind, TyKind::Tup(&[])) => Some(ty.span),
+            Self::Return(_) => None,
+        }
+    }
+    fn is_never(&self) -> bool {
+        matches!(
+            self,
+            RetTy::Return(Ty {
+                kind: TyKind::Never,
+                ..
+            })
+        )
     }
 }
