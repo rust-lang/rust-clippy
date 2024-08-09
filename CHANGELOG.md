@@ -5281,6 +5281,7 @@ Released 2018-09-13
 [`byte_char_slices`]: https://rust-lang.github.io/rust-clippy/master/index.html#byte_char_slices
 [`bytes_count_to_len`]: https://rust-lang.github.io/rust-clippy/master/index.html#bytes_count_to_len
 [`bytes_nth`]: https://rust-lang.github.io/rust-clippy/master/index.html#bytes_nth
+[`call_missing_target_feature`]: https://rust-lang.github.io/rust-clippy/master/index.html#call_missing_target_feature
 [`cargo_common_metadata`]: https://rust-lang.github.io/rust-clippy/master/index.html#cargo_common_metadata
 [`case_sensitive_file_extension_comparisons`]: https://rust-lang.github.io/rust-clippy/master/index.html#case_sensitive_file_extension_comparisons
 [`cast_abs_to_unsigned`]: https://rust-lang.github.io/rust-clippy/master/index.html#cast_abs_to_unsigned
