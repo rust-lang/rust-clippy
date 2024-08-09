@@ -19,5 +19,29 @@ LL | |         // should lint even though this call is on a separate line
 LL | |         .unwrap_or_else(|_e| 0);
    | |_______________________________^ help: try: `res.map_or_else(|_e| 0, |x| x + 1)`
 
-error: aborting due to 2 previous errors
+error: called `map(<f>).unwrap_or(false)` on an `Option` value
+  --> tests/ui/map_unwrap_or_fixable.rs:56:5
+   |
+LL | /     Some(1)
+LL | |         .map(|x| x < 5)
+LL | |         .unwrap_or(false);
+   | |_________________________^ help: try: `Some(1).is_some_and(|x| x < 5)`
+
+error: called `map(<f>).unwrap_or(<a>)` on an `Option` value
+  --> tests/ui/map_unwrap_or_fixable.rs:60:5
+   |
+LL | /     Some(1)
+LL | |         .map(|x| x + 1)
+LL | |         .unwrap_or(1);
+   | |_____________________^ help: try: `Some(1).map_or(1, |x| x + 1)`
+
+error: called `map(<f>).unwrap_or_else(<g>)` on a `Result` value
+  --> tests/ui/map_unwrap_or_fixable.rs:64:5
+   |
+LL | /     Ok(1)
+LL | |         .map(|x| x + 1)
+LL | |         .unwrap_or_else(|_: usize| {1});
+   | |_______________________________________^ help: try: `Ok(1).map_or_else(|_: usize| {1}, |x| x + 1)`
+
+error: aborting due to 5 previous errors
 

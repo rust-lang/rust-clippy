@@ -1,6 +1,6 @@
 use clippy_config::msrvs::{self, Msrv};
-use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::snippet_with_applicability;
+use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
+use clippy_utils::source::{snippet, snippet_with_applicability};
 use clippy_utils::ty::{is_copy, is_type_diagnostic_item};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
@@ -99,29 +99,59 @@ pub(super) fn check<'tcx>(
         };
         let msg = format!("called `map(<f>).unwrap_or({arg})` on an `Option` value");
 
-        span_lint_and_then(cx, MAP_UNWRAP_OR, expr.span, msg, |diag| {
-            let map_arg_span = map_arg.span;
+        let map_snippet = snippet(cx, map_arg.span, "..");
+        let same_span = map_arg.span.eq_ctxt(unwrap_arg.span);
+        let multiline = map_snippet.lines().count() > 1 || unwrap_snippet.lines().count() > 1;
 
-            let mut suggestion = vec![
-                (
-                    map_span,
-                    String::from(if unwrap_snippet_none {
-                        "and_then"
-                    } else if suggest_is_some_and {
-                        "is_some_and"
-                    } else {
-                        "map_or"
-                    }),
-                ),
-                (expr.span.with_lo(unwrap_recv.span.hi()), String::new()),
-            ];
+        if same_span && !multiline {
+            let var_snippet = snippet(cx, recv.span, "..");
+            let method = String::from(if unwrap_snippet_none {
+                "and_then"
+            } else if suggest_is_some_and {
+                "is_some_and"
+            } else {
+                "map_or"
+            });
 
-            if !unwrap_snippet_none && !suggest_is_some_and {
-                suggestion.push((map_arg_span.with_hi(map_arg_span.lo()), format!("{unwrap_snippet}, ")));
-            }
+            let insert_snippet = if !unwrap_snippet_none && !suggest_is_some_and {
+                format!("{unwrap_snippet}, ")
+            } else {
+                String::new()
+            };
 
-            diag.multipart_suggestion(format!("use `{suggest}` instead"), suggestion, applicability);
-        });
+            span_lint_and_sugg(
+                cx,
+                MAP_UNWRAP_OR,
+                expr.span,
+                msg,
+                "try",
+                format!("{var_snippet}.{method}({insert_snippet}{map_snippet})"),
+                Applicability::MachineApplicable,
+            );
+        } else {
+            span_lint_and_then(cx, MAP_UNWRAP_OR, expr.span, msg, |diag| {
+                let map_arg_span = map_arg.span;
+                let mut suggestion = vec![
+                    (
+                        map_span,
+                        String::from(if unwrap_snippet_none {
+                            "and_then"
+                        } else if suggest_is_some_and {
+                            "is_some_and"
+                        } else {
+                            "map_or"
+                        }),
+                    ),
+                    (expr.span.with_lo(unwrap_recv.span.hi()), String::new()),
+                ];
+
+                if !unwrap_snippet_none && !suggest_is_some_and {
+                    suggestion.push((map_arg_span.with_hi(map_arg_span.lo()), format!("{unwrap_snippet}, ")));
+                }
+
+                diag.multipart_suggestion(format!("use `{suggest}` instead"), suggestion, applicability);
+            });
+        }
     }
 }
 
