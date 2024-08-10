@@ -29,10 +29,16 @@ fn extract_count_with_applicability(
             && let LitKind::Int(Pu128(upper_bound), _) = lit.node
         {
             // Here we can explicitly calculate the number of iterations
-            let mut count = upper_bound - lower_bound;
-            if range.limits == RangeLimits::Closed {
-                count += 1;
-            }
+            let count = if upper_bound > lower_bound {
+                match range.limits {
+                    RangeLimits::HalfOpen => upper_bound - lower_bound,
+                    RangeLimits::Closed => upper_bound - lower_bound + 1,
+                }
+            } else if upper_bound == lower_bound && range.limits == RangeLimits::Closed {
+                1
+            } else {
+                0
+            };
             return Some(format!("{count}"));
         }
         let end_snippet = snippet_with_applicability(cx, end.span, "...", applicability).into_owned();
