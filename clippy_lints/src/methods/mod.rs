@@ -4131,7 +4131,7 @@ declare_clippy_lint! {
     /// ### What it does
     ///
     /// Checks for `Iterator::map` over ranges without using the parameter which
-    /// could be more clearly expressed using `std::iter::repeat_with(...).take(...)`.
+    /// could be more clearly expressed using `std::iter::repeat(...).take(...)`.
     ///
     /// ### Why is this bad?
     ///
@@ -4140,13 +4140,21 @@ declare_clippy_lint! {
     /// range only to discard them.
     ///
     /// ### Example
+    ///
     /// ```no_run
     /// let random_numbers : Vec<_> = (0..10).map(|_| { 3 + 1 }).collect();
     /// ```
     /// Use instead:
     /// ```no_run
-    /// let f : Vec<_> = std::iter::repeat_with(|| { 3 + 1 }).take(10).collect();
+    /// let f : Vec<_> = std::iter::repeat( 3 + 1 ).take(10).collect();
     /// ```
+    ///
+    /// ### Known Issues
+    ///
+    /// This lint suggest replacing a `Map<Range>` with a `Take<RepeatWith>` or
+    /// `Take<Repeat>`. The former implements some traits that the latter two do
+    /// not, such as `DoubleEndedIterator`. As a result, this may not always be an
+    /// appropriate suggestion.
     #[clippy::version = "1.81.0"]
     pub MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
     style,
