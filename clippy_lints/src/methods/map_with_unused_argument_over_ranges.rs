@@ -7,7 +7,7 @@ use rustc_ast::ast::RangeLimits;
 use rustc_ast::LitKind;
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;
-use rustc_hir::{Body, Closure, Expr, ExprKind, PatKind};
+use rustc_hir::{Body, Closure, Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_span::Span;
 
@@ -69,7 +69,7 @@ pub(super) fn check(
     }
     let mut applicability = Applicability::MaybeIncorrect;
     if let Some(range) = higher::Range::hir(receiver)
-        && let ExprKind::Closure(Closure { body, fn_decl_span, .. }) = arg.kind
+        && let ExprKind::Closure(Closure { body, .. }) = arg.kind
         && let body_hir = cx.tcx.hir().body(*body)
         && let Body {
             params: [param],
