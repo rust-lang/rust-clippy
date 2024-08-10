@@ -1,3 +1,4 @@
+mod as_pointer_underscore;
 mod as_ptr_cast_mut;
 mod as_underscore;
 mod borrow_as_ptr;
@@ -717,6 +718,33 @@ declare_clippy_lint! {
     "using `as` to cast a reference to pointer"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for the usage of `as *const _` or `as *mut _` conversion using inferred type.
+    ///
+    /// ### Why restrict this?
+    /// The conversion might include a dangerous cast that might go undetected due to the type being inferred.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// fn as_usize<T>(t: &T) -> usize {
+    ///     // BUG: `t` is already a reference, so we will here
+    ///     // return a dangling pointer to a temporary value instead
+    ///     &t as *const _ as usize
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// fn as_usize<T>(t: &T) -> usize {
+    ///     t as *const T as usize
+    /// }
+    /// ```
+    #[clippy::version = "1.81.0"]
+    pub AS_POINTER_UNDERSCORE,
+    restriction,
+    "detects `as *mut _` and `as *const _` conversion"
+}
+
 pub struct Casts {
     msrv: Msrv,
 }
@@ -753,6 +781,7 @@ impl_lint_pass!(Casts => [
     CAST_NAN_TO_INT,
     ZERO_PTR,
     REF_AS_PTR,
+    AS_POINTER_UNDERSCORE,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Casts {
@@ -795,6 +824,7 @@ impl<'tcx> LateLintPass<'tcx> for Casts {
             }
 
             as_underscore::check(cx, expr, cast_to_hir);
+            as_pointer_underscore::check(cx, cast_to, cast_to_hir);
 
             if self.msrv.meets(msrvs::PTR_FROM_REF) {
                 ref_as_ptr::check(cx, expr, cast_expr, cast_to_hir);
