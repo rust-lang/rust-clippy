@@ -83,4 +83,12 @@ fn inline() {}
 /// https://example.com) in a URL.  
 fn url() {}
 
+/// here we mix  
+/// double spaces\
+/// and also  
+/// adding backslash\
+/// to some of them  
+/// to see how that looks
+fn mixed() {}
+
 fn main() {}
