@@ -1,4 +1,4 @@
-#![allow(unused, clippy::redundant_closure)]
+#![allow(unused, clippy::redundant_closure, clippy::reversed_empty_ranges)]
 #![warn(clippy::map_with_unused_argument_over_ranges)]
 
 fn do_something() -> usize {
@@ -36,6 +36,8 @@ fn main() {
     (2..upper_fn()).map(|_| do_something());
     (2..=upper_fn()).map(|_| do_something());
     (-3..9).map(|_| do_something());
+    (9..3).map(|_| do_something());
+    (9..=9).map(|_| do_something());
     // These should not be raised
     gen!();
     let lower = 2;
