@@ -66,11 +66,10 @@ error: map of a closure that does not depend on its parameter over a range
 LL |     (0..10).map(|_| 3);
    |     ^^^^^^^^^^^^^^^^^^
    |
-help: remove the explicit range and use `repeat_with` and `take`
+help: remove the explicit range and use `repeat` and `take`
    |
-LL -     (0..10).map(|_| 3);
-LL +     std::iter::repeat_with(|| 3).take(10);
-   |
+LL |     std::iter::repeat(3).take(10);
+   |     ~~~~~~~~~~~~~~~~~ ~ +++++++++
 
 error: map of a closure that does not depend on its parameter over a range
   --> tests/ui/map_with_unused_argument_over_ranges.rs:26:5

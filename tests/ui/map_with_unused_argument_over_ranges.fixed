@@ -22,7 +22,7 @@ fn main() {
     std::iter::repeat_with(|| do_something()).take(11);
     std::iter::repeat_with(|| do_something()).take(7);
     std::iter::repeat_with(|| do_something()).take(8);
-    std::iter::repeat_with(|| 3).take(10);
+    std::iter::repeat(3).take(10);
     std::iter::repeat_with(|| {
         let x = 3;
         x + 2

@@ -2,7 +2,7 @@ use crate::methods::MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES;
 use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::usage;
+use clippy_utils::{eager_or_lazy, higher, usage};
 use rustc_ast::ast::RangeLimits;
 use rustc_ast::LitKind;
 use rustc_data_structures::packed::Pu128;
@@ -69,30 +69,52 @@ pub(super) fn check(
     }
     let mut applicability = Applicability::MaybeIncorrect;
     if let Some(range) = higher::Range::hir(receiver)
-        && let ExprKind::Closure(Closure { body, .. }) = arg.kind
+        && let ExprKind::Closure(Closure { body, fn_decl_span, .. }) = arg.kind
         && let body_hir = cx.tcx.hir().body(*body)
-        && let Body { params: [param], .. } = body_hir
+        && let Body {
+            params: [param],
+            value: body_expr,
+        } = body_hir
         && !usage::BindingUsageFinder::are_params_used(cx, body_hir)
         && let Some(count) = extract_count_with_applicability(cx, range, &mut applicability)
     {
-        // TODO: Check if we can switch_to_eager_eval here and do away with `repeat_with` and instad use
-        // `repeat`
-        span_lint_and_then(
-            cx,
-            MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
-            ex.span,
-            "map of a closure that does not depend on its parameter over a range",
-            |diag| {
-                diag.multipart_suggestion(
-                    "remove the explicit range and use `repeat_with` and `take`",
-                    vec![
-                        (receiver.span.to(method_call_span), "std::iter::repeat_with".to_owned()),
-                        (param.span, String::new()),
-                        (ex.span.shrink_to_hi(), format!(".take({count})")),
-                    ],
-                    applicability,
-                );
-            },
-        );
+        if eager_or_lazy::switch_to_eager_eval(cx, body_expr) {
+            let body_snippet = snippet_with_applicability(cx, body_expr.span, "..", &mut applicability);
+            span_lint_and_then(
+                cx,
+                MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
+                ex.span,
+                "map of a closure that does not depend on its parameter over a range",
+                |diag| {
+                    diag.multipart_suggestion(
+                        "remove the explicit range and use `repeat` and `take`",
+                        vec![
+                            (receiver.span.to(method_call_span), "std::iter::repeat".to_owned()),
+                            (arg.span, body_snippet.to_string()),
+                            (ex.span.shrink_to_hi(), format!(".take({count})")),
+                        ],
+                        applicability,
+                    );
+                },
+            );
+        } else {
+            span_lint_and_then(
+                cx,
+                MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
+                ex.span,
+                "map of a closure that does not depend on its parameter over a range",
+                |diag| {
+                    diag.multipart_suggestion(
+                        "remove the explicit range and use `repeat_with` and `take`",
+                        vec![
+                            (receiver.span.to(method_call_span), "std::iter::repeat_with".to_owned()),
+                            (param.span, String::new()),
+                            (ex.span.shrink_to_hi(), format!(".take({count})")),
+                        ],
+                        applicability,
+                    );
+                },
+            );
+        }
     }
 }
