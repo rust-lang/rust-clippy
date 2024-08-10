@@ -1,6 +1,6 @@
 use crate::methods::MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES;
 use clippy_config::msrvs::{self, Msrv};
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::higher;
 use clippy_utils::source::snippet_with_applicability;
 use rustc_ast::ast::RangeLimits;
@@ -9,6 +9,7 @@ use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;
 use rustc_hir::{Body, Closure, Expr, ExprKind, PatKind};
 use rustc_lint::LateContext;
+use rustc_span::Span;
 
 fn extract_count_with_applicability(
     cx: &LateContext<'_>,
@@ -49,7 +50,14 @@ fn extract_count_with_applicability(
     None
 }
 
-pub(super) fn check(cx: &LateContext<'_>, ex: &Expr<'_>, receiver: &Expr<'_>, arg: &Expr<'_>, msrv: &Msrv) {
+pub(super) fn check(
+    cx: &LateContext<'_>,
+    ex: &Expr<'_>,
+    receiver: &Expr<'_>,
+    arg: &Expr<'_>,
+    msrv: &Msrv,
+    method_call_span: Span,
+) {
     if !msrv.meets(msrvs::REPEAT_WITH) {
         return;
     }
@@ -63,16 +71,22 @@ pub(super) fn check(cx: &LateContext<'_>, ex: &Expr<'_>, receiver: &Expr<'_>, ar
     {
         // TODO: Check if we can switch_to_eager_eval here and do away with `repeat_with` and instad use
         // `repeat`
-        let snippet =
-            snippet_with_applicability(cx, arg.span, "|| { ... }", &mut applicability).replacen("|_|", "||", 1);
-        span_lint_and_sugg(
+        span_lint_and_then(
             cx,
             MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
             ex.span,
             "map of a closure that does not depend on its parameter over a range",
-            "use",
-            format!("std::iter::repeat_with({snippet}).take({count})"),
-            applicability,
+            |diag| {
+                diag.multipart_suggestion(
+                    "remove the explicit range and use `repeat_with` and `take`",
+                    vec![
+                        (receiver.span.to(method_call_span), "std::iter::repeat_with".to_owned()),
+                        (param.span, String::new()),
+                        (ex.span.shrink_to_hi(), format!(".take({count})")),
+                    ],
+                    applicability,
+                );
+            },
         );
     }
 }
