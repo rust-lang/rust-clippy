@@ -1,8 +1,8 @@
 use crate::methods::MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES;
 use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::higher;
 use clippy_utils::source::snippet_with_applicability;
+use clippy_utils::usage;
 use rustc_ast::ast::RangeLimits;
 use rustc_ast::LitKind;
 use rustc_data_structures::packed::Pu128;
@@ -64,9 +64,9 @@ pub(super) fn check(
     let mut applicability = Applicability::MaybeIncorrect;
     if let Some(range) = higher::Range::hir(receiver)
         && let ExprKind::Closure(Closure { body, .. }) = arg.kind
-        && let Body { params: [param], .. } = cx.tcx.hir().body(*body)
-        // TODO: We should also look for a named, but unused parameter here
-        && matches!(param.pat.kind, PatKind::Wild)
+        && let body_hir = cx.tcx.hir().body(*body)
+        && let Body { params: [param], .. } = body_hir
+        && !usage::BindingUsageFinder::are_params_used(cx, body_hir)
         && let Some(count) = extract_count_with_applicability(cx, range, &mut applicability)
     {
         // TODO: Check if we can switch_to_eager_eval here and do away with `repeat_with` and instad use

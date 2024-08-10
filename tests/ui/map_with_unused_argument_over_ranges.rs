@@ -18,6 +18,7 @@ macro_rules! gen {
 fn main() {
     // These should be raised
     (0..10).map(|_| do_something());
+    (0..10).map(|_foo| do_something());
     (0..=10).map(|_| do_something());
     (3..10).map(|_| do_something());
     (3..=10).map(|_| do_something());
@@ -42,8 +43,6 @@ fn main() {
     (lower..upper_fn()).map(|_| do_something()); // Ranges not starting at zero not yet handled
     (lower_fn()..upper_fn()).map(|_| do_something()); // Ranges not starting at zero not yet handled
     (lower_fn()..=upper_fn()).map(|_| do_something()); // Ranges not starting at zero not yet handled
-    (0..10).map(|x| do_something()); // We do not detect unused parameters
-    (0..10).map(|x| do_something()).collect::<Vec<_>>(); // We do not detect unused parameters
     (0..10).map(|x| do_something_interesting(x, 4)); // Actual map over range
     "Foobar".chars().map(|_| do_something()); // Not a map over range
 }

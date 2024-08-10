@@ -15,6 +15,18 @@ LL +     std::iter::repeat_with(|| do_something()).take(10);
 error: map of a closure that does not depend on its parameter over a range
   --> tests/ui/map_with_unused_argument_over_ranges.rs:21:5
    |
+LL |     (0..10).map(|_foo| do_something());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: remove the explicit range and use `repeat_with` and `take`
+   |
+LL -     (0..10).map(|_foo| do_something());
+LL +     std::iter::repeat_with(|| do_something()).take(10);
+   |
+
+error: map of a closure that does not depend on its parameter over a range
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:22:5
+   |
 LL |     (0..=10).map(|_| do_something());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
@@ -25,7 +37,7 @@ LL +     std::iter::repeat_with(|| do_something()).take(11);
    |
 
 error: map of a closure that does not depend on its parameter over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:22:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:23:5
    |
 LL |     (3..10).map(|_| do_something());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -37,7 +49,7 @@ LL +     std::iter::repeat_with(|| do_something()).take(7);
    |
 
 error: map of a closure that does not depend on its parameter over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:23:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:24:5
    |
 LL |     (3..=10).map(|_| do_something());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -49,7 +61,7 @@ LL +     std::iter::repeat_with(|| do_something()).take(8);
    |
 
 error: map of a closure that does not depend on its parameter over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:24:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:25:5
    |
 LL |     (0..10).map(|_| 3);
    |     ^^^^^^^^^^^^^^^^^^
@@ -61,7 +73,7 @@ LL +     std::iter::repeat_with(|| 3).take(10);
    |
 
 error: map of a closure that does not depend on its parameter over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:25:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:26:5
    |
 LL | /     (0..10).map(|_| {
 LL | |         let x = 3;
@@ -78,7 +90,7 @@ LL ~     }).take(10);
    |
 
 error: map of a closure that does not depend on its parameter over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:29:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:30:5
    |
 LL |     (0..10).map(|_| do_something()).collect::<Vec<_>>();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -90,7 +102,7 @@ LL +     std::iter::repeat_with(|| do_something()).take(10).collect::<Vec<_>>();
    |
 
 error: map of a closure that does not depend on its parameter over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:31:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:32:5
    |
 LL |     (0..upper).map(|_| do_something());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -102,7 +114,7 @@ LL +     std::iter::repeat_with(|| do_something()).take(upper);
    |
 
 error: map of a closure that does not depend on its parameter over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:33:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:34:5
    |
 LL |     (0..upper_fn()).map(|_| do_something());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -114,7 +126,7 @@ LL +     std::iter::repeat_with(|| do_something()).take(upper_fn());
    |
 
 error: map of a closure that does not depend on its parameter over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:34:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:35:5
    |
 LL |     (0..=upper_fn()).map(|_| do_something());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -126,7 +138,7 @@ LL +     std::iter::repeat_with(|| do_something()).take(upper_fn() + 1);
    |
 
 error: map of a closure that does not depend on its parameter over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:35:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:36:5
    |
 LL |     (2..upper_fn()).map(|_| do_something());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -138,7 +150,7 @@ LL +     std::iter::repeat_with(|| do_something()).take(upper_fn() - 2);
    |
 
 error: map of a closure that does not depend on its parameter over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:36:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:37:5
    |
 LL |     (2..=upper_fn()).map(|_| do_something());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -150,7 +162,7 @@ LL +     std::iter::repeat_with(|| do_something()).take(upper_fn() - 1);
    |
 
 error: map of a closure that does not depend on its parameter over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:58:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:57:5
    |
 LL |     (0..10).map(|_| do_something());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -161,5 +173,5 @@ LL -     (0..10).map(|_| do_something());
 LL +     std::iter::repeat_with(|| do_something()).take(10);
    |
 
-error: aborting due to 13 previous errors
+error: aborting due to 14 previous errors
 
