@@ -33,7 +33,7 @@
     "id": "alloc_instead_of_core",
     "id_span": {
       "path": "src/std_instead_of_core.rs",
-      "line": 87
+      "line": 86
     },
     "group": "restriction",
     "level": "allow",
@@ -111,7 +111,7 @@
     "id": "approx_constant",
     "id_span": {
       "path": "src/approx_const.rs",
-      "line": 38
+      "line": 37
     },
     "group": "correctness",
     "level": "deny",
@@ -3093,7 +3093,7 @@
     "id": "incompatible_msrv",
     "id_span": {
       "path": "src/incompatible_msrv.rs",
-      "line": 38
+      "line": 37
     },
     "group": "suspicious",
     "level": "warn",
@@ -4707,7 +4707,7 @@
     "id": "manual_retain",
     "id_span": {
       "path": "src/manual_retain.rs",
-      "line": 53
+      "line": 52
     },
     "group": "perf",
     "level": "warn",
@@ -8819,7 +8819,7 @@
     "id": "std_instead_of_alloc",
     "id_span": {
       "path": "src/std_instead_of_core.rs",
-      "line": 59
+      "line": 58
     },
     "group": "restriction",
     "level": "allow",
@@ -8834,7 +8834,7 @@
     "id": "std_instead_of_core",
     "id_span": {
       "path": "src/std_instead_of_core.rs",
-      "line": 35
+      "line": 34
     },
     "group": "restriction",
     "level": "allow",
