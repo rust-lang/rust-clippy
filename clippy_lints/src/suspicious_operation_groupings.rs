@@ -6,7 +6,7 @@ use rustc_ast::ast::{BinOpKind, Expr, ExprKind, StmtKind};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_lint::{EarlyContext, EarlyLintPass};
-use rustc_session::declare_lint_pass;
+use rustc_session::impl_lint_pass;
 use rustc_span::source_map::Spanned;
 use rustc_span::symbol::Ident;
 use rustc_span::Span;
@@ -64,7 +64,21 @@ declare_clippy_lint! {
     "groupings of binary operations that look suspiciously like typos"
 }
 
-declare_lint_pass!(SuspiciousOperationGroupings => [SUSPICIOUS_OPERATION_GROUPINGS]);
+pub struct SuspiciousOperationGroupings {
+    // We need to keep track of which spans we've already linted, so we don't
+    // emit the same lint multiple times.
+    seen: FxHashSet<Span>,
+}
+
+impl_lint_pass!(SuspiciousOperationGroupings => [SUSPICIOUS_OPERATION_GROUPINGS]);
+
+impl SuspiciousOperationGroupings {
+    pub fn new() -> Self {
+        Self {
+            seen: FxHashSet::default(),
+        }
+    }
+}
 
 impl EarlyLintPass for SuspiciousOperationGroupings {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {
@@ -73,7 +87,7 @@ impl EarlyLintPass for SuspiciousOperationGroupings {
         }
 
         if let Some(binops) = extract_related_binops(&expr.kind) {
-            check_binops(cx, &binops.iter().collect::<Vec<_>>());
+            check_binops(cx, &binops.iter().collect::<Vec<_>>(), &mut self.seen);
 
             let mut op_types = Vec::with_capacity(binops.len());
             // We could use a hashmap, etc. to avoid being O(n*m) here, but
@@ -89,13 +103,13 @@ impl EarlyLintPass for SuspiciousOperationGroupings {
             for op_type in op_types {
                 let ops: Vec<_> = binops.iter().filter(|b| b.op == op_type).collect();
 
-                check_binops(cx, &ops);
+                check_binops(cx, &ops, &mut self.seen);
             }
         }
     }
 }
 
-fn check_binops(cx: &EarlyContext<'_>, binops: &[&BinaryOp<'_>]) {
+fn check_binops(cx: &EarlyContext<'_>, binops: &[&BinaryOp<'_>], seen: &mut FxHashSet<Span>) {
     let binop_count = binops.len();
     if binop_count < 2 {
         // Single binary operation expressions would likely be false
@@ -152,7 +166,7 @@ fn check_binops(cx: &EarlyContext<'_>, binops: &[&BinaryOp<'_>]) {
 
     if let Some(expected_loc) = expected_ident_loc {
         match (no_difference_info, double_difference_info) {
-            (Some(i), None) => attempt_to_emit_no_difference_lint(cx, binops, i, expected_loc),
+            (Some(i), None) => attempt_to_emit_no_difference_lint(cx, binops, i, expected_loc, seen),
             (None, Some((double_difference_index, ident_loc1, ident_loc2))) => {
                 if one_ident_difference_count == binop_count - 1
                     && let Some(binop) = binops.get(double_difference_index)
@@ -168,6 +182,7 @@ fn check_binops(cx: &EarlyContext<'_>, binops: &[&BinaryOp<'_>]) {
                     };
 
                     if let Some(sugg) = ident_swap_sugg(cx, &paired_identifiers, binop, changed_loc, &mut applicability)
+                        && seen.insert(binop.span)
                     {
                         emit_suggestion(cx, binop.span, sugg, applicability);
                     }
@@ -183,6 +198,7 @@ fn attempt_to_emit_no_difference_lint(
     binops: &[&BinaryOp<'_>],
     i: usize,
     expected_loc: IdentLocation,
+    seen: &mut FxHashSet<Span>,
 ) {
     if let Some(binop) = binops.get(i).copied() {
         // We need to try and figure out which identifier we should
@@ -203,6 +219,7 @@ fn attempt_to_emit_no_difference_lint(
                 && old_ident != new_ident
                 && let Some(sugg) =
                     suggestion_with_swapped_ident(cx, binop.left, expected_loc, new_ident, &mut applicability)
+                && seen.insert(binop.span)
             {
                 emit_suggestion(
                     cx,
@@ -217,6 +234,7 @@ fn attempt_to_emit_no_difference_lint(
                 && old_ident != new_ident
                 && let Some(sugg) =
                     suggestion_with_swapped_ident(cx, binop.right, expected_loc, new_ident, &mut applicability)
+                && seen.insert(binop.span)
             {
                 emit_suggestion(
                     cx,
