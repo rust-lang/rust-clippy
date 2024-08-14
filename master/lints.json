@@ -6310,10 +6310,10 @@
   },
   {
     "id": "unused_io_amount",
-    "id_location": "clippy_lints/src/unused_io_amount.rs#L43",
+    "id_location": "clippy_lints/src/unused_io_amount.rs#L50",
     "group": "correctness",
     "level": "deny",
-    "docs": "### What it does\nChecks for unused written/read amount.\n\n### Why is this bad?\n`io::Write::write(_vectored)` and\n`io::Read::read(_vectored)` are not guaranteed to\nprocess the entire buffer. They return how many bytes were processed, which\nmight be smaller\nthan a given buffer's length. If you don't need to deal with\npartial-write/read, use\n`write_all`/`read_exact` instead.\n\nWhen working with asynchronous code (either with the `futures`\ncrate or with `tokio`), a similar issue exists for\n`AsyncWriteExt::write()` and `AsyncReadExt::read()` : these\nfunctions are also not guaranteed to process the entire\nbuffer.  Your code should either handle partial-writes/reads, or\ncall the `write_all`/`read_exact` methods on those traits instead.\n\n### Known problems\nDetects only common patterns.\n\n### Examples\n```rust\nuse std::io;\nfn foo<W: io::Write>(w: &mut W) -> io::Result<()> {\n    // must be `w.write_all(b\"foo\")?;`\n    w.write(b\"foo\")?;\n    Ok(())\n}\n```\n",
+    "docs": "### What it does\nChecks for unused written/read amount.\n\n### Why is this bad?\n`io::Write::write(_vectored)` and\n`io::Read::read(_vectored)` are not guaranteed to\nprocess the entire buffer. They return how many bytes were processed, which\nmight be smaller\nthan a given buffer's length. If you don't need to deal with\npartial-write/read, use\n`write_all`/`read_exact` instead.\n\nWhen working with asynchronous code (either with the `futures`\ncrate or with `tokio`), a similar issue exists for\n`AsyncWriteExt::write()` and `AsyncReadExt::read()` : these\nfunctions are also not guaranteed to process the entire\nbuffer.  Your code should either handle partial-writes/reads, or\ncall the `write_all`/`read_exact` methods on those traits instead.\n\n### Known problems\nDetects only common patterns.\n\n### Examples\n```rust\nuse std::io;\nfn foo<W: io::Write>(w: &mut W) -> io::Result<()> {\n    w.write(b\"foo\")?;\n    Ok(())\n}\n```\nUse instead:\n```rust\nuse std::io;\nfn foo<W: io::Write>(w: &mut W) -> io::Result<()> {\n    w.write_all(b\"foo\")?;\n    Ok(())\n}\n```\n",
     "version": "pre 1.29.0",
     "applicability": "Unspecified"
   },
