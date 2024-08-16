@@ -1633,7 +1633,7 @@
     "id_location": "clippy_lints/src/from_str_radix_10.rs#L39",
     "group": "style",
     "level": "warn",
-    "docs": "### What it does\n\nChecks for function invocations of the form `primitive::from_str_radix(s, 10)`\n\n### Why is this bad?\n\nThis specific common use case can be rewritten as `s.parse::<primitive>()`\n(and in most cases, the turbofish can be removed), which reduces code length\nand complexity.\n\n### Known problems\n\nThis lint may suggest using (&<expression>).parse() instead of <expression>.parse() directly\nin some cases, which is correct but adds unnecessary complexity to the code.\n\n### Example\n```rust\nlet input: &str = get_input();\nlet num = u16::from_str_radix(input, 10)?;\n```\nUse instead:\n```rust\nlet input: &str = get_input();\nlet num: u16 = input.parse()?;\n```\n",
+    "docs": "### What it does\n\nChecks for function invocations of the form `primitive::from_str_radix(s, 10)`\n\n### Why is this bad?\n\nThis specific common use case can be rewritten as `s.parse::<primitive>()`\n(and in most cases, the turbofish can be removed), which reduces code length\nand complexity.\n\n### Known problems\n\nThis lint may suggest using `(&<expression>).parse()` instead of `<expression>.parse()`\ndirectly in some cases, which is correct but adds unnecessary complexity to the code.\n\n### Example\n```rust\nlet input: &str = get_input();\nlet num = u16::from_str_radix(input, 10)?;\n```\nUse instead:\n```rust\nlet input: &str = get_input();\nlet num: u16 = input.parse()?;\n```\n",
     "version": "1.52.0",
     "applicability": "MaybeIncorrect"
   },
