@@ -28,7 +28,7 @@
   },
   {
     "id": "allow_attributes",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L326",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L324",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of the `#[allow]` attribute and suggests replacing it with\nthe `#[expect]` (See [RFC 2383](https://rust-lang.github.io/rfcs/2383-lint-reasons.html))\n\nThis lint only warns outer attributes (`#[allow]`), as inner attributes\n(`#![allow]`) are usually used to enable or disable lints on a global scale.\n\n### Why is this bad?\n`#[expect]` attributes suppress the lint emission, but emit a warning, if\nthe expectation is unfulfilled. This can be useful to be notified when the\nlint is no longer triggered.\n\n### Example\n```rust\n#[allow(unused_mut)]\nfn foo() -> usize {\n    let mut a = Vec::new();\n    a.len()\n}\n```\nUse instead:\n```rust\n#[expect(unused_mut)]\nfn foo() -> usize {\n    let mut a = Vec::new();\n    a.len()\n}\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -37,7 +37,7 @@
   },
   {
     "id": "allow_attributes_without_reason",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L291",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L289",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for attributes that allow lints without a reason.\n\n### Why restrict this?\nJustifying each `allow` helps readers understand the reasoning,\nand may allow removing `allow` attributes if their purpose is obsolete.\n\n### Example\n```rust\n#![allow(clippy::some_lint)]\n```\n\nUse instead:\n```rust\n#![allow(clippy::some_lint, reason = \"False positive rust-lang/rust-clippy#1002020\")]\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -226,7 +226,7 @@
   },
   {
     "id": "blanket_clippy_restriction_lints",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L237",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L235",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for `warn`/`deny`/`forbid` attributes targeting the whole clippy::restriction category.\n\n### Why is this bad?\nRestriction lints sometimes are in contrast with other lints or even go against idiomatic rust.\nThese lints should only be enabled on a lint-by-lint basis and with careful consideration.\n\n### Example\n```rust\n#![deny(clippy::restriction)]\n```\n\nUse instead:\n```rust\n#![deny(clippy::as_conversions)]\n```\n",
@@ -253,7 +253,7 @@
   },
   {
     "id": "bool_comparison",
-    "id_location": "clippy_lints/src/needless_bool.rs#L77",
+    "id_location": "clippy_lints/src/needless_bool.rs#L73",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for expressions of the form `x == true`,\n`x != true` and order comparisons such as `x < true` (or vice versa) and\nsuggest using the variable directly.\n\n### Why is this bad?\nUnnecessary code.\n\n### Example\n```rust\nif x == true {}\nif y == false {}\n```\nuse `x` directly:\n```rust\nif x {}\nif !y {}\n```\n",
@@ -289,7 +289,7 @@
   },
   {
     "id": "borrow_interior_mutable_const",
-    "id_location": "clippy_lints/src/non_copy_const.rs#L125",
+    "id_location": "clippy_lints/src/non_copy_const.rs#L121",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks if `const` items which is interior mutable (e.g.,\ncontains a `Cell`, `Mutex`, `AtomicXxxx`, etc.) has been borrowed directly.\n\n### Why is this bad?\nConsts are copied everywhere they are referenced, i.e.,\nevery time you refer to the const a fresh instance of the `Cell` or `Mutex`\nor `AtomicXxxx` will be created, which defeats the whole purpose of using\nthese types in the first place.\n\nThe `const` value should be stored inside a `static` item.\n\n### Known problems\nWhen an enum has variants with interior mutability, use of its non\ninterior mutable variants can generate false positives. See issue\n[#3962](https://github.com/rust-lang/rust-clippy/issues/3962)\n\nTypes that have underlying or potential interior mutability trigger the lint whether\nthe interior mutable field is used or not. See issues\n[#5812](https://github.com/rust-lang/rust-clippy/issues/5812) and\n[#3825](https://github.com/rust-lang/rust-clippy/issues/3825)\n\n### Example\n```rust\nuse std::sync::atomic::{AtomicUsize, Ordering::SeqCst};\nconst CONST_ATOM: AtomicUsize = AtomicUsize::new(12);\n\nCONST_ATOM.store(6, SeqCst); // the content of the atomic is unchanged\nassert_eq!(CONST_ATOM.load(SeqCst), 12); // because the CONST_ATOM in these lines are distinct\n```\n\nUse instead:\n```rust\nuse std::sync::atomic::{AtomicUsize, Ordering::SeqCst};\nconst CONST_ATOM: AtomicUsize = AtomicUsize::new(12);\n\nstatic STATIC_ATOM: AtomicUsize = CONST_ATOM;\nSTATIC_ATOM.store(9, SeqCst);\nassert_eq!(STATIC_ATOM.load(SeqCst), 9); // use a `static` item to refer to the same instance\n```\n\n### Configuration\n\n- `ignore-interior-mutability`:  A list of paths to types that should be treated as if they do not contain interior mutability\n\n\n   (default: `[\"bytes::Bytes\"]`)\n",
@@ -541,7 +541,7 @@
   },
   {
     "id": "checked_conversions",
-    "id_location": "clippy_lints/src/checked_conversions.rs#L34",
+    "id_location": "clippy_lints/src/checked_conversions.rs#L32",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for explicit bounds checking when casting.\n\n### Why is this bad?\nReduces the readability of statements & is error prone.\n\n### Example\n```rust\nfoo <= i32::MAX as u32;\n```\n\nUse instead:\n```rust\ni32::try_from(foo).is_ok();\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -586,7 +586,7 @@
   },
   {
     "id": "cmp_null",
-    "id_location": "clippy_lints/src/ptr.rs#L93",
+    "id_location": "clippy_lints/src/ptr.rs#L91",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nThis lint checks for equality comparisons with `ptr::null`\n\n### Why is this bad?\nIt's easier and more readable to use the inherent\n`.is_null()`\nmethod instead\n\n### Example\n```rust\nuse std::ptr;\n\nif x == ptr::null {\n    // ..\n}\n```\n\nUse instead:\n```rust\nif x.is_null() {\n    // ..\n}\n```\n",
@@ -604,7 +604,7 @@
   },
   {
     "id": "cognitive_complexity",
-    "id_location": "clippy_lints/src/cognitive_complexity.rs#L33",
+    "id_location": "clippy_lints/src/cognitive_complexity.rs#L31",
     "group": "nursery",
     "level": "allow",
     "docs": "### What it does\nChecks for methods with high cognitive complexity.\n\n### Why is this bad?\nMethods of high cognitive complexity tend to be hard to\nboth read and maintain. Also LLVM will tend to optimize small methods better.\n\n### Known problems\nSometimes it's hard to find a way to reduce the\ncomplexity.\n\n### Example\nYou'll see it when you get the warning.\n\n### Past names\n\n * cyclomatic_complexity\n\n### Configuration\n\n- `cognitive-complexity-threshold`:  The maximum cognitive complexity a function can have\n\n\n   (default: `25`)\n",
@@ -613,7 +613,7 @@
   },
   {
     "id": "collapsible_else_if",
-    "id_location": "clippy_lints/src/collapsible_if.rs#L87",
+    "id_location": "clippy_lints/src/collapsible_if.rs#L73",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for collapsible `else { if ... }` expressions\nthat can be collapsed to `else if ...`.\n\n### Why is this bad?\nEach `if`-statement adds one level of nesting, which\nmakes code look more complex than it really is.\n\n### Example\n```rust\n\nif x {\n    …\n} else {\n    if y {\n        …\n    }\n}\n```\n\nShould be written:\n\n```rust\nif x {\n    …\n} else if y {\n    …\n}\n```\n",
@@ -622,7 +622,7 @@
   },
   {
     "id": "collapsible_if",
-    "id_location": "clippy_lints/src/collapsible_if.rs#L51",
+    "id_location": "clippy_lints/src/collapsible_if.rs#L37",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for nested `if` statements which can be collapsed\nby `&&`-combining their conditions.\n\n### Why is this bad?\nEach `if`-statement adds one level of nesting, which\nmakes code look more complex than it really is.\n\n### Example\n```rust\nif x {\n    if y {\n        // …\n    }\n}\n```\n\nUse instead:\n```rust\nif x && y {\n    // …\n}\n```\n",
@@ -649,7 +649,7 @@
   },
   {
     "id": "collection_is_never_read",
-    "id_location": "clippy_lints/src/collection_is_never_read.rs#L41",
+    "id_location": "clippy_lints/src/collection_is_never_read.rs#L40",
     "group": "nursery",
     "level": "allow",
     "docs": "### What it does\nChecks for collections that are never queried.\n\n### Why is this bad?\nPutting effort into constructing a collection but then never querying it might indicate that\nthe author forgot to do whatever they intended to do with the collection. Example: Clone\na vector, sort it for iteration, but then mistakenly iterate the original vector\ninstead.\n\n### Example\n```rust\nlet mut sorted_samples = samples.clone();\nsorted_samples.sort();\nfor sample in &samples { // Oops, meant to use `sorted_samples`.\n    println!(\"{sample}\");\n}\n```\nUse instead:\n```rust\nlet mut sorted_samples = samples.clone();\nsorted_samples.sort();\nfor sample in &sorted_samples {\n    println!(\"{sample}\");\n}\n```\n",
@@ -739,7 +739,7 @@
   },
   {
     "id": "decimal_literal_representation",
-    "id_location": "clippy_lints/src/literal_representation.rs#L147",
+    "id_location": "clippy_lints/src/literal_representation.rs#L144",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nWarns if there is a better representation for a numeric literal.\n\n### Why restrict this?\nEspecially for big powers of 2, a hexadecimal representation is usually more\nreadable than a decimal representation.\n\n### Example\n```text\n`255` => `0xFF`\n`65_535` => `0xFFFF`\n`4_042_322_160` => `0xF0F0_F0F0`\n```\n\n### Configuration\n\n- `literal-representation-threshold`:  The lower bound for linting decimal literals\n\n\n   (default: `16384`)\n",
@@ -748,7 +748,7 @@
   },
   {
     "id": "declare_interior_mutable_const",
-    "id_location": "clippy_lints/src/non_copy_const.rs#L76",
+    "id_location": "clippy_lints/src/non_copy_const.rs#L72",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for declaration of `const` items which is interior\nmutable (e.g., contains a `Cell`, `Mutex`, `AtomicXxxx`, etc.).\n\n### Why is this bad?\nConsts are copied everywhere they are referenced, i.e.,\nevery time you refer to the const a fresh instance of the `Cell` or `Mutex`\nor `AtomicXxxx` will be created, which defeats the whole purpose of using\nthese types in the first place.\n\nThe `const` should better be replaced by a `static` item if a global\nvariable is wanted, or replaced by a `const fn` if a constructor is wanted.\n\n### Known problems\nA \"non-constant\" const item is a legacy way to supply an\ninitialized value to downstream `static` items (e.g., the\n`std::sync::ONCE_INIT` constant). In this case the use of `const` is legit,\nand this lint should be suppressed.\n\nEven though the lint avoids triggering on a constant whose type has enums that have variants\nwith interior mutability, and its value uses non interior mutable variants (see\n[#3962](https://github.com/rust-lang/rust-clippy/issues/3962) and\n[#3825](https://github.com/rust-lang/rust-clippy/issues/3825) for examples);\nit complains about associated constants without default values only based on its types;\nwhich might not be preferable.\nThere're other enums plus associated constants cases that the lint cannot handle.\n\nTypes that have underlying or potential interior mutability trigger the lint whether\nthe interior mutable field is used or not. See issue\n[#5812](https://github.com/rust-lang/rust-clippy/issues/5812)\n\n### Example\n```rust\nuse std::sync::atomic::{AtomicUsize, Ordering::SeqCst};\n\nconst CONST_ATOM: AtomicUsize = AtomicUsize::new(12);\nCONST_ATOM.store(6, SeqCst); // the content of the atomic is unchanged\nassert_eq!(CONST_ATOM.load(SeqCst), 12); // because the CONST_ATOM in these lines are distinct\n```\n\nUse instead:\n```rust\nstatic STATIC_ATOM: AtomicUsize = AtomicUsize::new(15);\nSTATIC_ATOM.store(9, SeqCst);\nassert_eq!(STATIC_ATOM.load(SeqCst), 9); // use a `static` item to refer to the same instance\n```\n\n### Configuration\n\n- `ignore-interior-mutability`:  A list of paths to types that should be treated as if they do not contain interior mutability\n\n\n   (default: `[\"bytes::Bytes\"]`)\n",
@@ -802,7 +802,7 @@
   },
   {
     "id": "deprecated_cfg_attr",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L268",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L266",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for `#[cfg_attr(rustfmt, rustfmt_skip)]` and suggests to replace it\nwith `#[rustfmt::skip]`.\n\n### Why is this bad?\nSince tool_attributes ([rust-lang/rust#44690](https://github.com/rust-lang/rust/issues/44690))\nare stable now, they should be used instead of the old `cfg_attr(rustfmt)` attributes.\n\n### Known problems\nThis lint doesn't detect crate level inner attributes, because they get\nprocessed before the PreExpansionPass lints get executed. See\n[#3123](https://github.com/rust-lang/rust-clippy/pull/3123#issuecomment-422321765)\n\n### Example\n```rust\n#[cfg_attr(rustfmt, rustfmt_skip)]\nfn main() { }\n```\n\nUse instead:\n```rust\n#[rustfmt::skip]\nfn main() { }\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -811,7 +811,7 @@
   },
   {
     "id": "deprecated_clippy_cfg_attr",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L411",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L409",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for `#[cfg_attr(feature = \"cargo-clippy\", ...)]` and for\n`#[cfg(feature = \"cargo-clippy\")]` and suggests to replace it with\n`#[cfg_attr(clippy, ...)]` or `#[cfg(clippy)]`.\n\n### Why is this bad?\nThis feature has been deprecated for years and shouldn't be used anymore.\n\n### Example\n```rust\n#[cfg(feature = \"cargo-clippy\")]\nstruct Bar;\n```\n\nUse instead:\n```rust\n#[cfg(clippy)]\nstruct Bar;\n```\n",
@@ -820,7 +820,7 @@
   },
   {
     "id": "deprecated_semver",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L126",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L124",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nChecks for `#[deprecated]` annotations with a `since`\nfield that is not a valid semantic version. Also allows \"TBD\" to signal\nfuture deprecation.\n\n### Why is this bad?\nFor checking the version of the deprecation, it must be\na valid semver. Failing that, the contained information is useless.\n\n### Example\n```rust\n#[deprecated(since = \"forever\")]\nfn something_else() { /* ... */ }\n```\n",
@@ -1036,7 +1036,7 @@
   },
   {
     "id": "duplicated_attributes",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L498",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L496",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for attributes that appear two or more times.\n\n### Why is this bad?\nRepeating an attribute on the same item (or globally on the same crate)\nis unnecessary and doesn't have an effect.\n\n### Example\n```rust\n#[allow(dead_code)]\n#[allow(dead_code)]\nfn foo() {}\n```\n\nUse instead:\n```rust\n#[allow(dead_code)]\nfn foo() {}\n```\n",
@@ -1063,7 +1063,7 @@
   },
   {
     "id": "else_if_without_else",
-    "id_location": "clippy_lints/src/else_if_without_else.rs#L44",
+    "id_location": "clippy_lints/src/else_if_without_else.rs#L42",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of if expressions with an `else if` branch,\nbut without a final `else` branch.\n\n### Why restrict this?\nSome coding guidelines require this (e.g., MISRA-C:2004 Rule 14.10).\n\n### Example\n```rust\nif x.is_positive() {\n    a();\n} else if x.is_negative() {\n    b();\n}\n```\n\nUse instead:\n\n```rust\nif x.is_positive() {\n    a();\n} else if x.is_negative() {\n    b();\n} else {\n    // We don't care about zero.\n}\n```\n",
@@ -1090,7 +1090,7 @@
   },
   {
     "id": "empty_enum",
-    "id_location": "clippy_lints/src/empty_enum.rs#L58",
+    "id_location": "clippy_lints/src/empty_enum.rs#L56",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for `enum`s with no variants, which therefore are uninhabited types\n(cannot be instantiated).\n\nAs of this writing, the `never_type` is still a nightly-only experimental API.\nTherefore, this lint is only triggered if `#![feature(never_type)]` is enabled.\n\n### Why is this bad?\n* If you only want a type which can’t be instantiated, you should use [`!`]\n  (the primitive type \"never\"), because [`!`] has more extensive compiler support\n  (type inference, etc.) and implementations of common traits.\n\n* If you need to introduce a distinct type, consider using a [newtype] `struct`\n  containing [`!`] instead (`struct MyType(pub !)`), because it is more idiomatic\n  to use a `struct` rather than an `enum` when an `enum` is unnecessary.\n\n  If you do this, note that the [visibility] of the [`!`] field determines whether\n  the uninhabitedness is visible in documentation, and whether it can be pattern\n  matched to mark code unreachable. If the field is not visible, then the struct\n  acts like any other struct with private fields.\n\n* If the enum has no variants only because all variants happen to be\n  [disabled by conditional compilation][cfg], then it would be appropriate\n  to allow the lint, with `#[allow(empty_enum)]`.\n\nFor further information, visit\n[the never type’s documentation][`!`].\n\n### Example\n```rust\nenum CannotExist {}\n```\n\nUse instead:\n```rust\n#![feature(never_type)]\n\n/// Use the `!` type directly...\ntype CannotExist = !;\n\n/// ...or define a newtype which is distinct.\nstruct CannotExist2(pub !);\n```\n\n[`!`]: https://doc.rust-lang.org/std/primitive.never.html\n[cfg]: https://doc.rust-lang.org/reference/conditional-compilation.html\n[newtype]: https://doc.rust-lang.org/book/ch19-04-advanced-types.html#using-the-newtype-pattern-for-type-safety-and-abstraction\n[visibility]: https://doc.rust-lang.org/reference/visibility-and-privacy.html\n",
@@ -1108,7 +1108,7 @@
   },
   {
     "id": "empty_line_after_doc_comments",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L214",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L212",
     "group": "nursery",
     "level": "allow",
     "docs": "### What it does\nChecks for empty lines after documentation comments.\n\n### Why is this bad?\nThe documentation comment was most likely meant to be an inner attribute or regular comment.\nIf it was intended to be a documentation comment, then the empty line should be removed to\nbe more idiomatic.\n\n### Known problems\nOnly detects empty lines immediately following the documentation. If the doc comment is followed\nby an attribute and then an empty line, this lint will not trigger. Use `empty_line_after_outer_attr`\nin combination with this lint to detect both cases.\n\nDoes not detect empty lines after doc attributes (e.g. `#[doc = \"\"]`).\n\n### Example\n```rust\n/// Some doc comment with a blank line after it.\n\nfn not_quite_good_code() { }\n```\n\nUse instead:\n```rust\n/// Good (no blank line)\nfn this_is_fine() { }\n```\n\n```rust\n// Good (convert to a regular comment)\n\nfn this_is_fine_too() { }\n```\n\n```rust\n//! Good (convert to a comment on an inner attribute)\n\nfn this_is_fine_as_well() { }\n```\n",
@@ -1117,7 +1117,7 @@
   },
   {
     "id": "empty_line_after_outer_attr",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L168",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L166",
     "group": "nursery",
     "level": "allow",
     "docs": "### What it does\nChecks for empty lines after outer attributes\n\n### Why is this bad?\nMost likely the attribute was meant to be an inner attribute using a '!'.\nIf it was meant to be an outer attribute, then the following item\nshould not be separated by empty lines.\n\n### Known problems\nCan cause false positives.\n\nFrom the clippy side it's difficult to detect empty lines between an attributes and the\nfollowing item because empty lines and comments are not part of the AST. The parsing\ncurrently works for basic cases but is not perfect.\n\n### Example\n```rust\n#[allow(dead_code)]\n\nfn not_quite_good_code() { }\n```\n\nUse instead:\n```rust\n// Good (as inner attribute)\n#![allow(dead_code)]\n\nfn this_is_fine() { }\n\n// or\n\n// Good (as outer attribute)\n#[allow(dead_code)]\nfn this_is_fine_too() { }\n```\n",
@@ -1144,7 +1144,7 @@
   },
   {
     "id": "enum_clike_unportable_variant",
-    "id_location": "clippy_lints/src/enum_clike.rs#L31",
+    "id_location": "clippy_lints/src/enum_clike.rs#L28",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nChecks for C-like enumerations that are\n`repr(isize/usize)` and have values that don't fit into an `i32`.\n\n### Why is this bad?\nThis will truncate the variant value on 32 bit\narchitectures, but works fine on 64 bit.\n\n### Example\n```rust\n#[repr(usize)]\nenum NonPortable {\n    X = 0x1_0000_0000,\n    Y = 0,\n}\n```\n",
@@ -1162,7 +1162,7 @@
   },
   {
     "id": "enum_variant_names",
-    "id_location": "clippy_lints/src/item_name_repetitions.rs#L48",
+    "id_location": "clippy_lints/src/item_name_repetitions.rs#L46",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nDetects enumeration variants that are prefixed or suffixed\nby the same characters.\n\n### Why is this bad?\nEnumeration variant names should specify their variant,\nnot repeat the enumeration name.\n\n### Limitations\nCharacters with no casing will be considered when comparing prefixes/suffixes\nThis applies to numbers and non-ascii characters without casing\ne.g. `Foo1` and `Foo2` is considered to have different prefixes\n(the prefixes are `Foo1` and `Foo2` respectively), as also `Bar螃`, `Bar蟹`\n\n### Example\n```rust\nenum Cake {\n    BlackForestCake,\n    HummingbirdCake,\n    BattenbergCake,\n}\n```\nUse instead:\n```rust\nenum Cake {\n    BlackForest,\n    Hummingbird,\n    Battenberg,\n}\n```\n\n### Configuration\n\n- `avoid-breaking-exported-api`:  Suppress lints whenever the suggested change would cause breakage for other crates.\n\n\n   (default: `true`)\n- `enum-variant-name-threshold`:  The minimum number of enum variants for the lints about variant names to trigger\n\n\n   (default: `3`)\n",
@@ -1702,7 +1702,7 @@
   },
   {
     "id": "if_not_else",
-    "id_location": "clippy_lints/src/if_not_else.rs#L44",
+    "id_location": "clippy_lints/src/if_not_else.rs#L41",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of `!` or `!=` in an if condition with an\nelse branch.\n\n### Why is this bad?\nNegations reduce the readability of statements.\n\n### Example\n```rust\nif !v.is_empty() {\n    a()\n} else {\n    b()\n}\n```\n\nCould be written:\n\n```rust\nif v.is_empty() {\n    b()\n} else {\n    a()\n}\n```\n",
@@ -1846,7 +1846,7 @@
   },
   {
     "id": "inconsistent_digit_grouping",
-    "id_location": "clippy_lints/src/literal_representation.rs#L89",
+    "id_location": "clippy_lints/src/literal_representation.rs#L86",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nWarns if an integral or floating-point constant is\ngrouped inconsistently with underscores.\n\n### Why is this bad?\nReaders may incorrectly interpret inconsistently\ngrouped digits.\n\n### Example\n```rust\n618_64_9189_73_511\n```\n\nUse instead:\n```rust\n61_864_918_973_511\n```\n",
@@ -1873,7 +1873,7 @@
   },
   {
     "id": "indexing_slicing",
-    "id_location": "clippy_lints/src/indexing_slicing.rs#L82",
+    "id_location": "clippy_lints/src/indexing_slicing.rs#L80",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of indexing or slicing. Arrays are special cases, this lint\ndoes report on arrays if we can tell that slicing operations are in bounds and does not\nlint on constant `usize` indexing on arrays because that is handled by rustc's `const_err` lint.\n\n### Why restrict this?\nTo avoid implicit panics from indexing and slicing.\nThere are “checked” alternatives which do not panic, and can be used with `unwrap()` to make\nan explicit panic when it is desired.\n\n### Example\n```rust\n// Vector\nlet x = vec![0; 5];\n\nx[2];\n&x[2..100];\n\n// Array\nlet y = [0, 1, 2, 3];\n\n&y[10..100];\n&y[10..];\n```\n\nUse instead:\n```rust\nx.get(2);\nx.get(2..100);\n\ny.get(10);\ny.get(10..100);\n```\n\n### Configuration\n\n- `suppress-restriction-lint-in-const`:  Whether to suppress a restriction lint in constant code. In same\n cases the restructured operation might not be unavoidable, as the\n suggested counterparts are unavailable in constant code. This\n configuration will cause restriction lints to trigger even\n if no suggestion can be made.\n\n\n   (default: `false`)\n",
@@ -1963,7 +1963,7 @@
   },
   {
     "id": "inline_always",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L52",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L50",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for items annotated with `#[inline(always)]`,\nunless the annotated function is empty or simply panics.\n\n### Why is this bad?\nWhile there are valid uses of this annotation (and once\nyou know when to use it, by all means `allow` this lint), it's a common\nnewbie-mistake to pepper one's code with it.\n\nAs a rule of thumb, before slapping `#[inline(always)]` on a function,\nmeasure if that additional function call really affects your runtime profile\nsufficiently to make up for the increase in compile time.\n\n### Known problems\nFalse positives, big time. This lint is meant to be\ndeactivated by everyone doing serious performance work. This means having\ndone the measurement.\n\n### Example\n```rust\n#[inline(always)]\nfn not_quite_hot_code(..) { ... }\n```\n",
@@ -1990,7 +1990,7 @@
   },
   {
     "id": "inline_fn_without_body",
-    "id_location": "clippy_lints/src/inline_fn_without_body.rs#L27",
+    "id_location": "clippy_lints/src/inline_fn_without_body.rs#L25",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nChecks for `#[inline]` on trait methods without bodies\n\n### Why is this bad?\nOnly implementations of trait methods may be inlined.\nThe inline attribute is ignored for trait methods without bodies.\n\n### Example\n```rust\ntrait Animal {\n    #[inline]\n    fn name(&self) -> &'static str;\n}\n```\n",
@@ -2008,7 +2008,7 @@
   },
   {
     "id": "int_plus_one",
-    "id_location": "clippy_lints/src/int_plus_one.rs#L32",
+    "id_location": "clippy_lints/src/int_plus_one.rs#L30",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `x >= y + 1` or `x - 1 >= y` (and `<=`) in a block\n\n### Why is this bad?\nReadability -- better to use `> y` instead of `>= y + 1`.\n\n### Example\n```rust\nif x >= y + 1 {}\n```\n\nUse instead:\n```rust\nif x > y {}\n```\n",
@@ -2053,7 +2053,7 @@
   },
   {
     "id": "invalid_null_ptr_usage",
-    "id_location": "clippy_lints/src/ptr.rs#L149",
+    "id_location": "clippy_lints/src/ptr.rs#L147",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nThis lint checks for invalid usages of `ptr::null`.\n\n### Why is this bad?\nThis causes undefined behavior.\n\n### Example\n```rust\n// Undefined behavior\nunsafe { std::slice::from_raw_parts(ptr::null(), 0); }\n```\n\nUse instead:\n```rust\nunsafe { std::slice::from_raw_parts(NonNull::dangling().as_ptr(), 0); }\n```\n",
@@ -2098,7 +2098,7 @@
   },
   {
     "id": "items_after_statements",
-    "id_location": "clippy_lints/src/items_after_statements.rs#L48",
+    "id_location": "clippy_lints/src/items_after_statements.rs#L46",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for items declared after some statement in a block.\n\n### Why is this bad?\nItems live for the entire scope they are declared\nin. But statements are processed in order. This might cause confusion as\nit's hard to figure out which item is meant in a statement.\n\n### Example\n```rust\nfn foo() {\n    println!(\"cake\");\n}\n\nfn main() {\n    foo(); // prints \"foo\"\n    fn foo() {\n        println!(\"foo\");\n    }\n    foo(); // prints \"foo\"\n}\n```\n\nUse instead:\n```rust\nfn foo() {\n    println!(\"cake\");\n}\n\nfn main() {\n    fn foo() {\n        println!(\"foo\");\n    }\n    foo(); // prints \"foo\"\n    foo(); // prints \"foo\"\n}\n```\n",
@@ -2323,7 +2323,7 @@
   },
   {
     "id": "large_digit_groups",
-    "id_location": "clippy_lints/src/literal_representation.rs#L127",
+    "id_location": "clippy_lints/src/literal_representation.rs#L124",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nWarns if the digits of an integral or floating-point\nconstant are grouped into groups that\nare too large.\n\n### Why is this bad?\nNegatively impacts readability.\n\n### Example\n```rust\nlet x: u64 = 6186491_8973511;\n```\n",
@@ -2332,7 +2332,7 @@
   },
   {
     "id": "large_enum_variant",
-    "id_location": "clippy_lints/src/large_enum_variant.rs#L58",
+    "id_location": "clippy_lints/src/large_enum_variant.rs#L56",
     "group": "perf",
     "level": "warn",
     "docs": "### What it does\nChecks for large size differences between variants on\n`enum`s.\n\n### Why is this bad?\nEnum size is bounded by the largest variant. Having one\nlarge variant can penalize the memory layout of that enum.\n\n### Known problems\nThis lint obviously cannot take the distribution of\nvariants in your running program into account. It is possible that the\nsmaller variants make up less than 1% of all instances, in which case\nthe overhead is negligible and the boxing is counter-productive. Always\nmeasure the change this lint suggests.\n\nFor types that implement `Copy`, the suggestion to `Box` a variant's\ndata would require removing the trait impl. The types can of course\nstill be `Clone`, but that is worse ergonomically. Depending on the\nuse case it may be possible to store the large data in an auxiliary\nstructure (e.g. Arena or ECS).\n\nThe lint will ignore the impact of generic types to the type layout by\nassuming every type parameter is zero-sized. Depending on your use case,\nthis may lead to a false positive.\n\n### Example\n```rust\nenum Test {\n    A(i32),\n    B([i32; 8000]),\n}\n```\n\nUse instead:\n```rust\n// Possibly better\nenum Test2 {\n    A(i32),\n    B(Box<[i32; 8000]>),\n}\n```\n\n### Configuration\n\n- `enum-variant-size-threshold`:  The maximum size of an enum's variant to avoid box suggestion\n\n\n   (default: `200`)\n",
@@ -2800,7 +2800,7 @@
   },
   {
     "id": "manual_retain",
-    "id_location": "clippy_lints/src/manual_retain.rs#L52",
+    "id_location": "clippy_lints/src/manual_retain.rs#L42",
     "group": "perf",
     "level": "warn",
     "docs": "### What it does\nChecks for code to be replaced by `.retain()`.\n### Why is this bad?\n`.retain()` is simpler and avoids needless allocation.\n### Example\n```rust\nlet mut vec = vec![0, 1, 2];\nvec = vec.iter().filter(|&x| x % 2 == 0).copied().collect();\nvec = vec.into_iter().filter(|x| x % 2 == 0).collect();\n```\nUse instead:\n```rust\nlet mut vec = vec![0, 1, 2];\nvec.retain(|x| x % 2 == 0);\nvec.retain(|x| x % 2 == 0);\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -3322,7 +3322,7 @@
   },
   {
     "id": "mistyped_literal_suffixes",
-    "id_location": "clippy_lints/src/literal_representation.rs#L61",
+    "id_location": "clippy_lints/src/literal_representation.rs#L58",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nWarns for mistyped suffix in literals\n\n### Why is this bad?\nThis is most probably a typo\n\n### Known problems\n- Does not match on integers too large to fit in the corresponding unsigned type\n- Does not match on `_127` since that is a valid grouping for decimal and octal numbers\n\n### Example\n```rust\n`2_32` => `2_i32`\n`250_8 => `250_u8`\n```\n",
@@ -3331,7 +3331,7 @@
   },
   {
     "id": "mixed_attributes_style",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L472",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L470",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for items that have the same kind of attributes with mixed styles (inner/outer).\n\n### Why is this bad?\nHaving both style of said attributes makes it more complicated to read code.\n\n### Known problems\nThis lint currently has false-negatives when mixing same attributes\nbut they have different path symbols, for example:\n```rust\n#[custom_attribute]\npub fn foo() {\n    #![my_crate::custom_attribute]\n}\n```\n\n### Example\n```rust\n#[cfg(linux)]\npub fn foo() {\n    #![cfg(windows)]\n}\n```\nUse instead:\n```rust\n#[cfg(linux)]\n#[cfg(windows)]\npub fn foo() {\n}\n```\n",
@@ -3367,7 +3367,7 @@
   },
   {
     "id": "module_inception",
-    "id_location": "clippy_lints/src/item_name_repetitions.rs#L106",
+    "id_location": "clippy_lints/src/item_name_repetitions.rs#L104",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for modules that have the same name as their\nparent module\n\n### Why is this bad?\nA typical beginner mistake is to have `mod foo;` and\nagain `mod foo { ..\n}` in `foo.rs`.\nThe expectation is that items inside the inner `mod foo { .. }` are then\navailable\nthrough `foo::x`, but they are only available through\n`foo::foo::x`.\nIf this is done on purpose, it would be better to choose a more\nrepresentative module name.\n\n### Example\n```rust\n// lib.rs\nmod foo;\n// foo.rs\nmod foo {\n    ...\n}\n```\n\n### Configuration\n\n- `allow-private-module-inception`:  Whether to allow module inception if it's not public.\n\n\n   (default: `false`)\n",
@@ -3376,7 +3376,7 @@
   },
   {
     "id": "module_name_repetitions",
-    "id_location": "clippy_lints/src/item_name_repetitions.rs#L75",
+    "id_location": "clippy_lints/src/item_name_repetitions.rs#L73",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nDetects type names that are prefixed or suffixed by the\ncontaining module's name.\n\n### Why is this bad?\nIt requires the user to type the module name twice.\n\n### Example\n```rust\nmod cake {\n    struct BlackForestCake;\n}\n```\n\nUse instead:\n```rust\nmod cake {\n    struct BlackForest;\n}\n```\n\n### Past names\n\n * stutter\n\n### Configuration\n\n- `allowed-prefixes`:  List of prefixes to allow when determining whether an item's name ends with the module's name.\n If the rest of an item's name is an allowed prefix (e.g. item `ToFoo` or `to_foo` in module `foo`),\n then don't emit a warning.\n\n #### Example\n\n ```toml\n allowed-prefixes = [ \"to\", \"from\" ]\n ```\n\n #### Noteworthy\n\n - By default, the following prefixes are allowed: `to`, `as`, `into`, `from`, `try_into` and `try_from`\n - PascalCase variant is included automatically for each snake_case variant (e.g. if `try_into` is included,\n   `TryInto` will also be included)\n - Use `\"..\"` as part of the list to indicate that the configured values should be appended to the\n default configuration of Clippy. By default, any configuration will replace the default value\n\n\n   (default: `[\"to\", \"as\", \"into\", \"from\", \"try_into\", \"try_from\"]`)\n",
@@ -3430,7 +3430,7 @@
   },
   {
     "id": "multiple_inherent_impl",
-    "id_location": "clippy_lints/src/inherent_impl.rs#L41",
+    "id_location": "clippy_lints/src/inherent_impl.rs#L39",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for multiple inherent implementations of a struct\n\n### Why restrict this?\nSplitting the implementation of a type makes the code harder to navigate.\n\n### Example\n```rust\nstruct X;\nimpl X {\n    fn one() {}\n}\nimpl X {\n    fn other() {}\n}\n```\n\nCould be written:\n\n```rust\nstruct X;\nimpl X {\n    fn one() {}\n    fn other() {}\n}\n```\n",
@@ -3466,7 +3466,7 @@
   },
   {
     "id": "mut_from_ref",
-    "id_location": "clippy_lints/src/ptr.rs#L126",
+    "id_location": "clippy_lints/src/ptr.rs#L124",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nThis lint checks for functions that take immutable references and return\nmutable ones. This will not trigger if no unsafe code exists as there\nare multiple safe functions which will do this transformation\n\nTo be on the conservative side, if there's at least one mutable\nreference with the output lifetime, this lint will not trigger.\n\n### Why is this bad?\nCreating a mutable reference which can be repeatably derived from an\nimmutable reference is unsound as it allows creating multiple live\nmutable references to the same object.\n\nThis [error](https://github.com/rust-lang/rust/issues/39465) actually\nlead to an interim Rust release 1.15.1.\n\n### Known problems\nThis pattern is used by memory allocators to allow allocating multiple\nobjects while returning mutable references to each one. So long as\ndifferent mutable references are returned each time such a function may\nbe safe.\n\n### Example\n```rust\nfn foo(&Foo) -> &mut Bar { .. }\n```\n",
@@ -3511,7 +3511,7 @@
   },
   {
     "id": "mutex_atomic",
-    "id_location": "clippy_lints/src/mutex_atomic.rs#L45",
+    "id_location": "clippy_lints/src/mutex_atomic.rs#L41",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of `Mutex<X>` where an atomic will do.\n\n### Why restrict this?\nUsing a mutex just to make access to a plain bool or\nreference sequential is shooting flies with cannons.\n`std::sync::atomic::AtomicBool` and `std::sync::atomic::AtomicPtr` are leaner and\nfaster.\n\nOn the other hand, `Mutex`es are, in general, easier to\nverify correctness. An atomic does not behave the same as\nan equivalent mutex. See [this issue](https://github.com/rust-lang/rust-clippy/issues/4295)'s commentary for more details.\n\n### Known problems\nThis lint cannot detect if the mutex is actually used\nfor waiting before a critical section.\n\n### Example\n```rust\nlet x = Mutex::new(&y);\n```\n\nUse instead:\n```rust\nlet x = AtomicBool::new(y);\n```\n",
@@ -3520,7 +3520,7 @@
   },
   {
     "id": "mutex_integer",
-    "id_location": "clippy_lints/src/mutex_atomic.rs#L76",
+    "id_location": "clippy_lints/src/mutex_atomic.rs#L72",
     "group": "nursery",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of `Mutex<X>` where `X` is an integral\ntype.\n\n### Why is this bad?\nUsing a mutex just to make access to a plain integer\nsequential is\nshooting flies with cannons. `std::sync::atomic::AtomicUsize` is leaner and faster.\n\n### Known problems\nThis lint cannot detect if the mutex is actually used\nfor waiting before a critical section.\n\n### Example\n```rust\nlet x = Mutex::new(0usize);\n```\n\nUse instead:\n```rust\nlet x = AtomicUsize::new(0usize);\n```\n",
@@ -3556,7 +3556,7 @@
   },
   {
     "id": "needless_bool",
-    "id_location": "clippy_lints/src/needless_bool.rs#L52",
+    "id_location": "clippy_lints/src/needless_bool.rs#L48",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for expressions of the form `if c { true } else {\nfalse }` (or vice versa) and suggests using the condition directly.\n\n### Why is this bad?\nRedundant code.\n\n### Known problems\nMaybe false positives: Sometimes, the two branches are\npainstakingly documented (which we, of course, do not detect), so they *may*\nhave some value. Even then, the documentation can be rewritten to match the\nshorter code.\n\n### Example\n```rust\nif x {\n    false\n} else {\n    true\n}\n```\n\nUse instead:\n```rust\n!x\n```\n",
@@ -3565,7 +3565,7 @@
   },
   {
     "id": "needless_bool_assign",
-    "id_location": "clippy_lints/src/needless_bool.rs#L110",
+    "id_location": "clippy_lints/src/needless_bool.rs#L106",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for expressions of the form `if c { x = true } else { x = false }`\n(or vice versa) and suggest assigning the variable directly from the\ncondition.\n\n### Why is this bad?\nRedundant code.\n\n### Example\n```rust\nif must_keep(x, y) {\n    skip = false;\n} else {\n    skip = true;\n}\n```\nUse instead:\n```rust\nskip = !must_keep(x, y);\n```\n",
@@ -3619,7 +3619,7 @@
   },
   {
     "id": "needless_continue",
-    "id_location": "clippy_lints/src/needless_continue.rs#L114",
+    "id_location": "clippy_lints/src/needless_continue.rs#L79",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nThe lint checks for `if`-statements appearing in loops\nthat contain a `continue` statement in either their main blocks or their\n`else`-blocks, when omitting the `else`-block possibly with some\nrearrangement of code can make the code easier to understand.\n\n### Why is this bad?\nHaving explicit `else` blocks for `if` statements\ncontaining `continue` in their THEN branch adds unnecessary branching and\nnesting to the code. Having an else block containing just `continue` can\nalso be better written by grouping the statements following the whole `if`\nstatement within the THEN block and omitting the else block completely.\n\n### Example\n```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n    } else {\n        continue;\n    }\n    println!(\"Hello, world\");\n}\n```\n\nCould be rewritten as\n\n```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n        println!(\"Hello, world\");\n    }\n}\n```\n\nAs another example, the following code\n\n```rust\nloop {\n    if waiting() {\n        continue;\n    } else {\n        // Do something useful\n    }\n    # break;\n}\n```\nCould be rewritten as\n\n```rust\nloop {\n    if waiting() {\n        continue;\n    }\n    // Do something useful\n    # break;\n}\n```\n",
@@ -3943,7 +3943,7 @@
   },
   {
     "id": "non_minimal_cfg",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L385",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L383",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for `any` and `all` combinators in `cfg` with only one condition.\n\n### Why is this bad?\nIf there is only one condition, no need to wrap it into `any` or `all` combinators.\n\n### Example\n```rust\n#[cfg(any(unix))]\npub struct Bar;\n```\n\nUse instead:\n```rust\n#[cfg(unix)]\npub struct Bar;\n```\n",
@@ -4150,7 +4150,7 @@
   },
   {
     "id": "out_of_bounds_indexing",
-    "id_location": "clippy_lints/src/indexing_slicing.rs#L40",
+    "id_location": "clippy_lints/src/indexing_slicing.rs#L38",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nChecks for out of bounds array indexing with a constant\nindex.\n\n### Why is this bad?\nThis will always panic at runtime.\n\n### Example\n```rust\nlet x = [1, 2, 3, 4];\n\nx[9];\n&x[2..9];\n```\n\nUse instead:\n```rust\n// Index within bounds\n\nx[0];\nx[3];\n```\n",
@@ -4348,7 +4348,7 @@
   },
   {
     "id": "ptr_arg",
-    "id_location": "clippy_lints/src/ptr.rs#L63",
+    "id_location": "clippy_lints/src/ptr.rs#L61",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nThis lint checks for function arguments of type `&String`, `&Vec`,\n`&PathBuf`, and `Cow<_>`. It will also suggest you replace `.clone()` calls\nwith the appropriate `.to_owned()`/`to_string()` calls.\n\n### Why is this bad?\nRequiring the argument to be of the specific size\nmakes the function less useful for no benefit; slices in the form of `&[T]`\nor `&str` usually suffice and can be obtained from other types, too.\n\n### Known problems\nThere may be `fn(&Vec)`-typed references pointing to your function.\nIf you have them, you will get a compiler error after applying this lint's\nsuggestions. You then have the choice to undo your changes or change the\ntype of the reference.\n\nNote that if the function is part of your public interface, there may be\nother crates referencing it, of which you may not be aware. Carefully\ndeprecate the function before applying the lint suggestions in this case.\n\n### Example\n```rust\nfn foo(&Vec<u32>) { .. }\n```\n\nUse instead:\n```rust\nfn foo(&[u32]) { .. }\n```\n",
@@ -5086,7 +5086,7 @@
   },
   {
     "id": "should_panic_without_expect",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L361",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L359",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for `#[should_panic]` attributes without specifying the expected panic message.\n\n### Why is this bad?\nThe expected panic message should be specified to ensure that the test is actually\npanicking with the expected message, and not another unrelated panic.\n\n### Example\n```rust\nfn random() -> i32 { 0 }\n\n#[should_panic]\n#[test]\nfn my_test() {\n    let _ = 1 / random();\n}\n```\n\nUse instead:\n```rust\nfn random() -> i32 { 0 }\n\n#[should_panic = \"attempt to divide by zero\"]\n#[test]\nfn my_test() {\n    let _ = 1 / random();\n}\n```\n",
@@ -5203,7 +5203,7 @@
   },
   {
     "id": "size_of_in_element_count",
-    "id_location": "clippy_lints/src/size_of_in_element_count.rs#L31",
+    "id_location": "clippy_lints/src/size_of_in_element_count.rs#L28",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nDetects expressions where\n`size_of::<T>` or `size_of_val::<T>` is used as a\ncount of elements of type `T`\n\n### Why is this bad?\nThese functions expect a count\nof `T` and not a number of bytes\n\n### Example\n```rust\nconst SIZE: usize = 128;\nlet x = [2u8; SIZE];\nlet mut y = [2u8; SIZE];\nunsafe { copy_nonoverlapping(x.as_ptr(), y.as_mut_ptr(), size_of::<u8>() * SIZE) };\n```\n",
@@ -5374,7 +5374,7 @@
   },
   {
     "id": "struct_field_names",
-    "id_location": "clippy_lints/src/item_name_repetitions.rs#L141",
+    "id_location": "clippy_lints/src/item_name_repetitions.rs#L139",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nDetects struct fields that are prefixed or suffixed\nby the same characters or the name of the struct itself.\n\n### Why is this bad?\nInformation common to all struct fields is better represented in the struct name.\n\n### Limitations\nCharacters with no casing will be considered when comparing prefixes/suffixes\nThis applies to numbers and non-ascii characters without casing\ne.g. `foo1` and `foo2` is considered to have different prefixes\n(the prefixes are `foo1` and `foo2` respectively), as also `bar螃`, `bar蟹`\n\n### Example\n```rust\nstruct Cake {\n    cake_sugar: u8,\n    cake_flour: u8,\n    cake_eggs: u8\n}\n```\nUse instead:\n```rust\nstruct Cake {\n    sugar: u8,\n    flour: u8,\n    eggs: u8\n}\n```\n\n### Configuration\n\n- `struct-field-name-threshold`:  The minimum number of struct fields for the lints about field names to trigger\n\n\n   (default: `3`)\n",
@@ -5959,7 +5959,7 @@
   },
   {
     "id": "unnecessary_clippy_cfg",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L435",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L433",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for `#[cfg_attr(clippy, allow(clippy::lint))]`\nand suggests to replace it with `#[allow(clippy::lint)]`.\n\n### Why is this bad?\nThere is no reason to put clippy attributes behind a clippy `cfg` as they are not\nrun by anything else than clippy.\n\n### Example\n```rust\n#![cfg_attr(clippy, allow(clippy::deprecated_cfg_attr))]\n```\n\nUse instead:\n```rust\n#![allow(clippy::deprecated_cfg_attr)]\n```\n",
@@ -6202,7 +6202,7 @@
   },
   {
     "id": "unreadable_literal",
-    "id_location": "clippy_lints/src/literal_representation.rs#L39",
+    "id_location": "clippy_lints/src/literal_representation.rs#L36",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nWarns if a long integral or floating-point constant does\nnot contain underscores.\n\n### Why is this bad?\nReading long numbers is difficult without separators.\n\n### Example\n```rust\n61864918973511\n```\n\nUse instead:\n```rust\n61_864_918_973_511\n```\n\n### Configuration\n\n- `unreadable-literal-lint-fractions`:  Should the fraction of a decimal be linted to include separators.\n\n\n   (default: `true`)\n",
@@ -6364,7 +6364,7 @@
   },
   {
     "id": "unusual_byte_groupings",
-    "id_location": "clippy_lints/src/literal_representation.rs#L108",
+    "id_location": "clippy_lints/src/literal_representation.rs#L105",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nWarns if hexadecimal or binary literals are not grouped\nby nibble or byte.\n\n### Why is this bad?\nNegatively impacts readability.\n\n### Example\n```rust\nlet x: u32 = 0xFFF_FFF;\nlet y: u8 = 0b01_011_101;\n```\n",
@@ -6445,7 +6445,7 @@
   },
   {
     "id": "useless_attribute",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L105",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L103",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nChecks for `extern crate` and `use` items annotated with\nlint attributes.\n\nThis lint permits lint attributes for lints emitted on the items themself.\nFor `use` items these lints are:\n* ambiguous_glob_reexports\n* dead_code\n* deprecated\n* hidden_glob_reexports\n* unreachable_pub\n* unused\n* unused_braces\n* unused_import_braces\n* clippy::disallowed_types\n* clippy::enum_glob_use\n* clippy::macro_use_imports\n* clippy::module_name_repetitions\n* clippy::redundant_pub_crate\n* clippy::single_component_path_imports\n* clippy::unsafe_removed_from_name\n* clippy::wildcard_imports\n\nFor `extern crate` items these lints are:\n* `unused_imports` on items with `#[macro_use]`\n\n### Why is this bad?\nLint attributes have no effect on crate imports. Most\nlikely a `!` was forgotten.\n\n### Example\n```rust\n#[deny(dead_code)]\nextern crate foo;\n#[forbid(dead_code)]\nuse foo::bar;\n```\n\nUse instead:\n```rust\n#[allow(unused_imports)]\nuse foo::baz;\n#[allow(unused_imports)]\n#[macro_use]\nextern crate baz;\n```\n",
