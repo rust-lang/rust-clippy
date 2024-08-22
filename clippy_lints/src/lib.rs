@@ -335,6 +335,7 @@ mod single_range_in_vec_init;
 mod size_of_in_element_count;
 mod size_of_ref;
 mod slow_vector_initialization;
+mod stacked_if_match;
 mod std_instead_of_core;
 mod string_patterns;
 mod strings;
@@ -942,5 +943,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(manual_div_ceil::ManualDivCeil::new(conf)));
     store.register_late_pass(|_| Box::new(manual_is_power_of_two::ManualIsPowerOfTwo));
     store.register_late_pass(|_| Box::new(non_zero_suggestions::NonZeroSuggestions));
+    store.register_late_pass(|_| Box::new(stacked_if_match::StackedIfMatch));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
