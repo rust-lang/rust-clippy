@@ -937,7 +937,7 @@
   },
   {
     "id": "doc_lazy_continuation",
-    "id_location": "clippy_lints/src/doc/mod.rs#L420",
+    "id_location": "clippy_lints/src/doc/mod.rs#L422",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\n\nIn CommonMark Markdown, the language used to write doc comments, a\nparagraph nested within a list or block quote does not need any line\nafter the first one to be indented or marked. The specification calls\nthis a \"lazy paragraph continuation.\"\n\n### Why is this bad?\n\nThis is easy to write but hard to read. Lazy continuations makes\nunintended markers hard to see, and make it harder to deduce the\ndocument's intended structure.\n\n### Example\n\nThis table is probably intended to have two rows,\nbut it does not. It has zero rows, and is followed by\na block quote.\n```rust\n/// Range | Description\n/// ----- | -----------\n/// >= 1  | fully opaque\n/// < 1   | partially see-through\nfn set_opacity(opacity: f32) {}\n```\n\nFix it by escaping the marker:\n```rust\n/// Range | Description\n/// ----- | -----------\n/// \\>= 1 | fully opaque\n/// < 1   | partially see-through\nfn set_opacity(opacity: f32) {}\n```\n\nThis example is actually intended to be a list:\n```rust\n/// * Do nothing.\n/// * Then do something. Whatever it is needs done,\n/// it should be done right now.\n```\n\nFix it by indenting the list contents:\n```rust\n/// * Do nothing.\n/// * Then do something. Whatever it is needs done,\n///   it should be done right now.\n```\n",
@@ -946,7 +946,7 @@
   },
   {
     "id": "doc_link_with_quotes",
-    "id_location": "clippy_lints/src/doc/mod.rs#L256",
+    "id_location": "clippy_lints/src/doc/mod.rs#L258",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nDetects the syntax `['foo']` in documentation comments (notice quotes instead of backticks)\noutside of code blocks\n### Why is this bad?\nIt is likely a typo when defining an intra-doc link\n\n### Example\n```rust\n/// See also: ['foo']\nfn bar() {}\n```\nUse instead:\n```rust\n/// See also: [`foo`]\nfn bar() {}\n```\n",
@@ -955,7 +955,7 @@
   },
   {
     "id": "doc_markdown",
-    "id_location": "clippy_lints/src/doc/mod.rs#L76",
+    "id_location": "clippy_lints/src/doc/mod.rs#L78",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for the presence of `_`, `::` or camel-case words\noutside ticks in documentation.\n\n### Why is this bad?\n*Rustdoc* supports markdown formatting, `_`, `::` and\ncamel-case probably indicates some code which should be included between\nticks. `_` can also be used for emphasis in markdown, this lint tries to\nconsider that.\n\n### Known problems\nLots of bad docs won’t be fixed, what the lint checks\nfor is limited, and there are still false positives. HTML elements and their\ncontent are not linted.\n\nIn addition, when writing documentation comments, including `[]` brackets\ninside a link text would trip the parser. Therefore, documenting link with\n`[`SmallVec<[T; INLINE_CAPACITY]>`]` and then [`SmallVec<[T; INLINE_CAPACITY]>`]: SmallVec\nwould fail.\n\n### Examples\n```rust\n/// Do something with the foo_bar parameter. See also\n/// that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar: usize) {}\n```\n\n```rust\n// Link text with `[]` brackets should be written as following:\n/// Consume the array and return the inner\n/// [`SmallVec<[T; INLINE_CAPACITY]>`][SmallVec].\n/// [SmallVec]: SmallVec\nfn main() {}\n```\n\n### Configuration\n\n- `doc-valid-idents`:  The list of words this lint should not consider as identifiers needing ticks. The value\n `\"..\"` can be used as part of the list to indicate, that the configured values should be appended to the\n default configuration of Clippy. By default, any configuration will replace the default value. For example:\n * `doc-valid-idents = [\"ClipPy\"]` would replace the default list with `[\"ClipPy\"]`.\n * `doc-valid-idents = [\"ClipPy\", \"..\"]` would append `ClipPy` to the default list.\n\n\n   (default: `[\"KiB\", \"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\", \"AccessKit\", \"CoreFoundation\", \"CoreGraphics\", \"CoreText\", \"DevOps\", \"Direct2D\", \"Direct3D\", \"DirectWrite\", \"DirectX\", \"ECMAScript\", \"GPLv2\", \"GPLv3\", \"GitHub\", \"GitLab\", \"IPv4\", \"IPv6\", \"ClojureScript\", \"CoffeeScript\", \"JavaScript\", \"PostScript\", \"PureScript\", \"TypeScript\", \"WebAssembly\", \"NaN\", \"NaNs\", \"OAuth\", \"GraphQL\", \"OCaml\", \"OpenAL\", \"OpenDNS\", \"OpenGL\", \"OpenMP\", \"OpenSSH\", \"OpenSSL\", \"OpenStreetMap\", \"OpenTelemetry\", \"OpenType\", \"WebGL\", \"WebGL2\", \"WebGPU\", \"WebRTC\", \"WebSocket\", \"WebTransport\", \"WebP\", \"OpenExr\", \"YCbCr\", \"sRGB\", \"TensorFlow\", \"TrueType\", \"iOS\", \"macOS\", \"FreeBSD\", \"NetBSD\", \"OpenBSD\", \"TeX\", \"LaTeX\", \"BibTeX\", \"BibLaTeX\", \"MinGW\", \"CamelCase\"]`)\n",
@@ -1072,7 +1072,7 @@
   },
   {
     "id": "empty_docs",
-    "id_location": "clippy_lints/src/doc/mod.rs#L363",
+    "id_location": "clippy_lints/src/doc/mod.rs#L365",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nDetects documentation that is empty.\n### Why is this bad?\nEmpty docs clutter code without adding value, reducing readability and maintainability.\n### Example\n```rust\n///\nfn returns_true() -> bool {\n    true\n}\n```\nUse instead:\n```rust\nfn returns_true() -> bool {\n    true\n}\n```\n",
@@ -3250,7 +3250,7 @@
   },
   {
     "id": "missing_errors_doc",
-    "id_location": "clippy_lints/src/doc/mod.rs#L140",
+    "id_location": "clippy_lints/src/doc/mod.rs#L142",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks the doc comments of publicly visible functions that\nreturn a `Result` type and warns if there is no `# Errors` section.\n\n### Why is this bad?\nDocumenting the type of errors that can be returned from a\nfunction can help callers write code to handle the errors appropriately.\n\n### Examples\nSince the following function returns a `Result` it has an `# Errors` section in\nits doc comment:\n\n```rust\n/// # Errors\n///\n/// Will return `Err` if `filename` does not exist or the user does not have\n/// permission to read it.\npub fn read(filename: String) -> io::Result<String> {\n    unimplemented!();\n}\n```\n\n### Configuration\n\n- `check-private-items`:  Whether to also run the listed lints on private items.\n\n\n   (default: `false`)\n",
@@ -3277,7 +3277,7 @@
   },
   {
     "id": "missing_panics_doc",
-    "id_location": "clippy_lints/src/doc/mod.rs#L171",
+    "id_location": "clippy_lints/src/doc/mod.rs#L173",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks the doc comments of publicly visible functions that\nmay panic and warns if there is no `# Panics` section.\n\n### Why is this bad?\nDocumenting the scenarios in which panicking occurs\ncan help callers who do not want to panic to avoid those situations.\n\n### Examples\nSince the following function may panic it has a `# Panics` section in\nits doc comment:\n\n```rust\n/// # Panics\n///\n/// Will panic if y is 0\npub fn divide_by(x: i32, y: i32) -> i32 {\n    if y == 0 {\n        panic!(\"Cannot divide by 0\")\n    } else {\n        x / y\n    }\n}\n```\n\n### Configuration\n\n- `check-private-items`:  Whether to also run the listed lints on private items.\n\n\n   (default: `false`)\n",
@@ -3286,7 +3286,7 @@
   },
   {
     "id": "missing_safety_doc",
-    "id_location": "clippy_lints/src/doc/mod.rs#L111",
+    "id_location": "clippy_lints/src/doc/mod.rs#L113",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for the doc comments of publicly visible\nunsafe functions and warns if there is no `# Safety` section.\n\n### Why is this bad?\nUnsafe functions should document their safety\npreconditions, so that users can be sure they are using them safely.\n\n### Examples\n```rust\n/// This function should really be documented\npub unsafe fn start_apocalypse(u: &mut Universe) {\n    unimplemented!();\n}\n```\n\nAt least write a line about safety:\n\n```rust\n/// # Safety\n///\n/// This function should not be called before the horsemen are ready.\npub unsafe fn start_apocalypse(u: &mut Universe) {\n    unimplemented!();\n}\n```\n\n### Configuration\n\n- `check-private-items`:  Whether to also run the listed lints on private items.\n\n\n   (default: `false`)\n",
@@ -3628,7 +3628,7 @@
   },
   {
     "id": "needless_doctest_main",
-    "id_location": "clippy_lints/src/doc/mod.rs#L200",
+    "id_location": "clippy_lints/src/doc/mod.rs#L202",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for `fn main() { .. }` in doctests\n\n### Why is this bad?\nThe test can be shorter (and likely more readable)\nif the `fn main()` is left implicit.\n\n### Examples\n```rust\n/// An example of a doctest with a `main()` function\n///\n/// # Examples\n///\n/// ```\n/// fn main() {\n///     // this needs not be in an `fn`\n/// }\n/// ```\nfn needless_main() {\n    unimplemented!();\n}\n```\n",
@@ -5419,7 +5419,7 @@
   },
   {
     "id": "suspicious_doc_comments",
-    "id_location": "clippy_lints/src/doc/mod.rs#L339",
+    "id_location": "clippy_lints/src/doc/mod.rs#L341",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nDetects the use of outer doc comments (`///`, `/**`) followed by a bang (`!`): `///!`\n\n### Why is this bad?\nTriple-slash comments (known as \"outer doc comments\") apply to items that follow it.\nAn outer doc comment followed by a bang (i.e. `///!`) has no specific meaning.\n\nThe user most likely meant to write an inner doc comment (`//!`, `/*!`), which\napplies to the parent item (i.e. the item that the comment is contained in,\nusually a module or crate).\n\n### Known problems\nInner doc comments can only appear before items, so there are certain cases where the suggestion\nmade by this lint is not valid code. For example:\n```rust\nfn foo() {}\n///!\nfn bar() {}\n```\nThis lint detects the doc comment and suggests changing it to `//!`, but an inner doc comment\nis not valid at that position.\n\n### Example\nIn this example, the doc comment is attached to the *function*, rather than the *module*.\n```rust\npub mod util {\n    ///! This module contains utility functions.\n\n    pub fn dummy() {}\n}\n```\n\nUse instead:\n```rust\npub mod util {\n    //! This module contains utility functions.\n\n    pub fn dummy() {}\n}\n```\n",
@@ -5536,7 +5536,7 @@
   },
   {
     "id": "test_attr_in_doctest",
-    "id_location": "clippy_lints/src/doc/mod.rs#L233",
+    "id_location": "clippy_lints/src/doc/mod.rs#L235",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for `#[test]` in doctests unless they are marked with\neither `ignore`, `no_run` or `compile_fail`.\n\n### Why is this bad?\nCode in examples marked as `#[test]` will somewhat\nsurprisingly not be run by `cargo test`. If you really want\nto show how to test stuff in an example, mark it `no_run` to\nmake the intent clear.\n\n### Examples\n```rust\n/// An example of a doctest with a `main()` function\n///\n/// # Examples\n///\n/// ```\n/// #[test]\n/// fn equality_works() {\n///     assert_eq!(1_u8, 1);\n/// }\n/// ```\nfn test_attr_in_doctest() {\n    unimplemented!();\n}\n```\n",
@@ -5587,6 +5587,15 @@
     "docs": "### What it does\nChecks for usage of `todo!`.\n\n### Why restrict this?\nThe `todo!` macro indicates the presence of unfinished code,\nso it should not be present in production code.\n\n### Example\n```rust\ntodo!();\n```\nFinish the implementation, or consider marking it as explicitly unimplemented.\n```rust\nunimplemented!();\n```\n",
     "version": "1.40.0",
     "applicability": "Unspecified"
+  },
+  {
+    "id": "too_long_first_doc_paragraph",
+    "id_location": "clippy_lints/src/doc/mod.rs#L453",
+    "group": "style",
+    "level": "warn",
+    "docs": "### What it does\nChecks if the first line in the documentation of items listed in module page is too long.\n\n### Why is this bad?\nDocumentation will show the first paragraph of the doscstring in the summary page of a\nmodule, so having a nice, short summary in the first paragraph is part of writing good docs.\n\n### Example\n```rust\n/// A very short summary.\n/// A much longer explanation that goes into a lot more detail about\n/// how the thing works, possibly with doclinks and so one,\n/// and probably spanning a many rows.\nstruct Foo {}\n```\nUse instead:\n```rust\n/// A very short summary.\n///\n/// A much longer explanation that goes into a lot more detail about\n/// how the thing works, possibly with doclinks and so one,\n/// and probably spanning a many rows.\nstruct Foo {}\n```\n",
+    "version": "1.81.0",
+    "applicability": "MachineApplicable"
   },
   {
     "id": "too_many_arguments",
@@ -6103,7 +6112,7 @@
   },
   {
     "id": "unnecessary_safety_doc",
-    "id_location": "clippy_lints/src/doc/mod.rs#L292",
+    "id_location": "clippy_lints/src/doc/mod.rs#L294",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for the doc comments of publicly visible\nsafe functions and traits and warns if there is a `# Safety` section.\n\n### Why restrict this?\nSafe functions and traits are safe to implement and therefore do not\nneed to describe safety preconditions that users are required to uphold.\n\n### Examples\n```rust\n/// # Safety\n///\n/// This function should not be called before the horsemen are ready.\npub fn start_apocalypse_but_safely(u: &mut Universe) {\n    unimplemented!();\n}\n```\n\nThe function is safe, so there shouldn't be any preconditions\nthat have to be explained for safety reasons.\n\n```rust\n/// This function should really be documented\npub fn start_apocalypse(u: &mut Universe) {\n    unimplemented!();\n}\n```\n\n### Configuration\n\n- `check-private-items`:  Whether to also run the listed lints on private items.\n\n\n   (default: `false`)\n",
