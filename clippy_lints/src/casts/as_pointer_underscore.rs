@@ -6,19 +6,14 @@ pub fn check<'tcx>(cx: &LateContext<'tcx>, ty_into: Ty<'_>, cast_to_hir: &'tcx r
     if let rustc_hir::TyKind::Ptr(rustc_hir::MutTy { ty, .. }) = cast_to_hir.kind
         && matches!(ty.kind, rustc_hir::TyKind::Infer)
     {
-        clippy_utils::diagnostics::span_lint_and_then(
+        clippy_utils::diagnostics::span_lint_and_sugg(
             cx,
             super::AS_POINTER_UNDERSCORE,
             cast_to_hir.span,
             "using inferred pointer cast",
-            |diag| {
-                diag.span_suggestion(
-                    cast_to_hir.span,
-                    "use explicit type",
-                    ty_into,
-                    Applicability::MachineApplicable,
-                );
-            },
+            "use explicit type",
+            ty_into.to_string(),
+            Applicability::MachineApplicable,
         );
     }
 }
