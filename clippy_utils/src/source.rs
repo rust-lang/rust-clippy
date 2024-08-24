@@ -11,8 +11,8 @@ use rustc_middle::ty::TyCtxt;
 use rustc_session::Session;
 use rustc_span::source_map::{original_sp, SourceMap};
 use rustc_span::{
-    hygiene, BytePos, FileNameDisplayPreference, Pos, SourceFile, SourceFileAndLine, Span, SpanData, SyntaxContext,
-    DUMMY_SP,
+    hygiene, BytePos, FileNameDisplayPreference, Pos, RelativeBytePos, SourceFile, SourceFileAndLine, Span, SpanData,
+    SyntaxContext, DUMMY_SP,
 };
 use std::borrow::Cow;
 use std::fmt;
@@ -106,6 +106,12 @@ pub trait SpanRangeExt: SpanRange {
         get_source_range(cx.sess().source_map(), self.into_range())
     }
 
+    /// Calls the given function with the indent of the referenced line and returns the value.
+    /// Passes an empty string if the indent cannot be determined.
+    fn with_line_indent<T>(self, cx: &impl LintContext, f: impl for<'a> FnOnce(&'a str) -> T) -> T {
+        with_line_indent(cx.sess().source_map(), self.into_range(), f)
+    }
+
     /// Calls the given function with the source text referenced and returns the value. Returns
     /// `None` if the source text cannot be retrieved.
     fn with_source_text<T>(self, cx: &impl HasSession, f: impl for<'a> FnOnce(&'a str) -> T) -> Option<T> {
@@ -141,9 +147,27 @@ pub trait SpanRangeExt: SpanRange {
         map_range(cx.sess().source_map(), self.into_range(), f)
     }
 
+    /// Calls the given function with the both the text of the source file and the referenced range,
+    /// and creates a new span from the result. Returns `None` if the source text cannot be
+    /// retrieved, or no result is returned.
+    ///
+    /// The new range must reside within the same source file.
+    fn map_range_as_pos_len(
+        self,
+        cx: &impl LintContext,
+        f: impl for<'a> FnOnce(&'a str, Range<usize>) -> Option<(usize, usize)>,
+    ) -> Option<Range<BytePos>> {
+        map_range_as_pos_len(cx.sess().source_map(), self.into_range(), f)
+    }
+
     /// Extends the range to include all preceding whitespace characters.
     fn with_leading_whitespace(self, cx: &impl HasSession) -> Range<BytePos> {
         with_leading_whitespace(cx.sess().source_map(), self.into_range())
+    }
+
+    /// Extends the range to include all trailing whitespace characters.
+    fn with_trailing_whitespace(self, cx: &impl LintContext) -> Range<BytePos> {
+        with_trailing_whitespace(cx.sess().source_map(), self.into_range())
     }
 
     /// Trims the leading whitespace from the range.
@@ -207,7 +231,7 @@ fn get_source_range(sm: &SourceMap, sp: Range<BytePos>) -> Option<SourceFileRang
     if !Lrc::ptr_eq(&start.sf, &end.sf) || start.pos > end.pos {
         return None;
     }
-    let range = start.pos.to_usize()..end.pos.to_usize();
+    let range = RelativeBytePos(start.pos.0)..RelativeBytePos(end.pos.0);
     Some(SourceFileRange { sf: start.sf, range })
 }
 
@@ -229,10 +253,29 @@ fn with_source_text_and_range<T>(
     if let Some(src) = get_source_range(sm, sp)
         && let Some(text) = &src.sf.src
     {
-        Some(f(text, src.range))
+        Some(f(text, src.usize_range()))
     } else {
         None
     }
+}
+
+fn with_line_indent<T>(sm: &SourceMap, sp: Range<BytePos>, f: impl for<'a> FnOnce(&'a str) -> T) -> T {
+    let src = get_source_text(sm, sp);
+    let indent = if let Some(src) = &src
+        && let Some(line) = src.sf.lookup_line(src.range.start)
+        && let Some(start) = src.sf.lines().get(line)
+        && let Some(text) = src.sf.src.as_ref()
+    {
+        let text = if let Some(end) = src.sf.lines().get(line + 1) {
+            &text[start.to_usize()..end.to_usize()]
+        } else {
+            &text[start.to_usize()..]
+        };
+        &text[..text.len() - text.trim_start().len()]
+    } else {
+        ""
+    };
+    f(indent)
 }
 
 #[expect(clippy::cast_possible_truncation)]
@@ -243,7 +286,7 @@ fn map_range(
 ) -> Option<Range<BytePos>> {
     if let Some(src) = get_source_range(sm, sp.clone())
         && let Some(text) = &src.sf.src
-        && let Some(range) = f(text, src.range.clone())
+        && let Some(range) = f(text, src.usize_range())
     {
         debug_assert!(
             range.start <= text.len() && range.end <= text.len(),
@@ -252,9 +295,34 @@ fn map_range(
             text.len(),
         );
         debug_assert!(range.start <= range.end, "Range `{range:?}` has overlapping bounds");
-        let dstart = (range.start as u32).wrapping_sub(src.range.start as u32);
-        let dend = (range.end as u32).wrapping_sub(src.range.start as u32);
+        let dstart = (range.start as u32).wrapping_sub(src.range.start.0);
+        let dend = (range.end as u32).wrapping_sub(src.range.start.0);
         Some(BytePos(sp.start.0.wrapping_add(dstart))..BytePos(sp.start.0.wrapping_add(dend)))
+    } else {
+        None
+    }
+}
+
+#[expect(clippy::cast_possible_truncation)]
+fn map_range_as_pos_len(
+    sm: &SourceMap,
+    sp: Range<BytePos>,
+    f: impl for<'a> FnOnce(&'a str, Range<usize>) -> Option<(usize, usize)>,
+) -> Option<Range<BytePos>> {
+    if let Some(src) = get_source_text(sm, sp.clone())
+        && let Some(text) = &src.sf.src
+        && let Some((pos, len)) = f(text, src.usize_range())
+    {
+        debug_assert!(
+            pos + len <= text.len(),
+            "Range `{:?}` is outside the source file (file `{}`, length `{}`)",
+            pos..pos + len,
+            src.sf.name.display(FileNameDisplayPreference::Local),
+            text.len(),
+        );
+        let delta = (pos as u32).wrapping_sub(src.range.start.0);
+        let pos = sp.start.0.wrapping_add(delta);
+        Some(BytePos(pos)..BytePos(pos + len as u32))
     } else {
         None
     }
@@ -263,6 +331,14 @@ fn map_range(
 fn with_leading_whitespace(sm: &SourceMap, sp: Range<BytePos>) -> Range<BytePos> {
     map_range(sm, sp.clone(), |src, range| {
         Some(src.get(..range.start)?.trim_end().len()..range.end)
+    })
+    .unwrap_or(sp)
+}
+
+fn with_trailing_whitespace(sm: &SourceMap, sp: Range<BytePos>) -> Range<BytePos> {
+    map_range(sm, sp.clone(), |src, range| {
+        let tail = src.get(range.end..)?;
+        Some(range.start..range.end + (tail.len() - tail.trim_start().len()))
     })
     .unwrap_or(sp)
 }
@@ -277,13 +353,18 @@ fn trim_start(sm: &SourceMap, sp: Range<BytePos>) -> Range<BytePos> {
 
 pub struct SourceFileRange {
     pub sf: Lrc<SourceFile>,
-    pub range: Range<usize>,
+    pub range: Range<RelativeBytePos>,
 }
 impl SourceFileRange {
     /// Attempts to get the text from the source file. This can fail if the source text isn't
     /// loaded.
     pub fn as_str(&self) -> Option<&str> {
-        self.sf.src.as_ref().and_then(|x| x.get(self.range.clone()))
+        self.sf.src.as_ref().and_then(|x| x.get(self.usize_range()))
+    }
+
+    /// Gets the range of the source text as a `usize` range.
+    pub fn usize_range(&self) -> Range<usize> {
+        self.range.start.0 as usize..self.range.end.0 as usize
     }
 }
 
