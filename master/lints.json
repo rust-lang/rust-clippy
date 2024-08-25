@@ -928,7 +928,7 @@
   },
   {
     "id": "diverging_sub_expression",
-    "id_location": "clippy_lints/src/mixed_read_write_in_expression.rs#L75",
+    "id_location": "clippy_lints/src/mixed_read_write_in_expression.rs#L76",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for diverging calls that are not match arms or\nstatements.\n\n### Why is this bad?\nIt is often confusing to read. In addition, the\nsub-expression evaluation order for Rust is not well documented.\n\n### Known problems\nSomeone might want to use `some_bool || panic!()` as a\nshorthand.\n\n### Example\n```rust\nlet a = b() || panic!() || c();\n// `c()` is dead, `panic!()` is only called if `b()` returns `false`\nlet x = (a, b, c, panic!());\n// can simply be replaced by `panic!()`\n```\n",
@@ -3349,7 +3349,7 @@
   },
   {
     "id": "mixed_read_write_in_expression",
-    "id_location": "clippy_lints/src/mixed_read_write_in_expression.rs#L47",
+    "id_location": "clippy_lints/src/mixed_read_write_in_expression.rs#L48",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for a read and a write to the same variable where\nwhether the read occurs before or after the write depends on the evaluation\norder of sub-expressions.\n\n### Why restrict this?\nWhile [the evaluation order of sub-expressions] is fully specified in Rust,\nit still may be confusing to read an expression where the evaluation order\naffects its behavior.\n\n### Known problems\nCode which intentionally depends on the evaluation\norder, or which is correct for any evaluation order.\n\n### Example\n```rust\nlet mut x = 0;\n\nlet a = {\n    x = 1;\n    1\n} + x;\n// Unclear whether a is 1 or 2.\n```\n\nUse instead:\n```rust\nlet tmp = {\n    x = 1;\n    1\n};\nlet a = tmp + x;\n```\n\n[order]: (https://doc.rust-lang.org/reference/expressions.html?highlight=subexpression#evaluation-order-of-operands)\n\n### Past names\n\n * eval_order_dependence\n",
