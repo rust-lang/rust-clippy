@@ -1,11 +1,11 @@
+use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet;
-use rustc_middle::lint::in_external_macro;
+use clippy_utils::visitors::{for_each_expr, Descend};
+use rustc_errors::Applicability;
 use rustc_hir::*;
 use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_middle::lint::in_external_macro;
 use rustc_session::declare_lint_pass;
-use rustc_errors::Applicability;
-use clippy_utils::visitors::{for_each_expr, Descend};
-use clippy_utils::diagnostics::span_lint_and_sugg;
 use std::ops::ControlFlow;
 
 declare_clippy_lint! {
@@ -47,7 +47,7 @@ declare_clippy_lint! {
 declare_lint_pass!(StackedIfMatch => [STACKED_IF_MATCH]);
 
 impl<'tcx> LateLintPass<'tcx> for StackedIfMatch {
-   fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         if expr.span.from_expansion() || in_external_macro(cx.sess(), expr.span) {
             return;
         }
@@ -74,15 +74,20 @@ impl<'tcx> LateLintPass<'tcx> for StackedIfMatch {
                 return ControlFlow::Continue(Descend::No);
             }
 
-            if (keyword == "if" && matches!(sub_expr.kind, ExprKind::If(..)))
-                || (keyword == "match" && matches!(sub_expr.kind, ExprKind::Match(.., MatchSource::Normal))) {
+            let sub_keyword = match sub_expr.kind {
+                ExprKind::If(..) => "if",
+                ExprKind::Match(.., MatchSource::Normal) => "match",
+                _ => "",
+            };
+
+            if keyword == sub_keyword {
                 let inner_snippet = snippet(cx, sub_expr.span, "..");
                 span_lint_and_sugg(
                     cx,
                     STACKED_IF_MATCH,
                     expr.span.with_hi(sub_expr.span.hi()),
-                    format!("avoid using `{keyword} {keyword}`"),
-                    format!("try binding inner `{keyword}` with `let`"),
+                    format!("avoid using `{keyword} {keyword}` by binding inner `{keyword}` with `let`"),
+                    format!("try"),
                     format!("let result = {inner_snippet}; {keyword} result"),
                     Applicability::MachineApplicable,
                 );

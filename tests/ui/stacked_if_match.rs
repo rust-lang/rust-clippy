@@ -1,22 +1,23 @@
 #![warn(clippy::stacked_if_match)]
 #![allow(unused)]
 
-
 fn stacked_if() {
     let x = 0;
-    if if x == 1 {
-        x == 2
-    } else {
-        x == 3
-    } {
+    if if x == 1 { x == 2 } else { x == 3 } {
+        println!("true");
+    }
+
+    if if x == 1 { 2 } else { 3 } == 4 {
         println!("true");
     }
 
     if if x == 1 {
-        2
+        let y = 2;
+        y == 2
     } else {
-        3
-    } == 4 {
+        let z = 3;
+        z == 3
+    } {
         println!("true");
     }
 }
@@ -35,7 +36,8 @@ fn stacked_match() {
     match match x {
         1 => 2,
         _ => 3,
-    } + 1 {
+    } + 1
+    {
         1 => {},
         2 => {},
         _ => {},
@@ -45,19 +47,11 @@ fn stacked_match() {
 fn if_no_lint() {
     let x = 0;
 
-    if (if x == 1 {
-        x == 2
-    } else {
-        x == 3
-    }) {
+    if (if x == 1 { x == 2 } else { x == 3 }) {
         println!("true");
     }
 
-    if 1 == if x == 1 {
-        1
-    } else {
-        2
-    } {
+    if 1 == if x == 1 { 1 } else { 2 } {
         println!("true");
     }
 }
@@ -85,11 +79,7 @@ fn match_no_lint() {
 
 macro_rules! if_macro {
     ($var:ident) => {
-        if $var == 1 {
-            true
-        } else {
-            false
-        }
+        if $var == 1 { true } else { false }
     };
 }
 
@@ -104,11 +94,7 @@ macro_rules! match_macro {
 
 macro_rules! if_if_macro {
     () => {
-        if if true {
-            true
-        } else {
-            false
-        } {
+        if if true { true } else { false } {
             println!("true");
         }
     };
