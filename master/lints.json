@@ -28,7 +28,7 @@
   },
   {
     "id": "allow_attributes",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L324",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L235",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of the `#[allow]` attribute and suggests replacing it with\nthe `#[expect]` (See [RFC 2383](https://rust-lang.github.io/rfcs/2383-lint-reasons.html))\n\nThis lint only warns outer attributes (`#[allow]`), as inner attributes\n(`#![allow]`) are usually used to enable or disable lints on a global scale.\n\n### Why is this bad?\n`#[expect]` attributes suppress the lint emission, but emit a warning, if\nthe expectation is unfulfilled. This can be useful to be notified when the\nlint is no longer triggered.\n\n### Example\n```rust\n#[allow(unused_mut)]\nfn foo() -> usize {\n    let mut a = Vec::new();\n    a.len()\n}\n```\nUse instead:\n```rust\n#[expect(unused_mut)]\nfn foo() -> usize {\n    let mut a = Vec::new();\n    a.len()\n}\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -37,7 +37,7 @@
   },
   {
     "id": "allow_attributes_without_reason",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L289",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L200",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for attributes that allow lints without a reason.\n\n### Why restrict this?\nJustifying each `allow` helps readers understand the reasoning,\nand may allow removing `allow` attributes if their purpose is obsolete.\n\n### Example\n```rust\n#![allow(clippy::some_lint)]\n```\n\nUse instead:\n```rust\n#![allow(clippy::some_lint, reason = \"False positive rust-lang/rust-clippy#1002020\")]\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -226,7 +226,7 @@
   },
   {
     "id": "blanket_clippy_restriction_lints",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L235",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L146",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for `warn`/`deny`/`forbid` attributes targeting the whole clippy::restriction category.\n\n### Why is this bad?\nRestriction lints sometimes are in contrast with other lints or even go against idiomatic rust.\nThese lints should only be enabled on a lint-by-lint basis and with careful consideration.\n\n### Example\n```rust\n#![deny(clippy::restriction)]\n```\n\nUse instead:\n```rust\n#![deny(clippy::as_conversions)]\n```\n",
@@ -802,7 +802,7 @@
   },
   {
     "id": "deprecated_cfg_attr",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L266",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L177",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for `#[cfg_attr(rustfmt, rustfmt_skip)]` and suggests to replace it\nwith `#[rustfmt::skip]`.\n\n### Why is this bad?\nSince tool_attributes ([rust-lang/rust#44690](https://github.com/rust-lang/rust/issues/44690))\nare stable now, they should be used instead of the old `cfg_attr(rustfmt)` attributes.\n\n### Known problems\nThis lint doesn't detect crate level inner attributes, because they get\nprocessed before the PreExpansionPass lints get executed. See\n[#3123](https://github.com/rust-lang/rust-clippy/pull/3123#issuecomment-422321765)\n\n### Example\n```rust\n#[cfg_attr(rustfmt, rustfmt_skip)]\nfn main() { }\n```\n\nUse instead:\n```rust\n#[rustfmt::skip]\nfn main() { }\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -811,7 +811,7 @@
   },
   {
     "id": "deprecated_clippy_cfg_attr",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L409",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L320",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for `#[cfg_attr(feature = \"cargo-clippy\", ...)]` and for\n`#[cfg(feature = \"cargo-clippy\")]` and suggests to replace it with\n`#[cfg_attr(clippy, ...)]` or `#[cfg(clippy)]`.\n\n### Why is this bad?\nThis feature has been deprecated for years and shouldn't be used anymore.\n\n### Example\n```rust\n#[cfg(feature = \"cargo-clippy\")]\nstruct Bar;\n```\n\nUse instead:\n```rust\n#[cfg(clippy)]\nstruct Bar;\n```\n",
@@ -820,7 +820,7 @@
   },
   {
     "id": "deprecated_semver",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L124",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L123",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nChecks for `#[deprecated]` annotations with a `since`\nfield that is not a valid semantic version. Also allows \"TBD\" to signal\nfuture deprecation.\n\n### Why is this bad?\nFor checking the version of the deprecation, it must be\na valid semver. Failing that, the contained information is useless.\n\n### Example\n```rust\n#[deprecated(since = \"forever\")]\nfn something_else() { /* ... */ }\n```\n",
@@ -937,7 +937,7 @@
   },
   {
     "id": "doc_lazy_continuation",
-    "id_location": "clippy_lints/src/doc/mod.rs#L422",
+    "id_location": "clippy_lints/src/doc/mod.rs#L423",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\n\nIn CommonMark Markdown, the language used to write doc comments, a\nparagraph nested within a list or block quote does not need any line\nafter the first one to be indented or marked. The specification calls\nthis a \"lazy paragraph continuation.\"\n\n### Why is this bad?\n\nThis is easy to write but hard to read. Lazy continuations makes\nunintended markers hard to see, and make it harder to deduce the\ndocument's intended structure.\n\n### Example\n\nThis table is probably intended to have two rows,\nbut it does not. It has zero rows, and is followed by\na block quote.\n```rust\n/// Range | Description\n/// ----- | -----------\n/// >= 1  | fully opaque\n/// < 1   | partially see-through\nfn set_opacity(opacity: f32) {}\n```\n\nFix it by escaping the marker:\n```rust\n/// Range | Description\n/// ----- | -----------\n/// \\>= 1 | fully opaque\n/// < 1   | partially see-through\nfn set_opacity(opacity: f32) {}\n```\n\nThis example is actually intended to be a list:\n```rust\n/// * Do nothing.\n/// * Then do something. Whatever it is needs done,\n/// it should be done right now.\n```\n\nFix it by indenting the list contents:\n```rust\n/// * Do nothing.\n/// * Then do something. Whatever it is needs done,\n///   it should be done right now.\n```\n",
@@ -946,7 +946,7 @@
   },
   {
     "id": "doc_link_with_quotes",
-    "id_location": "clippy_lints/src/doc/mod.rs#L258",
+    "id_location": "clippy_lints/src/doc/mod.rs#L259",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nDetects the syntax `['foo']` in documentation comments (notice quotes instead of backticks)\noutside of code blocks\n### Why is this bad?\nIt is likely a typo when defining an intra-doc link\n\n### Example\n```rust\n/// See also: ['foo']\nfn bar() {}\n```\nUse instead:\n```rust\n/// See also: [`foo`]\nfn bar() {}\n```\n",
@@ -955,7 +955,7 @@
   },
   {
     "id": "doc_markdown",
-    "id_location": "clippy_lints/src/doc/mod.rs#L78",
+    "id_location": "clippy_lints/src/doc/mod.rs#L79",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for the presence of `_`, `::` or camel-case words\noutside ticks in documentation.\n\n### Why is this bad?\n*Rustdoc* supports markdown formatting, `_`, `::` and\ncamel-case probably indicates some code which should be included between\nticks. `_` can also be used for emphasis in markdown, this lint tries to\nconsider that.\n\n### Known problems\nLots of bad docs won’t be fixed, what the lint checks\nfor is limited, and there are still false positives. HTML elements and their\ncontent are not linted.\n\nIn addition, when writing documentation comments, including `[]` brackets\ninside a link text would trip the parser. Therefore, documenting link with\n`[`SmallVec<[T; INLINE_CAPACITY]>`]` and then [`SmallVec<[T; INLINE_CAPACITY]>`]: SmallVec\nwould fail.\n\n### Examples\n```rust\n/// Do something with the foo_bar parameter. See also\n/// that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar: usize) {}\n```\n\n```rust\n// Link text with `[]` brackets should be written as following:\n/// Consume the array and return the inner\n/// [`SmallVec<[T; INLINE_CAPACITY]>`][SmallVec].\n/// [SmallVec]: SmallVec\nfn main() {}\n```\n\n### Configuration\n\n- `doc-valid-idents`:  The list of words this lint should not consider as identifiers needing ticks. The value\n `\"..\"` can be used as part of the list to indicate, that the configured values should be appended to the\n default configuration of Clippy. By default, any configuration will replace the default value. For example:\n * `doc-valid-idents = [\"ClipPy\"]` would replace the default list with `[\"ClipPy\"]`.\n * `doc-valid-idents = [\"ClipPy\", \"..\"]` would append `ClipPy` to the default list.\n\n\n   (default: `[\"KiB\", \"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\", \"AccessKit\", \"CoreFoundation\", \"CoreGraphics\", \"CoreText\", \"DevOps\", \"Direct2D\", \"Direct3D\", \"DirectWrite\", \"DirectX\", \"ECMAScript\", \"GPLv2\", \"GPLv3\", \"GitHub\", \"GitLab\", \"IPv4\", \"IPv6\", \"ClojureScript\", \"CoffeeScript\", \"JavaScript\", \"PostScript\", \"PureScript\", \"TypeScript\", \"WebAssembly\", \"NaN\", \"NaNs\", \"OAuth\", \"GraphQL\", \"OCaml\", \"OpenAL\", \"OpenDNS\", \"OpenGL\", \"OpenMP\", \"OpenSSH\", \"OpenSSL\", \"OpenStreetMap\", \"OpenTelemetry\", \"OpenType\", \"WebGL\", \"WebGL2\", \"WebGPU\", \"WebRTC\", \"WebSocket\", \"WebTransport\", \"WebP\", \"OpenExr\", \"YCbCr\", \"sRGB\", \"TensorFlow\", \"TrueType\", \"iOS\", \"macOS\", \"FreeBSD\", \"NetBSD\", \"OpenBSD\", \"TeX\", \"LaTeX\", \"BibTeX\", \"BibLaTeX\", \"MinGW\", \"CamelCase\"]`)\n",
@@ -1036,7 +1036,7 @@
   },
   {
     "id": "duplicated_attributes",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L496",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L407",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for attributes that appear two or more times.\n\n### Why is this bad?\nRepeating an attribute on the same item (or globally on the same crate)\nis unnecessary and doesn't have an effect.\n\n### Example\n```rust\n#[allow(dead_code)]\n#[allow(dead_code)]\nfn foo() {}\n```\n\nUse instead:\n```rust\n#[allow(dead_code)]\nfn foo() {}\n```\n",
@@ -1072,7 +1072,7 @@
   },
   {
     "id": "empty_docs",
-    "id_location": "clippy_lints/src/doc/mod.rs#L365",
+    "id_location": "clippy_lints/src/doc/mod.rs#L366",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nDetects documentation that is empty.\n### Why is this bad?\nEmpty docs clutter code without adding value, reducing readability and maintainability.\n### Example\n```rust\n///\nfn returns_true() -> bool {\n    true\n}\n```\nUse instead:\n```rust\nfn returns_true() -> bool {\n    true\n}\n```\n",
@@ -1108,21 +1108,21 @@
   },
   {
     "id": "empty_line_after_doc_comments",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L212",
-    "group": "nursery",
-    "level": "allow",
-    "docs": "### What it does\nChecks for empty lines after documentation comments.\n\n### Why is this bad?\nThe documentation comment was most likely meant to be an inner attribute or regular comment.\nIf it was intended to be a documentation comment, then the empty line should be removed to\nbe more idiomatic.\n\n### Known problems\nOnly detects empty lines immediately following the documentation. If the doc comment is followed\nby an attribute and then an empty line, this lint will not trigger. Use `empty_line_after_outer_attr`\nin combination with this lint to detect both cases.\n\nDoes not detect empty lines after doc attributes (e.g. `#[doc = \"\"]`).\n\n### Example\n```rust\n/// Some doc comment with a blank line after it.\n\nfn not_quite_good_code() { }\n```\n\nUse instead:\n```rust\n/// Good (no blank line)\nfn this_is_fine() { }\n```\n\n```rust\n// Good (convert to a regular comment)\n\nfn this_is_fine_too() { }\n```\n\n```rust\n//! Good (convert to a comment on an inner attribute)\n\nfn this_is_fine_as_well() { }\n```\n",
+    "id_location": "clippy_lints/src/doc/mod.rs#L530",
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "### What it does\nChecks for empty lines after doc comments.\n\n### Why is this bad?\nThe doc comment may have meant to be an inner doc comment, regular\ncomment or applied to some old code that is now commented out. If it was\nintended to be a doc comment, then the empty line should be removed.\n\n### Example\n```rust\n/// Some doc comment with a blank line after it.\n\nfn f() {}\n\n/// Docs for `old_code`\n// fn old_code() {}\n\nfn new_code() {}\n```\n\nUse instead:\n```rust\n//! Convert it to an inner doc comment\n\n// Or a regular comment\n\n/// Or remove the empty line\nfn f() {}\n\n// /// Docs for `old_code`\n// fn old_code() {}\n\nfn new_code() {}\n```\n",
     "version": "1.70.0",
-    "applicability": "Unspecified"
+    "applicability": "MaybeIncorrect"
   },
   {
     "id": "empty_line_after_outer_attr",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L166",
-    "group": "nursery",
-    "level": "allow",
-    "docs": "### What it does\nChecks for empty lines after outer attributes\n\n### Why is this bad?\nMost likely the attribute was meant to be an inner attribute using a '!'.\nIf it was meant to be an outer attribute, then the following item\nshould not be separated by empty lines.\n\n### Known problems\nCan cause false positives.\n\nFrom the clippy side it's difficult to detect empty lines between an attributes and the\nfollowing item because empty lines and comments are not part of the AST. The parsing\ncurrently works for basic cases but is not perfect.\n\n### Example\n```rust\n#[allow(dead_code)]\n\nfn not_quite_good_code() { }\n```\n\nUse instead:\n```rust\n// Good (as inner attribute)\n#![allow(dead_code)]\n\nfn this_is_fine() { }\n\n// or\n\n// Good (as outer attribute)\n#[allow(dead_code)]\nfn this_is_fine_too() { }\n```\n",
+    "id_location": "clippy_lints/src/doc/mod.rs#L489",
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "### What it does\nChecks for empty lines after outer attributes\n\n### Why is this bad?\nThe attribute may have meant to be an inner attribute (`#![attr]`). If\nit was meant to be an outer attribute (`#[attr]`) then the empty line\nshould be removed\n\n### Example\n```rust\n#[allow(dead_code)]\n\nfn not_quite_good_code() {}\n```\n\nUse instead:\n```rust\n// Good (as inner attribute)\n#![allow(dead_code)]\n\nfn this_is_fine() {}\n\n// or\n\n// Good (as outer attribute)\n#[allow(dead_code)]\nfn this_is_fine_too() {}\n```\n",
     "version": "pre 1.29.0",
-    "applicability": "Unspecified"
+    "applicability": "MaybeIncorrect"
   },
   {
     "id": "empty_loop",
@@ -1963,7 +1963,7 @@
   },
   {
     "id": "inline_always",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L50",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L49",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for items annotated with `#[inline(always)]`,\nunless the annotated function is empty or simply panics.\n\n### Why is this bad?\nWhile there are valid uses of this annotation (and once\nyou know when to use it, by all means `allow` this lint), it's a common\nnewbie-mistake to pepper one's code with it.\n\nAs a rule of thumb, before slapping `#[inline(always)]` on a function,\nmeasure if that additional function call really affects your runtime profile\nsufficiently to make up for the increase in compile time.\n\n### Known problems\nFalse positives, big time. This lint is meant to be\ndeactivated by everyone doing serious performance work. This means having\ndone the measurement.\n\n### Example\n```rust\n#[inline(always)]\nfn not_quite_hot_code(..) { ... }\n```\n",
@@ -3250,7 +3250,7 @@
   },
   {
     "id": "missing_errors_doc",
-    "id_location": "clippy_lints/src/doc/mod.rs#L142",
+    "id_location": "clippy_lints/src/doc/mod.rs#L143",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks the doc comments of publicly visible functions that\nreturn a `Result` type and warns if there is no `# Errors` section.\n\n### Why is this bad?\nDocumenting the type of errors that can be returned from a\nfunction can help callers write code to handle the errors appropriately.\n\n### Examples\nSince the following function returns a `Result` it has an `# Errors` section in\nits doc comment:\n\n```rust\n/// # Errors\n///\n/// Will return `Err` if `filename` does not exist or the user does not have\n/// permission to read it.\npub fn read(filename: String) -> io::Result<String> {\n    unimplemented!();\n}\n```\n\n### Configuration\n\n- `check-private-items`:  Whether to also run the listed lints on private items.\n\n\n   (default: `false`)\n",
@@ -3277,7 +3277,7 @@
   },
   {
     "id": "missing_panics_doc",
-    "id_location": "clippy_lints/src/doc/mod.rs#L173",
+    "id_location": "clippy_lints/src/doc/mod.rs#L174",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks the doc comments of publicly visible functions that\nmay panic and warns if there is no `# Panics` section.\n\n### Why is this bad?\nDocumenting the scenarios in which panicking occurs\ncan help callers who do not want to panic to avoid those situations.\n\n### Examples\nSince the following function may panic it has a `# Panics` section in\nits doc comment:\n\n```rust\n/// # Panics\n///\n/// Will panic if y is 0\npub fn divide_by(x: i32, y: i32) -> i32 {\n    if y == 0 {\n        panic!(\"Cannot divide by 0\")\n    } else {\n        x / y\n    }\n}\n```\n\n### Configuration\n\n- `check-private-items`:  Whether to also run the listed lints on private items.\n\n\n   (default: `false`)\n",
@@ -3286,7 +3286,7 @@
   },
   {
     "id": "missing_safety_doc",
-    "id_location": "clippy_lints/src/doc/mod.rs#L113",
+    "id_location": "clippy_lints/src/doc/mod.rs#L114",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for the doc comments of publicly visible\nunsafe functions and warns if there is no `# Safety` section.\n\n### Why is this bad?\nUnsafe functions should document their safety\npreconditions, so that users can be sure they are using them safely.\n\n### Examples\n```rust\n/// This function should really be documented\npub unsafe fn start_apocalypse(u: &mut Universe) {\n    unimplemented!();\n}\n```\n\nAt least write a line about safety:\n\n```rust\n/// # Safety\n///\n/// This function should not be called before the horsemen are ready.\npub unsafe fn start_apocalypse(u: &mut Universe) {\n    unimplemented!();\n}\n```\n\n### Configuration\n\n- `check-private-items`:  Whether to also run the listed lints on private items.\n\n\n   (default: `false`)\n",
@@ -3331,7 +3331,7 @@
   },
   {
     "id": "mixed_attributes_style",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L470",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L381",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for items that have the same kind of attributes with mixed styles (inner/outer).\n\n### Why is this bad?\nHaving both style of said attributes makes it more complicated to read code.\n\n### Known problems\nThis lint currently has false-negatives when mixing same attributes\nbut they have different path symbols, for example:\n```rust\n#[custom_attribute]\npub fn foo() {\n    #![my_crate::custom_attribute]\n}\n```\n\n### Example\n```rust\n#[cfg(linux)]\npub fn foo() {\n    #![cfg(windows)]\n}\n```\nUse instead:\n```rust\n#[cfg(linux)]\n#[cfg(windows)]\npub fn foo() {\n}\n```\n",
@@ -3628,7 +3628,7 @@
   },
   {
     "id": "needless_doctest_main",
-    "id_location": "clippy_lints/src/doc/mod.rs#L202",
+    "id_location": "clippy_lints/src/doc/mod.rs#L203",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for `fn main() { .. }` in doctests\n\n### Why is this bad?\nThe test can be shorter (and likely more readable)\nif the `fn main()` is left implicit.\n\n### Examples\n```rust\n/// An example of a doctest with a `main()` function\n///\n/// # Examples\n///\n/// ```\n/// fn main() {\n///     // this needs not be in an `fn`\n/// }\n/// ```\nfn needless_main() {\n    unimplemented!();\n}\n```\n",
@@ -3943,7 +3943,7 @@
   },
   {
     "id": "non_minimal_cfg",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L383",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L294",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for `any` and `all` combinators in `cfg` with only one condition.\n\n### Why is this bad?\nIf there is only one condition, no need to wrap it into `any` or `all` combinators.\n\n### Example\n```rust\n#[cfg(any(unix))]\npub struct Bar;\n```\n\nUse instead:\n```rust\n#[cfg(unix)]\npub struct Bar;\n```\n",
@@ -5086,7 +5086,7 @@
   },
   {
     "id": "should_panic_without_expect",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L359",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L270",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for `#[should_panic]` attributes without specifying the expected panic message.\n\n### Why is this bad?\nThe expected panic message should be specified to ensure that the test is actually\npanicking with the expected message, and not another unrelated panic.\n\n### Example\n```rust\nfn random() -> i32 { 0 }\n\n#[should_panic]\n#[test]\nfn my_test() {\n    let _ = 1 / random();\n}\n```\n\nUse instead:\n```rust\nfn random() -> i32 { 0 }\n\n#[should_panic = \"attempt to divide by zero\"]\n#[test]\nfn my_test() {\n    let _ = 1 / random();\n}\n```\n",
@@ -5419,7 +5419,7 @@
   },
   {
     "id": "suspicious_doc_comments",
-    "id_location": "clippy_lints/src/doc/mod.rs#L341",
+    "id_location": "clippy_lints/src/doc/mod.rs#L342",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nDetects the use of outer doc comments (`///`, `/**`) followed by a bang (`!`): `///!`\n\n### Why is this bad?\nTriple-slash comments (known as \"outer doc comments\") apply to items that follow it.\nAn outer doc comment followed by a bang (i.e. `///!`) has no specific meaning.\n\nThe user most likely meant to write an inner doc comment (`//!`, `/*!`), which\napplies to the parent item (i.e. the item that the comment is contained in,\nusually a module or crate).\n\n### Known problems\nInner doc comments can only appear before items, so there are certain cases where the suggestion\nmade by this lint is not valid code. For example:\n```rust\nfn foo() {}\n///!\nfn bar() {}\n```\nThis lint detects the doc comment and suggests changing it to `//!`, but an inner doc comment\nis not valid at that position.\n\n### Example\nIn this example, the doc comment is attached to the *function*, rather than the *module*.\n```rust\npub mod util {\n    ///! This module contains utility functions.\n\n    pub fn dummy() {}\n}\n```\n\nUse instead:\n```rust\npub mod util {\n    //! This module contains utility functions.\n\n    pub fn dummy() {}\n}\n```\n",
@@ -5536,7 +5536,7 @@
   },
   {
     "id": "test_attr_in_doctest",
-    "id_location": "clippy_lints/src/doc/mod.rs#L235",
+    "id_location": "clippy_lints/src/doc/mod.rs#L236",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for `#[test]` in doctests unless they are marked with\neither `ignore`, `no_run` or `compile_fail`.\n\n### Why is this bad?\nCode in examples marked as `#[test]` will somewhat\nsurprisingly not be run by `cargo test`. If you really want\nto show how to test stuff in an example, mark it `no_run` to\nmake the intent clear.\n\n### Examples\n```rust\n/// An example of a doctest with a `main()` function\n///\n/// # Examples\n///\n/// ```\n/// #[test]\n/// fn equality_works() {\n///     assert_eq!(1_u8, 1);\n/// }\n/// ```\nfn test_attr_in_doctest() {\n    unimplemented!();\n}\n```\n",
@@ -5590,7 +5590,7 @@
   },
   {
     "id": "too_long_first_doc_paragraph",
-    "id_location": "clippy_lints/src/doc/mod.rs#L453",
+    "id_location": "clippy_lints/src/doc/mod.rs#L454",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks if the first line in the documentation of items listed in module page is too long.\n\n### Why is this bad?\nDocumentation will show the first paragraph of the doscstring in the summary page of a\nmodule, so having a nice, short summary in the first paragraph is part of writing good docs.\n\n### Example\n```rust\n/// A very short summary.\n/// A much longer explanation that goes into a lot more detail about\n/// how the thing works, possibly with doclinks and so one,\n/// and probably spanning a many rows.\nstruct Foo {}\n```\nUse instead:\n```rust\n/// A very short summary.\n///\n/// A much longer explanation that goes into a lot more detail about\n/// how the thing works, possibly with doclinks and so one,\n/// and probably spanning a many rows.\nstruct Foo {}\n```\n",
@@ -5968,7 +5968,7 @@
   },
   {
     "id": "unnecessary_clippy_cfg",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L433",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L344",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for `#[cfg_attr(clippy, allow(clippy::lint))]`\nand suggests to replace it with `#[allow(clippy::lint)]`.\n\n### Why is this bad?\nThere is no reason to put clippy attributes behind a clippy `cfg` as they are not\nrun by anything else than clippy.\n\n### Example\n```rust\n#![cfg_attr(clippy, allow(clippy::deprecated_cfg_attr))]\n```\n\nUse instead:\n```rust\n#![allow(clippy::deprecated_cfg_attr)]\n```\n",
@@ -6112,7 +6112,7 @@
   },
   {
     "id": "unnecessary_safety_doc",
-    "id_location": "clippy_lints/src/doc/mod.rs#L294",
+    "id_location": "clippy_lints/src/doc/mod.rs#L295",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for the doc comments of publicly visible\nsafe functions and traits and warns if there is a `# Safety` section.\n\n### Why restrict this?\nSafe functions and traits are safe to implement and therefore do not\nneed to describe safety preconditions that users are required to uphold.\n\n### Examples\n```rust\n/// # Safety\n///\n/// This function should not be called before the horsemen are ready.\npub fn start_apocalypse_but_safely(u: &mut Universe) {\n    unimplemented!();\n}\n```\n\nThe function is safe, so there shouldn't be any preconditions\nthat have to be explained for safety reasons.\n\n```rust\n/// This function should really be documented\npub fn start_apocalypse(u: &mut Universe) {\n    unimplemented!();\n}\n```\n\n### Configuration\n\n- `check-private-items`:  Whether to also run the listed lints on private items.\n\n\n   (default: `false`)\n",
@@ -6454,7 +6454,7 @@
   },
   {
     "id": "useless_attribute",
-    "id_location": "clippy_lints/src/attrs/mod.rs#L103",
+    "id_location": "clippy_lints/src/attrs/mod.rs#L102",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nChecks for `extern crate` and `use` items annotated with\nlint attributes.\n\nThis lint permits lint attributes for lints emitted on the items themself.\nFor `use` items these lints are:\n* ambiguous_glob_reexports\n* dead_code\n* deprecated\n* hidden_glob_reexports\n* unreachable_pub\n* unused\n* unused_braces\n* unused_import_braces\n* clippy::disallowed_types\n* clippy::enum_glob_use\n* clippy::macro_use_imports\n* clippy::module_name_repetitions\n* clippy::redundant_pub_crate\n* clippy::single_component_path_imports\n* clippy::unsafe_removed_from_name\n* clippy::wildcard_imports\n\nFor `extern crate` items these lints are:\n* `unused_imports` on items with `#[macro_use]`\n\n### Why is this bad?\nLint attributes have no effect on crate imports. Most\nlikely a `!` was forgotten.\n\n### Example\n```rust\n#[deny(dead_code)]\nextern crate foo;\n#[forbid(dead_code)]\nuse foo::bar;\n```\n\nUse instead:\n```rust\n#[allow(unused_imports)]\nuse foo::baz;\n#[allow(unused_imports)]\n#[macro_use]\nextern crate baz;\n```\n",
