@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet;
 use clippy_utils::visitors::{for_each_expr, Descend};
 use rustc_errors::Applicability;
-use rustc_hir::*;
+use rustc_hir::{Expr, ExprKind, MatchSource};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
 use rustc_session::declare_lint_pass;
@@ -87,7 +87,7 @@ impl<'tcx> LateLintPass<'tcx> for StackedIfMatch {
                     STACKED_IF_MATCH,
                     expr.span.with_hi(sub_expr.span.hi()),
                     format!("avoid using `{keyword} {keyword}` by binding inner `{keyword}` with `let`"),
-                    format!("try"),
+                    "try",
                     format!("let result = {inner_snippet}; {keyword} result"),
                     Applicability::MachineApplicable,
                 );
