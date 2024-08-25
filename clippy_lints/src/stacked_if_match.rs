@@ -17,6 +17,7 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```no_run
+    /// # let (a, b, c, d, e, f) = (1, 2, 3, 4, 5, 6);
     /// if if a == b {
     ///     c == d
     /// } else {
@@ -28,6 +29,7 @@ declare_clippy_lint! {
     ///
     /// Use instead:
     /// ```no_run
+    /// # let (a, b, c, d, e, f) = (1, 2, 3, 4, 5, 6);
     /// let result = if a == b {
     ///     c == d
     /// } else {
