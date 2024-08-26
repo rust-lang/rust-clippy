@@ -4168,7 +4168,7 @@
   },
   {
     "id": "panic",
-    "id_location": "clippy_lints/src/panic_unimplemented.rs#L33",
+    "id_location": "clippy_lints/src/panic_unimplemented.rs#L34",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of `panic!`.\n\n### Why restrict this?\nThis macro, or panics in general, may be unwanted in production code.\n\n### Example\n```rust\npanic!(\"even with a good reason\");\n```\n\n### Configuration\n\n- `allow-panic-in-tests`:  Whether `panic` should be allowed in test functions or `#[cfg(test)]`\n\n\n   (default: `false`)\n",
@@ -5581,7 +5581,7 @@
   },
   {
     "id": "todo",
-    "id_location": "clippy_lints/src/panic_unimplemented.rs#L72",
+    "id_location": "clippy_lints/src/panic_unimplemented.rs#L73",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of `todo!`.\n\n### Why restrict this?\nThe `todo!` macro indicates the presence of unfinished code,\nso it should not be present in production code.\n\n### Example\n```rust\ntodo!();\n```\nFinish the implementation, or consider marking it as explicitly unimplemented.\n```rust\nunimplemented!();\n```\n",
@@ -5869,7 +5869,7 @@
   },
   {
     "id": "unimplemented",
-    "id_location": "clippy_lints/src/panic_unimplemented.rs#L50",
+    "id_location": "clippy_lints/src/panic_unimplemented.rs#L51",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of `unimplemented!`.\n\n### Why restrict this?\nThis macro, or panics in general, may be unwanted in production code.\n\n### Example\n```rust\nunimplemented!();\n```\n",
@@ -6202,7 +6202,7 @@
   },
   {
     "id": "unreachable",
-    "id_location": "clippy_lints/src/panic_unimplemented.rs#L89",
+    "id_location": "clippy_lints/src/panic_unimplemented.rs#L90",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of `unreachable!`.\n\n### Why restrict this?\nThis macro, or panics in general, may be unwanted in production code.\n\n### Example\n```rust\nunreachable!();\n```\n",
