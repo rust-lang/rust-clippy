@@ -197,7 +197,7 @@ LL +     std::iter::repeat_with(|| do_something()).take((1 << 4) - 0);
    |
 
 error: map of a closure that does not depend on its parameter over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:65:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:67:5
    |
 LL |     (0..10).map(|_| do_something());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

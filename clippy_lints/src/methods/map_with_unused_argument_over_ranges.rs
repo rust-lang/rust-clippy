@@ -33,7 +33,7 @@ fn extract_count_with_applicability(
             let count = if upper_bound >= lower_bound {
                 match range.limits {
                     RangeLimits::HalfOpen => upper_bound - lower_bound,
-                    RangeLimits::Closed => upper_bound - lower_bound + 1,
+                    RangeLimits::Closed => (upper_bound - lower_bound).checked_add(1)?,
                 }
             } else {
                 0

@@ -53,6 +53,8 @@ fn main() {
     (lower_fn()..=upper_fn()).map(|_| do_something()); // Ranges not starting at zero not yet handled
     (0..10).map(|x| do_something_interesting(x, 4)); // Actual map over range
     "Foobar".chars().map(|_| do_something()); // Not a map over range
+    // i128::MAX == 340282366920938463463374607431768211455
+    (0..=340282366920938463463374607431768211455).map(|_: u128| do_something()); // Can't be replaced due to overflow
 }
 
 #[clippy::msrv = "1.27"]
