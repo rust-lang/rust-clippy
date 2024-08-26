@@ -2,6 +2,7 @@ use crate::methods::MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES;
 use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet_with_applicability;
+use clippy_utils::sugg::Sugg;
 use clippy_utils::{eager_or_lazy, higher, usage};
 use rustc_ast::ast::RangeLimits;
 use rustc_ast::LitKind;
@@ -39,7 +40,9 @@ fn extract_count_with_applicability(
             };
             return Some(format!("{count}"));
         }
-        let end_snippet = snippet_with_applicability(cx, end.span, "...", applicability).into_owned();
+        let end_snippet = Sugg::hir_with_applicability(cx, end, "...", applicability)
+            .maybe_par()
+            .into_string();
         if lower_bound == 0 {
             if range.limits == RangeLimits::Closed {
                 return Some(format!("{end_snippet} + 1"));
