@@ -76,43 +76,37 @@ pub(super) fn check(
         && !usage::BindingUsageFinder::are_params_used(cx, body_hir)
         && let Some(count) = extract_count_with_applicability(cx, range, &mut applicability)
     {
+        let method_to_use_name;
+        let new_span;
+
         if eager_or_lazy::switch_to_eager_eval(cx, body_expr) {
+            method_to_use_name = "repeat";
             let body_snippet = snippet_with_applicability(cx, body_expr.span, "..", &mut applicability);
-            span_lint_and_then(
-                cx,
-                MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
-                ex.span,
-                "map of a closure that does not depend on its parameter over a range",
-                |diag| {
-                    diag.multipart_suggestion(
-                        "remove the explicit range and use `repeat` and `take`",
-                        vec![
-                            (receiver.span.to(method_call_span), "std::iter::repeat".to_owned()),
-                            (arg.span, body_snippet.to_string()),
-                            (ex.span.shrink_to_hi(), format!(".take({count})")),
-                        ],
-                        applicability,
-                    );
-                },
-            );
+            new_span = (arg.span, body_snippet.to_string());
         } else {
-            span_lint_and_then(
-                cx,
-                MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
-                ex.span,
-                "map of a closure that does not depend on its parameter over a range",
-                |diag| {
-                    diag.multipart_suggestion(
-                        "remove the explicit range and use `repeat_with` and `take`",
-                        vec![
-                            (receiver.span.to(method_call_span), "std::iter::repeat_with".to_owned()),
-                            (param.span, String::new()),
-                            (ex.span.shrink_to_hi(), format!(".take({count})")),
-                        ],
-                        applicability,
-                    );
-                },
-            );
+            method_to_use_name = "repeat_with";
+            new_span = (param.span, String::new());
         }
+
+        span_lint_and_then(
+            cx,
+            MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
+            ex.span,
+            "map of a closure that does not depend on its parameter over a range",
+            |diag| {
+                diag.multipart_suggestion(
+                    format!("remove the explicit range and use `{method_to_use_name}` and `take`"),
+                    vec![
+                        (
+                            receiver.span.to(method_call_span),
+                            format!("std::iter::{method_to_use_name}"),
+                        ),
+                        new_span,
+                        (ex.span.shrink_to_hi(), format!(".take({count})")),
+                    ],
+                    applicability,
+                );
+            },
+        );
     }
 }
