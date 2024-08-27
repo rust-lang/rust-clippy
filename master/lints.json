@@ -5059,7 +5059,7 @@
   },
   {
     "id": "short_circuit_statement",
-    "id_location": "clippy_lints/src/misc.rs#L99",
+    "id_location": "clippy_lints/src/misc.rs#L139",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for the use of short circuit boolean conditions as\na\nstatement.\n\n### Why is this bad?\nUsing a short circuit boolean condition as a statement\nmay hide the fact that the second part is executed or not depending on the\noutcome of the first part.\n\n### Example\n```rust\nf() && g(); // We should write `if f() { g(); }`.\n```\n",
@@ -5617,7 +5617,7 @@
   },
   {
     "id": "toplevel_ref_arg",
-    "id_location": "clippy_lints/src/misc.rs#L52",
+    "id_location": "clippy_lints/src/misc.rs#L53",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for function arguments and let bindings denoted as\n`ref`.\n\n### Why is this bad?\nThe `ref` declaration makes the function take an owned\nvalue, but turns the argument into a reference (which means that the value\nis destroyed when exiting the function). This adds not much value: either\ntake a reference type, or take an owned value and create references in the\nbody.\n\nFor let bindings, `let x = &foo;` is preferred over `let ref x = foo`. The\ntype of `x` is more obvious with the former.\n\n### Known problems\nIf the argument is dereferenced within the function,\nremoving the `ref` will lead to errors. This can be fixed by removing the\ndereferences, e.g., changing `*x` to `x` within the function.\n\n### Example\n```rust\nfn foo(ref _x: u8) {}\n```\n\nUse instead:\n```rust\nfn foo(_x: &u8) {}\n```\n",
@@ -6436,10 +6436,19 @@
   },
   {
     "id": "used_underscore_binding",
-    "id_location": "clippy_lints/src/misc.rs#L78",
+    "id_location": "clippy_lints/src/misc.rs#L79",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for the use of bindings with a single leading\nunderscore.\n\n### Why is this bad?\nA single leading underscore is usually used to indicate\nthat a binding will not be used. Using such a binding breaks this\nexpectation.\n\n### Known problems\nThe lint does not work properly with desugaring and\nmacro, it has been allowed in the meantime.\n\n### Example\n```rust\nlet _x = 0;\nlet y = _x + 1; // Here we are using `_x`, even though it has a leading\n                // underscore. We should rename `_x` to `x`\n```\n",
+    "version": "pre 1.29.0",
+    "applicability": "Unspecified"
+  },
+  {
+    "id": "used_underscore_items",
+    "id_location": "clippy_lints/src/misc.rs#L118",
+    "group": "pedantic",
+    "level": "allow",
+    "docs": "### What it does\nChecks for the use of item with a single leading\nunderscore.\n\n### Why is this bad?\nA single leading underscore is usually used to indicate\nthat a item will not be used. Using such a item breaks this\nexpectation.\n\n### Example\n```rust\nfn _foo() {}\n\nstruct _FooStruct {}\n\nfn main() {\n    _foo();\n    let _ = _FooStruct{};\n}\n```\n\nUse instead:\n```rust\nfn foo() {}\n\nstruct FooStruct {}\n\nfn main() {\n    foo();\n    let _ = FooStruct{};\n}\n```\n",
     "version": "pre 1.29.0",
     "applicability": "Unspecified"
   },
