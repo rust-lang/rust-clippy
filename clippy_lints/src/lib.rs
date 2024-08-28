@@ -699,7 +699,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     let format_args = format_args_storage.clone();
     store.register_late_pass(move |_| Box::new(explicit_write::ExplicitWrite::new(format_args.clone())));
     store.register_late_pass(|_| Box::new(needless_pass_by_value::NeedlessPassByValue));
-    store.register_late_pass(move |tcx| Box::new(pass_by_ref_or_value::PassByRefOrValue::new(tcx, conf)));
+    store.register_late_pass(move |_| Box::new(pass_by_ref_or_value::PassByRefOrValue::new(conf)));
     store.register_late_pass(|_| Box::new(ref_option_ref::RefOptionRef));
     store.register_late_pass(|_| Box::new(infinite_iter::InfiniteIter));
     store.register_late_pass(|_| Box::new(inline_fn_without_body::InlineFnWithoutBody));

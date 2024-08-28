@@ -1,5 +1,3 @@
-use std::{cmp, iter};
-
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet;
@@ -15,11 +13,12 @@ use rustc_hir::{BindingMode, Body, FnDecl, Impl, ItemKind, MutTy, Mutability, No
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::adjustment::{Adjust, PointerCoercion};
 use rustc_middle::ty::layout::LayoutOf;
-use rustc_middle::ty::{self, RegionKind, TyCtxt};
+use rustc_middle::ty::{self, RegionKind};
 use rustc_session::impl_lint_pass;
 use rustc_span::def_id::LocalDefId;
 use rustc_span::{sym, Span};
 use rustc_target::spec::abi::Abi;
+use std::iter;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -33,13 +32,12 @@ declare_clippy_lint! {
     /// registers.
     ///
     /// ### Known problems
-    /// This lint is target register size dependent, it is
-    /// limited to 32-bit to try and reduce portability problems between 32 and
-    /// 64-bit, but if you are compiling for 8 or 16-bit targets then the limit
-    /// will be different.
+    /// Certain types can be different sizes depending on the target platform,
+    /// e.g. `&(usize, usize)` may lint on a 32-bit target but not a 64-bit target.
     ///
     /// The configuration option `trivial_copy_size_limit` can be set to override
-    /// this limit for a project.
+    /// this limit for a project. The default limit is target independent to try
+    /// and reduce portability problems between 32-bit and 64-bit targets.
     ///
     /// This lint attempts to allow passing arguments by reference if a reference
     /// to that argument is returned. This is implemented by comparing the lifetime
@@ -111,20 +109,9 @@ pub struct PassByRefOrValue {
 }
 
 impl<'tcx> PassByRefOrValue {
-    pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {
-        let ref_min_size = conf.trivial_copy_size_limit.unwrap_or_else(|| {
-            let bit_width = u64::from(tcx.sess.target.pointer_width);
-            // Cap the calculated bit width at 32-bits to reduce
-            // portability problems between 32 and 64-bit targets
-            let bit_width = cmp::min(bit_width, 32);
-            #[expect(clippy::integer_division)]
-            let byte_width = bit_width / 8;
-            // Use a limit of 2 times the register byte width
-            byte_width * 2
-        });
-
+    pub fn new(conf: &'static Conf) -> Self {
         Self {
-            ref_min_size,
+            ref_min_size: conf.trivial_copy_size_limit,
             value_max_size: conf.pass_by_value_size_limit,
             avoid_breaking_exported_api: conf.avoid_breaking_exported_api,
         }
