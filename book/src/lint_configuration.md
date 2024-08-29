@@ -472,6 +472,16 @@ Whether to apply the raw pointer heuristic to determine if a type is `Send`.
 * [`non_send_fields_in_send_ty`](https://rust-lang.github.io/rust-clippy/master/index.html#non_send_fields_in_send_ty)
 
 
+## `enable-source-item-ordering-for`
+Which kind of elements should be ordered internally, possible values being `enum`, `impl`, `module`, `struct`, `trait`.
+
+**Default Value:** `["enum", "impl", "module", "struct", "trait"]`
+
+---
+**Affected lints:**
+* [`arbitrary_source_item_ordering`](https://rust-lang.github.io/rust-clippy/master/index.html#arbitrary_source_item_ordering)
+
+
 ## `enforce-iter-loop-reborrow`
 Whether to recommend using implicit into iter for reborrowed values.
 
@@ -663,6 +673,16 @@ crate. For example, `pub(crate)` items.
 ---
 **Affected lints:**
 * [`missing_docs_in_private_items`](https://rust-lang.github.io/rust-clippy/master/index.html#missing_docs_in_private_items)
+
+
+## `module-item-order-groupings`
+The named groupings of different source item kinds within modules.
+
+**Default Value:** `[["modules", ["mod", "foreign_mod"]], ["use", ["use"]], ["macros", ["macro"]], ["global_asm", ["global_asm"]], ["UPPER_SNAKE_CASE", ["static", "const"]], ["PascalCase", ["ty_alias", "opaque_ty", "enum", "struct", "union", "trait", "trait_alias", "impl"]], ["lower_snake_case", ["fn"]]]`
+
+---
+**Affected lints:**
+* [`arbitrary_source_item_ordering`](https://rust-lang.github.io/rust-clippy/master/index.html#arbitrary_source_item_ordering)
 
 
 ## `msrv`
@@ -859,6 +879,16 @@ The maximum number of lines a function or method can have
 ---
 **Affected lints:**
 * [`too_many_lines`](https://rust-lang.github.io/rust-clippy/master/index.html#too_many_lines)
+
+
+## `trait-assoc-item-kinds-order`
+The order of associated items in traits.
+
+**Default Value:** `["const", "type", "fn"]`
+
+---
+**Affected lints:**
+* [`arbitrary_source_item_ordering`](https://rust-lang.github.io/rust-clippy/master/index.html#arbitrary_source_item_ordering)
 
 
 ## `trivial-copy-size-limit`
