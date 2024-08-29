@@ -1,6 +1,10 @@
 use crate::ClippyConfiguration;
 use crate::msrvs::Msrv;
-use crate::types::{DisallowedPath, MacroMatcher, MatchLintBehaviour, PubUnderscoreFieldsBehaviour, Rename};
+use crate::types::{
+    DisallowedPath, MacroMatcher, MatchLintBehaviour, PubUnderscoreFieldsBehaviour, Rename, SourceItemOrderingCategory,
+    SourceItemOrderingEnableFor, SourceItemOrderingModuleItemGroupings, SourceItemOrderingModuleItemKind,
+    SourceItemOrderingTraitAssocItemKind, SourceItemOrderingTraitAssocItemKinds,
+};
 use rustc_errors::Applicability;
 use rustc_session::Session;
 use rustc_span::edit_distance::edit_distance;
@@ -46,6 +50,32 @@ const DEFAULT_ALLOWED_IDENTS_BELOW_MIN_CHARS: &[&str] = &["i", "j", "x", "y", "z
 const DEFAULT_ALLOWED_PREFIXES: &[&str] = &["to", "as", "into", "from", "try_into", "try_from"];
 const DEFAULT_ALLOWED_TRAITS_WITH_RENAMED_PARAMS: &[&str] =
     &["core::convert::From", "core::convert::TryFrom", "core::str::FromStr"];
+const DEFAULT_MODULE_ITEM_ORDERING_GROUPS: &[(&str, &[SourceItemOrderingModuleItemKind])] = {
+    #[allow(clippy::enum_glob_use)] // Very local glob use for legibility.
+    use SourceItemOrderingModuleItemKind::*;
+    &[
+        ("modules", &[Mod, ForeignMod]),
+        ("use", &[Use]),
+        ("macros", &[Macro]),
+        ("global_asm", &[GlobalAsm]),
+        ("UPPER_SNAKE_CASE", &[Static, Const]),
+        (
+            "PascalCase",
+            &[TyAlias, OpaqueTy, Enum, Struct, Union, Trait, TraitAlias, Impl],
+        ),
+        ("lower_snake_case", &[Fn]),
+    ]
+};
+const DEFAULT_TRAIT_ASSOC_ITEM_KINDS_ORDER: &[SourceItemOrderingTraitAssocItemKind] = {
+    #[allow(clippy::enum_glob_use)] // Very local glob use for legibility.
+    use SourceItemOrderingTraitAssocItemKind::*;
+    &[Const, Type, Fn]
+};
+const DEFAULT_ENABLE_SOURCE_ITEM_ORDERING_FOR: &[SourceItemOrderingCategory] = {
+    #[allow(clippy::enum_glob_use)] // Very local glob use for legibility.
+    use SourceItemOrderingCategory::*;
+    &[Enum, Impl, Module, Struct, Trait]
+};
 
 /// Conf with parse errors
 #[derive(Default)]
@@ -459,6 +489,9 @@ define_Conf! {
     /// Whether to apply the raw pointer heuristic to determine if a type is `Send`.
     #[lints(non_send_fields_in_send_ty)]
     enable_raw_pointer_heuristic_for_send: bool = true,
+    /// Which kind of elements should be ordered internally, possible values being `enum`, `impl`, `module`, `struct`, `trait`.
+    #[lints(arbitrary_source_item_ordering)]
+    enable_source_item_ordering_for: SourceItemOrderingEnableFor = DEFAULT_ENABLE_SOURCE_ITEM_ORDERING_FOR.into(),
     /// Whether to recommend using implicit into iter for reborrowed values.
     ///
     /// #### Example
@@ -530,6 +563,9 @@ define_Conf! {
     /// crate. For example, `pub(crate)` items.
     #[lints(missing_docs_in_private_items)]
     missing_docs_in_crate_items: bool = false,
+    /// The named groupings of different source item kinds within modules.
+    #[lints(arbitrary_source_item_ordering)]
+    module_item_order_groupings: SourceItemOrderingModuleItemGroupings = DEFAULT_MODULE_ITEM_ORDERING_GROUPS.into(),
     /// The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`
     #[default_text = "current version"]
     #[lints(
@@ -637,6 +673,9 @@ define_Conf! {
     /// The maximum number of lines a function or method can have
     #[lints(too_many_lines)]
     too_many_lines_threshold: u64 = 100,
+    /// The order of associated items in traits.
+    #[lints(arbitrary_source_item_ordering)]
+    trait_assoc_item_kinds_order: SourceItemOrderingTraitAssocItemKinds = DEFAULT_TRAIT_ASSOC_ITEM_KINDS_ORDER.into(),
     /// The maximum size (in bytes) to consider a `Copy` type for passing by value instead of by
     /// reference. By default there is no limit
     #[default_text = "target_pointer_width * 2"]
