@@ -1801,7 +1801,7 @@
   },
   {
     "id": "implicit_saturating_sub",
-    "id_location": "clippy_lints/src/implicit_saturating_sub.rs#L37",
+    "id_location": "clippy_lints/src/implicit_saturating_sub.rs#L43",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for implicit saturating subtraction.\n\n### Why is this bad?\nSimplicity and readability. Instead we can easily use an builtin function.\n\n### Example\n```rust\nlet mut i: u32 = end - start;\n\nif i != 0 {\n    i -= 1;\n}\n```\n\nUse instead:\n```rust\nlet mut i: u32 = end - start;\n\ni = i.saturating_sub(1);\n```\n",
@@ -2077,6 +2077,15 @@
     "docs": "### What it does\nChecks for comparisons where the relation is always either\ntrue or false, but where one side has been upcast so that the comparison is\nnecessary. Only integer types are checked.\n\n### Why is this bad?\nAn expression like `let x : u8 = ...; (x as u32) > 300`\nwill mistakenly imply that it is possible for `x` to be outside the range of\n`u8`.\n\n### Known problems\nhttps://github.com/rust-lang/rust-clippy/issues/886\n\n### Example\n```rust\nlet x: u8 = 1;\n(x as u32) > 300;\n```\n",
     "version": "pre 1.29.0",
     "applicability": "Unspecified"
+  },
+  {
+    "id": "inverted_saturating_sub",
+    "id_location": "clippy_lints/src/implicit_saturating_sub.rs#L73",
+    "group": "correctness",
+    "level": "deny",
+    "docs": "### What it does\nChecks for comparisons between integers, followed by subtracting the greater value from the\nlower one.\n\n### Why is this bad?\nThis could result in an underflow and is most likely not what the user wants. If this was\nintended to be a saturated subtraction, consider using the `saturating_sub` method directly.\n\n### Example\n```rust\nlet a = 12u32;\nlet b = 13u32;\n\nlet result = if a > b { b - a } else { 0 };\n```\n\nUse instead:\n```rust\nlet a = 12u32;\nlet b = 13u32;\n\nlet result = a.saturating_sub(b);\n```\n",
+    "version": "1.44.0",
+    "applicability": "MaybeIncorrect"
   },
   {
     "id": "invisible_characters",
