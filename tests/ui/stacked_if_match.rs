@@ -82,7 +82,8 @@ fn if_match_no_lint() {
     if match x {
         1 => 2,
         _ => 3,
-    } == 4 {
+    } == 4
+    {
         println!("true");
     }
 }
