@@ -1,0 +1,12 @@
+#![warn(clippy::manual_ilog2)]
+
+fn main() {
+    let a: u32 = 5;
+    let _ = a.ilog2();
+    let _ = a.ilog2();
+
+    let b: u64 = 543534;
+    let _ = b.ilog2();
+
+    let _ = 64 - b.leading_zeros(); // No lint
+}
