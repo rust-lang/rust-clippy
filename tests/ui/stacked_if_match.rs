@@ -77,6 +77,31 @@ fn match_no_lint() {
     }
 }
 
+fn if_match_no_lint() {
+    let x = 0;
+    if match x {
+        1 => 2,
+        _ => 3,
+    } == 4 {
+        println!("true");
+    }
+}
+
+fn match_if_no_lint() {
+    let x = 0;
+    match if x == 1 {
+        let y = 2;
+        y + 1
+    } else {
+        let z = 3;
+        z + 1
+    } {
+        1 => {},
+        2 => {},
+        _ => {},
+    }
+}
+
 macro_rules! if_macro {
     ($var:ident) => {
         if $var == 1 { true } else { false }
