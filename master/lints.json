@@ -217,7 +217,7 @@
   },
   {
     "id": "bind_instead_of_map",
-    "id_location": "clippy_lints/src/methods/mod.rs#L656",
+    "id_location": "clippy_lints/src/methods/mod.rs#L667",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `_.and_then(|x| Some(y))`, `_.and_then(|x| Ok(y))`\nor `_.or_else(|x| Err(y))`.\n\n### Why is this bad?\nThis can be written more concisely as `_.map(|x| y)` or `_.map_err(|x| y)`.\n\n### Example\n```rust\nlet _ = opt().and_then(|s| Some(s.len()));\nlet _ = res().and_then(|s| if s.len() == 42 { Ok(10) } else { Ok(20) });\nlet _ = res().or_else(|s| if s.len() == 42 { Err(10) } else { Err(20) });\n```\n\nThe correct use would be:\n\n```rust\nlet _ = opt().map(|s| s.len());\nlet _ = res().map(|s| if s.len() == 42 { 10 } else { 20 });\nlet _ = res().map_err(|s| if s.len() == 42 { 10 } else { 20 });\n```\n\n### Past names\n\n * option_and_then_some\n",
@@ -361,7 +361,7 @@
   },
   {
     "id": "bytes_count_to_len",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2544",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2555",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nIt checks for `str::bytes().count()` and suggests replacing it with\n`str::len()`.\n\n### Why is this bad?\n`str::bytes().count()` is longer and may not be as performant as using\n`str::len()`.\n\n### Example\n```rust\n\"hello\".bytes().count();\nString::from(\"hello\").bytes().count();\n```\nUse instead:\n```rust\n\"hello\".len();\nString::from(\"hello\").len();\n```\n",
@@ -370,7 +370,7 @@
   },
   {
     "id": "bytes_nth",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2024",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2035",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for the use of `.bytes().nth()`.\n\n### Why is this bad?\n`.as_bytes().get()` is more efficient and more\nreadable.\n\n### Example\n```rust\n\"Hello\".bytes().nth(3);\n```\n\nUse instead:\n```rust\n\"Hello\".as_bytes().get(3);\n```\n",
@@ -388,7 +388,7 @@
   },
   {
     "id": "case_sensitive_file_extension_comparisons",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2572",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2583",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for calls to `ends_with` with possible file extensions\nand suggests to use a case-insensitive approach instead.\n\n### Why is this bad?\n`ends_with` is case-sensitive and may not detect files with a valid extension.\n\n### Example\n```rust\nfn is_rust_file(filename: &str) -> bool {\n    filename.ends_with(\".rs\")\n}\n```\nUse instead:\n```rust\nfn is_rust_file(filename: &str) -> bool {\n    let filename = std::path::Path::new(filename);\n    filename.extension()\n        .map_or(false, |ext| ext.eq_ignore_ascii_case(\"rs\"))\n}\n```\n",
@@ -523,7 +523,7 @@
   },
   {
     "id": "chars_last_cmp",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1462",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1473",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `_.chars().last()` or\n`_.chars().next_back()` on a `str` to check if it ends with a given char.\n\n### Why is this bad?\nReadability, this can be written more concisely as\n`_.ends_with(_)`.\n\n### Example\n```rust\nname.chars().last() == Some('_') || name.chars().next_back() == Some('-');\n```\n\nUse instead:\n```rust\nname.ends_with('_') || name.ends_with('-');\n```\n",
@@ -532,7 +532,7 @@
   },
   {
     "id": "chars_next_cmp",
-    "id_location": "clippy_lints/src/methods/mod.rs#L891",
+    "id_location": "clippy_lints/src/methods/mod.rs#L902",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `.chars().next()` on a `str` to check\nif it starts with a given char.\n\n### Why is this bad?\nReadability, this can be written more concisely as\n`_.starts_with(_)`.\n\n### Example\n```rust\nlet name = \"foo\";\nif name.chars().next() == Some('_') {};\n```\n\nUse instead:\n```rust\nlet name = \"foo\";\nif name.starts_with('_') {};\n```\n",
@@ -550,7 +550,7 @@
   },
   {
     "id": "clear_with_drain",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3319",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3330",
     "group": "nursery",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of `.drain(..)` for the sole purpose of clearing a container.\n\n### Why is this bad?\nThis creates an unnecessary iterator that is dropped immediately.\n\nCalling `.clear()` also makes the intent clearer.\n\n### Example\n```rust\nlet mut v = vec![1, 2, 3];\nv.drain(..);\n```\nUse instead:\n```rust\nlet mut v = vec![1, 2, 3];\nv.clear();\n```\n",
@@ -559,7 +559,7 @@
   },
   {
     "id": "clone_on_copy",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1018",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1029",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `.clone()` on a `Copy` type.\n\n### Why is this bad?\nThe only reason `Copy` types implement `Clone` is for\ngenerics, not for using the `clone` method on a concrete type.\n\n### Example\n```rust\n42u64.clone();\n```\n",
@@ -568,7 +568,7 @@
   },
   {
     "id": "clone_on_ref_ptr",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1049",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1060",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of `.clone()` on a ref-counted pointer,\n(`Rc`, `Arc`, `rc::Weak`, or `sync::Weak`), and suggests calling Clone via unified\nfunction syntax instead (e.g., `Rc::clone(foo)`).\n\n### Why restrict this?\nCalling `.clone()` on an `Rc`, `Arc`, or `Weak`\ncan obscure the fact that only the pointer is being cloned, not the underlying\ndata.\n\n### Example\n```rust\nlet x = Rc::new(1);\n\nx.clone();\n```\n\nUse instead:\n```rust\nRc::clone(&x);\n```\n",
@@ -676,7 +676,7 @@
   },
   {
     "id": "const_is_empty",
-    "id_location": "clippy_lints/src/methods/mod.rs#L4082",
+    "id_location": "clippy_lints/src/methods/mod.rs#L4093",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nIt identifies calls to `.is_empty()` on constant values.\n\n### Why is this bad?\nString literals and constant values are known at compile time. Checking if they\nare empty will always return the same value. This might not be the intention of\nthe expression.\n\n### Example\n```rust\nlet value = \"\";\nif value.is_empty() {\n    println!(\"the string is empty\");\n}\n```\nUse instead:\n```rust\nprintln!(\"the string is empty\");\n```\n",
@@ -1000,7 +1000,7 @@
   },
   {
     "id": "drain_collect",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3378",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3389",
     "group": "perf",
     "level": "warn",
     "docs": "### What it does\nChecks for calls to `.drain()` that clear the collection, immediately followed by a call to `.collect()`.\n\n> \"Collection\" in this context refers to any type with a `drain` method:\n> `Vec`, `VecDeque`, `BinaryHeap`, `HashSet`,`HashMap`, `String`\n\n### Why is this bad?\nUsing `mem::take` is faster as it avoids the allocation.\nWhen using `mem::take`, the old collection is replaced with an empty one and ownership of\nthe old collection is returned.\n\n### Known issues\n`mem::take(&mut vec)` is almost equivalent to `vec.drain(..).collect()`, except that\nit also moves the **capacity**. The user might have explicitly written it this way\nto keep the capacity on the original `Vec`.\n\n### Example\n```rust\nfn remove_all(v: &mut Vec<i32>) -> Vec<i32> {\n    v.drain(..).collect()\n}\n```\nUse instead:\n```rust\nuse std::mem;\nfn remove_all(v: &mut Vec<i32>) -> Vec<i32> {\n    mem::take(v)\n}\n```\n",
@@ -1198,7 +1198,7 @@
   },
   {
     "id": "err_expect",
-    "id_location": "clippy_lints/src/methods/mod.rs#L496",
+    "id_location": "clippy_lints/src/methods/mod.rs#L507",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for `.err().expect()` calls on the `Result` type.\n\n### Why is this bad?\n`.expect_err()` can be called directly to avoid the extra type conversion from `err()`.\n\n### Example\n```rust\nlet x: Result<u32, &str> = Ok(10);\nx.err().expect(\"Testing err().expect()\");\n```\nUse instead:\n```rust\nlet x: Result<u32, &str> = Ok(10);\nx.expect_err(\"Testing expect_err\");\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -1261,7 +1261,7 @@
   },
   {
     "id": "expect_fun_call",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1000",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1011",
     "group": "perf",
     "level": "warn",
     "docs": "### What it does\nChecks for calls to `.expect(&format!(...))`, `.expect(foo(..))`,\netc., and suggests to use `unwrap_or_else` instead\n\n### Why is this bad?\nThe function will always be called.\n\n### Known problems\nIf the function has side-effects, not calling it will\nchange the semantics of the program, but you shouldn't rely on that anyway.\n\n### Example\n```rust\nfoo.expect(&format!(\"Err {}: {}\", err_code, err_msg));\n\n// or\n\nfoo.expect(format!(\"Err {}: {}\", err_code, err_msg).as_str());\n```\n\nUse instead:\n```rust\nfoo.unwrap_or_else(|| panic!(\"Err {}: {}\", err_code, err_msg));\n```\n",
@@ -1351,7 +1351,7 @@
   },
   {
     "id": "extend_with_drain",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1382",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1393",
     "group": "perf",
     "level": "warn",
     "docs": "### What it does\nChecks for occurrences where one vector gets extended instead of append\n\n### Why is this bad?\nUsing `append` instead of `extend` is more concise and faster\n\n### Example\n```rust\nlet mut a = vec![1, 2, 3];\nlet mut b = vec![4, 5, 6];\n\na.extend(b.drain(..));\n```\n\nUse instead:\n```rust\nlet mut a = vec![1, 2, 3];\nlet mut b = vec![4, 5, 6];\n\na.append(&mut b);\n```\n",
@@ -1405,7 +1405,7 @@
   },
   {
     "id": "filetype_is_file",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1743",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1754",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for `FileType::is_file()`.\n\n### Why restrict this?\nWhen people testing a file type with `FileType::is_file`\nthey are testing whether a path is something they can get bytes from. But\n`is_file` doesn't cover special file types in unix-like systems, and doesn't cover\nsymlink in windows. Using `!FileType::is_dir()` is a better way to that intention.\n\n### Example\n```rust\nlet metadata = std::fs::metadata(\"foo.txt\")?;\nlet filetype = metadata.file_type();\n\nif filetype.is_file() {\n    // read file\n}\n```\n\nshould be written as:\n\n```rust\nlet metadata = std::fs::metadata(\"foo.txt\")?;\nlet filetype = metadata.file_type();\n\nif !filetype.is_dir() {\n    // read file\n}\n```\n",
@@ -1414,7 +1414,7 @@
   },
   {
     "id": "filter_map_bool_then",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3553",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3564",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `bool::then` in `Iterator::filter_map`.\n\n### Why is this bad?\nThis can be written with `filter` then `map` instead, which would reduce nesting and\nseparates the filtering from the transformation phase. This comes with no cost to\nperformance and is just cleaner.\n\n### Limitations\nDoes not lint `bool::then_some`, as it eagerly evaluates its arguments rather than lazily.\nThis can create differing behavior, so better safe than sorry.\n\n### Example\n```rust\n_ = v.into_iter().filter_map(|i| (i % 2 == 0).then(|| really_expensive_fn(i)));\n```\nUse instead:\n```rust\n_ = v.into_iter().filter(|i| i % 2 == 0).map(|i| really_expensive_fn(i));\n```\n",
@@ -1423,7 +1423,7 @@
   },
   {
     "id": "filter_map_identity",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1978",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1989",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `filter_map(|x| x)`.\n\n### Why is this bad?\nReadability, this can be written more concisely by using `flatten`.\n\n### Example\n```rust\niter.filter_map(|x| x);\n```\nUse instead:\n```rust\niter.flatten();\n```\n",
@@ -1432,7 +1432,7 @@
   },
   {
     "id": "filter_map_next",
-    "id_location": "clippy_lints/src/methods/mod.rs#L811",
+    "id_location": "clippy_lints/src/methods/mod.rs#L822",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of `_.filter_map(_).next()`.\n\n### Why is this bad?\nReadability, this can be written more concisely as\n`_.find_map(_)`.\n\n### Example\n```rust\n (0..3).filter_map(|x| if x == 2 { Some(x) } else { None }).next();\n```\nCan be written as\n\n```rust\n (0..3).find_map(|x| if x == 2 { Some(x) } else { None });\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -1441,7 +1441,7 @@
   },
   {
     "id": "filter_next",
-    "id_location": "clippy_lints/src/methods/mod.rs#L681",
+    "id_location": "clippy_lints/src/methods/mod.rs#L692",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `_.filter(_).next()`.\n\n### Why is this bad?\nReadability, this can be written more concisely as\n`_.find(_)`.\n\n### Example\n```rust\nvec.iter().filter(|x| **x == 0).next();\n```\n\nUse instead:\n```rust\nvec.iter().find(|x| **x == 0);\n```\n",
@@ -1450,7 +1450,7 @@
   },
   {
     "id": "flat_map_identity",
-    "id_location": "clippy_lints/src/methods/mod.rs#L834",
+    "id_location": "clippy_lints/src/methods/mod.rs#L845",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `flat_map(|x| x)`.\n\n### Why is this bad?\nReadability, this can be written more concisely by using `flatten`.\n\n### Example\n```rust\niter.flat_map(|x| x);\n```\nCan be written as\n```rust\niter.flatten();\n```\n",
@@ -1567,7 +1567,7 @@
   },
   {
     "id": "format_collect",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3501",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3512",
     "group": "perf",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `.map(|_| format!(..)).collect::<String>()`.\n\n### Why is this bad?\nThis allocates a new string for every element in the iterator.\nThis can be done more efficiently by creating the `String` once and appending to it in `Iterator::fold`,\nusing either the `write!` macro which supports exactly the same syntax as the `format!` macro,\nor concatenating with `+` in case the iterator yields `&str`/`String`.\n\nNote also that `write!`-ing into a `String` can never fail, despite the return type of `write!` being `std::fmt::Result`,\nso it can be safely ignored or unwrapped.\n\n### Example\n```rust\nfn hex_encode(bytes: &[u8]) -> String {\n    bytes.iter().map(|b| format!(\"{b:02X}\")).collect()\n}\n```\nUse instead:\n```rust\nuse std::fmt::Write;\nfn hex_encode(bytes: &[u8]) -> String {\n    bytes.iter().fold(String::new(), |mut output, b| {\n        let _ = write!(output, \"{b:02X}\");\n        output\n    })\n}\n```\n",
@@ -1603,7 +1603,7 @@
   },
   {
     "id": "from_iter_instead_of_collect",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1925",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1936",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for `from_iter()` function calls on types that implement the `FromIterator`\ntrait.\n\n### Why is this bad?\nIf it's needed to create a collection from the contents of an iterator, the `Iterator::collect(_)`\nmethod is preferred. However, when it's needed to specify the container type,\n`Vec::from_iter(_)` can be more readable than using a turbofish (e.g. `_.collect::<Vec<_>>()`). See\n[FromIterator documentation](https://doc.rust-lang.org/std/iter/trait.FromIterator.html)\n\n### Example\n```rust\nlet five_fives = std::iter::repeat(5).take(5);\n\nlet v = Vec::from_iter(five_fives);\n\nassert_eq!(v, vec![5, 5, 5, 5, 5]);\n```\nUse instead:\n```rust\nlet five_fives = std::iter::repeat(5).take(5);\n\nlet v: Vec<i32> = five_fives.collect();\n\nassert_eq!(v, vec![5, 5, 5, 5, 5]);\n```\nbut prefer to use\n```rust\nlet numbers: Vec<i32> = FromIterator::from_iter(1..=5);\n```\ninstead of\n```rust\nlet numbers = (1..=5).collect::<Vec<_>>();\n```\n",
@@ -1648,7 +1648,7 @@
   },
   {
     "id": "get_first",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2598",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2609",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `x.get(0)` instead of\n`x.first()` or `x.front()`.\n\n### Why is this bad?\nUsing `x.first()` for `Vec`s and slices or `x.front()`\nfor `VecDeque`s is easier to read and has the same result.\n\n### Example\n```rust\nlet x = vec![2, 3, 5];\nlet first_element = x.get(0);\n```\n\nUse instead:\n```rust\nlet x = vec![2, 3, 5];\nlet first_element = x.first();\n```\n",
@@ -1657,7 +1657,7 @@
   },
   {
     "id": "get_last_with_len",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1317",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1328",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `x.get(x.len() - 1)` instead of\n`x.last()`.\n\n### Why is this bad?\nUsing `x.last()` is easier to read and has the same\nresult.\n\nNote that using `x[x.len() - 1]` is semantically different from\n`x.last()`.  Indexing into the array will panic on out-of-bounds\naccesses, while `x.get()` and `x.last()` will return `None`.\n\nThere is another lint (get_unwrap) that covers the case of using\n`x.get(index).unwrap()` instead of `x[index]`.\n\n### Example\n```rust\nlet x = vec![2, 3, 5];\nlet last_element = x.get(x.len() - 1);\n```\n\nUse instead:\n```rust\nlet x = vec![2, 3, 5];\nlet last_element = x.last();\n```\n",
@@ -1666,7 +1666,7 @@
   },
   {
     "id": "get_unwrap",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1354",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1365",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of `.get().unwrap()` (or\n`.get_mut().unwrap`) on a standard library type which implements `Index`\n\n### Why restrict this?\nUsing the Index trait (`[]`) is more clear and more\nconcise.\n\n### Known problems\nNot a replacement for error handling: Using either\n`.unwrap()` or the Index trait (`[]`) carries the risk of causing a `panic`\nif the value being accessed is `None`. If the use of `.get().unwrap()` is a\ntemporary placeholder for dealing with the `Option` type, then this does\nnot mitigate the need for error handling. If there is a chance that `.get()`\nwill be `None` in your program, then it is advisable that the `None` case\nis handled in a future refactor instead of using `.unwrap()` or the Index\ntrait.\n\n### Example\n```rust\nlet mut some_vec = vec![0, 1, 2, 3];\nlet last = some_vec.get(3).unwrap();\n*some_vec.get_mut(0).unwrap() = 1;\n```\nThe correct use would be:\n```rust\nlet mut some_vec = vec![0, 1, 2, 3];\nlet last = some_vec[3];\nsome_vec[0] = 1;\n```\n",
@@ -1765,7 +1765,7 @@
   },
   {
     "id": "implicit_clone",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2050",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2061",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for the usage of `_.to_owned()`, `vec.to_vec()`, or similar when calling `_.clone()` would be clearer.\n\n### Why is this bad?\nThese methods do the same thing as `_.clone()` but may be confusing as\nto why we are calling `to_vec` on something that is already a `Vec` or calling `to_owned` on something that is already owned.\n\n### Example\n```rust\nlet a = vec![1, 2, 3];\nlet b = a.to_vec();\nlet c = a.to_owned();\n```\nUse instead:\n```rust\nlet a = vec![1, 2, 3];\nlet b = a.clone();\nlet c = a.clone();\n```\n",
@@ -1900,7 +1900,7 @@
   },
   {
     "id": "inefficient_to_string",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1073",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1084",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of `.to_string()` on an `&&T` where\n`T` implements `ToString` directly (like `&&str` or `&&String`).\n\n### Why is this bad?\nThis bypasses the specialized implementation of\n`ToString` and instead goes through the more expensive string formatting\nfacilities.\n\n### Example\n```rust\n// Generic implementation for `T: Display` is used (slow)\n[\"foo\", \"bar\"].iter().map(|s| s.to_string());\n\n// OK, the specialized impl is used\n[\"foo\", \"bar\"].iter().map(|&s| s.to_string());\n```\n",
@@ -1999,7 +1999,7 @@
   },
   {
     "id": "inspect_for_each",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1955",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1966",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `inspect().for_each()`.\n\n### Why is this bad?\nIt is the same as performing the computation\ninside `inspect` at the beginning of the closure in `for_each`.\n\n### Example\n```rust\n[1,2,3,4,5].iter()\n.inspect(|&x| println!(\"inspect the number: {}\", x))\n.for_each(|&x| {\n    assert!(x >= 0);\n});\n```\nCan be written as\n```rust\n[1,2,3,4,5].iter()\n.for_each(|&x| {\n    println!(\"inspect the number: {}\", x);\n    assert!(x >= 0);\n});\n```\n",
@@ -2035,7 +2035,7 @@
   },
   {
     "id": "into_iter_on_ref",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1599",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1610",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for `into_iter` calls on references which should be replaced by `iter`\nor `iter_mut`.\n\n### Why is this bad?\nReadability. Calling `into_iter` on a reference will not move out its\ncontent into the resulting iterator, which is confusing. It is better just call `iter` or\n`iter_mut` directly.\n\n### Example\n```rust\n(&vec).into_iter();\n```\n\nUse instead:\n```rust\n(&vec).iter();\n```\n",
@@ -2098,7 +2098,7 @@
   },
   {
     "id": "is_digit_ascii_radix",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2354",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2365",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nFinds usages of [`char::is_digit`](https://doc.rust-lang.org/stable/std/primitive.char.html#method.is_digit) that\ncan be replaced with [`is_ascii_digit`](https://doc.rust-lang.org/stable/std/primitive.char.html#method.is_ascii_digit) or\n[`is_ascii_hexdigit`](https://doc.rust-lang.org/stable/std/primitive.char.html#method.is_ascii_hexdigit).\n\n### Why is this bad?\n`is_digit(..)` is slower and requires specifying the radix.\n\n### Example\n```rust\nlet c: char = '6';\nc.is_digit(10);\nc.is_digit(16);\n```\nUse instead:\n```rust\nlet c: char = '6';\nc.is_ascii_digit();\nc.is_ascii_hexdigit();\n```\n",
@@ -2125,7 +2125,7 @@
   },
   {
     "id": "iter_cloned_collect",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1436",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1447",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for the use of `.cloned().collect()` on slice to\ncreate a `Vec`.\n\n### Why is this bad?\n`.to_vec()` is clearer\n\n### Example\n```rust\nlet s = [1, 2, 3, 4, 5];\nlet s2: Vec<isize> = s[..].iter().cloned().collect();\n```\nThe better use would be:\n```rust\nlet s = [1, 2, 3, 4, 5];\nlet s2: Vec<isize> = s.to_vec();\n```\n",
@@ -2134,7 +2134,7 @@
   },
   {
     "id": "iter_count",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2079",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2090",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for the use of `.iter().count()`.\n\n### Why is this bad?\n`.len()` is more efficient and more\nreadable.\n\n### Example\n```rust\nlet some_vec = vec![0, 1, 2, 3];\n\nsome_vec.iter().count();\n&some_vec[..].iter().count();\n```\n\nUse instead:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\n\nsome_vec.len();\n&some_vec[..].len();\n```\n",
@@ -2143,7 +2143,7 @@
   },
   {
     "id": "iter_filter_is_ok",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3862",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3873",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of `.filter(Result::is_ok)` that may be replaced with a `.flatten()` call.\nThis lint will require additional changes to the follow-up calls as it affects the type.\n\n### Why is this bad?\nThis pattern is often followed by manual unwrapping of `Result`. The simplification\nresults in more readable and succinct code without the need for manual unwrapping.\n\n### Example\n```rust\n// example code where clippy issues a warning\nvec![Ok::<i32, String>(1)].into_iter().filter(Result::is_ok);\n\n```\nUse instead:\n```rust\n// example code which does not raise clippy warning\nvec![Ok::<i32, String>(1)].into_iter().flatten();\n```\n",
@@ -2152,7 +2152,7 @@
   },
   {
     "id": "iter_filter_is_some",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3836",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3847",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of `.filter(Option::is_some)` that may be replaced with a `.flatten()` call.\nThis lint will require additional changes to the follow-up calls as it affects the type.\n\n### Why is this bad?\nThis pattern is often followed by manual unwrapping of the `Option`. The simplification\nresults in more readable and succinct code without the need for manual unwrapping.\n\n### Example\n```rust\n// example code where clippy issues a warning\nvec![Some(1)].into_iter().filter(Option::is_some);\n\n```\nUse instead:\n```rust\n// example code which does not raise clippy warning\nvec![Some(1)].into_iter().flatten();\n```\n",
@@ -2161,7 +2161,7 @@
   },
   {
     "id": "iter_kv_map",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3169",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3180",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\n\nChecks for iterating a map (`HashMap` or `BTreeMap`) and\nignoring either the keys or values.\n\n### Why is this bad?\n\nReadability. There are `keys` and `values` methods that\ncan be used to express that we only need the keys or the values.\n\n### Example\n\n```rust\nlet map: HashMap<u32, u32> = HashMap::new();\nlet values = map.iter().map(|(_, value)| value).collect::<Vec<_>>();\n```\n\nUse instead:\n```rust\nlet map: HashMap<u32, u32> = HashMap::new();\nlet values = map.values().collect::<Vec<_>>();\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -2179,7 +2179,7 @@
   },
   {
     "id": "iter_next_slice",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1796",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1807",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `iter().next()` on a Slice or an Array\n\n### Why is this bad?\nThese can be shortened into `.get()`\n\n### Example\n```rust\na[2..].iter().next();\nb.iter().next();\n```\nshould be written as:\n```rust\na.get(2);\nb.get(0);\n```\n",
@@ -2197,7 +2197,7 @@
   },
   {
     "id": "iter_nth",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1234",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1245",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `.iter().nth()`/`.iter_mut().nth()` on standard library types that have\nequivalent `.get()`/`.get_mut()` methods.\n\n### Why is this bad?\n`.get()` and `.get_mut()` are equivalent but more concise.\n\n### Example\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().nth(3);\nlet bad_slice = &some_vec[..].iter().nth(3);\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.get(3);\nlet bad_slice = &some_vec[..].get(3);\n```\n",
@@ -2206,7 +2206,7 @@
   },
   {
     "id": "iter_nth_zero",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1208",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1219",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for the use of `iter.nth(0)`.\n\n### Why is this bad?\n`iter.next()` is equivalent to\n`iter.nth(0)`, as they both consume the next element,\n but is more readable.\n\n### Example\n```rust\nlet x = s.iter().nth(0);\n```\n\nUse instead:\n```rust\nlet x = s.iter().next();\n```\n",
@@ -2215,7 +2215,7 @@
   },
   {
     "id": "iter_on_empty_collections",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2488",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2499",
     "group": "nursery",
     "level": "allow",
     "docs": "### What it does\n\nChecks for calls to `iter`, `iter_mut` or `into_iter` on empty collections\n\n### Why is this bad?\n\nIt is simpler to use the empty function from the standard library:\n\n### Example\n\n```rust\nuse std::{slice, option};\nlet a: slice::Iter<i32> = [].iter();\nlet f: option::IntoIter<i32> = None.into_iter();\n```\nUse instead:\n```rust\nuse std::iter;\nlet a: iter::Empty<i32> = iter::empty();\nlet b: iter::Empty<i32> = iter::empty();\n```\n\n### Known problems\n\nThe type of the resulting iterator might become incompatible with its usage\n",
@@ -2224,7 +2224,7 @@
   },
   {
     "id": "iter_on_single_items",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2456",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2467",
     "group": "nursery",
     "level": "allow",
     "docs": "### What it does\n\nChecks for calls to `iter`, `iter_mut` or `into_iter` on collections containing a single item\n\n### Why is this bad?\n\nIt is simpler to use the once function from the standard library:\n\n### Example\n\n```rust\nlet a = [123].iter();\nlet b = Some(123).into_iter();\n```\nUse instead:\n```rust\nuse std::iter;\nlet a = iter::once(&123);\nlet b = iter::once(123);\n```\n\n### Known problems\n\nThe type of the resulting iterator might become incompatible with its usage\n",
@@ -2233,7 +2233,7 @@
   },
   {
     "id": "iter_out_of_bounds",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3608",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3619",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nLooks for iterator combinator calls such as `.take(x)` or `.skip(x)`\nwhere `x` is greater than the amount of items that an iterator will produce.\n\n### Why is this bad?\nTaking or skipping more items than there are in an iterator either creates an iterator\nwith all items from the original iterator or an iterator with no items at all.\nThis is most likely not what the user intended to do.\n\n### Example\n```rust\nfor _ in [1, 2, 3].iter().take(4) {}\n```\nUse instead:\n```rust\nfor _ in [1, 2, 3].iter() {}\n```\n",
@@ -2260,7 +2260,7 @@
   },
   {
     "id": "iter_skip_next",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1259",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1270",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `.skip(x).next()` on iterators.\n\n### Why is this bad?\n`.nth(x)` is cleaner\n\n### Example\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().skip(3).next();\nlet bad_slice = &some_vec[..].iter().skip(3).next();\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().nth(3);\nlet bad_slice = &some_vec[..].iter().nth(3);\n```\n",
@@ -2269,7 +2269,7 @@
   },
   {
     "id": "iter_skip_zero",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3522",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3533",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nChecks for usage of `.skip(0)` on iterators.\n\n### Why is this bad?\nThis was likely intended to be `.skip(1)` to skip the first element, as `.skip(0)` does\nnothing. If not, the call should be removed.\n\n### Example\n```rust\nlet v = vec![1, 2, 3];\nlet x = v.iter().skip(0).collect::<Vec<_>>();\nlet y = v.iter().collect::<Vec<_>>();\nassert_eq!(x, y);\n```\n",
@@ -2278,7 +2278,7 @@
   },
   {
     "id": "iter_with_drain",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1284",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1295",
     "group": "nursery",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of `.drain(..)` on `Vec` and `VecDeque` for iteration.\n\n### Why is this bad?\n`.into_iter()` is simpler with better performance.\n\n### Example\n```rust\nlet mut foo = vec![0, 1, 2, 3];\nlet bar: HashSet<usize> = foo.drain(..).collect();\n```\nUse instead:\n```rust\nlet foo = vec![0, 1, 2, 3];\nlet bar: HashSet<usize> = foo.into_iter().collect();\n```\n",
@@ -2296,7 +2296,7 @@
   },
   {
     "id": "iterator_step_by_zero",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1155",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1166",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nChecks for calling `.step_by(0)` on iterators which panics.\n\n### Why is this bad?\nThis very much looks like an oversight. Use `panic!()` instead if you\nactually intend to panic.\n\n### Example\n```rust\nfor x in (0..100).step_by(0) {\n    //..\n}\n```\n",
@@ -2305,7 +2305,7 @@
   },
   {
     "id": "join_absolute_paths",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3762",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3773",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for calls to `Path::join` that start with a path separator (`\\\\` or `/`).\n\n### Why is this bad?\nIf the argument to `Path::join` starts with a separator, it will overwrite\nthe original path. If this is intentional, prefer using `Path::new` instead.\n\nNote the behavior is platform dependent. A leading `\\\\` will be accepted\non unix systems as part of the file name\n\nSee [`Path::join`](https://doc.rust-lang.org/std/path/struct.Path.html#method.join)\n\n### Example\n```rust\nlet path = Path::new(\"/bin\");\nlet joined_path = path.join(\"/sh\");\nassert_eq!(joined_path, PathBuf::from(\"/sh\"));\n```\n\nUse instead;\n```rust\nlet path = Path::new(\"/bin\");\n\n// If this was unintentional, remove the leading separator\nlet joined_path = path.join(\"sh\");\nassert_eq!(joined_path, PathBuf::from(\"/bin/sh\"));\n\n// If this was intentional, create a new path instead\nlet new = Path::new(\"/sh\");\nassert_eq!(new, PathBuf::from(\"/sh\"));\n```\n",
@@ -2584,7 +2584,7 @@
   },
   {
     "id": "manual_c_str_literals",
-    "id_location": "clippy_lints/src/methods/mod.rs#L4027",
+    "id_location": "clippy_lints/src/methods/mod.rs#L4038",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for the manual creation of C strings (a string with a `NUL` byte at the end), either\nthrough one of the `CStr` constructor functions, or more plainly by calling `.as_ptr()`\non a (byte) string literal with a hardcoded `\\0` byte at the end.\n\n### Why is this bad?\nThis can be written more concisely using `c\"str\"` literals and is also less error-prone,\nbecause the compiler checks for interior `NUL` bytes and the terminating `NUL` byte is inserted automatically.\n\n### Example\n```rust\nfn needs_cstr(_: &CStr) {}\n\nneeds_cstr(CStr::from_bytes_with_nul(b\"Hello\\0\").unwrap());\nunsafe { libc::puts(\"World\\0\".as_ptr().cast()) }\n```\nUse instead:\n```rust\nfn needs_cstr(_: &CStr) {}\n\nneeds_cstr(c\"Hello\");\nunsafe { libc::puts(c\"World\".as_ptr()) }\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -2611,7 +2611,7 @@
   },
   {
     "id": "manual_filter_map",
-    "id_location": "clippy_lints/src/methods/mod.rs#L762",
+    "id_location": "clippy_lints/src/methods/mod.rs#L773",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `_.filter(_).map(_)` that can be written more simply\nas `filter_map(_)`.\n\n### Why is this bad?\nRedundant code in the `filter` and `map` operations is poor style and\nless performant.\n\n### Example\n```rust\n(0_i32..10)\n    .filter(|n| n.checked_add(1).is_some())\n    .map(|n| n.checked_add(1).unwrap());\n```\n\nUse instead:\n```rust\n(0_i32..10).filter_map(|n| n.checked_add(1));\n```\n\n### Past names\n\n * filter_map\n",
@@ -2629,7 +2629,7 @@
   },
   {
     "id": "manual_find_map",
-    "id_location": "clippy_lints/src/methods/mod.rs#L788",
+    "id_location": "clippy_lints/src/methods/mod.rs#L799",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `_.find(_).map(_)` that can be written more simply\nas `find_map(_)`.\n\n### Why is this bad?\nRedundant code in the `find` and `map` operations is poor style and\nless performant.\n\n### Example\n```rust\n(0_i32..10)\n    .find(|n| n.checked_add(1).is_some())\n    .map(|n| n.checked_add(1).unwrap());\n```\n\nUse instead:\n```rust\n(0_i32..10).find_map(|n| n.checked_add(1));\n```\n\n### Past names\n\n * find_map\n",
@@ -2656,7 +2656,7 @@
   },
   {
     "id": "manual_inspect",
-    "id_location": "clippy_lints/src/methods/mod.rs#L4124",
+    "id_location": "clippy_lints/src/methods/mod.rs#L4135",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for uses of `map` which return the original item.\n\n### Why is this bad?\n`inspect` is both clearer in intent and shorter.\n\n### Example\n```rust\nlet x = Some(0).map(|x| { println!(\"{x}\"); x });\n```\nUse instead:\n```rust\nlet x = Some(0).inspect(|x| println!(\"{x}\"));\n```\n",
@@ -2701,7 +2701,7 @@
   },
   {
     "id": "manual_is_variant_and",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3889",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3900",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of `option.map(f).unwrap_or_default()` and `result.map(f).unwrap_or_default()` where f is a function or closure that returns the `bool` type.\n\n### Why is this bad?\nReadability. These can be written more concisely as `option.is_some_and(f)` and `result.is_ok_and(f)`.\n\n### Example\n```rust\noption.map(|a| a > 10).unwrap_or_default();\nresult.map(|a| a > 10).unwrap_or_default();\n```\nUse instead:\n```rust\noption.is_some_and(|a| a > 10);\nresult.is_ok_and(|a| a > 10);\n```\n",
@@ -2746,7 +2746,7 @@
   },
   {
     "id": "manual_next_back",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3342",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3353",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for `.rev().next()` on a `DoubleEndedIterator`\n\n### Why is this bad?\n`.next_back()` is cleaner.\n\n### Example\n```rust\nfoo.iter().rev().next();\n```\nUse instead:\n```rust\nfoo.iter().next_back();\n```\n",
@@ -2764,7 +2764,7 @@
   },
   {
     "id": "manual_ok_or",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2624",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2635",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\n\nFinds patterns that reimplement `Option::ok_or`.\n\n### Why is this bad?\n\nConcise code helps focusing on behavior instead of boilerplate.\n\n### Examples\n```rust\nlet foo: Option<i32> = None;\nfoo.map_or(Err(\"error\"), |v| Ok(v));\n```\n\nUse instead:\n```rust\nlet foo: Option<i32> = None;\nfoo.ok_or(\"error\");\n```\n",
@@ -2827,7 +2827,7 @@
   },
   {
     "id": "manual_saturating_arithmetic",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1683",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1694",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for `.checked_add/sub(x).unwrap_or(MAX/MIN)`.\n\n### Why is this bad?\nThese can be written simply with `saturating_add/sub` methods.\n\n### Example\n```rust\nlet add = x.checked_add(y).unwrap_or(u32::MAX);\nlet sub = x.checked_sub(y).unwrap_or(u32::MIN);\n```\n\ncan be written using dedicated methods for saturating addition/subtraction as:\n\n```rust\nlet add = x.saturating_add(y);\nlet sub = x.saturating_sub(y);\n```\n",
@@ -2845,7 +2845,7 @@
   },
   {
     "id": "manual_split_once",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2216",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2227",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `str::splitn(2, _)`\n\n### Why is this bad?\n`split_once` is both clearer in intent and slightly more efficient.\n\n### Example\n```rust\nlet s = \"key=value=add\";\nlet (key, value) = s.splitn(2, '=').next_tuple()?;\nlet value = s.splitn(2, '=').nth(1)?;\n\nlet mut parts = s.splitn(2, '=');\nlet key = parts.next()?;\nlet value = parts.next()?;\n```\n\nUse instead:\n```rust\nlet s = \"key=value=add\";\nlet (key, value) = s.split_once('=')?;\nlet value = s.split_once('=')?.1;\n\nlet (key, value) = s.split_once('=')?;\n```\n\n### Limitations\nThe multiple statement variant currently only detects `iter.next()?`/`iter.next().unwrap()`\nin two separate `let` statements that immediately follow the `splitn()`\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -2854,7 +2854,7 @@
   },
   {
     "id": "manual_str_repeat",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2180",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2191",
     "group": "perf",
     "level": "warn",
     "docs": "### What it does\nChecks for manual implementations of `str::repeat`\n\n### Why is this bad?\nThese are both harder to read, as well as less performant.\n\n### Example\n```rust\nlet x: String = std::iter::repeat('x').take(10).collect();\n```\n\nUse instead:\n```rust\nlet x: String = \"x\".repeat(10);\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -2890,7 +2890,7 @@
   },
   {
     "id": "manual_try_fold",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3407",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3418",
     "group": "perf",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `Iterator::fold` with a type that implements `Try`.\n\n### Why is this bad?\nThe code should use `try_fold` instead, which short-circuits on failure, thus opening the\ndoor for additional optimizations not possible with `fold` as rustc can guarantee the\nfunction is never called on `None`, `Err`, etc., alleviating otherwise necessary checks. It's\nalso slightly more idiomatic.\n\n### Known issues\nThis lint doesn't take into account whether a function does something on the failure case,\ni.e., whether short-circuiting will affect behavior. Refactoring to `try_fold` is not\ndesirable in those cases.\n\n### Example\n```rust\nvec![1, 2, 3].iter().fold(Some(0i32), |sum, i| sum?.checked_add(*i));\n```\nUse instead:\n```rust\nvec![1, 2, 3].iter().try_fold(0i32, |sum, i| sum.checked_add(*i));\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -2935,7 +2935,7 @@
   },
   {
     "id": "map_clone",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2653",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2664",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `map(|x| x.clone())` or\ndereferencing closures for `Copy` types, on `Iterator` or `Option`,\nand suggests `cloned()` or `copied()` instead\n\n### Why is this bad?\nReadability, this can be written more concisely\n\n### Example\n```rust\nlet x = vec![42, 43];\nlet y = x.iter();\nlet z = y.map(|i| *i);\n```\n\nThe correct use would be:\n\n```rust\nlet x = vec![42, 43];\nlet y = x.iter();\nlet z = y.cloned();\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -2944,7 +2944,7 @@
   },
   {
     "id": "map_collect_result_unit",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1884",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1895",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `_.map(_).collect::<Result<(), _>()`.\n\n### Why is this bad?\nUsing `try_for_each` instead is more readable and idiomatic.\n\n### Example\n```rust\n(0..3).map(|t| Err(t)).collect::<Result<(), _>>();\n```\nUse instead:\n```rust\n(0..3).try_for_each(|t| Err(t));\n```\n",
@@ -2962,7 +2962,7 @@
   },
   {
     "id": "map_err_ignore",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2754",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2765",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for instances of `map_err(|_| Some::Enum)`\n\n### Why restrict this?\nThis `map_err` throws away the original error rather than allowing the enum to\ncontain and report the cause of the error.\n\n### Example\nBefore:\n```rust\nuse std::fmt;\n\n#[derive(Debug)]\nenum Error {\n    Indivisible,\n    Remainder(u8),\n}\n\nimpl fmt::Display for Error {\n    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {\n        match self {\n            Error::Indivisible => write!(f, \"could not divide input by three\"),\n            Error::Remainder(remainder) => write!(\n                f,\n                \"input is not divisible by three, remainder = {}\",\n                remainder\n            ),\n        }\n    }\n}\n\nimpl std::error::Error for Error {}\n\nfn divisible_by_3(input: &str) -> Result<(), Error> {\n    input\n        .parse::<i32>()\n        .map_err(|_| Error::Indivisible)\n        .map(|v| v % 3)\n        .and_then(|remainder| {\n            if remainder == 0 {\n                Ok(())\n            } else {\n                Err(Error::Remainder(remainder as u8))\n            }\n        })\n}\n```\n\nAfter:\n```rust\nuse std::{fmt, num::ParseIntError};\n\n#[derive(Debug)]\nenum Error {\n    Indivisible(ParseIntError),\n    Remainder(u8),\n}\n\nimpl fmt::Display for Error {\n    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {\n        match self {\n            Error::Indivisible(_) => write!(f, \"could not divide input by three\"),\n            Error::Remainder(remainder) => write!(\n                f,\n                \"input is not divisible by three, remainder = {}\",\n                remainder\n            ),\n        }\n    }\n}\n\nimpl std::error::Error for Error {\n    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {\n        match self {\n            Error::Indivisible(source) => Some(source),\n            _ => None,\n        }\n    }\n}\n\nfn divisible_by_3(input: &str) -> Result<(), Error> {\n    input\n        .parse::<i32>()\n        .map_err(Error::Indivisible)\n        .map(|v| v % 3)\n        .and_then(|remainder| {\n            if remainder == 0 {\n                Ok(())\n            } else {\n                Err(Error::Remainder(remainder as u8))\n            }\n        })\n}\n```\n",
@@ -2971,7 +2971,7 @@
   },
   {
     "id": "map_flatten",
-    "id_location": "clippy_lints/src/methods/mod.rs#L736",
+    "id_location": "clippy_lints/src/methods/mod.rs#L747",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `_.map(_).flatten(_)` on `Iterator` and `Option`\n\n### Why is this bad?\nReadability, this can be written more concisely as\n`_.flat_map(_)` for `Iterator` or `_.and_then(_)` for `Option`\n\n### Example\n```rust\nlet vec = vec![vec![1]];\nlet opt = Some(5);\n\nvec.iter().map(|x| x.iter()).flatten();\nopt.map(|x| Some(x * 2)).flatten();\n```\n\nUse instead:\n```rust\nvec.iter().flat_map(|x| x.iter());\nopt.and_then(|x| Some(x * 2));\n```\n",
@@ -2980,7 +2980,7 @@
   },
   {
     "id": "map_identity",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2001",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2012",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for instances of `map(f)` where `f` is the identity function.\n\n### Why is this bad?\nIt can be written more concisely without the call to `map`.\n\n### Example\n```rust\nlet x = [1, 2, 3];\nlet y: Vec<_> = x.iter().map(|x| x).map(|x| 2*x).collect();\n```\nUse instead:\n```rust\nlet x = [1, 2, 3];\nlet y: Vec<_> = x.iter().map(|x| 2*x).collect();\n```\n",
@@ -2989,7 +2989,7 @@
   },
   {
     "id": "map_unwrap_or",
-    "id_location": "clippy_lints/src/methods/mod.rs#L571",
+    "id_location": "clippy_lints/src/methods/mod.rs#L582",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of `option.map(_).unwrap_or(_)` or `option.map(_).unwrap_or_else(_)` or\n`result.map(_).unwrap_or_else(_)`.\n\n### Why is this bad?\nReadability, these can be written more concisely (resp.) as\n`option.map_or(_, _)`, `option.map_or_else(_, _)` and `result.map_or_else(_, _)`.\n\n### Known problems\nThe order of the arguments is not in execution order\n\n### Examples\n```rust\noption.map(|a| a + 1).unwrap_or(0);\noption.map(|a| a > 10).unwrap_or(false);\nresult.map(|a| a + 1).unwrap_or_else(some_function);\n```\n\nUse instead:\n```rust\noption.map_or(0, |a| a + 1);\noption.is_some_and(|a| a > 10);\nresult.map_or_else(some_function, |a| a + 1);\n```\n\n### Past names\n\n * option_map_unwrap_or\n * option_map_unwrap_or_else\n * result_map_unwrap_or_else\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -3493,7 +3493,7 @@
   },
   {
     "id": "mut_mutex_lock",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2790",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2801",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for `&mut Mutex::lock` calls\n\n### Why is this bad?\n`Mutex::lock` is less efficient than\ncalling `Mutex::get_mut`. In addition you also have a statically\nguarantee that the mutex isn't locked, instead of just a runtime\nguarantee.\n\n### Example\n```rust\nuse std::sync::{Arc, Mutex};\n\nlet mut value_rc = Arc::new(Mutex::new(42_u8));\nlet value_mutex = Arc::get_mut(&mut value_rc).unwrap();\n\nlet mut value = value_mutex.lock().unwrap();\n*value += 1;\n```\nUse instead:\n```rust\nuse std::sync::{Arc, Mutex};\n\nlet mut value_rc = Arc::new(Mutex::new(42_u8));\nlet value_mutex = Arc::get_mut(&mut value_rc).unwrap();\n\nlet value = value_mutex.get_mut().unwrap();\n*value += 1;\n```\n",
@@ -3538,7 +3538,7 @@
   },
   {
     "id": "naive_bytecount",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2519",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2530",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for naive byte counts\n\n### Why is this bad?\nThe [`bytecount`](https://crates.io/crates/bytecount)\ncrate has methods to count your bytes faster, especially for large slices.\n\n### Known problems\nIf you have predominantly small slices, the\n`bytecount::count(..)` method may actually be slower. However, if you can\nensure that less than 2³²-1 matches arise, the `naive_count_32(..)` can be\nfaster in those cases.\n\n### Example\n```rust\nlet count = vec.iter().filter(|x| **x == 0u8).count();\n```\n\nUse instead:\n```rust\nlet count = bytecount::count(&vec, 0u8);\n```\n",
@@ -3610,7 +3610,7 @@
   },
   {
     "id": "needless_character_iteration",
-    "id_location": "clippy_lints/src/methods/mod.rs#L4103",
+    "id_location": "clippy_lints/src/methods/mod.rs#L4114",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks if an iterator is used to check if a string is ascii.\n\n### Why is this bad?\nThe `str` type already implements the `is_ascii` method.\n\n### Example\n```rust\n\"foo\".chars().all(|c| c.is_ascii());\n```\nUse instead:\n```rust\n\"foo\".is_ascii();\n```\n",
@@ -3619,7 +3619,7 @@
   },
   {
     "id": "needless_collect",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3268",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3279",
     "group": "nursery",
     "level": "allow",
     "docs": "### What it does\nChecks for functions collecting an iterator when collect\nis not needed.\n\n### Why is this bad?\n`collect` causes the allocation of a new data structure,\nwhen this allocation may not be needed.\n\n### Example\n```rust\nlet len = iterator.collect::<Vec<_>>().len();\n```\nUse instead:\n```rust\nlet len = iterator.count();\n```\n",
@@ -3709,7 +3709,7 @@
   },
   {
     "id": "needless_option_as_deref",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2327",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2338",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for no-op uses of `Option::{as_deref, as_deref_mut}`,\nfor example, `Option<&T>::as_deref()` returns the same type.\n\n### Why is this bad?\nRedundant code and improving readability.\n\n### Example\n```rust\nlet a = Some(&1);\nlet b = a.as_deref(); // goes from Option<&i32> to Option<&i32>\n```\n\nUse instead:\n```rust\nlet a = Some(&1);\nlet b = a;\n```\n",
@@ -3718,7 +3718,7 @@
   },
   {
     "id": "needless_option_take",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2378",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2389",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for calling `take` function after `as_ref`.\n\n### Why is this bad?\nRedundant code. `take` writes `None` to its argument.\nIn this case the modification is useless as it's a temporary that cannot be read from afterwards.\n\n### Example\n```rust\nlet x = Some(3);\nx.as_ref().take();\n```\nUse instead:\n```rust\nlet x = Some(3);\nx.as_ref();\n```\n",
@@ -3817,7 +3817,7 @@
   },
   {
     "id": "needless_splitn",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2239",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2250",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `str::splitn` (or `str::rsplitn`) where using `str::split` would be the same.\n### Why is this bad?\nThe function `split` is simpler and there is no performance difference in these cases, considering\nthat both functions return a lazy iterator.\n### Example\n```rust\nlet str = \"key=value=add\";\nlet _ = str.splitn(3, '=').next().unwrap();\n```\n\nUse instead:\n```rust\nlet str = \"key=value=add\";\nlet _ = str.split('=').next().unwrap();\n```\n",
@@ -3871,7 +3871,7 @@
   },
   {
     "id": "new_ret_no_self",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1135",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1146",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for `new` not returning a type that contains `Self`.\n\n### Why is this bad?\nAs a convention, `new` methods are used to make a new\ninstance of a type.\n\n### Example\nIn an impl block:\n```rust\nimpl Foo {\n    fn new() -> NotAFoo {\n    }\n}\n```\n\n```rust\nstruct Bar(Foo);\nimpl Foo {\n    // Bad. The type name must contain `Self`\n    fn new() -> Bar {\n    }\n}\n```\n\n```rust\nimpl Foo {\n    // Good. Return type contains `Self`\n    fn new() -> Result<Foo, FooError> {\n    }\n}\n```\n\nOr in a trait definition:\n```rust\npub trait Trait {\n    // Bad. The type name must contain `Self`\n    fn new();\n}\n```\n\n```rust\npub trait Trait {\n    // Good. Return type contains `Self`\n    fn new() -> Self;\n}\n```\n",
@@ -3898,7 +3898,7 @@
   },
   {
     "id": "no_effect_replace",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2396",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2407",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for `replace` statements which have no effect.\n\n### Why is this bad?\nIt's either a mistake or confusing.\n\n### Example\n```rust\n\"1234\".replace(\"12\", \"12\");\n\"1234\".replacen(\"12\", \"12\", 1);\n```\n",
@@ -3988,7 +3988,7 @@
   },
   {
     "id": "nonsensical_open_options",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2811",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2822",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nChecks for duplicate open options as well as combinations\nthat make no sense.\n\n### Why is this bad?\nIn the best case, the code will be harder to read than\nnecessary. I don't know the worst case.\n\n### Example\n```rust\nuse std::fs::OpenOptions;\n\nOpenOptions::new().read(true).truncate(true);\n```\n",
@@ -4015,7 +4015,7 @@
   },
   {
     "id": "obfuscated_if_else",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2424",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2435",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `.then_some(..).unwrap_or(..)`\n\n### Why is this bad?\nThis can be written more clearly with `if .. else ..`\n\n### Limitations\nThis lint currently only looks for usages of\n`.then_some(..).unwrap_or(..)`, but will be expanded\nto account for similar patterns.\n\n### Example\n```rust\nlet x = true;\nx.then_some(\"a\").unwrap_or(\"b\");\n```\nUse instead:\n```rust\nlet x = true;\nif x { \"a\" } else { \"b\" };\n```\n",
@@ -4033,7 +4033,7 @@
   },
   {
     "id": "ok_expect",
-    "id_location": "clippy_lints/src/methods/mod.rs#L473",
+    "id_location": "clippy_lints/src/methods/mod.rs#L484",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `ok().expect(..)`.\n\n### Why is this bad?\nBecause you usually call `expect()` on the `Result`\ndirectly to get a better error message.\n\n### Known problems\nThe error type needs to implement `Debug`\n\n### Example\n```rust\nx.ok().expect(\"why did I do this again?\");\n```\n\nUse instead:\n```rust\nx.expect(\"why did I do this again?\");\n```\n",
@@ -4060,7 +4060,7 @@
   },
   {
     "id": "option_as_ref_cloned",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3943",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3954",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of `.as_ref().cloned()` and `.as_mut().cloned()` on `Option`s\n\n### Why is this bad?\nThis can be written more concisely by cloning the `Option` directly.\n\n### Example\n```rust\nfn foo(bar: &Option<Vec<u8>>) -> Option<Vec<u8>> {\n    bar.as_ref().cloned()\n}\n```\nUse instead:\n```rust\nfn foo(bar: &Option<Vec<u8>>) -> Option<Vec<u8>> {\n    bar.clone()\n}\n```\n",
@@ -4069,7 +4069,7 @@
   },
   {
     "id": "option_as_ref_deref",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1769",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1780",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `_.as_ref().map(Deref::deref)` or its aliases (such as String::as_str).\n\n### Why is this bad?\nReadability, this can be written more concisely as\n`_.as_deref()`.\n\n### Example\n```rust\nopt.as_ref().map(String::as_str)\n```\nCan be written as\n```rust\nopt.as_deref()\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -4087,7 +4087,7 @@
   },
   {
     "id": "option_filter_map",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1178",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1189",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for iterators of `Option`s using `.filter(Option::is_some).map(Option::unwrap)` that may\nbe replaced with a `.flatten()` call.\n\n### Why is this bad?\n`Option` is like a collection of 0-1 things, so `flatten`\nautomatically does this without suspicious-looking `unwrap` calls.\n\n### Example\n```rust\nlet _ = std::iter::empty::<Option<i32>>().filter(Option::is_some).map(Option::unwrap);\n```\nUse instead:\n```rust\nlet _ = std::iter::empty::<Option<i32>>().flatten();\n```\n",
@@ -4105,7 +4105,7 @@
   },
   {
     "id": "option_map_or_err_ok",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3787",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3798",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `_.map_or(Err(_), Ok)`.\n\n### Why is this bad?\nReadability, this can be written more concisely as\n`_.ok_or(_)`.\n\n### Example\n```rust\nopt.map_or(Err(\"error\"), Ok);\n```\n\nUse instead:\n```rust\nopt.ok_or(\"error\");\n```\n",
@@ -4114,7 +4114,7 @@
   },
   {
     "id": "option_map_or_none",
-    "id_location": "clippy_lints/src/methods/mod.rs#L599",
+    "id_location": "clippy_lints/src/methods/mod.rs#L610",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `_.map_or(None, _)`.\n\n### Why is this bad?\nReadability, this can be written more concisely as\n`_.and_then(_)`.\n\n### Known problems\nThe order of the arguments is not in execution order.\n\n### Example\n```rust\nopt.map_or(None, |a| Some(a + 1));\n```\n\nUse instead:\n```rust\nopt.and_then(|a| Some(a + 1));\n```\n",
@@ -4141,7 +4141,7 @@
   },
   {
     "id": "or_fun_call",
-    "id_location": "clippy_lints/src/methods/mod.rs#L926",
+    "id_location": "clippy_lints/src/methods/mod.rs#L937",
     "group": "nursery",
     "level": "allow",
     "docs": "### What it does\nChecks for calls to `.or(foo(..))`, `.unwrap_or(foo(..))`,\n`.or_insert(foo(..))` etc., and suggests to use `.or_else(|| foo(..))`,\n`.unwrap_or_else(|| foo(..))`, `.unwrap_or_default()` or `.or_default()`\netc. instead.\n\n### Why is this bad?\nThe function will always be called. This is only bad if it allocates or\ndoes some non-trivial amount of work.\n\n### Known problems\nIf the function has side-effects, not calling it will change the\nsemantic of the program, but you shouldn't rely on that.\n\nThe lint also cannot figure out whether the function you call is\nactually expensive to call or not.\n\n### Example\n```rust\nfoo.unwrap_or(String::from(\"empty\"));\n```\n\nUse instead:\n```rust\nfoo.unwrap_or_else(|| String::from(\"empty\"));\n```\n",
@@ -4150,7 +4150,7 @@
   },
   {
     "id": "or_then_unwrap",
-    "id_location": "clippy_lints/src/methods/mod.rs#L962",
+    "id_location": "clippy_lints/src/methods/mod.rs#L973",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for `.or(…).unwrap()` calls to Options and Results.\n\n### Why is this bad?\nYou should use `.unwrap_or(…)` instead for clarity.\n\n### Example\n```rust\n// Result\nlet value = result.or::<Error>(Ok(fallback)).unwrap();\n\n// Option\nlet value = option.or(Some(fallback)).unwrap();\n```\nUse instead:\n```rust\n// Result\nlet value = result.unwrap_or(fallback);\n\n// Option\nlet value = option.unwrap_or(fallback);\n```\n",
@@ -4240,7 +4240,7 @@
   },
   {
     "id": "path_buf_push_overwrite",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2881",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2892",
     "group": "nursery",
     "level": "allow",
     "docs": "### What it does\n* Checks for [push](https://doc.rust-lang.org/std/path/struct.PathBuf.html#method.push)\ncalls on `PathBuf` that can cause overwrites.\n\n### Why is this bad?\nCalling `push` with a root path at the start can overwrite the\nprevious defined path.\n\n### Example\n```rust\nuse std::path::PathBuf;\n\nlet mut x = PathBuf::from(\"/foo\");\nx.push(\"/bar\");\nassert_eq!(x, PathBuf::from(\"/bar\"));\n```\nCould be written:\n\n```rust\nuse std::path::PathBuf;\n\nlet mut x = PathBuf::from(\"/foo\");\nx.push(\"bar\");\nassert_eq!(x, PathBuf::from(\"/foo/bar\"));\n```\n",
@@ -4249,7 +4249,7 @@
   },
   {
     "id": "path_ends_with_ext",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3647",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3658",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nLooks for calls to `Path::ends_with` calls where the argument looks like a file extension.\n\nBy default, Clippy has a short list of known filenames that start with a dot\nbut aren't necessarily file extensions (e.g. the `.git` folder), which are allowed by default.\nThe `allowed-dotfiles` configuration can be used to allow additional\nfile extensions that Clippy should not lint.\n\n### Why is this bad?\nThis doesn't actually compare file extensions. Rather, `ends_with` compares the given argument\nto the last **component** of the path and checks if it matches exactly.\n\n### Known issues\nFile extensions are often at most three characters long, so this only lints in those cases\nin an attempt to avoid false positives.\nAny extension names longer than that are assumed to likely be real path components and are\ntherefore ignored.\n\n### Example\n```rust\nfn is_markdown(path: &Path) -> bool {\n    path.ends_with(\".md\")\n}\n```\nUse instead:\n```rust\nfn is_markdown(path: &Path) -> bool {\n    path.extension().is_some_and(|ext| ext == \"md\")\n}\n```\n\n### Configuration\n\n- `allowed-dotfiles`:  Additional dotfiles (files or directories starting with a dot) to allow\n\n\n   (default: `[]`)\n",
@@ -4492,7 +4492,7 @@
   },
   {
     "id": "range_zip_with_len",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2906",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2917",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for zipping a collection with the range of\n`0.._.len()`.\n\n### Why is this bad?\nThe code is better expressed with `.enumerate()`.\n\n### Example\n```rust\nlet _ = x.iter().zip(0..x.len());\n```\n\nUse instead:\n```rust\nlet _ = x.iter().enumerate();\n```\n",
@@ -4528,7 +4528,7 @@
   },
   {
     "id": "read_line_without_trim",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3438",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3449",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nLooks for calls to [`Stdin::read_line`] to read a line from the standard input\ninto a string, then later attempting to use that string for an operation that will never\nwork for strings with a trailing newline character in it (e.g. parsing into a `i32`).\n\n### Why is this bad?\nThe operation will always fail at runtime no matter what the user enters, thus\nmaking it a useless operation.\n\n### Example\n```rust\nlet mut input = String::new();\nstd::io::stdin().read_line(&mut input).expect(\"Failed to read a line\");\nlet num: i32 = input.parse().expect(\"Not a number!\");\nassert_eq!(num, 42); // we never even get here!\n```\nUse instead:\n```rust\nlet mut input = String::new();\nstd::io::stdin().read_line(&mut input).expect(\"Failed to read a line\");\nlet num: i32 = input.trim_end().parse().expect(\"Not a number!\");\n//                  ^^^^^^^^^^^ remove the trailing newline\nassert_eq!(num, 42);\n```\n",
@@ -4546,7 +4546,7 @@
   },
   {
     "id": "readonly_write_lock",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3584",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3595",
     "group": "perf",
     "level": "warn",
     "docs": "### What it does\nLooks for calls to `RwLock::write` where the lock is only used for reading.\n\n### Why is this bad?\nThe write portion of `RwLock` is exclusive, meaning that no other thread\ncan access the lock while this writer is active.\n\n### Example\n```rust\nuse std::sync::RwLock;\nfn assert_is_zero(lock: &RwLock<i32>) {\n    let num = lock.write().unwrap();\n    assert_eq!(*num, 0);\n}\n```\n\nUse instead:\n```rust\nuse std::sync::RwLock;\nfn assert_is_zero(lock: &RwLock<i32>) {\n    let num = lock.read().unwrap();\n    assert_eq!(*num, 0);\n}\n```\n",
@@ -4573,7 +4573,7 @@
   },
   {
     "id": "redundant_as_str",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3673",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3684",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `as_str()` on a `String` chained with a method available on the `String` itself.\n\n### Why is this bad?\nThe `as_str()` conversion is pointless and can be removed for simplicity and cleanliness.\n\n### Example\n```rust\nlet owned_string = \"This is a string\".to_owned();\nowned_string.as_str().as_bytes()\n```\n\nUse instead:\n```rust\nlet owned_string = \"This is a string\".to_owned();\nowned_string.as_bytes()\n```\n",
@@ -4798,7 +4798,7 @@
   },
   {
     "id": "repeat_once",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2938",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2949",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `.repeat(1)` and suggest the following method for each types.\n- `.to_string()` for `str`\n- `.clone()` for `String`\n- `.to_vec()` for `slice`\n\nThe lint will evaluate constant expressions and values as arguments of `.repeat(..)` and emit a message if\nthey are equivalent to `1`. (Related discussion in [rust-clippy#7306](https://github.com/rust-lang/rust-clippy/issues/7306))\n\n### Why is this bad?\nFor example, `String.repeat(1)` is equivalent to `.clone()`. If cloning\nthe string is the intention behind this, `clone()` should be used.\n\n### Example\n```rust\nfn main() {\n    let x = String::from(\"hello world\").repeat(1);\n}\n```\nUse instead:\n```rust\nfn main() {\n    let x = String::from(\"hello world\").clone();\n}\n```\n",
@@ -4843,7 +4843,7 @@
   },
   {
     "id": "result_filter_map",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3810",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3821",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for iterators of `Result`s using `.filter(Result::is_ok).map(Result::unwrap)` that may\nbe replaced with a `.flatten()` call.\n\n### Why is this bad?\n`Result` implements `IntoIterator<Item = T>`. This means that `Result` can be flattened\nautomatically without suspicious-looking `unwrap` calls.\n\n### Example\n```rust\nlet _ = std::iter::empty::<Result<i32, ()>>().filter(Result::is_ok).map(Result::unwrap);\n```\nUse instead:\n```rust\nlet _ = std::iter::empty::<Result<i32, ()>>().flatten();\n```\n",
@@ -4861,7 +4861,7 @@
   },
   {
     "id": "result_map_or_into_option",
-    "id_location": "clippy_lints/src/methods/mod.rs#L624",
+    "id_location": "clippy_lints/src/methods/mod.rs#L635",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `_.map_or(None, Some)`.\n\n### Why is this bad?\nReadability, this can be written more concisely as\n`_.ok()`.\n\n### Example\n```rust\nassert_eq!(Some(1), r.map_or(None, Some));\n```\n\nUse instead:\n```rust\nassert_eq!(Some(1), r.ok());\n```\n",
@@ -4933,7 +4933,7 @@
   },
   {
     "id": "search_is_some",
-    "id_location": "clippy_lints/src/methods/mod.rs#L865",
+    "id_location": "clippy_lints/src/methods/mod.rs#L876",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for an iterator or string search (such as `find()`,\n`position()`, or `rposition()`) followed by a call to `is_some()` or `is_none()`.\n\n### Why is this bad?\nReadability, this can be written more concisely as:\n* `_.any(_)`, or `_.contains(_)` for `is_some()`,\n* `!_.any(_)`, or `!_.contains(_)` for `is_none()`.\n\n### Example\n```rust\nlet vec = vec![1];\nvec.iter().find(|x| **x == 0).is_some();\n\n\"hello world\".find(\"world\").is_none();\n```\n\nUse instead:\n```rust\nlet vec = vec![1];\nvec.iter().any(|x| *x == 0);\n\n!\"hello world\".contains(\"world\");\n```\n",
@@ -4942,7 +4942,7 @@
   },
   {
     "id": "seek_from_current",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3212",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3223",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\n\nChecks if the `seek` method of the `Seek` trait is called with `SeekFrom::Current(0)`,\nand if it is, suggests using `stream_position` instead.\n\n### Why is this bad?\n\nReadability. Use dedicated method.\n\n### Example\n\n```rust\nuse std::fs::File;\nuse std::io::{self, Write, Seek, SeekFrom};\n\nfn main() -> io::Result<()> {\n    let mut f = File::create(\"foo.txt\")?;\n    f.write_all(b\"Hello\")?;\n    eprintln!(\"Written {} bytes\", f.seek(SeekFrom::Current(0))?);\n\n    Ok(())\n}\n```\nUse instead:\n```rust\nuse std::fs::File;\nuse std::io::{self, Write, Seek, SeekFrom};\n\nfn main() -> io::Result<()> {\n    let mut f = File::create(\"foo.txt\")?;\n    f.write_all(b\"Hello\")?;\n    eprintln!(\"Written {} bytes\", f.stream_position()?);\n\n    Ok(())\n}\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -4951,7 +4951,7 @@
   },
   {
     "id": "seek_to_start_instead_of_rewind",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3243",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3254",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\n\nChecks for jumps to the start of a stream that implements `Seek`\nand uses the `seek` method providing `Start` as parameter.\n\n### Why is this bad?\n\nReadability. There is a specific method that was implemented for\nthis exact scenario.\n\n### Example\n```rust\nfn foo<T: io::Seek>(t: &mut T) {\n    t.seek(io::SeekFrom::Start(0));\n}\n```\nUse instead:\n```rust\nfn foo<T: io::Seek>(t: &mut T) {\n    t.rewind();\n}\n```\n",
@@ -5140,7 +5140,7 @@
   },
   {
     "id": "single_char_add_str",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1823",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1834",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nWarns when using `push_str`/`insert_str` with a single-character string literal\nwhere `push`/`insert` with a `char` would work fine.\n\n### Why is this bad?\nIt's less clear that we are pushing a single character.\n\n### Example\n```rust\nstring.insert_str(0, \"R\");\nstring.push_str(\"R\");\n```\n\nUse instead:\n```rust\nstring.insert(0, 'R');\nstring.push('R');\n```\n\n### Past names\n\n * single_char_push_str\n",
@@ -5230,7 +5230,7 @@
   },
   {
     "id": "skip_while_next",
-    "id_location": "clippy_lints/src/methods/mod.rs#L706",
+    "id_location": "clippy_lints/src/methods/mod.rs#L717",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `_.skip_while(condition).next()`.\n\n### Why is this bad?\nReadability, this can be written more concisely as\n`_.find(!condition)`.\n\n### Example\n```rust\nvec.iter().skip_while(|x| **x == 0).next();\n```\n\nUse instead:\n```rust\nvec.iter().find(|x| **x != 0);\n```\n",
@@ -5248,7 +5248,7 @@
   },
   {
     "id": "stable_sort_primitive",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2976",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2987",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nWhen sorting primitive values (integers, bools, chars, as well\nas arrays, slices, and tuples of such items), it is typically better to\nuse an unstable sort than a stable sort.\n\n### Why is this bad?\nTypically, using a stable sort consumes more memory and cpu cycles.\nBecause values which compare equal are identical, preserving their\nrelative order (the guarantee that a stable sort provides) means\nnothing, while the extra costs still apply.\n\n### Known problems\n\nAs pointed out in\n[issue #8241](https://github.com/rust-lang/rust-clippy/issues/8241),\na stable sort can instead be significantly faster for certain scenarios\n(eg. when a sorted vector is extended with new data and resorted).\n\nFor more information and benchmarking results, please refer to the\nissue linked above.\n\n### Example\n```rust\nlet mut vec = vec![2, 1, 3];\nvec.sort();\n```\nUse instead:\n```rust\nlet mut vec = vec![2, 1, 3];\nvec.sort_unstable();\n```\n",
@@ -5275,7 +5275,7 @@
   },
   {
     "id": "str_split_at_newline",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3918",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3929",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\n\nChecks for usages of `str.trim().split(\"\\n\")` and `str.trim().split(\"\\r\\n\")`.\n\n### Why is this bad?\n\nHard-coding the line endings makes the code less compatible. `str.lines` should be used instead.\n\n### Example\n```rust\n\"some\\ntext\\nwith\\nnewlines\\n\".trim().split('\\n');\n```\nUse instead:\n```rust\n\"some\\ntext\\nwith\\nnewlines\\n\".lines();\n```\n\n### Known Problems\n\nThis lint cannot detect if the split is intentionally restricted to a single type of newline (`\"\\n\"` or\n`\"\\r\\n\"`), for example during the parsing of a specific file format in which precisely one newline type is\nvalid.\n",
@@ -5311,7 +5311,7 @@
   },
   {
     "id": "string_extend_chars",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1412",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1423",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for the use of `.extend(s.chars())` where s is a\n`&str` or `String`.\n\n### Why is this bad?\n`.push_str(s)` is clearer\n\n### Example\n```rust\nlet abc = \"abc\";\nlet def = String::from(\"def\");\nlet mut s = String::new();\ns.extend(abc.chars());\ns.extend(def.chars());\n```\nThe correct use would be:\n```rust\nlet abc = \"abc\";\nlet def = String::from(\"def\");\nlet mut s = String::new();\ns.push_str(abc);\ns.push_str(&def);\n```\n",
@@ -5338,7 +5338,7 @@
   },
   {
     "id": "string_lit_chars_any",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3466",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3477",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for `<string_lit>.chars().any(|i| i == c)`.\n\n### Why is this bad?\nIt's significantly slower than using a pattern instead, like\n`matches!(c, '\\\\' | '.' | '+')`.\n\nDespite this being faster, this is not `perf` as this is pretty common, and is a rather nice\nway to check if a `char` is any in a set. In any case, this `restriction` lint is available\nfor situations where that additional performance is absolutely necessary.\n\n### Example\n```rust\n\"\\\\.+*?()|[]{}^$#&-~\".chars().any(|x| x == c);\n```\nUse instead:\n```rust\nmatches!(c, '\\\\' | '.' | '+' | '*' | '(' | ')' | '|' | '[' | ']' | '{' | '}' | '^' | '$' | '#' | '&' | '-' | '~');\n```\n",
@@ -5419,7 +5419,7 @@
   },
   {
     "id": "suspicious_command_arg_space",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3294",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3305",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\n\nChecks for `Command::arg()` invocations that look like they\nshould be multiple arguments instead, such as `arg(\"-t ext2\")`.\n\n### Why is this bad?\n\n`Command::arg()` does not split arguments by space. An argument like `arg(\"-t ext2\")`\nwill be passed as a single argument to the command,\nwhich is likely not what was intended.\n\n### Example\n```rust\nstd::process::Command::new(\"echo\").arg(\"-n hello\").spawn().unwrap();\n```\nUse instead:\n```rust\nstd::process::Command::new(\"echo\").args([\"-n\", \"hello\"]).spawn().unwrap();\n```\n",
@@ -5446,7 +5446,7 @@
   },
   {
     "id": "suspicious_map",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1619",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1630",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for calls to `map` followed by a `count`.\n\n### Why is this bad?\nIt looks suspicious. Maybe `map` was confused with `filter`.\nIf the `map` call is intentional, this should be rewritten\nusing `inspect`. Or, if you intend to drive the iterator to\ncompletion, you can just use `for_each` instead.\n\n### Example\n```rust\nlet _ = (0..3).map(|x| x + 2).count();\n```\n",
@@ -5464,7 +5464,7 @@
   },
   {
     "id": "suspicious_open_options",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2849",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2860",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for the suspicious use of `OpenOptions::create()`\nwithout an explicit `OpenOptions::truncate()`.\n\n### Why is this bad?\n`create()` alone will either create a new file or open an\nexisting file. If the file already exists, it will be\noverwritten when written to, but the file will not be\ntruncated by default.\nIf less data is written to the file\nthan it already contains, the remainder of the file will\nremain unchanged, and the end of the file will contain old\ndata.\nIn most cases, one should either use `create_new` to ensure\nthe file is created from scratch, or ensure `truncate` is\ncalled so that the truncation behaviour is explicit. `truncate(true)`\nwill ensure the file is entirely overwritten with new data, whereas\n`truncate(false)` will explicitly keep the default behavior.\n\n### Example\n```rust\nuse std::fs::OpenOptions;\n\nOpenOptions::new().create(true);\n```\nUse instead:\n```rust\nuse std::fs::OpenOptions;\n\nOpenOptions::new().create(true).truncate(true);\n```\n",
@@ -5482,7 +5482,7 @@
   },
   {
     "id": "suspicious_splitn",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2158",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2169",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nChecks for calls to [`splitn`]\n(https://doc.rust-lang.org/std/primitive.str.html#method.splitn) and\nrelated functions with either zero or one splits.\n\n### Why is this bad?\nThese calls don't actually split the value and are\nlikely to be intended as a different number.\n\n### Example\n```rust\nfor x in s.splitn(1, \":\") {\n    // ..\n}\n```\n\nUse instead:\n```rust\nfor x in s.splitn(2, \":\") {\n    // ..\n}\n```\n",
@@ -5491,7 +5491,7 @@
   },
   {
     "id": "suspicious_to_owned",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2127",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2138",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for the usage of `_.to_owned()`, on a `Cow<'_, _>`.\n\n### Why is this bad?\nCalling `to_owned()` on a `Cow` creates a clone of the `Cow`\nitself, without taking ownership of the `Cow` contents (i.e.\nit's equivalent to calling `Cow::clone`).\nThe similarly named `into_owned` method, on the other hand,\nclones the `Cow` contents, effectively turning any `Cow::Borrowed`\ninto a `Cow::Owned`.\n\nGiven the potential ambiguity, consider replacing `to_owned`\nwith `clone` for better readability or, if getting a `Cow::Owned`\nwas the original intent, using `into_owned` instead.\n\n### Example\n```rust\nlet s = \"Hello world!\";\nlet cow = Cow::Borrowed(s);\n\nlet data = cow.to_owned();\nassert!(matches!(data, Cow::Borrowed(_)))\n```\nUse instead:\n```rust\nlet s = \"Hello world!\";\nlet cow = Cow::Borrowed(s);\n\nlet data = cow.clone();\nassert!(matches!(data, Cow::Borrowed(_)))\n```\nor\n```rust\nlet s = \"Hello world!\";\nlet cow = Cow::Borrowed(s);\n\nlet _data: String = cow.into_owned();\n```\n",
@@ -5824,7 +5824,7 @@
   },
   {
     "id": "type_id_on_box",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3016",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3027",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nLooks for calls to `.type_id()` on a `Box<dyn _>`.\n\n### Why is this bad?\nThis almost certainly does not do what the user expects and can lead to subtle bugs.\nCalling `.type_id()` on a `Box<dyn Trait>` returns a fixed `TypeId` of the `Box` itself,\nrather than returning the `TypeId` of the underlying type behind the trait object.\n\nFor `Box<dyn Any>` specifically (and trait objects that have `Any` as its supertrait),\nthis lint will provide a suggestion, which is to dereference the receiver explicitly\nto go from `Box<dyn Any>` to `dyn Any`.\nThis makes sure that `.type_id()` resolves to a dynamic call on the trait object\nand not on the box.\n\nIf the fixed `TypeId` of the `Box` is the intended behavior, it's better to be explicit about it\nand write `TypeId::of::<Box<dyn Trait>>()`:\nthis makes it clear that a fixed `TypeId` is returned and not the `TypeId` of the implementor.\n\n### Example\n```rust\nuse std::any::{Any, TypeId};\n\nlet any_box: Box<dyn Any> = Box::new(42_i32);\nassert_eq!(any_box.type_id(), TypeId::of::<i32>()); // ⚠️ this fails!\n```\nUse instead:\n```rust\nuse std::any::{Any, TypeId};\n\nlet any_box: Box<dyn Any> = Box::new(42_i32);\nassert_eq!((*any_box).type_id(), TypeId::of::<i32>());\n//          ^ dereference first, to call `type_id` on `dyn Any`\n```\n",
@@ -5896,7 +5896,7 @@
   },
   {
     "id": "uninit_assumed_init",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1654",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1665",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nChecks for `MaybeUninit::uninit().assume_init()`.\n\n### Why is this bad?\nFor most types, this is undefined behavior.\n\n### Known problems\nFor now, we accept empty tuples and tuples / arrays\nof `MaybeUninit`. There may be other types that allow uninitialized\ndata, but those are not yet rigorously defined.\n\n### Example\n```rust\n// Beware the UB\nuse std::mem::MaybeUninit;\n\nlet _: usize = unsafe { MaybeUninit::uninit().assume_init() };\n```\n\nNote that the following is OK:\n\n```rust\nuse std::mem::MaybeUninit;\n\nlet _: [MaybeUninit<bool>; 5] = unsafe {\n    MaybeUninit::uninit().assume_init()\n};\n```\n",
@@ -5941,7 +5941,7 @@
   },
   {
     "id": "unit_hash",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3055",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3066",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nDetects `().hash(_)`.\n\n### Why is this bad?\nHashing a unit value doesn't do anything as the implementation of `Hash` for `()` is a no-op.\n\n### Example\n```rust\nmatch my_enum {\n\tEmpty => ().hash(&mut state),\n\tWithValue(x) => x.hash(&mut state),\n}\n```\nUse instead:\n```rust\nmatch my_enum {\n\tEmpty => 0_u8.hash(&mut state),\n\tWithValue(x) => x.hash(&mut state),\n}\n```\n",
@@ -5986,7 +5986,7 @@
   },
   {
     "id": "unnecessary_fallible_conversions",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3722",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3733",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for calls to `TryInto::try_into` and `TryFrom::try_from` when their infallible counterparts\ncould be used.\n\n### Why is this bad?\nIn those cases, the `TryInto` and `TryFrom` trait implementation is a blanket impl that forwards\nto `Into` or `From`, which always succeeds.\nThe returned `Result<_, Infallible>` requires error handling to get the contained value\neven though the conversion can never fail.\n\n### Example\n```rust\nlet _: Result<i64, _> = 1i32.try_into();\nlet _: Result<i64, _> = <_>::try_from(1i32);\n```\nUse `from`/`into` instead:\n```rust\nlet _: i64 = 1i32.into();\nlet _: i64 = <_>::from(1i32);\n```\n",
@@ -5995,7 +5995,7 @@
   },
   {
     "id": "unnecessary_filter_map",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1542",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1553",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for `filter_map` calls that could be replaced by `filter` or `map`.\nMore specifically it checks if the closure provided is only performing one of the\nfilter or map operations and suggests the appropriate option.\n\n### Why is this bad?\nComplexity. The intent is also clearer if only a single\noperation is being performed.\n\n### Example\n```rust\nlet _ = (0..3).filter_map(|x| if x > 2 { Some(x) } else { None });\n\n// As there is no transformation of the argument this could be written as:\nlet _ = (0..3).filter(|&x| x > 2);\n```\n\n```rust\nlet _ = (0..4).filter_map(|x| Some(x + 1));\n\n// As there is no conditional check on the argument this could be written as:\nlet _ = (0..4).map(|x| x + 1);\n```\n",
@@ -6004,7 +6004,7 @@
   },
   {
     "id": "unnecessary_find_map",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1572",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1583",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for `find_map` calls that could be replaced by `find` or `map`. More\nspecifically it checks if the closure provided is only performing one of the\nfind or map operations and suggests the appropriate option.\n\n### Why is this bad?\nComplexity. The intent is also clearer if only a single\noperation is being performed.\n\n### Example\n```rust\nlet _ = (0..3).find_map(|x| if x > 2 { Some(x) } else { None });\n\n// As there is no transformation of the argument this could be written as:\nlet _ = (0..3).find(|&x| x > 2);\n```\n\n```rust\nlet _ = (0..4).find_map(|x| Some(x + 1));\n\n// As there is no conditional check on the argument this could be written as:\nlet _ = (0..4).map(|x| x + 1).next();\n```\n",
@@ -6013,7 +6013,7 @@
   },
   {
     "id": "unnecessary_fold",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1512",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1523",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `fold` when a more succinct alternative exists.\nSpecifically, this checks for `fold`s which could be replaced by `any`, `all`,\n`sum` or `product`.\n\n### Why is this bad?\nReadability.\n\n### Example\n```rust\n(0..3).fold(false, |acc, x| acc || x > 2);\n```\n\nUse instead:\n```rust\n(0..3).any(|x| x > 2);\n```\n",
@@ -6022,7 +6022,7 @@
   },
   {
     "id": "unnecessary_get_then_check",
-    "id_location": "clippy_lints/src/methods/mod.rs#L4056",
+    "id_location": "clippy_lints/src/methods/mod.rs#L4067",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks the usage of `.get().is_some()` or `.get().is_none()` on std map types.\n\n### Why is this bad?\nIt can be done in one call with `.contains()`/`.contains_keys()`.\n\n### Example\n```rust\nlet s: HashSet<String> = HashSet::new();\nif s.get(\"a\").is_some() {\n    // code\n}\n```\nUse instead:\n```rust\nlet s: HashSet<String> = HashSet::new();\nif s.contains(\"a\") {\n    // code\n}\n```\n",
@@ -6031,7 +6031,7 @@
   },
   {
     "id": "unnecessary_join",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2302",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2313",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of `.collect::<Vec<String>>().join(\"\")` on iterators.\n\n### Why is this bad?\n`.collect::<String>()` is more concise and might be more performant\n\n### Example\n```rust\nlet vector = vec![\"hello\",  \"world\"];\nlet output = vector.iter().map(|item| item.to_uppercase()).collect::<Vec<String>>().join(\"\");\nprintln!(\"{}\", output);\n```\nThe correct use would be:\n```rust\nlet vector = vec![\"hello\",  \"world\"];\nlet output = vector.iter().map(|item| item.to_uppercase()).collect::<String>();\nprintln!(\"{}\", output);\n```\n### Known problems\nWhile `.collect::<String>()` is sometimes more performant, there are cases where\nusing `.collect::<String>()` over `.collect::<Vec<String>>().join(\"\")`\nwill prevent loop unrolling and will result in a negative performance impact.\n\nAdditionally, differences have been observed between aarch64 and x86_64 assembly output,\nwith aarch64 tending to producing faster assembly in more cases when using `.collect::<String>()`\n",
@@ -6040,7 +6040,7 @@
   },
   {
     "id": "unnecessary_lazy_evaluations",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1863",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1874",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nAs the counterpart to `or_fun_call`, this lint looks for unnecessary\nlazily evaluated closures on `Option` and `Result`.\n\nThis lint suggests changing the following functions, when eager evaluation results in\nsimpler code:\n - `unwrap_or_else` to `unwrap_or`\n - `and_then` to `and`\n - `or_else` to `or`\n - `get_or_insert_with` to `get_or_insert`\n - `ok_or_else` to `ok_or`\n - `then` to `then_some` (for msrv >= 1.62.0)\n\n### Why is this bad?\nUsing eager evaluation is shorter and simpler in some cases.\n\n### Known problems\nIt is possible, but not recommended for `Deref` and `Index` to have\nside effects. Eagerly evaluating them can change the semantics of the program.\n\n### Example\n```rust\n// example code where clippy issues a warning\nlet opt: Option<u32> = None;\n\nopt.unwrap_or_else(|| 42);\n```\nUse instead:\n```rust\nlet opt: Option<u32> = None;\n\nopt.unwrap_or(42);\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -6067,7 +6067,7 @@
   },
   {
     "id": "unnecessary_min_or_max",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3968",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3979",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for unnecessary calls to `min()` or `max()` in the following cases\n- Either both side is constant\n- One side is clearly larger than the other, like i32::MIN and an i32 variable\n\n### Why is this bad?\n\nIn the aformentioned cases it is not necessary to call `min()` or `max()`\nto compare values, it may even cause confusion.\n\n### Example\n```rust\nlet _ = 0.min(7_u32);\n```\nUse instead:\n```rust\nlet _ = 0;\n```\n",
@@ -6103,7 +6103,7 @@
   },
   {
     "id": "unnecessary_result_map_or_else",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3993",
+    "id_location": "clippy_lints/src/methods/mod.rs#L4004",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `.map_or_else()` \"map closure\" for `Result` type.\n\n### Why is this bad?\nThis can be written more concisely by using `unwrap_or_else()`.\n\n### Example\n```rust\nlet x: Result<u32, ()> = Ok(0);\nlet y = x.map_or_else(|err| handle_error(err), |n| n);\n```\nUse instead:\n```rust\nlet x: Result<u32, ()> = Ok(0);\nlet y = x.unwrap_or_else(|err| handle_error(err));\n```\n",
@@ -6139,7 +6139,7 @@
   },
   {
     "id": "unnecessary_sort_by",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3089",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3100",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `Vec::sort_by` passing in a closure\nwhich compares the two arguments, either directly or indirectly.\n\n### Why is this bad?\nIt is more clear to use `Vec::sort_by_key` (or `Vec::sort` if\npossible) than to use `Vec::sort_by` and a more complicated\nclosure.\n\n### Known problems\nIf the suggested `Vec::sort_by_key` uses Reverse and it isn't already\nimported by a use statement, then it will need to be added manually.\n\n### Example\n```rust\nvec.sort_by(|a, b| a.foo().cmp(&b.foo()));\n```\nUse instead:\n```rust\nvec.sort_by_key(|a| a.foo());\n```\n",
@@ -6157,7 +6157,7 @@
   },
   {
     "id": "unnecessary_to_owned",
-    "id_location": "clippy_lints/src/methods/mod.rs#L2270",
+    "id_location": "clippy_lints/src/methods/mod.rs#L2281",
     "group": "perf",
     "level": "warn",
     "docs": "### What it does\nChecks for unnecessary calls to [`ToOwned::to_owned`](https://doc.rust-lang.org/std/borrow/trait.ToOwned.html#tymethod.to_owned)\nand other `to_owned`-like functions.\n\n### Why is this bad?\nThe unnecessary calls result in useless allocations.\n\n### Known problems\n`unnecessary_to_owned` can falsely trigger if `IntoIterator::into_iter` is applied to an\nowned copy of a resource and the resource is later used mutably. See\n[#8148](https://github.com/rust-lang/rust-clippy/issues/8148).\n\n### Example\n```rust\nlet path = std::path::Path::new(\"x\");\nfoo(&path.to_string_lossy().to_string());\nfn foo(s: &str) {}\n```\nUse instead:\n```rust\nlet path = std::path::Path::new(\"x\");\nfoo(&path.to_string_lossy());\nfn foo(s: &str) {}\n```\n",
@@ -6400,7 +6400,7 @@
   },
   {
     "id": "unwrap_or_default",
-    "id_location": "clippy_lints/src/methods/mod.rs#L534",
+    "id_location": "clippy_lints/src/methods/mod.rs#L545",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for usages of the following functions with an argument that constructs a default value\n(e.g., `Default::default` or `String::new`):\n- `unwrap_or`\n- `unwrap_or_else`\n- `or_insert`\n- `or_insert_with`\n\n### Why is this bad?\nReadability. Using `unwrap_or_default` in place of `unwrap_or`/`unwrap_or_else`, or `or_default`\nin place of `or_insert`/`or_insert_with`, is simpler and more concise.\n\n### Known problems\nIn some cases, the argument of `unwrap_or`, etc. is needed for type inference. The lint uses a\nheuristic to try to identify such cases. However, the heuristic can produce false negatives.\n\n### Examples\n```rust\nx.unwrap_or(Default::default());\nmap.entry(42).or_insert_with(String::new);\n```\n\nUse instead:\n```rust\nx.unwrap_or_default();\nmap.entry(42).or_default();\n```\n\n### Past names\n\n * unwrap_or_else_default\n",
@@ -6463,7 +6463,7 @@
   },
   {
     "id": "useless_asref",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1488",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1499",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `.as_ref()` or `.as_mut()` where the\ntypes before and after the call are the same.\n\n### Why is this bad?\nThe call is unnecessary.\n\n### Example\n```rust\nlet x: &[i32] = &[1, 2, 3, 4, 5];\ndo_stuff(x.as_ref());\n```\nThe correct use would be:\n```rust\nlet x: &[i32] = &[1, 2, 3, 4, 5];\ndo_stuff(x);\n```\n",
@@ -6544,7 +6544,7 @@
   },
   {
     "id": "vec_resize_to_zero",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3111",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3122",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nFinds occurrences of `Vec::resize(0, an_int)`\n\n### Why is this bad?\nThis is probably an argument inversion mistake.\n\n### Example\n```rust\nvec![1, 2, 3, 4, 5].resize(0, 5)\n```\n\nUse instead:\n```rust\nvec![1, 2, 3, 4, 5].clear()\n```\n",
@@ -6562,7 +6562,7 @@
   },
   {
     "id": "verbose_file_reads",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3138",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3149",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of File::read_to_end and File::read_to_string.\n\n### Why restrict this?\n`fs::{read, read_to_string}` provide the same functionality when `buf` is empty with fewer imports and no intermediate values.\nSee also: [fs::read docs](https://doc.rust-lang.org/std/fs/fn.read.html), [fs::read_to_string docs](https://doc.rust-lang.org/std/fs/fn.read_to_string.html)\n\n### Example\n```rust\nlet mut f = File::open(\"foo.txt\").unwrap();\nlet mut bytes = Vec::new();\nf.read_to_end(&mut bytes).unwrap();\n```\nCan be written more concisely as\n```rust\nlet mut bytes = fs::read(\"foo.txt\").unwrap();\n```\n",
@@ -6571,7 +6571,7 @@
   },
   {
     "id": "waker_clone_wake",
-    "id_location": "clippy_lints/src/methods/mod.rs#L3695",
+    "id_location": "clippy_lints/src/methods/mod.rs#L3706",
     "group": "perf",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of `waker.clone().wake()`\n\n### Why is this bad?\nCloning the waker is not necessary, `wake_by_ref()` enables the same operation\nwithout extra cloning/dropping.\n\n### Example\n```rust\nwaker.clone().wake();\n```\nShould be written\n```rust\nwaker.wake_by_ref();\n```\n",
@@ -6688,10 +6688,10 @@
   },
   {
     "id": "wrong_self_convention",
-    "id_location": "clippy_lints/src/methods/mod.rs#L445",
+    "id_location": "clippy_lints/src/methods/mod.rs#L456",
     "group": "style",
     "level": "warn",
-    "docs": "### What it does\nChecks for methods with certain name prefixes or suffixes, and which\ndo not adhere to standard conventions regarding how `self` is taken.\nThe actual rules are:\n\n|Prefix |Postfix     |`self` taken                   | `self` type  |\n|-------|------------|-------------------------------|--------------|\n|`as_`  | none       |`&self` or `&mut self`         | any          |\n|`from_`| none       | none                          | any          |\n|`into_`| none       |`self`                         | any          |\n|`is_`  | none       |`&mut self` or `&self` or none | any          |\n|`to_`  | `_mut`     |`&mut self`                    | any          |\n|`to_`  | not `_mut` |`self`                         | `Copy`       |\n|`to_`  | not `_mut` |`&self`                        | not `Copy`   |\n\nNote: Clippy doesn't trigger methods with `to_` prefix in:\n- Traits definition.\nClippy can not tell if a type that implements a trait is `Copy` or not.\n- Traits implementation, when `&self` is taken.\nThe method signature is controlled by the trait and often `&self` is required for all types that implement the trait\n(see e.g. the `std::string::ToString` trait).\n\nClippy allows `Pin<&Self>` and `Pin<&mut Self>` if `&self` and `&mut self` is required.\n\nPlease find more info here:\nhttps://rust-lang.github.io/api-guidelines/naming.html#ad-hoc-conversions-follow-as_-to_-into_-conventions-c-conv\n\n### Why is this bad?\nConsistency breeds readability. If you follow the\nconventions, your users won't be surprised that they, e.g., need to supply a\nmutable reference to a `as_..` function.\n\n### Example\n```rust\nimpl X {\n    fn as_str(self) -> &'static str {\n        // ..\n    }\n}\n```\n\n### Configuration\n\n- `avoid-breaking-exported-api`:  Suppress lints whenever the suggested change would cause breakage for other crates.\n\n\n   (default: `true`)\n",
+    "docs": "### What it does\nChecks for methods with certain name prefixes or suffixes, and which\ndo not adhere to standard conventions regarding how `self` is taken.\nThe actual rules are:\n\n|Prefix |Postfix     |`self` taken                   | `self` type  |\n|-------|------------|-------------------------------|--------------|\n|`as_`  | none       |`&self` or `&mut self`         | any          |\n|`from_`| none       | none                          | any          |\n|`into_`| none       |`self`                         | any          |\n|`is_`  | none       |`&mut self` or `&self` or none | any          |\n|`to_`  | `_mut`     |`&mut self`                    | any          |\n|`to_`  | not `_mut` |`self`                         | `Copy`       |\n|`to_`  | not `_mut` |`&self`                        | not `Copy`   |\n\nNote: Clippy doesn't trigger methods with `to_` prefix in:\n- Traits definition.\nClippy can not tell if a type that implements a trait is `Copy` or not.\n- Traits implementation, when `&self` is taken.\nThe method signature is controlled by the trait and often `&self` is required for all types that implement the trait\n(see e.g. the `std::string::ToString` trait).\n\nClippy allows `Pin<&Self>` and `Pin<&mut Self>` if `&self` and `&mut self` is required.\n\nPlease find more info here:\nhttps://rust-lang.github.io/api-guidelines/naming.html#ad-hoc-conversions-follow-as_-to_-into_-conventions-c-conv\n\n### Why is this bad?\nConsistency breeds readability. If you follow the\nconventions, your users won't be surprised that they, e.g., need to supply a\nmutable reference to a `as_..` function.\n\n### Example\n```rust\nimpl X {\n    fn as_str(self) -> &'static str {\n        // ..\n    }\n}\n```\n\nUse instead:\n```rust\nimpl X {\n    fn as_str(&self) -> &'static str {\n        // ..\n    }\n}\n```\n\n### Configuration\n\n- `avoid-breaking-exported-api`:  Suppress lints whenever the suggested change would cause breakage for other crates.\n\n\n   (default: `true`)\n",
     "version": "pre 1.29.0",
     "applicability": "Unspecified"
   },
@@ -6760,7 +6760,7 @@
   },
   {
     "id": "zst_offset",
-    "id_location": "clippy_lints/src/methods/mod.rs#L1701",
+    "id_location": "clippy_lints/src/methods/mod.rs#L1712",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nChecks for `offset(_)`, `wrapping_`{`add`, `sub`}, etc. on raw pointers to\nzero-sized types\n\n### Why is this bad?\nThis is a no-op, and likely unintended\n\n### Example\n```rust\nunsafe { (&() as *const ()).offset(1) };\n```\n",
