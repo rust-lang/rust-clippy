@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::is_in_const_context;
 use clippy_utils::macros::{find_assert_args, find_assert_eq_args, root_macro_call_first_node, MacroCall};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::{implements_trait, is_copy};
@@ -161,6 +162,9 @@ fn check_eq<'tcx>(
 
 /// Checks for `assert!(a == b)` and `assert!(a != b)`
 fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, macro_call: &MacroCall, macro_name: &str) {
+    if is_in_const_context(cx) {
+        return;
+    }
     let Some((cond, _)) = find_assert_args(cx, expr, macro_call.expn) else {
         return;
     };
