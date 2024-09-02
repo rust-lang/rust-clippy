@@ -1,4 +1,4 @@
-#![allow(non_fmt_panics, clippy::needless_bool, clippy::eq_op)]
+#![allow(non_fmt_panics, clippy::needless_bool, clippy::eq_op, clippy::bool_assert_comparison)]
 
 macro_rules! assert_const {
     ($len:expr) => {
