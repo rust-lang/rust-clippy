@@ -1,6 +1,6 @@
 #![warn(clippy::panic_in_result_fn)]
 #![allow(clippy::uninlined_format_args, clippy::unnecessary_wraps)]
-
+#![allow(clippy::bool_assert_comparison)]
 struct A;
 
 impl A {

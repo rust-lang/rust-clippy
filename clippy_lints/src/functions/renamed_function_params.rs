@@ -58,7 +58,7 @@ impl RenamedFnArgs {
     {
         let mut renamed: Vec<(Span, String)> = vec![];
 
-        debug_assert!(default_names.size_hint() == current_names.size_hint());
+        debug_assert_eq!(default_names.size_hint(), current_names.size_hint());
         while let (Some(def_name), Some(cur_name)) = (default_names.next(), current_names.next()) {
             let current_name = cur_name.name;
             let default_name = def_name.name;

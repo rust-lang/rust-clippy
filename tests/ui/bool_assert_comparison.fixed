@@ -166,4 +166,9 @@ fn main() {
     debug_assert!("".is_empty());
     debug_assert!(!"requires negation".is_empty());
     debug_assert!(!"requires negation".is_empty());
+
+    assert_eq!("a", "a".to_ascii_lowercase());
+    assert_eq!("a", "a".to_ascii_lowercase(), "a==a");
+    assert_ne!("A", "A".to_ascii_lowercase());
+    assert_ne!("A", "A".to_ascii_lowercase(), "A!=a");
 }

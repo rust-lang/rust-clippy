@@ -1029,8 +1029,9 @@ fn assert_generic_args_match<'tcx>(tcx: TyCtxt<'tcx>, did: DefId, args: &[Generi
         .chain(&g.own_params)
         .map(|x| &x.kind);
 
-    assert!(
-        count == args.len(),
+    assert_eq!(
+        count,
+        args.len(),
         "wrong number of arguments for `{did:?}`: expected `{count}`, found {}\n\
             note: the expected arguments are: `[{}]`\n\
             the given arguments are: `{args:#?}`",

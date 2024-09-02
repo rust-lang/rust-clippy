@@ -1,4 +1,4 @@
-#![allow(unused)]
+#![allow(unused, clippy::bool_assert_comparison)]
 #![warn(clippy::missing_asserts_for_indexing)]
 
 // ok

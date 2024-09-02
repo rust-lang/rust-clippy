@@ -1,14 +1,17 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::macros::{find_assert_eq_args, root_macro_call_first_node};
+use clippy_utils::macros::{find_assert_args, find_assert_eq_args, root_macro_call_first_node, MacroCall};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::{implements_trait, is_copy};
 use rustc_ast::ast::LitKind;
+use rustc_ast::BinOpKind;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, Lit};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty::{self, Ty};
 use rustc_session::declare_lint_pass;
+use rustc_span::source_map::Spanned;
 use rustc_span::symbol::Ident;
+use rustc_span::Span;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -74,74 +77,115 @@ impl<'tcx> LateLintPass<'tcx> for BoolAssertComparison {
             return;
         };
         let macro_name = cx.tcx.item_name(macro_call.def_id);
-        let eq_macro = match macro_name.as_str() {
-            "assert_eq" | "debug_assert_eq" => true,
-            "assert_ne" | "debug_assert_ne" => false,
-            _ => return,
-        };
-        let Some((a, b, _)) = find_assert_eq_args(cx, expr, macro_call.expn) else {
-            return;
-        };
-
-        let a_span = a.span.source_callsite();
-        let b_span = b.span.source_callsite();
-
-        let (lit_span, bool_value, non_lit_expr) = match (extract_bool_lit(a), extract_bool_lit(b)) {
-            // assert_eq!(true/false, b)
-            //            ^^^^^^^^^^^^
-            (Some(bool_value), None) => (a_span.until(b_span), bool_value, b),
-            // assert_eq!(a, true/false)
-            //             ^^^^^^^^^^^^
-            (None, Some(bool_value)) => (b_span.with_lo(a_span.hi()), bool_value, a),
-            // If there are two boolean arguments, we definitely don't understand
-            // what's going on, so better leave things as is...
-            //
-            // Or there is simply no boolean and then we can leave things as is!
-            _ => return,
-        };
-
-        let non_lit_ty = cx.typeck_results().expr_ty(non_lit_expr);
-
-        if !is_impl_not_trait_with_bool_out(cx, non_lit_ty) {
-            // At this point the expression which is not a boolean
-            // literal does not implement Not trait with a bool output,
-            // so we cannot suggest to rewrite our code
-            return;
-        }
-
-        if !is_copy(cx, non_lit_ty) {
-            // Only lint with types that are `Copy` because `assert!(x)` takes
-            // ownership of `x` whereas `assert_eq(x, true)` does not
-            return;
-        }
-
         let macro_name = macro_name.as_str();
-        let non_eq_mac = &macro_name[..macro_name.len() - 3];
-        span_lint_and_then(
-            cx,
-            BOOL_ASSERT_COMPARISON,
-            macro_call.span,
-            format!("used `{macro_name}!` with a literal bool"),
-            |diag| {
-                // assert_eq!(...)
-                // ^^^^^^^^^
-                let name_span = cx.sess().source_map().span_until_char(macro_call.span, '!');
-
-                let mut suggestions = vec![(name_span, non_eq_mac.to_string()), (lit_span, String::new())];
-
-                if bool_value ^ eq_macro {
-                    let Some(sugg) = Sugg::hir_opt(cx, non_lit_expr) else {
-                        return;
-                    };
-                    suggestions.push((non_lit_expr.span, (!sugg).to_string()));
-                }
-
-                diag.multipart_suggestion(
-                    format!("replace it with `{non_eq_mac}!(..)`"),
-                    suggestions,
-                    Applicability::MachineApplicable,
-                );
-            },
-        );
+        match macro_name {
+            "assert_eq" | "debug_assert_eq" => check_eq(cx, expr, &macro_call, macro_name, true),
+            "assert_ne" | "debug_assert_ne" => check_eq(cx, expr, &macro_call, macro_name, false),
+            "assert" | "debug_assert" => check(cx, expr, &macro_call, macro_name),
+            _ => {},
+        };
     }
+}
+
+fn check_eq<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'_>,
+    macro_call: &MacroCall,
+    macro_name: &str,
+    eq_macro: bool,
+) {
+    let Some((a, b, _)) = find_assert_eq_args(cx, expr, macro_call.expn) else {
+        return;
+    };
+
+    let a_span = a.span.source_callsite();
+    let b_span = b.span.source_callsite();
+
+    let (lit_span, bool_value, non_lit_expr) = match (extract_bool_lit(a), extract_bool_lit(b)) {
+        // assert_eq!(true/false, b)
+        //            ^^^^^^^^^^^^
+        (Some(bool_value), None) => (a_span.until(b_span), bool_value, b),
+        // assert_eq!(a, true/false)
+        //             ^^^^^^^^^^^^
+        (None, Some(bool_value)) => (b_span.with_lo(a_span.hi()), bool_value, a),
+        // If there are two boolean arguments, we definitely don't understand
+        // what's going on, so better leave things as is...
+        //
+        // Or there is simply no boolean and then we can leave things as is!
+        _ => return,
+    };
+
+    let non_lit_ty = cx.typeck_results().expr_ty(non_lit_expr);
+
+    if !is_impl_not_trait_with_bool_out(cx, non_lit_ty) {
+        // At this point the expression which is not a boolean
+        // literal does not implement Not trait with a bool output,
+        // so we cannot suggest to rewrite our code
+        return;
+    }
+
+    if !is_copy(cx, non_lit_ty) {
+        // Only lint with types that are `Copy` because `assert!(x)` takes
+        // ownership of `x` whereas `assert_eq(x, true)` does not
+        return;
+    }
+
+    let non_eq_mac = &macro_name[..macro_name.len() - 3];
+    span_lint_and_then(
+        cx,
+        BOOL_ASSERT_COMPARISON,
+        macro_call.span,
+        format!("used `{macro_name}!` with a literal bool"),
+        |diag| {
+            // assert_eq!(...)
+            // ^^^^^^^^^
+            let name_span = cx.sess().source_map().span_until_char(macro_call.span, '!');
+
+            let mut suggestions = vec![(name_span, non_eq_mac.to_string()), (lit_span, String::new())];
+
+            if bool_value ^ eq_macro {
+                let Some(sugg) = Sugg::hir_opt(cx, non_lit_expr) else {
+                    return;
+                };
+                suggestions.push((non_lit_expr.span, (!sugg).to_string()));
+            }
+
+            diag.multipart_suggestion(
+                format!("replace it with `{non_eq_mac}!(..)`"),
+                suggestions,
+                Applicability::MachineApplicable,
+            );
+        },
+    );
+}
+
+/// Checks for `assert!(a == b)` and `assert!(a != b)`
+fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, macro_call: &MacroCall, macro_name: &str) {
+    let Some((cond, _)) = find_assert_args(cx, expr, macro_call.expn) else {
+        return;
+    };
+    let ExprKind::Binary(Spanned { node, span }, lhs, rhs) = cond.kind else {
+        return;
+    };
+    // TODO: is `cond.span.from_expansion()` correct / needed?
+    if (node != BinOpKind::Eq && node != BinOpKind::Ne) || cond.span.from_expansion() {
+        return;
+    }
+
+    let new_name = format!("{macro_name}_{}", if node == BinOpKind::Eq { "eq" } else { "ne" });
+    let msg = format!("replace it with `{new_name}!(..)`");
+    span_lint_and_then(
+        cx,
+        BOOL_ASSERT_COMPARISON,
+        macro_call.span,
+        format!("used `{macro_name}!` with an equality comparison"),
+        |diag| {
+            let macro_name_span = cx.sess().source_map().span_until_char(macro_call.span, '!');
+            // TODO: should this be `cond.span`, expanded to include preceding whitespace? If so, how?
+            let equality_span = Span::new(lhs.span.hi(), rhs.span.lo(), span.ctxt(), span.parent());
+            let suggestions = vec![(macro_name_span, new_name), (equality_span, ", ".to_string())];
+
+            diag.multipart_suggestion(msg, suggestions, Applicability::MachineApplicable);
+        },
+    );
 }

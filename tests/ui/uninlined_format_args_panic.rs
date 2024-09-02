@@ -1,7 +1,7 @@
 //@revisions: edition2018 edition2021
 //@[edition2018] edition:2018
 //@[edition2021] edition:2021
-
+#![allow(clippy::bool_assert_comparison)]
 #![warn(clippy::uninlined_format_args)]
 #![allow(clippy::literal_string_with_formatting_args)]
 
