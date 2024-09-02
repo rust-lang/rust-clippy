@@ -19,12 +19,12 @@ declare_clippy_lint! {
     /// ### Example
     /// ```no_run
     /// let x: u32 = 5;
-    /// let log = 31 - x.leading_zeros()
+    /// let log = 31 - x.leading_zeros();
     /// ```
     /// Use instead:
     /// ```no_run
     /// let x: u32 = 5;
-    /// let log = x.ilog2()
+    /// let log = x.ilog2();
     /// ```
     #[clippy::version = "1.82.0"]
     pub MANUAL_ILOG2,
