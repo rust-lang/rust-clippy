@@ -88,6 +88,19 @@ LL |     assert!(8 == (7 + 1));
    |
    = help: remove it
 
+error: used `assert!` with an equality comparison
+  --> tests/ui/assertions_on_constants.rs:52:5
+   |
+LL |     assert!(8 == (7 + 1));
+   |     ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::bool-assert-comparison` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::bool_assert_comparison)]`
+help: replace it with `assert_eq!(..)`
+   |
+LL |     assert_eq!(8, (7 + 1));
+   |     ~~~~~~~~~   ~
+
 error: `assert!(true)` will be optimized out by the compiler
   --> tests/ui/assertions_on_constants.rs:61:5
    |
@@ -96,5 +109,5 @@ LL |     assert!(true);
    |
    = help: remove it
 
-error: aborting due to 12 previous errors
+error: aborting due to 13 previous errors
 
