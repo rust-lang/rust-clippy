@@ -169,7 +169,6 @@ pub(super) fn check(
     };
 
     span_lint_and_then(cx, CAST_POSSIBLE_TRUNCATION, expr.span, msg, |diag| {
-        diag.help("if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...");
         if !cast_from.is_floating_point() {
             offer_suggestion(cx, expr, cast_expr, cast_to_span, diag);
         }
@@ -192,7 +191,7 @@ fn offer_suggestion(
 
     diag.span_suggestion_verbose(
         expr.span,
-        "... or use `try_from` and handle the error accordingly",
+        "consider using `try_from` and handle the error accordingly",
         suggestion,
         Applicability::Unspecified,
     );
