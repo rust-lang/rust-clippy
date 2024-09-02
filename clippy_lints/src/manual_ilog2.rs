@@ -102,4 +102,6 @@ impl LateLintPass<'_> for ManualIlog2 {
             );
         }
     }
+
+    extract_msrv_attr!(LateContext);
 }
