@@ -27,6 +27,7 @@ declare_clippy_lint! {
     /// });
     /// ```
 
+    #[clippy::version = "1.82.0"]
     pub UNUSED_ANY_ALL,
     suspicious,
     "unused result of `Iterator::any` or `Iterator::all`"
