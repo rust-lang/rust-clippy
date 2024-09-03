@@ -115,4 +115,16 @@ fn issue_12625() {
     if a as u64 > b {} //~ ERROR: this boolean expression can be simplified
 }
 
+fn issue_12761() {
+    let a = 0;
+    let b = 0;
+    let c = 0;
+    if (a < b) as i32 == c {} //~ ERROR: this boolean expression can be simplified
+    if (a < b) | (a > c) {} //~ ERROR: this boolean expression can be simplified
+    let opt: Option<usize> = Some(1);
+    let res: Result<usize, usize> = Ok(1);
+    if res.is_err() as i32 == c {} //~ ERROR: this boolean expression can be simplified
+    if res.is_err() | opt.is_some() {} //~ ERROR: this boolean expression can be simplified
+}
+
 fn main() {}
