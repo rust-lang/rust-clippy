@@ -15,7 +15,7 @@ declare_clippy_lint! {
     /// Checks for expressions like `31 - x.leading_zeros()` or `x.ilog(2)` which are manual
     /// reimplementations of `x.ilog2()`
     /// ### Why is this bad?
-    /// It is easier to read and understand
+    /// Manual reimplementations of `ilog2` increase code complexity for little benefit.
     /// ### Example
     /// ```no_run
     /// let x: u32 = 5;
@@ -90,14 +90,13 @@ impl LateLintPass<'_> for ManualIlog2 {
             && let LitKind::Int(Pu128(2), _) = lit.node
             && cx.typeck_results().expr_ty(reciever).is_integral()
         {
-            let sugg = snippet_with_applicability(cx, reciever.span, "..", &mut applicability);
             span_lint_and_sugg(
                 cx,
                 MANUAL_ILOG2,
                 expr.span,
                 "manually reimplementing `ilog2`",
                 "consider using .ilog2()",
-                format!("{sugg}.ilog2()"),
+                format!("{}.ilog2()", snippet_with_applicability(cx, reciever.span, "..", &mut applicability)),
                 applicability,
             );
         }
