@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::snippet;
+use clippy_utils::source::snippet_opt;
 use rustc_errors::Applicability;
 use rustc_lint::LateContext;
 use rustc_span::Span;
@@ -30,7 +30,8 @@ fn collect_doc_replacements(cx: &LateContext<'_>, spans: &[Span]) -> Vec<(Span, 
     spans
         .iter()
         .map(|span| {
-            let s = snippet(cx, *span, "..");
+            // we already made sure the snippet exists when collecting spans
+            let s = snippet_opt(cx, *span).expect("snippet was already validated to exist");
             let after_newline = s.trim_start_matches(' ');
 
             let new_comment = format!("\\{after_newline}");
