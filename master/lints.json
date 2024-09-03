@@ -4284,6 +4284,15 @@
     "applicability": "Unspecified"
   },
   {
+    "id": "pointers_in_nomem_asm_block",
+    "id_location": "clippy_lints/src/pointers_in_nomem_asm_block.rs#L29",
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "### What it does\nChecks if any pointer is being passed to an asm! block with `nomem` option.\n\n### Why is this bad?\n`nomem` forbids any reads or writes to memory and passing a pointer suggests\nthat either of those will happen.\n\n### Example\n```rust\nfn f(p: *mut u32) {\n    unsafe { core::arch::asm!(\"mov [{p}], 42\", p = in(reg) p, options(nomem, nostack)); }\n}\n```\nUse instead:\n```rust\nfn f(p: *mut u32) {\n    unsafe { core::arch::asm!(\"mov [{p}], 42\", p = in(reg) p, options(nostack)); }\n}\n```\n",
+    "version": "1.81.0",
+    "applicability": "Unspecified"
+  },
+  {
     "id": "possible_missing_comma",
     "id_location": "clippy_lints/src/formatting.rs#L111",
     "group": "correctness",
