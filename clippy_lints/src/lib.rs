@@ -367,6 +367,7 @@ mod unnecessary_struct_initialization;
 mod unnecessary_wraps;
 mod unnested_or_patterns;
 mod unsafe_removed_from_name;
+mod unused_any_all;
 mod unused_async;
 mod unused_io_amount;
 mod unused_peekable;
@@ -799,6 +800,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(if_then_some_else_none::IfThenSomeElseNone::new(conf)));
     store.register_late_pass(|_| Box::new(bool_assert_comparison::BoolAssertComparison));
     store.register_early_pass(move || Box::new(module_style::ModStyle));
+    store.register_late_pass(|_| Box::<unused_any_all::UnusedAnyAll>::default());
     store.register_late_pass(|_| Box::<unused_async::UnusedAsync>::default());
     store.register_late_pass(move |tcx| Box::new(disallowed_types::DisallowedTypes::new(tcx, conf)));
     store.register_late_pass(move |tcx| Box::new(missing_enforced_import_rename::ImportRename::new(tcx, conf)));

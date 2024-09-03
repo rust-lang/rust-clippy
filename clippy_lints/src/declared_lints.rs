@@ -738,6 +738,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::unnecessary_wraps::UNNECESSARY_WRAPS_INFO,
     crate::unnested_or_patterns::UNNESTED_OR_PATTERNS_INFO,
     crate::unsafe_removed_from_name::UNSAFE_REMOVED_FROM_NAME_INFO,
+    crate::unused_any_all::UNUSED_ANY_ALL_INFO,
     crate::unused_async::UNUSED_ASYNC_INFO,
     crate::unused_io_amount::UNUSED_IO_AMOUNT_INFO,
     crate::unused_peekable::UNUSED_PEEKABLE_INFO,
