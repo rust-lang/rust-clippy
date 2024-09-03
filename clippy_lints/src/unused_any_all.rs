@@ -39,9 +39,9 @@ impl_lint_pass!(UnusedAnyAll => [UNUSED_ANY_ALL]);
 
 impl<'tcx> LateLintPass<'tcx> for UnusedAnyAll {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
-        let sym_any = sym!(any);
-        let sym_all = sym!(all);
-        let sym_iter = sym!(Iterator);
+        let sym_any = sym::any;
+        let sym_all = sym::all;
+        let sym_iter = sym::Iterator;
 
         let ExprKind::Block(block, _label) = &expr.kind else {
             return;
