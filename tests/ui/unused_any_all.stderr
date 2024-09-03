@@ -1,0 +1,17 @@
+error: unused result of `Iterator::any`
+  --> tests/ui/unused_any_all.rs:4:5
+   |
+LL |     (0..1).any(|_| false);
+   |     ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::unused-any-all` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unused_any_all)]`
+
+error: unused result of `Iterator::any`
+  --> tests/ui/unused_any_all.rs:5:5
+   |
+LL |     Iterator::any(&mut (0..1), |_| false);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+
