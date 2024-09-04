@@ -87,6 +87,7 @@ impl<'tcx> LateLintPass<'tcx> for UseSelf {
             // skip over `ItemKind::OpaqueTy` in order to lint `foo() -> impl <..>`
             return;
         }
+
         // We push the self types of `impl`s on a stack here. Only the top type on the stack is
         // relevant for linting, since this is the self type of the `impl` we're currently in. To
         // avoid linting on nested items, we push `StackItem::NoCheck` on the stack to signal, that
@@ -134,6 +135,11 @@ impl<'tcx> LateLintPass<'tcx> for UseSelf {
     }
 
     fn check_impl_item(&mut self, cx: &LateContext<'_>, impl_item: &hir::ImplItem<'_>) {
+        // Checking items of `impl Self` blocks in which macro expands into.
+        if impl_item.span.from_expansion() {
+            self.stack.push(StackItem::NoCheck);
+            return;
+        }
         // We want to skip types in trait `impl`s that aren't declared as `Self` in the trait
         // declaration. The collection of those types is all this method implementation does.
         if let ImplItemKind::Fn(FnSig { decl, .. }, ..) = impl_item.kind
@@ -189,6 +195,13 @@ impl<'tcx> LateLintPass<'tcx> for UseSelf {
         }
     }
 
+    fn check_impl_item_post(&mut self, _: &LateContext<'_>, impl_item: &hir::ImplItem<'_>) {
+        if impl_item.span.from_expansion()
+            && let Some(StackItem::NoCheck) = self.stack.last()
+        {
+            self.stack.pop();
+        }
+    }
 
     fn check_ty(&mut self, cx: &LateContext<'tcx>, hir_ty: &Ty<'tcx>) {
         if !hir_ty.span.from_expansion()
