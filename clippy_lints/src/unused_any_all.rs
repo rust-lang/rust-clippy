@@ -17,13 +17,13 @@ declare_clippy_lint! {
     /// ### Example
     /// ```no_run
     /// let mut days_without_accident = 0;
-    /// (0..).any(|day| {
-    ///     if alright_today(day) {
-    ///         days_without_accident += 1;
-    ///         false
-    ///     } else {
-    ///         true
+    /// (0..).all(|day| {
+    ///     if day % 5 == 0 {
+    ///         return false
     ///     }
+    ///
+    ///     days_without_accident += 1;
+    ///     true
     /// });
     /// ```
 
