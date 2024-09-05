@@ -356,7 +356,7 @@
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for hard to read slices of byte characters, that could be more easily expressed as a\nbyte string.\n\n### Why is this bad?\n\nPotentially makes the string harder to read.\n\n### Example\n```rust\n&[b'H', b'e', b'l', b'l', b'o'];\n```\nUse instead:\n```rust\nb\"Hello\"\n```\n",
-    "version": "1.68.0",
+    "version": "1.81.0",
     "applicability": "MaybeIncorrect"
   },
   {
@@ -509,7 +509,7 @@
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of `cfg` that excludes code from `test` builds. (i.e., `#[cfg(not(test))]`)\n\n### Why is this bad?\nThis may give the false impression that a codebase has 100% coverage, yet actually has untested code.\nEnabling this also guards against excessive mockery as well, which is an anti-pattern.\n\n### Example\n```rust\n#[cfg(not(test))]\nimportant_check(); // I'm not actually tested, but not including me will falsely increase coverage!\n```\nUse instead:\n```rust\nimportant_check();\n```\n",
-    "version": "1.73.0",
+    "version": "1.81.0",
     "applicability": "Unspecified"
   },
   {
@@ -1400,7 +1400,7 @@
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of scoped visibility modifiers, like `pub(crate)`, on fields. These\nmake a field visible within a scope between public and private.\n\n### Why restrict this?\nScoped visibility modifiers cause a field to be accessible within some scope between\npublic and private, potentially within an entire crate. This allows for fields to be\nnon-private while upholding internal invariants, but can be a code smell. Scoped visibility\nrequires checking a greater area, potentially an entire crate, to verify that an invariant\nis upheld, and global analysis requires a lot of effort.\n\n### Example\n```rust\npub mod public_module {\n    struct MyStruct {\n        pub(crate) first_field: bool,\n        pub(super) second_field: bool\n    }\n}\n```\nUse instead:\n```rust\npub mod public_module {\n    struct MyStruct {\n        first_field: bool,\n        second_field: bool\n    }\n    impl MyStruct {\n        pub(crate) fn get_first_field(&self) -> bool {\n            self.first_field\n        }\n        pub(super) fn get_second_field(&self) -> bool {\n            self.second_field\n        }\n    }\n}\n```\n",
-    "version": "1.78.0",
+    "version": "1.81.0",
     "applicability": "Unspecified"
   },
   {
@@ -2777,7 +2777,7 @@
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for manual `char` comparison in string patterns\n\n### Why is this bad?\nThis can be written more concisely using a `char` or an array of `char`.\nThis is more readable and more optimized when comparing to only one `char`.\n\n### Example\n```rust\n\"Hello World!\".trim_end_matches(|c| c == '.' || c == ',' || c == '!' || c == '?');\n```\nUse instead:\n```rust\n\"Hello World!\".trim_end_matches(['.', ',', '!', '?']);\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
-    "version": "1.80.0",
+    "version": "1.81.0",
     "applicability": "MachineApplicable"
   },
   {
@@ -3614,7 +3614,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks if an iterator is used to check if a string is ascii.\n\n### Why is this bad?\nThe `str` type already implements the `is_ascii` method.\n\n### Example\n```rust\n\"foo\".chars().all(|c| c.is_ascii());\n```\nUse instead:\n```rust\n\"foo\".is_ascii();\n```\n",
-    "version": "1.80.0",
+    "version": "1.81.0",
     "applicability": "MachineApplicable"
   },
   {
@@ -3704,7 +3704,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nLints `?Sized` bounds applied to type parameters that cannot be unsized\n\n### Why is this bad?\nThe `?Sized` bound is misleading because it cannot be satisfied by an\nunsized type\n\n### Example\n```rust\n// `T` cannot be unsized because `Clone` requires it to be `Sized`\nfn f<T: Clone + ?Sized>(t: &T) {}\n```\nUse instead:\n```rust\nfn f<T: Clone>(t: &T) {}\n\n// or choose alternative bounds for `T` so that it can be unsized\n```\n",
-    "version": "1.79.0",
+    "version": "1.81.0",
     "applicability": "MaybeIncorrect"
   },
   {
@@ -5045,7 +5045,7 @@
     "group": "nursery",
     "level": "allow",
     "docs": "### What it does\nChecks for usage of `contains` to see if a value is not present\nin a set like `HashSet` or `BTreeSet`, followed by an `insert`.\n\n### Why is this bad?\nUsing just `insert` and checking the returned `bool` is more efficient.\n\n### Known problems\nIn case the value that wants to be inserted is borrowed and also expensive or impossible\nto clone. In such a scenario, the developer might want to check with `contains` before inserting,\nto avoid the clone. In this case, it will report a false positive.\n\n### Example\n```rust\nuse std::collections::HashSet;\nlet mut set = HashSet::new();\nlet value = 5;\nif !set.contains(&value) {\n    set.insert(value);\n    println!(\"inserted {value:?}\");\n}\n```\nUse instead:\n```rust\nuse std::collections::HashSet;\nlet mut set = HashSet::new();\nlet value = 5;\nif set.insert(&value) {\n    println!(\"inserted {value:?}\");\n}\n```\n",
-    "version": "1.80.0",
+    "version": "1.81.0",
     "applicability": "Unspecified"
   },
   {
@@ -6080,7 +6080,7 @@
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for unnecessary calls to `min()` or `max()` in the following cases\n- Either both side is constant\n- One side is clearly larger than the other, like i32::MIN and an i32 variable\n\n### Why is this bad?\n\nIn the aformentioned cases it is not necessary to call `min()` or `max()`\nto compare values, it may even cause confusion.\n\n### Example\n```rust\nlet _ = 0.min(7_u32);\n```\nUse instead:\n```rust\nlet _ = 0;\n```\n",
-    "version": "1.78.0",
+    "version": "1.81.0",
     "applicability": "MachineApplicable"
   },
   {
