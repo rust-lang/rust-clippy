@@ -2601,6 +2601,15 @@
     "applicability": "MaybeIncorrect"
   },
   {
+    "id": "manual_div_ceil",
+    "id_location": "clippy_lints/src/manual_div_ceil.rs#L39",
+    "group": "complexity",
+    "level": "warn",
+    "docs": "### What it does\nChecks for an expression like `(x + (y - 1)) / y` which is a common manual reimplementation\nof `x.div_ceil(y)`.\n\n### Why is this bad?\nIt's simpler, clearer and more readable.\n\n### Example\n```rust\nlet x: i32 = 7;\nlet y: i32 = 4;\nlet div = (x + (y - 1)) / y;\n```\nUse instead:\n```rust\n#![feature(int_roundings)]\nlet x: i32 = 7;\nlet y: i32 = 4;\nlet div = x.div_ceil(y);\n```\n",
+    "version": "1.81.0",
+    "applicability": "MachineApplicable"
+  },
+  {
     "id": "manual_filter",
     "id_location": "clippy_lints/src/matches/mod.rs#L943",
     "group": "complexity",
