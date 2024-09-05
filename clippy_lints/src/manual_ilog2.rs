@@ -70,16 +70,7 @@ impl LateLintPass<'_> for ManualIlog2 {
                 return;
             };
             if val == u128::from(bit_width) - 1 {
-                let sugg = snippet_with_applicability(cx, reciever.span, "..", &mut applicability);
-                span_lint_and_sugg(
-                    cx,
-                    MANUAL_ILOG2,
-                    expr.span,
-                    "manually reimplementing `ilog2`",
-                    "consider using .ilog2()",
-                    format!("{sugg}.ilog2()"),
-                    applicability,
-                );
+                suggest_change(cx, reciever, expr, &mut applicability);
             }
         }
 
@@ -90,17 +81,22 @@ impl LateLintPass<'_> for ManualIlog2 {
             && let LitKind::Int(Pu128(2), _) = lit.node
             && cx.typeck_results().expr_ty(reciever).is_integral()
         {
-            span_lint_and_sugg(
-                cx,
-                MANUAL_ILOG2,
-                expr.span,
-                "manually reimplementing `ilog2`",
-                "consider using .ilog2()",
-                format!("{}.ilog2()", snippet_with_applicability(cx, reciever.span, "..", &mut applicability)),
-                applicability,
-            );
+            suggest_change(cx, reciever, expr, &mut applicability);
         }
     }
 
     extract_msrv_attr!(LateContext);
+}
+
+fn suggest_change(cx: &LateContext<'_>, reciever: &Expr<'_>, full_expr: &Expr<'_>, applicability: &mut Applicability) {
+    let sugg = snippet_with_applicability(cx, reciever.span, "..", applicability);
+    span_lint_and_sugg(
+        cx,
+        MANUAL_ILOG2,
+        full_expr.span,
+        "manually reimplementing `ilog2`",
+        "consider using .ilog2()",
+        format!("{sugg}.ilog2()"),
+        *applicability,
+    );
 }
