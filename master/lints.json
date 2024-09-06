@@ -5621,7 +5621,7 @@
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks if the first line in the documentation of items listed in module page is too long.\n\n### Why is this bad?\nDocumentation will show the first paragraph of the doscstring in the summary page of a\nmodule, so having a nice, short summary in the first paragraph is part of writing good docs.\n\n### Example\n```rust\n/// A very short summary.\n/// A much longer explanation that goes into a lot more detail about\n/// how the thing works, possibly with doclinks and so one,\n/// and probably spanning a many rows.\nstruct Foo {}\n```\nUse instead:\n```rust\n/// A very short summary.\n///\n/// A much longer explanation that goes into a lot more detail about\n/// how the thing works, possibly with doclinks and so one,\n/// and probably spanning a many rows.\nstruct Foo {}\n```\n",
-    "version": "1.81.0",
+    "version": "1.82.0",
     "applicability": "MachineApplicable"
   },
   {
