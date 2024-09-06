@@ -2709,6 +2709,15 @@
     "applicability": "MachineApplicable"
   },
   {
+    "id": "manual_is_power_of_two",
+    "id_location": "clippy_lints/src/manual_is_power_of_two.rs#L29",
+    "group": "complexity",
+    "level": "warn",
+    "docs": "### What it does\nChecks for expressions like `x.count_ones() == 1` or `x & (x - 1) == 0`, with x and unsigned integer, which are manual\nreimplementations of `x.is_power_of_two()`.\n### Why is this bad?\nManual reimplementations of `is_power_of_two` increase code complexity for little benefit.\n### Example\n```rust\nlet a: u32 = 4;\nlet result = a.count_ones() == 1;\n```\nUse instead:\n```rust\nlet a: u32 = 4;\nlet result = a.is_power_of_two();\n```\n",
+    "version": "1.82.0",
+    "applicability": "MachineApplicable"
+  },
+  {
     "id": "manual_is_variant_and",
     "id_location": "clippy_lints/src/methods/mod.rs#L3900",
     "group": "pedantic",
