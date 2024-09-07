@@ -14,6 +14,7 @@ use pulldown_cmark::Event::{
 };
 use pulldown_cmark::Tag::{BlockQuote, CodeBlock, FootnoteDefinition, Heading, Item, Link, Paragraph};
 use pulldown_cmark::{BrokenLink, CodeBlockKind, CowStr, Options, TagEnd};
+use regex::Regex;
 use rustc_ast::ast::Attribute;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::intravisit::{self, Visitor};
@@ -845,7 +846,9 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
                 ticks_unbalanced = false;
                 paragraph_range = range;
                 if is_first_paragraph {
-                    headers.first_paragraph_len = doc[paragraph_range.clone()].chars().count();
+                    let paragraph_string: String = doc[paragraph_range.clone()].chars().collect();
+                    let markdown_without_links = replace_markdown_links(&paragraph_string);
+                    headers.first_paragraph_len =  markdown_without_links.len();
                     is_first_paragraph = false;
                 }
             },
@@ -944,6 +947,15 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
         }
     }
     headers
+}
+
+fn replace_markdown_links(text: &str) -> String {
+    let re = Regex::new(r"\[([^\]]+)]\([^\)]+\)").unwrap();
+
+    re.replace_all(text, |caps: &regex::Captures<'_>| {
+        caps.get(1).map_or("", |m| m.as_str()).to_string()
+    })
+    .into_owned()
 }
 
 struct FindPanicUnwrap<'a, 'tcx> {

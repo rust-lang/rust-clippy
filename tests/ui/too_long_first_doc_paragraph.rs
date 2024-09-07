@@ -48,6 +48,11 @@ pub union Union2 {
 /// gravida non lacinia at, rhoncus eu lacus.
 fn f() {}
 
+/// Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc turpis nunc, lacinia
+/// a dolor in, pellentesque aliquet enim. Cras nec maximus sem.
+/// [this link](https://fooooooooooooooooooooooooooooooooooooooooooooooooooooooooo.com)
+pub fn foo() {}
+
 fn main() {
     // test code goes here
 }
