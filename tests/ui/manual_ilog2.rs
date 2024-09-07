@@ -8,5 +8,5 @@ fn main() {
     let b: u64 = 543534;
     let _ = 63 - b.leading_zeros();
 
-    let _ = 64 - b.leading_zeros(); // No lint
+    let _ = 64 - b.leading_zeros(); // No lint because manual ilog2 is BIT_WIDTH - 1 - x.leading_zeros()
 }
