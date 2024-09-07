@@ -3996,6 +3996,15 @@
     "applicability": "Unspecified"
   },
   {
+    "id": "non_zero_suggestions",
+    "id_location": "clippy_lints/src/non_zero_suggestions.rs#L43",
+    "group": "restriction",
+    "level": "allow",
+    "docs": "### What it does\nChecks for conversions from `NonZero` types to regular integer types,\nand suggests using `NonZero` types for the target as well.\n\n### Why is this bad?\nConverting from `NonZero` types to regular integer types and then back to `NonZero`\ntypes is less efficient and loses the type-safety guarantees provided by `NonZero` types.\nUsing `NonZero` types consistently can lead to more optimized code and prevent\ncertain classes of errors related to zero values.\n\n### Example\n```rust\nuse std::num::{NonZeroU32, NonZeroU64};\n\nfn example(x: u64, y: NonZeroU32) {\n    // Bad: Converting NonZeroU32 to u64 unnecessarily\n    let r1 = x / u64::from(y.get());\n    let r2 = x % u64::from(y.get());\n}\n```\nUse instead:\n```rust\nuse std::num::{NonZeroU32, NonZeroU64};\n\nfn example(x: u64, y: NonZeroU32) {\n    // Good: Preserving the NonZero property\n    let r1 = x / NonZeroU64::from(y);\n    let r2 = x % NonZeroU64::from(y);\n}\n```\n",
+    "version": "1.81.0",
+    "applicability": "MachineApplicable"
+  },
+  {
     "id": "nonminimal_bool",
     "id_location": "clippy_lints/src/booleans.rs#L39",
     "group": "complexity",
