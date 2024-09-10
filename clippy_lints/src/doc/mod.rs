@@ -554,7 +554,7 @@ declare_clippy_lint! {
     ///
     /// Use instead:
     /// ```no_run
-    /// /// This command takes two numbers as inputs and \
+    /// /// This command takes two numbers as inputs and\
     /// /// adds them together, and then returns the result.
     /// fn add(l: i32, r: i32) -> i32 {
     ///     l + r
