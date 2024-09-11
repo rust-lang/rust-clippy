@@ -99,6 +99,7 @@ mod collection_is_never_read;
 mod comparison_chain;
 mod copies;
 mod copy_iterator;
+mod copy_refcell;
 mod crate_in_macro_def;
 mod create_dir;
 mod dbg_macro;
@@ -942,5 +943,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(manual_div_ceil::ManualDivCeil::new(conf)));
     store.register_late_pass(|_| Box::new(manual_is_power_of_two::ManualIsPowerOfTwo));
     store.register_late_pass(|_| Box::new(non_zero_suggestions::NonZeroSuggestions));
+    store.register_late_pass(move |_| Box::new(copy_refcell::CopyRefCell::new(conf)));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
