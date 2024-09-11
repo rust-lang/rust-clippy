@@ -6637,7 +6637,7 @@
     "id_location": "clippy_lints/src/loops/mod.rs#L210",
     "group": "complexity",
     "level": "warn",
-    "docs": "### What it does\nDetects `loop + match` combinations that are easier\nwritten as a `while let` loop.\n\n### Why is this bad?\nThe `while let` loop is usually shorter and more\nreadable.\n\n### Known problems\nSometimes the wrong binding is displayed ([#383](https://github.com/rust-lang/rust-clippy/issues/383)).\n\n### Example\n```rust\nloop {\n    let x = match y {\n        Some(x) => x,\n        None => break,\n    };\n    // .. do something with x\n}\n// is easier written as\nwhile let Some(x) = y {\n    // .. do something with x\n};\n```\n",
+    "docs": "### What it does\nDetects `loop + match` combinations that are easier\nwritten as a `while let` loop.\n\n### Why is this bad?\nThe `while let` loop is usually shorter and more\nreadable.\n\n### Example\n```rust\nlet y = Some(1);\nloop {\n    let x = match y {\n        Some(x) => x,\n        None => break,\n    };\n    // ..\n}\n```\nUse instead:\n```rust\nlet y = Some(1);\nwhile let Some(x) = y {\n    // ..\n};\n```\n",
     "version": "pre 1.29.0",
     "applicability": "HasPlaceholders"
   },
