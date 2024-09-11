@@ -100,7 +100,7 @@
   },
   {
     "id": "as_ptr_cast_mut",
-    "id_location": "clippy_lints/src/casts/mod.rs#L647",
+    "id_location": "clippy_lints/src/casts/mod.rs#L655",
     "group": "nursery",
     "level": "allow",
     "docs": "### What it does\nChecks for the result of a `&self`-taking `as_ptr` being cast to a mutable pointer.\n\n### Why is this bad?\nSince `as_ptr` takes a `&self`, the pointer won't have write permissions unless interior\nmutability is used, making it unlikely that having it as a mutable pointer is correct.\n\n### Example\n```rust\nlet mut vec = Vec::<u8>::with_capacity(1);\nlet ptr = vec.as_ptr() as *mut u8;\nunsafe { ptr.write(4) }; // UNDEFINED BEHAVIOUR\n```\nUse instead:\n```rust\nlet mut vec = Vec::<u8>::with_capacity(1);\nlet ptr = vec.as_mut_ptr();\nunsafe { ptr.write(4) };\n```\n",
@@ -109,7 +109,7 @@
   },
   {
     "id": "as_underscore",
-    "id_location": "clippy_lints/src/casts/mod.rs#L561",
+    "id_location": "clippy_lints/src/casts/mod.rs#L569",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for the usage of `as _` conversion using inferred type.\n\n### Why restrict this?\nThe conversion might include lossy conversion or a dangerous cast that might go\nundetected due to the type being inferred.\n\nThe lint is allowed by default as using `_` is less wordy than always specifying the type.\n\n### Example\n```rust\nfn foo(n: usize) {}\nlet n: u16 = 256;\nfoo(n as _);\n```\nUse instead:\n```rust\nfn foo(n: usize) {}\nlet n: u16 = 256;\nfoo(n as usize);\n```\n",
@@ -271,7 +271,7 @@
   },
   {
     "id": "borrow_as_ptr",
-    "id_location": "clippy_lints/src/casts/mod.rs#L594",
+    "id_location": "clippy_lints/src/casts/mod.rs#L602",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for the usage of `&expr as *const T` or\n`&mut expr as *mut T`, and suggest using `ptr::addr_of` or\n`ptr::addr_of_mut` instead.\n\n### Why is this bad?\nThis would improve readability and avoid creating a reference\nthat points to an uninitialized value or unaligned place.\nRead the `ptr::addr_of` docs for more information.\n\n### Example\n```rust\nlet val = 1;\nlet p = &val as *const i32;\n\nlet mut val_mut = 1;\nlet p_mut = &mut val_mut as *mut i32;\n```\nUse instead:\n```rust\nlet val = 1;\nlet p = std::ptr::addr_of!(val);\n\nlet mut val_mut = 1;\nlet p_mut = std::ptr::addr_of_mut!(val_mut);\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -397,7 +397,7 @@
   },
   {
     "id": "cast_abs_to_unsigned",
-    "id_location": "clippy_lints/src/casts/mod.rs#L533",
+    "id_location": "clippy_lints/src/casts/mod.rs#L541",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for usage of the `abs()` method that cast the result to unsigned.\n\n### Why is this bad?\nThe `unsigned_abs()` method avoids panic when called on the MIN value.\n\n### Example\n```rust\nlet x: i32 = -42;\nlet y: u32 = x.abs() as u32;\n```\nUse instead:\n```rust\nlet x: i32 = -42;\nlet y: u32 = x.unsigned_abs();\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -406,7 +406,7 @@
   },
   {
     "id": "cast_enum_constructor",
-    "id_location": "clippy_lints/src/casts/mod.rs#L510",
+    "id_location": "clippy_lints/src/casts/mod.rs#L518",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for casts from an enum tuple constructor to an integer.\n\n### Why is this bad?\nThe cast is easily confused with casting a c-like enum value to an integer.\n\n### Example\n```rust\nenum E { X(i32) };\nlet _ = E::X as usize;\n```\n",
@@ -415,7 +415,7 @@
   },
   {
     "id": "cast_enum_truncation",
-    "id_location": "clippy_lints/src/casts/mod.rs#L447",
+    "id_location": "clippy_lints/src/casts/mod.rs#L455",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for casts from an enum type to an integral type that will definitely truncate the\nvalue.\n\n### Why is this bad?\nThe resulting integral value will not match the value of the variant it came from.\n\n### Example\n```rust\nenum E { X = 256 };\nlet _ = E::X as u8;\n```\n",
@@ -433,7 +433,7 @@
   },
   {
     "id": "cast_nan_to_int",
-    "id_location": "clippy_lints/src/casts/mod.rs#L669",
+    "id_location": "clippy_lints/src/casts/mod.rs#L677",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for a known NaN float being cast to an integer\n\n### Why is this bad?\nNaNs are cast into zero, so one could simply use this and make the\ncode more readable. The lint could also hint at a programmer error.\n\n### Example\n```rust\nlet _ = (0.0_f32 / 0.0) as u64;\n```\nUse instead:\n```rust\nlet _ = 0_u64;\n```\n",
@@ -487,7 +487,7 @@
   },
   {
     "id": "cast_slice_different_sizes",
-    "id_location": "clippy_lints/src/casts/mod.rs#L492",
+    "id_location": "clippy_lints/src/casts/mod.rs#L500",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nChecks for `as` casts between raw pointers to slices with differently sized elements.\n\n### Why is this bad?\nThe produced raw pointer to a slice does not update its length metadata. The produced\npointer will point to a different number of bytes than the original pointer because the\nlength metadata of a raw slice pointer is in elements rather than bytes.\nProducing a slice reference from the raw pointer will either create a slice with\nless data (which can be surprising) or create a slice with more data and cause Undefined Behavior.\n\n### Example\n// Missing data\n```rust\nlet a = [1_i32, 2, 3, 4];\nlet p = &a as *const [i32] as *const [u8];\nunsafe {\n    println!(\"{:?}\", &*p);\n}\n```\n// Undefined Behavior (note: also potential alignment issues)\n```rust\nlet a = [1_u8, 2, 3, 4];\nlet p = &a as *const [u8] as *const [u32];\nunsafe {\n    println!(\"{:?}\", &*p);\n}\n```\nInstead use `ptr::slice_from_raw_parts` to construct a slice from a data pointer and the correct length\n```rust\nlet a = [1_i32, 2, 3, 4];\nlet old_ptr = &a as *const [i32];\n// The data pointer is cast to a pointer to the target `u8` not `[u8]`\n// The length comes from the known length of 4 i32s times the 4 bytes per i32\nlet new_ptr = core::ptr::slice_from_raw_parts(old_ptr as *const u8, 16);\nunsafe {\n    println!(\"{:?}\", &*new_ptr);\n}\n```\n",
@@ -496,7 +496,7 @@
   },
   {
     "id": "cast_slice_from_raw_parts",
-    "id_location": "clippy_lints/src/casts/mod.rs#L621",
+    "id_location": "clippy_lints/src/casts/mod.rs#L629",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for a raw slice being cast to a slice pointer\n\n### Why is this bad?\nThis can result in multiple `&mut` references to the same location when only a pointer is\nrequired.\n`ptr::slice_from_raw_parts` is a safe alternative that doesn't require\nthe same [safety requirements] to be upheld.\n\n### Example\n```rust\nlet _: *const [u8] = std::slice::from_raw_parts(ptr, len) as *const _;\nlet _: *mut [u8] = std::slice::from_raw_parts_mut(ptr, len) as *mut _;\n```\nUse instead:\n```rust\nlet _: *const [u8] = std::ptr::slice_from_raw_parts(ptr, len);\nlet _: *mut [u8] = std::ptr::slice_from_raw_parts_mut(ptr, len);\n```\n[safety requirements]: https://doc.rust-lang.org/std/slice/fn.from_raw_parts.html#safety\n",
@@ -4411,10 +4411,10 @@
   },
   {
     "id": "ptr_cast_constness",
-    "id_location": "clippy_lints/src/casts/mod.rs#L428",
+    "id_location": "clippy_lints/src/casts/mod.rs#L436",
     "group": "pedantic",
     "level": "allow",
-    "docs": "### What it does\nChecks for `as` casts between raw pointers that change their constness, namely `*const T` to\n`*mut T` and `*mut T` to `*const T`.\n\n### Why is this bad?\nThough `as` casts between raw pointers are not terrible, `pointer::cast_mut` and\n`pointer::cast_const` are safer because they cannot accidentally cast the pointer to another\ntype.\n\n### Example\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr = ptr as *mut u32;\nlet ptr = mut_ptr as *const u32;\n```\nUse instead:\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr = ptr.cast_mut();\nlet ptr = mut_ptr.cast_const();\n```\n",
+    "docs": "### What it does\nChecks for `as` casts between raw pointers that change their constness, namely `*const T` to\n`*mut T` and `*mut T` to `*const T`.\n\n### Why is this bad?\nThough `as` casts between raw pointers are not terrible, `pointer::cast_mut` and\n`pointer::cast_const` are safer because they cannot accidentally cast the pointer to another\ntype. Or, when null pointers are involved, `null()` and `null_mut()` can be used directly.\n\n### Example\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr = ptr as *mut u32;\nlet ptr = mut_ptr as *const u32;\nlet ptr1 = std::ptr::null::<u32>() as *mut u32;\nlet ptr2 = std::ptr::null_mut::<u32>() as *const u32;\nlet ptr3 = std::ptr::null::<u32>().cast_mut();\nlet ptr4 = std::ptr::null_mut::<u32>().cast_const();\n```\nUse instead:\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr = ptr.cast_mut();\nlet ptr = mut_ptr.cast_const();\nlet ptr1 = std::ptr::null_mut::<u32>();\nlet ptr2 = std::ptr::null::<u32>();\nlet ptr3 = std::ptr::null_mut::<u32>();\nlet ptr4 = std::ptr::null::<u32>();\n```\n",
     "version": "1.72.0",
     "applicability": "MachineApplicable"
   },
@@ -4780,7 +4780,7 @@
   },
   {
     "id": "ref_as_ptr",
-    "id_location": "clippy_lints/src/casts/mod.rs#L716",
+    "id_location": "clippy_lints/src/casts/mod.rs#L724",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for casts of references to pointer using `as`\nand suggests `std::ptr::from_ref` and `std::ptr::from_mut` instead.\n\n### Why is this bad?\nUsing `as` casts may result in silently changing mutability or type.\n\n### Example\n```rust\nlet a_ref = &1;\nlet a_ptr = a_ref as *const _;\n```\nUse instead:\n```rust\nlet a_ref = &1;\nlet a_ptr = std::ptr::from_ref(a_ref);\n```\n",
@@ -6760,7 +6760,7 @@
   },
   {
     "id": "zero_ptr",
-    "id_location": "clippy_lints/src/casts/mod.rs#L692",
+    "id_location": "clippy_lints/src/casts/mod.rs#L700",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nCatch casts from `0` to some pointer type\n\n### Why is this bad?\nThis generally means `null` and is better expressed as\n{`std`, `core`}`::ptr::`{`null`, `null_mut`}.\n\n### Example\n```rust\nlet a = 0 as *const u32;\n```\n\nUse instead:\n```rust\nlet a = std::ptr::null::<u32>();\n```\n",
