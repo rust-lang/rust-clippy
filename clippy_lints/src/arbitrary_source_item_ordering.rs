@@ -145,11 +145,11 @@ impl ArbitrarySourceItemOrdering {
         use SourceItemOrderingCategory::*;
         Self {
             assoc_types_order: conf.trait_assoc_item_kinds_order.clone(),
-            enable_ordering_for_enum: conf.enable_source_item_ordering_for.contains(&Enum),
-            enable_ordering_for_impl: conf.enable_source_item_ordering_for.contains(&Impl),
-            enable_ordering_for_module: conf.enable_source_item_ordering_for.contains(&Module),
-            enable_ordering_for_struct: conf.enable_source_item_ordering_for.contains(&Struct),
-            enable_ordering_for_trait: conf.enable_source_item_ordering_for.contains(&Trait),
+            enable_ordering_for_enum: conf.source_item_ordering.contains(&Enum),
+            enable_ordering_for_impl: conf.source_item_ordering.contains(&Impl),
+            enable_ordering_for_module: conf.source_item_ordering.contains(&Module),
+            enable_ordering_for_struct: conf.source_item_ordering.contains(&Struct),
+            enable_ordering_for_trait: conf.source_item_ordering.contains(&Trait),
             module_item_order_groupings: conf.module_item_order_groupings.clone(),
         }
     }

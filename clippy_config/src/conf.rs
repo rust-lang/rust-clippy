@@ -1,8 +1,8 @@
 use crate::ClippyConfiguration;
 use crate::msrvs::Msrv;
 use crate::types::{
-    DisallowedPath, MacroMatcher, MatchLintBehaviour, PubUnderscoreFieldsBehaviour, Rename, SourceItemOrderingCategory,
-    SourceItemOrderingEnableFor, SourceItemOrderingModuleItemGroupings, SourceItemOrderingModuleItemKind,
+    DisallowedPath, MacroMatcher, MatchLintBehaviour, PubUnderscoreFieldsBehaviour, Rename, SourceItemOrdering,
+    SourceItemOrderingCategory, SourceItemOrderingModuleItemGroupings, SourceItemOrderingModuleItemKind,
     SourceItemOrderingTraitAssocItemKind, SourceItemOrderingTraitAssocItemKinds,
 };
 use rustc_errors::Applicability;
@@ -71,7 +71,7 @@ const DEFAULT_TRAIT_ASSOC_ITEM_KINDS_ORDER: &[SourceItemOrderingTraitAssocItemKi
     use SourceItemOrderingTraitAssocItemKind::*;
     &[Const, Type, Fn]
 };
-const DEFAULT_ENABLE_SOURCE_ITEM_ORDERING_FOR: &[SourceItemOrderingCategory] = {
+const DEFAULT_SOURCE_ITEM_ORDERING: &[SourceItemOrderingCategory] = {
     #[allow(clippy::enum_glob_use)] // Very local glob use for legibility.
     use SourceItemOrderingCategory::*;
     &[Enum, Impl, Module, Struct, Trait]
@@ -464,9 +464,6 @@ define_Conf! {
     /// Whether to apply the raw pointer heuristic to determine if a type is `Send`.
     #[lints(non_send_fields_in_send_ty)]
     enable_raw_pointer_heuristic_for_send: bool = true,
-    /// Which kind of elements should be ordered internally, possible values being `enum`, `impl`, `module`, `struct`, `trait`.
-    #[lints(arbitrary_source_item_ordering)]
-    enable_source_item_ordering_for: SourceItemOrderingEnableFor = DEFAULT_ENABLE_SOURCE_ITEM_ORDERING_FOR.into(),
     /// Whether to recommend using implicit into iter for reborrowed values.
     ///
     /// #### Example
@@ -619,6 +616,9 @@ define_Conf! {
     /// The maximum number of single char bindings a scope may have
     #[lints(many_single_char_names)]
     single_char_binding_names_threshold: u64 = 4,
+    /// Which kind of elements should be ordered internally, possible values being `enum`, `impl`, `module`, `struct`, `trait`.
+    #[lints(arbitrary_source_item_ordering)]
+    source_item_ordering: SourceItemOrdering = DEFAULT_SOURCE_ITEM_ORDERING.into(),
     /// The maximum allowed stack size for functions in bytes
     #[lints(large_stack_frames)]
     stack_size_threshold: u64 = 512_000,

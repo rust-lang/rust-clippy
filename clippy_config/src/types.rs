@@ -118,15 +118,15 @@ pub enum SourceItemOrderingCategory {
 ///
 /// The [`Deserialize`] implementation checks that there are no duplicates in
 /// the user configuration.
-pub struct SourceItemOrderingEnableFor(Vec<SourceItemOrderingCategory>);
+pub struct SourceItemOrdering(Vec<SourceItemOrderingCategory>);
 
-impl SourceItemOrderingEnableFor {
+impl SourceItemOrdering {
     pub fn contains(&self, category: &SourceItemOrderingCategory) -> bool {
         self.0.contains(category)
     }
 }
 
-impl<T> From<T> for SourceItemOrderingEnableFor
+impl<T> From<T> for SourceItemOrdering
 where
     T: Into<Vec<SourceItemOrderingCategory>>,
 {
@@ -135,13 +135,13 @@ where
     }
 }
 
-impl core::fmt::Debug for SourceItemOrderingEnableFor {
+impl core::fmt::Debug for SourceItemOrdering {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.0.fmt(f)
     }
 }
 
-impl<'de> Deserialize<'de> for SourceItemOrderingEnableFor {
+impl<'de> Deserialize<'de> for SourceItemOrdering {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -162,7 +162,7 @@ impl<'de> Deserialize<'de> for SourceItemOrderingEnableFor {
     }
 }
 
-impl Serialize for SourceItemOrderingEnableFor {
+impl Serialize for SourceItemOrdering {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: ser::Serializer,
