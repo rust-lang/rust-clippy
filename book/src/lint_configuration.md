@@ -473,16 +473,6 @@ Whether to apply the raw pointer heuristic to determine if a type is `Send`.
 * [`non_send_fields_in_send_ty`](https://rust-lang.github.io/rust-clippy/master/index.html#non_send_fields_in_send_ty)
 
 
-## `enable-source-item-ordering-for`
-Which kind of elements should be ordered internally, possible values being `enum`, `impl`, `module`, `struct`, `trait`.
-
-**Default Value:** `["enum", "impl", "module", "struct", "trait"]`
-
----
-**Affected lints:**
-* [`arbitrary_source_item_ordering`](https://rust-lang.github.io/rust-clippy/master/index.html#arbitrary_source_item_ordering)
-
-
 ## `enforce-iter-loop-reborrow`
 Whether to recommend using implicit into iter for reborrowed values.
 
@@ -801,6 +791,16 @@ The maximum number of single char bindings a scope may have
 ---
 **Affected lints:**
 * [`many_single_char_names`](https://rust-lang.github.io/rust-clippy/master/index.html#many_single_char_names)
+
+
+## `source-item-ordering`
+Which kind of elements should be ordered internally, possible values being `enum`, `impl`, `module`, `struct`, `trait`.
+
+**Default Value:** `["enum", "impl", "module", "struct", "trait"]`
+
+---
+**Affected lints:**
+* [`arbitrary_source_item_ordering`](https://rust-lang.github.io/rust-clippy/master/index.html#arbitrary_source_item_ordering)
 
 
 ## `stack-size-threshold`

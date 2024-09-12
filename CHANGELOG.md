@@ -6153,7 +6153,6 @@ Released 2018-09-13
 [`disallowed-types`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-types
 [`doc-valid-idents`]: https://doc.rust-lang.org/clippy/lint_configuration.html#doc-valid-idents
 [`enable-raw-pointer-heuristic-for-send`]: https://doc.rust-lang.org/clippy/lint_configuration.html#enable-raw-pointer-heuristic-for-send
-[`enable-source-item-ordering-for`]: https://doc.rust-lang.org/clippy/lint_configuration.html#enable-source-item-ordering-for
 [`enforce-iter-loop-reborrow`]: https://doc.rust-lang.org/clippy/lint_configuration.html#enforce-iter-loop-reborrow
 [`enforced-import-renames`]: https://doc.rust-lang.org/clippy/lint_configuration.html#enforced-import-renames
 [`enum-variant-name-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#enum-variant-name-threshold
@@ -6178,6 +6177,7 @@ Released 2018-09-13
 [`semicolon-inside-block-ignore-singleline`]: https://doc.rust-lang.org/clippy/lint_configuration.html#semicolon-inside-block-ignore-singleline
 [`semicolon-outside-block-ignore-multiline`]: https://doc.rust-lang.org/clippy/lint_configuration.html#semicolon-outside-block-ignore-multiline
 [`single-char-binding-names-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#single-char-binding-names-threshold
+[`source-item-ordering`]: https://doc.rust-lang.org/clippy/lint_configuration.html#source-item-ordering
 [`stack-size-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#stack-size-threshold
 [`standard-macro-braces`]: https://doc.rust-lang.org/clippy/lint_configuration.html#standard-macro-braces
 [`struct-field-name-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#struct-field-name-threshold

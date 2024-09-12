@@ -37,7 +37,6 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            disallowed-types
            doc-valid-idents
            enable-raw-pointer-heuristic-for-send
-           enable-source-item-ordering-for
            enforce-iter-loop-reborrow
            enforced-import-renames
            enum-variant-name-threshold
@@ -62,6 +61,7 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            semicolon-inside-block-ignore-singleline
            semicolon-outside-block-ignore-multiline
            single-char-binding-names-threshold
+           source-item-ordering
            stack-size-threshold
            standard-macro-braces
            struct-field-name-threshold
@@ -124,7 +124,6 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            disallowed-types
            doc-valid-idents
            enable-raw-pointer-heuristic-for-send
-           enable-source-item-ordering-for
            enforce-iter-loop-reborrow
            enforced-import-renames
            enum-variant-name-threshold
@@ -149,6 +148,7 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            semicolon-inside-block-ignore-singleline
            semicolon-outside-block-ignore-multiline
            single-char-binding-names-threshold
+           source-item-ordering
            stack-size-threshold
            standard-macro-braces
            struct-field-name-threshold
@@ -211,7 +211,6 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            disallowed-types
            doc-valid-idents
            enable-raw-pointer-heuristic-for-send
-           enable-source-item-ordering-for
            enforce-iter-loop-reborrow
            enforced-import-renames
            enum-variant-name-threshold
@@ -236,6 +235,7 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            semicolon-inside-block-ignore-singleline
            semicolon-outside-block-ignore-multiline
            single-char-binding-names-threshold
+           source-item-ordering
            stack-size-threshold
            standard-macro-braces
            struct-field-name-threshold
