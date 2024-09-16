@@ -1,0 +1,66 @@
+error: `extern` missing explicit ABI
+  --> tests/ui/extern_without_abi.rs:9:1
+   |
+LL | extern fn foo() {}
+   | ^^^^^^^^^^^^^^^^^^ help: consider using: `extern "C" fn foo() {}`
+   |
+   = note: `-D clippy::extern-without-abi` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::extern_without_abi)]`
+
+error: `extern` missing explicit ABI
+  --> tests/ui/extern_without_abi.rs:13:1
+   |
+LL | / extern     
+LL | | fn foo_two() {}
+   | |_______________^
+   |
+help: consider using
+   |
+LL ~ extern "C"     
+LL + fn foo_two() {}
+   |
+
+error: `extern` missing explicit ABI
+  --> tests/ui/extern_without_abi.rs:27:1
+   |
+LL | / extern {
+LL | |
+LL | |     fn qux();
+LL | | }
+   | |_^
+   |
+help: consider using
+   |
+LL + extern "C" {
+LL +
+LL +     fn qux();
+LL + }
+   |
+
+error: `extern` missing explicit ABI
+  --> tests/ui/extern_without_abi.rs:33:1
+   |
+LL | / extern     
+LL | | {
+LL | |
+LL | |     fn qux_two();
+LL | | }
+   | |_^
+   |
+help: consider using
+   |
+LL ~ extern "C"     
+LL + {
+LL +
+LL +     fn qux_two();
+LL + }
+   |
+
+error: `extern` missing explicit ABI
+  --> tests/ui/extern_without_abi.rs:40:1
+   |
+LL | extern {fn qux_three();}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using: `extern "C" {fn qux_three();}`
+
+error: aborting due to 5 previous errors
+
