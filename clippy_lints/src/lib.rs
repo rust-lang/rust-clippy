@@ -51,6 +51,7 @@ extern crate rustc_lexer;
 extern crate rustc_lint;
 extern crate rustc_middle;
 extern crate rustc_parse;
+extern crate rustc_parse_format;
 extern crate rustc_resolve;
 extern crate rustc_session;
 extern crate rustc_span;
@@ -195,6 +196,7 @@ mod let_with_type_underscore;
 mod lifetimes;
 mod lines_filter_map_ok;
 mod literal_representation;
+mod literal_string_with_formatting_arg;
 mod loops;
 mod macro_metavars_in_unsafe;
 mod macro_use;
@@ -943,6 +945,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(manual_div_ceil::ManualDivCeil::new(conf)));
     store.register_late_pass(|_| Box::new(manual_is_power_of_two::ManualIsPowerOfTwo));
     store.register_late_pass(|_| Box::new(non_zero_suggestions::NonZeroSuggestions));
+    store.register_early_pass(|| Box::new(literal_string_with_formatting_arg::LiteralStringWithFormattingArg));
     store.register_late_pass(move |_| Box::new(unused_trait_names::UnusedTraitNames::new(conf)));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
