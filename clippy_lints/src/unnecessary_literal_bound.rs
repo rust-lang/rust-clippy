@@ -1,8 +1,10 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::path_res;
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
+use rustc_hir::def::Res;
 use rustc_hir::intravisit::{FnKind, Visitor};
-use rustc_hir::{intravisit, Body, Expr, ExprKind, FnDecl, FnRetTy, Lit, MutTy, Mutability, Ty, TyKind};
+use rustc_hir::{intravisit, Body, Expr, ExprKind, FnDecl, FnRetTy, Lit, MutTy, Mutability, PrimTy, Ty, TyKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::def_id::LocalDefId;
@@ -140,7 +142,7 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryLiteralBound {
             return;
         };
 
-        if !rustc_hir_analysis::lower_ty(cx.tcx, inner_hir_ty).is_str() {
+        if path_res(cx, inner_hir_ty) != Res::PrimTy(PrimTy::Str) {
             return;
         }
 
