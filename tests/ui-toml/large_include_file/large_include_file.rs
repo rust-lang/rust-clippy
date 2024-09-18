@@ -1,4 +1,5 @@
 #![warn(clippy::large_include_file)]
+#![allow(clippy::literal_string_with_formatting_arg)]
 
 // Good
 const GOOD_INCLUDE_BYTES: &[u8; 581] = include_bytes!("large_include_file.rs");

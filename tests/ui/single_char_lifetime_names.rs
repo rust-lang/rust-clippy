@@ -1,5 +1,5 @@
 #![warn(clippy::single_char_lifetime_names)]
-#![allow(clippy::let_unit_value)]
+#![allow(clippy::let_unit_value, clippy::literal_string_with_formatting_arg)]
 
 // Lifetimes should only be linted when they're introduced
 struct DiagnosticCtx<'a, 'b>
