@@ -66,6 +66,7 @@ mod map_err_ignore;
 mod map_flatten;
 mod map_identity;
 mod map_unwrap_or;
+mod map_with_unused_argument_over_ranges;
 mod mut_mutex_lock;
 mod needless_character_iteration;
 mod needless_collect;
@@ -4137,6 +4138,40 @@ declare_clippy_lint! {
     "use of `map` returning the original item"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for `Iterator::map` over ranges without using the parameter which
+    /// could be more clearly expressed using `std::iter::repeat(...).take(...)`.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// It expresses the intent more clearly to `take` the correct number of times
+    /// from a generating function than to apply a closure to each number in a
+    /// range only to discard them.
+    ///
+    /// ### Example
+    ///
+    /// ```no_run
+    /// let random_numbers : Vec<_> = (0..10).map(|_| { 3 + 1 }).collect();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let f : Vec<_> = std::iter::repeat( 3 + 1 ).take(10).collect();
+    /// ```
+    ///
+    /// ### Known Issues
+    ///
+    /// This lint suggest replacing a `Map<Range>` with a `Take<RepeatWith>` or
+    /// `Take<Repeat>`. The former implements some traits that the latter two do
+    /// not, such as `DoubleEndedIterator`. As a result, this may not always be an
+    /// appropriate suggestion.
+    #[clippy::version = "1.81.0"]
+    pub MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
+    style,
+    "map of a trivial closure (not dependent on parameter) over a range"
+}
+
 pub struct Methods {
     avoid_breaking_exported_api: bool,
     msrv: Msrv,
@@ -4297,6 +4332,7 @@ impl_lint_pass!(Methods => [
     NEEDLESS_CHARACTER_ITERATION,
     MANUAL_INSPECT,
     UNNECESSARY_MIN_OR_MAX,
+    MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -4772,6 +4808,7 @@ impl Methods {
                     if name == "map" {
                         unused_enumerate_index::check(cx, expr, recv, m_arg);
                         map_clone::check(cx, expr, recv, m_arg, &self.msrv);
+                        map_with_unused_argument_over_ranges::check(cx, expr, recv, m_arg, &self.msrv, span);
                         match method_call(recv) {
                             Some((map_name @ ("iter" | "into_iter"), recv2, _, _, _)) => {
                                 iter_kv_map::check(cx, map_name, expr, recv2, m_arg, &self.msrv);
