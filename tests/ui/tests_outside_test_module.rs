@@ -5,11 +5,10 @@ fn main() {
     // test code goes here
 }
 
-// Should lint
+// Should not lint
+// Because we're inside an integration test
 #[test]
 fn my_test() {}
-//~^ ERROR: this function marked with #[test] is outside a #[cfg(test)] module
-//~| NOTE: move it to a testing module marked with #[cfg(test)]
 
 #[cfg(test)]
 mod tests {
