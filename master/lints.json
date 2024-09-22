@@ -4555,7 +4555,7 @@
   },
   {
     "id": "rc_mutex",
-    "id_location": "clippy_lints/src/types/mod.rs#L302",
+    "id_location": "clippy_lints/src/types/mod.rs#L353",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nChecks for `Rc<Mutex<T>>`.\n\n### Why restrict this?\n`Rc` is used in single thread and `Mutex` is used in multi thread.\nConsider using `Rc<RefCell<T>>` in single thread or `Arc<Mutex<T>>` in multi thread.\n\n### Known problems\nSometimes combining generic types can lead to the requirement that a\ntype use Rc in conjunction with Mutex. We must consider those cases false positives, but\nalas they are quite hard to rule out. Luckily they are also rare.\n\n### Example\n```rust\nuse std::rc::Rc;\nuse std::sync::Mutex;\nfn foo(interned: Rc<Mutex<i32>>) { ... }\n```\n\nBetter:\n\n```rust\nuse std::rc::Rc;\nuse std::cell::RefCell\nfn foo(interned: Rc<RefCell<i32>>) { ... }\n```\n\n### Configuration\n\n- `avoid-breaking-exported-api`:  Suppress lints whenever the suggested change would cause breakage for other crates.\n\n\n   (default: `true`)\n",
@@ -5851,10 +5851,10 @@
   },
   {
     "id": "type_complexity",
-    "id_location": "clippy_lints/src/types/mod.rs#L269",
+    "id_location": "clippy_lints/src/types/mod.rs#L320",
     "group": "complexity",
     "level": "warn",
-    "docs": "### What it does\nChecks for types used in structs, parameters and `let`\ndeclarations above a certain complexity threshold.\n\n### Why is this bad?\nToo complex types make the code less readable. Consider\nusing a `type` definition to simplify them.\n\n### Example\n```rust\nstruct Foo {\n    inner: Rc<Vec<Vec<Box<(u32, u32, u32, u32)>>>>,\n}\n```\n\n### Configuration\n\n- `type-complexity-threshold`:  The maximum complexity a type can have\n\n\n   (default: `250`)\n",
+    "docs": "### What it does\nChecks for types used in structs, parameters and `let`\ndeclarations above a certain complexity threshold.\n\n### Why is this bad?\nToo complex types make the code less readable. Consider\nusing a `type` definition to simplify them.\n\n### Example\n```rust\nstruct PointMatrixContainer {\n    matrix: Rc<Vec<Vec<Box<(u32, u32, u32, u32)>>>>,\n}\n\nfn main() {\n    let point_matrix: Vec<Vec<Box<(u32, u32, u32, u32)>>> = vec![\n        vec![\n            Box::new((1, 2, 3, 4)),\n            Box::new((5, 6, 7, 8)),\n        ],\n        vec![\n            Box::new((9, 10, 11, 12)),\n        ],\n    ];\n\n    let shared_point_matrix: Rc<Vec<Vec<Box<(u32, u32, u32, u32)>>>> = Rc::new(point_matrix);\n\n    let container = PointMatrixContainer {\n        matrix: shared_point_matrix,\n    };\n\n    // ...\n}\n```\nUse instead:\n### Example\n```rust\ntype PointMatrix = Vec<Vec<Box<(u32, u32, u32, u32)>>>;\ntype SharedPointMatrix = Rc<PointMatrix>;\n\nstruct PointMatrixContainer {\n    matrix: SharedPointMatrix,\n}\n\nfn main() {\n    let point_matrix: PointMatrix = vec![\n        vec![\n            Box::new((1, 2, 3, 4)),\n            Box::new((5, 6, 7, 8)),\n        ],\n        vec![\n            Box::new((9, 10, 11, 12)),\n        ],\n    ];\n\n    let shared_point_matrix: SharedPointMatrix = Rc::new(point_matrix);\n\n    let container = PointMatrixContainer {\n        matrix: shared_point_matrix,\n    };\n\n    // ...\n}\n```\n\n### Configuration\n\n- `type-complexity-threshold`:  The maximum complexity a type can have\n\n\n   (default: `250`)\n",
     "version": "pre 1.29.0",
     "applicability": "Unspecified"
   },
