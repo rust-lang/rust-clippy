@@ -334,7 +334,7 @@
   },
   {
     "id": "branches_sharing_code",
-    "id_location": "clippy_lints/src/copies.rs#L158",
+    "id_location": "clippy_lints/src/copies.rs#L159",
     "group": "nursery",
     "level": "allow",
     "docs": "### What it does\nChecks if the `if` and `else` block contain shared code that can be\nmoved out of the blocks.\n\n### Why is this bad?\nDuplicate code is less maintainable.\n\n### Known problems\n* The lint doesn't check if the moved expressions modify values that are being used in\n  the if condition. The suggestion can in that case modify the behavior of the program.\n  See [rust-clippy#7452](https://github.com/rust-lang/rust-clippy/issues/7452)\n\n### Example\n```rust\nlet foo = if … {\n    println!(\"Hello World\");\n    13\n} else {\n    println!(\"Hello World\");\n    42\n};\n```\n\nUse instead:\n```rust\nprintln!(\"Hello World\");\nlet foo = if … {\n    13\n} else {\n    42\n};\n```\n",
@@ -1576,7 +1576,7 @@
   },
   {
     "id": "format_in_format_args",
-    "id_location": "clippy_lints/src/format_args.rs#L47",
+    "id_location": "clippy_lints/src/format_args.rs#L48",
     "group": "perf",
     "level": "warn",
     "docs": "### What it does\nDetects `format!` within the arguments of another macro that does\nformatting such as `format!` itself, `write!` or `println!`. Suggests\ninlining the `format!` call.\n\n### Why is this bad?\nThe recommended code is both shorter and avoids a temporary allocation.\n\n### Example\n```rust\nprintln!(\"error: {}\", format!(\"something failed at {}\", Location::caller()));\n```\nUse instead:\n```rust\nprintln!(\"error: something failed at {}\", Location::caller());\n```\n",
@@ -1711,7 +1711,7 @@
   },
   {
     "id": "if_same_then_else",
-    "id_location": "clippy_lints/src/copies.rs#L119",
+    "id_location": "clippy_lints/src/copies.rs#L120",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for `if/else` with the same body as the *then* part\nand the *else* part.\n\n### Why is this bad?\nThis is probably a copy & paste error.\n\n### Example\n```rust\nlet foo = if … {\n    42\n} else {\n    42\n};\n```\n",
@@ -1729,7 +1729,7 @@
   },
   {
     "id": "ifs_same_cond",
-    "id_location": "clippy_lints/src/copies.rs#L49",
+    "id_location": "clippy_lints/src/copies.rs#L50",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nChecks for consecutive `if`s with the same condition.\n\n### Why is this bad?\nThis is probably a copy & paste error.\n\n### Example\n```rust\nif a == b {\n    …\n} else if a == b {\n    …\n}\n```\n\nNote that this lint ignores all conditions with a function call as it could\nhave side effects:\n\n```rust\nif foo() {\n    …\n} else if foo() { // not linted\n    …\n}\n```\n\n### Configuration\n\n- `ignore-interior-mutability`:  A list of paths to types that should be treated as if they do not contain interior mutability\n\n\n   (default: `[\"bytes::Bytes\"]`)\n",
@@ -2242,7 +2242,7 @@
   },
   {
     "id": "iter_over_hash_type",
-    "id_location": "clippy_lints/src/iter_over_hash_type.rs#L38",
+    "id_location": "clippy_lints/src/iter_over_hash_type.rs#L33",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nThis is a restriction lint which prevents the use of hash types (i.e., `HashSet` and `HashMap`) in for loops.\n\n### Why restrict this?\nBecause hash types are unordered, when iterated through such as in a `for` loop, the values are returned in\nan undefined order. As a result, on redundant systems this may cause inconsistencies and anomalies.\nIn addition, the unknown order of the elements may reduce readability or introduce other undesired\nside effects.\n\n### Example\n```rust\n    let my_map = std::collections::HashMap::<i32, String>::new();\n    for (key, value) in my_map { /* ... */ }\n```\nUse instead:\n```rust\n    let my_map = std::collections::HashMap::<i32, String>::new();\n    let mut keys = my_map.keys().clone().collect::<Vec<_>>();\n    keys.sort();\n    for key in keys {\n        let value = &my_map[key];\n    }\n```\n",
@@ -3979,7 +3979,7 @@
   },
   {
     "id": "non_octal_unix_permissions",
-    "id_location": "clippy_lints/src/non_octal_unix_permissions.rs#L35",
+    "id_location": "clippy_lints/src/non_octal_unix_permissions.rs#L34",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nChecks for non-octal values used to set Unix file permissions.\n\n### Why is this bad?\nThey will be converted into octal, creating potentially\nunintended file permissions.\n\n### Example\n```rust\nuse std::fs::OpenOptions;\nuse std::os::unix::fs::OpenOptionsExt;\n\nlet mut options = OpenOptions::new();\noptions.mode(644);\n```\nUse instead:\n```rust\nuse std::fs::OpenOptions;\nuse std::os::unix::fs::OpenOptionsExt;\n\nlet mut options = OpenOptions::new();\noptions.mode(0o644);\n```\n",
@@ -4942,7 +4942,7 @@
   },
   {
     "id": "same_functions_in_if_condition",
-    "id_location": "clippy_lints/src/copies.rs#L97",
+    "id_location": "clippy_lints/src/copies.rs#L98",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for consecutive `if`s with the same function call.\n\n### Why is this bad?\nThis is probably a copy & paste error.\nDespite the fact that function can have side effects and `if` works as\nintended, such an approach is implicit and can be considered a \"code smell\".\n\n### Example\n```rust\nif foo() == bar {\n    …\n} else if foo() == bar {\n    …\n}\n```\n\nThis probably should be:\n```rust\nif foo() == bar {\n    …\n} else if foo() == baz {\n    …\n}\n```\n\nor if the original code was not a typo and called function mutates a state,\nconsider move the mutation out of the `if` condition to avoid similarity to\na copy & paste error:\n\n```rust\nlet first = foo();\nif first == bar {\n    …\n} else {\n    let second = foo();\n    if second == bar {\n    …\n    }\n}\n```\n",
@@ -5275,7 +5275,7 @@
   },
   {
     "id": "slow_vector_initialization",
-    "id_location": "clippy_lints/src/slow_vector_initialization.rs#L54",
+    "id_location": "clippy_lints/src/slow_vector_initialization.rs#L53",
     "group": "perf",
     "level": "warn",
     "docs": "### What it does\nChecks slow zero-filled vector initialization\n\n### Why is this bad?\nThese structures are non-idiomatic and less efficient than simply using\n`vec![0; len]`.\n\nSpecifically, for `vec![0; len]`, the compiler can use a specialized type of allocation\nthat also zero-initializes the allocated memory in the same call\n(see: [alloc_zeroed](https://doc.rust-lang.org/stable/std/alloc/trait.GlobalAlloc.html#method.alloc_zeroed)).\n\nWriting `Vec::new()` followed by `vec.resize(len, 0)` is suboptimal because,\nwhile it does do the same number of allocations,\nit involves two operations for allocating and initializing.\nThe `resize` call first allocates memory (since `Vec::new()` did not), and only *then* zero-initializes it.\n\n### Example\n```rust\nlet mut vec1 = Vec::new();\nvec1.resize(len, 0);\n\nlet mut vec2 = Vec::with_capacity(len);\nvec2.resize(len, 0);\n\nlet mut vec3 = Vec::with_capacity(len);\nvec3.extend(repeat(0).take(len));\n```\n\nUse instead:\n```rust\nlet mut vec1 = vec![0; len];\nlet mut vec2 = vec![0; len];\nlet mut vec3 = vec![0; len];\n```\n",
@@ -5608,7 +5608,7 @@
   },
   {
     "id": "to_string_in_format_args",
-    "id_location": "clippy_lints/src/format_args.rs#L73",
+    "id_location": "clippy_lints/src/format_args.rs#L74",
     "group": "perf",
     "level": "warn",
     "docs": "### What it does\nChecks for [`ToString::to_string`](https://doc.rust-lang.org/std/string/trait.ToString.html#tymethod.to_string)\napplied to a type that implements [`Display`](https://doc.rust-lang.org/std/fmt/trait.Display.html)\nin a macro that does formatting.\n\n### Why is this bad?\nSince the type implements `Display`, the use of `to_string` is\nunnecessary.\n\n### Example\n```rust\nprintln!(\"error: something failed at {}\", Location::caller().to_string());\n```\nUse instead:\n```rust\nprintln!(\"error: something failed at {}\", Location::caller());\n```\n",
@@ -5950,7 +5950,7 @@
   },
   {
     "id": "uninlined_format_args",
-    "id_location": "clippy_lints/src/format_args.rs#L128",
+    "id_location": "clippy_lints/src/format_args.rs#L129",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nDetect when a variable is not inlined in a format string,\nand suggests to inline it.\n\n### Why is this bad?\nNon-inlined code is slightly more difficult to read and understand,\nas it requires arguments to be matched against the format string.\nThe inlined syntax, where allowed, is simpler.\n\n### Example\n```rust\nformat!(\"{}\", var);\nformat!(\"{v:?}\", v = var);\nformat!(\"{0} {0}\", var);\nformat!(\"{0:1$}\", var, width);\nformat!(\"{:.*}\", prec, var);\n```\nUse instead:\n```rust\nformat!(\"{var}\");\nformat!(\"{var:?}\");\nformat!(\"{var} {var}\");\nformat!(\"{var:width$}\");\nformat!(\"{var:.prec$}\");\n```\n\nIf allow-mixed-uninlined-format-args is set to false in clippy.toml,\nthe following code will also trigger the lint:\n```rust\nformat!(\"{} {}\", var, 1+2);\n```\nUse instead:\n```rust\nformat!(\"{var} {}\", 1+2);\n```\n\n### Known Problems\n\nIf a format string contains a numbered argument that cannot be inlined\nnothing will be suggested, e.g. `println!(\"{0}={1}\", var, 1+2)`.\n\n### Configuration\n\n- `allow-mixed-uninlined-format-args`:  Whether to allow mixed uninlined format args, e.g. `format!(\"{} {}\", a, foo.bar)`\n\n\n   (default: `true`)\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
@@ -6139,7 +6139,7 @@
   },
   {
     "id": "unnecessary_owned_empty_strings",
-    "id_location": "clippy_lints/src/unnecessary_owned_empty_strings.rs#L30",
+    "id_location": "clippy_lints/src/unnecessary_owned_empty_strings.rs#L29",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\n\nDetects cases of owned empty strings being passed as an argument to a function expecting `&str`\n\n### Why is this bad?\n\nThis results in longer and less readable code\n\n### Example\n```rust\nvec![\"1\", \"2\", \"3\"].join(&String::new());\n```\nUse instead:\n```rust\nvec![\"1\", \"2\", \"3\"].join(\"\");\n```\n",
@@ -6364,7 +6364,7 @@
   },
   {
     "id": "unused_format_specs",
-    "id_location": "clippy_lints/src/format_args.rs#L159",
+    "id_location": "clippy_lints/src/format_args.rs#L160",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nDetects [formatting parameters] that have no effect on the output of\n`format!()`, `println!()` or similar macros.\n\n### Why is this bad?\nShorter format specifiers are easier to read, it may also indicate that\nan expected formatting operation such as adding padding isn't happening.\n\n### Example\n```rust\nprintln!(\"{:.}\", 1.0);\n\nprintln!(\"not padded: {:5}\", format_args!(\"...\"));\n```\nUse instead:\n```rust\nprintln!(\"{}\", 1.0);\n\nprintln!(\"not padded: {}\", format_args!(\"...\"));\n// OR\nprintln!(\"padded: {:5}\", format!(\"...\"));\n```\n\n[formatting parameters]: https://doc.rust-lang.org/std/fmt/index.html#formatting-parameters\n",
