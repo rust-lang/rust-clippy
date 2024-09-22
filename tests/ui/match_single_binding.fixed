@@ -5,7 +5,8 @@
     clippy::no_effect,
     clippy::toplevel_ref_arg,
     clippy::uninlined_format_args,
-    clippy::useless_vec
+    clippy::useless_vec,
+    clippy::stacked_if_match
 )]
 
 struct Point {

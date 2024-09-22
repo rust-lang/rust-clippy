@@ -2,7 +2,12 @@
 //@no-rustfix
 #![warn(clippy::significant_drop_in_scrutinee)]
 #![allow(dead_code, unused_assignments)]
-#![allow(clippy::match_single_binding, clippy::single_match, clippy::uninlined_format_args)]
+#![allow(
+    clippy::match_single_binding,
+    clippy::single_match,
+    clippy::uninlined_format_args,
+    clippy::stacked_if_match
+)]
 
 use std::num::ParseIntError;
 use std::ops::Deref;

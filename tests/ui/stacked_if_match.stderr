@@ -1,0 +1,74 @@
+error: avoid using `if if` by binding inner `if` with `let`
+  --> tests/ui/stacked_if_match.rs:6:5
+   |
+LL |     if if x == 1 { x == 2 } else { x == 3 } {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `let result = if x == 1 { x == 2 } else { x == 3 }; if result`
+   |
+   = note: `-D clippy::stacked-if-match` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::stacked_if_match)]`
+
+error: avoid using `if if` by binding inner `if` with `let`
+  --> tests/ui/stacked_if_match.rs:10:5
+   |
+LL |     if if x == 1 { 2 } else { 3 } == 4 {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `let result = if x == 1 { 2 } else { 3 }; if result`
+
+error: avoid using `if if` by binding inner `if` with `let`
+  --> tests/ui/stacked_if_match.rs:14:5
+   |
+LL | /     if if x == 1 {
+LL | |         let y = 2;
+LL | |         y == 2
+LL | |     } else {
+LL | |         let z = 3;
+LL | |         z == 3
+LL | |     } {
+   | |_____^
+   |
+help: try
+   |
+LL ~     let result = if x == 1 {
+LL +         let y = 2;
+LL +         y == 2
+LL +     } else {
+LL +         let z = 3;
+LL +         z == 3
+LL ~     }; if result {
+   |
+
+error: avoid using `match match` by binding inner `match` with `let`
+  --> tests/ui/stacked_if_match.rs:27:5
+   |
+LL | /     match match x {
+LL | |         1 => 2,
+LL | |         _ => 3,
+LL | |     } {
+   | |_____^
+   |
+help: try
+   |
+LL ~     let result = match x {
+LL +         1 => 2,
+LL +         _ => 3,
+LL ~     }; match result {
+   |
+
+error: avoid using `match match` by binding inner `match` with `let`
+  --> tests/ui/stacked_if_match.rs:36:5
+   |
+LL | /     match match x {
+LL | |         1 => 2,
+LL | |         _ => 3,
+LL | |     } + 1
+   | |_____^
+   |
+help: try
+   |
+LL ~     let result = match x {
+LL +         1 => 2,
+LL +         _ => 3,
+LL ~     }; match result + 1
+   |
+
+error: aborting due to 5 previous errors
+
