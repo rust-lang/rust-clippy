@@ -6417,6 +6417,15 @@
     "applicability": "Unspecified"
   },
   {
+    "id": "unused_trait_names",
+    "id_location": "clippy_lints/src/unused_trait_names.rs#L44",
+    "group": "restriction",
+    "level": "allow",
+    "docs": "### What it does\nChecks for `use Trait` where the Trait is only used for its methods and not referenced by a path directly.\n\n### Why is this bad?\nTraits imported that aren't used directly can be imported anonymously with `use Trait as _`.\nIt is more explicit, avoids polluting the current scope with unused names and can be useful to show which imports are required for traits.\n\n### Example\n```rust\nuse std::fmt::Write;\n\nfn main() {\n    let mut s = String::new();\n    let _ = write!(s, \"hello, world!\");\n    println!(\"{s}\");\n}\n```\nUse instead:\n```rust\nuse std::fmt::Write as _;\n\nfn main() {\n    let mut s = String::new();\n    let _ = write!(s, \"hello, world!\");\n    println!(\"{s}\");\n}\n```\n\n### Configuration\n\n- `msrv`:  The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n\n\n   (default: `current version`)\n",
+    "version": "1.83.0",
+    "applicability": "MachineApplicable"
+  },
+  {
     "id": "unused_unit",
     "id_location": "clippy_lints/src/unused_unit.rs#L30",
     "group": "style",
