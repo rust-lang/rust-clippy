@@ -561,6 +561,16 @@ A list of paths to types that should be treated as if they do not contain interi
 * [`mutable_key_type`](https://rust-lang.github.io/rust-clippy/master/index.html#mutable_key_type)
 
 
+## `large-cell-limit`
+The maximum size of a `T` in `RefCell<T>` to suggest to swap to `Cell` if applicable.
+
+**Default Value:** `128`
+
+---
+**Affected lints:**
+* [`copy_refcell`](https://rust-lang.github.io/rust-clippy/master/index.html#copy_refcell)
+
+
 ## `large-error-threshold`
 The maximum size of the `Err`-variant in a `Result` returned from a function
 

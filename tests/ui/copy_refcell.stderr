@@ -1,0 +1,20 @@
+error: `RefCell` used with a type that implements `Copy`
+  --> tests/ui/copy_refcell.rs:6:12
+   |
+LL |     field: RefCell<u8>,
+   |            ^^^^^^^^^^^
+   |
+   = help: replace the usage of `RefCell` with `Cell`, which does not have to track borrowing at runtime
+   = note: `-D clippy::copy-refcell` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::copy_refcell)]`
+
+error: `RefCell` used with a type that implements `Copy`
+  --> tests/ui/copy_refcell.rs:10:17
+   |
+LL |     let local = RefCell::new(0_u8);
+   |                 ^^^^^^^^^^^^^^^^^^
+   |
+   = help: replace the usage of `RefCell` with `Cell`, which does not have to track borrowing at runtime
+
+error: aborting due to 2 previous errors
+
