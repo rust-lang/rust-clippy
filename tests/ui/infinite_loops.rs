@@ -1,8 +1,9 @@
 //@no-rustfix
 //@aux-build:proc_macros.rs
 
-#![allow(clippy::never_loop)]
+#![allow(clippy::never_loop, clippy::unused_unit)]
 #![warn(clippy::infinite_loop)]
+#![feature(async_closure)]
 
 extern crate proc_macros;
 use proc_macros::{external, with_span};
@@ -387,6 +388,57 @@ fn span_inside_fn() {
         loop {
             do_nothing();
         }
+    }
+}
+
+fn return_unit() -> () {
+    loop {
+        //~^ ERROR: infinite loop detected
+        do_nothing();
+    }
+
+    let async_return_unit = || -> () {
+        loop {
+            //~^ ERROR: infinite loop detected
+            do_nothing();
+        }
+    };
+}
+
+// loop in async functions
+mod issue_12338 {
+    use super::do_something;
+
+    async fn foo() -> ! {
+        loop {
+            do_something();
+        }
+    }
+    async fn bar() {
+        loop {
+            //~^ ERROR: infinite loop detected
+            do_something();
+        }
+    }
+    // Just to make sure checks for async block works as intended.
+    fn async_closure() {
+        let _loop_forever = async || {
+            loop {
+                //~^ ERROR: infinite loop detected
+                do_something();
+            }
+        };
+        let _somehow_ok = async || -> ! {
+            loop {
+                do_something();
+            }
+        };
+        let _ret_unit = async || -> () {
+            loop {
+                //~^ ERROR: infinite loop detected
+                do_something();
+            }
+        };
     }
 }
 
