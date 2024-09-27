@@ -26,14 +26,6 @@ declare_clippy_lint! {
     /// implemented in the code. Sometimes this will be referred to as
     /// "bikeshedding".
     ///
-    /// Keep in mind, that ordering source code alphabetically can lead to
-    /// reduced performance in cases where the most commonly used enum variant
-    /// isn't the first entry anymore, and similar optimizations that can reduce
-    /// branch misses, cache locality and such. Either don't use this lint if
-    /// that's relevant, or disable the lint in modules or items specifically
-    /// where it matters. Other solutions can be to use profile guided
-    /// optimization (PGO), or other advanced optimization methods.
-    ///
     /// ### Default Ordering and Configuration
     ///
     /// As there is no generally applicable rule, and each project may have
@@ -68,7 +60,19 @@ declare_clippy_lint! {
     /// All item kinds must be accounted for to create an enforceable linting
     /// rule set.
     ///
-    /// ### Known Issues and Limitations
+    /// ### Known Problems
+    ///
+    /// #### Performance Impact
+    ///
+    /// Keep in mind, that ordering source code alphabetically can lead to
+    /// reduced performance in cases where the most commonly used enum variant
+    /// isn't the first entry anymore, and similar optimizations that can reduce
+    /// branch misses, cache locality and such. Either don't use this lint if
+    /// that's relevant, or disable the lint in modules or items specifically
+    /// where it matters. Other solutions can be to use profile guided
+    /// optimization (PGO), post-link optimization (e.g. using BOLT for LLVM),
+    /// or other advanced optimization methods. A good starting point to dig
+    /// into optimization is [cargo-pgo].
     ///
     /// #### Lints on a Contains basis
     ///
@@ -118,6 +122,8 @@ declare_clippy_lint! {
     ///     fn c();
     /// }
     /// ```
+    ///
+    /// [cargo-pgo]: https://github.com/Kobzol/cargo-pgo/blob/main/README.md
     ///
     #[clippy::version = "1.81.0"]
     pub ARBITRARY_SOURCE_ITEM_ORDERING,
