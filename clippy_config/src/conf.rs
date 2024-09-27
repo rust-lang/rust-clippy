@@ -59,10 +59,9 @@ const DEFAULT_MODULE_ITEM_ORDERING_GROUPS: &[(&str, &[SourceItemOrderingModuleIt
         ("macros", &[Macro]),
         ("global_asm", &[GlobalAsm]),
         ("UPPER_SNAKE_CASE", &[Static, Const]),
-        (
-            "PascalCase",
-            &[TyAlias, OpaqueTy, Enum, Struct, Union, Trait, TraitAlias, Impl],
-        ),
+        ("PascalCase", &[
+            TyAlias, OpaqueTy, Enum, Struct, Union, Trait, TraitAlias, Impl,
+        ]),
         ("lower_snake_case", &[Fn]),
     ]
 };

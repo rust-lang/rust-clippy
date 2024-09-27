@@ -1,8 +1,8 @@
+use clippy_config::Conf;
 use clippy_config::types::{
     SourceItemOrderingCategory, SourceItemOrderingModuleItemGroupings, SourceItemOrderingModuleItemKind,
     SourceItemOrderingTraitAssocItemKind, SourceItemOrderingTraitAssocItemKinds,
 };
-use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_note;
 use rustc_hir::{
     AssocItemKind, FieldDef, HirId, ImplItemRef, IsAuto, Item, ItemKind, Mod, TraitItemRef, UseKind, Variant,
@@ -24,7 +24,7 @@ declare_clippy_lint! {
     /// source files are structured, less time will be wasted during reviews on
     /// a topic that is (under most circumstances) not relevant to the logic
     /// implemented in the code. Sometimes this will be referred to as
-    /// "bike-shedding".
+    /// "bikeshedding".
     ///
     /// Keep in mind, that ordering source code alphabetically can lead to
     /// reduced performance in cases where the most commonly used enum variant
