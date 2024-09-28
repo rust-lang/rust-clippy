@@ -14,8 +14,10 @@ fn unnecessary_fold() {
     let _ = (0..3).fold(true, |acc, x| acc && x > 2);
     // Can be replaced by .sum
     let _: i32 = (0..3).fold(0, |acc, x| acc + x);
+    let _: i32 = (0..3).fold(0, std::ops::Add::add);
     // Can be replaced by .product
     let _: i32 = (0..3).fold(1, |acc, x| acc * x);
+    let _: i32 = (0..3).fold(1, std::ops::Mul::mul);
 }
 
 /// Should trigger the `UNNECESSARY_FOLD` lint, with an error span including exactly `.fold(...)`
@@ -56,6 +58,8 @@ fn unnecessary_fold_over_multiple_lines() {
 fn issue10000() {
     use std::collections::HashMap;
     use std::hash::BuildHasher;
+    use std::ops::Add;
+    use std::ops::Mul;
 
     fn anything<T>(_: T) {}
     fn num(_: i32) {}
@@ -65,16 +69,31 @@ fn issue10000() {
 
         // more cases:
         let _ = map.values().fold(0, |x, y| x + y);
+        let _ = map.values().fold(0, Add::add);
         let _ = map.values().fold(1, |x, y| x * y);
+        let _ = map.values().fold(1, Mul::mul);
         let _: i32 = map.values().fold(0, |x, y| x + y);
+        let _: i32 = map.values().fold(0, Add::add);
         let _: i32 = map.values().fold(1, |x, y| x * y);
+        let _: i32 = map.values().fold(1, Mul::mul);
         anything(map.values().fold(0, |x, y| x + y));
+        anything(map.values().fold(0, Add::add));
         anything(map.values().fold(1, |x, y| x * y));
+        anything(map.values().fold(1, Mul::mul));
         num(map.values().fold(0, |x, y| x + y));
+        num(map.values().fold(0, Add::add));
         num(map.values().fold(1, |x, y| x * y));
+        num(map.values().fold(1, Mul::mul));
     }
 
     smoketest_map(HashMap::new());
+
+    fn add_no_turbofish_necessary() -> i32 {
+        (0..3).fold(0, |acc, x| acc + x)
+    }
+    fn mul_no_turbofish_necessary() -> i32 {
+        (0..3).fold(0, |acc, x| acc + x)
+    }
 }
 
 fn main() {}

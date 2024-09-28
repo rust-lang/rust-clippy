@@ -14,7 +14,9 @@ fn unnecessary_fold() {
     let _ = (0..3).all(|x| x > 2);
     // Can be replaced by .sum
     let _: i32 = (0..3).sum();
+    let _: i32 = (0..3).sum();
     // Can be replaced by .product
+    let _: i32 = (0..3).product();
     let _: i32 = (0..3).product();
 }
 
@@ -56,6 +58,8 @@ fn unnecessary_fold_over_multiple_lines() {
 fn issue10000() {
     use std::collections::HashMap;
     use std::hash::BuildHasher;
+    use std::ops::Add;
+    use std::ops::Mul;
 
     fn anything<T>(_: T) {}
     fn num(_: i32) {}
@@ -65,16 +69,31 @@ fn issue10000() {
 
         // more cases:
         let _ = map.values().sum::<i32>();
+        let _ = map.values().sum::<i32>();
+        let _ = map.values().product::<i32>();
         let _ = map.values().product::<i32>();
         let _: i32 = map.values().sum();
+        let _: i32 = map.values().sum();
+        let _: i32 = map.values().product();
         let _: i32 = map.values().product();
         anything(map.values().sum::<i32>());
+        anything(map.values().sum::<i32>());
+        anything(map.values().product::<i32>());
         anything(map.values().product::<i32>());
         num(map.values().sum());
+        num(map.values().sum());
+        num(map.values().product());
         num(map.values().product());
     }
 
     smoketest_map(HashMap::new());
+
+    fn add_no_turbofish_necessary() -> i32 {
+        (0..3).sum()
+    }
+    fn mul_no_turbofish_necessary() -> i32 {
+        (0..3).sum()
+    }
 }
 
 fn main() {}
