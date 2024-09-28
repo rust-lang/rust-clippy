@@ -40,7 +40,7 @@ fn needs_turbofish(cx: &LateContext<'_>, expr: &hir::Expr<'_>) -> bool {
         return false;
     }
 
-    // - the final expression in a function body with a simple return type
+    // - the final expression in the body of a function with a simple return type
     if let hir::Node::Block(block) = parent
         && let grandparent = cx.tcx.parent_hir_node(block.hir_id)
         && let hir::Node::Expr(grandparent_expr) = grandparent
@@ -129,7 +129,9 @@ fn check_fold_with_fn(
     replacement: Replacement,
 ) {
     if let hir::ExprKind::Path(hir::QPath::Resolved(None, p)) = acc.kind
+        // Extract the name of the function passed to fold
         && let hir::def::Res::Def(hir::def::DefKind::AssocFn, fn_did) = p.res
+        // Check if the function belongs to the operator
         && cx.tcx.is_diagnostic_item(op, fn_did)
     {
         let applicability = Applicability::MachineApplicable;
