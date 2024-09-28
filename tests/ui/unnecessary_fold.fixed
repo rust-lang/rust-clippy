@@ -58,8 +58,7 @@ fn unnecessary_fold_over_multiple_lines() {
 fn issue10000() {
     use std::collections::HashMap;
     use std::hash::BuildHasher;
-    use std::ops::Add;
-    use std::ops::Mul;
+    use std::ops::{Add, Mul};
 
     fn anything<T>(_: T) {}
     fn num(_: i32) {}

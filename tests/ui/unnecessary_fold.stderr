@@ -59,115 +59,115 @@ LL |         .fold(false, |acc, x| acc || x > 2);
    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `any(|x| x > 2)`
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:68:33
+  --> tests/ui/unnecessary_fold.rs:67:33
    |
 LL |         assert_eq!(map.values().fold(0, |x, y| x + y), 0);
    |                                 ^^^^^^^^^^^^^^^^^^^^^ help: try: `sum::<i32>()`
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:71:30
+  --> tests/ui/unnecessary_fold.rs:70:30
    |
 LL |         let _ = map.values().fold(0, |x, y| x + y);
    |                              ^^^^^^^^^^^^^^^^^^^^^ help: try: `sum::<i32>()`
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:72:30
+  --> tests/ui/unnecessary_fold.rs:71:30
    |
 LL |         let _ = map.values().fold(0, Add::add);
    |                              ^^^^^^^^^^^^^^^^^ help: try: `sum::<i32>()`
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:73:30
+  --> tests/ui/unnecessary_fold.rs:72:30
    |
 LL |         let _ = map.values().fold(1, |x, y| x * y);
    |                              ^^^^^^^^^^^^^^^^^^^^^ help: try: `product::<i32>()`
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:74:30
+  --> tests/ui/unnecessary_fold.rs:73:30
    |
 LL |         let _ = map.values().fold(1, Mul::mul);
    |                              ^^^^^^^^^^^^^^^^^ help: try: `product::<i32>()`
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:75:35
+  --> tests/ui/unnecessary_fold.rs:74:35
    |
 LL |         let _: i32 = map.values().fold(0, |x, y| x + y);
    |                                   ^^^^^^^^^^^^^^^^^^^^^ help: try: `sum()`
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:76:35
+  --> tests/ui/unnecessary_fold.rs:75:35
    |
 LL |         let _: i32 = map.values().fold(0, Add::add);
    |                                   ^^^^^^^^^^^^^^^^^ help: try: `sum()`
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:77:35
+  --> tests/ui/unnecessary_fold.rs:76:35
    |
 LL |         let _: i32 = map.values().fold(1, |x, y| x * y);
    |                                   ^^^^^^^^^^^^^^^^^^^^^ help: try: `product()`
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:78:35
+  --> tests/ui/unnecessary_fold.rs:77:35
    |
 LL |         let _: i32 = map.values().fold(1, Mul::mul);
    |                                   ^^^^^^^^^^^^^^^^^ help: try: `product()`
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:79:31
+  --> tests/ui/unnecessary_fold.rs:78:31
    |
 LL |         anything(map.values().fold(0, |x, y| x + y));
    |                               ^^^^^^^^^^^^^^^^^^^^^ help: try: `sum::<i32>()`
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:80:31
+  --> tests/ui/unnecessary_fold.rs:79:31
    |
 LL |         anything(map.values().fold(0, Add::add));
    |                               ^^^^^^^^^^^^^^^^^ help: try: `sum::<i32>()`
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:81:31
+  --> tests/ui/unnecessary_fold.rs:80:31
    |
 LL |         anything(map.values().fold(1, |x, y| x * y));
    |                               ^^^^^^^^^^^^^^^^^^^^^ help: try: `product::<i32>()`
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:82:31
+  --> tests/ui/unnecessary_fold.rs:81:31
    |
 LL |         anything(map.values().fold(1, Mul::mul));
    |                               ^^^^^^^^^^^^^^^^^ help: try: `product::<i32>()`
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:83:26
+  --> tests/ui/unnecessary_fold.rs:82:26
    |
 LL |         num(map.values().fold(0, |x, y| x + y));
    |                          ^^^^^^^^^^^^^^^^^^^^^ help: try: `sum()`
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:84:26
+  --> tests/ui/unnecessary_fold.rs:83:26
    |
 LL |         num(map.values().fold(0, Add::add));
    |                          ^^^^^^^^^^^^^^^^^ help: try: `sum()`
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:85:26
+  --> tests/ui/unnecessary_fold.rs:84:26
    |
 LL |         num(map.values().fold(1, |x, y| x * y));
    |                          ^^^^^^^^^^^^^^^^^^^^^ help: try: `product()`
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:86:26
+  --> tests/ui/unnecessary_fold.rs:85:26
    |
 LL |         num(map.values().fold(1, Mul::mul));
    |                          ^^^^^^^^^^^^^^^^^ help: try: `product()`
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:92:16
+  --> tests/ui/unnecessary_fold.rs:91:16
    |
 LL |         (0..3).fold(0, |acc, x| acc + x)
    |                ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `sum()`
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:95:16
+  --> tests/ui/unnecessary_fold.rs:94:16
    |
 LL |         (0..3).fold(0, |acc, x| acc + x)
    |                ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `sum()`
