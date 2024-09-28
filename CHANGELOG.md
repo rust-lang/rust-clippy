@@ -5922,6 +5922,7 @@ Released 2018-09-13
 [`replace_consts`]: https://rust-lang.github.io/rust-clippy/master/index.html#replace_consts
 [`reserve_after_initialization`]: https://rust-lang.github.io/rust-clippy/master/index.html#reserve_after_initialization
 [`rest_pat_in_fully_bound_structs`]: https://rust-lang.github.io/rust-clippy/master/index.html#rest_pat_in_fully_bound_structs
+[`result_as_ref_deref`]: https://rust-lang.github.io/rust-clippy/master/index.html#result_as_ref_deref
 [`result_expect_used`]: https://rust-lang.github.io/rust-clippy/master/index.html#result_expect_used
 [`result_filter_map`]: https://rust-lang.github.io/rust-clippy/master/index.html#result_filter_map
 [`result_large_err`]: https://rust-lang.github.io/rust-clippy/master/index.html#result_large_err

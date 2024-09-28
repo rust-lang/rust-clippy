@@ -1,0 +1,120 @@
+error: called `.as_ref().map(Deref::deref)` on a `Result` value
+  --> tests/ui/result_as_ref_deref.rs:11:13
+   |
+LL |     let _ = res.clone().as_ref().map(Deref::deref).map(str::len);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using as_deref: `res.clone().as_deref()`
+   |
+   = note: `-D clippy::result-as-ref-deref` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::result_as_ref_deref)]`
+
+error: called `.as_ref().map(Deref::deref)` on a `Result` value
+  --> tests/ui/result_as_ref_deref.rs:14:13
+   |
+LL |       let _ = res.clone()
+   |  _____________^
+LL | |         .as_ref().map(
+LL | |             Deref::deref
+LL | |         )
+   | |_________^ help: consider using as_deref: `res.clone().as_deref()`
+
+error: called `.as_mut().map(DerefMut::deref_mut)` on a `Result` value
+  --> tests/ui/result_as_ref_deref.rs:20:13
+   |
+LL |     let _ = res.as_mut().map(DerefMut::deref_mut);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using as_deref_mut: `res.as_deref_mut()`
+
+error: called `.as_ref().map(String::as_str)` on a `Result` value
+  --> tests/ui/result_as_ref_deref.rs:22:13
+   |
+LL |     let _ = res.as_ref().map(String::as_str);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using as_deref: `res.as_deref()`
+
+error: called `.as_ref().map(|x| x.as_str())` on a `Result` value
+  --> tests/ui/result_as_ref_deref.rs:23:13
+   |
+LL |     let _ = res.as_ref().map(|x| x.as_str());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using as_deref: `res.as_deref()`
+
+error: called `.as_mut().map(String::as_mut_str)` on a `Result` value
+  --> tests/ui/result_as_ref_deref.rs:24:13
+   |
+LL |     let _ = res.as_mut().map(String::as_mut_str);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using as_deref_mut: `res.as_deref_mut()`
+
+error: called `.as_mut().map(|x| x.as_mut_str())` on a `Result` value
+  --> tests/ui/result_as_ref_deref.rs:25:13
+   |
+LL |     let _ = res.as_mut().map(|x| x.as_mut_str());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using as_deref_mut: `res.as_deref_mut()`
+
+error: called `.as_ref().map(CString::as_c_str)` on a `Result` value
+  --> tests/ui/result_as_ref_deref.rs:26:13
+   |
+LL |       let _ = Ok::<_, ()>(CString::new(vec![]).unwrap())
+   |  _____________^
+LL | |         .as_ref()
+LL | |         .map(CString::as_c_str);
+   | |_______________________________^ help: consider using as_deref: `Ok::<_, ()>(CString::new(vec![]).unwrap()).as_deref()`
+
+error: called `.as_ref().map(OsString::as_os_str)` on a `Result` value
+  --> tests/ui/result_as_ref_deref.rs:29:13
+   |
+LL |     let _ = Ok::<_, ()>(OsString::new()).as_ref().map(OsString::as_os_str);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using as_deref: `Ok::<_, ()>(OsString::new()).as_deref()`
+
+error: called `.as_ref().map(PathBuf::as_path)` on a `Result` value
+  --> tests/ui/result_as_ref_deref.rs:30:13
+   |
+LL |     let _ = Ok::<_, ()>(PathBuf::new()).as_ref().map(PathBuf::as_path);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using as_deref: `Ok::<_, ()>(PathBuf::new()).as_deref()`
+
+error: called `.as_ref().map(Vec::as_slice)` on a `Result` value
+  --> tests/ui/result_as_ref_deref.rs:31:13
+   |
+LL |     let _ = Ok::<_, ()>(Vec::<()>::new()).as_ref().map(Vec::as_slice);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using as_deref: `Ok::<_, ()>(Vec::<()>::new()).as_deref()`
+
+error: called `.as_mut().map(Vec::as_mut_slice)` on a `Result` value
+  --> tests/ui/result_as_ref_deref.rs:32:13
+   |
+LL |     let _ = Ok::<_, ()>(Vec::<()>::new()).as_mut().map(Vec::as_mut_slice);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using as_deref_mut: `Ok::<_, ()>(Vec::<()>::new()).as_deref_mut()`
+
+error: called `.as_ref().map(|x| x.deref())` on a `Result` value
+  --> tests/ui/result_as_ref_deref.rs:34:13
+   |
+LL |     let _ = res.as_ref().map(|x| x.deref());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using as_deref: `res.as_deref()`
+
+error: called `.as_mut().map(|x| x.deref_mut())` on a `Result` value
+  --> tests/ui/result_as_ref_deref.rs:35:13
+   |
+LL |     let _ = res.clone().as_mut().map(|x| x.deref_mut()).map(|x| x.len());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using as_deref_mut: `res.clone().as_deref_mut()`
+
+error: called `.as_ref().map(|x| &**x)` on a `Result` value
+  --> tests/ui/result_as_ref_deref.rs:42:13
+   |
+LL |     let _ = res.as_ref().map(|x| &**x);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using as_deref: `res.as_deref()`
+
+error: called `.as_mut().map(|x| &mut **x)` on a `Result` value
+  --> tests/ui/result_as_ref_deref.rs:43:13
+   |
+LL |     let _ = res.as_mut().map(|x| &mut **x);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using as_deref_mut: `res.as_deref_mut()`
+
+error: called `.as_ref().map(std::ops::Deref::deref)` on a `Result` value
+  --> tests/ui/result_as_ref_deref.rs:45:13
+   |
+LL |     let _ = res.as_ref().map(std::ops::Deref::deref);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using as_deref: `res.as_deref()`
+
+error: called `.as_ref().map(String::as_str)` on a `Result` value
+  --> tests/ui/result_as_ref_deref.rs:57:13
+   |
+LL |     let _ = res.as_ref().map(String::as_str);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using as_deref: `res.as_deref()`
+
+error: aborting due to 18 previous errors
+
