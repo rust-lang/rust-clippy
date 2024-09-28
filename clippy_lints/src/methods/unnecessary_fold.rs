@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::{is_trait_method, path_to_local_id, peel_blocks, strip_pat_refs, binop_traits};
+use clippy_utils::{is_trait_method, path_to_local_id, peel_blocks, strip_pat_refs};
 use rustc_ast::ast;
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;
@@ -8,7 +8,7 @@ use rustc_hir as hir;
 use rustc_hir::PatKind;
 use rustc_lint::LateContext;
 use rustc_middle::ty;
-use rustc_span::{Span, sym};
+use rustc_span::{Span, sym, Symbol};
 
 use super::UNNECESSARY_FOLD;
 
@@ -125,17 +125,12 @@ fn check_fold_with_fn(
     expr: &hir::Expr<'_>,
     acc: &hir::Expr<'_>,
     fold_span: Span,
-    op: hir::BinOpKind,
+    op: Symbol,
     replacement: Replacement,
 ) {
     if let hir::ExprKind::Path(hir::QPath::Resolved(None, p)) = acc.kind
-        && let hir::def::Res::Def(hir::def::DefKind::AssocFn, _) = p.res
-        && let Some((op_item, _)) = binop_traits(op)
-        && let Some(op_trait_id) = cx.tcx.lang_items().get(op_item)
-        && let num_segments = p.segments.len()
-        && num_segments >= 2
-        && p.segments[num_segments - 2].res.def_id() == op_trait_id
-        && p.segments[num_segments - 1].ident.name == op_item.name()
+        && let hir::def::Res::Def(hir::def::DefKind::AssocFn, fn_did) = p.res
+        && cx.tcx.is_diagnostic_item(op, fn_did)
     {
         let applicability = Applicability::MachineApplicable;
 
@@ -192,7 +187,7 @@ pub(super) fn check(
                     has_generic_return: needs_turbofish(cx, expr),
                     method_name: "sum",
                 });
-                check_fold_with_fn(cx, expr, acc, fold_span, hir::BinOpKind::Add, Replacement {
+                check_fold_with_fn(cx, expr, acc, fold_span, sym::add, Replacement {
                     has_args: false,
                     has_generic_return: needs_turbofish(cx, expr),
                     method_name: "sum",
@@ -204,7 +199,7 @@ pub(super) fn check(
                     has_generic_return: needs_turbofish(cx, expr),
                     method_name: "product",
                 });
-                check_fold_with_fn(cx, expr, acc, fold_span, hir::BinOpKind::Mul, Replacement {
+                check_fold_with_fn(cx, expr, acc, fold_span, sym::mul, Replacement {
                     has_args: false,
                     has_generic_return: needs_turbofish(cx, expr),
                     method_name: "product",
