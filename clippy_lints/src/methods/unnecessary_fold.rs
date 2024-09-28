@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::{is_trait_method, path_to_local_id, peel_blocks, strip_pat_refs};
+use clippy_utils::{is_trait_method, path_to_local_id, peel_blocks, strip_pat_refs, binop_traits};
 use rustc_ast::ast;
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;
@@ -36,6 +36,19 @@ fn needs_turbofish(cx: &LateContext<'_>, expr: &hir::Expr<'_>) -> bool {
         && let Some(arg_pos) = args.iter().position(|arg| arg.hir_id == expr.hir_id)
         && let Some(ty) = fn_sig.inputs().get(arg_pos)
         && !matches!(ty.kind(), ty::Param(_))
+    {
+        return false;
+    }
+
+    // - the final expression in a function body with a simple return type
+    if let hir::Node::Block(block) = parent
+        && let grandparent = cx.tcx.parent_hir_node(block.hir_id)
+        && let hir::Node::Expr(grandparent_expr) = grandparent
+        && let ggparent = cx.tcx.parent_hir_node(grandparent_expr.hir_id)
+        && let hir::Node::Item(enclosing_item) = ggparent
+        && let hir::ItemKind::Fn(fn_sig, _, _) = enclosing_item.kind
+        && let hir::FnRetTy::Return(fn_return_ty) = fn_sig.decl.output
+        && matches!(fn_return_ty.kind, hir::TyKind::Path(..))
     {
         return false;
     }
@@ -80,7 +93,7 @@ fn check_fold_with_op(
         let mut applicability = Applicability::MachineApplicable;
 
         let turbofish = if replacement.has_generic_return {
-            format!("::<{}>", cx.typeck_results().expr_ty_adjusted(right_expr).peel_refs())
+            format!("::<{}>", cx.typeck_results().expr_ty(expr))
         } else {
             String::new()
         };
@@ -102,6 +115,43 @@ fn check_fold_with_op(
             "this `.fold` can be written more succinctly using another method",
             "try",
             sugg,
+            applicability,
+        );
+    }
+}
+
+fn check_fold_with_fn(
+    cx: &LateContext<'_>,
+    expr: &hir::Expr<'_>,
+    acc: &hir::Expr<'_>,
+    fold_span: Span,
+    op: hir::BinOpKind,
+    replacement: Replacement,
+) {
+    if let hir::ExprKind::Path(hir::QPath::Resolved(None, p)) = acc.kind
+        && let hir::def::Res::Def(hir::def::DefKind::AssocFn, _) = p.res
+        && let Some((op_item, _)) = binop_traits(op)
+        && let Some(op_trait_id) = cx.tcx.lang_items().get(op_item)
+        && let num_segments = p.segments.len()
+        && num_segments >= 2
+        && p.segments[num_segments - 2].res.def_id() == op_trait_id
+        && p.segments[num_segments - 1].ident.name == op_item.name()
+    {
+        let applicability = Applicability::MachineApplicable;
+
+        let turbofish = if replacement.has_generic_return {
+            format!("::<{}>", cx.typeck_results().expr_ty(expr))
+        } else {
+            String::new()
+        };
+
+        span_lint_and_sugg(
+            cx,
+            UNNECESSARY_FOLD,
+            fold_span.with_hi(expr.span.hi()),
+            "this `.fold` can be written more succinctly using another method",
+            "try",
+            format!("{method}{turbofish}()", method = replacement.method_name,),
             applicability,
         );
     }
@@ -142,9 +192,19 @@ pub(super) fn check(
                     has_generic_return: needs_turbofish(cx, expr),
                     method_name: "sum",
                 });
+                check_fold_with_fn(cx, expr, acc, fold_span, hir::BinOpKind::Add, Replacement {
+                    has_args: false,
+                    has_generic_return: needs_turbofish(cx, expr),
+                    method_name: "sum",
+                });
             },
             ast::LitKind::Int(Pu128(1), _) => {
                 check_fold_with_op(cx, expr, acc, fold_span, hir::BinOpKind::Mul, Replacement {
+                    has_args: false,
+                    has_generic_return: needs_turbofish(cx, expr),
+                    method_name: "product",
+                });
+                check_fold_with_fn(cx, expr, acc, fold_span, hir::BinOpKind::Mul, Replacement {
                     has_args: false,
                     has_generic_return: needs_turbofish(cx, expr),
                     method_name: "product",
