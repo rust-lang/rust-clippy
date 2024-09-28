@@ -973,7 +973,7 @@
   },
   {
     "id": "double_must_use",
-    "id_location": "clippy_lints/src/functions/mod.rs#L165",
+    "id_location": "clippy_lints/src/functions/mod.rs#L166",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for a `#[must_use]` attribute without\nfurther information on functions and methods that return a type already\nmarked as `#[must_use]`.\n\n### Why is this bad?\nThe attribute isn't needed. Not using the result\nwill already be reported. Alternatively, one can add some text to the\nattribute to improve the lint message.\n\n### Examples\n```rust\n#[must_use]\nfn double_must_use() -> Result<(), ()> {\n    unimplemented!();\n}\n```\n",
@@ -1756,7 +1756,7 @@
   },
   {
     "id": "impl_trait_in_params",
-    "id_location": "clippy_lints/src/functions/mod.rs#L363",
+    "id_location": "clippy_lints/src/functions/mod.rs#L364",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nLints when `impl Trait` is being used in a function's parameters.\n\n### Why restrict this?\nTurbofish syntax (`::<>`) cannot be used to specify the type of an `impl Trait` parameter,\nmaking `impl Trait` less powerful. Readability may also be a factor.\n\n### Example\n```rust\ntrait MyTrait {}\nfn foo(a: impl MyTrait) {\n\t// [...]\n}\n```\nUse instead:\n```rust\ntrait MyTrait {}\nfn foo<T: MyTrait>(a: T) {\n\t// [...]\n}\n```\n",
@@ -3205,7 +3205,7 @@
   },
   {
     "id": "misnamed_getters",
-    "id_location": "clippy_lints/src/functions/mod.rs#L335",
+    "id_location": "clippy_lints/src/functions/mod.rs#L336",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for getter methods that return a field that doesn't correspond\nto the name of the method, when there is a field's whose name matches that of the method.\n\n### Why is this bad?\nIt is most likely that such a  method is a bug caused by a typo or by copy-pasting.\n\n### Example\n```rust\nstruct A {\n    a: String,\n    b: String,\n}\n\nimpl A {\n    fn a(&self) -> &str{\n        &self.b\n    }\n}\n```\nUse instead:\n```rust\nstruct A {\n    a: String,\n    b: String,\n}\n\nimpl A {\n    fn a(&self) -> &str{\n        &self.a\n    }\n}\n```\n",
@@ -3475,7 +3475,7 @@
   },
   {
     "id": "must_use_candidate",
-    "id_location": "clippy_lints/src/functions/mod.rs#L195",
+    "id_location": "clippy_lints/src/functions/mod.rs#L196",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for public functions that have no\n`#[must_use]` attribute, but return something not already marked\nmust-use, have no mutable arg and mutate no statics.\n\n### Why is this bad?\nNot bad at all, this lint just shows places where\nyou could add the attribute.\n\n### Known problems\nThe lint only checks the arguments for mutable\ntypes without looking if they are actually changed. On the other hand,\nit also ignores a broad range of potentially interesting side effects,\nbecause we cannot decide whether the programmer intends the function to\nbe called for the side effect or the result. Expect many false\npositives. At least we don't lint if the result type is unit or already\n`#[must_use]`.\n\n### Examples\n```rust\n// this could be annotated with `#[must_use]`.\npub fn id<T>(t: T) -> T { t }\n```\n",
@@ -3484,7 +3484,7 @@
   },
   {
     "id": "must_use_unit",
-    "id_location": "clippy_lints/src/functions/mod.rs#L141",
+    "id_location": "clippy_lints/src/functions/mod.rs#L142",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for a `#[must_use]` attribute on\nunit-returning functions and methods.\n\n### Why is this bad?\nUnit values are useless. The attribute is likely\na remnant of a refactoring that removed the return type.\n\n### Examples\n```rust\n#[must_use]\nfn useless() { }\n```\n",
@@ -4033,7 +4033,7 @@
   },
   {
     "id": "not_unsafe_ptr_arg_deref",
-    "id_location": "clippy_lints/src/functions/mod.rs#L121",
+    "id_location": "clippy_lints/src/functions/mod.rs#L122",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nChecks for public functions that dereference raw pointer\narguments but are not marked `unsafe`.\n\n### Why is this bad?\nThe function should almost definitely be marked `unsafe`, since for an\narbitrary raw pointer, there is no way of telling for sure if it is valid.\n\nIn general, this lint should **never be disabled** unless it is definitely a\nfalse positive (please submit an issue if so) since it breaks Rust's\nsoundness guarantees, directly exposing API users to potentially dangerous\nprogram behavior. This is also true for internal APIs, as it is easy to leak\nunsoundness.\n\n### Context\nIn Rust, an `unsafe {...}` block is used to indicate that the code in that\nsection has been verified in some way that the compiler can not. For a\nfunction that accepts a raw pointer then accesses the pointer's data, this is\ngenerally impossible as the incoming pointer could point anywhere, valid or\nnot. So, the signature should be marked `unsafe fn`: this indicates that the\nfunction's caller must provide some verification that the arguments it sends\nare valid (and then call the function within an `unsafe` block).\n\n### Known problems\n* It does not check functions recursively so if the pointer is passed to a\nprivate non-`unsafe` function which does the dereferencing, the lint won't\ntrigger (false negative).\n* It only checks for arguments whose type are raw pointers, not raw pointers\ngot from an argument in some other way (`fn foo(bar: &[*const u8])` or\n`some_argument.get_raw_ptr()`) (false negative).\n\n### Example\n```rust\npub fn foo(x: *const u8) {\n    println!(\"{}\", unsafe { *x });\n}\n\n// this call \"looks\" safe but will segfault or worse!\n// foo(invalid_ptr);\n```\n\nUse instead:\n```rust\npub unsafe fn foo(x: *const u8) {\n    println!(\"{}\", unsafe { *x });\n}\n\n// this would cause a compiler error for calling without `unsafe`\n// foo(invalid_ptr);\n\n// sound call if the caller knows the pointer is valid\nunsafe { foo(valid_ptr); }\n```\n",
@@ -4797,6 +4797,15 @@
     "applicability": "MachineApplicable"
   },
   {
+    "id": "ref_option",
+    "id_location": "clippy_lints/src/functions/mod.rs#L445",
+    "group": "nursery",
+    "level": "allow",
+    "docs": "### What it does\nWarns when a function signature uses `&Option<T>` instead of `Option<&T>`.\n\n### Why is this bad?\nMore flexibility, better memory optimization, and more idiomatic Rust code.\n\n`&Option<T>` in a function signature breaks encapsulation because the caller must own T\nand move it into an Option to call with it. When returned, the owner must internally store\nit as `Option<T>` in order to return it.\nAt a lower level, `&Option<T>` points to memory with the `presence` bit flag plus the `T` value,\nwhereas `Option<&T>` is usually [optimized](https://doc.rust-lang.org/1.81.0/std/option/index.html#representation)\nto a single pointer, so it may be more optimal.\n\nSee this [YouTube video](https://www.youtube.com/watch?v=6c7pZYP_iIE) by\nLogan Smith for an in-depth explanation of why this is important.\n\n### Known problems\nThis lint recommends changing the function signatures, but it cannot\nautomatically change the function calls or the function implementations.\n\n### Example\n```rust\n// caller uses  foo(&opt)\nfn foo(a: &Option<String>) {}\nfn bar(&self) -> &Option<String> { &None }\n```\nUse instead:\n```rust\n// caller should use  `foo1(opt.as_ref())`\nfn foo1(a: Option<&String>) {}\n// better yet, use string slice  `foo2(opt.as_deref())`\nfn foo2(a: Option<&str>) {}\nfn bar(&self) -> Option<&String> { None }\n```\n\n### Configuration\n\n- `avoid-breaking-exported-api`:  Suppress lints whenever the suggested change would cause breakage for other crates.\n\n\n   (default: `true`)\n",
+    "version": "1.82.0",
+    "applicability": "Unspecified"
+  },
+  {
     "id": "ref_option_ref",
     "id_location": "clippy_lints/src/ref_option_ref.rs#L31",
     "group": "pedantic",
@@ -4825,7 +4834,7 @@
   },
   {
     "id": "renamed_function_params",
-    "id_location": "clippy_lints/src/functions/mod.rs#L397",
+    "id_location": "clippy_lints/src/functions/mod.rs#L398",
     "group": "restriction",
     "level": "allow",
     "docs": "### What it does\nLints when the name of function parameters from trait impl is\ndifferent than its default implementation.\n\n### Why restrict this?\nUsing the default name for parameters of a trait method is more consistent.\n\n### Example\n```rust\nstruct A(u32);\n\nimpl PartialEq for A {\n    fn eq(&self, b: &Self) -> bool {\n        self.0 == b.0\n    }\n}\n```\nUse instead:\n```rust\nstruct A(u32);\n\nimpl PartialEq for A {\n    fn eq(&self, other: &Self) -> bool {\n        self.0 == other.0\n    }\n}\n```\n\n### Configuration\n\n- `allow-renamed-params-for`:  List of trait paths to ignore when checking renamed function parameters.\n\n #### Example\n\n ```toml\n allow-renamed-params-for = [ \"std::convert::From\" ]\n ```\n\n #### Noteworthy\n\n - By default, the following traits are ignored: `From`, `TryFrom`, `FromStr`\n - `\"..\"` can be used as part of the list to indicate that the configured values should be appended to the\n default configuration of Clippy. By default, any configuration will replace the default value.\n\n\n   (default: `[\"core::convert::From\", \"core::convert::TryFrom\", \"core::str::FromStr\"]`)\n",
@@ -4888,7 +4897,7 @@
   },
   {
     "id": "result_large_err",
-    "id_location": "clippy_lints/src/functions/mod.rs#L293",
+    "id_location": "clippy_lints/src/functions/mod.rs#L294",
     "group": "perf",
     "level": "warn",
     "docs": "### What it does\nChecks for functions that return `Result` with an unusually large\n`Err`-variant.\n\n### Why is this bad?\nA `Result` is at least as large as the `Err`-variant. While we\nexpect that variant to be seldom used, the compiler needs to reserve\nand move that much memory every single time.\nFurthermore, errors are often simply passed up the call-stack, making\nuse of the `?`-operator and its type-conversion mechanics. If the\n`Err`-variant further up the call-stack stores the `Err`-variant in\nquestion (as library code often does), it itself needs to be at least\nas large, propagating the problem.\n\n### Known problems\nThe size determined by Clippy is platform-dependent.\n\n### Examples\n```rust\npub enum ParseError {\n    UnparsedBytes([u8; 512]),\n    UnexpectedEof,\n}\n\n// The `Result` has at least 512 bytes, even in the `Ok`-case\npub fn parse() -> Result<(), ParseError> {\n    Ok(())\n}\n```\nshould be\n```rust\npub enum ParseError {\n    UnparsedBytes(Box<[u8; 512]>),\n    UnexpectedEof,\n}\n\n// The `Result` is slightly larger than a pointer\npub fn parse() -> Result<(), ParseError> {\n    Ok(())\n}\n```\n\n### Configuration\n\n- `large-error-threshold`:  The maximum size of the `Err`-variant in a `Result` returned from a function\n\n\n   (default: `128`)\n",
@@ -4915,7 +4924,7 @@
   },
   {
     "id": "result_unit_err",
-    "id_location": "clippy_lints/src/functions/mod.rs#L245",
+    "id_location": "clippy_lints/src/functions/mod.rs#L246",
     "group": "style",
     "level": "warn",
     "docs": "### What it does\nChecks for public functions that return a `Result`\nwith an `Err` type of `()`. It suggests using a custom type that\nimplements `std::error::Error`.\n\n### Why is this bad?\nUnit does not implement `Error` and carries no\nfurther information about what went wrong.\n\n### Known problems\nOf course, this lint assumes that `Result` is used\nfor a fallible operation (which is after all the intended use). However\ncode may opt to (mis)use it as a basic two-variant-enum. In that case,\nthe suggestion is misguided, and the code should use a custom enum\ninstead.\n\n### Examples\n```rust\npub fn read_u8() -> Result<u8, ()> { Err(()) }\n```\nshould become\n```rust\nuse std::fmt;\n\n#[derive(Debug)]\npub struct EndOfStream;\n\nimpl fmt::Display for EndOfStream {\n    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {\n        write!(f, \"End of Stream\")\n    }\n}\n\nimpl std::error::Error for EndOfStream { }\n\npub fn read_u8() -> Result<u8, EndOfStream> { Err(EndOfStream) }\n```\n\nNote that there are crates that simplify creating the error type, e.g.\n[`thiserror`](https://docs.rs/thiserror).\n",
@@ -5644,7 +5653,7 @@
   },
   {
     "id": "too_many_arguments",
-    "id_location": "clippy_lints/src/functions/mod.rs#L37",
+    "id_location": "clippy_lints/src/functions/mod.rs#L38",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for functions with too many parameters.\n\n### Why is this bad?\nFunctions with lots of parameters are considered bad\nstyle and reduce readability (“what does the 5th parameter mean?”). Consider\ngrouping some parameters into a new type.\n\n### Example\n```rust\nfn foo(x: u32, y: u32, name: &str, c: Color, w: f32, h: f32, a: f32, b: f32) {\n    // ..\n}\n```\n\n### Configuration\n\n- `too-many-arguments-threshold`:  The maximum number of argument a function or method can have\n\n\n   (default: `7`)\n",
@@ -5653,7 +5662,7 @@
   },
   {
     "id": "too_many_lines",
-    "id_location": "clippy_lints/src/functions/mod.rs#L61",
+    "id_location": "clippy_lints/src/functions/mod.rs#L62",
     "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nChecks for functions with a large amount of lines.\n\n### Why is this bad?\nFunctions with a lot of lines are harder to understand\ndue to having to look at a larger amount of code to understand what the\nfunction is doing. Consider splitting the body of the function into\nmultiple functions.\n\n### Example\n```rust\nfn im_too_long() {\n    println!(\"\");\n    // ... 100 more LoC\n    println!(\"\");\n}\n```\n\n### Configuration\n\n- `too-many-lines-threshold`:  The maximum number of lines a function or method can have\n\n\n   (default: `100`)\n",
