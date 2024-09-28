@@ -87,11 +87,17 @@ fn issue10000() {
 
     smoketest_map(HashMap::new());
 
-    fn add_no_turbofish_necessary() -> i32 {
+    fn add_turbofish_not_necessary() -> i32 {
         (0..3).fold(0, |acc, x| acc + x)
     }
-    fn mul_no_turbofish_necessary() -> i32 {
+    fn mul_turbofish_not_necessary() -> i32 {
+        (0..3).fold(1, |acc, x| acc * x)
+    }
+    fn add_turbofish_necessary() -> impl Add {
         (0..3).fold(0, |acc, x| acc + x)
+    }
+    fn mul_turbofish_necessary() -> impl Mul {
+        (0..3).fold(1, |acc, x| acc * x)
     }
 }
 

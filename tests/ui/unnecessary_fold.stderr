@@ -169,8 +169,20 @@ LL |         (0..3).fold(0, |acc, x| acc + x)
 error: this `.fold` can be written more succinctly using another method
   --> tests/ui/unnecessary_fold.rs:94:16
    |
-LL |         (0..3).fold(0, |acc, x| acc + x)
-   |                ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `sum()`
+LL |         (0..3).fold(1, |acc, x| acc * x)
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `product()`
 
-error: aborting due to 28 previous errors
+error: this `.fold` can be written more succinctly using another method
+  --> tests/ui/unnecessary_fold.rs:97:16
+   |
+LL |         (0..3).fold(0, |acc, x| acc + x)
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `sum::<i32>()`
+
+error: this `.fold` can be written more succinctly using another method
+  --> tests/ui/unnecessary_fold.rs:100:16
+   |
+LL |         (0..3).fold(1, |acc, x| acc * x)
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `product::<i32>()`
+
+error: aborting due to 30 previous errors
 
