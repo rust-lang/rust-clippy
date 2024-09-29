@@ -864,9 +864,9 @@ The maximum number of lines a function or method can have
 
 ## `trivial-copy-size-limit`
 The maximum size (in bytes) to consider a `Copy` type for passing by value instead of by
-reference. By default there is no limit
+reference
 
-**Default Value:** `target_pointer_width * 2`
+**Default Value:** `8`
 
 ---
 **Affected lints:**

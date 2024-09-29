@@ -614,10 +614,9 @@ define_Conf! {
     #[lints(too_many_lines)]
     too_many_lines_threshold: u64 = 100,
     /// The maximum size (in bytes) to consider a `Copy` type for passing by value instead of by
-    /// reference. By default there is no limit
-    #[default_text = "target_pointer_width * 2"]
+    /// reference
     #[lints(trivially_copy_pass_by_ref)]
-    trivial_copy_size_limit: Option<u64> = None,
+    trivial_copy_size_limit: u64 = 8,
     /// The maximum complexity a type can have
     #[lints(type_complexity)]
     type_complexity_threshold: u64 = 250,
