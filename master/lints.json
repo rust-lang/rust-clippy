@@ -4799,7 +4799,7 @@
   {
     "id": "ref_option",
     "id_location": "clippy_lints/src/functions/mod.rs#L445",
-    "group": "nursery",
+    "group": "pedantic",
     "level": "allow",
     "docs": "### What it does\nWarns when a function signature uses `&Option<T>` instead of `Option<&T>`.\n\n### Why is this bad?\nMore flexibility, better memory optimization, and more idiomatic Rust code.\n\n`&Option<T>` in a function signature breaks encapsulation because the caller must own T\nand move it into an Option to call with it. When returned, the owner must internally store\nit as `Option<T>` in order to return it.\nAt a lower level, `&Option<T>` points to memory with the `presence` bit flag plus the `T` value,\nwhereas `Option<&T>` is usually [optimized](https://doc.rust-lang.org/1.81.0/std/option/index.html#representation)\nto a single pointer, so it may be more optimal.\n\nSee this [YouTube video](https://www.youtube.com/watch?v=6c7pZYP_iIE) by\nLogan Smith for an in-depth explanation of why this is important.\n\n### Known problems\nThis lint recommends changing the function signatures, but it cannot\nautomatically change the function calls or the function implementations.\n\n### Example\n```rust\n// caller uses  foo(&opt)\nfn foo(a: &Option<String>) {}\nfn bar(&self) -> &Option<String> { &None }\n```\nUse instead:\n```rust\n// caller should use  `foo1(opt.as_ref())`\nfn foo1(a: Option<&String>) {}\n// better yet, use string slice  `foo2(opt.as_deref())`\nfn foo2(a: Option<&str>) {}\nfn bar(&self) -> Option<&String> { None }\n```\n\n### Configuration\n\n- `avoid-breaking-exported-api`:  Suppress lints whenever the suggested change would cause breakage for other crates.\n\n\n   (default: `true`)\n",
     "version": "1.82.0",
