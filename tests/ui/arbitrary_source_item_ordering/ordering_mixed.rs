@@ -16,6 +16,12 @@ const SNAKE_CASE: &str = "zzzzzzzz";
 
 use std::rc::Weak;
 
+trait BasicEmptyTrait {}
+
+trait CloneSelf {
+    fn clone_self(&self) -> Self;
+}
+
 enum EnumOrdered {
     A,
     B,
@@ -41,6 +47,37 @@ struct StructOrdered {
     c: bool,
 }
 
+impl Default for StructOrdered {
+    fn default() -> Self {
+        Self {
+            a: true,
+            b: true,
+            c: true,
+        }
+    }
+}
+
+impl CloneSelf for StructOrdered {
+    fn clone_self(&self) -> Self {
+        Self {
+            a: true,
+            b: true,
+            c: true,
+        }
+    }
+}
+
+impl std::clone::Clone for StructOrdered {
+    fn clone(&self) -> Self {
+        Self {
+            a: true,
+            b: true,
+            c: true,
+        }
+    }
+}
+
+#[derive(Default, Clone)]
 struct StructUnordered {
     a: bool,
     c: bool,
@@ -92,6 +129,8 @@ trait TraitUnorderedItemKinds {
     fn c();
 }
 
+const ZIS_SHOULD_BE_REALLY_EARLY: () = ();
+
 impl TraitUnordered for StructUnordered {
     const A: bool = false;
     const C: bool = false;
@@ -103,6 +142,9 @@ impl TraitUnordered for StructUnordered {
     fn c() {}
     fn b() {}
 }
+
+// Trait impls should be located just after the type they implement it for.
+impl BasicEmptyTrait for StructOrdered {}
 
 impl TraitUnorderedItemKinds for StructUnordered {
     type SomeType = ();
@@ -116,8 +158,6 @@ impl TraitUnorderedItemKinds for StructUnordered {
     fn c() {}
 }
 
-const ZIS_SHOULD_BE_REALLY_EARLY: () = ();
-
 fn main() {
     // test code goes here
 }
@@ -128,6 +168,7 @@ mod this_is_in_the_wrong_position {
     const A: i8 = 1;
 }
 
+#[derive(Default, std::clone::Clone)]
 struct ZisShouldBeBeforeZeMainFn;
 
 const ZIS_SHOULD_BE_EVEN_EARLIER: () = ();

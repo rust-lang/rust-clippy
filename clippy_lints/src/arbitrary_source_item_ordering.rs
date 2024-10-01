@@ -5,8 +5,8 @@ use clippy_config::types::{
 };
 use clippy_utils::diagnostics::span_lint_and_note;
 use rustc_hir::{
-    AssocItemKind, FieldDef, HirId, ImplItemRef, IsAuto, Item, ItemKind, Mod, TraitItemRef, UseKind, Variant,
-    VariantData,
+    AssocItemKind, FieldDef, HirId, ImplItemRef, IsAuto, Item, ItemKind, Mod, QPath, TraitItemRef, TyKind, UseKind,
+    Variant, VariantData,
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::impl_lint_pass;
@@ -72,7 +72,7 @@ declare_clippy_lint! {
     /// where it matters. Other solutions can be to use profile guided
     /// optimization (PGO), post-link optimization (e.g. using BOLT for LLVM),
     /// or other advanced optimization methods. A good starting point to dig
-    /// into optimization is [cargo-pgo].
+    /// into optimization is [cargo-pgo][cargo-pgo].
     ///
     /// #### Lints on a Contains basis
     ///
@@ -191,6 +191,35 @@ impl ArbitrarySourceItemOrdering {
         );
     }
 
+    fn lint_member_item<T: rustc_lint::LintContext>(cx: &T, item: &Item<'_>, before_item: &Item<'_>) {
+        let span = if item.ident.as_str().is_empty() {
+            &item.span
+        } else {
+            &item.ident.span
+        };
+
+        let (before_span, note) = if before_item.ident.as_str().is_empty() {
+            (
+                &before_item.span,
+                "should be placed before the following item".to_owned(),
+            )
+        } else {
+            (
+                &before_item.ident.span,
+                format!("should be placed before `{}`", before_item.ident.as_str(),),
+            )
+        };
+
+        span_lint_and_note(
+            cx,
+            ARBITRARY_SOURCE_ITEM_ORDERING,
+            *span,
+            "incorrect ordering of items (must be alphabetically ordered)",
+            Some(*before_span),
+            note,
+        );
+    }
+
     /// Produces a linting warning for incorrectly ordered trait items.
     fn lint_trait_item<T: rustc_lint::LintContext>(&self, cx: &T, item: &TraitItemRef, before_item: &TraitItemRef) {
         span_lint_and_note(
@@ -247,7 +276,6 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
                         if cur_t_kind == item_kind && cur_t.ident.name.as_str() > item.ident.name.as_str() {
                             Self::lint_member_name(cx, &item.ident, &cur_t.ident);
                         } else if cur_t_kind_index > item_kind_index {
-                            // let type1 = item
                             self.lint_trait_item(cx, item, cur_t);
                         }
                     }
@@ -267,7 +295,6 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
                         if cur_t_kind == item_kind && cur_t.ident.name.as_str() > item.ident.name.as_str() {
                             Self::lint_member_name(cx, &item.ident, &cur_t.ident);
                         } else if cur_t_kind_index > item_kind_index {
-                            // let type1 = item
                             self.lint_impl_item(cx, item, cur_t);
                         }
                     }
@@ -304,9 +331,10 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
             // appears in the existing code base.
             if item.ident.name == rustc_span::symbol::kw::Empty {
                 if let ItemKind::Impl(_) = item.kind {
-                    // Filters attribute parameters.
-                    // TODO: This could be of relevance to order.
-                    continue;
+                    // Sorting trait impls for unnamed types makes no sense.
+                    if get_item_name(item).is_empty() {
+                        continue;
+                    }
                 } else if let ItemKind::ForeignMod { .. } = item.kind {
                     continue;
                 } else if let ItemKind::GlobalAsm(_) = item.kind {
@@ -358,13 +386,13 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
                 use std::cmp::Ordering; // Better legibility.
                 match module_level_order.cmp(&cur_t.order) {
                     Ordering::Less => {
-                        Self::lint_member_name(cx, &item.ident, &cur_t.item.ident);
+                        Self::lint_member_item(cx, item, cur_t.item);
                     },
                     Ordering::Equal if item_kind == SourceItemOrderingModuleItemKind::Use => {
                         // Skip ordering use statements, as these should be ordered by rustfmt.
                     },
-                    Ordering::Equal if cur_t.name.as_str() > item.ident.name.as_str() => {
-                        Self::lint_member_name(cx, &item.ident, &cur_t.item.ident);
+                    Ordering::Equal if cur_t.name > get_item_name(item) => {
+                        Self::lint_member_item(cx, item, cur_t.item);
                     },
                     Ordering::Equal | Ordering::Greater => {
                         // Nothing to do in this case, they're already in the right order.
@@ -376,7 +404,7 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
             cur_t = Some(CurItem {
                 order: module_level_order,
                 item,
-                name: item.ident.name.as_str().to_owned(),
+                name: get_item_name(item),
             });
         }
     }
@@ -423,5 +451,56 @@ fn convert_module_item_kind(value: &ItemKind<'_>) -> SourceItemOrderingModuleIte
         ItemKind::Trait(..) => Trait,
         ItemKind::TraitAlias(..) => TraitAlias,
         ItemKind::Impl(..) => Impl,
+    }
+}
+
+/// Gets the item name for sorting purposes, which in the general case is
+/// `item.ident.name`.
+///
+/// For trait impls, the name used for sorting will be the written path of
+/// `item.self_ty` plus the written path of `item.of_trait`, joined with
+/// exclamation marks. Exclamation marks are used because they are the first
+/// printable ASCII character.
+///
+/// Trait impls generated using a derive-macro will have their path rewritten,
+/// such that for example `Default` is `$crate::default::Default`, and
+/// `std::clone::Clone` is `$crate::clone::Clone`. This behaviour is described
+/// further in the [Rust Reference, Paths Chapter][rust_ref].
+///
+/// [rust_ref]: https://doc.rust-lang.org/reference/paths.html#crate-1
+fn get_item_name(item: &Item<'_>) -> String {
+    match item.kind {
+        ItemKind::Impl(im) => {
+            if let TyKind::Path(path) = im.self_ty.kind {
+                match path {
+                    QPath::Resolved(_, path) => {
+                        let segs = path.segments.iter();
+                        let mut segs: Vec<String> = segs.map(|s| s.ident.name.as_str().to_owned()).collect();
+
+                        if let Some(of_trait) = im.of_trait {
+                            let mut trait_segs: Vec<String> = of_trait
+                                .path
+                                .segments
+                                .iter()
+                                .map(|s| s.ident.name.as_str().to_owned())
+                                .collect();
+                            segs.append(&mut trait_segs);
+                        }
+
+                        segs.push(String::new());
+                        segs.join("!!")
+                    },
+                    QPath::TypeRelative(_, _path_seg) => {
+                        // This case doesn't exist in the clippy tests codebase.
+                        String::new()
+                    },
+                    QPath::LangItem(_, _) => String::new(),
+                }
+            } else {
+                // Impls for anything that isn't a named type can be skipped.
+                String::new()
+            }
+        },
+        _ => item.ident.name.as_str().to_owned(),
     }
 }
