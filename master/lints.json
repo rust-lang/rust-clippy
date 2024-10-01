@@ -6814,7 +6814,7 @@
   },
   {
     "id": "zombie_processes",
-    "id_location": "clippy_lints/src/zombie_processes.rs#L38",
+    "id_location": "clippy_lints/src/zombie_processes.rs#L39",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nLooks for code that spawns a process but never calls `wait()` on the child.\n\n### Why is this bad?\nAs explained in the [standard library documentation](https://doc.rust-lang.org/stable/std/process/struct.Child.html#warning),\ncalling `wait()` is necessary on Unix platforms to properly release all OS resources associated with the process.\nNot doing so will effectively leak process IDs and/or other limited global resources,\nwhich can eventually lead to resource exhaustion, so it's recommended to call `wait()` in long-running applications.\nSuch processes are called \"zombie processes\".\n\n### Example\n```rust\nuse std::process::Command;\n\nlet _child = Command::new(\"ls\").spawn().expect(\"failed to execute child\");\n```\nUse instead:\n```rust\nuse std::process::Command;\n\nlet mut child = Command::new(\"ls\").spawn().expect(\"failed to execute child\");\nchild.wait().expect(\"failed to wait on child\");\n```\n",
