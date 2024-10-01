@@ -83,7 +83,11 @@ impl<'tcx> LateLintPass<'tcx> for NonminimalBool {
         _: Span,
         _: LocalDefId,
     ) {
-        NonminimalBoolVisitor { cx }.visit_body(body);
+        NonminimalBoolVisitor {
+            cx,
+            parent_expr: vec![],
+        }
+        .visit_body(body);
     }
 
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
@@ -176,13 +180,28 @@ fn check_inverted_bool_in_condition(
     );
 }
 
-fn check_simplify_not(cx: &LateContext<'_>, expr: &Expr<'_>) {
+fn check_simplify_not(cx: &LateContext<'_>, expr: &Expr<'_>, parent_expr: Option<&Expr<'_>>) {
     if let ExprKind::Unary(UnOp::Not, inner) = &expr.kind
         && !expr.span.from_expansion()
         && !inner.span.from_expansion()
         && let Some(suggestion) = simplify_not(cx, inner)
         && cx.tcx.lint_level_at_node(NONMINIMAL_BOOL, expr.hir_id).0 != Level::Allow
     {
+        let need_parens = 'block: {
+            if matches!(inner.kind, ExprKind::Binary(..)) {
+                if let Some(parent_expr) = parent_expr {
+                    if matches!(parent_expr.kind, ExprKind::Cast(..) | ExprKind::Binary(..)) {
+                        break 'block true;
+                    }
+                }
+            }
+            false
+        };
+        let suggestion = if need_parens {
+            format!("({suggestion})")
+        } else {
+            suggestion
+        };
         span_lint_and_sugg(
             cx,
             NONMINIMAL_BOOL,
@@ -196,6 +215,7 @@ fn check_simplify_not(cx: &LateContext<'_>, expr: &Expr<'_>) {
 }
 
 struct NonminimalBoolVisitor<'a, 'tcx> {
+    parent_expr: Vec<&'tcx Expr<'tcx>>, // parent stack
     cx: &'a LateContext<'tcx>,
 }
 
@@ -569,7 +589,7 @@ impl<'tcx> NonminimalBoolVisitor<'_, 'tcx> {
                 }
             };
             if improvements.is_empty() {
-                check_simplify_not(self.cx, e);
+                check_simplify_not(self.cx, e, self.parent_expr.last().copied());
             } else {
                 nonminimal_bool_lint(
                     improvements
@@ -602,7 +622,9 @@ impl<'tcx> Visitor<'tcx> for NonminimalBoolVisitor<'_, 'tcx> {
                 _ => {},
             }
         }
+        self.parent_expr.push(e);
         walk_expr(self, e);
+        self.parent_expr.pop();
     }
 }
 

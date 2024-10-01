@@ -97,5 +97,41 @@ error: this boolean expression can be simplified
 LL |     if !(a as u64 <= b) {}
    |        ^^^^^^^^^^^^^^^^ help: try: `a as u64 > b`
 
-error: aborting due to 16 previous errors
+error: this boolean expression can be simplified
+  --> tests/ui/nonminimal_bool_methods.rs:122:8
+   |
+LL |     if !(a >= b) as i32 == c {}
+   |        ^^^^^^^^^ help: try: `(a < b)`
+
+error: this boolean expression can be simplified
+  --> tests/ui/nonminimal_bool_methods.rs:123:8
+   |
+LL |     if !(a >= b) | !(a <= c) {}
+   |        ^^^^^^^^^ help: try: `(a < b)`
+
+error: this boolean expression can be simplified
+  --> tests/ui/nonminimal_bool_methods.rs:123:20
+   |
+LL |     if !(a >= b) | !(a <= c) {}
+   |                    ^^^^^^^^^ help: try: `(a > c)`
+
+error: this boolean expression can be simplified
+  --> tests/ui/nonminimal_bool_methods.rs:126:8
+   |
+LL |     if !res.is_ok() as i32 == c {}
+   |        ^^^^^^^^^^^^ help: try: `res.is_err()`
+
+error: this boolean expression can be simplified
+  --> tests/ui/nonminimal_bool_methods.rs:127:8
+   |
+LL |     if !res.is_ok() | !opt.is_none() {}
+   |        ^^^^^^^^^^^^ help: try: `res.is_err()`
+
+error: this boolean expression can be simplified
+  --> tests/ui/nonminimal_bool_methods.rs:127:23
+   |
+LL |     if !res.is_ok() | !opt.is_none() {}
+   |                       ^^^^^^^^^^^^^^ help: try: `opt.is_some()`
+
+error: aborting due to 22 previous errors
 
