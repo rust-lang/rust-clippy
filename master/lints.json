@@ -4006,7 +4006,7 @@
   },
   {
     "id": "nonminimal_bool",
-    "id_location": "clippy_lints/src/booleans.rs#L39",
+    "id_location": "clippy_lints/src/booleans.rs#L41",
     "group": "complexity",
     "level": "warn",
     "docs": "### What it does\nChecks for boolean expressions that can be written more\nconcisely.\n\n### Why is this bad?\nReadability of boolean expressions suffers from\nunnecessary duplication.\n\n### Known problems\nIgnores short circuiting behavior of `||` and\n`&&`. Ignores `|`, `&` and `^`.\n\n### Example\n```rust\nif a && true {}\nif !(a == b) {}\n```\n\nUse instead:\n```rust\nif a {}\nif a != b {}\n```\n",
@@ -4195,7 +4195,7 @@
   },
   {
     "id": "overly_complex_bool_expr",
-    "id_location": "clippy_lints/src/booleans.rs#L66",
+    "id_location": "clippy_lints/src/booleans.rs#L68",
     "group": "correctness",
     "level": "deny",
     "docs": "### What it does\nChecks for boolean expressions that contain terminals that\ncan be eliminated.\n\n### Why is this bad?\nThis is most likely a logic bug.\n\n### Known problems\nIgnores short circuiting behavior.\n\n### Example\n```rust\n// The `b` is unnecessary, the expression is equivalent to `if a`.\nif a && b || a { ... }\n```\n\nUse instead:\n```rust\nif a {}\n```\n\n### Past names\n\n * logic_bug\n",
