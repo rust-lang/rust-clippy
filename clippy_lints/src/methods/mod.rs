@@ -60,6 +60,7 @@ mod manual_ok_or;
 mod manual_saturating_arithmetic;
 mod manual_str_repeat;
 mod manual_try_fold;
+mod map_all_any_identity;
 mod map_clone;
 mod map_collect_result_unit;
 mod map_err_ignore;
@@ -4166,6 +4167,31 @@ declare_clippy_lint! {
     "calling `.first().is_some()` or `.first().is_none()` instead of `.is_empty()`"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `.map(…)`, followed by `.all(identity)` or `.any(identity)`.
+    ///
+    /// ### Why is this bad?
+    /// The `.all(…)` or `.any(…)` methods can be called directly in place of `.map(…)`.
+    ///
+    /// ### Example
+    /// ```
+    /// # let mut v = [""];
+    /// let e1 = v.iter().map(|s| s.is_empty()).all(|a| a);
+    /// let e2 = v.iter().map(|s| s.is_empty()).any(std::convert::identity);
+    /// ```
+    /// Use instead:
+    /// ```
+    /// # let mut v = [""];
+    /// let e1 = v.iter().all(|s| s.is_empty());
+    /// let e2 = v.iter().any(|s| s.is_empty());
+    /// ```
+    #[clippy::version = "1.84.0"]
+    pub MAP_ALL_ANY_IDENTITY,
+    complexity,
+    "combine `.map(_)` followed by `.all(identity)`/`.any(identity)` into a single call"
+}
+
 pub struct Methods {
     avoid_breaking_exported_api: bool,
     msrv: Msrv,
@@ -4327,6 +4353,7 @@ impl_lint_pass!(Methods => [
     NEEDLESS_CHARACTER_ITERATION,
     MANUAL_INSPECT,
     UNNECESSARY_MIN_OR_MAX,
+    MAP_ALL_ANY_IDENTITY,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -4534,15 +4561,21 @@ impl Methods {
                 ("all", [arg]) => {
                     unused_enumerate_index::check(cx, expr, recv, arg);
                     needless_character_iteration::check(cx, expr, recv, arg, true);
-                    if let Some(("cloned", recv2, [], _, _)) = method_call(recv) {
-                        iter_overeager_cloned::check(
-                            cx,
-                            expr,
-                            recv,
-                            recv2,
-                            iter_overeager_cloned::Op::NeedlessMove(arg),
-                            false,
-                        );
+                    match method_call(recv) {
+                        Some(("cloned", recv2, [], _, _)) => {
+                            iter_overeager_cloned::check(
+                                cx,
+                                expr,
+                                recv,
+                                recv2,
+                                iter_overeager_cloned::Op::NeedlessMove(arg),
+                                false,
+                            );
+                        },
+                        Some(("map", _, [map_arg], _, map_call_span)) => {
+                            map_all_any_identity::check(cx, expr, recv, map_call_span, map_arg, call_span, arg, "all");
+                        },
+                        _ => {},
                     }
                 },
                 ("and_then", [arg]) => {
@@ -4570,6 +4603,9 @@ impl Methods {
                                 && let [param] = body.params =>
                         {
                             string_lit_chars_any::check(cx, expr, recv, param, peel_blocks(body.value), &self.msrv);
+                        },
+                        Some(("map", _, [map_arg], _, map_call_span)) => {
+                            map_all_any_identity::check(cx, expr, recv, map_call_span, map_arg, call_span, arg, "any");
                         },
                         _ => {},
                     }
