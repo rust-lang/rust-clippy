@@ -1,3 +1,14 @@
+/// Helper macro for defaulting to an expression if the token stream is empty
+macro_rules! with_default {
+    ($default:expr, $($v:tt)+) => {
+        $($v)+
+    };
+    ($default:expr,) => {
+        $default
+    };
+}
+pub(crate) use with_default;
+
 #[macro_export]
 #[allow(clippy::crate_in_macro_def)]
 macro_rules! declare_clippy_lint {
@@ -9,6 +20,7 @@ macro_rules! declare_clippy_lint {
         $desc:literal,
         $version_expr:expr,
         $version_lit:literal
+        $(,[$($subgroup:ident),+])?
     ) => {
         rustc_session::declare_tool_lint! {
             $(#[doc = $lit])*
@@ -24,7 +36,8 @@ macro_rules! declare_clippy_lint {
             category:  $lintcategory,
             explanation: concat!($($lit,"\n",)*),
             location: concat!(file!(), "#L", line!()),
-            version: $version_expr
+            version: $version_expr,
+            subgroups: $crate::declare_clippy_lint::with_default!(&[], $(&[$(stringify!($subgroup)),+])?)
         };
     };
     (
@@ -33,11 +46,13 @@ macro_rules! declare_clippy_lint {
         pub $lint_name:ident,
         restriction,
         $desc:literal
+        $(,[$($subgroup:ident),+])?
     ) => {
         declare_clippy_lint! {@
             $(#[doc = $lit])*
             pub $lint_name, Allow, crate::LintCategory::Restriction, $desc,
             Some($version), $version
+            $(,[$($subgroup),+])?
         }
     };
     (
@@ -46,12 +61,13 @@ macro_rules! declare_clippy_lint {
         pub $lint_name:ident,
         style,
         $desc:literal
+        $(,[$($subgroup:ident),+])?
     ) => {
         declare_clippy_lint! {@
             $(#[doc = $lit])*
             pub $lint_name, Warn, crate::LintCategory::Style, $desc,
             Some($version), $version
-
+            $(,[$($subgroup),+])?
         }
     };
     (
@@ -60,12 +76,13 @@ macro_rules! declare_clippy_lint {
         pub $lint_name:ident,
         correctness,
         $desc:literal
+        $(,[$($subgroup:ident),+])?
     ) => {
         declare_clippy_lint! {@
             $(#[doc = $lit])*
             pub $lint_name, Deny, crate::LintCategory::Correctness, $desc,
             Some($version), $version
-
+            $(,[$($subgroup),+])?
         }
     };
     (
@@ -74,11 +91,13 @@ macro_rules! declare_clippy_lint {
         pub $lint_name:ident,
         perf,
         $desc:literal
+        $(,[$($subgroup:ident),+])?
     ) => {
         declare_clippy_lint! {@
             $(#[doc = $lit])*
             pub $lint_name, Warn, crate::LintCategory::Perf, $desc,
             Some($version), $version
+            $(,[$($subgroup),+])?
         }
     };
     (
@@ -87,11 +106,13 @@ macro_rules! declare_clippy_lint {
         pub $lint_name:ident,
         complexity,
         $desc:literal
+        $(,[$($subgroup:ident),+])?
     ) => {
         declare_clippy_lint! {@
             $(#[doc = $lit])*
             pub $lint_name, Warn, crate::LintCategory::Complexity, $desc,
             Some($version), $version
+            $(,[$($subgroup),+])?
         }
     };
     (
@@ -100,11 +121,13 @@ macro_rules! declare_clippy_lint {
         pub $lint_name:ident,
         suspicious,
         $desc:literal
+        $(,[$($subgroup:ident),+])?
     ) => {
         declare_clippy_lint! {@
             $(#[doc = $lit])*
             pub $lint_name, Warn, crate::LintCategory::Suspicious, $desc,
             Some($version), $version
+            $(,[$($subgroup),+])?
         }
     };
     (
@@ -113,11 +136,13 @@ macro_rules! declare_clippy_lint {
         pub $lint_name:ident,
         nursery,
         $desc:literal
+        $(,[$($subgroup:ident),+])?
     ) => {
         declare_clippy_lint! {@
             $(#[doc = $lit])*
             pub $lint_name, Allow, crate::LintCategory::Nursery, $desc,
             Some($version), $version
+            $(,[$($subgroup),+])?
         }
     };
     (
@@ -126,11 +151,13 @@ macro_rules! declare_clippy_lint {
         pub $lint_name:ident,
         pedantic,
         $desc:literal
+        $(,[$($subgroup:ident),+])?
     ) => {
         declare_clippy_lint! {@
             $(#[doc = $lit])*
             pub $lint_name, Allow, crate::LintCategory::Pedantic, $desc,
             Some($version), $version
+            $(,[$($subgroup),+])?
         }
     };
     (
@@ -139,11 +166,13 @@ macro_rules! declare_clippy_lint {
         pub $lint_name:ident,
         cargo,
         $desc:literal
+        $(,[$($subgroup:ident),+])?
     ) => {
         declare_clippy_lint! {@
             $(#[doc = $lit])*
             pub $lint_name, Allow, crate::LintCategory::Cargo, $desc,
             Some($version), $version
+            $(,[$($subgroup),+])?
         }
     };
 

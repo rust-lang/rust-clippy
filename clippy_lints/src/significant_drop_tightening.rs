@@ -49,7 +49,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.69.0"]
     pub SIGNIFICANT_DROP_TIGHTENING,
     nursery,
-    "Searches for elements marked with `#[clippy::has_significant_drop]` that could be early dropped but are in fact dropped at the end of their scopes"
+    "Searches for elements marked with `#[clippy::has_significant_drop]` that could be early dropped but are in fact dropped at the end of their scopes",
+    [perf_nursery]
 }
 
 impl_lint_pass!(SignificantDropTightening<'_> => [SIGNIFICANT_DROP_TIGHTENING]);
