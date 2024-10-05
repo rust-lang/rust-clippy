@@ -4824,6 +4824,15 @@
     "applicability": "Unspecified"
   },
   {
+    "id": "regex_creation_in_loops",
+    "id_location": "clippy_lints/src/regex.rs#L91",
+    "group": "perf",
+    "level": "warn",
+    "docs": "### What it does\n\nChecks for [regex](https://crates.io/crates/regex) compilation inside a loop with a literal.\n\n### Why is this bad?\n\nCompiling a regex is a much more expensive operation than using one, and a compiled regex can be used multiple times.\nThis is documented as an antipattern [on the regex documentation](https://docs.rs/regex/latest/regex/#avoid-re-compiling-regexes-especially-in-a-loop)\n\n### Example\n```rust\nfor haystack in haystacks {\n    let regex = regex::Regex::new(MY_REGEX).unwrap();\n    if regex.is_match(haystack) {\n        // Perform operation\n    }\n}\n```\ncan be replaced with\n```rust\nlet regex = regex::Regex::new(MY_REGEX).unwrap();\nfor haystack in haystacks {\n    if regex.is_match(haystack) {\n        // Perform operation\n    }\n}\n```\n",
+    "version": "1.83.0",
+    "applicability": "Unspecified"
+  },
+  {
     "id": "regex_macro",
     "id_location": null,
     "group": "deprecated",
