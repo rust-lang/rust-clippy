@@ -61,7 +61,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.74.0"]
     pub MISSING_ASSERTS_FOR_INDEXING,
     restriction,
-    "indexing into a slice multiple times without an `assert`"
+    "indexing into a slice multiple times without an `assert`",
+    [perf_restriction]
 }
 declare_lint_pass!(MissingAssertsForIndexing => [MISSING_ASSERTS_FOR_INDEXING]);
 

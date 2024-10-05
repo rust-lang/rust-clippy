@@ -50,7 +50,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.78.0"]
     pub ASSIGNING_CLONES,
     pedantic,
-    "assigning the result of cloning may be inefficient"
+    "assigning the result of cloning may be inefficient",
+    [perf_pedantic]
 }
 
 pub struct AssigningClones {

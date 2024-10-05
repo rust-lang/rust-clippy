@@ -52,7 +52,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub TRIVIAL_REGEX,
     nursery,
-    "trivial regular expressions"
+    "trivial regular expressions",
+    [perf_nursery]
 }
 
 declare_clippy_lint! {

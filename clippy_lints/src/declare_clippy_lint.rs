@@ -1,3 +1,5 @@
+// The $subgroup metavariable is parsed out externally in `clippy_dev/src/update_lints.rs` and just
+// ignored here.
 #[macro_export]
 #[allow(clippy::crate_in_macro_def)]
 macro_rules! declare_clippy_lint {
@@ -24,7 +26,7 @@ macro_rules! declare_clippy_lint {
             category:  $lintcategory,
             explanation: concat!($($lit,"\n",)*),
             location: concat!(file!(), "#L", line!()),
-            version: $version_expr
+            version: $version_expr,
         };
     };
     (
@@ -33,6 +35,7 @@ macro_rules! declare_clippy_lint {
         pub $lint_name:ident,
         restriction,
         $desc:literal
+        $(,[$($subgroup:ident),+])?
     ) => {
         declare_clippy_lint! {@
             $(#[doc = $lit])*
@@ -46,12 +49,12 @@ macro_rules! declare_clippy_lint {
         pub $lint_name:ident,
         style,
         $desc:literal
+        $(,[$($subgroup:ident),+])?
     ) => {
         declare_clippy_lint! {@
             $(#[doc = $lit])*
             pub $lint_name, Warn, crate::LintCategory::Style, $desc,
             Some($version), $version
-
         }
     };
     (
@@ -60,12 +63,12 @@ macro_rules! declare_clippy_lint {
         pub $lint_name:ident,
         correctness,
         $desc:literal
+        $(,[$($subgroup:ident),+])?
     ) => {
         declare_clippy_lint! {@
             $(#[doc = $lit])*
             pub $lint_name, Deny, crate::LintCategory::Correctness, $desc,
             Some($version), $version
-
         }
     };
     (
@@ -74,6 +77,7 @@ macro_rules! declare_clippy_lint {
         pub $lint_name:ident,
         perf,
         $desc:literal
+        $(,[$($subgroup:ident),+])?
     ) => {
         declare_clippy_lint! {@
             $(#[doc = $lit])*
@@ -87,6 +91,7 @@ macro_rules! declare_clippy_lint {
         pub $lint_name:ident,
         complexity,
         $desc:literal
+        $(,[$($subgroup:ident),+])?
     ) => {
         declare_clippy_lint! {@
             $(#[doc = $lit])*
@@ -100,6 +105,7 @@ macro_rules! declare_clippy_lint {
         pub $lint_name:ident,
         suspicious,
         $desc:literal
+        $(,[$($subgroup:ident),+])?
     ) => {
         declare_clippy_lint! {@
             $(#[doc = $lit])*
@@ -113,6 +119,7 @@ macro_rules! declare_clippy_lint {
         pub $lint_name:ident,
         nursery,
         $desc:literal
+        $(,[$($subgroup:ident),+])?
     ) => {
         declare_clippy_lint! {@
             $(#[doc = $lit])*
@@ -126,6 +133,7 @@ macro_rules! declare_clippy_lint {
         pub $lint_name:ident,
         pedantic,
         $desc:literal
+        $(,[$($subgroup:ident),+])?
     ) => {
         declare_clippy_lint! {@
             $(#[doc = $lit])*
@@ -139,6 +147,7 @@ macro_rules! declare_clippy_lint {
         pub $lint_name:ident,
         cargo,
         $desc:literal
+        $(,[$($subgroup:ident),+])?
     ) => {
         declare_clippy_lint! {@
             $(#[doc = $lit])*

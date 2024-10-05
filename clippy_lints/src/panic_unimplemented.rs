@@ -33,7 +33,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.40.0"]
     pub PANIC,
     restriction,
-    "usage of the `panic!` macro"
+    "usage of the `panic!` macro",
+    [panic]
 }
 
 declare_clippy_lint! {
@@ -50,7 +51,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub UNIMPLEMENTED,
     restriction,
-    "`unimplemented!` should not be present in production code"
+    "`unimplemented!` should not be present in production code",
+    [panic]
 }
 
 declare_clippy_lint! {
@@ -72,7 +74,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.40.0"]
     pub TODO,
     restriction,
-    "`todo!` should not be present in production code"
+    "`todo!` should not be present in production code",
+    [panic, debug]
 }
 
 declare_clippy_lint! {
@@ -89,7 +92,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.40.0"]
     pub UNREACHABLE,
     restriction,
-    "usage of the `unreachable!` macro"
+    "usage of the `unreachable!` macro",
+    [panic]
 }
 
 impl_lint_pass!(PanicUnimplemented => [UNIMPLEMENTED, UNREACHABLE, TODO, PANIC]);
