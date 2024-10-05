@@ -1,0 +1,95 @@
+name: New lint stabilization version check
+
+on:
+  push:
+    branches:
+      - auto
+      - try
+  pull_request:
+    paths:
+    - 'clippy_lints/src/**/*.rs'
+
+env:
+  RUST_BACKTRACE: 1
+  CARGO_INCREMENTAL: 0
+
+concurrency:
+  # For a given workflow, if we push to the same PR, cancel all previous builds on that PR.
+  group: "${{ github.workflow }}-${{ github.event.pull_request.number}}"
+  cancel-in-progress: true
+
+jobs:
+  # Collect lint metadata on the PR's target branch and stores the results as an artifact
+  base:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+
+    # HEAD is the generated merge commit `refs/pull/N/merge` between the PR and `master`, `HEAD^`
+    # being the commit from `master` that is the base of the merge
+    - name: Checkout base
+      run: git checkout HEAD^
+
+    - name: Cache metadata
+      id: cache-metadata
+      uses: actions/cache@v4
+      with:
+        path: util/gh-pages/lints.json
+        key: metadata-bin-${{ hashfiles('clippy_lints/**') }}
+
+    - name: Collect metadata
+      if: steps.cache-metadata.outputs.cache-hit != 'true'
+      run: cargo collect-metadata
+
+    - name: Upload base JSON
+      uses: actions/upload-artifact@v4
+      with:
+        name: base
+        path: util/gh-pages/lints.json
+
+  head:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+
+    - name: Cache metadata
+      id: cache-metadata
+      uses: actions/cache@v4
+      with:
+        path: util/gh-pages/lints.json
+        key: metadata-bin-${{ hashfiles('clippy_lints/**') }}
+
+    - name: Collect metadata
+      if: steps.cache-metadata.outputs.cache-hit != 'true'
+      run: cargo collect-metadata
+
+    - name: Upload base JSON
+      uses: actions/upload-artifact@v4
+      with:
+        name: head
+        path: util/gh-pages/lints.json
+
+  # Retrieves the head and base JSON results and prints the diff to the GH actions step summary
+  diff:
+    runs-on: ubuntu-latest
+
+    needs: [base, head]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Download JSON
+      uses: actions/download-artifact@v4
+
+    - name: Diff results
+      run: |
+        cargo dev check_new_lints_version base/lints.json head/lints.json

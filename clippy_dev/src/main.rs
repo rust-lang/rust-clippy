@@ -3,8 +3,9 @@
 #![warn(rust_2018_idioms, unused_lifetimes)]
 
 use clap::{Args, Parser, Subcommand};
-use clippy_dev::{dogfood, fmt, lint, new_lint, serve, setup, update_lints};
+use clippy_dev::{check_lint_version, dogfood, fmt, lint, new_lint, serve, setup, update_lints};
 use std::convert::Infallible;
+use std::path::PathBuf;
 
 fn main() {
     let dev = Dev::parse();
@@ -13,6 +14,10 @@ fn main() {
         DevCommand::Bless => {
             eprintln!("use `cargo bless` to automatically replace `.stderr` and `.fixed` files as tests are being run");
         },
+        DevCommand::CheckNewLintsVersion {
+            old_metadata,
+            new_metadata,
+        } => check_lint_version::check_lint_version(&old_metadata, &new_metadata),
         DevCommand::Dogfood {
             fix,
             allow_dirty,
@@ -89,6 +94,14 @@ struct Dev {
 enum DevCommand {
     /// Bless the test output changes
     Bless,
+    /// Check that new lints agree with the stabilization version
+    #[command(name = "check_new_lints_version")]
+    CheckNewLintsVersion {
+        /// Original metadata
+        old_metadata: PathBuf,
+        /// New metadata
+        new_metadata: PathBuf,
+    },
     /// Runs the dogfood test
     Dogfood {
         #[arg(long)]
