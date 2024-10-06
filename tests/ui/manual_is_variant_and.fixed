@@ -19,6 +19,8 @@ fn option_methods() {
     let _ = opt
         .is_some_and(|x| x > 1);
 
+    let _ = opt.is_some_and(|x| x > 1);
+
     // won't fix because the return type of the closure is not `bool`
     let _ = opt.map(|x| x + 1).unwrap_or_default();
 
@@ -35,6 +37,8 @@ fn result_methods() {
     let _ = res.is_ok_and(|x| {
         x > 1
     });
+    let _ = res.is_ok_and(|x| x > 1);
+
     let _ = res.is_ok_and(|x| x > 1);
 
     // won't fix because the return type of the closure is not `bool`

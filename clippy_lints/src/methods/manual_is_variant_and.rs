@@ -15,6 +15,7 @@ pub(super) fn check<'tcx>(
     map_arg: &'tcx rustc_hir::Expr<'_>,
     map_span: Span,
     msrv: &Msrv,
+    is_map_or: bool,
 ) {
     // Don't lint if:
 
@@ -23,7 +24,7 @@ pub(super) fn check<'tcx>(
         return;
     }
 
-    // 2. the caller of `map()` is neither `Option` nor `Result`
+    // 2. the caller of `map()` or `map_or()` is neither `Option` nor `Result`
     let is_option = is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(map_recv), sym::Option);
     let is_result = is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(map_recv), sym::Result);
     if !is_option && !is_result {
@@ -31,7 +32,7 @@ pub(super) fn check<'tcx>(
     }
 
     // 3. the caller of `unwrap_or_default` is neither `Option<bool>` nor `Result<bool, _>`
-    if !cx.typeck_results().expr_ty(expr).is_bool() {
+    if !is_map_or && !cx.typeck_results().expr_ty(expr).is_bool() {
         return;
     }
 
@@ -40,12 +41,17 @@ pub(super) fn check<'tcx>(
         return;
     }
 
-    let lint_msg = if is_option {
-        "called `map(<f>).unwrap_or_default()` on an `Option` value"
+    let call_msg = if is_map_or {
+        "map_or(false, <f>)"
     } else {
-        "called `map(<f>).unwrap_or_default()` on a `Result` value"
+        "map(<f>).unwrap_or_default()"
     };
-    let suggestion = if is_option { "is_some_and" } else { "is_ok_and" };
+    let (ty, suggestion) = if is_option {
+        ("an `Option`", "is_some_and")
+    } else {
+        ("a `Result`", "is_ok_and")
+    };
+    let lint_msg = format!("called `{call_msg}` on {ty} value");
 
     span_lint_and_sugg(
         cx,

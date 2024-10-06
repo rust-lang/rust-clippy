@@ -140,6 +140,7 @@ use clippy_utils::macros::FormatArgsStorage;
 use clippy_utils::ty::{contains_ty_adt_constructor_opaque, implements_trait, is_copy, is_type_diagnostic_item};
 use clippy_utils::{contains_return, is_bool, is_trait_method, iter_input_pats, peel_blocks, return_ty};
 pub use path_ends_with_ext::DEFAULT_ALLOWED_DOTFILES;
+use rustc_ast::ast;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir as hir;
 use rustc_hir::{Expr, ExprKind, Node, Stmt, StmtKind, TraitItem, TraitItemKind};
@@ -3889,6 +3890,8 @@ declare_clippy_lint! {
     /// # let result: Result<usize, ()> = Ok(1);
     /// option.map(|a| a > 10).unwrap_or_default();
     /// result.map(|a| a > 10).unwrap_or_default();
+    /// option.map_or(false, |a| a > 10);
+    /// result.map_or(false, |a| a > 10);
     /// ```
     /// Use instead:
     /// ```no_run
@@ -3900,7 +3903,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.77.0"]
     pub MANUAL_IS_VARIANT_AND,
     pedantic,
-    "using `.map(f).unwrap_or_default()`, which is more succinctly expressed as `is_some_and(f)` or `is_ok_and(f)`"
+    "calling `.map(f).unwrap_or_default()` or `.map_or(false, f)` instead of `is_some_and(f)` or `is_ok_and(f)`"
 }
 
 declare_clippy_lint! {
@@ -4839,6 +4842,11 @@ impl Methods {
                     option_map_or_none::check(cx, expr, recv, def, map);
                     manual_ok_or::check(cx, expr, recv, def, map);
                     option_map_or_err_ok::check(cx, expr, recv, def, map);
+                    if let ExprKind::Lit(lit) = def.kind
+                        && lit.node == ast::LitKind::Bool(false)
+                    {
+                        manual_is_variant_and::check(cx, expr, recv, map, span, &self.msrv, true);
+                    }
                 },
                 ("map_or_else", [def, map]) => {
                     result_map_or_else_none::check(cx, expr, recv, def, map);
@@ -5052,7 +5060,7 @@ impl Methods {
                 },
                 ("unwrap_or_default", []) => {
                     if let Some(("map", m_recv, [arg], span, _)) = method_call(recv) {
-                        manual_is_variant_and::check(cx, expr, m_recv, arg, span, &self.msrv);
+                        manual_is_variant_and::check(cx, expr, m_recv, arg, span, &self.msrv, false);
                     }
                     unnecessary_literal_unwrap::check(cx, expr, recv, name, args);
                 },
