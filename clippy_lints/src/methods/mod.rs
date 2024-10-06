@@ -5240,7 +5240,7 @@ impl SelfKind {
                 boxed_ty == parent_ty
             } else if is_type_diagnostic_item(cx, ty, sym::Rc) || is_type_diagnostic_item(cx, ty, sym::Arc) {
                 if let ty::Adt(_, args) = ty.kind() {
-                    args.types().next().map_or(false, |t| t == parent_ty)
+                    args.types().next().is_some_and(|t| t == parent_ty)
                 } else {
                     false
                 }

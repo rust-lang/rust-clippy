@@ -345,7 +345,7 @@ pub fn match_trait_method(cx: &LateContext<'_>, expr: &Expr<'_>, path: &[&str]) 
     cx.typeck_results()
         .type_dependent_def_id(expr.hir_id)
         .and_then(|defid| cx.tcx.trait_of_item(defid))
-        .map_or(false, |trt_id| match_def_path(cx, trt_id, path))
+        .is_some_and(|trt_id| match_def_path(cx, trt_id, path))
 }
 
 /// Checks if the given method call expression calls an inherent method.
@@ -379,7 +379,7 @@ pub fn is_diag_trait_item(cx: &LateContext<'_>, def_id: DefId, diag_item: Symbol
 pub fn is_trait_method(cx: &LateContext<'_>, expr: &Expr<'_>, diag_item: Symbol) -> bool {
     cx.typeck_results()
         .type_dependent_def_id(expr.hir_id)
-        .map_or(false, |did| is_diag_trait_item(cx, did, diag_item))
+        .is_some_and(|did| is_diag_trait_item(cx, did, diag_item))
 }
 
 /// Checks if the `def_id` belongs to a function that is part of a trait impl.
@@ -406,7 +406,7 @@ pub fn is_trait_item(cx: &LateContext<'_>, expr: &Expr<'_>, diag_item: Symbol) -
     if let ExprKind::Path(ref qpath) = expr.kind {
         cx.qpath_res(qpath, expr.hir_id)
             .opt_def_id()
-            .map_or(false, |def_id| is_diag_trait_item(cx, def_id, diag_item))
+            .is_some_and(|def_id| is_diag_trait_item(cx, def_id, diag_item))
     } else {
         false
     }
@@ -466,13 +466,13 @@ pub fn match_qpath(path: &QPath<'_>, segments: &[&str]) -> bool {
 ///
 /// Please use `is_path_diagnostic_item` if the target is a diagnostic item.
 pub fn is_expr_path_def_path(cx: &LateContext<'_>, expr: &Expr<'_>, segments: &[&str]) -> bool {
-    path_def_id(cx, expr).map_or(false, |id| match_def_path(cx, id, segments))
+    path_def_id(cx, expr).is_some_and(|id| match_def_path(cx, id, segments))
 }
 
 /// If `maybe_path` is a path node which resolves to an item, resolves it to a `DefId` and checks if
 /// it matches the given lang item.
 pub fn is_path_lang_item<'tcx>(cx: &LateContext<'_>, maybe_path: &impl MaybePath<'tcx>, lang_item: LangItem) -> bool {
-    path_def_id(cx, maybe_path).map_or(false, |id| cx.tcx.lang_items().get(lang_item) == Some(id))
+    path_def_id(cx, maybe_path).is_some_and(|id| cx.tcx.lang_items().get(lang_item) == Some(id))
 }
 
 /// If `maybe_path` is a path node which resolves to an item, resolves it to a `DefId` and checks if
@@ -482,7 +482,7 @@ pub fn is_path_diagnostic_item<'tcx>(
     maybe_path: &impl MaybePath<'tcx>,
     diag_item: Symbol,
 ) -> bool {
-    path_def_id(cx, maybe_path).map_or(false, |id| cx.tcx.is_diagnostic_item(diag_item, id))
+    path_def_id(cx, maybe_path).is_some_and(|id| cx.tcx.is_diagnostic_item(diag_item, id))
 }
 
 /// THIS METHOD IS DEPRECATED. Matches a `Path` against a slice of segment string literals.
@@ -1315,7 +1315,7 @@ pub fn method_chain_args<'a>(expr: &'a Expr<'_>, methods: &[&str]) -> Option<Vec
 pub fn is_entrypoint_fn(cx: &LateContext<'_>, def_id: DefId) -> bool {
     cx.tcx
         .entry_fn(())
-        .map_or(false, |(entry_fn_def_id, _)| def_id == entry_fn_def_id)
+        .is_some_and(|(entry_fn_def_id, _)| def_id == entry_fn_def_id)
 }
 
 /// Returns `true` if the expression is in the program's `#[panic_handler]`.
@@ -1756,7 +1756,7 @@ pub fn is_refutable(cx: &LateContext<'_>, pat: &Pat<'_>) -> bool {
 
     match pat.kind {
         PatKind::Wild | PatKind::Never => false, // If `!` typechecked then the type is empty, so not refutable.
-        PatKind::Binding(_, _, _, pat) => pat.map_or(false, |pat| is_refutable(cx, pat)),
+        PatKind::Binding(_, _, _, pat) => pat.is_some_and(|pat| is_refutable(cx, pat)),
         PatKind::Box(pat) | PatKind::Deref(pat) | PatKind::Ref(pat, _) => is_refutable(cx, pat),
         PatKind::Path(ref qpath) => is_enum_variant(cx, qpath, pat.hir_id),
         PatKind::Or(pats) => {
@@ -2024,7 +2024,7 @@ pub fn match_libc_symbol(cx: &LateContext<'_>, did: DefId, name: &str) -> bool {
     let path = cx.get_def_path(did);
     // libc is meant to be used as a flat list of names, but they're all actually defined in different
     // modules based on the target platform. Ignore everything but crate name and the item name.
-    path.first().map_or(false, |s| s.as_str() == "libc") && path.last().map_or(false, |s| s.as_str() == name)
+    path.first().is_some_and(|s| s.as_str() == "libc") && path.last().is_some_and(|s| s.as_str() == name)
 }
 
 /// Returns the list of condition expressions and the list of blocks in a
@@ -2107,7 +2107,7 @@ pub fn is_must_use_func_call(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
         _ => None,
     };
 
-    did.map_or(false, |did| cx.tcx.has_attr(did, sym::must_use))
+    did.is_some_and(|did| cx.tcx.has_attr(did, sym::must_use))
 }
 
 /// Checks if a function's body represents the identity function. Looks for bodies of the form:
@@ -2214,7 +2214,7 @@ pub fn is_expr_untyped_identity_function(cx: &LateContext<'_>, expr: &Expr<'_>) 
 pub fn is_expr_identity_function(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
     match expr.kind {
         ExprKind::Closure(&Closure { body, .. }) => is_body_identity_function(cx, cx.tcx.hir().body(body)),
-        _ => path_def_id(cx, expr).map_or(false, |id| cx.tcx.is_diagnostic_item(sym::convert_identity, id)),
+        _ => path_def_id(cx, expr).is_some_and(|id| cx.tcx.is_diagnostic_item(sym::convert_identity, id)),
     }
 }
 
