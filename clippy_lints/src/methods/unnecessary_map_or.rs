@@ -2,7 +2,7 @@ use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::eager_or_lazy::switch_to_eager_eval;
 use clippy_utils::source::{snippet, snippet_opt};
-use clippy_utils::ty::is_type_diagnostic_item;
+use clippy_utils::ty::get_type_diagnostic_name;
 use clippy_utils::visitors::is_local_used;
 use clippy_utils::{get_parent_expr, is_from_proc_macro, path_to_local_id};
 use rustc_ast::LitKind::Bool;
@@ -42,27 +42,20 @@ pub(super) fn check<'a>(
     map: &Expr<'_>,
     msrv: &Msrv,
 ) {
-    if is_from_proc_macro(cx, expr) {
-        return;
-    }
-
     let ExprKind::Lit(def_kind) = def.kind else {
         return;
     };
 
     let recv_ty = cx.typeck_results().expr_ty(recv);
-    if !(is_type_diagnostic_item(cx, recv_ty, sym::Option) || is_type_diagnostic_item(cx, recv_ty, sym::Result)) {
-        return;
-    }
 
     let Bool(def_bool) = def_kind.node else {
         return;
     };
 
-    let variant = if is_type_diagnostic_item(cx, recv_ty, sym::Option) {
-        Variant::Some
-    } else {
-        Variant::Ok
+    let variant = match get_type_diagnostic_name(cx, recv_ty) {
+        Some(sym::Option) => Variant::Some,
+        Some(sym::Result) => Variant::Ok,
+        Some(_) | None => return,
     };
 
     let (sugg, method) = if let ExprKind::Closure(map_closure) = map.kind
@@ -94,6 +87,7 @@ pub(super) fn check<'a>(
         // since for example `Some(5).map_or(false, |x| x == 5).then(|| 1)`
         // being converted to `Some(5) == Some(5).then(|| 1)` isnt
         // the same thing
+
         let should_add_parens = get_parent_expr(cx, expr)
             .is_some_and(|expr| expr.precedence().order() > i8::try_from(AssocOp::Equal.precedence()).unwrap_or(0));
         (
@@ -104,7 +98,7 @@ pub(super) fn check<'a>(
                 snippet(cx, non_binding_location.span.source_callsite(), ".."),
                 if should_add_parens { ")" } else { "" }
             ),
-            "standard comparison",
+            "a standard comparison",
         )
     } else if !def_bool
         && msrv.meets(msrvs::OPTION_RESULT_IS_VARIANT_AND)
@@ -120,6 +114,10 @@ pub(super) fn check<'a>(
         return;
     };
 
+    if is_from_proc_macro(cx, expr) {
+        return;
+    }
+
     span_lint_and_sugg(
         cx,
         UNNECESSARY_MAP_OR,
@@ -127,6 +125,6 @@ pub(super) fn check<'a>(
         "this `map_or` is redundant",
         format!("use {method} instead"),
         sugg,
-        Applicability::MachineApplicable,
+        Applicability::MaybeIncorrect,
     );
 }
