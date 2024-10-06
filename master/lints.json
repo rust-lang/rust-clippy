@@ -2326,7 +2326,7 @@
     "id_location": "clippy_lints/src/large_const_arrays.rs#L30",
     "group": "perf",
     "level": "warn",
-    "docs": "### What it does\nChecks for large `const` arrays that should\nbe defined as `static` instead.\n\n### Why is this bad?\nPerformance: const variables are inlined upon use.\nStatic items result in only one instance and has a fixed location in memory.\n\n### Example\n```rust\npub const a = [0u32; 1_000_000];\n```\n\nUse instead:\n```rust\npub static a = [0u32; 1_000_000];\n```\n\n### Configuration\n\n- `array-size-threshold`:  The maximum allowed size for arrays on the stack\n\n\n   (default: `512000`)\n",
+    "docs": "### What it does\nChecks for large `const` arrays that should\nbe defined as `static` instead.\n\n### Why is this bad?\nPerformance: const variables are inlined upon use.\nStatic items result in only one instance and has a fixed location in memory.\n\n### Example\n```rust\npub const a = [0u32; 1_000_000];\n```\n\nUse instead:\n```rust\npub static a = [0u32; 1_000_000];\n```\n\n### Configuration\n\n- `array-size-threshold`:  The maximum allowed size for arrays on the stack\n\n\n   (default: `16384`)\n",
     "version": "1.44.0",
     "applicability": "MachineApplicable"
   },
@@ -2371,7 +2371,7 @@
     "id_location": "clippy_lints/src/large_stack_arrays.rs#L25",
     "group": "pedantic",
     "level": "allow",
-    "docs": "### What it does\nChecks for local arrays that may be too large.\n\n### Why is this bad?\nLarge local arrays may cause stack overflow.\n\n### Example\n```rust\nlet a = [0u32; 1_000_000];\n```\n\n### Configuration\n\n- `array-size-threshold`:  The maximum allowed size for arrays on the stack\n\n\n   (default: `512000`)\n",
+    "docs": "### What it does\nChecks for local arrays that may be too large.\n\n### Why is this bad?\nLarge local arrays may cause stack overflow.\n\n### Example\n```rust\nlet a = [0u32; 1_000_000];\n```\n\n### Configuration\n\n- `array-size-threshold`:  The maximum allowed size for arrays on the stack\n\n\n   (default: `16384`)\n",
     "version": "1.41.0",
     "applicability": "Unspecified"
   },
