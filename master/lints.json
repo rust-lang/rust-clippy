@@ -3529,7 +3529,7 @@
   },
   {
     "id": "mutable_key_type",
-    "id_location": "clippy_lints/src/mut_key.rs#L65",
+    "id_location": "clippy_lints/src/mut_key.rs#L66",
     "group": "suspicious",
     "level": "warn",
     "docs": "### What it does\nChecks for sets/maps with mutable key types.\n\n### Why is this bad?\nAll of `HashMap`, `HashSet`, `BTreeMap` and\n`BtreeSet` rely on either the hash or the order of keys be unchanging,\nso having types with interior mutability is a bad idea.\n\n### Known problems\n\n#### False Positives\nIt's correct to use a struct that contains interior mutability as a key when its\nimplementation of `Hash` or `Ord` doesn't access any of the interior mutable types.\nHowever, this lint is unable to recognize this, so it will often cause false positives in\nthese cases.\n\n#### False Negatives\nThis lint does not follow raw pointers (`*const T` or `*mut T`) as `Hash` and `Ord`\napply only to the **address** of the contained value. This can cause false negatives for\ncustom collections that use raw pointers internally.\n\n### Example\n```rust\nuse std::cmp::{PartialEq, Eq};\nuse std::collections::HashSet;\nuse std::hash::{Hash, Hasher};\nuse std::sync::atomic::AtomicUsize;\n\nstruct Bad(AtomicUsize);\nimpl PartialEq for Bad {\n    fn eq(&self, rhs: &Self) -> bool {\n         ..\n    }\n}\n\nimpl Eq for Bad {}\n\nimpl Hash for Bad {\n    fn hash<H: Hasher>(&self, h: &mut H) {\n        ..\n    }\n}\n\nfn main() {\n    let _: HashSet<Bad> = HashSet::new();\n}\n```\n\n### Configuration\n\n- `ignore-interior-mutability`:  A list of paths to types that should be treated as if they do not contain interior mutability\n\n\n   (default: `[\"bytes::Bytes\"]`)\n",
