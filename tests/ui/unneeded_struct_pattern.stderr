@@ -1,0 +1,83 @@
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:11:13
+   |
+LL |         None {} => 0,
+   |             ^^^ help: remove the struct pattern
+   |
+   = note: `-D clippy::unneeded-struct-pattern` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unneeded_struct_pattern)]`
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:16:13
+   |
+LL |         None { .. } => 0,
+   |             ^^^^^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:26:18
+   |
+LL |         Some(None {}) => 0,
+   |                  ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:27:13
+   |
+LL |         None {} => 0,
+   |             ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:44:27
+   |
+LL |         Custom::NoBrackets {} => 0,                  // Should be fixed
+   |                           ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:45:40
+   |
+LL |         Custom::NoBracketsNonExhaustive {} => 0,     // Should be fixed
+   |                                        ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:52:27
+   |
+LL |         Custom::NoBrackets { .. } => 0,              // Should be fixed
+   |                           ^^^^^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:53:40
+   |
+LL |         Custom::NoBracketsNonExhaustive { .. } => 0, // Should be fixed
+   |                                        ^^^^^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:58:27
+   |
+LL |         Custom::NoBrackets {} if true => 0, // Should be fixed
+   |                           ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:63:27
+   |
+LL |         Custom::NoBrackets {} | Custom::NoBracketsNonExhaustive {} => 0, // Should be fixed
+   |                           ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:63:64
+   |
+LL |         Custom::NoBrackets {} | Custom::NoBracketsNonExhaustive {} => 0, // Should be fixed
+   |                                                                ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:79:23
+   |
+LL |         ExhaustiveUnit { .. } => 0,
+   |                       ^^^^^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:85:23
+   |
+LL |         ExhaustiveUnit {} => 0,
+   |                       ^^^ help: remove the struct pattern
+
+error: aborting due to 13 previous errors
+

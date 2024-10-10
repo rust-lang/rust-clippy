@@ -368,6 +368,7 @@ mod unnecessary_owned_empty_strings;
 mod unnecessary_self_imports;
 mod unnecessary_struct_initialization;
 mod unnecessary_wraps;
+mod unneeded_struct_pattern;
 mod unnested_or_patterns;
 mod unsafe_removed_from_name;
 mod unused_async;
@@ -944,5 +945,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(manual_is_power_of_two::ManualIsPowerOfTwo));
     store.register_late_pass(|_| Box::new(non_zero_suggestions::NonZeroSuggestions));
     store.register_late_pass(move |_| Box::new(unused_trait_names::UnusedTraitNames::new(conf)));
+    store.register_late_pass(|_| Box::new(unneeded_struct_pattern::UnneededStructPattern));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
