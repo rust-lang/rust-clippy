@@ -1,0 +1,23 @@
+error: manually reimplementing `ilog2`
+  --> tests/ui/manual_ilog2.rs:5:13
+   |
+LL |     let _ = 31 - a.leading_zeros();
+   |             ^^^^^^^^^^^^^^^^^^^^^^ help: consider using .ilog2(): `a.ilog2()`
+   |
+   = note: `-D clippy::manual-ilog2` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_ilog2)]`
+
+error: manually reimplementing `ilog2`
+  --> tests/ui/manual_ilog2.rs:6:13
+   |
+LL |     let _ = a.ilog(2);
+   |             ^^^^^^^^^ help: consider using .ilog2(): `a.ilog2()`
+
+error: manually reimplementing `ilog2`
+  --> tests/ui/manual_ilog2.rs:9:13
+   |
+LL |     let _ = 63 - b.leading_zeros();
+   |             ^^^^^^^^^^^^^^^^^^^^^^ help: consider using .ilog2(): `b.ilog2()`
+
+error: aborting due to 3 previous errors
+
