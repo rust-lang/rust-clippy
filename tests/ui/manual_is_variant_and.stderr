@@ -41,14 +41,20 @@ LL |           .map(|x| x > 1)
 LL | |         .unwrap_or_default();
    | |____________________________^ help: use: `is_some_and(|x| x > 1)`
 
+error: called `map_or(false, <f>)` on an `Option` value
+  --> tests/ui/manual_is_variant_and.rs:26:17
+   |
+LL |     let _ = opt.map_or(false, |x| x > 1);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `is_some_and(|x| x > 1)`
+
 error: called `map(<f>).unwrap_or_default()` on an `Option` value
-  --> tests/ui/manual_is_variant_and.rs:30:18
+  --> tests/ui/manual_is_variant_and.rs:32:18
    |
 LL |     let _ = opt2.map(char::is_alphanumeric).unwrap_or_default(); // should lint
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `is_some_and(char::is_alphanumeric)`
 
 error: called `map(<f>).unwrap_or_default()` on a `Result` value
-  --> tests/ui/manual_is_variant_and.rs:39:17
+  --> tests/ui/manual_is_variant_and.rs:41:17
    |
 LL |       let _ = res.map(|x| {
    |  _________________^
@@ -65,18 +71,24 @@ LL ~     });
    |
 
 error: called `map(<f>).unwrap_or_default()` on a `Result` value
-  --> tests/ui/manual_is_variant_and.rs:43:17
+  --> tests/ui/manual_is_variant_and.rs:45:17
    |
 LL |       let _ = res.map(|x| x > 1)
    |  _________________^
 LL | |         .unwrap_or_default();
    | |____________________________^ help: use: `is_ok_and(|x| x > 1)`
 
+error: called `map_or(false, <f>)` on a `Result` value
+  --> tests/ui/manual_is_variant_and.rs:48:17
+   |
+LL |     let _ = res.map_or(false, |x| x > 1);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `is_ok_and(|x| x > 1)`
+
 error: called `map(<f>).unwrap_or_default()` on a `Result` value
-  --> tests/ui/manual_is_variant_and.rs:50:18
+  --> tests/ui/manual_is_variant_and.rs:54:18
    |
 LL |     let _ = res2.map(char::is_alphanumeric).unwrap_or_default(); // should lint
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `is_ok_and(char::is_alphanumeric)`
 
-error: aborting due to 8 previous errors
+error: aborting due to 10 previous errors
 
