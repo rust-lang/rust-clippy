@@ -1,7 +1,7 @@
 use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet;
-use clippy_utils::ty::is_type_diagnostic_item;
+use clippy_utils::ty::get_type_diagnostic_name;
 use clippy_utils::{path_to_local_id, peel_blocks};
 use rustc_errors::Applicability;
 use rustc_hir as hir;
@@ -9,9 +9,15 @@ use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_span::{Symbol, sym};
 
-use super::OPTION_AS_REF_DEREF;
+use super::{OPTION_AS_REF_DEREF, RESULT_AS_REF_DEREF};
 
-/// lint use of `_.as_ref().map(Deref::deref)` for `Option`s
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Target {
+    Option,
+    Result,
+}
+
+/// lint use of `_.as_ref().map(Deref::deref)` for `Option`s and `Result`s
 pub(super) fn check(
     cx: &LateContext<'_>,
     expr: &hir::Expr<'_>,
@@ -20,16 +26,16 @@ pub(super) fn check(
     is_mut: bool,
     msrv: &Msrv,
 ) {
-    if !msrv.meets(msrvs::OPTION_AS_DEREF) {
-        return;
-    }
-
     let same_mutability = |m| (is_mut && m == &hir::Mutability::Mut) || (!is_mut && m == &hir::Mutability::Not);
 
-    let option_ty = cx.typeck_results().expr_ty(as_ref_recv);
-    if !is_type_diagnostic_item(cx, option_ty, sym::Option) {
-        return;
-    }
+    let target = {
+        let target_ty = cx.typeck_results().expr_ty(as_ref_recv);
+        match get_type_diagnostic_name(cx, target_ty) {
+            Some(sym::Option) if msrv.meets(msrvs::OPTION_AS_DEREF) => Target::Option,
+            Some(sym::Result) if msrv.meets(msrvs::RESULT_AS_DEREF) => Target::Result,
+            _ => return,
+        }
+    };
 
     let deref_aliases: [Symbol; 7] = [
         sym::cstring_as_c_str,
@@ -103,10 +109,20 @@ pub(super) fn check(
         let hint = format!("{}.{method_hint}()", snippet(cx, as_ref_recv.span, ".."));
         let suggestion = format!("consider using {method_hint}");
 
-        let msg = format!("called `{current_method}` on an `Option` value");
+        let target_name_with_article = match target {
+            Target::Option => "an `Option`",
+            Target::Result => "a `Result`",
+        };
+        let msg = format!("called `{current_method}` on {target_name_with_article} value");
+
+        let lint = match target {
+            Target::Option => OPTION_AS_REF_DEREF,
+            Target::Result => RESULT_AS_REF_DEREF,
+        };
+
         span_lint_and_sugg(
             cx,
-            OPTION_AS_REF_DEREF,
+            lint,
             expr.span,
             msg,
             suggestion,
