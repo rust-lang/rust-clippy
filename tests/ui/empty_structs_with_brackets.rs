@@ -1,24 +1,48 @@
-#![warn(clippy::empty_structs_with_brackets)]
+//@aux-build:proc_macros.rs
+#![deny(clippy::empty_structs_with_brackets)]
 #![allow(dead_code)]
 
-pub struct MyEmptyStruct {} // should trigger lint
-struct MyEmptyTupleStruct(); // should trigger lint
+extern crate proc_macros;
+use proc_macros::{external, with_span};
 
-// should not trigger lint
+pub struct MyEmptyStruct {} //~ empty_structs_with_brackets
+struct MyEmptyTupleStruct(); //~ empty_structs_with_brackets
+
+#[rustfmt::skip]
+struct WithWhitespace {  } //~ empty_structs_with_brackets
+
+struct WithComment {
+    // Some long explanation here
+}
+
 struct MyCfgStruct {
     #[cfg(feature = "thisisneverenabled")]
     field: u8,
 }
 
-// should not trigger lint
 struct MyCfgTupleStruct(#[cfg(feature = "thisisneverenabled")] u8);
 
-// should not trigger lint
 struct MyStruct {
     field: u8,
 }
-struct MyTupleStruct(usize, String); // should not trigger lint
-struct MySingleTupleStruct(usize); // should not trigger lint
-struct MyUnitLikeStruct; // should not trigger lint
+struct MyTupleStruct(usize, String);
+struct MySingleTupleStruct(usize);
+struct MyUnitLikeStruct;
+
+external! {
+    struct External {}
+}
+
+with_span! {
+    span
+    struct ProcMacro {}
+}
+
+macro_rules! m {
+    ($($name:ident: $ty:ty),*) => {
+        struct Macro { $($name: $ty),* }
+    }
+}
+m! {}
 
 fn main() {}
