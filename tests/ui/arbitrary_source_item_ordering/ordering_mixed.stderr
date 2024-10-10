@@ -1,0 +1,253 @@
+error: incorrect ordering of items (must be alphabetically ordered)
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:17:14
+   |
+LL | use std::rc::Weak;
+   |              ^^^^
+   |
+note: should be placed before `SNAKE_CASE`
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:15:7
+   |
+LL | const SNAKE_CASE: &str = "zzzzzzzz";
+   |       ^^^^^^^^^^
+   = note: `-D clippy::arbitrary-source-item-ordering` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::arbitrary_source_item_ordering)]`
+
+error: incorrect ordering of items (must be alphabetically ordered)
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:60:1
+   |
+LL | / impl CloneSelf for StructOrdered {
+LL | |     fn clone_self(&self) -> Self {
+LL | |         Self {
+LL | |             a: true,
+...  |
+LL | |     }
+LL | | }
+   | |_^
+   |
+note: should be placed before the following item
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:50:1
+   |
+LL | / impl Default for StructOrdered {
+LL | |     fn default() -> Self {
+LL | |         Self {
+LL | |             a: true,
+...  |
+LL | |     }
+LL | | }
+   | |_^
+
+error: incorrect ordering of items (must be alphabetically ordered)
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:80:19
+   |
+LL | #[derive(Default, Clone)]
+   |                   ^^^^^
+   |
+note: should be placed before the following item
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:80:10
+   |
+LL | #[derive(Default, Clone)]
+   |          ^^^^^^^
+   = note: this error originates in the derive macro `Clone` which comes from the expansion of the derive macro `Default` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: incorrect ordering of items (must be alphabetically ordered)
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:132:7
+   |
+LL | const ZIS_SHOULD_BE_REALLY_EARLY: () = ();
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: should be placed before `TraitUnorderedItemKinds`
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:120:7
+   |
+LL | trait TraitUnorderedItemKinds {
+   |       ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: incorrect ordering of items (must be alphabetically ordered)
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:147:1
+   |
+LL | impl BasicEmptyTrait for StructOrdered {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: should be placed before the following item
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:134:1
+   |
+LL | / impl TraitUnordered for StructUnordered {
+LL | |     const A: bool = false;
+LL | |     const C: bool = false;
+LL | |     const B: bool = false;
+...  |
+LL | |     fn b() {}
+LL | | }
+   | |_^
+
+error: incorrect ordering of items (must be alphabetically ordered)
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:166:5
+   |
+LL | mod this_is_in_the_wrong_position {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: should be placed before `main`
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:161:4
+   |
+LL | fn main() {
+   |    ^^^^
+
+error: incorrect ordering of items (must be alphabetically ordered)
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:171:19
+   |
+LL | #[derive(Default, std::clone::Clone)]
+   |                   ^^^^^^^^^^^^^^^^^
+   |
+note: should be placed before the following item
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:171:10
+   |
+LL | #[derive(Default, std::clone::Clone)]
+   |          ^^^^^^^
+   = note: this error originates in the derive macro `std::clone::Clone` which comes from the expansion of the derive macro `Default` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: incorrect ordering of items (must be alphabetically ordered)
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:174:7
+   |
+LL | const ZIS_SHOULD_BE_EVEN_EARLIER: () = ();
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: should be placed before the following item
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:171:19
+   |
+LL | #[derive(Default, std::clone::Clone)]
+   |                   ^^^^^^^^^^^^^^^^^
+   = note: this error originates in the derive macro `std::clone::Clone` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: incorrect ordering of items (must be alphabetically ordered)
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:8:11
+   |
+LL |     const AFTER: i8 = 0;
+   |           ^^^^^
+   |
+note: should be placed before `BEFORE`
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:6:11
+   |
+LL |     const BEFORE: i8 = 0;
+   |           ^^^^^^
+
+error: incorrect ordering of items (must be alphabetically ordered)
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:34:5
+   |
+LL |     B,
+   |     ^
+   |
+note: should be placed before `C`
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:33:5
+   |
+LL |     C,
+   |     ^
+
+error: incorrect ordering of items (must be alphabetically ordered)
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:84:5
+   |
+LL |     b: bool,
+   |     ^
+   |
+note: should be placed before `c`
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:83:5
+   |
+LL |     c: bool,
+   |     ^
+
+error: incorrect ordering of items (must be alphabetically ordered)
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:92:5
+   |
+LL |     b: bool,
+   |     ^
+   |
+note: should be placed before `c`
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:91:5
+   |
+LL |     c: bool,
+   |     ^
+
+error: incorrect ordering of items (must be alphabetically ordered)
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:111:11
+   |
+LL |     const B: bool;
+   |           ^
+   |
+note: should be placed before `C`
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:110:11
+   |
+LL |     const C: bool;
+   |           ^
+
+error: incorrect ordering of items (must be alphabetically ordered)
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:117:8
+   |
+LL |     fn b();
+   |        ^
+   |
+note: should be placed before `c`
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:116:8
+   |
+LL |     fn c();
+   |        ^
+
+error: incorrect ordering of trait items (defined order: [Const, Type, Fn])
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:123:5
+   |
+LL |     const A: bool;
+   |     ^^^^^^^^^^^^^^
+   |
+note: should be placed before `SomeType`
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:121:5
+   |
+LL |     type SomeType;
+   |     ^^^^^^^^^^^^^^
+
+error: incorrect ordering of items (must be alphabetically ordered)
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:137:11
+   |
+LL |     const B: bool = false;
+   |           ^
+   |
+note: should be placed before `C`
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:136:11
+   |
+LL |     const C: bool = false;
+   |           ^
+
+error: incorrect ordering of items (must be alphabetically ordered)
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:143:8
+   |
+LL |     fn b() {}
+   |        ^
+   |
+note: should be placed before `c`
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:142:8
+   |
+LL |     fn c() {}
+   |        ^
+
+error: incorrect ordering of impl items (defined order: [Const, Type, Fn])
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:152:5
+   |
+LL |     const A: bool = false;
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: should be placed before `SomeType`
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:150:5
+   |
+LL |     type SomeType = ();
+   |     ^^^^^^^^^^^^^^^^^^^
+
+error: incorrect ordering of items (must be alphabetically ordered)
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:168:11
+   |
+LL |     const A: i8 = 1;
+   |           ^
+   |
+note: should be placed before `C`
+  --> tests/ui/arbitrary_source_item_ordering/ordering_mixed.rs:167:11
+   |
+LL |     const C: i8 = 0;
+   |           ^
+
+error: aborting due to 19 previous errors
+
