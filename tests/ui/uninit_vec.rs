@@ -1,5 +1,5 @@
 #![warn(clippy::uninit_vec)]
-
+#![allow(clippy::bool_assert_comparison)]
 use std::cell::UnsafeCell;
 use std::mem::MaybeUninit;
 
