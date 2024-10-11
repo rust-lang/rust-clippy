@@ -54,7 +54,7 @@ const DEFAULT_MODULE_ITEM_ORDERING_GROUPS: &[(&str, &[SourceItemOrderingModuleIt
     #[allow(clippy::enum_glob_use)] // Very local glob use for legibility.
     use SourceItemOrderingModuleItemKind::*;
     &[
-        ("modules", &[Mod, ForeignMod]),
+        ("modules", &[ExternCrate, Mod, ForeignMod]),
         ("use", &[Use]),
         ("macros", &[Macro]),
         ("global_asm", &[GlobalAsm]),
