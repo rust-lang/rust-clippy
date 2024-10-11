@@ -295,13 +295,14 @@ impl<'de> Deserialize<'de> for SourceItemOrderingModuleItemGroupings {
 
             Ok(Self { groups, lut })
         } else if items_total != all_items.len() {
-            Err(de::Error::custom(
-                "Some module item kinds were configured more than once in the source ordering configuration.",
-            ))
+            Err(de::Error::custom(format!(
+                "Some module item kinds were configured more than once, or were missing, in the source ordering configuration. \
+                The module item kinds are: {all_items:?}"
+            )))
         } else {
             Err(de::Error::custom(format!(
                 "Not all module item kinds were part of the configured source ordering rule. \
-                All item kinds must be provided in the config, otherwise the required source ordering would remain ambiguous.\
+                All item kinds must be provided in the config, otherwise the required source ordering would remain ambiguous. \
                 The module item kinds are: {all_items:?}"
             )))
         }
@@ -381,13 +382,14 @@ impl<'de> Deserialize<'de> for SourceItemOrderingTraitAssocItemKinds {
         if expected_items.is_empty() && items.len() == all_items.len() {
             Ok(Self(items))
         } else if items.len() != all_items.len() {
-            Err(de::Error::custom(
-                "Some associated item kinds were configured more than once in the source ordering configuration.",
-            ))
+            Err(de::Error::custom(format!(
+                "Some trait associated item kinds were configured more than once, or were missing, in the source ordering configuration. \
+                The trait associated item kinds are: {all_items:?}",
+            )))
         } else {
             Err(de::Error::custom(format!(
                 "Not all trait associated item kinds were part of the configured source ordering rule. \
-                All item kinds must be provided in the config, otherwise the required source ordering would remain ambiguous.\
+                All item kinds must be provided in the config, otherwise the required source ordering would remain ambiguous. \
                 The trait associated item kinds are: {all_items:?}"
             )))
         }

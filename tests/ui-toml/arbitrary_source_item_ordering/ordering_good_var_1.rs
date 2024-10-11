@@ -1,20 +1,32 @@
+//@aux-build:../../ui/auxiliary/proc_macros.rs
+//@revisions: var_1
+//@[var_1] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/arbitrary_source_item_ordering/var_1
+
 #![allow(dead_code)]
 #![warn(clippy::arbitrary_source_item_ordering)]
 
 /// This module gets linted before clippy gives up.
 mod i_am_just_right {
-    const BEFORE: i8 = 0;
-
     const AFTER: i8 = 0;
+
+    const BEFORE: i8 = 0;
+}
+
+/// Since the upper module passes linting, the lint now recurses into this module.
+mod this_is_in_the_wrong_position {
+    const A: i8 = 1;
+    const C: i8 = 0;
 }
 
 // Use statements should not be linted internally - this is normally auto-sorted using rustfmt.
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
 use std::sync::{Arc, Barrier, RwLock};
 
 const SNAKE_CASE: &str = "zzzzzzzz";
 
-use std::rc::Weak;
+const ZIS_SHOULD_BE_EVEN_EARLIER: () = ();
+
+const ZIS_SHOULD_BE_REALLY_EARLY: () = ();
 
 trait BasicEmptyTrait {}
 
@@ -30,15 +42,15 @@ enum EnumOrdered {
 
 enum EnumUnordered {
     A,
-    C,
     B,
+    C,
 }
 
 #[allow(clippy::arbitrary_source_item_ordering)]
 enum EnumUnorderedAllowed {
     A,
-    C,
     B,
+    C,
 }
 
 struct StructOrdered {
@@ -47,8 +59,10 @@ struct StructOrdered {
     c: bool,
 }
 
-impl Default for StructOrdered {
-    fn default() -> Self {
+impl BasicEmptyTrait for StructOrdered {}
+
+impl CloneSelf for StructOrdered {
+    fn clone_self(&self) -> Self {
         Self {
             a: true,
             b: true,
@@ -57,8 +71,8 @@ impl Default for StructOrdered {
     }
 }
 
-impl CloneSelf for StructOrdered {
-    fn clone_self(&self) -> Self {
+impl Default for StructOrdered {
+    fn default() -> Self {
         Self {
             a: true,
             b: true,
@@ -77,101 +91,80 @@ impl std::clone::Clone for StructOrdered {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Clone, Default)]
 struct StructUnordered {
     a: bool,
-    c: bool,
     b: bool,
+    c: bool,
     d: bool,
+}
+
+impl TraitUnordered for StructUnordered {
+    fn a() {}
+    fn b() {}
+    fn c() {}
+
+    type SomeType = ();
+
+    const A: bool = false;
+    const B: bool = false;
+    const C: bool = false;
+}
+
+impl TraitUnorderedItemKinds for StructUnordered {
+    fn a() {}
+
+    type SomeType = ();
+
+    const A: bool = false;
 }
 
 struct StructUnorderedGeneric<T> {
     _1: std::marker::PhantomData<T>,
     a: bool,
-    c: bool,
     b: bool,
+    c: bool,
     d: bool,
 }
 
 trait TraitOrdered {
-    const A: bool;
-    const B: bool;
-    const C: bool;
-
-    type SomeType;
-
     fn a();
     fn b();
     fn c();
+
+    type SomeType;
+
+    const A: bool;
+    const B: bool;
+    const C: bool;
 }
 
 trait TraitUnordered {
-    const A: bool;
-    const C: bool;
-    const B: bool;
+    fn a();
+    fn b();
+    fn c();
 
     type SomeType;
 
-    fn a();
-    fn c();
-    fn b();
+    const A: bool;
+    const B: bool;
+    const C: bool;
 }
 
 trait TraitUnorderedItemKinds {
+    fn a();
+
     type SomeType;
 
     const A: bool;
-    const B: bool;
-    const C: bool;
-
-    fn a();
-    fn b();
-    fn c();
 }
 
-const ZIS_SHOULD_BE_REALLY_EARLY: () = ();
-
-impl TraitUnordered for StructUnordered {
-    const A: bool = false;
-    const C: bool = false;
-    const B: bool = false;
-
-    type SomeType = ();
-
-    fn a() {}
-    fn c() {}
-    fn b() {}
-}
-
-// Trait impls should be located just after the type they implement it for.
-impl BasicEmptyTrait for StructOrdered {}
-
-impl TraitUnorderedItemKinds for StructUnordered {
-    type SomeType = ();
-
-    const A: bool = false;
-    const B: bool = false;
-    const C: bool = false;
-
-    fn a() {}
-    fn b() {}
-    fn c() {}
-}
+#[derive(std::clone::Clone, Default)]
+struct ZisShouldBeBeforeZeMainFn;
 
 fn main() {
     // test code goes here
 }
-
-/// Note that the linting pass is stopped before recursing into this module.
-mod this_is_in_the_wrong_position {
-    const C: i8 = 0;
-    const A: i8 = 1;
-}
-
-#[derive(Default, std::clone::Clone)]
-struct ZisShouldBeBeforeZeMainFn;
-
-const ZIS_SHOULD_BE_EVEN_EARLIER: () = ();
 
 #[cfg(test)]
 mod test {
