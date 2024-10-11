@@ -1,0 +1,2 @@
+trait-assoc-item-kinds-order = ["const", "type", "fn"]
+source-item-ordering = ["enum", "impl", "module", "struct", "trait"]
