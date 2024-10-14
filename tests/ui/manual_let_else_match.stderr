@@ -55,12 +55,12 @@ LL | |     };
 error: this could be rewritten as `let...else`
   --> tests/ui/manual_let_else_match.rs:73:5
    |
-LL | /     let v = match f().map_err(|_| ()) {
+LL | /     let v = match f().map_err(std::mem::drop) {
 LL | |
 LL | |         Ok(v) => v,
 LL | |         Err(()) => return,
 LL | |     };
-   | |______^ help: consider writing: `let Ok(v) = f().map_err(|_| ()) else { return };`
+   | |______^ help: consider writing: `let Ok(v) = f().map_err(std::mem::drop) else { return };`
 
 error: this could be rewritten as `let...else`
   --> tests/ui/manual_let_else_match.rs:81:5

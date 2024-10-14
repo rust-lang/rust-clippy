@@ -8,7 +8,8 @@
     clippy::needless_pass_by_value,
     clippy::unnecessary_wraps,
     dyn_drop,
-    clippy::get_first
+    clippy::get_first,
+    clippy::toilet_closures
 )]
 
 extern crate proc_macros;

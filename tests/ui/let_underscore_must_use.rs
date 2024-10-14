@@ -96,7 +96,7 @@ fn main() {
     let _ = a.is_ok();
     //~^ ERROR: non-binding `let` on a result of a `#[must_use]` function
 
-    let _ = a.map(|_| ());
+    let _ = a.map(drop);
     //~^ ERROR: non-binding `let` on an expression with `#[must_use]` type
 
     let _ = a;

@@ -83,8 +83,8 @@ LL |     let _ = a.is_ok();
 error: non-binding `let` on an expression with `#[must_use]` type
   --> tests/ui/let_underscore_must_use.rs:99:5
    |
-LL |     let _ = a.map(|_| ());
-   |     ^^^^^^^^^^^^^^^^^^^^^^
+LL |     let _ = a.map(drop);
+   |     ^^^^^^^^^^^^^^^^^^^^
    |
    = help: consider explicitly using expression value
 

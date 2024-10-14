@@ -153,7 +153,9 @@ impl RetReplacement<'_> {
     fn applicability(&self) -> Applicability {
         match self {
             Self::Expr(_, ap) | Self::NeedsPar(_, ap) => *ap,
-            _ => Applicability::MachineApplicable,
+            Self::Empty | Self::Unit => Applicability::MachineApplicable,
+            // This should be MachineApplicable, but it can trigger `toilet_closures`.
+            Self::Block => Applicability::MaybeIncorrect,
         }
     }
 }

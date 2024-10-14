@@ -1,0 +1,29 @@
+error: defined a 'toilet closure'
+  --> tests/ui/toilet_closures.rs:5:26
+   |
+LL |     let toliet: fn(u8) = |_| ();
+   |                          ^^^^^^ help: replace with: `drop`
+   |
+   = note: `-D clippy::toilet-closures` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::toilet_closures)]`
+
+error: defined a 'toilet closure'
+  --> tests/ui/toilet_closures.rs:7:35
+   |
+LL |     let toliet_with_arg: fn(u8) = |_to_drop| ();
+   |                                   ^^^^^^^^^^^^^ help: replace with: `drop`
+
+error: defined a 'toilet closure'
+  --> tests/ui/toilet_closures.rs:9:41
+   |
+LL |     let toliet_with_typed_arg: fn(u8) = |_to_drop: u8| ();
+   |                                         ^^^^^^^^^^^^^^^^^ help: replace with: `drop::<u8>`
+
+error: defined a 'toilet closure'
+  --> tests/ui/toilet_closures.rs:11:38
+   |
+LL |     let toliet_with_braces: fn(u8) = |_| {};
+   |                                      ^^^^^^ help: replace with: `drop`
+
+error: aborting due to 4 previous errors
+

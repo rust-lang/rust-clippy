@@ -49,7 +49,7 @@ fn fire() {
     let Ok(v) = f() else { return };
 
     // Err(()) is an allowed pattern
-    let Ok(v) = f().map_err(|_| ()) else { return };
+    let Ok(v) = f().map_err(std::mem::drop) else { return };
 
     let f = Variant::Bar(1);
 

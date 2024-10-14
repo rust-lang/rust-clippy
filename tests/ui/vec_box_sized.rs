@@ -83,6 +83,7 @@ mod inner_mod {
 }
 
 // https://github.com/rust-lang/rust-clippy/issues/11417
+#[allow(clippy::toilet_closures)]
 fn in_closure() {
     let _ = |_: Vec<Box<dyn ToString>>| {};
 }

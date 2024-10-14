@@ -11,7 +11,8 @@
     clippy::too_many_arguments,
     clippy::borrow_deref_ref,
     clippy::let_unit_value,
-    clippy::needless_lifetimes
+    clippy::needless_lifetimes,
+    clippy::toilet_closures
 )]
 
 trait CallableStr {

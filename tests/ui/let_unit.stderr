@@ -14,7 +14,7 @@ LL | /     let _ = v
 LL | |         .into_iter()
 LL | |         .map(|i| i * 2)
 LL | |         .filter(|i| i % 2 == 0)
-LL | |         .map(|_| ())
+LL | |         .map(drop)
 LL | |         .next()
 LL | |         .unwrap();
    | |__________________^
@@ -25,7 +25,7 @@ LL ~     v
 LL +         .into_iter()
 LL +         .map(|i| i * 2)
 LL +         .filter(|i| i % 2 == 0)
-LL +         .map(|_| ())
+LL +         .map(drop)
 LL +         .next()
 LL +         .unwrap();
    |

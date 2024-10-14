@@ -1,5 +1,5 @@
 #![warn(clippy::all)]
-#![allow(clippy::boxed_local, clippy::disallowed_names)]
+#![allow(clippy::boxed_local, clippy::disallowed_names, clippy::toilet_closures)]
 
 pub struct MyStruct;
 

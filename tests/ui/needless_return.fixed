@@ -128,7 +128,7 @@ fn test_return_in_macro() {
 }
 
 mod issue6501 {
-    #[allow(clippy::unnecessary_lazy_evaluations)]
+    #[allow(clippy::unnecessary_lazy_evaluations, clippy::toilet_closures)]
     fn foo(bar: Result<(), ()>) {
         bar.unwrap_or_else(|_| {})
     }

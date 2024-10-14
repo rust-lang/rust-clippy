@@ -11,8 +11,7 @@
 #![rustfmt::skip]
 
 #![deny(clippy::unused_unit)]
-#![allow(dead_code)]
-#![allow(clippy::from_over_into)]
+#![allow(dead_code, clippy::from_over_into, clippy::toilet_closures)]
 
 struct Unitter;
 impl Unitter {

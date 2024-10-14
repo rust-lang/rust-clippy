@@ -70,7 +70,7 @@ fn fire() {
     };
 
     // Err(()) is an allowed pattern
-    let v = match f().map_err(|_| ()) {
+    let v = match f().map_err(std::mem::drop) {
         //~^ ERROR: this could be rewritten as `let...else`
         Ok(v) => v,
         Err(()) => return,

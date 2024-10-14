@@ -6,28 +6,28 @@ use std::io::{self, BufRead, BufReader};
 fn main() -> io::Result<()> {
     let f = std::fs::File::open("/")?;
     // Lint
-    BufReader::new(f).lines().filter_map(Result::ok).for_each(|_| ());
+    BufReader::new(f).lines().filter_map(Result::ok).for_each(drop);
     // Lint
     let f = std::fs::File::open("/")?;
-    BufReader::new(f).lines().flat_map(Result::ok).for_each(|_| ());
+    BufReader::new(f).lines().flat_map(Result::ok).for_each(drop);
     // Lint
     let f = std::fs::File::open("/")?;
-    BufReader::new(f).lines().flatten().for_each(|_| ());
+    BufReader::new(f).lines().flatten().for_each(drop);
 
     let s = "foo\nbar\nbaz\n";
     // Lint
-    io::stdin().lines().filter_map(Result::ok).for_each(|_| ());
+    io::stdin().lines().filter_map(Result::ok).for_each(drop);
     // Lint
-    io::stdin().lines().filter_map(|x| x.ok()).for_each(|_| ());
+    io::stdin().lines().filter_map(|x| x.ok()).for_each(drop);
     // Lint
-    io::stdin().lines().flatten().for_each(|_| ());
+    io::stdin().lines().flatten().for_each(drop);
     // Do not lint (not a `Lines` iterator)
     io::stdin()
         .lines()
         .map(std::convert::identity)
         .filter_map(|x| x.ok())
-        .for_each(|_| ());
+        .for_each(drop);
     // Do not lint (not a `Result::ok()` extractor)
-    io::stdin().lines().filter_map(|x| x.err()).for_each(|_| ());
+    io::stdin().lines().filter_map(|x| x.err()).for_each(drop);
     Ok(())
 }

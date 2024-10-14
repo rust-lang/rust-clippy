@@ -1,4 +1,4 @@
-#![allow(unused, clippy::map_identity)]
+#![allow(unused, clippy::map_identity, clippy::toilet_closures)]
 #![warn(clippy::unused_enumerate_index)]
 
 use std::iter::Enumerate;

@@ -352,6 +352,7 @@ mod temporary_assignment;
 mod tests_outside_test_module;
 mod to_digit_is_some;
 mod to_string_trait_impl;
+mod toilet_closures;
 mod trailing_empty_array;
 mod trait_bounds;
 mod transmute;
@@ -949,5 +950,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(non_zero_suggestions::NonZeroSuggestions));
     store.register_late_pass(move |_| Box::new(unused_trait_names::UnusedTraitNames::new(conf)));
     store.register_late_pass(|_| Box::new(manual_ignore_case_cmp::ManualIgnoreCaseCmp));
+    store.register_late_pass(|_| Box::new(toilet_closures::ToiletClosures));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }

@@ -19,11 +19,7 @@ fn negative() {
     let _ = (0..3).map(ext_closure).count();
 
     // closure that returns unit
-    let _ = (0..3)
-        .map(|x| {
-            // do nothing
-        })
-        .count();
+    let _ = (0..3).map(std::mem::drop).count();
 
     // external function
     let _ = (0..3).map(do_something).count();

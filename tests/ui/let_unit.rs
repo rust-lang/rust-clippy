@@ -62,7 +62,7 @@ fn multiline_sugg() {
         .into_iter()
         .map(|i| i * 2)
         .filter(|i| i % 2 == 0)
-        .map(|_| ())
+        .map(drop)
         .next()
         .unwrap();
 }
