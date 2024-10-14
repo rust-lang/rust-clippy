@@ -37,19 +37,6 @@ LL | | }
    | |_^
 
 error: incorrect ordering of items (must be alphabetically ordered)
-  --> tests/ui-toml/arbitrary_source_item_ordering/ordering_mixed.rs:84:19
-   |
-LL | #[derive(Default, Clone)]
-   |                   ^^^^^
-   |
-note: should be placed before the following item
-  --> tests/ui-toml/arbitrary_source_item_ordering/ordering_mixed.rs:84:10
-   |
-LL | #[derive(Default, Clone)]
-   |          ^^^^^^^
-   = note: this error originates in the derive macro `Clone` which comes from the expansion of the derive macro `Default` (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error: incorrect ordering of items (must be alphabetically ordered)
   --> tests/ui-toml/arbitrary_source_item_ordering/ordering_mixed.rs:136:7
    |
 LL | const ZIS_SHOULD_BE_REALLY_EARLY: () = ();
@@ -92,30 +79,16 @@ LL | fn main() {
    |    ^^^^
 
 error: incorrect ordering of items (must be alphabetically ordered)
-  --> tests/ui-toml/arbitrary_source_item_ordering/ordering_mixed.rs:175:19
-   |
-LL | #[derive(Default, std::clone::Clone)]
-   |                   ^^^^^^^^^^^^^^^^^
-   |
-note: should be placed before the following item
-  --> tests/ui-toml/arbitrary_source_item_ordering/ordering_mixed.rs:175:10
-   |
-LL | #[derive(Default, std::clone::Clone)]
-   |          ^^^^^^^
-   = note: this error originates in the derive macro `std::clone::Clone` which comes from the expansion of the derive macro `Default` (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error: incorrect ordering of items (must be alphabetically ordered)
   --> tests/ui-toml/arbitrary_source_item_ordering/ordering_mixed.rs:178:7
    |
 LL | const ZIS_SHOULD_BE_EVEN_EARLIER: () = ();
    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-note: should be placed before the following item
-  --> tests/ui-toml/arbitrary_source_item_ordering/ordering_mixed.rs:175:19
+note: should be placed before `ZisShouldBeBeforeZeMainFn`
+  --> tests/ui-toml/arbitrary_source_item_ordering/ordering_mixed.rs:176:8
    |
-LL | #[derive(Default, std::clone::Clone)]
-   |                   ^^^^^^^^^^^^^^^^^
-   = note: this error originates in the derive macro `std::clone::Clone` (in Nightly builds, run with -Z macro-backtrace for more info)
+LL | struct ZisShouldBeBeforeZeMainFn;
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: incorrect ordering of items (must be alphabetically ordered)
   --> tests/ui-toml/arbitrary_source_item_ordering/ordering_mixed.rs:12:11
@@ -249,5 +222,5 @@ note: should be placed before `C`
 LL |     const C: i8 = 0;
    |           ^
 
-error: aborting due to 19 previous errors
+error: aborting due to 17 previous errors
 

@@ -8,7 +8,8 @@ use rustc_hir::{
     AssocItemKind, FieldDef, HirId, ImplItemRef, IsAuto, Item, ItemKind, Mod, QPath, TraitItemRef, TyKind, UseKind,
     Variant, VariantData,
 };
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_middle::lint::in_external_macro;
 use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
@@ -161,7 +162,7 @@ impl ArbitrarySourceItemOrdering {
     }
 
     /// Produces a linting warning for incorrectly ordered impl items.
-    fn lint_impl_item<T: rustc_lint::LintContext>(&self, cx: &T, item: &ImplItemRef, before_item: &ImplItemRef) {
+    fn lint_impl_item<T: LintContext>(&self, cx: &T, item: &ImplItemRef, before_item: &ImplItemRef) {
         span_lint_and_note(
             cx,
             ARBITRARY_SOURCE_ITEM_ORDERING,
@@ -176,7 +177,7 @@ impl ArbitrarySourceItemOrdering {
     }
 
     /// Produces a linting warning for incorrectly ordered item members.
-    fn lint_member_name<T: rustc_lint::LintContext>(
+    fn lint_member_name<T: LintContext>(
         cx: &T,
         ident: &rustc_span::symbol::Ident,
         before_ident: &rustc_span::symbol::Ident,
@@ -191,7 +192,7 @@ impl ArbitrarySourceItemOrdering {
         );
     }
 
-    fn lint_member_item<T: rustc_lint::LintContext>(cx: &T, item: &Item<'_>, before_item: &Item<'_>) {
+    fn lint_member_item<T: LintContext>(cx: &T, item: &Item<'_>, before_item: &Item<'_>) {
         let span = if item.ident.as_str().is_empty() {
             &item.span
         } else {
@@ -210,6 +211,11 @@ impl ArbitrarySourceItemOrdering {
             )
         };
 
+        // This catches false positives where generated code gets linted.
+        if span == before_span {
+            return;
+        }
+
         span_lint_and_note(
             cx,
             ARBITRARY_SOURCE_ITEM_ORDERING,
@@ -221,7 +227,7 @@ impl ArbitrarySourceItemOrdering {
     }
 
     /// Produces a linting warning for incorrectly ordered trait items.
-    fn lint_trait_item<T: rustc_lint::LintContext>(&self, cx: &T, item: &TraitItemRef, before_item: &TraitItemRef) {
+    fn lint_trait_item<T: LintContext>(&self, cx: &T, item: &TraitItemRef, before_item: &TraitItemRef) {
         span_lint_and_note(
             cx,
             ARBITRARY_SOURCE_ITEM_ORDERING,
@@ -242,8 +248,12 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
             ItemKind::Enum(enum_def, _generics) if self.enable_ordering_for_enum => {
                 let mut cur_v: Option<&Variant<'_>> = None;
                 for variant in enum_def.variants {
+                    if in_external_macro(cx.sess(), variant.span) {
+                        continue;
+                    }
+
                     if let Some(cur_v) = cur_v {
-                        if cur_v.ident.name.as_str() > variant.ident.name.as_str() {
+                        if cur_v.ident.name.as_str() > variant.ident.name.as_str() && cur_v.span != variant.span {
                             Self::lint_member_name(cx, &variant.ident, &cur_v.ident);
                         }
                     }
@@ -253,8 +263,12 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
             ItemKind::Struct(VariantData::Struct { fields, .. }, _generics) if self.enable_ordering_for_struct => {
                 let mut cur_f: Option<&FieldDef<'_>> = None;
                 for field in *fields {
+                    if in_external_macro(cx.sess(), field.span) {
+                        continue;
+                    }
+
                     if let Some(cur_f) = cur_f {
-                        if cur_f.ident.name.as_str() > field.ident.name.as_str() {
+                        if cur_f.ident.name.as_str() > field.ident.name.as_str() && cur_f.span != field.span {
                             Self::lint_member_name(cx, &field.ident, &cur_f.ident);
                         }
                     }
@@ -267,6 +281,10 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
                 let mut cur_t: Option<&TraitItemRef> = None;
 
                 for item in *item_ref {
+                    if in_external_macro(cx.sess(), item.span) {
+                        continue;
+                    }
+
                     if let Some(cur_t) = cur_t {
                         let cur_t_kind = convert_assoc_item_kind(cur_t.kind);
                         let cur_t_kind_index = self.assoc_types_order.index_of(&cur_t_kind);
@@ -286,6 +304,10 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
                 let mut cur_t: Option<&ImplItemRef> = None;
 
                 for item in trait_impl.items {
+                    if in_external_macro(cx.sess(), item.span) {
+                        continue;
+                    }
+
                     if let Some(cur_t) = cur_t {
                         let cur_t_kind = convert_assoc_item_kind(cur_t.kind);
                         let cur_t_kind_index = self.assoc_types_order.index_of(&cur_t_kind);
@@ -326,6 +348,10 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
         // as no sorting by source map/line of code has to be applied.
         //
         for item in items {
+            if in_external_macro(cx.sess(), item.span) {
+                continue;
+            }
+
             // The following exceptions (skipping with `continue;`) may not be
             // complete, edge cases have not been explored further than what
             // appears in the existing code base.
