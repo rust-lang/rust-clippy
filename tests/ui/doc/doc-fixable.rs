@@ -1,7 +1,7 @@
 
 //! This file tests for the `DOC_MARKDOWN` lint.
 
-#![allow(dead_code, incomplete_features)]
+#![allow(dead_code, incomplete_features, clippy::extern_without_abi)]
 #![warn(clippy::doc_markdown)]
 #![feature(custom_inner_attributes, generic_const_exprs, const_option)]
 #![rustfmt::skip]

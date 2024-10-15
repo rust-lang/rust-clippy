@@ -5456,6 +5456,7 @@ Released 2018-09-13
 [`explicit_write`]: https://rust-lang.github.io/rust-clippy/master/index.html#explicit_write
 [`extend_from_slice`]: https://rust-lang.github.io/rust-clippy/master/index.html#extend_from_slice
 [`extend_with_drain`]: https://rust-lang.github.io/rust-clippy/master/index.html#extend_with_drain
+[`extern_without_abi`]: https://rust-lang.github.io/rust-clippy/master/index.html#extern_without_abi
 [`extra_unused_lifetimes`]: https://rust-lang.github.io/rust-clippy/master/index.html#extra_unused_lifetimes
 [`extra_unused_type_parameters`]: https://rust-lang.github.io/rust-clippy/master/index.html#extra_unused_type_parameters
 [`fallible_impl_from`]: https://rust-lang.github.io/rust-clippy/master/index.html#fallible_impl_from

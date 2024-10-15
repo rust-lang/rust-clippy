@@ -1,6 +1,11 @@
 #![warn(clippy::missing_const_for_fn)]
-#![allow(incomplete_features, clippy::let_and_return, clippy::missing_transmute_annotations)]
-#![allow(unsupported_calling_conventions)]
+#![allow(
+    incomplete_features,
+    unsupported_calling_conventions,
+    clippy::extern_without_abi,
+    clippy::let_and_return,
+    clippy::missing_transmute_annotations
+)]
 #![feature(const_trait_impl)]
 
 use std::mem::transmute;
