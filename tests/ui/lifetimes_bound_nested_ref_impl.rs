@@ -1,4 +1,4 @@
-// This was started as a copy from the fixed output of lifetimes_bound_nested_ref_expl.fixed 
+// This was started as a copy from the fixed output of lifetimes_bound_nested_ref_expl.fixed
 // Adapted: the lint name and the code comments.
 #![warn(clippy::implicit_lifetimes_bound)]
 use core::mem::MaybeUninit;

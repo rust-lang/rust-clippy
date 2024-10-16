@@ -1,3 +1,20 @@
+use clippy_utils::diagnostics::{span_lint_and_note, span_lint_and_then};
+use rustc_ast::visit::FnKind;
+use rustc_ast::{
+    AngleBracketedArg, FnRetTy, GenericArg, GenericArgs, GenericBound, GenericParamKind, Generics, Item, ItemKind,
+    NodeId, Path, Ty, TyKind, WherePredicate,
+};
+use rustc_errors::Applicability;
+use rustc_lint::{EarlyContext, EarlyLintPass, Lint, LintContext};
+use rustc_session::impl_lint_pass;
+use rustc_span::symbol::Ident;
+use rustc_span::{Span, Symbol};
+use std::collections::BTreeMap;
+use std::collections::btree_map::Entry;
+
+extern crate rustc_hash;
+use rustc_hash::FxHashMap;
+
 /// Lints to help dealing with unsoundness due to a compiler bug described here:
 /// <https://github.com/rust-lang/rustc-dev-guide/blob/478a77a902f64e5128e7164e4e8a3980cfe4b133/src/traits/implied-bounds.md>.
 ///
@@ -19,23 +36,6 @@
 /// There is also a reverse lint that suggests to remove lifetime bounds
 /// that are implied by nested references. This reverse lint is intended to be used only
 /// when the compiler has been fixed to handle these lifetime bounds correctly.
-use std::collections::btree_map::Entry;
-use std::collections::BTreeMap;
-
-use clippy_utils::diagnostics::{span_lint_and_note, span_lint_and_then};
-use rustc_ast::visit::FnKind;
-use rustc_ast::{
-    AngleBracketedArg, FnRetTy, GenericArg, GenericArgs, GenericBound, GenericParamKind, Generics, Item, ItemKind,
-    NodeId, Path, Ty, TyKind, WherePredicate,
-};
-use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass, Lint, LintContext};
-use rustc_session::impl_lint_pass;
-use rustc_span::symbol::Ident;
-use rustc_span::{Span, Symbol};
-
-extern crate rustc_hash;
-use rustc_hash::FxHashMap;
 
 declare_clippy_lint! {
     /// ### What it does
