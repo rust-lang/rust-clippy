@@ -10,6 +10,7 @@
 #![feature(assert_matches)]
 #![feature(unwrap_infallible)]
 #![feature(array_windows)]
+#![feature(associated_type_defaults)]
 #![recursion_limit = "512"]
 #![allow(
     clippy::missing_errors_doc,
@@ -30,6 +31,7 @@
 // FIXME: switch to something more ergonomic here, once available.
 // (Currently there is no way to opt into sysroot crates without `extern crate`.)
 extern crate rustc_ast;
+extern crate rustc_ast_ir;
 extern crate rustc_ast_pretty;
 extern crate rustc_attr;
 extern crate rustc_const_eval;
@@ -69,6 +71,7 @@ pub mod numeric_literal;
 pub mod paths;
 pub mod ptr;
 pub mod qualify_min_const_fn;
+mod returns;
 pub mod source;
 pub mod str_utils;
 pub mod sugg;
@@ -81,6 +84,7 @@ pub use self::check_proc_macro::{is_from_proc_macro, is_span_if, is_span_match};
 pub use self::hir_utils::{
     HirEqInterExpr, SpanlessEq, SpanlessHash, both, count_eq, eq_expr_value, hash_expr, hash_stmt, is_bool, over,
 };
+pub use returns::{ReturnType, ReturnVisitor, visit_returns};
 
 use core::mem;
 use core::ops::ControlFlow;

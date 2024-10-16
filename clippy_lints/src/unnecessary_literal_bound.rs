@@ -1,10 +1,10 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::path_res;
+use clippy_utils::{ReturnType, ReturnVisitor, path_res, visit_returns};
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
-use rustc_hir::intravisit::{FnKind, Visitor};
-use rustc_hir::{Body, Expr, ExprKind, FnDecl, FnRetTy, Lit, MutTy, Mutability, PrimTy, Ty, TyKind, intravisit};
+use rustc_hir::intravisit::FnKind;
+use rustc_hir::{Body, ExprKind, FnDecl, FnRetTy, Lit, MutTy, Mutability, PrimTy, Ty, TyKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::Span;
@@ -67,47 +67,34 @@ fn extract_anonymous_ref<'tcx>(hir_ty: &Ty<'tcx>) -> Option<&'tcx Ty<'tcx>> {
     Some(ty)
 }
 
-fn is_str_literal(expr: &Expr<'_>) -> bool {
-    matches!(
-        expr.kind,
-        ExprKind::Lit(Lit {
-            node: LitKind::Str(..),
-            ..
-        }),
-    )
-}
+struct LiteralReturnVisitor;
 
-struct FindNonLiteralReturn;
-
-impl<'hir> Visitor<'hir> for FindNonLiteralReturn {
+impl ReturnVisitor for LiteralReturnVisitor {
     type Result = std::ops::ControlFlow<()>;
-    type NestedFilter = intravisit::nested_filter::None;
+    fn visit_return(&mut self, kind: ReturnType<'_>) -> Self::Result {
+        let expr = match kind {
+            ReturnType::Implicit(e) | ReturnType::Explicit(e) => e,
+            ReturnType::UnitReturnExplicit(_) | ReturnType::MissingElseImplicit(_) => {
+                panic!("Function which returns `&str` has a unit return!")
+            },
+            ReturnType::DivergingImplicit(_) => {
+                // If this block is implicitly returning `!`, it can return `&'static str`.
+                return Self::Result::Continue(());
+            },
+        };
 
-    fn visit_expr(&mut self, expr: &'hir Expr<'hir>) -> Self::Result {
-        if let ExprKind::Ret(Some(ret_val_expr)) = expr.kind
-            && !is_str_literal(ret_val_expr)
-        {
-            Self::Result::Break(())
+        if matches!(
+            expr.kind,
+            ExprKind::Lit(Lit {
+                node: LitKind::Str(..),
+                ..
+            })
+        ) {
+            Self::Result::Continue(())
         } else {
-            intravisit::walk_expr(self, expr)
+            Self::Result::Break(())
         }
     }
-}
-
-fn check_implicit_returns_static_str(body: &Body<'_>) -> bool {
-    // TODO: Improve this to the same complexity as the Visitor to catch more implicit return cases.
-    if let ExprKind::Block(block, _) = body.value.kind
-        && let Some(implicit_ret) = block.expr
-    {
-        return is_str_literal(implicit_ret);
-    }
-
-    false
-}
-
-fn check_explicit_returns_static_str(expr: &Expr<'_>) -> bool {
-    let mut visitor = FindNonLiteralReturn;
-    visitor.visit_expr(expr).is_continue()
 }
 
 impl<'tcx> LateLintPass<'tcx> for UnnecessaryLiteralBound {
@@ -143,7 +130,7 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryLiteralBound {
         }
 
         // Check for all return statements returning literals
-        if check_explicit_returns_static_str(body.value) && check_implicit_returns_static_str(body) {
+        if visit_returns(LiteralReturnVisitor, body.value).is_continue() {
             span_lint_and_sugg(
                 cx,
                 UNNECESSARY_LITERAL_BOUND,
