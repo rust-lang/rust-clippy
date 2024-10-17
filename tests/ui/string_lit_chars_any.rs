@@ -1,5 +1,11 @@
 //@aux-build:proc_macros.rs
-#![allow(clippy::eq_op, clippy::needless_raw_string_hashes, clippy::no_effect, unused)]
+#![allow(
+    clippy::eq_op,
+    clippy::needless_raw_string_hashes,
+    clippy::no_effect,
+    clippy::literal_string_with_formatting_arg,
+    unused
+)]
 #![warn(clippy::string_lit_chars_any)]
 
 #[macro_use]
