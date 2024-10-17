@@ -1,12 +1,14 @@
+use std::borrow::Cow;
+
 use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::eager_or_lazy::switch_to_eager_eval;
-use clippy_utils::source::{snippet, snippet_opt};
+use clippy_utils::source::snippet_opt;
+use clippy_utils::sugg::{Sugg, make_binop};
 use clippy_utils::ty::get_type_diagnostic_name;
 use clippy_utils::visitors::is_local_used;
-use clippy_utils::{get_parent_expr, is_from_proc_macro, path_to_local_id};
+use clippy_utils::{is_from_proc_macro, path_to_local_id};
 use rustc_ast::LitKind::Bool;
-use rustc_ast::util::parser::AssocOp;
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind, PatKind};
 use rustc_lint::LateContext;
@@ -80,7 +82,6 @@ pub(super) fn check<'a>(
             && typeck_results.expr_ty(l) == typeck_results.expr_ty(r)
     {
         let wrap = variant.variant_name();
-        let comparator = op.node.as_str();
 
         // we may need to add parens around the suggestion
         // in case the parent expression has additional method calls,
@@ -88,18 +89,16 @@ pub(super) fn check<'a>(
         // being converted to `Some(5) == Some(5).then(|| 1)` isnt
         // the same thing
 
-        let should_add_parens = get_parent_expr(cx, expr)
-            .is_some_and(|expr| expr.precedence().order() > i8::try_from(AssocOp::Equal.precedence()).unwrap_or(0));
-        (
-            format!(
-                "{}{} {comparator} {wrap}({}){}",
-                if should_add_parens { "(" } else { "" },
-                snippet(cx, recv.span, ".."),
-                snippet(cx, non_binding_location.span.source_callsite(), ".."),
-                if should_add_parens { ")" } else { "" }
-            ),
-            "a standard comparison",
-        )
+        let inner_non_binding = Sugg::NonParen(Cow::Owned(format!(
+            "{wrap}({})",
+            Sugg::hir(cx, non_binding_location, "")
+        )));
+
+        let binop = make_binop(op.node, &Sugg::hir(cx, recv, ".."), &inner_non_binding)
+            .maybe_par()
+            .into_string();
+
+        (binop, "a standard comparison")
     } else if !def_bool
         && msrv.meets(msrvs::OPTION_RESULT_IS_VARIANT_AND)
         && let Some(recv_callsite) = snippet_opt(cx, recv.span.source_callsite())

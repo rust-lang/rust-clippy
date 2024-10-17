@@ -9,9 +9,9 @@ extern crate proc_macros;
 
 fn main() {
     // should trigger
-    let _ = Some(5) == Some(5);
-    let _ = Some(5) != Some(5);
-    let _ = Some(5) == Some(5);
+    let _ = (Some(5) == Some(5));
+    let _ = (Some(5) != Some(5));
+    let _ = (Some(5) == Some(5));
     let _ = Some(5).is_some_and(|n| {
         let _ = n;
         6 >= 5
@@ -21,7 +21,7 @@ fn main() {
     let _ = Some(5).is_some_and(|n| n == n);
     let _ = Some(5).is_some_and(|n| n == if 2 > 1 { n } else { 0 });
     let _ = Ok::<Vec<i32>, i32>(vec![5]).is_ok_and(|n| n == [5]);
-    let _ = Ok::<i32, i32>(5) == Ok(5);
+    let _ = (Ok::<i32, i32>(5) == Ok(5));
     let _ = (Some(5) == Some(5)).then(|| 1);
 
     // shouldnt trigger
