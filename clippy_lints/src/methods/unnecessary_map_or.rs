@@ -5,7 +5,7 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::eager_or_lazy::switch_to_eager_eval;
 use clippy_utils::source::snippet_opt;
 use clippy_utils::sugg::{Sugg, make_binop};
-use clippy_utils::ty::get_type_diagnostic_name;
+use clippy_utils::ty::{get_type_diagnostic_name, implements_trait};
 use clippy_utils::visitors::is_local_used;
 use clippy_utils::{is_from_proc_macro, path_to_local_id};
 use rustc_ast::LitKind::Bool;
@@ -80,6 +80,8 @@ pub(super) fn check<'a>(
             && !is_local_used(cx, non_binding_location, hir_id)
             && let typeck_results = cx.typeck_results()
             && typeck_results.expr_ty(l) == typeck_results.expr_ty(r)
+            && let Some(partial_eq) = cx.tcx.get_diagnostic_item(sym::PartialEq)
+            && implements_trait(cx, recv_ty, partial_eq, &[recv_ty.into()])
     {
         let wrap = variant.variant_name();
 

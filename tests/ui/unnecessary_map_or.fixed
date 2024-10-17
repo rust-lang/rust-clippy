@@ -45,6 +45,11 @@ fn main() {
     with_span! {
         let _ = Some(5).map_or(false, |n| n == 5);
     }
+
+    // check for presence of PartialEq, and alter suggestion to use `is_ok_and` if absent
+    struct S;
+    let r: Result<i32, S> = Ok(3);
+    let _ = r.is_ok_and(|x| x == 7);
 }
 
 #[clippy::msrv = "1.69.0"]
