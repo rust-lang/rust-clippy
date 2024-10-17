@@ -137,6 +137,7 @@ mod excessive_nesting;
 mod exhaustive_items;
 mod exit;
 mod explicit_write;
+mod extern_without_abi;
 mod extra_unused_type_parameters;
 mod fallible_impl_from;
 mod field_scoped_visibility_modifiers;
@@ -951,5 +952,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(unused_trait_names::UnusedTraitNames::new(conf)));
     store.register_late_pass(|_| Box::new(manual_ignore_case_cmp::ManualIgnoreCaseCmp));
     store.register_late_pass(|_| Box::new(unnecessary_literal_bound::UnnecessaryLiteralBound));
+    store.register_late_pass(|_| Box::new(extern_without_abi::ExternWithoutAbi));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
