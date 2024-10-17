@@ -53,6 +53,11 @@ fn main() {
     struct S;
     let r: Result<i32, S> = Ok(3);
     let _ = r.map_or(false, |x| x == 7);
+
+    #[derive(PartialEq)]
+    struct S2;
+    let r: Result<i32, S2> = Ok(4);
+    let _ = r.map_or(false, |x| x == 8);
 }
 
 #[clippy::msrv = "1.69.0"]
