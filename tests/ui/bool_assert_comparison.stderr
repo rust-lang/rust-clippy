@@ -396,5 +396,49 @@ LL -     debug_assert_eq!("requires negation".is_empty(), false);
 LL +     debug_assert!(!"requires negation".is_empty());
    |
 
-error: aborting due to 33 previous errors
+error: used `assert!` with an equality comparison
+  --> tests/ui/bool_assert_comparison.rs:170:5
+   |
+LL |     assert!("a" == "a".to_ascii_lowercase());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: replace it with `assert_eq!(..)`
+   |
+LL |     assert_eq!("a", "a".to_ascii_lowercase());
+   |     ~~~~~~~~~     ~
+
+error: used `assert!` with an equality comparison
+  --> tests/ui/bool_assert_comparison.rs:171:5
+   |
+LL |     assert!("a" == "a".to_ascii_lowercase(), "a==a");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: replace it with `assert_eq!(..)`
+   |
+LL |     assert_eq!("a", "a".to_ascii_lowercase(), "a==a");
+   |     ~~~~~~~~~     ~
+
+error: used `assert!` with an equality comparison
+  --> tests/ui/bool_assert_comparison.rs:172:5
+   |
+LL |     assert!("A" != "A".to_ascii_lowercase());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: replace it with `assert_ne!(..)`
+   |
+LL |     assert_ne!("A", "A".to_ascii_lowercase());
+   |     ~~~~~~~~~     ~
+
+error: used `assert!` with an equality comparison
+  --> tests/ui/bool_assert_comparison.rs:173:5
+   |
+LL |     assert!("A" != "A".to_ascii_lowercase(), "A!=a");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: replace it with `assert_ne!(..)`
+   |
+LL |     assert_ne!("A", "A".to_ascii_lowercase(), "A!=a");
+   |     ~~~~~~~~~     ~
+
+error: aborting due to 37 previous errors
 

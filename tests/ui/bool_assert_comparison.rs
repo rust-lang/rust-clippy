@@ -1,4 +1,4 @@
-#![allow(unused, clippy::assertions_on_constants, clippy::const_is_empty)]
+#![allow(unused, clippy::assertions_on_constants, clippy::const_is_empty, clippy::eq_op)]
 #![warn(clippy::bool_assert_comparison)]
 
 use std::ops::Not;
@@ -166,4 +166,14 @@ fn main() {
     debug_assert_ne!("".is_empty(), false);
     debug_assert_ne!("requires negation".is_empty(), true);
     debug_assert_eq!("requires negation".is_empty(), false);
+
+    assert!("a" == "a".to_ascii_lowercase());
+    assert!("a" == "a".to_ascii_lowercase(), "a==a");
+    assert!("A" != "A".to_ascii_lowercase());
+    assert!("A" != "A".to_ascii_lowercase(), "A!=a");
+    const _: () = assert!(5 == 2 + 3);
 }
+
+const _: () = {
+    assert!(8 == (7 + 1));
+};
