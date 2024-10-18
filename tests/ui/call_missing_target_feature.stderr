@@ -1,0 +1,40 @@
+error: this call requires target features that the surrounding function does not enable
+  --> tests/ui/call_missing_target_feature.rs:5:14
+   |
+LL |     unsafe { f() };
+   |              ^^^ this function call requires target features to be enabled
+   |
+   = note: `-D clippy::call-missing-target-feature` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::call_missing_target_feature)]`
+help: add the missing target features to the surrounding function
+   |
+LL + #[target_feature(enable = "avx2")]
+LL ~ pub unsafe fn test_f() {
+   |
+
+error: this call requires target features that the surrounding function does not enable
+  --> tests/ui/call_missing_target_feature.rs:10:14
+   |
+LL |     unsafe { g() };
+   |              ^^^ this function call requires target features to be enabled
+   |
+help: add the missing target features to the surrounding function
+   |
+LL + #[target_feature(enable = "avx2,pclmulqdq")]
+LL ~ pub(crate) unsafe fn test_g() {
+   |
+
+error: this call requires target features that the surrounding function does not enable
+  --> tests/ui/call_missing_target_feature.rs:15:14
+   |
+LL |     unsafe { h() };
+   |              ^^^ this function call requires target features to be enabled
+   |
+help: add the missing target features to the surrounding function
+   |
+LL + #[target_feature(enable = "avx2,pclmulqdq")]
+LL ~ unsafe fn test_h() {
+   |
+
+error: aborting due to 3 previous errors
+
