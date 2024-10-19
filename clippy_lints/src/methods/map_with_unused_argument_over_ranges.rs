@@ -100,6 +100,27 @@ pub(super) fn check(
             return;
         }
 
+        // We need to provide nonempty parts to diag.multipart_suggestion so we
+        // collate all our parts here and then remove those that are empty.
+        let parts = [
+            (
+                receiver.span.to(method_call_span),
+                format!("std::iter::{method_to_use_name}"),
+            ),
+            new_span,
+            (
+                ex.span.shrink_to_hi(),
+                if use_take {
+                    format!(".take({count})")
+                } else {
+                    String::new()
+                },
+            ),
+        ]
+        .into_iter()
+        .filter(|part| !(part.0.is_empty() && part.1.is_empty()))
+        .collect();
+
         span_lint_and_then(
             cx,
             MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
@@ -112,21 +133,7 @@ pub(super) fn check(
                     } else {
                         format!("remove the explicit range and use `{method_to_use_name}`")
                     },
-                    vec![
-                        (
-                            receiver.span.to(method_call_span),
-                            format!("std::iter::{method_to_use_name}"),
-                        ),
-                        new_span,
-                        (
-                            ex.span.shrink_to_hi(),
-                            if use_take {
-                                format!(".take({count})")
-                            } else {
-                                String::new()
-                            },
-                        ),
-                    ],
+                    parts,
                     applicability,
                 );
             },
