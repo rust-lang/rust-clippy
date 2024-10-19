@@ -67,7 +67,7 @@ fn msrv_1_28() {
     std::iter::repeat_with(|| do_something()).take(10);
 }
 
-#[clippy::msrv = "1.82"]
+#[clippy::msrv = "1.81"]
 fn msrv_1_82() {
     std::iter::repeat(3).take(10);
 }

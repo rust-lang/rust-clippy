@@ -67,7 +67,7 @@ fn msrv_1_28() {
     (0..10).map(|_| do_something());
 }
 
-#[clippy::msrv = "1.82"]
+#[clippy::msrv = "1.81"]
 fn msrv_1_82() {
     (0..10).map(|_| 3);
 }
