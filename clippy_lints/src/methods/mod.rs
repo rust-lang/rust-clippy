@@ -4196,7 +4196,7 @@ declare_clippy_lint! {
     /// `Take<Repeat>`. The former implements some traits that the latter two do
     /// not, such as `DoubleEndedIterator`. As a result, this may not always be an
     /// appropriate suggestion.
-    #[clippy::version = "1.81.0"]
+    #[clippy::version = "1.84.0"]
     pub MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
     restriction,
     "map of a trivial closure (not dependent on parameter) over a range"
