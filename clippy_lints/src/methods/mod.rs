@@ -4192,10 +4192,9 @@ declare_clippy_lint! {
     ///
     /// ### Known Issues
     ///
-    /// This lint may suggest replacing a `Map<Range>` with a `Take<RepeatWith>` or
-    /// `Take<Repeat>`. The former implements some traits that the latter two do
-    /// not, such as `DoubleEndedIterator`. As a result, this may not always be an
-    /// appropriate suggestion.
+    /// This lint may suggest replacing a `Map<Range>` with a `Take<RepeatWith>`.
+    /// The former implements some traits that the latter does not, such as
+    /// `DoubleEndedIterator`.
     #[clippy::version = "1.84.0"]
     pub MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
     restriction,
