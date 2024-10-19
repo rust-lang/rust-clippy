@@ -133,7 +133,7 @@ fn refutable2() {
     }
 }
 
-fn nested_loops() {
+fn nested_loops() -> ! {
     let a = [42, 1337];
 
     loop {

@@ -1,7 +1,7 @@
 //@no-rustfix
 //@aux-build:proc_macros.rs
 
-#![allow(clippy::never_loop)]
+#![allow(clippy::never_loop, clippy::never_returns)]
 #![warn(clippy::infinite_loop)]
 #![feature(async_closure)]
 

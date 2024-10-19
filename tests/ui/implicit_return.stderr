@@ -170,7 +170,7 @@ LL +     }
    |
 
 error: missing `return` statement
-  --> tests/ui/implicit_return.rs:130:5
+  --> tests/ui/implicit_return.rs:131:5
    |
 LL |     true
    |     ^^^^

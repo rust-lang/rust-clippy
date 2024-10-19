@@ -1,0 +1,23 @@
+error: function never returns, but is typed to return
+  --> tests/ui/never_returns.rs:6:19
+   |
+LL | fn never_returns() {
+   |                   ^ help: replace with: `-> !`
+   |
+   = note: `-D clippy::never-returns` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::never_returns)]`
+
+error: function never returns, but is typed to return a `u8`
+  --> tests/ui/never_returns.rs:13:31
+   |
+LL | fn never_returns_with_ty() -> u8 {
+   |                               ^^ help: replace with: `!`
+
+error: function never returns, but is typed to return a `u8`
+  --> tests/ui/never_returns.rs:20:47
+   |
+LL | fn never_returns_conditionally(cond: bool) -> u8 {
+   |                                               ^^ help: replace with: `!`
+
+error: aborting due to 3 previous errors
+

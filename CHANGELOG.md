@@ -5800,6 +5800,7 @@ Released 2018-09-13
 [`neg_multiply`]: https://rust-lang.github.io/rust-clippy/master/index.html#neg_multiply
 [`negative_feature_names`]: https://rust-lang.github.io/rust-clippy/master/index.html#negative_feature_names
 [`never_loop`]: https://rust-lang.github.io/rust-clippy/master/index.html#never_loop
+[`never_returns`]: https://rust-lang.github.io/rust-clippy/master/index.html#never_returns
 [`new_ret_no_self`]: https://rust-lang.github.io/rust-clippy/master/index.html#new_ret_no_self
 [`new_without_default`]: https://rust-lang.github.io/rust-clippy/master/index.html#new_without_default
 [`new_without_default_derive`]: https://rust-lang.github.io/rust-clippy/master/index.html#new_without_default_derive

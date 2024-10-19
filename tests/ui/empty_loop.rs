@@ -5,7 +5,7 @@
 extern crate proc_macros;
 use proc_macros::{external, inline_macros};
 
-fn should_trigger() {
+fn should_trigger() -> ! {
     loop {}
     #[allow(clippy::never_loop)]
     loop {

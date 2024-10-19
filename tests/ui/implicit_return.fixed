@@ -118,6 +118,7 @@ fn loop_macro_test() -> bool {
     }
 }
 
+#[expect(clippy::never_returns)]
 fn divergent_test() -> bool {
     fn diverge() -> ! {
         panic!()

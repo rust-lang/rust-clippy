@@ -552,6 +552,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::needless_update::NEEDLESS_UPDATE_INFO,
     crate::neg_cmp_op_on_partial_ord::NEG_CMP_OP_ON_PARTIAL_ORD_INFO,
     crate::neg_multiply::NEG_MULTIPLY_INFO,
+    crate::never_returns::NEVER_RETURNS_INFO,
     crate::new_without_default::NEW_WITHOUT_DEFAULT_INFO,
     crate::no_effect::NO_EFFECT_INFO,
     crate::no_effect::NO_EFFECT_UNDERSCORE_BINDING_INFO,

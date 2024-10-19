@@ -428,6 +428,7 @@ define_Conf! {
         large_types_passed_by_value,
         linkedlist,
         needless_pass_by_ref_mut,
+        never_returns,
         option_option,
         rc_buffer,
         rc_mutex,
