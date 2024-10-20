@@ -265,6 +265,7 @@ mod needless_question_mark;
 mod needless_update;
 mod neg_cmp_op_on_partial_ord;
 mod neg_multiply;
+mod never_returns;
 mod new_without_default;
 mod no_effect;
 mod no_mangle_with_rust_abi;
@@ -949,5 +950,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(unused_trait_names::UnusedTraitNames::new(conf)));
     store.register_late_pass(|_| Box::new(manual_ignore_case_cmp::ManualIgnoreCaseCmp));
     store.register_late_pass(|_| Box::new(unnecessary_literal_bound::UnnecessaryLiteralBound));
+    store.register_late_pass(|_| Box::new(never_returns::NeverReturns::new(conf)));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
