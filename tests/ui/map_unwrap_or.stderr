@@ -7,9 +7,14 @@ LL | |         // Should lint even though this call is on a separate line.
 LL | |         .unwrap_or(0);
    | |_____________________^
    |
+help: remove this `unwrap_or` statement
+  --> tests/ui/map_unwrap_or.rs:19:10
+   |
+LL |         .unwrap_or(0);
+   |          ^^^^^^^^^
    = note: `-D clippy::map-unwrap-or` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::map_unwrap_or)]`
-help: use `map_or(<a>, <f>)` instead
+help: and use `map_or(<a>, <f>)` instead
    |
 LL -     let _ = opt.map(|x| x + 1)
 LL +     let _ = opt.map_or(0, |x| x + 1);
@@ -25,7 +30,12 @@ LL | |     }
 LL | |     ).unwrap_or(0);
    | |__________________^
    |
-help: use `map_or(<a>, <f>)` instead
+help: remove this `unwrap_or` statement
+  --> tests/ui/map_unwrap_or.rs:24:7
+   |
+LL |     ).unwrap_or(0);
+   |       ^^^^^^^^^
+help: and use `map_or(<a>, <f>)` instead
    |
 LL ~     let _ = opt.map_or(0, |x| {
 LL |         x + 1
@@ -43,7 +53,12 @@ LL | |             0
 LL | |         });
    | |__________^
    |
-help: use `map_or(<a>, <f>)` instead
+help: remove this `unwrap_or` statement
+  --> tests/ui/map_unwrap_or.rs:26:10
+   |
+LL |         .unwrap_or({
+   |          ^^^^^^^^^
+help: and use `map_or(<a>, <f>)` instead
    |
 LL ~     let _ = opt.map_or({
 LL +             0
@@ -72,7 +87,12 @@ LL | |     }
 LL | |     ).unwrap_or(None);
    | |_____________________^
    |
-help: use `and_then(<f>)` instead
+help: remove this `unwrap_or` statement
+  --> tests/ui/map_unwrap_or.rs:35:7
+   |
+LL |     ).unwrap_or(None);
+   |       ^^^^^^^^^
+help: and use `and_then(<f>)` instead
    |
 LL ~     let _ = opt.and_then(|x| {
 LL |         Some(x + 1)
@@ -89,7 +109,12 @@ LL | |         .map(|x| Some(x + 1))
 LL | |         .unwrap_or(None);
    | |________________________^
    |
-help: use `and_then(<f>)` instead
+help: remove this `unwrap_or` statement
+  --> tests/ui/map_unwrap_or.rs:38:10
+   |
+LL |         .unwrap_or(None);
+   |          ^^^^^^^^^
+help: and use `and_then(<f>)` instead
    |
 LL -         .map(|x| Some(x + 1))
 LL +         .and_then(|x| Some(x + 1));
