@@ -4,6 +4,7 @@
 
 - [Installation](installation.md)
 - [Usage](usage.md)
+    - [Extending Clippy coverage](lib_usage.md)
 - [Configuration](configuration.md)
     - [Lint Configuration](lint_configuration.md)
 - [Clippy's Lints](lints.md)
