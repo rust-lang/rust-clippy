@@ -1,0 +1,27 @@
+error: this function marked with #[test] has no way to fail
+  --> tests/ui/test_without_fail_case.rs:8:1
+   |
+LL | / fn test_without_fail() {
+LL | |     // This test cannot fail.
+LL | |     let x = 5;
+LL | |     let y = x + 2;
+LL | |     println!("y: {}", y);
+LL | | }
+   | |_^
+   |
+   = note: make sure that something is checked in this test
+   = note: `-D clippy::test-without-fail-case` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::test_without_fail_case)]`
+
+error: this function marked with #[test] has no way to fail
+  --> tests/ui/test_without_fail_case.rs:26:1
+   |
+LL | / fn test_implicit_panic() {
+LL | |     implicit_panic()
+LL | | }
+   | |_^
+   |
+   = note: make sure that something is checked in this test
+
+error: aborting due to 2 previous errors
+
