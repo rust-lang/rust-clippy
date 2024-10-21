@@ -1,5 +1,5 @@
 #![warn(clippy::single_component_path_imports)]
-#![allow(unused_imports)]
+#![allow(unused_imports, clippy::literal_string_with_formatting_arg)]
 //@no-rustfix
 use regex;
 //~^ ERROR: this import is redundant

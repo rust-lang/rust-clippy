@@ -1,5 +1,5 @@
 //@no-rustfix: overlapping suggestions
-#![allow(unused_must_use)]
+#![allow(unused_must_use, clippy::literal_string_with_formatting_arg)]
 #![warn(clippy::write_literal)]
 
 use std::io::Write;
