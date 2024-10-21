@@ -3,16 +3,50 @@
 #![allow(clippy::unnecessary_literal_unwrap)]
 #![warn(clippy::test_without_fail_case)]
 
-// Should lint
+struct DummyStruct;
+
+impl DummyStruct {
+    fn panic_in_impl(self) {
+        panic!("a")
+    }
+
+    fn assert_in_impl(self, a: bool) {
+        assert!(a)
+    }
+
+    fn unwrap_in_impl(self, a: Option<i32>) {
+        let _ = a.unwrap();
+    }
+}
+
 #[test]
 fn test_without_fail() {
-    // This test cannot fail.
     let x = 5;
     let y = x + 2;
     println!("y: {}", y);
 }
-//~^ ERROR: this function marked with #[test] does not have a way to fail.
-//~^ NOTE: Ensure that something is being tested and asserted by this test.
+
+// Should not lint
+#[test]
+fn impl_panic() {
+    let dummy_struct = DummyStruct;
+    dummy_struct.panic_in_impl();
+}
+
+// Should not lint
+#[test]
+fn impl_assert() {
+    let dummy_struct = DummyStruct;
+    dummy_struct.assert_in_impl(false);
+}
+
+// Should not lint
+#[test]
+fn impl_unwrap() {
+    let dummy_struct = DummyStruct;
+    let a = Some(10i32);
+    dummy_struct.unwrap_in_impl(a);
+}
 
 // Should not lint
 #[test]
@@ -25,6 +59,18 @@ fn test_with_fail() {
 #[test]
 fn test_implicit_panic() {
     implicit_panic()
+}
+
+// Should not lint
+#[test]
+fn test_implicit_unwrap() {
+    implicit_unwrap();
+}
+
+// Should not lint
+#[test]
+fn test_implicit_assert() {
+    implicit_assert();
 }
 
 fn implicit_panic() {
