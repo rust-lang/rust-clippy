@@ -53,7 +53,7 @@ declare_lint_pass!(TestWithoutFailCase => [TEST_WITHOUT_FAIL_CASE]);
 
 impl<'tcx> LateLintPass<'tcx> for TestWithoutFailCase {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {
-        // Only interested in functions that are test functions
+        // Only interested in functions that are annotated with `#[test]`.
         if let ItemKind::Fn(_, _, body_id) = item.kind
             && is_in_test_function(cx.tcx, item.hir_id())
         {
@@ -80,8 +80,6 @@ impl<'tcx> LateLintPass<'tcx> for TestWithoutFailCase {
 struct SearchPanicIntraFunction<'a, 'tcx> {
     /// The lint context
     cx: &'a LateContext<'tcx>,
-    /// Whether we are inside a constant context
-    is_const: bool,
     /// The span where a panic was found
     panic_span: Option<Span>,
     /// Type checking results for the current body
@@ -95,7 +93,6 @@ impl<'a, 'tcx> SearchPanicIntraFunction<'a, 'tcx> {
     pub fn new(cx: &'a LateContext<'tcx>, typeck_results: &'tcx ty::TypeckResults<'tcx>) -> Self {
         Self {
             cx,
-            is_const: false,
             panic_span: None,
             typeck_results,
             visited_functions: FxHashSet::default(),
@@ -107,10 +104,10 @@ impl<'a, 'tcx> SearchPanicIntraFunction<'a, 'tcx> {
         cx: &'a LateContext<'tcx>,
         typeck_results: &'tcx ty::TypeckResults<'tcx>,
         body: impl Visitable<'tcx>,
-    ) -> Option<(Span, bool)> {
+    ) -> Option<Span> {
         let mut visitor = Self::new(cx, typeck_results);
         body.visit(&mut visitor);
-        visitor.panic_span.map(|span| (span, visitor.is_const))
+        visitor.panic_span
     }
 
     /// Checks the called function to see if it contains a panic
@@ -127,7 +124,6 @@ impl<'a, 'tcx> SearchPanicIntraFunction<'a, 'tcx> {
                     let typeck_results = self.cx.tcx.typeck(local_def_id);
                     let mut new_visitor = SearchPanicIntraFunction {
                         cx: self.cx,
-                        is_const: false,
                         panic_span: None,
                         typeck_results,
                         visited_functions: self.visited_functions.clone(),
@@ -156,7 +152,6 @@ impl<'tcx> Visitor<'tcx> for SearchPanicIntraFunction<'_, 'tcx> {
 
         match expr.kind {
             ExprKind::Call(callee, args) => {
-                // Function call
                 if let ExprKind::Path(ref qpath) = callee.kind {
                     if let Res::Def(_, def_id) = self.cx.qpath_res(qpath, callee.hir_id) {
                         self.check_called_function(def_id, expr.span);
@@ -165,21 +160,18 @@ impl<'tcx> Visitor<'tcx> for SearchPanicIntraFunction<'_, 'tcx> {
                         }
                     }
                 }
-                // Visit callee and arguments
                 self.visit_expr(callee);
                 for arg in args {
                     self.visit_expr(arg);
                 }
             },
             ExprKind::MethodCall(_, receiver, args, _) => {
-                // Method call
                 if let Some(def_id) = self.typeck_results.type_dependent_def_id(expr.hir_id) {
                     self.check_called_function(def_id, expr.span);
                     if self.panic_span.is_some() {
                         return;
                     }
                 }
-                // Visit receiver and arguments
                 self.visit_expr(receiver);
                 for arg in args {
                     self.visit_expr(arg);
@@ -202,7 +194,6 @@ impl<'tcx> Visitor<'tcx> for SearchPanicIntraFunction<'_, 'tcx> {
                     if is_panic(self.cx, macro_call.def_id)
                         || matches!(macro_name.as_str(), "assert" | "assert_eq" | "assert_ne")
                     {
-                        self.is_const = self.cx.tcx.hir().is_inside_const_context(expr.hir_id);
                         self.panic_span = Some(macro_call.span);
                         return;
                     }
