@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::span_lint_and_note;
 use clippy_utils::macros::{is_panic, root_macro_call_first_node};
 use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::visitors::Visitable;
@@ -62,14 +62,13 @@ impl<'tcx> LateLintPass<'tcx> for TestWithoutFailCase {
             let panic_span = SearchPanicIntraFunction::find_span(cx, typeck_results, body);
             if panic_span.is_none() {
                 // No way to panic for this test function
-                span_lint_and_then(
+                span_lint_and_note(
                     cx,
                     TEST_WITHOUT_FAIL_CASE,
                     item.span,
                     "this function marked with `#[test]` cannot fail and will always succeed",
-                    |diag| {
-                        diag.note("consider adding assertions or panics to test failure cases");
-                    },
+                    None,
+                    "consider adding assertions or panics to test failure cases",
                 );
             }
         }
@@ -146,7 +145,7 @@ impl<'a, 'tcx> SearchPanicIntraFunction<'a, 'tcx> {
     }
 }
 
-impl<'a, 'tcx> Visitor<'tcx> for SearchPanicIntraFunction<'a, 'tcx> {
+impl<'tcx> Visitor<'tcx> for SearchPanicIntraFunction<'_, 'tcx> {
     type NestedFilter = nested_filter::OnlyBodies;
 
     fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
