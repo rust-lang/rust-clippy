@@ -777,7 +777,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(unnamed_address::UnnamedAddress));
     store.register_late_pass(|_| Box::<dereference::Dereferencing<'_>>::default());
     store.register_late_pass(|_| Box::new(option_if_let_else::OptionIfLetElse));
-    store.register_late_pass(|_| Box::new(future_not_send::FutureNotSend));
+    store.register_late_pass(move |_| Box::new(future_not_send::FutureNotSend::new(conf)));
     store.register_late_pass(move |_| Box::new(large_futures::LargeFuture::new(conf)));
     store.register_late_pass(|_| Box::new(if_let_mutex::IfLetMutex));
     store.register_late_pass(|_| Box::new(if_not_else::IfNotElse));

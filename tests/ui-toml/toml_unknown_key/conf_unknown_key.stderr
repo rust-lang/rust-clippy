@@ -70,6 +70,7 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            too-many-lines-threshold
            trivial-copy-size-limit
            type-complexity-threshold
+           unconditional-send-futures
            unnecessary-box-size
            unreadable-literal-lint-fractions
            upper-case-acronyms-aggressive
@@ -154,6 +155,7 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            too-many-lines-threshold
            trivial-copy-size-limit
            type-complexity-threshold
+           unconditional-send-futures
            unnecessary-box-size
            unreadable-literal-lint-fractions
            upper-case-acronyms-aggressive
@@ -238,6 +240,7 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            too-many-lines-threshold
            trivial-copy-size-limit
            type-complexity-threshold
+           unconditional-send-futures
            unnecessary-box-size
            unreadable-literal-lint-fractions
            upper-case-acronyms-aggressive

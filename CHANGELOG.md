@@ -6220,6 +6220,7 @@ Released 2018-09-13
 [`too-many-lines-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#too-many-lines-threshold
 [`trivial-copy-size-limit`]: https://doc.rust-lang.org/clippy/lint_configuration.html#trivial-copy-size-limit
 [`type-complexity-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#type-complexity-threshold
+[`unconditional-send-futures`]: https://doc.rust-lang.org/clippy/lint_configuration.html#unconditional-send-futures
 [`unnecessary-box-size`]: https://doc.rust-lang.org/clippy/lint_configuration.html#unnecessary-box-size
 [`unreadable-literal-lint-fractions`]: https://doc.rust-lang.org/clippy/lint_configuration.html#unreadable-literal-lint-fractions
 [`upper-case-acronyms-aggressive`]: https://doc.rust-lang.org/clippy/lint_configuration.html#upper-case-acronyms-aggressive
