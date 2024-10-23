@@ -6075,6 +6075,7 @@ Released 2018-09-13
 [`unnecessary_safety_comment`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_safety_comment
 [`unnecessary_safety_doc`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_safety_doc
 [`unnecessary_self_imports`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_self_imports
+[`unnecessary_shell_command`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_shell_command
 [`unnecessary_sort_by`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_sort_by
 [`unnecessary_struct_initialization`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_struct_initialization
 [`unnecessary_to_owned`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_to_owned
@@ -6221,6 +6222,7 @@ Released 2018-09-13
 [`trivial-copy-size-limit`]: https://doc.rust-lang.org/clippy/lint_configuration.html#trivial-copy-size-limit
 [`type-complexity-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#type-complexity-threshold
 [`unnecessary-box-size`]: https://doc.rust-lang.org/clippy/lint_configuration.html#unnecessary-box-size
+[`unnecessary-commands`]: https://doc.rust-lang.org/clippy/lint_configuration.html#unnecessary-commands
 [`unreadable-literal-lint-fractions`]: https://doc.rust-lang.org/clippy/lint_configuration.html#unreadable-literal-lint-fractions
 [`upper-case-acronyms-aggressive`]: https://doc.rust-lang.org/clippy/lint_configuration.html#upper-case-acronyms-aggressive
 [`vec-box-size-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#vec-box-size-threshold

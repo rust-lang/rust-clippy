@@ -7,6 +7,8 @@ use rustc_span::edit_distance::edit_distance;
 use rustc_span::{BytePos, Pos, SourceFile, Span, SyntaxContext};
 use serde::de::{IgnoredAny, IntoDeserializer, MapAccess, Visitor};
 use serde::{Deserialize, Deserializer, Serialize};
+use std::borrow::Cow;
+use std::collections::BTreeMap;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::Range;
 use std::path::PathBuf;
@@ -648,6 +650,15 @@ define_Conf! {
     /// The byte size a `T` in `Box<T>` can have, below which it triggers the `clippy::unnecessary_box` lint
     #[lints(unnecessary_box_returns)]
     unnecessary_box_size: u64 = 128,
+    /// The list of shell commands to recommend replacing.
+    #[lints(unnecessary_shell_commands)]
+    unnecessary_commands: BTreeMap<Box<str>, Option<Cow<'static, str>>> = [
+        ["ls",   "use `std::fs::read_dir` instead"],
+        ["curl", "use `std::net`, `ureq`, or `reqwest` instead"],
+        ["wget", "use `std::net`, `ureq`, or `reqwest` instead"],
+        ["sed",  "use `regex`, or the methods on `str` instead"],
+        ["jq",   "use `serde_json`, or another native json parser instead"],
+    ].into_iter().map(|[k, v]| (Box::<str>::from(k), Some(Cow::Borrowed(v)))).collect(),
     /// Should the fraction of a decimal be linted to include separators.
     #[lints(unreadable_literal)]
     unreadable_literal_lint_fractions: bool = true,
