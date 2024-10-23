@@ -471,6 +471,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::methods::TYPE_ID_ON_BOX_INFO,
     crate::methods::UNINIT_ASSUMED_INIT_INFO,
     crate::methods::UNIT_HASH_INFO,
+    crate::methods::UNNECESSARY_COLLECTION_CLONE_INFO,
     crate::methods::UNNECESSARY_FALLIBLE_CONVERSIONS_INFO,
     crate::methods::UNNECESSARY_FILTER_MAP_INFO,
     crate::methods::UNNECESSARY_FIND_MAP_INFO,

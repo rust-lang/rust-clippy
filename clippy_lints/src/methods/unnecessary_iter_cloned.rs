@@ -4,11 +4,11 @@ use clippy_utils::higher::ForLoop;
 use clippy_utils::source::SpanRangeExt;
 use clippy_utils::ty::{get_iterator_item_ty, implements_trait};
 use clippy_utils::visitors::for_each_expr_without_closures;
-use clippy_utils::{can_mut_borrow_both, fn_def_id, get_parent_expr, path_to_local};
+use clippy_utils::{can_mut_borrow_both, fn_def_id, get_parent_expr, is_path_mutable};
 use core::ops::ControlFlow;
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
-use rustc_hir::{BindingMode, Expr, ExprKind, Node, PatKind};
+use rustc_hir::{Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_span::{Symbol, sym};
 
@@ -42,22 +42,7 @@ pub fn check_for_loop_iter(
         && !clone_or_copy_needed
         && let Some(receiver_snippet) = receiver.span.get_source_text(cx)
     {
-        // Issue 12098
-        // https://github.com/rust-lang/rust-clippy/issues/12098
-        // if the assignee have `mut borrow` conflict with the iteratee
-        // the lint should not execute, former didn't consider the mut case
-
         // check whether `expr` is mutable
-        fn is_mutable(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
-            if let Some(hir_id) = path_to_local(expr)
-                && let Node::Pat(pat) = cx.tcx.hir_node(hir_id)
-            {
-                matches!(pat.kind, PatKind::Binding(BindingMode::MUT, ..))
-            } else {
-                true
-            }
-        }
-
         fn is_caller_or_fields_change(cx: &LateContext<'_>, body: &Expr<'_>, caller: &Expr<'_>) -> bool {
             let mut change = false;
             if let ExprKind::Block(block, ..) = body.kind {
@@ -82,7 +67,12 @@ pub fn check_for_loop_iter(
             while let ExprKind::MethodCall(_, caller, _, _) = child.kind {
                 child = caller;
             }
-            if is_mutable(cx, child) && is_caller_or_fields_change(cx, body, child) {
+
+            // Issue 12098
+            // https://github.com/rust-lang/rust-clippy/issues/12098
+            // if the assignee have `mut borrow` conflict with the iteratee
+            // the lint should not execute, former didn't consider the mut case
+            if is_path_mutable(cx, child).unwrap_or(true) && is_caller_or_fields_change(cx, body, child) {
                 // skip lint
                 return true;
             }

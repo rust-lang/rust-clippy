@@ -6059,6 +6059,7 @@ Released 2018-09-13
 [`unnecessary_box_returns`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_box_returns
 [`unnecessary_cast`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_cast
 [`unnecessary_clippy_cfg`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_clippy_cfg
+[`unnecessary_collection_clone`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_collection_clone
 [`unnecessary_fallible_conversions`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_fallible_conversions
 [`unnecessary_filter_map`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_filter_map
 [`unnecessary_find_map`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_find_map

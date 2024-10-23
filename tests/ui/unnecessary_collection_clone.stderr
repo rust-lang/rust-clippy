@@ -1,0 +1,29 @@
+error: using clone on collection to own iterated items
+  --> tests/ui/unnecessary_collection_clone.rs:8:5
+   |
+LL |     val.clone().into_iter().collect()
+   |     ^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `val.iter().cloned()`
+   |
+   = note: `-D clippy::unnecessary-collection-clone` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_collection_clone)]`
+
+error: using clone on collection to own iterated items
+  --> tests/ui/unnecessary_collection_clone.rs:13:5
+   |
+LL |     val.clone().into_iter().collect()
+   |     ^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `val.iter().cloned()`
+
+error: using clone on collection to own iterated items
+  --> tests/ui/unnecessary_collection_clone.rs:18:5
+   |
+LL |     vals.0.clone().into_iter().collect()
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `vals.0.iter().cloned()`
+
+error: using clone on collection to own iterated items
+  --> tests/ui/unnecessary_collection_clone.rs:23:5
+   |
+LL |     val.clone().into_iter().collect()
+   |     ^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `val.iter().cloned()`
+
+error: aborting due to 4 previous errors
+
