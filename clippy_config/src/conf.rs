@@ -102,8 +102,9 @@ pub fn sanitize_explanation(raw_docs: &str) -> String {
     // Remove tags and hidden code:
     let mut explanation = String::with_capacity(128);
     let mut in_code = false;
-    for line in raw_docs.lines().map(str::trim) {
-        if let Some(lang) = line.strip_prefix("```") {
+    for line in raw_docs.lines() {
+        let trimmed_line = line.trim();
+        if let Some(lang) = trimmed_line.strip_prefix("```") {
             let tag = lang.split_once(',').map_or(lang, |(left, _)| left);
             if !in_code && matches!(tag, "" | "rust" | "ignore" | "should_panic" | "no_run" | "compile_fail") {
                 explanation += "```rust\n";
@@ -112,7 +113,7 @@ pub fn sanitize_explanation(raw_docs: &str) -> String {
                 explanation.push('\n');
             }
             in_code = !in_code;
-        } else if !(in_code && line.starts_with("# ")) {
+        } else if !(in_code && trimmed_line.starts_with("# ")) {
             explanation += line;
             explanation.push('\n');
         }
