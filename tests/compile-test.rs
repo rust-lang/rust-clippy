@@ -141,11 +141,16 @@ impl TestContext {
 
     fn base_config(&self, test_dir: &str) -> Config {
         let target_dir = PathBuf::from(var_os("CARGO_TARGET_DIR").unwrap_or_else(|| "target".into()));
+        let filter_files = if self.diagnostic_collector.is_some() {
+            vec!["DO_NOT_RUN_UI_TESTS".to_string()]
+        } else {
+            env::var("TESTNAME")
+                .map(|filters| filters.split(',').map(str::to_string).collect())
+                .unwrap_or_default()
+        };
         let mut config = Config {
             output_conflict_handling: OutputConflictHandling::Error,
-            filter_files: env::var("TESTNAME")
-                .map(|filters| filters.split(',').map(str::to_string).collect())
-                .unwrap_or_default(),
+            filter_files,
             target: None,
             bless_command: Some("cargo uibless".into()),
             out_dir: target_dir.join("ui_test"),
