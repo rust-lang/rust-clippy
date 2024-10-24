@@ -23,6 +23,8 @@ fn option_methods() {
         .map(|x| x > 1)
         .unwrap_or_default();
 
+    let _ = opt.map_or(false, |x| x > 1);
+
     // won't fix because the return type of the closure is not `bool`
     let _ = opt.map(|x| x + 1).unwrap_or_default();
 
@@ -42,6 +44,8 @@ fn result_methods() {
     ).unwrap_or_default();
     let _ = res.map(|x| x > 1)
         .unwrap_or_default();
+
+    let _ = res.map_or(false, |x| x > 1);
 
     // won't fix because the return type of the closure is not `bool`
     let _ = res.map(|x| x + 1).unwrap_or_default();
