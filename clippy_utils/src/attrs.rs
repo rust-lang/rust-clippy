@@ -28,6 +28,7 @@ pub const BUILTIN_ATTRIBUTES: &[(&str, DeprecationStatus)] = &[
     ("dump",                  DeprecationStatus::None),
     ("msrv",                  DeprecationStatus::None),
     ("has_significant_drop",  DeprecationStatus::None),
+    ("format_args",           DeprecationStatus::None),
 ];
 
 pub struct LimitStack {
