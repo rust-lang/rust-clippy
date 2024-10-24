@@ -117,3 +117,17 @@ mod issue2277 {
         }
     }
 }
+
+mod issue11399 {
+    pub struct Block {
+        data: [i32; 3],
+    }
+
+    pub fn example() {
+        let values: [i8; 3] = [1, 2, 3];
+        let mut block = Block { data: [0; 3] };
+        for i in 0..values.len() {
+            block.data[i] = values[i] as i32;
+        }
+    }
+}
