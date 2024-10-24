@@ -4,6 +4,7 @@
     clippy::map_identity,
     clippy::unnecessary_lazy_evaluations,
     clippy::unnecessary_filter_map,
+    clippy::unnecessary_collection_clone,
     unused
 )]
 #![warn(clippy::filter_map_bool_then)]

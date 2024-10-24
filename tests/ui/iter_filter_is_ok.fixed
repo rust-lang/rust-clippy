@@ -3,7 +3,8 @@
     clippy::map_identity,
     clippy::result_filter_map,
     clippy::needless_borrow,
-    clippy::redundant_closure
+    clippy::redundant_closure,
+    clippy::unnecessary_collection_clone
 )]
 
 fn main() {
