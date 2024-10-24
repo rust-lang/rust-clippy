@@ -646,6 +646,26 @@ define_Conf! {
     /// The maximum complexity a type can have
     #[lints(type_complexity)]
     type_complexity_threshold: u64 = 250,
+    /// Whether `future_not_send` should require futures to implement `Send` unconditionally.
+    /// Enabling this makes the lint more strict and requires generic functions have `Send` bounds
+    /// on type parameters.
+    ///
+    /// ### Example
+    /// ```
+    /// async fn foo<R>(r: R) {
+    ///     std::future::ready(()).await;
+    ///     r;
+    /// }
+    /// ```
+    /// The returned future by this async function may or may not be `Send` - it depends on the particular type
+    /// that `R` is instantiated with at call site, so it is **not** unconditionally `Send`.
+    /// Adding an `R: Send` bound to the function definition satisfies it, but is more restrictive for callers.
+    ///
+    /// For library crate authors that want to make sure that their async functions are compatible
+    /// with both single-threaded and multi-threaded executors, the default behavior of allowing `!Send` futures
+    /// if type parameters are `!Send` makes sense.
+    #[lints(future_not_send)]
+    unconditional_send_futures: bool = false,
     /// The byte size a `T` in `Box<T>` can have, below which it triggers the `clippy::unnecessary_box` lint
     #[lints(unnecessary_box_returns)]
     unnecessary_box_size: u64 = 128,

@@ -883,6 +883,33 @@ The maximum complexity a type can have
 * [`type_complexity`](https://rust-lang.github.io/rust-clippy/master/index.html#type_complexity)
 
 
+## `unconditional-send-futures`
+Whether `future_not_send` should require futures to implement `Send` unconditionally.
+Enabling this makes the lint more strict and requires generic functions have `Send` bounds
+on type parameters.
+
+### Example
+```
+async fn foo<R>(r: R) {
+    std::future::ready(()).await;
+    r;
+}
+```
+The returned future by this async function may or may not be `Send` - it depends on the particular type
+that `R` is instantiated with at call site, so it is **not** unconditionally `Send`.
+Adding an `R: Send` bound to the function definition satisfies it, but is more restrictive for callers.
+
+For library crate authors that want to make sure that their async functions are compatible
+with both single-threaded and multi-threaded executors, the default behavior of allowing `!Send` futures
+if type parameters are `!Send` makes sense.
+
+**Default Value:** `false`
+
+---
+**Affected lints:**
+* [`future_not_send`](https://rust-lang.github.io/rust-clippy/master/index.html#future_not_send)
+
+
 ## `unnecessary-box-size`
 The byte size a `T` in `Box<T>` can have, below which it triggers the `clippy::unnecessary_box` lint
 

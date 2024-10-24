@@ -1,16 +1,22 @@
+//@revisions: default uncond
+//@[default] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/future_not_send/default
+//@[uncond] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/future_not_send/unconditional_send_futures
 #![warn(clippy::future_not_send)]
 
 use std::cell::Cell;
+use std::future::Future;
 use std::rc::Rc;
 use std::sync::Arc;
 
 async fn private_future(rc: Rc<[u8]>, cell: &Cell<usize>) -> bool {
-    //~^ ERROR: future cannot be sent between threads safely
+    //~[uncond]^ future_not_send
+    //~[default]| future_not_send
     async { true }.await
 }
 
 pub async fn public_future(rc: Rc<[u8]>) {
-    //~^ ERROR: future cannot be sent between threads safely
+    //~[uncond]^ future_not_send
+    //~[default]| future_not_send
     async { true }.await;
 }
 
@@ -19,12 +25,14 @@ pub async fn public_send(arc: Arc<[u8]>) -> bool {
 }
 
 async fn private_future2(rc: Rc<[u8]>, cell: &Cell<usize>) -> bool {
-    //~^ ERROR: future cannot be sent between threads safely
+    //~[uncond]^ future_not_send
+    //~[default]| future_not_send
     true
 }
 
 pub async fn public_future2(rc: Rc<[u8]>) {}
-//~^ ERROR: future cannot be sent between threads safely
+//~[uncond]^ future_not_send
+//~[default]| future_not_send
 
 pub async fn public_send2(arc: Arc<[u8]>) -> bool {
     false
@@ -36,13 +44,15 @@ struct Dummy {
 
 impl Dummy {
     async fn private_future(&self) -> usize {
-        //~^ ERROR: future cannot be sent between threads safely
+        //~[uncond]^ future_not_send
+        //~[default]| future_not_send
         async { true }.await;
         self.rc.len()
     }
 
     pub async fn public_future(&self) {
-        //~^ ERROR: future cannot be sent between threads safely
+        //~[uncond]^ future_not_send
+        //~[default]| future_not_send
         self.private_future().await;
     }
 
@@ -53,7 +63,8 @@ impl Dummy {
 }
 
 async fn generic_future<T>(t: T) -> T
-//~^ ERROR: future cannot be sent between threads safely
+//~[uncond]^ future_not_send
+//~[default]| future_not_send
 where
     T: Send,
 {
@@ -61,6 +72,25 @@ where
     async { true }.await;
     let _ = rt;
     t
+}
+
+async fn maybe_send_generic_future<T>(t: T) -> T {
+    //~[uncond]^ future_not_send
+    async { true }.await;
+    t
+}
+
+async fn maybe_send_generic_future2<F: Fn() -> Fut, Fut: Future>(f: F) {
+    //~[uncond]^ future_not_send
+    async { true }.await;
+    let res = f();
+    async { true }.await;
+}
+
+async fn generic_future_always_unsend<T>(_: Rc<T>) {
+    //~[uncond]^ future_not_send
+    //~[default]| future_not_send
+    async { true }.await;
 }
 
 async fn generic_future_send<T>(t: T)
@@ -71,7 +101,7 @@ where
 }
 
 async fn unclear_future<T>(t: T) {}
-//~^ ERROR: future cannot be sent between threads safely
+//~[uncond]^ future_not_send
 
 fn main() {
     let rc = Rc::new([1, 2, 3]);
