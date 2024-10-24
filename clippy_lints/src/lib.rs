@@ -494,6 +494,9 @@ pub struct LintInfo {
     /// e.g. `clippy_lints/src/absolute_paths.rs#43`
     pub location: &'static str,
     pub version: Option<&'static str>,
+    /// Any optional subgroups this lint belongs to, e.g. `perf_pedantic`
+    /// (see `book/src/lint_subgroups.md`).
+    pub subgroups: &'static [&'static str],
 }
 
 impl LintInfo {

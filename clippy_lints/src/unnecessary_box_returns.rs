@@ -37,7 +37,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.70.0"]
     pub UNNECESSARY_BOX_RETURNS,
     pedantic,
-    "Needlessly returning a Box"
+    "Needlessly returning a Box",
+    [perf_pedantic]
 }
 
 pub struct UnnecessaryBoxReturns {

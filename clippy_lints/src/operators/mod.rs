@@ -94,7 +94,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.64.0"]
     pub ARITHMETIC_SIDE_EFFECTS,
     restriction,
-    "any arithmetic expression that can cause side effects like overflows or panics"
+    "any arithmetic expression that can cause side effects like overflows or panics",
+    [panic]
 }
 
 declare_clippy_lint! {
@@ -766,7 +767,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.54.0"]
     pub NEEDLESS_BITWISE_BOOL,
     pedantic,
-    "Boolean expressions that use bitwise rather than lazy operators"
+    "Boolean expressions that use bitwise rather than lazy operators",
+    [perf_pedantic]
 }
 
 declare_clippy_lint! {

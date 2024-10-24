@@ -303,7 +303,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.45.0"]
     pub UNWRAP_USED,
     restriction,
-    "using `.unwrap()` on `Result` or `Option`, which should at least get a better message using `expect()`"
+    "using `.unwrap()` on `Result` or `Option`, which should at least get a better message using `expect()`",
+    [panic]
 }
 
 declare_clippy_lint! {
@@ -366,7 +367,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.45.0"]
     pub EXPECT_USED,
     restriction,
-    "using `.expect()` on `Result` or `Option`, which might be better handled"
+    "using `.expect()` on `Result` or `Option`, which might be better handled",
+    [panic]
 }
 
 declare_clippy_lint! {
@@ -937,7 +939,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub OR_FUN_CALL,
     nursery,
-    "using any `*or` method with a function call, which suggests `*or_else`"
+    "using any `*or` method with a function call, which suggests `*or_else`",
+    [perf_nursery]
 }
 
 declare_clippy_lint! {
@@ -1084,7 +1087,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.40.0"]
     pub INEFFICIENT_TO_STRING,
     pedantic,
-    "using `to_string` on `&&T` where `T: ToString`"
+    "using `to_string` on `&&T` where `T: ToString`",
+    [perf_pedantic]
 }
 
 declare_clippy_lint! {
@@ -1295,7 +1299,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.61.0"]
     pub ITER_WITH_DRAIN,
     nursery,
-    "replace `.drain(..)` with `.into_iter()`"
+    "replace `.drain(..)` with `.into_iter()`",
+    [perf_nursery]
 }
 
 declare_clippy_lint! {
@@ -2313,7 +2318,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.61.0"]
     pub UNNECESSARY_JOIN,
     pedantic,
-    "using `.collect::<Vec<String>>().join(\"\")` on an iterator"
+    "using `.collect::<Vec<String>>().join(\"\")` on an iterator",
+    [perf_pedantic]
 }
 
 declare_clippy_lint! {
@@ -2530,7 +2536,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub NAIVE_BYTECOUNT,
     pedantic,
-    "use of naive `<slice>.filter(|&x| x == y).count()` to count byte values"
+    "use of naive `<slice>.filter(|&x| x == y).count()` to count byte values",
+    [perf_pedantic]
 }
 
 declare_clippy_lint! {
@@ -3279,7 +3286,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.30.0"]
     pub NEEDLESS_COLLECT,
     nursery,
-    "collecting an iterator when collect is not needed"
+    "collecting an iterator when collect is not needed",
+    [perf_nursery]
 }
 
 declare_clippy_lint! {
