@@ -12686,10 +12686,10 @@ so it should not be present in production code.</p>
 <pre><code class="language-rust">unimplemented!();
 </code></pre>
 </div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.40.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+todo">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/panic_unimplemented.rs#L56">View Source</a></div></div></div></article><article class="panel panel-default" id="too_long_first_doc_paragraph"><input id="label-too_long_first_doc_paragraph" type="checkbox"><label for="label-too_long_first_doc_paragraph" onclick="highlightIfNeeded('too_long_first_doc_paragraph')"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-too_long_first_doc_paragraph"><span>too_long_first_doc_paragraph</span> <a href="#too_long_first_doc_paragraph" onclick="lintAnchor(event)" class="anchor label label-default">&para;</a> <a href="" class="anchor label label-default" onclick="copyToClipboard(event)">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-nursery">nursery</span> <span class="label label-lint-level label-lint-level-allow">allow</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
-<p>Checks if the first line in the documentation of items listed in module page is too long.</p>
+<p>Checks if the first paragraph in the documentation of items listed in the module page is too long.</p>
 <h3>Why is this bad?</h3>
-<p>Documentation will show the first paragraph of the doscstring in the summary page of a
-module, so having a nice, short summary in the first paragraph is part of writing good docs.</p>
+<p>Documentation will show the first paragraph of the docstring in the summary page of a
+module. Having a nice, short summary in the first paragraph is part of writing good docs.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">/// A very short summary.
 /// A much longer explanation that goes into a lot more detail about
