@@ -1,0 +1,44 @@
+error: unnecessarily shelling out for trivial operation
+  --> tests/ui/unnecessary_shell_command.rs:6:26
+   |
+LL |     let _ = Command::new("ls");
+   |                          ^^^^
+   |
+   = help: use `std::fs::read_dir` instead
+   = note: `-D clippy::unnecessary-shell-command` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_shell_command)]`
+
+error: unnecessarily shelling out for trivial operation
+  --> tests/ui/unnecessary_shell_command.rs:8:26
+   |
+LL |     let _ = Command::new("curl");
+   |                          ^^^^^^
+   |
+   = help: use `std::net`, `ureq`, or `reqwest` instead
+
+error: unnecessarily shelling out for trivial operation
+  --> tests/ui/unnecessary_shell_command.rs:10:26
+   |
+LL |     let _ = Command::new("wget");
+   |                          ^^^^^^
+   |
+   = help: use `std::net`, `ureq`, or `reqwest` instead
+
+error: unnecessarily shelling out for trivial operation
+  --> tests/ui/unnecessary_shell_command.rs:12:26
+   |
+LL |     let _ = Command::new("sed");
+   |                          ^^^^^
+   |
+   = help: use `regex`, or the methods on `str` instead
+
+error: unnecessarily shelling out for trivial operation
+  --> tests/ui/unnecessary_shell_command.rs:14:26
+   |
+LL |     let _ = Command::new("jq");
+   |                          ^^^^
+   |
+   = help: use `serde_json`, or another native json parser instead
+
+error: aborting due to 5 previous errors
+

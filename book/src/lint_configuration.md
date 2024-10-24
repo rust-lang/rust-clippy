@@ -893,6 +893,16 @@ The byte size a `T` in `Box<T>` can have, below which it triggers the `clippy::u
 * [`unnecessary_box_returns`](https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_box_returns)
 
 
+## `unnecessary-commands`
+The list of shell commands to recommend replacing.
+
+**Default Value:** `{ curl = "use `std::net`, `ureq`, or `reqwest` instead", jq = "use `serde_json`, or another native json parser instead", ls = "use `std::fs::read_dir` instead", sed = "use `regex`, or the methods on `str` instead", wget = "use `std::net`, `ureq`, or `reqwest` instead" }`
+
+---
+**Affected lints:**
+* [`unnecessary_shell_commands`](https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_shell_commands)
+
+
 ## `unreadable-literal-lint-fractions`
 Should the fraction of a decimal be linted to include separators.
 

@@ -1323,20 +1323,27 @@ pub fn deref_chain<'cx, 'tcx>(cx: &'cx LateContext<'tcx>, ty: Ty<'tcx>) -> impl 
 
 /// Checks if a Ty<'_> has some inherent method Symbol.
 ///
-/// This does not look for impls in the type's `Deref::Target` type.
-/// If you need this, you should wrap this call in `clippy_utils::ty::deref_chain().any(...)`.
+/// This is a helper for [`get_inherent_method`].
 pub fn get_adt_inherent_method<'a>(cx: &'a LateContext<'_>, ty: Ty<'_>, method_name: Symbol) -> Option<&'a AssocItem> {
     if let Some(ty_did) = ty.ty_adt_def().map(AdtDef::did) {
-        cx.tcx.inherent_impls(ty_did).iter().find_map(|&did| {
-            cx.tcx
-                .associated_items(did)
-                .filter_by_name_unhygienic(method_name)
-                .next()
-                .filter(|item| item.kind == AssocKind::Fn)
-        })
+        get_inherent_method(cx, ty_did, method_name)
     } else {
         None
     }
+}
+
+/// Checks if the [`DefId`] of a Ty has some inherent method Symbol.
+///
+/// This does not look for impls in the type's `Deref::Target` type.
+/// If you need this, you should wrap this call in `clippy_utils::ty::deref_chain().any(...)`.
+pub fn get_inherent_method<'a>(cx: &'a LateContext<'_>, ty_did: DefId, method_name: Symbol) -> Option<&'a AssocItem> {
+    cx.tcx.inherent_impls(ty_did).iter().find_map(|&did| {
+        cx.tcx
+            .associated_items(did)
+            .filter_by_name_unhygienic(method_name)
+            .next()
+            .filter(|item| item.kind == AssocKind::Fn)
+    })
 }
 
 /// Get's the type of a field by name.
