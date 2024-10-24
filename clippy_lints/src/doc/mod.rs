@@ -430,7 +430,7 @@ declare_clippy_lint! {
     /// Checks if the first line in the documentation of items listed in module page is too long.
     ///
     /// ### Why is this bad?
-    /// Documentation will show the first paragraph of the doscstring in the summary page of a
+    /// Documentation will show the first paragraph of the docstring in the summary page of a
     /// module, so having a nice, short summary in the first paragraph is part of writing good docs.
     ///
     /// ### Example
