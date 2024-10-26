@@ -47,7 +47,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.82.0"]
     pub TEST_WITHOUT_FAIL_CASE,
     restriction,
-    "test function cannot fail because it does not anyway to panic or assert"
+    "test function cannot fail because it does not call anywhere to panic or assert"
 }
 
 pub struct TestWithoutFailCase {
@@ -231,9 +231,7 @@ impl<'tcx> Visitor<'tcx> for SearchFailIntraFunction<'_, 'tcx> {
                     // unlikely that this is intended as the tests assertion. In the name of
                     // reducing false negatives we are giving out soundness.
                     //
-                    // This decision can be justified as it is highly unlikely that this lint is sound
-                    // without this additional check, and with this we are reducing the number of false
-                    // negatives.
+                    // This reduces the number of false positives
                     if self.search_config.non_fallible_paths.contains(&macro_with_path) {
                         return;
                     }
