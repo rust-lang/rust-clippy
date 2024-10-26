@@ -1,0 +1,45 @@
+error: this function marked with `#[test]` cannot fail and will always succeed
+  --> tests/ui-toml/test_without_fail_case/test_without_fail_case.rs:21:1
+   |
+LL | / fn test_indexing_fallible() {
+LL | |     let a = [1, 2, 3];
+LL | |     let _ = a[0];
+LL | | }
+   | |_^
+   |
+   = note: consider adding assertions or panics to test failure cases
+   = note: `-D clippy::test-without-fail-case` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::test_without_fail_case)]`
+
+error: this function marked with `#[test]` cannot fail and will always succeed
+  --> tests/ui-toml/test_without_fail_case/test_without_fail_case.rs:27:1
+   |
+LL | / fn func_a() {
+LL | |     let _ = 1;
+LL | | }
+   | |_^
+   |
+   = note: consider adding assertions or panics to test failure cases
+
+error: this function marked with `#[test]` cannot fail and will always succeed
+  --> tests/ui-toml/test_without_fail_case/test_without_fail_case.rs:32:1
+   |
+LL | / fn should_not_lint_if_defined_as_fallible() {
+LL | |     non_fallible_macro!(1);
+LL | | }
+   | |_^
+   |
+   = note: consider adding assertions or panics to test failure cases
+
+error: this function marked with `#[test]` cannot fail and will always succeed
+  --> tests/ui-toml/test_without_fail_case/test_without_fail_case.rs:37:1
+   |
+LL | / fn should_lint_if_defined_as_non_fallible() {
+LL | |     fallible_macro!(1);
+LL | | }
+   | |_^
+   |
+   = note: consider adding assertions or panics to test failure cases
+
+error: aborting due to 4 previous errors
+

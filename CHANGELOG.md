@@ -6004,6 +6004,7 @@ Released 2018-09-13
 [`temporary_assignment`]: https://rust-lang.github.io/rust-clippy/master/index.html#temporary_assignment
 [`temporary_cstring_as_ptr`]: https://rust-lang.github.io/rust-clippy/master/index.html#temporary_cstring_as_ptr
 [`test_attr_in_doctest`]: https://rust-lang.github.io/rust-clippy/master/index.html#test_attr_in_doctest
+[`test_without_fail_case`]: https://rust-lang.github.io/rust-clippy/master/index.html#test_without_fail_case
 [`tests_outside_test_module`]: https://rust-lang.github.io/rust-clippy/master/index.html#tests_outside_test_module
 [`thread_local_initializer_can_be_made_const`]: https://rust-lang.github.io/rust-clippy/master/index.html#thread_local_initializer_can_be_made_const
 [`to_digit_is_some`]: https://rust-lang.github.io/rust-clippy/master/index.html#to_digit_is_some
@@ -6215,6 +6216,9 @@ Released 2018-09-13
 [`standard-macro-braces`]: https://doc.rust-lang.org/clippy/lint_configuration.html#standard-macro-braces
 [`struct-field-name-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#struct-field-name-threshold
 [`suppress-restriction-lint-in-const`]: https://doc.rust-lang.org/clippy/lint_configuration.html#suppress-restriction-lint-in-const
+[`test-without-fail-case-fallible-paths`]: https://doc.rust-lang.org/clippy/lint_configuration.html#test-without-fail-case-fallible-paths
+[`test-without-fail-case-include-indexing-as-fallible`]: https://doc.rust-lang.org/clippy/lint_configuration.html#test-without-fail-case-include-indexing-as-fallible
+[`test-without-fail-case-non-fallible-paths`]: https://doc.rust-lang.org/clippy/lint_configuration.html#test-without-fail-case-non-fallible-paths
 [`too-large-for-stack`]: https://doc.rust-lang.org/clippy/lint_configuration.html#too-large-for-stack
 [`too-many-arguments-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#too-many-arguments-threshold
 [`too-many-lines-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#too-many-lines-threshold

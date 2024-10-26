@@ -46,6 +46,12 @@ const DEFAULT_ALLOWED_IDENTS_BELOW_MIN_CHARS: &[&str] = &["i", "j", "x", "y", "z
 const DEFAULT_ALLOWED_PREFIXES: &[&str] = &["to", "as", "into", "from", "try_into", "try_from"];
 const DEFAULT_ALLOWED_TRAITS_WITH_RENAMED_PARAMS: &[&str] =
     &["core::convert::From", "core::convert::TryFrom", "core::str::FromStr"];
+/// Default paths considered as fallible for `test_without_fail_case` lint.
+pub(crate) const DEFAULT_FALLIBLE_PATHS: &[&str] =
+    &["core::panic", "core::assert", "core::assert_eq", "core::assert_ne"];
+/// Default paths considered as non-fallible for `test_without_fail_case` lint.
+pub(crate) const DEFAULT_NONFALLIBLE_PATHS: &[&str] =
+    &["std::print", "std::println", "std::dbg", "std::eprint", "std::eprintln"];
 
 /// Conf with parse errors
 #[derive(Default)]
@@ -628,6 +634,33 @@ define_Conf! {
     /// if no suggestion can be made.
     #[lints(indexing_slicing)]
     suppress_restriction_lint_in_const: bool = false,
+    /// List of full paths of macros and functions, that can fail. If a test, or a function
+    /// that the test calls contains a call to any one of these, lint will mark the test fallible.
+    #[lints(test_without_fail_case)]
+    test_without_fail_case_fallible_paths: Vec<String> =
+        DEFAULT_FALLIBLE_PATHS.iter().map(ToString::to_string).collect(),
+    /// Whether to consider indexing as a fallible operation while assesing if a test can fail.
+    /// Indexing is fallible, and thus the a test that is doing that can fail but it is likely
+    /// that tests that fail this way were not intended.
+    ///
+    /// If set true, the lint will consider indexing into a slice a failable case
+    /// and won't lint tests that has some sort of indexing. This analysis still done
+    /// in a interprocedural manner. Meaning that any indexing opeartion done inside of
+    /// a function that the test calls will still result the test getting marked fallible.
+    ///
+    /// By default this is set to `false`. That is because from a usability perspective,
+    /// indexing an array is not the intended way to fail a test. So setting this `true`
+    /// reduces false positives but makes the analysis more focused on possible byproducts
+    /// of a test. That is the set of operations to get the point we assert something rather
+    /// than the existance of asserting that thing.
+    #[lints(test_without_fail_case)]
+    test_without_fail_case_include_indexing_as_fallible: bool = false,
+    /// List of full paths of macros and functions, that we want to mark as "not going to fail".
+    /// This allows us to make the lint more focused on actual short comings of our test suite
+    /// by marking common routines non-fallible, even though they are fallible.
+    #[lints(test_without_fail_case)]
+    test_without_fail_case_non_fallible_paths: Vec<String> =
+        DEFAULT_NONFALLIBLE_PATHS.iter().map(ToString::to_string).collect(),
     /// The maximum size of objects (in bytes) that will be linted. Larger objects are ok on the heap
     #[lints(boxed_local, useless_vec)]
     too_large_for_stack: u64 = 200,
@@ -724,6 +757,14 @@ pub fn lookup_conf_file() -> io::Result<(Option<PathBuf>, Vec<String>)> {
 fn deserialize(file: &SourceFile) -> TryConf {
     match toml::de::Deserializer::new(file.src.as_ref().unwrap()).deserialize_map(ConfVisitor(file)) {
         Ok(mut conf) => {
+            extend_vec_if_indicator_present(
+                &mut conf.conf.test_without_fail_case_fallible_paths,
+                DEFAULT_FALLIBLE_PATHS,
+            );
+            extend_vec_if_indicator_present(
+                &mut conf.conf.test_without_fail_case_non_fallible_paths,
+                DEFAULT_NONFALLIBLE_PATHS,
+            );
             extend_vec_if_indicator_present(&mut conf.conf.disallowed_names, DEFAULT_DISALLOWED_NAMES);
             extend_vec_if_indicator_present(&mut conf.conf.allowed_prefixes, DEFAULT_ALLOWED_PREFIXES);
             extend_vec_if_indicator_present(

@@ -1,0 +1,1 @@
+test-without-fail-case-fallible-paths = ["test_macro::non_fallible_macro"]
