@@ -6,7 +6,7 @@ use clippy_utils::visitors::{for_each_expr, for_each_expr_without_closures};
 use clippy_utils::{ExprUseNode, expr_use_ctxt, is_diag_item_method, is_diag_trait_item, path_to_local_id};
 use core::ops::ControlFlow;
 use rustc_errors::Applicability;
-use rustc_hir::{BindingMode, BorrowKind, ByRef, ClosureKind, Expr, ExprKind, Mutability, Node, PatKind};
+use rustc_hir::{BindingMode, BorrowKind, ByRef, ClosureKind, Expr, ExprKind, HirId, Mutability, Node, PatKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, AutoBorrowMutability};
 use rustc_span::{DUMMY_SP, Span, Symbol, sym};
@@ -34,6 +34,7 @@ pub(crate) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, arg: &Expr<'_>, name:
     {
         let mut requires_copy = false;
         let mut requires_deref = false;
+        let mut has_mut_use = false;
 
         // The number of unprocessed return expressions.
         let mut ret_count = 0u32;
@@ -47,7 +48,8 @@ pub(crate) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, arg: &Expr<'_>, name:
                 // Nested closures don't need to treat returns specially.
                 let _: Option<!> = for_each_expr(cx, cx.tcx.hir().body(c.body).value, |e| {
                     if path_to_local_id(e, arg_id) {
-                        let (kind, same_ctxt) = check_use(cx, e);
+                        let (kind, mutbl, same_ctxt) = check_use(cx, e);
+                        has_mut_use |= mutbl.is_mut();
                         match (kind, same_ctxt && e.span.ctxt() == ctxt) {
                             (_, false) | (UseKind::Deref | UseKind::Return(..), true) => {
                                 requires_copy = true;
@@ -65,7 +67,8 @@ pub(crate) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, arg: &Expr<'_>, name:
             } else if matches!(e.kind, ExprKind::Ret(_)) {
                 ret_count += 1;
             } else if path_to_local_id(e, arg_id) {
-                let (kind, same_ctxt) = check_use(cx, e);
+                let (kind, mutbl, same_ctxt) = check_use(cx, e);
+                has_mut_use |= mutbl.is_mut();
                 match (kind, same_ctxt && e.span.ctxt() == ctxt) {
                     (UseKind::Return(..), false) => {
                         return ControlFlow::Break(());
@@ -161,6 +164,7 @@ pub(crate) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, arg: &Expr<'_>, name:
             && (!requires_copy || cx.type_is_copy_modulo_regions(arg_ty))
             // This case could be handled, but a fair bit of care would need to be taken.
             && (!requires_deref || arg_ty.is_freeze(cx.tcx, cx.typing_env()))
+            && !has_mut_use
         {
             if requires_deref {
                 edits.push((param.span.shrink_to_lo(), "&".into()));
@@ -207,30 +211,31 @@ enum UseKind<'tcx> {
     FieldAccess(Symbol, &'tcx Expr<'tcx>),
 }
 
-/// Checks how the value is used, and whether it was used in the same `SyntaxContext`.
-fn check_use<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> (UseKind<'tcx>, bool) {
+/// Checks how the value is used, mutability, and whether it was used in the same `SyntaxContext`.
+fn check_use<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> (UseKind<'tcx>, Mutability, bool) {
     let use_cx = expr_use_ctxt(cx, e);
+    let mutbl = use_mutability(cx, e.hir_id);
     if use_cx
         .adjustments
         .first()
         .is_some_and(|a| matches!(a.kind, Adjust::Deref(_)))
     {
-        return (UseKind::AutoBorrowed, use_cx.same_ctxt);
+        return (UseKind::AutoBorrowed, mutbl, use_cx.same_ctxt);
     }
     let res = match use_cx.use_node(cx) {
         ExprUseNode::Return(_) => {
             if let ExprKind::Ret(Some(e)) = use_cx.node.expect_expr().kind {
                 UseKind::Return(e.span)
             } else {
-                return (UseKind::Return(DUMMY_SP), false);
+                return (UseKind::Return(DUMMY_SP), mutbl, false);
             }
         },
-        ExprUseNode::FieldAccess(name) => UseKind::FieldAccess(name.name, use_cx.node.expect_expr()),
+        ExprUseNode::FieldAccess(_, name) => UseKind::FieldAccess(name.name, use_cx.node.expect_expr()),
         ExprUseNode::Callee | ExprUseNode::MethodArg(_, _, 0)
             if use_cx
                 .adjustments
                 .first()
-                .is_some_and(|a| matches!(a.kind, Adjust::Borrow(AutoBorrow::Ref(AutoBorrowMutability::Not)))) =>
+                .is_some_and(|a| matches!(a.kind, Adjust::Borrow(AutoBorrow::Ref(_)))) =>
         {
             UseKind::AutoBorrowed
         },
@@ -238,5 +243,43 @@ fn check_use<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> (UseKind<'tcx>,
         ExprUseNode::AddrOf(BorrowKind::Ref, _) => UseKind::Borrowed(use_cx.node.expect_expr().span),
         _ => UseKind::Deref,
     };
-    (res, use_cx.same_ctxt)
+    (res, mutbl, use_cx.same_ctxt)
+}
+
+fn use_mutability(cx: &LateContext<'_>, expr_id: HirId) -> Mutability {
+    let adjusted = |expr: &Expr<'_>| -> Mutability {
+        let adj = cx.typeck_results().expr_adjustments(expr);
+        if let Some(Adjust::Borrow(AutoBorrow::Ref(mutbl))) = adj.last().map(|adj| &adj.kind) {
+            (*mutbl).into()
+        } else {
+            Mutability::Not
+        }
+    };
+
+    let mut last_child = None;
+
+    for (_, node) in cx.tcx.hir().parent_iter(expr_id) {
+        if let Node::Expr(expr) = node {
+            match expr.kind {
+                ExprKind::AddrOf(_, mutbl, _) => return mutbl,
+                ExprKind::MethodCall(_, self_arg, _, _) => return adjusted(self_arg),
+                ExprKind::Call(f, args) => return adjusted(args.iter().find(|arg| arg.hir_id == expr_id).unwrap_or(f)),
+                ExprKind::Field(field, _) | ExprKind::Index(field, _, _) => last_child = Some(field.hir_id),
+                ExprKind::Assign(lhs, _, _) | ExprKind::AssignOp(_, lhs, _) => {
+                    let is_lhs = match lhs.kind {
+                        ExprKind::Field(child, _) | ExprKind::Index(child, _, _) => {
+                            last_child.is_some_and(|field_id| field_id == child.hir_id)
+                        },
+                        _ => false,
+                    };
+                    if is_lhs {
+                        return Mutability::Mut;
+                    }
+                    return Mutability::Not;
+                },
+                _ => {},
+            }
+        }
+    }
+    Mutability::Not
 }

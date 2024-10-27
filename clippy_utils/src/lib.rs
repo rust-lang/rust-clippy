@@ -2753,7 +2753,7 @@ impl<'tcx> ExprUseCtxt<'tcx> {
                         .position(|arg| arg.hir_id == self.child_id)
                         .map_or(0, |i| i + 1),
                 ),
-                ExprKind::Field(_, name) => ExprUseNode::FieldAccess(name),
+                ExprKind::Field(_, name) => ExprUseNode::FieldAccess(use_expr.hir_id, name),
                 ExprKind::AddrOf(kind, mutbl, _) => ExprUseNode::AddrOf(kind, mutbl),
                 _ => ExprUseNode::Other,
             },
@@ -2763,6 +2763,7 @@ impl<'tcx> ExprUseCtxt<'tcx> {
 }
 
 /// The node which consumes a value.
+#[derive(Debug)]
 pub enum ExprUseNode<'tcx> {
     /// Assignment to, or initializer for, a local
     LetStmt(&'tcx LetStmt<'tcx>),
@@ -2779,7 +2780,7 @@ pub enum ExprUseNode<'tcx> {
     /// The callee of a function call.
     Callee,
     /// Access of a field.
-    FieldAccess(Ident),
+    FieldAccess(HirId, Ident),
     /// Borrow expression.
     AddrOf(ast::BorrowKind, Mutability),
     Other,
