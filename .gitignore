@@ -46,3 +46,8 @@ helper.txt
 
 # mdbook generated output
 /book/book
+
+# GUI tests
+node_modules
+package-lock.json
+package.json

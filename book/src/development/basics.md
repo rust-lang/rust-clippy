@@ -60,6 +60,8 @@ cargo uitest
 TESTNAME="test_" cargo uitest
 # only run dogfood tests
 cargo dev dogfood
+# only run GUI tests (clippy lints page)
+cargo guitest
 ```
 
 If the output of a [UI test] differs from the expected output, you can update

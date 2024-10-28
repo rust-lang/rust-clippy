@@ -1,0 +1,48 @@
+// This GUI test checks the lints page works as expected when JS is disabled.
+javascript: false // disabling javascript
+go-to: |DOC_PATH|
+
+define-function: (
+    "check-expanded-collapsed",
+    [display, content],
+    block {
+        wait-for-css: ("#absolute_paths > .lint-docs", {"display": |display|})
+        assert-css: ("#absolute_paths .label-doc-folding::before", {"content": |content|})
+    },
+)
+
+define-function: (
+    "check-expand-collapse-action",
+    [selector],
+    block {
+        // We confirm it's collapsed.
+        call-function: ("check-expanded-collapsed", {
+	    "display": "none",
+	    "content": '"+"',
+	})
+        // We click on the item to expand it.
+        click: |selector|
+        // We confirm it's expanded.
+        call-function: ("check-expanded-collapsed", {
+	    "display": "block",
+	    "content": '"−"',
+	})
+        // We collapse it again.
+        click: |selector|
+        // We confirm it's collapsed again.
+        call-function: ("check-expanded-collapsed", {
+	    "display": "none",
+	    "content": '"+"',
+	})
+    },
+)
+
+// First we check that we can expand/collapse a lint by clicking on the lint.
+call-function: ("check-expand-collapse-action", {"selector": "#lint-absolute_paths"})
+// Then we check the expand/collapse works when clicking on the +/- button.
+call-function: ("check-expand-collapse-action", {"selector": "#absolute_paths .label-doc-folding"})
+
+// Checking click on the anchor changes the location hash.
+assert-document-property: {"location"."hash": ""}
+click: "#absolute_paths .panel-title .anchor"
+assert-document-property: {"location"."hash": "#absolute_paths"}

@@ -9,6 +9,7 @@ env:
   NO_FMT_TEST: 1
   CARGO_INCREMENTAL: 0
   RUSTFLAGS: -D warnings
+  BROWSER_UI_TEST_VERSION: '0.18.2'
 
 defaults:
   run:
@@ -76,6 +77,14 @@ jobs:
         rustup set default-host ${{ matrix.host }}
         rustup show active-toolchain
 
+    - name: Install npm
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20
+
+   - name: Install browser-ui-test
+     run: npm install browser-ui-test@"${BROWSER_UI_TEST_VERSION}"
+
     # Run
     - name: Build
       run: cargo build --tests --features internal
@@ -112,6 +121,9 @@ jobs:
       run: .github/driver.sh
       env:
         OS: ${{ runner.os }}
+
+    - name: Test clippy lints page
+      run: cargo guitest
 
   metadata_collection:
     needs: changelog
