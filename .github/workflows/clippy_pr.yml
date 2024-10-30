@@ -57,10 +57,58 @@ jobs:
       env:
         OS: ${{ runner.os }}
 
-  # We need to have the "conclusion" job also on PR CI, to make it possible
+  base-2024:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Setup
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Select Rust 2024 edition
+      run: |
+        for i in clippy_config clippy_dev clippy_lints clippy_utils lintcheck; do
+          sed -i \
+            -e '1icargo-features = ["edition2024"]' \
+            -e 's/edition = "2021"/edition = "2024"/' \
+            $i/Cargo.toml
+        done
+
+    - name: Install toolchain
+      run: rustup show active-toolchain
+
+    # Run
+    - name: Build
+      run: cargo build --tests --features internal
+
+    - name: Test
+      run: cargo test --features internal
+
+    - name: Test clippy_lints
+      run: cargo test --features internal
+      working-directory: clippy_lints
+
+    - name: Test clippy_utils
+      run: cargo test
+      working-directory: clippy_utils
+
+    - name: Test rustc_tools_util
+      run: cargo test
+      working-directory: rustc_tools_util
+
+    - name: Test clippy_dev
+      run: cargo test
+      working-directory: clippy_dev
+
+    - name: Test clippy-driver
+      run: .github/driver.sh
+      env:
+        OS: ${{ runner.os }}
+
+# We need to have the "conclusion" job also on PR CI, to make it possible
   # to add PRs to a merge queue.
   conclusion:
-    needs: [ base ]
+    needs: [ base, base-2024 ]
     # We need to ensure this job does *not* get skipped if its dependencies fail,
     # because a skipped job is considered a success by GitHub. So we have to
     # overwrite `if:`. We use `!cancelled()` to ensure the job does still not get run
