@@ -161,6 +161,7 @@ mod implicit_return;
 mod implicit_saturating_add;
 mod implicit_saturating_sub;
 mod implied_bounds_in_impls;
+mod include_file_outside_project;
 mod incompatible_msrv;
 mod inconsistent_struct_constructor;
 mod index_refutable_slice;
@@ -950,6 +951,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(unused_trait_names::UnusedTraitNames::new(conf)));
     store.register_late_pass(|_| Box::new(manual_ignore_case_cmp::ManualIgnoreCaseCmp));
     store.register_late_pass(|_| Box::new(unnecessary_literal_bound::UnnecessaryLiteralBound));
+    store.register_late_pass(|_| Box::new(include_file_outside_project::IncludeFileOutsideProject::new()));
     store.register_late_pass(move |_| Box::new(arbitrary_source_item_ordering::ArbitrarySourceItemOrdering::new(conf)));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }

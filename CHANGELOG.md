@@ -5556,6 +5556,7 @@ Released 2018-09-13
 [`implied_bounds_in_impls`]: https://rust-lang.github.io/rust-clippy/master/index.html#implied_bounds_in_impls
 [`impossible_comparisons`]: https://rust-lang.github.io/rust-clippy/master/index.html#impossible_comparisons
 [`imprecise_flops`]: https://rust-lang.github.io/rust-clippy/master/index.html#imprecise_flops
+[`include_file_outside_project`]: https://rust-lang.github.io/rust-clippy/master/index.html#include_file_outside_project
 [`incompatible_msrv`]: https://rust-lang.github.io/rust-clippy/master/index.html#incompatible_msrv
 [`inconsistent_digit_grouping`]: https://rust-lang.github.io/rust-clippy/master/index.html#inconsistent_digit_grouping
 [`inconsistent_struct_constructor`]: https://rust-lang.github.io/rust-clippy/master/index.html#inconsistent_struct_constructor
