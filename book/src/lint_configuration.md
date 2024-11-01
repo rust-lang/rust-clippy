@@ -832,6 +832,40 @@ if no suggestion can be made.
 * [`indexing_slicing`](https://rust-lang.github.io/rust-clippy/master/index.html#indexing_slicing)
 
 
+## `test-without-fail-case-fallible-paths`
+List of full paths of macros and functions, that can fail. If a test, or a function
+that the test calls contains a call to any one of these, lint will mark the test fallible.
+
+**Default Value:** `["core::panic", "core::assert", "core::assert_eq", "core::assert_ne"]`
+
+---
+**Affected lints:**
+* [`test_without_fail_case`](https://rust-lang.github.io/rust-clippy/master/index.html#test_without_fail_case)
+
+
+## `test-without-fail-case-include-indexing-as-fallible`
+Whether to consider indexing (`a[b]`) as a fallible operation while checking if a test can fail.
+Indexing is fallible, and thus it can panic, but this panic is likely not intended to be tested.
+
+**Default Value:** `false`
+
+---
+**Affected lints:**
+* [`test_without_fail_case`](https://rust-lang.github.io/rust-clippy/master/index.html#test_without_fail_case)
+
+
+## `test-without-fail-case-non-fallible-paths`
+List of full paths of macros and functions, that will not count as fallible.
+This allows the user to make the lint more focused on actual short comings of the test suite
+by marking common routines non-fallible, even though they are.
+
+**Default Value:** `["std::print", "std::println", "std::dbg", "std::eprint", "std::eprintln"]`
+
+---
+**Affected lints:**
+* [`test_without_fail_case`](https://rust-lang.github.io/rust-clippy/master/index.html#test_without_fail_case)
+
+
 ## `too-large-for-stack`
 The maximum size of objects (in bytes) that will be linted. Larger objects are ok on the heap
 
