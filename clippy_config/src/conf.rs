@@ -590,6 +590,7 @@ define_Conf! {
         type_repetition_in_bounds,
         unchecked_duration_subtraction,
         uninlined_format_args,
+        unnecessary_box_pin,
         unnecessary_lazy_evaluations,
         unnested_or_patterns,
         unused_trait_names,
