@@ -1,6 +1,6 @@
 //@aux-build:proc_macros.rs
 //@aux-build:proc_macro_derive.rs
-#![allow(unused)]
+#![expect(unused)]
 #![warn(clippy::allow_attributes)]
 #![no_main]
 
@@ -45,7 +45,7 @@ fn ignore_proc_macro() {
 }
 
 fn ignore_inner_attr() {
-    #![allow(unused)] // Should not lint
+    #![expect(unused)]
 }
 
 #[clippy::msrv = "1.81"]

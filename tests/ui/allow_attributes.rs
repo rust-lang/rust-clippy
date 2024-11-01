@@ -45,7 +45,7 @@ fn ignore_proc_macro() {
 }
 
 fn ignore_inner_attr() {
-    #![allow(unused)] // Should not lint
+    #![allow(unused)]
 }
 
 #[clippy::msrv = "1.81"]
