@@ -414,8 +414,6 @@ pub struct Attributes {
 }
 
 impl_lint_pass!(Attributes => [
-    ALLOW_ATTRIBUTES,
-    ALLOW_ATTRIBUTES_WITHOUT_REASON,
     INLINE_ALWAYS,
     DEPRECATED_SEMVER,
     USELESS_ATTRIBUTE,
@@ -444,13 +442,6 @@ impl<'tcx> LateLintPass<'tcx> for Attributes {
             if let Some(ident) = attr.ident() {
                 if is_lint_level(ident.name, attr.id) {
                     blanket_clippy_restriction_lints::check(cx, ident.name, items);
-                }
-                if matches!(ident.name, sym::allow) && self.msrv.meets(msrvs::LINT_REASONS_STABILIZATION) {
-                    allow_attributes::check(cx, attr);
-                }
-                if matches!(ident.name, sym::allow | sym::expect) && self.msrv.meets(msrvs::LINT_REASONS_STABILIZATION)
-                {
-                    allow_attributes_without_reason::check(cx, ident.name, items, attr);
                 }
                 if items.is_empty() || !attr.has_name(sym::deprecated) {
                     return;
@@ -522,6 +513,41 @@ impl EarlyLintPass for EarlyAttributes {
         deprecated_cfg_attr::check(cx, attr, &self.msrv);
         deprecated_cfg_attr::check_clippy(cx, attr);
         non_minimal_cfg::check(cx, attr);
+    }
+
+    extract_msrv_attr!(EarlyContext);
+}
+
+pub struct PostExpansionEarlyAttributes {
+    msrv: Msrv,
+}
+
+impl PostExpansionEarlyAttributes {
+    pub fn new(conf: &'static Conf) -> Self {
+        Self {
+            msrv: conf.msrv.clone(),
+        }
+    }
+}
+
+impl_lint_pass!(PostExpansionEarlyAttributes => [
+    ALLOW_ATTRIBUTES,
+    ALLOW_ATTRIBUTES_WITHOUT_REASON,
+]);
+
+impl EarlyLintPass for PostExpansionEarlyAttributes {
+    fn check_attribute(&mut self, cx: &EarlyContext<'_>, attr: &Attribute) {
+        if let Some(items) = &attr.meta_item_list() {
+            if let Some(ident) = attr.ident() {
+                if matches!(ident.name, sym::allow) && self.msrv.meets(msrvs::LINT_REASONS_STABILIZATION) {
+                    allow_attributes::check(cx, attr);
+                }
+                if matches!(ident.name, sym::allow | sym::expect) && self.msrv.meets(msrvs::LINT_REASONS_STABILIZATION)
+                {
+                    allow_attributes_without_reason::check(cx, ident.name, items, attr);
+                }
+            }
+        }
     }
 
     extract_msrv_attr!(EarlyContext);
