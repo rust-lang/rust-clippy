@@ -5,8 +5,11 @@ use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::impl_lint_pass;
 use rustc_span::{FileName, Span, sym};
 
+use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::macros::root_macro_call_first_node;
+
+use cargo_metadata::MetadataCommand;
 
 use std::path::{Path, PathBuf};
 
@@ -42,15 +45,34 @@ declare_clippy_lint! {
 pub(crate) struct IncludeFileOutsideProject {
     cargo_manifest_dir: Option<PathBuf>,
     warned_spans: FxHashSet<PathBuf>,
+    can_check_crate: bool,
 }
 
 impl_lint_pass!(IncludeFileOutsideProject => [INCLUDE_FILE_OUTSIDE_PROJECT]);
 
 impl IncludeFileOutsideProject {
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new(conf: &'static Conf) -> Self {
+        let mut can_check_crate = true;
+        if !conf.cargo_ignore_publish {
+            match MetadataCommand::new().no_deps().exec() {
+                Ok(metadata) => {
+                    for package in &metadata.packages {
+                        // only run the lint if publish is `None` (`publish = true` or skipped entirely)
+                        // or if the vector isn't empty (`publish = ["something"]`)
+                        if !matches!(package.publish.as_deref(), Some([]) | None) {
+                            can_check_crate = false;
+                            break;
+                        }
+                    }
+                },
+                Err(_) => can_check_crate = false,
+            }
+        }
+
         Self {
-            cargo_manifest_dir: std::env::var("CARGO_MANIFEST_DIR").ok().map(|dir| PathBuf::from(dir)),
+            cargo_manifest_dir: std::env::var("CARGO_MANIFEST_DIR").ok().map(PathBuf::from),
             warned_spans: FxHashSet::default(),
+            can_check_crate,
         }
     }
 
@@ -72,12 +94,12 @@ impl IncludeFileOutsideProject {
         }
     }
 
-    fn is_part_of_project_dir(&self, file_path: &PathBuf) -> bool {
+    fn is_part_of_project_dir(&self, file_path: &Path) -> bool {
         if let Some(ref cargo_manifest_dir) = self.cargo_manifest_dir {
             // Check if both paths start with the same thing.
             let mut file_iter = file_path.iter();
 
-            for cargo_item in cargo_manifest_dir.iter() {
+            for cargo_item in cargo_manifest_dir {
                 match file_iter.next() {
                     Some(file_path) if file_path == cargo_item => {},
                     _ => {
@@ -141,6 +163,9 @@ impl IncludeFileOutsideProject {
 
 impl LateLintPass<'_> for IncludeFileOutsideProject {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ Expr<'_>) {
+        if !self.can_check_crate {
+            return;
+        }
         if !expr.span.from_expansion() {
             self.check_hir_id(cx, expr.span, expr.hir_id);
         } else if let ExprKind::Lit(lit) = &expr.kind
@@ -156,12 +181,15 @@ impl LateLintPass<'_> for IncludeFileOutsideProject {
     fn check_item(&mut self, cx: &LateContext<'_>, item: &'_ Item<'_>) {
         // Interestingly enough, `include!` content is not considered expanded. Which allows us
         // to easily filter out items we're not interested into.
-        if !item.span.from_expansion() {
+        if self.can_check_crate && !item.span.from_expansion() {
             self.check_hir_id(cx, item.span, item.hir_id());
         }
     }
 
     fn check_attributes(&mut self, cx: &LateContext<'_>, attrs: &[Attribute]) {
+        if !self.can_check_crate {
+            return;
+        }
         for attr in attrs {
             if let Some(attr) = attr.meta() {
                 self.check_attribute(cx, &attr);
