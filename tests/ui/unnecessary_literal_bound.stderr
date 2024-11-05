@@ -1,5 +1,5 @@
-error: returning a `str` unnecessarily tied to the lifetime of arguments
-  --> tests/ui/unnecessary_literal_bound.rs:8:30
+error: returning a literal unnecessarily tied to the lifetime of arguments
+  --> tests/ui/unnecessary_literal_bound.rs:9:30
    |
 LL |     fn returns_lit(&self) -> &str {
    |                              ^^^^ help: try: `&'static str`
@@ -7,23 +7,35 @@ LL |     fn returns_lit(&self) -> &str {
    = note: `-D clippy::unnecessary-literal-bound` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_literal_bound)]`
 
-error: returning a `str` unnecessarily tied to the lifetime of arguments
-  --> tests/ui/unnecessary_literal_bound.rs:17:56
+error: returning a literal unnecessarily tied to the lifetime of arguments
+  --> tests/ui/unnecessary_literal_bound.rs:14:32
+   |
+LL |     fn returns_lit_b(&self) -> &[u8] {
+   |                                ^^^^^ help: try: `&'static [u8]`
+
+error: returning a literal unnecessarily tied to the lifetime of arguments
+  --> tests/ui/unnecessary_literal_bound.rs:19:38
+   |
+LL |     fn returns_lit_b_fixed(&self) -> &[u8; 3] {
+   |                                      ^^^^^^^^ help: try: `&'static [u8; 3]`
+
+error: returning a literal unnecessarily tied to the lifetime of arguments
+  --> tests/ui/unnecessary_literal_bound.rs:32:56
    |
 LL |     fn conditionally_returns_lit(&self, cond: bool) -> &str {
    |                                                        ^^^^ help: try: `&'static str`
 
-error: returning a `str` unnecessarily tied to the lifetime of arguments
-  --> tests/ui/unnecessary_literal_bound.rs:26:68
+error: returning a literal unnecessarily tied to the lifetime of arguments
+  --> tests/ui/unnecessary_literal_bound.rs:41:68
    |
 LL |     fn contionally_returns_literals_explicit(&self, cond: bool) -> &str {
    |                                                                    ^^^^ help: try: `&'static str`
 
-error: returning a `str` unnecessarily tied to the lifetime of arguments
-  --> tests/ui/unnecessary_literal_bound.rs:49:31
+error: returning a literal unnecessarily tied to the lifetime of arguments
+  --> tests/ui/unnecessary_literal_bound.rs:64:31
    |
 LL |     fn trait_method(&self) -> &str {
    |                               ^^^^ help: try: `&'static str`
 
-error: aborting due to 4 previous errors
+error: aborting due to 6 previous errors
 
