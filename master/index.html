@@ -574,7 +574,7 @@ async fn foo() {
 <p>Checks for calls to <code>await</code> while holding a non-async-aware
 <code>MutexGuard</code>.</p>
 <h3>Why is this bad?</h3>
-<p>The Mutex types found in [<code>std::sync</code>][https://doc.rust-lang.org/stable/std/sync/] and
+<p>The Mutex types found in <a href="https://doc.rust-lang.org/stable/std/sync/"><code>std::sync</code></a> and
 <a href="https://docs.rs/parking_lot/latest/parking_lot/"><code>parking_lot</code></a> are
 not designed to operate in an async context across await points.</p>
 <p>There are two potential solutions. One is to use an async-aware <code>Mutex</code>
