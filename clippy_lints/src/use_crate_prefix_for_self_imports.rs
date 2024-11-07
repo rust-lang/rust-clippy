@@ -3,7 +3,7 @@ use clippy_utils::source::snippet_opt;
 use def_id::LOCAL_CRATE;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
-use rustc_hir::*;
+use rustc_hir::{Item, ItemKind, def_id};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::declare_lint_pass;
 use rustc_span::{FileName, RealFileName};
@@ -75,10 +75,10 @@ impl LateLintPass<'_> for UseCratePrefixForSelfImports {
                     span_lint_and_sugg(
                         cx,
                         USE_CRATE_PREFIX_FOR_SELF_IMPORTS,
-                        use_path.span,
+                        segment.ident.span,
                         "this import is not clear",
                         "prefix with `crate::`",
-                        format!("crate::{}", snippet_opt(cx, use_path.span).unwrap()),
+                        format!("crate::{}", snippet_opt(cx, segment.ident.span).unwrap()),
                         Applicability::MachineApplicable,
                     );
                 }
