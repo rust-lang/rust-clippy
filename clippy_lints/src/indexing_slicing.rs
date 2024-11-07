@@ -79,7 +79,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub INDEXING_SLICING,
     restriction,
-    "indexing/slicing usage"
+    "indexing/slicing usage",
+    [panic]
 }
 
 impl_lint_pass!(IndexingSlicing => [INDEXING_SLICING, OUT_OF_BOUNDS_INDEXING]);

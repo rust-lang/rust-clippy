@@ -71,7 +71,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub MUTEX_INTEGER,
     nursery,
-    "using a mutex for an integer type"
+    "using a mutex for an integer type",
+    [perf_nursery]
 }
 
 declare_lint_pass!(Mutex => [MUTEX_ATOMIC, MUTEX_INTEGER]);

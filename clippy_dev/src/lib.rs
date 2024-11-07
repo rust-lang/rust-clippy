@@ -1,4 +1,4 @@
-#![feature(let_chains)]
+#![feature(let_chains, debug_closure_helpers)]
 #![feature(rustc_private)]
 #![warn(
     trivial_casts,

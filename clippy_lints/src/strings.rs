@@ -140,7 +140,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.58.0"]
     pub STRING_SLICE,
     restriction,
-    "slicing a string"
+    "slicing a string",
+    [panic]
 }
 
 declare_lint_pass!(StringAdd => [STRING_ADD, STRING_ADD_ASSIGN, STRING_SLICE]);

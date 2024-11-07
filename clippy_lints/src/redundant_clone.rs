@@ -56,7 +56,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.32.0"]
     pub REDUNDANT_CLONE,
     nursery,
-    "`clone()` of an owned value that is going to be dropped immediately"
+    "`clone()` of an owned value that is going to be dropped immediately",
+    [perf_nursery]
 }
 
 declare_lint_pass!(RedundantClone => [REDUNDANT_CLONE]);
