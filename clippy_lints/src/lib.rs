@@ -393,6 +393,7 @@ mod unused_unit;
 mod unwrap;
 mod unwrap_in_result;
 mod upper_case_acronyms;
+mod use_crate_prefix_for_self_imports;
 mod use_self;
 mod useless_conversion;
 mod vec;
@@ -984,5 +985,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(non_std_lazy_statics::NonStdLazyStatic::new(conf)));
     store.register_late_pass(|_| Box::new(manual_option_as_slice::ManualOptionAsSlice::new(conf)));
     store.register_late_pass(|_| Box::new(single_option_map::SingleOptionMap));
+    store.register_late_pass(|_| Box::new(use_crate_prefix_for_self_imports::UseCratePrefixForSelfImports));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
