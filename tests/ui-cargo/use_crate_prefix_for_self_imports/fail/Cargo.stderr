@@ -1,0 +1,10 @@
+error: this import is not clear
+ --> src/main.rs:1:5
+  |
+1 | use foo::Foo;
+  |     ^^^^^^^^ help: prefix with `crate::`: `crate::foo::Foo`
+  |
+  = note: `-D clippy::use-crate-prefix-for-self-imports` implied by `-D warnings`
+  = help: to override `-D warnings` add `#[allow(clippy::use_crate_prefix_for_self_imports)]`
+
+error: could not compile `fail` (bin "fail") due to 1 previous error
