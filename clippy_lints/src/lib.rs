@@ -399,6 +399,7 @@ mod unused_unit;
 mod unwrap;
 mod unwrap_in_result;
 mod upper_case_acronyms;
+mod use_crate_prefix_for_self_imports;
 mod use_self;
 mod useless_concat;
 mod useless_conversion;
