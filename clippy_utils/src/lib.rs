@@ -91,7 +91,7 @@ use std::sync::{Mutex, MutexGuard, OnceLock};
 
 use clippy_config::types::DisallowedPath;
 use itertools::Itertools;
-use rustc_ast::ast::{self, LitKind, RangeLimits};
+use rustc_ast::ast::{self, BinOpKind, LitKind, RangeLimits};
 use rustc_data_structures::fx::FxHashMap;
 use rustc_data_structures::packed::Pu128;
 use rustc_data_structures::unhash::UnhashMap;
@@ -2788,16 +2788,46 @@ impl<'tcx> ExprUseCtxt<'tcx> {
                         .position(|arg| arg.hir_id == self.child_id)
                         .map_or(0, |i| i + 1),
                 ),
-                ExprKind::Field(_, name) => ExprUseNode::FieldAccess(name),
+                ExprKind::Field(_, name) => ExprUseNode::FieldAccess(use_expr.hir_id, name),
                 ExprKind::AddrOf(kind, mutbl, _) => ExprUseNode::AddrOf(kind, mutbl),
+                ExprKind::Assign(lhs, rhs, _) => {
+                    debug_assert!(lhs.hir_id == self.child_id || rhs.hir_id == self.child_id);
+                    #[allow(clippy::bool_to_int_with_if)]
+                    let idx = if lhs.hir_id == self.child_id { 0 } else { 1 };
+                    ExprUseNode::Assign(idx)
+                },
+                ExprKind::AssignOp(op, lhs, rhs) => {
+                    debug_assert!(lhs.hir_id == self.child_id || rhs.hir_id == self.child_id);
+                    #[allow(clippy::bool_to_int_with_if)]
+                    let idx = if lhs.hir_id == self.child_id { 0 } else { 1 };
+                    ExprUseNode::AssignOp(op.node, idx)
+                },
                 _ => ExprUseNode::Other,
             },
             _ => ExprUseNode::Other,
         }
     }
+
+    pub fn use_mutability(&self, cx: &LateContext<'tcx>) -> Mutability {
+        match self.use_node(cx) {
+            ExprUseNode::FieldAccess(parent, _) => {
+                let parent = cx.tcx.hir().expect_expr(parent);
+                expr_use_ctxt(cx, parent).use_mutability(cx)
+            },
+            ExprUseNode::AssignOp(_, 0) | ExprUseNode::Assign(0) => Mutability::Mut,
+            ExprUseNode::AddrOf(_, mutbl) => mutbl,
+            ExprUseNode::FnArg(_, _) | ExprUseNode::MethodArg(_, _, _) => {
+                let child_expr = cx.tcx.hir().expect_expr(self.child_id);
+                let ty = cx.typeck_results().expr_ty_adjusted(child_expr);
+                ty.ref_mutability().unwrap_or(Mutability::Not)
+            },
+            _ => Mutability::Not,
+        }
+    }
 }
 
 /// The node which consumes a value.
+#[derive(Debug)]
 pub enum ExprUseNode<'tcx> {
     /// Assignment to, or initializer for, a local
     LetStmt(&'tcx LetStmt<'tcx>),
@@ -2814,9 +2844,13 @@ pub enum ExprUseNode<'tcx> {
     /// The callee of a function call.
     Callee,
     /// Access of a field.
-    FieldAccess(Ident),
+    FieldAccess(HirId, Ident),
     /// Borrow expression.
     AddrOf(ast::BorrowKind, Mutability),
+    /// Assignment.
+    Assign(usize),
+    /// Assignment with an operator.
+    AssignOp(BinOpKind, usize),
     Other,
 }
 impl<'tcx> ExprUseNode<'tcx> {
@@ -2893,7 +2927,13 @@ impl<'tcx> ExprUseNode<'tcx> {
                 let sig = cx.tcx.fn_sig(id).skip_binder();
                 Some(DefinedTy::Mir(cx.tcx.param_env(id).and(sig.input(i))))
             },
-            Self::LetStmt(_) | Self::FieldAccess(..) | Self::Callee | Self::Other | Self::AddrOf(..) => None,
+            Self::LetStmt(_)
+            | Self::FieldAccess(..)
+            | Self::Callee
+            | Self::Other
+            | Self::AddrOf(..)
+            | Self::Assign(_)
+            | Self::AssignOp(..) => None,
         }
     }
 }

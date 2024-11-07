@@ -1,5 +1,10 @@
 #![warn(clippy::manual_inspect)]
-#![allow(clippy::no_effect, clippy::op_ref)]
+#![allow(
+    clippy::no_effect,
+    clippy::op_ref,
+    clippy::explicit_auto_deref,
+    clippy::needless_borrow
+)]
 
 fn main() {
     let _ = Some(0).map(|x| {
@@ -183,4 +188,102 @@ fn main() {
             x
         });
     }
+}
+
+fn issue_13185() {
+    struct T(u32);
+
+    impl T {
+        fn do_immut(&self) {
+            println!("meow~");
+        }
+
+        fn do_mut(&mut self) {
+            self.0 += 514;
+        }
+    }
+
+    _ = Some(T(114)).as_mut().map(|t| {
+        t.0 + 514;
+        t
+    });
+
+    _ = Some(T(114)).as_mut().map(|t| {
+        t.0 = 514;
+        t
+    });
+
+    _ = Some(T(114)).as_mut().map(|t| {
+        t.0 += 514;
+        t
+    });
+
+    // FIXME: It's better to lint this case
+    _ = Some(T(114)).as_mut().map(|t| {
+        let indirect = t;
+        indirect.0 + 514;
+        indirect
+    });
+
+    _ = Some(T(114)).as_mut().map(|t| {
+        let indirect = t;
+        indirect.0 += 514;
+        indirect
+    });
+
+    _ = Some(T(114)).as_mut().map(|t| {
+        t.do_mut();
+        t
+    });
+
+    _ = Some(T(114)).as_mut().map(|t| {
+        t.do_immut();
+        t
+    });
+
+    _ = Some(T(114)).as_mut().map(|t| {
+        T::do_mut(t);
+        t
+    });
+
+    _ = Some(T(114)).as_mut().map(|t| {
+        T::do_immut(t);
+        t
+    });
+
+    // FIXME: It's better to lint this case
+    _ = Some(T(114)).as_mut().map(|t| {
+        let indirect = t;
+        indirect.do_immut();
+        indirect
+    });
+
+    // FIXME: It's better to lint this case
+    _ = Some(T(114)).as_mut().map(|t| {
+        (&*t).do_immut();
+        t
+    });
+
+    // Nested fields access
+    struct N(T);
+
+    _ = Some(N(T(114))).as_mut().map(|t| {
+        t.0.do_mut();
+        t
+    });
+
+    _ = Some(N(T(114))).as_mut().map(|t| {
+        t.0.do_immut();
+        t
+    });
+
+    _ = Some(N(T(114))).as_mut().map(|t| {
+        T::do_mut(&mut t.0);
+        t
+    });
+
+    _ = Some(N(T(114))).as_mut().map(|t| {
+        T::do_immut(&t.0);
+        t
+    });
 }

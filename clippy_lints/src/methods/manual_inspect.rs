@@ -34,6 +34,7 @@ pub(crate) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, arg: &Expr<'_>, name:
     {
         let mut requires_copy = false;
         let mut requires_deref = false;
+        let mut has_mut_use = false;
 
         // The number of unprocessed return expressions.
         let mut ret_count = 0u32;
@@ -47,7 +48,8 @@ pub(crate) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, arg: &Expr<'_>, name:
                 // Nested closures don't need to treat returns specially.
                 let _: Option<!> = for_each_expr(cx, cx.tcx.hir().body(c.body).value, |e| {
                     if path_to_local_id(e, arg_id) {
-                        let (kind, same_ctxt) = check_use(cx, e);
+                        let (kind, mutbl, same_ctxt) = check_use(cx, e);
+                        has_mut_use |= mutbl.is_mut();
                         match (kind, same_ctxt && e.span.ctxt() == ctxt) {
                             (_, false) | (UseKind::Deref | UseKind::Return(..), true) => {
                                 requires_copy = true;
@@ -65,7 +67,8 @@ pub(crate) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, arg: &Expr<'_>, name:
             } else if matches!(e.kind, ExprKind::Ret(_)) {
                 ret_count += 1;
             } else if path_to_local_id(e, arg_id) {
-                let (kind, same_ctxt) = check_use(cx, e);
+                let (kind, mutbl, same_ctxt) = check_use(cx, e);
+                has_mut_use |= mutbl.is_mut();
                 match (kind, same_ctxt && e.span.ctxt() == ctxt) {
                     (UseKind::Return(..), false) => {
                         return ControlFlow::Break(());
@@ -161,6 +164,7 @@ pub(crate) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, arg: &Expr<'_>, name:
             && (!requires_copy || arg_ty.is_copy_modulo_regions(cx.tcx, cx.param_env))
             // This case could be handled, but a fair bit of care would need to be taken.
             && (!requires_deref || arg_ty.is_freeze(cx.tcx, cx.param_env))
+            && !has_mut_use
         {
             if requires_deref {
                 edits.push((param.span.shrink_to_lo(), "&".into()));
@@ -207,30 +211,31 @@ enum UseKind<'tcx> {
     FieldAccess(Symbol, &'tcx Expr<'tcx>),
 }
 
-/// Checks how the value is used, and whether it was used in the same `SyntaxContext`.
-fn check_use<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> (UseKind<'tcx>, bool) {
+/// Checks how the value is used, mutability, and whether it was used in the same `SyntaxContext`.
+fn check_use<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> (UseKind<'tcx>, Mutability, bool) {
     let use_cx = expr_use_ctxt(cx, e);
+    let mutbl = use_cx.use_mutability(cx);
     if use_cx
         .adjustments
         .first()
         .is_some_and(|a| matches!(a.kind, Adjust::Deref(_)))
     {
-        return (UseKind::AutoBorrowed, use_cx.same_ctxt);
+        return (UseKind::AutoBorrowed, mutbl, use_cx.same_ctxt);
     }
     let res = match use_cx.use_node(cx) {
         ExprUseNode::Return(_) => {
             if let ExprKind::Ret(Some(e)) = use_cx.node.expect_expr().kind {
                 UseKind::Return(e.span)
             } else {
-                return (UseKind::Return(DUMMY_SP), false);
+                return (UseKind::Return(DUMMY_SP), mutbl, false);
             }
         },
-        ExprUseNode::FieldAccess(name) => UseKind::FieldAccess(name.name, use_cx.node.expect_expr()),
+        ExprUseNode::FieldAccess(_, name) => UseKind::FieldAccess(name.name, use_cx.node.expect_expr()),
         ExprUseNode::Callee | ExprUseNode::MethodArg(_, _, 0)
             if use_cx
                 .adjustments
                 .first()
-                .is_some_and(|a| matches!(a.kind, Adjust::Borrow(AutoBorrow::Ref(_, AutoBorrowMutability::Not)))) =>
+                .is_some_and(|a| matches!(a.kind, Adjust::Borrow(AutoBorrow::Ref(_, _)))) =>
         {
             UseKind::AutoBorrowed
         },
@@ -238,5 +243,5 @@ fn check_use<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> (UseKind<'tcx>,
         ExprUseNode::AddrOf(BorrowKind::Ref, _) => UseKind::Borrowed(use_cx.node.expect_expr().span),
         _ => UseKind::Deref,
     };
-    (res, use_cx.same_ctxt)
+    (res, mutbl, use_cx.same_ctxt)
 }
