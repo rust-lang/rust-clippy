@@ -137,11 +137,13 @@ pub trait TraitWithNew: Sized {
     }
 }
 
-pub struct IgnoreUnsafeNew;
+pub struct IgnoreUnsafeNew {
+    _private: (),
+}
 
 impl IgnoreUnsafeNew {
     pub unsafe fn new() -> Self {
-        IgnoreUnsafeNew
+        IgnoreUnsafeNew { _private: () }
     }
 }
 

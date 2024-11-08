@@ -106,6 +106,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::collapsible_if::COLLAPSIBLE_IF_INFO,
     crate::collection_is_never_read::COLLECTION_IS_NEVER_READ_INFO,
     crate::comparison_chain::COMPARISON_CHAIN_INFO,
+    crate::constructable_unsafe_type::CONSTRUCTABLE_UNSAFE_TYPE_INFO,
     crate::copies::BRANCHES_SHARING_CODE_INFO,
     crate::copies::IFS_SAME_COND_INFO,
     crate::copies::IF_SAME_THEN_ELSE_INFO,

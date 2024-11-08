@@ -98,6 +98,7 @@ mod cognitive_complexity;
 mod collapsible_if;
 mod collection_is_never_read;
 mod comparison_chain;
+mod constructable_unsafe_type;
 mod copies;
 mod copy_iterator;
 mod crate_in_macro_def;
@@ -963,5 +964,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(manual_ignore_case_cmp::ManualIgnoreCaseCmp));
     store.register_late_pass(|_| Box::new(unnecessary_literal_bound::UnnecessaryLiteralBound));
     store.register_late_pass(move |_| Box::new(arbitrary_source_item_ordering::ArbitrarySourceItemOrdering::new(conf)));
+    store.register_late_pass(|_| Box::new(constructable_unsafe_type::ConstructableUnsafeType));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
