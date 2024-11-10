@@ -112,6 +112,7 @@ mod suspicious_to_owned;
 mod type_id_on_box;
 mod uninit_assumed_init;
 mod unit_hash;
+mod unnecessary_collection_clone;
 mod unnecessary_fallible_conversions;
 mod unnecessary_filter_map;
 mod unnecessary_first_then_check;
@@ -4253,6 +4254,36 @@ declare_clippy_lint! {
     "map of a trivial closure (not dependent on parameter) over a range"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Detects when an entire collection is being cloned eagerly, instead of each item lazily.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// Cloning a collection requires allocating space for all elements and cloning each element into this new space,
+    /// whereas using `Iterator::cloned` does not allocate any more space and only requires cloning each element as they are consumed.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// fn process_string(val: String) -> String { val }
+    /// fn process_strings(strings: &Vec<String>) -> Vec<String> {
+    ///     strings.clone().into_iter().filter(|s| s.len() < 10).map(process_string).collect()
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// fn process_string(val: String) -> String { val }
+    /// fn process_strings(strings: &Vec<String>) -> Vec<String> {
+    ///     strings.iter().cloned().filter(|s| s.len() < 10).map(process_string).collect()
+    /// }
+    /// ```
+    #[clippy::version = "1.84.0"]
+    pub UNNECESSARY_COLLECTION_CLONE,
+    perf,
+    "calling `.clone().into_iter()` instead of `.iter().cloned()`"
+}
+
 pub struct Methods {
     avoid_breaking_exported_api: bool,
     msrv: Msrv,
@@ -4417,6 +4448,7 @@ impl_lint_pass!(Methods => [
     NEEDLESS_AS_BYTES,
     MAP_ALL_ANY_IDENTITY,
     MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
+    UNNECESSARY_COLLECTION_CLONE,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -4879,6 +4911,10 @@ impl Methods {
                 ("is_none", []) => check_is_some_is_none(cx, expr, recv, call_span, false),
                 ("is_some", []) => check_is_some_is_none(cx, expr, recv, call_span, true),
                 ("iter" | "iter_mut" | "into_iter", []) => {
+                    if name == "into_iter" {
+                        unnecessary_collection_clone::check(cx, expr, recv);
+                    }
+
                     iter_on_single_or_empty_collections::check(cx, expr, name, recv);
                 },
                 ("join", [join_arg]) => {

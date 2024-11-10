@@ -412,6 +412,19 @@ pub fn is_trait_item(cx: &LateContext<'_>, expr: &Expr<'_>, diag_item: Symbol) -
     }
 }
 
+/// Checks if `expr` is a path to a mutable binding.
+pub fn is_path_mutable(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<bool> {
+    if let Some(hir_id) = path_to_local(expr)
+        && let Node::Pat(pat) = cx.tcx.hir_node(hir_id)
+    {
+        Some(matches!(pat.kind, PatKind::Binding(BindingMode::MUT, ..)))
+    } else if let ExprKind::Field(recv, _) = expr.kind {
+        is_path_mutable(cx, recv)
+    } else {
+        None
+    }
+}
+
 pub fn last_path_segment<'tcx>(path: &QPath<'tcx>) -> &'tcx PathSegment<'tcx> {
     match *path {
         QPath::Resolved(_, path) => path.segments.last().expect("A path must have at least one segment"),
