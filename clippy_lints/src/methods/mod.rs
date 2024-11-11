@@ -52,6 +52,7 @@ mod iter_skip_zero;
 mod iter_with_drain;
 mod iterator_step_by_zero;
 mod join_absolute_paths;
+mod manual_as_ref_deref;
 mod manual_c_str_literals;
 mod manual_inspect;
 mod manual_is_variant_and;
@@ -79,7 +80,6 @@ mod obfuscated_if_else;
 mod ok_expect;
 mod open_options;
 mod option_as_ref_cloned;
-mod option_as_ref_deref;
 mod option_map_or_err_ok;
 mod option_map_or_none;
 mod option_map_unwrap_or;
@@ -1762,7 +1762,8 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for usage of `_.as_ref().map(Deref::deref)` or its aliases (such as String::as_str).
+    /// Checks for usage of `_.as_ref().map(Deref::deref)` or its aliases
+    /// (such as `String::as_str`) on `Option`.
     ///
     /// ### Why is this bad?
     /// Readability, this can be written more concisely as
@@ -1782,6 +1783,33 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.42.0"]
     pub OPTION_AS_REF_DEREF,
+    complexity,
+    "using `as_ref().map(Deref::deref)`, which is more succinctly expressed as `as_deref()`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `_.as_ref().map(Deref::deref)` or its aliases
+    /// (such as `String::as_str`) on `Result`.
+    ///
+    /// ### Why is this bad?
+    /// Readability, this can be written more concisely as
+    /// `_.as_deref()`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let res = Ok::<_, ()>("".to_string());
+    /// res.as_ref().map(String::as_str)
+    /// # ;
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # let res = Ok::<_, ()>("".to_string());
+    /// res.as_deref()
+    /// # ;
+    /// ```
+    #[clippy::version = "1.84.0"]
+    pub RESULT_AS_REF_DEREF,
     complexity,
     "using `as_ref().map(Deref::deref)`, which is more succinctly expressed as `as_deref()`"
 }
@@ -4339,6 +4367,7 @@ impl_lint_pass!(Methods => [
     ZST_OFFSET,
     FILETYPE_IS_FILE,
     OPTION_AS_REF_DEREF,
+    RESULT_AS_REF_DEREF,
     UNNECESSARY_LAZY_EVALUATIONS,
     MAP_COLLECT_RESULT_UNIT,
     FROM_ITER_INSTEAD_OF_COLLECT,
@@ -4932,8 +4961,8 @@ impl Methods {
                     }
                     if let Some((name, recv2, args, span2, _)) = method_call(recv) {
                         match (name, args) {
-                            ("as_mut", []) => option_as_ref_deref::check(cx, expr, recv2, m_arg, true, &self.msrv),
-                            ("as_ref", []) => option_as_ref_deref::check(cx, expr, recv2, m_arg, false, &self.msrv),
+                            ("as_mut", []) => manual_as_ref_deref::check(cx, expr, recv2, m_arg, true, &self.msrv),
+                            ("as_ref", []) => manual_as_ref_deref::check(cx, expr, recv2, m_arg, false, &self.msrv),
                             ("filter", [f_arg]) => {
                                 filter_map::check(cx, expr, recv2, f_arg, span2, recv, m_arg, span, false);
                             },
