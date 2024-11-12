@@ -846,6 +846,9 @@ define_Conf! {
     /// Whether to also emit warnings for unsafe blocks with metavariable expansions in **private** macros.
     #[lints(macro_metavars_in_unsafe)]
     warn_unsafe_macro_metavars_in_private_macros: bool = false,
+    /// Whether to include integration tests in the linting process or not.
+    #[lints(redundant_test_prefix)]
+    redundant_test_prefix_in_integration_tests: bool = false,
 }
 
 /// Search for the configuration file.

@@ -1088,3 +1088,13 @@ Whether to also emit warnings for unsafe blocks with metavariable expansions in 
 ---
 **Affected lints:**
 * [`macro_metavars_in_unsafe`](https://rust-lang.github.io/rust-clippy/master/index.html#macro_metavars_in_unsafe)
+
+
+## `redundant-test-prefix-in-integration-tests`
+Whether to include integration tests in the linting process or not.
+
+**Default Value:** `false`
+
+---
+**Affected lints:**
+* [`redundant_test_prefix`](https://rust-lang.github.io/rust-clippy/master/index.html#redundant_test_prefix)
