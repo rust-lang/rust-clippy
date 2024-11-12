@@ -772,6 +772,13 @@ define_Conf! {
     /// exported visibility, or whether they are marked as "pub".
     #[lints(pub_underscore_fields)]
     pub_underscore_fields_behavior: PubUnderscoreFieldsBehaviour = PubUnderscoreFieldsBehaviour::PubliclyExported,
+    /// Indicates if `redundant_test_prefix` should check functions outside of items marked
+    /// with `#[cfg(test)]`.
+    ///
+    /// This option can be used for integration tests which use the `#[test]` attribute
+    /// without the `#[cfg(test)]`.
+    #[lints(redundant_test_prefix)]
+    redundant_test_prefix_check_outside_cfg_test: bool = false,
     /// Whether to lint only if it's multiline.
     #[lints(semicolon_inside_block)]
     semicolon_inside_block_ignore_singleline: bool = false,
