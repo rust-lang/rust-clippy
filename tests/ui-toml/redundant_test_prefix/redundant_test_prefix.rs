@@ -1,0 +1,29 @@
+//@revisions: default integ_tests
+//@[default] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/redundant_test_prefix/default
+//@[integ_tests] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/redundant_test_prefix/in_integration_tests
+//@compile-flags: --test
+#![allow(dead_code)]
+#![warn(clippy::redundant_test_prefix)]
+
+fn main() {}
+
+mod tests_no_annotations {
+    use super::*;
+
+    #[test]
+    fn test_has_annotation() {
+        //~[integ_tests]^ redundant_test_prefix
+    }
+
+    fn no_annotation() {}
+}
+
+#[test]
+fn test_main_module_has_annotation() {
+    //~[integ_tests]^ redundant_test_prefix
+}
+
+fn test_main_module_no_annotation() {}
+
+#[cfg(test)]
+mod tests {}
