@@ -40,6 +40,8 @@ declare_with_version! { DEPRECATED(DEPRECATED_VERSION): &[(&str, &str)] = &[
     ("clippy::pub_enum_variant_names", "`clippy::enum_variant_names` now covers this case via the `avoid-breaking-exported-api` config"),
     #[clippy::version = "1.54.0"]
     ("clippy::wrong_pub_self_convention", "`clippy::wrong_self_convention` now covers this case via the `avoid-breaking-exported-api` config"),
+    #[clippy::version = "1.83.0"]
+    ("clippy::if_let_mutex", "`if_let_rescope` is now stable [#131154](https://github.com/rust-lang/rust/issues/131154). The Mutex lock does not held for the whole `if let ... else` block. There are no deadlocks on this reason."),
     // end deprecated lints. used by `cargo dev deprecate_lint`
 ]}
 

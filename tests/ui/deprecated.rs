@@ -15,5 +15,6 @@
 #![warn(clippy::regex_macro)] //~ ERROR: lint `clippy::regex_macro`
 #![warn(clippy::pub_enum_variant_names)] //~ ERROR: lint `clippy::pub_enum_variant_names`
 #![warn(clippy::wrong_pub_self_convention)] //~ ERROR: lint `clippy::wrong_pub_self_convention`
+#![warn(clippy::if_let_mutex)] //~ ERROR: lint `clippy::if_let_mutex`
 
 fn main() {}

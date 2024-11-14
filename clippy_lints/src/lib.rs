@@ -152,7 +152,6 @@ mod from_raw_with_void_ptr;
 mod from_str_radix_10;
 mod functions;
 mod future_not_send;
-mod if_let_mutex;
 mod if_not_else;
 mod if_then_some_else_none;
 mod ignored_unit_patterns;
@@ -791,7 +790,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(option_if_let_else::OptionIfLetElse));
     store.register_late_pass(|_| Box::new(future_not_send::FutureNotSend));
     store.register_late_pass(move |_| Box::new(large_futures::LargeFuture::new(conf)));
-    store.register_late_pass(|_| Box::new(if_let_mutex::IfLetMutex));
     store.register_late_pass(|_| Box::new(if_not_else::IfNotElse));
     store.register_late_pass(|_| Box::new(equatable_if_let::PatternEquality));
     store.register_late_pass(|_| Box::new(manual_async_fn::ManualAsyncFn));
