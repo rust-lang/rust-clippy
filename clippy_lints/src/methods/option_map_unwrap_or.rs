@@ -1,6 +1,6 @@
 use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::snippet_with_applicability;
+use clippy_utils::source::{snippet, snippet_with_applicability};
 use clippy_utils::ty::{is_copy, is_type_diagnostic_item};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
@@ -24,6 +24,7 @@ pub(super) fn check<'tcx>(
     unwrap_recv: &rustc_hir::Expr<'_>,
     unwrap_arg: &'tcx rustc_hir::Expr<'_>,
     map_span: Span,
+    unwrap_span: Span,
     msrv: &Msrv,
 ) {
     // lint if the caller of `map()` is an `Option`
@@ -98,10 +99,10 @@ pub(super) fn check<'tcx>(
             "map_or(<a>, <f>)"
         };
         let msg = format!("called `map(<f>).unwrap_or({arg})` on an `Option` value");
+        let multiline = snippet(cx, expr.span, "..").lines().count() > 1;
 
         span_lint_and_then(cx, MAP_UNWRAP_OR, expr.span, msg, |diag| {
             let map_arg_span = map_arg.span;
-
             let mut suggestion = vec![
                 (
                     map_span,
@@ -120,7 +121,12 @@ pub(super) fn check<'tcx>(
                 suggestion.push((map_arg_span.with_hi(map_arg_span.lo()), format!("{unwrap_snippet}, ")));
             }
 
-            diag.multipart_suggestion(format!("use `{suggest}` instead"), suggestion, applicability);
+            let and_msg = if multiline { "and " } else { "" };
+            diag.multipart_suggestion(format!("{and_msg}use `{suggest}` instead"), suggestion, applicability);
+
+            if multiline {
+                diag.span_help(unwrap_span, "remove this `unwrap_or` statement");
+            }
         });
     }
 }
