@@ -51,6 +51,21 @@ fn result_methods() {
     let _ = opt_map!(res, |x| x + 1).unwrap_or_else(|_e| 0); // should not lint
 }
 
+#[rustfmt::skip]
+fn issue_13242() {
+    Some(1)
+        .map(|x| x < 5)
+        .unwrap_or(false);
+
+    Some(1)
+        .map(|x| x + 1)
+        .unwrap_or(1);
+
+    Ok(1)
+        .map(|x| x + 1)
+        .unwrap_or_else(|_: usize| {1});
+}
+
 fn main() {
     option_methods();
     result_methods();
