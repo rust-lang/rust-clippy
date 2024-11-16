@@ -469,6 +469,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::methods::SUSPICIOUS_OPEN_OPTIONS_INFO,
     crate::methods::SUSPICIOUS_SPLITN_INFO,
     crate::methods::SUSPICIOUS_TO_OWNED_INFO,
+    crate::methods::TRUNCATE_WITH_DRAIN_INFO,
     crate::methods::TYPE_ID_ON_BOX_INFO,
     crate::methods::UNINIT_ASSUMED_INIT_INFO,
     crate::methods::UNIT_HASH_INFO,

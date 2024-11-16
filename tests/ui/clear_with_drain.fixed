@@ -86,7 +86,7 @@ fn vec_partial_drains() {
     // Do not lint any of these because the ranges are not full
 
     let mut v = vec![1, 2, 3];
-    v.drain(1..);
+    v.truncate(1);
     let mut v = vec![1, 2, 3];
     v.drain(1..).max();
 
@@ -184,7 +184,7 @@ fn vec_deque_partial_drains() {
     // Do not lint any of these because the ranges are not full
 
     let mut deque = VecDeque::from([1, 2, 3]);
-    deque.drain(1..);
+    deque.truncate(1);
     let mut deque = VecDeque::from([1, 2, 3]);
     deque.drain(1..).max();
 
@@ -282,7 +282,7 @@ fn string_partial_drains() {
     // Do not lint any of these because the ranges are not full
 
     let mut s = String::from("Hello, world!");
-    s.drain(1..);
+    s.truncate(1);
     let mut s = String::from("Hello, world!");
     s.drain(1..).max();
 
