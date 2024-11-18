@@ -21,7 +21,7 @@ fn test_f3() {
 
 #[cfg(test)]
 #[test]
-fn test_f4() {
+fn f4() {
     //~^ ERROR: redundant `test_` prefix in test function name
     //~| HELP: consider removing the `test_` prefix
     //~| NOTE: `-D clippy::redundant-test-prefix` implied by `-D warnings`
@@ -34,7 +34,7 @@ fn f5() {}
 
 #[cfg(test)]
 #[test]
-fn test_f5() {
+fn f5_works() {
     //~^ ERROR: redundant `test_` prefix in test function name
     //~| HELP: consider removing the `test_` prefix (suffix avoids name conflict)
 
@@ -50,7 +50,7 @@ mod m1 {
 
 #[cfg(test)]
 #[test]
-fn test_f6() {
+fn f6_works() {
     //~^ ERROR: redundant `test_` prefix in test function name
     //~| HELP: consider removing the `test_` prefix (suffix avoids name conflict)
 
@@ -63,7 +63,7 @@ fn test_f6() {
 
 #[cfg(test)]
 #[test]
-fn test_f8() {
+fn f8() {
     //~^ ERROR: redundant `test_` prefix in test function name
     //~| HELP: consider removing the `test_` prefix
 
@@ -79,7 +79,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_main() {
+    fn main_works() {
         //~^ ERROR: redundant `test_` prefix in test function name
         //~| HELP: consider removing the `test_` prefix (suffix avoids name conflict)
 
@@ -87,13 +87,13 @@ mod tests {
     }
 
     #[test]
-    fn test_foo() {
+    fn foo() {
         //~^ ERROR: redundant `test_` prefix in test function name
         //~| HELP: consider removing the `test_` prefix
     }
 
     #[test]
-    fn test_foo_with_call() {
+    fn foo_with_call() {
         //~^ ERROR: redundant `test_` prefix in test function name
         //~| HELP: consider removing the `test_` prefix
 
@@ -101,49 +101,49 @@ mod tests {
     }
 
     #[test]
-    fn test_f1() {
+    fn f1() {
         //~^ ERROR: redundant `test_` prefix in test function name
         //~| HELP: consider removing the `test_` prefix
     }
 
     #[test]
-    fn test_f2() {
+    fn f2() {
         //~^ ERROR: redundant `test_` prefix in test function name
         //~| HELP: consider removing the `test_` prefix
     }
 
     #[test]
-    fn test_f3() {
+    fn f3() {
         //~^ ERROR: redundant `test_` prefix in test function name
         //~| HELP: consider removing the `test_` prefix
     }
 
     #[test]
-    fn test_f4() {
+    fn f4() {
         //~^ ERROR: redundant `test_` prefix in test function name
         //~| HELP: consider removing the `test_` prefix
     }
 
     #[test]
-    fn test_f5() {
+    fn f5() {
         //~^ ERROR: redundant `test_` prefix in test function name
         //~| HELP: consider removing the `test_` prefix
     }
 
     #[test]
-    fn test_f6() {
+    fn f6() {
         //~^ ERROR: redundant `test_` prefix in test function name
         //~| HELP: consider removing the `test_` prefix
     }
 
     #[test]
-    fn test_f7() {
+    fn f7() {
         //~^ ERROR: redundant `test_` prefix in test function name
         //~| HELP: consider removing the `test_` prefix
     }
 
     #[test]
-    fn test_f8() {
+    fn f8() {
         //~^ ERROR: redundant `test_` prefix in test function name
         //~| HELP: consider removing the `test_` prefix
     }

@@ -1,24 +1,17 @@
 error: redundant `test_` prefix in test function name
-  --> tests/ui-toml/redundant_test_prefix/redundant_test_prefix.rs:14:5
+  --> tests/ui-toml/redundant_test_prefix/redundant_test_prefix.rs:14:8
    |
-LL | /     fn test_has_annotation() {
-LL | |
-LL | |     }
-   | |_____^
+LL |     fn test_has_annotation() {
+   |        ^^^^^^^^^^^^^^^^^^^ help: consider removing the `test_` prefix: `has_annotation`
    |
-   = help: consider removing the `test_` prefix
    = note: `-D clippy::redundant-test-prefix` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::redundant_test_prefix)]`
 
 error: redundant `test_` prefix in test function name
-  --> tests/ui-toml/redundant_test_prefix/redundant_test_prefix.rs:22:1
+  --> tests/ui-toml/redundant_test_prefix/redundant_test_prefix.rs:22:4
    |
-LL | / fn test_main_module_has_annotation() {
-LL | |
-LL | | }
-   | |_^
-   |
-   = help: consider removing the `test_` prefix
+LL | fn test_main_module_has_annotation() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider removing the `test_` prefix: `main_module_has_annotation`
 
 error: aborting due to 2 previous errors
 
