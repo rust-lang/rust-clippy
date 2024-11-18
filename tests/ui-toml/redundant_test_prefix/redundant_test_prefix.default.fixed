@@ -30,7 +30,7 @@ fn foo() {}
 
 #[cfg(test)]
 #[test]
-fn test_foo() {
+fn foo_works() {
     //~^ ERROR: redundant `test_` prefix in test function name
     //~| HELP: consider removing the `test_` prefix (suffix avoids name conflict)
 

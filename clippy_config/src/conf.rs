@@ -849,6 +849,13 @@ define_Conf! {
     /// Whether to include integration tests in the linting process or not.
     #[lints(redundant_test_prefix)]
     redundant_test_prefix_in_integration_tests: bool = false,
+    /// What suffix to use to avoid function name collisions when `test_` prefix is removed.
+    ///
+    /// If set to `"_works"`, the lint will suggest renaming `test_foo` to `foo_works`.
+    /// Suffix is added only when there is a collision with an existing function name,
+    /// otherwise just `test_` prefix is removed (and no suffix added).
+    #[lints(redundant_test_prefix)]
+    redundant_test_prefix_custom_suffix: String = String::from("_works"),
 }
 
 /// Search for the configuration file.

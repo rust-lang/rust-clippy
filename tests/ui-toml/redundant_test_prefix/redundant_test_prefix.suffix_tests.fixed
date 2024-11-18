@@ -12,7 +12,7 @@ mod tests_no_annotations {
     use super::*;
 
     #[test]
-    fn test_has_annotation() {
+    fn has_annotation() {
         //~[integ_tests]^ redundant_test_prefix
     }
 
@@ -20,7 +20,7 @@ mod tests_no_annotations {
 }
 
 #[test]
-fn test_main_module_has_annotation() {
+fn main_module_has_annotation() {
     //~[integ_tests]^ redundant_test_prefix
 }
 
@@ -30,7 +30,7 @@ fn foo() {}
 
 #[cfg(test)]
 #[test]
-fn test_foo() {
+fn foo_ok() {
     //~^ ERROR: redundant `test_` prefix in test function name
     //~| HELP: consider removing the `test_` prefix (suffix avoids name conflict)
 
@@ -42,7 +42,7 @@ fn test_foo() {
 fn bar() {}
 
 #[test]
-fn test_bar() {
+fn bar_ok() {
     //~[suffix_tests]^ redundant_test_prefix
 
     todo!()

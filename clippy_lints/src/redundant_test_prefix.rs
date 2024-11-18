@@ -43,12 +43,14 @@ declare_clippy_lint! {
 
 pub struct RedundantTestPrefix {
     in_integration_tests: bool,
+    custom_sufix: String,
 }
 
 impl RedundantTestPrefix {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
             in_integration_tests: conf.redundant_test_prefix_in_integration_tests,
+            custom_sufix: conf.redundant_test_prefix_custom_suffix.clone(),
         }
     }
 }
@@ -83,7 +85,7 @@ impl<'tcx> LateLintPass<'tcx> for RedundantTestPrefix {
             // If `non_prefixed` conflicts with another function in the same module/scope,
             // add extra suffix to avoid name conflict.
             if name_conflicts(cx, body, &non_prefixed) {
-                non_prefixed.push_str("_works");
+                non_prefixed.push_str(&self.custom_sufix);
                 help_msg = "consider removing the `test_` prefix (suffix avoids name conflict)";
             }
             span_lint_and_sugg(

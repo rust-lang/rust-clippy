@@ -1,6 +1,7 @@
-//@revisions: default integ_tests
+//@revisions: default integ_tests suffix_tests
 //@[default] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/redundant_test_prefix/default
 //@[integ_tests] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/redundant_test_prefix/in_integration_tests
+//@[suffix_tests] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/redundant_test_prefix/custom_suffix_tests
 //@compile-flags: --test
 #![allow(dead_code)]
 #![warn(clippy::redundant_test_prefix)]
@@ -24,6 +25,31 @@ fn main_module_has_annotation() {
 }
 
 fn test_main_module_no_annotation() {}
+
+fn foo() {}
+
+#[cfg(test)]
+#[test]
+fn foo_works() {
+    //~^ ERROR: redundant `test_` prefix in test function name
+    //~| HELP: consider removing the `test_` prefix (suffix avoids name conflict)
+
+    todo!()
+    // Has prefix, has `#[test]` attribute, within a `#[cfg(test)]`.
+    // Collision with existing function, so suffix is added.
+}
+
+fn bar() {}
+
+#[test]
+fn bar_works() {
+    //~[suffix_tests]^ redundant_test_prefix
+
+    todo!()
+    // Has prefix, has `#[test]` attribute.
+    // NOT within a `#[cfg(test)]`, but the lint is enabled for integration tests.
+    // Collision with existing function, so suffix is added.
+}
 
 #[cfg(test)]
 mod tests {}

@@ -1098,3 +1098,17 @@ Whether to include integration tests in the linting process or not.
 ---
 **Affected lints:**
 * [`redundant_test_prefix`](https://rust-lang.github.io/rust-clippy/master/index.html#redundant_test_prefix)
+
+
+## `redundant-test-prefix-custom-suffix`
+What suffix to use to avoid function name collisions when `test_` prefix is removed.
+
+If set to `"_works"`, the lint will suggest renaming `test_foo` to `foo_works`.
+Suffix is added only when there is a collision with an existing function name,
+otherwise just `test_` prefix is removed (and no suffix added).
+
+**Default Value:** `"_works"`
+
+---
+**Affected lints:**
+* [`redundant_test_prefix`](https://rust-lang.github.io/rust-clippy/master/index.html#redundant_test_prefix)

@@ -17,13 +17,13 @@ error: redundant `test_` prefix in test function name
   --> tests/ui-toml/redundant_test_prefix/redundant_test_prefix.rs:33:4
    |
 LL | fn test_foo() {
-   |    ^^^^^^^^ help: consider removing the `test_` prefix (suffix avoids name conflict): `foo_works`
+   |    ^^^^^^^^ help: consider removing the `test_` prefix (suffix avoids name conflict): `foo_ok`
 
 error: redundant `test_` prefix in test function name
   --> tests/ui-toml/redundant_test_prefix/redundant_test_prefix.rs:45:4
    |
 LL | fn test_bar() {
-   |    ^^^^^^^^ help: consider removing the `test_` prefix (suffix avoids name conflict): `bar_works`
+   |    ^^^^^^^^ help: consider removing the `test_` prefix (suffix avoids name conflict): `bar_ok`
 
 error: aborting due to 4 previous errors
 
