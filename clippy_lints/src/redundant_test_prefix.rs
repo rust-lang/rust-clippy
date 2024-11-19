@@ -1,7 +1,7 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::visitors::for_each_expr;
-use clippy_utils::{is_in_cfg_test, is_in_test_function};
+use clippy_utils::{is_in_cfg_test, is_test_function};
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{self as hir, Body, ExprKind, FnDecl};
@@ -65,8 +65,13 @@ impl<'tcx> LateLintPass<'tcx> for RedundantTestPrefix {
         _decl: &FnDecl<'_>,
         body: &'tcx Body<'_>,
         _span: Span,
-        _fn_def_id: LocalDefId,
+        fn_def_id: LocalDefId,
     ) {
+        // Ignore methods and closures.
+        let FnKind::ItemFn(ref ident, ..) = kind else {
+            return;
+        };
+
         // Skip the lint if the function is not within a node with `#[cfg(test)]` attribute,
         // which is true for integration tests. If the lint is enabled for integration tests,
         // via configuration value, ignore this check.
@@ -74,12 +79,7 @@ impl<'tcx> LateLintPass<'tcx> for RedundantTestPrefix {
             return;
         }
 
-        // Ignore methods and closures.
-        let FnKind::ItemFn(ref ident, ..) = kind else {
-            return;
-        };
-
-        if is_in_test_function(cx.tcx, body.id().hir_id) && ident.as_str().starts_with("test_") {
+        if is_test_function(cx.tcx, cx.tcx.local_def_id_to_hir_id(fn_def_id)) && ident.as_str().starts_with("test_") {
             let mut non_prefixed = ident.as_str().trim_start_matches("test_").to_string();
             let mut help_msg = "consider removing the `test_` prefix";
             // If `non_prefixed` conflicts with another function in the same module/scope,

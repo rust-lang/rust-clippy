@@ -160,8 +160,7 @@ mod tests_no_annotations {
     }
 
     #[test]
-    fn test_foo() {
-    }
+    fn test_foo() {}
 
     #[test]
     fn test_foo_with_call() {
@@ -169,34 +168,44 @@ mod tests_no_annotations {
     }
 
     #[test]
-    fn test_f1() {
-    }
+    fn test_f1() {}
 
     #[test]
-    fn test_f2() {
-    }
+    fn test_f2() {}
 
     #[test]
-    fn test_f3() {
-    }
+    fn test_f3() {}
 
     #[test]
-    fn test_f4() {
-    }
+    fn test_f4() {}
 
     #[test]
-    fn test_f5() {
-    }
+    fn test_f5() {}
 
     #[test]
-    fn test_f6() {
-    }
+    fn test_f6() {}
 
     #[test]
-    fn test_f7() {
-    }
+    fn test_f7() {}
 
     #[test]
-    fn test_f8() {
+    fn test_f8() {}
+}
+
+// This test is inspired by real test in `clippy_utils/src/sugg.rs`.
+// The `is_in_test_function()` checks whether any identifier within a given node's parents is
+// marked with `#[test]` attribute. Thus flagging false positives when nested functions are
+// prefixed with `test_`. Therefore `is_test_function()` has been defined in `clippy_utils`,
+// allowing to select only functions that are immediately marked with `#[test]` annotation.
+//
+// This test case ensures that for such nested functions no error is emitted.
+#[test]
+fn not_op() {
+    fn test_not(foo: bool) {
+        assert!(foo);
     }
+
+    // Use helper function
+    test_not(true);
+    test_not(false);
 }
