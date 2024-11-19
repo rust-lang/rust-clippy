@@ -1,0 +1,21 @@
+error: possible broken doc link: broken across multiple lines
+  --> tests/ui/doc_broken_link.rs:41:5
+   |
+LL |   /// [doc invalid link broken url scheme part part](https://
+   |  _____^
+LL | | /// test.fake/doc_invalid_link_broken_url_scheme_part)
+   | |______________________________________________________^
+   |
+   = note: `-D clippy::doc-broken-link` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::doc_broken_link)]`
+
+error: possible broken doc link: broken across multiple lines
+  --> tests/ui/doc_broken_link.rs:47:5
+   |
+LL |   /// [doc invalid link broken url host part](https://test
+   |  _____^
+LL | | /// .fake/doc_invalid_link_broken_url_host_part)
+   | |________________________________________________^
+
+error: aborting due to 2 previous errors
+
