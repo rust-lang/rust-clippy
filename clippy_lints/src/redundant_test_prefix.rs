@@ -42,14 +42,14 @@ declare_clippy_lint! {
 }
 
 pub struct RedundantTestPrefix {
-    in_integration_tests: bool,
+    check_outside_test_cfg: bool,
     custom_sufix: String,
 }
 
 impl RedundantTestPrefix {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
-            in_integration_tests: conf.redundant_test_prefix_in_integration_tests,
+            check_outside_test_cfg: conf.redundant_test_prefix_check_outside_cfg_test,
             custom_sufix: conf.redundant_test_prefix_custom_suffix.clone(),
         }
     }
@@ -72,10 +72,10 @@ impl<'tcx> LateLintPass<'tcx> for RedundantTestPrefix {
             return;
         };
 
-        // Skip the lint if the function is not within a node with `#[cfg(test)]` attribute,
-        // which is true for integration tests. If the lint is enabled for integration tests,
-        // via configuration value, ignore this check.
-        if !(self.in_integration_tests || is_in_cfg_test(cx.tcx, body.id().hir_id)) {
+        // Skip the lint if the function is not within a node marked with `#[cfg(test)]` attribute.
+        // Continue if the function is inside the node marked with `#[cfg(test)]` or lint is enforced
+        // via configuration (most likely to include integration tests in lint's scope).
+        if !(self.check_outside_test_cfg || is_in_cfg_test(cx.tcx, body.id().hir_id)) {
             return;
         }
 

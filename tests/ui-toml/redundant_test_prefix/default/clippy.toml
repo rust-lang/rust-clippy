@@ -1,1 +1,1 @@
-redundant-test-prefix-in-integration-tests = false
+redundant-test-prefix-check-outside-cfg-test = false

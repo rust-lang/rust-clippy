@@ -1,7 +1,7 @@
-//@revisions: default integ_tests suffix_tests
+//@revisions: default outside_cfg_test custom_suffix
 //@[default] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/redundant_test_prefix/default
-//@[integ_tests] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/redundant_test_prefix/in_integration_tests
-//@[suffix_tests] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/redundant_test_prefix/custom_suffix_tests
+//@[outside_cfg_test] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/redundant_test_prefix/outside_cfg_test
+//@[custom_suffix] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/redundant_test_prefix/custom_suffix
 //@compile-flags: --test
 #![allow(dead_code)]
 #![warn(clippy::redundant_test_prefix)]
@@ -13,7 +13,7 @@ mod tests_no_annotations {
 
     #[test]
     fn has_annotation() {
-        //~[integ_tests]^ redundant_test_prefix
+        //~[outside_cfg_test]^ redundant_test_prefix
     }
 
     fn no_annotation() {}
@@ -21,7 +21,7 @@ mod tests_no_annotations {
 
 #[test]
 fn main_module_has_annotation() {
-    //~[integ_tests]^ redundant_test_prefix
+    //~[outside_cfg_test]^ redundant_test_prefix
 }
 
 fn test_main_module_no_annotation() {}
@@ -43,7 +43,7 @@ fn bar() {}
 
 #[test]
 fn bar_ok() {
-    //~[suffix_tests]^ redundant_test_prefix
+    //~[custom_suffix]^ redundant_test_prefix
 
     todo!()
     // Has prefix, has `#[test]` attribute.
