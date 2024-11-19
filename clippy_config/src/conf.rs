@@ -772,6 +772,20 @@ define_Conf! {
     /// exported visibility, or whether they are marked as "pub".
     #[lints(pub_underscore_fields)]
     pub_underscore_fields_behavior: PubUnderscoreFieldsBehaviour = PubUnderscoreFieldsBehaviour::PubliclyExported,
+    /// Whether to include functions outside of `#[cfg(test)]` in the linting process or not.
+    ///
+    /// This option allows running the lint against the integration tests: test functions located
+    /// there are not inside a node marked with `#[cfg(test)]` annotation (although they are
+    /// still marked using `#[test]` annotation and thus can have redundant "test_" prefix).
+    #[lints(redundant_test_prefix)]
+    redundant_test_prefix_check_outside_cfg_test: bool = false,
+    /// What suffix to use to avoid function name collisions when `test_` prefix is removed.
+    ///
+    /// If set to `"_works"`, the lint will suggest renaming `test_foo` to `foo_works`.
+    /// Suffix is added only when there is a collision with an existing function name,
+    /// otherwise just `test_` prefix is removed (and no suffix added).
+    #[lints(redundant_test_prefix)]
+    redundant_test_prefix_custom_suffix: String = String::from("_works"),
     /// Whether to lint only if it's multiline.
     #[lints(semicolon_inside_block)]
     semicolon_inside_block_ignore_singleline: bool = false,
@@ -846,16 +860,6 @@ define_Conf! {
     /// Whether to also emit warnings for unsafe blocks with metavariable expansions in **private** macros.
     #[lints(macro_metavars_in_unsafe)]
     warn_unsafe_macro_metavars_in_private_macros: bool = false,
-    /// Whether to include integration tests in the linting process or not.
-    #[lints(redundant_test_prefix)]
-    redundant_test_prefix_in_integration_tests: bool = false,
-    /// What suffix to use to avoid function name collisions when `test_` prefix is removed.
-    ///
-    /// If set to `"_works"`, the lint will suggest renaming `test_foo` to `foo_works`.
-    /// Suffix is added only when there is a collision with an existing function name,
-    /// otherwise just `test_` prefix is removed (and no suffix added).
-    #[lints(redundant_test_prefix)]
-    redundant_test_prefix_custom_suffix: String = String::from("_works"),
 }
 
 /// Search for the configuration file.
