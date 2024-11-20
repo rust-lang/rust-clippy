@@ -1,0 +1,15 @@
+error: attempted to include a file outside of the project
+  --> tests/ui/include_file_outside_project.rs:10:13
+   |
+LL |     let x = include_str!(concat!(env!("CARGO_HOME"), "/.crates.toml"));
+   |             ^
+   |
+   = note: file is located at `$DIR/.crates.toml` which is outside of project folder (`$CLIPPY_DIR`)
+note: the lint level is defined here
+  --> tests/ui/include_file_outside_project.rs:4:9
+   |
+LL | #![deny(clippy::include_file_outside_project)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 1 previous error
+
