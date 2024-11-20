@@ -75,3 +75,9 @@ fn seven() {}
 ///  ]
 //~^ ERROR: doc list item without indentation
 fn eight() {}
+
+#[rustfmt::skip]
+/// - first line
+///      second line
+//~^ ERROR: doc list item overindented
+fn nine() {}

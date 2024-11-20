@@ -28,41 +28,15 @@ pub(super) fn check(
         return;
     }
 
+    // Handle blockquotes.
     let ccount = doc[range.clone()].chars().filter(|c| *c == '>').count();
     let blockquote_level = containers
         .iter()
         .filter(|c| matches!(c, super::Container::Blockquote))
         .count();
-    let lcount = doc[range.clone()].chars().filter(|c| *c == ' ').count();
-    let list_indentation = containers
-        .iter()
-        .map(|c| {
-            if let super::Container::List(indent) = c {
-                *indent
-            } else {
-                0
-            }
-        })
-        .sum();
-    if ccount < blockquote_level || lcount < list_indentation {
-        let msg = if ccount < blockquote_level {
-            "doc quote line without `>` marker"
-        } else {
-            "doc list item without indentation"
-        };
+    if ccount < blockquote_level {
+        let msg = "doc quote line without `>` marker";
         span_lint_and_then(cx, DOC_LAZY_CONTINUATION, span, msg, |diag| {
-            if ccount == 0 && blockquote_level == 0 {
-                // simpler suggestion style for indentation
-                let indent = list_indentation - lcount;
-                diag.span_suggestion_verbose(
-                    span.shrink_to_hi(),
-                    "indent this line",
-                    std::iter::repeat(" ").take(indent).join(""),
-                    Applicability::MaybeIncorrect,
-                );
-                diag.help("if this is supposed to be its own paragraph, add a blank line");
-                return;
-            }
             let mut doc_start_range = &doc[range];
             let mut suggested = String::new();
             for c in containers {
@@ -88,6 +62,52 @@ pub(super) fn check(
                 Applicability::MachineApplicable,
             );
             diag.help("if this not intended to be a quote at all, escape it with `\\>`");
+        });
+        return;
+    }
+
+    if ccount != 0 || blockquote_level != 0 {
+        // If this doc is a blockquote, we don't go further.
+        return;
+    }
+
+    // Handle list items
+    let lcount = doc[range.clone()].chars().filter(|c| *c == ' ').count();
+    let list_indentation = containers
+        .iter()
+        .map(|c| {
+            if let super::Container::List(indent) = c {
+                *indent
+            } else {
+                0
+            }
+        })
+        .sum();
+    if lcount != list_indentation {
+        let msg = if lcount < list_indentation {
+            "doc list item without indentation"
+        } else {
+            "doc list item overindented"
+        };
+        span_lint_and_then(cx, DOC_LAZY_CONTINUATION, span, msg, |diag| {
+            if lcount < list_indentation {
+                // simpler suggestion style for indentation
+                let indent = list_indentation - lcount;
+                diag.span_suggestion_verbose(
+                    span.shrink_to_hi(),
+                    "indent this line",
+                    std::iter::repeat(" ").take(indent).join(""),
+                    Applicability::MaybeIncorrect,
+                );
+            } else {
+                diag.span_suggestion_verbose(
+                    span,
+                    "indent this line",
+                    std::iter::repeat(" ").take(list_indentation).join(""),
+                    Applicability::MaybeIncorrect,
+                );
+            }
+            diag.help("if this is supposed to be its own paragraph, add a blank line");
         });
     }
 }

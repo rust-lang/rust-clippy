@@ -108,6 +108,18 @@ help: indent this line
 LL | ///       and so should this
    |         ++
 
+error: doc list item overindented
+  --> tests/ui/doc/doc_lazy_list.rs:55:5
+   |
+LL | ///     to set up. Example:
+   |     ^^^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///   to set up. Example:
+   |     ++
+
 error: doc list item without indentation
   --> tests/ui/doc/doc_lazy_list.rs:56:5
    |
@@ -119,6 +131,198 @@ help: indent this line
    |
 LL | ///   'protocol_descriptors': [
    |      +
+
+error: doc list item overindented
+  --> tests/ui/doc/doc_lazy_list.rs:58:5
+   |
+LL | ///      {
+   |     ^^^^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///   {
+   |     ++
+
+error: doc list item overindented
+  --> tests/ui/doc/doc_lazy_list.rs:59:5
+   |
+LL | ///          'protocol': 25,  # u64 Representation of ProtocolIdentifier::AVDTP
+   |     ^^^^^^^^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///   'protocol': 25,  # u64 Representation of ProtocolIdentifier::AVDTP
+   |     ++
+
+error: doc list item overindented
+  --> tests/ui/doc/doc_lazy_list.rs:60:5
+   |
+LL | ///          'params': [
+   |     ^^^^^^^^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///   'params': [
+   |     ++
+
+error: doc list item overindented
+  --> tests/ui/doc/doc_lazy_list.rs:61:5
+   |
+LL | ///              {
+   |     ^^^^^^^^^^^^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///   {
+   |     ++
+
+error: doc list item overindented
+  --> tests/ui/doc/doc_lazy_list.rs:62:5
+   |
+LL | ///                 'data': 0x0103  # to indicate 1.3
+   |     ^^^^^^^^^^^^^^^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///   'data': 0x0103  # to indicate 1.3
+   |     ++
+
+error: doc list item overindented
+  --> tests/ui/doc/doc_lazy_list.rs:63:5
+   |
+LL | ///              },
+   |     ^^^^^^^^^^^^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///   },
+   |     ++
+
+error: doc list item overindented
+  --> tests/ui/doc/doc_lazy_list.rs:64:5
+   |
+LL | ///              {
+   |     ^^^^^^^^^^^^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///   {
+   |     ++
+
+error: doc list item overindented
+  --> tests/ui/doc/doc_lazy_list.rs:65:5
+   |
+LL | ///                  'data': 0x0105  # to indicate 1.5
+   |     ^^^^^^^^^^^^^^^^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///   'data': 0x0105  # to indicate 1.5
+   |     ++
+
+error: doc list item overindented
+  --> tests/ui/doc/doc_lazy_list.rs:66:5
+   |
+LL | ///              }
+   |     ^^^^^^^^^^^^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///   }
+   |     ++
+
+error: doc list item overindented
+  --> tests/ui/doc/doc_lazy_list.rs:68:5
+   |
+LL | ///      },
+   |     ^^^^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///   },
+   |     ++
+
+error: doc list item overindented
+  --> tests/ui/doc/doc_lazy_list.rs:69:5
+   |
+LL | ///      {
+   |     ^^^^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///   {
+   |     ++
+
+error: doc list item overindented
+  --> tests/ui/doc/doc_lazy_list.rs:70:5
+   |
+LL | ///          'protocol': 1,  # u64 Representation of ProtocolIdentifier::SDP
+   |     ^^^^^^^^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///   'protocol': 1,  # u64 Representation of ProtocolIdentifier::SDP
+   |     ++
+
+error: doc list item overindented
+  --> tests/ui/doc/doc_lazy_list.rs:71:5
+   |
+LL | ///          'params': [{
+   |     ^^^^^^^^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///   'params': [{
+   |     ++
+
+error: doc list item overindented
+  --> tests/ui/doc/doc_lazy_list.rs:72:5
+   |
+LL | ///              'data': 0x0019
+   |     ^^^^^^^^^^^^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///   'data': 0x0019
+   |     ++
+
+error: doc list item overindented
+  --> tests/ui/doc/doc_lazy_list.rs:73:5
+   |
+LL | ///          }]
+   |     ^^^^^^^^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///   }]
+   |     ++
+
+error: doc list item overindented
+  --> tests/ui/doc/doc_lazy_list.rs:74:5
+   |
+LL | ///      }
+   |     ^^^^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///   }
+   |     ++
 
 error: doc list item without indentation
   --> tests/ui/doc/doc_lazy_list.rs:75:5
@@ -132,5 +336,17 @@ help: indent this line
 LL | ///   ]
    |      +
 
-error: aborting due to 11 previous errors
+error: doc list item overindented
+  --> tests/ui/doc/doc_lazy_list.rs:81:5
+   |
+LL | ///      second line
+   |     ^^^^^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+help: indent this line
+   |
+LL | ///   second line
+   |     ++
+
+error: aborting due to 29 previous errors
 
