@@ -1,0 +1,4 @@
+module-items-ordered-within-groupings = [
+    "PascalCase",
+    "ignored unknown grouping",
+]
