@@ -1,0 +1,25 @@
+#![warn(clippy::inconsistent_struct_constructor)]
+#![allow(clippy::redundant_field_names)]
+#![allow(clippy::unnecessary_operation)]
+#![allow(clippy::no_effect)]
+
+#[derive(Default)]
+struct Foo {
+    x: i32,
+    y: i32,
+    z: i32,
+}
+
+fn main() {
+    let x = 1;
+    let y = 1;
+    let z = 1;
+
+    Foo { y, x, z: z };
+
+    Foo {
+        z: z,
+        x,
+        ..Default::default()
+    };
+}
