@@ -1,0 +1,21 @@
+error: struct constructor field order is inconsistent with struct definition field order
+  --> tests/ui-toml/toml_inconsistent_struct_constructor/conf_inconsistent_struct_constructor.rs:18:5
+   |
+LL |     Foo { y, x, z: z };
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `Foo { x, y, z: z }`
+   |
+   = note: `-D clippy::inconsistent-struct-constructor` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::inconsistent_struct_constructor)]`
+
+error: struct constructor field order is inconsistent with struct definition field order
+  --> tests/ui-toml/toml_inconsistent_struct_constructor/conf_inconsistent_struct_constructor.rs:20:5
+   |
+LL | /     Foo {
+LL | |         z: z,
+LL | |         x,
+LL | |         ..Default::default()
+LL | |     };
+   | |_____^ help: try: `Foo { x, z: z, ..Default::default() }`
+
+error: aborting due to 2 previous errors
+

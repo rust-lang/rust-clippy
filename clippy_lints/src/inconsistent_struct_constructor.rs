@@ -1,19 +1,21 @@
+use clippy_config::Conf;
+use clippy_config::types::InitializerSuggestionApplicability;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::fulfill_or_allowed;
-use clippy_utils::source::snippet;
+use clippy_utils::source::{snippet, snippet_opt};
 use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
 use rustc_hir::{self as hir, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::declare_lint_pass;
+use rustc_session::impl_lint_pass;
 use rustc_span::symbol::Symbol;
 use std::fmt::{self, Write as _};
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for struct constructors where all fields are shorthand and
-    /// the order of the field init shorthand in the constructor is inconsistent
-    /// with the order in the struct definition.
+    /// Checks for struct constructors where the order of the field
+    /// init in the constructor is inconsistent with the order in the
+    /// struct definition.
     ///
     /// ### Why is this bad?
     /// Since the order of fields in a constructor doesn't affect the
@@ -59,16 +61,36 @@ declare_clippy_lint! {
     #[clippy::version = "1.52.0"]
     pub INCONSISTENT_STRUCT_CONSTRUCTOR,
     pedantic,
-    "the order of the field init shorthand is inconsistent with the order in the struct definition"
+    "the order of the field init is inconsistent with the order in the struct definition"
 }
 
-declare_lint_pass!(InconsistentStructConstructor => [INCONSISTENT_STRUCT_CONSTRUCTOR]);
+pub struct InconsistentStructConstructor {
+    initializer_suggestions: InitializerSuggestionApplicability,
+}
+
+impl InconsistentStructConstructor {
+    pub fn new(conf: &'static Conf) -> Self {
+        Self {
+            initializer_suggestions: conf.initializer_suggestions,
+        }
+    }
+}
+
+impl_lint_pass!(InconsistentStructConstructor => [INCONSISTENT_STRUCT_CONSTRUCTOR]);
 
 impl<'tcx> LateLintPass<'tcx> for InconsistentStructConstructor {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>) {
-        if let ExprKind::Struct(qpath, fields, base) = expr.kind
-            && fields.iter().all(|f| f.is_shorthand)
-            && !expr.span.from_expansion()
+        let ExprKind::Struct(qpath, fields, base) = expr.kind else {
+            return;
+        };
+        let applicability = if fields.iter().all(|f| f.is_shorthand) {
+            Applicability::MachineApplicable
+        } else if let Some(applicability) = self.initializer_suggestions.to_applicability() {
+            applicability
+        } else {
+            return;
+        };
+        if !expr.span.from_expansion()
             && let ty = cx.typeck_results().expr_ty(expr)
             && let Some(adt_def) = ty.ty_adt_def()
             && adt_def.is_struct()
@@ -85,15 +107,15 @@ impl<'tcx> LateLintPass<'tcx> for InconsistentStructConstructor {
                 return;
             }
 
-            let mut ordered_fields: Vec<_> = fields.iter().map(|f| f.ident.name).collect();
-            ordered_fields.sort_unstable_by_key(|id| def_order_map[id]);
+            let mut ordered_fields: Vec<_> = fields.to_vec();
+            ordered_fields.sort_unstable_by_key(|id| def_order_map[&id.ident.name]);
 
             let mut fields_snippet = String::new();
-            let (last_ident, idents) = ordered_fields.split_last().unwrap();
-            for ident in idents {
-                let _: fmt::Result = write!(fields_snippet, "{ident}, ");
+            let (last_field, fields) = ordered_fields.split_last().unwrap();
+            for field in fields {
+                let _: fmt::Result = write!(fields_snippet, "{}, ", snippet_opt(cx, field.span).unwrap());
             }
-            fields_snippet.push_str(&last_ident.to_string());
+            fields_snippet.push_str(&snippet_opt(cx, last_field.span).unwrap());
 
             let base_snippet = if let Some(base) = base {
                 format!(", ..{}", snippet(cx, base.span, ".."))
@@ -114,7 +136,7 @@ impl<'tcx> LateLintPass<'tcx> for InconsistentStructConstructor {
                     "struct constructor field order is inconsistent with struct definition field order",
                     "try",
                     sugg,
-                    Applicability::MachineApplicable,
+                    applicability,
                 );
             }
         }
