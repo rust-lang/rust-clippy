@@ -1,21 +1,39 @@
 error: struct constructor field order is inconsistent with struct definition field order
-  --> tests/ui-toml/toml_inconsistent_struct_constructor/conf_inconsistent_struct_constructor.rs:18:5
+  --> tests/ui-toml/toml_inconsistent_struct_constructor/conf_inconsistent_struct_constructor.rs:18:11
    |
 LL |     Foo { y, x, z: z };
-   |     ^^^^^^^^^^^^^^^^^^ help: try: `Foo { x, y, z: z }`
+   |           ^^^^^^^^^^ help: try: `x, y, z: z`
    |
    = note: `-D clippy::inconsistent-struct-constructor` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::inconsistent_struct_constructor)]`
 
 error: struct constructor field order is inconsistent with struct definition field order
-  --> tests/ui-toml/toml_inconsistent_struct_constructor/conf_inconsistent_struct_constructor.rs:20:5
+  --> tests/ui-toml/toml_inconsistent_struct_constructor/conf_inconsistent_struct_constructor.rs:21:9
    |
-LL | /     Foo {
-LL | |         z: z,
+LL | /         z: z,
 LL | |         x,
-LL | |         ..Default::default()
-LL | |     };
-   | |_____^ help: try: `Foo { x, z: z, ..Default::default() }`
+   | |_________^
+   |
+help: try
+   |
+LL ~         x,
+LL ~         z: z,
+   |
 
-error: aborting due to 2 previous errors
+error: struct constructor field order is inconsistent with struct definition field order
+  --> tests/ui-toml/toml_inconsistent_struct_constructor/conf_inconsistent_struct_constructor.rs:36:13
+   |
+LL | /             #[expect(clippy::bool_to_int_with_if)] // obfuscates the meaning
+LL | |             expn_depth: if condition { 1 } else { 0 },
+LL | |             macro_unsafe_blocks: Vec::new(),
+   | |___________________________________________^
+   |
+help: try
+   |
+LL ~             macro_unsafe_blocks: Vec::new(),
+LL +             #[expect(clippy::bool_to_int_with_if)] // obfuscates the meaning
+LL ~             expn_depth: if condition { 1 } else { 0 },
+   |
+
+error: aborting due to 3 previous errors
 

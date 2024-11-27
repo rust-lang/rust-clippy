@@ -2,14 +2,15 @@ use clippy_config::Conf;
 use clippy_config::types::InitializerSuggestionApplicability;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::fulfill_or_allowed;
-use clippy_utils::source::{snippet, snippet_opt};
+use clippy_utils::source::snippet_opt;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
-use rustc_hir::{self as hir, ExprKind, StructTailExpr};
+use rustc_hir::{self as hir, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::ty::TyCtxt;
 use rustc_session::impl_lint_pass;
+use rustc_span::Span;
 use rustc_span::symbol::Symbol;
-use std::fmt::{self, Write as _};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -80,7 +81,7 @@ impl_lint_pass!(InconsistentStructConstructor => [INCONSISTENT_STRUCT_CONSTRUCTO
 
 impl<'tcx> LateLintPass<'tcx> for InconsistentStructConstructor {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>) {
-        let ExprKind::Struct(qpath, fields, base) = expr.kind else {
+        let ExprKind::Struct(_, fields, _) = expr.kind else {
             return;
         };
         let applicability = if fields.iter().all(|f| f.is_shorthand) {
@@ -107,32 +108,15 @@ impl<'tcx> LateLintPass<'tcx> for InconsistentStructConstructor {
                 return;
             }
 
-            let mut ordered_fields: Vec<_> = fields.to_vec();
-            ordered_fields.sort_unstable_by_key(|id| def_order_map[&id.ident.name]);
-
-            let mut fields_snippet = String::new();
-            let (last_field, fields) = ordered_fields.split_last().unwrap();
-            for field in fields {
-                let _: fmt::Result = write!(fields_snippet, "{}, ", snippet_opt(cx, field.span).unwrap());
-            }
-            fields_snippet.push_str(&snippet_opt(cx, last_field.span).unwrap());
-
-            let base_snippet = if let StructTailExpr::Base(base) = base {
-                format!(", ..{}", snippet(cx, base.span, ".."))
-            } else {
-                String::new()
-            };
-
-            let sugg = format!(
-                "{} {{ {fields_snippet}{base_snippet} }}",
-                snippet(cx, qpath.span(), ".."),
-            );
+            let span = field_with_attrs_span(cx.tcx, fields.first().unwrap())
+                .with_hi(field_with_attrs_span(cx.tcx, fields.last().unwrap()).hi());
+            let sugg = suggestion(cx, fields, &def_order_map);
 
             if !fulfill_or_allowed(cx, INCONSISTENT_STRUCT_CONSTRUCTOR, Some(ty_hir_id)) {
                 span_lint_and_sugg(
                     cx,
                     INCONSISTENT_STRUCT_CONSTRUCTOR,
-                    expr.span,
+                    span,
                     "struct constructor field order is inconsistent with struct definition field order",
                     "try",
                     sugg,
@@ -156,4 +140,46 @@ fn is_consistent_order<'tcx>(fields: &'tcx [hir::ExprField<'tcx>], def_order_map
     }
 
     true
+}
+
+fn suggestion<'tcx>(
+    cx: &LateContext<'_>,
+    fields: &'tcx [hir::ExprField<'tcx>],
+    def_order_map: &FxHashMap<Symbol, usize>,
+) -> String {
+    let ws = fields
+        .windows(2)
+        .map(|w| {
+            let w0_span = field_with_attrs_span(cx.tcx, &w[0]);
+            let w1_span = field_with_attrs_span(cx.tcx, &w[1]);
+            let span = w0_span.with_hi(w1_span.lo()).with_lo(w0_span.hi());
+            snippet_opt(cx, span).unwrap()
+        })
+        .collect::<Vec<_>>();
+
+    let mut fields = fields.to_vec();
+    fields.sort_unstable_by_key(|field| def_order_map[&field.ident.name]);
+    let field_snippets = fields
+        .iter()
+        .map(|field| snippet_opt(cx, field_with_attrs_span(cx.tcx, field)).unwrap())
+        .collect::<Vec<_>>();
+
+    assert_eq!(field_snippets.len(), ws.len() + 1);
+
+    let mut sugg = String::new();
+    for i in 0..field_snippets.len() {
+        sugg += &field_snippets[i];
+        if i < ws.len() {
+            sugg += &ws[i];
+        }
+    }
+    sugg
+}
+
+fn field_with_attrs_span(tcx: TyCtxt<'_>, field: &hir::ExprField<'_>) -> Span {
+    if let Some(attr) = tcx.hir().attrs(field.hir_id).first() {
+        field.span.with_lo(attr.span.lo())
+    } else {
+        field.span
+    }
 }
