@@ -1,5 +1,4 @@
 use clippy_utils::def_path_def_ids;
-use rustc_errors::Applicability;
 use rustc_hir::def_id::DefIdMap;
 use rustc_middle::ty::TyCtxt;
 use serde::de::{self, Deserializer, Visitor};
@@ -45,24 +44,6 @@ pub fn create_disallowed_map(
         .map(|x| (x.path(), x.path().split("::").collect::<Vec<_>>(), x.reason()))
         .flat_map(|(name, path, reason)| def_path_def_ids(tcx, &path).map(move |id| (id, (name, reason))))
         .collect()
-}
-
-#[derive(Clone, Copy, Deserialize, Serialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum InitializerSuggestionApplicability {
-    None,
-    MaybeIncorrect,
-    MachineApplicable,
-}
-
-impl InitializerSuggestionApplicability {
-    pub fn to_applicability(self) -> Option<Applicability> {
-        match self {
-            InitializerSuggestionApplicability::None => None,
-            InitializerSuggestionApplicability::MaybeIncorrect => Some(Applicability::MaybeIncorrect),
-            InitializerSuggestionApplicability::MachineApplicable => Some(Applicability::MachineApplicable),
-        }
-    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]

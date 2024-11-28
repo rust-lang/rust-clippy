@@ -1,6 +1,6 @@
 avoid-breaking-exported-api = false
 
-initializer-suggestions = "machine-applicable"
+initializer-suggestions = true
 
 [[disallowed-methods]]
 path = "rustc_lint::context::LintContext::lint"

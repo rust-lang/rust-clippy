@@ -563,14 +563,10 @@ A list of paths to types that should be treated as if they do not contain interi
 
 
 ## `initializer-suggestions`
-Suggestion behavior when initializers are present. Options are:
+Whether to suggest reordering constructor fields when initializers are present.
 
-- "none": do not suggest
-- "maybe-incorrect": suggest, but do not apply suggestions with `--fix`
-- "machine-applicable": suggest and apply suggestions with `--fix`
-
-The following example [due to @ronnodas] shows why "maybe-incorrect" may be the right choice.
-Swapping the fields in the constructor produces incompilable code:
+Note that such suggestions are not applied automatically with `--fix`. The following example
+[due to @ronnodas] shows why. Swapping the fields in the constructor produces incompilable code:
 
 ```rust
 struct MyStruct {
@@ -585,7 +581,7 @@ fn main() {
 
 [due to @ronnodas]: https://github.com/rust-lang/rust-clippy/issues/11846#issuecomment-1820747924
 
-**Default Value:** `"none"`
+**Default Value:** `false`
 
 ---
 **Affected lints:**

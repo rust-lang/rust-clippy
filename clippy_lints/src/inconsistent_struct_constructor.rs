@@ -1,5 +1,4 @@
 use clippy_config::Conf;
-use clippy_config::types::InitializerSuggestionApplicability;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::fulfill_or_allowed;
 use clippy_utils::source::snippet_opt;
@@ -66,7 +65,7 @@ declare_clippy_lint! {
 }
 
 pub struct InconsistentStructConstructor {
-    initializer_suggestions: InitializerSuggestionApplicability,
+    initializer_suggestions: bool,
 }
 
 impl InconsistentStructConstructor {
@@ -86,8 +85,8 @@ impl<'tcx> LateLintPass<'tcx> for InconsistentStructConstructor {
         };
         let applicability = if fields.iter().all(|f| f.is_shorthand) {
             Applicability::MachineApplicable
-        } else if let Some(applicability) = self.initializer_suggestions.to_applicability() {
-            applicability
+        } else if self.initializer_suggestions {
+            Applicability::MaybeIncorrect
         } else {
             return;
         };
