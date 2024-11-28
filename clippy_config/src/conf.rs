@@ -1,8 +1,8 @@
 use crate::ClippyConfiguration;
 use crate::types::{
-    DisallowedPath, InitializerSuggestionApplicability, MacroMatcher, MatchLintBehaviour, PubUnderscoreFieldsBehaviour,
-    Rename, SourceItemOrdering, SourceItemOrderingCategory, SourceItemOrderingModuleItemGroupings,
-    SourceItemOrderingModuleItemKind, SourceItemOrderingTraitAssocItemKind, SourceItemOrderingTraitAssocItemKinds,
+    DisallowedPath, MacroMatcher, MatchLintBehaviour, PubUnderscoreFieldsBehaviour, Rename, SourceItemOrdering,
+    SourceItemOrderingCategory, SourceItemOrderingModuleItemGroupings, SourceItemOrderingModuleItemKind,
+    SourceItemOrderingTraitAssocItemKind, SourceItemOrderingTraitAssocItemKinds,
 };
 use clippy_utils::msrvs::Msrv;
 use rustc_errors::Applicability;
@@ -526,14 +526,10 @@ define_Conf! {
     /// A list of paths to types that should be treated as if they do not contain interior mutability
     #[lints(borrow_interior_mutable_const, declare_interior_mutable_const, ifs_same_cond, mutable_key_type)]
     ignore_interior_mutability: Vec<String> = Vec::from(["bytes::Bytes".into()]),
-    /// Suggestion behavior when initializers are present. Options are:
+    /// Whether to suggest reordering constructor fields when initializers are present.
     ///
-    /// - "none": do not suggest
-    /// - "maybe-incorrect": suggest, but do not apply suggestions with `--fix`
-    /// - "machine-applicable": suggest and apply suggestions with `--fix`
-    ///
-    /// The following example [due to @ronnodas] shows why "maybe-incorrect" may be the right choice.
-    /// Swapping the fields in the constructor produces incompilable code:
+    /// Note that such suggestions are not applied automatically with `--fix`. The following example
+    /// [due to @ronnodas] shows why. Swapping the fields in the constructor produces incompilable code:
     ///
     /// ```rust
     /// struct MyStruct {
@@ -548,7 +544,7 @@ define_Conf! {
     ///
     /// [due to @ronnodas]: https://github.com/rust-lang/rust-clippy/issues/11846#issuecomment-1820747924
     #[lints(inconsistent_struct_constructor)]
-    initializer_suggestions: InitializerSuggestionApplicability = InitializerSuggestionApplicability::None,
+    initializer_suggestions: bool = false,
     /// The maximum size of the `Err`-variant in a `Result` returned from a function
     #[lints(result_large_err)]
     large_error_threshold: u64 = 128,
