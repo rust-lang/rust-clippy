@@ -3,6 +3,7 @@ use itertools::Itertools;
 use rustc_lexer::{TokenKind, tokenize};
 use shell_escape::escape;
 use std::ffi::{OsStr, OsString};
+use std::io::BufRead;
 use std::ops::ControlFlow;
 use std::path::{Path, PathBuf};
 use std::process::{self, Command, Stdio};
@@ -265,6 +266,42 @@ fn fmt_conf(check: bool) -> Result<(), Error> {
     Ok(())
 }
 
+fn find_rustfmt() -> Result<String, Error> {
+    #[cfg(windows)]
+    const WHICH_BIN: &str = "where";
+
+    #[cfg(not(windows))]
+    const WHICH_BIN: &str = "which";
+
+    let output = Command::new("rustup")
+        .args(["which", "rustfmt"])
+        .stderr(Stdio::inherit())
+        .output();
+
+    if let Ok(output) = output {
+        if output.status.success() {
+            return Ok(String::from_utf8(output.stdout).expect("invalid rustfmt path"));
+        }
+    }
+
+    // `rustup which` has failed, fallback to platform-specific built-in command
+    let output = Command::new(WHICH_BIN)
+        .args(["rustfmt"])
+        .stderr(Stdio::inherit())
+        .output();
+
+    if let Ok(output) = output {
+        if output.status.success() {
+            // Since `where` can display multiple results we want to ignore all but one
+            if let Some(Ok(line)) = output.stdout.lines().next() {
+                return Ok(line);
+            }
+        }
+    }
+
+    Err(Error::RustfmtNotInstalled)
+}
+
 fn run_rustfmt(context: &FmtContext) -> Result<(), Error> {
     let project_root = clippy_project_root();
 
@@ -307,16 +344,15 @@ fn run_rustfmt(context: &FmtContext) -> Result<(), Error> {
 
 // the "main" function of cargo dev fmt
 pub fn run(check: bool, verbose: bool) {
-    let output = Command::new("rustup")
-        .args(["which", "rustfmt"])
-        .stderr(Stdio::inherit())
-        .output()
-        .expect("error running `rustup which rustfmt`");
-    if !output.status.success() {
-        eprintln!("`rustup which rustfmt` did not execute successfully");
-        process::exit(1);
+    let mut rustfmt_path;
+    match find_rustfmt() {
+        Ok(path) => rustfmt_path = path,
+        Err(e) => {
+            e.display();
+            process::exit(1);
+        },
     }
-    let mut rustfmt_path = String::from_utf8(output.stdout).expect("invalid rustfmt path");
+
     rustfmt_path.truncate(rustfmt_path.trim_end().len());
 
     let context = FmtContext {
