@@ -4428,6 +4428,9 @@ lint on constant <code>usize</code> indexing on arrays because that is handled b
 <p>To avoid implicit panics from indexing and slicing.
 There are “checked” alternatives which do not panic, and can be used with <code>unwrap()</code> to make
 an explicit panic when it is desired.</p>
+<h3>Limitations</h3>
+<p>This lint does not check for the usage of indexing or slicing on strings. These are covered
+by the more specific <code>string_slice</code> lint.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">// Vector
 let x = vec![0; 5];
