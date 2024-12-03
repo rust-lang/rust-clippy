@@ -577,6 +577,7 @@ define_Conf! {
         cloned_instead_of_copied,
         collapsible_match,
         collapsible_str_replace,
+        could_be_assoc_type_bounds,
         deprecated_cfg_attr,
         derivable_impls,
         err_expect,

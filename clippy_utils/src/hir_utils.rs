@@ -455,7 +455,7 @@ impl HirEqInterExpr<'_, '_, '_> {
         left.ident.name == right.ident.name && self.eq_expr(left.expr, right.expr)
     }
 
-    fn eq_generic_arg(&mut self, left: &GenericArg<'_>, right: &GenericArg<'_>) -> bool {
+    pub fn eq_generic_arg(&mut self, left: &GenericArg<'_>, right: &GenericArg<'_>) -> bool {
         match (left, right) {
             (GenericArg::Const(l), GenericArg::Const(r)) => self.eq_const_arg(l, r),
             (GenericArg::Lifetime(l_lt), GenericArg::Lifetime(r_lt)) => Self::eq_lifetime(l_lt, r_lt),

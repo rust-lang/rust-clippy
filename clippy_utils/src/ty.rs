@@ -258,7 +258,7 @@ pub fn implements_trait_with_env_from_iter<'tcx>(
     ty: Ty<'tcx>,
     trait_id: DefId,
     callee_id: Option<DefId>,
-    args: impl IntoIterator<Item = impl Into<Option<GenericArg<'tcx>>>>,
+    args: impl IntoIterator<Item: Into<Option<GenericArg<'tcx>>>>,
 ) -> bool {
     // Clippy shouldn't have infer types
     assert!(!ty.has_infer());
@@ -1081,7 +1081,7 @@ pub fn make_projection<'tcx>(
     tcx: TyCtxt<'tcx>,
     container_id: DefId,
     assoc_ty: Symbol,
-    args: impl IntoIterator<Item = impl Into<GenericArg<'tcx>>>,
+    args: impl IntoIterator<Item: Into<GenericArg<'tcx>>>,
 ) -> Option<AliasTy<'tcx>> {
     fn helper<'tcx>(
         tcx: TyCtxt<'tcx>,
@@ -1122,7 +1122,7 @@ pub fn make_normalized_projection<'tcx>(
     typing_env: ty::TypingEnv<'tcx>,
     container_id: DefId,
     assoc_ty: Symbol,
-    args: impl IntoIterator<Item = impl Into<GenericArg<'tcx>>>,
+    args: impl IntoIterator<Item: Into<GenericArg<'tcx>>>,
 ) -> Option<Ty<'tcx>> {
     fn helper<'tcx>(tcx: TyCtxt<'tcx>, typing_env: ty::TypingEnv<'tcx>, ty: AliasTy<'tcx>) -> Option<Ty<'tcx>> {
         #[cfg(debug_assertions)]
@@ -1249,7 +1249,7 @@ pub fn make_normalized_projection_with_regions<'tcx>(
     typing_env: ty::TypingEnv<'tcx>,
     container_id: DefId,
     assoc_ty: Symbol,
-    args: impl IntoIterator<Item = impl Into<GenericArg<'tcx>>>,
+    args: impl IntoIterator<Item: Into<GenericArg<'tcx>>>,
 ) -> Option<Ty<'tcx>> {
     fn helper<'tcx>(tcx: TyCtxt<'tcx>, typing_env: ty::TypingEnv<'tcx>, ty: AliasTy<'tcx>) -> Option<Ty<'tcx>> {
         #[cfg(debug_assertions)]

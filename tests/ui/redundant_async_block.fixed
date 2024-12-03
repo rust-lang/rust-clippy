@@ -1,4 +1,4 @@
-#![allow(unused, clippy::manual_async_fn)]
+#![allow(unused, clippy::manual_async_fn, clippy::could_be_assoc_type_bounds)]
 #![warn(clippy::redundant_async_block)]
 
 use std::future::{Future, IntoFuture};

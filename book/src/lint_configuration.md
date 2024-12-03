@@ -694,6 +694,7 @@ The minimum rust version that the project supports. Defaults to the `rust-versio
 * [`cloned_instead_of_copied`](https://rust-lang.github.io/rust-clippy/master/index.html#cloned_instead_of_copied)
 * [`collapsible_match`](https://rust-lang.github.io/rust-clippy/master/index.html#collapsible_match)
 * [`collapsible_str_replace`](https://rust-lang.github.io/rust-clippy/master/index.html#collapsible_str_replace)
+* [`could_be_assoc_type_bounds`](https://rust-lang.github.io/rust-clippy/master/index.html#could_be_assoc_type_bounds)
 * [`deprecated_cfg_attr`](https://rust-lang.github.io/rust-clippy/master/index.html#deprecated_cfg_attr)
 * [`derivable_impls`](https://rust-lang.github.io/rust-clippy/master/index.html#derivable_impls)
 * [`err_expect`](https://rust-lang.github.io/rust-clippy/master/index.html#err_expect)

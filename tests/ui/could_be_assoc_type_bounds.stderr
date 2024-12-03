@@ -1,0 +1,142 @@
+error: this trait bound only exists to constrain another bound's associated type
+  --> tests/ui/could_be_assoc_type_bounds.rs:9:5
+   |
+LL |     T: Iterator<Item: Clone>,
+   |     ------------------------ merge it with this bound
+LL |     <T as Iterator>::Item: Copy + Sized,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::could-be-assoc-type-bounds` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::could_be_assoc_type_bounds)]`
+help: remove any extra trait bounds add them directly to this trait bound using associated type bounds
+   |
+LL ~     T: Iterator<Item: Clone + Copy + Sized>,
+LL ~     
+   |
+
+error: this trait bound only exists to constrain another bound's associated type
+  --> tests/ui/could_be_assoc_type_bounds.rs:16:5
+   |
+LL | fn projection_with_existing_bounds<T: Iterator<Item: Clone>>()
+   |                                     ----------------------- merge it with this bound
+LL | where
+LL |     <T as Iterator>::Item: Copy + Sized,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: remove any extra trait bounds add them directly to this trait bound using associated type bounds
+   |
+LL - fn projection_with_existing_bounds<T: Iterator<Item: Clone>>()
+LL + fn projection_with_existing_bounds<T: Iterator<Item: Clone + Copy + Sized>>()
+   |
+
+error: this trait bound only exists to constrain another bound's associated type
+  --> tests/ui/could_be_assoc_type_bounds.rs:28:37
+   |
+LL | fn ty_param<T: Iterator<Item = P>, P: Clone>() {}
+   |              --------------------   ^^^^^^^
+   |              |
+   |              merge it with this bound
+   |
+help: remove any extra trait bounds add them directly to this trait bound using associated type bounds
+   |
+LL - fn ty_param<T: Iterator<Item = P>, P: Clone>() {}
+LL + fn ty_param<T: Iterator<Item: Clone>, >() {}
+   |
+
+error: these trait bounds only exist to constrain another bound's associated type
+  --> tests/ui/could_be_assoc_type_bounds.rs:33:5
+   |
+LL |     T: Iterator,
+   |     ----------- merge them with this bound
+LL |     <T as Iterator>::Item: Sized,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |
+LL |     <T as Iterator>::Item: Clone,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: remove any extra trait bounds add them directly to this trait bound using associated type bounds
+   |
+LL ~     T: Iterator<Item: Sized + Clone>,
+LL ~     
+   |
+
+error: this trait bound only exists to constrain another bound's associated type
+  --> tests/ui/could_be_assoc_type_bounds.rs:45:24
+   |
+LL | fn impl_trait_generic<T: Copy>(_: impl Iterator<Item = T>) {}
+   |                        ^^^^^^          ------------------ merge it with this bound
+   |
+help: remove any extra trait bounds add them directly to this trait bound using associated type bounds
+   |
+LL - fn impl_trait_generic<T: Copy>(_: impl Iterator<Item = T>) {}
+LL + fn impl_trait_generic(_: impl Iterator<Item: Copy>) {}
+   |
+
+error: this trait bound only exists to constrain another bound's associated type
+  --> tests/ui/could_be_assoc_type_bounds.rs:49:42
+   |
+LL | fn parenthesized<T: Iterator<Item = F>, F: Fn()>() {}
+   |                   --------------------   ^^^^^^
+   |                   |
+   |                   merge it with this bound
+   |
+help: remove any extra trait bounds add them directly to this trait bound using associated type bounds
+   |
+LL - fn parenthesized<T: Iterator<Item = F>, F: Fn()>() {}
+LL + fn parenthesized<T: Iterator<Item: Fn()>, >() {}
+   |
+
+error: this trait bound only exists to constrain another bound's associated type
+  --> tests/ui/could_be_assoc_type_bounds.rs:55:5
+   |
+LL |     I: IntoIterator<Item = T>,
+   |     ------------------------- merge it with this bound
+LL |     T: std::fmt::Display,
+   |     ^^^^^^^^^^^^^^^^^^^^
+   |
+help: remove any extra trait bounds add them directly to this trait bound using associated type bounds
+   |
+LL ~ pub fn elided_lifetime<I, >(iter: I, delim: &str)
+LL | where
+LL ~     I: IntoIterator<Item: std::fmt::Display>,
+LL ~
+   |
+
+error: this trait bound only exists to constrain another bound's associated type
+  --> tests/ui/could_be_assoc_type_bounds.rs:64:23
+   |
+LL | fn many_ty_params<T, U: Copy, X>()
+   |                       ^^^^^^
+...
+LL |     T: Iterator<Item = U>,
+   |     --------------------- merge it with this bound
+   |
+help: remove any extra trait bounds add them directly to this trait bound using associated type bounds
+   |
+LL ~ fn many_ty_params<T, X>()
+LL |
+LL | where
+LL ~     T: Iterator<Item: Copy>,
+   |
+
+error: these trait bounds only exist to constrain another bound's associated type
+  --> tests/ui/could_be_assoc_type_bounds.rs:87:5
+   |
+LL |     (T, T): Trait1<G1, G2, A2 = u32, A3 = U>,
+   |     ---------------------------------------- merge them with this bound
+LL |     <(T, T) as Trait1<G1, G2>>::A4: Clone,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |
+LL |     U: Clone,
+   |     ^^^^^^^^
+   |
+help: remove any extra trait bounds add them directly to this trait bound using associated type bounds
+   |
+LL ~ fn complex<T, G1, G2>()
+LL | where
+LL ~     (T, T): Trait1<G1, G2, A2 = u32, A3: Clone, A4: Clone>,
+LL ~     
+   |
+
+error: aborting due to 9 previous errors
+
