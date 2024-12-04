@@ -1,3 +1,9 @@
+# This action runs [Lintcheck] on on the current pull request and its target branch (which is
+# usually `master`), and compares the results. If they are different, a [job summary] is created
+# with the changes.
+#
+# [Lintcheck]: ../../lintcheck
+# [job summary]: https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#adding-a-job-summary
 name: Lintcheck
 
 on:

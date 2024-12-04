@@ -1,3 +1,5 @@
+# This action runs tests specific to `clippy_dev`, accessing through the `cargo dev` command. It
+# both checks the project as a whole (formatting & updating the lints) and `clippy_dev`'s commands specifically.
 name: Clippy Dev Test
 
 on:

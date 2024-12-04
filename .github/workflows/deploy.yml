@@ -1,3 +1,8 @@
+# This actions generates the documentation available at <https://rust-lang.github.io/rust-clippy>
+# using [`deploy.sh`] and [Github Pages].
+#
+# [`deploy.sh`]: ../deploy.sh
+# [Github Pages]: https://pages.github.com
 name: Deploy
 
 on:

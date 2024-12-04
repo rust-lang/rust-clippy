@@ -1,3 +1,5 @@
+# This action runs Clippy's test suite on the pull request patch.
+# Making sure that a pull request doesn't break anything.
 name: Clippy Test
 
 on:

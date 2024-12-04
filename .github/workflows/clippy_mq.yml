@@ -1,3 +1,7 @@
+# This action runs Clippy's test suite, as well as a few larger and more in-depth tests to verify
+# that the pull request is ready to be merged. (This action is run as part of the [merge queue].)
+#
+# [merge queue]: https://github.com/rust-lang/rust-clippy/queue/
 name: Clippy Test (merge queue)
 
 on:
