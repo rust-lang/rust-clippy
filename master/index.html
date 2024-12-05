@@ -14208,7 +14208,7 @@ opt.unwrap_or(42);
 </div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.48.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+unnecessary_lazy_evaluations">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/methods/mod.rs#L1844">View Source</a></div></div></div></article><article class="panel panel-default" id="unnecessary_literal_bound"><input id="label-unnecessary_literal_bound" type="checkbox"><label for="label-unnecessary_literal_bound" onclick="highlightIfNeeded('unnecessary_literal_bound')"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-unnecessary_literal_bound"><span>unnecessary_literal_bound</span> <a href="#unnecessary_literal_bound" onclick="lintAnchor(event)" class="anchor label label-default">&para;</a> <a href="" class="anchor label label-default" onclick="copyToClipboard(event)">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-pedantic">pedantic</span> <span class="label label-lint-level label-lint-level-allow">allow</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
 <p>Detects functions that are written to return <code>&amp;str</code> that could return <code>&amp;'static str</code> but instead return a <code>&amp;'a str</code>.</p>
 <h3>Why is this bad?</h3>
-<p>This leaves the caller unable to use the <code>&amp;str</code> as <code>&amp;'static str</code>, causing unneccessary allocations or confusion.
+<p>This leaves the caller unable to use the <code>&amp;str</code> as <code>&amp;'static str</code>, causing unnecessary allocations or confusion.
 This is also most likely what you meant to write.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">impl MyType {
@@ -14288,7 +14288,7 @@ This lint offers readability and conciseness improvements.</p>
 <li>One side is clearly larger than the other, like i32::MIN and an i32 variable</li>
 </ul>
 <h3>Why is this bad?</h3>
-<p>In the aformentioned cases it is not necessary to call <code>min()</code> or <code>max()</code>
+<p>In the aforementioned cases it is not necessary to call <code>min()</code> or <code>max()</code>
 to compare values, it may even cause confusion.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">let _ = 0.min(7_u32);
