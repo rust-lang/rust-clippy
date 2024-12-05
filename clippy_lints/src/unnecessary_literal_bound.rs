@@ -1,10 +1,12 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::path_res;
+use clippy_utils::source::snippet_with_applicability;
+use clippy_utils::{ReturnType, ReturnVisitor, visit_returns};
+use rustc_ast::BorrowKind;
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
-use rustc_hir::intravisit::{FnKind, Visitor};
-use rustc_hir::{Body, Expr, ExprKind, FnDecl, FnRetTy, Lit, MutTy, Mutability, PrimTy, Ty, TyKind, intravisit};
+use rustc_hir::intravisit::FnKind;
+use rustc_hir::{Body, Expr, ExprKind, FnDecl, FnRetTy, Lit, MutTy, Mutability, PrimTy, Ty, TyKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::Span;
@@ -13,11 +15,11 @@ use rustc_span::def_id::LocalDefId;
 declare_clippy_lint! {
     /// ### What it does
     ///
-    /// Detects functions that are written to return `&str` that could return `&'static str` but instead return a `&'a str`.
+    /// Detects functions that are written to return a reference to a literal that could return a static reference but instead return a lifetime-bounded reference.
     ///
     /// ### Why is this bad?
     ///
-    /// This leaves the caller unable to use the `&str` as `&'static str`, causing unneccessary allocations or confusion.
+    /// This leaves the caller unable to use the reference as `'static`, causing unneccessary allocations or confusion.
     /// This is also most likely what you meant to write.
     ///
     /// ### Example
@@ -67,47 +69,68 @@ fn extract_anonymous_ref<'tcx>(hir_ty: &Ty<'tcx>) -> Option<&'tcx Ty<'tcx>> {
     Some(ty)
 }
 
-fn is_str_literal(expr: &Expr<'_>) -> bool {
-    matches!(
-        expr.kind,
-        ExprKind::Lit(Lit {
-            node: LitKind::Str(..),
-            ..
-        }),
-    )
+enum ReturnTy {
+    Str,
+    Slice,
+    Array,
 }
 
-struct FindNonLiteralReturn;
+fn fetch_return_mode(cx: &LateContext<'_>, hir_ty: &Ty<'_>) -> Option<ReturnTy> {
+    match &hir_ty.kind {
+        TyKind::Array(_, _) => Some(ReturnTy::Array),
+        TyKind::Slice(_) => Some(ReturnTy::Slice),
+        TyKind::Path(other) => {
+            if let Res::PrimTy(PrimTy::Str) = cx.qpath_res(other, hir_ty.hir_id) {
+                Some(ReturnTy::Str)
+            } else {
+                None
+            }
+        },
+        _ => None,
+    }
+}
 
-impl<'hir> Visitor<'hir> for FindNonLiteralReturn {
+struct LiteralReturnVisitor {
+    return_mode: ReturnTy,
+}
+
+impl ReturnVisitor for LiteralReturnVisitor {
     type Result = std::ops::ControlFlow<()>;
-    type NestedFilter = intravisit::nested_filter::None;
+    fn visit_return(&mut self, kind: ReturnType<'_>) -> Self::Result {
+        let expr = match kind {
+            ReturnType::Implicit(e) | ReturnType::Explicit(e) => e,
+            ReturnType::UnitReturnExplicit(_) | ReturnType::MissingElseImplicit(_) => {
+                panic!("Function which returns a type has a unit return!")
+            },
+            ReturnType::DivergingImplicit(_) => {
+                // If this block is implicitly returning `!`, it can return `&'static T`.
+                return Self::Result::Continue(());
+            },
+        };
 
-    fn visit_expr(&mut self, expr: &'hir Expr<'hir>) -> Self::Result {
-        if let ExprKind::Ret(Some(ret_val_expr)) = expr.kind
-            && !is_str_literal(ret_val_expr)
-        {
-            Self::Result::Break(())
+        let returns_literal = match self.return_mode {
+            ReturnTy::Str => matches!(
+                expr.kind,
+                ExprKind::Lit(Lit {
+                    node: LitKind::Str(..),
+                    ..
+                })
+            ),
+            ReturnTy::Slice | ReturnTy::Array => matches!(
+                expr.kind,
+                ExprKind::AddrOf(BorrowKind::Ref, Mutability::Not, Expr {
+                    kind: ExprKind::Array(_),
+                    ..
+                })
+            ),
+        };
+
+        if returns_literal {
+            Self::Result::Continue(())
         } else {
-            intravisit::walk_expr(self, expr)
+            Self::Result::Break(())
         }
     }
-}
-
-fn check_implicit_returns_static_str(body: &Body<'_>) -> bool {
-    // TODO: Improve this to the same complexity as the Visitor to catch more implicit return cases.
-    if let ExprKind::Block(block, _) = body.value.kind
-        && let Some(implicit_ret) = block.expr
-    {
-        return is_str_literal(implicit_ret);
-    }
-
-    false
-}
-
-fn check_explicit_returns_static_str(expr: &Expr<'_>) -> bool {
-    let mut visitor = FindNonLiteralReturn;
-    visitor.visit_expr(expr).is_continue()
 }
 
 impl<'tcx> LateLintPass<'tcx> for UnnecessaryLiteralBound {
@@ -129,7 +152,7 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryLiteralBound {
             return;
         }
 
-        // Check for `-> &str`
+        // Check for `-> &str/&[T]/&[T; N]`
         let FnRetTy::Return(ret_hir_ty) = decl.output else {
             return;
         };
@@ -138,20 +161,22 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryLiteralBound {
             return;
         };
 
-        if path_res(cx, inner_hir_ty) != Res::PrimTy(PrimTy::Str) {
+        let Some(return_mode) = fetch_return_mode(cx, inner_hir_ty) else {
             return;
-        }
+        };
 
         // Check for all return statements returning literals
-        if check_explicit_returns_static_str(body.value) && check_implicit_returns_static_str(body) {
+        if visit_returns(LiteralReturnVisitor { return_mode }, body.value).is_continue() {
+            let mut applicability = Applicability::MachineApplicable;
+            let snippet = snippet_with_applicability(cx, inner_hir_ty.span, "..", &mut applicability);
             span_lint_and_sugg(
                 cx,
                 UNNECESSARY_LITERAL_BOUND,
                 ret_hir_ty.span,
-                "returning a `str` unnecessarily tied to the lifetime of arguments",
+                "returning a literal unnecessarily tied to the lifetime of arguments",
                 "try",
-                "&'static str".into(), // how ironic, a lint about `&'static str` requiring a `String` alloc...
-                Applicability::MachineApplicable,
+                format!("&'static {snippet}"),
+                applicability,
             );
         }
     }

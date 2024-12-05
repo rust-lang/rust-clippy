@@ -2,31 +2,44 @@
 
 struct Struct<'a> {
     not_literal: &'a str,
+    non_literal_b: &'a [u8],
 }
 
 impl Struct<'_> {
-    // Should warn
     fn returns_lit(&self) -> &str {
+        //~^ error: returning a literal unnecessarily tied to the lifetime of arguments
         "Hello"
     }
 
-    // Should NOT warn
+    fn returns_lit_b(&self) -> &[u8] {
+        //~^ error: returning a literal unnecessarily tied to the lifetime of arguments
+        &[0, 1, 2]
+    }
+
+    fn returns_lit_b_fixed(&self) -> &[u8; 3] {
+        //~^ error: returning a literal unnecessarily tied to the lifetime of arguments
+        &[0, 1, 2]
+    }
+
     fn returns_non_lit(&self) -> &str {
         self.not_literal
     }
 
-    // Should warn, does not currently
+    fn returns_non_lit_b(&self) -> &[u8] {
+        self.non_literal_b
+    }
+
     fn conditionally_returns_lit(&self, cond: bool) -> &str {
+        //~^ error: returning a literal unnecessarily tied to the lifetime of arguments
         if cond { "Literal" } else { "also a literal" }
     }
 
-    // Should NOT warn
     fn conditionally_returns_non_lit(&self, cond: bool) -> &str {
         if cond { "Literal" } else { self.not_literal }
     }
 
-    // Should warn
     fn contionally_returns_literals_explicit(&self, cond: bool) -> &str {
+        //~^ error: returning a literal unnecessarily tied to the lifetime of arguments
         if cond {
             return "Literal";
         }
@@ -34,7 +47,6 @@ impl Struct<'_> {
         "also a literal"
     }
 
-    // Should NOT warn
     fn conditionally_returns_non_lit_explicit(&self, cond: bool) -> &str {
         if cond {
             return self.not_literal;
@@ -49,14 +61,13 @@ trait ReturnsStr {
 }
 
 impl ReturnsStr for u8 {
-    // Should warn, even though not useful without trait refinement
     fn trait_method(&self) -> &str {
+        //~^ error: returning a literal unnecessarily tied to the lifetime of arguments
         "Literal"
     }
 }
 
 impl ReturnsStr for Struct<'_> {
-    // Should NOT warn
     fn trait_method(&self) -> &str {
         self.not_literal
     }
