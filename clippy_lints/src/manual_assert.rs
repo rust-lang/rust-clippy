@@ -62,7 +62,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualAssert {
             };
             let cond_sugg = sugg::Sugg::hir_with_applicability(cx, cond, "..", &mut applicability).maybe_par();
             let semicolon = if is_parent_stmt(cx, expr.hir_id) { ";" } else { "" };
-            let sugg = format!("assert!({not}{cond_sugg}, {format_args_snip}){semicolon}");
+            let base_sugg = format!("assert!({not}{cond_sugg}, {format_args_snip}){semicolon}");
             // we show to the user the suggestion without the comments, but when applying the fix, include the
             // comments in the block
             span_lint_and_then(
@@ -71,7 +71,8 @@ impl<'tcx> LateLintPass<'tcx> for ManualAssert {
                 expr.span,
                 "only a `panic!` in `if`-then statement",
                 |diag| {
-                    // comments can be noisy, do not show them to the user
+                    // If we have comments, use a tool_only suggestion to add them back.
+                    // Comments can be noisy, and this will hide them from the user's output.
                     if !comments.is_empty() {
                         diag.tool_only_span_suggestion(
                             expr.span.shrink_to_lo(),
@@ -80,7 +81,13 @@ impl<'tcx> LateLintPass<'tcx> for ManualAssert {
                             applicability,
                         );
                     }
-                    diag.span_suggestion(expr.span, "try instead", sugg, applicability);
+
+                    // And setup a multipart suggestion for the user-facing part.
+                    diag.multipart_suggestion(
+                        "replace `if`-then-`panic!` with `assert!`",
+                        vec![(expr.span, base_sugg.clone())],
+                        applicability,
+                    );
                 },
             );
         }
