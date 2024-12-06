@@ -430,3 +430,33 @@ fn issue12412(foo: &Foo, bar: &Bar) -> Option<()> {
     };
     Some(())
 }
+
+mod issue13626 {
+    fn basic_test(x: Option<u32>) -> Option<u32> {
+        if let Some(x) = x {
+            dbg!(x);
+            Some(x * 2)
+        } else {
+            None
+        }
+    }
+
+    fn mut_ref_test(mut x: Option<u32>) -> Option<u32> {
+        if let Some(ref mut x) = x {
+            dbg!(*x);
+            Some(*x * 2)
+        } else {
+            None
+        }
+    }
+
+    #[allow(clippy::needless_return)]
+    fn explicit_return_test(x: Option<u32>) -> Option<u32> {
+        if let Some(x) = x {
+            dbg!(x);
+            return Some(x * 2);
+        } else {
+            return None;
+        }
+    }
+}
