@@ -37,6 +37,15 @@ error: `drain` used to clear a `Vec`
 LL |     v.drain(..v.len());
    |       ^^^^^^^^^^^^^^^^ help: try: `clear()`
 
+error: `drain` used to truncate a `Vec`
+  --> tests/ui/clear_with_drain.rs:89:7
+   |
+LL |     v.drain(1..);
+   |       ^^^^^^^^^^ help: try: `truncate(1)`
+   |
+   = note: `-D clippy::truncate-with-drain` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::truncate_with_drain)]`
+
 error: `drain` used to clear a `VecDeque`
   --> tests/ui/clear_with_drain.rs:120:11
    |
@@ -72,6 +81,12 @@ error: `drain` used to clear a `VecDeque`
    |
 LL |     deque.drain(..deque.len());
    |           ^^^^^^^^^^^^^^^^^^^^ help: try: `clear()`
+
+error: `drain` used to truncate a `VecDeque`
+  --> tests/ui/clear_with_drain.rs:187:11
+   |
+LL |     deque.drain(1..);
+   |           ^^^^^^^^^^ help: try: `truncate(1)`
 
 error: `drain` used to clear a `String`
   --> tests/ui/clear_with_drain.rs:218:7
@@ -109,6 +124,12 @@ error: `drain` used to clear a `String`
 LL |     s.drain(..s.len());
    |       ^^^^^^^^^^^^^^^^ help: try: `clear()`
 
+error: `drain` used to truncate a `String`
+  --> tests/ui/clear_with_drain.rs:285:7
+   |
+LL |     s.drain(1..);
+   |       ^^^^^^^^^^ help: try: `truncate(1)`
+
 error: `drain` used to clear a `HashSet`
   --> tests/ui/clear_with_drain.rs:316:9
    |
@@ -127,5 +148,5 @@ error: `drain` used to clear a `BinaryHeap`
 LL |     heap.drain();
    |          ^^^^^^^ help: try: `clear()`
 
-error: aborting due to 21 previous errors
+error: aborting due to 24 previous errors
 
