@@ -77,7 +77,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.72.0"]
     pub LARGE_STACK_FRAMES,
-    nursery,
+    suspicious,
     "checks for functions that allocate a lot of stack space"
 }
 
