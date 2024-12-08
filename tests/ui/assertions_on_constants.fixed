@@ -49,7 +49,7 @@ fn main() {
     const _: () = assert!(true);
     //~^ ERROR: `assert!(true)` will be optimized out by the compiler
     #[allow(clippy::bool_assert_comparison)]
-    assert!(8 == (7 + 1));
+    assert_eq!(8, (7 + 1));
     //~^ ERROR: `assert!(true)` will be optimized out by the compiler
 
     // Don't lint if the value is dependent on a defined constant:
