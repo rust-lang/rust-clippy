@@ -2606,6 +2606,28 @@ pub fn is_in_test_function(tcx: TyCtxt<'_>, id: HirId) -> bool {
     })
 }
 
+/// Checks if `id` has a `#[test]` attribute applied
+///
+/// This only checks directly applied attributes, to see if a node has a parent function marked with
+/// `#[test]` use [`is_in_test_function`].
+///
+/// Note: Add `//@compile-flags: --test` to UI tests with a `#[test]` function
+pub fn is_test_function(tcx: TyCtxt<'_>, id: HirId) -> bool {
+    with_test_item_names(tcx, tcx.parent_module(id), |names| {
+        let node = tcx.hir_node(id);
+        once((id, node)).any(|(_id, node)| {
+            if let Node::Item(item) = node {
+                if let ItemKind::Fn(_, _, _) = item.kind {
+                    // Note that we have sorted the item names in the visitor,
+                    // so the binary_search gets the same as `contains`, but faster.
+                    return names.binary_search(&item.ident.name).is_ok();
+                }
+            }
+            false
+        })
+    })
+}
+
 /// Checks if `id` has a `#[cfg(test)]` attribute applied
 ///
 /// This only checks directly applied attributes, to see if a node is inside a `#[cfg(test)]` parent

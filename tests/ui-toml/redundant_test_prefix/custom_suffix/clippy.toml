@@ -1,0 +1,2 @@
+redundant-test-prefix-custom-suffix = "_ok"
+redundant-test-prefix-check-outside-cfg-test = true
