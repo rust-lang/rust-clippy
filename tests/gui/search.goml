@@ -1,0 +1,15 @@
+// This test ensures that the search is filtering lints correctly.
+go-to: |DOC_PATH|
+
+assert-css: ("#absurd_extreme_comparisons", {"display": "block"})
+assert-css: ("#absolute_paths", {"display": "block"})
+assert-css: ("#join_absolute_paths", {"display": "block"})
+
+// We update the search.
+write-into: ("#search-input", "absolute_paths")
+
+// `absolute_paths` and `join_absolute_path` should still be visible, but
+// not `absurde_extreme_comparisons`.
+wait-for-css: ("#absurd_extreme_comparisons", {"display": "none"})
+assert-css: ("#absolute_paths", {"display": "block"})
+assert-css: ("#join_absolute_paths", {"display": "block"})

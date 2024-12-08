@@ -9,6 +9,7 @@ env:
   NO_FMT_TEST: 1
   CARGO_INCREMENTAL: 0
   RUSTFLAGS: -D warnings
+  BROWSER_UI_TEST_VERSION: '0.18.2'
 
 concurrency:
   # For a given workflow, if we push to the same PR, cancel all previous builds on that PR.
@@ -28,6 +29,14 @@ jobs:
 
     - name: Install toolchain
       run: rustup show active-toolchain
+
+    - name: Install npm
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20
+
+   - name: Install browser-ui-test
+     run: npm install browser-ui-test@"${BROWSER_UI_TEST_VERSION}"
 
     # Run
     - name: Build
@@ -56,6 +65,9 @@ jobs:
       run: .github/driver.sh
       env:
         OS: ${{ runner.os }}
+
+- name: Test clippy lints page
+      run: cargo guitest
 
   # We need to have the "conclusion" job also on PR CI, to make it possible
   # to add PRs to a merge queue.
