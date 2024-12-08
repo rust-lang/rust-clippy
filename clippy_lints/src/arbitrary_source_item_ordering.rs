@@ -58,8 +58,21 @@ declare_clippy_lint! {
     /// | `PascalCase`       | "ty_alias", "opaque_ty", "enum", "struct", "union", "trait", "trait_alias", "impl" |
     /// | `lower_snake_case` | "fn"                 |
     ///
+    /// The groups' names are arbitrary and can be changed to suit the
+    /// conventions that should be enforced for a specific project.
+    ///
     /// All item kinds must be accounted for to create an enforceable linting
-    /// rule set.
+    /// rule set. Following are some example configurations that may be useful.
+    ///
+    /// Example: *module inclusions and use statements to be at the top*
+    ///
+    /// ```toml
+    /// module-item-order-groupings = [
+    ///     [ "modules", [ "extern_crate", "mod", "foreign_mod" ], ],
+    ///     [ "use", [ "use", ], ],
+    ///     [ "everything_else", [ "macro", "global_asm", "static", "const", "ty_alias", "enum", "struct", "union", "trait", "trait_alias", "impl", "fn", ], ],
+    /// ]
+    /// ```
     ///
     /// ### Known Problems
     ///
@@ -144,6 +157,7 @@ pub struct ArbitrarySourceItemOrdering {
     enable_ordering_for_struct: bool,
     enable_ordering_for_trait: bool,
     module_item_order_groupings: SourceItemOrderingModuleItemGroupings,
+    module_items_ordered_within_groups: bool,
 }
 
 impl ArbitrarySourceItemOrdering {
@@ -158,6 +172,7 @@ impl ArbitrarySourceItemOrdering {
             enable_ordering_for_struct: conf.source_item_ordering.contains(&Struct),
             enable_ordering_for_trait: conf.source_item_ordering.contains(&Trait),
             module_item_order_groupings: conf.module_item_order_groupings.clone(),
+            module_items_ordered_within_groups: conf.module_items_ordered_within_groups,
         }
     }
 
@@ -417,7 +432,9 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
                     Ordering::Equal if item_kind == SourceItemOrderingModuleItemKind::Use => {
                         // Skip ordering use statements, as these should be ordered by rustfmt.
                     },
-                    Ordering::Equal if cur_t.name > get_item_name(item) => {
+                    Ordering::Equal
+                        if (self.module_items_ordered_within_groups && cur_t.name > get_item_name(item)) =>
+                    {
                         Self::lint_member_item(cx, item, cur_t.item);
                     },
                     Ordering::Equal | Ordering::Greater => {
