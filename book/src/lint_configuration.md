@@ -562,6 +562,32 @@ A list of paths to types that should be treated as if they do not contain interi
 * [`mutable_key_type`](https://rust-lang.github.io/rust-clippy/master/index.html#mutable_key_type)
 
 
+## `initializer-suggestions`
+Whether to suggest reordering constructor fields when initializers are present.
+
+Note that such suggestions are not applied automatically with `--fix`. The following example
+[due to @ronnodas] shows why. Swapping the fields in the constructor produces incompilable code:
+
+```rust
+struct MyStruct {
+    vector: Vec<u32>,
+    length: usize
+}
+fn main() {
+    let vector = vec![1,2,3];
+    MyStruct { length: vector.len(), vector};
+}
+```
+
+[due to @ronnodas]: https://github.com/rust-lang/rust-clippy/issues/11846#issuecomment-1820747924
+
+**Default Value:** `false`
+
+---
+**Affected lints:**
+* [`inconsistent_struct_constructor`](https://rust-lang.github.io/rust-clippy/master/index.html#inconsistent_struct_constructor)
+
+
 ## `large-error-threshold`
 The maximum size of the `Err`-variant in a `Result` returned from a function
 
