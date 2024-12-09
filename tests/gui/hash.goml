@@ -1,0 +1,22 @@
+// This GUI test ensures that when the URL has a hash, it will open the target lint.
+
+go-to: |DOC_PATH|
+// First we ensure that by default, the lint is not displayed.
+assert-css: ("#alloc_instead_of_core .lint-docs", {"display": "none"})
+// First we move the mouse cursor to the lint to make the anchor appear.
+move-cursor-to: "#alloc_instead_of_core"
+// We wait for the anchor to be visible.
+wait-for-css-false: ("#alloc_instead_of_core .anchor", {"display": "none"})
+click: "#alloc_instead_of_core .anchor"
+// Clicking on the anchor should have two effects:
+// 1. Change the URL hash.
+// 2. Open the lint.
+wait-for-css: ("#alloc_instead_of_core .lint-docs", {"display": "block"})
+wait-for-document-property: {"location"."hash": "#alloc_instead_of_core"}
+
+// Now we reload the page. The lint should still be open since the hash is
+// targetting it.
+go-to: |DOC_PATH| + "#alloc_instead_of_core"
+wait-for-css: ("#alloc_instead_of_core .lint-docs", {"display": "block"})
+// Other lints should not be expanded.
+wait-for-css: ("#absolute_paths .lint-docs", {"display": "none"})
