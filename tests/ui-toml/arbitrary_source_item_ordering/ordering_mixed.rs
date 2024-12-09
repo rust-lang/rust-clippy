@@ -1,6 +1,7 @@
 //@aux-build:../../ui/auxiliary/proc_macros.rs
-//@revisions: default
+//@revisions: default ord_within
 //@[default] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/arbitrary_source_item_ordering/default
+//@[ord_within] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/arbitrary_source_item_ordering/ord_within
 
 #![allow(dead_code)]
 #![warn(clippy::arbitrary_source_item_ordering)]
