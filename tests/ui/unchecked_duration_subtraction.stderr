@@ -1,29 +1,47 @@
-error: unchecked subtraction of a 'Duration' from an 'Instant'
-  --> tests/ui/unchecked_duration_subtraction.rs:9:13
+error: unchecked subtraction of 'Duration' from 'Instant'
+  --> tests/ui/unchecked_duration_subtraction.rs:10:13
    |
-LL |     let _ = _first - second;
-   |             ^^^^^^^^^^^^^^^ help: try: `_first.checked_sub(second).unwrap()`
+LL |     let _ = instant - duration;
+   |             ^^^^^^^^^^^^^^^^^^ help: try: `instant.checked_sub(duration).unwrap()`
    |
    = note: `-D clippy::unchecked-duration-subtraction` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::unchecked_duration_subtraction)]`
 
-error: unchecked subtraction of a 'Duration' from an 'Instant'
-  --> tests/ui/unchecked_duration_subtraction.rs:11:13
+error: unchecked subtraction of 'Duration' from 'Instant'
+  --> tests/ui/unchecked_duration_subtraction.rs:12:13
    |
 LL |     let _ = Instant::now() - Duration::from_secs(5);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Instant::now().checked_sub(Duration::from_secs(5)).unwrap()`
 
-error: unchecked subtraction of a 'Duration' from an 'Instant'
-  --> tests/ui/unchecked_duration_subtraction.rs:13:13
+error: unchecked subtraction of 'Duration' from 'Instant'
+  --> tests/ui/unchecked_duration_subtraction.rs:14:13
    |
-LL |     let _ = _first - Duration::from_secs(5);
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `_first.checked_sub(Duration::from_secs(5)).unwrap()`
+LL |     let _ = instant - Duration::from_secs(5);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `instant.checked_sub(Duration::from_secs(5)).unwrap()`
 
-error: unchecked subtraction of a 'Duration' from an 'Instant'
-  --> tests/ui/unchecked_duration_subtraction.rs:15:13
+error: unchecked subtraction of 'Duration' from 'Instant'
+  --> tests/ui/unchecked_duration_subtraction.rs:16:13
    |
-LL |     let _ = Instant::now() - second;
-   |             ^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Instant::now().checked_sub(second).unwrap()`
+LL |     let _ = Instant::now() - duration;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Instant::now().checked_sub(duration).unwrap()`
 
-error: aborting due to 4 previous errors
+error: unchecked subtraction of 'Duration' from 'Duration'
+  --> tests/ui/unchecked_duration_subtraction.rs:18:13
+   |
+LL |     let _ = Duration::from_secs(1) - duration;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Duration::from_secs(1).checked_sub(duration).unwrap()`
+
+error: unchecked subtraction of 'Duration' from 'Duration'
+  --> tests/ui/unchecked_duration_subtraction.rs:20:13
+   |
+LL |     let _ = duration2 - duration;
+   |             ^^^^^^^^^^^^^^^^^^^^ help: try: `duration2.checked_sub(duration).unwrap()`
+
+error: unchecked subtraction of 'Duration' from 'Duration'
+  --> tests/ui/unchecked_duration_subtraction.rs:22:13
+   |
+LL |     let _ = Instant::now().elapsed() - duration;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Instant::now().elapsed().checked_sub(duration).unwrap()`
+
+error: aborting due to 7 previous errors
 
