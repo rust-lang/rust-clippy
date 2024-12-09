@@ -1,0 +1,203 @@
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:15:13
+   |
+LL |         None {} => 0,
+   |             ^^^ help: remove the struct pattern
+   |
+   = note: `-D clippy::unneeded-struct-pattern` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unneeded_struct_pattern)]`
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:20:13
+   |
+LL |         None { .. } => 0,
+   |             ^^^^^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:30:18
+   |
+LL |         Some(None {}) => 0,
+   |                  ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:31:13
+   |
+LL |         None {} => 0,
+   |             ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:34:16
+   |
+LL |     if let None {} = Some(0) {}
+   |                ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:35:16
+   |
+LL |     if let None { .. } = Some(0) {}
+   |                ^^^^^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:36:21
+   |
+LL |     if let Some(None {}) = Some(Some(0)) {}
+   |                     ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:37:13
+   |
+LL |     let None {} = Some(0) else { panic!() };
+   |             ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:38:13
+   |
+LL |     let None { .. } = Some(0) else { panic!() };
+   |             ^^^^^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:39:18
+   |
+LL |     let Some(None {}) = Some(Some(0)) else { panic!() };
+   |                  ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:55:27
+   |
+LL |         Custom::NoBrackets {} => 0,                  // Should be fixed
+   |                           ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:56:40
+   |
+LL |         Custom::NoBracketsNonExhaustive {} => 0,     // Should be fixed
+   |                                        ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:63:27
+   |
+LL |         Custom::NoBrackets { .. } => 0,              // Should be fixed
+   |                           ^^^^^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:64:40
+   |
+LL |         Custom::NoBracketsNonExhaustive { .. } => 0, // Should be fixed
+   |                                        ^^^^^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:69:27
+   |
+LL |         Custom::NoBrackets {} if true => 0, // Should be fixed
+   |                           ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:74:27
+   |
+LL |         Custom::NoBrackets {} | Custom::NoBracketsNonExhaustive {} => 0, // Should be fixed
+   |                           ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:74:64
+   |
+LL |         Custom::NoBrackets {} | Custom::NoBracketsNonExhaustive {} => 0, // Should be fixed
+   |                                                                ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:81:30
+   |
+LL |     if let Custom::NoBrackets {} = Custom::Init {} // Should be fixed
+   |                              ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:82:30
+   |
+LL |     if let Custom::NoBrackets { .. } = Custom::Init {} // Should be fixed
+   |                              ^^^^^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:83:30
+   |
+LL |     if let Custom::NoBrackets {} | Custom::NoBracketsNonExhaustive {} = Custom::Init {} // Should be fixed
+   |                              ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:83:67
+   |
+LL |     if let Custom::NoBrackets {} | Custom::NoBracketsNonExhaustive {} = Custom::Init {} // Should be fixed
+   |                                                                   ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:84:43
+   |
+LL |     if let Custom::NoBracketsNonExhaustive {} = Custom::Init {} // Should be fixed
+   |                                           ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:85:43
+   |
+LL |     if let Custom::NoBracketsNonExhaustive { .. } = Custom::Init {} // Should be fixed
+   |                                           ^^^^^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:99:27
+   |
+LL |     let Custom::NoBrackets {} = Custom::Init else { panic!() }; // Should be fixed
+   |                           ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:101:27
+   |
+LL |     let Custom::NoBrackets { .. } = Custom::Init else {
+   |                           ^^^^^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:105:40
+   |
+LL |     let Custom::NoBracketsNonExhaustive {} = Custom::Init else {
+   |                                        ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:109:40
+   |
+LL |     let Custom::NoBracketsNonExhaustive { .. } = Custom::Init else {
+   |                                        ^^^^^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:117:44
+   |
+LL |     fn pat_in_fn_param_1(Refutable::Variant {}: Refutable) {} // Should be fixed
+   |                                            ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:118:44
+   |
+LL |     fn pat_in_fn_param_2(Refutable::Variant { .. }: Refutable) {} // Should be fixed
+   |                                            ^^^^^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:120:27
+   |
+LL |     for Refutable::Variant {} in [] {} // Should be fixed
+   |                           ^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:121:27
+   |
+LL |     for Refutable::Variant { .. } in [] {} // Should be fixed
+   |                           ^^^^^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:135:23
+   |
+LL |         ExhaustiveUnit { .. } => 0,
+   |                       ^^^^^^^ help: remove the struct pattern
+
+error: struct pattern is not needed for a unit variant
+  --> tests/ui/unneeded_struct_pattern.rs:141:23
+   |
+LL |         ExhaustiveUnit {} => 0,
+   |                       ^^^ help: remove the struct pattern
+
+error: aborting due to 33 previous errors
+
