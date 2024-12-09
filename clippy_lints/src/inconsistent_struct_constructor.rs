@@ -1,7 +1,7 @@
 use clippy_config::Conf;
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::fulfill_or_allowed;
-use clippy_utils::source::snippet_opt;
+use clippy_utils::source::snippet;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
 use rustc_hir::{self as hir, ExprKind};
@@ -83,7 +83,8 @@ impl<'tcx> LateLintPass<'tcx> for InconsistentStructConstructor {
         let ExprKind::Struct(_, fields, _) = expr.kind else {
             return;
         };
-        let applicability = if fields.iter().all(|f| f.is_shorthand) {
+        let all_fields_are_shorthand = fields.iter().all(|f| f.is_shorthand);
+        let applicability = if all_fields_are_shorthand {
             Applicability::MachineApplicable
         } else if self.initializer_suggestions {
             Applicability::MaybeIncorrect
@@ -109,17 +110,22 @@ impl<'tcx> LateLintPass<'tcx> for InconsistentStructConstructor {
 
             let span = field_with_attrs_span(cx.tcx, fields.first().unwrap())
                 .with_hi(field_with_attrs_span(cx.tcx, fields.last().unwrap()).hi());
-            let sugg = suggestion(cx, fields, &def_order_map);
 
             if !fulfill_or_allowed(cx, INCONSISTENT_STRUCT_CONSTRUCTOR, Some(ty_hir_id)) {
-                span_lint_and_sugg(
+                span_lint_and_then(
                     cx,
                     INCONSISTENT_STRUCT_CONSTRUCTOR,
                     span,
                     "struct constructor field order is inconsistent with struct definition field order",
-                    "try",
-                    sugg,
-                    applicability,
+                    |diag| {
+                        let msg = if all_fields_are_shorthand {
+                            "try"
+                        } else {
+                            "if the field evaluation order doesn't matter, try"
+                        };
+                        let sugg = suggestion(cx, fields, &def_order_map);
+                        diag.span_suggestion(span, msg, sugg, applicability);
+                    },
                 );
             }
         }
@@ -151,8 +157,8 @@ fn suggestion<'tcx>(
         .map(|w| {
             let w0_span = field_with_attrs_span(cx.tcx, &w[0]);
             let w1_span = field_with_attrs_span(cx.tcx, &w[1]);
-            let span = w0_span.with_hi(w1_span.lo()).with_lo(w0_span.hi());
-            snippet_opt(cx, span).unwrap()
+            let span = w0_span.between(w1_span);
+            snippet(cx, span, " ")
         })
         .collect::<Vec<_>>();
 
@@ -160,7 +166,7 @@ fn suggestion<'tcx>(
     fields.sort_unstable_by_key(|field| def_order_map[&field.ident.name]);
     let field_snippets = fields
         .iter()
-        .map(|field| snippet_opt(cx, field_with_attrs_span(cx.tcx, field)).unwrap())
+        .map(|field| snippet(cx, field_with_attrs_span(cx.tcx, field), ".."))
         .collect::<Vec<_>>();
 
     assert_eq!(field_snippets.len(), ws.len() + 1);

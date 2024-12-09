@@ -528,8 +528,9 @@ define_Conf! {
     ignore_interior_mutability: Vec<String> = Vec::from(["bytes::Bytes".into()]),
     /// Whether to suggest reordering constructor fields when initializers are present.
     ///
-    /// Note that such suggestions are not applied automatically with `--fix`. The following example
-    /// [due to @ronnodas] shows why. Swapping the fields in the constructor produces incompilable code:
+    /// Warnings produced by this configuration aren't necessarily fixed by just reordering the fields. Even if the
+    /// suggested code would compile, it can change semantics if the initializer expressions have side effects. The
+    /// following example [from rust-clippy#11846] shows how the suggestion can run into borrow check errors:
     ///
     /// ```rust
     /// struct MyStruct {
@@ -542,7 +543,7 @@ define_Conf! {
     /// }
     /// ```
     ///
-    /// [due to @ronnodas]: https://github.com/rust-lang/rust-clippy/issues/11846#issuecomment-1820747924
+    /// [from rust-clippy#11846]: https://github.com/rust-lang/rust-clippy/issues/11846#issuecomment-1820747924
     #[lints(inconsistent_struct_constructor)]
     initializer_suggestions: bool = false,
     /// The maximum size of the `Err`-variant in a `Result` returned from a function
