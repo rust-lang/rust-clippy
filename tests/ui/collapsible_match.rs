@@ -112,6 +112,18 @@ fn lint_cases(opt_opt: Option<Option<u32>>, res_opt: Result<Option<u32>, String>
         },
         None => return,
     }
+
+    match res_opt {
+        Ok(val) => match res_opt {
+            Ok(val) => match val {
+                //~^ ERROR: this `match` can be collapsed into the outer `match`
+                Some(n) => foo(n),
+                _ => return,
+            },
+            _ => return,
+        },
+        _ => return,
+    }
 }
 
 fn negative_cases(res_opt: Result<Option<u32>, String>, res_res: Result<Result<u32, String>, String>) {

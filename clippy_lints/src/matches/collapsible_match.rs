@@ -108,6 +108,28 @@ fn check_arm<'tcx>(
                 "the outer pattern can be modified to include the inner pattern",
             );
         });
+    } else if let Some(inner) = IfLetOrMatch::parse(cx, inner_expr)
+        && let IfLetOrMatch::Match(inner_scrutinee, inner_arms, ..) = inner
+        && outer_pat.span.eq_ctxt(inner_scrutinee.span)
+        && let Some(inner_binding_id) = path_to_local(peel_ref_operators(cx, inner_scrutinee))
+        && let Some(outer_binding_id) = path_to_local(peel_ref_operators(cx, outer_then_body))
+        // check if the inner match can be collapsed into the outer match
+        && inner_binding_id == outer_binding_id
+        && outer_guard.is_none_or(|e| !is_local_used(cx, e, inner_binding_id))
+        && !inner_arms
+            .iter()
+            .any(|arm| is_local_used(cx, arm.body, inner_binding_id))
+    {
+        let msg = "this match can be collapsed into the outer match";
+        span_lint_and_then(cx, COLLAPSIBLE_MATCH, inner_expr.span, msg, |diag| {
+            let mut help_span = MultiSpan::from_spans(vec![outer_pat.span, inner_scrutinee.span]);
+            help_span.push_span_label(outer_pat.span, "outer pattern");
+            help_span.push_span_label(inner_scrutinee.span, "inner pattern");
+            diag.span_help(
+                help_span,
+                "the outer pattern can be modified to include the inner pattern",
+            );
+        });
     }
 }
 
