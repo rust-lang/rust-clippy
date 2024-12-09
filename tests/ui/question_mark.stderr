@@ -196,5 +196,59 @@ LL | |         return None;
 LL | |     };
    | |______^ help: replace it with: `let v = bar.foo.owned.clone()?;`
 
-error: aborting due to 22 previous errors
+error: this block may be rewritten with the `?` operator
+  --> tests/ui/question_mark.rs:436:9
+   |
+LL | /         if let Some(x) = x {
+LL | |             dbg!(x);
+LL | |             Some(x * 2)
+LL | |         } else {
+LL | |             None
+LL | |         }
+   | |_________^
+   |
+help: replace it with
+   |
+LL ~         let x = x?;
+LL +         dbg!(x);
+LL +         Some(x * 2)
+   |
+
+error: this block may be rewritten with the `?` operator
+  --> tests/ui/question_mark.rs:445:9
+   |
+LL | /         if let Some(ref mut x) = x {
+LL | |             dbg!(*x);
+LL | |             Some(*x * 2)
+LL | |         } else {
+LL | |             None
+LL | |         }
+   | |_________^
+   |
+help: replace it with
+   |
+LL ~         let x = x.as_mut()?;
+LL +         dbg!(*x);
+LL +         Some(*x * 2)
+   |
+
+error: this block may be rewritten with the `?` operator
+  --> tests/ui/question_mark.rs:455:9
+   |
+LL | /         if let Some(x) = x {
+LL | |             dbg!(x);
+LL | |             return Some(x * 2);
+LL | |         } else {
+LL | |             return None;
+LL | |         }
+   | |_________^
+   |
+help: replace it with
+   |
+LL ~         let x = x?;
+LL +         dbg!(x);
+LL +         return Some(x * 2);
+   |
+
+error: aborting due to 25 previous errors
 
