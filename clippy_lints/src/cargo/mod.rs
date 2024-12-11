@@ -155,11 +155,24 @@ declare_clippy_lint! {
     /// [As the edition guide says](https://rust-lang-nursery.github.io/edition-guide/rust-2018/cargo-and-crates-io/crates-io-disallows-wildcard-dependencies.html),
     /// it is highly unlikely that you work with any possible version of your dependency,
     /// and wildcard dependencies would cause unnecessary breakage in the ecosystem.
+    /// Instead, you must actually specify a specific version or range of versions, using one of the `semver` crate’s various options: `^`, `~`, or `=`.
     ///
     /// ### Example
     /// ```toml
     /// [dependencies]
     /// regex = "*"
+    /// ```
+    /// Use instead:
+    /// ```toml
+    /// [dependencies]
+    /// # compatible with the specified version and any version that doesn't introduce breaking changes
+    /// some_crate_1 = "^1.2.3"
+    ///
+    /// # allow patch updates, but not minor or major version changes
+    /// some_crate_2 = "~1.2.3"
+    ///
+    /// # pin the version to a specific version
+    /// some_crate_3 = "=1.2.3"
     /// ```
     #[clippy::version = "1.32.0"]
     pub WILDCARD_DEPENDENCIES,
