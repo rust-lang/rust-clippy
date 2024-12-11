@@ -11,18 +11,21 @@ use clippy_utils::{
     pat_and_expr_can_be_question_mark, path_res, path_to_local, path_to_local_id, peel_blocks, peel_blocks_with_stmt,
     span_contains_cfg, span_contains_comment,
 };
+use itertools::Itertools;
 use rustc_errors::Applicability;
 use rustc_hir::LangItem::{self, OptionNone, OptionSome, ResultErr, ResultOk};
 use rustc_hir::def::Res;
+use rustc_hir::intravisit::FnKind;
 use rustc_hir::{
-    Arm, BindingMode, Block, Body, ByRef, Expr, ExprKind, FnRetTy, HirId, LetStmt, MatchSource, Mutability, Node, Pat,
-    PatKind, PathSegment, QPath, Stmt, StmtKind,
+    Arm, BindingMode, Block, Body, ByRef, Expr, ExprKind, FnDecl, FnRetTy, HirId, LetStmt, MatchSource, Mutability,
+    Node, Pat, PatKind, PathSegment, QPath, Stmt, StmtKind,
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
 use rustc_session::impl_lint_pass;
-use rustc_span::sym;
+use rustc_span::def_id::LocalDefId;
 use rustc_span::symbol::Symbol;
+use rustc_span::{Span, sym};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -456,6 +459,61 @@ fn check_if_let_some_or_err_and_early_return<'tcx>(cx: &LateContext<'tcx>, expr:
     }
 }
 
+fn check_if_let_some_as_return_val<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
+    if let Some(higher::IfLet {
+        let_pat,
+        let_expr,
+        if_then,
+        if_else,
+        ..
+    }) = higher::IfLet::hir(cx, expr)
+        && let PatKind::TupleStruct(ref path1, [field], ddpos) = let_pat.kind
+        && ddpos.as_opt_usize().is_none()
+        && let PatKind::Binding(BindingMode(by_ref, _), _, ident, None) = field.kind
+        && let caller_ty = cx.typeck_results().expr_ty(let_expr)
+        && let if_block = IfBlockType::IfLet(
+            cx.qpath_res(path1, let_pat.hir_id),
+            caller_ty,
+            ident.name,
+            let_expr,
+            if_then,
+            if_else,
+        )
+        && let ExprKind::Block(if_then_block, _) = if_then.kind
+        // Don't consider case where if-then branch has only one statement/expression
+        && (if_then_block.stmts.len() >= 2 || if_then_block.stmts.len() == 1 && if_then_block.expr.is_some())
+        && (is_early_return(sym::Option, cx, &if_block))
+        && if_else
+            .map(|e| eq_expr_value(cx, let_expr, peel_blocks(e)))
+            .filter(|e| *e)
+            .is_none()
+    {
+        let mut applicability = Applicability::MachineApplicable;
+        let receiver_str = snippet_with_applicability(cx, let_expr.span, "..", &mut applicability);
+        let method_call_str = match by_ref {
+            ByRef::Yes(Mutability::Mut) => ".as_mut()",
+            ByRef::Yes(Mutability::Not) => ".as_ref()",
+            ByRef::No => "",
+        };
+
+        let body = snippet_with_applicability(cx, if_then.span, "..", &mut applicability);
+        let mut body_lines = body.lines().map(|line| &line[line.len().min(4)..]);
+        let (_, _) = (body_lines.next(), body_lines.next_back());
+        let body_str = body_lines.join("\n");
+
+        let sugg = format!("let {ident} = {receiver_str}{method_call_str}?;\n{body_str}",);
+        span_lint_and_sugg(
+            cx,
+            QUESTION_MARK,
+            expr.span,
+            "this block may be rewritten with the `?` operator",
+            "replace it with",
+            sugg,
+            applicability,
+        );
+    }
+}
+
 impl QuestionMark {
     fn inside_try_block(&self) -> bool {
         self.try_block_depth_stack.last() > Some(&0)
@@ -529,6 +587,37 @@ impl<'tcx> LateLintPass<'tcx> for QuestionMark {
 
     fn check_body(&mut self, _: &LateContext<'tcx>, _: &Body<'tcx>) {
         self.try_block_depth_stack.push(0);
+    }
+
+    // Defining check_fn instead of using check_body to avoid accidentally triggering on
+    // const expressions, not sure if this is necessary
+    fn check_fn(
+        &mut self,
+        cx: &LateContext<'tcx>,
+        _: FnKind<'tcx>,
+        _: &'tcx FnDecl<'tcx>,
+        body: &'tcx Body<'tcx>,
+        _: Span,
+        _: LocalDefId,
+    ) {
+        let return_expr = match body.value.kind {
+            ExprKind::Block(block, _) => block.expr.or_else(|| {
+                block.stmts.iter().last().and_then(|stmt| {
+                    if let StmtKind::Semi(expr) = stmt.kind
+                        && let ExprKind::Ret(Some(ret)) = expr.kind
+                    {
+                        Some(ret)
+                    } else {
+                        None
+                    }
+                })
+            }),
+            _ => None,
+        };
+
+        if let Some(expr) = return_expr {
+            check_if_let_some_as_return_val(cx, expr);
+        }
     }
 
     fn check_body_post(&mut self, _: &LateContext<'tcx>, _: &Body<'tcx>) {

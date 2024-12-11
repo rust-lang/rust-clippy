@@ -373,3 +373,24 @@ fn issue12412(foo: &Foo, bar: &Bar) -> Option<()> {
     let v = bar.foo.owned.clone()?;
     Some(())
 }
+
+mod issue13626 {
+    fn basic_test(x: Option<u32>) -> Option<u32> {
+        let x = x?;
+        dbg!(x);
+        Some(x * 2)
+    }
+
+    fn mut_ref_test(mut x: Option<u32>) -> Option<u32> {
+        let x = x.as_mut()?;
+        dbg!(*x);
+        Some(*x * 2)
+    }
+
+    #[allow(clippy::needless_return)]
+    fn explicit_return_test(x: Option<u32>) -> Option<u32> {
+        let x = x?;
+        dbg!(x);
+        return Some(x * 2);
+    }
+}
