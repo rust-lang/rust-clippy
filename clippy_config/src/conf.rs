@@ -563,6 +563,9 @@ define_Conf! {
     /// The named groupings of different source item kinds within modules.
     #[lints(arbitrary_source_item_ordering)]
     module_item_order_groupings: SourceItemOrderingModuleItemGroupings = DEFAULT_MODULE_ITEM_ORDERING_GROUPS.into(),
+    /// Whether the items within module groups should be ordered alphabetically or not.
+    #[lints(arbitrary_source_item_ordering)]
+    module_items_ordered_within_groups: bool = false,
     /// The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`
     #[default_text = "current version"]
     #[lints(
