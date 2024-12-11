@@ -63,31 +63,21 @@ impl<'tcx> LateLintPass<'tcx> for ManualAssert {
             let cond_sugg = sugg::Sugg::hir_with_applicability(cx, cond, "..", &mut applicability).maybe_par();
             let semicolon = if is_parent_stmt(cx, expr.hir_id) { ";" } else { "" };
             let base_sugg = format!("assert!({not}{cond_sugg}, {format_args_snip}){semicolon}");
-            // we show to the user the suggestion without the comments, but when applying the fix, include the
-            // comments in the block
             span_lint_and_then(
                 cx,
                 MANUAL_ASSERT,
                 expr.span,
                 "only a `panic!` in `if`-then statement",
                 |diag| {
-                    // If we have comments, use a tool_only suggestion to add them back.
-                    // Comments can be noisy, and this will hide them from the user's output.
-                    if !comments.is_empty() {
-                        diag.tool_only_span_suggestion(
-                            expr.span.shrink_to_lo(),
-                            "add comments back",
-                            comments,
-                            applicability,
-                        );
-                    }
+                    // If we have comments to retain, include them in the final suggestion, if
+                    // not, don't.
+                    let suggestions = if comments.is_empty() {
+                        vec![(expr.span, base_sugg.clone())]
+                    } else {
+                        vec![(expr.span.shrink_to_lo(), comments), (expr.span, base_sugg.clone())]
+                    };
 
-                    // And setup a multipart suggestion for the user-facing part.
-                    diag.multipart_suggestion(
-                        "replace `if`-then-`panic!` with `assert!`",
-                        vec![(expr.span, base_sugg.clone())],
-                        applicability,
-                    );
+                    diag.multipart_suggestion("replace `if`-then-`panic!` with `assert!`", suggestions, applicability);
                 },
             );
         }

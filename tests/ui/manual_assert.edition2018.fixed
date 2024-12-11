@@ -58,7 +58,13 @@ fn main() {
 
 fn issue7730(a: u8) {
     // Suggestion should preserve comment
-    assert!(!(a > 2), "panic with comment");
+    // comment
+/* this is a
+        multiline
+        comment */
+/// Doc comment
+// comment after `panic!`
+assert!(!(a > 2), "panic with comment");
 }
 
 fn issue12505() {
