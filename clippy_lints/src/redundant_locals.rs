@@ -41,7 +41,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.73.0"]
     pub REDUNDANT_LOCALS,
-    correctness,
+    perf,
     "redundant redefinition of a local binding"
 }
 declare_lint_pass!(RedundantLocals => [REDUNDANT_LOCALS]);
