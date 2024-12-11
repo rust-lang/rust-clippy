@@ -1,0 +1,11 @@
+error: redundant `test_` prefix in test function name
+  --> tests/ui-toml/redundant_test_prefix/redundant_test_prefix.rs:33:4
+   |
+LL | fn test_foo() {
+   |    ^^^^^^^^ help: consider removing the `test_` prefix (suffix avoids name conflict): `foo_works`
+   |
+   = note: `-D clippy::redundant-test-prefix` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::redundant_test_prefix)]`
+
+error: aborting due to 1 previous error
+
