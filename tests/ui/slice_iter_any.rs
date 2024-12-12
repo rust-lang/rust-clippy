@@ -1,4 +1,4 @@
-#![warn(clippy::contains_for_slice)]
+#![warn(clippy::slice_iter_any)]
 
 fn main() {
     let vec: Vec<u8> = vec![1, 2, 3, 4, 5, 6];

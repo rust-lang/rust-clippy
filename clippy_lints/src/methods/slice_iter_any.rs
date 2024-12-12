@@ -3,7 +3,7 @@ use rustc_hir::{Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self};
 
-use super::{CONTAINS_FOR_SLICE, method_call};
+use super::{SLICE_ITER_ANY, method_call};
 
 pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>) {
     if !expr.span.from_expansion()
@@ -31,7 +31,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>) {
             {
                 span_lint(
                     cx,
-                    CONTAINS_FOR_SLICE,
+                    SLICE_ITER_ANY,
                     expr.span,
                     "using `contains()` instead of `iter().any()` on u8/i8 slices is more efficient",
                 );

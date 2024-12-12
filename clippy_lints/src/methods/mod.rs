@@ -14,7 +14,6 @@ mod clone_on_copy;
 mod clone_on_ref_ptr;
 mod cloned_instead_of_copied;
 mod collapsible_str_replace;
-mod contains_for_slice;
 mod drain_collect;
 mod err_expect;
 mod expect_fun_call;
@@ -101,6 +100,7 @@ mod single_char_add_str;
 mod single_char_insert_string;
 mod single_char_push_string;
 mod skip_while_next;
+mod slice_iter_any;
 mod stable_sort_primitive;
 mod str_split;
 mod str_splitn;
@@ -4305,7 +4305,7 @@ declare_clippy_lint! {
     /// }
     /// ```
     #[clippy::version = "1.85.0"]
-    pub CONTAINS_FOR_SLICE,
+    pub SLICE_ITER_ANY,
     perf,
     "using `contains()` instead of `iter().any()` on u8/i8 slices is more efficient"
 }
@@ -4475,7 +4475,7 @@ impl_lint_pass!(Methods => [
     MAP_ALL_ANY_IDENTITY,
     MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
     UNNECESSARY_MAP_OR,
-    CONTAINS_FOR_SLICE,
+    SLICE_ITER_ANY,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -4710,7 +4710,7 @@ impl Methods {
                 ("any", [arg]) => {
                     unused_enumerate_index::check(cx, expr, recv, arg);
                     needless_character_iteration::check(cx, expr, recv, arg, false);
-                    contains_for_slice::check(cx, expr);
+                    slice_iter_any::check(cx, expr);
                     match method_call(recv) {
                         Some(("cloned", recv2, [], _, _)) => iter_overeager_cloned::check(
                             cx,
