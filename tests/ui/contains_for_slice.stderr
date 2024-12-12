@@ -1,0 +1,17 @@
+error: using `contains()` instead of `iter().any()` on u8/i8 slices is more efficient
+  --> tests/ui/contains_for_slice.rs:6:13
+   |
+LL |     let _ = values.iter().any(|&v| v == 4);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::contains-for-slice` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::contains_for_slice)]`
+
+error: using `contains()` instead of `iter().any()` on u8/i8 slices is more efficient
+  --> tests/ui/contains_for_slice.rs:29:5
+   |
+LL |     values.iter().any(|&v| v == 10)
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+
