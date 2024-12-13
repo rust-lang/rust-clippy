@@ -40,9 +40,7 @@ pub struct ManualRemEuclid {
 
 impl ManualRemEuclid {
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: conf.msrv.clone(),
-        }
+        Self { msrv: conf.msrv }
     }
 }
 
@@ -61,8 +59,8 @@ impl<'tcx> LateLintPass<'tcx> for ManualRemEuclid {
             && add_lhs.span.ctxt() == ctxt
             && add_rhs.span.ctxt() == ctxt
             && !in_external_macro(cx.sess(), expr.span)
-            && self.msrv.meets(msrvs::REM_EUCLID)
-            && (self.msrv.meets(msrvs::REM_EUCLID_CONST) || !is_in_const_context(cx))
+            && self.msrv.meets(cx, msrvs::REM_EUCLID)
+            && (self.msrv.meets(cx, msrvs::REM_EUCLID_CONST) || !is_in_const_context(cx))
             && let Some(const1) = check_for_unsigned_int_constant(cx, rem_rhs)
             && let Some((const2, add_other)) = check_for_either_unsigned_int_constant(cx, add_lhs, add_rhs)
             && let ExprKind::Binary(rem2_op, rem2_lhs, rem2_rhs) = add_other.kind
@@ -100,8 +98,6 @@ impl<'tcx> LateLintPass<'tcx> for ManualRemEuclid {
             );
         }
     }
-
-    extract_msrv_attr!(LateContext);
 }
 
 // Checks if either the left or right expressions can be an unsigned int constant and returns that

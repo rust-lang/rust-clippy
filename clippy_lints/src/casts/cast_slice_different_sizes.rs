@@ -9,9 +9,9 @@ use rustc_middle::ty::{self, Ty, TypeAndMut};
 
 use super::CAST_SLICE_DIFFERENT_SIZES;
 
-pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>, msrv: &Msrv) {
+pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>, msrv: Msrv) {
     // suggestion is invalid if `ptr::slice_from_raw_parts` does not exist
-    if !msrv.meets(msrvs::PTR_SLICE_RAW_PARTS) {
+    if !msrv.meets(cx, msrvs::PTR_SLICE_RAW_PARTS) {
         return;
     }
 

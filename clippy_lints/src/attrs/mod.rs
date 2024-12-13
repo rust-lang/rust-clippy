@@ -13,11 +13,11 @@ mod useless_attribute;
 mod utils;
 
 use clippy_config::Conf;
-use clippy_utils::msrvs::{self, Msrv};
+use clippy_utils::msrvs::{self, MsrvStack};
 use rustc_ast::{self as ast, Attribute, MetaItemInner, MetaItemKind};
 use rustc_hir::{ImplItem, Item, TraitItem};
 use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass};
-use rustc_session::impl_lint_pass;
+use rustc_session::{declare_lint_pass, impl_lint_pass};
 use rustc_span::sym;
 use utils::{is_lint_level, is_relevant_impl, is_relevant_item, is_relevant_trait};
 
@@ -409,21 +409,9 @@ declare_clippy_lint! {
     "duplicated attribute"
 }
 
-pub struct Attributes {
-    msrv: Msrv,
-}
-
-impl_lint_pass!(Attributes => [
+declare_lint_pass!(Attributes => [
     INLINE_ALWAYS,
 ]);
-
-impl Attributes {
-    pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: conf.msrv.clone(),
-        }
-    }
-}
 
 impl<'tcx> LateLintPass<'tcx> for Attributes {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'_>) {
@@ -444,47 +432,45 @@ impl<'tcx> LateLintPass<'tcx> for Attributes {
             inline_always::check(cx, item.span, item.ident.name, cx.tcx.hir().attrs(item.hir_id()));
         }
     }
-
-    extract_msrv_attr!(LateContext);
 }
 
-pub struct EarlyAttributes {
-    msrv: Msrv,
+pub struct PreExpansionEarlyAttributes {
+    msrv: MsrvStack,
 }
 
-impl EarlyAttributes {
+impl PreExpansionEarlyAttributes {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
-            msrv: conf.msrv.clone(),
+            msrv: MsrvStack::new(conf.msrv),
         }
     }
 }
 
-impl_lint_pass!(EarlyAttributes => [
+impl_lint_pass!(PreExpansionEarlyAttributes => [
     DEPRECATED_CFG_ATTR,
     NON_MINIMAL_CFG,
     DEPRECATED_CLIPPY_CFG_ATTR,
     UNNECESSARY_CLIPPY_CFG,
 ]);
 
-impl EarlyLintPass for EarlyAttributes {
+impl EarlyLintPass for PreExpansionEarlyAttributes {
     fn check_attribute(&mut self, cx: &EarlyContext<'_>, attr: &Attribute) {
         deprecated_cfg_attr::check(cx, attr, &self.msrv);
         deprecated_cfg_attr::check_clippy(cx, attr);
         non_minimal_cfg::check(cx, attr);
     }
 
-    extract_msrv_attr!(EarlyContext);
+    extract_msrv_attr!();
 }
 
 pub struct PostExpansionEarlyAttributes {
-    msrv: Msrv,
+    msrv: MsrvStack,
 }
 
 impl PostExpansionEarlyAttributes {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
-            msrv: conf.msrv.clone(),
+            msrv: MsrvStack::new(conf.msrv),
         }
     }
 }
@@ -548,5 +534,5 @@ impl EarlyLintPass for PostExpansionEarlyAttributes {
         duplicated_attributes::check(cx, &item.attrs);
     }
 
-    extract_msrv_attr!(EarlyContext);
+    extract_msrv_attr!();
 }

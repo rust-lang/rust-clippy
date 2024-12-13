@@ -49,7 +49,7 @@ impl_lint_pass!(IncompatibleMsrv => [INCOMPATIBLE_MSRV]);
 impl IncompatibleMsrv {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
-            msrv: conf.msrv.clone(),
+            msrv: conf.msrv,
             is_above_msrv: FxHashMap::default(),
         }
     }
@@ -87,7 +87,7 @@ impl IncompatibleMsrv {
             return;
         }
         let version = self.get_def_id_version(cx.tcx, def_id);
-        if self.msrv.meets(version) || is_in_test(cx.tcx, node) {
+        if self.msrv.meets(cx, version) || is_in_test(cx.tcx, node) {
             return;
         }
         if let ExpnKind::AstPass(_) | ExpnKind::Desugaring(_) = span.ctxt().outer_expn_data().kind {
@@ -95,27 +95,22 @@ impl IncompatibleMsrv {
             // Intentionally not using `.from_expansion()`, since we do still care about macro expansions
             return;
         }
-        self.emit_lint_for(cx, span, version);
-    }
-
-    fn emit_lint_for(&self, cx: &LateContext<'_>, span: Span, version: RustcVersion) {
-        span_lint(
-            cx,
-            INCOMPATIBLE_MSRV,
-            span,
-            format!(
-                "current MSRV (Minimum Supported Rust Version) is `{}` but this item is stable since `{version}`",
-                self.msrv
-            ),
-        );
+        if let Some(current) = self.msrv.current(cx) {
+            span_lint(
+                cx,
+                INCOMPATIBLE_MSRV,
+                span,
+                format!(
+                    "current MSRV (Minimum Supported Rust Version) is `{current}` but this item is stable since `{version}`",
+                ),
+            );
+        }
     }
 }
 
 impl<'tcx> LateLintPass<'tcx> for IncompatibleMsrv {
-    extract_msrv_attr!(LateContext);
-
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
-        if self.msrv.current().is_none() {
+        if self.msrv.current(cx).is_none() {
             // If there is no MSRV, then no need to check anything...
             return;
         }

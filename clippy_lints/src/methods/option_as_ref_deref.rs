@@ -18,9 +18,9 @@ pub(super) fn check(
     as_ref_recv: &hir::Expr<'_>,
     map_arg: &hir::Expr<'_>,
     is_mut: bool,
-    msrv: &Msrv,
+    msrv: Msrv,
 ) {
-    if !msrv.meets(msrvs::OPTION_AS_DEREF) {
+    if !msrv.meets(cx, msrvs::OPTION_AS_DEREF) {
         return;
     }
 

@@ -63,7 +63,7 @@ pub struct UseSelf {
 impl UseSelf {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
-            msrv: conf.msrv.clone(),
+            msrv: conf.msrv,
             stack: Vec::new(),
         }
     }
@@ -203,7 +203,7 @@ impl<'tcx> LateLintPass<'tcx> for UseSelf {
 
     fn check_ty(&mut self, cx: &LateContext<'tcx>, hir_ty: &Ty<'tcx>) {
         if !hir_ty.span.from_expansion()
-            && self.msrv.meets(msrvs::TYPE_ALIAS_ENUM_VARIANTS)
+            && self.msrv.meets(cx, msrvs::TYPE_ALIAS_ENUM_VARIANTS)
             && let Some(&StackItem::Check {
                 impl_id,
                 in_body,
@@ -233,7 +233,7 @@ impl<'tcx> LateLintPass<'tcx> for UseSelf {
 
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {
         if !expr.span.from_expansion()
-            && self.msrv.meets(msrvs::TYPE_ALIAS_ENUM_VARIANTS)
+            && self.msrv.meets(cx, msrvs::TYPE_ALIAS_ENUM_VARIANTS)
             && let Some(&StackItem::Check { impl_id, .. }) = self.stack.last()
             && cx.typeck_results().expr_ty(expr) == cx.tcx.type_of(impl_id).instantiate_identity()
         {
@@ -254,7 +254,7 @@ impl<'tcx> LateLintPass<'tcx> for UseSelf {
 
     fn check_pat(&mut self, cx: &LateContext<'_>, pat: &Pat<'_>) {
         if !pat.span.from_expansion()
-            && self.msrv.meets(msrvs::TYPE_ALIAS_ENUM_VARIANTS)
+            && self.msrv.meets(cx, msrvs::TYPE_ALIAS_ENUM_VARIANTS)
             && let Some(&StackItem::Check { impl_id, .. }) = self.stack.last()
             // get the path from the pattern
             && let PatKind::Path(QPath::Resolved(_, path))
@@ -265,8 +265,6 @@ impl<'tcx> LateLintPass<'tcx> for UseSelf {
             check_path(cx, path);
         }
     }
-
-    extract_msrv_attr!(LateContext);
 }
 
 #[derive(Default)]

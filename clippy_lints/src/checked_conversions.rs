@@ -40,9 +40,7 @@ pub struct CheckedConversions {
 
 impl CheckedConversions {
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: conf.msrv.clone(),
-        }
+        Self { msrv: conf.msrv }
     }
 }
 
@@ -66,7 +64,7 @@ impl LateLintPass<'_> for CheckedConversions {
             }
             && !in_external_macro(cx.sess(), item.span)
             && !is_in_const_context(cx)
-            && self.msrv.meets(msrvs::TRY_FROM)
+            && self.msrv.meets(cx, msrvs::TRY_FROM)
             && let Some(cv) = match op2 {
                 // todo: check for case signed -> larger unsigned == only x >= 0
                 None => check_upper_bound(lt1, gt1).filter(|cv| cv.cvt == ConversionType::FromUnsigned),
@@ -94,8 +92,6 @@ impl LateLintPass<'_> for CheckedConversions {
             );
         }
     }
-
-    extract_msrv_attr!(LateContext);
 }
 
 /// Contains the result of a tried conversion check

@@ -18,10 +18,10 @@ pub(super) fn check<'tcx>(
     init: &Expr<'_>,
     acc: &Expr<'_>,
     fold_span: Span,
-    msrv: &Msrv,
+    msrv: Msrv,
 ) {
     if !in_external_macro(cx.sess(), fold_span)
-        && msrv.meets(msrvs::ITERATOR_TRY_FOLD)
+        && msrv.meets(cx, msrvs::ITERATOR_TRY_FOLD)
         && is_trait_method(cx, expr, sym::Iterator)
         && let init_ty = cx.typeck_results().expr_ty(init)
         && let Some(try_trait) = cx.tcx.lang_items().try_trait()

@@ -40,9 +40,7 @@ pub struct ManualBits {
 
 impl ManualBits {
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: conf.msrv.clone(),
-        }
+        Self { msrv: conf.msrv }
     }
 }
 
@@ -53,7 +51,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualBits {
         if let ExprKind::Binary(bin_op, left_expr, right_expr) = expr.kind
             && let BinOpKind::Mul = &bin_op.node
             && !expr.span.from_expansion()
-            && self.msrv.meets(msrvs::MANUAL_BITS)
+            && self.msrv.meets(cx, msrvs::MANUAL_BITS)
             && let ctxt = expr.span.ctxt()
             && left_expr.span.ctxt() == ctxt
             && right_expr.span.ctxt() == ctxt
@@ -77,8 +75,6 @@ impl<'tcx> LateLintPass<'tcx> for ManualBits {
             );
         }
     }
-
-    extract_msrv_attr!(LateContext);
 }
 
 fn get_one_size_of_ty<'tcx>(

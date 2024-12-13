@@ -12,9 +12,9 @@ pub(super) fn check<'tcx>(
     expr: &'tcx Expr<'_>,
     self_arg: &'tcx Expr<'_>,
     radix: &'tcx Expr<'_>,
-    msrv: &Msrv,
+    msrv: Msrv,
 ) {
-    if !msrv.meets(msrvs::IS_ASCII_DIGIT) {
+    if !msrv.meets(cx, msrvs::IS_ASCII_DIGIT) {
         return;
     }
 
