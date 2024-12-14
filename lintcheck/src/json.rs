@@ -3,6 +3,8 @@ use std::path::Path;
 
 use itertools::{EitherOrBoth, Itertools};
 use serde::{Deserialize, Serialize};
+use tabled::builder::Builder;
+use tabled::settings::Style;
 
 use crate::ClippyWarning;
 
@@ -146,32 +148,21 @@ fn print_lint_warnings(lint: &LintWarnings, truncate_after: usize) {
 }
 
 fn get_summary_table(lints: &[LintWarnings]) -> String {
-    use std::fmt::Write;
-
-    let mut out = String::new();
-    let _ = writeln!(
-        out,
-        "| Lint                                       | Added   | Removed | Changed |"
-    );
-    let _ = writeln!(
-        out,
-        "| ------------------------------------------ | ------: | ------: | ------: |"
-    );
+    let mut builder = Builder::default();
+    builder.push_record(vec!["Lint", "Added", "Removed", "Changed"]);
 
     for lint in lints {
-        let _ = writeln!(
-            out,
-            "| {:<62} | {:>7} | {:>7} | {:>7} |",
-            format!("[`{}`](#user-content-{})", lint.name, to_html_id(&lint.name)),
-            lint.added.len(),
-            lint.removed.len(),
-            lint.changed.len()
-        );
+        let lint_name = format!("[`{}`](#user-content-{})", lint.name, to_html_id(&lint.name));
+        builder.push_record(vec![
+            lint_name,
+            lint.added.len().to_string(),
+            lint.removed.len().to_string(),
+            lint.changed.len().to_string(),
+        ]);
     }
+    let mut table = builder.build();
 
-    // remove last \n
-    out.pop();
-    out
+    format!("{}", table.with(Style::markdown()))
 }
 
 fn print_warnings(title: &str, warnings: &[LintJson], truncate_after: usize) {
@@ -282,9 +273,9 @@ mod test {
             changed: vec![],
         }];
 
-        let expected = "| Lint                                       | Added   | Removed | Changed |
-| ------------------------------------------ | ------: | ------: | ------: |
-| [`clippy::float_arithmetic`](#user-content-float-arithmetic)   |       0 |       0 |       0 |";
+        let expected = "| Lint                                                         | Added | Removed | Changed |
+|--------------------------------------------------------------|-------|---------|---------|
+| [`clippy::float_arithmetic`](#user-content-float-arithmetic) | 0     | 0       | 0       |";
         assert_eq!(expected, get_summary_table(&lint_warnings));
     }
 }
