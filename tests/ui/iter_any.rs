@@ -14,11 +14,11 @@ fn main() {
     let vec: Vec<u32> = vec![1, 2, 3, 4, 5, 6];
     let values = &vec[..];
     let _ = values.iter().any(|&v| v == 4);
-    // no error, because it's not a slice of u8/i8
+    //~^ ERROR: using `contains()` instead of `iter().any()` is more readable
 
     let values: [u8; 6] = [3, 14, 15, 92, 6, 5];
     let _ = values.iter().any(|&v| v == 10);
-    // no error, because it's an array
+    //~^ ERROR: using `contains()` instead of `iter().any()` is more readable
 
     let values: [u8; 6] = [3, 14, 15, 92, 6, 5];
     let _ = values.iter().any(|&v| v > 10);
@@ -32,5 +32,5 @@ fn foo(values: &[u8]) -> bool {
 
 fn bar(values: [u8; 3]) -> bool {
     values.iter().any(|&v| v == 10)
-    // no error, because it's an array
+    //~^ ERROR: using `contains()` instead of `iter().any()` is more readable
 }
