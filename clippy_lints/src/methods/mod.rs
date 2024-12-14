@@ -4287,10 +4287,10 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for usage of `iter().any()` on slices of `u8` or `i8` and suggests using `contains()` instead.
+    /// Checks for usage of `iter().any()` on slices of `u8`/`i8` when it can be replaced with `contains()` and suggests doing so.
     ///
     /// ### Why is this bad?
-    /// `iter().any()` on slices of `u8` or `i8` is optimized to use `memchr`.
+    /// `contains()` on slices of `u8`/`i8` is faster than `iter().any()` in such cases.
     ///
     /// ### Example
     /// ```no_run
@@ -4307,7 +4307,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.85.0"]
     pub SLICE_ITER_ANY,
     perf,
-    "using `contains()` instead of `iter().any()` on u8/i8 slices is more efficient"
+    "using `contains()` instead of `iter().any()` on `u8`/`i8` slices is more fast"
 }
 
 pub struct Methods {
