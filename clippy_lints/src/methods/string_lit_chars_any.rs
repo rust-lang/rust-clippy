@@ -17,9 +17,9 @@ pub(super) fn check<'tcx>(
     recv: &Expr<'_>,
     param: &'tcx Param<'tcx>,
     body: &Expr<'_>,
-    msrv: &Msrv,
+    msrv: Msrv,
 ) {
-    if msrv.meets(msrvs::MATCHES_MACRO)
+    if msrv.meets(cx, msrvs::MATCHES_MACRO)
         && is_trait_method(cx, expr, sym::Iterator)
         && let PatKind::Binding(_, arg, _, _) = param.pat.kind
         && let ExprKind::Lit(lit_kind) = recv.kind

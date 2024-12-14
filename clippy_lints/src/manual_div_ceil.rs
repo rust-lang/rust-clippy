@@ -48,9 +48,7 @@ pub struct ManualDivCeil {
 impl ManualDivCeil {
     #[must_use]
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: conf.msrv.clone(),
-        }
+        Self { msrv: conf.msrv }
     }
 }
 
@@ -58,7 +56,7 @@ impl_lint_pass!(ManualDivCeil => [MANUAL_DIV_CEIL]);
 
 impl<'tcx> LateLintPass<'tcx> for ManualDivCeil {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'_>) {
-        if !self.msrv.meets(msrvs::MANUAL_DIV_CEIL) {
+        if !self.msrv.meets(cx, msrvs::MANUAL_DIV_CEIL) {
             return;
         }
 
@@ -103,8 +101,6 @@ impl<'tcx> LateLintPass<'tcx> for ManualDivCeil {
             }
         }
     }
-
-    extract_msrv_attr!(LateContext);
 }
 
 fn check_int_ty_and_feature(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {

@@ -721,7 +721,7 @@ pub struct Loops {
 impl Loops {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
-            msrv: conf.msrv.clone(),
+            msrv: conf.msrv,
             enforce_iter_loop_reborrow: conf.enforce_iter_loop_reborrow,
         }
     }
@@ -805,8 +805,6 @@ impl<'tcx> LateLintPass<'tcx> for Loops {
             manual_while_let_some::check(cx, condition, body, span);
         }
     }
-
-    extract_msrv_attr!(LateContext);
 }
 
 impl Loops {
@@ -840,7 +838,7 @@ impl Loops {
         if let ExprKind::MethodCall(method, self_arg, [], _) = arg.kind {
             match method.ident.as_str() {
                 "iter" | "iter_mut" => {
-                    explicit_iter_loop::check(cx, self_arg, arg, &self.msrv, self.enforce_iter_loop_reborrow);
+                    explicit_iter_loop::check(cx, self_arg, arg, self.msrv, self.enforce_iter_loop_reborrow);
                 },
                 "into_iter" => {
                     explicit_into_iter_loop::check(cx, self_arg, arg);

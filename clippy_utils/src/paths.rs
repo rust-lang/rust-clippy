@@ -36,7 +36,7 @@ pub const CHILD_KILL: [&str; 4] = ["std", "process", "Child", "kill"];
 pub const PANIC_ANY: [&str; 3] = ["std", "panic", "panic_any"];
 
 // Paths in clippy itself
-pub const MSRV: [&str; 3] = ["clippy_utils", "msrvs", "Msrv"];
+pub const MSRV_STACK: [&str; 3] = ["clippy_utils", "msrvs", "MsrvStack"];
 
 // Paths in external crates
 #[expect(clippy::invalid_paths)] // internal lints do not know about all external crates

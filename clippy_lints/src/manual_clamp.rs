@@ -99,9 +99,7 @@ pub struct ManualClamp {
 
 impl ManualClamp {
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: conf.msrv.clone(),
-        }
+        Self { msrv: conf.msrv }
     }
 }
 
@@ -144,7 +142,7 @@ struct InputMinMax<'tcx> {
 
 impl<'tcx> LateLintPass<'tcx> for ManualClamp {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
-        if !self.msrv.meets(msrvs::CLAMP) {
+        if !self.msrv.meets(cx, msrvs::CLAMP) {
             return;
         }
         if !expr.span.from_expansion() && !is_in_const_context(cx) {
@@ -160,14 +158,13 @@ impl<'tcx> LateLintPass<'tcx> for ManualClamp {
     }
 
     fn check_block(&mut self, cx: &LateContext<'tcx>, block: &'tcx Block<'tcx>) {
-        if !self.msrv.meets(msrvs::CLAMP) || is_in_const_context(cx) {
+        if !self.msrv.meets(cx, msrvs::CLAMP) || is_in_const_context(cx) {
             return;
         }
         for suggestion in is_two_if_pattern(cx, block) {
             maybe_emit_suggestion(cx, &suggestion);
         }
     }
-    extract_msrv_attr!(LateContext);
 }
 
 fn maybe_emit_suggestion<'tcx>(cx: &LateContext<'tcx>, suggestion: &ClampSuggestion<'tcx>) {

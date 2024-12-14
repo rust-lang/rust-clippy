@@ -88,9 +88,7 @@ pub struct ManualFloatMethods {
 
 impl ManualFloatMethods {
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: conf.msrv.clone(),
-        }
+        Self { msrv: conf.msrv }
     }
 }
 
@@ -106,7 +104,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualFloatMethods {
             && !in_external_macro(cx.sess(), expr.span)
             && (
                 matches!(cx.tcx.constness(cx.tcx.hir().enclosing_body_owner(expr.hir_id)), Constness::NotConst)
-                    || self.msrv.meets(msrvs::CONST_FLOAT_CLASSIFY)
+                    || self.msrv.meets(cx, msrvs::CONST_FLOAT_CLASSIFY)
             )
             && let [first, second, const_1, const_2] = exprs
             && let ecx = ConstEvalCtxt::new(cx)
@@ -164,8 +162,6 @@ impl<'tcx> LateLintPass<'tcx> for ManualFloatMethods {
             });
         }
     }
-
-    extract_msrv_attr!(LateContext);
 }
 
 fn is_infinity(constant: &Constant<'_>) -> bool {
