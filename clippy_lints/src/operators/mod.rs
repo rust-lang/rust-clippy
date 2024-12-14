@@ -835,6 +835,7 @@ pub struct Operators {
     verbose_bit_mask_threshold: u64,
     modulo_arithmetic_allow_comparison_to_zero: bool,
     msrv: Msrv,
+    check_fn_call_in_eq_op: bool,
 }
 impl Operators {
     pub fn new(conf: &'static Conf) -> Self {
@@ -843,6 +844,7 @@ impl Operators {
             verbose_bit_mask_threshold: conf.verbose_bit_mask_threshold,
             modulo_arithmetic_allow_comparison_to_zero: conf.allow_comparison_to_zero,
             msrv: conf.msrv,
+            check_fn_call_in_eq_op: conf.check_fn_call_in_eq_op,
         }
     }
 }
@@ -878,13 +880,13 @@ impl_lint_pass!(Operators => [
 
 impl<'tcx> LateLintPass<'tcx> for Operators {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
-        eq_op::check_assert(cx, e);
+        eq_op::check_assert(cx, e, self.check_fn_call_in_eq_op);
         match e.kind {
             ExprKind::Binary(op, lhs, rhs) => {
                 if !e.span.from_expansion() {
                     absurd_extreme_comparisons::check(cx, e, op.node, lhs, rhs);
                     if !(macro_with_not_op(lhs) || macro_with_not_op(rhs)) {
-                        eq_op::check(cx, e, op.node, lhs, rhs);
+                        eq_op::check(cx, e, op.node, lhs, rhs, self.check_fn_call_in_eq_op);
                         op_ref::check(cx, e, op.node, lhs, rhs);
                     }
                     erasing_op::check(cx, e, op.node, lhs, rhs);

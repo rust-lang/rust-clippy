@@ -774,6 +774,11 @@ pub fn eq_expr_value(cx: &LateContext<'_>, left: &Expr<'_>, right: &Expr<'_>) ->
     SpanlessEq::new(cx).deny_side_effects().eq_expr(left, right)
 }
 
+/// Checks if two expressions evaluate to the same value, ignoring side effects.
+pub fn eq_expr_value_with_sideffects(cx: &LateContext<'_>, left: &Expr<'_>, right: &Expr<'_>) -> bool {
+    SpanlessEq::new(cx).eq_expr(left, right)
+}
+
 /// Returns the segments of a path that might have generic parameters.
 /// Usually just the last segment for free items, except for when the path resolves to an associated
 /// item, in which case it is the last two

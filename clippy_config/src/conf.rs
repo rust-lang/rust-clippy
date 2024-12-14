@@ -540,6 +540,9 @@ define_Conf! {
     /// For internal testing only, ignores the current `publish` settings in the Cargo manifest.
     #[lints(cargo_common_metadata)]
     cargo_ignore_publish: bool = false,
+    /// Check fn calls in eq_op lint
+    #[lints(expect_used)]
+    check_fn_call_in_eq_op: bool = false,
     /// Whether to check MSRV compatibility in `#[test]` and `#[cfg(test)]` code.
     #[lints(incompatible_msrv)]
     check_incompatible_msrv_in_tests: bool = false,
