@@ -456,7 +456,7 @@ define_Conf! {
     cargo_ignore_publish: bool = false,
     /// Check fn calls in eq_op lint
     #[lints(expect_used)]
-    check_fn_call_in_eq_op: bool = false,
+    check_fn_call_in_eq_op: bool = true,
     /// Whether to also run the listed lints on private items.
     #[lints(missing_errors_doc, missing_panics_doc, missing_safety_doc, unnecessary_safety_doc)]
     check_private_items: bool = false,
