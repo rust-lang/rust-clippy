@@ -1,0 +1,45 @@
+#![warn(clippy::manual_midpoint)]
+
+macro_rules! mac {
+    ($a: expr, $b: expr) => {
+        ($a + $b) / 2
+    };
+}
+
+macro_rules! add {
+    ($a: expr, $b: expr) => {
+        ($a + $b)
+    };
+}
+
+macro_rules! two {
+    () => {
+        2
+    };
+}
+
+fn main() {
+    let a: u32 = 10;
+    let _ = (a + 5) / 2; //~ ERROR: manual implementation of `midpoint`
+
+    let f: f32 = 10.0;
+    let _ = (f + 5.0) / 2.0; //~ ERROR: manual implementation of `midpoint`
+
+    let _: u32 = 5 + (8 + 8) / 2 + 2; //~ ERROR: manual implementation of `midpoint`
+    let _: u32 = const { (8 + 8) / 2 }; //~ ERROR: manual implementation of `midpoint`
+    let _: f64 = const { (8.0f64 + 8.) / 2. }; //~ ERROR: manual implementation of `midpoint`
+    let _: u32 = (u32::default() + u32::default()) / 2; //~ ERROR: manual implementation of `midpoint`
+    let _: u32 = (two!() + two!()) / 2; //~ ERROR: manual implementation of `midpoint`
+
+    // Do not lint if whole or part is coming from a macro
+    let _ = mac!(10, 20);
+    let _: u32 = add!(1u32, 2u32) / 2;
+    let _: u32 = (10 + 20) / two!();
+
+    // Do not lint if a literal is not present
+    let _ = (f + 5.0) / (1.0 + 1.0);
+
+    // Do not lint on signed integer types
+    let i: i32 = 10;
+    let _ = (i + 5) / 2;
+}
