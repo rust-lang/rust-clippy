@@ -18,6 +18,7 @@ macro_rules! msrv_aliases {
 
 // names may refer to stabilized feature flags or library items
 msrv_aliases! {
+    1,85,0 { UINT_FLOAT_MIDPOINT }
     1,83,0 { CONST_EXTERN_FN, CONST_FLOAT_BITS_CONV, CONST_FLOAT_CLASSIFY }
     1,82,0 { IS_NONE_OR, REPEAT_N, RAW_REF_OP }
     1,81,0 { LINT_REASONS_STABILIZATION, ERROR_IN_CORE }
