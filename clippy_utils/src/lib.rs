@@ -1638,6 +1638,18 @@ pub fn is_integer_literal(expr: &Expr<'_>, value: u128) -> bool {
     false
 }
 
+/// Checks whether the given expression is a constant integer of the given value
+/// as a floating point literal.
+pub fn is_floating_point_integer_literal(expr: &Expr<'_>, value: u32) -> bool {
+    if let ExprKind::Lit(spanned) = expr.kind
+        && let LitKind::Float(v, _) = spanned.node
+    {
+        v.as_str().parse() == Ok(f64::from(value))
+    } else {
+        false
+    }
+}
+
 /// Returns `true` if the given `Expr` has been coerced before.
 ///
 /// Examples of coercions can be found in the Nomicon at
