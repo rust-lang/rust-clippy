@@ -4474,6 +4474,10 @@ y.get(i..j);
 <h3>Configuration</h3>
 <ul>
 <li>
+<p><code>allow-indexing-slicing-in-tests</code>:  Whether <code>indexing_slicing</code> should be allowed in test functions or <code>#[cfg(test)]</code></p>
+<p>(default: <code>false</code>)</p>
+</li>
+<li>
 <p><code>suppress-restriction-lint-in-const</code>:  Whether to suppress a restriction lint in constant code. In same
 cases the restructured operation might not be unavoidable, as the
 suggested counterparts are unavailable in constant code. This
