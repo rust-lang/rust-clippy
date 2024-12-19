@@ -55,14 +55,14 @@ fn main() {
     }
 }
 
-fn simple_loop() {
+fn simple_loop() -> ! {
     loop {
         continue;
         //~^ ERROR: this `continue` expression is redundant
     }
 }
 
-fn simple_loop2() {
+fn simple_loop2() -> ! {
     loop {
         println!("bleh");
         continue;
@@ -71,7 +71,7 @@ fn simple_loop2() {
 }
 
 #[rustfmt::skip]
-fn simple_loop3() {
+fn simple_loop3() -> ! {
     loop {
         continue
         //~^ ERROR: this `continue` expression is redundant
@@ -79,7 +79,7 @@ fn simple_loop3() {
 }
 
 #[rustfmt::skip]
-fn simple_loop4() {
+fn simple_loop4() -> ! {
     loop {
         println!("bleh");
         continue
@@ -94,7 +94,7 @@ mod issue_2329 {
     fn update_condition() {}
 
     // only the outer loop has a label
-    fn foo() {
+    fn foo() -> ! {
         'outer: loop {
             println!("Entry");
             while condition() {
@@ -118,7 +118,7 @@ mod issue_2329 {
     }
 
     // both loops have labels
-    fn bar() {
+    fn bar() -> ! {
         'outer: loop {
             println!("Entry");
             'inner: while condition() {
