@@ -1,0 +1,30 @@
+error: unknown lint: `clippy::BUFREADER_STDIN`
+  --> tests/ui/bufreader_stdin.rs:1:9
+   |
+LL | #![warn(clippy::BUFREADER_STDIN)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^ help: did you mean: `clippy::bufreader_stdin`
+   |
+   = note: `-D unknown-lints` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unknown_lints)]`
+
+error: using `BufReader::new` with `Stdin`
+  --> tests/ui/bufreader_stdin.rs:6:18
+   |
+LL |     let reader = BufReader::new(a);
+   |                  ^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::bufreader-stdin` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::bufreader_stdin)]`
+help: instead of wrapping `Stdin` in `BufReader`, use the `lock` method directly
+   |
+LL |     let reader = a.lock();
+   |                  ~~~~~~~~
+
+error: using `BufReader::new` with `Stdin`
+  --> tests/ui/bufreader_stdin.rs:9:18
+   |
+LL |     let reader = BufReader::new(b);
+   |                  ^^^^^^^^^^^^^^^^^ help: instead of wrapping `StdinLock` in `BufReader`, use it self: `b`
+
+error: aborting due to 3 previous errors
+
