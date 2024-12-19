@@ -375,6 +375,7 @@ fn is_normalizable_helper<'tcx>(
                     .iter()
                     .all(|field| is_normalizable_helper(cx, param_env, field.ty(cx.tcx, args), cache))
             }),
+            ty::RawPtr(..) => true,
             _ => ty.walk().all(|generic_arg| match generic_arg.unpack() {
                 GenericArgKind::Type(inner_ty) if inner_ty != ty => {
                     is_normalizable_helper(cx, param_env, inner_ty, cache)
