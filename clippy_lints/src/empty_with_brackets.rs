@@ -1,9 +1,9 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::snippet_opt;
+use clippy_utils::source::{IntoSpan, SpanRangeExt};
 use rustc_ast::ast::{Item, ItemKind, Variant, VariantData};
 use rustc_errors::Applicability;
 use rustc_lexer::TokenKind;
-use rustc_lint::{EarlyContext, EarlyLintPass};
+use rustc_lint::{EarlyContext, EarlyLintPass, Lint};
 use rustc_session::declare_lint_pass;
 use rustc_span::Span;
 
@@ -74,93 +74,78 @@ declare_lint_pass!(EmptyWithBrackets => [EMPTY_STRUCTS_WITH_BRACKETS, EMPTY_ENUM
 
 impl EarlyLintPass for EmptyWithBrackets {
     fn check_item(&mut self, cx: &EarlyContext<'_>, item: &Item) {
-        let span_after_ident = item.span.with_lo(item.ident.span.hi());
-
-        if let ItemKind::Struct(var_data, _) = &item.kind
-            && has_brackets(var_data)
-            && has_no_fields(cx, var_data, span_after_ident)
-        {
-            span_lint_and_then(
+        if let ItemKind::Struct(var_data, _) = &item.kind {
+            check(
                 cx,
+                var_data,
+                item.span,
+                item.ident.span,
                 EMPTY_STRUCTS_WITH_BRACKETS,
-                span_after_ident,
-                "found empty brackets on struct declaration",
-                |diagnostic| {
-                    diagnostic.span_suggestion_hidden(
-                        span_after_ident,
-                        "remove the brackets",
-                        ";",
-                        Applicability::Unspecified,
-                    );
-                },
+                "non-unit struct contains no fields",
+                true,
             );
         }
     }
 
     fn check_variant(&mut self, cx: &EarlyContext<'_>, variant: &Variant) {
-        let span_after_ident = variant.span.with_lo(variant.ident.span.hi());
-
-        if has_brackets(&variant.data) && has_no_fields(cx, &variant.data, span_after_ident) {
-            span_lint_and_then(
-                cx,
-                EMPTY_ENUM_VARIANTS_WITH_BRACKETS,
-                span_after_ident,
-                "enum variant has empty brackets",
-                |diagnostic| {
-                    diagnostic.span_suggestion_hidden(
-                        span_after_ident,
-                        "remove the brackets",
-                        "",
-                        Applicability::MaybeIncorrect,
-                    );
-                },
-            );
-        }
+        check(
+            cx,
+            &variant.data,
+            variant.span,
+            variant.ident.span,
+            EMPTY_ENUM_VARIANTS_WITH_BRACKETS,
+            "non-unit variant contains no fields",
+            false,
+        );
     }
 }
 
-fn has_no_ident_token(braces_span_str: &str) -> bool {
-    !rustc_lexer::tokenize(braces_span_str).any(|t| t.kind == TokenKind::Ident)
-}
-
-fn has_brackets(var_data: &VariantData) -> bool {
-    !matches!(var_data, VariantData::Unit(_))
-}
-
-fn has_no_fields(cx: &EarlyContext<'_>, var_data: &VariantData, braces_span: Span) -> bool {
-    if !var_data.fields().is_empty() {
-        return false;
-    }
-
-    // there might still be field declarations hidden from the AST
-    // (conditionally compiled code using #[cfg(..)])
-
-    let Some(braces_span_str) = snippet_opt(cx, braces_span) else {
-        return false;
+fn check(
+    cx: &EarlyContext<'_>,
+    data: &VariantData,
+    item_sp: Span,
+    name_sp: Span,
+    lint: &'static Lint,
+    msg: &'static str,
+    needs_semi: bool,
+) {
+    let (fields, has_semi, start_char, end_char, help_msg) = match &data {
+        VariantData::Struct { fields, .. } => (fields, false, '{', '}', "remove the braces"),
+        VariantData::Tuple(fields, _) => (fields, needs_semi, '(', ')', "remove the parentheses"),
+        VariantData::Unit(_) => return,
     };
-
-    has_no_ident_token(braces_span_str.as_ref())
-}
-
-#[cfg(test)]
-mod unit_test {
-    use super::*;
-
-    #[test]
-    fn test_has_no_ident_token() {
-        let input = "{ field: u8 }";
-        assert!(!has_no_ident_token(input));
-
-        let input = "(u8, String);";
-        assert!(!has_no_ident_token(input));
-
-        let input = " {
-                // test = 5
-        }
-        ";
-        assert!(has_no_ident_token(input));
-
-        let input = " ();";
-        assert!(has_no_ident_token(input));
+    if fields.is_empty()
+        && !item_sp.from_expansion()
+        && !name_sp.from_expansion()
+        && let name_hi = name_sp.hi()
+        && let Some(err_range) = (name_hi..item_sp.hi()).clone().map_range(cx, |src, range| {
+            let src = src.get(range.clone())?;
+            let (src, end) = if has_semi {
+                (src.strip_suffix(';')?, range.end - 1)
+            } else {
+                (src, range.end)
+            };
+            let trimmed = src.trim_start();
+            let start = range.start + (src.len() - trimmed.len());
+            // Proc-macro check.
+            let trimmed = trimmed.strip_prefix(start_char)?.strip_suffix(end_char)?;
+            // Check for anything inside the brackets, including comments.
+            rustc_lexer::tokenize(trimmed)
+                .all(|tt| matches!(tt.kind, TokenKind::Whitespace))
+                .then_some(start..end)
+        })
+    {
+        span_lint_and_then(cx, lint, err_range.clone().into_span(), msg, |diagnostic| {
+            diagnostic.span_suggestion_hidden(
+                (name_hi..err_range.end).into_span(),
+                help_msg,
+                if has_semi || !needs_semi {
+                    String::new()
+                } else {
+                    ";".into()
+                },
+                Applicability::MaybeIncorrect,
+            );
+        });
     }
 }
