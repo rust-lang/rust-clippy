@@ -1,0 +1,17 @@
+error: manual implementation of `midpoint`
+  --> tests/ui/manual_midpoint.rs:9:13
+   |
+LL |     let _ = (a + 5) / 2;
+   |             ^^^^^^^^^^^ help: use instead: `u32::midpoint(a, 5)`
+   |
+   = note: `-D clippy::manual-midpoint` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_midpoint)]`
+
+error: manual implementation of `midpoint`
+  --> tests/ui/manual_midpoint.rs:12:13
+   |
+LL |     let _ = (f + 5.0) / 2.0;
+   |             ^^^^^^^^^^^^^^^ help: use instead: `f32::midpoint(f, 5.0)`
+
+error: aborting due to 2 previous errors
+
