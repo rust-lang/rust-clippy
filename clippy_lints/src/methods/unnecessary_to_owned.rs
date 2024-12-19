@@ -221,6 +221,19 @@ fn check_into_iter_call_arg(
         if unnecessary_iter_cloned::check_for_loop_iter(cx, parent, method_name, receiver, true) {
             return true;
         }
+        if is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(receiver), sym::Cow) {
+            span_lint_and_sugg(
+                cx,
+                UNNECESSARY_TO_OWNED,
+                parent.span,
+                format!("unnecessary use of `{method_name}.into_iter()`"),
+                "use",
+                format!("{receiver_snippet}.{method_name}()"),
+                Applicability::MaybeIncorrect,
+            );
+            return true;
+        }
+
         let cloned_or_copied = if is_copy(cx, item_ty) && msrv.meets(msrvs::ITERATOR_COPIED) {
             "copied"
         } else {
