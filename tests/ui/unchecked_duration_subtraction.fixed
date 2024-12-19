@@ -3,14 +3,21 @@
 use std::time::{Duration, Instant};
 
 fn main() {
-    let _first = Instant::now();
-    let second = Duration::from_secs(3);
+    let instant = Instant::now();
+    let duration = Duration::from_secs(3);
+    let duration2 = Duration::from_secs(1);
 
-    let _ = _first.checked_sub(second).unwrap();
+    let _ = instant.checked_sub(duration).unwrap();
 
     let _ = Instant::now().checked_sub(Duration::from_secs(5)).unwrap();
 
-    let _ = _first.checked_sub(Duration::from_secs(5)).unwrap();
+    let _ = instant.checked_sub(Duration::from_secs(5)).unwrap();
 
-    let _ = Instant::now().checked_sub(second).unwrap();
+    let _ = Instant::now().checked_sub(duration).unwrap();
+
+    let _ = Duration::from_secs(1).checked_sub(duration).unwrap();
+
+    let _ = duration2.checked_sub(duration).unwrap();
+
+    let _ = Instant::now().elapsed().checked_sub(duration).unwrap();
 }
