@@ -8,7 +8,7 @@ use rustc_hir as hir;
 use rustc_hir::PatKind;
 use rustc_lint::LateContext;
 use rustc_middle::ty;
-use rustc_span::{Span, sym};
+use rustc_span::{Span, Symbol, sym};
 
 use super::UNNECESSARY_FOLD;
 
@@ -36,6 +36,19 @@ fn needs_turbofish(cx: &LateContext<'_>, expr: &hir::Expr<'_>) -> bool {
         && let Some(arg_pos) = args.iter().position(|arg| arg.hir_id == expr.hir_id)
         && let Some(ty) = fn_sig.inputs().get(arg_pos)
         && !matches!(ty.kind(), ty::Param(_))
+    {
+        return false;
+    }
+
+    // - the final expression in the body of a function with a simple return type
+    if let hir::Node::Block(block) = parent
+        && let grandparent = cx.tcx.parent_hir_node(block.hir_id)
+        && let hir::Node::Expr(grandparent_expr) = grandparent
+        && let ggparent = cx.tcx.parent_hir_node(grandparent_expr.hir_id)
+        && let hir::Node::Item(enclosing_item) = ggparent
+        && let hir::ItemKind::Fn(fn_sig, _, _) = enclosing_item.kind
+        && let hir::FnRetTy::Return(fn_return_ty) = fn_sig.decl.output
+        && matches!(fn_return_ty.kind, hir::TyKind::Path(..))
     {
         return false;
     }
@@ -80,7 +93,7 @@ fn check_fold_with_op(
         let mut applicability = Applicability::MachineApplicable;
 
         let turbofish = if replacement.has_generic_return {
-            format!("::<{}>", cx.typeck_results().expr_ty_adjusted(right_expr).peel_refs())
+            format!("::<{}>", cx.typeck_results().expr_ty(expr))
         } else {
             String::new()
         };
@@ -102,6 +115,40 @@ fn check_fold_with_op(
             "this `.fold` can be written more succinctly using another method",
             "try",
             sugg,
+            applicability,
+        );
+    }
+}
+
+fn check_fold_with_fn(
+    cx: &LateContext<'_>,
+    expr: &hir::Expr<'_>,
+    acc: &hir::Expr<'_>,
+    fold_span: Span,
+    op: Symbol,
+    replacement: Replacement,
+) {
+    if let hir::ExprKind::Path(hir::QPath::Resolved(None, p)) = acc.kind
+        // Extract the name of the function passed to fold
+        && let hir::def::Res::Def(hir::def::DefKind::AssocFn, fn_did) = p.res
+        // Check if the function belongs to the operator
+        && cx.tcx.is_diagnostic_item(op, fn_did)
+    {
+        let applicability = Applicability::MachineApplicable;
+
+        let turbofish = if replacement.has_generic_return {
+            format!("::<{}>", cx.typeck_results().expr_ty(expr))
+        } else {
+            String::new()
+        };
+
+        span_lint_and_sugg(
+            cx,
+            UNNECESSARY_FOLD,
+            fold_span.with_hi(expr.span.hi()),
+            "this `.fold` can be written more succinctly using another method",
+            "try",
+            format!("{method}{turbofish}()", method = replacement.method_name,),
             applicability,
         );
     }
@@ -142,9 +189,19 @@ pub(super) fn check(
                     has_generic_return: needs_turbofish(cx, expr),
                     method_name: "sum",
                 });
+                check_fold_with_fn(cx, expr, acc, fold_span, sym::add, Replacement {
+                    has_args: false,
+                    has_generic_return: needs_turbofish(cx, expr),
+                    method_name: "sum",
+                });
             },
             ast::LitKind::Int(Pu128(1), _) => {
                 check_fold_with_op(cx, expr, acc, fold_span, hir::BinOpKind::Mul, Replacement {
+                    has_args: false,
+                    has_generic_return: needs_turbofish(cx, expr),
+                    method_name: "product",
+                });
+                check_fold_with_fn(cx, expr, acc, fold_span, sym::mul, Replacement {
                     has_args: false,
                     has_generic_return: needs_turbofish(cx, expr),
                     method_name: "product",
