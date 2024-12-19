@@ -1,0 +1,77 @@
+error: `drain` used to truncate a `Vec`
+  --> tests/ui/truncate_with_drain.rs:15:7
+   |
+LL |     v.drain(1..v.len());
+   |       ^^^^^^^^^^^^^^^^^ help: try: `truncate(1)`
+   |
+   = note: `-D clippy::truncate-with-drain` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::truncate_with_drain)]`
+
+error: `drain` used to truncate a `Vec`
+  --> tests/ui/truncate_with_drain.rs:21:7
+   |
+LL |     v.drain(x..v.len());
+   |       ^^^^^^^^^^^^^^^^^ help: try: `truncate(x)`
+
+error: `drain` used to truncate a `Vec`
+  --> tests/ui/truncate_with_drain.rs:36:7
+   |
+LL |     v.drain(1..);
+   |       ^^^^^^^^^^ help: try: `truncate(1)`
+
+error: `drain` used to truncate a `Vec`
+  --> tests/ui/truncate_with_drain.rs:42:7
+   |
+LL |     v.drain(x..);
+   |       ^^^^^^^^^^ help: try: `truncate(x)`
+
+error: `drain` used to truncate a `VecDeque`
+  --> tests/ui/truncate_with_drain.rs:107:7
+   |
+LL |     v.drain(1..v.len());
+   |       ^^^^^^^^^^^^^^^^^ help: try: `truncate(1)`
+
+error: `drain` used to truncate a `VecDeque`
+  --> tests/ui/truncate_with_drain.rs:113:7
+   |
+LL |     v.drain(x..v.len());
+   |       ^^^^^^^^^^^^^^^^^ help: try: `truncate(x)`
+
+error: `drain` used to truncate a `VecDeque`
+  --> tests/ui/truncate_with_drain.rs:128:11
+   |
+LL |     deque.drain(1..);
+   |           ^^^^^^^^^^ help: try: `truncate(1)`
+
+error: `drain` used to truncate a `VecDeque`
+  --> tests/ui/truncate_with_drain.rs:134:7
+   |
+LL |     v.drain(x..);
+   |       ^^^^^^^^^^ help: try: `truncate(x)`
+
+error: `drain` used to truncate a `String`
+  --> tests/ui/truncate_with_drain.rs:199:7
+   |
+LL |     s.drain(1..s.len());
+   |       ^^^^^^^^^^^^^^^^^ help: try: `truncate(1)`
+
+error: `drain` used to truncate a `String`
+  --> tests/ui/truncate_with_drain.rs:205:7
+   |
+LL |     s.drain(x..s.len());
+   |       ^^^^^^^^^^^^^^^^^ help: try: `truncate(x)`
+
+error: `drain` used to truncate a `String`
+  --> tests/ui/truncate_with_drain.rs:220:7
+   |
+LL |     s.drain(1..);
+   |       ^^^^^^^^^^ help: try: `truncate(1)`
+
+error: `drain` used to truncate a `String`
+  --> tests/ui/truncate_with_drain.rs:226:7
+   |
+LL |     s.drain(x..);
+   |       ^^^^^^^^^^ help: try: `truncate(x)`
+
+error: aborting due to 12 previous errors
+
