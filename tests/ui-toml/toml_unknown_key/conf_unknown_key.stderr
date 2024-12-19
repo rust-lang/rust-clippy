@@ -59,6 +59,8 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            msrv
            pass-by-value-size-limit
            pub-underscore-fields-behavior
+           redundant-test-prefix-check-outside-cfg-test
+           redundant-test-prefix-custom-suffix
            semicolon-inside-block-ignore-singleline
            semicolon-outside-block-ignore-multiline
            single-char-binding-names-threshold
@@ -147,6 +149,8 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            msrv
            pass-by-value-size-limit
            pub-underscore-fields-behavior
+           redundant-test-prefix-check-outside-cfg-test
+           redundant-test-prefix-custom-suffix
            semicolon-inside-block-ignore-singleline
            semicolon-outside-block-ignore-multiline
            single-char-binding-names-threshold
@@ -235,6 +239,8 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            msrv
            pass-by-value-size-limit
            pub-underscore-fields-behavior
+           redundant-test-prefix-check-outside-cfg-test
+           redundant-test-prefix-custom-suffix
            semicolon-inside-block-ignore-singleline
            semicolon-outside-block-ignore-multiline
            single-char-binding-names-threshold
