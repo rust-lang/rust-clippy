@@ -23,8 +23,8 @@ mod foo_lib {
 fn foo() {
     let _ = match 1 {
         1 => foo_lib::iter(),
-        2 => std::iter::repeat([1, 2].as_slice()).take(2), /* Shouldn't lint because `external_lib::iter` doesn't */
-        // return `std::iter::RepeatN`.
+        // Shouldn't lint because `external_lib::iter` doesn't return `std::iter::RepeatN`.
+        2 => std::iter::repeat([1, 2].as_slice()).take(2),
         _ => todo!(),
     };
 }
