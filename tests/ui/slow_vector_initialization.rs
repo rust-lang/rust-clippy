@@ -1,3 +1,5 @@
+#![allow(clippy::manual_repeat_n)]
+
 //@no-rustfix
 use std::iter::repeat;
 fn main() {

@@ -1,4 +1,4 @@
-#![warn(clippy::from_iter_instead_of_collect)]
+#![warn(clippy::from_iter_instead_of_collect, clippy::manual_repeat_n)]
 #![allow(unused_imports)]
 #![allow(clippy::useless_vec)]
 
