@@ -7,15 +7,6 @@ LL |         <Self as FromIterator<bool>>::from_iter(iter.into_iter().copied())
    = note: `-D clippy::from-iter-instead-of-collect` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::from_iter_instead_of_collect)]`
 
-error: this `.repeat().take()` can be written more concisely
-  --> tests/ui/from_iter_instead_of_collect.rs:22:21
-   |
-LL |     let iter_expr = std::iter::repeat(5).take(5);
-   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `repeat_n()` instead: `std::iter::repeat_n(5, 5)`
-   |
-   = note: `-D clippy::manual-repeat-n` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::manual_repeat_n)]`
-
 error: usage of `FromIterator::from_iter`
   --> tests/ui/from_iter_instead_of_collect.rs:23:13
    |
@@ -100,5 +91,5 @@ error: usage of `FromIterator::from_iter`
 LL |     for _i in Vec::<&i32>::from_iter([1, 2, 3].iter()) {}
    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `.collect()` instead of `::from_iter()`: `[1, 2, 3].iter().collect::<Vec<&i32>>()`
 
-error: aborting due to 16 previous errors
+error: aborting due to 15 previous errors
 
