@@ -31,11 +31,5 @@ error: this `.repeat().take()` can be written more concisely
 LL |     let _ = repeat(vec![1, 2]).take(2);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `repeat_n()` instead: `std::iter::repeat_n(vec![1, 2], 2)`
 
-error: this `.repeat().take()` can be written more concisely
-  --> tests/ui/manual_repeat_n.rs:25:14
-   |
-LL |         2 => std::iter::repeat([1, 2].as_slice()).take(2), // can't really change this to repeat_n
-   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `repeat_n()` instead: `std::iter::repeat_n([1, 2].as_slice(), 2)`
-
-error: aborting due to 6 previous errors
+error: aborting due to 5 previous errors
 
