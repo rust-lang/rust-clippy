@@ -1,0 +1,30 @@
+error: missing safety comment on critical attribute
+  --> tests/ui/safety/proper_safety_comment/attribute.rs:4:1
+   |
+LL | #[unsafe(no_mangle)]
+   | ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::proper-safety-comment` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::proper_safety_comment)]`
+
+error: unnecessary safety comment on attribute
+  --> tests/ui/safety/proper_safety_comment/attribute.rs:8:1
+   |
+LL | / // SAFETY: ...
+LL | | #[warn(clippy::proper_safety_comment)]
+   | |_^
+
+error: missing safety comment on critical attribute
+  --> tests/ui/safety/proper_safety_comment/attribute.rs:10:1
+   |
+LL | #[unsafe(no_mangle)]
+   | ^^^^^^^^^^^^^^^^^^^^
+
+error: missing safety comment on critical attribute
+  --> tests/ui/safety/proper_safety_comment/attribute.rs:21:5
+   |
+LL |     #[unsafe(no_mangle)]
+   |     ^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 4 previous errors
+

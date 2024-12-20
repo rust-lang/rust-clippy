@@ -5914,6 +5914,7 @@ Released 2018-09-13
 [`print_stdout`]: https://rust-lang.github.io/rust-clippy/master/index.html#print_stdout
 [`print_with_newline`]: https://rust-lang.github.io/rust-clippy/master/index.html#print_with_newline
 [`println_empty_string`]: https://rust-lang.github.io/rust-clippy/master/index.html#println_empty_string
+[`proper_safety_comment`]: https://rust-lang.github.io/rust-clippy/master/index.html#proper_safety_comment
 [`ptr_arg`]: https://rust-lang.github.io/rust-clippy/master/index.html#ptr_arg
 [`ptr_as_ptr`]: https://rust-lang.github.io/rust-clippy/master/index.html#ptr_as_ptr
 [`ptr_cast_constness`]: https://rust-lang.github.io/rust-clippy/master/index.html#ptr_cast_constness
