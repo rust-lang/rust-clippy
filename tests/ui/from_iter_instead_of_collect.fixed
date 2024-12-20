@@ -1,4 +1,4 @@
-#![warn(clippy::from_iter_instead_of_collect)]
+#![warn(clippy::from_iter_instead_of_collect, clippy::manual_repeat_n)]
 #![allow(unused_imports)]
 #![allow(clippy::useless_vec)]
 
@@ -19,7 +19,7 @@ impl<'a> FromIterator<&'a bool> for Foo {
 }
 
 fn main() {
-    let iter_expr = std::iter::repeat(5).take(5);
+    let iter_expr = std::iter::repeat_n(5, 5);
     let _ = iter_expr.collect::<Vec<_>>();
 
     let _ = vec![5, 5, 5, 5].iter().enumerate().collect::<HashMap<usize, &i8>>();

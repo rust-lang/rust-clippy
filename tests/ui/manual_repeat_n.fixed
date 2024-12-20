@@ -1,0 +1,28 @@
+#![warn(clippy::manual_repeat_n)]
+
+use std::iter::repeat;
+
+fn main() {
+    let _ = std::iter::repeat_n(10, 3);
+
+    let _ = std::iter::repeat_n(String::from("foo"), 4);
+
+    for value in std::iter::repeat_n(5, 3) {}
+
+    let _: Vec<_> = std::iter::repeat_n(String::from("bar"), 10).collect();
+
+    let _ = std::iter::repeat_n(vec![1, 2], 2);
+}
+
+mod external_lib {
+    pub fn iter() -> std::iter::Take<std::iter::Repeat<&'static [u8]>> {
+        todo!()
+    }
+}
+fn foo() {
+    let _ = match 1 {
+        1 => external_lib::iter(),
+        2 => std::iter::repeat_n([1, 2].as_slice(), 2), // can't really change this to repeat_n
+        _ => todo!(),
+    };
+}
