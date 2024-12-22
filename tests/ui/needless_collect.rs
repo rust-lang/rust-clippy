@@ -1,14 +1,15 @@
-#![allow(unused, clippy::needless_if, clippy::suspicious_map, clippy::iter_count)]
+#![allow(
+    unused,
+    clippy::needless_if,
+    clippy::suspicious_map,
+    clippy::iter_count,
+    clippy::slice_iter_any
+)]
 
 use std::collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, LinkedList};
 
 #[warn(clippy::needless_collect)]
-#[allow(
-    unused_variables,
-    clippy::unnecessary_iter_any,
-    clippy::iter_cloned_collect,
-    clippy::iter_next_slice
-)]
+#[allow(unused_variables, clippy::iter_cloned_collect, clippy::iter_next_slice)]
 fn main() {
     let sample = [1; 5];
     let len = sample.iter().collect::<Vec<_>>().len();

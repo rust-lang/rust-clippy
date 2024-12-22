@@ -37,7 +37,6 @@ mod inspect_for_each;
 mod into_iter_on_ref;
 mod is_digit_ascii_radix;
 mod is_empty;
-mod iter_any;
 mod iter_cloned_collect;
 mod iter_count;
 mod iter_filter;
@@ -101,6 +100,7 @@ mod single_char_add_str;
 mod single_char_insert_string;
 mod single_char_push_string;
 mod skip_while_next;
+mod slice_iter_any;
 mod stable_sort_primitive;
 mod str_split;
 mod str_splitn;
@@ -4287,10 +4287,10 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for usage of `iter().any()` on slices of `u8`/`i8` when it can be replaced with `contains()` and suggests doing so.
+    /// Checks for usage of `iter().any()` on numeric slices when it can be replaced with `contains()` and suggests doing so.
     ///
     /// ### Why is this bad?
-    /// `contains()` on slices of `u8`/`i8` is faster than `iter().any()` in such cases.
+    /// `contains()` on numeric slices is faster than `iter().any()`.
     ///
     /// ### Example
     /// ```no_run
@@ -4307,30 +4307,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.85.0"]
     pub SLICE_ITER_ANY,
     perf,
-    "using `contains()` instead of `iter().any()` on `u8`/`i8` slices is more fast"
-}
-
-declare_clippy_lint! {
-    /// ### What it does
-    /// Checks for usage of `iter().any()` when it can be replaced with `contains()` and suggests doing so.
-    ///
-    /// ### Why is this bad?
-    /// It makes the code less readable.
-    ///
-    /// ### Example
-    /// ```no_run
-    /// let values = &[1, 2, 3];
-    /// let _ = values.iter().any(|&v| v == 2);
-    /// ```
-    /// Use instead:
-    /// ```no_run
-    /// let values = &[1, 2, 3];
-    /// let _ = values.contains(&2);
-    /// ```
-    #[clippy::version = "1.85.0"]
-    pub UNNECESSARY_ITER_ANY,
-    style,
-    "using `contains()` instead of `iter().any()` is more readable"
+    "detect use of `iter().any()` on numeric slices and suggest using `contains()`"
 }
 
 pub struct Methods {
@@ -4499,7 +4476,6 @@ impl_lint_pass!(Methods => [
     MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
     UNNECESSARY_MAP_OR,
     SLICE_ITER_ANY,
-    UNNECESSARY_ITER_ANY,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -4734,7 +4710,7 @@ impl Methods {
                 ("any", [arg]) => {
                     unused_enumerate_index::check(cx, expr, recv, arg);
                     needless_character_iteration::check(cx, expr, recv, arg, false);
-                    iter_any::check(cx, expr);
+                    slice_iter_any::check(cx, expr, &self.msrv);
                     match method_call(recv) {
                         Some(("cloned", recv2, [], _, _)) => iter_overeager_cloned::check(
                             cx,

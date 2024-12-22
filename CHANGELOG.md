@@ -6116,7 +6116,6 @@ Released 2018-09-13
 [`unnecessary_first_then_check`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_first_then_check
 [`unnecessary_fold`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_fold
 [`unnecessary_get_then_check`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_get_then_check
-[`unnecessary_iter_any`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_iter_any
 [`unnecessary_join`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_join
 [`unnecessary_lazy_evaluations`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_lazy_evaluations
 [`unnecessary_literal_bound`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_literal_bound
