@@ -585,5 +585,11 @@ error: unnecessary use of `to_vec`
 LL |     s.remove(&(&["b"]).to_vec());
    |              ^^^^^^^^^^^^^^^^^^ help: replace it with: `(&["b"]).as_slice()`
 
-error: aborting due to 88 previous errors
+error: unnecessary use of `into_owned.into_iter()`
+  --> tests/ui/unnecessary_to_owned.rs:594:5
+   |
+LL |     cow.into_owned().into_iter()
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `cow.into_owned()`
+
+error: aborting due to 89 previous errors
 
