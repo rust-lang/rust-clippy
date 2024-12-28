@@ -2,15 +2,15 @@ use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{Arm, Expr, ExprKind, HirId, LangItem, MatchSource, Pat, PatKind, QPath};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
-use rustc_middle::ty::{self, GenericArgKind};
+use rustc_middle::ty::GenericArgKind;
 use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::higher::IfLetOrMatch;
 use clippy_utils::sugg::Sugg;
-use clippy_utils::ty::implements_trait;
-use clippy_utils::{is_default_equivalent, is_in_const_context, peel_blocks, span_contains_comment};
+use clippy_utils::ty::{expr_type_is_certain, implements_trait};
+use clippy_utils::{is_default_equivalent, is_in_const_context, path_res, peel_blocks, span_contains_comment};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -152,48 +152,42 @@ fn handle<'tcx>(cx: &LateContext<'tcx>, if_let_or_match: IfLetOrMatch<'tcx>, exp
         && is_default_equivalent(cx, body_none)
         && let Some(receiver) = Sugg::hir_opt(cx, condition).map(Sugg::maybe_par)
     {
-        // We check if the expression is not a None variant
-        if let Some(none_def_id) = cx.tcx.lang_items().option_none_variant() {
-            if let ExprKind::Path(QPath::Resolved(_, path)) = &condition.kind {
-                if let Some(def_id) = path.res.opt_def_id() {
-                    if cx.tcx.parent(def_id) == none_def_id {
-                        return span_lint_and_sugg(
-                            cx,
-                            MANUAL_UNWRAP_OR_DEFAULT,
-                            expr.span,
-                            format!("{expr_name} can be simplified with `.unwrap_or_default()`"),
-                            "replace it with",
-                            format!("{receiver}::</* Type */>.unwrap_or_default()"),
-                            Applicability::HasPlaceholders,
-                        );
-                    }
-                }
-            }
-        }
-
-        // We check if the expression is not a method or function with a unspecified return type
-        if let ExprKind::MethodCall(_, expr, _, _) = &condition.kind {
-            if let ty::Adt(_, substs) = cx.typeck_results().expr_ty(expr).kind() {
-                if let Some(ok_type) = substs.first() {
-                    return span_lint_and_sugg(
-                        cx,
-                        MANUAL_UNWRAP_OR_DEFAULT,
-                        expr.span,
-                        format!("{expr_name} can be simplified with `.unwrap_or_default()`"),
-                        format!("explicit the type {ok_type} and replace your expression with"),
-                        format!("{receiver}.unwrap_or_default()"),
-                        Applicability::Unspecified,
-                    );
-                }
-            }
-        }
-
         // Machine applicable only if there are no comments present
         let applicability = if span_contains_comment(cx.sess().source_map(), expr.span) {
             Applicability::MaybeIncorrect
         } else {
             Applicability::MachineApplicable
         };
+
+        // We now check if the condition is a None variant, in which case we need to specify the type
+        if path_res(cx, condition)
+            .opt_def_id()
+            .is_some_and(|id| Some(cx.tcx.parent(id)) == cx.tcx.lang_items().option_none_variant())
+        {
+            return span_lint_and_sugg(
+                cx,
+                MANUAL_UNWRAP_OR_DEFAULT,
+                expr.span,
+                format!("{expr_name} can be simplified with `.unwrap_or_default()`"),
+                "replace it with",
+                format!("{receiver}::<{expr_type}>.unwrap_or_default()"),
+                applicability,
+            );
+        }
+
+        // We check if the expression type is still uncertain, in which case we ask the user to specify it
+        if !expr_type_is_certain(cx, condition) {
+            return span_lint_and_sugg(
+                cx,
+                MANUAL_UNWRAP_OR_DEFAULT,
+                expr.span,
+                format!("{expr_name} can be simplified with `.unwrap_or_default()`"),
+                format!("explicit the type {expr_type} and replace your expression with"),
+                format!("{receiver}.unwrap_or_default()"),
+                Applicability::Unspecified,
+            );
+        }
+
         span_lint_and_sugg(
             cx,
             MANUAL_UNWRAP_OR_DEFAULT,
