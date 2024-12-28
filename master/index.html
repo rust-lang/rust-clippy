@@ -4367,9 +4367,9 @@ grouped digits.</p>
 <pre><code class="language-rust">61_864_918_973_511
 </code></pre>
 </div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">pre 1.29.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+inconsistent_digit_grouping">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/literal_representation.rs#L63">View Source</a></div></div></div></article><article class="panel panel-default" id="inconsistent_struct_constructor"><input id="label-inconsistent_struct_constructor" type="checkbox"><label for="label-inconsistent_struct_constructor" onclick="highlightIfNeeded('inconsistent_struct_constructor')"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-inconsistent_struct_constructor"><span>inconsistent_struct_constructor</span> <a href="#inconsistent_struct_constructor" onclick="lintAnchor(event)" class="anchor label label-default">&para;</a> <a href="" class="anchor label label-default" onclick="copyToClipboard(event)">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-pedantic">pedantic</span> <span class="label label-lint-level label-lint-level-allow">allow</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
-<p>Checks for struct constructors where all fields are shorthand and
-the order of the field init shorthand in the constructor is inconsistent
-with the order in the struct definition.</p>
+<p>Checks for struct constructors where the order of the field
+init in the constructor is inconsistent with the order in the
+struct definition.</p>
 <h3>Why is this bad?</h3>
 <p>Since the order of fields in a constructor doesn’t affect the
 resulted instance as the below example indicates,</p>
@@ -4398,7 +4398,24 @@ Foo { y, x };
 <p>Use instead:</p>
 <pre><code class="language-rust">Foo { x, y };
 </code></pre>
-</div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.52.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+inconsistent_struct_constructor">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/inconsistent_struct_constructor.rs#L12">View Source</a></div></div></div></article><article class="panel panel-default" id="index_refutable_slice"><input id="label-index_refutable_slice" type="checkbox"><label for="label-index_refutable_slice" onclick="highlightIfNeeded('index_refutable_slice')"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-index_refutable_slice"><span>index_refutable_slice</span> <a href="#index_refutable_slice" onclick="lintAnchor(event)" class="anchor label label-default">&para;</a> <a href="" class="anchor label label-default" onclick="copyToClipboard(event)">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-pedantic">pedantic</span> <span class="label label-lint-level label-lint-level-allow">allow</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
+<h3>Configuration</h3>
+<ul>
+<li><code>lint-inconsistent-struct-field-initializers</code>:  Whether to suggest reordering constructor fields when initializers are present.</li>
+</ul>
+<p>Warnings produced by this configuration aren’t necessarily fixed by just reordering the fields. Even if the
+suggested code would compile, it can change semantics if the initializer expressions have side effects. The
+following example <a href="https://github.com/rust-lang/rust-clippy/issues/11846#issuecomment-1820747924">from rust-clippy#11846</a> shows how the suggestion can run into borrow check errors:</p>
+<pre><code class="language-rust">struct MyStruct {
+    vector: Vec&lt;u32&gt;,
+    length: usize
+}
+fn main() {
+    let vector = vec![1,2,3];
+    MyStruct { length: vector.len(), vector};
+}
+</code></pre>
+<p>(default: <code>false</code>)</p>
+</div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.52.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+inconsistent_struct_constructor">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/inconsistent_struct_constructor.rs#L14">View Source</a></div></div></div></article><article class="panel panel-default" id="index_refutable_slice"><input id="label-index_refutable_slice" type="checkbox"><label for="label-index_refutable_slice" onclick="highlightIfNeeded('index_refutable_slice')"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-index_refutable_slice"><span>index_refutable_slice</span> <a href="#index_refutable_slice" onclick="lintAnchor(event)" class="anchor label label-default">&para;</a> <a href="" class="anchor label label-default" onclick="copyToClipboard(event)">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-pedantic">pedantic</span> <span class="label label-lint-level label-lint-level-allow">allow</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
 <p>The lint checks for slice bindings in patterns that are only used to
 access individual slice values.</p>
 <h3>Why is this bad?</h3>
