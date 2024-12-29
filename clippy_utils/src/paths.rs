@@ -33,6 +33,7 @@ pub const CHILD: [&str; 3] = ["std", "process", "Child"];
 pub const CHILD_ID: [&str; 4] = ["std", "process", "Child", "id"];
 pub const CHILD_KILL: [&str; 4] = ["std", "process", "Child", "kill"];
 pub const PANIC_ANY: [&str; 3] = ["std", "panic", "panic_any"];
+pub const CONCAT: [&str; 4] = ["core", "macros", "builtin", "concat"];
 
 // Paths in clippy itself
 pub const MSRV: [&str; 3] = ["clippy_utils", "msrvs", "Msrv"];
