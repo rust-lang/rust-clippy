@@ -1,5 +1,5 @@
 use rustc_ast::{LitKind, StrStyle};
-use rustc_hir::{Expr, ExprKind};
+use rustc_hir::{Expr, ExprKind, Node};
 use rustc_lexer::is_ident;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_parse_format::{ParseMode, Parser, Piece};
@@ -81,7 +81,7 @@ fn emit_lint(cx: &LateContext<'_>, expr: &Expr<'_>, spans: &[(Span, Option<Strin
 
 impl LateLintPass<'_> for LiteralStringWithFormattingArg {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {
-        if expr.span.from_expansion() {
+        if expr.span.from_expansion() || expr_enclosing_from_expansion(cx, expr) {
             return;
         }
         if let ExprKind::Lit(lit) = expr.kind {
@@ -164,4 +164,12 @@ impl LateLintPass<'_> for LiteralStringWithFormattingArg {
             emit_lint(cx, expr, &spans);
         }
     }
+}
+
+fn expr_enclosing_from_expansion(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    cx.tcx
+        .hir()
+        .parent_iter(expr.hir_id)
+        .take_while(|(_, node)| matches!(node, Node::Expr(_)))
+        .any(|(_, node)| node.expect_expr().span.from_expansion())
 }
