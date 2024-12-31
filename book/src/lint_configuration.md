@@ -801,6 +801,34 @@ exported visibility, or whether they are marked as "pub".
 * [`pub_underscore_fields`](https://rust-lang.github.io/rust-clippy/master/index.html#pub_underscore_fields)
 
 
+## `redundant-test-prefix-check-outside-cfg-test`
+Whether to include functions outside of `#[cfg(test)]` in the linting process or not.
+
+This option allows running the lint against the integration tests: test functions located
+there are not inside a node marked with `#[cfg(test)]` annotation (although they are
+still marked using `#[test]` annotation and thus can have redundant "test_" prefix).
+
+**Default Value:** `false`
+
+---
+**Affected lints:**
+* [`redundant_test_prefix`](https://rust-lang.github.io/rust-clippy/master/index.html#redundant_test_prefix)
+
+
+## `redundant-test-prefix-custom-suffix`
+What suffix to use to avoid function name collisions when `test_` prefix is removed.
+
+If set to `"_works"`, the lint will suggest renaming `test_foo` to `foo_works`.
+Suffix is added only when there is a collision with an existing function name,
+otherwise just `test_` prefix is removed (and no suffix added).
+
+**Default Value:** `"_works"`
+
+---
+**Affected lints:**
+* [`redundant_test_prefix`](https://rust-lang.github.io/rust-clippy/master/index.html#redundant_test_prefix)
+
+
 ## `semicolon-inside-block-ignore-singleline`
 Whether to lint only if it's multiline.
 
