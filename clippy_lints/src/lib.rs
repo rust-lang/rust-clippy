@@ -375,6 +375,7 @@ mod undocumented_unsafe_blocks;
 mod unicode;
 mod uninhabited_references;
 mod uninit_vec;
+mod unit_as_impl_trait;
 mod unit_return_expecting_ord;
 mod unit_types;
 mod unnecessary_box_pin;
@@ -512,7 +513,7 @@ rustc_lint::early_lint_methods!(
         IntPlusOne: int_plus_one::IntPlusOne = int_plus_one::IntPlusOne,
         Formatting: formatting::Formatting = formatting::Formatting,
         MiscEarlyLints: misc_early::MiscEarlyLints = misc_early::MiscEarlyLints,
-        UnusedUnit: unused_unit::UnusedUnit = unused_unit::UnusedUnit,
+        UnusedUnit: unused_unit::UnusedUnit = unused_unit::UnusedUnit::default(),
         Precedence: precedence::Precedence = precedence::Precedence,
         NeedlessArbitrarySelfType: needless_arbitrary_self_type::NeedlessArbitrarySelfType = needless_arbitrary_self_type::NeedlessArbitrarySelfType,
         LiteralDigitGrouping: literals::Literals = literals::Literals::new(conf),
@@ -679,7 +680,7 @@ rustc_lint::late_lint_methods!(
         DerefAddrOf: reference::DerefAddrOf = reference::DerefAddrOf,
         FormatImpl: format_impl::FormatImpl = format_impl::FormatImpl::new(format_args.clone()),
         RedundantClosureCall: redundant_closure_call::RedundantClosureCall = redundant_closure_call::RedundantClosureCall,
-        UnusedUnit: unused_unit::UnusedUnit = unused_unit::UnusedUnit,
+        UnusedUnit: unused_unit::UnusedUnit = unused_unit::UnusedUnit::default(),
         Return: returns::Return = returns::Return,
         CollapsibleIf: collapsible_if::CollapsibleIf = collapsible_if::CollapsibleIf::new(conf),
         ItemsAfterStatements: items_after_statements::ItemsAfterStatements = items_after_statements::ItemsAfterStatements,
@@ -874,6 +875,7 @@ rustc_lint::late_lint_methods!(
         BufreaderStdin: bufreader_stdin::BufreaderStdin = bufreader_stdin::BufreaderStdin::new(),
         IfsAsLogicalOps: ifs_as_logical_ops::IfsAsLogicalOps = ifs_as_logical_ops::IfsAsLogicalOps,
         UndocumentedMayPanicCall: undocumented_may_panic_call::UndocumentedMayPanicCall = undocumented_may_panic_call::UndocumentedMayPanicCall::new(tcx, conf),
+        UnitAsImplTrait: unit_as_impl_trait::UnitAsImplTrait = unit_as_impl_trait::UnitAsImplTrait,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );

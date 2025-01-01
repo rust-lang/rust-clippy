@@ -427,7 +427,7 @@ fn first_char_in_first_line<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> Opti
 ///        let x = ();
 /// // ^^^^^^^^^^^^^^
 /// ```
-fn line_span<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> Span {
+pub fn line_span<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> Span {
     let span = original_sp(span, DUMMY_SP);
     let SourceFileAndLine { sf, line } = sm.source_map().lookup_line(span.lo()).unwrap();
     let line_start = sf.lines()[line];

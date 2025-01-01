@@ -1,6 +1,7 @@
 //@revisions: trait_def
 //@rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/arbitrary_source_item_ordering/trait_definition_order
 #![deny(clippy::arbitrary_source_item_ordering)]
+#![expect(clippy::unit_as_impl_trait)]
 
 // A trait whose definition order happens to be alphabetical.
 trait AlphaOrder {

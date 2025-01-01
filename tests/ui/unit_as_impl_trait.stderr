@@ -1,0 +1,410 @@
+error: unneeded unit expression
+  --> tests/ui/unit_as_impl_trait.rs:222:5
+   |
+LL |     ()
+   |     ^^ help: remove the final `()`
+   |
+   = note: `-D clippy::unused-unit` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unused_unit)]`
+
+error: this function returns `()` instead of the value of its last expression
+  --> tests/ui/unit_as_impl_trait.rs:15:5
+   |
+LL |     v.iter().sum::<u32>();
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: both `()` and `u32` satisfy the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:14:22
+   |
+LL | fn sum(v: &[u32]) -> impl Ord {
+   |                      ^^^^^^^^
+   = help: if returning `()` is intentional, terminate the body with an explicit `()`
+   = note: `-D clippy::unit-as-impl-trait` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unit_as_impl_trait)]`
+help: if the value was meant to be returned, remove the trailing `;`
+   |
+LL -     v.iter().sum::<u32>();
+LL +     v.iter().sum::<u32>()
+   |
+
+error: this function returns `()` instead of the value of its last expression
+  --> tests/ui/unit_as_impl_trait.rs:20:5
+   |
+LL |     x;
+   |     ^^
+   |
+note: both `()` and `T` satisfy the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:19:28
+   |
+LL | fn generic<T: Eq>(x: T) -> impl Eq {
+   |                            ^^^^^^^
+   = help: if returning `()` is intentional, terminate the body with an explicit `()`
+help: if the value was meant to be returned, remove the trailing `;`
+   |
+LL -     x;
+LL +     x
+   |
+
+error: this function returns `()` instead of the value of its last expression
+  --> tests/ui/unit_as_impl_trait.rs:25:5
+   |
+LL |     42u8;
+   |     ^^^^^
+   |
+note: both `()` and `u8` satisfy the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:24:25
+   |
+LL | fn multiple_bounds() -> impl Copy + Debug + Default {
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: if returning `()` is intentional, terminate the body with an explicit `()`
+help: if the value was meant to be returned, remove the trailing `;`
+   |
+LL -     42u8;
+LL +     42u8
+   |
+
+error: this function returns `()` instead of the value of its last expression
+  --> tests/ui/unit_as_impl_trait.rs:32:5
+   |
+LL |     x + 1;
+   |     ^^^^^^
+   |
+note: both `()` and `i32` satisfy the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:29:32
+   |
+LL | fn after_other_statements() -> impl Debug {
+   |                                ^^^^^^^^^^
+   = help: if returning `()` is intentional, terminate the body with an explicit `()`
+help: if the value was meant to be returned, remove the trailing `;`
+   |
+LL -     x + 1;
+LL +     x + 1
+   |
+
+error: this function returns `()` instead of the value of its last expression
+  --> tests/ui/unit_as_impl_trait.rs:38:5
+   |
+LL | /     if b {
+LL | |         1
+LL | |     } else {
+LL | |         2
+LL | |     };
+   | |______^
+   |
+note: both `()` and `i32` satisfy the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:36:27
+   |
+LL | fn block_like(b: bool) -> impl Debug {
+   |                           ^^^^^^^^^^
+   = help: if returning `()` is intentional, terminate the body with an explicit `()`
+help: if the value was meant to be returned, remove the trailing `;`
+   |
+LL -     };
+LL +     }
+   |
+
+error: this function returns `()` instead of the value of its last expression
+  --> tests/ui/unit_as_impl_trait.rs:50:9
+   |
+LL |         S;
+   |         ^^
+   |
+note: both `()` and `S` satisfy the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:49:24
+   |
+LL |     fn clone(&self) -> impl Clone {
+   |                        ^^^^^^^^^^
+   = help: if returning `()` is intentional, terminate the body with an explicit `()`
+help: if the value was meant to be returned, remove the trailing `;`
+   |
+LL -         S;
+LL +         S
+   |
+
+error: this function returns `()` instead of the value of its last expression
+  --> tests/ui/unit_as_impl_trait.rs:57:9
+   |
+LL |         S;
+   |         ^^
+   |
+note: both `()` and `S` satisfy the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:56:28
+   |
+LL |     fn default_method() -> impl Sized {
+   |                            ^^^^^^^^^^
+   = help: if returning `()` is intentional, terminate the body with an explicit `()`
+help: if the value was meant to be returned, remove the trailing `;`
+   |
+LL -         S;
+LL +         S
+   |
+
+error: this function returns `()` instead of the value of its last expression
+  --> tests/ui/unit_as_impl_trait.rs:63:5
+   |
+LL |     42;
+   |     ^^^
+   |
+note: both `()` and `i32` satisfy the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:62:24
+   |
+LL | async fn async_fn() -> impl Copy {
+   |                        ^^^^^^^^^
+   = help: if returning `()` is intentional, terminate the body with an explicit `()`
+help: if the value was meant to be returned, remove the trailing `;`
+   |
+LL -     42;
+LL +     42
+   |
+
+error: this function implicitly returns `()` through its last expression
+  --> tests/ui/unit_as_impl_trait.rs:99:5
+   |
+LL | /     if n > 0 {
+LL | |         recursive(n - 1);
+LL | |     }
+   | |_____^
+   |
+note: `()` satisfies the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:97:25
+   |
+LL | fn recursive(n: u32) -> impl Copy {
+   |                         ^^^^^^^^^
+help: if returning `()` is intentional, return it explicitly
+   |
+LL ~     }
+LL +     ()
+   |
+
+error: this function returns `()` instead of the value of its last expression
+  --> tests/ui/unit_as_impl_trait.rs:106:5
+   |
+LL |     Some(());
+   |     ^^^^^^^^^
+   |
+note: both `()` and `std::option::Option<()>` satisfy the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:105:21
+   |
+LL | fn into_option() -> impl Into<Option<()>> {
+   |                     ^^^^^^^^^^^^^^^^^^^^^
+   = help: if returning `()` is intentional, terminate the body with an explicit `()`
+help: if the value was meant to be returned, remove the trailing `;`
+   |
+LL -     Some(());
+LL +     Some(())
+   |
+
+error: this function returns `()` instead of the value of its last expression
+  --> tests/ui/unit_as_impl_trait.rs:137:5
+   |
+LL |     42u32;
+   |     ^^^^^^
+   |
+note: both `()` and `u32` satisfy the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:136:31
+   |
+LL | fn assoc_bound_satisfied() -> impl WithAssoc<Assoc: Copy> {
+   |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: if returning `()` is intentional, terminate the body with an explicit `()`
+help: if the value was meant to be returned, remove the trailing `;`
+   |
+LL -     42u32;
+LL +     42u32
+   |
+
+error: this function implicitly returns `()` through its empty body
+  --> tests/ui/unit_as_impl_trait.rs:166:25
+   |
+LL | fn empty() -> impl Copy {}
+   |                         ^^
+   |
+note: `()` satisfies the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:166:15
+   |
+LL | fn empty() -> impl Copy {}
+   |               ^^^^^^^^^
+help: if returning `()` is intentional, return it explicitly
+   |
+LL | fn empty() -> impl Copy { () }
+   |                           ++
+
+error: this function implicitly returns `()` through its empty body
+  --> tests/ui/unit_as_impl_trait.rs:169:35
+   |
+LL |   fn empty_multiline() -> impl Copy {
+   |  ___________________________________^
+LL | |
+LL | | }
+   | |_^
+   |
+note: `()` satisfies the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:169:25
+   |
+LL | fn empty_multiline() -> impl Copy {
+   |                         ^^^^^^^^^
+help: if returning `()` is intentional, return it explicitly
+   |
+LL +     ()
+   |
+
+error: this function implicitly returns `()` through its empty body
+  --> tests/ui/unit_as_impl_trait.rs:173:38
+   |
+LL |   fn empty_with_comment() -> impl Copy {
+   |  ______________________________________^
+...  |
+LL | | }
+   | |_^
+   |
+note: `()` satisfies the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:173:28
+   |
+LL | fn empty_with_comment() -> impl Copy {
+   |                            ^^^^^^^^^
+help: if returning `()` is intentional, return it explicitly
+   |
+LL +     ()
+   |
+
+error: this function implicitly returns `()` through its empty body
+  --> tests/ui/unit_as_impl_trait.rs:179:38
+   |
+LL |     fn empty_default() -> impl Sized {}
+   |                                      ^^
+   |
+note: `()` satisfies the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:179:27
+   |
+LL |     fn empty_default() -> impl Sized {}
+   |                           ^^^^^^^^^^
+help: if returning `()` is intentional, return it explicitly
+   |
+LL |     fn empty_default() -> impl Sized { () }
+   |                                        ++
+
+error: this function implicitly returns `()` through its empty body
+  --> tests/ui/unit_as_impl_trait.rs:183:37
+   |
+LL | async fn async_empty() -> impl Copy {}
+   |                                     ^^
+   |
+note: `()` satisfies the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:183:27
+   |
+LL | async fn async_empty() -> impl Copy {}
+   |                           ^^^^^^^^^
+help: if returning `()` is intentional, return it explicitly
+   |
+LL | async fn async_empty() -> impl Copy { () }
+   |                                       ++
+
+error: this function implicitly returns `()` through its last expression
+  --> tests/ui/unit_as_impl_trait.rs:188:5
+   |
+LL |     [1, 10, 2, 0].sort_unstable()
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: `()` satisfies the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:187:24
+   |
+LL | fn unit_tail_call() -> impl Eq {
+   |                        ^^^^^^^
+help: if returning `()` is intentional, return it explicitly
+   |
+LL ~     [1, 10, 2, 0].sort_unstable();
+LL +     ()
+   |
+
+error: this function implicitly returns `()` through its last expression
+  --> tests/ui/unit_as_impl_trait.rs:194:5
+   |
+LL | /     if b {
+LL | |         println!("foo");
+LL | |     } else {
+LL | |         println!("bar");
+LL | |     }
+   | |_____^
+   |
+note: `()` satisfies the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:192:37
+   |
+LL | fn unit_tail_block_like(b: bool) -> impl Debug {
+   |                                     ^^^^^^^^^^
+help: if returning `()` is intentional, return it explicitly
+   |
+LL ~     }
+LL +     ()
+   |
+
+error: this function implicitly returns `()` through its last expression
+  --> tests/ui/unit_as_impl_trait.rs:206:5
+   |
+LL |     unit_body!()
+   |     ^^^^^^^^^^^^
+   |
+note: `()` satisfies the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:205:25
+   |
+LL | fn unit_tail_macro() -> impl Copy {
+   |                         ^^^^^^^^^
+help: if returning `()` is intentional, return it explicitly
+   |
+LL ~     unit_body!();
+LL +     ()
+   |
+
+error: this function returns `()` instead of the value of its last expression
+  --> tests/ui/unit_as_impl_trait.rs:241:5
+   |
+LL |     42;
+   |     ^^^
+   |
+note: both `()` and `i32` satisfy the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:238:23
+   |
+LL | fn cfg_kept_stmt() -> impl Debug {
+   |                       ^^^^^^^^^^
+   = help: if returning `()` is intentional, terminate the body with an explicit `()`
+help: if the value was meant to be returned, remove the trailing `;`
+   |
+LL -     42;
+LL +     42
+   |
+
+error: this function implicitly returns `()` through its last expression
+  --> tests/ui/unit_as_impl_trait.rs:248:5
+   |
+LL |     [1, 10, 2, 0].sort_unstable()
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: `()` satisfies the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:245:23
+   |
+LL | fn cfg_unit_tail() -> impl Eq {
+   |                       ^^^^^^^
+help: if returning `()` is intentional, return it explicitly
+   |
+LL ~     [1, 10, 2, 0].sort_unstable();
+LL +     ()
+   |
+
+error: this function returns `()` instead of the value of its last expression
+  --> tests/ui/unit_as_impl_trait.rs:255:5
+   |
+LL |     x;
+   |     ^^
+   |
+note: both `()` and `i32` satisfy the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait.rs:252:23
+   |
+LL | fn cfg_attr_stmt() -> impl Copy {
+   |                       ^^^^^^^^^
+   = help: if returning `()` is intentional, terminate the body with an explicit `()`
+help: if the value was meant to be returned, remove the trailing `;`
+   |
+LL -     x;
+LL +     x
+   |
+
+error: aborting due to 23 previous errors
+
