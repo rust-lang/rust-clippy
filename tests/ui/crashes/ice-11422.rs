@@ -1,4 +1,5 @@
 #![warn(clippy::implied_bounds_in_impls)]
+#![allow(clippy::unit_as_impl_trait)]
 
 use std::fmt::Debug;
 use std::ops::*;
