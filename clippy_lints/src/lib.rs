@@ -370,6 +370,7 @@ mod undocumented_unsafe_blocks;
 mod unicode;
 mod uninhabited_references;
 mod uninit_vec;
+mod unit_as_impl_trait;
 mod unit_return_expecting_ord;
 mod unit_types;
 mod unnecessary_box_returns;
@@ -862,6 +863,7 @@ rustc_lint::late_lint_methods!(
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
         WithCapacityZero: with_capacity_zero::WithCapacityZero = with_capacity_zero::WithCapacityZero,
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
+        UnitAsImplTrait: unit_as_impl_trait::UnitAsImplTrait = unit_as_impl_trait::UnitAsImplTrait,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
