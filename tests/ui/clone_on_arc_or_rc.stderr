@@ -1,0 +1,35 @@
+error: conditionally unwrapping an `Arc`/`Rc` may avoid unnecessary clone
+  --> tests/ui/clone_on_arc_or_rc.rs:8:21
+   |
+LL |     let _: String = (*arc).clone();
+   |                     ^^^^^^^^^^^^^^ help: try: `std::sync::Arc::unwrap_or_clone(arc)`
+   |
+   = note: `-D clippy::clone-on-arc-or-rc` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::clone_on_arc_or_rc)]`
+
+error: conditionally unwrapping an `Arc`/`Rc` may avoid unnecessary clone
+  --> tests/ui/clone_on_arc_or_rc.rs:12:21
+   |
+LL |     let _: String = (*rc).clone();
+   |                     ^^^^^^^^^^^^^ help: try: `std::rc::Rc::unwrap_or_clone(rc)`
+
+error: conditionally unwrapping an `Arc`/`Rc` may avoid unnecessary clone
+  --> tests/ui/clone_on_arc_or_rc.rs:16:21
+   |
+LL |     let _: Vec<_> = (*arc).clone().split(" ").collect();
+   |                     ^^^^^^^^^^^^^^ help: try: `std::sync::Arc::unwrap_or_clone(arc)`
+
+error: conditionally unwrapping an `Arc`/`Rc` may avoid unnecessary clone
+  --> tests/ui/clone_on_arc_or_rc.rs:20:21
+   |
+LL |     let _: Vec<_> = (*rc).clone().iter().map(|x| x + 1).collect();
+   |                     ^^^^^^^^^^^^^ help: try: `std::rc::Rc::unwrap_or_clone(rc)`
+
+error: conditionally unwrapping an `Arc`/`Rc` may avoid unnecessary clone
+  --> tests/ui/clone_on_arc_or_rc.rs:23:21
+   |
+LL |     let _: String = (*Arc::<String>::new("foo".into())).clone();
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `std::sync::Arc::unwrap_or_clone(Arc::<String>::new("foo".into()))`
+
+error: aborting due to 5 previous errors
+

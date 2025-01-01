@@ -1,0 +1,36 @@
+#![warn(clippy::clone_on_arc_or_rc)]
+
+use std::rc::Rc;
+use std::sync::Arc;
+
+fn main() {
+    let arc: Arc<String> = Arc::new("foo".into());
+    let _: String = std::sync::Arc::unwrap_or_clone(arc);
+    //~^ error: conditionally unwrapping an `Arc`/`Rc` may avoid unnecessary clone
+
+    let rc: Rc<String> = Rc::new("foo".into());
+    let _: String = std::rc::Rc::unwrap_or_clone(rc);
+    //~^ error: conditionally unwrapping an `Arc`/`Rc` may avoid unnecessary clone
+
+    let arc: Arc<String> = Arc::new("foo bar".into());
+    let _: Vec<_> = std::sync::Arc::unwrap_or_clone(arc).split(" ").collect();
+    //~^ error: conditionally unwrapping an `Arc`/`Rc` may avoid unnecessary clone
+
+    let rc: Rc<Vec<u32>> = Rc::new(vec![1, 2, 3]);
+    let _: Vec<_> = std::rc::Rc::unwrap_or_clone(rc).iter().map(|x| x + 1).collect();
+    //~^ error: conditionally unwrapping an `Arc`/`Rc` may avoid unnecessary clone
+
+    let _: String = std::sync::Arc::unwrap_or_clone(Arc::<String>::new("foo".into()));
+    //~^ error: conditionally unwrapping an `Arc`/`Rc` may avoid unnecessary clone
+}
+
+#[clippy::msrv = "1.75"]
+fn msrv_check() {
+    let arc: Arc<String> = Arc::new("foo".into());
+    let _: String = (*arc).clone();
+    // Should not lint
+
+    let rc: Rc<String> = Rc::new("foo".into());
+    let _: String = (*rc).clone();
+    // Should not lint
+}
