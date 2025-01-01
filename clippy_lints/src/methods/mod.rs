@@ -10,6 +10,7 @@ mod chars_last_cmp_with_unwrap;
 mod chars_next_cmp;
 mod chars_next_cmp_with_unwrap;
 mod clear_with_drain;
+mod clone_on_arc_or_rc;
 mod clone_on_copy;
 mod clone_on_ref_ptr;
 mod cloned_instead_of_copied;
@@ -4284,6 +4285,37 @@ declare_clippy_lint! {
     "map of a trivial closure (not dependent on parameter) over a range"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for usage of `(*foo).clone()` where `foo` is an owned `std::sync::Arc` or `std::rc::Rc`.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// This `clone()` call can be replaced with `Arc::unwrap_or_clone()` or `Rc::unwrap_or_clone()`, which reduce unnecessary clones.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// use std::rc::Rc;
+    /// use std::sync::Arc;
+    ///
+    /// let foo: Arc<String> = Arc::new("foo".into());
+    /// let bar: String = (*foo).clone();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// use std::rc::Rc;
+    /// use std::sync::Arc;
+    ///
+    /// let foo: Arc<String> = Arc::new("foo".into());
+    /// let bar: String = Arc::unwrap_or_clone(foo);
+    /// ```
+    #[clippy::version = "1.85.0"]
+    pub CLONE_ON_ARC_OR_RC,
+    perf,
+    "calling `(*foo).clone()` where `foo` is an owned `std::sync::Arc` or `std::rc::Rc`"
+}
+
 pub struct Methods {
     avoid_breaking_exported_api: bool,
     msrv: Msrv,
@@ -4449,6 +4481,7 @@ impl_lint_pass!(Methods => [
     MAP_ALL_ANY_IDENTITY,
     MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
     UNNECESSARY_MAP_OR,
+    CLONE_ON_ARC_OR_RC,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -4492,6 +4525,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                 );
                 clone_on_copy::check(cx, expr, method_call.ident.name, receiver, args);
                 clone_on_ref_ptr::check(cx, expr, method_call.ident.name, receiver, args);
+                clone_on_arc_or_rc::check(cx, expr, method_call.ident.name, receiver, args, &self.msrv);
                 inefficient_to_string::check(cx, expr, method_call.ident.name, receiver, args);
                 single_char_add_str::check(cx, expr, receiver, args);
                 into_iter_on_ref::check(cx, expr, method_span, method_call.ident.name, receiver);
