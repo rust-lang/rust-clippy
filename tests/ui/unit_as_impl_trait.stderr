@@ -1,0 +1,119 @@
+error: this function returns `()` which implements the required trait
+  --> tests/ui/unit_as_impl_trait.rs:4:23
+   |
+LL | fn implicit_unit() -> impl Copy {
+   |                       ^^^^^^^^^
+   |
+note: the empty body evaluates to `()`
+  --> tests/ui/unit_as_impl_trait.rs:4:33
+   |
+LL |   fn implicit_unit() -> impl Copy {
+   |  _________________________________^
+LL | |
+LL | | }
+   | |_^
+help: consider being explicit and use `()` in the body
+  --> tests/ui/unit_as_impl_trait.rs:6:1
+   |
+LL | }
+   | ^
+   = note: `-D clippy::unit-as-impl-trait` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unit_as_impl_trait)]`
+
+error: this function returns `()` which implements the required trait
+  --> tests/ui/unit_as_impl_trait.rs:20:39
+   |
+LL | fn with_generic_param<T: Eq>(x: T) -> impl Eq {
+   |                                       ^^^^^^^
+   |
+note: this statement evaluates to `()` because it ends with `;`
+  --> tests/ui/unit_as_impl_trait.rs:22:5
+   |
+LL |     x;
+   |     ^^
+note: therefore the function body evaluates to `()`
+  --> tests/ui/unit_as_impl_trait.rs:20:47
+   |
+LL |   fn with_generic_param<T: Eq>(x: T) -> impl Eq {
+   |  _______________________________________________^
+LL | |
+LL | |     x;
+LL | | }
+   | |_^
+help: if this is intentional, consider being explicit, and terminate the body with `()`
+  --> tests/ui/unit_as_impl_trait.rs:23:1
+   |
+LL | }
+   | ^
+
+error: this function returns `()` which implements the required trait
+  --> tests/ui/unit_as_impl_trait.rs:25:33
+   |
+LL | fn non_empty_implicit_unit() -> impl Copy {
+   |                                 ^^^^^^^^^
+   |
+note: this statement evaluates to `()` because it ends with `;`
+  --> tests/ui/unit_as_impl_trait.rs:27:5
+   |
+LL |     println!("foobar");
+   |     ^^^^^^^^^^^^^^^^^^
+note: therefore the function body evaluates to `()`
+  --> tests/ui/unit_as_impl_trait.rs:25:43
+   |
+LL |   fn non_empty_implicit_unit() -> impl Copy {
+   |  ___________________________________________^
+LL | |
+LL | |     println!("foobar");
+LL | | }
+   | |_^
+help: if this is intentional, consider being explicit, and terminate the body with `()`
+  --> tests/ui/unit_as_impl_trait.rs:28:1
+   |
+LL | }
+   | ^
+
+error: this function returns `()` which implements the required trait
+  --> tests/ui/unit_as_impl_trait.rs:30:40
+   |
+LL | fn last_expression_returning_unit() -> impl Eq {
+   |                                        ^^^^^^^
+   |
+note: this expression evaluates to `()`
+  --> tests/ui/unit_as_impl_trait.rs:32:5
+   |
+LL |     [1, 10, 2, 0].sort_unstable()
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: consider being explicit, and terminate the body with `()`
+  --> tests/ui/unit_as_impl_trait.rs:32:34
+   |
+LL |     [1, 10, 2, 0].sort_unstable()
+   |                                  ^
+
+error: this function returns `()` which implements the required trait
+  --> tests/ui/unit_as_impl_trait.rs:39:24
+   |
+LL |     fn clone(&self) -> impl Clone {
+   |                        ^^^^^^^^^^
+   |
+note: this statement evaluates to `()` because it ends with `;`
+  --> tests/ui/unit_as_impl_trait.rs:41:9
+   |
+LL |         S;
+   |         ^^
+note: therefore the function body evaluates to `()`
+  --> tests/ui/unit_as_impl_trait.rs:39:35
+   |
+LL |       fn clone(&self) -> impl Clone {
+   |  ___________________________________^
+LL | |
+LL | |         S;
+LL | |     }
+   | |_____^
+help: if this is intentional, consider being explicit, and terminate the body with `()`
+  --> tests/ui/unit_as_impl_trait.rs:42:5
+   |
+LL |     }
+   |     ^
+
+error: aborting due to 5 previous errors
+

@@ -1,5 +1,6 @@
 #![feature(type_alias_impl_trait)]
 #![warn(clippy::new_ret_no_self)]
+#![expect(clippy::unit_as_impl_trait)]
 
 fn main() {}
 
