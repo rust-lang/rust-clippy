@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::is_no_std_crate;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::snippet;
 use clippy_utils::ty::get_type_diagnostic_name;
@@ -43,9 +44,21 @@ pub(super) fn check(
 }
 
 fn is_arc_or_rc(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<&'static str> {
+    let is_no_std = is_no_std_crate(cx);
+
     match get_type_diagnostic_name(cx, cx.typeck_results().expr_ty(expr)) {
-        Some(sym::Arc) => Some("std::sync::Arc"),
-        Some(sym::Rc) => Some("std::rc::Rc"),
+        Some(sym::Arc) => {
+            if is_no_std {
+                return Some("alloc::sync::Arc");
+            }
+            Some("std::sync::Arc")
+        },
+        Some(sym::Rc) => {
+            if is_no_std {
+                return Some("alloc::rc::Rc");
+            }
+            Some("std::rc::Rc")
+        },
         _ => None,
     }
 }
