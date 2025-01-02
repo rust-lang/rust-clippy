@@ -1,0 +1,65 @@
+error: using `contains()` instead of `iter().any()` is more efficient
+  --> tests/ui/slice_iter_any.rs:6:13
+   |
+LL |     let _ = values.iter().any(|&v| v == 4);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::slice-iter-any` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::slice_iter_any)]`
+
+error: using `contains()` instead of `iter().any()` is more efficient
+  --> tests/ui/slice_iter_any.rs:16:13
+   |
+LL |     let _ = values.iter().any(|&v| v == 4);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: using `contains()` instead of `iter().any()` is more efficient
+  --> tests/ui/slice_iter_any.rs:20:13
+   |
+LL |     let _ = values.iter().any(|&v| v == 10);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: using `contains()` instead of `iter().any()` is more efficient
+  --> tests/ui/slice_iter_any.rs:34:13
+   |
+LL |     let _ = values.iter().any(|&v| v == num);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: using `contains()` instead of `iter().any()` is more efficient
+  --> tests/ui/slice_iter_any.rs:38:13
+   |
+LL |     let _ = values.iter().any(|v| *v == 4);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: using `contains()` instead of `iter().any()` is more efficient
+  --> tests/ui/slice_iter_any.rs:43:5
+   |
+LL |     values.iter().any(|&v| v == 10)
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: using `contains()` instead of `iter().any()` is more efficient
+  --> tests/ui/slice_iter_any.rs:48:5
+   |
+LL |     values.iter().any(|&v| v == 10)
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: using `contains()` instead of `iter().any()` is more efficient
+  --> tests/ui/slice_iter_any.rs:56:13
+   |
+LL |     let _ = values.iter().any(|&v| v == 4);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: using `contains()` instead of `iter().any()` is more efficient
+  --> tests/ui/slice_iter_any.rs:72:13
+   |
+LL |     let _ = values.iter().any(|&v| v == 4);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: using `contains()` instead of `iter().any()` is more efficient
+  --> tests/ui/slice_iter_any.rs:80:13
+   |
+LL |     let _ = values.iter().any(|&v| v == 4);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 10 previous errors
+
