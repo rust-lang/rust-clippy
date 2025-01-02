@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
-use clippy_utils::trait_ref_of_method;
+use clippy_utils::{is_self_ty, trait_ref_of_method};
 use itertools::Itertools;
 use rustc_ast::visit::{try_visit, walk_list};
 use rustc_data_structures::fx::{FxHashSet, FxIndexMap, FxIndexSet};
@@ -482,11 +482,13 @@ fn has_where_lifetimes<'tcx>(cx: &LateContext<'tcx>, generics: &'tcx Generics<'_
     false
 }
 
+#[allow(clippy::struct_excessive_bools)]
 struct Usage {
     lifetime: Lifetime,
     in_where_predicate: bool,
     in_bounded_ty: bool,
     in_generics_arg: bool,
+    lifetime_elision_impossible: bool,
 }
 
 struct LifetimeChecker<'cx, 'tcx, F> {
@@ -495,6 +497,7 @@ struct LifetimeChecker<'cx, 'tcx, F> {
     where_predicate_depth: usize,
     bounded_ty_depth: usize,
     generic_args_depth: usize,
+    lifetime_elision_impossible: bool,
     phantom: std::marker::PhantomData<F>,
 }
 
@@ -519,6 +522,7 @@ where
             where_predicate_depth: 0,
             bounded_ty_depth: 0,
             generic_args_depth: 0,
+            lifetime_elision_impossible: false,
             phantom: std::marker::PhantomData,
         }
     }
@@ -560,6 +564,7 @@ where
                 in_where_predicate: self.where_predicate_depth != 0,
                 in_bounded_ty: self.bounded_ty_depth != 0,
                 in_generics_arg: self.generic_args_depth != 0,
+                lifetime_elision_impossible: self.lifetime_elision_impossible,
             });
         }
     }
@@ -584,6 +589,24 @@ where
         self.generic_args_depth += 1;
         walk_generic_args(self, generic_args);
         self.generic_args_depth -= 1;
+    }
+
+    fn visit_fn_decl(&mut self, fd: &'tcx FnDecl<'tcx>) -> Self::Result {
+        let mut input_ref_count = 0;
+        for input in fd.inputs {
+            if let TyKind::Ref(lt, mut_ty) = input.kind {
+                if !lt.is_elided() && !lt.is_anonymous() {
+                    break;
+                }
+                input_ref_count += 1;
+                if input_ref_count > 1 || is_self_ty(mut_ty.ty) {
+                    break;
+                }
+            }
+        }
+        self.lifetime_elision_impossible = input_ref_count != 1;
+        walk_fn_decl(self, fd);
+        self.lifetime_elision_impossible = false;
     }
 
     fn nested_visit_map(&mut self) -> Self::Map {
@@ -656,6 +679,7 @@ fn report_elidable_impl_lifetimes<'tcx>(
                 Usage {
                     lifetime,
                     in_where_predicate: false,
+                    lifetime_elision_impossible: false,
                     ..
                 },
             ] = usages.as_slice()
