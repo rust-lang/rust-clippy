@@ -18,11 +18,11 @@ pub(super) fn check<'tcx>(
 ) {
     if msrv.meets(msrvs::REPEAT_N)
         && !expr.span.from_expansion()
-        && !expr_use_ctxt(cx, expr).is_ty_unified
         && is_trait_method(cx, expr, sym::Iterator)
         && let ExprKind::Call(_, [repeat_arg]) = repeat_expr.kind
         && let Some(def_id) = fn_def_id(cx, repeat_expr)
         && cx.tcx.is_diagnostic_item(sym::iter_repeat, def_id)
+        && !expr_use_ctxt(cx, expr).is_ty_unified
         && let Some(std_or_core) = std_or_core(cx)
     {
         let mut app = Applicability::MachineApplicable;
@@ -30,14 +30,14 @@ pub(super) fn check<'tcx>(
             cx,
             MANUAL_REPEAT_N,
             expr.span,
-            "this `.repeat().take()` can be written more concisely",
+            "this `repeat().take()` can be written more concisely",
             "consider using `repeat_n()` instead",
             format!(
                 "{std_or_core}::iter::repeat_n({}, {})",
                 snippet_with_context(cx, repeat_arg.span, expr.span.ctxt(), "..", &mut app).0,
-                snippet(cx, take_arg.span, "")
+                snippet(cx, take_arg.span, "..")
             ),
-            Applicability::MachineApplicable,
+            app,
         );
     }
 }
