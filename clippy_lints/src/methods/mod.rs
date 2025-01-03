@@ -4319,7 +4319,7 @@ declare_clippy_lint! {
     ///
     /// ### Why is this bad?
     ///
-    /// Using `repeat_n()` is more concise and clearer. Also, `repeat_n()` is sometimes faster than `repeat().take()` when the type of the element is non-trivial to clone.
+    /// Using `repeat_n()` is more concise and clearer. Also, `repeat_n()` is sometimes faster than `repeat().take()` when the type of the element is non-trivial to clone because the original value can be reused for the last `.next()` call rather than always cloning.
     ///
     /// ### Example
     /// ```no_run
@@ -4500,12 +4500,8 @@ impl_lint_pass!(Methods => [
     MAP_ALL_ANY_IDENTITY,
     MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
     UNNECESSARY_MAP_OR,
-<<<<<<< HEAD
     DOUBLE_ENDED_ITERATOR_LAST,
-||||||| parent of a9280b985 (add a lint for repeat().take())
-=======
     MANUAL_REPEAT_N,
->>>>>>> a9280b985 (add a lint for repeat().take())
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
