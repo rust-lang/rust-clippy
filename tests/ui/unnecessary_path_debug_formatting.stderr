@@ -1,0 +1,44 @@
+error: unnecessary `Debug` formatting in `println!` args
+  --> tests/ui/unnecessary_path_debug_formatting.rs:33:22
+   |
+LL |     println!("{:?}", path);
+   |                      ^^^^
+   |
+   = help: use `Display` formatting and change this to `path.display()`
+   = note: `-D clippy::unnecessary-debug-formatting` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_debug_formatting)]`
+
+error: unnecessary `Debug` formatting in `println!` args
+  --> tests/ui/unnecessary_path_debug_formatting.rs:34:22
+   |
+LL |     println!("{:?}", path_buf);
+   |                      ^^^^^^^^
+   |
+   = help: use `Display` formatting and change this to `path_buf.display()`
+
+error: unnecessary `Debug` formatting in `format!` args
+  --> tests/ui/unnecessary_path_debug_formatting.rs:36:37
+   |
+LL |     let _: String = format!("{:?}", path);
+   |                                     ^^^^
+   |
+   = help: use `Display` formatting and change this to `path.display()`
+
+error: unnecessary `Debug` formatting in `format!` args
+  --> tests/ui/unnecessary_path_debug_formatting.rs:37:37
+   |
+LL |     let _: String = format!("{:?}", path_buf);
+   |                                     ^^^^^^^^
+   |
+   = help: use `Display` formatting and change this to `path_buf.display()`
+
+error: unnecessary `Debug` formatting in `println!` args
+  --> tests/ui/unnecessary_path_debug_formatting.rs:40:22
+   |
+LL |     println!("{:?}", &*deref_path);
+   |                      ^^^^^^^^^^^^
+   |
+   = help: use `Display` formatting and change this to `&*deref_path.display()`
+
+error: aborting due to 5 previous errors
+
