@@ -1,0 +1,17 @@
+#![warn(clippy::owned_cow)]
+
+use std::borrow::Cow;
+use std::ffi::{CString, OsString};
+use std::path::PathBuf;
+
+fn main() {
+    let x: Cow<'static, str> = Cow::Owned(String::from("Hi!"));
+    let y: Cow<'_, [u8]> = Cow::Owned(vec![]);
+    let z: Cow<'_, [_]> = Cow::Owned(vec![2_i32]);
+    let o: Cow<'_, std::ffi::OsStr> = Cow::Owned(OsString::new());
+    let c: Cow<'_, std::ffi::CStr> = Cow::Owned(CString::new("").unwrap());
+    let p: Cow<'_, std::path::Path> = Cow::Owned(PathBuf::new());
+
+    // false positive: borrowed type
+    let b: Cow<'_, str> = Cow::Borrowed("Hi!");
+}
