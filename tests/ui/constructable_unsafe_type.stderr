@@ -1,0 +1,39 @@
+error: `Unsafe` type is publically constructable
+  --> tests/ui/constructable_unsafe_type.rs:8:1
+   |
+LL | pub struct DangerousUnsafeToken1;
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: give this type a private field, or make it private
+   = note: `-D clippy::constructable-unsafe-type` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::constructable_unsafe_type)]`
+
+error: `Unsafe` type is publically constructable
+  --> tests/ui/constructable_unsafe_type.rs:10:1
+   |
+LL | pub struct DangerousUnsafeToken2();
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: give this type a private field, or make it private
+
+error: `Unsafe` type is publically constructable
+  --> tests/ui/constructable_unsafe_type.rs:12:1
+   |
+LL | pub struct DangerousUnsafeToken3 {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: give this type a private field, or make it private
+
+error: `Unsafe` type is publically constructable
+  --> tests/ui/constructable_unsafe_type.rs:14:1
+   |
+LL | / pub struct DangerousUnsafeToken4 {
+LL | |
+LL | |     pub public: (),
+LL | | }
+   | |_^
+   |
+   = help: give this type a private field, or make it private
+
+error: aborting due to 4 previous errors
+
