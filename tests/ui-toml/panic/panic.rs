@@ -13,7 +13,7 @@ fn main() {
     }
 }
 
-fn issue_13292() {
+fn issue_13292() -> ! {
     panic_any("should lint")
 }
 
