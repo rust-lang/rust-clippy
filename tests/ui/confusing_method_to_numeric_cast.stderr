@@ -1,0 +1,24 @@
+error: unknown lint: `clippy::primitive_method_to_numeric_cast`
+  --> tests/ui/confusing_method_to_numeric_cast.rs:1:9
+   |
+LL | #![warn(clippy::primitive_method_to_numeric_cast)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: did you mean: `clippy::confusing_method_to_numeric_cast`
+   |
+   = note: `-D unknown-lints` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unknown_lints)]`
+
+error: casting function pointer `u16::max` to `usize`
+  --> tests/ui/confusing_method_to_numeric_cast.rs:4:13
+   |
+LL |     let _ = u16::max as usize;
+   |             ^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::confusing-method-to-numeric-cast` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::confusing_method_to_numeric_cast)]`
+help: did you mean to use the associated constant?
+   |
+LL |     let _ = u16::MAX as usize;
+   |             ~~~~~~~~~~~~~~~~~
+
+error: aborting due to 2 previous errors
+

@@ -6,7 +6,7 @@ use rustc_hir::Expr;
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty};
 
-use super::PRIMITIVE_METHOD_TO_NUMERIC_CAST;
+use super::CONFUSING_METHOD_TO_NUMERIC_CAST;
 
 fn get_primitive_ty_name(ty: Ty<'_>) -> Option<&'static str> {
     match ty.kind() {
@@ -41,7 +41,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, cast_expr: &Expr<'_>,
 
         span_lint_and_then(
             cx,
-            PRIMITIVE_METHOD_TO_NUMERIC_CAST,
+            CONFUSING_METHOD_TO_NUMERIC_CAST,
             expr.span,
             format!("casting function pointer `{from_snippet}` to `{cast_to}`"),
             |diag| {
