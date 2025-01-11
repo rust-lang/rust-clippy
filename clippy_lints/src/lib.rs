@@ -252,6 +252,7 @@ mod multiple_unsafe_ops_per_block;
 mod mut_key;
 mod mut_mut;
 mod mut_reference;
+mod mutable_borrow_of_copy;
 mod mutable_debug_assertion;
 mod mutex_atomic;
 mod needless_arbitrary_self_type;
@@ -946,5 +947,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(single_option_map::SingleOptionMap));
     store.register_late_pass(move |_| Box::new(redundant_test_prefix::RedundantTestPrefix));
     store.register_late_pass(|_| Box::new(cloned_ref_to_slice_refs::ClonedRefToSliceRefs::new(conf)));
+    store.register_late_pass(|_| Box::new(mutable_borrow_of_copy::MutableBorrowOfCopy::new(conf)));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
