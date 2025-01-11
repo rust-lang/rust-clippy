@@ -1,0 +1,79 @@
+error: mutable borrow of a value which was just copied
+  --> tests/ui/copy_then_borrow_mut.rs:6:13
+   |
+LL |     let _ = &mut { *a };
+   |             ^^^^^^^^^^^
+   |
+note: the return value of the block implements `Copy` and will be copied
+  --> tests/ui/copy_then_borrow_mut.rs:6:20
+   |
+LL |     let _ = &mut { *a };
+   |                    ^^
+   = note: `-D clippy::copy-then-borrow-mut` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::copy_then_borrow_mut)]`
+
+error: mutable borrow of a value which was just copied
+  --> tests/ui/copy_then_borrow_mut.rs:9:13
+   |
+LL |     let _ = &mut { a };
+   |             ^^^^^^^^^^
+   |
+note: the return value of the block implements `Copy` and will be copied
+  --> tests/ui/copy_then_borrow_mut.rs:9:20
+   |
+LL |     let _ = &mut { a };
+   |                    ^
+
+error: mutable borrow of a value which was just copied
+  --> tests/ui/copy_then_borrow_mut.rs:10:13
+   |
+LL |     let _ = &mut { *{ &a } };
+   |             ^^^^^^^^^^^^^^^^
+   |
+note: the return value of the block implements `Copy` and will be copied
+  --> tests/ui/copy_then_borrow_mut.rs:10:20
+   |
+LL |     let _ = &mut { *{ &a } };
+   |                    ^^^^^^^
+
+error: mutable borrow of a value which was just copied
+  --> tests/ui/copy_then_borrow_mut.rs:12:13
+   |
+LL |       let _ = &mut 'label: {
+   |  _____________^
+LL | |
+LL | |         if a[0] == 1 {
+LL | |             break 'label 42u8;
+LL | |         }
+LL | |         10u8
+LL | |     };
+   | |_____^
+   |
+   = note: the return value of the block implements `Copy` and will be copied
+
+error: mutable borrow of a value which was just copied
+  --> tests/ui/copy_then_borrow_mut.rs:24:13
+   |
+LL |     let _ = &mut { unsafe { *a } };
+   |             ^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: the return value of the block implements `Copy` and will be copied
+  --> tests/ui/copy_then_borrow_mut.rs:24:20
+   |
+LL |     let _ = &mut { unsafe { *a } };
+   |                    ^^^^^^^^^^^^^
+
+error: mutable borrow of a value which was just copied
+  --> tests/ui/copy_then_borrow_mut.rs:47:9
+   |
+LL |         &mut { *n.as_ref() }
+   |         ^^^^^^^^^^^^^^^^^^^^
+   |
+note: the return value of the block implements `Copy` and will be copied
+  --> tests/ui/copy_then_borrow_mut.rs:47:16
+   |
+LL |         &mut { *n.as_ref() }
+   |                ^^^^^^^^^^^
+
+error: aborting due to 6 previous errors
+
