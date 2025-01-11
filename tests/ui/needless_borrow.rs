@@ -5,7 +5,8 @@
     clippy::unnecessary_mut_passed,
     clippy::unnecessary_to_owned,
     clippy::unnecessary_literal_unwrap,
-    clippy::needless_lifetimes
+    clippy::needless_lifetimes,
+    clippy::mutable_borrow_of_copy
 )]
 #![warn(clippy::needless_borrow)]
 
