@@ -1,4 +1,4 @@
-#![deny(clippy::needless_lifetimes)]
+#![deny(clippy::elidable_lifetime_names)]
 #![allow(dead_code)]
 
 trait Foo {}
