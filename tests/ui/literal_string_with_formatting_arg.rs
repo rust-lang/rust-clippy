@@ -35,3 +35,9 @@ fn main() {
     let x: Option<usize> = Some(0);
     x.expect("{…}");
 }
+
+fn issue_13885() {
+    let value = 0;
+    dbg!(format!("{value}").is_empty()); // Nothing should happen
+    assert!(format!("{value}").is_empty()); // Nothing should happen
+}
