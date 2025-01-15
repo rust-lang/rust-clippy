@@ -7,6 +7,7 @@ use rustc_session::declare_lint_pass;
 use rustc_span::{BytePos, Span};
 
 use clippy_utils::diagnostics::span_lint;
+use clippy_utils::is_from_proc_macro;
 use clippy_utils::mir::enclosing_mir;
 
 declare_clippy_lint! {
@@ -79,9 +80,9 @@ fn emit_lint(cx: &LateContext<'_>, expr: &Expr<'_>, spans: &[(Span, Option<Strin
     }
 }
 
-impl LateLintPass<'_> for LiteralStringWithFormattingArg {
-    fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {
-        if expr.span.from_expansion() {
+impl<'tcx> LateLintPass<'tcx> for LiteralStringWithFormattingArg {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
+        if expr.span.from_expansion() || expr.span.is_dummy() {
             return;
         }
         if let ExprKind::Lit(lit) = expr.kind {
@@ -95,6 +96,9 @@ impl LateLintPass<'_> for LiteralStringWithFormattingArg {
                 },
                 _ => return,
             };
+            if is_from_proc_macro(cx, expr) {
+                return;
+            }
             let fmt_str = symbol.as_str();
             let lo = expr.span.lo();
             let mut current = fmt_str;
