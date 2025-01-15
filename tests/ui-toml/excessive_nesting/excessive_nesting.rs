@@ -13,6 +13,7 @@
     clippy::collapsible_if,
     clippy::blocks_in_conditions,
     clippy::single_match,
+    clippy::copy_then_borrow_mut
 )]
 
 #[macro_use]
