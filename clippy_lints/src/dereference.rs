@@ -270,7 +270,7 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                     RefOp::Deref if use_cx.same_ctxt => {
                         let use_node = use_cx.use_node(cx);
                         let sub_ty = typeck.expr_ty(sub_expr);
-                        if let ExprUseNode::FieldAccess(name) = use_node
+                        if let ExprUseNode::FieldAccess(_, name) = use_node
                             && !use_cx.moved_before_use
                             && !ty_contains_field(sub_ty, name.name)
                         {
@@ -339,7 +339,7 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                             TyCoercionStability::for_defined_ty(cx, ty, use_node.is_return())
                         });
                         let can_auto_borrow = match use_node {
-                            ExprUseNode::FieldAccess(_)
+                            ExprUseNode::FieldAccess(_, _)
                                 if !use_cx.moved_before_use && matches!(sub_expr.kind, ExprKind::Field(..)) =>
                             {
                                 // `DerefMut` will not be automatically applied to `ManuallyDrop<_>`
@@ -350,7 +350,7 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                                 // deref through `ManuallyDrop<_>` will not compile.
                                 !adjust_derefs_manually_drop(use_cx.adjustments, expr_ty)
                             },
-                            ExprUseNode::Callee | ExprUseNode::FieldAccess(_) if !use_cx.moved_before_use => true,
+                            ExprUseNode::Callee | ExprUseNode::FieldAccess(_, _) if !use_cx.moved_before_use => true,
                             ExprUseNode::MethodArg(hir_id, _, 0) if !use_cx.moved_before_use => {
                                 // Check for calls to trait methods where the trait is implemented
                                 // on a reference.
@@ -438,7 +438,7 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                                     count: deref_count - required_refs,
                                     msg,
                                     stability,
-                                    for_field_access: if let ExprUseNode::FieldAccess(name) = use_node
+                                    for_field_access: if let ExprUseNode::FieldAccess(_, name) = use_node
                                         && !use_cx.moved_before_use
                                     {
                                         Some(name.name)

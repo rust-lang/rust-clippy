@@ -1,5 +1,5 @@
 error: using `map` over `inspect`
-  --> tests/ui/manual_inspect.rs:5:21
+  --> tests/ui/manual_inspect.rs:10:21
    |
 LL |     let _ = Some(0).map(|x| {
    |                     ^^^
@@ -13,7 +13,7 @@ LL ~         println!("{}", x);
    |
 
 error: using `map` over `inspect`
-  --> tests/ui/manual_inspect.rs:10:21
+  --> tests/ui/manual_inspect.rs:15:21
    |
 LL |     let _ = Some(0).map(|x| {
    |                     ^^^
@@ -25,7 +25,7 @@ LL ~         println!("{x}");
    |
 
 error: using `map` over `inspect`
-  --> tests/ui/manual_inspect.rs:15:21
+  --> tests/ui/manual_inspect.rs:20:21
    |
 LL |     let _ = Some(0).map(|x| {
    |                     ^^^
@@ -37,7 +37,7 @@ LL ~         println!("{}", x * 5 + 1);
    |
 
 error: using `map` over `inspect`
-  --> tests/ui/manual_inspect.rs:20:21
+  --> tests/ui/manual_inspect.rs:25:21
    |
 LL |     let _ = Some(0).map(|x| {
    |                     ^^^
@@ -51,7 +51,7 @@ LL ~         }
    |
 
 error: using `map` over `inspect`
-  --> tests/ui/manual_inspect.rs:27:21
+  --> tests/ui/manual_inspect.rs:32:21
    |
 LL |     let _ = Some(0).map(|x| {
    |                     ^^^
@@ -66,7 +66,7 @@ LL ~         }
    |
 
 error: using `map` over `inspect`
-  --> tests/ui/manual_inspect.rs:78:41
+  --> tests/ui/manual_inspect.rs:83:41
    |
 LL |     let _ = Some((String::new(), 0u32)).map(|x| {
    |                                         ^^^
@@ -81,7 +81,7 @@ LL ~         }
    |
 
 error: using `map` over `inspect`
-  --> tests/ui/manual_inspect.rs:104:33
+  --> tests/ui/manual_inspect.rs:109:33
    |
 LL |     let _ = Some(String::new()).map(|x| {
    |                                 ^^^
@@ -99,7 +99,7 @@ LL ~         println!("test");
    |
 
 error: using `map` over `inspect`
-  --> tests/ui/manual_inspect.rs:115:21
+  --> tests/ui/manual_inspect.rs:120:21
    |
 LL |     let _ = Some(0).map(|x| {
    |                     ^^^
@@ -114,7 +114,7 @@ LL ~         }
    |
 
 error: using `map` over `inspect`
-  --> tests/ui/manual_inspect.rs:130:46
+  --> tests/ui/manual_inspect.rs:135:46
    |
 LL |         let _ = Some(Cell2(Cell::new(0u32))).map(|x| {
    |                                              ^^^
@@ -126,7 +126,7 @@ LL ~             x.0.set(1);
    |
 
 error: using `map` over `inspect`
-  --> tests/ui/manual_inspect.rs:146:34
+  --> tests/ui/manual_inspect.rs:151:34
    |
 LL |     let _: Result<_, ()> = Ok(0).map(|x| {
    |                                  ^^^
@@ -138,7 +138,7 @@ LL ~         println!("{}", x);
    |
 
 error: using `map_err` over `inspect_err`
-  --> tests/ui/manual_inspect.rs:151:35
+  --> tests/ui/manual_inspect.rs:156:35
    |
 LL |     let _: Result<(), _> = Err(0).map_err(|x| {
    |                                   ^^^^^^^
@@ -150,7 +150,7 @@ LL ~         println!("{}", x);
    |
 
 error: this call to `map()` won't have an effect on the call to `count()`
-  --> tests/ui/manual_inspect.rs:156:13
+  --> tests/ui/manual_inspect.rs:161:13
    |
 LL |       let _ = [0]
    |  _____________^
@@ -167,7 +167,7 @@ LL | |         .count();
    = help: to override `-D warnings` add `#[allow(clippy::suspicious_map)]`
 
 error: using `map` over `inspect`
-  --> tests/ui/manual_inspect.rs:158:10
+  --> tests/ui/manual_inspect.rs:163:10
    |
 LL |         .map(|x| {
    |          ^^^
@@ -178,5 +178,102 @@ LL ~         .inspect(|&x| {
 LL ~             println!("{}", x);
    |
 
-error: aborting due to 13 previous errors
+error: using `map` over `inspect`
+  --> tests/ui/manual_inspect.rs:215:31
+   |
+LL |     _ = Some(T(114)).as_mut().map(|t| {
+   |                               ^^^
+   |
+help: try
+   |
+LL ~     _ = Some(T(114)).as_mut().inspect(|t| {
+LL ~         t.0 + 514;
+   |
+
+error: using `map` over `inspect`
+  --> tests/ui/manual_inspect.rs:253:31
+   |
+LL |     _ = Some(T(114)).as_mut().map(|t| {
+   |                               ^^^
+   |
+help: try
+   |
+LL ~     _ = Some(T(114)).as_mut().inspect(|t| {
+LL ~         t.do_immut();
+   |
+
+error: using `map` over `inspect`
+  --> tests/ui/manual_inspect.rs:258:31
+   |
+LL |     _ = Some(T(114)).as_mut().map(|t| {
+   |                               ^^^
+   |
+help: try
+   |
+LL ~     _ = Some(T(114)).as_mut().inspect(|t| {
+LL ~         t.do_immut2(t);
+   |
+
+error: using `map` over `inspect`
+  --> tests/ui/manual_inspect.rs:268:31
+   |
+LL |     _ = Some(T(114)).as_mut().map(|t| {
+   |                               ^^^
+   |
+help: try
+   |
+LL ~     _ = Some(T(114)).as_mut().inspect(|t| {
+LL ~         T::do_immut(t);
+   |
+
+error: using `map` over `inspect`
+  --> tests/ui/manual_inspect.rs:294:25
+   |
+LL |     _ = sample.as_mut().map(|t| {
+   |                         ^^^
+   |
+help: try
+   |
+LL ~     _ = sample.as_mut().inspect(|t| {
+LL |         let mut a = 1;
+LL ~         a += t[1]; // immut
+   |
+
+error: using `map` over `inspect`
+  --> tests/ui/manual_inspect.rs:310:25
+   |
+LL |     _ = sample.as_mut().map(|t| {
+   |                         ^^^
+   |
+help: try
+   |
+LL ~     _ = sample.as_mut().inspect(|t| {
+LL ~         t.0.0.do_immut();
+   |
+
+error: using `map` over `inspect`
+  --> tests/ui/manual_inspect.rs:320:25
+   |
+LL |     _ = sample.as_mut().map(|t| {
+   |                         ^^^
+   |
+help: try
+   |
+LL ~     _ = sample.as_mut().inspect(|t| {
+LL ~         T::do_immut(&t.0.0);
+   |
+
+error: using `map` over `inspect`
+  --> tests/ui/manual_inspect.rs:333:14
+   |
+LL |     immut_fn.map(|f| {
+   |              ^^^
+   |
+help: try
+   |
+LL ~     immut_fn.inspect(|f| {
+LL ~         f();
+   |
+
+error: aborting due to 21 previous errors
 
