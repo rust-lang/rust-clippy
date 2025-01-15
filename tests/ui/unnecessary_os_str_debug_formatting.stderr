@@ -1,0 +1,36 @@
+error: unnecessary `Debug` formatting in `println!` args
+  --> tests/ui/unnecessary_os_str_debug_formatting.rs:15:22
+   |
+LL |     println!("{:?}", os_str);
+   |                      ^^^^^^
+   |
+   = help: use `Display` formatting and change this to `os_str.display()`
+   = note: `-D clippy::unnecessary-debug-formatting` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_debug_formatting)]`
+
+error: unnecessary `Debug` formatting in `println!` args
+  --> tests/ui/unnecessary_os_str_debug_formatting.rs:16:22
+   |
+LL |     println!("{:?}", os_string);
+   |                      ^^^^^^^^^
+   |
+   = help: use `Display` formatting and change this to `os_string.display()`
+
+error: unnecessary `Debug` formatting in `format!` args
+  --> tests/ui/unnecessary_os_str_debug_formatting.rs:18:37
+   |
+LL |     let _: String = format!("{:?}", os_str);
+   |                                     ^^^^^^
+   |
+   = help: use `Display` formatting and change this to `os_str.display()`
+
+error: unnecessary `Debug` formatting in `format!` args
+  --> tests/ui/unnecessary_os_str_debug_formatting.rs:19:37
+   |
+LL |     let _: String = format!("{:?}", os_string);
+   |                                     ^^^^^^^^^
+   |
+   = help: use `Display` formatting and change this to `os_string.display()`
+
+error: aborting due to 4 previous errors
+
