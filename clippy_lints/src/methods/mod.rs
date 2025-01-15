@@ -101,7 +101,7 @@ mod single_char_add_str;
 mod single_char_insert_string;
 mod single_char_push_string;
 mod skip_while_next;
-mod slice_as_bytes;
+mod sliced_string_as_bytes;
 mod stable_sort_primitive;
 mod str_split;
 mod str_splitn;
@@ -4362,8 +4362,8 @@ declare_clippy_lint! {
     /// let s = "Lorem ipsum";
     /// &s.as_bytes()[1..5];
     /// ```
-     #[clippy::version = "1.72.0"]
-     pub SLICE_AS_BYTES,
+     #[clippy::version = "1.86.0"]
+     pub SLICED_STRING_AS_BYTES,
      pedantic,
      "slicing a string and immediately calling as_bytes is less efficient and can lead to panics"
 }
@@ -4535,7 +4535,7 @@ impl_lint_pass!(Methods => [
     UNNECESSARY_MAP_OR,
     DOUBLE_ENDED_ITERATOR_LAST,
     USELESS_NONZERO_NEW_UNCHECKED,
-    SLICE_AS_BYTES,
+    SLICED_STRING_AS_BYTES,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -4803,7 +4803,7 @@ impl Methods {
                     if let Some(("as_str", recv, [], as_str_span, _)) = method_call(recv) {
                         redundant_as_str::check(cx, expr, recv, as_str_span, span);
                     }
-                    slice_as_bytes::check(cx, expr, recv);
+                    sliced_string_as_bytes::check(cx, expr, recv);
                 },
                 ("as_mut", []) => useless_asref::check(cx, expr, "as_mut", recv),
                 ("as_ptr", []) => manual_c_str_literals::check_as_ptr(cx, expr, recv, &self.msrv),
