@@ -16,8 +16,24 @@ LL |     println!("{:?}", os_string);
    |
    = help: use `Display` formatting and change this to `os_string.display()`
 
+error: unnecessary `Debug` formatting in `println!` args
+  --> tests/ui/unnecessary_os_str_debug_formatting.rs:18:16
+   |
+LL |     println!("{os_str:?}");
+   |                ^^^^^^
+   |
+   = help: use `Display` formatting and change this to `os_str.display()`
+
+error: unnecessary `Debug` formatting in `println!` args
+  --> tests/ui/unnecessary_os_str_debug_formatting.rs:19:16
+   |
+LL |     println!("{os_string:?}");
+   |                ^^^^^^^^^
+   |
+   = help: use `Display` formatting and change this to `os_string.display()`
+
 error: unnecessary `Debug` formatting in `format!` args
-  --> tests/ui/unnecessary_os_str_debug_formatting.rs:18:37
+  --> tests/ui/unnecessary_os_str_debug_formatting.rs:21:37
    |
 LL |     let _: String = format!("{:?}", os_str);
    |                                     ^^^^^^
@@ -25,12 +41,12 @@ LL |     let _: String = format!("{:?}", os_str);
    = help: use `Display` formatting and change this to `os_str.display()`
 
 error: unnecessary `Debug` formatting in `format!` args
-  --> tests/ui/unnecessary_os_str_debug_formatting.rs:19:37
+  --> tests/ui/unnecessary_os_str_debug_formatting.rs:22:37
    |
 LL |     let _: String = format!("{:?}", os_string);
    |                                     ^^^^^^^^^
    |
    = help: use `Display` formatting and change this to `os_string.display()`
 
-error: aborting due to 4 previous errors
+error: aborting due to 6 previous errors
 

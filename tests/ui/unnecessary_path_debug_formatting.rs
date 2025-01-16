@@ -33,6 +33,9 @@ fn main() {
     println!("{:?}", path); //~ unnecessary_debug_formatting
     println!("{:?}", path_buf); //~ unnecessary_debug_formatting
 
+    println!("{path:?}"); //~ unnecessary_debug_formatting
+    println!("{path_buf:?}"); //~ unnecessary_debug_formatting
+
     let _: String = format!("{:?}", path); //~ unnecessary_debug_formatting
     let _: String = format!("{:?}", path_buf); //~ unnecessary_debug_formatting
 

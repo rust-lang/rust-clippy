@@ -15,6 +15,9 @@ fn main() {
     println!("{:?}", os_str); //~ unnecessary_debug_formatting
     println!("{:?}", os_string); //~ unnecessary_debug_formatting
 
+    println!("{os_str:?}"); //~ unnecessary_debug_formatting
+    println!("{os_string:?}"); //~ unnecessary_debug_formatting
+
     let _: String = format!("{:?}", os_str); //~ unnecessary_debug_formatting
     let _: String = format!("{:?}", os_string); //~ unnecessary_debug_formatting
 }
