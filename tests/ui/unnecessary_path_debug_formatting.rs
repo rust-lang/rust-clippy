@@ -30,12 +30,12 @@ fn main() {
     println!("{:?}", os_string);
 
     // positive tests
-    println!("{:?}", path);
-    println!("{:?}", path_buf);
+    println!("{:?}", path); //~ unnecessary_debug_formatting
+    println!("{:?}", path_buf); //~ unnecessary_debug_formatting
 
-    let _: String = format!("{:?}", path);
-    let _: String = format!("{:?}", path_buf);
+    let _: String = format!("{:?}", path); //~ unnecessary_debug_formatting
+    let _: String = format!("{:?}", path_buf); //~ unnecessary_debug_formatting
 
     let deref_path = DerefPath { path };
-    println!("{:?}", &*deref_path);
+    println!("{:?}", &*deref_path); //~ unnecessary_debug_formatting
 }

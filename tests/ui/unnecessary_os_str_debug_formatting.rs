@@ -12,9 +12,9 @@ fn main() {
     println!("{}", os_string.display());
 
     // positive tests
-    println!("{:?}", os_str);
-    println!("{:?}", os_string);
+    println!("{:?}", os_str); //~ unnecessary_debug_formatting
+    println!("{:?}", os_string); //~ unnecessary_debug_formatting
 
-    let _: String = format!("{:?}", os_str);
-    let _: String = format!("{:?}", os_string);
+    let _: String = format!("{:?}", os_str); //~ unnecessary_debug_formatting
+    let _: String = format!("{:?}", os_string); //~ unnecessary_debug_formatting
 }

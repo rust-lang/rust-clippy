@@ -1,7 +1,6 @@
 use arrayvec::ArrayVec;
 use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_sugg, span_lint_and_then};
-use clippy_utils::is_diag_trait_item;
 use clippy_utils::macros::{
     FormatArgsStorage, FormatParamUsage, MacroCall, find_format_arg_expr, format_arg_removal_span,
     format_placeholder_format_span, is_assert_macro, is_format_macro, is_panic, matching_root_macro_call,
@@ -10,6 +9,7 @@ use clippy_utils::macros::{
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::{SpanRangeExt, snippet};
 use clippy_utils::ty::{implements_trait, is_type_lang_item};
+use clippy_utils::{is_diag_trait_item, is_from_proc_macro};
 use itertools::Itertools;
 use rustc_ast::{
     FormatArgPosition, FormatArgPositionKind, FormatArgsPiece, FormatArgumentKind, FormatCount, FormatOptions,
@@ -74,8 +74,8 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.85.0"]
     pub UNNECESSARY_DEBUG_FORMATTING,
-    restriction,
-    "`Debug` formatting applied to an `OsStr` or `Path`"
+    pedantic,
+    "`Debug` formatting applied to an `OsStr` or `Path` when `.display()` is available"
 }
 
 declare_clippy_lint! {
@@ -478,9 +478,10 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
         }
     }
 
-    fn check_unnecessary_debug_formatting(&self, name: Symbol, value: &Expr<'_>) {
+    fn check_unnecessary_debug_formatting(&self, name: Symbol, value: &Expr<'tcx>) {
         let cx = self.cx;
         if !value.span.from_expansion()
+            && !is_from_proc_macro(cx, value)
             && let ty = cx.typeck_results().expr_ty(value)
             && self.can_display_format(ty)
         {
@@ -535,6 +536,7 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
         // Even if `ty` is not in `self.ty_feature_map`, check whether `ty` implements `Deref` with with a
         // `Target` that is in `self.ty_feature_map`.
         if let Some(deref_trait_id) = self.cx.tcx.lang_items().deref_trait()
+            && implements_trait(self.cx, ty, deref_trait_id, &[])
             && let Some(target_ty) = self.cx.get_associated_type(ty, deref_trait_id, "Target")
             && let Some(feature) = self.ty_feature_map.get(&target_ty)
             && feature.map_or(true, |feature| self.cx.tcx.features().enabled(feature))
