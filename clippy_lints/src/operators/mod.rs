@@ -851,28 +851,38 @@ declare_clippy_lint! {
     /// uninitialized or otherwise invalid, the execution of `std::ops::Drop::drop(&mut self)`
     /// is always Undefined Behavior.
     ///
-    /// Use `std::ptr::write()` to overwrite a value without executing the destructor.
+    /// If the code can guarantee that the value being replaced during assignment is safe to
+    /// drop, it is recommended to
+    /// * silence this lint by adding a narrowly-scoped `#[expect(raw_assign_to_drop)]`-attribute
+    /// * make liberal use of SAFETY-comments e.g. around declaration of this unsafe pointer,
+    ///   reminding readers that this unsafe pointer *must* contain an initialized value.
     ///
-    /// Use `std::ptr::drop_in_place()` to conditionally execute the destructor if you are
-    /// sure that the place contains an initialized value.
+    /// If the code can *not* guarantee that the previous value can be safely dropped,
+    /// use `std::ptr::write()` to overwrite the previous (possibly nonexisting) value
+    /// without executing the destructor.
+    ///
+    /// Use `std::ptr::drop_in_place()` to conditionally execute the destructor.
     ///
     /// ### Example
     /// ```no_run
     /// unsafe fn foo(oldvalue: *mut String) {
-    ///     // Direct assignment always executes `String`'s destructor on `oldvalue`
-    ///     *oldvalue = "New Value".to_owned();
+    ///     // Direct assignment always executes `String`'s destructor on `oldvalue`.
+    ///     // However, we can't guarantee that executing the destructor is safe.
+    ///     unsafe { *oldvalue = "New Value".to_owned(); }
     /// }
     /// ```
     /// Use instead:
     /// ```no_run
     /// unsafe fn foo(oldvalue: *mut String, oldvalue_is_initialized: bool) {
+    ///     let newvalue = "New Value".to_owned();
     ///     if oldvalue_is_initialized {
     ///         // Having established that `oldvalue` points to a valid value, selectively
     ///         // execute the destructor to prevent a memory-leak
-    ///         oldvalue.drop_in_place();
+    ///         unsafe { *oldvalue = newvalue; }
+    ///     } else {
+    ///         // Overwrite the old value without running the destructor.
+    ///         unsafe { oldvalue.write(newvalue); }
     ///     }
-    ///     // Overwrite the old value without running the destructor unconditionally
-    ///     oldvalue.write("New Value".to_owned());
     /// }
     /// ```
     #[clippy::version = "1.85.0"]

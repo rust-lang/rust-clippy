@@ -11,6 +11,15 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, lhs: &'tcx Expr<'_>) {
         && let Some(deref_ty) = ty.builtin_deref(true)
         && deref_ty.needs_drop(cx.tcx, cx.typing_env())
     {
+        if let ExprKind::MethodCall(path, self_arg, [], ..) = expr.kind
+            && let rustc_middle::ty::Adt(ty_def, ..) = cx.typeck_results().expr_ty(self_arg).kind()
+            && ty_def.is_unsafe_cell()
+            && path.ident.as_str() == "get"
+        {
+            // Don't lint if the raw pointer was directly retrieved from UnsafeCell::get()
+            // We assume those to be safely managed
+            return;
+        }
         span_lint_and_then(
             cx,
             RAW_ASSIGN_TO_DROP,
@@ -22,9 +31,9 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, lhs: &'tcx Expr<'_>) {
                 ));
                 diag.span_label(
                     expr.span,
-                    "this place may be uninitialized, causing Undefined Behavior when the destructor executes",
+                    "the value may be uninitialized, causing Undefined Behavior when the destructor executes",
                 );
-                diag.help("use `std::ptr::write()` to overwrite a (possibly uninitialized) place");
+                diag.help("use `std::ptr::write()` to overwrite a possibly uninitialized place");
                 diag.help("use `std::ptr::drop_in_place()` to drop the previous value if such value exists");
             },
         );

@@ -1,7 +1,10 @@
 #![warn(clippy::raw_assign_to_drop)]
+#![allow(clippy::missing_safety_doc)]
 
-fn main() {
-    unsafe fn foo(r: *mut String, i: *mut i32) {
+use std::cell::UnsafeCell;
+
+pub unsafe fn foo(r: *mut String, i: *mut i32) {
+    unsafe {
         *r = "foo".to_owned();
 
         // no lint on {integer}
@@ -21,3 +24,13 @@ fn main() {
         *v.as_mut_ptr() = Default::default();
     }
 }
+
+pub unsafe fn unsafecell() {
+    // No lint
+    let c = UnsafeCell::new(String::new());
+    unsafe {
+        *c.get() = String::new();
+    }
+}
+
+fn main() {}
