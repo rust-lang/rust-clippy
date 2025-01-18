@@ -22,5 +22,16 @@ help: consider using `ok_or`
 LL |     let _ = x.ok_or("a");
    |               ~~~~~~~~~~
 
-error: aborting due to 2 previous errors
+error: called `map_or(Err(_), Ok)` on an `Option` value
+  --> tests/ui/option_map_or_err_ok.rs:18:17
+   |
+LL |         let _ = x.map_or(Err("a"), |x| Ok(x));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using `ok_or`
+   |
+LL |         let _ = x.ok_or("a");
+   |                   ~~~~~~~~~~
+
+error: aborting due to 3 previous errors
 
