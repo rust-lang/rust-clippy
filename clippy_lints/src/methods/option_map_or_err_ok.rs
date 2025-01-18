@@ -20,7 +20,7 @@ pub(super) fn check<'tcx>(
     map_or_span: Span,
 ) {
     // We check that it's called on an `Option` type.
-    if is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(recv), sym::Option)
+    if is_type_diagnostic_item(cx, cx.typeck_results().expr_ty_adjusted(recv), sym::Option)
         // We check that first we pass an `Err`.
         && let ExprKind::Call(call, &[arg]) = or_expr.kind
         && is_res_lang_ctor(cx, path_res(cx, call), ResultErr)
