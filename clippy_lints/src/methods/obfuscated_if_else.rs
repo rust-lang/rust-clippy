@@ -19,7 +19,7 @@ pub(super) fn check<'tcx>(
     let recv_ty = cx.typeck_results().expr_ty(then_recv);
 
     if recv_ty.is_bool() {
-        let mut applicability = Applicability::MachineApplicable;
+        let mut applicability = Applicability::MaybeIncorrect;
         let sugg = format!(
             "if {} {{ {} }} else {{ {} }}",
             snippet_with_applicability(cx, then_recv.span, "..", &mut applicability),
