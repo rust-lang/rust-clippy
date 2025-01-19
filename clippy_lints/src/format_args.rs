@@ -180,7 +180,7 @@ impl FormatArgs {
     pub fn new(conf: &'static Conf, format_args: FormatArgsStorage) -> Self {
         Self {
             format_args,
-            msrv: conf.msrv.clone(),
+            msrv: conf.msrv,
             ignore_mixed: conf.allow_mixed_uninlined_format_args,
         }
     }
@@ -202,13 +202,11 @@ impl<'tcx> LateLintPass<'tcx> for FormatArgs {
 
             linter.check_templates();
 
-            if self.msrv.meets(msrvs::FORMAT_ARGS_CAPTURE) {
+            if self.msrv.meets(cx, msrvs::FORMAT_ARGS_CAPTURE) {
                 linter.check_uninlined_args();
             }
         }
     }
-
-    extract_msrv_attr!(LateContext);
 }
 
 struct FormatArgsExpr<'a, 'tcx> {

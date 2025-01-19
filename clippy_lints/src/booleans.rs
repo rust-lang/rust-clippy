@@ -84,9 +84,7 @@ pub struct NonminimalBool {
 
 impl NonminimalBool {
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: conf.msrv.clone(),
-        }
+        Self { msrv: conf.msrv }
     }
 }
 
@@ -102,7 +100,7 @@ impl<'tcx> LateLintPass<'tcx> for NonminimalBool {
         _: Span,
         _: LocalDefId,
     ) {
-        NonminimalBoolVisitor { cx, msrv: &self.msrv }.visit_body(body);
+        NonminimalBoolVisitor { cx, msrv: self.msrv }.visit_body(body);
     }
 
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
@@ -119,8 +117,6 @@ impl<'tcx> LateLintPass<'tcx> for NonminimalBool {
             _ => {},
         }
     }
-
-    extract_msrv_attr!(LateContext);
 }
 
 fn inverted_bin_op_eq_str(op: BinOpKind) -> Option<&'static str> {
@@ -197,7 +193,7 @@ fn check_inverted_bool_in_condition(
     );
 }
 
-fn check_simplify_not(cx: &LateContext<'_>, msrv: &Msrv, expr: &Expr<'_>) {
+fn check_simplify_not(cx: &LateContext<'_>, msrv: Msrv, expr: &Expr<'_>) {
     if let ExprKind::Unary(UnOp::Not, inner) = &expr.kind
         && !expr.span.from_expansion()
         && !inner.span.from_expansion()
@@ -233,7 +229,7 @@ fn check_simplify_not(cx: &LateContext<'_>, msrv: &Msrv, expr: &Expr<'_>) {
 
 struct NonminimalBoolVisitor<'a, 'tcx> {
     cx: &'a LateContext<'tcx>,
-    msrv: &'a Msrv,
+    msrv: Msrv,
 }
 
 use quine_mc_cluskey::Bool;
@@ -326,7 +322,7 @@ impl<'v> Hir2Qmm<'_, '_, 'v> {
 struct SuggestContext<'a, 'tcx, 'v> {
     terminals: &'v [&'v Expr<'v>],
     cx: &'a LateContext<'tcx>,
-    msrv: &'a Msrv,
+    msrv: Msrv,
     output: String,
 }
 
@@ -396,7 +392,7 @@ impl SuggestContext<'_, '_, '_> {
     }
 }
 
-fn simplify_not(cx: &LateContext<'_>, curr_msrv: &Msrv, expr: &Expr<'_>) -> Option<String> {
+fn simplify_not(cx: &LateContext<'_>, curr_msrv: Msrv, expr: &Expr<'_>) -> Option<String> {
     match &expr.kind {
         ExprKind::Binary(binop, lhs, rhs) => {
             if !implements_ord(cx, lhs) {
@@ -438,7 +434,9 @@ fn simplify_not(cx: &LateContext<'_>, curr_msrv: &Msrv, expr: &Expr<'_>) -> Opti
                 .iter()
                 .copied()
                 .flat_map(|(msrv, a, b)| vec![(msrv, a, b), (msrv, b, a)])
-                .find(|&(msrv, a, _)| msrv.is_none_or(|msrv| curr_msrv.meets(msrv)) && a == path.ident.name.as_str())
+                .find(|&(msrv, a, _)| {
+                    a == path.ident.name.as_str() && msrv.is_none_or(|msrv| curr_msrv.meets(cx, msrv))
+                })
                 .and_then(|(_, _, neg_method)| {
                     let negated_args = args
                         .iter()
@@ -467,7 +465,7 @@ fn simplify_not(cx: &LateContext<'_>, curr_msrv: &Msrv, expr: &Expr<'_>) -> Opti
     }
 }
 
-fn suggest(cx: &LateContext<'_>, msrv: &Msrv, suggestion: &Bool, terminals: &[&Expr<'_>]) -> String {
+fn suggest(cx: &LateContext<'_>, msrv: Msrv, suggestion: &Bool, terminals: &[&Expr<'_>]) -> String {
     let mut suggest_context = SuggestContext {
         terminals,
         cx,

@@ -54,8 +54,8 @@ impl<'tcx> QuestionMark {
             && local.ty.is_none()
             && init.span.eq_ctxt(stmt.span)
             && let Some(if_let_or_match) = IfLetOrMatch::parse(cx, init)
-            && self.msrv.meets(msrvs::LET_ELSE)
             && !in_external_macro(cx.sess(), stmt.span)
+            && self.msrv.meets(cx, msrvs::LET_ELSE)
         {
             match if_let_or_match {
                 IfLetOrMatch::IfLet(if_let_expr, let_pat, if_then, if_else, ..) => {

@@ -52,9 +52,7 @@ pub struct UnusedTraitNames {
 
 impl UnusedTraitNames {
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: conf.msrv.clone(),
-        }
+        Self { msrv: conf.msrv }
     }
 }
 
@@ -62,8 +60,7 @@ impl_lint_pass!(UnusedTraitNames => [UNUSED_TRAIT_NAMES]);
 
 impl<'tcx> LateLintPass<'tcx> for UnusedTraitNames {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {
-        if self.msrv.meets(msrvs::UNDERSCORE_IMPORTS)
-            && !in_external_macro(cx.sess(), item.span)
+        if !in_external_macro(cx.sess(), item.span)
             && let ItemKind::Use(path, UseKind::Single) = item.kind
             // Ignore imports that already use Underscore
             && item.ident.name != kw::Underscore
@@ -75,6 +72,7 @@ impl<'tcx> LateLintPass<'tcx> for UnusedTraitNames {
             && cx.tcx.visibility(item.owner_id.def_id) == Visibility::Restricted(module.to_def_id())
             && let Some(last_segment) = path.segments.last()
             && let Some(snip) = snippet_opt(cx, last_segment.ident.span)
+            && self.msrv.meets(cx, msrvs::UNDERSCORE_IMPORTS)
             && !is_from_proc_macro(cx, &last_segment.ident)
         {
             let complete_span = last_segment.ident.span.to(item.ident.span);
@@ -89,6 +87,4 @@ impl<'tcx> LateLintPass<'tcx> for UnusedTraitNames {
             );
         }
     }
-
-    extract_msrv_attr!(LateContext);
 }

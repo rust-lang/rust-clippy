@@ -3,17 +3,11 @@ use rustc_lint::LateContext;
 use rustc_span::{Span, sym};
 
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::msrvs;
+use clippy_utils::msrvs::{self, Msrv};
 
 use super::REPR_PACKED_WITHOUT_ABI;
 
-pub(super) fn check(cx: &LateContext<'_>, item_span: Span, attrs: &[Attribute], msrv: &msrvs::Msrv) {
-    if msrv.meets(msrvs::REPR_RUST) {
-        check_packed(cx, item_span, attrs);
-    }
-}
-
-fn check_packed(cx: &LateContext<'_>, item_span: Span, attrs: &[Attribute]) {
+pub(super) fn check(cx: &LateContext<'_>, item_span: Span, attrs: &[Attribute], msrv: Msrv) {
     if let Some(items) = attrs.iter().find_map(|attr| {
         if attr.ident().is_some_and(|ident| matches!(ident.name, sym::repr)) {
             attr.meta_item_list()
@@ -27,6 +21,7 @@ fn check_packed(cx: &LateContext<'_>, item_span: Span, attrs: &[Attribute]) {
             item.ident()
                 .is_some_and(|ident| matches!(ident.name, sym::C | sym::Rust))
         })
+        && msrv.meets(cx, msrvs::REPR_RUST)
     {
         span_lint_and_then(
             cx,

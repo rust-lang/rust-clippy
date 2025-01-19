@@ -69,9 +69,7 @@ pub struct ApproxConstant {
 
 impl ApproxConstant {
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: conf.msrv.clone(),
-        }
+        Self { msrv: conf.msrv }
     }
 
     fn check_lit(&self, cx: &LateContext<'_>, lit: &LitKind, e: &Expr<'_>) {
@@ -92,7 +90,7 @@ impl ApproxConstant {
         let s = s.as_str();
         if s.parse::<f64>().is_ok() {
             for &(constant, name, min_digits, msrv) in &KNOWN_CONSTS {
-                if is_approx_const(constant, s, min_digits) && msrv.is_none_or(|msrv| self.msrv.meets(msrv)) {
+                if is_approx_const(constant, s, min_digits) && msrv.is_none_or(|msrv| self.msrv.meets(cx, msrv)) {
                     span_lint_and_help(
                         cx,
                         APPROX_CONSTANT,
@@ -116,8 +114,6 @@ impl<'tcx> LateLintPass<'tcx> for ApproxConstant {
             self.check_lit(cx, &lit.node, e);
         }
     }
-
-    extract_msrv_attr!(LateContext);
 }
 
 /// Returns `false` if the number of significant figures in `value` are

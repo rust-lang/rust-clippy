@@ -42,7 +42,7 @@ pub(super) fn check<'a>(
     recv: &Expr<'_>,
     def: &Expr<'_>,
     map: &Expr<'_>,
-    msrv: &Msrv,
+    msrv: Msrv,
 ) {
     let ExprKind::Lit(def_kind) = def.kind else {
         return;
@@ -116,9 +116,9 @@ pub(super) fn check<'a>(
 
         (sugg, "a standard comparison", app)
     } else if !def_bool
-        && msrv.meets(msrvs::OPTION_RESULT_IS_VARIANT_AND)
         && let Some(recv_callsite) = snippet_opt(cx, recv.span.source_callsite())
         && let Some(span_callsite) = snippet_opt(cx, map.span.source_callsite())
+        && msrv.meets(cx, msrvs::OPTION_RESULT_IS_VARIANT_AND)
     {
         let suggested_name = variant.method_name();
         (
@@ -128,9 +128,9 @@ pub(super) fn check<'a>(
         )
     } else if def_bool
         && matches!(variant, Variant::Some)
-        && msrv.meets(msrvs::IS_NONE_OR)
         && let Some(recv_callsite) = snippet_opt(cx, recv.span.source_callsite())
         && let Some(span_callsite) = snippet_opt(cx, map.span.source_callsite())
+        && msrv.meets(cx, msrvs::IS_NONE_OR)
     {
         (
             format!("{recv_callsite}.is_none_or({span_callsite})"),

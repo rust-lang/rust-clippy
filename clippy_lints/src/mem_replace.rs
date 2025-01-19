@@ -219,9 +219,7 @@ pub struct MemReplace {
 
 impl MemReplace {
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: conf.msrv.clone(),
-        }
+        Self { msrv: conf.msrv }
     }
 }
 
@@ -236,11 +234,10 @@ impl<'tcx> LateLintPass<'tcx> for MemReplace {
             // Check that second argument is `Option::None`
             if is_res_lang_ctor(cx, path_res(cx, src), OptionNone) {
                 check_replace_option_with_none(cx, dest, expr.span);
-            } else if self.msrv.meets(msrvs::MEM_TAKE) && is_expr_used_or_unified(cx.tcx, expr) {
+            } else if is_expr_used_or_unified(cx.tcx, expr) && self.msrv.meets(cx, msrvs::MEM_TAKE) {
                 check_replace_with_default(cx, src, dest, expr.span);
             }
             check_replace_with_uninit(cx, src, dest, expr.span);
         }
     }
-    extract_msrv_attr!(LateContext);
 }
