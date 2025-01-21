@@ -143,14 +143,13 @@ pub fn enclosing_mir(tcx: TyCtxt<'_>, hir_id: HirId) -> Option<&Body<'_>> {
 /// Tries to determine the `Local` corresponding to `expr`, if any.
 /// This function is expensive and should be used sparingly.
 pub fn expr_local(tcx: TyCtxt<'_>, expr: &Expr<'_>) -> Option<Local> {
-    enclosing_mir(tcx, expr.hir_id).and_then(|mir| {
-        mir.local_decls.iter_enumerated().find_map(|(local, local_decl)| {
-            if local_decl.source_info.span == expr.span {
-                Some(local)
-            } else {
-                None
-            }
-        })
+    let mir = enclosing_mir(tcx, expr.hir_id)?;
+    mir.local_decls.iter_enumerated().find_map(|(local, local_decl)| {
+        if local_decl.source_info.span == expr.span {
+            Some(local)
+        } else {
+            None
+        }
     })
 }
 

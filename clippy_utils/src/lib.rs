@@ -827,11 +827,9 @@ pub fn expr_custom_deref_adjustment(cx: &LateContext<'_>, e: &Expr<'_>) -> Optio
         .expr_adjustments(e)
         .iter()
         .find_map(|a| match a.kind {
-            Adjust::Deref(Some(d)) => Some(Some(d.mutbl)),
-            Adjust::Deref(None) => None,
-            _ => Some(None),
+            Adjust::Deref(Some(d)) => Some(d.mutbl),
+            _ => None,
         })
-        .and_then(|x| x)
 }
 
 /// Checks if two expressions can be mutably borrowed simultaneously
@@ -1390,11 +1388,9 @@ pub fn get_parent_expr_for_hir<'tcx>(cx: &LateContext<'tcx>, hir_id: HirId) -> O
 
 /// Gets the enclosing block, if any.
 pub fn get_enclosing_block<'tcx>(cx: &LateContext<'tcx>, hir_id: HirId) -> Option<&'tcx Block<'tcx>> {
-    let map = &cx.tcx.hir();
-    let enclosing_node = map
-        .get_enclosing_scope(hir_id)
-        .map(|enclosing_id| cx.tcx.hir_node(enclosing_id));
-    enclosing_node.and_then(|node| match node {
+    let enclosing_id = cx.tcx.hir().get_enclosing_scope(hir_id)?;
+    let node = cx.tcx.hir_node(enclosing_id);
+    match node {
         Node::Block(block) => Some(block),
         Node::Item(&Item {
             kind: ItemKind::Fn { body: eid, .. },
@@ -1408,7 +1404,7 @@ pub fn get_enclosing_block<'tcx>(cx: &LateContext<'tcx>, hir_id: HirId) -> Optio
             _ => None,
         },
         _ => None,
-    })
+    }
 }
 
 /// Gets the loop or closure enclosing the given expression, if any.

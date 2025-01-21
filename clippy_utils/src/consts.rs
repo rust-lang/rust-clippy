@@ -720,7 +720,8 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
             if b {
                 self.expr(then)
             } else {
-                otherwise.as_ref().and_then(|expr| self.expr(expr))
+                let expr = otherwise.as_ref()?;
+                self.expr(expr)
             }
         } else {
             None

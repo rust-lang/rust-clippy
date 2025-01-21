@@ -65,14 +65,12 @@ fn min_max<'a, 'tcx>(cx: &LateContext<'tcx>, expr: &'a Expr<'a>) -> Option<(MinM
     match expr.kind {
         ExprKind::Call(path, args) => {
             if let ExprKind::Path(ref qpath) = path.kind {
-                cx.typeck_results()
-                    .qpath_res(qpath, path.hir_id)
-                    .opt_def_id()
-                    .and_then(|def_id| match cx.tcx.get_diagnostic_name(def_id) {
-                        Some(sym::cmp_min) => fetch_const(cx, None, args, MinMax::Min),
-                        Some(sym::cmp_max) => fetch_const(cx, None, args, MinMax::Max),
-                        _ => None,
-                    })
+                let def_id = cx.typeck_results().qpath_res(qpath, path.hir_id).opt_def_id()?;
+                match cx.tcx.get_diagnostic_name(def_id) {
+                    Some(sym::cmp_min) => fetch_const(cx, None, args, MinMax::Min),
+                    Some(sym::cmp_max) => fetch_const(cx, None, args, MinMax::Max),
+                    _ => None,
+                }
             } else {
                 None
             }

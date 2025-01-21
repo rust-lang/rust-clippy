@@ -373,14 +373,13 @@ fn reduce_expression<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<Vec
         },
         ExprKind::Block(block, _) => {
             if block.stmts.is_empty() && !block.targeted_by_break {
-                block.expr.as_ref().and_then(|e| {
-                    match block.rules {
-                        BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided) => None,
-                        BlockCheckMode::DefaultBlock => Some(vec![&**e]),
-                        // in case of compiler-inserted signaling blocks
-                        BlockCheckMode::UnsafeBlock(_) => reduce_expression(cx, e),
-                    }
-                })
+                let expr = block.expr.as_ref()?;
+                match block.rules {
+                    BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided) => None,
+                    BlockCheckMode::DefaultBlock => Some(vec![&**expr]),
+                    // in case of compiler-inserted signaling blocks
+                    BlockCheckMode::UnsafeBlock(_) => reduce_expression(cx, expr),
+                }
             } else {
                 None
             }

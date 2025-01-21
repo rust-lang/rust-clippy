@@ -635,18 +635,17 @@ fn suggestion_with_swapped_ident(
     new_ident: Ident,
     applicability: &mut Applicability,
 ) -> Option<String> {
-    get_ident(expr, location).and_then(|current_ident| {
-        if eq_id(current_ident, new_ident) {
-            // We never want to suggest a non-change
-            return None;
-        }
+    let current_ident = get_ident(expr, location)?;
+    if eq_id(current_ident, new_ident) {
+        // We never want to suggest a non-change
+        return None;
+    }
 
-        Some(format!(
-            "{}{new_ident}{}",
-            snippet_with_applicability(cx, expr.span.with_hi(current_ident.span.lo()), "..", applicability),
-            snippet_with_applicability(cx, expr.span.with_lo(current_ident.span.hi()), "..", applicability),
-        ))
-    })
+    Some(format!(
+        "{}{new_ident}{}",
+        snippet_with_applicability(cx, expr.span.with_hi(current_ident.span.lo()), "..", applicability),
+        snippet_with_applicability(cx, expr.span.with_lo(current_ident.span.hi()), "..", applicability),
+    ))
 }
 
 fn skip_index<A, Iter>(iter: Iter, index: usize) -> impl Iterator<Item = A>

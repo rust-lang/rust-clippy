@@ -72,9 +72,8 @@ impl LateLintPass<'_> for CheckedConversions {
                 None => check_upper_bound(lt1, gt1).filter(|cv| cv.cvt == ConversionType::FromUnsigned),
                 Some((lt2, gt2)) => {
                     let upper_lower = |lt1, gt1, lt2, gt2| {
-                        check_upper_bound(lt1, gt1)
-                            .zip(check_lower_bound(lt2, gt2))
-                            .and_then(|(l, r)| l.combine(r, cx))
+                        let (l, r) = check_upper_bound(lt1, gt1).zip(check_lower_bound(lt2, gt2))?;
+                        l.combine(r, cx)
                     };
                     upper_lower(lt1, gt1, lt2, gt2).or_else(|| upper_lower(lt2, gt2, lt1, gt1))
                 },

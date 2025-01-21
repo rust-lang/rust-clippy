@@ -171,9 +171,8 @@ fn try_get_option_occurrence<'tcx>(
             )) = e.kind
             {
                 match some_captures.get(local_id).or_else(|| {
-                    (method_sugg == "map_or_else")
-                        .then_some(())
-                        .and_then(|()| none_captures.get(local_id))
+                    (method_sugg == "map_or_else").then_some(())?;
+                    none_captures.get(local_id)
                 }) {
                     Some(CaptureKind::Value | CaptureKind::Ref(Mutability::Mut)) => return None,
                     Some(CaptureKind::Ref(Mutability::Not)) if as_mut => return None,

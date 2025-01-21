@@ -284,12 +284,13 @@ impl SourceFileRange {
     /// Attempts to get the text from the source file. This can fail if the source text isn't
     /// loaded.
     pub fn as_str(&self) -> Option<&str> {
-        self.sf
+        let x = self
+            .sf
             .src
             .as_ref()
             .map(|src| src.as_str())
-            .or_else(|| self.sf.external_src.get().and_then(|src| src.get_source()))
-            .and_then(|x| x.get(self.range.clone()))
+            .or_else(|| self.sf.external_src.get().and_then(|src| src.get_source()))?;
+        x.get(self.range.clone())
     }
 }
 
@@ -333,10 +334,9 @@ pub fn first_line_of_span(sess: &impl HasSession, span: Span) -> Span {
 
 fn first_char_in_first_line(sess: &impl HasSession, span: Span) -> Option<BytePos> {
     let line_span = line_span(sess, span);
-    snippet_opt(sess, line_span).and_then(|snip| {
-        snip.find(|c: char| !c.is_whitespace())
-            .map(|pos| line_span.lo() + BytePos::from_usize(pos))
-    })
+    let snip = snippet_opt(sess, line_span)?;
+    snip.find(|c: char| !c.is_whitespace())
+        .map(|pos| line_span.lo() + BytePos::from_usize(pos))
 }
 
 /// Extends the span to the beginning of the spans line, incl. whitespaces.
@@ -365,7 +365,8 @@ fn line_span(sess: &impl HasSession, span: Span) -> Span {
 /// //          ^^ -- will return 4
 /// ```
 pub fn indent_of(sess: &impl HasSession, span: Span) -> Option<usize> {
-    snippet_opt(sess, line_span(sess, span)).and_then(|snip| snip.find(|c: char| !c.is_whitespace()))
+    let snip = snippet_opt(sess, line_span(sess, span))?;
+    snip.find(|c: char| !c.is_whitespace())
 }
 
 /// Gets a snippet of the indentation of the line of a span

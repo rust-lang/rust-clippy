@@ -17,9 +17,11 @@ pub fn main() {
 
 pub fn foo() -> Option<String> {
     let x = Some(String::from("hello"));
-    Some("hello".to_owned()).and_then(|s| Some(format!("{}{}", s, x?)))
+    let s = Some("hello".to_owned())?;
+    Some(format!("{}{}", s, x?))
 }
 
 pub fn example2(x: bool) -> Option<&'static str> {
-    Some("a").and_then(|s| Some(if x { s } else { return None }))
+    let s = Some("a")?;
+    Some(if x { s } else { return None })
 }

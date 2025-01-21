@@ -414,6 +414,7 @@ impl<'tcx> DerefTy<'tcx> {
     }
 }
 
+#[expect(clippy::too_many_lines)]
 fn check_fn_args<'cx, 'tcx: 'cx>(
     cx: &'cx LateContext<'tcx>,
     fn_sig: ty::FnSig<'tcx>,
@@ -467,7 +468,8 @@ fn check_fn_args<'cx, 'tcx: 'cx>(
                                     .output()
                                     .walk()
                                     .filter_map(|arg| {
-                                        arg.as_region().and_then(|lifetime| match lifetime.kind() {
+                                        let lifetime = arg.as_region()?;
+                                        match lifetime.kind() {
                                             ty::ReEarlyParam(r) => Some(
                                                 cx.tcx
                                                     .generics_of(cx.tcx.parent(param_def_id.to_def_id()))
@@ -481,7 +483,7 @@ fn check_fn_args<'cx, 'tcx: 'cx>(
                                             | ty::RePlaceholder(_)
                                             | ty::ReErased
                                             | ty::ReError(_) => None,
-                                        })
+                                        }
                                     })
                                     .any(|def_id| def_id.as_local().is_some_and(|def_id| def_id == param_def_id))
                             {

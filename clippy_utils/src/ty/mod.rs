@@ -140,9 +140,8 @@ pub fn contains_ty_adt_constructor_opaque<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'
 /// Resolves `<T as Iterator>::Item` for `T`
 /// Do not invoke without first verifying that the type implements `Iterator`
 pub fn get_iterator_item_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<Ty<'tcx>> {
-    cx.tcx
-        .get_diagnostic_item(sym::Iterator)
-        .and_then(|iter_did| cx.get_associated_type(ty, iter_did, "Item"))
+    let iter_did = cx.tcx.get_diagnostic_item(sym::Iterator)?;
+    cx.get_associated_type(ty, iter_did, "Item")
 }
 
 /// Get the diagnostic name of a type, e.g. `sym::HashMap`. To check if a type
@@ -1337,7 +1336,10 @@ pub fn get_field_by_name<'tcx>(tcx: TyCtxt<'tcx>, ty: Ty<'tcx>, name: Symbol) ->
             .iter()
             .find(|f| f.name == name)
             .map(|f| f.ty(tcx, args)),
-        ty::Tuple(args) => name.as_str().parse::<usize>().ok().and_then(|i| args.get(i).copied()),
+        ty::Tuple(args) => {
+            let i = name.as_str().parse::<usize>().ok()?;
+            args.get(i).copied()
+        },
         _ => None,
     }
 }

@@ -55,10 +55,10 @@ pub(super) fn check<'tcx>(
             let big_sugg = assignments
                 // The only statements in the for loops can be indexed assignments from
                 // indexed retrievals (except increments of loop counters).
-                .map(|o| {
-                    o.and_then(|(lhs, rhs)| {
-                        let rhs = fetch_cloned_expr(rhs);
-                        if let ExprKind::Index(base_left, idx_left, _) = lhs.kind
+                .map(|assignment| {
+                    let (lhs, rhs) = assignment?;
+                    let rhs = fetch_cloned_expr(rhs);
+                    if let ExprKind::Index(base_left, idx_left, _) = lhs.kind
                             && let ExprKind::Index(base_right, idx_right, _) = rhs.kind
                             && let Some(ty) = get_slice_like_element_ty(cx, cx.typeck_results().expr_ty(base_left))
                             && get_slice_like_element_ty(cx, cx.typeck_results().expr_ty(base_right)).is_some()
@@ -68,24 +68,23 @@ pub(super) fn check<'tcx>(
                             && !local_used_in(cx, canonical_id, base_right)
 							// Source and destination must be different
                             && path_to_local(base_left) != path_to_local(base_right)
-                        {
-                            Some((
-                                ty,
-                                IndexExpr {
-                                    base: base_left,
-                                    idx: start_left,
-                                    idx_offset: offset_left,
-                                },
-                                IndexExpr {
-                                    base: base_right,
-                                    idx: start_right,
-                                    idx_offset: offset_right,
-                                },
-                            ))
-                        } else {
-                            None
-                        }
-                    })
+                    {
+                        Some((
+                            ty,
+                            IndexExpr {
+                                base: base_left,
+                                idx: start_left,
+                                idx_offset: offset_left,
+                            },
+                            IndexExpr {
+                                base: base_right,
+                                idx: start_right,
+                                idx_offset: offset_right,
+                            },
+                        ))
+                    } else {
+                        None
+                    }
                 })
                 .map(|o| o.map(|(ty, dst, src)| build_manual_memcpy_suggestion(cx, start, end, limits, ty, &dst, &src)))
                 .collect::<Option<Vec<_>>>()
@@ -380,7 +379,8 @@ fn get_details_from_idx<'tcx>(
                 offset_opt.map(|(s, o)| (s, Offset::positive(o)))
             },
             BinOpKind::Sub => {
-                get_start(lhs, starts).and_then(|s| get_offset(cx, rhs, starts).map(|o| (s, Offset::negative(o))))
+                let start = get_start(lhs, starts)?;
+                get_offset(cx, rhs, starts).map(|o| (start, Offset::negative(o)))
             },
             _ => None,
         },
@@ -442,20 +442,19 @@ fn get_loop_counters<'a, 'tcx>(
 
     // For each candidate, check the parent block to see if
     // it's initialized to zero at the start of the loop.
-    get_enclosing_block(cx, expr.hir_id).and_then(|block| {
-        increment_visitor
-            .into_results()
-            .filter_map(move |var_id| {
-                let mut initialize_visitor = InitializeVisitor::new(cx, expr, var_id);
-                walk_block(&mut initialize_visitor, block);
+    let block = get_enclosing_block(cx, expr.hir_id)?;
+    increment_visitor
+        .into_results()
+        .filter_map(move |var_id| {
+            let mut initialize_visitor = InitializeVisitor::new(cx, expr, var_id);
+            walk_block(&mut initialize_visitor, block);
 
-                initialize_visitor.get_result().map(|(_, _, initializer)| Start {
-                    id: var_id,
-                    kind: StartKind::Counter { initializer },
-                })
+            initialize_visitor.get_result().map(|(_, _, initializer)| Start {
+                id: var_id,
+                kind: StartKind::Counter { initializer },
             })
-            .into()
-    })
+        })
+        .into()
 }
 
 fn is_array_length_equal_to_range(cx: &LateContext<'_>, start: &Expr<'_>, end: &Expr<'_>, arr: &Expr<'_>) -> bool {

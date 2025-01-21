@@ -35,7 +35,8 @@ fn simple_option_bad3(to: TO) -> Option<usize> {
 
 fn simple_option_bad4(to: Option<TO>) -> Option<usize> {
     // single line closure
-    to.and_then(|t| Some(t.magic?))
+    let t = to?;
+    Some(t.magic?)
 }
 
 // formatting this will remove the block brackets, making
@@ -43,9 +44,8 @@ fn simple_option_bad4(to: Option<TO>) -> Option<usize> {
 #[rustfmt::skip]
 fn simple_option_bad5(to: Option<TO>) -> Option<usize> {
     // closure with body
-    to.and_then(|t| {
-        Some(t.magic?)
-    })
+    let t = to?;
+    Some(t.magic?)
 }
 
 fn simple_result_bad1(tr: TR) -> Result<usize, bool> {
@@ -64,16 +64,16 @@ fn simple_result_bad3(tr: TR) -> Result<usize, bool> {
 }
 
 fn simple_result_bad4(tr: Result<TR, bool>) -> Result<usize, bool> {
-    tr.and_then(|t| Ok(t.magic?))
+    let t = tr?;
+    Ok(t.magic?)
 }
 
 // formatting this will remove the block brackets, making
 // this test identical to the one above
 #[rustfmt::skip]
 fn simple_result_bad5(tr: Result<TR, bool>) -> Result<usize, bool> {
-    tr.and_then(|t| {
-        Ok(t.magic?)
-    })
+    let t = tr?;
+    Ok(t.magic?)
 }
 
 fn also_bad(tr: Result<TR, bool>) -> Result<usize, bool> {

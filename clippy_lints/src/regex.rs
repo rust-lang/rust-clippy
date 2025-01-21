@@ -222,10 +222,11 @@ fn lint_syntax_error(cx: &LateContext<'_>, error: &regex_syntax::Error, unescape
 }
 
 fn const_str<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> Option<String> {
-    ConstEvalCtxt::new(cx).eval(e).and_then(|c| match c {
+    let constant = ConstEvalCtxt::new(cx).eval(e)?;
+    match constant {
         Constant::Str(s) => Some(s),
         _ => None,
-    })
+    }
 }
 
 fn is_trivial_regex(s: &regex_syntax::hir::Hir) -> Option<&'static str> {

@@ -403,7 +403,7 @@ fn simplify_not(cx: &LateContext<'_>, curr_msrv: &Msrv, expr: &Expr<'_>) -> Opti
                 return None;
             }
 
-            match binop.node {
+            let op = match binop.node {
                 BinOpKind::Eq => Some(" != "),
                 BinOpKind::Ne => Some(" == "),
                 BinOpKind::Lt => Some(" >= "),
@@ -411,21 +411,20 @@ fn simplify_not(cx: &LateContext<'_>, curr_msrv: &Msrv, expr: &Expr<'_>) -> Opti
                 BinOpKind::Le => Some(" > "),
                 BinOpKind::Ge => Some(" < "),
                 _ => None,
-            }
-            .and_then(|op| {
-                let lhs_snippet = lhs.span.get_source_text(cx)?;
-                let rhs_snippet = rhs.span.get_source_text(cx)?;
+            }?;
 
-                if !(lhs_snippet.starts_with('(') && lhs_snippet.ends_with(')')) {
-                    if let (ExprKind::Cast(..), BinOpKind::Ge) = (&lhs.kind, binop.node) {
-                        // e.g. `(a as u64) < b`. Without the parens the `<` is
-                        // interpreted as a start of generic arguments for `u64`
-                        return Some(format!("({lhs_snippet}){op}{rhs_snippet}"));
-                    }
+            let lhs_snippet = lhs.span.get_source_text(cx)?;
+            let rhs_snippet = rhs.span.get_source_text(cx)?;
+
+            if !(lhs_snippet.starts_with('(') && lhs_snippet.ends_with(')')) {
+                if let (ExprKind::Cast(..), BinOpKind::Ge) = (&lhs.kind, binop.node) {
+                    // e.g. `(a as u64) < b`. Without the parens the `<` is
+                    // interpreted as a start of generic arguments for `u64`
+                    return Some(format!("({lhs_snippet}){op}{rhs_snippet}"));
                 }
+            }
 
-                Some(format!("{lhs_snippet}{op}{rhs_snippet}"))
-            })
+            Some(format!("{lhs_snippet}{op}{rhs_snippet}"))
         },
         ExprKind::MethodCall(path, receiver, args, _) => {
             let type_of_receiver = cx.typeck_results().expr_ty(receiver);
@@ -434,22 +433,20 @@ fn simplify_not(cx: &LateContext<'_>, curr_msrv: &Msrv, expr: &Expr<'_>) -> Opti
             {
                 return None;
             }
-            METHODS_WITH_NEGATION
+            let (_, _, neg_method) = METHODS_WITH_NEGATION
                 .iter()
                 .copied()
                 .flat_map(|(msrv, a, b)| vec![(msrv, a, b), (msrv, b, a)])
-                .find(|&(msrv, a, _)| msrv.is_none_or(|msrv| curr_msrv.meets(msrv)) && a == path.ident.name.as_str())
-                .and_then(|(_, _, neg_method)| {
-                    let negated_args = args
-                        .iter()
-                        .map(|arg| simplify_not(cx, curr_msrv, arg))
-                        .collect::<Option<Vec<_>>>()?
-                        .join(", ");
-                    Some(format!(
-                        "{}.{neg_method}({negated_args})",
-                        receiver.span.get_source_text(cx)?
-                    ))
-                })
+                .find(|&(msrv, a, _)| msrv.is_none_or(|msrv| curr_msrv.meets(msrv)) && a == path.ident.name.as_str())?;
+            let negated_args = args
+                .iter()
+                .map(|arg| simplify_not(cx, curr_msrv, arg))
+                .collect::<Option<Vec<_>>>()?
+                .join(", ");
+            Some(format!(
+                "{}.{neg_method}({negated_args})",
+                receiver.span.get_source_text(cx)?
+            ))
         },
         ExprKind::Closure(closure) => {
             let body = cx.tcx.hir().body(closure.body);

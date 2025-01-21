@@ -20,16 +20,16 @@ LL |     Some(to.magic?)
    |     ^^^^^^^^^^^^^^^ help: try removing question mark and `Some()`: `to.magic`
 
 error: question mark operator is useless here
-  --> tests/ui/needless_question_mark.rs:38:21
+  --> tests/ui/needless_question_mark.rs:39:5
    |
-LL |     to.and_then(|t| Some(t.magic?))
-   |                     ^^^^^^^^^^^^^^ help: try removing question mark and `Some()`: `t.magic`
+LL |     Some(t.magic?)
+   |     ^^^^^^^^^^^^^^ help: try removing question mark and `Some()`: `t.magic`
 
 error: question mark operator is useless here
-  --> tests/ui/needless_question_mark.rs:47:9
+  --> tests/ui/needless_question_mark.rs:48:5
    |
-LL |         Some(t.magic?)
-   |         ^^^^^^^^^^^^^^ help: try removing question mark and `Some()`: `t.magic`
+LL |     Some(t.magic?)
+   |     ^^^^^^^^^^^^^^ help: try removing question mark and `Some()`: `t.magic`
 
 error: question mark operator is useless here
   --> tests/ui/needless_question_mark.rs:52:12
@@ -50,16 +50,16 @@ LL |     Ok(tr.magic?)
    |     ^^^^^^^^^^^^^ help: try removing question mark and `Ok()`: `tr.magic`
 
 error: question mark operator is useless here
-  --> tests/ui/needless_question_mark.rs:67:21
+  --> tests/ui/needless_question_mark.rs:68:5
    |
-LL |     tr.and_then(|t| Ok(t.magic?))
-   |                     ^^^^^^^^^^^^ help: try removing question mark and `Ok()`: `t.magic`
+LL |     Ok(t.magic?)
+   |     ^^^^^^^^^^^^ help: try removing question mark and `Ok()`: `t.magic`
 
 error: question mark operator is useless here
-  --> tests/ui/needless_question_mark.rs:75:9
+  --> tests/ui/needless_question_mark.rs:76:5
    |
-LL |         Ok(t.magic?)
-   |         ^^^^^^^^^^^^ help: try removing question mark and `Ok()`: `t.magic`
+LL |     Ok(t.magic?)
+   |     ^^^^^^^^^^^^ help: try removing question mark and `Ok()`: `t.magic`
 
 error: question mark operator is useless here
   --> tests/ui/needless_question_mark.rs:82:16
