@@ -11,7 +11,7 @@ use rustc_hir::{Block, Expr, ExprKind, HirId, LetStmt, Node, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::adjustment::{Adjust, AutoBorrow, AutoBorrowMutability};
 use rustc_session::declare_lint_pass;
-use rustc_span::sym;
+use rustc_span::{Span, sym};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -36,7 +36,7 @@ declare_clippy_lint! {
     ///
     /// }
     /// ```
-    #[clippy::version = "1.78.0"]
+    #[clippy::version = "1.86.0"]
     pub UNNECESSARY_INDEXING,
     complexity,
     "unnecessary use of `seq.is_empty()` in a conditional when if..let is more appropriate"
@@ -47,6 +47,7 @@ declare_lint_pass!(UnnecessaryIndexing => [UNNECESSARY_INDEXING]);
 impl<'tcx> LateLintPass<'tcx> for UnnecessaryIndexing {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'_ Expr<'tcx>) {
         if let Some(if_expr) = clippy_utils::higher::If::hir(expr)
+            && !if_expr.cond.span.from_expansion()
             // check for negation
             && let ExprKind::Unary(UnOp::Not, unary_inner) = if_expr.cond.kind
             // check for call of is_empty
@@ -60,87 +61,56 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryIndexing {
             && expr_ty.ref_mutability() != Some(Mutability::Mut)
             && let Some(con_path) = path_to_local(conditional_receiver)
             && let Some(r) = process_indexing(cx, block, con_path)
-                && let Some(receiver) = r.index_receiver
+                && let Some(receiver_span) = r.index_receiver_span
         {
+            let receiver = snippet(cx, receiver_span, "..");
+            let mut suggestions: Vec<(Span, String)> = vec![];
+            let mut message = "consider using `if..let` syntax instead of indexing".to_string();
             span_lint_and_then(
                 cx,
                 UNNECESSARY_INDEXING,
                 expr.span,
-                "condition can be simplified with if..let syntax",
+                "condition can be simplified with `if..let` syntax",
                 |diag| {
                     if let Some(first_local) = r.first_local
-                        && first_local.pat.simple_ident().is_some()
+                        && let Some(name) = first_local.pat.simple_ident().map(|ident| ident.name)
                     {
-                        diag.span_suggestion(
+                        suggestions.push((
                             if_expr.cond.span,
-                            "consider using if..let syntax (variable may need to be dereferenced)",
                             format!(
-                                "let Some({}{}) = {}.first()",
+                                "let Some({}{name}) = {receiver}.first()",
                                 // if we arent borrowing anything then we can pass a reference here for correctness
                                 if r.extra_exprs_borrow.is_empty() { "&" } else { "" },
-                                snippet(cx, first_local.pat.span, ".."),
-                                snippet(cx, receiver.span, "..")
                             ),
-                            Applicability::Unspecified,
-                        );
-                        diag.span_suggestion(first_local.span, "remove this line", "", Applicability::Unspecified);
+                        ));
+                        suggestions.push((first_local.span, String::new()));
+
                         if !r.extra_exprs_borrow.is_empty() {
-                            let mut index_accesses = r
-                                .extra_exprs_borrow
-                                .iter()
-                                .map(|x| (x.span, snippet(cx, first_local.pat.span, "..").to_string()))
-                                .collect::<Vec<_>>();
-
-                            index_accesses.extend(
-                                r.extra_exprs_copy
+                            suggestions.extend(
+                                r.extra_exprs_borrow
                                     .iter()
-                                    .map(|x| (x.span, snippet(cx, first_local.pat.span, "..").to_string())),
+                                    .chain(r.extra_exprs_copy.iter())
+                                    .map(|x| (x.span, name.to_string())),
                             );
 
-                            diag.multipart_suggestion(
-                                "set this indexing to be the `Some` variant (may need dereferencing)",
-                                index_accesses,
-                                Applicability::Unspecified,
-                            );
+                            message.push_str(", and replacing indexing expression(s) with the value in `Some` variant");
                         } else if !r.extra_exprs_copy.is_empty() {
-                            let index_accesses = r
-                                .extra_exprs_copy
-                                .iter()
-                                .map(|x| (x.span, snippet(cx, first_local.pat.span, "..").to_string()))
-                                .collect::<Vec<_>>();
-
-                            diag.multipart_suggestion(
-                                "set this indexing to be the `Some` variant",
-                                index_accesses,
-                                Applicability::Unspecified,
-                            );
+                            suggestions.extend(r.extra_exprs_copy.iter().map(|x| (x.span, name.to_string())));
                         }
                     } else if r.extra_exprs_borrow.is_empty() {
-                        let mut index_accesses = vec![(
-                            if_expr.cond.span,
-                            format!("let Some(&element) = {}.first()", snippet(cx, receiver.span, "..")),
-                        )];
-                        index_accesses.extend(r.extra_exprs_copy.iter().map(|x| (x.span, "element".to_owned())));
-
-                        diag.multipart_suggestion(
-                            "consider using if..let syntax",
-                            index_accesses,
-                            Applicability::Unspecified,
-                        );
+                        suggestions.push((if_expr.cond.span, format!("let Some(&element) = {receiver}.first()")));
+                        suggestions.extend(r.extra_exprs_copy.iter().map(|x| (x.span, "element".to_owned())));
                     } else {
-                        let mut index_accesses = vec![(
-                            if_expr.cond.span,
-                            format!("let Some(element) = {}.first()", snippet(cx, receiver.span, "..")),
-                        )];
-                        index_accesses.extend(r.extra_exprs_borrow.iter().map(|x| (x.span, "element".to_owned())));
-                        index_accesses.extend(r.extra_exprs_copy.iter().map(|x| (x.span, "element".to_owned())));
-
-                        diag.multipart_suggestion(
-                            "consider using if..let syntax (variable may need to be dereferenced)",
-                            index_accesses,
-                            Applicability::Unspecified,
+                        suggestions.push((if_expr.cond.span, format!("let Some(element) = {receiver}.first()")));
+                        suggestions.extend(
+                            r.extra_exprs_borrow
+                                .iter()
+                                .chain(r.extra_exprs_copy.iter())
+                                .map(|x| (x.span, "element".to_owned())),
                         );
                     }
+
+                    diag.multipart_suggestion(message, suggestions, Applicability::MaybeIncorrect);
                 },
             );
         }
@@ -148,8 +118,8 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryIndexing {
 }
 
 struct IndexCheckResult<'a> {
-    // the receiver for the index operation, only Some in the event the indexing is via a direct primitive
-    index_receiver: Option<&'a Expr<'a>>,
+    // span of the receiver for the index operation, only Some in the event the indexing is via a direct primitive
+    index_receiver_span: Option<Span>,
     // first local in the block - used as pattern for `Some(pat)`
     first_local: Option<&'a LetStmt<'a>>,
     // any other index expressions to replace with `pat` (or "element" if no local exists)
@@ -166,14 +136,14 @@ fn process_indexing<'a>(
     block: &'a Block<'a>,
     conditional_receiver_hid: HirId,
 ) -> Option<IndexCheckResult<'a>> {
-    let mut index_receiver: Option<&Expr<'_>> = None;
+    let mut index_receiver_span: Option<Span> = None;
     let mut first_local: Option<&LetStmt<'_>> = None;
     let mut extra_exprs_borrow: Vec<&Expr<'_>> = vec![];
     let mut extra_exprs_copy: Vec<&Expr<'_>> = vec![];
 
     // if res == Some(()), then mutation occurred
     // & therefore we should not lint on this
-    let res = for_each_expr(cx, block.stmts, |x| {
+    let res = for_each_expr(cx, block, |x| {
         let adjustments = cx.typeck_results().expr_adjustments(x);
         if let ExprKind::Index(receiver, index, _) = x.kind
             && let ExprKind::Lit(lit) = index.kind
@@ -181,12 +151,12 @@ fn process_indexing<'a>(
             && path_to_local_id(receiver, conditional_receiver_hid)
             && val.0 == 0
         {
-            index_receiver = Some(receiver);
+            index_receiver_span = Some(receiver.span);
             if let Node::LetStmt(local) = cx.tcx.parent_hir_node(x.hir_id) {
                 if first_local.is_none() {
                     first_local = Some(local);
                     return ControlFlow::Continue::<()>(());
-                };
+                }
             }
 
             if let Node::Expr(x) = cx.tcx.parent_hir_node(x.hir_id)
@@ -195,24 +165,24 @@ fn process_indexing<'a>(
                 extra_exprs_borrow.push(x);
             } else {
                 extra_exprs_copy.push(x);
-            };
+            }
         } else if adjustments.iter().any(|adjustment| {
             matches!(
                 adjustment.kind,
-                Adjust::Borrow(AutoBorrow::Ref(_, AutoBorrowMutability::Mut { .. }))
+                Adjust::Borrow(AutoBorrow::Ref(AutoBorrowMutability::Mut { .. }))
             )
         }) {
             // do not lint on mutable auto borrows (https://github.com/rust-lang/rust-clippy/pull/12464#discussion_r1600352696)
             return ControlFlow::Break(());
         } else if let ExprKind::AddrOf(_, Mutability::Mut, _) = x.kind {
             return ControlFlow::Break(());
-        };
+        }
 
         ControlFlow::Continue::<()>(())
     });
 
     res.is_none().then_some(IndexCheckResult {
-        index_receiver,
+        index_receiver_span,
         first_local,
         extra_exprs_borrow,
         extra_exprs_copy,

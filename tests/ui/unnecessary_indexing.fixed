@@ -25,76 +25,76 @@ impl Struct {
 fn main() {
     // lint on vecs with a call
     let a: Vec<i32> = vec![1];
-    if !a.is_empty() {
+    if let Some(&element) = a.first() {
         //~^ ERROR: condition can be simplified with `if..let` syntax
-        let b = c(a[0]);
+        let b = c(element);
     }
 
     // lint on vecs with a method call
     let a: Vec<i32> = vec![1];
-    if !a.is_empty() {
+    if let Some(&element) = a.first() {
         //~^ ERROR: condition can be simplified with `if..let` syntax
-        let b = Struct::a(a[0]);
+        let b = Struct::a(element);
     }
 
     // lint on arrays with a call
     let a: &[i32] = &[1];
-    if !a.is_empty() {
+    if let Some(&element) = a.first() {
         //~^ ERROR: condition can be simplified with `if..let` syntax
-        let b = c(a[0]);
+        let b = c(element);
     }
 
     // lint on arrays with a method call
     let a: &[i32] = &[1];
-    if !a.is_empty() {
+    if let Some(&element) = a.first() {
         //~^ ERROR: condition can be simplified with `if..let` syntax
-        let b = Struct::a(a[0]);
+        let b = Struct::a(element);
     }
 
     // lint on vecs with a local access
     let a: Vec<i32> = vec![1];
-    if !a.is_empty() {
+    if let Some(&b) = a.first() {
         //~^ ERROR: condition can be simplified with `if..let` syntax
-        let b = a[0];
+        
     }
 
     // lint on arrays with a local access
     let a: &[i32] = &[1];
-    if !a.is_empty() {
+    if let Some(&b) = a.first() {
         //~^ ERROR: condition can be simplified with `if..let` syntax
-        let b = a[0];
+        
     }
 
     // lint when access is not first line
     let a: &[i32] = &[1];
-    if !a.is_empty() {
+    if let Some(&b) = a.first() {
         //~^ ERROR: condition can be simplified with `if..let` syntax
         dbg!(a);
-        let b = a[0];
+        
     }
 
     // lint on multiple accesses/locals
     let a: &[i32] = &[1];
-    if !a.is_empty() {
+    if let Some(c) = a.first() {
         //~^ ERROR: condition can be simplified with `if..let` syntax
         dbg!(a);
-        let b = &a[0];
-        let c = a[0];
-        drop(a[0]);
+        let b = c;
+        
+        drop(c);
     }
 
     // lint on multiple accesses
     let a: &[i32] = &[1];
-    if !a.is_empty() {
+    if let Some(&element) = a.first() {
         //~^ ERROR: condition can be simplified with `if..let` syntax
         dbg!(a);
-        drop(a[0]);
-        drop(a[0]);
+        drop(element);
+        drop(element);
     }
 
-    let _first = if !a.is_empty() {
+    let _first = if let Some(&element) = a.first() {
         //~^ ERROR: condition can be simplified with `if..let` syntax
-        a[0]
+        element
     } else {
         1
     };

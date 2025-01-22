@@ -1,120 +1,124 @@
-error: condition can be simplified with if..let syntax
-  --> tests/ui/unnecessary_indexing.rs:23:5
+error: condition can be simplified with `if..let` syntax
+  --> tests/ui/unnecessary_indexing.rs:28:5
    |
 LL | /     if !a.is_empty() {
+LL | |
 LL | |         let b = c(a[0]);
 LL | |     }
    | |_____^
    |
    = note: `-D clippy::unnecessary-indexing` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_indexing)]`
-help: consider using if..let syntax
+help: consider using `if..let` syntax instead of indexing
    |
 LL ~     if let Some(&element) = a.first() {
+LL |
 LL ~         let b = c(element);
    |
 
-error: condition can be simplified with if..let syntax
-  --> tests/ui/unnecessary_indexing.rs:29:5
+error: condition can be simplified with `if..let` syntax
+  --> tests/ui/unnecessary_indexing.rs:35:5
    |
 LL | /     if !a.is_empty() {
+LL | |
 LL | |         let b = Struct::a(a[0]);
 LL | |     }
    | |_____^
    |
-help: consider using if..let syntax
+help: consider using `if..let` syntax instead of indexing
    |
 LL ~     if let Some(&element) = a.first() {
+LL |
 LL ~         let b = Struct::a(element);
    |
 
-error: condition can be simplified with if..let syntax
-  --> tests/ui/unnecessary_indexing.rs:35:5
+error: condition can be simplified with `if..let` syntax
+  --> tests/ui/unnecessary_indexing.rs:42:5
    |
 LL | /     if !a.is_empty() {
+LL | |
 LL | |         let b = c(a[0]);
 LL | |     }
    | |_____^
    |
-help: consider using if..let syntax
+help: consider using `if..let` syntax instead of indexing
    |
 LL ~     if let Some(&element) = a.first() {
+LL |
 LL ~         let b = c(element);
    |
 
-error: condition can be simplified with if..let syntax
-  --> tests/ui/unnecessary_indexing.rs:41:5
+error: condition can be simplified with `if..let` syntax
+  --> tests/ui/unnecessary_indexing.rs:49:5
    |
 LL | /     if !a.is_empty() {
+LL | |
 LL | |         let b = Struct::a(a[0]);
 LL | |     }
    | |_____^
    |
-help: consider using if..let syntax
+help: consider using `if..let` syntax instead of indexing
    |
 LL ~     if let Some(&element) = a.first() {
+LL |
 LL ~         let b = Struct::a(element);
    |
 
-error: condition can be simplified with if..let syntax
-  --> tests/ui/unnecessary_indexing.rs:47:5
+error: condition can be simplified with `if..let` syntax
+  --> tests/ui/unnecessary_indexing.rs:56:5
    |
 LL | /     if !a.is_empty() {
+LL | |
 LL | |         let b = a[0];
 LL | |     }
    | |_____^
    |
-help: consider using if..let syntax (variable may need to be dereferenced)
+help: consider using `if..let` syntax instead of indexing
    |
-LL |     if let Some(&b) = a.first() {
-   |        ~~~~~~~~~~~~~~~~~~~~~~~~
-help: remove this line
-   |
-LL -         let b = a[0];
-LL +         
+LL ~     if let Some(&b) = a.first() {
+LL |
+LL ~         
    |
 
-error: condition can be simplified with if..let syntax
-  --> tests/ui/unnecessary_indexing.rs:53:5
+error: condition can be simplified with `if..let` syntax
+  --> tests/ui/unnecessary_indexing.rs:63:5
    |
 LL | /     if !a.is_empty() {
+LL | |
 LL | |         let b = a[0];
 LL | |     }
    | |_____^
    |
-help: consider using if..let syntax (variable may need to be dereferenced)
+help: consider using `if..let` syntax instead of indexing
    |
-LL |     if let Some(&b) = a.first() {
-   |        ~~~~~~~~~~~~~~~~~~~~~~~~
-help: remove this line
-   |
-LL -         let b = a[0];
-LL +         
+LL ~     if let Some(&b) = a.first() {
+LL |
+LL ~         
    |
 
-error: condition can be simplified with if..let syntax
-  --> tests/ui/unnecessary_indexing.rs:59:5
+error: condition can be simplified with `if..let` syntax
+  --> tests/ui/unnecessary_indexing.rs:70:5
    |
 LL | /     if !a.is_empty() {
+LL | |
 LL | |         dbg!(a);
 LL | |         let b = a[0];
 LL | |     }
    | |_____^
    |
-help: consider using if..let syntax (variable may need to be dereferenced)
+help: consider using `if..let` syntax instead of indexing
    |
-LL |     if let Some(&b) = a.first() {
-   |        ~~~~~~~~~~~~~~~~~~~~~~~~
-help: remove this line
-   |
-LL -         let b = a[0];
-LL +         
+LL ~     if let Some(&b) = a.first() {
+LL |
+LL |         dbg!(a);
+LL ~         
    |
 
-error: condition can be simplified with if..let syntax
-  --> tests/ui/unnecessary_indexing.rs:66:5
+error: condition can be simplified with `if..let` syntax
+  --> tests/ui/unnecessary_indexing.rs:78:5
    |
 LL | /     if !a.is_empty() {
+LL | |
 LL | |         dbg!(a);
 LL | |         let b = &a[0];
 LL | |         let c = a[0];
@@ -122,39 +126,54 @@ LL | |         drop(a[0]);
 LL | |     }
    | |_____^
    |
-help: consider using if..let syntax (variable may need to be dereferenced)
+help: consider using `if..let` syntax instead of indexing, and replacing indexing expression(s) with the value in `Some` variant
    |
-LL |     if let Some(c) = a.first() {
-   |        ~~~~~~~~~~~~~~~~~~~~~~~
-help: remove this line
-   |
-LL -         let c = a[0];
-LL +         
-   |
-help: set this indexing to be the `Some` variant (may need dereferencing)
-   |
+LL ~     if let Some(c) = a.first() {
+LL |
+LL |         dbg!(a);
 LL ~         let b = c;
-LL |         let c = a[0];
+LL ~         
 LL ~         drop(c);
    |
 
-error: condition can be simplified with if..let syntax
-  --> tests/ui/unnecessary_indexing.rs:75:5
+error: condition can be simplified with `if..let` syntax
+  --> tests/ui/unnecessary_indexing.rs:88:5
    |
 LL | /     if !a.is_empty() {
+LL | |
 LL | |         dbg!(a);
 LL | |         drop(a[0]);
 LL | |         drop(a[0]);
 LL | |     }
    | |_____^
    |
-help: consider using if..let syntax
+help: consider using `if..let` syntax instead of indexing
    |
 LL ~     if let Some(&element) = a.first() {
+LL |
 LL |         dbg!(a);
 LL ~         drop(element);
 LL ~         drop(element);
    |
 
-error: aborting due to 9 previous errors
+error: condition can be simplified with `if..let` syntax
+  --> tests/ui/unnecessary_indexing.rs:95:18
+   |
+LL |       let _first = if !a.is_empty() {
+   |  __________________^
+LL | |
+LL | |         a[0]
+LL | |     } else {
+LL | |         1
+LL | |     };
+   | |_____^
+   |
+help: consider using `if..let` syntax instead of indexing
+   |
+LL ~     let _first = if let Some(&element) = a.first() {
+LL |
+LL ~         element
+   |
+
+error: aborting due to 10 previous errors
 
