@@ -25,7 +25,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.86.0"]
     pub DEREF_COERCIONS,
-    pedantic,
+    restriction,
     "using deref coercion"
 }
 
