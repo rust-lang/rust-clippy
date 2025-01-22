@@ -1,0 +1,11 @@
+error: implicit deref coercion
+  --> tests/ui/deref_coercions.rs:6:20
+   |
+LL |     let _: &bool = x;
+   |                    ^ help: consider using `deref()`: `x.deref()`
+   |
+   = note: `-D clippy::deref-coercions` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::deref_coercions)]`
+
+error: aborting due to 1 previous error
+
