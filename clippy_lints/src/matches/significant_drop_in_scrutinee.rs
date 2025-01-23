@@ -104,10 +104,10 @@ fn check<'tcx>(
     let mut helper = SigDropHelper::new(cx);
     let suggestions = helper.find_sig_drop(scrutinee);
 
-    for found in suggestions {
+    for (i, found) in suggestions.iter().enumerate() {
         span_lint_and_then(cx, SIGNIFICANT_DROP_IN_SCRUTINEE, found.found_span, message, |diag| {
             match sugg {
-                Suggestion::Emit => set_suggestion(diag, cx, expr, found),
+                Suggestion::Emit => set_suggestion(diag, cx, expr, *found, suggestions.len(), i),
                 Suggestion::DontEmit => (),
             }
 
@@ -121,15 +121,27 @@ fn check<'tcx>(
     }
 }
 
-fn set_suggestion<'tcx>(diag: &mut Diag<'_, ()>, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, found: FoundSigDrop) {
+fn set_suggestion<'tcx>(
+    diag: &mut Diag<'_, ()>,
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'tcx>,
+    found: FoundSigDrop,
+    total_sugg: usize,
+    curr_sugg_idx: usize,
+) {
     let original = snippet(cx, found.found_span, "..");
     let trailing_indent = " ".repeat(indent_of(cx, found.found_span).unwrap_or(0));
 
     let replacement = {
         let (def_part, deref_part) = if found.is_unit_return_val {
-            ("", String::new())
+            (String::new(), String::new())
+        } else if total_sugg == 1 {
+            ("let value = ".to_string(), "*".repeat(found.peel_ref_times))
         } else {
-            ("let value = ", "*".repeat(found.peel_ref_times))
+            (
+                format!("let value{} = ", curr_sugg_idx + 1),
+                "*".repeat(found.peel_ref_times),
+            )
         };
         format!("{def_part}{deref_part}{original};\n{trailing_indent}")
     };
@@ -143,7 +155,11 @@ fn set_suggestion<'tcx>(diag: &mut Diag<'_, ()>, cx: &LateContext<'tcx>, expr: &
     let scrutinee_replacement = if found.is_unit_return_val {
         "()".to_owned()
     } else if found.peel_ref_times == 0 {
-        "value".to_owned()
+        if total_sugg == 1 {
+            "value".to_owned()
+        } else {
+            format!("value{}", curr_sugg_idx + 1)
+        }
     } else {
         let ref_part = "&".repeat(found.peel_ref_times);
         format!("({ref_part}value)")
@@ -155,7 +171,7 @@ fn set_suggestion<'tcx>(diag: &mut Diag<'_, ()>, cx: &LateContext<'tcx>, expr: &
             (first_line_of_span(cx, expr.span).shrink_to_lo(), replacement),
             (found.found_span, scrutinee_replacement),
         ],
-        Applicability::MaybeIncorrect,
+        Applicability::MachineApplicable,
     );
 }
 

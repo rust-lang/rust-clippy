@@ -1,0 +1,15 @@
+error: temporary with significant `Drop` in `while let` scrutinee will live until the end of the `while let` expression
+  --> tests/ui/significant_drop_in_scrutinee_nofix.rs:9:27
+   |
+LL |     while let Some(val) = mutex.lock().unwrap().pop() {
+   |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+LL |     }
+   |      - temporary lives until here
+   |
+   = note: this might lead to deadlocks or other unexpected behavior
+   = note: `-D clippy::significant-drop-in-scrutinee` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::significant_drop_in_scrutinee)]`
+
+error: aborting due to 1 previous error
+

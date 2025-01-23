@@ -55,7 +55,8 @@ fn should_trigger_lint_with_mutex_guard_in_match_scrutinee() {
     // Should trigger lint because the lifetime of the temporary MutexGuard is surprising because it
     // is preserved until the end of the match, but there is no clear indication that this is the
     // case.
-    match mutex.lock().unwrap().foo() {
+    let value = mutex.lock().unwrap().foo();
+    match value {
         //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         true => {
@@ -143,7 +144,8 @@ fn should_trigger_lint_with_wrapped_mutex() {
     // Should trigger lint because a temporary contains a type with a significant drop and its
     // lifetime is not obvious. Additionally, it is not obvious from looking at the scrutinee that
     // the temporary contains such a type, making it potentially even more surprising.
-    match s.lock_m().get_the_value() {
+    let value = s.lock_m().get_the_value();
+    match value {
         //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         1 => {
@@ -166,7 +168,8 @@ fn should_trigger_lint_with_double_wrapped_mutex() {
     // significant drop and its lifetime is not obvious. Additionally, it is not obvious from
     // looking at the scrutinee that the temporary contains such a type, making it potentially even
     // more surprising.
-    match s.lock_m_m().get_the_value() {
+    let value = s.lock_m_m().get_the_value();
+    match value {
         //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         1 => {
@@ -216,7 +219,8 @@ fn should_trigger_lint_for_vec() {
     // Should trigger lint because the temporary in the scrutinee returns a collection of types
     // which have significant drops. The types with significant drops are also non-obvious when
     // reading the expression in the scrutinee.
-    match counter.temp_increment().len() {
+    let value = counter.temp_increment().len();
+    match value {
         //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         2 => {
@@ -241,7 +245,8 @@ fn should_trigger_lint_for_tuple_in_scrutinee() {
     let mutex1 = Mutex::new(StateWithField { s: "one".to_owned() });
 
     {
-        match (mutex1.lock().unwrap().s.len(), true) {
+        let value = mutex1.lock().unwrap().s.len();
+        match (value, true) {
             //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until
             //~| NOTE: this might lead to deadlocks or other unexpected behavior
             (3, _) => {
@@ -252,7 +257,8 @@ fn should_trigger_lint_for_tuple_in_scrutinee() {
             (_, _) => {},
         };
 
-        match (true, mutex1.lock().unwrap().s.len(), true) {
+        let value = mutex1.lock().unwrap().s.len();
+        match (true, value, true) {
             //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until
             //~| NOTE: this might lead to deadlocks or other unexpected behavior
             (_, 3, _) => {
@@ -264,7 +270,9 @@ fn should_trigger_lint_for_tuple_in_scrutinee() {
         };
 
         let mutex2 = Mutex::new(StateWithField { s: "two".to_owned() });
-        match (mutex1.lock().unwrap().s.len(), true, mutex2.lock().unwrap().s.len()) {
+        let value2 = mutex2.lock().unwrap().s.len();
+        let value1 = mutex1.lock().unwrap().s.len();
+        match (value1, true, value2) {
             //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until
             //~| NOTE: this might lead to deadlocks or other unexpected behavior
             //~| ERROR: temporary with significant `Drop` in `match` scrutinee will live until
@@ -319,7 +327,8 @@ fn should_not_trigger_lint_for_string_as_str() {
 fn should_trigger_lint_for_accessing_field_in_mutex_in_one_side_of_binary_op() {
     let mutex = Mutex::new(StateWithField { s: "state".to_owned() });
 
-    match mutex.lock().unwrap().s.len() > 1 {
+    let value = mutex.lock().unwrap().s.len();
+    match value > 1 {
         //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         true => {
@@ -328,7 +337,8 @@ fn should_trigger_lint_for_accessing_field_in_mutex_in_one_side_of_binary_op() {
         false => {},
     };
 
-    match 1 < mutex.lock().unwrap().s.len() {
+    let value = mutex.lock().unwrap().s.len();
+    match 1 < value {
         //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         true => {
@@ -348,7 +358,9 @@ fn should_trigger_lint_for_accessing_fields_in_mutex_in_both_sides_of_binary_op(
         s: "statewithfield".to_owned(),
     });
 
-    match mutex1.lock().unwrap().s.len() < mutex2.lock().unwrap().s.len() {
+    let value2 = mutex2.lock().unwrap().s.len();
+    let value1 = mutex1.lock().unwrap().s.len();
+    match value1 < value2 {
         //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         true => {
@@ -361,7 +373,9 @@ fn should_trigger_lint_for_accessing_fields_in_mutex_in_both_sides_of_binary_op(
         false => {},
     };
 
-    match mutex1.lock().unwrap().s.len() >= mutex2.lock().unwrap().s.len() {
+    let value2 = mutex2.lock().unwrap().s.len();
+    let value1 = mutex1.lock().unwrap().s.len();
+    match value1 >= value2 {
         //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         true => {
@@ -398,7 +412,8 @@ fn should_trigger_lint_for_return_from_closure_in_scrutinee() {
 
     // Should trigger lint because the temporary with a significant drop is returned from the
     // closure but not used directly in any match arms, so it has a potentially surprising lifetime.
-    match get_mutex_guard().s.len() > 1 {
+    let value = get_mutex_guard().s.len();
+    match value > 1 {
         //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         true => {
@@ -417,14 +432,15 @@ fn should_trigger_lint_for_return_from_match_in_scrutinee() {
     // Should trigger lint because the nested match within the scrutinee returns a temporary with a
     // significant drop is but not used directly in any match arms, so it has a potentially
     // surprising lifetime.
-    match match i {
+    let value = match i {
         //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         100 => mutex1.lock().unwrap(),
         _ => mutex2.lock().unwrap(),
     }
     .s
-    .len()
+    .len();
+    match value
         > 1
     {
         true => {
@@ -445,7 +461,7 @@ fn should_trigger_lint_for_return_from_if_in_scrutinee() {
     // Should trigger lint because the nested if-expression within the scrutinee returns a temporary
     // with a significant drop is but not used directly in any match arms, so it has a potentially
     // surprising lifetime.
-    match if i > 1 {
+    let value = if i > 1 {
         //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         mutex1.lock().unwrap()
@@ -453,7 +469,8 @@ fn should_trigger_lint_for_return_from_if_in_scrutinee() {
         mutex2.lock().unwrap()
     }
     .s
-    .len()
+    .len();
+    match value
         > 1
     {
         true => {
@@ -501,7 +518,8 @@ fn should_trigger_lint_for_boxed_mutex_guard() {
 
     // Should trigger lint because a temporary Box holding a type with a significant drop in a match
     // scrutinee may have a potentially surprising lifetime.
-    match s.lock().deref().deref() {
+    let value = *s.lock().deref().deref();
+    match (&value) {
         //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         0 | 1 => println!("Value was less than 2"),
@@ -551,7 +569,8 @@ fn should_trigger_lint_in_assign_expr() {
 
     let mut i = 100;
 
-    match mutex.lock().unwrap().i = i {
+    mutex.lock().unwrap().i = i;
+    match () {
         //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         _ => {
@@ -559,7 +578,8 @@ fn should_trigger_lint_in_assign_expr() {
         },
     };
 
-    match i = mutex.lock().unwrap().i {
+    let value = mutex.lock().unwrap().i;
+    match i = value {
         //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         _ => {
@@ -567,7 +587,8 @@ fn should_trigger_lint_in_assign_expr() {
         },
     };
 
-    match mutex.lock().unwrap().i += 1 {
+    mutex.lock().unwrap().i += 1;
+    match () {
         //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         _ => {
@@ -575,7 +596,8 @@ fn should_trigger_lint_in_assign_expr() {
         },
     };
 
-    match i += mutex.lock().unwrap().i {
+    let value = mutex.lock().unwrap().i;
+    match i += value {
         //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         _ => {
@@ -640,7 +662,8 @@ impl ResultReturner {
 
 fn should_trigger_lint_for_non_ref_move_and_clone_suggestion() {
     let rwlock = RwLock::<ResultReturner>::new(ResultReturner { s: "1".to_string() });
-    match rwlock.read().unwrap().to_number() {
+    let value = rwlock.read().unwrap().to_number();
+    match value {
         //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         Ok(n) => println!("Converted to number: {}", n),
@@ -668,7 +691,8 @@ fn should_trigger_lint_without_significant_drop_in_arm() {
     // Should trigger lint because the lifetime of the temporary MutexGuard is surprising because it
     // is preserved until the end of the match, but there is no clear indication that this is the
     // case.
-    match mutex.lock().unwrap().foo() {
+    let value = mutex.lock().unwrap().foo();
+    match value {
         //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         true => do_bar(&mutex),
@@ -731,7 +755,8 @@ fn should_not_trigger_for_significant_drop_ref() {
         _ => println!("not empty"),
     }
 
-    match guard.take().len() {
+    let value = guard.take().len();
+    match value {
         //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         0 => println!("empty"),
@@ -757,7 +782,8 @@ fn should_trigger_lint_if_and_only_if_lifetime_is_irrelevant() {
 
     // Should trigger lint even if `copy_old_lifetime()` has a lifetime, as the lifetime of
     // `&vec` is unrelated to the temporary with significant drop (i.e., the `MutexGuard`).
-    for val in mutex.lock().unwrap().copy_old_lifetime() {
+    let value = mutex.lock().unwrap().copy_old_lifetime();
+    for val in value {
         //~^ ERROR: temporary with significant `Drop` in `for` loop condition will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         println!("{}", val);
@@ -797,7 +823,8 @@ fn should_not_trigger_lint_with_explicit_drop() {
     }
 
     // Should trigger lint if there is no explicit drop.
-    for val in [mutex.lock().unwrap()[0], 2] {
+    let value = mutex.lock().unwrap()[0];
+    for val in [value, 2] {
         //~^ ERROR: temporary with significant `Drop` in `for` loop condition will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         println!("{:?}", val);
@@ -807,7 +834,8 @@ fn should_not_trigger_lint_with_explicit_drop() {
 fn should_trigger_lint_in_if_let() {
     let mutex = Mutex::new(vec![1]);
 
-    if let Some(val) = mutex.lock().unwrap().first().copied() {
+    let value = mutex.lock().unwrap().first().copied();
+    if let Some(val) = value {
         //~^ ERROR: temporary with significant `Drop` in `if let` scrutinee will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         println!("{}", val);
@@ -825,7 +853,8 @@ async fn foo_async(mutex: &Mutex<i32>) -> Option<MutexGuard<'_, i32>> {
 }
 
 async fn should_trigger_lint_for_async(mutex: Mutex<i32>) -> i32 {
-    match *foo_async(&mutex).await.unwrap() {
+    let value = *foo_async(&mutex).await.unwrap();
+    match value {
         n if n < 10 => n,
         _ => 10,
     }
@@ -844,7 +873,8 @@ fn should_trigger_lint_in_match_expr() {
     // Should trigger lint because the lifetime of the temporary MutexGuard is surprising because it
     // is preserved until the end of the match, but there is no clear indication that this is the
     // case.
-    let _ = match mutex.lock().unwrap().foo() {
+    let value = mutex.lock().unwrap().foo();
+    let _ = match value {
         //~^ ERROR: temporary with significant `Drop` in `match` scrutinee will live until the
         //~| NOTE: this might lead to deadlocks or other unexpected behavior
         true => 0,
