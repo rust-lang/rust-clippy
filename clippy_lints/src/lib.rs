@@ -243,6 +243,7 @@ mod missing_doc;
 mod missing_enforced_import_rename;
 mod missing_fields_in_debug;
 mod missing_inline;
+mod missing_must_use_on_future_types;
 mod missing_trait_methods;
 mod mixed_read_write_in_expression;
 mod module_style;
@@ -974,5 +975,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(arbitrary_source_item_ordering::ArbitrarySourceItemOrdering::new(conf)));
     store.register_late_pass(|_| Box::new(unneeded_struct_pattern::UnneededStructPattern));
     store.register_late_pass(|_| Box::<unnecessary_semicolon::UnnecessarySemicolon>::default());
+    store.register_late_pass(|_| Box::new(missing_must_use_on_future_types::MissingMustUseOnFutureTypes));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
