@@ -1,5 +1,5 @@
 #![warn(clippy::async_yields_async)]
-#![allow(clippy::redundant_async_block)]
+#![allow(clippy::redundant_async_block, clippy::missing_must_use_on_future_types)]
 
 use core::future::Future;
 use core::pin::Pin;

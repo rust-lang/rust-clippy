@@ -1,0 +1,52 @@
+error: this struct implements `Future` but is missing a `#[must_use]` attribute
+  --> tests/ui/missing_must_use_on_future_types.rs:11:1
+   |
+LL | struct BasicStruct;
+   | ^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::missing-must-use-on-future-types` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::missing_must_use_on_future_types)]`
+help: add the attribute
+   |
+LL + #[must_use]
+LL | struct BasicStruct;
+   |
+
+error: this struct implements `Future` but is missing a `#[must_use]` attribute
+  --> tests/ui/missing_must_use_on_future_types.rs:22:1
+   |
+LL | enum BasicEnum {
+   | ^^^^^^^^^^^^^^
+   |
+help: add the attribute
+   |
+LL + #[must_use]
+LL | enum BasicEnum {
+   |
+
+error: this struct implements `Future` but is missing a `#[must_use]` attribute
+  --> tests/ui/missing_must_use_on_future_types.rs:39:1
+   |
+LL | struct SometimesFuture<T>(PhantomData<T>);
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: add the attribute
+   |
+LL + #[must_use]
+LL | struct SometimesFuture<T>(PhantomData<T>);
+   |
+
+error: this struct implements `Future` but is missing a `#[must_use]` attribute
+  --> tests/ui/missing_must_use_on_future_types.rs:69:1
+   |
+LL | pub struct ComplexStruct {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: add the attribute
+   |
+LL + #[must_use]
+LL | pub struct ComplexStruct {
+   |
+
+error: aborting due to 4 previous errors
+
