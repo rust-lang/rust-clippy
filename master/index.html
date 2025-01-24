@@ -15504,14 +15504,14 @@ v.push(2);
 <p>Checks for bit masks that can be replaced by a call
 to <code>trailing_zeros</code></p>
 <h3>Why is this bad?</h3>
-<p><code>x.trailing_zeros() &gt; 4</code> is much clearer than <code>x &amp; 15 == 0</code></p>
+<p><code>x.trailing_zeros() &gt;= 4</code> is much clearer than <code>x &amp; 15 == 0</code></p>
 <h3>Known problems</h3>
 <p>llvm generates better code for <code>x &amp; 15 == 0</code> on x86</p>
 <h3>Example</h3>
 <pre><code class="language-rust">if x &amp; 0b1111 == 0 { }
 </code></pre>
 <p>Use instead:</p>
-<pre><code class="language-rust">if x.trailing_zeros() &gt; 4 { }
+<pre><code class="language-rust">if x.trailing_zeros() &gt;= 4 { }
 </code></pre>
 <h3>Configuration</h3>
 <ul>
