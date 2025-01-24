@@ -72,6 +72,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::byte_char_slices::BYTE_CHAR_SLICES_INFO,
     crate::cargo::CARGO_COMMON_METADATA_INFO,
     crate::cargo::LINT_GROUPS_PRIORITY_INFO,
+    crate::cargo::MISSING_RUST_VERSION_INFO,
     crate::cargo::MULTIPLE_CRATE_VERSIONS_INFO,
     crate::cargo::NEGATIVE_FEATURE_NAMES_INFO,
     crate::cargo::REDUNDANT_FEATURE_NAMES_INFO,

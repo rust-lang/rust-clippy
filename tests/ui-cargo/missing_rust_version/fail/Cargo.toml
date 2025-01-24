@@ -1,0 +1,6 @@
+[package]
+name = "missing_rust_version"
+version = "0.1.0"
+publish = false
+
+[workspace]

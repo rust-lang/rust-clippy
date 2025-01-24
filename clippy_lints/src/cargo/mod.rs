@@ -1,6 +1,7 @@
 mod common_metadata;
 mod feature_name;
 mod lint_groups_priority;
+mod missing_rust_version;
 mod multiple_crate_versions;
 mod wildcard_dependencies;
 
@@ -8,6 +9,7 @@ use cargo_metadata::MetadataCommand;
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::is_lint_allowed;
+use clippy_utils::msrvs::Msrv;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::hir_id::CRATE_HIR_ID;
 use rustc_lint::{LateContext, LateLintPass, Lint};
@@ -213,9 +215,37 @@ declare_clippy_lint! {
     "a lint group in `Cargo.toml` at the same priority as a lint"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks to see if the `rust-version` field is defined in `Cargo.toml`.
+    ///
+    /// ### Why is this bad?
+    /// Starting with version 3, the [resolver] takes this field into account
+    /// when picking dependencies.
+    ///
+    /// ### Example
+    /// ```toml
+    /// [package]
+    /// # ...
+    /// ```
+    /// Use instead:
+    /// ```toml
+    /// [package]
+    /// # ...
+    /// rust-version = "1.84"
+    /// ```
+    ///
+    /// [resolver]: https://doc.rust-lang.org/cargo/reference/resolver.html#rust-version
+    #[clippy::version = "1.86.0"]
+    pub MISSING_RUST_VERSION,
+    cargo,
+    "the `rust-version` field is not defined in `Cargo.toml`"
+}
+
 pub struct Cargo {
     allowed_duplicate_crates: FxHashSet<String>,
     ignore_publish: bool,
+    msrv: Msrv,
 }
 
 impl_lint_pass!(Cargo => [
@@ -225,6 +255,7 @@ impl_lint_pass!(Cargo => [
     MULTIPLE_CRATE_VERSIONS,
     WILDCARD_DEPENDENCIES,
     LINT_GROUPS_PRIORITY,
+    MISSING_RUST_VERSION,
 ]);
 
 impl Cargo {
@@ -232,6 +263,7 @@ impl Cargo {
         Self {
             allowed_duplicate_crates: conf.allowed_duplicate_crates.iter().cloned().collect(),
             ignore_publish: conf.cargo_ignore_publish,
+            msrv: conf.msrv.clone(),
         }
     }
 }
@@ -243,6 +275,7 @@ impl LateLintPass<'_> for Cargo {
             REDUNDANT_FEATURE_NAMES,
             NEGATIVE_FEATURE_NAMES,
             WILDCARD_DEPENDENCIES,
+            MISSING_RUST_VERSION,
         ];
         static WITH_DEPS_LINTS: &[&Lint] = &[MULTIPLE_CRATE_VERSIONS];
 
@@ -256,6 +289,7 @@ impl LateLintPass<'_> for Cargo {
                 Ok(metadata) => {
                     common_metadata::check(cx, &metadata, self.ignore_publish);
                     feature_name::check(cx, &metadata);
+                    missing_rust_version::check(cx, &metadata, &self.msrv);
                     wildcard_dependencies::check(cx, &metadata);
                 },
                 Err(e) => {
@@ -282,4 +316,6 @@ impl LateLintPass<'_> for Cargo {
             }
         }
     }
+
+    extract_msrv_attr!(LateContext);
 }

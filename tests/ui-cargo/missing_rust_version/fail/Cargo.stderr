@@ -1,0 +1,6 @@
+error: package `missing_rust_version` is missing the `rust-version` field
+  |
+  = note: `-D clippy::missing-rust-version` implied by `-D warnings`
+  = help: to override `-D warnings` add `#[allow(clippy::missing_rust_version)]`
+
+error: could not compile `missing_rust_version` (bin "missing_rust_version") due to 1 previous error
