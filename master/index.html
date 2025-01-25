@@ -9698,12 +9698,12 @@ got from an argument in some other way (<code>fn foo(bar: &amp;[*const u8])</cod
 unsafe { foo(valid_ptr); }
 </code></pre>
 </div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">pre 1.29.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+not_unsafe_ptr_arg_deref">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/functions/mod.rs#L68">View Source</a></div></div></div></article><article class="panel panel-default" id="obfuscated_if_else"><input id="label-obfuscated_if_else" type="checkbox"><label for="label-obfuscated_if_else" onclick="highlightIfNeeded('obfuscated_if_else')"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-obfuscated_if_else"><span>obfuscated_if_else</span> <a href="#obfuscated_if_else" onclick="lintAnchor(event)" class="anchor label label-default">&para;</a> <a href="" class="anchor label label-default" onclick="copyToClipboard(event)">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-style">style</span> <span class="label label-lint-level label-lint-level-warn">warn</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
-<p>Checks for usage of <code>.then_some(..).unwrap_or(..)</code></p>
+<p>Checks for unnecessary method chains that can be simplified into <code>if .. else ..</code>.</p>
 <h3>Why is this bad?</h3>
 <p>This can be written more clearly with <code>if .. else ..</code></p>
 <h3>Limitations</h3>
 <p>This lint currently only looks for usages of
-<code>.then_some(..).unwrap_or(..)</code>, but will be expanded
+<code>.then_some(..).unwrap_or(..)</code> and <code>.then(..).unwrap_or(..)</code>, but will be expanded
 to account for similar patterns.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">let x = true;
