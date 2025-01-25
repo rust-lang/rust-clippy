@@ -9549,7 +9549,35 @@ or specify correct bounds on generic type parameters (<code>T: Send</code>).</p>
 <p>(default: <code>true</code>)</p>
 </li>
 </ul>
-</div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.57.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+non_send_fields_in_send_ty">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/non_send_fields_in_send_ty.rs#L15">View Source</a></div></div></div></article><article class="panel panel-default" id="non_zero_suggestions"><input id="label-non_zero_suggestions" type="checkbox"><label for="label-non_zero_suggestions" onclick="highlightIfNeeded('non_zero_suggestions')"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-non_zero_suggestions"><span>non_zero_suggestions</span> <a href="#non_zero_suggestions" onclick="lintAnchor(event)" class="anchor label label-default">&para;</a> <a href="" class="anchor label label-default" onclick="copyToClipboard(event)">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-restriction">restriction</span> <span class="label label-lint-level label-lint-level-allow">allow</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
+</div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.57.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+non_send_fields_in_send_ty">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/non_send_fields_in_send_ty.rs#L15">View Source</a></div></div></div></article><article class="panel panel-default" id="non_std_lazy_statics"><input id="label-non_std_lazy_statics" type="checkbox"><label for="label-non_std_lazy_statics" onclick="highlightIfNeeded('non_std_lazy_statics')"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-non_std_lazy_statics"><span>non_std_lazy_statics</span> <a href="#non_std_lazy_statics" onclick="lintAnchor(event)" class="anchor label label-default">&para;</a> <a href="" class="anchor label label-default" onclick="copyToClipboard(event)">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-pedantic">pedantic</span> <span class="label label-lint-level label-lint-level-allow">allow</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
+<p>Lints when <code>once_cell::sync::Lazy</code> or <code>lazy_static!</code> are used to define a static variable,
+and suggests replacing such cases with <code>std::sync::LazyLock</code> instead.</p>
+<p>Note: This lint will not trigger in crate with <code>no_std</code> context, or with MSRV &lt; 1.80.0. It
+also will not trigger on <code>once_cell::sync::Lazy</code> usage in crates which use other types
+from <code>once_cell</code>, such as <code>once_cell::race::OnceBox</code>.</p>
+<h3>Why restrict this?</h3>
+<ul>
+<li>Reduces the need for an extra dependency</li>
+<li>Enforce convention of using standard library types when possible</li>
+</ul>
+<h3>Example</h3>
+<pre><code class="language-rust">lazy_static! {
+    static ref FOO: String = "foo".to_uppercase();
+}
+static BAR: once_cell::sync::Lazy&lt;String&gt; = once_cell::sync::Lazy::new(|| "BAR".to_lowercase());
+</code></pre>
+<p>Use instead:</p>
+<pre><code class="language-rust">static FOO: std::sync::LazyLock&lt;String&gt; = std::sync::LazyLock::new(|| "FOO".to_lowercase());
+static BAR: std::sync::LazyLock&lt;String&gt; = std::sync::LazyLock::new(|| "BAR".to_lowercase());
+</code></pre>
+<h3>Configuration</h3>
+<ul>
+<li>
+<p><code>msrv</code>:  The minimum rust version that the project supports. Defaults to the <code>rust-version</code> field in <code>Cargo.toml</code></p>
+<p>(default: <code>current version</code>)</p>
+</li>
+</ul>
+</div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.81.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+non_std_lazy_statics">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/non_std_lazy_statics.rs#L16">View Source</a></div></div></div></article><article class="panel panel-default" id="non_zero_suggestions"><input id="label-non_zero_suggestions" type="checkbox"><label for="label-non_zero_suggestions" onclick="highlightIfNeeded('non_zero_suggestions')"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-non_zero_suggestions"><span>non_zero_suggestions</span> <a href="#non_zero_suggestions" onclick="lintAnchor(event)" class="anchor label label-default">&para;</a> <a href="" class="anchor label label-default" onclick="copyToClipboard(event)">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-restriction">restriction</span> <span class="label label-lint-level label-lint-level-allow">allow</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
 <p>Checks for conversions from <code>NonZero</code> types to regular integer types,
 and suggests using <code>NonZero</code> types for the target as well.</p>
 <h3>Why is this bad?</h3>
