@@ -1,6 +1,4 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::snippet_with_applicability;
-use rustc_errors::Applicability;
+use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_hir::*;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::adjustment::Adjust;
@@ -33,21 +31,18 @@ declare_lint_pass!(DerefCoercions => [DEREF_COERCIONS]);
 
 impl LateLintPass<'_> for DerefCoercions {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {
-        let mut applicability = Applicability::MachineApplicable;
-        let snippet = snippet_with_applicability(cx, expr.span, "..", &mut applicability);
         let source = cx.typeck_results().expr_ty(expr).peel_refs();
         for adjustment in cx.typeck_results().expr_adjustments(expr) {
             if let Adjust::Deref(_) = adjustment.kind
                 && adjustment.target.peel_refs() != source
             {
-                span_lint_and_sugg(
+                span_lint_and_help(
                     cx,
                     DEREF_COERCIONS,
                     expr.span,
                     "implicit deref coercion",
-                    "consider using `deref()`",
-                    format!("{snippet}.deref()"),
-                    applicability,
+                    None,
+                    "consider using `deref() or deref_mut()`",
                 );
             }
         }
