@@ -870,14 +870,6 @@ every time you refer to the const a fresh instance of the <code>Cell</code> or <
 or <code>AtomicXxxx</code> will be created, which defeats the whole purpose of using
 these types in the first place.</p>
 <p>The <code>const</code> value should be stored inside a <code>static</code> item.</p>
-<h3>Known problems</h3>
-<p>When an enum has variants with interior mutability, use of its non
-interior mutable variants can generate false positives. See issue
-<a href="https://github.com/rust-lang/rust-clippy/issues/3962">#3962</a></p>
-<p>Types that have underlying or potential interior mutability trigger the lint whether
-the interior mutable field is used or not. See issues
-<a href="https://github.com/rust-lang/rust-clippy/issues/5812">#5812</a> and
-<a href="https://github.com/rust-lang/rust-clippy/issues/3825">#3825</a></p>
 <h3>Example</h3>
 <pre><code class="language-rust">use std::sync::atomic::{AtomicUsize, Ordering::SeqCst};
 const CONST_ATOM: AtomicUsize = AtomicUsize::new(12);
