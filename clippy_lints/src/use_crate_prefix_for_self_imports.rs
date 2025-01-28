@@ -1,12 +1,13 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_opt;
 use def_id::LOCAL_CRATE;
+use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{Item, ItemKind, def_id};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
-use rustc_session::declare_lint_pass;
-use rustc_span::{FileName, RealFileName};
+use rustc_session::impl_lint_pass;
+use rustc_span::{BytePos, FileName, RealFileName, Symbol};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -50,7 +51,12 @@ declare_clippy_lint! {
     "checks that imports from the current crate use the `crate::` prefix"
 }
 
-declare_lint_pass!(UseCratePrefixForSelfImports => [USE_CRATE_PREFIX_FOR_SELF_IMPORTS]);
+#[derive(Clone, Default)]
+pub struct UseCratePrefixForSelfImports {
+    mod_line: FxHashMap<Symbol, BytePos>,
+}
+
+impl_lint_pass!(UseCratePrefixForSelfImports => [USE_CRATE_PREFIX_FOR_SELF_IMPORTS]);
 
 impl LateLintPass<'_> for UseCratePrefixForSelfImports {
     fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
@@ -65,6 +71,10 @@ impl LateLintPass<'_> for UseCratePrefixForSelfImports {
             return;
         }
 
+        if let ItemKind::Mod(_) = &item.kind {
+            self.mod_line.insert(item.ident.name, item.span.hi());
+        }
+
         if let ItemKind::Use(use_path, _) = &item.kind {
             if let Some(segment) = use_path.segments.first()
                 && let Res::Def(_, def_id) = segment.res
@@ -75,15 +85,21 @@ impl LateLintPass<'_> for UseCratePrefixForSelfImports {
                     && root != rustc_span::symbol::kw::Super
                     && root != rustc_span::symbol::kw::SelfLower
                 {
-                    span_lint_and_sugg(
-                        cx,
-                        USE_CRATE_PREFIX_FOR_SELF_IMPORTS,
-                        segment.ident.span,
-                        "this import is not clear",
-                        "prefix with `crate::`",
-                        format!("crate::{}", snippet_opt(cx, segment.ident.span).unwrap()),
-                        Applicability::MachineApplicable,
-                    );
+                    let should_lint = match self.mod_line.get(&root) {
+                        Some(bytepos) => item.span.lo() - *bytepos != BytePos(1),
+                        None => true,
+                    };
+                    if should_lint {
+                        span_lint_and_sugg(
+                            cx,
+                            USE_CRATE_PREFIX_FOR_SELF_IMPORTS,
+                            segment.ident.span,
+                            "this import is not clear",
+                            "prefix with `crate::`",
+                            format!("crate::{}", snippet_opt(cx, segment.ident.span).unwrap()),
+                            Applicability::MachineApplicable,
+                        );
+                    }
                 }
             }
         }
