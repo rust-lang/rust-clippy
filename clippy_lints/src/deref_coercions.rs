@@ -18,6 +18,7 @@ declare_clippy_lint! {
     /// ```
     /// Use instead:
     /// ```no_run
+    /// use std::ops::Deref;
     /// let x = &Box::new(true);
     /// let y: &bool = x.deref();
     /// ```
