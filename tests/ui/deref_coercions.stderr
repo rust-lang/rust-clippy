@@ -2,8 +2,9 @@ error: implicit deref coercion
   --> tests/ui/deref_coercions.rs:6:20
    |
 LL |     let _: &bool = x;
-   |                    ^ help: consider using `deref()`: `x.deref()`
+   |                    ^
    |
+   = help: consider using `deref() or deref_mut()`
    = note: `-D clippy::deref-coercions` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::deref_coercions)]`
 
