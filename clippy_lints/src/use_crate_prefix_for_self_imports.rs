@@ -80,24 +80,32 @@ impl<'a, 'tcx> LateLintPass<'tcx> for UseCratePrefixForSelfImports<'a, 'tcx> {
             _ => return,
         }
 
-        match self.use_block.last() {
-            Some(prev_item) => {
-                if item.span.lo() - prev_item.span.hi() == BytePos(1) {
-                    self.use_block.push(item);
-                } else {
-                    self.deal(cx);
-                    self.use_block.clear();
-                    self.use_block.push(item);
-                }
-            },
-            None => {
-                self.use_block.push(item);
-            },
+        if self.in_same_block(item) {
+            self.use_block.push(item);
+        } else {
+            self.deal(cx);
+            self.use_block.clear();
+            self.use_block.push(item);
         }
     }
 }
 
 impl<'tcx> UseCratePrefixForSelfImports<'_, 'tcx> {
+    fn in_same_block(&self, item: &Item<'tcx>) -> bool {
+        if self.use_block.is_empty() {
+            return true;
+        }
+        if self.use_block.iter().any(|x| x.span.contains(item.span)) {
+            return true;
+        }
+        if let Some(prev_item) = self.use_block.last()
+            && item.span.lo() - prev_item.span.hi() == BytePos(1)
+        {
+            return true;
+        }
+        false
+    }
+
     fn deal(&self, cx: &LateContext<'tcx>) {
         let mod_names: FxHashSet<Symbol> = self
             .use_block
