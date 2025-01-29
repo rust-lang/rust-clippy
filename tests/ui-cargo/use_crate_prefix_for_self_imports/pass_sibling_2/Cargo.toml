@@ -1,5 +1,5 @@
 [package]
-name = "fail_sibling"
+name = "pass_sibling_2"
 version = "0.1.0"
 edition = "2021"
 publish = false
