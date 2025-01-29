@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_hir_and_then};
-use clippy_utils::source::{SpanRangeExt, snippet_with_context};
-use clippy_utils::sugg::has_enclosing_paren;
+use clippy_utils::source::SpanRangeExt;
+use clippy_utils::sugg::{Sugg, has_enclosing_paren};
 use clippy_utils::visitors::for_each_expr;
 use clippy_utils::{
     binary_expr_needs_parentheses, fn_def_id, is_from_proc_macro, is_inside_let_else, is_res_lang_ctor,
@@ -137,7 +137,6 @@ enum RetReplacement<'tcx> {
     Empty,
     Block,
     Unit,
-    NeedsPar(Cow<'tcx, str>, Applicability),
     Expr(Cow<'tcx, str>, Applicability),
 }
 
@@ -147,13 +146,12 @@ impl RetReplacement<'_> {
             Self::Empty | Self::Expr(..) => "remove `return`",
             Self::Block => "replace `return` with an empty block",
             Self::Unit => "replace `return` with a unit value",
-            Self::NeedsPar(..) => "remove `return` and wrap the sequence with parentheses",
         }
     }
 
     fn applicability(&self) -> Applicability {
         match self {
-            Self::Expr(_, ap) | Self::NeedsPar(_, ap) => *ap,
+            Self::Expr(_, ap) => *ap,
             _ => Applicability::MachineApplicable,
         }
     }
@@ -165,7 +163,6 @@ impl Display for RetReplacement<'_> {
             Self::Empty => write!(f, ""),
             Self::Block => write!(f, "{{}}"),
             Self::Unit => write!(f, "()"),
-            Self::NeedsPar(inner, _) => write!(f, "({inner})"),
             Self::Expr(inner, _) => write!(f, "{inner}"),
         }
     }
@@ -365,12 +362,13 @@ fn check_final_expr<'tcx>(
                 }
 
                 let mut applicability = Applicability::MachineApplicable;
-                let (snippet, _) = snippet_with_context(cx, inner_expr.span, ret_span.ctxt(), "..", &mut applicability);
-                if binary_expr_needs_parentheses(inner_expr) {
-                    RetReplacement::NeedsPar(snippet, applicability)
-                } else {
-                    RetReplacement::Expr(snippet, applicability)
-                }
+                let sugg = Sugg::hir_with_context(cx, inner_expr, ret_span.ctxt(), "..", &mut applicability);
+                let snippet = match sugg {
+                    Sugg::BinOp(..) => sugg.maybe_par().to_string(),
+                    _ => sugg.to_string(),
+                };
+
+                RetReplacement::Expr(snippet.into(), applicability)
             } else {
                 match match_ty_opt {
                     Some(match_ty) => {
