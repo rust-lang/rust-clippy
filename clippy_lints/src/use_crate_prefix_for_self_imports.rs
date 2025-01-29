@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_opt;
 use def_id::LOCAL_CRATE;
-use rustc_data_structures::fx::FxHashMap;
+use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{Item, ItemKind, def_id};
@@ -52,44 +52,74 @@ declare_clippy_lint! {
 }
 
 #[derive(Clone, Default)]
-pub struct UseCratePrefixForSelfImports {
-    mod_line: FxHashMap<Symbol, BytePos>,
+pub struct UseCratePrefixForSelfImports<'a, 'tcx> {
+    /// code block of `use <foo>` or `mod <foo>`
+    use_block: Vec<&'a Item<'tcx>>,
 }
 
-impl_lint_pass!(UseCratePrefixForSelfImports => [USE_CRATE_PREFIX_FOR_SELF_IMPORTS]);
+impl_lint_pass!(UseCratePrefixForSelfImports<'_, '_> => [USE_CRATE_PREFIX_FOR_SELF_IMPORTS]);
 
-impl LateLintPass<'_> for UseCratePrefixForSelfImports {
-    fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
+impl<'a, 'tcx> LateLintPass<'tcx> for UseCratePrefixForSelfImports<'a, 'tcx> {
+    fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'a Item<'tcx>) {
         let FileName::Real(RealFileName::LocalPath(p)) = cx.sess().source_map().span_to_filename(item.span) else {
+            self.use_block.clear();
             return;
         };
         let Some(file_name) = p.file_name() else {
+            self.use_block.clear();
             return;
         };
         // only check `main.rs` and `lib.rs`
         if !(file_name == "main.rs" || file_name == "lib.rs") {
+            self.use_block.clear();
             return;
         }
 
-        if let ItemKind::Mod(_) = &item.kind {
-            self.mod_line.insert(item.ident.name, item.span.hi());
+        match item.kind {
+            ItemKind::Mod(_) | ItemKind::Use(_, _) => {},
+            _ => return,
         }
 
-        if let ItemKind::Use(use_path, _) = &item.kind {
-            if let Some(segment) = use_path.segments.first()
-                && let Res::Def(_, def_id) = segment.res
-                && def_id.krate == LOCAL_CRATE
-            {
-                let root = segment.ident.name;
-                if root != rustc_span::symbol::kw::Crate
-                    && root != rustc_span::symbol::kw::Super
-                    && root != rustc_span::symbol::kw::SelfLower
+        match self.use_block.last() {
+            Some(prev_item) => {
+                if item.span.lo() - prev_item.span.hi() == BytePos(1) {
+                    self.use_block.push(item);
+                } else {
+                    self.deal(cx);
+                    self.use_block.clear();
+                    self.use_block.push(item);
+                }
+            },
+            None => {
+                self.use_block.push(item);
+            },
+        }
+    }
+}
+
+impl<'tcx> UseCratePrefixForSelfImports<'_, 'tcx> {
+    fn deal(&self, cx: &LateContext<'tcx>) {
+        let mod_names: FxHashSet<Symbol> = self
+            .use_block
+            .iter()
+            .filter_map(|item| match item.kind {
+                ItemKind::Mod(_) => Some(item.ident.name),
+                _ => None,
+            })
+            .collect();
+
+        for item in &self.use_block {
+            if let ItemKind::Use(use_path, _) = &item.kind {
+                if let Some(segment) = use_path.segments.first()
+                    && let Res::Def(_, def_id) = segment.res
+                    && def_id.krate == LOCAL_CRATE
                 {
-                    let should_lint = match self.mod_line.get(&root) {
-                        Some(bytepos) => item.span.lo() - *bytepos != BytePos(1),
-                        None => true,
-                    };
-                    if should_lint {
+                    let root = segment.ident.name;
+                    if root != rustc_span::symbol::kw::Crate
+                        && root != rustc_span::symbol::kw::Super
+                        && root != rustc_span::symbol::kw::SelfLower
+                        && !mod_names.contains(&root)
+                    {
                         span_lint_and_sugg(
                             cx,
                             USE_CRATE_PREFIX_FOR_SELF_IMPORTS,
