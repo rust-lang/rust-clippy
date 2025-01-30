@@ -4,10 +4,10 @@ use def_id::LOCAL_CRATE;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
-use rustc_hir::{Item, ItemKind, def_id};
+use rustc_hir::{Attribute, Item, ItemKind, UsePath, def_id};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::impl_lint_pass;
-use rustc_span::{BytePos, FileName, RealFileName, Symbol};
+use rustc_span::{BytePos, FileName, RealFileName, Span, Symbol};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -53,8 +53,12 @@ declare_clippy_lint! {
 
 #[derive(Clone, Default)]
 pub struct UseCratePrefixForSelfImports<'a, 'tcx> {
-    /// code block of `use <foo>` or `mod <foo>`
-    use_block: Vec<&'a Item<'tcx>>,
+    /// collect `use` in current block
+    use_block: Vec<&'a UsePath<'tcx>>,
+    /// collect `mod` in current block
+    mod_names: FxHashSet<Symbol>,
+    /// spans of `mod`, `use`, and attributes
+    spans: Vec<Span>,
 }
 
 impl_lint_pass!(UseCratePrefixForSelfImports<'_, '_> => [USE_CRATE_PREFIX_FOR_SELF_IMPORTS]);
@@ -62,11 +66,11 @@ impl_lint_pass!(UseCratePrefixForSelfImports<'_, '_> => [USE_CRATE_PREFIX_FOR_SE
 impl<'a, 'tcx> LateLintPass<'tcx> for UseCratePrefixForSelfImports<'a, 'tcx> {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'a Item<'tcx>) {
         let FileName::Real(RealFileName::LocalPath(p)) = cx.sess().source_map().span_to_filename(item.span) else {
-            self.use_block.clear();
+            self.clear();
             return;
         };
         let Some(file_name) = p.file_name() else {
-            self.use_block.clear();
+            self.clear();
             return;
         };
         // only check `main.rs` and `lib.rs`
@@ -74,73 +78,97 @@ impl<'a, 'tcx> LateLintPass<'tcx> for UseCratePrefixForSelfImports<'a, 'tcx> {
             return;
         }
 
-        match item.kind {
-            ItemKind::Mod(_) | ItemKind::Use(_, _) => {},
-            _ => return,
-        }
-
-        if self.in_same_block(item) {
-            self.use_block.push(item);
+        if self.in_same_block(item.span) {
+            self.insert_item(item);
         } else {
             self.deal(cx);
-            self.use_block.clear();
-            self.use_block.push(item);
+            self.clear();
+            self.insert_item(item);
+        }
+    }
+
+    fn check_attribute(&mut self, cx: &LateContext<'tcx>, attribute: &'a Attribute) {
+        let FileName::Real(RealFileName::LocalPath(p)) = cx.sess().source_map().span_to_filename(attribute.span())
+        else {
+            self.clear();
+            return;
+        };
+        let Some(file_name) = p.file_name() else {
+            self.clear();
+            return;
+        };
+        // only check `main.rs` and `lib.rs`
+        if !(file_name == "main.rs" || file_name == "lib.rs") {
+            return;
+        }
+
+        if self.in_same_block(attribute.span()) {
+            self.spans.push(attribute.span());
+        } else {
+            self.deal(cx);
+            self.clear();
+            self.spans.push(attribute.span());
         }
     }
 }
 
 impl<'tcx> UseCratePrefixForSelfImports<'_, 'tcx> {
-    fn in_same_block(&self, item: &Item<'tcx>) -> bool {
-        if self.use_block.is_empty() {
+    fn in_same_block(&self, span: Span) -> bool {
+        if self.spans.is_empty() {
             return true;
         }
-        if self.use_block.iter().any(|x| x.span.contains(item.span)) {
+        if self.spans.iter().any(|x| x.contains(span)) {
             return true;
         }
-        if self
-            .use_block
-            .iter()
-            .any(|x| item.span.lo() - x.span.hi() == BytePos(1))
-        {
+        if self.spans.iter().any(|x| span.lo() - x.hi() == BytePos(1)) {
             return true;
         }
         false
     }
 
-    fn deal(&self, cx: &LateContext<'tcx>) {
-        let mod_names: FxHashSet<Symbol> = self
-            .use_block
-            .iter()
-            .filter_map(|item| match item.kind {
-                ItemKind::Mod(_) => Some(item.ident.name),
-                _ => None,
-            })
-            .collect();
+    fn insert_item(&mut self, item: &Item<'tcx>) {
+        match item.kind {
+            ItemKind::Mod(_) => {
+                self.spans.push(item.span);
+                self.mod_names.insert(item.ident.name);
+            },
+            ItemKind::Use(use_tree, _) => {
+                self.spans.push(item.span);
+                self.use_block.push(use_tree);
+            },
+            _ => {},
+        }
+    }
 
-        for item in &self.use_block {
-            if let ItemKind::Use(use_path, _) = &item.kind {
-                if let Some(segment) = use_path.segments.first()
-                    && let Res::Def(_, def_id) = segment.res
-                    && def_id.krate == LOCAL_CRATE
+    fn deal(&self, cx: &LateContext<'tcx>) {
+        for use_path in &self.use_block {
+            if let Some(segment) = use_path.segments.first()
+                && let Res::Def(_, def_id) = segment.res
+                && def_id.krate == LOCAL_CRATE
+            {
+                let root = segment.ident.name;
+                if root != rustc_span::symbol::kw::Crate
+                    && root != rustc_span::symbol::kw::Super
+                    && root != rustc_span::symbol::kw::SelfLower
+                    && !self.mod_names.contains(&root)
                 {
-                    let root = segment.ident.name;
-                    if root != rustc_span::symbol::kw::Crate
-                        && root != rustc_span::symbol::kw::Super
-                        && root != rustc_span::symbol::kw::SelfLower
-                        && !mod_names.contains(&root)
-                    {
-                        span_lint_and_sugg(
-                            cx,
-                            USE_CRATE_PREFIX_FOR_SELF_IMPORTS,
-                            segment.ident.span,
-                            "this import is not clear",
-                            "prefix with `crate::`",
-                            format!("crate::{}", snippet_opt(cx, segment.ident.span).unwrap()),
-                            Applicability::MachineApplicable,
-                        );
-                    }
+                    span_lint_and_sugg(
+                        cx,
+                        USE_CRATE_PREFIX_FOR_SELF_IMPORTS,
+                        segment.ident.span,
+                        "this import is not clear",
+                        "prefix with `crate::`",
+                        format!("crate::{}", snippet_opt(cx, segment.ident.span).unwrap()),
+                        Applicability::MachineApplicable,
+                    );
                 }
             }
         }
+    }
+
+    fn clear(&mut self) {
+        self.use_block.clear();
+        self.mod_names.clear();
+        self.spans.clear();
     }
 }
