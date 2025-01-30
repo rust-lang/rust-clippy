@@ -498,7 +498,7 @@ for the MSRV version itself.
 
 #[clippy::msrv = "1.44"]
 fn msrv_1_44() {
-    /* something that would trigger the lint */
+    /* something that would not trigger the lint */
 }
 
 #[clippy::msrv = "1.45"]
