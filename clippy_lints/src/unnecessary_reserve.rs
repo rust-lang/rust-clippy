@@ -83,8 +83,7 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryReserve {
     extract_msrv_attr!(LateContext);
 }
 
-#[must_use]
-fn acceptable_type<'tcx>(cx: &LateContext<'tcx>, struct_calling_on: &Expr<'_>) -> bool {
+fn acceptable_type(cx: &LateContext<'_>, struct_calling_on: &Expr<'_>) -> bool {
     let acceptable_types = [sym::Vec, sym::VecDeque];
     acceptable_types.iter().any(|&acceptable_ty| {
         match cx.typeck_results().expr_ty(struct_calling_on).peel_refs().kind() {
