@@ -1,0 +1,96 @@
+error: useless lint attribute
+  --> tests/ui/unnecessary_reserve.rs:4:1
+   |
+LL | #[allow(clippy::unnecessary_operation)]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: if you just forgot a `!`, use: `#![allow(clippy::unnecessary_operation)]`
+   |
+   = note: `#[deny(clippy::useless_attribute)]` on by default
+
+error: unnecessary call to `reserve`
+  --> tests/ui/unnecessary_reserve.rs:14:18
+   |
+LL |   fn vec_reserve() {
+   |  __________________^
+LL | |     let mut vec: Vec<usize> = vec![];
+LL | |     let array1: &[usize] = &[1, 2];
+LL | |     let array2: &[usize] = &[3, 4];
+...  |
+LL | |     vec.reserve(array1.len());
+   | |     ------------------------- help: remove this line
+...  |
+LL | |     vec.extend([1])
+LL | | }
+   | |_^
+   |
+   = note: `-D clippy::unnecessary-reserve` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_reserve)]`
+
+error: unnecessary call to `reserve`
+  --> tests/ui/unnecessary_reserve.rs:14:18
+   |
+LL |   fn vec_reserve() {
+   |  __________________^
+LL | |     let mut vec: Vec<usize> = vec![];
+LL | |     let array1: &[usize] = &[1, 2];
+LL | |     let array2: &[usize] = &[3, 4];
+...  |
+LL | |     vec.reserve(array1.len());
+   | |     ------------------------- help: remove this line
+...  |
+LL | |     vec.extend([1])
+LL | | }
+   | |_^
+
+error: unnecessary call to `reserve`
+  --> tests/ui/unnecessary_reserve.rs:32:5
+   |
+LL | /     {
+LL | |         vec.reserve(array1.len());
+   | |         ------------------------- help: remove this line
+LL | |         vec.extend(array1)
+LL | |     };
+   | |_____^
+
+error: unnecessary call to `reserve`
+  --> tests/ui/unnecessary_reserve.rs:14:18
+   |
+LL |   fn vec_reserve() {
+   |  __________________^
+LL | |     let mut vec: Vec<usize> = vec![];
+LL | |     let array1: &[usize] = &[1, 2];
+LL | |     let array2: &[usize] = &[3, 4];
+...  |
+LL | |     vec.reserve(array1.len());
+   | |     ------------------------- help: remove this line
+...  |
+LL | |     vec.extend([1])
+LL | | }
+   | |_^
+
+error: call to `reserve` immediately after creation
+  --> tests/ui/unnecessary_reserve.rs:43:5
+   |
+LL | /     let mut other_vec: Vec<usize> = vec![];
+LL | |     other_vec.reserve(1);
+   | |_________________________^ help: consider using `Vec::with_capacity(/* Space hint */)`: `let mut other_vec: Vec<usize> = Vec::with_capacity(1);`
+   |
+   = note: `-D clippy::reserve-after-initialization` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::reserve_after_initialization)]`
+
+error: unnecessary call to `reserve`
+  --> tests/ui/unnecessary_reserve.rs:48:24
+   |
+LL |   fn vec_deque_reserve() {
+   |  ________________________^
+LL | |     let mut vec_deque: VecDeque<usize> = [1].into();
+LL | |     let array: &[usize] = &[1, 2];
+...  |
+LL | |     vec_deque.reserve(array.len());
+   | |     ------------------------------ help: remove this line
+...  |
+LL | |     vec_deque.extend([1])
+LL | | }
+   | |_^
+
+error: aborting due to 7 previous errors
+
