@@ -1,7 +1,7 @@
 error: this import is not clear
- --> src/main.rs:1:5
+ --> src/main.rs:3:5
   |
-1 | use foo::Foo;
+3 | use foo::Foo;
   |     ^^^ help: prefix with `crate::`: `crate::foo`
   |
   = note: `-D clippy::use-crate-prefix-for-self-imports` implied by `-D warnings`
