@@ -1,5 +1,4 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::snippet_opt;
 use def_id::LOCAL_CRATE;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
@@ -158,7 +157,7 @@ impl<'tcx> UseCratePrefixForSelfImports<'_, 'tcx> {
                         segment.ident.span,
                         "this import is not clear",
                         "prefix with `crate::`",
-                        format!("crate::{}", snippet_opt(cx, segment.ident.span).unwrap()),
+                        format!("crate::{root}"),
                         Applicability::MachineApplicable,
                     );
                 }
