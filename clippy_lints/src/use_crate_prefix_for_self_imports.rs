@@ -98,8 +98,10 @@ impl<'tcx> UseCratePrefixForSelfImports<'_, 'tcx> {
         if self.use_block.iter().any(|x| x.span.contains(item.span)) {
             return true;
         }
-        if let Some(prev_item) = self.use_block.last()
-            && item.span.lo() - prev_item.span.hi() == BytePos(1)
+        if self
+            .use_block
+            .iter()
+            .any(|x| item.span.lo() - x.span.hi() == BytePos(1))
         {
             return true;
         }
