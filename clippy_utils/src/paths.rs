@@ -15,6 +15,7 @@ pub const APPLICABILITY_VALUES: [[&str; 3]; 4] = [
 pub const DIAG: [&str; 2] = ["rustc_errors", "Diag"];
 pub const EARLY_CONTEXT: [&str; 2] = ["rustc_lint", "EarlyContext"];
 pub const EARLY_LINT_PASS: [&str; 3] = ["rustc_lint", "passes", "EarlyLintPass"];
+pub const ITER_EXTEND: [&str; 6] = ["core", "iter", "traits", "collect", "Extend", "extend"];
 pub const IDENT: [&str; 3] = ["rustc_span", "symbol", "Ident"];
 pub const IDENT_AS_STR: [&str; 4] = ["rustc_span", "symbol", "Ident", "as_str"];
 pub const KW_MODULE: [&str; 3] = ["rustc_span", "symbol", "kw"];
