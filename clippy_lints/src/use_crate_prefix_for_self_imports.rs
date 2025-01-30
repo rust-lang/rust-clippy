@@ -71,7 +71,6 @@ impl<'a, 'tcx> LateLintPass<'tcx> for UseCratePrefixForSelfImports<'a, 'tcx> {
         };
         // only check `main.rs` and `lib.rs`
         if !(file_name == "main.rs" || file_name == "lib.rs") {
-            self.use_block.clear();
             return;
         }
 
