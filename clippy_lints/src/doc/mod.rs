@@ -591,7 +591,7 @@ declare_clippy_lint! {
     /// ```no_run
     /// #![cfg_attr(doc, doc = include_str!("some_file.md"))]
     /// ```
-    #[clippy::version = "1.84.0"]
+    #[clippy::version = "1.86.0"]
     pub DOC_INCLUDE_WITHOUT_CFG,
     restriction,
     "check if files included in documentation are behind `cfg(doc)`"
