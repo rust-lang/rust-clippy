@@ -141,4 +141,18 @@ pub struct BlockComment;
 ))]
 fn empty_line_in_cfg_attr() {}
 
+trait Foo {
+    fn bar();
+}
+
+impl Foo for LineComment {
+    /// Returns an `Option<Month>` from a i64, assuming a 1-index, January = 1.
+    ///
+    /// `Month::from_i64(n: i64)`: | `1`                  | `2`                   | ... | `12`
+    /// ---------------------------| -------------------- | --------------------- | ... | -----
+    /// ``:                        | Some(Month::January) | Some(Month::February) | ... |
+    /// Some(Month::December)
+    fn bar() {}
+}
+
 fn main() {}
