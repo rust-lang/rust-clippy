@@ -9,6 +9,7 @@ fn main() {
     vec_deque_reserve();
     hash_map_reserve();
     msrv_1_62();
+    box_vec_reserve();
 }
 
 fn vec_reserve() {
@@ -97,4 +98,13 @@ fn msrv_1_62() {
     // do not lint
     vec_deque.reserve(1);
     vec_deque.extend([1]);
+}
+
+fn box_vec_reserve() {
+    let mut vec: Box<Vec<usize>> = Box::default();
+    let array: &[usize] = &[1, 2];
+
+    // do lint
+    vec.reserve(array.len());
+    vec.extend(array);
 }

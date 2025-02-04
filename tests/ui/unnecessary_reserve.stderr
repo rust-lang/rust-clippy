@@ -7,7 +7,7 @@ LL | #[allow(clippy::unnecessary_operation)]
    = note: `#[deny(clippy::useless_attribute)]` on by default
 
 error: unnecessary call to `reserve`
-  --> tests/ui/unnecessary_reserve.rs:14:18
+  --> tests/ui/unnecessary_reserve.rs:15:18
    |
 LL |   fn vec_reserve() {
    |  __________________^
@@ -26,7 +26,7 @@ LL | | }
    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_reserve)]`
 
 error: unnecessary call to `reserve`
-  --> tests/ui/unnecessary_reserve.rs:14:18
+  --> tests/ui/unnecessary_reserve.rs:15:18
    |
 LL |   fn vec_reserve() {
    |  __________________^
@@ -42,7 +42,7 @@ LL | | }
    | |_^
 
 error: unnecessary call to `reserve`
-  --> tests/ui/unnecessary_reserve.rs:32:5
+  --> tests/ui/unnecessary_reserve.rs:33:5
    |
 LL | /     {
 LL | |         vec.reserve(array1.len());
@@ -52,7 +52,7 @@ LL | |     };
    | |_____^
 
 error: unnecessary call to `reserve`
-  --> tests/ui/unnecessary_reserve.rs:14:18
+  --> tests/ui/unnecessary_reserve.rs:15:18
    |
 LL |   fn vec_reserve() {
    |  __________________^
@@ -68,7 +68,7 @@ LL | | }
    | |_^
 
 error: call to `reserve` immediately after creation
-  --> tests/ui/unnecessary_reserve.rs:43:5
+  --> tests/ui/unnecessary_reserve.rs:44:5
    |
 LL | /     let mut other_vec: Vec<usize> = vec![];
 LL | |     other_vec.reserve(1);
@@ -78,7 +78,7 @@ LL | |     other_vec.reserve(1);
    = help: to override `-D warnings` add `#[allow(clippy::reserve_after_initialization)]`
 
 error: unnecessary call to `reserve`
-  --> tests/ui/unnecessary_reserve.rs:48:24
+  --> tests/ui/unnecessary_reserve.rs:49:24
    |
 LL |   fn vec_deque_reserve() {
    |  ________________________^
@@ -92,5 +92,19 @@ LL | |     vec_deque.extend([1])
 LL | | }
    | |_^
 
-error: aborting due to 7 previous errors
+error: unnecessary call to `reserve`
+  --> tests/ui/unnecessary_reserve.rs:103:22
+   |
+LL |   fn box_vec_reserve() {
+   |  ______________________^
+LL | |     let mut vec: Box<Vec<usize>> = Box::default();
+LL | |     let array: &[usize] = &[1, 2];
+...  |
+LL | |     vec.reserve(array.len());
+   | |     ------------------------ help: remove this line
+LL | |     vec.extend(array);
+LL | | }
+   | |_^
+
+error: aborting due to 8 previous errors
 

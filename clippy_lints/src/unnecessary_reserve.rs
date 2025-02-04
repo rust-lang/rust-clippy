@@ -1,13 +1,13 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::msrvs::{self, Msrv};
+use clippy_utils::ty::adt_def_id;
 use clippy_utils::visitors::for_each_expr;
 use clippy_utils::{SpanlessEq, get_enclosing_block, match_def_path, paths};
 use core::ops::ControlFlow;
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, PathSegment};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty;
 use rustc_session::impl_lint_pass;
 use rustc_span::sym;
 
@@ -16,7 +16,7 @@ declare_clippy_lint! {
     ///
     /// This lint checks for a call to `reserve` before `extend` on a `Vec` or `VecDeque`.
     /// ### Why is this bad?
-    /// Since Rust 1.62, `extend` implicitly calls `reserve`
+    /// `extend` implicitly calls `reserve`
     ///
     /// ### Example
     /// ```rust
@@ -31,9 +31,9 @@ declare_clippy_lint! {
     /// let array: &[usize] = &[1, 2];
     /// vec.extend(array);
     /// ```
-    #[clippy::version = "1.64.0"]
+    #[clippy::version = "1.86.0"]
     pub UNNECESSARY_RESERVE,
-    pedantic,
+    complexity,
     "calling `reserve` before `extend` on a `Vec` or `VecDeque`, when it will be called implicitly"
 }
 
@@ -84,13 +84,11 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryReserve {
 }
 
 fn acceptable_type(cx: &LateContext<'_>, struct_calling_on: &Expr<'_>) -> bool {
-    let acceptable_types = [sym::Vec, sym::VecDeque];
-    acceptable_types.iter().any(|&acceptable_ty| {
-        match cx.typeck_results().expr_ty(struct_calling_on).peel_refs().kind() {
-            ty::Adt(def, _) => cx.tcx.is_diagnostic_item(acceptable_ty, def.did()),
-            _ => false,
-        }
-    })
+    if let Some(did) = adt_def_id(cx.typeck_results().expr_ty_adjusted(struct_calling_on)) {
+        matches!(cx.tcx.get_diagnostic_name(did), Some(sym::Vec | sym::VecDeque))
+    } else {
+        false
+    }
 }
 
 #[must_use]
@@ -100,11 +98,18 @@ fn check_extend_method<'tcx>(
     struct_expr: &Expr<'tcx>,
     args_a: &Expr<'tcx>,
 ) -> Option<rustc_span::Span> {
-    let args_a_kind = &args_a.kind;
+    let mut found_reserve = false;
     let mut read_found = false;
     let mut spanless_eq = SpanlessEq::new(cx);
 
     let _: Option<!> = for_each_expr(cx, block, |expr: &Expr<'tcx>| {
+        if !found_reserve {
+            if expr.hir_id == args_a.hir_id {
+                found_reserve = true;
+            }
+            return ControlFlow::Continue(());
+        }
+
         if let ExprKind::MethodCall(_, struct_calling_on, _, _) = expr.kind
             && let Some(expr_def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)
             && let ExprKind::MethodCall(
@@ -112,7 +117,7 @@ fn check_extend_method<'tcx>(
                     ident: method_call_a, ..
                 },
                 ..,
-            ) = args_a_kind
+            ) = args_a.kind
             && method_call_a.name == sym::len
             && match_def_path(cx, expr_def_id, &paths::ITER_EXTEND)
             && acceptable_type(cx, struct_calling_on)
