@@ -145,8 +145,42 @@ fn check_let_some_else_return_none(cx: &LateContext<'_>, stmt: &Stmt<'_>) {
     {
         let mut applicability = Applicability::MaybeIncorrect;
         let init_expr_str = snippet_with_applicability(cx, init_expr.span, "..", &mut applicability);
-        let receiver_str = snippet_with_applicability(cx, inner_pat.span, "..", &mut applicability);
-        let sugg = format!("let {receiver_str} = {init_expr_str}?;",);
+        let sugg = if let PatKind::Binding(
+            BindingMode(ByRef::Yes(ref_mutability), binding_mutability),
+            _hir_id,
+            ident,
+            subpattern,
+        ) = inner_pat.kind
+        {
+            let (method_str, subpattern_unpack_str) = match ref_mutability {
+                Mutability::Mut => (".as_mut()", "&mut "),
+                Mutability::Not => (".as_ref()", "&"),
+            };
+            let mutability_str = match binding_mutability {
+                Mutability::Mut => "mut ",
+                Mutability::Not => "",
+            };
+            let subpattern_str = match subpattern {
+                Some(Pat {
+                    kind: PatKind::Binding(BindingMode(ByRef::Yes(_), _), _, subident, None),
+                    ..
+                }) => {
+                    // avoid `&ref`
+                    // note that, because you can't have aliased, mutable references, we don't have to worry about
+                    // the outer and inner mutability being different
+                    format!(" @ {subident}")
+                },
+                Some(subpattern) => {
+                    let substr = snippet_with_applicability(cx, subpattern.span, "..", &mut applicability);
+                    format!(" @ {subpattern_unpack_str}{substr}")
+                },
+                None => String::new(),
+            };
+            format!("let {mutability_str}{ident}{subpattern_str} = {init_expr_str}{method_str}?;")
+        } else {
+            let receiver_str = snippet_with_applicability(cx, inner_pat.span, "..", &mut applicability);
+            format!("let {receiver_str} = {init_expr_str}?;")
+        };
         span_lint_and_sugg(
             cx,
             QUESTION_MARK,
