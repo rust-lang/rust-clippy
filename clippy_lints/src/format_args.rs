@@ -532,7 +532,7 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
         let ty = ty.peel_refs();
 
         if let Some(feature) = self.ty_feature_map.get(&ty)
-            && feature.map_or(true, |feature| self.cx.tcx.features().enabled(feature))
+            && feature.is_none_or(|feature| self.cx.tcx.features().enabled(feature))
         {
             return true;
         }
@@ -543,7 +543,7 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
             && implements_trait(self.cx, ty, deref_trait_id, &[])
             && let Some(target_ty) = self.cx.get_associated_type(ty, deref_trait_id, "Target")
             && let Some(feature) = self.ty_feature_map.get(&target_ty)
-            && feature.map_or(true, |feature| self.cx.tcx.features().enabled(feature))
+            && feature.is_none_or(|feature| self.cx.tcx.features().enabled(feature))
         {
             return true;
         }
