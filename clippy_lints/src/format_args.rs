@@ -60,6 +60,10 @@ declare_clippy_lint! {
     /// change in the future. `OsStr`s and `Path`s can be `Display` formatted
     /// using their `display` methods.
     ///
+    /// Note that switching from `Debug` formatting to `Display` formatting
+    /// will change how the `OsStr` or `Path` is shown. Escaped characters will
+    /// no longer be escaped, and enclosing quotes (`"`...`"`) will be removed.
+    ///
     /// ### Example
     /// ```no_run
     /// # use std::path::Path;
