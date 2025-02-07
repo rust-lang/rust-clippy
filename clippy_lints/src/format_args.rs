@@ -1,6 +1,6 @@
 use arrayvec::ArrayVec;
 use clippy_config::Conf;
-use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_sugg, span_lint_and_then};
+use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::macros::{
     FormatArgsStorage, FormatParamUsage, MacroCall, find_format_arg_expr, format_arg_removal_span,
     format_placeholder_format_span, is_assert_macro, is_format_macro, is_panic, matching_root_macro_call,
@@ -60,9 +60,8 @@ declare_clippy_lint! {
     /// change in the future. `OsStr`s and `Path`s can be `Display` formatted
     /// using their `display` methods.
     ///
-    /// Note that switching from `Debug` formatting to `Display` formatting
-    /// will change how the `OsStr` or `Path` is shown. Escaped characters will
-    /// no longer be escaped, and enclosing quotes (`"`...`"`) will be removed.
+    /// Furthermore, with `Debug` formatting, certain characters are escaped.
+    /// Thus, a `Debug` formatted `Path` is less likely to be clickable.
     ///
     /// ### Example
     /// ```no_run
@@ -490,13 +489,21 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
             && self.can_display_format(ty)
         {
             let snippet = snippet(cx.sess(), value.span, "..");
-            span_lint_and_help(
+            span_lint_and_then(
                 cx,
                 UNNECESSARY_DEBUG_FORMATTING,
                 value.span,
                 format!("unnecessary `Debug` formatting in `{name}!` args"),
-                None,
-                format!("use `Display` formatting and change this to `{snippet}.display()`"),
+                |diag| {
+                    diag.help(format!(
+                        "use `Display` formatting and change this to `{snippet}.display()`"
+                    ));
+                    diag.note(
+                        "switching to `Display` formatting will change how the value is shown; \
+                         escaped characters will no longer be escaped and surrounding quotes will \
+                         be removed",
+                    );
+                },
             );
         }
     }
