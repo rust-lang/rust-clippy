@@ -63,6 +63,13 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryReserve {
             && let Some(next_stmt_span) = check_extend_method(cx, block, struct_calling_on, &args_a[0])
             && !next_stmt_span.from_expansion()
         {
+            let stmt_span = cx
+                .tcx
+                .hir()
+                .parent_id_iter(expr.hir_id)
+                .next()
+                .map_or(expr.span, |parent| cx.tcx.hir().span(parent));
+
             span_lint_and_then(
                 cx,
                 UNNECESSARY_RESERVE,
@@ -70,7 +77,7 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryReserve {
                 "unnecessary call to `reserve`",
                 |diag| {
                     diag.span_suggestion(
-                        expr.span,
+                        stmt_span,
                         "remove this line",
                         String::new(),
                         Applicability::MaybeIncorrect,

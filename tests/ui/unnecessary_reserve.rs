@@ -8,7 +8,7 @@ fn main() {
     vec_reserve();
     vec_deque_reserve();
     hash_map_reserve();
-    msrv_1_62();
+    insufficient_msrv();
     box_vec_reserve();
 }
 
@@ -25,7 +25,7 @@ fn vec_reserve() {
     vec.reserve(1);
     vec.extend([1]);
 
-    //// do lint
+    // do lint
     vec.reserve(array1.len());
     vec.extend(array1);
 
@@ -43,7 +43,12 @@ fn vec_reserve() {
     // do not lint
     let mut other_vec: Vec<usize> = vec![];
     other_vec.reserve(1);
-    vec.extend([1])
+    other_vec.extend([1]);
+
+    // do not lint
+    let mut vec2: Vec<usize> = vec![];
+    vec2.extend(array1);
+    vec2.reserve(array1.len());
 }
 
 fn vec_deque_reserve() {
@@ -83,8 +88,8 @@ fn hash_map_reserve() {
     map.extend(other_map);
 }
 
-fn msrv_1_62() {
-    #![clippy::msrv = "1.61"]
+#[clippy::msrv = "1.61"]
+fn insufficient_msrv() {
     let mut vec: Vec<usize> = vec![];
     let array: &[usize] = &[1, 2];
 
