@@ -544,8 +544,8 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
             return true;
         }
 
-        // Even if `ty` is not in `self.ty_feature_map`, check whether `ty` implements `Deref` with with a
-        // `Target` that is in `self.ty_feature_map`.
+        // Even if `ty` is not in `self.ty_feature_map`, check whether `ty` implements `Deref` with
+        // a `Target` that is in `self.ty_feature_map`.
         if let Some(deref_trait_id) = self.cx.tcx.lang_items().deref_trait()
             && implements_trait(self.cx, ty, deref_trait_id, &[])
             && let Some(target_ty) = self.cx.get_associated_type(ty, deref_trait_id, "Target")
