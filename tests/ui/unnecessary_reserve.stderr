@@ -16,9 +16,9 @@ LL | |     let array1: &[usize] = &[1, 2];
 LL | |     let array2: &[usize] = &[3, 4];
 ...  |
 LL | |     vec.reserve(array1.len());
-   | |     ------------------------- help: remove this line
+   | |     -------------------------- help: remove this line
 ...  |
-LL | |     vec.extend([1])
+LL | |     vec2.reserve(array1.len());
 LL | | }
    | |_^
    |
@@ -35,9 +35,9 @@ LL | |     let array1: &[usize] = &[1, 2];
 LL | |     let array2: &[usize] = &[3, 4];
 ...  |
 LL | |     vec.reserve(array1.len());
-   | |     ------------------------- help: remove this line
+   | |     -------------------------- help: remove this line
 ...  |
-LL | |     vec.extend([1])
+LL | |     vec2.reserve(array1.len());
 LL | | }
    | |_^
 
@@ -46,7 +46,7 @@ error: unnecessary call to `reserve`
    |
 LL | /     {
 LL | |         vec.reserve(array1.len());
-   | |         ------------------------- help: remove this line
+   | |         -------------------------- help: remove this line
 LL | |         vec.extend(array1)
 LL | |     };
    | |_____^
@@ -61,9 +61,9 @@ LL | |     let array1: &[usize] = &[1, 2];
 LL | |     let array2: &[usize] = &[3, 4];
 ...  |
 LL | |     vec.reserve(array1.len());
-   | |     ------------------------- help: remove this line
+   | |     -------------------------- help: remove this line
 ...  |
-LL | |     vec.extend([1])
+LL | |     vec2.reserve(array1.len());
 LL | | }
    | |_^
 
@@ -78,7 +78,7 @@ LL | |     other_vec.reserve(1);
    = help: to override `-D warnings` add `#[allow(clippy::reserve_after_initialization)]`
 
 error: unnecessary call to `reserve`
-  --> tests/ui/unnecessary_reserve.rs:49:24
+  --> tests/ui/unnecessary_reserve.rs:54:24
    |
 LL |   fn vec_deque_reserve() {
    |  ________________________^
@@ -86,14 +86,14 @@ LL | |     let mut vec_deque: VecDeque<usize> = [1].into();
 LL | |     let array: &[usize] = &[1, 2];
 ...  |
 LL | |     vec_deque.reserve(array.len());
-   | |     ------------------------------ help: remove this line
+   | |     ------------------------------- help: remove this line
 ...  |
 LL | |     vec_deque.extend([1])
 LL | | }
    | |_^
 
 error: unnecessary call to `reserve`
-  --> tests/ui/unnecessary_reserve.rs:103:22
+  --> tests/ui/unnecessary_reserve.rs:108:22
    |
 LL |   fn box_vec_reserve() {
    |  ______________________^
@@ -101,7 +101,7 @@ LL | |     let mut vec: Box<Vec<usize>> = Box::default();
 LL | |     let array: &[usize] = &[1, 2];
 ...  |
 LL | |     vec.reserve(array.len());
-   | |     ------------------------ help: remove this line
+   | |     ------------------------- help: remove this line
 LL | |     vec.extend(array);
 LL | | }
    | |_^
