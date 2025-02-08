@@ -3,6 +3,7 @@ use crate::types::{
     DisallowedPath, MacroMatcher, MatchLintBehaviour, PubUnderscoreFieldsBehaviour, Rename, SourceItemOrdering,
     SourceItemOrderingCategory, SourceItemOrderingModuleItemGroupings, SourceItemOrderingModuleItemKind,
     SourceItemOrderingTraitAssocItemKind, SourceItemOrderingTraitAssocItemKinds,
+    SourceItemOrderingWithinModuleItemGroupings,
 };
 use clippy_utils::msrvs::Msrv;
 use rustc_errors::Applicability;
@@ -586,6 +587,15 @@ define_Conf! {
     /// The named groupings of different source item kinds within modules.
     #[lints(arbitrary_source_item_ordering)]
     module_item_order_groupings: SourceItemOrderingModuleItemGroupings = DEFAULT_MODULE_ITEM_ORDERING_GROUPS.into(),
+    /// Whether the items within module groups should be ordered alphabetically or not.
+    ///
+    /// This option can be configured to "all", "none", or a list of specific grouping names that should be checked
+    /// (e.g. only "enums").
+    ///
+    /// Unknown grouping names will simply be ignored.
+    #[lints(arbitrary_source_item_ordering)]
+    module_items_ordered_within_groupings: SourceItemOrderingWithinModuleItemGroupings =
+        SourceItemOrderingWithinModuleItemGroupings::None,
     /// The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`
     #[default_text = "current version"]
     #[lints(
