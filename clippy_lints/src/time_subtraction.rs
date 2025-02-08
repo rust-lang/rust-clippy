@@ -66,11 +66,11 @@ declare_clippy_lint! {
     "finds unchecked subtraction of a 'Duration' from an 'Instant' or 'Duration'"
 }
 
-pub struct InstantSubtraction {
+pub struct TimeSubtraction {
     msrv: Msrv,
 }
 
-impl InstantSubtraction {
+impl TimeSubtraction {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
             msrv: conf.msrv.clone(),
@@ -78,9 +78,9 @@ impl InstantSubtraction {
     }
 }
 
-impl_lint_pass!(InstantSubtraction => [MANUAL_INSTANT_ELAPSED, UNCHECKED_TIME_SUBTRACTION]);
+impl_lint_pass!(TimeSubtraction => [MANUAL_INSTANT_ELAPSED, UNCHECKED_TIME_SUBTRACTION]);
 
-impl LateLintPass<'_> for InstantSubtraction {
+impl LateLintPass<'_> for TimeSubtraction {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ Expr<'_>) {
         if let ExprKind::Binary(
             Spanned {
