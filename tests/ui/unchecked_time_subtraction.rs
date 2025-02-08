@@ -1,4 +1,4 @@
-#![warn(clippy::unchecked_duration_subtraction)]
+#![warn(clippy::unchecked_time_subtraction)]
 
 use std::time::{Duration, Instant};
 
