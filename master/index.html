@@ -4898,8 +4898,6 @@ necessary. Only integer types are checked.</p>
 <p>An expression like <code>let x : u8 = ...; (x as u32) &gt; 300</code>
 will mistakenly imply that it is possible for <code>x</code> to be outside the range of
 <code>u8</code>.</p>
-<h3>Known problems</h3>
-<p>https://github.com/rust-lang/rust-clippy/issues/886</p>
 <h3>Example</h3>
 <pre><code class="language-rust">let x: u8 = 1;
 (x as u32) &gt; 300;
@@ -6180,6 +6178,13 @@ for n in x.into_iter().flatten() {
     println!("{}", n);
 }
 </code></pre>
+<h3>Configuration</h3>
+<ul>
+<li>
+<p><code>msrv</code>:  The minimum rust version that the project supports. Defaults to the <code>rust-version</code> field in <code>Cargo.toml</code></p>
+<p>(default: <code>current version</code>)</p>
+</li>
+</ul>
 </div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.52.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+manual_flatten">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/loops/mod.rs#L520">View Source</a></div></div></div></article><article class="panel panel-default" id="manual_hash_one"><input id="label-manual_hash_one" type="checkbox"><label for="label-manual_hash_one"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-manual_hash_one"><span>manual_hash_one</span> <a href="#manual_hash_one" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-complexity">complexity</span> <span class="label label-lint-level label-lint-level-warn">warn</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
 <p>Checks for cases where <a href="https://doc.rust-lang.org/std/hash/trait.BuildHasher.html#method.hash_one"><code>BuildHasher::hash_one</code></a> can be used.</p>
 <h3>Why is this bad?</h3>
