@@ -85,5 +85,11 @@ error: lint `clippy::option_map_or_err_ok` has been removed: `clippy::manual_ok_
 LL | #![warn(clippy::option_map_or_err_ok)]
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 14 previous errors
+error: lint `clippy::string_to_string` has been removed: `clippy:implicit_clone` covers this case
+  --> tests/ui/deprecated.rs:19:9
+   |
+LL | #![warn(clippy::string_to_string)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 15 previous errors
 

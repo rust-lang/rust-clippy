@@ -412,58 +412,6 @@ impl<'tcx> LateLintPass<'tcx> for StrToString {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// This lint checks for `.to_string()` method calls on values of type `String`.
-    ///
-    /// ### Why restrict this?
-    /// The `to_string` method is also used on other types to convert them to a string.
-    /// When called on a `String` it only clones the `String`, which can be more specifically
-    /// expressed with `.clone()`.
-    ///
-    /// ### Example
-    /// ```no_run
-    /// let msg = String::from("Hello World");
-    /// let _ = msg.to_string();
-    /// ```
-    /// Use instead:
-    /// ```no_run
-    /// let msg = String::from("Hello World");
-    /// let _ = msg.clone();
-    /// ```
-    #[clippy::version = "pre 1.29.0"]
-    pub STRING_TO_STRING,
-    restriction,
-    "using `to_string()` on a `String`, which should be `clone()`"
-}
-
-declare_lint_pass!(StringToString => [STRING_TO_STRING]);
-
-impl<'tcx> LateLintPass<'tcx> for StringToString {
-    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'_>) {
-        if expr.span.from_expansion() {
-            return;
-        }
-
-        if let ExprKind::MethodCall(path, self_arg, [], _) = &expr.kind
-            && path.ident.name == sym::to_string
-            && let ty = cx.typeck_results().expr_ty(self_arg)
-            && is_type_lang_item(cx, ty, LangItem::String)
-        {
-            #[expect(clippy::collapsible_span_lint_calls, reason = "rust-clippy#7797")]
-            span_lint_and_then(
-                cx,
-                STRING_TO_STRING,
-                expr.span,
-                "`to_string()` called on a `String`",
-                |diag| {
-                    diag.help("consider using `.clone()`");
-                },
-            );
-        }
-    }
-}
-
-declare_clippy_lint! {
-    /// ### What it does
     /// Warns about calling `str::trim` (or variants) before `str::split_whitespace`.
     ///
     /// ### Why is this bad?
