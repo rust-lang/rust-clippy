@@ -124,4 +124,8 @@ fn main() {
     }
     let no_clone = &NoClone;
     let _ = no_clone.to_owned();
+
+    let s = String::from("foo");
+    let _ = s.to_owned();
+    let _ = s.to_string();
 }
