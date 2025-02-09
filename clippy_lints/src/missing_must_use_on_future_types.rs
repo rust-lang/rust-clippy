@@ -1,11 +1,11 @@
 use rustc_errors::Applicability;
 use rustc_hir::{Impl, Item, ItemKind};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty;
 use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::is_from_proc_macro;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -17,7 +17,7 @@ declare_clippy_lint! {
     /// can be easy to accidentally forget.
     ///
     /// ### Example
-    /// ```no_run
+    /// ```
     /// struct Foo;
     ///
     /// // impl Future for Foo { ... }
@@ -35,11 +35,11 @@ declare_clippy_lint! {
     /// fn foo() -> Foo { Foo }
     ///
     /// fn main() {
-    ///     foo();
+    ///     foo().await;
     /// }
     /// ```
     /// Use instead:
-    /// ```no_run
+    /// ```
     /// #[must_use]
     /// struct Foo;
     ///
@@ -58,12 +58,12 @@ declare_clippy_lint! {
     /// fn foo() -> Foo { Foo }
     ///
     /// fn main() {
-    ///     foo();
+    ///     foo().await;
     /// }
     /// ```
     #[clippy::version = "1.86.0"]
     pub MISSING_MUST_USE_ON_FUTURE_TYPES,
-    style,
+    suspicious,
     "missing `#[must_use]` annotation on a type implementing `Future`"
 }
 
@@ -78,8 +78,9 @@ impl<'tcx> LateLintPass<'tcx> for MissingMustUseOnFutureTypes {
             && let Some(trait_def_id) = trait_ref.trait_def_id()
             && let Some(future_def_id) = cx.tcx.lang_items().future_trait()
             && trait_def_id == future_def_id
-            && let &ty::Adt(adt_def, _) = cx.tcx.type_of(item.owner_id).instantiate_identity().kind()
+            && let Some(adt_def) = cx.tcx.type_of(item.owner_id).skip_binder().ty_adt_def()
             && cx.tcx.get_attr(adt_def.did(), sym::must_use).is_none()
+            && !is_from_proc_macro(cx, item)
         {
             let adt_span = cx.tcx.def_span(adt_def.did());
             span_lint_and_then(

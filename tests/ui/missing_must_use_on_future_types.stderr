@@ -1,5 +1,5 @@
 error: this struct implements `Future` but is missing a `#[must_use]` attribute
-  --> tests/ui/missing_must_use_on_future_types.rs:11:1
+  --> tests/ui/missing_must_use_on_future_types.rs:15:1
    |
 LL | struct BasicStruct;
    | ^^^^^^^^^^^^^^^^^^
@@ -13,7 +13,7 @@ LL | struct BasicStruct;
    |
 
 error: this struct implements `Future` but is missing a `#[must_use]` attribute
-  --> tests/ui/missing_must_use_on_future_types.rs:22:1
+  --> tests/ui/missing_must_use_on_future_types.rs:25:1
    |
 LL | enum BasicEnum {
    | ^^^^^^^^^^^^^^
@@ -25,7 +25,7 @@ LL | enum BasicEnum {
    |
 
 error: this struct implements `Future` but is missing a `#[must_use]` attribute
-  --> tests/ui/missing_must_use_on_future_types.rs:39:1
+  --> tests/ui/missing_must_use_on_future_types.rs:41:1
    |
 LL | struct SometimesFuture<T>(PhantomData<T>);
    | ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -37,15 +37,15 @@ LL | struct SometimesFuture<T>(PhantomData<T>);
    |
 
 error: this struct implements `Future` but is missing a `#[must_use]` attribute
-  --> tests/ui/missing_must_use_on_future_types.rs:69:1
+  --> tests/ui/missing_must_use_on_future_types.rs:52:1
    |
-LL | pub struct ComplexStruct {
-   | ^^^^^^^^^^^^^^^^^^^^^^^^
+LL | pub struct DeriveStruct;
+   | ^^^^^^^^^^^^^^^^^^^^^^^
    |
 help: add the attribute
    |
 LL + #[must_use]
-LL | pub struct ComplexStruct {
+LL | pub struct DeriveStruct;
    |
 
 error: aborting due to 4 previous errors
