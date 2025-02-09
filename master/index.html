@@ -969,12 +969,6 @@ into something.</p>
 moved out of the blocks.</p>
 <h3>Why is this bad?</h3>
 <p>Duplicate code is less maintainable.</p>
-<h3>Known problems</h3>
-<ul>
-<li>The lint doesn’t check if the moved expressions modify values that are being used in
-the if condition. The suggestion can in that case modify the behavior of the program.
-See <a href="https://github.com/rust-lang/rust-clippy/issues/7452">rust-clippy#7452</a></li>
-</ul>
 <h3>Example</h3>
 <pre><code class="language-rust">let foo = if … {
     println!("Hello World");
