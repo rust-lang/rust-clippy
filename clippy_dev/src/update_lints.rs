@@ -529,7 +529,7 @@ impl Lint {
     /// Returns the lints in a `HashMap`, grouped by the different lint groups
     #[must_use]
     fn by_lint_group(lints: impl Iterator<Item = Self>) -> HashMap<String, Vec<Self>> {
-        lints.map(|lint| (lint.group.to_string(), lint)).into_group_map()
+        lints.map(|lint| (lint.group.clone(), lint)).into_group_map()
     }
 }
 
