@@ -196,6 +196,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::format_impl::PRINT_IN_FORMAT_IMPL_INFO,
     crate::format_impl::RECURSIVE_FORMAT_IMPL_INFO,
     crate::format_push_string::FORMAT_PUSH_STRING_INFO,
+    crate::format_trailing_macro_comma::FORMAT_TRAILING_MACRO_COMMA_INFO,
     crate::formatting::POSSIBLE_MISSING_COMMA_INFO,
     crate::formatting::SUSPICIOUS_ASSIGNMENT_FORMATTING_INFO,
     crate::formatting::SUSPICIOUS_ELSE_FORMATTING_INFO,

@@ -5617,6 +5617,7 @@ Released 2018-09-13
 [`format_collect`]: https://rust-lang.github.io/rust-clippy/master/index.html#format_collect
 [`format_in_format_args`]: https://rust-lang.github.io/rust-clippy/master/index.html#format_in_format_args
 [`format_push_string`]: https://rust-lang.github.io/rust-clippy/master/index.html#format_push_string
+[`format_trailing_macro_comma`]: https://rust-lang.github.io/rust-clippy/master/index.html#format_trailing_macro_comma
 [`four_forward_slashes`]: https://rust-lang.github.io/rust-clippy/master/index.html#four_forward_slashes
 [`from_iter_instead_of_collect`]: https://rust-lang.github.io/rust-clippy/master/index.html#from_iter_instead_of_collect
 [`from_over_into`]: https://rust-lang.github.io/rust-clippy/master/index.html#from_over_into
