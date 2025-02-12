@@ -952,7 +952,7 @@ Released 2023-04-20
 
 * Moved [`uninlined_format_args`] to `pedantic` (Now allow-by-default)
   [#10265](https://github.com/rust-lang/rust-clippy/pull/10265)
-* Moved [`unchecked_duration_subtraction`] to `pedantic` (Now allow-by-default)
+* Moved [`unchecked_time_subtraction`] to `pedantic` (Now allow-by-default)
   [#10194](https://github.com/rust-lang/rust-clippy/pull/10194)
 
 ### Enhancements
@@ -1203,7 +1203,7 @@ Released 2023-01-26
   [#9506](https://github.com/rust-lang/rust-clippy/pull/9506)
 * [`unnecessary_safety_doc`]
   [#9822](https://github.com/rust-lang/rust-clippy/pull/9822)
-* [`unchecked_duration_subtraction`]
+* [`unchecked_time_subtraction`]
   [#9570](https://github.com/rust-lang/rust-clippy/pull/9570)
 * [`manual_is_ascii_check`]
   [#9765](https://github.com/rust-lang/rust-clippy/pull/9765)
@@ -6144,7 +6144,7 @@ Released 2018-09-13
 [`type_complexity`]: https://rust-lang.github.io/rust-clippy/master/index.html#type_complexity
 [`type_id_on_box`]: https://rust-lang.github.io/rust-clippy/master/index.html#type_id_on_box
 [`type_repetition_in_bounds`]: https://rust-lang.github.io/rust-clippy/master/index.html#type_repetition_in_bounds
-[`unchecked_duration_subtraction`]: https://rust-lang.github.io/rust-clippy/master/index.html#unchecked_duration_subtraction
+[`unchecked_time_subtraction`]: https://rust-lang.github.io/rust-clippy/master/index.html#unchecked_time_subtraction
 [`unconditional_recursion`]: https://rust-lang.github.io/rust-clippy/master/index.html#unconditional_recursion
 [`undocumented_unsafe_blocks`]: https://rust-lang.github.io/rust-clippy/master/index.html#undocumented_unsafe_blocks
 [`undropped_manually_drops`]: https://rust-lang.github.io/rust-clippy/master/index.html#undropped_manually_drops

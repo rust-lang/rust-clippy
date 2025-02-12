@@ -1,0 +1,47 @@
+error: unchecked subtraction of 'Duration' from 'Instant'
+  --> tests/ui/unchecked_time_subtraction.rs:10:13
+   |
+LL |     let _ = instant - duration;
+   |             ^^^^^^^^^^^^^^^^^^ help: try: `instant.checked_sub(duration).unwrap()`
+   |
+   = note: `-D clippy::unchecked-time-subtraction` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unchecked_time_subtraction)]`
+
+error: unchecked subtraction of 'Duration' from 'Instant'
+  --> tests/ui/unchecked_time_subtraction.rs:12:13
+   |
+LL |     let _ = Instant::now() - Duration::from_secs(5);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Instant::now().checked_sub(Duration::from_secs(5)).unwrap()`
+
+error: unchecked subtraction of 'Duration' from 'Instant'
+  --> tests/ui/unchecked_time_subtraction.rs:14:13
+   |
+LL |     let _ = instant - Duration::from_secs(5);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `instant.checked_sub(Duration::from_secs(5)).unwrap()`
+
+error: unchecked subtraction of 'Duration' from 'Instant'
+  --> tests/ui/unchecked_time_subtraction.rs:16:13
+   |
+LL |     let _ = Instant::now() - duration;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Instant::now().checked_sub(duration).unwrap()`
+
+error: unchecked subtraction of 'Duration' from 'Duration'
+  --> tests/ui/unchecked_time_subtraction.rs:18:13
+   |
+LL |     let _ = Duration::from_secs(1) - duration;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Duration::from_secs(1).checked_sub(duration).unwrap()`
+
+error: unchecked subtraction of 'Duration' from 'Duration'
+  --> tests/ui/unchecked_time_subtraction.rs:20:13
+   |
+LL |     let _ = duration2 - duration;
+   |             ^^^^^^^^^^^^^^^^^^^^ help: try: `duration2.checked_sub(duration).unwrap()`
+
+error: unchecked subtraction of 'Duration' from 'Duration'
+  --> tests/ui/unchecked_time_subtraction.rs:22:13
+   |
+LL |     let _ = Instant::now().elapsed() - duration;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Instant::now().elapsed().checked_sub(duration).unwrap()`
+
+error: aborting due to 7 previous errors
+
