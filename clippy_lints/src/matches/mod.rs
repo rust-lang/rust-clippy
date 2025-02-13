@@ -1118,7 +1118,7 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
                     match_wild_enum::check(cx, ex, arms);
                     match_as_ref::check(cx, ex, arms, expr);
                     needless_match::check_match(cx, ex, arms, expr);
-                    match_on_vec_items::check(cx, ex);
+                    match_on_vec_items::check(cx, ex, arms, &self.msrv);
                     match_str_case_mismatch::check(cx, ex, arms);
                     redundant_guards::check(cx, arms, &self.msrv);
 

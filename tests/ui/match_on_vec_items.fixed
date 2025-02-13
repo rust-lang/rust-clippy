@@ -7,19 +7,19 @@ fn match_with_wildcard() {
     let idx = 1;
 
     // Lint, may panic
-    match arr[idx] {
+    match arr.get(idx) {
         //~^ ERROR: indexing into a vector may panic
         //~| NOTE: `-D clippy::match-on-vec-items` implied by `-D warnings`
-        0 => println!("0"),
-        1 => println!("1"),
+        Some(0) => println!("0"),
+        Some(1) => println!("1"),
         _ => {},
     }
 
     // Lint, may panic
-    match arr[range] {
+    match arr.get(range) {
         //~^ ERROR: indexing into a vector may panic
-        [0, 1] => println!("0 1"),
-        [1, 2] => println!("1 2"),
+        Some([0, 1]) => println!("0 1"),
+        Some([1, 2]) => println!("1 2"),
         _ => {},
     }
 }
@@ -30,19 +30,21 @@ fn match_without_wildcard() {
     let idx = 2;
 
     // Lint, may panic
-    match arr[idx] {
+    match arr.get(idx) {
         //~^ ERROR: indexing into a vector may panic
-        0 => println!("0"),
-        1 => println!("1"),
-        num => {},
+        Some(0) => println!("0"),
+        Some(1) => println!("1"),
+        Some(num) => {}
+        None => {},
     }
 
     // Lint, may panic
-    match arr[range] {
+    match arr.get(range) {
         //~^ ERROR: indexing into a vector may panic
-        [0, 1] => println!("0 1"),
-        [1, 2] => println!("1 2"),
-        [ref sub @ ..] => {},
+        Some([0, 1]) => println!("0 1"),
+        Some([1, 2]) => println!("1 2"),
+        Some([ref sub @ ..]) => {}
+        None => {},
     }
 }
 
@@ -52,18 +54,18 @@ fn match_wildcard_and_action() {
     let idx = 3;
 
     // Lint, may panic
-    match arr[idx] {
+    match arr.get(idx) {
         //~^ ERROR: indexing into a vector may panic
-        0 => println!("0"),
-        1 => println!("1"),
+        Some(0) => println!("0"),
+        Some(1) => println!("1"),
         _ => println!("Hello, World!"),
     }
 
     // Lint, may panic
-    match arr[range] {
+    match arr.get(range) {
         //~^ ERROR: indexing into a vector may panic
-        [0, 1] => println!("0 1"),
-        [1, 2] => println!("1 2"),
+        Some([0, 1]) => println!("0 1"),
+        Some([1, 2]) => println!("1 2"),
         _ => println!("Hello, World!"),
     }
 }
@@ -74,18 +76,18 @@ fn match_vec_ref() {
     let idx = 3;
 
     // Lint, may panic
-    match arr[idx] {
+    match arr.get(idx) {
         //~^ ERROR: indexing into a vector may panic
-        0 => println!("0"),
-        1 => println!("1"),
+        Some(0) => println!("0"),
+        Some(1) => println!("1"),
         _ => {},
     }
 
     // Lint, may panic
-    match arr[range] {
+    match arr.get(range) {
         //~^ ERROR: indexing into a vector may panic
-        [0, 1] => println!("0 1"),
-        [1, 2] => println!("1 2"),
+        Some([0, 1]) => println!("0 1"),
+        Some([1, 2]) => println!("1 2"),
         _ => {},
     }
 }
@@ -153,9 +155,9 @@ fn match_with_endless_range() {
 
 fn or_patterns() {
     let arr = vec![0, 1, 2, 3];
-    match arr[1] {
+    match arr.get(1) {
         //~^ ERROR: indexing into a vector may panic
-        0 | 1 => println!("0 or 1"),
+        Some(0 | 1) => println!("0 or 1"),
         _ => println!("Hello, World!"),
     }
 }

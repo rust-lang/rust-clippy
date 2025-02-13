@@ -639,6 +639,7 @@ define_Conf! {
         map_unwrap_or,
         map_with_unused_argument_over_ranges,
         match_like_matches_macro,
+        match_on_vec_items,
         mem_replace_option_with_some,
         mem_replace_with_default,
         missing_const_for_fn,
