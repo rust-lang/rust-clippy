@@ -1,0 +1,11 @@
+error: parsing a the output of `.to_string()`
+  --> tests/ui/parse_to_string.rs:4:27
+   |
+LL |     let bad: u64 = 42_u32.to_string().parse().unwrap();
+   |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::parse-to-string` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::parse_to_string)]`
+
+error: aborting due to 1 previous error
+

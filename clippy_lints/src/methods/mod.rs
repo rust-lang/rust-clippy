@@ -86,6 +86,7 @@ mod option_map_or_none;
 mod option_map_unwrap_or;
 mod or_fun_call;
 mod or_then_unwrap;
+mod parse_to_string;
 mod path_buf_push_overwrite;
 mod path_ends_with_ext;
 mod range_zip_with_len;
@@ -4434,6 +4435,28 @@ declare_clippy_lint! {
     "calling .bytes() is very inefficient when data is not in memory"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Finds places where something is converted to string and then parsed.
+    ///
+    /// ### Why is this bad?
+    /// Converting between types through string is often lossy
+    /// and has usually worse performance than a direct approach.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let bad: u64 = 42_u32.to_string().parse().unwrap();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let good: u64 = 42_u32.into();
+    /// ```
+    #[clippy::version = "1.86.0"]
+    pub PARSE_TO_STRING,
+    suspicious,
+    "parsing after converting to string"
+}
+
 #[expect(clippy::struct_excessive_bools)]
 pub struct Methods {
     avoid_breaking_exported_api: bool,
@@ -4609,6 +4632,7 @@ impl_lint_pass!(Methods => [
     SLICED_STRING_AS_BYTES,
     RETURN_AND_THEN,
     UNBUFFERED_BYTES,
+    PARSE_TO_STRING,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -5332,6 +5356,11 @@ impl Methods {
                         },
                         Some(("or", recv, [or_arg], or_span, _)) => {
                             or_then_unwrap::check(cx, expr, recv, or_arg, or_span);
+                        },
+                        Some(("parse", recv, _, _, _)) => {
+                            if let Some(("to_string", _, _, _, span)) = method_call(recv) {
+                                parse_to_string::check(cx, expr, span);
+                            }
                         },
                         _ => {},
                     }
