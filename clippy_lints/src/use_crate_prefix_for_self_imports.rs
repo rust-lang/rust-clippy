@@ -46,7 +46,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.84.0"]
     pub USE_CRATE_PREFIX_FOR_SELF_IMPORTS,
-    style,
+    nursery,
     "checks that imports from the current crate use the `crate::` prefix"
 }
 
