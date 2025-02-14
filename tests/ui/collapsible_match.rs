@@ -315,6 +315,29 @@ fn lint_emitted_at_right_node(opt: Option<Result<u64, String>>) {
     };
 }
 
+pub fn issue_14155() {
+    let arr = ["a", "b", "c"];
+    if let Some(last) = arr.last() {
+        match *last {
+            //~^ collapsible_match
+            "a" | "b" => {
+                unimplemented!()
+            },
+            _ => (),
+        }
+    }
+
+    if let Some(last) = arr.last() {
+        match &last {
+            //~^ collapsible_match
+            &&"a" | &&"b" => {
+                unimplemented!()
+            },
+            _ => (),
+        }
+    }
+}
+
 fn make<T>() -> T {
     unimplemented!()
 }
