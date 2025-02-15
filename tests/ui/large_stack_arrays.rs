@@ -1,6 +1,6 @@
 //@aux-build:proc_macros.rs
 #![warn(clippy::large_stack_arrays)]
-#![allow(clippy::large_enum_variant)]
+#![allow(clippy::large_enum_variant, clippy::large_stack_frames)]
 
 extern crate proc_macros;
 
