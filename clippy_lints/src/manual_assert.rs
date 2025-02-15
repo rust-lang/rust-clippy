@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::macros::{is_panic, root_macro_call};
+use clippy_utils::source::{indent_of, reindent_multiline};
 use clippy_utils::{is_else_clause, is_parent_stmt, peel_blocks_with_stmt, span_extract_comment, sugg};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, UnOp};
@@ -62,25 +63,22 @@ impl<'tcx> LateLintPass<'tcx> for ManualAssert {
             };
             let cond_sugg = sugg::Sugg::hir_with_applicability(cx, cond, "..", &mut applicability).maybe_par();
             let semicolon = if is_parent_stmt(cx, expr.hir_id) { ";" } else { "" };
-            let sugg = format!("assert!({not}{cond_sugg}, {format_args_snip}){semicolon}");
-            // we show to the user the suggestion without the comments, but when applying the fix, include the
-            // comments in the block
+            let base_sugg = format!("assert!({not}{cond_sugg}, {format_args_snip}){semicolon}");
+
+            let indent = indent_of(cx, expr.span);
+            let full_sugg = reindent_multiline(format!("{comments}{base_sugg}").into(), true, indent);
+
             span_lint_and_then(
                 cx,
                 MANUAL_ASSERT,
                 expr.span,
                 "only a `panic!` in `if`-then statement",
                 |diag| {
-                    // comments can be noisy, do not show them to the user
-                    if !comments.is_empty() {
-                        diag.tool_only_span_suggestion(
-                            expr.span.shrink_to_lo(),
-                            "add comments back",
-                            comments,
-                            applicability,
-                        );
-                    }
-                    diag.span_suggestion(expr.span, "try instead", sugg, applicability);
+                    diag.multipart_suggestion(
+                        "replace `if`-then-`panic!` with `assert!`",
+                        vec![(expr.span, full_sugg.into())],
+                        applicability,
+                    );
                 },
             );
         }
