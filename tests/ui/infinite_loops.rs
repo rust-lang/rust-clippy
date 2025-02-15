@@ -1,7 +1,7 @@
 //@no-rustfix
 //@aux-build:proc_macros.rs
 
-#![allow(clippy::never_loop)]
+#![allow(clippy::never_loop, clippy::bool_assert_comparison)]
 #![warn(clippy::infinite_loop)]
 
 extern crate proc_macros;
