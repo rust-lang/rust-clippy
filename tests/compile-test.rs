@@ -586,7 +586,7 @@ impl LintMetadata {
         }
     }
 
-    fn applicability_str(&self) -> &str {
+    fn applicability_str(&self) -> &'static str {
         match self.applicability {
             Applicability::MachineApplicable => "MachineApplicable",
             Applicability::HasPlaceholders => "HasPlaceholders",
