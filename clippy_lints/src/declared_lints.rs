@@ -457,6 +457,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::methods::OPTION_MAP_OR_NONE_INFO,
     crate::methods::OR_FUN_CALL_INFO,
     crate::methods::OR_THEN_UNWRAP_INFO,
+    crate::methods::PARSE_TO_STRING_INFO,
     crate::methods::PATH_BUF_PUSH_OVERWRITE_INFO,
     crate::methods::PATH_ENDS_WITH_EXT_INFO,
     crate::methods::RANGE_ZIP_WITH_LEN_INFO,
