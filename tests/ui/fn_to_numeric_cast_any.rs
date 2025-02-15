@@ -72,7 +72,7 @@ fn closure_to_fn_to_integer() {
 
 fn fn_to_raw_ptr() {
     let _ = foo as *const ();
-    //~^ ERROR: casting function pointer `foo` to `*const ()`
+    let _ = foo as *mut ();
 }
 
 fn cast_fn_to_self() {
