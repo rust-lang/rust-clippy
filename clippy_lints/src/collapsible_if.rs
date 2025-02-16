@@ -79,14 +79,22 @@ declare_clippy_lint! {
 }
 
 pub struct CollapsibleIf {
+    collapse_let_chains: bool,
     lint_commented_code: bool,
 }
 
 impl CollapsibleIf {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
+            collapse_let_chains: conf.collapse_let_chains,
             lint_commented_code: conf.lint_commented_code,
         }
+    }
+
+    /// Prevent triggering on `if c { if let a = b { .. } }` unless the
+    /// `collapse_let_chains` config option is set.
+    fn is_collapsible(&self, cond: &ast::Expr) -> bool {
+        self.collapse_let_chains || !matches!(cond.kind, ast::ExprKind::Let(..))
     }
 
     fn check_collapsible_else_if(cx: &EarlyContext<'_>, then_span: Span, else_: &ast::Expr) {
@@ -127,8 +135,7 @@ impl CollapsibleIf {
         if let Some(inner) = expr_block(then)
             && inner.attrs.is_empty()
             && let ast::ExprKind::If(check_inner, _, None) = &inner.kind
-            // Prevent triggering on `if c { if let a = b { .. } }`.
-            && !matches!(check_inner.kind, ast::ExprKind::Let(..))
+            && self.is_collapsible(check_inner)
             && let ctxt = expr.span.ctxt()
             && inner.span.ctxt() == ctxt
             && let contains_comment = span_contains_comment(cx.sess().source_map(), check.span.to(check_inner.span))
@@ -175,8 +182,7 @@ impl EarlyLintPass for CollapsibleIf {
         {
             if let Some(else_) = else_ {
                 Self::check_collapsible_else_if(cx, then.span, else_);
-            } else if !matches!(cond.kind, ast::ExprKind::Let(..)) {
-                // Prevent triggering on `if c { if let a = b { .. } }`.
+            } else if self.is_collapsible(cond) {
                 self.check_collapsible_if_if(cx, expr, cond, then);
             }
         }
