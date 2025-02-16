@@ -355,5 +355,18 @@ pub struct PubStructFieldPrefix {
     field_bar: u8,
     field_baz: u8,
 }
+// ...but should not lint on structs with public fields.
+pub struct PubStructPubAndPrivateFields {
+    /// One could argue that this field should be linted, but currently, any public field stops all
+    /// checking.
+    pub_struct_pub_and_private_fields_1: bool,
+    pub pub_struct_pub_and_private_fields_2: bool,
+}
+// nor on common prefixes if one of the involved fields is public
+pub struct PubStructPubAndPrivateFieldPrefix {
+    pub field_foo: u8,
+    field_bar: u8,
+    field_baz: u8,
+}
 
 fn main() {}
