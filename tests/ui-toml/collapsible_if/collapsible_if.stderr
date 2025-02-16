@@ -1,5 +1,5 @@
 error: this `if` statement can be collapsed
-  --> tests/ui-toml/collapsible_if/collapsible_if.rs:8:5
+  --> tests/ui-toml/collapsible_if/collapsible_if.rs:9:5
    |
 LL | /     if x == "hello" {
 LL | |         // Comment must be kept
@@ -21,7 +21,7 @@ LL ~         }
    |
 
 error: this `if` statement can be collapsed
-  --> tests/ui-toml/collapsible_if/collapsible_if.rs:17:5
+  --> tests/ui-toml/collapsible_if/collapsible_if.rs:18:5
    |
 LL | /     if x == "hello" { // Inner comment
 LL | |         if y == "world" {
@@ -39,7 +39,7 @@ LL ~         }
    |
 
 error: this `if` statement can be collapsed
-  --> tests/ui-toml/collapsible_if/collapsible_if.rs:24:5
+  --> tests/ui-toml/collapsible_if/collapsible_if.rs:25:5
    |
 LL | /     if x == "hello" {
 LL | |         /* Inner comment */
@@ -59,7 +59,7 @@ LL ~         }
    |
 
 error: this `if` statement can be collapsed
-  --> tests/ui-toml/collapsible_if/collapsible_if.rs:32:5
+  --> tests/ui-toml/collapsible_if/collapsible_if.rs:33:5
    |
 LL | /     if x == "hello" { /* Inner comment */
 LL | |         if y == "world" {
@@ -76,5 +76,77 @@ LL |             println!("Hello world!");
 LL ~         }
    |
 
-error: aborting due to 4 previous errors
+error: this `if` statement can be collapsed
+  --> tests/ui-toml/collapsible_if/collapsible_if.rs:40:5
+   |
+LL | /     if true {
+LL | |          if true {
+LL | |              println!("No comment, linted");
+LL | |          }
+LL | |      }
+   | |______^
+   |
+help: collapse nested if block
+   |
+LL ~     if true
+LL ~          && true {
+LL |              println!("No comment, linted");
+LL ~          }
+   |
+
+error: this `if` statement can be collapsed
+  --> tests/ui-toml/collapsible_if/collapsible_if.rs:47:5
+   |
+LL | /     if let Some(a) = Some(3) {
+LL | |         if let Some(b) = Some(4) {
+LL | |             let _ = a + b;
+LL | |         }
+LL | |     }
+   | |_____^
+   |
+help: collapse nested if block
+   |
+LL ~     if let Some(a) = Some(3)
+LL ~         && let Some(b) = Some(4) {
+LL |             let _ = a + b;
+LL ~         }
+   |
+
+error: this `if` statement can be collapsed
+  --> tests/ui-toml/collapsible_if/collapsible_if.rs:54:5
+   |
+LL | /     if let Some(a) = Some(3) {
+LL | |         if a + 1 == 4 {
+LL | |             let _ = a;
+LL | |         }
+LL | |     }
+   | |_____^
+   |
+help: collapse nested if block
+   |
+LL ~     if let Some(a) = Some(3)
+LL ~         && a + 1 == 4 {
+LL |             let _ = a;
+LL ~         }
+   |
+
+error: this `if` statement can be collapsed
+  --> tests/ui-toml/collapsible_if/collapsible_if.rs:61:5
+   |
+LL | /     if Some(3) == Some(4).map(|x| x - 1) {
+LL | |         if let Some(b) = Some(4) {
+LL | |             let _ = b;
+LL | |         }
+LL | |     }
+   | |_____^
+   |
+help: collapse nested if block
+   |
+LL ~     if Some(3) == Some(4).map(|x| x - 1)
+LL ~         && let Some(b) = Some(4) {
+LL |             let _ = b;
+LL ~         }
+   |
+
+error: aborting due to 8 previous errors
 

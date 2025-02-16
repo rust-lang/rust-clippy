@@ -475,6 +475,17 @@ The maximum cognitive complexity a function can have
 * [`cognitive_complexity`](https://rust-lang.github.io/rust-clippy/master/index.html#cognitive_complexity)
 
 
+## `collapse-let-chains`
+Whether `if let` chains should be collapsed. This requires the use of the unstable
+`let_chains` rustc feature.
+
+**Default Value:** `false`
+
+---
+**Affected lints:**
+* [`collapsible_if`](https://rust-lang.github.io/rust-clippy/master/index.html#collapsible_if)
+
+
 ## `disallowed-macros`
 The list of disallowed macros, written as fully qualified paths.
 
