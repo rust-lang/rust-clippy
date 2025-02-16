@@ -1,8 +1,9 @@
 #![allow(
     dead_code,
-    clippy::missing_safety_doc,
+    clippy::default_mismatches_new,
     clippy::extra_unused_lifetimes,
     clippy::extra_unused_type_parameters,
+    clippy::missing_safety_doc,
     clippy::needless_lifetimes
 )]
 #![warn(clippy::new_without_default)]

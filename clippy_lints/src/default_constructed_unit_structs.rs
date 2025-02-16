@@ -47,14 +47,6 @@ declare_clippy_lint! {
 }
 declare_lint_pass!(DefaultConstructedUnitStructs => [DEFAULT_CONSTRUCTED_UNIT_STRUCTS]);
 
-fn is_alias(ty: hir::Ty<'_>) -> bool {
-    if let hir::TyKind::Path(ref qpath) = ty.kind {
-        is_ty_alias(qpath)
-    } else {
-        false
-    }
-}
-
 impl LateLintPass<'_> for DefaultConstructedUnitStructs {
     fn check_expr<'tcx>(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'tcx>) {
         if let ExprKind::Call(fn_expr, &[]) = expr.kind
@@ -62,7 +54,7 @@ impl LateLintPass<'_> for DefaultConstructedUnitStructs {
             && let ExprKind::Path(ref qpath @ hir::QPath::TypeRelative(base, _)) = fn_expr.kind
             // make sure this isn't a type alias:
             // `<Foo as Bar>::Assoc` cannot be used as a constructor
-            && !is_alias(*base)
+            && !matches!(base.kind, hir::TyKind::Path(ref qpath) if is_ty_alias(qpath))
             && let Res::Def(_, def_id) = cx.qpath_res(qpath, fn_expr.hir_id)
             && cx.tcx.is_diagnostic_item(sym::default_fn, def_id)
             // make sure we have a struct with no fields (unit struct)
@@ -70,7 +62,8 @@ impl LateLintPass<'_> for DefaultConstructedUnitStructs {
             && def.is_struct()
             && let var @ ty::VariantDef { ctor: Some((hir::def::CtorKind::Const, _)), .. } = def.non_enum_variant()
             && !var.is_field_list_non_exhaustive()
-            && !expr.span.from_expansion() && !qpath.span().from_expansion()
+            && !expr.span.from_expansion()
+            && !qpath.span().from_expansion()
             // do not suggest replacing an expression by a type name with placeholders
             && !base.is_suggestable_infer_ty()
         {
