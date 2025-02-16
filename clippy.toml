@@ -2,6 +2,8 @@ avoid-breaking-exported-api = false
 
 check-inconsistent-struct-field-initializers = true
 
+collapse-let-chains = true
+
 lint-commented-code = true
 
 [[disallowed-methods]]

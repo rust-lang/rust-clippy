@@ -1,2 +1,3 @@
 # default config for tests, overrides clippy.toml at the project root
+collapse-let-chains = false
 lint-commented-code = false
