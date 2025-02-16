@@ -1,6 +1,6 @@
 #![feature(let_chains)]
 #![feature(proc_macro_span)]
-#![allow(clippy::needless_if, dead_code)]
+#![allow(clippy::needless_if, clippy::collapsible_if, dead_code)]
 
 extern crate proc_macro;
 
