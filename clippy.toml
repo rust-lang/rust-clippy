@@ -1,5 +1,5 @@
 avoid-breaking-exported-api = false
-
+lint-commented-code = true
 lint-inconsistent-struct-field-initializers = true
 
 [[disallowed-methods]]
