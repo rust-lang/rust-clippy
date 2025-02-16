@@ -1,0 +1,41 @@
+error: manual re-implementation of checked subtraction
+  --> tests/ui/manual_checked_sub.rs:11:17
+   |
+LL |         let _ = a - b;
+   |                 ^^^^^ help: consider using `.checked_sub()`: `a.checked_sub(b)`
+   |
+   = note: `-D clippy::manual-checked-sub` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_checked_sub)]`
+
+error: manual re-implementation of checked subtraction
+  --> tests/ui/manual_checked_sub.rs:16:17
+   |
+LL |         let _ = a - 1;
+   |                 ^^^^^ help: consider using `.checked_sub()`: `a.checked_sub(0)`
+
+error: manual re-implementation of checked subtraction
+  --> tests/ui/manual_checked_sub.rs:21:17
+   |
+LL |         let _ = 10u32 - 5u32;
+   |                 ^^^^^^^^^^^^ help: consider using `.checked_sub()`: `10u32.checked_sub(5u32)`
+
+error: manual re-implementation of checked subtraction
+  --> tests/ui/manual_checked_sub.rs:29:17
+   |
+LL |         let _ = x as u32 - y as u32;
+   |                 ^^^^^^^^^^^^^^^^^^^ help: consider using `.checked_sub()`: `(x as u32).checked_sub(y as u32)`
+
+error: manual re-implementation of checked subtraction
+  --> tests/ui/manual_checked_sub.rs:34:17
+   |
+LL |         let _ = x as u32 - 5u32;
+   |                 ^^^^^^^^^^^^^^^ help: consider using `.checked_sub()`: `(x as u32).checked_sub(5u32)`
+
+error: manual re-implementation of checked subtraction
+  --> tests/ui/manual_checked_sub.rs:87:21
+   |
+LL |             let _ = a - b;
+   |                     ^^^^^ help: consider using `.checked_sub()`: `a.checked_sub(b)`
+
+error: aborting due to 6 previous errors
+
