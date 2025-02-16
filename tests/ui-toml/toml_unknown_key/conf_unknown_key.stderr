@@ -34,6 +34,7 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            check-incompatible-msrv-in-tests
            check-private-items
            cognitive-complexity-threshold
+           collapse-let-chains
            cyclomatic-complexity-threshold
            disallowed-macros
            disallowed-methods
@@ -128,6 +129,7 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            check-incompatible-msrv-in-tests
            check-private-items
            cognitive-complexity-threshold
+           collapse-let-chains
            cyclomatic-complexity-threshold
            disallowed-macros
            disallowed-methods
@@ -222,6 +224,7 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            check-incompatible-msrv-in-tests
            check-private-items
            cognitive-complexity-threshold
+           collapse-let-chains
            cyclomatic-complexity-threshold
            disallowed-macros
            disallowed-methods
