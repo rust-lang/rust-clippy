@@ -4,4 +4,5 @@
 # to `$PWD/lintcheck/ci-config`.
 
 avoid-breaking-exported-api = false
+collapse-let-chains = false
 lint-commented-code = false

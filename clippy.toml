@@ -1,4 +1,5 @@
 avoid-breaking-exported-api = false
+collapse-let-chains = true
 lint-commented-code = true
 lint-inconsistent-struct-field-initializers = true
 
