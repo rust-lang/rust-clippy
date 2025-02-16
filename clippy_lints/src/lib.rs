@@ -208,6 +208,7 @@ mod manual_abs_diff;
 mod manual_assert;
 mod manual_async_fn;
 mod manual_bits;
+mod manual_checked_sub;
 mod manual_clamp;
 mod manual_div_ceil;
 mod manual_float_methods;
@@ -943,5 +944,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(manual_option_as_slice::ManualOptionAsSlice::new(conf)));
     store.register_late_pass(|_| Box::new(single_option_map::SingleOptionMap));
     store.register_late_pass(move |_| Box::new(redundant_test_prefix::RedundantTestPrefix));
+    store.register_late_pass(move |_| Box::new(manual_checked_sub::ManualCheckedSub::new(conf)));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
