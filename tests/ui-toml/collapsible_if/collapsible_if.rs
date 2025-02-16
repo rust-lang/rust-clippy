@@ -1,0 +1,19 @@
+#![allow(clippy::eq_op, clippy::nonminimal_bool)]
+
+#[rustfmt::skip]
+#[warn(clippy::collapsible_if)]
+fn main() {
+    if true {
+        if true {
+            println!("No comment, linted");
+        }
+    }
+    //~^^^^^ collapsible_if
+
+    if true {
+        // Do not collapse because of this comment
+        if true {
+            println!("Hello world!");
+        }
+    }
+}

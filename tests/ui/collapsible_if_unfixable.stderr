@@ -1,0 +1,57 @@
+error: this `if` statement can be collapsed
+  --> tests/ui/collapsible_if_unfixable.rs:8:5
+   |
+LL | /     if x == "hello" {
+LL | |         // Not fixable because of the comment, but warned about
+LL | |         if y == "world" {
+LL | |             println!("Hello world!");
+LL | |         }
+LL | |     }
+   | |_____^
+   |
+   = note: `-D clippy::collapsible-if` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::collapsible_if)]`
+
+error: this `if` statement can be collapsed
+  --> tests/ui/collapsible_if_unfixable.rs:17:5
+   |
+LL | /     if x == "hello" {// Not fixable
+LL | |         if y == "world" {
+LL | |             println!("Hello world!");
+LL | |         }
+LL | |     }
+   | |_____^
+
+error: this `if` statement can be collapsed
+  --> tests/ui/collapsible_if_unfixable.rs:24:5
+   |
+LL | /     if x == "hello" { // Not fixable
+LL | |         if y == "world" {
+LL | |             println!("Hello world!");
+LL | |         }
+LL | |     }
+   | |_____^
+
+error: this `if` statement can be collapsed
+  --> tests/ui/collapsible_if_unfixable.rs:31:5
+   |
+LL | /     if x == "hello" {
+LL | |         /* Not fixable */
+LL | |         if y == "world" {
+LL | |             println!("Hello world!");
+LL | |         }
+LL | |     }
+   | |_____^
+
+error: this `if` statement can be collapsed
+  --> tests/ui/collapsible_if_unfixable.rs:39:5
+   |
+LL | /     if x == "hello" { /* Not fixable */
+LL | |         if y == "world" {
+LL | |             println!("Hello world!");
+LL | |         }
+LL | |     }
+   | |_____^
+
+error: aborting due to 5 previous errors
+
