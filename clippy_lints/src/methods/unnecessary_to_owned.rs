@@ -219,6 +219,8 @@ fn check_into_iter_call_arg(
         && let Some(receiver_snippet) = receiver.span.get_source_text(cx)
         // If the receiver is a `Cow`, we can't remove the `into_owned` generally, see https://github.com/rust-lang/rust-clippy/issues/13624.
         && !is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(receiver), sym::Cow)
+        // Calling `iter()` on a temporary object can lead to false positives. #14242
+        && receiver.is_place_expr(|base| cx.typeck_results().adjustments().get(base.hir_id).is_some())
     {
         if unnecessary_iter_cloned::check_for_loop_iter(cx, parent, method_name, receiver, true) {
             return true;

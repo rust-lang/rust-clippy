@@ -679,3 +679,18 @@ fn issue13624() -> impl IntoIterator {
 
     cow.into_owned().into_iter()
 }
+
+mod issue_14242 {
+    use std::rc::Rc;
+
+    #[derive(Copy, Clone)]
+    struct Foo;
+
+    fn rc_slice_provider() -> Rc<[Foo]> {
+        Rc::from([Foo])
+    }
+
+    fn iterator_provider() -> impl Iterator<Item = Foo> {
+        rc_slice_provider().to_vec().into_iter()
+    }
+}
