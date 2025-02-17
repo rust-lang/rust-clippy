@@ -349,8 +349,12 @@ fn block_parents_have_safety_comment(
 ) -> bool {
     let (span, hir_id) = match cx.tcx.parent_hir_node(id) {
         Node::Expr(expr) => match cx.tcx.parent_hir_node(expr.hir_id) {
-            Node::LetStmt(hir::LetStmt { span, hir_id, .. }) => (*span, *hir_id),
-
+            Node::LetStmt(hir::LetStmt { span, hir_id, .. })
+            | Node::Expr(hir::Expr {
+                hir_id,
+                kind: hir::ExprKind::Assign(_, _, span),
+                ..
+            }) => (*span, *hir_id),
             node if let Some((span, hir_id)) = span_and_hid_of_item_alike_node(&node)
                 && is_const_or_static(&node) =>
             {
@@ -606,10 +610,9 @@ fn span_from_macro_expansion_has_safety_comment(cx: &LateContext<'_>, span: Span
 
 fn get_body_search_span(cx: &LateContext<'_>) -> Option<Span> {
     let body = cx.enclosing_body?;
-    let map = cx.tcx.hir();
     let mut maybe_mod_item = None;
 
-    for (_, parent_node) in map.parent_iter(body.hir_id) {
+    for (_, parent_node) in cx.tcx.hir().parent_iter(body.hir_id) {
         match parent_node {
             Node::Crate(mod_) => return Some(mod_.spans.inner_span),
             Node::Item(hir::Item {
