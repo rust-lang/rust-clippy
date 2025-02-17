@@ -382,14 +382,18 @@ struct WrapperStructWithString(String);
 
 #[allow(clippy::disallowed_names)]
 fn issue_13417(foo: &mut StructWithOptionString) -> Option<String> {
-    let x = foo.opt_x.as_ref()?;
+    let Some(ref x) = foo.opt_x else {
+        return None;
+    };
     let opt_y = Some(x.clone());
     std::mem::replace(&mut foo.opt_x, opt_y)
 }
 
 #[allow(clippy::disallowed_names)]
 fn issue_13417_mut(foo: &mut StructWithOptionString) -> Option<String> {
-    let x = foo.opt_x.as_mut()?;
+    let Some(ref mut x) = foo.opt_x else {
+        return None;
+    };
     let opt_y = Some(x.clone());
     std::mem::replace(&mut foo.opt_x, opt_y)
 }
@@ -397,8 +401,14 @@ fn issue_13417_mut(foo: &mut StructWithOptionString) -> Option<String> {
 #[allow(clippy::disallowed_names)]
 #[allow(unused)]
 fn issue_13417_weirder(foo: &mut StructWithOptionString, mut bar: Option<WrapperStructWithString>) -> Option<()> {
-    let x @ y = foo.opt_x.as_ref()?;
-    let x @ &WrapperStructWithString(_) = bar.as_ref()?;
-    let x @ &mut WrapperStructWithString(_) = bar.as_mut()?;
+    let Some(ref x @ ref y) = foo.opt_x else {
+        return None;
+    };
+    let Some(ref x @ WrapperStructWithString(_)) = bar else {
+        return None;
+    };
+    let Some(ref mut x @ WrapperStructWithString(_)) = bar else {
+        return None;
+    };
     Some(())
 }
