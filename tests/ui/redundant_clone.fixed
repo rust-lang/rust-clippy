@@ -259,3 +259,12 @@ fn false_negative_5707() {
     let _z = x.clone(); // pr 7346 can't lint on `x`
     drop(y);
 }
+
+mod issue13900 {
+    use std::fmt::Display;
+
+    fn do_something(f: impl Display + Clone) -> String {
+        let g = f.clone();
+        format!("{} + {}", f, g)
+    }
+}
