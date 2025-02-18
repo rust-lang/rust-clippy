@@ -292,12 +292,12 @@ fn suggest_default_mismatch_new<'tcx>(
         DEFAULT_MISMATCHES_NEW,
         id.into(),
         block.span,
-        format!("you should consider delegating to the auto-derived `Default` for `{self_type_snip}`"),
+        format!("consider delegating to the auto-derived `Default` for `{self_type_snip}`"),
         |diag| {
             // This would replace any comments, and we could work around the first comment,
             // but in case of a block of code with multiple statements and comment lines,
             // we can't do much.  For now, we always mark this as a MaybeIncorrect suggestion.
-            diag.span_suggestion(span, "try using this", "Self::default()", Applicability::MaybeIncorrect);
+            diag.span_suggestion(span, "try using this", "Self::default()", Applicability::Unspecified);
         },
     );
 }
