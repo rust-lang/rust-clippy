@@ -1,6 +1,8 @@
 #![allow(clippy::needless_return, clippy::diverging_sub_expression)]
 #![warn(clippy::default_mismatches_new)]
 
+fn main() {}
+
 //
 // Nothing to change
 //
@@ -166,4 +168,12 @@ impl MultiStatements {
     }
 }
 
-fn main() {}
+// FIXME: fix the suggestion for this
+#[derive(Default)]
+struct OptionGeneric<T>(Option<T>);
+impl<T> OptionGeneric<T> {
+    fn new() -> Self {
+        //~^ default_mismatches_new
+        OptionGeneric(None)
+    }
+}

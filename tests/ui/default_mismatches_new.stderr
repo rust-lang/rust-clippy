@@ -1,5 +1,5 @@
 error: consider delegating to the auto-derived `Default` for `DeriveIntDefault`
-  --> tests/ui/default_mismatches_new.rs:110:22
+  --> tests/ui/default_mismatches_new.rs:112:22
    |
 LL |        fn new() -> Self {
    |  _______________________^
@@ -13,7 +13,7 @@ LL | |      }
    = help: to override `-D warnings` add `#[allow(clippy::default_mismatches_new)]`
 
 error: consider delegating to the auto-derived `Default` for `DeriveTupleDefault`
-  --> tests/ui/default_mismatches_new.rs:119:22
+  --> tests/ui/default_mismatches_new.rs:121:22
    |
 LL |        fn new() -> Self {
    |  _______________________^
@@ -24,7 +24,7 @@ LL | |      }
    | |______^
 
 error: consider delegating to the auto-derived `Default` for `NonZeroDeriveDefault`
-  --> tests/ui/default_mismatches_new.rs:128:22
+  --> tests/ui/default_mismatches_new.rs:130:22
    |
 LL |        fn new() -> Self {
    |  _______________________^
@@ -35,7 +35,7 @@ LL | |      }
    | |______^
 
 error: consider delegating to the auto-derived `Default` for `ExtraBlockDefault`
-  --> tests/ui/default_mismatches_new.rs:137:22
+  --> tests/ui/default_mismatches_new.rs:139:22
    |
 LL |        fn new() -> Self {
    |  _______________________^
@@ -46,7 +46,7 @@ LL | |      }
    | |______^
 
 error: consider delegating to the auto-derived `Default` for `ExtraBlockRetDefault`
-  --> tests/ui/default_mismatches_new.rs:146:22
+  --> tests/ui/default_mismatches_new.rs:148:22
    |
 LL |        fn new() -> Self {
    |  _______________________^
@@ -59,7 +59,7 @@ LL | |      }
    | |______^
 
 error: consider delegating to the auto-derived `Default` for `MultiStatements`
-  --> tests/ui/default_mismatches_new.rs:161:22
+  --> tests/ui/default_mismatches_new.rs:163:22
    |
 LL |        fn new() -> Self {
    |  _______________________^
@@ -71,5 +71,16 @@ LL | ||         Self(i)
 LL | |      }
    | |______^
 
-error: aborting due to 6 previous errors
+error: consider delegating to the auto-derived `Default` for `OptionGeneric<T>`
+  --> tests/ui/default_mismatches_new.rs:174:22
+   |
+LL |        fn new() -> Self {
+   |  _______________________^
+LL | |/
+LL | ||         OptionGeneric(None)
+   | ||___________________________- help: use: `Self::default()`
+LL | |      }
+   | |______^
+
+error: aborting due to 7 previous errors
 
