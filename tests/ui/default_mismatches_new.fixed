@@ -154,10 +154,13 @@ impl MultiStatements {
     }
 }
 
+//
+// TODO: Fix in the future
+//
 #[derive(Default)]
 struct OptionGeneric<T>(Option<T>);
 impl<T> OptionGeneric<T> {
     fn new() -> Self {
-        Self::default()
+        OptionGeneric(None)
     }
 }

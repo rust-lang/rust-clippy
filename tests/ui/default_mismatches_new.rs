@@ -168,12 +168,13 @@ impl MultiStatements {
     }
 }
 
-// FIXME: fix the suggestion for this
+//
+// TODO: Fix in the future
+//
 #[derive(Default)]
 struct OptionGeneric<T>(Option<T>);
 impl<T> OptionGeneric<T> {
     fn new() -> Self {
-        //~^ default_mismatches_new
         OptionGeneric(None)
     }
 }

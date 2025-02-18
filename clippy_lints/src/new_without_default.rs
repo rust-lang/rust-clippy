@@ -179,8 +179,7 @@ impl<'tcx> LateLintPass<'tcx> for NewWithoutDefault {
                             }
 
                             let mut default_type = None;
-                            // Check if a Default implementation exists for the Self type, regardless of
-                            // generics
+                            // Check if a Default implementation exists for the Self type, regardless of generics
                             if let Some(ref impling_types) = self.impling_types
                                 && let self_def = cx.tcx.type_of(self_def_id).instantiate_identity()
                                 && let Some(self_def) = self_def.ty_adt_def()
@@ -202,6 +201,8 @@ impl<'tcx> LateLintPass<'tcx> for NewWithoutDefault {
                                 suggest_new_without_default(cx, item, impl_item, id, self_ty, generics, impl_self_ty);
                             } else if let hir::ExprKind::Block(block, _) = cx.tcx.hir().body(body_id).value.kind
                                 && !is_unit_struct(cx, self_ty)
+                                 // TODO: handle generics
+                                && generics.params.is_empty()
                             {
                                 // this type has an automatically derived `Default` implementation
                                 // check if `new` and `default` are equivalent
