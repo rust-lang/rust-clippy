@@ -297,7 +297,7 @@ fn suggest_default_mismatch_new<'tcx>(
             // This would replace any comments, and we could work around the first comment,
             // but in case of a block of code with multiple statements and comment lines,
             // we can't do much.  For now, we always mark this as a MaybeIncorrect suggestion.
-            diag.span_suggestion(span, "try using this", "Self::default()", Applicability::Unspecified);
+            diag.span_suggestion(span, "use", "Self::default()", Applicability::Unspecified);
         },
     );
 }
