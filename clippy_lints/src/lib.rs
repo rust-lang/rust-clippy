@@ -391,6 +391,7 @@ mod unused_unit;
 mod unwrap;
 mod unwrap_in_result;
 mod upper_case_acronyms;
+mod use_crate_prefix_for_self_imports;
 mod use_self;
 mod useless_conversion;
 mod vec;
@@ -404,11 +405,11 @@ mod zero_sized_map_values;
 mod zombie_processes;
 // end lints modules, do not remove this comment, it’s used in `update_lints`
 
+use crate::utils::attr_collector::{AttrCollector, AttrStorage};
 use clippy_config::{Conf, get_configuration_metadata, sanitize_explanation};
 use clippy_utils::macros::FormatArgsStorage;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_lint::{Lint, LintId};
-use utils::attr_collector::{AttrCollector, AttrStorage};
 
 /// Register all pre expansion lints
 ///
@@ -475,7 +476,7 @@ pub(crate) enum LintCategory {
 }
 
 #[allow(clippy::enum_glob_use)]
-use LintCategory::*;
+use crate::LintCategory::*;
 
 impl LintCategory {
     fn is_all(self) -> bool {
@@ -979,5 +980,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(non_std_lazy_statics::NonStdLazyStatic::new(conf)));
     store.register_late_pass(|_| Box::new(manual_option_as_slice::ManualOptionAsSlice::new(conf)));
     store.register_late_pass(|_| Box::new(single_option_map::SingleOptionMap));
+    store.register_late_pass(|_| Box::new(use_crate_prefix_for_self_imports::UseCratePrefixForSelfImports::default()));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
