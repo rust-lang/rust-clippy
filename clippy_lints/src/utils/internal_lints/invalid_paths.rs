@@ -61,6 +61,10 @@ pub fn check_path(cx: &LateContext<'_>, path: &[&str]) -> bool {
     if !def_path_res(cx.tcx, path).is_empty() {
         return true;
     }
+    // `builtin` macros don't seem to be found in `def_path_res`...
+    if path == ["core", "macros", "builtin", "concat"] {
+        return true;
+    }
 
     // Some implementations can't be found by `path_to_res`, particularly inherent
     // implementations of native types. Check lang items.
@@ -78,6 +82,7 @@ pub fn check_path(cx: &LateContext<'_>, path: &[&str]) -> bool {
     .iter()
     .flat_map(|&ty| cx.tcx.incoherent_impls(ty).iter())
     .copied();
+
     for item_def_id in lang_items.iter().map(|(_, def_id)| def_id).chain(incoherent_impls) {
         let lang_item_path = cx.get_def_path(item_def_id);
         if path_syms.starts_with(&lang_item_path) {
