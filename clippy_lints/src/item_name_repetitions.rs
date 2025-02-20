@@ -94,6 +94,51 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Detects public item names that are the same as the
+    /// containing public module's name.
+    ///
+    /// ### Why is this bad?
+    /// It requires the user to type the module name twice in each usage,
+    /// especially if they choose to import the module rather than its contents.
+    ///
+    /// ### Known issues
+    /// Glob re-exports are ignored; e.g. this will not warn even though it should:
+    ///
+    /// ```no_run
+    /// pub mod foo {
+    ///     mod inner {
+    ///         pub struct Foo {}
+    ///     }
+    ///     pub use inner::*; // creates the path `foo::Foo`
+    /// }
+    /// ```
+    ///
+    /// ### Example
+    /// ```no_run
+    /// pub mod food {
+    ///     pub mod cake {
+    ///         pub struct Cake;
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// pub mod food {
+    ///     mod cake {
+    ///         pub struct Cake;
+    ///     }
+    ///     pub use cake::Cake;
+    /// }
+    /// ```
+    #[clippy::version = "1.86.0"]
+    pub EXACT_MODULE_NAME_REPETITIONS,
+    restriction,
+    "type names tha same as their containing module's name"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for modules that have the same name as their
     /// parent module
     ///
@@ -188,6 +233,7 @@ impl_lint_pass!(ItemNameRepetitions => [
     ENUM_VARIANT_NAMES,
     STRUCT_FIELD_NAMES,
     MODULE_NAME_REPETITIONS,
+    EXACT_MODULE_NAME_REPETITIONS,
     MODULE_INCEPTION
 ]);
 
@@ -454,6 +500,18 @@ impl LateLintPass<'_> for ItemNameRepetitions {
                                 "item name ends with its containing module's name",
                             );
                         }
+                    }
+
+                    if cx.tcx.visibility(item.owner_id).is_public()
+                        && cx.tcx.visibility(mod_owner_id.def_id).is_public()
+                        && item_camel == *mod_camel
+                    {
+                        span_lint(
+                            cx,
+                            EXACT_MODULE_NAME_REPETITIONS,
+                            item.ident.span,
+                            "item name is the same as its containing module's name",
+                        );
                     }
                 }
             }

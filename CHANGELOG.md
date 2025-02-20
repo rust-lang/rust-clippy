@@ -5568,6 +5568,7 @@ Released 2018-09-13
 [`err_expect`]: https://rust-lang.github.io/rust-clippy/master/index.html#err_expect
 [`error_impl_error`]: https://rust-lang.github.io/rust-clippy/master/index.html#error_impl_error
 [`eval_order_dependence`]: https://rust-lang.github.io/rust-clippy/master/index.html#eval_order_dependence
+[`exact_module_name_repetitions`]: https://rust-lang.github.io/rust-clippy/master/index.html#exact_module_name_repetitions
 [`excessive_nesting`]: https://rust-lang.github.io/rust-clippy/master/index.html#excessive_nesting
 [`excessive_precision`]: https://rust-lang.github.io/rust-clippy/master/index.html#excessive_precision
 [`exhaustive_enums`]: https://rust-lang.github.io/rust-clippy/master/index.html#exhaustive_enums

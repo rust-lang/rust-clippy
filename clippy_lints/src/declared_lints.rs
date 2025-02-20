@@ -248,6 +248,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::integer_division_remainder_used::INTEGER_DIVISION_REMAINDER_USED_INFO,
     crate::invalid_upcast_comparisons::INVALID_UPCAST_COMPARISONS_INFO,
     crate::item_name_repetitions::ENUM_VARIANT_NAMES_INFO,
+    crate::item_name_repetitions::EXACT_MODULE_NAME_REPETITIONS_INFO,
     crate::item_name_repetitions::MODULE_INCEPTION_INFO,
     crate::item_name_repetitions::MODULE_NAME_REPETITIONS_INFO,
     crate::item_name_repetitions::STRUCT_FIELD_NAMES_INFO,

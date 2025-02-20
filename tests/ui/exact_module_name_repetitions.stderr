@@ -1,0 +1,23 @@
+error: item name is the same as its containing module's name
+  --> tests/ui/exact_module_name_repetitions.rs:7:12
+   |
+LL |     pub fn foo() {}
+   |            ^^^
+   |
+   = note: `-D clippy::exact-module-name-repetitions` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::exact_module_name_repetitions)]`
+
+error: item name is the same as its containing module's name
+  --> tests/ui/exact_module_name_repetitions.rs:10:16
+   |
+LL |     pub struct Foo;
+   |                ^^^
+
+error: item name is the same as its containing module's name
+  --> tests/ui/exact_module_name_repetitions.rs:20:18
+   |
+LL |     pub use baz::Bar;
+   |                  ^^^
+
+error: aborting due to 3 previous errors
+
