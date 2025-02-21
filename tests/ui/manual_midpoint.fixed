@@ -1,4 +1,5 @@
 #![warn(clippy::manual_midpoint)]
+#![feature(num_midpoint_signed)]
 
 macro_rules! mac {
     ($a: expr, $b: expr) => {
@@ -60,4 +61,15 @@ fn main() {
     // But if we see (x+1.0)/2.0 or (x+1.0)/2.0, it is probably a midpoint operation
     let _ = f32::midpoint(f, 1.0); //~ ERROR: manual implementation of `midpoint`
     let _ = f32::midpoint(1.0, f); //~ ERROR: manual implementation of `midpoint`
+}
+
+#[clippy::msrv = "1.86"]
+fn older_signed_midpoint(i: i32) {
+    // Do not lint
+    let _ = (i + 10) / 2;
+}
+
+#[clippy::msrv = "1.87"]
+fn signed_midpoint(i: i32) {
+    let _ = i32::midpoint(i, 10); //~ ERROR: manual implementation of `midpoint`
 }
