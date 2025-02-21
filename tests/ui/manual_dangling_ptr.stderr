@@ -1,5 +1,5 @@
 error: manual creation of a dangling pointer
-  --> tests/ui/manual_dangling_ptr.rs:8:13
+  --> tests/ui/manual_dangling_ptr.rs:7:13
    |
 LL |     let _ = 4 as *const u32;
    |             ^^^^^^^^^^^^^^^ help: use: `std::ptr::dangling::<u32>()`
@@ -14,43 +14,43 @@ LL |     let _ = 8 as *mut f64;
    |             ^^^^^^^^^^^^^ help: use: `std::ptr::dangling_mut::<f64>()`
 
 error: manual creation of a dangling pointer
-  --> tests/ui/manual_dangling_ptr.rs:10:24
+  --> tests/ui/manual_dangling_ptr.rs:11:24
    |
 LL |     let _: *const u8 = 1 as *const _;
    |                        ^^^^^^^^^^^^^ help: use: `std::ptr::dangling()`
 
 error: manual creation of a dangling pointer
-  --> tests/ui/manual_dangling_ptr.rs:12:13
+  --> tests/ui/manual_dangling_ptr.rs:14:13
    |
 LL |     let _ = mem::align_of::<u32>() as *const u32;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::ptr::dangling::<u32>()`
 
 error: manual creation of a dangling pointer
-  --> tests/ui/manual_dangling_ptr.rs:13:13
+  --> tests/ui/manual_dangling_ptr.rs:16:13
    |
 LL |     let _ = mem::align_of::<u64>() as *mut u64;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::ptr::dangling_mut::<u64>()`
 
 error: manual creation of a dangling pointer
-  --> tests/ui/manual_dangling_ptr.rs:15:9
+  --> tests/ui/manual_dangling_ptr.rs:19:9
    |
 LL |     foo(4 as *const _, 8 as *mut _);
    |         ^^^^^^^^^^^^^ help: use: `std::ptr::dangling()`
 
 error: manual creation of a dangling pointer
-  --> tests/ui/manual_dangling_ptr.rs:15:24
+  --> tests/ui/manual_dangling_ptr.rs:19:24
    |
 LL |     foo(4 as *const _, 8 as *mut _);
    |                        ^^^^^^^^^^^ help: use: `std::ptr::dangling_mut()`
 
 error: manual creation of a dangling pointer
-  --> tests/ui/manual_dangling_ptr.rs:32:9
+  --> tests/ui/manual_dangling_ptr.rs:39:9
    |
 LL |     foo(4 as *const _, 8 as *mut _);
    |         ^^^^^^^^^^^^^ help: use: `std::ptr::dangling()`
 
 error: manual creation of a dangling pointer
-  --> tests/ui/manual_dangling_ptr.rs:32:24
+  --> tests/ui/manual_dangling_ptr.rs:39:24
    |
 LL |     foo(4 as *const _, 8 as *mut _);
    |                        ^^^^^^^^^^^ help: use: `std::ptr::dangling_mut()`
