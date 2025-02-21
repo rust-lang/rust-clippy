@@ -29,6 +29,7 @@ pub const SYNTAX_CONTEXT: [&str; 3] = ["rustc_span", "hygiene", "SyntaxContext"]
 
 // Paths in `core`/`alloc`/`std`. This should be avoided and cleaned up by adding diagnostic items.
 pub const CHAR_IS_ASCII: [&str; 5] = ["core", "char", "methods", "<impl char>", "is_ascii"];
+pub const ALIGN_OF: [&str; 3] = ["core", "mem", "align_of"];
 
 // Paths in clippy itself
 pub const MSRV: [&str; 3] = ["clippy_utils", "msrvs", "Msrv"];
