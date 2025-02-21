@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::source::snippet_opt;
 use rustc_ast::AttrStyle;
 use rustc_ast::token::CommentKind;
 use rustc_errors::Applicability;
@@ -9,7 +10,7 @@ use rustc_span::Span;
 use super::SUSPICIOUS_DOC_COMMENTS;
 
 pub fn check(cx: &LateContext<'_>, attrs: &[Attribute]) -> bool {
-    let replacements: Vec<_> = collect_doc_replacements(attrs);
+    let replacements: Vec<_> = collect_doc_replacements(cx, attrs);
 
     if let Some((&(lo_span, _), &(hi_span, _))) = replacements.first().zip(replacements.last()) {
         span_lint_and_then(
@@ -32,12 +33,14 @@ pub fn check(cx: &LateContext<'_>, attrs: &[Attribute]) -> bool {
     }
 }
 
-fn collect_doc_replacements(attrs: &[Attribute]) -> Vec<(Span, String)> {
+fn collect_doc_replacements(cx: &LateContext<'_>, attrs: &[Attribute]) -> Vec<(Span, String)> {
     attrs
         .iter()
         .filter_map(|attr| {
             if let Some((sym, com_kind)) = attr.doc_str_and_comment_kind()
                 && let AttrStyle::Outer = attr.style
+                // Filter out explicit `doc` attributes
+                && snippet_opt(cx, attr.span.source_callsite()).is_some_and(|s| s.starts_with('/'))
                 && let Some(com) = sym.as_str().strip_prefix('!')
             {
                 let sugg = match com_kind {
