@@ -303,6 +303,27 @@ pub fn test_2(x: Issue9647) {
     }
 }
 
+pub fn issue_14155() {
+    let arr = ["a", "b", "c"];
+    if let Some(last) = arr.last() {
+        match *last {
+            "a" | "b" => {
+                unimplemented!()
+            },
+            _ => (),
+        }
+    }
+
+    if let Some(last) = arr.last() {
+        match &last {
+            &&"a" | &&"b" => {
+                unimplemented!()
+            },
+            _ => (),
+        }
+    }
+}
+
 fn make<T>() -> T {
     unimplemented!()
 }
