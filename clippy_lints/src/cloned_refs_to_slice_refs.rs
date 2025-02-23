@@ -53,7 +53,7 @@ impl<'tcx> LateLintPass<'tcx> for ClonedRefsToSliceRefs {
 
             // check for clones
             let ExprKind::MethodCall(call, val, _, _) = &item.kind &&
-            call.ident.name.as_str() == "clone" &&
+            call.ident.name == rustc_span::sym::clone &&
 
             // get appropriate crate for `slice::from_ref`
             let Some(builtin_crate) = clippy_utils::std_or_core(cx)
