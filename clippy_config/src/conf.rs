@@ -464,6 +464,26 @@ define_Conf! {
     /// For internal testing only, ignores the current `publish` settings in the Cargo manifest.
     #[lints(cargo_common_metadata)]
     cargo_ignore_publish: bool = false,
+    /// Whether to suggest reordering constructor fields when initializers are present.
+    ///
+    /// Warnings produced by this configuration aren't necessarily fixed by just reordering the fields. Even if the
+    /// suggested code would compile, it can change semantics if the initializer expressions have side effects. The
+    /// following example [from rust-clippy#11846] shows how the suggestion can run into borrow check errors:
+    ///
+    /// ```rust
+    /// struct MyStruct {
+    ///     vector: Vec<u32>,
+    ///     length: usize
+    /// }
+    /// fn main() {
+    ///     let vector = vec![1,2,3];
+    ///     MyStruct { length: vector.len(), vector};
+    /// }
+    /// ```
+    ///
+    /// [from rust-clippy#11846]: https://github.com/rust-lang/rust-clippy/issues/11846#issuecomment-1820747924
+    #[lints(inconsistent_struct_constructor)]
+    check_inconsistent_struct_field_initializers: bool = false,
     /// Whether to also run the listed lints on private items.
     #[lints(missing_errors_doc, missing_panics_doc, missing_safety_doc, unnecessary_safety_doc)]
     check_private_items: bool = false,
@@ -539,25 +559,10 @@ define_Conf! {
     /// The maximum size of the `Err`-variant in a `Result` returned from a function
     #[lints(result_large_err)]
     large_error_threshold: u64 = 128,
-    /// Whether to suggest reordering constructor fields when initializers are present.
+    /// DEPRECATED CONFIGURATION: lint-inconsistent-struct-field-initializers
     ///
-    /// Warnings produced by this configuration aren't necessarily fixed by just reordering the fields. Even if the
-    /// suggested code would compile, it can change semantics if the initializer expressions have side effects. The
-    /// following example [from rust-clippy#11846] shows how the suggestion can run into borrow check errors:
-    ///
-    /// ```rust
-    /// struct MyStruct {
-    ///     vector: Vec<u32>,
-    ///     length: usize
-    /// }
-    /// fn main() {
-    ///     let vector = vec![1,2,3];
-    ///     MyStruct { length: vector.len(), vector};
-    /// }
-    /// ```
-    ///
-    /// [from rust-clippy#11846]: https://github.com/rust-lang/rust-clippy/issues/11846#issuecomment-1820747924
-    #[lints(inconsistent_struct_constructor)]
+    /// Use the `check-inconsistent-struct-field-initializers` configuration instead.
+    #[conf_deprecated("Please use `check-inconsistent-struct-field-initializers` instead", check_inconsistent_struct_field_initializers)]
     lint_inconsistent_struct_field_initializers: bool = false,
     /// The lower bound for linting decimal literals
     #[lints(decimal_literal_representation)]
