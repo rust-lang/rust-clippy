@@ -97,6 +97,7 @@ mod cargo;
 mod casts;
 mod cfg_not_test;
 mod checked_conversions;
+mod cloned_refs_to_slice_refs;
 mod cognitive_complexity;
 mod collapsible_if;
 mod collection_is_never_read;
@@ -982,5 +983,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(non_std_lazy_statics::NonStdLazyStatic::new(conf)));
     store.register_late_pass(|_| Box::new(manual_option_as_slice::ManualOptionAsSlice::new(conf)));
     store.register_late_pass(|_| Box::new(single_option_map::SingleOptionMap));
+    store.register_late_pass(|_| Box::new(cloned_refs_to_slice_refs::ClonedRefsToSliceRefs));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
