@@ -29,11 +29,10 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            array-size-threshold
            avoid-breaking-exported-api
            await-holding-invalid-types
-           blacklisted-names
            cargo-ignore-publish
+           check-inconsistent-struct-field-initializers
            check-private-items
            cognitive-complexity-threshold
-           cyclomatic-complexity-threshold
            disallowed-macros
            disallowed-methods
            disallowed-names
@@ -48,7 +47,6 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            future-size-threshold
            ignore-interior-mutability
            large-error-threshold
-           lint-inconsistent-struct-field-initializers
            literal-representation-threshold
            matches-for-let-else
            max-fn-params-bools
@@ -120,11 +118,10 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            array-size-threshold
            avoid-breaking-exported-api
            await-holding-invalid-types
-           blacklisted-names
            cargo-ignore-publish
+           check-inconsistent-struct-field-initializers
            check-private-items
            cognitive-complexity-threshold
-           cyclomatic-complexity-threshold
            disallowed-macros
            disallowed-methods
            disallowed-names
@@ -139,7 +136,6 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            future-size-threshold
            ignore-interior-mutability
            large-error-threshold
-           lint-inconsistent-struct-field-initializers
            literal-representation-threshold
            matches-for-let-else
            max-fn-params-bools
@@ -211,11 +207,10 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            array-size-threshold
            avoid-breaking-exported-api
            await-holding-invalid-types
-           blacklisted-names
            cargo-ignore-publish
+           check-inconsistent-struct-field-initializers
            check-private-items
            cognitive-complexity-threshold
-           cyclomatic-complexity-threshold
            disallowed-macros
            disallowed-methods
            disallowed-names
@@ -230,7 +225,6 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            future-size-threshold
            ignore-interior-mutability
            large-error-threshold
-           lint-inconsistent-struct-field-initializers
            literal-representation-threshold
            matches-for-let-else
            max-fn-params-bools
