@@ -44,10 +44,7 @@ declare_lint_pass!(ClonedRefsToSliceRefs => [CLONED_REFS_TO_SLICE_REFS]);
 impl<'tcx> LateLintPass<'tcx> for ClonedRefsToSliceRefs {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, exp: &Expr<'tcx>) {
         // `&[foo.clone()]` expressions
-        if let ExprKind::AddrOf(_, mutability, arr) = &exp.kind &&
-            // mutable references would have a different meaning
-            mutability.is_not() &&
-
+        if let ExprKind::AddrOf(_, Mutability::Not, arr) = &exp.kind &&
             // check for single item arrays
             let ExprKind::Array([item]) = &arr.kind &&
 
