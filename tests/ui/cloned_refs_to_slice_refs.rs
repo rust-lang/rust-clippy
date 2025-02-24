@@ -19,16 +19,23 @@ fn main() {
         take_slice(&[Data.clone()]); //~ ERROR: this call to clone can be replaced with `std::slice::from_ref`
     }
 
-    // no warning because this has different meaning
+    // no warning mutable borrows may have the intention to clone
     {
         let data = Data;
         let data_ref = &data;
         take_slice_mut(&mut [data_ref.clone()]);
     }
 
-    // no warning because this has different meaning
+    // no warning `Ty::clone` is used to denote a clone with side effects
     {
         let data = Arc::new(Data);
         take_arc(&[Arc::clone(&data)]);
+    }
+
+    // no warning slices with multiple members cannot be made from a singular reference
+    {
+        let data_1 = Data;
+        let data_2 = Data;
+        take_slice(&[data_1.clone(), data_2.clone()]);
     }
 }
