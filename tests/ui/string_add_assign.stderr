@@ -1,11 +1,29 @@
-error: you assigned the result of adding something to this string. Consider using `String::push_str()` instead
+error: you assigned the result of adding something to this string. Consider using `String::push_str()` or `String::push()` instead
   --> tests/ui/string_add_assign.rs:8:9
    |
 LL |         x = x + ".";
-   |         ^^^^^^^^^^^
+   |         ^^^^^^^^^^^ help: try: `x.push('.')`
    |
    = note: `-D clippy::string-add-assign` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::string_add_assign)]`
 
-error: aborting due to 1 previous error
+error: you assigned the result of adding something to this string. Consider using `String::push_str()` or `String::push()` instead
+  --> tests/ui/string_add_assign.rs:22:5
+   |
+LL |     x = x + ", World";
+   |     ^^^^^^^^^^^^^^^^^ help: try: `x.push_str(", World")`
+
+error: you assigned the result of adding something to this string. Consider using `String::push_str()` or `String::push()` instead
+  --> tests/ui/string_add_assign.rs:27:5
+   |
+LL |     x = x + &y;
+   |     ^^^^^^^^^^ help: try: `x.push_str(&y)`
+
+error: you assigned the result of adding something to this string. Consider using `String::push_str()` or `String::push()` instead
+  --> tests/ui/string_add_assign.rs:31:5
+   |
+LL |     x = x + "'";
+   |     ^^^^^^^^^^^ help: try: `x.push('\'')`
+
+error: aborting due to 4 previous errors
 

@@ -5,7 +5,7 @@ fn main() {
     let mut x = String::new();
 
     for _ in 1..3 {
-        x = x + ".";
+        x.push('.');
         //~^ string_add_assign
     }
 
@@ -19,15 +19,15 @@ fn main() {
     assert_eq!(2, x);
 
     let mut x = "Hello".to_owned();
-    x = x + ", World";
+    x.push_str(", World");
     //~^ string_add_assign
 
     let mut x = "Hello".to_owned();
     let y = ", World".to_owned();
-    x = x + &y;
+    x.push_str(&y);
     //~^ string_add_assign
 
     let mut x = "'".to_owned();
-    x = x + "'";
+    x.push('\'');
     //~^ string_add_assign
 }
