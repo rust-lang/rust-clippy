@@ -98,7 +98,6 @@ mod casts;
 mod cfg_not_test;
 mod checked_conversions;
 mod cloned_ref_to_slice_refs;
-mod cloned_refs_to_slice_refs;
 mod cognitive_complexity;
 mod collapsible_if;
 mod collection_is_never_read;
