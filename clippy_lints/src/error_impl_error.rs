@@ -10,7 +10,7 @@ use rustc_span::sym;
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for types named `Error` that implement `Error`.
+    /// Checks for types named `*Error` that implement `Error`.
     ///
     /// ### Why restrict this?
     /// It can become confusing when a codebase has 20 types all named `Error`, requiring either

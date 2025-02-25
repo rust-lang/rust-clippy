@@ -1,11 +1,11 @@
-#![warn(clippy::missing_error_impl)]
+#![warn(clippy::missing_error_implementations)]
 
 struct InternalError;
 
 pub(crate) struct CrateInternalError;
 
 pub struct PublicError;
-//~^ missing_error_impl
+//~^ missing_error_implementations
 
 pub struct NotAnErrorType;
 
