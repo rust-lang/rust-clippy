@@ -1,0 +1,17 @@
+error: manual implementation of `.is_multiple_of()`
+  --> tests/ui-toml/manual_is_multiple_of/zero/manual_is_multiple_of.rs:6:13
+   |
+LL |     let _ = a & 1 == 0;
+   |             ^^^^^^^^^^ help: replace with: `a.is_multiple_of(2)`
+   |
+   = note: `-D clippy::manual-is-multiple-of` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_is_multiple_of)]`
+
+error: manual implementation of `.is_multiple_of()`
+  --> tests/ui-toml/manual_is_multiple_of/zero/manual_is_multiple_of.rs:7:13
+   |
+LL |     let _ = a & ((1 << 1) - 1) == 0;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `a.is_multiple_of(1 << 1)`
+
+error: aborting due to 2 previous errors
+
