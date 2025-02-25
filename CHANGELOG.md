@@ -994,7 +994,7 @@ Released 2023-04-20
 
 * Moved [`uninlined_format_args`] to `pedantic` (Now allow-by-default)
   [#10265](https://github.com/rust-lang/rust-clippy/pull/10265)
-* Moved [`unchecked_duration_subtraction`] to `pedantic` (Now allow-by-default)
+* Moved [`unchecked_time_subtraction`] to `pedantic` (Now allow-by-default)
   [#10194](https://github.com/rust-lang/rust-clippy/pull/10194)
 
 ### Enhancements
@@ -1245,7 +1245,7 @@ Released 2023-01-26
   [#9506](https://github.com/rust-lang/rust-clippy/pull/9506)
 * [`unnecessary_safety_doc`]
   [#9822](https://github.com/rust-lang/rust-clippy/pull/9822)
-* [`unchecked_duration_subtraction`]
+* [`unchecked_time_subtraction`]
   [#9570](https://github.com/rust-lang/rust-clippy/pull/9570)
 * [`manual_is_ascii_check`]
   [#9765](https://github.com/rust-lang/rust-clippy/pull/9765)

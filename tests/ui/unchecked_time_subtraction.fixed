@@ -1,4 +1,4 @@
-#![warn(clippy::unchecked_duration_subtraction)]
+#![warn(clippy::unchecked_time_subtraction)]
 
 use std::time::{Duration, Instant};
 
@@ -8,23 +8,23 @@ fn main() {
     let duration2 = Duration::from_secs(1);
 
     let _ = instant.checked_sub(duration).unwrap();
-    //~^ unchecked_duration_subtraction
+    //~^ unchecked_time_subtraction
 
     let _ = Instant::now().checked_sub(Duration::from_secs(5)).unwrap();
-    //~^ unchecked_duration_subtraction
+    //~^ unchecked_time_subtraction
 
     let _ = instant.checked_sub(Duration::from_secs(5)).unwrap();
-    //~^ unchecked_duration_subtraction
+    //~^ unchecked_time_subtraction
 
     let _ = Instant::now().checked_sub(duration).unwrap();
-    //~^ unchecked_duration_subtraction
+    //~^ unchecked_time_subtraction
 
     let _ = Duration::from_secs(1).checked_sub(duration).unwrap();
-    //~^ unchecked_duration_subtraction
+    //~^ unchecked_time_subtraction
 
     let _ = duration2.checked_sub(duration).unwrap();
-    //~^ unchecked_duration_subtraction
+    //~^ unchecked_time_subtraction
 
     let _ = Instant::now().elapsed().checked_sub(duration).unwrap();
-    //~^ unchecked_duration_subtraction
+    //~^ unchecked_time_subtraction
 }

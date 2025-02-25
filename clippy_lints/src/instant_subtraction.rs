@@ -61,7 +61,7 @@ declare_clippy_lint! {
     /// let time_delta = Duration::from_secs(1).checked_sub(Duration::from_secs(5));
     /// ```
     #[clippy::version = "1.67.0"]
-    pub UNCHECKED_DURATION_SUBTRACTION,
+    pub UNCHECKED_TIME_SUBTRACTION,
     pedantic,
     "finds unchecked subtraction of a 'Duration' from an 'Instant' or 'Duration'"
 }
@@ -78,7 +78,7 @@ impl InstantSubtraction {
     }
 }
 
-impl_lint_pass!(InstantSubtraction => [MANUAL_INSTANT_ELAPSED, UNCHECKED_DURATION_SUBTRACTION]);
+impl_lint_pass!(InstantSubtraction => [MANUAL_INSTANT_ELAPSED, UNCHECKED_TIME_SUBTRACTION]);
 
 impl LateLintPass<'_> for InstantSubtraction {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ Expr<'_>) {
@@ -104,7 +104,7 @@ impl LateLintPass<'_> for InstantSubtraction {
                 && !expr.span.from_expansion()
                 && self.msrv.meets(msrvs::TRY_FROM)
             {
-                print_unchecked_duration_subtraction_sugg(cx, lhs, rhs, expr);
+                print_unchecked_time_subtraction_sugg(cx, lhs, rhs, expr);
             }
         }
     }
@@ -135,7 +135,7 @@ fn print_manual_instant_elapsed_sugg(cx: &LateContext<'_>, expr: &Expr<'_>, sugg
     );
 }
 
-fn print_unchecked_duration_subtraction_sugg(
+fn print_unchecked_time_subtraction_sugg(
     cx: &LateContext<'_>,
     left_expr: &Expr<'_>,
     right_expr: &Expr<'_>,
@@ -156,7 +156,7 @@ fn print_unchecked_duration_subtraction_sugg(
 
     span_lint_and_sugg(
         cx,
-        UNCHECKED_DURATION_SUBTRACTION,
+        UNCHECKED_TIME_SUBTRACTION,
         expr.span,
         format!("unchecked subtraction of 'Duration' from '{left_ty}'"),
         "try",
