@@ -1,4 +1,4 @@
-error: error type doesn't implement `Error`
+error: error type doesn't implement `core::error::Error`
   --> tests/ui/missing_error_implementations.rs:7:12
    |
 LL | pub struct PublicError;

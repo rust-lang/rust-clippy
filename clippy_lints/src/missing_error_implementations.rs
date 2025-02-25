@@ -1,9 +1,11 @@
+use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::ty::implements_trait;
+use clippy_utils::{is_from_proc_macro, is_no_core_crate, is_no_std_crate, msrvs};
 use rustc_hir::{Item, ItemKind};
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty::Visibility;
-use rustc_session::declare_lint_pass;
+use rustc_session::impl_lint_pass;
 use rustc_span::sym;
 
 declare_clippy_lint! {
@@ -36,10 +38,25 @@ declare_clippy_lint! {
     "exported types with potentially forgotten `Error` implementation"
 }
 
-declare_lint_pass!(MissingErrorImplementations => [MISSING_ERROR_IMPLEMENTATIONS]);
+pub struct MissingErrorImplementations {
+    error_in_core: bool,
+}
+
+impl MissingErrorImplementations {
+    pub fn new(conf: &'static Conf) -> Self {
+        Self {
+            error_in_core: conf.msrv.meets(msrvs::ERROR_IN_CORE),
+        }
+    }
+}
+
+impl_lint_pass!(MissingErrorImplementations => [MISSING_ERROR_IMPLEMENTATIONS]);
 
 impl<'tcx> LateLintPass<'tcx> for MissingErrorImplementations {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {
+        if is_no_core_crate(cx) || (is_no_std_crate(cx) && !self.error_in_core) {
+            return;
+        }
         match item.kind {
             ItemKind::Enum(_, generics) | ItemKind::Struct(_, generics) => {
                 let is_error_candidate = {
@@ -47,8 +64,11 @@ impl<'tcx> LateLintPass<'tcx> for MissingErrorImplementations {
                     name.ends_with("Error") && name != "Error"
                 };
                 if is_error_candidate
-                    // Only check public items, as missing impls for private items are easy to fix.
+                    // Only check public items, as missing impls for private items can be fixed when needed without changing publich API.
                     && (cx.tcx.visibility(item.owner_id.def_id) == Visibility::Public)
+                    // Skip types not controlled by the user
+                    && !is_from_proc_macro(cx, item)
+                    && !item.span.in_external_macro(cx.sess().source_map())
                     // Check whether Error is implemented,
                     // skipping generic types as we'd have to ask whether there is an error impl
                     // for any instantiation of it.
@@ -61,7 +81,10 @@ impl<'tcx> LateLintPass<'tcx> for MissingErrorImplementations {
                         cx,
                         MISSING_ERROR_IMPLEMENTATIONS,
                         item.ident.span,
-                        "error type doesn't implement `Error`",
+                        format!(
+                            "error type doesn't implement `{}::error::Error`",
+                            if self.error_in_core { "core" } else { "std" }
+                        ),
                     );
                 }
             },
