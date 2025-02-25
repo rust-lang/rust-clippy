@@ -1,5 +1,30 @@
+error: lint name `missing_error_implementations` is deprecated and may not have an effect in the future
+  --> tests/ui/module_name_repetitions.rs:5:10
+   |
+LL | #![allow(missing_error_implementations)]
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: change it to: `clippy::missing_error_implementations`
+   |
+   = note: `-D renamed-and-removed-lints` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(renamed_and_removed_lints)]`
+
+error: lint name `missing_error_implementations` is deprecated and may not have an effect in the future
+  --> tests/ui/module_name_repetitions.rs:5:10
+   |
+LL | #![allow(missing_error_implementations)]
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: change it to: `clippy::missing_error_implementations`
+   |
+   = note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
+
+error: lint name `missing_error_implementations` is deprecated and may not have an effect in the future
+  --> tests/ui/module_name_repetitions.rs:5:10
+   |
+LL | #![allow(missing_error_implementations)]
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: change it to: `clippy::missing_error_implementations`
+   |
+   = note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
+
 error: item name starts with its containing module's name
-  --> tests/ui/module_name_repetitions.rs:8:12
+  --> tests/ui/module_name_repetitions.rs:9:12
    |
 LL |     pub fn foo_bar() {}
    |            ^^^^^^^
@@ -8,34 +33,34 @@ LL |     pub fn foo_bar() {}
    = help: to override `-D warnings` add `#[allow(clippy::module_name_repetitions)]`
 
 error: item name ends with its containing module's name
-  --> tests/ui/module_name_repetitions.rs:11:12
+  --> tests/ui/module_name_repetitions.rs:12:12
    |
 LL |     pub fn bar_foo() {}
    |            ^^^^^^^
 
 error: item name starts with its containing module's name
-  --> tests/ui/module_name_repetitions.rs:14:16
+  --> tests/ui/module_name_repetitions.rs:15:16
    |
 LL |     pub struct FooCake;
    |                ^^^^^^^
 
 error: item name ends with its containing module's name
-  --> tests/ui/module_name_repetitions.rs:17:14
+  --> tests/ui/module_name_repetitions.rs:18:14
    |
 LL |     pub enum CakeFoo {}
    |              ^^^^^^^
 
 error: item name starts with its containing module's name
-  --> tests/ui/module_name_repetitions.rs:20:16
+  --> tests/ui/module_name_repetitions.rs:21:16
    |
 LL |     pub struct Foo7Bar;
    |                ^^^^^^^
 
 error: item name starts with its containing module's name
-  --> tests/ui/module_name_repetitions.rs:33:20
+  --> tests/ui/module_name_repetitions.rs:34:20
    |
 LL |     pub use error::FooError;
    |                    ^^^^^^^^
 
-error: aborting due to 6 previous errors
+error: aborting due to 9 previous errors
 

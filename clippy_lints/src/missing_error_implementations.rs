@@ -31,14 +31,14 @@ declare_clippy_lint! {
     /// impl core::error::Error for ParseError { ... }
     /// ```
     #[clippy::version = "1.87.0"]
-    pub MISSING_ERROR_IMPL,
+    pub MISSING_ERROR_IMPLEMENTATIONS,
     suspicious,
     "exported types with potentially forgotten `Error` implementation"
 }
 
-declare_lint_pass!(MissingErrorImpl => [MISSING_ERROR_IMPL]);
+declare_lint_pass!(MissingErrorImplementations => [MISSING_ERROR_IMPLEMENTATIONS]);
 
-impl<'tcx> LateLintPass<'tcx> for MissingErrorImpl {
+impl<'tcx> LateLintPass<'tcx> for MissingErrorImplementations {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {
         match item.kind {
             ItemKind::Enum(_, generics) | ItemKind::Struct(_, generics) => {
@@ -59,7 +59,7 @@ impl<'tcx> LateLintPass<'tcx> for MissingErrorImpl {
                 {
                     span_lint(
                         cx,
-                        MISSING_ERROR_IMPL,
+                        MISSING_ERROR_IMPLEMENTATIONS,
                         item.ident.span,
                         "error type doesn't implement `Error`",
                     );
