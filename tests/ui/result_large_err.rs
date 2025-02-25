@@ -2,6 +2,7 @@
 
 #![warn(clippy::result_large_err)]
 #![allow(clippy::large_enum_variant)]
+#![allow(clippy::missing_error_implementations)]
 
 pub fn small_err() -> Result<(), u128> {
     Ok(())

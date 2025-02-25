@@ -1,28 +1,3 @@
-error: lint name `missing_error_implementations` is deprecated and may not have an effect in the future
-  --> tests/ui/module_name_repetitions.rs:5:10
-   |
-LL | #![allow(missing_error_implementations)]
-   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: change it to: `clippy::missing_error_implementations`
-   |
-   = note: `-D renamed-and-removed-lints` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(renamed_and_removed_lints)]`
-
-error: lint name `missing_error_implementations` is deprecated and may not have an effect in the future
-  --> tests/ui/module_name_repetitions.rs:5:10
-   |
-LL | #![allow(missing_error_implementations)]
-   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: change it to: `clippy::missing_error_implementations`
-   |
-   = note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
-
-error: lint name `missing_error_implementations` is deprecated and may not have an effect in the future
-  --> tests/ui/module_name_repetitions.rs:5:10
-   |
-LL | #![allow(missing_error_implementations)]
-   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: change it to: `clippy::missing_error_implementations`
-   |
-   = note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
-
 error: item name starts with its containing module's name
   --> tests/ui/module_name_repetitions.rs:9:12
    |
@@ -62,5 +37,5 @@ error: item name starts with its containing module's name
 LL |     pub use error::FooError;
    |                    ^^^^^^^^
 
-error: aborting due to 9 previous errors
+error: aborting due to 6 previous errors
 

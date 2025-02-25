@@ -2,6 +2,7 @@
 #![allow(unreachable_code)]
 #![allow(dead_code)]
 #![allow(clippy::unnecessary_wraps)]
+#![allow(clippy::missing_error_implementations)]
 
 fn some_func(a: Option<u32>) -> Option<u32> {
     if a.is_none() {
