@@ -243,6 +243,7 @@ mod missing_const_for_fn;
 mod missing_const_for_thread_local;
 mod missing_doc;
 mod missing_enforced_import_rename;
+mod missing_error_implementations;
 mod missing_fields_in_debug;
 mod missing_inline;
 mod missing_trait_methods;
@@ -984,5 +985,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(non_std_lazy_statics::NonStdLazyStatic::new(conf)));
     store.register_late_pass(|_| Box::new(manual_option_as_slice::ManualOptionAsSlice::new(conf)));
     store.register_late_pass(|_| Box::new(single_option_map::SingleOptionMap));
+    store.register_late_pass(|_| Box::new(missing_error_implementations::MissingErrorImplementations));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
