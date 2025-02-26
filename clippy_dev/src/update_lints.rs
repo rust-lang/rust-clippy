@@ -197,13 +197,12 @@ pub fn rename(old_name: &str, new_name: &str, uplift: bool) {
         });
     }
 
-    let version = crate::new_lint::get_stabilization_version();
     rewrite_file(Path::new("clippy_lints/src/deprecated_lints.rs"), |s| {
         insert_at_marker(
             s,
             "// end renamed lints. used by `cargo dev rename_lint`",
             &format!(
-                "#[clippy::version = \"{version}\"]\n    \
+                "#[clippy::version = \"nightly\"]\n    \
                 (\"{}\", \"{}\"),\n    ",
                 lint.old_name, lint.new_name,
             ),
@@ -333,12 +332,11 @@ pub fn deprecate(name: &str, reason: &str) {
     let deprecated_lints_path = &*clippy_project_root().join("clippy_lints/src/deprecated_lints.rs");
 
     if remove_lint_declaration(stripped_name, &mod_path, &mut lints).unwrap_or(false) {
-        let version = crate::new_lint::get_stabilization_version();
         rewrite_file(deprecated_lints_path, |s| {
             insert_at_marker(
                 s,
                 "// end deprecated lints. used by `cargo dev deprecate_lint`",
-                &format!("#[clippy::version = \"{version}\"]\n    (\"{prefixed_name}\", \"{reason}\"),\n    ",),
+                &format!("#[clippy::version = \"nightly\"]\n    (\"{prefixed_name}\", \"{reason}\"),\n    ",),
             )
         });
 

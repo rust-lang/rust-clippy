@@ -1,4 +1,4 @@
-use crate::utils::{clippy_project_root, clippy_version};
+use crate::utils::clippy_project_root;
 use indoc::{formatdoc, writedoc};
 use std::fmt::Write as _;
 use std::fs::{self, OpenOptions};
@@ -184,11 +184,6 @@ fn to_camel_case(name: &str) -> String {
         .collect()
 }
 
-pub(crate) fn get_stabilization_version() -> String {
-    let (minor, patch) = clippy_version();
-    format!("{minor}.{patch}.0")
-}
-
 fn get_test_file_contents(lint_name: &str, msrv: bool) -> String {
     let mut test = formatdoc!(
         r"
@@ -339,13 +334,12 @@ fn get_lint_declaration(name_upper: &str, category: &str) -> String {
                 /// ```no_run
                 /// // example code which does not raise clippy warning
                 /// ```
-                #[clippy::version = "{}"]
+                #[clippy::version = "nightly"]
                 pub {name_upper},
                 {category},
                 "default lint description"
             }}
         "#,
-        get_stabilization_version(),
     )
 }
 

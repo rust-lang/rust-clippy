@@ -223,7 +223,7 @@ declare_clippy_lint! {
     /// ```rust
     /// // example code
     /// ```
-    #[clippy::version = "1.29.0"]
+    #[clippy::version = "nightly"]
     pub FOO_FUNCTIONS,
     pedantic,
     "function named `foo`, which is not a descriptive name"
@@ -580,7 +580,7 @@ declare_clippy_lint! {
     /// ```rust,ignore
     /// // A short example of improved code that doesn't trigger the lint
     /// ```
-    #[clippy::version = "1.29.0"]
+    #[clippy::version = "nightly"]
     pub FOO_FUNCTIONS,
     pedantic,
     "function named `foo`, which is not a descriptive name"
