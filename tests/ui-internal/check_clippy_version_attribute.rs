@@ -34,6 +34,14 @@ declare_tool_lint! {
     report_in_external_macro: true
 }
 
+declare_tool_lint! {
+    #[clippy::version = "nightly"]
+    pub clippy::VALID_NIGHTLY,
+    Warn,
+    "Three",
+    report_in_external_macro: true
+}
+
 ///////////////////////
 // Invalid attributes
 ///////////////////////
@@ -82,6 +90,6 @@ mod internal_clippy_lints {
 }
 
 use crate::internal_clippy_lints::ALLOW_MISSING_ATTRIBUTE_ONE;
-declare_lint_pass!(Pass2 => [VALID_ONE, VALID_TWO, VALID_THREE, INVALID_ONE, INVALID_TWO, MISSING_ATTRIBUTE_ONE, MISSING_ATTRIBUTE_TWO, ALLOW_MISSING_ATTRIBUTE_ONE]);
+declare_lint_pass!(Pass2 => [VALID_ONE, VALID_TWO, VALID_THREE, VALID_NIGHTLY, INVALID_ONE, INVALID_TWO, MISSING_ATTRIBUTE_ONE, MISSING_ATTRIBUTE_TWO, ALLOW_MISSING_ATTRIBUTE_ONE]);
 
 fn main() {}
