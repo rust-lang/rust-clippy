@@ -12,6 +12,7 @@ use rustc_span::edit_distance::edit_distance;
 use rustc_span::{BytePos, Pos, SourceFile, Span, SyntaxContext};
 use serde::de::{IgnoredAny, IntoDeserializer, MapAccess, Visitor};
 use serde::{Deserialize, Deserializer, Serialize};
+use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::Range;
 use std::path::PathBuf;
@@ -80,6 +81,7 @@ const DEFAULT_SOURCE_ITEM_ORDERING: &[SourceItemOrderingCategory] = {
 #[derive(Default)]
 struct TryConf {
     conf: Conf,
+    value_spans: HashMap<String, Range<usize>>,
     errors: Vec<ConfError>,
     warnings: Vec<ConfError>,
 }
@@ -88,6 +90,7 @@ impl TryConf {
     fn from_toml_error(file: &SourceFile, error: &toml::de::Error) -> Self {
         Self {
             conf: Conf::default(),
+            value_spans: HashMap::default(),
             errors: vec![ConfError::from_toml(file, error)],
             warnings: vec![],
         }
@@ -211,6 +214,7 @@ macro_rules! define_Conf {
             }
 
             fn visit_map<V>(self, mut map: V) -> Result<Self::Value, V::Error> where V: MapAccess<'de> {
+                let mut value_spans = HashMap::new();
                 let mut errors = Vec::new();
                 let mut warnings = Vec::new();
                 $(let mut $name = None;)*
@@ -233,6 +237,7 @@ macro_rules! define_Conf {
                                     }
                                     None => {
                                         $name = Some(value);
+                                        value_spans.insert(name.get_ref().as_str().to_string(), value_span);
                                         // $new_conf is the same as one of the defined `$name`s, so
                                         // this variable is defined in line 2 of this function.
                                         $(match $new_conf {
@@ -251,7 +256,7 @@ macro_rules! define_Conf {
                     }
                 }
                 let conf = Conf { $($name: $name.unwrap_or_else(defaults::$name),)* };
-                Ok(TryConf { conf, errors, warnings })
+                Ok(TryConf { conf, value_spans, errors, warnings })
             }
         }
 
@@ -819,6 +824,30 @@ fn deserialize(file: &SourceFile) -> TryConf {
                 &mut conf.conf.allow_renamed_params_for,
                 DEFAULT_ALLOWED_TRAITS_WITH_RENAMED_PARAMS,
             );
+
+            // Confirms that the user has not accidentally configured ordering requirements for nonexistent
+            // groups.
+            if let SourceItemOrderingWithinModuleItemGroupings::Custom(groupings) =
+                &conf.conf.module_items_ordered_within_groupings
+            {
+                for grouping in groupings {
+                    if !conf.conf.module_item_order_groupings.is_grouping(&grouping) {
+                        conf.warnings.push(ConfError::spanned(
+                            file,
+                            format!("the source "),
+                            None,
+                            conf.value_spans
+                                .get("module_item_order_groupings")
+                                .cloned()
+                                .unwrap_or_default(),
+                        ));
+                        //conf.warnings.push(ConfError { message: format!("the group `{grouping}`
+                        // specified in the option `module-items-ordered-within-groupings` doesn't
+                        // exist in the "), suggestion: None, span: None s})
+                    }
+                }
+            }
+
             // TODO: THIS SHOULD BE TESTED, this comment will be gone soon
             if conf.conf.allowed_idents_below_min_chars.iter().any(|e| e == "..") {
                 conf.conf
@@ -864,6 +893,7 @@ impl Conf {
 
         let TryConf {
             mut conf,
+            value_spans: _,
             errors,
             warnings,
         } = match path {

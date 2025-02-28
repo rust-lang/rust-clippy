@@ -337,6 +337,10 @@ impl SourceItemOrderingModuleItemGroupings {
         self.back_lut.get(item)
     }
 
+    pub fn is_grouping(&self, grouping: &str) -> bool {
+        self.groups.iter().any(|(g, _)| g == grouping)
+    }
+
     pub fn module_level_order_of(&self, item: &SourceItemOrderingModuleItemKind) -> Option<usize> {
         self.lut.get(item).copied()
     }
