@@ -217,3 +217,48 @@ mod with_ty_alias {
 fn mut_add(x: &mut i32) {
     *x += 1;
 }
+
+#[clippy::msrv = "1.87"]
+mod issue14020 {
+    use std::ops::Add;
+
+    fn f<T: Add>(a: T, b: T) -> <T as Add>::Output {
+        a + b
+    }
+}
+
+#[clippy::msrv = "1.87"]
+mod issue14290 {
+    use std::ops::{Deref, DerefMut};
+
+    struct Wrapper<T> {
+        t: T,
+    }
+
+    impl<T> Deref for Wrapper<T> {
+        type Target = T;
+
+        fn deref(&self) -> &Self::Target {
+            &self.t
+        }
+    }
+    impl<T> DerefMut for Wrapper<T> {
+        fn deref_mut(&mut self) -> &mut Self::Target {
+            &mut self.t
+        }
+    }
+
+    struct Example(bool);
+
+    fn do_something(mut a: Wrapper<Example>) {
+        a.0 = !a.0;
+    }
+
+    pub struct Stream(Vec<u8>);
+
+    impl Stream {
+        pub fn bytes(&self) -> &[u8] {
+            &self.0
+        }
+    }
+}
