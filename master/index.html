@@ -4411,6 +4411,13 @@ sleep(Duration::new(1, 0));
 </code></pre>
 <p>To fix this problem, either increase your MSRV or use another item
 available in your current MSRV.</p>
+<h3>Configuration</h3>
+<ul>
+<li>
+<p><code>check-incompatible-msrv-in-tests</code>:  Whether to check MSRV compatibility in <code>#[test]</code> and <code>#[cfg(test)]</code> code.</p>
+<p>(default: <code>false</code>)</p>
+</li>
+</ul>
 </div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.78.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+incompatible_msrv">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/incompatible_msrv.rs#L14">View Source</a></div></div></div></article><article class="panel panel-default" id="inconsistent_digit_grouping"><input id="label-inconsistent_digit_grouping" type="checkbox"><label for="label-inconsistent_digit_grouping"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-inconsistent_digit_grouping"><span>inconsistent_digit_grouping</span> <a href="#inconsistent_digit_grouping" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-style">style</span> <span class="label label-lint-level label-lint-level-warn">warn</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
 <p>Warns if an integral or floating-point constant is
 grouped inconsistently with underscores.</p>
