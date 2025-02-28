@@ -18,6 +18,7 @@ mod needless_bitwise_bool;
 mod numeric_arithmetic;
 mod op_ref;
 mod ptr_eq;
+mod raw_assign_to_drop;
 mod self_assignment;
 mod verbose_bit_mask;
 
@@ -834,6 +835,59 @@ declare_clippy_lint! {
     "explicit self-assignment"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for assignments via raw pointers that involve types with destructors.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// Assignments of the form `*ptr = new_value;` assume that `*ptr` contains an initialized
+    /// value, and unconditionally execute the `std::ops::Drop`-implementation if such
+    /// implementation is defined on the type of `*ptr`. If the value is in fact
+    /// uninitialized or otherwise invalid, the execution of `std::ops::Drop::drop(&mut self)`
+    /// is always Undefined Behavior.
+    ///
+    /// If the code can guarantee that the value being replaced during assignment is safe to
+    /// drop, it is recommended to
+    /// * silence this lint by adding a narrowly-scoped `#[expect(raw_assign_to_drop)]`-attribute
+    /// * make liberal use of SAFETY-comments e.g. around declaration of this unsafe pointer,
+    ///   reminding readers that this unsafe pointer *must* contain an initialized value.
+    ///
+    /// If the code can *not* guarantee that the previous value can be safely dropped,
+    /// use `std::ptr::write()` to overwrite the previous (possibly nonexisting) value
+    /// without executing the destructor.
+    ///
+    /// Use `std::ptr::drop_in_place()` to conditionally execute the destructor.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// unsafe fn foo(oldvalue: *mut String) {
+    ///     // Direct assignment always executes `String`'s destructor on `oldvalue`.
+    ///     // However, we can't guarantee that executing the destructor is safe.
+    ///     unsafe { *oldvalue = "New Value".to_owned(); }
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// unsafe fn foo(oldvalue: *mut String, oldvalue_is_initialized: bool) {
+    ///     let newvalue = "New Value".to_owned();
+    ///     if oldvalue_is_initialized {
+    ///         // Having established that `oldvalue` points to a valid value, selectively
+    ///         // execute the destructor to prevent a memory-leak
+    ///         unsafe { *oldvalue = newvalue; }
+    ///     } else {
+    ///         // Overwrite the old value without running the destructor.
+    ///         unsafe { oldvalue.write(newvalue); }
+    ///     }
+    /// }
+    /// ```
+    #[clippy::version = "1.85.0"]
+    pub RAW_ASSIGN_TO_DROP,
+    suspicious,
+    "assignment via raw pointer that involves destructors"
+}
+
 pub struct Operators {
     arithmetic_context: numeric_arithmetic::Context,
     verbose_bit_mask_threshold: u64,
@@ -876,6 +930,7 @@ impl_lint_pass!(Operators => [
     NEEDLESS_BITWISE_BOOL,
     PTR_EQ,
     SELF_ASSIGNMENT,
+    RAW_ASSIGN_TO_DROP,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Operators {
@@ -922,6 +977,7 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
             ExprKind::Assign(lhs, rhs, _) => {
                 assign_op_pattern::check(cx, e, lhs, rhs);
                 self_assignment::check(cx, e, lhs, rhs);
+                raw_assign_to_drop::check(cx, lhs);
             },
             ExprKind::Unary(op, arg) => {
                 if op == UnOp::Neg {
