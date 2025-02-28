@@ -201,11 +201,7 @@ pub fn rename(old_name: &str, new_name: &str, uplift: bool) {
         insert_at_marker(
             s,
             "// end renamed lints. used by `cargo dev rename_lint`",
-            &format!(
-                "#[clippy::version = \"nightly\"]\n    \
-                (\"{}\", \"{}\"),\n    ",
-                lint.old_name, lint.new_name,
-            ),
+            &format!("(\"{}\", \"{}\"),\n    ", lint.old_name, lint.new_name,),
         )
     });
 
@@ -562,6 +558,7 @@ impl DeprecatedLint {
     }
 }
 
+#[derive(Debug)]
 struct RenamedLint {
     old_name: String,
     new_name: String,
@@ -765,10 +762,10 @@ fn parse_contents(contents: &str, module: &str, lints: &mut Vec<Lint>) {
 
 /// Parse a source file looking for `declare_deprecated_lint` macro invocations.
 fn parse_deprecated_contents(contents: &str, deprecated: &mut Vec<DeprecatedLint>, renamed: &mut Vec<RenamedLint>) {
-    let Some((_, contents)) = contents.split_once("\ndeclare_with_version! { DEPRECATED") else {
+    let Some((_, contents)) = contents.split_once("\ndeprecated![") else {
         return;
     };
-    let Some((deprecated_src, renamed_src)) = contents.split_once("\ndeclare_with_version! { RENAMED") else {
+    let Some((deprecated_src, renamed_src)) = contents.split_once("\npub const RENAMED") else {
         return;
     };
 
