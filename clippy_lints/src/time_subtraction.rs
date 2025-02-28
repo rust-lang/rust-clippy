@@ -41,7 +41,7 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Lints subtraction between an `Instant` and a `Duration`.
+    /// Lints subtraction between an `Instant` or `Duration` and a `Duration`.
     ///
     /// ### Why is this bad?
     /// Unchecked subtraction could cause underflow on certain platforms, leading to
@@ -51,24 +51,26 @@ declare_clippy_lint! {
     /// ```no_run
     /// # use std::time::{Instant, Duration};
     /// let time_passed = Instant::now() - Duration::from_secs(5);
+    /// let time_delta = Duration::from_secs(1) - Duration::from_secs(5);
     /// ```
     ///
     /// Use instead:
     /// ```no_run
     /// # use std::time::{Instant, Duration};
     /// let time_passed = Instant::now().checked_sub(Duration::from_secs(5));
+    /// let time_delta = Duration::from_secs(1).checked_sub(Duration::from_secs(5));
     /// ```
     #[clippy::version = "1.67.0"]
-    pub UNCHECKED_DURATION_SUBTRACTION,
+    pub UNCHECKED_TIME_SUBTRACTION,
     pedantic,
-    "finds unchecked subtraction of a 'Duration' from an 'Instant'"
+    "finds unchecked subtraction of a 'Duration' from an 'Instant' or 'Duration'"
 }
 
-pub struct InstantSubtraction {
+pub struct TimeSubtraction {
     msrv: Msrv,
 }
 
-impl InstantSubtraction {
+impl TimeSubtraction {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
             msrv: conf.msrv.clone(),
@@ -76,9 +78,9 @@ impl InstantSubtraction {
     }
 }
 
-impl_lint_pass!(InstantSubtraction => [MANUAL_INSTANT_ELAPSED, UNCHECKED_DURATION_SUBTRACTION]);
+impl_lint_pass!(TimeSubtraction => [MANUAL_INSTANT_ELAPSED, UNCHECKED_TIME_SUBTRACTION]);
 
-impl LateLintPass<'_> for InstantSubtraction {
+impl LateLintPass<'_> for TimeSubtraction {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ Expr<'_>) {
         if let ExprKind::Binary(
             Spanned {
@@ -88,7 +90,8 @@ impl LateLintPass<'_> for InstantSubtraction {
             rhs,
         ) = expr.kind
             && let typeck = cx.typeck_results()
-            && ty::is_type_diagnostic_item(cx, typeck.expr_ty(lhs), sym::Instant)
+            && (ty::is_type_diagnostic_item(cx, typeck.expr_ty(lhs), sym::Instant)
+                || ty::is_type_diagnostic_item(cx, typeck.expr_ty(lhs), sym::Duration))
         {
             let rhs_ty = typeck.expr_ty(rhs);
 
@@ -101,7 +104,7 @@ impl LateLintPass<'_> for InstantSubtraction {
                 && !expr.span.from_expansion()
                 && self.msrv.meets(msrvs::TRY_FROM)
             {
-                print_unchecked_duration_subtraction_sugg(cx, lhs, rhs, expr);
+                print_unchecked_time_subtraction_sugg(cx, lhs, rhs, expr);
             }
         }
     }
@@ -132,23 +135,30 @@ fn print_manual_instant_elapsed_sugg(cx: &LateContext<'_>, expr: &Expr<'_>, sugg
     );
 }
 
-fn print_unchecked_duration_subtraction_sugg(
+fn print_unchecked_time_subtraction_sugg(
     cx: &LateContext<'_>,
     left_expr: &Expr<'_>,
     right_expr: &Expr<'_>,
     expr: &Expr<'_>,
 ) {
     let mut applicability = Applicability::MachineApplicable;
+    let ty = cx.typeck_results().expr_ty(expr).peel_refs();
+    let (left_default, left_ty) = match ty::get_type_diagnostic_name(cx, ty) {
+        Some(v) => (format!("<{}>", v.as_str().to_lowercase()), v.as_str().to_string()),
+        None => {
+            return;
+        },
+    };
 
     let ctxt = expr.span.ctxt();
-    let left_expr = snippet_with_context(cx, left_expr.span, ctxt, "<instant>", &mut applicability).0;
+    let left_expr = snippet_with_context(cx, left_expr.span, ctxt, &left_default, &mut applicability).0;
     let right_expr = snippet_with_context(cx, right_expr.span, ctxt, "<duration>", &mut applicability).0;
 
     span_lint_and_sugg(
         cx,
-        UNCHECKED_DURATION_SUBTRACTION,
+        UNCHECKED_TIME_SUBTRACTION,
         expr.span,
-        "unchecked subtraction of a 'Duration' from an 'Instant'",
+        format!("unchecked subtraction of 'Duration' from '{left_ty}'"),
         "try",
         format!("{left_expr}.checked_sub({right_expr}).unwrap()"),
         applicability,
