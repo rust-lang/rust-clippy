@@ -4313,7 +4313,7 @@ declare_clippy_lint! {
     /// use std::num::NonZeroUsize;
     /// const PLAYERS: NonZeroUsize = NonZeroUsize::new(3).unwrap();
     /// ```
-    #[clippy::version = "1.86.0"]
+    #[clippy::version = "nightly"]
     pub USELESS_NONZERO_NEW_UNCHECKED,
     complexity,
     "using `NonZero::new_unchecked()` in a `const` context"
@@ -4336,7 +4336,7 @@ declare_clippy_lint! {
     /// ```no_run
     /// let _ = std::iter::repeat_n(10, 3);
     /// ```
-    #[clippy::version = "1.86.0"]
+    #[clippy::version = "nightly"]
     pub MANUAL_REPEAT_N,
     style,
     "detect `repeat().take()` that can be replaced with `repeat_n()`"
@@ -4364,7 +4364,7 @@ declare_clippy_lint! {
     /// let s = "Lorem ipsum";
     /// &s.as_bytes()[1..5];
     /// ```
-     #[clippy::version = "1.86.0"]
+     #[clippy::version = "nightly"]
      pub SLICED_STRING_AS_BYTES,
      perf,
      "slicing a string and immediately calling as_bytes is less efficient and can lead to panics"
@@ -4404,7 +4404,7 @@ declare_clippy_lint! {
     ///     }
     /// }
     /// ```
-    #[clippy::version = "1.86.0"]
+    #[clippy::version = "nightly"]
     pub RETURN_AND_THEN,
     restriction,
     "using `Option::and_then` or `Result::and_then` to chain a computation that returns an `Option` or a `Result`"
@@ -4431,7 +4431,7 @@ declare_clippy_lint! {
     /// let file = BufReader::new(std::fs::File::open("./bytes.txt").unwrap());
     /// file.bytes();
     /// ```
-    #[clippy::version = "1.86.0"]
+    #[clippy::version = "nightly"]
     pub UNBUFFERED_BYTES,
     perf,
     "calling .bytes() is very inefficient when data is not in memory"
@@ -4456,7 +4456,7 @@ declare_clippy_lint! {
     ///    values.contains(&10)
     /// }
     /// ```
-    #[clippy::version = "1.86.0"]
+    #[clippy::version = "nightly"]
     pub MANUAL_CONTAINS,
     perf,
     "unnecessary `iter().any()` on slices that can be replaced with `contains()`"
@@ -4478,7 +4478,7 @@ declare_clippy_lint! {
     /// ```no_run
     /// let _ = std::io::Error::other("bad".to_string());
     /// ```
-    #[clippy::version = "1.86.0"]
+    #[clippy::version = "nightly"]
     pub IO_OTHER_ERROR,
     style,
     "calling `std::io::Error::new(std::io::ErrorKind::Other, _)`"

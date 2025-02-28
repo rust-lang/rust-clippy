@@ -37,7 +37,7 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// `0x2345 & 0xF000 >> 12` equals 5, while `(0x2345 & 0xF000) >> 12` equals 2
-    #[clippy::version = "1.86.0"]
+    #[clippy::version = "nightly"]
     pub PRECEDENCE_BITS,
     restriction,
     "operations mixing bit shifting with bit combining/masking"
