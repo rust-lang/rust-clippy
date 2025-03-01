@@ -603,6 +603,24 @@ A list of paths to types that should be treated as if they do not contain interi
 * [`mutable_key_type`](https://rust-lang.github.io/rust-clippy/master/index.html#mutable_key_type)
 
 
+## `ignore-msrv-check-for`
+A list of path to items that should not be checked for a compatible MSRV. This can be used to ignore
+MSRV checks for code which is gated by a feature which depends on the version of the Rust compiler.
+
+#### Example
+
+```toml
+# Ignore those as we use them only when our `modern_compiler` feature is active.
+ignore-msrv-check-for = [ "str::split_once", "std::option::Option::as_slice" ]
+```
+
+**Default Value:** `[]`
+
+---
+**Affected lints:**
+* [`incompatible_msrv`](https://rust-lang.github.io/rust-clippy/master/index.html#incompatible_msrv)
+
+
 ## `large-error-threshold`
 The maximum size of the `Err`-variant in a `Result` returned from a function
 

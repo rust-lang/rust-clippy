@@ -539,6 +539,17 @@ define_Conf! {
     /// A list of paths to types that should be treated as if they do not contain interior mutability
     #[lints(borrow_interior_mutable_const, declare_interior_mutable_const, ifs_same_cond, mutable_key_type)]
     ignore_interior_mutability: Vec<String> = Vec::from(["bytes::Bytes".into()]),
+    /// A list of path to items that should not be checked for a compatible MSRV. This can be used to ignore
+    /// MSRV checks for code which is gated by a feature which depends on the version of the Rust compiler.
+    ///
+    /// #### Example
+    ///
+    /// ```toml
+    /// # Ignore those as we use them only when our `modern_compiler` feature is active.
+    /// ignore-msrv-check-for = [ "str::split_once", "std::option::Option::as_slice" ]
+    /// ```
+    #[lints(incompatible_msrv)]
+    ignore_msrv_check_for: Vec<String> = Vec::new(),
     /// The maximum size of the `Err`-variant in a `Result` returned from a function
     #[lints(result_large_err)]
     large_error_threshold: u64 = 128,
