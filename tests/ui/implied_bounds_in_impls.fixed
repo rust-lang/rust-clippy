@@ -1,5 +1,5 @@
 #![warn(clippy::implied_bounds_in_impls)]
-#![allow(dead_code)]
+#![allow(dead_code, clippy::unit_as_impl_trait)]
 #![feature(impl_trait_in_assoc_type, type_alias_impl_trait)]
 
 use std::ops::{Deref, DerefMut};
