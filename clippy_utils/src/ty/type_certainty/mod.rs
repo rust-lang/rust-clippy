@@ -11,13 +11,14 @@
 //! As a heuristic, `expr_type_is_certain` may produce false negatives, but a false positive should
 //! be considered a bug.
 
+use super::adt_def_id;
 use crate::def_path_res;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefId;
 use rustc_hir::intravisit::{InferKind, Visitor, VisitorExt, walk_qpath, walk_ty};
 use rustc_hir::{self as hir, AmbigArg, Expr, ExprKind, GenericArgs, HirId, Node, PathSegment, QPath, TyKind};
 use rustc_lint::LateContext;
-use rustc_middle::ty::{self, AdtDef, GenericArgKind, Ty};
+use rustc_middle::ty::{self, GenericArgKind, Ty};
 use rustc_span::{Span, Symbol};
 
 mod certainty;
@@ -311,10 +312,6 @@ fn type_is_inferable_from_arguments(cx: &LateContext<'_>, expr: &Expr<'_>) -> bo
 
 fn self_ty<'tcx>(cx: &LateContext<'tcx>, method_def_id: DefId) -> Ty<'tcx> {
     cx.tcx.fn_sig(method_def_id).skip_binder().inputs().skip_binder()[0]
-}
-
-fn adt_def_id(ty: Ty<'_>) -> Option<DefId> {
-    ty.peel_refs().ty_adt_def().map(AdtDef::did)
 }
 
 fn contains_param(ty: Ty<'_>, index: u32) -> bool {
