@@ -83,27 +83,6 @@ fn main() {
         assert!(true); // assert! is just an `if`
     }
 
-
-    // The following tests check for the fix of https://github.com/rust-lang/rust-clippy/issues/798
-    if x == "hello" {// Not collapsible
-        if y == "world" {
-            println!("Hello world!");
-        }
-    }
-
-    if x == "hello" { // Not collapsible
-        if y == "world" {
-            println!("Hello world!");
-        }
-    }
-
-    if x == "hello" {
-        // Not collapsible
-        if y == "world" {
-            println!("Hello world!");
-        }
-    }
-
     if x == "hello" {
         if y == "world" { // Collapsible
             println!("Hello world!");
@@ -115,7 +94,7 @@ fn main() {
         print!("Hello ");
     } else {
         // Not collapsible
-        if y == "world" {
+        if let Some(42) = Some(42) {
             println!("world!")
         }
     }
@@ -124,21 +103,8 @@ fn main() {
         print!("Hello ");
     } else {
         // Not collapsible
-        if let Some(42) = Some(42) {
+        if y == "world" {
             println!("world!")
-        }
-    }
-
-    if x == "hello" {
-        /* Not collapsible */
-        if y == "world" {
-            println!("Hello world!");
-        }
-    }
-
-    if x == "hello" { /* Not collapsible */
-        if y == "world" {
-            println!("Hello world!");
         }
     }
 
@@ -181,4 +147,35 @@ fn main() {
             println!("Hello world!");
         }
     }
+
+    if x == "hello" {
+        // Comment must be kept
+        if y == "world" {
+            println!("Hello world!");
+        }
+    }
+    //~^^^^^^ collapsible_if
+
+    // The following tests check for the fix of https://github.com/rust-lang/rust-clippy/issues/798
+    if x == "hello" { // Inner comment
+        if y == "world" {
+            println!("Hello world!");
+        }
+    }
+    //~^^^^^ collapsible_if
+
+    if x == "hello" {
+        /* Inner comment */
+        if y == "world" {
+            println!("Hello world!");
+        }
+    }
+    //~^^^^^^ collapsible_if
+
+    if x == "hello" { /* Inner comment */
+        if y == "world" {
+            println!("Hello world!");
+        }
+    }
+    //~^^^^^ collapsible_if
 }
