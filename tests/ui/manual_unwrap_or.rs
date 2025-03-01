@@ -216,8 +216,8 @@ fn result_unwrap_or() {
         Ok(s) => s,
         Err(s) => s,
     };
-    // could lint, but unused_variables takes care of it
     match Ok::<&str, &str>("Alice") {
+        //~^ manual_unwrap_or
         Ok(s) => s,
         Err(s) => "Bob",
     };
