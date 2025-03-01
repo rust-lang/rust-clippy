@@ -53,7 +53,7 @@ impl_lint_pass!(ManualCheckedSub => [MANUAL_CHECKED_SUB]);
 
 impl<'tcx> LateLintPass<'tcx> for ManualCheckedSub {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        if !self.msrv.meets(msrvs::MANUAL_CHECKED_SUB) {
+        if !self.msrv.meets(cx, msrvs::MANUAL_CHECKED_SUB) {
             return;
         }
 
