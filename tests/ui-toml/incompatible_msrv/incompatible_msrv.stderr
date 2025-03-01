@@ -1,0 +1,11 @@
+error: current MSRV (Minimum Supported Rust Version) is `1.46.0` but this item is stable since `1.82.0`
+  --> tests/ui-toml/incompatible_msrv/incompatible_msrv.rs:14:10
+   |
+LL |     if x.is_none_or(|x| x + 2 == 17) {
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::incompatible-msrv` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::incompatible_msrv)]`
+
+error: aborting due to 1 previous error
+
