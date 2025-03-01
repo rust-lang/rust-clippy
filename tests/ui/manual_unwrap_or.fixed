@@ -18,11 +18,9 @@ fn option_unwrap_or() {
 
     // multiline case
     #[rustfmt::skip]
-    Some(1).unwrap_or({
-        42 + 42
-            + 42 + 42 + 42
-            + 42 + 42 + 42
-    });
+    Some(1).unwrap_or(42 + 42
+    + 42 + 42 + 42
+    + 42 + 42 + 42);
 
     // string case
     Some("Bob").unwrap_or("Alice");
@@ -125,11 +123,9 @@ fn result_unwrap_or() {
 
     // multiline case
     #[rustfmt::skip]
-    Ok::<i32, &str>(1).unwrap_or({
-        42 + 42
-            + 42 + 42 + 42
-            + 42 + 42 + 42
-    });
+    Ok::<i32, &str>(1).unwrap_or(42 + 42
+    + 42 + 42 + 42
+    + 42 + 42 + 42);
 
     // string case
     Ok::<&str, &str>("Bob").unwrap_or("Alice");
@@ -159,11 +155,7 @@ fn result_unwrap_or() {
         Ok(s) => s,
         Err(s) => s,
     };
-    // could lint, but unused_variables takes care of it
-    match Ok::<&str, &str>("Alice") {
-        Ok(s) => s,
-        Err(s) => "Bob",
-    };
+    Ok::<&str, &str>("Alice").unwrap_or("Bob");
 
     Ok::<i32, i32>(1).unwrap_or(42);
 
