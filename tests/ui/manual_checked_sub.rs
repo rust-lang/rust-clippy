@@ -1,103 +1,141 @@
 #![allow(clippy::collapsible_if)]
 #![warn(clippy::manual_checked_sub)]
 
-//Positive test, lint
 fn positive_tests() {
     let a: u32 = 10;
     let b: u32 = 5;
+    let c = 3;
 
-    // Case 1: a - b inside an if a >= b
+    // Basic subtraction inside an if
     if a >= b {
-        let _ = a - b;
+        //~^ manual_checked_sub
+        let c = a - b;
     }
 
-    // Case 2: a - 1 inside an if a > 0
+    // Basic subtraction inside an if with an else block
+    if a >= b {
+        //~^ manual_checked_sub
+        let c = a - b;
+    } else {
+        let c = a + b;
+    }
+
+    // Decrementing inside an if condition
     if a > 0 {
+        //~^ manual_checked_sub
         let _ = a - 1;
     }
 
-    // Case 3: Both suffixed, should lint
+    // Variable subtraction used in a function call
+    if a >= b {
+        //~^ manual_checked_sub
+        some_function(a - b);
+    }
+
+    // Subtracting two suffixed literals
     if 10u32 >= 5u32 {
+        //~^ manual_checked_sub
         let _ = 10u32 - 5u32;
     }
 
     let x: i32 = 10;
     let y: i32 = 5;
 
-    // Case 4: casted variables inside an if, should lint
+    // Casted variables inside an if
     if x as u32 >= y as u32 {
+        //~^ manual_checked_sub
         let _ = x as u32 - y as u32;
     }
 
-    // Case 5: casted variable and literal inside an if, should lint
+    // Casted variable and literal inside an if
     if x as u32 >= 5u32 {
+        //~^ manual_checked_sub
         let _ = x as u32 - 5u32;
     }
-}
 
-// Negative tests, no lint
-fn negative_tests() {
-    let a: u32 = 10;
-    let b: u32 = 5;
-
-    // Case 1: Uses checked_sub() correctly, no lint
-    let _ = a.checked_sub(b);
-
-    // Case 2: Works with signed integers (i32), no lint
-    let x: i32 = 10;
-    let y: i32 = 5;
-    if x >= y {
-        let _ = x - y;
-    }
-
-    // Case 3: If condition doesn't match, no lint
-    if a == b {
-        let _ = a - b;
-    }
-
-    // Case 4: a - b inside an if a > b
-    if a > b {
-        let _ = a - b;
-    }
-
-    // Case 5: Unsuffixed literals, no lint
-    if 10 >= 5 {
-        let _ = 10 - 5;
-    }
-
-    // Case 6: Suffixed lhs, unsuffixed rhs, no lint
-    if 10u32 >= 5 {
-        let _ = 10u32 - 5;
-    }
-
-    // Case 7: Unsuffixed lhs, suffixed rhs, no lint
-    if 10 >= 5u32 {
-        let _ = 10 - 5u32;
-    }
-}
-
-fn edge_cases() {
-    let a: u32 = 10;
-    let b: u32 = 5;
-    let c = 3;
-
-    // Edge Case 1: Subtraction inside a nested if, should lint
+    // Casting subtraction result
     if a >= b {
+        //~^ manual_checked_sub
+        let _ = (a - b) as u64;
+    }
+
+    if a >= b {
+        //~^ manual_checked_sub
+        macro_rules! subtract {
+            () => {
+                a - b
+            };
+        }
+        let _ = subtract!();
+    }
+
+    struct Example {
+        value: u32,
+    }
+
+    if a >= b {
+        //~^ manual_checked_sub
+        let _ = Example { value: a - b };
+    }
+
+    // Subtraction inside a nested if, should lint
+    if a >= b {
+        //~^ manual_checked_sub
         if c > 0 {
             let _ = a - b;
         }
     }
+}
 
-    // no lint
+fn some_function(a: u32) {}
+
+fn negative_tests() {
+    let a: u32 = 10;
+    let b: u32 = 5;
+
+    // Uses `.checked_sub()`, should not trigger
+    let _ = a.checked_sub(b);
+
+    // Works with signed integers (i32), should not trigger
+    let x: i32 = 10;
+    let y: i32 = 5;
+
+    if x >= y {
+        let _ = x - y;
+    }
+
+    // If condition does not match subtraction variables
+    if a == b {
+        let _ = a - b;
+    }
+
+    // a - b inside an if a > b (shouldn't lint)
     if a > b {
-        if a - b > c {
-            let _ = a - b;
-        }
+        let _ = a - b;
+    }
+
+    // Unsuffixed literals (shouldn't lint)
+    if 10 >= 5 {
+        let _ = 10 - 5;
+    }
+
+    // Suffixed LHS, unsuffixed RHS (shouldn't lint)
+    if 10u32 >= 5 {
+        let _ = 10u32 - 5;
+    }
+
+    //  Unsuffixed LHS, suffixed RHS (shouldn't lint)
+    if 10 >= 5u32 {
+        let _ = 10 - 5u32;
+    }
+
+    // Using `.wrapping_sub()`, should not trigger
+    if a >= b {
+        let _ = a.wrapping_sub(b);
     }
 }
 
 fn main() {
     positive_tests();
     negative_tests();
-    edge_cases();
 }

@@ -33,7 +33,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.86.0"]
     pub MANUAL_CHECKED_SUB,
     complexity,
-    "default lint description"
+    "Checks for manual re-implementations of checked subtraction."
 }
 
 pub struct ManualCheckedSub {
@@ -59,7 +59,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualCheckedSub {
 
         let applicability = Applicability::MachineApplicable;
 
-        if let ExprKind::If(drop_temp_expr, body_block, _) = expr.kind
+        if let ExprKind::If(drop_temp_expr, body_block, else_block) = expr.kind
             && let ExprKind::DropTemps(condition_expr) = drop_temp_expr.kind
             && let ExprKind::Binary(op, lhs, rhs) = condition_expr.kind
             && is_unsigned_int(cx, &lhs)
@@ -69,6 +69,9 @@ impl<'tcx> LateLintPass<'tcx> for ManualCheckedSub {
                 SubExprVisitor {
                     cx,
                     applicability,
+                    if_expr: expr,
+                    if_body_block: body_block,
+                    else_block,
                     condition_lhs: &lhs,
                     condition_rhs: &rhs,
                 }
@@ -82,6 +85,9 @@ impl<'tcx> LateLintPass<'tcx> for ManualCheckedSub {
                     SubExprVisitor {
                         cx,
                         applicability,
+                        if_expr: expr,
+                        if_body_block: body_block,
+                        else_block,
                         condition_lhs: &lhs,
                         condition_rhs: &rhs,
                     }
@@ -94,6 +100,9 @@ impl<'tcx> LateLintPass<'tcx> for ManualCheckedSub {
 
 struct SubExprVisitor<'a, 'tcx> {
     cx: &'a LateContext<'tcx>,
+    if_expr: &'tcx Expr<'tcx>,
+    if_body_block: &'tcx Expr<'tcx>,
+    else_block: Option<&'tcx Expr<'tcx>>,
     applicability: Applicability,
     condition_lhs: &'tcx Expr<'tcx>,
     condition_rhs: &'tcx Expr<'tcx>,
@@ -127,21 +136,43 @@ impl<'tcx> Visitor<'tcx> for SubExprVisitor<'_, 'tcx> {
 
 impl<'a, 'tcx> SubExprVisitor<'a, 'tcx> {
     fn build_suggession(&mut self, expr: &Expr<'tcx>) {
+        // if let Some(else_expr) = self.else_block {
+        //     println!("ELSE BLOCK in suggestion:::: {:#?}", else_expr);
+        // }
+
+        let body_snippet = snippet_with_applicability(self.cx, self.if_body_block.span, "..", &mut self.applicability);
+
+        let binary_expr_snippet = snippet_with_applicability(self.cx, expr.span, "..", &mut self.applicability);
+        let updated_usage_context_snippet = body_snippet.as_ref().replace(binary_expr_snippet.as_ref(), "result");
+        // let else_snippet = snippet_with_applicability(self.cx, self.if_else_block.span, "..", &mut
+        // self.applicability);
+
         let lhs_snippet = snippet_with_applicability(self.cx, self.condition_lhs.span, "..", &mut self.applicability);
         let rhs_snippet = snippet_with_applicability(self.cx, self.condition_rhs.span, "..", &mut self.applicability);
 
         let lhs_needs_parens = matches!(self.condition_lhs.kind, ExprKind::Cast(..));
 
-        let suggestion = if lhs_needs_parens {
-            format!("({}).checked_sub({})", lhs_snippet, rhs_snippet)
+        let mut suggestion = if lhs_needs_parens {
+            format!(
+                "if let Some(result) = ({}).checked_sub({}) {}",
+                lhs_snippet, rhs_snippet, updated_usage_context_snippet
+            )
         } else {
-            format!("{}.checked_sub({})", lhs_snippet, rhs_snippet)
+            format!(
+                "if let Some(result) = {}.checked_sub({})  {}",
+                lhs_snippet, rhs_snippet, updated_usage_context_snippet
+            )
         };
+
+        if let Some(else_expr) = self.else_block {
+            let else_snippet = snippet_with_applicability(self.cx, else_expr.span, "..", &mut self.applicability);
+            suggestion.push_str(&format!(" else {}", else_snippet));
+        }
 
         span_lint_and_sugg(
             self.cx,
             MANUAL_CHECKED_SUB,
-            expr.span,
+            self.if_expr.span,
             "manual re-implementation of checked subtraction",
             "consider using `.checked_sub()`",
             suggestion,
@@ -212,7 +243,7 @@ fn is_referencing_same_variable<'tcx>(expr1: &'tcx Expr<'_>, expr2: &'tcx Expr<'
 
 fn get_resolved_path_id<'tcx>(expr: &'tcx Expr<'_>) -> Option<Res> {
     if let ExprKind::Path(QPath::Resolved(_, path)) = &expr.kind {
-        path.segments.first().map(|segment| segment.res)
+        path.segments.first().and_then(|segment| Some(segment.res))
     } else {
         None
     }
