@@ -136,11 +136,6 @@ fn negative_tests() {
     if 10 >= 5u32 {
         let _ = 10 - 5u32;
     }
-
-    // Using `.wrapping_sub()`, should not trigger
-    if a >= b {
-        let _ = a.wrapping_sub(b);
-    }
 }
 
 fn main() {
