@@ -3,6 +3,8 @@ use std::path::Path;
 
 use itertools::{EitherOrBoth, Itertools};
 use serde::{Deserialize, Serialize};
+use tabled::builder::Builder;
+use tabled::settings::Style;
 
 use crate::ClippyWarning;
 
@@ -93,7 +95,7 @@ pub(crate) fn diff(old_path: &Path, new_path: &Path, truncate: bool) {
         }
     }
 
-    print_summary_table(&lint_warnings);
+    println!("{}", get_summary_table(&lint_warnings));
     println!();
 
     if lint_warnings.is_empty() {
@@ -145,19 +147,22 @@ fn print_lint_warnings(lint: &LintWarnings, truncate_after: usize) {
     print_changed_diff(&lint.changed, truncate_after / 3);
 }
 
-fn print_summary_table(lints: &[LintWarnings]) {
-    println!("| Lint                                       | Added   | Removed | Changed |");
-    println!("| ------------------------------------------ | ------: | ------: | ------: |");
+fn get_summary_table(lints: &[LintWarnings]) -> String {
+    let mut builder = Builder::default();
+    builder.push_record(vec!["Lint", "Added", "Removed", "Changed"]);
 
     for lint in lints {
-        println!(
-            "| {:<62} | {:>7} | {:>7} | {:>7} |",
-            format!("[`{}`](#user-content-{})", lint.name, to_html_id(&lint.name)),
-            lint.added.len(),
-            lint.removed.len(),
-            lint.changed.len()
-        );
+        let lint_name = format!("[`{}`](#user-content-{})", lint.name, to_html_id(&lint.name));
+        builder.push_record(vec![
+            lint_name,
+            lint.added.len().to_string(),
+            lint.removed.len().to_string(),
+            lint.changed.len().to_string(),
+        ]);
     }
+    let mut table = builder.build();
+
+    format!("{}", table.with(Style::markdown()))
 }
 
 fn print_warnings(title: &str, warnings: &[LintJson], truncate_after: usize) {
@@ -252,5 +257,25 @@ fn count_string(lint: &str, label: &str, count: usize) -> String {
         // manually have to add them. GitHub prefixes these manual ids with
         // `user-content-` and that's how we end up with these awesome links :D
         format!("[{count} {label}](#user-content-{html_id}-{label})")
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_table_output() {
+        let lint_warnings = [LintWarnings {
+            name: "clippy::float_arithmetic".to_string(),
+            added: vec![],
+            removed: vec![],
+            changed: vec![],
+        }];
+
+        let expected = "| Lint                                                         | Added | Removed | Changed |
+|--------------------------------------------------------------|-------|---------|---------|
+| [`clippy::float_arithmetic`](#user-content-float-arithmetic) | 0     | 0       | 0       |";
+        assert_eq!(expected, get_summary_table(&lint_warnings));
     }
 }
