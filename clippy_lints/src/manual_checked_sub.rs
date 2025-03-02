@@ -24,7 +24,7 @@ declare_clippy_lint! {
     /// ### Example
     /// ```no_run
     /// if 10u32 >= 4u32 {
-    ///     10u32 - 4u32
+    ///     10u32 - 4u32;
     /// }
     /// ```
     /// Use instead:
