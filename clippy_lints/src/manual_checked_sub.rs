@@ -11,6 +11,7 @@ use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self};
 use rustc_session::impl_lint_pass;
+use std::fmt::Write;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -152,7 +153,8 @@ impl<'tcx> SubExprVisitor<'_, 'tcx> {
 
         if let Some(else_expr) = self.else_block {
             let else_snippet = snippet_with_applicability(self.cx, else_expr.span, "..", &mut self.applicability);
-            suggestion.push_str(&format!(" else {else_snippet}"));
+            // suggestion.push_str(&format!(" else {else_snippet}"));
+            write!(suggestion, " else {else_snippet}").unwrap();
         }
 
         span_lint_and_sugg(
@@ -227,7 +229,8 @@ fn is_referencing_same_variable<'tcx>(expr1: &'tcx Expr<'_>, expr2: &'tcx Expr<'
 
 fn get_resolved_path_id(expr: &Expr<'_>) -> Option<Res> {
     if let ExprKind::Path(QPath::Resolved(_, path)) = &expr.kind {
-        path.segments.first().and_then(|segment| Some(segment.res))
+        // path.segments.first().and_then(|segment| Some(segment.res))
+        path.segments.first().map(|segment| segment.res)
     } else {
         None
     }

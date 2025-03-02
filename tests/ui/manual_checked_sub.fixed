@@ -20,6 +20,14 @@ fn positive_tests() {
         let c = a + b;
     }
 
+    // Basic subtraction inside an if with an else-if block
+    if let Some(result) = a.checked_sub(b)  {
+        //~^ manual_checked_sub
+        let c = result;
+    } else if a < b {
+        let c = a + b;
+    }
+
     // Decrementing inside an if condition
     if let Some(result) = a.checked_sub(0)  {
         //~^ manual_checked_sub

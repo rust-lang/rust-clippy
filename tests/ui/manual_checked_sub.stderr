@@ -41,6 +41,27 @@ LL +     }
 error: manual re-implementation of checked subtraction
   --> tests/ui/manual_checked_sub.rs:24:5
    |
+LL | /     if a >= b {
+LL | |
+LL | |         let c = a - b;
+LL | |     } else if a < b {
+LL | |         let c = a + b;
+LL | |     }
+   | |_____^
+   |
+help: consider using `.checked_sub()`
+   |
+LL ~     if let Some(result) = a.checked_sub(b)  {
+LL +
+LL +         let c = result;
+LL +     } else if a < b {
+LL +         let c = a + b;
+LL +     }
+   |
+
+error: manual re-implementation of checked subtraction
+  --> tests/ui/manual_checked_sub.rs:32:5
+   |
 LL | /     if a > 0 {
 LL | |
 LL | |         let _ = a - 1;
@@ -56,7 +77,7 @@ LL +     }
    |
 
 error: manual re-implementation of checked subtraction
-  --> tests/ui/manual_checked_sub.rs:30:5
+  --> tests/ui/manual_checked_sub.rs:38:5
    |
 LL | /     if a >= b {
 LL | |
@@ -73,7 +94,7 @@ LL +     }
    |
 
 error: manual re-implementation of checked subtraction
-  --> tests/ui/manual_checked_sub.rs:36:5
+  --> tests/ui/manual_checked_sub.rs:44:5
    |
 LL | /     if 10u32 >= 5u32 {
 LL | |
@@ -90,7 +111,7 @@ LL +     }
    |
 
 error: manual re-implementation of checked subtraction
-  --> tests/ui/manual_checked_sub.rs:45:5
+  --> tests/ui/manual_checked_sub.rs:53:5
    |
 LL | /     if x as u32 >= y as u32 {
 LL | |
@@ -107,7 +128,7 @@ LL +     }
    |
 
 error: manual re-implementation of checked subtraction
-  --> tests/ui/manual_checked_sub.rs:51:5
+  --> tests/ui/manual_checked_sub.rs:59:5
    |
 LL | /     if x as u32 >= 5u32 {
 LL | |
@@ -124,7 +145,7 @@ LL +     }
    |
 
 error: manual re-implementation of checked subtraction
-  --> tests/ui/manual_checked_sub.rs:57:5
+  --> tests/ui/manual_checked_sub.rs:65:5
    |
 LL | /     if a >= b {
 LL | |
@@ -141,7 +162,7 @@ LL +     }
    |
 
 error: manual re-implementation of checked subtraction
-  --> tests/ui/manual_checked_sub.rs:62:5
+  --> tests/ui/manual_checked_sub.rs:70:5
    |
 LL | /     if a >= b {
 LL | |
@@ -166,7 +187,7 @@ LL +     }
    |
 
 error: manual re-implementation of checked subtraction
-  --> tests/ui/manual_checked_sub.rs:76:5
+  --> tests/ui/manual_checked_sub.rs:84:5
    |
 LL | /     if a >= b {
 LL | |
@@ -183,7 +204,7 @@ LL +     }
    |
 
 error: manual re-implementation of checked subtraction
-  --> tests/ui/manual_checked_sub.rs:82:5
+  --> tests/ui/manual_checked_sub.rs:90:5
    |
 LL | /     if a >= b {
 LL | |
@@ -203,5 +224,5 @@ LL +         }
 LL +     }
    |
 
-error: aborting due to 11 previous errors
+error: aborting due to 12 previous errors
 
