@@ -1,10 +1,12 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_block_with_applicability;
+use clippy_utils::visitors::for_each_expr_without_closures;
 use clippy_utils::{higher, is_from_proc_macro};
 use rustc_errors::Applicability;
 use rustc_hir::{BlockCheckMode, Expr, ExprKind, MatchSource};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::declare_lint_pass;
+use std::ops::ControlFlow;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -86,6 +88,20 @@ impl<'tcx> LateLintPass<'tcx> for BlocksInConditions {
                         if expr.span.from_expansion() || ex.span.from_expansion() {
                             return;
                         }
+
+                        // #9911
+                        if for_each_expr_without_closures(block.expr, |e| {
+                            if let ExprKind::Ret(..) = e.kind {
+                                ControlFlow::Break(())
+                            } else {
+                                ControlFlow::Continue(())
+                            }
+                        })
+                        .is_some()
+                        {
+                            return;
+                        }
+
                         let mut applicability = Applicability::MachineApplicable;
                         span_lint_and_sugg(
                             cx,
