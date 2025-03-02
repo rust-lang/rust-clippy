@@ -433,12 +433,12 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                             (2, deref_msg)
                         };
 
-                        if deref_count >= required_refs {
+                        if let Some(result) = deref_count.checked_sub(required_refs) {
                             self.state = Some((
                                 State::DerefedBorrow(DerefedBorrow {
                                     // One of the required refs is for the current borrow expression, the remaining ones
                                     // can't be removed without breaking the code. See earlier comment.
-                                    count: deref_count - required_refs,
+                                    count: result,
                                     msg,
                                     stability,
                                     for_field_access: if let ExprUseNode::FieldAccess(name) = use_node
