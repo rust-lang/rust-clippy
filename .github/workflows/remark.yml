@@ -1,3 +1,9 @@
+# This action uses [Remark] to lint all the Markdown files in this repository. It also runs
+# [Linkchecker], which is used to validate links within the Clippy Book. (Not to be confused with
+# Lintcheck, which checks lints!)
+#
+# [Remark]: https://www.npmjs.com/package/remark
+# [Linkchecker]: https://github.com/rust-lang/rust/tree/master/src/tools/linkchecker
 name: Remark
 
 on:
