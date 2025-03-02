@@ -24,12 +24,14 @@ declare_clippy_lint! {
     /// ### Example
     /// ```no_run
     /// if 10u32 >= 4u32 {
-    ///     10u32 - 4u32;
+    ///     let c = 10u32 - 4u32;
     /// }
     /// ```
     /// Use instead:
     /// ```no_run
-    /// if let Some(result) = 10u32.checked_sub(4u32);
+    /// if let Some(result) = 10u32.checked_sub(4u32){
+    ///     c = result;
+    /// };
     /// ```
     #[clippy::version = "1.86.0"]
     pub MANUAL_CHECKED_SUB,
