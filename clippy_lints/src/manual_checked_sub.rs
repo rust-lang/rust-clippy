@@ -43,9 +43,7 @@ pub struct ManualCheckedSub {
 impl ManualCheckedSub {
     #[must_use]
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: conf.msrv.clone(),
-        }
+        Self { msrv: conf.msrv }
     }
 }
 
@@ -62,20 +60,20 @@ impl<'tcx> LateLintPass<'tcx> for ManualCheckedSub {
         if let ExprKind::If(drop_temp_expr, body_block, else_block) = expr.kind
             && let ExprKind::DropTemps(condition_expr) = drop_temp_expr.kind
             && let ExprKind::Binary(op, lhs, rhs) = condition_expr.kind
-            && is_unsigned_int(cx, &lhs)
-            && is_unsigned_int(cx, &rhs)
+            && is_unsigned_int(cx, lhs)
+            && is_unsigned_int(cx, rhs)
         {
             if let BinOpKind::Ge = op.node {
                 SubExprVisitor {
                     cx,
-                    applicability,
                     if_expr: expr,
                     if_body_block: body_block,
                     else_block,
-                    condition_lhs: &lhs,
-                    condition_rhs: &rhs,
+                    applicability,
+                    condition_lhs: lhs,
+                    condition_rhs: rhs,
                 }
-                .visit_expr(body_block)
+                .visit_expr(body_block);
             }
 
             if let BinOpKind::Gt = op.node {
@@ -84,14 +82,14 @@ impl<'tcx> LateLintPass<'tcx> for ManualCheckedSub {
                 {
                     SubExprVisitor {
                         cx,
-                        applicability,
                         if_expr: expr,
                         if_body_block: body_block,
                         else_block,
-                        condition_lhs: &lhs,
-                        condition_rhs: &rhs,
+                        applicability,
+                        condition_lhs: lhs,
+                        condition_rhs: rhs,
                     }
-                    .visit_expr(body_block)
+                    .visit_expr(body_block);
                 }
             }
         }
@@ -115,18 +113,16 @@ impl<'tcx> Visitor<'tcx> for SubExprVisitor<'_, 'tcx> {
         {
             if let ExprKind::Lit(lit) = self.condition_rhs.kind
                 && let LitKind::Int(Pu128(0), _) = lit.node
-                && (is_referencing_same_variable(&sub_lhs, self.condition_lhs)
-                    || are_literals_equal(&sub_lhs, self.condition_lhs))
+                && (is_referencing_same_variable(sub_lhs, self.condition_lhs)
+                    || are_literals_equal(sub_lhs, self.condition_lhs))
             {
                 self.build_suggession(expr);
-            } else {
-                if (is_referencing_same_variable(&sub_lhs, self.condition_lhs)
-                    || are_literals_equal(&sub_lhs, self.condition_lhs))
-                    && (is_referencing_same_variable(&sub_rhs, self.condition_rhs)
-                        || are_literals_equal(&sub_rhs, self.condition_rhs))
-                {
-                    self.build_suggession(expr);
-                }
+            } else if (is_referencing_same_variable(sub_lhs, self.condition_lhs)
+                || are_literals_equal(sub_lhs, self.condition_lhs))
+                && (is_referencing_same_variable(sub_rhs, self.condition_rhs)
+                    || are_literals_equal(sub_rhs, self.condition_rhs))
+            {
+                self.build_suggession(expr);
             }
         }
 
@@ -134,12 +130,8 @@ impl<'tcx> Visitor<'tcx> for SubExprVisitor<'_, 'tcx> {
     }
 }
 
-impl<'a, 'tcx> SubExprVisitor<'a, 'tcx> {
+impl<'tcx> SubExprVisitor<'_, 'tcx> {
     fn build_suggession(&mut self, expr: &Expr<'tcx>) {
-        // if let Some(else_expr) = self.else_block {
-        //     println!("ELSE BLOCK in suggestion:::: {:#?}", else_expr);
-        // }
-
         let body_snippet = snippet_with_applicability(self.cx, self.if_body_block.span, "..", &mut self.applicability);
 
         let binary_expr_snippet = snippet_with_applicability(self.cx, expr.span, "..", &mut self.applicability);
@@ -153,20 +145,14 @@ impl<'a, 'tcx> SubExprVisitor<'a, 'tcx> {
         let lhs_needs_parens = matches!(self.condition_lhs.kind, ExprKind::Cast(..));
 
         let mut suggestion = if lhs_needs_parens {
-            format!(
-                "if let Some(result) = ({}).checked_sub({}) {}",
-                lhs_snippet, rhs_snippet, updated_usage_context_snippet
-            )
+            format!("if let Some(result) = ({lhs_snippet}).checked_sub({rhs_snippet}) {updated_usage_context_snippet}")
         } else {
-            format!(
-                "if let Some(result) = {}.checked_sub({})  {}",
-                lhs_snippet, rhs_snippet, updated_usage_context_snippet
-            )
+            format!("if let Some(result) = {lhs_snippet}.checked_sub({rhs_snippet})  {updated_usage_context_snippet}")
         };
 
         if let Some(else_expr) = self.else_block {
             let else_snippet = snippet_with_applicability(self.cx, else_expr.span, "..", &mut self.applicability);
-            suggestion.push_str(&format!(" else {}", else_snippet));
+            suggestion.push_str(&format!(" else {else_snippet}"));
         }
 
         span_lint_and_sugg(
@@ -181,17 +167,15 @@ impl<'a, 'tcx> SubExprVisitor<'a, 'tcx> {
     }
 }
 
-fn is_unsigned_int<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>) -> bool {
+fn is_unsigned_int<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) -> bool {
     let expr_type = cx.typeck_results().expr_ty(expr).peel_refs();
     if matches!(expr_type.kind(), ty::Uint(_)) {
         return true;
     }
 
     if let ExprKind::Lit(lit) = &expr.kind {
-        if let LitKind::Int(_, suffix) = &lit.node {
-            if let LitIntType::Unsuffixed = suffix {
-                return true;
-            }
+        if let LitKind::Int(_, LitIntType::Unsuffixed) = &lit.node {
+            return true;
         }
     }
     false
@@ -218,7 +202,7 @@ fn is_referencing_same_variable<'tcx>(expr1: &'tcx Expr<'_>, expr2: &'tcx Expr<'
             } else {
                 if let Some(expr2_path) = get_resolved_path_id(expr2) {
                     return cast_expr1_path == expr2_path;
-                };
+                }
                 return false;
             }
         }
@@ -226,7 +210,7 @@ fn is_referencing_same_variable<'tcx>(expr1: &'tcx Expr<'_>, expr2: &'tcx Expr<'
         if let Some(cast_expr2_path) = get_resolved_path_id(cast_expr2) {
             if let Some(expr1_path) = get_resolved_path_id(expr1) {
                 return expr1_path == cast_expr2_path;
-            };
+            }
             return false;
         }
     }
@@ -241,7 +225,7 @@ fn is_referencing_same_variable<'tcx>(expr1: &'tcx Expr<'_>, expr2: &'tcx Expr<'
     }
 }
 
-fn get_resolved_path_id<'tcx>(expr: &'tcx Expr<'_>) -> Option<Res> {
+fn get_resolved_path_id(expr: &Expr<'_>) -> Option<Res> {
     if let ExprKind::Path(QPath::Resolved(_, path)) = &expr.kind {
         path.segments.first().and_then(|segment| Some(segment.res))
     } else {
