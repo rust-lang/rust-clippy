@@ -30,7 +30,7 @@ declare_clippy_lint! {
     /// Use instead:
     /// ```no_run
     /// if let Some(result) = 10u32.checked_sub(4u32){
-    ///     c = result;
+    ///    result;
     /// };
     /// ```
     #[clippy::version = "1.86.0"]
