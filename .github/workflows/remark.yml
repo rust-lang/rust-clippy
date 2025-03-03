@@ -13,6 +13,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
       with:
+        sparse-checkout: |
+            book
+        sparse-checkout-cone-mode: false
         # Unsetting this would make so that any malicious package could get our Github Token
         persist-credentials: false
 
