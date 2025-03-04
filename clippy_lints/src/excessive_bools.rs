@@ -15,11 +15,25 @@ declare_clippy_lint! {
     /// use of bools in structs.
     ///
     /// ### Why is this bad?
-    /// Excessive bools in a struct
-    /// is often a sign that it's used as a state machine,
-    /// which is much better implemented as an enum.
-    /// If it's not the case, excessive bools usually benefit
-    /// from refactoring into two-variant enums for better
+    /// Excessive bools in a struct is often a sign that
+    /// the type is being used to represent a state
+    /// machine, which is much better implemented as an 
+    /// enum. 
+    ///
+    /// The reason an enum is better for state machines
+    /// over structs is that enums more easily forbid
+    /// invalid states.
+    ///
+    /// A concrete example of an invalid state can be
+    /// seen in the example below. The struct `S`
+    /// allows for both is_processing and is_finished
+    /// to be true at the same time. This state doesn't
+    /// make sense. Instead of using a struct here, an
+    /// enum could be used to make this invalid state
+    /// unrepresentable.
+    ///
+    /// In any case, excessive bools usually benefit
+    /// from refactoring into multi variant enums for better
     /// readability and API.
     ///
     /// ### Example
