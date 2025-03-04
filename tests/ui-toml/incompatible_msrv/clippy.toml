@@ -1,0 +1,1 @@
+ignore-msrv-check-for = ["str::split_once", "std::option::Option::as_slice"]
