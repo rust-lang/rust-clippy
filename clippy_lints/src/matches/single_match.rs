@@ -95,9 +95,7 @@ fn report_single_pattern(cx: &LateContext<'_>, ex: &Expr<'_>, arm: &Arm<'_>, exp
         let (sugg, help) = if is_unit_expr(arm.body) {
             (String::new(), "`match` expression can be removed")
         } else {
-            let mut sugg = snippet_block_with_context(cx, arm.body.span, ctxt, "..", Some(expr.span), &mut app)
-                .0
-                .to_string();
+            let mut sugg = snippet_block_with_context(cx, arm.body.span, ctxt, "..", Some(expr.span), &mut app).0;
             if let Node::Stmt(stmt) = cx.tcx.parent_hir_node(expr.hir_id)
                 && let StmtKind::Expr(_) = stmt.kind
                 && match arm.body.kind {
@@ -109,7 +107,7 @@ fn report_single_pattern(cx: &LateContext<'_>, ex: &Expr<'_>, arm: &Arm<'_>, exp
             }
             (sugg, "try")
         };
-        span_lint_and_sugg(cx, lint, expr.span, msg, help, sugg.to_string(), app);
+        span_lint_and_sugg(cx, lint, expr.span, msg, help, sugg, app);
         return;
     }
 
