@@ -2,6 +2,7 @@
 
 #![warn(clippy::module_name_repetitions)]
 #![allow(dead_code)]
+#![allow(clippy::missing_error_implementations)]
 
 pub mod foo {
     pub fn foo() {}
