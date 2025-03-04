@@ -5,6 +5,7 @@ use clippy_utils::{
     SpanlessEq, get_expr_use_or_unification_node, get_parent_expr, is_lint_allowed, method_calls, path_def_id,
     peel_blocks,
 };
+use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{BinOpKind, BorrowKind, Expr, ExprKind, LangItem, Node, QPath};
@@ -178,13 +179,18 @@ impl<'tcx> LateLintPass<'tcx> for StringAdd {
                 }
             },
             ExprKind::Assign(target, src, _) => {
-                if is_string(cx, target) && is_add(cx, src, target) {
-                    span_lint(
+                if is_string(cx, target)
+                    && let Some(rem) = is_add(cx, src, target)
+                {
+                    span_lint_and_sugg(
                         cx,
                         STRING_ADD_ASSIGN,
                         e.span,
                         "you assigned the result of adding something to this string. Consider using \
-                         `String::push_str()` instead",
+                         `String::push_str()` or `String::push()` instead",
+                        "try",
+                        format!("{}{}", snippet(cx, target.span, "_"), sugg_push_or_pushstr(cx, rem)),
+                        Applicability::MachineApplicable,
                     );
                 }
             },
@@ -208,16 +214,39 @@ fn is_string(cx: &LateContext<'_>, e: &Expr<'_>) -> bool {
     is_type_lang_item(cx, cx.typeck_results().expr_ty(e).peel_refs(), LangItem::String)
 }
 
-fn is_add(cx: &LateContext<'_>, src: &Expr<'_>, target: &Expr<'_>) -> bool {
+fn sugg_push_or_pushstr(cx: &LateContext<'_>, s: &Expr<'_>) -> String {
+    if let ExprKind::Lit(Spanned {
+        node: LitKind::Str(symbol, ..),
+        ..
+    }) = s.kind
+    {
+        match symbol.to_string().chars().take(2).count() {
+            0 => String::new(),
+            1 => format!(
+                ".push('{}')",
+                if symbol.to_string() == "'" {
+                    "\\'"
+                } else {
+                    symbol.as_str()
+                }
+            ),
+            _ => format!(".push_str(\"{symbol}\")"),
+        }
+    } else {
+        format!(".push_str({})", snippet(cx, s.span, ".."))
+    }
+}
+
+fn is_add<'tcx>(cx: &LateContext<'tcx>, src: &'tcx Expr<'tcx>, target: &'tcx Expr<'tcx>) -> Option<&'tcx Expr<'tcx>> {
     match peel_blocks(src).kind {
         ExprKind::Binary(
             Spanned {
                 node: BinOpKind::Add, ..
             },
             left,
-            _,
-        ) => SpanlessEq::new(cx).eq_expr(target, left),
-        _ => false,
+            right,
+        ) if SpanlessEq::new(cx).eq_expr(target, left) => Some(right),
+        _ => None,
     }
 }
 
