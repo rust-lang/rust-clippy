@@ -11,6 +11,7 @@ mod float_cmp;
 mod float_equality_without_abs;
 mod identity_op;
 mod integer_division;
+mod manual_is_multiple_of;
 mod manual_midpoint;
 mod misrefactored_assign_op;
 mod modulo_arithmetic;
@@ -830,18 +831,56 @@ declare_clippy_lint! {
     "manual implementation of `midpoint` which can overflow"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for manual implementation of `.is_multiple_of()` on
+    /// unsigned integer types.
+    ///
+    /// ### Why is this bad?
+    /// `a.is_multiple_of(b)` is a clearer way to check for divisibility
+    /// of `a` by `b`. This expression can never panic.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let (a, b) = (3u64, 4u64);
+    /// if a % b == 0 {
+    ///     println!("{a} is divisible by {b}");
+    /// }
+    /// if a & 3 != 0 {
+    ///     println!("{a} is not properly aligned");
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # let (a, b) = (3u64, 4u64);
+    /// if a.is_multiple_of(b) {
+    ///     println!("{a} is divisible by {b}");
+    /// }
+    /// if !a.is_multiple_of(4) {
+    ///     println!("{a} is not properly aligned");
+    /// }
+    /// ```
+    #[clippy::version = "1.87.0"]
+    pub MANUAL_IS_MULTIPLE_OF,
+    complexity,
+    "manual implementation of `.is_multiple_of()`"
+}
+
 pub struct Operators {
     arithmetic_context: numeric_arithmetic::Context,
     verbose_bit_mask_threshold: u64,
     modulo_arithmetic_allow_comparison_to_zero: bool,
+    min_and_mask_size: u8,
     msrv: Msrv,
 }
+
 impl Operators {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
             arithmetic_context: numeric_arithmetic::Context::default(),
             verbose_bit_mask_threshold: conf.verbose_bit_mask_threshold,
             modulo_arithmetic_allow_comparison_to_zero: conf.allow_comparison_to_zero,
+            min_and_mask_size: conf.min_and_mask_size,
             msrv: conf.msrv,
         }
     }
@@ -874,6 +913,7 @@ impl_lint_pass!(Operators => [
     NEEDLESS_BITWISE_BOOL,
     SELF_ASSIGNMENT,
     MANUAL_MIDPOINT,
+    MANUAL_IS_MULTIPLE_OF,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Operators {
@@ -911,6 +951,7 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                     rhs,
                     self.modulo_arithmetic_allow_comparison_to_zero,
                 );
+                manual_is_multiple_of::check(cx, e, op.node, lhs, rhs, self.min_and_mask_size, self.msrv);
             },
             ExprKind::AssignOp(op, lhs, rhs) => {
                 self.arithmetic_context.check_binary(cx, e, op.node, lhs, rhs);
