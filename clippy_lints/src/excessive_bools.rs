@@ -17,8 +17,8 @@ declare_clippy_lint! {
     /// ### Why is this bad?
     /// Excessive bools in a struct is often a sign that
     /// the type is being used to represent a state
-    /// machine, which is much better implemented as an 
-    /// enum. 
+    /// machine, which is much better implemented as an
+    /// enum.
     ///
     /// The reason an enum is better for state machines
     /// over structs is that enums more easily forbid
