@@ -1,0 +1,64 @@
+error: unnecessary safety comment inside block
+  --> tests/ui/safety/proper_safety_comment/block.rs:7:5
+   |
+LL | /     // SAFETY:
+LL | |
+LL | | }
+   | |_^
+   |
+   = note: `-D clippy::proper-safety-comment` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::proper_safety_comment)]`
+
+error: missing safety comment inside unsafe block
+  --> tests/ui/safety/proper_safety_comment/block.rs:16:5
+   |
+LL |     unsafe {}
+   |     ^^^^^^^^^
+
+error: missing safety comment inside unsafe block
+  --> tests/ui/safety/proper_safety_comment/block.rs:20:5
+   |
+LL |     unsafe {}
+   |     ^^^^^^^^^
+
+error: missing safety comment inside unsafe block
+  --> tests/ui/safety/proper_safety_comment/block.rs:32:5
+   |
+LL | /     unsafe {
+LL | |         let x = false;
+LL | |         // SAFETY:
+LL | |     }
+   | |_____^
+
+error: unnecessary safety comment inside block
+  --> tests/ui/safety/proper_safety_comment/block.rs:43:7
+   |
+LL |       { // SAFETY:
+   |  _______^
+LL | |     }
+   | |_^
+
+error: unnecessary safety comment inside block
+  --> tests/ui/safety/proper_safety_comment/block.rs:47:9
+   |
+LL | /         // SAFETY:
+LL | |
+LL | |     }
+   | |_^
+
+error: unnecessary safety comment inside block
+  --> tests/ui/safety/proper_safety_comment/block.rs:53:9
+   |
+LL | /         // SAFETY:
+LL | |
+LL | |     }
+   | |_^
+
+error: missing safety comment inside unsafe block
+  --> tests/ui/safety/proper_safety_comment/block.rs:62:20
+   |
+LL |     println!("{}", unsafe { String::from_utf8_unchecked(vec![]) });
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 8 previous errors
+
