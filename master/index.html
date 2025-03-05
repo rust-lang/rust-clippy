@@ -6062,12 +6062,12 @@ fn foo() -&gt; impl Future&lt;Output = i32&gt; { async { 42 } }
 <pre><code class="language-rust">async fn foo() -&gt; i32 { 42 }
 </code></pre>
 </div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.45.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+manual_async_fn">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/manual_async_fn.rs#L16">View Source</a></div></div></div></article><article class="panel panel-default" id="manual_bits"><input id="label-manual_bits" type="checkbox"><label for="label-manual_bits"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-manual_bits"><span>manual_bits</span> <a href="#manual_bits" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-style">style</span> <span class="label label-lint-level label-lint-level-warn">warn</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
-<p>Checks for usage of <code>std::mem::size_of::&lt;T&gt;() * 8</code> when
+<p>Checks for usage of <code>size_of::&lt;T&gt;() * 8</code> when
 <code>T::BITS</code> is available.</p>
 <h3>Why is this bad?</h3>
 <p>Can be written as the shorter <code>T::BITS</code>.</p>
 <h3>Example</h3>
-<pre><code class="language-rust">std::mem::size_of::&lt;usize&gt;() * 8;
+<pre><code class="language-rust">size_of::&lt;usize&gt;() * 8;
 </code></pre>
 <p>Use instead:</p>
 <pre><code class="language-rust">usize::BITS as usize;
@@ -6814,10 +6814,10 @@ calculates the byte length</li>
 <li>Less turbofishing</li>
 </ul>
 <h3>Example</h3>
-<pre><code class="language-rust">let newlen = data.len() * std::mem::size_of::&lt;i32&gt;();
+<pre><code class="language-rust">let newlen = data.len() * size_of::&lt;i32&gt;();
 </code></pre>
 <p>Use instead:</p>
-<pre><code class="language-rust">let newlen = std::mem::size_of_val(data);
+<pre><code class="language-rust">let newlen = size_of_val(data);
 </code></pre>
 </div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.70.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+manual_slice_size_calculation">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/manual_slice_size_calculation.rs#L11">View Source</a></div></div></div></article><article class="panel panel-default" id="manual_split_once"><input id="label-manual_split_once" type="checkbox"><label for="label-manual_split_once"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-manual_split_once"><span>manual_split_once</span> <a href="#manual_split_once" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-complexity">complexity</span> <span class="label label-lint-level label-lint-level-warn">warn</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
 <p>Checks for usage of <code>str::splitn(2, _)</code></p>
@@ -12760,7 +12760,7 @@ let mut y = [2u8; SIZE];
 unsafe { copy_nonoverlapping(x.as_ptr(), y.as_mut_ptr(), size_of::&lt;u8&gt;() * SIZE) };
 </code></pre>
 </div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.50.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+size_of_in_element_count">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/size_of_in_element_count.rs#L8">View Source</a></div></div></div></article><article class="panel panel-default" id="size_of_ref"><input id="label-size_of_ref" type="checkbox"><label for="label-size_of_ref"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-size_of_ref"><span>size_of_ref</span> <a href="#size_of_ref" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-suspicious">suspicious</span> <span class="label label-lint-level label-lint-level-warn">warn</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
-<p>Checks for calls to <code>std::mem::size_of_val()</code> where the argument is
+<p>Checks for calls to <code>size_of_val()</code> where the argument is
 a reference to a reference.</p>
 <h3>Why is this bad?</h3>
 <p>Calling <code>size_of_val()</code> with a reference to a reference as the argument
@@ -12777,7 +12777,7 @@ impl Foo {
         // is already a reference, `&amp;self` is a double-reference.
         // The return value of `size_of_val()` therefore is the
         // size of the reference-type, not the size of `self`.
-        std::mem::size_of_val(&amp;self)
+        size_of_val(&amp;self)
     }
 }
 </code></pre>
@@ -12789,7 +12789,7 @@ impl Foo {
 impl Foo {
     fn size(&amp;self) -&gt; usize {
         // Correct
-        std::mem::size_of_val(self)
+        size_of_val(self)
     }
 }
 </code></pre>
