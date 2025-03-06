@@ -93,6 +93,18 @@ pub(super) fn check<'tcx>(
                     sugg,
                     app,
                 );
+            } else if let ExprKind::Index(_, index, _) = parent.kind {
+                let mut app = Applicability::MaybeIncorrect;
+                let snip = snippet_with_applicability(cx, index.span, "_", &mut app);
+                span_lint_and_sugg(
+                    cx,
+                    NEEDLESS_COLLECT,
+                    call_span.with_hi(parent.span.hi()),
+                    NEEDLESS_COLLECT_MSG,
+                    "replace with",
+                    format!("nth({snip}).unwrap()"),
+                    app,
+                );
             }
         },
         Node::LetStmt(l) => {
