@@ -1,14 +1,16 @@
+[clippy_lints/src/default_constructed_unit_structs.rs:78:51] s = "Self::default()"
 error: use of `default` to create a unit struct
   --> tests/ui/default_constructed_unit_structs.rs:11:9
    |
-LL |           Self::default()
-   |  _________^^^^-^^^^^^^^^^
-LL | |
-   | |________- help: remove this call to `default`
+LL |         Self::default()
+   |         ^^^^-----------
+   |             |
+   |             help: remove this call to `default`
    |
    = note: `-D clippy::default-constructed-unit-structs` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::default_constructed_unit_structs)]`
 
+[clippy_lints/src/default_constructed_unit_structs.rs:78:51] s = "PhantomData::default()"
 error: use of `default` to create a unit struct
   --> tests/ui/default_constructed_unit_structs.rs:54:20
    |
@@ -17,6 +19,7 @@ LL |             inner: PhantomData::default(),
    |                               |
    |                               help: remove this call to `default`
 
+[clippy_lints/src/default_constructed_unit_structs.rs:78:51] s = "PhantomData::<usize>::default()"
 error: use of `default` to create a unit struct
   --> tests/ui/default_constructed_unit_structs.rs:128:13
    |
@@ -25,6 +28,7 @@ LL |     let _ = PhantomData::<usize>::default();
    |                                 |
    |                                 help: remove this call to `default`
 
+[clippy_lints/src/default_constructed_unit_structs.rs:78:51] s = "PhantomData::default()"
 error: use of `default` to create a unit struct
   --> tests/ui/default_constructed_unit_structs.rs:130:31
    |
@@ -33,6 +37,7 @@ LL |     let _: PhantomData<i32> = PhantomData::default();
    |                                          |
    |                                          help: remove this call to `default`
 
+[clippy_lints/src/default_constructed_unit_structs.rs:78:51] s = "std::marker::PhantomData::default()"
 error: use of `default` to create a unit struct
   --> tests/ui/default_constructed_unit_structs.rs:132:31
    |
@@ -41,6 +46,7 @@ LL |     let _: PhantomData<i32> = std::marker::PhantomData::default();
    |                                                       |
    |                                                       help: remove this call to `default`
 
+[clippy_lints/src/default_constructed_unit_structs.rs:78:51] s = "UnitStruct::default()"
 error: use of `default` to create a unit struct
   --> tests/ui/default_constructed_unit_structs.rs:134:13
    |
@@ -49,5 +55,18 @@ LL |     let _ = UnitStruct::default();
    |                       |
    |                       help: remove this call to `default`
 
-error: aborting due to 6 previous errors
+[clippy_lints/src/default_constructed_unit_structs.rs:78:51] s = "<G>::default()"
+error: use of `default` to create a unit struct
+  --> tests/ui/default_constructed_unit_structs.rs:172:7
+   |
+LL |     f(<G>::default());
+   |       ^^^^^^^^^^^^^^
+   |
+help: remove this call to `default`
+   |
+LL -     f(<G>::default());
+LL +     f(G);
+   |
+
+error: aborting due to 7 previous errors
 
