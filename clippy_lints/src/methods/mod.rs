@@ -108,13 +108,16 @@ mod sliced_string_as_bytes;
 mod stable_sort_primitive;
 mod str_split;
 mod str_splitn;
+mod string_as_bytes;
 mod string_extend_chars;
 mod string_lit_chars_any;
 mod suspicious_command_arg_space;
 mod suspicious_map;
 mod suspicious_splitn;
 mod suspicious_to_owned;
+mod to_string;
 mod type_id_on_box;
+mod trim_split_whitespace;
 mod unbuffered_bytes;
 mod uninit_assumed_init;
 mod unit_hash;
@@ -4484,6 +4487,143 @@ declare_clippy_lint! {
     "calling `std::io::Error::new(std::io::ErrorKind::Other, _)`"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// This lint checks for `.to_string()` method calls on values of type `&str`.
+    ///
+    /// ### Why restrict this?
+    /// The `to_string` method is also used on other types to convert them to a string.
+    /// When called on a `&str` it turns the `&str` into the owned variant `String`, which can be
+    /// more specifically expressed with `.to_owned()`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let _ = "str".to_string();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let _ = "str".to_owned();
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub STR_TO_STRING,
+    restriction,
+    "using `to_string()` on a `&str`, which should be `to_owned()`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// This lint checks for `.to_string()` method calls on values of type `String`.
+    ///
+    /// ### Why restrict this?
+    /// The `to_string` method is also used on other types to convert them to a string.
+    /// When called on a `String` it only clones the `String`, which can be more specifically
+    /// expressed with `.clone()`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let msg = String::from("Hello World");
+    /// let _ = msg.to_string();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let msg = String::from("Hello World");
+    /// let _ = msg.clone();
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub STRING_TO_STRING,
+    restriction,
+    "using `to_string()` on a `String`, which should be `clone()`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Warns about calling `str::trim` (or variants) before `str::split_whitespace`.
+    ///
+    /// ### Why is this bad?
+    /// `split_whitespace` already ignores leading and trailing whitespace.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// " A B C ".trim().split_whitespace();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// " A B C ".split_whitespace();
+    /// ```
+    #[clippy::version = "1.62.0"]
+    pub TRIM_SPLIT_WHITESPACE,
+    style,
+    "using `str::trim()` or alike before `str::split_whitespace`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for the `as_bytes` method called on string literals
+    /// that contain only ASCII characters.
+    ///
+    /// ### Why is this bad?
+    /// Byte string literals (e.g., `b"foo"`) can be used
+    /// instead. They are shorter but less discoverable than `as_bytes()`.
+    ///
+    /// ### Known problems
+    /// `"str".as_bytes()` and the suggested replacement of `b"str"` are not
+    /// equivalent because they have different types. The former is `&[u8]`
+    /// while the latter is `&[u8; 3]`. That means in general they will have a
+    /// different set of methods and different trait implementations.
+    ///
+    /// ```compile_fail
+    /// fn f(v: Vec<u8>) {}
+    ///
+    /// f("...".as_bytes().to_owned()); // works
+    /// f(b"...".to_owned()); // does not work, because arg is [u8; 3] not Vec<u8>
+    ///
+    /// fn g(r: impl std::io::Read) {}
+    ///
+    /// g("...".as_bytes()); // works
+    /// g(b"..."); // does not work
+    /// ```
+    ///
+    /// The actual equivalent of `"str".as_bytes()` with the same type is not
+    /// `b"str"` but `&b"str"[..]`, which is a great deal of punctuation and not
+    /// more readable than a function call.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let bstr = "a byte string".as_bytes();
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// let bstr = b"a byte string";
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub STRING_LIT_AS_BYTES,
+    nursery,
+    "calling `as_bytes` on a string literal instead of using a byte string literal"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Check if the string is transformed to byte array and casted back to string.
+    ///
+    /// ### Why is this bad?
+    /// It's unnecessary, the string can be used directly.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// std::str::from_utf8(&"Hello World!".as_bytes()[6..11]).unwrap();
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// &"Hello World!"[6..11];
+    /// ```
+    #[clippy::version = "1.50.0"]
+    pub STRING_FROM_UTF8_AS_BYTES,
+    complexity,
+    "casting string slices to byte slices and back"
+}
+
 #[expect(clippy::struct_excessive_bools)]
 pub struct Methods {
     avoid_breaking_exported_api: bool,
@@ -4661,6 +4801,11 @@ impl_lint_pass!(Methods => [
     UNBUFFERED_BYTES,
     MANUAL_CONTAINS,
     IO_OTHER_ERROR,
+    TRIM_SPLIT_WHITESPACE,
+    STR_TO_STRING,
+    STRING_TO_STRING,
+    STRING_FROM_UTF8_AS_BYTES,
+    STRING_LIT_AS_BYTES,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -4691,6 +4836,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                 manual_c_str_literals::check(cx, expr, func, args, self.msrv);
                 useless_nonzero_new_unchecked::check(cx, expr, func, args, self.msrv);
                 io_other_error::check(cx, expr, func, args, self.msrv);
+                string_as_bytes::check_from_utf8(cx, expr, func, args);
             },
             ExprKind::MethodCall(method_call, receiver, args, _) => {
                 let method_span = method_call.ident.span;
@@ -4934,6 +5080,7 @@ impl Methods {
                         redundant_as_str::check(cx, expr, recv, as_str_span, span);
                     }
                     sliced_string_as_bytes::check(cx, expr, recv);
+                    string_as_bytes::check(cx, expr, recv);
                 },
                 ("as_mut", []) => useless_asref::check(cx, expr, "as_mut", recv),
                 ("as_ptr", []) => manual_c_str_literals::check_as_ptr(cx, expr, recv, self.msrv),
@@ -5117,6 +5264,9 @@ impl Methods {
                 },
                 ("hash", [arg]) => {
                     unit_hash::check(cx, expr, recv, arg);
+                },
+                ("into_bytes", []) => {
+                    string_as_bytes::check_into_bytes(cx, expr, recv);
                 },
                 ("is_empty", []) => {
                     match method_call(recv) {
@@ -5329,6 +5479,9 @@ impl Methods {
                 ("split", [arg]) => {
                     str_split::check(cx, expr, recv, arg);
                 },
+                ("split_whitespace", []) => {
+                    trim_split_whitespace::check(cx, expr, recv, call_span);
+                },
                 ("splitn" | "rsplitn", [count_arg, pat_arg]) => {
                     if let Some(Constant::Int(count)) = ConstEvalCtxt::new(cx).eval(count_arg) {
                         suspicious_splitn::check(cx, name, expr, recv, count);
@@ -5372,6 +5525,9 @@ impl Methods {
                 },
                 ("to_os_string" | "to_path_buf" | "to_vec", []) => {
                     implicit_clone::check(cx, name, expr, recv);
+                },
+                ("to_string", []) => {
+                    to_string::check(cx, expr, name, recv, args);
                 },
                 ("type_id", []) => {
                     type_id_on_box::check(cx, recv, expr.span);
