@@ -25,7 +25,7 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```rust
-    /// #[derive(Deserialize)]
+    /// #[derive(serde::Deserialize)]
     /// pub struct DisallowedPath {
     ///     path: String,
     ///     reason: Option<String>,
@@ -35,7 +35,7 @@ declare_clippy_lint! {
     ///
     /// Use instead:
     /// ```rust
-    /// #[derive(Deserialize)]
+    /// #[derive(serde::Deserialize)]
     /// #[serde(deny_unknown_fields)]
     /// pub struct DisallowedPath {
     ///     path: String,
