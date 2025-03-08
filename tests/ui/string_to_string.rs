@@ -1,8 +1,0 @@
-#![warn(clippy::implicit_clone)]
-#![allow(clippy::redundant_clone)]
-
-fn main() {
-    let mut message = String::from("Hello");
-    let mut v = message.to_string();
-    //~^ ERROR: implicitly cloning a `String` by calling `to_string` on its dereferenced type
-}
