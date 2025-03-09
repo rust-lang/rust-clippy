@@ -242,16 +242,17 @@ window.filters = {
             filters.allLints = Array.prototype.slice.call(
                 document.getElementsByTagName("article"),
             ).map(elem => {
-                let version = elem.querySelector(".label-version").innerText;
+                let versionText = elem.querySelector(".label-version").innerText;
                 // Strip the "pre " prefix for pre 1.29.0 lints
-                if (version.startsWith("pre ")) {
-                    version = version.slice(4);
+                if (versionText.startsWith("pre ")) {
+                    versionText = versionText.slice(4);
                 }
+                const version = versionText == "nightly" ? Infinity : versionText.split(".")[1];
                 return {
-                    elem: elem,
+                    elem,
                     group: elem.querySelector(".label-lint-group").innerText,
                     level: elem.querySelector(".label-lint-level").innerText,
-                    version: parseInt(version.split(".")[1]),
+                    version,
                     applicability: elem.querySelector(".label-applicability").innerText,
                     filteredOut: false,
                     searchFilteredOut: false,
