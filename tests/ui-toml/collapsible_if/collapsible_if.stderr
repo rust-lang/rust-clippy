@@ -1,0 +1,22 @@
+error: this `if` statement can be collapsed
+  --> tests/ui-toml/collapsible_if/collapsible_if.rs:6:5
+   |
+LL | /     if true {
+LL | |         if true {
+LL | |             println!("No comment, linted");
+LL | |         }
+LL | |     }
+   | |_____^
+   |
+   = note: `-D clippy::collapsible-if` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+   |
+LL ~     if true
+LL ~         && true {
+LL |             println!("No comment, linted");
+LL ~         }
+   |
+
+error: aborting due to 1 previous error
+
