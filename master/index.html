@@ -213,7 +213,7 @@ granularity. The configuration is split into two stages:</p>
 </ol>
 <p>The item kinds that can be linted are:</p>
 <ul>
-<li>Module (with customized groupings, alphabetical within)</li>
+<li>Module (with customized groupings, alphabetical within - configurable)</li>
 <li>Trait (with customized order of associated items, alphabetical within)</li>
 <li>Enum, Impl, Struct (purely alphabetical)</li>
 </ul>
@@ -231,8 +231,23 @@ following table shows the default groupings:</p>
 <tr><td><code>PascalCase</code></td><td>“ty_alias”, “opaque_ty”, “enum”, “struct”, “union”, “trait”, “trait_alias”, “impl”</td></tr>
 <tr><td><code>lower_snake_case</code></td><td>“fn”</td></tr>
 </tbody></table>
+<p>The groups’ names are arbitrary and can be changed to suit the
+conventions that should be enforced for a specific project.</p>
 <p>All item kinds must be accounted for to create an enforceable linting
-rule set.</p>
+rule set. Following are some example configurations that may be useful.</p>
+<p>Example: <em>module inclusions and use statements to be at the top</em></p>
+<pre><code class="language-toml">module-item-order-groupings = [
+    [ "modules", [ "extern_crate", "mod", "foreign_mod" ], ],
+    [ "use", [ "use", ], ],
+    [ "everything_else", [ "macro", "global_asm", "static", "const", "ty_alias", "enum", "struct", "union", "trait", "trait_alias", "impl", "fn", ], ],
+]
+</code></pre>
+<p>Example: <em>only consts and statics should be alphabetically ordered</em></p>
+<p>It is also possible to configure a selection of module item groups that
+should be ordered alphabetically. This may be useful if for example
+statics and consts should be ordered, but the rest should be left open.</p>
+<pre><code class="language-toml">module-items-ordered-within-groupings = ["UPPER_SNAKE_CASE"]
+</code></pre>
 <h3>Known Problems</h3>
 <h4>Performance Impact</h4>
 <p>Keep in mind, that ordering source code alphabetically can lead to
@@ -289,6 +304,14 @@ the lint <code>items_after_test_module</code> can be used instead.</p>
 <p>(default: <code>[["modules", ["extern_crate", "mod", "foreign_mod"]], ["use", ["use"]], ["macros", ["macro"]], ["global_asm", ["global_asm"]], ["UPPER_SNAKE_CASE", ["static", "const"]], ["PascalCase", ["ty_alias", "enum", "struct", "union", "trait", "trait_alias", "impl"]], ["lower_snake_case", ["fn"]]]</code>)</p>
 </li>
 <li>
+<p><code>module-items-ordered-within-groupings</code>:  Whether the items within module groups should be ordered alphabetically or not.</p>
+</li>
+</ul>
+<p>This option can be configured to “all”, “none”, or a list of specific grouping names that should be checked
+(e.g. only “enums”).</p>
+<p>(default: <code>"none"</code>)</p>
+<ul>
+<li>
 <p><code>source-item-ordering</code>:  Which kind of elements should be ordered internally, possible values being <code>enum</code>, <code>impl</code>, <code>module</code>, <code>struct</code>, <code>trait</code>.</p>
 <p>(default: <code>["enum", "impl", "module", "struct", "trait"]</code>)</p>
 </li>
@@ -297,7 +320,7 @@ the lint <code>items_after_test_module</code> can be used instead.</p>
 <p>(default: <code>["const", "type", "fn"]</code>)</p>
 </li>
 </ul>
-</div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.84.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+arbitrary_source_item_ordering">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/arbitrary_source_item_ordering.rs#L14">View Source</a></div></div></div></article><article class="panel panel-default" id="arc_with_non_send_sync"><input id="label-arc_with_non_send_sync" type="checkbox"><label for="label-arc_with_non_send_sync"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-arc_with_non_send_sync"><span>arc_with_non_send_sync</span> <a href="#arc_with_non_send_sync" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-suspicious">suspicious</span> <span class="label label-lint-level label-lint-level-warn">warn</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does.</h3>
+</div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.84.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+arbitrary_source_item_ordering">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/arbitrary_source_item_ordering.rs#L15">View Source</a></div></div></div></article><article class="panel panel-default" id="arc_with_non_send_sync"><input id="label-arc_with_non_send_sync" type="checkbox"><label for="label-arc_with_non_send_sync"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-arc_with_non_send_sync"><span>arc_with_non_send_sync</span> <a href="#arc_with_non_send_sync" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-suspicious">suspicious</span> <span class="label label-lint-level label-lint-level-warn">warn</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does.</h3>
 <p>This lint warns when you use <code>Arc</code> with a type that does not implement <code>Send</code> or <code>Sync</code>.</p>
 <h3>Why is this bad?</h3>
 <p><code>Arc&lt;T&gt;</code> is a thread-safe <code>Rc&lt;T&gt;</code> and guarantees that updates to the reference counter
