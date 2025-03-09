@@ -8,6 +8,8 @@ pub static LINTS: &[&crate::LintInfo] = &[
     #[cfg(feature = "internal")]
     crate::utils::internal_lints::collapsible_calls::COLLAPSIBLE_SPAN_LINT_CALLS_INFO,
     #[cfg(feature = "internal")]
+    crate::utils::internal_lints::derive_deserialize_allowing_unknown::DERIVE_DESERIALIZE_ALLOWING_UNKNOWN_INFO,
+    #[cfg(feature = "internal")]
     crate::utils::internal_lints::interning_defined_symbol::INTERNING_DEFINED_SYMBOL_INFO,
     #[cfg(feature = "internal")]
     crate::utils::internal_lints::interning_defined_symbol::UNNECESSARY_SYMBOL_STR_INFO,
