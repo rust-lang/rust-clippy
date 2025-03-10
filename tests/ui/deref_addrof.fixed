@@ -72,3 +72,37 @@ impl S {
         //~^ deref_addrof
     }
 }
+
+fn issue14386() {
+    use std::mem::ManuallyDrop;
+
+    struct Data {
+        num: u64,
+    }
+
+    union DataWithPadding {
+        data: ManuallyDrop<Data>,
+        x: ManuallyDrop<u64>,
+        with_padding: [u8; size_of::<Data>()],
+        y: (u32, u32),
+        z: (ManuallyDrop<Data>,),
+    }
+
+    let mut a = DataWithPadding {
+        with_padding: [0; size_of::<DataWithPadding>()],
+    };
+    unsafe {
+        // Do not lint as `DerefMut` will not work on non-`Copy` union
+        // fields.
+        (*(&raw mut a.data)).num = 42;
+        (*(&raw mut a.z)).0.num = 42;
+
+        // Lint, as `Copy` fields in unions are ok.
+        a.with_padding = [1; size_of::<DataWithPadding>()];
+        //~^ deref_addrof
+        *a.x = 0;
+        //~^ deref_addrof
+        a.y.0 = 0;
+        //~^ deref_addrof
+    }
+}

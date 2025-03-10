@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::{SpanRangeExt, snippet_with_applicability};
+use clippy_utils::ty::is_copy;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, Mutability, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
@@ -44,6 +45,7 @@ impl LateLintPass<'_> for DerefAddrOf {
             // NOTE(tesuji): `*&` forces rustc to const-promote the array to `.rodata` section.
             // See #12854 for details.
             && !matches!(addrof_target.kind, ExprKind::Array(_))
+            && !is_non_copy_union_field(cx, addrof_target)
             && deref_target.span.eq_ctxt(e.span)
             && !addrof_target.span.from_expansion()
         {
@@ -100,5 +102,13 @@ impl LateLintPass<'_> for DerefAddrOf {
                 );
             }
         }
+    }
+}
+
+fn is_non_copy_union_field(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    if let ExprKind::Field(parent, _) = expr.kind {
+        cx.typeck_results().expr_ty_adjusted(parent).is_union() && !is_copy(cx, cx.typeck_results().expr_ty(expr))
+    } else {
+        false
     }
 }
