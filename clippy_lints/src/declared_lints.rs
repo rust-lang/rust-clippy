@@ -537,6 +537,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::missing_const_for_thread_local::MISSING_CONST_FOR_THREAD_LOCAL_INFO,
     crate::missing_doc::MISSING_DOCS_IN_PRIVATE_ITEMS_INFO,
     crate::missing_enforced_import_rename::MISSING_ENFORCED_IMPORT_RENAMES_INFO,
+    crate::missing_error_implementations::MISSING_ERROR_IMPLEMENTATIONS_INFO,
     crate::missing_fields_in_debug::MISSING_FIELDS_IN_DEBUG_INFO,
     crate::missing_inline::MISSING_INLINE_IN_PUBLIC_ITEMS_INFO,
     crate::missing_trait_methods::MISSING_TRAIT_METHODS_INFO,
