@@ -713,6 +713,16 @@ The maximum number of bounds a trait can have to be linted
 * [`type_repetition_in_bounds`](https://rust-lang.github.io/rust-clippy/master/index.html#type_repetition_in_bounds)
 
 
+## `min-and-mask-size`
+The smallest number of bits masked with `&` which will be replaced by `.is_multiple_of()`.
+
+**Default Value:** `3`
+
+---
+**Affected lints:**
+* [`manual_is_multiple_of`](https://rust-lang.github.io/rust-clippy/master/index.html#manual_is_multiple_of)
+
+
 ## `min-ident-chars-threshold`
 Minimum chars an ident can have, anything below or equal to this will be linted.
 

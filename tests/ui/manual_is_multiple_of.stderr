@@ -1,0 +1,89 @@
+error: manual implementation of `.is_multiple_of()`
+  --> tests/ui/manual_is_multiple_of.rs:7:13
+   |
+LL |     let _ = a % b == 0;
+   |             ^^^^^^^^^^ help: replace with: `a.is_multiple_of(b)`
+   |
+   = note: `-D clippy::manual-is-multiple-of` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_is_multiple_of)]`
+
+error: manual implementation of `.is_multiple_of()`
+  --> tests/ui/manual_is_multiple_of.rs:8:13
+   |
+LL |     let _ = (a + 1) % (b + 1) == 0;
+   |             ^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `(a + 1).is_multiple_of(b + 1)`
+
+error: manual implementation of `.is_multiple_of()`
+  --> tests/ui/manual_is_multiple_of.rs:9:13
+   |
+LL |     let _ = a % b != 0;
+   |             ^^^^^^^^^^ help: replace with: `!a.is_multiple_of(b)`
+
+error: manual implementation of `.is_multiple_of()`
+  --> tests/ui/manual_is_multiple_of.rs:10:13
+   |
+LL |     let _ = (a + 1) % (b + 1) != 0;
+   |             ^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `!(a + 1).is_multiple_of(b + 1)`
+
+error: manual implementation of `.is_multiple_of()`
+  --> tests/ui/manual_is_multiple_of.rs:12:13
+   |
+LL |     let _ = a & 4095 == 0;
+   |             ^^^^^^^^^^^^^ help: replace with: `a.is_multiple_of(4096)`
+
+error: manual implementation of `.is_multiple_of()`
+  --> tests/ui/manual_is_multiple_of.rs:13:13
+   |
+LL |     let _ = a & 4095 != 0;
+   |             ^^^^^^^^^^^^^ help: replace with: `!a.is_multiple_of(4096)`
+
+error: manual implementation of `.is_multiple_of()`
+  --> tests/ui/manual_is_multiple_of.rs:14:13
+   |
+LL |     let _ = a & ((1 << b) - 1) == 0;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `a.is_multiple_of(1 << b)`
+
+error: manual implementation of `.is_multiple_of()`
+  --> tests/ui/manual_is_multiple_of.rs:15:13
+   |
+LL |     let _ = a & ((1 << b) - 1) != 0;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `!a.is_multiple_of(1 << b)`
+
+error: manual implementation of `.is_multiple_of()`
+  --> tests/ui/manual_is_multiple_of.rs:16:13
+   |
+LL |     let _ = ((1 << b) - 1) & a == 0;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `a.is_multiple_of(1 << b)`
+
+error: manual implementation of `.is_multiple_of()`
+  --> tests/ui/manual_is_multiple_of.rs:18:13
+   |
+LL |     let _ = a % b > 0;
+   |             ^^^^^^^^^ help: replace with: `!a.is_multiple_of(b)`
+
+error: manual implementation of `.is_multiple_of()`
+  --> tests/ui/manual_is_multiple_of.rs:19:13
+   |
+LL |     let _ = 0 < a % b;
+   |             ^^^^^^^^^ help: replace with: `!a.is_multiple_of(b)`
+
+error: manual implementation of `.is_multiple_of()`
+  --> tests/ui/manual_is_multiple_of.rs:21:13
+   |
+LL |     let _ = a & 0xff == 0;
+   |             ^^^^^^^^^^^^^ help: replace with: `a.is_multiple_of(0x100)`
+
+error: manual implementation of `.is_multiple_of()`
+  --> tests/ui/manual_is_multiple_of.rs:25:13
+   |
+LL |     let _ = a & 7 == 0;
+   |             ^^^^^^^^^^ help: replace with: `a.is_multiple_of(8)`
+
+error: manual implementation of `.is_multiple_of()`
+  --> tests/ui/manual_is_multiple_of.rs:26:13
+   |
+LL |     let _ = a & ((1 << 3) - 1) == 0;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `a.is_multiple_of(1 << 3)`
+
+error: aborting due to 14 previous errors
+

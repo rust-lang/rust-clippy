@@ -1,0 +1,8 @@
+#![warn(clippy::manual_is_multiple_of)]
+
+fn main() {}
+
+fn f(a: u64, b: u64) {
+    let _ = a.is_multiple_of(2); //~ manual_is_multiple_of
+    let _ = a.is_multiple_of(1 << 1); //~ manual_is_multiple_of
+}
