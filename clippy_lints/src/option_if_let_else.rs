@@ -11,6 +11,7 @@ use rustc_hir::{
     Arm, BindingMode, Expr, ExprKind, MatchSource, Mutability, Pat, PatExpr, PatExprKind, PatKind, Path, QPath, UnOp,
 };
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::ty::adjustment::{Adjust, PointerCoercion};
 use rustc_session::declare_lint_pass;
 use rustc_span::SyntaxContext;
 
@@ -184,6 +185,10 @@ fn try_get_option_occurrence<'tcx>(
             }
         }
 
+        if is_coercion_require_explicit(cx, some_body, none_body) {
+            return None;
+        }
+
         let mut app = Applicability::Unspecified;
 
         let (none_body, is_argless_call) = match none_body.kind {
@@ -217,6 +222,21 @@ fn try_get_option_occurrence<'tcx>(
     }
 
     None
+}
+
+/// Check if the coercion between the two expressions require explicit cast
+fn is_coercion_require_explicit<'tcx>(cx: &LateContext<'tcx>, some_body: &Expr<'tcx>, none_body: &Expr<'tcx>) -> bool {
+    let some_ty = cx.typeck_results().expr_ty(some_body);
+    let none_ty = cx.typeck_results().expr_ty(none_body);
+    let some_adj = cx.typeck_results().expr_adjustments(some_body);
+    let none_adj = cx.typeck_results().expr_adjustments(none_body);
+
+    // TODO: check if there are more cases that require explicit cast
+    some_ty != none_ty
+        && some_adj
+            .iter()
+            .chain(none_adj.iter())
+            .any(|adj| matches!(adj.kind, Adjust::Pointer(PointerCoercion::Unsize)))
 }
 
 fn try_get_inner_pat_and_is_result<'tcx>(cx: &LateContext<'tcx>, pat: &Pat<'tcx>) -> Option<(&'tcx Pat<'tcx>, bool)> {
