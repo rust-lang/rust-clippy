@@ -154,15 +154,15 @@ fn check_let_some_else_return_none(cx: &LateContext<'_>, stmt: &Stmt<'_>) {
         ) = inner_pat.kind
         {
             let (from_method, replace_to) = match ref_mutability {
-                Mutability::Mut => (".as_mut()", "&mut"),
+                Mutability::Mut => (".as_mut()", "&mut "),
                 Mutability::Not => (".as_ref()", "&"),
             };
-            
+
             let mutability_str = match binding_mutability {
-                Mutability::Mut => "mut",
+                Mutability::Mut => "mut ",
                 Mutability::Not => "",
             };
-            
+
             // Handle subpattern (@ subpattern)
             let maybe_subpattern = match subpattern {
                 Some(Pat {
@@ -172,17 +172,16 @@ fn check_let_some_else_return_none(cx: &LateContext<'_>, stmt: &Stmt<'_>) {
                     // avoid `&ref`
                     // note that, because you can't have aliased, mutable references, we don't have to worry about
                     // the outer and inner mutability being different
-                    format!("@ {subident}")
+                    format!(" @ {subident}")
                 },
                 Some(subpattern) => {
                     let substr = snippet_with_applicability(cx, subpattern.span, "..", &mut applicability);
-                    format!("@ {replace_to}{substr}")
+                    format!(" @ {replace_to}{substr}")
                 },
                 None => String::new(),
             };
-            
-            format!("let {mutability_str} {ident} {maybe_subpattern} = {init_expr_str} {from_method}?;")
-        
+
+            format!("let {mutability_str}{ident}{maybe_subpattern} = {init_expr_str}{from_method}?;")
         } else {
             let receiver_str = snippet_with_applicability(cx, inner_pat.span, "..", &mut applicability);
             format!("let {receiver_str} = {init_expr_str}?;")
