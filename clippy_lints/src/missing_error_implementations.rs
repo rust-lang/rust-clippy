@@ -59,16 +59,18 @@ impl<'tcx> LateLintPass<'tcx> for MissingErrorImplementations {
         }
         match item.kind {
             ItemKind::Enum(_, generics) | ItemKind::Struct(_, generics) => {
-                let is_error_candidate = {
-                    let name: &str = item.ident.name.as_str();
-                    name.ends_with("Error") && name != "Error"
-                };
-                if is_error_candidate
-                    // Only check public items, as missing impls for private items can be fixed when needed without changing publich API.
-                    && (cx.tcx.visibility(item.owner_id.def_id) == Visibility::Public)
+                if
+                // Only check public items, as missing impls for private items can be fixed when needed without
+                // changing publich API.
+                (cx.tcx.visibility(item.owner_id.def_id) == Visibility::Public)
+                    // Identify types which likely represent errors
+                    && {
+                        let name: &str = item.ident.name.as_str();
+                        name.ends_with("Error") && name != "Error"
+                    }
                     // Skip types not controlled by the user
-                    && !is_from_proc_macro(cx, item)
                     && !item.span.in_external_macro(cx.sess().source_map())
+                    && !is_from_proc_macro(cx, item)
                     // Check whether Error is implemented,
                     // skipping generic types as we'd have to ask whether there is an error impl
                     // for any instantiation of it.
