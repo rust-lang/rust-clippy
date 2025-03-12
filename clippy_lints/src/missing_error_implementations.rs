@@ -18,14 +18,14 @@ declare_clippy_lint! {
     /// Errors not implementing `Error` can not be used with functions that expect it.
     ///
     /// ### Example
-    /// ```no_run
+    /// ```ignore
     /// #[derive(Debug)]
     /// pub struct ParseError;
     ///
     /// impl core::fmt::Display for ParseError { ... }
     /// ```
     /// Use instead:
-    /// ```no_run
+    /// ```ignore
     /// #[derive(Debug)]
     /// pub struct ParseError;
     ///
