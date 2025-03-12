@@ -1,7 +1,8 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint;
+use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::ty::implements_trait;
-use clippy_utils::{is_from_proc_macro, is_no_core_crate, is_no_std_crate, msrvs};
+use clippy_utils::{is_from_proc_macro, is_no_core_crate, is_no_std_crate};
 use rustc_hir::{Item, ItemKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty::Visibility;
@@ -39,14 +40,12 @@ declare_clippy_lint! {
 }
 
 pub struct MissingErrorImplementations {
-    error_in_core: bool,
+    msrv: Msrv,
 }
 
 impl MissingErrorImplementations {
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            error_in_core: conf.msrv.meets(msrvs::ERROR_IN_CORE),
-        }
+        Self { msrv: conf.msrv }
     }
 }
 
@@ -54,7 +53,8 @@ impl_lint_pass!(MissingErrorImplementations => [MISSING_ERROR_IMPLEMENTATIONS]);
 
 impl<'tcx> LateLintPass<'tcx> for MissingErrorImplementations {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {
-        if is_no_core_crate(cx) || (is_no_std_crate(cx) && !self.error_in_core) {
+        let error_in_core = self.msrv.meets(cx, msrvs::ERROR_IN_CORE);
+        if is_no_core_crate(cx) || (is_no_std_crate(cx) && !error_in_core) {
             return;
         }
         match item.kind {
@@ -85,7 +85,7 @@ impl<'tcx> LateLintPass<'tcx> for MissingErrorImplementations {
                         item.ident.span,
                         format!(
                             "error type doesn't implement `{}::error::Error`",
-                            if self.error_in_core { "core" } else { "std" }
+                            if error_in_core { "core" } else { "std" }
                         ),
                     );
                 }
