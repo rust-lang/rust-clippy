@@ -57,28 +57,57 @@ pub fn exit_if_err(status: io::Result<ExitStatus>) {
     }
 }
 
+/// Returns the Clippy version as a tuple of minor and patch version numbers.
+///
+/// This function reads the version from Cargo.toml and parses it into a tuple.
+/// The major version is assumed to be 0, and only minor and patch are returned.
 pub(crate) fn clippy_version() -> (u32, u32) {
+    /// Parses a Cargo.toml file content to extract the minor and patch version numbers.
+    ///
+    /// # Arguments
+    ///
+    /// * `contents` - The string content of the Cargo.toml file
+    ///
+    /// # Returns
+    ///
+    /// * `Option<(u32, u32)>` - The minor and patch version numbers if parsing succeeds
     fn parse_manifest(contents: &str) -> Option<(u32, u32)> {
+        // Find the version line in the manifest
         let version = contents
             .lines()
             .filter_map(|l| l.split_once('='))
             .find_map(|(k, v)| (k.trim() == "version").then(|| v.trim()))?;
+
+        // Extract version string and validate it starts with "0."
         let Some(("0", version)) = version.get(1..version.len() - 1)?.split_once('.') else {
             return None;
         };
+
+        // Split and parse minor and patch versions
         let (minor, patch) = version.split_once('.')?;
         Some((minor.parse().ok()?, patch.parse().ok()?))
     }
+
+    // Read Cargo.toml content
     let contents = fs::read_to_string("Cargo.toml").expect("Unable to read `Cargo.toml`");
+
+    // Parse the manifest and extract version
     parse_manifest(&contents).expect("Unable to find package version in `Cargo.toml`")
 }
 
+/// Represents the mode for updating lints.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum UpdateMode {
+    /// Only check if lints are defined properly without making changes.
     Check,
+    /// Update lint definitions.
     Change,
 }
 
+/// Exits the program with an error message when lints are not properly defined.
+///
+/// This function prints an error message instructing the user to run the lint
+/// update command and then terminates the program with exit code 1.
 pub(crate) fn exit_with_failure() {
     println!(
         "Not all lints defined properly. \
