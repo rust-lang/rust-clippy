@@ -29,3 +29,13 @@ fn issue_13882() {
     let _raw = (&mut x[1] as *mut i32).wrapping_offset(-1);
     //~^ borrow_as_ptr
 }
+
+fn implicit_cast() {
+    let val = 1;
+    let p: *const i32 = &val;
+    //~^ borrow_as_ptr
+
+    let mut val = 1;
+    let p: *mut i32 = &mut val;
+    //~^ borrow_as_ptr
+}
