@@ -1,0 +1,21 @@
+error: should not use `..Default::default()` to omit rest of struct field initialization
+  --> tests/ui/struct_fields_rest_default.rs:19:11
+   |
+LL |         ..Default::default()
+   |           ^^^^^^^^^^^^^^^^^^
+   |
+help: each field's initial value should be explicitly specified
+  --> tests/ui/struct_fields_rest_default.rs:17:13
+   |
+LL |       let _ = Foo {
+   |  _____________^
+LL | |         a: 10,
+LL | |         ..Default::default()
+LL | |
+LL | |     };
+   | |_____^
+   = note: `-D clippy::struct-fields-rest-default` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::struct_fields_rest_default)]`
+
+error: aborting due to 1 previous error
+
