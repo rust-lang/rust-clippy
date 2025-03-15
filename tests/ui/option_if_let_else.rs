@@ -331,3 +331,11 @@ fn issue11893() {
         panic!("Haven't thought about this condition.");
     }
 }
+
+mod issue11059 {
+    use std::fmt::Debug;
+
+    fn box_coercion_unsize(o: Option<i32>) -> Box<dyn Debug> {
+        if let Some(o) = o { Box::new(o) } else { Box::new("foo") }
+    }
+}
