@@ -1,0 +1,77 @@
+#![warn(clippy::swap_with_temporary)]
+
+use std::mem::swap;
+
+fn func() -> String {
+    String::from("func")
+}
+
+fn func_returning_refmut(s: &mut String) -> &mut String {
+    s
+}
+
+fn main() {
+    let mut x = String::from("x");
+    let mut y = String::from("y");
+    let mut zz = String::from("zz");
+    let z = &mut zz;
+
+    // No lint
+    swap(&mut x, &mut y);
+
+    func(); func();
+    //~^ ERROR: swapping temporary values has no effect
+
+    y = func();
+    //~^ ERROR: swapping with a temporary value is inefficient
+
+    x = func();
+    //~^ ERROR: swapping with a temporary value is inefficient
+
+    *z = func();
+    //~^ ERROR: swapping with a temporary value is inefficient
+
+    // No lint
+    swap(z, func_returning_refmut(&mut x));
+
+    swap(&mut y, z);
+
+    *z = func();
+    //~^ ERROR: swapping with a temporary value is inefficient
+
+    // Check rewrites as part of a larger expression
+    if matches!(std::mem::drop((func(), func())), ()) {
+        //~^ ERROR: swapping temporary values has no effect
+        println!("Yeah");
+    }
+    if matches!({ *z = func(); }, ()) {
+        //~^ ERROR: swapping with a temporary value is inefficient
+        println!("Yeah");
+    }
+
+    macro_rules! mac {
+        (refmut $x:expr) => {
+            &mut $x
+        };
+        (funcall $f:ident) => {
+            $f()
+        };
+        (wholeexpr) => {
+            swap(&mut 42, &mut 0)
+        };
+        (ident $v:ident) => {
+            $v
+        };
+    }
+    *z = func();
+    //~^ ERROR: swapping with a temporary value is inefficient
+    *z = mac!(funcall func);
+    //~^ ERROR: swapping with a temporary value is inefficient
+    *mac!(ident z) = mac!(funcall func);
+    //~^ ERROR: swapping with a temporary value is inefficient
+    *mac!(refmut y) = func();
+    //~^ ERROR: swapping with a temporary value is inefficient
+
+    // No lint if it comes from a macro as it may depend on the arguments
+    mac!(wholeexpr);
+}
