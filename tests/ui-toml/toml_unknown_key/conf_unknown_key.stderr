@@ -48,6 +48,7 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            excessive-nesting-threshold
            future-size-threshold
            ignore-interior-mutability
+           ignore-msrv-check-for
            large-error-threshold
            lint-inconsistent-struct-field-initializers
            literal-representation-threshold
@@ -141,6 +142,7 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            excessive-nesting-threshold
            future-size-threshold
            ignore-interior-mutability
+           ignore-msrv-check-for
            large-error-threshold
            lint-inconsistent-struct-field-initializers
            literal-representation-threshold
@@ -234,6 +236,7 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            excessive-nesting-threshold
            future-size-threshold
            ignore-interior-mutability
+           ignore-msrv-check-for
            large-error-threshold
            lint-inconsistent-struct-field-initializers
            literal-representation-threshold
