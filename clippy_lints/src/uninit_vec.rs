@@ -95,8 +95,6 @@ fn handle_uninit_vec_pair<'tcx>(
 
             // Check T of Vec<T>
             if !is_uninit_value_valid_for_ty(cx, args.type_at(0)) {
-                // FIXME: #7698, false positive of the internal lints
-                #[expect(clippy::collapsible_span_lint_calls)]
                 span_lint_and_then(
                     cx,
                     UNINIT_VEC,
