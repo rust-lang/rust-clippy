@@ -45,15 +45,13 @@ fn main() {
     //~^ range_plus_one
     for _ in 0..=(1 + f()) {}
 
+    // Those are not linted, as in the general case we cannot be sure that the exact type won't be
+    // important.
     let _ = ..11 - 1;
     let _ = ..=11 - 1;
-    //~^ range_minus_one
     let _ = ..=(11 - 1);
-    //~^ range_minus_one
     let _ = (1..11 + 1);
-    //~^ range_plus_one
     let _ = (f() + 1)..(f() + 1);
-    //~^ range_plus_one
 
     const ONE: usize = 1;
     // integer consts are linted, too
@@ -65,4 +63,39 @@ fn main() {
 
     macro_plus_one!(5);
     macro_minus_one!(5);
+
+    // As an instance of `Iterator`
+    (1..10 + 1).for_each(|_| {});
+    //~^ range_plus_one
+
+    // As an instance of `IntoIterator`
+    #[allow(clippy::useless_conversion)]
+    (1..10 + 1).into_iter().for_each(|_| {});
+    //~^ range_plus_one
+
+    // As an instance of `RangeBounds`
+    {
+        use std::ops::RangeBounds;
+        let _ = (1..10 + 1).start_bound();
+        //~^ range_plus_one
+    }
+
+    // As a `SliceIndex`
+    let a = [10, 20, 30];
+    let _ = &a[1..1 + 1];
+    //~^ range_plus_one
+
+    // As method call argument
+    vec.drain(2..3 + 1);
+    //~^ range_plus_one
+
+    // As function call argument
+    take_arg(10..20 + 1);
+    //~^ range_plus_one
+
+    // Do not lint, as the same type is used for both parameters
+    take_args(10..20 + 1, 10..21);
 }
+
+fn take_arg<T: Iterator<Item = u32>>(_: T) {}
+fn take_args<T: Iterator<Item = u32>>(_: T, _: T) {}
