@@ -2,7 +2,8 @@ use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::sugg::Sugg;
-use clippy_utils::{is_in_const_context, is_trait_method};
+use clippy_utils::visitors::is_const_evaluatable;
+use clippy_utils::{is_in_const_context, is_mutable, is_trait_method};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
@@ -63,7 +64,6 @@ impl<'tcx> LateLintPass<'tcx> for ClonedRefToSliceRefs<'_> {
                 msrvs::SLICE_FROM_REF
             }
         })
-
             // `&[foo.clone()]` expressions
             && let ExprKind::AddrOf(_, mutability, arr) = &expr.kind
             // mutable references would have a different meaning
@@ -75,6 +75,9 @@ impl<'tcx> LateLintPass<'tcx> for ClonedRefToSliceRefs<'_> {
             // check for clones
             && let ExprKind::MethodCall(_, val, _, _) = item.kind
             && is_trait_method(cx, item, sym::Clone)
+
+            // check for immutability or purity
+            && (!is_mutable(cx, val) || is_const_evaluatable(cx, val))
 
             // get appropriate crate for `slice::from_ref`
             && let Some(builtin_crate) = clippy_utils::std_or_core(cx)
