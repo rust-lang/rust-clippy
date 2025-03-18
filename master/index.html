@@ -4231,14 +4231,14 @@ the fact that the pattern contains no data. Also it
 would detect a type change that <code>_</code> would ignore.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">match std::fs::create_dir("tmp-work-dir") {
-   Ok(_) =&gt; println!("Working directory created"),
-   Err(s) =&gt; eprintln!("Could not create directory: {s}"),
+    Ok(_) =&gt; println!("Working directory created"),
+    Err(s) =&gt; eprintln!("Could not create directory: {s}"),
 }
 </code></pre>
 <p>Use instead:</p>
 <pre><code class="language-rust">match std::fs::create_dir("tmp-work-dir") {
-   Ok(()) =&gt; println!("Working directory created"),
-   Err(s) =&gt; eprintln!("Could not create directory: {s}"),
+    Ok(()) =&gt; println!("Working directory created"),
+    Err(s) =&gt; eprintln!("Could not create directory: {s}"),
 }
 </code></pre>
 </div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.73.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+ignored_unit_patterns">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/ignored_unit_patterns.rs#L8">View Source</a></div></div></div></article><article class="panel panel-default" id="impl_hash_borrow_with_str_and_bytes"><input id="label-impl_hash_borrow_with_str_and_bytes" type="checkbox"><label for="label-impl_hash_borrow_with_str_and_bytes"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-impl_hash_borrow_with_str_and_bytes"><span>impl_hash_borrow_with_str_and_bytes</span> <a href="#impl_hash_borrow_with_str_and_bytes" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-correctness">correctness</span> <span class="label label-lint-level label-lint-level-deny">deny</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
@@ -5238,9 +5238,9 @@ impl Data {
 <pre><code class="language-rust">use std::str::Chars;
 struct Data {}
 impl Data {
-   fn iter(&amp;self) -&gt; Chars&lt;'static&gt; {
-       todo!()
-   }
+    fn iter(&amp;self) -&gt; Chars&lt;'static&gt; {
+        todo!()
+    }
 }
 </code></pre>
 </div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.57.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+iter_not_returning_iterator">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/iter_not_returning_iterator.rs#L9">View Source</a></div></div></div></article><article class="panel panel-default" id="iter_nth"><input id="label-iter_nth" type="checkbox"><label for="label-iter_nth"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-iter_nth"><span>iter_nth</span> <a href="#iter_nth" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-style">style</span> <span class="label label-lint-level label-lint-level-warn">warn</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
@@ -6201,12 +6201,12 @@ if x &gt; max { x = max; }
 <p><code>contains()</code> is more concise and idiomatic, sometimes more fast.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">fn foo(values: &amp;[u8]) -&gt; bool {
-   values.iter().any(|&amp;v| v == 10)
+    values.iter().any(|&amp;v| v == 10)
 }
 </code></pre>
 <p>Use instead:</p>
 <pre><code class="language-rust">fn foo(values: &amp;[u8]) -&gt; bool {
-   values.contains(&amp;10)
+    values.contains(&amp;10)
 }
 </code></pre>
 </div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.86.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+manual_contains">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/methods/mod.rs#L4440">View Source</a></div></div></div></article><article class="panel panel-default" id="manual_div_ceil"><input id="label-manual_div_ceil" type="checkbox"><label for="label-manual_div_ceil"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-manual_div_ceil"><span>manual_div_ceil</span> <a href="#manual_div_ceil" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-complexity">complexity</span> <span class="label label-lint-level label-lint-level-warn">warn</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
@@ -6374,7 +6374,7 @@ memory for the new strings, and it is more readable.</p>
 </code></pre>
 <p>Use instead:</p>
 <pre><code class="language-rust">fn compare(a: &amp;str, b: &amp;str) -&gt; bool {
-   a.eq_ignore_ascii_case(b) || a.eq_ignore_ascii_case("abc")
+    a.eq_ignore_ascii_case(b) || a.eq_ignore_ascii_case("abc")
 }
 </code></pre>
 </div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.84.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+manual_ignore_case_cmp">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/manual_ignore_case_cmp.rs#L15">View Source</a></div></div></div></article><article class="panel panel-default" id="manual_inspect"><input id="label-manual_inspect" type="checkbox"><label for="label-manual_inspect"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-manual_inspect"><span>manual_inspect</span> <a href="#manual_inspect" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-complexity">complexity</span> <span class="label label-lint-level label-lint-level-warn">warn</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
@@ -8045,7 +8045,7 @@ pub trait Bar {
 
 struct Baz;
 impl Baz {
-   fn private() {} // ok
+    fn private() {} // ok
 }
 
 impl Bar for Baz {
@@ -8054,13 +8054,13 @@ impl Bar for Baz {
 
 pub struct PubBaz;
 impl PubBaz {
-   fn private() {} // ok
-   pub fn not_private() {} // missing #[inline]
+    fn private() {} // ok
+    pub fn not_private() {} // missing #[inline]
 }
 
 impl Bar for PubBaz {
-   fn bar() {} // missing #[inline]
-   fn def_bar() {} // missing #[inline]
+    fn bar() {} // missing #[inline]
+    fn def_bar() {} // missing #[inline]
 }
 </code></pre>
 </div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">pre 1.29.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+missing_inline_in_public_items">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/missing_inline.rs#L9">View Source</a></div></div></div></article><article class="panel panel-default" id="missing_panics_doc"><input id="label-missing_panics_doc" type="checkbox"><label for="label-missing_panics_doc"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-missing_panics_doc"><span>missing_panics_doc</span> <a href="#missing_panics_doc" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-pedantic">pedantic</span> <span class="label label-lint-level label-lint-level-allow">allow</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
@@ -9341,7 +9341,7 @@ fn g(tr: Result&lt;TR, bool&gt;) -&gt; Result&lt;usize, bool&gt; {
 }
 
 fn f(to: TO) -&gt; Option&lt;usize&gt; {
-   to.magic
+    to.magic
 }
 
 struct TR {
@@ -10453,8 +10453,8 @@ re-implement it.</p>
 <pre><code class="language-rust">struct Foo;
 
 impl PartialEq for Foo {
-   fn eq(&amp;self, other: &amp;Foo) -&gt; bool { true }
-   fn ne(&amp;self, other: &amp;Foo) -&gt; bool { !(self == other) }
+    fn eq(&amp;self, other: &amp;Foo) -&gt; bool { true }
+    fn ne(&amp;self, other: &amp;Foo) -&gt; bool { !(self == other) }
 }
 </code></pre>
 </div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">pre 1.29.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+partialeq_ne_impl">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/partialeq_ne_impl.rs#L7">View Source</a></div></div></div></article><article class="panel panel-default" id="partialeq_to_none"><input id="label-partialeq_to_none" type="checkbox"><label for="label-partialeq_to_none"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-partialeq_to_none"><span>partialeq_to_none</span> <a href="#partialeq_to_none" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-style">style</span> <span class="label label-lint-level label-lint-level-warn">warn</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
@@ -11247,7 +11247,7 @@ owned_string.as_bytes()
 <p>It is simpler and more efficient to use the future directly.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">let f = async {
-   1 + 2
+    1 + 2
 };
 let fut = async {
     f.await
@@ -11255,7 +11255,7 @@ let fut = async {
 </code></pre>
 <p>Use instead:</p>
 <pre><code class="language-rust">let f = async {
-   1 + 2
+    1 + 2
 };
 let fut = f;
 </code></pre>
@@ -11445,7 +11445,7 @@ exhaustiveness checking as well.</p>
 let a = a;
 
 fn foo(b: i32) {
-   let b = b;
+    let b = b;
 }
 </code></pre>
 <p>Use instead:</p>
@@ -12127,7 +12127,7 @@ have better performance.</p>
 let item2 = 3;
 let mut vec: Vec&lt;u8&gt; = Vec::new();
 for _ in 0..20 {
-   vec.push(item1);
+    vec.push(item1);
 }
 for _ in 0..30 {
     vec.push(item2);
@@ -14964,7 +14964,7 @@ avoid confusion and visual clutter.</p>
 </code></pre>
 <p>Use instead:</p>
 <pre><code class="language-rust">if a &gt; 10 {
-   println!("a is greater than 10");
+    println!("a is greater than 10");
 }
 </code></pre>
 </div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.86.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+unnecessary_semicolon">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/unnecessary_semicolon.rs#L9">View Source</a></div></div></div></article><article class="panel panel-default" id="unnecessary_sort_by"><input id="label-unnecessary_sort_by" type="checkbox"><label for="label-unnecessary_sort_by"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-unnecessary_sort_by"><span>unnecessary_sort_by</span> <a href="#unnecessary_sort_by" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-complexity">complexity</span> <span class="label label-lint-level label-lint-level-warn">warn</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
