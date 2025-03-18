@@ -2,7 +2,7 @@
 #[allow(clippy::needless_if)]
 fn foo_m(name: &str) {
     if name != "Min" || name != "Max" || name != "Middle" {
-    //~^ always_true_conditions
+        //~^ always_true_conditions
         println!("always prints");
     } else {
         println!("never prints");
@@ -16,7 +16,7 @@ fn foo_m(name: &str) {
 
 fn foo_s(name: &str) {
     if name != "Min" || name != "Max" {
-    //~^ always_true_conditions
+        //~^ always_true_conditions
         println!("always prints");
     } else {
         println!("never prints");

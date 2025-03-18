@@ -1,7 +1,7 @@
+use clippy_utils::diagnostics::span_lint;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
-use clippy_utils::diagnostics::span_lint;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -32,7 +32,7 @@ declare_lint_pass!(AlwaysTrueConditions => [ALWAYS_TRUE_CONDITIONS]);
 
 fn context_applicable(expr: &Expr<'_>) -> bool {
     if let ExprKind::Binary(new_op, new_f, _new_l) = expr.kind {
-    //all this means is that the prev fn is also a bin
+        //all this means is that the prev fn is also a bin
         if new_op.node == BinOpKind::Or {
             //only continue DOWN if its an or.
             context_applicable(new_f)
@@ -48,7 +48,6 @@ fn context_applicable(expr: &Expr<'_>) -> bool {
     }
 }
 
-
 impl LateLintPass<'_> for AlwaysTrueConditions {
     fn check_expr(&mut self, cx: &LateContext<'_>, e: &Expr<'_>) {
         if let ExprKind::If(cond, _, _) = e.kind
@@ -58,14 +57,8 @@ impl LateLintPass<'_> for AlwaysTrueConditions {
         {
             let msg = "expression will always be true, did you mean &&?";
             if context_applicable(f_cond) {
-               span_lint(
-                    cx,
-                    ALWAYS_TRUE_CONDITIONS,
-                    e.span,
-                    msg
-                );
+                span_lint(cx, ALWAYS_TRUE_CONDITIONS, e.span, msg);
             }
-
         }
     }
 }
