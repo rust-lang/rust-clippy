@@ -10,14 +10,14 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```no_run
-    /// #let foo = "anything";
+    /// let foo = "anything";
     /// if foo != "thing1" || foo != "thing2" {
     ///     println!("always executes");
     /// }
     /// ```
     /// Use instead:
     /// ```no_run
-    /// #let foo = "anything";
+    /// let foo = "anything";
     /// if foo != "thing1" && foo != "thing2" {
     ///     println!("sometimes executes");
     /// }
