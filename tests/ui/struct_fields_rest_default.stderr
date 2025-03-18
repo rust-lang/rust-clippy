@@ -1,11 +1,11 @@
 error: should not use `..Default::default()` to omit rest of struct field initialization
-  --> tests/ui/struct_fields_rest_default.rs:19:11
+  --> tests/ui/struct_fields_rest_default.rs:22:11
    |
 LL |         ..Default::default()
    |           ^^^^^^^^^^^^^^^^^^
    |
 help: each field's initial value should be explicitly specified
-  --> tests/ui/struct_fields_rest_default.rs:17:13
+  --> tests/ui/struct_fields_rest_default.rs:20:13
    |
 LL |       let _ = Foo {
    |  _____________^
@@ -17,5 +17,39 @@ LL | |     };
    = note: `-D clippy::struct-fields-rest-default` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::struct_fields_rest_default)]`
 
-error: aborting due to 1 previous error
+error: should not use `..Foo::default()` to omit rest of struct field initialization
+  --> tests/ui/struct_fields_rest_default.rs:29:11
+   |
+LL |         ..Foo::default()
+   |           ^^^^^^^^^^^^^^
+   |
+help: each field's initial value should be explicitly specified
+  --> tests/ui/struct_fields_rest_default.rs:27:13
+   |
+LL |       let _ = Foo {
+   |  _____________^
+LL | |         a: 10,
+LL | |         ..Foo::default()
+LL | |
+LL | |     };
+   | |_____^
+
+error: should not use `..Foo::get_foo()` to omit rest of struct field initialization
+  --> tests/ui/struct_fields_rest_default.rs:36:11
+   |
+LL |         ..Foo::get_foo()
+   |           ^^^^^^^^^^^^^^
+   |
+help: each field's initial value should be explicitly specified
+  --> tests/ui/struct_fields_rest_default.rs:34:13
+   |
+LL |       let _ = Foo {
+   |  _____________^
+LL | |         a: 10,
+LL | |         ..Foo::get_foo()
+LL | |
+LL | |     };
+   | |_____^
+
+error: aborting due to 3 previous errors
 
