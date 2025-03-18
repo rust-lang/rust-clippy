@@ -105,4 +105,9 @@ fn feature_enable_14425(ptr: *const u8) -> usize {
     //~^ ERROR: is `1.78.0` but this item is stable since `1.84.0`
 }
 
+fn non_fn_items() {
+    let _ = std::io::ErrorKind::CrossesDevices;
+    //~^ ERROR: is `1.3.0` but this item is stable since `1.85.0`
+}
+
 fn main() {}
