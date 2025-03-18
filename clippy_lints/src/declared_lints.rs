@@ -171,6 +171,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::endian_bytes::LITTLE_ENDIAN_BYTES_INFO,
     crate::entry::MAP_ENTRY_INFO,
     crate::enum_clike::ENUM_CLIKE_UNPORTABLE_VARIANT_INFO,
+    crate::eq_should_be_match::EQ_SHOULD_BE_MATCH_INFO,
     crate::equatable_if_let::EQUATABLE_IF_LET_INFO,
     crate::error_impl_error::ERROR_IMPL_ERROR_INFO,
     crate::escape::BOXED_LOCAL_INFO,
