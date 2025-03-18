@@ -141,7 +141,7 @@ declare_clippy_lint! {
     /// format!("{var:.prec$}");
     /// ```
     ///
-    /// If `allow-mixed-uninlined-format-args` is set to `false` in clippy.toml,
+    /// If allow-mixed-uninlined-format-args is set to false in clippy.toml,
     /// the following code will also trigger the lint:
     /// ```no_run
     /// # let var = 42;
@@ -159,7 +159,7 @@ declare_clippy_lint! {
     /// nothing will be suggested, e.g. `println!("{0}={1}", var, 1+2)`.
     #[clippy::version = "1.66.0"]
     pub UNINLINED_FORMAT_ARGS,
-    style,
+    pedantic,
     "using non-inlined variables in `format!` calls"
 }
 
@@ -550,7 +550,7 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
         // a `Target` that is in `self.ty_msrv_map`.
         if let Some(deref_trait_id) = self.cx.tcx.lang_items().deref_trait()
             && implements_trait(self.cx, ty, deref_trait_id, &[])
-            && let Some(target_ty) = self.cx.get_associated_type(ty, deref_trait_id, sym::Target)
+            && let Some(target_ty) = self.cx.get_associated_type(ty, deref_trait_id, "Target")
             && let Some(msrv) = self.ty_msrv_map.get(&target_ty)
             && msrv.is_none_or(|msrv| self.msrv.meets(self.cx, msrv))
         {

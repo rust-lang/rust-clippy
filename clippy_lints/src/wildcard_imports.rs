@@ -68,8 +68,6 @@ declare_clippy_lint! {
     /// (including the standard library) provide modules named "prelude" specifically designed
     /// for wildcard import.
     ///
-    /// Wildcard imports reexported through `pub use` are also allowed.
-    ///
     /// `use super::*` is allowed in test modules. This is defined as any module with "test" in the name.
     ///
     /// These exceptions can be disabled using the `warn-on-all-wildcard-imports` configuration flag.
@@ -123,9 +121,7 @@ impl LateLintPass<'_> for WildcardImports {
         }
 
         let module = cx.tcx.parent_module_from_def_id(item.owner_id.def_id);
-        if cx.tcx.visibility(item.owner_id.def_id) != ty::Visibility::Restricted(module.to_def_id())
-            && !self.warn_on_all
-        {
+        if cx.tcx.visibility(item.owner_id.def_id) != ty::Visibility::Restricted(module.to_def_id()) {
             return;
         }
         if let ItemKind::Use(use_path, UseKind::Glob) = &item.kind

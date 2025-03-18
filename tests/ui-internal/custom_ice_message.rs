@@ -10,6 +10,5 @@
 #![allow(clippy::missing_clippy_version_attribute)]
 
 fn it_looks_like_you_are_trying_to_kill_clippy() {}
-//~^ ice: Would you like some help with that?
 
 fn main() {}

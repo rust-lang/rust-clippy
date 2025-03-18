@@ -1,5 +1,5 @@
 #![warn(clippy::manual_unwrap_or_default)]
-#![allow(clippy::unnecessary_literal_unwrap)]
+#![allow(clippy::unnecessary_literal_unwrap, clippy::manual_unwrap_or)]
 
 fn main() {
     let x: Option<Vec<String>> = None;
@@ -68,16 +68,14 @@ fn main() {
 
 // Issue #12531
 unsafe fn no_deref_ptr(a: Option<i32>, b: *const Option<i32>) -> i32 {
-    unsafe {
-        match a {
-            // `*b` being correct depends on `a == Some(_)`
-            Some(_) => match *b {
-                //~^ manual_unwrap_or_default
-                Some(v) => v,
-                _ => 0,
-            },
+    match a {
+        // `*b` being correct depends on `a == Some(_)`
+        Some(_) => match *b {
+            //~^ manual_unwrap_or_default
+            Some(v) => v,
             _ => 0,
-        }
+        },
+        _ => 0,
     }
 }
 
@@ -136,14 +134,4 @@ fn issue_12928() {
     let x = Some(Y(0, 0));
     let y = if let Some(Y(a, _)) = x { a } else { 0 };
     let y = if let Some(Y(a, ..)) = x { a } else { 0 };
-}
-
-// For symetry with `manual_unwrap_or` test
-fn allowed_manual_unwrap_or_zero() -> u32 {
-    if let Some(x) = Some(42) {
-        //~^ manual_unwrap_or_default
-        x
-    } else {
-        0
-    }
 }

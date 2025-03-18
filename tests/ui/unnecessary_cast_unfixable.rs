@@ -17,10 +17,8 @@ mod issue11113 {
 
     impl TearOff {
         unsafe fn query(&self) {
-            unsafe {
-                ((*(*(self.object as *mut *mut _) as *mut Vtbl)).query)()
-                //~^ unnecessary_cast
-            }
+            ((*(*(self.object as *mut *mut _) as *mut Vtbl)).query)()
+            //~^ unnecessary_cast
         }
     }
 }

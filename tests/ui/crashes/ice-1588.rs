@@ -1,6 +1,6 @@
 //@ check-pass
 
-#![expect(clippy::no_effect)]
+#![allow(clippy::all)]
 
 // Test for https://github.com/rust-lang/rust-clippy/issues/1588
 

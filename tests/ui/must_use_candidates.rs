@@ -88,13 +88,11 @@ static mut COUNTER: usize = 0;
 ///
 /// Don't ever call this from multiple threads
 pub unsafe fn mutates_static() -> usize {
-    unsafe {
-        COUNTER += 1;
-        COUNTER
-    }
+    COUNTER += 1;
+    COUNTER
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub extern "C" fn unmangled(i: bool) -> bool {
     !i
 }

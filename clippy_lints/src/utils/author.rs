@@ -426,11 +426,6 @@ impl<'a, 'tcx> PrintVisitor<'a, 'tcx> {
                 kind!("Tup({elements})");
                 self.slice(elements, |e| self.expr(e));
             },
-            ExprKind::Use(expr, _) => {
-                bind!(self, expr);
-                kind!("Use({expr})");
-                self.expr(expr);
-            },
             ExprKind::Binary(op, left, right) => {
                 bind!(self, op, left, right);
                 kind!("Binary({op}, {left}, {right})");
@@ -493,7 +488,6 @@ impl<'a, 'tcx> PrintVisitor<'a, 'tcx> {
             }) => {
                 let capture_clause = match capture_clause {
                     CaptureBy::Value { .. } => "Value { .. }",
-                    CaptureBy::Use { .. } => "Use { .. }",
                     CaptureBy::Ref => "Ref",
                 };
 
@@ -676,7 +670,6 @@ impl<'a, 'tcx> PrintVisitor<'a, 'tcx> {
         }
 
         match pat.value.kind {
-            PatKind::Missing => unreachable!(),
             PatKind::Wild => kind!("Wild"),
             PatKind::Never => kind!("Never"),
             PatKind::Binding(ann, _, name, sub) => {
@@ -794,7 +787,7 @@ impl<'a, 'tcx> PrintVisitor<'a, 'tcx> {
 }
 
 fn has_attr(cx: &LateContext<'_>, hir_id: HirId) -> bool {
-    let attrs = cx.tcx.hir_attrs(hir_id);
+    let attrs = cx.tcx.hir().attrs(hir_id);
     get_attr(cx.sess(), attrs, "author").count() > 0
 }
 

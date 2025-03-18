@@ -84,7 +84,7 @@ mod issue_12377 {
     use proc_macro_attr::with_empty_docs;
 
     #[with_empty_docs]
-    unsafe extern "C" {
+    extern "C" {
         type Test;
     }
 

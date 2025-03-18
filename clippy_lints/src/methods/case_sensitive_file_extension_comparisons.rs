@@ -1,5 +1,4 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::{SpanRangeExt, indent_of, reindent_multiline};
 use clippy_utils::ty::is_type_lang_item;
 use rustc_ast::ast::LitKind;
@@ -17,15 +16,14 @@ pub(super) fn check<'tcx>(
     call_span: Span,
     recv: &'tcx Expr<'_>,
     arg: &'tcx Expr<'_>,
-    msrv: Msrv,
 ) {
-    if let ExprKind::MethodCall(path_segment, ..) = recv.kind
-        && matches!(
+    if let ExprKind::MethodCall(path_segment, ..) = recv.kind {
+        if matches!(
             path_segment.ident.name.as_str(),
             "to_lowercase" | "to_uppercase" | "to_ascii_lowercase" | "to_ascii_uppercase"
-        )
-    {
-        return;
+        ) {
+            return;
+        }
     }
 
     if let Some(method_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)
@@ -60,15 +58,11 @@ pub(super) fn check<'tcx>(
 
                     let suggestion_source = reindent_multiline(
                         &format!(
-                            "std::path::Path::new({recv_source})
+                            "std::path::Path::new({})
                                 .extension()
-                                .{}|ext| ext.eq_ignore_ascii_case(\"{}\"))",
-                            if msrv.meets(cx, msrvs::OPTION_RESULT_IS_VARIANT_AND) {
-                                "is_some_and("
-                            } else {
-                                "map_or(false, "
-                            },
-                            ext_str.strip_prefix('.').unwrap(),
+                                .map_or(false, |ext| ext.eq_ignore_ascii_case(\"{}\"))",
+                            recv_source,
+                            ext_str.strip_prefix('.').unwrap()
                         ),
                         true,
                         Some(indent_of(cx, call_span).unwrap_or(0) + 4),

@@ -32,7 +32,7 @@ pub(super) fn check<'tcx>(
             e.span,
             "bit mask could be simplified with a call to `trailing_zeros`",
             |diag| {
-                let sugg = Sugg::hir(cx, left1, "...").maybe_paren();
+                let sugg = Sugg::hir(cx, left1, "...").maybe_par();
                 diag.span_suggestion(
                     e.span,
                     "try",

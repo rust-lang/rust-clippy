@@ -221,11 +221,10 @@ mod issue7392 {
     }
 
     fn ref_bindings() {
-        let _ = [&(&1, 2), &(&3, 4), &(&5, 4)]
-            //~^ search_is_some
-            .iter()
-            .find(|&&&(&x, ref y)| x == *y)
-            .is_none();
+        let _ = [&(&1, 2), &(&3, 4), &(&5, 4)].iter().find(|(&x, y)| x == *y).is_none();
+        //~^ search_is_some
+        let _ = [&(&1, 2), &(&3, 4), &(&5, 4)].iter().find(|&(&x, y)| x == *y).is_none();
+        //~^ search_is_some
     }
 
     fn test_string_1(s: &str) -> bool {

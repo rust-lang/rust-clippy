@@ -1,3 +1,5 @@
+#![warn(clippy::all)]
+#![allow(dead_code, unused_unsafe)]
 #![allow(clippy::missing_safety_doc, clippy::uninlined_format_args)]
 
 // TOO_MANY_ARGUMENTS

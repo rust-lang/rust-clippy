@@ -1,3 +1,4 @@
+#![allow(clippy::all)]
 #![warn(clippy::pattern_type_mismatch)]
 
 fn main() {}

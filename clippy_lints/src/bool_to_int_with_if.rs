@@ -1,7 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::HasSession;
 use clippy_utils::sugg::Sugg;
-use clippy_utils::{higher, is_else_clause, is_in_const_context, span_contains_comment};
+use clippy_utils::{is_else_clause, is_in_const_context};
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
@@ -47,25 +46,18 @@ declare_lint_pass!(BoolToIntWithIf => [BOOL_TO_INT_WITH_IF]);
 
 impl<'tcx> LateLintPass<'tcx> for BoolToIntWithIf {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
-        if !expr.span.from_expansion()
-            && let Some(higher::If {
-                cond,
-                then,
-                r#else: Some(r#else),
-            }) = higher::If::hir(expr)
+        if let ExprKind::If(cond, then, Some(else_)) = expr.kind
+            && matches!(cond.kind, ExprKind::DropTemps(_))
             && let Some(then_lit) = as_int_bool_lit(then)
-            && let Some(else_lit) = as_int_bool_lit(r#else)
+            && let Some(else_lit) = as_int_bool_lit(else_)
             && then_lit != else_lit
+            && !expr.span.from_expansion()
             && !is_in_const_context(cx)
         {
             let ty = cx.typeck_results().expr_ty(then);
-            let mut applicability = if span_contains_comment(cx.sess().source_map(), expr.span) {
-                Applicability::MaybeIncorrect
-            } else {
-                Applicability::MachineApplicable
-            };
+            let mut applicability = Applicability::MachineApplicable;
             let snippet = {
-                let mut sugg = Sugg::hir_with_context(cx, cond, expr.span.ctxt(), "..", &mut applicability);
+                let mut sugg = Sugg::hir_with_applicability(cx, cond, "..", &mut applicability);
                 if !then_lit {
                     sugg = !sugg;
                 }
@@ -80,7 +72,7 @@ impl<'tcx> LateLintPass<'tcx> for BoolToIntWithIf {
                 s
             };
 
-            let into_snippet = snippet.clone().maybe_paren();
+            let into_snippet = snippet.clone().maybe_par();
             let as_snippet = snippet.as_ty(ty);
 
             span_lint_and_then(
@@ -99,11 +91,10 @@ impl<'tcx> LateLintPass<'tcx> for BoolToIntWithIf {
     }
 }
 
-fn as_int_bool_lit(expr: &Expr<'_>) -> Option<bool> {
-    if let ExprKind::Block(b, _) = expr.kind
+fn as_int_bool_lit(e: &Expr<'_>) -> Option<bool> {
+    if let ExprKind::Block(b, _) = e.kind
         && b.stmts.is_empty()
         && let Some(e) = b.expr
-        && !e.span.from_expansion()
         && let ExprKind::Lit(lit) = e.kind
         && let LitKind::Int(x, _) = lit.node
     {

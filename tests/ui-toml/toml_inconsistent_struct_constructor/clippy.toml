@@ -1,1 +1,1 @@
-check-inconsistent-struct-field-initializers = true
+lint-inconsistent-struct-field-initializers = true

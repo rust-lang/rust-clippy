@@ -8,11 +8,9 @@ mod dont_warn {
     use std::arch::{asm, global_asm};
 
     pub(super) unsafe fn use_asm() {
-        unsafe {
-            asm!("");
-            asm!("", options());
-            asm!("", options(nostack));
-        }
+        asm!("");
+        asm!("", options());
+        asm!("", options(nostack));
     }
 
     global_asm!("");

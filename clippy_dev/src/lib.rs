@@ -13,7 +13,6 @@
 #[allow(unused_extern_crates)]
 extern crate rustc_driver;
 extern crate rustc_lexer;
-extern crate rustc_literal_escaper;
 
 pub mod dogfood;
 pub mod fmt;

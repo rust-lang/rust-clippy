@@ -1,10 +1,9 @@
 #![allow(
     clippy::deref_addrof,
-    clippy::no_effect,
-    clippy::uninlined_format_args,
-    clippy::unnecessary_struct_initialization,
     dead_code,
-    unused
+    unused,
+    clippy::no_effect,
+    clippy::unnecessary_struct_initialization
 )]
 #![warn(clippy::unnecessary_operation)]
 

@@ -14,8 +14,6 @@ use rustc_session::declare_lint_pass;
 use rustc_span::source_map::Spanned;
 use rustc_span::sym;
 
-use std::ops::ControlFlow;
-
 declare_clippy_lint! {
     /// ### What it does
     /// Checks for string appends of the form `x = x + y` (without
@@ -162,12 +160,13 @@ impl<'tcx> LateLintPass<'tcx> for StringAdd {
                 if is_string(cx, left) {
                     if !is_lint_allowed(cx, STRING_ADD_ASSIGN, e.hir_id) {
                         let parent = get_parent_expr(cx, e);
-                        if let Some(p) = parent
-                            && let ExprKind::Assign(target, _, _) = p.kind
+                        if let Some(p) = parent {
+                            if let ExprKind::Assign(target, _, _) = p.kind {
                                 // avoid duplicate matches
-                                && SpanlessEq::new(cx).eq_expr(target, left)
-                        {
-                            return;
+                                if SpanlessEq::new(cx).eq_expr(target, left) {
+                                    return;
+                                }
+                            }
                         }
                     }
                     span_lint(
@@ -439,94 +438,27 @@ declare_clippy_lint! {
 
 declare_lint_pass!(StringToString => [STRING_TO_STRING]);
 
-fn is_parent_map_like(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<rustc_span::Span> {
-    if let Some(parent_expr) = get_parent_expr(cx, expr)
-        && let ExprKind::MethodCall(name, _, _, parent_span) = parent_expr.kind
-        && name.ident.name == sym::map
-        && let Some(caller_def_id) = cx.typeck_results().type_dependent_def_id(parent_expr.hir_id)
-        && (clippy_utils::is_diag_item_method(cx, caller_def_id, sym::Result)
-            || clippy_utils::is_diag_item_method(cx, caller_def_id, sym::Option)
-            || clippy_utils::is_diag_trait_item(cx, caller_def_id, sym::Iterator))
-    {
-        Some(parent_span)
-    } else {
-        None
-    }
-}
-
-fn is_called_from_map_like(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<rustc_span::Span> {
-    // Look for a closure as parent of `expr`, discarding simple blocks
-    let parent_closure = cx
-        .tcx
-        .hir_parent_iter(expr.hir_id)
-        .try_fold(expr.hir_id, |child_hir_id, (_, node)| match node {
-            // Check that the child expression is the only expression in the block
-            Node::Block(block) if block.stmts.is_empty() && block.expr.map(|e| e.hir_id) == Some(child_hir_id) => {
-                ControlFlow::Continue(block.hir_id)
-            },
-            Node::Expr(expr) if matches!(expr.kind, ExprKind::Block(..)) => ControlFlow::Continue(expr.hir_id),
-            Node::Expr(expr) if matches!(expr.kind, ExprKind::Closure(_)) => ControlFlow::Break(Some(expr)),
-            _ => ControlFlow::Break(None),
-        })
-        .break_value()?;
-    is_parent_map_like(cx, parent_closure?)
-}
-
-fn suggest_cloned_string_to_string(cx: &LateContext<'_>, span: rustc_span::Span) {
-    span_lint_and_sugg(
-        cx,
-        STRING_TO_STRING,
-        span,
-        "`to_string()` called on a `String`",
-        "try",
-        "cloned()".to_string(),
-        Applicability::MachineApplicable,
-    );
-}
-
 impl<'tcx> LateLintPass<'tcx> for StringToString {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'_>) {
         if expr.span.from_expansion() {
             return;
         }
 
-        match &expr.kind {
-            ExprKind::MethodCall(path, self_arg, [], _) => {
-                if path.ident.name == sym::to_string
-                    && let ty = cx.typeck_results().expr_ty(self_arg)
-                    && is_type_lang_item(cx, ty.peel_refs(), LangItem::String)
-                {
-                    if let Some(parent_span) = is_called_from_map_like(cx, expr) {
-                        suggest_cloned_string_to_string(cx, parent_span);
-                    } else {
-                        #[expect(clippy::collapsible_span_lint_calls, reason = "rust-clippy#7797")]
-                        span_lint_and_then(
-                            cx,
-                            STRING_TO_STRING,
-                            expr.span,
-                            "`to_string()` called on a `String`",
-                            |diag| {
-                                diag.help("consider using `.clone()`");
-                            },
-                        );
-                    }
-                }
-            },
-            ExprKind::Path(QPath::TypeRelative(ty, segment)) => {
-                if segment.ident.name == sym::to_string
-                    && let rustc_hir::TyKind::Path(QPath::Resolved(_, path)) = ty.peel_refs().kind
-                    && let rustc_hir::def::Res::Def(_, def_id) = path.res
-                    && cx
-                        .tcx
-                        .lang_items()
-                        .get(LangItem::String)
-                        .is_some_and(|lang_id| lang_id == def_id)
-                    && let Some(parent_span) = is_parent_map_like(cx, expr)
-                {
-                    suggest_cloned_string_to_string(cx, parent_span);
-                }
-            },
-            _ => {},
+        if let ExprKind::MethodCall(path, self_arg, [], _) = &expr.kind
+            && path.ident.name == sym::to_string
+            && let ty = cx.typeck_results().expr_ty(self_arg)
+            && is_type_lang_item(cx, ty, LangItem::String)
+        {
+            #[expect(clippy::collapsible_span_lint_calls, reason = "rust-clippy#7797")]
+            span_lint_and_then(
+                cx,
+                STRING_TO_STRING,
+                expr.span,
+                "`to_string()` called on a `String`",
+                |diag| {
+                    diag.help("consider using `.clone()`");
+                },
+            );
         }
     }
 }

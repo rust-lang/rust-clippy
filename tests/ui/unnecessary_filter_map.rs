@@ -1,4 +1,5 @@
-#![allow(clippy::redundant_closure)]
+//@no-rustfix
+#![allow(dead_code)]
 
 fn main() {
     let _ = (0..4).filter_map(|x| if x > 1 { Some(x) } else { None });
@@ -26,7 +27,9 @@ fn main() {
     let _ = (0..4).filter_map(Some);
 
     let _ = vec![Some(10), None].into_iter().filter_map(|x| Some(x));
-    //~^ unnecessary_filter_map
+    //~^ redundant_closure
+    //~| unnecessary_filter_map
+    //~| unnecessary_filter_map
 }
 
 fn filter_map_none_changes_item_type() -> impl Iterator<Item = bool> {

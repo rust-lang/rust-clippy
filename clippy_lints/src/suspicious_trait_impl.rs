@@ -5,7 +5,6 @@ use core::ops::ControlFlow;
 use rustc_hir as hir;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
-use rustc_span::Span;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -57,20 +56,8 @@ declare_lint_pass!(SuspiciousImpl => [SUSPICIOUS_ARITHMETIC_IMPL, SUSPICIOUS_OP_
 
 impl<'tcx> LateLintPass<'tcx> for SuspiciousImpl {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>) {
-        match expr.kind {
-            hir::ExprKind::Binary(op, _, _) => {
-                check_expr_inner(cx, expr, op.node, op.span);
-            },
-            hir::ExprKind::AssignOp(op, _, _) => {
-                check_expr_inner(cx, expr, op.node.into(), op.span);
-            },
-            _ => {},
-        }
-    }
-}
-
-fn check_expr_inner<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>, binop: hir::BinOpKind, span: Span) {
-    if let Some((binop_trait_lang, op_assign_trait_lang)) = binop_traits(binop)
+        if let hir::ExprKind::Binary(binop, _, _) | hir::ExprKind::AssignOp(binop, ..) = expr.kind
+            && let Some((binop_trait_lang, op_assign_trait_lang)) = binop_traits(binop.node)
             && let Some(binop_trait_id) = cx.tcx.lang_items().get(binop_trait_lang)
             && let Some(op_assign_trait_id) = cx.tcx.lang_items().get(op_assign_trait_lang)
 
@@ -91,17 +78,18 @@ fn check_expr_inner<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>, bin
                 .iter()
                 .find(|&(ts, _)| ts.iter().any(|&t| Some(trait_id) == cx.tcx.lang_items().get(t)))
             && count_binops(body.value) == 1
-    {
-        span_lint(
-            cx,
-            lint,
-            span,
-            format!(
-                "suspicious use of `{}` in `{}` impl",
-                binop.as_str(),
-                cx.tcx.item_name(trait_id)
-            ),
-        );
+        {
+            span_lint(
+                cx,
+                lint,
+                binop.span,
+                format!(
+                    "suspicious use of `{}` in `{}` impl",
+                    binop.node.as_str(),
+                    cx.tcx.item_name(trait_id)
+                ),
+            );
+        }
     }
 }
 

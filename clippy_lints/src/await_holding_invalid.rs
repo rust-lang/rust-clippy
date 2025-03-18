@@ -179,14 +179,9 @@ pub struct AwaitHolding {
 
 impl AwaitHolding {
     pub(crate) fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {
-        let (def_ids, _) = create_disallowed_map(
-            tcx,
-            &conf.await_holding_invalid_types,
-            crate::disallowed_types::def_kind_predicate,
-            "type",
-            false,
-        );
-        Self { def_ids }
+        Self {
+            def_ids: create_disallowed_map(tcx, &conf.await_holding_invalid_types),
+        }
     }
 }
 
@@ -197,9 +192,10 @@ impl<'tcx> LateLintPass<'tcx> for AwaitHolding {
             def_id,
             ..
         }) = expr.kind
-            && let Some(coroutine_layout) = cx.tcx.mir_coroutine_witnesses(*def_id)
         {
-            self.check_interior_types(cx, coroutine_layout);
+            if let Some(coroutine_layout) = cx.tcx.mir_coroutine_witnesses(*def_id) {
+                self.check_interior_types(cx, coroutine_layout);
+            }
         }
     }
 }

@@ -77,7 +77,7 @@ pub(super) fn check(
                 s @ Cow::Borrowed(_) => s,
             },
             RepeatKind::String => Sugg::hir_with_context(cx, repeat_arg, ctxt, "..", &mut app)
-                .maybe_paren()
+                .maybe_par()
                 .to_string()
                 .into(),
         };

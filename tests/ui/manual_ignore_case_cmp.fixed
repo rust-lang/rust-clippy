@@ -1,11 +1,5 @@
-#![warn(clippy::manual_ignore_case_cmp)]
-#![allow(
-    clippy::deref_addrof,
-    clippy::op_ref,
-    clippy::ptr_arg,
-    clippy::short_circuit_statement,
-    clippy::unnecessary_operation
-)]
+#![allow(clippy::all)]
+#![deny(clippy::manual_ignore_case_cmp)]
 
 use std::ffi::{OsStr, OsString};
 
