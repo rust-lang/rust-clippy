@@ -97,7 +97,7 @@ impl LateLintPass<'_> for EmptyWithBrackets {
 
         if let ItemKind::Struct(var_data, _) = &item.kind
             && has_brackets(var_data)
-            && has_no_fields(cx, Some(var_data), span_after_ident)
+            && has_no_fields(cx, var_data, span_after_ident)
         {
             span_lint_and_then(
                 cx,
@@ -120,7 +120,7 @@ impl LateLintPass<'_> for EmptyWithBrackets {
         // the span of the parentheses/braces
         let span_after_ident = variant.span.with_lo(variant.ident.span.hi());
 
-        if has_no_fields(cx, Some(&variant.data), span_after_ident) {
+        if has_no_fields(cx, &variant.data, span_after_ident) {
             match variant.data {
                 VariantData::Struct { .. } => {
                     // Empty struct variants can be linted immediately
@@ -253,13 +253,8 @@ fn has_brackets(var_data: &VariantData<'_>) -> bool {
     !matches!(var_data, VariantData::Unit(..))
 }
 
-fn has_no_fields(cx: &LateContext<'_>, var_data_opt: Option<&VariantData<'_>>, braces_span: Span) -> bool {
-    if let Some(var_data) = var_data_opt
-        && !var_data.fields().is_empty()
-    {
-        return false;
-    }
-
+fn has_no_fields(cx: &LateContext<'_>, var_data: &VariantData<'_>, braces_span: Span) -> bool {
+    var_data.fields().is_empty() &&
     // there might still be field declarations hidden from the AST
     // (conditionally compiled code using #[cfg(..)])
     !span_contains_cfg(cx, braces_span)
