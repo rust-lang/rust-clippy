@@ -1,0 +1,28 @@
+error: you seem to use `.enumerate()` and immediately discard the value
+  --> tests/ui/unused_enumerate_value.rs:5:23
+   |
+LL |     for (index, _) in array.iter_mut().enumerate() {
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::unused-enumerate-value` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unused_enumerate_value)]`
+help: replace `array.iter_mut().enumerate()` with `0..array.len()`
+   |
+LL -     for (index, _) in array.iter_mut().enumerate() {
+LL +     for index in 0..array.len() {
+   |
+
+error: you seem to use `.enumerate()` and immediately discard the value
+  --> tests/ui/unused_enumerate_value.rs:11:23
+   |
+LL |     for (index, _) in my_iter.enumerate() {
+   |                       ^^^^^^^^^^^^^^^^^^^
+   |
+help: replace `my_iter.enumerate()` with `0..my_iter.len()`
+   |
+LL -     for (index, _) in my_iter.enumerate() {
+LL +     for index in 0..my_iter.len() {
+   |
+
+error: aborting due to 2 previous errors
+

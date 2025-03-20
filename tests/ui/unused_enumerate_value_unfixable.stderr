@@ -1,0 +1,12 @@
+error: you seem to use `.enumerate()` and immediately discard the value
+  --> tests/ui/unused_enumerate_value_unfixable.rs:23:23
+   |
+LL |     for (index, _) in length.into_iter().enumerate() {
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using `0..length.len()` instead
+   = note: `-D clippy::unused-enumerate-value` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unused_enumerate_value)]`
+
+error: aborting due to 1 previous error
+
