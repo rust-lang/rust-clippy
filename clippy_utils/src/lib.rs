@@ -106,10 +106,10 @@ use rustc_hir::hir_id::{HirIdMap, HirIdSet};
 use rustc_hir::intravisit::{FnKind, Visitor, walk_expr};
 use rustc_hir::{
     self as hir, Arm, BindingMode, Block, BlockCheckMode, Body, ByRef, Closure, ConstArgKind, ConstContext,
-    Destination, Expr, ExprField, ExprKind, FnDecl, FnRetTy, GenericArg, GenericArgs, HirId, Impl, ImplItem,
-    ImplItemKind, ImplItemRef, Item, ItemKind, LangItem, LetStmt, MatchSource, Mutability, Node, OwnerId, OwnerNode,
-    Param, Pat, PatExpr, PatExprKind, PatKind, Path, PathSegment, PrimTy, QPath, Stmt, StmtKind, TraitFn, TraitItem,
-    TraitItemKind, TraitItemRef, TraitRef, TyKind, UnOp, def,
+    CoroutineDesugaring, CoroutineKind, Destination, Expr, ExprField, ExprKind, FnDecl, FnRetTy, GenericArg,
+    GenericArgs, HirId, Impl, ImplItem, ImplItemKind, ImplItemRef, Item, ItemKind, LangItem, LetStmt, MatchSource,
+    Mutability, Node, OwnerId, OwnerNode, Param, Pat, PatExpr, PatExprKind, PatKind, Path, PathSegment, PrimTy, QPath,
+    Stmt, StmtKind, TraitFn, TraitItem, TraitItemKind, TraitItemRef, TraitRef, TyKind, UnOp, def,
 };
 use rustc_lexer::{TokenKind, tokenize};
 use rustc_lint::{LateContext, Level, Lint, LintContext};
@@ -2137,26 +2137,33 @@ pub fn is_async_fn(kind: FnKind<'_>) -> bool {
     }
 }
 
-/// Peels away all the compiler generated code surrounding the body of an async function,
-pub fn get_async_fn_body<'tcx>(tcx: TyCtxt<'tcx>, body: &Body<'_>) -> Option<&'tcx Expr<'tcx>> {
-    if let ExprKind::Closure(&Closure { body, .. }) = body.value.kind {
-        if let ExprKind::Block(
+/// Peels away all the compiler generated code surrounding the body of an async closure.
+pub fn get_async_closure_expr<'tcx>(tcx: TyCtxt<'tcx>, expr: &Expr<'_>) -> Option<&'tcx Expr<'tcx>> {
+    if let ExprKind::Closure(&Closure {
+        body,
+        kind: hir::ClosureKind::Coroutine(CoroutineKind::Desugared(CoroutineDesugaring::Async, _)),
+        ..
+    }) = expr.kind
+        && let ExprKind::Block(
             Block {
-                stmts: [],
                 expr:
                     Some(Expr {
-                        kind: ExprKind::DropTemps(expr),
+                        kind: ExprKind::DropTemps(inner_expr),
                         ..
                     }),
                 ..
             },
             _,
         ) = tcx.hir_body(body).value.kind
-        {
-            return Some(expr);
-        }
+    {
+        return Some(inner_expr);
     }
     None
+}
+
+/// Peels away all the compiler generated code surrounding the body of an async function.
+pub fn get_async_fn_body<'tcx>(tcx: TyCtxt<'tcx>, body: &Body<'_>) -> Option<&'tcx Expr<'tcx>> {
+    get_async_closure_expr(tcx, body.value)
 }
 
 // check if expr is calling method or function with #[must_use] attribute
