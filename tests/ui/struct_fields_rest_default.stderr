@@ -34,22 +34,5 @@ LL | |
 LL | |     };
    | |_____^
 
-error: should not use `..Foo::get_foo()` to omit rest of struct field initialization
-  --> tests/ui/struct_fields_rest_default.rs:36:11
-   |
-LL |         ..Foo::get_foo()
-   |           ^^^^^^^^^^^^^^
-   |
-help: each field's initial value should be explicitly specified
-  --> tests/ui/struct_fields_rest_default.rs:34:13
-   |
-LL |       let _ = Foo {
-   |  _____________^
-LL | |         a: 10,
-LL | |         ..Foo::get_foo()
-LL | |
-LL | |     };
-   | |_____^
-
-error: aborting due to 3 previous errors
+error: aborting due to 2 previous errors
 

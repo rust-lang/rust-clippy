@@ -30,11 +30,11 @@ fn main() {
         //~^ struct_fields_rest_default
     };
 
+    // should not lint
     #[rustfmt::skip]
     let _ = Foo {
         a: 10,
         ..Foo::get_foo()
-        //~^ struct_fields_rest_default
     };
 
     // should not lint in external macro

@@ -985,6 +985,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(non_std_lazy_statics::NonStdLazyStatic::new(conf)));
     store.register_late_pass(|_| Box::new(manual_option_as_slice::ManualOptionAsSlice::new(conf)));
     store.register_late_pass(|_| Box::new(single_option_map::SingleOptionMap));
-    store.register_early_pass(|| Box::new(struct_fields_rest_default::StructFieldsDefault));
+    store.register_late_pass(|_| Box::new(struct_fields_rest_default::StructFieldsDefault));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
