@@ -4,7 +4,7 @@ error: should not use `..Default::default()` to omit rest of struct field initia
 LL |         ..Default::default()
    |           ^^^^^^^^^^^^^^^^^^
    |
-help: each field's initial value should be explicitly specified
+help: explicitly specify all fields or use other base value instead of `..*::default()`
   --> tests/ui/struct_fields_rest_default.rs:20:13
    |
 LL |       let _ = Foo {
@@ -23,7 +23,7 @@ error: should not use `..Foo::default()` to omit rest of struct field initializa
 LL |         ..Foo::default()
    |           ^^^^^^^^^^^^^^
    |
-help: each field's initial value should be explicitly specified
+help: explicitly specify all fields or use other base value instead of `..*::default()`
   --> tests/ui/struct_fields_rest_default.rs:27:13
    |
 LL |       let _ = Foo {

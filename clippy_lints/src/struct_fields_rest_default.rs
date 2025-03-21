@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_help;
-use clippy_utils::path_def_id;
+use clippy_utils::is_trait_item;
 use clippy_utils::source::snippet;
 use rustc_hir::{ExprKind, StructTailExpr};
 use rustc_lint::{LateLintPass, LintContext};
@@ -46,11 +46,23 @@ declare_clippy_lint! {
     ///     b: Default::default(),
     ///     c: Default::default(),
     /// };
+    ///
+    /// impl Foo {
+    ///     fn get_foo() -> Self {
+    ///         Foo{ a: 0, b: 0, c: 0}
+    ///     }
+    /// }
+    ///
+    /// // or avoid using `..*::default()`
+    /// let _ = Foo {
+    ///     a: Default::default(),
+    ///     ..Foo::get_foo()
+    /// };
     /// ```
     #[clippy::version = "1.87.0"]
     pub STRUCT_FIELDS_REST_DEFAULT,
     restriction,
-    "should not use `..Default::default()` to omit rest of struct field initialization"
+    "should not use `..*::default()` pattern to omit rest of struct field initialization"
 }
 
 declare_lint_pass!(StructFieldsDefault => [STRUCT_FIELDS_REST_DEFAULT]);
@@ -60,8 +72,7 @@ impl<'tcx> LateLintPass<'tcx> for StructFieldsDefault {
         if !expr.span.in_external_macro(cx.sess().source_map())
             && let ExprKind::Struct(_, _, StructTailExpr::Base(base)) = &expr.kind
             && let ExprKind::Call(func, _) = base.kind
-            && let Some(did) = path_def_id(cx, func)
-            && cx.tcx.is_diagnostic_item(sym::default_fn, did)
+            && is_trait_item(cx, func, sym::Default)
         {
             span_lint_and_help(
                 cx,
@@ -69,10 +80,10 @@ impl<'tcx> LateLintPass<'tcx> for StructFieldsDefault {
                 base.span,
                 format!(
                     "should not use `..{}` to omit rest of struct field initialization",
-                    snippet(cx, base.span, "..")
+                    snippet(cx, base.span, "")
                 ),
                 Some(expr.span),
-                "each field's initial value should be explicitly specified",
+                "explicitly specify all fields or use other base value instead of `..*::default()`",
             );
         }
     }
