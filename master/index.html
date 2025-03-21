@@ -9508,8 +9508,6 @@ let _not_less_or_equal = match a.partial_cmp(&amp;b) {
 <p>Checks for multiplication by -1 as a form of negation.</p>
 <h3>Why is this bad?</h3>
 <p>It’s more readable to just negate.</p>
-<h3>Known problems</h3>
-<p>This only catches integers (for now).</p>
 <h3>Example</h3>
 <pre><code class="language-rust">let a = x * -1;
 </code></pre>
