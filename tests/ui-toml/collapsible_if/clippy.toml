@@ -1,0 +1,2 @@
+collapse-let-chains = true
+lint-commented-code = true

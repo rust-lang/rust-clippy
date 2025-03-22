@@ -480,6 +480,10 @@ define_Conf! {
     /// The maximum cognitive complexity a function can have
     #[lints(cognitive_complexity)]
     cognitive_complexity_threshold: u64 = 25,
+    /// Whether `if let` chains should be collapsed. This requires the use of the unstable
+    /// `let_chains` rustc feature.
+    #[lints(collapsible_if)]
+    collapse_let_chains: bool = false,
     /// DEPRECATED LINT: CYCLOMATIC_COMPLEXITY.
     ///
     /// Use the Cognitive Complexity lint instead.
@@ -549,6 +553,10 @@ define_Conf! {
     /// The maximum size of the `Err`-variant in a `Result` returned from a function
     #[lints(result_large_err)]
     large_error_threshold: u64 = 128,
+    /// Whether collapsible `if` chains are linted if they contain comments inside the parts
+    /// that would be collapsed.
+    #[lints(collapsible_if)]
+    lint_commented_code: bool = false,
     /// Whether to suggest reordering constructor fields when initializers are present.
     ///
     /// Warnings produced by this configuration aren't necessarily fixed by just reordering the fields. Even if the
