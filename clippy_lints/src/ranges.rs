@@ -4,15 +4,15 @@ use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg, span_lint_and_the
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::{SpanRangeExt, snippet, snippet_with_applicability};
 use clippy_utils::sugg::Sugg;
-use clippy_utils::{get_parent_expr, higher, is_in_const_context, is_integer_const, path_to_local};
+use clippy_utils::{get_parent_expr, higher, is_in_const_context, is_integer_const, is_path_lang_item, path_to_local};
 use rustc_ast::ast::RangeLimits;
 use rustc_errors::Applicability;
-use rustc_hir::{BinOpKind, Expr, ExprKind, HirId};
+use rustc_hir::{BinOpKind, Expr, ExprKind, HirId, LangItem};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_session::impl_lint_pass;
-use rustc_span::Span;
 use rustc_span::source_map::Spanned;
+use rustc_span::{Span, sym};
 use std::cmp::Ordering;
 
 declare_clippy_lint! {
@@ -24,6 +24,12 @@ declare_clippy_lint! {
     /// The code is more readable with an inclusive range
     /// like `x..=y`.
     ///
+    /// ### Limitations
+    /// The lint is conservative and will trigger only when switching
+    /// from an exclusive to an inclusive range is provably safe from
+    /// a typing point of view. This corresponds to situations where
+    /// the range is used as an iterator, or for indexing.
+    ///
     /// ### Known problems
     /// Will add unnecessary pair of parentheses when the
     /// expression is not wrapped in a pair but starts with an opening parenthesis
@@ -33,11 +39,6 @@ declare_clippy_lint! {
     /// Also in many cases, inclusive ranges are still slower to run than
     /// exclusive ranges, because they essentially add an extra branch that
     /// LLVM may fail to hoist out of the loop.
-    ///
-    /// This will cause a warning that cannot be fixed if the consumer of the
-    /// range only accepts a specific range type, instead of the generic
-    /// `RangeBounds` trait
-    /// ([#3307](https://github.com/rust-lang/rust-clippy/issues/3307)).
     ///
     /// ### Example
     /// ```no_run
@@ -71,11 +72,11 @@ declare_clippy_lint! {
     /// The code is more readable with an exclusive range
     /// like `x..y`.
     ///
-    /// ### Known problems
-    /// This will cause a warning that cannot be fixed if
-    /// the consumer of the range only accepts a specific range type, instead of
-    /// the generic `RangeBounds` trait
-    /// ([#3307](https://github.com/rust-lang/rust-clippy/issues/3307)).
+    /// ### Limitations
+    /// The lint is conservative and will trigger only when switching
+    /// from an inclusive to an exclusive range is provably safe from
+    /// a typing point of view. This corresponds to situations where
+    /// the range is used as an iterator, or for indexing.
     ///
     /// ### Example
     /// ```no_run
@@ -344,6 +345,41 @@ fn check_range_bounds<'a, 'tcx>(cx: &'a LateContext<'tcx>, ex: &'a Expr<'_>) -> 
     None
 }
 
+/// Check whether `expr` could switch range types without breaking the typing requirements. This is
+/// the case when `expr` is used as an iterator for example, or as a slice or `&str` index.
+fn can_switch_ranges(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    let Some(parent_expr) = get_parent_expr(cx, expr) else {
+        return false;
+    };
+
+    if let ExprKind::Call(func, [arg]) = parent_expr.kind
+        && arg.hir_id == expr.hir_id
+        && is_path_lang_item(cx, func, LangItem::IntoIterIntoIter)
+    {
+        return true;
+    }
+
+    if let ExprKind::MethodCall(_, receiver, _, _) = parent_expr.kind
+        && receiver.hir_id == expr.hir_id
+        && let Some(method_did) = cx.typeck_results().type_dependent_def_id(parent_expr.hir_id)
+        && let Some(trait_did) = cx.tcx.trait_of_item(method_did)
+        && matches!(
+            cx.tcx.get_diagnostic_name(trait_did),
+            Some(sym::Iterator | sym::IntoIterator | sym::RangeBounds)
+        )
+    {
+        return true;
+    }
+
+    if let ExprKind::Index(_, index, _) = parent_expr.kind
+        && index.hir_id == expr.hir_id
+    {
+        return true;
+    }
+
+    false
+}
+
 // exclusive range plus one: `x..(y+1)`
 fn check_exclusive_range_plus_one(cx: &LateContext<'_>, expr: &Expr<'_>) {
     if expr.span.can_be_used_for_suggestions()
@@ -353,6 +389,7 @@ fn check_exclusive_range_plus_one(cx: &LateContext<'_>, expr: &Expr<'_>) {
             limits: RangeLimits::HalfOpen,
         }) = higher::Range::hir(expr)
         && let Some(y) = y_plus_one(cx, end)
+        && can_switch_ranges(cx, expr)
     {
         let span = expr.span;
         span_lint_and_then(
@@ -391,6 +428,7 @@ fn check_inclusive_range_minus_one(cx: &LateContext<'_>, expr: &Expr<'_>) {
             limits: RangeLimits::Closed,
         }) = higher::Range::hir(expr)
         && let Some(y) = y_minus_one(cx, end)
+        && can_switch_ranges(cx, expr)
     {
         span_lint_and_then(
             cx,
