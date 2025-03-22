@@ -71,5 +71,23 @@ LL |         inline!(*&mut $(@expr self))
    |
    = note: this error originates in the macro `__inline_mac_impl` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: aborting due to 11 previous errors
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof.rs:95:9
+   |
+LL |         (*(&raw mut a.padding)) = [1; size_of::<DataWithPadding>()];
+   |         ^^^^^^^^^^^^^^^^^^^^^^^ help: try: `a.padding`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof.rs:97:9
+   |
+LL |         (*(&raw mut a.tup)).1 = ();
+   |         ^^^^^^^^^^^^^^^^^^^ help: try: `a.tup`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof.rs:99:10
+   |
+LL |         *(*(&raw mut a.prim)) = 0;
+   |          ^^^^^^^^^^^^^^^^^^^^ help: try: `a.prim`
+
+error: aborting due to 14 previous errors
 

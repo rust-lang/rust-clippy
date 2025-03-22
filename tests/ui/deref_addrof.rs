@@ -72,3 +72,34 @@ impl S {
         //~^ deref_addrof
     }
 }
+
+fn issue14386() {
+    use std::mem::ManuallyDrop;
+
+    #[derive(Copy, Clone)]
+    struct Data {
+        num: u64,
+    }
+
+    union DataWithPadding {
+        data: ManuallyDrop<Data>,
+        prim: ManuallyDrop<u64>,
+        padding: [u8; size_of::<Data>()],
+        tup: (ManuallyDrop<Data>, ()),
+    }
+
+    let mut a = DataWithPadding {
+        padding: [0; size_of::<DataWithPadding>()],
+    };
+    unsafe {
+        (*(&raw mut a.padding)) = [1; size_of::<DataWithPadding>()];
+        //~^ deref_addrof
+        (*(&raw mut a.tup)).1 = ();
+        //~^ deref_addrof
+        *(*(&raw mut a.prim)) = 0;
+        //~^ deref_addrof
+
+        (*(&raw mut a.data)).num = 42;
+        (*(&raw mut a.tup)).0.num = 42;
+    }
+}
