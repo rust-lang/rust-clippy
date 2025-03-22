@@ -31,6 +31,7 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            await-holding-invalid-types
            blacklisted-names
            cargo-ignore-publish
+           check-copy-then-borrow-mut-in-tests
            check-incompatible-msrv-in-tests
            check-private-items
            cognitive-complexity-threshold
@@ -124,6 +125,7 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            await-holding-invalid-types
            blacklisted-names
            cargo-ignore-publish
+           check-copy-then-borrow-mut-in-tests
            check-incompatible-msrv-in-tests
            check-private-items
            cognitive-complexity-threshold
@@ -217,6 +219,7 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            await-holding-invalid-types
            blacklisted-names
            cargo-ignore-publish
+           check-copy-then-borrow-mut-in-tests
            check-incompatible-msrv-in-tests
            check-private-items
            cognitive-complexity-threshold
