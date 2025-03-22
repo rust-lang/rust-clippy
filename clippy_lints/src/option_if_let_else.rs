@@ -99,6 +99,7 @@ declare_lint_pass!(OptionIfLetElse => [OPTION_IF_LET_ELSE]);
 struct OptionOccurrence {
     option: String,
     method_sugg: String,
+    method_generics: Option<String>,
     some_expr: String,
     none_expr: String,
 }
@@ -212,6 +213,10 @@ fn try_get_option_occurrence<'tcx>(
             }
         }
 
+        let method_generics = (method_sugg == "map_or_else"
+            && !cx.typeck_results().expr_adjustments(none_body).is_empty())
+        .then(|| "::</* Type name */, _, _>".into());
+
         let mut app = Applicability::Unspecified;
 
         let (none_body, is_argless_call) = match none_body.kind {
@@ -226,6 +231,7 @@ fn try_get_option_occurrence<'tcx>(
                 as_mut,
             ),
             method_sugg: method_sugg.to_string(),
+            method_generics,
             some_expr: format!(
                 "|{capture_mut}{capture_name}| {}",
                 Sugg::hir_with_context(cx, some_body, ctxt, "..", &mut app),
@@ -388,6 +394,11 @@ impl<'tcx> LateLintPass<'tcx> for OptionIfLetElse {
 
         let detection = detect_option_if_let_else(cx, expr).or_else(|| detect_option_match(cx, expr));
         if let Some(det) = detection {
+            let applicability = if det.method_generics.is_some() {
+                Applicability::HasPlaceholders
+            } else {
+                Applicability::MaybeIncorrect
+            };
             span_lint_and_sugg(
                 cx,
                 OPTION_IF_LET_ELSE,
@@ -395,10 +406,14 @@ impl<'tcx> LateLintPass<'tcx> for OptionIfLetElse {
                 format!("use Option::{} instead of an if let/else", det.method_sugg),
                 "try",
                 format!(
-                    "{}.{}({}, {})",
-                    det.option, det.method_sugg, det.none_expr, det.some_expr
+                    "{}.{}{}({}, {})",
+                    det.option,
+                    det.method_sugg,
+                    det.method_generics.unwrap_or_default(),
+                    det.none_expr,
+                    det.some_expr
                 ),
-                Applicability::MaybeIncorrect,
+                applicability,
             );
         }
     }
