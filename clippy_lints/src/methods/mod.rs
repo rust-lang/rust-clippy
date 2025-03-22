@@ -5370,7 +5370,7 @@ impl Methods {
                         implicit_clone::check(cx, name, expr, recv);
                     }
                 },
-                ("to_os_string" | "to_path_buf" | "to_vec", []) => {
+                ("to_os_string" | "to_path_buf" | "to_string" | "to_vec", []) => {
                     implicit_clone::check(cx, name, expr, recv);
                 },
                 ("type_id", []) => {

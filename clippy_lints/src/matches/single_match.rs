@@ -111,9 +111,7 @@ fn report_single_pattern(
         let (sugg, help) = if is_unit_expr(arm.body) {
             (String::new(), "`match` expression can be removed")
         } else {
-            let mut sugg = snippet_block_with_context(cx, arm.body.span, ctxt, "..", Some(expr.span), &mut app)
-                .0
-                .to_string();
+            let mut sugg = snippet_block_with_context(cx, arm.body.span, ctxt, "..", Some(expr.span), &mut app).0;
             if let Node::Stmt(stmt) = cx.tcx.parent_hir_node(expr.hir_id)
                 && let StmtKind::Expr(_) = stmt.kind
                 && match arm.body.kind {
@@ -126,7 +124,7 @@ fn report_single_pattern(
             (sugg, "try")
         };
         span_lint_and_then(cx, lint, expr.span, msg, |diag| {
-            diag.span_suggestion(expr.span, help, sugg.to_string(), app);
+            diag.span_suggestion(expr.span, help, sugg, app);
             note(diag);
         });
         return;
@@ -182,7 +180,7 @@ fn report_single_pattern(
     };
 
     span_lint_and_then(cx, lint, expr.span, msg, |diag| {
-        diag.span_suggestion(expr.span, "try", sugg.to_string(), app);
+        diag.span_suggestion(expr.span, "try", sugg, app);
         note(diag);
     });
 }

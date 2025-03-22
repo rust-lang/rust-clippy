@@ -3,7 +3,7 @@
 
 fn main() {
     let mut message = String::from("Hello");
-    let mut v = message.to_string();
+    let mut v = message.clone();
     //~^ ERROR: implicitly cloning a `String` by calling `to_string` on its dereferenced type
 
     let variable1 = String::new();
@@ -11,11 +11,11 @@ fn main() {
     let variable2 = Some(v);
     let _ = variable2.map(|x| {
         println!();
-        x.to_string()
+        x.clone()
         //~^ ERROR: implicitly cloning a `String` by calling `to_string` on its dereferenced type
     });
 
     let x = Some(String::new());
-    let _ = x.unwrap_or_else(|| v.to_string());
+    let _ = x.unwrap_or_else(|| v.clone());
     //~^ ERROR: implicitly cloning a `String` by calling `to_string` on its dereferenced type
 }

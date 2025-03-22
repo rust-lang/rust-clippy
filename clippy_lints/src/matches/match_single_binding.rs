@@ -32,8 +32,7 @@ pub(crate) fn check<'a>(cx: &LateContext<'a>, ex: &Expr<'a>, arms: &[Arm<'_>], e
         Some(expr.span),
         &mut app,
     )
-    .0
-    .to_string();
+    .0;
 
     // Do we need to add ';' to suggestion ?
     if let Node::Stmt(stmt) = cx.tcx.parent_hir_node(expr.hir_id)
