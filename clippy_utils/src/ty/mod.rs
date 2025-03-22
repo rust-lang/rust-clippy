@@ -1376,3 +1376,8 @@ pub fn option_arg_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<Ty<'t
         _ => None,
     }
 }
+
+/// Check if `ty` with references peeled is an `Adt` and return its `DefId`.
+pub fn adt_def_id(ty: Ty<'_>) -> Option<DefId> {
+    ty.peel_refs().ty_adt_def().map(AdtDef::did)
+}
