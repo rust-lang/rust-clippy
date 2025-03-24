@@ -72,7 +72,7 @@ pub mod ctfe; // Very important lint, do not remove (rust#125116)
 pub mod declared_lints;
 pub mod deprecated_lints;
 
-// begin lints modules, do not remove this comment, it’s used in `update_lints`
+// begin lints modules, do not remove this comment, it's used in `update_lints`
 mod absolute_paths;
 mod almost_complete_range;
 mod approx_const;
@@ -375,6 +375,7 @@ mod unnecessary_box_returns;
 mod unnecessary_literal_bound;
 mod unnecessary_map_on_constructor;
 mod unnecessary_owned_empty_strings;
+mod unnecessary_paren_in_negated_if;
 mod unnecessary_self_imports;
 mod unnecessary_semicolon;
 mod unnecessary_struct_initialization;
@@ -404,7 +405,7 @@ mod zero_div_zero;
 mod zero_repeat_side_effects;
 mod zero_sized_map_values;
 mod zombie_processes;
-// end lints modules, do not remove this comment, it’s used in `update_lints`
+// end lints modules, do not remove this comment, it's used in `update_lints`
 
 use clippy_config::{Conf, get_configuration_metadata, sanitize_explanation};
 use clippy_utils::macros::FormatArgsStorage;
@@ -616,7 +617,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
         store.register_late_pass(|_| {
             Box::<utils::internal_lints::lint_without_lint_pass::LintWithoutLintPass>::default()
         });
-        store.register_late_pass(|_| Box::<utils::internal_lints::unnecessary_def_path::UnnecessaryDefPath>::default());
+        store.register_late_pass(|_| Box::new(utils::internal_lints::unnecessary_def_path::UnnecessaryDefPath));
         store.register_late_pass(|_| Box::new(utils::internal_lints::outer_expn_data_pass::OuterExpnDataPass));
         store.register_late_pass(|_| Box::new(utils::internal_lints::msrv_attr_impl::MsrvAttrImpl));
         store.register_late_pass(|_| {
@@ -984,5 +985,5 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(non_std_lazy_statics::NonStdLazyStatic::new(conf)));
     store.register_late_pass(|_| Box::new(manual_option_as_slice::ManualOptionAsSlice::new(conf)));
     store.register_late_pass(|_| Box::new(single_option_map::SingleOptionMap));
-    // add lints here, do not remove this comment, it's used in `new_lint`
+    store.register_lints(&[&unnecessary_paren_in_negated_if::UNNECESSARY_PAREN_IN_NEGATED_IF]);
 }
