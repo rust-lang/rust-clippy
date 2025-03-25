@@ -16133,6 +16133,7 @@ foo(); // Calls crate1::foo
 <p>Wildcard imports are allowed from modules that their name contains <code>prelude</code>. Many crates
 (including the standard library) provide modules named “prelude” specifically designed
 for wildcard import.</p>
+<p>Wildcard imports reexported through <code>pub use</code> are also allowed.</p>
 <p><code>use super::*</code> is allowed in test modules. This is defined as any module with “test” in the name.</p>
 <p>These exceptions can be disabled using the <code>warn-on-all-wildcard-imports</code> configuration flag.</p>
 <h3>Known problems</h3>
@@ -16166,7 +16167,8 @@ are already allowed by default.</li>
 <p>(default: <code>[]</code>)</p>
 <ul>
 <li>
-<p><code>warn-on-all-wildcard-imports</code>:  Whether to allow certain wildcard imports (prelude, super in tests).</p>
+<p><code>warn-on-all-wildcard-imports</code>:  Whether to emit warnings on all wildcard imports, including those from <code>prelude</code>, from <code>super</code> in tests,
+or for <code>pub use</code> reexports.</p>
 <p>(default: <code>false</code>)</p>
 </li>
 </ul>
