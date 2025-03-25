@@ -87,7 +87,7 @@ impl LateLintPass<'_> for Unicode {
 fn escape<T: Iterator<Item = char>>(s: T) -> String {
     let mut result = String::new();
     for c in s {
-        if c as u32 > 0x7F {
+        if u32::from(c) > 0x7F {
             for d in c.escape_unicode() {
                 result.push(d);
             }
@@ -119,7 +119,7 @@ fn check_str(cx: &LateContext<'_>, span: Span, id: HirId) {
         });
     }
 
-    if string.chars().any(|c| c as u32 > 0x7F) {
+    if string.chars().any(|c| u32::from(c) > 0x7F) {
         #[expect(clippy::collapsible_span_lint_calls, reason = "rust-clippy#7797")]
         span_lint_and_then(
             cx,
