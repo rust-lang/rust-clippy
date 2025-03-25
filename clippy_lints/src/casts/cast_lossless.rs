@@ -3,11 +3,10 @@ use clippy_utils::is_in_const_context;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::SpanRangeExt;
 use clippy_utils::sugg::Sugg;
-use clippy_utils::ty::is_isize_or_usize;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, QPath, TyKind};
 use rustc_lint::LateContext;
-use rustc_middle::ty::{self, FloatTy, Ty};
+use rustc_middle::ty::{self, FloatTy, IntTy, Ty, UintTy};
 use rustc_span::hygiene;
 
 use super::{CAST_LOSSLESS, utils};
@@ -21,7 +20,7 @@ pub(super) fn check(
     cast_to_hir: &rustc_hir::Ty<'_>,
     msrv: Msrv,
 ) {
-    if !should_lint(cx, cast_from, cast_to, msrv) {
+    if !should_lint(cx, cast_from, cast_to, msrv) || !expr.span.ctxt().is_root() {
         return;
     }
 
@@ -47,7 +46,8 @@ pub(super) fn check(
                     );
                 },
                 // Don't suggest `A<_>::B::From(x)` or `macro!()::from(x)`
-                kind if matches!(kind, TyKind::Path(QPath::Resolved(_, path)) if path.segments.iter().any(|s| s.args.is_some()))
+                kind if matches!(kind, TyKind::Path(QPath::Resolved(_, path))
+                if path.segments.iter().any(|s| s.args.is_some()))
                     || !cast_to_hir.span.eq_ctxt(expr.span) =>
                 {
                     diag.span_suggestion_verbose(
@@ -76,29 +76,21 @@ fn should_lint(cx: &LateContext<'_>, cast_from: Ty<'_>, cast_to: Ty<'_>, msrv: M
         return false;
     }
 
-    match (cast_from.is_integral(), cast_to.is_integral()) {
-        (true, true) => {
-            let cast_signed_to_unsigned = cast_from.is_signed() && !cast_to.is_signed();
-            let from_nbits = utils::int_ty_to_nbits(cast_from, cx.tcx);
-            let to_nbits = utils::int_ty_to_nbits(cast_to, cx.tcx);
-            !is_isize_or_usize(cast_from)
-                && !is_isize_or_usize(cast_to)
-                && from_nbits < to_nbits
-                && !cast_signed_to_unsigned
+    match (cast_from.kind(), cast_to.kind()) {
+        (ty::Bool, ty::Uint(_) | ty::Int(_)) => msrv.meets(cx, msrvs::FROM_BOOL),
+        (ty::Uint(_), ty::Uint(UintTy::Usize)) | (ty::Uint(UintTy::U8) | ty::Int(_), ty::Int(IntTy::Isize)) => {
+            utils::int_ty_to_nbits(cast_from, cx.tcx) <= 16
         },
-
-        (true, false) => {
-            let from_nbits = utils::int_ty_to_nbits(cast_from, cx.tcx);
-            let to_nbits = if let ty::Float(FloatTy::F32) = cast_to.kind() {
-                32
-            } else {
-                64
-            };
-            !is_isize_or_usize(cast_from) && from_nbits < to_nbits
+        // No `f16` to `f32`: https://github.com/rust-lang/rust/issues/123831
+        (ty::Uint(UintTy::Usize) | ty::Int(IntTy::Isize), _)
+        | (_, ty::Uint(UintTy::Usize) | ty::Int(IntTy::Isize))
+        | (ty::Float(FloatTy::F16), ty::Float(FloatTy::F32)) => false,
+        (ty::Uint(_) | ty::Int(_), ty::Int(_)) | (ty::Uint(_), ty::Uint(_)) => {
+            utils::int_ty_to_nbits(cast_from, cx.tcx) < utils::int_ty_to_nbits(cast_to, cx.tcx)
         },
-        (false, true) if matches!(cast_from.kind(), ty::Bool) && msrv.meets(cx, msrvs::FROM_BOOL) => true,
-        (_, _) => {
-            matches!(cast_from.kind(), ty::Float(FloatTy::F32)) && matches!(cast_to.kind(), ty::Float(FloatTy::F64))
-        },
+        (ty::Uint(_) | ty::Int(_), ty::Float(fl)) => utils::int_ty_to_nbits(cast_from, cx.tcx) < fl.bit_width(),
+        (ty::Char, ty::Uint(_)) => utils::int_ty_to_nbits(cast_to, cx.tcx) >= 32,
+        (ty::Float(fl_from), ty::Float(fl_to)) => fl_from.bit_width() < fl_to.bit_width(),
+        _ => false,
     }
 }

@@ -495,24 +495,7 @@ LL +     let _ = i32::from(sign_cast!(x, u8, i8) + 1);
    |
 
 error: casts from `u8` to `u32` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:159:13
-   |
-LL |             1u8 as u32
-   |             ^^^^^^^^^^
-...
-LL |     let _ = in_macro!();
-   |             ----------- in this macro invocation
-   |
-   = help: an `as` cast can become silently lossy if the types change in the future
-   = note: this error originates in the macro `in_macro` (in Nightly builds, run with -Z macro-backtrace for more info)
-help: use `u32::from` instead
-   |
-LL -             1u8 as u32
-LL +             u32::from(1u8)
-   |
-
-error: casts from `u8` to `u32` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:174:13
+  --> tests/ui/cast_lossless_integer.rs:173:13
    |
 LL |     let _ = 0u8 as ty!();
    |             ^^^^^^^^^^^^
@@ -524,5 +507,5 @@ LL -     let _ = 0u8 as ty!();
 LL +     let _ = <ty!()>::from(0u8);
    |
 
-error: aborting due to 40 previous errors
+error: aborting due to 39 previous errors
 
