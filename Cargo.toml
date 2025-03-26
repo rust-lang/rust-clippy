@@ -30,6 +30,8 @@ tempfile = { version = "3.3", optional = true }
 termize = "0.1"
 color-print = "0.3.4"
 anstream = "0.6.18"
+tiny-rng = "0.3.0"
+soloud = "1.0.5"
 
 [dev-dependencies]
 cargo_metadata = "0.18.1"
@@ -71,10 +73,3 @@ harness = false
 [[test]]
 name = "dogfood"
 harness = false
-
-# quine-mc_cluskey makes up a significant part of the runtime in dogfood
-# due to the number of conditions in the clippy_lints crate
-# and enabling optimizations for that specific dependency helps a bit
-# without increasing total build times.
-[profile.dev.package.quine-mc_cluskey]
-opt-level = 3
