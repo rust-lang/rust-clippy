@@ -22,7 +22,7 @@ use rustc_middle::ty::{self, AdtDef, GenericArgKind, Ty};
 use rustc_span::{Span, Symbol};
 
 mod certainty;
-use certainty::{Certainty, Meet, join, meet};
+use certainty::{Certainty, Meet, TypeKind, join, meet};
 
 pub fn expr_type_is_certain(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
     expr_type_certainty(cx, expr, false).is_certain()
@@ -46,7 +46,7 @@ fn expr_type_certainty(cx: &LateContext<'_>, expr: &Expr<'_>, in_arg: bool) -> C
             } else {
                 Certainty::Uncertain
             };
-            lhs.join_clearing_def_ids(rhs)
+            lhs.join_clearing_types(rhs)
         },
 
         ExprKind::MethodCall(method, receiver, args, _) => {
@@ -117,11 +117,10 @@ fn expr_type_certainty(cx: &LateContext<'_>, expr: &Expr<'_>, in_arg: bool) -> C
         _ => Certainty::Uncertain,
     };
 
-    let expr_ty = cx.typeck_results().expr_ty(expr);
-    if let Some(def_id) = adt_def_id(expr_ty) {
-        certainty.with_def_id(def_id)
-    } else {
-        certainty.clear_def_id()
+    match cx.typeck_results().expr_ty(expr).kind() {
+        ty::Adt(adt_def, _) => certainty.with_def_id(adt_def.did()),
+        ty::Bool | ty::Char | ty::Int(_) | ty::Uint(_) | ty::Float(_) => certainty.with_prim_ty(),
+        _ => certainty.clear_type(),
     }
 }
 
@@ -209,7 +208,11 @@ fn qpath_certainty(cx: &LateContext<'_>, qpath: &QPath<'_>, resolves_to_type: bo
             .map_or(Certainty::Uncertain, |def_id| {
                 let generics = cx.tcx.generics_of(def_id);
                 if generics.is_empty() {
-                    Certainty::Certain(if resolves_to_type { Some(def_id) } else { None })
+                    Certainty::Certain(if resolves_to_type {
+                        Some(TypeKind::AdtDef(def_id))
+                    } else {
+                        None
+                    })
                 } else {
                     Certainty::Uncertain
                 }
@@ -249,7 +252,7 @@ fn path_segment_certainty(
                     .args
                     .map_or(Certainty::Uncertain, |args| generic_args_certainty(cx, args));
                 // See the comment preceding `qpath_certainty`. `def_id` could refer to a type or a value.
-                let certainty = lhs.join_clearing_def_ids(rhs);
+                let certainty = lhs.join_clearing_types(rhs);
                 if resolves_to_type {
                     if let DefKind::TyAlias = cx.tcx.def_kind(def_id) {
                         adt_def_id(cx.tcx.type_of(def_id).instantiate_identity())
@@ -265,9 +268,9 @@ fn path_segment_certainty(
             }
         },
 
-        Res::PrimTy(_) | Res::SelfTyParam { .. } | Res::SelfTyAlias { .. } | Res::SelfCtor(_) => {
-            Certainty::Certain(None)
-        },
+        Res::PrimTy(_) => Certainty::Certain(Some(TypeKind::PrimTy)),
+
+        Res::SelfTyParam { .. } | Res::SelfTyAlias { .. } | Res::SelfCtor(_) => Certainty::Certain(None),
 
         // `get_parent` because `hir_id` refers to a `Pat`, and we're interested in the node containing the `Pat`.
         Res::Local(hir_id) => match cx.tcx.parent_hir_node(hir_id) {
@@ -284,13 +287,13 @@ fn path_segment_certainty(
                 if resolves_to_type {
                     certainty
                 } else {
-                    certainty.clear_def_id()
+                    certainty.clear_type()
                 }
             },
             _ => Certainty::Uncertain,
         },
 
-        _ => Certainty::Uncertain,
+        _ => Certainty::Certain(None),
     };
     debug_assert!(resolves_to_type || certainty.to_def_id().is_none());
     certainty
