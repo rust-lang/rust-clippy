@@ -277,5 +277,11 @@ error: casting to the same type is unnecessary (`u32` -> `u32`)
 LL |         f((1 + 2u32) as u32);
    |           ^^^^^^^^^^^^^^^^^ help: try: `((1 + 2u32))`
 
-error: aborting due to 46 previous errors
+error: casting to the same type is unnecessary (`i64` -> `i64`)
+  --> tests/ui/unnecessary_cast.rs:310:17
+   |
+LL |         let _ = threshold as i64;
+   |                 ^^^^^^^^^^^^^^^^ help: try: `threshold`
+
+error: aborting due to 47 previous errors
 

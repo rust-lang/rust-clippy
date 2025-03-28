@@ -304,4 +304,10 @@ mod fixable {
         f((1 + 2u32) as u32);
         //~^ unnecessary_cast
     }
+
+    fn with_blocks(a: i64, b: i64, c: u64) {
+        let threshold = if c < 10 { a } else { b };
+        let _ = threshold as i64;
+        //~^ unnecessary_cast
+    }
 }

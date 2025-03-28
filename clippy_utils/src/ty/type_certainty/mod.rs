@@ -110,6 +110,10 @@ fn expr_type_certainty(cx: &LateContext<'_>, expr: &Expr<'_>, in_arg: bool) -> C
 
         ExprKind::Struct(qpath, _, _) => qpath_certainty(cx, qpath, true),
 
+        ExprKind::Block(block, _) => block
+            .expr
+            .map_or(Certainty::Certain(None), |expr| expr_type_certainty(cx, expr, false)),
+
         _ => Certainty::Uncertain,
     };
 
