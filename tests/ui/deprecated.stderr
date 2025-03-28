@@ -91,5 +91,11 @@ error: lint `clippy::match_on_vec_items` has been removed: `clippy::indexing_sli
 LL | #![warn(clippy::match_on_vec_items)]
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 15 previous errors
+error: lint `clippy::string_to_string` has been removed: `clippy:implicit_clone` and `clippy:map_clone` cover those cases
+  --> tests/ui/deprecated.rs:20:9
+   |
+LL | #![warn(clippy::string_to_string)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 16 previous errors
 
