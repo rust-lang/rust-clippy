@@ -1,5 +1,12 @@
 use rustc_hir::def_id::DefId;
 use std::fmt::Debug;
+use std::ops::{ControlFlow, FromResidual, Try};
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TypeKind {
+    PrimTy,
+    AdtDef(DefId),
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Certainty {
@@ -7,9 +14,9 @@ pub enum Certainty {
     Uncertain,
 
     /// The type can be determined purely from subexpressions. If the argument is `Some(..)`, the
-    /// specific `DefId` is known. Such arguments are needed to handle path segments whose `res` is
-    /// `Res::Err`.
-    Certain(Option<DefId>),
+    /// specific primitive type or `DefId` is known. Such arguments are needed to handle path
+    /// segments whose `res` is `Res::Err`.
+    Certain(Option<TypeKind>),
 
     /// The heuristic believes that more than one `DefId` applies to a type---this is a bug.
     Contradiction,
@@ -23,7 +30,7 @@ pub trait TryJoin: Sized {
     fn try_join(self, other: Self) -> Option<Self>;
 }
 
-impl Meet for Option<DefId> {
+impl Meet for Option<TypeKind> {
     fn meet(self, other: Self) -> Self {
         match (self, other) {
             (None, _) | (_, None) => None,
@@ -32,11 +39,11 @@ impl Meet for Option<DefId> {
     }
 }
 
-impl TryJoin for Option<DefId> {
+impl TryJoin for Option<TypeKind> {
     fn try_join(self, other: Self) -> Option<Self> {
         match (self, other) {
             (Some(lhs), Some(rhs)) => (lhs == rhs).then_some(Some(lhs)),
-            (Some(def_id), _) | (_, Some(def_id)) => Some(Some(def_id)),
+            (Some(ty_kind), _) | (_, Some(ty_kind)) => Some(Some(ty_kind)),
             (None, None) => Some(None),
         }
     }
@@ -79,11 +86,11 @@ impl Certainty {
     /// Join two `Certainty`s after clearing their `DefId`s. This method should be used when `self`
     /// or `other` do not necessarily refer to types, e.g., when they are aggregations of other
     /// `Certainty`s.
-    pub fn join_clearing_def_ids(self, other: Self) -> Self {
-        self.clear_def_id().join(other.clear_def_id())
+    pub fn join_clearing_types(self, other: Self) -> Self {
+        self.clear_type().join(other.clear_type())
     }
 
-    pub fn clear_def_id(self) -> Certainty {
+    pub fn clear_type(self) -> Certainty {
         if matches!(self, Certainty::Certain(_)) {
             Certainty::Certain(None)
         } else {
@@ -91,9 +98,17 @@ impl Certainty {
         }
     }
 
+    pub fn with_prim_ty(self) -> Certainty {
+        if matches!(self, Certainty::Certain(_)) {
+            Certainty::Certain(Some(TypeKind::PrimTy))
+        } else {
+            self
+        }
+    }
+
     pub fn with_def_id(self, def_id: DefId) -> Certainty {
         if matches!(self, Certainty::Certain(_)) {
-            Certainty::Certain(Some(def_id))
+            Certainty::Certain(Some(TypeKind::AdtDef(def_id)))
         } else {
             self
         }
@@ -101,7 +116,7 @@ impl Certainty {
 
     pub fn to_def_id(self) -> Option<DefId> {
         match self {
-            Certainty::Certain(inner) => inner,
+            Certainty::Certain(Some(TypeKind::AdtDef(def_id))) => Some(def_id),
             _ => None,
         }
     }
@@ -119,4 +134,29 @@ pub fn meet(iter: impl Iterator<Item = Certainty>) -> Certainty {
 /// Think: `iter.any(/* is certain */)`
 pub fn join(iter: impl Iterator<Item = Certainty>) -> Certainty {
     iter.fold(Certainty::Uncertain, Certainty::join)
+}
+
+pub struct NoCertainty(Certainty);
+
+impl FromResidual<NoCertainty> for Certainty {
+    fn from_residual(residual: NoCertainty) -> Self {
+        residual.0
+    }
+}
+
+impl Try for Certainty {
+    type Output = Certainty;
+
+    type Residual = NoCertainty;
+
+    fn from_output(output: Self::Output) -> Self {
+        output
+    }
+
+    fn branch(self) -> ControlFlow<Self::Residual, Self::Output> {
+        match self {
+            Certainty::Certain(_) => ControlFlow::Continue(self),
+            _ => ControlFlow::Break(NoCertainty(self)),
+        }
+    }
 }

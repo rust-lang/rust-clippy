@@ -6,6 +6,7 @@
 #![feature(assert_matches)]
 #![feature(unwrap_infallible)]
 #![feature(array_windows)]
+#![feature(try_trait_v2)]
 #![recursion_limit = "512"]
 #![allow(
     clippy::missing_errors_doc,
