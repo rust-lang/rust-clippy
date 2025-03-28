@@ -6,6 +6,7 @@
     clippy::no_effect,
     clippy::nonstandard_macro_braces,
     clippy::unnecessary_operation,
+    clippy::double_parens,
     nonstandard_style,
     unused
 )]
@@ -281,6 +282,26 @@ mod fixable {
         //~^ unnecessary_cast
 
         let _ = 5i32 as i64;
+        //~^ unnecessary_cast
+    }
+
+    fn issue_14366(i: u32) {
+        // Do not remove the cast if it helps determining the type
+        let _ = ((1.0 / 8.0) as f64).powf(i as f64);
+
+        // But remove useless casts anyway
+        let _ = (((1.0 / 8.0) as f64)).powf(i as f64);
+        //~^ unnecessary_cast
+    }
+
+    fn ambiguity() {
+        pub trait T {}
+        impl T for u32 {}
+        impl T for String {}
+        fn f(_: impl T) {}
+
+        f((1 + 2) as u32);
+        f(((1 + 2u32)));
         //~^ unnecessary_cast
     }
 }
