@@ -17,5 +17,6 @@
 #![warn(clippy::wrong_pub_self_convention)] //~ ERROR: lint `clippy::wrong_pub_self_convention`
 #![warn(clippy::option_map_or_err_ok)] //~ ERROR: lint `clippy::option_map_or_err_ok`
 #![warn(clippy::match_on_vec_items)] //~ ERROR: lint `clippy::match_on_vec_items`
+#![warn(clippy::string_to_string)] //~ ERROR: lint `clippy::string_to_string`
 
 fn main() {}
