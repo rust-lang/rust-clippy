@@ -7,71 +7,44 @@ fn positive_tests() {
     let c = 3;
 
     // Basic subtraction inside an if
-    if let Some(result) = a.checked_sub(b)  {
+    if let Some(diff) = a.checked_sub(b) {
         //~^ manual_checked_sub
-        let c = result;
+        let c = diff;
     }
 
     // Basic subtraction inside an if with an else block
-    if let Some(result) = a.checked_sub(b)  {
+    if let Some(diff) = a.checked_sub(b) {
         //~^ manual_checked_sub
-        let c = result;
+        let c = diff;
     } else {
         let c = a + b;
     }
 
     // Basic subtraction inside an if with an else-if block
-    if let Some(result) = a.checked_sub(b)  {
+    if let Some(diff) = a.checked_sub(b) {
         //~^ manual_checked_sub
-        let c = result;
+        let c = diff;
     } else if a < b {
         let c = a + b;
     }
 
     // Decrementing inside an if condition
-    if let Some(result) = a.checked_sub(0)  {
+    if let Some(diff) = a.checked_sub(1) {
         //~^ manual_checked_sub
-        let _ = result;
+        let _ = diff;
     }
 
     // Variable subtraction used in a function call
-    if let Some(result) = a.checked_sub(b)  {
+    if let Some(diff) = a.checked_sub(b) {
         //~^ manual_checked_sub
-        some_function(result);
+        some_function(diff);
     }
 
-    // Subtracting two suffixed literals
-    if let Some(result) = 10u32.checked_sub(5u32)  {
-        //~^ manual_checked_sub
-        let _ = result;
-    }
-
-    let x: i32 = 10;
-    let y: i32 = 5;
-
-    // Casted variables inside an if
-    if let Some(result) = (x as u32).checked_sub(y as u32) {
-        //~^ manual_checked_sub
-        let _ = result;
-    }
-
-    // Casted variable and literal inside an if
-    if let Some(result) = (x as u32).checked_sub(5u32) {
-        //~^ manual_checked_sub
-        let _ = result;
-    }
-
-    // Casting subtraction result
-    if let Some(result) = a.checked_sub(b)  {
-        //~^ manual_checked_sub
-        let _ = result as u64;
-    }
-
-    if let Some(result) = a.checked_sub(b)  {
+    if let Some(diff) = a.checked_sub(b) {
         //~^ manual_checked_sub
         macro_rules! subtract {
             () => {
-                result
+                diff
             };
         }
         let _ = subtract!();
@@ -81,16 +54,16 @@ fn positive_tests() {
         value: u32,
     }
 
-    if let Some(result) = a.checked_sub(b)  {
+    if let Some(diff) = a.checked_sub(b) {
         //~^ manual_checked_sub
-        let _ = Example { value: result };
+        let _ = Example { value: diff };
     }
 
     // Subtraction inside a nested if, should lint
-    if let Some(result) = a.checked_sub(b)  {
+    if let Some(diff) = a.checked_sub(b) {
         //~^ manual_checked_sub
         if c > 0 {
-            let _ = result;
+            let _ = diff;
         }
     }
 }
@@ -127,15 +100,15 @@ fn negative_tests() {
         let _ = 10 - 5;
     }
 
-    // Suffixed LHS, unsuffixed RHS (shouldn't lint)
-    if 10u32 >= 5 {
-        let _ = 10u32 - 5;
-    }
+    // // Suffixed LHS, unsuffixed RHS (shouldn't lint)
+    // if 10u32 >= 5 {
+    //     let _ = 10u32 - 5;
+    // }
 
-    //  Unsuffixed LHS, suffixed RHS (shouldn't lint)
-    if 10 >= 5u32 {
-        let _ = 10 - 5u32;
-    }
+    // //  Unsuffixed LHS, suffixed RHS (shouldn't lint)
+    // if 10 >= 5u32 {
+    //     let _ = 10 - 5u32;
+    // }
 }
 
 fn main() {

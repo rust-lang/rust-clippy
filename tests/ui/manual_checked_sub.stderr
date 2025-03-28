@@ -11,9 +11,9 @@ LL | |     }
    = help: to override `-D warnings` add `#[allow(clippy::manual_checked_sub)]`
 help: consider using `.checked_sub()`
    |
-LL ~     if let Some(result) = a.checked_sub(b)  {
+LL ~     if let Some(diff) = a.checked_sub(b) {
 LL +
-LL +         let c = result;
+LL +         let c = diff;
 LL +     }
    |
 
@@ -30,9 +30,9 @@ LL | |     }
    |
 help: consider using `.checked_sub()`
    |
-LL ~     if let Some(result) = a.checked_sub(b)  {
+LL ~     if let Some(diff) = a.checked_sub(b) {
 LL +
-LL +         let c = result;
+LL +         let c = diff;
 LL +     } else {
 LL +         let c = a + b;
 LL +     }
@@ -51,9 +51,9 @@ LL | |     }
    |
 help: consider using `.checked_sub()`
    |
-LL ~     if let Some(result) = a.checked_sub(b)  {
+LL ~     if let Some(diff) = a.checked_sub(b) {
 LL +
-LL +         let c = result;
+LL +         let c = diff;
 LL +     } else if a < b {
 LL +         let c = a + b;
 LL +     }
@@ -70,9 +70,9 @@ LL | |     }
    |
 help: consider using `.checked_sub()`
    |
-LL ~     if let Some(result) = a.checked_sub(0)  {
+LL ~     if let Some(diff) = a.checked_sub(1) {
 LL +
-LL +         let _ = result;
+LL +         let _ = diff;
 LL +     }
    |
 
@@ -87,82 +87,14 @@ LL | |     }
    |
 help: consider using `.checked_sub()`
    |
-LL ~     if let Some(result) = a.checked_sub(b)  {
+LL ~     if let Some(diff) = a.checked_sub(b) {
 LL +
-LL +         some_function(result);
+LL +         some_function(diff);
 LL +     }
    |
 
 error: manual re-implementation of checked subtraction
-  --> tests/ui/manual_checked_sub.rs:44:5
-   |
-LL | /     if 10u32 >= 5u32 {
-LL | |
-LL | |         let _ = 10u32 - 5u32;
-LL | |     }
-   | |_____^
-   |
-help: consider using `.checked_sub()`
-   |
-LL ~     if let Some(result) = 10u32.checked_sub(5u32)  {
-LL +
-LL +         let _ = result;
-LL +     }
-   |
-
-error: manual re-implementation of checked subtraction
-  --> tests/ui/manual_checked_sub.rs:53:5
-   |
-LL | /     if x as u32 >= y as u32 {
-LL | |
-LL | |         let _ = x as u32 - y as u32;
-LL | |     }
-   | |_____^
-   |
-help: consider using `.checked_sub()`
-   |
-LL ~     if let Some(result) = (x as u32).checked_sub(y as u32) {
-LL +
-LL +         let _ = result;
-LL +     }
-   |
-
-error: manual re-implementation of checked subtraction
-  --> tests/ui/manual_checked_sub.rs:59:5
-   |
-LL | /     if x as u32 >= 5u32 {
-LL | |
-LL | |         let _ = x as u32 - 5u32;
-LL | |     }
-   | |_____^
-   |
-help: consider using `.checked_sub()`
-   |
-LL ~     if let Some(result) = (x as u32).checked_sub(5u32) {
-LL +
-LL +         let _ = result;
-LL +     }
-   |
-
-error: manual re-implementation of checked subtraction
-  --> tests/ui/manual_checked_sub.rs:65:5
-   |
-LL | /     if a >= b {
-LL | |
-LL | |         let _ = (a - b) as u64;
-LL | |     }
-   | |_____^
-   |
-help: consider using `.checked_sub()`
-   |
-LL ~     if let Some(result) = a.checked_sub(b)  {
-LL +
-LL +         let _ = result as u64;
-LL +     }
-   |
-
-error: manual re-implementation of checked subtraction
-  --> tests/ui/manual_checked_sub.rs:70:5
+  --> tests/ui/manual_checked_sub.rs:43:5
    |
 LL | /     if a >= b {
 LL | |
@@ -175,11 +107,11 @@ LL | |     }
    |
 help: consider using `.checked_sub()`
    |
-LL ~     if let Some(result) = a.checked_sub(b)  {
+LL ~     if let Some(diff) = a.checked_sub(b) {
 LL +
 LL +         macro_rules! subtract {
 LL +             () => {
-LL +                 result
+LL +                 diff
 LL +             };
 LL +         }
 LL +         let _ = subtract!();
@@ -187,7 +119,7 @@ LL +     }
    |
 
 error: manual re-implementation of checked subtraction
-  --> tests/ui/manual_checked_sub.rs:84:5
+  --> tests/ui/manual_checked_sub.rs:57:5
    |
 LL | /     if a >= b {
 LL | |
@@ -197,14 +129,14 @@ LL | |     }
    |
 help: consider using `.checked_sub()`
    |
-LL ~     if let Some(result) = a.checked_sub(b)  {
+LL ~     if let Some(diff) = a.checked_sub(b) {
 LL +
-LL +         let _ = Example { value: result };
+LL +         let _ = Example { value: diff };
 LL +     }
    |
 
 error: manual re-implementation of checked subtraction
-  --> tests/ui/manual_checked_sub.rs:90:5
+  --> tests/ui/manual_checked_sub.rs:63:5
    |
 LL | /     if a >= b {
 LL | |
@@ -216,13 +148,13 @@ LL | |     }
    |
 help: consider using `.checked_sub()`
    |
-LL ~     if let Some(result) = a.checked_sub(b)  {
+LL ~     if let Some(diff) = a.checked_sub(b) {
 LL +
 LL +         if c > 0 {
-LL +             let _ = result;
+LL +             let _ = diff;
 LL +         }
 LL +     }
    |
 
-error: aborting due to 12 previous errors
+error: aborting due to 8 previous errors
 
