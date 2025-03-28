@@ -9,9 +9,8 @@ use std::path::PathBuf;
 use std::process::{self, Command};
 
 use anstream::println;
-use soloud::Wav;
+use soloud::{Wav, *};
 use tiny_rng::Rand;
-use soloud::*;
 
 #[allow(clippy::ignored_unit_patterns)]
 fn show_help() {
@@ -155,7 +154,7 @@ where
                 20 => voiceline_20(&mut wav),
                 21 => voiceline_21(&mut wav),
                 22 => voiceline_22(&mut wav),
-                _ => return Ok(())
+                _ => return Ok(()),
             }
             sl.play(&wav);
             while sl.voice_count() > 0 {
@@ -187,7 +186,7 @@ where
             17 => voiceline_17(&mut wav),
             18 => voiceline_18(&mut wav),
             19 => voiceline_19(&mut wav),
-            _ => return Ok(())
+            _ => return Ok(()),
         }
         sl.play(&wav);
         while sl.voice_count() > 0 {
@@ -232,7 +231,8 @@ You can use tool lints to allow or deny lints from your code, e.g.:
     <cyan,bold>--frozen</>                Require Cargo.lock and cache are up to date
     <cyan,bold>--locked</>                Require Cargo.lock is up to date
     <cyan,bold>--offline</>               Run without accessing the network
-")}
+")
+}
 fn voiceline_1(wav: &mut Wav) {
     wav.load_mem(include_bytes!("../voicelines/failure/15.wav")).unwrap();
 }
@@ -286,7 +286,8 @@ fn voiceline_17(wav: &mut Wav) {
 }
 fn voiceline_18(wav: &mut Wav) {
     wav.load_mem(include_bytes!("../voicelines/failure/18.wav")).unwrap();
-}fn voiceline_19(wav: &mut Wav) {
+}
+fn voiceline_19(wav: &mut Wav) {
     wav.load_mem(include_bytes!("../voicelines/failure/19.wav")).unwrap();
 }
 fn voiceline_20(wav: &mut Wav) {
@@ -298,7 +299,6 @@ fn voiceline_21(wav: &mut Wav) {
 fn voiceline_22(wav: &mut Wav) {
     wav.load_mem(include_bytes!("../voicelines/success/22.wav")).unwrap();
 }
-
 
 #[cfg(test)]
 mod tests {
