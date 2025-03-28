@@ -1,11 +1,12 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::ty::implements_trait;
-use clippy_utils::{is_diag_item_method, is_diag_trait_item, peel_middle_ty_refs, sym};
+use clippy_utils::{get_parent_expr, is_diag_item_method, is_diag_trait_item, peel_middle_ty_refs, sym};
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
 use rustc_span::Symbol;
+use std::ops::ControlFlow;
 
 use super::IMPLICIT_CLONE;
 
@@ -20,6 +21,7 @@ pub fn check(cx: &LateContext<'_>, method_name: Symbol, expr: &hir::Expr<'_>, re
         && return_type == input_type
         && let Some(clone_trait) = cx.tcx.lang_items().clone_trait()
         && implements_trait(cx, return_type, clone_trait, &[])
+        && is_called_from_map_like(cx, expr).is_none()
     {
         let mut app = Applicability::MachineApplicable;
         let recv_snip = snippet_with_context(cx, recv.span, expr.span.ctxt(), "..", &mut app).0;
@@ -54,5 +56,40 @@ pub fn is_clone_like(cx: &LateContext<'_>, method_name: Symbol, method_def_id: h
             })
             .is_some(),
         _ => false,
+    }
+}
+
+fn is_called_from_map_like(cx: &LateContext<'_>, expr: &hir::Expr<'_>) -> Option<rustc_span::Span> {
+    // Look for a closure as parent of `expr`, discarding simple blocks
+    let parent_closure = cx
+        .tcx
+        .hir_parent_iter(expr.hir_id)
+        .try_fold(expr.hir_id, |child_hir_id, (_, node)| match node {
+            // Check that the child expression is the only expression in the block
+            hir::Node::Block(block) if block.stmts.is_empty() && block.expr.map(|e| e.hir_id) == Some(child_hir_id) => {
+                ControlFlow::Continue(block.hir_id)
+            },
+            hir::Node::Expr(expr) if matches!(expr.kind, hir::ExprKind::Block(..)) => {
+                ControlFlow::Continue(expr.hir_id)
+            },
+            hir::Node::Expr(expr) if matches!(expr.kind, hir::ExprKind::Closure(_)) => ControlFlow::Break(Some(expr)),
+            _ => ControlFlow::Break(None),
+        })
+        .break_value()?;
+    is_parent_map_like(cx, parent_closure?)
+}
+
+fn is_parent_map_like(cx: &LateContext<'_>, expr: &hir::Expr<'_>) -> Option<rustc_span::Span> {
+    if let Some(parent_expr) = get_parent_expr(cx, expr)
+        && let hir::ExprKind::MethodCall(name, _, _, parent_span) = parent_expr.kind
+        && name.ident.name == sym::map
+        && let Some(caller_def_id) = cx.typeck_results().type_dependent_def_id(parent_expr.hir_id)
+        && (is_diag_item_method(cx, caller_def_id, sym::Result)
+            || is_diag_item_method(cx, caller_def_id, sym::Option)
+            || is_diag_trait_item(cx, caller_def_id, sym::Iterator))
+    {
+        Some(parent_span)
+    } else {
+        None
     }
 }
