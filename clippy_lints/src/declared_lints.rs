@@ -35,6 +35,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::utils::internal_lints::unsorted_clippy_utils_paths::UNSORTED_CLIPPY_UTILS_PATHS_INFO,
     crate::absolute_paths::ABSOLUTE_PATHS_INFO,
     crate::almost_complete_range::ALMOST_COMPLETE_RANGE_INFO,
+    crate::always_true_conditions::ALWAYS_TRUE_CONDITIONS_INFO,
     crate::approx_const::APPROX_CONSTANT_INFO,
     crate::arbitrary_source_item_ordering::ARBITRARY_SOURCE_ITEM_ORDERING_INFO,
     crate::arc_with_non_send_sync::ARC_WITH_NON_SEND_SYNC_INFO,
