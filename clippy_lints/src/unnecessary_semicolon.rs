@@ -29,7 +29,7 @@ declare_clippy_lint! {
     ///     println!("a is greater than 10");
     /// }
     /// ```
-    #[clippy::version = "1.86.0"]
+    #[clippy::version = "nightly"]
     pub UNNECESSARY_SEMICOLON,
     pedantic,
     "unnecessary semicolon after expression returning `()`"
