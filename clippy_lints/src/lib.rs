@@ -96,6 +96,7 @@ mod copy_iterator;
 mod crate_in_macro_def;
 mod create_dir;
 mod dbg_macro;
+mod decimal_bit_mask;
 mod default;
 mod default_constructed_unit_structs;
 mod default_instead_of_iter_empty;
@@ -845,6 +846,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::new(cloned_ref_to_slice_refs::ClonedRefToSliceRefs::new(conf))),
         Box::new(|_| Box::new(infallible_try_from::InfallibleTryFrom)),
         Box::new(|_| Box::new(coerce_container_to_any::CoerceContainerToAny)),
+        Box::new(|_| Box::new(decimal_bit_mask::DecimalBitMask)),
         Box::new(|_| Box::new(toplevel_ref_arg::ToplevelRefArg)),
         Box::new(|_| Box::new(volatile_composites::VolatileComposites)),
         Box::new(|_| Box::<replace_box::ReplaceBox>::default()),
