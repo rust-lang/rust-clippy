@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::numeric_literal::NumericLiteral;
 use clippy_utils::source::{SpanRangeExt, snippet_opt};
+use clippy_utils::ty::expr_type_is_certain;
 use clippy_utils::visitors::{Visitable, for_each_expr_without_closures};
 use clippy_utils::{get_parent_expr, is_hir_ty_cfg_dependant, is_ty_alias, path_to_local};
 use rustc_ast::{LitFloatType, LitIntType, LitKind};
@@ -141,7 +142,10 @@ pub(super) fn check<'tcx>(
         }
     }
 
-    if cast_from.kind() == cast_to.kind() && !expr.span.in_external_macro(cx.sess().source_map()) {
+    if cast_from.kind() == cast_to.kind()
+        && !expr.span.in_external_macro(cx.sess().source_map())
+        && expr_type_is_certain(cx, cast_expr)
+    {
         if let Some(id) = path_to_local(cast_expr)
             && !cx.tcx.hir().span(id).eq_ctxt(cast_expr.span)
         {
