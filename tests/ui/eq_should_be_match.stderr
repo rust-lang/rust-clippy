@@ -1,0 +1,107 @@
+error: this comparison would be faster with pattern matching
+  --> tests/ui/eq_should_be_match.rs:14:13
+   |
+LL |     let _ = d1 == [1, 2];
+   |             ^^^^^^^^^^^^ help: try: `matches!(d1, [1, 2])`
+   |
+   = note: `-D clippy::eq-should-be-match` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::eq_should_be_match)]`
+
+error: this comparison would be faster with pattern matching
+  --> tests/ui/eq_should_be_match.rs:16:13
+   |
+LL |     let _ = d2 == Foo { first: 1, second: 2 };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `matches!(d2, Foo { first: 1, second: 2 })`
+
+error: this comparison would be faster with pattern matching
+  --> tests/ui/eq_should_be_match.rs:18:13
+   |
+LL |     let _ = d3 != (1, 2);
+   |             ^^^^^^^^^^^^ help: try: `!matches!(d3, (1, 2))`
+
+error: this comparison would be faster with pattern matching
+  --> tests/ui/eq_should_be_match.rs:20:13
+   |
+LL |     let _ = d3 == (1, 2) || d3 == (2, 3) || d3 == (1, 4);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `matches!(d3, (1, 2) | (2, 3) | (1, 4))`
+
+error: this comparison would be faster with pattern matching
+  --> tests/ui/eq_should_be_match.rs:23:13
+   |
+LL |     let _ = d2 == Foo { first: 1, second: 2 } || d3 == (2, 3) || d3 == (1, 4);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `matches!(d2, Foo { first: 1, second: 2 })`
+
+error: this comparison would be faster with pattern matching
+  --> tests/ui/eq_should_be_match.rs:23:50
+   |
+LL |     let _ = d2 == Foo { first: 1, second: 2 } || d3 == (2, 3) || d3 == (1, 4);
+   |                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `matches!(d3, (2, 3) | (1, 4))`
+
+error: this comparison would be faster with pattern matching
+  --> tests/ui/eq_should_be_match.rs:27:13
+   |
+LL |     let _ = d3 == (2, 3) || d2 == Foo { first: 1, second: 2 } || d3 == (1, 4);
+   |             ^^^^^^^^^^^^ help: try: `matches!(d3, (2, 3))`
+
+error: this comparison would be faster with pattern matching
+  --> tests/ui/eq_should_be_match.rs:27:29
+   |
+LL |     let _ = d3 == (2, 3) || d2 == Foo { first: 1, second: 2 } || d3 == (1, 4);
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `matches!(d2, Foo { first: 1, second: 2 })`
+
+error: this comparison would be faster with pattern matching
+  --> tests/ui/eq_should_be_match.rs:27:66
+   |
+LL |     let _ = d3 == (2, 3) || d2 == Foo { first: 1, second: 2 } || d3 == (1, 4);
+   |                                                                  ^^^^^^^^^^^^ help: try: `matches!(d3, (1, 4))`
+
+error: this comparison would be faster with pattern matching
+  --> tests/ui/eq_should_be_match.rs:32:13
+   |
+LL |     let _ = d1 != [1, 2];
+   |             ^^^^^^^^^^^^ help: try: `!matches!(d1, [1, 2])`
+
+error: this comparison would be faster with pattern matching
+  --> tests/ui/eq_should_be_match.rs:34:13
+   |
+LL |     let _ = d2 != Foo { first: 1, second: 2 };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `!matches!(d2, Foo { first: 1, second: 2 })`
+
+error: this comparison would be faster with pattern matching
+  --> tests/ui/eq_should_be_match.rs:36:13
+   |
+LL |     let _ = d3 != (1, 2);
+   |             ^^^^^^^^^^^^ help: try: `!matches!(d3, (1, 2))`
+
+error: this comparison would be faster with pattern matching
+  --> tests/ui/eq_should_be_match.rs:38:13
+   |
+LL |     let _ = d3 == (1, 2) || d3 != (2, 3) || d3 == (1, 4);
+   |             ^^^^^^^^^^^^ help: try: `matches!(d3, (1, 2))`
+
+error: this comparison would be faster with pattern matching
+  --> tests/ui/eq_should_be_match.rs:38:29
+   |
+LL |     let _ = d3 == (1, 2) || d3 != (2, 3) || d3 == (1, 4);
+   |                             ^^^^^^^^^^^^ help: try: `!matches!(d3, (2, 3))`
+
+error: this comparison would be faster with pattern matching
+  --> tests/ui/eq_should_be_match.rs:38:45
+   |
+LL |     let _ = d3 == (1, 2) || d3 != (2, 3) || d3 == (1, 4);
+   |                                             ^^^^^^^^^^^^ help: try: `matches!(d3, (1, 4))`
+
+error: this comparison would be faster with pattern matching
+  --> tests/ui/eq_should_be_match.rs:42:13
+   |
+LL |     let _ = d3 != (1, 2) || d3 == (2, 3) || d3 == (1, 4);
+   |             ^^^^^^^^^^^^ help: try: `!matches!(d3, (1, 2))`
+
+error: this comparison would be faster with pattern matching
+  --> tests/ui/eq_should_be_match.rs:42:29
+   |
+LL |     let _ = d3 != (1, 2) || d3 == (2, 3) || d3 == (1, 4);
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `matches!(d3, (2, 3) | (1, 4))`
+
+error: aborting due to 17 previous errors
+
