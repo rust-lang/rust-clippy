@@ -63,9 +63,18 @@ pub struct DisallowedMethods {
 
 impl DisallowedMethods {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {
-        Self {
-            disallowed: create_disallowed_map(tcx, &conf.disallowed_methods),
-        }
+        let (disallowed, _) = create_disallowed_map(
+            tcx,
+            &conf.disallowed_methods,
+            |def_kind| {
+                matches!(
+                    def_kind,
+                    DefKind::Fn | DefKind::Ctor(_, CtorKind::Fn) | DefKind::AssocFn
+                )
+            },
+            false,
+        );
+        Self { disallowed }
     }
 }
 
@@ -74,12 +83,10 @@ impl_lint_pass!(DisallowedMethods => [DISALLOWED_METHODS]);
 impl<'tcx> LateLintPass<'tcx> for DisallowedMethods {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         let (id, span) = match &expr.kind {
-            ExprKind::Path(path)
-                if let Res::Def(DefKind::Fn | DefKind::Ctor(_, CtorKind::Fn) | DefKind::AssocFn, id) =
-                    cx.qpath_res(path, expr.hir_id) =>
-            {
-                (id, expr.span)
-            },
+            // Previous versions of this lint checked the `DefKind` in the next arm. However, that is no longer
+            // necessary. Paths are filtered by `DefKind` when `self.disallowed` is created. So if a path is not of an
+            // appropriate `DefKind`, `self.disallowed.get(..)` will return `None` below.
+            ExprKind::Path(path) if let Res::Def(_, id) = cx.qpath_res(path, expr.hir_id) => (id, expr.span),
             ExprKind::MethodCall(name, ..) if let Some(id) = cx.typeck_results().type_dependent_def_id(expr.hir_id) => {
                 (id, name.ident.span)
             },
