@@ -163,6 +163,13 @@ impl<'cx, 'others, 'tcx> AttrChecker<'cx, 'others, 'tcx> {
 
     fn has_sig_drop_attr_uncached(&mut self, ty: Ty<'tcx>) -> bool {
         if let Some(adt) = ty.ty_adt_def() {
+            if matches!(
+                self.cx.tcx.get_diagnostic_name(adt.did()),
+                Some(sym::RefCellRef | sym::RefCellRefMut)
+            ) {
+                return true;
+            }
+
             let mut iter = get_attr(
                 self.cx.sess(),
                 self.cx.tcx.get_attrs_unchecked(adt.did()),
