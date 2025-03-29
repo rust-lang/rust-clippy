@@ -274,3 +274,12 @@ mod issue10074 {
         println!("{v}");
     }
 }
+
+mod issue13900 {
+    use std::fmt::Display;
+
+    fn do_something(f: impl Display + Clone) -> String {
+        let g = f.clone();
+        format!("{} + {}", f, g)
+    }
+}
