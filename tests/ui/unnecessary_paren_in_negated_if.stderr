@@ -1,0 +1,15 @@
+error: unnecessary parentheses in negated if condition
+  --> $DIR/unnecessary_paren_in_negated_if.rs:7:8
+   |
+7  |     if !(condition) {
+   |        ^^^^^^^^^^^^ help: try: `!condition`
+   |
+   = note: `-D clippy::unnecessary-paren-in-negated-if` implied by `-D warnings`
+
+error: unnecessary parentheses in negated if condition
+  --> $DIR/unnecessary_paren_in_negated_if.rs:11:8
+   |
+11 |     if !((condition)) {
+   |        ^^^^^^^^^^^^^ help: try: `!condition`
+
+error: aborting due to 2 previous errors 
