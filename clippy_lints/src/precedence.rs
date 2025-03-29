@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::source::snippet_with_applicability;
 use rustc_ast::ast::BinOpKind::{Add, BitAnd, BitOr, BitXor, Div, Mul, Rem, Shl, Shr, Sub};
 use rustc_ast::ast::{BinOpKind, Expr, ExprKind};
@@ -10,7 +10,8 @@ use rustc_span::source_map::Spanned;
 declare_clippy_lint! {
     /// ### What it does
     /// Checks for operations where precedence may be unclear and suggests to add parentheses.
-    /// It catches a mixed usage of arithmetic and bit shifting/combining operators without parentheses
+    /// It catches a mixed usage of arithmetic and bit shifting/combining operators without parentheses,
+    /// as well as combinations of closures and method calls.
     ///
     /// ### Why is this bad?
     /// Not everyone knows the precedence of those operators by
@@ -109,6 +110,33 @@ impl EarlyLintPass for Precedence {
                 },
                 _ => (),
             }
+        } else if let ExprKind::MethodCall(method_call) = &expr.kind
+            && let ExprKind::Closure(closure) = &method_call.receiver.kind
+        {
+            span_lint_and_then(cx, PRECEDENCE, expr.span, "precedence might not be obvious", |diag| {
+                diag.multipart_suggestion(
+                    "consider parenthesizing the closure",
+                    vec![
+                        (closure.fn_decl_span.shrink_to_lo(), String::from("(")),
+                        (closure.body.span.shrink_to_hi(), String::from(")")),
+                    ],
+                    Applicability::MachineApplicable,
+                );
+            });
+        } else if let ExprKind::Closure(closure) = &expr.kind
+            && let ExprKind::MethodCall(method_call) = &closure.body.kind
+            && let ExprKind::Block(_, None) = &method_call.receiver.kind
+        {
+            span_lint_and_then(cx, PRECEDENCE, expr.span, "precedence might not be obvious", |diag| {
+                diag.multipart_suggestion(
+                    "consider using a block around the closure body",
+                    vec![
+                        (closure.body.span.shrink_to_lo(), String::from("{ ")),
+                        (closure.body.span.shrink_to_hi(), String::from(" }")),
+                    ],
+                    Applicability::MachineApplicable,
+                );
+            });
         }
     }
 }
