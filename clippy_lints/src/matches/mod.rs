@@ -1037,7 +1037,7 @@ declare_clippy_lint! {
     /// let a = func().ok();
     /// let b = func().err();
     /// ```
-    #[clippy::version = "1.86.0"]
+    #[clippy::version = "nightly"]
     pub MANUAL_OK_ERR,
     complexity,
     "find manual implementations of `.ok()` or `.err()` on `Result`"

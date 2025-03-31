@@ -735,7 +735,7 @@ declare_clippy_lint! {
     /// let mut some_slice = [1, 2, 3, 4, 5];
     /// some_slice.fill(0);
     /// ```
-    #[clippy::version = "1.86.0"]
+    #[clippy::version = "nightly"]
     pub MANUAL_SLICE_FILL,
     style,
     "manually filling a slice with a value"

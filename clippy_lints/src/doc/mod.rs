@@ -93,7 +93,7 @@ declare_clippy_lint! {
     /// ```no_run
     /// //! <code>[first](x)second</code>
     /// ```
-    #[clippy::version = "1.86.0"]
+    #[clippy::version = "nightly"]
     pub DOC_LINK_CODE,
     nursery,
     "link with code back-to-back with other code"
@@ -483,7 +483,7 @@ declare_clippy_lint! {
     /// ///   and this line is overindented.
     /// # fn foo() {}
     /// ```
-    #[clippy::version = "1.86.0"]
+    #[clippy::version = "nightly"]
     pub DOC_OVERINDENTED_LIST_ITEMS,
     style,
     "ensure list items are not overindented"
