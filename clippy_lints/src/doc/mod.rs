@@ -7,7 +7,7 @@ use clippy_utils::macros::{is_panic, root_macro_call_first_node};
 use clippy_utils::source::snippet_opt;
 use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::visitors::Visitable;
-use clippy_utils::{is_entrypoint_fn, is_trait_impl_item, method_chain_args};
+use clippy_utils::{is_trait_impl_item, method_chain_args};
 use pulldown_cmark::Event::{
     Code, DisplayMath, End, FootnoteReference, HardBreak, Html, InlineHtml, InlineMath, Rule, SoftBreak, Start,
     TaskListMarker, Text,
@@ -658,9 +658,7 @@ impl<'tcx> LateLintPass<'tcx> for Documentation {
                 );
                 match item.kind {
                     ItemKind::Fn { sig, body: body_id, .. } => {
-                        if !(is_entrypoint_fn(cx, item.owner_id.to_def_id())
-                            || item.span.in_external_macro(cx.tcx.sess.source_map()))
-                        {
+                        if !(item.span.in_external_macro(cx.tcx.sess.source_map())) {
                             let body = cx.tcx.hir_body(body_id);
 
                             let panic_info = FindPanicUnwrap::find_span(cx, cx.tcx.typeck(item.owner_id), body.value);
