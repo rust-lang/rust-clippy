@@ -10041,7 +10041,7 @@ unsafe { foo(valid_ptr); }
 <p>This can be written more clearly with <code>if .. else ..</code></p>
 <h3>Limitations</h3>
 <p>This lint currently only looks for usages of
-<code>.then_some(..).unwrap_or(..)</code> and <code>.then(..).unwrap_or(..)</code>, but will be expanded
+<code>.{then, then_some}(..).{unwrap_or, unwrap_or_else, unwrap_or_default}(..)</code>, but will be expanded
 to account for similar patterns.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">let x = true;
