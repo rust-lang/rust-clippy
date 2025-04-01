@@ -1377,8 +1377,8 @@ pub fn option_arg_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<Ty<'t
     }
 }
 
-/// Check if `ty` is an `Iterator` and has side effects when iterated over. Currently, this only
-/// checks if the `ty` contains mutable captures, and thus may be imcomplete.
+/// Check if `ty` is an `Iterator` and has side effects when iterated over by checking if it
+/// captures any mutable references or equivalents.
 pub fn is_iter_with_side_effects<'tcx>(cx: &LateContext<'tcx>, iter_ty: Ty<'tcx>) -> bool {
     let Some(iter_trait) = cx.tcx.lang_items().iterator_trait() else {
         return false;
@@ -1398,7 +1398,7 @@ fn is_iter_with_side_effects_impl<'tcx>(cx: &LateContext<'tcx>, iter_ty: Ty<'tcx
                 captures
                     .tuple_fields()
                     .iter()
-                    .any(|capture_ty| matches!(capture_ty.ref_mutability(), Some(Mutability::Mut)))
+                    .any(|capture_ty| is_mutable_reference_or_equivalent(cx, capture_ty))
             } else {
                 is_iter_with_side_effects_impl(cx, arg_ty, iter_trait)
             }
@@ -1406,4 +1406,20 @@ fn is_iter_with_side_effects_impl<'tcx>(cx: &LateContext<'tcx>, iter_ty: Ty<'tcx
     }
 
     false
+}
+
+/// Check if `ty` is a mutable reference or equivalent. This includes:
+/// - A mutable reference/pointer.
+/// - A reference/pointer to a non-`Freeze` type.
+/// - A `PhantomData` type containing any of the previous.
+pub fn is_mutable_reference_or_equivalent<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
+    match ty.kind() {
+        ty::RawPtr(ty, mutability) | ty::Ref(_, ty, mutability) => {
+            mutability.is_mut() || !ty.is_freeze(cx.tcx, cx.typing_env())
+        },
+        ty::Adt(adt_def, args) => adt_def.all_fields().any(|field| {
+            matches!(field.ty(cx.tcx, args).kind(), ty::Adt(adt_def, args) if adt_def.is_phantom_data() && args.types().any(|arg_ty| is_mutable_reference_or_equivalent(cx, arg_ty)))
+        }),
+        _ => false,
+    }
 }

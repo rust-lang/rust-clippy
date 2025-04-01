@@ -128,10 +128,42 @@ fn bar<I: IntoIterator<Item = usize>>(_: Vec<usize>, _: I) {}
 fn baz<I: IntoIterator<Item = usize>>(_: I, _: (), _: impl IntoIterator<Item = char>) {}
 
 mod issue9191 {
+    use std::cell::Cell;
     use std::collections::HashSet;
+    use std::hash::Hash;
+    use std::marker::PhantomData;
+    use std::ops::Deref;
 
-    fn foo(xs: Vec<i32>, mut ys: HashSet<i32>) {
+    fn captures_ref_mut(xs: Vec<i32>, mut ys: HashSet<i32>) {
         if xs.iter().map(|x| ys.remove(x)).collect::<Vec<_>>().contains(&true) {
+            todo!()
+        }
+    }
+
+    #[derive(Debug, Clone)]
+    struct MyRef<'a>(PhantomData<&'a mut Cell<HashSet<i32>>>, *mut Cell<HashSet<i32>>);
+
+    impl MyRef<'_> {
+        fn new(target: &mut Cell<HashSet<i32>>) -> Self {
+            MyRef(PhantomData, target)
+        }
+
+        fn get(&mut self) -> &mut Cell<HashSet<i32>> {
+            unsafe { &mut *self.1 }
+        }
+    }
+
+    fn captures_phantom(xs: Vec<i32>, mut ys: Cell<HashSet<i32>>) {
+        let mut ys_ref = MyRef::new(&mut ys);
+        if xs
+            .iter()
+            .map({
+                let mut ys_ref = ys_ref.clone();
+                move |x| ys_ref.get().get_mut().remove(x)
+            })
+            .collect::<Vec<_>>()
+            .contains(&true)
+        {
             todo!()
         }
     }
