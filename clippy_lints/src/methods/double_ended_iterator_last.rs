@@ -32,7 +32,10 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &'_ Expr<'_>, self_expr: &'_ Exp
     {
         let mut sugg = vec![(call_span, String::from("next_back()"))];
         let mut dont_apply = false;
+
         // if `self_expr` is a reference, it is mutable because it is used for `.last()`
+        // TODO: Change this to lint only when the referred iterator is not used later. If it is used later,
+        // changing to `next_back()` may change its behavior.
         if !(is_mutable(cx, self_expr) || self_type.is_ref()) {
             if let Some(hir_id) = path_to_local(self_expr)
                 && let Node::Pat(pat) = cx.tcx.hir_node(hir_id)
