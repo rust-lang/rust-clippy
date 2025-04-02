@@ -20,7 +20,12 @@ pub(super) fn check(
     cast_to_hir: &rustc_hir::Ty<'_>,
     msrv: Msrv,
 ) {
-    if !should_lint(cx, cast_from, cast_to, msrv) || !expr.span.ctxt().is_root() {
+    if !should_lint(cx, cast_from, cast_to, msrv)
+        // Checking the expression, cast_from_expr and cast_to_hir share the same context.
+        || [cast_from_expr.span, cast_to_hir.span]
+            .iter()
+            .any(|&span| !expr.span.eq_ctxt(span))
+    {
         return;
     }
 
