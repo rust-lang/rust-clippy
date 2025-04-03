@@ -1,8 +1,9 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::{SpanRangeExt, snippet_with_applicability};
-use rustc_ast::ast::{Expr, ExprKind, Mutability, UnOp};
+use clippy_utils::ty::adjust_derefs_manually_drop;
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass};
+use rustc_hir::{Expr, ExprKind, Mutability, Node, UnOp};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::{BytePos, Span};
 
@@ -37,20 +38,14 @@ declare_clippy_lint! {
 
 declare_lint_pass!(DerefAddrOf => [DEREF_ADDROF]);
 
-fn without_parens(mut e: &Expr) -> &Expr {
-    while let ExprKind::Paren(ref child_e) = e.kind {
-        e = child_e;
-    }
-    e
-}
-
-impl EarlyLintPass for DerefAddrOf {
-    fn check_expr(&mut self, cx: &EarlyContext<'_>, e: &Expr) {
-        if let ExprKind::Unary(UnOp::Deref, ref deref_target) = e.kind
-            && let ExprKind::AddrOf(_, ref mutability, ref addrof_target) = without_parens(deref_target).kind
+impl LateLintPass<'_> for DerefAddrOf {
+    fn check_expr(&mut self, cx: &LateContext<'_>, e: &Expr<'_>) {
+        if let ExprKind::Unary(UnOp::Deref, deref_target) = e.kind
+            && let ExprKind::AddrOf(_, mutability, addrof_target) = deref_target.kind
             // NOTE(tesuji): `*&` forces rustc to const-promote the array to `.rodata` section.
             // See #12854 for details.
             && !matches!(addrof_target.kind, ExprKind::Array(_))
+            && !is_manually_drop_union_field(cx, addrof_target)
             && deref_target.span.eq_ctxt(e.span)
             && !addrof_target.span.from_expansion()
         {
@@ -79,7 +74,7 @@ impl EarlyLintPass for DerefAddrOf {
                         })
                     };
 
-                    if *mutability == Mutability::Mut {
+                    if mutability == Mutability::Mut {
                         generate_snippet("mut")
                     } else {
                         generate_snippet("&")
@@ -108,4 +103,24 @@ impl EarlyLintPass for DerefAddrOf {
             }
         }
     }
+}
+
+/// Check if `expr` is an access to an union field which contains a dereferenced
+/// `ManuallyDrop<_>` entity.
+fn is_manually_drop_union_field(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    let typeck = cx.typeck_results();
+    if let ExprKind::Field(parent, _) = expr.kind
+        && typeck.expr_ty_adjusted(parent).is_union()
+    {
+        for (_, node) in cx.tcx.hir_parent_iter(expr.hir_id) {
+            if let Node::Expr(expr) = node {
+                if adjust_derefs_manually_drop(typeck.expr_adjustments(expr), typeck.expr_ty(expr)) {
+                    return true;
+                }
+            } else {
+                break;
+            }
+        }
+    }
+    false
 }

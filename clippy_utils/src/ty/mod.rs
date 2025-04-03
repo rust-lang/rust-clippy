@@ -17,6 +17,7 @@ use rustc_lint::LateContext;
 use rustc_middle::mir::ConstValue;
 use rustc_middle::mir::interpret::Scalar;
 use rustc_middle::traits::EvaluationResult;
+use rustc_middle::ty::adjustment::{Adjust, Adjustment};
 use rustc_middle::ty::layout::ValidityRequirement;
 use rustc_middle::ty::{
     self, AdtDef, AliasTy, AssocItem, AssocKind, Binder, BoundRegion, FnSig, GenericArg, GenericArgKind,
@@ -30,7 +31,7 @@ use rustc_trait_selection::traits::query::normalize::QueryNormalizeExt;
 use rustc_trait_selection::traits::{Obligation, ObligationCause};
 use std::assert_matches::debug_assert_matches;
 use std::collections::hash_map::Entry;
-use std::iter;
+use std::{iter, mem};
 
 use crate::{def_path_def_ids, match_def_path, path_res};
 
@@ -1375,4 +1376,12 @@ pub fn option_arg_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<Ty<'t
             .then(|| args.type_at(0)),
         _ => None,
     }
+}
+
+/// Checks if the adjustments contain a mutable dereference of a `ManuallyDrop<_>`.
+pub fn adjust_derefs_manually_drop<'tcx>(adjustments: &'tcx [Adjustment<'tcx>], mut ty: Ty<'tcx>) -> bool {
+    adjustments.iter().any(|a| {
+        let ty = mem::replace(&mut ty, a.target);
+        matches!(a.kind, Adjust::Deref(Some(op)) if op.mutbl == Mutability::Mut) && is_manually_drop(ty)
+    })
 }
