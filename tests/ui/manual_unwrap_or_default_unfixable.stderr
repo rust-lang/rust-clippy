@@ -8,7 +8,7 @@ LL | |         x
 LL | |     } else {
 LL | |         i32::default()
 LL | |     };
-   | |_____^ help: ascribe the type i32 and replace your expression with: `"1".parse().ok().unwrap_or_default()`
+   | |_____^ help: replace it with: `"1".parse().ok().unwrap_or_default()`
    |
    = note: `-D clippy::manual-unwrap-or-default` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::manual_unwrap_or_default)]`
