@@ -12,6 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+
   changelog:
     runs-on: ubuntu-latest
 
@@ -24,7 +25,7 @@ jobs:
     - name: Check Changelog
       if: ${{ github.event_name == 'pull_request' }}
       run: |
-        body=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -s "https://api.github.com/repos/rust-lang/rust-clippy/pulls/$PR_NUMBER" | \
+        body=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -s "https://api.github.com/repos/blyxyas/rust-clippy/pulls/$PR_NUMBER" | \
           python -c "import sys, json; print(json.load(sys.stdin)['body'])")
         output=$(awk '/^changelog:\s*\S/ && !/changelog: \[.*\]: your change/' <<< "$body" | sed "s/changelog:\s*//g")
         if [ -z "$output" ]; then
@@ -32,10 +33,48 @@ jobs:
           exit 1
         else
           echo "changelog: $output"
+          if [[ "${output}" == \[\`* ]]; then
+            echo "LINT_CHANGELOG=\"${output}\"" >> $GITHUB_ENV
+          else
+            echo "LINT_CHANGELOG=\"meowmeow\"" >> $GITHUB_ENV
+          fi
         fi
       env:
         PYTHONIOENCODING: 'utf-8'
         PR_NUMBER: '${{ github.event.number }}'
+    - name: New Lint Label
+      uses: actions/github-script@v7
+      with:
+          script: |
+            let res = await github.rest.issues.listLabelsOnIssue({
+              owner: 'blyxyas',
+              repo: 'rust-clippy',
+              issue_number: ${{ github.event.number }}
+            })
+            let names = res.data.map((element) => element.name);
+
+            // We've already visited this PR
+            if (!names.includes('A-new-lint')) {
+            // Check if we're with a new lint (there are 0 mentions of this lint on the codebase
+            if (${{ env.LINT_CHANGELOG }} != "") {
+              const lint_name = /\[`(.*)`\]/g.exec(${{ env.LINT_CHANGELOG }}).slice(1);
+              let lint_name_upper = lint_name.toString().toUpperCase();
+              let res = await octokit.rest.search.code({
+                q: `${lint_name_upper} repo:rust-lang/rust-clippy`,
+                per_page: 1,
+                });
+                
+                if (res.data.items.length == 0) {
+                  await octokit.rest.issues.createComment({
+                    owner: "blyxyas",
+                    repo: "rust-clippy",
+                    issue_number: ${{ github.event.number }},
+                    body: "Seems that you are trying to add a new lint! We are currently in a feature freeze, I'll add it to a milestone."
+                  });
+                }
+              }
+            }
+                    
 
   # We need to have the "conclusion" job also on PR CI, to make it possible
   # to add PRs to a merge queue.
