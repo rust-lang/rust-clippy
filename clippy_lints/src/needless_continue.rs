@@ -501,7 +501,7 @@ mod test {
 
     #[test]
     #[rustfmt::skip]
-    fn test_erode_from_back() {
+    fn erode_from_back_works() {
         let input = "\
 {
     let x = 5;
@@ -519,7 +519,7 @@ mod test {
 
     #[test]
     #[rustfmt::skip]
-    fn test_erode_from_back_no_brace() {
+    fn erode_from_back_no_brace() {
         let input = "\
 let x = 5;
 let y = something();
