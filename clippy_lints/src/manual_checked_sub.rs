@@ -152,11 +152,11 @@ impl<'tcx> SubExprVisitor<'_, 'tcx> {
         let binary_expr_snippet = snippet_with_applicability(self.cx, expr.span, "..", &mut applicability);
         let updated_usage_context_snippet = body_snippet.as_ref().replace(binary_expr_snippet.as_ref(), "result");
 
-        let lhs_snippet = Sugg::hir(self.cx, self.condition_lhs, "..").maybe_par();
+        let lhs_snippet = Sugg::hir(self.cx, self.condition_lhs, "..").maybe_paren();
 
         let rhs_snippet = match sub_rhs_expr {
-            Some(sub_rhs) => Sugg::hir(self.cx, sub_rhs, "..").maybe_par(),
-            None => Sugg::hir(self.cx, self.condition_rhs, "..").maybe_par(),
+            Some(sub_rhs) => Sugg::hir(self.cx, sub_rhs, "..").maybe_paren(),
+            None => Sugg::hir(self.cx, self.condition_rhs, "..").maybe_paren(),
         };
 
         // TODO: Check result variable is not already in scope
@@ -170,7 +170,7 @@ impl<'tcx> SubExprVisitor<'_, 'tcx> {
             BinOpKind::Lt => {
                 format!(
                     "if let Some(result) = {}.checked_sub({rhs_snippet}) {updated_usage_context_snippet}",
-                    Sugg::hir(self.cx, self.condition_rhs, "..").maybe_par()
+                    Sugg::hir(self.cx, self.condition_rhs, "..").maybe_paren()
                 )
             },
             _ => {
