@@ -1,9 +1,9 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::path_to_local;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::sugg::Sugg;
+use clippy_utils::{is_mutable, path_to_local};
 use rustc_ast::{BinOpKind, LitIntType, LitKind};
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;
@@ -65,7 +65,14 @@ impl<'tcx> LateLintPass<'tcx> for ManualCheckedSub {
                 && is_unsigned_int(cx, lhs)
                 && is_unsigned_int(cx, rhs)
             {
-                if let BinOpKind::Ge | BinOpKind::Gt = op.node {
+                // Skip if either non-literal operand is mutable
+                if (!matches!(lhs.kind, ExprKind::Lit(_)) && is_mutable(cx, lhs))
+                    || (!matches!(rhs.kind, ExprKind::Lit(_)) && is_mutable(cx, rhs))
+                {
+                    return;
+                }
+
+                if let BinOpKind::Ge | BinOpKind::Gt | BinOpKind::Le | BinOpKind::Lt = op.node {
                     SubExprVisitor {
                         cx,
                         if_expr: expr,
@@ -97,17 +104,36 @@ impl<'tcx> Visitor<'tcx> for SubExprVisitor<'_, 'tcx> {
         if let ExprKind::Binary(op, sub_lhs, sub_rhs) = expr.kind
             && let BinOpKind::Sub = op.node
         {
+            if let ExprKind::Lit(lit) = self.condition_lhs.kind
+                && self.condition_op == BinOpKind::Lt
+                && let LitKind::Int(Pu128(0), _) = lit.node
+                && (is_referencing_same_variable(sub_lhs, self.condition_rhs))
+            {
+                self.emit_lint(expr, Some(sub_rhs));
+            }
+
             if let ExprKind::Lit(lit) = self.condition_rhs.kind
                 && self.condition_op == BinOpKind::Gt
                 && let LitKind::Int(Pu128(0), _) = lit.node
                 && (is_referencing_same_variable(sub_lhs, self.condition_lhs))
             {
                 self.emit_lint(expr, Some(sub_rhs));
-            } else if self.condition_op == BinOpKind::Ge
+            }
+
+            if self.condition_op == BinOpKind::Ge
                 && (is_referencing_same_variable(sub_lhs, self.condition_lhs)
                     || are_literals_equal(sub_lhs, self.condition_lhs))
                 && (is_referencing_same_variable(sub_rhs, self.condition_rhs)
                     || are_literals_equal(sub_rhs, self.condition_rhs))
+            {
+                self.emit_lint(expr, None);
+            }
+
+            if self.condition_op == BinOpKind::Le
+                && (is_referencing_same_variable(sub_lhs, self.condition_rhs)
+                    || are_literals_equal(sub_lhs, self.condition_rhs))
+                && (is_referencing_same_variable(sub_rhs, self.condition_lhs)
+                    || are_literals_equal(sub_rhs, self.condition_lhs))
             {
                 self.emit_lint(expr, None);
             }
@@ -118,32 +144,41 @@ impl<'tcx> Visitor<'tcx> for SubExprVisitor<'_, 'tcx> {
 }
 
 impl<'tcx> SubExprVisitor<'_, 'tcx> {
-    // fn is_name_in_scope(&self, name: &str, id: HirId) -> bool {
-    //     let def_id = self.cx.tcx.hir().local_def_id(id);
-    //     let resolver = self.cx.tcx.resolver_for_lowering();
-
-    //     // Check if the name is already defined in the current scope
-    //     resolver.is_name_defined(name)
-    // }
-
     fn emit_lint(&mut self, expr: &Expr<'tcx>, sub_rhs_expr: Option<&'tcx Expr<'tcx>>) {
         let mut applicability = Applicability::MachineApplicable;
 
         let body_snippet = snippet_with_applicability(self.cx, self.if_body_block.span, "..", &mut applicability);
 
         let binary_expr_snippet = snippet_with_applicability(self.cx, expr.span, "..", &mut applicability);
-        let updated_usage_context_snippet = body_snippet.as_ref().replace(binary_expr_snippet.as_ref(), "diff");
+        let updated_usage_context_snippet = body_snippet.as_ref().replace(binary_expr_snippet.as_ref(), "result");
+
+        let lhs_snippet = Sugg::hir(self.cx, self.condition_lhs, "..").maybe_par();
 
         let rhs_snippet = match sub_rhs_expr {
             Some(sub_rhs) => Sugg::hir(self.cx, sub_rhs, "..").maybe_par(),
             None => Sugg::hir(self.cx, self.condition_rhs, "..").maybe_par(),
         };
 
-        // TODO: Check diff variable is not already in scope
-        let mut suggestion = format!(
-            "if let Some(diff) = {}.checked_sub({rhs_snippet}) {updated_usage_context_snippet}",
-            Sugg::hir(self.cx, self.condition_lhs, "..").maybe_par()
-        );
+        // TODO: Check result variable is not already in scope
+        let mut suggestion = match self.condition_op {
+            BinOpKind::Le => {
+                format!(
+                    "if let Some(result) = {rhs_snippet}.checked_sub({lhs_snippet}) {updated_usage_context_snippet}"
+                )
+            },
+
+            BinOpKind::Lt => {
+                format!(
+                    "if let Some(result) = {}.checked_sub({rhs_snippet}) {updated_usage_context_snippet}",
+                    Sugg::hir(self.cx, self.condition_rhs, "..").maybe_par()
+                )
+            },
+            _ => {
+                format!(
+                    "if let Some(result) = {lhs_snippet}.checked_sub({rhs_snippet}) {updated_usage_context_snippet}"
+                )
+            },
+        };
 
         if let Some(else_expr) = self.else_block {
             let else_snippet = snippet_with_applicability(self.cx, else_expr.span, "..", &mut applicability);
