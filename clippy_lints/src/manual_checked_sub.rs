@@ -24,33 +24,21 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```rust
-    /// // Before
-    /// fn calculate_remaining(a: u32, b: u32) -> Option<u32> {
-    ///     if a >= b {
-    ///         Some(a - b)
+    /// // Bad: Manual implementation of checked subtraction
+    /// fn get_remaining_items(total: u32, used: u32) -> Option<u32> {
+    ///     if total >= used {
+    ///         Some(total - used)
     ///     } else {
     ///         None
     ///     }
     /// }
-    ///
-    /// // After
-    /// fn calculate_remaining(a: u32, b: u32) -> Option<u32> {
-    ///     a.checked_sub(b)
-    /// }
     /// ```
     ///
-    /// ### Real-world cases it catches
+    /// Use instead:
     /// ```rust
-    /// // Buffer position calculation
-    /// if current_pos >= offset {
-    ///     let new_pos = current_pos - offset;
-    ///     // ... use new_pos
-    /// }
-    ///
-    /// // Inventory management
-    /// if available >= requested {
-    ///     dispatch_items(requested);
-    ///     remaining = available - requested;
+    /// // Good: Using the standard library's checked_sub
+    /// fn get_remaining_items(total: u32, used: u32) -> Option<u32> {
+    ///     total.checked_sub(used)
     /// }
     /// ```
     #[clippy::version = "1.86.0"]
