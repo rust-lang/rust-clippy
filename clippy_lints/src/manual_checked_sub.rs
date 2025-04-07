@@ -78,31 +78,30 @@ impl<'tcx> LateLintPass<'tcx> for ManualCheckedSub {
             return;
         }
 
-        if let Some(if_expr) = clippy_utils::higher::If::hir(expr) {
-            if let ExprKind::Binary(op, lhs, rhs) = if_expr.cond.kind
-                && !(matches!(lhs.kind, ExprKind::Lit(_)) && matches!(rhs.kind, ExprKind::Lit(_)))
-                && is_unsigned_int(cx, lhs)
-                && is_unsigned_int(cx, rhs)
+        if let Some(if_expr) = clippy_utils::higher::If::hir(expr)
+            && let ExprKind::Binary(op, lhs, rhs) = if_expr.cond.kind
+            && !(matches!(lhs.kind, ExprKind::Lit(_)) && matches!(rhs.kind, ExprKind::Lit(_)))
+            && is_unsigned_int(cx, lhs)
+            && is_unsigned_int(cx, rhs)
+        {
+            // Skip if either non-literal operand is mutable
+            if (!matches!(lhs.kind, ExprKind::Lit(_)) && is_mutable(cx, lhs))
+                || (!matches!(rhs.kind, ExprKind::Lit(_)) && is_mutable(cx, rhs))
             {
-                // Skip if either non-literal operand is mutable
-                if (!matches!(lhs.kind, ExprKind::Lit(_)) && is_mutable(cx, lhs))
-                    || (!matches!(rhs.kind, ExprKind::Lit(_)) && is_mutable(cx, rhs))
-                {
-                    return;
-                }
+                return;
+            }
 
-                if let BinOpKind::Ge | BinOpKind::Gt | BinOpKind::Le | BinOpKind::Lt = op.node {
-                    SubExprVisitor {
-                        cx,
-                        if_expr: expr,
-                        if_body_block: if_expr.then,
-                        else_block: if_expr.r#else,
-                        condition_lhs: lhs,
-                        condition_rhs: rhs,
-                        condition_op: op.node,
-                    }
-                    .visit_expr(if_expr.then);
+            if let BinOpKind::Ge | BinOpKind::Gt | BinOpKind::Le | BinOpKind::Lt = op.node {
+                SubExprVisitor {
+                    cx,
+                    if_expr: expr,
+                    if_body_block: if_expr.then,
+                    else_block: if_expr.r#else,
+                    condition_lhs: lhs,
+                    condition_rhs: rhs,
+                    condition_op: op.node,
                 }
+                .visit_expr(if_expr.then);
             }
         }
     }
