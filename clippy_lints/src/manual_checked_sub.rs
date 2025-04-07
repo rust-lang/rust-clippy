@@ -23,16 +23,35 @@ declare_clippy_lint! {
     /// Using the standard library method `.checked_sub()` is clearer and less likely to contain bugs.
     ///
     /// ### Example
-    /// ```no_run
-    /// if 10u32 >= 4u32 {
-    ///     let c = 10u32 - 4u32;
+    /// ```rust
+    /// // Before
+    /// fn calculate_remaining(a: u32, b: u32) -> Option<u32> {
+    ///     if a >= b {
+    ///         Some(a - b)
+    ///     } else {
+    ///         None
+    ///     }
+    /// }
+    ///
+    /// // After
+    /// fn calculate_remaining(a: u32, b: u32) -> Option<u32> {
+    ///     a.checked_sub(b)
     /// }
     /// ```
-    /// Use instead:
-    /// ```no_run
-    /// if let Some(result) = 10u32.checked_sub(4u32){
-    ///    result;
-    /// };
+    ///
+    /// ### Real-world cases it catches
+    /// ```rust
+    /// // Buffer position calculation
+    /// if current_pos >= offset {
+    ///     let new_pos = current_pos - offset;
+    ///     // ... use new_pos
+    /// }
+    ///
+    /// // Inventory management
+    /// if available >= requested {
+    ///     dispatch_items(requested);
+    ///     remaining = available - requested;
+    /// }
     /// ```
     #[clippy::version = "1.86.0"]
     pub MANUAL_CHECKED_SUB,
