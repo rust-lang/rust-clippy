@@ -298,7 +298,7 @@ fn generate_unique_var_name<'tcx>(base_name: &str, scope_expr: &'tcx Expr<'tcx>)
     // Keep incrementing until we find a name that's not in scope
     let mut counter = 1;
     loop {
-        let candidate = format!("{}_{}", base_name, counter);
+        let candidate = format!("{base_name}_{counter}");
 
         let mut candidate_visitor = VarNameVisitor {
             base_name: &candidate,
