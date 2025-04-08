@@ -6,50 +6,64 @@ fn positive_tests() {
     let b: u32 = 5;
     let c: u32 = 3;
 
-    if let Some(result) = a.checked_sub(b) {
+    if let Some(difference_1) = a.checked_sub(b) {
         //~^ manual_checked_sub
-        let d = result;
+        let difference = "some test";
+        let d = difference_1;
     }
 
-    if let Some(result) = a.checked_sub(b) {
+    if let Some(difference) = a.checked_sub(b) {
         //~^ manual_checked_sub
-        let d = result;
+        let d = difference;
     }
 
-    if let Some(result) = a.checked_sub(b) {
+    if let Some(difference) = a.checked_sub(b) {
         //~^ manual_checked_sub
-        let d = result;
+        let d = difference;
     } else {
         let d = a + b;
     }
 
-    if let Some(result) = a.checked_sub(b) {
+    if let Some(difference) = a.checked_sub(b) {
         //~^ manual_checked_sub
-        let d = result;
+        let d = difference;
     } else if a < b {
         let d = a + b;
     }
 
-    if let Some(result) = a.checked_sub(1) {
+    if let Some(decremented) = a.checked_sub(1) {
         //~^ manual_checked_sub
-        let _ = result;
+        let _ = decremented;
     }
 
-    if let Some(result) = a.checked_sub(1) {
+    if let Some(decremented) = a.checked_sub(1) {
         //~^ manual_checked_sub
-        let _ = result;
+        let _ = decremented;
     }
 
-    if let Some(result) = a.checked_sub(b) {
+    let mut difference = "variable initialized outside the if scope";
+    if let Some(difference_1) = a.checked_sub(b) {
         //~^ manual_checked_sub
-        some_function(result);
+        let some_reference = difference;
+        let d = difference_1;
     }
 
-    if let Some(result) = a.checked_sub(b) {
+    if let Some(decremented_1) = a.checked_sub(b) {
+        //~^ manual_checked_sub
+        let decremented = "variable initialized inside the if scope";
+        let d = decremented_1;
+    }
+
+    if let Some(difference) = a.checked_sub(b) {
+        //~^ manual_checked_sub
+        some_function(difference);
+    }
+
+    if let Some(difference) = a.checked_sub(b) {
         //~^ manual_checked_sub
         macro_rules! subtract {
             () => {
-                result
+                difference
             };
         }
         let _ = subtract!();
@@ -59,22 +73,22 @@ fn positive_tests() {
         value: u32,
     }
 
-    if let Some(result) = a.checked_sub(b) {
+    if let Some(difference) = a.checked_sub(b) {
         //~^ manual_checked_sub
-        let _ = Example { value: result };
+        let _ = Example { value: difference };
     }
 
-    if let Some(result) = a.checked_sub(b) {
+    if let Some(difference) = a.checked_sub(b) {
         //~^ manual_checked_sub
         if c > 0 {
-            let _ = result;
+            let _ = difference;
         }
     }
 
     if a >= b {
-        if let Some(result) = c.checked_sub(1) {
+        if let Some(decremented) = c.checked_sub(1) {
             //~^ manual_checked_sub
-            let _ = result;
+            let _ = decremented;
         }
     }
 }

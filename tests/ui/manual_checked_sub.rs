@@ -8,6 +8,7 @@ fn positive_tests() {
 
     if a >= b {
         //~^ manual_checked_sub
+        let difference = "some test";
         let d = a - b;
     }
 
@@ -38,6 +39,19 @@ fn positive_tests() {
     if 0 < a {
         //~^ manual_checked_sub
         let _ = a - 1;
+    }
+
+    let mut difference = "variable initialized outside the if scope";
+    if a >= b {
+        //~^ manual_checked_sub
+        let some_reference = difference;
+        let d = a - b;
+    }
+
+    if a > 0 {
+        //~^ manual_checked_sub
+        let decremented = "variable initialized inside the if scope";
+        let d = a - b;
     }
 
     if a >= b {
