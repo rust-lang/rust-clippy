@@ -259,12 +259,12 @@ fn generate_unique_var_name<'tcx>(base_name: &str, scope_expr: &'tcx Expr<'tcx>)
         }
 
         fn visit_stmt(&mut self, stmt: &'tcx rustc_hir::Stmt<'_>) {
-            if let rustc_hir::StmtKind::Let(let_stmt) = &stmt.kind {
-                if let PatKind::Binding(_, _, ident, _) = &let_stmt.pat.kind {
-                    let name = ident.name.to_string();
-                    if name == self.base_name {
-                        self.is_name_in_scope = true;
-                    }
+            if let rustc_hir::StmtKind::Let(let_stmt) = &stmt.kind
+                && let PatKind::Binding(_, _, ident, _) = &let_stmt.pat.kind
+            {
+                let name = ident.name.to_string();
+                if name == self.base_name {
+                    self.is_name_in_scope = true;
                 }
             }
 
