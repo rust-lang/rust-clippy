@@ -27,3 +27,10 @@ fn foo_s(name: &str) {
         println!("else");
     }
 }
+
+fn catch_fails(input: &str) {
+    let b = true;
+    if b || input != "foo" {
+        println!("should not fire!");
+    }
+}
