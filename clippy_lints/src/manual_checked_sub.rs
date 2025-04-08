@@ -236,6 +236,7 @@ fn is_referencing_same_variable<'tcx>(expr1: &'tcx Expr<'_>, expr2: &'tcx Expr<'
 
     false
 }
+
 /// Generates a unique variable name based on the provided base name.
 /// If the base name already exists in the scope, appends a number to make it unique.
 fn generate_unique_var_name<'tcx>(base_name: &str, scope_expr: &'tcx Expr<'tcx>) -> String {
@@ -246,12 +247,12 @@ fn generate_unique_var_name<'tcx>(base_name: &str, scope_expr: &'tcx Expr<'tcx>)
 
     impl<'tcx> Visitor<'tcx> for VarNameVisitor<'_> {
         fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
-            if let ExprKind::Path(QPath::Resolved(_, path)) = &expr.kind {
-                if let Some(segment) = path.segments.last() {
-                    let name = segment.ident.name.to_string();
-                    if name == self.base_name {
-                        self.is_name_in_scope = true;
-                    }
+            if let ExprKind::Path(QPath::Resolved(_, path)) = &expr.kind
+                && let Some(segment) = path.segments.last()
+            {
+                let name = segment.ident.name.to_string();
+                if name == self.base_name {
+                    self.is_name_in_scope = true;
                 }
             }
 
