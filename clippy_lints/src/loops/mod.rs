@@ -18,6 +18,7 @@ mod never_loop;
 mod same_item_push;
 mod single_element_loop;
 mod unused_enumerate_index;
+mod unused_enumerate_value;
 mod utils;
 mod while_float;
 mod while_immutable_condition;
@@ -784,6 +785,37 @@ declare_clippy_lint! {
     "using the character position yielded by `.chars().enumerate()` in a context where a byte index is expected"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for uses of the `enumerate` method where the value is unused (`_`) on iterators
+    /// implementing `ExactSizeIterator`.
+    ///
+    /// ### Why is this bad?
+    /// Just iterating a range of indices is more idiomatic and is probably faster because it
+    /// avoids consuming the iterator.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// fn example(iter: impl ExactSizeIterator<Item = i32>) {
+    ///     for (i, _) in iter.enumerate() {
+    ///         ..;
+    ///     }
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// fn example(iter: impl ExactSizeIterator<Item = i32>) {
+    ///     for i in 0..iter.len() {
+    ///       ..;
+    ///     }
+    /// }
+    /// ```
+    #[clippy::version = "1.87.0"]
+    pub UNUSED_ENUMERATE_VALUE,
+    nursery,
+    "using `.enumerate()` and immediately dropping the value"
+}
+
 pub struct Loops {
     msrv: Msrv,
     enforce_iter_loop_reborrow: bool,
@@ -822,6 +854,7 @@ impl_lint_pass!(Loops => [
     INFINITE_LOOP,
     MANUAL_SLICE_FILL,
     CHAR_INDICES_AS_BYTE_INDICES,
+    UNUSED_ENUMERATE_VALUE,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Loops {
@@ -906,6 +939,7 @@ impl Loops {
         manual_find::check(cx, pat, arg, body, span, expr);
         unused_enumerate_index::check(cx, pat, arg, body);
         char_indices_as_byte_indices::check(cx, pat, arg, body);
+        unused_enumerate_value::check(cx, pat, arg, body);
     }
 
     fn check_for_loop_arg(&self, cx: &LateContext<'_>, _: &Pat<'_>, arg: &Expr<'_>) {
