@@ -1376,3 +1376,50 @@ pub fn option_arg_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<Ty<'t
         _ => None,
     }
 }
+
+/// Check if `ty` is an `Iterator` and has side effects when iterated over by checking if it
+/// captures any mutable references or equivalents.
+pub fn is_iter_with_side_effects<'tcx>(cx: &LateContext<'tcx>, iter_ty: Ty<'tcx>) -> bool {
+    let Some(iter_trait) = cx.tcx.lang_items().iterator_trait() else {
+        return false;
+    };
+
+    is_iter_with_side_effects_impl(cx, iter_ty, iter_trait)
+}
+
+fn is_iter_with_side_effects_impl<'tcx>(cx: &LateContext<'tcx>, iter_ty: Ty<'tcx>, iter_trait: DefId) -> bool {
+    if implements_trait(cx, iter_ty, iter_trait, &[])
+        && let ty::Adt(_, args) = iter_ty.kind()
+    {
+        return args.types().any(|arg_ty| {
+            if let ty::Closure(_, closure_args) = arg_ty.kind()
+                && let Some(captures) = closure_args.types().next_back()
+            {
+                captures
+                    .tuple_fields()
+                    .iter()
+                    .any(|capture_ty| is_mutable_reference_or_equivalent(cx, capture_ty))
+            } else {
+                is_iter_with_side_effects_impl(cx, arg_ty, iter_trait)
+            }
+        });
+    }
+
+    false
+}
+
+/// Check if `ty` is a mutable reference or equivalent. This includes:
+/// - A mutable reference/pointer.
+/// - A reference/pointer to a non-`Freeze` type.
+/// - A `PhantomData` type containing any of the previous.
+pub fn is_mutable_reference_or_equivalent<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
+    match ty.kind() {
+        ty::RawPtr(ty, mutability) | ty::Ref(_, ty, mutability) => {
+            mutability.is_mut() || !ty.is_freeze(cx.tcx, cx.typing_env())
+        },
+        ty::Adt(adt_def, args) => adt_def.all_fields().any(|field| {
+            matches!(field.ty(cx.tcx, args).kind(), ty::Adt(adt_def, args) if adt_def.is_phantom_data() && args.types().any(|arg_ty| is_mutable_reference_or_equivalent(cx, arg_ty)))
+        }),
+        _ => false,
+    }
+}
