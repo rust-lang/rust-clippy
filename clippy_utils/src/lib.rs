@@ -2630,6 +2630,25 @@ pub fn peel_ref_operators<'hir>(cx: &LateContext<'_>, mut expr: &'hir Expr<'hir>
     expr
 }
 
+/// Counts `AddrOf` operators (`&`) or deref operators (`*`).
+pub fn count_ref_operators<'hir>(cx: &LateContext<'_>, mut expr: &'hir Expr<'hir>) -> isize {
+    let mut count = 0;
+    loop {
+        match expr.kind {
+            ExprKind::AddrOf(_, _, e) => {
+                expr = e;
+                count += 1;
+            },
+            ExprKind::Unary(UnOp::Deref, e) if cx.typeck_results().expr_ty(e).is_ref() => {
+                expr = e;
+                count -= 1;
+            },
+            _ => break,
+        }
+    }
+    count
+}
+
 pub fn is_hir_ty_cfg_dependant(cx: &LateContext<'_>, ty: &hir::Ty<'_>) -> bool {
     if let TyKind::Path(QPath::Resolved(_, path)) = ty.kind
         && let Res::Def(_, def_id) = path.res
