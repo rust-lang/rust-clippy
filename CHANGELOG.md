@@ -6201,6 +6201,7 @@ Released 2018-09-13
 [`strlen_on_c_strings`]: https://rust-lang.github.io/rust-clippy/master/index.html#strlen_on_c_strings
 [`struct_excessive_bools`]: https://rust-lang.github.io/rust-clippy/master/index.html#struct_excessive_bools
 [`struct_field_names`]: https://rust-lang.github.io/rust-clippy/master/index.html#struct_field_names
+[`struct_fields_rest_default`]: https://rust-lang.github.io/rust-clippy/master/index.html#struct_fields_rest_default
 [`stutter`]: https://rust-lang.github.io/rust-clippy/master/index.html#stutter
 [`suboptimal_flops`]: https://rust-lang.github.io/rust-clippy/master/index.html#suboptimal_flops
 [`suspicious_arithmetic_impl`]: https://rust-lang.github.io/rust-clippy/master/index.html#suspicious_arithmetic_impl

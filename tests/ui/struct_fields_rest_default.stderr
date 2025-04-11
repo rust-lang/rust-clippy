@@ -1,0 +1,38 @@
+error: usage of `..Default::default()` to initialize struct fields
+  --> tests/ui/struct_fields_rest_default.rs:34:11
+   |
+LL |         ..Default::default()
+   |           ^^^^^^^^^^^^^^^^^^
+   |
+help: explicitly specify all fields or use other base value instead of `..*::default()`
+  --> tests/ui/struct_fields_rest_default.rs:32:13
+   |
+LL |       let _ = DeriveCase {
+   |  _____________^
+LL | |         a: 10,
+LL | |         ..Default::default()
+LL | |
+LL | |     };
+   | |_____^
+   = note: `-D clippy::struct-fields-rest-default` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::struct_fields_rest_default)]`
+
+error: usage of `..DeriveCase::default()` to initialize struct fields
+  --> tests/ui/struct_fields_rest_default.rs:41:11
+   |
+LL |         ..DeriveCase::default()
+   |           ^^^^^^^^^^^^^^^^^^^^^
+   |
+help: explicitly specify all fields or use other base value instead of `..*::default()`
+  --> tests/ui/struct_fields_rest_default.rs:39:13
+   |
+LL |       let _ = DeriveCase {
+   |  _____________^
+LL | |         a: 10,
+LL | |         ..DeriveCase::default()
+LL | |
+LL | |     };
+   | |_____^
+
+error: aborting due to 2 previous errors
+
