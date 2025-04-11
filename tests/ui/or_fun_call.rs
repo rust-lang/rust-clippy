@@ -213,6 +213,7 @@ mod issue8239 {
                 acc
             })
             .unwrap_or(String::new());
+        //~^ unwrap_or_default
     }
 
     fn more_to_max_suggestion_highest_lines_1() {
@@ -226,6 +227,7 @@ mod issue8239 {
                 acc
             })
             .unwrap_or(String::new());
+        //~^ unwrap_or_default
     }
 
     fn equal_to_max_suggestion_highest_lines() {
@@ -238,6 +240,7 @@ mod issue8239 {
                 acc
             })
             .unwrap_or(String::new());
+        //~^ unwrap_or_default
     }
 
     fn less_than_max_suggestion_highest_lines() {
@@ -249,6 +252,7 @@ mod issue8239 {
             acc
         })
         .unwrap_or(String::new());
+        //~^ unwrap_or_default
     }
 }
 
