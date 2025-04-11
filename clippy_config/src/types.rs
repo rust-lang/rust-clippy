@@ -11,6 +11,7 @@ use std::collections::HashMap;
 use std::fmt;
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Rename {
     pub path: String,
     pub rename: String,
@@ -58,7 +59,7 @@ impl<'de, const REPLACEMENT_ALLOWED: bool> Deserialize<'de> for DisallowedPath<R
 // `DisallowedPathEnum` is an implementation detail to enable the `Deserialize` implementation just
 // above. `DisallowedPathEnum` is not meant to be used outside of this file.
 #[derive(Debug, Deserialize, Serialize)]
-#[serde(untagged)]
+#[serde(untagged, deny_unknown_fields)]
 enum DisallowedPathEnum {
     Simple(String),
     WithReason {
