@@ -672,6 +672,9 @@ define_Conf! {
     /// The maximum number of bounds a trait can have to be linted
     #[lints(type_repetition_in_bounds)]
     max_trait_bounds: u64 = 3,
+    /// The smallest number of bits masked with `&` which will be replaced by `.is_multiple_of()`.
+    #[lints(manual_is_multiple_of)]
+    min_and_mask_size: u8 = 3,
     /// Minimum chars an ident can have, anything below or equal to this will be linted.
     #[lints(min_ident_chars)]
     min_ident_chars_threshold: u64 = 1,
