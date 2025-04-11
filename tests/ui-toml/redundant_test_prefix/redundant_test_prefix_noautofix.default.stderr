@@ -1,0 +1,60 @@
+error: redundant `test_` prefix in test function name
+  --> tests/ui-toml/redundant_test_prefix/redundant_test_prefix_noautofix.rs:35:4
+   |
+LL | fn test_foo() {
+   |    ^^^^^^^^
+   |
+   = note: `-D clippy::redundant-test-prefix` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::redundant_test_prefix)]`
+help: consider function renaming (just removing `test_` prefix will cause a name conflict)
+   |
+LL - fn test_foo() {
+LL + fn foo_works() {
+   |
+
+error: redundant `test_` prefix in test function name
+  --> tests/ui-toml/redundant_test_prefix/redundant_test_prefix_noautofix.rs:61:4
+   |
+LL | fn test_baz() {
+   |    ^^^^^^^^
+   |
+help: consider function renaming (just removing `test_` prefix will cause a name conflict)
+   |
+LL - fn test_baz() {
+LL + fn baz_works() {
+   |
+
+error: redundant `test_` prefix in test function name
+  --> tests/ui-toml/redundant_test_prefix/redundant_test_prefix_noautofix.rs:106:8
+   |
+LL |     fn test_1() {
+   |        ^^^^^^
+   |
+   = help: consider function renaming (just removing `test_` prefix will produce invalid function name)
+
+error: redundant `test_` prefix in test function name
+  --> tests/ui-toml/redundant_test_prefix/redundant_test_prefix_noautofix.rs:114:8
+   |
+LL |     fn test_const() {
+   |        ^^^^^^^^^^
+   |
+   = help: consider function renaming (just removing `test_` prefix will produce invalid function name)
+
+error: redundant `test_` prefix in test function name
+  --> tests/ui-toml/redundant_test_prefix/redundant_test_prefix_noautofix.rs:122:8
+   |
+LL |     fn test_async() {
+   |        ^^^^^^^^^^
+   |
+   = help: consider function renaming (just removing `test_` prefix will produce invalid function name)
+
+error: redundant `test_` prefix in test function name
+  --> tests/ui-toml/redundant_test_prefix/redundant_test_prefix_noautofix.rs:130:8
+   |
+LL |     fn test_yield() {
+   |        ^^^^^^^^^^
+   |
+   = help: consider function renaming (just removing `test_` prefix will produce invalid function name)
+
+error: aborting due to 6 previous errors
+

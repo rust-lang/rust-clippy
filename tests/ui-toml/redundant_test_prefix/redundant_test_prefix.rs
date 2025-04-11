@@ -1,0 +1,42 @@
+//@revisions: default outside_cfg_test
+//@[default] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/redundant_test_prefix/default
+//@[outside_cfg_test] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/redundant_test_prefix/outside_cfg_test
+//@compile-flags: --test
+#![allow(dead_code)]
+#![warn(clippy::redundant_test_prefix)]
+
+fn main() {}
+
+// Has no `#[cfg(test)]` annotation.
+mod tests_no_cfg_annotation {
+    use super::*;
+
+    #[test]
+    fn test_has_annotation() {
+        //~[outside_cfg_test]^ redundant_test_prefix
+    }
+
+    fn no_annotation() {}
+}
+
+#[cfg(test)]
+mod tests_has_cfg_annotation {
+    use super::*;
+
+    #[test]
+    fn test_has_annotation() {
+        //~^ redundant_test_prefix
+    }
+
+    fn no_annotation() {}
+}
+
+#[test]
+fn test_main_module_has_annotation() {
+    //~[outside_cfg_test]^ redundant_test_prefix
+}
+
+fn test_main_module_no_annotation() {}
+
+#[cfg(test)]
+mod tests {}

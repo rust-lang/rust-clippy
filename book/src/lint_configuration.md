@@ -870,6 +870,20 @@ exported visibility, or whether they are marked as "pub".
 * [`pub_underscore_fields`](https://rust-lang.github.io/rust-clippy/master/index.html#pub_underscore_fields)
 
 
+## `redundant-test-prefix-check-outside-cfg-test`
+Indicates if `redundant_test_prefix` should check functions outside of items marked
+with `#[cfg(test)]`.
+
+This option can be used for integration tests which use the `#[test]` attribute
+without the `#[cfg(test)]`.
+
+**Default Value:** `false`
+
+---
+**Affected lints:**
+* [`redundant_test_prefix`](https://rust-lang.github.io/rust-clippy/master/index.html#redundant_test_prefix)
+
+
 ## `semicolon-inside-block-ignore-singleline`
 Whether to lint only if it's multiline.
 
