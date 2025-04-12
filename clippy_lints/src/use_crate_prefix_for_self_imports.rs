@@ -127,9 +127,9 @@ impl<'tcx> UseCratePrefixForSelfImports<'_, 'tcx> {
 
     fn insert_item(&mut self, item: &Item<'tcx>) {
         match item.kind {
-            ItemKind::Mod(_) => {
+            ItemKind::Mod(ident, _) => {
                 self.spans.push(item.span);
-                self.mod_names.insert(item.ident.name);
+                self.mod_names.insert(ident.name);
             },
             ItemKind::Use(use_tree, _) => {
                 self.spans.push(item.span);
