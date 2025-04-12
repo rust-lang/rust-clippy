@@ -127,6 +127,7 @@ use rustc_span::{InnerSpan, Span, sym};
 use crate::ast_utils::unordered_over;
 use crate::consts::{ConstEvalCtxt, Constant, mir_to_const};
 use crate::higher::Range;
+use crate::source::walk_span_to_context;
 use crate::ty::{adt_and_variant_of_res, can_partially_move_ty, expr_sig, is_copy, is_recursively_primitive_type};
 use crate::visitors::{Visitable, for_each_expr_without_closures, for_each_unconsumed_temporary};
 
