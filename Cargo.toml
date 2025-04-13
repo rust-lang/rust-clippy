@@ -13,6 +13,19 @@ build = "build.rs"
 edition = "2024"
 publish = false
 
+# [workspace]
+# members = [
+#     "clippy_config",
+#     "clippy_dev",
+#     "clippy_dummy",
+#     "clippy_lints",
+#     "clippy_lints_internal",
+#     "clippy_utils",
+#     "lintcheck",
+#     "rustc_tools_util",
+# ]
+# resolver = "2"
+
 [[bin]]
 name = "cargo-clippy"
 test = false
