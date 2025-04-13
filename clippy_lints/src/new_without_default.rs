@@ -85,8 +85,9 @@ declare_clippy_lint! {
     /// }
     /// ```
     ///
-    /// Alternatively, if the `new()` method requires a non-default initialization, implement a custom `Default`.
-    /// This also allows you to mark the `new()` implementation as `const`:
+    /// Alternatively, if the `new()` method requires a non-default initialization, consider renaming
+    /// it to another less standard name. Lastly, if the `new()` method needs to be `const`,
+    /// implement a custom `Default`:
     ///
     /// ```no_run
     /// struct MyStruct(i32);
@@ -170,7 +171,7 @@ impl<'tcx> LateLintPass<'tcx> for NewWithoutDefault {
                                 {
                                     impls.insert(
                                         cx.tcx.local_def_id_to_hir_id(local_def_id),
-                                        if cx.tcx.is_builtin_derived(d) {
+                                        if cx.tcx.is_builtin_derived(d.into()) {
                                             DefaultType::AutoDerived
                                         } else {
                                             DefaultType::Manual
