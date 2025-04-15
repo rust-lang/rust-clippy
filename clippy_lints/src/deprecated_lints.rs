@@ -44,7 +44,6 @@ declare_with_version! { DEPRECATED(DEPRECATED_VERSION): &[(&str, &str)] = &[
     ("clippy::option_map_or_err_ok", "`clippy::manual_ok_or` covers this case"),
     #[clippy::version = "1.86.0"]
     ("clippy::match_on_vec_items", "`clippy::indexing_slicing` covers indexing and slicing on `Vec<_>`"),
-    // end deprecated lints. used by `cargo dev deprecate_lint`
 ]}
 
 #[rustfmt::skip]
@@ -187,5 +186,4 @@ declare_with_version! { RENAMED(RENAMED_VERSION): &[(&str, &str)] = &[
     ("clippy::vtable_address_comparisons", "ambiguous_wide_pointer_comparisons"),
     #[clippy::version = ""]
     ("clippy::reverse_range_loop", "clippy::reversed_empty_ranges"),
-    // end renamed lints. used by `cargo dev rename_lint`
 ]}
