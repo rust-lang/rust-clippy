@@ -220,4 +220,20 @@ mod issue11494 {
     }
 }
 
+mod encapsulated {
+    mod local_types {
+        pub struct FooError;
+        pub struct BarError;
+        pub struct BazError;
+        pub struct QuxError;
+    }
+
+    enum Error {
+        FooError(local_types::FooError),
+        BarError(local_types::BarError),
+        BazError(local_types::BazError),
+        NoMatch(local_types::QuxError),
+    }
+}
+
 fn main() {}

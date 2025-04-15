@@ -5,7 +5,7 @@ use clippy_utils::macros::span_is_local;
 use clippy_utils::source::is_present_in_source;
 use clippy_utils::str_utils::{camel_case_split, count_match_end, count_match_start, to_camel_case, to_snake_case};
 use rustc_data_structures::fx::FxHashSet;
-use rustc_hir::{EnumDef, FieldDef, Item, ItemKind, OwnerId, Variant, VariantData};
+use rustc_hir::{EnumDef, FieldDef, Item, ItemKind, OwnerId, QPath, TyKind, Variant, VariantData};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::impl_lint_pass;
 use rustc_span::symbol::Symbol;
@@ -202,7 +202,8 @@ impl ItemNameRepetitions {
             return;
         }
 
-        if (def.variants.len() as u64) < self.enum_threshold {
+        let variants = Self::filter_matching_enum_data(def);
+        if (variants.len() as u64) < self.enum_threshold {
             return;
         }
 
@@ -210,12 +211,44 @@ impl ItemNameRepetitions {
             return;
         };
         let item_name = ident.name.as_str();
-        for var in def.variants {
+        for var in variants {
             check_enum_start(cx, item_name, var);
             check_enum_end(cx, item_name, var);
         }
 
         Self::check_enum_common_affix(cx, item, def);
+    }
+
+    // Exclude enum variants that contain a single item where any component
+    // of the contained item's path is identical to the variant's name.
+    fn filter_matching_enum_data<'a>(def: &'a EnumDef<'a>) -> Vec<&'a Variant<'a>> {
+        def.variants
+            .iter()
+            .filter(|var| {
+                let variant_name = var.ident.name.as_str();
+                if let VariantData::Tuple(fields, ..) = var.data
+                    && fields.len() == 1
+                {
+                    let field_ty = &fields[0].ty;
+                    if let TyKind::Path(qpath) = field_ty.kind {
+                        let path = match qpath {
+                            QPath::Resolved(_, path) => path,
+                            QPath::TypeRelative(_, segment) => {
+                                return segment.ident.name.as_str() != variant_name;
+                            },
+                            QPath::LangItem(..) => return true,
+                        };
+                        // Check if any path segment matches the variant name
+                        for segment in path.segments {
+                            if segment.ident.name.as_str() == variant_name {
+                                return false;
+                            }
+                        }
+                    }
+                }
+                true
+            })
+            .collect()
     }
 
     /// Lint the names of struct fields against the name of the struct.
