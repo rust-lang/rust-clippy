@@ -1,3 +1,4 @@
+#![warn(clippy::range_minus_one, clippy::range_plus_one)]
 #![allow(unused_parens)]
 #![allow(clippy::iter_with_drain)]
 fn f() -> usize {
@@ -20,8 +21,6 @@ macro_rules! macro_minus_one {
     };
 }
 
-#[warn(clippy::range_plus_one)]
-#[warn(clippy::range_minus_one)]
 fn main() {
     for _ in 0..2 {}
     for _ in 0..=2 {}
@@ -99,3 +98,24 @@ fn main() {
 
 fn take_arg<T: Iterator<Item = u32>>(_: T) {}
 fn take_args<T: Iterator<Item = u32>>(_: T, _: T) {}
+
+fn issue9908() {
+    // Simplified test case
+    let _ = || 0..=1;
+
+    // Original test case
+    let full_length = 1024;
+    let range = {
+        // do some stuff, omit here
+        None
+    };
+
+    let range = range.map(|(s, t)| s..=t).unwrap_or(0..=(full_length - 1));
+
+    assert_eq!(range, 0..=1023);
+}
+
+fn issue9908_2(n: usize) -> usize {
+    (1..=n - 1).sum()
+    //~^ range_minus_one
+}
