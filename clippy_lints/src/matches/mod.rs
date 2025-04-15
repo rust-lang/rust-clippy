@@ -1086,11 +1086,25 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
 
             if !from_expansion && !contains_cfg_arm(cx, expr, ex, arms) {
                 if source == MatchSource::Normal {
-                    if !(self.msrv.meets(cx, msrvs::MATCHES_MACRO)
-                        && match_like_matches::check_match(cx, expr, ex, arms))
-                    {
-                        match_same_arms::check(cx, arms);
-                    }
+                    // Check if all patterns are string literals
+                let all_string_literals = arms.iter().all(|arm| {
+                if let PatKind::Lit(lit_expr) = arm.pat.kind {
+               if let ExprKind::Lit(lit) = lit_expr.kind {
+                 return matches!(lit.node, LitKind::Str(..));
+              }
+           }
+                false
+     });      
+
+if all_string_literals {
+    // Don't suggest `matches!` for string patterns
+    match_same_arms::check(cx, arms);
+} else if !(self.msrv.meets(cx, msrvs::MATCHES_MACRO)
+    && match_like_matches::check_match(cx, expr, ex, arms))
+{
+    match_same_arms::check(cx, arms);
+}
+
 
                     redundant_pattern_match::check_match(cx, expr, ex, arms);
                     let source_map = cx.tcx.sess.source_map();
