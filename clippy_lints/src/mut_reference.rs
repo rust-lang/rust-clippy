@@ -1,15 +1,10 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet;
 use rustc_errors::Applicability;
-use rustc_hir::{
-    AssocItemKind, BorrowKind, Expr, ExprKind, FieldDef, HirId, ImplItemRef, IsAuto, Item, ItemKind, Mod, Mutability,
-    QPath, TraitItemRef, TyKind, Variant, VariantData,
-};
+use rustc_hir::{BorrowKind, Expr, ExprKind, Mutability};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::print::with_forced_trimmed_paths;
-use rustc_middle::ty::{self, GenericArgKind, Ty};
+use rustc_middle::ty::{self, Ty};
 use rustc_session::declare_lint_pass;
-use rustc_span::symbol::sym;
 use std::iter;
 
 declare_clippy_lint! {
