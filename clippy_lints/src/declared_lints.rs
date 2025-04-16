@@ -713,6 +713,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::strings::STR_TO_STRING_INFO,
     crate::strings::TRIM_SPLIT_WHITESPACE_INFO,
     crate::strlen_on_c_strings::STRLEN_ON_C_STRINGS_INFO,
+    crate::struct_fields_rest_default::STRUCT_FIELDS_REST_DEFAULT_INFO,
     crate::suspicious_operation_groupings::SUSPICIOUS_OPERATION_GROUPINGS_INFO,
     crate::suspicious_trait_impl::SUSPICIOUS_ARITHMETIC_IMPL_INFO,
     crate::suspicious_trait_impl::SUSPICIOUS_OP_ASSIGN_IMPL_INFO,
