@@ -24,5 +24,5 @@ mod conf;
 mod metadata;
 pub mod types;
 
-pub use conf::{Conf, get_configuration_metadata, lookup_conf_file, sanitize_explanation};
-pub use metadata::ClippyConfiguration;
+pub use crate::conf::{Conf, get_configuration_metadata, lookup_conf_file, sanitize_explanation};
+pub use crate::metadata::ClippyConfiguration;
