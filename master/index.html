@@ -11657,7 +11657,37 @@ static FOO: &amp;'static [(&amp;'static str, &amp;'static str, fn(&amp;Bar) -&gt
 <p>(default: <code>current version</code>)</p>
 </li>
 </ul>
-</div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.37.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+redundant_static_lifetimes">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/redundant_static_lifetimes.rs#L11">View Source</a></div></div></div></article><article class="panel panel-default" id="redundant_type_annotations"><input id="label-redundant_type_annotations" type="checkbox"><label for="label-redundant_type_annotations"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-redundant_type_annotations"><span>redundant_type_annotations</span> <a href="#redundant_type_annotations" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-restriction">restriction</span> <span class="label label-lint-level label-lint-level-allow">allow</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
+</div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.37.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+redundant_static_lifetimes">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/redundant_static_lifetimes.rs#L11">View Source</a></div></div></div></article><article class="panel panel-default" id="redundant_test_prefix"><input id="label-redundant_test_prefix" type="checkbox"><label for="label-redundant_test_prefix"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-redundant_test_prefix"><span>redundant_test_prefix</span> <a href="#redundant_test_prefix" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-restriction">restriction</span> <span class="label label-lint-level label-lint-level-allow">allow</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
+<p>Checks for test functions (functions annotated with <code>#[test]</code>) that are prefixed
+with <code>test_</code> which is redundant.</p>
+<h3>Why is this bad?</h3>
+<p>This is redundant because test functions are already annotated with <code>#[test]</code>.
+Moreover, it clutters the output of <code>cargo test</code> since test functions are expanded as
+<code>module::tests::test_use_case</code> in the output. Without the redundant prefix, the output
+becomes <code>module::tests::use_case</code>, which is more readable.</p>
+<h3>Example</h3>
+<pre><code class="language-rust">#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn test_use_case() {
+      // test code
+  }
+}
+</code></pre>
+<p>Use instead:</p>
+<pre><code class="language-rust">#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn use_case() {
+      // test code
+  }
+}
+</code></pre>
+</div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.88.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+redundant_test_prefix">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/redundant_test_prefix.rs#L15">View Source</a></div></div></div></article><article class="panel panel-default" id="redundant_type_annotations"><input id="label-redundant_type_annotations" type="checkbox"><label for="label-redundant_type_annotations"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-redundant_type_annotations"><span>redundant_type_annotations</span> <a href="#redundant_type_annotations" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-restriction">restriction</span> <span class="label label-lint-level label-lint-level-allow">allow</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
 <p>Warns about needless / redundant type annotations.</p>
 <h3>Why restrict this?</h3>
 <p>Code without type annotations is shorter and in most cases
