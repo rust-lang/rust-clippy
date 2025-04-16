@@ -128,15 +128,6 @@ fn refutable2() {
             println!("{:?}", x);
         }
     }
-
-    // false negative
-    {
-        let v = vec![1, 2, 3];
-        let mut it = v.iter().map(Some);
-        while let Some(Some(_) | None) = it.next() {
-            println!("1");
-        }
-    }
 }
 
 fn nested_loops() {

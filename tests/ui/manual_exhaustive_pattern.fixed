@@ -1,0 +1,12 @@
+#![warn(clippy::manual_exhaustive_patterns)]
+
+fn main() {
+    matches!(Some(6), _);
+    //~^ manual_exhaustive_patterns
+    matches!(Some(6), _);
+    //~^ manual_exhaustive_patterns
+    matches!(Ok::<i32, i32>(6), _);
+    //~^ manual_exhaustive_patterns
+    matches!(true, _);
+    //~^ manual_exhaustive_patterns
+}

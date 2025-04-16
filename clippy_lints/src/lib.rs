@@ -210,6 +210,7 @@ mod manual_async_fn;
 mod manual_bits;
 mod manual_clamp;
 mod manual_div_ceil;
+mod manual_exhaustive_patterns;
 mod manual_float_methods;
 mod manual_hash_one;
 mod manual_ignore_case_cmp;
@@ -926,6 +927,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_early_pass(move || Box::new(raw_strings::RawStrings::new(conf)));
     store.register_late_pass(move |_| Box::new(legacy_numeric_constants::LegacyNumericConstants::new(conf)));
     store.register_late_pass(|_| Box::new(manual_range_patterns::ManualRangePatterns));
+    store.register_late_pass(|_| Box::new(manual_exhaustive_patterns::ManualExhaustivePatterns));
     store.register_early_pass(|| Box::new(visibility::Visibility));
     store.register_late_pass(move |_| Box::new(tuple_array_conversions::TupleArrayConversions::new(conf)));
     store.register_late_pass(move |_| Box::new(manual_float_methods::ManualFloatMethods::new(conf)));
