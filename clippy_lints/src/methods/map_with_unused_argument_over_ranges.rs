@@ -30,10 +30,10 @@ fn extract_count_with_applicability(
             && let LitKind::Int(Pu128(upper_bound), _) = lit.node
         {
             // Here we can explicitly calculate the number of iterations
-            let count = if upper_bound >= lower_bound {
+            let count = if let Some(result) = upper_bound.checked_sub(lower_bound) {
                 match range.limits {
-                    RangeLimits::HalfOpen => upper_bound - lower_bound,
-                    RangeLimits::Closed => (upper_bound - lower_bound).checked_add(1)?,
+                    RangeLimits::HalfOpen => result,
+                    RangeLimits::Closed => (result).checked_add(1)?,
                 }
             } else {
                 0
