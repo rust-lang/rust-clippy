@@ -5,8 +5,6 @@ See [Changelog Update](book/src/development/infrastructure/changelog_update.md) 
 document.
 
 ## Unreleased / Beta / In Rust Nightly
-### New Lints
-- **`relative_path_in_macro_definition`**: Warns about relative paths to `core` or `kernel` in macro definitions, recommending absolute paths to avoid ambiguity.
 
 [3e3715c3...master](https://github.com/rust-lang/rust-clippy/compare/3e3715c3...master)
 
