@@ -1,0 +1,11 @@
+error: relative path to `core` or `kernel` used in macro definition
+  --> tests/ui/relative_path_in_macro_definition.rs:7:23
+   |
+LL |         const _: () = core::assert!($condition);
+   |                       ^^^^
+   |
+   = note: `-D clippy::relative-path-in-macro-definition` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::relative_path_in_macro_definition)]`
+
+error: aborting due to 1 previous error
+
