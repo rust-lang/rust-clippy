@@ -1,4 +1,5 @@
 #![warn(clippy::swap_ptr_to_ref)]
+#![allow(clippy::relative_path_in_macro_definition)]
 
 macro_rules! addr_of_mut_to_ref {
     ($e:expr) => {
