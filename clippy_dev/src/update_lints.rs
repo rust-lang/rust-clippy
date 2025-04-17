@@ -1,5 +1,5 @@
 use crate::utils::{
-    File, FileAction, FileUpdater, RustSearcher, Token, UpdateMode, UpdateStatus, panic_file, update_text_region_fn,
+    ErrAction, File, FileUpdater, RustSearcher, Token, UpdateMode, UpdateStatus, panic_action, update_text_region_fn,
 };
 use itertools::Itertools;
 use rustc_lexer::unescape;
@@ -173,7 +173,7 @@ fn read_src_with_module(src_root: &Path) -> impl use<'_> + Iterator<Item = (DirE
     WalkDir::new(src_root).into_iter().filter_map(move |e| {
         let e = match e {
             Ok(e) => e,
-            Err(ref e) => panic_file(e, FileAction::Read, src_root),
+            Err(ref e) => panic_action(e, ErrAction::Read, src_root),
         };
         let path = e.path().as_os_str().as_encoded_bytes();
         if let Some(path) = path.strip_suffix(b".rs")
@@ -220,9 +220,7 @@ fn parse_clippy_lint_decls(contents: &str, module: &str, lints: &mut Vec<Lint>) 
     while searcher.find_token(Ident("declare_clippy_lint")) {
         let start = searcher.pos() as usize - "declare_clippy_lint".len();
         let (mut name, mut group) = ("", "");
-        if searcher.match_tokens(DECL_TOKENS, &mut [&mut name, &mut group])
-            && searcher.find_token(CloseBrace)
-        {
+        if searcher.match_tokens(DECL_TOKENS, &mut [&mut name, &mut group]) && searcher.find_token(CloseBrace) {
             lints.push(Lint {
                 name: name.to_lowercase(),
                 group: group.into(),
