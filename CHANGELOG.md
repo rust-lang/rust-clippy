@@ -6126,6 +6126,7 @@ Released 2018-09-13
 [`ref_patterns`]: https://rust-lang.github.io/rust-clippy/master/index.html#ref_patterns
 [`regex_creation_in_loops`]: https://rust-lang.github.io/rust-clippy/master/index.html#regex_creation_in_loops
 [`regex_macro`]: https://rust-lang.github.io/rust-clippy/master/index.html#regex_macro
+[`relative_path_in_macro_definition`]: https://rust-lang.github.io/rust-clippy/master/index.html#relative_path_in_macro_definition
 [`renamed_function_params`]: https://rust-lang.github.io/rust-clippy/master/index.html#renamed_function_params
 [`repeat_once`]: https://rust-lang.github.io/rust-clippy/master/index.html#repeat_once
 [`repeat_vec_with_capacity`]: https://rust-lang.github.io/rust-clippy/master/index.html#repeat_vec_with_capacity
