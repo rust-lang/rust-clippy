@@ -1,0 +1,17 @@
+error: transmute from a `usize` to a pointer
+  --> tests/ui/transmute_int_to_ptr.rs:11:22
+   |
+LL |     let x = unsafe { std::mem::transmute::<K1, *mut i8>(k) };
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::wrong-transmute` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::wrong_transmute)]`
+
+error: transmute from a `usize` to a pointer
+  --> tests/ui/transmute_int_to_ptr.rs:22:22
+   |
+LL |     let x = unsafe { std::mem::transmute::<K2, *mut i8>(k) };
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+
