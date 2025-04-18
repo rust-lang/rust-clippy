@@ -1,3 +1,4 @@
+# This action runs Clippy's test suite for all of its crates.
 name: Clippy Test
 
 on:
