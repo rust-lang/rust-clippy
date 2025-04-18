@@ -147,7 +147,6 @@ fn issue11458() {
     }
     let x = 10_u128;
     let _ = sign_cast!(x, u8, i8) as i32;
-    //~^ cast_lossless
 
     let _ = (sign_cast!(x, u8, i8) + 1) as i32;
     //~^ cast_lossless
@@ -172,7 +171,19 @@ fn ty_from_macro() {
     }
 
     let _ = 0u8 as ty!();
-    //~^ cast_lossless
 }
 
 const IN_CONST: u64 = 0u8 as u64;
+
+fn macros() {
+    macro_rules! mac {
+        (to_i32 $x:expr) => { $x as u32 };
+        (zero_as $t:ty) => { 0u8 as $t };
+        ($x:expr => $t:ty) => { $x as $t };
+        ($x:expr, $k:ident, $t:ty) => { $x $k $t };
+    }
+    let _ = mac!(to_i32 0u16);
+    let _ = mac!(zero_as u32);
+    let _ = mac!(0u8 => u32);
+    let _ = mac!(0u8, as, u32);
+}
