@@ -24,7 +24,7 @@ note: should be placed before `b`
 LL |     fn b();
    |        ^
 
-error: incorrect ordering of trait items (defined order: [Const, Type, Fn])
+error: incorrect ordering of trait items
   --> tests/ui-toml/arbitrary_source_item_ordering/ordering_only_trait.rs:45:5
    |
 LL |     const A: bool;
