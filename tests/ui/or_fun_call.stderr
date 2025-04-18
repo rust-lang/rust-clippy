@@ -142,6 +142,30 @@ error: function call inside of `unwrap_or`
 LL |         None.unwrap_or( unsafe { ptr_to_ref(s) }    );
    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_else(|| unsafe { ptr_to_ref(s) })`
 
+error: use of `unwrap_or` to construct default value
+  --> tests/ui/or_fun_call.rs:215:14
+   |
+LL |             .unwrap_or(String::new());
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
+
+error: use of `unwrap_or` to construct default value
+  --> tests/ui/or_fun_call.rs:229:14
+   |
+LL |             .unwrap_or(String::new());
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
+
+error: use of `unwrap_or` to construct default value
+  --> tests/ui/or_fun_call.rs:242:14
+   |
+LL |             .unwrap_or(String::new());
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
+
+error: use of `unwrap_or` to construct default value
+  --> tests/ui/or_fun_call.rs:254:10
+   |
+LL |         .unwrap_or(String::new());
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
+
 error: function call inside of `map_or`
   --> tests/ui/or_fun_call.rs:280:25
    |
@@ -246,5 +270,5 @@ error: function call inside of `unwrap_or`
 LL |     let _ = opt_foo.unwrap_or(Foo { val: String::default() });
    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_else(|| Foo { val: String::default() })`
 
-error: aborting due to 38 previous errors
+error: aborting due to 42 previous errors
 
