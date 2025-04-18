@@ -85,6 +85,8 @@ fn run_clippy_for_package(project: &str, args: &[&str]) -> bool {
     if cfg!(feature = "internal") {
         // internal lints only exist if we build with the internal feature
         command.args(["-D", "clippy::internal"]);
+        // `derive_deserialize_allowing_unknown` is crate-wide denied in `clippy_config`.
+        command.args(["-A", "clippy::derive_deserialize_allowing_unknown"]);
     } else {
         // running a clippy built without internal lints on the clippy source
         // that contains e.g. `allow(clippy::invalid_paths)`
