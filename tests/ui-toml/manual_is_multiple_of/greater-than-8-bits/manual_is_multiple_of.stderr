@@ -1,0 +1,11 @@
+error: manual implementation of `.is_multiple_of()`
+  --> tests/ui-toml/manual_is_multiple_of/greater-than-8-bits/manual_is_multiple_of.rs:7:13
+   |
+LL |     let _ = a & 0x1ff == 0;
+   |             ^^^^^^^^^^^^^^ help: replace with: `a.is_multiple_of(0x200)`
+   |
+   = note: `-D clippy::manual-is-multiple-of` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_is_multiple_of)]`
+
+error: aborting due to 1 previous error
+
