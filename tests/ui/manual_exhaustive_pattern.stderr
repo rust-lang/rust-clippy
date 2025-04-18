@@ -1,0 +1,29 @@
+error: this OR pattern can be rewritten using a wildcard
+  --> tests/ui/manual_exhaustive_pattern.rs:4:23
+   |
+LL |     matches!(Some(6), Some(_) | None);
+   |                       ^^^^^^^^^^^^^^ help: try: `_`
+   |
+   = note: `-D clippy::manual-exhaustive-patterns` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_exhaustive_patterns)]`
+
+error: this OR pattern can be rewritten using a wildcard
+  --> tests/ui/manual_exhaustive_pattern.rs:6:23
+   |
+LL |     matches!(Some(6), None | Some(_));
+   |                       ^^^^^^^^^^^^^^ help: try: `_`
+
+error: this OR pattern can be rewritten using a wildcard
+  --> tests/ui/manual_exhaustive_pattern.rs:8:33
+   |
+LL |     matches!(Ok::<i32, i32>(6), Ok(_) | Err(_));
+   |                                 ^^^^^^^^^^^^^^ help: try: `_`
+
+error: this OR pattern can be rewritten using a wildcard
+  --> tests/ui/manual_exhaustive_pattern.rs:10:20
+   |
+LL |     matches!(true, true | false);
+   |                    ^^^^^^^^^^^^ help: try: `_`
+
+error: aborting due to 4 previous errors
+
