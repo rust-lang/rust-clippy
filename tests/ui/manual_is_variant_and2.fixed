@@ -1,0 +1,12 @@
+#![warn(clippy::manual_is_variant_and)]
+
+fn main() {
+    let _ = Some(2).is_some_and(|x| x % 2 == 0);
+    //~^ manual_is_variant_and
+    let _ = Some(2).is_none_or(|x| x % 2 == 0);
+    //~^ manual_is_variant_and
+    let _ = Ok::<usize, ()>(2).is_ok_and(|x| x % 2 == 0);
+    //~^ manual_is_variant_and
+    let _ = !Ok::<usize, ()>(2).is_ok_and(|x| x % 2 == 0);
+    //~^ manual_is_variant_and
+}

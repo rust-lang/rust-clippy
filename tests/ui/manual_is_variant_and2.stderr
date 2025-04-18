@@ -1,0 +1,29 @@
+error: called `.map() == Some()`
+  --> tests/ui/manual_is_variant_and2.rs:4:13
+   |
+LL |     let _ = Some(2).map(|x| x % 2 == 0) == Some(true);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Some(2).is_some_and(|x| x % 2 == 0)`
+   |
+   = note: `-D clippy::manual-is-variant-and` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_is_variant_and)]`
+
+error: called `.map() != Some()`
+  --> tests/ui/manual_is_variant_and2.rs:6:13
+   |
+LL |     let _ = Some(2).map(|x| x % 2 == 0) != Some(true);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Some(2).is_none_or(|x| x % 2 == 0)`
+
+error: called `.map() == Ok()`
+  --> tests/ui/manual_is_variant_and2.rs:8:13
+   |
+LL |     let _ = Ok::<usize, ()>(2).map(|x| x % 2 == 0) == Ok(true);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Ok::<usize, ()>(2).is_ok_and(|x| x % 2 == 0)`
+
+error: called `.map() != Ok()`
+  --> tests/ui/manual_is_variant_and2.rs:10:13
+   |
+LL |     let _ = Ok::<usize, ()>(2).map(|x| x % 2 == 0) != Ok(true);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `!Ok::<usize, ()>(2).is_ok_and(|x| x % 2 == 0)`
+
+error: aborting due to 4 previous errors
+
