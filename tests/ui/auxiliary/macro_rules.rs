@@ -57,3 +57,10 @@ macro_rules! bad_transmute {
         std::mem::transmute($e)
     };
 }
+
+#[macro_export]
+macro_rules! empty_struct {
+    ($i:ident) => {
+        struct S {}
+    };
+}

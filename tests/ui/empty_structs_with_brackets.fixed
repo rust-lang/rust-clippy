@@ -1,3 +1,4 @@
+//@aux-build:macro_rules.rs
 #![warn(clippy::empty_structs_with_brackets)]
 #![allow(dead_code)]
 
@@ -22,5 +23,7 @@ struct MyStruct {
 struct MyTupleStruct(usize, String); // should not trigger lint
 struct MySingleTupleStruct(usize); // should not trigger lint
 struct MyUnitLikeStruct; // should not trigger lint
+
+macro_rules::empty_struct!(FromMacro);
 
 fn main() {}
