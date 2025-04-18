@@ -1,4 +1,5 @@
-#![allow(clippy::println_empty_string, non_snake_case, clippy::let_unit_value)]
+#![warn(clippy::all)]
+#![allow(unused, clippy::println_empty_string, non_snake_case, clippy::let_unit_value)]
 
 #[derive(Clone, Debug)]
 enum MaybeInst {

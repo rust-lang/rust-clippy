@@ -113,14 +113,15 @@ fn parse_call(cx: &LateContext<'_>, span: Span, func: &Expr<'_>, arg: &Expr<'_>)
             && is_expr_kind_empty_str(&arg.kind)
         {
             warn_then_suggest(cx, span);
-        } else if let QPath::Resolved(_, path) = qpath
+        } else if let QPath::Resolved(_, path) = qpath {
             // From::from(...) or TryFrom::try_from(...)
-            && let [path_seg1, path_seg2] = path.segments
-            && is_expr_kind_empty_str(&arg.kind)
-            && ((path_seg1.ident.name == sym::From && path_seg2.ident.name == sym::from)
-                || (path_seg1.ident.name == sym::TryFrom && path_seg2.ident.name == sym::try_from))
-        {
-            warn_then_suggest(cx, span);
+            if let [path_seg1, path_seg2] = path.segments
+                && is_expr_kind_empty_str(&arg.kind)
+                && ((path_seg1.ident.name == sym::From && path_seg2.ident.name == sym::from)
+                    || (path_seg1.ident.name == sym::TryFrom && path_seg2.ident.name == sym::try_from))
+            {
+                warn_then_suggest(cx, span);
+            }
         }
     }
 }

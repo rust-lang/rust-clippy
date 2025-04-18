@@ -8,7 +8,7 @@ use clippy_utils::{
 use rustc_ast::ast::LitKind;
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;
-use rustc_hir::{AssignOpKind, BinOp, BinOpKind, Expr, ExprKind, QPath};
+use rustc_hir::{BinOp, BinOpKind, Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::impl_lint_pass;
 use rustc_span::Span;
@@ -239,7 +239,7 @@ fn check_subtraction(
             // This part of the condition is voluntarily split from the one before to ensure that
             // if `snippet_opt` fails, it won't try the next conditions.
             if (!is_in_const_context(cx) || msrv.meets(cx, msrvs::SATURATING_SUB_CONST))
-                && let Some(big_expr_sugg) = Sugg::hir_opt(cx, big_expr).map(Sugg::maybe_paren)
+                && let Some(big_expr_sugg) = Sugg::hir_opt(cx, big_expr).map(Sugg::maybe_par)
                 && let Some(little_expr_sugg) = Sugg::hir_opt(cx, little_expr)
             {
                 let sugg = format!(
@@ -366,7 +366,7 @@ fn subtracts_one<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<&'a Exp
     match peel_blocks_with_stmt(expr).kind {
         ExprKind::AssignOp(ref op1, target, value) => {
             // Check if literal being subtracted is one
-            (AssignOpKind::SubAssign == op1.node && is_integer_literal(value, 1)).then_some(target)
+            (BinOpKind::Sub == op1.node && is_integer_literal(value, 1)).then_some(target)
         },
         ExprKind::Assign(target, value, _) => {
             if let ExprKind::Binary(ref op1, left1, right1) = value.kind

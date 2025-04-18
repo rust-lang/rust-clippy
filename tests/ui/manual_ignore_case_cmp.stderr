@@ -1,11 +1,14 @@
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:15:8
+  --> tests/ui/manual_ignore_case_cmp.rs:9:8
    |
 LL |     if a.to_ascii_lowercase() == b.to_ascii_lowercase() {
    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: `-D clippy::manual-ignore-case-cmp` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::manual_ignore_case_cmp)]`
+note: the lint level is defined here
+  --> tests/ui/manual_ignore_case_cmp.rs:2:9
+   |
+LL | #![deny(clippy::manual_ignore_case_cmp)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 help: consider using `.eq_ignore_ascii_case()` instead
    |
 LL -     if a.to_ascii_lowercase() == b.to_ascii_lowercase() {
@@ -13,7 +16,7 @@ LL +     if a.eq_ignore_ascii_case(b) {
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:19:8
+  --> tests/ui/manual_ignore_case_cmp.rs:13:8
    |
 LL |     if a.to_ascii_uppercase() == b.to_ascii_uppercase() {
    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -25,7 +28,7 @@ LL +     if a.eq_ignore_ascii_case(b) {
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:23:13
+  --> tests/ui/manual_ignore_case_cmp.rs:17:13
    |
 LL |     let r = a.to_ascii_lowercase() == b.to_ascii_lowercase();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -37,7 +40,7 @@ LL +     let r = a.eq_ignore_ascii_case(b);
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:25:18
+  --> tests/ui/manual_ignore_case_cmp.rs:19:18
    |
 LL |     let r = r || a.to_ascii_uppercase() == b.to_ascii_uppercase();
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -49,7 +52,7 @@ LL +     let r = r || a.eq_ignore_ascii_case(b);
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:27:10
+  --> tests/ui/manual_ignore_case_cmp.rs:21:10
    |
 LL |     r && a.to_ascii_lowercase() == b.to_uppercase().to_ascii_lowercase();
    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -61,7 +64,7 @@ LL +     r && a.eq_ignore_ascii_case(&b.to_uppercase());
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:30:8
+  --> tests/ui/manual_ignore_case_cmp.rs:24:8
    |
 LL |     if a.to_ascii_lowercase() != b.to_ascii_lowercase() {
    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -73,7 +76,7 @@ LL +     if !a.eq_ignore_ascii_case(b) {
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:34:8
+  --> tests/ui/manual_ignore_case_cmp.rs:28:8
    |
 LL |     if a.to_ascii_uppercase() != b.to_ascii_uppercase() {
    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -85,7 +88,7 @@ LL +     if !a.eq_ignore_ascii_case(b) {
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:38:13
+  --> tests/ui/manual_ignore_case_cmp.rs:32:13
    |
 LL |     let r = a.to_ascii_lowercase() != b.to_ascii_lowercase();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -97,7 +100,7 @@ LL +     let r = !a.eq_ignore_ascii_case(b);
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:40:18
+  --> tests/ui/manual_ignore_case_cmp.rs:34:18
    |
 LL |     let r = r || a.to_ascii_uppercase() != b.to_ascii_uppercase();
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -109,7 +112,7 @@ LL +     let r = r || !a.eq_ignore_ascii_case(b);
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:42:10
+  --> tests/ui/manual_ignore_case_cmp.rs:36:10
    |
 LL |     r && a.to_ascii_lowercase() != b.to_uppercase().to_ascii_lowercase();
    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -121,7 +124,7 @@ LL +     r && !a.eq_ignore_ascii_case(&b.to_uppercase());
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:54:5
+  --> tests/ui/manual_ignore_case_cmp.rs:48:5
    |
 LL |     a.to_ascii_lowercase() == b.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -133,7 +136,7 @@ LL +     a.eq_ignore_ascii_case(&b);
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:58:5
+  --> tests/ui/manual_ignore_case_cmp.rs:52:5
    |
 LL |     a.to_ascii_lowercase() == 'a';
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -145,7 +148,7 @@ LL +     a.eq_ignore_ascii_case(&'a');
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:60:5
+  --> tests/ui/manual_ignore_case_cmp.rs:54:5
    |
 LL |     'a' == b.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -157,7 +160,7 @@ LL +     'a'.eq_ignore_ascii_case(&b);
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:64:5
+  --> tests/ui/manual_ignore_case_cmp.rs:58:5
    |
 LL |     a.to_ascii_lowercase() == b.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -169,7 +172,7 @@ LL +     a.eq_ignore_ascii_case(&b);
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:66:5
+  --> tests/ui/manual_ignore_case_cmp.rs:60:5
    |
 LL |     a.to_ascii_lowercase() == b'a';
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -181,7 +184,7 @@ LL +     a.eq_ignore_ascii_case(&b'a');
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:68:5
+  --> tests/ui/manual_ignore_case_cmp.rs:62:5
    |
 LL |     b'a' == b.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -193,7 +196,7 @@ LL +     b'a'.eq_ignore_ascii_case(&b);
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:72:5
+  --> tests/ui/manual_ignore_case_cmp.rs:66:5
    |
 LL |     a.to_ascii_lowercase() == b.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -205,7 +208,7 @@ LL +     a.eq_ignore_ascii_case(b);
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:74:5
+  --> tests/ui/manual_ignore_case_cmp.rs:68:5
    |
 LL |     a.to_uppercase().to_ascii_lowercase() == b.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -214,35 +217,35 @@ help: consider using `.eq_ignore_ascii_case()` instead
    |
 LL -     a.to_uppercase().to_ascii_lowercase() == b.to_ascii_lowercase();
 LL +     a.to_uppercase().eq_ignore_ascii_case(b);
+   |
+
+error: manual case-insensitive ASCII comparison
+  --> tests/ui/manual_ignore_case_cmp.rs:70:5
+   |
+LL |     a.to_ascii_lowercase() == "a";
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using `.eq_ignore_ascii_case()` instead
+   |
+LL -     a.to_ascii_lowercase() == "a";
+LL +     a.eq_ignore_ascii_case("a");
+   |
+
+error: manual case-insensitive ASCII comparison
+  --> tests/ui/manual_ignore_case_cmp.rs:72:5
+   |
+LL |     "a" == b.to_ascii_lowercase();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using `.eq_ignore_ascii_case()` instead
+   |
+LL -     "a" == b.to_ascii_lowercase();
+LL +     "a".eq_ignore_ascii_case(b);
    |
 
 error: manual case-insensitive ASCII comparison
   --> tests/ui/manual_ignore_case_cmp.rs:76:5
    |
-LL |     a.to_ascii_lowercase() == "a";
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     a.to_ascii_lowercase() == "a";
-LL +     a.eq_ignore_ascii_case("a");
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:78:5
-   |
-LL |     "a" == b.to_ascii_lowercase();
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     "a" == b.to_ascii_lowercase();
-LL +     "a".eq_ignore_ascii_case(b);
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:82:5
-   |
 LL |     a.to_ascii_lowercase() == b.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
@@ -253,7 +256,7 @@ LL +     a.eq_ignore_ascii_case(b);
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:84:5
+  --> tests/ui/manual_ignore_case_cmp.rs:78:5
    |
 LL |     a.to_uppercase().to_ascii_lowercase() == b.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -265,7 +268,7 @@ LL +     a.to_uppercase().eq_ignore_ascii_case(b);
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:86:5
+  --> tests/ui/manual_ignore_case_cmp.rs:80:5
    |
 LL |     a.to_ascii_lowercase() == "a";
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -277,7 +280,7 @@ LL +     a.eq_ignore_ascii_case("a");
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:88:5
+  --> tests/ui/manual_ignore_case_cmp.rs:82:5
    |
 LL |     "a" == b.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -289,7 +292,7 @@ LL +     "a".eq_ignore_ascii_case(b);
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:92:5
+  --> tests/ui/manual_ignore_case_cmp.rs:86:5
    |
 LL |     a.to_ascii_lowercase() == b.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -298,6 +301,30 @@ help: consider using `.eq_ignore_ascii_case()` instead
    |
 LL -     a.to_ascii_lowercase() == b.to_ascii_lowercase();
 LL +     a.eq_ignore_ascii_case(&b);
+   |
+
+error: manual case-insensitive ASCII comparison
+  --> tests/ui/manual_ignore_case_cmp.rs:88:5
+   |
+LL |     a.to_ascii_lowercase() == "a";
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using `.eq_ignore_ascii_case()` instead
+   |
+LL -     a.to_ascii_lowercase() == "a";
+LL +     a.eq_ignore_ascii_case("a");
+   |
+
+error: manual case-insensitive ASCII comparison
+  --> tests/ui/manual_ignore_case_cmp.rs:90:5
+   |
+LL |     "a" == b.to_ascii_lowercase();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using `.eq_ignore_ascii_case()` instead
+   |
+LL -     "a" == b.to_ascii_lowercase();
+LL +     "a".eq_ignore_ascii_case(&b);
    |
 
 error: manual case-insensitive ASCII comparison
@@ -327,42 +354,18 @@ LL +     "a".eq_ignore_ascii_case(&b);
 error: manual case-insensitive ASCII comparison
   --> tests/ui/manual_ignore_case_cmp.rs:100:5
    |
-LL |     a.to_ascii_lowercase() == "a";
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |     a.to_ascii_lowercase() == b.to_ascii_lowercase();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 help: consider using `.eq_ignore_ascii_case()` instead
    |
-LL -     a.to_ascii_lowercase() == "a";
-LL +     a.eq_ignore_ascii_case("a");
+LL -     a.to_ascii_lowercase() == b.to_ascii_lowercase();
+LL +     a.eq_ignore_ascii_case(b);
    |
 
 error: manual case-insensitive ASCII comparison
   --> tests/ui/manual_ignore_case_cmp.rs:102:5
    |
-LL |     "a" == b.to_ascii_lowercase();
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     "a" == b.to_ascii_lowercase();
-LL +     "a".eq_ignore_ascii_case(&b);
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:106:5
-   |
-LL |     a.to_ascii_lowercase() == b.to_ascii_lowercase();
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     a.to_ascii_lowercase() == b.to_ascii_lowercase();
-LL +     a.eq_ignore_ascii_case(b);
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:108:5
-   |
 LL |     a.to_ascii_lowercase() == "a";
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
@@ -373,7 +376,7 @@ LL +     a.eq_ignore_ascii_case("a");
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:110:5
+  --> tests/ui/manual_ignore_case_cmp.rs:104:5
    |
 LL |     "a" == b.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -385,7 +388,7 @@ LL +     "a".eq_ignore_ascii_case(b);
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:113:5
+  --> tests/ui/manual_ignore_case_cmp.rs:107:5
    |
 LL |     b.to_ascii_lowercase() == a.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -394,35 +397,35 @@ help: consider using `.eq_ignore_ascii_case()` instead
    |
 LL -     b.to_ascii_lowercase() == a.to_ascii_lowercase();
 LL +     b.eq_ignore_ascii_case(&a);
+   |
+
+error: manual case-insensitive ASCII comparison
+  --> tests/ui/manual_ignore_case_cmp.rs:109:5
+   |
+LL |     b.to_ascii_lowercase() == "a";
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using `.eq_ignore_ascii_case()` instead
+   |
+LL -     b.to_ascii_lowercase() == "a";
+LL +     b.eq_ignore_ascii_case("a");
+   |
+
+error: manual case-insensitive ASCII comparison
+  --> tests/ui/manual_ignore_case_cmp.rs:111:5
+   |
+LL |     "a" == a.to_ascii_lowercase();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using `.eq_ignore_ascii_case()` instead
+   |
+LL -     "a" == a.to_ascii_lowercase();
+LL +     "a".eq_ignore_ascii_case(&a);
    |
 
 error: manual case-insensitive ASCII comparison
   --> tests/ui/manual_ignore_case_cmp.rs:115:5
    |
-LL |     b.to_ascii_lowercase() == "a";
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     b.to_ascii_lowercase() == "a";
-LL +     b.eq_ignore_ascii_case("a");
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:117:5
-   |
-LL |     "a" == a.to_ascii_lowercase();
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     "a" == a.to_ascii_lowercase();
-LL +     "a".eq_ignore_ascii_case(&a);
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:121:5
-   |
 LL |     a.to_ascii_lowercase() == b.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
@@ -433,7 +436,7 @@ LL +     a.eq_ignore_ascii_case(b);
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:123:5
+  --> tests/ui/manual_ignore_case_cmp.rs:117:5
    |
 LL |     a.to_ascii_lowercase() == "a";
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -445,7 +448,7 @@ LL +     a.eq_ignore_ascii_case("a");
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:125:5
+  --> tests/ui/manual_ignore_case_cmp.rs:119:5
    |
 LL |     "a" == b.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -457,7 +460,7 @@ LL +     "a".eq_ignore_ascii_case(b);
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:128:5
+  --> tests/ui/manual_ignore_case_cmp.rs:122:5
    |
 LL |     b.to_ascii_lowercase() == a.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -469,7 +472,7 @@ LL +     b.eq_ignore_ascii_case(&a);
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:130:5
+  --> tests/ui/manual_ignore_case_cmp.rs:124:5
    |
 LL |     b.to_ascii_lowercase() == "a";
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -481,7 +484,7 @@ LL +     b.eq_ignore_ascii_case("a");
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:132:5
+  --> tests/ui/manual_ignore_case_cmp.rs:126:5
    |
 LL |     "a" == a.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -493,7 +496,31 @@ LL +     "a".eq_ignore_ascii_case(&a);
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:136:5
+  --> tests/ui/manual_ignore_case_cmp.rs:130:5
+   |
+LL |     a.to_ascii_lowercase() == b.to_ascii_lowercase();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using `.eq_ignore_ascii_case()` instead
+   |
+LL -     a.to_ascii_lowercase() == b.to_ascii_lowercase();
+LL +     a.eq_ignore_ascii_case(b);
+   |
+
+error: manual case-insensitive ASCII comparison
+  --> tests/ui/manual_ignore_case_cmp.rs:134:5
+   |
+LL |     a.to_ascii_lowercase() == b.to_ascii_lowercase();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using `.eq_ignore_ascii_case()` instead
+   |
+LL -     a.to_ascii_lowercase() == b.to_ascii_lowercase();
+LL +     a.eq_ignore_ascii_case(&b);
+   |
+
+error: manual case-insensitive ASCII comparison
+  --> tests/ui/manual_ignore_case_cmp.rs:138:5
    |
 LL |     a.to_ascii_lowercase() == b.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -507,13 +534,13 @@ LL +     a.eq_ignore_ascii_case(b);
 error: manual case-insensitive ASCII comparison
   --> tests/ui/manual_ignore_case_cmp.rs:140:5
    |
-LL |     a.to_ascii_lowercase() == b.to_ascii_lowercase();
+LL |     b.to_ascii_lowercase() == a.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 help: consider using `.eq_ignore_ascii_case()` instead
    |
-LL -     a.to_ascii_lowercase() == b.to_ascii_lowercase();
-LL +     a.eq_ignore_ascii_case(&b);
+LL -     b.to_ascii_lowercase() == a.to_ascii_lowercase();
+LL +     b.eq_ignore_ascii_case(&a);
    |
 
 error: manual case-insensitive ASCII comparison
@@ -529,19 +556,19 @@ LL +     a.eq_ignore_ascii_case(b);
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:146:5
+  --> tests/ui/manual_ignore_case_cmp.rs:148:5
    |
-LL |     b.to_ascii_lowercase() == a.to_ascii_lowercase();
+LL |     a.to_ascii_lowercase() == b.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 help: consider using `.eq_ignore_ascii_case()` instead
    |
-LL -     b.to_ascii_lowercase() == a.to_ascii_lowercase();
-LL +     b.eq_ignore_ascii_case(&a);
+LL -     a.to_ascii_lowercase() == b.to_ascii_lowercase();
+LL +     a.eq_ignore_ascii_case(b);
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:150:5
+  --> tests/ui/manual_ignore_case_cmp.rs:152:5
    |
 LL |     a.to_ascii_lowercase() == b.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -554,30 +581,6 @@ LL +     a.eq_ignore_ascii_case(b);
 
 error: manual case-insensitive ASCII comparison
   --> tests/ui/manual_ignore_case_cmp.rs:154:5
-   |
-LL |     a.to_ascii_lowercase() == b.to_ascii_lowercase();
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     a.to_ascii_lowercase() == b.to_ascii_lowercase();
-LL +     a.eq_ignore_ascii_case(b);
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:158:5
-   |
-LL |     a.to_ascii_lowercase() == b.to_ascii_lowercase();
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     a.to_ascii_lowercase() == b.to_ascii_lowercase();
-LL +     a.eq_ignore_ascii_case(b);
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:160:5
    |
 LL |     b.to_ascii_lowercase() == a.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

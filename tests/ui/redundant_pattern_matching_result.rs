@@ -1,5 +1,6 @@
+#![warn(clippy::all)]
 #![warn(clippy::redundant_pattern_matching)]
-#![allow(deprecated)]
+#![allow(deprecated, unused_must_use)]
 #![allow(
     clippy::if_same_then_else,
     clippy::match_like_matches_macro,

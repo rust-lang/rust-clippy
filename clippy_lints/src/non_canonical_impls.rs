@@ -1,8 +1,6 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::ty::implements_trait;
-use clippy_utils::{
-    is_diag_trait_item, is_from_proc_macro, is_res_lang_ctor, last_path_segment, path_res, std_or_core,
-};
+use clippy_utils::{is_from_proc_macro, is_res_lang_ctor, last_path_segment, path_res, std_or_core};
 use rustc_errors::Applicability;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{Expr, ExprKind, ImplItem, ImplItemKind, LangItem, Node, UnOp};
@@ -100,7 +98,7 @@ declare_clippy_lint! {
     ///
     /// impl PartialOrd for A {
     ///     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-    ///         Some(self.cmp(other))   // or self.cmp(other).into()
+    ///         Some(self.cmp(other))
     ///     }
     /// }
     /// ```
@@ -187,66 +185,65 @@ impl LateLintPass<'_> for NonCanonicalImpls {
 
             if block.stmts.is_empty()
                 && let Some(expr) = block.expr
-                && expr_is_cmp(cx, expr, impl_item, &mut needs_fully_qualified)
+                && expr_is_cmp(cx, &expr.kind, impl_item, &mut needs_fully_qualified)
             {
-                return;
             }
             // Fix #12683, allow [`needless_return`] here
             else if block.expr.is_none()
                 && let Some(stmt) = block.stmts.first()
                 && let rustc_hir::StmtKind::Semi(Expr {
-                    kind: ExprKind::Ret(Some(ret)),
+                    kind: ExprKind::Ret(Some(Expr { kind: ret_kind, .. })),
                     ..
                 }) = stmt.kind
-                && expr_is_cmp(cx, ret, impl_item, &mut needs_fully_qualified)
+                && expr_is_cmp(cx, ret_kind, impl_item, &mut needs_fully_qualified)
             {
-                return;
-            }
-            // If `Self` and `Rhs` are not the same type, bail. This makes creating a valid
-            // suggestion tons more complex.
-            else if let [lhs, rhs, ..] = trait_impl.args.as_slice()
-                && lhs != rhs
-            {
-                return;
-            }
+            } else {
+                // If `Self` and `Rhs` are not the same type, bail. This makes creating a valid
+                // suggestion tons more complex.
+                if let [lhs, rhs, ..] = trait_impl.args.as_slice()
+                    && lhs != rhs
+                {
+                    return;
+                }
 
-            span_lint_and_then(
-                cx,
-                NON_CANONICAL_PARTIAL_ORD_IMPL,
-                item.span,
-                "non-canonical implementation of `partial_cmp` on an `Ord` type",
-                |diag| {
-                    let [_, other] = body.params else {
-                        return;
-                    };
-                    let Some(std_or_core) = std_or_core(cx) else {
-                        return;
-                    };
+                span_lint_and_then(
+                    cx,
+                    NON_CANONICAL_PARTIAL_ORD_IMPL,
+                    item.span,
+                    "non-canonical implementation of `partial_cmp` on an `Ord` type",
+                    |diag| {
+                        let [_, other] = body.params else {
+                            return;
+                        };
+                        let Some(std_or_core) = std_or_core(cx) else {
+                            return;
+                        };
 
-                    let suggs = match (other.pat.simple_ident(), needs_fully_qualified) {
-                        (Some(other_ident), true) => vec![(
-                            block.span,
-                            format!("{{ Some({std_or_core}::cmp::Ord::cmp(self, {})) }}", other_ident.name),
-                        )],
-                        (Some(other_ident), false) => {
-                            vec![(block.span, format!("{{ Some(self.cmp({})) }}", other_ident.name))]
-                        },
-                        (None, true) => vec![
-                            (
+                        let suggs = match (other.pat.simple_ident(), needs_fully_qualified) {
+                            (Some(other_ident), true) => vec![(
                                 block.span,
-                                format!("{{ Some({std_or_core}::cmp::Ord::cmp(self, other)) }}"),
-                            ),
-                            (other.pat.span, "other".to_owned()),
-                        ],
-                        (None, false) => vec![
-                            (block.span, "{ Some(self.cmp(other)) }".to_owned()),
-                            (other.pat.span, "other".to_owned()),
-                        ],
-                    };
+                                format!("{{ Some({std_or_core}::cmp::Ord::cmp(self, {})) }}", other_ident.name),
+                            )],
+                            (Some(other_ident), false) => {
+                                vec![(block.span, format!("{{ Some(self.cmp({})) }}", other_ident.name))]
+                            },
+                            (None, true) => vec![
+                                (
+                                    block.span,
+                                    format!("{{ Some({std_or_core}::cmp::Ord::cmp(self, other)) }}"),
+                                ),
+                                (other.pat.span, "other".to_owned()),
+                            ],
+                            (None, false) => vec![
+                                (block.span, "{ Some(self.cmp(other)) }".to_owned()),
+                                (other.pat.span, "other".to_owned()),
+                            ],
+                        };
 
-                    diag.multipart_suggestion("change this to", suggs, Applicability::Unspecified);
-                },
-            );
+                        diag.multipart_suggestion("change this to", suggs, Applicability::Unspecified);
+                    },
+                );
+            }
         }
     }
 }
@@ -254,11 +251,10 @@ impl LateLintPass<'_> for NonCanonicalImpls {
 /// Return true if `expr_kind` is a `cmp` call.
 fn expr_is_cmp<'tcx>(
     cx: &LateContext<'tcx>,
-    expr: &'tcx Expr<'tcx>,
+    expr_kind: &'tcx ExprKind<'tcx>,
     impl_item: &ImplItem<'_>,
     needs_fully_qualified: &mut bool,
 ) -> bool {
-    let impl_item_did = impl_item.owner_id.def_id;
     if let ExprKind::Call(
         Expr {
             kind: ExprKind::Path(some_path),
@@ -266,17 +262,11 @@ fn expr_is_cmp<'tcx>(
             ..
         },
         [cmp_expr],
-    ) = expr.kind
+    ) = expr_kind
     {
         is_res_lang_ctor(cx, cx.qpath_res(some_path, *some_hir_id), LangItem::OptionSome)
             // Fix #11178, allow `Self::cmp(self, ..)` too
-            && self_cmp_call(cx, cmp_expr, impl_item_did, needs_fully_qualified)
-    } else if let ExprKind::MethodCall(_, recv, [], _) = expr.kind {
-        cx.tcx
-            .typeck(impl_item_did)
-            .type_dependent_def_id(expr.hir_id)
-            .is_some_and(|def_id| is_diag_trait_item(cx, def_id, sym::Into))
-            && self_cmp_call(cx, recv, impl_item_did, needs_fully_qualified)
+            && self_cmp_call(cx, cmp_expr, impl_item.owner_id.def_id, needs_fully_qualified)
     } else {
         false
     }

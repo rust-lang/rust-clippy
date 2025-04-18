@@ -1,10 +1,11 @@
 use super::utils::clone_or_copy_needed;
-use clippy_utils::diagnostics::span_lint;
+use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::ty::is_copy;
 use clippy_utils::usage::mutated_variables;
 use clippy_utils::visitors::{Descend, for_each_expr_without_closures};
 use clippy_utils::{is_res_lang_ctor, is_trait_method, path_res, path_to_local_id};
 use core::ops::ControlFlow;
+use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_hir::LangItem::{OptionNone, OptionSome};
 use rustc_lint::LateContext;
@@ -44,32 +45,30 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'tcx>, a
                 && is_res_lang_ctor(cx, path_res(cx, expr), OptionSome)
                 && let hir::ExprKind::Path(_) = args[0].kind
             {
-                span_lint(
+                span_lint_and_sugg(
                     cx,
                     UNNECESSARY_FILTER_MAP,
                     expr.span,
-                    String::from("this call to `.filter_map(..)` is unnecessary"),
+                    format!("{name} is unnecessary"),
+                    "try removing the filter_map",
+                    String::new(),
+                    Applicability::MaybeIncorrect,
                 );
-                return;
             }
-            if name == "filter_map" {
-                "map(..)"
-            } else {
-                "map(..).next()"
-            }
+            if name == "filter_map" { "map" } else { "map(..).next()" }
         } else if !found_mapping && !mutates_arg && (!clone_or_copy_needed || is_copy(cx, in_ty)) {
             match cx.typeck_results().expr_ty(body.value).kind() {
                 ty::Adt(adt, subst)
                     if cx.tcx.is_diagnostic_item(sym::Option, adt.did()) && in_ty == subst.type_at(0) =>
                 {
-                    if name == "filter_map" { "filter(..)" } else { "find(..)" }
+                    if name == "filter_map" { "filter" } else { "find" }
                 },
                 _ => return,
             }
         } else {
             return;
         };
-        span_lint(
+        span_lint_and_sugg(
             cx,
             if name == "filter_map" {
                 UNNECESSARY_FILTER_MAP
@@ -77,7 +76,10 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'tcx>, a
                 UNNECESSARY_FIND_MAP
             },
             expr.span,
-            format!("this `.{name}(..)` can be written more simply using `.{sugg}`"),
+            format!("this `.{name}` can be written more simply"),
+            "try instead",
+            sugg.to_string(),
+            Applicability::MaybeIncorrect,
         );
     }
 }

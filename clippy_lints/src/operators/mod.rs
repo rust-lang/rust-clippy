@@ -913,10 +913,9 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                 );
             },
             ExprKind::AssignOp(op, lhs, rhs) => {
-                let bin_op = op.node.into();
-                self.arithmetic_context.check_binary(cx, e, bin_op, lhs, rhs);
-                misrefactored_assign_op::check(cx, e, bin_op, lhs, rhs);
-                modulo_arithmetic::check(cx, e, bin_op, lhs, rhs, false);
+                self.arithmetic_context.check_binary(cx, e, op.node, lhs, rhs);
+                misrefactored_assign_op::check(cx, e, op.node, lhs, rhs);
+                modulo_arithmetic::check(cx, e, op.node, lhs, rhs, false);
             },
             ExprKind::Assign(lhs, rhs, _) => {
                 assign_op_pattern::check(cx, e, lhs, rhs);

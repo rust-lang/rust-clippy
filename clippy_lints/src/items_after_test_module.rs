@@ -44,7 +44,7 @@ declare_clippy_lint! {
 declare_lint_pass!(ItemsAfterTestModule => [ITEMS_AFTER_TEST_MODULE]);
 
 fn cfg_test_module<'tcx>(cx: &LateContext<'tcx>, item: &Item<'tcx>) -> bool {
-    if let ItemKind::Mod(_, test_mod) = item.kind
+    if let ItemKind::Mod(test_mod) = item.kind
         && item.span.hi() == test_mod.spans.inner_span.hi()
         && is_cfg_test(cx.tcx, item.hir_id())
         && !item.span.from_expansion()
@@ -67,20 +67,14 @@ impl LateLintPass<'_> for ItemsAfterTestModule {
         let after: Vec<_> = items
             .filter(|item| {
                 // Ignore the generated test main function
-                if let ItemKind::Fn { ident, .. } = item.kind
-                    && ident.name == sym::main
-                    && item.span.ctxt().outer_expn_data().kind == ExpnKind::AstPass(AstPass::TestHarness)
-                {
-                    false
-                } else {
-                    true
-                }
+                !(item.ident.name == sym::main
+                    && item.span.ctxt().outer_expn_data().kind == ExpnKind::AstPass(AstPass::TestHarness))
             })
             .collect();
 
         if let Some(last) = after.last()
             && after.iter().all(|&item| {
-                !matches!(item.kind, ItemKind::Mod(..)) && !item.span.from_expansion() && !is_from_proc_macro(cx, item)
+                !matches!(item.kind, ItemKind::Mod(_)) && !item.span.from_expansion() && !is_from_proc_macro(cx, item)
             })
             && !fulfill_or_allowed(cx, ITEMS_AFTER_TEST_MODULE, after.iter().map(|item| item.hir_id()))
         {

@@ -1,3 +1,4 @@
+//@no-rustfix
 #![allow(dead_code)]
 
 fn main() {

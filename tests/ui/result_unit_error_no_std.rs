@@ -14,7 +14,7 @@ pub fn returns_unit_error_lint() -> Result<u32, ()> {
     Err(())
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 extern "C" fn main(_argc: core::ffi::c_int, _argv: *const *const u8) -> core::ffi::c_int {
     0
 }

@@ -1,4 +1,5 @@
-#![warn(clippy::redundant_pattern_matching)]
+#![warn(clippy::all, clippy::redundant_pattern_matching)]
+#![allow(unused_must_use)]
 #![allow(
     clippy::match_like_matches_macro,
     clippy::needless_bool,

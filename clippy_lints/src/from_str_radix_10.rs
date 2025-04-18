@@ -73,7 +73,7 @@ impl<'tcx> LateLintPass<'tcx> for FromStrRadix10 {
             };
 
             let sugg =
-                Sugg::hir_with_applicability(cx, expr, "<string>", &mut Applicability::MachineApplicable).maybe_paren();
+                Sugg::hir_with_applicability(cx, expr, "<string>", &mut Applicability::MachineApplicable).maybe_par();
 
             span_lint_and_sugg(
                 cx,

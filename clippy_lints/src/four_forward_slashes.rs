@@ -43,7 +43,8 @@ impl<'tcx> LateLintPass<'tcx> for FourForwardSlashes {
         let sm = cx.sess().source_map();
         let mut span = cx
             .tcx
-            .hir_attrs(item.hir_id())
+            .hir()
+            .attrs(item.hir_id())
             .iter()
             .filter(|i| i.is_doc_comment())
             .fold(item.span.shrink_to_lo(), |span, attr| span.to(attr.span()));

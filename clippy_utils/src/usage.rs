@@ -66,8 +66,6 @@ impl MutVarsDelegate {
 impl<'tcx> Delegate<'tcx> for MutVarsDelegate {
     fn consume(&mut self, _: &PlaceWithHirId<'tcx>, _: HirId) {}
 
-    fn use_cloned(&mut self, _: &PlaceWithHirId<'tcx>, _: HirId) {}
-
     fn borrow(&mut self, cmt: &PlaceWithHirId<'tcx>, _: HirId, bk: ty::BorrowKind) {
         if bk == ty::BorrowKind::Mutable {
             self.update(cmt);
@@ -126,10 +124,10 @@ impl<'tcx> Visitor<'tcx> for BindingUsageFinder<'_, 'tcx> {
     type NestedFilter = nested_filter::OnlyBodies;
 
     fn visit_path(&mut self, path: &hir::Path<'tcx>, _: HirId) -> Self::Result {
-        if let Res::Local(id) = path.res
-            && self.binding_ids.contains(&id)
-        {
-            return ControlFlow::Break(());
+        if let Res::Local(id) = path.res {
+            if self.binding_ids.contains(&id) {
+                return ControlFlow::Break(());
+            }
         }
 
         ControlFlow::Continue(())

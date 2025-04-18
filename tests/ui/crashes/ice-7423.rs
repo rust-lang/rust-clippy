@@ -6,7 +6,7 @@ pub trait Trait {
 
 impl Trait for usize {
     fn f() {
-        unsafe extern "C" {
+        extern "C" {
             fn g() -> usize;
         }
     }

@@ -16,7 +16,6 @@ declare_tool_lint! {
 }
 
 declare_tool_lint! {
-//~^ default_lint
     pub clippy::TEST_LINT_DEFAULT,
     Warn,
     "default lint description",

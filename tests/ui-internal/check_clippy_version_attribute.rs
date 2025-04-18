@@ -38,7 +38,6 @@ declare_tool_lint! {
 // Invalid attributes
 ///////////////////////
 declare_tool_lint! {
-//~^ invalid_clippy_version_attribute
     #[clippy::version = "1.2.3.4.5.6"]
     pub clippy::INVALID_ONE,
     Warn,
@@ -47,7 +46,6 @@ declare_tool_lint! {
 }
 
 declare_tool_lint! {
-//~^ invalid_clippy_version_attribute
     #[clippy::version = "I'm a string"]
     pub clippy::INVALID_TWO,
     Warn,
@@ -59,7 +57,6 @@ declare_tool_lint! {
 // Missing attribute test
 ///////////////////////
 declare_tool_lint! {
-//~^ missing_clippy_version_attribute
     #[clippy::version]
     pub clippy::MISSING_ATTRIBUTE_ONE,
     Warn,
@@ -68,7 +65,6 @@ declare_tool_lint! {
 }
 
 declare_tool_lint! {
-//~^ missing_clippy_version_attribute
     pub clippy::MISSING_ATTRIBUTE_TWO,
     Warn,
     "Two",

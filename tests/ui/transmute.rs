@@ -23,21 +23,19 @@ fn my_vec() -> MyVec<i32> {
 #[allow(clippy::needless_lifetimes, clippy::transmute_ptr_to_ptr)]
 #[warn(clippy::useless_transmute)]
 unsafe fn _generic<'a, T, U: 'a>(t: &'a T) {
-    unsafe {
-        // FIXME: should lint
-        // let _: &'a T = core::mem::transmute(t);
+    // FIXME: should lint
+    // let _: &'a T = core::mem::transmute(t);
 
-        let _: &'a U = core::mem::transmute(t);
+    let _: &'a U = core::mem::transmute(t);
 
-        let _: *const T = core::mem::transmute(t);
-        //~^ useless_transmute
+    let _: *const T = core::mem::transmute(t);
+    //~^ useless_transmute
 
-        let _: *mut T = core::mem::transmute(t);
-        //~^ useless_transmute
+    let _: *mut T = core::mem::transmute(t);
+    //~^ useless_transmute
 
-        let _: *const U = core::mem::transmute(t);
-        //~^ useless_transmute
-    }
+    let _: *const U = core::mem::transmute(t);
+    //~^ useless_transmute
 }
 
 #[warn(clippy::useless_transmute)]
@@ -61,7 +59,7 @@ fn useless() {
         let _: *const usize = std::mem::transmute(5_isize);
         //~^ useless_transmute
 
-        let _ = std::ptr::dangling::<usize>();
+        let _ = 5_isize as *const usize;
 
         let _: *const usize = std::mem::transmute(1 + 1usize);
         //~^ useless_transmute
@@ -70,19 +68,19 @@ fn useless() {
     }
 
     unsafe fn _f<'a, 'b>(x: &'a u32) -> &'b u32 {
-        unsafe { std::mem::transmute(x) }
+        std::mem::transmute(x)
     }
 
     unsafe fn _f2<'a, 'b>(x: *const (dyn Iterator<Item = u32> + 'a)) -> *const (dyn Iterator<Item = u32> + 'b) {
-        unsafe { std::mem::transmute(x) }
+        std::mem::transmute(x)
     }
 
     unsafe fn _f3<'a, 'b>(x: fn(&'a u32)) -> fn(&'b u32) {
-        unsafe { std::mem::transmute(x) }
+        std::mem::transmute(x)
     }
 
     unsafe fn _f4<'a, 'b>(x: std::borrow::Cow<'a, str>) -> std::borrow::Cow<'b, str> {
-        unsafe { std::mem::transmute(x) }
+        std::mem::transmute(x)
     }
 }
 

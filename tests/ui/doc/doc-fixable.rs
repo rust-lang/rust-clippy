@@ -1,3 +1,4 @@
+
 //! This file tests for the `DOC_MARKDOWN` lint.
 
 #![allow(dead_code, incomplete_features)]
@@ -271,7 +272,7 @@ fn parenthesized_word() {}
 /// UXes
 fn plural_acronym_test() {}
 
-unsafe extern "C" {
+extern "C" {
     /// foo()
     //~^ doc_markdown
     fn in_extern();

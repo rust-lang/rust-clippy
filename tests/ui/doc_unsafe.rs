@@ -103,7 +103,7 @@ macro_rules! very_unsafe {
         ///
         /// Please keep the seat belt fastened
         pub unsafe fn drive() {
-            unsafe { whee() }
+            whee()
         }
     };
 }

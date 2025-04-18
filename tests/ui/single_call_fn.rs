@@ -94,7 +94,7 @@ trait Trait {
     //~^ single_call_fn
     fn foo(&self);
 }
-unsafe extern "C" {
+extern "C" {
     // test some kind of foreign item
     fn rand() -> std::ffi::c_int;
 }

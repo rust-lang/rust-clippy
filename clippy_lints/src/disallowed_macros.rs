@@ -3,7 +3,6 @@ use clippy_config::types::{DisallowedPath, create_disallowed_map};
 use clippy_utils::diagnostics::{span_lint_and_then, span_lint_hir_and_then};
 use clippy_utils::macros::macro_backtrace;
 use rustc_data_structures::fx::FxHashSet;
-use rustc_hir::def::DefKind;
 use rustc_hir::def_id::DefIdMap;
 use rustc_hir::{
     AmbigArg, Expr, ExprKind, ForeignItem, HirId, ImplItem, Item, ItemKind, OwnerId, Pat, Path, Stmt, TraitItem, Ty,
@@ -72,15 +71,8 @@ pub struct DisallowedMacros {
 
 impl DisallowedMacros {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf, earlies: AttrStorage) -> Self {
-        let (disallowed, _) = create_disallowed_map(
-            tcx,
-            &conf.disallowed_macros,
-            |def_kind| matches!(def_kind, DefKind::Macro(_)),
-            "macro",
-            false,
-        );
         Self {
-            disallowed,
+            disallowed: create_disallowed_map(tcx, &conf.disallowed_macros),
             seen: FxHashSet::default(),
             derive_src: None,
             earlies,

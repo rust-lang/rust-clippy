@@ -44,7 +44,6 @@ impl Message {
                 ".*AT&T x86 assembly syntax used",
                 "note: Clippy version: .*",
                 "the compiler unexpectedly panicked. this is a bug.",
-                "internal compiler error:",
             ])
             .unwrap()
         });

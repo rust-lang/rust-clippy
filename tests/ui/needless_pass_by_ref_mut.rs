@@ -1,9 +1,8 @@
 #![allow(
     clippy::if_same_then_else,
     clippy::no_effect,
-    clippy::ptr_arg,
     clippy::redundant_closure_call,
-    clippy::uninlined_format_args
+    clippy::ptr_arg
 )]
 #![warn(clippy::needless_pass_by_ref_mut)]
 //@no-rustfix
@@ -301,7 +300,7 @@ struct Data<T: ?Sized> {
 }
 // Unsafe functions should not warn.
 unsafe fn get_mut_unchecked<T>(ptr: &mut NonNull<Data<T>>) -> &mut T {
-    unsafe { &mut (*ptr.as_ptr()).value }
+    &mut (*ptr.as_ptr()).value
 }
 // Unsafe blocks should not warn.
 fn get_mut_unchecked2<T>(ptr: &mut NonNull<Data<T>>) -> &mut T {

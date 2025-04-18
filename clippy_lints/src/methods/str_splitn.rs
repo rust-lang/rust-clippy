@@ -238,14 +238,15 @@ fn indirect_usage<'tcx>(
             unwrap_kind: Some(unwrap_kind),
             ..
         } = iter_usage
-            && parent_id == local_hir_id
         {
-            return Some(IndirectUsage {
-                name: ident.name,
-                span: stmt.span,
-                init_expr,
-                unwrap_kind,
-            });
+            if parent_id == local_hir_id {
+                return Some(IndirectUsage {
+                    name: ident.name,
+                    span: stmt.span,
+                    init_expr,
+                    unwrap_kind,
+                });
+            }
         }
     }
 

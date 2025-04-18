@@ -321,7 +321,3 @@ fn panicky_arithmetic_ops(x: usize, y: isize) {
     let _x = false.then(|| f1 + f2);
     //~^ unnecessary_lazy_evaluations
 }
-
-fn issue14578() {
-    let _: Box<dyn std::future::Future<Output = i32>> = Box::new(true.then(async || 42).unwrap());
-}

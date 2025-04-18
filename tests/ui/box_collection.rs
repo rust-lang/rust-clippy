@@ -1,3 +1,4 @@
+#![warn(clippy::all)]
 #![allow(
     clippy::boxed_local,
     clippy::needless_pass_by_value,
