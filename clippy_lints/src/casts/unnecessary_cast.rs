@@ -1,6 +1,7 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::numeric_literal::NumericLiteral;
-use clippy_utils::source::{SpanRangeExt, snippet_opt};
+use clippy_utils::source::{SpanRangeExt, snippet_opt, snippet_with_applicability};
+use clippy_utils::sugg::{Sugg, has_enclosing_paren};
 use clippy_utils::visitors::{Visitable, for_each_expr_without_closures};
 use clippy_utils::{get_parent_expr, is_hir_ty_cfg_dependant, is_ty_alias, path_to_local};
 use rustc_ast::{LitFloatType, LitIntType, LitKind};
@@ -150,28 +151,35 @@ pub(super) fn check<'tcx>(
             return false;
         }
 
-        // If the whole cast expression is a unary expression (`(*x as T)`) or an addressof
-        // expression (`(&x as T)`), then not surrounding the suggestion into a block risks us
-        // changing the precedence of operators if the cast expression is followed by an operation
-        // with higher precedence than the unary operator (`(*x as T).foo()` would become
-        // `*x.foo()`, which changes what the `*` applies on).
-        // The same is true if the expression encompassing the cast expression is a unary
-        // expression or an addressof expression.
-        let needs_block = matches!(cast_expr.kind, ExprKind::Unary(..) | ExprKind::AddrOf(..))
-            || get_parent_expr(cx, expr).is_some_and(|e| matches!(e.kind, ExprKind::Unary(..) | ExprKind::AddrOf(..)));
-
-        span_lint_and_sugg(
+        span_lint_and_then(
             cx,
             UNNECESSARY_CAST,
             expr.span,
             format!("casting to the same type is unnecessary (`{cast_from}` -> `{cast_to}`)"),
-            "try",
-            if needs_block {
-                format!("{{ {cast_str} }}")
-            } else {
-                cast_str
+            |diag| {
+                let mut applicability = Applicability::MachineApplicable;
+                let sugg = Sugg::hir_with_applicability(cx, cast_expr, "..", &mut applicability);
+                if applicability != Applicability::MachineApplicable {
+                    return;
+                }
+
+                let snip = snippet_with_applicability(cx, expr.span, "..", &mut applicability);
+                if applicability != Applicability::MachineApplicable {
+                    return;
+                }
+
+                diag.span_suggestion(
+                    expr.span,
+                    "try",
+                    if has_enclosing_paren(&snip) {
+                        sugg.maybe_paren()
+                    } else {
+                        sugg
+                    }
+                    .to_string(),
+                    applicability,
+                );
             },
-            Applicability::MachineApplicable,
         );
         return true;
     }
