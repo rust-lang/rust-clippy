@@ -1376,3 +1376,44 @@ pub fn option_arg_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<Ty<'t
         _ => None,
     }
 }
+
+/// Check if a Ty<'_> of `Iterator` has side effects when iterated over by checking if it
+/// captures any mutable references or equivalents.
+pub fn is_iter_with_side_effects<'tcx>(cx: &LateContext<'tcx>, iter_ty: Ty<'tcx>) -> bool {
+    let mut phantoms = FxHashSet::default();
+    has_non_owning_mutable_access(cx, &mut phantoms, iter_ty)
+}
+
+/// Check if `ty` contains mutable references or equivalent, which includes:
+/// - A mutable reference/pointer.
+/// - A reference/pointer to a non-`Freeze` type.
+/// - A `PhantomData` type containing any of the previous.
+fn has_non_owning_mutable_access<'tcx>(
+    cx: &LateContext<'tcx>,
+    phantoms: &mut FxHashSet<Ty<'tcx>>,
+    ty: Ty<'tcx>,
+) -> bool {
+    match ty.kind() {
+        ty::Adt(adt_def, args) if adt_def.is_phantom_data() => {
+            phantoms.insert(ty)
+                && args
+                    .types()
+                    .any(|arg_ty| has_non_owning_mutable_access(cx, phantoms, arg_ty))
+        },
+        ty::Adt(adt_def, args) => adt_def
+            .all_fields()
+            .any(|field| has_non_owning_mutable_access(cx, phantoms, field.ty(cx.tcx, args))),
+        ty::Array(elem_ty, _) | ty::Slice(elem_ty) => has_non_owning_mutable_access(cx, phantoms, *elem_ty),
+
+        ty::RawPtr(pointee_ty, mutability) | ty::Ref(_, pointee_ty, mutability) => {
+            mutability.is_mut() || !pointee_ty.is_freeze(cx.tcx, cx.typing_env())
+        },
+        ty::Closure(_, closure_args) => {
+            matches!(closure_args.types().next_back(), Some(captures) if has_non_owning_mutable_access(cx, phantoms, captures))
+        },
+        ty::Tuple(tuple_args) => tuple_args
+            .iter()
+            .any(|arg_ty| has_non_owning_mutable_access(cx, phantoms, arg_ty)),
+        _ => false,
+    }
+}
