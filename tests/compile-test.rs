@@ -9,7 +9,7 @@ use cargo_metadata::diagnostic::{Applicability, Diagnostic};
 use clippy_config::ClippyConfiguration;
 use clippy_lints::LintInfo;
 use clippy_lints::declared_lints::LINTS;
-use clippy_lints::deprecated_lints::{DEPRECATED, DEPRECATED_VERSION, RENAMED};
+use clippy_lints::deprecated_lints::{DEPRECATED, Deprecation, RENAMED};
 use pulldown_cmark::{Options, Parser, html};
 use serde::Deserialize;
 use test_utils::IS_RUSTC_TEST_SUITE;
@@ -25,7 +25,7 @@ use std::ffi::{OsStr, OsString};
 use std::fmt::Write;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{Sender, channel};
-use std::{fs, iter, thread};
+use std::{fs, thread};
 
 // Test dependencies may need an `extern crate` here to ensure that they show up
 // in the depinfo file (otherwise cargo thinks they are unused)
@@ -474,10 +474,7 @@ impl DiagnosticCollector {
             let mut metadata: Vec<LintMetadata> = LINTS
                 .iter()
                 .map(|lint| LintMetadata::new(lint, &applicabilities, &configs))
-                .chain(
-                    iter::zip(DEPRECATED, DEPRECATED_VERSION)
-                        .map(|((lint, reason), version)| LintMetadata::new_deprecated(lint, reason, version)),
-                )
+                .chain(DEPRECATED.iter().copied().map(LintMetadata::new_deprecated))
                 .collect();
 
             metadata.sort_unstable_by(|a, b| a.id.cmp(&b.id));
@@ -576,24 +573,25 @@ impl LintMetadata {
         }
     }
 
-    fn new_deprecated(name: &str, reason: &str, version: &'static str) -> Self {
+    fn new_deprecated(deprecated: Deprecation) -> Self {
         // The reason starts with a lowercase letter and ends without a period.
         // This needs to be fixed for the website.
-        let mut reason = reason.to_owned();
+        let mut reason = deprecated.reason.to_owned();
         if let Some(reason) = reason.get_mut(0..1) {
             reason.make_ascii_uppercase();
         }
         Self {
-            id: name.strip_prefix("clippy::").unwrap().into(),
+            id: deprecated.name.strip_prefix("clippy::").unwrap().into(),
             id_location: None,
             group: "deprecated",
             level: "none",
             docs: format!(
                 "### What it does\n\n\
                 Nothing. This lint has been deprecated\n\n\
-                ### Deprecation reason\n\n{reason}.\n",
+                ### Deprecation reason\n\n{}.\n",
+                deprecated.reason,
             ),
-            version,
+            version: deprecated.version,
             applicability: Applicability::Unspecified,
         }
     }

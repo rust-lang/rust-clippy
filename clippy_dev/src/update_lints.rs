@@ -196,16 +196,11 @@ pub fn rename(old_name: &str, new_name: &str, uplift: bool) {
         });
     }
 
-    let version = crate::new_lint::get_stabilization_version();
     rewrite_file(Path::new("clippy_lints/src/deprecated_lints.rs"), |s| {
         insert_at_marker(
             s,
             "// end renamed lints. used by `cargo dev rename_lint`",
-            &format!(
-                "#[clippy::version = \"{version}\"]\n    \
-                (\"{}\", \"{}\"),\n    ",
-                lint.old_name, lint.new_name,
-            ),
+            &format!("(\"{}\", \"{}\"),\n    ", lint.old_name, lint.new_name,),
         )
     });
 
@@ -332,12 +327,11 @@ pub fn deprecate(name: &str, reason: &str) {
     let deprecated_lints_path = &*clippy_project_root().join("clippy_lints/src/deprecated_lints.rs");
 
     if remove_lint_declaration(stripped_name, &mod_path, &mut lints).unwrap_or(false) {
-        let version = crate::new_lint::get_stabilization_version();
         rewrite_file(deprecated_lints_path, |s| {
             insert_at_marker(
                 s,
                 "// end deprecated lints. used by `cargo dev deprecate_lint`",
-                &format!("#[clippy::version = \"{version}\"]\n    (\"{prefixed_name}\", \"{reason}\"),\n    ",),
+                &format!("#[clippy::version = \"nightly\"]\n    (\"{prefixed_name}\", \"{reason}\"),\n    ",),
             )
         });
 
@@ -547,6 +541,7 @@ impl DeprecatedLint {
     }
 }
 
+#[derive(Debug)]
 struct RenamedLint {
     old_name: String,
     new_name: String,
@@ -741,10 +736,10 @@ fn parse_contents(contents: &str, module: &str, lints: &mut Vec<Lint>) {
 
 /// Parse a source file looking for `declare_deprecated_lint` macro invocations.
 fn parse_deprecated_contents(contents: &str, deprecated: &mut Vec<DeprecatedLint>, renamed: &mut Vec<RenamedLint>) {
-    let Some((_, contents)) = contents.split_once("\ndeclare_with_version! { DEPRECATED") else {
+    let Some((_, contents)) = contents.split_once("\ndeprecated![") else {
         return;
     };
-    let Some((deprecated_src, renamed_src)) = contents.split_once("\ndeclare_with_version! { RENAMED") else {
+    let Some((deprecated_src, renamed_src)) = contents.split_once("\npub const RENAMED") else {
         return;
     };
 

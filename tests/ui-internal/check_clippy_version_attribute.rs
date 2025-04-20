@@ -34,6 +34,14 @@ declare_tool_lint! {
     report_in_external_macro: true
 }
 
+declare_tool_lint! {
+    #[clippy::version = "nightly"]
+    pub clippy::VALID_NIGHTLY,
+    Warn,
+    "Three",
+    report_in_external_macro: true
+}
+
 ///////////////////////
 // Invalid attributes
 ///////////////////////
@@ -90,6 +98,7 @@ declare_lint_pass!(Pass2 => [
     VALID_ONE,
     VALID_TWO,
     VALID_THREE,
+    VALID_NIGHTLY,
     INVALID_ONE,
     INVALID_TWO,
     MISSING_ATTRIBUTE_ONE,
