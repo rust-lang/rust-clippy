@@ -1,4 +1,4 @@
-#![feature(rustc_private)]
+#![feature(array_try_map, array_windows, if_let_guard, io_error_more, rustc_private)]
 #![warn(
     trivial_casts,
     trivial_numeric_casts,
@@ -14,6 +14,7 @@
 )]
 #![deny(clippy::derive_deserialize_allowing_unknown)]
 
+extern crate rustc_attr_parsing;
 extern crate rustc_data_structures;
 extern crate rustc_errors;
 extern crate rustc_hir;
@@ -21,9 +22,11 @@ extern crate rustc_middle;
 extern crate rustc_session;
 extern crate rustc_span;
 
+#[macro_use]
+mod de;
 mod conf;
 mod metadata;
 pub mod types;
 
-pub use conf::{Conf, get_configuration_metadata, lookup_conf_file, sanitize_explanation};
-pub use metadata::ClippyConfiguration;
+pub use conf::{Conf, sanitize_explanation};
+pub use metadata::ConfMetadata;

@@ -288,7 +288,7 @@ pub struct MemReplace {
 
 impl MemReplace {
     pub fn new(conf: &'static Conf) -> Self {
-        Self { msrv: conf.msrv }
+        Self { msrv: conf.msrv.into() }
     }
 }
 

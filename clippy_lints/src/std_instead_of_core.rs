@@ -95,7 +95,7 @@ impl StdReexports {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
             lint_points: Option::default(),
-            msrv: conf.msrv,
+            msrv: conf.msrv.into(),
         }
     }
 
