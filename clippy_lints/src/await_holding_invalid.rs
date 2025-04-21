@@ -1,8 +1,9 @@
 use clippy_config::Conf;
-use clippy_config::types::{DisallowedPathWithoutReplacement, create_disallowed_map};
+use clippy_config::types::{DisallowedPath, create_disallowed_map};
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::{def_path_res, match_def_path, paths};
 use rustc_hir as hir;
+use rustc_hir::def::DefKind;
 use rustc_hir::def_id::{DefId, DefIdMap};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::mir::CoroutineLayout;
@@ -174,7 +175,7 @@ declare_clippy_lint! {
 impl_lint_pass!(AwaitHolding => [AWAIT_HOLDING_LOCK, AWAIT_HOLDING_REFCELL_REF, AWAIT_HOLDING_INVALID_TYPE]);
 
 pub struct AwaitHolding {
-    def_ids: DefIdMap<(&'static str, &'static DisallowedPathWithoutReplacement)>,
+    def_ids: DefIdMap<&'static DisallowedPath>,
 }
 
 impl AwaitHolding {
@@ -182,10 +183,22 @@ impl AwaitHolding {
         let (def_ids, _) = create_disallowed_map(
             tcx,
             &conf.await_holding_invalid_types,
-            crate::disallowed_types::def_kind_predicate,
+            def_path_res,
+            |kind| {
+                matches!(
+                    kind,
+                    DefKind::AssocTy
+                        | DefKind::Enum
+                        | DefKind::ForeignTy
+                        | DefKind::Struct
+                        | DefKind::Trait
+                        | DefKind::TraitAlias
+                        | DefKind::TyAlias
+                        | DefKind::Union
+                )
+            },
             "type",
             false,
-            def_path_res,
         );
         Self { def_ids }
     }
@@ -252,26 +265,23 @@ impl AwaitHolding {
                             );
                         },
                     );
-                } else if let Some(&(path, disallowed_path)) = self.def_ids.get(&adt.did()) {
-                    emit_invalid_type(cx, ty_cause.source_info.span, path, disallowed_path);
+                } else if let Some(disallowed_path) = self.def_ids.get(&adt.did()) {
+                    emit_invalid_type(cx, ty_cause.source_info.span, disallowed_path);
                 }
             }
         }
     }
 }
 
-fn emit_invalid_type(
-    cx: &LateContext<'_>,
-    span: Span,
-    path: &'static str,
-    disallowed_path: &'static DisallowedPathWithoutReplacement,
-) {
+fn emit_invalid_type(cx: &LateContext<'_>, span: Span, disallowed_path: &'static DisallowedPath) {
     span_lint_and_then(
         cx,
         AWAIT_HOLDING_INVALID_TYPE,
         span,
-        format!("holding a disallowed type across an await point `{path}`"),
-        disallowed_path.diag_amendment(span),
+        "holding a disallowed type across an await point",
+        |diag| {
+            disallowed_path.add_diagnostic(diag);
+        },
     );
 }
 

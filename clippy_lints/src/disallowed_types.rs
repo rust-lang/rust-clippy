@@ -1,5 +1,5 @@
 use clippy_config::Conf;
-use clippy_config::types::{DisallowedPath, create_disallowed_map};
+use clippy_config::types::{DisallowedRemappablePath, create_disallowed_map};
 use clippy_utils::def_path_res;
 use clippy_utils::diagnostics::span_lint_and_then;
 use rustc_data_structures::fx::FxHashMap;
@@ -55,8 +55,8 @@ declare_clippy_lint! {
 }
 
 pub struct DisallowedTypes {
-    def_ids: DefIdMap<(&'static str, &'static DisallowedPath)>,
-    prim_tys: FxHashMap<PrimTy, (&'static str, &'static DisallowedPath)>,
+    def_ids: DefIdMap<&'static DisallowedRemappablePath>,
+    prim_tys: FxHashMap<PrimTy, &'static DisallowedRemappablePath>,
 }
 
 impl DisallowedTypes {
@@ -64,41 +64,36 @@ impl DisallowedTypes {
         let (def_ids, prim_tys) = create_disallowed_map(
             tcx,
             &conf.disallowed_types,
-            def_kind_predicate,
+            def_path_res,
+            |kind| {
+                matches!(
+                    kind,
+                    DefKind::AssocTy
+                        | DefKind::Enum
+                        | DefKind::ForeignTy
+                        | DefKind::Struct
+                        | DefKind::Trait
+                        | DefKind::TraitAlias
+                        | DefKind::TyAlias
+                        | DefKind::Union
+                )
+            },
             "type",
             true,
-            def_path_res,
         );
         Self { def_ids, prim_tys }
     }
 
     fn check_res_emit(&self, cx: &LateContext<'_>, res: &Res, span: Span) {
-        let (path, disallowed_path) = match res {
+        let disallowed_path = match res {
             Res::Def(_, did) if let Some(&x) = self.def_ids.get(did) => x,
             Res::PrimTy(prim) if let Some(&x) = self.prim_tys.get(prim) => x,
             _ => return,
         };
-        span_lint_and_then(
-            cx,
-            DISALLOWED_TYPES,
-            span,
-            format!("use of a disallowed type `{path}`"),
-            disallowed_path.diag_amendment(span),
-        );
+        span_lint_and_then(cx, DISALLOWED_TYPES, span, "use of a disallowed type", |diag| {
+            disallowed_path.add_diagnostic(span, diag);
+        });
     }
-}
-
-pub fn def_kind_predicate(def_kind: DefKind) -> bool {
-    matches!(
-        def_kind,
-        DefKind::Struct
-            | DefKind::Union
-            | DefKind::Enum
-            | DefKind::Trait
-            | DefKind::TyAlias
-            | DefKind::ForeignTy
-            | DefKind::AssocTy
-    )
 }
 
 impl_lint_pass!(DisallowedTypes => [DISALLOWED_TYPES]);

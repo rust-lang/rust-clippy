@@ -1,5 +1,5 @@
 use clippy_config::Conf;
-use clippy_config::types::{DisallowedPath, create_disallowed_map};
+use clippy_config::types::{DisallowedRemappablePath, create_disallowed_map};
 use clippy_utils::def_path_res;
 use clippy_utils::diagnostics::{span_lint_and_then, span_lint_hir_and_then};
 use clippy_utils::macros::macro_backtrace;
@@ -60,7 +60,7 @@ declare_clippy_lint! {
 }
 
 pub struct DisallowedMacros {
-    disallowed: DefIdMap<(&'static str, &'static DisallowedPath)>,
+    disallowed: DefIdMap<&'static DisallowedRemappablePath>,
     seen: FxHashSet<ExpnId>,
     // Track the most recently seen node that can have a `derive` attribute.
     // Needed to use the correct lint level.
@@ -76,10 +76,10 @@ impl DisallowedMacros {
         let (disallowed, _) = create_disallowed_map(
             tcx,
             &conf.disallowed_macros,
-            |def_kind| matches!(def_kind, DefKind::Macro(_)),
+            def_path_res,
+            |kind| matches!(kind, DefKind::Macro(..)),
             "macro",
             false,
-            def_path_res,
         );
         Self {
             disallowed,
@@ -99,9 +99,7 @@ impl DisallowedMacros {
                 return;
             }
 
-            if let Some(&(path, disallowed_path)) = self.disallowed.get(&mac.def_id) {
-                let msg = format!("use of a disallowed macro `{path}`");
-                let add_note = disallowed_path.diag_amendment(mac.span);
+            if let Some(disallowed_path) = self.disallowed.get(&mac.def_id) {
                 if matches!(mac.kind, MacroKind::Derive)
                     && let Some(derive_src) = derive_src
                 {
@@ -110,11 +108,15 @@ impl DisallowedMacros {
                         DISALLOWED_MACROS,
                         cx.tcx.local_def_id_to_hir_id(derive_src.def_id),
                         mac.span,
-                        msg,
-                        add_note,
+                        "use of a disallowed macro",
+                        |diag| {
+                            disallowed_path.add_diagnostic(mac.span, diag);
+                        },
                     );
                 } else {
-                    span_lint_and_then(cx, DISALLOWED_MACROS, mac.span, msg, add_note);
+                    span_lint_and_then(cx, DISALLOWED_MACROS, mac.span, "use of a disallowed macro", |diag| {
+                        disallowed_path.add_diagnostic(mac.span, diag);
+                    });
                 }
             }
         }

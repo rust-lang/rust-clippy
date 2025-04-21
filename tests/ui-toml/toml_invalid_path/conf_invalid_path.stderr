@@ -1,23 +1,20 @@
 warning: expected a macro, found a primitive type
-  --> $DIR/tests/ui-toml/toml_invalid_path/clippy.toml:4:1
+  --> $DIR/tests/ui-toml/toml_invalid_path/clippy.toml:5:8
    |
-LL | / [[disallowed-macros]]
-LL | | path = "bool"
-   | |_____________^
+LL | path = "bool"
+   |        ^^^^^^
 
 warning: `std::process::current_exe` does not refer to an existing function
-  --> $DIR/tests/ui-toml/toml_invalid_path/clippy.toml:7:1
+  --> $DIR/tests/ui-toml/toml_invalid_path/clippy.toml:8:8
    |
-LL | / [[disallowed-methods]]
-LL | | path = "std::process::current_exe"
-   | |__________________________________^
+LL | path = "std::process::current_exe"
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: expected a type, found a tuple variant
-  --> $DIR/tests/ui-toml/toml_invalid_path/clippy.toml:1:1
+  --> $DIR/tests/ui-toml/toml_invalid_path/clippy.toml:2:8
    |
-LL | / [[disallowed-types]]
-LL | | path = "std::result::Result::Err"
-   | |_________________________________^
+LL | path = "std::result::Result::Err"
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: 3 warnings emitted
 

@@ -1,8 +1,8 @@
 use crate::ConfMetadata;
 use crate::de::{DeserializeOrDefault, DiagCtxt, FromDefault, create_value_list_msg, find_closest_match};
 use crate::types::{
-    DisallowedPath, DisallowedPathWithoutReplacement, MacroMatcher, MatchLintBehaviour, PubUnderscoreFieldsBehaviour,
-    Rename, SourceItemOrdering, SourceItemOrderingModuleItemGroupings, SourceItemOrderingTraitAssocItemKinds,
+    DisallowedPath, DisallowedRemappablePath, MacroMatcher, MatchLintBehaviour, PubUnderscoreFieldsBehaviour, Rename,
+    SourceItemOrdering, SourceItemOrderingModuleItemGroupings, SourceItemOrderingTraitAssocItemKinds,
     SourceItemOrderingWithinModuleItemGroupings,
 };
 use rustc_attr_parsing::{RustcVersion, parse_version};
@@ -388,7 +388,7 @@ define_Conf! {
     avoid_breaking_exported_api("avoid-breaking-exported-api"): bool = true,
     /// The list of types which may not be held across an await point.
     #[lints(await_holding_invalid_type)]
-    await_holding_invalid_types("await-holding-invalid-types"): Vec<DisallowedPathWithoutReplacement>,
+    await_holding_invalid_types("await-holding-invalid-types"): Vec<DisallowedPath>,
     #[rename = disallowed_names]
     blacklisted_names("blacklisted-names"),
     /// For internal testing only, ignores the current `publish` settings in the Cargo manifest.
@@ -427,10 +427,10 @@ define_Conf! {
     cyclomatic_complexity_threshold("cyclomatic-complexity-threshold"),
     /// The list of disallowed macros, written as fully qualified paths.
     #[lints(disallowed_macros)]
-    disallowed_macros("disallowed-macros"): Vec<DisallowedPath>,
+    disallowed_macros("disallowed-macros"): Vec<DisallowedRemappablePath>,
     /// The list of disallowed methods, written as fully qualified paths.
     #[lints(disallowed_methods)]
-    disallowed_methods("disallowed-methods"): Vec<DisallowedPath>,
+    disallowed_methods("disallowed-methods"): Vec<DisallowedRemappablePath>,
     /// The list of disallowed names to lint about. NB: `bar` is not here since it has legitimate uses. The value
     /// `".."` can be used as part of the list to indicate that the configured values should be appended to the
     /// default configuration of Clippy. By default, any configuration will replace the default value.
@@ -438,7 +438,7 @@ define_Conf! {
     disallowed_names("disallowed-names"): Vec<String> = DEFAULT_DISALLOWED_NAMES,
     /// The list of disallowed types, written as fully qualified paths.
     #[lints(disallowed_types)]
-    disallowed_types("disallowed-types"): Vec<DisallowedPath>,
+    disallowed_types("disallowed-types"): Vec<DisallowedRemappablePath>,
     /// The list of words this lint should not consider as identifiers needing ticks. The value
     /// `".."` can be used as part of the list to indicate, that the configured values should be appended to the
     /// default configuration of Clippy. By default, any configuration will replace the default value. For example:

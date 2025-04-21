@@ -4,7 +4,7 @@ use crate::de::{
 use core::fmt::{self, Display};
 use itertools::Itertools;
 use rustc_data_structures::fx::{FxHashMap, FxHashSet};
-use rustc_errors::{Applicability, Diag};
+use rustc_errors::{Applicability, Diag, EmissionGuarantee};
 use rustc_hir::PrimTy;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefIdMap;
@@ -123,66 +123,33 @@ impl Deserialize for Rename {
     }
 }
 
-pub type DisallowedPathWithoutReplacement = DisallowedPath<false>;
-
-pub struct DisallowedPath<const REPLACEMENT_ALLOWED: bool = true> {
-    path: String,
-    reason: Option<String>,
-    replacement: Option<String>,
-    /// Setting `allow_invalid` to true suppresses a warning if `path` does not refer to an existing
-    /// definition.
-    ///
-    /// This could be useful when conditional compilation is used, or when a clippy.toml file is
-    /// shared among multiple projects.
-    allow_invalid: bool,
-    /// The span of the `DisallowedPath`.
-    ///
-    /// Used for diagnostics.
-    span: Span,
+pub struct DisallowedPath {
+    pub path: Spanned<String>,
+    pub reason: Option<String>,
+    pub allow_invalid: bool,
 }
-
-impl<const REPLACEMENT_ALLOWED: bool> DisallowedPath<REPLACEMENT_ALLOWED> {
-    pub fn path(&self) -> &str {
-        &self.path
-    }
-
-    pub fn diag_amendment(&self, span: Span) -> impl FnOnce(&mut Diag<'_, ()>) {
-        move |diag| {
-            if let Some(replacement) = &self.replacement {
-                diag.span_suggestion(
-                    span,
-                    self.reason.as_ref().map_or_else(|| String::from("use"), Clone::clone),
-                    replacement,
-                    Applicability::MachineApplicable,
-                );
-            } else if let Some(reason) = &self.reason {
-                diag.note(reason.clone());
-            }
+impl DisallowedPath {
+    pub fn add_diagnostic(&'static self, diag: &mut Diag<'_, impl EmissionGuarantee>) {
+        if let Some(reason) = &self.reason {
+            diag.note(&**reason);
         }
-    }
-
-    pub fn span(&self) -> Span {
-        self.span
-    }
-
-    pub fn set_span(&mut self, span: Span) {
-        self.span = span;
+        diag.span_note_once(self.path.span, "disallowed due to config");
     }
 }
-
-impl Deserialize for DisallowedPath<false> {
+impl Deserialize for DisallowedPath {
     fn deserialize(dcx: &DiagCtxt<'_>, value: Item<'_>) -> Option<Self> {
         if let Some(s) = value.as_str() {
             Some(DisallowedPath {
-                path: s.into(),
+                path: Spanned {
+                    node: s.into(),
+                    span: dcx.make_sp(value.span()),
+                },
                 reason: None,
-                replacement: None,
                 allow_invalid: false,
-                span: dcx.make_sp(value.span()),
             })
         } else if let Some((span, table)) = value.as_table_like() {
             deserialize_table!(dcx, table,
-                path("path"): String,
+                path("path"): Spanned<String>,
                 reason("reason"): String,
                 allow_invalid("allow-invalid"): bool,
             );
@@ -193,9 +160,7 @@ impl Deserialize for DisallowedPath<false> {
             Some(DisallowedPath {
                 path,
                 reason,
-                replacement: None,
                 allow_invalid: allow_invalid.unwrap_or(false),
-                span: dcx.make_sp(value.span()),
             })
         } else {
             dcx.span_err(value.span(), "expected either a string or an inline table");
@@ -204,19 +169,42 @@ impl Deserialize for DisallowedPath<false> {
     }
 }
 
-impl Deserialize for DisallowedPath<true> {
+pub struct DisallowedRemappablePath {
+    pub path: Spanned<String>,
+    pub reason: Option<String>,
+    pub replacement: Option<String>,
+    pub allow_invalid: bool,
+}
+impl DisallowedRemappablePath {
+    pub fn add_diagnostic(&'static self, sp: Span, diag: &mut Diag<'_, impl EmissionGuarantee>) {
+        if let Some(replacement) = &self.replacement {
+            diag.span_suggestion(
+                sp,
+                self.reason.as_deref().unwrap_or("use instead"),
+                &**replacement,
+                Applicability::MachineApplicable,
+            );
+        } else if let Some(reason) = &self.reason {
+            diag.note(&**reason);
+        }
+        diag.span_note_once(self.path.span, "disallowed due to config");
+    }
+}
+impl Deserialize for DisallowedRemappablePath {
     fn deserialize(dcx: &DiagCtxt<'_>, value: Item<'_>) -> Option<Self> {
         if let Some(s) = value.as_str() {
-            Some(DisallowedPath {
-                path: s.into(),
+            Some(DisallowedRemappablePath {
+                path: Spanned {
+                    node: s.into(),
+                    span: dcx.make_sp(value.span()),
+                },
                 reason: None,
                 replacement: None,
                 allow_invalid: false,
-                span: dcx.make_sp(value.span()),
             })
         } else if let Some((span, table)) = value.as_table_like() {
             deserialize_table!(dcx, table,
-                path("path"): String,
+                path("path"): Spanned<String>,
                 reason("reason"): String,
                 replacement("replacement"): String,
                 allow_invalid("allow-invalid"): bool,
@@ -225,12 +213,11 @@ impl Deserialize for DisallowedPath<true> {
                 dcx.span_err(span, "missing required field `path`");
                 return None;
             };
-            Some(DisallowedPath {
+            Some(DisallowedRemappablePath {
                 path,
                 reason,
                 replacement,
                 allow_invalid: allow_invalid.unwrap_or(false),
-                span: dcx.make_sp(value.span()),
             })
         } else {
             dcx.span_err(value.span(), "expected either a string or an inline table");
@@ -239,78 +226,111 @@ impl Deserialize for DisallowedPath<true> {
     }
 }
 
-/// Creates a map of disallowed items to the reason they were disallowed.
-#[allow(clippy::type_complexity)]
-pub fn create_disallowed_map<'tcx, const REPLACEMENT_ALLOWED: bool>(
-    tcx: TyCtxt<'tcx>,
-    disallowed_paths: &'static [DisallowedPath<REPLACEMENT_ALLOWED>],
-    def_kind_predicate: impl Fn(DefKind) -> bool,
-    predicate_description: &str,
+pub trait DisallowedPathLike {
+    fn path(&self) -> &Spanned<String>;
+    fn allow_invalid(&self) -> bool;
+}
+impl DisallowedPathLike for DisallowedPath {
+    fn path(&self) -> &Spanned<String> {
+        &self.path
+    }
+    fn allow_invalid(&self) -> bool {
+        self.allow_invalid
+    }
+}
+impl DisallowedPathLike for DisallowedRemappablePath {
+    fn path(&self) -> &Spanned<String> {
+        &self.path
+    }
+    fn allow_invalid(&self) -> bool {
+        self.allow_invalid
+    }
+}
+
+fn resolve_disallowed_path(
+    tcx: TyCtxt<'_>,
+    path: &'static Spanned<String>,
+    resolve: fn(TyCtxt<'_>, &[&str]) -> Vec<Res>,
+    filter_def_kinds: fn(DefKind) -> bool,
+    allowed_desc: &str,
     allow_prim_tys: bool,
-    resolve_path: fn(TyCtxt<'tcx>, &[&str]) -> Vec<Res>,
-) -> (
-    DefIdMap<(&'static str, &'static DisallowedPath<REPLACEMENT_ALLOWED>)>,
-    FxHashMap<PrimTy, (&'static str, &'static DisallowedPath<REPLACEMENT_ALLOWED>)>,
-) {
-    let mut def_ids: DefIdMap<(&'static str, &'static DisallowedPath<REPLACEMENT_ALLOWED>)> = DefIdMap::default();
-    let mut prim_tys: FxHashMap<PrimTy, (&'static str, &'static DisallowedPath<REPLACEMENT_ALLOWED>)> =
-        FxHashMap::default();
-    for disallowed_path in disallowed_paths {
-        let path = disallowed_path.path();
-        let mut resolutions = resolve_path(tcx, &path.split("::").collect::<Vec<_>>());
+    allow_invalid: bool,
+) -> Vec<Res> {
+    let mut resolutions = resolve(tcx, &path.node.split("::").collect::<Vec<_>>());
+    let mut found_def_id = None;
+    let mut found_prim_ty = false;
+    resolutions.retain(|res| match *res {
+        Res::Def(def_kind, def_id) => {
+            found_def_id = Some(def_id);
+            filter_def_kinds(def_kind)
+        },
+        Res::PrimTy(_) => {
+            found_prim_ty = true;
+            allow_prim_tys
+        },
+        _ => false,
+    });
 
-        let mut found_def_id = None;
-        let mut found_prim_ty = false;
-        resolutions.retain(|res| match res {
-            Res::Def(def_kind, def_id) => {
-                found_def_id = Some(*def_id);
-                def_kind_predicate(*def_kind)
-            },
-            Res::PrimTy(_) => {
-                found_prim_ty = true;
-                allow_prim_tys
-            },
-            _ => false,
-        });
-
-        if resolutions.is_empty() {
-            let span = disallowed_path.span();
-
-            if let Some(def_id) = found_def_id {
-                tcx.sess.dcx().span_warn(
-                    span,
-                    format!(
-                        "expected a {predicate_description}, found {} {}",
-                        tcx.def_descr_article(def_id),
-                        tcx.def_descr(def_id)
-                    ),
-                );
-            } else if found_prim_ty {
-                tcx.sess.dcx().span_warn(
-                    span,
-                    format!("expected a {predicate_description}, found a primitive type",),
-                );
-            } else if !disallowed_path.allow_invalid {
-                tcx.sess.dcx().span_warn(
-                    span,
-                    format!("`{path}` does not refer to an existing {predicate_description}"),
-                );
-            }
+    if resolutions.is_empty() {
+        if let Some(def_id) = found_def_id {
+            tcx.sess.dcx().span_warn(
+                path.span,
+                format!(
+                    "expected a {allowed_desc}, found {} {}",
+                    tcx.def_descr_article(def_id),
+                    tcx.def_descr(def_id)
+                ),
+            );
+        } else if found_prim_ty {
+            tcx.sess
+                .dcx()
+                .span_warn(path.span, format!("expected a {allowed_desc}, found a primitive type",));
+        } else if !allow_invalid {
+            tcx.sess.dcx().span_warn(
+                path.span,
+                format!("`{}` does not refer to an existing {allowed_desc}", path.node),
+            );
         }
+    }
+
+    resolutions
+}
+
+/// Creates a map of disallowed items to the reason they were disallowed.
+pub fn create_disallowed_map<T: DisallowedPathLike>(
+    tcx: TyCtxt<'_>,
+    disallowed_paths: &'static [T],
+    // pass `def_path_res` as a function to avoid depending on `clippy_utils`
+    resolve: fn(TyCtxt<'_>, &[&str]) -> Vec<Res>,
+    filter_def_kinds: fn(DefKind) -> bool,
+    allowed_desc: &str,
+    allow_prim_tys: bool,
+) -> (DefIdMap<&'static T>, FxHashMap<PrimTy, &'static T>) {
+    let mut def_ids: DefIdMap<&'static T> = DefIdMap::default();
+    let mut prim_tys: FxHashMap<PrimTy, &'static T> = FxHashMap::default();
+    for disallowed_path in disallowed_paths {
+        let resolutions = resolve_disallowed_path(
+            tcx,
+            disallowed_path.path(),
+            resolve,
+            filter_def_kinds,
+            allowed_desc,
+            allow_prim_tys,
+            disallowed_path.allow_invalid(),
+        );
 
         for res in resolutions {
             match res {
                 Res::Def(_, def_id) => {
-                    def_ids.insert(def_id, (path, disallowed_path));
+                    def_ids.insert(def_id, disallowed_path);
                 },
                 Res::PrimTy(ty) => {
-                    prim_tys.insert(ty, (path, disallowed_path));
+                    prim_tys.insert(ty, disallowed_path);
                 },
                 _ => unreachable!(),
             }
         }
     }
-
     (def_ids, prim_tys)
 }
 
