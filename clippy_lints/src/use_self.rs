@@ -62,7 +62,7 @@ pub struct UseSelf {
 impl UseSelf {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
-            msrv: conf.msrv,
+            msrv: conf.msrv.into(),
             stack: Vec::new(),
         }
     }

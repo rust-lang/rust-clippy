@@ -1,3 +1,3 @@
-//@error-in-other-file: error reading Clippy's configuration file: expected `.`, `=`
+//@error-in-other-file: error reading `clippy.toml`: expected `.`, `=`
 
 fn main() {}

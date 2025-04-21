@@ -1,5 +1,6 @@
 use clippy_config::Conf;
 use clippy_config::types::{DisallowedPath, create_disallowed_map};
+use clippy_utils::def_path_res;
 use clippy_utils::diagnostics::{span_lint_and_then, span_lint_hir_and_then};
 use clippy_utils::macros::macro_backtrace;
 use rustc_data_structures::fx::FxHashSet;
@@ -78,6 +79,7 @@ impl DisallowedMacros {
             |def_kind| matches!(def_kind, DefKind::Macro(_)),
             "macro",
             false,
+            def_path_res,
         );
         Self {
             disallowed,

@@ -70,7 +70,7 @@ pub struct InstantSubtraction {
 
 impl InstantSubtraction {
     pub fn new(conf: &'static Conf) -> Self {
-        Self { msrv: conf.msrv }
+        Self { msrv: conf.msrv.into() }
     }
 }
 

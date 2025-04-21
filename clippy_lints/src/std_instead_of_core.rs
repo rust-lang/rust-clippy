@@ -99,7 +99,7 @@ impl StdReexports {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
             prev_span: Span::default(),
-            msrv: conf.msrv,
+            msrv: conf.msrv.into(),
         }
     }
 }

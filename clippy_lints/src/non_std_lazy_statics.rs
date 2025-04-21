@@ -75,7 +75,7 @@ impl NonStdLazyStatic {
     #[must_use]
     pub fn new(conf: &'static Conf) -> Self {
         Self {
-            msrv: conf.msrv,
+            msrv: conf.msrv.into(),
             lazy_static_lazy_static: Vec::new(),
             once_cell_crate: Vec::new(),
             once_cell_sync_lazy: Vec::new(),

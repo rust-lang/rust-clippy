@@ -1,5 +1,6 @@
 use clippy_config::Conf;
 use clippy_config::types::{DisallowedPath, create_disallowed_map};
+use clippy_utils::def_path_res;
 use clippy_utils::diagnostics::span_lint_and_then;
 use rustc_hir::def::{CtorKind, DefKind, Res};
 use rustc_hir::def_id::DefIdMap;
@@ -74,6 +75,7 @@ impl DisallowedMethods {
             },
             "function",
             false,
+            def_path_res,
         );
         Self { disallowed }
     }

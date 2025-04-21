@@ -5,7 +5,6 @@ use rustc_attr_parsing::{RustcVersion, parse_version};
 use rustc_lint::LateContext;
 use rustc_session::Session;
 use rustc_span::{Symbol, sym};
-use serde::Deserialize;
 use smallvec::SmallVec;
 use std::iter::once;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -89,15 +88,10 @@ static SEEN_MSRV_ATTR: AtomicBool = AtomicBool::new(false);
 #[derive(Copy, Clone, Debug, Default)]
 pub struct Msrv(Option<RustcVersion>);
 
-impl<'de> Deserialize<'de> for Msrv {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let v = String::deserialize(deserializer)?;
-        parse_version(Symbol::intern(&v))
-            .map(|v| Self(Some(v)))
-            .ok_or_else(|| serde::de::Error::custom("not a valid Rust version"))
+impl From<Option<RustcVersion>> for Msrv {
+    #[inline]
+    fn from(value: Option<RustcVersion>) -> Self {
+        Self(value)
     }
 }
 
@@ -154,13 +148,16 @@ pub struct MsrvStack {
     stack: SmallVec<[RustcVersion; 2]>,
 }
 
-impl MsrvStack {
-    pub fn new(initial: Msrv) -> Self {
+impl From<Option<RustcVersion>> for MsrvStack {
+    #[inline]
+    fn from(value: Option<RustcVersion>) -> Self {
         Self {
-            stack: SmallVec::from_iter(initial.0),
+            stack: SmallVec::from_iter(value),
         }
     }
+}
 
+impl MsrvStack {
     pub fn current(&self) -> Option<RustcVersion> {
         self.stack.last().copied()
     }

@@ -9,10 +9,10 @@ publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clippy_utils = { path = "../clippy_utils" }
+arrayvec = { version = "0.7", default-features = false }
 itertools = "0.12"
-serde = { version = "1.0", features = ["derive"] }
-toml = "0.7.3"
+rustc-semver = "1.1"
+toml_edit = { version = "0.22.9", default-features = false, features = ["parse"] }
 
 [dev-dependencies]
 walkdir = "2.3"
