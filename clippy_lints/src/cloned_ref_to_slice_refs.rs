@@ -44,18 +44,18 @@ declare_clippy_lint! {
     "cloning a reference for slice references"
 }
 
-pub struct ClonedRefToSliceRefs<'a> {
-    msrv: &'a Msrv,
+pub struct ClonedRefToSliceRefs {
+    msrv: Msrv,
 }
-impl<'a> ClonedRefToSliceRefs<'a> {
-    pub fn new(conf: &'a Conf) -> Self {
-        Self { msrv: &conf.msrv }
+impl ClonedRefToSliceRefs {
+    pub fn new(conf: &Conf) -> Self {
+        Self { msrv: conf.msrv.into() }
     }
 }
 
-impl_lint_pass!(ClonedRefToSliceRefs<'_> => [CLONED_REF_TO_SLICE_REFS]);
+impl_lint_pass!(ClonedRefToSliceRefs => [CLONED_REF_TO_SLICE_REFS]);
 
-impl<'tcx> LateLintPass<'tcx> for ClonedRefToSliceRefs<'_> {
+impl<'tcx> LateLintPass<'tcx> for ClonedRefToSliceRefs {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
         if self.msrv.meets(cx, {
             if is_in_const_context(cx) {
