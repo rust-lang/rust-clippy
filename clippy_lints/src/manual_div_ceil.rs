@@ -47,7 +47,7 @@ pub struct ManualDivCeil {
 impl ManualDivCeil {
     #[must_use]
     pub fn new(conf: &'static Conf) -> Self {
-        Self { msrv: conf.msrv }
+        Self { msrv: conf.msrv.into() }
     }
 }
 

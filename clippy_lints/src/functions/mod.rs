@@ -471,7 +471,7 @@ impl Functions {
                 .iter()
                 .flat_map(|p| def_path_def_ids(tcx, &p.split("::").collect::<Vec<_>>()))
                 .collect(),
-            msrv: conf.msrv,
+            msrv: conf.msrv.into(),
         }
     }
 }

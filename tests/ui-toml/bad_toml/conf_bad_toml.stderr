@@ -1,4 +1,4 @@
-error: error reading Clippy's configuration file: expected `.`, `=`
+error: error reading `clippy.toml`: expected `.`, `=`
   --> $DIR/tests/ui-toml/bad_toml/clippy.toml:1:4
    |
 LL | fn this_is_obviously(not: a, toml: file) {
