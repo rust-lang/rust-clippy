@@ -553,6 +553,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::needless_parens_on_range_literals::NEEDLESS_PARENS_ON_RANGE_LITERALS_INFO,
     crate::needless_pass_by_ref_mut::NEEDLESS_PASS_BY_REF_MUT_INFO,
     crate::needless_pass_by_value::NEEDLESS_PASS_BY_VALUE_INFO,
+    crate::needless_path_new::NEEDLESS_PATH_NEW_INFO,
     crate::needless_question_mark::NEEDLESS_QUESTION_MARK_INFO,
     crate::needless_update::NEEDLESS_UPDATE_INFO,
     crate::neg_cmp_op_on_partial_ord::NEG_CMP_OP_ON_PARTIAL_ORD_INFO,
