@@ -9383,45 +9383,29 @@ however sometimes it is better to let users decide the argument type
 <pre><code class="language-rust">type OptBox&lt;T&gt; = Option&lt;Box&lt;T&gt;&gt;;
 </code></pre>
 </div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.72.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+needless_pub_self">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/visibility.rs#L10">View Source</a></div></div></div></article><article class="panel panel-default" id="needless_question_mark"><input id="label-needless_question_mark" type="checkbox"><label for="label-needless_question_mark"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-needless_question_mark"><span>needless_question_mark</span> <a href="#needless_question_mark" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-complexity">complexity</span> <span class="label label-lint-level label-lint-level-warn">warn</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
-<p>Suggests alternatives for useless applications of <code>?</code> in terminating expressions</p>
+<p>Suggests replacing <code>Ok(x?)</code> or <code>Some(x?)</code> with <code>x</code> in return positions where the <code>?</code> operator
+is not needed to convert the type of <code>x</code>.</p>
 <h3>Why is this bad?</h3>
 <p>There’s no reason to use <code>?</code> to short-circuit when execution of the body will end there anyway.</p>
 <h3>Example</h3>
-<pre><code class="language-rust">struct TO {
-    magic: Option&lt;usize&gt;,
+<pre><code class="language-rust">fn f(s: &amp;str) -&gt; Option&lt;usize&gt; {
+    Some(s.find('x')?)
 }
 
-fn f(to: TO) -&gt; Option&lt;usize&gt; {
-    Some(to.magic?)
+fn g(s: &amp;str) -&gt; Result&lt;usize, ParseIntError&gt; {
+    Ok(s.parse()?)
 }
-
-struct TR {
-    magic: Result&lt;usize, bool&gt;,
-}
-
-fn g(tr: Result&lt;TR, bool&gt;) -&gt; Result&lt;usize, bool&gt; {
-    tr.and_then(|t| Ok(t.magic?))
-}
-
 </code></pre>
 <p>Use instead:</p>
-<pre><code class="language-rust">struct TO {
-    magic: Option&lt;usize&gt;,
+<pre><code class="language-rust">fn f(s: &amp;str) -&gt; Option&lt;usize&gt; {
+    s.find('x')
 }
 
-fn f(to: TO) -&gt; Option&lt;usize&gt; {
-    to.magic
-}
-
-struct TR {
-    magic: Result&lt;usize, bool&gt;,
-}
-
-fn g(tr: Result&lt;TR, bool&gt;) -&gt; Result&lt;usize, bool&gt; {
-    tr.and_then(|t| t.magic)
+fn g(s: &amp;str) -&gt; Result&lt;usize, ParseIntError&gt; {
+    s.parse()
 }
 </code></pre>
-</div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.51.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+needless_question_mark">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/needless_question_mark.rs#L10">View Source</a></div></div></div></article><article class="panel panel-default" id="needless_range_loop"><input id="label-needless_range_loop" type="checkbox"><label for="label-needless_range_loop"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-needless_range_loop"><span>needless_range_loop</span> <a href="#needless_range_loop" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-style">style</span> <span class="label label-lint-level label-lint-level-warn">warn</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
+</div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.51.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+needless_question_mark">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/needless_question_mark.rs#L9">View Source</a></div></div></div></article><article class="panel panel-default" id="needless_range_loop"><input id="label-needless_range_loop" type="checkbox"><label for="label-needless_range_loop"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-needless_range_loop"><span>needless_range_loop</span> <a href="#needless_range_loop" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-style">style</span> <span class="label label-lint-level label-lint-level-warn">warn</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
 <p>Checks for looping over the range of <code>0..len</code> of some
 collection just to get the values by index.</p>
 <h3>Why is this bad?</h3>
