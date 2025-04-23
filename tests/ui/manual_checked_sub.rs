@@ -59,16 +59,6 @@ fn positive_tests() {
         some_function(a - b);
     }
 
-    if a >= b {
-        //~^ manual_checked_sub
-        macro_rules! subtract {
-            () => {
-                a - b
-            };
-        }
-        let _ = subtract!();
-    }
-
     struct Example {
         value: u32,
     }
@@ -128,6 +118,28 @@ fn negative_tests() {
 
     if 10 >= 5 {
         let _ = 10 - 5;
+    }
+
+    macro_rules! id {
+        ($e:ident) => {
+            $e
+        };
+    }
+    if id!(a) >= id!(b) {
+        let d = id!(a) - id!(b);
+    }
+
+    if a >= b {
+        let d = id!(a) - id!(b);
+    }
+
+    if a >= b {
+        macro_rules! subtract {
+            () => {
+                a - b
+            };
+        }
+        let _ = subtract!();
     }
 }
 
