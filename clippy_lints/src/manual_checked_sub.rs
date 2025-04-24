@@ -154,7 +154,7 @@ impl<'tcx> Visitor<'tcx> for SubExprVisitor<'_, 'tcx> {
     }
 }
 
-impl<'tcx> SubExprVisitor<'_, 'tcx> {
+impl SubExprVisitor<'_, '_> {
     fn emit_lint(&mut self) {
         span_lint(
             self.cx,
