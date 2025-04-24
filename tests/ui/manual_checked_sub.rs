@@ -1,4 +1,5 @@
 #![allow(clippy::collapsible_if)]
+// #![allow(clippy::manual_abs_diff)]
 #![warn(clippy::manual_checked_sub)]
 
 fn positive_tests() {

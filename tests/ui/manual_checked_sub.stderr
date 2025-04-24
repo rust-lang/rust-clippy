@@ -1,5 +1,5 @@
 error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
-  --> tests/ui/manual_checked_sub.rs:9:5
+  --> tests/ui/manual_checked_sub.rs:10:5
    |
 LL | /     if a >= b {
 LL | |
@@ -12,7 +12,7 @@ LL | |     }
    = help: to override `-D warnings` add `#[allow(clippy::manual_checked_sub)]`
 
 error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
-  --> tests/ui/manual_checked_sub.rs:15:5
+  --> tests/ui/manual_checked_sub.rs:16:5
    |
 LL | /     if b <= a {
 LL | |
@@ -21,7 +21,7 @@ LL | |     }
    | |_____^
 
 error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
-  --> tests/ui/manual_checked_sub.rs:20:5
+  --> tests/ui/manual_checked_sub.rs:21:5
    |
 LL | /     if a >= b {
 LL | |
@@ -32,7 +32,7 @@ LL | |     }
    | |_____^
 
 error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
-  --> tests/ui/manual_checked_sub.rs:27:5
+  --> tests/ui/manual_checked_sub.rs:28:5
    |
 LL | /     if a >= b {
 LL | |
@@ -43,7 +43,7 @@ LL | |     }
    | |_____^
 
 error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
-  --> tests/ui/manual_checked_sub.rs:34:5
+  --> tests/ui/manual_checked_sub.rs:35:5
    |
 LL | /     if a > 0 {
 LL | |
@@ -52,7 +52,7 @@ LL | |     }
    | |_____^
 
 error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
-  --> tests/ui/manual_checked_sub.rs:39:5
+  --> tests/ui/manual_checked_sub.rs:40:5
    |
 LL | /     if 0 < a {
 LL | |
@@ -61,7 +61,7 @@ LL | |     }
    | |_____^
 
 error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
-  --> tests/ui/manual_checked_sub.rs:45:5
+  --> tests/ui/manual_checked_sub.rs:46:5
    |
 LL | /     if a >= b {
 LL | |
@@ -71,7 +71,7 @@ LL | |     }
    | |_____^
 
 error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
-  --> tests/ui/manual_checked_sub.rs:51:5
+  --> tests/ui/manual_checked_sub.rs:52:5
    |
 LL | /     if a > 0 {
 LL | |
@@ -81,7 +81,7 @@ LL | |     }
    | |_____^
 
 error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
-  --> tests/ui/manual_checked_sub.rs:57:5
+  --> tests/ui/manual_checked_sub.rs:58:5
    |
 LL | /     if a >= b {
 LL | |
@@ -90,7 +90,7 @@ LL | |     }
    | |_____^
 
 error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
-  --> tests/ui/manual_checked_sub.rs:66:5
+  --> tests/ui/manual_checked_sub.rs:67:5
    |
 LL | /     if a >= b {
 LL | |
@@ -99,7 +99,7 @@ LL | |     }
    | |_____^
 
 error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
-  --> tests/ui/manual_checked_sub.rs:71:5
+  --> tests/ui/manual_checked_sub.rs:72:5
    |
 LL | /     if a >= b {
 LL | |
@@ -110,7 +110,7 @@ LL | |     }
    | |_____^
 
 error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
-  --> tests/ui/manual_checked_sub.rs:79:9
+  --> tests/ui/manual_checked_sub.rs:80:9
    |
 LL | /         if c > 0 {
 LL | |
