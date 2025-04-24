@@ -1,6 +1,7 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::{get_parent_as_impl, has_repr_attr, is_bool};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_abi::ExternAbi;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Body, FnDecl, Item, ItemKind, TraitFn, TraitItem, TraitItemKind, Ty};

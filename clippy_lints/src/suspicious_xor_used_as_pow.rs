@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::numeric_literal::NumericLiteral;
 use clippy_utils::source::snippet;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind};

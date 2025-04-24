@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_help;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::ast::{Crate, Inline, Item, ItemKind, ModKind};
 use rustc_errors::MultiSpan;
 use rustc_lint::{EarlyContext, EarlyLintPass, Level, LintContext};

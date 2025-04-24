@@ -10,6 +10,7 @@ use clippy_utils::{
     MaybePath, eq_expr_value, is_diag_trait_item, is_in_const_context, is_trait_method, path_res, path_to_local_id,
     peel_blocks, peel_blocks_with_stmt,
 };
+use declare_clippy_lint::declare_clippy_lint;
 use itertools::Itertools;
 use rustc_errors::{Applicability, Diag};
 use rustc_hir::def::Res;

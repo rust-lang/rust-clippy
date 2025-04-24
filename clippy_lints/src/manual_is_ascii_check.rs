@@ -4,6 +4,7 @@ use clippy_utils::macros::matching_root_macro_call;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::{higher, is_in_const_context, path_to_local, peel_ref_operators, sym};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::LitKind::{Byte, Char};
 use rustc_ast::ast::RangeLimits;
 use rustc_errors::Applicability;

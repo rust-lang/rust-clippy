@@ -5,6 +5,7 @@ use clippy_utils::ty::{
     implements_trait, implements_trait_with_env_from_iter, is_copy, is_type_diagnostic_item, is_type_lang_item,
 };
 use clippy_utils::{is_self, peel_hir_ty_options};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_abi::ExternAbi;
 use rustc_errors::{Applicability, Diag};
 use rustc_hir::intravisit::FnKind;

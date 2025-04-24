@@ -3,6 +3,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::{is_diag_item_method, is_trait_method, path_to_local_id, sym};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::{Body, Closure, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};

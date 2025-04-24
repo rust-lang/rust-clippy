@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::ty::{get_type_diagnostic_name, implements_trait};
 use clippy_utils::{higher, sym};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir::{BorrowKind, Closure, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;

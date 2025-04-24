@@ -1,5 +1,6 @@
 use clippy_utils::attrs::span_contains_cfg;
 use clippy_utils::diagnostics::{span_lint_and_then, span_lint_hir_and_then};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_data_structures::fx::FxIndexMap;
 use rustc_errors::Applicability;
 use rustc_hir::def::CtorOf;

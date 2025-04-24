@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::{span_lint_and_then, span_lint_hir};
 use clippy_utils::get_parent_expr;
 use clippy_utils::sugg::Sugg;
+use declare_clippy_lint::declare_clippy_lint;
 use hir::Param;
 use rustc_errors::Applicability;
 use rustc_hir as hir;

@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Body, Expr, ExprKind, FnDecl, FnRetTy, TyKind, UnOp};
 use rustc_hir_analysis::lower_ty;

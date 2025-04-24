@@ -11,6 +11,7 @@ mod too_many_lines;
 use clippy_config::Conf;
 use clippy_utils::msrvs::Msrv;
 use clippy_utils::paths::{PathNS, lookup_path_str};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir as hir;
 use rustc_hir::intravisit;
 use rustc_lint::{LateContext, LateLintPass};

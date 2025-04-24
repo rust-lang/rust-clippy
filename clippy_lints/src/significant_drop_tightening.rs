@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::{indent_of, snippet};
 use clippy_utils::{expr_or_init, get_attr, path_to_local, peel_hir_expr_unary, sym};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_data_structures::fx::{FxHashMap, FxIndexMap};
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};

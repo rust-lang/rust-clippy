@@ -5,6 +5,7 @@ use clippy_utils::ty::{get_type_diagnostic_name, is_copy, is_type_diagnostic_ite
 use clippy_utils::{
     get_parent_expr, is_inherent_method_call, is_trait_item, is_trait_method, is_ty_alias, path_to_local, sym,
 };
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{BindingMode, Expr, ExprKind, HirId, MatchSource, Mutability, Node, PatKind};

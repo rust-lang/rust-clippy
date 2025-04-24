@@ -3,6 +3,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_in_test;
 use clippy_utils::macros::{MacroCall, macro_backtrace};
 use clippy_utils::source::snippet_with_applicability;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, Node};

@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::sym;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};

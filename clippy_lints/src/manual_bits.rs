@@ -3,6 +3,7 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::get_parent_expr;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::snippet_with_context;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::ast::LitKind;
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;

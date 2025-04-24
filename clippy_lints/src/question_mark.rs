@@ -12,6 +12,7 @@ use clippy_utils::{
     pat_and_expr_can_be_question_mark, path_res, path_to_local, path_to_local_id, peel_blocks, peel_blocks_with_stmt,
     span_contains_cfg, span_contains_comment, sym,
 };
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::LangItem::{self, OptionNone, OptionSome, ResultErr, ResultOk};
 use rustc_hir::def::Res;

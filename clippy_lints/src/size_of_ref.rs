@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::{path_def_id, peel_middle_ty_refs};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;

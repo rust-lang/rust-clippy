@@ -1,6 +1,7 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_then};
 use clippy_utils::{is_from_proc_macro, trait_ref_of_method};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_data_structures::fx::{FxHashMap, FxHashSet};
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::{Visitor, walk_impl_item, walk_item, walk_param_bound, walk_ty, walk_unambig_ty};

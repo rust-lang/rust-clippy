@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::ty::{implements_trait, is_must_use_ty};
 use clippy_utils::{is_from_proc_macro, is_must_use_func_call, paths};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir::{LetStmt, LocalSource, PatKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{GenericArgKind, IsSuggestable};

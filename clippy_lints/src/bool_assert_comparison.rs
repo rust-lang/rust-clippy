@@ -3,6 +3,7 @@ use clippy_utils::macros::{find_assert_eq_args, root_macro_call_first_node};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::sym;
 use clippy_utils::ty::{implements_trait, is_copy};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, Lit};

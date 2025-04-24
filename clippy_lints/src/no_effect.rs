@@ -4,6 +4,7 @@ use clippy_utils::ty::has_drop;
 use clippy_utils::{
     in_automatically_derived, is_inside_always_const_context, is_lint_allowed, path_to_local, peel_blocks,
 };
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{

@@ -5,6 +5,7 @@ use clippy_utils::ast_utils::{eq_field_pat, eq_id, eq_maybe_qself, eq_pat, eq_pa
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::msrvs::{self, MsrvStack};
 use clippy_utils::over;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::PatKind::*;
 use rustc_ast::mut_visit::*;
 use rustc_ast::ptr::P;

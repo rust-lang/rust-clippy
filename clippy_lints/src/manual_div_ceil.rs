@@ -4,6 +4,7 @@ use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::sugg::{Sugg, has_enclosing_paren};
 use clippy_utils::{SpanlessEq, sym};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::{BinOpKind, LitIntType, LitKind, UnOp};
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;

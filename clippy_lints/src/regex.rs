@@ -5,6 +5,7 @@ use clippy_utils::diagnostics::{span_lint, span_lint_and_help};
 use clippy_utils::paths::PathLookup;
 use clippy_utils::source::SpanRangeExt;
 use clippy_utils::{path_def_id, paths};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::ast::{LitKind, StrStyle};
 use rustc_hir::def_id::DefIdMap;
 use rustc_hir::{BorrowKind, Expr, ExprKind, OwnerId};

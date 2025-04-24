@@ -5,6 +5,7 @@ use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::qualify_min_const_fn::is_min_const_fn;
 use clippy_utils::source::snippet;
 use clippy_utils::{fn_has_unsatisfiable_preds, peel_blocks};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, intravisit};
 use rustc_lint::{LateContext, LateLintPass};

@@ -2,6 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::ty::is_type_lang_item;
 use clippy_utils::{get_parent_expr, peel_middle_ty_refs};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::util::parser::ExprPrecedence;
 use rustc_errors::Applicability;
 use rustc_hir::{BorrowKind, Expr, ExprKind, LangItem, Mutability};

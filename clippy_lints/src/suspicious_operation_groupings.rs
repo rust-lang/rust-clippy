@@ -2,6 +2,7 @@ use clippy_utils::ast_utils::{IdentIter, eq_id, is_useless_with_eq_exprs};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_applicability;
 use core::ops::{Add, AddAssign};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::ast::{BinOpKind, Expr, ExprKind, StmtKind};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;

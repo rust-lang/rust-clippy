@@ -2,6 +2,7 @@ use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::usage::is_potentially_local_place;
 use clippy_utils::{higher, path_to_local, sym};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::{FnKind, Visitor, walk_expr, walk_fn};
 use rustc_hir::{BinOpKind, Body, Expr, ExprKind, FnDecl, HirId, Node, UnOp};

@@ -4,6 +4,7 @@ use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::visitors::is_const_evaluatable;
 use clippy_utils::{is_in_const_context, is_mutable, is_trait_method};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};

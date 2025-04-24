@@ -2,6 +2,7 @@ use clippy_utils::consts::{self, Constant};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::sugg::has_enclosing_paren;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::util::parser::ExprPrecedence;
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind, UnOp};

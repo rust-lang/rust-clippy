@@ -275,6 +275,7 @@ fn get_lint_file_contents(lint: &LintData<'_>, enable_msrv: bool) -> String {
             r"
             use clippy_utils::msrvs::{{self, {msrv_ty}}};
             use clippy_config::Conf;
+            use declare_clippy_lint::declare_clippy_lint;
             {pass_import}
             use rustc_lint::{{{context_import}, {pass_type}}};
             use rustc_session::impl_lint_pass;
@@ -285,6 +286,7 @@ fn get_lint_file_contents(lint: &LintData<'_>, enable_msrv: bool) -> String {
         let _: fmt::Result = writedoc!(
             result,
             r"
+            use declare_clippy_lint::declare_clippy_lint;
             {pass_import}
             use rustc_lint::{{{context_import}, {pass_type}}};
             use rustc_session::declare_lint_pass;

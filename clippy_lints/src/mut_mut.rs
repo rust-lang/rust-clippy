@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::{span_lint, span_lint_hir};
 use clippy_utils::higher;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir::{self as hir, AmbigArg, intravisit};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty;

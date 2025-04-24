@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::is_from_proc_macro;
 use clippy_utils::ty::needs_ordered_drop;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::Mutability;
 use rustc_hir::def::Res;
 use rustc_hir::{BindingMode, ByRef, ExprKind, HirId, LetStmt, Node, Pat, PatKind, QPath};

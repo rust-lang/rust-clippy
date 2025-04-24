@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::source::{indent_of, snippet, snippet_block};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::{Block, Label, ast};
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
 use rustc_session::declare_lint_pass;

@@ -1,11 +1,11 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::higher;
 use clippy_utils::source::{snippet, snippet_with_applicability};
+use declare_clippy_lint::declare_clippy_lint;
 
 use rustc_ast::ast;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
-
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 

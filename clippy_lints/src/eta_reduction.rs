@@ -6,6 +6,7 @@ use clippy_utils::usage::{local_used_after_expr, local_used_in};
 use clippy_utils::{
     get_path_from_caller_to_method_type, is_adjusted, is_no_std_crate, path_to_local, path_to_local_id,
 };
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_abi::ExternAbi;
 use rustc_errors::Applicability;
 use rustc_hir::{BindingMode, Expr, ExprKind, FnRetTy, GenericArgs, Param, PatKind, QPath, Safety, TyKind};

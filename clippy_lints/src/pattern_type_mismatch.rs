@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir::{
     Body, Expr, ExprKind, FnDecl, LetExpr, LocalSource, Mutability, Pat, PatKind, Stmt, StmtKind, intravisit,
 };

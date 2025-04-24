@@ -2,6 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::higher::{VecInitKind, get_vec_init_kind};
 use clippy_utils::source::snippet;
 use clippy_utils::{is_from_proc_macro, path_to_local_id};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{BindingMode, Block, Expr, ExprKind, HirId, LetStmt, PatKind, QPath, Stmt, StmtKind};

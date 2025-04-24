@@ -5,6 +5,7 @@ use clippy_utils::{
     SpanlessEq, get_expr_use_or_unification_node, get_parent_expr, is_lint_allowed, method_calls, path_def_id,
     peel_blocks, sym,
 };
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{BinOpKind, BorrowKind, Expr, ExprKind, LangItem, Node, QPath};

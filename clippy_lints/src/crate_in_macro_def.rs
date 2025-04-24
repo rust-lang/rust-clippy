@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::ast::{AttrKind, Attribute, Item, ItemKind};
 use rustc_ast::token::{Token, TokenKind};
 use rustc_ast::tokenstream::{TokenStream, TokenTree};

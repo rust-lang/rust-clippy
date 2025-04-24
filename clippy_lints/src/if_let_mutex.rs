@@ -3,6 +3,7 @@ use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::visitors::for_each_expr_without_closures;
 use clippy_utils::{eq_expr_value, higher};
 use core::ops::ControlFlow;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Diag;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};

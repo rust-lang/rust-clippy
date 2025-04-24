@@ -7,6 +7,7 @@ use clippy_utils::{
     CaptureKind, can_move_expr_to_closure, eager_or_lazy, expr_requires_coercion, higher, is_else_clause,
     is_in_const_context, is_res_lang_ctor, peel_blocks, peel_hir_expr_while,
 };
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir::LangItem::{OptionNone, OptionSome, ResultErr, ResultOk};

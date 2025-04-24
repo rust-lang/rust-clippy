@@ -2,6 +2,7 @@ use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::is_in_test;
 use clippy_utils::macros::{is_panic, root_macro_call_first_node};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};

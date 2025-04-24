@@ -2,6 +2,7 @@ use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::trait_ref_of_method;
 use clippy_utils::ty::InteriorMut;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir as hir;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::print::with_forced_trimmed_paths;

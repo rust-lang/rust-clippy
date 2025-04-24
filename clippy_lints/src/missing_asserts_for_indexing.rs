@@ -7,6 +7,7 @@ use clippy_utils::macros::{find_assert_eq_args, first_node_macro_backtrace};
 use clippy_utils::source::snippet;
 use clippy_utils::visitors::for_each_expr_without_closures;
 use clippy_utils::{eq_expr_value, hash_expr, higher};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::{BinOpKind, LitKind, RangeLimits};
 use rustc_data_structures::packed::Pu128;
 use rustc_data_structures::unhash::UnindexMap;

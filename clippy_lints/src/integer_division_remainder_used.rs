@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::BinOpKind;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};

@@ -5,6 +5,7 @@ use clippy_utils::{
     SpanlessEq, get_enclosing_block, is_integer_literal, is_path_diagnostic_item, path_to_local, path_to_local_id,
     span_contains_comment, sym,
 };
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::{Visitor, walk_block, walk_expr, walk_stmt};
 use rustc_hir::{BindingMode, Block, Expr, ExprKind, HirId, PatKind, Stmt, StmtKind};

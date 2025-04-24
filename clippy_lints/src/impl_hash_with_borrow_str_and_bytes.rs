@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::ty::implements_trait;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{Item, ItemKind, Path, TraitRef};
 use rustc_lint::{LateContext, LateLintPass};

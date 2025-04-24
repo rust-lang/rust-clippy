@@ -1,6 +1,7 @@
 use crate::methods::method_call;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::{peel_blocks, sym};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};

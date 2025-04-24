@@ -7,6 +7,7 @@ use clippy_utils::{
     peel_hir_expr_while,
 };
 use core::fmt::{self, Write};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::hir_id::HirIdSet;
 use rustc_hir::intravisit::{Visitor, walk_body, walk_expr};

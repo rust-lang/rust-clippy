@@ -5,6 +5,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet;
 use clippy_utils::visitors::find_all_ret_expressions;
 use clippy_utils::{contains_return, is_res_lang_ctor, path_res, return_ty};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::LangItem::{OptionSome, ResultOk};
 use rustc_hir::intravisit::FnKind;

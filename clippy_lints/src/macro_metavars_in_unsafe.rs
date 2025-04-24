@@ -1,6 +1,7 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::is_lint_allowed;
+use declare_clippy_lint::declare_clippy_lint;
 use itertools::Itertools;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::{Visitor, walk_block, walk_expr, walk_stmt};

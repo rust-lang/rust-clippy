@@ -8,6 +8,7 @@ use clippy_utils::{
     span_find_starting_semi, sym,
 };
 use core::ops::ControlFlow;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::MetaItemInner;
 use rustc_errors::Applicability;
 use rustc_hir::LangItem::ResultErr;

@@ -4,6 +4,7 @@ use clippy_utils::source::snippet;
 use clippy_utils::ty::{for_each_top_level_late_bound_region, is_copy};
 use clippy_utils::{is_self, is_self_ty};
 use core::ops::ControlFlow;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_abi::ExternAbi;
 use rustc_ast::attr;
 use rustc_data_structures::fx::FxHashSet;

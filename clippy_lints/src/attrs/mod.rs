@@ -16,6 +16,7 @@ mod utils;
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::msrvs::{self, Msrv, MsrvStack};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::{self as ast, AttrArgs, AttrKind, Attribute, MetaItemInner, MetaItemKind};
 use rustc_hir::{ImplItem, Item, ItemKind, TraitItem};
 use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass};

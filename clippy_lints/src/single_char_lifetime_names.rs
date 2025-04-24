@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::ast::{GenericParam, GenericParamKind};
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
 use rustc_session::declare_lint_pass;

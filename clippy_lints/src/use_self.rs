@@ -3,6 +3,7 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::is_from_proc_macro;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::ty::{same_type_and_consts, ty_from_hir_ty};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir::def::{CtorOf, DefKind, Res};

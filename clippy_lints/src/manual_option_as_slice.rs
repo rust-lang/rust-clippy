@@ -2,6 +2,7 @@ use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg};
 use clippy_utils::msrvs::Msrv;
 use clippy_utils::{is_none_arm, msrvs, paths, peel_hir_expr_refs, sym};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{Arm, Expr, ExprKind, LangItem, Pat, PatKind, QPath, is_range_literal};

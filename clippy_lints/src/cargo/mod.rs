@@ -8,6 +8,7 @@ use cargo_metadata::MetadataCommand;
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::is_lint_allowed;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::hir_id::CRATE_HIR_ID;
 use rustc_lint::{LateContext, LateLintPass, Lint};

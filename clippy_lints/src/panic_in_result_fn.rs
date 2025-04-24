@@ -4,6 +4,7 @@ use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::visitors::{Descend, for_each_expr};
 use clippy_utils::{is_inside_always_const_context, return_ty};
 use core::ops::ControlFlow;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir as hir;
 use rustc_hir::intravisit::FnKind;
 use rustc_lint::{LateContext, LateLintPass};

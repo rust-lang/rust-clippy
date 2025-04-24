@@ -9,6 +9,7 @@ use itertools::Itertools;
 use rustc_data_structures::fx::FxIndexSet;
 use rustc_hir::intravisit::{Visitor, walk_expr};
 
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::{AssignOpKind, Block, Expr, ExprKind, LetStmt, PatKind, QPath, Stmt, StmtKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};

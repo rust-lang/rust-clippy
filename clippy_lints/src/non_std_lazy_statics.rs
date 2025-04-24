@@ -4,6 +4,7 @@ use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::paths::{self, PathNS, find_crates, lookup_path_str};
 use clippy_utils::visitors::for_each_expr;
 use clippy_utils::{fn_def_id, is_no_std_crate, path_def_id, sym};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_data_structures::fx::FxIndexMap;
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};

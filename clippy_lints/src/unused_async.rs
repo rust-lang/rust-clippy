@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::is_def_id_trait_method;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir::def::DefKind;
 use rustc_hir::intravisit::{FnKind, Visitor, walk_expr, walk_fn};
 use rustc_hir::{Body, Defaultness, Expr, ExprKind, FnDecl, HirId, Node, TraitItem, YieldSource};

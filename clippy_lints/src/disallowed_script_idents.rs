@@ -1,5 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::ast;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_lint::{EarlyContext, EarlyLintPass, Level, LintContext};

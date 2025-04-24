@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use declare_clippy_lint::declare_clippy_lint;
 use hir::{Node, PatKind};
 use rustc_errors::Applicability;
 use rustc_hir as hir;

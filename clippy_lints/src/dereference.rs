@@ -7,6 +7,7 @@ use clippy_utils::{
     peel_middle_ty_refs,
 };
 use core::mem;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::util::parser::ExprPrecedence;
 use rustc_data_structures::fx::FxIndexMap;
 use rustc_errors::Applicability;

@@ -3,6 +3,7 @@ use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::macros::root_macro_call_first_node;
 use clippy_utils::sym;
 use clippy_utils::visitors::is_local_used;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir::{Body, Impl, ImplItem, ImplItemKind, ItemKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::impl_lint_pass;

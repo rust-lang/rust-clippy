@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::return_ty;
 use clippy_utils::ty::contains_adt_constructor;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir::{Impl, ImplItem, ImplItemKind, ItemKind, Node};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;

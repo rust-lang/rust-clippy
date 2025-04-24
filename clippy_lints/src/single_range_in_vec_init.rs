@@ -4,6 +4,7 @@ use clippy_utils::macros::root_macro_call_first_node;
 use clippy_utils::source::SpanRangeExt;
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{is_no_std_crate, paths};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::{LitIntType, LitKind, UintTy};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, LangItem, QPath, StructTailExpr};

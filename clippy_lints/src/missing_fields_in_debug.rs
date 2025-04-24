@@ -4,6 +4,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::visitors::{Visitable, for_each_expr};
 use clippy_utils::{is_path_lang_item, sym};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::LitKind;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::def::{DefKind, Res};

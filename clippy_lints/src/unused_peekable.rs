@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::ty::{is_type_diagnostic_item, peel_mid_ty_refs_is_mutable};
 use clippy_utils::{fn_def_id, is_trait_method, path_to_local_id, peel_ref_operators, sym};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::Mutability;
 use rustc_hir::intravisit::{Visitor, walk_expr};
 use rustc_hir::{Block, Expr, ExprKind, HirId, LetStmt, Node, PatKind, PathSegment, StmtKind};

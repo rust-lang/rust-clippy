@@ -6,6 +6,7 @@ use clippy_utils::macros::span_is_local;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::path_def_id;
 use clippy_utils::source::SpanRangeExt;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::{Visitor, walk_path};
 use rustc_hir::{

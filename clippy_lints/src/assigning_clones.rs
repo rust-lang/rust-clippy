@@ -4,6 +4,7 @@ use clippy_utils::mir::{PossibleBorrowerMap, enclosing_mir};
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::{is_diag_trait_item, is_in_test, last_path_segment, local_is_initialized, path_to_local, sym};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::{self as hir, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};

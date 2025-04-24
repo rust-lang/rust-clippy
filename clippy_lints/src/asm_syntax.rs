@@ -1,6 +1,7 @@
 use std::fmt;
 
 use clippy_utils::diagnostics::span_lint_and_then;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::ast::{Expr, ExprKind, InlineAsmOptions};
 use rustc_ast::{InlineAsm, Item, ItemKind};
 use rustc_lint::{EarlyContext, EarlyLintPass, Lint, LintContext};

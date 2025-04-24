@@ -3,6 +3,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::sym;
 use clippy_utils::ty::{get_type_diagnostic_name, is_type_diagnostic_item, is_type_lang_item};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::ExprKind::{Binary, Lit, MethodCall};

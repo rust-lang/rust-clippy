@@ -3,6 +3,7 @@ use clippy_utils::ty::{get_type_diagnostic_name, is_type_lang_item};
 use clippy_utils::visitors::{Visitable, for_each_expr};
 use clippy_utils::{get_enclosing_block, path_to_local_id};
 use core::ops::ControlFlow;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir::{Body, ExprKind, HirId, LangItem, LetStmt, Node, PatKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;

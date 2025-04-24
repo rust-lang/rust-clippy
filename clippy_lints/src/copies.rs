@@ -10,6 +10,7 @@ use clippy_utils::{
 };
 use core::iter;
 use core::ops::ControlFlow;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Block, Expr, ExprKind, HirId, HirIdSet, Stmt, StmtKind, intravisit};
 use rustc_lint::{LateContext, LateLintPass};

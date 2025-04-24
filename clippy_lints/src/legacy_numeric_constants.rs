@@ -2,6 +2,7 @@ use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint_and_then, span_lint_hir_and_then};
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::{get_parent_expr, is_from_proc_macro};
+use declare_clippy_lint::declare_clippy_lint;
 use hir::def_id::DefId;
 use rustc_errors::Applicability;
 use rustc_hir as hir;

@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::{expr_or_init, fn_def_id_with_node_args, path_def_id};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::BinOpKind;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_hir as hir;
