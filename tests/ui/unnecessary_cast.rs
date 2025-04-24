@@ -6,6 +6,7 @@
     clippy::no_effect,
     clippy::nonstandard_macro_braces,
     clippy::unnecessary_operation,
+    clippy::double_parens,
     nonstandard_style,
     unused
 )]
@@ -267,6 +268,45 @@ mod fixable {
     // `*x.pow(2)` which tries to dereference the return value rather than `x`.
     fn issue_11968(x: &usize) -> usize {
         (*x as usize).pow(2)
+        //~^ unnecessary_cast
+    }
+
+    fn issue_14366(i: u32) {
+        // Do not remove the cast if it helps determining the type
+        let _ = ((1.0 / 8.0) as f64).powf(i as f64);
+
+        // But remove useless casts anyway
+        let _ = (((1.0 / 8.0) as f64) as f64).powf(i as f64);
+        //~^ unnecessary_cast
+    }
+
+    fn ambiguity() {
+        pub trait T {}
+        impl T for u32 {}
+        impl T for String {}
+        fn f(_: impl T) {}
+
+        f((1 + 2) as u32);
+        f((1 + 2u32) as u32);
+        //~^ unnecessary_cast
+    }
+
+    fn with_blocks(a: i64, b: i64, c: u64) {
+        let threshold = if c < 10 { a } else { b };
+        let _ = threshold as i64;
+        //~^ unnecessary_cast
+    }
+
+    fn with_prim_ty() {
+        let threshold = 20;
+        let threshold = if threshold == 0 {
+            i64::MAX
+        } else if threshold <= 60 {
+            10
+        } else {
+            0
+        };
+        let _ = threshold as i64;
         //~^ unnecessary_cast
     }
 }
