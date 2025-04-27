@@ -177,7 +177,7 @@ impl Visitor<'_> for IdentVisitor<'_, '_> {
 
 fn emit_min_ident_chars(conf: &MinIdentChars, cx: &impl LintContext, ident: &str, span: Span) {
     let help = if conf.min_ident_chars_threshold == 1 {
-        Cow::Borrowed("this ident consists of a single char")
+        Cow::Borrowed("this ident consists of a single character")
     } else {
         Cow::Owned(format!(
             "this ident is too short ({} <= {})",
