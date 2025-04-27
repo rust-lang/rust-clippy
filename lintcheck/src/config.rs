@@ -68,6 +68,9 @@ pub(crate) enum Commands {
         /// This will limit the number of warnings that will be printed for each lint
         #[clap(long)]
         truncate: bool,
+        /// If provided the diff is written to this file and only a summary is printed
+        #[clap(short, long)]
+        output: Option<PathBuf>,
     },
     /// Create a lintcheck crates TOML file containing the top N popular crates
     Popular {

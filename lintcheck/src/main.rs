@@ -298,7 +298,12 @@ fn main() {
     let config = LintcheckConfig::new();
 
     match config.subcommand {
-        Some(Commands::Diff { old, new, truncate }) => json::diff(&old, &new, truncate),
+        Some(Commands::Diff {
+            old,
+            new,
+            truncate,
+            output,
+        }) => json::diff(&old, &new, truncate, output),
         Some(Commands::Popular { output, number }) => popular_crates::fetch(output, number).unwrap(),
         None => lintcheck(config),
     }
