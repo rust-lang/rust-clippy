@@ -1,4 +1,4 @@
-
+use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
@@ -27,4 +27,15 @@ declare_clippy_lint! {
 
 declare_lint_pass!(NeedlessPathNew => [NEEDLESS_PATH_NEW]);
 
-impl LateLintPass<'_> for NeedlessPathNew {}
+impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
+        span_lint_and_help(
+            cx,
+            NEEDLESS_PATH_NEW,
+            expr.span,
+            "`Path::new` used",
+            None,
+            "consider removing `Path::new`",
+        );
+    }
+}
