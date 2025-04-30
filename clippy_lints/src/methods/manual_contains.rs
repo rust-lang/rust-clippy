@@ -32,7 +32,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, recv: &Expr<'_>, clos
             cx,
             MANUAL_CONTAINS,
             expr.span,
-            "using `contains()` instead of `iter().any()` is more efficient",
+            "using `contains()` instead of `iter().any()` is sometimes more efficient",
             "try",
             format!(
                 "{}.contains({})",
