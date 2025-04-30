@@ -790,15 +790,6 @@ fn report_elidable_lifetimes(
     usages: &[Lifetime],
     include_suggestions: bool,
 ) {
-    let lts = elidable_lts
-        .iter()
-        // In principle, the result of the call to `Node::ident` could be `unwrap`ped, as `DefId` should refer to a
-        // `Node::GenericParam`.
-        .filter_map(|&def_id| cx.tcx.hir_node_by_def_id(def_id).ident())
-        .map(|ident| ident.to_string())
-        .collect::<Vec<_>>()
-        .join(", ");
-
     let elidable_usages: Vec<ElidableUsage> = usages
         .iter()
         .filter(|usage| named_lifetime(usage).is_some_and(|id| elidable_lts.contains(&id)))
@@ -825,24 +816,15 @@ fn report_elidable_lifetimes(
         elidable_lts
             .iter()
             .map(|&lt| cx.tcx.def_span(lt))
-            .chain(usages.iter().filter_map(|usage| {
-                if let LifetimeKind::Param(def_id) = usage.kind
-                    && elidable_lts.contains(&def_id)
-                {
-                    return Some(usage.ident.span);
-                }
-
-                None
-            }))
             .collect_vec(),
-        format!("the following explicit lifetimes could be elided: {lts}"),
+        "these lifetime parameters can be elided",
         |diag| {
             if !include_suggestions {
                 return;
             }
 
             if let Some(suggestions) = elision_suggestions(cx, generics, elidable_lts, &elidable_usages) {
-                diag.multipart_suggestion("elide the lifetimes", suggestions, Applicability::MachineApplicable);
+                diag.multipart_suggestion("remove the lifetime parameters", suggestions, Applicability::MachineApplicable);
             }
         },
     );
