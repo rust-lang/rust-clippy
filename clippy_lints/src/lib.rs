@@ -11,6 +11,7 @@
     macro_metavar_expr_concat,
     never_type,
     rustc_private,
+    slice_partition_dedup,
     stmt_expr_attributes,
     str_split_remainder,
     unwrap_infallible

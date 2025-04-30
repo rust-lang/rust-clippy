@@ -69,11 +69,12 @@
 //! can only be detected by checking the source text. With this the source text of all AST/HIR item
 //! can be almost anything. In short, validate all range adjustments against the source text.
 
-use core::fmt;
+use core::cmp::Ordering;
 use core::mem::{ManuallyDrop, MaybeUninit};
 use core::ops::{Deref, Index, Range, RangeFrom, RangeFull, RangeTo};
 use core::slice::SliceIndex;
 use core::str::pattern::{Pattern, ReverseSearcher};
+use core::{fmt, mem};
 use rustc_ast::{LitKind, StrStyle};
 use rustc_errors::Applicability;
 use rustc_hir::def_id::LocalDefId;
@@ -1091,6 +1092,332 @@ impl<'sm> SpanEditCx<'sm> {
         #[cfg(debug_assertions)]
         dbg_check_range(self.sm, &self.text, old, new);
     }
+
+    #[inline]
+    #[must_use]
+    pub fn gen_list_item_removal_sugg_into(
+        &self,
+        sep: char,
+        spans: impl IntoIterator<Item = SpanData>,
+        dst: &mut Vec<(Span, String)>,
+    ) -> bool {
+        let mut ranges = spans.into_iter().map(|sp| self.span_to_file_range(sp)).collect();
+        if !self.expand_list_item_ranges(sep, &mut ranges) {
+            return false;
+        }
+        dst.extend(ranges.iter().map(|r| (self.mk_span(r.clone(), None), String::new())));
+        true
+    }
+
+    #[must_use]
+    #[expect(clippy::too_many_lines)]
+    pub fn expand_list_item_ranges(&self, sep: char, ranges: &mut Vec<FileRange>) -> bool {
+        macro_rules! try_ {
+            ($e:expr) => {
+                match $e {
+                    Some(x) => x,
+                    None => return false,
+                }
+            };
+        }
+
+        enum Pos {
+            /// The position to extend to when removing the separator and whether it's the end of
+            /// the line.
+            Found(RelativeBytePos, bool),
+            /// The separator was not found, but the end of the line was.
+            Eol(RelativeBytePos),
+        }
+        fn search_line(base: RelativeBytePos, s: &str, sep: char) -> Option<Pos> {
+            let base = s.as_ptr().addr() - base.to_usize();
+            let mut iter = s.chars();
+            loop {
+                let pos = iter.as_str().as_ptr().addr();
+                match iter.next() {
+                    Some('\n') | None => {
+                        return Some(Pos::Eol(RelativeBytePos::from_usize(pos - base)));
+                    },
+                    Some(c) if c.is_whitespace() => {},
+                    Some(c) if c == sep => {
+                        let (pos, at_eol) = loop {
+                            let pos = iter.as_str().as_ptr().addr();
+                            match iter.next() {
+                                Some('\n') | None => break (pos, true),
+                                Some(c) if c.is_whitespace() => {},
+                                Some(_) => break (pos, false),
+                            }
+                        };
+                        return Some(Pos::Found(RelativeBytePos::from_usize(pos - base), at_eol));
+                    },
+                    Some(_) => return None,
+                }
+            }
+        }
+
+        enum CrossPos {
+            /// The range from the separator to the first non-whitespace character.
+            Found(Range<RelativeBytePos>),
+            /// The line end position after the found separator.
+            FoundEol(RelativeBytePos),
+        }
+        fn search_cross_lines(base: RelativeBytePos, s: &str, sep: char) -> Option<CrossPos> {
+            let base = s.as_ptr().addr() - base.to_usize();
+            let mut iter = s.chars();
+            loop {
+                let pos = iter.as_str().as_ptr().addr();
+                match iter.next() {
+                    Some(c) if c.is_whitespace() => {},
+                    Some(c) if c == sep => loop {
+                        let pos2 = iter.as_str().as_ptr().addr();
+                        match iter.next() {
+                            Some('\n') | None => {
+                                return Some(CrossPos::FoundEol(RelativeBytePos::from_usize(pos2 - base)));
+                            },
+                            Some(c) if c.is_whitespace() => {},
+                            Some(_) => {
+                                return Some(CrossPos::Found(
+                                    RelativeBytePos::from_usize(pos - base)..RelativeBytePos::from_usize(pos2 - base),
+                                ));
+                            },
+                        }
+                    },
+                    _ => return None,
+                }
+            }
+        }
+
+        enum RPos {
+            /// The position to extend to when removing the separator and, if there's only
+            /// whitespace remaining, the position of the start of the line.
+            Found(RelativeBytePos, Option<RelativeBytePos>),
+            /// The separator was not found, but the start of the line was.
+            LineStart(RelativeBytePos),
+        }
+        fn rsearch_line(base: RelativeBytePos, s: &str, sep: char) -> Option<RPos> {
+            let base = s.as_ptr().addr() - base.to_usize();
+            let mut iter = s.chars();
+            loop {
+                let pos = iter.as_str().as_ptr().addr() + iter.as_str().len();
+                match iter.next_back() {
+                    Some('\n') | None => return Some(RPos::LineStart(RelativeBytePos::from_usize(pos - base))),
+                    Some(c) if c.is_whitespace() => {},
+                    Some(c) if c == sep => {
+                        // Make sure not to remove the leading indentation of the line.
+                        let sep_pos = iter.as_str().as_ptr().addr() + iter.as_str().len();
+                        let (sep_pos, eol_pos) = loop {
+                            let pos = iter.as_str().as_ptr().addr() + iter.as_str().len();
+                            match iter.next_back() {
+                                Some('\n') | None => {
+                                    break (
+                                        RelativeBytePos::from_usize(sep_pos - base),
+                                        Some(RelativeBytePos::from_usize(pos - base)),
+                                    );
+                                },
+                                Some(c) if c.is_whitespace() => {},
+                                Some(_) => break (RelativeBytePos::from_usize(pos - base), None),
+                            }
+                        };
+                        return Some(RPos::Found(sep_pos, eol_pos));
+                    },
+                    _ => return None,
+                }
+            }
+        }
+
+        enum RLineStart {
+            Found(RelativeBytePos),
+            Other(RelativeBytePos),
+        }
+        fn rsearch_line_start(base: RelativeBytePos, s: &str) -> RLineStart {
+            let base = s.as_ptr().addr() - base.to_usize();
+            let mut iter = s.chars();
+            loop {
+                let pos = iter.as_str().as_ptr().addr() + iter.as_str().len();
+                match iter.next_back() {
+                    None => return RLineStart::Found(RelativeBytePos::from_usize(base)),
+                    Some('\n') => return RLineStart::Found(RelativeBytePos::from_usize(pos - base)),
+                    Some(c) if c.is_whitespace() => {},
+                    _ => return RLineStart::Other(RelativeBytePos::from_usize(pos - base)),
+                }
+            }
+        }
+
+        // Removing multiple items from a list along with the equivalent number of separators turns
+        // out to be rather complicated. As a quick overview for each item to remove we:
+        // * Search for a trailing separator on the same line.
+        // * If not found, search for a leading separator on the same line reaching across previous removals
+        //   if needed.
+        // * If not found, search across lines for a trailing separator.
+        // * If not found, search across lines for a leading separator reaching across previous removals if
+        //   needed.
+        // * If it's still not found a suggestion cannot be generated.
+        //
+        // While expanding the ranges it's important to not include any comments in them. We also
+        // try to avoid removing line endings unless we are also removing all the text found on that
+        // line.
+
+        let src = self.file_text();
+        let sf = self.file();
+        // Starting with a sorted list removes a lot of edge cases.
+        ranges.sort_unstable_by_key(|x| x.start);
+
+        // The current removal being generated. This will absorb subsequent items if there's
+        // nothing in between.
+        let mut range = match ranges.first() {
+            Some(r) => r.clone(),
+            None => return true,
+        };
+
+        // Where the previous removal range ended. Needed to avoid matching a previously
+        // removed separator when searching backwards.
+        let mut prev_end = RelativeBytePos(0);
+
+        // The indices of the current item we are working on and where to store the next item
+        // when it's complete. These will desync when multiple items are combined into the same
+        // suggestion so we can't use an iterator.
+        //
+        // The same vec is used for input/output in order to avoid an extra allocation.
+        let mut read_idx = 0usize;
+        let mut write_idx = 0usize;
+        loop {
+            let before = try_!(src.get(prev_end.to_usize()..range.start.to_usize()));
+            let after = try_!(src.get(range.end.to_usize()..));
+            let res = search_line(range.end, after, sep);
+            if let Some(Pos::Found(end_idx, at_eol)) = res {
+                range.end = end_idx;
+                if at_eol && let RLineStart::Found(line_start) = rsearch_line_start(prev_end, before) {
+                    range.start = line_start;
+                }
+            } else {
+                let rev_res = rsearch_line(prev_end, before, sep);
+                if let Some(RPos::Found(start_idx, line_start)) = rev_res {
+                    range.start = start_idx;
+                    if let Some(line_start) = line_start
+                        && let Some(Pos::Eol(line_end)) = res
+                    {
+                        range = line_start..line_end;
+                    }
+                } else if let Some(Pos::Eol(line_end)) = res
+                    && let cross_start = line_end.0 + 1
+                    && let Some(after) = after.get(cross_start as usize..)
+                    && let Some(cross_res) = search_cross_lines(RelativeBytePos(cross_start), after, sep)
+                {
+                    if let Some(RPos::LineStart(line_start)) = rev_res {
+                        range = line_start..line_end;
+                    }
+                    match cross_res {
+                        CrossPos::Found(next_range) => {
+                            ranges.insert(write_idx, mem::replace(&mut range, next_range));
+                            write_idx += 1;
+                            read_idx += 1;
+                        },
+                        CrossPos::FoundEol(line_end) => {
+                            range.end = line_end;
+                        },
+                    }
+                } else {
+                    // Search backwards across lines looking for a separator.
+                    // First merge all the previous ranges separated only by whitespace.
+                    if let Some(mut prev_idx) = write_idx.checked_sub(1) {
+                        loop {
+                            let prev = ranges[prev_idx].clone();
+                            prev_end = prev.end;
+                            if !try_!(src.get(prev_end.to_usize()..range.start.to_usize()))
+                                .trim_start()
+                                .is_empty()
+                            {
+                                break;
+                            }
+                            range.start = prev.start;
+                            write_idx = prev_idx;
+
+                            let Some(idx) = prev_idx.checked_sub(1) else {
+                                prev_end = RelativeBytePos(0);
+                                break;
+                            };
+                            prev_idx = idx;
+                        }
+                    }
+
+                    if let LeadingWhitespaceRes::Pos(rev_trim_idx) =
+                        try_!(leading_whitespace_idx(src, sf, range.clone()))
+                        && let Some(before) = src.get(prev_end.to_usize()..rev_trim_idx.to_usize())
+                        && let Some(before) = before.strip_suffix(sep)
+                    {
+                        match rsearch_line_start(prev_end, before) {
+                            RLineStart::Other(pos) => range.start = pos,
+                            RLineStart::Found(line_start) if let Some(Pos::Eol(line_end)) = res => {
+                                range = line_start..line_end;
+                            },
+                            RLineStart::Found(_) => {
+                                range.start = RelativeBytePos::from_usize(prev_end.to_usize() + before.len());
+                            },
+                        }
+                    } else {
+                        // No separator could be found.
+                        return false;
+                    }
+                }
+            }
+
+            read_idx += 1;
+            let Some(next) = ranges.get(read_idx).cloned() else {
+                ranges[write_idx] = range;
+
+                // For each removal if it spans the entire line also include the line feed.
+                // If this causes to ranges to touch we have to make sure to merge them.
+                let mut dst_idx = 0;
+                for next_idx in 1..=write_idx {
+                    let next = ranges[next_idx].clone();
+                    let range = &mut ranges[dst_idx];
+                    if range
+                        .start
+                        .to_usize()
+                        .checked_sub(1)
+                        .is_none_or(|i| src.as_bytes().get(i).copied() == Some(b'\n'))
+                        && src.as_bytes().get(range.end.to_usize()).copied() == Some(b'\n')
+                    {
+                        range.end = RelativeBytePos(range.end.0 + 1);
+                        if range.end == next.start {
+                            range.end = next.end;
+                            continue;
+                        }
+                    }
+                    dst_idx += 1;
+                }
+
+                // For the final removal we might have to search backwards to remove a line feed.
+                let range = &mut ranges[dst_idx];
+                if range.end.to_usize() == src.len() {
+                    if src.as_bytes().get(range.start.to_usize().wrapping_sub(1)).copied() == Some(b'\n') {
+                        range.start = RelativeBytePos(range.start.0 - 1);
+                    }
+                } else if range
+                    .start
+                    .to_usize()
+                    .checked_sub(1)
+                    .is_none_or(|i| src.as_bytes().get(i).copied() == Some(b'\n'))
+                    && src.as_bytes().get(range.end.to_usize()).copied() == Some(b'\n')
+                {
+                    range.end = RelativeBytePos(range.end.0 + 1);
+                }
+
+                // Truncate to signal the actual number of removed ranges.
+                ranges.truncate(dst_idx + 1);
+                return true;
+            };
+            match range.end.cmp(&next.start) {
+                Ordering::Less => {
+                    prev_end = range.end;
+                    ranges[write_idx] = mem::replace(&mut range, next);
+                    write_idx += 1;
+                },
+                Ordering::Equal => range.end = next.end,
+                // Can't remove overlapping spans.
+                Ordering::Greater => return false,
+            }
+        }
+    }
 }
 
 /// A collection of helper functions for adjusting a range within a file.
@@ -1353,28 +1680,10 @@ impl FileRangeExt for FileRange {
     }
 
     fn with_leading_whitespace(self, scx: &SpanEditCx<'_>) -> Option<FileRange> {
-        let src = scx.file_text();
-        let sf = scx.file();
-
-        let mut trimmed_lf = false;
-        let text_before = src.get(..self.start.to_usize())?.trim_end_matches(|c: char| {
-            trimmed_lf |= c == '\n';
-            c.is_whitespace()
-        });
-        if trimmed_lf
-            && let line_starts = sf.lines()
-            && let post_search_line = line_starts.partition_point(|&pos| pos.to_usize() <= text_before.len())
-            // `get` can fail if `line_starts` is missing the starting zero.
-            // Just start the search at the beginning in that case.
-            && let search_start = line_starts.get(post_search_line - 1).map_or(0, |&x| x.to_usize())
-            && ends_with_line_comment_or_broken(&text_before[search_start..])
-            // Is there anything after the range on the same line?
-            && !src.get(self.end.to_usize()..)?.chars().take_while(|&c| c != '\n').all(char::is_whitespace)
-        {
-            Some(self)
-        } else {
-            Some(RelativeBytePos::from_usize(text_before.len())..self.end)
-        }
+        leading_whitespace_idx(scx.file_text(), scx.file(), self.clone()).map(|x| match x {
+            LeadingWhitespaceRes::Comment => self,
+            LeadingWhitespaceRes::Pos(start) => start..self.end,
+        })
     }
 
     fn with_trailing_whitespace(self, scx: &SpanEditCx<'_>) -> Option<FileRange> {
@@ -1525,6 +1834,41 @@ fn ends_with_line_comment_or_broken(text: &str) -> bool {
                 | LiteralKind::RawStr { n_hashes: None }
         ),
         _ => false,
+    }
+}
+
+enum LeadingWhitespaceRes {
+    Comment,
+    Pos(RelativeBytePos),
+}
+
+/// Gets the index to use to include all leading whitespace in the specified range if doing so will
+/// not any text following the range into a comment, or a marker value if it would. Returns `None`
+/// if the range is invalid.
+///
+/// `line_starts` is an array with the index of the start of every line in order. This includes `0`
+/// as the start of the first line, and an additional value for every line feed in the text.
+fn leading_whitespace_idx(src: &str, sf: &SourceFile, range: Range<RelativeBytePos>) -> Option<LeadingWhitespaceRes> {
+    let mut trimmed_lf = false;
+    let text_before = src.get(..range.start.to_usize())?.trim_end_matches(|c: char| {
+        trimmed_lf |= c == '\n';
+        c.is_whitespace()
+    });
+    if trimmed_lf
+        && let line_starts = sf.lines()
+        && let post_search_line = line_starts.partition_point(|&pos| pos.to_usize() <= text_before.len())
+        // `get` can fail if `line_starts` is missing the starting zero.
+        // Just start the search at the beginning in that case.
+        && let search_start = line_starts.get(post_search_line - 1).map_or(0, |&x| x.to_usize())
+        && ends_with_line_comment_or_broken(&text_before[search_start..])
+        // Is there anything after the range on the same line?
+        && !src.get(range.end.to_usize()..)?.chars().take_while(|&c| c != '\n').all(char::is_whitespace)
+    {
+        Some(LeadingWhitespaceRes::Comment)
+    } else {
+        Some(LeadingWhitespaceRes::Pos(RelativeBytePos::from_usize(
+            text_before.len(),
+        )))
     }
 }
 
@@ -1708,7 +2052,7 @@ fn reindent_multiline_inner(s: &str, ignore_first: bool, indent: Option<usize>, 
 /// snippet(cx, span1, "..") // -> "value"
 /// snippet(cx, span2, "..") // -> "Vec::new()"
 /// ```
-pub fn snippet<'a, 'sm>(sm: impl HasSourceMap<'sm>, span: Span, default: &'a str) -> Cow<'a, str> {
+pub fn snippet<'sm>(sm: impl HasSourceMap<'sm>, span: Span, default: &str) -> Cow<'_, str> {
     snippet_opt(sm, span).map_or_else(|| Cow::Borrowed(default), From::from)
 }
 

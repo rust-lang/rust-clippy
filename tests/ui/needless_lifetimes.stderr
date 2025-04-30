@@ -120,16 +120,16 @@ LL -     fn self_and_out<'s>(&'s self) -> &'s u8 {
 LL +     fn self_and_out(&self) -> &u8 {
    |
 
-error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:135:30
+error: these lifetime parameters can be elided
+  --> tests/ui/needless_lifetimes.rs:135:26
    |
 LL |     fn self_and_in_out_1<'s, 't>(&'s self, _x: &'t u8) -> &'s u8 {
-   |                              ^^
+   |                          ^^  ^^
    |
-help: remove the lifetime parameter
+help: remove the lifetime parameters
    |
 LL -     fn self_and_in_out_1<'s, 't>(&'s self, _x: &'t u8) -> &'s u8 {
-LL +     fn self_and_in_out_1<'s>(&'s self, _x: &u8) -> &'s u8 {
+LL +     fn self_and_in_out_1(&self, _x: &u8) -> &u8 {
    |
 
 error: this lifetime parameter can be elided
@@ -217,7 +217,7 @@ LL + fn trait_bound_ok<T: WithLifetime<'static>>(_: &u8, _: T) {
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:249:24
+  --> tests/ui/needless_lifetimes.rs:238:24
    |
 LL |         fn needless_lt<'a>(x: &'a u8) {}
    |                        ^^
@@ -229,7 +229,7 @@ LL +         fn needless_lt(x: &u8) {}
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:254:24
+  --> tests/ui/needless_lifetimes.rs:243:24
    |
 LL |         fn needless_lt<'a>(_x: &'a u8) {}
    |                        ^^
@@ -241,7 +241,19 @@ LL +         fn needless_lt(_x: &u8) {}
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:285:55
+  --> tests/ui/needless_lifetimes.rs:271:51
+   |
+LL |     fn impl_trait_elidable_nested_named_lifetimes<'a>(i: &'a i32, f: impl for<'b> Fn(&'b i32) -> &'b i32) -> &'a i32 {
+   |                                                   ^^
+   |
+help: remove the lifetime parameter
+   |
+LL -     fn impl_trait_elidable_nested_named_lifetimes<'a>(i: &'a i32, f: impl for<'b> Fn(&'b i32) -> &'b i32) -> &'a i32 {
+LL +     fn impl_trait_elidable_nested_named_lifetimes(i: &i32, f: impl for<'b> Fn(&'b i32) -> &'b i32) -> &i32 {
+   |
+
+error: this lifetime parameter can be elided
+  --> tests/ui/needless_lifetimes.rs:274:55
    |
 LL |     fn impl_trait_elidable_nested_anonymous_lifetimes<'a>(i: &'a i32, f: impl Fn(&i32) -> &i32) -> &'a i32 {
    |                                                       ^^
@@ -253,7 +265,7 @@ LL +     fn impl_trait_elidable_nested_anonymous_lifetimes(i: &i32, f: impl Fn(&
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:295:26
+  --> tests/ui/needless_lifetimes.rs:284:26
    |
 LL |     fn generics_elidable<'a, T: Fn(&i32) -> &i32>(i: &'a i32, f: T) -> &'a i32 {
    |                          ^^
@@ -265,7 +277,7 @@ LL +     fn generics_elidable<T: Fn(&i32) -> &i32>(i: &i32, f: T) -> &i32 {
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:308:30
+  --> tests/ui/needless_lifetimes.rs:297:30
    |
 LL |     fn where_clause_elidable<'a, T>(i: &'a i32, f: T) -> &'a i32
    |                              ^^
@@ -277,7 +289,7 @@ LL +     fn where_clause_elidable<T>(i: &i32, f: T) -> &i32
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:324:28
+  --> tests/ui/needless_lifetimes.rs:313:28
    |
 LL |     fn pointer_fn_elidable<'a>(i: &'a i32, f: fn(&i32) -> &i32) -> &'a i32 {
    |                            ^^
@@ -289,7 +301,7 @@ LL +     fn pointer_fn_elidable(i: &i32, f: fn(&i32) -> &i32) -> &i32 {
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:338:28
+  --> tests/ui/needless_lifetimes.rs:327:28
    |
 LL |     fn nested_fn_pointer_3<'a>(_: &'a i32) -> fn(fn(&i32) -> &i32) -> i32 {
    |                            ^^
@@ -301,7 +313,7 @@ LL +     fn nested_fn_pointer_3(_: &i32) -> fn(fn(&i32) -> &i32) -> i32 {
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:342:28
+  --> tests/ui/needless_lifetimes.rs:331:28
    |
 LL |     fn nested_fn_pointer_4<'a>(_: &'a i32) -> impl Fn(fn(&i32)) {
    |                            ^^
@@ -313,7 +325,7 @@ LL +     fn nested_fn_pointer_4(_: &i32) -> impl Fn(fn(&i32)) {
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:365:21
+  --> tests/ui/needless_lifetimes.rs:354:21
    |
 LL |         fn implicit<'a>(&'a self) -> &'a () {
    |                     ^^
@@ -325,7 +337,7 @@ LL +         fn implicit(&self) -> &() {
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:369:25
+  --> tests/ui/needless_lifetimes.rs:358:25
    |
 LL |         fn implicit_mut<'a>(&'a mut self) -> &'a () {
    |                         ^^
@@ -337,7 +349,7 @@ LL +         fn implicit_mut(&mut self) -> &() {
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:374:21
+  --> tests/ui/needless_lifetimes.rs:363:21
    |
 LL |         fn explicit<'a>(self: &'a Arc<Self>) -> &'a () {
    |                     ^^
@@ -349,7 +361,7 @@ LL +         fn explicit(self: &Arc<Self>) -> &() {
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:379:25
+  --> tests/ui/needless_lifetimes.rs:368:25
    |
 LL |         fn explicit_mut<'a>(self: &'a mut Rc<Self>) -> &'a () {
    |                         ^^
@@ -361,7 +373,7 @@ LL +         fn explicit_mut(self: &mut Rc<Self>) -> &() {
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:392:31
+  --> tests/ui/needless_lifetimes.rs:381:31
    |
 LL |         fn lifetime_elsewhere<'a>(self: Box<Self>, here: &'a ()) -> &'a () {
    |                               ^^
@@ -373,7 +385,7 @@ LL +         fn lifetime_elsewhere(self: Box<Self>, here: &()) -> &() {
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:399:21
+  --> tests/ui/needless_lifetimes.rs:388:21
    |
 LL |         fn implicit<'a>(&'a self) -> &'a ();
    |                     ^^
@@ -385,7 +397,7 @@ LL +         fn implicit(&self) -> &();
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:401:30
+  --> tests/ui/needless_lifetimes.rs:390:30
    |
 LL |         fn implicit_provided<'a>(&'a self) -> &'a () {
    |                              ^^
@@ -397,7 +409,7 @@ LL +         fn implicit_provided(&self) -> &() {
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:407:21
+  --> tests/ui/needless_lifetimes.rs:396:21
    |
 LL |         fn explicit<'a>(self: &'a Arc<Self>) -> &'a ();
    |                     ^^
@@ -409,7 +421,7 @@ LL +         fn explicit(self: &Arc<Self>) -> &();
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:410:30
+  --> tests/ui/needless_lifetimes.rs:399:30
    |
 LL |         fn explicit_provided<'a>(self: &'a Arc<Self>) -> &'a () {
    |                              ^^
@@ -421,7 +433,7 @@ LL +         fn explicit_provided(self: &Arc<Self>) -> &() {
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:421:31
+  --> tests/ui/needless_lifetimes.rs:410:31
    |
 LL |         fn lifetime_elsewhere<'a>(self: Box<Self>, here: &'a ()) -> &'a ();
    |                               ^^
@@ -433,7 +445,7 @@ LL +         fn lifetime_elsewhere(self: Box<Self>, here: &()) -> &();
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:423:40
+  --> tests/ui/needless_lifetimes.rs:412:40
    |
 LL |         fn lifetime_elsewhere_provided<'a>(self: Box<Self>, here: &'a ()) -> &'a () {
    |                                        ^^
@@ -445,7 +457,7 @@ LL +         fn lifetime_elsewhere_provided(self: Box<Self>, here: &()) -> &() {
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:433:12
+  --> tests/ui/needless_lifetimes.rs:422:12
    |
 LL |     fn foo<'a>(x: &'a u8, y: &'_ u8) {}
    |            ^^
@@ -457,7 +469,7 @@ LL +     fn foo(x: &u8, y: &'_ u8) {}
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:436:12
+  --> tests/ui/needless_lifetimes.rs:425:12
    |
 LL |     fn bar<'a>(x: &'a u8, y: &'_ u8, z: &'_ u8) {}
    |            ^^
@@ -469,7 +481,7 @@ LL +     fn bar(x: &u8, y: &'_ u8, z: &'_ u8) {}
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:444:18
+  --> tests/ui/needless_lifetimes.rs:433:18
    |
 LL |     fn one_input<'a>(x: &'a u8) -> &'a u8 {
    |                  ^^
@@ -481,7 +493,7 @@ LL +     fn one_input(x: &u8) -> &u8 {
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:450:42
+  --> tests/ui/needless_lifetimes.rs:439:42
    |
 LL |     fn multiple_inputs_output_not_elided<'a, 'b>(x: &'a u8, y: &'b u8, z: &'b u8) -> &'b u8 {
    |                                          ^^
@@ -493,7 +505,7 @@ LL +     fn multiple_inputs_output_not_elided<'b>(x: &u8, y: &'b u8, z: &'b u8) 
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/needless_lifetimes.rs:467:22
+  --> tests/ui/needless_lifetimes.rs:456:22
    |
 LL |         fn one_input<'a>(x: &'a u8) -> &'a u8 {
    |                      ^^
@@ -505,5 +517,82 @@ LL -         fn one_input<'a>(x: &'a u8) -> &'a u8 {
 LL +         fn one_input(x: &u8) -> &u8 {
    |
 
-error: aborting due to 42 previous errors
+error: these lifetime parameters can be elided
+  --> tests/ui/needless_lifetimes.rs:533:9
+   |
+LL |         'a, 'b, 'c,
+   |         ^^  ^^
+   |
+help: remove the lifetime parameters
+   |
+LL ~         'c,
+LL ~     >(_: &str, _: &str, c: &'c str) -> &'c str {
+   |
+
+error: these lifetime parameters can be elided
+  --> tests/ui/needless_lifetimes.rs:540:13
+   |
+LL |         'a, 'b, 'c,
+   |             ^^  ^^
+   |
+help: remove the lifetime parameters
+   |
+LL ~         'a, 
+LL ~     >(a: &'a str, _: &str, _: &str) -> &'a str {
+   |
+
+error: these lifetime parameters can be elided
+  --> tests/ui/needless_lifetimes.rs:547:9
+   |
+LL |         'a, 'b, 'c
+   |         ^^      ^^
+   |
+help: remove the lifetime parameters
+   |
+LL ~         'b
+LL ~     >(_: &str, b: &'b str, _: &str) -> &'b str {
+   |
+
+error: this lifetime parameter can be elided
+  --> tests/ui/needless_lifetimes.rs:555:9
+   |
+LL |         'b, 'c,
+   |         ^^
+   |
+help: remove the lifetime parameter
+   |
+LL ~         'c,
+LL ~     >(a: &'a str, _: &str, c: &'c str) -> (&'a str, &'c str) {
+   |
+
+error: these lifetime parameters can be elided
+  --> tests/ui/needless_lifetimes.rs:562:9
+   |
+LL |         'a, // comment
+   |         ^^
+LL |         'b, 'c,
+   |         ^^
+   |
+help: remove the lifetime parameters
+   |
+LL ~         // comment
+LL ~         'c,
+LL ~     >(_: &str, _: &str, c: &'c str) -> &'c str {
+   |
+
+error: these lifetime parameters can be elided
+  --> tests/ui/needless_lifetimes.rs:570:9
+   |
+LL |         'a,
+   |         ^^
+LL |         'b, 'c,
+   |         ^^
+   |
+help: remove the lifetime parameters
+   |
+LL ~         'c,
+LL ~     >(_: &str, _: &str, c: &'c str) -> &'c str {
+   |
+
+error: aborting due to 49 previous errors
 

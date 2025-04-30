@@ -1,3 +1,5 @@
+//@no-rustfix: `wrong_self_convention` has no suggestion
+
 #![allow(dead_code)]
 
 async fn sink1<'a>(_: &'a str) {} // lint

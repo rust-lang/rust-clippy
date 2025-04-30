@@ -135,9 +135,7 @@ mod issue13923 {
         }
     }
 
-    //~v elidable_lifetime_names
     impl<'t, 'py> ContentString<'t> {
-        // `'py` can be elided because of `&self`
         fn map_content2(&self, f: impl FnOnce(&'t str) -> &'t str) -> Content<'t, 'py> {
             match self {
                 Self::T1(content) => Content::T1(f(content)),
@@ -146,9 +144,7 @@ mod issue13923 {
         }
     }
 
-    //~v elidable_lifetime_names
     impl<'t, 'py> ContentString<'t> {
-        // `'py` can be elided because of `&'_ self`
         fn map_content3(&'_ self, f: impl FnOnce(&'t str) -> &'t str) -> Content<'t, 'py> {
             match self {
                 Self::T1(content) => Content::T1(f(content)),
@@ -167,9 +163,7 @@ mod issue13923 {
         }
     }
 
-    //~v elidable_lifetime_names
     impl<'t, 'py> ContentString<'t> {
-        // `'py` can be elided because of `&Self`
         fn map_content5(
             self: std::pin::Pin<&Self>,
             f: impl FnOnce(&'t str) -> &'t str,
@@ -273,4 +267,38 @@ fn issue15666() {
     //~v elidable_lifetime_names
     impl<'a, 'b, 'c> T for S3<'a, 'b, 'c> {}
     //   ^^  ^^  ^^
+}
+
+#[clippy::msrv = "1.63"]
+mod dyn_inference_under_msrv {
+    fn _f<'a>(x: &'a [u32]) -> Box<dyn Iterator<Item = u32> + 'a> {
+        Box::new(x.iter().copied())
+    }
+
+    fn _f2<'a>(x: Box<dyn Iterator<Item = u32> + 'a>) -> Box<dyn Iterator<Item = u32> + 'a> {
+        x
+    }
+
+    //~v elidable_lifetime_names
+    fn _f3<'a, 'b>(x: &'a [u32], _: Box<dyn Iterator<Item = u32> + 'b>) -> Box<dyn Iterator<Item = u32> + 'a> {
+        Box::new(x.iter().copied())
+    }
+}
+
+#[clippy::msrv = "1.64"]
+mod dyn_inference_at_msrv {
+    //~v elidable_lifetime_names
+    fn _f<'a>(x: &'a [u32]) -> Box<dyn Iterator<Item = u32> + 'a> {
+        Box::new(x.iter().copied())
+    }
+
+    //~v elidable_lifetime_names
+    fn _f2<'a>(x: Box<dyn Iterator<Item = u32> + 'a>) -> Box<dyn Iterator<Item = u32> + 'a> {
+        x
+    }
+
+    //~v elidable_lifetime_names
+    fn _f3<'a, 'b>(x: &'a [u32], _: Box<dyn Iterator<Item = u32> + 'b>) -> Box<dyn Iterator<Item = u32> + 'a> {
+        Box::new(x.iter().copied())
+    }
 }

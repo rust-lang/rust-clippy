@@ -7,6 +7,7 @@
     never_type,
     pattern,
     rustc_private,
+    try_find,
     unwrap_infallible
 )]
 #![cfg_attr(bootstrap, feature(array_windows))]
