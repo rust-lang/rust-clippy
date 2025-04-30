@@ -109,45 +109,52 @@ LL +         fn baz(&self) -> impl Foo + '_ {
    |
 
 error: these lifetime parameters can be elided
-  --> tests/ui/elidable_lifetime_names.rs:139:14
+  --> tests/ui/elidable_lifetime_names.rs:201:16
    |
-LL |     impl<'t, 'py> ContentString<'t> {
-   |              ^^^
+LL |     fn _f3<'a, 'b>(x: &'a [u32], _: Box<dyn Iterator<Item = u32> + 'b>) -> Box<dyn Iterator<Item = u32> + 'a> {
+   |                ^^
    |
 help: remove the lifetime parameters
    |
-LL ~     impl<'t> ContentString<'t> {
-LL |         // `'py` can be elided because of `&self`
-LL ~         fn map_content2(&self, f: impl FnOnce(&'t str) -> &'t str) -> Content<'t, '_> {
+LL -     fn _f3<'a, 'b>(x: &'a [u32], _: Box<dyn Iterator<Item = u32> + 'b>) -> Box<dyn Iterator<Item = u32> + 'a> {
+LL +     fn _f3<'a>(x: &'a [u32], _: Box<dyn Iterator<Item = u32> + '_>) -> Box<dyn Iterator<Item = u32> + 'a> {
    |
 
 error: these lifetime parameters can be elided
-  --> tests/ui/elidable_lifetime_names.rs:150:14
+  --> tests/ui/elidable_lifetime_names.rs:209:11
    |
-LL |     impl<'t, 'py> ContentString<'t> {
-   |              ^^^
+LL |     fn _f<'a>(x: &'a [u32]) -> Box<dyn Iterator<Item = u32> + 'a> {
+   |           ^^
    |
 help: remove the lifetime parameters
    |
-LL ~     impl<'t> ContentString<'t> {
-LL |         // `'py` can be elided because of `&'_ self`
-LL ~         fn map_content3(&'_ self, f: impl FnOnce(&'t str) -> &'t str) -> Content<'t, '_> {
+LL -     fn _f<'a>(x: &'a [u32]) -> Box<dyn Iterator<Item = u32> + 'a> {
+LL +     fn _f(x: &[u32]) -> Box<dyn Iterator<Item = u32> + '_> {
    |
 
 error: these lifetime parameters can be elided
-  --> tests/ui/elidable_lifetime_names.rs:171:14
+  --> tests/ui/elidable_lifetime_names.rs:214:12
    |
-LL |     impl<'t, 'py> ContentString<'t> {
-   |              ^^^
+LL |     fn _f2<'a>(x: Box<dyn Iterator<Item = u32> + 'a>) -> Box<dyn Iterator<Item = u32> + 'a> {
+   |            ^^
    |
 help: remove the lifetime parameters
    |
-LL ~     impl<'t> ContentString<'t> {
-LL |         // `'py` can be elided because of `&Self`
-...
-LL |             o: &'t str,
-LL ~         ) -> Content<'t, '_> {
+LL -     fn _f2<'a>(x: Box<dyn Iterator<Item = u32> + 'a>) -> Box<dyn Iterator<Item = u32> + 'a> {
+LL +     fn _f2(x: Box<dyn Iterator<Item = u32> + '_>) -> Box<dyn Iterator<Item = u32> + '_> {
    |
 
-error: aborting due to 12 previous errors
+error: these lifetime parameters can be elided
+  --> tests/ui/elidable_lifetime_names.rs:219:16
+   |
+LL |     fn _f3<'a, 'b>(x: &'a [u32], _: Box<dyn Iterator<Item = u32> + 'b>) -> Box<dyn Iterator<Item = u32> + 'a> {
+   |                ^^
+   |
+help: remove the lifetime parameters
+   |
+LL -     fn _f3<'a, 'b>(x: &'a [u32], _: Box<dyn Iterator<Item = u32> + 'b>) -> Box<dyn Iterator<Item = u32> + 'a> {
+LL +     fn _f3<'a>(x: &'a [u32], _: Box<dyn Iterator<Item = u32> + '_>) -> Box<dyn Iterator<Item = u32> + 'a> {
+   |
+
+error: aborting due to 13 previous errors
 

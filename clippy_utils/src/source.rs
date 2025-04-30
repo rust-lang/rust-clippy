@@ -164,6 +164,23 @@ pub trait SpanRangeExt: SpanRange {
     fn trim_start(self, cx: &impl HasSession) -> Range<BytePos> {
         trim_start(cx.sess().source_map(), self.into_range())
     }
+
+    /// Extends the range to include all trailing whitespace characters.
+    fn with_trailing_whitespace(self, cx: &impl HasSession) -> Range<BytePos> {
+        with_trailing_whitespace(cx.sess().source_map(), self.into_range())
+    }
+
+    /// Expands the range to include any leading and trailing whitespace as well as either the
+    /// trailing or preceding comma if they exist.
+    ///
+    /// The preceding comma will only be added to the range if a trailing comma does not exist.
+    fn expand_list_item(self, cx: &impl HasSession) -> Range<BytePos> {
+        expand_list_item(cx.sess().source_map(), self.into_range(), b',')
+    }
+
+    fn expand_generic_bound(self, cx: &impl HasSession) -> Range<BytePos> {
+        expand_list_item(cx.sess().source_map(), self.into_range(), b'+')
+    }
 }
 impl<T: SpanRange> SpanRangeExt for T {}
 
@@ -328,6 +345,51 @@ fn trim_start(sm: &SourceMap, sp: Range<BytePos>) -> Range<BytePos> {
     map_range(sm, sp.clone(), |_, src, range| {
         let src = src.get(range.clone())?;
         Some(range.start + (src.len() - src.trim_start().len())..range.end)
+    })
+    .unwrap_or(sp)
+}
+
+fn with_trailing_whitespace(sm: &SourceMap, sp: Range<BytePos>) -> Range<BytePos> {
+    map_range(sm, sp.clone(), |_, src, range| {
+        let end = src.get(range.end..)?;
+        let end_len = end.len();
+        let end = end.trim_start();
+        Some(range.start..range.end + (end_len - end.len()))
+    })
+    .unwrap_or(sp)
+}
+
+#[expect(clippy::range_plus_one)]
+fn expand_list_item(sm: &SourceMap, sp: Range<BytePos>, sep: u8) -> Range<BytePos> {
+    map_range(sm, sp.clone(), |sf, src, range| {
+        let end = src.get(range.end..)?;
+        let end_len = end.len();
+        let end = end.trim_start();
+        let has_trailing_comma = end.as_bytes().first() == Some(&sep);
+        let end_pos = range.end + (end_len - end.len());
+
+        let start = with_leading_whitespace_inner(sf.lines(), src, range.clone()).unwrap_or(range.start);
+        Some(if src.as_bytes().get(start.wrapping_sub(1)) == Some(&sep) {
+            if has_trailing_comma {
+                // expand to `, item ,`
+                //             ^-----^
+                start - 1..end_pos + 1
+            } else {
+                // expand to `other , item )`
+                //                 ^-----^
+                let start = with_leading_whitespace_inner(sf.lines(), src, start - 1..range.end).unwrap_or(start);
+                start..range.end
+            }
+        } else if has_trailing_comma {
+            // expand to `( item, other`
+            //              ^----^
+            let end = end[1..].trim_start();
+            range.start..range.end + (end_len - end.len())
+        } else {
+            // expand to `( item )`
+            //             ^----^
+            start..end_pos
+        })
     })
     .unwrap_or(sp)
 }
