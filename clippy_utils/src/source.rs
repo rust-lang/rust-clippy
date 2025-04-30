@@ -7,13 +7,14 @@ use std::sync::Arc;
 use rustc_ast::{LitKind, StrStyle};
 use rustc_errors::Applicability;
 use rustc_hir::{BlockCheckMode, Expr, ExprKind, UnsafeSource};
+use rustc_lexer::{LiteralKind, TokenKind, tokenize};
 use rustc_lint::{EarlyContext, LateContext};
 use rustc_middle::ty::TyCtxt;
 use rustc_session::Session;
 use rustc_span::source_map::{SourceMap, original_sp};
 use rustc_span::{
-    BytePos, DUMMY_SP, FileNameDisplayPreference, Pos, SourceFile, SourceFileAndLine, Span, SpanData, SyntaxContext,
-    hygiene,
+    BytePos, DUMMY_SP, FileNameDisplayPreference, Pos, RelativeBytePos, SourceFile, SourceFileAndLine, Span, SpanData,
+    SyntaxContext, hygiene,
 };
 use std::borrow::Cow;
 use std::fmt;
@@ -137,24 +138,24 @@ pub trait SpanRangeExt: SpanRange {
     fn map_range(
         self,
         cx: &impl HasSession,
-        f: impl for<'a> FnOnce(&'a str, Range<usize>) -> Option<Range<usize>>,
+        f: impl for<'a> FnOnce(&'a SourceFile, &'a str, Range<usize>) -> Option<Range<usize>>,
     ) -> Option<Range<BytePos>> {
         map_range(cx.sess().source_map(), self.into_range(), f)
     }
 
-    /// Extends the range to include all preceding whitespace characters, unless there
-    /// are non-whitespace characters left on the same line after `self`.
+    /// Extends the range to include all preceding whitespace characters.
     ///
-    /// This extra condition prevents a problem when removing the '}' in:
+    /// The range will not be expanded if it would cross a line boundary, the line the range would
+    /// be extended to ends with a line comment and the text after the range contains a
+    /// non-whitespace character on the same line. e.g.
+    ///
     /// ```ignore
-    ///   ( // There was an opening bracket after the parenthesis, which has been removed
-    ///     // This is a comment
-    ///    })
+    /// ( // Some comment
+    /// foo)
     /// ```
-    /// Removing the whitespaces, including the linefeed, before the '}', would put the
-    /// closing parenthesis at the end of the `// This is a comment` line, which would
-    /// make it part of the comment as well. In this case, it is best to keep the span
-    /// on the '}' alone.
+    ///
+    /// When the range points to `foo`, suggesting to remove the range after it's been extended will
+    /// cause the `)` to be placed inside the line comment as `( // Some comment)`.
     fn with_leading_whitespace(self, cx: &impl HasSession) -> Range<BytePos> {
         with_leading_whitespace(cx.sess().source_map(), self.into_range())
     }
@@ -162,6 +163,23 @@ pub trait SpanRangeExt: SpanRange {
     /// Trims the leading whitespace from the range.
     fn trim_start(self, cx: &impl HasSession) -> Range<BytePos> {
         trim_start(cx.sess().source_map(), self.into_range())
+    }
+
+    /// Extends the range to include all trailing whitespace characters.
+    fn with_trailing_whitespace(self, cx: &impl HasSession) -> Range<BytePos> {
+        with_trailing_whitespace(cx.sess().source_map(), self.into_range())
+    }
+
+    /// Expands the range to include any leading and trailing whitespace as well as either the
+    /// trailing or preceding comma if they exist.
+    ///
+    /// The preceding comma will only be added to the range if a trailing comma does not exist.
+    fn expand_list_item(self, cx: &impl HasSession) -> Range<BytePos> {
+        expand_list_item(cx.sess().source_map(), self.into_range(), b',')
+    }
+
+    fn expand_generic_bound(self, cx: &impl HasSession) -> Range<BytePos> {
+        expand_list_item(cx.sess().source_map(), self.into_range(), b'+')
     }
 }
 impl<T: SpanRange> SpanRangeExt for T {}
@@ -253,11 +271,11 @@ fn with_source_text_and_range<T>(
 fn map_range(
     sm: &SourceMap,
     sp: Range<BytePos>,
-    f: impl for<'a> FnOnce(&'a str, Range<usize>) -> Option<Range<usize>>,
+    f: impl for<'a> FnOnce(&'a SourceFile, &'a str, Range<usize>) -> Option<Range<usize>>,
 ) -> Option<Range<BytePos>> {
     if let Some(src) = get_source_range(sm, sp.clone())
         && let Some(text) = &src.sf.src
-        && let Some(range) = f(text, src.range.clone())
+        && let Some(range) = f(&src.sf, text, src.range.clone())
     {
         debug_assert!(
             range.start <= text.len() && range.end <= text.len(),
@@ -274,22 +292,104 @@ fn map_range(
     }
 }
 
+fn ends_with_line_comment_or_broken(text: &str) -> bool {
+    let Some(last) = tokenize(text).last() else {
+        return false;
+    };
+    match last.kind {
+        // Will give the wrong result on text like `" // "` where the first quote ends a string
+        // started earlier. The only workaround is to lex the whole file which we don't really want
+        // to do.
+        TokenKind::LineComment { .. } | TokenKind::BlockComment { terminated: false, .. } => true,
+        TokenKind::Literal { kind, .. } => matches!(
+            kind,
+            LiteralKind::Byte { terminated: false }
+                | LiteralKind::ByteStr { terminated: false }
+                | LiteralKind::CStr { terminated: false }
+                | LiteralKind::Char { terminated: false }
+                | LiteralKind::RawByteStr { n_hashes: None }
+                | LiteralKind::RawCStr { n_hashes: None }
+                | LiteralKind::RawStr { n_hashes: None }
+        ),
+        _ => false,
+    }
+}
+
+fn with_leading_whitespace_inner(lines: &[RelativeBytePos], src: &str, range: Range<usize>) -> Option<usize> {
+    debug_assert!(lines.is_empty() || lines[0].to_u32() == 0);
+
+    let start = src.get(..range.start)?.trim_end();
+    let next_line = lines.partition_point(|&pos| pos.to_usize() <= start.len());
+    if let Some(line_end) = lines.get(next_line)
+        && line_end.to_usize() <= range.start
+        && let prev_start = lines.get(next_line - 1).map_or(0, |&x| x.to_usize())
+        && ends_with_line_comment_or_broken(&start[prev_start..])
+        && let next_line = lines.partition_point(|&pos| pos.to_usize() < range.end)
+        && let next_start = lines.get(next_line).map_or(src.len(), |&x| x.to_usize())
+        && tokenize(src.get(range.end..next_start)?).any(|t| !matches!(t.kind, TokenKind::Whitespace))
+    {
+        Some(range.start)
+    } else {
+        Some(start.len())
+    }
+}
+
 fn with_leading_whitespace(sm: &SourceMap, sp: Range<BytePos>) -> Range<BytePos> {
-    map_range(sm, sp, |src, range| {
-        let non_blank_after = src.len() - src.get(range.end..)?.trim_start().len();
-        if src.get(range.end..non_blank_after)?.contains(['\r', '\n']) {
-            Some(src.get(..range.start)?.trim_end().len()..range.end)
-        } else {
-            Some(range)
-        }
+    map_range(sm, sp.clone(), |sf, src, range| {
+        Some(with_leading_whitespace_inner(sf.lines(), src, range.clone())?..range.end)
     })
-    .unwrap()
+    .unwrap_or(sp)
 }
 
 fn trim_start(sm: &SourceMap, sp: Range<BytePos>) -> Range<BytePos> {
-    map_range(sm, sp.clone(), |src, range| {
+    map_range(sm, sp.clone(), |_, src, range| {
         let src = src.get(range.clone())?;
         Some(range.start + (src.len() - src.trim_start().len())..range.end)
+    })
+    .unwrap_or(sp)
+}
+
+fn with_trailing_whitespace(sm: &SourceMap, sp: Range<BytePos>) -> Range<BytePos> {
+    map_range(sm, sp.clone(), |_, src, range| {
+        let end = src.get(range.end..)?;
+        let end_len = end.len();
+        let end = end.trim_start();
+        Some(range.start..range.end + (end_len - end.len()))
+    })
+    .unwrap_or(sp)
+}
+
+#[expect(clippy::range_plus_one)]
+fn expand_list_item(sm: &SourceMap, sp: Range<BytePos>, sep: u8) -> Range<BytePos> {
+    map_range(sm, sp.clone(), |sf, src, range| {
+        let end = src.get(range.end..)?;
+        let end_len = end.len();
+        let end = end.trim_start();
+        let has_trailing_comma = end.as_bytes().first() == Some(&sep);
+        let end_pos = range.end + (end_len - end.len());
+
+        let start = with_leading_whitespace_inner(sf.lines(), src, range.clone()).unwrap_or(range.start);
+        Some(if src.as_bytes().get(start.wrapping_sub(1)) == Some(&sep) {
+            if has_trailing_comma {
+                // expand to `, item ,`
+                //             ^-----^
+                start - 1..end_pos + 1
+            } else {
+                // expand to `other , item )`
+                //                 ^-----^
+                let start = with_leading_whitespace_inner(sf.lines(), src, start - 1..range.end).unwrap_or(start);
+                start..range.end
+            }
+        } else if has_trailing_comma {
+            // expand to `( item, other`
+            //              ^----^
+            let end = end[1..].trim_start();
+            range.start..range.end + (end_len - end.len())
+        } else {
+            // expand to `( item )`
+            //             ^----^
+            start..end_pos
+        })
     })
     .unwrap_or(sp)
 }
