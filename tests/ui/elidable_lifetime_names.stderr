@@ -108,49 +108,8 @@ LL -         fn baz<'a>(&'a self) -> impl Foo + 'a {
 LL +         fn baz(&self) -> impl Foo + '_ {
    |
 
-error: this lifetime parameter can be elided
-  --> tests/ui/elidable_lifetime_names.rs:139:14
-   |
-LL |     impl<'t, 'py> ContentString<'t> {
-   |              ^^^
-   |
-help: remove the lifetime parameter
-   |
-LL ~     impl<'t> ContentString<'t> {
-LL |         // `'py` can be elided because of `&self`
-LL ~         fn map_content2(&self, f: impl FnOnce(&'t str) -> &'t str) -> Content<'t, '_> {
-   |
-
-error: this lifetime parameter can be elided
-  --> tests/ui/elidable_lifetime_names.rs:150:14
-   |
-LL |     impl<'t, 'py> ContentString<'t> {
-   |              ^^^
-   |
-help: remove the lifetime parameter
-   |
-LL ~     impl<'t> ContentString<'t> {
-LL |         // `'py` can be elided because of `&'_ self`
-LL ~         fn map_content3(&'_ self, f: impl FnOnce(&'t str) -> &'t str) -> Content<'t, '_> {
-   |
-
-error: this lifetime parameter can be elided
-  --> tests/ui/elidable_lifetime_names.rs:171:14
-   |
-LL |     impl<'t, 'py> ContentString<'t> {
-   |              ^^^
-   |
-help: remove the lifetime parameter
-   |
-LL ~     impl<'t> ContentString<'t> {
-LL |         // `'py` can be elided because of `&Self`
-...
-LL |             o: &'t str,
-LL ~         ) -> Content<'t, '_> {
-   |
-
 error: these lifetime parameters can be elided
-  --> tests/ui/elidable_lifetime_names.rs:202:15
+  --> tests/ui/elidable_lifetime_names.rs:196:15
    |
 LL |     impl<'de, 'a, 's> Trait<'de> for UnitVariantAccess<'a, 'de, 's> {}
    |               ^^  ^^
@@ -162,7 +121,7 @@ LL +     impl<'de> Trait<'de> for UnitVariantAccess<'_, 'de, '_> {}
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/elidable_lifetime_names.rs:226:10
+  --> tests/ui/elidable_lifetime_names.rs:220:10
    |
 LL |     impl<'a> T for S1<'a> {}
    |          ^^
@@ -174,7 +133,7 @@ LL +     impl T for S1<'_> {}
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/elidable_lifetime_names.rs:234:14
+  --> tests/ui/elidable_lifetime_names.rs:228:14
    |
 LL |     impl<'a, 'b> TA<'a> for S2<'a, 'b> {}
    |              ^^
@@ -186,7 +145,7 @@ LL +     impl<'a> TA<'a> for S2<'a, '_> {}
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/elidable_lifetime_names.rs:238:10
+  --> tests/ui/elidable_lifetime_names.rs:232:10
    |
 LL |     impl<'a, 'b> TB<'b> for S2<'a, 'b> {}
    |          ^^
@@ -198,7 +157,7 @@ LL +     impl<'b> TB<'b> for S2<'_, 'b> {}
    |
 
 error: these lifetime parameters can be elided
-  --> tests/ui/elidable_lifetime_names.rs:242:10
+  --> tests/ui/elidable_lifetime_names.rs:236:10
    |
 LL |     impl<'a, 'b> T for S2<'a, 'b> {}
    |          ^^  ^^
@@ -210,7 +169,7 @@ LL +     impl T for S2<'_, '_> {}
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/elidable_lifetime_names.rs:250:18
+  --> tests/ui/elidable_lifetime_names.rs:244:18
    |
 LL |     impl<'a, 'b, 'c> TAB<'a, 'b> for S3<'a, 'b, 'c> {}
    |                  ^^
@@ -222,7 +181,7 @@ LL +     impl<'a, 'b> TAB<'a, 'b> for S3<'a, 'b, '_> {}
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/elidable_lifetime_names.rs:254:14
+  --> tests/ui/elidable_lifetime_names.rs:248:14
    |
 LL |     impl<'a, 'b, 'c> TAC<'a, 'c> for S3<'a, 'b, 'c> {}
    |              ^^
@@ -234,7 +193,7 @@ LL +     impl<'a, 'c> TAC<'a, 'c> for S3<'a, '_, 'c> {}
    |
 
 error: these lifetime parameters can be elided
-  --> tests/ui/elidable_lifetime_names.rs:258:14
+  --> tests/ui/elidable_lifetime_names.rs:252:14
    |
 LL |     impl<'a, 'b, 'c> TA<'a> for S3<'a, 'b, 'c> {}
    |              ^^  ^^
@@ -246,7 +205,7 @@ LL +     impl<'a> TA<'a> for S3<'a, '_, '_> {}
    |
 
 error: this lifetime parameter can be elided
-  --> tests/ui/elidable_lifetime_names.rs:262:10
+  --> tests/ui/elidable_lifetime_names.rs:256:10
    |
 LL |     impl<'a, 'b, 'c> TBC<'b, 'c> for S3<'a, 'b, 'c> {}
    |          ^^
@@ -258,7 +217,7 @@ LL +     impl<'b, 'c> TBC<'b, 'c> for S3<'_, 'b, 'c> {}
    |
 
 error: these lifetime parameters can be elided
-  --> tests/ui/elidable_lifetime_names.rs:266:10
+  --> tests/ui/elidable_lifetime_names.rs:260:10
    |
 LL |     impl<'a, 'b, 'c> TB<'b> for S3<'a, 'b, 'c> {}
    |          ^^      ^^
@@ -270,7 +229,7 @@ LL +     impl<'b> TB<'b> for S3<'_, 'b, '_> {}
    |
 
 error: these lifetime parameters can be elided
-  --> tests/ui/elidable_lifetime_names.rs:270:10
+  --> tests/ui/elidable_lifetime_names.rs:264:10
    |
 LL |     impl<'a, 'b, 'c> TC<'c> for S3<'a, 'b, 'c> {}
    |          ^^  ^^
@@ -282,7 +241,7 @@ LL +     impl<'c> TC<'c> for S3<'_, '_, 'c> {}
    |
 
 error: these lifetime parameters can be elided
-  --> tests/ui/elidable_lifetime_names.rs:274:10
+  --> tests/ui/elidable_lifetime_names.rs:268:10
    |
 LL |     impl<'a, 'b, 'c> T for S3<'a, 'b, 'c> {}
    |          ^^  ^^  ^^
@@ -293,5 +252,53 @@ LL -     impl<'a, 'b, 'c> T for S3<'a, 'b, 'c> {}
 LL +     impl T for S3<'_, '_, '_> {}
    |
 
-error: aborting due to 24 previous errors
+error: this lifetime parameter can be elided
+  --> tests/ui/elidable_lifetime_names.rs:283:16
+   |
+LL |     fn _f3<'a, 'b>(x: &'a [u32], _: Box<dyn Iterator<Item = u32> + 'b>) -> Box<dyn Iterator<Item = u32> + 'a> {
+   |                ^^
+   |
+help: remove the lifetime parameter
+   |
+LL -     fn _f3<'a, 'b>(x: &'a [u32], _: Box<dyn Iterator<Item = u32> + 'b>) -> Box<dyn Iterator<Item = u32> + 'a> {
+LL +     fn _f3<'a>(x: &'a [u32], _: Box<dyn Iterator<Item = u32> + '_>) -> Box<dyn Iterator<Item = u32> + 'a> {
+   |
+
+error: this lifetime parameter can be elided
+  --> tests/ui/elidable_lifetime_names.rs:291:11
+   |
+LL |     fn _f<'a>(x: &'a [u32]) -> Box<dyn Iterator<Item = u32> + 'a> {
+   |           ^^
+   |
+help: remove the lifetime parameter
+   |
+LL -     fn _f<'a>(x: &'a [u32]) -> Box<dyn Iterator<Item = u32> + 'a> {
+LL +     fn _f(x: &[u32]) -> Box<dyn Iterator<Item = u32> + '_> {
+   |
+
+error: this lifetime parameter can be elided
+  --> tests/ui/elidable_lifetime_names.rs:296:12
+   |
+LL |     fn _f2<'a>(x: Box<dyn Iterator<Item = u32> + 'a>) -> Box<dyn Iterator<Item = u32> + 'a> {
+   |            ^^
+   |
+help: remove the lifetime parameter
+   |
+LL -     fn _f2<'a>(x: Box<dyn Iterator<Item = u32> + 'a>) -> Box<dyn Iterator<Item = u32> + 'a> {
+LL +     fn _f2(x: Box<dyn Iterator<Item = u32> + '_>) -> Box<dyn Iterator<Item = u32> + '_> {
+   |
+
+error: this lifetime parameter can be elided
+  --> tests/ui/elidable_lifetime_names.rs:301:16
+   |
+LL |     fn _f3<'a, 'b>(x: &'a [u32], _: Box<dyn Iterator<Item = u32> + 'b>) -> Box<dyn Iterator<Item = u32> + 'a> {
+   |                ^^
+   |
+help: remove the lifetime parameter
+   |
+LL -     fn _f3<'a, 'b>(x: &'a [u32], _: Box<dyn Iterator<Item = u32> + 'b>) -> Box<dyn Iterator<Item = u32> + 'a> {
+LL +     fn _f3<'a>(x: &'a [u32], _: Box<dyn Iterator<Item = u32> + '_>) -> Box<dyn Iterator<Item = u32> + 'a> {
+   |
+
+error: aborting due to 25 previous errors
 

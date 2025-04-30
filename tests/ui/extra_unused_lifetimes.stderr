@@ -1,4 +1,4 @@
-error: this lifetime isn't used in the function definition
+error: this lifetime parameter is unused
   --> tests/ui/extra_unused_lifetimes.rs:19:14
    |
 LL | fn unused_lt<'a>(x: u8) {}
@@ -6,42 +6,71 @@ LL | fn unused_lt<'a>(x: u8) {}
    |
    = note: `-D clippy::extra-unused-lifetimes` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::extra_unused_lifetimes)]`
+help: remove the lifetime parameter
+   |
+LL - fn unused_lt<'a>(x: u8) {}
+LL + fn unused_lt(x: u8) {}
+   |
 
-error: this lifetime isn't used in the function definition
+error: this lifetime parameter is unused
   --> tests/ui/extra_unused_lifetimes.rs:47:10
    |
 LL |     fn x<'a>(&self) {}
    |          ^^
+   |
+help: remove the lifetime parameter
+   |
+LL -     fn x<'a>(&self) {}
+LL +     fn x(&self) {}
+   |
 
-error: this lifetime isn't used in the function definition
+error: this lifetime parameter is unused
   --> tests/ui/extra_unused_lifetimes.rs:74:22
    |
 LL |         fn unused_lt<'a>(x: u8) {}
    |                      ^^
+   |
+help: remove the lifetime parameter
+   |
+LL -         fn unused_lt<'a>(x: u8) {}
+LL +         fn unused_lt(x: u8) {}
+   |
 
-error: this lifetime isn't used in the impl
+error: this lifetime parameter is unused
   --> tests/ui/extra_unused_lifetimes.rs:86:10
    |
 LL |     impl<'a> std::ops::AddAssign<&Scalar> for &mut Scalar {
    |          ^^
+   |
+help: remove the lifetime parameter
+   |
+LL -     impl<'a> std::ops::AddAssign<&Scalar> for &mut Scalar {
+LL +     impl std::ops::AddAssign<&Scalar> for &mut Scalar {
+   |
 
-error: this lifetime isn't used in the impl
+error: this lifetime parameter is unused
   --> tests/ui/extra_unused_lifetimes.rs:93:10
    |
 LL |     impl<'b> Scalar {
    |          ^^
+   |
+help: remove the lifetime parameter
+   |
+LL -     impl<'b> Scalar {
+LL +     impl Scalar {
+   |
 
-error: this lifetime isn't used in the function definition
+error: this lifetime parameter is unused
   --> tests/ui/extra_unused_lifetimes.rs:95:26
    |
 LL |         pub fn something<'c>() -> Self {
    |                          ^^
-
-error: this lifetime isn't used in the impl
-  --> tests/ui/extra_unused_lifetimes.rs:125:10
    |
-LL |     impl<'a, T: Source + ?Sized + 'a> Source for Box<T> {
-   |          ^^
+help: remove the lifetime parameter
+   |
+LL -         pub fn something<'c>() -> Self {
+LL +         pub fn something() -> Self {
+   |
 
-error: aborting due to 7 previous errors
+error: aborting due to 6 previous errors
 
