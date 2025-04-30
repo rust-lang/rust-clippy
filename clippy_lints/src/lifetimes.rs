@@ -788,13 +788,6 @@ fn report_elidable_lifetimes(
     usages: &[Lifetime],
     include_suggestions: bool,
 ) {
-    let lts = elidable_lts
-        .iter()
-        // In principle, the result of the call to `Node::ident` could be `unwrap`ped, as `DefId` should refer to a
-        // `Node::GenericParam`.
-        .filter_map(|&def_id| cx.tcx.hir_node_by_def_id(def_id).ident())
-        .format(", ");
-
     let elidable_usages: Vec<ElidableUsage> = usages
         .iter()
         .filter(|usage| named_lifetime(usage).is_some_and(|id| elidable_lts.contains(&id)))
@@ -818,27 +811,27 @@ fn report_elidable_lifetimes(
     span_lint_and_then(
         cx,
         lint,
-        elidable_lts
-            .iter()
-            .map(|&lt| cx.tcx.def_span(lt))
-            .chain(usages.iter().filter_map(|usage| {
-                if let LifetimeKind::Param(def_id) = usage.kind
-                    && elidable_lts.contains(&def_id)
-                {
-                    return Some(usage.ident.span);
-                }
-
-                None
-            }))
-            .collect_vec(),
-        format!("the following explicit lifetimes could be elided: {lts}"),
+        elidable_lts.iter().map(|&lt| cx.tcx.def_span(lt)).collect_vec(),
+        if elidable_lts.len() == 1 {
+            "this lifetime parameter can be elided"
+        } else {
+            "these lifetime parameters can be elided"
+        },
         |diag| {
             if !include_suggestions {
                 return;
             }
 
             if let Some(suggestions) = elision_suggestions(cx, generics, elidable_lts, &elidable_usages) {
-                diag.multipart_suggestion("elide the lifetimes", suggestions, Applicability::MachineApplicable);
+                diag.multipart_suggestion(
+                    if elidable_lts.len() == 1 {
+                        "remove the lifetime parameter"
+                    } else {
+                        "remove the lifetime parameters"
+                    },
+                    suggestions,
+                    Applicability::MachineApplicable,
+                );
             }
         },
     );
