@@ -9,6 +9,7 @@
 #![feature(never_type)]
 #![feature(round_char_boundary)]
 #![feature(rustc_private)]
+#![feature(slice_partition_dedup)]
 #![feature(stmt_expr_attributes)]
 #![feature(unwrap_infallible)]
 #![recursion_limit = "512"]
