@@ -1,7 +1,7 @@
 use clippy_config::Conf;
 use clippy_config::types::{DisallowedPathWithoutReplacement, create_disallowed_map};
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::{match_def_path, paths};
+use clippy_utils::{def_path_res, match_def_path, paths};
 use rustc_hir as hir;
 use rustc_hir::def_id::{DefId, DefIdMap};
 use rustc_lint::{LateContext, LateLintPass};
@@ -185,6 +185,7 @@ impl AwaitHolding {
             crate::disallowed_types::def_kind_predicate,
             "type",
             false,
+            def_path_res,
         );
         Self { def_ids }
     }

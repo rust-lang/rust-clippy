@@ -11,6 +11,7 @@ use rustc_hir::{
     VariantData,
 };
 use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_middle::ty::TyCtxt;
 use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
@@ -172,16 +173,18 @@ pub struct ArbitrarySourceItemOrdering {
 }
 
 impl ArbitrarySourceItemOrdering {
-    pub fn new(conf: &'static Conf) -> Self {
+    pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {
         #[allow(clippy::enum_glob_use)] // Very local glob use for legibility.
         use SourceItemOrderingCategory::*;
+        conf.module_items_ordered_within_groupings
+            .check_groupings(tcx.sess, &conf.module_item_order_groupings);
         Self {
             assoc_types_order: conf.trait_assoc_item_kinds_order.clone(),
-            enable_ordering_for_enum: conf.source_item_ordering.contains(&Enum),
-            enable_ordering_for_impl: conf.source_item_ordering.contains(&Impl),
-            enable_ordering_for_module: conf.source_item_ordering.contains(&Module),
-            enable_ordering_for_struct: conf.source_item_ordering.contains(&Struct),
-            enable_ordering_for_trait: conf.source_item_ordering.contains(&Trait),
+            enable_ordering_for_enum: conf.source_item_ordering.contains(Enum),
+            enable_ordering_for_impl: conf.source_item_ordering.contains(Impl),
+            enable_ordering_for_module: conf.source_item_ordering.contains(Module),
+            enable_ordering_for_struct: conf.source_item_ordering.contains(Struct),
+            enable_ordering_for_trait: conf.source_item_ordering.contains(Trait),
             module_item_order_groupings: conf.module_item_order_groupings.clone(),
             module_items_ordered_within_groupings: conf.module_items_ordered_within_groupings.clone(),
         }
@@ -301,9 +304,9 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
 
                     if let Some(cur_t) = cur_t {
                         let cur_t_kind = convert_assoc_item_kind(cur_t.kind);
-                        let cur_t_kind_index = self.assoc_types_order.index_of(&cur_t_kind);
+                        let cur_t_kind_index = self.assoc_types_order.index_of(cur_t_kind);
                         let item_kind = convert_assoc_item_kind(item.kind);
-                        let item_kind_index = self.assoc_types_order.index_of(&item_kind);
+                        let item_kind_index = self.assoc_types_order.index_of(item_kind);
 
                         if cur_t_kind == item_kind && cur_t.ident.name.as_str() > item.ident.name.as_str() {
                             Self::lint_member_name(cx, &item.ident, &cur_t.ident);
@@ -324,9 +327,9 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
 
                     if let Some(cur_t) = cur_t {
                         let cur_t_kind = convert_assoc_item_kind(cur_t.kind);
-                        let cur_t_kind_index = self.assoc_types_order.index_of(&cur_t_kind);
+                        let cur_t_kind_index = self.assoc_types_order.index_of(cur_t_kind);
                         let item_kind = convert_assoc_item_kind(item.kind);
-                        let item_kind_index = self.assoc_types_order.index_of(&item_kind);
+                        let item_kind_index = self.assoc_types_order.index_of(item_kind);
 
                         if cur_t_kind == item_kind && cur_t.ident.name.as_str() > item.ident.name.as_str() {
                             Self::lint_member_name(cx, &item.ident, &cur_t.ident);
@@ -395,10 +398,10 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
             }
 
             let item_kind = convert_module_item_kind(&item.kind);
-            let grouping_name = self.module_item_order_groupings.grouping_name_of(&item_kind);
+            let grouping_name = self.module_item_order_groupings.grouping_name_of(item_kind);
             let module_level_order = self
                 .module_item_order_groupings
-                .module_level_order_of(&item_kind)
+                .module_level_order_of(item_kind)
                 .unwrap_or_default();
 
             if let Some(cur_t) = cur_t.as_ref() {
