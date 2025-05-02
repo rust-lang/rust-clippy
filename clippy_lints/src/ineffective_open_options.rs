@@ -64,15 +64,15 @@ impl<'tcx> LateLintPass<'tcx> for IneffectiveOpenOptions {
                         match name.ident.name {
                             sym::append => append = true,
                             sym::write
-                                if let Some(range) = call_span.map_range(cx, |_, text, range| {
-                                    if text.get(..range.start)?.ends_with('.') {
-                                        Some(range.start - 1..range.end)
-                                    } else {
-                                        None
-                                    }
+                                if let Some(call_span) = call_span.map_range(cx, |range| {
+                                    range.add_leading_whitespace()?.edit_range(|text, range| {
+                                        text.get(..range.start)?
+                                            .ends_with('.')
+                                            .then_some(range.start.wrapping_sub(1)..range.end)
+                                    })
                                 }) =>
                             {
-                                write = Some(call_span.with_lo(range.start));
+                                write = Some(call_span);
                             },
                             _ => {},
                         }

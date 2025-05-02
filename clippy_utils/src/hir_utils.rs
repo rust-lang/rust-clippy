@@ -1,6 +1,6 @@
 use crate::consts::ConstEvalCtxt;
 use crate::macros::macro_backtrace;
-use crate::source::{SpanExt, SpanRange, walk_span_to_context};
+use crate::source::{SpanExt, SpanLike, walk_span_to_context};
 use crate::tokenize_with_text;
 use rustc_ast::ast;
 use rustc_ast::ast::InlineAsmTemplatePiece;
@@ -1370,15 +1370,15 @@ pub fn hash_expr(cx: &LateContext<'_>, e: &Expr<'_>) -> u64 {
 
 fn eq_span_tokens(
     cx: &LateContext<'_>,
-    left: impl SpanRange,
-    right: impl SpanRange,
+    left: impl SpanLike,
+    right: impl SpanLike,
     pred: impl Fn(TokenKind) -> bool,
 ) -> bool {
     fn f(cx: &LateContext<'_>, left: Range<BytePos>, right: Range<BytePos>, pred: impl Fn(TokenKind) -> bool) -> bool {
         if let Some(lsrc) = left.get_source_range(cx)
-            && let Some(lsrc) = lsrc.as_str()
+            && let Some(lsrc) = lsrc.current_text()
             && let Some(rsrc) = right.get_source_range(cx)
-            && let Some(rsrc) = rsrc.as_str()
+            && let Some(rsrc) = rsrc.current_text()
         {
             let pred = |&(token, ..): &(TokenKind, _, _)| pred(token);
             let map = |(_, source, _)| source;
