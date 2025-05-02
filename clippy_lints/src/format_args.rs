@@ -10,7 +10,7 @@ use clippy_utils::macros::{
 };
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeDef;
-use clippy_utils::source::{SpanRangeExt, snippet};
+use clippy_utils::source::{SpanExt, snippet};
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{is_from_proc_macro, is_in_test, trait_ref_of_method};
 use itertools::Itertools;
