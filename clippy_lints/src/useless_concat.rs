@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::macros::macro_backtrace;
 use clippy_utils::paths::CONCAT;
 use clippy_utils::source::snippet_opt;
-use clippy_utils::{match_def_path, tokenize_with_text};
+use clippy_utils::tokenize_with_text;
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
@@ -43,7 +43,7 @@ impl LateLintPass<'_> for UselessConcat {
             // Get the direct parent of the expression.
             && let Some(macro_call) = macro_backtrace(expr.span).next()
             // Check if the `concat` macro from the `core` library.
-            && match_def_path(cx, macro_call.def_id, &CONCAT)
+            && CONCAT.matches(cx, macro_call.def_id)
             // We get the original code to parse it.
             && let Some(original_code) = snippet_opt(cx, macro_call.span)
             // This check allows us to ensure that the code snippet:
@@ -82,12 +82,14 @@ impl LateLintPass<'_> for UselessConcat {
                 }
             }
             let literal = match literal {
-                Some(lit) => {
+                Some(original_lit) => {
                     // Literals can also be number, so we need to check this case too.
+                    let lit = original_lit.strip_prefix("r").unwrap_or(original_lit);
+                    let lit = lit.trim_start_matches('#');
                     if lit.starts_with('"') {
-                        lit.to_string()
+                        original_lit.to_string()
                     } else {
-                        format!("\"{lit}\"")
+                        format!("\"{original_lit}\"")
                     }
                 },
                 None => "\"\"".to_string(),
