@@ -1,7 +1,7 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::source::{IntoSpan as _, SpanExt, snippet, snippet_block_with_applicability};
+use clippy_utils::source::{SourceFileRange, SpanExt, snippet, snippet_block_with_applicability};
 use clippy_utils::{span_contains_non_whitespace, tokenize_with_text};
 use rustc_ast::BinOpKind;
 use rustc_errors::Applicability;
@@ -113,15 +113,15 @@ impl CollapsibleIf {
                             span_extract_keyword(cx.tcx.sess.source_map(), up_to_else, "else")
                         && let Some(else_if_keyword_span) =
                             span_extract_keyword(cx.tcx.sess.source_map(), else_before_if, "if")
+                        && let Some(else_keyword_span) =
+                            else_keyword_span.map_range(cx, SourceFileRange::add_leading_whitespace)
+                        && let Some(else_open_bracket) = else_block.span.map_range(cx, |range| {
+                            range.set_to_first_char_if(|c| c == '{')?.add_leading_whitespace()
+                        })
+                        && let Some(else_closing_bracket) = else_block.span.map_range(cx, |range| {
+                            range.set_to_last_char_if(|c| c == '}')?.add_leading_whitespace()
+                        })
                     {
-                        let else_keyword_span = else_keyword_span.with_leading_whitespace(cx).into_span();
-                        let else_open_bracket = else_block.span.split_at(1).0.with_leading_whitespace(cx).into_span();
-                        let else_closing_bracket = {
-                            let end = else_block.span.shrink_to_hi();
-                            end.with_lo(end.lo() - BytePos(1))
-                                .with_leading_whitespace(cx)
-                                .into_span()
-                        };
                         let sugg = vec![
                             // Remove the outer else block `else`
                             (else_keyword_span, String::new()),
@@ -173,6 +173,12 @@ impl CollapsibleIf {
             && let ctxt = expr.span.ctxt()
             && inner.span.ctxt() == ctxt
             && !block_starts_with_significant_tokens(cx, then, inner, self.lint_commented_code)
+            && let Some(then_open_bracket) = then.span.map_range(cx, |range| {
+                range.set_to_first_char_if(|c| c == '{')?.add_leading_whitespace()
+            })
+            && let Some(then_closing_bracket) = then.span.map_range(cx, |range| {
+                range.set_to_last_char_if(|c| c == '}')?.add_leading_whitespace()
+            })
         {
             span_lint_and_then(
                 cx,
@@ -180,13 +186,6 @@ impl CollapsibleIf {
                 expr.span,
                 "this `if` statement can be collapsed",
                 |diag| {
-                    let then_open_bracket = then.span.split_at(1).0.with_leading_whitespace(cx).into_span();
-                    let then_closing_bracket = {
-                        let end = then.span.shrink_to_hi();
-                        end.with_lo(end.lo() - BytePos(1))
-                            .with_leading_whitespace(cx)
-                            .into_span()
-                    };
                     let inner_if = inner.span.split_at(2).0;
                     let mut sugg = vec![
                         // Remove the outer then block `{`
