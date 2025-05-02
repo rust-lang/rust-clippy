@@ -129,6 +129,7 @@ use visitors::{Visitable, for_each_unconsumed_temporary};
 
 use crate::consts::{ConstEvalCtxt, Constant, mir_to_const};
 use crate::higher::Range;
+use crate::source::HasSourceMap;
 use crate::ty::{adt_and_variant_of_res, can_partially_move_ty, expr_sig, is_copy, is_recursively_primitive_type};
 use crate::visitors::for_each_expr_without_closures;
 use rustc_middle::hir::nested_filter;
@@ -3067,8 +3068,8 @@ pub fn tokenize_with_text(s: &str) -> impl Iterator<Item = (TokenKind, &str, Inn
 
 /// Checks whether a given span has any comment token
 /// This checks for all types of comment: line "//", block "/**", doc "///" "//!"
-pub fn span_contains_comment(sm: &SourceMap, span: Span) -> bool {
-    let Ok(snippet) = sm.span_to_snippet(span) else {
+pub fn span_contains_comment(sm: &impl HasSourceMap, span: Span) -> bool {
+    let Ok(snippet) = sm.source_map().span_to_snippet(span) else {
         return false;
     };
     return tokenize(&snippet).any(|token| {
