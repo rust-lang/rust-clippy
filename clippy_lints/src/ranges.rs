@@ -11,8 +11,8 @@ use rustc_hir::{BinOpKind, Expr, ExprKind, HirId};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_session::impl_lint_pass;
-use rustc_span::Span;
 use rustc_span::source_map::Spanned;
+use rustc_span::{Span, SyntaxContext};
 use std::cmp::Ordering;
 
 declare_clippy_lint! {
@@ -182,7 +182,7 @@ impl<'tcx> LateLintPass<'tcx> for Ranges {
         if let ExprKind::Binary(ref op, l, r) = expr.kind
             && self.msrv.meets(cx, msrvs::RANGE_CONTAINS)
         {
-            check_possible_range_contains(cx, op.node, l, r, expr, expr.span);
+            check_possible_range_contains(cx, op.node, l, r, expr.span, expr.span.ctxt());
         }
 
         check_exclusive_range_plus_one(cx, expr);
@@ -196,8 +196,8 @@ fn check_possible_range_contains(
     op: BinOpKind,
     left: &Expr<'_>,
     right: &Expr<'_>,
-    expr: &Expr<'_>,
     span: Span,
+    ctxt: SyntaxContext,
 ) {
     if is_in_const_context(cx) {
         return;
@@ -283,13 +283,15 @@ fn check_possible_range_contains(
     // the same operator precedence
     if let ExprKind::Binary(ref lhs_op, _left, new_lhs) = left.kind
         && op == lhs_op.node
-        && let new_span = Span::new(new_lhs.span.lo(), right.span.hi(), expr.span.ctxt(), expr.span.parent())
-        && new_span.check_source_text(cx, |src| {
+        && new_lhs.span.ctxt() == ctxt
+        && let Some(span) = new_lhs.span.map_span(cx, |file| {
+            file.set_hi(span.hi());
+            let src = file.src_text()?;
             // Do not continue if we have mismatched number of parens, otherwise the suggestion is wrong
-            src.matches('(').count() == src.matches(')').count()
+            (src.matches('(').count() == src.matches(')').count()).then_some(file)
         })
     {
-        check_possible_range_contains(cx, op, new_lhs, right, expr, new_span);
+        check_possible_range_contains(cx, op, new_lhs, right, span, ctxt);
     }
 }
 
@@ -363,7 +365,10 @@ fn check_exclusive_range_plus_one(cx: &LateContext<'_>, expr: &Expr<'_>) {
             |diag| {
                 let start = start.map_or(String::new(), |x| Sugg::hir(cx, x, "x").maybe_paren().to_string());
                 let end = Sugg::hir(cx, y, "y").maybe_paren();
-                match span.with_source_text(cx, |src| src.starts_with('(') && src.ends_with(')')) {
+                match span
+                    .get_source_text(cx)
+                    .map(|src| src.starts_with('(') && src.ends_with(')'))
+                {
                     Some(true) => {
                         diag.span_suggestion(span, "use", format!("({start}..={end})"), Applicability::MaybeIncorrect);
                     },

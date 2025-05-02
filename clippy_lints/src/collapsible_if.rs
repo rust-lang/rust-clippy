@@ -1,6 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
-use clippy_utils::source::{IntoSpan as _, SpanExt, snippet, snippet_block, snippet_block_with_applicability};
+use clippy_utils::source::{SpanExt, snippet, snippet_block, snippet_block_with_applicability};
 use rustc_ast::BinOpKind;
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, StmtKind};
@@ -123,6 +123,7 @@ impl CollapsibleIf {
         }
     }
 
+    #[expect(clippy::range_plus_one)]
     fn check_collapsible_if_if(&self, cx: &LateContext<'_>, expr: &Expr<'_>, check: &Expr<'_>, then: &Block<'_>) {
         if let Some(inner) = expr_block(then)
             && cx.tcx.hir_attrs(inner.hir_id).is_empty()
@@ -131,6 +132,29 @@ impl CollapsibleIf {
             && let ctxt = expr.span.ctxt()
             && inner.span.ctxt() == ctxt
             && (self.lint_commented_code || !block_starts_with_comment(cx, then))
+            && let Some(then_open_bracket) = then.span.map_span(cx, |file| {
+                file.edit_range(|_, src, range| {
+                    src.get(range.clone())?
+                        .starts_with('{')
+                        .then_some(range.start..range.start + 1)
+                })?
+                .add_leading_whitespace()
+            })
+            && let Some(then_closing_bracket) = then.span.map_span(cx, |file| {
+                file.edit_range(|_, src, range| {
+                    src.get(range.clone())?
+                        .ends_with('}')
+                        .then_some(range.end - 1..range.end)
+                })?
+                .add_leading_whitespace()
+            })
+            && let Some(inner_if) = inner.span.map_span(cx, |file| {
+                file.edit_range(|_, src, range| {
+                    src.get(range.clone())?
+                        .starts_with("if")
+                        .then_some(range.start..range.start + 2)
+                })
+            })
         {
             span_lint_and_then(
                 cx,
@@ -138,14 +162,6 @@ impl CollapsibleIf {
                 expr.span,
                 "this `if` statement can be collapsed",
                 |diag| {
-                    let then_open_bracket = then.span.split_at(1).0.with_leading_whitespace(cx).into_span();
-                    let then_closing_bracket = {
-                        let end = then.span.shrink_to_hi();
-                        end.with_lo(end.lo() - rustc_span::BytePos(1))
-                            .with_leading_whitespace(cx)
-                            .into_span()
-                    };
-                    let inner_if = inner.span.split_at(2).0;
                     let mut sugg = vec![
                         // Remove the outer then block `{`
                         (then_open_bracket, String::new()),
