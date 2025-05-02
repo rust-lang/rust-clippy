@@ -2,6 +2,7 @@
 #![feature(if_let_guard)]
 #![feature(macro_metavar_expr)]
 #![feature(never_type)]
+#![feature(pattern)]
 #![feature(rustc_private)]
 #![feature(assert_matches)]
 #![feature(unwrap_infallible)]

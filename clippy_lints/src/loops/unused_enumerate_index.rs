@@ -26,13 +26,8 @@ pub(super) fn check<'tcx>(
         && !pat.span.from_expansion()
         && !idx_pat.span.from_expansion()
         && !inner_pat.span.from_expansion()
-        && let Some(enumerate_range) = enumerate_span.map_range(cx, |_, text, range| {
-            text.get(..range.start)?
-                .ends_with('.')
-                .then_some(range.start - 1..range.end)
-        })
+        && let Some(enumerate_span) = enumerate_span.map_range(cx, |src| src.add_leading_match('.'))
     {
-        let enumerate_span = Span::new(enumerate_range.start, enumerate_range.end, SyntaxContext::root(), None);
         span_lint_hir_and_then(
             cx,
             UNUSED_ENUMERATE_INDEX,

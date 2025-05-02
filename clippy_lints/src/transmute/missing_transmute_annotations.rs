@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::SpanExt as _;
+use clippy_utils::source::SpanExt;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, GenericArg, HirId, LetStmt, Node, Path, TyKind};
 use rustc_lint::LateContext;
@@ -112,9 +112,7 @@ fn ty_cannot_be_named(ty: Ty<'_>) -> bool {
 }
 
 fn maybe_name_by_expr<'a>(cx: &LateContext<'_>, span: Span, default: &'a str) -> Cow<'a, str> {
-    span.with_source_text(cx, |name| {
-        (name.len() + 9 < default.len()).then_some(format!("`{name}`'s type").into())
-    })
-    .flatten()
-    .unwrap_or(default.into())
+    span.get_source_text(cx)
+        .filter(|name| name.len() + 9 < default.len())
+        .map_or(default.into(), |name| format!("`{name}`'s type").into())
 }
