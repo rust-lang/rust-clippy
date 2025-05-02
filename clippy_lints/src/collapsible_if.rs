@@ -1,6 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
-use clippy_utils::source::{IntoSpan as _, SpanRangeExt, snippet, snippet_block, snippet_block_with_applicability};
+use clippy_utils::source::{IntoSpan as _, SpanExt, snippet, snippet_block, snippet_block_with_applicability};
 use rustc_ast::BinOpKind;
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, StmtKind};

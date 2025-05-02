@@ -1,6 +1,6 @@
 use crate::consts::ConstEvalCtxt;
 use crate::macros::macro_backtrace;
-use crate::source::{SpanRange, SpanRangeExt, walk_span_to_context};
+use crate::source::{SpanRange, SpanExt, walk_span_to_context};
 use crate::tokenize_with_text;
 use rustc_ast::ast::InlineAsmTemplatePiece;
 use rustc_data_structures::fx::FxHasher;

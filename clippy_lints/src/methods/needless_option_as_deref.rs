@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::path_res;
-use clippy_utils::source::SpanRangeExt;
+use clippy_utils::source::SpanExt;
 use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::usage::local_used_after_expr;
 use rustc_errors::Applicability;

@@ -1,7 +1,7 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
 use clippy_utils::macros::{FormatArgsStorage, MacroCall, format_arg_removal_span, root_macro_call_first_node};
-use clippy_utils::source::{SpanRangeExt, expand_past_previous_comma};
+use clippy_utils::source::{SpanExt, expand_past_previous_comma};
 use clippy_utils::{is_in_test, sym};
 use rustc_ast::token::LitKind;
 use rustc_ast::{

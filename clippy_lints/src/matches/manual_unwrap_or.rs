@@ -1,5 +1,5 @@
 use clippy_utils::consts::ConstEvalCtxt;
-use clippy_utils::source::{SpanRangeExt as _, indent_of, reindent_multiline};
+use clippy_utils::source::{SpanExt as _, indent_of, reindent_multiline};
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{Arm, Expr, ExprKind, HirId, LangItem, Pat, PatExpr, PatExprKind, PatKind, QPath};

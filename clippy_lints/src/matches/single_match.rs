@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::{
-    SpanRangeExt, expr_block, snippet, snippet_block_with_context, snippet_with_applicability, snippet_with_context,
+    SpanExt, expr_block, snippet, snippet_block_with_context, snippet_with_applicability, snippet_with_context,
 };
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{
