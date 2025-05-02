@@ -4,7 +4,7 @@
 //! executable MIR bodies, so we have to do this instead.
 #![allow(clippy::float_cmp)]
 
-use crate::source::{SpanRangeExt, walk_span_to_context};
+use crate::source::{SpanExt, walk_span_to_context};
 use crate::{clip, is_direct_expn_of, sext, unsext};
 
 use rustc_abi::Size;

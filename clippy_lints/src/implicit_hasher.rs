@@ -12,7 +12,7 @@ use rustc_session::declare_lint_pass;
 use rustc_span::Span;
 
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::{IntoSpan, SpanRangeExt, snippet};
+use clippy_utils::source::{IntoSpan, SpanExt, snippet};
 use clippy_utils::sym;
 use clippy_utils::ty::is_type_diagnostic_item;
 

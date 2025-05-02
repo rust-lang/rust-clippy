@@ -1,6 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_note, span_lint_and_then};
-use clippy_utils::source::{IntoSpan, SpanRangeExt, first_line_of_span, indent_of, reindent_multiline, snippet};
+use clippy_utils::source::{IntoSpan, SpanExt, first_line_of_span, indent_of, reindent_multiline, snippet};
 use clippy_utils::ty::{InteriorMut, needs_ordered_drop};
 use clippy_utils::visitors::for_each_expr_without_closures;
 use clippy_utils::{
