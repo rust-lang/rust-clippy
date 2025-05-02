@@ -8,7 +8,7 @@ use rustc_session::Session;
 use rustc_span::{Span, sym};
 use std::str::FromStr;
 
-use crate::source::SpanRangeExt;
+use crate::source::SpanExt;
 use crate::tokenize_with_text;
 
 /// Deprecation status of attributes known by Clippy.

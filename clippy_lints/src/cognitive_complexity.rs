@@ -1,6 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_help;
-use clippy_utils::source::{IntoSpan, SpanRangeExt};
+use clippy_utils::source::SpanExt;
 use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::visitors::for_each_expr_without_closures;
 use clippy_utils::{LimitStack, get_async_fn_body, is_async_fn};
@@ -104,14 +104,15 @@ impl CognitiveComplexity {
                 FnKind::Closure => {
                     let header_span = body_span.with_hi(decl.output.span().lo());
                     #[expect(clippy::range_plus_one)]
-                    if let Some(range) = header_span.map_range(cx, |src, range| {
-                        let mut idxs = src.get(range.clone())?.match_indices('|');
-                        Some(range.start + idxs.next()?.0..range.start + idxs.next()?.0 + 1)
-                    }) {
-                        range.with_ctxt(header_span.ctxt())
-                    } else {
+                    let Some(s) = header_span.map_span(cx, |file| {
+                        file.map_range(|_, src, range| {
+                            let mut idxs = src.get(range.clone())?.match_indices('|');
+                            Some(range.start + idxs.next()?.0..range.start + idxs.next()?.0 + 1)
+                        })
+                    }) else {
                         return;
-                    }
+                    };
+                    s
                 },
             };
 
