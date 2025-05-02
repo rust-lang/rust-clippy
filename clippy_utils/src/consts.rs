@@ -712,7 +712,7 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
                     && let expr_lo = expr_span.lo()
                     && expr_lo >= span.lo
                     && let Some(src) = (span.lo..expr_lo).get_source_range(&self.tcx)
-                    && let Some(src) = src.as_str()
+                    && let Some(src) = src.src_text()
                 {
                     use rustc_lexer::TokenKind::{BlockComment, LineComment, OpenBrace, Semi, Whitespace};
                     if !tokenize(src)

@@ -57,7 +57,8 @@ impl EarlyLintPass for MultipleBoundLocations {
                             && let Some(Some(bound_span)) = pred
                                 .bounded_ty
                                 .span
-                                .with_source_text(cx, |src| generic_params_with_bounds.get(src))
+                                .get_source_text(cx)
+                                .map(|src| generic_params_with_bounds.get(&*src))
                         {
                             emit_lint(cx, *bound_span, pred.bounded_ty.span);
                         }

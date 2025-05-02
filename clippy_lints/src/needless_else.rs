@@ -1,9 +1,10 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::{IntoSpan, SpanExt};
+use clippy_utils::source::SpanExt;
 use rustc_ast::ast::{Expr, ExprKind};
 use rustc_errors::Applicability;
 use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_session::declare_lint_pass;
+use rustc_span::SyntaxContext;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -41,8 +42,9 @@ impl EarlyLintPass for NeedlessElse {
             && !expr.span.from_expansion()
             && !else_clause.span.from_expansion()
             && block.stmts.is_empty()
-            && let range = (then_block.span.hi()..expr.span.hi()).trim_start(cx)
-            && range.clone().check_source_text(cx, |src| {
+            && let Some(mut range) = (then_block.span.hi()..expr.span.hi()).get_source_range(cx)
+            && range.trim_start().is_some()
+            && range.src_text().is_some_and(|src| {
                 // Ignore else blocks that contain comments or #[cfg]s
                 !src.contains(['/', '#'])
             })
@@ -50,7 +52,7 @@ impl EarlyLintPass for NeedlessElse {
             span_lint_and_sugg(
                 cx,
                 NEEDLESS_ELSE,
-                range.with_ctxt(expr.span.ctxt()),
+                range.as_span(SyntaxContext::root()),
                 "this `else` branch is empty",
                 "you can remove it",
                 String::new(),
