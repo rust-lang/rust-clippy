@@ -133,6 +133,7 @@ use crate::consts::{ConstEvalCtxt, Constant};
 use crate::higher::Range;
 use crate::msrvs::Msrv;
 use crate::res::{MaybeDef, MaybeQPath, MaybeResPath};
+use crate::source::HasSourceMap;
 use crate::ty::{adt_and_variant_of_res, can_partially_move_ty, expr_sig, is_copy, is_recursively_primitive_type};
 use crate::visitors::for_each_expr_without_closures;
 
@@ -2754,8 +2755,8 @@ pub fn tokenize_with_text(s: &str) -> impl Iterator<Item = (TokenKind, &str, Inn
 
 /// Checks whether a given span has any comment token
 /// This checks for all types of comment: line "//", block "/**", doc "///" "//!"
-pub fn span_contains_comment(sm: &SourceMap, span: Span) -> bool {
-    let Ok(snippet) = sm.span_to_snippet(span) else {
+pub fn span_contains_comment<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> bool {
+    let Ok(snippet) = sm.source_map().span_to_snippet(span) else {
         return false;
     };
     return tokenize(&snippet, FrontmatterAllowed::No).any(|token| {
@@ -2770,7 +2771,7 @@ pub fn span_contains_comment(sm: &SourceMap, span: Span) -> bool {
 /// token, including comments unless `skip_comments` is set.
 /// This is useful to determine if there are any actual code tokens in the span that are omitted in
 /// the late pass, such as platform-specific code.
-pub fn span_contains_non_whitespace(cx: &impl source::HasSession, span: Span, skip_comments: bool) -> bool {
+pub fn span_contains_non_whitespace<'sm>(cx: impl HasSourceMap<'sm>, span: Span, skip_comments: bool) -> bool {
     matches!(span.get_source_text(cx), Some(snippet) if tokenize_with_text(&snippet).any(|(token, _, _)|
         match token {
             TokenKind::Whitespace => false,
@@ -2779,6 +2780,7 @@ pub fn span_contains_non_whitespace(cx: &impl source::HasSession, span: Span, sk
         }
     ))
 }
+
 /// Returns all the comments a given span contains
 ///
 /// Comments are returned wrapped with their relevant delimiters
