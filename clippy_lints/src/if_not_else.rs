@@ -1,7 +1,7 @@
 use clippy_utils::consts::is_zero_integer_const;
 use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_sugg};
 use clippy_utils::is_else_clause;
-use clippy_utils::source::{HasSession, indent_of, reindent_multiline, snippet};
+use clippy_utils::source::{indent_of, reindent_multiline, snippet};
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
@@ -95,30 +95,30 @@ impl LateLintPass<'_> for IfNotElse {
     }
 }
 
-fn make_sugg<'a>(
-    sess: &impl HasSession,
-    cond_kind: &'a ExprKind<'a>,
+fn make_sugg(
+    cx: &LateContext<'_>,
+    cond_kind: &ExprKind<'_>,
     cond_inner: Span,
     els_span: Span,
-    default: &'a str,
+    default: &str,
     indent_relative_to: Option<Span>,
 ) -> String {
-    let cond_inner_snip = snippet(sess, cond_inner, default);
-    let els_snip = snippet(sess, els_span, default);
-    let indent = indent_relative_to.and_then(|s| indent_of(sess, s));
+    let cond_inner_snip = snippet(cx, cond_inner, default);
+    let els_snip = snippet(cx, els_span, default);
+    let indent = indent_relative_to.and_then(|s| indent_of(cx, s));
 
     let suggestion = match cond_kind {
         ExprKind::Unary(UnOp::Not, cond_rest) => {
             format!(
                 "if {} {} else {}",
-                snippet(sess, cond_rest.span, default),
+                snippet(cx, cond_rest.span, default),
                 els_snip,
                 cond_inner_snip
             )
         },
         ExprKind::Binary(_, lhs, rhs) => {
-            let lhs_snip = snippet(sess, lhs.span, default);
-            let rhs_snip = snippet(sess, rhs.span, default);
+            let lhs_snip = snippet(cx, lhs.span, default);
+            let rhs_snip = snippet(cx, rhs.span, default);
 
             format!("if {lhs_snip} == {rhs_snip} {els_snip} else {cond_inner_snip}")
         },
