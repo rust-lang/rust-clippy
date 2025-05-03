@@ -63,7 +63,9 @@ impl LateLintPass<'_> for AlwaysTrueConditions {
             && let BinOpKind::Or = f_op_kind.node
         {
             let msg = "expression will always be true, did you mean &&?";
-            if context_applicable(f_cond) == context_applicable(l_cond) {
+            let app_f = context_applicable(f_cond);
+            let app_l = context_applicable(l_cond);
+            if app_l == app_f && app_f.is_some() && app_l.is_some() {
                 span_lint(cx, ALWAYS_TRUE_CONDITIONS, e.span, msg);
             }
         }
