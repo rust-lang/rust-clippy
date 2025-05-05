@@ -1,4 +1,5 @@
 #![warn(clippy::implied_bounds_in_impls)]
+#![allow(clippy::disallowed_names)]
 
 use std::fmt::Debug;
 use std::ops::*;

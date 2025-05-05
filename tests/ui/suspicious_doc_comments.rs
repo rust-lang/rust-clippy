@@ -1,6 +1,6 @@
 #![allow(unused)]
 #![warn(clippy::suspicious_doc_comments)]
-#![allow(clippy::empty_line_after_doc_comments)]
+#![allow(clippy::empty_line_after_doc_comments, clippy::disallowed_names)]
 
 //! Real module documentation.
 ///! Fake module documentation.

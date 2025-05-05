@@ -7,7 +7,7 @@
 // no longer detects some of the cases starting with Rust 2018.
 
 #![warn(clippy::wildcard_imports)]
-#![allow(unused, clippy::unnecessary_wraps, clippy::let_unit_value)]
+#![allow(unused, clippy::unnecessary_wraps, clippy::let_unit_value, clippy::disallowed_names)]
 #![warn(unused_imports)]
 
 extern crate wildcard_imports_helper;

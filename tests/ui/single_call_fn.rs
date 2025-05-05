@@ -1,6 +1,6 @@
 //@ignore-bitwidth: 32
 //@aux-build:proc_macros.rs
-#![allow(clippy::redundant_closure_call, unused)]
+#![allow(clippy::redundant_closure_call, unused, clippy::disallowed_names)]
 #![warn(clippy::single_call_fn)]
 #![no_main]
 
