@@ -615,8 +615,17 @@ declare_clippy_lint! {
     /// because it matches the regexp `\[\^[0-9]+\]`,
     /// but has no referent.
     ///
+    /// Rustdoc footnotes are compatible with GitHub-Flavored Markdown (GFM).
+    /// They are not parsed as footnotes unless a definition also exists,
+    /// so they usually "do what you mean" if you want to write the text
+    /// literally—usually in a regular expression.
+    ///
+    /// However, footnote references are usually numbers, and regex
+    /// negative character classes usually contain other characters, so this
+    /// lint can make a practical guess for which is meant.
+    ///
     /// ### Why is this bad?
-    /// This probably means that a definition was meant to exist,
+    /// This probably means that a footnote was meant to exist,
     /// but was not written.
     ///
     /// ### Example
