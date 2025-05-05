@@ -8,7 +8,8 @@
     clippy::from_over_into,
     clippy::self_named_constructors,
     clippy::needless_lifetimes,
-    clippy::missing_transmute_annotations
+    clippy::missing_transmute_annotations,
+    clippy::disallowed_names
 )]
 
 #[macro_use]

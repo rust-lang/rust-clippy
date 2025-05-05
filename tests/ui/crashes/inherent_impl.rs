@@ -1,6 +1,7 @@
 //@ check-pass
 
 #![deny(clippy::multiple_inherent_impl)]
+#![allow(clippy::disallowed_names)]
 
 // Test for https://github.com/rust-lang/rust-clippy/issues/4578
 

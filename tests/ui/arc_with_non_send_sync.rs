@@ -1,6 +1,6 @@
 //@aux-build:proc_macros.rs
 #![warn(clippy::arc_with_non_send_sync)]
-#![allow(unused_variables)]
+#![allow(unused_variables, clippy::disallowed_names)]
 
 #[macro_use]
 extern crate proc_macros;

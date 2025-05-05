@@ -1,6 +1,6 @@
 //@check-pass
 
-#![allow(clippy::redundant_pattern_matching)]
+#![allow(clippy::redundant_pattern_matching, clippy::disallowed_names)]
 
 struct S<'a> {
     s: &'a str,

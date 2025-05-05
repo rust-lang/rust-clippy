@@ -1,6 +1,7 @@
 //@no-rustfix: no suggestions
 
 #![warn(clippy::useless_vec)]
+#![allow(clippy::disallowed_names)]
 
 // Regression test for <https://github.com/rust-lang/rust-clippy/issues/13692>.
 fn foo() {

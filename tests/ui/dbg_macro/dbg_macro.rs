@@ -2,7 +2,8 @@
     clippy::no_effect,
     clippy::uninlined_format_args,
     clippy::unit_arg,
-    clippy::unnecessary_operation
+    clippy::unnecessary_operation,
+    clippy::disallowed_names
 )]
 #![warn(clippy::dbg_macro)]
 

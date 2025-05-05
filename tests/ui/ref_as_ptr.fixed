@@ -1,5 +1,5 @@
 #![warn(clippy::ref_as_ptr)]
-#![allow(clippy::unnecessary_mut_passed, clippy::needless_lifetimes)]
+#![allow(clippy::unnecessary_mut_passed, clippy::needless_lifetimes, clippy::disallowed_names)]
 
 fn f<T>(_: T) {}
 

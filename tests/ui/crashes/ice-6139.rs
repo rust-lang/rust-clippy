@@ -2,8 +2,8 @@
 
 trait T<'a> {}
 
-fn foo(_: Vec<Box<dyn T<'_>>>) {}
+fn bar(_: Vec<Box<dyn T<'_>>>) {}
 
 fn main() {
-    foo(vec![]);
+    bar(vec![]);
 }

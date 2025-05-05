@@ -1,4 +1,5 @@
 #![allow(
+    clippy::disallowed_names,
     clippy::manual_async_fn,
     clippy::needless_borrow,
     clippy::needless_borrows_for_generic_args,

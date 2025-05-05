@@ -1,5 +1,6 @@
 //@aux-build:../auxiliary/proc_macro_attr.rs
 #![warn(clippy::empty_line_after_outer_attr, clippy::empty_line_after_doc_comments)]
+#![allow(clippy::disallowed_names)]
 
 //~v empty_line_after_outer_attr
 #![crate_type = "lib"]

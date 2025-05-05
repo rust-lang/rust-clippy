@@ -1,4 +1,4 @@
-#![allow(clippy::redundant_closure)]
+#![allow(clippy::redundant_closure, clippy::disallowed_names)]
 
 fn main() {
     let _ = (0..4).filter_map(|x| if x > 1 { Some(x) } else { None });

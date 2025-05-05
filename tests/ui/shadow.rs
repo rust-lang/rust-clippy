@@ -5,7 +5,8 @@
     clippy::let_unit_value,
     clippy::needless_if,
     clippy::redundant_guards,
-    clippy::redundant_locals
+    clippy::redundant_locals,
+    clippy::disallowed_names
 )]
 
 extern crate proc_macro_derive;
