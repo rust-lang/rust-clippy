@@ -1,7 +1,7 @@
 //@aux-build: proc_macros.rs
 
 #![warn(clippy::missing_docs_in_private_items)]
-#![allow(dead_code)]
+#![allow(dead_code, clippy::disallowed_names)]
 #![feature(associated_type_defaults)]
 
 //! Some garbage docs for the crate here

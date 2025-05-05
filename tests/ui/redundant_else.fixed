@@ -1,5 +1,10 @@
 #![warn(clippy::redundant_else)]
-#![allow(clippy::needless_return, clippy::if_same_then_else, clippy::needless_late_init)]
+#![allow(
+    clippy::needless_return,
+    clippy::if_same_then_else,
+    clippy::needless_late_init,
+    clippy::disallowed_names
+)]
 
 fn main() {
     loop {

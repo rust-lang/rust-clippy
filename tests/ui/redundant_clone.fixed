@@ -1,6 +1,7 @@
 // rustfix-only-machine-applicable
 #![warn(clippy::redundant_clone)]
 #![allow(
+    clippy::disallowed_names,
     clippy::drop_non_drop,
     clippy::implicit_clone,
     clippy::pathbuf_init_then_push,

@@ -69,13 +69,10 @@ impl<'tcx> LateLintPass<'tcx> for DisallowedNames {
         _: rustc_span::def_id::LocalDefId,
     ) {
         match kind {
-            FnKind::ItemFn(ident, ..) => {
+            FnKind::ItemFn(ident, ..) | FnKind::Method(ident, _) => {
                 self.check(cx, ident, cx.last_node_with_lint_attrs);
             },
-            FnKind::Method(ident, _) => {
-                self.check(cx, ident, cx.last_node_with_lint_attrs);
-            },
-            _ => {},
+            FnKind::Closure => {},
         }
     }
 }

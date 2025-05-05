@@ -1,7 +1,7 @@
 //@aux-build:proc_macros.rs
 
 #![warn(clippy::must_use_unit)]
-#![allow(clippy::unused_unit)]
+#![allow(clippy::unused_unit, clippy::disallowed_names)]
 
 extern crate proc_macros;
 use proc_macros::external;

@@ -3,6 +3,7 @@
 #![warn(clippy::mut_mut)]
 #![allow(unused)]
 #![allow(
+    clippy::disallowed_names,
     clippy::no_effect,
     clippy::uninlined_format_args,
     clippy::unnecessary_operation,

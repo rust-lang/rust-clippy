@@ -1,5 +1,5 @@
 error: redundant else block
-  --> tests/ui/redundant_else.rs:10:10
+  --> tests/ui/redundant_else.rs:15:10
    |
 LL |           } else {
    |  __________^
@@ -20,7 +20,7 @@ LL +         println!("yet don't pull down your hedge.");
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:19:10
+  --> tests/ui/redundant_else.rs:24:10
    |
 LL |           } else {
    |  __________^
@@ -39,7 +39,7 @@ LL +         println!("shall rise up with fleas.");
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:30:10
+  --> tests/ui/redundant_else.rs:35:10
    |
 LL |           } else {
    |  __________^
@@ -58,7 +58,7 @@ LL +         println!("You may delay, but time will not.");
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:41:6
+  --> tests/ui/redundant_else.rs:46:6
    |
 LL |       } else {
    |  ______^
@@ -77,7 +77,7 @@ LL +     println!("A fat kitchen makes a lean will.");
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:50:10
+  --> tests/ui/redundant_else.rs:55:10
    |
 LL |           } else {
    |  __________^
@@ -96,7 +96,7 @@ LL +         1
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:62:10
+  --> tests/ui/redundant_else.rs:67:10
    |
 LL |           } else {
    |  __________^
@@ -115,7 +115,7 @@ LL +         2
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:73:10
+  --> tests/ui/redundant_else.rs:78:10
    |
 LL |           } else {
    |  __________^

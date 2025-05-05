@@ -1,6 +1,6 @@
 #![feature(associated_type_defaults)]
 #![warn(clippy::linkedlist)]
-#![allow(unused, dead_code, clippy::needless_pass_by_value)]
+#![allow(unused, dead_code, clippy::disallowed_names, clippy::needless_pass_by_value)]
 
 extern crate alloc;
 use alloc::collections::linked_list::LinkedList;
