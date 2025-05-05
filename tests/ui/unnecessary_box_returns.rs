@@ -1,4 +1,6 @@
 #![warn(clippy::unnecessary_box_returns)]
+#![allow(clippy::disallowed_names)]
+
 //@no-rustfix
 trait Bar {
     // lint

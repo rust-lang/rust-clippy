@@ -4,7 +4,8 @@
     clippy::uninlined_format_args,
     clippy::map_clone,
     clippy::needless_pass_by_ref_mut,
-    clippy::redundant_closure
+    clippy::redundant_closure,
+    clippy::disallowed_names
 )]
 
 use std::fmt::Debug;

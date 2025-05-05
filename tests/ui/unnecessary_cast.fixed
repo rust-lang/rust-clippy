@@ -7,7 +7,8 @@
     clippy::nonstandard_macro_braces,
     clippy::unnecessary_operation,
     nonstandard_style,
-    unused
+    unused,
+    clippy::disallowed_names
 )]
 
 extern crate extern_fake_libc;

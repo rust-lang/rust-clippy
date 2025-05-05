@@ -5,7 +5,8 @@
     clippy::empty_loop,
     clippy::never_loop,
     clippy::diverging_sub_expression,
-    clippy::let_unit_value
+    clippy::let_unit_value,
+    clippy::disallowed_names
 )]
 
 struct Foo {
