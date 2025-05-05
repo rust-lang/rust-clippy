@@ -1,4 +1,4 @@
-#![allow(unused)]
+#![allow(unused, clippy::disallowed_names)]
 #![warn(clippy::let_and_return)]
 
 use std::cell::RefCell;

@@ -1,4 +1,5 @@
 #![warn(clippy::incompatible_msrv)]
+#![allow(clippy::disallowed_names)]
 #![feature(custom_inner_attributes)]
 #![feature(panic_internals)]
 #![clippy::msrv = "1.3.0"]

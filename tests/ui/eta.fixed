@@ -1,6 +1,7 @@
 #![warn(clippy::redundant_closure, clippy::redundant_closure_for_method_calls)]
 #![allow(unused)]
 #![allow(
+    clippy::disallowed_names,
     clippy::needless_borrow,
     clippy::needless_option_as_deref,
     clippy::needless_pass_by_value,
