@@ -1,5 +1,5 @@
 //@no-rustfix
-#![allow(dead_code)]
+#![allow(dead_code, clippy::disallowed_names)]
 #![warn(clippy::comparison_chain)]
 
 fn a() {}

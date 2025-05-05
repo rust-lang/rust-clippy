@@ -1,7 +1,7 @@
 //@compile-flags: --test
 
 #![warn(clippy::module_name_repetitions)]
-#![allow(dead_code)]
+#![allow(dead_code, clippy::disallowed_names)]
 
 pub mod foo {
     pub fn foo() {}

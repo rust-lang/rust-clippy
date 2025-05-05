@@ -1,4 +1,5 @@
 #![allow(
+    clippy::disallowed_names,
     clippy::future_not_send,
     clippy::manual_async_fn,
     clippy::never_loop,

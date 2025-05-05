@@ -4,6 +4,7 @@
 #![feature(f16)]
 #![allow(
     clippy::assign_op_pattern,
+    clippy::disallowed_names,
     clippy::erasing_op,
     clippy::identity_op,
     clippy::no_effect,

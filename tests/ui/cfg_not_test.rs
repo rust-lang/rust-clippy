@@ -1,4 +1,4 @@
-#![allow(unused)]
+#![allow(unused, clippy::disallowed_names)]
 #![warn(clippy::cfg_not_test)]
 
 fn important_check() {}

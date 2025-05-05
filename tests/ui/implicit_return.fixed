@@ -1,7 +1,13 @@
 //@aux-build: proc_macros.rs
 
 #![warn(clippy::implicit_return)]
-#![allow(clippy::needless_return, clippy::needless_bool, unused, clippy::never_loop)]
+#![allow(
+    clippy::disallowed_names,
+    clippy::needless_return,
+    clippy::needless_bool,
+    unused,
+    clippy::never_loop
+)]
 
 extern crate proc_macros;
 use proc_macros::with_span;
