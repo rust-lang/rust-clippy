@@ -103,7 +103,14 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessForEach {
                 "for {} in {} {}",
                 snippet_with_applicability(cx, body.params[0].pat.span, "..", &mut applicability),
                 snippet_with_applicability(cx, for_each_recv.span, "..", &mut applicability),
-                snippet_with_applicability(cx, body.value.span, "..", &mut applicability),
+                if let ExprKind::Block(block, _) = body.value.kind
+                    && let block_sugg = snippet_with_applicability(cx, block.span, "..", &mut applicability)
+                    && !block_sugg.starts_with('{')
+                {
+                    format!("{{ {block_sugg} }}")
+                } else {
+                    snippet_with_applicability(cx, body.value.span, "..", &mut applicability).to_string()
+                }
             );
 
             span_lint_and_then(cx, NEEDLESS_FOR_EACH, stmt.span, "needless use of `for_each`", |diag| {

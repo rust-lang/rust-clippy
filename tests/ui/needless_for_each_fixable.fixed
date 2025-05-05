@@ -128,3 +128,9 @@ fn should_not_lint() {
 }
 
 fn main() {}
+
+fn issue14734(rows: &[u8]) {
+    let mut v = vec![];
+    for x in rows.iter() { _ = v.push(x) }
+    //~^ needless_for_each
+}
