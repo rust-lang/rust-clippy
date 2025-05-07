@@ -143,4 +143,12 @@ mod issue8772_pass {
     }
 }
 
+struct Issue14744<'a, K: 'a>
+where
+    K: Clone,
+{
+    phantom: std::marker::PhantomData<&'a K>,
+}
+//~^^^^ type_repetition_in_bounds
+
 fn main() {}

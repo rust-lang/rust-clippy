@@ -282,8 +282,7 @@ impl TraitBounds {
                     .iter()
                     .copied()
                     .chain(p.bounds.iter())
-                    .filter_map(get_trait_info_from_bound)
-                    .map(|(_, _, span)| snippet_with_applicability(cx, span, "..", &mut applicability))
+                    .map(|bound| snippet_with_applicability(cx, bound.span(), "_", &mut applicability))
                     .join(" + ");
                 let hint_string = format!(
                     "consider combining the bounds: `{}: {trait_bounds}`",

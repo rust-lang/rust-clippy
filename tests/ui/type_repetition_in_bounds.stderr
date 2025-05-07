@@ -41,7 +41,15 @@ error: this type has already been used as a bound predicate
 LL |         T: Trait<Option<usize>, Box<[String]>, bool> + 'static,
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = help: consider combining the bounds: `T: ?Sized + Trait<Option<usize>, Box<[String]>, bool>`
+   = help: consider combining the bounds: `T: ?Sized + Trait<Option<usize>, Box<[String]>, bool> + 'static`
 
-error: aborting due to 5 previous errors
+error: this type has already been used as a bound predicate
+  --> tests/ui/type_repetition_in_bounds.rs:148:5
+   |
+LL |     K: Clone,
+   |     ^^^^^^^^
+   |
+   = help: consider combining the bounds: `K: 'a + Clone`
+
+error: aborting due to 6 previous errors
 
