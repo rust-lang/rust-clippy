@@ -288,11 +288,12 @@ impl TraitBounds {
                     "consider combining the bounds: `{}: {trait_bounds}`",
                     snippet(cx, p.bounded_ty.span, "_"),
                 );
+                let ty_name = snippet(cx, p.bounded_ty.span, "_");
                 span_lint_and_help(
                     cx,
                     TYPE_REPETITION_IN_BOUNDS,
                     bound.span,
-                    "this type has already been used as a bound predicate",
+                    format!("type `{ty_name}` has already been used as a bound predicate"),
                     None,
                     hint_string,
                 );
