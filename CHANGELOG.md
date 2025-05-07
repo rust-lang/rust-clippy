@@ -6,7 +6,143 @@ document.
 
 ## Unreleased / Beta / In Rust Nightly
 
-[3e3715c3...master](https://github.com/rust-lang/rust-clippy/compare/3e3715c3...master)
+[1e5237f4...master](https://github.com/rust-lang/rust-clippy/compare/1e5237f4...master)
+
+## Rust 1.87
+
+Current stable, released 2025-05-15
+
+[View all 127 merged pull requests](https://github.com/rust-lang/rust-clippy/pulls?q=merged%3A2025-02-06T14%3A54%3A28Z..2025-03-20T20%3A07%3A53Z+base%3Amaster)
+
+### New Lints
+
+* Added [`doc_comment_double_space_linebreaks`] to `pedantic` [#12876](https://github.com/rust-lang/rust-clippy/pull/12876)
+* Added [`manual_midpoint`] to `pedantic` [#13851](https://github.com/rust-lang/rust-clippy/pull/13851)
+* Added [`io_other_error`] to `style` [#14022](https://github.com/rust-lang/rust-clippy/pull/14022)
+* Added [`owned_cow`] to `pedantic` [#13948](https://github.com/rust-lang/rust-clippy/pull/13948)
+* Added [`manual_contains`] to `perf` [#13817](https://github.com/rust-lang/rust-clippy/pull/13817)
+* Added [`unnecessary_debug_formatting`] to `pedantic` [#13893](https://github.com/rust-lang/rust-clippy/pull/13893)
+* Added [`elidable_lifetime_names`] to `pedantic` [#13960](https://github.com/rust-lang/rust-clippy/pull/13960)
+* Added [`mem_replace_option_with_some`] to `style` [#14197](https://github.com/rust-lang/rust-clippy/pull/14197)
+* Added [`unbuffered_bytes`] to `perf` [#14089](https://github.com/rust-lang/rust-clippy/pull/14089)
+* Added [`single_option_map`] to `nursery` [#14033](https://github.com/rust-lang/rust-clippy/pull/14033)
+
+### Moves and Deprecations
+
+* Moved [`comparison_chain`] to `pedantic` (from `style`)
+  [#14219](https://github.com/rust-lang/rust-clippy/pull/14219)
+* Moved [`manual_ok_or`] to `style` (from `pedantic`)
+  [#14027](https://github.com/rust-lang/rust-clippy/pull/14027)
+* Deprecated [`option_map_or_err_ok`] in favor of [`manual_ok_or`]
+  [#14027](https://github.com/rust-lang/rust-clippy/pull/14027)
+
+### Enhancements
+
+* Add `allow_expect_in_consts` and `allow_unwrap_in_consts` configuration options to [`unwrap_used`], [`expect_used`]
+  [#14200](https://github.com/rust-lang/rust-clippy/pull/14200)
+* Add `check-incompatible-msrv-in-tests` configuration option to [`incompatible_msrv`]
+  [#14279](https://github.com/rust-lang/rust-clippy/pull/14279)
+* [`len_zero`] now also triggers if deref target implements `is_empty()`
+  [#13871](https://github.com/rust-lang/rust-clippy/pull/13871)
+* [`arbitrary_source_item_ordering`] now makes alphabetic ordering in module item groups optional (off by default)
+  [#13718](https://github.com/rust-lang/rust-clippy/pull/13718)
+* [`ptr_eq`] now handles more cases, including `!=` in addition to `==`
+  [#14339](https://github.com/rust-lang/rust-clippy/pull/14339)
+* [`struct_field_names`] now also checks private fields of public structs
+  [#14076](https://github.com/rust-lang/rust-clippy/pull/14076)
+* [`never_loop`] suggestion is now auto-fixable when the loop block contains neither `break` nor `continue`
+  [#14203](https://github.com/rust-lang/rust-clippy/pull/14203)
+* [`if_then_some_else_none`] now has `MachineApplicable` applicability
+  [#14106](https://github.com/rust-lang/rust-clippy/pull/14106)
+* Improve `string_to_string` lint in map calls
+  [#14396](https://github.com/rust-lang/rust-clippy/pull/14396)
+* [`single_match`], [`single_match_else`] reinstated for matches with comments (non-autofix)
+  [#14420](https://github.com/rust-lang/rust-clippy/pull/14420)
+* [`manual_strip`] now reuses existing identifier in suggestion when possible
+  [#14188](https://github.com/rust-lang/rust-clippy/pull/14188)
+* [`needless_pass_by_value`] suggests using a reference on the innermost `Option` content
+  [#14392](https://github.com/rust-lang/rust-clippy/pull/14392)
+* [`needless_pass_by_value`] improves suggestions for `Option` types
+  [#13880](https://github.com/rust-lang/rust-clippy/pull/13880)
+* [`obfuscated_if_else`] now supports `then().unwrap_or_else()` and `then_some().unwrap_or_else()`
+  [#14165](https://github.com/rust-lang/rust-clippy/pull/14165)
+* [`mixed_case_hex_literals`] now adds alternative suggestions
+  [#14235](https://github.com/rust-lang/rust-clippy/pull/14235)
+* [`range_zip_with_len`] now has an autofix
+  [#14136](https://github.com/rust-lang/rust-clippy/pull/14136)
+* Format macros: all format-handling lints now validate `todo!` and `unimplemented!` macros
+  [#14266](https://github.com/rust-lang/rust-clippy/pull/14266)
+* [`disallowed_methods`] now supports replacements
+  [#13669](https://github.com/rust-lang/rust-clippy/pull/13669)
+* [`incompatible_msrv`] now lints function calls with any argument count
+  [#14216](https://github.com/rust-lang/rust-clippy/pull/14216)
+* Added MSRV checks for several lints:
+  * [`question_mark`] [#14436](https://github.com/rust-lang/rust-clippy/pull/14436)
+  * [`repeat_vec_with_capacity`] [#14126](https://github.com/rust-lang/rust-clippy/pull/14126)
+  * [`manual_flatten`] [#14086](https://github.com/rust-lang/rust-clippy/pull/14086)
+  * [`lines_filter_map_ok`] [#14130](https://github.com/rust-lang/rust-clippy/pull/14130)
+
+### False Positive Fixes
+
+* [`missing_const_for_fn`] no longer triggers on unstable const traits [#14294](https://github.com/rust-lang/rust-clippy/pull/14294)
+* [`unnecessary_to_owned`] now avoids suggesting to call `iter()` on a temporary object [#14243](https://github.com/rust-lang/rust-clippy/pull/14243)
+* [`unnecessary_debug_formatting`] no longer triggers in tests [#14347](https://github.com/rust-lang/rust-clippy/pull/14347)
+* [`option_if_let_else`] now handles cases when value is partially moved [#14209](https://github.com/rust-lang/rust-clippy/pull/14209)
+* [`blocks_in_conditions`] no longer triggers when the condition contains a `return` [#14338](https://github.com/rust-lang/rust-clippy/pull/14338)
+* [`map_entry`] fixed false positives inside closures [#14307](https://github.com/rust-lang/rust-clippy/pull/14307)
+* [`map_entry`] fixed false positives on struct members [#14151](https://github.com/rust-lang/rust-clippy/pull/14151)
+* [`map_entry`] fixed wrong suggestions when key is not `Copy` [#14314](https://github.com/rust-lang/rust-clippy/pull/14314)
+* [`undocumented_unsafe_blocks`] no longer has false positives on trait/impl items [#13888](https://github.com/rust-lang/rust-clippy/pull/13888)
+* [`manual_slice_fill`] no longer has false positives due to missing index checks [#14193](https://github.com/rust-lang/rust-clippy/pull/14193)
+* [`useless_asref`] no longer suggests using `.clone()` if the target type doesn't implement `Clone` [#14174](https://github.com/rust-lang/rust-clippy/pull/14174)
+* [`manual_map`] now ignores types that contain `dyn` [#12712](https://github.com/rust-lang/rust-clippy/pull/12712)
+* [`needless_option_as_deref`] fixed false positive in trait [#14210](https://github.com/rust-lang/rust-clippy/pull/14210)
+* [`unnecessary_safety_comment`] fixed false positive on desugared assign [#14371](https://github.com/rust-lang/rust-clippy/pull/14371)
+* [`useless_asref`] does not remove `.as_ref()` or `.as_mut()` call if this would change the type 
+  of the enclosing closure [#14090](https://github.com/rust-lang/rust-clippy/pull/14090)
+* [`manual_let_else`] now handles binding modes like `ref` and `ref mut` [#14204](https://github.com/rust-lang/rust-clippy/pull/14204)
+* [`question_mark`] avoids incorrect suggestion when `ref` binding used [#14158](https://github.com/rust-lang/rust-clippy/pull/14158)
+* [`unnecessary_map_or`] no longer consumes the comparison value if it does not implement `Copy` [#14207](https://github.com/rust-lang/rust-clippy/pull/14207)
+* [`let_and_return`] fixed false positive involving short-lived block temporary variables [#14180](https://github.com/rust-lang/rust-clippy/pull/14180)
+* [`manual_async_fn`] no longer emits suggestions inside macros [#14142](https://github.com/rust-lang/rust-clippy/pull/14142)
+* [`use_self`] skips analysis inside macro expansions of a `impl Self` block [#13128](https://github.com/rust-lang/rust-clippy/pull/13128)
+* [`manual_ok_err`] fixed replacement expression when it follows an `else` [#14240](https://github.com/rust-lang/rust-clippy/pull/14240)
+* [`double_ended_iterator_last`] no longer triggers on non-reference immutable receiver [#14140](https://github.com/rust-lang/rust-clippy/pull/14140)
+
+### Suggestion Fixes/Improvements
+
+* [`from_over_into`] fixed invalid code suggestion when self parameter has type annotation [#14409](https://github.com/rust-lang/rust-clippy/pull/14409)
+* [`needless_return`] now makes correct suggestions which require enclosing parentheses [#14094](https://github.com/rust-lang/rust-clippy/pull/14094)
+* [`match_bool`] fixed suggestion when the rewritten block has a label [#14102](https://github.com/rust-lang/rust-clippy/pull/14102)
+* [`obfuscated_if_else`] fixed suggestion by issuing required parentheses around the left side of a binary expression [#14124](https://github.com/rust-lang/rust-clippy/pull/14124)
+* [`nonminimal_bool`] added required parentheses when negating a binary expression [#14187](https://github.com/rust-lang/rust-clippy/pull/14187)
+
+### ICE Fixes
+
+* [`macro_use_imports`] Fix ICE when checking attributes
+  [#14317](https://github.com/rust-lang/rust-clippy/pull/14317)
+* [`doc_nested_refdefs`] Fix ICE by avoiding invalid ranges
+  [#14308](https://github.com/rust-lang/rust-clippy/pull/14308)
+* [`just_underscores_and_digits`] Fix ICE in error recovery scenario
+  [#14168](https://github.com/rust-lang/rust-clippy/pull/14168)
+* [`declare_interior_mutable_const`], [`borrow_interior_mutable_const`] Fix ICE by properly resolving `<T as Trait>::AssocT` projections
+  [#14125](https://github.com/rust-lang/rust-clippy/pull/14125)
+
+### Documentation Improvements
+
+* [`struct_excessive_bools`] Documentation improved with rationale
+  [#14351](https://github.com/rust-lang/rust-clippy/pull/14351)
+
+### Others
+
+* Use edition=2021 in `rustc_tools_util`
+  [#14211](https://github.com/rust-lang/rust-clippy/pull/14211)
+* Fix rustc_tools_util's `version.host_compiler` release channel, expose the rustc version, and add tests
+  [#14123](https://github.com/rust-lang/rust-clippy/pull/14123)
+* Make UI test annotations mandatory
+  [#11421](https://github.com/rust-lang/rust-clippy/pull/11421)
+  [#14388](https://github.com/rust-lang/rust-clippy/pull/14388)
+  [#14393](https://github.com/rust-lang/rust-clippy/pull/14393)
 
 ## Rust 1.86
 
