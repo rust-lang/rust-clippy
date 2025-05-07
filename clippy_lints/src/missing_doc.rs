@@ -1,7 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::{is_doc_hidden, is_from_proc_macro};
-use rustc_ast::tokenstream::TokenTree;
 use rustc_attr_parsing::AttributeKind;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{
@@ -145,8 +144,8 @@ impl<'tcx> LateLintPass<'tcx> for MissingDoc {
             | ItemKind::Use(..) => return,
 
             ItemKind::Mod(ident, ..) => {
-                self.module_depth += 1;
                 if item.span.from_expansion() && item.span.eq_ctxt(ident.span) {
+                    self.module_depth += 1;
                     self.require_visibility_at = cx.tcx.opt_local_parent(item.owner_id.def_id);
                     self.macro_module_depth = self.module_depth;
                     return;
@@ -176,6 +175,9 @@ impl<'tcx> LateLintPass<'tcx> for MissingDoc {
                 span,
                 "missing documentation for item",
             );
+        }
+        if matches!(item.kind, ItemKind::Mod(..)) {
+            self.module_depth += 1;
         }
     }
 
@@ -285,13 +287,7 @@ fn is_doc_attr(attr: &Attribute) -> bool {
             if let [ident] = &*attr.path.segments
                 && ident.name == sym::doc =>
         {
-            match &attr.args {
-                AttrArgs::Eq { .. } => true,
-                AttrArgs::Delimited(args) if let Some(TokenTree::Token(t, _)) = args.tokens.get(0) => {
-                    t.is_ident_named(sym::include)
-                },
-                _ => false,
-            }
+            matches!(attr.args, AttrArgs::Eq { .. })
         },
         _ => false,
     }
