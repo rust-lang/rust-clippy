@@ -1,0 +1,19 @@
+warning: expected a type, found an import
+ --> $DIR/tests/ui-cargo/disallowed_types/fail_local_crate/clippy.toml:2:5
+  |
+2 |     { path = "foo::Fooo", reason = "Noooooooooo" },
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = help: add `allow-invalid = true` to the entry to suppress this warning
+
+error: use of a disallowed type `foo::Fooo`
+ --> src/lib.rs:1:1
+  |
+1 | use foo::Fooo;
+  | ^^^^^^^^^^^^^^
+  |
+  = note: Noooooooooo
+  = note: `-D clippy::disallowed-types` implied by `-D warnings`
+  = help: to override `-D warnings` add `#[allow(clippy::disallowed_types)]`
+
+error: could not compile `fail-local-crate` (lib) due to 1 previous error
