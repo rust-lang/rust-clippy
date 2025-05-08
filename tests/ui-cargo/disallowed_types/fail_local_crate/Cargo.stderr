@@ -1,11 +1,3 @@
-warning: expected a type, found an import
- --> $DIR/tests/ui-cargo/disallowed_types/fail_local_crate/clippy.toml:2:5
-  |
-2 |     { path = "foo::Fooo", reason = "Noooooooooo" },
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  |
-  = help: add `allow-invalid = true` to the entry to suppress this warning
-
 error: use of a disallowed type `foo::Fooo`
  --> src/lib.rs:1:1
   |
