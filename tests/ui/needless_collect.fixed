@@ -1,5 +1,6 @@
 #![allow(
     unused,
+    clippy::disallowed_names,
     clippy::needless_if,
     clippy::suspicious_map,
     clippy::iter_count,

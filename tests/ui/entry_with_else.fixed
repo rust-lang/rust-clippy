@@ -1,4 +1,9 @@
-#![allow(unused, clippy::needless_pass_by_value, clippy::collapsible_if)]
+#![allow(
+    unused,
+    clippy::needless_pass_by_value,
+    clippy::collapsible_if,
+    clippy::disallowed_names
+)]
 #![warn(clippy::map_entry)]
 
 use std::collections::{BTreeMap, HashMap};
