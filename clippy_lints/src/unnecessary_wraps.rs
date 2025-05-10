@@ -78,7 +78,7 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryWraps {
         fn_kind: FnKind<'tcx>,
         fn_decl: &FnDecl<'tcx>,
         body: &Body<'tcx>,
-        span: Span,
+        _span: Span,
         def_id: LocalDefId,
     ) {
         // Abort if public function/method or closure.
@@ -159,7 +159,7 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryWraps {
                 )
             };
 
-            span_lint_and_then(cx, UNNECESSARY_WRAPS, span, lint_msg, |diag| {
+            span_lint_and_then(cx, UNNECESSARY_WRAPS, cx.tcx.def_span(def_id), lint_msg, |diag| {
                 diag.span_suggestion(
                     fn_decl.output.span(),
                     return_type_sugg_msg,
