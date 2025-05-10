@@ -1,3 +1,4 @@
+#![allow(clippy::disallowed_names)]
 pub mod foo;
 
 pub fn foo() {
