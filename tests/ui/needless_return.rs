@@ -2,6 +2,7 @@
 #![feature(yeet_expr)]
 #![allow(unused)]
 #![allow(
+    clippy::disallowed_names,
     clippy::if_same_then_else,
     clippy::single_match,
     clippy::needless_bool,

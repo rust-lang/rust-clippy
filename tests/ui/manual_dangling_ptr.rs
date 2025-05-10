@@ -1,4 +1,5 @@
 #![warn(clippy::manual_dangling_ptr)]
+#![allow(clippy::disallowed_names)]
 use std::mem;
 
 pub fn foo(_const: *const f32, _mut: *mut i32) {}

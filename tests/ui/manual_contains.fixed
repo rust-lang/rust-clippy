@@ -1,5 +1,5 @@
 #![warn(clippy::manual_contains)]
-#![allow(clippy::eq_op, clippy::useless_vec)]
+#![allow(clippy::disallowed_names, clippy::eq_op, clippy::useless_vec)]
 
 fn should_lint() {
     let vec: Vec<u8> = vec![1, 2, 3, 4, 5, 6];

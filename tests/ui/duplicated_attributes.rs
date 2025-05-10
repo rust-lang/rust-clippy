@@ -2,7 +2,7 @@
 #![feature(rustc_attrs)]
 #![warn(clippy::duplicated_attributes)]
 #![cfg(any(unix, windows))]
-#![allow(dead_code)]
+#![allow(dead_code, clippy::disallowed_names)]
 #![allow(dead_code)] //~ ERROR: duplicated attribute
 #![cfg(any(unix, windows))] // Should not warn!
 

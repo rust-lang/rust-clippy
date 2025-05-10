@@ -1,6 +1,7 @@
 #![allow(unused_braces, unused_variables, dead_code)]
 #![allow(
     clippy::collapsible_else_if,
+    clippy::disallowed_names,
     clippy::unused_unit,
     clippy::let_unit_value,
     clippy::match_single_binding,
