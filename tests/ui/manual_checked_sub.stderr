@@ -1,0 +1,122 @@
+error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
+  --> tests/ui/manual_checked_sub.rs:10:5
+   |
+LL | /     if a >= b {
+LL | |
+LL | |         let difference = "some test";
+LL | |         let d = a - b;
+LL | |     }
+   | |_____^
+   |
+   = note: `-D clippy::manual-checked-sub` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_checked_sub)]`
+
+error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
+  --> tests/ui/manual_checked_sub.rs:16:5
+   |
+LL | /     if b <= a {
+LL | |
+LL | |         let d = a - b;
+LL | |     }
+   | |_____^
+
+error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
+  --> tests/ui/manual_checked_sub.rs:21:5
+   |
+LL | /     if a >= b {
+LL | |
+LL | |         let d = a - b;
+LL | |     } else {
+LL | |         let d = a + b;
+LL | |     }
+   | |_____^
+
+error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
+  --> tests/ui/manual_checked_sub.rs:28:5
+   |
+LL | /     if a >= b {
+LL | |
+LL | |         let d = a - b;
+LL | |     } else if a < b {
+LL | |         let d = a + b;
+LL | |     }
+   | |_____^
+
+error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
+  --> tests/ui/manual_checked_sub.rs:35:5
+   |
+LL | /     if a > 0 {
+LL | |
+LL | |         let _ = a - 1;
+LL | |     }
+   | |_____^
+
+error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
+  --> tests/ui/manual_checked_sub.rs:40:5
+   |
+LL | /     if 0 < a {
+LL | |
+LL | |         let _ = a - 1;
+LL | |     }
+   | |_____^
+
+error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
+  --> tests/ui/manual_checked_sub.rs:46:5
+   |
+LL | /     if a >= b {
+LL | |
+LL | |         let some_reference = difference;
+LL | |         let d = a - b;
+LL | |     }
+   | |_____^
+
+error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
+  --> tests/ui/manual_checked_sub.rs:52:5
+   |
+LL | /     if a > 0 {
+LL | |
+LL | |         let decremented = "variable initialized inside the if scope";
+LL | |         let d = a - b;
+LL | |     }
+   | |_____^
+
+error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
+  --> tests/ui/manual_checked_sub.rs:58:5
+   |
+LL | /     if a >= b {
+LL | |
+LL | |         some_function(a - b);
+LL | |     }
+   | |_____^
+
+error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
+  --> tests/ui/manual_checked_sub.rs:67:5
+   |
+LL | /     if a >= b {
+LL | |
+LL | |         let _ = Example { value: a - b };
+LL | |     }
+   | |_____^
+
+error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
+  --> tests/ui/manual_checked_sub.rs:72:5
+   |
+LL | /     if a >= b {
+LL | |
+LL | |         if c > 0 {
+LL | |             let _ = a - b;
+LL | |         }
+LL | |     }
+   | |_____^
+
+error: manual re-implementation of checked subtraction - consider using `.checked_sub()`
+  --> tests/ui/manual_checked_sub.rs:80:9
+   |
+LL | /         if c > 0 {
+LL | |
+LL | |             let _ = c - 1;
+LL | |         }
+   | |_________^
+
+error: aborting due to 12 previous errors
+
