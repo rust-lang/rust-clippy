@@ -1,0 +1,11 @@
+error: use of a disallowed type `foo::Fooo`
+ --> src/lib.rs:1:1
+  |
+1 | use foo::Fooo;
+  | ^^^^^^^^^^^^^^
+  |
+  = note: Noooooooooo
+  = note: `-D clippy::disallowed-types` implied by `-D warnings`
+  = help: to override `-D warnings` add `#[allow(clippy::disallowed_types)]`
+
+error: could not compile `fail-local-crate` (lib) due to 1 previous error

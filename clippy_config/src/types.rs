@@ -3,7 +3,7 @@ use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::{Applicability, Diag};
 use rustc_hir::PrimTy;
 use rustc_hir::def::DefKind;
-use rustc_hir::def_id::DefIdMap;
+use rustc_hir::def_id::{DefIdMap, LOCAL_CRATE};
 use rustc_middle::ty::TyCtxt;
 use rustc_span::{Span, Symbol};
 use serde::de::{self, Deserializer, Visitor};
@@ -145,9 +145,14 @@ pub fn create_disallowed_map<const REPLACEMENT_ALLOWED: bool>(
     let mut def_ids: DefIdMap<(&'static str, &'static DisallowedPath<REPLACEMENT_ALLOWED>)> = DefIdMap::default();
     let mut prim_tys: FxHashMap<PrimTy, (&'static str, &'static DisallowedPath<REPLACEMENT_ALLOWED>)> =
         FxHashMap::default();
+    let local_crate = tcx.crate_name(LOCAL_CRATE);
     for disallowed_path in disallowed_paths {
         let path = disallowed_path.path();
         let sym_path: Vec<Symbol> = path.split("::").map(Symbol::intern).collect();
+        // Skip checking disallowed type for current crate.
+        if sym_path.first() == Some(&local_crate) {
+            continue;
+        }
         let mut resolutions = lookup_path(tcx, ns, &sym_path);
         resolutions.retain(|&def_id| def_kind_predicate(tcx.def_kind(def_id)));
 
