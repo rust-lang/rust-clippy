@@ -134,6 +134,9 @@ pub static IO_ERRORKIND_OTHER_CTOR: PathLookup = value_path!(std::io::ErrorKind:
 pub static ITER_STEP: PathLookup = type_path!(core::iter::Step);
 pub static SLICE_FROM_REF: PathLookup = value_path!(core::slice::from_ref);
 
+// This path is wrongly computed when using `PathLookup`.
+pub static CONCAT: PathLookup = macro_path!(core::concat);
+
 // Paths in external crates
 pub static FUTURES_IO_ASYNCREADEXT: PathLookup = type_path!(futures_util::AsyncReadExt);
 pub static FUTURES_IO_ASYNCWRITEEXT: PathLookup = type_path!(futures_util::AsyncWriteExt);
