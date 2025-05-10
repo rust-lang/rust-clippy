@@ -530,7 +530,7 @@ LL +             };
    |
 
 error: this could be rewritten as `let...else`
-  --> tests/ui/manual_let_else.rs:520:9
+  --> tests/ui/manual_let_else.rs:521:9
    |
 LL | /         let value = match foo() {
 LL | |
@@ -540,7 +540,7 @@ LL | |         };
    | |__________^ help: consider writing: `let Ok(value) = foo() else { return Err("abc") };`
 
 error: this could be rewritten as `let...else`
-  --> tests/ui/manual_let_else.rs:527:9
+  --> tests/ui/manual_let_else.rs:528:9
    |
 LL | /         let v = match w {
 LL | |

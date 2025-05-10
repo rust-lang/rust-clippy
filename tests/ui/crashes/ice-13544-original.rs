@@ -1,5 +1,6 @@
 //@ check-pass
 #![warn(clippy::significant_drop_tightening)]
+#![allow(clippy::disallowed_names)]
 
 use std::mem::ManuallyDrop;
 use std::ops::{Deref, DerefMut};
