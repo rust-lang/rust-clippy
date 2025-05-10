@@ -74,6 +74,51 @@ declare_clippy_lint! {
     "declaring `const` with interior mutability"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks whether a global variable defined.
+    ///
+    /// ### Why restrict this?
+    ///
+    /// - Global variables can be modified from any part of the program, making it difficult to
+    ///   track and control their state.
+    /// - Global variables introduce implicit dependencies that are not visible in function
+    ///   signatures, making the code harder to understand and maintain.
+    /// - Global variables introduce persistent state, complicating unit tests and making them
+    ///   prone to side effects.
+    /// - Global variables create tight coupling between different parts of the program, making it
+    ///   harder to modify one part without affecting others.
+    ///
+    /// ### Example
+    ///
+    /// ```no_run
+    /// use std::sync::Mutex;
+    ///
+    /// struct State {}
+    ///
+    /// static STATE: Mutex<State> = Mutex::new(State {});
+    ///
+    /// fn foo() {
+    ///    // Access global variable `STATE`.
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    ///
+    /// ```no_run
+    /// struct State {}
+    ///
+    /// fn foo(state: &mut State) {
+    ///    // Access `state` argument instead of a global variable.
+    /// }
+    /// ```
+    #[clippy::version = "1.88.0"]
+    pub GLOBAL_VARIABLES,
+    nursery,
+    "declaring global variables"
+}
+
 // FIXME: this is a correctness problem but there's no suitable
 // warn-by-default category.
 declare_clippy_lint! {
@@ -115,7 +160,8 @@ declare_clippy_lint! {
 
 #[derive(Copy, Clone)]
 enum Source<'tcx> {
-    Item { item: Span, ty: Ty<'tcx> },
+    ConstItem { item: Span, ty: Ty<'tcx> },
+    StaticItem { item: Span },
     Assoc { item: Span },
     Expr { expr: Span },
 }
@@ -124,11 +170,12 @@ impl Source<'_> {
     #[must_use]
     fn lint(&self) -> (&'static Lint, &'static str, Span) {
         match self {
-            Self::Item { item, .. } | Self::Assoc { item, .. } => (
+            Self::ConstItem { item, .. } | Self::Assoc { item, .. } => (
                 DECLARE_INTERIOR_MUTABLE_CONST,
                 "a `const` item should not be interior mutable",
                 *item,
             ),
+            Self::StaticItem { item } => (GLOBAL_VARIABLES, "global variable should not be used", *item),
             Self::Expr { expr } => (
                 BORROW_INTERIOR_MUTABLE_CONST,
                 "a `const` item with interior mutability should not be borrowed",
@@ -145,7 +192,7 @@ fn lint<'tcx>(cx: &LateContext<'tcx>, source: Source<'tcx>) {
             return; // Don't give suggestions into macros.
         }
         match source {
-            Source::Item { ty, .. } => {
+            Source::ConstItem { ty, .. } => {
                 let Some(sync_trait) = cx.tcx.lang_items().sync_trait() else {
                     return;
                 };
@@ -156,6 +203,9 @@ fn lint<'tcx>(cx: &LateContext<'tcx>, source: Source<'tcx>) {
                         "consider making this `Sync` so that it can go in a static item or using a `thread_local`",
                     );
                 }
+            },
+            Source::StaticItem { .. } => {
+                diag.help("consider passing this as function arguments or using a `thread_local`");
             },
             Source::Assoc { .. } => (),
             Source::Expr { .. } => {
@@ -169,7 +219,7 @@ pub struct NonCopyConst<'tcx> {
     interior_mut: InteriorMut<'tcx>,
 }
 
-impl_lint_pass!(NonCopyConst<'_> => [DECLARE_INTERIOR_MUTABLE_CONST, BORROW_INTERIOR_MUTABLE_CONST]);
+impl_lint_pass!(NonCopyConst<'_> => [DECLARE_INTERIOR_MUTABLE_CONST, GLOBAL_VARIABLES, BORROW_INTERIOR_MUTABLE_CONST]);
 
 impl<'tcx> NonCopyConst<'tcx> {
     pub fn new(tcx: TyCtxt<'tcx>, conf: &'static Conf) -> Self {
@@ -310,14 +360,27 @@ impl<'tcx> NonCopyConst<'tcx> {
 
 impl<'tcx> LateLintPass<'tcx> for NonCopyConst<'tcx> {
     fn check_item(&mut self, cx: &LateContext<'tcx>, it: &'tcx Item<'_>) {
-        if let ItemKind::Const(.., body_id) = it.kind {
-            let ty = cx.tcx.type_of(it.owner_id).instantiate_identity();
-            if !ignored_macro(cx, it)
-                && self.interior_mut.is_interior_mut_ty(cx, ty)
-                && Self::is_value_unfrozen_poly(cx, body_id, ty)
-            {
-                lint(cx, Source::Item { item: it.span, ty });
-            }
+        let tcx = cx.tcx;
+
+        match it.kind {
+            ItemKind::Const(.., body_id) => {
+                let ty = tcx.type_of(it.owner_id).instantiate_identity();
+                if !ignored_macro(cx, it)
+                    && self.interior_mut.is_interior_mut_ty(cx, ty)
+                    && Self::is_value_unfrozen_poly(cx, body_id, ty)
+                {
+                    lint(cx, Source::ConstItem { item: it.span, ty });
+                }
+            },
+            ItemKind::Static(..) => {
+                let ty = tcx.type_of(it.owner_id).instantiate_identity();
+
+                if !tcx.is_thread_local_static(it.owner_id.to_def_id()) && self.interior_mut.is_interior_mut_ty(cx, ty)
+                {
+                    lint(cx, Source::StaticItem { item: it.span });
+                }
+            },
+            _ => {},
         }
     }
 

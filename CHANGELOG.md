@@ -5729,6 +5729,7 @@ Released 2018-09-13
 [`get_first`]: https://rust-lang.github.io/rust-clippy/master/index.html#get_first
 [`get_last_with_len`]: https://rust-lang.github.io/rust-clippy/master/index.html#get_last_with_len
 [`get_unwrap`]: https://rust-lang.github.io/rust-clippy/master/index.html#get_unwrap
+[`global_variables`]: https://rust-lang.github.io/rust-clippy/master/index.html#global_variables
 [`host_endian_bytes`]: https://rust-lang.github.io/rust-clippy/master/index.html#host_endian_bytes
 [`identity_conversion`]: https://rust-lang.github.io/rust-clippy/master/index.html#identity_conversion
 [`identity_op`]: https://rust-lang.github.io/rust-clippy/master/index.html#identity_op
