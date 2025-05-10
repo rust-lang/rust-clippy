@@ -1,6 +1,7 @@
 #![feature(if_let_guard)]
 #![warn(clippy::redundant_pattern_matching)]
 #![allow(
+    clippy::disallowed_names,
     clippy::needless_bool,
     clippy::needless_if,
     clippy::match_like_matches_macro,

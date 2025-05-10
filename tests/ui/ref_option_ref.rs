@@ -1,4 +1,4 @@
-#![allow(unused)]
+#![allow(unused, clippy::disallowed_names)]
 #![warn(clippy::ref_option_ref)]
 //@no-rustfix
 // This lint is not tagged as run-rustfix because automatically

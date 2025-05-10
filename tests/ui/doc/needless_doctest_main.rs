@@ -1,6 +1,7 @@
 //@ check-pass
 
 #![warn(clippy::needless_doctest_main)]
+#![allow(clippy::disallowed_names)]
 //! issue 10491:
 //! ```rust,no_test
 //! use std::collections::HashMap;

@@ -1,3 +1,5 @@
+#![allow(clippy::disallowed_names)]
+
 pub fn foo(_const: *const f32, _mut: *mut i64) {}
 
 fn main() {

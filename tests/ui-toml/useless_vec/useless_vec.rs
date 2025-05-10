@@ -1,6 +1,6 @@
 //@compile-flags: --test
 #![warn(clippy::useless_vec)]
-#![allow(clippy::unnecessary_operation, clippy::no_effect)]
+#![allow(clippy::unnecessary_operation, clippy::no_effect, clippy::disallowed_names)]
 
 fn foo(_: &[u32]) {}
 

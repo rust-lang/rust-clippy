@@ -1,5 +1,5 @@
 #![deny(clippy::bind_instead_of_map)]
-#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::uninlined_format_args, clippy::disallowed_names)]
 
 // need a main anyway, use it get rid of unused warnings too
 pub fn main() {

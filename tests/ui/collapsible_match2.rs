@@ -1,5 +1,6 @@
 #![warn(clippy::collapsible_match)]
 #![allow(
+    clippy::disallowed_names,
     clippy::needless_return,
     clippy::no_effect,
     clippy::single_match,

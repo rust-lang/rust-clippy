@@ -83,3 +83,25 @@ mod tests {
 fn test_with_disallowed_name() {
     let foo = 0;
 }
+
+mod functions_test {
+    fn foo() {}
+    //~^ disallowed_names
+
+    pub fn quux(_some_meaningful_arg: i32) {}
+    //~^ disallowed_names
+
+    pub async fn baz(_more_meaningful_arg: bool) {}
+    //~^ disallowed_names
+
+    fn do_not_lint_foo() {}
+
+    struct SomeMeaningfulStruct {}
+    impl SomeMeaningfulStruct {
+        fn foo(&self) {}
+        //~^ disallowed_names
+
+        const fn baz(&self) {}
+        //~^ disallowed_names
+    }
+}

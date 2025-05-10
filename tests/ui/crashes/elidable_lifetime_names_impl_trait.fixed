@@ -1,5 +1,5 @@
 #![deny(clippy::elidable_lifetime_names)]
-#![allow(dead_code)]
+#![allow(dead_code, clippy::disallowed_names)]
 
 trait Foo {}
 

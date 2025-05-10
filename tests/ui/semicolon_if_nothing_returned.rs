@@ -5,7 +5,8 @@
     clippy::redundant_closure,
     clippy::uninlined_format_args,
     clippy::needless_late_init,
-    clippy::empty_docs
+    clippy::empty_docs,
+    clippy::disallowed_names
 )]
 
 #[macro_use]

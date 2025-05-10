@@ -4,7 +4,8 @@
     clippy::uninlined_format_args,
     clippy::unnecessary_struct_initialization,
     dead_code,
-    unused
+    unused,
+    clippy::disallowed_names
 )]
 #![warn(clippy::unnecessary_operation)]
 

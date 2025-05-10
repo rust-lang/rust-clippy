@@ -1,4 +1,4 @@
-#![allow(unused)]
+#![allow(unused, clippy::disallowed_names)]
 #![warn(clippy::missing_assert_message)]
 
 macro_rules! bar {
