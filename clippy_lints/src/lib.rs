@@ -72,6 +72,7 @@ pub mod deprecated_lints;
 // begin lints modules, do not remove this comment, it’s used in `update_lints`
 mod absolute_paths;
 mod almost_complete_range;
+mod always_true_conditions;
 mod approx_const;
 mod arbitrary_source_item_ordering;
 mod arc_with_non_send_sync;
@@ -942,5 +943,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(manual_option_as_slice::ManualOptionAsSlice::new(conf)));
     store.register_late_pass(|_| Box::new(single_option_map::SingleOptionMap));
     store.register_late_pass(move |_| Box::new(redundant_test_prefix::RedundantTestPrefix));
+    store.register_late_pass(move |_| Box::new(always_true_conditions::AlwaysTrueConditions));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
