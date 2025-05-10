@@ -184,7 +184,7 @@ LL |     return true
    |     ++++++
 
 error: missing `return` statement
-  --> tests/ui/implicit_return.rs:170:22
+  --> tests/ui/implicit_return.rs:176:22
    |
 LL |     let _ = async || 0;
    |                      ^
@@ -195,7 +195,7 @@ LL |     let _ = async || return 0;
    |                      ++++++
 
 error: missing `return` statement
-  --> tests/ui/implicit_return.rs:173:31
+  --> tests/ui/implicit_return.rs:179:31
    |
 LL |     let _ = async || -> i32 { 0 };
    |                               ^
@@ -206,7 +206,7 @@ LL |     let _ = async || -> i32 { return 0 };
    |                               ++++++
 
 error: missing `return` statement
-  --> tests/ui/implicit_return.rs:175:28
+  --> tests/ui/implicit_return.rs:181:28
    |
 LL |     let _ = async |a: i32| a;
    |                            ^
@@ -217,7 +217,7 @@ LL |     let _ = async |a: i32| return a;
    |                            ++++++
 
 error: missing `return` statement
-  --> tests/ui/implicit_return.rs:178:30
+  --> tests/ui/implicit_return.rs:184:30
    |
 LL |     let _ = async |a: i32| { a };
    |                              ^
@@ -228,7 +228,7 @@ LL |     let _ = async |a: i32| { return a };
    |                              ++++++
 
 error: missing `return` statement
-  --> tests/ui/implicit_return.rs:187:22
+  --> tests/ui/implicit_return.rs:193:22
    |
 LL |     let _ = async || foo().await;
    |                      ^^^^^
@@ -239,7 +239,7 @@ LL |     let _ = async || return foo().await;
    |                      ++++++
 
 error: missing `return` statement
-  --> tests/ui/implicit_return.rs:191:9
+  --> tests/ui/implicit_return.rs:197:9
    |
 LL |         foo().await
    |         ^^^^^
@@ -250,7 +250,7 @@ LL |         return foo().await
    |         ++++++
 
 error: missing `return` statement
-  --> tests/ui/implicit_return.rs:195:24
+  --> tests/ui/implicit_return.rs:201:24
    |
 LL |     let _ = async || { foo().await };
    |                        ^^^^^
@@ -261,7 +261,7 @@ LL |     let _ = async || { return foo().await };
    |                        ++++++
 
 error: missing `return` statement
-  --> tests/ui/implicit_return.rs:197:32
+  --> tests/ui/implicit_return.rs:203:32
    |
 LL |     let _ = async || -> bool { foo().await };
    |                                ^^^^^
