@@ -5,6 +5,7 @@
     clippy::uninlined_format_args,
     clippy::unnecessary_wraps,
     clippy::unnecessary_literal_unwrap,
+    clippy::unnecessary_option_map_or_else,
     clippy::useless_vec
 )]
 
