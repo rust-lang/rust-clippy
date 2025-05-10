@@ -8,6 +8,7 @@
     clippy::identity_op,
     clippy::no_effect,
     clippy::op_ref,
+    clippy::relative_path_in_macro_definition,
     clippy::unnecessary_owned_empty_strings,
     arithmetic_overflow,
     unconditional_panic
