@@ -1,4 +1,5 @@
 #![allow(
+    clippy::disallowed_names,
     clippy::if_same_then_else,
     clippy::no_effect,
     clippy::ptr_arg,

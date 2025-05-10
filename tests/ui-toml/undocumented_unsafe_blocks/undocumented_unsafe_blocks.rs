@@ -7,6 +7,7 @@
 #![allow(
     deref_nullptr,
     non_local_definitions,
+    clippy::disallowed_names,
     clippy::let_unit_value,
     clippy::missing_safety_doc
 )]

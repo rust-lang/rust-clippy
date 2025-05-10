@@ -2,6 +2,7 @@
 #![allow(
     unreachable_patterns,
     dead_code,
+    clippy::disallowed_names,
     clippy::equatable_if_let,
     clippy::needless_borrowed_reference,
     clippy::redundant_guards

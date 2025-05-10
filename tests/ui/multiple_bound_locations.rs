@@ -1,4 +1,5 @@
 #![warn(clippy::multiple_bound_locations)]
+#![allow(clippy::disallowed_names)]
 
 fn ty<F: std::fmt::Debug>(a: F)
 //~^ multiple_bound_locations

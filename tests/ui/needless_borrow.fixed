@@ -1,6 +1,7 @@
 #![allow(
     unused,
     non_local_definitions,
+    clippy::disallowed_names,
     clippy::uninlined_format_args,
     clippy::unnecessary_mut_passed,
     clippy::unnecessary_to_owned,

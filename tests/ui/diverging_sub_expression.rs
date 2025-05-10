@@ -1,7 +1,11 @@
 #![warn(clippy::diverging_sub_expression)]
-#![allow(clippy::match_same_arms, clippy::overly_complex_bool_expr)]
-#![allow(clippy::nonminimal_bool)]
-#[allow(clippy::empty_loop)]
+#![allow(
+    clippy::disallowed_names,
+    clippy::empty_loop,
+    clippy::match_same_arms,
+    clippy::nonminimal_bool,
+    clippy::overly_complex_bool_expr
+)]
 fn diverge() -> ! {
     loop {}
 }

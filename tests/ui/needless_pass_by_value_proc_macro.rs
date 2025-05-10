@@ -1,6 +1,7 @@
 //@ check-pass
 
 #![warn(clippy::needless_pass_by_value)]
+#![allow(clippy::disallowed_names)]
 
 extern crate proc_macro;
 

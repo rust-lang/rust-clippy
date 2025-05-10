@@ -1,5 +1,5 @@
 error: sub-expression diverges
-  --> tests/ui/diverging_sub_expression.rs:20:10
+  --> tests/ui/diverging_sub_expression.rs:24:10
    |
 LL |     b || diverge();
    |          ^^^^^^^^^
@@ -8,61 +8,61 @@ LL |     b || diverge();
    = help: to override `-D warnings` add `#[allow(clippy::diverging_sub_expression)]`
 
 error: sub-expression diverges
-  --> tests/ui/diverging_sub_expression.rs:23:10
+  --> tests/ui/diverging_sub_expression.rs:27:10
    |
 LL |     b || A.foo();
    |          ^^^^^^^
 
 error: sub-expression diverges
-  --> tests/ui/diverging_sub_expression.rs:34:26
+  --> tests/ui/diverging_sub_expression.rs:38:26
    |
 LL |             6 => true || return,
    |                          ^^^^^^
 
 error: sub-expression diverges
-  --> tests/ui/diverging_sub_expression.rs:37:26
+  --> tests/ui/diverging_sub_expression.rs:41:26
    |
 LL |             7 => true || continue,
    |                          ^^^^^^^^
 
 error: sub-expression diverges
-  --> tests/ui/diverging_sub_expression.rs:42:26
+  --> tests/ui/diverging_sub_expression.rs:46:26
    |
 LL |             3 => true || diverge(),
    |                          ^^^^^^^^^
 
 error: sub-expression diverges
-  --> tests/ui/diverging_sub_expression.rs:47:30
+  --> tests/ui/diverging_sub_expression.rs:51:30
    |
 LL |                 _ => true || panic!("boo"),
    |                              ^^^^^^^^^^^^^
 
 error: sub-expression diverges
-  --> tests/ui/diverging_sub_expression.rs:52:29
+  --> tests/ui/diverging_sub_expression.rs:56:29
    |
 LL |             15 => true || { return; },
    |                             ^^^^^^
 
 error: sub-expression diverges
-  --> tests/ui/diverging_sub_expression.rs:55:30
+  --> tests/ui/diverging_sub_expression.rs:59:30
    |
 LL |             16 => false || { return; },
    |                              ^^^^^^
 
 error: sub-expression diverges
-  --> tests/ui/diverging_sub_expression.rs:59:29
+  --> tests/ui/diverging_sub_expression.rs:63:29
    |
 LL |             17 => true || { return },
    |                             ^^^^^^
 
 error: sub-expression diverges
-  --> tests/ui/diverging_sub_expression.rs:62:30
+  --> tests/ui/diverging_sub_expression.rs:66:30
    |
 LL |             18 => false || { return },
    |                              ^^^^^^
 
 error: sub-expression diverges
-  --> tests/ui/diverging_sub_expression.rs:73:26
+  --> tests/ui/diverging_sub_expression.rs:77:26
    |
 LL |             _ => true || break,
    |                          ^^^^^
