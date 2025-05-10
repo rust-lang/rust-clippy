@@ -537,6 +537,9 @@ define_Conf! {
     /// For internal testing only, ignores the current `publish` settings in the Cargo manifest.
     #[lints(cargo_common_metadata)]
     cargo_ignore_publish: bool = false,
+    /// Whether to search for mutable borrows of freshly copied data in tests.
+    #[lints(copy_then_borrow_mut)]
+    check_copy_then_borrow_mut_in_tests: bool = true,
     /// Whether to check MSRV compatibility in `#[test]` and `#[cfg(test)]` code.
     #[lints(incompatible_msrv)]
     check_incompatible_msrv_in_tests: bool = false,
