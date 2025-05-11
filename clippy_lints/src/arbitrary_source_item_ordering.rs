@@ -85,6 +85,15 @@ declare_clippy_lint! {
     /// module-items-ordered-within-groupings = ["UPPER_SNAKE_CASE"]
     /// ```
     ///
+    /// #### Exception function names in impl blocks
+    ///
+    /// Sometimes you want to exclude some functions in impl blocks from being linted.
+    /// You can do this by adding the function names in the config.
+    ///
+    /// ```toml
+    /// impl-ordering-except-fn-names = ["new"]
+    /// ```
+    ///
     /// ### Known Problems
     ///
     /// #### Performance Impact
@@ -169,6 +178,7 @@ pub struct ArbitrarySourceItemOrdering {
     enable_ordering_for_trait: bool,
     module_item_order_groupings: SourceItemOrderingModuleItemGroupings,
     module_items_ordered_within_groupings: SourceItemOrderingWithinModuleItemGroupings,
+    impl_ordering_except_fn_names: Vec<String>,
 }
 
 impl ArbitrarySourceItemOrdering {
@@ -184,6 +194,7 @@ impl ArbitrarySourceItemOrdering {
             enable_ordering_for_trait: conf.source_item_ordering.contains(&Trait),
             module_item_order_groupings: conf.module_item_order_groupings.clone(),
             module_items_ordered_within_groupings: conf.module_items_ordered_within_groupings.clone(),
+            impl_ordering_except_fn_names: conf.impl_ordering_except_fn_names.clone(),
         }
     }
 
@@ -319,6 +330,15 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
 
                 for item in trait_impl.items {
                     if item.span.in_external_macro(cx.sess().source_map()) {
+                        continue;
+                    }
+                    // If there are exception function names, skip it.
+                    if !self.impl_ordering_except_fn_names.is_empty()
+                        && convert_assoc_item_kind(item.kind) == SourceItemOrderingTraitAssocItemKind::Fn
+                        && self
+                            .impl_ordering_except_fn_names
+                            .contains(&item.ident.name.to_string())
+                    {
                         continue;
                     }
 

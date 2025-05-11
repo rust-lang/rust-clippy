@@ -630,6 +630,16 @@ A list of paths to types that should be treated as if they do not contain interi
 * [`mutable_key_type`](https://rust-lang.github.io/rust-clippy/master/index.html#mutable_key_type)
 
 
+## `impl-ordering-except-fn-names`
+A list of function names that should be ignored when ordering functions in impl blocks.
+
+**Default Value:** `[]`
+
+---
+**Affected lints:**
+* [`arbitrary_source_item_ordering`](https://rust-lang.github.io/rust-clippy/master/index.html#arbitrary_source_item_ordering)
+
+
 ## `large-error-threshold`
 The maximum size of the `Err`-variant in a `Result` returned from a function
 
