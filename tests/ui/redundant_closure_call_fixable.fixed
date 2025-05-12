@@ -1,6 +1,5 @@
 #![warn(clippy::redundant_closure_call)]
-#![allow(clippy::redundant_async_block)]
-#![allow(clippy::type_complexity)]
+#![allow(clippy::disallowed_names, clippy::redundant_async_block, clippy::type_complexity)]
 #![allow(unused)]
 
 async fn something() -> u32 {

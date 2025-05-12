@@ -4,6 +4,7 @@
     dead_code,
     unused_braces,
     clippy::borrowed_box,
+    clippy::disallowed_names,
     clippy::needless_borrow,
     clippy::needless_return,
     clippy::ptr_arg,

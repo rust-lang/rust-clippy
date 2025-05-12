@@ -1,4 +1,5 @@
 #![warn(clippy::doc_link_with_quotes)]
+#![allow(clippy::disallowed_names)]
 
 fn main() {
     foo()

@@ -1,6 +1,7 @@
 #![allow(clippy::if_same_then_else)]
 #![allow(clippy::deref_addrof)]
 #![allow(clippy::nonminimal_bool)]
+#![allow(clippy::disallowed_names)]
 
 fn foo() -> bool {
     true

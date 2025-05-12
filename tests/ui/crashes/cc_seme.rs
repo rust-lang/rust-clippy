@@ -1,6 +1,8 @@
 //@ check-pass
 // Test for https://github.com/rust-lang/rust-clippy/issues/478
 
+#![allow(clippy::disallowed_names)]
+
 enum Baz {
     One,
     Two,
