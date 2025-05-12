@@ -1,5 +1,5 @@
+#![allow(clippy::manual_checked_sub)]
 #![warn(clippy::manual_abs_diff)]
-
 use std::time::Duration;
 
 fn main() {
