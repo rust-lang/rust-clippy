@@ -1,0 +1,143 @@
+error: unnecessary runtime parsing of an unsigned integer
+  --> tests/ui/parsed_string_literals/primitive_types.rs:7:9
+   |
+LL |     _ = "10".parse::<usize>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `10_usize`
+   |
+   = note: `-D clippy::parsed-string-literals` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::parsed_string_literals)]`
+
+error: unnecessary runtime parsing of a real number
+  --> tests/ui/parsed_string_literals/primitive_types.rs:9:9
+   |
+LL |     _ = "1.23".parse::<f16>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `1.23_f16`
+
+error: unnecessary runtime parsing of a real number
+  --> tests/ui/parsed_string_literals/primitive_types.rs:11:9
+   |
+LL |     _ = "1.23".parse::<f32>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `1.23_f32`
+
+error: unnecessary runtime parsing of a real number
+  --> tests/ui/parsed_string_literals/primitive_types.rs:13:9
+   |
+LL |     _ = "1.2300".parse::<f32>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `1.2300_f32`
+
+error: unnecessary runtime parsing of a single character
+  --> tests/ui/parsed_string_literals/primitive_types.rs:15:9
+   |
+LL |     _ = "c".parse::<char>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `'c'`
+
+error: unnecessary runtime parsing of a single character
+  --> tests/ui/parsed_string_literals/primitive_types.rs:17:9
+   |
+LL |     _ = r#"""#.parse::<char>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `'"'`
+
+error: unnecessary runtime parsing of a single character
+  --> tests/ui/parsed_string_literals/primitive_types.rs:19:9
+   |
+LL |     _ = "'".parse::<char>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `'\''`
+
+error: unnecessary runtime parsing of a signed integer
+  --> tests/ui/parsed_string_literals/primitive_types.rs:24:18
+   |
+LL |     let _: i64 = "-17".parse().unwrap();
+   |                  ^^^^^^^^^^^^^^^^^^^^^^ help: use: `-17`
+
+error: unnecessary runtime parsing of a single character
+  --> tests/ui/parsed_string_literals/primitive_types.rs:28:9
+   |
+LL |     _ = "\u{1f980}".parse::<char>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `'\u{1f980}'`
+
+error: unnecessary runtime parsing of a single character
+  --> tests/ui/parsed_string_literals/primitive_types.rs:30:9
+   |
+LL |     _ = "🦀".parse::<char>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `'🦀'`
+
+error: unnecessary runtime parsing of an unsigned integer
+  --> tests/ui/parsed_string_literals/primitive_types.rs:37:9
+   |
+LL |     _ = "+10".parse::<usize>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `10_usize`
+
+error: unnecessary runtime parsing of a signed integer
+  --> tests/ui/parsed_string_literals/primitive_types.rs:41:20
+   |
+LL |     let _: usize = "-10".parse::<isize>().unwrap().unsigned_abs();
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `(-10_isize)`
+
+error: unnecessary runtime parsing of a signed integer
+  --> tests/ui/parsed_string_literals/primitive_types.rs:44:20
+   |
+LL |     let _: c_int = "10".parse().unwrap();
+   |                    ^^^^^^^^^^^^^^^^^^^^^ help: use: `10`
+
+error: unnecessary runtime parsing of a signed integer
+  --> tests/ui/parsed_string_literals/primitive_types.rs:46:9
+   |
+LL |     _ = "10".parse::<c_int>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `10 as c_int`
+
+error: unnecessary runtime parsing of a real number special value
+  --> tests/ui/parsed_string_literals/primitive_types.rs:50:9
+   |
+LL |     _ = "inF".parse::<f16>().unwrap(); /* f16::INFINITY */
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `f16::INFINITY`
+
+error: unnecessary runtime parsing of a real number special value
+  --> tests/ui/parsed_string_literals/primitive_types.rs:52:9
+   |
+LL |     _ = "+Inf".parse::<f32>().unwrap(); /* f32::INFINITY */
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `f32::INFINITY`
+
+error: unnecessary runtime parsing of a real number special value
+  --> tests/ui/parsed_string_literals/primitive_types.rs:54:9
+   |
+LL |     _ = "-iNf".parse::<f64>().unwrap(); /* f64::NEG_INFINITY */
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `f64::NEG_INFINITY`
+
+error: unnecessary runtime parsing of a real number special value
+  --> tests/ui/parsed_string_literals/primitive_types.rs:56:9
+   |
+LL |     _ = "naN".parse::<f16>().unwrap(); /* f16::NAN */
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `f16::NAN`
+
+error: unnecessary runtime parsing of a real number special value
+  --> tests/ui/parsed_string_literals/primitive_types.rs:58:9
+   |
+LL |     _ = "+NaN".parse::<f32>().unwrap(); /* f32::NAN */
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `f32::NAN`
+
+error: unnecessary runtime parsing of a real number special value
+  --> tests/ui/parsed_string_literals/primitive_types.rs:60:9
+   |
+LL |     _ = "-NAN".parse::<f64>().unwrap(); /* -f64::NAN */
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `-f64::NAN`
+
+error: unnecessary runtime parsing of a signed integer
+  --> tests/ui/parsed_string_literals/primitive_types.rs:65:20
+   |
+LL |     let _: usize = "-10".parse::<MySizedType>().unwrap().unsigned_abs();
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `(-10 as MySizedType)`
+
+error: unnecessary runtime parsing of a signed integer
+  --> tests/ui/parsed_string_literals/primitive_types.rs:69:10
+   |
+LL |     _ = -"-10".parse::<MySizedType>().unwrap();
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `(-10 as MySizedType)`
+
+error: unnecessary runtime parsing of a real number special value
+  --> tests/ui/parsed_string_literals/primitive_types.rs:74:9
+   |
+LL |     _ = "-nan".parse::<MyFloat>().unwrap().abs();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `(-MyFloat::NAN)`
+
+error: aborting due to 23 previous errors
+
