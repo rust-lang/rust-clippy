@@ -461,3 +461,42 @@ pub unsafe fn issue_12157() -> *const i32 {
     return unsafe { todo() } as *const i32;
     //~^ needless_return
 }
+
+mod else_ifs {
+    fn test1(a: i32) -> u32 {
+        if a == 0 {
+            return 1;
+        //~^ needless_return
+        } else if a < 10 {
+            return 2;
+        //~^ needless_return
+        } else {
+            return 3;
+            //~^ needless_return
+        }
+    }
+
+    fn test2(a: i32) -> u32 {
+        if a == 0 {
+            return 1;
+        //~^ needless_return
+        } else if a < 10 {
+            2
+        } else {
+            return 3;
+            //~^ needless_return
+        }
+    }
+
+    fn test3(a: i32) -> u32 {
+        if a == 0 {
+            return 1;
+        //~^ needless_return
+        } else if a < 10 {
+            2
+        } else {
+            return 3;
+            //~^ needless_return
+        }
+    }
+}
