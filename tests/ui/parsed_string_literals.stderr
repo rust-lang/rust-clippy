@@ -1,0 +1,53 @@
+error: unnecessary runtime parsing of IP address
+  --> tests/ui/parsed_string_literals.rs:6:9
+   |
+LL |     _ = "137.194.161.2".parse::<Ipv4Addr>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Ipv4Addr::new(137, 194, 161, 2)`
+   |
+   = note: `-D clippy::parsed-string-literals` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::parsed_string_literals)]`
+
+error: unnecessary runtime parsing of IP address
+  --> tests/ui/parsed_string_literals.rs:9:9
+   |
+LL |     _ = "127.0.0.1".parse::<Ipv4Addr>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Ipv4Addr::LOCALHOST`
+
+error: unnecessary runtime parsing of IP address
+  --> tests/ui/parsed_string_literals.rs:12:9
+   |
+LL |     _ = "255.255.255.255".parse::<Ipv4Addr>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Ipv4Addr::BROADCAST`
+
+error: unnecessary runtime parsing of IP address
+  --> tests/ui/parsed_string_literals.rs:15:9
+   |
+LL |     _ = "0.0.0.0".parse::<Ipv4Addr>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Ipv4Addr::UNSPECIFIED`
+
+error: unnecessary runtime parsing of IP address
+  --> tests/ui/parsed_string_literals.rs:22:9
+   |
+LL |     _ = "::1".parse::<Ipv6Addr>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Ipv6Addr::LOCALHOST`
+
+error: unnecessary runtime parsing of IP address
+  --> tests/ui/parsed_string_literals.rs:25:9
+   |
+LL |     _ = "::".parse::<Ipv6Addr>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Ipv6Addr::UNSPECIFIED`
+
+error: unnecessary runtime parsing of IP address
+  --> tests/ui/parsed_string_literals.rs:28:9
+   |
+LL |     _ = "::1".parse::<IpAddr>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `IpAddr::V6(Ipv6Addr::LOCALHOST)`
+
+error: unnecessary runtime parsing of IP address
+  --> tests/ui/parsed_string_literals.rs:31:9
+   |
+LL |     _ = "::".parse::<IpAddr>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `IpAddr::V6(Ipv6Addr::UNSPECIFIED)`
+
+error: aborting due to 8 previous errors
+
