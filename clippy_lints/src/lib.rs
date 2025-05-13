@@ -3,6 +3,7 @@
 #![feature(exact_div)]
 #![feature(f128)]
 #![feature(f16)]
+#![feature(ip_as_octets)]
 #![feature(iter_intersperse)]
 #![feature(iter_partition_in_place)]
 #![feature(macro_metavar_expr_concat)]
