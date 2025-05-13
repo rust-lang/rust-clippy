@@ -474,6 +474,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::methods::UNNECESSARY_FIRST_THEN_CHECK_INFO,
     crate::methods::UNNECESSARY_FOLD_INFO,
     crate::methods::UNNECESSARY_GET_THEN_CHECK_INFO,
+    crate::methods::UNNECESSARY_IP_ADDR_PARSE_INFO,
     crate::methods::UNNECESSARY_JOIN_INFO,
     crate::methods::UNNECESSARY_LAZY_EVALUATIONS_INFO,
     crate::methods::UNNECESSARY_LITERAL_UNWRAP_INFO,

@@ -131,6 +131,8 @@ pub static ALIGN_OF: PathLookup = value_path!(core::mem::align_of);
 pub static CHAR_TO_DIGIT: PathLookup = value_path!(char::to_digit);
 pub static IO_ERROR_NEW: PathLookup = value_path!(std::io::Error::new);
 pub static IO_ERRORKIND_OTHER_CTOR: PathLookup = value_path!(std::io::ErrorKind::Other);
+pub static IPV4_ADDR: PathLookup = type_path!(core::net::Ipv4Addr);
+pub static IPV6_ADDR: PathLookup = type_path!(core::net::Ipv6Addr);
 pub static ITER_STEP: PathLookup = type_path!(core::iter::Step);
 pub static SLICE_FROM_REF: PathLookup = value_path!(core::slice::from_ref);
 

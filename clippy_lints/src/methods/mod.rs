@@ -124,6 +124,7 @@ mod unnecessary_filter_map;
 mod unnecessary_first_then_check;
 mod unnecessary_fold;
 mod unnecessary_get_then_check;
+mod unnecessary_ip_addr_parse;
 mod unnecessary_iter_cloned;
 mod unnecessary_join;
 mod unnecessary_lazy_eval;
@@ -4528,6 +4529,34 @@ declare_clippy_lint! {
     "detect swap with a temporary value"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for parsing IPv4/IPv6 string literals
+    ///
+    /// ### Why is this bad?
+    /// Parsing known-correct IP address at runtime consumes resources and forces to
+    /// handle the (non-existing) errors.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// use std::net::Ipv4Addr;
+    ///
+    /// let addr1: Ipv4Addr = "10.2.3.4".parse().unwrap();
+    /// let addr2: Ipv4Addr = "127.0.0.1".parse().unwrap();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// use std::net::Ipv4Addr;
+    ///
+    /// let addr1: Ipv4Addr = Ipv4Addr::new(10, 2, 3, 4);
+    /// let addr2: Ipv4Addr = Ipv4Addr::LOCALHOST;
+    /// ```
+    #[clippy::version = "1.88.0"]
+    pub UNNECESSARY_IP_ADDR_PARSE,
+    complexity,
+    "known-correct literal IP address parsing"
+}
+
 #[expect(clippy::struct_excessive_bools)]
 pub struct Methods {
     avoid_breaking_exported_api: bool,
@@ -4706,6 +4735,7 @@ impl_lint_pass!(Methods => [
     MANUAL_CONTAINS,
     IO_OTHER_ERROR,
     SWAP_WITH_TEMPORARY,
+    UNNECESSARY_IP_ADDR_PARSE,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -5419,6 +5449,9 @@ impl Methods {
                         },
                         Some(("or", recv, [or_arg], or_span, _)) => {
                             or_then_unwrap::check(cx, expr, recv, or_arg, or_span);
+                        },
+                        Some(("parse", recv, [], _, _)) => {
+                            unnecessary_ip_addr_parse::check(cx, expr, recv, self.msrv);
                         },
                         _ => {},
                     }
