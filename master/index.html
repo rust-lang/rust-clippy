@@ -8469,9 +8469,15 @@ and <code>array::from_ref</code> rather than <code>array::array_from_ref</code>.
 </ul>
 <h3>Configuration</h3>
 <ul>
-<li><code>allowed-prefixes</code>:  List of prefixes to allow when determining whether an item’s name ends with the module’s name.
+<li>
+<p><code>allow-exact-repetitions</code>:  Whether an item should be allowed to have the same name as its containing module</p>
+<p>(default: <code>true</code>)</p>
+</li>
+<li>
+<p><code>allowed-prefixes</code>:  List of prefixes to allow when determining whether an item’s name ends with the module’s name.
 If the rest of an item’s name is an allowed prefix (e.g. item <code>ToFoo</code> or <code>to_foo</code> in module <code>foo</code>),
-then don’t emit a warning.</li>
+then don’t emit a warning.</p>
+</li>
 </ul>
 <h4>Example</h4>
 <pre><code class="language-toml">allowed-prefixes = [ "to", "from" ]
