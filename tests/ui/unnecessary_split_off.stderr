@@ -1,0 +1,23 @@
+error: unnecessary `split_off(0)`
+  --> tests/ui/unnecessary_split_off.rs:15:29
+   |
+LL |     let vec2: Vec<_> = vec1.split_off(0);
+   |                             ^^^^^^^^^^^^ help: use: `drain(..).collect()`
+   |
+   = note: `-D clippy::unnecessary-split-off` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_split_off)]`
+
+error: unnecessary `split_off(0)`
+  --> tests/ui/unnecessary_split_off.rs:20:29
+   |
+LL |     let vec4: Vec<_> = vec1.split_off(ZERO);
+   |                             ^^^^^^^^^^^^^^^ help: use: `drain(..).collect()`
+
+error: unnecessary `split_off(0)`
+  --> tests/ui/unnecessary_split_off.rs:23:29
+   |
+LL |     let vec5: Vec<_> = vec1.split_off(const { 0 });
+   |                             ^^^^^^^^^^^^^^^^^^^^^^ help: use: `drain(..).collect()`
+
+error: aborting due to 3 previous errors
+
