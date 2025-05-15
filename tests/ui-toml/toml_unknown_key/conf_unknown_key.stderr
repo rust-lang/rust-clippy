@@ -53,6 +53,7 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            literal-representation-threshold
            matches-for-let-else
            max-fn-params-bools
+           max-ident-chars-length
            max-include-file-size
            max-struct-bools
            max-suggested-slice-pattern-length
@@ -147,6 +148,7 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            literal-representation-threshold
            matches-for-let-else
            max-fn-params-bools
+           max-ident-chars-length
            max-include-file-size
            max-struct-bools
            max-suggested-slice-pattern-length
@@ -241,6 +243,7 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            literal-representation-threshold
            matches-for-let-else
            max-fn-params-bools
+           max-ident-chars-length
            max-include-file-size
            max-struct-bools
            max-suggested-slice-pattern-length

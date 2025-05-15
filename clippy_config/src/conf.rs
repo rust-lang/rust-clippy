@@ -682,6 +682,9 @@ define_Conf! {
     /// The maximum number of bool parameters a function can have
     #[lints(fn_params_excessive_bools)]
     max_fn_params_bools: u64 = 3,
+    /// The maximum length of an identifier
+    #[lints(max_ident_chars)]
+    max_ident_chars_length: u32 = 100,
     /// The maximum size of a file included via `include_bytes!()` or `include_str!()`, in bytes
     #[lints(large_include_file)]
     max_include_file_size: u64 = 1_000_000,
