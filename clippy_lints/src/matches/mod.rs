@@ -14,6 +14,7 @@ mod match_single_binding;
 mod match_str_case_mismatch;
 mod match_wild_enum;
 mod match_wild_err_arm;
+mod matches_instead_of_eq;
 mod needless_match;
 mod overlapping_arms;
 mod redundant_guards;
@@ -1006,6 +1007,33 @@ declare_clippy_lint! {
     "find manual implementations of `.ok()` or `.err()` on `Result`"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for the use of `matches!` with enums that implement `PartialEq`.
+    ///
+    /// ### Why is this bad?
+    /// Using `matches!` instead of `==` or `!=` makes the code less readable.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let x = Foo::Bar;
+    /// if matches!(x, Foo::Bar) {
+    ///     // ...
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let x = Foo::Bar;
+    /// if x == Foo::Bar {
+    ///     // ...
+    /// }
+    /// ```
+    #[clippy::version = "1.88.0"]
+    pub MATCHES_INSTEAD_OF_EQ,
+    pedantic,
+    "default lint description"
+}
+
 pub struct Matches {
     msrv: Msrv,
     infallible_destructuring_match_linted: bool,
@@ -1048,6 +1076,7 @@ impl_lint_pass!(Matches => [
     MANUAL_FILTER,
     REDUNDANT_GUARDS,
     MANUAL_OK_ERR,
+    MATCHES_INSTEAD_OF_EQ,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Matches {
@@ -1064,6 +1093,7 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
             {
                 redundant_pattern_match::check_match(cx, expr, ex, arms);
                 redundant_pattern_match::check_matches_true(cx, expr, arm, ex);
+                matches_instead_of_eq::check(cx, expr, ex, arms);
             }
 
             if source == MatchSource::Normal && !is_span_match(cx, expr.span) {
