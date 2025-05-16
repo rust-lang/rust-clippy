@@ -2,7 +2,7 @@ use crate::update_lints::{
     DeprecatedLints, RenamedLint, find_lint_decls, gen_renamed_lints_test_fn, generate_lint_files,
     read_deprecated_lints,
 };
-use crate::utils::{FileUpdater, StringReplacer, UpdateMode, Version, try_rename_file};
+use crate::utils::{FileUpdater, StringReplacer, UpdateMode, try_rename_file};
 use std::ffi::OsStr;
 use std::path::Path;
 use walkdir::WalkDir;
@@ -23,7 +23,7 @@ use walkdir::WalkDir;
 /// * If `old_name` doesn't name an existing lint.
 /// * If `old_name` names a deprecated or renamed lint.
 #[allow(clippy::too_many_lines)]
-pub fn rename(clippy_version: Version, old_name: &str, new_name: &str, uplift: bool) {
+pub fn rename(old_name: &str, new_name: &str, uplift: bool) {
     if let Some((prefix, _)) = old_name.split_once("::") {
         panic!("`{old_name}` should not contain the `{prefix}` prefix");
     }
@@ -89,10 +89,8 @@ pub fn rename(clippy_version: Version, old_name: &str, new_name: &str, uplift: b
     deprecated_contents.insert_str(
         renamed_end as usize,
         &format!(
-            "    #[clippy::version = \"{}\"]\n    (\"{}\", \"{}\"),\n",
-            clippy_version.rust_display(),
-            lint.old_name,
-            lint.new_name,
+            "    #[clippy::version = \"nightly\"]\n    (\"{}\", \"{}\"),\n",
+            lint.old_name, lint.new_name,
         ),
     );
     deprecated_file.replace_contents(deprecated_contents.as_bytes());

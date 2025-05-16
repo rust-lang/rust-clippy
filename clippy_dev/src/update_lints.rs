@@ -244,21 +244,16 @@ pub fn read_deprecated_lints() -> DeprecatedLints {
     #[allow(clippy::enum_glob_use)]
     use Token::*;
     #[rustfmt::skip]
-    static DECL_TOKENS: &[Token] = &[
+    static VERSIONED_DECL: &[Token] = &[
         // #[clippy::version = "version"]
         Pound, OpenBracket, Ident("clippy"), DoubleColon, Ident("version"), Eq, LitStr, CloseBracket,
         // ("first", "second"),
         OpenParen, CaptureLitStr, Comma, CaptureLitStr, CloseParen, Comma,
     ];
     #[rustfmt::skip]
-    static DEPRECATED_TOKENS: &[Token] = &[
-        // !{ DEPRECATED(DEPRECATED_VERSION) = [
-        Bang, OpenBrace, Ident("DEPRECATED"), OpenParen, Ident("DEPRECATED_VERSION"), CloseParen, Eq, OpenBracket,
-    ];
-    #[rustfmt::skip]
-    static RENAMED_TOKENS: &[Token] = &[
-        // !{ RENAMED(RENAMED_VERSION) = [
-        Bang, OpenBrace, Ident("RENAMED"), OpenParen, Ident("RENAMED_VERSION"), CloseParen, Eq, OpenBracket,
+    static UNVERSIONED_DECL: &[Token] = &[
+        // ("first", "second"),
+        OpenParen, CaptureLitStr, Comma, CaptureLitStr, CloseParen, Comma,
     ];
 
     let path = "clippy_lints/src/deprecated_lints.rs";
@@ -276,14 +271,14 @@ pub fn read_deprecated_lints() -> DeprecatedLints {
 
     // First instance is the macro definition.
     assert!(
-        searcher.find_token(Ident("declare_with_version")),
+        searcher.find_token(Ident("deprecated")),
         "error reading deprecated lints"
     );
 
-    if searcher.find_token(Ident("declare_with_version")) && searcher.match_tokens(DEPRECATED_TOKENS, &mut []) {
+    if searcher.find_token(Ident("deprecated")) && searcher.match_tokens(&[Bang, OpenBracket], &mut []) {
         let mut name = "";
         let mut reason = "";
-        while searcher.match_tokens(DECL_TOKENS, &mut [&mut name, &mut reason]) {
+        while searcher.match_tokens(VERSIONED_DECL, &mut [&mut name, &mut reason]) {
             res.deprecated.push(DeprecatedLint {
                 name: parse_str_single_line(path.as_ref(), name),
                 reason: parse_str_single_line(path.as_ref(), reason),
@@ -292,13 +287,15 @@ pub fn read_deprecated_lints() -> DeprecatedLints {
     } else {
         panic!("error reading deprecated lints");
     }
-    // position of the closing `]}` of `declare_with_version`
+    // position of the closing `];` of `deprecated`
     res.deprecated_end = searcher.pos();
 
-    if searcher.find_token(Ident("declare_with_version")) && searcher.match_tokens(RENAMED_TOKENS, &mut []) {
+    // pub const RENAMED: &[(&str, &str)] = &[
+    //           ^^^^^^^                  ^  ^
+    if searcher.find_token(Ident("RENAMED")) && searcher.find_token(Eq) && searcher.find_token(OpenBracket) {
         let mut old_name = "";
         let mut new_name = "";
-        while searcher.match_tokens(DECL_TOKENS, &mut [&mut old_name, &mut new_name]) {
+        while searcher.match_tokens(UNVERSIONED_DECL, &mut [&mut old_name, &mut new_name]) {
             res.renamed.push(RenamedLint {
                 old_name: parse_str_single_line(path.as_ref(), old_name),
                 new_name: parse_str_single_line(path.as_ref(), new_name),
@@ -307,7 +304,7 @@ pub fn read_deprecated_lints() -> DeprecatedLints {
     } else {
         panic!("error reading renamed lints");
     }
-    // position of the closing `]}` of `declare_with_version`
+    // position of the closing `];` of `RENAMED`
     res.renamed_end = searcher.pos();
 
     res

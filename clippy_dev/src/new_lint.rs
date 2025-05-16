@@ -1,4 +1,4 @@
-use crate::utils::{RustSearcher, Token, Version};
+use crate::utils::{RustSearcher, Token};
 use clap::ValueEnum;
 use indoc::{formatdoc, writedoc};
 use std::fmt::{self, Write as _};
@@ -22,7 +22,6 @@ impl fmt::Display for Pass {
 }
 
 struct LintData<'a> {
-    clippy_version: Version,
     pass: Pass,
     name: &'a str,
     category: &'a str,
@@ -50,21 +49,13 @@ impl<T> Context for io::Result<T> {
 /// # Errors
 ///
 /// This function errors out if the files couldn't be created or written to.
-pub fn create(
-    clippy_version: Version,
-    pass: Pass,
-    name: &str,
-    category: &str,
-    mut ty: Option<&str>,
-    msrv: bool,
-) -> io::Result<()> {
+pub fn create(pass: Pass, name: &str, category: &str, mut ty: Option<&str>, msrv: bool) -> io::Result<()> {
     if category == "cargo" && ty.is_none() {
         // `cargo` is a special category, these lints should always be in `clippy_lints/src/cargo`
         ty = Some("cargo");
     }
 
     let lint = LintData {
-        clippy_version,
         pass,
         name,
         category,
@@ -293,11 +284,7 @@ fn get_lint_file_contents(lint: &LintData<'_>, enable_msrv: bool) -> String {
         );
     }
 
-    let _: fmt::Result = writeln!(
-        result,
-        "{}",
-        get_lint_declaration(lint.clippy_version, &name_upper, category)
-    );
+    let _: fmt::Result = writeln!(result, "{}", get_lint_declaration(&name_upper, category));
 
     if enable_msrv {
         let _: fmt::Result = writedoc!(
@@ -335,7 +322,7 @@ fn get_lint_file_contents(lint: &LintData<'_>, enable_msrv: bool) -> String {
     result
 }
 
-fn get_lint_declaration(version: Version, name_upper: &str, category: &str) -> String {
+fn get_lint_declaration(name_upper: &str, category: &str) -> String {
     let justification_heading = if category == "restriction" {
         "Why restrict this?"
     } else {
@@ -356,12 +343,12 @@ fn get_lint_declaration(version: Version, name_upper: &str, category: &str) -> S
                 /// ```no_run
                 /// // example code which does not raise clippy warning
                 /// ```
-                #[clippy::version = "{}"]
+                #[clippy::version = "nightly"]
                 pub {name_upper},
                 {category},
                 "default lint description"
-            }}"#,
-        version.rust_display(),
+            }}
+        "#,
     )
 }
 
@@ -460,10 +447,7 @@ fn setup_mod_file(path: &Path, lint: &LintData<'_>) -> io::Result<&'static str> 
     // Add the lint declaration to `mod.rs`
     file_contents.insert_str(
         lint_decl_end,
-        &format!(
-            "\n\n{}",
-            get_lint_declaration(lint.clippy_version, &lint_name_upper, lint.category)
-        ),
+        &format!("\n\n{}", get_lint_declaration(&lint_name_upper, lint.category)),
     );
 
     // Add the lint to `impl_lint_pass`/`declare_lint_pass`
