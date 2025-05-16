@@ -1,14 +1,19 @@
 use crate::utils::{FileUpdater, update_text_region_fn};
 use chrono::offset::Utc;
 use std::fmt::Write;
-use std::path::Path;
 use std::process;
 use std::process::exit;
 
 use xshell::{Shell, cmd};
 
-const JOSH_FILTER: &str = ":rev(2efebd2f0c03dabbe5c3ad7b4ebfbd99238d1fb2:prefix=src/tools/clippy):/src/tools/clippy";
+// `<` has to be written as `%3C`: this filter ends up in the path of an HTTP request to
+// josh-proxy, and a literal `<` is not a valid URL character, so josh-proxy's HTTP layer
+// rejects the request with a 400 before the filter is ever parsed. josh-proxy percent-decodes
+// the path, so `%3C` arrives at the filter parser as `<` again.
+const JOSH_FILTER: &str = ":~(history=\"keep-trivial-merges,no-splice\")[:rev(%3C=c936595d17413c1f08e162e117e504fb4ed126e4:prefix=src/tools/clippy,%3C=fca2e941f86f51cd3c3254518f45e2145563f6be:SQUASH)]:/src/tools/clippy";
 const JOSH_PORT: &str = "42042";
+const TOOLCHAIN_TOML: &str = "rust-toolchain.toml";
+const UTILS_README: &str = "clippy_utils/README.md";
 
 fn start_josh() -> impl Drop {
     // Create a wrapper that stops it on drop.
@@ -91,7 +96,6 @@ pub fn rustc_pull() {
     const MERGE_COMMIT_MESSAGE: &str = "Merge from rustc";
 
     let sh = Shell::new().expect("failed to create shell");
-    sh.change_dir(clippy_project_root());
 
     assert_clean_repo(&sh);
 
@@ -113,13 +117,16 @@ pub fn rustc_pull() {
     );
 
     let mut updater = FileUpdater::default();
-    updater.update_file("rust-toolchain.toml", toolchain_update);
-    updater.update_file("clippy_utils/README.md", readme_update);
+    updater.update_file(TOOLCHAIN_TOML, toolchain_update);
+    updater.update_file(UTILS_README, readme_update);
 
     let message = format!("Bump nightly version -> {date}");
-    cmd!(sh, "git commit rust-toolchain --no-verify -m {message}")
-        .run()
-        .expect("FAILED to commit rust-toolchain file, something went wrong");
+    cmd!(
+        sh,
+        "git commit --no-verify -m {message} -- {TOOLCHAIN_TOML} {UTILS_README}"
+    )
+    .run()
+    .expect("FAILED to commit rust-toolchain.toml file, something went wrong");
 
     let commit = rustc_hash();
 
@@ -168,7 +175,6 @@ pub(crate) const PUSH_PR_DESCRIPTION: &str = "Sync from Clippy commit:";
 
 pub fn rustc_push(rustc_path: String, github_user: &str, branch: &str, force: bool) {
     let sh = Shell::new().expect("failed to create shell");
-    sh.change_dir(clippy_project_root());
 
     assert_clean_repo(&sh);
 
@@ -208,7 +214,6 @@ pub fn rustc_push(rustc_path: String, github_user: &str, branch: &str, force: bo
         let _josh = start_josh();
 
         // Do the actual push.
-        sh.change_dir(clippy_project_root());
         println!("Pushing Clippy changes...");
         cmd!(
             sh,
