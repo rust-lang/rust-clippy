@@ -3,6 +3,7 @@
 //@aux-build:lazy_static.rs
 
 #![warn(clippy::non_std_lazy_statics)]
+#![allow(clippy::relative_path_in_macro_definition)]
 #![no_std]
 
 use lazy_static::lazy_static;

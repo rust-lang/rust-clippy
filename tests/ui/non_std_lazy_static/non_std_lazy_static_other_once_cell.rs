@@ -2,6 +2,7 @@
 //@aux-build:once_cell.rs
 
 #![warn(clippy::non_std_lazy_statics)]
+#![allow(clippy::relative_path_in_macro_definition)]
 
 // Should not error, since we used a type besides `sync::Lazy`
 fn use_once_cell_race(x: once_cell::race::OnceBox<String>) {

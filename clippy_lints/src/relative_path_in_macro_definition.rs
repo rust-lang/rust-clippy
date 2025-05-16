@@ -1,32 +1,31 @@
 use clippy_utils::diagnostics::span_lint;
 use rustc_ast::ast::{Item, ItemKind};
-use rustc_ast::token::TokenKind;
+use rustc_ast::token::{Token, TokenKind};
 use rustc_ast::tokenstream::{TokenStream, TokenTree};
 use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_session::declare_lint_pass;
-use rustc_span::symbol::sym;
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks that references to the `core` or `kernel` crate in macro definitions use absolute paths (`::core` or `::kernel`).
+    /// Checks that references to crates in macro definitions use absolute paths.
     ///
     /// ### Why is this bad?
-    /// Using relative paths (e.g., `core::...`) in macros can lead to ambiguity if the macro is used in a context
-    /// where a user defines a module named `core` or `kernel`. Absolute paths ensure the macro always refers to the intended crate.
+    /// Using relative paths (e.g., `crate_name::...`) in macros can lead to ambiguity if the macro is used in a context
+    /// where a user defines a module with the same name. Absolute paths (e.g., `::crate_name::...`) ensure the macro always refers to the intended crate.
     ///
     /// ### Example
     /// ```rust
     /// // Bad
     /// macro_rules! my_macro {
     ///     () => {
-    ///         core::mem::drop(0);
+    ///         std::mem::drop(0);
     ///     };
     /// }
     ///
     /// // Good
     /// macro_rules! my_macro {
     ///     () => {
-    ///         ::core::mem::drop(0);
+    ///         ::std::mem::drop(0);
     ///     };
     /// }
     /// ```
@@ -53,9 +52,9 @@ fn check_token_stream(cx: &EarlyContext<'_>, tokens: &TokenStream) {
     while let Some(tree) = iter.next() {
         match tree {
             TokenTree::Token(token, _) => {
-                if let TokenKind::Ident(ident, _) = token.kind
-                    && (ident == sym::core || ident.as_str() == "kernel")
-                {
+                if let TokenKind::Ident(ident, _) = token.kind {
+                    let first_segment = ident;
+
                     let is_path_start = iter.peek().is_some_and(|next_tree| {
                         if let TokenTree::Token(next_token, _) = next_tree {
                             next_token.kind == TokenKind::PathSep
@@ -66,11 +65,16 @@ fn check_token_stream(cx: &EarlyContext<'_>, tokens: &TokenStream) {
 
                     if is_path_start {
                         let is_absolute = prev_token.is_some_and(|prev| {
-                            if let TokenTree::Token(prev_token, _) = prev {
-                                prev_token.kind == TokenKind::PathSep
-                            } else {
-                                false
-                            }
+                            matches!(
+                                prev,
+                                TokenTree::Token(
+                                    Token {
+                                        kind: TokenKind::PathSep,
+                                        ..
+                                    },
+                                    _
+                                )
+                            )
                         });
 
                         if !is_absolute {
@@ -78,7 +82,7 @@ fn check_token_stream(cx: &EarlyContext<'_>, tokens: &TokenStream) {
                                 cx,
                                 RELATIVE_PATH_IN_MACRO_DEFINITION,
                                 token.span,
-                                "relative path to `core` or `kernel` used in macro definition",
+                                format!("avoid relative path to `{first_segment}` in macro definitions"),
                             );
                         }
                     }

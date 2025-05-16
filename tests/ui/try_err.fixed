@@ -2,6 +2,7 @@
 #![feature(try_blocks)]
 #![deny(clippy::try_err)]
 #![allow(
+    clippy::relative_path_in_macro_definition,
     clippy::unnecessary_wraps,
     clippy::needless_question_mark,
     clippy::needless_return_with_question_mark

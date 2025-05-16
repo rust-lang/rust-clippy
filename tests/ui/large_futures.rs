@@ -2,6 +2,7 @@
     clippy::future_not_send,
     clippy::manual_async_fn,
     clippy::never_loop,
+    clippy::relative_path_in_macro_definition,
     clippy::uninlined_format_args
 )]
 #![warn(clippy::large_futures)]

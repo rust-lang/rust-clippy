@@ -1,5 +1,5 @@
-error: relative path to `core` or `kernel` used in macro definition
-  --> tests/ui/relative_path_in_macro_definition.rs:7:23
+error: avoid relative path to `core` in macro definitions
+  --> tests/ui/relative_path_in_macro_definition.rs:9:23
    |
 LL |         const _: () = core::assert!($condition);
    |                       ^^^^
@@ -7,5 +7,11 @@ LL |         const _: () = core::assert!($condition);
    = note: `-D clippy::relative-path-in-macro-definition` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::relative_path_in_macro_definition)]`
 
-error: aborting due to 1 previous error
+error: avoid relative path to `std` in macro definitions
+  --> tests/ui/relative_path_in_macro_definition.rs:18:17
+   |
+LL |         let _ = std::mem::size_of::<i32>();
+   |                 ^^^
+
+error: aborting due to 2 previous errors
 

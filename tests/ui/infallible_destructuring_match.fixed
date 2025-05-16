@@ -1,6 +1,10 @@
 #![feature(exhaustive_patterns, never_type)]
 #![allow(dead_code, unreachable_code, unused_variables)]
-#![allow(clippy::let_and_return, clippy::uninhabited_references)]
+#![allow(
+    clippy::let_and_return,
+    clippy::relative_path_in_macro_definition,
+    clippy::uninhabited_references
+)]
 
 enum SingleVariantEnum {
     Variant(i32),

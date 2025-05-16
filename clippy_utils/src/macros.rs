@@ -1,4 +1,5 @@
 #![allow(clippy::similar_names)] // `expr` and `expn`
+#![allow(clippy::relative_path_in_macro_definition)]
 
 use std::sync::{Arc, OnceLock};
 

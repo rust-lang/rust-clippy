@@ -3,6 +3,8 @@
 
 #![warn(clippy::single_match_else)]
 #![allow(unused, clippy::needless_return, clippy::no_effect, clippy::uninlined_format_args)]
+#![allow(clippy::relative_path_in_macro_definition)]
+
 extern crate proc_macros;
 use proc_macros::with_span;
 

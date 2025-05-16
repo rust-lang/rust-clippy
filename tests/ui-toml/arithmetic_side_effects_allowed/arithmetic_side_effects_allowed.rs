@@ -1,5 +1,5 @@
 #![warn(clippy::arithmetic_side_effects)]
-#![allow(clippy::unnecessary_literal_unwrap)]
+#![allow(clippy::relative_path_in_macro_definition, clippy::unnecessary_literal_unwrap)]
 
 use core::ops::{Add, Neg};
 

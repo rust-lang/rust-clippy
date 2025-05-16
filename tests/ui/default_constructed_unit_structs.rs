@@ -1,4 +1,4 @@
-#![allow(unused)]
+#![allow(clippy::relative_path_in_macro_definition, unused)]
 #![warn(clippy::default_constructed_unit_structs)]
 use std::marker::PhantomData;
 

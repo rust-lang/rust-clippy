@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+#![allow(clippy::relative_path_in_macro_definition)]
 
 //! Used to test that certain lints don't trigger in imported external macros
 #[macro_export]
