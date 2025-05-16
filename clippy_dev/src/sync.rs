@@ -1,7 +1,6 @@
 use crate::utils::{FileUpdater, update_text_region_fn};
 use chrono::offset::Utc;
 use std::fmt::Write;
-use std::path::Path;
 use std::process;
 use std::process::exit;
 
@@ -91,7 +90,7 @@ pub fn rustc_pull() {
     const MERGE_COMMIT_MESSAGE: &str = "Merge from rustc";
 
     let sh = Shell::new().expect("failed to create shell");
-    sh.change_dir(clippy_project_root());
+    // sh.change_dir(clippy_project_root());
 
     assert_clean_repo(&sh);
 
@@ -168,7 +167,7 @@ pub(crate) const PUSH_PR_DESCRIPTION: &str = "Sync from Clippy commit:";
 
 pub fn rustc_push(rustc_path: String, github_user: &str, branch: &str, force: bool) {
     let sh = Shell::new().expect("failed to create shell");
-    sh.change_dir(clippy_project_root());
+    // sh.change_dir(clippy_project_root());
 
     assert_clean_repo(&sh);
 
@@ -208,7 +207,7 @@ pub fn rustc_push(rustc_path: String, github_user: &str, branch: &str, force: bo
         let _josh = start_josh();
 
         // Do the actual push.
-        sh.change_dir(clippy_project_root());
+        // sh.change_dir(clippy_project_root());
         println!("Pushing Clippy changes...");
         cmd!(
             sh,
