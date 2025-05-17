@@ -44,7 +44,7 @@ pub(super) fn check<'tcx>(
             format!("unnecessary `if let` since only the `{if_let_type}` variant of the iterator element is used");
 
         // Prepare the help message
-        let mut applicability = Applicability::MaybeIncorrect;
+        let mut applicability = Applicability::HasPlaceholders;
         let arg_snippet = make_iterator_snippet(cx, arg, &mut applicability);
         let copied = match cx.typeck_results().expr_ty(let_expr).kind() {
             ty::Ref(_, inner, _) => match inner.kind() {
