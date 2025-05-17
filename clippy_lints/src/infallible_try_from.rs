@@ -50,7 +50,6 @@ impl<'tcx> LateLintPass<'tcx> for InfallibleTryFrom {
         }
         for ii in imp.items {
             if ii.kind == AssocItemKind::Type {
-                let ii_id = ii.id;
                 let ii = cx.tcx.hir_impl_item(ii.id);
                 if ii.ident.name != sym::Error {
                     continue;
@@ -58,7 +57,7 @@ impl<'tcx> LateLintPass<'tcx> for InfallibleTryFrom {
                 let ii_ty = ii.expect_type();
                 let ii_ty_span = ii_ty.span;
                 let ii_ty = clippy_utils::ty::ty_from_hir_ty(cx, ii_ty);
-                if !ii_ty.is_inhabited_from(cx.tcx, ii_id.owner_id.to_def_id(), cx.typing_env()) {
+                if !ii_ty.is_inhabited_from(cx.tcx, ii.owner_id.to_def_id(), cx.typing_env()) {
                     let mut span = MultiSpan::from_span(cx.tcx.def_span(item.owner_id.to_def_id()));
                     span.push_span_label(ii_ty_span, "infallible error type");
                     span_lint(
