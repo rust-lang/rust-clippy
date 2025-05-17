@@ -482,9 +482,11 @@ pub struct LintInfo {
     pub lint: &'static &'static Lint,
     category: LintCategory,
     pub explanation: &'static str,
-    /// e.g. `clippy_lints/src/absolute_paths.rs#43`
-    pub location: &'static str,
-    pub version: Option<&'static str>,
+    /// e.g. `clippy_lints/src/absolute_paths.rs`
+    pub file: &'static str,
+    /// The line number in `file`
+    pub line: u32,
+    pub version: &'static str,
 }
 
 impl LintInfo {
@@ -507,6 +509,14 @@ impl LintInfo {
             Style => "style",
             Suspicious => "suspicious",
         }
+    }
+
+    pub fn location_terminal(&self) -> String {
+        format!("{}:{}", self.file, self.line)
+    }
+
+    pub fn location_github(&self) -> String {
+        format!("{}#L{}", self.file, self.line)
     }
 }
 
