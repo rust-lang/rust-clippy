@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::sym;
 use rustc_errors::MultiSpan;
-use rustc_hir::*;
+use rustc_hir::{AssocItemKind, Item, ItemKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 
@@ -34,7 +34,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.88.0"]
     pub INFALLIBLE_TRY_FROM,
     nursery,
-    "default lint description"
+    "TryFrom with infallible Error type"
 }
 declare_lint_pass!(InfallibleTryFrom => [INFALLIBLE_TRY_FROM]);
 
@@ -52,7 +52,7 @@ impl<'tcx> LateLintPass<'tcx> for InfallibleTryFrom {
             if ii.kind == AssocItemKind::Type {
                 let ii_id = ii.id;
                 let ii = cx.tcx.hir_impl_item(ii.id);
-                if ii.ident.name.as_str() != "Error" {
+                if ii.ident.name != sym::Error {
                     continue;
                 }
                 let ii_ty = ii.expect_type();
