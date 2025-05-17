@@ -1,4 +1,6 @@
-use clippy_utils::diagnostics::span_lint;
+use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::source::snippet;
+use rustc_errors::Applicability;
 use rustc_hir::{BorrowKind, Expr, ExprKind, Mutability};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
@@ -86,11 +88,16 @@ fn check_arguments<'tcx>(
                 match parameter.kind() {
                     ty::Ref(_, _, Mutability::Not) | ty::RawPtr(_, Mutability::Not) => {
                         if let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Mut, _) = argument.kind {
-                            span_lint(
+                            let snippet = snippet(cx, argument.span, "..");
+                            let trimmed_snippet = &snippet[5..];
+                            span_lint_and_sugg(
                                 cx,
                                 UNNECESSARY_MUT_PASSED,
                                 argument.span,
                                 format!("the {fn_kind} `{name}` doesn't need a mutable reference"),
+                                "try",
+                                format!("&{trimmed_snippet}"),
+                                Applicability::MachineApplicable,
                             );
                         }
                     },
