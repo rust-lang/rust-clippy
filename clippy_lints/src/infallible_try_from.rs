@@ -16,6 +16,8 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```no_run
+    /// use std::convert::Infallible;
+    /// struct MyStruct(i16);
     /// impl TryFrom<i16> for MyStruct {
     ///     type Error = Infallible;
     ///     fn try_from(other: i16) -> Result<Self, Infallible> {
@@ -25,6 +27,7 @@ declare_clippy_lint! {
     /// ```
     /// Use instead:
     /// ```no_run
+    /// struct MyStruct(i16);
     /// impl From<i16> for MyStruct {
     ///     fn from(other: i16) -> Self {
     ///         Self(other)
