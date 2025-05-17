@@ -4,15 +4,17 @@ use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg, span_lint_and_the
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::{SpanRangeExt, snippet, snippet_with_applicability};
 use clippy_utils::sugg::Sugg;
-use clippy_utils::{get_parent_expr, higher, is_in_const_context, is_integer_const, path_to_local};
+use clippy_utils::{
+    fn_def_id, get_parent_expr, higher, is_in_const_context, is_integer_const, is_path_lang_item, path_to_local,
+};
 use rustc_ast::ast::RangeLimits;
 use rustc_errors::Applicability;
-use rustc_hir::{BinOpKind, Expr, ExprKind, HirId};
-use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty;
+use rustc_hir::{BinOpKind, Expr, ExprKind, HirId, LangItem};
+use rustc_lint::{LateContext, LateLintPass, Lint};
+use rustc_middle::ty::{self, ClauseKind, PredicatePolarity};
 use rustc_session::impl_lint_pass;
-use rustc_span::Span;
 use rustc_span::source_map::Spanned;
+use rustc_span::{Span, sym};
 use std::cmp::Ordering;
 
 declare_clippy_lint! {
@@ -24,6 +26,12 @@ declare_clippy_lint! {
     /// The code is more readable with an inclusive range
     /// like `x..=y`.
     ///
+    /// ### Limitations
+    /// The lint is conservative and will trigger only when switching
+    /// from an exclusive to an inclusive range is provably safe from
+    /// a typing point of view. This corresponds to situations where
+    /// the range is used as an iterator, or for indexing.
+    ///
     /// ### Known problems
     /// Will add unnecessary pair of parentheses when the
     /// expression is not wrapped in a pair but starts with an opening parenthesis
@@ -33,11 +41,6 @@ declare_clippy_lint! {
     /// Also in many cases, inclusive ranges are still slower to run than
     /// exclusive ranges, because they essentially add an extra branch that
     /// LLVM may fail to hoist out of the loop.
-    ///
-    /// This will cause a warning that cannot be fixed if the consumer of the
-    /// range only accepts a specific range type, instead of the generic
-    /// `RangeBounds` trait
-    /// ([#3307](https://github.com/rust-lang/rust-clippy/issues/3307)).
     ///
     /// ### Example
     /// ```no_run
@@ -71,11 +74,11 @@ declare_clippy_lint! {
     /// The code is more readable with an exclusive range
     /// like `x..y`.
     ///
-    /// ### Known problems
-    /// This will cause a warning that cannot be fixed if
-    /// the consumer of the range only accepts a specific range type, instead of
-    /// the generic `RangeBounds` trait
-    /// ([#3307](https://github.com/rust-lang/rust-clippy/issues/3307)).
+    /// ### Limitations
+    /// The lint is conservative and will trigger only when switching
+    /// from an inclusive to an exclusive range is provably safe from
+    /// a typing point of view. This corresponds to situations where
+    /// the range is used as an iterator, or for indexing.
     ///
     /// ### Example
     /// ```no_run
@@ -344,70 +347,154 @@ fn check_range_bounds<'a, 'tcx>(cx: &'a LateContext<'tcx>, ex: &'a Expr<'_>) -> 
     None
 }
 
+/// Check whether `expr` could switch range types without breaking the typing requirements. This is
+/// the case when `expr` is used as an iterator for example, or as a slice or `&str` index.
+fn can_switch_ranges(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    let Some(parent_expr) = get_parent_expr(cx, expr) else {
+        return false;
+    };
+
+    // Check if `expr` is the argument of a compiler-generated `IntoIter::into_iter(expr)`
+    if let ExprKind::Call(func, [arg]) = parent_expr.kind
+        && arg.hir_id == expr.hir_id
+        && is_path_lang_item(cx, func, LangItem::IntoIterIntoIter)
+    {
+        return true;
+    }
+
+    // Check if `expr` is used as the receiver of a method of the `Iterator`, `IntoIterator`,
+    // or `RangeBounds` traits.
+    if let ExprKind::MethodCall(_, receiver, _, _) = parent_expr.kind
+        && receiver.hir_id == expr.hir_id
+        && let Some(method_did) = cx.typeck_results().type_dependent_def_id(parent_expr.hir_id)
+        && let Some(trait_did) = cx.tcx.trait_of_item(method_did)
+        && matches!(
+            cx.tcx.get_diagnostic_name(trait_did),
+            Some(sym::Iterator | sym::IntoIterator | sym::RangeBounds)
+        )
+    {
+        return true;
+    }
+
+    // Check if `expr` is an argument of a call which requires an `Iterator`, `IntoIterator`,
+    // or `RangeBounds` trait.
+    if let ExprKind::Call(_, args) | ExprKind::MethodCall(_, _, args, _) = parent_expr.kind
+        && let Some(id) = fn_def_id(cx, parent_expr)
+        && let Some(arg_idx) = args.iter().position(|e| e.hir_id == expr.hir_id)
+    {
+        let input_idx = if matches!(parent_expr.kind, ExprKind::MethodCall(..)) {
+            arg_idx + 1
+        } else {
+            arg_idx
+        };
+        let inputs = cx
+            .tcx
+            .liberate_late_bound_regions(id, cx.tcx.fn_sig(id).instantiate_identity())
+            .inputs();
+        let expr_ty = inputs[input_idx];
+        // Check that the `expr` type is present only one, otherwise modifying just one of them it might be
+        // risky if they are referenced using the same generic type for example.
+        if inputs.iter().enumerate().all(|(n, ty)| n == input_idx || *ty != expr_ty)
+            // Look for a clause requiring `Iterator`, `IntoIterator`, or `RangeBounds`, and resolving to `expr_type`.
+            && cx
+                .tcx
+                .param_env(id)
+                .caller_bounds()
+                .into_iter()
+                .any(|p| {
+                    if let ClauseKind::Trait(t) = p.kind().skip_binder()
+                        && t.polarity == PredicatePolarity::Positive
+                        && matches!(
+                            cx.tcx.get_diagnostic_name(t.trait_ref.def_id),
+                            Some(sym::Iterator | sym::IntoIterator | sym::RangeBounds)
+                        )
+                    {
+                        t.self_ty() == expr_ty
+                    } else {
+                        false
+                    }
+                })
+        {
+            return true;
+        }
+    }
+
+    // Check if `expr` is used for indexing.
+    if let ExprKind::Index(_, index, _) = parent_expr.kind
+        && index.hir_id == expr.hir_id
+    {
+        return true;
+    }
+
+    false
+}
+
 // exclusive range plus one: `x..(y+1)`
 fn check_exclusive_range_plus_one(cx: &LateContext<'_>, expr: &Expr<'_>) {
-    if expr.span.can_be_used_for_suggestions()
-        && let Some(higher::Range {
-            start,
-            end: Some(end),
-            limits: RangeLimits::HalfOpen,
-        }) = higher::Range::hir(expr)
-        && let Some(y) = y_plus_one(cx, end)
-    {
-        let span = expr.span;
-        span_lint_and_then(
-            cx,
-            RANGE_PLUS_ONE,
-            span,
-            "an inclusive range would be more readable",
-            |diag| {
-                let start = start.map_or(String::new(), |x| Sugg::hir(cx, x, "x").maybe_paren().to_string());
-                let end = Sugg::hir(cx, y, "y").maybe_paren();
-                match span.with_source_text(cx, |src| src.starts_with('(') && src.ends_with(')')) {
-                    Some(true) => {
-                        diag.span_suggestion(span, "use", format!("({start}..={end})"), Applicability::MaybeIncorrect);
-                    },
-                    Some(false) => {
-                        diag.span_suggestion(
-                            span,
-                            "use",
-                            format!("{start}..={end}"),
-                            Applicability::MachineApplicable, // snippet
-                        );
-                    },
-                    None => {},
-                }
-            },
-        );
-    }
+    check_range_switch(
+        cx,
+        expr,
+        RangeLimits::HalfOpen,
+        y_plus_one,
+        RANGE_PLUS_ONE,
+        "an inclusive range would be more readable",
+        "..=",
+    );
 }
 
 // inclusive range minus one: `x..=(y-1)`
 fn check_inclusive_range_minus_one(cx: &LateContext<'_>, expr: &Expr<'_>) {
+    check_range_switch(
+        cx,
+        expr,
+        RangeLimits::Closed,
+        y_minus_one,
+        RANGE_MINUS_ONE,
+        "an exclusive range would be more readable",
+        "..",
+    );
+}
+
+/// Check for a `kind` of range in `expr`, check for `predicate` on the end,
+/// and emit the `lint` with `msg` and the `operator`.
+fn check_range_switch(
+    cx: &LateContext<'_>,
+    expr: &Expr<'_>,
+    kind: RangeLimits,
+    predicate: impl for<'tcx> FnOnce(&LateContext<'_>, &Expr<'tcx>) -> Option<&'tcx Expr<'tcx>>,
+    lint: &'static Lint,
+    msg: &'static str,
+    operator: &str,
+) {
     if expr.span.can_be_used_for_suggestions()
         && let Some(higher::Range {
             start,
             end: Some(end),
-            limits: RangeLimits::Closed,
+            limits,
         }) = higher::Range::hir(expr)
-        && let Some(y) = y_minus_one(cx, end)
+        && limits == kind
+        && let Some(y) = predicate(cx, end)
+        && can_switch_ranges(cx, expr)
     {
-        span_lint_and_then(
-            cx,
-            RANGE_MINUS_ONE,
-            expr.span,
-            "an exclusive range would be more readable",
-            |diag| {
-                let start = start.map_or(String::new(), |x| Sugg::hir(cx, x, "x").maybe_paren().to_string());
-                let end = Sugg::hir(cx, y, "y").maybe_paren();
-                diag.span_suggestion(
-                    expr.span,
-                    "use",
-                    format!("{start}..{end}"),
-                    Applicability::MachineApplicable, // snippet
-                );
-            },
-        );
+        let span = expr.span;
+        span_lint_and_then(cx, lint, span, msg, |diag| {
+            let mut app = Applicability::MachineApplicable;
+            let start = start.map_or(String::new(), |x| {
+                Sugg::hir_with_applicability(cx, x, "<x>", &mut app)
+                    .maybe_paren()
+                    .to_string()
+            });
+            let end = Sugg::hir_with_applicability(cx, y, "<y>", &mut app).maybe_paren();
+            match span.with_source_text(cx, |src| src.starts_with('(') && src.ends_with(')')) {
+                Some(true) => {
+                    diag.span_suggestion(span, "use", format!("({start}{operator}{end})"), app);
+                },
+                Some(false) => {
+                    diag.span_suggestion(span, "use", format!("{start}{operator}{end}"), app);
+                },
+                None => {},
+            }
+        });
     }
 }
 
@@ -494,7 +581,7 @@ fn check_reversed_empty_range(cx: &LateContext<'_>, expr: &Expr<'_>) {
     }
 }
 
-fn y_plus_one<'t>(cx: &LateContext<'_>, expr: &'t Expr<'_>) -> Option<&'t Expr<'t>> {
+fn y_plus_one<'tcx>(cx: &LateContext<'_>, expr: &Expr<'tcx>) -> Option<&'tcx Expr<'tcx>> {
     match expr.kind {
         ExprKind::Binary(
             Spanned {
@@ -515,7 +602,7 @@ fn y_plus_one<'t>(cx: &LateContext<'_>, expr: &'t Expr<'_>) -> Option<&'t Expr<'
     }
 }
 
-fn y_minus_one<'t>(cx: &LateContext<'_>, expr: &'t Expr<'_>) -> Option<&'t Expr<'t>> {
+fn y_minus_one<'tcx>(cx: &LateContext<'_>, expr: &Expr<'tcx>) -> Option<&'tcx Expr<'tcx>> {
     match expr.kind {
         ExprKind::Binary(
             Spanned {
