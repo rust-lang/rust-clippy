@@ -376,6 +376,7 @@ mod unnecessary_map_on_constructor;
 mod unnecessary_owned_empty_strings;
 mod unnecessary_self_imports;
 mod unnecessary_semicolon;
+mod unnecessary_split_off;
 mod unnecessary_struct_initialization;
 mod unnecessary_wraps;
 mod unneeded_struct_pattern;
@@ -944,5 +945,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(single_option_map::SingleOptionMap));
     store.register_late_pass(move |_| Box::new(redundant_test_prefix::RedundantTestPrefix));
     store.register_late_pass(|_| Box::new(cloned_ref_to_slice_refs::ClonedRefToSliceRefs::new(conf)));
+    store.register_late_pass(|_| Box::new(unnecessary_split_off::UnnecessarySplitOff));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
