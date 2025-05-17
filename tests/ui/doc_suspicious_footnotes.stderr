@@ -1,0 +1,109 @@
+error: looks like a footnote ref, but has no matching footnote
+  --> tests/ui/doc_suspicious_footnotes.rs:3:27
+   |
+LL | //! This is not a footnote[^1].
+   |                           ^^^^
+   |
+   = note: `-D clippy::doc-suspicious-footnotes` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::doc_suspicious_footnotes)]`
+help: add footnote definition
+   |
+LL ~ //! This is not a footnote[^1].
+LL + //! 
+LL + //! [^1]: <!-- description -->
+LL + //! 
+   |
+
+error: looks like a footnote ref, but has no matching footnote
+  --> tests/ui/doc_suspicious_footnotes.rs:18:27
+   |
+LL | /// This is not a footnote[^1].
+   |                           ^^^^
+   |
+help: add footnote definition
+   |
+LL ~ /// This is not a footnote[^1].
+LL + /// 
+LL + /// [^1]: <!-- description -->
+LL + /// 
+   |
+
+error: looks like a footnote ref, but has no matching footnote
+  --> tests/ui/doc_suspicious_footnotes.rs:38:13
+   |
+LL |     #[doc = r#"This is not a footnote[^1]."#]
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: add footnote definition
+   |
+LL ~     #[doc = r###"This is not a footnote[^1].
+LL + 
+LL + [^1]: <!-- description -->
+LL ~ "###]
+   |
+
+error: looks like a footnote ref, but has no matching footnote
+  --> tests/ui/doc_suspicious_footnotes.rs:55:13
+   |
+LL |       #[doc = "This is not a footnote[^1].
+   |  _____________^
+LL | |
+LL | |     This is not a footnote[^either], but it doesn't warn.
+...  |
+LL | |     [^2]: hello world
+LL | |     "]
+   | |_____^
+   |
+help: add footnote definition
+   |
+LL ~     #[doc = r###"This is not a footnote[^1].
+LL + 
+LL +     This is not a footnote[^either], but it doesn't warn.
+LL + 
+LL +     This is not a footnote\[^1], but it also doesn't warn.
+LL + 
+LL +     This is not a footnote[^1\], but it also doesn't warn.
+LL + 
+LL +     This is not a `footnote[^1]`, but it also doesn't warn.
+LL + 
+LL +     This is a footnote[^2].
+LL + 
+LL +     [^2]: hello world
+LL +     
+LL + 
+LL + [^1]: <!-- description -->
+LL ~ "###]
+   |
+
+error: looks like a footnote ref, but has no matching footnote
+  --> tests/ui/doc_suspicious_footnotes.rs:75:15
+   |
+LL |         doc = "This is not a footnote[^1].\n\nThis is not a footnote[^either], but it doesn't warn."
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: add footnote definition
+   |
+LL ~         doc = r###"This is not a footnote[^1].
+LL + 
+LL + This is not a footnote[^either], but it doesn't warn.
+LL + 
+LL + [^1]: <!-- description -->
+LL + "###
+   |
+
+error: looks like a footnote ref, but has no matching footnote
+  --> tests/ui/doc_suspicious_footnotes.rs:83:9
+   |
+LL | #[doc = r"This is not a footnote[^1]."]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: add footnote definition
+   |
+LL ~ #[doc = r###"This is not a footnote[^1].
+LL + 
+LL + [^1]: <!-- description -->
+LL ~ "###]
+   |
+
+error: aborting due to 6 previous errors
+
