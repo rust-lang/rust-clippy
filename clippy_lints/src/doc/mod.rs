@@ -485,7 +485,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.86.0"]
     pub DOC_OVERINDENTED_LIST_ITEMS,
-    style,
+    pedantic,
     "ensure list items are not overindented"
 }
 
