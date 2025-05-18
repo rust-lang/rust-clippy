@@ -43,6 +43,7 @@ filetime = "0.2.9"
 itertools = "0.12"
 pulldown-cmark = { version = "0.11", default-features = false, features = ["html"] }
 askama = { version = "0.13", default-features = false, features = ["alloc", "config", "derive"] }
+rayon = "1.10.0"
 
 # UI test dependencies
 if_chain = "1.0"
