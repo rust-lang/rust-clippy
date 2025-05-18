@@ -1,4 +1,5 @@
 #![warn(clippy::return_and_then)]
+#![allow(clippy::disallowed_names)]
 
 fn main() {
     fn test_opt_block(opt: Option<i32>) -> Option<i32> {

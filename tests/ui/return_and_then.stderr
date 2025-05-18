@@ -1,5 +1,5 @@
 error: use the `?` operator instead of an `and_then` call
-  --> tests/ui/return_and_then.rs:5:9
+  --> tests/ui/return_and_then.rs:6:9
    |
 LL | /         opt.and_then(|n| {
 LL | |
@@ -21,7 +21,7 @@ LL +         if n > 1 { Some(ret) } else { None }
    |
 
 error: use the `?` operator instead of an `and_then` call
-  --> tests/ui/return_and_then.rs:14:9
+  --> tests/ui/return_and_then.rs:15:9
    |
 LL |         opt.and_then(|n| test_opt_block(Some(n)))
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -33,7 +33,7 @@ LL +         test_opt_block(Some(n))
    |
 
 error: use the `?` operator instead of an `and_then` call
-  --> tests/ui/return_and_then.rs:19:9
+  --> tests/ui/return_and_then.rs:20:9
    |
 LL |         gen_option(1).and_then(|n| test_opt_block(Some(n)))
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -45,7 +45,7 @@ LL +         test_opt_block(Some(n))
    |
 
 error: use the `?` operator instead of an `and_then` call
-  --> tests/ui/return_and_then.rs:24:9
+  --> tests/ui/return_and_then.rs:25:9
    |
 LL |         opt.and_then(|n| if n > 1 { Ok(n + 1) } else { Err(n) })
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -57,7 +57,7 @@ LL +         if n > 1 { Ok(n + 1) } else { Err(n) }
    |
 
 error: use the `?` operator instead of an `and_then` call
-  --> tests/ui/return_and_then.rs:29:9
+  --> tests/ui/return_and_then.rs:30:9
    |
 LL |         opt.and_then(|n| test_res_block(Ok(n)))
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -69,7 +69,7 @@ LL +         test_res_block(Ok(n))
    |
 
 error: use the `?` operator instead of an `and_then` call
-  --> tests/ui/return_and_then.rs:35:9
+  --> tests/ui/return_and_then.rs:36:9
    |
 LL |         Some("").and_then(|x| if x.len() > 2 { Some(3) } else { None })
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -81,7 +81,7 @@ LL +         if x.len() > 2 { Some(3) } else { None }
    |
 
 error: use the `?` operator instead of an `and_then` call
-  --> tests/ui/return_and_then.rs:41:9
+  --> tests/ui/return_and_then.rs:42:9
    |
 LL | /         Some(match (vec![1, 2, 3], vec![1, 2, 4]) {
 LL | |
@@ -102,7 +102,7 @@ LL +         if x.len() > 2 { Some(3) } else { None }
    |
 
 error: use the `?` operator instead of an `and_then` call
-  --> tests/ui/return_and_then.rs:69:13
+  --> tests/ui/return_and_then.rs:70:13
    |
 LL |             Some("").and_then(|x| if x.len() > 2 { Some(3) } else { None })
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -114,7 +114,7 @@ LL +             if x.len() > 2 { Some(3) } else { None }
    |
 
 error: use the `?` operator instead of an `and_then` call
-  --> tests/ui/return_and_then.rs:77:20
+  --> tests/ui/return_and_then.rs:78:20
    |
 LL |             return Some("").and_then(|x| if x.len() > 2 { Some(3) } else { None });
    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -128,7 +128,7 @@ LL ~             };
    |
 
 error: use the `?` operator instead of an `and_then` call
-  --> tests/ui/return_and_then.rs:85:20
+  --> tests/ui/return_and_then.rs:86:20
    |
 LL |               return Some("").and_then(|mut x| {
    |  ____________________^
