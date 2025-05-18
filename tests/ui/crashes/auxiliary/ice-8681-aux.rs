@@ -1,4 +1,4 @@
-pub fn foo(x: &u32) -> u32 {
+pub fn some_meaningful_name(x: &u32) -> u32 {
     /* Safety:
      * This is totally ok.
      */

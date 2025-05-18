@@ -1,5 +1,6 @@
 #![warn(clippy::pattern_type_mismatch)]
 #![allow(
+    clippy::disallowed_names,
     clippy::match_ref_pats,
     clippy::never_loop,
     clippy::redundant_pattern_matching,

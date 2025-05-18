@@ -3,7 +3,12 @@
 // would otherwise be responsible for
 #![warn(clippy::useless_transmute)]
 #![warn(clippy::transmute_ptr_to_ptr)]
-#![allow(unused, clippy::borrow_as_ptr, clippy::missing_transmute_annotations)]
+#![allow(
+    unused,
+    clippy::borrow_as_ptr,
+    clippy::missing_transmute_annotations,
+    clippy::disallowed_names
+)]
 
 use std::mem::{size_of, transmute};
 

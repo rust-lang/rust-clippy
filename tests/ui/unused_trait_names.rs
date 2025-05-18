@@ -1,6 +1,6 @@
 //@aux-build:proc_macros.rs
 
-#![allow(unused)]
+#![allow(unused, clippy::disallowed_names)]
 #![warn(clippy::unused_trait_names)]
 #![feature(decl_macro)]
 

@@ -12,7 +12,7 @@
 
 #![deny(clippy::unused_unit)]
 #![allow(dead_code)]
-#![allow(clippy::from_over_into)]
+#![allow(clippy::from_over_into, clippy::disallowed_names)]
 
 struct Unitter;
 impl Unitter {

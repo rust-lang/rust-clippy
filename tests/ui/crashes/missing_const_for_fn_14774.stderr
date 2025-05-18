@@ -1,5 +1,5 @@
 error: this could be a `const fn`
-  --> tests/ui/crashes/missing_const_for_fn_14774.rs:6:5
+  --> tests/ui/crashes/missing_const_for_fn_14774.rs:7:5
    |
 LL | /     fn foo(a: usize) -> usize {
 LL | |         a + 10

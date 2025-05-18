@@ -1,5 +1,6 @@
 #![crate_type = "lib"]
 #![warn(clippy::return_self_not_must_use)]
+#![allow(clippy::disallowed_names)]
 
 #[derive(Clone)]
 pub struct Bar;

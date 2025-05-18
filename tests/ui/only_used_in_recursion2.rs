@@ -1,4 +1,5 @@
 #![warn(clippy::only_used_in_recursion)]
+#![allow(clippy::disallowed_names)]
 //@no-rustfix
 fn _with_inner(flag: u32, a: u32, b: u32) -> usize {
     //~^ only_used_in_recursion
