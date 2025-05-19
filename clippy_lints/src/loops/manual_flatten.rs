@@ -94,6 +94,5 @@ fn contains_nested_tuple_struct(pats: &[Pat<'_>]) -> bool {
             _ => {},
         }
     }
-
     false
 }
