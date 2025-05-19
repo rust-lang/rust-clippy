@@ -177,8 +177,30 @@ LL | |             println!("{:?}", n);
 LL | |         }
    | |_________^
 
+error: manual flattening detected
+  --> tests/ui/manual_flatten.rs:128:5
+   |
+LL |       for n in z {
+   |       ^        - help: try: `z.into_iter().flatten()`
+   |  _____|
+   | |
+LL | |
+LL | |
+LL | |         if let Some((_, Some(n))) = n {
+...  |
+LL | |     }
+   | |_____^
+   |
+help: ...and remove the outer `Some` variant in the for loop
+  --> tests/ui/manual_flatten.rs:131:9
+   |
+LL | /         if let Some((_, Some(n))) = n {
+LL | |             println!("{}", n);
+LL | |         }
+   | |_________^
+
 error: unnecessary `if let` since only the `Some` variant of the iterator element is used
-  --> tests/ui/manual_flatten.rs:132:5
+  --> tests/ui/manual_flatten.rs:142:5
    |
 LL | /     for n in vec![
 LL | |
@@ -189,7 +211,7 @@ LL | |     }
    | |_____^
    |
 help: remove the `if let` statement in the for loop and then...
-  --> tests/ui/manual_flatten.rs:139:9
+  --> tests/ui/manual_flatten.rs:149:9
    |
 LL | /         if let Some(n) = n {
 LL | |             println!("{:?}", n);
@@ -203,5 +225,5 @@ LL |         Some(3)
 LL ~     ].iter().flatten() {
    |
 
-error: aborting due to 9 previous errors
+error: aborting due to 10 previous errors
 

@@ -28,7 +28,7 @@ pub(super) fn check<'tcx>(
         && let PatKind::Binding(_, pat_hir_id, _, _) = pat.kind
         && path_to_local_id(let_expr, pat_hir_id)
         // Ensure the `if let` statement is for the `Some` variant of `Option` or the `Ok` variant of `Result`
-        && let PatKind::TupleStruct(ref qpath, _, _) = let_pat.kind
+        && let PatKind::TupleStruct(ref qpath, pats, _) = let_pat.kind
         && let Res::Def(DefKind::Ctor(..), ctor_id) = cx.qpath_res(qpath, let_pat.hir_id)
         && let Some(variant_id) = cx.tcx.opt_parent(ctor_id)
         && let some_ctor = cx.tcx.lang_items().option_some_variant() == Some(variant_id)
@@ -39,9 +39,13 @@ pub(super) fn check<'tcx>(
         && msrv.meets(cx, msrvs::ITER_FLATTEN)
     {
         let if_let_type = if some_ctor { "Some" } else { "Ok" };
+        let has_nested_tuple_struct = contains_nested_tuple_struct(pats);
         // Prepare the error message
-        let msg =
-            format!("unnecessary `if let` since only the `{if_let_type}` variant of the iterator element is used");
+        let msg = if has_nested_tuple_struct {
+            "manual flattening detected".to_string()
+        } else {
+            format!("unnecessary `if let` since only the `{if_let_type}` variant of the iterator element is used")
+        };
 
         // Prepare the help message
         let mut applicability = Applicability::MaybeIncorrect;
@@ -60,9 +64,15 @@ pub(super) fn check<'tcx>(
         // case, it will be shown in the extra `help` message at the end, which is why the first
         // `help_msg` needs to refer to the correct relative position of the suggestion.
         let help_msg = if sugg.contains('\n') {
-            "remove the `if let` statement in the for loop and then..."
+            if has_nested_tuple_struct {
+                format!("remove the outer `{if_let_type}` variant in the for loop and then...")
+            } else {
+                "remove the `if let` statement in the for loop and then...".to_string()
+            }
+        } else if has_nested_tuple_struct {
+            format!("...and remove the outer `{if_let_type}` variant in the for loop")
         } else {
-            "...and remove the `if let` statement in the for loop"
+            "...and remove the `if let` statement in the for loop".to_string()
         };
 
         span_lint_and_then(cx, MANUAL_FLATTEN, span, msg, |diag| {
@@ -70,4 +80,20 @@ pub(super) fn check<'tcx>(
             diag.span_help(inner_expr.span, help_msg);
         });
     }
+}
+
+fn contains_nested_tuple_struct(pats: &[Pat<'_>]) -> bool {
+    for pat in pats {
+        match pat.kind {
+            PatKind::TupleStruct(_, _, _) => {
+                return true;
+            },
+            PatKind::Tuple(pats, _) => {
+                return contains_nested_tuple_struct(pats);
+            },
+            _ => {},
+        }
+    }
+
+    false
 }
