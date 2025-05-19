@@ -8,7 +8,7 @@ LL | This is not a footnote[^1].
    = help: to override `-D warnings` add `#[allow(clippy::doc_suspicious_footnotes)]`
 help: add footnote definition
    |
-LL ~ This is not a footnote[^1].
+LL ~ [^2]: hello world
 LL + 
 LL + [^1]: <!-- description -->
    |

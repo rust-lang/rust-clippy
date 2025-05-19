@@ -862,6 +862,7 @@ fn check_attrs(cx: &LateContext<'_>, valid_idents: &FxHashSet<String>, attrs: &[
             doc: &doc,
             fragments: &fragments,
         },
+        attrs,
     ))
 }
 
@@ -942,6 +943,7 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
     events: Events,
     doc: &str,
     fragments: Fragments<'_>,
+    attrs: &[Attribute],
 ) -> DocHeaders {
     // true if a safety header was found
     let mut headers = DocHeaders::default();
@@ -1187,7 +1189,7 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
                         continue;
                     }
                     text_to_check.push((text, range.clone(), code_level));
-                    doc_suspicious_footnotes::check(cx, doc, range, &fragments);
+                    doc_suspicious_footnotes::check(cx, doc, range, &fragments, attrs);
                 }
             }
             FootnoteReference(_) => {}

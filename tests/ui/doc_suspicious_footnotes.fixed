@@ -1,9 +1,6 @@
 #![warn(clippy::doc_suspicious_footnotes)]
 #![allow(clippy::needless_raw_string_hashes)]
 //! This is not a footnote[^1].
-//! 
-//! [^1]: <!-- description -->
-//! 
 //~^ doc_suspicious_footnotes
 //!
 //! This is not a footnote[^either], but it doesn't warn.
@@ -17,11 +14,10 @@
 //! This is a footnote[^2].
 //!
 //! [^2]: hello world
+//!
+//! [^1]: <!-- description -->
 
 /// This is not a footnote[^1].
-/// 
-/// [^1]: <!-- description -->
-/// 
 //~^ doc_suspicious_footnotes
 ///
 /// This is not a footnote[^either], but it doesn't warn.
@@ -35,16 +31,17 @@
 /// This is a footnote[^2].
 ///
 /// [^2]: hello world
+///
+/// [^1]: <!-- description -->
 pub fn footnotes() {
     // test code goes here
 }
 
 pub struct Foo;
 impl Foo {
-    #[doc = r###"This is not a footnote[^1].
+    #[doc = r#"[^2]: hello world
 
-[^1]: <!-- description -->
-"###]
+[^1]: <!-- description -->"#]
     //~^ doc_suspicious_footnotes
     #[doc = r#""#]
     #[doc = r#"This is not a footnote[^either], but it doesn't warn."#]
@@ -61,7 +58,7 @@ impl Foo {
     pub fn footnotes() {
         // test code goes here
     }
-    #[doc = r###"This is not a footnote[^1].
+    #[doc = r#"This is not a footnote[^1].
 
     This is not a footnote[^either], but it doesn't warn.
 
@@ -76,20 +73,18 @@ impl Foo {
     [^2]: hello world
     
 
-[^1]: <!-- description -->
-"###]
+[^1]: <!-- description -->"#]
     //~^^^^^^^^^^^^^^ doc_suspicious_footnotes
     pub fn footnotes2() {
         // test code goes here
     }
     #[cfg_attr(
         not(FALSE),
-        doc = r###"This is not a footnote[^1].
+        doc = r#"This is not a footnote[^1].
 
 This is not a footnote[^either], but it doesn't warn.
 
-[^1]: <!-- description -->
-"###
+[^1]: <!-- description -->"#
     //~^ doc_suspicious_footnotes
     )]
     pub fn footnotes3() {
@@ -97,10 +92,9 @@ This is not a footnote[^either], but it doesn't warn.
     }
 }
 
-#[doc = r###"This is not a footnote[^1].
+#[doc = r#"[^2]: hello world
 
-[^1]: <!-- description -->
-"###]
+[^1]: <!-- description -->"#]
 //~^ doc_suspicious_footnotes
 #[doc = r""]
 #[doc = r"This is not a footnote[^either], but it doesn't warn."]
@@ -116,4 +110,32 @@ This is not a footnote[^either], but it doesn't warn.
 #[doc = r"[^2]: hello world"]
 pub fn footnotes_attrs() {
     // test code goes here
+}
+
+pub mod multiline {
+    /*!
+     * This is not a footnote[^1]. //~ doc_suspicious_footnotes
+     *
+     * This is not a footnote\[^1], but it doesn't warn.
+     *
+     * This is a footnote[^2].
+     *
+     * These give weird results, but correct ones, so it works.
+     *
+     * [^2]: hello world
+     */
+/*! [^1]: <!-- description --> */
+    /**
+     * This is not a footnote[^1]. //~ doc_suspicious_footnotes
+     *
+     * This is not a footnote\[^1], but it doesn't warn.
+     *
+     * This is a footnote[^2].
+     *
+     * These give weird results, but correct ones, so it works.
+     *
+     * [^2]: hello world
+     */
+/** [^1]: <!-- description --> */
+    pub fn foo() {}
 }

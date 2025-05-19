@@ -97,3 +97,29 @@ impl Foo {
 pub fn footnotes_attrs() {
     // test code goes here
 }
+
+pub mod multiline {
+    /*!
+     * This is not a footnote[^1]. //~ doc_suspicious_footnotes
+     *
+     * This is not a footnote\[^1], but it doesn't warn.
+     *
+     * This is a footnote[^2].
+     *
+     * These give weird results, but correct ones, so it works.
+     *
+     * [^2]: hello world
+     */
+    /**
+     * This is not a footnote[^1]. //~ doc_suspicious_footnotes
+     *
+     * This is not a footnote\[^1], but it doesn't warn.
+     *
+     * This is a footnote[^2].
+     *
+     * These give weird results, but correct ones, so it works.
+     *
+     * [^2]: hello world
+     */
+    pub fn foo() {}
+}
