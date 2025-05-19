@@ -83,16 +83,8 @@ pub(super) fn check<'tcx>(
 }
 
 fn contains_nested_tuple_struct(pats: &[Pat<'_>]) -> bool {
-    for pat in pats {
-        match pat.kind {
-            PatKind::TupleStruct(_, _, _) => {
-                return true;
-            },
-            PatKind::Tuple(pats, _) => {
-                return contains_nested_tuple_struct(pats);
-            },
-            _ => {},
-        }
-    }
-    false
+    pats.iter().any(|pat| {
+        matches!(pat.kind, PatKind::TupleStruct(..))
+            || matches!(pat.kind, PatKind::Tuple(pats, _) if contains_nested_tuple_struct(pats))
+    })
 }
