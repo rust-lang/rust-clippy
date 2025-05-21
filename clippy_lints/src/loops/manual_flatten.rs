@@ -2,6 +2,7 @@ use super::MANUAL_FLATTEN;
 use super::utils::make_iterator_snippet;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::msrvs::{self, Msrv};
+use clippy_utils::source::{indent_of, reindent_multiline, snippet_with_applicability};
 use clippy_utils::visitors::is_local_used;
 use clippy_utils::{higher, path_to_local_id, peel_blocks_with_stmt};
 use rustc_errors::Applicability;
@@ -54,20 +55,23 @@ pub(super) fn check<'tcx>(
             _ => "",
         };
 
-        let sugg = format!("{arg_snippet}{copied}.flatten()");
+        let help_msg = "try `.flatten()` and remove the `if let` statement in the for loop";
 
-        // If suggestion is not a one-liner, it won't be shown inline within the error message. In that
-        // case, it will be shown in the extra `help` message at the end, which is why the first
-        // `help_msg` needs to refer to the correct relative position of the suggestion.
-        let help_msg = if sugg.contains('\n') {
-            "remove the `if let` statement in the for loop and then..."
-        } else {
-            "...and remove the `if let` statement in the for loop"
-        };
+        let body_snip =
+            snippet_with_applicability(cx, if_then.span.source_callsite(), "[body]", &mut applicability).to_string();
+        let suggestions = vec![
+            // flatten the iterator
+            (arg.span, format!("{arg_snippet}{copied}.flatten()")),
+            // remove the `if let` statement
+            (
+                body.span,
+                reindent_multiline(&body_snip, true, indent_of(cx, body.span)),
+            ),
+        ];
 
         span_lint_and_then(cx, MANUAL_FLATTEN, span, msg, |diag| {
-            diag.span_suggestion(arg.span, "try", sugg, applicability);
             diag.span_help(inner_expr.span, help_msg);
+            diag.multipart_suggestion("try", suggestions, applicability);
         });
     }
 }
