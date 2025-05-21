@@ -44,7 +44,7 @@ pub fn check(cx: &LateContext<'_>, doc: &str, range: Range<usize>, fragments: &F
                 "looks like a footnote ref, but has no matching footnote",
                 |diag| {
                     if last_doc_attr.is_doc_comment() {
-                        let (pfx, sfx) = match (last_doc_attr_comment_kind, last_doc_attr.style()) {
+                        let (to_add, terminator) = match (last_doc_attr_comment_kind, last_doc_attr.style()) {
                             (CommentKind::Line, AttrStyle::Outer) => ("\n///\n/// ", ""),
                             (CommentKind::Line, AttrStyle::Inner) => ("\n//!\n//! ", ""),
                             (CommentKind::Block, AttrStyle::Outer) => ("\n/** ", " */"),
@@ -53,7 +53,10 @@ pub fn check(cx: &LateContext<'_>, doc: &str, range: Range<usize>, fragments: &F
                         diag.span_suggestion_verbose(
                             last_doc_attr.span().shrink_to_hi(),
                             "add footnote definition",
-                            format!("{pfx}{label}: <!-- description -->{sfx}", label = &doc[start..end]),
+                            format!(
+                                "{to_add}{label}: <!-- description -->{terminator}",
+                                label = &doc[start..end]
+                            ),
                             Applicability::HasPlaceholders,
                         );
                     } else {
