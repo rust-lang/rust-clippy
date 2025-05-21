@@ -34,6 +34,7 @@ pub fn footnotes() {
 }
 
 pub struct Foo;
+#[rustfmt::skip]
 impl Foo {
     #[doc = r#"This is not a footnote[^1]."#]
     //~^ doc_suspicious_footnotes
@@ -76,6 +77,13 @@ impl Foo {
     //~^ doc_suspicious_footnotes
     )]
     pub fn footnotes3() {
+        // test code goes here
+    }
+    #[doc = "My footnote [^foot\note]"]
+    pub fn footnote4() {
+        // test code goes here
+    }
+    #[doc = "Hihi"]pub fn footnote5() {
         // test code goes here
     }
 }
