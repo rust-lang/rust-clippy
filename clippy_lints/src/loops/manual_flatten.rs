@@ -29,7 +29,7 @@ pub(super) fn check<'tcx>(
         && let PatKind::Binding(_, pat_hir_id, _, _) = pat.kind
         && path_to_local_id(let_expr, pat_hir_id)
         // Ensure the `if let` statement is for the `Some` variant of `Option` or the `Ok` variant of `Result`
-        && let PatKind::TupleStruct(ref qpath, _, _) = let_pat.kind
+        && let PatKind::TupleStruct(ref qpath, let_pats, _) = let_pat.kind
         && let Res::Def(DefKind::Ctor(..), ctor_id) = cx.qpath_res(qpath, let_pat.hir_id)
         && let Some(variant_id) = cx.tcx.opt_parent(ctor_id)
         && let some_ctor = cx.tcx.lang_items().option_some_variant() == Some(variant_id)
@@ -57,15 +57,27 @@ pub(super) fn check<'tcx>(
 
         let help_msg = "try `.flatten()` and remove the `if let` statement in the for loop";
 
-        let body_snip =
+        let pat_snippet = if let_pats.is_empty() {
+            "_".to_string()
+        } else {
+            snippet_with_applicability(
+                cx,
+                let_pats.first().unwrap().span.source_callsite(),
+                "_",
+                &mut applicability,
+            )
+            .to_string()
+        };
+        let body_snippet =
             snippet_with_applicability(cx, if_then.span.source_callsite(), "[body]", &mut applicability).to_string();
         let suggestions = vec![
             // flatten the iterator
             (arg.span, format!("{arg_snippet}{copied}.flatten()")),
+            (pat.span, pat_snippet),
             // remove the `if let` statement
             (
                 body.span,
-                reindent_multiline(&body_snip, true, indent_of(cx, body.span)),
+                reindent_multiline(&body_snippet, true, indent_of(cx, body.span)),
             ),
         ];
 

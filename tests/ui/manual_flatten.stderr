@@ -20,7 +20,7 @@ LL | |         }
    = help: to override `-D warnings` add `#[allow(clippy::manual_flatten)]`
 help: try
    |
-LL ~     for n in x.into_iter().flatten() {
+LL ~     for y in x.into_iter().flatten() {
 LL +         println!("{}", y);
 LL +     }
    |
@@ -121,7 +121,7 @@ LL | |         }
    | |_________^
 help: try
    |
-LL ~     for n in z.flatten() {
+LL ~     for m in z.flatten() {
 LL +         println!("{}", m);
 LL +     }
    |
