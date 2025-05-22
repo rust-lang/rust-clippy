@@ -10,7 +10,7 @@
 )]
 
 use core::slice;
-use std::collections::*;
+use std::collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, LinkedList, VecDeque};
 
 fn main() {
     let mut vec = vec![1, 2, 3, 4];

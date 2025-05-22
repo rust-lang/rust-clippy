@@ -1,7 +1,7 @@
 #![warn(clippy::for_kv_map)]
 #![allow(clippy::used_underscore_binding)]
 
-use std::collections::*;
+use std::collections::HashMap;
 use std::rc::Rc;
 
 fn main() {
