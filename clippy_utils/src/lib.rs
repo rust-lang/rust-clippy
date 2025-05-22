@@ -90,7 +90,7 @@ use itertools::Itertools;
 use rustc_abi::Integer;
 use rustc_ast::ast::{self, LitKind, RangeLimits};
 use rustc_attr_data_structures::{AttributeKind, find_attr};
-use rustc_data_structures::fx::FxHashMap;
+use rustc_data_structures::fx::{FxHashMap, FxIndexSet};
 use rustc_data_structures::packed::Pu128;
 use rustc_data_structures::unhash::UnindexMap;
 use rustc_hir::LangItem::{OptionNone, OptionSome, ResultErr, ResultOk};
@@ -104,7 +104,7 @@ use rustc_hir::{
     CoroutineKind, Destination, Expr, ExprField, ExprKind, FnDecl, FnRetTy, GenericArg, GenericArgs, HirId, Impl,
     ImplItem, ImplItemKind, Item, ItemKind, LangItem, LetStmt, MatchSource, Mutability, Node, OwnerId, OwnerNode,
     Param, Pat, PatExpr, PatExprKind, PatKind, Path, PathSegment, QPath, Stmt, StmtKind, TraitFn, TraitItem,
-    TraitItemKind, TraitRef, TyKind, UnOp, def,
+    TraitItemKind, TraitRef, TyKind, UnOp, UseKind, def,
 };
 use rustc_lexer::{TokenKind, tokenize};
 use rustc_lint::{LateContext, Level, Lint, LintContext};
@@ -121,12 +121,13 @@ use rustc_middle::ty::{
 use rustc_span::hygiene::{ExpnKind, MacroKind};
 use rustc_span::source_map::SourceMap;
 use rustc_span::symbol::{Ident, Symbol, kw};
-use rustc_span::{InnerSpan, Span};
+use rustc_span::{BytePos, InnerSpan, Span};
 use source::walk_span_to_context;
 use visitors::{Visitable, for_each_unconsumed_temporary};
 
 use crate::consts::{ConstEvalCtxt, Constant, mir_to_const};
 use crate::higher::Range;
+use crate::source::snippet;
 use crate::ty::{adt_and_variant_of_res, can_partially_move_ty, expr_sig, is_copy, is_recursively_primitive_type};
 use crate::visitors::for_each_expr_without_closures;
 
@@ -3471,5 +3472,55 @@ pub fn desugar_await<'tcx>(expr: &'tcx Expr<'_>) -> Option<&'tcx Expr<'tcx>> {
         Some(into_future_arg)
     } else {
         None
+    }
+}
+
+/// Returns true for `...prelude::...` imports.
+pub fn is_prelude_import(segments: &[PathSegment<'_>]) -> bool {
+    segments
+        .iter()
+        .any(|ps| ps.ident.as_str().contains(sym::prelude.as_str()))
+}
+
+/// Returns the entire span for a given glob import statement, including the `*` symbol.
+pub fn whole_glob_import_span(cx: &LateContext<'_>, item: &Item<'_>, braced_glob: bool) -> Option<Span> {
+    let ItemKind::Use(use_path, UseKind::Glob) = item.kind else {
+        return None;
+    };
+
+    if braced_glob {
+        // This is a `_::{_, *}` import
+        // In this case `use_path.span` is empty and ends directly in front of the `*`,
+        // so we need to extend it by one byte.
+        Some(use_path.span.with_hi(use_path.span.hi() + BytePos(1)))
+    } else {
+        // In this case, the `use_path.span` ends right before the `::*`, so we need to
+        // extend it up to the `*`. Since it is hard to find the `*` in weird
+        // formatting like `use _ ::  *;`, we extend it up to, but not including the
+        // `;`. In nested imports, like `use _::{inner::*, _}` there is no `;` and we
+        // can just use the end of the item span
+        let mut span = use_path.span.with_hi(item.span.hi());
+        if snippet(cx, span, "").ends_with(';') {
+            span = use_path.span.with_hi(item.span.hi() - BytePos(1));
+        }
+        Some(span)
+    }
+}
+
+/// Generates a suggestion for a glob import using only the actually used items.
+pub fn sugg_glob_import(import_source_snippet: &str, used_imports: &FxIndexSet<Symbol>) -> String {
+    let mut imports: Vec<_> = used_imports.iter().map(ToString::to_string).collect();
+    let imports_string = if imports.len() == 1 {
+        imports.pop().unwrap()
+    } else if import_source_snippet.is_empty() {
+        imports.join(", ")
+    } else {
+        format!("{{{}}}", imports.join(", "))
+    };
+
+    if import_source_snippet.is_empty() {
+        imports_string
+    } else {
+        format!("{import_source_snippet}::{imports_string}")
     }
 }
