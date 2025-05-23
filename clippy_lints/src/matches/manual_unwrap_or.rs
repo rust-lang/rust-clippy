@@ -1,4 +1,5 @@
 use clippy_utils::consts::ConstEvalCtxt;
+use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::{SpanRangeExt as _, indent_of, reindent_multiline};
 use rustc_ast::{BindingMode, ByRef};
 use rustc_errors::Applicability;
@@ -82,6 +83,7 @@ fn handle(
     body_some: &Expr<'_>,
     body_none: &Expr<'_>,
     binding_id: HirId,
+    msrv: Msrv,
 ) {
     // Only deal with situations where both alternatives return the same non-adjusted type.
     if cx.typeck_results().expr_ty(body_some) != cx.typeck_results().expr_ty(body_none) {
@@ -112,6 +114,8 @@ fn handle(
             && let GenericArgKind::Type(condition_ty) = condition_ty.unpack()
             && implements_trait(cx, condition_ty, default_trait_id, &[])
             && is_default_equivalent(cx, peel_blocks(body_none))
+            // Check if MSRV meets the requirement for unwrap_or_default (stabilized in 1.16)
+            && msrv.meets(cx, msrvs::UNWRAP_OR_DEFAULT)
         {
             // We now check if the condition is a None variant, in which case we need to specify the type
             if path_res(cx, condition)
@@ -186,6 +190,7 @@ pub fn check_match<'tcx>(
     expr: &'tcx Expr<'tcx>,
     scrutinee: &'tcx Expr<'tcx>,
     arms: &'tcx [Arm<'tcx>],
+    msrv: Msrv,
 ) {
     if let [arm1, arm2] = arms
         // Make sure there are no guards to keep things simple
@@ -194,7 +199,7 @@ pub fn check_match<'tcx>(
         // Get the some and none bodies and the binding id of the some arm
         && let Some(((body_some, binding_id), body_none)) = get_some_and_none_bodies(cx, arm1, arm2)
     {
-        handle(cx, expr, "match", scrutinee, body_some, body_none, binding_id);
+        handle(cx, expr, "match", scrutinee, body_some, body_none, binding_id, msrv);
     }
 }
 
@@ -205,6 +210,7 @@ pub fn check_if_let<'tcx>(
     scrutinee: &'tcx Expr<'tcx>,
     then_expr: &'tcx Expr<'tcx>,
     else_expr: &'tcx Expr<'tcx>,
+    msrv: Msrv,
 ) {
     if let Some(binding_id) = get_some(cx, pat) {
         handle(
@@ -215,6 +221,7 @@ pub fn check_if_let<'tcx>(
             peel_blocks(then_expr),
             peel_blocks(else_expr),
             binding_id,
+            msrv,
         );
     }
 }

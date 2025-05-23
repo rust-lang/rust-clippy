@@ -1062,7 +1062,7 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
             if is_direct_expn_of(expr.span, sym::matches).is_some()
                 && let [arm, _] = arms
             {
-                redundant_pattern_match::check_match(cx, expr, ex, arms);
+                redundant_pattern_match::check_match(cx, expr, ex, &arms);
                 redundant_pattern_match::check_matches_true(cx, expr, arm, ex);
             }
 
@@ -1070,29 +1070,29 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
                 return;
             }
             if matches!(source, MatchSource::Normal | MatchSource::ForLoopDesugar) {
-                significant_drop_in_scrutinee::check_match(cx, expr, ex, arms, source);
+                significant_drop_in_scrutinee::check_match(cx, expr, ex, &arms, source);
             }
 
-            collapsible_match::check_match(cx, arms, self.msrv);
+            collapsible_match::check_match(cx, &arms, self.msrv);
             if !from_expansion {
                 // These don't depend on a relationship between multiple arms
-                match_wild_err_arm::check(cx, ex, arms);
-                wild_in_or_pats::check(cx, ex, arms);
+                match_wild_err_arm::check(cx, ex, &arms);
+                wild_in_or_pats::check(cx, ex, &arms);
             }
 
             if let MatchSource::TryDesugar(_) = source {
                 try_err::check(cx, expr, ex);
             }
 
-            if !from_expansion && !contains_cfg_arm(cx, expr, ex, arms) {
+            if !from_expansion && !contains_cfg_arm(cx, expr, ex, &arms) {
                 if source == MatchSource::Normal {
                     if !(self.msrv.meets(cx, msrvs::MATCHES_MACRO)
-                        && match_like_matches::check_match(cx, expr, ex, arms))
+                        && match_like_matches::check_match(cx, expr, ex, &arms))
                     {
-                        match_same_arms::check(cx, arms);
+                        match_same_arms::check(cx, &arms);
                     }
 
-                    redundant_pattern_match::check_match(cx, expr, ex, arms);
+                    redundant_pattern_match::check_match(cx, expr, ex, &arms);
                     let source_map = cx.tcx.sess.source_map();
                     let mut match_comments = span_extract_comments(source_map, expr.span);
                     // We remove comments from inside arms block.
@@ -1112,26 +1112,26 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
                     }
                     // If there are still comments, it means they are outside of the arms. Tell the lint
                     // code about it.
-                    single_match::check(cx, ex, arms, expr, !match_comments.is_empty());
-                    match_bool::check(cx, ex, arms, expr);
-                    overlapping_arms::check(cx, ex, arms);
-                    match_wild_enum::check(cx, ex, arms);
-                    match_as_ref::check(cx, ex, arms, expr);
-                    needless_match::check_match(cx, ex, arms, expr);
-                    match_str_case_mismatch::check(cx, ex, arms);
-                    redundant_guards::check(cx, arms, self.msrv);
+                    single_match::check(cx, ex, &arms, expr, !match_comments.is_empty());
+                    match_bool::check(cx, ex, &arms, expr);
+                    overlapping_arms::check(cx, ex, &arms);
+                    match_wild_enum::check(cx, ex, &arms);
+                    match_as_ref::check(cx, ex, &arms, expr);
+                    needless_match::check_match(cx, ex, &arms, expr);
+                    match_str_case_mismatch::check(cx, ex, &arms);
+                    redundant_guards::check(cx, &arms, self.msrv);
 
                     if !is_in_const_context(cx) {
-                        manual_unwrap_or::check_match(cx, expr, ex, arms);
-                        manual_map::check_match(cx, expr, ex, arms);
-                        manual_filter::check_match(cx, ex, arms, expr);
-                        manual_ok_err::check_match(cx, expr, ex, arms);
+                        manual_unwrap_or::check_match(cx, expr, ex, &arms, self.msrv);
+                        manual_map::check_match(cx, expr, ex, &arms);
+                        manual_filter::check_match(cx, ex, &arms, expr);
+                        manual_ok_err::check_match(cx, expr, ex, &arms);
                     }
 
                     if self.infallible_destructuring_match_linted {
                         self.infallible_destructuring_match_linted = false;
                     } else {
-                        match_single_binding::check(cx, ex, arms, expr);
+                        match_single_binding::check(cx, ex, &arms, expr);
                     }
                 }
                 match_ref_pats::check(cx, ex, arms.iter().map(|el| el.pat), expr);
@@ -1159,6 +1159,7 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
                             if_let.let_expr,
                             if_let.if_then,
                             else_expr,
+                            self.msrv,
                         );
                         manual_map::check_if_let(cx, expr, if_let.let_pat, if_let.let_expr, if_let.if_then, else_expr);
                         manual_filter::check_if_let(
