@@ -2,9 +2,7 @@ use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_sugg, span_lin
 use clippy_utils::source::{snippet, snippet_with_context};
 use clippy_utils::sugg::{DiagExt as _, Sugg};
 use clippy_utils::ty::{get_type_diagnostic_name, is_copy, is_type_diagnostic_item, same_type_and_consts};
-use clippy_utils::{
-    get_parent_expr, is_inherent_method_call, is_trait_item, is_trait_method, is_ty_alias, path_to_local, sym,
-};
+use clippy_utils::{get_parent_expr, is_trait_method, is_ty_alias, path_res, path_to_local, sym};
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{BindingMode, Expr, ExprKind, HirId, MatchSource, Mutability, Node, PatKind};
@@ -357,6 +355,48 @@ impl<'tcx> LateLintPass<'tcx> for UselessConversion {
                 }
             },
 
+            // Check for a higher-order map call using `From::from` or `Into::into` returning the
+            // same type.
+            ExprKind::MethodCall(path, recv, [arg], _)
+                if matches!(
+                    path.ident.name,
+                    sym::map_break | sym::map_continue | sym::map | sym::map_err
+                ) && let Some(method_id) = cx.typeck_results().type_dependent_def_id(e.hir_id)
+                    && let method_trait = cx.tcx.trait_of_item(method_id)
+                    && match method_trait {
+                        Some(method_trait) => cx.tcx.is_diagnostic_item(sym::Iterator, method_trait),
+                        None => matches!(
+                            (
+                                path.ident.name,
+                                get_type_diagnostic_name(cx, cx.typeck_results().expr_ty_adjusted(e))
+                            ),
+                            (sym::map, Some(sym::Option | sym::Result))
+                                | (sym::map_err, Some(sym::Result))
+                                | (sym::map_break | sym::map_continue, Some(sym::ControlFlow))
+                        ),
+                    }
+                    && let Some(arg_id) = path_res(cx, arg).opt_def_id()
+                    && let Some(arg_trait) = cx.tcx.trait_of_item(arg_id)
+                    && matches!(cx.tcx.get_diagnostic_name(arg_trait), Some(sym::Into | sym::From))
+                    && let &[gen_arg1, gen_arg2] = &**cx.typeck_results().node_args(arg.hir_id)
+                    && gen_arg1 == gen_arg2 =>
+            {
+                span_lint_and_then(
+                    cx,
+                    USELESS_CONVERSION,
+                    e.span.with_lo(recv.span.hi()),
+                    format!("useless conversion to the same type: `{gen_arg1}`"),
+                    |diag| {
+                        diag.suggest_remove_item(
+                            cx,
+                            e.span.with_lo(recv.span.hi()),
+                            "consider removing",
+                            Applicability::MachineApplicable,
+                        );
+                    },
+                );
+            },
+
             ExprKind::Call(path, [arg]) => {
                 if let ExprKind::Path(ref qpath) = path.kind
                     && let Some(def_id) = cx.qpath_res(qpath, path.hir_id).opt_def_id()
@@ -409,43 +449,6 @@ impl<'tcx> LateLintPass<'tcx> for UselessConversion {
         if e.span.from_expansion() {
             self.expn_depth -= 1;
         }
-    }
-}
-
-/// Check if `arg` is a `Into::into` or `From::from` applied to `receiver` to give `expr`, through a
-/// higher-order mapping function.
-pub fn check_function_application(cx: &LateContext<'_>, expr: &Expr<'_>, recv: &Expr<'_>, arg: &Expr<'_>) {
-    if has_eligible_receiver(cx, recv, expr)
-        && (is_trait_item(cx, arg, sym::Into) || is_trait_item(cx, arg, sym::From))
-        && let ty::FnDef(_, args) = cx.typeck_results().expr_ty(arg).kind()
-        && let &[from_ty, to_ty] = args.into_type_list(cx.tcx).as_slice()
-        && same_type_and_consts(from_ty, to_ty)
-    {
-        span_lint_and_then(
-            cx,
-            USELESS_CONVERSION,
-            expr.span.with_lo(recv.span.hi()),
-            format!("useless conversion to the same type: `{from_ty}`"),
-            |diag| {
-                diag.suggest_remove_item(
-                    cx,
-                    expr.span.with_lo(recv.span.hi()),
-                    "consider removing",
-                    Applicability::MachineApplicable,
-                );
-            },
-        );
-    }
-}
-
-fn has_eligible_receiver(cx: &LateContext<'_>, recv: &Expr<'_>, expr: &Expr<'_>) -> bool {
-    if is_inherent_method_call(cx, expr) {
-        matches!(
-            get_type_diagnostic_name(cx, cx.typeck_results().expr_ty(recv)),
-            Some(sym::Option | sym::Result | sym::ControlFlow)
-        )
-    } else {
-        is_trait_method(cx, expr, sym::Iterator)
     }
 }
 
