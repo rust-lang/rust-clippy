@@ -338,6 +338,7 @@ pub struct FileUpdater {
     dst_buf: String,
 }
 impl FileUpdater {
+    #[track_caller]
     fn update_file_checked_inner(
         &mut self,
         tool: &str,
@@ -361,6 +362,7 @@ impl FileUpdater {
         }
     }
 
+    #[track_caller]
     fn update_file_inner(&mut self, path: &Path, update: &mut dyn FnMut(&Path, &str, &mut String) -> UpdateStatus) {
         let mut file = File::open(path, OpenOptions::new().read(true).write(true));
         file.read_to_cleared_string(&mut self.src_buf);
@@ -370,6 +372,7 @@ impl FileUpdater {
         }
     }
 
+    #[track_caller]
     pub fn update_file_checked(
         &mut self,
         tool: &str,
@@ -380,6 +383,7 @@ impl FileUpdater {
         self.update_file_checked_inner(tool, mode, path.as_ref(), update);
     }
 
+    #[track_caller]
     #[expect(clippy::type_complexity)]
     pub fn update_files_checked(
         &mut self,
@@ -395,6 +399,7 @@ impl FileUpdater {
         }
     }
 
+    #[track_caller]
     pub fn update_file(
         &mut self,
         path: impl AsRef<Path>,
@@ -613,6 +618,7 @@ impl<'txt> RustSearcher<'txt> {
     }
 }
 
+#[track_caller]
 #[expect(clippy::must_use_candidate)]
 pub fn try_rename_file(old_name: &Path, new_name: &Path) -> bool {
     match OpenOptions::new().create_new(true).write(true).open(new_name) {
@@ -635,6 +641,7 @@ pub fn try_rename_file(old_name: &Path, new_name: &Path) -> bool {
     }
 }
 
+#[track_caller]
 #[expect(clippy::must_use_candidate)]
 pub fn try_rename_dir(old_name: &Path, new_name: &Path) -> bool {
     match fs::create_dir(new_name) {
@@ -661,15 +668,18 @@ pub fn try_rename_dir(old_name: &Path, new_name: &Path) -> bool {
     }
 }
 
+#[track_caller]
 pub fn write_file(path: &Path, contents: &str) {
     expect_action(fs::write(path, contents), ErrAction::Write, path);
 }
 
+#[track_caller]
 pub fn run_success(path: &(impl AsRef<Path> + ?Sized), cmd: &mut Command) {
     let status = expect_action(cmd.status(), ErrAction::Run, path.as_ref());
     expect_action(status.exit_ok(), ErrAction::Run, path.as_ref());
 }
 
+#[track_caller]
 #[must_use]
 pub fn run_with_output(path: &(impl AsRef<Path> + ?Sized), cmd: &mut Command) -> Vec<u8> {
     fn f(path: &Path, cmd: &mut Command) -> Vec<u8> {
@@ -755,6 +765,7 @@ pub fn split_args_for_threads(
     }
 }
 
+#[track_caller]
 #[expect(clippy::must_use_candidate)]
 pub fn delete_file_if_exists(path: &Path) -> bool {
     match fs::remove_file(path) {
@@ -764,6 +775,7 @@ pub fn delete_file_if_exists(path: &Path) -> bool {
     }
 }
 
+#[track_caller]
 pub fn delete_dir_if_exists(path: &Path) {
     match fs::remove_dir_all(path) {
         Ok(()) => {},
