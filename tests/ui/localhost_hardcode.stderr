@@ -1,0 +1,65 @@
+error: use `Ipv4Addr::LOCALHOST` instead
+  --> tests/ui/localhost_hardcode.rs:6:13
+   |
+LL |     let _ = Ipv4Addr::new(127, 0, 0, 1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv4Addr::LOCALHOST`
+   |
+   = note: `-D clippy::localhost-hardcode` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::localhost_hardcode)]`
+
+error: use `net::Ipv4Addr::LOCALHOST` instead
+  --> tests/ui/localhost_hardcode.rs:12:13
+   |
+LL |     let _ = net::Ipv4Addr::new(127, 0, 0, 1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `net::Ipv4Addr::LOCALHOST`
+
+error: use `std::net::Ipv4Addr::LOCALHOST` instead
+  --> tests/ui/localhost_hardcode.rs:17:13
+   |
+LL |     let _ = std::net::Ipv4Addr::new(127, 0, 0, 1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `std::net::Ipv4Addr::LOCALHOST`
+
+error: use `Ipv4Addr::LOCALHOST` instead
+  --> tests/ui/localhost_hardcode.rs:28:13
+   |
+LL |     let _ = Ipv4Addr::new(CONSTANT_1, CONSTANT_2, CONSTANT_3, CONSTANT_4);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv4Addr::LOCALHOST`
+
+error: use `net::Ipv4Addr::LOCALHOST` instead
+  --> tests/ui/localhost_hardcode.rs:34:13
+   |
+LL |     let _ = net::Ipv4Addr::new(CONSTANT_1, CONSTANT_2, CONSTANT_3, CONSTANT_4);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `net::Ipv4Addr::LOCALHOST`
+
+error: use `std::net::Ipv4Addr::LOCALHOST` instead
+  --> tests/ui/localhost_hardcode.rs:39:13
+   |
+LL |     let _ = std::net::Ipv4Addr::new(CONSTANT_1, CONSTANT_2, CONSTANT_3, CONSTANT_4);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `std::net::Ipv4Addr::LOCALHOST`
+
+error: use `Ipv4Addr::LOCALHOST` instead
+  --> tests/ui/localhost_hardcode.rs:45:13
+   |
+LL |     let _ = Ipv4Addr::new(126 + 1, 0, 0, 1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv4Addr::LOCALHOST`
+
+error: use `Ipv4Addr::LOCALHOST` instead
+  --> tests/ui/localhost_hardcode.rs:47:13
+   |
+LL |     let _ = Ipv4Addr::new(126 + CONSTANT_4, 0, 0, 1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv4Addr::LOCALHOST`
+
+error: use `Ipv4Addr::LOCALHOST` instead
+  --> tests/ui/localhost_hardcode.rs:49:13
+   |
+LL |     let _ = Ipv4Addr::new(127, 2 - 1 - CONSTANT_4, 0, 1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv4Addr::LOCALHOST`
+
+error: use `Ipv4Addr::LOCALHOST` instead
+  --> tests/ui/localhost_hardcode.rs:51:13
+   |
+LL |     let _ = Ipv4Addr::new({ 127 }, 0, 0, 1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv4Addr::LOCALHOST`
+
+error: aborting due to 10 previous errors
+
