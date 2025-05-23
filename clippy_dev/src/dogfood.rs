@@ -1,6 +1,5 @@
-use crate::utils::run_success;
+use crate::utils::{cargo_cmd, run_success};
 use itertools::Itertools;
-use std::process::Command;
 
 /// # Panics
 ///
@@ -9,7 +8,7 @@ use std::process::Command;
 pub fn dogfood(fix: bool, allow_dirty: bool, allow_staged: bool, allow_no_vcs: bool) {
     run_success(
         "cargo test",
-        Command::new("cargo")
+        cargo_cmd()
             .args(["test", "--test", "dogfood"])
             .args(["--features", "internal"])
             .args(["--", "dogfood_clippy", "--nocapture"])

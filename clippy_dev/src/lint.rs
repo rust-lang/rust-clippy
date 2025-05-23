@@ -1,6 +1,6 @@
-use crate::utils::{cargo_clippy_path, run_success};
+use crate::utils::{cargo_clippy_path, cargo_cmd, run_success};
+use std::fs;
 use std::process::{self, Command};
-use std::{env, fs};
 
 pub fn run<'a>(path: &str, edition: &str, args: impl Iterator<Item = &'a String>) {
     let is_file = match fs::metadata(path) {
@@ -14,7 +14,7 @@ pub fn run<'a>(path: &str, edition: &str, args: impl Iterator<Item = &'a String>
     if is_file {
         run_success(
             "cargo run",
-            Command::new(env::var("CARGO").unwrap_or("cargo".into()))
+            cargo_cmd()
                 .args(["run", "--bin", "clippy-driver", "--"])
                 .args(["-L", "./target/debug"])
                 .args(["-Z", "no-codegen"])
@@ -25,10 +25,7 @@ pub fn run<'a>(path: &str, edition: &str, args: impl Iterator<Item = &'a String>
                 .env("RUSTC_ICE", "0"),
         );
     } else {
-        run_success(
-            "cargo build",
-            Command::new(env::var("CARGO").unwrap_or("cargo".into())).arg("build"),
-        );
+        run_success("cargo build", cargo_cmd().arg("build"));
         run_success(
             "cargo clippy",
             Command::new(cargo_clippy_path())
