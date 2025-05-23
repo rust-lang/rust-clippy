@@ -130,6 +130,16 @@ pub fn cargo_clippy_path() -> PathBuf {
     path
 }
 
+/// Creates a `Command` for running cargo.
+#[must_use]
+pub fn cargo_cmd() -> Command {
+    if let Ok(path) = env::var("CARGO") {
+        Command::new(path)
+    } else {
+        Command::new("cargo")
+    }
+}
+
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Version {
     pub major: u16,
