@@ -1,0 +1,53 @@
+---
+description: Specification for the type validation and safety system used in Clippy linting rules and checks.
+globs: clippy_lints/**/*.rs,clippy_config/**/*.rs
+alwaysApply: false
+---
+
+
+# type-validation-system
+
+The type validation system comprises several key components implementing specialized safety and validation rules:
+
+1. Cast Safety Validation:
+- Validates numeric type conversions for potential data loss
+- Enforces pointer safety rules during casting operations 
+- Contains domain rules for casting between collection types
+- Handles specialized validation for floating point casts
+
+2. Reference Type Safety:
+- Validates proper handling of references vs raw pointers
+- Implements borrowing pattern detection and safety rules
+- Contains custom validation for self-referential structs
+- Handles complex lifetime relationship validation
+
+3. Collection Type Validation:
+- Enforces collection type safety policies
+- Validates element type compatibility in collections
+- Implements specialized slice operation safety
+- Contains custom validation for generic type parameters
+
+4. Specialized Domain Rules:
+- Custom validation for mutable reference patterns
+- Zero-sized type handling and validation 
+- Orphan implementation checking
+- Associated type relationship validation
+
+Key implementations:
+- clippy_lints/src/casts/*.rs: Core casting validation
+- clippy_lints/src/types/*.rs: Type relationship checking
+- clippy_lints/src/transmute/*.rs: Memory transmutation safety
+
+The system enforces domain-specific type safety policies through static analysis, focusing on:
+- Reference and pointer safety guarantees
+- Collection type compatibility 
+- Memory layout validation
+- Generic type parameter bounds
+
+Notable validations include:
+- Transmute operation safety
+- Zero-cost abstraction validation
+- Reference lifetime analysis
+- Collection element type compatibility
+
+$END$

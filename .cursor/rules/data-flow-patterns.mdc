@@ -1,0 +1,50 @@
+---
+description: Documents data flow patterns for static analysis and linting rules in Rust code.
+globs: **/src/**/*.rs,**/clippy_lints/**/*.rs,**/clippy_config/**/*.rs
+alwaysApply: false
+---
+
+
+# data-flow-patterns
+
+The data flow in this linting system follows these core patterns:
+
+1. Lint Registration Flow
+- Lints are registered through `RegistrationGroups` in lib.rs
+- Groups are organized by category (Correctness, Style, Complexity, etc.)
+- Each lint registration contains metadata like name, description, level
+- Registration maps to specific analysis implementations
+
+2. Lint Analysis Flow
+- Source code is parsed into AST/MIR representations
+- Lint implementations analyze specific patterns in the code
+- Results are collected into a centralized reporting system
+- Early vs Late pass analysis controls when lints are applied
+
+3. Configuration Processing Flow
+- Configuration is loaded from clippy.toml and environment
+- Rules are validated and normalized through conf.rs
+- Configuration flows to individual lint implementations
+- Default configurations are merged with user overrides
+
+4. Data Model Validation Flow 
+- Type-based validation rules check compatibility
+- Memory safety requirements are enforced through ownership analysis
+- Reference validity is tracked across code paths
+- Custom type constraints are applied based on lint requirements
+
+5. Suggestion Generation Flow
+- Issues detected by lints generate suggestion spans
+- Suggestions include code replacements and rationale
+- Multiple suggestions may be generated per issue
+- Suggestions preserve original code formatting
+
+Key Files:
+- clippy_lints/src/lib.rs - Core registration system
+- clippy_config/src/conf.rs - Configuration processing
+- clippy_lints/src/declared_lints.rs - Lint definitions
+- clippy_lints/src/non_copy_const.rs - Data validation
+
+The system implements an extensible pipeline for static code analysis with strict separation between registration, analysis, and reporting phases.
+
+$END$

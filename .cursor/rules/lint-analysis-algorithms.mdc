@@ -1,0 +1,50 @@
+---
+description: Specification for analyzing and documenting lint algorithms, rules and validations in Rust static analysis tools
+globs: src/clippy_lints/**/*.rs,src/**/lint*.rs,src/**/rules/**/*.rs,src/**/check*.rs
+alwaysApply: false
+---
+
+
+# lint-analysis-algorithms
+
+The core business logic encompasses specialized static analysis algorithms for detecting code patterns and enforcing domain rules in Rust. Key components include:
+
+1. Pattern Matching Analysis
+- AST traversal for identifying specific code structures requiring linting
+- Type analysis and validation during pattern matching 
+- Context tracking for multi-block pattern validation
+- Template matching against known anti-patterns
+
+2. Reference Safety Rules
+- Borrow checker augmentation for reference analysis 
+- Lifetime validation for borrowed values
+- Mutable reference access pattern checking
+- Reference scoping and drop timing validation
+
+3. Type System Integration
+- Layout compatibility verification for transmutes
+- Generic parameter substitution tracking
+- Trait bound satisfaction checking
+- Zero-sized type special case handling
+
+4. Domain Rule Enforcement
+- Documentation style and completeness validation
+- API visibility and access pattern checks
+- Naming convention verification
+- Resource safety guarantees
+
+5. Suggestion Generation
+- Context-aware code transformation suggestions
+- Macro expansion preservation in suggestions
+- Comment and attribute retention during fixes
+- Edition-specific code recommendations
+
+The algorithms focus on static verification of Rust-specific safety requirements and coding conventions, with extensive customization points for project-specific rules.
+
+Core file paths:
+- clippy_lints/src/methods/*.rs
+- clippy_lints/src/types/*.rs 
+- clippy_lints/src/matches/*.rs
+- clippy_lints/src/attrs/*.rs
+
+$END$

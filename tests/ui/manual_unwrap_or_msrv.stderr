@@ -1,0 +1,25 @@
+error: match can be simplified with `.unwrap_or_default()`
+  --> tests/ui/manual_unwrap_or_msrv.rs:27:13
+   |
+LL |       let _ = match x {
+   |  _____________^
+LL | |         Some(v) => v,
+LL | |         None => vec![],
+LL | |     };
+   | |_____^ help: replace it with: `x.unwrap_or_default()`
+   |
+   = note: `-D clippy::manual-unwrap-or-default` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_unwrap_or_default)]`
+
+error: match can be simplified with `.unwrap_or_default()`
+  --> tests/ui/manual_unwrap_or_msrv.rs:34:13
+   |
+LL |       let _ = match y {
+   |  _____________^
+LL | |         Ok(v) => v,
+LL | |         Err(_) => vec![],
+LL | |     };
+   | |_____^ help: replace it with: `y.unwrap_or_default()`
+
+error: aborting due to 2 previous errors
+

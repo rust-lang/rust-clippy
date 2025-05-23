@@ -1,0 +1,43 @@
+---
+description: Core lint metadata models and data structures used for evaluating and tracking lint rules and their relationships with Rust's type system
+globs: clippy_lints/src/**.rs,clippy_config/src/**.rs
+alwaysApply: false
+---
+
+
+# lint-data-model
+
+## Core Lint State Model
+- Tracks lint metadata including name, description, level (deny/warn/allow)
+- Maintains contextual relationships between lints and their diagnostics
+- Special handling for edition-specific lint configurations
+- Enforces lint deprecation policies through staged transitions
+
+## Lint Category Hierarchies
+- Implements layered categorization for lints:
+  - Style (code formatting/convention violations)  
+  - Correctness (potential runtime errors)
+  - Complexity (code structure issues)
+  - Performance (inefficient patterns)
+  - Restriction (banned patterns/code constructs)
+  - Pedantic (best practice violations)
+  - Nursery (new/unstable lints)
+
+## Configuration Management  
+- Handles configuration hierarchies and inheritance
+- Implements context-aware configuration application based on file paths
+- Manages per-crate and per-module lint configurations
+- Supports nested configuration overrides with precedence rules
+
+## Diagnostic Relationship Model
+- Maps lints to compiler diagnostic codes
+- Tracks diagnostic severities and suggested fixes
+- Manages related diagnostic notes and explanations
+- Handles diagnostic suppression chains
+
+Key Files:
+- clippy_config/src/conf.rs
+- clippy_lints/src/lib.rs 
+- clippy_lints/src/declared_lints.rs
+
+$END$

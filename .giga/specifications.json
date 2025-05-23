@@ -1,0 +1,22 @@
+[
+  {
+    "fileName": "main-overview.mdc",
+    "description": "Complete overview of Clippy's architecture, including the lint pass system, core components, and high-level workflow of lint processing"
+  },
+  {
+    "fileName": "lint-data-model.mdc",
+    "description": "Documentation of core lint data structures, including lint attributes, levels, categories, and their relationships with the Rust compiler's internal representations"
+  },
+  {
+    "fileName": "lint-analysis-algorithms.mdc",
+    "description": "Detailed documentation of key algorithms used in lint analysis, including pattern matching, AST traversal, and type checking implementations"
+  },
+  {
+    "fileName": "data-flow-patterns.mdc",
+    "description": "Documentation of how data flows through the lint system, including lint registration, application, and suggestion generation processes"
+  },
+  {
+    "fileName": "type-validation-system.mdc",
+    "description": "Detailed documentation of the type validation system, focusing on transmute checks, casting validations, and type safety enforcement algorithms"
+  }
+]

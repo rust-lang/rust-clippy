@@ -4412,7 +4412,7 @@ declare_clippy_lint! {
     /// Checks for calls to `Read::bytes` on types which don't implement `BufRead`.
     ///
     /// ### Why is this bad?
-    /// The default implementation calls `read` for each byte, which can be very inefficient for data that’s not in memory, such as `File`.
+    /// The default implementation calls `read` for each byte, which can be very inefficient for data that's not in memory, such as `File`.
     ///
     /// ### Example
     /// ```no_run
@@ -4724,6 +4724,7 @@ pub fn method_call<'tcx>(recv: &'tcx Expr<'tcx>) -> Option<(Symbol, &'tcx Expr<'
 
 impl<'tcx> LateLintPass<'tcx> for Methods {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
+        extract_msrv_attr!();
         if expr.span.from_expansion() {
             return;
         }
@@ -4741,7 +4742,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
             },
             ExprKind::MethodCall(method_call, receiver, args, _) => {
                 let method_span = method_call.ident.span;
-                or_fun_call::check(cx, expr, method_span, method_call.ident.name, receiver, args);
+                or_fun_call::check(cx, expr, method_span, method_call.ident.name, receiver, args, self.msrv);
                 expect_fun_call::check(
                     cx,
                     &self.format_args,

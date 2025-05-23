@@ -1,0 +1,7 @@
+warning: unused variable: `foo`
+  --> $DIR/msrv_unwrap_or_default.rs:4:5
+   |
+4  | fn f(foo: Result<Vec<u32>, &'static str>) -> Vec<u32> {
+   |     ^^^
+   |
+   = note: `#[warn(unused_variables)]` on by default 

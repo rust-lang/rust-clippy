@@ -1,0 +1,64 @@
+
+START SPECIFICATION:
+---
+description: This overview should be applied when analyzing Clippy's linting system components, particularly focusing on custom business rules, lint implementations, and domain-specific code analysis patterns.
+globs: clippy_lints/src/**,clippy_config/src/**,clippy_dev/src/**
+alwaysApply: false
+---
+
+
+# main-overview
+
+## Development Guidelines
+
+- Only modify code directly relevant to the specific request. Avoid changing unrelated functionality.
+- Never replace code with placeholders like `# ... rest of the processing ...`. Always include complete code.
+- Break problems into smaller steps. Think through each step separately before implementing.
+- Always provide a complete PLAN with REASONING based on evidence from code and logs before making changes.
+- Explain your OBSERVATIONS clearly, then provide REASONING to identify the exact issue. Add console logs when needed to gather more information.
+
+
+Clippy implements a sophisticated static analysis system for Rust code through several key components:
+
+1. Configuration Management (clippy_config/src/conf.rs)
+- Enforces validation rules for linting configuration
+- Implements custom documentation processing with code block preservation
+- Controls field visibility and access patterns
+- Validates naming conventions with configurable exceptions
+
+2. Core Linting System (clippy_lints/src/lib.rs)
+- Organizes lints into functional categories (Correctness, Style, Complexity, etc.)
+- Implements two-phase lint checking:
+  - Early pass: Syntax-level validation
+  - Late pass: Semantic analysis
+- Manages centralized lint explanations and configuration metadata
+
+3. Code Pattern Analysis (clippy_lints/src/matches/mod.rs)
+- Detects redundant match patterns and suggests simplifications
+- Validates mutex safety in pattern matching
+- Enforces pattern matching exhaustiveness
+- Handles reference types and binding modes
+
+4. Memory Safety Validation (clippy_lints/src/transmute/)
+- Validates transmute operations between types
+- Enforces pointer safety and alignment rules
+- Detects invalid collection transmutes
+- Prevents unsafe pointer casts
+
+5. Documentation Enforcement (clippy_lints/src/doc/mod.rs)
+- Enforces structured documentation requirements:
+  - Safety sections for unsafe code
+  - Error documentation for Result types
+  - Panic documentation where relevant
+- Validates documentation formatting and structure
+
+The system is organized around a plugin architecture where individual lints implement specific business rules for code analysis. Each lint can provide custom suggestions for code improvement while maintaining semantic correctness.
+
+Key policy enforcement happens through:
+- Configuration validation (clippy_config)
+- Lint registration and management (clippy_lints/src/lib.rs)
+- Custom pattern analysis (clippy_lints/src/matches)
+- Safety rule enforcement (clippy_lints/src/transmute)
+
+$END$
+END SPECIFICATION
