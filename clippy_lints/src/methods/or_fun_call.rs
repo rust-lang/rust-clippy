@@ -2,6 +2,7 @@ use std::ops::ControlFlow;
 
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::eager_or_lazy::switch_to_lazy_eval;
+use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::ty::{expr_type_is_certain, implements_trait, is_type_diagnostic_item};
 use clippy_utils::visitors::for_each_expr;
@@ -26,6 +27,7 @@ pub(super) fn check<'tcx>(
     name: Symbol,
     receiver: &'tcx hir::Expr<'_>,
     args: &'tcx [hir::Expr<'_>],
+    msrv: Msrv,
 ) {
     /// Checks for `unwrap_or(T::new())`, `unwrap_or(T::default())`,
     /// `or_insert(T::new())` or `or_insert(T::default())`.
@@ -39,7 +41,13 @@ pub(super) fn check<'tcx>(
         call_expr: Option<&hir::Expr<'_>>,
         span: Span,
         method_span: Span,
+        msrv: Msrv,
     ) -> bool {
+        // Don't suggest unwrap_or_default if MSRV is less than 1.16
+        if !msrv.meets(cx, msrvs::STR_REPEAT) {
+            return false;
+        }
+
         if !expr_type_is_certain(cx, receiver) {
             return false;
         }
@@ -215,11 +223,11 @@ pub(super) fn check<'tcx>(
                     };
                     (!inner_fun_has_args
                         && !is_nested_expr
-                        && check_unwrap_or_default(cx, name, receiver, fun, Some(ex), expr.span, method_span))
+                        && check_unwrap_or_default(cx, name, receiver, fun, Some(ex), expr.span, method_span, msrv))
                         || check_or_fn_call(cx, name, method_span, receiver, arg, None, expr.span, fun_span)
                 },
                 hir::ExprKind::Path(..) | hir::ExprKind::Closure(..) if !is_nested_expr => {
-                    check_unwrap_or_default(cx, name, receiver, ex, None, expr.span, method_span)
+                    check_unwrap_or_default(cx, name, receiver, ex, None, expr.span, method_span, msrv)
                 },
                 hir::ExprKind::Index(..) | hir::ExprKind::MethodCall(..) => {
                     check_or_fn_call(cx, name, method_span, receiver, arg, None, expr.span, None)
