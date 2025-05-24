@@ -33,6 +33,7 @@ pub(super) fn check<'tcx>(
     /// `or_insert(T::new())` or `or_insert(T::default())`.
     /// Similarly checks for `unwrap_or_else(T::new)`, `unwrap_or_else(T::default)`,
     /// `or_insert_with(T::new)` or `or_insert_with(T::default)`.
+    #[allow(clippy::too_many_arguments)]
     fn check_unwrap_or_default(
         cx: &LateContext<'_>,
         name: Symbol,
@@ -63,8 +64,8 @@ pub(super) fn check<'tcx>(
 
         let output_type_implements_default = |fun| {
             let fun_ty = cx.typeck_results().expr_ty(fun);
-            if let ty::FnDef(def_id, args) = fun_ty.kind() {
-                let output_ty = cx.tcx.fn_sig(def_id).instantiate(cx.tcx, args).skip_binder().output();
+            if let ty::FnDef(def_id, substs) = fun_ty.kind() {
+                let output_ty = cx.tcx.fn_sig(def_id).instantiate(cx.tcx, substs).skip_binder().output();
                 cx.tcx
                     .get_diagnostic_item(sym::Default)
                     .is_some_and(|default_trait_id| implements_trait(cx, output_ty, default_trait_id, &[]))
