@@ -123,6 +123,16 @@ fn main() {
         println!("{}", n);
     }
 
+    // Test for loop with nested Some pattern with `if let` expression
+    let z = vec![Some((0, Some(0)))];
+    for n in z {
+        //~^ manual_flatten
+
+        if let Some((_, Some(n))) = n {
+            println!("{}", n);
+        }
+    }
+
     run_unformatted_tests();
 }
 
