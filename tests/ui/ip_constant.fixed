@@ -102,11 +102,17 @@ fn macro_test() {
     // no lint
 }
 
+include!("ip_constant_included.rs");
+
+fn external_constant_test() {
+    use std::net::{Ipv4Addr, Ipv6Addr};
+
+    let _ = Ipv4Addr::LOCALHOST;
+    //~^ ip_constant
+
+    let _ = Ipv6Addr::LOCALHOST;
+}
+
 fn main() {
-    literal_test1();
-    literal_test2();
-    literal_test3();
-    const_test1();
-    const_test2();
-    macro_test();
+    // UI Test
 }
