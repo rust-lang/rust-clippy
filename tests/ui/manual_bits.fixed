@@ -1,6 +1,7 @@
 #![warn(clippy::manual_bits)]
 #![allow(
     clippy::no_effect,
+    clippy::relative_path_in_macro_definition,
     clippy::useless_conversion,
     path_statements,
     unused_must_use,

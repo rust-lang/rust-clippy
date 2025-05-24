@@ -1,4 +1,5 @@
 #![warn(clippy::useless_nonzero_new_unchecked)]
+#![allow(clippy::relative_path_in_macro_definition)]
 
 use std::num::{NonZero, NonZeroUsize};
 

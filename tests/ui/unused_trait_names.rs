@@ -1,6 +1,7 @@
 //@aux-build:proc_macros.rs
 
 #![allow(unused)]
+#![allow(clippy::relative_path_in_macro_definition)]
 #![warn(clippy::unused_trait_names)]
 #![feature(decl_macro)]
 

@@ -3,6 +3,7 @@
 //@[edition2024] edition:2024
 
 #![allow(unused)]
+#![allow(clippy::relative_path_in_macro_definition)]
 #![warn(clippy::let_and_return)]
 
 use std::cell::RefCell;

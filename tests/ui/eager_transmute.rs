@@ -1,6 +1,10 @@
 #![feature(rustc_attrs)]
 #![warn(clippy::eager_transmute)]
-#![allow(clippy::transmute_int_to_non_zero, clippy::missing_transmute_annotations)]
+#![allow(
+    clippy::transmute_int_to_non_zero,
+    clippy::missing_transmute_annotations,
+    clippy::relative_path_in_macro_definition
+)]
 
 use std::num::NonZero;
 

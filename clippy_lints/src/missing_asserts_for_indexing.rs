@@ -1,3 +1,5 @@
+#![allow(clippy::relative_path_in_macro_definition)]
+
 use std::mem;
 use std::ops::ControlFlow;
 

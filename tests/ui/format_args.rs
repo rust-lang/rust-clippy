@@ -5,6 +5,7 @@
     clippy::double_parens,
     clippy::eq_op,
     clippy::print_literal,
+    clippy::relative_path_in_macro_definition,
     clippy::uninlined_format_args
 )]
 

@@ -1,4 +1,5 @@
 #![warn(clippy::io_other_error)]
+#![allow(clippy::relative_path_in_macro_definition)]
 use std::fmt;
 
 #[derive(Debug)]

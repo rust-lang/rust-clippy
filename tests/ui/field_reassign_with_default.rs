@@ -2,7 +2,7 @@
 //@aux-build:proc_macros.rs
 
 #![warn(clippy::field_reassign_with_default)]
-#![allow(clippy::assigning_clones)]
+#![allow(clippy::assigning_clones, clippy::relative_path_in_macro_definition)]
 
 #[macro_use]
 extern crate proc_macro_derive;

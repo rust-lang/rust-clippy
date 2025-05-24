@@ -3,7 +3,7 @@
 //@[edition2021] edition:2021
 //@[edition2018] check-pass
 #![warn(clippy::manual_c_str_literals)]
-#![allow(clippy::no_effect)]
+#![allow(clippy::no_effect, clippy::relative_path_in_macro_definition)]
 
 use std::ffi::CStr;
 

@@ -1,3 +1,5 @@
+#![allow(clippy::relative_path_in_macro_definition)]
+
 use std::path::PathBuf;
 use std::process::Command;
 use std::str;

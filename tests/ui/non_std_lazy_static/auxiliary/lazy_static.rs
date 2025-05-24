@@ -1,4 +1,5 @@
 //! **FAKE** lazy_static crate.
+#![allow(clippy::relative_path_in_macro_definition)]
 
 #[macro_export]
 macro_rules! lazy_static {

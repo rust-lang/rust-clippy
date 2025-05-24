@@ -5,6 +5,7 @@
     clippy::needless_lifetimes,
     clippy::owned_cow,
     clippy::ptr_arg,
+    clippy::relative_path_in_macro_definition,
     clippy::uninlined_format_args
 )]
 #![warn(clippy::unnecessary_to_owned, clippy::redundant_clone)]

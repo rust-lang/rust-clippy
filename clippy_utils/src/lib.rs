@@ -8,6 +8,7 @@
 #![feature(array_windows)]
 #![recursion_limit = "512"]
 #![allow(
+    clippy::relative_path_in_macro_definition,
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
     clippy::must_use_candidate,

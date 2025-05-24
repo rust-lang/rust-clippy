@@ -1,4 +1,5 @@
 #![warn(clippy::from_over_into)]
+#![allow(clippy::relative_path_in_macro_definition)]
 
 struct InMacro(String);
 

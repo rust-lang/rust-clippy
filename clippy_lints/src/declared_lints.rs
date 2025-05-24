@@ -648,6 +648,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::regex::INVALID_REGEX_INFO,
     crate::regex::REGEX_CREATION_IN_LOOPS_INFO,
     crate::regex::TRIVIAL_REGEX_INFO,
+    crate::relative_path_in_macro_definition::RELATIVE_PATH_IN_MACRO_DEFINITION_INFO,
     crate::repeat_vec_with_capacity::REPEAT_VEC_WITH_CAPACITY_INFO,
     crate::reserve_after_initialization::RESERVE_AFTER_INITIALIZATION_INFO,
     crate::return_self_not_must_use::RETURN_SELF_NOT_MUST_USE_INFO,

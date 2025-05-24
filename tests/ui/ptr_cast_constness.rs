@@ -5,6 +5,7 @@
     clippy::transmute_ptr_to_ref,
     clippy::unnecessary_cast,
     unused,
+    clippy::relative_path_in_macro_definition,
     clippy::missing_transmute_annotations
 )]
 

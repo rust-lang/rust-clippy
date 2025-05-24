@@ -1,3 +1,5 @@
+#![allow(clippy::relative_path_in_macro_definition)]
+
 use clippy_utils::paths::{PathNS, find_crates, lookup_path};
 use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::{Applicability, Diag};

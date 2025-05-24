@@ -1,5 +1,5 @@
 #![warn(clippy::unused_async)]
-#![allow(incomplete_features)]
+#![allow(incomplete_features, clippy::relative_path_in_macro_definition)]
 
 use std::future::Future;
 use std::pin::Pin;

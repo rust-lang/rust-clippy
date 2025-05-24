@@ -1,4 +1,5 @@
 //! **FAKE** once_cell crate.
+#![allow(clippy::relative_path_in_macro_definition)]
 
 pub mod sync {
     use std::marker::PhantomData;

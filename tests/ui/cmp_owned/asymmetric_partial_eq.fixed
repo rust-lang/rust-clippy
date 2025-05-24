@@ -2,7 +2,8 @@
     unused,
     clippy::needless_if,
     clippy::redundant_clone,
-    clippy::derive_partial_eq_without_eq
+    clippy::derive_partial_eq_without_eq,
+    clippy::relative_path_in_macro_definition
 )] // See #5700
 
 // Define the types in each module to avoid trait impls leaking between modules.

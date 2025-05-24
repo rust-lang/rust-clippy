@@ -1,3 +1,4 @@
+#![allow(clippy::relative_path_in_macro_definition)]
 #[macro_export]
 #[allow(clippy::crate_in_macro_def)]
 macro_rules! declare_clippy_lint {

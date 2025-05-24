@@ -2,6 +2,8 @@
 #![warn(clippy::clone_on_ref_ptr)]
 #![allow(unused)]
 #![allow(clippy::redundant_clone, clippy::uninlined_format_args, clippy::unnecessary_wraps)]
+#![allow(clippy::relative_path_in_macro_definition)]
+
 //@no-rustfix
 use std::cell::RefCell;
 use std::rc::{self, Rc};

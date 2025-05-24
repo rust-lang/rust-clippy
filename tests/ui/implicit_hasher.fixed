@@ -1,5 +1,6 @@
 //@aux-build:proc_macros.rs
 #![deny(clippy::implicit_hasher)]
+#![allow(clippy::relative_path_in_macro_definition)]
 
 #[macro_use]
 extern crate proc_macros;

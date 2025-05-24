@@ -14,7 +14,8 @@
     clippy::unnecessary_min_or_max,
     clippy::unnecessary_operation,
     clippy::unnecessary_literal_unwrap,
-    clippy::identity_op
+    clippy::identity_op,
+    clippy::relative_path_in_macro_definition
 )]
 
 // FIXME(f16_f128): add tests once const casting is available for these types

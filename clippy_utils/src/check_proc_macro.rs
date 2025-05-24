@@ -11,6 +11,7 @@
 //! must exist at both the start and the end of an item (e.g. an expression or a path) assuming the
 //! code was written, and check if the span contains that text. Note this will only work correctly
 //! if the span is not from a `macro_rules` based macro.
+#![allow(clippy::relative_path_in_macro_definition)]
 
 use rustc_abi::ExternAbi;
 use rustc_ast::AttrStyle;

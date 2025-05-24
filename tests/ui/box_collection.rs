@@ -2,6 +2,7 @@
     clippy::boxed_local,
     clippy::needless_pass_by_value,
     clippy::disallowed_names,
+    clippy::relative_path_in_macro_definition,
     unused
 )]
 

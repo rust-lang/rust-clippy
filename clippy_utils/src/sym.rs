@@ -1,4 +1,5 @@
 #![allow(non_upper_case_globals)]
+#![allow(clippy::relative_path_in_macro_definition)]
 
 use rustc_span::symbol::PREDEFINED_SYMBOLS_COUNT;
 
