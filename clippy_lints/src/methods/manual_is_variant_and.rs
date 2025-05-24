@@ -1,18 +1,21 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::get_parent_expr;
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::source::snippet;
+use clippy_utils::source::{snippet, snippet_opt};
 use clippy_utils::ty::is_type_diagnostic_item;
 use rustc_errors::Applicability;
+use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::LateContext;
-use rustc_span::{Span, sym};
+use rustc_middle::ty::{self, GenericArg};
+use rustc_span::{BytePos, Span, Symbol, sym};
 
 use super::MANUAL_IS_VARIANT_AND;
 
-pub(super) fn check<'tcx>(
+pub(super) fn check(
     cx: &LateContext<'_>,
-    expr: &'tcx rustc_hir::Expr<'_>,
-    map_recv: &'tcx rustc_hir::Expr<'_>,
-    map_arg: &'tcx rustc_hir::Expr<'_>,
+    expr: &Expr<'_>,
+    map_recv: &Expr<'_>,
+    map_arg: &Expr<'_>,
     map_span: Span,
     msrv: Msrv,
 ) {
@@ -56,4 +59,112 @@ pub(super) fn check<'tcx>(
         format!("{}({})", suggestion, snippet(cx, map_arg.span, "..")),
         Applicability::MachineApplicable,
     );
+}
+
+fn is_option_result_bool<F: Fn(&[GenericArg<'_>]) -> bool>(
+    cx: &LateContext<'_>,
+    expr: &Expr<'_>,
+    symbol: Symbol,
+    callback: F,
+) -> bool {
+    if let ExprKind::Call(..) = expr.kind
+        && let ty = cx.typeck_results().expr_ty(expr)
+        && let ty::Adt(adt, generics) = ty.kind()
+        && cx.tcx.is_diagnostic_item(symbol, adt.did())
+    {
+        callback(generics.as_slice())
+    } else {
+        false
+    }
+}
+
+fn is_option_bool(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    is_option_result_bool(cx, expr, sym::Option, |generics| {
+        if let [generic] = generics
+            && let Some(generic) = generic.as_type()
+        {
+            generic.is_bool()
+        } else {
+            false
+        }
+    })
+}
+
+fn is_option_result_map(cx: &LateContext<'_>, expr: &Expr<'_>, symbol: Symbol) -> Option<Span> {
+    if let ExprKind::MethodCall(_, recv, _, span) = expr.kind
+        && is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(recv), symbol)
+    {
+        Some(span)
+    } else {
+        None
+    }
+}
+
+fn is_result_bool(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    is_option_result_bool(cx, expr, sym::Result, |generics| {
+        if let [generic, _] = generics
+            && let Some(generic) = generic.as_type()
+        {
+            generic.is_bool()
+        } else {
+            false
+        }
+    })
+}
+
+fn emit_lint(cx: &LateContext<'_>, op: BinOpKind, parent: &Expr<'_>, method_span: Span, is_option: bool) {
+    if let Some(before_map_snippet) = snippet_opt(cx, parent.span.with_hi(method_span.lo()))
+        && let Some(after_map_snippet) = snippet_opt(cx, method_span.with_lo(method_span.lo() + BytePos(3)))
+    {
+        span_lint_and_sugg(
+            cx,
+            MANUAL_IS_VARIANT_AND,
+            parent.span,
+            format!(
+                "called `.map() {}= {}()`",
+                if op == BinOpKind::Eq { '=' } else { '!' },
+                if is_option { "Some" } else { "Ok" },
+            ),
+            "use",
+            if is_option && op == BinOpKind::Ne {
+                format!("{before_map_snippet}is_none_or{after_map_snippet}",)
+            } else {
+                format!(
+                    "{}{before_map_snippet}{}{after_map_snippet}",
+                    if op == BinOpKind::Eq { "" } else { "!" },
+                    if is_option { "is_some_and" } else { "is_ok_and" },
+                )
+            },
+            Applicability::MachineApplicable,
+        );
+    }
+}
+
+fn check_left_and_right(cx: &LateContext<'_>, op: BinOpKind, parent: &Expr<'_>, left: &Expr<'_>, right: &Expr<'_>) {
+    if is_option_bool(cx, right) {
+        if let Some(sp) = is_option_result_map(cx, left, sym::Option) {
+            emit_lint(cx, op, parent, sp, true);
+        }
+    } else if is_option_bool(cx, left)
+        && let Some(sp) = is_option_result_map(cx, right, sym::Option)
+    {
+        emit_lint(cx, op, parent, sp, true);
+    } else if is_result_bool(cx, left) {
+        if let Some(sp) = is_option_result_map(cx, right, sym::Result) {
+            emit_lint(cx, op, parent, sp, false);
+        }
+    } else if is_result_bool(cx, right)
+        && let Some(sp) = is_option_result_map(cx, left, sym::Result)
+    {
+        emit_lint(cx, op, parent, sp, false);
+    }
+}
+
+pub(super) fn check_map(cx: &LateContext<'_>, expr: &Expr<'_>) {
+    if let Some(parent_expr) = get_parent_expr(cx, expr)
+        && let ExprKind::Binary(op, left, right) = parent_expr.kind
+        && matches!(op.node, BinOpKind::Eq | BinOpKind::Ne)
+    {
+        check_left_and_right(cx, op.node, parent_expr, left, right);
+    }
 }
