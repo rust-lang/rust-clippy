@@ -6,7 +6,7 @@ use rustc_hir::{Expr, ExprKind, QPath, Ty, TyKind};
 use rustc_lint::LateContext;
 use rustc_span::sym;
 
-use super::IPV4V6_CONSTANT_HARDCODE;
+use super::IP_CONSTANT;
 
 static IPV4V6_CONSTANTS: &[(&[u128], &str)] = &[
     // Ipv4
@@ -30,7 +30,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, func: &Expr<'_>, args
         && let Some(func_def_id) = func_path.res.opt_def_id()
         && (cx.tcx.is_diagnostic_item(sym::Ipv4Addr, func_def_id)
             || cx.tcx.is_diagnostic_item(sym::Ipv6Addr, func_def_id))
-        && let Some(constant_name) = is_hardcoded_ipv4v6_constant(cx, args)
+        && let Some(constant_name) = is_ipv4v6_constants(cx, args)
     {
         let sugg_snip = format!(
             "{}::{}",
@@ -40,7 +40,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, func: &Expr<'_>, args
 
         span_lint_and_sugg(
             cx,
-            IPV4V6_CONSTANT_HARDCODE,
+            IP_CONSTANT,
             expr.span,
             format!("use `{sugg_snip}` instead"),
             "try",
@@ -50,7 +50,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, func: &Expr<'_>, args
     }
 }
 
-fn is_hardcoded_ipv4v6_constant(cx: &LateContext<'_>, args: &[Expr<'_>]) -> Option<&'static str> {
+fn is_ipv4v6_constants(cx: &LateContext<'_>, args: &[Expr<'_>]) -> Option<&'static str> {
     if args.len() != 4 && args.len() != 8 {
         return None;
     }

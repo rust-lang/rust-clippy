@@ -37,7 +37,7 @@ mod inefficient_to_string;
 mod inspect_for_each;
 mod into_iter_on_ref;
 mod io_other_error;
-mod ipv4v6_constant_hardcode;
+mod ip_constant;
 mod is_digit_ascii_radix;
 mod is_empty;
 mod iter_cloned_collect;
@@ -4548,7 +4548,7 @@ declare_clippy_lint! {
     /// let addr = Ipv4Addr::LOCALHOST;
     /// ```
     #[clippy::version = "1.89.0"]
-    pub IPV4V6_CONSTANT_HARDCODE,
+    pub IP_CONSTANT,
     style,
     "hardcoded localhost IP address"
 }
@@ -4731,7 +4731,7 @@ impl_lint_pass!(Methods => [
     MANUAL_CONTAINS,
     IO_OTHER_ERROR,
     SWAP_WITH_TEMPORARY,
-    IPV4V6_CONSTANT_HARDCODE,
+    IP_CONSTANT,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -4764,7 +4764,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                 useless_nonzero_new_unchecked::check(cx, expr, func, args, self.msrv);
                 io_other_error::check(cx, expr, func, args, self.msrv);
                 swap_with_temporary::check(cx, expr, func, args);
-                ipv4v6_constant_hardcode::check(cx, expr, func, args);
+                ip_constant::check(cx, expr, func, args);
             },
             ExprKind::MethodCall(method_call, receiver, args, _) => {
                 let method_span = method_call.ident.span;
