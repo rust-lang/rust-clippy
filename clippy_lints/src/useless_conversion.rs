@@ -459,5 +459,18 @@ fn adjustments(cx: &LateContext<'_>, expr: &Expr<'_>) -> String {
             _ => {},
         }
     }
-    prefix
+    resolve_deref(prefix)
+}
+
+fn resolve_deref(mut s: String) -> String {
+    loop {
+        if let Some(rest) = s.strip_prefix("&*") {
+            s = rest.to_string();
+        } else if let Some(rest) = s.strip_prefix("&*mut ") {
+            s = format!("mut {rest}");
+        } else {
+            break;
+        }
+    }
+    s
 }

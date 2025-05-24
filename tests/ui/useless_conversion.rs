@@ -175,7 +175,16 @@ fn main() {
     let _ = vec![s4, s4, s4].into_iter().into_iter();
     //~^ useless_conversion
 
+    issue14847();
     issue11300::bar();
+}
+
+fn issue14847() {
+    use std::option::IntoIter;
+    fn takes_into_iter<'a>(_: impl IntoIterator<Item = &'a i32>) {}
+
+    let x = &&[1];
+    let _ = takes_into_iter(x.into_iter());
 }
 
 #[allow(dead_code)]
