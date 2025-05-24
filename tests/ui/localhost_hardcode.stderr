@@ -1,5 +1,5 @@
 error: use `Ipv4Addr::LOCALHOST` instead
-  --> tests/ui/localhost_hardcode.rs:6:13
+  --> tests/ui/localhost_hardcode.rs:8:13
    |
 LL |     let _ = Ipv4Addr::new(127, 0, 0, 1);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv4Addr::LOCALHOST`
@@ -7,59 +7,163 @@ LL |     let _ = Ipv4Addr::new(127, 0, 0, 1);
    = note: `-D clippy::localhost-hardcode` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::localhost_hardcode)]`
 
-error: use `net::Ipv4Addr::LOCALHOST` instead
+error: use `Ipv4Addr::BROADCAST` instead
+  --> tests/ui/localhost_hardcode.rs:10:13
+   |
+LL |     let _ = Ipv4Addr::new(255, 255, 255, 255);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv4Addr::BROADCAST`
+
+error: use `Ipv4Addr::UNSPECIFIED` instead
   --> tests/ui/localhost_hardcode.rs:12:13
+   |
+LL |     let _ = Ipv4Addr::new(0, 0, 0, 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv4Addr::UNSPECIFIED`
+
+error: use `Ipv6Addr::LOCALHOST` instead
+  --> tests/ui/localhost_hardcode.rs:16:13
+   |
+LL |     let _ = Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv6Addr::LOCALHOST`
+
+error: use `Ipv6Addr::UNSPECIFIED` instead
+  --> tests/ui/localhost_hardcode.rs:18:13
+   |
+LL |     let _ = Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv6Addr::UNSPECIFIED`
+
+error: use `net::Ipv4Addr::LOCALHOST` instead
+  --> tests/ui/localhost_hardcode.rs:24:13
    |
 LL |     let _ = net::Ipv4Addr::new(127, 0, 0, 1);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `net::Ipv4Addr::LOCALHOST`
 
+error: use `net::Ipv4Addr::BROADCAST` instead
+  --> tests/ui/localhost_hardcode.rs:26:13
+   |
+LL |     let _ = net::Ipv4Addr::new(255, 255, 255, 255);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `net::Ipv4Addr::BROADCAST`
+
+error: use `net::Ipv4Addr::UNSPECIFIED` instead
+  --> tests/ui/localhost_hardcode.rs:28:13
+   |
+LL |     let _ = net::Ipv4Addr::new(0, 0, 0, 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `net::Ipv4Addr::UNSPECIFIED`
+
+error: use `net::Ipv6Addr::LOCALHOST` instead
+  --> tests/ui/localhost_hardcode.rs:31:13
+   |
+LL |     let _ = net::Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `net::Ipv6Addr::LOCALHOST`
+
+error: use `net::Ipv6Addr::UNSPECIFIED` instead
+  --> tests/ui/localhost_hardcode.rs:33:13
+   |
+LL |     let _ = net::Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `net::Ipv6Addr::UNSPECIFIED`
+
 error: use `std::net::Ipv4Addr::LOCALHOST` instead
-  --> tests/ui/localhost_hardcode.rs:17:13
+  --> tests/ui/localhost_hardcode.rs:38:13
    |
 LL |     let _ = std::net::Ipv4Addr::new(127, 0, 0, 1);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `std::net::Ipv4Addr::LOCALHOST`
 
-error: use `Ipv4Addr::LOCALHOST` instead
-  --> tests/ui/localhost_hardcode.rs:28:13
+error: use `std::net::Ipv4Addr::BROADCAST` instead
+  --> tests/ui/localhost_hardcode.rs:40:13
    |
-LL |     let _ = Ipv4Addr::new(CONSTANT_1, CONSTANT_2, CONSTANT_3, CONSTANT_4);
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv4Addr::LOCALHOST`
+LL |     let _ = std::net::Ipv4Addr::new(255, 255, 255, 255);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `std::net::Ipv4Addr::BROADCAST`
 
-error: use `net::Ipv4Addr::LOCALHOST` instead
-  --> tests/ui/localhost_hardcode.rs:34:13
+error: use `std::net::Ipv4Addr::UNSPECIFIED` instead
+  --> tests/ui/localhost_hardcode.rs:42:13
    |
-LL |     let _ = net::Ipv4Addr::new(CONSTANT_1, CONSTANT_2, CONSTANT_3, CONSTANT_4);
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `net::Ipv4Addr::LOCALHOST`
+LL |     let _ = std::net::Ipv4Addr::new(0, 0, 0, 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `std::net::Ipv4Addr::UNSPECIFIED`
 
-error: use `std::net::Ipv4Addr::LOCALHOST` instead
-  --> tests/ui/localhost_hardcode.rs:39:13
-   |
-LL |     let _ = std::net::Ipv4Addr::new(CONSTANT_1, CONSTANT_2, CONSTANT_3, CONSTANT_4);
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `std::net::Ipv4Addr::LOCALHOST`
-
-error: use `Ipv4Addr::LOCALHOST` instead
+error: use `std::net::Ipv6Addr::LOCALHOST` instead
   --> tests/ui/localhost_hardcode.rs:45:13
+   |
+LL |     let _ = std::net::Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `std::net::Ipv6Addr::LOCALHOST`
+
+error: use `std::net::Ipv6Addr::UNSPECIFIED` instead
+  --> tests/ui/localhost_hardcode.rs:47:13
+   |
+LL |     let _ = std::net::Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `std::net::Ipv6Addr::UNSPECIFIED`
+
+error: use `Ipv4Addr::LOCALHOST` instead
+  --> tests/ui/localhost_hardcode.rs:61:13
+   |
+LL |     let _ = Ipv4Addr::new(CONST_U8_127, CONST_U8_0, CONST_U8_0, CONST_U8_1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv4Addr::LOCALHOST`
+
+error: use `Ipv4Addr::BROADCAST` instead
+  --> tests/ui/localhost_hardcode.rs:63:13
+   |
+LL |     let _ = Ipv4Addr::new(CONST_U8_255, CONST_U8_255, CONST_U8_255, CONST_U8_255);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv4Addr::BROADCAST`
+
+error: use `Ipv4Addr::UNSPECIFIED` instead
+  --> tests/ui/localhost_hardcode.rs:65:13
+   |
+LL |     let _ = Ipv4Addr::new(CONST_U8_0, CONST_U8_0, CONST_U8_0, CONST_U8_0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv4Addr::UNSPECIFIED`
+
+error: use `Ipv6Addr::LOCALHOST` instead
+  --> tests/ui/localhost_hardcode.rs:69:13
+   |
+LL |       let _ = Ipv6Addr::new(
+   |  _____________^
+LL | |
+LL | |         CONST_U16_0,
+LL | |         CONST_U16_0,
+...  |
+LL | |         CONST_U16_1,
+LL | |     );
+   | |_____^ help: try: `Ipv6Addr::LOCALHOST`
+
+error: use `Ipv6Addr::UNSPECIFIED` instead
+  --> tests/ui/localhost_hardcode.rs:81:13
+   |
+LL |       let _ = Ipv6Addr::new(
+   |  _____________^
+LL | |
+LL | |         CONST_U16_0,
+LL | |         CONST_U16_0,
+...  |
+LL | |         CONST_U16_0,
+LL | |     );
+   | |_____^ help: try: `Ipv6Addr::UNSPECIFIED`
+
+error: use `Ipv4Addr::LOCALHOST` instead
+  --> tests/ui/localhost_hardcode.rs:96:13
    |
 LL |     let _ = Ipv4Addr::new(126 + 1, 0, 0, 1);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv4Addr::LOCALHOST`
 
-error: use `Ipv4Addr::LOCALHOST` instead
-  --> tests/ui/localhost_hardcode.rs:47:13
+error: use `Ipv4Addr::BROADCAST` instead
+  --> tests/ui/localhost_hardcode.rs:98:13
    |
-LL |     let _ = Ipv4Addr::new(126 + CONSTANT_4, 0, 0, 1);
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv4Addr::LOCALHOST`
+LL |     let _ = Ipv4Addr::new(254 + CONST_U8_1, 255, { 255 - CONST_U8_0 }, CONST_U8_255);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv4Addr::BROADCAST`
 
-error: use `Ipv4Addr::LOCALHOST` instead
-  --> tests/ui/localhost_hardcode.rs:49:13
+error: use `Ipv4Addr::UNSPECIFIED` instead
+  --> tests/ui/localhost_hardcode.rs:100:13
    |
-LL |     let _ = Ipv4Addr::new(127, 2 - 1 - CONSTANT_4, 0, 1);
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv4Addr::LOCALHOST`
+LL |     let _ = Ipv4Addr::new(0, CONST_U8_255 - 255, 0, { 1 + 0 - 1 });
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv4Addr::UNSPECIFIED`
 
-error: use `Ipv4Addr::LOCALHOST` instead
-  --> tests/ui/localhost_hardcode.rs:51:13
+error: use `Ipv6Addr::LOCALHOST` instead
+  --> tests/ui/localhost_hardcode.rs:104:13
    |
-LL |     let _ = Ipv4Addr::new({ 127 }, 0, 0, 1);
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv4Addr::LOCALHOST`
+LL |     let _ = Ipv6Addr::new(0 + CONST_U16_0, 0, 0, 0, 0, 0, 0, 1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv6Addr::LOCALHOST`
 
-error: aborting due to 10 previous errors
+error: use `Ipv6Addr::LOCALHOST` instead
+  --> tests/ui/localhost_hardcode.rs:106:13
+   |
+LL |     let _ = Ipv6Addr::new(0 + 0, 0, 0, 0, 0, { 2 - 1 - CONST_U16_1 }, 0, 1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Ipv6Addr::LOCALHOST`
+
+error: aborting due to 25 previous errors
 
