@@ -199,6 +199,7 @@ mod lifetimes;
 mod lines_filter_map_ok;
 mod literal_representation;
 mod literal_string_with_formatting_args;
+mod long_variable_names;
 mod loops;
 mod macro_metavars_in_unsafe;
 mod macro_use;
@@ -946,5 +947,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(single_option_map::SingleOptionMap));
     store.register_late_pass(move |_| Box::new(redundant_test_prefix::RedundantTestPrefix));
     store.register_late_pass(|_| Box::new(cloned_ref_to_slice_refs::ClonedRefToSliceRefs::new(conf)));
+    store.register_late_pass(move |_| Box::new(long_variable_names::LongVariableNames::new(conf)));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }

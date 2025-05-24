@@ -734,6 +734,16 @@ The maximum number of bounds a trait can have to be linted
 * [`type_repetition_in_bounds`](https://rust-lang.github.io/rust-clippy/master/index.html#type_repetition_in_bounds)
 
 
+## `max-variable-name-length`
+The maximum length of a variable
+
+**Default Value:** `100`
+
+---
+**Affected lints:**
+* [`long_variable_names`](https://rust-lang.github.io/rust-clippy/master/index.html#long_variable_names)
+
+
 ## `min-ident-chars-threshold`
 Minimum chars an ident can have, anything below or equal to this will be linted.
 
