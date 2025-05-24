@@ -224,7 +224,7 @@ fn try_get_option_occurrence<'tcx>(
         let mut app = Applicability::Unspecified;
 
         let (none_body, is_argless_call) = match none_body.kind {
-            ExprKind::Call(call_expr, []) if !none_body.span.from_expansion() => (call_expr, true),
+            ExprKind::Call(call_expr, []) if !none_body.span.from_expansion() && !is_result => (call_expr, true),
             _ => (none_body, false),
         };
 
