@@ -1,4 +1,4 @@
-#![warn(clippy::localhost_hardcode)]
+#![warn(clippy::ipv4v6_constant_hardcode)]
 #![allow(dead_code)]
 #![allow(clippy::identity_op)]
 #![allow(clippy::eq_op)]
@@ -6,46 +6,46 @@
 fn literal_test1() {
     use std::net::Ipv4Addr;
     let _ = Ipv4Addr::new(127, 0, 0, 1);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
     let _ = Ipv4Addr::new(255, 255, 255, 255);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
     let _ = Ipv4Addr::new(0, 0, 0, 0);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
 
     use std::net::Ipv6Addr;
     let _ = Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
     let _ = Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
 }
 
 fn literal_test2() {
     use std::net;
     let _ = net::Ipv4Addr::new(127, 0, 0, 1);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
     let _ = net::Ipv4Addr::new(255, 255, 255, 255);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
     let _ = net::Ipv4Addr::new(0, 0, 0, 0);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
 
     let _ = net::Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
     let _ = net::Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
 }
 
 fn literal_test3() {
     let _ = std::net::Ipv4Addr::new(127, 0, 0, 1);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
     let _ = std::net::Ipv4Addr::new(255, 255, 255, 255);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
     let _ = std::net::Ipv4Addr::new(0, 0, 0, 0);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
 
     let _ = std::net::Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
     let _ = std::net::Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
 }
 
 const CONST_U8_0: u8 = 0;
@@ -59,15 +59,15 @@ const CONST_U16_1: u16 = 1;
 fn const_test1() {
     use std::net::Ipv4Addr;
     let _ = Ipv4Addr::new(CONST_U8_127, CONST_U8_0, CONST_U8_0, CONST_U8_1);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
     let _ = Ipv4Addr::new(CONST_U8_255, CONST_U8_255, CONST_U8_255, CONST_U8_255);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
     let _ = Ipv4Addr::new(CONST_U8_0, CONST_U8_0, CONST_U8_0, CONST_U8_0);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
 
     use std::net::Ipv6Addr;
     let _ = Ipv6Addr::new(
-        //~^ localhost_hardcode
+        //~^ ipv4v6_constant_hardcode
         CONST_U16_0,
         CONST_U16_0,
         CONST_U16_0,
@@ -79,7 +79,7 @@ fn const_test1() {
     );
 
     let _ = Ipv6Addr::new(
-        //~^ localhost_hardcode
+        //~^ ipv4v6_constant_hardcode
         CONST_U16_0,
         CONST_U16_0,
         CONST_U16_0,
@@ -94,17 +94,17 @@ fn const_test1() {
 fn const_test2() {
     use std::net::Ipv4Addr;
     let _ = Ipv4Addr::new(126 + 1, 0, 0, 1);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
     let _ = Ipv4Addr::new(254 + CONST_U8_1, 255, { 255 - CONST_U8_0 }, CONST_U8_255);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
     let _ = Ipv4Addr::new(0, CONST_U8_255 - 255, 0, { 1 + 0 - 1 });
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
 
     use std::net::Ipv6Addr;
     let _ = Ipv6Addr::new(0 + CONST_U16_0, 0, 0, 0, 0, 0, 0, 1);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
     let _ = Ipv6Addr::new(0 + 0, 0, 0, 0, 0, { 2 - 1 - CONST_U16_1 }, 0, 1);
-    //~^ localhost_hardcode
+    //~^ ipv4v6_constant_hardcode
 }
 
 macro_rules! ipv4_new {

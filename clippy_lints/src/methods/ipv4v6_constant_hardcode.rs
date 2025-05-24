@@ -6,7 +6,7 @@ use rustc_hir::{Expr, ExprKind, QPath, Ty, TyKind};
 use rustc_lint::LateContext;
 use rustc_span::sym;
 
-use super::LOCALHOST_HARDCODE;
+use super::IPV4V6_CONSTANT_HARDCODE;
 
 static IPV4V6_CONSTANTS: &[(&[u128], &str)] = &[
     // Ipv4
@@ -40,7 +40,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, func: &Expr<'_>, args
 
         span_lint_and_sugg(
             cx,
-            LOCALHOST_HARDCODE,
+            IPV4V6_CONSTANT_HARDCODE,
             expr.span,
             format!("use `{sugg_snip}` instead"),
             "try",

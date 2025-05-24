@@ -1,5 +1,5 @@
 #![warn(clippy::await_holding_invalid_type)]
-#![allow(clippy::localhost_hardcode)]
+#![allow(clippy::ipv4v6_constant_hardcode)]
 use std::net::Ipv4Addr;
 
 async fn bad() -> u32 {
