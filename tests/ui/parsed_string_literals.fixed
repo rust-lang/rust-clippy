@@ -1,0 +1,42 @@
+#![warn(clippy::parsed_string_literals)]
+
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+
+fn main() {
+    _ = Ipv4Addr::new(137, 194, 161, 2);
+    //~^ parsed_string_literals
+
+    _ = Ipv4Addr::LOCALHOST;
+    //~^ parsed_string_literals
+
+    _ = Ipv4Addr::BROADCAST;
+    //~^ parsed_string_literals
+
+    _ = Ipv4Addr::UNSPECIFIED;
+    //~^ parsed_string_literals
+
+    // Wrong address family
+    _ = "::1".parse::<Ipv4Addr>().unwrap();
+    _ = "127.0.0.1".parse::<Ipv6Addr>().unwrap();
+
+    _ = Ipv6Addr::LOCALHOST;
+    //~^ parsed_string_literals
+
+    _ = Ipv6Addr::UNSPECIFIED;
+    //~^ parsed_string_literals
+
+    _ = IpAddr::V6(Ipv6Addr::LOCALHOST);
+    //~^ parsed_string_literals
+
+    _ = IpAddr::V6(Ipv6Addr::UNSPECIFIED);
+    //~^ parsed_string_literals
+
+    // The substition text would be larger than the original and wouldn't use constants
+    _ = "2a04:8ec0:0:47::131".parse::<Ipv6Addr>().unwrap();
+    _ = "2a04:8ec0:0:47::131".parse::<IpAddr>().unwrap();
+}
+
+#[clippy::msrv = "1.29"]
+fn msrv_under() {
+    _ = "::".parse::<IpAddr>().unwrap();
+}
