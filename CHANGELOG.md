@@ -5888,6 +5888,7 @@ Released 2018-09-13
 [`inverted_saturating_sub`]: https://rust-lang.github.io/rust-clippy/master/index.html#inverted_saturating_sub
 [`invisible_characters`]: https://rust-lang.github.io/rust-clippy/master/index.html#invisible_characters
 [`io_other_error`]: https://rust-lang.github.io/rust-clippy/master/index.html#io_other_error
+[`ipv4v6_constant_hardcode`]: https://rust-lang.github.io/rust-clippy/master/index.html#ipv4v6_constant_hardcode
 [`is_digit_ascii_radix`]: https://rust-lang.github.io/rust-clippy/master/index.html#is_digit_ascii_radix
 [`items_after_statements`]: https://rust-lang.github.io/rust-clippy/master/index.html#items_after_statements
 [`items_after_test_module`]: https://rust-lang.github.io/rust-clippy/master/index.html#items_after_test_module
@@ -5937,7 +5938,6 @@ Released 2018-09-13
 [`lint_groups_priority`]: https://rust-lang.github.io/rust-clippy/master/index.html#lint_groups_priority
 [`literal_string_with_formatting_args`]: https://rust-lang.github.io/rust-clippy/master/index.html#literal_string_with_formatting_args
 [`little_endian_bytes`]: https://rust-lang.github.io/rust-clippy/master/index.html#little_endian_bytes
-[`ipv4v6_constant_hardcode`]: https://rust-lang.github.io/rust-clippy/master/index.html#ipv4v6_constant_hardcode
 [`logic_bug`]: https://rust-lang.github.io/rust-clippy/master/index.html#logic_bug
 [`lossy_float_literal`]: https://rust-lang.github.io/rust-clippy/master/index.html#lossy_float_literal
 [`macro_metavars_in_unsafe`]: https://rust-lang.github.io/rust-clippy/master/index.html#macro_metavars_in_unsafe
