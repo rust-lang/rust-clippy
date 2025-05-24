@@ -1,16 +1,13 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::is_in_test;
-use clippy_utils::source::{snippet, snippet_with_applicability};
+use clippy_utils::{import_span_and_sugg, is_in_test, is_prelude_import};
 use rustc_data_structures::fx::FxHashSet;
-use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{Item, ItemKind, PathSegment, UseKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty;
 use rustc_session::impl_lint_pass;
 use rustc_span::symbol::kw;
-use rustc_span::{BytePos, sym};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -134,40 +131,7 @@ impl LateLintPass<'_> for WildcardImports {
             && !used_imports.is_empty() // Already handled by `unused_imports`
             && !used_imports.contains(&kw::Underscore)
         {
-            let mut applicability = Applicability::MachineApplicable;
-            let import_source_snippet = snippet_with_applicability(cx, use_path.span, "..", &mut applicability);
-            let (span, braced_glob) = if import_source_snippet.is_empty() {
-                // This is a `_::{_, *}` import
-                // In this case `use_path.span` is empty and ends directly in front of the `*`,
-                // so we need to extend it by one byte.
-                (use_path.span.with_hi(use_path.span.hi() + BytePos(1)), true)
-            } else {
-                // In this case, the `use_path.span` ends right before the `::*`, so we need to
-                // extend it up to the `*`. Since it is hard to find the `*` in weird
-                // formatting like `use _ ::  *;`, we extend it up to, but not including the
-                // `;`. In nested imports, like `use _::{inner::*, _}` there is no `;` and we
-                // can just use the end of the item span
-                let mut span = use_path.span.with_hi(item.span.hi());
-                if snippet(cx, span, "").ends_with(';') {
-                    span = use_path.span.with_hi(item.span.hi() - BytePos(1));
-                }
-                (span, false)
-            };
-
-            let mut imports: Vec<_> = used_imports.iter().map(ToString::to_string).collect();
-            let imports_string = if imports.len() == 1 {
-                imports.pop().unwrap()
-            } else if braced_glob {
-                imports.join(", ")
-            } else {
-                format!("{{{}}}", imports.join(", "))
-            };
-
-            let sugg = if braced_glob {
-                imports_string
-            } else {
-                format!("{import_source_snippet}::{imports_string}")
-            };
+            let (span, sugg, applicability) = import_span_and_sugg(cx, use_path, item);
 
             // Glob imports always have a single resolution.
             let (lint, message) = if let Res::Def(DefKind::Enum, _) = use_path.res[0] {
@@ -184,18 +148,10 @@ impl LateLintPass<'_> for WildcardImports {
 impl WildcardImports {
     fn check_exceptions(&self, cx: &LateContext<'_>, item: &Item<'_>, segments: &[PathSegment<'_>]) -> bool {
         item.span.from_expansion()
-            || is_prelude_import(segments)
+            || is_prelude_import(segments) // Many crates have a prelude, and it is imported as a glob by design.
             || is_allowed_via_config(segments, &self.allowed_segments)
             || (is_super_only_import(segments) && is_in_test(cx.tcx, item.hir_id()))
     }
-}
-
-// Allow "...prelude::..::*" imports.
-// Many crates have a prelude, and it is imported as a glob by design.
-fn is_prelude_import(segments: &[PathSegment<'_>]) -> bool {
-    segments
-        .iter()
-        .any(|ps| ps.ident.as_str().contains(sym::prelude.as_str()))
 }
 
 // Allow "super::*" imports in tests.
