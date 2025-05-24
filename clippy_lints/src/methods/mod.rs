@@ -37,6 +37,7 @@ mod inefficient_to_string;
 mod inspect_for_each;
 mod into_iter_on_ref;
 mod io_other_error;
+mod ip_constant;
 mod is_digit_ascii_radix;
 mod is_empty;
 mod iter_cloned_collect;
@@ -4528,6 +4529,30 @@ declare_clippy_lint! {
     "detect swap with a temporary value"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Detects hardcoded localhost IP addresses using `Ipv4Addr::new(127, 0, 0, 1)`.
+    ///
+    /// ### Why is this bad?
+    /// Using a hardcoded IP address `(127.0.0.1)` is less clear and maintainable than using the
+    /// `Ipv4Addr::LOCALHOST` constant.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// use std::net::Ipv4Addr;
+    /// let addr = Ipv4Addr::new(127, 0, 0, 1);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// use std::net::Ipv4Addr;
+    /// let addr = Ipv4Addr::LOCALHOST;
+    /// ```
+    #[clippy::version = "1.89.0"]
+    pub IP_CONSTANT,
+    style,
+    "hardcoded localhost IP address"
+}
+
 #[expect(clippy::struct_excessive_bools)]
 pub struct Methods {
     avoid_breaking_exported_api: bool,
@@ -4706,6 +4731,7 @@ impl_lint_pass!(Methods => [
     MANUAL_CONTAINS,
     IO_OTHER_ERROR,
     SWAP_WITH_TEMPORARY,
+    IP_CONSTANT,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -4738,6 +4764,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                 useless_nonzero_new_unchecked::check(cx, expr, func, args, self.msrv);
                 io_other_error::check(cx, expr, func, args, self.msrv);
                 swap_with_temporary::check(cx, expr, func, args);
+                ip_constant::check(cx, expr, func, args);
             },
             ExprKind::MethodCall(method_call, receiver, args, _) => {
                 let method_span = method_call.ident.span;
