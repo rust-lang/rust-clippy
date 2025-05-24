@@ -151,6 +151,7 @@ use clippy_utils::macros::FormatArgsStorage;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::ty::{contains_ty_adt_constructor_opaque, implements_trait, is_copy, is_type_diagnostic_item};
 use clippy_utils::{contains_return, is_bool, is_trait_method, iter_input_pats, peel_blocks, return_ty, sym};
+use declare_clippy_lint::declare_clippy_lint;
 pub use path_ends_with_ext::DEFAULT_ALLOWED_DOTFILES;
 use rustc_abi::ExternAbi;
 use rustc_data_structures::fx::FxHashSet;

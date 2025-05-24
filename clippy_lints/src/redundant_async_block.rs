@@ -2,6 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::{snippet, walk_span_to_context};
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{desugar_await, peel_blocks};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::{Closure, ClosureKind, CoroutineDesugaring, CoroutineKind, CoroutineSource, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};

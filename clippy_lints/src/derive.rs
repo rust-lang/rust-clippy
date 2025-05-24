@@ -3,6 +3,7 @@ use std::ops::ControlFlow;
 use clippy_utils::diagnostics::{span_lint_and_note, span_lint_and_then, span_lint_hir_and_then};
 use clippy_utils::ty::{implements_trait, implements_trait_with_env, is_copy};
 use clippy_utils::{has_non_exhaustive_attr, is_lint_allowed, paths};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
 use rustc_hir::intravisit::{FnKind, Visitor, walk_expr, walk_fn, walk_item};

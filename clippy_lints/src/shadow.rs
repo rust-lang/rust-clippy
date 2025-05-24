@@ -4,6 +4,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::path_to_local_id;
 use clippy_utils::source::snippet;
 use clippy_utils::visitors::{Descend, Visitable, for_each_expr};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_hir::def::Res;
 use rustc_hir::def_id::LocalDefId;

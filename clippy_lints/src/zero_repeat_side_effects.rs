@@ -2,6 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::higher::VecArgs;
 use clippy_utils::source::snippet;
 use clippy_utils::visitors::for_each_expr_without_closures;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::LitKind;
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;

@@ -4,6 +4,7 @@ use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::fn_has_unsatisfiable_preds;
 use clippy_utils::source::SpanRangeExt;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Body, FnDecl};

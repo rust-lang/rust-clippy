@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_sugg};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::node_id::{NodeId, NodeMap};
 use rustc_ast::ptr::P;
 use rustc_ast::visit::{Visitor, walk_expr};

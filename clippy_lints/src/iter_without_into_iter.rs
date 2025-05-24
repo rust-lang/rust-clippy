@@ -2,6 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet;
 use clippy_utils::ty::{deref_chain, get_adt_inherent_method, implements_trait, make_normalized_projection};
 use clippy_utils::{get_parent_as_impl, sym};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::Mutability;
 use rustc_errors::Applicability;
 use rustc_hir::{FnRetTy, ImplItemKind, ImplicitSelfKind, ItemKind, TyKind};

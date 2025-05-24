@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_attr_data_structures::{AttributeKind, ReprAttr, find_attr};
 use rustc_hir::{HirId, Item, ItemKind};
 use rustc_lint::{LateContext, LateLintPass};

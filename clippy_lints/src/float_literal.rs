@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::numeric_literal;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::ast::{self, LitFloatType, LitKind};
 use rustc_errors::Applicability;
 use rustc_hir as hir;

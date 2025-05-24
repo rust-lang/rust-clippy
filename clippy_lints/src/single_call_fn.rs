@@ -1,6 +1,7 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::{is_from_proc_macro, is_in_test_function};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_data_structures::fx::{FxIndexMap, IndexEntry};
 use rustc_hir::def::DefKind;
 use rustc_hir::def_id::LocalDefId;

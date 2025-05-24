@@ -5,6 +5,7 @@ use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::usage::mutated_variables;
 use clippy_utils::{eq_expr_value, higher};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::BindingMode;
 use rustc_ast::ast::LitKind;
 use rustc_data_structures::fx::FxHashMap;

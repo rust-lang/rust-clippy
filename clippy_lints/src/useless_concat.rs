@@ -3,6 +3,7 @@ use clippy_utils::macros::macro_backtrace;
 use clippy_utils::paths::CONCAT;
 use clippy_utils::source::snippet_opt;
 use clippy_utils::tokenize_with_text;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};

@@ -9,6 +9,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::ty::has_iter_method;
 use clippy_utils::{is_trait_method, sym};
+use declare_clippy_lint::declare_clippy_lint;
 
 declare_clippy_lint! {
     /// ### What it does

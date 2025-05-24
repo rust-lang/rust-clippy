@@ -9,6 +9,7 @@ use rustc_span::{BytePos, Span};
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::is_from_proc_macro;
 use clippy_utils::mir::enclosing_mir;
+use declare_clippy_lint::declare_clippy_lint;
 
 declare_clippy_lint! {
     /// ### What it does

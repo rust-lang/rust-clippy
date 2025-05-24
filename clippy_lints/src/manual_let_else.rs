@@ -7,13 +7,13 @@ use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::{
     MaybePath, is_lint_allowed, is_never_expr, is_wild, msrvs, pat_and_expr_can_be_question_mark, path_res, peel_blocks,
 };
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::BindingMode;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
 use rustc_hir::def::{CtorOf, DefKind, Res};
 use rustc_hir::{Arm, Expr, ExprKind, HirId, MatchSource, Pat, PatExpr, PatExprKind, PatKind, QPath, Stmt, StmtKind};
 use rustc_lint::{LateContext, LintContext};
-
 use rustc_span::Span;
 use rustc_span::symbol::{Symbol, sym};
 use std::slice;

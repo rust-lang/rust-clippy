@@ -1,6 +1,7 @@
 use ControlFlow::{Break, Continue};
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::{fn_def_id, get_enclosing_block, path_to_local_id};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::Mutability;
 use rustc_ast::visit::visit_opt;
 use rustc_errors::Applicability;

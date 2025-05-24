@@ -25,6 +25,7 @@ pub(crate) mod arithmetic_side_effects;
 
 use clippy_config::Conf;
 use clippy_utils::msrvs::Msrv;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir::{Body, Expr, ExprKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::impl_lint_pass;

@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::{path_res, peel_blocks};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir::def::Res;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::FnKind;

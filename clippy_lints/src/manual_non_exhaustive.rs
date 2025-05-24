@@ -3,6 +3,7 @@ use clippy_utils::diagnostics::{span_lint_and_then, span_lint_hir_and_then};
 use clippy_utils::is_doc_hidden;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::snippet_indent;
+use declare_clippy_lint::declare_clippy_lint;
 use itertools::Itertools;
 use rustc_ast::attr;
 use rustc_data_structures::fx::FxHashSet;

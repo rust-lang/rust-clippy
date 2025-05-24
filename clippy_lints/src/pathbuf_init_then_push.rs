@@ -2,6 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::path_to_local_id;
 use clippy_utils::source::{SpanRangeExt, snippet};
 use clippy_utils::ty::is_type_diagnostic_item;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::{LitKind, StrStyle};
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;

@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_applicability;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::ast::BinOpKind::{Add, BitAnd, BitOr, BitXor, Div, Mul, Rem, Shl, Shr, Sub};
 use rustc_ast::ast::{BinOpKind, Expr, ExprKind};
 use rustc_errors::Applicability;

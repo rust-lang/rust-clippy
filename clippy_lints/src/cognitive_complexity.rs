@@ -5,6 +5,7 @@ use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::visitors::for_each_expr_without_closures;
 use clippy_utils::{LimitStack, get_async_fn_body, is_async_fn, sym};
 use core::ops::ControlFlow;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Attribute, Body, Expr, ExprKind, FnDecl};
 use rustc_lint::{LateContext, LateLintPass, LintContext};

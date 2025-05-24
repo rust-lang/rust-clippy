@@ -5,6 +5,7 @@ use clippy_utils::higher::IfLet;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::ty::is_copy;
 use clippy_utils::{is_expn_of, is_lint_allowed, path_to_local, sym};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_data_structures::fx::{FxHashSet, FxIndexMap, FxIndexSet};
 use rustc_errors::Applicability;
 use rustc_hir as hir;

@@ -5,6 +5,7 @@ use clippy_utils::{
     SpanlessEq, get_parent_expr, higher, is_block_like, is_else_clause, is_expn_of, is_parent_stmt,
     is_receiver_of_method_call, peel_blocks, peel_blocks_with_stmt, span_extract_comment, sym,
 };
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind, UnOp};

@@ -7,6 +7,7 @@ use rustc_span::Span;
 
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::source::SpanRangeExt;
+use declare_clippy_lint::declare_clippy_lint;
 
 declare_clippy_lint! {
     /// ### What it does

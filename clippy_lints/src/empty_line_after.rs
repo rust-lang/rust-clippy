@@ -3,6 +3,7 @@ use std::borrow::Cow;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::{SpanRangeExt, snippet_indent};
 use clippy_utils::tokenize_with_text;
+use declare_clippy_lint::declare_clippy_lint;
 use itertools::Itertools;
 use rustc_ast::token::CommentKind;
 use rustc_ast::{AssocItemKind, AttrKind, AttrStyle, Attribute, Crate, Item, ItemKind, ModKind, NodeId};

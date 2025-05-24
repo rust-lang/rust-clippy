@@ -5,6 +5,7 @@ use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::SpanRangeExt;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::{implements_trait, is_type_diagnostic_item};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::ast::LitKind;
 use rustc_attr_data_structures::RustcVersion;
 use rustc_errors::Applicability;

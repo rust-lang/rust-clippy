@@ -3,6 +3,7 @@ use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::visitors::for_each_local_use_after_expr;
 use clippy_utils::{is_from_proc_macro, path_to_local};
+use declare_clippy_lint::declare_clippy_lint;
 use itertools::Itertools;
 use rustc_ast::LitKind;
 use rustc_hir::{Expr, ExprKind, Node, PatKind};

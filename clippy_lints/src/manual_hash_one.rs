@@ -4,6 +4,7 @@ use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::SpanRangeExt;
 use clippy_utils::visitors::{is_local_used, local_used_once};
 use clippy_utils::{is_trait_method, path_to_local_id, sym};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::{BindingMode, ExprKind, LetStmt, Node, PatKind, StmtKind};
 use rustc_lint::{LateContext, LateLintPass};

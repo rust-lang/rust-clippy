@@ -5,6 +5,7 @@ use clippy_utils::{
     SpanlessEq, fulfill_or_allowed, get_parent_expr, in_automatically_derived, is_lint_allowed, iter_input_pats,
     last_path_segment,
 };
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::intravisit::FnKind;

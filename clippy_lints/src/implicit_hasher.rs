@@ -15,6 +15,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::{IntoSpan, SpanRangeExt, snippet};
 use clippy_utils::sym;
 use clippy_utils::ty::is_type_diagnostic_item;
+use declare_clippy_lint::declare_clippy_lint;
 
 declare_clippy_lint! {
     /// ### What it does

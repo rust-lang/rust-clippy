@@ -11,6 +11,7 @@ mod utils;
 mod vec_box;
 
 use clippy_config::Conf;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir as hir;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{

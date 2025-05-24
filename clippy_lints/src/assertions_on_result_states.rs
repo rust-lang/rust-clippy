@@ -4,6 +4,7 @@ use clippy_utils::source::snippet_with_context;
 use clippy_utils::ty::{has_debug_impl, is_copy, is_type_diagnostic_item};
 use clippy_utils::usage::local_used_after_expr;
 use clippy_utils::{is_expr_final_block_expr, path_res, sym};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{Expr, ExprKind};

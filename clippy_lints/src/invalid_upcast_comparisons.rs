@@ -10,6 +10,7 @@ use clippy_utils::comparisons::Rel;
 use clippy_utils::consts::{ConstEvalCtxt, FullInt};
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::source::snippet;
+use declare_clippy_lint::declare_clippy_lint;
 
 declare_clippy_lint! {
     /// ### What it does

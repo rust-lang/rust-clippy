@@ -4,6 +4,7 @@ use clippy_utils::is_bool;
 use clippy_utils::macros::span_is_local;
 use clippy_utils::source::is_present_in_source;
 use clippy_utils::str_utils::{camel_case_split, count_match_end, count_match_start, to_camel_case, to_snake_case};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::{EnumDef, FieldDef, Item, ItemKind, OwnerId, QPath, TyKind, Variant, VariantData};
 use rustc_lint::{LateContext, LateLintPass};

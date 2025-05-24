@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_help;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{GenericArg, Item, ItemKind, QPath, Ty, TyKind};

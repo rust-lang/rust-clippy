@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::{get_expr_use_or_unification_node, path_def_id, path_to_local, path_to_local_id};
 use core::cell::Cell;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;

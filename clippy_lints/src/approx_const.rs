@@ -1,6 +1,7 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::msrvs::{self, Msrv};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::ast::{FloatTy, LitFloatType, LitKind};
 use rustc_attr_data_structures::RustcVersion;
 use rustc_hir::{HirId, Lit};

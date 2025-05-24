@@ -3,6 +3,7 @@ use clippy_config::types::PubUnderscoreFieldsBehaviour;
 use clippy_utils::attrs::is_doc_hidden;
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::is_path_lang_item;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir::{FieldDef, Item, ItemKind, LangItem};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::impl_lint_pass;

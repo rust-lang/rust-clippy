@@ -2,6 +2,7 @@ use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_from_proc_macro;
 use clippy_utils::msrvs::Msrv;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_attr_data_structures::{StabilityLevel, StableSince};
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;

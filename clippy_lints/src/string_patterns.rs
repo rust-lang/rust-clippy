@@ -8,6 +8,7 @@ use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::{snippet, str_literal_to_char_literal};
 use clippy_utils::visitors::{Descend, for_each_expr};
 use clippy_utils::{path_to_local_id, sym};
+use declare_clippy_lint::declare_clippy_lint;
 use itertools::Itertools;
 use rustc_ast::{BinOpKind, LitKind};
 use rustc_errors::Applicability;

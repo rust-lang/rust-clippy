@@ -2,6 +2,7 @@ use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::trait_ref_of_method;
+use declare_clippy_lint::declare_clippy_lint;
 use itertools::Itertools;
 use rustc_ast::visit::{try_visit, walk_list};
 use rustc_data_structures::fx::{FxHashSet, FxIndexMap, FxIndexSet};

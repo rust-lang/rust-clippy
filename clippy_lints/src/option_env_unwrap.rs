@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::is_direct_expn_of;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::ast::{Expr, ExprKind, MethodCall};
 use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_session::declare_lint_pass;

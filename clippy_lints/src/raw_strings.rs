@@ -1,6 +1,7 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::{SpanRangeExt, snippet_opt};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::ast::{Expr, ExprKind};
 use rustc_ast::token::LitKind;
 use rustc_errors::Applicability;

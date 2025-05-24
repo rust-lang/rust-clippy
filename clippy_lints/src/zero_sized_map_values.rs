@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::ty::{is_type_diagnostic_item, ty_from_hir_ty};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir::{self as hir, AmbigArg, HirId, ItemKind, Node};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::layout::LayoutOf as _;

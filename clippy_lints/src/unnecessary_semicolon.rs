@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::leaks_droppable_temporary_with_limited_lifetime;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::{Block, ExprKind, HirId, MatchSource, Stmt, StmtKind};
 use rustc_lint::{LateContext, LateLintPass};

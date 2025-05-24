@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::{indent_of, reindent_multiline, snippet};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::ast::{Block, Expr, ExprKind, Stmt, StmtKind};
 use rustc_ast::visit::{Visitor, walk_expr};
 use rustc_errors::Applicability;

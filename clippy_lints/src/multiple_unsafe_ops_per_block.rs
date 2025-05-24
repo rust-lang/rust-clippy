@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::visitors::{Descend, Visitable, for_each_expr};
 use core::ops::ControlFlow::Continue;
+use declare_clippy_lint::declare_clippy_lint;
 use hir::def::{DefKind, Res};
 use hir::{BlockCheckMode, ExprKind, QPath, UnOp};
 use rustc_ast::Mutability;

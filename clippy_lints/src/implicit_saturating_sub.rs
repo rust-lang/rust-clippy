@@ -5,6 +5,7 @@ use clippy_utils::sugg::{Sugg, make_binop};
 use clippy_utils::{
     SpanlessEq, eq_expr_value, higher, is_in_const_context, is_integer_literal, peel_blocks, peel_blocks_with_stmt,
 };
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::ast::LitKind;
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;

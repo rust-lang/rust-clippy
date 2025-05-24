@@ -2,6 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::{is_type_diagnostic_item, is_type_lang_item};
 use clippy_utils::{is_in_const_context, is_integer_literal, sym};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, LangItem, PrimTy, QPath, TyKind, def};
 use rustc_lint::{LateContext, LateLintPass};

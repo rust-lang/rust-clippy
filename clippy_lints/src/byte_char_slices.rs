@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::ast::{BorrowKind, Expr, ExprKind, Mutability};
 use rustc_ast::token::{Lit, LitKind};
 use rustc_errors::Applicability;

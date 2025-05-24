@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
 use clippy_utils::macros::root_macro_call_first_node;
 use clippy_utils::{get_parent_expr, path_to_local, path_to_local_id, sym};
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir::intravisit::{Visitor, walk_expr};
 use rustc_hir::{BinOpKind, Block, Expr, ExprKind, HirId, LetStmt, Node, Stmt, StmtKind};
 use rustc_lint::{LateContext, LateLintPass};

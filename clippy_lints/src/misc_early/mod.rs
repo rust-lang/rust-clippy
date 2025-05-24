@@ -9,6 +9,7 @@ mod zero_prefixed_literal;
 
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::source::snippet_opt;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::ast::{Expr, ExprKind, Generics, LitFloatType, LitIntType, LitKind, NodeId, Pat, PatKind};
 use rustc_ast::token;
 use rustc_ast::visit::FnKind;

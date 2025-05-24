@@ -5,6 +5,7 @@ use clippy_utils::ty::implements_trait;
 use clippy_utils::{
     fulfill_or_allowed, get_parent_as_impl, is_trait_method, parent_item_name, peel_ref_operators, sym,
 };
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;

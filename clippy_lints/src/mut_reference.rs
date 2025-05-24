@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint;
+use declare_clippy_lint::declare_clippy_lint;
 use rustc_hir::{BorrowKind, Expr, ExprKind, Mutability};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
