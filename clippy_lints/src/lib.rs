@@ -429,7 +429,8 @@ struct RegistrationGroups {
 impl RegistrationGroups {
     #[rustfmt::skip]
     fn register(self, store: &mut rustc_lint::LintStore) {
-        store.register_group(true, "clippy::all", Some("clippy_all"), self.all);
+        store.register_group(true, "clippy::default", Some("clippy_all"), self.all);
+        store.register_group_alias("clippy::default", "clippy::all");
         store.register_group(true, "clippy::cargo", Some("clippy_cargo"), self.cargo);
         store.register_group(true, "clippy::complexity", Some("clippy_complexity"), self.complexity);
         store.register_group(true, "clippy::correctness", Some("clippy_correctness"), self.correctness);
