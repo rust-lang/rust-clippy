@@ -1,6 +1,6 @@
 use arrayvec::ArrayVec;
 use clippy_config::Conf;
-use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
+use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::macros::{
     FormatArgsStorage, FormatParamUsage, MacroCall, find_format_arg_expr, format_arg_removal_span,
     format_placeholder_format_span, is_assert_macro, is_format_macro, is_panic, matching_root_macro_call,
@@ -194,12 +194,34 @@ declare_clippy_lint! {
     "use of a format specifier that has no effect"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Detects [pointer format].
+    ///
+    /// ### Why restrict this?
+    /// In kernel context, this might be vulnerable to misuse for exfiltrating
+    /// stack or kernel function addresses.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let foo = &0_u32;
+    /// println!("{:p}", foo);
+    /// ```
+    ///
+    /// [pointer format]: https://doc.rust-lang.org/std/fmt/index.html#formatting-traits
+    #[clippy::version = "1.88.0"]
+    pub POINTER_FORMAT,
+    restriction,
+    "use of a pointer format specifier"
+}
+
 impl_lint_pass!(FormatArgs<'_> => [
     FORMAT_IN_FORMAT_ARGS,
     TO_STRING_IN_FORMAT_ARGS,
     UNINLINED_FORMAT_ARGS,
     UNNECESSARY_DEBUG_FORMATTING,
     UNUSED_FORMAT_SPECS,
+    POINTER_FORMAT,
 ]);
 
 #[allow(clippy::struct_field_names)]
@@ -279,6 +301,12 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                 if placeholder.format_trait == FormatTrait::Debug {
                     let name = self.cx.tcx.item_name(self.macro_call.def_id);
                     self.check_unnecessary_debug_formatting(name, arg_expr);
+                }
+
+                if placeholder.format_trait == FormatTrait::Pointer
+                    && let Some(span) = placeholder.span
+                {
+                    span_lint(self.cx, POINTER_FORMAT, span, "pointer formatting detected");
                 }
             }
         }
