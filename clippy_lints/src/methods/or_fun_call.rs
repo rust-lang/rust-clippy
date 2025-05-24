@@ -1,3 +1,4 @@
+#[allow(clippy::too_many_arguments)]
 use std::ops::ControlFlow;
 
 use clippy_utils::diagnostics::span_lint_and_sugg;
