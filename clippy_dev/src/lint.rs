@@ -1,16 +1,10 @@
-use crate::utils::{cargo_clippy_path, cargo_cmd, run_exit_on_err};
-use std::fs;
-use std::process::{self, Command};
+use crate::utils::{ErrAction, cargo_cmd, expect_action, run_exit_on_err};
+use std::path::PathBuf;
+use std::process::Command;
+use std::{env, fs};
 
 pub fn run<'a>(path: &str, edition: &str, args: impl Iterator<Item = &'a String>) {
-    let is_file = match fs::metadata(path) {
-        Ok(metadata) => metadata.is_file(),
-        Err(e) => {
-            eprintln!("Failed to read {path}: {e:?}");
-            process::exit(1);
-        },
-    };
-
+    let is_file = expect_action(fs::metadata(path), ErrAction::Read, path).is_file();
     if is_file {
         run_exit_on_err(
             "cargo run",
@@ -25,10 +19,29 @@ pub fn run<'a>(path: &str, edition: &str, args: impl Iterator<Item = &'a String>
                 .env("RUSTC_ICE", "0"),
         );
     } else {
-        run_exit_on_err("cargo build", cargo_cmd().arg("build"));
+        // FIXME: This should be using `cargo run`, but can't since cargo loads the config from the
+        // current directory. Either we need a way to change the current directory between building
+        // running `cargo-clippy` as this currently does by running in two steps, or we need a way
+        // to change where cargo loads the config.
+        // See https://github.com/rust-lang/cargo/issues/9769
+
+        run_exit_on_err("cargo build", cargo_cmd().args(["build", "--bin", "cargo-clippy"]));
+
+        let mut exe = match env::current_exe() {
+            Ok(mut exe) => {
+                exe.pop();
+                exe
+            },
+            Err(_) => PathBuf::from("target/debug"),
+        };
+        #[cfg(windows)]
+        exe.push("cargo-clippy.exe");
+        #[cfg(not(windows))]
+        exe.push("cargo-clippy");
+
         run_exit_on_err(
-            "cargo clippy",
-            Command::new(cargo_clippy_path())
+            "cargo run",
+            Command::new(exe)
                 .arg("clippy")
                 .args(args)
                 // Prevent rustc from creating `rustc-ice-*` files the console output is enough.
