@@ -2,9 +2,8 @@ error: `Path::new` used
   --> tests/ui/needless_path_new.rs:11:15
    |
 LL |     fs::write(Path::new("foo.txt"), "foo");
-   |               ^^^^^^^^^^^^^^^^^^^^
+   |               ^^^^^^^^^^^^^^^^^^^^ help: consider removing `Path::new`: `"foo.txt"`
    |
-   = help: consider removing `Path::new`
    = note: `-D clippy::needless-path-new` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::needless_path_new)]`
 
@@ -12,17 +11,13 @@ error: `Path::new` used
   --> tests/ui/needless_path_new.rs:14:9
    |
 LL |         Path::new("foo"),
-   |         ^^^^^^^^^^^^^^^^
-   |
-   = help: consider removing `Path::new`
+   |         ^^^^^^^^^^^^^^^^ help: consider removing `Path::new`: `"foo"`
 
 error: `Path::new` used
   --> tests/ui/needless_path_new.rs:15:9
    |
 LL |         Path::new("bar"),
-   |         ^^^^^^^^^^^^^^^^
-   |
-   = help: consider removing `Path::new`
+   |         ^^^^^^^^^^^^^^^^ help: consider removing `Path::new`: `"bar"`
 
 error: aborting due to 3 previous errors
 
