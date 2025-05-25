@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::implements_trait;
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::Ty;
@@ -79,11 +80,20 @@ fn check_arguments<'tcx>(
     name: &str,
     fn_kind: &str,
 ) {
+    let implements_asref_path = |arg| {
+        cx.tcx.get_diagnostic_item(sym::AsRef).map_or(false, |id| {
+            implements_trait(cx, cx.typeck_results().expr_ty(arg), id, &[])
+        })
+    };
+
     if let ty::FnDef(..) | ty::FnPtr(..) = type_definition.kind() {
         let parameters = type_definition.fn_sig(cx.tcx).skip_binder().inputs();
         for (argument, parameter) in iter::zip(arguments, parameters) {
-            if let ty::Ref(_, _, Mutability::Not) | ty::RawPtr(_, Mutability::Not) = parameter.kind()
-                && let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Mut, _) = argument.kind
+            // if implements_asref_path(argument) &&
+            if let ExprKind::Call(path_new, path_new_arg) = argument.kind
+                && path_new_arg.len() == 1
+                && implements_asref_path(&path_new_arg[0])
+                && let ty::Ref(_, _, Mutability::Not) | ty::RawPtr(_, Mutability::Not) = parameter.kind()
             {
                 span_lint(
                     cx,
