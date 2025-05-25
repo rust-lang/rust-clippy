@@ -5,7 +5,7 @@ use clippy_utils::ty::implements_trait;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::{self, Ty};
+use rustc_middle::ty::{self, List, Ty};
 use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 use std::iter;
@@ -90,7 +90,8 @@ fn check_arguments<'tcx>(
 
     let implements_asref_path = |arg| {
         if let Some(path_def_id) = cx.tcx.get_diagnostic_item(sym::Path)
-            && let path_ty = cx.tcx.type_of(path_def_id).skip_binder()
+            && let path_ty_kind = ty::Adt(cx.tcx.adt_def(path_def_id), List::empty())
+            && let path_ty = cx.tcx.mk_ty_from_kind(path_ty_kind)
             && let Some(asref_def_id) = cx.tcx.get_diagnostic_item(sym::AsRef)
         {
             implements_trait(cx, arg, asref_def_id, &[path_ty.into()])
