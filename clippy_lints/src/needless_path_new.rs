@@ -113,7 +113,7 @@ fn check_arguments<'tcx>(
                     cx,
                     NEEDLESS_PATH_NEW,
                     argument.span,
-                    "unnecessary `Path::new`",
+                    "the expression enclosed in `Path::new` implements `AsRef<Path>`",
                     "remove the enclosing `Path::new`",
                     format!("{}", snippet(cx, args[0].span, "..")),
                     Applicability::MachineApplicable,
