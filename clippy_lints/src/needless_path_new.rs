@@ -1,9 +1,10 @@
 use clippy_utils::diagnostics::span_lint_and_help;
-use clippy_utils::implements_trait;
+use clippy_utils::ty::implements_trait;
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::Ty;
+use rustc_middle::ty::{self, Ty};
 use rustc_session::declare_lint_pass;
+use rustc_span::sym;
 use std::iter;
 
 declare_clippy_lint! {
@@ -31,7 +32,7 @@ declare_clippy_lint! {
 declare_lint_pass!(NeedlessPathNew => [NEEDLESS_PATH_NEW]);
 
 impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew {
-    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) {
         match e.kind {
             ExprKind::Call(fn_expr, args) => {
                 if let ExprKind::Path(ref path) = fn_expr.kind {
@@ -62,17 +63,6 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew {
     }
 }
 
-fn flag() {
-    span_lint_and_help(
-        cx,
-        NEEDLESS_PATH_NEW,
-        expr.span,
-        "`Path::new` used",
-        None,
-        "consider removing `Path::new`",
-    );
-}
-
 fn check_arguments<'tcx>(
     cx: &LateContext<'tcx>,
     arguments: &mut dyn Iterator<Item = &'tcx Expr<'tcx>>,
@@ -95,35 +85,15 @@ fn check_arguments<'tcx>(
                 && implements_asref_path(&path_new_arg[0])
                 && let ty::Ref(_, _, Mutability::Not) | ty::RawPtr(_, Mutability::Not) = parameter.kind()
             {
-                span_lint(
+                span_lint_and_help(
                     cx,
-                    UNNECESSARY_MUT_PASSED,
+                    NEEDLESS_PATH_NEW,
                     argument.span,
-                    format!("the {fn_kind} `{name}` doesn't need a mutable reference"),
+                    "`Path::new` used",
+                    None,
+                    "consider removing `Path::new`",
                 );
             }
         }
-    }
-    if let ExprKind::MethodCall(method_name, receiver, args, _) = expr.kind
-        && method_name.ident.as_str() == "unwrap"
-        && let ExprKind::Call(func, args1) = receiver.kind
-        && let ExprKind::Path(ref qpath) = func.kind
-        // && match_qpath(qpath, &["fs", "copy"])
-        && args1.len() == 2
-        && let ExprKind::Call(func1, args2) = args1[0].kind
-        && let ExprKind::Path(ref qpath1) = func1.kind
-        && match_qpath(qpath1, &["path", "Path", "new"])
-        && args2.len() == 1
-        && let ExprKind::Lit(ref lit) = args2[0].kind
-        && let LitKind::Str(s, _) = lit.node
-        && s.as_str() == "foo"
-        && let ExprKind::Lit(ref lit1) = args1[1].kind
-        && let LitKind::Str(s1, _) = lit1.node
-        // && s1.as_str() == "a"
-        && args.is_empty()
-    {
-        true
-    } else {
-        false
     }
 }
