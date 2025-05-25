@@ -87,9 +87,14 @@ fn check_arguments<'tcx>(
     };
 
     let implements_asref_path = |arg| {
-        cx.tcx.get_diagnostic_item(sym::AsRef).map_or(false, |id| {
-            implements_trait(cx, cx.typeck_results().expr_ty(arg), id, &[])
-        })
+        if let Some(path_def_id) = cx.tcx.get_diagnostic_item(sym::Path)
+            && let path_ty = cx.tcx.type_of(path_def_id).skip_binder()
+            && let Some(asref_def_id) = cx.tcx.get_diagnostic_item(sym::AsRef)
+        {
+            implements_trait(cx, cx.typeck_results().expr_ty(arg), asref_def_id, &[path_ty.into()])
+        } else {
+            false
+        }
     };
 
     if let ty::FnDef(..) | ty::FnPtr(..) = type_definition.kind() {
