@@ -113,7 +113,7 @@ fn check_arguments<'tcx>(
                     NEEDLESS_PATH_NEW,
                     argument.span,
                     "unnecessary `Path::new`",
-                    "consider removing `Path::new`",
+                    "remove the enclosing `Path::new`",
                     format!("{}", snippet(cx, arg.span, "..")),
                     Applicability::MachineApplicable,
                 );
