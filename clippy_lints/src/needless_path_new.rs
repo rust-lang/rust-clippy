@@ -106,8 +106,7 @@ fn check_arguments<'tcx>(
         for (argument, parameter) in iter::zip(arguments, parameters) {
             if let ExprKind::Call(func, args) = argument.kind
                 && is_path_new(func)
-                // I guess this check is superfluous,
-                // since we know how many parameters `Path::new` takes
+                // just to be extra sure that we have a correctly formed `Path::new(x)` call
                 && args.len() == 1
                 && implements_asref_path(cx.typeck_results().expr_ty(&args[0]))
                 && implements_asref_path(*parameter)
