@@ -91,7 +91,7 @@ fn check_arguments<'tcx>(
             && let path_ty = cx.tcx.type_of(path_def_id).skip_binder()
             && let Some(asref_def_id) = cx.tcx.get_diagnostic_item(sym::AsRef)
         {
-            implements_trait(cx, cx.typeck_results().expr_ty(arg), asref_def_id, &[path_ty.into()])
+            implements_trait(cx, arg, asref_def_id, &[path_ty.into()])
         } else {
             false
         }
@@ -103,8 +103,8 @@ fn check_arguments<'tcx>(
             // we want `argument` to be `Path::new(x)`, which has one arg, x
             if let ExprKind::Call(func, [arg]) = argument.kind
                 && is_path_new(func)
-                && implements_asref_path(arg)
-                // && let ty::Ref(_, _, Mutability::Not) | ty::RawPtr(_, Mutability::Not) = parameter.kind()
+                && implements_asref_path(cx.typeck_results().expr_ty(arg))
+                && implements_asref_path(*parameter)
             {
                 span_lint_and_help(
                     cx,
