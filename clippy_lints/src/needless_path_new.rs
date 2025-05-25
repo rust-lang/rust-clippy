@@ -1,6 +1,8 @@
-use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::path_res;
+use clippy_utils::source::snippet;
 use clippy_utils::ty::implements_trait;
+use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
@@ -106,13 +108,14 @@ fn check_arguments<'tcx>(
                 && implements_asref_path(cx.typeck_results().expr_ty(arg))
                 && implements_asref_path(*parameter)
             {
-                span_lint_and_help(
+                span_lint_and_sugg(
                     cx,
                     NEEDLESS_PATH_NEW,
                     argument.span,
                     "`Path::new` used",
-                    None,
                     "consider removing `Path::new`",
+                    format!("{}", snippet(cx, arg.span, "..")),
+                    Applicability::MachineApplicable,
                 );
             }
         }
