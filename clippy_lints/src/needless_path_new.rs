@@ -12,9 +12,11 @@ use std::iter;
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Detects expressions being enclosed in `Path::new` when passed to a function that accepts
+    /// `impl AsRef<Path>`, when the enclosed expression could be used.
     ///
     /// ### Why is this bad?
-    /// Too verbose
+    /// It is unnecessarily verbose
     ///
     /// ### Example
     /// ```no_run
@@ -26,10 +28,11 @@ declare_clippy_lint! {
     /// # use std::{fs, path::Path};
     /// fs::write("foo.txt", "foo");
     /// ```
-    #[clippy::version = "1.88.0"]
+    #[clippy::version = "1.89.0"]
     pub NEEDLESS_PATH_NEW,
     nursery,
-    "default lint description"
+    "an argument passed to a function  that accepts `impl AsRef<Path>` \
+    being enclosed in `Path::new` when the argument implements the trait"
 }
 
 declare_lint_pass!(NeedlessPathNew => [NEEDLESS_PATH_NEW]);
