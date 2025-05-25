@@ -88,17 +88,16 @@ fn check_arguments<'tcx>(
         }
     };
 
-    let implements_asref_path = |arg| {
-        if let Some(path_def_id) = cx.tcx.get_diagnostic_item(sym::Path)
-            && let path_ty_kind = ty::Adt(cx.tcx.adt_def(path_def_id), List::empty())
-            && let path_ty = cx.tcx.mk_ty_from_kind(path_ty_kind)
-            && let Some(asref_def_id) = cx.tcx.get_diagnostic_item(sym::AsRef)
-        {
-            implements_trait(cx, arg, asref_def_id, &[path_ty.into()])
-        } else {
-            false
-        }
+    let Some(path_def_id) = cx.tcx.get_diagnostic_item(sym::Path) else {
+        return;
     };
+    let path_ty_kind = ty::Adt(cx.tcx.adt_def(path_def_id), List::empty());
+    let path_ty = cx.tcx.mk_ty_from_kind(path_ty_kind);
+    let Some(asref_def_id) = cx.tcx.get_diagnostic_item(sym::AsRef) else {
+        return;
+    };
+
+    let implements_asref_path = |arg| implements_trait(cx, arg, asref_def_id, &[path_ty.into()]);
 
     if let ty::FnDef(..) | ty::FnPtr(..) = type_definition.kind() {
         let parameters = type_definition.fn_sig(cx.tcx).skip_binder().inputs();
