@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::match_qpath;
 use clippy_utils::ty::implements_trait;
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
@@ -79,8 +80,11 @@ fn check_arguments<'tcx>(
     if let ty::FnDef(..) | ty::FnPtr(..) = type_definition.kind() {
         let parameters = type_definition.fn_sig(cx.tcx).skip_binder().inputs();
         for (argument, parameter) in iter::zip(arguments, parameters) {
-            // if implements_asref_path(argument) &&
             if let ExprKind::Call(path_new, path_new_arg) = argument.kind
+                && let ExprKind::Path(ref path_new_qpath) = path_new.kind
+                && match_qpath(path_new_qpath, &["path", "Path", "new"])
+                // I guess this check is superfluous,
+                // since we know how many parameters `Path::new` takes
                 && path_new_arg.len() == 1
                 && implements_asref_path(&path_new_arg[0])
                 && let ty::Ref(_, _, Mutability::Not) | ty::RawPtr(_, Mutability::Not) = parameter.kind()
