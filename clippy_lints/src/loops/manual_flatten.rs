@@ -39,6 +39,9 @@ pub(super) fn check<'tcx>(
         && !is_local_used(cx, if_then, pat_hir_id)
         && msrv.meets(cx, msrvs::ITER_FLATTEN)
     {
+        if arg.span.from_expansion() || if_then.span.from_expansion() {
+            return;
+        }
         let if_let_type = if some_ctor { "Some" } else { "Ok" };
         // Prepare the error message
         let msg =

@@ -91,6 +91,32 @@ fn main() {
         println!("{}", n);
     }
 
+    macro_rules! inner {
+        ($id:ident / $new:pat => $action:expr) => {
+            if let Some($new) = $id {
+                $action;
+            }
+        };
+    }
+
+    // Usage of `if let` expression with macro should not trigger lint
+    for ab in [Some((1, 2)), Some((3, 4))] {
+        inner!(ab / (c, d) => println!("{c}-{d}"));
+    }
+
+    macro_rules! args {
+        ($($arg:expr),*) => {
+            vec![$(Some($arg)),*]
+        };
+    }
+
+    // Usage of `if let` expression with macro should not trigger lint
+    for n in args!(1, 2, 3) {
+        if let Some(n) = n {
+            println!("{:?}", n);
+        }
+    }
+
     run_unformatted_tests();
 }
 
