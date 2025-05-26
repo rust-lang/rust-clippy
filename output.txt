@@ -1,0 +1,102 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running `target/debug/clippy_dev lint /Users/barun511/open_source/clippy-examples/src/main.rs`
+   Compiling clippy_lints v0.1.89 (/Users/barun511/open_source/rust-clippy/clippy_lints)
+error[E0423]: expected function, tuple struct or tuple variant, found enum `Option`
+   --> clippy_lints/src/ifs_as_logical_ops.rs:41:17
+    |
+41  |                 Option(cond.span),
+    |                 ^^^^^^
+    |
+    = help: you might have meant to construct the enum's non-tuple variant
+note: these items exist but are inaccessible
+   --> clippy_lints/src/len_zero.rs:321:5
+    |
+321 |     Option(DefId),
+    |     ^^^^^^^^^^^^^ `crate::len_zero::LenOutput::Option`: not accessible
+    |
+   ::: clippy_lints/src/question_mark.rs:320:5
+    |
+320 |     Option,
+    |     ^^^^^^ `crate::question_mark::TryMode::Option`: not accessible
+    |
+   ::: clippy_lints/src/unwrap.rs:84:5
+    |
+84  |     Option,
+    |     ^^^^^^ `crate::unwrap::UnwrappableKind::Option`: not accessible
+help: try to construct one of the enum's variants
+    |
+41  -                 Option(cond.span),
+41  +                 std::option::Option::Some(cond.span),
+    |
+help: consider importing one of these items instead
+    |
+1   + use clippy_utils::sym::Option;
+    |
+1   + use rustc_hir::LangItem::Option;
+    |
+1   + use rustc_middle::ty::lang_items::TraitSolverLangItem::Option;
+    |
+1   + use rustc_span::sym::Option;
+    |
+      and 1 other candidate
+
+warning: unnecessary qualification
+  --> clippy_lints/src/ifs_as_logical_ops.rs:27:57
+   |
+27 |     fn check_expr(&mut self, cx: &EarlyContext<'_>, e: &rustc_ast::Expr) {
+   |                                                         ^^^^^^^^^^^^^^^
+   |
+note: the lint level is defined here
+  --> clippy_lints/src/lib.rs:27:5
+   |
+27 |     unused_qualifications,
+   |     ^^^^^^^^^^^^^^^^^^^^^
+help: remove the unnecessary path segments
+   |
+27 -     fn check_expr(&mut self, cx: &EarlyContext<'_>, e: &rustc_ast::Expr) {
+27 +     fn check_expr(&mut self, cx: &EarlyContext<'_>, e: &Expr) {
+   |
+
+error[E0308]: mismatched types
+  --> clippy_lints/src/ifs_as_logical_ops.rs:31:20
+   |
+31 |             && let StmtKind::Expr(els_expr) = stmt
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^   ---- this expression has type `&rustc_ast::Stmt`
+   |                    |
+   |                    expected `Stmt`, found `StmtKind`
+
+error[E0308]: mismatched types
+  --> clippy_lints/src/ifs_as_logical_ops.rs:32:20
+   |
+32 |             && let ExprKind::Lit(lit) = els_expr
+   |                    ^^^^^^^^^^^^^^^^^^   -------- this expression has type `&P<rustc_ast::Expr>`
+   |                    |
+   |                    expected `P<Expr>`, found `ExprKind`
+   |
+   = note: expected struct `P<rustc_ast::Expr>`
+                found enum `rustc_ast::ExprKind`
+
+error[E0308]: mismatched types
+  --> clippy_lints/src/ifs_as_logical_ops.rs:33:20
+   |
+33 |             && let LitKind::Bool(value) = lit
+   |                    ^^^^^^^^^^^^^^^^^^^^   --- this expression has type `&rustc_ast::token::Lit`
+   |                    |
+   |                    expected `Lit`, found `LitKind`
+
+error[E0277]: can't compare `&bool` with `bool`
+  --> clippy_lints/src/ifs_as_logical_ops.rs:34:22
+   |
+34 |             && value == false
+   |                      ^^ no implementation for `&bool == bool`
+   |
+   = help: the trait `std::cmp::PartialEq<bool>` is not implemented for `&bool`
+help: consider dereferencing here
+   |
+34 |             && *value == false
+   |                +
+
+Some errors have detailed explanations: E0277, E0308, E0423.
+For more information about an error, try `rustc --explain E0277`.
+warning: `clippy_lints` (lib) generated 1 warning
+error: could not compile `clippy_lints` (lib) due to 5 previous errors; 1 warning emitted
