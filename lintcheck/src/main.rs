@@ -143,7 +143,7 @@ impl Crate {
             cmd = Command::new("cargo");
         }
 
-        cmd.arg(if config.fix { "fix" } else { "check" })
+        cmd.args(if config.fix { &["fix", "--allow-no-vcs", "--allow-dirty"][..] } else { &["check"][..] })
             .arg("--quiet")
             .current_dir(&self.path)
             .env("CLIPPY_ARGS", clippy_args.join("__CLIPPY_HACKERY__"))
@@ -417,11 +417,6 @@ fn lintcheck(config: LintcheckConfig) {
         let server_clippy_entries = server.warnings().map(ClippyCheckOutput::ClippyWarning);
 
         clippy_entries.extend(server_clippy_entries);
-    }
-
-    // if we are in --fix mode, don't change the log files, terminate here
-    if config.fix {
-        return;
     }
 
     // split up warnings and ices
