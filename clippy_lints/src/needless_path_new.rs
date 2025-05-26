@@ -74,12 +74,13 @@ fn check_arguments<'tcx>(
     name: &str,
     fn_kind: &str,
 ) {
+    let tcx = cx.tcx;
     // whether `func` is `Path::new`
     let is_path_new = |func: &Expr<'_>| {
         if let ExprKind::Path(ref qpath) = func.kind
             && let QPath::TypeRelative(ty, path) = qpath
             && let Some(did) = path_res(cx, *ty).opt_def_id()
-            && cx.tcx.is_diagnostic_item(sym::Path, did)
+            && tcx.is_diagnostic_item(sym::Path, did)
             && path.ident.name == sym::new
         {
             true
@@ -88,19 +89,19 @@ fn check_arguments<'tcx>(
         }
     };
 
-    let Some(path_def_id) = cx.tcx.get_diagnostic_item(sym::Path) else {
+    let Some(path_def_id) = tcx.get_diagnostic_item(sym::Path) else {
         return;
     };
-    let path_ty_kind = ty::Adt(cx.tcx.adt_def(path_def_id), List::empty());
-    let path_ty = cx.tcx.mk_ty_from_kind(path_ty_kind);
-    let Some(asref_def_id) = cx.tcx.get_diagnostic_item(sym::AsRef) else {
+    let path_ty_kind = ty::Adt(tcx.adt_def(path_def_id), List::empty());
+    let path_ty = tcx.mk_ty_from_kind(path_ty_kind);
+    let Some(asref_def_id) = tcx.get_diagnostic_item(sym::AsRef) else {
         return;
     };
 
     let implements_asref_path = |arg| implements_trait(cx, arg, asref_def_id, &[path_ty.into()]);
 
     if let ty::FnDef(..) | ty::FnPtr(..) = type_definition.kind() {
-        let parameters = type_definition.fn_sig(cx.tcx).skip_binder().inputs();
+        let parameters = type_definition.fn_sig(tcx).skip_binder().inputs();
         for (argument, parameter) in iter::zip(arguments, parameters) {
             // we want `argument` to be `Path::new(x)`, which has one arg, x
             if let ExprKind::Call(func, [arg]) = argument.kind
