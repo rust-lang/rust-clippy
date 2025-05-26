@@ -117,6 +117,12 @@ fn main() {
         }
     }
 
+    // This should trigger the lint, but the applicability is `MaybeIncorrect`
+    let z = vec![Some(1), Some(2), Some(3)];
+    for n in z.into_iter().flatten() {
+        println!("{:?}", n);
+    }
+
     run_unformatted_tests();
 }
 

@@ -202,7 +202,32 @@ LL +     }
    |
 
 error: unnecessary `if let` since only the `Some` variant of the iterator element is used
-  --> tests/ui/manual_flatten.rs:158:5
+  --> tests/ui/manual_flatten.rs:154:5
+   |
+LL | /     for n in z {
+LL | |
+LL | |
+LL | |         if let Some(n) = n {
+...  |
+LL | |     }
+   | |_____^
+   |
+help: try `.flatten()` and remove the `if let` statement in the for loop
+  --> tests/ui/manual_flatten.rs:157:9
+   |
+LL | /         if let Some(n) = n {
+LL | |             println!("{:?}", n);
+LL | |         }
+   | |_________^
+help: try
+   |
+LL ~     for n in z.into_iter().flatten() {
+LL +         println!("{:?}", n);
+LL +     }
+   |
+
+error: unnecessary `if let` since only the `Some` variant of the iterator element is used
+  --> tests/ui/manual_flatten.rs:169:5
    |
 LL | /     for n in vec![
 LL | |
@@ -213,7 +238,7 @@ LL | |     }
    | |_____^
    |
 help: try `.flatten()` and remove the `if let` statement in the for loop
-  --> tests/ui/manual_flatten.rs:165:9
+  --> tests/ui/manual_flatten.rs:176:9
    |
 LL | /         if let Some(n) = n {
 LL | |             println!("{:?}", n);
@@ -229,5 +254,5 @@ LL +         println!("{:?}", n);
 LL +     }
    |
 
-error: aborting due to 9 previous errors
+error: aborting due to 10 previous errors
 
