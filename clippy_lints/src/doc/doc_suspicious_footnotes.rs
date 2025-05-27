@@ -3,6 +3,7 @@ use rustc_ast::token::CommentKind;
 use rustc_errors::Applicability;
 use rustc_hir::{AttrStyle, Attribute};
 use rustc_lint::{LateContext, LintContext};
+use rustc_resolve::rustdoc::DocFragmentKind;
 
 use std::ops::Range;
 
@@ -15,26 +16,24 @@ pub fn check(cx: &LateContext<'_>, doc: &str, range: Range<usize>, fragments: &F
         .filter_map(|(i, c)| if c == b'[' { Some(i) } else { None })
     {
         let start = i + range.start;
-        let mut this_fragment_start = start;
         if doc.as_bytes().get(start + 1) == Some(&b'^')
             && let Some(end) = all_numbers_upto_brace(doc, start + 2)
             && doc.as_bytes().get(end) != Some(&b':')
             && doc.as_bytes().get(start - 1) != Some(&b'\\')
-            && let Some(this_fragment) = fragments
-                .fragments
-                .iter()
-                .find(|frag| {
-                    let found = this_fragment_start < frag.doc.as_str().len();
-                    if !found {
-                        this_fragment_start -= frag.doc.as_str().len();
+            && let Some(this_fragment) = {
+                // the `doc` string contains all fragments concatenated together
+                // figure out which one this suspicious footnote comes from
+                let mut starting_position = 0;
+                let mut found_fragment = fragments.fragments.last();
+                for fragment in fragments.fragments {
+                    if start >= starting_position && start < starting_position + fragment.doc.as_str().len() {
+                        found_fragment = Some(fragment);
+                        break;
                     }
-                    found
-                })
-                .or(fragments.fragments.last())
-            && let Some((last_doc_attr, (last_doc_attr_str, last_doc_attr_comment_kind))) = attrs
-                .iter()
-                .rev()
-                .find_map(|attr| Some((attr, attr.doc_str_and_comment_kind()?)))
+                    starting_position += fragment.doc.as_str().len();
+                }
+                found_fragment
+            }
         {
             let span = fragments.span(cx, start..end).unwrap_or(this_fragment.span);
             span_lint_and_then(
@@ -43,15 +42,21 @@ pub fn check(cx: &LateContext<'_>, doc: &str, range: Range<usize>, fragments: &F
                 span,
                 "looks like a footnote ref, but has no matching footnote",
                 |diag| {
-                    if last_doc_attr.is_doc_comment() {
-                        let (to_add, terminator) = match (last_doc_attr_comment_kind, last_doc_attr.style()) {
+                    if this_fragment.kind == DocFragmentKind::SugaredDoc {
+                        let (doc_attr, (_, doc_attr_comment_kind)) = attrs
+                            .iter()
+                            .filter(|attr| attr.span().overlaps(this_fragment.span))
+                            .rev()
+                            .find_map(|attr| Some((attr, attr.doc_str_and_comment_kind()?)))
+                            .unwrap();
+                        let (to_add, terminator) = match (doc_attr_comment_kind, doc_attr.style()) {
                             (CommentKind::Line, AttrStyle::Outer) => ("\n///\n/// ", ""),
                             (CommentKind::Line, AttrStyle::Inner) => ("\n//!\n//! ", ""),
                             (CommentKind::Block, AttrStyle::Outer) => ("\n/** ", " */"),
                             (CommentKind::Block, AttrStyle::Inner) => ("\n/*! ", " */"),
                         };
                         diag.span_suggestion_verbose(
-                            last_doc_attr.span().shrink_to_hi(),
+                            doc_attr.span().shrink_to_hi(),
                             "add footnote definition",
                             format!(
                                 "{to_add}{label}: <!-- description -->{terminator}",
@@ -82,7 +87,7 @@ pub fn check(cx: &LateContext<'_>, doc: &str, range: Range<usize>, fragments: &F
                                 "add footnote definition",
                                 format!(
                                     "r#\"{doc}\n\n{label}: <!-- description -->\"#",
-                                    doc = last_doc_attr_str,
+                                    doc = this_fragment.doc,
                                     label = &doc[start..end],
                                 ),
                                 Applicability::HasPlaceholders,

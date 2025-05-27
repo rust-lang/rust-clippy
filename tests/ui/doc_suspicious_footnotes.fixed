@@ -1,6 +1,8 @@
 #![warn(clippy::doc_suspicious_footnotes)]
 #![allow(clippy::needless_raw_string_hashes)]
 //! This is not a footnote[^1].
+//!
+//! [^1]: <!-- description -->
 //~^ doc_suspicious_footnotes
 //!
 //! This is not a footnote[^either], but it doesn't warn.
@@ -14,10 +16,10 @@
 //! This is a footnote[^2].
 //!
 //! [^2]: hello world
-//!
-//! [^1]: <!-- description -->
 
 /// This is not a footnote[^1].
+///
+/// [^1]: <!-- description -->
 //~^ doc_suspicious_footnotes
 ///
 /// This is not a footnote[^either], but it doesn't warn.
@@ -31,8 +33,6 @@
 /// This is a footnote[^2].
 ///
 /// [^2]: hello world
-///
-/// [^1]: <!-- description -->
 pub fn footnotes() {
     // test code goes here
 }
@@ -40,7 +40,7 @@ pub fn footnotes() {
 pub struct Foo;
 #[rustfmt::skip]
 impl Foo {
-    #[doc = r#"[^2]: hello world
+    #[doc = r#"This is not a footnote[^1].
 
 [^1]: <!-- description -->"#]
     //~^ doc_suspicious_footnotes
@@ -100,7 +100,7 @@ This is not a footnote[^either], but it doesn't warn.
     }
 }
 
-#[doc = r#"[^2]: hello world
+#[doc = r#"This is not a footnote[^1].
 
 [^1]: <!-- description -->"#]
 //~^ doc_suspicious_footnotes
@@ -147,3 +147,40 @@ pub mod multiline {
 /** [^1]: <!-- description --> */
     pub fn foo() {}
 }
+
+/// This is not a footnote [^1]
+///
+/// [^1]: <!-- description -->
+//~^ doc_suspicious_footnotes
+///
+/// This one is [^2]
+///
+/// [^2]: contents
+#[doc = r#"This is not a footnote [^3]
+
+[^3]: <!-- description -->"#]
+//~^ doc_suspicious_footnotes
+#[doc = ""]
+#[doc = "This one is [^4]"]
+#[doc = ""]
+#[doc = "[^4]: contents"]
+pub struct MultiFragmentFootnote;
+
+#[doc(inline)]
+/// This is not a footnote [^5]
+///
+/// [^5]: <!-- description -->
+//~^ doc_suspicious_footnotes
+///
+/// This one is [^6]
+///
+/// [^6]: contents
+#[doc = r#"This is not a footnote [^7]
+
+[^7]: <!-- description -->"#]
+//~^ doc_suspicious_footnotes
+#[doc = ""]
+#[doc = "This one is [^8]"]
+#[doc = ""]
+#[doc = "[^8]: contents"]
+pub use MultiFragmentFootnote as OtherInlinedFootnote;

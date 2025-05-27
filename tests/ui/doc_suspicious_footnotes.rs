@@ -131,3 +131,32 @@ pub mod multiline {
      */
     pub fn foo() {}
 }
+
+/// This is not a footnote [^1]
+//~^ doc_suspicious_footnotes
+///
+/// This one is [^2]
+///
+/// [^2]: contents
+#[doc = "This is not a footnote [^3]"]
+//~^ doc_suspicious_footnotes
+#[doc = ""]
+#[doc = "This one is [^4]"]
+#[doc = ""]
+#[doc = "[^4]: contents"]
+pub struct MultiFragmentFootnote;
+
+#[doc(inline)]
+/// This is not a footnote [^5]
+//~^ doc_suspicious_footnotes
+///
+/// This one is [^6]
+///
+/// [^6]: contents
+#[doc = "This is not a footnote [^7]"]
+//~^ doc_suspicious_footnotes
+#[doc = ""]
+#[doc = "This one is [^8]"]
+#[doc = ""]
+#[doc = "[^8]: contents"]
+pub use MultiFragmentFootnote as OtherInlinedFootnote;
