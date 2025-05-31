@@ -324,6 +324,7 @@ mod ref_option_ref;
 mod ref_patterns;
 mod reference;
 mod regex;
+mod relative_path_in_macro_definition;
 mod repeat_vec_with_capacity;
 mod reserve_after_initialization;
 mod return_self_not_must_use;
@@ -946,5 +947,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(single_option_map::SingleOptionMap));
     store.register_late_pass(move |_| Box::new(redundant_test_prefix::RedundantTestPrefix));
     store.register_late_pass(|_| Box::new(cloned_ref_to_slice_refs::ClonedRefToSliceRefs::new(conf)));
+    store.register_early_pass(|| Box::new(relative_path_in_macro_definition::RelativePathInMacroDefinition));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }

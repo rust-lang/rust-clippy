@@ -1,5 +1,5 @@
 error: casts from `u8` to `u16` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:8:5
+  --> tests/ui/cast_lossless_integer.rs:9:5
    |
 LL |     0u8 as u16;
    |     ^^^^^^^^^^
@@ -14,7 +14,7 @@ LL +     u16::from(0u8);
    |
 
 error: casts from `u8` to `i16` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:11:5
+  --> tests/ui/cast_lossless_integer.rs:12:5
    |
 LL |     0u8 as i16;
    |     ^^^^^^^^^^
@@ -27,7 +27,7 @@ LL +     i16::from(0u8);
    |
 
 error: casts from `u8` to `u32` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:14:5
+  --> tests/ui/cast_lossless_integer.rs:15:5
    |
 LL |     0u8 as u32;
    |     ^^^^^^^^^^
@@ -40,7 +40,7 @@ LL +     u32::from(0u8);
    |
 
 error: casts from `u8` to `i32` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:17:5
+  --> tests/ui/cast_lossless_integer.rs:18:5
    |
 LL |     0u8 as i32;
    |     ^^^^^^^^^^
@@ -53,7 +53,7 @@ LL +     i32::from(0u8);
    |
 
 error: casts from `u8` to `u64` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:20:5
+  --> tests/ui/cast_lossless_integer.rs:21:5
    |
 LL |     0u8 as u64;
    |     ^^^^^^^^^^
@@ -66,7 +66,7 @@ LL +     u64::from(0u8);
    |
 
 error: casts from `u8` to `i64` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:23:5
+  --> tests/ui/cast_lossless_integer.rs:24:5
    |
 LL |     0u8 as i64;
    |     ^^^^^^^^^^
@@ -79,7 +79,7 @@ LL +     i64::from(0u8);
    |
 
 error: casts from `u8` to `u128` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:26:5
+  --> tests/ui/cast_lossless_integer.rs:27:5
    |
 LL |     0u8 as u128;
    |     ^^^^^^^^^^^
@@ -92,7 +92,7 @@ LL +     u128::from(0u8);
    |
 
 error: casts from `u8` to `i128` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:29:5
+  --> tests/ui/cast_lossless_integer.rs:30:5
    |
 LL |     0u8 as i128;
    |     ^^^^^^^^^^^
@@ -105,7 +105,7 @@ LL +     i128::from(0u8);
    |
 
 error: casts from `u16` to `u32` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:32:5
+  --> tests/ui/cast_lossless_integer.rs:33:5
    |
 LL |     0u16 as u32;
    |     ^^^^^^^^^^^
@@ -118,7 +118,7 @@ LL +     u32::from(0u16);
    |
 
 error: casts from `u16` to `i32` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:35:5
+  --> tests/ui/cast_lossless_integer.rs:36:5
    |
 LL |     0u16 as i32;
    |     ^^^^^^^^^^^
@@ -131,7 +131,7 @@ LL +     i32::from(0u16);
    |
 
 error: casts from `u16` to `u64` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:38:5
+  --> tests/ui/cast_lossless_integer.rs:39:5
    |
 LL |     0u16 as u64;
    |     ^^^^^^^^^^^
@@ -144,7 +144,7 @@ LL +     u64::from(0u16);
    |
 
 error: casts from `u16` to `i64` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:41:5
+  --> tests/ui/cast_lossless_integer.rs:42:5
    |
 LL |     0u16 as i64;
    |     ^^^^^^^^^^^
@@ -157,7 +157,7 @@ LL +     i64::from(0u16);
    |
 
 error: casts from `u16` to `u128` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:44:5
+  --> tests/ui/cast_lossless_integer.rs:45:5
    |
 LL |     0u16 as u128;
    |     ^^^^^^^^^^^^
@@ -170,7 +170,7 @@ LL +     u128::from(0u16);
    |
 
 error: casts from `u16` to `i128` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:47:5
+  --> tests/ui/cast_lossless_integer.rs:48:5
    |
 LL |     0u16 as i128;
    |     ^^^^^^^^^^^^
@@ -183,7 +183,7 @@ LL +     i128::from(0u16);
    |
 
 error: casts from `u32` to `u64` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:50:5
+  --> tests/ui/cast_lossless_integer.rs:51:5
    |
 LL |     0u32 as u64;
    |     ^^^^^^^^^^^
@@ -196,7 +196,7 @@ LL +     u64::from(0u32);
    |
 
 error: casts from `u32` to `i64` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:53:5
+  --> tests/ui/cast_lossless_integer.rs:54:5
    |
 LL |     0u32 as i64;
    |     ^^^^^^^^^^^
@@ -209,7 +209,7 @@ LL +     i64::from(0u32);
    |
 
 error: casts from `u32` to `u128` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:56:5
+  --> tests/ui/cast_lossless_integer.rs:57:5
    |
 LL |     0u32 as u128;
    |     ^^^^^^^^^^^^
@@ -222,7 +222,7 @@ LL +     u128::from(0u32);
    |
 
 error: casts from `u32` to `i128` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:59:5
+  --> tests/ui/cast_lossless_integer.rs:60:5
    |
 LL |     0u32 as i128;
    |     ^^^^^^^^^^^^
@@ -235,7 +235,7 @@ LL +     i128::from(0u32);
    |
 
 error: casts from `u64` to `u128` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:62:5
+  --> tests/ui/cast_lossless_integer.rs:63:5
    |
 LL |     0u64 as u128;
    |     ^^^^^^^^^^^^
@@ -248,7 +248,7 @@ LL +     u128::from(0u64);
    |
 
 error: casts from `u64` to `i128` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:65:5
+  --> tests/ui/cast_lossless_integer.rs:66:5
    |
 LL |     0u64 as i128;
    |     ^^^^^^^^^^^^
@@ -261,7 +261,7 @@ LL +     i128::from(0u64);
    |
 
 error: casts from `i8` to `i16` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:68:5
+  --> tests/ui/cast_lossless_integer.rs:69:5
    |
 LL |     0i8 as i16;
    |     ^^^^^^^^^^
@@ -274,7 +274,7 @@ LL +     i16::from(0i8);
    |
 
 error: casts from `i8` to `i32` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:71:5
+  --> tests/ui/cast_lossless_integer.rs:72:5
    |
 LL |     0i8 as i32;
    |     ^^^^^^^^^^
@@ -287,7 +287,7 @@ LL +     i32::from(0i8);
    |
 
 error: casts from `i8` to `i64` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:74:5
+  --> tests/ui/cast_lossless_integer.rs:75:5
    |
 LL |     0i8 as i64;
    |     ^^^^^^^^^^
@@ -300,7 +300,7 @@ LL +     i64::from(0i8);
    |
 
 error: casts from `i8` to `i128` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:77:5
+  --> tests/ui/cast_lossless_integer.rs:78:5
    |
 LL |     0i8 as i128;
    |     ^^^^^^^^^^^
@@ -313,7 +313,7 @@ LL +     i128::from(0i8);
    |
 
 error: casts from `i16` to `i32` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:80:5
+  --> tests/ui/cast_lossless_integer.rs:81:5
    |
 LL |     0i16 as i32;
    |     ^^^^^^^^^^^
@@ -326,7 +326,7 @@ LL +     i32::from(0i16);
    |
 
 error: casts from `i16` to `i64` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:83:5
+  --> tests/ui/cast_lossless_integer.rs:84:5
    |
 LL |     0i16 as i64;
    |     ^^^^^^^^^^^
@@ -339,7 +339,7 @@ LL +     i64::from(0i16);
    |
 
 error: casts from `i16` to `i128` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:86:5
+  --> tests/ui/cast_lossless_integer.rs:87:5
    |
 LL |     0i16 as i128;
    |     ^^^^^^^^^^^^
@@ -352,7 +352,7 @@ LL +     i128::from(0i16);
    |
 
 error: casts from `i32` to `i64` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:89:5
+  --> tests/ui/cast_lossless_integer.rs:90:5
    |
 LL |     0i32 as i64;
    |     ^^^^^^^^^^^
@@ -365,7 +365,7 @@ LL +     i64::from(0i32);
    |
 
 error: casts from `i32` to `i128` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:92:5
+  --> tests/ui/cast_lossless_integer.rs:93:5
    |
 LL |     0i32 as i128;
    |     ^^^^^^^^^^^^
@@ -378,7 +378,7 @@ LL +     i128::from(0i32);
    |
 
 error: casts from `i64` to `i128` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:95:5
+  --> tests/ui/cast_lossless_integer.rs:96:5
    |
 LL |     0i64 as i128;
    |     ^^^^^^^^^^^^
@@ -391,7 +391,7 @@ LL +     i128::from(0i64);
    |
 
 error: casts from `u8` to `u16` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:99:13
+  --> tests/ui/cast_lossless_integer.rs:100:13
    |
 LL |     let _ = (1u8 + 1u8) as u16;
    |             ^^^^^^^^^^^^^^^^^^
@@ -404,7 +404,7 @@ LL +     let _ = u16::from(1u8 + 1u8);
    |
 
 error: casts from `i8` to `i64` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:102:13
+  --> tests/ui/cast_lossless_integer.rs:103:13
    |
 LL |     let _ = 1i8 as I64Alias;
    |             ^^^^^^^^^^^^^^^
@@ -417,7 +417,7 @@ LL +     let _ = I64Alias::from(1i8);
    |
 
 error: casts from `u8` to `u16` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:105:18
+  --> tests/ui/cast_lossless_integer.rs:106:18
    |
 LL |     let _: u16 = 0u8 as _;
    |                  ^^^^^^^^
@@ -430,7 +430,7 @@ LL +     let _: u16 = 0u8.into();
    |
 
 error: casts from `i8` to `i16` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:108:18
+  --> tests/ui/cast_lossless_integer.rs:109:18
    |
 LL |     let _: i16 = -1i8 as _;
    |                  ^^^^^^^^^
@@ -443,7 +443,7 @@ LL +     let _: i16 = (-1i8).into();
    |
 
 error: casts from `u8` to `u16` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:111:18
+  --> tests/ui/cast_lossless_integer.rs:112:18
    |
 LL |     let _: u16 = (1u8 + 2) as _;
    |                  ^^^^^^^^^^^^^^
@@ -456,7 +456,7 @@ LL +     let _: u16 = (1u8 + 2).into();
    |
 
 error: casts from `u16` to `u32` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:114:18
+  --> tests/ui/cast_lossless_integer.rs:115:18
    |
 LL |     let _: u32 = 1i8 as u16 as _;
    |                  ^^^^^^^^^^^^^^^
@@ -469,7 +469,7 @@ LL +     let _: u32 = (1i8 as u16).into();
    |
 
 error: casts from `i8` to `i32` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:149:13
+  --> tests/ui/cast_lossless_integer.rs:150:13
    |
 LL |     let _ = sign_cast!(x, u8, i8) as i32;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -482,7 +482,7 @@ LL +     let _ = i32::from(sign_cast!(x, u8, i8));
    |
 
 error: casts from `i8` to `i32` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:152:13
+  --> tests/ui/cast_lossless_integer.rs:153:13
    |
 LL |     let _ = (sign_cast!(x, u8, i8) + 1) as i32;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -495,7 +495,7 @@ LL +     let _ = i32::from(sign_cast!(x, u8, i8) + 1);
    |
 
 error: casts from `u8` to `u32` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:159:13
+  --> tests/ui/cast_lossless_integer.rs:160:13
    |
 LL |             1u8 as u32
    |             ^^^^^^^^^^
@@ -512,7 +512,7 @@ LL +             u32::from(1u8)
    |
 
 error: casts from `u8` to `u32` can be expressed infallibly using `From`
-  --> tests/ui/cast_lossless_integer.rs:174:13
+  --> tests/ui/cast_lossless_integer.rs:175:13
    |
 LL |     let _ = 0u8 as ty!();
    |             ^^^^^^^^^^^^

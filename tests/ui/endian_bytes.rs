@@ -1,5 +1,5 @@
 #![allow(unused)]
-#![allow(clippy::diverging_sub_expression)]
+#![allow(clippy::diverging_sub_expression, clippy::relative_path_in_macro_definition)]
 #![no_main]
 
 // FIXME(f16_f128): add these types when `{to_from}_*_bytes` are available

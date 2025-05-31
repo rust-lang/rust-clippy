@@ -1,4 +1,5 @@
 #![warn(clippy::incompatible_msrv)]
+#![allow(clippy::relative_path_in_macro_definition)]
 #![feature(custom_inner_attributes)]
 #![feature(panic_internals)]
 #![clippy::msrv = "1.3.0"]

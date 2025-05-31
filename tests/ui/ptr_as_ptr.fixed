@@ -1,5 +1,5 @@
 //@aux-build:proc_macros.rs
-
+#![allow(clippy::relative_path_in_macro_definition)]
 #![warn(clippy::ptr_as_ptr)]
 
 #[macro_use]

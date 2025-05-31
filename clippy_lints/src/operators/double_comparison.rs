@@ -1,3 +1,5 @@
+#![allow(clippy::relative_path_in_macro_definition)]
+
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::eq_expr_value;
 use clippy_utils::source::snippet_with_applicability;

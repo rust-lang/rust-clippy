@@ -1,3 +1,5 @@
+#![allow(clippy::relative_path_in_macro_definition)]
+
 use crate::ty::needs_ordered_drop;
 use crate::{get_enclosing_block, path_to_local_id};
 use core::ops::ControlFlow;

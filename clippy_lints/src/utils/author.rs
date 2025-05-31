@@ -1,3 +1,5 @@
+#![allow(clippy::relative_path_in_macro_definition)]
+
 use clippy_utils::{MaybePath, get_attr, higher, path_def_id, sym};
 use itertools::Itertools;
 use rustc_ast::LitIntType;

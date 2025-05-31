@@ -1,5 +1,6 @@
 //@aux-build:proc_macros.rs
 #![warn(clippy::mem_replace_with_default)]
+#![allow(clippy::relative_path_in_macro_definition)]
 
 extern crate proc_macros;
 use proc_macros::{external, inline_macros};

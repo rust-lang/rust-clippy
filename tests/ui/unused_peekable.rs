@@ -1,5 +1,5 @@
 #![warn(clippy::unused_peekable)]
-#![allow(clippy::no_effect)]
+#![allow(clippy::no_effect, clippy::relative_path_in_macro_definition)]
 
 use std::iter::{Empty, Peekable};
 

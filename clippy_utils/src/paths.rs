@@ -3,6 +3,7 @@
 //!
 //! Whenever possible, please consider diagnostic items over hardcoded paths.
 //! See <https://github.com/rust-lang/rust-clippy/issues/5393> for more information.
+#![allow(clippy::relative_path_in_macro_definition)]
 
 use crate::{MaybePath, path_def_id, sym};
 use rustc_ast::Mutability;

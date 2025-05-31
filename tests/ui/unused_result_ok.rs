@@ -1,6 +1,7 @@
 //@aux-build:proc_macros.rs
 #![warn(clippy::unused_result_ok)]
 #![allow(dead_code)]
+#![allow(clippy::relative_path_in_macro_definition)]
 
 #[macro_use]
 extern crate proc_macros;

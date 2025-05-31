@@ -2,7 +2,7 @@
 #![feature(decl_macro)]
 #![warn(clippy::macro_metavars_in_unsafe)]
 #![allow(clippy::no_effect, clippy::not_unsafe_ptr_arg_deref)]
-
+#![allow(clippy::relative_path_in_macro_definition)]
 #[macro_export]
 macro_rules! allow_works {
     ($v:expr) => {

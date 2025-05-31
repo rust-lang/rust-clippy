@@ -1,7 +1,7 @@
 //@no-rustfix
 //@require-annotations-for-level: WARN
 //@aux-build:proc_macros.rs
-#![allow(clippy::no_effect, deprecated, unused)]
+#![allow(clippy::no_effect, clippy::relative_path_in_macro_definition, deprecated, unused)]
 #![warn(clippy::legacy_numeric_constants)]
 
 #[macro_use]

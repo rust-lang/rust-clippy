@@ -1,5 +1,9 @@
 #![warn(clippy::box_default)]
-#![allow(clippy::boxed_local, clippy::default_constructed_unit_structs)]
+#![allow(
+    clippy::boxed_local,
+    clippy::default_constructed_unit_structs,
+    clippy::relative_path_in_macro_definition
+)]
 
 #[derive(Default)]
 struct ImplementsDefault;

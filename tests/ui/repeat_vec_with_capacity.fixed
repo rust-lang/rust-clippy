@@ -1,4 +1,7 @@
-#![allow(clippy::map_with_unused_argument_over_ranges)]
+#![allow(
+    clippy::relative_path_in_macro_definition,
+    clippy::map_with_unused_argument_over_ranges
+)]
 #![warn(clippy::repeat_vec_with_capacity)]
 
 fn main() {

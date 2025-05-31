@@ -1,6 +1,6 @@
 //@ check-pass
-
 #![expect(clippy::disallowed_names)]
+#![allow(clippy::relative_path_in_macro_definition)]
 
 // Test for https://github.com/rust-lang/rust-clippy/issues/3462
 

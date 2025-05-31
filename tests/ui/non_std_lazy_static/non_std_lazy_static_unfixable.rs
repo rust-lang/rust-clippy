@@ -3,6 +3,7 @@
 //@no-rustfix
 
 #![warn(clippy::non_std_lazy_statics)]
+#![allow(clippy::relative_path_in_macro_definition)]
 #![allow(static_mut_refs)]
 
 mod once_cell_lazy {

@@ -1,7 +1,7 @@
 //@aux-build:proc_macros.rs
 //@require-annotations-for-level: WARN
 #![allow(clippy::no_effect, deprecated, unused)]
-#![allow(clippy::legacy_numeric_constants)] // For imports.
+#![allow(clippy::legacy_numeric_constants, clippy::relative_path_in_macro_definition)] // For imports.
 
 #[macro_use]
 extern crate proc_macros;

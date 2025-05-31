@@ -1,5 +1,6 @@
 // This file is managed by `cargo dev rename_lint` and `cargo dev deprecate_lint`.
 // Prefer to use those when possible.
+#![allow(clippy::relative_path_in_macro_definition)]
 
 macro_rules! declare_with_version {
     ($name:ident($name_version:ident) = [$(

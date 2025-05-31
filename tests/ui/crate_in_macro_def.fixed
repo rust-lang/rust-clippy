@@ -1,4 +1,5 @@
 #![warn(clippy::crate_in_macro_def)]
+#![allow(clippy::relative_path_in_macro_definition)]
 
 mod hygienic {
     #[macro_export]

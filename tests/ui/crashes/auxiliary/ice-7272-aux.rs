@@ -1,3 +1,5 @@
+#![allow(clippy::relative_path_in_macro_definition)]
+
 pub fn warn<T>(_: T) {}
 
 macro_rules! define_macro {

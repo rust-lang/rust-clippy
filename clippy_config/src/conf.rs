@@ -1,3 +1,5 @@
+#![allow(clippy::relative_path_in_macro_definition)]
+
 use crate::ClippyConfiguration;
 use crate::types::{
     DisallowedPath, DisallowedPathWithoutReplacement, MacroMatcher, MatchLintBehaviour, PubUnderscoreFieldsBehaviour,
