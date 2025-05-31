@@ -1,8 +1,8 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::source::{IntoSpan as _, SpanRangeExt, snippet, snippet_block, snippet_block_with_applicability};
-use clippy_utils::span_contains_non_comment;
+use clippy_utils::source::{IntoSpan as _, SpanRangeExt, snippet, snippet_block_with_applicability};
+use clippy_utils::span_contains_non_whitespace;
 use rustc_ast::BinOpKind;
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, Stmt, StmtKind};
@@ -91,14 +91,12 @@ impl CollapsibleIf {
         }
     }
 
-    fn check_collapsible_else_if(cx: &LateContext<'_>, then_span: Span, else_block: &Block<'_>) {
-        if !block_starts_with_comment(cx, else_block)
-            && let Some(else_) = expr_block(else_block)
+    fn check_collapsible_else_if(&self, cx: &LateContext<'_>, then_span: Span, else_block: &Block<'_>) {
+        if let Some(else_) = expr_block(else_block)
             && cx.tcx.hir_attrs(else_.hir_id).is_empty()
             && !else_.span.from_expansion()
             && let ExprKind::If(..) = else_.kind
-            && let up_to_if = else_block.span.until(else_.span)
-            && !span_contains_non_comment(cx, up_to_if.with_lo(BytePos(up_to_if.lo().0 + 1)))
+            && !block_starts_with_significant_tokens(cx, else_block, else_, self.lint_commented_code)
         {
             // Prevent "elseif"
             // Check that the "else" is followed by whitespace
@@ -133,7 +131,7 @@ impl CollapsibleIf {
             && self.eligible_condition(cx, check_inner)
             && let ctxt = expr.span.ctxt()
             && inner.span.ctxt() == ctxt
-            && (self.lint_commented_code || !block_starts_with_comment(cx, then))
+            && !block_starts_with_significant_tokens(cx, then, inner, self.lint_commented_code)
         {
             span_lint_and_then(
                 cx,
@@ -182,7 +180,7 @@ impl LateLintPass<'_> for CollapsibleIf {
             if let Some(else_) = else_
                 && let ExprKind::Block(else_, None) = else_.kind
             {
-                Self::check_collapsible_else_if(cx, then.span, else_);
+                self.check_collapsible_else_if(cx, then.span, else_);
             } else if else_.is_none()
                 && self.eligible_condition(cx, cond)
                 && let ExprKind::Block(then, None) = then.kind
@@ -193,12 +191,16 @@ impl LateLintPass<'_> for CollapsibleIf {
     }
 }
 
-fn block_starts_with_comment(cx: &LateContext<'_>, block: &Block<'_>) -> bool {
-    // We trim all opening braces and whitespaces and then check if the next string is a comment.
-    let trimmed_block_text = snippet_block(cx, block.span, "..", None)
-        .trim_start_matches(|c: char| c.is_whitespace() || c == '{')
-        .to_owned();
-    trimmed_block_text.starts_with("//") || trimmed_block_text.starts_with("/*")
+// Check that nothing significant can be found but whitespaces between the initial `{` of `block`
+// and the beginning of `stop_at`.
+fn block_starts_with_significant_tokens(
+    cx: &LateContext<'_>,
+    block: &Block<'_>,
+    stop_at: &Expr<'_>,
+    lint_commented_code: bool,
+) -> bool {
+    let span = block.span.split_at(1).1.until(stop_at.span);
+    span_contains_non_whitespace(cx, span, lint_commented_code)
 }
 
 /// If `block` is a block with either one expression or a statement containing an expression,
