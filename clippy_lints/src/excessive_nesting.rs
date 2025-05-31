@@ -12,8 +12,6 @@ declare_clippy_lint! {
     /// ### What it does
     /// Checks for blocks which are nested beyond a certain threshold.
     ///
-    /// Note: Even though this lint is warn-by-default, it will only trigger if a maximum nesting level is defined in the clippy.toml file.
-    ///
     /// ### Why is this bad?
     /// It can severely hinder readability.
     ///
@@ -58,7 +56,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.72.0"]
     pub EXCESSIVE_NESTING,
-    complexity,
+    pedantic,
     "checks for blocks nested beyond a certain threshold"
 }
 impl_lint_pass!(ExcessiveNesting => [EXCESSIVE_NESTING]);
@@ -92,10 +90,6 @@ impl ExcessiveNesting {
 
 impl EarlyLintPass for ExcessiveNesting {
     fn check_crate(&mut self, cx: &EarlyContext<'_>, krate: &Crate) {
-        if self.excessive_nesting_threshold == 0 {
-            return;
-        }
-
         let mut visitor = NestingVisitor {
             conf: self,
             cx,

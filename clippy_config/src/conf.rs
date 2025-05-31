@@ -631,7 +631,7 @@ define_Conf! {
     enum_variant_size_threshold: u64 = 200,
     /// The maximum amount of nesting a block can reside in
     #[lints(excessive_nesting)]
-    excessive_nesting_threshold: u64 = 0,
+    excessive_nesting_threshold: u64 = 6,
     /// The maximum byte size a `Future` can have, before it triggers the `clippy::large_futures` lint
     #[lints(large_futures)]
     future_size_threshold: u64 = 16 * 1024,

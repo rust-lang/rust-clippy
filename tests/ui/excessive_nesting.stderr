@@ -1,0 +1,49 @@
+error: this block is too nested
+  --> tests/ui/excessive_nesting.rs:20:33
+   |
+LL |                         let f = { 42 };
+   |                                 ^^^^^^
+   |
+   = help: try refactoring your code to minimize nesting
+   = note: `-D clippy::excessive-nesting` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::excessive_nesting)]`
+
+error: this block is too nested
+  --> tests/ui/excessive_nesting.rs:39:33
+   |
+LL |                           let u = {
+   |  _________________________________^
+LL | |
+LL | |                             let t = { 42 };
+LL | |                             t
+LL | |                         };
+   | |_________________________^
+   |
+   = help: try refactoring your code to minimize nesting
+
+error: this block is too nested
+  --> tests/ui/excessive_nesting.rs:67:33
+   |
+LL |                           if true {
+   |  _________________________________^
+LL | |
+LL | |                             let x = { 1 };
+LL | |                         }
+   | |_________________________^
+   |
+   = help: try refactoring your code to minimize nesting
+
+error: this block is too nested
+  --> tests/ui/excessive_nesting.rs:87:33
+   |
+LL |                           if true {
+   |  _________________________________^
+LL | |
+LL | |                             let x = { 1 };
+LL | |                         }
+   | |_________________________^
+   |
+   = help: try refactoring your code to minimize nesting
+
+error: aborting due to 4 previous errors
+
