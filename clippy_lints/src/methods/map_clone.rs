@@ -1,3 +1,4 @@
+use super::implicit_clone::is_clone_like;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::snippet_with_applicability;
@@ -8,8 +9,8 @@ use rustc_hir::def_id::DefId;
 use rustc_hir::{self as hir, LangItem};
 use rustc_lint::LateContext;
 use rustc_middle::mir::Mutability;
-use rustc_middle::ty;
 use rustc_middle::ty::adjustment::Adjust;
+use rustc_middle::ty::{self, Ty};
 use rustc_span::symbol::Ident;
 use rustc_span::{Span, sym};
 
@@ -67,22 +68,29 @@ pub(super) fn check(cx: &LateContext<'_>, e: &hir::Expr<'_>, recv: &hir::Expr<'_
                                 }
                             },
                             hir::ExprKind::MethodCall(method, obj, [], _) => {
-                                if ident_eq(name, obj) && method.ident.name == sym::clone
+                                if ident_eq(name, obj)
                                 && let Some(fn_id) = cx.typeck_results().type_dependent_def_id(closure_expr.hir_id)
-                                && let Some(trait_id) = cx.tcx.trait_of_item(fn_id)
-                                && cx.tcx.lang_items().clone_trait() == Some(trait_id)
+                                && (is_clone(cx, method.ident.name, fn_id)
+                                    || is_clone_like(cx, method.ident.name, fn_id))
                                 // no autoderefs
                                 && !cx.typeck_results().expr_adjustments(obj).iter()
                                     .any(|a| matches!(a.kind, Adjust::Deref(Some(..))))
+                                && let obj_ty = cx.typeck_results().expr_ty_adjusted(obj)
+                                && let ty::Ref(_, ty, Mutability::Not) = obj_ty.kind()
+                                // Verify that the method call's output type is the same as its input type. This is to
+                                // avoid cases like `to_string` being called on a `&str`, or `to_vec` being called on a
+                                // slice.
+                                && *ty == cx.typeck_results().expr_ty_adjusted(closure_expr)
                                 {
-                                    let obj_ty = cx.typeck_results().expr_ty(obj);
-                                    if let ty::Ref(_, ty, mutability) = obj_ty.kind() {
-                                        if matches!(mutability, Mutability::Not) {
-                                            let copy = is_copy(cx, *ty);
-                                            lint_explicit_closure(cx, e.span, recv.span, copy, msrv);
-                                        }
+                                    let obj_ty_unadjusted = cx.typeck_results().expr_ty(obj);
+                                    if obj_ty == obj_ty_unadjusted {
+                                        let copy = is_copy(cx, *ty);
+                                        lint_explicit_closure(cx, e.span, recv.span, copy, msrv);
                                     } else {
-                                        lint_needless_cloning(cx, e.span, recv.span);
+                                        // To avoid issue #6299, ensure `obj` is not a mutable reference.
+                                        if !matches!(obj_ty_unadjusted.kind(), ty::Ref(_, _, Mutability::Mut)) {
+                                            lint_needless_cloning(cx, e.span, recv.span);
+                                        }
                                     }
                                 }
                             },
@@ -105,6 +113,17 @@ pub(super) fn check(cx: &LateContext<'_>, e: &hir::Expr<'_>, recv: &hir::Expr<'_
     }
 }
 
+fn is_clone(cx: &LateContext<'_>, method: rustc_span::Symbol, fn_id: DefId) -> bool {
+    if method == sym::clone
+        && let Some(trait_id) = cx.tcx.trait_of_item(fn_id)
+        && cx.tcx.lang_items().clone_trait() == Some(trait_id)
+    {
+        true
+    } else {
+        false
+    }
+}
+
 fn handle_path(
     cx: &LateContext<'_>,
     arg: &hir::Expr<'_>,
@@ -112,19 +131,44 @@ fn handle_path(
     e: &hir::Expr<'_>,
     recv: &hir::Expr<'_>,
 ) {
+    let method = || match qpath {
+        hir::QPath::TypeRelative(_, method) => Some(method),
+        _ => None,
+    };
     if let Some(path_def_id) = cx.qpath_res(qpath, arg.hir_id).opt_def_id()
-        && cx.tcx.lang_items().get(LangItem::CloneFn) == Some(path_def_id)
+        && (cx.tcx.lang_items().get(LangItem::CloneFn) == Some(path_def_id)
+            || method().is_some_and(|method| is_clone_like(cx, method.ident.name, path_def_id)))
         // The `copied` and `cloned` methods are only available on `&T` and `&mut T` in `Option`
         // and `Result`.
-        && let ty::Adt(_, args) = cx.typeck_results().expr_ty(recv).kind()
-        && let args = args.as_slice()
-        && let Some(ty) = args.iter().find_map(|generic_arg| generic_arg.as_type())
-        && let ty::Ref(_, ty, Mutability::Not) = ty.kind()
-        && let ty::FnDef(_, lst) = cx.typeck_results().expr_ty(arg).kind()
-        && lst.iter().all(|l| l.as_type() == Some(*ty))
-        && !should_call_clone_as_function(cx, *ty)
+        // Previously, `handle_path` would make this determination by checking whether `recv`'s type
+        // was instantiated with a reference. However, that approach can produce false negatives.
+        // Consider `std::slice::Iter`, for example. Even if it is instantiated with a non-reference
+        // type, its `map` method will expect a function that operates on references.
+        && let Some(ty) = clone_like_referent(cx, arg)
+        && !should_call_clone_as_function(cx, ty)
     {
         lint_path(cx, e.span, recv.span, is_copy(cx, ty.peel_refs()));
+    }
+}
+
+/// Determine whether `expr` is function whose input type is `&T` and whose output type is `T`. If
+/// so, return `T`.
+fn clone_like_referent<'tcx>(cx: &LateContext<'tcx>, expr: &hir::Expr<'_>) -> Option<Ty<'tcx>> {
+    let ty = cx.typeck_results().expr_ty_adjusted(expr);
+    if let ty::FnDef(def_id, generic_args) = ty.kind()
+        && let tys = cx
+            .tcx
+            .fn_sig(def_id)
+            .instantiate(cx.tcx, generic_args)
+            .skip_binder()
+            .inputs_and_output
+        && let [input_ty, output_ty] = tys.as_slice()
+        && let ty::Ref(_, referent_ty, Mutability::Not) = input_ty.kind()
+        && referent_ty == output_ty
+    {
+        Some(*referent_ty)
+    } else {
+        None
     }
 }
 
