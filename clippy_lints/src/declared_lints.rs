@@ -631,6 +631,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::rc_clone_in_vec_init::RC_CLONE_IN_VEC_INIT_INFO,
     crate::read_zero_byte_vec::READ_ZERO_BYTE_VEC_INFO,
     crate::redundant_async_block::REDUNDANT_ASYNC_BLOCK_INFO,
+    crate::redundant_box::REDUNDANT_BOX_INFO,
     crate::redundant_clone::REDUNDANT_CLONE_INFO,
     crate::redundant_closure_call::REDUNDANT_CLOSURE_CALL_INFO,
     crate::redundant_else::REDUNDANT_ELSE_INFO,
