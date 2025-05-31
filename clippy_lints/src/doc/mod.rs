@@ -25,6 +25,7 @@ use std::ops::Range;
 use url::Url;
 
 mod doc_comment_double_space_linebreaks;
+mod doc_suspicious_footnotes;
 mod include_in_doc_without_cfg;
 mod lazy_continuation;
 mod link_with_quotes;
@@ -607,6 +608,43 @@ declare_clippy_lint! {
     "double-space used for doc comment linebreak instead of `\\`"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Detects syntax that looks like a footnote reference,
+    /// because it matches the regexp `\[\^[0-9]+\]`,
+    /// but has no referent.
+    ///
+    /// Rustdoc footnotes are compatible with GitHub-Flavored Markdown (GFM).
+    /// They are not parsed as footnotes unless a definition also exists,
+    /// so they usually "do what you mean" if you want to write the text
+    /// literally—usually in a regular expression.
+    ///
+    /// However, footnote references are usually numbers, and regex
+    /// negative character classes usually contain other characters, so this
+    /// lint can make a practical guess for which is meant.
+    ///
+    /// ### Why is this bad?
+    /// This probably means that a footnote was meant to exist,
+    /// but was not written.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// /// This is not a footnote[^1], because no definition exists.
+    /// fn my_fn() {}
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// /// This is a footnote[^1].
+    /// ///
+    /// /// [^1]: defined here
+    /// fn my_fn() {}
+    /// ```
+    #[clippy::version = "1.88.0"]
+    pub DOC_SUSPICIOUS_FOOTNOTES,
+    suspicious,
+    "looks like a link or footnote ref, but with no definition"
+}
+
 pub struct Documentation {
     valid_idents: FxHashSet<String>,
     check_private_items: bool,
@@ -638,7 +676,8 @@ impl_lint_pass!(Documentation => [
     DOC_OVERINDENTED_LIST_ITEMS,
     TOO_LONG_FIRST_DOC_PARAGRAPH,
     DOC_INCLUDE_WITHOUT_CFG,
-    DOC_COMMENT_DOUBLE_SPACE_LINEBREAKS
+    DOC_COMMENT_DOUBLE_SPACE_LINEBREAKS,
+    DOC_SUSPICIOUS_FOOTNOTES,
 ]);
 
 impl EarlyLintPass for Documentation {
@@ -825,6 +864,7 @@ fn check_attrs(cx: &LateContext<'_>, valid_idents: &FxHashSet<String>, attrs: &[
             doc: &doc,
             fragments: &fragments,
         },
+        attrs,
     ))
 }
 
@@ -905,6 +945,7 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
     events: Events,
     doc: &str,
     fragments: Fragments<'_>,
+    attrs: &[Attribute],
 ) -> DocHeaders {
     // true if a safety header was found
     let mut headers = DocHeaders::default();
@@ -1148,7 +1189,8 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
                         // Don't check the text associated with external URLs
                         continue;
                     }
-                    text_to_check.push((text, range, code_level));
+                    text_to_check.push((text, range.clone(), code_level));
+                    doc_suspicious_footnotes::check(cx, doc, range, &fragments, attrs);
                 }
             }
             FootnoteReference(_) => {}
