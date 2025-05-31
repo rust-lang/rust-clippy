@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::{SpanRangeExt, indent_of, reindent_multiline};
 use clippy_utils::sugg::Sugg;
+use clippy_utils::ty::expr_type_is_certain;
 use clippy_utils::{is_expr_default, is_from_proc_macro};
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, MatchSource, Node, StmtKind};
@@ -111,7 +112,7 @@ fn lint_unit_args<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, args_to_
             let arg_snippets_without_redundant_exprs: Vec<_> = args_to_recover
                 .iter()
                 .filter(|arg| !is_expr_default_nested(cx, arg) && (arg.span.from_expansion() || !is_empty_block(arg)))
-                .filter_map(|arg| get_expr_snippet(cx, arg))
+                .filter_map(|arg| get_expr_snippet_with_type_certainty(cx, arg))
                 .collect();
 
             if let Some(call_snippet) = expr.span.get_source_text(cx) {
@@ -160,6 +161,20 @@ fn is_expr_default_nested<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) 
         if block.expr.is_some() && is_expr_default_nested(cx, block.expr.unwrap()))
 }
 
+enum MaybeTypeUncertain<'tcx> {
+    Certain(Sugg<'tcx>),
+    Uncertain(Sugg<'tcx>),
+}
+
+impl ToString for MaybeTypeUncertain<'_> {
+    fn to_string(&self) -> String {
+        match self {
+            MaybeTypeUncertain::Certain(sugg) => sugg.to_string(),
+            MaybeTypeUncertain::Uncertain(sugg) => format!("let _: () = {}", sugg),
+        }
+    }
+}
+
 fn get_expr_snippet<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> Option<Sugg<'tcx>> {
     let mut app = Applicability::MachineApplicable;
     let snip = Sugg::hir_with_context(cx, expr, SyntaxContext::root(), "..", &mut app);
@@ -168,6 +183,25 @@ fn get_expr_snippet<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> Opt
     }
 
     Some(snip)
+}
+
+fn get_expr_snippet_with_type_certainty<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'tcx>,
+) -> Option<MaybeTypeUncertain<'tcx>> {
+    get_expr_snippet(cx, expr).map(|snip| {
+        // If the type of the expression is certain, we can use it directly.
+        // Otherwise, we wrap it in a `let _: () = ...` to ensure the type is correct.
+        if !expr_type_is_certain(cx, expr) && !is_block_with_no_expr(expr) {
+            MaybeTypeUncertain::Uncertain(snip)
+        } else {
+            MaybeTypeUncertain::Certain(snip)
+        }
+    })
+}
+
+fn is_block_with_no_expr(expr: &Expr<'_>) -> bool {
+    matches!(expr.kind, ExprKind::Block(Block { expr: None, .. }, _))
 }
 
 fn is_empty_block(expr: &Expr<'_>) -> bool {
@@ -189,7 +223,7 @@ fn fmt_stmts_and_call(
     call_expr: &Expr<'_>,
     call_snippet: &str,
     args_snippets: &[Sugg<'_>],
-    non_empty_block_args_snippets: &[Sugg<'_>],
+    non_empty_block_args_snippets: &[MaybeTypeUncertain<'_>],
 ) -> String {
     let call_expr_indent = indent_of(cx, call_expr.span).unwrap_or(0);
     let call_snippet_with_replacements = args_snippets.iter().fold(call_snippet.to_owned(), |acc, arg| {
