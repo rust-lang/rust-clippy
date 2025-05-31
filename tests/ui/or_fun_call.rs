@@ -409,4 +409,34 @@ fn fn_call_in_nested_expr() {
     //~^ or_fun_call
 }
 
+mod msrv_tests {
+    #[clippy::msrv = "1.15"]
+    fn test_option_below_msrv() {
+        let opt = Some(1);
+        let _ = opt.unwrap_or(0);
+        //~^ unwrap_or_default
+    }
+
+    #[clippy::msrv = "1.15"]
+    fn test_result_below_msrv() {
+        let res: Result<i32, ()> = Ok(1);
+        let _ = res.unwrap_or(0);
+        //~^ or_fun_call
+    }
+
+    #[clippy::msrv = "1.16"]
+    fn test_option_above_msrv() {
+        let opt = Some(1);
+        let _ = opt.unwrap_or(0);
+        //~^ unwrap_or_default
+    }
+
+    #[clippy::msrv = "1.16"]
+    fn test_result_above_msrv() {
+        let res: Result<i32, ()> = Ok(1);
+        let _ = res.unwrap_or(0);
+        //~^ unwrap_or_default
+    }
+}
+
 fn main() {}

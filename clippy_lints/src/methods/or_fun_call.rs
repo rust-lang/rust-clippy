@@ -45,8 +45,9 @@ pub(super) fn check<'tcx>(
         method_span: Span,
         msrv: Msrv,
     ) -> bool {
-        // Don't suggest unwrap_or_default if MSRV is less than 1.16
-        if !msrv.meets(cx, msrvs::STR_REPEAT) {
+        // Only check MSRV for Result type
+        let receiver_ty = cx.typeck_results().expr_ty_adjusted(receiver).peel_refs();
+        if is_type_diagnostic_item(cx, receiver_ty, sym::Result) && !msrv.meets(cx, msrvs::RESULT_UNWRAP_OR_DEFAULT) {
             return false;
         }
 
