@@ -5,9 +5,10 @@
     clippy::needless_lifetimes,
     clippy::owned_cow,
     clippy::ptr_arg,
+    clippy::redundant_clone,
     clippy::uninlined_format_args
 )]
-#![warn(clippy::unnecessary_to_owned, clippy::redundant_clone)]
+#![warn(clippy::unnecessary_to_owned)]
 
 use std::borrow::Cow;
 use std::ffi::{CStr, CString, OsStr, OsString};
@@ -216,15 +217,10 @@ fn main() {
 
     // The following should be flagged by `redundant_clone`, but not by this lint.
     require_c_str(&CString::from_vec_with_nul(vec![0]).unwrap().to_owned());
-    //~^ redundant_clone
     require_os_str(&OsString::from("x").to_os_string());
-    //~^ redundant_clone
     require_path(&std::path::PathBuf::from("x").to_path_buf());
-    //~^ redundant_clone
     require_str(&String::from("x").to_string());
-    //~^ redundant_clone
     require_slice(&[String::from("x")].to_owned());
-    //~^ redundant_clone
 
     let slice = [0u8; 1024];
     let _ref_str: &str = &String::from_utf8(slice.to_vec()).expect("not UTF-8");
