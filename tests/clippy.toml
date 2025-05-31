@@ -1,2 +1,5 @@
 # default config for tests, overrides clippy.toml at the project root
 lint-commented-code = false
+
+# override the default length of variables to test the configuration
+max-variable-name-length = 50
