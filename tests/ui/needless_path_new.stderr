@@ -1,0 +1,23 @@
+error: the expression enclosed in `Path::new` implements `AsRef<Path>`
+  --> tests/ui/needless_path_new.rs:11:15
+   |
+LL |     fs::write(Path::new("foo.txt"), "foo");
+   |               ^^^^^^^^^^^^^^^^^^^^ help: remove the enclosing `Path::new`: `"foo.txt"`
+   |
+   = note: `-D clippy::needless-path-new` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::needless_path_new)]`
+
+error: the expression enclosed in `Path::new` implements `AsRef<Path>`
+  --> tests/ui/needless_path_new.rs:14:9
+   |
+LL |         Path::new("foo"),
+   |         ^^^^^^^^^^^^^^^^ help: remove the enclosing `Path::new`: `"foo"`
+
+error: the expression enclosed in `Path::new` implements `AsRef<Path>`
+  --> tests/ui/needless_path_new.rs:15:9
+   |
+LL |         Path::new("bar"),
+   |         ^^^^^^^^^^^^^^^^ help: remove the enclosing `Path::new`: `"bar"`
+
+error: aborting due to 3 previous errors
+
