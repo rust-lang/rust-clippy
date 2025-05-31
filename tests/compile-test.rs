@@ -528,7 +528,7 @@ impl Flag for DiagnosticCollector {
 #[derive(Debug)]
 struct LintMetadata {
     id: String,
-    id_location: Option<&'static str>,
+    id_location: Option<String>,
     group: &'static str,
     level: &'static str,
     docs: String,
@@ -567,11 +567,11 @@ impl LintMetadata {
         }
         Self {
             id: name,
-            id_location: Some(lint.location),
+            id_location: Some(lint.location_github()),
             group: lint.category_str(),
             level: lint.lint.default_level.as_str(),
             docs,
-            version: lint.version.unwrap(),
+            version: lint.version,
             applicability,
         }
     }
