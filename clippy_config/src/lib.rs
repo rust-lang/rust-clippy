@@ -13,6 +13,8 @@
     rustc::untranslatable_diagnostic
 )]
 #![deny(clippy::derive_deserialize_allowing_unknown)]
+#![allow(clippy::excessive_nesting)]
+#![warn(clippy::pedantic)]
 
 extern crate rustc_data_structures;
 extern crate rustc_errors;

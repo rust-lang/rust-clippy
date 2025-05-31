@@ -1,3 +1,4 @@
+#![allow(clippy::excessive_nesting)]
 #![feature(rustc_private)]
 #![allow(
     clippy::missing_docs_in_private_items,

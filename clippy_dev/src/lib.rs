@@ -1,3 +1,4 @@
+#![allow(clippy::excessive_nesting)]
 #![feature(
     rustc_private,
     exit_status_error,

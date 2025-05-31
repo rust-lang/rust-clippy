@@ -1,3 +1,4 @@
+#![allow(clippy::excessive_nesting)]
 #![feature(rustc_private)]
 #![warn(rust_2018_idioms, unused_lifetimes)]
 #![allow(unused_extern_crates)]
