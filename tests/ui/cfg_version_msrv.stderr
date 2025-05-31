@@ -1,0 +1,47 @@
+error: current MSRV (Minimum Supported Rust Version) is `1.50.0` but this item is stable since `1.84.0`
+  --> tests/ui/cfg_version_msrv.rs:5:15
+   |
+LL |     let _ = i.isqrt();
+   |               ^^^^^^^
+   |
+   = note: `-D clippy::incompatible-msrv` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::incompatible_msrv)]`
+
+error: current MSRV (Minimum Supported Rust Version) is `1.49.0` but this item is stable since `1.84.0`
+  --> tests/ui/cfg_version_msrv.rs:10:15
+   |
+LL |     let _ = i.isqrt();
+   |               ^^^^^^^
+
+error: current MSRV (Minimum Supported Rust Version) is `1.59.0` but this item is stable since `1.84.0`
+  --> tests/ui/cfg_version_msrv.rs:13:15
+   |
+LL |     let _ = i.isqrt();
+   |               ^^^^^^^
+
+error: current MSRV (Minimum Supported Rust Version) is `1.50.0` but this item is stable since `1.84.0`
+  --> tests/ui/cfg_version_msrv.rs:20:15
+   |
+LL |     let _ = i.isqrt();
+   |               ^^^^^^^
+
+error: current MSRV (Minimum Supported Rust Version) is `1.50.0` but this item is stable since `1.84.0`
+  --> tests/ui/cfg_version_msrv.rs:23:15
+   |
+LL |     let _ = i.isqrt();
+   |               ^^^^^^^
+
+error: current MSRV (Minimum Supported Rust Version) is `1.50.0` but this item is stable since `1.84.0`
+  --> tests/ui/cfg_version_msrv.rs:31:15
+   |
+LL |     let _ = i.isqrt();
+   |               ^^^^^^^
+
+error: current MSRV (Minimum Supported Rust Version) is `1.40.0` but this item is stable since `1.84.0`
+  --> tests/ui/cfg_version_msrv.rs:38:15
+   |
+LL |     let _ = i.isqrt();
+   |               ^^^^^^^
+
+error: aborting due to 7 previous errors
+

@@ -13,6 +13,8 @@ fn outer_attr() {}
 mod multiple {
     #![clippy::msrv = "1.40"]
     #![clippy::msrv = "=1.35.0"]
+    //~^ ERROR: `clippy::msrv` is defined multiple times
+    //~| ERROR: `=1.35.0` is not a valid Rust version
     #![clippy::msrv = "1.10.1"]
     //~^ ERROR: `clippy::msrv` is defined multiple times
 

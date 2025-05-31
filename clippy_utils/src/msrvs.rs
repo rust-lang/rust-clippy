@@ -1,6 +1,6 @@
 use crate::sym;
-use rustc_ast::Attribute;
 use rustc_ast::attr::AttributeExt;
+use rustc_ast::{Attribute, LitKind, MetaItem, MetaItemInner};
 use rustc_attr_data_structures::RustcVersion;
 use rustc_attr_parsing::parse_version;
 use rustc_lint::LateContext;
@@ -186,27 +186,67 @@ impl MsrvStack {
 }
 
 fn parse_attrs(sess: &Session, attrs: &[impl AttributeExt]) -> Option<RustcVersion> {
-    let mut msrv_attrs = attrs.iter().filter(|attr| attr.path_matches(&[sym::clippy, sym::msrv]));
-
-    if let Some(msrv_attr) = msrv_attrs.next() {
-        if let Some(duplicate) = msrv_attrs.next_back() {
-            sess.dcx()
-                .struct_span_err(duplicate.span(), "`clippy::msrv` is defined multiple times")
-                .with_span_note(msrv_attr.span(), "first definition found here")
-                .emit();
-        }
-
-        if let Some(msrv) = msrv_attr.value_str() {
-            if let Some(version) = parse_version(msrv) {
-                return Some(version);
+    let mut first_clippy_attr = None;
+    let mut clippy_msrv = None;
+    let mut cfg_version = None;
+    for attr in attrs {
+        if attr.path_matches(&[sym::clippy, sym::msrv]) {
+            match first_clippy_attr {
+                None => first_clippy_attr = Some(attr),
+                Some(first) => {
+                    sess.dcx()
+                        .struct_span_err(attr.span(), "`clippy::msrv` is defined multiple times")
+                        .with_span_note(first.span(), "first definition found here")
+                        .emit();
+                },
             }
 
-            sess.dcx()
-                .span_err(msrv_attr.span(), format!("`{msrv}` is not a valid Rust version"));
-        } else {
-            sess.dcx().span_err(msrv_attr.span(), "bad clippy attribute");
+            if let Some(msrv) = attr.value_str() {
+                if let Some(version) = parse_version(msrv) {
+                    clippy_msrv = Some(version);
+                } else {
+                    sess.dcx()
+                        .span_err(attr.span(), format!("`{msrv}` is not a valid Rust version"));
+                }
+            } else {
+                sess.dcx().span_err(attr.span(), "bad clippy attribute");
+            }
+        } else if matches!(attr.name(), Some(sym::cfg | sym::cfg_trace)) // cfg in early passes, cfg_trace in late
+            && let Some(list) = attr.meta_item_list()
+            && let [MetaItemInner::MetaItem(meta_item)] = list.as_slice()
+        {
+            parse_cfg_version(&mut cfg_version, meta_item, false);
         }
     }
 
-    None
+    clippy_msrv.or(cfg_version)
+}
+
+fn parse_cfg_version(current: &mut Option<RustcVersion>, meta_item: &MetaItem, mut negated: bool) {
+    let Some(name) = meta_item.name() else { return };
+    match name {
+        sym::version => {
+            if !negated
+                && let Some([MetaItemInner::Lit(lit)]) = meta_item.meta_item_list()
+                && let LitKind::Str(s, _) = lit.kind
+                && let Some(version) = parse_version(s)
+            {
+                match current {
+                    Some(current) => *current = version.min(*current),
+                    None => *current = Some(version),
+                }
+            }
+        },
+        sym::any | sym::all | sym::not => {
+            if name == sym::not {
+                negated = !negated;
+            }
+            for inner in meta_item.meta_item_list().into_iter().flatten() {
+                if let Some(inner_meta_item) = inner.meta_item() {
+                    parse_cfg_version(current, inner_meta_item, negated);
+                }
+            }
+        },
+        _ => {},
+    }
 }
