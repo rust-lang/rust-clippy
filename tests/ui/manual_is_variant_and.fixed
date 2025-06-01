@@ -1,5 +1,6 @@
 //@aux-build:option_helpers.rs
 #![warn(clippy::manual_is_variant_and)]
+#![allow(clippy::disallowed_names)]
 
 #[macro_use]
 extern crate option_helpers;

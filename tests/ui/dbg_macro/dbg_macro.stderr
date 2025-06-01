@@ -231,7 +231,7 @@ LL +         print!("{}", s);
    |
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui/dbg_macro/dbg_macro.rs:138:36
+  --> tests/ui/dbg_macro/dbg_macro.rs:139:36
    |
 LL |         takes_async_fn(async |val| dbg!(val));
    |                                    ^^^^^^^^^
