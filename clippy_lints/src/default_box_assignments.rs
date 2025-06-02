@@ -51,7 +51,7 @@ impl LateLintPass<'_> for DefaultBoxAssignments {
                     cx,
                     DEFAULT_BOX_ASSIGNMENTS,
                     expr.span,
-                    "assigning `Default::default()` to `Box<T>`",
+                    "creating a new box with default content",
                     |diag| {
                         let mut app = Applicability::MachineApplicable;
                         let suggestion = format!(
@@ -61,7 +61,7 @@ impl LateLintPass<'_> for DefaultBoxAssignments {
 
                         diag.note("this creates a needless allocation").span_suggestion(
                             expr.span,
-                            "assign to the inner value",
+                            "replace existing content with default instead",
                             suggestion,
                             app,
                         );

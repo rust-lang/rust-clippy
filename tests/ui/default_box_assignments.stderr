@@ -1,18 +1,18 @@
-error: assigning `Default::default()` to `Box<T>`
+error: creating a new box with default content
   --> tests/ui/default_box_assignments.rs:11:5
    |
 LL |     b = Default::default();
-   |     ^^^^^^^^^^^^^^^^^^^^^^ help: assign to the inner value: `*b = Default::default()`
+   |     ^^^^^^^^^^^^^^^^^^^^^^ help: replace existing content with default instead: `*b = Default::default()`
    |
    = note: this creates a needless allocation
    = note: `-D clippy::default-box-assignments` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::default_box_assignments)]`
 
-error: assigning `Default::default()` to `Box<T>`
+error: creating a new box with default content
   --> tests/ui/default_box_assignments.rs:13:5
    |
 LL |     b = Box::default();
-   |     ^^^^^^^^^^^^^^^^^^ help: assign to the inner value: `*b = Default::default()`
+   |     ^^^^^^^^^^^^^^^^^^ help: replace existing content with default instead: `*b = Default::default()`
    |
    = note: this creates a needless allocation
 
