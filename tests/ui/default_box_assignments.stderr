@@ -1,0 +1,20 @@
+error: assigning `Default::default()` to `Box<T>`
+  --> tests/ui/default_box_assignments.rs:5:5
+   |
+LL |     b = Default::default();
+   |     ^^^^^^^^^^^^^^^^^^^^^^ help: assign to the inner value: `*(b) = Default::default()`
+   |
+   = note: this creates a needless allocation
+   = note: `-D clippy::default-box-assignments` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::default_box_assignments)]`
+
+error: assigning `Default::default()` to `Box<T>`
+  --> tests/ui/default_box_assignments.rs:7:5
+   |
+LL |     b = Box::default();
+   |     ^^^^^^^^^^^^^^^^^^ help: assign to the inner value: `*(b) = Default::default()`
+   |
+   = note: this creates a needless allocation
+
+error: aborting due to 2 previous errors
+
