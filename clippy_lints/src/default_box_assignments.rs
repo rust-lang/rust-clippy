@@ -24,6 +24,7 @@ declare_clippy_lint! {
     /// ```
     /// Use instead:
     /// ```no_run
+    /// let mut b = Box::new(1u32);
     /// *b = Default::default();
     /// ```
     #[clippy::version = "1.89.0"]
