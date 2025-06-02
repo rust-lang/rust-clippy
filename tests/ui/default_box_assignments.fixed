@@ -23,4 +23,9 @@ fn main() {
     // No lint for assigning to Box<T> where T: !Default
     let mut b = Box::<str>::from("hi".to_string());
     b = Default::default();
+
+    // No lint for late initializations
+    #[allow(clippy::needless_late_init)]
+    let bb: Box<u32>;
+    bb = Default::default();
 }
