@@ -261,6 +261,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::literal_representation::UNREADABLE_LITERAL_INFO,
     crate::literal_representation::UNUSUAL_BYTE_GROUPINGS_INFO,
     crate::literal_string_with_formatting_args::LITERAL_STRING_WITH_FORMATTING_ARGS_INFO,
+    crate::long_variable_names::LONG_VARIABLE_NAMES_INFO,
     crate::loops::CHAR_INDICES_AS_BYTE_INDICES_INFO,
     crate::loops::EMPTY_LOOP_INFO,
     crate::loops::EXPLICIT_COUNTER_LOOP_INFO,

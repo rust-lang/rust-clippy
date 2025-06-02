@@ -57,6 +57,7 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            max-struct-bools
            max-suggested-slice-pattern-length
            max-trait-bounds
+           max-variable-name-length
            min-ident-chars-threshold
            missing-docs-allow-unused
            missing-docs-in-crate-items
@@ -151,6 +152,7 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            max-struct-bools
            max-suggested-slice-pattern-length
            max-trait-bounds
+           max-variable-name-length
            min-ident-chars-threshold
            missing-docs-allow-unused
            missing-docs-in-crate-items
@@ -245,6 +247,7 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            max-struct-bools
            max-suggested-slice-pattern-length
            max-trait-bounds
+           max-variable-name-length
            min-ident-chars-threshold
            missing-docs-allow-unused
            missing-docs-in-crate-items
