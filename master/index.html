@@ -4795,7 +4795,29 @@ let data = match wrapper {
 let wrapper = Wrapper::Data(42);
 let Wrapper::Data(data) = wrapper;
 </code></pre>
-</div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">pre 1.29.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+infallible_destructuring_match">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/matches/mod.rs#L366">View Source</a></div></div></div></article><article class="panel panel-default" id="infinite_iter"><input id="label-infinite_iter" type="checkbox"><label for="label-infinite_iter"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-infinite_iter"><span>infinite_iter</span> <a href="#infinite_iter" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-correctness">correctness</span> <span class="label label-lint-level label-lint-level-deny">deny</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
+</div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">pre 1.29.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+infallible_destructuring_match">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/matches/mod.rs#L366">View Source</a></div></div></div></article><article class="panel panel-default" id="infallible_try_from"><input id="label-infallible_try_from" type="checkbox"><label for="label-infallible_try_from"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-infallible_try_from"><span>infallible_try_from</span> <a href="#infallible_try_from" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-suspicious">suspicious</span> <span class="label label-lint-level label-lint-level-warn">warn</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
+<p>Finds manual impls of <code>TryFrom</code> with infallible error types.</p>
+<h3>Why is this bad?</h3>
+<p>Infalliable conversions should be implemented via <code>From</code> with the blanket conversion.</p>
+<h3>Example</h3>
+<pre><code class="language-rust">use std::convert::Infallible;
+struct MyStruct(i16);
+impl TryFrom&lt;i16&gt; for MyStruct {
+    type Error = Infallible;
+    fn try_from(other: i16) -&gt; Result&lt;Self, Infallible&gt; {
+        Ok(Self(other.into()))
+    }
+}
+</code></pre>
+<p>Use instead:</p>
+<pre><code class="language-rust">struct MyStruct(i16);
+impl From&lt;i16&gt; for MyStruct {
+    fn from(other: i16) -&gt; Self {
+        Self(other)
+    }
+}
+</code></pre>
+</div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.88.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+infallible_try_from">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/infallible_try_from.rs#L8">View Source</a></div></div></div></article><article class="panel panel-default" id="infinite_iter"><input id="label-infinite_iter" type="checkbox"><label for="label-infinite_iter"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-infinite_iter"><span>infinite_iter</span> <a href="#infinite_iter" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-correctness">correctness</span> <span class="label label-lint-level label-lint-level-deny">deny</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
 <p>Checks for iteration that is guaranteed to be infinite.</p>
 <h3>Why is this bad?</h3>
 <p>While there may be places where this is acceptable
