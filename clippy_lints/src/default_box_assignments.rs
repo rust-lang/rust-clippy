@@ -69,7 +69,7 @@ fn is_box_of_default<'a>(ty: Ty<'a>, cx: &LateContext<'a>) -> bool {
     {
         cx.tcx
             .get_diagnostic_item(sym::Default)
-            .map_or(false, |id| implements_trait(cx, inner, id, &[]))
+            .is_some_and(|id| implements_trait(cx, inner, id, &[]))
     } else {
         false
     }
