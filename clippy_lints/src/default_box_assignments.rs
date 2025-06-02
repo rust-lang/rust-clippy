@@ -38,7 +38,7 @@ impl LateLintPass<'_> for DefaultBoxAssignments {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ Expr<'_>) {
         if let ExprKind::Assign(lhs, rhs, _) = &expr.kind {
             let lhs_ty = cx.typeck_results().expr_ty(lhs);
-            if is_box_of_default(lhs_ty, cx) && is_default_call(rhs, cx) {
+            if is_box_of_default(lhs_ty, cx) && is_default_call(rhs, cx) && !rhs.span.from_expansion() {
                 span_lint_and_then(
                     cx,
                     DEFAULT_BOX_ASSIGNMENTS,

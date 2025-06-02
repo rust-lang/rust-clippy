@@ -1,5 +1,5 @@
 error: assigning `Default::default()` to `Box<T>`
-  --> tests/ui/default_box_assignments.rs:5:5
+  --> tests/ui/default_box_assignments.rs:11:5
    |
 LL |     b = Default::default();
    |     ^^^^^^^^^^^^^^^^^^^^^^ help: assign to the inner value: `*(b) = Default::default()`
@@ -9,7 +9,7 @@ LL |     b = Default::default();
    = help: to override `-D warnings` add `#[allow(clippy::default_box_assignments)]`
 
 error: assigning `Default::default()` to `Box<T>`
-  --> tests/ui/default_box_assignments.rs:7:5
+  --> tests/ui/default_box_assignments.rs:13:5
    |
 LL |     b = Box::default();
    |     ^^^^^^^^^^^^^^^^^^ help: assign to the inner value: `*(b) = Default::default()`
