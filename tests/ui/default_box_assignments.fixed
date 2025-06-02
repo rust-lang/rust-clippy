@@ -8,9 +8,9 @@ macro_rules! create_default {
 
 fn main() {
     let mut b = Box::new(1u32);
-    *(b) = Default::default();
+    *b = Default::default();
     //~^ default_box_assignments
-    *(b) = Default::default();
+    *b = Default::default();
     //~^ default_box_assignments
 
     // No lint for assigning to the storage

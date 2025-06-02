@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_default_equivalent_call;
-use clippy_utils::source::snippet;
+use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::implements_trait;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, LangItem};
@@ -45,13 +45,17 @@ impl LateLintPass<'_> for DefaultBoxAssignments {
                     expr.span,
                     "assigning `Default::default()` to `Box<T>`",
                     |diag| {
-                        let suggestion = format!("*({}) = Default::default()", snippet(cx, lhs.span, "_"));
+                        let mut app = Applicability::MachineApplicable;
+                        let suggestion = format!(
+                            "{} = Default::default()",
+                            Sugg::hir_with_applicability(cx, lhs, "_", &mut app).deref()
+                        );
 
                         diag.note("this creates a needless allocation").span_suggestion(
                             expr.span,
                             "assign to the inner value",
                             suggestion,
-                            Applicability::MaybeIncorrect,
+                            app,
                         );
                     },
                 );
