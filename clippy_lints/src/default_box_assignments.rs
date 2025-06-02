@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::is_default_equivalent_call;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::implements_trait;
+use clippy_utils::{is_default_equivalent_call, local_is_initialized, path_to_local};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, LangItem};
 use rustc_lint::{LateContext, LateLintPass};
@@ -38,6 +38,14 @@ impl LateLintPass<'_> for DefaultBoxAssignments {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ Expr<'_>) {
         if let ExprKind::Assign(lhs, rhs, _) = &expr.kind {
             let lhs_ty = cx.typeck_results().expr_ty(lhs);
+
+            // No diagnostic for late-initialized locals
+            if let Some(local) = path_to_local(lhs)
+                && !local_is_initialized(cx, local)
+            {
+                return;
+            }
+
             if is_box_of_default(cx, lhs_ty) && is_default_call(cx, rhs) && !rhs.span.from_expansion() {
                 span_lint_and_then(
                     cx,
