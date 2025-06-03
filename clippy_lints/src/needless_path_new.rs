@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::path_res;
 use clippy_utils::source::snippet;
+use clippy_utils::{expr_or_init, path_res};
 use rustc_errors::Applicability;
 use rustc_hir::def::{CtorKind, DefKind, Res};
 use rustc_hir::{Expr, ExprKind, QPath};
@@ -59,7 +59,9 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew {
         let (fn_did, args) = match e.kind {
             ExprKind::Call(callee, args)
                 if let Res::Def(DefKind::Fn | DefKind::AssocFn | DefKind::Ctor(_, CtorKind::Fn), did) =
-                    path_res(cx, callee) =>
+                    // re: `expr_or_init`: `callee` might be a variable storing a fn ptr, for example,
+                    // so we need to get to the actual initializer
+                    path_res(cx, expr_or_init(cx, callee)) =>
             {
                 (did, args)
             },
