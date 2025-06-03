@@ -40,16 +40,14 @@ declare_lint_pass!(NeedlessPathNew => [NEEDLESS_PATH_NEW]);
 impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) {
         match e.kind {
-            ExprKind::Call(fn_expr, args) => {
-                if let ExprKind::Path(ref path) = fn_expr.kind {
-                    check_arguments(
-                        cx,
-                        &mut args.iter(),
-                        cx.typeck_results().expr_ty(fn_expr),
-                        &rustc_hir_pretty::qpath_to_string(&cx.tcx, path),
-                        "function",
-                    );
-                }
+            ExprKind::Call(fn_expr, args) if let ExprKind::Path(ref path) = fn_expr.kind => {
+                check_arguments(
+                    cx,
+                    &mut args.iter(),
+                    cx.typeck_results().expr_ty(fn_expr),
+                    &rustc_hir_pretty::qpath_to_string(&cx.tcx, path),
+                    "function",
+                );
             },
             ExprKind::MethodCall(path, receiver, arguments, _)
                 if let Some(def_id) = cx.typeck_results().type_dependent_def_id(e.hir_id) =>
