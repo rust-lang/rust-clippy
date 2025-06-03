@@ -8,19 +8,25 @@ LL |     fs::write(Path::new("foo.txt"), "foo");
    = help: to override `-D warnings` add `#[allow(clippy::needless_path_new)]`
 
 error: the expression enclosed in `Path::new` implements `AsRef<Path>`
-  --> tests/ui/needless_path_new.rs:30:9
-   |
-LL |         Path::new("foo"),
-   |         ^^^^^^^^^^^^^^^^ help: remove the enclosing `Path::new`: `"foo"`
-
-error: the expression enclosed in `Path::new` implements `AsRef<Path>`
   --> tests/ui/needless_path_new.rs:31:9
    |
 LL |         Path::new("bar"),
    |         ^^^^^^^^^^^^^^^^ help: remove the enclosing `Path::new`: `"bar"`
 
 error: the expression enclosed in `Path::new` implements `AsRef<Path>`
+  --> tests/ui/needless_path_new.rs:30:9
+   |
+LL |         Path::new("foo"),
+   |         ^^^^^^^^^^^^^^^^ help: remove the enclosing `Path::new`: `"foo"`
+
+error: the expression enclosed in `Path::new` implements `AsRef<Path>`
   --> tests/ui/needless_path_new.rs:38:9
+   |
+LL |         Path::new("bar"),
+   |         ^^^^^^^^^^^^^^^^ help: remove the enclosing `Path::new`: `"bar"`
+
+error: the expression enclosed in `Path::new` implements `AsRef<Path>`
+  --> tests/ui/needless_path_new.rs:44:9
    |
 LL |         Path::new("bar"),
    |         ^^^^^^^^^^^^^^^^ help: remove the enclosing `Path::new`: `"bar"`
@@ -32,10 +38,10 @@ LL |         Path::new("foo"),
    |         ^^^^^^^^^^^^^^^^ help: remove the enclosing `Path::new`: `"foo"`
 
 error: the expression enclosed in `Path::new` implements `AsRef<Path>`
-  --> tests/ui/needless_path_new.rs:44:9
+  --> tests/ui/needless_path_new.rs:49:7
    |
-LL |         Path::new("bar"),
-   |         ^^^^^^^^^^^^^^^^ help: remove the enclosing `Path::new`: `"bar"`
+LL |     a(Path::new("foo.txt"));
+   |       ^^^^^^^^^^^^^^^^^^^^ help: remove the enclosing `Path::new`: `"foo.txt"`
 
-error: aborting due to 6 previous errors
+error: aborting due to 7 previous errors
 
