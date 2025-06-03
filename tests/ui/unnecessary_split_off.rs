@@ -7,8 +7,6 @@ impl A {
     fn split_off(&mut self, _: usize) {}
 }
 
-const ZERO: usize = 0;
-
 fn main() {
     let mut vec1 = vec![1, 2, 3];
 
@@ -17,10 +15,15 @@ fn main() {
 
     let vec3: Vec<_> = vec1.split_off(1);
 
+    const ZERO: usize = 0;
     let vec4: Vec<_> = vec1.split_off(ZERO);
     //~^ unnecessary_split_off
 
     let vec5: Vec<_> = vec1.split_off(const { 0 });
+    //~^ unnecessary_split_off
+
+    let zero = 0;
+    let vec6: Vec<_> = vec1.split_off(zero);
     //~^ unnecessary_split_off
 
     let mut a = A;

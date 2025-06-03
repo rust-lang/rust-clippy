@@ -307,6 +307,7 @@ generate! {
     split_at_mut,
     split_at_mut_checked,
     split_inclusive,
+    split_off,
     split_once,
     split_terminator,
     split_whitespace,
