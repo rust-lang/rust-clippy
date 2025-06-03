@@ -40,27 +40,15 @@ declare_lint_pass!(NeedlessPathNew => [NEEDLESS_PATH_NEW]);
 impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) {
         match e.kind {
-            ExprKind::Call(fn_expr, args) if let ExprKind::Path(ref path) = fn_expr.kind => {
-                check_arguments(
-                    cx,
-                    &mut args.iter(),
-                    cx.typeck_results().expr_ty(fn_expr),
-                    &rustc_hir_pretty::qpath_to_string(&cx.tcx, path),
-                    "function",
-                );
+            ExprKind::Call(fn_expr, args) => {
+                check_arguments(cx, &mut args.iter(), cx.typeck_results().expr_ty(fn_expr));
             },
-            ExprKind::MethodCall(path, receiver, arguments, _)
+            ExprKind::MethodCall(_, receiver, arguments, _)
                 if let Some(def_id) = cx.typeck_results().type_dependent_def_id(e.hir_id) =>
             {
                 let args = cx.typeck_results().node_args(e.hir_id);
                 let method_type = cx.tcx.type_of(def_id).instantiate(cx.tcx, args);
-                check_arguments(
-                    cx,
-                    &mut iter::once(receiver).chain(arguments.iter()),
-                    method_type,
-                    path.ident.as_str(),
-                    "method",
-                );
+                check_arguments(cx, &mut iter::once(receiver).chain(arguments.iter()), method_type);
             },
             _ => (),
         }
@@ -71,8 +59,6 @@ fn check_arguments<'tcx>(
     cx: &LateContext<'tcx>,
     arguments: &mut dyn Iterator<Item = &'tcx Expr<'tcx>>,
     type_definition: Ty<'tcx>,
-    name: &str,
-    fn_kind: &str,
 ) {
     let tcx = cx.tcx;
     // whether `func` is `Path::new`
