@@ -16,5 +16,13 @@ LL |     b = Box::default();
    |
    = note: this creates a needless allocation
 
-error: aborting due to 2 previous errors
+error: creating a new box
+  --> tests/ui/default_box_assignments.rs:23:5
+   |
+LL |     b = Box::new(5);
+   |     ^^^^^^^^^^^^^^^ help: replace existing content with inner value instead: `*b = 5`
+   |
+   = note: this creates a needless allocation
+
+error: aborting due to 3 previous errors
 

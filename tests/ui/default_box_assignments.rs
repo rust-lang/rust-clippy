@@ -20,6 +20,9 @@ fn main() {
     // No lint for call originating in macro
     b = create_default!();
 
+    b = Box::new(5);
+    //~^ default_box_assignments
+
     // No lint for assigning to Box<T> where T: !Default
     let mut b = Box::<str>::from("hi".to_string());
     b = Default::default();
