@@ -6291,6 +6291,7 @@ Released 2018-09-13
 [`stable_sort_primitive`]: https://rust-lang.github.io/rust-clippy/master/index.html#stable_sort_primitive
 [`std_instead_of_alloc`]: https://rust-lang.github.io/rust-clippy/master/index.html#std_instead_of_alloc
 [`std_instead_of_core`]: https://rust-lang.github.io/rust-clippy/master/index.html#std_instead_of_core
+[`std_wildcard_imports`]: https://rust-lang.github.io/rust-clippy/master/index.html#std_wildcard_imports
 [`str_split_at_newline`]: https://rust-lang.github.io/rust-clippy/master/index.html#str_split_at_newline
 [`str_to_string`]: https://rust-lang.github.io/rust-clippy/master/index.html#str_to_string
 [`string_add`]: https://rust-lang.github.io/rust-clippy/master/index.html#string_add

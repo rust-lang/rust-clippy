@@ -678,6 +678,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::std_instead_of_core::ALLOC_INSTEAD_OF_CORE_INFO,
     crate::std_instead_of_core::STD_INSTEAD_OF_ALLOC_INFO,
     crate::std_instead_of_core::STD_INSTEAD_OF_CORE_INFO,
+    crate::std_wildcard_imports::STD_WILDCARD_IMPORTS_INFO,
     crate::string_patterns::MANUAL_PATTERN_CHAR_COMPARISON_INFO,
     crate::string_patterns::SINGLE_CHAR_PATTERN_INFO,
     crate::strings::STRING_ADD_INFO,

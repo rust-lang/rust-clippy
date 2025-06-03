@@ -1,7 +1,7 @@
 #![warn(clippy::implied_bounds_in_impls)]
 
 use std::fmt::Debug;
-use std::ops::*;
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 fn r#gen() -> impl PartialOrd + PartialEq + Debug {}
 //~^ implied_bounds_in_impls

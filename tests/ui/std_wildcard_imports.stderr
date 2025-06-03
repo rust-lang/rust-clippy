@@ -1,0 +1,41 @@
+error: usage of wildcard import from `std` crates
+  --> tests/ui/std_wildcard_imports.rs:11:5
+   |
+LL | use alloc::boxed::*;
+   |     ^^^^^^^^^^^^^^^ help: try: `alloc::boxed::Box`
+   |
+   = note: `-D clippy::std-wildcard-imports` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::std_wildcard_imports)]`
+
+error: usage of wildcard import from `std` crates
+  --> tests/ui/std_wildcard_imports.rs:13:5
+   |
+LL | use core::cell::*;
+   |     ^^^^^^^^^^^^^ help: try: `core::cell::Cell`
+
+error: usage of wildcard import from `std` crates
+  --> tests/ui/std_wildcard_imports.rs:15:5
+   |
+LL | use proc_macro::*;
+   |     ^^^^^^^^^^^^^ help: try: `proc_macro::is_available`
+
+error: usage of wildcard import from `std` crates
+  --> tests/ui/std_wildcard_imports.rs:17:5
+   |
+LL | use std::any::*;
+   |     ^^^^^^^^^^^ help: try: `std::any::type_name`
+
+error: usage of wildcard import from `std` crates
+  --> tests/ui/std_wildcard_imports.rs:19:22
+   |
+LL | use std::mem::{swap, *};
+   |                      ^ help: try: `align_of`
+
+error: usage of wildcard import from `std` crates
+  --> tests/ui/std_wildcard_imports.rs:21:5
+   |
+LL | use test::bench::*;
+   |     ^^^^^^^^^^^^^^ help: try: `test::bench::black_box`
+
+error: aborting due to 6 previous errors
+

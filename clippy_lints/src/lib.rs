@@ -346,6 +346,7 @@ mod size_of_in_element_count;
 mod size_of_ref;
 mod slow_vector_initialization;
 mod std_instead_of_core;
+mod std_wildcard_imports;
 mod string_patterns;
 mod strings;
 mod strlen_on_c_strings;
@@ -948,5 +949,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(redundant_test_prefix::RedundantTestPrefix));
     store.register_late_pass(|_| Box::new(cloned_ref_to_slice_refs::ClonedRefToSliceRefs::new(conf)));
     store.register_late_pass(|_| Box::new(infallible_try_from::InfallibleTryFrom));
+    store.register_late_pass(|_| Box::new(std_wildcard_imports::StdWildcardImports));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
