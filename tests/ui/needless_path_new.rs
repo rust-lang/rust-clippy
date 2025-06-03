@@ -5,6 +5,8 @@ use std::path::Path;
 
 fn takes_path(_: &Path) {}
 
+fn takes_impl_path(_: impl AsRef<Path>) {}
+
 fn takes_path_and_impl_path(_: &Path, _: impl AsRef<Path>) {}
 
 fn takes_two_impl_paths_with_the_same_generic<P: AsRef<Path>>(_: P, _: P) {}
@@ -40,6 +42,10 @@ fn main() {
         Path::new("foo"), //~ needless_path_new
         Path::new("bar"), //~ needless_path_new
     );
+
+    let a = takes_impl_path;
+
+    a(Path::new("foo.txt")); //~ needless_path_new
 
     // no warning
     takes_path(Path::new("foo"));
