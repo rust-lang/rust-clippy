@@ -1,3 +1,4 @@
+use crate::casts::utils;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::numeric_literal::NumericLiteral;
 use clippy_utils::source::{SpanRangeExt, snippet_opt};
@@ -9,7 +10,7 @@ use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{Expr, ExprKind, Lit, Node, Path, QPath, TyKind, UnOp};
 use rustc_lint::{LateContext, LintContext};
 use rustc_middle::ty::adjustment::Adjust;
-use rustc_middle::ty::{self, FloatTy, InferTy, Ty};
+use rustc_middle::ty::{self, Ty};
 use rustc_span::{Symbol, sym};
 use std::ops::ControlFlow;
 
@@ -108,8 +109,8 @@ pub(super) fn check<'tcx>(
             && let Some(src) = cast_expr.span.get_source_text(cx)
             && cast_to.is_floating_point()
             && let Some(num_lit) = NumericLiteral::from_lit_kind(&src, &lit.node)
-            && let from_nbits = 128 - n.get().leading_zeros()
-            && let to_nbits = fp_ty_mantissa_nbits(cast_to)
+            && let from_nbits = 128 - u64::from(n.get().leading_zeros())
+            && let to_nbits = utils::float_ty_to_mantissa_nbits(cast_to)
             && from_nbits != 0
             && to_nbits != 0
             && from_nbits <= to_nbits
@@ -254,16 +255,6 @@ fn get_numeric_literal<'e>(expr: &'e Expr<'e>) -> Option<&'e Lit> {
             }
         },
         _ => None,
-    }
-}
-
-/// Returns the mantissa bits wide of a fp type.
-/// Will return 0 if the type is not a fp
-fn fp_ty_mantissa_nbits(typ: Ty<'_>) -> u32 {
-    match typ.kind() {
-        ty::Float(FloatTy::F32) => 23,
-        ty::Float(FloatTy::F64) | ty::Infer(InferTy::FloatVar(_)) => 52,
-        _ => 0,
     }
 }
 

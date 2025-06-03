@@ -1,14 +1,55 @@
 use clippy_utils::ty::{EnumValue, read_explicit_enum_value};
-use rustc_middle::ty::{self, AdtDef, IntTy, Ty, TyCtxt, UintTy, VariantDiscr};
+use rustc_middle::ty::{self, AdtDef, FloatTy, IntTy, Ty, TyCtxt, UintTy, VariantDiscr};
 
-/// Returns the size in bits of an integral type, or `None` if `ty` is not an
-/// integral type.
-pub(super) fn int_ty_to_nbits(tcx: TyCtxt<'_>, ty: Ty<'_>) -> Option<u64> {
-    match ty.kind() {
-        ty::Int(IntTy::Isize) | ty::Uint(UintTy::Usize) => Some(tcx.data_layout.pointer_size.bits()),
-        ty::Int(i) => i.bit_width(),
-        ty::Uint(i) => i.bit_width(),
-        _ => None,
+/// Returns the size in bits of an integral type.
+/// Panics if the type is not an int or uint variant
+pub(super) fn int_ty_to_nbits(typ: Ty<'_>, tcx: TyCtxt<'_>) -> u64 {
+    match typ.kind() {
+        ty::Int(i) => match i {
+            IntTy::Isize => tcx.data_layout.pointer_size.bits(),
+            IntTy::I8 => 8,
+            IntTy::I16 => 16,
+            IntTy::I32 => 32,
+            IntTy::I64 => 64,
+            IntTy::I128 => 128,
+        },
+        ty::Uint(i) => match i {
+            UintTy::Usize => tcx.data_layout.pointer_size.bits(),
+            UintTy::U8 => 8,
+            UintTy::U16 => 16,
+            UintTy::U32 => 32,
+            UintTy::U64 => 64,
+            UintTy::U128 => 128,
+        },
+        _ => unreachable!(),
+    }
+}
+
+/// Returns the size in bits of an floating type.
+/// Panics if the type is not an float variant
+pub(super) fn float_ty_to_nbits(typ: Ty<'_>) -> u64 {
+    match typ.kind() {
+        ty::Float(i) => match i {
+            FloatTy::F16 => 16,
+            FloatTy::F32 => 32,
+            FloatTy::F64 => 64,
+            FloatTy::F128 => 128,
+        },
+        _ => unreachable!(),
+    }
+}
+
+/// Returns the mantissa size in bits of an floating type.
+/// Panics if the type is not an float variant
+pub(super) fn float_ty_to_mantissa_nbits(typ: Ty<'_>) -> u64 {
+    match typ.kind() {
+        ty::Float(i) => match i {
+            FloatTy::F16 => 10,
+            FloatTy::F32 => 23,
+            FloatTy::F64 => 52,
+            FloatTy::F128 => 112,
+        },
+        _ => unreachable!(),
     }
 }
 

@@ -7,7 +7,7 @@ use clippy_utils::ty::is_isize_or_usize;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, QPath, TyKind};
 use rustc_lint::LateContext;
-use rustc_middle::ty::{self, FloatTy, Ty};
+use rustc_middle::ty::{self, Ty};
 use rustc_span::hygiene;
 
 use super::{CAST_LOSSLESS, utils};
@@ -76,28 +76,42 @@ fn should_lint(cx: &LateContext<'_>, cast_from: Ty<'_>, cast_to: Ty<'_>, msrv: M
         return false;
     }
 
-    match (
-        utils::int_ty_to_nbits(cx.tcx, cast_from),
-        utils::int_ty_to_nbits(cx.tcx, cast_to),
-    ) {
-        (Some(from_nbits), Some(to_nbits)) => {
-            let cast_signed_to_unsigned = cast_from.is_signed() && !cast_to.is_signed();
-            !is_isize_or_usize(cast_from)
-                && !is_isize_or_usize(cast_to)
-                && from_nbits < to_nbits
-                && !cast_signed_to_unsigned
-        },
-
-        (Some(from_nbits), None) => {
-            // FIXME: handle `f16` and `f128`
-            let to_nbits = if let ty::Float(FloatTy::F32) = cast_to.kind() {
-                32
-            } else {
-                64
-            };
-            !is_isize_or_usize(cast_from) && from_nbits < to_nbits
-        },
-        (None, Some(_)) if cast_from.is_bool() && msrv.meets(cx, msrvs::FROM_BOOL) => true,
-        _ => matches!(cast_from.kind(), ty::Float(FloatTy::F32)) && matches!(cast_to.kind(), ty::Float(FloatTy::F64)),
+    if matches!(cast_from.kind(), ty::Bool) && cast_to.is_integral() {
+        return msrv.meets(cx, msrvs::FROM_BOOL);
     }
+
+    if cast_from.is_numeric() {
+        return match (cast_from.is_integral(), cast_to.is_integral()) {
+            (true, true) => {
+                let cast_signed_to_unsigned = cast_from.is_signed() && !cast_to.is_signed();
+                let from_nbits = utils::int_ty_to_nbits(cast_from, cx.tcx);
+                let to_nbits = utils::int_ty_to_nbits(cast_to, cx.tcx);
+                !is_isize_or_usize(cast_from)
+                    && !is_isize_or_usize(cast_to)
+                    && from_nbits < to_nbits
+                    && !cast_signed_to_unsigned
+            },
+            (true, false) => {
+                let from_nbits = utils::int_ty_to_nbits(cast_from, cx.tcx);
+                let to_nbits = utils::float_ty_to_nbits(cast_to);
+                if from_nbits == 64 && to_nbits == 128 {
+                    // FIXME(f16_f128): https://github.com/rust-lang/rust/blob/91fad92585b2dafc52a074e502b2a6c1f093ca35/library/core/src/convert/num.rs#L171
+                    return false;
+                }
+                !is_isize_or_usize(cast_from) && from_nbits < to_nbits
+            },
+            (false, true) => false,
+            (false, false) => {
+                let from_nbits = utils::float_ty_to_nbits(cast_from);
+                let to_nbits = utils::float_ty_to_nbits(cast_to);
+                if from_nbits == 16 && to_nbits == 32 {
+                    // FIXME(f16_f128): https://github.com/rust-lang/rust/issues/123831
+                    return false;
+                }
+                from_nbits < to_nbits
+            },
+        };
+    }
+
+    false
 }
