@@ -1,5 +1,5 @@
 error: the expression enclosed in `Path::new` implements `AsRef<Path>`
-  --> tests/ui/needless_path_new.rs:11:15
+  --> tests/ui/needless_path_new.rs:22:15
    |
 LL |     fs::write(Path::new("foo.txt"), "foo");
    |               ^^^^^^^^^^^^^^^^^^^^ help: remove the enclosing `Path::new`: `"foo.txt"`
@@ -8,16 +8,22 @@ LL |     fs::write(Path::new("foo.txt"), "foo");
    = help: to override `-D warnings` add `#[allow(clippy::needless_path_new)]`
 
 error: the expression enclosed in `Path::new` implements `AsRef<Path>`
-  --> tests/ui/needless_path_new.rs:14:9
+  --> tests/ui/needless_path_new.rs:25:9
    |
 LL |         Path::new("foo"),
    |         ^^^^^^^^^^^^^^^^ help: remove the enclosing `Path::new`: `"foo"`
 
 error: the expression enclosed in `Path::new` implements `AsRef<Path>`
-  --> tests/ui/needless_path_new.rs:15:9
+  --> tests/ui/needless_path_new.rs:26:9
    |
 LL |         Path::new("bar"),
    |         ^^^^^^^^^^^^^^^^ help: remove the enclosing `Path::new`: `"bar"`
 
-error: aborting due to 3 previous errors
+error: the expression enclosed in `Path::new` implements `AsRef<Path>`
+  --> tests/ui/needless_path_new.rs:33:9
+   |
+LL |         Path::new("bar"),
+   |         ^^^^^^^^^^^^^^^^ help: remove the enclosing `Path::new`: `"bar"`
+
+error: aborting due to 4 previous errors
 
