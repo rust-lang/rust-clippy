@@ -57,4 +57,9 @@ fn main() {
     // same but as a method
     Foo::takes_path_and_impl_path(Path::new("foo"), "bar");
     f.takes_self_and_path_and_impl_path(Path::new("foo"), "bar");
+
+    fn foo() -> Option<&'static Path> {
+        // Some(...) is `ExprKind::Call`, but we don't consider it
+        Some(Path::new("foo.txt"))
+    }
 }
