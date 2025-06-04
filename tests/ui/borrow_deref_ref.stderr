@@ -25,5 +25,17 @@ error: deref on an immutable reference
 LL |         (&*s).foo();
    |         ^^^^^ help: if you would like to reborrow, try removing `&*`: `s`
 
-error: aborting due to 4 previous errors
+error: deref on an immutable reference
+  --> tests/ui/borrow_deref_ref.rs:137:21
+   |
+LL |         let mut x = &*x;
+   |                     ^^^ help: if you would like to reborrow, try removing `&*`: `x`
+
+error: deref on an immutable reference
+  --> tests/ui/borrow_deref_ref.rs:143:21
+   |
+LL |         let ref x = &*x;
+   |                     ^^^ help: if you would like to reborrow, try removing `&*`: `x`
+
+error: aborting due to 6 previous errors
 

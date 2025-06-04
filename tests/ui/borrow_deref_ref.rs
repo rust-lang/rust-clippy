@@ -124,3 +124,23 @@ mod issue_11346 {
         //~^ borrow_deref_ref
     }
 }
+
+fn issue_14934() {
+    let x: &'static str = "x";
+    let y = "y".to_string();
+    {
+        #[expect(clippy::toplevel_ref_arg)]
+        let ref mut x = &*x; // Do not lint
+        *x = &*y;
+    }
+    {
+        let mut x = &*x;
+        //~^ borrow_deref_ref
+        x = &*y;
+    }
+    {
+        #[expect(clippy::toplevel_ref_arg, clippy::needless_borrow)]
+        let ref x = &*x;
+        //~^ borrow_deref_ref
+    }
+}
