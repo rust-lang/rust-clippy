@@ -1,0 +1,10 @@
+#![warn(clippy::ifs_as_logical_ops)]
+
+fn main() {
+    // test code goes here
+}
+
+fn john(b1: bool, b2: bool) -> bool {
+    b2 && false
+    //~^ ifs_as_logical_ops
+}

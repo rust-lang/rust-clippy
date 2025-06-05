@@ -157,6 +157,7 @@ mod future_not_send;
 mod if_let_mutex;
 mod if_not_else;
 mod if_then_some_else_none;
+mod ifs_as_logical_ops;
 mod ignored_unit_patterns;
 mod impl_hash_with_borrow_str_and_bytes;
 mod implicit_hasher;
@@ -948,5 +949,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(redundant_test_prefix::RedundantTestPrefix));
     store.register_late_pass(|_| Box::new(cloned_ref_to_slice_refs::ClonedRefToSliceRefs::new(conf)));
     store.register_late_pass(|_| Box::new(infallible_try_from::InfallibleTryFrom));
+    store.register_late_pass(|_| Box::new(ifs_as_logical_ops::IfsAsLogicalOps));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }

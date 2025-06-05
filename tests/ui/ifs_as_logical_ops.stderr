@@ -1,0 +1,11 @@
+error: Logical operations are clearer than if conditions in this instance
+  --> tests/ui/ifs_as_logical_ops.rs:8:5
+   |
+LL |     if b1 { b2 } else { false }
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `b2 && false`
+   |
+   = note: `-D clippy::ifs-as-logical-ops` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::ifs_as_logical_ops)]`
+
+error: aborting due to 1 previous error
+
