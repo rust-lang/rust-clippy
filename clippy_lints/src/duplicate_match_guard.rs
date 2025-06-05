@@ -63,23 +63,12 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuard {
                 unreachable!("the `then` expr in `ExprKind::If` is always `ExprKind::Block`")
             };
 
-            // sum up all the spans of the things in the block, in order to end up with the
-            // span of the block but without the outer braces
-            let first_span = then.stmts.first().map(|stmt| stmt.span);
-            let last_span = then.expr.map(|expr| expr.span);
-            let then_span = match (first_span, last_span) {
-                (Some(f), Some(l)) => f.to(l),
-                (Some(f), _) => f,
-                (_, Some(l)) => l,
-                _ => then.span,
-            };
-
             // the two expressions may be syntactically different, even if identical
             // semantically -- the user might want to replace the condition in the guard
             // with the one in the body
             let mut applicability = Applicability::MaybeIncorrect;
 
-            let sugg = snippet_with_applicability(cx, then_span, "..", &mut applicability);
+            let sugg = snippet_with_applicability(cx, then.span, "..", &mut applicability);
 
             span_lint_and_sugg(
                 cx,

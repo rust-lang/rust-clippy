@@ -8,18 +8,30 @@ fn main() {
 
     match 0u32 {
         0 if true => {
-            return;
+            {
+                //~^ duplicate_match_guard
+                return;
+            }
         },
         0 if a > b => {
-            return;
+            {
+                //~^ duplicate_match_guard
+                return;
+            }
         },
         // not _identical_, but the meaning is the same
         0 if a > b => {
-            return;
+            {
+                //~^ duplicate_match_guard
+                return;
+            }
         },
         // a bit more complicated
         0 if a > 0 && b > 0 => {
-            return;
+            {
+                //~^ duplicate_match_guard
+                return;
+            }
         },
 
         // no warnings
