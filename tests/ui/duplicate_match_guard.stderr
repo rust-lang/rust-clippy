@@ -5,10 +5,17 @@ LL | /             if true {
 LL | |
 LL | |                 return;
 LL | |             }
-   | |_____________^ help: remove the condition: `return;`
+   | |_____________^
    |
    = note: `-D clippy::duplicate-match-guard` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::duplicate_match_guard)]`
+help: remove the condition
+   |
+LL ~             {
+LL +
+LL +                 return;
+LL +             }
+   |
 
 error: condition duplicates match guard
   --> tests/ui/duplicate_match_guard.rs:17:13
@@ -17,7 +24,15 @@ LL | /             if a > b {
 LL | |
 LL | |                 return;
 LL | |             }
-   | |_____________^ help: remove the condition: `return;`
+   | |_____________^
+   |
+help: remove the condition
+   |
+LL ~             {
+LL +
+LL +                 return;
+LL +             }
+   |
 
 error: condition duplicates match guard
   --> tests/ui/duplicate_match_guard.rs:24:13
@@ -26,7 +41,15 @@ LL | /             if b < a {
 LL | |
 LL | |                 return;
 LL | |             }
-   | |_____________^ help: remove the condition: `return;`
+   | |_____________^
+   |
+help: remove the condition
+   |
+LL ~             {
+LL +
+LL +                 return;
+LL +             }
+   |
 
 error: condition duplicates match guard
   --> tests/ui/duplicate_match_guard.rs:31:13
@@ -35,7 +58,15 @@ LL | /             if a > 0 && b > 0 {
 LL | |
 LL | |                 return;
 LL | |             }
-   | |_____________^ help: remove the condition: `return;`
+   | |_____________^
+   |
+help: remove the condition
+   |
+LL ~             {
+LL +
+LL +                 return;
+LL +             }
+   |
 
 error: aborting due to 4 previous errors
 
