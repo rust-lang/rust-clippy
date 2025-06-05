@@ -37,7 +37,9 @@ declare_lint_pass!(DefaultBoxAssignments => [DEFAULT_BOX_ASSIGNMENTS]);
 
 impl LateLintPass<'_> for DefaultBoxAssignments {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ Expr<'_>) {
-        if let ExprKind::Assign(lhs, rhs, _) = &expr.kind {
+        if let ExprKind::Assign(lhs, rhs, _) = &expr.kind
+            && !rhs.span.from_expansion()
+        {
             let lhs_ty = cx.typeck_results().expr_ty(lhs);
 
             // No diagnostic for late-initialized locals
@@ -54,7 +56,6 @@ impl LateLintPass<'_> for DefaultBoxAssignments {
             if let Some(default_trait_id) = cx.tcx.get_diagnostic_item(sym::Default)
                 && implements_trait(cx, inner_ty, default_trait_id, &[])
                 && is_default_call(cx, rhs)
-                && !rhs.span.from_expansion()
             {
                 span_lint_and_then(
                     cx,
