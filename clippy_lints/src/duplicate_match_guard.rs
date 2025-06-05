@@ -1,5 +1,7 @@
-use clippy_utils::diagnostics::span_lint;
+use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::eq_expr_value;
+use clippy_utils::source::snippet_with_applicability;
+use rustc_errors::Applicability;
 use rustc_hir::{Arm, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
@@ -54,10 +56,29 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuard {
             && let ExprKind::Block(block, _) = arm.body.kind
             && block.stmts.is_empty()
             && let Some(trailing_expr) = block.expr
-            && let ExprKind::If(cond, _, None) = trailing_expr.kind
+            && let ExprKind::If(cond, then, None) = trailing_expr.kind
             && eq_expr_value(cx, guard, cond.peel_drop_temps())
         {
-            span_lint(cx, DUPLICATE_MATCH_GUARD, cond.span, "condition duplicates match guard");
+            let ExprKind::Block(then, _) = then.kind else {
+                unreachable!("the `then` expr in `ExprKind::If` is always `ExprKind::Block`")
+            };
+
+            // the two expressions may be syntactically different, even if identical
+            // semantically -- the user might want to replace the condition in the guard
+            // with the one in the body
+            let mut applicability = Applicability::MaybeIncorrect;
+
+            let sugg = snippet_with_applicability(cx, then.span, "..", &mut applicability);
+
+            span_lint_and_sugg(
+                cx,
+                DUPLICATE_MATCH_GUARD,
+                trailing_expr.span,
+                "condition duplicates match guard",
+                "remove the condition",
+                sugg.to_string(),
+                applicability,
+            );
         }
     }
 }
