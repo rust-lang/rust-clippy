@@ -1,0 +1,205 @@
+error: condition duplicates match guard
+  --> tests/ui/duplicate_match_guards.rs:13:13
+   |
+LL | /             if true {
+LL | |                 return;
+LL | |             }
+   | |_____________^ help: remove the condition: `return;`
+   |
+   = note: `-D clippy::duplicate-match-guards` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::duplicate_match_guards)]`
+
+error: condition duplicates match guard
+  --> tests/ui/duplicate_match_guards.rs:19:13
+   |
+LL | /             if a > b {
+LL | |                 return;
+LL | |             }
+   | |_____________^ help: remove the condition: `return;`
+
+error: condition duplicates match guard
+  --> tests/ui/duplicate_match_guards.rs:27:13
+   |
+LL | /             if b < a {
+LL | |                 return;
+LL | |             }
+   | |_____________^ help: remove the condition: `return;`
+
+error: condition duplicates match guard
+  --> tests/ui/duplicate_match_guards.rs:35:13
+   |
+LL | /             if a > 0 && b > 0 {
+LL | |                 return;
+LL | |             }
+   | |_____________^ help: remove the condition: `return;`
+
+error: condition duplicates match guard
+  --> tests/ui/duplicate_match_guards.rs:45:13
+   |
+LL | /             if a > b {
+LL | |                 // before
+LL | |                 return;
+LL | |                 // after
+LL | |             }
+   | |_____________^
+   |
+help: remove the condition
+   |
+LL ~             // before
+LL +             return;
+LL +             // after
+   |
+
+error: condition duplicates match guard
+  --> tests/ui/duplicate_match_guards.rs:54:13
+   |
+LL | /             if a > b {// before, on the line of the second `if`
+LL | |                 return;
+LL | |                 // after
+LL | |             }
+   | |_____________^
+   |
+help: remove the condition
+   |
+LL ~             // before, on the line of the second `if`
+LL +         return;
+LL +         // after
+   |
+
+error: condition duplicates match guard
+  --> tests/ui/duplicate_match_guards.rs:62:13
+   |
+LL | /             if a > b {/* before,
+LL | |                 continued */
+LL | |                 return;
+LL | |                 // after
+LL | |             }
+   | |_____________^
+   |
+help: remove the condition
+   |
+LL ~             /* before,
+LL +         continued */
+LL +         return;
+LL +         // after
+   |
+
+error: condition duplicates match guard
+  --> tests/ui/duplicate_match_guards.rs:71:13
+   |
+LL | /             if a > b {
+LL | |                 // before
+LL | |                 return;
+LL | |             /* after, on the line of the second `if` */}
+   | |________________________________________________________^
+   |
+help: remove the condition
+   |
+LL ~             // before
+LL +                 return;
+LL +             /* after, on the line of the second `if` */
+   |
+
+error: condition duplicates match guard
+  --> tests/ui/duplicate_match_guards.rs:79:13
+   |
+LL | /             if a > b {// before, on the line of the second `if`
+LL | |                 return;
+LL | |             /* after, on the line of the second `if` */}
+   | |________________________________________________________^
+   |
+help: remove the condition
+   |
+LL ~             // before, on the line of the second `if`
+LL +             return;
+LL +         /* after, on the line of the second `if` */
+   |
+
+error: condition duplicates match guard
+  --> tests/ui/duplicate_match_guards.rs:86:13
+   |
+LL | /             if a > b {/* before,
+LL | |                 continued */
+LL | |                 return;
+LL | |             /* after, on the line of the second `if` */}
+   | |________________________________________________________^
+   |
+help: remove the condition
+   |
+LL ~             /* before,
+LL +             continued */
+LL +             return;
+LL +         /* after, on the line of the second `if` */
+   |
+
+error: condition duplicates match guard
+  --> tests/ui/duplicate_match_guards.rs:94:13
+   |
+LL | /             if a > b {
+LL | |                 // before
+LL | |                 return;
+LL | |                 /* after,
+LL | |             continued */}
+   | |_________________________^
+   |
+help: remove the condition
+   |
+LL ~             // before
+LL +                 return;
+LL +                 /* after,
+LL +             continued */
+   |
+
+error: condition duplicates match guard
+  --> tests/ui/duplicate_match_guards.rs:103:13
+   |
+LL | /             if a > b {// before, on the line of the second `if`
+LL | |                 return;
+LL | |                 /* after,
+LL | |             continued*/}
+   | |________________________^
+   |
+help: remove the condition
+   |
+LL ~             // before, on the line of the second `if`
+LL +             return;
+LL +             /* after,
+LL +         continued*/
+   |
+
+error: condition duplicates match guard
+  --> tests/ui/duplicate_match_guards.rs:111:13
+   |
+LL | /             if a > b {/* before,
+LL | |                 continued */
+LL | |                 return;
+LL | |                 /* after,
+LL | |             continued*/}
+   | |________________________^
+   |
+help: remove the condition
+   |
+LL ~             /* before,
+LL +             continued */
+LL +             return;
+LL +             /* after,
+LL +         continued*/
+   |
+
+error: condition duplicates match guard
+  --> tests/ui/duplicate_match_guards.rs:121:22
+   |
+LL |           0 if true => if true {
+   |  ______________________^
+LL | |             return;
+LL | |         },
+   | |_________^
+   |
+help: remove the condition
+   |
+LL -         0 if true => if true {
+LL +         0 if true => {
+   |
+
+error: aborting due to 14 previous errors
+
