@@ -1,5 +1,6 @@
 #![feature(rustc_private)]
 #![deny(clippy::invalid_clippy_version_attribute, clippy::missing_clippy_version_attribute)]
+#![allow(clippy::items_before_use)]
 
 #[macro_use]
 extern crate rustc_middle;
