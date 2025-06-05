@@ -51,11 +51,8 @@ impl LateLintPass<'_> for DefaultBoxAssignments {
                 return;
             };
 
-            let Some(default_trait_id) = cx.tcx.get_diagnostic_item(sym::Default) else {
-                return;
-            };
-
-            if implements_trait(cx, inner_ty, default_trait_id, &[])
+            if let Some(default_trait_id) = cx.tcx.get_diagnostic_item(sym::Default)
+                && implements_trait(cx, inner_ty, default_trait_id, &[])
                 && is_default_call(cx, rhs)
                 && !rhs.span.from_expansion()
             {
@@ -82,7 +79,7 @@ impl LateLintPass<'_> for DefaultBoxAssignments {
             }
 
             if inner_ty.is_sized(cx.tcx, cx.typing_env())
-                && let Some(rhs_inner) = get_new_call_value(cx, rhs)
+                && let Some(rhs_inner) = get_box_new_payload(cx, rhs)
             {
                 span_lint_and_then(cx, DEFAULT_BOX_ASSIGNMENTS, expr.span, "creating a new box", |diag| {
                     let mut app = Applicability::MachineApplicable;
@@ -118,7 +115,7 @@ fn is_default_call(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
     matches!(expr.kind, ExprKind::Call(func, _args) if is_default_equivalent_call(cx, func, Some(expr)))
 }
 
-fn get_new_call_value<'tcx>(cx: &LateContext<'_>, expr: &Expr<'tcx>) -> Option<&'tcx Expr<'tcx>> {
+fn get_box_new_payload<'tcx>(cx: &LateContext<'_>, expr: &Expr<'tcx>) -> Option<&'tcx Expr<'tcx>> {
     if let ExprKind::Call(box_new, [arg]) = expr.kind
         && let ExprKind::Path(QPath::TypeRelative(ty, seg)) = box_new.kind
         && seg.ident.name == sym::new
