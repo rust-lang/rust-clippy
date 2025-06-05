@@ -17,7 +17,7 @@ LL |     *b = Box::new(t);
    = note: this creates a needless allocation
 
 error: creating a new box with default content
-  --> tests/ui/default_box_assignments.rs:32:5
+  --> tests/ui/default_box_assignments.rs:38:5
    |
 LL |     b = Default::default();
    |     ^^^^^^^^^^^^^^^^^^^^^^ help: replace existing content with default instead: `*b = Default::default()`
@@ -25,7 +25,7 @@ LL |     b = Default::default();
    = note: this creates a needless allocation
 
 error: creating a new box with default content
-  --> tests/ui/default_box_assignments.rs:34:5
+  --> tests/ui/default_box_assignments.rs:40:5
    |
 LL |     b = Box::default();
    |     ^^^^^^^^^^^^^^^^^^ help: replace existing content with default instead: `*b = Default::default()`
@@ -33,7 +33,7 @@ LL |     b = Box::default();
    = note: this creates a needless allocation
 
 error: creating a new box
-  --> tests/ui/default_box_assignments.rs:45:5
+  --> tests/ui/default_box_assignments.rs:52:5
    |
 LL |     b = Box::new(5);
    |     ^^^^^^^^^^^^^^^ help: replace existing content with inner value instead: `*b = 5`
