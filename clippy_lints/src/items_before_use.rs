@@ -1,4 +1,3 @@
-#![feature(rustc_private)]
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_note;
 use clippy_utils::sym;
@@ -22,7 +21,6 @@ declare_clippy_lint! {
     /// mod my_module {
     ///     fn rand() {}
     /// };
-    /// extern crate rustc_driver;
     ///
     /// fn foo() {}
     /// use std::collections::HashMap;
@@ -35,7 +33,6 @@ declare_clippy_lint! {
     /// mod my_module {
     ///     fn rand2() {}
     /// };
-    /// extern crate rustc_hir;
     /// use std::collections::HashMap;
     /// use std::vec::Vec;
     ///
