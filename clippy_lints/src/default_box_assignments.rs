@@ -38,6 +38,7 @@ declare_lint_pass!(DefaultBoxAssignments => [DEFAULT_BOX_ASSIGNMENTS]);
 impl LateLintPass<'_> for DefaultBoxAssignments {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ Expr<'_>) {
         if let ExprKind::Assign(lhs, rhs, _) = &expr.kind
+            && !lhs.span.from_expansion()
             && !rhs.span.from_expansion()
         {
             let lhs_ty = cx.typeck_results().expr_ty(lhs);
