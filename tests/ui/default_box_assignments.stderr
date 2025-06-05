@@ -17,7 +17,7 @@ LL |     *b = Box::new(t);
    = note: this creates a needless allocation
 
 error: creating a new box with default content
-  --> tests/ui/default_box_assignments.rs:38:5
+  --> tests/ui/default_box_assignments.rs:44:5
    |
 LL |     b = Default::default();
    |     ^^^^^^^^^^^^^^^^^^^^^^ help: replace existing content with default instead: `*b = Default::default()`
@@ -25,7 +25,7 @@ LL |     b = Default::default();
    = note: this creates a needless allocation
 
 error: creating a new box with default content
-  --> tests/ui/default_box_assignments.rs:40:5
+  --> tests/ui/default_box_assignments.rs:46:5
    |
 LL |     b = Box::default();
    |     ^^^^^^^^^^^^^^^^^^ help: replace existing content with default instead: `*b = Default::default()`
@@ -33,12 +33,20 @@ LL |     b = Box::default();
    = note: this creates a needless allocation
 
 error: creating a new box
-  --> tests/ui/default_box_assignments.rs:52:5
+  --> tests/ui/default_box_assignments.rs:58:5
    |
 LL |     b = Box::new(5);
    |     ^^^^^^^^^^^^^^^ help: replace existing content with inner value instead: `*b = 5`
    |
    = note: this creates a needless allocation
 
-error: aborting due to 5 previous errors
+error: creating a new box
+  --> tests/ui/default_box_assignments.rs:61:5
+   |
+LL |     b = Box::new(mac!(three));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace existing content with inner value instead: `*b = mac!(three)`
+   |
+   = note: this creates a needless allocation
+
+error: aborting due to 6 previous errors
 

@@ -33,6 +33,12 @@ macro_rules! same {
     };
 }
 
+macro_rules! mac {
+    (three) => {
+        3u32
+    };
+}
+
 fn main() {
     let mut b = Box::new(1u32);
     b = Default::default();
@@ -50,6 +56,9 @@ fn main() {
     same!(b) = Default::default();
 
     b = Box::new(5);
+    //~^ default_box_assignments
+
+    b = Box::new(mac!(three));
     //~^ default_box_assignments
 
     // No lint for assigning to Box<T> where T: !Default
