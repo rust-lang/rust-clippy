@@ -21,6 +21,12 @@ macro_rules! create_default {
     };
 }
 
+macro_rules! create_zero_box {
+    () => {
+        Box::new(0)
+    };
+}
+
 fn main() {
     let mut b = Box::new(1u32);
     *b = Default::default();
@@ -34,6 +40,7 @@ fn main() {
 
     // No lint for call originating in macro
     b = create_default!();
+    b = create_zero_box!();
 
     *b = 5;
     //~^ default_box_assignments
