@@ -88,7 +88,7 @@ impl LateLintPass<'_> for DefaultBoxAssignments {
                     let suggestion = format!(
                         "{} = {}",
                         Sugg::hir_with_applicability(cx, lhs, "_", &mut app).deref(),
-                        Sugg::hir_with_applicability(cx, rhs_inner, "_", &mut app),
+                        Sugg::hir_with_context(cx, rhs_inner, expr.span.ctxt(), "_", &mut app),
                     );
 
                     diag.note("this creates a needless allocation").span_suggestion(
