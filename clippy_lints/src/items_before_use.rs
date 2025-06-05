@@ -1,3 +1,4 @@
+#![feature(rustc_private)]
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_note;
 use clippy_utils::sym;
