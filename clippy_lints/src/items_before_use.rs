@@ -18,8 +18,10 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```no_run
-    /// mod my_module;
-    /// extern crate some_crate;
+    /// mod my_module {
+    ///     fn rand() {}
+    /// };
+    /// extern crate rustc_driver;
     ///
     /// fn foo() {}
     /// use std::collections::HashMap;
@@ -29,8 +31,10 @@ declare_clippy_lint! {
     /// ```
     /// Use instead:
     /// ```no_run
-    /// mod my_module;
-    /// extern crate some_crate;
+    /// mod my_module {
+    ///     fn rand2() {}
+    /// };
+    /// extern crate rustc_hir;
     /// use std::collections::HashMap;
     /// use std::vec::Vec;
     ///
