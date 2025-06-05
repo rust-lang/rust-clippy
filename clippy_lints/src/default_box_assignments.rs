@@ -31,7 +31,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.89.0"]
     pub DEFAULT_BOX_ASSIGNMENTS,
     perf,
-    "assigning `Default::default()` to `Box<T>` is inefficient"
+    "assigning a newly created box to `Box<T>` is inefficient"
 }
 declare_lint_pass!(DefaultBoxAssignments => [DEFAULT_BOX_ASSIGNMENTS]);
 
