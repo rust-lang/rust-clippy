@@ -1,4 +1,5 @@
 #![warn(clippy::from_str_radix_10)]
+#![allow(clippy::disallowed_names)]
 
 mod some_mod {
     // fake function that shouldn't trigger the lint

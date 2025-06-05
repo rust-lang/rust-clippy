@@ -3,6 +3,7 @@
     unused,
     irrefutable_let_patterns,
     non_shorthand_field_patterns,
+    clippy::disallowed_names,
     clippy::needless_borrow,
     clippy::needless_if
 )]

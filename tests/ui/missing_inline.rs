@@ -2,7 +2,7 @@
 #![crate_type = "dylib"]
 // When denying at the crate level, be sure to not get random warnings from the
 // injected intrinsics by the compiler.
-#![allow(dead_code, non_snake_case)]
+#![allow(dead_code, non_snake_case, clippy::disallowed_names)]
 
 type Typedef = String;
 pub type PubTypedef = String;

@@ -1,4 +1,5 @@
 #![warn(clippy::manual_repeat_n)]
+#![allow(clippy::disallowed_names)]
 
 use std::iter::repeat;
 

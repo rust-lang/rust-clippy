@@ -1,6 +1,7 @@
 //@ check-pass
 
 #![deny(clippy::if_same_then_else)]
+#![allow(clippy::disallowed_names)]
 
 // Test for https://github.com/rust-lang/rust-clippy/issues/2426
 

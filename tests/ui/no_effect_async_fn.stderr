@@ -1,5 +1,5 @@
 error: binding to `_` prefixed variable with no side-effect
-  --> tests/ui/no_effect_async_fn.rs:20:17
+  --> tests/ui/no_effect_async_fn.rs:21:17
    |
 LL |             let _c = 0;
    |                 ^^
@@ -8,19 +8,19 @@ LL |             let _c = 0;
    = help: to override `-D warnings` add `#[allow(clippy::no_effect_underscore_binding)]`
 
 error: binding to `_` prefixed variable with no side-effect
-  --> tests/ui/no_effect_async_fn.rs:13:13
+  --> tests/ui/no_effect_async_fn.rs:14:13
    |
 LL |         let _a = 0;
    |             ^^
 
 error: binding to `_` prefixed variable with no side-effect
-  --> tests/ui/no_effect_async_fn.rs:39:13
+  --> tests/ui/no_effect_async_fn.rs:40:13
    |
 LL |         let _c = 0;
    |             ^^
 
 error: binding to `_` prefixed variable with no side-effect
-  --> tests/ui/no_effect_async_fn.rs:32:9
+  --> tests/ui/no_effect_async_fn.rs:33:9
    |
 LL |     let _a = 0;
    |         ^^

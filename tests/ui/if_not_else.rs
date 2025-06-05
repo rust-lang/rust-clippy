@@ -1,4 +1,5 @@
 #![warn(clippy::if_not_else)]
+#![allow(clippy::disallowed_names)]
 
 fn foo() -> bool {
     unimplemented!()

@@ -1,4 +1,5 @@
 #![warn(clippy::doc_overindented_list_items)]
+#![allow(clippy::disallowed_names)]
 
 #[rustfmt::skip]
 /// - first list item

@@ -4,6 +4,7 @@
 #![allow(
     unused,
     clippy::boxed_local,
+    clippy::disallowed_names,
     clippy::extra_unused_type_parameters,
     clippy::needless_pass_by_value,
     clippy::redundant_allocation,

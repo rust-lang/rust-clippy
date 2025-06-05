@@ -8,7 +8,8 @@
     clippy::needless_if,
     clippy::needless_return,
     clippy::self_named_constructors,
-    clippy::struct_field_names
+    clippy::struct_field_names,
+    clippy::disallowed_names
 )]
 
 use std::cell::Cell;

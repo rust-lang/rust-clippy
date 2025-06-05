@@ -1,6 +1,6 @@
 //@aux-build: proc_macros.rs
 
-#![allow(dead_code, unused_variables)]
+#![allow(dead_code, unused_variables, clippy::disallowed_names)]
 
 extern crate proc_macros;
 use proc_macros::with_span;

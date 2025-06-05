@@ -85,5 +85,35 @@ error: use of a disallowed/placeholder name `quux`
 LL |     if let Some(ref mut quux) = Some(42) {}
    |                         ^^^^
 
-error: aborting due to 14 previous errors
+error: use of a disallowed/placeholder name `foo`
+  --> tests/ui/disallowed_names.rs:88:8
+   |
+LL |     fn foo() {}
+   |        ^^^
+
+error: use of a disallowed/placeholder name `quux`
+  --> tests/ui/disallowed_names.rs:91:12
+   |
+LL |     pub fn quux(_some_meaningful_arg: i32) {}
+   |            ^^^^
+
+error: use of a disallowed/placeholder name `baz`
+  --> tests/ui/disallowed_names.rs:94:18
+   |
+LL |     pub async fn baz(_more_meaningful_arg: bool) {}
+   |                  ^^^
+
+error: use of a disallowed/placeholder name `foo`
+  --> tests/ui/disallowed_names.rs:101:12
+   |
+LL |         fn foo(&self) {}
+   |            ^^^
+
+error: use of a disallowed/placeholder name `baz`
+  --> tests/ui/disallowed_names.rs:104:18
+   |
+LL |         const fn baz(&self) {}
+   |                  ^^^
+
+error: aborting due to 19 previous errors
 

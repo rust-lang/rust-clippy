@@ -1,6 +1,7 @@
 #![warn(clippy::needless_pass_by_value)]
 #![allow(dead_code)]
 #![allow(
+    clippy::disallowed_names,
     clippy::option_option,
     clippy::redundant_clone,
     clippy::redundant_pattern_matching,

@@ -8,6 +8,7 @@
 )]
 #![allow(
     clippy::cast_abs_to_unsigned,
+    clippy::disallowed_names,
     clippy::no_effect,
     clippy::unnecessary_min_or_max,
     clippy::unnecessary_operation,

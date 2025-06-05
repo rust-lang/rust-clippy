@@ -1,4 +1,5 @@
 #![warn(clippy::no_effect_underscore_binding)]
+#![allow(clippy::disallowed_names)]
 #![no_main]
 
 trait AsyncTrait {

@@ -11,7 +11,8 @@
     clippy::self_named_constructors,
     clippy::uninlined_format_args,
     clippy::unnecessary_wraps,
-    clippy::unused_unit
+    clippy::unused_unit,
+    clippy::disallowed_names
 )]
 
 extern crate proc_macros;

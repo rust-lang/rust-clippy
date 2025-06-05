@@ -1,5 +1,5 @@
 //@no-rustfix: overlapping suggestions
-#![allow(clippy::let_unit_value, clippy::unnecessary_cast)]
+#![allow(clippy::let_unit_value, clippy::unnecessary_cast, clippy::disallowed_names)]
 
 fn main() {
     let x: [i32; 3] = [1_i32, 2, 3];

@@ -7,7 +7,7 @@ LL | #![allow(dead_code)]
 note: first defined here
   --> tests/ui/duplicated_attributes.rs:5:10
    |
-LL | #![allow(dead_code)]
+LL | #![allow(dead_code, clippy::disallowed_names)]
    |          ^^^^^^^^^
 help: remove this attribute
   --> tests/ui/duplicated_attributes.rs:6:10

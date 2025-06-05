@@ -1,3 +1,4 @@
+#![allow(clippy::disallowed_names)]
 #![warn(clippy::as_underscore)]
 
 fn foo(_n: usize) {}

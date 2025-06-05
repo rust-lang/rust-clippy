@@ -1,5 +1,6 @@
 #![allow(
     clippy::borrowed_box,
+    clippy::disallowed_names,
     clippy::needless_pass_by_value,
     clippy::unused_unit,
     clippy::redundant_clone,

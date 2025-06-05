@@ -1,6 +1,6 @@
 //@ check-pass
 
-#![allow(dead_code)]
+#![allow(dead_code, clippy::disallowed_names)]
 #![deny(clippy::if_same_then_else, clippy::branches_sharing_code)]
 
 use std::sync::Mutex;

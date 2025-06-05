@@ -6,7 +6,8 @@
     clippy::match_single_binding,
     clippy::single_match,
     clippy::uninlined_format_args,
-    clippy::needless_lifetimes
+    clippy::needless_lifetimes,
+    clippy::disallowed_names
 )]
 
 use std::num::ParseIntError;

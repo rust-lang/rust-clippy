@@ -1,5 +1,6 @@
 //@compile-flags: -Z validate-mir
 #![warn(clippy::missing_const_for_fn)]
+#![allow(clippy::disallowed_names)]
 
 static BLOCK_FN_DEF: fn(usize) -> usize = {
     //~v missing_const_for_fn

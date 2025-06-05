@@ -2,6 +2,7 @@
 //@normalize-stderr-test: "\(limit: \d+ byte\)" -> "(limit: N byte)"
 //@no-rustfix
 #![warn(clippy::large_types_passed_by_value)]
+#![allow(clippy::disallowed_names)]
 
 pub struct Large([u8; 2048]);
 

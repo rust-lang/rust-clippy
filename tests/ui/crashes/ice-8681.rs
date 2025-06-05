@@ -7,5 +7,5 @@
 mod ice_8681_aux;
 
 fn main() {
-    let _ = ice_8681_aux::foo(&0u32);
+    let _ = ice_8681_aux::some_meaningful_name(&0u32);
 }

@@ -1,5 +1,5 @@
 #![warn(clippy::map_entry)]
-#![allow(dead_code)]
+#![allow(dead_code, clippy::disallowed_names)]
 
 use std::collections::BTreeMap;
 
