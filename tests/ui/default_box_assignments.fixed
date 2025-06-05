@@ -1,5 +1,20 @@
 #![warn(clippy::default_box_assignments)]
 
+fn with_default<T: Default>(b: &mut Box<T>) {
+    *(*b) = T::default();
+    //~^ default_box_assignments
+}
+
+fn with_sized<T>(b: &mut Box<T>, t: T) {
+    *(*b) = t;
+    //~^ default_box_assignments
+}
+
+fn with_unsized<const N: usize>(b: &mut Box<[u32]>) {
+    // No lint for assigning to Box<T> where T: !Default
+    *b = Box::new([42; N]);
+}
+
 macro_rules! create_default {
     () => {
         Default::default()
