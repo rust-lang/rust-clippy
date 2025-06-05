@@ -957,6 +957,16 @@ could be used with a full path two `MacroMatcher`s have to be added one with the
 * [`nonstandard_macro_braces`](https://rust-lang.github.io/rust-clippy/master/index.html#nonstandard_macro_braces)
 
 
+## `strict-order-of-use`
+Makes the lint strict, use statements must precede mod and extern crate statements too. (Stylistic Choice)
+
+**Default Value:** `false`
+
+---
+**Affected lints:**
+* [`items_before_use`](https://rust-lang.github.io/rust-clippy/master/index.html#items_before_use)
+
+
 ## `struct-field-name-threshold`
 The minimum number of struct fields for the lints about field names to trigger
 

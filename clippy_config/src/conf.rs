@@ -804,6 +804,9 @@ define_Conf! {
     /// `crate_name::macro_name` and one with just the macro name.
     #[lints(nonstandard_macro_braces)]
     standard_macro_braces: Vec<MacroMatcher> = Vec::new(),
+    /// Makes the lint strict, use statements must precede mod and extern crate statements too. (Stylistic Choice)
+    #[lints(items_before_use)]
+    strict_order_of_use: bool = false,
     /// The minimum number of struct fields for the lints about field names to trigger
     #[lints(struct_field_names)]
     struct_field_name_threshold: u64 = 3,
@@ -856,9 +859,6 @@ define_Conf! {
     /// Whether to also emit warnings for unsafe blocks with metavariable expansions in **private** macros.
     #[lints(macro_metavars_in_unsafe)]
     warn_unsafe_macro_metavars_in_private_macros: bool = false,
-    /// Makes the lint strict, use statements must precede mod and extern crate statements too. (Stylistic Choice)
-    #[lints(items_before_use)]
-    strict_order_of_use: bool = false,
 }
 
 /// Search for the configuration file.

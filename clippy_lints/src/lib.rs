@@ -17,7 +17,8 @@
     clippy::must_use_candidate,
     rustc::diagnostic_outside_of_impl,
     rustc::untranslatable_diagnostic,
-    clippy::literal_string_with_formatting_args
+    clippy::literal_string_with_formatting_args,
+    clippy::items_before_use
 )]
 #![warn(
     trivial_casts,
