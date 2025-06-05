@@ -1,4 +1,4 @@
-#![allow(dead_code, clippy::needless_pass_by_ref_mut)]
+#![allow(dead_code, clippy::needless_pass_by_ref_mut, clippy::items_before_use)]
 #![allow(clippy::redundant_pattern_matching)]
 #![warn(clippy::unused_io_amount)]
 

@@ -4,7 +4,8 @@
     clippy::eq_op,
     clippy::no_effect,
     clippy::unnecessary_operation,
-    clippy::needless_pass_by_value
+    clippy::needless_pass_by_value,
+    clippy::items_before_use
 )]
 
 #[rustfmt::skip]

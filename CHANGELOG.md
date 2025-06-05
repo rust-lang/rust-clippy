@@ -5895,6 +5895,7 @@ Released 2018-09-13
 [`is_digit_ascii_radix`]: https://rust-lang.github.io/rust-clippy/master/index.html#is_digit_ascii_radix
 [`items_after_statements`]: https://rust-lang.github.io/rust-clippy/master/index.html#items_after_statements
 [`items_after_test_module`]: https://rust-lang.github.io/rust-clippy/master/index.html#items_after_test_module
+[`items_before_use`]: https://rust-lang.github.io/rust-clippy/master/index.html#items_before_use
 [`iter_cloned_collect`]: https://rust-lang.github.io/rust-clippy/master/index.html#iter_cloned_collect
 [`iter_count`]: https://rust-lang.github.io/rust-clippy/master/index.html#iter_count
 [`iter_filter_is_ok`]: https://rust-lang.github.io/rust-clippy/master/index.html#iter_filter_is_ok

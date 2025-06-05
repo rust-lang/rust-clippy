@@ -184,6 +184,7 @@ mod invalid_upcast_comparisons;
 mod item_name_repetitions;
 mod items_after_statements;
 mod items_after_test_module;
+mod items_before_use;
 mod iter_not_returning_iterator;
 mod iter_over_hash_type;
 mod iter_without_into_iter;
@@ -951,5 +952,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(cloned_ref_to_slice_refs::ClonedRefToSliceRefs::new(conf)));
     store.register_late_pass(|_| Box::new(infallible_try_from::InfallibleTryFrom));
     store.register_late_pass(|_| Box::new(coerce_container_to_any::CoerceContainerToAny));
+    store.register_late_pass(move |_| Box::new(items_before_use::ItemsBeforeUse::new(conf)));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }

@@ -4,7 +4,8 @@
     clippy::uninlined_format_args,
     clippy::disallowed_names,
     clippy::needless_pass_by_ref_mut,
-    clippy::needless_lifetimes
+    clippy::needless_lifetimes,
+    clippy::items_before_use
 )]
 
 use std::fmt::Display;

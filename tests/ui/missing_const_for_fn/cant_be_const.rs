@@ -6,6 +6,7 @@
 //@aux-build:helper.rs
 //@aux-build:../auxiliary/proc_macros.rs
 
+#![allow(clippy::items_before_use)]
 #![warn(clippy::missing_const_for_fn)]
 #![feature(type_alias_impl_trait)]
 

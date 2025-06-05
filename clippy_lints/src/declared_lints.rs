@@ -233,6 +233,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::item_name_repetitions::STRUCT_FIELD_NAMES_INFO,
     crate::items_after_statements::ITEMS_AFTER_STATEMENTS_INFO,
     crate::items_after_test_module::ITEMS_AFTER_TEST_MODULE_INFO,
+    crate::items_before_use::ITEMS_BEFORE_USE_INFO,
     crate::iter_not_returning_iterator::ITER_NOT_RETURNING_ITERATOR_INFO,
     crate::iter_over_hash_type::ITER_OVER_HASH_TYPE_INFO,
     crate::iter_without_into_iter::INTO_ITER_WITHOUT_ITER_INFO,

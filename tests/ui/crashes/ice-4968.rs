@@ -2,7 +2,7 @@
 // Test for https://github.com/rust-lang/rust-clippy/issues/4968
 
 #![warn(clippy::unsound_collection_transmute)]
-#![allow(clippy::transmute_undefined_repr)]
+#![allow(clippy::transmute_undefined_repr, clippy::items_before_use)]
 
 trait Trait {
     type Assoc;

@@ -1,5 +1,5 @@
 #![warn(clippy::iter_on_empty_collections)]
-#![allow(clippy::iter_next_slice, clippy::redundant_clone)]
+#![allow(clippy::iter_next_slice, clippy::redundant_clone, clippy::items_before_use)]
 
 fn array() {
     assert_eq!(std::iter::empty().next(), Option::<i32>::None);

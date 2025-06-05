@@ -13,6 +13,7 @@
     clippy::collapsible_if,
     clippy::blocks_in_conditions,
     clippy::single_match,
+    clippy::items_before_use
 )]
 
 #[macro_use]

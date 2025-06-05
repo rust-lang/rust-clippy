@@ -1,0 +1,36 @@
+error: strict_order_of_use enabled: use statements should precede all other items including mod and extern crate statements
+  --> tests/ui-toml/strict_order_of_use/items_before_use.rs:7:5
+   |
+LL |     use std::io;
+   |     ^^^^^^^^^^^^
+   |
+   = note: Move this statement to the top of the module
+   = note: `-D clippy::items-before-use` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::items_before_use)]`
+
+error: strict_order_of_use enabled: use statements should precede all other items including mod and extern crate statements
+  --> tests/ui-toml/strict_order_of_use/items_before_use.rs:10:5
+   |
+LL |     use std::fs;
+   |     ^^^^^^^^^^^^
+   |
+   = note: Move this statement to the top of the module
+
+error: strict_order_of_use enabled: use statements should precede all other items including mod and extern crate statements
+  --> tests/ui-toml/strict_order_of_use/items_before_use.rs:13:5
+   |
+LL |     use std::str;
+   |     ^^^^^^^^^^^^^
+   |
+   = note: Move this statement to the top of the module
+
+error: strict_order_of_use enabled: use statements should precede all other items including mod and extern crate statements
+  --> tests/ui-toml/strict_order_of_use/items_before_use.rs:25:5
+   |
+LL |     use std::borrow::Cow;
+   |     ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Move this statement to the top of the module
+
+error: aborting due to 4 previous errors
+
