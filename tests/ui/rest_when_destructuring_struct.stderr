@@ -1,0 +1,20 @@
+error: struct destructuring with rest (..)
+  --> tests/ui/rest_when_destructuring_struct.rs:19:9
+   |
+LL |     let S { a, b, .. } = s;
+   |         ^^^^^^^^^^^^^^
+   |
+   = help: consider explicitly ignoring remaining fields with wildcard patterns (x: _)
+   = note: `-D clippy::rest-when-destructuring-struct` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::rest_when_destructuring_struct)]`
+
+error: struct destructuring with rest (..)
+  --> tests/ui/rest_when_destructuring_struct.rs:26:9
+   |
+LL |         E::B { .. } => (),
+   |         ^^^^^^^^^^^
+   |
+   = help: consider explicitly ignoring remaining fields with wildcard patterns (x: _)
+
+error: aborting due to 2 previous errors
+
