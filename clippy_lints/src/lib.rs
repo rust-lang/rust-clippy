@@ -325,6 +325,7 @@ mod regex;
 mod repeat_vec_with_capacity;
 mod replace_box;
 mod reserve_after_initialization;
+mod rest_when_destructuring_struct;
 mod return_self_not_must_use;
 mod returns;
 mod same_length_and_capacity;
@@ -542,6 +543,7 @@ rustc_lint::early_lint_methods!(
         CfgNotTest: cfg_not_test::CfgNotTest = cfg_not_test::CfgNotTest,
         EmptyLineAfter: empty_line_after::EmptyLineAfter = empty_line_after::EmptyLineAfter::new(),
         InlineTraitBounds: inline_trait_bounds::InlineTraitBounds = inline_trait_bounds::InlineTraitBounds::default(),
+        RestWhenDestructuringStruct: rest_when_destructuring_struct::RestWhenDestructuringStruct = rest_when_destructuring_struct::RestWhenDestructuringStruct,
         // add early passes here, used by `cargo dev new_lint`
     ]]
 );
