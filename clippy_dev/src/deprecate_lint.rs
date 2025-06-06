@@ -1,9 +1,10 @@
-use crate::parse::{DeprecatedLint, Lint, find_lint_decls, read_deprecated_lints};
+use crate::parse::{ActiveLint, DeprecatedLint, Lint, LintList};
 use crate::update_lints::generate_lint_files;
-use crate::utils::{UpdateMode, Version};
+use crate::utils::{FileUpdater, UpdateMode, UpdateStatus, Version, delete_dir_if_exists, delete_file_if_exists};
+use core::mem;
+use rustc_data_structures::fx::FxHashMap;
 use std::ffi::OsStr;
-use std::path::{Path, PathBuf};
-use std::{fs, io};
+use std::path::Path;
 
 /// Runs the `deprecate` command
 ///
@@ -14,73 +15,48 @@ use std::{fs, io};
 /// # Panics
 ///
 /// If a file path could not read from or written to
+#[expect(clippy::similar_names)]
 pub fn deprecate(clippy_version: Version, name: &str, reason: &str) {
     if let Some((prefix, _)) = name.split_once("::") {
         panic!("`{name}` should not contain the `{prefix}` prefix");
     }
 
-    let mut lints = find_lint_decls();
-    let (mut deprecated_lints, renamed_lints) = read_deprecated_lints();
-
-    let Some(lint) = lints.iter().find(|l| l.name == name) else {
+    let mut list = LintList::collect();
+    let Some(entry) = list.lints.get_mut(name) else {
         eprintln!("error: failed to find lint `{name}`");
         return;
     };
-
-    let prefixed_name = String::from_iter(["clippy::", name]);
-    match deprecated_lints.binary_search_by(|x| x.name.cmp(&prefixed_name)) {
-        Ok(_) => {
-            println!("`{name}` is already deprecated");
-            return;
-        },
-        Err(idx) => deprecated_lints.insert(
-            idx,
-            DeprecatedLint {
-                name: prefixed_name,
-                reason: reason.into(),
-                version: clippy_version.rust_display().to_string(),
-            },
-        ),
-    }
-
-    let mod_path = {
-        let mut mod_path = PathBuf::from(format!("clippy_lints/src/{}", lint.module));
-        if mod_path.is_dir() {
-            mod_path = mod_path.join("mod");
-        }
-
-        mod_path.set_extension("rs");
-        mod_path
+    let Lint::Active(lint) = mem::replace(
+        entry,
+        Lint::Deprecated(DeprecatedLint {
+            reason: reason.into(),
+            version: clippy_version.rust_display().to_string(),
+        }),
+    ) else {
+        eprintln!("error: lint `{name}` is already deprecated");
+        return;
     };
 
-    if remove_lint_declaration(name, &mod_path, &mut lints).unwrap_or(false) {
-        generate_lint_files(UpdateMode::Change, &lints, &deprecated_lints, &renamed_lints);
-        println!("info: `{name}` has successfully been deprecated");
-        println!("note: you must run `cargo uitest` to update the test results");
-    } else {
-        eprintln!("error: lint not found");
-    }
+    remove_lint_declaration(name, &lint, &list.lints);
+    generate_lint_files(UpdateMode::Change, &list);
+    println!("info: `{name}` has successfully been deprecated");
+    println!("note: you must run `cargo uitest` to update the test results");
 }
 
-fn remove_lint_declaration(name: &str, path: &Path, lints: &mut Vec<Lint>) -> io::Result<bool> {
-    fn remove_lint(name: &str, lints: &mut Vec<Lint>) {
-        lints.iter().position(|l| l.name == name).map(|pos| lints.remove(pos));
-    }
-
+fn remove_lint_declaration(name: &str, lint: &ActiveLint, lints: &FxHashMap<String, Lint>) {
     fn remove_test_assets(name: &str) {
         let test_file_stem = format!("tests/ui/{name}");
         let path = Path::new(&test_file_stem);
 
         // Some lints have their own directories, delete them
         if path.is_dir() {
-            let _ = fs::remove_dir_all(path);
-            return;
+            delete_dir_if_exists(path);
+        } else {
+            // Remove all related test files
+            delete_file_if_exists(&path.with_extension("rs"));
+            delete_file_if_exists(&path.with_extension("stderr"));
+            delete_file_if_exists(&path.with_extension("fixed"));
         }
-
-        // Remove all related test files
-        let _ = fs::remove_file(path.with_extension("rs"));
-        let _ = fs::remove_file(path.with_extension("stderr"));
-        let _ = fs::remove_file(path.with_extension("fixed"));
     }
 
     fn remove_impl_lint_pass(lint_name_upper: &str, content: &mut String) {
@@ -109,54 +85,55 @@ fn remove_lint_declaration(name: &str, path: &Path, lints: &mut Vec<Lint>) -> io
         }
     }
 
-    if path.exists()
-        && let Some(lint) = lints.iter().find(|l| l.name == name)
-    {
-        if lint.module == name {
-            // The lint name is the same as the file, we can just delete the entire file
-            fs::remove_file(path)?;
+    if lints.values().any(|l| {
+        if let Lint::Active(l) = l {
+            l.krate == lint.krate && l.module.starts_with(&lint.module)
         } else {
-            // We can't delete the entire file, just remove the declaration
-
-            if let Some(Some("mod.rs")) = path.file_name().map(OsStr::to_str) {
-                // Remove clippy_lints/src/some_mod/some_lint.rs
-                let mut lint_mod_path = path.to_path_buf();
-                lint_mod_path.set_file_name(name);
-                lint_mod_path.set_extension("rs");
-
-                let _ = fs::remove_file(lint_mod_path);
-            }
-
-            let mut content =
-                fs::read_to_string(path).unwrap_or_else(|_| panic!("failed to read `{}`", path.to_string_lossy()));
-
-            eprintln!(
-                "warn: you will have to manually remove any code related to `{name}` from `{}`",
-                path.display()
-            );
-
-            assert!(
-                content[lint.declaration_range.clone()].contains(&name.to_uppercase()),
-                "error: `{}` does not contain lint `{}`'s declaration",
-                path.display(),
-                lint.name
-            );
-
-            // Remove lint declaration (declare_clippy_lint!)
-            content.replace_range(lint.declaration_range.clone(), "");
-
-            // Remove the module declaration (mod xyz;)
-            let mod_decl = format!("\nmod {name};");
-            content = content.replacen(&mod_decl, "", 1);
-
-            remove_impl_lint_pass(&lint.name.to_uppercase(), &mut content);
-            fs::write(path, content).unwrap_or_else(|_| panic!("failed to write to `{}`", path.to_string_lossy()));
+            false
         }
+    }) {
+        // Try to delete a sub-module that matches the lint's name
+        let removed_mod = if lint.path.file_name().map(OsStr::as_encoded_bytes) == Some(b"mod.rs") {
+            let mut path = lint.path.clone();
+            path.set_file_name(name);
+            path.set_extension("rs");
+            delete_file_if_exists(&path)
+        } else {
+            false
+        };
 
-        remove_test_assets(name);
-        remove_lint(name, lints);
-        return Ok(true);
+        FileUpdater::default().update_file(&lint.path, &mut |_, src, dst| {
+            let (a, b, c, d) = if removed_mod
+                && let mod_decl = format!("\nmod {name};")
+                && let Some(mod_start) = src.find(&mod_decl)
+            {
+                if mod_start < lint.span.start as usize {
+                    (
+                        mod_start,
+                        mod_start + mod_decl.len(),
+                        lint.span.start as usize,
+                        lint.span.end as usize,
+                    )
+                } else {
+                    (
+                        lint.span.start as usize,
+                        lint.span.end as usize,
+                        mod_start,
+                        mod_start + mod_decl.len(),
+                    )
+                }
+            } else {
+                (lint.span.start as usize, lint.span.end as usize, src.len(), src.len())
+            };
+            dst.push_str(&src[..a]);
+            dst.push_str(&src[b..c]);
+            dst.push_str(&src[d..]);
+            remove_impl_lint_pass(&name.to_uppercase(), dst);
+            UpdateStatus::Changed
+        });
+    } else {
+        // No other lint in the same module or a sub-module.
+        delete_file_if_exists(&lint.path);
     }
-
-    Ok(false)
+    remove_test_assets(name);
 }
