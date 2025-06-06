@@ -1,10 +1,10 @@
-use crate::utils::{ErrAction, File, expect_action};
+use crate::utils::{ErrAction, File, expect_action, walk_dir_no_dot_or_target};
 use core::ops::Range;
 use core::slice;
+use rustc_data_structures::fx::FxHashMap;
 use rustc_lexer::{self as lexer, FrontmatterAllowed};
 use std::fs;
-use std::path::{Path, PathBuf};
-use walkdir::{DirEntry, WalkDir};
+use std::path::{self, Path, PathBuf};
 
 #[derive(Clone, Copy)]
 pub enum Token<'a> {
@@ -76,6 +76,7 @@ impl<'txt> RustSearcher<'txt> {
         self.next_token.kind == lexer::TokenKind::Eof
     }
 
+    /// Steps to the next token, or `TokenKind::Eof` if there are no more tokens.
     pub fn step(&mut self) {
         // `next_token.len` is zero for the eof marker.
         self.pos += self.next_token.len;
@@ -83,7 +84,7 @@ impl<'txt> RustSearcher<'txt> {
     }
 
     /// Consumes the next token if it matches the requested value and captures the value if
-    /// requested. Returns true if a token was matched.
+    /// requested. Returns `true` if a token was matched.
     fn read_token(&mut self, token: Token<'_>, captures: &mut slice::IterMut<'_, &mut &'txt str>) -> bool {
         loop {
             match (token, self.next_token.kind) {
@@ -123,7 +124,7 @@ impl<'txt> RustSearcher<'txt> {
                 },
                 (Token::DoubleColon, lexer::TokenKind::Colon) => {
                     self.step();
-                    if !self.at_end() && matches!(self.next_token.kind, lexer::TokenKind::Colon) {
+                    if matches!(self.next_token.kind, lexer::TokenKind::Colon) {
                         self.step();
                         return true;
                     }
@@ -182,188 +183,220 @@ impl<'txt> RustSearcher<'txt> {
     }
 }
 
-pub struct Lint {
-    pub name: String,
-    pub group: String,
+pub struct ActiveLint {
+    pub krate: String,
     pub module: String,
+    pub group: String,
     pub path: PathBuf,
-    pub declaration_range: Range<usize>,
+    pub span: Range<u32>,
 }
 
 pub struct DeprecatedLint {
-    pub name: String,
     pub reason: String,
     pub version: String,
 }
 
 pub struct RenamedLint {
-    pub old_name: String,
     pub new_name: String,
     pub version: String,
 }
 
-/// Finds all lint declarations (`declare_clippy_lint!`)
-#[must_use]
-pub fn find_lint_decls() -> Vec<Lint> {
-    let mut lints = Vec::with_capacity(1000);
-    let mut contents = String::new();
-    for e in expect_action(fs::read_dir("."), ErrAction::Read, ".") {
-        let e = expect_action(e, ErrAction::Read, ".");
-        if !expect_action(e.file_type(), ErrAction::Read, ".").is_dir() {
-            continue;
-        }
-        let Ok(mut name) = e.file_name().into_string() else {
-            continue;
+pub enum Lint {
+    Active(ActiveLint),
+    Deprecated(DeprecatedLint),
+    Renamed(RenamedLint),
+}
+
+pub struct LintList {
+    pub lints: FxHashMap<String, Lint>,
+    pub deprecated_span: Range<u32>,
+    pub renamed_span: Range<u32>,
+}
+impl LintList {
+    #[expect(clippy::default_trait_access)]
+    pub fn collect() -> Self {
+        // 2025-05: Initial capacities should fit everything without reallocating.
+        let mut parser = Parser {
+            lints: FxHashMap::with_capacity_and_hasher(1000, Default::default()),
+            deprecated_span: 0..0,
+            renamed_span: 0..0,
+            contents: String::with_capacity(1024 * 128 * 3),
         };
-        if name.starts_with("clippy_lints") && name != "clippy_lints_internal" {
-            name.push_str("/src");
-            for (file, module) in read_src_with_module(name.as_ref()) {
-                parse_clippy_lint_decls(
-                    file.path(),
-                    File::open_read_to_cleared_string(file.path(), &mut contents),
-                    &module,
-                    &mut lints,
+        parser.parse_src_files();
+        parser.parse_deprecated_lints();
+
+        LintList {
+            lints: parser.lints,
+            deprecated_span: parser.deprecated_span,
+            renamed_span: parser.renamed_span,
+        }
+    }
+}
+
+struct Parser {
+    lints: FxHashMap<String, Lint>,
+    deprecated_span: Range<u32>,
+    renamed_span: Range<u32>,
+    contents: String,
+}
+impl Parser {
+    /// Parses all source files looking for lint declarations (`declare_clippy_lint! { .. }`).
+    fn parse_src_files(&mut self) {
+        for e in expect_action(fs::read_dir("."), ErrAction::Read, ".") {
+            let e = expect_action(e, ErrAction::Read, ".");
+            if !expect_action(e.file_type(), ErrAction::Read, ".").is_dir() {
+                continue;
+            }
+            let Ok(mut crate_path) = e.file_name().into_string() else {
+                continue;
+            };
+            if crate_path.starts_with("clippy_lints") && crate_path != "clippy_lints_internal" {
+                crate_path.push_str("/src");
+                let krate = &crate_path[..crate_path.len() - 4];
+                for e in walk_dir_no_dot_or_target(&crate_path) {
+                    let e = expect_action(e, ErrAction::Read, &crate_path);
+                    if let Some(path) = e.path().to_str()
+                        && let Some(path) = path.strip_suffix(".rs")
+                        && let Some(path) = path.get(crate_path.len() + 1..)
+                    {
+                        let module = if path == "lib" {
+                            String::new()
+                        } else {
+                            let path = if let Some(path) = path.strip_suffix("mod")
+                                && let Some(path) = path.strip_suffix(path::MAIN_SEPARATOR)
+                            {
+                                path
+                            } else {
+                                path
+                            };
+                            path.replace(path::MAIN_SEPARATOR, "::")
+                        };
+                        self.parse_src_file(e.path(), krate, &module);
+                    }
+                }
+            }
+        }
+    }
+
+    /// Parse a source file looking for `declare_clippy_lint` macro invocations.
+    fn parse_src_file(&mut self, path: &Path, krate: &str, module: &str) {
+        #[allow(clippy::enum_glob_use)]
+        use Token::*;
+        #[rustfmt::skip]
+        static DECL_TOKENS: &[Token<'_>] = &[
+            // !{ /// docs
+            Bang, OpenBrace, AnyComment,
+            // #[clippy::version = "version"]
+            Pound, OpenBracket, Ident("clippy"), DoubleColon, Ident("version"), Eq, LitStr, CloseBracket,
+            // pub NAME, GROUP,
+            Ident("pub"), CaptureIdent, Comma, AnyComment, CaptureIdent, Comma,
+        ];
+
+        File::open_read_to_cleared_string(path, &mut self.contents);
+        let mut searcher = RustSearcher::new(&self.contents);
+        #[expect(clippy::cast_possible_truncation)]
+        while searcher.find_token(Ident("declare_clippy_lint")) {
+            let start = searcher.pos() - "declare_clippy_lint".len() as u32;
+            let (mut name, mut group) = ("", "");
+            if searcher.match_tokens(DECL_TOKENS, &mut [&mut name, &mut group]) && searcher.find_token(CloseBrace) {
+                self.lints.insert(
+                    name.to_ascii_lowercase(),
+                    Lint::Active(ActiveLint {
+                        krate: krate.into(),
+                        module: module.into(),
+                        group: group.into(),
+                        path: path.into(),
+                        span: start..searcher.pos(),
+                    }),
                 );
             }
         }
     }
-    lints.sort_by(|lhs, rhs| lhs.name.cmp(&rhs.name));
-    lints
-}
 
-/// Reads the source files from the given root directory
-fn read_src_with_module(src_root: &Path) -> impl use<'_> + Iterator<Item = (DirEntry, String)> {
-    WalkDir::new(src_root).into_iter().filter_map(move |e| {
-        let e = expect_action(e, ErrAction::Read, src_root);
-        let path = e.path().as_os_str().as_encoded_bytes();
-        if let Some(path) = path.strip_suffix(b".rs")
-            && let Some(path) = path.get(src_root.as_os_str().len() + 1..)
-        {
-            if path == b"lib" {
-                Some((e, String::new()))
-            } else {
-                let path = if let Some(path) = path.strip_suffix(b"mod")
-                    && let Some(path) = path.strip_suffix(b"/").or_else(|| path.strip_suffix(b"\\"))
-                {
-                    path
-                } else {
-                    path
-                };
-                if let Ok(path) = str::from_utf8(path) {
-                    let path = path.replace(['/', '\\'], "::");
-                    Some((e, path))
-                } else {
-                    None
-                }
+    pub fn parse_deprecated_lints(&mut self) {
+        #[allow(clippy::enum_glob_use)]
+        use Token::*;
+        #[rustfmt::skip]
+        static DECL_TOKENS: &[Token<'_>] = &[
+            // #[clippy::version = "version"]
+            Pound, OpenBracket, Ident("clippy"), DoubleColon, Ident("version"), Eq, CaptureLitStr, CloseBracket,
+            // ("first", "second"),
+            OpenParen, CaptureLitStr, Comma, CaptureLitStr, CloseParen, Comma,
+        ];
+        #[rustfmt::skip]
+        static DEPRECATED_TOKENS: &[Token<'_>] = &[
+            // !{ DEPRECATED(DEPRECATED_VERSION) = [
+            Bang, OpenBrace, Ident("DEPRECATED"), OpenParen, Ident("DEPRECATED_VERSION"), CloseParen, Eq, OpenBracket,
+        ];
+        #[rustfmt::skip]
+        static RENAMED_TOKENS: &[Token<'_>] = &[
+            // !{ RENAMED(RENAMED_VERSION) = [
+            Bang, OpenBrace, Ident("RENAMED"), OpenParen, Ident("RENAMED_VERSION"), CloseParen, Eq, OpenBracket,
+        ];
+
+        let path = Path::new("clippy_lints/src/deprecated_lints.rs");
+        File::open_read_to_cleared_string(path, &mut self.contents);
+
+        let mut searcher = RustSearcher::new(&self.contents);
+        // First instance is the macro definition.
+        assert!(
+            searcher.find_token(Ident("declare_with_version")),
+            "error parsing `clippy_lints/src/deprecated_lints.rs`"
+        );
+
+        if searcher.find_token(Ident("declare_with_version")) && searcher.match_tokens(DEPRECATED_TOKENS, &mut []) {
+            let start = searcher.pos();
+            let mut end = start;
+            let mut version = "";
+            let mut name = "";
+            let mut reason = "";
+            while searcher.match_tokens(DECL_TOKENS, &mut [&mut version, &mut name, &mut reason]) {
+                self.lints.insert(
+                    parse_clippy_lint_name(path, name),
+                    Lint::Deprecated(DeprecatedLint {
+                        reason: parse_str_single_line(path, reason),
+                        version: parse_str_single_line(path, version),
+                    }),
+                );
+                end = searcher.pos();
             }
+            self.deprecated_span = start..end;
         } else {
-            None
+            panic!("error reading deprecated lints");
         }
-    })
-}
 
-/// Parse a source file looking for `declare_clippy_lint` macro invocations.
-fn parse_clippy_lint_decls(path: &Path, contents: &str, module: &str, lints: &mut Vec<Lint>) {
-    #[allow(clippy::enum_glob_use)]
-    use Token::*;
-    #[rustfmt::skip]
-    static DECL_TOKENS: &[Token<'_>] = &[
-        // !{ /// docs
-        Bang, OpenBrace, AnyComment,
-        // #[clippy::version = "version"]
-        Pound, OpenBracket, Ident("clippy"), DoubleColon, Ident("version"), Eq, LitStr, CloseBracket,
-        // pub NAME, GROUP,
-        Ident("pub"), CaptureIdent, Comma, AnyComment, CaptureIdent, Comma,
-    ];
-
-    let mut searcher = RustSearcher::new(contents);
-    while searcher.find_token(Ident("declare_clippy_lint")) {
-        let start = searcher.pos() as usize - "declare_clippy_lint".len();
-        let (mut name, mut group) = ("", "");
-        if searcher.match_tokens(DECL_TOKENS, &mut [&mut name, &mut group]) && searcher.find_token(CloseBrace) {
-            lints.push(Lint {
-                name: name.to_lowercase(),
-                group: group.into(),
-                module: module.into(),
-                path: path.into(),
-                declaration_range: start..searcher.pos() as usize,
-            });
+        if searcher.find_token(Ident("declare_with_version")) && searcher.match_tokens(RENAMED_TOKENS, &mut []) {
+            let start = searcher.pos();
+            let mut end = start;
+            let mut version = "";
+            let mut old_name = "";
+            let mut new_name = "";
+            while searcher.match_tokens(DECL_TOKENS, &mut [&mut version, &mut old_name, &mut new_name]) {
+                self.lints.insert(
+                    parse_clippy_lint_name(path, old_name),
+                    Lint::Renamed(RenamedLint {
+                        new_name: parse_maybe_clippy_lint_name(path, new_name),
+                        version: parse_str_single_line(path, version),
+                    }),
+                );
+                end = searcher.pos();
+            }
+            self.renamed_span = start..end;
+        } else {
+            panic!("error reading renamed lints");
         }
     }
 }
 
-#[must_use]
-pub fn read_deprecated_lints() -> (Vec<DeprecatedLint>, Vec<RenamedLint>) {
-    #[allow(clippy::enum_glob_use)]
-    use Token::*;
-    #[rustfmt::skip]
-    static DECL_TOKENS: &[Token<'_>] = &[
-        // #[clippy::version = "version"]
-        Pound, OpenBracket, Ident("clippy"), DoubleColon, Ident("version"), Eq, CaptureLitStr, CloseBracket,
-        // ("first", "second"),
-        OpenParen, CaptureLitStr, Comma, CaptureLitStr, CloseParen, Comma,
-    ];
-    #[rustfmt::skip]
-    static DEPRECATED_TOKENS: &[Token<'_>] = &[
-        // !{ DEPRECATED(DEPRECATED_VERSION) = [
-        Bang, OpenBrace, Ident("DEPRECATED"), OpenParen, Ident("DEPRECATED_VERSION"), CloseParen, Eq, OpenBracket,
-    ];
-    #[rustfmt::skip]
-    static RENAMED_TOKENS: &[Token<'_>] = &[
-        // !{ RENAMED(RENAMED_VERSION) = [
-        Bang, OpenBrace, Ident("RENAMED"), OpenParen, Ident("RENAMED_VERSION"), CloseParen, Eq, OpenBracket,
-    ];
-
-    let path = "clippy_lints/src/deprecated_lints.rs";
-    let mut deprecated = Vec::with_capacity(30);
-    let mut renamed = Vec::with_capacity(80);
-    let mut contents = String::new();
-    File::open_read_to_cleared_string(path, &mut contents);
-
-    let mut searcher = RustSearcher::new(&contents);
-
-    // First instance is the macro definition.
+fn assert_lint_name(path: &Path, s: &str) {
     assert!(
-        searcher.find_token(Ident("declare_with_version")),
-        "error reading deprecated lints"
+        s.bytes()
+            .all(|c| matches!(c, b'_' | b'0'..=b'9' | b'a'..=b'z' | b'A'..=b'Z')),
+        "error parsing `{}`: `{s}` is not a valid lint name",
+        path.display(),
     );
-
-    if searcher.find_token(Ident("declare_with_version")) && searcher.match_tokens(DEPRECATED_TOKENS, &mut []) {
-        let mut version = "";
-        let mut name = "";
-        let mut reason = "";
-        while searcher.match_tokens(DECL_TOKENS, &mut [&mut version, &mut name, &mut reason]) {
-            deprecated.push(DeprecatedLint {
-                name: parse_str_single_line(path.as_ref(), name),
-                reason: parse_str_single_line(path.as_ref(), reason),
-                version: parse_str_single_line(path.as_ref(), version),
-            });
-        }
-    } else {
-        panic!("error reading deprecated lints");
-    }
-
-    if searcher.find_token(Ident("declare_with_version")) && searcher.match_tokens(RENAMED_TOKENS, &mut []) {
-        let mut version = "";
-        let mut old_name = "";
-        let mut new_name = "";
-        while searcher.match_tokens(DECL_TOKENS, &mut [&mut version, &mut old_name, &mut new_name]) {
-            renamed.push(RenamedLint {
-                old_name: parse_str_single_line(path.as_ref(), old_name),
-                new_name: parse_str_single_line(path.as_ref(), new_name),
-                version: parse_str_single_line(path.as_ref(), version),
-            });
-        }
-    } else {
-        panic!("error reading renamed lints");
-    }
-
-    deprecated.sort_by(|lhs, rhs| lhs.name.cmp(&rhs.name));
-    renamed.sort_by(|lhs, rhs| lhs.old_name.cmp(&rhs.old_name));
-    (deprecated, renamed)
 }
 
-/// Removes the line splices and surrounding quotes from a string literal
 fn parse_str_lit(s: &str) -> String {
     let (s, is_raw) = if let Some(s) = s.strip_prefix("r") {
         (s.trim_matches('#'), true)
@@ -389,11 +422,30 @@ fn parse_str_lit(s: &str) -> String {
 }
 
 fn parse_str_single_line(path: &Path, s: &str) -> String {
-    let value = parse_str_lit(s);
+    let s = parse_str_lit(s);
     assert!(
-        !value.contains('\n'),
+        !s.contains('\n'),
         "error parsing `{}`: `{s}` should be a single line string",
         path.display(),
     );
-    value
+    s
+}
+
+fn parse_clippy_lint_name(path: &Path, s: &str) -> String {
+    let mut s = parse_str_lit(s);
+    let Some(name) = s.strip_prefix("clippy::") else {
+        panic!(
+            "error parsing `{}`: `{s}` needs to have the `clippy::` prefix",
+            path.display()
+        );
+    };
+    assert_lint_name(path, name);
+    s.drain(.."clippy::".len());
+    s
+}
+
+fn parse_maybe_clippy_lint_name(path: &Path, s: &str) -> String {
+    let s = parse_str_lit(s);
+    assert_lint_name(path, s.strip_prefix("clippy::").unwrap_or(&s));
+    s
 }
