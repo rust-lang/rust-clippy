@@ -662,6 +662,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::repeat_vec_with_capacity::REPEAT_VEC_WITH_CAPACITY_INFO,
     crate::replace_box::REPLACE_BOX_INFO,
     crate::reserve_after_initialization::RESERVE_AFTER_INITIALIZATION_INFO,
+    crate::rest_when_destructuring_struct::REST_WHEN_DESTRUCTURING_STRUCT_INFO,
     crate::return_self_not_must_use::RETURN_SELF_NOT_MUST_USE_INFO,
     crate::returns::LET_AND_RETURN_INFO,
     crate::returns::NEEDLESS_RETURN_INFO,

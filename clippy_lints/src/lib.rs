@@ -315,6 +315,7 @@ mod regex;
 mod repeat_vec_with_capacity;
 mod replace_box;
 mod reserve_after_initialization;
+mod rest_when_destructuring_struct;
 mod return_self_not_must_use;
 mod returns;
 mod same_name_method;
@@ -512,6 +513,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|| Box::new(byte_char_slices::ByteCharSlice)),
         Box::new(|| Box::new(cfg_not_test::CfgNotTest)),
         Box::new(|| Box::new(empty_line_after::EmptyLineAfter::new())),
+        Box::new(|| Box::new(rest_when_destructuring_struct::RestWhenDestructuringStruct)),
         // add early passes here, used by `cargo dev new_lint`
     ];
     store.early_passes.extend(early_lints);
