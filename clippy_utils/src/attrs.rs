@@ -28,6 +28,7 @@ pub const BUILTIN_ATTRIBUTES: &[(Symbol, DeprecationStatus)] = &[
     (sym::cyclomatic_complexity, DeprecationStatus::Replaced("cognitive_complexity")),
     (sym::dump,                  DeprecationStatus::None),
     (sym::msrv,                  DeprecationStatus::None),
+    (sym::allowed_recursion,     DeprecationStatus::None),
     // The following attributes are for the 3rd party crate authors.
     // See book/src/attribs.md
     (sym::has_significant_drop,  DeprecationStatus::None),
