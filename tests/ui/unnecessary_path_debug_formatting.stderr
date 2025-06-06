@@ -81,5 +81,23 @@ LL |     println!("{:?}", &*deref_path);
    = help: use `Display` formatting and change this to `&*deref_path.display()`
    = note: switching to `Display` formatting will change how the value is shown; escaped characters will no longer be escaped and surrounding quotes will be removed
 
-error: aborting due to 9 previous errors
+error: unnecessary `Debug` formatting in `println!` args
+  --> tests/ui/unnecessary_path_debug_formatting.rs:68:22
+   |
+LL |     println!("{:?}", path);
+   |                      ^^^^
+   |
+   = help: use `Display` formatting and change this to `path.display()`
+   = note: switching to `Display` formatting will change how the value is shown; escaped characters will no longer be escaped and surrounding quotes will be removed
+
+error: unnecessary `Debug` formatting in `println!` args
+  --> tests/ui/unnecessary_path_debug_formatting.rs:70:22
+   |
+LL |     println!("{:?}", path_buf);
+   |                      ^^^^^^^^
+   |
+   = help: use `Display` formatting and change this to `path_buf.display()`
+   = note: switching to `Display` formatting will change how the value is shown; escaped characters will no longer be escaped and surrounding quotes will be removed
+
+error: aborting due to 11 previous errors
 
