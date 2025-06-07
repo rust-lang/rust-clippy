@@ -1,3 +1,4 @@
+#![allow(clippy::items_before_use)]
 use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_hir_and_then};
 use clippy_utils::msrvs::{self, Msrv};
