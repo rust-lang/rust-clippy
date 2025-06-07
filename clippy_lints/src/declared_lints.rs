@@ -532,6 +532,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::mut_key::MUTABLE_KEY_TYPE_INFO,
     crate::mut_mut::MUT_MUT_INFO,
     crate::mut_reference::UNNECESSARY_MUT_PASSED_INFO,
+    crate::mutable_borrow_of_copy::MUTABLE_BORROW_OF_COPY_INFO,
     crate::mutable_debug_assertion::DEBUG_ASSERT_WITH_MUT_CALL_INFO,
     crate::mutex_atomic::MUTEX_ATOMIC_INFO,
     crate::mutex_atomic::MUTEX_INTEGER_INFO,
