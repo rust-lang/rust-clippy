@@ -97,7 +97,8 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, method
             | ExprKind::Break(_, _) => true,
             _ => false,
         },
-        Some((Node::Stmt(_) | Node::LetStmt(_), _)) => false,
+        Some((Node::LetStmt(let_stmt), _)) => let_stmt.ty.is_some(),
+        Some((Node::Stmt(_), _)) => false,
         _ => true,
     };
 
