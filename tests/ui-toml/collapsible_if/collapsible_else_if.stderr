@@ -1,0 +1,78 @@
+error: this `else { if .. }` block can be collapsed
+  --> tests/ui-toml/collapsible_if/collapsible_else_if.rs:10:12
+   |
+LL |       } else {
+   |  ____________^
+LL | |         // Comment must be kept
+LL | |         if y == "world" {
+LL | |             println!("Hello world!");
+LL | |         }
+LL | |     }
+   | |_____^
+   |
+   = note: `-D clippy::collapsible-else-if` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::collapsible_else_if)]`
+help: collapse nested if block
+   |
+LL ~     } else if y == "world" {
+LL +         println!("Hello world!");
+LL +     }
+   |
+
+error: this `else { if .. }` block can be collapsed
+  --> tests/ui-toml/collapsible_if/collapsible_else_if.rs:20:12
+   |
+LL |       } else { // Inner comment
+   |  ____________^
+LL | |         if y == "world" {
+LL | |             println!("Hello world!");
+LL | |         }
+LL | |     }
+   | |_____^
+   |
+help: collapse nested if block
+   |
+LL ~     } else if y == "world" {
+LL +         println!("Hello world!");
+LL +     }
+   |
+
+error: this `else { if .. }` block can be collapsed
+  --> tests/ui-toml/collapsible_if/collapsible_else_if.rs:29:12
+   |
+LL |       } else {
+   |  ____________^
+LL | |         /* Inner comment */
+LL | |         if y == "world" {
+LL | |             println!("Hello world!");
+LL | |         }
+LL | |     }
+   | |_____^
+   |
+help: collapse nested if block
+   |
+LL ~     } else if y == "world" {
+LL +         println!("Hello world!");
+LL +     }
+   |
+
+error: this `else { if .. }` block can be collapsed
+  --> tests/ui-toml/collapsible_if/collapsible_else_if.rs:39:12
+   |
+LL |       } else { /* Inner comment */
+   |  ____________^
+LL | |         if y == "world" {
+LL | |             println!("Hello world!");
+LL | |         }
+LL | |     }
+   | |_____^
+   |
+help: collapse nested if block
+   |
+LL ~     } else if y == "world" {
+LL +         println!("Hello world!");
+LL +     }
+   |
+
+error: aborting due to 4 previous errors
+
