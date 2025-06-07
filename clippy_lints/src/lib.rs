@@ -558,6 +558,10 @@ fn register_categories(store: &mut rustc_lint::LintStore) {
 /// Used in `./src/driver.rs`.
 #[expect(clippy::too_many_lines)]
 pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
+    // Avoid unnecessary reallocations
+    store.late_passes.reserve(320);
+    store.early_passes.reserve(64);
+
     register_categories(store);
 
     for (old_name, new_name) in deprecated_lints::RENAMED {
