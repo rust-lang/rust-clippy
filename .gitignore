@@ -46,3 +46,8 @@ helper.txt
 
 # mdbook generated output
 /book/book
+.cursorrules
+.cursor/rules/data-flow-analysis.mdc
+.giga/specifications.json
+.cursor/rules
+.cursor/rules/lint-implementation-patterns.mdc
