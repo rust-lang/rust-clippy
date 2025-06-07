@@ -21,3 +21,20 @@ fn main() {
     let _: String = format!("{:?}", os_str); //~ unnecessary_debug_formatting
     let _: String = format!("{:?}", os_string); //~ unnecessary_debug_formatting
 }
+
+#[clippy::msrv = "1.86"]
+fn msrv_1_86() {
+    let os_str = OsStr::new("test");
+
+    // Should not lint because MSRV is 1.86, but display() was stabilized in 1.87
+    println!("{:?}", os_str);
+}
+
+#[clippy::msrv = "1.87"]
+fn msrv_1_87() {
+    let os_str = OsStr::new("test");
+
+    // Should lint because MSRV is 1.87 and display() is available
+    println!("{:?}", os_str);
+    //~^ unnecessary_debug_formatting
+}
