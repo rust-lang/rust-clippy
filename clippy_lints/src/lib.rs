@@ -331,6 +331,7 @@ mod repeat_vec_with_capacity;
 mod reserve_after_initialization;
 mod return_self_not_must_use;
 mod returns;
+mod safety;
 mod same_name_method;
 mod self_named_constructors;
 mod semicolon_block;
@@ -952,4 +953,5 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(infallible_try_from::InfallibleTryFrom));
     store.register_late_pass(|_| Box::new(coerce_container_to_any::CoerceContainerToAny));
     // add lints here, do not remove this comment, it's used in `new_lint`
+    store.register_early_pass(|| Box::new(safety::Safety));
 }
