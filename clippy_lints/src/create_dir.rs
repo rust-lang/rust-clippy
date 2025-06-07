@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet_with_applicability;
 use rustc_errors::Applicability;
-use rustc_hir::{Expr, ExprKind};
+use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::sym;
@@ -38,6 +38,8 @@ impl LateLintPass<'_> for CreateDir {
             && let ExprKind::Path(ref path) = func.kind
             && let Some(def_id) = cx.qpath_res(path, func.hir_id).opt_def_id()
             && cx.tcx.is_diagnostic_item(sym::fs_create_dir, def_id)
+            && let QPath::Resolved(_, path) = path
+            && let Some(last) = path.segments.last()
         {
             span_lint_and_then(
                 cx,
@@ -46,13 +48,17 @@ impl LateLintPass<'_> for CreateDir {
                 "calling `std::fs::create_dir` where there may be a better way",
                 |diag| {
                     let mut app = Applicability::MaybeIncorrect;
+                    let prefix_span = func.span.shrink_to_lo().between(last.ident.span);
+                    let prefix_snippet = if !prefix_span.is_empty() {
+                        snippet_with_applicability(cx, prefix_span, "..", &mut app)
+                    } else {
+                        "std::fs::".into()
+                    };
+                    let args_snippet = snippet_with_applicability(cx, arg.span, "..", &mut app);
                     diag.span_suggestion_verbose(
                         expr.span,
                         "consider calling `std::fs::create_dir_all` instead",
-                        format!(
-                            "create_dir_all({})",
-                            snippet_with_applicability(cx, arg.span, "..", &mut app)
-                        ),
+                        format!("{prefix_snippet}create_dir_all({args_snippet})",),
                         app,
                     );
                 },
