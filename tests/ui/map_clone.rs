@@ -158,4 +158,20 @@ fn main() {
         let y = Some(&x);
         let _z = y.map(RcWeak::clone);
     }
+
+    let variable1 = String::new();
+    let v = &variable1;
+    let variable2 = Some(v);
+    let _ = variable2.map(String::to_string);
+    //~^ map_clone
+    let _ = variable2.map(|x| x.to_string());
+    //~^ map_clone
+    #[rustfmt::skip]
+    let _ = variable2.map(|x| { x.to_string() });
+    //~^ map_clone
+
+    let _ = vec![String::new()].iter().map(String::to_string).collect::<Vec<_>>();
+    //~^ map_clone
+    let _ = vec![String::new()].iter().map(|x| x.to_string()).collect::<Vec<_>>();
+    //~^ map_clone
 }
