@@ -17,22 +17,22 @@ enum E {
 fn main() {
     let s = S { a: 1, b: 2, c: 3 };
 
-    let S { a, b, .. } = s;
+    let S { a, b, c: _ } = s;
     //~^ rest_when_destructuring_struct
 
     let e = E::A { a1: 1, a2: 2 };
 
     match e {
         E::A { a1, a2 } => (),
-        E::B { .. } => (),
+        E::B { b1: _, b2: _ } => (),
         //~^ rest_when_destructuring_struct
-        E::C { .. } => (),
+        E::C {  } => (),
         //~^ rest_when_destructuring_struct
     }
 
     match e {
         E::A { a1: _, a2: _ } => (),
-        E::B { b1: _, .. } => (),
+        E::B { b1: _, b2: _ } => (),
         //~^ rest_when_destructuring_struct
         E::C {} => (),
     }
