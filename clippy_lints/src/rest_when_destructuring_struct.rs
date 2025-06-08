@@ -1,6 +1,7 @@
 use crate::rustc_lint::LintContext as _;
 use clippy_utils::diagnostics::span_lint_and_then;
 use itertools::Itertools;
+use rustc_abi::VariantIdx;
 use rustc_lint::LateLintPass;
 use rustc_middle::ty;
 use rustc_session::declare_lint_pass;
@@ -53,7 +54,9 @@ impl<'tcx> LateLintPass<'tcx> for RestWhenDestructuringStruct {
             let qty = cx.typeck_results().qpath_res(&path, pat.hir_id);
             let ty = cx.typeck_results().pat_ty(pat);
             if let ty::Adt(a, _) = ty.kind() {
-                let vid = a.variant_index_with_id(qty.def_id());
+                let vid = qty
+                    .opt_def_id()
+                    .map_or(VariantIdx::ZERO, |x| a.variant_index_with_id(x));
                 let mut rest_fields = a.variants()[vid]
                     .fields
                     .iter()
