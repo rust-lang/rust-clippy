@@ -177,7 +177,7 @@ impl CollapsibleIf {
             return;
         };
 
-        let ExprKind::If(inner_cond, inner_then, inner_else_opt) = then_expr.kind else {
+        let ExprKind::If(inner_cond, inner_then, _) = then_expr.kind else {
             return;
         };
 
