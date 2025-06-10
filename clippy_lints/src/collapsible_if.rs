@@ -206,7 +206,7 @@ impl CollapsibleIf {
                         inner_cond.span.get_source_text(context).unwrap().to_owned(),
                         else_expr.span.get_source_text(context).unwrap().to_owned()
                     ),
-                    Applicability::MachineApplicable
+                    Applicability::MachineApplicable,
                 );
             },
         );
