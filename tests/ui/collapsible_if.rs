@@ -142,6 +142,24 @@ fn main() {
             println!("Hello world!");
         }
     }
+
+    let a = false;
+
+    let b = false;
+    
+    if a {
+        if b {
+            println!("Hello world!");
+        }
+    }
+    else {
+        println!("Hello world!");
+    }
+    //~^^^^^^^^ collapsible_if
+
+    if !a || b {
+        println!("Hello world!");
+    }
 }
 
 #[rustfmt::skip]
