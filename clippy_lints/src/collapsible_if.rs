@@ -1,4 +1,5 @@
 use clippy_config::Conf;
+use clippy_utils::SpanlessEq;
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::{IntoSpan as _, SpanRangeExt, snippet, snippet_block, snippet_block_with_applicability};
@@ -163,6 +164,54 @@ impl CollapsibleIf {
         }
     }
 
+    fn check_collapsible_if_nested_if_else(context: &LateContext<'_>, if_expr: &Expr<'_>) {
+        let ExprKind::If(cond, then, else_opt) = if_expr.kind else {
+            return;
+        };
+
+        let ExprKind::Block(then_block, _) = then.kind else {
+            return;
+        };
+
+        let Some(then_expr) = then_block.expr else {
+            return;
+        };
+
+        let ExprKind::If(inner_cond, inner_then, _) = then_expr.kind else {
+            return;
+        };
+
+        let Some(else_expr) = else_opt else {
+            return;
+        };
+
+        let mut spanless_eq = SpanlessEq::new(context);
+
+        if !spanless_eq.eq_expr(inner_then, else_expr) {
+            return;
+        }
+
+        span_lint_and_then(
+            context,
+            COLLAPSIBLE_IF,
+            if_expr.span,
+            "this `if` statement can be collapsed.",
+            |diag| {
+                diag.span_suggestion(
+                    if_expr.span,
+                    "collapse else and nested if blocks",
+                    format!(
+                        "if !{} || {} {}",
+                        cond.span.get_source_text(context).unwrap().to_owned(),
+                        inner_cond.span.get_source_text(context).unwrap().to_owned(),
+                        else_expr.span.get_source_text(context).unwrap().to_owned()
+                    ),
+                    Applicability::MachineApplicable,
+                );
+            },
+        );
+    }
+
     fn eligible_condition(&self, cx: &LateContext<'_>, cond: &Expr<'_>) -> bool {
         !matches!(cond.kind, ExprKind::Let(..))
             || (cx.tcx.sess.edition().at_least_rust_2024() && self.msrv.meets(cx, msrvs::LET_CHAINS))
@@ -180,6 +229,8 @@ impl LateLintPass<'_> for CollapsibleIf {
                 && let ExprKind::Block(else_, None) = else_.kind
             {
                 Self::check_collapsible_else_if(cx, then.span, else_);
+
+                Self::check_collapsible_if_nested_if_else(cx, expr);
             } else if else_.is_none()
                 && self.eligible_condition(cx, cond)
                 && let ExprKind::Block(then, None) = then.kind
