@@ -2770,7 +2770,7 @@ pub fn tokenize_with_text(s: &str) -> impl Iterator<Item = (TokenKind, &str, Inn
         let range = pos as usize..end as usize;
         let inner = InnerSpan::new(range.start, range.end);
         pos = end;
-        (t.kind, s.get(range).unwrap_or_default(), inner)
+        (t.kind, s.get(range).unwrap_or(""), inner)
     })
 }
 

@@ -414,7 +414,7 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
             let module_level_order = self
                 .module_item_order_groupings
                 .module_level_order_of(&item_kind)
-                .unwrap_or_default();
+                .unwrap_or(0);
 
             if let Some(cur_t) = cur_t.as_ref() {
                 use std::cmp::Ordering; // Better legibility.
