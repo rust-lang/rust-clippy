@@ -1,6 +1,9 @@
+//@aux-build:proc_macros.rs
 #![warn(clippy::rest_when_destructuring_struct)]
 #![allow(dead_code)]
 #![allow(unused_variables)]
+
+extern crate proc_macros;
 
 struct S {
     a: u8,
@@ -20,6 +23,9 @@ fn main() {
     let S { a, b, c: _ } = s;
     //~^ rest_when_destructuring_struct
 
+    let S { a, b, c,  } = s;
+    //~^ rest_when_destructuring_struct
+
     let e = E::A { a1: 1, a2: 2 };
 
     match e {
@@ -35,5 +41,16 @@ fn main() {
         E::B { b1: _, b2: _ } => (),
         //~^ rest_when_destructuring_struct
         E::C {} => (),
+    }
+
+    proc_macros::external! {
+        let s1 = S { a: 1, b: 2, c: 3 };
+        let S { a, b, .. } = s1;
+    }
+
+    proc_macros::with_span! {
+        span
+        let s2 = S { a: 1, b: 2, c: 3 };
+        let S { a, b, .. } = s2;
     }
 }
