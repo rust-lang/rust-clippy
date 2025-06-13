@@ -1,5 +1,6 @@
 use crate::rustc_lint::LintContext as _;
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::is_from_proc_macro;
 use itertools::Itertools;
 use rustc_abi::VariantIdx;
 use rustc_lint::LateLintPass;
@@ -47,6 +48,10 @@ declare_lint_pass!(RestWhenDestructuringStruct => [REST_WHEN_DESTRUCTURING_STRUC
 impl<'tcx> LateLintPass<'tcx> for RestWhenDestructuringStruct {
     fn check_pat(&mut self, cx: &rustc_lint::LateContext<'tcx>, pat: &'tcx rustc_hir::Pat<'tcx>) {
         if pat.span.in_external_macro(cx.tcx.sess.source_map()) {
+            return;
+        }
+
+        if is_from_proc_macro(cx, pat) {
             return;
         }
 
