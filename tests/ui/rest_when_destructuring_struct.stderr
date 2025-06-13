@@ -1,5 +1,5 @@
 error: struct destructuring with rest (..)
-  --> tests/ui/rest_when_destructuring_struct.rs:20:9
+  --> tests/ui/rest_when_destructuring_struct.rs:23:9
    |
 LL |     let S { a, b, .. } = s;
    |         ^^^^^^^^^^^^^^
@@ -13,7 +13,19 @@ LL +     let S { a, b, c: _ } = s;
    |
 
 error: struct destructuring with rest (..)
-  --> tests/ui/rest_when_destructuring_struct.rs:27:9
+  --> tests/ui/rest_when_destructuring_struct.rs:26:9
+   |
+LL |     let S { a, b, c, .. } = s;
+   |         ^^^^^^^^^^^^^^^^^
+   |
+help: consider explicitly ignoring remaining fields with wildcard patterns (x: _)
+   |
+LL -     let S { a, b, c, .. } = s;
+LL +     let S { a, b, c,  } = s;
+   |
+
+error: struct destructuring with rest (..)
+  --> tests/ui/rest_when_destructuring_struct.rs:33:9
    |
 LL |         E::B { .. } => (),
    |         ^^^^^^^^^^^
@@ -25,7 +37,7 @@ LL +         E::B { b1: _, b2: _ } => (),
    |
 
 error: struct destructuring with rest (..)
-  --> tests/ui/rest_when_destructuring_struct.rs:29:9
+  --> tests/ui/rest_when_destructuring_struct.rs:35:9
    |
 LL |         E::C { .. } => (),
    |         ^^^^^^^^^^^
@@ -37,7 +49,7 @@ LL +         E::C {  } => (),
    |
 
 error: struct destructuring with rest (..)
-  --> tests/ui/rest_when_destructuring_struct.rs:35:9
+  --> tests/ui/rest_when_destructuring_struct.rs:41:9
    |
 LL |         E::B { b1: _, .. } => (),
    |         ^^^^^^^^^^^^^^^^^^
@@ -48,5 +60,5 @@ LL -         E::B { b1: _, .. } => (),
 LL +         E::B { b1: _, b2: _ } => (),
    |
 
-error: aborting due to 4 previous errors
+error: aborting due to 5 previous errors
 
