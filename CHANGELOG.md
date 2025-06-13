@@ -5694,6 +5694,7 @@ Released 2018-09-13
 [`collection_is_never_read`]: https://rust-lang.github.io/rust-clippy/master/index.html#collection_is_never_read
 [`comparison_chain`]: https://rust-lang.github.io/rust-clippy/master/index.html#comparison_chain
 [`comparison_to_empty`]: https://rust-lang.github.io/rust-clippy/master/index.html#comparison_to_empty
+[`concealed_obvious_default`]: https://rust-lang.github.io/rust-clippy/master/index.html#concealed_obvious_default
 [`confusing_method_to_numeric_cast`]: https://rust-lang.github.io/rust-clippy/master/index.html#confusing_method_to_numeric_cast
 [`const_is_empty`]: https://rust-lang.github.io/rust-clippy/master/index.html#const_is_empty
 [`const_static_lifetime`]: https://rust-lang.github.io/rust-clippy/master/index.html#const_static_lifetime

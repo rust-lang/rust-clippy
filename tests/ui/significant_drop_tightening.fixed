@@ -1,4 +1,5 @@
 #![warn(clippy::significant_drop_tightening)]
+#![allow(clippy::concealed_obvious_default)]
 
 use std::sync::Mutex;
 

@@ -5,7 +5,8 @@
     clippy::uninlined_format_args,
     clippy::unnecessary_wraps,
     clippy::unnecessary_literal_unwrap,
-    clippy::useless_vec
+    clippy::useless_vec,
+    clippy::concealed_obvious_default
 )]
 
 use std::collections::{BTreeMap, HashMap};

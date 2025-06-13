@@ -1,0 +1,59 @@
+error: method Option::<bool>::unwrap_or_default() conceals the underlying type
+  --> tests/ui/concealed_obvious_default.rs:24:11
+   |
+LL |     _ = a.unwrap_or_default();
+   |           ^^^^^^^^^^^^^^^^^^^ help: write the default type explicitly: `unwrap_or(false)`
+   |
+   = note: `-D clippy::concealed-obvious-default` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::concealed_obvious_default)]`
+
+error: method Option::<Option<_>>::unwrap_or_default() conceals the underlying type
+  --> tests/ui/concealed_obvious_default.rs:28:11
+   |
+LL |     _ = b.unwrap_or_default();
+   |           ^^^^^^^^^^^^^^^^^^^ help: write the default type explicitly: `unwrap_or(None)`
+
+error: method Result::<&str, _>::unwrap_or_default() conceals the underlying type
+  --> tests/ui/concealed_obvious_default.rs:32:11
+   |
+LL |     _ = c.unwrap_or_default();
+   |           ^^^^^^^^^^^^^^^^^^^ help: write the default type explicitly: `unwrap_or("")`
+
+error: method Result::<usize, _>::unwrap_or_default() conceals the underlying type
+  --> tests/ui/concealed_obvious_default.rs:36:11
+   |
+LL |     _ = d.unwrap_or_default();
+   |           ^^^^^^^^^^^^^^^^^^^ help: write the default type explicitly: `unwrap_or(0)`
+
+error: method btree_map::Entry::<'_, _, f32>::or_default() conceals the underlying type
+  --> tests/ui/concealed_obvious_default.rs:40:11
+   |
+LL |     _ = e.or_default();
+   |           ^^^^^^^^^^^^ help: write the default type explicitly: `or_insert(0.0)`
+
+error: method btree_map::Entry::<'_, _, char>::or_default() conceals the underlying type
+  --> tests/ui/concealed_obvious_default.rs:44:11
+   |
+LL |     _ = f.or_default();
+   |           ^^^^^^^^^^^^ help: write the default type explicitly: `or_insert('\0')`
+
+error: method hash_map::Entry::<'_, _, ()>::or_default() conceals the underlying type
+  --> tests/ui/concealed_obvious_default.rs:48:11
+   |
+LL |     _ = g.or_default();
+   |           ^^^^^^^^^^^^ help: write the default type explicitly: `or_insert(())`
+
+error: method hash_map::Entry::<'_, _, u8>::or_default() conceals the underlying type
+  --> tests/ui/concealed_obvious_default.rs:52:11
+   |
+LL |     _ = h.or_default();
+   |           ^^^^^^^^^^^^ help: write the default type explicitly: `or_insert(0)`
+
+error: method Option::<bool>::unwrap_or_default() conceals the underlying type
+  --> tests/ui/concealed_obvious_default.rs:64:6
+   |
+LL |     .unwrap_or_default();
+   |      ^^^^^^^^^^^^^^^^^^^ help: write the default type explicitly: `unwrap_or(false)`
+
+error: aborting due to 9 previous errors
+

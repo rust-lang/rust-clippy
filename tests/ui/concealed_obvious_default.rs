@@ -1,0 +1,86 @@
+//@aux-build:proc_macros.rs
+#![warn(clippy::concealed_obvious_default)]
+#![allow(dead_code)]
+#![allow(clippy::too_many_arguments)]
+
+extern crate proc_macros;
+
+use std::collections::{btree_map, hash_map};
+
+fn test<'e, 'f, 'g, 'h>(
+    a: Option<bool>,
+    b: Option<Option<bool>>,
+    c: Result<&str, ()>,
+    d: Result<usize, ()>,
+    e: btree_map::Entry<'e, (), f32>,
+    e2: btree_map::Entry<'e, (), f32>,
+    f: btree_map::Entry<'f, (), char>,
+    f2: btree_map::Entry<'f, (), char>,
+    g: hash_map::Entry<'g, (), ()>,
+    g2: hash_map::Entry<'g, (), ()>,
+    h: hash_map::Entry<'h, (), u8>,
+    h2: hash_map::Entry<'h, (), u8>,
+) {
+    _ = a.unwrap_or_default();
+    //~^ concealed_obvious_default
+    _ = a.unwrap_or(false);
+
+    _ = b.unwrap_or_default();
+    //~^ concealed_obvious_default
+    _ = b.unwrap_or(None);
+
+    _ = c.unwrap_or_default();
+    //~^ concealed_obvious_default
+    _ = c.unwrap_or("");
+
+    _ = d.unwrap_or_default();
+    //~^ concealed_obvious_default
+    _ = d.unwrap_or(0);
+
+    _ = e.or_default();
+    //~^ concealed_obvious_default
+    _ = e2.or_insert(0.0);
+
+    _ = f.or_default();
+    //~^ concealed_obvious_default
+    _ = f2.or_insert('\0');
+
+    _ = g.or_default();
+    //~^ concealed_obvious_default
+    _ = g2.or_insert(());
+
+    _ = h.or_default();
+    //~^ concealed_obvious_default
+    _ = h2.or_insert(0);
+
+    //
+    // If the receiver comes from macro expansion,
+    // that's fine and we lint that.
+    //
+
+    _ = proc_macros::external! {
+        Some(false)
+    }
+    .unwrap_or_default();
+    //~^ concealed_obvious_default
+
+    _ = proc_macros::external! {
+        Some(false)
+    }
+    .unwrap_or(false);
+
+    //
+    // However, if the method itself comes from
+    // macro expansion, it should not be linted.
+    //
+
+    _ = proc_macros::external! {
+        Some(false).unwrap_or_default()
+    };
+
+    _ = proc_macros::external! {
+        Some(false).unwrap_or(false)
+    };
+}
+
+fn main() {}
