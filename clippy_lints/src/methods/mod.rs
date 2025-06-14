@@ -89,6 +89,7 @@ mod option_map_or_none;
 mod option_map_unwrap_or;
 mod or_fun_call;
 mod or_then_unwrap;
+mod parsed_string_literals;
 mod path_buf_push_overwrite;
 mod path_ends_with_ext;
 mod range_zip_with_len;
@@ -4565,6 +4566,36 @@ declare_clippy_lint! {
     "hardcoded localhost IP address"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for parsing string literals into types from the standard library
+    ///
+    /// ### Why is this bad?
+    /// Parsing known values at runtime consumes resources and forces to
+    /// unwrap the `Ok()` variant returned by `parse()`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// use std::net::Ipv4Addr;
+    ///
+    /// let number = "123".parse::<u32>().unwrap();
+    /// let addr1: Ipv4Addr = "10.2.3.4".parse().unwrap();
+    /// let addr2: Ipv4Addr = "127.0.0.1".parse().unwrap();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// use std::net::Ipv4Addr;
+    ///
+    /// let number = 123_u32;
+    /// let addr1: Ipv4Addr = Ipv4Addr::new(10, 2, 3, 4);
+    /// let addr2: Ipv4Addr = Ipv4Addr::LOCALHOST;
+    /// ```
+    #[clippy::version = "1.89.0"]
+    pub PARSED_STRING_LITERALS,
+    perf,
+    "known-correct literal IP address parsing"
+}
+
 #[expect(clippy::struct_excessive_bools)]
 pub struct Methods {
     avoid_breaking_exported_api: bool,
@@ -4744,6 +4775,7 @@ impl_lint_pass!(Methods => [
     IO_OTHER_ERROR,
     SWAP_WITH_TEMPORARY,
     IP_CONSTANT,
+    PARSED_STRING_LITERALS,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -5459,6 +5491,9 @@ impl Methods {
                         },
                         Some((sym::or, recv, [or_arg], or_span, _)) => {
                             or_then_unwrap::check(cx, expr, recv, or_arg, or_span);
+                        },
+                        Some((sym::parse, recv, [], _, _)) => {
+                            parsed_string_literals::check(cx, expr, recv, self.msrv);
                         },
                         _ => {},
                     }
