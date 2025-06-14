@@ -1,4 +1,4 @@
-#![allow(clippy::useless_vec, clippy::needless_borrow)]
+#![allow(clippy::useless_vec, clippy::needless_borrow, clippy::items_before_use)]
 #![warn(clippy::into_iter_on_ref)]
 
 struct X;
