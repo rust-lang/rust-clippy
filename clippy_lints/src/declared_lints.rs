@@ -107,6 +107,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::derive::DERIVE_PARTIAL_EQ_WITHOUT_EQ_INFO,
     crate::derive::EXPL_IMPL_CLONE_ON_COPY_INFO,
     crate::derive::UNSAFE_DERIVE_DESERIALIZE_INFO,
+    crate::direct_recursion::DIRECT_RECURSION_INFO,
     crate::disallowed_macros::DISALLOWED_MACROS_INFO,
     crate::disallowed_methods::DISALLOWED_METHODS_INFO,
     crate::disallowed_names::DISALLOWED_NAMES_INFO,
