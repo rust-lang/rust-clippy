@@ -216,7 +216,7 @@ impl<'a, 'tcx> PrintVisitor<'a, 'tcx> {
 
     fn next(&self, s: &'static str) -> String {
         let mut ids = self.ids.take();
-        let out = match *ids.entry(s).and_modify(|n| *n += 1).or_default() {
+        let out = match *ids.entry(s).and_modify(|n| *n += 1).or_insert(0) {
             // first usage of the name, use it as is
             0 => s.to_string(),
             // append a number starting with 1

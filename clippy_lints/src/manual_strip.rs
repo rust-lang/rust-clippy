@@ -269,7 +269,7 @@ fn find_stripping<'tcx>(
 
         fn visit_pat(&mut self, pat: &'tcx rustc_hir::Pat<'tcx>) -> Self::Result {
             if let PatKind::Binding(_, _, ident, _) = pat.kind {
-                *self.bindings.entry(ident.name).or_default() += 1;
+                *self.bindings.entry(ident.name).or_insert(0) += 1;
             }
             walk_pat(self, pat);
         }

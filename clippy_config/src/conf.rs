@@ -1097,7 +1097,7 @@ impl serde::de::Error for FieldError {
             writeln!(msg).unwrap();
             for (column, column_width) in column_widths.iter().copied().enumerate() {
                 let index = column * rows + row;
-                let field = expected.get(index).copied().unwrap_or_default();
+                let field = expected.get(index).copied().unwrap_or("");
                 write!(msg, "{:SEPARATOR_WIDTH$}{field:column_width$}", " ").unwrap();
             }
         }
@@ -1128,7 +1128,7 @@ fn calculate_dimensions(fields: &[&str]) -> (usize, Vec<usize>) {
                 (0..rows)
                     .map(|row| {
                         let index = column * rows + row;
-                        let field = fields.get(index).copied().unwrap_or_default();
+                        let field = fields.get(index).copied().unwrap_or("");
                         field.len()
                     })
                     .max()
