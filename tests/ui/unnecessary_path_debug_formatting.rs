@@ -48,3 +48,25 @@ fn issue_14345() {
     let input = std::path::Path::new("/foo/bar");
     assert!(input.ends_with("baz"), "{input:?}");
 }
+
+#[clippy::msrv = "1.86"]
+fn msrv_1_86() {
+    let path = Path::new("/test");
+    let path_buf = PathBuf::from("/test");
+
+    // Should not lint because MSRV is 1.86, but display() was stabilized in 1.87
+    println!("{:?}", path);
+    println!("{:?}", path_buf);
+}
+
+#[clippy::msrv = "1.87"]
+fn msrv_1_87() {
+    let path = Path::new("/test");
+    let path_buf = PathBuf::from("/test");
+
+    // Should lint because MSRV is 1.87 and display() is available
+    println!("{:?}", path);
+    //~^ unnecessary_debug_formatting
+    println!("{:?}", path_buf);
+    //~^ unnecessary_debug_formatting
+}
