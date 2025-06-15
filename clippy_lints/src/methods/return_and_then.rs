@@ -9,7 +9,7 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::{indent_of, reindent_multiline, snippet_with_applicability};
 use clippy_utils::ty::get_type_diagnostic_name;
 use clippy_utils::visitors::for_each_unconsumed_temporary;
-use clippy_utils::{get_parent_expr, peel_blocks};
+use clippy_utils::{get_parent_expr, peel_blocks, return_ty};
 
 use super::RETURN_AND_THEN;
 
@@ -21,12 +21,29 @@ pub(super) fn check<'tcx>(
     recv: &'tcx hir::Expr<'tcx>,
     arg: &'tcx hir::Expr<'_>,
 ) {
-    if cx.tcx.hir_get_fn_id_for_return_block(expr.hir_id).is_none() {
+    let Some(fn_def_id) = cx.tcx.hir_get_fn_id_for_return_block(expr.hir_id) else {
         return;
-    }
+    };
 
+    let fn_return_type = if let hir::Node::Expr(expr) = cx.tcx.hir_node(fn_def_id)
+        && let hir::ExprKind::Closure(..) = expr.kind
+        && let expr_ty = cx.typeck_results().expr_ty(expr)
+        && let ty::Closure(_, args) = expr_ty.kind()
+    {
+        let fn_sig = args.as_closure().sig();
+        cx.tcx.instantiate_bound_regions_with_erased(fn_sig.output())
+    } else if let Some(fn_owner_id) = fn_def_id.as_owner() {
+        return_ty(cx, fn_owner_id)
+    } else {
+        return;
+    };
     let recv_type = cx.typeck_results().expr_ty(recv);
-    if !matches!(get_type_diagnostic_name(cx, recv_type), Some(sym::Option | sym::Result)) {
+
+    let fn_return_symbol = get_type_diagnostic_name(cx, fn_return_type);
+    let recv_symbol = get_type_diagnostic_name(cx, recv_type);
+    if fn_return_symbol != recv_symbol
+        || !matches!(get_type_diagnostic_name(cx, recv_type), Some(sym::Option | sym::Result))
+    {
         return;
     }
 
