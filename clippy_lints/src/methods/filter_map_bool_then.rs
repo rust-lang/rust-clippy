@@ -45,8 +45,8 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, arg: &
             .filter(|adj| matches!(adj.kind, Adjust::Deref(_)))
             .count()
         && let Some(param_snippet) = param.span.get_source_text(cx)
-        && let Some(filter) = recv.span.get_source_text(cx)
-        && let Some(map) = then_body.span.get_source_text(cx)
+        && let Some(filter) = recv.span.source_callsite().get_source_text(cx)
+        && let Some(map) = then_body.span.source_callsite().get_source_text(cx)
     {
         span_lint_and_then(
             cx,
