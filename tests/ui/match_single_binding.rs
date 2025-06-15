@@ -267,3 +267,12 @@ mod issue14991 {
         }],
     }
 }
+
+fn issue15018() {
+    let a = 10;
+    match 11 {
+        //~^ match_single_binding
+        a => println!("a = {a}"),
+    };
+    println!("a = {a}");
+}

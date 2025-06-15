@@ -13,8 +13,8 @@ LL | |     }
    = help: to override `-D warnings` add `#[allow(clippy::match_single_binding)]`
 help: consider using a `let` statement
    |
-LL ~     let (x, y, z) = (a, b, c);
-LL +     {
+LL ~     {
+LL +         let (x, y, z) = (a, b, c);
 LL +         println!("{} {} {}", x, y, z);
 LL +     }
    |
@@ -30,8 +30,10 @@ LL | |     }
    |
 help: consider using a `let` statement
    |
-LL ~     let (x, y, z) = (a, b, c);
-LL +     println!("{} {} {}", x, y, z);
+LL ~     {
+LL +         let (x, y, z) = (a, b, c);
+LL +         println!("{} {} {}", x, y, z);
+LL +     }
    |
 
 error: this match could be replaced by its body itself
@@ -96,8 +98,10 @@ LL | |     }
    |
 help: consider using a `let` statement
    |
-LL ~     let Point { x, y } = p;
-LL +     println!("Coords: ({}, {})", x, y);
+LL ~     {
+LL +         let Point { x, y } = p;
+LL +         println!("Coords: ({}, {})", x, y);
+LL +     }
    |
 
 error: this match could be written as a `let` statement
@@ -111,8 +115,10 @@ LL | |     }
    |
 help: consider using a `let` statement
    |
-LL ~     let Point { x: x1, y: y1 } = p;
-LL +     println!("Coords: ({}, {})", x1, y1);
+LL ~     {
+LL +         let Point { x: x1, y: y1 } = p;
+LL +         println!("Coords: ({}, {})", x1, y1);
+LL +     }
    |
 
 error: this match could be written as a `let` statement
@@ -126,8 +132,10 @@ LL | |     }
    |
 help: consider using a `let` statement
    |
-LL ~     let ref r = x;
-LL +     println!("Got a reference to {}", r);
+LL ~     {
+LL +         let ref r = x;
+LL +         println!("Got a reference to {}", r);
+LL +     }
    |
 
 error: this match could be written as a `let` statement
@@ -141,8 +149,10 @@ LL | |     }
    |
 help: consider using a `let` statement
    |
-LL ~     let ref mut mr = x;
-LL +     println!("Got a mutable reference to {}", mr);
+LL ~     {
+LL +         let ref mut mr = x;
+LL +         println!("Got a mutable reference to {}", mr);
+LL +     }
    |
 
 error: this match could be written as a `let` statement
@@ -202,10 +212,12 @@ LL | |     };
    |
 help: consider removing the `match` expression
    |
-LL ~     let (pre, suf) = val.split_at(idx);
-LL +     val = {
-LL +         println!("{}", pre);
-LL +         suf
+LL ~     {
+LL +         let (pre, suf) = val.split_at(idx);
+LL +         val = {
+LL +             println!("{}", pre);
+LL +             suf
+LL +         }
 LL ~     };
    |
 
@@ -241,14 +253,16 @@ LL | |     };
    |
 help: consider using a `let` statement
    |
-LL ~     let x = r;
-LL +     match x {
-LL +         Some(_) => {
-LL +             println!("Some");
-LL +         },
-LL +         None => {
-LL +             println!("None");
-LL +         },
+LL ~     {
+LL +         let x = r;
+LL +         match x {
+LL +             Some(_) => {
+LL +                 println!("Some");
+LL +             },
+LL +             None => {
+LL +                 println!("None");
+LL +             },
+LL +         }
 LL ~     };
    |
 
@@ -360,8 +374,10 @@ LL | |     }
    |
 help: consider using a `let` statement
    |
-LL ~     let id!(a) = dbg!(3);
-LL +     println!("found {a}");
+LL ~     {
+LL +         let id!(a) = dbg!(3);
+LL +         println!("found {a}");
+LL +     }
    |
 
 error: this match could be written as a `let` statement
@@ -411,5 +427,22 @@ LL ~             let _n = 1;
 LL +             42
    |
 
-error: aborting due to 29 previous errors
+error: this match could be written as a `let` statement
+  --> tests/ui/match_single_binding.rs:273:5
+   |
+LL | /     match 11 {
+LL | |
+LL | |         a => println!("a = {a}"),
+LL | |     };
+   | |_____^
+   |
+help: consider using a `let` statement
+   |
+LL ~     {
+LL +         let a = 11;
+LL +         println!("a = {a}")
+LL ~     };
+   |
+
+error: aborting due to 30 previous errors
 
