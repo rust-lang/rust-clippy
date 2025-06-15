@@ -1,6 +1,6 @@
 //@aux-build:proc_macros.rs
 
-#![allow(clippy::let_unit_value, clippy::needless_pass_by_ref_mut)]
+#![allow(clippy::let_unit_value, clippy::needless_pass_by_ref_mut, clippy::items_before_use)]
 
 extern crate proc_macros;
 use proc_macros::external;
