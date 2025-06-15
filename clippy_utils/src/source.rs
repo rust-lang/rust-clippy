@@ -476,6 +476,22 @@ pub fn position_before_rarrow(s: &str) -> Option<usize> {
     })
 }
 
+/// Reindents a multiline string with possibility of ignoring the first line and relative
+/// indentation.
+pub fn reindent_multiline_relative(s: &str, ignore_first: bool, relative_indent: isize) -> String {
+    fn indent_of_string(s: &str) -> usize {
+        s.find(|c: char| !c.is_whitespace()).unwrap_or(0)
+    }
+
+    let mut indent = 0;
+    if let Some(line) = s.lines().skip(usize::from(ignore_first)).next() {
+        let line_indent = indent_of_string(line);
+        indent = (relative_indent + line_indent as isize).max(0) as usize;
+    }
+
+    reindent_multiline(s, ignore_first, Some(indent))
+}
+
 /// Reindent a multiline string with possibility of ignoring the first line.
 pub fn reindent_multiline(s: &str, ignore_first: bool, indent: Option<usize>) -> String {
     let s_space = reindent_multiline_inner(s, ignore_first, indent, ' ');

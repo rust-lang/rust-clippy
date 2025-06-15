@@ -30,13 +30,15 @@ fn main() {
     let b = 2;
     let c = 3;
     // Lint
-    let (x, y, z) = (a, b, c);
     {
+        let (x, y, z) = (a, b, c);
         println!("{} {} {}", x, y, z);
     }
     // Lint
-    let (x, y, z) = (a, b, c);
-    println!("{} {} {}", x, y, z);
+    {
+        let (x, y, z) = (a, b, c);
+        println!("{} {} {}", x, y, z);
+    }
     // Ok
     foo!(a);
     // Ok
@@ -66,19 +68,27 @@ fn main() {
     }
     // Lint
     let p = Point { x: 0, y: 7 };
-    let Point { x, y } = p;
-    println!("Coords: ({}, {})", x, y);
+    {
+        let Point { x, y } = p;
+        println!("Coords: ({}, {})", x, y);
+    }
     // Lint
-    let Point { x: x1, y: y1 } = p;
-    println!("Coords: ({}, {})", x1, y1);
+    {
+        let Point { x: x1, y: y1 } = p;
+        println!("Coords: ({}, {})", x1, y1);
+    }
     // Lint
     let x = 5;
-    let ref r = x;
-    println!("Got a reference to {}", r);
+    {
+        let ref r = x;
+        println!("Got a reference to {}", r);
+    }
     // Lint
     let mut x = 5;
-    let ref mut mr = x;
-    println!("Got a mutable reference to {}", mr);
+    {
+        let ref mut mr = x;
+        println!("Got a mutable reference to {}", mr);
+    }
     // Lint
     let Point { x, y } = coords();
     let product = x * y;
@@ -120,10 +130,12 @@ fn main() {
 fn issue_8723() {
     let (mut val, idx) = ("a b", 1);
 
-    let (pre, suf) = val.split_at(idx);
-    val = {
-        println!("{}", pre);
-        suf
+    {
+        let (pre, suf) = val.split_at(idx);
+        val = {
+            println!("{}", pre);
+            suf
+        }
     };
 
     let _ = val;
@@ -139,14 +151,16 @@ fn issue_9575() {
 }
 
 fn issue_9725(r: Option<u32>) {
-    let x = r;
-    match x {
-        Some(_) => {
-            println!("Some");
-        },
-        None => {
-            println!("None");
-        },
+    {
+        let x = r;
+        match x {
+            Some(_) => {
+                println!("Some");
+            },
+            None => {
+                println!("None");
+            },
+        }
     };
 }
 
@@ -181,8 +195,10 @@ fn issue14634() {
     dbg!(3);
     println!("here");
     //~^^^ match_single_binding
-    let id!(a) = dbg!(3);
-    println!("found {a}");
+    {
+        let id!(a) = dbg!(3);
+        println!("found {a}");
+    }
     //~^^^ match_single_binding
     let id!(b) = dbg!(3);
     let id!(_a) = dbg!(b + 1);
@@ -203,4 +219,13 @@ mod issue14991 {
             42
         }],
     }
+}
+
+fn issue15018() {
+    let a = 10;
+    {
+        let a = 11;
+        println!("a = {a}")
+    };
+    println!("a = {a}");
 }
