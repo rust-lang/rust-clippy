@@ -541,6 +541,7 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
             && !is_from_proc_macro(cx, value)
             && let ty = cx.typeck_results().expr_ty(value)
             && self.can_display_format(ty)
+            && self.msrv.meets(cx, msrvs::UNNECESSARY_DEBUG_FORMATTING)
         {
             // If the parent function is a method of `Debug`, we don't want to lint
             // because it is likely that the user wants to use `Debug` formatting.
