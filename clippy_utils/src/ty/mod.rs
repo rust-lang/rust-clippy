@@ -934,7 +934,7 @@ pub fn approx_ty_size<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> u64 {
     match (cx.layout_of(ty).map(|layout| layout.size.bytes()), ty.kind()) {
         (Ok(size), _) => size,
         (Err(_), ty::Tuple(list)) => list.iter().map(|t| approx_ty_size(cx, t)).sum(),
-        (Err(_), ty::Array(t, n)) => n.try_to_target_usize(cx.tcx).unwrap_or_default() * approx_ty_size(cx, *t),
+        (Err(_), ty::Array(t, n)) => n.try_to_target_usize(cx.tcx).unwrap_or(0) * approx_ty_size(cx, *t),
         (Err(_), ty::Adt(def, subst)) if def.is_struct() => def
             .variants()
             .iter()
@@ -955,7 +955,7 @@ pub fn approx_ty_size<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> u64 {
                     .sum::<u64>()
             })
             .max()
-            .unwrap_or_default(),
+            .unwrap_or(0),
         (Err(_), ty::Adt(def, subst)) if def.is_union() => def
             .variants()
             .iter()
@@ -964,10 +964,10 @@ pub fn approx_ty_size<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> u64 {
                     .iter()
                     .map(|field| approx_ty_size(cx, field.ty(cx.tcx, subst)))
                     .max()
-                    .unwrap_or_default()
+                    .unwrap_or(0)
             })
             .max()
-            .unwrap_or_default(),
+            .unwrap_or(0),
         (Err(_), _) => 0,
     }
 }

@@ -64,9 +64,9 @@ impl ArithmeticSideEffects {
     /// "multiplication" are present in the inner set of allowed types.
     fn has_allowed_binary(&self, lhs_ty: Ty<'_>, rhs_ty: Ty<'_>) -> bool {
         let lhs_ty_string = lhs_ty.to_string();
-        let lhs_ty_string_elem = lhs_ty_string.split('<').next().unwrap_or_default();
+        let lhs_ty_string_elem = lhs_ty_string.split('<').next().unwrap_or("");
         let rhs_ty_string = rhs_ty.to_string();
-        let rhs_ty_string_elem = rhs_ty_string.split('<').next().unwrap_or_default();
+        let rhs_ty_string_elem = rhs_ty_string.split('<').next().unwrap_or("");
         if let Some(rhs_from_specific) = self.allowed_binary.get(lhs_ty_string_elem)
             && {
                 let rhs_has_allowed_ty = rhs_from_specific.contains(rhs_ty_string_elem);
@@ -85,7 +85,7 @@ impl ArithmeticSideEffects {
     /// allowed types.
     fn has_allowed_unary(&self, ty: Ty<'_>) -> bool {
         let ty_string = ty.to_string();
-        let ty_string_elem = ty_string.split('<').next().unwrap_or_default();
+        let ty_string_elem = ty_string.split('<').next().unwrap_or("");
         self.allowed_unary.contains(ty_string_elem)
     }
 
