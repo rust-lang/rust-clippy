@@ -77,6 +77,7 @@ generate! {
     Weak,
     abs,
     align_of,
+    allowed_recursion,
     ambiguous_glob_reexports,
     append,
     arg,
