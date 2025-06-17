@@ -2282,6 +2282,9 @@ lint for them as needed.</p>
     # When using an inline table, can add a `reason` for why the macro
     # is disallowed.
     { path = "serde::Serialize", reason = "no serializing" },
+    # This would normally error if the path is incorrect, but with `allow-invalid` = `true`,
+    # it will be silently ignored
+    { path = "std::invalid_macro", reason = "use alternative instead", allow-invalid = true }
 ]
 </code></pre>
 <pre><code class="language-rust">use serde::Serialize;
@@ -2297,8 +2300,22 @@ struct Data {
 </code></pre>
 <h3>Configuration</h3>
 <ul>
+<li><code>disallowed-macros</code>:  The list of disallowed macros, written as fully qualified paths.</li>
+</ul>
+<p><strong>Fields:</strong></p>
+<ul>
 <li>
-<p><code>disallowed-macros</code>:  The list of disallowed macros, written as fully qualified paths.</p>
+<p><code>path</code> (required): the fully qualified path to the macro that should be disallowed</p>
+</li>
+<li>
+<p><code>reason</code> (optional): explanation why this macro is disallowed</p>
+</li>
+<li>
+<p><code>replacement</code> (optional): suggested alternative macro</p>
+</li>
+<li>
+<p><code>allow-invalid</code> (optional, <code>false</code> by default): when set to <code>true</code>, it will ignore this entry
+if the path doesn’t exist, instead of emitting an error</p>
 <p>(default: <code>[]</code>)</p>
 </li>
 </ul>
@@ -2321,6 +2338,9 @@ lint for them as needed.</p>
     { path = "std::vec::Vec::leak", reason = "no leaking memory" },
     # Can also add a `replacement` that will be offered as a suggestion.
     { path = "std::sync::Mutex::new", reason = "prefer faster &amp; simpler non-poisonable mutex", replacement = "parking_lot::Mutex::new" },
+    # This would normally error if the path is incorrect, but with `allow-invalid` = `true`,
+    # it will be silently ignored
+    { path = "std::fs::InvalidPath", reason = "use alternative instead", allow-invalid = true },
 ]
 </code></pre>
 <pre><code class="language-rust">let xs = vec![1, 2, 3, 4];
@@ -2341,8 +2361,22 @@ xs.push(123); // Vec::push is _not_ disallowed in the config.
 </ul>
 <h3>Configuration</h3>
 <ul>
+<li><code>disallowed-methods</code>:  The list of disallowed methods, written as fully qualified paths.</li>
+</ul>
+<p><strong>Fields:</strong></p>
+<ul>
 <li>
-<p><code>disallowed-methods</code>:  The list of disallowed methods, written as fully qualified paths.</p>
+<p><code>path</code> (required): the fully qualified path to the method that should be disallowed</p>
+</li>
+<li>
+<p><code>reason</code> (optional): explanation why this method is disallowed</p>
+</li>
+<li>
+<p><code>replacement</code> (optional): suggested alternative method</p>
+</li>
+<li>
+<p><code>allow-invalid</code> (optional, <code>false</code> by default): when set to <code>true</code>, it will ignore this entry
+if the path doesn’t exist, instead of emitting an error</p>
 <p>(default: <code>[]</code>)</p>
 </li>
 </ul>
@@ -2414,6 +2448,9 @@ types are defined in the clippy.toml file.</p>
     { path = "std::net::Ipv4Addr", reason = "no IPv4 allowed" },
     # Can also add a `replacement` that will be offered as a suggestion.
     { path = "std::sync::Mutex", reason = "prefer faster &amp; simpler non-poisonable mutex", replacement = "parking_lot::Mutex" },
+    # This would normally error if the path is incorrect, but with `allow-invalid` = `true`,
+    # it will be silently ignored
+    { path = "std::invalid::Type", reason = "use alternative instead", allow-invalid = true }
 ]
 </code></pre>
 <pre><code class="language-rust">use std::collections::BTreeMap;
@@ -2430,8 +2467,22 @@ use std::collections::HashMap;
 </ul>
 <h3>Configuration</h3>
 <ul>
+<li><code>disallowed-types</code>:  The list of disallowed types, written as fully qualified paths.</li>
+</ul>
+<p><strong>Fields:</strong></p>
+<ul>
 <li>
-<p><code>disallowed-types</code>:  The list of disallowed types, written as fully qualified paths.</p>
+<p><code>path</code> (required): the fully qualified path to the type that should be disallowed</p>
+</li>
+<li>
+<p><code>reason</code> (optional): explanation why this type is disallowed</p>
+</li>
+<li>
+<p><code>replacement</code> (optional): suggested alternative type</p>
+</li>
+<li>
+<p><code>allow-invalid</code> (optional, <code>false</code> by default): when set to <code>true</code>, it will ignore this entry
+if the path doesn’t exist, instead of emitting an error</p>
 <p>(default: <code>[]</code>)</p>
 </li>
 </ul>
