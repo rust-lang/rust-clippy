@@ -614,23 +614,7 @@ fn method_caller_is_mutable<'tcx>(
 
 /// Implementation of `IFS_SAME_COND`.
 fn lint_same_cond<'tcx>(cx: &LateContext<'tcx>, conds: &[&Expr<'_>], interior_mut: &mut InteriorMut<'tcx>) {
-    for group in search_same(
-        conds,
-        |e| hash_expr(cx, e),
-        |lhs, rhs| {
-            // Ignore eq_expr side effects iff one of the expression kind is a method call
-            // and the caller is not a mutable, including inner mutable type.
-            if let ExprKind::MethodCall(_, caller, _, _) = lhs.kind {
-                if method_caller_is_mutable(cx, caller, interior_mut) {
-                    false
-                } else {
-                    SpanlessEq::new(cx).eq_expr(lhs, rhs)
-                }
-            } else {
-                eq_expr_value(cx, lhs, rhs)
-            }
-        },
-    ) {
+    for group in search_same(conds, |e| hash_expr(cx, e), |lhs, rhs| eq_expr_value(cx, lhs, rhs)) {
         let spans: Vec<_> = group.into_iter().map(|expr| expr.span).collect();
         span_lint(cx, IFS_SAME_COND, spans, "these `if` branches have the same condition");
     }
