@@ -107,7 +107,7 @@ impl<'tcx> LateLintPass<'tcx> for LegacyNumericConstants {
         };
 
         // `std::<integer>::<CONST>` check
-        let (span, sugg, msg) = if let QPath::Resolved(None, path) = qpath
+        let (span, (sugg_span, sugg), msg) = if let QPath::Resolved(None, path) = qpath
             && let Some(def_id) = path.res.opt_def_id()
             && is_numeric_const(cx, def_id)
             && let def_path = cx.get_def_path(def_id)
@@ -118,21 +118,24 @@ impl<'tcx> LateLintPass<'tcx> for LegacyNumericConstants {
         {
             (
                 expr.span,
-                format!("{mod_name}::{name}"),
+                (expr.span, format!("{mod_name}::{name}")),
                 "usage of a legacy numeric constant",
             )
         // `<integer>::xxx_value` check
-        } else if let QPath::TypeRelative(_, last_segment) = qpath
+        } else if let QPath::TypeRelative(mod_path, last_segment) = qpath
             && let Some(def_id) = cx.qpath_res(qpath, expr.hir_id).opt_def_id()
             && let Some(par_expr) = get_parent_expr(cx, expr)
             && let ExprKind::Call(_, []) = par_expr.kind
             && is_integer_method(cx, def_id)
         {
             let name = last_segment.ident.name.as_str();
-
+            let mod_name = clippy_utils::source::snippet(cx, mod_path.span, "_");
             (
-                last_segment.ident.span.with_hi(par_expr.span.hi()),
-                name[..=2].to_ascii_uppercase(),
+                qpath.span(),
+                (
+                    par_expr.span,
+                    format!("{}::{}", mod_name, name[..=2].to_ascii_uppercase()),
+                ),
                 "usage of a legacy numeric method",
             )
         } else {
@@ -145,7 +148,7 @@ impl<'tcx> LateLintPass<'tcx> for LegacyNumericConstants {
         {
             span_lint_hir_and_then(cx, LEGACY_NUMERIC_CONSTANTS, expr.hir_id, span, msg, |diag| {
                 diag.span_suggestion_verbose(
-                    span,
+                    sugg_span,
                     "use the associated constant instead",
                     sugg,
                     Applicability::MaybeIncorrect,
