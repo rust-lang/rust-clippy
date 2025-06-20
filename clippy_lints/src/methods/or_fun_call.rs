@@ -1,7 +1,9 @@
+#![allow(clippy::too_many_arguments)]
 use std::ops::ControlFlow;
 
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::eager_or_lazy::switch_to_lazy_eval;
+use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::ty::{expr_type_is_certain, implements_trait, is_type_diagnostic_item};
 use clippy_utils::visitors::for_each_expr;
@@ -25,11 +27,13 @@ pub(super) fn check<'tcx>(
     name: Symbol,
     receiver: &'tcx hir::Expr<'_>,
     args: &'tcx [hir::Expr<'_>],
+    msrv: Msrv,
 ) {
     /// Checks for `unwrap_or(T::new())`, `unwrap_or(T::default())`,
     /// `or_insert(T::new())` or `or_insert(T::default())`.
     /// Similarly checks for `unwrap_or_else(T::new)`, `unwrap_or_else(T::default)`,
     /// `or_insert_with(T::new)` or `or_insert_with(T::default)`.
+    #[allow(clippy::too_many_arguments)]
     fn check_unwrap_or_default(
         cx: &LateContext<'_>,
         name: Symbol,
@@ -38,7 +42,14 @@ pub(super) fn check<'tcx>(
         call_expr: Option<&hir::Expr<'_>>,
         span: Span,
         method_span: Span,
+        msrv: Msrv,
     ) -> bool {
+        // Only check MSRV for Result type
+        let receiver_ty = cx.typeck_results().expr_ty_adjusted(receiver).peel_refs();
+        if is_type_diagnostic_item(cx, receiver_ty, sym::Result) && !msrv.meets(cx, msrvs::RESULT_UNWRAP_OR_DEFAULT) {
+            return false;
+        }
+
         if !expr_type_is_certain(cx, receiver) {
             return false;
         }
@@ -54,8 +65,8 @@ pub(super) fn check<'tcx>(
 
         let output_type_implements_default = |fun| {
             let fun_ty = cx.typeck_results().expr_ty(fun);
-            if let ty::FnDef(def_id, args) = fun_ty.kind() {
-                let output_ty = cx.tcx.fn_sig(def_id).instantiate(cx.tcx, args).skip_binder().output();
+            if let ty::FnDef(def_id, substs) = fun_ty.kind() {
+                let output_ty = cx.tcx.fn_sig(def_id).instantiate(cx.tcx, substs).skip_binder().output();
                 cx.tcx
                     .get_diagnostic_item(sym::Default)
                     .is_some_and(|default_trait_id| implements_trait(cx, output_ty, default_trait_id, &[]))
@@ -214,11 +225,11 @@ pub(super) fn check<'tcx>(
                     };
                     (!inner_fun_has_args
                         && !is_nested_expr
-                        && check_unwrap_or_default(cx, name, receiver, fun, Some(ex), expr.span, method_span))
+                        && check_unwrap_or_default(cx, name, receiver, fun, Some(ex), expr.span, method_span, msrv))
                         || check_or_fn_call(cx, name, method_span, receiver, arg, None, expr.span, fun_span)
                 },
                 hir::ExprKind::Path(..) | hir::ExprKind::Closure(..) if !is_nested_expr => {
-                    check_unwrap_or_default(cx, name, receiver, ex, None, expr.span, method_span)
+                    check_unwrap_or_default(cx, name, receiver, ex, None, expr.span, method_span, msrv)
                 },
                 hir::ExprKind::Index(..) | hir::ExprKind::MethodCall(..) => {
                     check_or_fn_call(cx, name, method_span, receiver, arg, None, expr.span, None)
