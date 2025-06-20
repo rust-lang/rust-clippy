@@ -14,6 +14,7 @@ mod clone_on_copy;
 mod clone_on_ref_ptr;
 mod cloned_instead_of_copied;
 mod collapsible_str_replace;
+mod concealed_obvious_default;
 mod double_ended_iterator_last;
 mod drain_collect;
 mod err_expect;
@@ -4565,6 +4566,46 @@ declare_clippy_lint! {
     "hardcoded localhost IP address"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for usages of methods like `Option::unwrap_or_default`,
+    /// for types where the `Default` implementation is obvious and can be written literally
+    ///
+    /// ### Why is this bad?
+    ///
+    /// You have to know what the underlying type is, instead of it being obvious from a glance
+    ///
+    /// ### Example
+    /// ```no_run
+    /// fn f(
+    ///     a: Option<&str>,
+    ///     b: Option<usize>,
+    ///     c: Option<Option<bool>>
+    /// ) {
+    ///     let a = a.unwrap_or_default();
+    ///     let b = b.unwrap_or_default();
+    ///     let c = c.unwrap_or_default();
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// fn f(
+    ///     a: Option<&str>,
+    ///     b: Option<usize>,
+    ///     c: Option<Option<bool>>
+    /// ) {
+    ///     let a = a.unwrap_or("");
+    ///     let b = b.unwrap_or(0);
+    ///     let c = c.unwrap_or(None);
+    /// }
+    /// ```
+    #[clippy::version = "1.89.0"]
+    pub CONCEALED_OBVIOUS_DEFAULT,
+    complexity,
+    ".*or_default() obscures the underlying type"
+}
+
 #[expect(clippy::struct_excessive_bools)]
 pub struct Methods {
     avoid_breaking_exported_api: bool,
@@ -4744,6 +4785,7 @@ impl_lint_pass!(Methods => [
     IO_OTHER_ERROR,
     SWAP_WITH_TEMPORARY,
     IP_CONSTANT,
+    CONCEALED_OBVIOUS_DEFAULT
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -5544,7 +5586,7 @@ impl Methods {
             }
         }
         // Handle method calls whose receiver and arguments may come from expansion
-        if let ExprKind::MethodCall(path, recv, args, _call_span) = expr.kind {
+        if let ExprKind::MethodCall(path, recv, args, call_span) = expr.kind {
             match (path.ident.name, args) {
                 (sym::expect, [_]) if !matches!(method_call(recv), Some((sym::ok | sym::err, _, [], _, _))) => {
                     unwrap_expect_used::check(
@@ -5578,6 +5620,9 @@ impl Methods {
                         self.allow_unwrap_in_tests,
                         unwrap_expect_used::Variant::Unwrap,
                     );
+                },
+                (sym::or_default | sym::unwrap_or_default, []) => {
+                    concealed_obvious_default::check(cx, recv, path.ident.name, call_span);
                 },
                 (sym::unwrap_err, []) => {
                     unwrap_expect_used::check(

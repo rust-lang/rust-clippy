@@ -273,7 +273,7 @@ pub fn main() {
         let clippy_args_var = env::var("CLIPPY_ARGS").ok();
         let clippy_args = clippy_args_var
             .as_deref()
-            .unwrap_or_default()
+            .unwrap_or("")
             .split("__CLIPPY_HACKERY__")
             .filter_map(|s| match s {
                 "" => None,

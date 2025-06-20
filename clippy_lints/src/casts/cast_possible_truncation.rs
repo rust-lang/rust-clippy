@@ -49,7 +49,7 @@ fn apply_reductions(cx: &LateContext<'_>, nbits: u64, expr: &Expr<'_>, signed: b
                 .min(apply_reductions(cx, nbits, right, signed))
                 .min(apply_reductions(cx, nbits, left, signed)),
             BinOpKind::Shr => apply_reductions(cx, nbits, left, signed)
-                .saturating_sub(constant_int(cx, right).map_or(0, |s| u64::try_from(s).unwrap_or_default())),
+                .saturating_sub(constant_int(cx, right).map_or(0, |s| u64::try_from(s).unwrap_or(0))),
             _ => nbits,
         },
         ExprKind::MethodCall(method, left, [right], _) => {
