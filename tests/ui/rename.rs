@@ -11,7 +11,6 @@
 #![allow(suspicious_double_ref_op)]
 #![allow(invalid_nan_comparisons)]
 #![allow(clippy::redundant_static_lifetimes)]
-#![allow(clippy::cognitive_complexity)]
 #![allow(clippy::derived_hash_with_manual_eq)]
 #![allow(clippy::disallowed_methods)]
 #![allow(clippy::disallowed_types)]
@@ -74,7 +73,6 @@
 #![warn(clippy::clone_double_ref)] //~ ERROR: lint `clippy::clone_double_ref`
 #![warn(clippy::cmp_nan)] //~ ERROR: lint `clippy::cmp_nan`
 #![warn(clippy::const_static_lifetime)] //~ ERROR: lint `clippy::const_static_lifetime`
-#![warn(clippy::cyclomatic_complexity)] //~ ERROR: lint `clippy::cyclomatic_complexity`
 #![warn(clippy::derive_hash_xor_eq)] //~ ERROR: lint `clippy::derive_hash_xor_eq`
 #![warn(clippy::disallowed_method)] //~ ERROR: lint `clippy::disallowed_method`
 #![warn(clippy::disallowed_type)] //~ ERROR: lint `clippy::disallowed_type`
