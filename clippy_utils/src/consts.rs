@@ -805,10 +805,10 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
                                 | sym::i128_legacy_const_max
                         )
                     ) || self.tcx.opt_parent(did).is_some_and(|parent| {
-                        paths::F16_CONSTS.matches(&self.tcx, parent)
-                            || paths::F32_CONSTS.matches(&self.tcx, parent)
-                            || paths::F64_CONSTS.matches(&self.tcx, parent)
-                            || paths::F128_CONSTS.matches(&self.tcx, parent)
+                        paths::DIAG_ITEM_F16_CONSTS_MOD.matches(&self.tcx, parent)
+                            || paths::DIAG_ITEM_F32_CONSTS_MOD.matches(&self.tcx, parent)
+                            || paths::DIAG_ITEM_F64_CONSTS_MOD.matches(&self.tcx, parent)
+                            || paths::DIAG_ITEM_F128_CONSTS_MOD.matches(&self.tcx, parent)
                     })) =>
             {
                 did
