@@ -35,30 +35,25 @@ impl<'tcx> LateLintPass<'tcx> for IfsAsLogicalOps {
             // Check if the if-block has only a return statement
             && if_block.stmts.len() == 0
             && let Some(if_expr) = if_block.expr
-            // and does not diverge.
-            && is_never_expr(cx, if_expr).is_none()
             // And that the else block consists of only the boolean 'false'.
             && let ExprKind::Block(else_block, _label) = els.kind
             && else_block.stmts.len() == 0
             && let Some(else_expr) = else_block.expr
             && let ExprKind::Lit(lit) = else_expr.kind
-            && let LitKind::Bool(value) = lit.node
-            && value == false
+            && matches!(lit.node, LitKind::Bool(false))
+            // We do not emit this lint if the expression diverges.
+            && !cx.typeck_results().expr_ty(if_expr).is_never()
         {
-            let maybe_lhs_snippet = if_expr.span.get_source_text(cx);
-            let maybe_rhs_snippet = lit.span.get_source_text(cx);
-            if let Some(lhs_snippet) = maybe_lhs_snippet
-                && let Some(rhs_snippet) = maybe_rhs_snippet
+            if let Some(lhs_snippet) = if_expr.span.get_source_text(cx)
+                && let Some(rhs_snippet) = lit.span.get_source_text(cx)
             {
-                let lhs_text = lhs_snippet.as_str();
-                let rhs_text = rhs_snippet.as_str();
                 span_lint_and_sugg(
                     cx,
                     IFS_AS_LOGICAL_OPS,
                     e.span,
                     "Logical operations are clearer than if conditions in this instance",
                     "try",
-                    format!("{lhs_text} && {rhs_text}"),
+                    format!("{lhs_snippet} && {rhs_snippet}"),
                     Applicability::MachineApplicable,
                 );
             }
