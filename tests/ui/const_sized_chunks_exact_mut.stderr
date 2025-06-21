@@ -1,0 +1,172 @@
+error: iterating over `chunks_exact_mut()` with constant parameter `2`
+  --> tests/ui/const_sized_chunks_exact_mut.rs:10:30
+   |
+LL |     for ref chunk in numbers.chunks_exact_mut(2) {
+   |                              ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::const-sized-chunks-exact-mut` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::const_sized_chunks_exact_mut)]`
+help: use `array_chunks_mut::<2>()` instead
+   |
+LL -     for ref chunk in numbers.chunks_exact_mut(2) {
+LL +     for [a, b] in numbers.array_chunks_mut() {
+   |
+
+error: iterating over `chunks_exact_mut()` with constant parameter `2`
+  --> tests/ui/const_sized_chunks_exact_mut.rs:15:30
+   |
+LL |     for mut chunk in numbers.chunks_exact_mut(2) {
+   |                              ^^^^^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks_mut::<2>()` instead
+   |
+LL -     for mut chunk in numbers.chunks_exact_mut(2) {
+LL +     for [a, b] in numbers.array_chunks_mut() {
+   |
+
+error: iterating over `chunks_exact_mut()` with constant parameter `2`
+  --> tests/ui/const_sized_chunks_exact_mut.rs:19:34
+   |
+LL |     for ref mut chunk in numbers.chunks_exact_mut(2) {
+   |                                  ^^^^^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks_mut::<2>()` instead
+   |
+LL -     for ref mut chunk in numbers.chunks_exact_mut(2) {
+LL +     for [a, b] in numbers.array_chunks_mut() {
+   |
+
+error: iterating over `chunks_exact_mut()` with constant parameter `2`
+  --> tests/ui/const_sized_chunks_exact_mut.rs:26:26
+   |
+LL |     for chunk in numbers.chunks_exact_mut(2) {
+   |                          ^^^^^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks_mut::<2>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact_mut(2) {
+LL +     for [a, b] in numbers.array_chunks_mut() {
+   |
+
+error: iterating over `chunks_exact_mut()` with constant parameter `2`
+  --> tests/ui/const_sized_chunks_exact_mut.rs:31:26
+   |
+LL |     for chunk in numbers.chunks_exact_mut(2) {
+   |                          ^^^^^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks_mut::<2>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact_mut(2) {
+LL +     for [a, b] in numbers.array_chunks_mut() {
+   |
+
+error: iterating over `chunks_exact_mut()` with constant parameter `2`
+  --> tests/ui/const_sized_chunks_exact_mut.rs:36:26
+   |
+LL |     for chunk in numbers.chunks_exact_mut(2) {
+   |                          ^^^^^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks_mut::<2>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact_mut(2) {
+LL +     for [a, b] in numbers.array_chunks_mut() {
+   |
+
+error: iterating over `chunks_exact_mut()` with constant parameter `2`
+  --> tests/ui/const_sized_chunks_exact_mut.rs:41:26
+   |
+LL |     for chunk in numbers.chunks_exact_mut(2) {
+   |                          ^^^^^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks_mut::<2>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact_mut(2) {
+LL +     for [a, b] in numbers.array_chunks_mut() {
+   |
+
+error: iterating over `chunks_exact_mut()` with constant parameter `2`
+  --> tests/ui/const_sized_chunks_exact_mut.rs:46:26
+   |
+LL |     for chunk in numbers.chunks_exact_mut(2) {
+   |                          ^^^^^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks_mut::<2>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact_mut(2) {
+LL +     for [a, b] in numbers.array_chunks_mut() {
+   |
+
+error: iterating over `chunks_exact_mut()` with constant parameter `2`
+  --> tests/ui/const_sized_chunks_exact_mut.rs:51:26
+   |
+LL |     for chunk in numbers.chunks_exact_mut(2) {
+   |                          ^^^^^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks_mut::<2>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact_mut(2) {
+LL +     for [a, b] in numbers.array_chunks_mut() {
+   |
+
+error: iterating over `chunks_exact_mut()` with constant parameter `2`
+  --> tests/ui/const_sized_chunks_exact_mut.rs:56:26
+   |
+LL |     for chunk in numbers.chunks_exact_mut(2) {
+   |                          ^^^^^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks_mut::<2>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact_mut(2) {
+LL +     for [a, b] in numbers.array_chunks_mut() {
+   |
+
+error: iterating over `chunks_exact_mut()` with constant parameter `N`
+  --> tests/ui/const_sized_chunks_exact_mut.rs:65:26
+   |
+LL |     for chunk in numbers.chunks_exact_mut(N) {
+   |                          ^^^^^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks_mut::<2>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact_mut(N) {
+LL +     for [a, b] in numbers.array_chunks_mut() {
+   |
+
+error: iterating over `chunks_exact_mut()` with constant parameter `N + 1`
+  --> tests/ui/const_sized_chunks_exact_mut.rs:69:26
+   |
+LL |     for chunk in numbers.chunks_exact_mut(N + 1) {
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks_mut::<3>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact_mut(N + 1) {
+LL +     for [a, b, c] in numbers.array_chunks_mut() {
+   |
+
+error: iterating over `chunks_exact_mut()` with constant parameter `1`
+  --> tests/ui/const_sized_chunks_exact_mut.rs:78:26
+   |
+LL |     for chunk in numbers.chunks_exact_mut(1) {
+   |                          ^^^^^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks_mut::<1>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact_mut(1) {
+LL +     for [a] in numbers.array_chunks_mut() {
+   |
+
+error: iterating over `chunks_exact_mut()` with constant parameter `26`
+  --> tests/ui/const_sized_chunks_exact_mut.rs:82:26
+   |
+LL |     for chunk in numbers.chunks_exact_mut(26) {
+   |                          ^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks_mut::<26>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact_mut(26) {
+LL +     for [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z] in numbers.array_chunks_mut() {
+   |
+
+error: aborting due to 14 previous errors
+

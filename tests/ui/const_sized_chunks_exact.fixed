@@ -1,0 +1,89 @@
+#![warn(clippy::const_sized_chunks_exact)]
+#![feature(array_chunks)]
+#![allow(unused_variables)]
+#![allow(dead_code)]
+
+fn test_binding() {
+    let numbers = [0, 1, 2, 3, 4];
+
+    #[allow(clippy::needless_borrow)]
+    for [a, b] in numbers.array_chunks() {
+        //~^ const_sized_chunks_exact
+    }
+
+    #[allow(unused_mut)]
+    for [a, b] in numbers.array_chunks() {
+        //~^ const_sized_chunks_exact
+    }
+
+    for [a, b] in numbers.array_chunks() {
+        //~^ const_sized_chunks_exact
+    }
+}
+
+fn test_slice_like() {
+    let numbers = [2; 5];
+    for [a, b] in numbers.array_chunks() {
+        //~^ const_sized_chunks_exact
+    }
+
+    let numbers = [0, 1, 2, 3, 4];
+    for [a, b] in numbers.array_chunks() {
+        //~^ const_sized_chunks_exact
+    }
+
+    let numbers = &[0, 1, 2, 3, 4];
+    for [a, b] in numbers.array_chunks() {
+        //~^ const_sized_chunks_exact
+    }
+
+    let numbers = &&[0, 1, 2, 3, 4];
+    for [a, b] in numbers.array_chunks() {
+        //~^ const_sized_chunks_exact
+    }
+
+    let numbers = &&&[0, 1, 2, 3, 4];
+    for [a, b] in numbers.array_chunks() {
+        //~^ const_sized_chunks_exact
+    }
+
+    let numbers = Vec::from_iter(0..5);
+    for [a, b] in numbers.array_chunks() {
+        //~^ const_sized_chunks_exact
+    }
+
+    let numbers = &Vec::from_iter(0..5);
+    for [a, b] in numbers.array_chunks() {
+        //~^ const_sized_chunks_exact
+    }
+}
+
+fn test_const_eval() {
+    const N: usize = 2;
+
+    let numbers = [2; 5];
+    for [a, b] in numbers.array_chunks() {
+        //~^ const_sized_chunks_exact
+    }
+
+    for [a, b, c] in numbers.array_chunks() {
+        //~^ const_sized_chunks_exact
+    }
+}
+
+fn test_chunk_size() {
+    let numbers = Vec::from_iter(0..5);
+    for chunk in numbers.chunks_exact(0) {}
+
+    for [a] in numbers.array_chunks() {
+        //~^ const_sized_chunks_exact
+    }
+
+    for [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z] in numbers.array_chunks() {
+        //~^ const_sized_chunks_exact
+    }
+
+    for chunk in numbers.chunks_exact(27) {}
+}
+
+fn main() {}

@@ -1,0 +1,172 @@
+error: iterating over `windows()` with constant parameter `2`
+  --> tests/ui/const_sized_windows.rs:10:30
+   |
+LL |     for ref chunk in numbers.windows(2) {
+   |                              ^^^^^^^^^^
+   |
+   = note: `-D clippy::const-sized-windows` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::const_sized_windows)]`
+help: use `array_windows::<2>()` instead
+   |
+LL -     for ref chunk in numbers.windows(2) {
+LL +     for [a, b] in numbers.array_windows() {
+   |
+
+error: iterating over `windows()` with constant parameter `2`
+  --> tests/ui/const_sized_windows.rs:15:30
+   |
+LL |     for mut chunk in numbers.windows(2) {
+   |                              ^^^^^^^^^^
+   |
+help: use `array_windows::<2>()` instead
+   |
+LL -     for mut chunk in numbers.windows(2) {
+LL +     for [a, b] in numbers.array_windows() {
+   |
+
+error: iterating over `windows()` with constant parameter `2`
+  --> tests/ui/const_sized_windows.rs:19:34
+   |
+LL |     for ref mut chunk in numbers.windows(2) {
+   |                                  ^^^^^^^^^^
+   |
+help: use `array_windows::<2>()` instead
+   |
+LL -     for ref mut chunk in numbers.windows(2) {
+LL +     for [a, b] in numbers.array_windows() {
+   |
+
+error: iterating over `windows()` with constant parameter `2`
+  --> tests/ui/const_sized_windows.rs:26:26
+   |
+LL |     for chunk in numbers.windows(2) {
+   |                          ^^^^^^^^^^
+   |
+help: use `array_windows::<2>()` instead
+   |
+LL -     for chunk in numbers.windows(2) {
+LL +     for [a, b] in numbers.array_windows() {
+   |
+
+error: iterating over `windows()` with constant parameter `2`
+  --> tests/ui/const_sized_windows.rs:31:26
+   |
+LL |     for chunk in numbers.windows(2) {
+   |                          ^^^^^^^^^^
+   |
+help: use `array_windows::<2>()` instead
+   |
+LL -     for chunk in numbers.windows(2) {
+LL +     for [a, b] in numbers.array_windows() {
+   |
+
+error: iterating over `windows()` with constant parameter `2`
+  --> tests/ui/const_sized_windows.rs:36:26
+   |
+LL |     for chunk in numbers.windows(2) {
+   |                          ^^^^^^^^^^
+   |
+help: use `array_windows::<2>()` instead
+   |
+LL -     for chunk in numbers.windows(2) {
+LL +     for [a, b] in numbers.array_windows() {
+   |
+
+error: iterating over `windows()` with constant parameter `2`
+  --> tests/ui/const_sized_windows.rs:41:26
+   |
+LL |     for chunk in numbers.windows(2) {
+   |                          ^^^^^^^^^^
+   |
+help: use `array_windows::<2>()` instead
+   |
+LL -     for chunk in numbers.windows(2) {
+LL +     for [a, b] in numbers.array_windows() {
+   |
+
+error: iterating over `windows()` with constant parameter `2`
+  --> tests/ui/const_sized_windows.rs:46:26
+   |
+LL |     for chunk in numbers.windows(2) {
+   |                          ^^^^^^^^^^
+   |
+help: use `array_windows::<2>()` instead
+   |
+LL -     for chunk in numbers.windows(2) {
+LL +     for [a, b] in numbers.array_windows() {
+   |
+
+error: iterating over `windows()` with constant parameter `2`
+  --> tests/ui/const_sized_windows.rs:51:26
+   |
+LL |     for chunk in numbers.windows(2) {
+   |                          ^^^^^^^^^^
+   |
+help: use `array_windows::<2>()` instead
+   |
+LL -     for chunk in numbers.windows(2) {
+LL +     for [a, b] in numbers.array_windows() {
+   |
+
+error: iterating over `windows()` with constant parameter `2`
+  --> tests/ui/const_sized_windows.rs:56:26
+   |
+LL |     for chunk in numbers.windows(2) {
+   |                          ^^^^^^^^^^
+   |
+help: use `array_windows::<2>()` instead
+   |
+LL -     for chunk in numbers.windows(2) {
+LL +     for [a, b] in numbers.array_windows() {
+   |
+
+error: iterating over `windows()` with constant parameter `N`
+  --> tests/ui/const_sized_windows.rs:65:26
+   |
+LL |     for chunk in numbers.windows(N) {
+   |                          ^^^^^^^^^^
+   |
+help: use `array_windows::<2>()` instead
+   |
+LL -     for chunk in numbers.windows(N) {
+LL +     for [a, b] in numbers.array_windows() {
+   |
+
+error: iterating over `windows()` with constant parameter `N + 1`
+  --> tests/ui/const_sized_windows.rs:69:26
+   |
+LL |     for chunk in numbers.windows(N + 1) {
+   |                          ^^^^^^^^^^^^^^
+   |
+help: use `array_windows::<3>()` instead
+   |
+LL -     for chunk in numbers.windows(N + 1) {
+LL +     for [a, b, c] in numbers.array_windows() {
+   |
+
+error: iterating over `windows()` with constant parameter `1`
+  --> tests/ui/const_sized_windows.rs:78:26
+   |
+LL |     for chunk in numbers.windows(1) {
+   |                          ^^^^^^^^^^
+   |
+help: use `array_windows::<1>()` instead
+   |
+LL -     for chunk in numbers.windows(1) {
+LL +     for [a] in numbers.array_windows() {
+   |
+
+error: iterating over `windows()` with constant parameter `26`
+  --> tests/ui/const_sized_windows.rs:82:26
+   |
+LL |     for chunk in numbers.windows(26) {
+   |                          ^^^^^^^^^^^
+   |
+help: use `array_windows::<26>()` instead
+   |
+LL -     for chunk in numbers.windows(26) {
+LL +     for [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z] in numbers.array_windows() {
+   |
+
+error: aborting due to 14 previous errors
+
