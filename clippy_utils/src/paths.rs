@@ -131,6 +131,27 @@ path_macros! {
     macro_path: PathNS::Macro,
 }
 
+// Paths in standard library (`alloc`/`core`/`std`, or against builtin scalar types)
+// should be added as diagnostic items directly into the standard library, through a
+// PR against the `rust-lang/rust` repository. That makes Clippy more robust in case
+// the item is moved around, e.g. if the library structure is reorganized.
+//
+// If their use is required before the next sync (which happens every two weeks),
+// they can be temporarily added below, prefixed with `DIAG_ITEM`, and commented
+// with a reference to the PR adding the diagnostic item:
+//
+// ```rust
+// // `sym::io_error_new` added in <https://github.com/rust-lang/rust/pull/142787>
+// pub static DIAG_ITEM_IO_ERROR_NEW: PathLookup = value_path!(std::io::Error::new);
+// ```
+//
+// During development, the "Added in …" comment is not required, but will make the
+// test fail once the PR is submitted and becomes mandatory to ensure that a proper
+// PR against `rust-lang/rust` has been created.
+//
+// You can request advice from the Clippy team members if you are not sure of how to
+// add the diagnostic item to the standard library, or how to name it.
+
 // Paths in external crates
 pub static FUTURES_IO_ASYNCREADEXT: PathLookup = type_path!(futures_util::AsyncReadExt);
 pub static FUTURES_IO_ASYNCWRITEEXT: PathLookup = type_path!(futures_util::AsyncWriteExt);
