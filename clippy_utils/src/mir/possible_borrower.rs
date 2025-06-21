@@ -1,12 +1,10 @@
 use super::possible_origin::PossibleOriginVisitor;
 use super::transitive_relation::TransitiveRelation;
-use crate::ty::is_copy;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_index::bit_set::DenseBitSet;
-use rustc_lint::LateContext;
 use rustc_middle::mir::visit::Visitor as _;
 use rustc_middle::mir::{self, Mutability};
-use rustc_middle::ty::{self, TyCtxt, TypeVisitor};
+use rustc_middle::ty::{self, TyCtxt, TypeVisitor, TypingEnv};
 use rustc_mir_dataflow::impls::MaybeStorageLive;
 use rustc_mir_dataflow::{Analysis, ResultsCursor};
 use std::borrow::Cow;
@@ -16,35 +14,40 @@ use std::ops::ControlFlow;
 /// For example, `b = &a; c = &a;` will make `b` and (transitively) `c`
 /// possible borrowers of `a`.
 #[allow(clippy::module_name_repetitions)]
-struct PossibleBorrowerVisitor<'a, 'b, 'tcx> {
+struct PossibleBorrowerVisitor<'body, 'tcx> {
     possible_borrower: TransitiveRelation,
-    body: &'b mir::Body<'tcx>,
-    cx: &'a LateContext<'tcx>,
+    body: &'body mir::Body<'tcx>,
+    tcx: TyCtxt<'tcx>,
+    typing_env: TypingEnv<'tcx>,
     possible_origin: FxHashMap<mir::Local, DenseBitSet<mir::Local>>,
 }
 
-impl<'a, 'b, 'tcx> PossibleBorrowerVisitor<'a, 'b, 'tcx> {
+impl<'body, 'tcx> PossibleBorrowerVisitor<'body, 'tcx> {
     fn new(
-        cx: &'a LateContext<'tcx>,
-        body: &'b mir::Body<'tcx>,
+        tcx: TyCtxt<'tcx>,
+        typing_env: TypingEnv<'tcx>,
+        body: &'body mir::Body<'tcx>,
         possible_origin: FxHashMap<mir::Local, DenseBitSet<mir::Local>>,
     ) -> Self {
         Self {
             possible_borrower: TransitiveRelation::default(),
             body,
-            cx,
+            tcx,
+            typing_env,
             possible_origin,
         }
     }
 
     fn into_map(
         self,
-        cx: &'a LateContext<'tcx>,
-        maybe_live: ResultsCursor<'b, 'tcx, MaybeStorageLive<'tcx>>,
-    ) -> PossibleBorrowerMap<'b, 'tcx> {
+        maybe_live: ResultsCursor<'body, 'tcx, MaybeStorageLive<'tcx>>,
+    ) -> PossibleBorrowerMap<'body, 'tcx> {
         let mut map = FxHashMap::default();
         for row in (1..self.body.local_decls.len()).map(mir::Local::from_usize) {
-            if is_copy(cx, self.body.local_decls[row].ty) {
+            if self
+                .tcx
+                .type_is_copy_modulo_regions(self.typing_env, self.body.local_decls[row].ty)
+            {
                 continue;
             }
 
@@ -64,7 +67,7 @@ impl<'a, 'b, 'tcx> PossibleBorrowerVisitor<'a, 'b, 'tcx> {
     }
 }
 
-impl<'tcx> mir::visit::Visitor<'tcx> for PossibleBorrowerVisitor<'_, '_, 'tcx> {
+impl<'tcx> mir::visit::Visitor<'tcx> for PossibleBorrowerVisitor<'_, 'tcx> {
     fn visit_assign(&mut self, place: &mir::Place<'tcx>, rvalue: &mir::Rvalue<'_>, _location: mir::Location) {
         let lhs = place.local;
         match rvalue {
@@ -73,7 +76,7 @@ impl<'tcx> mir::visit::Visitor<'tcx> for PossibleBorrowerVisitor<'_, '_, 'tcx> {
             },
             other => {
                 if ContainsRegion
-                    .visit_ty(place.ty(&self.body.local_decls, self.cx.tcx).ty)
+                    .visit_ty(place.ty(&self.body.local_decls, self.tcx).ty)
                     .is_continue()
                 {
                     return;
@@ -177,19 +180,27 @@ pub struct PossibleBorrowerMap<'b, 'tcx> {
 }
 
 impl<'b, 'tcx> PossibleBorrowerMap<'b, 'tcx> {
-    pub fn new(cx: &LateContext<'tcx>, mir: &'b mir::Body<'tcx>) -> Self {
+    pub fn new(tcx: TyCtxt<'tcx>, typing_env: TypingEnv<'tcx>, mir: &'b mir::Body<'tcx>) -> Self {
         let possible_origin = {
             let mut vis = PossibleOriginVisitor::new(mir);
             vis.visit_body(mir);
-            vis.into_map(cx)
+            vis.into_map(tcx, typing_env)
         };
         let maybe_storage_live_result =
             MaybeStorageLive::new(Cow::Owned(DenseBitSet::new_empty(mir.local_decls.len())))
-                .iterate_to_fixpoint(cx.tcx, mir, Some("redundant_clone"))
+                .iterate_to_fixpoint(tcx, mir, Some("redundant_clone"))
                 .into_results_cursor(mir);
-        let mut vis = PossibleBorrowerVisitor::new(cx, mir, possible_origin);
+        let mut vis = PossibleBorrowerVisitor::new(tcx, typing_env, mir, possible_origin);
         vis.visit_body(mir);
-        vis.into_map(cx, maybe_storage_live_result)
+        vis.into_map(maybe_storage_live_result)
+    }
+
+    /// Checks if the local has no live borrowers immediately before executing the given statement.
+    pub fn is_unborrowed_before(&mut self, local: mir::Local, at: mir::Location) -> bool {
+        self.maybe_live.seek_before_primary_effect(at);
+        self.map
+            .get(&local)
+            .is_none_or(|borrows| borrows.iter().all(|x| !self.maybe_live.get().contains(x)))
     }
 
     /// Returns true if the set of borrowers of `borrowed` living at `at` matches with `borrowers`.
@@ -215,7 +226,7 @@ impl<'b, 'tcx> PossibleBorrowerMap<'b, 'tcx> {
                 self.bitset.0.insert(b);
             }
         } else {
-            return false;
+            return below.is_empty();
         }
 
         self.bitset.1.clear();
