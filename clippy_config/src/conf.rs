@@ -825,6 +825,9 @@ define_Conf! {
     /// `crate_name::macro_name` and one with just the macro name.
     #[lints(nonstandard_macro_braces)]
     standard_macro_braces: Vec<MacroMatcher> = Vec::new(),
+    /// Makes the lint strict, use statements must precede mod and extern crate statements too. (Stylistic Choice)
+    #[lints(items_before_use)]
+    strict_order_of_use: bool = false,
     /// The minimum number of struct fields for the lints about field names to trigger
     #[lints(struct_field_names)]
     struct_field_name_threshold: u64 = 3,
