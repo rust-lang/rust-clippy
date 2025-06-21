@@ -124,3 +124,29 @@ mod issue14781 {
         Ok(())
     }
 }
+
+mod issue14927 {
+    use std::path::Path;
+
+    struct A {
+        pub func: fn(check: bool, a: &Path, b: Option<&Path>),
+    }
+
+    const MY_A: A = A {
+        func: |check, a, b| {
+            if check {
+                let _ = ();
+            } else if let Some(parent) = b.and_then(|p| p.parent()) {
+                let _ = ();
+            }
+        },
+    };
+
+    fn foo(check: bool, a: &Path, b: Option<&Path>) {
+        if check {
+            let _ = ();
+        } else if let Some(parent) = b.and_then(|p| p.parent()) {
+            let _ = ();
+        }
+    }
+}
