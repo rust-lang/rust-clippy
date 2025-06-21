@@ -96,7 +96,6 @@ mod cfg_not_test;
 mod checked_conversions;
 mod cloned_ref_to_slice_refs;
 mod coerce_container_to_any;
-mod cognitive_complexity;
 mod collapsible_if;
 mod collection_is_never_read;
 mod comparison_chain;
@@ -537,7 +536,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::<no_effect::NoEffect>::default());
     store.register_late_pass(|_| Box::new(temporary_assignment::TemporaryAssignment));
     store.register_late_pass(move |_| Box::new(transmute::Transmute::new(conf)));
-    store.register_late_pass(move |_| Box::new(cognitive_complexity::CognitiveComplexity::new(conf)));
     store.register_late_pass(move |_| Box::new(escape::BoxedLocal::new(conf)));
     store.register_late_pass(move |_| Box::new(vec::UselessVec::new(conf)));
     store.register_late_pass(move |_| Box::new(panic_unimplemented::PanicUnimplemented::new(conf)));

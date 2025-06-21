@@ -1,4 +1,4 @@
-# This is the deprecated name for cognitive-complexity-threshold
-cyclomatic-complexity-threshold = 3
+# This is the deprecated name for disallowed-names
+blacklisted-names = ["core::panic"]
 # Check we get duplication warning regardless of order
-cognitive-complexity-threshold = 4
+disallowed-names = ["core::panic"]

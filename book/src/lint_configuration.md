@@ -475,16 +475,6 @@ Whether to also run the listed lints on private items.
 * [`unnecessary_safety_doc`](https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_safety_doc)
 
 
-## `cognitive-complexity-threshold`
-The maximum cognitive complexity a function can have
-
-**Default Value:** `25`
-
----
-**Affected lints:**
-* [`cognitive_complexity`](https://rust-lang.github.io/rust-clippy/master/index.html#cognitive_complexity)
-
-
 ## `disallowed-macros`
 The list of disallowed macros, written as fully qualified paths.
 

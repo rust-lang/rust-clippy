@@ -566,14 +566,6 @@ define_Conf! {
     /// Whether to also run the listed lints on private items.
     #[lints(missing_errors_doc, missing_panics_doc, missing_safety_doc, unnecessary_safety_doc)]
     check_private_items: bool = false,
-    /// The maximum cognitive complexity a function can have
-    #[lints(cognitive_complexity)]
-    cognitive_complexity_threshold: u64 = 25,
-    /// DEPRECATED LINT: CYCLOMATIC_COMPLEXITY.
-    ///
-    /// Use the Cognitive Complexity lint instead.
-    #[conf_deprecated("Please use `cognitive-complexity-threshold` instead", cognitive_complexity_threshold)]
-    cyclomatic_complexity_threshold: u64 = 25,
     /// The list of disallowed macros, written as fully qualified paths.
     ///
     /// **Fields:**

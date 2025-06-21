@@ -1,14 +1,14 @@
-error: error reading Clippy's configuration file: duplicate field `cognitive_complexity_threshold` (provided as `cyclomatic_complexity_threshold`)
+error: error reading Clippy's configuration file: duplicate field `disallowed_names` (provided as `blacklisted_names`)
   --> $DIR/tests/ui-toml/duplicated_keys_deprecated/clippy.toml:3:1
    |
-LL | cyclomatic-complexity-threshold = 3
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL | blacklisted-names = ["core::panic"]
+   | ^^^^^^^^^^^^^^^^^
 
-warning: error reading Clippy's configuration file: deprecated field `cyclomatic-complexity-threshold`. Please use `cognitive-complexity-threshold` instead
+warning: error reading Clippy's configuration file: deprecated field `blacklisted-names`. Please use `disallowed-names` instead
   --> $DIR/tests/ui-toml/duplicated_keys_deprecated/clippy.toml:3:1
    |
-LL | cyclomatic-complexity-threshold = 3
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL | blacklisted-names = ["core::panic"]
+   | ^^^^^^^^^^^^^^^^^
 
 error: aborting due to 1 previous error; 1 warning emitted
 

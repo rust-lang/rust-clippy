@@ -34,7 +34,6 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            check-incompatible-msrv-in-tests
            check-inconsistent-struct-field-initializers
            check-private-items
-           cognitive-complexity-threshold
            disallowed-macros
            disallowed-methods
            disallowed-names
@@ -128,7 +127,6 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            check-incompatible-msrv-in-tests
            check-inconsistent-struct-field-initializers
            check-private-items
-           cognitive-complexity-threshold
            disallowed-macros
            disallowed-methods
            disallowed-names
@@ -222,7 +220,6 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            check-incompatible-msrv-in-tests
            check-inconsistent-struct-field-initializers
            check-private-items
-           cognitive-complexity-threshold
            disallowed-macros
            disallowed-methods
            disallowed-names
