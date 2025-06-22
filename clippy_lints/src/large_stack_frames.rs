@@ -170,6 +170,11 @@ impl<'tcx> LateLintPass<'tcx> for LargeStackFrames {
                 FnKind::Closure => entire_fn_span,
             };
 
+            // Don't lint compiler-generated targets
+            if fn_span.is_dummy() {
+                return;
+            }
+
             span_lint_and_then(
                 cx,
                 LARGE_STACK_FRAMES,
