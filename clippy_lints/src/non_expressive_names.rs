@@ -131,9 +131,7 @@ impl SimilarNamesLocalVisitor<'_, '_> {
 // the assumption is that no name is ever contained in multiple lists.
 const ALLOWED_TO_BE_SIMILAR: &[&[&str]] = &[
     &["parsed", "parser"],
-    &["lhs", "rhs"],
     &["tx", "rx"],
-    &["set", "get"],
     &["args", "arms"],
     &["qpath", "path"],
     &["lit", "lint"],
@@ -245,6 +243,11 @@ impl SimilarNamesNameVisitor<'_, '_, '_> {
                 interned_name.chars().next().expect("len >= 1"),
                 existing_str.chars().next().expect("len >= 1"),
             ) {
+                continue;
+            }
+
+            // Skip similarity check if both names are exactly 3 characters
+            if count == 3 && existing_name.len == 3 {
                 continue;
             }
 
