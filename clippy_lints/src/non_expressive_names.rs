@@ -131,7 +131,9 @@ impl SimilarNamesLocalVisitor<'_, '_> {
 // the assumption is that no name is ever contained in multiple lists.
 const ALLOWED_TO_BE_SIMILAR: &[&[&str]] = &[
     &["parsed", "parser"],
+    &["lhs", "rhs"],
     &["tx", "rx"],
+    &["set", "get"],
     &["args", "arms"],
     &["qpath", "path"],
     &["lit", "lint"],
