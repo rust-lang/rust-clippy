@@ -172,8 +172,44 @@ LL |             println!("No comment, linted");
 LL ~         }
    |
 
+error: this `if` statement can be collapsed.
+  --> tests/ui/collapsible_if.rs:150:5
+   |
+LL | /     if a {
+LL | |         if b {
+LL | |             println!("Hello world!");
+...  |
+LL | |         println!("Hello world!");
+LL | |     }
+   | |_____^
+   |
+help: collapse else and nested if blocks
+   |
+LL ~     if !a || b {
+LL +         println!("Hello world!");
+LL +     }
+   |
+
+error: this `if` statement can be collapsed.
+  --> tests/ui/collapsible_if.rs:175:5
+   |
+LL | /     if s != "foobar" {
+LL | |         if a {
+LL | |             println!("Hello world!");
+...  |
+LL | |         println!("Hello world!");
+LL | |     }
+   | |_____^
+   |
+help: collapse else and nested if blocks
+   |
+LL ~     if s == "foobar" || a {
+LL +         println!("Hello world!");
+LL +     }
+   |
+
 error: this `if` statement can be collapsed
-  --> tests/ui/collapsible_if.rs:149:5
+  --> tests/ui/collapsible_if.rs:192:5
    |
 LL | /     if true {
 LL | |         if true {
@@ -190,5 +226,5 @@ LL |         // This is a comment, do not collapse code to it
 LL ~     ; 3
    |
 
-error: aborting due to 11 previous errors
+error: aborting due to 13 previous errors
 
