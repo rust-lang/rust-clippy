@@ -584,7 +584,12 @@ fn check_ptr_arg_usage<'tcx>(cx: &LateContext<'tcx>, body: &Body<'tcx>, args: &[
                 Some((Node::Stmt(_), _)) => (),
                 Some((Node::LetStmt(l), _)) => {
                     // Only trace simple bindings. e.g `let x = y;`
-                    if let PatKind::Binding(BindingMode::NONE, id, _, None) = l.pat.kind {
+                    if let PatKind::Binding(BindingMode::NONE, id, ident, None) = l.pat.kind
+                        // Let's not lint for the current parameter. The user may still intend to mutate
+                        // the referenced value behind the parameter through this local let binding with
+                        // the underscore being temporary.
+                        && !(ident.name.as_str().starts_with('_') && args.mutability() == Mutability::Mut)
+                    {
                         self.bindings.insert(id, args_idx);
                     } else {
                         set_skip_flag();
@@ -650,7 +655,12 @@ fn check_ptr_arg_usage<'tcx>(cx: &LateContext<'tcx>, body: &Body<'tcx>, args: &[
             .filter_map(|(i, arg)| {
                 let param = &body.params[arg.idx];
                 match param.pat.kind {
-                    PatKind::Binding(BindingMode::NONE, id, _, None) if !is_lint_allowed(cx, PTR_ARG, param.hir_id) => {
+                    PatKind::Binding(BindingMode::NONE, id, ident, None)
+                        // Let's not lint for the current parameter. The user may still intend to mutate
+                        // the referenced value behind the parameter with the underscore being temporary.
+                        if !(ident.name.as_str().starts_with('_') && arg.mutability() == Mutability::Mut
+                            || is_lint_allowed(cx, PTR_ARG, param.hir_id)) =>
+                    {
                         Some((id, i))
                     },
                     _ => {

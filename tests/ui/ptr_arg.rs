@@ -352,3 +352,91 @@ mod issue_13308 {
         h2(String::new(), v2);
     }
 }
+
+mod issue_13489 {
+    // This is a no-lint from now on.
+    fn foo(_x: &mut Vec<i32>) {
+        todo!();
+    }
+
+    // But this still gives us a lint.
+    fn foo_used(x: &mut Vec<i32>) {
+        //~^ ptr_arg
+
+        todo!();
+    }
+
+    // This is also a no-lint from now on.
+    fn foo_local(x: &mut Vec<i32>) {
+        let _y = x;
+
+        todo!();
+    }
+
+    // But this still gives us a lint.
+    fn foo_local_used(x: &mut Vec<i32>) {
+        //~^ ptr_arg
+
+        let y = x;
+
+        todo!();
+    }
+
+    // This only lints once from now on.
+    fn foofoo(_x: &mut Vec<i32>, y: &mut String) {
+        //~^ ptr_arg
+
+        todo!();
+    }
+
+    // And this is also a no-lint from now on.
+    fn foofoo_local(_x: &mut Vec<i32>, y: &mut String) {
+        let _z = y;
+
+        todo!();
+    }
+}
+
+mod issue_13728 {
+    // This is a no-lint from now on.
+    fn bar(_x: &mut Vec<u32>) {
+        todo!()
+    }
+
+    // But this still gives us a lint.
+    fn bar_used(x: &mut Vec<u32>) {
+        //~^ ptr_arg
+
+        todo!()
+    }
+
+    // This is also a no-lint from now on.
+    fn bar_local(x: &mut Vec<u32>) {
+        let _y = x;
+
+        todo!()
+    }
+
+    // But this still gives us a lint.
+    fn bar_local_used(x: &mut Vec<u32>) {
+        //~^ ptr_arg
+
+        let y = x;
+
+        todo!()
+    }
+
+    // This only lints once from now on.
+    fn barbar(_x: &mut Vec<u32>, y: &mut String) {
+        //~^ ptr_arg
+
+        todo!()
+    }
+
+    // And this is also a no-lint from now on.
+    fn barbar_local(_x: &mut Vec<u32>, y: &mut String) {
+        let _z = y;
+
+        todo!()
+    }
+}

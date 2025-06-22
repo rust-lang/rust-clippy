@@ -231,6 +231,42 @@ error: writing `&String` instead of `&str` involves a new object where a slice w
 LL |     fn good(v1: &String, v2: &String) {
    |                              ^^^^^^^ help: change this to: `&str`
 
+error: writing `&mut Vec` instead of `&mut [_]` involves a new object where a slice will do
+  --> tests/ui/ptr_arg.rs:363:20
+   |
+LL |     fn foo_used(x: &mut Vec<i32>) {
+   |                    ^^^^^^^^^^^^^ help: change this to: `&mut [i32]`
+
+error: writing `&mut Vec` instead of `&mut [_]` involves a new object where a slice will do
+  --> tests/ui/ptr_arg.rs:377:26
+   |
+LL |     fn foo_local_used(x: &mut Vec<i32>) {
+   |                          ^^^^^^^^^^^^^ help: change this to: `&mut [i32]`
+
+error: writing `&mut String` instead of `&mut str` involves a new object where a slice will do
+  --> tests/ui/ptr_arg.rs:386:37
+   |
+LL |     fn foofoo(_x: &mut Vec<i32>, y: &mut String) {
+   |                                     ^^^^^^^^^^^ help: change this to: `&mut str`
+
+error: writing `&mut Vec` instead of `&mut [_]` involves a new object where a slice will do
+  --> tests/ui/ptr_arg.rs:407:20
+   |
+LL |     fn bar_used(x: &mut Vec<u32>) {
+   |                    ^^^^^^^^^^^^^ help: change this to: `&mut [u32]`
+
+error: writing `&mut Vec` instead of `&mut [_]` involves a new object where a slice will do
+  --> tests/ui/ptr_arg.rs:421:26
+   |
+LL |     fn bar_local_used(x: &mut Vec<u32>) {
+   |                          ^^^^^^^^^^^^^ help: change this to: `&mut [u32]`
+
+error: writing `&mut String` instead of `&mut str` involves a new object where a slice will do
+  --> tests/ui/ptr_arg.rs:430:37
+   |
+LL |     fn barbar(_x: &mut Vec<u32>, y: &mut String) {
+   |                                     ^^^^^^^^^^^ help: change this to: `&mut str`
+
 error: lifetime flowing from input to output with different syntax can be confusing
   --> tests/ui/ptr_arg.rs:314:36
    |
@@ -247,5 +283,5 @@ help: one option is to consistently use `'a`
 LL |     fn cow_good_ret_ty<'a>(input: &'a Cow<'a, str>) -> &'a str {
    |                                                         ++
 
-error: aborting due to 27 previous errors
+error: aborting due to 33 previous errors
 
