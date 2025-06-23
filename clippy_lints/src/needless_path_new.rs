@@ -92,9 +92,10 @@ fn check_arguments<'tcx>(
         dbg!(bounds);
 
         for (argument, parameter) in iter::zip(arguments, parameters) {
-            if let ExprKind::Call(func, args) = argument.kind
+            // we want `argument` to be `Path::new(x)`, which has one arg, x
+            if let ExprKind::Call(func, [arg]) = argument.kind
                 && is_path_new(func)
-                && implements_asref_path(cx.typeck_results().expr_ty(&args[0]))
+                && implements_asref_path(cx.typeck_results().expr_ty(arg))
                 && implements_asref_path(*parameter)
             {
                 span_lint_and_sugg(
@@ -103,7 +104,7 @@ fn check_arguments<'tcx>(
                     argument.span,
                     "the expression enclosed in `Path::new` implements `AsRef<Path>`",
                     "remove the enclosing `Path::new`",
-                    format!("{}", snippet(cx, args[0].span, "..")),
+                    format!("{}", snippet(cx, arg.span, "..")),
                     Applicability::MachineApplicable,
                 );
             }
