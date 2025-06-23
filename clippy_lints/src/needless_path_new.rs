@@ -85,8 +85,11 @@ fn check_arguments<'tcx>(
 
     let implements_asref_path = |arg| implements_trait(cx, arg, asref_def_id, &[path_ty.into()]);
 
-    if let ty::FnDef(def_id, ..) = type_definition.kind() {
-        let parameters = dbg!(type_definition.fn_sig(tcx)).skip_binder().inputs();
+    if let ty::FnDef(def_id, ..) = type_definition.kind()
+        // if there are any bound vars, just give up... we might be able to be smarter here
+        && let Some(fn_sig) = type_definition.fn_sig(tcx).no_bound_vars()
+    {
+        let parameters = fn_sig.inputs();
 
         let bounds = tcx.param_env(def_id).caller_bounds();
         dbg!(bounds);
