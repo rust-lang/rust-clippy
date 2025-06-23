@@ -107,6 +107,9 @@ fn check_arguments<'tcx>(
                 let inputs_and_output = fn_sig.inputs().iter().copied().chain([fn_sig.output()]);
                 inputs_and_output.filter(|i| i.contains(*g)).count() < 2
             })
+            // don't want to mess with the output type, since that probably has some additional
+            // restrictions imposed from the outside, which we don't want to bother checking
+            .filter(|g| !fn_sig.output().contains(*g))
             .collect();
         dbg!(&generic_args_we_can_change);
 
