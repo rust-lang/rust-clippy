@@ -88,7 +88,7 @@ fn check_arguments<'tcx>(
 
     let implements_asref_path = |arg| implements_trait(cx, arg, asref_def_id, &[path_ty.into()]);
 
-    if let ty::FnDef(def_id, ..) = type_definition.kind()
+    if let ty::FnDef(def_id, generic_args) = type_definition.kind()
         // if there are any bound vars, just give up... we might be able to be smarter here
         && let Some(fn_sig) = type_definition.fn_sig(tcx).no_bound_vars()
     {
@@ -96,6 +96,23 @@ fn check_arguments<'tcx>(
 
         let bounds = tcx.param_env(def_id).caller_bounds();
         dbg!(bounds);
+        let generic_args_we_can_change: Vec<_> = generic_args
+            .iter()
+            .filter_map(|g| g.as_type())
+            // if a generic is used in multiple places, we should better not touch it,
+            // since we'd need to suggest changing both parameters that using it at once,
+            // which might not be possible
+            .filter(|g| {
+                let inputs_and_output = fn_sig.inputs().iter().copied().chain([fn_sig.output()]);
+                inputs_and_output.filter(|i| i.contains(*g)).count() < 2
+            })
+            .collect();
+        dbg!(&generic_args_we_can_change);
+
+        if generic_args_we_can_change.is_empty() {
+            // can't change anything
+            return;
+        }
 
         for (argument, parameter) in iter::zip(arguments, parameters) {
             // we want `argument` to be `Path::new(x)`, which has one arg, x
