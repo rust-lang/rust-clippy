@@ -26,7 +26,7 @@ LL |       let c = A {
    |  _____________^
 LL | |         a: a.a,
 LL | |         b: a.b,
-LL | |         c: a.c,
+LL | |         c: 4,
 LL | |         d: 5,
 LL | |     };
    | |_____^
@@ -34,6 +34,7 @@ LL | |     };
 help: consider using struct update syntax instead
    |
 LL ~     let c = A {
+LL +         c: 4,
 LL +         d: 5,
 LL +         ..a
 LL ~     };
@@ -45,18 +46,16 @@ error: you seem to be updating a struct field with the same field from another s
 LL |       let d = A {
    |  _____________^
 LL | |         a: a.a,
-LL | |         b: 5,
-LL | |         c: 6,
-LL | |         d: 7,
+LL | |         b: a.b,
+LL | |         c: a.c,
+LL | |         d: 5,
 LL | |     };
    | |_____^
    |
 help: consider using struct update syntax instead
    |
 LL ~     let d = A {
-LL +         b: 5,
-LL +         c: 6,
-LL +         d: 7,
+LL +         d: 5,
 LL +         ..a
 LL ~     };
    |

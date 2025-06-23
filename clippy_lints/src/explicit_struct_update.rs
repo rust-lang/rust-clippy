@@ -7,7 +7,7 @@ use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for struct initializations where a field is being set to the value of the same field from another struct of the same type.
+    /// Checks for struct initializations where two or more fields are being set to the value of the same field from another struct of the same type.
     /// ### Why is this bad?
     /// This can be done more concisely using struct update syntax.
     /// ### Example
@@ -107,7 +107,7 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitStructUpdate {
 
         let (update_base, update_fields): (_, Vec<_>) = match update_fields {
             // we only care about the field expressions at this point
-            Some(fields) if !fields.is_empty() => (fields[0].1, fields.iter().map(|x| x.0.hir_id).collect()),
+            Some(fields) if fields.len() > 1 => (fields[0].1, fields.iter().map(|x| x.0.hir_id).collect()),
             // no lint if there's no fields or multiple bases
             _ => return,
         };
