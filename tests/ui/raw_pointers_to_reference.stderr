@@ -1,0 +1,29 @@
+error: creating a raw pointer of reference
+  --> tests/ui/raw_pointers_to_reference.rs:6:17
+   |
+LL |     (&raw const s).addr()
+   |                 ^ help: dereference the before creating the raw pointer: `*s`
+   |
+   = note: `-D clippy::raw-pointers-to-reference` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::raw_pointers_to_reference)]`
+
+error: creating a raw pointer of reference
+  --> tests/ui/raw_pointers_to_reference.rs:9:17
+   |
+LL |     (&raw const s).addr()
+   |                 ^ help: dereference the before creating the raw pointer: `**s`
+
+error: creating a raw pointer of reference
+  --> tests/ui/raw_pointers_to_reference.rs:12:17
+   |
+LL |     (&raw const s).addr()
+   |                 ^ help: dereference the before creating the raw pointer: `*s`
+
+error: creating a raw pointer of reference
+  --> tests/ui/raw_pointers_to_reference.rs:15:17
+   |
+LL |     (&raw const *s).addr()
+   |                 ^^ help: dereference the before creating the raw pointer: `**s`
+
+error: aborting due to 4 previous errors
+

@@ -633,6 +633,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::ranges::RANGE_MINUS_ONE_INFO,
     crate::ranges::RANGE_PLUS_ONE_INFO,
     crate::ranges::REVERSED_EMPTY_RANGES_INFO,
+    crate::raw_pointers_to_reference::RAW_POINTERS_TO_REFERENCE_INFO,
     crate::raw_strings::NEEDLESS_RAW_STRINGS_INFO,
     crate::raw_strings::NEEDLESS_RAW_STRING_HASHES_INFO,
     crate::rc_clone_in_vec_init::RC_CLONE_IN_VEC_INIT_INFO,
