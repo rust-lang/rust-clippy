@@ -94,8 +94,9 @@ fn check_arguments<'tcx>(
     {
         let parameters = fn_sig.inputs();
 
-        let bounds = tcx.param_env(def_id).caller_bounds();
-        dbg!(bounds);
+        let _bounds = tcx.param_env(def_id).caller_bounds();
+        // dbg!(bounds);
+
         let generic_args_we_can_change: Vec<_> = generic_args
             .iter()
             .filter_map(|g| g.as_type())
