@@ -75,10 +75,13 @@ fn check_arguments<'tcx>(
         }
     };
 
-    let Some(path_def_id) = tcx.get_diagnostic_item(sym::Path) else {
-        return;
+    let path_ty = {
+        let Some(path_def_id) = tcx.get_diagnostic_item(sym::Path) else {
+            return;
+        };
+        Ty::new_adt(tcx, tcx.adt_def(path_def_id), List::empty())
     };
-    let path_ty = Ty::new_adt(tcx, tcx.adt_def(path_def_id), List::empty());
+
     let Some(asref_def_id) = tcx.get_diagnostic_item(sym::AsRef) else {
         return;
     };
