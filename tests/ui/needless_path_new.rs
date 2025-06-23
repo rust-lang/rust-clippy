@@ -10,6 +10,7 @@ fn takes_impl_path(_: impl AsRef<Path>) {}
 fn takes_path_and_impl_path(_: &Path, _: impl AsRef<Path>) {}
 
 fn takes_two_impl_paths_with_the_same_generic<P: AsRef<Path>>(_: P, _: P) {}
+fn takes_two_impl_paths_with_different_generics<P: AsRef<Path>>(_: P, _: P) {}
 
 struct Foo;
 
@@ -37,8 +38,8 @@ fn main() {
         Path::new("bar"), //~ needless_path_new
     );
 
-    // we can and should change both at the same time
-    takes_two_impl_paths_with_the_same_generic(
+    // we can and should change both independently
+    takes_two_impl_paths_with_different_generics(
         Path::new("foo"), //~ needless_path_new
         Path::new("bar"), //~ needless_path_new
     );
@@ -58,8 +59,7 @@ fn main() {
     Foo::takes_path_and_impl_path(Path::new("foo"), "bar");
     f.takes_self_and_path_and_impl_path(Path::new("foo"), "bar");
 
-    fn foo() -> Option<&'static Path> {
-        // Some(...) is `ExprKind::Call`, but we don't consider it
-        Some(Path::new("foo.txt"))
-    }
+    // we are conservative and don't suggest changing a parameter
+    // if it contains a generic type used elsewhere in the function
+    takes_two_impl_paths_with_the_same_generic(Path::new("foo"), Path::new("bar"));
 }
