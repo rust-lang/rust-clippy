@@ -111,7 +111,7 @@ fn lint_message_convention() {
         "\n\n\nLint message should not start with a capital letter and should not have punctuation at the end of the message unless multiple sentences are needed."
     );
     eprintln!("Check out the rustc-dev-guide for more information:");
-    eprintln!("https://rustc-dev-guide.rust-lang.org/diagnostics.html#diagnostic-structure\n\n\n");
+    eprintln!("https://rustc-dev-guide.rust-lang.org/diagnostics.html#diagnostic-output-style-guide\n\n\n");
 
     assert!(bad_tests.is_empty());
 }
