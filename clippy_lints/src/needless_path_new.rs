@@ -5,7 +5,7 @@ use clippy_utils::ty::implements_trait;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::{List, Ty};
+use rustc_middle::ty::{self, List, Ty};
 use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 use std::iter;
@@ -85,14 +85,16 @@ fn check_arguments<'tcx>(
 
     let implements_asref_path = |arg| implements_trait(cx, arg, asref_def_id, &[path_ty.into()]);
 
-    if type_definition.is_fn() {
-        let parameters = type_definition.fn_sig(tcx).skip_binder().inputs();
+    if let ty::FnDef(def_id, ..) = type_definition.kind() {
+        let parameters = dbg!(type_definition.fn_sig(tcx)).skip_binder().inputs();
         for (argument, parameter) in iter::zip(arguments, parameters) {
             if let ExprKind::Call(func, args) = argument.kind
                 && is_path_new(func)
                 && implements_asref_path(cx.typeck_results().expr_ty(&args[0]))
                 && implements_asref_path(*parameter)
             {
+                let bounds = tcx.param_env(def_id).caller_bounds();
+                dbg!(bounds);
                 span_lint_and_sugg(
                     cx,
                     NEEDLESS_PATH_NEW,
