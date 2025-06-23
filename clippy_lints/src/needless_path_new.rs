@@ -87,14 +87,16 @@ fn check_arguments<'tcx>(
 
     if let ty::FnDef(def_id, ..) = type_definition.kind() {
         let parameters = dbg!(type_definition.fn_sig(tcx)).skip_binder().inputs();
+
+        let bounds = tcx.param_env(def_id).caller_bounds();
+        dbg!(bounds);
+
         for (argument, parameter) in iter::zip(arguments, parameters) {
             if let ExprKind::Call(func, args) = argument.kind
                 && is_path_new(func)
                 && implements_asref_path(cx.typeck_results().expr_ty(&args[0]))
                 && implements_asref_path(*parameter)
             {
-                let bounds = tcx.param_env(def_id).caller_bounds();
-                dbg!(bounds);
                 span_lint_and_sugg(
                     cx,
                     NEEDLESS_PATH_NEW,
