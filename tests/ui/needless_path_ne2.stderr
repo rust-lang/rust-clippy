@@ -1,0 +1,11 @@
+error: the expression enclosed in `Path::new` implements `AsRef<Path>`
+  --> tests/ui/needless_path_new_some.rs:14:14
+   |
+LL |         Some(Path::new("bar.txt"))
+   |              ^^^^^^^^^^^^^^^^^^^^ help: remove the enclosing `Path::new`: `"bar.txt"`
+   |
+   = note: `-D clippy::needless-path-new` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::needless_path_new)]`
+
+error: aborting due to 1 previous error
+
