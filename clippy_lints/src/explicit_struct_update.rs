@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::{snippet, snippet_indent};
 use rustc_errors::Applicability;
 use rustc_hir::{self as hir, ExprKind, StructTailExpr};
@@ -58,17 +58,8 @@ declare_lint_pass!(ExplicitStructUpdate => [EXPLICIT_STRUCT_UPDATE]);
 
 impl<'tcx> LateLintPass<'tcx> for ExplicitStructUpdate {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>) {
-        let (path, fields) = match expr.kind {
-            ExprKind::Struct(path, fields, tail) => {
-                match tail {
-                    StructTailExpr::None => (path, fields),
-                    _ => {
-                        // if there is a tail expression, we don't want to lint
-                        return;
-                    },
-                }
-            },
-            _ => return,
+        let ExprKind::Struct(path, fields, StructTailExpr::None) = expr.kind else {
+            return;
         };
 
         // the type of the struct
@@ -76,15 +67,11 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitStructUpdate {
 
         // collect the fields that are being initialized with the same field from another struct of the same
         // type
-        let update_fields: Option<Vec<(&rustc_hir::Expr<'_>, &rustc_hir::Expr<'_>)>> =
-            fields.iter().fold(Some(Vec::new()), |mut acc, f| {
-                let v = match acc {
-                    Some(ref mut v) => v,
-                    None => return None,
-                };
-
+        let update_fields = fields.iter().try_fold(
+            Vec::new(),
+            |mut acc: Vec<(&rustc_hir::Expr<'_>, &rustc_hir::Expr<'_>)>, f| {
                 if let ExprKind::Field(base_expr, field_ident) = f.expr.kind {
-                    if let Some(last) = v.last() {
+                    if let Some(last) = acc.last() {
                         match (last.1.kind, base_expr.kind) {
                             (
                                 ExprKind::Path(hir::QPath::Resolved(_, hir::Path { res: res_a, .. })),
@@ -98,12 +85,13 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitStructUpdate {
                     if cx.typeck_results().expr_ty(base_expr) == ty && f.ident == field_ident {
                         // accumulate the expressions mapping to the actual field expression, and the expression of the
                         // base struct, we do this so we can determine if the base struct is the same for all
-                        v.push((f.expr, base_expr));
+                        acc.push((f.expr, base_expr));
                     }
                 }
 
-                acc
-            });
+                Some(acc)
+            },
+        );
 
         let (update_base, update_fields): (_, Vec<_>) = match update_fields {
             // we only care about the field expressions at this point
@@ -116,10 +104,10 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitStructUpdate {
         let non_update_fields_spans: Vec<_> = fields
             .iter()
             .filter_map(|f| {
-                if !update_fields.contains(&f.expr.hir_id) {
-                    Some(f.span)
-                } else {
+                if update_fields.contains(&f.expr.hir_id) {
                     None
+                } else {
+                    Some(f.span)
                 }
             })
             .collect();
@@ -141,13 +129,14 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitStructUpdate {
 
         let msg = "you seem to be updating a struct field with the same field from another struct of the same type";
 
-        span_lint_and_then(cx, EXPLICIT_STRUCT_UPDATE, expr.span, msg, |diag| {
-            diag.span_suggestion(
-                expr.span,
-                "consider using struct update syntax instead",
-                sugg,
-                Applicability::MachineApplicable,
-            );
-        });
+        span_lint_and_sugg(
+            cx,
+            EXPLICIT_STRUCT_UPDATE,
+            expr.span,
+            msg,
+            "consider using struct update syntax instead",
+            sugg,
+            Applicability::MachineApplicable,
+        );
     }
 }
