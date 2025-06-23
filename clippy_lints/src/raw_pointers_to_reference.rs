@@ -44,7 +44,16 @@ impl LateLintPass<'_> for RawPointersToReference {
             && let inner_ty = cx.typeck_results().expr_ty(inner)
             && inner_ty.is_ref()
         {
-            let (_, ref_count) = peel_middle_ty_refs(inner_ty);
+            let (peeled_ty, mut ref_count) = peel_middle_ty_refs(inner_ty);
+            if !peeled_ty.is_sized(cx.tcx, cx.typing_env()) {
+                // If the type is unsized, taking the address of the reference is more useful, as this allows
+                // casting back to the original type.
+                ref_count = ref_count.saturating_sub(1);
+            }
+            // If there are no references left, don't lint
+            if ref_count == 0 {
+                return;
+            }
             span_lint_and_sugg(
                 cx,
                 RAW_POINTERS_TO_REFERENCE,

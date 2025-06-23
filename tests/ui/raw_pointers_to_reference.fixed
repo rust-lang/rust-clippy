@@ -17,5 +17,14 @@ fn single_deref(s: &mut &S) -> usize {
 fn deref(s: &S) -> usize {
     (&raw const *s).addr()
 }
+fn r#unsized(s: &str) -> usize {
+    (&raw const s).addr()
+}
+fn double_unsized(s: &&str) -> usize {
+    (&raw const *s).addr() //~ raw_pointers_to_reference
+}
+fn double_unsized_deref(s: &&str) -> usize {
+    (&raw const *s).addr()
+}
 
 fn main() {}
