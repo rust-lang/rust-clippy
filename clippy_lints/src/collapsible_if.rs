@@ -221,10 +221,6 @@ impl CollapsibleIf {
             },
             r#else: Some(else_expr),
         }) = If::hir(if_expr)
-            // && let Some(Expr {
-            //     kind: ExprKind::If(inner_cond, inner_then, ..),
-            //     ..
-            // }) = expr_block(then_block)
             && let Some(inner_if_expr) = expr_block(then_block)
             && let Expr {
                 kind: ExprKind::If(inner_cond, inner_then, ..),
@@ -233,6 +229,8 @@ impl CollapsibleIf {
             && !block_starts_with_significant_tokens(cx, then_block, inner_if_expr, self.lint_commented_code)
             && SpanlessEq::new(cx).eq_expr(inner_then, else_expr)
         {
+            let mut app = Applicability::MachineApplicable;
+
             let first_cond_sugg = match cond.kind {
                 ExprKind::Binary(bin_op, lhs, rhs) => {
                     let new_bin_op = if let BinOpKind::Ne = bin_op.node {
@@ -243,36 +241,31 @@ impl CollapsibleIf {
 
                     make_binop(
                         new_bin_op,
-                        &Sugg::hir_with_applicability(cx, lhs, "..", &mut Applicability::HasPlaceholders),
-                        &Sugg::hir_with_applicability(cx, rhs, "..", &mut Applicability::HasPlaceholders),
+                        &Sugg::hir_with_applicability(cx, lhs, "_", &mut app),
+                        &Sugg::hir_with_applicability(cx, rhs, "_", &mut app),
                     )
                 },
-                ExprKind::Unary(UnOp::Not, expr) => {
-                    Sugg::hir_with_applicability(cx, expr, "..", &mut Applicability::HasPlaceholders)
-                },
-                ExprKind::Path(_) => make_unop(
-                    "!",
-                    Sugg::hir_with_applicability(cx, cond, "..", &mut Applicability::HasPlaceholders),
-                ),
-                _ => Sugg::hir_with_applicability(cx, cond, "..", &mut Applicability::Unspecified),
+                ExprKind::Unary(UnOp::Not, expr) => Sugg::hir_with_applicability(cx, expr, "_", &mut app),
+                ExprKind::Path(_) => make_unop("!", Sugg::hir_with_applicability(cx, cond, "_", &mut app)),
+                _ => Sugg::hir_with_applicability(cx, cond, "_", &mut app),
             };
 
             span_lint_and_sugg(
                 cx,
                 COLLAPSIBLE_IF,
                 if_expr.span,
-                "this `if` statement can be collapsed.",
+                "this `if` statement can be collapsed",
                 "collapse else and nested if blocks",
                 format!(
                     "if {} {}",
                     make_binop(
                         BinOpKind::Or,
                         &first_cond_sugg,
-                        &Sugg::hir_with_applicability(cx, inner_cond, "..", &mut Applicability::HasPlaceholders)
+                        &Sugg::hir_with_applicability(cx, inner_cond, "_", &mut app)
                     ),
-                    Sugg::hir_with_applicability(cx, else_expr, "..", &mut Applicability::HasPlaceholders)
+                    Sugg::hir_with_applicability(cx, else_expr, "_", &mut app)
                 ),
-                Applicability::MachineApplicable,
+                app,
             );
         }
     }
@@ -289,7 +282,6 @@ impl LateLintPass<'_> for CollapsibleIf {
                 && let ExprKind::Block(else_, None) = else_.kind
             {
                 self.check_collapsible_else_if(cx, then.span, else_);
-
                 self.check_collapsible_if_nested_if_else(cx, expr);
             } else if else_.is_none()
                 && self.eligible_condition(cx, cond)

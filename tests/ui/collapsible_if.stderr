@@ -172,7 +172,7 @@ LL |             println!("No comment, linted");
 LL ~         }
    |
 
-error: this `if` statement can be collapsed.
+error: this `if` statement can be collapsed
   --> tests/ui/collapsible_if.rs:150:5
    |
 LL | /     if a {
@@ -190,7 +190,7 @@ LL +         println!("Hello world!");
 LL +     }
    |
 
-error: this `if` statement can be collapsed.
+error: this `if` statement can be collapsed
   --> tests/ui/collapsible_if.rs:175:5
    |
 LL | /     if s != "foobar" {
