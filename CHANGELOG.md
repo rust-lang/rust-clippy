@@ -5786,6 +5786,7 @@ Released 2018-09-13
 [`explicit_deref_methods`]: https://rust-lang.github.io/rust-clippy/master/index.html#explicit_deref_methods
 [`explicit_into_iter_loop`]: https://rust-lang.github.io/rust-clippy/master/index.html#explicit_into_iter_loop
 [`explicit_iter_loop`]: https://rust-lang.github.io/rust-clippy/master/index.html#explicit_iter_loop
+[`explicit_struct_update`]: https://rust-lang.github.io/rust-clippy/master/index.html#explicit_struct_update
 [`explicit_write`]: https://rust-lang.github.io/rust-clippy/master/index.html#explicit_write
 [`extend_from_slice`]: https://rust-lang.github.io/rust-clippy/master/index.html#extend_from_slice
 [`extend_with_drain`]: https://rust-lang.github.io/rust-clippy/master/index.html#extend_with_drain
