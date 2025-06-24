@@ -32,7 +32,7 @@ pub(super) fn check<'tcx>(
             Mutability::Mut => "from_mut",
         };
 
-        let mut app = Applicability::MachineApplicable;
+        let mut app = Applicability::MaybeIncorrect;
         let turbofish = match &cast_to_hir_ty.kind {
             TyKind::Infer(()) => String::new(),
             TyKind::Ptr(mut_ty) => {

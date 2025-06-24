@@ -38,7 +38,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, msrv: Msrv) {
         && to_pointee_ty.is_sized(cx.tcx, cx.typing_env())
         && msrv.meets(cx, msrvs::POINTER_CAST)
     {
-        let mut app = Applicability::MachineApplicable;
+        let mut app = Applicability::MaybeIncorrect;
         let turbofish = match &cast_to_hir_ty.kind {
             TyKind::Infer(()) => String::new(),
             TyKind::Ptr(mut_ty) => {
