@@ -4,6 +4,7 @@ use clippy_utils::source::snippet_with_applicability;
 use rustc_errors::Applicability;
 use rustc_hir::{Arm, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_span::Span;
 use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
@@ -73,7 +74,7 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuard {
             span_lint_and_sugg(
                 cx,
                 DUPLICATE_MATCH_GUARD,
-                trailing_expr.span,
+                remove_block_curlies(trailing_expr.span),
                 "condition duplicates match guard",
                 "remove the condition",
                 sugg.to_string(),
@@ -81,4 +82,9 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuard {
             );
         }
     }
+}
+
+/// remove the curlies from a span describing a block
+fn remove_block_curlies(span: Span) -> Span {
+    span
 }
