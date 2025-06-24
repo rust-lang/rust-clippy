@@ -68,5 +68,23 @@ LL +                 return;
 LL +             }
    |
 
-error: aborting due to 4 previous errors
+error: condition duplicates match guard
+  --> tests/ui/duplicate_match_guard.rs:38:22
+   |
+LL |           0 if true => if true {
+   |  ______________________^
+LL | |
+LL | |                 return;
+LL | |         },
+   | |_________^
+   |
+help: remove the condition
+   |
+LL ~         0 if true => {
+LL +
+LL +                 return;
+LL ~         },
+   |
+
+error: aborting due to 5 previous errors
 
