@@ -53,11 +53,24 @@ declare_lint_pass!(DuplicateMatchGuard => [DUPLICATE_MATCH_GUARD]);
 
 impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuard {
     fn check_arm(&mut self, cx: &LateContext<'tcx>, arm: &'tcx Arm<'tcx>) {
-        if let Some(guard) = arm.guard
-            && let ExprKind::Block(block, _) = arm.body.kind
-            && block.stmts.is_empty()
-            && let Some(trailing_expr) = block.expr
-            && let ExprKind::If(cond, then, None) = trailing_expr.kind
+        let Some(guard) = arm.guard else {
+            return;
+        };
+
+        let (arm_body_expr, body_has_block) = if let ExprKind::Block(block, _) = arm.body.kind {
+            if block.stmts.is_empty()
+                && let Some(trailing_expr) = block.expr
+            {
+                (trailing_expr, true)
+            } else {
+                // the body contains something other than the `if` clause -- bail out
+                return;
+            }
+        } else {
+            (arm.body, false)
+        };
+
+        if let ExprKind::If(cond, then, None) = arm_body_expr.kind
             && eq_expr_value(cx, guard, cond.peel_drop_temps())
         {
             let ExprKind::Block(then, _) = then.kind else {
@@ -71,15 +84,49 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuard {
 
             let sugg = snippet_with_applicability(cx, then.span, "..", &mut applicability);
 
-            span_lint_and_sugg(
-                cx,
-                DUPLICATE_MATCH_GUARD,
-                remove_block_curlies(trailing_expr.span),
-                "condition duplicates match guard",
-                "remove the condition",
-                sugg.to_string(),
-                applicability,
-            );
+            if body_has_block {
+                // the common case:
+                // ```
+                // match 0u32 {
+                //     0 if true => {
+                //         if true {
+                //             return;
+                //         }
+                //     }
+                // }
+                // ```
+                //
+                // suggest removing the `if` _and_ the curlies of the inner brace,
+                // since the arm body already has braces
+                span_lint_and_sugg(
+                    cx,
+                    DUPLICATE_MATCH_GUARD,
+                    remove_block_curlies(arm_body_expr.span),
+                    "condition duplicates match guard",
+                    "remove the condition",
+                    sugg.to_string(),
+                    applicability,
+                );
+            } else {
+                // the uncommon case (rusfmt would add the braces here automatically)
+                // ```
+                // match 0u32 {
+                //     0 if true => if true { return; }
+                // }
+                // ```
+                //
+                // suggest removing the `if` but _not_ the curlies of the inner brace,
+                // since there are no outer braces coming from the arm body
+                span_lint_and_sugg(
+                    cx,
+                    DUPLICATE_MATCH_GUARD,
+                    arm_body_expr.span,
+                    "condition duplicates match guard",
+                    "remove the condition",
+                    sugg.to_string(),
+                    applicability,
+                );
+            }
         }
     }
 }

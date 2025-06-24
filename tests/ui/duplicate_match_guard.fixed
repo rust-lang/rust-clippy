@@ -33,6 +33,12 @@ fn main() {
                 return;
             }
         },
+        // no curlies around arm body
+        #[rustfmt::skip] // would add the outer curlies
+        0 if true => {
+                //~^ duplicate_match_guard
+                return;
+        },
 
         // no warnings
         0 if true => {
