@@ -3,6 +3,7 @@ use clippy_utils::path_res;
 use clippy_utils::source::snippet;
 use clippy_utils::ty::implements_trait;
 use rustc_errors::Applicability;
+use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, List, Ty};
@@ -39,59 +40,51 @@ declare_lint_pass!(NeedlessPathNew => [NEEDLESS_PATH_NEW]);
 
 impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) {
-        match e.kind {
-            ExprKind::Call(fn_expr, args) => {
-                check_arguments(cx, &mut args.iter(), cx.typeck_results().expr_ty(fn_expr));
-            },
-            ExprKind::MethodCall(_, _, arguments, _)
-                if let Some(def_id) = cx.typeck_results().type_dependent_def_id(e.hir_id) =>
+        let tcx = cx.tcx;
+
+        let (fn_did, args) = match e.kind {
+            ExprKind::Call(callee, args)
+                if let Res::Def(DefKind::Fn | DefKind::AssocFn, did) = path_res(cx, callee) =>
             {
-                let args = cx.typeck_results().node_args(e.hir_id);
-                let method_type = cx.tcx.type_of(def_id).instantiate(cx.tcx, args);
-                check_arguments(cx, &mut arguments.iter(), method_type);
+                (did, args)
             },
-            _ => (),
-        }
-    }
-}
+            ExprKind::MethodCall(_, _, args, _)
+                if let Some(did) = cx.typeck_results().type_dependent_def_id(e.hir_id) =>
+            {
+                (did, args)
+            },
+            _ => return,
+        };
 
-fn check_arguments<'tcx>(
-    cx: &LateContext<'tcx>,
-    arguments: &mut dyn Iterator<Item = &'tcx Expr<'tcx>>,
-    type_definition: Ty<'tcx>,
-) {
-    let tcx = cx.tcx;
-    // whether `func` is `Path::new`
-    let is_path_new = |func: &Expr<'_>| {
-        if let ExprKind::Path(ref qpath) = func.kind
-            && let QPath::TypeRelative(ty, path) = qpath
-            && let Some(did) = path_res(cx, *ty).opt_def_id()
-            && tcx.is_diagnostic_item(sym::Path, did)
-            && path.ident.name == sym::new
-        {
-            true
-        } else {
-            false
-        }
-    };
+        let sig = tcx.fn_sig(fn_did).skip_binder().skip_binder();
 
-    let path_ty = {
-        let Some(path_def_id) = tcx.get_diagnostic_item(sym::Path) else {
+        // whether `func` is `Path::new`
+        let is_path_new = |func: &Expr<'_>| {
+            if let ExprKind::Path(ref qpath) = func.kind
+                && let QPath::TypeRelative(ty, path) = qpath
+                && let Some(did) = path_res(cx, *ty).opt_def_id()
+                && tcx.is_diagnostic_item(sym::Path, did)
+                && path.ident.name == sym::new
+            {
+                true
+            } else {
+                false
+            }
+        };
+
+        let path_ty = {
+            let Some(path_def_id) = tcx.get_diagnostic_item(sym::Path) else {
+                return;
+            };
+            Ty::new_adt(tcx, tcx.adt_def(path_def_id), List::empty())
+        };
+
+        let Some(asref_def_id) = tcx.get_diagnostic_item(sym::AsRef) else {
             return;
         };
-        Ty::new_adt(tcx, tcx.adt_def(path_def_id), List::empty())
-    };
 
-    let Some(asref_def_id) = tcx.get_diagnostic_item(sym::AsRef) else {
-        return;
-    };
+        let implements_asref_path = |arg| implements_trait(cx, arg, asref_def_id, &[path_ty.into()]);
 
-    let implements_asref_path = |arg| implements_trait(cx, arg, asref_def_id, &[path_ty.into()]);
-
-    if let ty::FnDef(def_id, generic_args) = type_definition.kind()
-        // if there are any bound vars, just give up... we might be able to be smarter here
-        && let Some(sig) = type_definition.sig(tcx).no_bound_vars()
-    {
         let parameters = sig.inputs();
 
         let _bounds = tcx.param_env(def_id).caller_bounds();
