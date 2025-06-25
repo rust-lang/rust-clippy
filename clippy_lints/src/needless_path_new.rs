@@ -90,9 +90,9 @@ fn check_arguments<'tcx>(
 
     if let ty::FnDef(def_id, generic_args) = type_definition.kind()
         // if there are any bound vars, just give up... we might be able to be smarter here
-        && let Some(fn_sig) = type_definition.fn_sig(tcx).no_bound_vars()
+        && let Some(sig) = type_definition.sig(tcx).no_bound_vars()
     {
-        let parameters = fn_sig.inputs();
+        let parameters = sig.inputs();
 
         let _bounds = tcx.param_env(def_id).caller_bounds();
         // dbg!(bounds);
@@ -104,12 +104,12 @@ fn check_arguments<'tcx>(
             // since we'd need to suggest changing both parameters that using it at once,
             // which might not be possible
             .filter(|g| {
-                let inputs_and_output = fn_sig.inputs().iter().copied().chain([fn_sig.output()]);
+                let inputs_and_output = sig.inputs().iter().copied().chain([sig.output()]);
                 inputs_and_output.filter(|i| i.contains(*g)).count() < 2
             })
             // don't want to mess with the output type, since that probably has some additional
             // restrictions imposed from the outside, which we don't want to bother checking
-            .filter(|g| !fn_sig.output().contains(*g))
+            .filter(|g| !sig.output().contains(*g))
             .collect();
         dbg!(&generic_args_we_can_change);
 
