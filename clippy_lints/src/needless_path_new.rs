@@ -43,12 +43,12 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew {
             ExprKind::Call(fn_expr, args) => {
                 check_arguments(cx, &mut args.iter(), cx.typeck_results().expr_ty(fn_expr));
             },
-            ExprKind::MethodCall(_, receiver, arguments, _)
+            ExprKind::MethodCall(_, _, arguments, _)
                 if let Some(def_id) = cx.typeck_results().type_dependent_def_id(e.hir_id) =>
             {
                 let args = cx.typeck_results().node_args(e.hir_id);
                 let method_type = cx.tcx.type_of(def_id).instantiate(cx.tcx, args);
-                check_arguments(cx, &mut iter::once(receiver).chain(arguments.iter()), method_type);
+                check_arguments(cx, &mut arguments.iter(), method_type);
             },
             _ => (),
         }
