@@ -96,10 +96,7 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew {
             // if a generic is used in multiple places, we should better not touch it,
             // since we'd need to suggest changing both parameters that using it at once,
             // which might not be possible
-            .filter(|g| {
-                let inputs_and_output = sig.inputs().iter().copied().chain([sig.output()]);
-                inputs_and_output.filter(|i| i.contains(*g)).count() < 2
-            })
+            .filter(|g| sig.inputs_and_output.into_iter().filter(|i| i.contains(*g)).count() < 2)
             // don't want to mess with the output type, since that probably has some additional
             // restrictions imposed from the outside, which we don't want to bother checking
             .filter(|g| !sig.output().contains(*g))
