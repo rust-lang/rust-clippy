@@ -8,6 +8,8 @@ on:
 jobs:
   auto-comment:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
 
     steps:
     - name: Check PR Changes
