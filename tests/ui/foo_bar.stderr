@@ -1,0 +1,8 @@
+error: hi
+  --> tests/ui/foo_bar.rs:5:5
+   |
+LL |     compile_error!("hi");
+   |     ^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 1 previous error
+
