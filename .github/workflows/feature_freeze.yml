@@ -9,7 +9,7 @@ jobs:
   auto-comment:
     runs-on: ubuntu-latest
     permissions:
-      issues: write
+      pull-requests: write
 
     steps:
     - name: Check PR Changes
