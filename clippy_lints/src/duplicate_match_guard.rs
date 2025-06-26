@@ -1,10 +1,11 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::eq_expr_value;
 use clippy_utils::source::snippet_with_applicability;
 use rustc_errors::Applicability;
 use rustc_hir::{Arm, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
+use rustc_span::Span;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -97,14 +98,18 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuard {
                 //
                 // suggest removing the `if` _and_ the curlies of the inner brace,
                 // since the arm body already has braces
-                span_lint_and_sugg(
+                span_lint_and_then(
                     cx,
                     DUPLICATE_MATCH_GUARD,
                     arm_body_expr.span,
                     "condition duplicates match guard",
-                    "remove the condition",
-                    sugg.to_string(),
-                    applicability,
+                    |diag| {
+                        diag.multipart_suggestion_verbose(
+                            "remove the condition",
+                            vec![(remove_block_curlies(arm_body_expr.span), sugg.to_string())],
+                            applicability,
+                        );
+                    },
                 );
             } else {
                 // the uncommon case (rusfmt would add the braces here automatically)
