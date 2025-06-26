@@ -58,6 +58,11 @@ declare_lint_pass!(ExplicitStructUpdate => [EXPLICIT_STRUCT_UPDATE]);
 
 impl<'tcx> LateLintPass<'tcx> for ExplicitStructUpdate {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>) {
+        if hir::is_range_literal(expr) {
+            // range literals are lowered to structs, false positive
+            return;
+        }
+
         let ExprKind::Struct(path, fields, StructTailExpr::None) = expr.kind else {
             return;
         };
