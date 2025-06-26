@@ -586,9 +586,10 @@ fn check_ptr_arg_usage<'tcx>(cx: &LateContext<'tcx>, body: &Body<'tcx>, args: &[
                     // Only trace simple bindings. e.g `let x = y;`
                     if let PatKind::Binding(BindingMode::NONE, id, ident, None) = l.pat.kind
                         // Let's not lint for the current parameter. The user may still intend to mutate
-                        // the referenced value behind the parameter through this local let binding with
-                        // the underscore being temporary.
-                        && !(ident.name.as_str().starts_with('_') && args.mutability() == Mutability::Mut)
+                        // (or, if not mutate, then perhaps call a method that's not otherwise available
+                        // for) the referenced value behind the parameter through this local let binding
+                        // with the underscore being only temporary.
+                        && !ident.name.as_str().starts_with('_')
                     {
                         self.bindings.insert(id, args_idx);
                     } else {
@@ -656,10 +657,12 @@ fn check_ptr_arg_usage<'tcx>(cx: &LateContext<'tcx>, body: &Body<'tcx>, args: &[
                 let param = &body.params[arg.idx];
                 match param.pat.kind {
                     PatKind::Binding(BindingMode::NONE, id, ident, None)
+                        if !is_lint_allowed(cx, PTR_ARG, param.hir_id)
                         // Let's not lint for the current parameter. The user may still intend to mutate
-                        // the referenced value behind the parameter with the underscore being temporary.
-                        if !(ident.name.as_str().starts_with('_') && arg.mutability() == Mutability::Mut
-                            || is_lint_allowed(cx, PTR_ARG, param.hir_id)) =>
+                        // (or, if not mutate, then perhaps call a method that's not otherwise available
+                        // for) the referenced value behind the parameter with the underscore being only
+                        // temporary.
+                        && !ident.name.as_str().starts_with('_') =>
                     {
                         Some((id, i))
                     },
