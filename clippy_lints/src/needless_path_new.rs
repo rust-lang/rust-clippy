@@ -100,27 +100,6 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew<'tcx> {
 
         let parameters = sig.inputs();
 
-        let _bounds = tcx.param_env(def_id).caller_bounds();
-        // dbg!(bounds);
-
-        let generic_args_we_can_change: Vec<_> = generic_args
-            .iter()
-            .filter_map(|g| g.as_type())
-            // if a generic is used in multiple places, we should better not touch it,
-            // since we'd need to suggest changing both parameters that using it at once,
-            // which might not be possible
-            .filter(|g| sig.inputs_and_output.into_iter().filter(|i| i.contains(*g)).count() < 2)
-            // don't want to mess with the output type, since that probably has some additional
-            // restrictions imposed from the outside, which we don't want to bother checking
-            .filter(|g| !sig.output().contains(*g))
-            .collect();
-        dbg!(&generic_args_we_can_change);
-
-        if generic_args_we_can_change.is_empty() {
-            // can't change anything
-            return;
-        }
-
         for (argument, parameter) in iter::zip(arguments, parameters) {
             // we want `argument` to be `Path::new(x)`, which has one arg, x
             if let ExprKind::Call(func, [arg]) = argument.kind
