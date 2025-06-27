@@ -1,0 +1,47 @@
+error: this closure might return a dangling pointer
+  --> tests/ui/as_ptr_in_map.rs:5:45
+   |
+LL |     let _v1_ptr: Result<_, ()> = v1_res.map(|v1| v1.as_ptr());
+   |                                             ^^^^^^^^^^^^^^^^
+   |
+note: this bindings is used to create a raw pointer that might be dangling
+  --> tests/ui/as_ptr_in_map.rs:5:46
+   |
+LL |     let _v1_ptr: Result<_, ()> = v1_res.map(|v1| v1.as_ptr());
+   |                                              ^^
+   = note: `-D clippy::as-ptr-in-map` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::as_ptr_in_map)]`
+
+error: this closure might return a dangling pointer
+  --> tests/ui/as_ptr_in_map.rs:16:30
+   |
+LL |       let _v3_ptr = v3_opt.map(|(v3, x)| {
+   |  ______________________________^
+LL | |
+LL | |         let _a = x + 2;
+LL | |         let p = v3.as_ptr();
+LL | |         let _b = 6;
+LL | |         p
+LL | |     });
+   | |_____^
+   |
+note: this bindings is used to create a raw pointer that might be dangling
+  --> tests/ui/as_ptr_in_map.rs:16:32
+   |
+LL |     let _v3_ptr = v3_opt.map(|(v3, x)| {
+   |                                ^^
+
+error: this closure might return a dangling pointer
+  --> tests/ui/as_ptr_in_map.rs:29:30
+   |
+LL |     let _v5_ptr = v5_opt.map(|v5| std::vec::Vec::as_ptr(&v5));
+   |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: this bindings is used to create a raw pointer that might be dangling
+  --> tests/ui/as_ptr_in_map.rs:29:31
+   |
+LL |     let _v5_ptr = v5_opt.map(|v5| std::vec::Vec::as_ptr(&v5));
+   |                               ^^
+
+error: aborting due to 3 previous errors
+

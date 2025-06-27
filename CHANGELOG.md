@@ -5620,6 +5620,7 @@ Released 2018-09-13
 [`as_conversions`]: https://rust-lang.github.io/rust-clippy/master/index.html#as_conversions
 [`as_pointer_underscore`]: https://rust-lang.github.io/rust-clippy/master/index.html#as_pointer_underscore
 [`as_ptr_cast_mut`]: https://rust-lang.github.io/rust-clippy/master/index.html#as_ptr_cast_mut
+[`as_ptr_in_map`]: https://rust-lang.github.io/rust-clippy/master/index.html#as_ptr_in_map
 [`as_underscore`]: https://rust-lang.github.io/rust-clippy/master/index.html#as_underscore
 [`assertions_on_constants`]: https://rust-lang.github.io/rust-clippy/master/index.html#assertions_on_constants
 [`assertions_on_result_states`]: https://rust-lang.github.io/rust-clippy/master/index.html#assertions_on_result_states

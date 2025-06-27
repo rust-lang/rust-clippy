@@ -76,6 +76,7 @@ mod approx_const;
 mod arbitrary_source_item_ordering;
 mod arc_with_non_send_sync;
 mod as_conversions;
+mod as_ptr_in_map;
 mod asm_syntax;
 mod assertions_on_constants;
 mod assertions_on_result_states;
@@ -830,5 +831,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(cloned_ref_to_slice_refs::ClonedRefToSliceRefs::new(conf)));
     store.register_late_pass(|_| Box::new(infallible_try_from::InfallibleTryFrom));
     store.register_late_pass(|_| Box::new(coerce_container_to_any::CoerceContainerToAny));
+    store.register_late_pass(|_| Box::new(as_ptr_in_map::AsPtrInMap));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
