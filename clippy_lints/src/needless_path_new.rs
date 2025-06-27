@@ -99,25 +99,30 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew<'tcx> {
 
         let implements_asref_path = |arg| implements_trait(cx, arg, asref_def_id, &[path_ty.into()]);
 
-        let parameters = sig.inputs();
-
-        for (argument, parameter) in iter::zip(arguments, parameters) {
-            // we want `argument` to be `Path::new(x)`, which has one arg, x
-            if let ExprKind::Call(func, [arg]) = argument.kind
-                && is_path_new(func)
-                && implements_asref_path(cx.typeck_results().expr_ty(arg))
-                && implements_asref_path(*parameter)
-            {
-                span_lint_and_sugg(
-                    cx,
-                    NEEDLESS_PATH_NEW,
-                    argument.span,
-                    "the expression enclosed in `Path::new` implements `AsRef<Path>`",
-                    "remove the enclosing `Path::new`",
-                    format!("{}", snippet(cx, arg.span, "..")),
-                    Applicability::MachineApplicable,
-                );
-            }
-        }
+        // as far as I understand, `ExprKind::MethodCall` doesn't include the receiver in `args`,
+        // but does in `sig.inputs()` -- so we iterate over both in `rev`erse in order to line
+        // them up starting from the _end_
+        //
+        // and for `ExprKind::Call` this is basically a no-op
+        iter::zip(sig.inputs().iter().rev(), args.iter().rev())
+            .enumerate()
+            .for_each(|(i, (arg_ty, arg))| {
+                // we want `argument` to be `Path::new(x)`
+                if let ExprKind::Call(path_new, [x]) = arg.kind
+                    && is_path_new(path_new)
+                    && implements_asref_path(cx.typeck_results().expr_ty(x))
+                    && implements_asref_path(*arg_ty)
+                {
+                    span_lint_and_sugg(
+                        cx,
+                        NEEDLESS_PATH_NEW,
+                        arg.span,
+                        "the expression enclosed in `Path::new` implements `AsRef<Path>`",
+                        "remove the enclosing `Path::new`",
+                        format!("{}", snippet(cx, x.span, "..")),
+                        Applicability::MachineApplicable,
+                    );
+                }
+            })
     }
 }
