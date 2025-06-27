@@ -3,7 +3,7 @@ use clippy_utils::path_res;
 use clippy_utils::source::snippet;
 use clippy_utils::ty::implements_trait;
 use rustc_errors::Applicability;
-use rustc_hir::def::{DefKind, Res};
+use rustc_hir::def::{CtorKind, DefKind, Res};
 use rustc_hir::def_id::DefId;
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
@@ -68,7 +68,8 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew<'tcx> {
 
         let (fn_did, args) = match e.kind {
             ExprKind::Call(callee, args)
-                if let Res::Def(DefKind::Fn | DefKind::AssocFn, did) = path_res(cx, callee) =>
+                if let Res::Def(DefKind::Fn | DefKind::AssocFn | DefKind::Ctor(_, CtorKind::Fn), did) =
+                    path_res(cx, callee) =>
             {
                 (did, args)
             },
