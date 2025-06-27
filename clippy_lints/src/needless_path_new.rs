@@ -4,10 +4,11 @@ use clippy_utils::source::snippet;
 use clippy_utils::ty::implements_trait;
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
+use rustc_hir::def_id::DefId;
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::{self, List, Ty};
-use rustc_session::declare_lint_pass;
+use rustc_middle::ty::{List, Ty, TyCtxt};
+use rustc_session::impl_lint_pass;
 use rustc_span::sym;
 use std::iter;
 
@@ -36,11 +37,34 @@ declare_clippy_lint! {
     being enclosed in `Path::new` when the argument implements the trait"
 }
 
-declare_lint_pass!(NeedlessPathNew => [NEEDLESS_PATH_NEW]);
+impl_lint_pass!(NeedlessPathNew<'_> => [NEEDLESS_PATH_NEW]);
 
-impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew {
+pub struct NeedlessPathNew<'tcx> {
+    path_ty: Option<Ty<'tcx>>,
+    asref_def_id: Option<DefId>,
+}
+
+impl<'tcx> NeedlessPathNew<'tcx> {
+    pub fn new(tcx: TyCtxt<'tcx>) -> Self {
+        Self {
+            path_ty: (tcx.get_diagnostic_item(sym::Path))
+                .map(|path_def_id| Ty::new_adt(tcx, tcx.adt_def(path_def_id), List::empty())),
+            asref_def_id: tcx.get_diagnostic_item(sym::AsRef),
+        }
+    }
+}
+
+impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew<'tcx> {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) {
         let tcx = cx.tcx;
+
+        let Some(path_ty) = self.path_ty else {
+            return;
+        };
+
+        let Some(asref_def_id) = self.asref_def_id else {
+            return;
+        };
 
         let (fn_did, args) = match e.kind {
             ExprKind::Call(callee, args)
@@ -70,17 +94,6 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew {
             } else {
                 false
             }
-        };
-
-        let path_ty = {
-            let Some(path_def_id) = tcx.get_diagnostic_item(sym::Path) else {
-                return;
-            };
-            Ty::new_adt(tcx, tcx.adt_def(path_def_id), List::empty())
-        };
-
-        let Some(asref_def_id) = tcx.get_diagnostic_item(sym::AsRef) else {
-            return;
         };
 
         let implements_asref_path = |arg| implements_trait(cx, arg, asref_def_id, &[path_ty.into()]);
