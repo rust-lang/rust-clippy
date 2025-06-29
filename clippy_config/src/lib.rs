@@ -22,8 +22,10 @@ extern crate rustc_session;
 extern crate rustc_span;
 
 mod conf;
+pub mod lint_config;
 mod metadata;
 pub mod types;
 
 pub use conf::{Conf, get_configuration_metadata, lookup_conf_file, sanitize_explanation};
+pub use lint_config::MergedLintConfig;
 pub use metadata::ClippyConfiguration;

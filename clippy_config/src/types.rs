@@ -698,3 +698,215 @@ pub enum PubUnderscoreFieldsBehaviour {
     PubliclyExported,
     AllPubFields,
 }
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct LintConfigTable {
+    pub level: String,
+    pub priority: Option<i64>,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(untagged)]
+pub enum LintConfig {
+    Level(String),
+    Table(LintConfigTable),
+}
+
+impl LintConfig {
+    pub fn level(&self) -> &str {
+        match self {
+            LintConfig::Level(level) => level,
+            LintConfig::Table(table) => &table.level,
+        }
+    }
+
+    pub fn priority(&self) -> i64 {
+        match self {
+            LintConfig::Level(_) => 0,
+            LintConfig::Table(table) => table.priority.unwrap_or(0),
+        }
+    }
+
+    pub fn is_implicit(&self) -> bool {
+        if let LintConfig::Table(table) = self {
+            table.priority.is_none()
+        } else {
+            true
+        }
+    }
+}
+
+pub type LintTable = std::collections::BTreeMap<toml::Spanned<String>, toml::Spanned<LintConfig>>;
+
+#[derive(Deserialize, Debug, Default)]
+pub struct Lints {
+    #[serde(default)]
+    pub rust: LintTable,
+    #[serde(default)]
+    pub clippy: LintTable,
+}
+
+#[derive(Deserialize, Debug, Default)]
+pub struct CargoWorkspace {
+    #[serde(default)]
+    pub lints: Lints,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct CargoToml {
+    #[serde(default)]
+    pub lints: Lints,
+    #[serde(default)]
+    pub workspace: CargoWorkspace,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_lint_config_level() {
+        let level_config = LintConfig::Level("warn".to_string());
+        assert_eq!(level_config.level(), "warn");
+        assert_eq!(level_config.priority(), 0);
+        assert!(level_config.is_implicit());
+
+        let table_config = LintConfig::Table(LintConfigTable {
+            level: "deny".to_string(),
+            priority: Some(5),
+        });
+        assert_eq!(table_config.level(), "deny");
+        assert_eq!(table_config.priority(), 5);
+        assert!(!table_config.is_implicit());
+
+        let table_config_no_priority = LintConfig::Table(LintConfigTable {
+            level: "forbid".to_string(),
+            priority: None,
+        });
+        assert_eq!(table_config_no_priority.level(), "forbid");
+        assert_eq!(table_config_no_priority.priority(), 0);
+        assert!(table_config_no_priority.is_implicit());
+    }
+
+    #[test]
+    fn test_lint_config_table_serialization() {
+        let table = LintConfigTable {
+            level: "warn".to_string(),
+            priority: Some(10),
+        };
+
+        // Test that it can be serialized to TOML
+        let toml_str = toml::to_string(&table).unwrap();
+        assert!(toml_str.contains("level = \"warn\""));
+        assert!(toml_str.contains("priority = 10"));
+    }
+
+    #[test]
+    fn test_lint_config_deserialization() {
+        // Test simple level string within a lint table
+        let simple_toml = r#"
+test_lint = "allow"
+"#;
+        let table: std::collections::BTreeMap<toml::Spanned<String>, toml::Spanned<LintConfig>> =
+            toml::from_str(simple_toml).unwrap();
+        let config = table["test_lint"].get_ref();
+        assert_eq!(config.level(), "allow");
+        assert_eq!(config.priority(), 0);
+
+        // Test table format
+        let table_toml = r#"
+test_lint = { level = "deny", priority = 5 }
+"#;
+        let table: std::collections::BTreeMap<toml::Spanned<String>, toml::Spanned<LintConfig>> =
+            toml::from_str(table_toml).unwrap();
+        let config = table["test_lint"].get_ref();
+        assert_eq!(config.level(), "deny");
+        assert_eq!(config.priority(), 5);
+
+        // Test table format without priority
+        let table_no_priority_toml = r#"
+test_lint = { level = "warn" }
+"#;
+        let table: std::collections::BTreeMap<toml::Spanned<String>, toml::Spanned<LintConfig>> =
+            toml::from_str(table_no_priority_toml).unwrap();
+        let config = table["test_lint"].get_ref();
+        assert_eq!(config.level(), "warn");
+        assert_eq!(config.priority(), 0);
+    }
+
+    #[test]
+    fn test_lints_deserialization() {
+        let lints_toml = r#"
+[rust]
+dead_code = "allow"
+unused_variables = { level = "warn", priority = 5 }
+
+[clippy]
+needless_return = "deny"
+single_match = { level = "forbid", priority = 10 }
+"#;
+
+        let lints: Lints = toml::from_str(lints_toml).unwrap();
+
+        // Check rust lints
+        assert_eq!(lints.rust.len(), 2);
+        assert_eq!(lints.rust["dead_code"].get_ref().level(), "allow");
+        assert_eq!(lints.rust["unused_variables"].get_ref().level(), "warn");
+        assert_eq!(lints.rust["unused_variables"].get_ref().priority(), 5);
+
+        // Check clippy lints
+        assert_eq!(lints.clippy.len(), 2);
+        assert_eq!(lints.clippy["needless_return"].get_ref().level(), "deny");
+        assert_eq!(lints.clippy["single_match"].get_ref().level(), "forbid");
+        assert_eq!(lints.clippy["single_match"].get_ref().priority(), 10);
+    }
+
+    #[test]
+    fn test_cargo_toml_deserialization() {
+        let cargo_toml = r#"
+[package]
+name = "test"
+version = "0.1.0"
+
+[lints.rust]
+dead_code = "allow"
+
+[lints.clippy]
+needless_return = { level = "warn", priority = 5 }
+
+[workspace.lints.rust]
+unused_variables = "deny"
+
+[workspace.lints.clippy]
+single_match = "forbid"
+"#;
+
+        let cargo: CargoToml = toml::from_str(cargo_toml).unwrap();
+
+        // Check regular lints
+        assert_eq!(cargo.lints.rust.len(), 1);
+        assert_eq!(cargo.lints.clippy.len(), 1);
+        assert_eq!(cargo.lints.rust["dead_code"].get_ref().level(), "allow");
+        assert_eq!(cargo.lints.clippy["needless_return"].get_ref().level(), "warn");
+        assert_eq!(cargo.lints.clippy["needless_return"].get_ref().priority(), 5);
+
+        // Check workspace lints
+        assert_eq!(cargo.workspace.lints.rust.len(), 1);
+        assert_eq!(cargo.workspace.lints.clippy.len(), 1);
+        assert_eq!(cargo.workspace.lints.rust["unused_variables"].get_ref().level(), "deny");
+        assert_eq!(cargo.workspace.lints.clippy["single_match"].get_ref().level(), "forbid");
+    }
+
+    #[test]
+    fn test_empty_lints() {
+        let empty_toml = "";
+        let lints: Lints = toml::from_str(empty_toml).unwrap();
+        assert_eq!(lints.rust.len(), 0);
+        assert_eq!(lints.clippy.len(), 0);
+
+        let empty_sections_toml = "[rust]\n[clippy]";
+        let lints: Lints = toml::from_str(empty_sections_toml).unwrap();
+        assert_eq!(lints.rust.len(), 0);
+        assert_eq!(lints.clippy.len(), 0);
+    }
+}
