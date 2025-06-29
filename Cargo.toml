@@ -45,14 +45,6 @@ itertools = "0.12"
 pulldown-cmark = { version = "0.11", default-features = false, features = ["html"] }
 askama = { version = "0.14", default-features = false, features = ["alloc", "config", "derive"] }
 
-# UI test dependencies
-if_chain = "1.0"
-quote = "1.0.25"
-syn = { version = "2.0", features = ["full"] }
-futures = "0.3"
-parking_lot = "0.12"
-tokio = { version = "1", features = ["io-util"] }
-
 [build-dependencies]
 rustc_tools_util = { path = "rustc_tools_util", version = "0.4.2" }
 
