@@ -82,3 +82,15 @@ impl H {
 }
 
 fn main() {}
+
+mod issue15120 {
+    #[derive(serde::Deserialize)]
+    struct Foo;
+
+    impl Foo {
+        fn foo(&self) {
+            // Do not lint if `unsafe` comes from the `core::pin::pin!()` macro
+            std::pin::pin!(());
+        }
+    }
+}
