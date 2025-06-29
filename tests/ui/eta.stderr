@@ -214,5 +214,23 @@ error: redundant closure
 LL |         let _field = bind.or_else(|| get_default()).unwrap();
    |                                   ^^^^^^^^^^^^^^^^ help: replace the closure with the function itself: `get_default`
 
-error: aborting due to 35 previous errors
+error: redundant closure
+  --> tests/ui/eta.rs:589:16
+   |
+LL |     accepts_fn(|| f());
+   |                ^^^^^^ help: replace the closure with the function itself: `**f`
+
+error: redundant closure
+  --> tests/ui/eta.rs:593:16
+   |
+LL |     accepts_fn(|| g());
+   |                ^^^^^^ help: replace the closure with the function itself: `g`
+
+error: redundant closure
+  --> tests/ui/eta.rs:606:16
+   |
+LL |     accepts_fn(|| b());
+   |                ^^^^^^ help: replace the closure with the function itself: `***b`
+
+error: aborting due to 38 previous errors
 
