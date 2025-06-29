@@ -88,28 +88,36 @@ declare_clippy_lint! {
 }
 
 pub struct StdReexports {
-    lint_point: (Span, Option<LintPoint>),
+    lint_point: Option<(Span, Option<LintPoint>)>,
     msrv: Msrv,
 }
 
 impl StdReexports {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
-            lint_point: Default::default(),
+            lint_point: Option::default(),
             msrv: conf.msrv,
         }
     }
 
-    fn lint_if_finish(&mut self, cx: &LateContext<'_>, (span, item): (Span, Option<LintPoint>)) {
-        if span.source_equal(self.lint_point.0) {
-            return;
+    fn lint_if_in_new_item(&mut self, cx: &LateContext<'_>, (span, item): (Span, Option<LintPoint>)) {
+        if let Some((prev_span, prev_item)) = self.lint_point {
+            if !prev_span.overlaps(span) {
+                emit_lints(cx, &(prev_span, prev_item));
+            } else if prev_item.is_none() {
+                return;
+            }
         }
 
-        if !self.lint_point.0.is_dummy() {
-            emit_lints(cx, &self.lint_point);
+        self.lint_point = Some((span, item));
+    }
+
+    fn lint_if_block_finish(&mut self, cx: &LateContext<'_>) {
+        if let Some((span, item)) = self.lint_point.take() {
+            emit_lints(cx, &(span, item));
         }
 
-        self.lint_point = (span, item);
+        self.lint_point = None;
     }
 }
 
@@ -130,7 +138,7 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
                     sym::core => (STD_INSTEAD_OF_CORE, "std", "core"),
                     sym::alloc => (STD_INSTEAD_OF_ALLOC, "std", "alloc"),
                     _ => {
-                        self.lint_if_finish(cx, (first_segment.ident.span, None));
+                        self.lint_if_in_new_item(cx, (first_segment.ident.span, None));
                         return;
                     },
                 },
@@ -138,27 +146,27 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
                     if cx.tcx.crate_name(def_id.krate) == sym::core {
                         (ALLOC_INSTEAD_OF_CORE, "alloc", "core")
                     } else {
-                        self.lint_if_finish(cx, (first_segment.ident.span, None));
+                        self.lint_if_in_new_item(cx, (first_segment.ident.span, None));
                         return;
                     }
                 },
                 _ => return,
             };
 
-            self.lint_if_finish(cx, (first_segment.ident.span, Some((lint, used_mod, replace_with))));
+            self.lint_if_in_new_item(cx, (first_segment.ident.span, Some((lint, used_mod, replace_with))));
         }
     }
 
     fn check_block_post(&mut self, cx: &LateContext<'tcx>, _: &Block<'tcx>) {
-        self.lint_if_finish(cx, Default::default());
+        self.lint_if_block_finish(cx);
     }
 
     fn check_body_post(&mut self, cx: &LateContext<'tcx>, _: &Body<'tcx>) {
-        self.lint_if_finish(cx, Default::default());
+        self.lint_if_block_finish(cx);
     }
 
     fn check_crate_post(&mut self, cx: &LateContext<'tcx>) {
-        self.lint_if_finish(cx, Default::default());
+        self.lint_if_block_finish(cx);
     }
 }
 
