@@ -5,7 +5,7 @@ on:
     types:
       - opened
     branches:
-      - master
+      - feature-freeze-test
     paths:
       - 'clippy_lints/src/declared_lints.rs'
 
