@@ -12,9 +12,9 @@ LL | |             }
 help: remove the condition
    |
 LL ~             
-LL |
-LL |                 return;
-LL ~             
+LL +
+LL +                 return;
+LL +             
    |
 
 error: condition duplicates match guard
@@ -29,9 +29,9 @@ LL | |             }
 help: remove the condition
    |
 LL ~             
-LL |
-LL |                 return;
-LL ~             
+LL +
+LL +                 return;
+LL +             
    |
 
 error: condition duplicates match guard
@@ -46,9 +46,9 @@ LL | |             }
 help: remove the condition
    |
 LL ~             
-LL |
-LL |                 return;
-LL ~             
+LL +
+LL +                 return;
+LL +             
    |
 
 error: condition duplicates match guard
@@ -63,9 +63,9 @@ LL | |             }
 help: remove the condition
    |
 LL ~             
-LL |
-LL |                 return;
-LL ~             
+LL +
+LL +                 return;
+LL +             
    |
 
 error: condition duplicates match guard
@@ -81,10 +81,10 @@ LL | |             */}
 help: remove the condition
    |
 LL ~
-LL | /*before*/
-LL |                 return;
-LL |                 /* after
-LL ~             */
+LL + /*before*/
+LL +                 return;
+LL +                 /* after
+LL +             */
    |
 
 error: condition duplicates match guard
