@@ -1,5 +1,5 @@
 error: condition duplicates match guard
-  --> tests/ui/duplicate_match_guard.rs:11:13
+  --> tests/ui/duplicate_match_guards.rs:11:13
    |
 LL | /             if true {
 LL | |
@@ -7,8 +7,8 @@ LL | |                 return;
 LL | |             }
    | |_____________^
    |
-   = note: `-D clippy::duplicate-match-guard` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::duplicate_match_guard)]`
+   = note: `-D clippy::duplicate-match-guards` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::duplicate_match_guards)]`
 help: remove the condition
    |
 LL ~             {
@@ -18,7 +18,7 @@ LL +             }
    |
 
 error: condition duplicates match guard
-  --> tests/ui/duplicate_match_guard.rs:17:13
+  --> tests/ui/duplicate_match_guards.rs:17:13
    |
 LL | /             if a > b {
 LL | |
@@ -35,7 +35,7 @@ LL +             }
    |
 
 error: condition duplicates match guard
-  --> tests/ui/duplicate_match_guard.rs:24:13
+  --> tests/ui/duplicate_match_guards.rs:24:13
    |
 LL | /             if b < a {
 LL | |
@@ -52,7 +52,7 @@ LL +             }
    |
 
 error: condition duplicates match guard
-  --> tests/ui/duplicate_match_guard.rs:31:13
+  --> tests/ui/duplicate_match_guards.rs:31:13
    |
 LL | /             if a > 0 && b > 0 {
 LL | |
@@ -69,7 +69,7 @@ LL +             }
    |
 
 error: condition duplicates match guard
-  --> tests/ui/duplicate_match_guard.rs:38:22
+  --> tests/ui/duplicate_match_guards.rs:38:22
    |
 LL |           0 if true => if true {
    |  ______________________^
