@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::{HasSession, snippet_with_applicability};
+use clippy_utils::source::{HasSession, indent_of, reindent_multiline, snippet_with_applicability};
 use clippy_utils::{eq_expr_value, span_contains_comment};
 use rustc_errors::Applicability;
 use rustc_hir::{Arm, ExprKind};
@@ -121,13 +121,33 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuards {
 
             let sugg = snippet_with_applicability(cx, sugg_span, "..", &mut applicability);
 
+            // we want to bring `then_without_curlies` to the level of indentation that
+            // `arm_body_expr` used to be at
+            //
+            // <pat> if <guard> => {
+            //     if <cond> {
+            //         then
+            //         without
+            //         curlies
+            //     }
+            // }
+            //
+            // <pat> if <guard> => {
+            //     then
+            //     without
+            //     curlies
+            // }
+            //
+            let indent = indent_of(cx, arm_body_expr.span);
+            let sugg = reindent_multiline(&sugg, false, indent);
+
             span_lint_and_sugg(
                 cx,
                 DUPLICATE_MATCH_GUARDS,
                 arm_body_expr.span,
                 "condition duplicates match guard",
                 "remove the condition",
-                sugg.to_string(),
+                sugg,
                 applicability,
             );
         }
