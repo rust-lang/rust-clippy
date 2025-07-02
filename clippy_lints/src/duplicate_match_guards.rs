@@ -1,11 +1,11 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
-use clippy_utils::eq_expr_value;
-use clippy_utils::source::snippet_with_applicability;
+use clippy_utils::source::{HasSession, snippet_with_applicability};
+use clippy_utils::{eq_expr_value, span_contains_comment};
 use rustc_errors::Applicability;
 use rustc_hir::{Arm, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
-use rustc_span::Span;
+use rustc_span::{BytePos, Span};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -73,7 +73,7 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuards {
         if let ExprKind::If(cond, then, None) = arm_body_expr.kind
             && eq_expr_value(cx, guard, cond.peel_drop_temps())
         {
-            let ExprKind::Block(then, _) = then.kind else {
+            let ExprKind::Block(then_without_curlies, _) = then.kind else {
                 unreachable!("the `then` expr in `ExprKind::If` is always `ExprKind::Block`")
             };
 
@@ -82,7 +82,7 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuards {
             // with the one in the body
             let mut applicability = Applicability::MaybeIncorrect;
 
-            let sugg = snippet_with_applicability(cx, then.span, "..", &mut applicability);
+            let sugg = snippet_with_applicability(cx, then_without_curlies.span, "..", &mut applicability);
 
             if body_has_block {
                 // the common case:
@@ -98,6 +98,19 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuards {
                 //
                 // suggest removing the `if` _and_ the curlies of the inner brace,
                 // since the arm body already has braces
+
+                // make sure that we won't swallow any comments. be extra conservative and bail out on _any_ comment
+                // outside of `then`:
+                //
+                // <pat> if <guard> => { if <cond> <then> }
+                // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^      ^^
+                let sm = cx.sess().source_map();
+                if span_contains_comment(sm, arm.span.with_hi(then.span.lo()))
+                    || span_contains_comment(sm, arm.span.with_lo(then.span.hi()))
+                {
+                    return;
+                }
+
                 span_lint_and_then(
                     cx,
                     DUPLICATE_MATCH_GUARDS,
@@ -106,7 +119,14 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuards {
                     |diag| {
                         diag.multipart_suggestion_verbose(
                             "remove the condition",
-                            vec![(remove_block_curlies(arm_body_expr.span), sugg.to_string())],
+                            vec![
+                                // <pat> if <guard> => { if <cond> { <then_without_curlies> } }
+                                //                       ^^^^^^^^^^^
+                                (arm_body_expr.span.with_hi(then.span.lo() + BytePos(1)), String::new()),
+                                // <pat> if <guard> => { if <cond> { <then_without_curlies> } }
+                                //                                                          ^^
+                                (arm_body_expr.span.with_lo(then.span.hi() - BytePos(1)), String::new()),
+                            ],
                             applicability,
                         );
                     },

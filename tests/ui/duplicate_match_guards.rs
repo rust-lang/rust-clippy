@@ -33,6 +33,16 @@ fn main() {
                 return;
             }
         },
+        // comments inside the inner block are preserved
+        // (for comments _outside_ the inner block, see below)
+        #[rustfmt::skip]
+        0 if a > b => {
+            if a > b {//~ duplicate_match_guards
+/*before*/
+                return;
+                /* after
+            */}
+        },
         // no curlies around arm body
         #[rustfmt::skip] // would add the outer curlies
         0 if true => if true {
@@ -66,6 +76,52 @@ fn main() {
                 return;
             }
         },
+        // comments (putting them right next to the tested element to check for off-by-one errors):
+        // - before arrow
+        #[rustfmt::skip]
+        0 if a > b/* comment */=> {
+            if a > b {
+                return;
+            }
+        },
+        // - before outer opening curly
+        #[rustfmt::skip]
+        0 if a > b =>/* comment */{
+            if a > b {
+                return;
+            }
+        },
+        // - before `if`
+        #[rustfmt::skip]
+        0 if a > b => {/*
+          comment
+          */if a > b {
+                return;
+            }
+        },
+        // - before condition
+        #[rustfmt::skip]
+        0 if a > b => {
+            if/*
+            comment */a > b {
+                return;
+            }
+        },
+        #[rustfmt::skip]
+        // - before inner opening curly
+        0 if a > b => {
+            if a > b/*
+            comment */{
+                return;
+            }
+        },
+        #[rustfmt::skip]
+        // - before closing outer curly
+        0 if a > b => {
+            if a > b {
+                return;
+            }/* comment
+        */},
         _ => todo!(),
     };
 }
