@@ -8,47 +8,39 @@ fn main() {
 
     match 0u32 {
         0 if true => {
-            
-                //~^ duplicate_match_guards
-                return;
-            
+            //~^ duplicate_match_guards
+            return;
         },
         0 if a > b => {
-            
-                //~^ duplicate_match_guards
-                return;
-            
+            //~^ duplicate_match_guards
+            return;
         },
         // not _identical_, but the meaning is the same
         0 if a > b => {
-            
-                //~^ duplicate_match_guards
-                return;
-            
+            //~^ duplicate_match_guards
+            return;
         },
         // a bit more complicated
         0 if a > 0 && b > 0 => {
-            
-                //~^ duplicate_match_guards
-                return;
-            
+            //~^ duplicate_match_guards
+            return;
         },
         // comments inside the inner block are preserved
         // (for comments _outside_ the inner block, see below)
         #[rustfmt::skip]
         0 if a > b => {
             //~ duplicate_match_guards
-/*before*/
-                return;
-                /* after
-            */
+        /*before*/
+                        return;
+                        /* after
+                    */
         },
         // no curlies around arm body
         #[rustfmt::skip] // would add the outer curlies
         0 if true => {
-                //~^ duplicate_match_guards
-                return;
-        },
+            //~^ duplicate_match_guards
+            return;
+    },
 
         // no warnings
         0 if true => {
