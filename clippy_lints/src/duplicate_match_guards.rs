@@ -1,5 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::{HasSession, indent_of, reindent_multiline, snippet_with_applicability, trim_span};
+use clippy_utils::source::{
+    HasSession, SpanRangeExt, indent_of, reindent_multiline, snippet_with_applicability, trim_span,
+};
 use clippy_utils::{eq_expr_value, span_contains_comment};
 use rustc_errors::Applicability;
 use rustc_hir::{Arm, ExprKind};
@@ -103,6 +105,16 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuards {
                 // ```
                 //
                 // the arm body already has curlies, so we can remove the ones around `then`
+
+                if !then
+                    .span
+                    .check_source_text(cx, |s| s.starts_with('{') && s.ends_with('}'))
+                {
+                    // despite being a block, `then` somehow does not start and end with curlies
+                    // weird, but okay
+                    return;
+                }
+
                 then.span
                     .with_lo(then.span.lo() + BytePos(1))
                     .with_hi(then.span.hi() - BytePos(1))
