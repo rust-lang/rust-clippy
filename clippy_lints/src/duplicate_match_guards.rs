@@ -45,13 +45,13 @@ declare_clippy_lint! {
     /// }
     /// ```
     #[clippy::version = "1.89.0"]
-    pub DUPLICATE_MATCH_GUARD,
+    pub DUPLICATE_MATCH_GUARDS,
     nursery,
     "a condition in match body duplicating the match guard"
 }
-declare_lint_pass!(DuplicateMatchGuard => [DUPLICATE_MATCH_GUARD]);
+declare_lint_pass!(DuplicateMatchGuards => [DUPLICATE_MATCH_GUARDS]);
 
-impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuard {
+impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuards {
     fn check_arm(&mut self, cx: &LateContext<'tcx>, arm: &'tcx Arm<'tcx>) {
         let Some(guard) = arm.guard else {
             return;
@@ -100,7 +100,7 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuard {
                 // since the arm body already has braces
                 span_lint_and_then(
                     cx,
-                    DUPLICATE_MATCH_GUARD,
+                    DUPLICATE_MATCH_GUARDS,
                     arm_body_expr.span,
                     "condition duplicates match guard",
                     |diag| {
@@ -123,7 +123,7 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuard {
                 // since there are no outer braces coming from the arm body
                 span_lint_and_sugg(
                     cx,
-                    DUPLICATE_MATCH_GUARD,
+                    DUPLICATE_MATCH_GUARDS,
                     arm_body_expr.span,
                     "condition duplicates match guard",
                     "remove the condition",

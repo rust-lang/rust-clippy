@@ -121,7 +121,7 @@ mod disallowed_types;
 mod doc;
 mod double_parens;
 mod drop_forget_ref;
-mod duplicate_match_guard;
+mod duplicate_match_guards;
 mod duplicate_mod;
 mod else_if_without_else;
 mod empty_drop;
@@ -831,6 +831,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(cloned_ref_to_slice_refs::ClonedRefToSliceRefs::new(conf)));
     store.register_late_pass(|_| Box::new(infallible_try_from::InfallibleTryFrom));
     store.register_late_pass(|_| Box::new(coerce_container_to_any::CoerceContainerToAny));
-    store.register_late_pass(|_| Box::new(duplicate_match_guard::DuplicateMatchGuard));
+    store.register_late_pass(|_| Box::new(duplicate_match_guards::DuplicateMatchGuards));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
