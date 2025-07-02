@@ -11,10 +11,8 @@ LL | |             }
    = help: to override `-D warnings` add `#[allow(clippy::duplicate_match_guards)]`
 help: remove the condition
    |
-LL ~             
-LL +
-LL +                 return;
-LL +             
+LL ~
+LL +             return;
    |
 
 error: condition duplicates match guard
@@ -28,10 +26,8 @@ LL | |             }
    |
 help: remove the condition
    |
-LL ~             
-LL +
-LL +                 return;
-LL +             
+LL ~
+LL +             return;
    |
 
 error: condition duplicates match guard
@@ -45,10 +41,8 @@ LL | |             }
    |
 help: remove the condition
    |
-LL ~             
-LL +
-LL +                 return;
-LL +             
+LL ~
+LL +             return;
    |
 
 error: condition duplicates match guard
@@ -62,10 +56,8 @@ LL | |             }
    |
 help: remove the condition
    |
-LL ~             
-LL +
-LL +                 return;
-LL +             
+LL ~
+LL +             return;
    |
 
 error: condition duplicates match guard
@@ -81,10 +73,10 @@ LL | |             */}
 help: remove the condition
    |
 LL ~
-LL + /*before*/
-LL +                 return;
-LL +                 /* after
-LL +             */
+LL +         /*before*/
+LL +                         return;
+LL +                         /* after
+LL +                     */
    |
 
 error: condition duplicates match guard
@@ -101,8 +93,8 @@ help: remove the condition
    |
 LL ~         0 if true => {
 LL +
-LL +                 return;
-LL ~         },
+LL +             return;
+LL ~     },
    |
 
 error: aborting due to 6 previous errors

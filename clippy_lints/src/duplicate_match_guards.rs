@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::{HasSession, indent_of, reindent_multiline, snippet_with_applicability};
+use clippy_utils::source::{HasSession, indent_of, reindent_multiline, snippet_with_applicability, trim_span};
 use clippy_utils::{eq_expr_value, span_contains_comment};
 use rustc_errors::Applicability;
 use rustc_hir::{Arm, ExprKind};
@@ -119,11 +119,13 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuards {
                 then.span
             };
 
+            let sugg_span = trim_span(sm, sugg_span);
+
             let sugg = snippet_with_applicability(cx, sugg_span, "..", &mut applicability);
 
-            // we want to bring `then_without_curlies` to the level of indentation that
-            // `arm_body_expr` used to be at
-            //
+            // since we remove one level of curlies, we should be able to dedent `then` left one
+            // level, so this:
+            // ```
             // <pat> if <guard> => {
             //     if <cond> {
             //         then
@@ -131,15 +133,17 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuards {
             //         curlies
             //     }
             // }
-            //
+            // ```
+            // becomes this:
+            // ```
             // <pat> if <guard> => {
             //     then
             //     without
             //     curlies
             // }
-            //
-            let indent = indent_of(cx, arm_body_expr.span);
-            let sugg = reindent_multiline(&sugg, false, indent);
+            // ```
+            let indent = indent_of(cx, sugg_span);
+            let sugg = reindent_multiline(&sugg, true, indent.map(|i| i.saturating_sub(4)));
 
             span_lint_and_sugg(
                 cx,
