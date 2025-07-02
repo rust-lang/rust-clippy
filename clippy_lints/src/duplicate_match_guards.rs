@@ -5,7 +5,7 @@ use rustc_errors::Applicability;
 use rustc_hir::{Arm, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
-use rustc_span::{BytePos, Span};
+use rustc_span::BytePos;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -73,18 +73,24 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuards {
         if let ExprKind::If(cond, then, None) = arm_body_expr.kind
             && eq_expr_value(cx, guard, cond.peel_drop_temps())
         {
-            let ExprKind::Block(then_without_curlies, _) = then.kind else {
-                unreachable!("the `then` expr in `ExprKind::If` is always `ExprKind::Block`")
-            };
+            // make sure that we won't swallow any comments. be extra conservative and bail out on _any_ comment
+            // outside of `then`:
+            //
+            // <pat> if <guard> => { if <cond> <then> }
+            // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^      ^^
+            let sm = cx.sess().source_map();
+            if span_contains_comment(sm, arm.span.with_hi(then.span.lo()))
+                || span_contains_comment(sm, arm.span.with_lo(then.span.hi()))
+            {
+                return;
+            }
 
             // the two expressions may be syntactically different, even if identical
             // semantically -- the user might want to replace the condition in the guard
             // with the one in the body
             let mut applicability = Applicability::MaybeIncorrect;
 
-            let sugg = snippet_with_applicability(cx, then_without_curlies.span, "..", &mut applicability);
-
-            if body_has_block {
+            let sugg_span = if body_has_block {
                 // the common case:
                 // ```
                 // match 0u32 {
@@ -96,59 +102,34 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuards {
                 // }
                 // ```
                 //
-                // suggest removing the `if` _and_ the curlies of the inner brace,
-                // since the arm body already has braces
-
-                // make sure that we won't swallow any comments. be extra conservative and bail out on _any_ comment
-                // outside of `then`:
-                //
-                // <pat> if <guard> => { if <cond> <then> }
-                // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^      ^^
-                let sm = cx.sess().source_map();
-                if span_contains_comment(sm, arm.span.with_hi(then.span.lo()))
-                    || span_contains_comment(sm, arm.span.with_lo(then.span.hi()))
-                {
-                    return;
-                }
-
-                let sugg = snippet_with_applicability(
-                    cx,
-                    then.span
-                        .with_lo(then.span.lo() + BytePos(1))
-                        .with_hi(then.span.hi() - BytePos(1)),
-                    "..",
-                    &mut applicability,
-                );
-
-                span_lint_and_sugg(
-                    cx,
-                    DUPLICATE_MATCH_GUARDS,
-                    arm_body_expr.span,
-                    "condition duplicates match guard",
-                    "remove the condition",
-                    sugg.to_string(),
-                    applicability,
-                );
+                // the arm body already has curlies, so we can remove the ones around `then`
+                then.span
+                    .with_lo(then.span.lo() + BytePos(1))
+                    .with_hi(then.span.hi() - BytePos(1))
             } else {
-                // the uncommon case (rusfmt would add the braces here automatically)
+                // the uncommon case (rusfmt would add the curlies here automatically)
                 // ```
                 // match 0u32 {
                 //     0 if true => if true { return; }
                 // }
                 // ```
                 //
-                // suggest removing the `if` but _not_ the curlies of the inner brace,
-                // since there are no outer braces coming from the arm body
-                span_lint_and_sugg(
-                    cx,
-                    DUPLICATE_MATCH_GUARDS,
-                    arm_body_expr.span,
-                    "condition duplicates match guard",
-                    "remove the condition",
-                    sugg.to_string(),
-                    applicability,
-                );
-            }
+                // the arm body doesn't have its own curlies,
+                // so we need to retain the ones around `then`
+                then.span
+            };
+
+            let sugg = snippet_with_applicability(cx, sugg_span, "..", &mut applicability);
+
+            span_lint_and_sugg(
+                cx,
+                DUPLICATE_MATCH_GUARDS,
+                arm_body_expr.span,
+                "condition duplicates match guard",
+                "remove the condition",
+                sugg.to_string(),
+                applicability,
+            );
         }
     }
 }
