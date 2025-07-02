@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
+use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::{HasSession, snippet_with_applicability};
 use clippy_utils::{eq_expr_value, span_contains_comment};
 use rustc_errors::Applicability;
@@ -111,25 +111,23 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuards {
                     return;
                 }
 
-                span_lint_and_then(
+                let sugg = snippet_with_applicability(
+                    cx,
+                    then.span
+                        .with_lo(then.span.lo() + BytePos(1))
+                        .with_hi(then.span.hi() - BytePos(1)),
+                    "..",
+                    &mut applicability,
+                );
+
+                span_lint_and_sugg(
                     cx,
                     DUPLICATE_MATCH_GUARDS,
                     arm_body_expr.span,
                     "condition duplicates match guard",
-                    |diag| {
-                        diag.multipart_suggestion_verbose(
-                            "remove the condition",
-                            vec![
-                                // <pat> if <guard> => { if <cond> { <then_without_curlies> } }
-                                //                       ^^^^^^^^^^^
-                                (arm_body_expr.span.with_hi(then.span.lo() + BytePos(1)), String::new()),
-                                // <pat> if <guard> => { if <cond> { <then_without_curlies> } }
-                                //                                                          ^^
-                                (arm_body_expr.span.with_lo(then.span.hi() - BytePos(1)), String::new()),
-                            ],
-                            applicability,
-                        );
-                    },
+                    "remove the condition",
+                    sugg.to_string(),
+                    applicability,
                 );
             } else {
                 // the uncommon case (rusfmt would add the braces here automatically)
