@@ -142,74 +142,98 @@ error: function call inside of `unwrap_or`
 LL |         None.unwrap_or( unsafe { ptr_to_ref(s) }    );
    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_else(|| unsafe { ptr_to_ref(s) })`
 
+error: function call inside of `unwrap_or`
+  --> tests/ui/or_fun_call.rs:220:14
+   |
+LL |             .unwrap_or(String::new());
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_else(String::new)`
+
+error: function call inside of `unwrap_or`
+  --> tests/ui/or_fun_call.rs:234:14
+   |
+LL |             .unwrap_or(String::new());
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_else(String::new)`
+
+error: function call inside of `unwrap_or`
+  --> tests/ui/or_fun_call.rs:247:14
+   |
+LL |             .unwrap_or(String::new());
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_else(String::new)`
+
+error: function call inside of `unwrap_or`
+  --> tests/ui/or_fun_call.rs:259:10
+   |
+LL |         .unwrap_or(String::new());
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_else(String::new)`
+
 error: function call inside of `map_or`
-  --> tests/ui/or_fun_call.rs:281:25
+  --> tests/ui/or_fun_call.rs:285:25
    |
 LL |         let _ = Some(4).map_or(g(), |v| v);
    |                         ^^^^^^^^^^^^^^^^^^ help: try: `map_or_else(g, |v| v)`
 
 error: function call inside of `map_or`
-  --> tests/ui/or_fun_call.rs:283:25
+  --> tests/ui/or_fun_call.rs:287:25
    |
 LL |         let _ = Some(4).map_or(g(), f);
    |                         ^^^^^^^^^^^^^^ help: try: `map_or_else(g, f)`
 
 error: use of `unwrap_or_else` to construct default value
-  --> tests/ui/or_fun_call.rs:315:18
+  --> tests/ui/or_fun_call.rs:319:18
    |
 LL |         with_new.unwrap_or_else(Vec::new);
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
 
 error: use of `unwrap_or_else` to construct default value
-  --> tests/ui/or_fun_call.rs:319:28
+  --> tests/ui/or_fun_call.rs:323:28
    |
 LL |         with_default_trait.unwrap_or_else(Default::default);
    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
 
 error: use of `unwrap_or_else` to construct default value
-  --> tests/ui/or_fun_call.rs:323:27
+  --> tests/ui/or_fun_call.rs:327:27
    |
 LL |         with_default_type.unwrap_or_else(u64::default);
    |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
 
 error: use of `unwrap_or_else` to construct default value
-  --> tests/ui/or_fun_call.rs:327:22
+  --> tests/ui/or_fun_call.rs:331:22
    |
 LL |         real_default.unwrap_or_else(<FakeDefault as Default>::default);
    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
 
 error: use of `or_insert_with` to construct default value
-  --> tests/ui/or_fun_call.rs:331:23
+  --> tests/ui/or_fun_call.rs:335:23
    |
 LL |         map.entry(42).or_insert_with(String::new);
    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `or_default()`
 
 error: use of `or_insert_with` to construct default value
-  --> tests/ui/or_fun_call.rs:335:25
+  --> tests/ui/or_fun_call.rs:339:25
    |
 LL |         btree.entry(42).or_insert_with(String::new);
    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `or_default()`
 
 error: use of `unwrap_or_else` to construct default value
-  --> tests/ui/or_fun_call.rs:339:25
+  --> tests/ui/or_fun_call.rs:343:25
    |
 LL |         let _ = stringy.unwrap_or_else(String::new);
    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
 
 error: function call inside of `unwrap_or`
-  --> tests/ui/or_fun_call.rs:381:17
+  --> tests/ui/or_fun_call.rs:385:17
    |
 LL |     let _ = opt.unwrap_or({ f() }); // suggest `.unwrap_or_else(f)`
    |                 ^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_else(f)`
 
 error: function call inside of `unwrap_or`
-  --> tests/ui/or_fun_call.rs:386:17
+  --> tests/ui/or_fun_call.rs:390:17
    |
 LL |     let _ = opt.unwrap_or(f() + 1); // suggest `.unwrap_or_else(|| f() + 1)`
    |                 ^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_else(|| f() + 1)`
 
 error: function call inside of `unwrap_or`
-  --> tests/ui/or_fun_call.rs:391:17
+  --> tests/ui/or_fun_call.rs:395:17
    |
 LL |       let _ = opt.unwrap_or({
    |  _________________^
@@ -229,40 +253,40 @@ LL ~     });
    |
 
 error: function call inside of `map_or`
-  --> tests/ui/or_fun_call.rs:397:17
+  --> tests/ui/or_fun_call.rs:401:17
    |
 LL |     let _ = opt.map_or(f() + 1, |v| v); // suggest `.map_or_else(|| f() + 1, |v| v)`
    |                 ^^^^^^^^^^^^^^^^^^^^^^ help: try: `map_or_else(|| f() + 1, |v| v)`
 
 error: use of `unwrap_or` to construct default value
-  --> tests/ui/or_fun_call.rs:402:17
+  --> tests/ui/or_fun_call.rs:406:17
    |
 LL |     let _ = opt.unwrap_or({ i32::default() });
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
 
 error: function call inside of `unwrap_or`
-  --> tests/ui/or_fun_call.rs:409:21
+  --> tests/ui/or_fun_call.rs:413:21
    |
 LL |     let _ = opt_foo.unwrap_or(Foo { val: String::default() });
    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_else(|| Foo { val: String::default() })`
 
 error: function call inside of `map_or`
-  --> tests/ui/or_fun_call.rs:424:19
+  --> tests/ui/or_fun_call.rs:428:19
    |
 LL |         let _ = x.map_or(g(), |v| v);
    |                   ^^^^^^^^^^^^^^^^^^ help: try: `map_or_else(|_| g(), |v| v)`
 
 error: function call inside of `map_or`
-  --> tests/ui/or_fun_call.rs:426:19
+  --> tests/ui/or_fun_call.rs:430:19
    |
 LL |         let _ = x.map_or(g(), f);
    |                   ^^^^^^^^^^^^^^ help: try: `map_or_else(|_| g(), f)`
 
 error: function call inside of `get_or_insert`
-  --> tests/ui/or_fun_call.rs:438:15
+  --> tests/ui/or_fun_call.rs:442:15
    |
 LL |     let _ = x.get_or_insert(g());
    |               ^^^^^^^^^^^^^^^^^^ help: try: `get_or_insert_with(g)`
 
-error: aborting due to 41 previous errors
+error: aborting due to 45 previous errors
 
