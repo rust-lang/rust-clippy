@@ -1572,15 +1572,22 @@ let dyn_any_of_u32: &amp;dyn Any = &amp;*x;
 assert_eq!(dyn_any_of_u32.downcast_ref::&lt;u32&gt;(), Some(&amp;0u32));
 </code></pre>
 </div><div class="lint-additional-info-container"><div class="lint-additional-info-item"><span> Applicability: </span><span class="label label-default label-applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div class="lint-additional-info-item"><span>Added in: </span><span class="label label-default label-version">1.88.0</span></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+coerce_container_to_any">Related Issues</a></div><div class="lint-additional-info-item"><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/coerce_container_to_any.rs#L11">View Source</a></div></div></div></article><article class="panel panel-default" id="cognitive_complexity"><input id="label-cognitive_complexity" type="checkbox"><label for="label-cognitive_complexity"><header class="panel-heading"><h2 class="panel-title"><div class="panel-title-name" id="lint-cognitive_complexity"><span>cognitive_complexity</span> <a href="#cognitive_complexity" class="lint-anchor anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><div class="panel-title-addons"><span class="label label-lint-group label-default label-group-nursery">nursery</span> <span class="label label-lint-level label-lint-level-allow">allow</span> <span class="label label-doc-folding"></span></div></h2></header></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
-<p>Checks for methods with high cognitive complexity.</p>
+<p>We used to think it measured how hard a method is to understand.</p>
 <h3>Why is this bad?</h3>
-<p>Methods of high cognitive complexity tend to be hard to
-both read and maintain. Also LLVM will tend to optimize small methods better.</p>
+<p>Ideally, we would like to be able to measure how hard a function is
+to understand given its context (what we call its Cognitive Complexity).
+But that’s not what this lint does. See “Known problems”</p>
 <h3>Known problems</h3>
-<p>Sometimes it’s hard to find a way to reduce the
-complexity.</p>
-<h3>Example</h3>
-<p>You’ll see it when you get the warning.</p>
+<p>The true Cognitive Complexity of a method is not something we can
+calculate using modern technology. This lint has been left in the
+<code>nursery</code> so as to not mislead users into using this lint as a
+measurement tool.</p>
+<p>For more detailed information, see <a href="https://github.com/rust-lang/rust-clippy/issues/3793">rust-clippy#3793</a></p>
+<h3>Lints to consider instead of this</h3>
+<ul>
+<li><a href="https://rust-lang.github.io/rust-clippy/master/index.html#excessive_nesting"><code>excessive_nesting</code></a></li>
+<li><a href="https://rust-lang.github.io/rust-clippy/master/index.html#too_many_lines"><code>too_many_lines</code></a></li>
+</ul>
 <h3>Past names</h3>
 <ul>
 <li>cyclomatic_complexity</li>
