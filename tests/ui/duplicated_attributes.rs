@@ -1,4 +1,5 @@
 //@aux-build:proc_macro_attr.rs
+#![deny(unused, unused, clippy::duplicated_attributes, clippy::duplicated_attributes)] //~ ERROR: duplicated attribute
 #![feature(rustc_attrs)]
 #![warn(clippy::duplicated_attributes)]
 #![cfg(any(unix, windows))]
