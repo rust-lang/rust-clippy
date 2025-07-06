@@ -225,6 +225,7 @@ macro_rules! define_Conf {
         $(#[doc = $doc:literal])+
         $(#[conf_deprecated($dep:literal, $new_conf:ident)])?
         $(#[default_text = $default_text:expr])?
+        $(#[possible_values = [$($possible_value:expr),+]])?
         $(#[disallowed_paths_allow_replacements = $replacements_allowed:expr])?
         $(#[lints($($for_lints:ident),* $(,)?)])?
         $name:ident: $ty:ty = $default:expr,
@@ -315,6 +316,7 @@ macro_rules! define_Conf {
                 ClippyConfiguration {
                     name: stringify!($name).replace('_', "-"),
                     default: default_text!(defaults::$name() $(, $default_text)?),
+                    possible_values: &[$($(stringify!($possible_value)),*)?],
                     lints: &[$($(stringify!($for_lints)),*)?],
                     doc: concat!($($doc, '\n',)*),
                     deprecation_reason: wrap_option!($($dep)?)
@@ -677,6 +679,7 @@ define_Conf! {
     literal_representation_threshold: u64 = 16384,
     /// Whether the matches should be considered by the lint, and whether there should
     /// be filtering for common types.
+    #[possible_values = ["AllTypes", "Never", "WellKnownTypes"]]
     #[lints(manual_let_else)]
     matches_for_let_else: MatchLintBehaviour = MatchLintBehaviour::WellKnownTypes,
     /// The maximum number of bool parameters a function can have
@@ -802,6 +805,7 @@ define_Conf! {
     pass_by_value_size_limit: u64 = 256,
     /// Lint "public" fields in a struct that are prefixed with an underscore based on their
     /// exported visibility, or whether they are marked as "pub".
+    #[possible_values = ["AllPubFields", "PubliclyExported"]]
     #[lints(pub_underscore_fields)]
     pub_underscore_fields_behavior: PubUnderscoreFieldsBehaviour = PubUnderscoreFieldsBehaviour::PubliclyExported,
     /// Whether to lint only if it's multiline.

@@ -699,7 +699,7 @@ be filtering for common types.
 
 **Default Value:** `"WellKnownTypes"`
 
-**Values:** `"AllTypes"`, `"Never"`, `"WellKnownTypes"`
+**Possible Values:** `"AllTypes"`, `"Never"`, `"WellKnownTypes"`
 
 ---
 **Affected lints:**
@@ -913,7 +913,7 @@ exported visibility, or whether they are marked as "pub".
 
 **Default Value:** `"PubliclyExported"`
 
-**Values:** `"AllPubFields"`, `"PubliclyExported"`
+**Possible Values:** `"AllPubFields"`, `"PubliclyExported"`
 
 ---
 **Affected lints:**
