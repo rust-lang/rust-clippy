@@ -1,8 +1,8 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::span_lint_and_then;
 use rustc_errors::Applicability;
 use rustc_hir::{GenericArg, HirId, LetStmt, Node, Path, TyKind};
 use rustc_lint::LateContext;
-use rustc_middle::ty::Ty;
+use rustc_middle::ty::{self, Ty};
 
 use crate::transmute::MISSING_TRANSMUTE_ANNOTATIONS;
 
@@ -68,14 +68,40 @@ pub(super) fn check<'tcx>(
     } else if is_function_block(cx, expr_hir_id) {
         return false;
     }
-    span_lint_and_sugg(
+    let span = last.ident.span.with_hi(path.span.hi());
+    span_lint_and_then(
         cx,
         MISSING_TRANSMUTE_ANNOTATIONS,
-        last.ident.span.with_hi(path.span.hi()),
+        span,
         "transmute used without annotations",
-        "consider adding missing annotations",
-        format!("{}::<{from_ty}, {to_ty}>", last.ident),
-        Applicability::MaybeIncorrect,
+        |diag| {
+            let from_ty_no_name = ty_cannot_be_named(from_ty);
+            let to_ty_no_name = ty_cannot_be_named(to_ty);
+            if from_ty_no_name || to_ty_no_name {
+                let to_name = match (from_ty_no_name, to_ty_no_name) {
+                    (true, false) => "origin type",
+                    (false, true) => "destination type",
+                    _ => "source and destination types",
+                };
+                diag.help(format!(
+                    "consider giving the {to_name} a name, and adding missing type annotations"
+                ));
+            } else {
+                diag.span_suggestion(
+                    span,
+                    "consider adding missing annotations",
+                    format!("{}::<{from_ty}, {to_ty}>", last.ident),
+                    Applicability::MaybeIncorrect,
+                );
+            }
+        },
     );
     true
+}
+
+fn ty_cannot_be_named(ty: Ty<'_>) -> bool {
+    matches!(
+        ty.kind(),
+        ty::Alias(ty::AliasTyKind::Opaque | ty::AliasTyKind::Inherent, _)
+    )
 }
