@@ -1,6 +1,6 @@
 //@aux-build:proc_macros.rs
 //@require-annotations-for-level: WARN
-#![allow(clippy::no_effect, deprecated, unused)]
+#![allow(clippy::no_effect, deprecated, unused, clippy::items_before_use)]
 #![allow(clippy::legacy_numeric_constants)] // For imports.
 
 #[macro_use]
