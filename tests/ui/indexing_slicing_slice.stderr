@@ -1,5 +1,5 @@
 error: duplicated attribute
-  --> tests/ui/indexing_slicing_slice.rs:15:9
+  --> tests/ui/indexing_slicing_slice.rs:14:9
    |
 LL | #![warn(clippy::indexing_slicing)]
    |         ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -10,7 +10,7 @@ note: first defined here
 LL | #![warn(clippy::indexing_slicing)]
    |         ^^^^^^^^^^^^^^^^^^^^^^^^
 help: remove this attribute
-  --> tests/ui/indexing_slicing_slice.rs:15:9
+  --> tests/ui/indexing_slicing_slice.rs:14:9
    |
 LL | #![warn(clippy::indexing_slicing)]
    |         ^^^^^^^^^^^^^^^^^^^^^^^^
