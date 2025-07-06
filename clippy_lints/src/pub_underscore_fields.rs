@@ -14,7 +14,7 @@ declare_clippy_lint! {
     ///
     /// ### Why is this bad?
     /// Fields prefixed with an `_` are inferred as unused, which suggests it should not be marked
-    /// as `pub`, because marking it as `pub` infers it will be used.
+    /// as `pub`, because marking it as `pub` implies that it will be used.
     ///
     /// ### Example
     /// ```rust
