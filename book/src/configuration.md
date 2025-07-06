@@ -98,28 +98,45 @@ For more details and options, refer to the Cargo documentation.
 
 ### Specifying the minimum supported Rust version
 
-Projects that intend to support old versions of Rust can disable lints pertaining to newer features by specifying the
-minimum supported Rust version (MSRV) in the Clippy configuration file.
+Projects that intend to support old versions of Rust can disable lints pertaining to newer features by
+specifying the minimum supported Rust version (MSRV) in the [`rust-version` field](https://doc.rust-lang.org/cargo/reference/rust-version.html)
+of `Cargo.toml`.
 
 ```toml
-msrv = "1.30.0"
+# Cargo.toml
+rust-version = "1.30"
 ```
 
-The MSRV can also be specified as an attribute, like below.
+Alternatively the [`msrv` field](https://doc.rust-lang.org/clippy/lint_configuration.html#msrv) can be specified in the
+Clippy configuration file.
 
-```rust,ignore
-#![feature(custom_inner_attributes)]
-#![clippy::msrv = "1.30.0"]
+```toml
+# clippy.toml
+msrv = "1.30"
+```
 
-fn main() {
-    ...
+Clippy will automatically adjust the MSRV for sections of code that use `#[cfg(version)]`:
+
+```rust
+#[cfg(version("1.90"))]
+fn f() {
+    // The MSRV here is set to 1.90
 }
 ```
 
-You can also omit the patch version when specifying the MSRV, so `msrv = 1.30`
-is equivalent to `msrv = 1.30.0`.
+> **Note:** `cfg(version)` is not yet [available on stable](https://github.com/rust-lang/rust/pull/141766)
 
-Note: `custom_inner_attributes` is an unstable feature, so it has to be enabled explicitly.
+The `#[clippy::msrv]` can also be used to set the MSRV for a section of code with no other effect:
+
+```rust
+#[clippy::msrv = "1.30"]
+fn f() {
+    // The MSRV here is set to 1.30
+}
+```
+
+If both `#[cfg(version)]` and `#[clippy::msrv]` attributes are applied to the same node then `#[clippy::msrv]` takes
+precedence.
 
 Lints that recognize this configuration option can be
 found [here](https://rust-lang.github.io/rust-clippy/master/index.html#msrv)
