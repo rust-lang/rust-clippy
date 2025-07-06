@@ -9,7 +9,7 @@ use rustc_data_structures::fx::{FxHashMap, FxHashSet, FxIndexMap};
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::intravisit::{Visitor, walk_expr};
-use rustc_hir::{BinOpKind, BorrowKind, Closure, Expr, ExprKind, HirId, Mutability, Pat, PatKind, QPath};
+use rustc_hir::{BinOpKind, BorrowKind, Closure, Expr, ExprKind, HirId, Mutability, Node, Pat, PatKind, QPath};
 use rustc_lint::LateContext;
 use rustc_middle::middle::region;
 use rustc_middle::ty::{self, Ty};
@@ -241,12 +241,18 @@ struct VarVisitor<'a, 'tcx> {
 }
 
 impl<'tcx> VarVisitor<'_, 'tcx> {
-    fn check(&mut self, idx: &'tcx Expr<'_>, seqexpr: &'tcx Expr<'_>, expr: &'tcx Expr<'_>) -> bool {
+    fn check<'a>(&mut self, idxs: &mut Vec<&'tcx Expr<'a>>, seqexpr: &'tcx Expr<'a>, expr: &'tcx Expr<'_>) -> bool {
+        // Handle multi-dimensional array
+        if let ExprKind::Index(seqexpr, idx, _) = seqexpr.kind {
+            idxs.push(idx);
+            // Recursive call
+            return self.check(idxs, seqexpr, expr);
+        }
         if let ExprKind::Path(ref seqpath) = seqexpr.kind
             // the indexed container is referenced by a name
             && let QPath::Resolved(None, seqvar) = *seqpath
             && seqvar.segments.len() == 1
-            && is_local_used(self.cx, idx, self.var)
+            && let Some(idx) = idxs.iter().find(|idx| is_local_used(self.cx, **idx, self.var))
         {
             if self.prefer_mutable {
                 self.indexed_mut.insert(seqvar.segments[0].ident.name);
@@ -302,16 +308,27 @@ impl<'tcx> Visitor<'tcx> for VarVisitor<'_, 'tcx> {
                 .and_then(|def_id| self.cx.tcx.trait_of_item(def_id))
             && ((meth.ident.name == sym::index && self.cx.tcx.lang_items().index_trait() == Some(trait_id))
                 || (meth.ident.name == sym::index_mut && self.cx.tcx.lang_items().index_mut_trait() == Some(trait_id)))
-            && !self.check(args_1, args_0, expr)
         {
-            return;
+            let mut idxs: Vec<&Expr<'_>> = vec![args_1];
+            if !self.check(&mut idxs, args_0, expr) {
+                return;
+            }
         }
 
-        if let ExprKind::Index(seqexpr, idx, _) = expr.kind
+        if let ExprKind::Index(seqexpr, idx, _) = expr.kind {
+            // Only handle the top `Index` expr
+            if let Node::Expr(Expr {
+                kind: ExprKind::Index(_, _, _),
+                ..
+            }) = self.cx.tcx.parent_hir_node(expr.hir_id)
+            {
+                return;
+            }
+            let mut idxs: Vec<&Expr<'_>> = vec![idx];
             // an index op
-            && !self.check(idx, seqexpr, expr)
-        {
-            return;
+            if !self.check(&mut idxs, seqexpr, expr) {
+                return;
+            }
         }
 
         if let ExprKind::Path(QPath::Resolved(None, path)) = expr.kind
