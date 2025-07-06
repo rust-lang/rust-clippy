@@ -35,24 +35,24 @@ LL | #![deny(unused, unused, clippy::duplicated_attributes, clippy::duplicated_a
    |                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: duplicated attribute
-  --> tests/ui/duplicated_attributes.rs:7:10
+  --> tests/ui/duplicated_attributes.rs:9:10
    |
 LL | #![allow(dead_code)]
    |          ^^^^^^^^^
    |
 note: first defined here
-  --> tests/ui/duplicated_attributes.rs:6:10
+  --> tests/ui/duplicated_attributes.rs:8:10
    |
 LL | #![allow(dead_code)]
    |          ^^^^^^^^^
 help: remove this attribute
-  --> tests/ui/duplicated_attributes.rs:7:10
+  --> tests/ui/duplicated_attributes.rs:9:10
    |
 LL | #![allow(dead_code)]
    |          ^^^^^^^^^
 
 error: unused `#[macro_use]` import
-  --> tests/ui/duplicated_attributes.rs:10:1
+  --> tests/ui/duplicated_attributes.rs:12:1
    |
 LL | #[macro_use]
    | ^^^^^^^^^^^^
@@ -65,18 +65,18 @@ LL | #![deny(unused, unused, clippy::duplicated_attributes, clippy::duplicated_a
    = note: `#[deny(unused_imports)]` implied by `#[deny(unused)]`
 
 error: duplicated attribute
-  --> tests/ui/duplicated_attributes.rs:15:9
+  --> tests/ui/duplicated_attributes.rs:17:9
    |
 LL | #[allow(dead_code)]
    |         ^^^^^^^^^
    |
 note: first defined here
-  --> tests/ui/duplicated_attributes.rs:14:9
+  --> tests/ui/duplicated_attributes.rs:16:9
    |
 LL | #[allow(dead_code)]
    |         ^^^^^^^^^
 help: remove this attribute
-  --> tests/ui/duplicated_attributes.rs:15:9
+  --> tests/ui/duplicated_attributes.rs:17:9
    |
 LL | #[allow(dead_code)]
    |         ^^^^^^^^^
