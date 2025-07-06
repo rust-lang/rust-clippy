@@ -1,0 +1,127 @@
+#![allow(clippy::needless_return, clippy::needless_else)]
+#![warn(clippy::duplicate_match_guards)]
+
+fn main() {
+    let mut a = 5;
+    let b = 4;
+    let mut v: Vec<u32> = vec![];
+
+    match 0u32 {
+        0 if true => {
+            if true {
+                //~^ duplicate_match_guards
+                return;
+            }
+        },
+        0 if a > b => {
+            if a > b {
+                //~^ duplicate_match_guards
+                return;
+            }
+        },
+        // not _identical_, but the meaning is the same
+        0 if a > b => {
+            if b < a {
+                //~^ duplicate_match_guards
+                return;
+            }
+        },
+        // a bit more complicated
+        0 if a > 0 && b > 0 => {
+            if a > 0 && b > 0 {
+                //~^ duplicate_match_guards
+                return;
+            }
+        },
+        // comments inside the inner block are preserved
+        // (for comments _outside_ the inner block, see below)
+        #[rustfmt::skip]
+        0 if a > b => {
+            if a > b {//~ duplicate_match_guards
+/*before*/
+                return;
+                /* after
+            */}
+        },
+        // no curlies around arm body
+        #[rustfmt::skip] // would add the outer curlies
+        0 if true => if true {
+                //~^ duplicate_match_guards
+                return;
+        },
+
+        // no warnings
+        0 if true => {
+            if false {
+                return;
+            }
+        },
+        // has side effects, so don't lint
+        0 if v.pop().is_some() => {
+            if v.pop().is_some() {
+                return;
+            }
+        },
+        // there's _something_ in the else branch
+        0 if a > b => {
+            if a > b {
+                a += b;
+            } else {
+            }
+        },
+        // body has statements before the if
+        0 if a > b => {
+            a += b;
+            if a > b {
+                return;
+            }
+        },
+        // comments (putting them right next to the tested element to check for off-by-one errors):
+        // - before arrow
+        #[rustfmt::skip]
+        0 if a > b/* comment */=> {
+            if a > b {
+                return;
+            }
+        },
+        // - before outer opening curly
+        #[rustfmt::skip]
+        0 if a > b =>/* comment */{
+            if a > b {
+                return;
+            }
+        },
+        // - before `if`
+        #[rustfmt::skip]
+        0 if a > b => {/*
+          comment
+          */if a > b {
+                return;
+            }
+        },
+        // - before condition
+        #[rustfmt::skip]
+        0 if a > b => {
+            if/*
+            comment */a > b {
+                return;
+            }
+        },
+        #[rustfmt::skip]
+        // - before inner opening curly
+        0 if a > b => {
+            if a > b/*
+            comment */{
+                return;
+            }
+        },
+        #[rustfmt::skip]
+        // - before closing outer curly
+        0 if a > b => {
+            if a > b {
+                return;
+            }/* comment
+        */},
+        _ => todo!(),
+    };
+}
