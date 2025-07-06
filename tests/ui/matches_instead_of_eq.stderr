@@ -1,0 +1,13 @@
+error: This expression can be replaced with a == comparison
+  --> tests/ui/matches_instead_of_eq.rs:26:15
+   |
+LL |     let val = matches!(x, EvenOdd::Even);
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: This type implements PartialEq, so you can use == instead of matches!()
+   = note: `-D clippy::matches-instead-of-eq` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::matches_instead_of_eq)]`
+   = note: this error originates in the macro `matches` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: aborting due to 1 previous error
+
