@@ -771,7 +771,12 @@ pub fn count_eq<X: Sized>(
 
 /// Checks if two expressions evaluate to the same value, and don't contain any side effects.
 pub fn eq_expr_value(cx: &LateContext<'_>, left: &Expr<'_>, right: &Expr<'_>) -> bool {
-    SpanlessEq::new(cx).deny_side_effects().eq_expr(left, right)
+    eq_expr_value_with_sideffects(cx, left, right)
+}
+
+/// Checks if two expressions evaluate to the same value, ignoring side effects.
+pub fn eq_expr_value_with_sideffects(cx: &LateContext<'_>, left: &Expr<'_>, right: &Expr<'_>) -> bool {
+    SpanlessEq::new(cx).eq_expr(left, right)
 }
 
 /// Returns the segments of a path that might have generic parameters.
