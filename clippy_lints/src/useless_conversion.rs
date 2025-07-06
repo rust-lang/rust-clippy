@@ -451,13 +451,28 @@ fn has_eligible_receiver(cx: &LateContext<'_>, recv: &Expr<'_>, expr: &Expr<'_>)
 
 fn adjustments(cx: &LateContext<'_>, expr: &Expr<'_>) -> String {
     let mut prefix = String::new();
-    for adj in cx.typeck_results().expr_adjustments(expr) {
-        match adj.kind {
-            Adjust::Deref(_) => prefix = format!("*{prefix}"),
-            Adjust::Borrow(AutoBorrow::Ref(AutoBorrowMutability::Mut { .. })) => prefix = format!("&mut {prefix}"),
-            Adjust::Borrow(AutoBorrow::Ref(AutoBorrowMutability::Not)) => prefix = format!("&{prefix}"),
-            _ => {},
+    let adjustments = cx.typeck_results().expr_adjustments(expr);
+
+    if !adjustments.is_empty() {
+        let mut target = adjustments[0].target;
+
+        for adj in adjustments {
+            target = adj.target;
+        }
+
+        for adj in adjustments {
+            match adj.kind {
+                Adjust::Deref(_) => prefix = format!("*{prefix}"),
+                Adjust::Borrow(AutoBorrow::Ref(AutoBorrowMutability::Mut { .. })) => prefix = format!("&mut {prefix}"),
+                Adjust::Borrow(AutoBorrow::Ref(AutoBorrowMutability::Not)) => prefix = format!("&{prefix}"),
+                _ => {},
+            }
+
+            if adj.target == target {
+                break;
+            }
         }
     }
+
     prefix
 }
