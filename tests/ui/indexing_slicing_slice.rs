@@ -12,6 +12,7 @@
     unused
 )]
 #![warn(clippy::indexing_slicing)]
+//~^ duplicated_attributes
 
 extern crate proc_macros;
 use proc_macros::with_span;
