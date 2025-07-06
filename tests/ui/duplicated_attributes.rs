@@ -1,15 +1,12 @@
 //@aux-build:proc_macro_attr.rs
-#![deny(unused, unused, clippy::duplicated_attributes, clippy::duplicated_attributes)]
-//~^ duplicated_attributes
-//~| duplicated_attributes
+#![warn(clippy::duplicated_attributes, clippy::duplicated_attributes)] //~ ERROR: duplicated attribute
 #![feature(rustc_attrs)]
-#![warn(clippy::duplicated_attributes)]
 #![cfg(any(unix, windows))]
 #![allow(dead_code)]
 #![allow(dead_code)] //~ ERROR: duplicated attribute
 #![cfg(any(unix, windows))] // Should not warn!
 
-#[macro_use] //~ ERROR: unused `#[macro_use]` import
+#[macro_use]
 extern crate proc_macro_attr;
 
 #[cfg(any(unix, windows, target_os = "linux"))]
