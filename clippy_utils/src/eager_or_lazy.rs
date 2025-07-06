@@ -154,11 +154,6 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
                         }
                     },
                     Res::Def(_, id) if self.cx.tcx.is_promotable_const_fn(id) => (),
-                    // No need to walk the arguments here, `is_const_evaluatable` already did
-                    Res::Def(..) if is_const_evaluatable(self.cx, e) => {
-                        self.eagerness |= NoChange;
-                        return;
-                    },
                     Res::Def(_, id) => match path {
                         QPath::Resolved(_, p) => {
                             self.eagerness |=
