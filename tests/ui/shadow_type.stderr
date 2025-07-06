@@ -1,0 +1,100 @@
+error: generic parameter in `Struct1` shadows type in scope
+  --> tests/ui/shadow_type.rs:8:20
+   |
+LL |     struct Foo;
+   |            --- this type is being shadowed by a generic parameter in `Struct1`
+...
+LL |     struct Struct1<Foo> {
+   |                    ^^^
+   |
+   = help: consider using a different name for the generic parameter
+   = note: `-D clippy::shadow-type-generic` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::shadow_type_generic)]`
+
+error: generic parameter in `Struct2` shadows type in scope
+  --> tests/ui/shadow_type.rs:12:20
+   |
+LL |     enum Bar {}
+   |          --- this type is being shadowed by a generic parameter in `Struct2`
+...
+LL |     struct Struct2<Bar> {
+   |                    ^^^
+   |
+   = help: consider using a different name for the generic parameter
+
+error: generic parameters in `Struct3` shadow types in scope
+  --> tests/ui/shadow_type.rs:16:20
+   |
+LL |     struct Foo;
+   |            --- this type is being shadowed by a generic parameter in `Struct3`
+LL |     enum Bar {}
+   |          --- this type is being shadowed by a generic parameter in `Struct3`
+...
+LL |     struct Struct3<Foo, Bar> {
+   |                    ^^^  ^^^
+   |
+   = help: consider using different names for the generic parameters
+
+error: generic parameters in `Struct4` shadow types in scope
+  --> tests/ui/shadow_type.rs:21:20
+   |
+LL |     struct Foo;
+   |            --- this type is being shadowed by a generic parameter in `Struct4`
+LL |     enum Bar {}
+   |          --- this type is being shadowed by a generic parameter in `Struct4`
+...
+LL |     struct Struct4<Foo, B, Bar> {
+   |                    ^^^     ^^^
+   |
+   = help: consider using different names for the generic parameters
+
+error: generic parameter in `Enum1` shadows type in scope
+  --> tests/ui/shadow_type.rs:39:16
+   |
+LL |     struct Foo;
+   |            --- this type is being shadowed by a generic parameter in `Enum1`
+...
+LL |     enum Enum1<Foo> {
+   |                ^^^
+   |
+   = help: consider using a different name for the generic parameter
+
+error: generic parameter in `Enum2` shadows type in scope
+  --> tests/ui/shadow_type.rs:43:16
+   |
+LL |     enum Bar {}
+   |          --- this type is being shadowed by a generic parameter in `Enum2`
+...
+LL |     enum Enum2<Bar> {
+   |                ^^^
+   |
+   = help: consider using a different name for the generic parameter
+
+error: generic parameters in `Enum3` shadow types in scope
+  --> tests/ui/shadow_type.rs:47:16
+   |
+LL |     struct Foo;
+   |            --- this type is being shadowed by a generic parameter in `Enum3`
+LL |     enum Bar {}
+   |          --- this type is being shadowed by a generic parameter in `Enum3`
+...
+LL |     enum Enum3<Foo, Bar> {
+   |                ^^^  ^^^
+   |
+   = help: consider using different names for the generic parameters
+
+error: generic parameters in `Enum4` shadow types in scope
+  --> tests/ui/shadow_type.rs:52:16
+   |
+LL |     struct Foo;
+   |            --- this type is being shadowed by a generic parameter in `Enum4`
+LL |     enum Bar {}
+   |          --- this type is being shadowed by a generic parameter in `Enum4`
+...
+LL |     enum Enum4<Foo, B, Bar> {
+   |                ^^^     ^^^
+   |
+   = help: consider using different names for the generic parameters
+
+error: aborting due to 8 previous errors
+
