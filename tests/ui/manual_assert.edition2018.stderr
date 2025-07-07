@@ -11,11 +11,8 @@ LL | |     }
    = help: to override `-D warnings` add `#[allow(clippy::manual_assert)]`
 help: try instead
    |
-LL -     if !a.is_empty() {
-LL -
-LL -         panic!("qaqaq{:?}", a);
-LL -     }
-LL +     assert!(a.is_empty(), "qaqaq{:?}", a);
+LL ~
+LL ~ assert!(a.is_empty(), "qaqaq{:?}", a);
    |
 
 error: only a `panic!` in `if`-then statement
@@ -29,11 +26,8 @@ LL | |     }
    |
 help: try instead
    |
-LL -     if !a.is_empty() {
-LL -
-LL -         panic!("qwqwq");
-LL -     }
-LL +     assert!(a.is_empty(), "qwqwq");
+LL ~
+LL ~ assert!(a.is_empty(), "qwqwq");
    |
 
 error: only a `panic!` in `if`-then statement
@@ -47,11 +41,8 @@ LL | |     }
    |
 help: try instead
    |
-LL -     if b.is_empty() {
-LL -
-LL -         panic!("panic1");
-LL -     }
-LL +     assert!(!b.is_empty(), "panic1");
+LL ~
+LL ~ assert!(!b.is_empty(), "panic1");
    |
 
 error: only a `panic!` in `if`-then statement
@@ -65,11 +56,8 @@ LL | |     }
    |
 help: try instead
    |
-LL -     if b.is_empty() && a.is_empty() {
-LL -
-LL -         panic!("panic2");
-LL -     }
-LL +     assert!(!(b.is_empty() && a.is_empty()), "panic2");
+LL ~
+LL ~ assert!(!(b.is_empty() && a.is_empty()), "panic2");
    |
 
 error: only a `panic!` in `if`-then statement
@@ -83,11 +71,8 @@ LL | |     }
    |
 help: try instead
    |
-LL -     if a.is_empty() && !b.is_empty() {
-LL -
-LL -         panic!("panic3");
-LL -     }
-LL +     assert!(!(a.is_empty() && !b.is_empty()), "panic3");
+LL ~
+LL ~ assert!(!(a.is_empty() && !b.is_empty()), "panic3");
    |
 
 error: only a `panic!` in `if`-then statement
@@ -101,11 +86,8 @@ LL | |     }
    |
 help: try instead
    |
-LL -     if b.is_empty() || a.is_empty() {
-LL -
-LL -         panic!("panic4");
-LL -     }
-LL +     assert!(!(b.is_empty() || a.is_empty()), "panic4");
+LL ~
+LL ~ assert!(!(b.is_empty() || a.is_empty()), "panic4");
    |
 
 error: only a `panic!` in `if`-then statement
@@ -119,11 +101,8 @@ LL | |     }
    |
 help: try instead
    |
-LL -     if a.is_empty() || !b.is_empty() {
-LL -
-LL -         panic!("panic5");
-LL -     }
-LL +     assert!(!(a.is_empty() || !b.is_empty()), "panic5");
+LL ~
+LL ~ assert!(!(a.is_empty() || !b.is_empty()), "panic5");
    |
 
 error: only a `panic!` in `if`-then statement
@@ -137,11 +116,8 @@ LL | |     }
    |
 help: try instead
    |
-LL -     if a.is_empty() {
-LL -
-LL -         panic!("with expansion {}", one!())
-LL -     }
-LL +     assert!(!a.is_empty(), "with expansion {}", one!());
+LL ~
+LL ~ assert!(!a.is_empty(), "with expansion {}", one!());
    |
 
 error: only a `panic!` in `if`-then statement
@@ -158,15 +134,14 @@ LL | |     }
    |
 help: try instead
    |
-
-LL ~     // comment
+LL ~
+LL + // comment
 LL + /* this is a
 LL +         multiline
 LL +         comment */
 LL + /// Doc comment
 LL + // comment after `panic!`
 LL ~ assert!(!(a > 2), "panic with comment");
-
    |
 
 error: only a `panic!` in `if`-then statement
@@ -181,11 +156,8 @@ LL | |         };
    |
 help: try instead
    |
-LL -         const BAR: () = if N == 0 {
-LL -
-LL -             panic!()
-LL -         };
-LL +         const BAR: () = assert!(!(N == 0), );
+LL ~         const BAR: () =
+LL ~ assert!(!(N == 0), );
    |
 
 error: aborting due to 10 previous errors
