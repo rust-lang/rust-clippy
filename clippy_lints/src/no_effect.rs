@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::{span_lint_hir, span_lint_hir_and_then};
 use clippy_utils::source::SpanRangeExt;
-use clippy_utils::ty::has_drop;
+use clippy_utils::ty::{expr_type_is_certain, has_drop};
 use clippy_utils::{
     in_automatically_derived, is_inside_always_const_context, is_lint_allowed, path_to_local, peel_blocks,
 };
@@ -8,11 +8,10 @@ use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{
     BinOpKind, BlockCheckMode, Expr, ExprKind, HirId, HirIdMap, ItemKind, LocalSource, Node, PatKind, Stmt, StmtKind,
-    UnsafeSource, is_range_literal,
+    StructTailExpr, UnsafeSource, is_range_literal,
 };
 use rustc_infer::infer::TyCtxtInferExt as _;
 use rustc_lint::{LateContext, LateLintPass, LintContext};
-use rustc_middle::lint::in_external_macro;
 use rustc_session::impl_lint_pass;
 use rustc_span::Span;
 use rustc_trait_selection::error_reporting::InferCtxtErrorExt;
@@ -142,9 +141,9 @@ impl NoEffect {
                     stmt.span,
                     "statement with no effect",
                     |diag| {
-                        for parent in cx.tcx.hir().parent_iter(stmt.hir_id) {
+                        for parent in cx.tcx.hir_parent_iter(stmt.hir_id) {
                             if let Node::Item(item) = parent.1
-                                && let ItemKind::Fn(..) = item.kind
+                                && let ItemKind::Fn { .. } = item.kind
                                 && let Node::Block(block) = cx.tcx.parent_hir_node(stmt.hir_id)
                                 && let [.., final_stmt] = block.stmts
                                 && final_stmt.hir_id == stmt.hir_id
@@ -183,23 +182,22 @@ impl NoEffect {
                 );
                 return true;
             }
-        } else if let StmtKind::Let(local) = stmt.kind {
-            if !is_lint_allowed(cx, NO_EFFECT_UNDERSCORE_BINDING, local.hir_id)
-                && !matches!(local.source, LocalSource::AsyncFn)
-                && let Some(init) = local.init
-                && local.els.is_none()
-                && !local.pat.span.from_expansion()
-                && has_no_effect(cx, init)
-                && let PatKind::Binding(_, hir_id, ident, _) = local.pat.kind
-                && ident.name.to_ident_string().starts_with('_')
-                && !in_automatically_derived(cx.tcx, local.hir_id)
-            {
-                if let Some(l) = self.local_bindings.last_mut() {
-                    l.push(hir_id);
-                    self.underscore_bindings.insert(hir_id, ident.span);
-                }
-                return true;
+        } else if let StmtKind::Let(local) = stmt.kind
+            && !is_lint_allowed(cx, NO_EFFECT_UNDERSCORE_BINDING, local.hir_id)
+            && !matches!(local.source, LocalSource::AsyncFn)
+            && let Some(init) = local.init
+            && local.els.is_none()
+            && !local.pat.span.from_expansion()
+            && has_no_effect(cx, init)
+            && let PatKind::Binding(_, hir_id, ident, _) = local.pat.kind
+            && ident.name.to_ident_string().starts_with('_')
+            && !in_automatically_derived(cx.tcx, local.hir_id)
+        {
+            if let Some(l) = self.local_bindings.last_mut() {
+                l.push(hir_id);
+                self.underscore_bindings.insert(hir_id, ident.span);
             }
+            return true;
         }
         false
     }
@@ -223,10 +221,16 @@ fn is_operator_overridden(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
     }
 }
 
+/// Checks if dropping `expr` might have a visible side effect.
+fn expr_ty_has_significant_drop(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    let ty = cx.typeck_results().expr_ty(expr);
+    ty.has_significant_drop(cx.tcx, cx.typing_env())
+}
+
 fn has_no_effect(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
     match expr.kind {
         ExprKind::Lit(..) | ExprKind::Closure { .. } => true,
-        ExprKind::Path(..) => !has_drop(cx, cx.typeck_results().expr_ty(expr)),
+        ExprKind::Path(..) => !expr_ty_has_significant_drop(cx, expr),
         ExprKind::Index(a, b, _) | ExprKind::Binary(_, a, b) => has_no_effect(cx, a) && has_no_effect(cx, b),
         ExprKind::Array(v) | ExprKind::Tup(v) => v.iter().all(|val| has_no_effect(cx, val)),
         ExprKind::Repeat(inner, _)
@@ -235,10 +239,13 @@ fn has_no_effect(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
         | ExprKind::Unary(_, inner)
         | ExprKind::Field(inner, _)
         | ExprKind::AddrOf(_, _, inner) => has_no_effect(cx, inner),
-        ExprKind::Struct(_, fields, ref base) => {
-            !has_drop(cx, cx.typeck_results().expr_ty(expr))
+        ExprKind::Struct(_, fields, base) => {
+            !expr_ty_has_significant_drop(cx, expr)
                 && fields.iter().all(|field| has_no_effect(cx, field.expr))
-                && base.as_ref().is_none_or(|base| has_no_effect(cx, base))
+                && match &base {
+                    StructTailExpr::None | StructTailExpr::DefaultFields(_) => true,
+                    StructTailExpr::Base(base) => has_no_effect(cx, base),
+                }
         },
         ExprKind::Call(callee, args) => {
             if let ExprKind::Path(ref qpath) = callee.kind {
@@ -251,7 +258,7 @@ fn has_no_effect(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
                     Res::Def(DefKind::Struct | DefKind::Variant | DefKind::Ctor(..), ..)
                 );
                 if def_matched || is_range_literal(expr) {
-                    !has_drop(cx, cx.typeck_results().expr_ty(expr)) && args.iter().all(|arg| has_no_effect(cx, arg))
+                    !expr_ty_has_significant_drop(cx, expr) && args.iter().all(|arg| has_no_effect(cx, arg))
                 } else {
                     false
                 }
@@ -265,7 +272,7 @@ fn has_no_effect(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
 
 fn check_unnecessary_operation(cx: &LateContext<'_>, stmt: &Stmt<'_>) {
     if let StmtKind::Semi(expr) = stmt.kind
-        && !in_external_macro(cx.sess(), stmt.span)
+        && !stmt.span.in_external_macro(cx.sess().source_map())
         && let ctxt = stmt.span.ctxt()
         && expr.span.ctxt() == ctxt
         && let Some(reduced) = reduce_expression(cx, expr)
@@ -333,15 +340,21 @@ fn reduce_expression<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<Vec
         },
         ExprKind::Array(v) | ExprKind::Tup(v) => Some(v.iter().collect()),
         ExprKind::Repeat(inner, _)
-        | ExprKind::Cast(inner, _)
         | ExprKind::Type(inner, _)
         | ExprKind::Unary(_, inner)
         | ExprKind::Field(inner, _)
         | ExprKind::AddrOf(_, _, inner) => reduce_expression(cx, inner).or_else(|| Some(vec![inner])),
+        ExprKind::Cast(inner, _) if expr_type_is_certain(cx, inner) => {
+            reduce_expression(cx, inner).or_else(|| Some(vec![inner]))
+        },
         ExprKind::Struct(_, fields, ref base) => {
             if has_drop(cx, cx.typeck_results().expr_ty(expr)) {
                 None
             } else {
+                let base = match base {
+                    StructTailExpr::Base(base) => Some(base),
+                    StructTailExpr::None | StructTailExpr::DefaultFields(_) => None,
+                };
                 Some(fields.iter().map(|f| &f.expr).chain(base).map(Deref::deref).collect())
             }
         },

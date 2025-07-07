@@ -1,10 +1,10 @@
 use std::ops::Range;
+use std::sync::Arc;
 use std::{io, thread};
 
 use crate::doc::{NEEDLESS_DOCTEST_MAIN, TEST_ATTR_IN_DOCTEST};
 use clippy_utils::diagnostics::span_lint;
 use rustc_ast::{CoroutineKind, Fn, FnRetTy, Item, ItemKind};
-use rustc_data_structures::sync::Lrc;
 use rustc_errors::emitter::HumanEmitter;
 use rustc_errors::{Diag, DiagCtxt};
 use rustc_lint::LateContext;
@@ -13,16 +13,16 @@ use rustc_parse::parser::ForceCollect;
 use rustc_session::parse::ParseSess;
 use rustc_span::edition::Edition;
 use rustc_span::source_map::{FilePathMapping, SourceMap};
-use rustc_span::{FileName, Pos, sym};
+use rustc_span::{FileName, Ident, Pos, sym};
 
 use super::Fragments;
 
-fn get_test_spans(item: &Item, test_attr_spans: &mut Vec<Range<usize>>) {
+fn get_test_spans(item: &Item, ident: Ident, test_attr_spans: &mut Vec<Range<usize>>) {
     test_attr_spans.extend(
         item.attrs
             .iter()
             .find(|attr| attr.has_name(sym::test))
-            .map(|attr| attr.span.lo().to_usize()..item.ident.span.hi().to_usize()),
+            .map(|attr| attr.span.lo().to_usize()..ident.span.hi().to_usize()),
     );
 }
 
@@ -38,16 +38,15 @@ pub fn check(
     // of all `#[test]` attributes in not ignored code examples
     fn check_code_sample(code: String, edition: Edition, ignore: bool) -> (bool, Vec<Range<usize>>) {
         rustc_driver::catch_fatal_errors(|| {
-            rustc_span::create_session_globals_then(edition, None, || {
+            rustc_span::create_session_globals_then(edition, &[], None, || {
                 let mut test_attr_spans = vec![];
                 let filename = FileName::anon_source_code(&code);
 
-                let fallback_bundle =
-                    rustc_errors::fallback_fluent_bundle(rustc_driver::DEFAULT_LOCALE_RESOURCES.to_vec(), false);
-                let emitter = HumanEmitter::new(Box::new(io::sink()), fallback_bundle);
+                let translator = rustc_driver::default_translator();
+                let emitter = HumanEmitter::new(Box::new(io::sink()), translator);
                 let dcx = DiagCtxt::new(Box::new(emitter)).disable_warnings();
-                #[expect(clippy::arc_with_non_send_sync)] // `Lrc` is expected by with_dcx
-                let sm = Lrc::new(SourceMap::new(FilePathMapping::empty()));
+                #[expect(clippy::arc_with_non_send_sync)] // `Arc` is expected by with_dcx
+                let sm = Arc::new(SourceMap::new(FilePathMapping::empty()));
                 let psess = ParseSess::with_dcx(dcx, sm);
 
                 let mut parser = match new_parser_from_source_str(&psess, filename, code) {
@@ -64,11 +63,15 @@ pub fn check(
                     match parser.parse_item(ForceCollect::No) {
                         Ok(Some(item)) => match &item.kind {
                             ItemKind::Fn(box Fn {
-                                sig, body: Some(block), ..
-                            }) if item.ident.name == sym::main => {
+                                ident,
+                                sig,
+                                body: Some(block),
+                                ..
+                            }) if ident.name == sym::main => {
                                 if !ignore {
-                                    get_test_spans(&item, &mut test_attr_spans);
+                                    get_test_spans(&item, *ident, &mut test_attr_spans);
                                 }
+
                                 let is_async = matches!(sig.header.coroutine_kind, Some(CoroutineKind::Async { .. }));
                                 let returns_nothing = match &sig.decl.output {
                                     FnRetTy::Default(..) => true,
@@ -85,11 +88,16 @@ pub fn check(
                                 }
                             },
                             // Another function was found; this case is ignored for needless_doctest_main
-                            ItemKind::Fn(box Fn { .. }) => {
+                            ItemKind::Fn(fn_) => {
                                 eligible = false;
-                                if !ignore {
-                                    get_test_spans(&item, &mut test_attr_spans);
+                                if ignore {
+                                    // If ignore is active invalidating one lint,
+                                    // and we already found another function thus
+                                    // invalidating the other one, we have no
+                                    // business continuing.
+                                    return (false, test_attr_spans);
                                 }
+                                get_test_spans(&item, fn_.ident, &mut test_attr_spans);
                             },
                             // Tests with one of these items are ignored
                             ItemKind::Static(..)
@@ -102,7 +110,10 @@ pub fn check(
                         },
                         Ok(None) => break,
                         Err(e) => {
-                            e.cancel();
+                            // See issue #15041. When calling `.cancel()` on the `Diag`, Clippy will unexpectedly panic
+                            // when the `Diag` is unwinded. Meanwhile, we can just call `.emit()`, since the `DiagCtxt`
+                            // is just a sink, nothing will be printed.
+                            e.emit();
                             return (false, test_attr_spans);
                         },
                     }
@@ -116,6 +127,18 @@ pub fn check(
     }
 
     let trailing_whitespace = text.len() - text.trim_end().len();
+
+    // We currently only test for "fn main". Checking for the real
+    // entrypoint (with tcx.entry_fn(())) in each block would be unnecessarily
+    // expensive, as those are probably intended and relevant. Same goes for
+    // macros and other weird ways of declaring a main function.
+    //
+    // Also, as we only check for attribute names and don't do macro expansion,
+    // we can check only for #[test]
+
+    if !((text.contains("main") && text.contains("fn")) || text.contains("#[test]")) {
+        return;
+    }
 
     // Because of the global session, we need to create a new session in a different thread with
     // the edition we need.

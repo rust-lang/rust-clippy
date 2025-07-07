@@ -1,12 +1,13 @@
-use clippy_utils::consts::{ConstEvalCtxt, Constant, FullInt};
+use clippy_utils::consts::{ConstEvalCtxt, Constant, FullInt, integer_const, is_zero_integer_const};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::{clip, peel_hir_expr_refs, unsext};
+use clippy_utils::{ExprUseNode, clip, expr_use_ctxt, peel_hir_expr_refs, unsext};
 use rustc_errors::Applicability;
-use rustc_hir::{BinOpKind, Expr, ExprKind, Node};
+use rustc_hir::def::{DefKind, Res};
+use rustc_hir::{BinOpKind, Expr, ExprKind, Node, Path, QPath};
 use rustc_lint::LateContext;
 use rustc_middle::ty;
-use rustc_span::Span;
+use rustc_span::{Span, kw};
 
 use super::IDENTITY_OP;
 
@@ -17,7 +18,7 @@ pub(crate) fn check<'tcx>(
     left: &'tcx Expr<'_>,
     right: &'tcx Expr<'_>,
 ) {
-    if !is_allowed(cx, op, left, right) {
+    if !is_allowed(cx, expr, op, left, right) {
         return;
     }
 
@@ -103,7 +104,7 @@ enum Parens {
 ///
 /// e.g. `-(x + y + 0)` cannot be reduced to `-x + y`, as the behavior changes silently.
 /// e.g. `1u64 + ((x + y + 0i32) as u64)` cannot be reduced to `1u64 + x + y as u64`, since
-/// the the cast expression will not apply to the same expression.
+/// the cast expression will not apply to the same expression.
 /// e.g. `0 + if b { 1 } else { 2 } + if b { 3 } else { 4 }` cannot be reduced
 /// to `if b { 1 } else { 2 } + if b { 3 } else { 4 }` where the `if` could be
 /// interpreted as a statement. The same behavior happens for `match`, `loop`,
@@ -120,7 +121,7 @@ fn needs_parenthesis(cx: &LateContext<'_>, binary: &Expr<'_>, child: &Expr<'_>) 
             // the parent HIR node is an expression, or if the parent HIR node
             // is a Block or Stmt, and the new left hand side would need
             // parenthesis be treated as a statement rather than an expression.
-            if let Some((_, parent)) = cx.tcx.hir().parent_iter(binary.hir_id).next() {
+            if let Some((_, parent)) = cx.tcx.hir_parent_iter(binary.hir_id).next() {
                 match parent {
                     Node::Expr(_) => return Parens::Needed,
                     Node::Block(_) | Node::Stmt(_) => {
@@ -142,7 +143,7 @@ fn needs_parenthesis(cx: &LateContext<'_>, binary: &Expr<'_>, child: &Expr<'_>) 
             // This would mean that the rustfix suggestion will appear at the start of a line, which causes
             // these expressions to be interpreted as statements if they do not have parenthesis.
             let mut prev_id = binary.hir_id;
-            for (_, parent) in cx.tcx.hir().parent_iter(binary.hir_id) {
+            for (_, parent) in cx.tcx.hir_parent_iter(binary.hir_id) {
                 if let Node::Expr(expr) = parent
                     && let ExprKind::Binary(_, lhs, _) | ExprKind::Cast(lhs, _) | ExprKind::Unary(_, lhs) = expr.kind
                     && lhs.hir_id == prev_id
@@ -165,14 +166,27 @@ fn needs_parenthesis(cx: &LateContext<'_>, binary: &Expr<'_>, child: &Expr<'_>) 
     Parens::Needed
 }
 
-fn is_allowed(cx: &LateContext<'_>, cmp: BinOpKind, left: &Expr<'_>, right: &Expr<'_>) -> bool {
+fn is_allowed<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'tcx>,
+    cmp: BinOpKind,
+    left: &Expr<'tcx>,
+    right: &Expr<'tcx>,
+) -> bool {
+    // Exclude case where the left or right side is associated function call returns a type which is
+    // `Self` that is not given explicitly, and the expression is not a let binding's init
+    // expression and the let binding has a type annotation, or a function's return value.
+    if (is_assoc_fn_without_type_instance(cx, left) || is_assoc_fn_without_type_instance(cx, right))
+        && !is_expr_used_with_type_annotation(cx, expr)
+    {
+        return false;
+    }
+
     // This lint applies to integers and their references
     cx.typeck_results().expr_ty(left).peel_refs().is_integral()
         && cx.typeck_results().expr_ty(right).peel_refs().is_integral()
         // `1 << 0` is a common pattern in bit manipulation code
-        && !(cmp == BinOpKind::Shl
-            && ConstEvalCtxt::new(cx).eval_simple(right) == Some(Constant::Int(0))
-            && ConstEvalCtxt::new(cx).eval_simple(left) == Some(Constant::Int(1)))
+        && !(cmp == BinOpKind::Shl && is_zero_integer_const(cx, right) && integer_const(cx, left) == Some(1))
 }
 
 fn check_remainder(cx: &LateContext<'_>, left: &Expr<'_>, right: &Expr<'_>, span: Span, arg: Span) {
@@ -233,4 +247,48 @@ fn span_ineffective_operation(
         suggestion,
         applicability,
     );
+}
+
+fn is_expr_used_with_type_annotation<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> bool {
+    match expr_use_ctxt(cx, expr).use_node(cx) {
+        ExprUseNode::LetStmt(letstmt) => letstmt.ty.is_some(),
+        ExprUseNode::Return(_) => true,
+        _ => false,
+    }
+}
+
+/// Check if the expression is an associated function without a type instance.
+/// Example:
+/// ```
+/// trait Def {
+///     fn def() -> Self;
+/// }
+/// impl Def for usize {
+///     fn def() -> Self {
+///         0
+///     }
+/// }
+/// fn test() {
+///     let _ = 0usize + &Default::default();
+///     let _ = 0usize + &Def::def();
+/// }
+/// ```
+fn is_assoc_fn_without_type_instance<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) -> bool {
+    if let ExprKind::Call(func, _) = peel_hir_expr_refs(expr).0.kind
+        && let ExprKind::Path(QPath::Resolved(
+            // If it's not None, don't need to go further.
+            None,
+            Path {
+                res: Res::Def(DefKind::AssocFn, def_id),
+                ..
+            },
+        )) = func.kind
+        && let output_ty = cx.tcx.fn_sig(def_id).instantiate_identity().skip_binder().output()
+        && let ty::Param(ty::ParamTy {
+            name: kw::SelfUpper, ..
+        }) = output_ty.kind()
+    {
+        return true;
+    }
+    false
 }

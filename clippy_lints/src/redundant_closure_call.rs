@@ -5,12 +5,9 @@ use hir::Param;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_hir::intravisit::{Visitor as HirVisitor, Visitor};
-use rustc_hir::{
-    ClosureKind, CoroutineDesugaring, CoroutineKind, CoroutineSource, ExprKind, Node, intravisit as hir_visit,
-};
+use rustc_hir::{ClosureKind, CoroutineDesugaring, CoroutineKind, CoroutineSource, ExprKind, intravisit as hir_visit};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::hir::nested_filter;
-use rustc_middle::lint::in_external_macro;
 use rustc_middle::ty;
 use rustc_session::declare_lint_pass;
 use rustc_span::ExpnKind;
@@ -91,7 +88,7 @@ fn find_innermost_closure<'tcx>(
     let mut data = None;
 
     while let ExprKind::Closure(closure) = expr.kind
-        && let body = cx.tcx.hir().body(closure.body)
+        && let body = cx.tcx.hir_body(closure.body)
         && {
             let mut visitor = ReturnVisitor;
             !visitor.visit_expr(body.value).is_break()
@@ -138,7 +135,7 @@ fn get_parent_call_exprs<'tcx>(
 
 impl<'tcx> LateLintPass<'tcx> for RedundantClosureCall {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'tcx>) {
-        if in_external_macro(cx.sess(), expr.span) {
+        if expr.span.in_external_macro(cx.sess().source_map()) {
             return;
         }
 
@@ -180,7 +177,7 @@ impl<'tcx> LateLintPass<'tcx> for RedundantClosureCall {
                             // Like `async fn`, async closures are wrapped in an additional block
                             // to move all of the closure's arguments into the future.
 
-                            let async_closure_body = cx.tcx.hir().body(closure.body).value;
+                            let async_closure_body = cx.tcx.hir_body(closure.body).value;
                             let ExprKind::Block(block, _) = async_closure_body.kind else {
                                 return;
                             };
@@ -199,16 +196,16 @@ impl<'tcx> LateLintPass<'tcx> for RedundantClosureCall {
                             hint = hint.asyncify();
                         }
 
-                        let is_in_fn_call_arg = if let Node::Expr(expr) = cx.tcx.parent_hir_node(expr.hir_id) {
-                            matches!(expr.kind, ExprKind::Call(_, _))
-                        } else {
-                            false
-                        };
-
-                        // avoid clippy::double_parens
-                        if !is_in_fn_call_arg {
-                            hint = hint.maybe_par();
-                        };
+                        // If the closure body is a block with a single expression, suggest just the inner expression,
+                        // not the block. Example: `(|| { Some(true) })()` should suggest
+                        // `Some(true)`
+                        if let ExprKind::Block(block, _) = body.kind
+                            && block.stmts.is_empty()
+                            && let Some(expr) = block.expr
+                        {
+                            hint = Sugg::hir_with_context(cx, expr, full_expr.span.ctxt(), "..", &mut applicability)
+                                .maybe_paren();
+                        }
 
                         diag.span_suggestion(full_expr.span, "try doing something like", hint, applicability);
                     }
@@ -242,8 +239,8 @@ impl<'tcx> LateLintPass<'tcx> for RedundantClosureCall {
                     hir_visit::walk_expr(self, expr);
                 }
 
-                fn nested_visit_map(&mut self) -> Self::Map {
-                    self.cx.tcx.hir()
+                fn maybe_tcx(&mut self) -> Self::MaybeTyCtxt {
+                    self.cx.tcx
                 }
             }
             let mut closure_usage_count = ClosureUsageCount { cx, path, count: 0 };

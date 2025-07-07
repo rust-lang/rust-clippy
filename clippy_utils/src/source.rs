@@ -2,17 +2,19 @@
 
 #![allow(clippy::module_name_repetitions)]
 
+use std::sync::Arc;
+
 use rustc_ast::{LitKind, StrStyle};
-use rustc_data_structures::sync::Lrc;
 use rustc_errors::Applicability;
 use rustc_hir::{BlockCheckMode, Expr, ExprKind, UnsafeSource};
+use rustc_lexer::{LiteralKind, TokenKind, tokenize};
 use rustc_lint::{EarlyContext, LateContext};
 use rustc_middle::ty::TyCtxt;
 use rustc_session::Session;
 use rustc_span::source_map::{SourceMap, original_sp};
 use rustc_span::{
-    BytePos, DUMMY_SP, FileNameDisplayPreference, Pos, SourceFile, SourceFileAndLine, Span, SpanData, SyntaxContext,
-    hygiene,
+    BytePos, DUMMY_SP, FileNameDisplayPreference, Pos, RelativeBytePos, SourceFile, SourceFileAndLine, Span, SpanData,
+    SyntaxContext, hygiene,
 };
 use std::borrow::Cow;
 use std::fmt;
@@ -136,12 +138,25 @@ pub trait SpanRangeExt: SpanRange {
     fn map_range(
         self,
         cx: &impl HasSession,
-        f: impl for<'a> FnOnce(&'a str, Range<usize>) -> Option<Range<usize>>,
+        f: impl for<'a> FnOnce(&'a SourceFile, &'a str, Range<usize>) -> Option<Range<usize>>,
     ) -> Option<Range<BytePos>> {
         map_range(cx.sess().source_map(), self.into_range(), f)
     }
 
+    #[allow(rustdoc::invalid_rust_codeblocks, reason = "The codeblock is intentionally broken")]
     /// Extends the range to include all preceding whitespace characters.
+    ///
+    /// The range will not be expanded if it would cross a line boundary, the line the range would
+    /// be extended to ends with a line comment and the text after the range contains a
+    /// non-whitespace character on the same line. e.g.
+    ///
+    /// ```ignore
+    /// ( // Some comment
+    /// foo)
+    /// ```
+    ///
+    /// When the range points to `foo`, suggesting to remove the range after it's been extended will
+    /// cause the `)` to be placed inside the line comment as `( // Some comment)`.
     fn with_leading_whitespace(self, cx: &impl HasSession) -> Range<BytePos> {
         with_leading_whitespace(cx.sess().source_map(), self.into_range())
     }
@@ -204,7 +219,7 @@ impl fmt::Display for SourceText {
 fn get_source_range(sm: &SourceMap, sp: Range<BytePos>) -> Option<SourceFileRange> {
     let start = sm.lookup_byte_offset(sp.start);
     let end = sm.lookup_byte_offset(sp.end);
-    if !Lrc::ptr_eq(&start.sf, &end.sf) || start.pos > end.pos {
+    if !Arc::ptr_eq(&start.sf, &end.sf) || start.pos > end.pos {
         return None;
     }
     sm.ensure_source_file_source_present(&start.sf);
@@ -240,11 +255,11 @@ fn with_source_text_and_range<T>(
 fn map_range(
     sm: &SourceMap,
     sp: Range<BytePos>,
-    f: impl for<'a> FnOnce(&'a str, Range<usize>) -> Option<Range<usize>>,
+    f: impl for<'a> FnOnce(&'a SourceFile, &'a str, Range<usize>) -> Option<Range<usize>>,
 ) -> Option<Range<BytePos>> {
     if let Some(src) = get_source_range(sm, sp.clone())
         && let Some(text) = &src.sf.src
-        && let Some(range) = f(text, src.range.clone())
+        && let Some(range) = f(&src.sf, text, src.range.clone())
     {
         debug_assert!(
             range.start <= text.len() && range.end <= text.len(),
@@ -261,15 +276,57 @@ fn map_range(
     }
 }
 
+fn ends_with_line_comment_or_broken(text: &str) -> bool {
+    let Some(last) = tokenize(text).last() else {
+        return false;
+    };
+    match last.kind {
+        // Will give the wrong result on text like `" // "` where the first quote ends a string
+        // started earlier. The only workaround is to lex the whole file which we don't really want
+        // to do.
+        TokenKind::LineComment { .. } | TokenKind::BlockComment { terminated: false, .. } => true,
+        TokenKind::Literal { kind, .. } => matches!(
+            kind,
+            LiteralKind::Byte { terminated: false }
+                | LiteralKind::ByteStr { terminated: false }
+                | LiteralKind::CStr { terminated: false }
+                | LiteralKind::Char { terminated: false }
+                | LiteralKind::RawByteStr { n_hashes: None }
+                | LiteralKind::RawCStr { n_hashes: None }
+                | LiteralKind::RawStr { n_hashes: None }
+        ),
+        _ => false,
+    }
+}
+
+fn with_leading_whitespace_inner(lines: &[RelativeBytePos], src: &str, range: Range<usize>) -> Option<usize> {
+    debug_assert!(lines.is_empty() || lines[0].to_u32() == 0);
+
+    let start = src.get(..range.start)?.trim_end();
+    let next_line = lines.partition_point(|&pos| pos.to_usize() <= start.len());
+    if let Some(line_end) = lines.get(next_line)
+        && line_end.to_usize() <= range.start
+        && let prev_start = lines.get(next_line - 1).map_or(0, |&x| x.to_usize())
+        && ends_with_line_comment_or_broken(&start[prev_start..])
+        && let next_line = lines.partition_point(|&pos| pos.to_usize() < range.end)
+        && let next_start = lines.get(next_line).map_or(src.len(), |&x| x.to_usize())
+        && tokenize(src.get(range.end..next_start)?).any(|t| !matches!(t.kind, TokenKind::Whitespace))
+    {
+        Some(range.start)
+    } else {
+        Some(start.len())
+    }
+}
+
 fn with_leading_whitespace(sm: &SourceMap, sp: Range<BytePos>) -> Range<BytePos> {
-    map_range(sm, sp.clone(), |src, range| {
-        Some(src.get(..range.start)?.trim_end().len()..range.end)
+    map_range(sm, sp.clone(), |sf, src, range| {
+        Some(with_leading_whitespace_inner(sf.lines(), src, range.clone())?..range.end)
     })
     .unwrap_or(sp)
 }
 
 fn trim_start(sm: &SourceMap, sp: Range<BytePos>) -> Range<BytePos> {
-    map_range(sm, sp.clone(), |src, range| {
+    map_range(sm, sp.clone(), |_, src, range| {
         let src = src.get(range.clone())?;
         Some(range.start + (src.len() - src.trim_start().len())..range.end)
     })
@@ -277,7 +334,7 @@ fn trim_start(sm: &SourceMap, sp: Range<BytePos>) -> Range<BytePos> {
 }
 
 pub struct SourceFileRange {
-    pub sf: Lrc<SourceFile>,
+    pub sf: Arc<SourceFile>,
     pub range: Range<usize>,
 }
 impl SourceFileRange {
@@ -293,7 +350,7 @@ impl SourceFileRange {
     }
 }
 
-/// Like `snippet_block`, but add braces if the expr is not an `ExprKind::Block`.
+/// Like `snippet_block`, but add braces if the expr is not an `ExprKind::Block` with no label.
 pub fn expr_block(
     sess: &impl HasSession,
     expr: &Expr<'_>,
@@ -304,10 +361,10 @@ pub fn expr_block(
 ) -> String {
     let (code, from_macro) = snippet_block_with_context(sess, expr.span, outer, default, indent_relative_to, app);
     if !from_macro
-        && let ExprKind::Block(block, _) = expr.kind
+        && let ExprKind::Block(block, None) = expr.kind
         && block.rules != BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided)
     {
-        format!("{code}")
+        code
     } else {
         // FIXME: add extra indent for the unsafe blocks:
         //     original code:   unsafe { ... }
@@ -383,10 +440,10 @@ pub fn snippet_indent(sess: &impl HasSession, span: Span) -> Option<String> {
 // For some reason these attributes don't have any expansion info on them, so
 // we have to check it this way until there is a better way.
 pub fn is_present_in_source(sess: &impl HasSession, span: Span) -> bool {
-    if let Some(snippet) = snippet_opt(sess, span) {
-        if snippet.is_empty() {
-            return false;
-        }
+    if let Some(snippet) = snippet_opt(sess, span)
+        && snippet.is_empty()
+    {
+        return false;
     }
     true
 }
@@ -407,11 +464,11 @@ pub fn position_before_rarrow(s: &str) -> Option<usize> {
         let mut rpos = rpos;
         let chars: Vec<char> = s.chars().collect();
         while rpos > 1 {
-            if let Some(c) = chars.get(rpos - 1) {
-                if c.is_whitespace() {
-                    rpos -= 1;
-                    continue;
-                }
+            if let Some(c) = chars.get(rpos - 1)
+                && c.is_whitespace()
+            {
+                rpos -= 1;
+                continue;
             }
             break;
         }
@@ -420,11 +477,10 @@ pub fn position_before_rarrow(s: &str) -> Option<usize> {
 }
 
 /// Reindent a multiline string with possibility of ignoring the first line.
-#[expect(clippy::needless_pass_by_value)]
-pub fn reindent_multiline(s: Cow<'_, str>, ignore_first: bool, indent: Option<usize>) -> Cow<'_, str> {
-    let s_space = reindent_multiline_inner(&s, ignore_first, indent, ' ');
+pub fn reindent_multiline(s: &str, ignore_first: bool, indent: Option<usize>) -> String {
+    let s_space = reindent_multiline_inner(s, ignore_first, indent, ' ');
     let s_tab = reindent_multiline_inner(&s_space, ignore_first, indent, '\t');
-    reindent_multiline_inner(&s_tab, ignore_first, indent, ' ').into()
+    reindent_multiline_inner(&s_tab, ignore_first, indent, ' ')
 }
 
 fn reindent_multiline_inner(s: &str, ignore_first: bool, indent: Option<usize>, ch: char) -> String {
@@ -552,42 +608,37 @@ pub fn snippet_opt(sess: &impl HasSession, span: Span) -> Option<String> {
 ///     } // aligned with `if`
 /// ```
 /// Note that the first line of the snippet always has 0 indentation.
-pub fn snippet_block<'a>(
-    sess: &impl HasSession,
-    span: Span,
-    default: &'a str,
-    indent_relative_to: Option<Span>,
-) -> Cow<'a, str> {
+pub fn snippet_block(sess: &impl HasSession, span: Span, default: &str, indent_relative_to: Option<Span>) -> String {
     let snip = snippet(sess, span, default);
     let indent = indent_relative_to.and_then(|s| indent_of(sess, s));
-    reindent_multiline(snip, true, indent)
+    reindent_multiline(&snip, true, indent)
 }
 
 /// Same as `snippet_block`, but adapts the applicability level by the rules of
 /// `snippet_with_applicability`.
-pub fn snippet_block_with_applicability<'a>(
+pub fn snippet_block_with_applicability(
     sess: &impl HasSession,
     span: Span,
-    default: &'a str,
+    default: &str,
     indent_relative_to: Option<Span>,
     applicability: &mut Applicability,
-) -> Cow<'a, str> {
+) -> String {
     let snip = snippet_with_applicability(sess, span, default, applicability);
     let indent = indent_relative_to.and_then(|s| indent_of(sess, s));
-    reindent_multiline(snip, true, indent)
+    reindent_multiline(&snip, true, indent)
 }
 
-pub fn snippet_block_with_context<'a>(
+pub fn snippet_block_with_context(
     sess: &impl HasSession,
     span: Span,
     outer: SyntaxContext,
-    default: &'a str,
+    default: &str,
     indent_relative_to: Option<Span>,
     app: &mut Applicability,
-) -> (Cow<'a, str>, bool) {
+) -> (String, bool) {
     let (snip, from_macro) = snippet_with_context(sess, span, outer, default, app);
     let indent = indent_relative_to.and_then(|s| indent_of(sess, s));
-    (reindent_multiline(snip, true, indent), from_macro)
+    (reindent_multiline(&snip, true, indent), from_macro)
 }
 
 /// Same as `snippet_with_applicability`, but first walks the span up to the given context.
@@ -726,12 +777,15 @@ pub fn str_literal_to_char_literal(
             &snip[1..(snip.len() - 1)]
         };
 
-        let hint = format!("'{}'", match ch {
-            "'" => "\\'",
-            r"\" => "\\\\",
-            "\\\"" => "\"", // no need to escape `"` in `'"'`
-            _ => ch,
-        });
+        let hint = format!(
+            "'{}'",
+            match ch {
+                "'" => "\\'",
+                r"\" => "\\\\",
+                "\\\"" => "\"", // no need to escape `"` in `'"'`
+                _ => ch,
+            }
+        );
 
         Some(hint)
     } else {
@@ -745,11 +799,11 @@ mod test {
 
     #[test]
     fn test_reindent_multiline_single_line() {
-        assert_eq!("", reindent_multiline("".into(), false, None));
-        assert_eq!("...", reindent_multiline("...".into(), false, None));
-        assert_eq!("...", reindent_multiline("    ...".into(), false, None));
-        assert_eq!("...", reindent_multiline("\t...".into(), false, None));
-        assert_eq!("...", reindent_multiline("\t\t...".into(), false, None));
+        assert_eq!("", reindent_multiline("", false, None));
+        assert_eq!("...", reindent_multiline("...", false, None));
+        assert_eq!("...", reindent_multiline("    ...", false, None));
+        assert_eq!("...", reindent_multiline("\t...", false, None));
+        assert_eq!("...", reindent_multiline("\t\t...", false, None));
     }
 
     #[test]
@@ -764,7 +818,7 @@ mod test {
             y
         } else {
             z
-        }".into(), false, None));
+        }", false, None));
         assert_eq!("\
     if x {
     \ty
@@ -774,7 +828,7 @@ mod test {
         \ty
         } else {
         \tz
-        }".into(), false, None));
+        }", false, None));
     }
 
     #[test]
@@ -791,7 +845,7 @@ mod test {
 
         } else {
             z
-        }".into(), false, None));
+        }", false, None));
     }
 
     #[test]
@@ -807,6 +861,6 @@ mod test {
         y
     } else {
         z
-    }".into(), true, Some(8)));
+    }", true, Some(8)));
     }
 }

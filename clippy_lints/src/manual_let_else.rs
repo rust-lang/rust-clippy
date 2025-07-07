@@ -4,13 +4,15 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::higher::IfLetOrMatch;
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::ty::is_type_diagnostic_item;
-use clippy_utils::{is_lint_allowed, is_never_expr, msrvs, pat_and_expr_can_be_question_mark, peel_blocks};
-use rustc_data_structures::fx::{FxHashMap, FxHashSet};
+use clippy_utils::{
+    MaybePath, is_lint_allowed, is_never_expr, is_wild, msrvs, pat_and_expr_can_be_question_mark, path_res, peel_blocks,
+};
+use rustc_ast::BindingMode;
+use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
-use rustc_hir::{Expr, ExprKind, MatchSource, Pat, PatKind, QPath, Stmt, StmtKind};
+use rustc_hir::def::{CtorOf, DefKind, Res};
+use rustc_hir::{Arm, Expr, ExprKind, HirId, MatchSource, Pat, PatExpr, PatExprKind, PatKind, QPath, Stmt, StmtKind};
 use rustc_lint::{LateContext, LintContext};
-use rustc_middle::lint::in_external_macro;
-
 use rustc_span::Span;
 use rustc_span::symbol::{Symbol, sym};
 use std::slice;
@@ -54,8 +56,8 @@ impl<'tcx> QuestionMark {
             && local.ty.is_none()
             && init.span.eq_ctxt(stmt.span)
             && let Some(if_let_or_match) = IfLetOrMatch::parse(cx, init)
-            && self.msrv.meets(msrvs::LET_ELSE)
-            && !in_external_macro(cx.sess(), stmt.span)
+            && !stmt.span.in_external_macro(cx.sess().source_map())
+            && self.msrv.meets(cx, msrvs::LET_ELSE)
         {
             match if_let_or_match {
                 IfLetOrMatch::IfLet(if_let_expr, let_pat, if_then, if_else, ..) => {
@@ -91,14 +93,15 @@ impl<'tcx> QuestionMark {
                     let Some((idx, diverging_arm)) = diverging_arm_opt else {
                         return;
                     };
+
+                    let pat_arm = &arms[1 - idx];
                     // If the non-diverging arm is the first one, its pattern can be reused in a let/else statement.
                     // However, if it arrives in second position, its pattern may cover some cases already covered
                     // by the diverging one.
-                    // TODO: accept the non-diverging arm as a second position if patterns are disjointed.
-                    if idx == 0 {
+                    if idx == 0 && !is_arms_disjointed(cx, diverging_arm, pat_arm) {
                         return;
                     }
-                    let pat_arm = &arms[1 - idx];
+
                     let Some(ident_map) = expr_simple_identity_map(local.pat, pat_arm.pat, pat_arm.body) else {
                         return;
                     };
@@ -106,15 +109,72 @@ impl<'tcx> QuestionMark {
                     emit_manual_let_else(cx, stmt.span, match_expr, &ident_map, pat_arm.pat, diverging_arm.body);
                 },
             }
-        };
+        }
     }
+}
+
+/// Checks if the patterns of the arms are disjointed. Currently, we only support patterns of simple
+/// enum variants without nested patterns or bindings.
+///
+/// TODO: Support more complex patterns.
+fn is_arms_disjointed(cx: &LateContext<'_>, arm1: &Arm<'_>, arm2: &Arm<'_>) -> bool {
+    if arm1.guard.is_some() || arm2.guard.is_some() {
+        return false;
+    }
+
+    if !is_enum_variant(cx, arm1.pat) || !is_enum_variant(cx, arm2.pat) {
+        return false;
+    }
+
+    true
+}
+
+/// Returns `true` if the given pattern is a variant of an enum.
+pub fn is_enum_variant(cx: &LateContext<'_>, pat: &Pat<'_>) -> bool {
+    struct Pat<'hir>(&'hir rustc_hir::Pat<'hir>);
+
+    impl<'hir> MaybePath<'hir> for Pat<'hir> {
+        fn qpath_opt(&self) -> Option<&QPath<'hir>> {
+            match self.0.kind {
+                PatKind::Struct(ref qpath, fields, _)
+                    if fields
+                        .iter()
+                        .all(|field| is_wild(field.pat) || matches!(field.pat.kind, PatKind::Binding(..))) =>
+                {
+                    Some(qpath)
+                },
+                PatKind::TupleStruct(ref qpath, pats, _)
+                    if pats
+                        .iter()
+                        .all(|pat| is_wild(pat) || matches!(pat.kind, PatKind::Binding(..))) =>
+                {
+                    Some(qpath)
+                },
+                PatKind::Expr(&PatExpr {
+                    kind: PatExprKind::Path(ref qpath),
+                    ..
+                }) => Some(qpath),
+                _ => None,
+            }
+        }
+
+        fn hir_id(&self) -> HirId {
+            self.0.hir_id
+        }
+    }
+
+    let res = path_res(cx, &Pat(pat));
+    matches!(
+        res,
+        Res::Def(DefKind::Variant, ..) | Res::Def(DefKind::Ctor(CtorOf::Variant, _), _)
+    )
 }
 
 fn emit_manual_let_else(
     cx: &LateContext<'_>,
     span: Span,
     expr: &Expr<'_>,
-    ident_map: &FxHashMap<Symbol, &Pat<'_>>,
+    ident_map: &FxHashMap<Symbol, (&Pat<'_>, BindingMode)>,
     pat: &Pat<'_>,
     else_body: &Expr<'_>,
 ) {
@@ -168,7 +228,7 @@ fn emit_manual_let_else(
 fn replace_in_pattern(
     cx: &LateContext<'_>,
     span: Span,
-    ident_map: &FxHashMap<Symbol, &Pat<'_>>,
+    ident_map: &FxHashMap<Symbol, (&Pat<'_>, BindingMode)>,
     pat: &Pat<'_>,
     app: &mut Applicability,
     top_level: bool,
@@ -185,16 +245,36 @@ fn replace_in_pattern(
         }
 
         match pat.kind {
-            PatKind::Binding(_ann, _id, binding_name, opt_subpt) => {
-                let Some(pat_to_put) = ident_map.get(&binding_name.name) else {
-                    break 'a;
-                };
-                let (sn_ptp, _) = snippet_with_context(cx, pat_to_put.span, span.ctxt(), "", app);
-                if let Some(subpt) = opt_subpt {
-                    let subpt = replace_in_pattern(cx, span, ident_map, subpt, app, false);
-                    return format!("{sn_ptp} @ {subpt}");
+            PatKind::Binding(ann, _id, binding_name, opt_subpt) => {
+                match (ident_map.get(&binding_name.name), opt_subpt) {
+                    (Some((pat_to_put, binding_mode)), opt_subpt) => {
+                        let sn_pfx = binding_mode.prefix_str();
+                        let (sn_ptp, _) = snippet_with_context(cx, pat_to_put.span, span.ctxt(), "", app);
+                        if let Some(subpt) = opt_subpt {
+                            let subpt = replace_in_pattern(cx, span, ident_map, subpt, app, false);
+                            return format!("{sn_pfx}{sn_ptp} @ {subpt}");
+                        }
+                        return format!("{sn_pfx}{sn_ptp}");
+                    },
+                    (None, Some(subpt)) => {
+                        let subpt = replace_in_pattern(cx, span, ident_map, subpt, app, false);
+                        // scanning for a value that matches is not sensitive to order
+                        #[expect(rustc::potential_query_instability)]
+                        if ident_map.values().any(|(other_pat, _)| {
+                            if let PatKind::Binding(_, _, other_name, _) = other_pat.kind {
+                                other_name == binding_name
+                            } else {
+                                false
+                            }
+                        }) {
+                            // this name is shadowed, and, therefore, not usable
+                            return subpt;
+                        }
+                        let binding_pfx = ann.prefix_str();
+                        return format!("{binding_pfx}{binding_name} @ {subpt}");
+                    },
+                    (None, None) => break 'a,
                 }
-                return sn_ptp.to_string();
             },
             PatKind::Or(pats) => {
                 let patterns = pats
@@ -212,17 +292,18 @@ fn replace_in_pattern(
                     .iter()
                     .map(|fld| {
                         if let PatKind::Binding(_, _, name, None) = fld.pat.kind
-                            && let Some(pat_to_put) = ident_map.get(&name.name)
+                            && let Some((pat_to_put, binding_mode)) = ident_map.get(&name.name)
                         {
+                            let sn_pfx = binding_mode.prefix_str();
                             let (sn_fld_name, _) = snippet_with_context(cx, fld.ident.span, span.ctxt(), "", app);
                             let (sn_ptp, _) = snippet_with_context(cx, pat_to_put.span, span.ctxt(), "", app);
                             // TODO: this is a bit of a hack, but it does its job. Ideally, we'd check if pat_to_put is
                             // a PatKind::Binding but that is also hard to get right.
                             if sn_fld_name == sn_ptp {
                                 // Field init shorthand
-                                return format!("{sn_fld_name}");
+                                return format!("{sn_pfx}{sn_fld_name}");
                             }
-                            return format!("{sn_fld_name}: {sn_ptp}");
+                            return format!("{sn_fld_name}: {sn_pfx}{sn_ptp}");
                         }
                         let (sn_fld, _) = snippet_with_context(cx, fld.span, span.ctxt(), "", app);
                         sn_fld.into_owned()
@@ -292,10 +373,15 @@ fn pat_allowed_for_else(cx: &LateContext<'_>, pat: &'_ Pat<'_>, check_types: boo
         // Only do the check if the type is "spelled out" in the pattern
         if !matches!(
             pat.kind,
-            PatKind::Struct(..) | PatKind::TupleStruct(..) | PatKind::Path(..)
+            PatKind::Struct(..)
+                | PatKind::TupleStruct(..)
+                | PatKind::Expr(PatExpr {
+                    kind: PatExprKind::Path(..),
+                    ..
+                },)
         ) {
             return;
-        };
+        }
         let ty = typeck_results.pat_ty(pat);
         // Option and Result are allowed, everything else isn't.
         if !(is_type_diagnostic_item(cx, ty, sym::Option) || is_type_diagnostic_item(cx, ty, sym::Result)) {
@@ -330,7 +416,7 @@ fn expr_simple_identity_map<'a, 'hir>(
     local_pat: &'a Pat<'hir>,
     let_pat: &'_ Pat<'hir>,
     expr: &'_ Expr<'hir>,
-) -> Option<FxHashMap<Symbol, &'a Pat<'hir>>> {
+) -> Option<FxHashMap<Symbol, (&'a Pat<'hir>, BindingMode)>> {
     let peeled = peel_blocks(expr);
     let (sub_pats, paths) = match (local_pat.kind, peeled.kind) {
         (PatKind::Tuple(pats, _), ExprKind::Tup(exprs)) | (PatKind::Slice(pats, ..), ExprKind::Array(exprs)) => {
@@ -347,9 +433,9 @@ fn expr_simple_identity_map<'a, 'hir>(
         return None;
     }
 
-    let mut pat_bindings = FxHashSet::default();
-    let_pat.each_binding_or_first(&mut |_ann, _hir_id, _sp, ident| {
-        pat_bindings.insert(ident);
+    let mut pat_bindings = FxHashMap::default();
+    let_pat.each_binding_or_first(&mut |binding_mode, _hir_id, _sp, ident| {
+        pat_bindings.insert(ident, binding_mode);
     });
     if pat_bindings.len() < paths.len() {
         // This rebinds some bindings from the outer scope, or it repeats some copy-able bindings multiple
@@ -362,12 +448,10 @@ fn expr_simple_identity_map<'a, 'hir>(
     for (sub_pat, path) in sub_pats.iter().zip(paths.iter()) {
         if let ExprKind::Path(QPath::Resolved(_ty, path)) = path.kind
             && let [path_seg] = path.segments
+            && let ident = path_seg.ident
+            && let Some(let_binding_mode) = pat_bindings.remove(&ident)
         {
-            let ident = path_seg.ident;
-            if !pat_bindings.remove(&ident) {
-                return None;
-            }
-            ident_map.insert(ident.name, sub_pat);
+            ident_map.insert(ident.name, (sub_pat, let_binding_mode));
         } else {
             return None;
         }

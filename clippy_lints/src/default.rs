@@ -1,11 +1,10 @@
 use clippy_utils::diagnostics::{span_lint_and_note, span_lint_and_sugg};
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::ty::{has_drop, is_copy};
-use clippy_utils::{contains_name, get_parent_expr, in_automatically_derived, is_from_proc_macro};
+use clippy_utils::{contains_name, get_parent_expr, in_automatically_derived, is_expr_default, is_from_proc_macro};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
-use rustc_hir::def::Res;
-use rustc_hir::{Block, Expr, ExprKind, PatKind, QPath, Stmt, StmtKind};
+use rustc_hir::{Block, Expr, ExprKind, PatKind, QPath, Stmt, StmtKind, StructTailExpr};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_middle::ty::print::with_forced_trimmed_paths;
@@ -129,12 +128,12 @@ impl<'tcx> LateLintPass<'tcx> for Default {
                 // only take bindings to identifiers
                 && let PatKind::Binding(_, binding_id, ident, _) = local.pat.kind
                 // only when assigning `... = Default::default()`
-                && is_expr_default(expr, cx)
+                && is_expr_default(cx, expr)
                 && let binding_type = cx.typeck_results().node_type(binding_id)
                 && let ty::Adt(adt, args) = *binding_type.kind()
                 && adt.is_struct()
                 && let variant = adt.non_enum_variant()
-                && (adt.did().is_local() || !variant.is_field_list_non_exhaustive())
+                && !variant.field_list_has_applicable_non_exhaustive()
                 && let module_did = cx.tcx.parent_module(stmt.hir_id)
                 && variant
                     .fields
@@ -251,19 +250,6 @@ impl<'tcx> LateLintPass<'tcx> for Default {
     }
 }
 
-/// Checks if the given expression is the `default` method belonging to the `Default` trait.
-fn is_expr_default<'tcx>(expr: &'tcx Expr<'tcx>, cx: &LateContext<'tcx>) -> bool {
-    if let ExprKind::Call(fn_expr, []) = &expr.kind
-        && let ExprKind::Path(qpath) = &fn_expr.kind
-        && let Res::Def(_, def_id) = cx.qpath_res(qpath, fn_expr.hir_id)
-    {
-        // right hand side of assignment is `Default::default`
-        cx.tcx.is_diagnostic_item(sym::default_fn, def_id)
-    } else {
-        false
-    }
-}
-
 /// Returns the reassigned field and the assigning expression (right-hand side of assign).
 fn field_reassigned_by_stmt<'tcx>(this: &Stmt<'tcx>, binding_name: Symbol) -> Option<(Ident, &'tcx Expr<'tcx>)> {
     if let StmtKind::Semi(later_expr) = this.kind
@@ -285,7 +271,7 @@ fn field_reassigned_by_stmt<'tcx>(this: &Stmt<'tcx>, binding_name: Symbol) -> Op
 /// Returns whether `expr` is the update syntax base: `Foo { a: 1, .. base }`
 fn is_update_syntax_base<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> bool {
     if let Some(parent) = get_parent_expr(cx, expr)
-        && let ExprKind::Struct(_, _, Some(base)) = parent.kind
+        && let ExprKind::Struct(_, _, StructTailExpr::Base(base)) = parent.kind
     {
         base.hir_id == expr.hir_id
     } else {

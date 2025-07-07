@@ -1,29 +1,30 @@
 #![warn(clippy::ifs_same_cond)]
-#![allow(
-    clippy::if_same_then_else,
-    clippy::comparison_chain,
-    clippy::needless_if,
-    clippy::needless_else
-)] // all empty blocks
+#![allow(clippy::if_same_then_else, clippy::needless_if, clippy::needless_else)] // all empty blocks
 
 fn ifs_same_cond() {
     let a = 0;
     let b = false;
 
     if b {
+        //~^ ifs_same_cond
     } else if b {
-        //~^ ERROR: this `if` has the same condition as a previous `if`
+    }
+
+    if b {
+        //~^ ifs_same_cond
+    } else if b {
+    } else if b {
     }
 
     if a == 1 {
+        //~^ ifs_same_cond
     } else if a == 1 {
-        //~^ ERROR: this `if` has the same condition as a previous `if`
     }
 
     if 2 * a == 1 {
+        //~^ ifs_same_cond
     } else if 2 * a == 2 {
     } else if 2 * a == 1 {
-        //~^ ERROR: this `if` has the same condition as a previous `if`
     } else if a == 1 {
     }
 
@@ -55,8 +56,9 @@ fn ifs_same_cond() {
 fn issue10272() {
     let a = String::from("ha");
     if a.contains("ah") {
+        //~^ ifs_same_cond
     } else if a.contains("ah") {
-        //~^ ERROR: this `if` has the same condition as a previous `if`
+
         // Trigger this lint
     } else if a.contains("ha") {
     } else if a == "wow" {

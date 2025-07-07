@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint;
-use clippy_utils::{get_trait_def_id, paths};
+use clippy_utils::{paths, sym};
 use rustc_hir::{Impl, Item, ItemKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
@@ -32,27 +32,25 @@ impl<'tcx> LateLintPass<'tcx> for SerdeApi {
         }) = item.kind
         {
             let did = trait_ref.path.res.def_id();
-            if let Some(visit_did) = get_trait_def_id(cx.tcx, &paths::SERDE_DE_VISITOR) {
-                if did == visit_did {
-                    let mut seen_str = None;
-                    let mut seen_string = None;
-                    for item in *items {
-                        match item.ident.as_str() {
-                            "visit_str" => seen_str = Some(item.span),
-                            "visit_string" => seen_string = Some(item.span),
-                            _ => {},
-                        }
+            if paths::SERDE_DE_VISITOR.matches(cx, did) {
+                let mut seen_str = None;
+                let mut seen_string = None;
+                for item in *items {
+                    match item.ident.name {
+                        sym::visit_str => seen_str = Some(item.span),
+                        sym::visit_string => seen_string = Some(item.span),
+                        _ => {},
                     }
-                    if let Some(span) = seen_string {
-                        if seen_str.is_none() {
-                            span_lint(
-                                cx,
-                                SERDE_API_MISUSE,
-                                span,
-                                "you should not implement `visit_string` without also implementing `visit_str`",
-                            );
-                        }
-                    }
+                }
+                if let Some(span) = seen_string
+                    && seen_str.is_none()
+                {
+                    span_lint(
+                        cx,
+                        SERDE_API_MISUSE,
+                        span,
+                        "you should not implement `visit_string` without also implementing `visit_str`",
+                    );
                 }
             }
         }

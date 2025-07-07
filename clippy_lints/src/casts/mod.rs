@@ -1,3 +1,4 @@
+mod as_pointer_underscore;
 mod as_ptr_cast_mut;
 mod as_underscore;
 mod borrow_as_ptr;
@@ -13,9 +14,11 @@ mod cast_sign_loss;
 mod cast_slice_different_sizes;
 mod cast_slice_from_raw_parts;
 mod char_lit_as_u8;
+mod confusing_method_to_numeric_cast;
 mod fn_to_numeric_cast;
 mod fn_to_numeric_cast_any;
 mod fn_to_numeric_cast_with_truncation;
+mod manual_dangling_ptr;
 mod ptr_as_ptr;
 mod ptr_cast_constness;
 mod ref_as_ptr;
@@ -28,7 +31,6 @@ use clippy_utils::is_hir_ty_cfg_dependant;
 use clippy_utils::msrvs::{self, Msrv};
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
-use rustc_middle::lint::in_external_macro;
 use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
@@ -71,7 +73,7 @@ declare_clippy_lint! {
     /// ### Example
     /// ```no_run
     /// let y: i8 = -1;
-    /// y as u128; // will return 18446744073709551615
+    /// y as u64; // will return 18446744073709551615
     /// ```
     #[clippy::version = "pre 1.29.0"]
     pub CAST_SIGN_LOSS,
@@ -134,8 +136,14 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```no_run
-    /// u32::MAX as i32; // will yield a value of `-1`
+    /// let _ = u32::MAX as i32; // will yield a value of `-1`
     /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// let _ = i32::try_from(u32::MAX).ok();
+    /// ```
+    ///
     #[clippy::version = "pre 1.29.0"]
     pub CAST_POSSIBLE_WRAP,
     pedantic,
@@ -574,13 +582,13 @@ declare_clippy_lint! {
 declare_clippy_lint! {
     /// ### What it does
     /// Checks for the usage of `&expr as *const T` or
-    /// `&mut expr as *mut T`, and suggest using `ptr::addr_of` or
-    /// `ptr::addr_of_mut` instead.
+    /// `&mut expr as *mut T`, and suggest using `&raw const` or
+    /// `&raw mut` instead.
     ///
     /// ### Why is this bad?
     /// This would improve readability and avoid creating a reference
     /// that points to an uninitialized value or unaligned place.
-    /// Read the `ptr::addr_of` docs for more information.
+    /// Read the `&raw` explanation in the Reference for more information.
     ///
     /// ### Example
     /// ```no_run
@@ -593,10 +601,10 @@ declare_clippy_lint! {
     /// Use instead:
     /// ```no_run
     /// let val = 1;
-    /// let p = std::ptr::addr_of!(val);
+    /// let p = &raw const val;
     ///
     /// let mut val_mut = 1;
-    /// let p_mut = std::ptr::addr_of_mut!(val_mut);
+    /// let p_mut = &raw mut val_mut;
     /// ```
     #[clippy::version = "1.60.0"]
     pub BORROW_AS_PTR,
@@ -726,15 +734,92 @@ declare_clippy_lint! {
     "using `as` to cast a reference to pointer"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for the usage of `as *const _` or `as *mut _` conversion using inferred type.
+    ///
+    /// ### Why restrict this?
+    /// The conversion might include a dangerous cast that might go undetected due to the type being inferred.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// fn as_usize<T>(t: &T) -> usize {
+    ///     // BUG: `t` is already a reference, so we will here
+    ///     // return a dangling pointer to a temporary value instead
+    ///     &t as *const _ as usize
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// fn as_usize<T>(t: &T) -> usize {
+    ///     t as *const T as usize
+    /// }
+    /// ```
+    #[clippy::version = "1.85.0"]
+    pub AS_POINTER_UNDERSCORE,
+    restriction,
+    "detects `as *mut _` and `as *const _` conversion"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for casts of small constant literals or `mem::align_of` results to raw pointers.
+    ///
+    /// ### Why is this bad?
+    /// This creates a dangling pointer and is better expressed as
+    /// {`std`, `core`}`::ptr::`{`dangling`, `dangling_mut`}.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let ptr = 4 as *const u32;
+    /// let aligned = std::mem::align_of::<u32>() as *const u32;
+    /// let mut_ptr: *mut i64 = 8 as *mut _;
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let ptr = std::ptr::dangling::<u32>();
+    /// let aligned = std::ptr::dangling::<u32>();
+    /// let mut_ptr: *mut i64 = std::ptr::dangling_mut();
+    /// ```
+    #[clippy::version = "1.88.0"]
+    pub MANUAL_DANGLING_PTR,
+    style,
+    "casting small constant literals to pointers to create dangling pointers"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for casts of a primitive method pointer like `max`/`min` to any integer type.
+    ///
+    /// ### Why restrict this?
+    /// Casting a function pointer to an integer can have surprising results and can occur
+    /// accidentally if parentheses are omitted from a function call. If you aren't doing anything
+    /// low-level with function pointers then you can opt out of casting functions to integers in
+    /// order to avoid mistakes. Alternatively, you can use this lint to audit all uses of function
+    /// pointer casts in your code.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let _ = u16::max as usize;
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// let _ = u16::MAX as usize;
+    /// ```
+    #[clippy::version = "1.86.0"]
+    pub CONFUSING_METHOD_TO_NUMERIC_CAST,
+    suspicious,
+    "casting a primitive method pointer to any integer type"
+}
+
 pub struct Casts {
     msrv: Msrv,
 }
 
 impl Casts {
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: conf.msrv.clone(),
-        }
+        Self { msrv: conf.msrv }
     }
 }
 
@@ -763,11 +848,14 @@ impl_lint_pass!(Casts => [
     CAST_NAN_TO_INT,
     ZERO_PTR,
     REF_AS_PTR,
+    AS_POINTER_UNDERSCORE,
+    MANUAL_DANGLING_PTR,
+    CONFUSING_METHOD_TO_NUMERIC_CAST,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Casts {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        if in_external_macro(cx.sess(), expr.span) {
+        if expr.span.in_external_macro(cx.sess().source_map()) {
             return;
         }
 
@@ -783,13 +871,18 @@ impl<'tcx> LateLintPass<'tcx> for Casts {
             if !expr.span.from_expansion() && unnecessary_cast::check(cx, expr, cast_from_expr, cast_from, cast_to) {
                 return;
             }
-            cast_slice_from_raw_parts::check(cx, expr, cast_from_expr, cast_to, &self.msrv);
-            ptr_cast_constness::check(cx, expr, cast_from_expr, cast_from, cast_to, &self.msrv);
+            cast_slice_from_raw_parts::check(cx, expr, cast_from_expr, cast_to, self.msrv);
+            ptr_cast_constness::check(cx, expr, cast_from_expr, cast_from, cast_to, self.msrv);
             as_ptr_cast_mut::check(cx, expr, cast_from_expr, cast_to);
             fn_to_numeric_cast_any::check(cx, expr, cast_from_expr, cast_from, cast_to);
+            confusing_method_to_numeric_cast::check(cx, expr, cast_from_expr, cast_from, cast_to);
             fn_to_numeric_cast::check(cx, expr, cast_from_expr, cast_from, cast_to);
             fn_to_numeric_cast_with_truncation::check(cx, expr, cast_from_expr, cast_from, cast_to);
-            zero_ptr::check(cx, expr, cast_from_expr, cast_to_hir);
+            zero_ptr::check(cx, expr, cast_from_expr, cast_to_hir, self.msrv);
+
+            if self.msrv.meets(cx, msrvs::MANUAL_DANGLING_PTR) {
+                manual_dangling_ptr::check(cx, expr, cast_from_expr, cast_to_hir);
+            }
 
             if cast_to.is_numeric() {
                 cast_possible_truncation::check(cx, expr, cast_from_expr, cast_from, cast_to, cast_to_hir.span);
@@ -797,28 +890,30 @@ impl<'tcx> LateLintPass<'tcx> for Casts {
                     cast_possible_wrap::check(cx, expr, cast_from, cast_to);
                     cast_precision_loss::check(cx, expr, cast_from, cast_to);
                     cast_sign_loss::check(cx, expr, cast_from_expr, cast_from, cast_to);
-                    cast_abs_to_unsigned::check(cx, expr, cast_from_expr, cast_from, cast_to, &self.msrv);
+                    cast_abs_to_unsigned::check(cx, expr, cast_from_expr, cast_from, cast_to, self.msrv);
                     cast_nan_to_int::check(cx, expr, cast_from_expr, cast_from, cast_to);
                 }
-                cast_lossless::check(cx, expr, cast_from_expr, cast_from, cast_to, cast_to_hir, &self.msrv);
+                cast_lossless::check(cx, expr, cast_from_expr, cast_from, cast_to, cast_to_hir, self.msrv);
                 cast_enum_constructor::check(cx, expr, cast_from_expr, cast_from);
             }
 
             as_underscore::check(cx, expr, cast_to_hir);
+            as_pointer_underscore::check(cx, cast_to, cast_to_hir);
 
-            if self.msrv.meets(msrvs::PTR_FROM_REF) {
+            let was_borrow_as_ptr_emitted = self.msrv.meets(cx, msrvs::BORROW_AS_PTR)
+                && borrow_as_ptr::check(cx, expr, cast_from_expr, cast_to_hir, self.msrv);
+            if !was_borrow_as_ptr_emitted && self.msrv.meets(cx, msrvs::PTR_FROM_REF) {
                 ref_as_ptr::check(cx, expr, cast_from_expr, cast_to_hir);
-            } else if self.msrv.meets(msrvs::BORROW_AS_PTR) {
-                borrow_as_ptr::check(cx, expr, cast_from_expr, cast_to_hir);
             }
         }
 
+        if self.msrv.meets(cx, msrvs::RAW_REF_OP) {
+            borrow_as_ptr::check_implicit_cast(cx, expr);
+        }
         cast_ptr_alignment::check(cx, expr);
         char_lit_as_u8::check(cx, expr);
-        ptr_as_ptr::check(cx, expr, &self.msrv);
-        cast_slice_different_sizes::check(cx, expr, &self.msrv);
+        ptr_as_ptr::check(cx, expr, self.msrv);
+        cast_slice_different_sizes::check(cx, expr, self.msrv);
         ptr_cast_constness::check_null_ptr_cast_method(cx, expr);
     }
-
-    extract_msrv_attr!(LateContext);
 }

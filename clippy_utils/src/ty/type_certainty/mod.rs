@@ -11,14 +11,14 @@
 //! As a heuristic, `expr_type_is_certain` may produce false negatives, but a false positive should
 //! be considered a bug.
 
-use crate::def_path_res;
+use crate::paths::{PathNS, lookup_path};
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefId;
-use rustc_hir::intravisit::{Visitor, walk_qpath, walk_ty};
-use rustc_hir::{self as hir, Expr, ExprKind, GenericArgs, HirId, Node, PathSegment, QPath, TyKind};
+use rustc_hir::intravisit::{InferKind, Visitor, VisitorExt, walk_qpath, walk_ty};
+use rustc_hir::{self as hir, AmbigArg, Expr, ExprKind, GenericArgs, HirId, Node, PathSegment, QPath, TyKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, AdtDef, GenericArgKind, Ty};
-use rustc_span::{Span, Symbol};
+use rustc_span::Span;
 
 mod certainty;
 use certainty::{Certainty, Meet, join, meet};
@@ -55,7 +55,7 @@ fn expr_type_certainty(cx: &LateContext<'_>, expr: &Expr<'_>) -> Certainty {
                 && let Some(self_ty_def_id) = adt_def_id(self_ty(cx, method_def_id))
             {
                 receiver_type_certainty = receiver_type_certainty.with_def_id(self_ty_def_id);
-            };
+            }
             let lhs = path_segment_certainty(cx, receiver_type_certainty, method, false);
             let rhs = if type_is_inferable_from_arguments(cx, expr) {
                 meet(
@@ -116,13 +116,14 @@ impl<'cx> Visitor<'cx> for CertaintyVisitor<'cx, '_> {
         }
     }
 
-    fn visit_ty(&mut self, ty: &'cx hir::Ty<'_>) {
-        if matches!(ty.kind, TyKind::Infer) {
-            self.certainty = Certainty::Uncertain;
-        }
+    fn visit_ty(&mut self, ty: &'cx hir::Ty<'_, AmbigArg>) {
         if self.certainty != Certainty::Uncertain {
             walk_ty(self, ty);
         }
+    }
+
+    fn visit_infer(&mut self, _inf_id: HirId, _inf_span: Span, _kind: InferKind<'cx>) -> Self::Result {
+        self.certainty = Certainty::Uncertain;
     }
 }
 
@@ -139,7 +140,7 @@ fn type_certainty(cx: &LateContext<'_>, ty: &hir::Ty<'_>) -> Certainty {
     }
 
     let mut visitor = CertaintyVisitor::new(cx);
-    visitor.visit_ty(ty);
+    visitor.visit_ty_unambig(ty);
     visitor.certainty
 }
 
@@ -193,7 +194,7 @@ fn path_segment_certainty(
     path_segment: &PathSegment<'_>,
     resolves_to_type: bool,
 ) -> Certainty {
-    let certainty = match update_res(cx, parent_certainty, path_segment).unwrap_or(path_segment.res) {
+    let certainty = match update_res(cx, parent_certainty, path_segment, resolves_to_type).unwrap_or(path_segment.res) {
         // A definition's type is certain if it refers to something without generics (e.g., a crate or module, or
         // an unparameterized type), or the generics are instantiated with arguments that are certain.
         //
@@ -266,17 +267,24 @@ fn path_segment_certainty(
 
 /// For at least some `QPath::TypeRelative`, the path segment's `res` can be `Res::Err`.
 /// `update_res` tries to fix the resolution when `parent_certainty` is `Certain(Some(..))`.
-fn update_res(cx: &LateContext<'_>, parent_certainty: Certainty, path_segment: &PathSegment<'_>) -> Option<Res> {
+fn update_res(
+    cx: &LateContext<'_>,
+    parent_certainty: Certainty,
+    path_segment: &PathSegment<'_>,
+    resolves_to_type: bool,
+) -> Option<Res> {
     if path_segment.res == Res::Err
         && let Some(def_id) = parent_certainty.to_def_id()
     {
         let mut def_path = cx.get_def_path(def_id);
         def_path.push(path_segment.ident.name);
-        let reses = def_path_res(cx.tcx, &def_path.iter().map(Symbol::as_str).collect::<Vec<_>>());
-        if let [res] = reses.as_slice() { Some(*res) } else { None }
-    } else {
-        None
+        let ns = if resolves_to_type { PathNS::Type } else { PathNS::Value };
+        if let &[id] = lookup_path(cx.tcx, ns, &def_path).as_slice() {
+            return Some(Res::Def(cx.tcx.def_kind(id), id));
+        }
     }
+
+    None
 }
 
 #[allow(clippy::cast_possible_truncation)]
@@ -318,5 +326,5 @@ fn adt_def_id(ty: Ty<'_>) -> Option<DefId> {
 
 fn contains_param(ty: Ty<'_>, index: u32) -> bool {
     ty.walk()
-        .any(|arg| matches!(arg.unpack(), GenericArgKind::Type(ty) if ty.is_param(index)))
+        .any(|arg| matches!(arg.kind(), GenericArgKind::Type(ty) if ty.is_param(index)))
 }

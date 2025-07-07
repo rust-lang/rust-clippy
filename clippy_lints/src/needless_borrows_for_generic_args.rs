@@ -9,7 +9,7 @@ use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_hir::{Body, Expr, ExprKind, Mutability, Path, QPath};
-use rustc_index::bit_set::BitSet;
+use rustc_index::bit_set::DenseBitSet;
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::mir::{Rvalue, StatementKind};
@@ -72,7 +72,7 @@ impl NeedlessBorrowsForGenericArgs<'_> {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
             possible_borrowers: Vec::new(),
-            msrv: conf.msrv.clone(),
+            msrv: conf.msrv,
         }
     }
 }
@@ -85,8 +85,8 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessBorrowsForGenericArgs<'tcx> {
             && use_cx.same_ctxt
             && !use_cx.is_ty_unified
             && let use_node = use_cx.use_node(cx)
-            && let Some(DefinedTy::Mir(ty)) = use_node.defined_ty(cx)
-            && let ty::Param(ty) = *ty.value.skip_binder().kind()
+            && let Some(DefinedTy::Mir { def_site_def_id: _, ty }) = use_node.defined_ty(cx)
+            && let ty::Param(param_ty) = *ty.skip_binder().kind()
             && let Some((hir_id, fn_id, i)) = match use_node {
                 ExprUseNode::MethodArg(_, _, 0) => None,
                 ExprUseNode::MethodArg(hir_id, None, i) => cx
@@ -112,9 +112,9 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessBorrowsForGenericArgs<'tcx> {
                 fn_id,
                 cx.typeck_results().node_args(hir_id),
                 i,
-                ty,
+                param_ty,
                 expr,
-                &self.msrv,
+                self.msrv,
             )
             && count != 0
         {
@@ -137,13 +137,11 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessBorrowsForGenericArgs<'tcx> {
         if self
             .possible_borrowers
             .last()
-            .is_some_and(|&(local_def_id, _)| local_def_id == cx.tcx.hir().body_owner_def_id(body.id()))
+            .is_some_and(|&(local_def_id, _)| local_def_id == cx.tcx.hir_body_owner_def_id(body.id()))
         {
             self.possible_borrowers.pop();
         }
     }
-
-    extract_msrv_attr!(LateContext);
 }
 
 fn path_has_args(p: &QPath<'_>) -> bool {
@@ -163,7 +161,7 @@ fn path_has_args(p: &QPath<'_>) -> bool {
 ///   - `Copy` itself, or
 ///   - the only use of a mutable reference, or
 ///   - not a variable (created by a function call)
-#[expect(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments, clippy::too_many_lines)]
 fn needless_borrow_count<'tcx>(
     cx: &LateContext<'tcx>,
     possible_borrowers: &mut Vec<(LocalDefId, PossibleBorrowerMap<'tcx, 'tcx>)>,
@@ -172,10 +170,11 @@ fn needless_borrow_count<'tcx>(
     arg_index: usize,
     param_ty: ParamTy,
     mut expr: &Expr<'tcx>,
-    msrv: &Msrv,
+    msrv: Msrv,
 ) -> usize {
     let destruct_trait_def_id = cx.tcx.lang_items().destruct_trait();
     let sized_trait_def_id = cx.tcx.lang_items().sized_trait();
+    let meta_sized_trait_def_id = cx.tcx.lang_items().meta_sized_trait();
     let drop_trait_def_id = cx.tcx.lang_items().drop_trait();
 
     let fn_sig = cx.tcx.fn_sig(fn_id).instantiate_identity().skip_binder();
@@ -211,6 +210,7 @@ fn needless_borrow_count<'tcx>(
         .all(|trait_def_id| {
             Some(trait_def_id) == destruct_trait_def_id
                 || Some(trait_def_id) == sized_trait_def_id
+                || Some(trait_def_id) == meta_sized_trait_def_id
                 || cx.tcx.is_diagnostic_item(sym::Any, trait_def_id)
         })
     {
@@ -232,11 +232,11 @@ fn needless_borrow_count<'tcx>(
     let mut args_with_referent_ty = callee_args.to_vec();
 
     let mut check_reference_and_referent = |reference: &Expr<'tcx>, referent: &Expr<'tcx>| {
-        if let ExprKind::Field(base, _) = &referent.kind {
-            let base_ty = cx.typeck_results().expr_ty(base);
-            if drop_trait_def_id.is_some_and(|id| implements_trait(cx, base_ty, id, &[])) {
-                return false;
-            }
+        if let ExprKind::Field(base, _) = &referent.kind
+            && let base_ty = cx.typeck_results().expr_ty(base)
+            && drop_trait_def_id.is_some_and(|id| implements_trait(cx, base_ty, id, &[]))
+        {
+            return false;
         }
 
         let referent_ty = cx.typeck_results().expr_ty(referent);
@@ -271,9 +271,9 @@ fn needless_borrow_count<'tcx>(
                     .tcx
                     .is_diagnostic_item(sym::IntoIterator, trait_predicate.trait_ref.def_id)
                 && let ty::Param(param_ty) = trait_predicate.self_ty().kind()
-                && let GenericArgKind::Type(ty) = args_with_referent_ty[param_ty.index as usize].unpack()
+                && let GenericArgKind::Type(ty) = args_with_referent_ty[param_ty.index as usize].kind()
                 && ty.is_array()
-                && !msrv.meets(msrvs::ARRAY_INTO_ITERATOR)
+                && !msrv.meets(cx, msrvs::ARRAY_INTO_ITERATOR)
             {
                 return false;
             }
@@ -301,7 +301,7 @@ fn has_ref_mut_self_method(cx: &LateContext<'_>, trait_def_id: DefId) -> bool {
         .associated_items(trait_def_id)
         .in_definition_order()
         .any(|assoc_item| {
-            if assoc_item.fn_has_self_parameter {
+            if assoc_item.is_method() {
                 let self_ty = cx
                     .tcx
                     .fn_sig(assoc_item.def_id)
@@ -359,7 +359,7 @@ fn referent_used_exactly_once<'tcx>(
         && let StatementKind::Assign(box (_, Rvalue::Ref(_, _, place))) = statement.kind
         && !place.is_indirect_first_projection()
     {
-        let body_owner_local_def_id = cx.tcx.hir().enclosing_body_owner(reference.hir_id);
+        let body_owner_local_def_id = cx.tcx.hir_enclosing_body_owner(reference.hir_id);
         if possible_borrowers
             .last()
             .is_none_or(|&(local_def_id, _)| local_def_id != body_owner_local_def_id)
@@ -390,7 +390,7 @@ fn replace_types<'tcx>(
     projection_predicates: &[ProjectionPredicate<'tcx>],
     args: &mut [GenericArg<'tcx>],
 ) -> bool {
-    let mut replaced = BitSet::new_empty(args.len());
+    let mut replaced = DenseBitSet::new_empty(args.len());
 
     let mut deque = VecDeque::with_capacity(args.len());
     deque.push_back((param_ty, new_ty));
@@ -421,7 +421,7 @@ fn replace_types<'tcx>(
                         .expect_ty(cx.tcx)
                         .to_ty(cx.tcx);
 
-                    if let Ok(projected_ty) = cx.tcx.try_normalize_erasing_regions(cx.param_env, projection)
+                    if let Ok(projected_ty) = cx.tcx.try_normalize_erasing_regions(cx.typing_env(), projection)
                         && args[term_param_ty.index as usize] != GenericArg::from(projected_ty)
                     {
                         deque.push_back((*term_param_ty, projected_ty));

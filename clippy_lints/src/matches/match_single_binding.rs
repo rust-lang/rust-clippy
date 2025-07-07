@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::macros::HirNode;
-use clippy_utils::source::{indent_of, snippet, snippet_block_with_context, snippet_with_applicability};
-use clippy_utils::{get_parent_expr, is_refutable, peel_blocks};
+use clippy_utils::source::{indent_of, snippet, snippet_block_with_context, snippet_with_context};
+use clippy_utils::{is_refutable, peel_blocks};
 use rustc_errors::Applicability;
 use rustc_hir::{Arm, Expr, ExprKind, Node, PatKind, StmtKind};
 use rustc_lint::LateContext;
@@ -9,6 +9,7 @@ use rustc_span::Span;
 
 use super::MATCH_SINGLE_BINDING;
 
+#[derive(Debug)]
 enum AssignmentExpr {
     Assign { span: Span, match_span: Span },
     Local { span: Span, pat_span: Span },
@@ -24,16 +25,10 @@ pub(crate) fn check<'a>(cx: &LateContext<'a>, ex: &Expr<'a>, arms: &[Arm<'_>], e
     let bind_names = arms[0].pat.span;
     let match_body = peel_blocks(arms[0].body);
     let mut app = Applicability::MaybeIncorrect;
-    let mut snippet_body = snippet_block_with_context(
-        cx,
-        match_body.span,
-        arms[0].span.ctxt(),
-        "..",
-        Some(expr.span),
-        &mut app,
-    )
-    .0
-    .to_string();
+    let ctxt = expr.span.ctxt();
+    let mut snippet_body = snippet_block_with_context(cx, match_body.span, ctxt, "..", Some(expr.span), &mut app)
+        .0
+        .to_string();
 
     // Do we need to add ';' to suggestion ?
     if let Node::Stmt(stmt) = cx.tcx.parent_hir_node(expr.hir_id)
@@ -77,10 +72,10 @@ pub(crate) fn check<'a>(cx: &LateContext<'a>, ex: &Expr<'a>, arms: &[Arm<'_>], e
                     span,
                     format!(
                         "let {} = {};\n{}let {} = {snippet_body};",
-                        snippet_with_applicability(cx, bind_names, "..", &mut app),
-                        snippet_with_applicability(cx, matched_vars, "..", &mut app),
+                        snippet_with_context(cx, bind_names, ctxt, "..", &mut app).0,
+                        snippet_with_context(cx, matched_vars, ctxt, "..", &mut app).0,
                         " ".repeat(indent_of(cx, expr.span).unwrap_or(0)),
-                        snippet_with_applicability(cx, pat_span, "..", &mut app)
+                        snippet_with_context(cx, pat_span, ctxt, "..", &mut app).0
                     ),
                 ),
                 None => {
@@ -166,6 +161,17 @@ fn opt_parent_assign_span<'a>(cx: &LateContext<'a>, ex: &Expr<'a>) -> Option<Ass
     None
 }
 
+fn expr_parent_requires_curlies<'a>(cx: &LateContext<'a>, match_expr: &Expr<'a>) -> bool {
+    let parent = cx.tcx.parent_hir_node(match_expr.hir_id);
+    matches!(
+        parent,
+        Node::Expr(Expr {
+            kind: ExprKind::Closure { .. },
+            ..
+        }) | Node::AnonConst(..)
+    )
+}
+
 fn sugg_with_curlies<'a>(
     cx: &LateContext<'a>,
     (ex, match_expr): (&Expr<'a>, &Expr<'a>),
@@ -178,24 +184,22 @@ fn sugg_with_curlies<'a>(
     let mut indent = " ".repeat(indent_of(cx, ex.span).unwrap_or(0));
 
     let (mut cbrace_start, mut cbrace_end) = (String::new(), String::new());
-    if let Some(parent_expr) = get_parent_expr(cx, match_expr) {
-        if let ExprKind::Closure { .. } = parent_expr.kind {
-            cbrace_end = format!("\n{indent}}}");
-            // Fix body indent due to the closure
-            indent = " ".repeat(indent_of(cx, bind_names).unwrap_or(0));
-            cbrace_start = format!("{{\n{indent}");
-        }
+    if expr_parent_requires_curlies(cx, match_expr) {
+        cbrace_end = format!("\n{indent}}}");
+        // Fix body indent due to the closure
+        indent = " ".repeat(indent_of(cx, bind_names).unwrap_or(0));
+        cbrace_start = format!("{{\n{indent}");
     }
 
     // If the parent is already an arm, and the body is another match statement,
     // we need curly braces around suggestion
-    if let Node::Arm(arm) = &cx.tcx.parent_hir_node(match_expr.hir_id) {
-        if let ExprKind::Match(..) = arm.body.kind {
-            cbrace_end = format!("\n{indent}}}");
-            // Fix body indent due to the match
-            indent = " ".repeat(indent_of(cx, bind_names).unwrap_or(0));
-            cbrace_start = format!("{{\n{indent}");
-        }
+    if let Node::Arm(arm) = &cx.tcx.parent_hir_node(match_expr.hir_id)
+        && let ExprKind::Match(..) = arm.body.kind
+    {
+        cbrace_end = format!("\n{indent}}}");
+        // Fix body indent due to the match
+        indent = " ".repeat(indent_of(cx, bind_names).unwrap_or(0));
+        cbrace_start = format!("{{\n{indent}");
     }
 
     let assignment_str = assignment.map_or_else(String::new, |span| {
@@ -204,14 +208,17 @@ fn sugg_with_curlies<'a>(
         s
     });
 
+    let ctxt = match_expr.span.ctxt();
     let scrutinee = if needs_var_binding {
         format!(
             "let {} = {}",
-            snippet_with_applicability(cx, bind_names, "..", applicability),
-            snippet_with_applicability(cx, matched_vars, "..", applicability)
+            snippet_with_context(cx, bind_names, ctxt, "..", applicability).0,
+            snippet_with_context(cx, matched_vars, ctxt, "..", applicability).0
         )
     } else {
-        snippet_with_applicability(cx, matched_vars, "..", applicability).to_string()
+        snippet_with_context(cx, matched_vars, ctxt, "..", applicability)
+            .0
+            .to_string()
     };
 
     format!("{cbrace_start}{scrutinee};\n{indent}{assignment_str}{snippet_body}{cbrace_end}")

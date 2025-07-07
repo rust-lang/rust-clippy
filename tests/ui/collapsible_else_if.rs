@@ -13,6 +13,7 @@ fn main() {
             println!("world!")
         }
     }
+    //~^^^^^ collapsible_else_if
 
     if x == "hello" {
         print!("Hello ");
@@ -21,6 +22,7 @@ fn main() {
             println!("world!")
         }
     }
+    //~^^^^^ collapsible_else_if
 
     if x == "hello" {
         print!("Hello ");
@@ -32,6 +34,7 @@ fn main() {
             println!("!")
         }
     }
+    //~^^^^^^^^ collapsible_else_if
 
     if x == "hello" {
         print!("Hello ");
@@ -43,6 +46,7 @@ fn main() {
             println!("!")
         }
     }
+    //~^^^^^^^^ collapsible_else_if
 
     if let Some(42) = Some(42) {
         print!("Hello ");
@@ -54,6 +58,7 @@ fn main() {
             println!("!")
         }
     }
+    //~^^^^^^^^ collapsible_else_if
 
     if let Some(42) = Some(42) {
         print!("Hello ");
@@ -65,6 +70,7 @@ fn main() {
             println!("!")
         }
     }
+    //~^^^^^^^^ collapsible_else_if
 
     if let Some(42) = Some(42) {
         print!("Hello ");
@@ -76,6 +82,7 @@ fn main() {
             println!("!")
         }
     }
+    //~^^^^^^^^ collapsible_else_if
 
     if x == "hello" {
         print!("Hello ");
@@ -92,5 +99,24 @@ fn issue_7318() {
     if true { println!("I've been resolved!")
     }else{
         if false {}
+    }
+    //~^^^ collapsible_else_if
+}
+
+fn issue14799() {
+    use std::ops::ControlFlow;
+
+    let c: ControlFlow<_, ()> = ControlFlow::Break(Some(42));
+    if let ControlFlow::Break(Some(_)) = c {
+        todo!();
+    } else {
+        #[cfg(target_os = "freebsd")]
+        todo!();
+
+        if let ControlFlow::Break(None) = c {
+            todo!();
+        } else {
+            todo!();
+        }
     }
 }

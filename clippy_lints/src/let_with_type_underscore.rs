@@ -1,8 +1,8 @@
-use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_from_proc_macro;
+use rustc_errors::Applicability;
 use rustc_hir::{LetStmt, TyKind};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::lint::in_external_macro;
 use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
@@ -28,19 +28,25 @@ declare_lint_pass!(UnderscoreTyped => [LET_WITH_TYPE_UNDERSCORE]);
 impl<'tcx> LateLintPass<'tcx> for UnderscoreTyped {
     fn check_local(&mut self, cx: &LateContext<'tcx>, local: &'tcx LetStmt<'_>) {
         if let Some(ty) = local.ty // Ensure that it has a type defined
-            && let TyKind::Infer = &ty.kind // that type is '_'
+            && let TyKind::Infer(()) = &ty.kind // that type is '_'
             && local.span.eq_ctxt(ty.span)
-            && !in_external_macro(cx.tcx.sess, local.span)
+            && !local.span.in_external_macro(cx.tcx.sess.source_map())
             && !is_from_proc_macro(cx, ty)
         {
-            span_lint_and_help(
+            span_lint_and_then(
                 cx,
                 LET_WITH_TYPE_UNDERSCORE,
                 local.span,
                 "variable declared with type underscore",
-                Some(ty.span.with_lo(local.pat.span.hi())),
-                "remove the explicit type `_` declaration",
+                |diag| {
+                    diag.span_suggestion_verbose(
+                        ty.span.with_lo(local.pat.span.hi()),
+                        "remove the explicit type `_` declaration",
+                        "",
+                        Applicability::MachineApplicable,
+                    );
+                },
             );
-        };
+        }
     }
 }

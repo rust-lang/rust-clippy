@@ -1,3 +1,4 @@
+//@no-rustfix: has placeholders
 #![allow(dead_code)]
 #![warn(clippy::comparison_chain)]
 
@@ -11,10 +12,10 @@ fn f(x: u8, y: u8, z: u8) {
         a()
     }
 
-    if x > y {
-        //~^ ERROR: `if` chain can be rewritten with `match`
+    // Ignored: Not all cases are covered
+    if x < y {
         a()
-    } else if x < y {
+    } else if x > y {
         b()
     }
 
@@ -26,7 +27,8 @@ fn f(x: u8, y: u8, z: u8) {
     }
 
     if x > y {
-        //~^ ERROR: `if` chain can be rewritten with `match`
+        //~^ comparison_chain
+
         a()
     } else if x < y {
         b()
@@ -35,7 +37,8 @@ fn f(x: u8, y: u8, z: u8) {
     }
 
     if x > y {
-        //~^ ERROR: `if` chain can be rewritten with `match`
+        //~^ comparison_chain
+
         a()
     } else if y > x {
         b()
@@ -44,7 +47,8 @@ fn f(x: u8, y: u8, z: u8) {
     }
 
     if x > 1 {
-        //~^ ERROR: `if` chain can be rewritten with `match`
+        //~^ comparison_chain
+
         a()
     } else if x < 1 {
         b()
@@ -118,15 +122,16 @@ fn g(x: f64, y: f64, z: f64) {
 }
 
 fn h<T: Ord>(x: T, y: T, z: T) {
+    // Ignored: Not all cases are covered
     if x > y {
-        //~^ ERROR: `if` chain can be rewritten with `match`
         a()
     } else if x < y {
         b()
     }
 
     if x > y {
-        //~^ ERROR: `if` chain can be rewritten with `match`
+        //~^ comparison_chain
+
         a()
     } else if x < y {
         b()
@@ -135,7 +140,8 @@ fn h<T: Ord>(x: T, y: T, z: T) {
     }
 
     if x > y {
-        //~^ ERROR: `if` chain can be rewritten with `match`
+        //~^ comparison_chain
+
         a()
     } else if y > x {
         b()
@@ -235,6 +241,19 @@ const fn sign_i8(n: i8) -> Sign {
         Sign::Positive
     } else {
         Sign::Negative
+    }
+}
+
+fn needs_parens() -> &'static str {
+    let (x, y) = (1, 2);
+    if x + 1 > y * 2 {
+        //~^ comparison_chain
+
+        "aa"
+    } else if x + 1 < y * 2 {
+        "bb"
+    } else {
+        "cc"
     }
 }
 

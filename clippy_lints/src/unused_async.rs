@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::is_def_id_trait_method;
 use rustc_hir::def::DefKind;
 use rustc_hir::intravisit::{FnKind, Visitor, walk_expr, walk_fn};
-use rustc_hir::{Body, Expr, ExprKind, FnDecl, HirId, Node, YieldSource};
+use rustc_hir::{Body, Defaultness, Expr, ExprKind, FnDecl, HirId, Node, TraitItem, YieldSource};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter;
 use rustc_session::impl_lint_pass;
@@ -101,8 +101,8 @@ impl<'tcx> Visitor<'tcx> for AsyncFnVisitor<'_, 'tcx> {
         }
     }
 
-    fn nested_visit_map(&mut self) -> Self::Map {
-        self.cx.tcx.hir()
+    fn maybe_tcx(&mut self) -> Self::MaybeTyCtxt {
+        self.cx.tcx
     }
 }
 
@@ -116,12 +116,16 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsync {
         span: Span,
         def_id: LocalDefId,
     ) {
-        if !span.from_expansion() && fn_kind.asyncness().is_async() && !is_def_id_trait_method(cx, def_id) {
+        if !span.from_expansion()
+            && fn_kind.asyncness().is_async()
+            && !is_def_id_trait_method(cx, def_id)
+            && !is_default_trait_impl(cx, def_id)
+        {
             let mut visitor = AsyncFnVisitor {
                 cx,
                 found_await: false,
-                async_depth: 0,
                 await_in_async_block: None,
+                async_depth: 0,
             };
             walk_fn(&mut visitor, fn_kind, fn_decl, body.id(), def_id);
             if !visitor.found_await {
@@ -129,9 +133,9 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsync {
                 // The actual linting happens in `check_crate_post`, once we've found all
                 // uses of local async functions that do require asyncness to pass typeck
                 self.unused_async_fns.push(UnusedAsyncFn {
-                    await_in_async_block: visitor.await_in_async_block,
-                    fn_span: span,
                     def_id,
+                    fn_span: span,
+                    await_in_async_block: visitor.await_in_async_block,
                 });
             }
         }
@@ -188,4 +192,14 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsync {
             );
         }
     }
+}
+
+fn is_default_trait_impl(cx: &LateContext<'_>, def_id: LocalDefId) -> bool {
+    matches!(
+        cx.tcx.hir_node_by_def_id(def_id),
+        Node::TraitItem(TraitItem {
+            defaultness: Defaultness::Default { .. },
+            ..
+        })
+    )
 }

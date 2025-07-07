@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_context;
+use clippy_utils::sym;
 use clippy_utils::visitors::is_const_evaluatable;
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
@@ -14,12 +15,12 @@ pub(super) fn check<'a>(cx: &LateContext<'a>, expr: &'_ Expr<'_>, split_recv: &'
     // or `"\r\n"`). There are a lot of ways to specify a pattern, and this lint only checks the most
     // basic ones: a `'\n'`, `"\n"`, and `"\r\n"`.
     if let ExprKind::MethodCall(trim_method_name, trim_recv, [], _) = split_recv.kind
-        && trim_method_name.ident.as_str() == "trim"
+        && trim_method_name.ident.name == sym::trim
         && cx.typeck_results().expr_ty_adjusted(trim_recv).peel_refs().is_str()
         && !is_const_evaluatable(cx, trim_recv)
         && let ExprKind::Lit(split_lit) = split_arg.kind
         && (matches!(split_lit.node, LitKind::Char('\n'))
-            || matches!(split_lit.node, LitKind::Str(sym, _) if (sym.as_str() == "\n" || sym.as_str() == "\r\n")))
+            || matches!(split_lit.node, LitKind::Str(sym::LF | sym::CRLF, _)))
     {
         let mut app = Applicability::MaybeIncorrect;
         span_lint_and_sugg(

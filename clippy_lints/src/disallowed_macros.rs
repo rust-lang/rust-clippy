@@ -1,12 +1,13 @@
 use clippy_config::Conf;
-use clippy_config::types::create_disallowed_map;
+use clippy_config::types::{DisallowedPath, create_disallowed_map};
 use clippy_utils::diagnostics::{span_lint_and_then, span_lint_hir_and_then};
 use clippy_utils::macros::macro_backtrace;
+use clippy_utils::paths::PathNS;
 use rustc_data_structures::fx::FxHashSet;
-use rustc_errors::Diag;
+use rustc_hir::def::DefKind;
 use rustc_hir::def_id::DefIdMap;
 use rustc_hir::{
-    Expr, ExprKind, ForeignItem, HirId, ImplItem, Item, ItemKind, OwnerId, Pat, Path, Stmt, TraitItem, Ty,
+    AmbigArg, Expr, ExprKind, ForeignItem, HirId, ImplItem, Item, ItemKind, OwnerId, Pat, Path, Stmt, TraitItem, Ty,
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::TyCtxt;
@@ -38,12 +39,14 @@ declare_clippy_lint! {
     ///     # When using an inline table, can add a `reason` for why the macro
     ///     # is disallowed.
     ///     { path = "serde::Serialize", reason = "no serializing" },
+    ///     # This would normally error if the path is incorrect, but with `allow-invalid` = `true`,
+    ///     # it will be silently ignored
+    ///     { path = "std::invalid_macro", reason = "use alternative instead", allow-invalid = true }
     /// ]
     /// ```
     /// ```no_run
     /// use serde::Serialize;
     ///
-    /// // Example code where clippy issues a warning
     /// println!("warns");
     ///
     /// // The diagnostic will contain the message "no serializing"
@@ -60,7 +63,7 @@ declare_clippy_lint! {
 }
 
 pub struct DisallowedMacros {
-    disallowed: DefIdMap<(&'static str, Option<&'static str>)>,
+    disallowed: DefIdMap<(&'static str, &'static DisallowedPath)>,
     seen: FxHashSet<ExpnId>,
     // Track the most recently seen node that can have a `derive` attribute.
     // Needed to use the correct lint level.
@@ -73,8 +76,16 @@ pub struct DisallowedMacros {
 
 impl DisallowedMacros {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf, earlies: AttrStorage) -> Self {
+        let (disallowed, _) = create_disallowed_map(
+            tcx,
+            &conf.disallowed_macros,
+            PathNS::Macro,
+            |def_kind| matches!(def_kind, DefKind::Macro(_)),
+            "macro",
+            false,
+        );
         Self {
-            disallowed: create_disallowed_map(tcx, &conf.disallowed_macros),
+            disallowed,
             seen: FxHashSet::default(),
             derive_src: None,
             earlies,
@@ -91,13 +102,9 @@ impl DisallowedMacros {
                 return;
             }
 
-            if let Some(&(path, reason)) = self.disallowed.get(&mac.def_id) {
+            if let Some(&(path, disallowed_path)) = self.disallowed.get(&mac.def_id) {
                 let msg = format!("use of a disallowed macro `{path}`");
-                let add_note = |diag: &mut Diag<'_, _>| {
-                    if let Some(reason) = reason {
-                        diag.note(reason);
-                    }
-                };
+                let add_note = disallowed_path.diag_amendment(mac.span);
                 if matches!(mac.kind, MacroKind::Derive)
                     && let Some(derive_src) = derive_src
                 {
@@ -141,7 +148,7 @@ impl LateLintPass<'_> for DisallowedMacros {
         self.check(cx, stmt.span, None);
     }
 
-    fn check_ty(&mut self, cx: &LateContext<'_>, ty: &Ty<'_>) {
+    fn check_ty(&mut self, cx: &LateContext<'_>, ty: &Ty<'_, AmbigArg>) {
         self.check(cx, ty.span, None);
     }
 

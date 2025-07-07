@@ -17,16 +17,16 @@ use rustc_span::Span;
 use std::env;
 
 fn docs_link(diag: &mut Diag<'_, ()>, lint: &'static Lint) {
-    if env::var("CLIPPY_DISABLE_DOCS_LINKS").is_err() {
-        if let Some(lint) = lint.name_lower().strip_prefix("clippy::") {
-            diag.help(format!(
-                "for further information visit https://rust-lang.github.io/rust-clippy/{}/index.html#{lint}",
-                &option_env!("RUST_RELEASE_NUM").map_or("master".to_string(), |n| {
-                    // extract just major + minor version and ignore patch versions
-                    format!("rust-{}", n.rsplit_once('.').unwrap().1)
-                })
-            ));
-        }
+    if env::var("CLIPPY_DISABLE_DOCS_LINKS").is_err()
+        && let Some(lint) = lint.name_lower().strip_prefix("clippy::")
+    {
+        diag.help(format!(
+            "for further information visit https://rust-lang.github.io/rust-clippy/{}/index.html#{lint}",
+            &option_env!("RUST_RELEASE_NUM").map_or("master".to_string(), |n| {
+                // extract just major + minor version and ignore patch versions
+                format!("rust-{}", n.rsplit_once('.').unwrap().1)
+            })
+        ));
     }
 }
 
@@ -85,7 +85,7 @@ fn validate_diag(diag: &Diag<'_, impl EmissionGuarantee>) {
 /// This is needed for `#[allow]` and `#[expect]` attributes to work on the node
 /// highlighted in the displayed warning.
 ///
-/// If you're unsure which function you should use, you can test if the `#[allow]` attribute works
+/// If you're unsure which function you should use, you can test if the `#[expect]` attribute works
 /// where you would expect it to.
 /// If it doesn't, you likely need to use [`span_lint_hir`] instead.
 ///
@@ -109,7 +109,7 @@ pub fn span_lint<T: LintContext>(cx: &T, lint: &'static Lint, sp: impl Into<Mult
     });
 }
 
-/// Same as `span_lint` but with an extra `help` message.
+/// Same as [`span_lint`] but with an extra `help` message.
 ///
 /// Use this if you want to provide some general help but
 /// can't provide a specific machine applicable suggestion.
@@ -128,7 +128,7 @@ pub fn span_lint<T: LintContext>(cx: &T, lint: &'static Lint, sp: impl Into<Mult
 /// This is needed for `#[allow]` and `#[expect]` attributes to work on the node
 /// highlighted in the displayed warning.
 ///
-/// If you're unsure which function you should use, you can test if the `#[allow]` attribute works
+/// If you're unsure which function you should use, you can test if the `#[expect]` attribute works
 /// where you would expect it to.
 /// If it doesn't, you likely need to use [`span_lint_hir_and_then`] instead.
 ///
@@ -166,7 +166,7 @@ pub fn span_lint_and_help<T: LintContext>(
     });
 }
 
-/// Like `span_lint` but with a `note` section instead of a `help` message.
+/// Like [`span_lint`] but with a `note` section instead of a `help` message.
 ///
 /// The `note` message is presented separately from the main lint message
 /// and is attached to a specific span:
@@ -183,7 +183,7 @@ pub fn span_lint_and_help<T: LintContext>(
 /// This is needed for `#[allow]` and `#[expect]` attributes to work on the node
 /// highlighted in the displayed warning.
 ///
-/// If you're unsure which function you should use, you can test if the `#[allow]` attribute works
+/// If you're unsure which function you should use, you can test if the `#[expect]` attribute works
 /// where you would expect it to.
 /// If it doesn't, you likely need to use [`span_lint_hir_and_then`] instead.
 ///
@@ -226,7 +226,7 @@ pub fn span_lint_and_note<T: LintContext>(
     });
 }
 
-/// Like `span_lint` but allows to add notes, help and suggestions using a closure.
+/// Like [`span_lint`] but allows to add notes, help and suggestions using a closure.
 ///
 /// If you need to customize your lint output a lot, use this function.
 /// If you change the signature, remember to update the internal lint `CollapsibleCalls`
@@ -241,7 +241,7 @@ pub fn span_lint_and_note<T: LintContext>(
 /// This is needed for `#[allow]` and `#[expect]` attributes to work on the node
 /// highlighted in the displayed warning.
 ///
-/// If you're unsure which function you should use, you can test if the `#[allow]` attribute works
+/// If you're unsure which function you should use, you can test if the `#[expect]` attribute works
 /// where you would expect it to.
 /// If it doesn't, you likely need to use [`span_lint_hir_and_then`] instead.
 pub fn span_lint_and_then<C, S, M, F>(cx: &C, lint: &'static Lint, sp: S, msg: M, f: F)
@@ -358,7 +358,7 @@ pub fn span_lint_hir_and_then(
 /// This is needed for `#[allow]` and `#[expect]` attributes to work on the node
 /// highlighted in the displayed warning.
 ///
-/// If you're unsure which function you should use, you can test if the `#[allow]` attribute works
+/// If you're unsure which function you should use, you can test if the `#[expect]` attribute works
 /// where you would expect it to.
 /// If it doesn't, you likely need to use [`span_lint_hir_and_then`] instead.
 ///

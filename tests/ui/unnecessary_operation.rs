@@ -1,9 +1,10 @@
 #![allow(
     clippy::deref_addrof,
-    dead_code,
-    unused,
     clippy::no_effect,
-    clippy::unnecessary_struct_initialization
+    clippy::uninlined_format_args,
+    clippy::unnecessary_struct_initialization,
+    dead_code,
+    unused
 )]
 #![warn(clippy::unnecessary_operation)]
 
@@ -68,26 +69,45 @@ where
 
 fn main() {
     Tuple(get_number());
+    //~^ unnecessary_operation
     Struct { field: get_number() };
+    //~^ unnecessary_operation
     Struct { ..get_struct() };
+    //~^ unnecessary_operation
     Enum::Tuple(get_number());
+    //~^ unnecessary_operation
     Enum::Struct { field: get_number() };
+    //~^ unnecessary_operation
     5 + get_number();
+    //~^ unnecessary_operation
     *&get_number();
+    //~^ unnecessary_operation
     &get_number();
+    //~^ unnecessary_operation
     (5, 6, get_number());
+    //~^ unnecessary_operation
     get_number()..;
+    //~^ unnecessary_operation
     ..get_number();
+    //~^ unnecessary_operation
     5..get_number();
+    //~^ unnecessary_operation
     [42, get_number()];
+    //~^ unnecessary_operation
     [42, 55][get_usize()];
+    //~^ unnecessary_operation
     (42, get_number()).1;
+    //~^ unnecessary_operation
     [get_number(); 55];
+    //~^ unnecessary_operation
     [42; 55][get_usize()];
+    //~^ unnecessary_operation
     {
+        //~^ unnecessary_operation
         get_number()
     };
     FooString {
+        //~^ unnecessary_operation
         s: String::from("blah"),
     };
 
@@ -128,5 +148,18 @@ const _: () = {
 
 const fn foo() {
     [42, 55][get_usize()];
-    //~^ ERROR: unnecessary operation
+    //~^ unnecessary_operation
+}
+
+fn issue15173() {
+    // No lint as `Box::new(None)` alone would be ambiguous
+    Box::new(None) as Box<Option<i32>>;
+}
+
+#[expect(clippy::redundant_closure_call)]
+fn issue15173_original<MsU>(handler: impl FnOnce() -> MsU + Clone + 'static) {
+    Box::new(move |value| {
+        (|_| handler.clone()())(value);
+        None
+    }) as Box<dyn Fn(i32) -> Option<i32>>;
 }

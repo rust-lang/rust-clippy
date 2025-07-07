@@ -1,7 +1,7 @@
-#![feature(repr128, proc_macro_quote, proc_macro_span)]
-#![allow(incomplete_features)]
+#![feature(proc_macro_quote, proc_macro_span)]
 #![allow(clippy::field_reassign_with_default)]
 #![allow(clippy::eq_op)]
+#![allow(clippy::literal_string_with_formatting_args)]
 
 extern crate proc_macro;
 

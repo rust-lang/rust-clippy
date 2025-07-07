@@ -1,5 +1,5 @@
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:14:5
+  --> tests/ui/infinite_loops.rs:13:5
    |
 LL | /     loop {
 LL | |
@@ -15,12 +15,11 @@ LL | fn no_break() -> ! {
    |               ++++
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:21:5
+  --> tests/ui/infinite_loops.rs:20:5
    |
 LL | /     loop {
 LL | |
 LL | |         loop {
-LL | |
 ...  |
 LL | |         do_something();
 LL | |     }
@@ -32,14 +31,12 @@ LL | fn all_inf() -> ! {
    |              ++++
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:23:9
+  --> tests/ui/infinite_loops.rs:22:9
    |
 LL | /         loop {
 LL | |
 LL | |             loop {
-LL | |
-LL | |                 do_something();
-LL | |             }
+...  |
 LL | |         }
    | |_________^
    |
@@ -49,7 +46,7 @@ LL | fn all_inf() -> ! {
    |              ++++
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:25:13
+  --> tests/ui/infinite_loops.rs:24:13
    |
 LL | /             loop {
 LL | |
@@ -63,7 +60,7 @@ LL | fn all_inf() -> ! {
    |              ++++
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:39:5
+  --> tests/ui/infinite_loops.rs:38:5
    |
 LL | /     loop {
 LL | |
@@ -74,9 +71,10 @@ LL | |     }
    = help: if this is not intended, try adding a `break` or `return` condition in the loop
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:52:5
+  --> tests/ui/infinite_loops.rs:51:5
    |
 LL | /     loop {
+LL | |
 LL | |         fn inner_fn() -> ! {
 LL | |             std::process::exit(0);
 LL | |         }
@@ -97,7 +95,6 @@ LL | |
 LL | |         loop {
 LL | |             if cond {
 ...  |
-LL | |         }
 LL | |     }
    | |_____^
    |
@@ -114,7 +111,6 @@ LL | |
 LL | |         'inner: loop {
 LL | |             loop {
 ...  |
-LL | |         }
 LL | |     }
    | |_____^
    |
@@ -145,7 +141,6 @@ LL | |
 LL | |             'inner: loop {
 LL | |                 loop {
 ...  |
-LL | |             }
 LL | |         }
    | |_________^
    |
@@ -162,7 +157,6 @@ LL | |
 LL | |         match opt {
 LL | |             Some(v) => {
 ...  |
-LL | |         }
 LL | |     }
    | |_____^
    |
@@ -249,6 +243,7 @@ error: infinite loop detected
    |
 LL |       Ok(loop {
    |  ________^
+LL | |
 LL | |         do_something()
 LL | |     })
    | |_____^
@@ -256,7 +251,7 @@ LL | |     })
    = help: if this is not intended, try adding a `break` or `return` condition in the loop
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:409:5
+  --> tests/ui/infinite_loops.rs:410:5
    |
 LL | /     'infinite: loop {
 LL | |
@@ -272,14 +267,12 @@ LL | fn continue_outer() -> ! {
    |                     ++++
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:416:5
+  --> tests/ui/infinite_loops.rs:417:5
    |
 LL | /     loop {
 LL | |
 LL | |         'inner: loop {
-LL | |             loop {
 ...  |
-LL | |         }
 LL | |     }
    | |_____^
    |
@@ -289,9 +282,10 @@ LL | fn continue_outer() -> ! {
    |                     ++++
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:418:9
+  --> tests/ui/infinite_loops.rs:419:9
    |
 LL | /         'inner: loop {
+LL | |
 LL | |             loop {
 LL | |                 continue 'inner;
 LL | |             }
@@ -304,7 +298,7 @@ LL | fn continue_outer() -> ! {
    |                     ++++
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:426:5
+  --> tests/ui/infinite_loops.rs:428:5
    |
 LL | /     loop {
 LL | |

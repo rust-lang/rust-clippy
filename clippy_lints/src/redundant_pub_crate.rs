@@ -1,7 +1,8 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::source::HasSession;
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
-use rustc_hir::{Item, ItemKind};
+use rustc_hir::{Item, ItemKind, UseKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_session::impl_lint_pass;
@@ -48,9 +49,13 @@ impl<'tcx> LateLintPass<'tcx> for RedundantPubCrate {
         if cx.tcx.visibility(item.owner_id.def_id) == ty::Visibility::Restricted(CRATE_DEF_ID.to_def_id())
             && !cx.effective_visibilities.is_exported(item.owner_id.def_id)
             && self.is_exported.last() == Some(&false)
-            && is_not_macro_export(item)
+            && !is_ignorable_export(item)
+            && !item.span.in_external_macro(cx.sess().source_map())
         {
-            let span = item.span.with_hi(item.ident.span.hi());
+            let span = item
+                .kind
+                .ident()
+                .map_or(item.span, |ident| item.span.with_hi(ident.span.hi()));
             let descr = cx.tcx.def_kind(item.owner_id).descr(item.owner_id.to_def_id());
             span_lint_and_then(
                 cx,
@@ -81,18 +86,17 @@ impl<'tcx> LateLintPass<'tcx> for RedundantPubCrate {
     }
 }
 
-fn is_not_macro_export<'tcx>(item: &'tcx Item<'tcx>) -> bool {
-    if let ItemKind::Use(path, _) = item.kind {
-        if path
-            .res
-            .iter()
-            .all(|res| matches!(res, Res::Def(DefKind::Macro(MacroKind::Bang), _)))
-        {
-            return false;
+// We ignore macro exports. And `ListStem` uses, which aren't interesting.
+fn is_ignorable_export<'tcx>(item: &'tcx Item<'tcx>) -> bool {
+    if let ItemKind::Use(path, kind) = item.kind {
+        let ignore = matches!(path.res.macro_ns, Some(Res::Def(DefKind::Macro(MacroKind::Bang), _)))
+            || kind == UseKind::ListStem;
+        if ignore {
+            return true;
         }
     } else if let ItemKind::Macro(..) = item.kind {
-        return false;
+        return true;
     }
 
-    true
+    false
 }

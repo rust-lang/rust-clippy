@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::macros::{find_assert_eq_args, root_macro_call_first_node};
 use clippy_utils::sugg::Sugg;
+use clippy_utils::sym;
 use clippy_utils::ty::{implements_trait, is_copy};
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
@@ -53,16 +54,16 @@ fn is_impl_not_trait_with_bool_out<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -
         .not_trait()
         .filter(|trait_id| implements_trait(cx, ty, *trait_id, &[]))
         .and_then(|trait_id| {
-            cx.tcx.associated_items(trait_id).find_by_name_and_kind(
+            cx.tcx.associated_items(trait_id).find_by_ident_and_kind(
                 cx.tcx,
-                Ident::from_str("Output"),
-                ty::AssocKind::Type,
+                Ident::with_dummy_span(sym::Output),
+                ty::AssocTag::Type,
                 trait_id,
             )
         })
         .is_some_and(|assoc_item| {
             let proj = Ty::new_projection(cx.tcx, assoc_item.def_id, cx.tcx.mk_args_trait(ty, []));
-            let nty = cx.tcx.normalize_erasing_regions(cx.param_env, proj);
+            let nty = cx.tcx.normalize_erasing_regions(cx.typing_env(), proj);
 
             nty.is_bool()
         })
@@ -73,10 +74,9 @@ impl<'tcx> LateLintPass<'tcx> for BoolAssertComparison {
         let Some(macro_call) = root_macro_call_first_node(cx, expr) else {
             return;
         };
-        let macro_name = cx.tcx.item_name(macro_call.def_id);
-        let eq_macro = match macro_name.as_str() {
-            "assert_eq" | "debug_assert_eq" => true,
-            "assert_ne" | "debug_assert_ne" => false,
+        let eq_macro = match cx.tcx.get_diagnostic_name(macro_call.def_id) {
+            Some(sym::assert_eq_macro | sym::debug_assert_eq_macro) => true,
+            Some(sym::assert_ne_macro | sym::debug_assert_ne_macro) => false,
             _ => return,
         };
         let Some((a, b, _)) = find_assert_eq_args(cx, expr, macro_call.expn) else {
@@ -115,6 +115,7 @@ impl<'tcx> LateLintPass<'tcx> for BoolAssertComparison {
             return;
         }
 
+        let macro_name = cx.tcx.item_name(macro_call.def_id);
         let macro_name = macro_name.as_str();
         let non_eq_mac = &macro_name[..macro_name.len() - 3];
         span_lint_and_then(

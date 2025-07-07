@@ -3,6 +3,7 @@ use super::utils::make_iterator_snippet;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::ty::implements_trait;
+use clippy_utils::usage::contains_return_break_continue_macro;
 use clippy_utils::{higher, is_res_lang_ctor, path_res, peel_blocks_with_stmt};
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
@@ -35,6 +36,7 @@ pub(super) fn check<'tcx>(
         && let ExprKind::Call(ctor, [inner_ret]) = ret_value.kind
         && is_res_lang_ctor(cx, path_res(cx, ctor), LangItem::OptionSome)
         && path_res(cx, inner_ret) == Res::Local(binding_id)
+        && !contains_return_break_continue_macro(cond)
         && let Some((last_stmt, last_ret)) = last_stmt_and_ret(cx, expr)
     {
         let mut applicability = Applicability::MachineApplicable;
@@ -81,6 +83,13 @@ pub(super) fn check<'tcx>(
                 )[..],
             );
         }
+
+        // If the return type requires adjustments, we need to add a `.map` after the iterator
+        let inner_ret_adjust = cx.typeck_results().expr_adjustments(inner_ret);
+        if !inner_ret_adjust.is_empty() {
+            snippet.push_str(".map(|v| v as _)");
+        }
+
         // Extends to `last_stmt` to include semicolon in case of `return None;`
         let lint_span = span.to(last_stmt.span).to(last_ret.span);
         span_lint_and_then(
@@ -134,7 +143,7 @@ fn last_stmt_and_ret<'tcx>(
         }
         None
     }
-    let mut parent_iter = cx.tcx.hir().parent_iter(expr.hir_id);
+    let mut parent_iter = cx.tcx.hir_parent_iter(expr.hir_id);
     if let Some((node_hir, Node::Stmt(..))) = parent_iter.next()
         // This should be the loop
         // This should be the function body

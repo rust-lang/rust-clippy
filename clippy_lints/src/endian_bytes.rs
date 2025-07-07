@@ -1,12 +1,12 @@
 use crate::Lint;
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::is_lint_allowed;
+use clippy_utils::{is_lint_allowed, sym};
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
-use rustc_middle::lint::in_external_macro;
 use rustc_middle::ty::Ty;
 use rustc_session::declare_lint_pass;
 use rustc_span::Symbol;
+use std::fmt::Write;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -65,9 +65,9 @@ declare_clippy_lint! {
 
 declare_lint_pass!(EndianBytes => [HOST_ENDIAN_BYTES, LITTLE_ENDIAN_BYTES, BIG_ENDIAN_BYTES]);
 
-const HOST_NAMES: [&str; 2] = ["from_ne_bytes", "to_ne_bytes"];
-const LITTLE_NAMES: [&str; 2] = ["from_le_bytes", "to_le_bytes"];
-const BIG_NAMES: [&str; 2] = ["from_be_bytes", "to_be_bytes"];
+const HOST_NAMES: [Symbol; 2] = [sym::from_ne_bytes, sym::to_ne_bytes];
+const LITTLE_NAMES: [Symbol; 2] = [sym::from_le_bytes, sym::to_le_bytes];
+const BIG_NAMES: [Symbol; 2] = [sym::from_be_bytes, sym::to_be_bytes];
 
 #[derive(Clone, Debug)]
 enum LintKind {
@@ -95,7 +95,7 @@ impl LintKind {
         }
     }
 
-    fn as_name(&self, prefix: Prefix) -> &str {
+    fn as_name(&self, prefix: Prefix) -> Symbol {
         let index = usize::from(prefix == Prefix::To);
 
         match self {
@@ -119,7 +119,7 @@ impl LateLintPass<'_> for EndianBytes {
             },
             _ => return,
         };
-        if !in_external_macro(cx.sess(), expr.span)
+        if !expr.span.in_external_macro(cx.sess().source_map())
             && let ty = cx.typeck_results().expr_ty(ty_expr)
             && ty.is_primitive_ty()
         {
@@ -133,7 +133,7 @@ fn maybe_lint_endian_bytes(cx: &LateContext<'_>, expr: &Expr<'_>, prefix: Prefix
     let le = LintKind::Little.as_name(prefix);
     let be = LintKind::Big.as_name(prefix);
 
-    let (lint, other_lints) = match name.as_str() {
+    let (lint, other_lints) = match name {
         name if name == ne => ((&LintKind::Host), [(&LintKind::Little), (&LintKind::Big)]),
         name if name == le => ((&LintKind::Little), [(&LintKind::Host), (&LintKind::Big)]),
         name if name == be => ((&LintKind::Big), [(&LintKind::Host), (&LintKind::Little)]),
@@ -184,7 +184,7 @@ fn maybe_lint_endian_bytes(cx: &LateContext<'_>, expr: &Expr<'_>, prefix: Prefix
                     help_str.push_str("either of ");
                 }
 
-                help_str.push_str(&format!("`{ty}::{}` ", lint.as_name(prefix)));
+                write!(help_str, "`{ty}::{}` ", lint.as_name(prefix)).unwrap();
 
                 if i != len && !only_one {
                     help_str.push_str("or ");

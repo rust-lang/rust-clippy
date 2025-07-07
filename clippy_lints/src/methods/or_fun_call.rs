@@ -6,13 +6,12 @@ use clippy_utils::source::snippet_with_context;
 use clippy_utils::ty::{expr_type_is_certain, implements_trait, is_type_diagnostic_item};
 use clippy_utils::visitors::for_each_expr;
 use clippy_utils::{
-    contains_return, is_default_equivalent, is_default_equivalent_call, last_path_segment, peel_blocks,
+    contains_return, is_default_equivalent, is_default_equivalent_call, last_path_segment, peel_blocks, sym,
 };
 use rustc_errors::Applicability;
 use rustc_lint::LateContext;
 use rustc_middle::ty;
-use rustc_span::Span;
-use rustc_span::symbol::{self, Symbol, sym};
+use rustc_span::{Span, Symbol};
 use {rustc_ast as ast, rustc_hir as hir};
 
 use super::{OR_FUN_CALL, UNWRAP_OR_DEFAULT};
@@ -23,7 +22,7 @@ pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,
     expr: &hir::Expr<'_>,
     method_span: Span,
-    name: &str,
+    name: Symbol,
     receiver: &'tcx hir::Expr<'_>,
     args: &'tcx [hir::Expr<'_>],
 ) {
@@ -33,7 +32,7 @@ pub(super) fn check<'tcx>(
     /// `or_insert_with(T::new)` or `or_insert_with(T::default)`.
     fn check_unwrap_or_default(
         cx: &LateContext<'_>,
-        name: &str,
+        name: Symbol,
         receiver: &hir::Expr<'_>,
         fun: &hir::Expr<'_>,
         call_expr: Option<&hir::Expr<'_>>,
@@ -66,8 +65,8 @@ pub(super) fn check<'tcx>(
         };
 
         let sugg = match (name, call_expr.is_some()) {
-            ("unwrap_or", true) | ("unwrap_or_else", false) => sym!(unwrap_or_default),
-            ("or_insert", true) | ("or_insert_with", false) => sym!(or_default),
+            (sym::unwrap_or, true) | (sym::unwrap_or_else, false) => sym::unwrap_or_default,
+            (sym::or_insert, true) | (sym::or_insert_with, false) => sym::or_default,
             _ => return false,
         };
 
@@ -78,8 +77,7 @@ pub(super) fn check<'tcx>(
                 .iter()
                 .flat_map(|impl_id| cx.tcx.associated_items(impl_id).filter_by_name_unhygienic(sugg))
                 .find_map(|assoc| {
-                    if assoc.fn_has_self_parameter
-                        && cx.tcx.fn_sig(assoc.def_id).skip_binder().inputs().skip_binder().len() == 1
+                    if assoc.is_method() && cx.tcx.fn_sig(assoc.def_id).skip_binder().inputs().skip_binder().len() == 1
                     {
                         Some(assoc.def_id)
                     } else {
@@ -92,7 +90,7 @@ pub(super) fn check<'tcx>(
         let in_sugg_method_implementation = {
             matches!(
                 suggested_method_def_id.as_local(),
-                Some(local_def_id) if local_def_id == cx.tcx.hir().get_parent_item(receiver.hir_id).def_id
+                Some(local_def_id) if local_def_id == cx.tcx.hir_get_parent_item(receiver.hir_id).def_id
             )
         };
         if in_sugg_method_implementation {
@@ -104,7 +102,7 @@ pub(super) fn check<'tcx>(
         if (is_new(fun) && output_type_implements_default(fun))
             || match call_expr {
                 Some(call_expr) => is_default_equivalent(cx, call_expr),
-                None => is_default_equivalent_call(cx, fun) || closure_body_returns_empty_to_string(cx, fun),
+                None => is_default_equivalent_call(cx, fun, None) || closure_body_returns_empty_to_string(cx, fun),
             }
         {
             span_lint_and_sugg(
@@ -127,7 +125,7 @@ pub(super) fn check<'tcx>(
     #[expect(clippy::too_many_arguments)]
     fn check_or_fn_call<'tcx>(
         cx: &LateContext<'tcx>,
-        name: &str,
+        name: Symbol,
         method_span: Span,
         self_expr: &hir::Expr<'_>,
         arg: &'tcx hir::Expr<'_>,
@@ -138,20 +136,28 @@ pub(super) fn check<'tcx>(
         fun_span: Option<Span>,
     ) -> bool {
         // (path, fn_has_argument, methods, suffix)
-        const KNOW_TYPES: [(Symbol, bool, &[&str], &str); 4] = [
-            (sym::BTreeEntry, false, &["or_insert"], "with"),
-            (sym::HashMapEntry, false, &["or_insert"], "with"),
-            (sym::Option, false, &["map_or", "ok_or", "or", "unwrap_or"], "else"),
-            (sym::Result, true, &["or", "unwrap_or"], "else"),
+        const KNOW_TYPES: [(Symbol, bool, &[Symbol], &str); 7] = [
+            (sym::BTreeEntry, false, &[sym::or_insert], "with"),
+            (sym::HashMapEntry, false, &[sym::or_insert], "with"),
+            (
+                sym::Option,
+                false,
+                &[sym::map_or, sym::ok_or, sym::or, sym::unwrap_or],
+                "else",
+            ),
+            (sym::Option, false, &[sym::get_or_insert], "with"),
+            (sym::Option, true, &[sym::and], "then"),
+            (sym::Result, true, &[sym::map_or, sym::or, sym::unwrap_or], "else"),
+            (sym::Result, true, &[sym::and], "then"),
         ];
 
         if KNOW_TYPES.iter().any(|k| k.2.contains(&name))
             && switch_to_lazy_eval(cx, arg)
             && !contains_return(arg)
             && let self_ty = cx.typeck_results().expr_ty(self_expr)
-            && let Some(&(_, fn_has_arguments, poss, suffix)) =
-                KNOW_TYPES.iter().find(|&&i| is_type_diagnostic_item(cx, self_ty, i.0))
-            && poss.contains(&name)
+            && let Some(&(_, fn_has_arguments, _, suffix)) = KNOW_TYPES
+                .iter()
+                .find(|&&i| is_type_diagnostic_item(cx, self_ty, i.0) && i.2.contains(&name))
         {
             let ctxt = span.ctxt();
             let mut app = Applicability::HasPlaceholders;
@@ -253,7 +259,7 @@ pub(super) fn check<'tcx>(
 
 fn closure_body_returns_empty_to_string(cx: &LateContext<'_>, e: &hir::Expr<'_>) -> bool {
     if let hir::ExprKind::Closure(&hir::Closure { body, .. }) = e.kind {
-        let body = cx.tcx.hir().body(body);
+        let body = cx.tcx.hir_body(body);
 
         if body.params.is_empty()
             && let hir::Expr { kind, .. } = &body.value
@@ -261,7 +267,7 @@ fn closure_body_returns_empty_to_string(cx: &LateContext<'_>, e: &hir::Expr<'_>)
             && ident.name == sym::to_string
             && let hir::Expr { kind, .. } = self_arg
             && let hir::ExprKind::Lit(lit) = kind
-            && let ast::LitKind::Str(symbol::kw::Empty, _) = lit.node
+            && let ast::LitKind::Str(rustc_span::sym::empty, _) = lit.node
         {
             return true;
         }

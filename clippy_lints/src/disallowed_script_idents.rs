@@ -69,7 +69,7 @@ impl EarlyLintPass for DisallowedScriptIdents {
         // Implementation is heavily inspired by the implementation of [`non_ascii_idents`] lint:
         // https://github.com/rust-lang/rust/blob/master/compiler/rustc_lint/src/non_ascii_idents.rs
 
-        let check_disallowed_script_idents = cx.builder.lint_level(DISALLOWED_SCRIPT_IDENTS).0 != Level::Allow;
+        let check_disallowed_script_idents = cx.builder.lint_level(DISALLOWED_SCRIPT_IDENTS).level != Level::Allow;
         if !check_disallowed_script_idents {
             return;
         }
@@ -89,6 +89,10 @@ impl EarlyLintPass for DisallowedScriptIdents {
             // Fast path for ascii-only idents.
             if !symbol_str.is_ascii()
                 && let Some(script) = symbol_str.chars().find_map(|c| {
+                    if c.is_ascii() {
+                        return None;
+                    }
+
                     c.script_extension()
                         .iter()
                         .find(|script| !self.whitelist.contains(script))

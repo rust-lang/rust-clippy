@@ -6,8 +6,8 @@ use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
 use rustc_middle::ty;
-use rustc_span::Span;
 use rustc_span::symbol::sym;
+use rustc_span::{Span, Symbol};
 use std::borrow::Cow;
 
 use super::EXPECT_FUN_CALL;
@@ -19,7 +19,7 @@ pub(super) fn check<'tcx>(
     format_args_storage: &FormatArgsStorage,
     expr: &hir::Expr<'_>,
     method_span: Span,
-    name: &str,
+    name: Symbol,
     receiver: &'tcx hir::Expr<'tcx>,
     args: &'tcx [hir::Expr<'tcx>],
 ) {
@@ -54,11 +54,12 @@ pub(super) fn check<'tcx>(
         if is_type_lang_item(cx, arg_ty, hir::LangItem::String) {
             return false;
         }
-        if let ty::Ref(_, ty, ..) = arg_ty.kind() {
-            if ty.is_str() && can_be_static_str(cx, arg) {
-                return false;
-            }
-        };
+        if let ty::Ref(_, ty, ..) = arg_ty.kind()
+            && ty.is_str()
+            && can_be_static_str(cx, arg)
+        {
+            return false;
+        }
         true
     }
 
@@ -113,7 +114,7 @@ pub(super) fn check<'tcx>(
         }
     }
 
-    if args.len() != 1 || name != "expect" || !is_call(&args[0].kind) {
+    if args.len() != 1 || name != sym::expect || !is_call(&args[0].kind) {
         return;
     }
 

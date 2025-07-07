@@ -3,7 +3,7 @@ use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::{
     SpanlessEq, get_parent_expr, higher, is_block_like, is_else_clause, is_expn_of, is_parent_stmt,
-    is_receiver_of_method_call, peel_blocks, peel_blocks_with_stmt, span_extract_comment,
+    is_receiver_of_method_call, peel_blocks, peel_blocks_with_stmt, span_extract_comment, sym,
 };
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
@@ -154,7 +154,7 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessBool {
                     || is_receiver_of_method_call(cx, e)
                     || is_as_argument(cx, e)
                 {
-                    snip = snip.maybe_par();
+                    snip = snip.maybe_paren();
                 }
 
                 span_lint_and_sugg(
@@ -320,7 +320,7 @@ fn check_comparison<'a, 'tcx>(
             cx.typeck_results().expr_ty(left_side),
             cx.typeck_results().expr_ty(right_side),
         );
-        if is_expn_of(left_side.span, "cfg").is_some() || is_expn_of(right_side.span, "cfg").is_some() {
+        if is_expn_of(left_side.span, sym::cfg).is_some() || is_expn_of(right_side.span, sym::cfg).is_some() {
             return;
         }
         if l_ty.is_bool() && r_ty.is_bool() {
@@ -426,10 +426,10 @@ fn fetch_bool_block(expr: &Expr<'_>) -> Option<Expression> {
 }
 
 fn fetch_bool_expr(expr: &Expr<'_>) -> Option<bool> {
-    if let ExprKind::Lit(lit_ptr) = peel_blocks(expr).kind {
-        if let LitKind::Bool(value) = lit_ptr.node {
-            return Some(value);
-        }
+    if let ExprKind::Lit(lit_ptr) = peel_blocks(expr).kind
+        && let LitKind::Bool(value) = lit_ptr.node
+    {
+        return Some(value);
     }
     None
 }

@@ -10,6 +10,7 @@
 //!  - option-if-let-else
 
 use crate::consts::{ConstEvalCtxt, FullInt};
+use crate::sym;
 use crate::ty::{all_predicates_of, is_copy};
 use crate::visitors::is_const_evaluatable;
 use rustc_hir::def::{DefKind, Res};
@@ -19,7 +20,7 @@ use rustc_hir::{BinOpKind, Block, Expr, ExprKind, QPath, UnOp};
 use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_middle::ty::adjustment::Adjust;
-use rustc_span::{Symbol, sym};
+use rustc_span::Symbol;
 use std::{cmp, ops};
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -49,14 +50,13 @@ impl ops::BitOrAssign for EagernessSuggestion {
 /// Determine the eagerness of the given function call.
 fn fn_eagerness(cx: &LateContext<'_>, fn_id: DefId, name: Symbol, have_one_arg: bool) -> EagernessSuggestion {
     use EagernessSuggestion::{Eager, Lazy, NoChange};
-    let name = name.as_str();
 
     let ty = match cx.tcx.impl_of_method(fn_id) {
         Some(id) => cx.tcx.type_of(id).instantiate_identity(),
         None => return Lazy,
     };
 
-    if (name.starts_with("as_") || name == "len" || name == "is_empty") && have_one_arg {
+    if (matches!(name, sym::is_empty | sym::len) || name.as_str().starts_with("as_")) && have_one_arg {
         if matches!(
             cx.tcx.crate_name(fn_id.krate),
             sym::std | sym::core | sym::alloc | sym::proc_macro
@@ -105,7 +105,7 @@ fn res_has_significant_drop(res: Res, cx: &LateContext<'_>, e: &Expr<'_>) -> boo
     {
         cx.typeck_results()
             .expr_ty(e)
-            .has_significant_drop(cx.tcx, cx.param_env)
+            .has_significant_drop(cx.tcx, cx.typing_env())
     } else {
         false
     }
@@ -217,7 +217,7 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
                     self.eagerness |= NoChange;
                 },
                 // Dereferences should be cheap, but dereferencing a raw pointer earlier may not be safe.
-                ExprKind::Unary(UnOp::Deref, e) if !self.cx.typeck_results().expr_ty(e).is_unsafe_ptr() => (),
+                ExprKind::Unary(UnOp::Deref, e) if !self.cx.typeck_results().expr_ty(e).is_raw_ptr() => (),
                 ExprKind::Unary(UnOp::Deref, _) => self.eagerness |= NoChange,
                 ExprKind::Unary(_, e)
                     if matches!(
@@ -291,6 +291,7 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
                 ExprKind::ConstBlock(_)
                 | ExprKind::Array(_)
                 | ExprKind::Tup(_)
+                | ExprKind::Use(..)
                 | ExprKind::Lit(_)
                 | ExprKind::Cast(..)
                 | ExprKind::Type(..)
@@ -303,7 +304,8 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
                 | ExprKind::AddrOf(..)
                 | ExprKind::Repeat(..)
                 | ExprKind::Block(Block { stmts: [], .. }, _)
-                | ExprKind::OffsetOf(..) => (),
+                | ExprKind::OffsetOf(..)
+                | ExprKind::UnsafeBinderCast(..) => (),
 
                 // Assignment might be to a local defined earlier, so don't eagerly evaluate.
                 // Blocks with multiple statements might be expensive, so don't eagerly evaluate.

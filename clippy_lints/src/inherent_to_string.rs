@@ -1,11 +1,11 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::ty::{implements_trait, is_type_lang_item};
 use clippy_utils::{return_ty, trait_ref_of_method};
-use rustc_hir::{GenericParamKind, ImplItem, ImplItemKind, LangItem, Safety};
+use rustc_abi::ExternAbi;
+use rustc_hir::{GenericParamKind, ImplItem, ImplItemKind, LangItem};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::sym;
-use rustc_target::spec::abi::Abi;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -95,8 +95,8 @@ impl<'tcx> LateLintPass<'tcx> for InherentToString {
         if let ImplItemKind::Fn(ref signature, _) = impl_item.kind
             // #11201
             && let header = signature.header
-            && header.safety == Safety::Safe
-            && header.abi == Abi::Rust
+            && header.is_safe()
+            && header.abi == ExternAbi::Rust
             && impl_item.ident.name == sym::to_string
             && let decl = signature.decl
             && decl.implicit_self.has_implicit_self()
@@ -106,7 +106,7 @@ impl<'tcx> LateLintPass<'tcx> for InherentToString {
             // Check if return type is String
             && is_type_lang_item(cx, return_ty(cx, impl_item.owner_id), LangItem::String)
             // Filters instances of to_string which are required by a trait
-            && trait_ref_of_method(cx, impl_item.owner_id.def_id).is_none()
+            && trait_ref_of_method(cx, impl_item.owner_id).is_none()
         {
             show_lint(cx, impl_item);
         }

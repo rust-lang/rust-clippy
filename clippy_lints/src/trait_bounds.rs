@@ -10,12 +10,12 @@ use rustc_data_structures::unhash::UnhashMap;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{
-    BoundPolarity, GenericBound, Generics, Item, ItemKind, LangItem, Node, Path, PathSegment, PredicateOrigin, QPath,
-    TraitBoundModifiers, TraitItem, TraitRef, Ty, TyKind, WherePredicate,
+    AmbigArg, BoundPolarity, GenericBound, Generics, Item, ItemKind, LangItem, Node, Path, PathSegment,
+    PredicateOrigin, QPath, TraitBoundModifiers, TraitItem, TraitRef, Ty, TyKind, WherePredicateKind,
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::impl_lint_pass;
-use rustc_span::{BytePos, Span};
+use rustc_span::Span;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -95,7 +95,7 @@ impl TraitBounds {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
             max_trait_bounds: conf.max_trait_bounds,
-            msrv: conf.msrv.clone(),
+            msrv: conf.msrv,
         }
     }
 }
@@ -112,7 +112,7 @@ impl<'tcx> LateLintPass<'tcx> for TraitBounds {
         // special handling for self trait bounds as these are not considered generics
         // ie. trait Foo: Display {}
         if let Item {
-            kind: ItemKind::Trait(_, _, _, bounds, ..),
+            kind: ItemKind::Trait(_, _, _, _, bounds, ..),
             ..
         } = item
         {
@@ -124,18 +124,18 @@ impl<'tcx> LateLintPass<'tcx> for TraitBounds {
         let mut self_bounds_map = FxHashMap::default();
 
         for predicate in item.generics.predicates {
-            if let WherePredicate::BoundPredicate(bound_predicate) = predicate
+            if let WherePredicateKind::BoundPredicate(bound_predicate) = predicate.kind
                 && bound_predicate.origin != PredicateOrigin::ImplTrait
-                && !bound_predicate.span.from_expansion()
+                && !predicate.span.from_expansion()
                 && let TyKind::Path(QPath::Resolved(_, Path { segments, .. })) = bound_predicate.bounded_ty.kind
                 && let Some(PathSegment {
                     res: Res::SelfTyParam { trait_: def_id },
                     ..
                 }) = segments.first()
                 && let Some(Node::Item(Item {
-                    kind: ItemKind::Trait(_, _, _, self_bounds, _),
+                    kind: ItemKind::Trait(_, _, _, _, self_bounds, _),
                     ..
-                })) = cx.tcx.hir().get_if_local(*def_id)
+                })) = cx.tcx.hir_get_if_local(*def_id)
             {
                 if self_bounds_map.is_empty() {
                     for bound in *self_bounds {
@@ -151,27 +151,26 @@ impl<'tcx> LateLintPass<'tcx> for TraitBounds {
                     .iter()
                     .filter_map(get_trait_info_from_bound)
                     .for_each(|(trait_item_res, trait_item_segments, span)| {
-                        if let Some(self_segments) = self_bounds_map.get(&trait_item_res) {
-                            if SpanlessEq::new(cx)
+                        if let Some(self_segments) = self_bounds_map.get(&trait_item_res)
+                            && SpanlessEq::new(cx)
                                 .paths_by_resolution()
                                 .eq_path_segments(self_segments, trait_item_segments)
-                            {
-                                span_lint_and_help(
-                                    cx,
-                                    TRAIT_DUPLICATION_IN_BOUNDS,
-                                    span,
-                                    "this trait bound is already specified in trait declaration",
-                                    None,
-                                    "consider removing this trait bound",
-                                );
-                            }
+                        {
+                            span_lint_and_help(
+                                cx,
+                                TRAIT_DUPLICATION_IN_BOUNDS,
+                                span,
+                                "this trait bound is already specified in trait declaration",
+                                None,
+                                "consider removing this trait bound",
+                            );
                         }
                     });
             }
         }
     }
 
-    fn check_ty(&mut self, cx: &LateContext<'tcx>, ty: &'tcx Ty<'tcx>) {
+    fn check_ty(&mut self, cx: &LateContext<'tcx>, ty: &'tcx Ty<'tcx, AmbigArg>) {
         if let TyKind::Ref(.., mut_ty) = &ty.kind
             && let TyKind::TraitObject(bounds, ..) = mut_ty.ty.kind
             && bounds.len() > 2
@@ -223,17 +222,15 @@ impl<'tcx> LateLintPass<'tcx> for TraitBounds {
             }
         }
     }
-
-    extract_msrv_attr!(LateContext);
 }
 
 impl TraitBounds {
     /// Is the given bound a `?Sized` bound, and is combining it (i.e. `T: X + ?Sized`) an error on
     /// this MSRV? See <https://github.com/rust-lang/rust-clippy/issues/8772> for details.
     fn cannot_combine_maybe_bound(&self, cx: &LateContext<'_>, bound: &GenericBound<'_>) -> bool {
-        if !self.msrv.meets(msrvs::MAYBE_BOUND_IN_WHERE)
-            && let GenericBound::Trait(tr) = bound
+        if let GenericBound::Trait(tr) = bound
             && let BoundPolarity::Maybe(_) = tr.modifiers.polarity
+            && !self.msrv.meets(cx, msrvs::MAYBE_BOUND_IN_WHERE)
         {
             cx.tcx.lang_items().get(LangItem::Sized) == tr.trait_ref.path.res.opt_def_id()
         } else {
@@ -268,10 +265,10 @@ impl TraitBounds {
         let mut map: UnhashMap<SpanlessTy<'_, '_>, Vec<&GenericBound<'_>>> = UnhashMap::default();
         let mut applicability = Applicability::MaybeIncorrect;
         for bound in generics.predicates {
-            if let WherePredicate::BoundPredicate(p) = bound
+            if let WherePredicateKind::BoundPredicate(p) = bound.kind
                 && p.origin != PredicateOrigin::ImplTrait
                 && p.bounds.len() as u64 <= self.max_trait_bounds
-                && !p.span.from_expansion()
+                && !bound.span.from_expansion()
                 && let bounds = p
                     .bounds
                     .iter()
@@ -285,18 +282,18 @@ impl TraitBounds {
                     .iter()
                     .copied()
                     .chain(p.bounds.iter())
-                    .filter_map(get_trait_info_from_bound)
-                    .map(|(_, _, span)| snippet_with_applicability(cx, span, "..", &mut applicability))
+                    .map(|bound| snippet_with_applicability(cx, bound.span(), "_", &mut applicability))
                     .join(" + ");
                 let hint_string = format!(
                     "consider combining the bounds: `{}: {trait_bounds}`",
                     snippet(cx, p.bounded_ty.span, "_"),
                 );
+                let ty_name = snippet(cx, p.bounded_ty.span, "_");
                 span_lint_and_help(
                     cx,
                     TYPE_REPETITION_IN_BOUNDS,
-                    p.span,
-                    "this type has already been used as a bound predicate",
+                    bound.span,
+                    format!("type `{ty_name}` has already been used as a bound predicate"),
                     None,
                     hint_string,
                 );
@@ -322,8 +319,8 @@ fn check_trait_bound_duplication<'tcx>(cx: &LateContext<'tcx>, generics: &'_ Gen
         .predicates
         .iter()
         .filter_map(|pred| {
-            if pred.in_where_clause()
-                && let WherePredicate::BoundPredicate(bound_predicate) = pred
+            if pred.kind.in_where_clause()
+                && let WherePredicateKind::BoundPredicate(bound_predicate) = pred.kind
                 && let TyKind::Path(QPath::Resolved(_, path)) = bound_predicate.bounded_ty.kind
             {
                 return Some(
@@ -347,10 +344,10 @@ fn check_trait_bound_duplication<'tcx>(cx: &LateContext<'tcx>, generics: &'_ Gen
     //            |
     // compare trait bounds keyed by generic name and comparable trait to collected where
     // predicates eg. (T, Clone)
-    for predicate in generics.predicates.iter().filter(|pred| !pred.in_where_clause()) {
-        if let WherePredicate::BoundPredicate(bound_predicate) = predicate
+    for predicate in generics.predicates.iter().filter(|pred| !pred.kind.in_where_clause()) {
+        if let WherePredicateKind::BoundPredicate(bound_predicate) = predicate.kind
             && bound_predicate.origin != PredicateOrigin::ImplTrait
-            && !bound_predicate.span.from_expansion()
+            && !predicate.span.from_expansion()
             && let TyKind::Path(QPath::Resolved(_, path)) = bound_predicate.bounded_ty.kind
         {
             let traits = rollup_traits(cx, bound_predicate.bounds, "these bounds contain repeated elements");
@@ -398,15 +395,7 @@ impl Hash for ComparableTraitRef<'_, '_> {
 fn get_trait_info_from_bound<'a>(bound: &'a GenericBound<'_>) -> Option<(Res, &'a [PathSegment<'a>], Span)> {
     if let GenericBound::Trait(t) = bound {
         let trait_path = t.trait_ref.path;
-        let trait_span = {
-            let path_span = trait_path.span;
-            if let BoundPolarity::Maybe(_) = t.modifiers.polarity {
-                path_span.with_lo(path_span.lo() - BytePos(1)) // include the `?`
-            } else {
-                path_span
-            }
-        };
-        Some((trait_path.res, trait_path.segments, trait_span))
+        Some((trait_path.res, trait_path.segments, t.span))
     } else {
         None
     }

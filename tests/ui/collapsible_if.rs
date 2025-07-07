@@ -17,36 +17,42 @@ fn main() {
             println!("Hello world!");
         }
     }
+    //~^^^^^ collapsible_if
 
     if x == "hello" || x == "world" {
         if y == "world" || y == "hello" {
             println!("Hello world!");
         }
     }
+    //~^^^^^ collapsible_if
 
     if x == "hello" && x == "world" {
         if y == "world" || y == "hello" {
             println!("Hello world!");
         }
     }
+    //~^^^^^ collapsible_if
 
     if x == "hello" || x == "world" {
         if y == "world" && y == "hello" {
             println!("Hello world!");
         }
     }
+    //~^^^^^ collapsible_if
 
     if x == "hello" && x == "world" {
         if y == "world" && y == "hello" {
             println!("Hello world!");
         }
     }
+    //~^^^^^ collapsible_if
 
     if 42 == 1337 {
         if 'a' != 'A' {
             println!("world!")
         }
     }
+    //~^^^^^ collapsible_if
 
     // Works because any if with an else statement cannot be collapsed.
     if x == "hello" {
@@ -77,41 +83,12 @@ fn main() {
         assert!(true); // assert! is just an `if`
     }
 
-
-    // The following tests check for the fix of https://github.com/rust-lang/rust-clippy/issues/798
-    if x == "hello" {// Not collapsible
-        if y == "world" {
-            println!("Hello world!");
-        }
-    }
-
-    if x == "hello" { // Not collapsible
-        if y == "world" {
-            println!("Hello world!");
-        }
-    }
-
-    if x == "hello" {
-        // Not collapsible
-        if y == "world" {
-            println!("Hello world!");
-        }
-    }
-
     if x == "hello" {
         if y == "world" { // Collapsible
             println!("Hello world!");
         }
     }
-
-    if x == "hello" {
-        print!("Hello ");
-    } else {
-        // Not collapsible
-        if y == "world" {
-            println!("world!")
-        }
-    }
+    //~^^^^^ collapsible_if
 
     if x == "hello" {
         print!("Hello ");
@@ -123,48 +100,27 @@ fn main() {
     }
 
     if x == "hello" {
-        /* Not collapsible */
+        print!("Hello ");
+    } else {
+        // Not collapsible
         if y == "world" {
-            println!("Hello world!");
+            println!("world!")
         }
     }
 
-    if x == "hello" { /* Not collapsible */
-        if y == "world" {
-            println!("Hello world!");
-        }
-    }
-
-    // Test behavior wrt. `let_chains`.
-    // None of the cases below should be collapsed.
     fn truth() -> bool { true }
-
-    // Prefix:
-    if let 0 = 1 {
-        if truth() {}
-    }
-
-    // Suffix:
-    if truth() {
-        if let 0 = 1 {}
-    }
-
-    // Midfix:
-    if truth() {
-        if let 0 = 1 {
-            if truth() {}
-        }
-    }
 
     // Fix #5962
     if matches!(true, true) {
         if matches!(true, true) {}
     }
+    //~^^^ collapsible_if
 
     // Issue #9375
     if matches!(true, true) && truth() {
         if matches!(true, true) {}
     }
+    //~^^^ collapsible_if
 
     if true {
         #[cfg(not(teehee))]
@@ -172,4 +128,48 @@ fn main() {
             println!("Hello world!");
         }
     }
+
+    if true {
+        if true {
+            println!("No comment, linted");
+        }
+    }
+    //~^^^^^ collapsible_if
+
+    if true {
+        // Do not collapse because of this comment
+        if true {
+            println!("Hello world!");
+        }
+    }
+}
+
+#[rustfmt::skip]
+fn layout_check() -> u32 {
+    if true {
+        if true {
+        }
+        // This is a comment, do not collapse code to it
+    }; 3
+    //~^^^^^ collapsible_if
+}
+
+fn issue14722() {
+    let x = if true {
+        Some(1)
+    } else {
+        if true {
+            println!("Some debug information");
+        };
+        None
+    };
+}
+
+fn issue14799() {
+    if true {
+        #[cfg(target_os = "freebsd")]
+        todo!();
+
+        if true {}
+    };
 }

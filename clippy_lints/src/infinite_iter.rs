@@ -1,10 +1,10 @@
 use clippy_utils::diagnostics::span_lint;
-use clippy_utils::higher;
 use clippy_utils::ty::{get_type_diagnostic_name, implements_trait};
+use clippy_utils::{higher, sym};
 use rustc_hir::{BorrowKind, Closure, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
-use rustc_span::symbol::sym;
+use rustc_span::Symbol;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -94,7 +94,6 @@ impl Finiteness {
 }
 
 impl From<bool> for Finiteness {
-    #[must_use]
     fn from(b: bool) -> Self {
         if b { Infinite } else { Finite }
     }
@@ -121,33 +120,33 @@ use self::Heuristic::{All, Always, Any, First};
 /// returns an infinite or possibly infinite iterator. The finiteness
 /// is an upper bound, e.g., some methods can return a possibly
 /// infinite iterator at worst, e.g., `take_while`.
-const HEURISTICS: [(&str, usize, Heuristic, Finiteness); 19] = [
-    ("zip", 1, All, Infinite),
-    ("chain", 1, Any, Infinite),
-    ("cycle", 0, Always, Infinite),
-    ("map", 1, First, Infinite),
-    ("by_ref", 0, First, Infinite),
-    ("cloned", 0, First, Infinite),
-    ("rev", 0, First, Infinite),
-    ("inspect", 0, First, Infinite),
-    ("enumerate", 0, First, Infinite),
-    ("peekable", 1, First, Infinite),
-    ("fuse", 0, First, Infinite),
-    ("skip", 1, First, Infinite),
-    ("skip_while", 0, First, Infinite),
-    ("filter", 1, First, Infinite),
-    ("filter_map", 1, First, Infinite),
-    ("flat_map", 1, First, Infinite),
-    ("unzip", 0, First, Infinite),
-    ("take_while", 1, First, MaybeInfinite),
-    ("scan", 2, First, MaybeInfinite),
+const HEURISTICS: [(Symbol, usize, Heuristic, Finiteness); 19] = [
+    (sym::zip, 1, All, Infinite),
+    (sym::chain, 1, Any, Infinite),
+    (sym::cycle, 0, Always, Infinite),
+    (sym::map, 1, First, Infinite),
+    (sym::by_ref, 0, First, Infinite),
+    (sym::cloned, 0, First, Infinite),
+    (sym::rev, 0, First, Infinite),
+    (sym::inspect, 0, First, Infinite),
+    (sym::enumerate, 0, First, Infinite),
+    (sym::peekable, 1, First, Infinite),
+    (sym::fuse, 0, First, Infinite),
+    (sym::skip, 1, First, Infinite),
+    (sym::skip_while, 0, First, Infinite),
+    (sym::filter, 1, First, Infinite),
+    (sym::filter_map, 1, First, Infinite),
+    (sym::flat_map, 1, First, Infinite),
+    (sym::unzip, 0, First, Infinite),
+    (sym::take_while, 1, First, MaybeInfinite),
+    (sym::scan, 2, First, MaybeInfinite),
 ];
 
 fn is_infinite(cx: &LateContext<'_>, expr: &Expr<'_>) -> Finiteness {
     match expr.kind {
         ExprKind::MethodCall(method, receiver, args, _) => {
             for &(name, len, heuristic, cap) in &HEURISTICS {
-                if method.ident.name.as_str() == name && args.len() == len {
+                if method.ident.name == name && args.len() == len {
                     return (match heuristic {
                         Always => Infinite,
                         First => is_infinite(cx, receiver),
@@ -157,11 +156,12 @@ fn is_infinite(cx: &LateContext<'_>, expr: &Expr<'_>) -> Finiteness {
                     .and(cap);
                 }
             }
-            if method.ident.name.as_str() == "flat_map" && args.len() == 1 {
-                if let ExprKind::Closure(&Closure { body, .. }) = args[0].kind {
-                    let body = cx.tcx.hir().body(body);
-                    return is_infinite(cx, body.value);
-                }
+            if method.ident.name == sym::flat_map
+                && args.len() == 1
+                && let ExprKind::Closure(&Closure { body, .. }) = args[0].kind
+            {
+                let body = cx.tcx.hir_body(body);
+                return is_infinite(cx, body.value);
             }
             Finite
         },
@@ -184,36 +184,36 @@ fn is_infinite(cx: &LateContext<'_>, expr: &Expr<'_>) -> Finiteness {
 
 /// the names and argument lengths of methods that *may* exhaust their
 /// iterators
-const POSSIBLY_COMPLETING_METHODS: [(&str, usize); 6] = [
-    ("find", 1),
-    ("rfind", 1),
-    ("position", 1),
-    ("rposition", 1),
-    ("any", 1),
-    ("all", 1),
+const POSSIBLY_COMPLETING_METHODS: [(Symbol, usize); 6] = [
+    (sym::find, 1),
+    (sym::rfind, 1),
+    (sym::position, 1),
+    (sym::rposition, 1),
+    (sym::any, 1),
+    (sym::all, 1),
 ];
 
 /// the names and argument lengths of methods that *always* exhaust
 /// their iterators
-const COMPLETING_METHODS: [(&str, usize); 12] = [
-    ("count", 0),
-    ("fold", 2),
-    ("for_each", 1),
-    ("partition", 1),
-    ("max", 0),
-    ("max_by", 1),
-    ("max_by_key", 1),
-    ("min", 0),
-    ("min_by", 1),
-    ("min_by_key", 1),
-    ("sum", 0),
-    ("product", 0),
+const COMPLETING_METHODS: [(Symbol, usize); 12] = [
+    (sym::count, 0),
+    (sym::fold, 2),
+    (sym::for_each, 1),
+    (sym::partition, 1),
+    (sym::max, 0),
+    (sym::max_by, 1),
+    (sym::max_by_key, 1),
+    (sym::min, 0),
+    (sym::min_by, 1),
+    (sym::min_by_key, 1),
+    (sym::sum, 0),
+    (sym::product, 0),
 ];
 
 fn complete_infinite_iter(cx: &LateContext<'_>, expr: &Expr<'_>) -> Finiteness {
     match expr.kind {
         ExprKind::MethodCall(method, receiver, args, _) => {
-            let method_str = method.ident.name.as_str();
+            let method_str = method.ident.name;
             for &(name, len) in &COMPLETING_METHODS {
                 if method_str == name && args.len() == len {
                     return is_infinite(cx, receiver);
@@ -224,7 +224,7 @@ fn complete_infinite_iter(cx: &LateContext<'_>, expr: &Expr<'_>) -> Finiteness {
                     return MaybeInfinite.and(is_infinite(cx, receiver));
                 }
             }
-            if method.ident.name.as_str() == "last" && args.is_empty() {
+            if method.ident.name == sym::last && args.is_empty() {
                 let not_double_ended = cx
                     .tcx
                     .get_diagnostic_item(sym::DoubleEndedIterator)
@@ -232,7 +232,7 @@ fn complete_infinite_iter(cx: &LateContext<'_>, expr: &Expr<'_>) -> Finiteness {
                 if not_double_ended {
                     return is_infinite(cx, receiver);
                 }
-            } else if method.ident.name.as_str() == "collect" {
+            } else if method.ident.name == sym::collect {
                 let ty = cx.typeck_results().expr_ty(expr);
                 if matches!(
                     get_type_diagnostic_name(cx, ty),

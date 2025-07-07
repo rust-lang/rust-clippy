@@ -1,8 +1,7 @@
 //@aux-build:proc_macros.rs
 //@no-rustfix: overlapping suggestions
-#![allow(clippy::no_effect, clippy::useless_vec, unused)]
+#![allow(clippy::no_effect, clippy::unnecessary_operation, clippy::useless_vec, unused)]
 #![warn(clippy::single_range_in_vec_init)]
-#![feature(generic_arg_infer)]
 
 #[macro_use]
 extern crate proc_macros;
@@ -24,16 +23,26 @@ fn awa_vec<T: PartialOrd>(start: T, end: T) {
 fn main() {
     // Lint
     [0..200];
+    //~^ single_range_in_vec_init
     vec![0..200];
+    //~^ single_range_in_vec_init
     [0u8..200];
+    //~^ single_range_in_vec_init
     [0usize..200];
+    //~^ single_range_in_vec_init
     [0..200usize];
+    //~^ single_range_in_vec_init
     vec![0u8..200];
+    //~^ single_range_in_vec_init
     vec![0usize..200];
+    //~^ single_range_in_vec_init
     vec![0..200usize];
+    //~^ single_range_in_vec_init
     // Only suggest collect
     [0..200isize];
+    //~^ single_range_in_vec_init
     vec![0..200isize];
+    //~^ single_range_in_vec_init
     // Do not lint
     [0..200, 0..100];
     vec![0..200, 0..100];

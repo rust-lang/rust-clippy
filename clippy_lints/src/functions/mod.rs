@@ -9,7 +9,8 @@ mod too_many_arguments;
 mod too_many_lines;
 
 use clippy_config::Conf;
-use clippy_utils::def_path_def_ids;
+use clippy_utils::msrvs::Msrv;
+use clippy_utils::paths::{PathNS, lookup_path_str};
 use rustc_hir as hir;
 use rustc_hir::intravisit;
 use rustc_lint::{LateContext, LateLintPass};
@@ -302,7 +303,7 @@ declare_clippy_lint! {
     /// to the name of the method, when there is a field's whose name matches that of the method.
     ///
     /// ### Why is this bad?
-    /// It is most likely that such a  method is a bug caused by a typo or by copy-pasting.
+    /// It is most likely that such a method is a bug caused by a typo or by copy-pasting.
     ///
     /// ### Example
 
@@ -455,6 +456,7 @@ pub struct Functions {
     /// A set of resolved `def_id` of traits that are configured to allow
     /// function params renaming.
     trait_ids: DefIdSet,
+    msrv: Msrv,
 }
 
 impl Functions {
@@ -467,8 +469,9 @@ impl Functions {
             trait_ids: conf
                 .allow_renamed_params_for
                 .iter()
-                .flat_map(|p| def_path_def_ids(tcx, &p.split("::").collect::<Vec<_>>()))
+                .flat_map(|p| lookup_path_str(tcx, PathNS::Type, p))
                 .collect(),
+            msrv: conf.msrv,
         }
     }
 }
@@ -518,12 +521,12 @@ impl<'tcx> LateLintPass<'tcx> for Functions {
 
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx hir::Item<'_>) {
         must_use::check_item(cx, item);
-        result::check_item(cx, item, self.large_error_threshold);
+        result::check_item(cx, item, self.large_error_threshold, self.msrv);
     }
 
     fn check_impl_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx hir::ImplItem<'_>) {
         must_use::check_impl_item(cx, item);
-        result::check_impl_item(cx, item, self.large_error_threshold);
+        result::check_impl_item(cx, item, self.large_error_threshold, self.msrv);
         impl_trait_in_params::check_impl_item(cx, item);
         renamed_function_params::check_impl_item(cx, item, &self.trait_ids);
     }
@@ -532,7 +535,7 @@ impl<'tcx> LateLintPass<'tcx> for Functions {
         too_many_arguments::check_trait_item(cx, item, self.too_many_arguments_threshold);
         not_unsafe_ptr_arg_deref::check_trait_item(cx, item);
         must_use::check_trait_item(cx, item);
-        result::check_trait_item(cx, item, self.large_error_threshold);
+        result::check_trait_item(cx, item, self.large_error_threshold, self.msrv);
         impl_trait_in_params::check_trait_item(cx, item, self.avoid_breaking_exported_api);
         ref_option::check_trait_item(cx, item, self.avoid_breaking_exported_api);
     }

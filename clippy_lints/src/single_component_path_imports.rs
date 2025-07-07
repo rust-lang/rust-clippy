@@ -174,11 +174,11 @@ impl SingleComponentPathImports {
         }
 
         match &item.kind {
-            ItemKind::Mod(_, ModKind::Loaded(items, ..)) => {
+            ItemKind::Mod(_, _, ModKind::Loaded(items, ..)) => {
                 self.check_mod(items);
             },
-            ItemKind::MacroDef(MacroDef { macro_rules: true, .. }) => {
-                macros.push(item.ident.name);
+            ItemKind::MacroDef(ident, MacroDef { macro_rules: true, .. }) => {
+                macros.push(ident.name);
             },
             ItemKind::Use(use_tree) => {
                 let segments = &use_tree.prefix.segments;
@@ -204,37 +204,36 @@ impl SingleComponentPathImports {
                     if let UseTreeKind::Nested { items, .. } = &use_tree.kind {
                         for tree in items {
                             let segments = &tree.0.prefix.segments;
-                            if segments.len() == 1 {
-                                if let UseTreeKind::Simple(None) = tree.0.kind {
-                                    let name = segments[0].ident.name;
-                                    if !macros.contains(&name) {
-                                        single_use_usages.push(SingleUse {
-                                            name,
-                                            span: tree.0.span,
-                                            item_id: item.id,
-                                            can_suggest: false,
-                                        });
-                                    }
+                            if segments.len() == 1
+                                && let UseTreeKind::Simple(None) = tree.0.kind
+                            {
+                                let name = segments[0].ident.name;
+                                if !macros.contains(&name) {
+                                    single_use_usages.push(SingleUse {
+                                        name,
+                                        span: tree.0.span,
+                                        item_id: item.id,
+                                        can_suggest: false,
+                                    });
                                 }
                             }
                         }
                     }
-                } else {
-                    // keep track of `use self::some_module` usages
-                    if segments[0].ident.name == kw::SelfLower {
-                        // simple case such as `use self::module::SomeStruct`
-                        if segments.len() > 1 {
-                            imports_reused_with_self.push(segments[1].ident.name);
-                            return;
-                        }
+                }
+                // keep track of `use self::some_module` usages
+                else if segments[0].ident.name == kw::SelfLower {
+                    // simple case such as `use self::module::SomeStruct`
+                    if segments.len() > 1 {
+                        imports_reused_with_self.push(segments[1].ident.name);
+                        return;
+                    }
 
-                        // nested case such as `use self::{module1::Struct1, module2::Struct2}`
-                        if let UseTreeKind::Nested { items, .. } = &use_tree.kind {
-                            for tree in items {
-                                let segments = &tree.0.prefix.segments;
-                                if !segments.is_empty() {
-                                    imports_reused_with_self.push(segments[0].ident.name);
-                                }
+                    // nested case such as `use self::{module1::Struct1, module2::Struct2}`
+                    if let UseTreeKind::Nested { items, .. } = &use_tree.kind {
+                        for tree in items {
+                            let segments = &tree.0.prefix.segments;
+                            if !segments.is_empty() {
+                                imports_reused_with_self.push(segments[0].ident.name);
                             }
                         }
                     }

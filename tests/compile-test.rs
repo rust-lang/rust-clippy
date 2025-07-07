@@ -1,22 +1,25 @@
-#![feature(rustc_private, let_chains)]
+#![feature(rustc_private)]
 #![warn(rust_2018_idioms, unused_lifetimes)]
 #![allow(unused_extern_crates)]
 
+use askama::Template;
+use askama::filters::Safe;
 use cargo_metadata::Message;
 use cargo_metadata::diagnostic::{Applicability, Diagnostic};
 use clippy_config::ClippyConfiguration;
-use clippy_lints::LintInfo;
 use clippy_lints::declared_lints::LINTS;
 use clippy_lints::deprecated_lints::{DEPRECATED, DEPRECATED_VERSION, RENAMED};
+use declare_clippy_lint::LintInfo;
 use pulldown_cmark::{Options, Parser, html};
-use rinja::Template;
-use rinja::filters::Safe;
 use serde::Deserialize;
 use test_utils::IS_RUSTC_TEST_SUITE;
 use ui_test::custom_flags::Flag;
+use ui_test::custom_flags::edition::Edition;
 use ui_test::custom_flags::rustfix::RustfixMode;
+use ui_test::dependencies::DependencyBuilder;
 use ui_test::spanned::Spanned;
-use ui_test::{Args, CommandBuilder, Config, Match, OutputConflictHandling, status_emitter};
+use ui_test::status_emitter::StatusEmitter;
+use ui_test::{Args, CommandBuilder, Config, Match, error_on_output_conflict};
 
 use std::collections::{BTreeMap, HashMap};
 use std::env::{self, set_var, var_os};
@@ -26,46 +29,26 @@ use std::path::{Path, PathBuf};
 use std::sync::mpsc::{Sender, channel};
 use std::{fs, iter, thread};
 
-// Test dependencies may need an `extern crate` here to ensure that they show up
-// in the depinfo file (otherwise cargo thinks they are unused)
-extern crate futures;
-extern crate if_chain;
-extern crate itertools;
-extern crate parking_lot;
-extern crate quote;
-extern crate syn;
-extern crate tokio;
-
 mod test_utils;
 
-/// All crates used in UI tests are listed here
-static TEST_DEPENDENCIES: &[&str] = &[
-    "clippy_config",
-    "clippy_lints",
-    "clippy_utils",
-    "futures",
-    "if_chain",
-    "itertools",
-    "parking_lot",
-    "quote",
-    "regex",
-    "serde_derive",
-    "serde",
-    "syn",
-    "tokio",
-];
+/// All crates used in internal UI tests are listed here.
+/// We directly re-use these crates from their normal clippy builds, so we don't have them
+/// in `clippy_test_devs`. That saves a lot of time but also means they don't work in a stage 1
+/// test in rustc bootstrap.
+static INTERNAL_TEST_DEPENDENCIES: &[&str] = &["clippy_config", "clippy_lints", "clippy_utils"];
 
-/// Produces a string with an `--extern` flag for all UI test crate
-/// dependencies.
+/// Produces a string with an `--extern` flag for all `INTERNAL_TEST_DEPENDENCIES`.
 ///
 /// The dependency files are located by parsing the depinfo file for this test
 /// module. This assumes the `-Z binary-dep-depinfo` flag is enabled. All test
 /// dependencies must be added to Cargo.toml at the project root. Test
 /// dependencies that are not *directly* used by this test module require an
 /// `extern crate` declaration.
-fn extern_flags() -> Vec<String> {
+fn internal_extern_flags() -> Vec<String> {
+    let current_exe_path = env::current_exe().unwrap();
+    let deps_path = current_exe_path.parent().unwrap();
     let current_exe_depinfo = {
-        let mut path = env::current_exe().unwrap();
+        let mut path = current_exe_path.clone();
         path.set_extension("d");
         fs::read_to_string(path).unwrap()
     };
@@ -86,16 +69,16 @@ fn extern_flags() -> Vec<String> {
             let name = name.strip_prefix("lib").unwrap_or(name);
             Some((name, path_str))
         };
-        if let Some((name, path)) = parse_name_path() {
-            if TEST_DEPENDENCIES.contains(&name) {
-                // A dependency may be listed twice if it is available in sysroot,
-                // and the sysroot dependencies are listed first. As of the writing,
-                // this only seems to apply to if_chain.
-                crates.insert(name, path);
-            }
+        if let Some((name, path)) = parse_name_path()
+            && INTERNAL_TEST_DEPENDENCIES.contains(&name)
+        {
+            // A dependency may be listed twice if it is available in sysroot,
+            // and the sysroot dependencies are listed first. As of the writing,
+            // this only seems to apply to if_chain.
+            crates.insert(name, path);
         }
     }
-    let not_found: Vec<&str> = TEST_DEPENDENCIES
+    let not_found: Vec<&str> = INTERNAL_TEST_DEPENDENCIES
         .iter()
         .copied()
         .filter(|n| !crates.contains_key(n))
@@ -110,6 +93,7 @@ fn extern_flags() -> Vec<String> {
     crates
         .into_iter()
         .map(|(name, path)| format!("--extern={name}={path}"))
+        .chain([format!("-Ldependency={}", deps_path.display())])
         .collect()
 }
 
@@ -118,7 +102,6 @@ const RUN_INTERNAL_TESTS: bool = cfg!(feature = "internal");
 
 struct TestContext {
     args: Args,
-    extern_flags: Vec<String>,
     diagnostic_collector: Option<DiagnosticCollector>,
     collector_thread: Option<thread::JoinHandle<()>>,
 }
@@ -133,27 +116,44 @@ impl TestContext {
             .unzip();
         Self {
             args,
-            extern_flags: extern_flags(),
             diagnostic_collector,
             collector_thread,
         }
     }
 
-    fn base_config(&self, test_dir: &str) -> Config {
+    fn base_config(&self, test_dir: &str, mandatory_annotations: bool) -> Config {
         let target_dir = PathBuf::from(var_os("CARGO_TARGET_DIR").unwrap_or_else(|| "target".into()));
         let mut config = Config {
-            output_conflict_handling: OutputConflictHandling::Error,
+            output_conflict_handling: error_on_output_conflict,
             filter_files: env::var("TESTNAME")
                 .map(|filters| filters.split(',').map(str::to_string).collect())
                 .unwrap_or_default(),
             target: None,
-            bless_command: Some("cargo uibless".into()),
+            bless_command: Some(if IS_RUSTC_TEST_SUITE {
+                "./x test src/tools/clippy --bless".into()
+            } else {
+                "cargo uibless".into()
+            }),
             out_dir: target_dir.join("ui_test"),
             ..Config::rustc(Path::new("tests").join(test_dir))
         };
         let defaults = config.comment_defaults.base();
+        defaults.set_custom("edition", Edition("2024".into()));
+        defaults.set_custom(
+            "dependencies",
+            DependencyBuilder {
+                program: CommandBuilder::cargo(),
+                crate_manifest_path: Path::new("clippy_test_deps").join("Cargo.toml"),
+                build_std: None,
+                bless_lockfile: self.args.bless,
+            },
+        );
         defaults.exit_status = None.into();
-        defaults.require_annotations = None.into();
+        if mandatory_annotations {
+            defaults.require_annotations = Some(Spanned::dummy(true)).into();
+        } else {
+            defaults.require_annotations = None.into();
+        }
         defaults.diagnostic_code_prefix = Some(Spanned::dummy("clippy::".into())).into();
         defaults.set_custom("rustfix", RustfixMode::Everything);
         if let Some(collector) = self.diagnostic_collector.clone() {
@@ -172,12 +172,10 @@ impl TestContext {
                 "-Zui-testing",
                 "-Zdeduplicate-diagnostics=no",
                 "-Dwarnings",
-                &format!("-Ldependency={}", deps_path.display()),
             ]
             .map(OsString::from),
         );
 
-        config.program.args.extend(self.extern_flags.iter().map(OsString::from));
         // Prevent rustc from creating `rustc-ice-*` files the console output is enough.
         config.program.envs.push(("RUSTC_ICE".into(), Some("0".into())));
 
@@ -197,7 +195,7 @@ impl TestContext {
 }
 
 fn run_ui(cx: &TestContext) {
-    let mut config = cx.base_config("ui");
+    let mut config = cx.base_config("ui", true);
     config
         .program
         .envs
@@ -207,7 +205,7 @@ fn run_ui(cx: &TestContext) {
         vec![config],
         ui_test::default_file_filter,
         ui_test::default_per_file_config,
-        status_emitter::Text::from(cx.args.format),
+        Box::<dyn StatusEmitter>::from(cx.args.format),
     )
     .unwrap();
 }
@@ -216,20 +214,24 @@ fn run_internal_tests(cx: &TestContext) {
     if !RUN_INTERNAL_TESTS {
         return;
     }
-    let mut config = cx.base_config("ui-internal");
+    let mut config = cx.base_config("ui-internal", true);
+    config
+        .program
+        .args
+        .extend(internal_extern_flags().iter().map(OsString::from));
     config.bless_command = Some("cargo uitest --features internal -- -- --bless".into());
 
     ui_test::run_tests_generic(
         vec![config],
         ui_test::default_file_filter,
         ui_test::default_per_file_config,
-        status_emitter::Text::from(cx.args.format),
+        Box::<dyn StatusEmitter>::from(cx.args.format),
     )
     .unwrap();
 }
 
 fn run_ui_toml(cx: &TestContext) {
-    let mut config = cx.base_config("ui-toml");
+    let mut config = cx.base_config("ui-toml", true);
 
     config
         .comment_defaults
@@ -247,7 +249,7 @@ fn run_ui_toml(cx: &TestContext) {
                 .envs
                 .push(("CLIPPY_CONF_DIR".into(), Some(path.parent().unwrap().into())));
         },
-        status_emitter::Text::from(cx.args.format),
+        Box::<dyn StatusEmitter>::from(cx.args.format),
     )
     .unwrap();
 }
@@ -259,14 +261,14 @@ fn run_ui_cargo(cx: &TestContext) {
         return;
     }
 
-    let mut config = cx.base_config("ui-cargo");
+    let mut config = cx.base_config("ui-cargo", false);
     config.program.input_file_flag = CommandBuilder::cargo().input_file_flag;
     config.program.out_dir_flag = CommandBuilder::cargo().out_dir_flag;
     config.program.args = vec!["clippy".into(), "--color".into(), "never".into(), "--quiet".into()];
-    config
-        .program
-        .envs
-        .push(("RUSTFLAGS".into(), Some("-Dwarnings".into())));
+    config.program.envs.extend([
+        ("RUSTFLAGS".into(), Some("-Dwarnings".into())),
+        ("CARGO_INCREMENTAL".into(), Some("0".into())),
+    ]);
     // We need to do this while we still have a rustc in the `program` field.
     config.fill_host_and_target().unwrap();
     config.program.program.set_file_name(if cfg!(windows) {
@@ -294,13 +296,15 @@ fn run_ui_cargo(cx: &TestContext) {
                 .then(|| ui_test::default_any_file_filter(path, config) && !ignored_32bit(path))
         },
         |_config, _file_contents| {},
-        status_emitter::Text::from(cx.args.format),
+        Box::<dyn StatusEmitter>::from(cx.args.format),
     )
     .unwrap();
 }
 
 fn main() {
-    set_var("CLIPPY_DISABLE_DOCS_LINKS", "true");
+    unsafe {
+        set_var("CLIPPY_DISABLE_DOCS_LINKS", "true");
+    }
 
     let cx = TestContext::new();
 
@@ -377,13 +381,15 @@ fn ui_cargo_toml_metadata() {
                 .map(|component| component.as_os_str().to_string_lossy().replace('-', "_"))
                 .any(|s| *s == name)
                 || path.starts_with(&cargo_common_metadata_path),
-            "{path:?} has incorrect package name"
+            "`{}` has incorrect package name",
+            path.display(),
         );
 
         let publish = package.get("publish").and_then(toml::Value::as_bool).unwrap_or(true);
         assert!(
             !publish || publish_exceptions.contains(&path.parent().unwrap().to_path_buf()),
-            "{path:?} lacks `publish = false`"
+            "`{}` lacks `publish = false`",
+            path.display(),
         );
     }
 }
@@ -554,10 +560,10 @@ impl LintMetadata {
         Self {
             id: name,
             id_location: Some(lint.location),
-            group: lint.category_str(),
+            group: lint.category.name(),
             level: lint.lint.default_level.as_str(),
             docs,
-            version: lint.version.unwrap(),
+            version: lint.version,
             applicability,
         }
     }
@@ -574,12 +580,12 @@ impl LintMetadata {
             id_location: None,
             group: "deprecated",
             level: "none",
-            version,
             docs: format!(
                 "### What it does\n\n\
                 Nothing. This lint has been deprecated\n\n\
                 ### Deprecation reason\n\n{reason}.\n",
             ),
+            version,
             applicability: Applicability::Unspecified,
         }
     }

@@ -8,7 +8,8 @@
     clippy::needless_borrow,
     clippy::no_effect,
     clippy::uninlined_format_args,
-    clippy::unnecessary_literal_unwrap
+    clippy::unnecessary_literal_unwrap,
+    clippy::deref_addrof
 )]
 
 use std::ops::{Deref, DerefMut};
@@ -52,32 +53,38 @@ fn main() {
     // these should require linting
 
     let b: &str = a.deref();
+    //~^ explicit_deref_methods
 
     let b: &mut str = a.deref_mut();
+    //~^ explicit_deref_methods
 
     // both derefs should get linted here
     let b: String = format!("{}, {}", a.deref(), a.deref());
+    //~^ explicit_deref_methods
+    //~| explicit_deref_methods
 
     println!("{}", a.deref());
+    //~^ explicit_deref_methods
 
     #[allow(clippy::match_single_binding)]
     match a.deref() {
+        //~^ explicit_deref_methods
         _ => (),
     }
 
     let b: String = concat(a.deref());
+    //~^ explicit_deref_methods
 
     let b = just_return(a).deref();
+    //~^ explicit_deref_methods
 
     let b: String = concat(just_return(a).deref());
+    //~^ explicit_deref_methods
 
     let b: &str = a.deref().deref();
 
     let opt_a = Some(a.clone());
     let b = opt_a.unwrap().deref();
-
-    // make sure `Aaa::deref` instead of `aaa.deref()` is not linted, as well as fully qualified
-    // syntax
 
     Aaa::deref(&Aaa);
     Aaa::deref_mut(&mut Aaa);
@@ -112,6 +119,7 @@ fn main() {
     let b: &str = expr_deref!(a);
 
     let b: &str = expr_deref!(a.deref());
+    //~^ explicit_deref_methods
 
     // The struct does not implement Deref trait
     #[derive(Copy, Clone)]
@@ -127,4 +135,9 @@ fn main() {
     let no_lint = NoLint(42);
     let b = no_lint.deref();
     let b = no_lint.deref_mut();
+
+    let _ = &Deref::deref(&"foo"); //~ explicit_deref_methods
+    let mut x = String::new();
+    let _ = &DerefMut::deref_mut(&mut x); //~ explicit_deref_methods
+    let _ = &DerefMut::deref_mut((&mut &mut x).deref_mut()); //~ explicit_deref_methods
 }

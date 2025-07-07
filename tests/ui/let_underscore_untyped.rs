@@ -6,7 +6,6 @@
 extern crate proc_macros;
 use proc_macros::with_span;
 
-use clippy_utils::is_from_proc_macro;
 use std::boxed::Box;
 use std::fmt::Display;
 use std::future::Future;
@@ -49,11 +48,16 @@ with_span!(
 
 fn main() {
     let _ = a();
+    //~^ let_underscore_untyped
     let _ = b(1);
+    //~^ let_underscore_untyped
     let _ = c();
     let _ = d(&1);
+    //~^ let_underscore_untyped
     let _ = e();
+    //~^ let_underscore_untyped
     let _ = f();
+    //~^ let_underscore_untyped
     let _ = g();
     let closure = || {};
 

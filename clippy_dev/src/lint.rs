@@ -2,7 +2,7 @@ use crate::utils::{cargo_clippy_path, exit_if_err};
 use std::process::{self, Command};
 use std::{env, fs};
 
-pub fn run<'a>(path: &str, args: impl Iterator<Item = &'a String>) {
+pub fn run<'a>(path: &str, edition: &str, args: impl Iterator<Item = &'a String>) {
     let is_file = match fs::metadata(path) {
         Ok(metadata) => metadata.is_file(),
         Err(e) => {
@@ -13,11 +13,11 @@ pub fn run<'a>(path: &str, args: impl Iterator<Item = &'a String>) {
 
     if is_file {
         exit_if_err(
-            Command::new(env::var("CARGO").unwrap_or("cargo".into()))
+            Command::new(env::var("CARGO").unwrap_or_else(|_| "cargo".into()))
                 .args(["run", "--bin", "clippy-driver", "--"])
                 .args(["-L", "./target/debug"])
                 .args(["-Z", "no-codegen"])
-                .args(["--edition", "2021"])
+                .args(["--edition", edition])
                 .arg(path)
                 .args(args)
                 // Prevent rustc from creating `rustc-ice-*` files the console output is enough.
@@ -26,7 +26,7 @@ pub fn run<'a>(path: &str, args: impl Iterator<Item = &'a String>) {
         );
     } else {
         exit_if_err(
-            Command::new(env::var("CARGO").unwrap_or("cargo".into()))
+            Command::new(env::var("CARGO").unwrap_or_else(|_| "cargo".into()))
                 .arg("build")
                 .status(),
         );

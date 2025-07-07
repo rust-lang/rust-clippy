@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet;
@@ -78,7 +80,7 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryWraps {
         fn_kind: FnKind<'tcx>,
         fn_decl: &FnDecl<'tcx>,
         body: &Body<'tcx>,
-        span: Span,
+        _span: Span,
         def_id: LocalDefId,
     ) {
         // Abort if public function/method or closure.
@@ -93,13 +95,13 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryWraps {
 
         // Abort if the method is implementing a trait or of it a trait method.
         let hir_id = cx.tcx.local_def_id_to_hir_id(def_id);
-        if let Node::Item(item) = cx.tcx.parent_hir_node(hir_id) {
-            if matches!(
+        if let Node::Item(item) = cx.tcx.parent_hir_node(hir_id)
+            && matches!(
                 item.kind,
                 ItemKind::Impl(Impl { of_trait: Some(_), .. }) | ItemKind::Trait(..)
-            ) {
-                return;
-            }
+            )
+        {
+            return;
         }
 
         // Get the wrapper and inner types, if can't, abort.
@@ -147,19 +149,22 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryWraps {
                     "remove the return type...".to_string(),
                     // FIXME: we should instead get the span including the `->` and suggest an
                     // empty string for this case.
-                    "()".to_string(),
-                    "...and then remove returned values",
+                    Cow::Borrowed("()"),
+                    Cow::Borrowed("...and then remove returned values"),
                 )
             } else {
+                let wrapper = if lang_item == OptionSome { "Some" } else { "Ok" };
                 (
                     format!("this function's return value is unnecessarily wrapped by `{return_type_label}`"),
                     format!("remove `{return_type_label}` from the return type..."),
-                    inner_type.to_string(),
-                    "...and then change returning expressions",
+                    Cow::Owned(inner_type.to_string()),
+                    Cow::Owned(format!(
+                        "...and then remove the surrounding `{wrapper}()` from returning expressions"
+                    )),
                 )
             };
 
-            span_lint_and_then(cx, UNNECESSARY_WRAPS, span, lint_msg, |diag| {
+            span_lint_and_then(cx, UNNECESSARY_WRAPS, cx.tcx.def_span(def_id), lint_msg, |diag| {
                 diag.span_suggestion(
                     fn_decl.output.span(),
                     return_type_sugg_msg,

@@ -1,4 +1,4 @@
-//@no-rustfix: overlapping suggestions
+//@no-rustfix: has placeholders
 #![deny(clippy::panicking_unwrap, clippy::unnecessary_unwrap)]
 #![allow(
     clippy::if_same_then_else,
@@ -11,6 +11,7 @@ macro_rules! m {
         if $a.is_some() {
             // unnecessary
             $a.unwrap();
+            //~^ unnecessary_unwrap
         }
     };
 }
@@ -44,26 +45,28 @@ fn main() {
     if x.is_some() {
         // unnecessary
         x.unwrap();
-        //~^ ERROR: called `unwrap` on `x` after checking its variant with `is_some`
+        //~^ unnecessary_unwrap
+
         // unnecessary
         x.expect("an error message");
-        //~^ ERROR: called `expect` on `x` after checking its variant with `is_some`
+        //~^ unnecessary_unwrap
     } else {
         // will panic
         x.unwrap();
-        //~^ ERROR: this call to `unwrap()` will always panic
+        //~^ panicking_unwrap
+
         // will panic
         x.expect("an error message");
-        //~^ ERROR: this call to `expect()` will always panic
+        //~^ panicking_unwrap
     }
     if x.is_none() {
         // will panic
         x.unwrap();
-        //~^ ERROR: this call to `unwrap()` will always panic
+        //~^ panicking_unwrap
     } else {
         // unnecessary
         x.unwrap();
-        //~^ ERROR: called `unwrap` on `x` after checking its variant with `is_none`
+        //~^ unnecessary_unwrap
     }
     m!(x);
     // ok
@@ -76,38 +79,44 @@ fn main() {
     if x.is_ok() {
         // unnecessary
         x.unwrap();
-        //~^ ERROR: called `unwrap` on `x` after checking its variant with `is_ok`
+        //~^ unnecessary_unwrap
+
         // unnecessary
         x.expect("an error message");
-        //~^ ERROR: called `expect` on `x` after checking its variant with `is_ok`
+        //~^ unnecessary_unwrap
+
         // will panic
         x.unwrap_err();
-        //~^ ERROR: this call to `unwrap_err()` will always panic
+        //~^ panicking_unwrap
     } else {
         // will panic
         x.unwrap();
-        //~^ ERROR: this call to `unwrap()` will always panic
+        //~^ panicking_unwrap
+
         // will panic
         x.expect("an error message");
-        //~^ ERROR: this call to `expect()` will always panic
+        //~^ panicking_unwrap
+
         // unnecessary
         x.unwrap_err();
-        //~^ ERROR: called `unwrap_err` on `x` after checking its variant with `is_ok`
+        //~^ unnecessary_unwrap
     }
     if x.is_err() {
         // will panic
         x.unwrap();
-        //~^ ERROR: this call to `unwrap()` will always panic
+        //~^ panicking_unwrap
+
         // unnecessary
         x.unwrap_err();
-        //~^ ERROR: called `unwrap_err` on `x` after checking its variant with `is_err`
+        //~^ unnecessary_unwrap
     } else {
         // unnecessary
         x.unwrap();
-        //~^ ERROR: called `unwrap` on `x` after checking its variant with `is_err`
+        //~^ unnecessary_unwrap
+
         // will panic
         x.unwrap_err();
-        //~^ ERROR: this call to `unwrap_err()` will always panic
+        //~^ panicking_unwrap
     }
     if x.is_ok() {
         x = Err(());
@@ -132,38 +141,38 @@ fn issue11371() {
 
     if option.is_some() {
         option.as_ref().unwrap();
-        //~^ ERROR: called `unwrap` on `option` after checking its variant with `is_some`
+        //~^ unnecessary_unwrap
     } else {
         option.as_ref().unwrap();
-        //~^ ERROR: this call to `unwrap()` will always panic
+        //~^ panicking_unwrap
     }
 
     let result = Ok::<(), ()>(());
 
     if result.is_ok() {
         result.as_ref().unwrap();
-        //~^ ERROR: called `unwrap` on `result` after checking its variant with `is_ok`
+        //~^ unnecessary_unwrap
     } else {
         result.as_ref().unwrap();
-        //~^ ERROR: this call to `unwrap()` will always panic
+        //~^ panicking_unwrap
     }
 
     let mut option = Some(());
     if option.is_some() {
         option.as_mut().unwrap();
-        //~^ ERROR: called `unwrap` on `option` after checking its variant with `is_some`
+        //~^ unnecessary_unwrap
     } else {
         option.as_mut().unwrap();
-        //~^ ERROR: this call to `unwrap()` will always panic
+        //~^ panicking_unwrap
     }
 
     let mut result = Ok::<(), ()>(());
     if result.is_ok() {
         result.as_mut().unwrap();
-        //~^ ERROR: called `unwrap` on `result` after checking its variant with `is_ok`
+        //~^ unnecessary_unwrap
     } else {
         result.as_mut().unwrap();
-        //~^ ERROR: this call to `unwrap()` will always panic
+        //~^ panicking_unwrap
     }
 
     // This should not lint. Statics are, at the time of writing, not linted on anyway,
@@ -172,11 +181,97 @@ fn issue11371() {
     static mut X: Option<i32> = Some(123);
     unsafe {
         if X.is_some() {
+            //~^ ERROR: creating a shared reference
             X = None;
             X.unwrap();
         }
     }
 }
+
+fn gen_option() -> Option<()> {
+    Some(())
+    // Or None
+}
+
+fn gen_result() -> Result<(), ()> {
+    Ok(())
+    // Or Err(())
+}
+
+fn issue14725() {
+    let option = Some(());
+
+    if option.is_some() {
+        let _ = option.as_ref().unwrap();
+        //~^ unnecessary_unwrap
+    } else {
+        let _ = option.as_ref().unwrap();
+        //~^ panicking_unwrap
+    }
+
+    let result = Ok::<(), ()>(());
+
+    if result.is_ok() {
+        let _y = 1;
+        result.as_ref().unwrap();
+        //~^ unnecessary_unwrap
+    } else {
+        let _y = 1;
+        result.as_ref().unwrap();
+        //~^ panicking_unwrap
+    }
+
+    let mut option = Some(());
+    if option.is_some() {
+        option = gen_option();
+        option.as_mut().unwrap();
+    } else {
+        option = gen_option();
+        option.as_mut().unwrap();
+    }
+
+    let mut result = Ok::<(), ()>(());
+    if result.is_ok() {
+        result = gen_result();
+        result.as_mut().unwrap();
+    } else {
+        result = gen_result();
+        result.as_mut().unwrap();
+    }
+}
+
+fn issue14763(x: Option<String>, r: Result<(), ()>) {
+    _ = || {
+        if x.is_some() {
+            _ = x.unwrap();
+            //~^ unnecessary_unwrap
+        } else {
+            _ = x.unwrap();
+            //~^ panicking_unwrap
+        }
+    };
+    _ = || {
+        if r.is_ok() {
+            _ = r.as_ref().unwrap();
+            //~^ unnecessary_unwrap
+        } else {
+            _ = r.as_ref().unwrap();
+            //~^ panicking_unwrap
+        }
+    };
+}
+
+const ISSUE14763: fn(Option<String>) = |x| {
+    _ = || {
+        if x.is_some() {
+            _ = x.unwrap();
+            //~^ unnecessary_unwrap
+        } else {
+            _ = x.unwrap();
+            //~^ panicking_unwrap
+        }
+    }
+};
 
 fn check_expect() {
     let x = Some(());

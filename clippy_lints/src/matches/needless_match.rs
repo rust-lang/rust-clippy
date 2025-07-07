@@ -3,12 +3,14 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::ty::{is_type_diagnostic_item, same_type_and_consts};
 use clippy_utils::{
-    eq_expr_value, get_parent_expr_for_hir, higher, is_else_clause, is_res_lang_ctor, over, path_res,
+    SpanlessEq, eq_expr_value, get_parent_expr_for_hir, higher, is_else_clause, is_res_lang_ctor, over, path_res,
     peel_blocks_with_stmt,
 };
 use rustc_errors::Applicability;
 use rustc_hir::LangItem::OptionNone;
-use rustc_hir::{Arm, BindingMode, ByRef, Expr, ExprKind, ItemKind, Node, Pat, PatKind, Path, QPath};
+use rustc_hir::{
+    Arm, BindingMode, ByRef, Expr, ExprKind, ItemKind, Node, Pat, PatExpr, PatExprKind, PatKind, Path, QPath,
+};
 use rustc_lint::LateContext;
 use rustc_span::sym;
 
@@ -65,14 +67,14 @@ fn check_all_arms(cx: &LateContext<'_>, match_expr: &Expr<'_>, arms: &[Arm<'_>])
     for arm in arms {
         let arm_expr = peel_blocks_with_stmt(arm.body);
 
-        if let Some(guard_expr) = &arm.guard {
-            if guard_expr.can_have_side_effects() {
-                return false;
-            }
+        if let Some(guard_expr) = &arm.guard
+            && guard_expr.can_have_side_effects()
+        {
+            return false;
         }
 
         if let PatKind::Wild = arm.pat.kind {
-            if !eq_expr_value(cx, match_expr, strip_return(arm_expr)) {
+            if !eq_expr_value(cx, match_expr, arm_expr) {
                 return false;
             }
         } else if !pat_same_as_expr(arm.pat, arm_expr) {
@@ -90,7 +92,9 @@ fn check_if_let_inner(cx: &LateContext<'_>, if_let: &higher::IfLet<'_>) -> bool 
         }
 
         // Recursively check for each `else if let` phrase,
-        if let Some(ref nested_if_let) = higher::IfLet::hir(cx, if_else) {
+        if let Some(ref nested_if_let) = higher::IfLet::hir(cx, if_else)
+            && SpanlessEq::new(cx).eq_expr(nested_if_let.let_expr, if_let.let_expr)
+        {
             return check_if_let_inner(cx, nested_if_let);
         }
 
@@ -99,25 +103,16 @@ fn check_if_let_inner(cx: &LateContext<'_>, if_let: &higher::IfLet<'_>) -> bool 
             if matches!(else_expr.kind, ExprKind::Block(..)) {
                 return false;
             }
-            let ret = strip_return(else_expr);
             let let_expr_ty = cx.typeck_results().expr_ty(if_let.let_expr);
             if is_type_diagnostic_item(cx, let_expr_ty, sym::Option) {
-                return is_res_lang_ctor(cx, path_res(cx, ret), OptionNone) || eq_expr_value(cx, if_let.let_expr, ret);
+                return is_res_lang_ctor(cx, path_res(cx, else_expr), OptionNone)
+                    || eq_expr_value(cx, if_let.let_expr, else_expr);
             }
-            return eq_expr_value(cx, if_let.let_expr, ret);
+            return eq_expr_value(cx, if_let.let_expr, else_expr);
         }
     }
 
     false
-}
-
-/// Strip `return` keyword if the expression type is `ExprKind::Ret`.
-fn strip_return<'hir>(expr: &'hir Expr<'hir>) -> &'hir Expr<'hir> {
-    if let ExprKind::Ret(Some(ret)) = expr.kind {
-        ret
-    } else {
-        expr
-    }
 }
 
 /// Manually check for coercion casting by checking if the type of the match operand or let expr
@@ -131,7 +126,7 @@ fn expr_ty_matches_p_ty(cx: &LateContext<'_>, expr: &Expr<'_>, p_expr: &Expr<'_>
         },
         // compare match_expr ty with RetTy in `fn foo() -> RetTy`
         Node::Item(item) => {
-            if let ItemKind::Fn(..) = item.kind {
+            if let ItemKind::Fn { .. } = item.kind {
                 let output = cx
                     .tcx
                     .fn_sig(item.owner_id)
@@ -157,7 +152,6 @@ fn expr_ty_matches_p_ty(cx: &LateContext<'_>, expr: &Expr<'_>, p_expr: &Expr<'_>
 }
 
 fn pat_same_as_expr(pat: &Pat<'_>, expr: &Expr<'_>) -> bool {
-    let expr = strip_return(expr);
     match (&pat.kind, &expr.kind) {
         // Example: `Some(val) => Some(val)`
         (PatKind::TupleStruct(QPath::Resolved(_, path), tuple_params, _), ExprKind::Call(call_expr, call_params)) => {
@@ -181,14 +175,24 @@ fn pat_same_as_expr(pat: &Pat<'_>, expr: &Expr<'_>) -> bool {
             return !matches!(annot, BindingMode(ByRef::Yes(_), _)) && pat_ident.name == first_seg.ident.name;
         },
         // Example: `Custom::TypeA => Custom::TypeB`, or `None => None`
-        (PatKind::Path(QPath::Resolved(_, p_path)), ExprKind::Path(QPath::Resolved(_, e_path))) => {
+        (
+            PatKind::Expr(PatExpr {
+                kind: PatExprKind::Path(QPath::Resolved(_, p_path)),
+                ..
+            }),
+            ExprKind::Path(QPath::Resolved(_, e_path)),
+        ) => {
             return over(p_path.segments, e_path.segments, |p_seg, e_seg| {
                 p_seg.ident.name == e_seg.ident.name
             });
         },
         // Example: `5 => 5`
-        (PatKind::Lit(pat_lit_expr), ExprKind::Lit(expr_spanned)) => {
-            if let ExprKind::Lit(pat_spanned) = &pat_lit_expr.kind {
+        (PatKind::Expr(pat_expr_expr), ExprKind::Lit(expr_spanned)) => {
+            if let PatExprKind::Lit {
+                lit: pat_spanned,
+                negated: false,
+            } = &pat_expr_expr.kind
+            {
                 return pat_spanned.node == expr_spanned.node;
             }
         },
