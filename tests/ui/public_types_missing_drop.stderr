@@ -1,0 +1,24 @@
+error: this exported type has no drop glue
+  --> tests/ui/public_types_missing_drop.rs:6:1
+   |
+LL | pub struct PublicType(PrivateType);
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: add an empty `Drop` implementation so that gaining drop glue later is not a breaking change
+   = note: `-D clippy::public-types-missing-drop` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::public_types_missing_drop)]`
+
+error: this exported type has no drop glue
+  --> tests/ui/public_types_missing_drop.rs:22:1
+   |
+LL | / pub enum PublicEnumNoGlue {
+LL | |
+LL | |     A,
+LL | |     B(u32),
+LL | | }
+   | |_^
+   |
+   = help: add an empty `Drop` implementation so that gaining drop glue later is not a breaking change
+
+error: aborting due to 2 previous errors
+

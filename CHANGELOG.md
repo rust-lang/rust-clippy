@@ -7233,6 +7233,7 @@ Released 2018-09-13
 [`pub_use`]: https://rust-lang.github.io/rust-clippy/master/index.html#pub_use
 [`pub_with_shorthand`]: https://rust-lang.github.io/rust-clippy/master/index.html#pub_with_shorthand
 [`pub_without_shorthand`]: https://rust-lang.github.io/rust-clippy/master/index.html#pub_without_shorthand
+[`public_types_missing_drop`]: https://rust-lang.github.io/rust-clippy/master/index.html#public_types_missing_drop
 [`question_mark`]: https://rust-lang.github.io/rust-clippy/master/index.html#question_mark
 [`question_mark_used`]: https://rust-lang.github.io/rust-clippy/master/index.html#question_mark_used
 [`range_minus_one`]: https://rust-lang.github.io/rust-clippy/master/index.html#range_minus_one

@@ -651,6 +651,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::ptr::PTR_EQ_INFO,
     crate::pub_underscore_fields::PUB_UNDERSCORE_FIELDS_INFO,
     crate::pub_use::PUB_USE_INFO,
+    crate::public_types_missing_drop::PUBLIC_TYPES_MISSING_DROP_INFO,
     crate::question_mark::QUESTION_MARK_INFO,
     crate::question_mark_used::QUESTION_MARK_USED_INFO,
     crate::ranges::MANUAL_RANGE_CONTAINS_INFO,
