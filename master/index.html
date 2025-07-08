@@ -3534,15 +3534,27 @@ struct Foo {
 </code></pre>
 </div><div class="lint-additional-info-container"><div>Applicability: <span class="label label-default label-applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.51.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+exhaustive_structs">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/exhaustive_items.rs#L39">View Source</a></div></div></div></article><article class="panel panel-default" id="exit"><input id="label-exit" type="checkbox"><label for="label-exit"><h2 class="lint-title"><div class="panel-title-name" id="lint-exit">exit
                                 <a href="#exit" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-lint-group label-default label-group-restriction">restriction</span> <span class="label label-lint-level label-lint-level-allow">allow</span> <span class="label label-doc-folding"></span></h2></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
-<p>Detects calls to the <code>exit()</code> function which terminates the program.</p>
+<p>Detects calls to the <code>exit()</code> function that are not in the <code>main</code> function. Calls to <code>exit()</code>
+immediately terminate the program.</p>
 <h3>Why restrict this?</h3>
 <p><code>exit()</code> immediately terminates the program with no information other than an exit code.
 This provides no means to troubleshoot a problem, and may be an unexpected side effect.</p>
 <p>Codebases may use this lint to require that all exits are performed either by panicking
 (which produces a message, a code location, and optionally a backtrace)
-or by returning from <code>main()</code> (which is a single place to look).</p>
-<h3>Example</h3>
-<pre><code class="language-rust">std::process::exit(0)
+or by calling <code>exit()</code> from <code>main()</code> (which is a single place to look).</p>
+<h3>Good example</h3>
+<pre><code class="language-rust">fn main() {
+    std::process::exit(0);
+}
+</code></pre>
+<h3>Bad example</h3>
+<pre><code class="language-rust">fn main() {
+    other_function();
+}
+
+fn other_function() {
+    std::process::exit(0);
+}
 </code></pre>
 <p>Use instead:</p>
 <pre><code class="language-rust">// To provide a stacktrace and additional information
@@ -3553,7 +3565,7 @@ fn main() -&gt; Result&lt;(), i32&gt; {
     Ok(())
 }
 </code></pre>
-</div><div class="lint-additional-info-container"><div>Applicability: <span class="label label-default label-applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.41.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+exit">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/exit.rs#L8">View Source</a></div></div></div></article><article class="panel panel-default" id="expect_fun_call"><input id="label-expect_fun_call" type="checkbox"><label for="label-expect_fun_call"><h2 class="lint-title"><div class="panel-title-name" id="lint-expect_fun_call">expect_fun_call
+</div><div class="lint-additional-info-container"><div>Applicability: <span class="label label-default label-applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.41.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+exit">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/exit.rs#L7">View Source</a></div></div></div></article><article class="panel panel-default" id="expect_fun_call"><input id="label-expect_fun_call" type="checkbox"><label for="label-expect_fun_call"><h2 class="lint-title"><div class="panel-title-name" id="lint-expect_fun_call">expect_fun_call
                                 <a href="#expect_fun_call" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-lint-group label-default label-group-perf">perf</span> <span class="label label-lint-level label-lint-level-warn">warn</span> <span class="label label-doc-folding"></span></h2></label><div class="list-group lint-docs"><div class="list-group-item lint-doc-md"><h3>What it does</h3>
 <p>Checks for calls to <code>.expect(&amp;format!(...))</code>, <code>.expect(foo(..))</code>,
 etc., and suggests to use <code>unwrap_or_else</code> instead</p>
