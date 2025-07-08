@@ -316,7 +316,11 @@ macro_rules! define_Conf {
                 ClippyConfiguration {
                     name: stringify!($name).replace('_', "-"),
                     default: default_text!(defaults::$name() $(, $default_text)?),
-                    possible_values: &[$($(stringify!($possible_value)),*)?],
+                    possible_values: {
+                        let possibilities = &[$($(stringify!($possible_value)),*)?];
+                        assert!(possibilities.len() == std::mem::variant_count::<$ty>());
+                        possibilities
+                    },
                     lints: &[$($(stringify!($for_lints)),*)?],
                     doc: concat!($($doc, '\n',)*),
                     deprecation_reason: wrap_option!($($dep)?)
