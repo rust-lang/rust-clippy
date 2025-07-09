@@ -1,10 +1,11 @@
-use crate::utils::{ErrAction, File, expect_action, walk_dir_no_dot_or_target};
+use crate::source_map::{SourceFile, SourceMap, Span};
+use crate::utils::{ErrAction, expect_action, walk_dir_no_dot_or_target};
 use core::ops::Range;
 use core::slice;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_lexer::{self as lexer, FrontmatterAllowed};
 use std::fs;
-use std::path::{self, Path, PathBuf};
+use std::path::{self, Path};
 
 #[derive(Clone, Copy)]
 pub enum Token<'a> {
@@ -184,11 +185,8 @@ impl<'txt> RustSearcher<'txt> {
 }
 
 pub struct ActiveLint {
-    pub krate: String,
-    pub module: String,
     pub group: String,
-    pub path: PathBuf,
-    pub span: Range<u32>,
+    pub span: Span,
 }
 
 pub struct DeprecatedLint {
@@ -207,25 +205,27 @@ pub enum Lint {
     Renamed(RenamedLint),
 }
 
-pub struct LintList {
+pub struct ParsedData {
+    pub source_map: SourceMap,
     pub lints: FxHashMap<String, Lint>,
     pub deprecated_span: Range<u32>,
     pub renamed_span: Range<u32>,
 }
-impl LintList {
+impl ParsedData {
     #[expect(clippy::default_trait_access)]
     pub fn collect() -> Self {
         // 2025-05: Initial capacities should fit everything without reallocating.
         let mut parser = Parser {
+            source_map: SourceMap::with_capacity(8, 1000),
             lints: FxHashMap::with_capacity_and_hasher(1000, Default::default()),
             deprecated_span: 0..0,
             renamed_span: 0..0,
-            contents: String::with_capacity(1024 * 128 * 3),
         };
         parser.parse_src_files();
         parser.parse_deprecated_lints();
 
-        LintList {
+        ParsedData {
+            source_map: parser.source_map,
             lints: parser.lints,
             deprecated_span: parser.deprecated_span,
             renamed_span: parser.renamed_span,
@@ -234,10 +234,10 @@ impl LintList {
 }
 
 struct Parser {
+    source_map: SourceMap,
     lints: FxHashMap<String, Lint>,
     deprecated_span: Range<u32>,
     renamed_span: Range<u32>,
-    contents: String,
 }
 impl Parser {
     /// Parses all source files looking for lint declarations (`declare_clippy_lint! { .. }`).
@@ -251,8 +251,9 @@ impl Parser {
                 continue;
             };
             if crate_path.starts_with("clippy_lints") && crate_path != "clippy_lints_internal" {
-                crate_path.push_str("/src");
-                let krate = &crate_path[..crate_path.len() - 4];
+                let krate = self.source_map.add_new_crate(&crate_path);
+                crate_path.push(path::MAIN_SEPARATOR);
+                crate_path.push_str("src");
                 for e in walk_dir_no_dot_or_target(&crate_path) {
                     let e = expect_action(e, ErrAction::Read, &crate_path);
                     if let Some(path) = e.path().to_str()
@@ -271,7 +272,8 @@ impl Parser {
                             };
                             path.replace(path::MAIN_SEPARATOR, "::")
                         };
-                        self.parse_src_file(e.path(), krate, &module);
+                        let file = self.source_map.load_new_file(e.path(), krate, module);
+                        self.parse_src_file(file);
                     }
                 }
             }
@@ -279,7 +281,7 @@ impl Parser {
     }
 
     /// Parse a source file looking for `declare_clippy_lint` macro invocations.
-    fn parse_src_file(&mut self, path: &Path, krate: &str, module: &str) {
+    fn parse_src_file(&mut self, file: SourceFile) {
         #[allow(clippy::enum_glob_use)]
         use Token::*;
         #[rustfmt::skip]
@@ -292,8 +294,7 @@ impl Parser {
             Ident("pub"), CaptureIdent, Comma, AnyComment, CaptureIdent, Comma,
         ];
 
-        File::open_read_to_cleared_string(path, &mut self.contents);
-        let mut searcher = RustSearcher::new(&self.contents);
+        let mut searcher = RustSearcher::new(&self.source_map.files[file].contents);
         #[expect(clippy::cast_possible_truncation)]
         while searcher.find_token(Ident("declare_clippy_lint")) {
             let start = searcher.pos() - "declare_clippy_lint".len() as u32;
@@ -302,11 +303,12 @@ impl Parser {
                 self.lints.insert(
                     name.to_ascii_lowercase(),
                     Lint::Active(ActiveLint {
-                        krate: krate.into(),
-                        module: module.into(),
                         group: group.into(),
-                        path: path.into(),
-                        span: start..searcher.pos(),
+                        span: Span {
+                            file,
+                            start,
+                            end: searcher.pos(),
+                        },
                     }),
                 );
             }
@@ -334,10 +336,15 @@ impl Parser {
             Bang, OpenBrace, Ident("RENAMED"), OpenParen, Ident("RENAMED_VERSION"), CloseParen, Eq, OpenBracket,
         ];
 
-        let path = Path::new("clippy_lints/src/deprecated_lints.rs");
-        File::open_read_to_cleared_string(path, &mut self.contents);
+        let krate = self.source_map.add_crate("clippy_lints");
+        let file = self.source_map.load_file(
+            Path::new("clippy_lints/src/deprecated_lints.rs"),
+            krate,
+            "deprecated_lints",
+        );
+        let file = &self.source_map.files[file];
 
-        let mut searcher = RustSearcher::new(&self.contents);
+        let mut searcher = RustSearcher::new(&file.contents);
         // First instance is the macro definition.
         assert!(
             searcher.find_token(Ident("declare_with_version")),
@@ -352,10 +359,10 @@ impl Parser {
             let mut reason = "";
             while searcher.match_tokens(DECL_TOKENS, &mut [&mut version, &mut name, &mut reason]) {
                 self.lints.insert(
-                    parse_clippy_lint_name(path, name),
+                    parse_clippy_lint_name(&file.path, name),
                     Lint::Deprecated(DeprecatedLint {
-                        reason: parse_str_single_line(path, reason),
-                        version: parse_str_single_line(path, version),
+                        reason: parse_str_single_line(&file.path, reason),
+                        version: parse_str_single_line(&file.path, version),
                     }),
                 );
                 end = searcher.pos();
@@ -373,10 +380,10 @@ impl Parser {
             let mut new_name = "";
             while searcher.match_tokens(DECL_TOKENS, &mut [&mut version, &mut old_name, &mut new_name]) {
                 self.lints.insert(
-                    parse_clippy_lint_name(path, old_name),
+                    parse_clippy_lint_name(&file.path, old_name),
                     Lint::Renamed(RenamedLint {
-                        new_name: parse_maybe_clippy_lint_name(path, new_name),
-                        version: parse_str_single_line(path, version),
+                        new_name: parse_maybe_clippy_lint_name(&file.path, new_name),
+                        version: parse_str_single_line(&file.path, version),
                     }),
                 );
                 end = searcher.pos();

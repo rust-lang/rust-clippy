@@ -1,4 +1,4 @@
-use crate::parse::{Lint, LintList, RenamedLint, RustSearcher, Token};
+use crate::parse::{Lint, ParsedData, RenamedLint, RustSearcher, Token};
 use crate::update_lints::generate_lint_files;
 use crate::utils::{
     ErrAction, FileUpdater, UpdateMode, UpdateStatus, Version, delete_dir_if_exists, delete_file_if_exists,
@@ -26,7 +26,7 @@ use std::path::Path;
 /// * If either lint name has a prefix
 /// * If `old_name` doesn't name an existing lint.
 /// * If `old_name` names a deprecated or renamed lint.
-#[expect(clippy::too_many_lines, clippy::similar_names)]
+#[expect(clippy::too_many_lines)]
 pub fn rename(clippy_version: Version, old_name: &str, new_name: &str, uplift: bool) {
     if let Some((prefix, _)) = old_name.split_once("::") {
         panic!("`{old_name}` should not contain the `{prefix}` prefix");
@@ -36,7 +36,7 @@ pub fn rename(clippy_version: Version, old_name: &str, new_name: &str, uplift: b
     }
 
     let mut updater = FileUpdater::default();
-    let mut list = LintList::collect();
+    let mut data = ParsedData::collect();
 
     // Update any existing renames
     let new_name_prefixed = if uplift {
@@ -44,7 +44,7 @@ pub fn rename(clippy_version: Version, old_name: &str, new_name: &str, uplift: b
     } else {
         String::from_iter(["clippy::", new_name])
     };
-    for lint in list.lints.values_mut() {
+    for lint in data.lints.values_mut() {
         if let Lint::Renamed(lint) = lint
             && lint.new_name.strip_prefix("clippy::") == Some(old_name)
         {
@@ -53,11 +53,11 @@ pub fn rename(clippy_version: Version, old_name: &str, new_name: &str, uplift: b
     }
 
     // Mark the lint as renamed
-    let Some(old_entry) = list.lints.get_mut(old_name) else {
+    let Some(old_entry) = data.lints.get_mut(old_name) else {
         eprintln!("error: failed to find lint `{old_name}`");
         return;
     };
-    let Lint::Active(mut lint) = mem::replace(
+    let Lint::Active(lint) = mem::replace(
         old_entry,
         Lint::Renamed(RenamedLint {
             new_name: new_name_prefixed,
@@ -70,19 +70,20 @@ pub fn rename(clippy_version: Version, old_name: &str, new_name: &str, uplift: b
 
     let mut mod_edit = ModEdit::None;
     if uplift {
-        let is_unique_mod = list.lints.values().any(|x| {
+        let lint_file = &data.source_map.files[lint.span.file];
+        let is_unique_mod = data.lints.values().any(|x| {
             if let Lint::Active(x) = x {
-                x.module == lint.module
+                data.source_map.files[x.span.file].module == lint_file.module
             } else {
                 false
             }
         });
         if is_unique_mod {
-            if delete_file_if_exists(lint.path.as_ref()) {
+            if delete_file_if_exists(lint_file.path.as_ref()) {
                 mod_edit = ModEdit::Delete;
             }
         } else {
-            updater.update_file(&lint.path, &mut |_, src, dst| -> UpdateStatus {
+            updater.update_file(&lint_file.path, &mut |_, src, dst| -> UpdateStatus {
                 let mut start = &src[..lint.span.start as usize];
                 if start.ends_with("\n\n") {
                     start = &start[..start.len() - 1];
@@ -96,27 +97,28 @@ pub fn rename(clippy_version: Version, old_name: &str, new_name: &str, uplift: b
                 UpdateStatus::Changed
             });
         }
-        delete_test_files(old_name, &list.lints);
-    } else if let StdEntry::Vacant(entry) = list.lints.entry(new_name.to_owned()) {
-        if lint.module.ends_with(old_name)
-            && lint
+        delete_test_files(old_name, &data.lints);
+    } else if let StdEntry::Vacant(entry) = data.lints.entry(new_name.to_owned()) {
+        let lint_file = &mut data.source_map.files[lint.span.file];
+        if lint_file.module.ends_with(old_name)
+            && lint_file
                 .path
                 .file_stem()
                 .is_some_and(|x| x.as_encoded_bytes() == old_name.as_bytes())
         {
-            let mut new_path = lint.path.with_file_name(new_name).into_os_string();
+            let mut new_path = lint_file.path.with_file_name(new_name).into_os_string();
             new_path.push(".rs");
-            if try_rename_file(lint.path.as_ref(), new_path.as_ref()) {
-                lint.path = new_path.into();
+            if try_rename_file(lint_file.path.as_ref(), new_path.as_ref()) {
+                lint_file.path = new_path.into();
                 mod_edit = ModEdit::Rename;
-            }
 
-            let mod_len = lint.module.len();
-            lint.module.truncate(mod_len - old_name.len());
-            lint.module.push_str(new_name);
+                let mod_len = lint_file.module.len();
+                lint_file.module.truncate(mod_len - old_name.len());
+                lint_file.module.push_str(new_name);
+            }
         }
         entry.insert(Lint::Active(lint));
-        rename_test_files(old_name, new_name, &list.lints);
+        rename_test_files(old_name, new_name, &data.lints);
     } else {
         println!("Renamed `clippy::{old_name}` to `clippy::{new_name}`");
         println!("Since `{new_name}` already exists the existing code has not been changed");
@@ -130,7 +132,7 @@ pub fn rename(clippy_version: Version, old_name: &str, new_name: &str, uplift: b
             updater.update_file(e.path(), &mut update_fn);
         }
     }
-    generate_lint_files(UpdateMode::Change, &list);
+    generate_lint_files(UpdateMode::Change, &data);
 
     if uplift {
         println!("Uplifted `clippy::{old_name}` as `{new_name}`");

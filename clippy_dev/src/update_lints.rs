@@ -1,4 +1,4 @@
-use crate::parse::{Lint, LintList};
+use crate::parse::{Lint, ParsedData};
 use crate::utils::{FileUpdater, UpdateMode, UpdateStatus, update_text_region_fn};
 use itertools::Itertools;
 use std::fmt::Write;
@@ -20,14 +20,14 @@ const DOCS_LINK: &str = "https://rust-lang.github.io/rust-clippy/master/index.ht
 ///
 /// Panics if a file path could not read from or then written to
 pub fn update(update_mode: UpdateMode) {
-    generate_lint_files(update_mode, &LintList::collect());
+    generate_lint_files(update_mode, &ParsedData::collect());
 }
 
-#[expect(clippy::too_many_lines, clippy::similar_names)]
-pub fn generate_lint_files(update_mode: UpdateMode, list: &LintList) {
+#[expect(clippy::too_many_lines)]
+pub fn generate_lint_files(update_mode: UpdateMode, data: &ParsedData) {
     let mut updater = FileUpdater::default();
 
-    let mut lints: Vec<_> = list.lints.iter().map(|(x, y)| (&**x, y)).collect();
+    let mut lints: Vec<_> = data.lints.iter().map(|(x, y)| (&**x, y)).collect();
     lints.sort_by_key(|&(x, _)| x);
 
     updater.update_file_checked(
@@ -45,17 +45,17 @@ pub fn generate_lint_files(update_mode: UpdateMode, list: &LintList) {
         ),
     );
 
-    let mut active = Vec::with_capacity(list.lints.len());
-    let mut deprecated = Vec::with_capacity(list.lints.len());
-    let mut renamed = Vec::with_capacity(list.lints.len());
+    let mut active = Vec::with_capacity(data.lints.len());
+    let mut deprecated = Vec::with_capacity(data.lints.len());
+    let mut renamed = Vec::with_capacity(data.lints.len());
     for (name, lint) in lints {
         match lint {
-            Lint::Active(lint) => active.push((name, lint)),
+            Lint::Active(lint) => active.push((name, &data.source_map.files[lint.span.file])),
             Lint::Deprecated(lint) => deprecated.push((name, lint)),
             Lint::Renamed(lint) => renamed.push((name, lint)),
         }
     }
-    active.sort_by(|(_, x), (_, y)| (&*x.krate, &*x.module).cmp(&(&*y.krate, &*y.module)));
+    active.sort_by(|(_, x), (_, y)| (x.krate, &*x.module).cmp(&(y.krate, &*y.module)));
 
     // Round the lint count down to avoid merge conflicts every time a new lint is added.
     let lint_count = active.len() / 50 * 50;
@@ -81,7 +81,7 @@ pub fn generate_lint_files(update_mode: UpdateMode, list: &LintList) {
         update_mode,
         "clippy_lints/src/deprecated_lints.rs",
         &mut |_, src, dst| {
-            dst.push_str(&src[..list.deprecated_span.start as usize]);
+            dst.push_str(&src[..data.deprecated_span.start as usize]);
             for &(name, lint) in &deprecated {
                 write!(
                     dst,
@@ -90,7 +90,7 @@ pub fn generate_lint_files(update_mode: UpdateMode, list: &LintList) {
                 )
                 .unwrap();
             }
-            dst.push_str(&src[list.deprecated_span.end as usize..list.renamed_span.start as usize]);
+            dst.push_str(&src[data.deprecated_span.end as usize..data.renamed_span.start as usize]);
             for &(name, lint) in &renamed {
                 write!(
                     dst,
@@ -99,7 +99,7 @@ pub fn generate_lint_files(update_mode: UpdateMode, list: &LintList) {
                 )
                 .unwrap();
             }
-            dst.push_str(&src[list.renamed_span.end as usize..]);
+            dst.push_str(&src[data.renamed_span.end as usize..]);
             UpdateStatus::from_changed(src != dst)
         },
     );
@@ -134,12 +134,13 @@ pub fn generate_lint_files(update_mode: UpdateMode, list: &LintList) {
     let mut active = &*active;
     while let [(_, first_lint), ..] = active {
         let (crate_lints, tail) = active.split_at(active.partition_point(|(_, x)| x.krate == first_lint.krate));
+        let krate_name = &*data.source_map.crates[first_lint.krate];
         active = tail;
 
         updater.update_file_checked(
             "cargo dev update_lints",
             update_mode,
-            Path::new(&first_lint.krate).join("src/lib.rs"),
+            Path::new(krate_name).join("src/lib.rs"),
             &mut update_text_region_fn(
                 "// begin lints modules, do not remove this comment, it's used in `update_lints`\n",
                 "// end lints modules, do not remove this comment, it's used in `update_lints`",
@@ -155,7 +156,7 @@ pub fn generate_lint_files(update_mode: UpdateMode, list: &LintList) {
         updater.update_file_checked(
             "cargo dev update_lints",
             update_mode,
-            Path::new(&first_lint.krate).join("src/declared_lints.rs"),
+            Path::new(krate_name).join("src/declared_lints.rs"),
             &mut |_, src, dst| {
                 dst.push_str(GENERATED_FILE_COMMENT);
                 dst.push_str("pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[\n");
