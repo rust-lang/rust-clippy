@@ -2,7 +2,7 @@
 #![warn(clippy::into_iter_on_ref)]
 
 struct X;
-use std::collections::*;
+use std::collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, LinkedList, VecDeque};
 
 fn main() {
     for _ in &[1, 2, 3] {}

@@ -1,5 +1,5 @@
 #![warn(clippy::enum_glob_use)]
-#![allow(unused)]
+#![allow(unused, clippy::std_wildcard_imports)]
 #![warn(unused_imports)]
 
 use std::cmp::Ordering::*;
