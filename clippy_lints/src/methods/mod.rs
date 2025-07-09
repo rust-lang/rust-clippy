@@ -3870,7 +3870,7 @@ declare_clippy_lint! {
     /// # let result: Result<usize, ()> = Ok(1);
     /// option.map(|a| a > 10).unwrap_or_default();
     /// result.map(|a| a > 10).unwrap_or_default();
-    /// 
+    ///
     /// option.map(|a| a > 10) == Some(true);
     /// result.map(|a| a > 10) == Ok(true);
     /// option.map(|a| a > 10) != Some(true);
@@ -3882,7 +3882,7 @@ declare_clippy_lint! {
     /// # let result: Result<usize, ()> = Ok(1);
     /// option.is_some_and(|a| a > 10);
     /// result.is_ok_and(|a| a > 10);
-    /// 
+    ///
     /// option.is_some_and(|a| a > 10);
     /// result.is_ok_and(|a| a > 10);
     /// option.is_none_or(|a| a > 10);
