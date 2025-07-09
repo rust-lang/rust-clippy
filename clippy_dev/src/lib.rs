@@ -21,6 +21,7 @@
 extern crate rustc_driver;
 
 extern crate rustc_data_structures;
+extern crate rustc_index;
 extern crate rustc_lexer;
 extern crate rustc_literal_escaper;
 
@@ -38,3 +39,4 @@ pub mod update_lints;
 pub mod utils;
 
 mod parse;
+mod source_map;

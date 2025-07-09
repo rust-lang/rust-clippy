@@ -69,6 +69,12 @@ impl<'a> File<'a> {
         }
     }
 
+    /// Opens a file for reading. Panics on failure.
+    #[track_caller]
+    pub fn open_read(path: &'a (impl AsRef<Path> + ?Sized)) -> Self {
+        Self::open(path, OpenOptions::new().read(true))
+    }
+
     /// Opens a file if it exists, panicking on any other failure.
     #[track_caller]
     pub fn open_if_exists(path: &'a (impl AsRef<Path> + ?Sized), options: &mut OpenOptions) -> Option<Self> {
@@ -78,15 +84,6 @@ impl<'a> File<'a> {
             Err(e) if e.kind() == io::ErrorKind::NotFound => None,
             Err(e) => panic_action(&e, ErrAction::Open, path),
         }
-    }
-
-    /// Opens and reads a file into a string, panicking of failure.
-    #[track_caller]
-    pub fn open_read_to_cleared_string<'dst>(
-        path: &'a (impl AsRef<Path> + ?Sized),
-        dst: &'dst mut String,
-    ) -> &'dst mut String {
-        Self::open(path, OpenOptions::new().read(true)).read_to_cleared_string(dst)
     }
 
     /// Read the entire contents of a file to the given buffer.
