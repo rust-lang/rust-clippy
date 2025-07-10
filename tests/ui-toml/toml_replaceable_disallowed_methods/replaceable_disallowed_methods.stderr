@@ -1,5 +1,5 @@
 error: use of a disallowed method `replaceable_disallowed_methods::bad`
-  --> tests/ui-toml/toml_replaceable_disallowed_methods/replaceable_disallowed_methods.rs:6:5
+  --> tests/ui-toml/toml_replaceable_disallowed_methods/replaceable_disallowed_methods.rs:18:5
    |
 LL |     bad();
    |     ^^^ help: use: `good`
@@ -8,10 +8,66 @@ LL |     bad();
    = help: to override `-D warnings` add `#[allow(clippy::disallowed_methods)]`
 
 error: use of a disallowed method `replaceable_disallowed_methods::questionable`
-  --> tests/ui-toml/toml_replaceable_disallowed_methods/replaceable_disallowed_methods.rs:8:5
+  --> tests/ui-toml/toml_replaceable_disallowed_methods/replaceable_disallowed_methods.rs:20:5
    |
 LL |     questionable();
    |     ^^^^^^^^^^^^ help: a better function exists: `good`
 
-error: aborting due to 2 previous errors
+error: use of a disallowed method `f64::round`
+  --> tests/ui-toml/toml_replaceable_disallowed_methods/replaceable_disallowed_methods.rs:22:10
+   |
+LL |     3f64.round();
+   |     -----^^^^^-- help: https://github.com/rust-lang/rust-clippy/issues/15067: `f64::round_ties_even(3f64)`
+
+error: use of a disallowed method `replaceable_disallowed_methods::WithMethod::evil`
+  --> tests/ui-toml/toml_replaceable_disallowed_methods/replaceable_disallowed_methods.rs:24:16
+   |
+LL |     WithMethod.evil();
+   |     -----------^^^^-- help: replace method with free function: `crate::free(WithMethod)`
+
+error: use of a disallowed method `replaceable_disallowed_methods::WithMethod::evil`
+  --> tests/ui-toml/toml_replaceable_disallowed_methods/replaceable_disallowed_methods.rs:26:5
+   |
+LL |     WithMethod::evil(WithMethod);
+   |     ^^^^^^^^^^^^^^^^ help: replace method with free function: `crate::free`
+
+error: use of a disallowed method `replaceable_disallowed_methods::WithMethod::mean`
+  --> tests/ui-toml/toml_replaceable_disallowed_methods/replaceable_disallowed_methods.rs:28:16
+   |
+LL |     WithMethod.mean();
+   |                ^^^^ help: replace method with other method: `nice`
+
+error: use of a disallowed method `replaceable_disallowed_methods::WithMethod::mean`
+  --> tests/ui-toml/toml_replaceable_disallowed_methods/replaceable_disallowed_methods.rs:30:5
+   |
+LL |     WithMethod::mean(WithMethod);
+   |     ^^^^^^^^^^^^----
+   |                 |
+   |                 help: replace method with other method: `nice`
+
+error: use of a disallowed method `replaceable_disallowed_methods::WithMethod::ugly`
+  --> tests/ui-toml/toml_replaceable_disallowed_methods/replaceable_disallowed_methods.rs:32:16
+   |
+LL |     WithMethod.ugly();
+   |     -----------^^^^-- help: replace method with qualified method: `WithMethod::nice(WithMethod)`
+
+error: use of a disallowed method `replaceable_disallowed_methods::WithMethod::ugly`
+  --> tests/ui-toml/toml_replaceable_disallowed_methods/replaceable_disallowed_methods.rs:34:5
+   |
+LL |     WithMethod::ugly(WithMethod);
+   |     ^^^^^^^^^^^^^^^^ help: replace method with qualified method: `WithMethod::nice`
+
+error: use of a disallowed method `replaceable_disallowed_methods::WithMethod::cruel`
+  --> tests/ui-toml/toml_replaceable_disallowed_methods/replaceable_disallowed_methods.rs:36:16
+   |
+LL |     WithMethod.cruel(1);
+   |     -----------^^^^^--- help: replace method with qualified method with param: `WithMethod::kind(WithMethod, 1)`
+
+error: use of a disallowed method `replaceable_disallowed_methods::WithMethod::cruel`
+  --> tests/ui-toml/toml_replaceable_disallowed_methods/replaceable_disallowed_methods.rs:38:5
+   |
+LL |     WithMethod::cruel(WithMethod, 1);
+   |     ^^^^^^^^^^^^^^^^^ help: replace method with qualified method with param: `WithMethod::kind`
+
+error: aborting due to 11 previous errors
 
