@@ -1,5 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::is_no_std_crate;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::ty::{AdtVariantInfo, approx_ty_size, is_copy};
 use rustc_errors::Applicability;
@@ -8,9 +9,6 @@ use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
 use rustc_session::impl_lint_pass;
 use rustc_span::Span;
-use clippy_utils::is_no_std_crate;
-
-
 
 declare_clippy_lint! {
     /// ### What it does
@@ -121,8 +119,7 @@ impl<'tcx> LateLintPass<'tcx> for LargeEnumVariant {
                                 "boxing a variant would require the type no longer be `Copy`",
                             );
                         } else if !is_no_std_crate(cx) {
-                                
-                                let sugg: Vec<(Span, String)> = variants_size[0]
+                            let sugg: Vec<(Span, String)> = variants_size[0]
                                 .fields_size
                                 .iter()
                                 .rev()
@@ -148,16 +145,15 @@ impl<'tcx> LateLintPass<'tcx> for LargeEnumVariant {
                                 })
                                 .collect();
 
-                                if !sugg.is_empty() {
-                                    diag.multipart_suggestion(help_text, sugg, Applicability::MaybeIncorrect);
-                                    return;
-                                }
+                            if !sugg.is_empty() {
+                                diag.multipart_suggestion(help_text, sugg, Applicability::MaybeIncorrect);
+                                return;
                             }
-                            
+                        }
+
                         if !is_no_std_crate(cx) {
                             diag.span_help(def.variants[variants_size[0].ind].span, help_text);
                         }
-                        
                     },
                 );
             }
