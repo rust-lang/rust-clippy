@@ -82,7 +82,7 @@ impl<const REPLACEMENT_ALLOWED: bool> DisallowedPath<REPLACEMENT_ALLOWED> {
     }
 
     pub fn reason(&self) -> &str {
-        self.reason.as_ref().map_or("use", String::as_str)
+        self.reason.as_deref().unwrap_or("use")
     }
 
     pub fn diag_amendment(&self, span: Span, applicability: Applicability) -> impl FnOnce(&mut Diag<'_, ()>) {
