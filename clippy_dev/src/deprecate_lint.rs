@@ -1,4 +1,4 @@
-use crate::parse::{ActiveLint, DeprecatedLint, Lint, ParsedData};
+use crate::parse::{ActiveLint, DeprecatedLint, LintKind, ParsedData};
 use crate::update_lints::generate_lint_files;
 use crate::utils::{FileUpdater, UpdateMode, UpdateStatus, Version, delete_dir_if_exists, delete_file_if_exists};
 use core::mem;
@@ -24,9 +24,9 @@ pub fn deprecate(clippy_version: Version, name: &str, reason: &str) {
         eprintln!("error: failed to find lint `{name}`");
         return;
     };
-    let Lint::Active(lint) = mem::replace(
-        entry,
-        Lint::Deprecated(DeprecatedLint {
+    let LintKind::Active(lint) = mem::replace(
+        &mut entry.kind,
+        LintKind::Deprecated(DeprecatedLint {
             reason: reason.into(),
             version: clippy_version.rust_display().to_string(),
         }),
@@ -83,14 +83,10 @@ fn remove_lint_declaration(name: &str, lint: &ActiveLint, data: &ParsedData) {
         }
     }
 
-    let lint_file = &data.source_map.files[lint.span.file];
+    let lint_file = &data.source_map.files[lint.decl_span.file];
     if data.lints.values().any(|l| {
-        if let Lint::Active(l) = l {
-            let other_file = &data.source_map.files[l.span.file];
-            other_file.krate == lint_file.krate && other_file.module.starts_with(&lint_file.module)
-        } else {
-            false
-        }
+        let other_file = &data.source_map.files[l.name_span.file];
+        other_file.krate == lint_file.krate && other_file.module.starts_with(&lint_file.module)
     }) {
         // Try to delete a sub-module that matches the lint's name
         let removed_mod = if lint_file.path.file_name().map(OsStr::as_encoded_bytes) == Some(b"mod.rs") {
@@ -107,23 +103,28 @@ fn remove_lint_declaration(name: &str, lint: &ActiveLint, data: &ParsedData) {
                 && let mod_decl = format!("\nmod {name};")
                 && let Some(mod_start) = src.find(&mod_decl)
             {
-                if mod_start < lint.span.start as usize {
+                if mod_start < lint.decl_span.start as usize {
                     (
                         mod_start,
                         mod_start + mod_decl.len(),
-                        lint.span.start as usize,
-                        lint.span.end as usize,
+                        lint.decl_span.start as usize,
+                        lint.decl_span.end as usize,
                     )
                 } else {
                     (
-                        lint.span.start as usize,
-                        lint.span.end as usize,
+                        lint.decl_span.start as usize,
+                        lint.decl_span.end as usize,
                         mod_start,
                         mod_start + mod_decl.len(),
                     )
                 }
             } else {
-                (lint.span.start as usize, lint.span.end as usize, src.len(), src.len())
+                (
+                    lint.decl_span.start as usize,
+                    lint.decl_span.end as usize,
+                    src.len(),
+                    src.len(),
+                )
             };
             dst.push_str(&src[..a]);
             dst.push_str(&src[b..c]);

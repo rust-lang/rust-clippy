@@ -1,12 +1,13 @@
-use crate::parse::{Lint, ParsedData, RenamedLint, RustSearcher, Token};
+use crate::parse::{Capture, Lint, LintKind, ParsedData, RenamedLint, RustSearcher, Token};
 use crate::update_lints::generate_lint_files;
 use crate::utils::{
     ErrAction, FileUpdater, UpdateMode, UpdateStatus, Version, delete_dir_if_exists, delete_file_if_exists,
     expect_action, try_rename_dir, try_rename_file, walk_dir_no_dot_or_target,
 };
 use core::mem;
-use rustc_data_structures::fx::{FxHashMap, StdEntry};
+use rustc_data_structures::fx::FxHashMap;
 use rustc_lexer::TokenKind;
+use std::collections::hash_map::Entry;
 use std::ffi::OsString;
 use std::fs;
 use std::path::Path;
@@ -45,7 +46,7 @@ pub fn rename(clippy_version: Version, old_name: &str, new_name: &str, uplift: b
         String::from_iter(["clippy::", new_name])
     };
     for lint in data.lints.values_mut() {
-        if let Lint::Renamed(lint) = lint
+        if let LintKind::Renamed(lint) = &mut lint.kind
             && lint.new_name.strip_prefix("clippy::") == Some(old_name)
         {
             lint.new_name.clone_from(&new_name_prefixed);
@@ -53,13 +54,13 @@ pub fn rename(clippy_version: Version, old_name: &str, new_name: &str, uplift: b
     }
 
     // Mark the lint as renamed
-    let Some(old_entry) = data.lints.get_mut(old_name) else {
+    let Some(entry) = data.lints.get_mut(old_name) else {
         eprintln!("error: failed to find lint `{old_name}`");
         return;
     };
-    let Lint::Active(lint) = mem::replace(
-        old_entry,
-        Lint::Renamed(RenamedLint {
+    let LintKind::Active(lint) = mem::replace(
+        &mut entry.kind,
+        LintKind::Renamed(RenamedLint {
             new_name: new_name_prefixed,
             version: clippy_version.rust_display().to_string(),
         }),
@@ -67,28 +68,26 @@ pub fn rename(clippy_version: Version, old_name: &str, new_name: &str, uplift: b
         eprintln!("error: lint `{old_name}` is already deprecated");
         return;
     };
+    let lint_name_span = entry.name_span;
 
     let mut mod_edit = ModEdit::None;
     if uplift {
-        let lint_file = &data.source_map.files[lint.span.file];
-        let is_unique_mod = data.lints.values().any(|x| {
-            if let Lint::Active(x) = x {
-                data.source_map.files[x.span.file].module == lint_file.module
-            } else {
-                false
-            }
-        });
+        let lint_file = &data.source_map.files[lint_name_span.file];
+        let is_unique_mod = data
+            .lints
+            .values()
+            .any(|x| data.source_map.files[x.name_span.file].module == lint_file.module);
         if is_unique_mod {
             if delete_file_if_exists(lint_file.path.as_ref()) {
                 mod_edit = ModEdit::Delete;
             }
         } else {
             updater.update_file(&lint_file.path, &mut |_, src, dst| -> UpdateStatus {
-                let mut start = &src[..lint.span.start as usize];
+                let mut start = &src[..lint.decl_span.start as usize];
                 if start.ends_with("\n\n") {
                     start = &start[..start.len() - 1];
                 }
-                let mut end = &src[lint.span.end as usize..];
+                let mut end = &src[lint.decl_span.end as usize..];
                 if end.starts_with("\n\n") {
                     end = &end[1..];
                 }
@@ -98,8 +97,8 @@ pub fn rename(clippy_version: Version, old_name: &str, new_name: &str, uplift: b
             });
         }
         delete_test_files(old_name, &data.lints);
-    } else if let StdEntry::Vacant(entry) = data.lints.entry(new_name.to_owned()) {
-        let lint_file = &mut data.source_map.files[lint.span.file];
+    } else if let Entry::Vacant(entry) = data.lints.entry(new_name.to_owned()) {
+        let lint_file = &mut data.source_map.files[lint.decl_span.file];
         if lint_file.module.ends_with(old_name)
             && lint_file
                 .path
@@ -117,7 +116,10 @@ pub fn rename(clippy_version: Version, old_name: &str, new_name: &str, uplift: b
                 lint_file.module.push_str(new_name);
             }
         }
-        entry.insert(Lint::Active(lint));
+        entry.insert(Lint {
+            kind: LintKind::Active(lint),
+            name_span: lint_name_span,
+        });
         rename_test_files(old_name, new_name, &data.lints);
     } else {
         println!("Renamed `clippy::{old_name}` to `clippy::{new_name}`");
@@ -301,7 +303,7 @@ fn file_update_fn<'a, 'b>(
         let mut copy_pos = 0u32;
         let mut changed = false;
         let mut searcher = RustSearcher::new(src);
-        let mut capture = "";
+        let mut captures = [Capture::EMPTY];
         loop {
             match searcher.peek() {
                 TokenKind::Eof => break,
@@ -312,10 +314,10 @@ fn file_update_fn<'a, 'b>(
                     match text {
                         // clippy::lint_name
                         "clippy" => {
-                            if searcher.match_tokens(&[Token::DoubleColon, Token::CaptureIdent], &mut [&mut capture])
-                                && capture == old_name
+                            if searcher.match_tokens(&[Token::DoubleColon, Token::CaptureIdent], &mut captures)
+                                && searcher.get_capture(captures[0]) == old_name
                             {
-                                dst.push_str(&src[copy_pos as usize..searcher.pos() as usize - capture.len()]);
+                                dst.push_str(&src[copy_pos as usize..captures[0].pos as usize]);
                                 dst.push_str(new_name);
                                 copy_pos = searcher.pos();
                                 changed = true;
@@ -324,12 +326,12 @@ fn file_update_fn<'a, 'b>(
                         // mod lint_name
                         "mod" => {
                             if !matches!(mod_edit, ModEdit::None)
-                                && searcher.match_tokens(&[Token::CaptureIdent], &mut [&mut capture])
-                                && capture == old_name
+                                && searcher.match_tokens(&[Token::CaptureIdent], &mut captures)
+                                && searcher.get_capture(captures[0]) == old_name
                             {
                                 match mod_edit {
                                     ModEdit::Rename => {
-                                        dst.push_str(&src[copy_pos as usize..searcher.pos() as usize - capture.len()]);
+                                        dst.push_str(&src[copy_pos as usize..captures[0].pos as usize]);
                                         dst.push_str(new_name);
                                         copy_pos = searcher.pos();
                                         changed = true;
@@ -392,10 +394,10 @@ fn file_update_fn<'a, 'b>(
                 },
                 // ::lint_name
                 TokenKind::Colon
-                    if searcher.match_tokens(&[Token::DoubleColon, Token::CaptureIdent], &mut [&mut capture])
-                        && capture == old_name =>
+                    if searcher.match_tokens(&[Token::DoubleColon, Token::CaptureIdent], &mut captures)
+                        && searcher.get_capture(captures[0]) == old_name =>
                 {
-                    dst.push_str(&src[copy_pos as usize..searcher.pos() as usize - capture.len()]);
+                    dst.push_str(&src[copy_pos as usize..captures[0].pos as usize]);
                     dst.push_str(new_name);
                     copy_pos = searcher.pos();
                     changed = true;

@@ -1,4 +1,4 @@
-use crate::parse::{Lint, ParsedData};
+use crate::parse::{LintKind, ParsedData};
 use crate::utils::{FileUpdater, UpdateMode, UpdateStatus, update_text_region_fn};
 use itertools::Itertools;
 use std::fmt::Write;
@@ -49,10 +49,10 @@ pub fn generate_lint_files(update_mode: UpdateMode, data: &ParsedData) {
     let mut deprecated = Vec::with_capacity(data.lints.len());
     let mut renamed = Vec::with_capacity(data.lints.len());
     for (name, lint) in lints {
-        match lint {
-            Lint::Active(lint) => active.push((name, &data.source_map.files[lint.span.file])),
-            Lint::Deprecated(lint) => deprecated.push((name, lint)),
-            Lint::Renamed(lint) => renamed.push((name, lint)),
+        match &lint.kind {
+            LintKind::Active(lint) => active.push((name, &data.source_map.files[lint.decl_span.file])),
+            LintKind::Deprecated(lint) => deprecated.push((name, lint)),
+            LintKind::Renamed(lint) => renamed.push((name, lint)),
         }
     }
     active.sort_by(|(_, x), (_, y)| (x.krate, &*x.module).cmp(&(y.krate, &*y.module)));

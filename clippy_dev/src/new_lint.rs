@@ -1,4 +1,4 @@
-use crate::parse::{RustSearcher, Token};
+use crate::parse::{Capture, RustSearcher, Token};
 use crate::utils::Version;
 use clap::ValueEnum;
 use indoc::{formatdoc, writedoc};
@@ -523,6 +523,7 @@ fn parse_mod_file(path: &Path, contents: &str) -> (&'static str, usize) {
     let mut context = None;
     let mut decl_end = None;
     let mut searcher = RustSearcher::new(contents);
+    let mut captures = [Capture::EMPTY];
     while let Some(name) = searcher.find_capture_token(CaptureIdent) {
         match name {
             "declare_clippy_lint" => {
@@ -531,9 +532,8 @@ fn parse_mod_file(path: &Path, contents: &str) -> (&'static str, usize) {
                 }
             },
             "impl" => {
-                let mut capture = "";
-                if searcher.match_tokens(&[Lt, Lifetime, Gt, CaptureIdent], &mut [&mut capture]) {
-                    match capture {
+                if searcher.match_tokens(&[Lt, Lifetime, Gt, CaptureIdent], &mut captures) {
+                    match searcher.get_capture(captures[0]) {
                         "LateLintPass" => context = Some("LateContext"),
                         "EarlyLintPass" => context = Some("EarlyContext"),
                         _ => {},
