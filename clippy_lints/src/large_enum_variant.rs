@@ -84,7 +84,7 @@ impl<'tcx> LateLintPass<'tcx> for LargeEnumVariant {
 
             let mut difference = variants_size[0].size - variants_size[1].size;
             if difference > self.maximum_size_difference_allowed {
-                let help_text = "consider boxing the large fields to reduce the total size of the enum";
+                let help_text = "consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum";
                 span_lint_and_then(
                     cx,
                     LARGE_ENUM_VARIANT,
@@ -150,10 +150,7 @@ impl<'tcx> LateLintPass<'tcx> for LargeEnumVariant {
                                 return;
                             }
                         }
-
-                        if !is_no_std_crate(cx) {
-                            diag.span_help(def.variants[variants_size[0].ind].span, help_text);
-                        }
+                        diag.span_help(def.variants[variants_size[0].ind].span, help_text);
                     },
                 );
             }
