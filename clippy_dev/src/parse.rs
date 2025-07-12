@@ -3,6 +3,7 @@ use crate::utils::{ErrAction, expect_action, walk_dir_no_dot_or_target};
 use core::ops::Range;
 use core::slice;
 use rustc_data_structures::fx::FxHashMap;
+use rustc_index::{IndexVec, newtype_index};
 use rustc_lexer::{self as lexer, FrontmatterAllowed};
 use std::collections::hash_map::{Entry, VacantEntry};
 use std::panic::Location;
@@ -27,6 +28,7 @@ pub enum Token<'a> {
     DoubleColon,
     Comma,
     Eq,
+    FatArrow,
     Lifetime,
     Literal,
     Lt,
@@ -34,6 +36,7 @@ pub enum Token<'a> {
     OpenBrace,
     OpenBracket,
     OpenParen,
+    OptLifetimeArgs,
     Pound,
     Semi,
 }
@@ -134,6 +137,7 @@ impl<'txt> RustSearcher<'txt> {
 
     /// Consumes the next token if it matches the requested value and captures the value if
     /// requested. Returns `true` if a token was matched.
+    #[expect(clippy::too_many_lines)]
     fn read_token(&mut self, token: Token<'_>, captures: &mut slice::IterMut<'_, Capture>) -> bool {
         loop {
             match (token, self.next_token.kind) {
@@ -202,6 +206,25 @@ impl<'txt> RustSearcher<'txt> {
                     }
                     return false;
                 },
+                (Token::FatArrow, lexer::TokenKind::Eq) => {
+                    self.step();
+                    if matches!(self.next_token.kind, lexer::TokenKind::Gt) {
+                        self.step();
+                        return true;
+                    }
+                    return false;
+                },
+                (Token::OptLifetimeArgs, lexer::TokenKind::Lt) => {
+                    self.step();
+                    while self.read_token(Token::Lifetime, captures) {
+                        if !self.read_token(Token::Comma, captures) {
+                            break;
+                        }
+                    }
+                    return self.read_token(Token::Gt, captures);
+                },
+                #[expect(clippy::match_same_arms)]
+                (Token::OptLifetimeArgs, _) => return true,
                 #[rustfmt::skip]
                 (
                     Token::CaptureLitStr,
@@ -235,16 +258,28 @@ impl<'txt> RustSearcher<'txt> {
     }
 
     #[must_use]
-    pub fn find_capture_token(&mut self, token: Token<'_>) -> Option<&'txt str> {
-        let mut capture = Capture::EMPTY;
-        let mut captures = slice::from_mut(&mut capture).iter_mut();
-        while !self.read_token(token, &mut captures) {
-            self.step();
-            if self.at_end() {
-                return None;
+    pub fn find_any_ident(&mut self) -> Option<&'txt str> {
+        loop {
+            match self.next_token.kind {
+                lexer::TokenKind::Ident => {
+                    let res = self.peek_text();
+                    self.step();
+                    return Some(res);
+                },
+                lexer::TokenKind::Eof => return None,
+                _ => self.step(),
             }
         }
-        Some(&self.text[capture.to_index()])
+    }
+
+    #[must_use]
+    pub fn find_ident(&mut self, s: &str) -> bool {
+        while let Some(x) = self.find_any_ident() {
+            if x == s {
+                return true;
+            }
+        }
+        false
     }
 
     #[must_use]
@@ -286,9 +321,27 @@ pub struct Lint {
     pub name_span: Span,
 }
 
+pub struct LintPassData {
+    pub name: String,
+    /// Span of the `impl_lint_pass` or `declare_lint_pass` macro call.
+    pub mac_span: Span,
+}
+
+newtype_index! {
+    #[orderable]
+    pub struct LintPass {}
+}
+
+pub struct LintRegistration {
+    pub name: String,
+    pub pass: LintPass,
+}
+
 pub struct ParsedData {
     pub source_map: SourceMap,
     pub lints: FxHashMap<String, Lint>,
+    pub lint_passes: IndexVec<LintPass, LintPassData>,
+    pub lint_registrations: Vec<LintRegistration>,
     pub deprecated_span: Range<u32>,
     pub renamed_span: Range<u32>,
 }
@@ -299,6 +352,8 @@ impl ParsedData {
         let mut parser = Parser {
             source_map: SourceMap::with_capacity(8, 1000),
             lints: FxHashMap::with_capacity_and_hasher(1000, Default::default()),
+            lint_passes: IndexVec::with_capacity(400),
+            lint_registrations: Vec::with_capacity(1000),
             deprecated_span: 0..0,
             renamed_span: 0..0,
             errors: Vec::new(),
@@ -355,6 +410,8 @@ impl ParsedData {
         ParsedData {
             source_map: parser.source_map,
             lints: parser.lints,
+            lint_passes: parser.lint_passes,
+            lint_registrations: parser.lint_registrations,
             deprecated_span: parser.deprecated_span,
             renamed_span: parser.renamed_span,
         }
@@ -399,6 +456,8 @@ impl From<ErrorKind> for Error {
 struct Parser {
     source_map: SourceMap,
     lints: FxHashMap<String, Lint>,
+    lint_passes: IndexVec<LintPass, LintPassData>,
+    lint_registrations: Vec<LintRegistration>,
     deprecated_span: Range<u32>,
     renamed_span: Range<u32>,
     errors: Vec<Error>,
@@ -449,7 +508,7 @@ impl Parser {
         #[allow(clippy::enum_glob_use)]
         use Token::*;
         #[rustfmt::skip]
-        static DECL_TOKENS: &[Token<'_>] = &[
+        static LINT_DECL_TOKENS: &[Token<'_>] = &[
             // { /// docs
             OpenBrace, AnyComment,
             // #[clippy::version = "version"]
@@ -458,42 +517,89 @@ impl Parser {
             Ident("pub"), CaptureIdent, Comma, AnyComment, CaptureIdent, Comma, AnyComment, LitStr,
         ];
         #[rustfmt::skip]
-        static EXTRA_TOKENS: &[Token<'_>] = &[
+        static LINT_DECL_EXTRA_TOKENS: &[Token<'_>] = &[
             // , @option = value
             Comma, AnyComment, At, AnyIdent, Eq, Literal,
+        ];
+        #[rustfmt::skip]
+        static LINT_PASS_TOKENS: &[Token<'_>] = &[
+            // ( name <'lt> => [
+            OpenParen, AnyComment, CaptureIdent, OptLifetimeArgs, FatArrow, OpenBracket,
         ];
 
         let mut searcher = RustSearcher::new(&self.source_map.files[file].contents);
         let mut captures = [Capture::EMPTY; 2];
-        #[expect(clippy::cast_possible_truncation)]
-        while searcher.find_token(Ident("declare_clippy_lint")) {
-            let start = searcher.pos() - "declare_clippy_lint".len() as u32;
+        while let Some(ident) = searcher.find_any_ident() {
+            #[expect(clippy::cast_possible_truncation)]
+            let start = searcher.pos - ident.len() as u32;
             if searcher.match_token(Bang) {
-                if !searcher.match_tokens(DECL_TOKENS, &mut captures) {
-                    self.errors.push(searcher.get_unexpected_err(file));
-                    return;
-                }
-                let name_span = captures[0].to_span(file);
-                let name = searcher.get_capture(captures[0]).to_ascii_lowercase();
-                if let Some(e) = get_vacant_lint(name, name_span, &mut self.lints, &mut self.errors) {
-                    e.insert(Lint {
-                        kind: LintKind::Active(ActiveLint {
-                            group: searcher.get_capture(captures[1]).into(),
-                            decl_span: Span {
+                match ident {
+                    "declare_clippy_lint" => {
+                        if !searcher.match_tokens(LINT_DECL_TOKENS, &mut captures) {
+                            self.errors.push(searcher.get_unexpected_err(file));
+                            return;
+                        }
+                        while searcher.match_tokens(LINT_DECL_EXTRA_TOKENS, &mut []) {
+                            // nothing
+                        }
+                        if !searcher.match_token(CloseBrace) {
+                            self.errors.push(searcher.get_unexpected_err(file));
+                            return;
+                        }
+                        let name_span = captures[0].to_span(file);
+                        let name = searcher.get_capture(captures[0]).to_ascii_lowercase();
+                        if let Some(e) = get_vacant_lint(name, name_span, &mut self.lints, &mut self.errors) {
+                            e.insert(Lint {
+                                kind: LintKind::Active(ActiveLint {
+                                    group: searcher.get_capture(captures[1]).into(),
+                                    decl_span: Span {
+                                        file,
+                                        start,
+                                        end: searcher.pos(),
+                                    },
+                                }),
+                                name_span,
+                            });
+                        }
+                    },
+                    "impl_lint_pass" | "declare_lint_pass" => {
+                        if !searcher.match_tokens(LINT_PASS_TOKENS, &mut captures) {
+                            self.errors.push(searcher.get_unexpected_err(file));
+                            return;
+                        }
+                        let pass = self.lint_passes.next_index();
+                        let pass_name = captures[0];
+                        while searcher.match_tokens(&[AnyComment, CaptureIdent], &mut captures) {
+                            // Read a path expression.
+                            while searcher.match_token(DoubleColon) {
+                                // Overwrite the previous capture. The last segment is the lint name we want.
+                                if !searcher.match_tokens(&[CaptureIdent], &mut captures) {
+                                    self.errors.push(searcher.get_unexpected_err(file));
+                                    return;
+                                }
+                            }
+                            self.lint_registrations.push(LintRegistration {
+                                name: searcher.get_capture(captures[0]).to_ascii_lowercase(),
+                                pass,
+                            });
+                            if !searcher.match_token(Comma) {
+                                break;
+                            }
+                        }
+                        if !searcher.match_tokens(&[CloseBracket, CloseParen], &mut []) {
+                            self.errors.push(searcher.get_unexpected_err(file));
+                            return;
+                        }
+                        self.lint_passes.push(LintPassData {
+                            name: searcher.get_capture(pass_name).to_owned(),
+                            mac_span: Span {
                                 file,
                                 start,
                                 end: searcher.pos(),
                             },
-                        }),
-                        name_span,
-                    });
-                }
-                while searcher.match_tokens(EXTRA_TOKENS, &mut []) {
-                    // nothing
-                }
-                if !searcher.match_token(CloseBrace) {
-                    self.errors.push(searcher.get_unexpected_err(file));
-                    return;
+                        });
+                    },
+                    _ => {},
                 }
             }
         }
@@ -537,11 +643,11 @@ impl Parser {
         let mut searcher = RustSearcher::new(&file_data.contents);
         // First instance is the macro definition.
         assert!(
-            searcher.find_token(Ident("declare_with_version")),
-            "error parsing `clippy_lints/src/deprecated_lints.rs`"
+            searcher.find_ident("declare_with_version"),
+            "error parsing `clippy_lints/src/deprecated_lints.rs`",
         );
 
-        if !searcher.find_token(Ident("declare_with_version")) || !searcher.match_tokens(DEPRECATED_TOKENS, &mut []) {
+        if !searcher.find_ident("declare_with_version") || !searcher.match_tokens(DEPRECATED_TOKENS, &mut []) {
             self.errors.push(searcher.get_unexpected_err(file));
             return;
         }
@@ -570,7 +676,7 @@ impl Parser {
             return;
         }
 
-        if !searcher.find_token(Ident("declare_with_version")) || !searcher.match_tokens(RENAMED_TOKENS, &mut []) {
+        if !searcher.find_ident("declare_with_version") || !searcher.match_tokens(RENAMED_TOKENS, &mut []) {
             self.errors.push(searcher.get_unexpected_err(file));
             return;
         }

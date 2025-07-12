@@ -524,7 +524,7 @@ fn parse_mod_file(path: &Path, contents: &str) -> (&'static str, usize) {
     let mut decl_end = None;
     let mut searcher = RustSearcher::new(contents);
     let mut captures = [Capture::EMPTY];
-    while let Some(name) = searcher.find_capture_token(CaptureIdent) {
+    while let Some(name) = searcher.find_any_ident() {
         match name {
             "declare_clippy_lint" => {
                 if searcher.match_tokens(&[Bang, OpenBrace], &mut []) && searcher.find_token(CloseBrace) {
