@@ -25,6 +25,7 @@ use std::ops::Range;
 use url::Url;
 
 mod broken_link;
+mod comment_within_doc;
 mod doc_comment_double_space_linebreaks;
 mod doc_suspicious_footnotes;
 mod include_in_doc_without_cfg;
@@ -668,6 +669,31 @@ declare_clippy_lint! {
     "looks like a link or footnote ref, but with no definition"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks if a code comment is surrounded by doc comments.
+    ///
+    /// ### Why is this bad?
+    /// This is likely a typo, making the documentation miss a line.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// //! Doc
+    /// // oups
+    /// //! doc
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// //! Doc
+    /// //! oups
+    /// //! doc
+    /// ```
+    #[clippy::version = "1.90.0"]
+    pub COMMENT_WITHIN_DOC,
+    pedantic,
+    "code comment surrounded by doc comments"
+}
+
 pub struct Documentation {
     valid_idents: FxHashSet<String>,
     check_private_items: bool,
@@ -702,11 +728,13 @@ impl_lint_pass!(Documentation => [
     DOC_INCLUDE_WITHOUT_CFG,
     DOC_COMMENT_DOUBLE_SPACE_LINEBREAKS,
     DOC_SUSPICIOUS_FOOTNOTES,
+    COMMENT_WITHIN_DOC,
 ]);
 
 impl EarlyLintPass for Documentation {
     fn check_attributes(&mut self, cx: &EarlyContext<'_>, attrs: &[rustc_ast::Attribute]) {
         include_in_doc_without_cfg::check(cx, attrs);
+        comment_within_doc::check(cx, attrs);
     }
 }
 
