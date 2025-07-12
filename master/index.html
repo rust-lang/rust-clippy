@@ -11461,7 +11461,7 @@ fn bar() {}
 println!("{:p}", foo);
 let _ = format!("{:?}", &amp;(bar as fn()));
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.88.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+pointer_format">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/format_args.rs#L201">View Source</a></div></div></div></article><article id="pointers_in_nomem_asm_block"><input id="label-pointers_in_nomem_asm_block" type="checkbox"><label for="label-pointers_in_nomem_asm_block"><h2 class="lint-title"><div class="panel-title-name" id="lint-pointers_in_nomem_asm_block">pointers_in_nomem_asm_block
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.88.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+pointer_format">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/format_args.rs#L203">View Source</a></div></div></div></article><article id="pointers_in_nomem_asm_block"><input id="label-pointers_in_nomem_asm_block" type="checkbox"><label for="label-pointers_in_nomem_asm_block"><h2 class="lint-title"><div class="panel-title-name" id="lint-pointers_in_nomem_asm_block">pointers_in_nomem_asm_block
                             <a href="#pointers_in_nomem_asm_block" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-suspicious">suspicious</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks if any pointer is being passed to an asm! block with <code>nomem</code> option.</p>
 <h3>Why is this bad?</h3>
@@ -15493,6 +15493,7 @@ as it requires arguments to be matched against the format string.
 The inlined syntax, where allowed, is simpler.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">format!("{}", var);
+format!("{:?}", var);
 format!("{v:?}", v = var);
 format!("{0} {0}", var);
 format!("{0:1$}", var, width);
@@ -15500,6 +15501,7 @@ format!("{:.*}", prec, var);
 </code></pre>
 <p>Use instead:</p>
 <pre><code class="language-rust">format!("{var}");
+format!("{var:?}");
 format!("{var:?}");
 format!("{var} {var}");
 format!("{var:width$}");
@@ -16446,7 +16448,7 @@ println!("not padded: {}", format_args!("..."));
 // OR
 println!("padded: {:5}", format!("..."));
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.66.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+unused_format_specs">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/format_args.rs#L170">View Source</a></div></div></div></article><article id="unused_io_amount"><input id="label-unused_io_amount" type="checkbox"><label for="label-unused_io_amount"><h2 class="lint-title"><div class="panel-title-name" id="lint-unused_io_amount">unused_io_amount
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.66.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+unused_format_specs">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/format_args.rs#L172">View Source</a></div></div></div></article><article id="unused_io_amount"><input id="label-unused_io_amount" type="checkbox"><label for="label-unused_io_amount"><h2 class="lint-title"><div class="panel-title-name" id="lint-unused_io_amount">unused_io_amount
                             <a href="#unused_io_amount" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-correctness">correctness</span> <span class="label lint-level level-deny">deny</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for unused written/read amount.</p>
 <h3>Why is this bad?</h3>
