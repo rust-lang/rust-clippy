@@ -1933,19 +1933,26 @@ fn is_body_identity_function(cx: &LateContext<'_>, func: &Body<'_>) -> bool {
                 zip(before.iter().chain(after), arr).all(|(pat, expr)| check_pat(cx, pat, expr))
             },
             (PatKind::TupleStruct(pat_ident, field_pats, dotdot), ExprKind::Call(ident, fields))
-                if dotdot.as_opt_usize().is_none()
-                    && let ExprKind::Path(ident) = ident.kind =>
+                if dotdot.as_opt_usize().is_none() && field_pats.len() == fields.len() =>
             {
-                field_pats.len() == fields.len()
-                    && qpath_res(&pat_ident, pat.hir_id) == qpath_res(&ident, expr.hir_id)
+                // check ident
+                if let ExprKind::Path(ident) = &ident.kind
+                    && qpath_res(&pat_ident, pat.hir_id) == qpath_res(ident, expr.hir_id)
+                    // check fields
                     && zip(field_pats, fields).all(|(pat, expr)| check_pat(cx, pat, expr))
+                {
+                    true
+                } else {
+                    false
+                }
             },
             (
                 PatKind::Struct(pat_ident, field_pats, false),
                 ExprKind::Struct(ident, fields, hir::StructTailExpr::None),
-            ) => {
-                field_pats.len() == fields.len()
-                    && qpath_res(&pat_ident, pat.hir_id) == qpath_res(ident, expr.hir_id)
+            ) if field_pats.len() == fields.len() => {
+                // check ident
+                qpath_res(&pat_ident, pat.hir_id) == qpath_res(ident, expr.hir_id)
+                    // check fields
                     && field_pats.iter().all(|field_pat| {
                         fields
                             .iter()
