@@ -1936,7 +1936,13 @@ fn is_body_identity_function(cx: &LateContext<'_>, func: &Body<'_>) -> bool {
             ) => {
                 // NOTE: we're inside a (function) body, so this won't ICE
                 let qpath_res = |qpath, hir| cx.typeck_results().qpath_res(qpath, hir);
-                field_pats.len() == fields.len() && qpath_res(&pat_ident, pat.hir_id) == qpath_res(ident, expr.hir_id)
+                field_pats.len() == fields.len()
+                    && qpath_res(&pat_ident, pat.hir_id) == qpath_res(ident, expr.hir_id)
+                    && field_pats.iter().all(|field_pat| {
+                        fields
+                            .iter()
+                            .any(|field| field_pat.ident == field.ident && check_pat(cx, field_pat.pat, field.expr))
+                    })
             },
             _ => false,
         }

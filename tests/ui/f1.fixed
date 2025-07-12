@@ -20,4 +20,16 @@ fn main() {
 
     // don't lint: same fields but different structs
     let _ = x.into_iter().map(|Foo { foo, bar }| Bar { foo, bar });
+
+    // still lint with redundant field names
+    #[allow(clippy::redundant_field_names)]
+    let _ = x.into_iter();
+    //~^ map_identity
+
+    // still lint with field order change
+    let _ = x.into_iter();
+    //~^ map_identity
+
+    // don't lint: switched field assignment
+    let _ = x.into_iter().map(|Foo { foo, bar }| Foo { foo: bar, bar: foo });
 }
