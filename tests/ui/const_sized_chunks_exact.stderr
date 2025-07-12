@@ -1,0 +1,172 @@
+error: iterating over `chunks_exact()` with constant parameter `2`
+  --> tests/ui/const_sized_chunks_exact.rs:10:30
+   |
+LL |     for ref chunk in numbers.chunks_exact(2) {
+   |                              ^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::const-sized-chunks-exact` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::const_sized_chunks_exact)]`
+help: use `array_chunks::<2>()` instead
+   |
+LL -     for ref chunk in numbers.chunks_exact(2) {
+LL +     for [a, b] in numbers.array_chunks() {
+   |
+
+error: iterating over `chunks_exact()` with constant parameter `2`
+  --> tests/ui/const_sized_chunks_exact.rs:15:30
+   |
+LL |     for mut chunk in numbers.chunks_exact(2) {
+   |                              ^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks::<2>()` instead
+   |
+LL -     for mut chunk in numbers.chunks_exact(2) {
+LL +     for [a, b] in numbers.array_chunks() {
+   |
+
+error: iterating over `chunks_exact()` with constant parameter `2`
+  --> tests/ui/const_sized_chunks_exact.rs:19:34
+   |
+LL |     for ref mut chunk in numbers.chunks_exact(2) {
+   |                                  ^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks::<2>()` instead
+   |
+LL -     for ref mut chunk in numbers.chunks_exact(2) {
+LL +     for [a, b] in numbers.array_chunks() {
+   |
+
+error: iterating over `chunks_exact()` with constant parameter `2`
+  --> tests/ui/const_sized_chunks_exact.rs:26:26
+   |
+LL |     for chunk in numbers.chunks_exact(2) {
+   |                          ^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks::<2>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact(2) {
+LL +     for [a, b] in numbers.array_chunks() {
+   |
+
+error: iterating over `chunks_exact()` with constant parameter `2`
+  --> tests/ui/const_sized_chunks_exact.rs:31:26
+   |
+LL |     for chunk in numbers.chunks_exact(2) {
+   |                          ^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks::<2>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact(2) {
+LL +     for [a, b] in numbers.array_chunks() {
+   |
+
+error: iterating over `chunks_exact()` with constant parameter `2`
+  --> tests/ui/const_sized_chunks_exact.rs:36:26
+   |
+LL |     for chunk in numbers.chunks_exact(2) {
+   |                          ^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks::<2>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact(2) {
+LL +     for [a, b] in numbers.array_chunks() {
+   |
+
+error: iterating over `chunks_exact()` with constant parameter `2`
+  --> tests/ui/const_sized_chunks_exact.rs:41:26
+   |
+LL |     for chunk in numbers.chunks_exact(2) {
+   |                          ^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks::<2>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact(2) {
+LL +     for [a, b] in numbers.array_chunks() {
+   |
+
+error: iterating over `chunks_exact()` with constant parameter `2`
+  --> tests/ui/const_sized_chunks_exact.rs:46:26
+   |
+LL |     for chunk in numbers.chunks_exact(2) {
+   |                          ^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks::<2>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact(2) {
+LL +     for [a, b] in numbers.array_chunks() {
+   |
+
+error: iterating over `chunks_exact()` with constant parameter `2`
+  --> tests/ui/const_sized_chunks_exact.rs:51:26
+   |
+LL |     for chunk in numbers.chunks_exact(2) {
+   |                          ^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks::<2>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact(2) {
+LL +     for [a, b] in numbers.array_chunks() {
+   |
+
+error: iterating over `chunks_exact()` with constant parameter `2`
+  --> tests/ui/const_sized_chunks_exact.rs:56:26
+   |
+LL |     for chunk in numbers.chunks_exact(2) {
+   |                          ^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks::<2>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact(2) {
+LL +     for [a, b] in numbers.array_chunks() {
+   |
+
+error: iterating over `chunks_exact()` with constant parameter `N`
+  --> tests/ui/const_sized_chunks_exact.rs:65:26
+   |
+LL |     for chunk in numbers.chunks_exact(N) {
+   |                          ^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks::<2>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact(N) {
+LL +     for [a, b] in numbers.array_chunks() {
+   |
+
+error: iterating over `chunks_exact()` with constant parameter `N + 1`
+  --> tests/ui/const_sized_chunks_exact.rs:69:26
+   |
+LL |     for chunk in numbers.chunks_exact(N + 1) {
+   |                          ^^^^^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks::<3>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact(N + 1) {
+LL +     for [a, b, c] in numbers.array_chunks() {
+   |
+
+error: iterating over `chunks_exact()` with constant parameter `1`
+  --> tests/ui/const_sized_chunks_exact.rs:78:26
+   |
+LL |     for chunk in numbers.chunks_exact(1) {
+   |                          ^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks::<1>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact(1) {
+LL +     for [a] in numbers.array_chunks() {
+   |
+
+error: iterating over `chunks_exact()` with constant parameter `26`
+  --> tests/ui/const_sized_chunks_exact.rs:82:26
+   |
+LL |     for chunk in numbers.chunks_exact(26) {
+   |                          ^^^^^^^^^^^^^^^^
+   |
+help: use `array_chunks::<26>()` instead
+   |
+LL -     for chunk in numbers.chunks_exact(26) {
+LL +     for [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z] in numbers.array_chunks() {
+   |
+
+error: aborting due to 14 previous errors
+
