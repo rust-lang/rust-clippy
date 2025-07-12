@@ -1929,6 +1929,10 @@ fn is_body_identity_function(cx: &LateContext<'_>, func: &Body<'_>) -> bool {
                     .zip(arr)
                     .all(|(pat, expr)| check_pat(cx, pat, expr))
             },
+            (
+                PatKind::Struct(pat_ident, field_pats, false),
+                ExprKind::Struct(ident, fields, hir::StructTailExpr::None),
+            ) => field_pats.len() == fields.len(),
             _ => false,
         }
     }
