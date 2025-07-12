@@ -1,5 +1,5 @@
 error: unnecessary map of the identity function
-  --> tests/ui/f1.rs:21:26
+  --> tests/ui/f1.rs:26:26
    |
 LL |     let _ = x.into_iter().map(|Foo { foo, bar }| Foo { foo, bar });
    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove the call to `map`
@@ -8,22 +8,34 @@ LL |     let _ = x.into_iter().map(|Foo { foo, bar }| Foo { foo, bar });
    = help: to override `-D warnings` add `#[allow(clippy::map_identity)]`
 
 error: unnecessary map of the identity function
-  --> tests/ui/f1.rs:25:26
+  --> tests/ui/f1.rs:30:26
    |
 LL |     let _ = x.into_iter().map(|Foo { foo, bar }| foo::Foo { foo, bar });
    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove the call to `map`
 
 error: unnecessary map of the identity function
-  --> tests/ui/f1.rs:33:26
+  --> tests/ui/f1.rs:38:26
    |
 LL |     let _ = x.into_iter().map(|Foo { foo, bar }| Foo { foo: foo, bar: bar });
    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove the call to `map`
 
 error: unnecessary map of the identity function
-  --> tests/ui/f1.rs:37:26
+  --> tests/ui/f1.rs:42:26
    |
 LL |     let _ = x.into_iter().map(|Foo { foo, bar }| Foo { bar, foo });
    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove the call to `map`
 
-error: aborting due to 4 previous errors
+error: unnecessary map of the identity function
+  --> tests/ui/f1.rs:52:26
+   |
+LL |     let _ = x.into_iter().map(|Foo2(foo, bar)| Foo2(foo, bar));
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove the call to `map`
+
+error: unnecessary map of the identity function
+  --> tests/ui/f1.rs:56:26
+   |
+LL |     let _ = x.into_iter().map(|Foo2(foo, bar)| foo::Foo2(foo, bar));
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove the call to `map`
+
+error: aborting due to 6 previous errors
 

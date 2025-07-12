@@ -1913,6 +1913,9 @@ fn is_body_identity_function(cx: &LateContext<'_>, func: &Body<'_>) -> bool {
             return false;
         }
 
+        // NOTE: we're inside a (function) body, so this won't ICE
+        let qpath_res = |qpath, hir| cx.typeck_results().qpath_res(qpath, hir);
+
         match (pat.kind, expr.kind) {
             (PatKind::Binding(_, id, _, _), _) => {
                 path_to_local_id(expr, id) && cx.typeck_results().expr_adjustments(expr).is_empty()
@@ -1929,12 +1932,20 @@ fn is_body_identity_function(cx: &LateContext<'_>, func: &Body<'_>) -> bool {
                     .zip(arr)
                     .all(|(pat, expr)| check_pat(cx, pat, expr))
             },
+            (PatKind::TupleStruct(pat_ident, field_pats, dotdot), ExprKind::Call(ident, fields))
+                if dotdot.as_opt_usize().is_none()
+                    && let ExprKind::Path(ident) = ident.kind =>
+            {
+                field_pats.len() == fields.len()
+                    && qpath_res(&pat_ident, pat.hir_id) == qpath_res(&ident, expr.hir_id)
+                    && (field_pats.iter())
+                        .zip(fields)
+                        .all(|(pat, expr)| check_pat(cx, pat, expr))
+            },
             (
                 PatKind::Struct(pat_ident, field_pats, false),
                 ExprKind::Struct(ident, fields, hir::StructTailExpr::None),
             ) => {
-                // NOTE: we're inside a (function) body, so this won't ICE
-                let qpath_res = |qpath, hir| cx.typeck_results().qpath_res(qpath, hir);
                 field_pats.len() == fields.len()
                     && qpath_res(&pat_ident, pat.hir_id) == qpath_res(ident, expr.hir_id)
                     && field_pats.iter().all(|field_pat| {

@@ -7,15 +7,20 @@ mod foo {
         pub foo: u8,
         pub bar: u8,
     }
+
+    #[derive(Clone, Copy)]
+    pub struct Foo2(pub u8, pub u8);
 }
-use foo::Foo;
+use foo::{Foo, Foo2};
 
 struct Bar {
     foo: u8,
     bar: u8,
 }
 
-fn main() {
+struct Bar2(u8, u8);
+
+fn structs() {
     let x = [Foo { foo: 0, bar: 0 }];
 
     let _ = x.into_iter().map(|Foo { foo, bar }| Foo { foo, bar });
@@ -39,4 +44,21 @@ fn main() {
 
     // don't lint: switched field assignment
     let _ = x.into_iter().map(|Foo { foo, bar }| Foo { foo: bar, bar: foo });
+}
+
+fn tuple_structs() {
+    let x = [Foo2(0, 0)];
+
+    let _ = x.into_iter().map(|Foo2(foo, bar)| Foo2(foo, bar));
+    //~^ map_identity
+
+    // still lint when different paths are used for the same struct
+    let _ = x.into_iter().map(|Foo2(foo, bar)| foo::Foo2(foo, bar));
+    //~^ map_identity
+
+    // don't lint: same fields but different structs
+    let _ = x.into_iter().map(|Foo2(foo, bar)| Bar2(foo, bar));
+
+    // don't lint: switched field assignment
+    let _ = x.into_iter().map(|Foo2(foo, bar)| Foo2(bar, foo));
 }
