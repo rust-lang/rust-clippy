@@ -1932,7 +1932,11 @@ fn is_body_identity_function(cx: &LateContext<'_>, func: &Body<'_>) -> bool {
             (
                 PatKind::Struct(pat_ident, field_pats, false),
                 ExprKind::Struct(ident, fields, hir::StructTailExpr::None),
-            ) => field_pats.len() == fields.len(),
+            ) => {
+                // NOTE: we're inside a (function) body, so this won't ICE
+                let qpath_res = |qpath, hir| cx.typeck_results().qpath_res(qpath, hir);
+                field_pats.len() == fields.len() && qpath_res(&pat_ident, pat.hir_id) == qpath_res(ident, expr.hir_id)
+            },
             _ => false,
         }
     }

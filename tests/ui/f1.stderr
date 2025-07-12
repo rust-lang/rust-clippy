@@ -1,5 +1,5 @@
 error: unnecessary map of the identity function
-  --> tests/ui/f1.rs:12:26
+  --> tests/ui/f1.rs:18:26
    |
 LL |     let _ = x.into_iter().map(|Foo { foo, bar }| Foo { foo, bar });
    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove the call to `map`
