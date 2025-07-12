@@ -84,7 +84,7 @@ pub use self::hir_utils::{
 use core::mem;
 use core::ops::ControlFlow;
 use std::collections::hash_map::Entry;
-use std::iter::{once, repeat_n};
+use std::iter::{once, repeat_n, zip};
 use std::sync::{Mutex, MutexGuard, OnceLock};
 
 use itertools::Itertools;
@@ -581,7 +581,7 @@ pub fn can_mut_borrow_both(cx: &LateContext<'_>, e1: &Expr<'_>, e2: &Expr<'_>) -
         return false;
     }
 
-    for (x1, x2) in s1.iter().zip(s2.iter()) {
+    for (x1, x2) in zip(&s1, &s2) {
         if expr_custom_deref_adjustment(cx, x1).is_some() || expr_custom_deref_adjustment(cx, x2).is_some() {
             return false;
         }
@@ -1913,6 +1913,9 @@ fn is_body_identity_function(cx: &LateContext<'_>, func: &Body<'_>) -> bool {
             return false;
         }
 
+        // NOTE: we're inside a (function) body, so this won't ICE
+        let qpath_res = |qpath, hir| cx.typeck_results().qpath_res(qpath, hir);
+
         match (pat.kind, expr.kind) {
             (PatKind::Binding(_, id, _, _), _) => {
                 path_to_local_id(expr, id) && cx.typeck_results().expr_adjustments(expr).is_empty()
@@ -1920,14 +1923,37 @@ fn is_body_identity_function(cx: &LateContext<'_>, func: &Body<'_>) -> bool {
             (PatKind::Tuple(pats, dotdot), ExprKind::Tup(tup))
                 if dotdot.as_opt_usize().is_none() && pats.len() == tup.len() =>
             {
-                pats.iter().zip(tup).all(|(pat, expr)| check_pat(cx, pat, expr))
+                zip(pats, tup).all(|(pat, expr)| check_pat(cx, pat, expr))
             },
-            (PatKind::Slice(before, slice, after), ExprKind::Array(arr))
-                if slice.is_none() && before.len() + after.len() == arr.len() =>
+            (PatKind::Slice(before, None, after), ExprKind::Array(arr)) if before.len() + after.len() == arr.len() => {
+                zip(before.iter().chain(after), arr).all(|(pat, expr)| check_pat(cx, pat, expr))
+            },
+            (PatKind::TupleStruct(pat_ident, field_pats, dotdot), ExprKind::Call(ident, fields))
+                if dotdot.as_opt_usize().is_none() && field_pats.len() == fields.len() =>
             {
-                (before.iter().chain(after))
-                    .zip(arr)
-                    .all(|(pat, expr)| check_pat(cx, pat, expr))
+                // check ident
+                if let ExprKind::Path(ident) = &ident.kind
+                    && qpath_res(&pat_ident, pat.hir_id) == qpath_res(ident, expr.hir_id)
+                    // check fields
+                    && zip(field_pats, fields).all(|(pat, expr)| check_pat(cx, pat, expr))
+                {
+                    true
+                } else {
+                    false
+                }
+            },
+            (
+                PatKind::Struct(pat_ident, field_pats, false),
+                ExprKind::Struct(ident, fields, hir::StructTailExpr::None),
+            ) if field_pats.len() == fields.len() => {
+                // check ident
+                qpath_res(&pat_ident, pat.hir_id) == qpath_res(ident, expr.hir_id)
+                    // check fields
+                    && field_pats.iter().all(|field_pat| {
+                        fields
+                            .iter()
+                            .any(|field| field_pat.ident == field.ident && check_pat(cx, field_pat.pat, field.expr))
+                    })
             },
             _ => false,
         }
