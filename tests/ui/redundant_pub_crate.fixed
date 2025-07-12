@@ -1,5 +1,5 @@
 //@aux-build:proc_macros.rs
-#![allow(dead_code)]
+#![allow(dead_code, clippy::items_before_use)]
 #![warn(clippy::redundant_pub_crate)]
 
 mod m1 {
