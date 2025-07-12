@@ -1897,6 +1897,7 @@ pub fn is_must_use_func_call(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
 /// * `|x| { return x; }`
 /// * `|(x, y)| (x, y)`
 /// * `|[x, y]| [x, y]`
+/// * `|Foo { bar, baz }| Foo { bar, baz }`
 ///
 /// Consider calling [`is_expr_untyped_identity_function`] or [`is_expr_identity_function`] instead.
 fn is_body_identity_function(cx: &LateContext<'_>, func: &Body<'_>) -> bool {
@@ -1929,6 +1930,10 @@ fn is_body_identity_function(cx: &LateContext<'_>, func: &Body<'_>) -> bool {
                     .zip(arr)
                     .all(|(pat, expr)| check_pat(cx, pat, expr))
             },
+            (
+                PatKind::Struct(pat_ident, field_pats, false),
+                ExprKind::Struct(ident, fields, hir::StructTailExpr::None),
+            ) => field_pats.len() == fields.len(),
             _ => false,
         }
     }
