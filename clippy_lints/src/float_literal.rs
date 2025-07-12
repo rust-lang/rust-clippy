@@ -13,6 +13,8 @@ declare_clippy_lint! {
     /// Checks for float literals with a precision greater
     /// than that supported by the underlying type.
     ///
+    /// The lint is suppressed for literals with over 40 digits.
+    ///
     /// ### Why is this bad?
     /// Rust will truncate the literal silently.
     ///
@@ -126,13 +128,23 @@ impl<'tcx> LateLintPass<'tcx> for FloatLiteral {
                         },
                     );
                 }
-            } else if digits > max as usize && count_digits(&float_str) < count_digits(sym_str) {
+            } else if digits > max as usize && count_digits(&float_str) < digits {
+                if digits >= 40 && is_const_item(cx, expr) {
+                    // If a big enough number of digits is specified and it's a constant
+                    // we assume the user is definining a constant, and excessive precision is ok
+                    return;
+                }
                 span_lint_and_then(
                     cx,
                     EXCESSIVE_PRECISION,
                     expr.span,
                     "float has excessive precision",
                     |diag| {
+                        if digits >= 40
+                            && let Some(let_stmt) = maybe_let_stmt(cx, expr)
+                        {
+                            diag.span_note(let_stmt.span, "consider making it a `const` item");
+                        }
                         diag.span_suggestion_verbose(
                             expr.span,
                             "consider changing the type or truncating it to",
@@ -194,5 +206,21 @@ impl FloatFormat {
             Self::UpperExp => format!("{f:E}"),
             Self::Normal => format!("{f}"),
         }
+    }
+}
+
+fn is_const_item(cx: &LateContext<'_>, expr: &hir::Expr<'_>) -> bool {
+    let parent = cx.tcx.parent_hir_node(expr.hir_id);
+    if let hir::Node::Item(itm) = parent {
+        return matches!(itm.kind, hir::ItemKind::Const(..));
+    }
+    false
+}
+
+fn maybe_let_stmt<'a>(cx: &LateContext<'a>, expr: &hir::Expr<'_>) -> Option<&'a hir::LetStmt<'a>> {
+    let parent = cx.tcx.parent_hir_node(expr.hir_id);
+    match parent {
+        hir::Node::LetStmt(let_stmt) => Some(let_stmt),
+        _ => None,
     }
 }
