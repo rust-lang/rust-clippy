@@ -101,18 +101,23 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessForEach {
 
             let body_param_sugg = snippet_with_applicability(cx, body.params[0].pat.span, "..", &mut applicability);
             let for_each_rev_sugg = snippet_with_applicability(cx, for_each_recv.span, "..", &mut applicability);
-            let body_value_sugg = snippet_with_applicability(cx, body.value.span, "..", &mut applicability);
+            let body_value_sugg =
+                snippet_with_applicability(cx, get_user_code_span(body.value.span), "..", &mut applicability);
 
             let sugg = format!(
                 "for {} in {} {}",
                 body_param_sugg,
                 for_each_rev_sugg,
-                match body.value.kind {
-                    ExprKind::Block(block, _) if is_let_desugar(block) => {
-                        format!("{{ {body_value_sugg} }}")
-                    },
-                    ExprKind::Block(_, _) => body_value_sugg.to_string(),
-                    _ => format!("{{ {body_value_sugg}; }}"),
+                if body.value.span.from_expansion() {
+                    format!("{{ {body_value_sugg}; }}")
+                } else {
+                    match body.value.kind {
+                        ExprKind::Block(block, _) if is_let_desugar(block) => {
+                            format!("{{ {body_value_sugg} }}")
+                        },
+                        ExprKind::Block(_, _) => body_value_sugg.to_string(),
+                        _ => format!("{{ {body_value_sugg}; }}"),
+                    }
                 }
             );
 
@@ -123,6 +128,22 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessForEach {
                 }
             });
         }
+    }
+}
+
+/// Get user code span from macro expansion span if it is a macro expansion span
+/// or return the original span
+fn get_user_code_span(span: Span) -> Span {
+    if span.from_expansion() {
+        // Recursively get the original call site
+        let mut current_span = span;
+        while current_span.from_expansion() {
+            let expn_data = current_span.ctxt().outer_expn_data();
+            current_span = expn_data.call_site;
+        }
+        current_span
+    } else {
+        span
     }
 }
 
