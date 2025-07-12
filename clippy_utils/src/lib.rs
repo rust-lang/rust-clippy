@@ -1927,9 +1927,7 @@ fn is_body_identity_function(cx: &LateContext<'_>, func: &Body<'_>) -> bool {
             {
                 zip(pats, tup).all(|(pat, expr)| check_pat(cx, pat, expr))
             },
-            (PatKind::Slice(before, slice, after), ExprKind::Array(arr))
-                if slice.is_none() && before.len() + after.len() == arr.len() =>
-            {
+            (PatKind::Slice(before, None, after), ExprKind::Array(arr)) if before.len() + after.len() == arr.len() => {
                 zip(before.iter().chain(after), arr).all(|(pat, expr)| check_pat(cx, pat, expr))
             },
             (PatKind::TupleStruct(pat_ident, field_pats, dotdot), ExprKind::Call(ident, fields))
