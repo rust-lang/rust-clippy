@@ -1,4 +1,4 @@
-#![allow(clippy::non_canonical_clone_impl, unused)]
+#![allow(clippy::non_canonical_clone_impl, clippy::explicit_struct_update, unused)]
 #![warn(clippy::unnecessary_struct_initialization)]
 
 struct S {
