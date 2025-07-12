@@ -432,6 +432,13 @@ impl<'tcx> Visitor<'tcx> for UnsafeVisitor<'_, 'tcx> {
     fn visit_expr(&mut self, expr: &'tcx Expr<'_>) -> Self::Result {
         if let ExprKind::Block(block, _) = expr.kind
             && block.rules == BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided)
+            && block
+                .span
+                .source_callee()
+                .and_then(|expr| expr.macro_def_id)
+                .is_none_or(|did| {
+                    (self.cx.tcx.crate_name(did.krate), self.cx.tcx.item_name(did)) != (sym::core, sym::pin)
+                })
         {
             return ControlFlow::Break(());
         }
