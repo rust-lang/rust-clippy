@@ -143,3 +143,19 @@ const fn issue12103(x: u32) -> Option<u32> {
     // Should not issue an error in `const` context
     if x > 42 { Some(150) } else { None }
 }
+
+mod issue15257 {
+    struct Range {
+        start: u8,
+        end: u8,
+    }
+
+    fn can_be_safely_rewrite(rs: &[&Range]) -> Option<Vec<u8>> {
+        if rs.len() == 1 && rs[0].start == rs[0].end {
+            //~^ if_then_some_else_none
+            Some(vec![rs[0].start])
+        } else {
+            None
+        }
+    }
+}

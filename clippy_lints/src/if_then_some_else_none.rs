@@ -11,6 +11,7 @@ use rustc_errors::Applicability;
 use rustc_hir::LangItem::{OptionNone, OptionSome};
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_middle::ty::adjustment::{Adjust, AutoBorrow};
 use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
@@ -92,6 +93,10 @@ impl<'tcx> LateLintPass<'tcx> for IfThenSomeElseNone {
                 expr.span,
                 format!("this could be simplified with `bool::{method_name}`"),
                 |diag| {
+                    if !expr_requires_manual_adjustment(cx, then_arg) {
+                        return;
+                    }
+
                     let mut app = Applicability::MachineApplicable;
                     let cond_snip = Sugg::hir_with_context(cx, cond, expr.span.ctxt(), "[condition]", &mut app)
                         .maybe_paren()
@@ -118,4 +123,13 @@ impl<'tcx> LateLintPass<'tcx> for IfThenSomeElseNone {
             );
         }
     }
+}
+
+fn expr_requires_manual_adjustment(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    cx.typeck_results().expr_adjustments(expr).iter().all(|adj| {
+        matches!(
+            adj.kind,
+            Adjust::Deref(None) | Adjust::Borrow(AutoBorrow::Ref(..)) | Adjust::ReborrowPin(_)
+        )
+    })
 }
