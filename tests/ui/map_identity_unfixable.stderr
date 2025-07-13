@@ -4,7 +4,7 @@ error: unnecessary map of the identity function
 LL |     let _ = subindex.0.map(|n| n).next();
    |                       ^^^^^^^^^^^ help: remove the call to `map`
    |
-note: this must be made mutable to use `random_method`
+note: this must be made mutable to use `next`
   --> tests/ui/map_identity_unfixable.rs:7:13
    |
 LL |     let _ = subindex.0.map(|n| n).next();
