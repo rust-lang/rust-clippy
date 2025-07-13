@@ -78,9 +78,12 @@ fn issue11764() {
 }
 
 fn issue13904() {
-    // don't lint: `it.next()` would not be legal as `it` is immutable
+    // lint, but there's a catch:
+    // when we remove the `.map()`, `it.next()` would require `it` to be mutable
+    // therefore, include that in the suggestion as well
     let it = [1, 2, 3].into_iter();
     let _ = it.map(|x| x).next();
+    //~^ map_identity
 
     // lint
     #[allow(unused_mut)]
