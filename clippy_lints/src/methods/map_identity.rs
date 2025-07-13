@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::{is_expr_untyped_identity_function, is_mutable, is_trait_method, path_to_local};
 use rustc_errors::Applicability;
-use rustc_hir::{self as hir, Node, PatKind};
+use rustc_hir::{self as hir, ExprKind, Node, PatKind};
 use rustc_lint::LateContext;
 use rustc_span::{Span, Symbol, sym};
 
@@ -39,7 +39,13 @@ pub(super) fn check(
             }
         }
 
-        let method_requiring_mut = String::from("random_method"); // TODO
+        let method_requiring_mut = if let Node::Expr(expr) = cx.tcx.parent_hir_node(expr.hir_id)
+            && let ExprKind::MethodCall(method, ..) = expr.kind
+        {
+            Some(method.ident)
+        } else {
+            None
+        };
 
         span_lint_and_then(
             cx,
@@ -57,10 +63,14 @@ pub(super) fn check(
                     },
                 );
                 if !apply {
-                    diag.span_note(
-                        caller.span,
-                        format!("this must be made mutable to use `{method_requiring_mut}`"),
-                    );
+                    if let Some(method_requiring_mut) = method_requiring_mut {
+                        diag.span_note(
+                            caller.span,
+                            format!("this must be made mutable to use `{method_requiring_mut}`"),
+                        );
+                    } else {
+                        diag.span_note(caller.span, "this must be made mutable".to_string());
+                    }
                 }
             },
         );
