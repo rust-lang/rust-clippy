@@ -7,7 +7,7 @@ use rustc_hir::def::{CtorKind, DefKind, Res};
 use rustc_hir::def_id::DefId;
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::{List, Ty, TyCtxt};
+use rustc_middle::ty::{self, List, ParamTy, Ty, TyCtxt};
 use rustc_session::impl_lint_pass;
 use rustc_span::sym;
 use std::iter;
@@ -99,6 +99,21 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew<'tcx> {
 
         let implements_asref_path = |arg| implements_trait(cx, arg, asref_def_id, &[path_ty.into()]);
 
+        let is_used_anywhere_else = |param_ty: &ParamTy, other_sig_tys: &[Ty<'_>]| {
+            other_sig_tys.iter().any(|sig_ty| {
+                sig_ty.walk().any(|generic_arg| {
+                    if let Some(ty) = generic_arg.as_type()
+                        && let ty::Param(pt) = ty.kind()
+                        && pt == param_ty
+                    {
+                        true
+                    } else {
+                        false
+                    }
+                })
+            })
+        };
+
         // as far as I understand, `ExprKind::MethodCall` doesn't include the receiver in `args`,
         // but does in `sig.inputs()` -- so we iterate over both in `rev`erse in order to line
         // them up starting from the _end_
@@ -110,7 +125,8 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew<'tcx> {
                 // we want `argument` to be `Path::new(x)`
                 if let ExprKind::Call(path_new, [x]) = arg.kind
                     && is_path_new(path_new)
-                    && implements_asref_path(cx.typeck_results().expr_ty(x))
+                    && let ty::Param(arg_param_ty) = arg_ty.kind()
+                    && !is_used_anywhere_else(arg_param_ty, sig.inputs())
                     && implements_asref_path(*arg_ty)
                 {
                     span_lint_and_sugg(
