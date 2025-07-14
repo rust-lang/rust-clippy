@@ -24,7 +24,8 @@ permissions:
 jobs:
   download:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    # FIXME(feature freeze): Make sure to remove that last part after the feature freeze is over
+    if: ${{ github.event.workflow_run.conclusion == 'success' && ! contains(github.event.pull_request.labels.*.name, 'A-lint') }}
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
@@ -68,7 +69,7 @@ jobs:
             }
 
             let summary = `Lintcheck changes for ${context.payload.workflow_run.head_sha}
-            
+
             | Lint | Added | Removed | Changed |
             | ---- | ----: | ------: | ------: |
             `;
