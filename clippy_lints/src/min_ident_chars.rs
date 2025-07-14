@@ -3,13 +3,17 @@ use clippy_utils::diagnostics::span_lint;
 use clippy_utils::is_from_proc_macro;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::def::{DefKind, Res};
+use rustc_hir::def_id::DefId;
+use rustc_hir::hir_id::OwnerId;
 use rustc_hir::intravisit::{Visitor, walk_item, walk_trait_item};
 use rustc_hir::{
-    GenericParamKind, HirId, Impl, ImplItemKind, Item, ItemKind, ItemLocalId, Node, Pat, PatKind, TraitItem, UsePath,
+    GenericParamKind, HirId, Impl, ImplItem, ImplItemKind, ImplItemRef, Item, ItemKind, ItemLocalId, Node, Pat,
+    PatKind, TraitItem, UsePath,
 };
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::impl_lint_pass;
-use rustc_span::Span;
+use rustc_span::symbol::Ident;
+use rustc_span::{Span, Symbol};
 use std::borrow::Cow;
 
 declare_clippy_lint! {
@@ -86,7 +90,7 @@ impl LateLintPass<'_> for MinIdentChars {
         if let PatKind::Binding(_, _, ident, ..) = pat.kind
             && let str = ident.as_str()
             && self.is_ident_too_short(cx, str, ident.span)
-            && is_not_in_trait_impl(cx, pat)
+            && is_not_in_trait_impl(cx, pat, ident)
         {
             emit_min_ident_chars(self, cx, str, ident.span);
         }
@@ -205,8 +209,9 @@ fn opt_as_use_node(node: Node<'_>) -> Option<&'_ UsePath<'_>> {
     }
 }
 
-/// Check if a pattern is a function param in an impl block for a trait.
-fn is_not_in_trait_impl(cx: &LateContext<'_>, pat: &Pat<'_>) -> bool {
+/// Check if a pattern is a function param in an impl block for a trait and that the param name is
+/// the same than in the trait definition.
+fn is_not_in_trait_impl(cx: &LateContext<'_>, pat: &Pat<'_>, ident: Ident) -> bool {
     let parent_node = cx.tcx.parent_hir_node(pat.hir_id);
     if !matches!(parent_node, Node::Param(_)) {
         return true;
@@ -218,13 +223,57 @@ fn is_not_in_trait_impl(cx: &LateContext<'_>, pat: &Pat<'_>) -> bool {
         {
             let impl_parent_node = cx.tcx.parent_hir_node(impl_item.hir_id());
             if let Node::Item(parent_item) = impl_parent_node
-                && let ItemKind::Impl(Impl { of_trait: Some(_), .. }) = &parent_item.kind
+                && let ItemKind::Impl(Impl {
+                    items,
+                    of_trait: Some(_),
+                    ..
+                }) = &parent_item.kind
+                && let Some(name) = get_param_name(items, impl_item, cx, ident)
             {
-                return false;
+                return name != ident.name;
             }
+
             return true;
         }
     }
 
     true
+}
+
+fn get_param_name(
+    items: &[ImplItemRef],
+    impl_item: &ImplItem<'_>,
+    cx: &LateContext<'_>,
+    ident: Ident,
+) -> Option<Symbol> {
+    if let Some(trait_item_def_id) = find_trait_item_def_id(items, impl_item.owner_id) {
+        let trait_param_names = cx.tcx.fn_arg_idents(trait_item_def_id);
+
+        let ImplItemKind::Fn(_, body_id) = impl_item.kind else {
+            return None;
+        };
+
+        if let Some(param_index) = cx
+            .tcx
+            .hir_body_param_idents(body_id)
+            .position(|param_ident| param_ident.is_some_and(|param_ident| param_ident.span == ident.span))
+            && let Some(trait_param_name) = trait_param_names.get(param_index)
+            && let Some(trait_param_ident) = trait_param_name
+        {
+            return Some(trait_param_ident.name);
+        }
+    }
+
+    None
+}
+
+/// Get the trait item definition ID for an impl item
+fn find_trait_item_def_id(items: &[ImplItemRef], target: OwnerId) -> Option<DefId> {
+    items.iter().find_map(|item| {
+        if item.id.owner_id == target {
+            item.trait_item_def_id
+        } else {
+            None
+        }
+    })
 }

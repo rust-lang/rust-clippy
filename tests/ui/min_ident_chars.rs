@@ -132,3 +132,10 @@ impl core::fmt::Display for Issue13396 {
         write!(f, "Issue13396")
     }
 }
+
+impl core::fmt::Debug for Issue13396 {
+    fn fmt(&self, g: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        //~^ min_ident_chars
+        write!(g, "Issue13396")
+    }
+}
