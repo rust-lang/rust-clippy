@@ -7,7 +7,7 @@ use rustc_hir::def::{CtorKind, DefKind, Res};
 use rustc_hir::def_id::DefId;
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::{self, List, ParamTy, Ty, TyCtxt};
+use rustc_middle::ty::{self, GenericPredicates, List, ParamTy, Ty, TyCtxt};
 use rustc_session::impl_lint_pass;
 use rustc_span::sym;
 use std::iter;
@@ -114,6 +114,8 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew<'tcx> {
 
         let implements_asref_path = |arg| implements_trait(cx, arg, asref_def_id, &[path_ty.into()]);
 
+        let has_required_preds = |_param_ty: &ParamTy, _preds: GenericPredicates<'_>| -> bool { true };
+
         // as far as I understand, `ExprKind::MethodCall` doesn't include the receiver in `args`,
         // but does in `sig.inputs()` -- so we iterate over both in `rev`erse in order to line
         // them up starting from the _end_
@@ -135,7 +137,7 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew<'tcx> {
                             .enumerate()
                             .filter_map(|(i, input)| (i != arg_idx).then_some(*input)),
                     )
-                    && implements_asref_path(*arg_ty)
+                    && has_required_preds(arg_param_ty, cx.tcx.predicates_of(fn_did))
                 {
                     span_lint_and_sugg(
                         cx,
