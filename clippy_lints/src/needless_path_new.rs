@@ -7,7 +7,7 @@ use rustc_hir::def::{CtorKind, DefKind, Res};
 use rustc_hir::def_id::DefId;
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::{List, Ty, TyCtxt};
+use rustc_middle::ty::{self, List, ParamTy, Ty, TyCtxt};
 use rustc_session::impl_lint_pass;
 use rustc_span::sym;
 use std::iter;
@@ -52,6 +52,21 @@ impl<'tcx> NeedlessPathNew<'tcx> {
             asref_def_id: tcx.get_diagnostic_item(sym::AsRef),
         }
     }
+}
+
+fn is_used_anywhere_else<'a>(param_ty: &'_ ParamTy, mut other_sig_tys: impl Iterator<Item = Ty<'a>>) -> bool {
+    other_sig_tys.any(|sig_ty| {
+        sig_ty.walk().any(|generic_arg| {
+            if let Some(ty) = generic_arg.as_type()
+                && let ty::Param(pt) = ty.kind()
+                && pt == param_ty
+            {
+                true
+            } else {
+                false
+            }
+        })
+    })
 }
 
 impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew<'tcx> {
@@ -106,11 +121,20 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew<'tcx> {
         // and for `ExprKind::Call` this is basically a no-op
         iter::zip(sig.inputs().iter().rev(), args.iter().rev())
             .enumerate()
-            .for_each(|(i, (arg_ty, arg))| {
+            .for_each(|(arg_idx, (arg_ty, arg))| {
                 // we want `argument` to be `Path::new(x)`
                 if let ExprKind::Call(path_new, [x]) = arg.kind
                     && is_path_new(path_new)
-                    && implements_asref_path(cx.typeck_results().expr_ty(x))
+                    && let ty::Param(arg_param_ty) = arg_ty.kind()
+                    && !is_used_anywhere_else(
+                        arg_param_ty,
+                        sig.inputs()
+                            .iter()
+                            // `arg_idx` is based on the reversed order, so we need to reverse as well
+                            .rev()
+                            .enumerate()
+                            .filter_map(|(i, input)| (i != arg_idx).then_some(*input)),
+                    )
                     && implements_asref_path(*arg_ty)
                 {
                     span_lint_and_sugg(
