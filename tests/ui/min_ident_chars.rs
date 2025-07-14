@@ -124,3 +124,11 @@ fn wrong_pythagoras(a: f32, b: f32) -> f32 {
 mod issue_11163 {
     struct Array<T, const N: usize>([T; N]);
 }
+
+struct Issue13396;
+
+impl core::fmt::Display for Issue13396 {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "Issue13396")
+    }
+}

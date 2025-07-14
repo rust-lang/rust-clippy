@@ -4,7 +4,9 @@ use clippy_utils::is_from_proc_macro;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::intravisit::{Visitor, walk_item, walk_trait_item};
-use rustc_hir::{GenericParamKind, HirId, Item, ItemKind, ItemLocalId, Node, Pat, PatKind, TraitItem, UsePath};
+use rustc_hir::{
+    GenericParamKind, HirId, Impl, ImplItemKind, Item, ItemKind, ItemLocalId, Node, Pat, PatKind, TraitItem, UsePath,
+};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::impl_lint_pass;
 use rustc_span::Span;
@@ -84,6 +86,7 @@ impl LateLintPass<'_> for MinIdentChars {
         if let PatKind::Binding(_, _, ident, ..) = pat.kind
             && let str = ident.as_str()
             && self.is_ident_too_short(cx, str, ident.span)
+            && is_not_in_trait_impl(cx, pat)
         {
             emit_min_ident_chars(self, cx, str, ident.span);
         }
@@ -200,4 +203,28 @@ fn opt_as_use_node(node: Node<'_>) -> Option<&'_ UsePath<'_>> {
     } else {
         None
     }
+}
+
+/// Check if a pattern is a function param in an impl block for a trait.
+fn is_not_in_trait_impl(cx: &LateContext<'_>, pat: &Pat<'_>) -> bool {
+    let parent_node = cx.tcx.parent_hir_node(pat.hir_id);
+    if !matches!(parent_node, Node::Param(_)) {
+        return true;
+    }
+
+    for (_, parent_node) in cx.tcx.hir_parent_iter(pat.hir_id) {
+        if let Node::ImplItem(impl_item) = parent_node
+            && matches!(impl_item.kind, ImplItemKind::Fn(_, _))
+        {
+            let impl_parent_node = cx.tcx.parent_hir_node(impl_item.hir_id());
+            if let Node::Item(parent_item) = impl_parent_node
+                && let ItemKind::Impl(Impl { of_trait: Some(_), .. }) = &parent_item.kind
+            {
+                return false;
+            }
+            return true;
+        }
+    }
+
+    true
 }
