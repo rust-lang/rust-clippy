@@ -32,7 +32,6 @@
 // (Currently there is no way to opt into sysroot crates without `extern crate`.)
 extern crate pulldown_cmark;
 extern crate rustc_abi;
-extern crate rustc_arena;
 extern crate rustc_ast;
 extern crate rustc_ast_pretty;
 extern crate rustc_attr_data_structures;
@@ -225,9 +224,7 @@ mod manual_rotate;
 mod manual_slice_size_calculation;
 mod manual_string_new;
 mod manual_strip;
-mod map_unit_fn;
 mod match_result_ok;
-mod matches;
 mod mem_replace;
 mod min_ident_chars;
 mod minmax;
@@ -407,7 +404,6 @@ mod zombie_processes;
 
 use clippy_config::{Conf, get_configuration_metadata, sanitize_explanation};
 use clippy_utils::macros::FormatArgsStorage;
-use rustc_data_structures::fx::FxHashSet;
 use rustc_lint::Lint;
 use utils::attr_collector::{AttrCollector, AttrStorage};
 
@@ -500,7 +496,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(non_octal_unix_permissions::NonOctalUnixPermissions));
     store.register_early_pass(|| Box::new(unnecessary_self_imports::UnnecessarySelfImports));
     store.register_late_pass(move |_| Box::new(approx_const::ApproxConstant::new(conf)));
-    store.register_late_pass(move |_| Box::new(matches::Matches::new(conf)));
     store.register_late_pass(move |_| Box::new(manual_non_exhaustive::ManualNonExhaustive::new(conf)));
     store.register_late_pass(move |_| Box::new(manual_strip::ManualStrip::new(conf)));
     store.register_early_pass(move || Box::new(redundant_static_lifetimes::RedundantStaticLifetimes::new(conf)));
@@ -578,7 +573,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(question_mark_used::QuestionMarkUsed));
     store.register_early_pass(|| Box::new(suspicious_operation_groupings::SuspiciousOperationGroupings));
     store.register_late_pass(|_| Box::new(suspicious_trait_impl::SuspiciousImpl));
-    store.register_late_pass(|_| Box::new(map_unit_fn::MapUnit));
     store.register_late_pass(|_| Box::new(inherent_impl::MultipleInherentImpl));
     store.register_late_pass(|_| Box::new(neg_cmp_op_on_partial_ord::NoNegCompOpForPartialOrd));
     store.register_late_pass(|_| Box::new(unwrap::Unwrap));

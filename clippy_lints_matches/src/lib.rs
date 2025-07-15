@@ -1,3 +1,40 @@
+#![feature(if_let_guard, macro_metavar_expr_concat, rustc_private)]
+#![allow(
+    clippy::missing_docs_in_private_items,
+    clippy::must_use_candidate,
+    rustc::diagnostic_outside_of_impl,
+    rustc::untranslatable_diagnostic,
+    clippy::literal_string_with_formatting_args
+)]
+#![warn(
+    trivial_casts,
+    trivial_numeric_casts,
+    rust_2018_idioms,
+    unused_lifetimes,
+    unused_qualifications,
+    rustc::internal
+)]
+
+extern crate rustc_arena;
+extern crate rustc_ast;
+extern crate rustc_data_structures;
+extern crate rustc_errors;
+extern crate rustc_hir;
+extern crate rustc_hir_pretty;
+extern crate rustc_lint;
+extern crate rustc_middle;
+extern crate rustc_session;
+extern crate rustc_span;
+
+#[macro_use]
+extern crate declare_clippy_lint;
+
+pub mod declared_lints;
+
+// begin lints modules, do not remove this comment, it's used in `update_lints`
+mod map_unit_fn;
+// end lints modules, do not remove this comment, it's used in `update_lints`
+
 mod collapsible_match;
 mod infallible_destructuring_match;
 mod manual_filter;
@@ -31,7 +68,7 @@ use clippy_utils::{
     higher, is_direct_expn_of, is_in_const_context, is_span_match, span_contains_cfg, span_extract_comments, sym,
 };
 use rustc_hir::{Arm, Expr, ExprKind, LetStmt, MatchSource, Pat, PatKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_lint::{LateContext, LateLintPass, LintContext, LintStore};
 use rustc_session::impl_lint_pass;
 use rustc_span::{SpanData, SyntaxContext};
 
@@ -1006,7 +1043,7 @@ declare_clippy_lint! {
     "find manual implementations of `.ok()` or `.err()` on `Result`"
 }
 
-pub struct Matches {
+struct Matches {
     msrv: Msrv,
     infallible_destructuring_match_linted: bool,
 }
@@ -1279,4 +1316,9 @@ fn pat_contains_disallowed_or(cx: &LateContext<'_>, pat: &Pat<'_>, msrv: Msrv) -
         !is_or
     });
     contains_or && !msrv.meets(cx, msrvs::OR_PATTERNS)
+}
+
+pub fn register_lint_passes(store: &mut LintStore, conf: &'static Conf) {
+    store.register_late_pass(move |_| Box::new(Matches::new(conf)));
+    store.register_late_pass(|_| Box::new(map_unit_fn::MapUnit));
 }
