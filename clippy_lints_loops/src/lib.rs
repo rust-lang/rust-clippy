@@ -1,3 +1,38 @@
+#![feature(macro_metavar_expr_concat, never_type, rustc_private, unwrap_infallible)]
+#![allow(
+    clippy::missing_docs_in_private_items,
+    clippy::must_use_candidate,
+    rustc::diagnostic_outside_of_impl,
+    rustc::untranslatable_diagnostic,
+    clippy::literal_string_with_formatting_args
+)]
+#![warn(
+    trivial_casts,
+    trivial_numeric_casts,
+    rust_2018_idioms,
+    unused_lifetimes,
+    unused_qualifications,
+    rustc::internal
+)]
+
+extern crate rustc_ast;
+extern crate rustc_data_structures;
+extern crate rustc_errors;
+extern crate rustc_hir;
+extern crate rustc_hir_typeck;
+extern crate rustc_lint;
+extern crate rustc_middle;
+extern crate rustc_session;
+extern crate rustc_span;
+
+#[macro_use]
+extern crate declare_clippy_lint;
+
+pub mod declared_lints;
+
+// begin lints modules, do not remove this comment, it's used in `update_lints`
+// end lints modules, do not remove this comment, it's used in `update_lints`
+
 mod char_indices_as_byte_indices;
 mod empty_loop;
 mod explicit_counter_loop;
@@ -29,7 +64,7 @@ use clippy_utils::msrvs::Msrv;
 use clippy_utils::{higher, sym};
 use rustc_ast::Label;
 use rustc_hir::{Expr, ExprKind, LoopSource, Pat};
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint::{LateContext, LateLintPass, LintStore};
 use rustc_session::impl_lint_pass;
 use rustc_span::Span;
 use utils::{IncrementVisitor, InitializeVisitor, make_iterator_snippet};
@@ -784,12 +819,12 @@ declare_clippy_lint! {
     "using the character position yielded by `.chars().enumerate()` in a context where a byte index is expected"
 }
 
-pub struct Loops {
+struct Loops {
     msrv: Msrv,
     enforce_iter_loop_reborrow: bool,
 }
 impl Loops {
-    pub fn new(conf: &'static Conf) -> Self {
+    fn new(conf: &'static Conf) -> Self {
         Self {
             msrv: conf.msrv,
             enforce_iter_loop_reborrow: conf.enforce_iter_loop_reborrow,
@@ -935,4 +970,8 @@ impl Loops {
             }
         }
     }
+}
+
+pub fn register_lint_passes(store: &mut LintStore, conf: &'static Conf) {
+    store.register_late_pass(move |_| Box::new(Loops::new(conf)));
 }

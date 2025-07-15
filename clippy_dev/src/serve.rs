@@ -22,6 +22,7 @@ pub fn run(port: u16, lint: Option<String>) -> ! {
         let index_time = mtime("util/gh-pages/index.html");
         let times = [
             "clippy_lints/src",
+            "clippy_lints_loops/src",
             "clippy_lints_methods/src",
             "util/gh-pages/index_template.html",
             "tests/compile-test.rs",

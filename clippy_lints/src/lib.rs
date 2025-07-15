@@ -200,7 +200,6 @@ mod lifetimes;
 mod lines_filter_map_ok;
 mod literal_representation;
 mod literal_string_with_formatting_args;
-mod loops;
 mod macro_metavars_in_unsafe;
 mod macro_use;
 mod main_recursion;
@@ -520,7 +519,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(move |_| Box::new(index_refutable_slice::IndexRefutableSlice::new(conf)));
     store.register_late_pass(|_| Box::<shadow::Shadow>::default());
     store.register_late_pass(|_| Box::new(unit_types::UnitTypes));
-    store.register_late_pass(move |_| Box::new(loops::Loops::new(conf)));
     store.register_late_pass(|_| Box::<main_recursion::MainRecursion>::default());
     store.register_late_pass(move |_| Box::new(lifetimes::Lifetimes::new(conf)));
     store.register_late_pass(|_| Box::new(entry::HashMapPass));

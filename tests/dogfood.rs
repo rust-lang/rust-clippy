@@ -38,6 +38,7 @@ fn dogfood() {
         "clippy_dev",
         "clippy_lints_internal",
         "clippy_lints",
+        "clippy_lints_loops",
         "clippy_lints_methods",
         "clippy_utils",
         "clippy_config",
