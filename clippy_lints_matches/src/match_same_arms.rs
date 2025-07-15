@@ -14,7 +14,48 @@ use rustc_lint::{LateContext, LintContext};
 use rustc_middle::ty;
 use rustc_span::{ErrorGuaranteed, Span, Symbol};
 
-use super::MATCH_SAME_ARMS;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `match` with identical arm bodies.
+    ///
+    /// Note: Does not lint on wildcards if the `non_exhaustive_omitted_patterns_lint` feature is
+    /// enabled and disallowed.
+    ///
+    /// ### Why is this bad?
+    /// This is probably a copy & paste error. If arm bodies
+    /// are the same on purpose, you can factor them
+    /// [using `|`](https://doc.rust-lang.org/book/patterns.html#multiple-patterns).
+    ///
+    /// ### Example
+    /// ```rust,ignore
+    /// match foo {
+    ///     Bar => bar(),
+    ///     Quz => quz(),
+    ///     Baz => bar(), // <= oops
+    /// }
+    /// ```
+    ///
+    /// This should probably be
+    /// ```rust,ignore
+    /// match foo {
+    ///     Bar => bar(),
+    ///     Quz => quz(),
+    ///     Baz => baz(), // <= fixed
+    /// }
+    /// ```
+    ///
+    /// or if the original code was not a typo:
+    /// ```rust,ignore
+    /// match foo {
+    ///     Bar | Baz => bar(), // <= shows the intent better
+    ///     Quz => quz(),
+    /// }
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub MATCH_SAME_ARMS,
+    pedantic,
+    "`match` with identical arm bodies"
+}
 
 #[expect(clippy::too_many_lines)]
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, arms: &'tcx [Arm<'_>]) {

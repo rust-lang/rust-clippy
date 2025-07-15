@@ -9,7 +9,40 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty};
 use rustc_span::{hygiene, sym};
 
-use super::TRY_ERR;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `Err(x)?`.
+    ///
+    /// ### Why restrict this?
+    /// The `?` operator is designed to allow calls that
+    /// can fail to be easily chained. For example, `foo()?.bar()` or
+    /// `foo(bar()?)`. Because `Err(x)?` can't be used that way (it will
+    /// always return), it is more clear to write `return Err(x)`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// fn foo(fail: bool) -> Result<i32, String> {
+    ///     if fail {
+    ///       Err("failed")?;
+    ///     }
+    ///     Ok(0)
+    /// }
+    /// ```
+    /// Could be written:
+    ///
+    /// ```no_run
+    /// fn foo(fail: bool) -> Result<i32, String> {
+    ///     if fail {
+    ///       return Err("failed".into());
+    ///     }
+    ///     Ok(0)
+    /// }
+    /// ```
+    #[clippy::version = "1.38.0"]
+    pub TRY_ERR,
+    restriction,
+    "return errors explicitly rather than hiding them behind a `?`"
+}
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, scrutinee: &'tcx Expr<'_>) {
     // Looks for a structure like this:

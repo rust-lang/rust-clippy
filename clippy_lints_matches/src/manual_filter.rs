@@ -1,15 +1,40 @@
+use super::manual_utils::{SomeExpr, check_with};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::visitors::contains_unsafe_block;
 use clippy_utils::{is_res_lang_ctor, path_res, path_to_local_id};
-
 use rustc_hir::LangItem::{OptionNone, OptionSome};
 use rustc_hir::{Arm, Expr, ExprKind, HirId, Pat, PatKind};
 use rustc_lint::LateContext;
 use rustc_span::{SyntaxContext, sym};
 
-use super::MANUAL_FILTER;
-use super::manual_utils::{SomeExpr, check_with};
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `match` which could be implemented using `filter`
+    ///
+    /// ### Why is this bad?
+    /// Using the `filter` method is clearer and more concise.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// match Some(0) {
+    ///     Some(x) => if x % 2 == 0 {
+    ///                     Some(x)
+    ///                } else {
+    ///                     None
+    ///                 },
+    ///     None => None,
+    /// };
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// Some(0).filter(|&x| x % 2 == 0);
+    /// ```
+    #[clippy::version = "1.66.0"]
+    pub MANUAL_FILTER,
+    complexity,
+    "reimplementation of `filter`"
+}
 
 // Function called on the <expr> of `[&+]Some((ref | ref mut) x) => <expr>`
 // Need to check if it's of the form `<expr>=if <cond> {<then_expr>} else {<else_expr>}`

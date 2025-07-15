@@ -1,4 +1,3 @@
-use super::REDUNDANT_PATTERN_MATCHING;
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::source::walk_span_to_context;
 use clippy_utils::sugg::{Sugg, make_unop};
@@ -15,6 +14,70 @@ use rustc_middle::ty::{self, GenericArgKind, Ty};
 use rustc_span::{Span, Symbol};
 use std::fmt::Write;
 use std::ops::ControlFlow;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Lint for redundant pattern matching over `Result`, `Option`,
+    /// `std::task::Poll`, `std::net::IpAddr` or `bool`s
+    ///
+    /// ### Why is this bad?
+    /// It's more concise and clear to just use the proper
+    /// utility function or using the condition directly
+    ///
+    /// ### Known problems
+    /// For suggestions involving bindings in patterns, this will change the drop order for the matched type.
+    /// Both `if let` and `while let` will drop the value at the end of the block, both `if` and `while` will drop the
+    /// value before entering the block. For most types this change will not matter, but for a few
+    /// types this will not be an acceptable change (e.g. locks). See the
+    /// [reference](https://doc.rust-lang.org/reference/destructors.html#drop-scopes) for more about
+    /// drop order.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # use std::task::Poll;
+    /// # use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+    /// if let Ok(_) = Ok::<i32, i32>(42) {}
+    /// if let Err(_) = Err::<i32, i32>(42) {}
+    /// if let None = None::<()> {}
+    /// if let Some(_) = Some(42) {}
+    /// if let Poll::Pending = Poll::Pending::<()> {}
+    /// if let Poll::Ready(_) = Poll::Ready(42) {}
+    /// if let IpAddr::V4(_) = IpAddr::V4(Ipv4Addr::LOCALHOST) {}
+    /// if let IpAddr::V6(_) = IpAddr::V6(Ipv6Addr::LOCALHOST) {}
+    /// match Ok::<i32, i32>(42) {
+    ///     Ok(_) => true,
+    ///     Err(_) => false,
+    /// };
+    ///
+    /// let cond = true;
+    /// if let true = cond {}
+    /// matches!(cond, true);
+    /// ```
+    ///
+    /// The more idiomatic use would be:
+    ///
+    /// ```no_run
+    /// # use std::task::Poll;
+    /// # use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+    /// if Ok::<i32, i32>(42).is_ok() {}
+    /// if Err::<i32, i32>(42).is_err() {}
+    /// if None::<()>.is_none() {}
+    /// if Some(42).is_some() {}
+    /// if Poll::Pending::<()>.is_pending() {}
+    /// if Poll::Ready(42).is_ready() {}
+    /// if IpAddr::V4(Ipv4Addr::LOCALHOST).is_ipv4() {}
+    /// if IpAddr::V6(Ipv6Addr::LOCALHOST).is_ipv6() {}
+    /// Ok::<i32, i32>(42).is_ok();
+    ///
+    /// let cond = true;
+    /// if cond {}
+    /// cond;
+    /// ```
+    #[clippy::version = "1.31.0"]
+    pub REDUNDANT_PATTERN_MATCHING,
+    style,
+    "use the proper utility function avoiding an `if let`"
+}
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
     if let Some(higher::WhileLet {

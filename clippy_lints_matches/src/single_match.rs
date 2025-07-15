@@ -1,3 +1,4 @@
+use crate::match_bool::MATCH_BOOL;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::{
     SpanRangeExt, expr_block, snippet, snippet_block_with_context, snippet_with_applicability, snippet_with_context,
@@ -16,7 +17,84 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::{self, AdtDef, TyCtxt, TypeckResults, VariantDef};
 use rustc_span::{Span, sym};
 
-use super::{MATCH_BOOL, SINGLE_MATCH, SINGLE_MATCH_ELSE};
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for matches with a single arm where an `if let`
+    /// will usually suffice.
+    ///
+    /// This intentionally does not lint if there are comments
+    /// inside of the other arm, so as to allow the user to document
+    /// why having another explicit pattern with an empty body is necessary,
+    /// or because the comments need to be preserved for other reasons.
+    ///
+    /// ### Why is this bad?
+    /// Just readability – `if let` nests less than a `match`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # fn bar(stool: &str) {}
+    /// # let x = Some("abc");
+    /// match x {
+    ///     Some(ref foo) => bar(foo),
+    ///     _ => (),
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # fn bar(stool: &str) {}
+    /// # let x = Some("abc");
+    /// if let Some(ref foo) = x {
+    ///     bar(foo);
+    /// }
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub SINGLE_MATCH,
+    style,
+    "a `match` statement with a single nontrivial arm (i.e., where the other arm is `_ => {}`) instead of `if let`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for matches with two arms where an `if let else` will
+    /// usually suffice.
+    ///
+    /// ### Why is this bad?
+    /// Just readability – `if let` nests less than a `match`.
+    ///
+    /// ### Known problems
+    /// Personal style preferences may differ.
+    ///
+    /// ### Example
+    /// Using `match`:
+    ///
+    /// ```no_run
+    /// # fn bar(foo: &usize) {}
+    /// # let other_ref: usize = 1;
+    /// # let x: Option<&usize> = Some(&1);
+    /// match x {
+    ///     Some(ref foo) => bar(foo),
+    ///     _ => bar(&other_ref),
+    /// }
+    /// ```
+    ///
+    /// Using `if let` with `else`:
+    ///
+    /// ```no_run
+    /// # fn bar(foo: &usize) {}
+    /// # let other_ref: usize = 1;
+    /// # let x: Option<&usize> = Some(&1);
+    /// if let Some(ref foo) = x {
+    ///     bar(foo);
+    /// } else {
+    ///     bar(&other_ref);
+    /// }
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub SINGLE_MATCH_ELSE,
+    pedantic,
+    "a `match` statement with two arms where the second arm's pattern is a placeholder instead of a specific match pattern"
+}
 
 /// Checks if there are comments contained within a span.
 /// This is a very "naive" check, as it just looks for the literal characters // and /* in the

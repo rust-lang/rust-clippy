@@ -6,7 +6,38 @@ use rustc_errors::Applicability;
 use rustc_hir::{BorrowKind, Expr, ExprKind, Mutability, Pat, PatKind};
 use rustc_lint::LateContext;
 
-use super::MATCH_REF_PATS;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for matches where all arms match a reference,
+    /// suggesting to remove the reference and deref the matched expression
+    /// instead. It also checks for `if let &foo = bar` blocks.
+    ///
+    /// ### Why is this bad?
+    /// It just makes the code less readable. That reference
+    /// destructuring adds nothing to the code.
+    ///
+    /// ### Example
+    /// ```rust,ignore
+    /// match x {
+    ///     &A(ref y) => foo(y),
+    ///     &B => bar(),
+    ///     _ => frob(&x),
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```rust,ignore
+    /// match *x {
+    ///     A(ref y) => foo(y),
+    ///     B => bar(),
+    ///     _ => frob(x),
+    /// }
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub MATCH_REF_PATS,
+    style,
+    "a `match` or `if let` with all arms prefixed with `&` instead of deref-ing the match expression"
+}
 
 pub(crate) fn check<'a, 'b, I>(cx: &LateContext<'_>, scrutinee: &Expr<'_>, pats: I, expr: &Expr<'_>)
 where

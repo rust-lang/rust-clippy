@@ -7,7 +7,28 @@ use rustc_hir::{Arm, Expr, PatKind};
 use rustc_lint::LateContext;
 use rustc_span::symbol::{kw, sym};
 
-use super::MATCH_WILD_ERR_ARM;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for arm which matches all errors with `Err(_)`
+    /// and take drastic actions like `panic!`.
+    ///
+    /// ### Why is this bad?
+    /// It is generally a bad practice, similar to
+    /// catching all exceptions in java with `catch(Exception)`
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let x: Result<i32, &str> = Ok(3);
+    /// match x {
+    ///     Ok(_) => println!("ok"),
+    ///     Err(_) => panic!("err"),
+    /// }
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub MATCH_WILD_ERR_ARM,
+    pedantic,
+    "a `match` with `Err(_)` arm and take drastic actions"
+}
 
 pub(crate) fn check<'tcx>(cx: &LateContext<'tcx>, ex: &Expr<'tcx>, arms: &[Arm<'tcx>]) {
     // `unwrap`/`expect` is not (yet) const, so we want to allow this in const contexts for now

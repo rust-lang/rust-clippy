@@ -1,4 +1,4 @@
-use super::REDUNDANT_PATTERN_MATCHING;
+use crate::redundant_pattern_match::REDUNDANT_PATTERN_MATCHING;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::{is_lint_allowed, is_wild, span_contains_comment};
@@ -9,7 +9,44 @@ use rustc_lint::{LateContext, LintContext};
 use rustc_middle::ty;
 use rustc_span::source_map::Spanned;
 
-use super::MATCH_LIKE_MATCHES_MACRO;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `match`  or `if let` expressions producing a
+    /// `bool` that could be written using `matches!`
+    ///
+    /// ### Why is this bad?
+    /// Readability and needless complexity.
+    ///
+    /// ### Known problems
+    /// This lint falsely triggers, if there are arms with
+    /// `cfg` attributes that remove an arm evaluating to `false`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let x = Some(5);
+    ///
+    /// let a = match x {
+    ///     Some(0) => true,
+    ///     _ => false,
+    /// };
+    ///
+    /// let a = if let Some(0) = x {
+    ///     true
+    /// } else {
+    ///     false
+    /// };
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// let x = Some(5);
+    /// let a = matches!(x, Some(0));
+    /// ```
+    #[clippy::version = "1.47.0"]
+    pub MATCH_LIKE_MATCHES_MACRO,
+    style,
+    "a match that could be written with the matches! macro"
+}
 
 /// Lint a `match` or `if let .. { .. } else { .. }` expr that could be replaced by `matches!`
 pub(crate) fn check_if_let<'tcx>(

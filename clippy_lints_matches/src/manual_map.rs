@@ -1,13 +1,34 @@
-use super::MANUAL_MAP;
-use super::manual_utils::{SomeExpr, check_with};
+use crate::manual_utils::{SomeExpr, check_with};
 use clippy_utils::diagnostics::span_lint_and_sugg;
-
 use clippy_utils::{is_res_lang_ctor, path_res};
-
 use rustc_hir::LangItem::OptionSome;
 use rustc_hir::{Arm, Block, BlockCheckMode, Expr, ExprKind, Pat, UnsafeSource};
 use rustc_lint::LateContext;
 use rustc_span::SyntaxContext;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `match` which could be implemented using `map`
+    ///
+    /// ### Why is this bad?
+    /// Using the `map` method is clearer and more concise.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// match Some(0) {
+    ///     Some(x) => Some(x + 1),
+    ///     None => None,
+    /// };
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// Some(0).map(|x| x + 1);
+    /// ```
+    #[clippy::version = "1.52.0"]
+    pub MANUAL_MAP,
+    style,
+    "reimplementation of `map`"
+}
 
 pub(super) fn check_match<'tcx>(
     cx: &LateContext<'tcx>,

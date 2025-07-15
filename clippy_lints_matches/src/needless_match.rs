@@ -1,4 +1,3 @@
-use super::NEEDLESS_MATCH;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::ty::{is_type_diagnostic_item, same_type_and_consts};
@@ -13,6 +12,49 @@ use rustc_hir::{
 };
 use rustc_lint::LateContext;
 use rustc_span::sym;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for unnecessary `match` or match-like `if let` returns for `Option` and `Result`
+    /// when function signatures are the same.
+    ///
+    /// ### Why is this bad?
+    /// This `match` block does nothing and might not be what the coder intended.
+    ///
+    /// ### Example
+    /// ```rust,ignore
+    /// fn foo() -> Result<(), i32> {
+    ///     match result {
+    ///         Ok(val) => Ok(val),
+    ///         Err(err) => Err(err),
+    ///     }
+    /// }
+    ///
+    /// fn bar() -> Option<i32> {
+    ///     if let Some(val) = option {
+    ///         Some(val)
+    ///     } else {
+    ///         None
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// Could be replaced as
+    ///
+    /// ```rust,ignore
+    /// fn foo() -> Result<(), i32> {
+    ///     result
+    /// }
+    ///
+    /// fn bar() -> Option<i32> {
+    ///     option
+    /// }
+    /// ```
+    #[clippy::version = "1.61.0"]
+    pub NEEDLESS_MATCH,
+    complexity,
+    "`match` or match-like `if let` that are unnecessary"
+}
 
 pub(crate) fn check_match(cx: &LateContext<'_>, ex: &Expr<'_>, arms: &[Arm<'_>], expr: &Expr<'_>) {
     if arms.len() > 1 && expr_ty_matches_p_ty(cx, ex, expr) && check_all_arms(cx, ex, arms) {

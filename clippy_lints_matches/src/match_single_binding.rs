@@ -7,7 +7,39 @@ use rustc_hir::{Arm, Expr, ExprKind, Node, PatKind, StmtKind};
 use rustc_lint::LateContext;
 use rustc_span::Span;
 
-use super::MATCH_SINGLE_BINDING;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for useless match that binds to only one value.
+    ///
+    /// ### Why is this bad?
+    /// Readability and needless complexity.
+    ///
+    /// ### Known problems
+    ///  Suggested replacements may be incorrect when `match`
+    /// is actually binding temporary value, bringing a 'dropped while borrowed' error.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let a = 1;
+    /// # let b = 2;
+    /// match (a, b) {
+    ///     (c, d) => {
+    ///         // useless match
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # let a = 1;
+    /// # let b = 2;
+    /// let (c, d) = (a, b);
+    /// ```
+    #[clippy::version = "1.43.0"]
+    pub MATCH_SINGLE_BINDING,
+    complexity,
+    "a match with a single binding instead of using `let` statement"
+}
 
 #[derive(Debug)]
 enum AssignmentExpr {

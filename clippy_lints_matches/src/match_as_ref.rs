@@ -6,7 +6,35 @@ use rustc_hir::{Arm, BindingMode, ByRef, Expr, ExprKind, LangItem, Mutability, P
 use rustc_lint::LateContext;
 use rustc_middle::ty;
 
-use super::MATCH_AS_REF;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for match which is used to add a reference to an
+    /// `Option` value.
+    ///
+    /// ### Why is this bad?
+    /// Using `as_ref()` or `as_mut()` instead is shorter.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let x: Option<()> = None;
+    ///
+    /// let r: Option<&()> = match x {
+    ///     None => None,
+    ///     Some(ref v) => Some(v),
+    /// };
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// let x: Option<()> = None;
+    ///
+    /// let r: Option<&()> = x.as_ref();
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub MATCH_AS_REF,
+    complexity,
+    "a `match` on an Option value instead of using `as_ref()` or `as_mut`"
+}
 
 pub(crate) fn check(cx: &LateContext<'_>, ex: &Expr<'_>, arms: &[Arm<'_>], expr: &Expr<'_>) {
     if arms.len() == 2 && arms[0].guard.is_none() && arms[1].guard.is_none() {

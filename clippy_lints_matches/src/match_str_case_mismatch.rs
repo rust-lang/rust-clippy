@@ -12,7 +12,36 @@ use rustc_middle::ty;
 use rustc_span::Span;
 use rustc_span::symbol::Symbol;
 
-use super::MATCH_STR_CASE_MISMATCH;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `match` expressions modifying the case of a string with non-compliant arms
+    ///
+    /// ### Why is this bad?
+    /// The arm is unreachable, which is likely a mistake
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let text = "Foo";
+    /// match &*text.to_ascii_lowercase() {
+    ///     "foo" => {},
+    ///     "Bar" => {},
+    ///     _ => {},
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # let text = "Foo";
+    /// match &*text.to_ascii_lowercase() {
+    ///     "foo" => {},
+    ///     "bar" => {},
+    ///     _ => {},
+    /// }
+    /// ```
+    #[clippy::version = "1.58.0"]
+    pub MATCH_STR_CASE_MISMATCH,
+    correctness,
+    "creation of a case altering match expression with non-compliant arms"
+}
 
 #[derive(Debug)]
 enum CaseMethod {

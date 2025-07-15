@@ -6,7 +6,28 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::Ty;
 use rustc_span::Span;
 
-use super::MATCH_OVERLAPPING_ARM;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for overlapping match arms.
+    ///
+    /// ### Why is this bad?
+    /// It is likely to be an error and if not, makes the code
+    /// less obvious.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let x = 5;
+    /// match x {
+    ///     1..=10 => println!("1 ... 10"),
+    ///     5..=15 => println!("5 ... 15"),
+    ///     _ => (),
+    /// }
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub MATCH_OVERLAPPING_ARM,
+    style,
+    "a `match` with overlapping arms"
+}
 
 pub(crate) fn check<'tcx>(cx: &LateContext<'tcx>, ex: &'tcx Expr<'_>, arms: &'tcx [Arm<'_>]) {
     if arms.len() >= 2 && cx.typeck_results().expr_ty(ex).is_integral() {

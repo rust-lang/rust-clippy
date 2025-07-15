@@ -1,3 +1,4 @@
+use crate::pat_contains_disallowed_or;
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::higher::IfLetOrMatch;
 use clippy_utils::msrvs::Msrv;
@@ -12,7 +13,43 @@ use rustc_hir::{Arm, Expr, HirId, Pat, PatExpr, PatExprKind, PatKind};
 use rustc_lint::LateContext;
 use rustc_span::Span;
 
-use super::{COLLAPSIBLE_MATCH, pat_contains_disallowed_or};
+declare_clippy_lint! {
+    /// ### What it does
+    /// Finds nested `match` or `if let` expressions where the patterns may be "collapsed" together
+    /// without adding any branches.
+    ///
+    /// Note that this lint is not intended to find _all_ cases where nested match patterns can be merged, but only
+    /// cases where merging would most likely make the code more readable.
+    ///
+    /// ### Why is this bad?
+    /// It is unnecessarily verbose and complex.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// fn func(opt: Option<Result<u64, String>>) {
+    ///     let n = match opt {
+    ///         Some(n) => match n {
+    ///             Ok(n) => n,
+    ///             _ => return,
+    ///         }
+    ///         None => return,
+    ///     };
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// fn func(opt: Option<Result<u64, String>>) {
+    ///     let n = match opt {
+    ///         Some(Ok(n)) => n,
+    ///         _ => return,
+    ///     };
+    /// }
+    /// ```
+    #[clippy::version = "1.50.0"]
+    pub COLLAPSIBLE_MATCH,
+    style,
+    "Nested `match` or `if let` expressions where the patterns may be \"collapsed\" together."
+}
 
 pub(super) fn check_match<'tcx>(cx: &LateContext<'tcx>, arms: &'tcx [Arm<'_>], msrv: Msrv) {
     if let Some(els_arm) = arms.iter().rfind(|arm| arm_is_wild_like(cx, arm)) {

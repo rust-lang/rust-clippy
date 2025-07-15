@@ -12,7 +12,39 @@ use rustc_lint::{LateContext, LintContext};
 use rustc_middle::ty::Ty;
 use rustc_span::symbol::Ident;
 
-use super::MANUAL_OK_ERR;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for manual implementation of `.ok()` or `.err()`
+    /// on `Result` values.
+    ///
+    /// ### Why is this bad?
+    /// Using `.ok()` or `.err()` rather than a `match` or
+    /// `if let` is less complex and more readable.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # fn func() -> Result<u32, &'static str> { Ok(0) }
+    /// let a = match func() {
+    ///     Ok(v) => Some(v),
+    ///     Err(_) => None,
+    /// };
+    /// let b = if let Err(v) = func() {
+    ///     Some(v)
+    /// } else {
+    ///     None
+    /// };
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # fn func() -> Result<u32, &'static str> { Ok(0) }
+    /// let a = func().ok();
+    /// let b = func().err();
+    /// ```
+    #[clippy::version = "1.86.0"]
+    pub MANUAL_OK_ERR,
+    complexity,
+    "find manual implementations of `.ok()` or `.err()` on `Result`"
+}
 
 pub(crate) fn check_if_let(
     cx: &LateContext<'_>,

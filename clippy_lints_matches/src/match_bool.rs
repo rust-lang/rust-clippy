@@ -8,7 +8,40 @@ use rustc_hir::{Arm, Expr, PatExprKind, PatKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty;
 
-use super::MATCH_BOOL;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for matches where match expression is a `bool`. It
+    /// suggests to replace the expression with an `if...else` block.
+    ///
+    /// ### Why is this bad?
+    /// It makes the code less readable.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # fn foo() {}
+    /// # fn bar() {}
+    /// let condition: bool = true;
+    /// match condition {
+    ///     true => foo(),
+    ///     false => bar(),
+    /// }
+    /// ```
+    /// Use if/else instead:
+    /// ```no_run
+    /// # fn foo() {}
+    /// # fn bar() {}
+    /// let condition: bool = true;
+    /// if condition {
+    ///     foo();
+    /// } else {
+    ///     bar();
+    /// }
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub MATCH_BOOL,
+    pedantic,
+    "a `match` on a boolean expression instead of an `if..else` block"
+}
 
 pub(crate) fn check(cx: &LateContext<'_>, scrutinee: &Expr<'_>, arms: &[Arm<'_>], expr: &Expr<'_>) {
     // Type of expression is `bool`.

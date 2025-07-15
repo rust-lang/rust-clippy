@@ -9,7 +9,79 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::{self, VariantDef};
 use rustc_span::sym;
 
-use super::{MATCH_WILDCARD_FOR_SINGLE_VARIANTS, WILDCARD_ENUM_MATCH_ARM};
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for wildcard enum matches using `_`.
+    ///
+    /// ### Why restrict this?
+    /// New enum variants added by library updates can be missed.
+    ///
+    /// ### Known problems
+    /// Suggested replacements may be incorrect if guards exhaustively cover some
+    /// variants, and also may not use correct path to enum if it's not present in the current scope.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # enum Foo { A(usize), B(usize) }
+    /// # let x = Foo::B(1);
+    /// match x {
+    ///     Foo::A(_) => {},
+    ///     _ => {},
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # enum Foo { A(usize), B(usize) }
+    /// # let x = Foo::B(1);
+    /// match x {
+    ///     Foo::A(_) => {},
+    ///     Foo::B(_) => {},
+    /// }
+    /// ```
+    #[clippy::version = "1.34.0"]
+    pub WILDCARD_ENUM_MATCH_ARM,
+    restriction,
+    "a wildcard enum match arm using `_`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for wildcard enum matches for a single variant.
+    ///
+    /// ### Why is this bad?
+    /// New enum variants added by library updates can be missed.
+    ///
+    /// ### Known problems
+    /// Suggested replacements may not use correct path to enum
+    /// if it's not present in the current scope.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # enum Foo { A, B, C }
+    /// # let x = Foo::B;
+    /// match x {
+    ///     Foo::A => {},
+    ///     Foo::B => {},
+    ///     _ => {},
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # enum Foo { A, B, C }
+    /// # let x = Foo::B;
+    /// match x {
+    ///     Foo::A => {},
+    ///     Foo::B => {},
+    ///     Foo::C => {},
+    /// }
+    /// ```
+    #[clippy::version = "1.45.0"]
+    pub MATCH_WILDCARD_FOR_SINGLE_VARIANTS,
+    pedantic,
+    "a wildcard enum match for a single variant"
+}
 
 #[expect(clippy::too_many_lines)]
 pub(crate) fn check(cx: &LateContext<'_>, ex: &Expr<'_>, arms: &[Arm<'_>]) {

@@ -1,3 +1,4 @@
+use super::pat_contains_disallowed_or;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::macros::matching_root_macro_call;
 use clippy_utils::msrvs::Msrv;
@@ -14,7 +15,35 @@ use rustc_span::{Span, Symbol};
 use std::borrow::Cow;
 use std::ops::ControlFlow;
 
-use super::{REDUNDANT_GUARDS, pat_contains_disallowed_or};
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for unnecessary guards in match expressions.
+    ///
+    /// ### Why is this bad?
+    /// It's more complex and much less readable. Making it part of the pattern can improve
+    /// exhaustiveness checking as well.
+    ///
+    /// ### Example
+    /// ```rust,ignore
+    /// match x {
+    ///     Some(x) if matches!(x, Some(1)) => ..,
+    ///     Some(x) if x == Some(2) => ..,
+    ///     _ => todo!(),
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```rust,ignore
+    /// match x {
+    ///     Some(Some(1)) => ..,
+    ///     Some(Some(2)) => ..,
+    ///     _ => todo!(),
+    /// }
+    /// ```
+    #[clippy::version = "1.73.0"]
+    pub REDUNDANT_GUARDS,
+    complexity,
+    "checks for unnecessary guards in match expressions"
+}
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, arms: &'tcx [Arm<'tcx>], msrv: Msrv) {
     for outer_arm in arms {

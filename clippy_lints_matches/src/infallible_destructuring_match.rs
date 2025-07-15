@@ -5,7 +5,41 @@ use rustc_errors::Applicability;
 use rustc_hir::{ExprKind, LetStmt, MatchSource, PatKind, QPath};
 use rustc_lint::LateContext;
 
-use super::INFALLIBLE_DESTRUCTURING_MATCH;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for matches being used to destructure a single-variant enum
+    /// or tuple struct where a `let` will suffice.
+    ///
+    /// ### Why is this bad?
+    /// Just readability – `let` doesn't nest, whereas a `match` does.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// enum Wrapper {
+    ///     Data(i32),
+    /// }
+    ///
+    /// let wrapper = Wrapper::Data(42);
+    ///
+    /// let data = match wrapper {
+    ///     Wrapper::Data(i) => i,
+    /// };
+    /// ```
+    ///
+    /// The correct use would be:
+    /// ```no_run
+    /// enum Wrapper {
+    ///     Data(i32),
+    /// }
+    ///
+    /// let wrapper = Wrapper::Data(42);
+    /// let Wrapper::Data(data) = wrapper;
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub INFALLIBLE_DESTRUCTURING_MATCH,
+    style,
+    "a `match` statement with a single infallible arm instead of a `let`"
+}
 
 pub(crate) fn check(cx: &LateContext<'_>, local: &LetStmt<'_>) -> bool {
     if !local.span.from_expansion()

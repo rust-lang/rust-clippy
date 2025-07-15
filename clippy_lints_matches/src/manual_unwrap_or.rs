@@ -1,5 +1,9 @@
 use clippy_utils::consts::ConstEvalCtxt;
+use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::{SpanRangeExt as _, indent_of, reindent_multiline};
+use clippy_utils::sugg::Sugg;
+use clippy_utils::ty::{expr_type_is_certain, get_type_diagnostic_name, implements_trait};
+use clippy_utils::{is_default_equivalent, is_lint_allowed, path_res, peel_blocks, span_contains_comment};
 use rustc_ast::{BindingMode, ByRef};
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
@@ -8,12 +12,69 @@ use rustc_lint::{LateContext, LintContext};
 use rustc_middle::ty::{GenericArgKind, Ty};
 use rustc_span::sym;
 
-use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::sugg::Sugg;
-use clippy_utils::ty::{expr_type_is_certain, get_type_diagnostic_name, implements_trait};
-use clippy_utils::{is_default_equivalent, is_lint_allowed, path_res, peel_blocks, span_contains_comment};
+declare_clippy_lint! {
+    /// ### What it does
+    /// Finds patterns that reimplement `Option::unwrap_or` or `Result::unwrap_or`.
+    ///
+    /// ### Why is this bad?
+    /// Concise code helps focusing on behavior instead of boilerplate.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let foo: Option<i32> = None;
+    /// match foo {
+    ///     Some(v) => v,
+    ///     None => 1,
+    /// };
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// let foo: Option<i32> = None;
+    /// foo.unwrap_or(1);
+    /// ```
+    #[clippy::version = "1.49.0"]
+    pub MANUAL_UNWRAP_OR,
+    complexity,
+    "finds patterns that can be encoded more concisely with `Option::unwrap_or` or `Result::unwrap_or`"
+}
 
-use super::{MANUAL_UNWRAP_OR, MANUAL_UNWRAP_OR_DEFAULT};
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks if a `match` or `if let` expression can be simplified using
+    /// `.unwrap_or_default()`.
+    ///
+    /// ### Why is this bad?
+    /// It can be done in one call with `.unwrap_or_default()`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let x: Option<String> = Some(String::new());
+    /// let y: String = match x {
+    ///     Some(v) => v,
+    ///     None => String::new(),
+    /// };
+    ///
+    /// let x: Option<Vec<String>> = Some(Vec::new());
+    /// let y: Vec<String> = if let Some(v) = x {
+    ///     v
+    /// } else {
+    ///     Vec::new()
+    /// };
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let x: Option<String> = Some(String::new());
+    /// let y: String = x.unwrap_or_default();
+    ///
+    /// let x: Option<Vec<String>> = Some(Vec::new());
+    /// let y: Vec<String> = x.unwrap_or_default();
+    /// ```
+    #[clippy::version = "1.79.0"]
+    pub MANUAL_UNWRAP_OR_DEFAULT,
+    suspicious,
+    "check if a `match` or `if let` can be simplified with `unwrap_or_default`"
+}
 
 fn get_some(cx: &LateContext<'_>, pat: &Pat<'_>) -> Option<HirId> {
     if let PatKind::TupleStruct(QPath::Resolved(_, path), &[pat], _) = pat.kind
