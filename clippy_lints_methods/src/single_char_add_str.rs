@@ -1,4 +1,4 @@
-use crate::methods::{single_char_insert_string, single_char_push_string};
+use crate::{single_char_insert_string, single_char_push_string};
 use rustc_hir as hir;
 use rustc_lint::LateContext;
 use rustc_span::sym;

@@ -1,4 +1,4 @@
-use crate::methods::DRAIN_COLLECT;
+use crate::DRAIN_COLLECT;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet;
 use clippy_utils::ty::is_type_lang_item;

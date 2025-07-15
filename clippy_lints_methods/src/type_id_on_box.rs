@@ -1,4 +1,4 @@
-use crate::methods::TYPE_ID_ON_BOX;
+use crate::TYPE_ID_ON_BOX;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet;
 use rustc_errors::Applicability;

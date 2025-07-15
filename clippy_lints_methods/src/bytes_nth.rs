@@ -6,7 +6,7 @@ use rustc_errors::Applicability;
 use rustc_hir::{Expr, LangItem};
 use rustc_lint::LateContext;
 
-use crate::methods::method_call;
+use crate::method_call;
 
 use super::BYTES_NTH;
 

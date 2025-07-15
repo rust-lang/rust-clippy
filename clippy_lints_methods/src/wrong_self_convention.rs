@@ -1,4 +1,4 @@
-use crate::methods::SelfKind;
+use crate::SelfKind;
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::ty::is_copy;
 use rustc_lint::LateContext;

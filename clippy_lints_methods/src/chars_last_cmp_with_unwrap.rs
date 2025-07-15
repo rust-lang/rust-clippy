@@ -1,11 +1,11 @@
-use crate::methods::chars_cmp_with_unwrap;
+use crate::chars_cmp_with_unwrap;
 use clippy_utils::sym;
 use rustc_lint::LateContext;
 
 use super::CHARS_LAST_CMP;
 
 /// Checks for the `CHARS_LAST_CMP` lint with `unwrap()`.
-pub(super) fn check(cx: &LateContext<'_>, info: &crate::methods::BinaryExprInfo<'_>) -> bool {
+pub(super) fn check(cx: &LateContext<'_>, info: &crate::BinaryExprInfo<'_>) -> bool {
     if chars_cmp_with_unwrap::check(
         cx,
         info,

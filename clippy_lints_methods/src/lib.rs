@@ -1,3 +1,48 @@
+#![feature(
+    if_let_guard,
+    macro_metavar_expr_concat,
+    never_type,
+    rustc_private,
+    unwrap_infallible
+)]
+#![allow(
+    clippy::missing_docs_in_private_items,
+    clippy::must_use_candidate,
+    rustc::diagnostic_outside_of_impl,
+    rustc::untranslatable_diagnostic,
+    clippy::literal_string_with_formatting_args
+)]
+#![warn(
+    trivial_casts,
+    trivial_numeric_casts,
+    rust_2018_idioms,
+    unused_lifetimes,
+    unused_qualifications,
+    rustc::internal
+)]
+
+extern crate rustc_abi;
+extern crate rustc_ast;
+extern crate rustc_data_structures;
+extern crate rustc_errors;
+extern crate rustc_hir;
+extern crate rustc_hir_typeck;
+extern crate rustc_infer;
+extern crate rustc_lint;
+extern crate rustc_middle;
+extern crate rustc_session;
+extern crate rustc_span;
+extern crate rustc_trait_selection;
+extern crate smallvec;
+
+#[macro_use]
+extern crate declare_clippy_lint;
+
+pub mod declared_lints;
+
+// begin lints modules, do not remove this comment, it's used in `update_lints`
+// end lints modules, do not remove this comment, it's used in `update_lints`
+
 mod bind_instead_of_map;
 mod bytecount;
 mod bytes_count_to_len;
@@ -4590,7 +4635,7 @@ declare_clippy_lint! {
 }
 
 #[expect(clippy::struct_excessive_bools)]
-pub struct Methods {
+struct Methods {
     avoid_breaking_exported_api: bool,
     msrv: Msrv,
     allow_expect_in_tests: bool,
@@ -4602,7 +4647,7 @@ pub struct Methods {
 }
 
 impl Methods {
-    pub fn new(conf: &'static Conf, format_args: FormatArgsStorage) -> Self {
+    fn new(conf: &'static Conf, format_args: FormatArgsStorage) -> Self {
         let mut allowed_dotfiles: FxHashSet<_> = conf.allowed_dotfiles.iter().map(|s| &**s).collect();
         allowed_dotfiles.extend(DEFAULT_ALLOWED_DOTFILES);
 
@@ -4774,7 +4819,7 @@ impl_lint_pass!(Methods => [
 /// Extracts a method call name, args, and `Span` of the method name.
 /// This ensures that neither the receiver nor any of the arguments
 /// come from expansion.
-pub fn method_call<'tcx>(recv: &'tcx Expr<'tcx>) -> Option<(Symbol, &'tcx Expr<'tcx>, &'tcx [Expr<'tcx>], Span, Span)> {
+fn method_call<'tcx>(recv: &'tcx Expr<'tcx>) -> Option<(Symbol, &'tcx Expr<'tcx>, &'tcx [Expr<'tcx>], Span, Span)> {
     if let ExprKind::MethodCall(path, receiver, args, call_span) = recv.kind
         && !args.iter().any(|e| e.span.from_expansion())
         && !receiver.span.from_expansion()
@@ -5829,4 +5874,8 @@ impl OutType {
 
 fn fn_header_equals(expected: hir::FnHeader, actual: hir::FnHeader) -> bool {
     expected.constness == actual.constness && expected.safety == actual.safety && expected.asyncness == actual.asyncness
+}
+
+pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Conf, format_args: FormatArgsStorage) {
+    store.register_late_pass(move |_| Box::new(Methods::new(conf, format_args.clone())));
 }

@@ -10,7 +10,7 @@ use rustc_span::Symbol;
 /// Wrapper fn for `CHARS_NEXT_CMP` and `CHARS_LAST_CMP` lints.
 pub(super) fn check(
     cx: &LateContext<'_>,
-    info: &crate::methods::BinaryExprInfo<'_>,
+    info: &crate::BinaryExprInfo<'_>,
     chain_methods: &[Symbol],
     lint: &'static Lint,
     suggest: &str,
