@@ -13,7 +13,34 @@ use rustc_middle::ty::adjustment::Adjust;
 use rustc_span::symbol::Ident;
 use rustc_span::{Span, sym};
 
-use super::MAP_CLONE;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `map(|x| x.clone())` or
+    /// dereferencing closures for `Copy` types, on `Iterator` or `Option`,
+    /// and suggests `cloned()` or `copied()` instead
+    ///
+    /// ### Why is this bad?
+    /// Readability, this can be written more concisely
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let x = vec![42, 43];
+    /// let y = x.iter();
+    /// let z = y.map(|i| *i);
+    /// ```
+    ///
+    /// The correct use would be:
+    ///
+    /// ```no_run
+    /// let x = vec![42, 43];
+    /// let y = x.iter();
+    /// let z = y.cloned();
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub MAP_CLONE,
+    style,
+    "using `iterator.map(|x| x.clone())`, or dereferencing closures for `Copy` types"
+}
 
 // If this `map` is called on an `Option` or a `Result` and the previous call is `as_ref`, we don't
 // run this lint because it would overlap with `useless_asref` which provides a better suggestion

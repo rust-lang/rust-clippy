@@ -1,17 +1,62 @@
-use clippy_utils::ty::get_iterator_item_ty;
-use hir::ExprKind;
-use rustc_lint::{LateContext, LintContext};
-
-use super::{ITER_FILTER_IS_OK, ITER_FILTER_IS_SOME};
-
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::{indent_of, reindent_multiline};
+use clippy_utils::ty::get_iterator_item_ty;
 use clippy_utils::{get_parent_expr, is_trait_method, peel_blocks, span_contains_comment, sym};
+use hir::ExprKind;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_hir::QPath;
+use rustc_lint::{LateContext, LintContext};
 use rustc_span::Span;
 use rustc_span::symbol::{Ident, Symbol};
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `.filter(Option::is_some)` that may be replaced with a `.flatten()` call.
+    /// This lint will require additional changes to the follow-up calls as it affects the type.
+    ///
+    /// ### Why is this bad?
+    /// This pattern is often followed by manual unwrapping of the `Option`. The simplification
+    /// results in more readable and succinct code without the need for manual unwrapping.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// vec![Some(1)].into_iter().filter(Option::is_some);
+    ///
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// vec![Some(1)].into_iter().flatten();
+    /// ```
+    #[clippy::version = "1.77.0"]
+    pub ITER_FILTER_IS_SOME,
+    pedantic,
+    "filtering an iterator over `Option`s for `Some` can be achieved with `flatten`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `.filter(Result::is_ok)` that may be replaced with a `.flatten()` call.
+    /// This lint will require additional changes to the follow-up calls as it affects the type.
+    ///
+    /// ### Why is this bad?
+    /// This pattern is often followed by manual unwrapping of `Result`. The simplification
+    /// results in more readable and succinct code without the need for manual unwrapping.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// vec![Ok::<i32, String>(1)].into_iter().filter(Result::is_ok);
+    ///
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// vec![Ok::<i32, String>(1)].into_iter().flatten();
+    /// ```
+    #[clippy::version = "1.77.0"]
+    pub ITER_FILTER_IS_OK,
+    pedantic,
+    "filtering an iterator over `Result`s for `Ok` can be achieved with `flatten`"
+}
 
 ///
 /// Returns true if the expression is a method call to `method_name`

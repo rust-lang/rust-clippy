@@ -7,7 +7,37 @@ use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_span::Span;
 
-use super::UNNECESSARY_JOIN;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `.collect::<Vec<String>>().join("")` on iterators.
+    ///
+    /// ### Why is this bad?
+    /// `.collect::<String>()` is more concise and might be more performant
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let vector = vec!["hello",  "world"];
+    /// let output = vector.iter().map(|item| item.to_uppercase()).collect::<Vec<String>>().join("");
+    /// println!("{}", output);
+    /// ```
+    /// The correct use would be:
+    /// ```no_run
+    /// let vector = vec!["hello",  "world"];
+    /// let output = vector.iter().map(|item| item.to_uppercase()).collect::<String>();
+    /// println!("{}", output);
+    /// ```
+    /// ### Known problems
+    /// While `.collect::<String>()` is sometimes more performant, there are cases where
+    /// using `.collect::<String>()` over `.collect::<Vec<String>>().join("")`
+    /// will prevent loop unrolling and will result in a negative performance impact.
+    ///
+    /// Additionally, differences have been observed between aarch64 and x86_64 assembly output,
+    /// with aarch64 tending to producing faster assembly in more cases when using `.collect::<String>()`
+    #[clippy::version = "1.61.0"]
+    pub UNNECESSARY_JOIN,
+    pedantic,
+    "using `.collect::<Vec<String>>().join(\"\")` on an iterator"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

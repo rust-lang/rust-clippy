@@ -5,6 +5,28 @@ use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::LateContext;
 
+declare_clippy_lint! {
+    /// This lint warns on calling `io::Error::new(..)` with a kind of
+    /// `io::ErrorKind::Other`.
+    ///
+    /// ### Why is this bad?
+    /// Since Rust 1.74, there's the `io::Error::other(_)` shortcut.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// use std::io;
+    /// let _ = io::Error::new(io::ErrorKind::Other, "bad".to_string());
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let _ = std::io::Error::other("bad".to_string());
+    /// ```
+    #[clippy::version = "1.87.0"]
+    pub IO_OTHER_ERROR,
+    style,
+    "calling `std::io::Error::new(std::io::ErrorKind::Other, _)`"
+}
+
 pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, path: &Expr<'_>, args: &[Expr<'_>], msrv: Msrv) {
     if let [error_kind, error] = args
         && !expr.span.from_expansion()
@@ -19,7 +41,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, path: &Expr<'_>, args
     {
         span_lint_and_then(
             cx,
-            super::IO_OTHER_ERROR,
+            IO_OTHER_ERROR,
             expr.span,
             "this can be `std::io::Error::other(_)`",
             |diag| {

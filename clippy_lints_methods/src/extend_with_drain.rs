@@ -6,7 +6,33 @@ use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, LangItem};
 use rustc_lint::LateContext;
 
-use super::EXTEND_WITH_DRAIN;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for occurrences where one vector gets extended instead of append
+    ///
+    /// ### Why is this bad?
+    /// Using `append` instead of `extend` is more concise and faster
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let mut a = vec![1, 2, 3];
+    /// let mut b = vec![4, 5, 6];
+    ///
+    /// a.extend(b.drain(..));
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// let mut a = vec![1, 2, 3];
+    /// let mut b = vec![4, 5, 6];
+    ///
+    /// a.append(&mut b);
+    /// ```
+    #[clippy::version = "1.55.0"]
+    pub EXTEND_WITH_DRAIN,
+    perf,
+    "using vec.append(&mut vec) to move the full range of a vector to another"
+}
 
 pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, recv: &Expr<'_>, arg: &Expr<'_>) {
     let ty = cx.typeck_results().expr_ty(recv).peel_refs();

@@ -7,7 +7,30 @@ use rustc_hir::{BindingMode, Node, PatKind};
 use rustc_lint::LateContext;
 use rustc_span::sym;
 
-use super::ITER_SKIP_NEXT;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `.skip(x).next()` on iterators.
+    ///
+    /// ### Why is this bad?
+    /// `.nth(x)` is cleaner
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let some_vec = vec![0, 1, 2, 3];
+    /// let bad_vec = some_vec.iter().skip(3).next();
+    /// let bad_slice = &some_vec[..].iter().skip(3).next();
+    /// ```
+    /// The correct use would be:
+    /// ```no_run
+    /// let some_vec = vec![0, 1, 2, 3];
+    /// let bad_vec = some_vec.iter().nth(3);
+    /// let bad_slice = &some_vec[..].iter().nth(3);
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub ITER_SKIP_NEXT,
+    style,
+    "using `.skip(x).next()` on an iterator"
+}
 
 pub(super) fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, recv: &hir::Expr<'_>, arg: &hir::Expr<'_>) {
     // lint if caller of skip is an Iterator

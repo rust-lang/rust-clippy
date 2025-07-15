@@ -8,7 +8,42 @@ use rustc_hir as hir;
 use rustc_lint::LateContext;
 use rustc_span::sym;
 
-use super::GET_UNWRAP;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `.get().unwrap()` (or
+    /// `.get_mut().unwrap`) on a standard library type which implements `Index`
+    ///
+    /// ### Why restrict this?
+    /// Using the Index trait (`[]`) is more clear and more
+    /// concise.
+    ///
+    /// ### Known problems
+    /// Not a replacement for error handling: Using either
+    /// `.unwrap()` or the Index trait (`[]`) carries the risk of causing a `panic`
+    /// if the value being accessed is `None`. If the use of `.get().unwrap()` is a
+    /// temporary placeholder for dealing with the `Option` type, then this does
+    /// not mitigate the need for error handling. If there is a chance that `.get()`
+    /// will be `None` in your program, then it is advisable that the `None` case
+    /// is handled in a future refactor instead of using `.unwrap()` or the Index
+    /// trait.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let mut some_vec = vec![0, 1, 2, 3];
+    /// let last = some_vec.get(3).unwrap();
+    /// *some_vec.get_mut(0).unwrap() = 1;
+    /// ```
+    /// The correct use would be:
+    /// ```no_run
+    /// let mut some_vec = vec![0, 1, 2, 3];
+    /// let last = some_vec[3];
+    /// some_vec[0] = 1;
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub GET_UNWRAP,
+    restriction,
+    "using `.get().unwrap()` or `.get_mut().unwrap()` when using `[]` would work instead"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

@@ -11,7 +11,65 @@ use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_span::Symbol;
 
-use super::{UNNECESSARY_FILTER_MAP, UNNECESSARY_FIND_MAP};
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `filter_map` calls that could be replaced by `filter` or `map`.
+    /// More specifically it checks if the closure provided is only performing one of the
+    /// filter or map operations and suggests the appropriate option.
+    ///
+    /// ### Why is this bad?
+    /// Complexity. The intent is also clearer if only a single
+    /// operation is being performed.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let _ = (0..3).filter_map(|x| if x > 2 { Some(x) } else { None });
+    ///
+    /// // As there is no transformation of the argument this could be written as:
+    /// let _ = (0..3).filter(|&x| x > 2);
+    /// ```
+    ///
+    /// ```no_run
+    /// let _ = (0..4).filter_map(|x| Some(x + 1));
+    ///
+    /// // As there is no conditional check on the argument this could be written as:
+    /// let _ = (0..4).map(|x| x + 1);
+    /// ```
+    #[clippy::version = "1.31.0"]
+    pub UNNECESSARY_FILTER_MAP,
+    complexity,
+    "using `filter_map` when a more succinct alternative exists"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `find_map` calls that could be replaced by `find` or `map`. More
+    /// specifically it checks if the closure provided is only performing one of the
+    /// find or map operations and suggests the appropriate option.
+    ///
+    /// ### Why is this bad?
+    /// Complexity. The intent is also clearer if only a single
+    /// operation is being performed.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let _ = (0..3).find_map(|x| if x > 2 { Some(x) } else { None });
+    ///
+    /// // As there is no transformation of the argument this could be written as:
+    /// let _ = (0..3).find(|&x| x > 2);
+    /// ```
+    ///
+    /// ```no_run
+    /// let _ = (0..4).find_map(|x| Some(x + 1));
+    ///
+    /// // As there is no conditional check on the argument this could be written as:
+    /// let _ = (0..4).map(|x| x + 1).next();
+    /// ```
+    #[clippy::version = "1.61.0"]
+    pub UNNECESSARY_FIND_MAP,
+    complexity,
+    "using `find_map` when a more succinct alternative exists"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

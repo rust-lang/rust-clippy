@@ -6,7 +6,31 @@ use rustc_hir::{Expr, HirId};
 use rustc_lint::{LateContext, LintContext};
 use rustc_span::sym;
 
-use super::CONST_IS_EMPTY;
+declare_clippy_lint! {
+    /// ### What it does
+    /// It identifies calls to `.is_empty()` on constant values.
+    ///
+    /// ### Why is this bad?
+    /// String literals and constant values are known at compile time. Checking if they
+    /// are empty will always return the same value. This might not be the intention of
+    /// the expression.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let value = "";
+    /// if value.is_empty() {
+    ///     println!("the string is empty");
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// println!("the string is empty");
+    /// ```
+    #[clippy::version = "1.79.0"]
+    pub CONST_IS_EMPTY,
+    suspicious,
+    "is_empty() called on strings known at compile time"
+}
 
 /// Expression whose initialization depend on a constant conditioned by a `#[cfg(…)]` directive will
 /// not trigger the lint.

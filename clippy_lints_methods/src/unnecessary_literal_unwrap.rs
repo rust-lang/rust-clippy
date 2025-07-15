@@ -7,7 +7,31 @@ use rustc_middle::ty;
 use rustc_middle::ty::print::with_forced_trimmed_paths;
 use rustc_span::Symbol;
 
-use super::UNNECESSARY_LITERAL_UNWRAP;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `.unwrap()` related calls on `Result`s and `Option`s that are constructed.
+    ///
+    /// ### Why is this bad?
+    /// It is better to write the value directly without the indirection.
+    ///
+    /// ### Examples
+    /// ```no_run
+    /// let val1 = Some(1).unwrap();
+    /// let val2 = Ok::<_, ()>(1).unwrap();
+    /// let val3 = Err::<(), _>(1).unwrap_err();
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// let val1 = 1;
+    /// let val2 = 1;
+    /// let val3 = 1;
+    /// ```
+    #[clippy::version = "1.72.0"]
+    pub UNNECESSARY_LITERAL_UNWRAP,
+    complexity,
+    "using `unwrap()` related calls on `Result` and `Option` constructors"
+}
 
 fn get_ty_from_args<'a>(args: Option<&'a [hir::GenericArg<'a>]>, index: usize) -> Option<&'a hir::Ty<'a, AmbigArg>> {
     let args = args?;

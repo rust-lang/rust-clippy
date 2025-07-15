@@ -9,7 +9,33 @@ use rustc_hir::{BinOpKind, Expr, ExprKind, Param, PatKind};
 use rustc_lint::LateContext;
 use rustc_span::sym;
 
-use super::STRING_LIT_CHARS_ANY;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `<string_lit>.chars().any(|i| i == c)`.
+    ///
+    /// ### Why is this bad?
+    /// It's significantly slower than using a pattern instead, like
+    /// `matches!(c, '\\' | '.' | '+')`.
+    ///
+    /// Despite this being faster, this is not `perf` as this is pretty common, and is a rather nice
+    /// way to check if a `char` is any in a set. In any case, this `restriction` lint is available
+    /// for situations where that additional performance is absolutely necessary.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let c = 'c';
+    /// "\\.+*?()|[]{}^$#&-~".chars().any(|x| x == c);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # let c = 'c';
+    /// matches!(c, '\\' | '.' | '+' | '*' | '(' | ')' | '|' | '[' | ']' | '{' | '}' | '^' | '$' | '#' | '&' | '-' | '~');
+    /// ```
+    #[clippy::version = "1.73.0"]
+    pub STRING_LIT_CHARS_ANY,
+    restriction,
+    "checks for `<string_lit>.chars().any(|i| i == c)`"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

@@ -6,7 +6,65 @@ use rustc_middle::ty::Ty;
 use rustc_span::{Span, Symbol};
 use std::fmt;
 
-use super::WRONG_SELF_CONVENTION;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for methods with certain name prefixes or suffixes, and which
+    /// do not adhere to standard conventions regarding how `self` is taken.
+    /// The actual rules are:
+    ///
+    /// |Prefix |Postfix     |`self` taken                   | `self` type  |
+    /// |-------|------------|-------------------------------|--------------|
+    /// |`as_`  | none       |`&self` or `&mut self`         | any          |
+    /// |`from_`| none       | none                          | any          |
+    /// |`into_`| none       |`self`                         | any          |
+    /// |`is_`  | none       |`&mut self` or `&self` or none | any          |
+    /// |`to_`  | `_mut`     |`&mut self`                    | any          |
+    /// |`to_`  | not `_mut` |`self`                         | `Copy`       |
+    /// |`to_`  | not `_mut` |`&self`                        | not `Copy`   |
+    ///
+    /// Note: Clippy doesn't trigger methods with `to_` prefix in:
+    /// - Traits definition.
+    /// Clippy can not tell if a type that implements a trait is `Copy` or not.
+    /// - Traits implementation, when `&self` is taken.
+    /// The method signature is controlled by the trait and often `&self` is required for all types that implement the trait
+    /// (see e.g. the `std::string::ToString` trait).
+    ///
+    /// Clippy allows `Pin<&Self>` and `Pin<&mut Self>` if `&self` and `&mut self` is required.
+    ///
+    /// Please find more info here:
+    /// https://rust-lang.github.io/api-guidelines/naming.html#ad-hoc-conversions-follow-as_-to_-into_-conventions-c-conv
+    ///
+    /// ### Why is this bad?
+    /// Consistency breeds readability. If you follow the
+    /// conventions, your users won't be surprised that they, e.g., need to supply a
+    /// mutable reference to a `as_..` function.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # struct X;
+    /// impl X {
+    ///     fn as_str(self) -> &'static str {
+    ///         // ..
+    /// # ""
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # struct X;
+    /// impl X {
+    ///     fn as_str(&self) -> &'static str {
+    ///         // ..
+    /// # ""
+    ///     }
+    /// }
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub WRONG_SELF_CONVENTION,
+    style,
+    "defining a method named with an established prefix (like \"into_\") that takes `self` with the wrong convention"
+}
 
 #[rustfmt::skip]
 const CONVENTIONS: [(&[Convention], &[SelfKind]); 9] = [

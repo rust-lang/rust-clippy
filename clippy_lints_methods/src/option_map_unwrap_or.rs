@@ -12,7 +12,7 @@ use rustc_middle::hir::nested_filter;
 use rustc_span::{Span, sym};
 use std::ops::ControlFlow;
 
-use super::MAP_UNWRAP_OR;
+use crate::map_unwrap_or::MAP_UNWRAP_OR;
 
 /// lint use of `map().unwrap_or()` for `Option`s
 #[expect(clippy::too_many_arguments)]

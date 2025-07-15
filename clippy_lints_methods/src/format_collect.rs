@@ -1,10 +1,44 @@
-use super::FORMAT_COLLECT;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::macros::{is_format_macro, root_macro_call_first_node};
 use clippy_utils::ty::is_type_lang_item;
 use rustc_hir::{Expr, ExprKind, LangItem};
 use rustc_lint::LateContext;
 use rustc_span::Span;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `.map(|_| format!(..)).collect::<String>()`.
+    ///
+    /// ### Why is this bad?
+    /// This allocates a new string for every element in the iterator.
+    /// This can be done more efficiently by creating the `String` once and appending to it in `Iterator::fold`,
+    /// using either the `write!` macro which supports exactly the same syntax as the `format!` macro,
+    /// or concatenating with `+` in case the iterator yields `&str`/`String`.
+    ///
+    /// Note also that `write!`-ing into a `String` can never fail, despite the return type of `write!` being `std::fmt::Result`,
+    /// so it can be safely ignored or unwrapped.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// fn hex_encode(bytes: &[u8]) -> String {
+    ///     bytes.iter().map(|b| format!("{b:02X}")).collect()
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// use std::fmt::Write;
+    /// fn hex_encode(bytes: &[u8]) -> String {
+    ///     bytes.iter().fold(String::new(), |mut output, b| {
+    ///         let _ = write!(output, "{b:02X}");
+    ///         output
+    ///     })
+    /// }
+    /// ```
+    #[clippy::version = "1.73.0"]
+    pub FORMAT_COLLECT,
+    pedantic,
+    "`format!`ing every element in a collection, then collecting the strings into a new `String`"
+}
 
 /// Same as `peel_blocks` but only actually considers blocks that are not from an expansion.
 /// This is needed because always calling `peel_blocks` would otherwise remove parts of the

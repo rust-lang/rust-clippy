@@ -6,7 +6,30 @@ use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::LateContext;
 use rustc_span::sym;
 
-use super::RANGE_ZIP_WITH_LEN;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for zipping a collection with the range of
+    /// `0.._.len()`.
+    ///
+    /// ### Why is this bad?
+    /// The code is better expressed with `.enumerate()`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let x = vec![1];
+    /// let _ = x.iter().zip(0..x.len());
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # let x = vec![1];
+    /// let _ = x.iter().enumerate();
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub RANGE_ZIP_WITH_LEN,
+    complexity,
+    "zipping iterator with a range when `enumerate()` would do"
+}
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, recv: &'tcx Expr<'_>, zip_arg: &'tcx Expr<'_>) {
     if is_trait_method(cx, expr, sym::Iterator)

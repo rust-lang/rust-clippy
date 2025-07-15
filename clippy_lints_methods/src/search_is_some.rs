@@ -10,7 +10,36 @@ use rustc_hir::PatKind;
 use rustc_lint::LateContext;
 use rustc_span::{Span, Symbol};
 
-use super::SEARCH_IS_SOME;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for an iterator or string search (such as `find()`,
+    /// `position()`, or `rposition()`) followed by a call to `is_some()` or `is_none()`.
+    ///
+    /// ### Why is this bad?
+    /// Readability, this can be written more concisely as:
+    /// * `_.any(_)`, or `_.contains(_)` for `is_some()`,
+    /// * `!_.any(_)`, or `!_.contains(_)` for `is_none()`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let vec = vec![1];
+    /// vec.iter().find(|x| **x == 0).is_some();
+    ///
+    /// "hello world".find("world").is_none();
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// let vec = vec![1];
+    /// vec.iter().any(|x| *x == 0);
+    ///
+    /// !"hello world".contains("world");
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub SEARCH_IS_SOME,
+    complexity,
+    "using an iterator or string search followed by `is_some()` or `is_none()`, which is more succinctly expressed as a call to `any()` or `contains()` (with negation in case of `is_none()`)"
+}
 
 /// lint searching an Iterator followed by `is_some()`
 /// or calling `find()` on a string followed by `is_some()` or `is_none()`

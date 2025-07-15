@@ -9,7 +9,31 @@ use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_span::{Symbol, sym};
 
-use super::OPTION_AS_REF_DEREF;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `_.as_ref().map(Deref::deref)` or its aliases (such as String::as_str).
+    ///
+    /// ### Why is this bad?
+    /// Readability, this can be written more concisely as
+    /// `_.as_deref()`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let opt = Some("".to_string());
+    /// opt.as_ref().map(String::as_str)
+    /// # ;
+    /// ```
+    /// Can be written as
+    /// ```no_run
+    /// # let opt = Some("".to_string());
+    /// opt.as_deref()
+    /// # ;
+    /// ```
+    #[clippy::version = "1.42.0"]
+    pub OPTION_AS_REF_DEREF,
+    complexity,
+    "using `as_ref().map(Deref::deref)`, which is more succinctly expressed as `as_deref()`"
+}
 
 /// lint use of `_.as_ref().map(Deref::deref)` for `Option`s
 pub(super) fn check(

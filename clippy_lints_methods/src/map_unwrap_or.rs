@@ -8,7 +8,42 @@ use rustc_hir as hir;
 use rustc_lint::LateContext;
 use rustc_span::symbol::sym;
 
-use super::MAP_UNWRAP_OR;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `option.map(_).unwrap_or(_)` or `option.map(_).unwrap_or_else(_)` or
+    /// `result.map(_).unwrap_or_else(_)`.
+    ///
+    /// ### Why is this bad?
+    /// Readability, these can be written more concisely (resp.) as
+    /// `option.map_or(_, _)`, `option.map_or_else(_, _)` and `result.map_or_else(_, _)`.
+    ///
+    /// ### Known problems
+    /// The order of the arguments is not in execution order
+    ///
+    /// ### Examples
+    /// ```no_run
+    /// # let option = Some(1);
+    /// # let result: Result<usize, ()> = Ok(1);
+    /// # fn some_function(foo: ()) -> usize { 1 }
+    /// option.map(|a| a + 1).unwrap_or(0);
+    /// option.map(|a| a > 10).unwrap_or(false);
+    /// result.map(|a| a + 1).unwrap_or_else(some_function);
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # let option = Some(1);
+    /// # let result: Result<usize, ()> = Ok(1);
+    /// # fn some_function(foo: ()) -> usize { 1 }
+    /// option.map_or(0, |a| a + 1);
+    /// option.is_some_and(|a| a > 10);
+    /// result.map_or_else(some_function, |a| a + 1);
+    /// ```
+    #[clippy::version = "1.45.0"]
+    pub MAP_UNWRAP_OR,
+    pedantic,
+    "using `.map(f).unwrap_or(a)` or `.map(f).unwrap_or_else(func)`, which are more succinctly expressed as `map_or(a, f)` or `map_or_else(a, f)`"
+}
 
 /// lint use of `map().unwrap_or_else()` for `Option`s and `Result`s
 ///

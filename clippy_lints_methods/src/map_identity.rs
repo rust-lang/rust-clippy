@@ -7,7 +7,28 @@ use rustc_hir::{self as hir, Node, PatKind};
 use rustc_lint::LateContext;
 use rustc_span::{Span, Symbol, sym};
 
-use super::MAP_IDENTITY;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for instances of `map(f)` where `f` is the identity function.
+    ///
+    /// ### Why is this bad?
+    /// It can be written more concisely without the call to `map`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let x = [1, 2, 3];
+    /// let y: Vec<_> = x.iter().map(|x| x).map(|x| 2*x).collect();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let x = [1, 2, 3];
+    /// let y: Vec<_> = x.iter().map(|x| 2*x).collect();
+    /// ```
+    #[clippy::version = "1.47.0"]
+    pub MAP_IDENTITY,
+    complexity,
+    "using iterator.map(|x| x)"
+}
 
 pub(super) fn check(
     cx: &LateContext<'_>,

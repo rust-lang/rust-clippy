@@ -8,7 +8,32 @@ use rustc_middle::ty;
 use rustc_middle::ty::print::with_forced_trimmed_paths;
 use rustc_span::{Span, sym};
 
-use super::UNNECESSARY_FALLIBLE_CONVERSIONS;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for calls to `TryInto::try_into` and `TryFrom::try_from` when their infallible counterparts
+    /// could be used.
+    ///
+    /// ### Why is this bad?
+    /// In those cases, the `TryInto` and `TryFrom` trait implementation is a blanket impl that forwards
+    /// to `Into` or `From`, which always succeeds.
+    /// The returned `Result<_, Infallible>` requires error handling to get the contained value
+    /// even though the conversion can never fail.
+    ///
+    /// ### Example
+    /// ```rust
+    /// let _: Result<i64, _> = 1i32.try_into();
+    /// let _: Result<i64, _> = <_>::try_from(1i32);
+    /// ```
+    /// Use `from`/`into` instead:
+    /// ```rust
+    /// let _: i64 = 1i32.into();
+    /// let _: i64 = <_>::from(1i32);
+    /// ```
+    #[clippy::version = "1.75.0"]
+    pub UNNECESSARY_FALLIBLE_CONVERSIONS,
+    style,
+    "calling the `try_from` and `try_into` trait methods when `From`/`Into` is implemented"
+}
 
 #[derive(Copy, Clone)]
 enum SpansKind {

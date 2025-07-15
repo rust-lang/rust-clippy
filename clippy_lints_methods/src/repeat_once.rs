@@ -6,7 +6,37 @@ use rustc_errors::Applicability;
 use rustc_hir::{Expr, LangItem};
 use rustc_lint::LateContext;
 
-use super::REPEAT_ONCE;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `.repeat(1)` and suggest the following method for each types.
+    /// - `.to_string()` for `str`
+    /// - `.clone()` for `String`
+    /// - `.to_vec()` for `slice`
+    ///
+    /// The lint will evaluate constant expressions and values as arguments of `.repeat(..)` and emit a message if
+    /// they are equivalent to `1`. (Related discussion in [rust-clippy#7306](https://github.com/rust-lang/rust-clippy/issues/7306))
+    ///
+    /// ### Why is this bad?
+    /// For example, `String.repeat(1)` is equivalent to `.clone()`. If cloning
+    /// the string is the intention behind this, `clone()` should be used.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// fn main() {
+    ///     let x = String::from("hello world").repeat(1);
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// fn main() {
+    ///     let x = String::from("hello world").clone();
+    /// }
+    /// ```
+    #[clippy::version = "1.47.0"]
+    pub REPEAT_ONCE,
+    complexity,
+    "using `.repeat(1)` instead of `String.clone()`, `str.to_string()` or `slice.to_vec()` "
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

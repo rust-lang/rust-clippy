@@ -1,4 +1,3 @@
-use super::FILTER_MAP_BOOL_THEN;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::SpanRangeExt;
 use clippy_utils::ty::is_copy;
@@ -13,6 +12,37 @@ use rustc_lint::{LateContext, LintContext};
 use rustc_middle::ty::Binder;
 use rustc_middle::ty::adjustment::Adjust;
 use rustc_span::{Span, sym};
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `bool::then` in `Iterator::filter_map`.
+    ///
+    /// ### Why is this bad?
+    /// This can be written with `filter` then `map` instead, which would reduce nesting and
+    /// separates the filtering from the transformation phase. This comes with no cost to
+    /// performance and is just cleaner.
+    ///
+    /// ### Limitations
+    /// Does not lint `bool::then_some`, as it eagerly evaluates its arguments rather than lazily.
+    /// This can create differing behavior, so better safe than sorry.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # fn really_expensive_fn(i: i32) -> i32 { i }
+    /// # let v = vec![];
+    /// _ = v.into_iter().filter_map(|i| (i % 2 == 0).then(|| really_expensive_fn(i)));
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # fn really_expensive_fn(i: i32) -> i32 { i }
+    /// # let v = vec![];
+    /// _ = v.into_iter().filter(|i| i % 2 == 0).map(|i| really_expensive_fn(i));
+    /// ```
+    #[clippy::version = "1.73.0"]
+    pub FILTER_MAP_BOOL_THEN,
+    style,
+    "checks for usage of `bool::then` in `Iterator::filter_map`"
+}
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, arg: &Expr<'_>, call_span: Span) {
     if !expr.span.in_external_macro(cx.sess().source_map())

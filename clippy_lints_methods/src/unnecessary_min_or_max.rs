@@ -1,16 +1,38 @@
-use std::cmp::Ordering;
-
-use super::UNNECESSARY_MIN_OR_MAX;
 use clippy_utils::consts::{ConstEvalCtxt, Constant, ConstantSource, FullInt};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet;
-
 use clippy_utils::sym;
 use rustc_errors::Applicability;
 use rustc_hir::Expr;
 use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_span::{Span, Symbol};
+use std::cmp::Ordering;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for unnecessary calls to `min()` or `max()` in the following cases
+    /// - Either both side is constant
+    /// - One side is clearly larger than the other, like i32::MIN and an i32 variable
+    ///
+    /// ### Why is this bad?
+    ///
+    /// In the aforementioned cases it is not necessary to call `min()` or `max()`
+    /// to compare values, it may even cause confusion.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let _ = 0.min(7_u32);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let _ = 0;
+    /// ```
+    #[clippy::version = "1.81.0"]
+    pub UNNECESSARY_MIN_OR_MAX,
+    complexity,
+    "using 'min()/max()' when there is no need for it"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

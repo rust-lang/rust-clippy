@@ -11,7 +11,26 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, AutoBorrowMutability};
 use rustc_span::{DUMMY_SP, Span, Symbol};
 
-use super::MANUAL_INSPECT;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for uses of `map` which return the original item.
+    ///
+    /// ### Why is this bad?
+    /// `inspect` is both clearer in intent and shorter.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let x = Some(0).map(|x| { println!("{x}"); x });
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let x = Some(0).inspect(|x| println!("{x}"));
+    /// ```
+    #[clippy::version = "1.81.0"]
+    pub MANUAL_INSPECT,
+    complexity,
+    "use of `map` returning the original item"
+}
 
 #[expect(clippy::too_many_lines)]
 pub(crate) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, arg: &Expr<'_>, name: Symbol, name_span: Span, msrv: Msrv) {

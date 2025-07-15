@@ -7,7 +7,30 @@ use rustc_lint::LateContext;
 use rustc_span::Span;
 use rustc_span::symbol::sym;
 
-use super::CLEAR_WITH_DRAIN;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `.drain(..)` for the sole purpose of clearing a container.
+    ///
+    /// ### Why is this bad?
+    /// This creates an unnecessary iterator that is dropped immediately.
+    ///
+    /// Calling `.clear()` also makes the intent clearer.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let mut v = vec![1, 2, 3];
+    /// v.drain(..);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let mut v = vec![1, 2, 3];
+    /// v.clear();
+    /// ```
+    #[clippy::version = "1.70.0"]
+    pub CLEAR_WITH_DRAIN,
+    nursery,
+    "calling `drain` in order to `clear` a container"
+}
 
 // Add `String` here when it is added to diagnostic items
 const ACCEPTABLE_TYPES_WITH_ARG: [rustc_span::Symbol; 2] = [sym::Vec, sym::VecDeque];

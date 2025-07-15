@@ -13,7 +13,40 @@ use rustc_hir::{BinOpKind, Expr, ExprKind, PatKind};
 use rustc_lint::LateContext;
 use rustc_span::{Span, sym};
 
-use super::UNNECESSARY_MAP_OR;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Converts some constructs mapping an Enum value for equality comparison.
+    ///
+    /// ### Why is this bad?
+    /// Calls such as `opt.map_or(false, |val| val == 5)` are needlessly long and cumbersome,
+    /// and can be reduced to, for example, `opt == Some(5)` assuming `opt` implements `PartialEq`.
+    /// Also, calls such as `opt.map_or(true, |val| val == 5)` can be reduced to
+    /// `opt.is_none_or(|val| val == 5)`.
+    /// This lint offers readability and conciseness improvements.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// pub fn a(x: Option<i32>) -> (bool, bool) {
+    ///     (
+    ///         x.map_or(false, |n| n == 5),
+    ///         x.map_or(true, |n| n > 5),
+    ///     )
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// pub fn a(x: Option<i32>) -> (bool, bool) {
+    ///     (
+    ///         x == Some(5),
+    ///         x.is_none_or(|n| n > 5),
+    ///     )
+    /// }
+    /// ```
+    #[clippy::version = "1.84.0"]
+    pub UNNECESSARY_MAP_OR,
+    style,
+    "reduce unnecessary calls to `.map_or(bool, …)`"
+}
 
 pub(super) enum Variant {
     Ok,

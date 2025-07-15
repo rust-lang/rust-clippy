@@ -8,7 +8,28 @@ use rustc_lint::LateContext;
 
 use crate::method_call;
 
-use super::BYTES_NTH;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for the use of `.bytes().nth()`.
+    ///
+    /// ### Why is this bad?
+    /// `.as_bytes().get()` is more efficient and more
+    /// readable.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// "Hello".bytes().nth(3);
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// "Hello".as_bytes().get(3);
+    /// ```
+    #[clippy::version = "1.52.0"]
+    pub BYTES_NTH,
+    style,
+    "replace `.bytes().nth()` with `.as_bytes().get()`"
+}
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>, recv: &'tcx Expr<'tcx>, n_arg: &'tcx Expr<'tcx>) {
     let ty = cx.typeck_results().expr_ty(recv).peel_refs();

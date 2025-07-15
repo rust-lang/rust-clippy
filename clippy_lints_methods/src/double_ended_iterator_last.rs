@@ -7,7 +7,31 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::Instance;
 use rustc_span::Span;
 
-use super::DOUBLE_ENDED_ITERATOR_LAST;
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for `Iterator::last` being called on a  `DoubleEndedIterator`, which can be replaced
+    /// with `DoubleEndedIterator::next_back`.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// `Iterator::last` is implemented by consuming the iterator, which is unnecessary if
+    /// the iterator is a `DoubleEndedIterator`. Since Rust traits do not allow specialization,
+    /// `Iterator::last` cannot be optimized for `DoubleEndedIterator`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let last_arg = "echo hello world".split(' ').last();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let last_arg = "echo hello world".split(' ').next_back();
+    /// ```
+    #[clippy::version = "1.86.0"]
+    pub DOUBLE_ENDED_ITERATOR_LAST,
+    perf,
+    "using `Iterator::last` on a `DoubleEndedIterator`"
+}
 
 pub(super) fn check(cx: &LateContext<'_>, expr: &'_ Expr<'_>, self_expr: &'_ Expr<'_>, call_span: Span) {
     let typeck = cx.typeck_results();

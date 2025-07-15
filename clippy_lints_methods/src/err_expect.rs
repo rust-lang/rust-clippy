@@ -1,4 +1,3 @@
-use super::ERR_EXPECT;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::ty::{has_debug_impl, is_type_diagnostic_item};
@@ -7,6 +6,29 @@ use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_middle::ty::Ty;
 use rustc_span::{Span, sym};
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `.err().expect()` calls on the `Result` type.
+    ///
+    /// ### Why is this bad?
+    /// `.expect_err()` can be called directly to avoid the extra type conversion from `err()`.
+    ///
+    /// ### Example
+    /// ```should_panic
+    /// let x: Result<u32, &str> = Ok(10);
+    /// x.err().expect("Testing err().expect()");
+    /// ```
+    /// Use instead:
+    /// ```should_panic
+    /// let x: Result<u32, &str> = Ok(10);
+    /// x.expect_err("Testing expect_err");
+    /// ```
+    #[clippy::version = "1.62.0"]
+    pub ERR_EXPECT,
+    style,
+    r#"using `.err().expect("")` when `.expect_err("")` can be used"#
+}
 
 pub(super) fn check(
     cx: &LateContext<'_>,

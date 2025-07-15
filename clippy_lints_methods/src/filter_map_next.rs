@@ -7,7 +7,28 @@ use rustc_hir as hir;
 use rustc_lint::LateContext;
 use rustc_span::sym;
 
-use super::FILTER_MAP_NEXT;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `_.filter_map(_).next()`.
+    ///
+    /// ### Why is this bad?
+    /// Readability, this can be written more concisely as
+    /// `_.find_map(_)`.
+    ///
+    /// ### Example
+    /// ```no_run
+    ///  (0..3).filter_map(|x| if x == 2 { Some(x) } else { None }).next();
+    /// ```
+    /// Can be written as
+    ///
+    /// ```no_run
+    ///  (0..3).find_map(|x| if x == 2 { Some(x) } else { None });
+    /// ```
+    #[clippy::version = "1.36.0"]
+    pub FILTER_MAP_NEXT,
+    pedantic,
+    "using combination of `filter_map` and `next` which can usually be written as a single method call"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

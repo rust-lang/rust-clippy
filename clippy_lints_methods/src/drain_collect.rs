@@ -1,4 +1,3 @@
-use crate::DRAIN_COLLECT;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet;
 use clippy_utils::ty::is_type_lang_item;
@@ -9,6 +8,42 @@ use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_middle::ty::Ty;
 use rustc_span::{Symbol, sym};
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for calls to `.drain()` that clear the collection, immediately followed by a call to `.collect()`.
+    ///
+    /// > "Collection" in this context refers to any type with a `drain` method:
+    /// > `Vec`, `VecDeque`, `BinaryHeap`, `HashSet`,`HashMap`, `String`
+    ///
+    /// ### Why is this bad?
+    /// Using `mem::take` is faster as it avoids the allocation.
+    /// When using `mem::take`, the old collection is replaced with an empty one and ownership of
+    /// the old collection is returned.
+    ///
+    /// ### Known issues
+    /// `mem::take(&mut vec)` is almost equivalent to `vec.drain(..).collect()`, except that
+    /// it also moves the **capacity**. The user might have explicitly written it this way
+    /// to keep the capacity on the original `Vec`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// fn remove_all(v: &mut Vec<i32>) -> Vec<i32> {
+    ///     v.drain(..).collect()
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// use std::mem;
+    /// fn remove_all(v: &mut Vec<i32>) -> Vec<i32> {
+    ///     mem::take(v)
+    /// }
+    /// ```
+    #[clippy::version = "1.72.0"]
+    pub DRAIN_COLLECT,
+    perf,
+    "calling `.drain(..).collect()` to move all elements into a new collection"
+}
 
 /// Checks if both types match the given diagnostic item, e.g.:
 ///

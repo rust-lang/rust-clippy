@@ -7,7 +7,30 @@ use rustc_hir as hir;
 use rustc_lint::LateContext;
 use rustc_span::sym;
 
-use super::FILTER_NEXT;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `_.filter(_).next()`.
+    ///
+    /// ### Why is this bad?
+    /// Readability, this can be written more concisely as
+    /// `_.find(_)`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let vec = vec![1];
+    /// vec.iter().filter(|x| **x == 0).next();
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # let vec = vec![1];
+    /// vec.iter().find(|x| **x == 0);
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub FILTER_NEXT,
+    complexity,
+    "using `filter(p).next()`, which is more succinctly expressed as `.find(p)`"
+}
 
 fn path_to_local(expr: &hir::Expr<'_>) -> Option<hir::HirId> {
     match expr.kind {

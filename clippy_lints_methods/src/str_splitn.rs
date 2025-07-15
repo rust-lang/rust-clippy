@@ -14,7 +14,64 @@ use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_span::{Span, Symbol, SyntaxContext};
 
-use super::{MANUAL_SPLIT_ONCE, NEEDLESS_SPLITN};
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `str::splitn(2, _)`
+    ///
+    /// ### Why is this bad?
+    /// `split_once` is both clearer in intent and slightly more efficient.
+    ///
+    /// ### Example
+    /// ```rust,ignore
+    /// let s = "key=value=add";
+    /// let (key, value) = s.splitn(2, '=').next_tuple()?;
+    /// let value = s.splitn(2, '=').nth(1)?;
+    ///
+    /// let mut parts = s.splitn(2, '=');
+    /// let key = parts.next()?;
+    /// let value = parts.next()?;
+    /// ```
+    ///
+    /// Use instead:
+    /// ```rust,ignore
+    /// let s = "key=value=add";
+    /// let (key, value) = s.split_once('=')?;
+    /// let value = s.split_once('=')?.1;
+    ///
+    /// let (key, value) = s.split_once('=')?;
+    /// ```
+    ///
+    /// ### Limitations
+    /// The multiple statement variant currently only detects `iter.next()?`/`iter.next().unwrap()`
+    /// in two separate `let` statements that immediately follow the `splitn()`
+    #[clippy::version = "1.57.0"]
+    pub MANUAL_SPLIT_ONCE,
+    complexity,
+    "replace `.splitn(2, pat)` with `.split_once(pat)`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `str::splitn` (or `str::rsplitn`) where using `str::split` would be the same.
+    /// ### Why is this bad?
+    /// The function `split` is simpler and there is no performance difference in these cases, considering
+    /// that both functions return a lazy iterator.
+    /// ### Example
+    /// ```no_run
+    /// let str = "key=value=add";
+    /// let _ = str.splitn(3, '=').next().unwrap();
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// let str = "key=value=add";
+    /// let _ = str.split('=').next().unwrap();
+    /// ```
+    #[clippy::version = "1.59.0"]
+    pub NEEDLESS_SPLITN,
+    complexity,
+    "usages of `str::splitn` that can be replaced with `str::split`"
+}
 
 pub(super) fn check(
     cx: &LateContext<'_>,

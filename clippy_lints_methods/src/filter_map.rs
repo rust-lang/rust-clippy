@@ -13,7 +13,103 @@ use rustc_middle::ty::adjustment::Adjust;
 use rustc_span::Span;
 use rustc_span::symbol::{Ident, Symbol};
 
-use super::{MANUAL_FILTER_MAP, MANUAL_FIND_MAP, OPTION_FILTER_MAP, RESULT_FILTER_MAP};
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `_.filter(_).map(_)` that can be written more simply
+    /// as `filter_map(_)`.
+    ///
+    /// ### Why is this bad?
+    /// Redundant code in the `filter` and `map` operations is poor style and
+    /// less performant.
+    ///
+     /// ### Example
+    /// ```no_run
+    /// (0_i32..10)
+    ///     .filter(|n| n.checked_add(1).is_some())
+    ///     .map(|n| n.checked_add(1).unwrap());
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// (0_i32..10).filter_map(|n| n.checked_add(1));
+    /// ```
+    #[clippy::version = "1.51.0"]
+    pub MANUAL_FILTER_MAP,
+    complexity,
+    "using `_.filter(_).map(_)` in a way that can be written more simply as `filter_map(_)`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `_.find(_).map(_)` that can be written more simply
+    /// as `find_map(_)`.
+    ///
+    /// ### Why is this bad?
+    /// Redundant code in the `find` and `map` operations is poor style and
+    /// less performant.
+    ///
+     /// ### Example
+    /// ```no_run
+    /// (0_i32..10)
+    ///     .find(|n| n.checked_add(1).is_some())
+    ///     .map(|n| n.checked_add(1).unwrap());
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// (0_i32..10).find_map(|n| n.checked_add(1));
+    /// ```
+    #[clippy::version = "1.51.0"]
+    pub MANUAL_FIND_MAP,
+    complexity,
+    "using `_.find(_).map(_)` in a way that can be written more simply as `find_map(_)`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for iterators of `Option`s using `.filter(Option::is_some).map(Option::unwrap)` that may
+    /// be replaced with a `.flatten()` call.
+    ///
+    /// ### Why is this bad?
+    /// `Option` is like a collection of 0-1 things, so `flatten`
+    /// automatically does this without suspicious-looking `unwrap` calls.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let _ = std::iter::empty::<Option<i32>>().filter(Option::is_some).map(Option::unwrap);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let _ = std::iter::empty::<Option<i32>>().flatten();
+    /// ```
+    #[clippy::version = "1.53.0"]
+    pub OPTION_FILTER_MAP,
+    complexity,
+    "filtering `Option` for `Some` then force-unwrapping, which can be one type-safe operation"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for iterators of `Result`s using `.filter(Result::is_ok).map(Result::unwrap)` that may
+    /// be replaced with a `.flatten()` call.
+    ///
+    /// ### Why is this bad?
+    /// `Result` implements `IntoIterator<Item = T>`. This means that `Result` can be flattened
+    /// automatically without suspicious-looking `unwrap` calls.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let _ = std::iter::empty::<Result<i32, ()>>().filter(Result::is_ok).map(Result::unwrap);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let _ = std::iter::empty::<Result<i32, ()>>().flatten();
+    /// ```
+    #[clippy::version = "1.77.0"]
+    pub RESULT_FILTER_MAP,
+    complexity,
+    "filtering `Result` for `Ok` then force-unwrapping, which can be one type-safe operation"
+}
 
 fn is_method(cx: &LateContext<'_>, expr: &Expr<'_>, method_name: Symbol) -> bool {
     match &expr.kind {

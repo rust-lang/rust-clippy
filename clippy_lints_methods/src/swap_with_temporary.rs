@@ -7,7 +7,52 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::adjustment::Adjust;
 use rustc_span::sym;
 
-use super::SWAP_WITH_TEMPORARY;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `std::mem::swap` with temporary values.
+    ///
+    /// ### Why is this bad?
+    /// Storing a new value in place of a temporary value which will
+    /// be dropped right after the `swap` is an inefficient way of performing
+    /// an assignment. The same result can be achieved by using a regular
+    /// assignment.
+    ///
+    /// ### Examples
+    /// ```no_run
+    /// fn replace_string(s: &mut String) {
+    ///     std::mem::swap(s, &mut String::from("replaced"));
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// fn replace_string(s: &mut String) {
+    ///     *s = String::from("replaced");
+    /// }
+    /// ```
+    ///
+    /// Also, swapping two temporary values has no effect, as they will
+    /// both be dropped right after swapping them. This is likely an indication
+    /// of a bug. For example, the following code swaps the references to
+    /// the last element of the vectors, instead of swapping the elements
+    /// themselves:
+    ///
+    /// ```no_run
+    /// fn bug(v1: &mut [i32], v2: &mut [i32]) {
+    ///     // Incorrect: swapping temporary references (`&mut &mut` passed to swap)
+    ///     std::mem::swap(&mut v1.last_mut().unwrap(), &mut v2.last_mut().unwrap());
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// fn correct(v1: &mut [i32], v2: &mut [i32]) {
+    ///     std::mem::swap(v1.last_mut().unwrap(), v2.last_mut().unwrap());
+    /// }
+    /// ```
+    #[clippy::version = "1.88.0"]
+    pub SWAP_WITH_TEMPORARY,
+    complexity,
+    "detect swap with a temporary value"
+}
 
 const MSG_TEMPORARY: &str = "this expression returns a temporary value";
 const MSG_TEMPORARY_REFMUT: &str = "this is a mutable reference to a temporary value";

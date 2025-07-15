@@ -1,4 +1,3 @@
-use crate::MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::snippet_with_applicability;
@@ -11,6 +10,40 @@ use rustc_errors::Applicability;
 use rustc_hir::{Body, Closure, Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_span::Span;
+
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for `Iterator::map` over ranges without using the parameter which
+    /// could be more clearly expressed using `std::iter::repeat(...).take(...)`
+    /// or `std::iter::repeat_n`.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// It expresses the intent more clearly to `take` the correct number of times
+    /// from a generating function than to apply a closure to each number in a
+    /// range only to discard them.
+    ///
+    /// ### Example
+    ///
+    /// ```no_run
+    /// let random_numbers : Vec<_> = (0..10).map(|_| { 3 + 1 }).collect();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let f : Vec<_> = std::iter::repeat( 3 + 1 ).take(10).collect();
+    /// ```
+    ///
+    /// ### Known Issues
+    ///
+    /// This lint may suggest replacing a `Map<Range>` with a `Take<RepeatWith>`.
+    /// The former implements some traits that the latter does not, such as
+    /// `DoubleEndedIterator`.
+    #[clippy::version = "1.84.0"]
+    pub MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
+    restriction,
+    "map of a trivial closure (not dependent on parameter) over a range"
+}
 
 fn extract_count_with_applicability(
     cx: &LateContext<'_>,

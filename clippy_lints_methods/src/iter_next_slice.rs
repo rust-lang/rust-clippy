@@ -10,7 +10,32 @@ use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_span::symbol::sym;
 
-use super::ITER_NEXT_SLICE;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `iter().next()` on a Slice or an Array
+    ///
+    /// ### Why is this bad?
+    /// These can be shortened into `.get()`
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let a = [1, 2, 3];
+    /// # let b = vec![1, 2, 3];
+    /// a[2..].iter().next();
+    /// b.iter().next();
+    /// ```
+    /// should be written as:
+    /// ```no_run
+    /// # let a = [1, 2, 3];
+    /// # let b = vec![1, 2, 3];
+    /// a.get(2);
+    /// b.get(0);
+    /// ```
+    #[clippy::version = "1.46.0"]
+    pub ITER_NEXT_SLICE,
+    style,
+    "using `.iter().next()` on a sliced array, which can be shortened to just `.get()`"
+}
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>, caller_expr: &'tcx hir::Expr<'_>) {
     // Skip lint if the `iter().next()` expression is a for loop argument,

@@ -8,7 +8,27 @@ use rustc_lint::LateContext;
 use rustc_span::source_map::Spanned;
 use rustc_span::{Span, sym};
 
-use super::VEC_RESIZE_TO_ZERO;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Finds occurrences of `Vec::resize(0, an_int)`
+    ///
+    /// ### Why is this bad?
+    /// This is probably an argument inversion mistake.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// vec![1, 2, 3, 4, 5].resize(0, 5)
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// vec![1, 2, 3, 4, 5].clear()
+    /// ```
+    #[clippy::version = "1.46.0"]
+    pub VEC_RESIZE_TO_ZERO,
+    correctness,
+    "emptying a vector with `resize(0, an_int)` instead of `clear()` is probably an argument inversion mistake"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

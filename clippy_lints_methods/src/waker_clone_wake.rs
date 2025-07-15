@@ -6,7 +6,27 @@ use rustc_hir::{Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_span::sym;
 
-use super::WAKER_CLONE_WAKE;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `waker.clone().wake()`
+    ///
+    /// ### Why is this bad?
+    /// Cloning the waker is not necessary, `wake_by_ref()` enables the same operation
+    /// without extra cloning/dropping.
+    ///
+    /// ### Example
+    /// ```rust,ignore
+    /// waker.clone().wake();
+    /// ```
+    /// Should be written
+    /// ```rust,ignore
+    /// waker.wake_by_ref();
+    /// ```
+    #[clippy::version = "1.75.0"]
+    pub WAKER_CLONE_WAKE,
+    perf,
+    "cloning a `Waker` only to wake it"
+}
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, recv: &'tcx Expr<'_>) {
     let ty = cx.typeck_results().expr_ty(recv);

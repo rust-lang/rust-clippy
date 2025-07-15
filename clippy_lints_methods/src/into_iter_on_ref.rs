@@ -8,7 +8,32 @@ use rustc_middle::ty::{self, Ty};
 use rustc_span::Span;
 use rustc_span::symbol::{Symbol, sym};
 
-use super::INTO_ITER_ON_REF;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `into_iter` calls on references which should be replaced by `iter`
+    /// or `iter_mut`.
+    ///
+    /// ### Why is this bad?
+    /// Readability. Calling `into_iter` on a reference will not move out its
+    /// content into the resulting iterator, which is confusing. It is better just call `iter` or
+    /// `iter_mut` directly.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let vec = vec![3, 4, 5];
+    /// (&vec).into_iter();
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # let vec = vec![3, 4, 5];
+    /// (&vec).iter();
+    /// ```
+    #[clippy::version = "1.32.0"]
+    pub INTO_ITER_ON_REF,
+    style,
+    "using `.into_iter()` on a reference"
+}
 
 pub(super) fn check(
     cx: &LateContext<'_>,

@@ -11,7 +11,31 @@ use rustc_span::{Span, Symbol, sym};
 
 use core::ops::ControlFlow;
 
-use super::USELESS_ASREF;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `.as_ref()` or `.as_mut()` where the
+    /// types before and after the call are the same.
+    ///
+    /// ### Why is this bad?
+    /// The call is unnecessary.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # fn do_stuff(x: &[i32]) {}
+    /// let x: &[i32] = &[1, 2, 3, 4, 5];
+    /// do_stuff(x.as_ref());
+    /// ```
+    /// The correct use would be:
+    /// ```no_run
+    /// # fn do_stuff(x: &[i32]) {}
+    /// let x: &[i32] = &[1, 2, 3, 4, 5];
+    /// do_stuff(x);
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub USELESS_ASREF,
+    complexity,
+    "using `as_ref` where the types before and after the call are the same"
+}
 
 /// Returns the first type inside the `Option`/`Result` type passed as argument.
 fn get_enum_ty(enum_ty: Ty<'_>) -> Option<Ty<'_>> {

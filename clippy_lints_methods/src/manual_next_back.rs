@@ -6,6 +6,29 @@ use rustc_hir::Expr;
 use rustc_lint::LateContext;
 use rustc_span::symbol::sym;
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `.rev().next()` on a `DoubleEndedIterator`
+    ///
+    /// ### Why is this bad?
+    /// `.next_back()` is cleaner.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let foo = [0; 10];
+    /// foo.iter().rev().next();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # let foo = [0; 10];
+    /// foo.iter().next_back();
+    /// ```
+    #[clippy::version = "1.71.0"]
+    pub MANUAL_NEXT_BACK,
+    style,
+    "manual reverse iteration of `DoubleEndedIterator`"
+}
+
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,
     expr: &'tcx Expr<'_>,
@@ -25,7 +48,7 @@ pub(super) fn check<'tcx>(
     {
         span_lint_and_sugg(
             cx,
-            super::MANUAL_NEXT_BACK,
+            MANUAL_NEXT_BACK,
             expr.span.with_lo(rev_recv.span.hi()),
             "manual backwards iteration",
             "use",

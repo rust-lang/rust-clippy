@@ -8,7 +8,7 @@ use rustc_hir::LangItem::{OptionNone, OptionSome};
 use rustc_lint::LateContext;
 use rustc_span::symbol::sym;
 
-use super::RESULT_MAP_OR_INTO_OPTION;
+use crate::option_map_or_none::RESULT_MAP_OR_INTO_OPTION;
 
 /// lint use of `_.map_or_else(|_| None, Some)` for `Result`s
 pub(super) fn check<'tcx>(

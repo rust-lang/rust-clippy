@@ -8,7 +8,32 @@ use rustc_hir::{Block, BlockCheckMode, Expr, ExprKind, Node, QPath, UnsafeSource
 use rustc_lint::LateContext;
 use rustc_span::sym;
 
-use super::USELESS_NONZERO_NEW_UNCHECKED;
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for `NonZero*::new_unchecked()` being used in a `const` context.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// Using `NonZero*::new_unchecked()` is an `unsafe` function and requires an `unsafe` context. When used in a
+    /// context evaluated at compilation time, `NonZero*::new().unwrap()` will provide the same result with identical
+    /// runtime performances while not requiring `unsafe`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// use std::num::NonZeroUsize;
+    /// const PLAYERS: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(3) };
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// use std::num::NonZeroUsize;
+    /// const PLAYERS: NonZeroUsize = NonZeroUsize::new(3).unwrap();
+    /// ```
+    #[clippy::version = "1.86.0"]
+    pub USELESS_NONZERO_NEW_UNCHECKED,
+    complexity,
+    "using `NonZero::new_unchecked()` in a `const` context"
+}
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>, func: &Expr<'tcx>, args: &[Expr<'_>], msrv: Msrv) {
     if let ExprKind::Path(QPath::TypeRelative(ty, segment)) = func.kind

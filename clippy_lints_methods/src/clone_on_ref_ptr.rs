@@ -6,7 +6,36 @@ use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_span::symbol::{Symbol, sym};
 
-use super::CLONE_ON_REF_PTR;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `.clone()` on a ref-counted pointer,
+    /// (`Rc`, `Arc`, `rc::Weak`, or `sync::Weak`), and suggests calling Clone via unified
+    /// function syntax instead (e.g., `Rc::clone(foo)`).
+    ///
+    /// ### Why restrict this?
+    /// Calling `.clone()` on an `Rc`, `Arc`, or `Weak`
+    /// can obscure the fact that only the pointer is being cloned, not the underlying
+    /// data.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # use std::rc::Rc;
+    /// let x = Rc::new(1);
+    ///
+    /// x.clone();
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # use std::rc::Rc;
+    /// # let x = Rc::new(1);
+    /// Rc::clone(&x);
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub CLONE_ON_REF_PTR,
+    restriction,
+    "using `clone` on a ref-counted pointer"
+}
 
 pub(super) fn check(
     cx: &LateContext<'_>,

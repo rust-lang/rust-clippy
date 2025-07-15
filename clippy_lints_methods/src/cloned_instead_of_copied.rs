@@ -8,7 +8,28 @@ use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_span::{Span, sym};
 
-use super::CLONED_INSTEAD_OF_COPIED;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `cloned()` on an `Iterator` or `Option` where
+    /// `copied()` could be used instead.
+    ///
+    /// ### Why is this bad?
+    /// `copied()` is better because it guarantees that the type being cloned
+    /// implements `Copy`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// [1, 2, 3].iter().cloned();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// [1, 2, 3].iter().copied();
+    /// ```
+    #[clippy::version = "1.53.0"]
+    pub CLONED_INSTEAD_OF_COPIED,
+    pedantic,
+    "used `cloned` where `copied` could be used instead"
+}
 
 pub fn check(cx: &LateContext<'_>, expr: &Expr<'_>, recv: &Expr<'_>, span: Span, msrv: Msrv) {
     let recv_ty = cx.typeck_results().expr_ty_adjusted(recv);

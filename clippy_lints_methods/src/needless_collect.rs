@@ -1,6 +1,3 @@
-use std::ops::ControlFlow;
-
-use super::NEEDLESS_COLLECT;
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_hir_and_then};
 use clippy_utils::source::{snippet, snippet_with_applicability};
 use clippy_utils::sugg::Sugg;
@@ -22,6 +19,32 @@ use rustc_middle::hir::nested_filter;
 use rustc_middle::ty::{self, AssocTag, ClauseKind, EarlyBinder, GenericArg, GenericArgKind, Ty};
 use rustc_span::Span;
 use rustc_span::symbol::Ident;
+use std::ops::ControlFlow;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for functions collecting an iterator when collect
+    /// is not needed.
+    ///
+    /// ### Why is this bad?
+    /// `collect` causes the allocation of a new data structure,
+    /// when this allocation may not be needed.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let iterator = vec![1].into_iter();
+    /// let len = iterator.collect::<Vec<_>>().len();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # let iterator = vec![1].into_iter();
+    /// let len = iterator.count();
+    /// ```
+    #[clippy::version = "1.30.0"]
+    pub NEEDLESS_COLLECT,
+    nursery,
+    "collecting an iterator when collect is not needed"
+}
 
 const NEEDLESS_COLLECT_MSG: &str = "avoid using `collect()` when not needed";
 

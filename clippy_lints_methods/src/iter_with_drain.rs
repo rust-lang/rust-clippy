@@ -6,7 +6,30 @@ use rustc_lint::LateContext;
 use rustc_span::Span;
 use rustc_span::symbol::sym;
 
-use super::ITER_WITH_DRAIN;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `.drain(..)` on `Vec` and `VecDeque` for iteration.
+    ///
+    /// ### Why is this bad?
+    /// `.into_iter()` is simpler with better performance.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # use std::collections::HashSet;
+    /// let mut foo = vec![0, 1, 2, 3];
+    /// let bar: HashSet<usize> = foo.drain(..).collect();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # use std::collections::HashSet;
+    /// let foo = vec![0, 1, 2, 3];
+    /// let bar: HashSet<usize> = foo.into_iter().collect();
+    /// ```
+    #[clippy::version = "1.61.0"]
+    pub ITER_WITH_DRAIN,
+    nursery,
+    "replace `.drain(..)` with `.into_iter()`"
+}
 
 pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, recv: &Expr<'_>, span: Span, arg: &Expr<'_>) {
     if !matches!(recv.kind, ExprKind::Field(..))

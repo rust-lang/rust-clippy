@@ -9,7 +9,36 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::{self, UintTy};
 use rustc_span::sym;
 
-use super::NAIVE_BYTECOUNT;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for naive byte counts
+    ///
+    /// ### Why is this bad?
+    /// The [`bytecount`](https://crates.io/crates/bytecount)
+    /// crate has methods to count your bytes faster, especially for large slices.
+    ///
+    /// ### Known problems
+    /// If you have predominantly small slices, the
+    /// `bytecount::count(..)` method may actually be slower. However, if you can
+    /// ensure that less than 2³²-1 matches arise, the `naive_count_32(..)` can be
+    /// faster in those cases.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let vec = vec![1_u8];
+    /// let count = vec.iter().filter(|x| **x == 0u8).count();
+    /// ```
+    ///
+    /// Use instead:
+    /// ```rust,ignore
+    /// # let vec = vec![1_u8];
+    /// let count = bytecount::count(&vec, 0u8);
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub NAIVE_BYTECOUNT,
+    pedantic,
+    "use of naive `<slice>.filter(|&x| x == y).count()` to count byte values"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

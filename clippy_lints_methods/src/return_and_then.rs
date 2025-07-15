@@ -11,7 +11,44 @@ use clippy_utils::ty::get_type_diagnostic_name;
 use clippy_utils::visitors::for_each_unconsumed_temporary;
 use clippy_utils::{peel_blocks, potential_return_of_enclosing_body};
 
-use super::RETURN_AND_THEN;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Detect functions that end with `Option::and_then` or `Result::and_then`, and suggest using
+    /// the `?` operator instead.
+    ///
+    /// ### Why is this bad?
+    /// The `and_then` method is used to chain a computation that returns an `Option` or a `Result`.
+    /// This can be replaced with the `?` operator, which is more concise and idiomatic.
+    ///
+    /// ### Example
+    ///
+    /// ```no_run
+    /// fn test(opt: Option<i32>) -> Option<i32> {
+    ///     opt.and_then(|n| {
+    ///         if n > 1 {
+    ///             Some(n + 1)
+    ///         } else {
+    ///             None
+    ///        }
+    ///     })
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// fn test(opt: Option<i32>) -> Option<i32> {
+    ///     let n = opt?;
+    ///     if n > 1 {
+    ///         Some(n + 1)
+    ///     } else {
+    ///         None
+    ///     }
+    /// }
+    /// ```
+    #[clippy::version = "1.86.0"]
+    pub RETURN_AND_THEN,
+    restriction,
+    "using `Option::and_then` or `Result::and_then` to chain a computation that returns an `Option` or a `Result`"
+}
 
 /// lint if `and_then` is the last expression in a block, and
 /// there are no references or temporaries in the receiver

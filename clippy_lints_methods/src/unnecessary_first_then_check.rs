@@ -6,7 +6,33 @@ use rustc_hir::{Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_span::Span;
 
-use super::UNNECESSARY_FIRST_THEN_CHECK;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks the usage of `.first().is_some()` or `.first().is_none()` to check if a slice is
+    /// empty.
+    ///
+    /// ### Why is this bad?
+    /// Using `.is_empty()` is shorter and better communicates the intention.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let v = vec![1, 2, 3];
+    /// if v.first().is_none() {
+    ///     // The vector is empty...
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let v = vec![1, 2, 3];
+    /// if v.is_empty() {
+    ///     // The vector is empty...
+    /// }
+    /// ```
+    #[clippy::version = "1.83.0"]
+    pub UNNECESSARY_FIRST_THEN_CHECK,
+    complexity,
+    "calling `.first().is_some()` or `.first().is_none()` instead of `.is_empty()`"
+}
 
 pub(super) fn check(
     cx: &LateContext<'_>,

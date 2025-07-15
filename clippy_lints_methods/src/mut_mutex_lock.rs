@@ -6,7 +6,41 @@ use rustc_hir::{Expr, Mutability};
 use rustc_lint::LateContext;
 use rustc_span::{Span, sym};
 
-use super::MUT_MUTEX_LOCK;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `&mut Mutex::lock` calls
+    ///
+    /// ### Why is this bad?
+    /// `Mutex::lock` is less efficient than
+    /// calling `Mutex::get_mut`. In addition you also have a statically
+    /// guarantee that the mutex isn't locked, instead of just a runtime
+    /// guarantee.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// use std::sync::{Arc, Mutex};
+    ///
+    /// let mut value_rc = Arc::new(Mutex::new(42_u8));
+    /// let value_mutex = Arc::get_mut(&mut value_rc).unwrap();
+    ///
+    /// let mut value = value_mutex.lock().unwrap();
+    /// *value += 1;
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// use std::sync::{Arc, Mutex};
+    ///
+    /// let mut value_rc = Arc::new(Mutex::new(42_u8));
+    /// let value_mutex = Arc::get_mut(&mut value_rc).unwrap();
+    ///
+    /// let value = value_mutex.get_mut().unwrap();
+    /// *value += 1;
+    /// ```
+    #[clippy::version = "1.49.0"]
+    pub MUT_MUTEX_LOCK,
+    style,
+    "`&mut Mutex::lock` does unnecessary locking"
+}
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, ex: &'tcx Expr<'tcx>, recv: &'tcx Expr<'tcx>, name_span: Span) {
     if matches!(expr_custom_deref_adjustment(cx, recv), None | Some(Mutability::Mut))

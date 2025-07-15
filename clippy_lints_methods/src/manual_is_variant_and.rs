@@ -10,7 +10,32 @@ use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_span::{BytePos, Span, sym};
 
-use super::MANUAL_IS_VARIANT_AND;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `option.map(f).unwrap_or_default()` and `result.map(f).unwrap_or_default()` where f is a function or closure that returns the `bool` type.
+    ///
+    /// ### Why is this bad?
+    /// Readability. These can be written more concisely as `option.is_some_and(f)` and `result.is_ok_and(f)`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let option = Some(1);
+    /// # let result: Result<usize, ()> = Ok(1);
+    /// option.map(|a| a > 10).unwrap_or_default();
+    /// result.map(|a| a > 10).unwrap_or_default();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # let option = Some(1);
+    /// # let result: Result<usize, ()> = Ok(1);
+    /// option.is_some_and(|a| a > 10);
+    /// result.is_ok_and(|a| a > 10);
+    /// ```
+    #[clippy::version = "1.77.0"]
+    pub MANUAL_IS_VARIANT_AND,
+    pedantic,
+    "using `.map(f).unwrap_or_default()`, which is more succinctly expressed as `is_some_and(f)` or `is_ok_and(f)`"
+}
 
 pub(super) fn check(
     cx: &LateContext<'_>,

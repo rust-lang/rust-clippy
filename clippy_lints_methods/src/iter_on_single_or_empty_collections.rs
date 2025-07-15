@@ -12,7 +12,68 @@ use rustc_hir::{Expr, ExprKind, Node};
 use rustc_lint::LateContext;
 use rustc_span::Symbol;
 
-use super::{ITER_ON_EMPTY_COLLECTIONS, ITER_ON_SINGLE_ITEMS};
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for calls to `iter`, `iter_mut` or `into_iter` on collections containing a single item
+    ///
+    /// ### Why is this bad?
+    ///
+    /// It is simpler to use the once function from the standard library:
+    ///
+    /// ### Example
+    ///
+    /// ```no_run
+    /// let a = [123].iter();
+    /// let b = Some(123).into_iter();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// use std::iter;
+    /// let a = iter::once(&123);
+    /// let b = iter::once(123);
+    /// ```
+    ///
+    /// ### Known problems
+    ///
+    /// The type of the resulting iterator might become incompatible with its usage
+    #[clippy::version = "1.65.0"]
+    pub ITER_ON_SINGLE_ITEMS,
+    nursery,
+    "Iterator for array of length 1"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for calls to `iter`, `iter_mut` or `into_iter` on empty collections
+    ///
+    /// ### Why is this bad?
+    ///
+    /// It is simpler to use the empty function from the standard library:
+    ///
+    /// ### Example
+    ///
+    /// ```no_run
+    /// use std::{slice, option};
+    /// let a: slice::Iter<i32> = [].iter();
+    /// let f: option::IntoIter<i32> = None.into_iter();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// use std::iter;
+    /// let a: iter::Empty<i32> = iter::empty();
+    /// let b: iter::Empty<i32> = iter::empty();
+    /// ```
+    ///
+    /// ### Known problems
+    ///
+    /// The type of the resulting iterator might become incompatible with its usage
+    #[clippy::version = "1.65.0"]
+    pub ITER_ON_EMPTY_COLLECTIONS,
+    nursery,
+    "Iterator for empty array"
+}
 
 enum IterType {
     Iter,

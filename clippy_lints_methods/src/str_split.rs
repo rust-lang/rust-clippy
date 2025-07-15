@@ -7,7 +7,34 @@ use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::LateContext;
 
-use super::STR_SPLIT_AT_NEWLINE;
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for usages of `str.trim().split("\n")` and `str.trim().split("\r\n")`.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// Hard-coding the line endings makes the code less compatible. `str.lines` should be used instead.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// "some\ntext\nwith\nnewlines\n".trim().split('\n');
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// "some\ntext\nwith\nnewlines\n".lines();
+    /// ```
+    ///
+    /// ### Known Problems
+    ///
+    /// This lint cannot detect if the split is intentionally restricted to a single type of newline (`"\n"` or
+    /// `"\r\n"`), for example during the parsing of a specific file format in which precisely one newline type is
+    /// valid.
+    #[clippy::version = "1.77.0"]
+    pub STR_SPLIT_AT_NEWLINE,
+    pedantic,
+    "splitting a trimmed string at hard-coded newlines"
+}
 
 pub(super) fn check<'a>(cx: &LateContext<'a>, expr: &'_ Expr<'_>, split_recv: &'a Expr<'_>, split_arg: &'_ Expr<'_>) {
     // We're looking for `A.trim().split(B)`, where the adjusted type of `A` is `&str` (e.g. an

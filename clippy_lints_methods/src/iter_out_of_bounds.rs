@@ -7,7 +7,29 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::{self};
 use rustc_span::sym;
 
-use super::ITER_OUT_OF_BOUNDS;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Looks for iterator combinator calls such as `.take(x)` or `.skip(x)`
+    /// where `x` is greater than the amount of items that an iterator will produce.
+    ///
+    /// ### Why is this bad?
+    /// Taking or skipping more items than there are in an iterator either creates an iterator
+    /// with all items from the original iterator or an iterator with no items at all.
+    /// This is most likely not what the user intended to do.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// for _ in [1, 2, 3].iter().take(4) {}
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// for _ in [1, 2, 3].iter() {}
+    /// ```
+    #[clippy::version = "1.74.0"]
+    pub ITER_OUT_OF_BOUNDS,
+    suspicious,
+    "calls to `.take()` or `.skip()` that are out of bounds"
+}
 
 fn expr_as_u128(cx: &LateContext<'_>, e: &Expr<'_>) -> Option<u128> {
     if let ExprKind::Lit(lit) = expr_or_init(cx, e).kind

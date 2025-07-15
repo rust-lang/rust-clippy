@@ -8,7 +8,35 @@ use rustc_hir as hir;
 use rustc_lint::LateContext;
 use rustc_span::sym;
 
-use super::ITER_NTH_ZERO;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for the use of `iter.nth(0)`.
+    ///
+    /// ### Why is this bad?
+    /// `iter.next()` is equivalent to
+    /// `iter.nth(0)`, as they both consume the next element,
+    ///  but is more readable.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # use std::collections::HashSet;
+    /// # let mut s = HashSet::new();
+    /// # s.insert(1);
+    /// let x = s.iter().nth(0);
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # use std::collections::HashSet;
+    /// # let mut s = HashSet::new();
+    /// # s.insert(1);
+    /// let x = s.iter().next();
+    /// ```
+    #[clippy::version = "1.42.0"]
+    pub ITER_NTH_ZERO,
+    style,
+    "replace `iter.nth(0)` with `iter.next()`"
+}
 
 pub(super) fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, recv: &hir::Expr<'_>, arg: &hir::Expr<'_>) {
     if let OwnerNode::Item(item) = cx.tcx.hir_owner_node(cx.tcx.hir_get_parent_item(expr.hir_id))

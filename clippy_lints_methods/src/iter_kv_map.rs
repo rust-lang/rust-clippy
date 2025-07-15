@@ -1,4 +1,3 @@
-use super::ITER_KV_MAP;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::snippet_with_applicability;
@@ -7,6 +6,37 @@ use clippy_utils::{pat_is_wild, sym};
 use rustc_hir::{Body, Expr, ExprKind, PatKind};
 use rustc_lint::LateContext;
 use rustc_span::Symbol;
+
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for iterating a map (`HashMap` or `BTreeMap`) and
+    /// ignoring either the keys or values.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// Readability. There are `keys` and `values` methods that
+    /// can be used to express that we only need the keys or the values.
+    ///
+    /// ### Example
+    ///
+    /// ```no_run
+    /// # use std::collections::HashMap;
+    /// let map: HashMap<u32, u32> = HashMap::new();
+    /// let values = map.iter().map(|(_, value)| value).collect::<Vec<_>>();
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # use std::collections::HashMap;
+    /// let map: HashMap<u32, u32> = HashMap::new();
+    /// let values = map.values().collect::<Vec<_>>();
+    /// ```
+    #[clippy::version = "1.66.0"]
+    pub ITER_KV_MAP,
+    complexity,
+    "iterating on map using `iter` when `keys` or `values` would do"
+}
 
 /// lint use of:
 ///

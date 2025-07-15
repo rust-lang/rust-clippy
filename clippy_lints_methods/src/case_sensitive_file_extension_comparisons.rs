@@ -10,7 +10,33 @@ use rustc_lint::LateContext;
 use rustc_span::Span;
 use rustc_span::source_map::Spanned;
 
-use super::CASE_SENSITIVE_FILE_EXTENSION_COMPARISONS;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for calls to `ends_with` with possible file extensions
+    /// and suggests to use a case-insensitive approach instead.
+    ///
+    /// ### Why is this bad?
+    /// `ends_with` is case-sensitive and may not detect files with a valid extension.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// fn is_rust_file(filename: &str) -> bool {
+    ///     filename.ends_with(".rs")
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// fn is_rust_file(filename: &str) -> bool {
+    ///     let filename = std::path::Path::new(filename);
+    ///     filename.extension()
+    ///         .map_or(false, |ext| ext.eq_ignore_ascii_case("rs"))
+    /// }
+    /// ```
+    #[clippy::version = "1.51.0"]
+    pub CASE_SENSITIVE_FILE_EXTENSION_COMPARISONS,
+    pedantic,
+    "Checks for calls to ends_with with case-sensitive file extensions"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

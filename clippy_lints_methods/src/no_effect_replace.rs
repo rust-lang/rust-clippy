@@ -5,7 +5,23 @@ use rustc_ast::LitKind;
 use rustc_hir::{ExprKind, LangItem};
 use rustc_lint::LateContext;
 
-use super::NO_EFFECT_REPLACE;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `replace` statements which have no effect.
+    ///
+    /// ### Why is this bad?
+    /// It's either a mistake or confusing.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// "1234".replace("12", "12");
+    /// "1234".replacen("12", "12", 1);
+    /// ```
+    #[clippy::version = "1.63.0"]
+    pub NO_EFFECT_REPLACE,
+    suspicious,
+    "replace with no effect"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

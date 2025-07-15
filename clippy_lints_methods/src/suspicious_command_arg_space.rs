@@ -5,7 +5,31 @@ use rustc_lint::LateContext;
 use rustc_span::{Span, sym};
 use {rustc_ast as ast, rustc_hir as hir};
 
-use super::SUSPICIOUS_COMMAND_ARG_SPACE;
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for `Command::arg()` invocations that look like they
+    /// should be multiple arguments instead, such as `arg("-t ext2")`.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// `Command::arg()` does not split arguments by space. An argument like `arg("-t ext2")`
+    /// will be passed as a single argument to the command,
+    /// which is likely not what was intended.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// std::process::Command::new("echo").arg("-n hello").spawn().unwrap();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// std::process::Command::new("echo").args(["-n", "hello"]).spawn().unwrap();
+    /// ```
+    #[clippy::version = "1.69.0"]
+    pub SUSPICIOUS_COMMAND_ARG_SPACE,
+    suspicious,
+    "single command line argument that looks like it should be multiple arguments"
+}
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, recv: &'tcx hir::Expr<'_>, arg: &'tcx hir::Expr<'_>, span: Span) {
     let ty = cx.typeck_results().expr_ty(recv).peel_refs();

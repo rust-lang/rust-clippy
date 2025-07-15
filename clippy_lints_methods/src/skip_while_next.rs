@@ -4,7 +4,30 @@ use rustc_hir as hir;
 use rustc_lint::LateContext;
 use rustc_span::sym;
 
-use super::SKIP_WHILE_NEXT;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `_.skip_while(condition).next()`.
+    ///
+    /// ### Why is this bad?
+    /// Readability, this can be written more concisely as
+    /// `_.find(!condition)`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let vec = vec![1];
+    /// vec.iter().skip_while(|x| **x == 0).next();
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # let vec = vec![1];
+    /// vec.iter().find(|x| **x != 0);
+    /// ```
+    #[clippy::version = "1.42.0"]
+    pub SKIP_WHILE_NEXT,
+    complexity,
+    "using `skip_while(p).next()`, which is more succinctly expressed as `.find(!p)`"
+}
 
 /// lint use of `skip_while().next()` for `Iterators`
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>) {

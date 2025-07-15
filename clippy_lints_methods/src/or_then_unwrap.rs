@@ -8,7 +8,41 @@ use rustc_hir::{Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_span::{Span, sym};
 
-use super::OR_THEN_UNWRAP;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `.or(…).unwrap()` calls to Options and Results.
+    ///
+    /// ### Why is this bad?
+    /// You should use `.unwrap_or(…)` instead for clarity.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let fallback = "fallback";
+    /// // Result
+    /// # type Error = &'static str;
+    /// # let result: Result<&str, Error> = Err("error");
+    /// let value = result.or::<Error>(Ok(fallback)).unwrap();
+    ///
+    /// // Option
+    /// # let option: Option<&str> = None;
+    /// let value = option.or(Some(fallback)).unwrap();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # let fallback = "fallback";
+    /// // Result
+    /// # let result: Result<&str, &str> = Err("error");
+    /// let value = result.unwrap_or(fallback);
+    ///
+    /// // Option
+    /// # let option: Option<&str> = None;
+    /// let value = option.unwrap_or(fallback);
+    /// ```
+    #[clippy::version = "1.61.0"]
+    pub OR_THEN_UNWRAP,
+    complexity,
+    "checks for `.or(…).unwrap()` calls to Options and Results."
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

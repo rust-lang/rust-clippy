@@ -7,7 +7,28 @@ use rustc_hir::{Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_span::sym;
 
-use super::MANUAL_REPEAT_N;
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for `repeat().take()` that can be replaced with `repeat_n()`.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// Using `repeat_n()` is more concise and clearer. Also, `repeat_n()` is sometimes faster than `repeat().take()` when the type of the element is non-trivial to clone because the original value can be reused for the last `.next()` call rather than always cloning.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let _ = std::iter::repeat(10).take(3);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let _ = std::iter::repeat_n(10, 3);
+    /// ```
+    #[clippy::version = "1.86.0"]
+    pub MANUAL_REPEAT_N,
+    style,
+    "detect `repeat().take()` that can be replaced with `repeat_n()`"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

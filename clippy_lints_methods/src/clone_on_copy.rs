@@ -9,7 +9,23 @@ use rustc_middle::ty::print::with_forced_trimmed_paths;
 use rustc_middle::ty::{self};
 use rustc_span::symbol::{Symbol, sym};
 
-use super::CLONE_ON_COPY;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `.clone()` on a `Copy` type.
+    ///
+    /// ### Why is this bad?
+    /// The only reason `Copy` types implement `Clone` is for
+    /// generics, not for using the `clone` method on a concrete type.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// 42u64.clone();
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub CLONE_ON_COPY,
+    complexity,
+    "using `clone` on a `Copy` type"
+}
 
 /// Checks for the `CLONE_ON_COPY` lint.
 #[allow(clippy::too_many_lines)]

@@ -6,7 +6,30 @@ use rustc_hir::{Expr, LangItem};
 use rustc_lint::LateContext;
 use rustc_span::{Span, Symbol};
 
-use super::NEEDLESS_AS_BYTES;
+declare_clippy_lint! {
+   /// ### What it does
+   /// It detects useless calls to `str::as_bytes()` before calling `len()` or `is_empty()`.
+   ///
+   /// ### Why is this bad?
+   /// The `len()` and `is_empty()` methods are also directly available on strings, and they
+   /// return identical results. In particular, `len()` on a string returns the number of
+   /// bytes.
+   ///
+   /// ### Example
+   /// ```
+   /// let len = "some string".as_bytes().len();
+   /// let b = "some string".as_bytes().is_empty();
+   /// ```
+   /// Use instead:
+   /// ```
+   /// let len = "some string".len();
+   /// let b = "some string".is_empty();
+   /// ```
+   #[clippy::version = "1.84.0"]
+   pub NEEDLESS_AS_BYTES,
+   complexity,
+   "detect useless calls to `as_bytes()`"
+}
 
 pub fn check(cx: &LateContext<'_>, prev_method: Symbol, method: Symbol, prev_recv: &Expr<'_>, span: Span) {
     let ty1 = cx.typeck_results().expr_ty_adjusted(prev_recv).peel_refs();

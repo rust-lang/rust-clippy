@@ -8,7 +8,58 @@ use rustc_hir::LangItem::{OptionNone, OptionSome};
 use rustc_lint::LateContext;
 use rustc_span::symbol::sym;
 
-use super::{OPTION_MAP_OR_NONE, RESULT_MAP_OR_INTO_OPTION};
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `_.map_or(None, _)`.
+    ///
+    /// ### Why is this bad?
+    /// Readability, this can be written more concisely as
+    /// `_.and_then(_)`.
+    ///
+    /// ### Known problems
+    /// The order of the arguments is not in execution order.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let opt = Some(1);
+    /// opt.map_or(None, |a| Some(a + 1));
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # let opt = Some(1);
+    /// opt.and_then(|a| Some(a + 1));
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub OPTION_MAP_OR_NONE,
+    style,
+    "using `Option.map_or(None, f)`, which is more succinctly expressed as `and_then(f)`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `_.map_or(None, Some)`.
+    ///
+    /// ### Why is this bad?
+    /// Readability, this can be written more concisely as
+    /// `_.ok()`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let r: Result<u32, &str> = Ok(1);
+    /// assert_eq!(Some(1), r.map_or(None, Some));
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # let r: Result<u32, &str> = Ok(1);
+    /// assert_eq!(Some(1), r.ok());
+    /// ```
+    #[clippy::version = "1.44.0"]
+    pub RESULT_MAP_OR_INTO_OPTION,
+    style,
+    "using `Result.map_or(None, Some)`, which is more succinctly expressed as `ok()`"
+}
 
 // The expression inside a closure may or may not have surrounding braces
 // which causes problems when generating a suggestion.

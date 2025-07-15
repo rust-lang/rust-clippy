@@ -8,7 +8,34 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::Ty;
 use rustc_span::{Span, sym};
 
-use super::UNNECESSARY_GET_THEN_CHECK;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks the usage of `.get().is_some()` or `.get().is_none()` on std map types.
+    ///
+    /// ### Why is this bad?
+    /// It can be done in one call with `.contains()`/`.contains_key()`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # use std::collections::HashSet;
+    /// let s: HashSet<String> = HashSet::new();
+    /// if s.get("a").is_some() {
+    ///     // code
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # use std::collections::HashSet;
+    /// let s: HashSet<String> = HashSet::new();
+    /// if s.contains("a") {
+    ///     // code
+    /// }
+    /// ```
+    #[clippy::version = "1.78.0"]
+    pub UNNECESSARY_GET_THEN_CHECK,
+    suspicious,
+    "calling `.get().is_some()` or `.get().is_none()` instead of `.contains()` or `.contains_key()`"
+}
 
 fn is_a_std_set_type(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
     is_type_diagnostic_item(cx, ty, sym::HashSet) || is_type_diagnostic_item(cx, ty, sym::BTreeSet)

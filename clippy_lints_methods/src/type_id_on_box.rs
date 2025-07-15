@@ -1,4 +1,3 @@
-use crate::TYPE_ID_ON_BOX;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet;
 use rustc_errors::Applicability;
@@ -8,6 +7,46 @@ use rustc_middle::ty::adjustment::{Adjust, Adjustment};
 use rustc_middle::ty::print::with_forced_trimmed_paths;
 use rustc_middle::ty::{self, ExistentialPredicate, Ty};
 use rustc_span::{Span, sym};
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Looks for calls to `.type_id()` on a `Box<dyn _>`.
+    ///
+    /// ### Why is this bad?
+    /// This almost certainly does not do what the user expects and can lead to subtle bugs.
+    /// Calling `.type_id()` on a `Box<dyn Trait>` returns a fixed `TypeId` of the `Box` itself,
+    /// rather than returning the `TypeId` of the underlying type behind the trait object.
+    ///
+    /// For `Box<dyn Any>` specifically (and trait objects that have `Any` as its supertrait),
+    /// this lint will provide a suggestion, which is to dereference the receiver explicitly
+    /// to go from `Box<dyn Any>` to `dyn Any`.
+    /// This makes sure that `.type_id()` resolves to a dynamic call on the trait object
+    /// and not on the box.
+    ///
+    /// If the fixed `TypeId` of the `Box` is the intended behavior, it's better to be explicit about it
+    /// and write `TypeId::of::<Box<dyn Trait>>()`:
+    /// this makes it clear that a fixed `TypeId` is returned and not the `TypeId` of the implementor.
+    ///
+    /// ### Example
+    /// ```rust,ignore
+    /// use std::any::{Any, TypeId};
+    ///
+    /// let any_box: Box<dyn Any> = Box::new(42_i32);
+    /// assert_eq!(any_box.type_id(), TypeId::of::<i32>()); // ⚠️ this fails!
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// use std::any::{Any, TypeId};
+    ///
+    /// let any_box: Box<dyn Any> = Box::new(42_i32);
+    /// assert_eq!((*any_box).type_id(), TypeId::of::<i32>());
+    /// //          ^ dereference first, to call `type_id` on `dyn Any`
+    /// ```
+    #[clippy::version = "1.73.0"]
+    pub TYPE_ID_ON_BOX,
+    suspicious,
+    "calling `.type_id()` on a boxed trait object"
+}
 
 /// Checks if the given type is `dyn Any`, or a trait object that has `Any` as a supertrait.
 /// Only in those cases will its vtable have a `type_id` method that returns the implementor's

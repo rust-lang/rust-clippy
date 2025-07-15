@@ -1,14 +1,33 @@
+use super::utils::get_last_chain_binding_hir_id;
+use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::source::SpanRangeExt;
+use clippy_utils::{is_path_diagnostic_item, path_to_local_id, peel_blocks, sym};
 use rustc_errors::Applicability;
 use rustc_hir::{Closure, Expr, ExprKind, HirId, StmtKind, UnOp};
 use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_span::Span;
 
-use super::NEEDLESS_CHARACTER_ITERATION;
-use super::utils::get_last_chain_binding_hir_id;
-use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::SpanRangeExt;
-use clippy_utils::{is_path_diagnostic_item, path_to_local_id, peel_blocks, sym};
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks if an iterator is used to check if a string is ascii.
+    ///
+    /// ### Why is this bad?
+    /// The `str` type already implements the `is_ascii` method.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// "foo".chars().all(|c| c.is_ascii());
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// "foo".is_ascii();
+    /// ```
+    #[clippy::version = "1.81.0"]
+    pub NEEDLESS_CHARACTER_ITERATION,
+    suspicious,
+    "is_ascii() called on a char iterator"
+}
 
 fn peels_expr_ref<'a, 'tcx>(mut expr: &'a Expr<'tcx>) -> &'a Expr<'tcx> {
     while let ExprKind::AddrOf(_, _, e) = expr.kind {

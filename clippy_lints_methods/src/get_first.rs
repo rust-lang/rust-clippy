@@ -9,7 +9,31 @@ use rustc_lint::LateContext;
 use rustc_span::source_map::Spanned;
 use rustc_span::sym;
 
-use super::GET_FIRST;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `x.get(0)` instead of
+    /// `x.first()` or `x.front()`.
+    ///
+    /// ### Why is this bad?
+    /// Using `x.first()` for `Vec`s and slices or `x.front()`
+    /// for `VecDeque`s is easier to read and has the same result.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let x = vec![2, 3, 5];
+    /// let first_element = x.get(0);
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// let x = vec![2, 3, 5];
+    /// let first_element = x.first();
+    /// ```
+    #[clippy::version = "1.63.0"]
+    pub GET_FIRST,
+    style,
+    "Using `x.get(0)` when `x.first()` or `x.front()` is simpler"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

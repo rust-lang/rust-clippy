@@ -7,7 +7,29 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty};
 use rustc_span::symbol::{Symbol, sym};
 
-use super::INEFFICIENT_TO_STRING;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `.to_string()` on an `&&T` where
+    /// `T` implements `ToString` directly (like `&&str` or `&&String`).
+    ///
+    /// ### Why is this bad?
+    /// This bypasses the specialized implementation of
+    /// `ToString` and instead goes through the more expensive string formatting
+    /// facilities.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// // Generic implementation for `T: Display` is used (slow)
+    /// ["foo", "bar"].iter().map(|s| s.to_string());
+    ///
+    /// // OK, the specialized impl is used
+    /// ["foo", "bar"].iter().map(|&s| s.to_string());
+    /// ```
+    #[clippy::version = "1.40.0"]
+    pub INEFFICIENT_TO_STRING,
+    pedantic,
+    "using `to_string` on `&&T` where `T: ToString`"
+}
 
 /// Checks for the `INEFFICIENT_TO_STRING` lint
 pub fn check(

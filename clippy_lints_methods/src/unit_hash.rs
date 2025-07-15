@@ -6,7 +6,44 @@ use rustc_hir::Expr;
 use rustc_lint::LateContext;
 use rustc_span::sym;
 
-use super::UNIT_HASH;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Detects `().hash(_)`.
+    ///
+    /// ### Why is this bad?
+    /// Hashing a unit value doesn't do anything as the implementation of `Hash` for `()` is a no-op.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # use std::hash::Hash;
+    /// # use std::collections::hash_map::DefaultHasher;
+    /// # enum Foo { Empty, WithValue(u8) }
+    /// # use Foo::*;
+    /// # let mut state = DefaultHasher::new();
+    /// # let my_enum = Foo::Empty;
+    /// match my_enum {
+    /// 	Empty => ().hash(&mut state),
+    /// 	WithValue(x) => x.hash(&mut state),
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # use std::hash::Hash;
+    /// # use std::collections::hash_map::DefaultHasher;
+    /// # enum Foo { Empty, WithValue(u8) }
+    /// # use Foo::*;
+    /// # let mut state = DefaultHasher::new();
+    /// # let my_enum = Foo::Empty;
+    /// match my_enum {
+    /// 	Empty => 0_u8.hash(&mut state),
+    /// 	WithValue(x) => x.hash(&mut state),
+    /// }
+    /// ```
+    #[clippy::version = "1.58.0"]
+    pub UNIT_HASH,
+    correctness,
+    "hashing a unit value, which does nothing"
+}
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, recv: &'tcx Expr<'_>, arg: &'tcx Expr<'_>) {
     if is_trait_method(cx, expr, sym::Hash) && cx.typeck_results().expr_ty(recv).is_unit() {

@@ -8,7 +8,36 @@ use rustc_hir::{Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_span::Span;
 
-use super::SEEK_TO_START_INSTEAD_OF_REWIND;
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for jumps to the start of a stream that implements `Seek`
+    /// and uses the `seek` method providing `Start` as parameter.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// Readability. There is a specific method that was implemented for
+    /// this exact scenario.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # use std::io;
+    /// fn foo<T: io::Seek>(t: &mut T) {
+    ///     t.seek(io::SeekFrom::Start(0));
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # use std::io;
+    /// fn foo<T: io::Seek>(t: &mut T) {
+    ///     t.rewind();
+    /// }
+    /// ```
+    #[clippy::version = "1.67.0"]
+    pub SEEK_TO_START_INSTEAD_OF_REWIND,
+    complexity,
+    "jumping to the start of stream using `seek` method"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

@@ -6,7 +6,28 @@ use rustc_hir::ExprKind;
 use rustc_lint::LateContext;
 use rustc_span::{Span, sym};
 
-use super::FILTER_MAP_IDENTITY;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `filter_map(|x| x)`.
+    ///
+    /// ### Why is this bad?
+    /// Readability, this can be written more concisely by using `flatten`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let iter = vec![Some(1)].into_iter();
+    /// iter.filter_map(|x| x);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # let iter = vec![Some(1)].into_iter();
+    /// iter.flatten();
+    /// ```
+    #[clippy::version = "1.52.0"]
+    pub FILTER_MAP_IDENTITY,
+    complexity,
+    "call to `filter_map` where `flatten` is sufficient"
+}
 
 fn is_identity(cx: &LateContext<'_>, expr: &hir::Expr<'_>) -> Option<Applicability> {
     if is_expr_untyped_identity_function(cx, expr) {

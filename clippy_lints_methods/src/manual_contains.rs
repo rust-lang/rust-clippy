@@ -11,7 +11,30 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::{self};
 use rustc_span::source_map::Spanned;
 
-use super::MANUAL_CONTAINS;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `iter().any()` on slices when it can be replaced with `contains()` and suggests doing so.
+    ///
+    /// ### Why is this bad?
+    /// `contains()` is more concise and idiomatic, while also being faster in some cases.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// fn foo(values: &[u8]) -> bool {
+    ///     values.iter().any(|&v| v == 10)
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// fn foo(values: &[u8]) -> bool {
+    ///     values.contains(&10)
+    /// }
+    /// ```
+    #[clippy::version = "1.87.0"]
+    pub MANUAL_CONTAINS,
+    perf,
+    "unnecessary `iter().any()` on slices that can be replaced with `contains()`"
+}
 
 pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, recv: &Expr<'_>, closure_arg: &Expr<'_>) {
     let mut app = Applicability::MachineApplicable;

@@ -5,7 +5,25 @@ use rustc_hir as hir;
 use rustc_lint::LateContext;
 use rustc_span::sym;
 
-use super::SUSPICIOUS_MAP;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for calls to `map` followed by a `count`.
+    ///
+    /// ### Why is this bad?
+    /// It looks suspicious. Maybe `map` was confused with `filter`.
+    /// If the `map` call is intentional, this should be rewritten
+    /// using `inspect`. Or, if you intend to drive the iterator to
+    /// completion, you can just use `for_each` instead.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let _ = (0..3).map(|x| x + 2).count();
+    /// ```
+    #[clippy::version = "1.39.0"]
+    pub SUSPICIOUS_MAP,
+    suspicious,
+    "suspicious usage of map"
+}
 
 pub fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, count_recv: &hir::Expr<'_>, map_arg: &hir::Expr<'_>) {
     if is_trait_method(cx, count_recv, sym::Iterator)

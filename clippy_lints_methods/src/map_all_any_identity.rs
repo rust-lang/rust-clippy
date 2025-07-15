@@ -6,7 +6,30 @@ use rustc_hir::Expr;
 use rustc_lint::LateContext;
 use rustc_span::{Span, sym};
 
-use super::MAP_ALL_ANY_IDENTITY;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `.map(…)`, followed by `.all(identity)` or `.any(identity)`.
+    ///
+    /// ### Why is this bad?
+    /// The `.all(…)` or `.any(…)` methods can be called directly in place of `.map(…)`.
+    ///
+    /// ### Example
+    /// ```
+    /// # let mut v = [""];
+    /// let e1 = v.iter().map(|s| s.is_empty()).all(|a| a);
+    /// let e2 = v.iter().map(|s| s.is_empty()).any(std::convert::identity);
+    /// ```
+    /// Use instead:
+    /// ```
+    /// # let mut v = [""];
+    /// let e1 = v.iter().all(|s| s.is_empty());
+    /// let e2 = v.iter().any(|s| s.is_empty());
+    /// ```
+    #[clippy::version = "1.84.0"]
+    pub MAP_ALL_ANY_IDENTITY,
+    complexity,
+    "combine `.map(_)` followed by `.all(identity)`/`.any(identity)` into a single call"
+}
 
 #[allow(clippy::too_many_arguments)]
 pub(super) fn check(

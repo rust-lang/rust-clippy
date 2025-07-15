@@ -5,7 +5,29 @@ use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::LateContext;
 use rustc_span::{Symbol, sym};
 
-use super::NEEDLESS_OPTION_TAKE;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for calling `take` function after `as_ref`.
+    ///
+    /// ### Why is this bad?
+    /// Redundant code. `take` writes `None` to its argument.
+    /// In this case the modification is useless as it's a temporary that cannot be read from afterwards.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let x = Some(3);
+    /// x.as_ref().take();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let x = Some(3);
+    /// x.as_ref();
+    /// ```
+    #[clippy::version = "1.62.0"]
+    pub NEEDLESS_OPTION_TAKE,
+    complexity,
+    "using `.as_ref().take()` on a temporary value"
+}
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, recv: &'tcx Expr<'_>) {
     // Checks if expression type is equal to sym::Option and if the expr is not a syntactic place

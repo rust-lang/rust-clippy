@@ -6,7 +6,41 @@ use rustc_lint::LateContext;
 use rustc_span::sym;
 use smallvec::SmallVec;
 
-use super::IP_CONSTANT;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for IP addresses that could be replaced with predefined constants such as
+    /// `Ipv4Addr::new(127, 0, 0, 1)` instead of using the appropriate constants.
+    ///
+    /// ### Why is this bad?
+    /// Using specific IP addresses like `127.0.0.1` or `::1` is less clear and less maintainable than using the
+    /// predefined constants `Ipv4Addr::LOCALHOST` or `Ipv6Addr::LOCALHOST`. These constants improve code
+    /// readability, make the intent explicit, and are less error-prone.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// use std::net::{Ipv4Addr, Ipv6Addr};
+    ///
+    /// // IPv4 loopback
+    /// let addr_v4 = Ipv4Addr::new(127, 0, 0, 1);
+    ///
+    /// // IPv6 loopback
+    /// let addr_v6 = Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// use std::net::{Ipv4Addr, Ipv6Addr};
+    ///
+    /// // IPv4 loopback
+    /// let addr_v4 = Ipv4Addr::LOCALHOST;
+    ///
+    /// // IPv6 loopback
+    /// let addr_v6 = Ipv6Addr::LOCALHOST;
+    /// ```
+    #[clippy::version = "1.89.0"]
+    pub IP_CONSTANT,
+    pedantic,
+    "hardcoded localhost IP address"
+}
 
 pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, func: &Expr<'_>, args: &[Expr<'_>]) {
     if let ExprKind::Path(QPath::TypeRelative(

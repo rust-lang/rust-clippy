@@ -10,7 +10,43 @@ use rustc_span::symbol::sym;
 use rustc_span::{Span, Symbol};
 use std::borrow::Cow;
 
-use super::EXPECT_FUN_CALL;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for calls to `.expect(&format!(...))`, `.expect(foo(..))`,
+    /// etc., and suggests to use `unwrap_or_else` instead
+    ///
+    /// ### Why is this bad?
+    /// The function will always be called.
+    ///
+    /// ### Known problems
+    /// If the function has side-effects, not calling it will
+    /// change the semantics of the program, but you shouldn't rely on that anyway.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let foo = Some(String::new());
+    /// # let err_code = "418";
+    /// # let err_msg = "I'm a teapot";
+    /// foo.expect(&format!("Err {}: {}", err_code, err_msg));
+    ///
+    /// // or
+    ///
+    /// # let foo = Some(String::new());
+    /// foo.expect(format!("Err {}: {}", err_code, err_msg).as_str());
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # let foo = Some(String::new());
+    /// # let err_code = "418";
+    /// # let err_msg = "I'm a teapot";
+    /// foo.unwrap_or_else(|| panic!("Err {}: {}", err_code, err_msg));
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub EXPECT_FUN_CALL,
+    perf,
+    "using any `expect` method with a function call"
+}
 
 /// Checks for the `EXPECT_FUN_CALL` lint.
 #[allow(clippy::too_many_lines)]

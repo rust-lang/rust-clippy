@@ -7,7 +7,26 @@ use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_span::symbol::sym;
 
-use super::MAP_COLLECT_RESULT_UNIT;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `_.map(_).collect::<Result<(), _>()`.
+    ///
+    /// ### Why is this bad?
+    /// Using `try_for_each` instead is more readable and idiomatic.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// (0..3).map(|t| Err(t)).collect::<Result<(), _>>();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// (0..3).try_for_each(|t| Err(t));
+    /// ```
+    #[clippy::version = "1.49.0"]
+    pub MAP_COLLECT_RESULT_UNIT,
+    style,
+    "using `.map(_).collect::<Result<(),_>()`, which can be replaced with `try_for_each`"
+}
 
 pub(super) fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, iter: &hir::Expr<'_>, map_fn: &hir::Expr<'_>) {
     // return of collect `Result<(),_>`

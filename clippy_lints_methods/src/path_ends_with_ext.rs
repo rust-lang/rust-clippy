@@ -1,4 +1,3 @@
-use super::PATH_ENDS_WITH_EXT;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::snippet;
@@ -10,6 +9,45 @@ use rustc_hir::{Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_span::sym;
 use std::fmt::Write;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Looks for calls to `Path::ends_with` calls where the argument looks like a file extension.
+    ///
+    /// By default, Clippy has a short list of known filenames that start with a dot
+    /// but aren't necessarily file extensions (e.g. the `.git` folder), which are allowed by default.
+    /// The `allowed-dotfiles` configuration can be used to allow additional
+    /// file extensions that Clippy should not lint.
+    ///
+    /// ### Why is this bad?
+    /// This doesn't actually compare file extensions. Rather, `ends_with` compares the given argument
+    /// to the last **component** of the path and checks if it matches exactly.
+    ///
+    /// ### Known issues
+    /// File extensions are often at most three characters long, so this only lints in those cases
+    /// in an attempt to avoid false positives.
+    /// Any extension names longer than that are assumed to likely be real path components and are
+    /// therefore ignored.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # use std::path::Path;
+    /// fn is_markdown(path: &Path) -> bool {
+    ///     path.ends_with(".md")
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # use std::path::Path;
+    /// fn is_markdown(path: &Path) -> bool {
+    ///     path.extension().is_some_and(|ext| ext == "md")
+    /// }
+    /// ```
+    #[clippy::version = "1.74.0"]
+    pub PATH_ENDS_WITH_EXT,
+    suspicious,
+    "attempting to compare file extensions using `Path::ends_with`"
+}
 
 pub const DEFAULT_ALLOWED_DOTFILES: &[&str] = &[
     "git", "svn", "gem", "npm", "vim", "env", "rnd", "ssh", "vnc", "smb", "nvm", "bin",

@@ -5,7 +5,43 @@ use rustc_errors::Applicability;
 use rustc_hir::Expr;
 use rustc_lint::LateContext;
 
-use super::STABLE_SORT_PRIMITIVE;
+declare_clippy_lint! {
+    /// ### What it does
+    /// When sorting primitive values (integers, bools, chars, as well
+    /// as arrays, slices, and tuples of such items), it is typically better to
+    /// use an unstable sort than a stable sort.
+    ///
+    /// ### Why is this bad?
+    /// Typically, using a stable sort consumes more memory and cpu cycles.
+    /// Because values which compare equal are identical, preserving their
+    /// relative order (the guarantee that a stable sort provides) means
+    /// nothing, while the extra costs still apply.
+    ///
+    /// ### Known problems
+    ///
+    /// As pointed out in
+    /// [issue #8241](https://github.com/rust-lang/rust-clippy/issues/8241),
+    /// a stable sort can instead be significantly faster for certain scenarios
+    /// (eg. when a sorted vector is extended with new data and resorted).
+    ///
+    /// For more information and benchmarking results, please refer to the
+    /// issue linked above.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let mut vec = vec![2, 1, 3];
+    /// vec.sort();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let mut vec = vec![2, 1, 3];
+    /// vec.sort_unstable();
+    /// ```
+    #[clippy::version = "1.47.0"]
+    pub STABLE_SORT_PRIMITIVE,
+    pedantic,
+    "use of sort() when sort_unstable() is equivalent"
+}
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>, recv: &'tcx Expr<'_>) {
     if let Some(method_id) = cx.typeck_results().type_dependent_def_id(e.hir_id)

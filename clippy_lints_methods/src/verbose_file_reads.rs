@@ -5,7 +5,32 @@ use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::LateContext;
 use rustc_span::sym;
 
-use super::VERBOSE_FILE_READS;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of File::read_to_end and File::read_to_string.
+    ///
+    /// ### Why restrict this?
+    /// `fs::{read, read_to_string}` provide the same functionality when `buf` is empty with fewer imports and no intermediate values.
+    /// See also: [fs::read docs](https://doc.rust-lang.org/std/fs/fn.read.html), [fs::read_to_string docs](https://doc.rust-lang.org/std/fs/fn.read_to_string.html)
+    ///
+    /// ### Example
+    /// ```rust,no_run
+    /// # use std::io::Read;
+    /// # use std::fs::File;
+    /// let mut f = File::open("foo.txt").unwrap();
+    /// let mut bytes = Vec::new();
+    /// f.read_to_end(&mut bytes).unwrap();
+    /// ```
+    /// Can be written more concisely as
+    /// ```rust,no_run
+    /// # use std::fs;
+    /// let mut bytes = fs::read("foo.txt").unwrap();
+    /// ```
+    #[clippy::version = "1.44.0"]
+    pub VERBOSE_FILE_READS,
+    restriction,
+    "use of `File::read_to_end` or `File::read_to_string`"
+}
 
 pub(super) const READ_TO_END_MSG: (&str, &str) = ("use of `File::read_to_end`", "consider using `fs::read` instead");
 pub(super) const READ_TO_STRING_MSG: (&str, &str) = (

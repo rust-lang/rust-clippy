@@ -1,4 +1,3 @@
-use super::OBFUSCATED_IF_ELSE;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::eager_or_lazy::switch_to_eager_eval;
 use clippy_utils::source::snippet_with_applicability;
@@ -9,6 +8,35 @@ use rustc_hir as hir;
 use rustc_hir::ExprKind;
 use rustc_lint::LateContext;
 use rustc_span::Symbol;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for unnecessary method chains that can be simplified into `if .. else ..`.
+    ///
+    /// ### Why is this bad?
+    /// This can be written more clearly with `if .. else ..`
+    ///
+    /// ### Limitations
+    /// This lint currently only looks for usages of
+    /// `.{then, then_some}(..).{unwrap_or, unwrap_or_else, unwrap_or_default}(..)`, but will be expanded
+    /// to account for similar patterns.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let x = true;
+    /// x.then_some("a").unwrap_or("b");
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let x = true;
+    /// if x { "a" } else { "b" };
+    /// ```
+    #[clippy::version = "1.64.0"]
+    pub OBFUSCATED_IF_ELSE,
+    style,
+    "use of `.then_some(..).unwrap_or(..)` can be written \
+    more clearly with `if .. else ..`"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

@@ -11,7 +11,27 @@ use rustc_middle::ty::{self, Ty};
 use rustc_span::symbol::sym;
 use std::borrow::Cow;
 
-use super::MANUAL_STR_REPEAT;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for manual implementations of `str::repeat`
+    ///
+    /// ### Why is this bad?
+    /// These are both harder to read, as well as less performant.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let x: String = std::iter::repeat('x').take(10).collect();
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// let x: String = "x".repeat(10);
+    /// ```
+    #[clippy::version = "1.54.0"]
+    pub MANUAL_STR_REPEAT,
+    perf,
+    "manual implementation of `str::repeat`"
+}
 
 enum RepeatKind {
     String,

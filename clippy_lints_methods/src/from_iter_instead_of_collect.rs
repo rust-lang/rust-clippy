@@ -11,7 +11,46 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::GenericParamDefKind;
 use rustc_span::sym;
 
-use super::FROM_ITER_INSTEAD_OF_COLLECT;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `from_iter()` function calls on types that implement the `FromIterator`
+    /// trait.
+    ///
+    /// ### Why is this bad?
+    /// If it's needed to create a collection from the contents of an iterator, the `Iterator::collect(_)`
+    /// method is preferred. However, when it's needed to specify the container type,
+    /// `Vec::from_iter(_)` can be more readable than using a turbofish (e.g. `_.collect::<Vec<_>>()`). See
+    /// [FromIterator documentation](https://doc.rust-lang.org/std/iter/trait.FromIterator.html)
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let five_fives = std::iter::repeat(5).take(5);
+    ///
+    /// let v = Vec::from_iter(five_fives);
+    ///
+    /// assert_eq!(v, vec![5, 5, 5, 5, 5]);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let five_fives = std::iter::repeat(5).take(5);
+    ///
+    /// let v: Vec<i32> = five_fives.collect();
+    ///
+    /// assert_eq!(v, vec![5, 5, 5, 5, 5]);
+    /// ```
+    /// but prefer to use
+    /// ```no_run
+    /// let numbers: Vec<i32> = FromIterator::from_iter(1..=5);
+    /// ```
+    /// instead of
+    /// ```no_run
+    /// let numbers = (1..=5).collect::<Vec<_>>();
+    /// ```
+    #[clippy::version = "1.49.0"]
+    pub FROM_ITER_INSTEAD_OF_COLLECT,
+    pedantic,
+    "use `.collect()` instead of `::from_iter()`"
+}
 
 pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, args: &[Expr<'_>], func: &Expr<'_>) {
     if is_path_diagnostic_item(cx, func, sym::from_iter_fn)

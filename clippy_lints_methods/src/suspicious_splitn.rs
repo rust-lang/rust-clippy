@@ -5,7 +5,36 @@ use rustc_lint::LateContext;
 use rustc_span::Symbol;
 use rustc_span::source_map::Spanned;
 
-use super::SUSPICIOUS_SPLITN;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for calls to [`splitn`]
+    /// (https://doc.rust-lang.org/std/primitive.str.html#method.splitn) and
+    /// related functions with either zero or one splits.
+    ///
+    /// ### Why is this bad?
+    /// These calls don't actually split the value and are
+    /// likely to be intended as a different number.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let s = "";
+    /// for x in s.splitn(1, ":") {
+    ///     // ..
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # let s = "";
+    /// for x in s.splitn(2, ":") {
+    ///     // ..
+    /// }
+    /// ```
+    #[clippy::version = "1.54.0"]
+    pub SUSPICIOUS_SPLITN,
+    correctness,
+    "checks for `.splitn(0, ..)` and `.splitn(1, ..)`"
+}
 
 pub(super) fn check(cx: &LateContext<'_>, method_name: Symbol, expr: &Expr<'_>, self_arg: &Expr<'_>, count: u128) {
     if count <= 1

@@ -7,7 +7,37 @@ use rustc_lint::LateContext;
 use rustc_span::symbol::sym;
 use std::path::{Component, Path};
 
-use super::PATH_BUF_PUSH_OVERWRITE;
+declare_clippy_lint! {
+    /// ### What it does
+    ///* Checks for [push](https://doc.rust-lang.org/std/path/struct.PathBuf.html#method.push)
+    /// calls on `PathBuf` that can cause overwrites.
+    ///
+    /// ### Why is this bad?
+    /// Calling `push` with a root path at the start can overwrite the
+    /// previous defined path.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// use std::path::PathBuf;
+    ///
+    /// let mut x = PathBuf::from("/foo");
+    /// x.push("/bar");
+    /// assert_eq!(x, PathBuf::from("/bar"));
+    /// ```
+    /// Could be written:
+    ///
+    /// ```no_run
+    /// use std::path::PathBuf;
+    ///
+    /// let mut x = PathBuf::from("/foo");
+    /// x.push("bar");
+    /// assert_eq!(x, PathBuf::from("/foo/bar"));
+    /// ```
+    #[clippy::version = "1.36.0"]
+    pub PATH_BUF_PUSH_OVERWRITE,
+    nursery,
+    "calling `push` with file system root on `PathBuf` can overwrite it"
+}
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, arg: &'tcx Expr<'_>) {
     if let Some(method_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)

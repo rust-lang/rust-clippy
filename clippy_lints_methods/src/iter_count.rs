@@ -7,7 +7,34 @@ use rustc_hir::Expr;
 use rustc_lint::LateContext;
 use rustc_span::{Symbol, sym};
 
-use super::ITER_COUNT;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for the use of `.iter().count()`.
+    ///
+    /// ### Why is this bad?
+    /// `.len()` is more efficient and more
+    /// readable.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let some_vec = vec![0, 1, 2, 3];
+    ///
+    /// some_vec.iter().count();
+    /// &some_vec[..].iter().count();
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// let some_vec = vec![0, 1, 2, 3];
+    ///
+    /// some_vec.len();
+    /// &some_vec[..].len();
+    /// ```
+    #[clippy::version = "1.52.0"]
+    pub ITER_COUNT,
+    complexity,
+    "replace `.iter().count()` with `.len()`"
+}
 
 pub(crate) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>, recv: &'tcx Expr<'tcx>, iter_method: Symbol) {
     let ty = cx.typeck_results().expr_ty(recv);

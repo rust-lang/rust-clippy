@@ -10,7 +10,64 @@ use rustc_middle::ty::Ty;
 use rustc_span::Span;
 use rustc_span::source_map::Spanned;
 
-use super::{NONSENSICAL_OPEN_OPTIONS, SUSPICIOUS_OPEN_OPTIONS};
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for duplicate open options as well as combinations
+    /// that make no sense.
+    ///
+    /// ### Why is this bad?
+    /// In the best case, the code will be harder to read than
+    /// necessary. I don't know the worst case.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// use std::fs::OpenOptions;
+    ///
+    /// OpenOptions::new().read(true).truncate(true);
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub NONSENSICAL_OPEN_OPTIONS,
+    correctness,
+    "nonsensical combination of options for opening a file"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for the suspicious use of `OpenOptions::create()`
+    /// without an explicit `OpenOptions::truncate()`.
+    ///
+    /// ### Why is this bad?
+    /// `create()` alone will either create a new file or open an
+    /// existing file. If the file already exists, it will be
+    /// overwritten when written to, but the file will not be
+    /// truncated by default.
+    /// If less data is written to the file
+    /// than it already contains, the remainder of the file will
+    /// remain unchanged, and the end of the file will contain old
+    /// data.
+    /// In most cases, one should either use `create_new` to ensure
+    /// the file is created from scratch, or ensure `truncate` is
+    /// called so that the truncation behaviour is explicit. `truncate(true)`
+    /// will ensure the file is entirely overwritten with new data, whereas
+    /// `truncate(false)` will explicitly keep the default behavior.
+    ///
+    /// ### Example
+    /// ```rust,no_run
+    /// use std::fs::OpenOptions;
+    ///
+    /// OpenOptions::new().create(true);
+    /// ```
+    /// Use instead:
+    /// ```rust,no_run
+    /// use std::fs::OpenOptions;
+    ///
+    /// OpenOptions::new().create(true).truncate(true);
+    /// ```
+    #[clippy::version = "1.77.0"]
+    pub SUSPICIOUS_OPEN_OPTIONS,
+    suspicious,
+    "suspicious combination of options for opening a file"
+}
 
 fn is_open_options(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
     is_type_diagnostic_item(cx, ty, sym::FsOpenOptions) || paths::TOKIO_IO_OPEN_OPTIONS.matches_ty(cx, ty)

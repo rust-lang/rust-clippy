@@ -1,4 +1,3 @@
-use super::READONLY_WRITE_LOCK;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::mir::{enclosing_mir, visit_local_usage};
 use clippy_utils::source::snippet;
@@ -8,6 +7,37 @@ use rustc_hir::{Expr, ExprKind, Node, PatKind};
 use rustc_lint::LateContext;
 use rustc_middle::mir::{Location, START_BLOCK};
 use rustc_span::sym;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Looks for calls to `RwLock::write` where the lock is only used for reading.
+    ///
+    /// ### Why is this bad?
+    /// The write portion of `RwLock` is exclusive, meaning that no other thread
+    /// can access the lock while this writer is active.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// use std::sync::RwLock;
+    /// fn assert_is_zero(lock: &RwLock<i32>) {
+    ///     let num = lock.write().unwrap();
+    ///     assert_eq!(*num, 0);
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// use std::sync::RwLock;
+    /// fn assert_is_zero(lock: &RwLock<i32>) {
+    ///     let num = lock.read().unwrap();
+    ///     assert_eq!(*num, 0);
+    /// }
+    /// ```
+    #[clippy::version = "1.73.0"]
+    pub READONLY_WRITE_LOCK,
+    perf,
+    "acquiring a write lock when a read lock would work"
+}
 
 fn is_unwrap_call(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
     if let ExprKind::MethodCall(path, receiver, [], _) = expr.kind

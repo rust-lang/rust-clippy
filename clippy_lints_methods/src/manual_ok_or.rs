@@ -8,7 +8,31 @@ use rustc_hir::{Expr, ExprKind, PatKind};
 use rustc_lint::LateContext;
 use rustc_span::symbol::sym;
 
-use super::MANUAL_OK_OR;
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Finds patterns that reimplement `Option::ok_or`.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// Concise code helps focusing on behavior instead of boilerplate.
+    ///
+    /// ### Examples
+    /// ```no_run
+    /// let foo: Option<i32> = None;
+    /// foo.map_or(Err("error"), |v| Ok(v));
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// let foo: Option<i32> = None;
+    /// foo.ok_or("error");
+    /// ```
+    #[clippy::version = "1.49.0"]
+    pub MANUAL_OK_OR,
+    style,
+    "finds patterns that can be encoded more concisely with `Option::ok_or`"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

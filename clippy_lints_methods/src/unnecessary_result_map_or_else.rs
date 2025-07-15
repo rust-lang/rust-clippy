@@ -1,3 +1,4 @@
+use super::utils::get_last_chain_binding_hir_id;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::peel_blocks;
 use clippy_utils::source::snippet;
@@ -8,8 +9,30 @@ use rustc_hir::{Closure, Expr, ExprKind, HirId, QPath};
 use rustc_lint::LateContext;
 use rustc_span::symbol::sym;
 
-use super::UNNECESSARY_RESULT_MAP_OR_ELSE;
-use super::utils::get_last_chain_binding_hir_id;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `.map_or_else()` "map closure" for `Result` type.
+    ///
+    /// ### Why is this bad?
+    /// This can be written more concisely by using `unwrap_or_else()`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # fn handle_error(_: ()) -> u32 { 0 }
+    /// let x: Result<u32, ()> = Ok(0);
+    /// let y = x.map_or_else(|err| handle_error(err), |n| n);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # fn handle_error(_: ()) -> u32 { 0 }
+    /// let x: Result<u32, ()> = Ok(0);
+    /// let y = x.unwrap_or_else(|err| handle_error(err));
+    /// ```
+    #[clippy::version = "1.78.0"]
+    pub UNNECESSARY_RESULT_MAP_OR_ELSE,
+    suspicious,
+    "making no use of the \"map closure\" when calling `.map_or_else(|err| handle_error(err), |n| n)`"
+}
 
 fn emit_lint(cx: &LateContext<'_>, expr: &Expr<'_>, recv: &Expr<'_>, def_arg: &Expr<'_>) {
     let msg = "unused \"map closure\" when calling `Result::map_or_else` value";

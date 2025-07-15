@@ -7,7 +7,29 @@ use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_span::{Symbol, sym};
 
-use super::ITER_CLONED_COLLECT;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for the use of `.cloned().collect()` on slice to
+    /// create a `Vec`.
+    ///
+    /// ### Why is this bad?
+    /// `.to_vec()` is clearer
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let s = [1, 2, 3, 4, 5];
+    /// let s2: Vec<isize> = s[..].iter().cloned().collect();
+    /// ```
+    /// The better use would be:
+    /// ```no_run
+    /// let s = [1, 2, 3, 4, 5];
+    /// let s2: Vec<isize> = s.to_vec();
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub ITER_CLONED_COLLECT,
+    style,
+    "using `.cloned().collect()` on slice to create a `Vec`"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

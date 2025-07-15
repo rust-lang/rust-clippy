@@ -9,7 +9,48 @@ use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{is_enum_variant_ctor, sym};
 
-use super::SEEK_FROM_CURRENT;
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks if the `seek` method of the `Seek` trait is called with `SeekFrom::Current(0)`,
+    /// and if it is, suggests using `stream_position` instead.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// Readability. Use dedicated method.
+    ///
+    /// ### Example
+    ///
+    /// ```rust,no_run
+    /// use std::fs::File;
+    /// use std::io::{self, Write, Seek, SeekFrom};
+    ///
+    /// fn main() -> io::Result<()> {
+    ///     let mut f = File::create("foo.txt")?;
+    ///     f.write_all(b"Hello")?;
+    ///     eprintln!("Written {} bytes", f.seek(SeekFrom::Current(0))?);
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```rust,no_run
+    /// use std::fs::File;
+    /// use std::io::{self, Write, Seek, SeekFrom};
+    ///
+    /// fn main() -> io::Result<()> {
+    ///     let mut f = File::create("foo.txt")?;
+    ///     f.write_all(b"Hello")?;
+    ///     eprintln!("Written {} bytes", f.stream_position()?);
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    #[clippy::version = "1.67.0"]
+    pub SEEK_FROM_CURRENT,
+    complexity,
+    "use dedicated method for seek from current position"
+}
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, recv: &'tcx Expr<'_>, arg: &'tcx Expr<'_>) {
     let ty = cx.typeck_results().expr_ty(recv);

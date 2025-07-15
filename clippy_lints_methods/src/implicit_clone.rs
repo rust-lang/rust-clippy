@@ -7,7 +7,31 @@ use rustc_hir as hir;
 use rustc_lint::LateContext;
 use rustc_span::Symbol;
 
-use super::IMPLICIT_CLONE;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for the usage of `_.to_owned()`, `vec.to_vec()`, or similar when calling `_.clone()` would be clearer.
+    ///
+    /// ### Why is this bad?
+    /// These methods do the same thing as `_.clone()` but may be confusing as
+    /// to why we are calling `to_vec` on something that is already a `Vec` or calling `to_owned` on something that is already owned.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let a = vec![1, 2, 3];
+    /// let b = a.to_vec();
+    /// let c = a.to_owned();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let a = vec![1, 2, 3];
+    /// let b = a.clone();
+    /// let c = a.clone();
+    /// ```
+    #[clippy::version = "1.52.0"]
+    pub IMPLICIT_CLONE,
+    pedantic,
+    "implicitly cloning a value by invoking a function on its dereferenced type"
+}
 
 pub fn check(cx: &LateContext<'_>, method_name: Symbol, expr: &hir::Expr<'_>, recv: &hir::Expr<'_>) {
     if let Some(method_def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)

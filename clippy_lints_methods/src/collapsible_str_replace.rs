@@ -1,3 +1,4 @@
+use super::method_call;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet;
 use clippy_utils::visitors::for_each_expr_without_closures;
@@ -8,7 +9,31 @@ use rustc_hir as hir;
 use rustc_lint::LateContext;
 use std::collections::VecDeque;
 
-use super::{COLLAPSIBLE_STR_REPLACE, method_call};
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for consecutive calls to `str::replace` (2 or more)
+    /// that can be collapsed into a single call.
+    ///
+    /// ### Why is this bad?
+    /// Consecutive `str::replace` calls scan the string multiple times
+    /// with repetitive code.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let hello = "hesuo worpd"
+    ///     .replace('s', "l")
+    ///     .replace("u", "l")
+    ///     .replace('p', "l");
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let hello = "hesuo worpd".replace(['s', 'u', 'p'], "l");
+    /// ```
+    #[clippy::version = "1.65.0"]
+    pub COLLAPSIBLE_STR_REPLACE,
+    perf,
+    "collapse consecutive calls to str::replace (2 or more) into a single call"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

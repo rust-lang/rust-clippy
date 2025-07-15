@@ -5,7 +5,30 @@ use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
 
-use super::BYTES_COUNT_TO_LEN;
+declare_clippy_lint! {
+    /// ### What it does
+    /// It checks for `str::bytes().count()` and suggests replacing it with
+    /// `str::len()`.
+    ///
+    /// ### Why is this bad?
+    /// `str::bytes().count()` is longer and may not be as performant as using
+    /// `str::len()`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// "hello".bytes().count();
+    /// String::from("hello").bytes().count();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// "hello".len();
+    /// String::from("hello").len();
+    /// ```
+    #[clippy::version = "1.62.0"]
+    pub BYTES_COUNT_TO_LEN,
+    complexity,
+    "Using `bytes().count()` when `len()` performs the same functionality"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

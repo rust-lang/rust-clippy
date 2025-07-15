@@ -14,7 +14,78 @@ use rustc_middle::ty;
 use rustc_span::{Span, Symbol};
 use {rustc_ast as ast, rustc_hir as hir};
 
-use super::{OR_FUN_CALL, UNWRAP_OR_DEFAULT};
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for calls to `.or(foo(..))`, `.unwrap_or(foo(..))`,
+    /// `.or_insert(foo(..))` etc., and suggests to use `.or_else(|| foo(..))`,
+    /// `.unwrap_or_else(|| foo(..))`, `.unwrap_or_default()` or `.or_default()`
+    /// etc. instead.
+    ///
+    /// ### Why is this bad?
+    /// The function will always be called. This is only bad if it allocates or
+    /// does some non-trivial amount of work.
+    ///
+    /// ### Known problems
+    /// If the function has side-effects, not calling it will change the
+    /// semantic of the program, but you shouldn't rely on that.
+    ///
+    /// The lint also cannot figure out whether the function you call is
+    /// actually expensive to call or not.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let foo = Some(String::new());
+    /// foo.unwrap_or(String::from("empty"));
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # let foo = Some(String::new());
+    /// foo.unwrap_or_else(|| String::from("empty"));
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub OR_FUN_CALL,
+    nursery,
+    "using any `*or` method with a function call, which suggests `*or_else`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usages of the following functions with an argument that constructs a default value
+    /// (e.g., `Default::default` or `String::new`):
+    /// - `unwrap_or`
+    /// - `unwrap_or_else`
+    /// - `or_insert`
+    /// - `or_insert_with`
+    ///
+    /// ### Why is this bad?
+    /// Readability. Using `unwrap_or_default` in place of `unwrap_or`/`unwrap_or_else`, or `or_default`
+    /// in place of `or_insert`/`or_insert_with`, is simpler and more concise.
+    ///
+    /// ### Known problems
+    /// In some cases, the argument of `unwrap_or`, etc. is needed for type inference. The lint uses a
+    /// heuristic to try to identify such cases. However, the heuristic can produce false negatives.
+    ///
+    /// ### Examples
+    /// ```no_run
+    /// # let x = Some(1);
+    /// # let mut map = std::collections::HashMap::<u64, String>::new();
+    /// x.unwrap_or(Default::default());
+    /// map.entry(42).or_insert_with(String::new);
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # let x = Some(1);
+    /// # let mut map = std::collections::HashMap::<u64, String>::new();
+    /// x.unwrap_or_default();
+    /// map.entry(42).or_default();
+    /// ```
+    #[clippy::version = "1.56.0"]
+    pub UNWRAP_OR_DEFAULT,
+    style,
+    "using `.unwrap_or`, etc. with an argument that constructs a default value"
+}
 
 /// Checks for the `OR_FUN_CALL` lint.
 #[expect(clippy::too_many_lines)]
