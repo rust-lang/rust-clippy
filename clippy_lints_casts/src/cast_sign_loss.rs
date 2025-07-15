@@ -10,7 +10,27 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty};
 use rustc_span::Symbol;
 
-use super::CAST_SIGN_LOSS;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for casts from a signed to an unsigned numeric
+    /// type. In this case, negative values wrap around to large positive values,
+    /// which can be quite surprising in practice. However, since the cast works as
+    /// defined, this lint is `Allow` by default.
+    ///
+    /// ### Why is this bad?
+    /// Possibly surprising results. You can activate this lint
+    /// as a one-time check to see where numeric wrapping can arise.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let y: i8 = -1;
+    /// y as u64; // will return 18446744073709551615
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub CAST_SIGN_LOSS,
+    pedantic,
+    "casts from signed types to unsigned types, e.g., `x as u32` where `x: i32`"
+}
 
 /// A list of methods that can never return a negative value.
 /// Includes methods that panic rather than returning a negative value.

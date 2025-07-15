@@ -7,7 +7,28 @@ use rustc_hir::{Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty};
 
-use super::CAST_ABS_TO_UNSIGNED;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of the `abs()` method that cast the result to unsigned.
+    ///
+    /// ### Why is this bad?
+    /// The `unsigned_abs()` method avoids panic when called on the MIN value.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let x: i32 = -42;
+    /// let y: u32 = x.abs() as u32;
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let x: i32 = -42;
+    /// let y: u32 = x.unsigned_abs();
+    /// ```
+    #[clippy::version = "1.62.0"]
+    pub CAST_ABS_TO_UNSIGNED,
+    suspicious,
+    "casting the result of `abs()` to an unsigned integer can panic"
+}
 
 pub(super) fn check(
     cx: &LateContext<'_>,

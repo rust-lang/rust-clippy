@@ -4,7 +4,23 @@ use rustc_hir::{Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty};
 
-use super::CAST_ENUM_CONSTRUCTOR;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for casts from an enum tuple constructor to an integer.
+    ///
+    /// ### Why is this bad?
+    /// The cast is easily confused with casting a c-like enum value to an integer.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// enum E { X(i32) };
+    /// let _ = E::X as usize;
+    /// ```
+    #[clippy::version = "1.61.0"]
+    pub CAST_ENUM_CONSTRUCTOR,
+    suspicious,
+    "casts from an enum tuple constructor to an integer"
+}
 
 pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, cast_expr: &Expr<'_>, cast_from: Ty<'_>) {
     if matches!(cast_from.kind(), ty::FnDef(..))

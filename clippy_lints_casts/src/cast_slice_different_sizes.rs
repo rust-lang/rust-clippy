@@ -7,7 +7,50 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::layout::LayoutOf;
 use rustc_middle::ty::{self, Ty, TypeAndMut};
 
-use super::CAST_SLICE_DIFFERENT_SIZES;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `as` casts between raw pointers to slices with differently sized elements.
+    ///
+    /// ### Why is this bad?
+    /// The produced raw pointer to a slice does not update its length metadata. The produced
+    /// pointer will point to a different number of bytes than the original pointer because the
+    /// length metadata of a raw slice pointer is in elements rather than bytes.
+    /// Producing a slice reference from the raw pointer will either create a slice with
+    /// less data (which can be surprising) or create a slice with more data and cause Undefined Behavior.
+    ///
+    /// ### Example
+    /// // Missing data
+    /// ```no_run
+    /// let a = [1_i32, 2, 3, 4];
+    /// let p = &a as *const [i32] as *const [u8];
+    /// unsafe {
+    ///     println!("{:?}", &*p);
+    /// }
+    /// ```
+    /// // Undefined Behavior (note: also potential alignment issues)
+    /// ```no_run
+    /// let a = [1_u8, 2, 3, 4];
+    /// let p = &a as *const [u8] as *const [u32];
+    /// unsafe {
+    ///     println!("{:?}", &*p);
+    /// }
+    /// ```
+    /// Instead use `ptr::slice_from_raw_parts` to construct a slice from a data pointer and the correct length
+    /// ```no_run
+    /// let a = [1_i32, 2, 3, 4];
+    /// let old_ptr = &a as *const [i32];
+    /// // The data pointer is cast to a pointer to the target `u8` not `[u8]`
+    /// // The length comes from the known length of 4 i32s times the 4 bytes per i32
+    /// let new_ptr = core::ptr::slice_from_raw_parts(old_ptr as *const u8, 16);
+    /// unsafe {
+    ///     println!("{:?}", &*new_ptr);
+    /// }
+    /// ```
+    #[clippy::version = "1.61.0"]
+    pub CAST_SLICE_DIFFERENT_SIZES,
+    correctness,
+    "casting using `as` between raw pointers to slices of types with different sizes"
+}
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>, msrv: Msrv) {
     // if this cast is the child of another cast expression then don't emit something for it, the full

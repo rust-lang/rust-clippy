@@ -9,7 +9,35 @@ use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_span::sym;
 
-use super::PTR_AS_PTR;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `as` casts between raw pointers that don't change their
+    /// constness, namely `*const T` to `*const U` and `*mut T` to `*mut U`.
+    ///
+    /// ### Why is this bad?
+    /// Though `as` casts between raw pointers are not terrible,
+    /// `pointer::cast` is safer because it cannot accidentally change the
+    /// pointer's mutability, nor cast the pointer to other types like `usize`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let ptr: *const u32 = &42_u32;
+    /// let mut_ptr: *mut u32 = &mut 42_u32;
+    /// let _ = ptr as *const i32;
+    /// let _ = mut_ptr as *mut i32;
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let ptr: *const u32 = &42_u32;
+    /// let mut_ptr: *mut u32 = &mut 42_u32;
+    /// let _ = ptr.cast::<i32>();
+    /// let _ = mut_ptr.cast::<i32>();
+    /// ```
+    #[clippy::version = "1.51.0"]
+    pub PTR_AS_PTR,
+    pedantic,
+    "casting using `as` between raw pointers that doesn't change their constness, where `pointer::cast` could take the place of `as`"
+}
 
 enum OmitFollowedCastReason<'a> {
     None,

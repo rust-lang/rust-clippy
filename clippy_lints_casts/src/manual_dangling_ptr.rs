@@ -7,7 +7,31 @@ use rustc_hir::{Expr, ExprKind, GenericArg, Mutability, QPath, Ty, TyKind};
 use rustc_lint::LateContext;
 use rustc_span::source_map::Spanned;
 
-use super::MANUAL_DANGLING_PTR;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for casts of small constant literals or `mem::align_of` results to raw pointers.
+    ///
+    /// ### Why is this bad?
+    /// This creates a dangling pointer and is better expressed as
+    /// {`std`, `core`}`::ptr::`{`dangling`, `dangling_mut`}.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let ptr = 4 as *const u32;
+    /// let aligned = std::mem::align_of::<u32>() as *const u32;
+    /// let mut_ptr: *mut i64 = 8 as *mut _;
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let ptr = std::ptr::dangling::<u32>();
+    /// let aligned = std::ptr::dangling::<u32>();
+    /// let mut_ptr: *mut i64 = std::ptr::dangling_mut();
+    /// ```
+    #[clippy::version = "1.88.0"]
+    pub MANUAL_DANGLING_PTR,
+    style,
+    "casting small constant literals to pointers to create dangling pointers"
+}
 
 pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, from: &Expr<'_>, to: &Ty<'_>) {
     if let TyKind::Ptr(ref ptr_ty) = to.kind {

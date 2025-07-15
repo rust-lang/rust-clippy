@@ -1,10 +1,35 @@
+use crate::utils;
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::ty::is_isize_or_usize;
 use rustc_hir::Expr;
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, FloatTy, Ty};
 
-use super::{CAST_PRECISION_LOSS, utils};
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for casts from any numeric type to a float type where
+    /// the receiving type cannot store all values from the original type without
+    /// rounding errors. This possible rounding is to be expected, so this lint is
+    /// `Allow` by default.
+    ///
+    /// Basically, this warns on casting any integer with 32 or more bits to `f32`
+    /// or any 64-bit integer to `f64`.
+    ///
+    /// ### Why is this bad?
+    /// It's not bad at all. But in some applications it can be
+    /// helpful to know where precision loss can take place. This lint can help find
+    /// those places in the code.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let x = u64::MAX;
+    /// x as f64;
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub CAST_PRECISION_LOSS,
+    pedantic,
+    "casts that cause loss of precision, e.g., `x as f32` where `x: u64`"
+}
 
 pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, cast_from: Ty<'_>, cast_to: Ty<'_>) {
     let Some(from_nbits) = utils::int_ty_to_nbits(cx.tcx, cast_from) else {

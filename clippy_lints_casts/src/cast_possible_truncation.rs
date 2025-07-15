@@ -1,3 +1,4 @@
+use crate::utils;
 use clippy_utils::consts::{ConstEvalCtxt, Constant};
 use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
 use clippy_utils::source::snippet;
@@ -12,7 +13,63 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::{self, FloatTy, Ty};
 use rustc_span::Span;
 
-use super::{CAST_ENUM_TRUNCATION, CAST_POSSIBLE_TRUNCATION, utils};
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for casts from an enum type to an integral type that will definitely truncate the
+    /// value.
+    ///
+    /// ### Why is this bad?
+    /// The resulting integral value will not match the value of the variant it came from.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// enum E { X = 256 };
+    /// let _ = E::X as u8;
+    /// ```
+    #[clippy::version = "1.61.0"]
+    pub CAST_ENUM_TRUNCATION,
+    suspicious,
+    "casts from an enum type to an integral type that will truncate the value"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for casts between numeric types that may
+    /// truncate large values. This is expected behavior, so the cast is `Allow` by
+    /// default. It suggests user either explicitly ignore the lint,
+    /// or use `try_from()` and handle the truncation, default, or panic explicitly.
+    ///
+    /// ### Why is this bad?
+    /// In some problem domains, it is good practice to avoid
+    /// truncation. This lint can be activated to help assess where additional
+    /// checks could be beneficial.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// fn as_u8(x: u64) -> u8 {
+    ///     x as u8
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// fn as_u8(x: u64) -> u8 {
+    ///     if let Ok(x) = u8::try_from(x) {
+    ///         x
+    ///     } else {
+    ///         todo!();
+    ///     }
+    /// }
+    /// // Or
+    /// #[allow(clippy::cast_possible_truncation)]
+    /// fn as_u16(x: u64) -> u16 {
+    ///     x as u16
+    /// }
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub CAST_POSSIBLE_TRUNCATION,
+    pedantic,
+    "casts that may cause truncation of the value, e.g., `x as u8` where `x: u32`, or `x as i32` where `x: f32`"
+}
 
 fn constant_int(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<u128> {
     if let Some(Constant::Int(c)) = ConstEvalCtxt::new(cx).eval(expr) {

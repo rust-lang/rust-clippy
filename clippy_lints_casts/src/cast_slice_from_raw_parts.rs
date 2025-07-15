@@ -8,7 +8,32 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty};
 use rustc_span::sym;
 
-use super::CAST_SLICE_FROM_RAW_PARTS;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for a raw slice being cast to a slice pointer
+    ///
+    /// ### Why is this bad?
+    /// This can result in multiple `&mut` references to the same location when only a pointer is
+    /// required.
+    /// `ptr::slice_from_raw_parts` is a safe alternative that doesn't require
+    /// the same [safety requirements] to be upheld.
+    ///
+    /// ### Example
+    /// ```rust,ignore
+    /// let _: *const [u8] = std::slice::from_raw_parts(ptr, len) as *const _;
+    /// let _: *mut [u8] = std::slice::from_raw_parts_mut(ptr, len) as *mut _;
+    /// ```
+    /// Use instead:
+    /// ```rust,ignore
+    /// let _: *const [u8] = std::ptr::slice_from_raw_parts(ptr, len);
+    /// let _: *mut [u8] = std::ptr::slice_from_raw_parts_mut(ptr, len);
+    /// ```
+    /// [safety requirements]: https://doc.rust-lang.org/std/slice/fn.from_raw_parts.html#safety
+    #[clippy::version = "1.65.0"]
+    pub CAST_SLICE_FROM_RAW_PARTS,
+    suspicious,
+    "casting a slice created from a pointer and length to a slice pointer"
+}
 
 enum RawPartsKind {
     Immutable,

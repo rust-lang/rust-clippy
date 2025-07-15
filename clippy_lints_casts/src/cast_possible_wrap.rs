@@ -1,9 +1,38 @@
+use crate::utils;
 use clippy_utils::diagnostics::span_lint_and_then;
 use rustc_hir::Expr;
 use rustc_lint::LateContext;
 use rustc_middle::ty::Ty;
 
-use super::{CAST_POSSIBLE_WRAP, utils};
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for casts from an unsigned type to a signed type of
+    /// the same size, or possibly smaller due to target-dependent integers.
+    /// Performing such a cast is a no-op for the compiler (that is, nothing is
+    /// changed at the bit level), and the binary representation of the value is
+    /// reinterpreted. This can cause wrapping if the value is too big
+    /// for the target signed type. However, the cast works as defined, so this lint
+    /// is `Allow` by default.
+    ///
+    /// ### Why is this bad?
+    /// While such a cast is not bad in itself, the results can
+    /// be surprising when this is not the intended behavior:
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let _ = u32::MAX as i32; // will yield a value of `-1`
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// let _ = i32::try_from(u32::MAX).ok();
+    /// ```
+    ///
+    #[clippy::version = "pre 1.29.0"]
+    pub CAST_POSSIBLE_WRAP,
+    pedantic,
+    "casts that may cause wrapping around the value, e.g., `x as i32` where `x: u32` and `x > i32::MAX`"
+}
 
 // this should be kept in sync with the allowed bit widths of `usize` and `isize`
 const ALLOWED_POINTER_SIZES: [u64; 3] = [16, 32, 64];

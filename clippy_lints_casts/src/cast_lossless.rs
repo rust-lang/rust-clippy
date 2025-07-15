@@ -1,3 +1,4 @@
+use crate::utils;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_in_const_context;
 use clippy_utils::msrvs::{self, Msrv};
@@ -10,7 +11,38 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::{self, FloatTy, Ty};
 use rustc_span::hygiene;
 
-use super::{CAST_LOSSLESS, utils};
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for casts between numeric types that can be replaced by safe
+    /// conversion functions.
+    ///
+    /// ### Why is this bad?
+    /// Rust's `as` keyword will perform many kinds of conversions, including
+    /// silently lossy conversions. Conversion functions such as `i32::from`
+    /// will only perform lossless conversions. Using the conversion functions
+    /// prevents conversions from becoming silently lossy if the input types
+    /// ever change, and makes it clear for people reading the code that the
+    /// conversion is lossless.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// fn as_u64(x: u8) -> u64 {
+    ///     x as u64
+    /// }
+    /// ```
+    ///
+    /// Using `::from` would look like this:
+    ///
+    /// ```no_run
+    /// fn as_u64(x: u8) -> u64 {
+    ///     u64::from(x)
+    /// }
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub CAST_LOSSLESS,
+    pedantic,
+    "casts using `as` that are known to be lossless, e.g., `x as u64` where `x: u8`"
+}
 
 pub(super) fn check(
     cx: &LateContext<'_>,

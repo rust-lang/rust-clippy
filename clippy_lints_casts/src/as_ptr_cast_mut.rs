@@ -6,7 +6,31 @@ use rustc_lint::LateContext;
 use rustc_middle::mir::Mutability;
 use rustc_middle::ty::{self, Ty};
 
-use super::AS_PTR_CAST_MUT;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for the result of a `&self`-taking `as_ptr` being cast to a mutable pointer.
+    ///
+    /// ### Why is this bad?
+    /// Since `as_ptr` takes a `&self`, the pointer won't have write permissions unless interior
+    /// mutability is used, making it unlikely that having it as a mutable pointer is correct.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let mut vec = Vec::<u8>::with_capacity(1);
+    /// let ptr = vec.as_ptr() as *mut u8;
+    /// unsafe { ptr.write(4) }; // UNDEFINED BEHAVIOUR
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let mut vec = Vec::<u8>::with_capacity(1);
+    /// let ptr = vec.as_mut_ptr();
+    /// unsafe { ptr.write(4) };
+    /// ```
+    #[clippy::version = "1.66.0"]
+    pub AS_PTR_CAST_MUT,
+    nursery,
+    "casting the result of the `&self`-taking `as_ptr` to a mutable pointer"
+}
 
 pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, cast_expr: &Expr<'_>, cast_to: Ty<'_>) {
     if let ty::RawPtr(ptrty, Mutability::Mut) = cast_to.kind()

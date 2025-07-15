@@ -7,7 +7,41 @@ use rustc_hir::{Expr, ExprKind, Mutability, QPath};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty, TypeVisitableExt};
 
-use super::PTR_CAST_CONSTNESS;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `as` casts between raw pointers that change their constness, namely `*const T` to
+    /// `*mut T` and `*mut T` to `*const T`.
+    ///
+    /// ### Why is this bad?
+    /// Though `as` casts between raw pointers are not terrible, `pointer::cast_mut` and
+    /// `pointer::cast_const` are safer because they cannot accidentally cast the pointer to another
+    /// type. Or, when null pointers are involved, `null()` and `null_mut()` can be used directly.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let ptr: *const u32 = &42_u32;
+    /// let mut_ptr = ptr as *mut u32;
+    /// let ptr = mut_ptr as *const u32;
+    /// let ptr1 = std::ptr::null::<u32>() as *mut u32;
+    /// let ptr2 = std::ptr::null_mut::<u32>() as *const u32;
+    /// let ptr3 = std::ptr::null::<u32>().cast_mut();
+    /// let ptr4 = std::ptr::null_mut::<u32>().cast_const();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let ptr: *const u32 = &42_u32;
+    /// let mut_ptr = ptr.cast_mut();
+    /// let ptr = mut_ptr.cast_const();
+    /// let ptr1 = std::ptr::null_mut::<u32>();
+    /// let ptr2 = std::ptr::null::<u32>();
+    /// let ptr3 = std::ptr::null_mut::<u32>();
+    /// let ptr4 = std::ptr::null::<u32>();
+    /// ```
+    #[clippy::version = "1.72.0"]
+    pub PTR_CAST_CONSTNESS,
+    pedantic,
+    "casting using `as` on raw pointers to change constness when specialized methods apply"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'_>,

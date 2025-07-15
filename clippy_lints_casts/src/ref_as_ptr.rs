@@ -7,7 +7,29 @@ use rustc_hir::{Expr, Mutability, Ty, TyKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty;
 
-use super::REF_AS_PTR;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for casts of references to pointer using `as`
+    /// and suggests `std::ptr::from_ref` and `std::ptr::from_mut` instead.
+    ///
+    /// ### Why is this bad?
+    /// Using `as` casts may result in silently changing mutability or type.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let a_ref = &1;
+    /// let a_ptr = a_ref as *const _;
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let a_ref = &1;
+    /// let a_ptr = std::ptr::from_ref(a_ref);
+    /// ```
+    #[clippy::version = "1.78.0"]
+    pub REF_AS_PTR,
+    pedantic,
+    "using `as` to cast a reference to pointer"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

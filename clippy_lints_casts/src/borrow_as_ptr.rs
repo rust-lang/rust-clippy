@@ -9,7 +9,38 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::adjustment::{Adjust, AutoBorrow};
 use rustc_span::BytePos;
 
-use super::BORROW_AS_PTR;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for the usage of `&expr as *const T` or
+    /// `&mut expr as *mut T`, and suggest using `&raw const` or
+    /// `&raw mut` instead.
+    ///
+    /// ### Why is this bad?
+    /// This would improve readability and avoid creating a reference
+    /// that points to an uninitialized value or unaligned place.
+    /// Read the `&raw` explanation in the Reference for more information.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let val = 1;
+    /// let p = &val as *const i32;
+    ///
+    /// let mut val_mut = 1;
+    /// let p_mut = &mut val_mut as *mut i32;
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let val = 1;
+    /// let p = &raw const val;
+    ///
+    /// let mut val_mut = 1;
+    /// let p_mut = &raw mut val_mut;
+    /// ```
+    #[clippy::version = "1.60.0"]
+    pub BORROW_AS_PTR,
+    pedantic,
+    "borrowing just to cast to a raw pointer"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

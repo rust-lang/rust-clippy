@@ -6,7 +6,33 @@ use rustc_hir::{Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, UintTy};
 
-use super::CHAR_LIT_AS_U8;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for expressions where a character literal is cast
+    /// to `u8` and suggests using a byte literal instead.
+    ///
+    /// ### Why is this bad?
+    /// In general, casting values to smaller types is
+    /// error-prone and should be avoided where possible. In the particular case of
+    /// converting a character literal to `u8`, it is easy to avoid by just using a
+    /// byte literal instead. As an added bonus, `b'a'` is also slightly shorter
+    /// than `'a' as u8`.
+    ///
+    /// ### Example
+    /// ```rust,ignore
+    /// 'x' as u8
+    /// ```
+    ///
+    /// A better version, using the byte literal:
+    ///
+    /// ```rust,ignore
+    /// b'x'
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub CHAR_LIT_AS_U8,
+    complexity,
+    "casting a character literal to `u8` truncates"
+}
 
 pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>) {
     if let ExprKind::Cast(e, _) = &expr.kind

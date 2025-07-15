@@ -6,7 +6,33 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::layout::LayoutOf;
 use rustc_middle::ty::{self, Ty};
 
-use super::CAST_PTR_ALIGNMENT;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for casts, using `as` or `pointer::cast`, from a
+    /// less strictly aligned pointer to a more strictly aligned pointer.
+    ///
+    /// ### Why is this bad?
+    /// Dereferencing the resulting pointer may be undefined behavior.
+    ///
+    /// ### Known problems
+    /// Using [`std::ptr::read_unaligned`](https://doc.rust-lang.org/std/ptr/fn.read_unaligned.html) and [`std::ptr::write_unaligned`](https://doc.rust-lang.org/std/ptr/fn.write_unaligned.html) or
+    /// similar on the resulting pointer is fine. Is over-zealous: casts with
+    /// manual alignment checks or casts like `u64` -> `u8` -> `u16` can be
+    /// fine. Miri is able to do a more in-depth analysis.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let _ = (&1u8 as *const u8) as *const u16;
+    /// let _ = (&mut 1u8 as *mut u8) as *mut u16;
+    ///
+    /// (&1u8 as *const u8).cast::<u16>();
+    /// (&mut 1u8 as *mut u8).cast::<u16>();
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub CAST_PTR_ALIGNMENT,
+    pedantic,
+    "cast from a pointer to a more strictly aligned pointer"
+}
 
 pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>) {
     if let ExprKind::Cast(cast_expr, cast_to) = expr.kind {

@@ -13,7 +13,41 @@ use rustc_middle::ty::{self, FloatTy, InferTy, Ty};
 use rustc_span::{Symbol, sym};
 use std::ops::ControlFlow;
 
-use super::UNNECESSARY_CAST;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for casts to the same type, casts of int literals to integer
+    /// types, casts of float literals to float types, and casts between raw
+    /// pointers that don't change type or constness.
+    ///
+    /// ### Why is this bad?
+    /// It's just unnecessary.
+    ///
+    /// ### Known problems
+    /// When the expression on the left is a function call, the lint considers
+    /// the return type to be a type alias if it's aliased through a `use`
+    /// statement (like `use std::io::Result as IoResult`). It will not lint
+    /// such cases.
+    ///
+    /// This check will only work on primitive types without any intermediate
+    /// references: raw pointers and trait objects may or may not work.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let _ = 2i32 as i32;
+    /// let _ = 0.5 as f32;
+    /// ```
+    ///
+    /// Better:
+    ///
+    /// ```no_run
+    /// let _ = 2_i32;
+    /// let _ = 0.5_f32;
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub UNNECESSARY_CAST,
+    complexity,
+    "cast to the same type, e.g., `x as i32` where `x: i32`"
+}
 
 #[expect(clippy::too_many_lines)]
 pub(super) fn check<'tcx>(
@@ -167,7 +201,7 @@ pub(super) fn check<'tcx>(
                 sym::assert_ne_macro,
                 sym::debug_assert_ne_macro,
             ];
-            matches!(expr.span.ctxt().outer_expn_data().macro_def_id, Some(def_id) if 
+            matches!(expr.span.ctxt().outer_expn_data().macro_def_id, Some(def_id) if
                 cx.tcx.get_diagnostic_name(def_id).is_some_and(|sym| ALLOWED_MACROS.contains(&sym)))
         }
 

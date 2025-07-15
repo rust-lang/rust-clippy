@@ -8,7 +8,31 @@ use rustc_middle::ty::{self, GenericArg, Ty};
 use rustc_span::Symbol;
 use rustc_span::def_id::DefId;
 
-use super::CONFUSING_METHOD_TO_NUMERIC_CAST;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for casts of a primitive method pointer like `max`/`min` to any integer type.
+    ///
+    /// ### Why restrict this?
+    /// Casting a function pointer to an integer can have surprising results and can occur
+    /// accidentally if parentheses are omitted from a function call. If you aren't doing anything
+    /// low-level with function pointers then you can opt out of casting functions to integers in
+    /// order to avoid mistakes. Alternatively, you can use this lint to audit all uses of function
+    /// pointer casts in your code.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let _ = u16::max as usize;
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// let _ = u16::MAX as usize;
+    /// ```
+    #[clippy::version = "1.86.0"]
+    pub CONFUSING_METHOD_TO_NUMERIC_CAST,
+    suspicious,
+    "casting a primitive method pointer to any integer type"
+}
 
 fn get_primitive_ty_name(ty: Ty<'_>) -> Option<&'static str> {
     match ty.kind() {
