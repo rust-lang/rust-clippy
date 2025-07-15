@@ -159,6 +159,7 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
 
             let mut list_builder = LintListBuilder::default();
             list_builder.insert(clippy_lints::declared_lints::LINTS);
+            list_builder.insert(clippy_lints_casts::declared_lints::LINTS);
             list_builder.insert(clippy_lints_loops::declared_lints::LINTS);
             list_builder.insert(clippy_lints_matches::declared_lints::LINTS);
             list_builder.insert(clippy_lints_methods::declared_lints::LINTS);
@@ -166,6 +167,7 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
 
             let conf = clippy_config::Conf::read(sess, &conf_path);
             let format_args = clippy_lints::register_lint_passes(lint_store, conf);
+            clippy_lints_casts::register_lint_passes(lint_store, conf);
             clippy_lints_loops::register_lint_passes(lint_store, conf);
             clippy_lints_matches::register_lint_passes(lint_store, conf);
             clippy_lints_methods::register_lint_passes(lint_store, conf, format_args);

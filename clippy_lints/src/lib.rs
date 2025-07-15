@@ -89,7 +89,6 @@ mod borrow_deref_ref;
 mod box_default;
 mod byte_char_slices;
 mod cargo;
-mod casts;
 mod cfg_not_test;
 mod checked_conversions;
 mod cloned_ref_to_slice_refs;
@@ -507,7 +506,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(move |_| Box::new(use_self::UseSelf::new(conf)));
     store.register_late_pass(move |_| Box::new(missing_const_for_fn::MissingConstForFn::new(conf)));
     store.register_late_pass(move |_| Box::new(needless_question_mark::NeedlessQuestionMark));
-    store.register_late_pass(move |_| Box::new(casts::Casts::new(conf)));
     store.register_early_pass(move || Box::new(unnested_or_patterns::UnnestedOrPatterns::new(conf)));
     store.register_late_pass(|_| Box::new(size_of_in_element_count::SizeOfInElementCount));
     store.register_late_pass(|_| Box::new(same_name_method::SameNameMethod));

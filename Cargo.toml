@@ -23,6 +23,7 @@ path = "src/driver.rs"
 [dependencies]
 clippy_config = { path = "clippy_config" }
 clippy_lints = { path = "clippy_lints" }
+clippy_lints_casts = { path = "clippy_lints_casts" }
 clippy_lints_loops = { path = "clippy_lints_loops" }
 clippy_lints_matches = { path = "clippy_lints_matches" }
 clippy_lints_methods = { path = "clippy_lints_methods" }

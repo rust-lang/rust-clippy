@@ -15,6 +15,11 @@ const CLIPPY_PROJECTS: &[ClippyProjectInfo] = &[
     ClippyProjectInfo::new("root", "Cargo.toml", "src/driver.rs"),
     ClippyProjectInfo::new("clippy_lints", "clippy_lints/Cargo.toml", "clippy_lints/src/lib.rs"),
     ClippyProjectInfo::new(
+        "clippy_lints_casts",
+        "clippy_lints_casts/Cargo.toml",
+        "clippy_lints_casts/src/lib.rs",
+    ),
+    ClippyProjectInfo::new(
         "clippy_lints_loops",
         "clippy_lints_loops/Cargo.toml",
         "clippy_lints_loops/src/lib.rs",

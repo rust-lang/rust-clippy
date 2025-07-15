@@ -1,3 +1,38 @@
+#![feature(macro_metavar_expr_concat, rustc_private)]
+#![allow(
+    clippy::missing_docs_in_private_items,
+    clippy::must_use_candidate,
+    rustc::diagnostic_outside_of_impl,
+    rustc::untranslatable_diagnostic,
+    clippy::literal_string_with_formatting_args
+)]
+#![warn(
+    trivial_casts,
+    trivial_numeric_casts,
+    rust_2018_idioms,
+    unused_lifetimes,
+    unused_qualifications,
+    rustc::internal
+)]
+
+extern crate rustc_abi;
+extern crate rustc_ast;
+extern crate rustc_errors;
+extern crate rustc_hir;
+extern crate rustc_hir_pretty;
+extern crate rustc_lint;
+extern crate rustc_middle;
+extern crate rustc_session;
+extern crate rustc_span;
+
+#[macro_use]
+extern crate declare_clippy_lint;
+
+pub mod declared_lints;
+
+// begin lints modules, do not remove this comment, it's used in `update_lints`
+// end lints modules, do not remove this comment, it's used in `update_lints`
+
 mod as_pointer_underscore;
 mod as_ptr_cast_mut;
 mod as_underscore;
@@ -30,7 +65,7 @@ use clippy_config::Conf;
 use clippy_utils::is_hir_ty_cfg_dependant;
 use clippy_utils::msrvs::{self, Msrv};
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_lint::{LateContext, LateLintPass, LintContext, LintStore};
 use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
@@ -813,12 +848,12 @@ declare_clippy_lint! {
     "casting a primitive method pointer to any integer type"
 }
 
-pub struct Casts {
+struct Casts {
     msrv: Msrv,
 }
 
 impl Casts {
-    pub fn new(conf: &'static Conf) -> Self {
+    fn new(conf: &'static Conf) -> Self {
         Self { msrv: conf.msrv }
     }
 }
@@ -916,4 +951,8 @@ impl<'tcx> LateLintPass<'tcx> for Casts {
         cast_slice_different_sizes::check(cx, expr, self.msrv);
         ptr_cast_constness::check_null_ptr_cast_method(cx, expr);
     }
+}
+
+pub fn register_lint_passes(store: &mut LintStore, conf: &'static Conf) {
+    store.register_late_pass(move |_| Box::new(Casts::new(conf)));
 }
