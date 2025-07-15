@@ -1,4 +1,3 @@
-use super::NEVER_LOOP;
 use super::utils::make_iterator_snippet;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::higher::ForLoop;
@@ -11,6 +10,28 @@ use rustc_lint::LateContext;
 use rustc_span::{Span, sym};
 use std::iter::once;
 use std::ops::ControlFlow;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for loops that will always `break`, `return` or
+    /// `continue` an outer loop.
+    ///
+    /// ### Why is this bad?
+    /// This loop never loops, all it does is obfuscating the
+    /// code.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// loop {
+    ///     ..;
+    ///     break;
+    /// }
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub NEVER_LOOP,
+    correctness,
+    "any loop that will always `break` or `return`"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

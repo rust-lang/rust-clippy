@@ -1,4 +1,3 @@
-use super::MISSING_SPIN_LOOP;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::std_or_core;
 use rustc_errors::Applicability;
@@ -6,6 +5,42 @@ use rustc_hir::{Block, Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_span::sym;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for empty spin loops
+    ///
+    /// ### Why is this bad?
+    /// The loop body should have something like `thread::park()` or at least
+    /// `std::hint::spin_loop()` to avoid needlessly burning cycles and conserve
+    /// energy. Perhaps even better use an actual lock, if possible.
+    ///
+    /// ### Known problems
+    /// This lint doesn't currently trigger on `while let` or
+    /// `loop { match .. { .. } }` loops, which would be considered idiomatic in
+    /// combination with e.g. `AtomicBool::compare_exchange_weak`.
+    ///
+    /// ### Example
+    ///
+    /// ```ignore
+    /// use core::sync::atomic::{AtomicBool, Ordering};
+    /// let b = AtomicBool::new(true);
+    /// // give a ref to `b` to another thread,wait for it to become false
+    /// while b.load(Ordering::Acquire) {};
+    /// ```
+    /// Use instead:
+    /// ```rust,no_run
+    ///# use core::sync::atomic::{AtomicBool, Ordering};
+    ///# let b = AtomicBool::new(true);
+    /// while b.load(Ordering::Acquire) {
+    ///     std::hint::spin_loop()
+    /// }
+    /// ```
+    #[clippy::version = "1.61.0"]
+    pub MISSING_SPIN_LOOP,
+    perf,
+    "An empty busy waiting loop"
+}
 
 fn unpack_cond<'tcx>(cond: &'tcx Expr<'tcx>) -> &'tcx Expr<'tcx> {
     match &cond.kind {

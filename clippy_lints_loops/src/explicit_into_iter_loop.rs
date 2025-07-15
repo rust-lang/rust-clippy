@@ -1,4 +1,3 @@
-use super::EXPLICIT_INTO_ITER_LOOP;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::is_trait_method;
 use clippy_utils::source::snippet_with_context;
@@ -7,6 +6,35 @@ use rustc_hir::Expr;
 use rustc_lint::LateContext;
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, AutoBorrowMutability};
 use rustc_span::symbol::sym;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for loops on `y.into_iter()` where `y` will do, and
+    /// suggests the latter.
+    ///
+    /// ### Why is this bad?
+    /// Readability.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let y = vec![1];
+    /// // with `y` a `Vec` or slice:
+    /// for x in y.into_iter() {
+    ///     // ..
+    /// }
+    /// ```
+    /// can be rewritten to
+    /// ```no_run
+    /// # let y = vec![1];
+    /// for x in y {
+    ///     // ..
+    /// }
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub EXPLICIT_INTO_ITER_LOOP,
+    pedantic,
+    "for-looping over `_.into_iter()` when `_` would do"
+}
 
 #[derive(Clone, Copy)]
 enum AdjustKind {

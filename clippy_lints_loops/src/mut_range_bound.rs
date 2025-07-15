@@ -1,4 +1,3 @@
-use super::MUT_RANGE_BOUND;
 use clippy_utils::diagnostics::span_lint_and_note;
 use clippy_utils::{get_enclosing_block, higher, path_to_local};
 use rustc_hir::intravisit::{self, Visitor};
@@ -9,6 +8,42 @@ use rustc_middle::mir::FakeReadCause;
 use rustc_middle::ty;
 use rustc_span::Span;
 use std::ops::ControlFlow;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for loops with a range bound that is a mutable variable.
+    ///
+    /// ### Why is this bad?
+    /// One might think that modifying the mutable variable changes the loop bounds. It doesn't.
+    ///
+    /// ### Known problems
+    /// False positive when mutation is followed by a `break`, but the `break` is not immediately
+    /// after the mutation:
+    ///
+    /// ```no_run
+    /// let mut x = 5;
+    /// for _ in 0..x {
+    ///     x += 1; // x is a range bound that is mutated
+    ///     ..; // some other expression
+    ///     break; // leaves the loop, so mutation is not an issue
+    /// }
+    /// ```
+    ///
+    /// False positive on nested loops ([#6072](https://github.com/rust-lang/rust-clippy/issues/6072))
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let mut foo = 42;
+    /// for i in 0..foo {
+    ///     foo -= 1;
+    ///     println!("{i}"); // prints numbers from 0 to 41, not 0 to 21
+    /// }
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub MUT_RANGE_BOUND,
+    suspicious,
+    "for loop over a range where one of the bounds is a mutable variable"
+}
 
 pub(super) fn check(cx: &LateContext<'_>, arg: &Expr<'_>, body: &Expr<'_>) {
     if let Some(higher::Range {

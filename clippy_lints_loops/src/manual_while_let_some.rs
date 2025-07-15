@@ -7,7 +7,35 @@ use rustc_lint::LateContext;
 use rustc_span::{Span, Symbol, sym};
 use std::borrow::Cow;
 
-use super::MANUAL_WHILE_LET_SOME;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Looks for loops that check for emptiness of a `Vec` in the condition and pop an element
+    /// in the body as a separate operation.
+    ///
+    /// ### Why is this bad?
+    /// Such loops can be written in a more idiomatic way by using a while-let loop and directly
+    /// pattern matching on the return value of `Vec::pop()`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let mut numbers = vec![1, 2, 3, 4, 5];
+    /// while !numbers.is_empty() {
+    ///     let number = numbers.pop().unwrap();
+    ///     // use `number`
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let mut numbers = vec![1, 2, 3, 4, 5];
+    /// while let Some(number) = numbers.pop() {
+    ///     // use `number`
+    /// }
+    /// ```
+    #[clippy::version = "1.71.0"]
+    pub MANUAL_WHILE_LET_SOME,
+    style,
+    "checking for emptiness of a `Vec` in the loop condition and popping an element in the body"
+}
 
 /// The kind of statement that the `pop()` call appeared in.
 ///

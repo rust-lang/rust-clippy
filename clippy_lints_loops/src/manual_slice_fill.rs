@@ -16,7 +16,30 @@ use rustc_lint::LateContext;
 use rustc_span::source_map::Spanned;
 use rustc_span::sym;
 
-use super::MANUAL_SLICE_FILL;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for manually filling a slice with a value.
+    ///
+    /// ### Why is this bad?
+    /// Using the `fill` method is more idiomatic and concise.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let mut some_slice = [1, 2, 3, 4, 5];
+    /// for i in 0..some_slice.len() {
+    ///     some_slice[i] = 0;
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let mut some_slice = [1, 2, 3, 4, 5];
+    /// some_slice.fill(0);
+    /// ```
+    #[clippy::version = "1.86.0"]
+    pub MANUAL_SLICE_FILL,
+    style,
+    "manually filling a slice with a value"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

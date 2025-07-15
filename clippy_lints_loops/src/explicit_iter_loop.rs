@@ -1,4 +1,3 @@
-use super::EXPLICIT_ITER_LOOP;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::snippet_with_context;
@@ -12,6 +11,40 @@ use rustc_hir::{Expr, Mutability};
 use rustc_lint::LateContext;
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, AutoBorrowMutability};
 use rustc_middle::ty::{self, EarlyBinder, Ty};
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for loops on `x.iter()` where `&x` will do, and
+    /// suggests the latter.
+    ///
+    /// ### Why is this bad?
+    /// Readability.
+    ///
+    /// ### Known problems
+    /// False negatives. We currently only warn on some known
+    /// types.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// // with `y` a `Vec` or slice:
+    /// # let y = vec![1];
+    /// for x in y.iter() {
+    ///     // ..
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # let y = vec![1];
+    /// for x in &y {
+    ///     // ..
+    /// }
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub EXPLICIT_ITER_LOOP,
+    pedantic,
+    "for-looping over `_.iter()` or `_.iter_mut()` when `&_` or `&mut _` would do"
+}
 
 pub(super) fn check(
     cx: &LateContext<'_>,

@@ -1,4 +1,4 @@
-use super::{EXPLICIT_COUNTER_LOOP, IncrementVisitor, InitializeVisitor, make_iterator_snippet};
+use super::{IncrementVisitor, InitializeVisitor, make_iterator_snippet};
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::{get_enclosing_block, is_integer_const};
@@ -8,6 +8,38 @@ use rustc_hir::intravisit::{walk_block, walk_expr};
 use rustc_hir::{Expr, Pat};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty, UintTy};
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks `for` loops over slices with an explicit counter
+    /// and suggests the use of `.enumerate()`.
+    ///
+    /// ### Why is this bad?
+    /// Using `.enumerate()` makes the intent more clear,
+    /// declutters the code and may be faster in some instances.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let v = vec![1];
+    /// # fn bar(bar: usize, baz: usize) {}
+    /// let mut i = 0;
+    /// for item in &v {
+    ///     bar(i, *item);
+    ///     i += 1;
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # let v = vec![1];
+    /// # fn bar(bar: usize, baz: usize) {}
+    /// for (i, item) in v.iter().enumerate() { bar(i, *item); }
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub EXPLICIT_COUNTER_LOOP,
+    complexity,
+    "for-looping with an explicit counter when `_.enumerate()` would do"
+}
 
 // To trigger the EXPLICIT_COUNTER_LOOP lint, a variable must be
 // incremented exactly once in the loop body, and initialized to zero

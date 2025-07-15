@@ -1,4 +1,3 @@
-use super::WHILE_LET_LOOP;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::{snippet, snippet_indent, snippet_opt};
 use clippy_utils::ty::needs_ordered_drop;
@@ -8,6 +7,39 @@ use rustc_ast::BindingMode;
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, LetStmt, MatchSource, Pat, PatKind, Path, QPath, StmtKind, Ty};
 use rustc_lint::LateContext;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Detects `loop + match` combinations that are easier
+    /// written as a `while let` loop.
+    ///
+    /// ### Why is this bad?
+    /// The `while let` loop is usually shorter and more
+    /// readable.
+    ///
+    /// ### Example
+    /// ```rust,no_run
+    /// let y = Some(1);
+    /// loop {
+    ///     let x = match y {
+    ///         Some(x) => x,
+    ///         None => break,
+    ///     };
+    ///     // ..
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```rust,no_run
+    /// let y = Some(1);
+    /// while let Some(x) = y {
+    ///     // ..
+    /// };
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub WHILE_LET_LOOP,
+    complexity,
+    "`loop { if let { ... } else break }`, which can be written as a `while let` loop"
+}
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, loop_block: &'tcx Block<'_>) {
     let (init, let_info) = match (loop_block.stmts, loop_block.expr) {

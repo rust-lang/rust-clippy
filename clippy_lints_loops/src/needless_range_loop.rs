@@ -1,4 +1,3 @@
-use super::NEEDLESS_RANGE_LOOP;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet;
 use clippy_utils::ty::has_iter_method;
@@ -15,6 +14,37 @@ use rustc_middle::middle::region;
 use rustc_middle::ty::{self, Ty};
 use rustc_span::symbol::{Symbol, sym};
 use std::{iter, mem};
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for looping over the range of `0..len` of some
+    /// collection just to get the values by index.
+    ///
+    /// ### Why is this bad?
+    /// Just iterating the collection itself makes the intent
+    /// more clear and is probably faster because it eliminates
+    /// the bounds check that is done when indexing.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let vec = vec!['a', 'b', 'c'];
+    /// for i in 0..vec.len() {
+    ///     println!("{}", vec[i]);
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// let vec = vec!['a', 'b', 'c'];
+    /// for i in vec {
+    ///     println!("{}", i);
+    /// }
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub NEEDLESS_RANGE_LOOP,
+    style,
+    "for-looping over a range of indices where an iterator over items would do"
+}
 
 /// Checks for looping over a range and then indexing a sequence with it.
 /// The iteratee must be a range literal.

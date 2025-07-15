@@ -8,7 +8,47 @@ use rustc_hir as hir;
 use rustc_lint::{LateContext, LintContext};
 use rustc_span::sym;
 
-use super::INFINITE_LOOP;
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for infinite loops in a function where the return type is not `!`
+    /// and lint accordingly.
+    ///
+    /// ### Why restrict this?
+    /// Making the return type `!` serves as documentation that the function does not return.
+    /// If the function is not intended to loop infinitely, then this lint may detect a bug.
+    ///
+    /// ### Example
+    /// ```no_run,ignore
+    /// fn run_forever() {
+    ///     loop {
+    ///         // do something
+    ///     }
+    /// }
+    /// ```
+    /// If infinite loops are as intended:
+    /// ```no_run,ignore
+    /// fn run_forever() -> ! {
+    ///     loop {
+    ///         // do something
+    ///     }
+    /// }
+    /// ```
+    /// Otherwise add a `break` or `return` condition:
+    /// ```no_run,ignore
+    /// fn run_forever() {
+    ///     loop {
+    ///         // do something
+    ///         if condition {
+    ///             break;
+    ///         }
+    ///     }
+    /// }
+    /// ```
+    #[clippy::version = "1.76.0"]
+    pub INFINITE_LOOP,
+    restriction,
+    "possibly unintended infinite loop"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

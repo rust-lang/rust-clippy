@@ -1,4 +1,3 @@
-use super::UNUSED_ENUMERATE_INDEX;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::{SpanRangeExt, walk_span_to_context};
 use clippy_utils::ty::is_type_diagnostic_item;
@@ -7,6 +6,33 @@ use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, Pat, PatKind, TyKind};
 use rustc_lint::LateContext;
 use rustc_span::{Span, SyntaxContext, sym};
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for uses of the `enumerate` method where the index is unused (`_`)
+    ///
+    /// ### Why is this bad?
+    /// The index from `.enumerate()` is immediately dropped.
+    ///
+    /// ### Example
+    /// ```rust
+    /// let v = vec![1, 2, 3, 4];
+    /// for (_, x) in v.iter().enumerate() {
+    ///     println!("{x}");
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// let v = vec![1, 2, 3, 4];
+    /// for x in v.iter() {
+    ///     println!("{x}");
+    /// }
+    /// ```
+    #[clippy::version = "1.75.0"]
+    pub UNUSED_ENUMERATE_INDEX,
+    style,
+    "using `.enumerate()` and immediately dropping the index"
+}
 
 pub(super) fn check_method<'tcx>(
     cx: &LateContext<'tcx>,

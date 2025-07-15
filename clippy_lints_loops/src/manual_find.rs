@@ -1,4 +1,3 @@
-use super::MANUAL_FIND;
 use super::utils::make_iterator_snippet;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet_with_applicability;
@@ -11,6 +10,37 @@ use rustc_hir::lang_items::LangItem;
 use rustc_hir::{BindingMode, Block, Expr, ExprKind, HirId, Node, Pat, PatKind, Stmt, StmtKind};
 use rustc_lint::LateContext;
 use rustc_span::Span;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for manual implementations of Iterator::find
+    ///
+    /// ### Why is this bad?
+    /// It doesn't affect performance, but using `find` is shorter and easier to read.
+    ///
+    /// ### Example
+    ///
+    /// ```no_run
+    /// fn example(arr: Vec<i32>) -> Option<i32> {
+    ///     for el in arr {
+    ///         if el == 1 {
+    ///             return Some(el);
+    ///         }
+    ///     }
+    ///     None
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// fn example(arr: Vec<i32>) -> Option<i32> {
+    ///     arr.into_iter().find(|&el| el == 1)
+    /// }
+    /// ```
+    #[clippy::version = "1.64.0"]
+    pub MANUAL_FIND,
+    complexity,
+    "manual implementation of `Iterator::find`"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

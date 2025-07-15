@@ -1,4 +1,3 @@
-use super::SINGLE_ELEMENT_LOOP;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::{indent_of, snippet, snippet_with_applicability};
 use clippy_utils::visitors::contains_break_or_continue;
@@ -9,6 +8,34 @@ use rustc_hir::{BorrowKind, Expr, ExprKind, Pat, PatKind, is_range_literal};
 use rustc_lint::LateContext;
 use rustc_span::edition::Edition;
 use rustc_span::sym;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks whether a for loop has a single element.
+    ///
+    /// ### Why is this bad?
+    /// There is no reason to have a loop of a
+    /// single element.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let item1 = 2;
+    /// for item in &[item1] {
+    ///     println!("{}", item);
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// let item1 = 2;
+    /// let item = &item1;
+    /// println!("{}", item);
+    /// ```
+    #[clippy::version = "1.49.0"]
+    pub SINGLE_ELEMENT_LOOP,
+    complexity,
+    "there is no reason to have a single element loop"
+}
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,

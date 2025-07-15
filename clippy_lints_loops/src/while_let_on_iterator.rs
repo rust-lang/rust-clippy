@@ -1,6 +1,3 @@
-use std::ops::ControlFlow;
-
-use super::WHILE_LET_ON_ITERATOR;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::visitors::is_res_used;
@@ -14,6 +11,34 @@ use rustc_middle::hir::nested_filter::OnlyBodies;
 use rustc_middle::ty::adjustment::Adjust;
 use rustc_span::Symbol;
 use rustc_span::symbol::sym;
+use std::ops::ControlFlow;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `while let` expressions on iterators.
+    ///
+    /// ### Why is this bad?
+    /// Readability. A simple `for` loop is shorter and conveys
+    /// the intent better.
+    ///
+    /// ### Example
+    /// ```ignore
+    /// while let Some(val) = iter.next() {
+    ///     ..
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```ignore
+    /// for val in &mut iter {
+    ///     ..
+    /// }
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub WHILE_LET_ON_ITERATOR,
+    style,
+    "using a `while let` loop instead of a for loop on an iterator"
+}
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
     if let Some(higher::WhileLet { if_then, let_pat, let_expr, label, .. }) = higher::WhileLet::hir(expr)

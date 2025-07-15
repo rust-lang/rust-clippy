@@ -1,4 +1,3 @@
-use super::MANUAL_FLATTEN;
 use super::utils::make_iterator_snippet;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::msrvs::{self, Msrv};
@@ -11,6 +10,38 @@ use rustc_hir::{Expr, Pat, PatKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_span::Span;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for unnecessary `if let` usage in a for loop
+    /// where only the `Some` or `Ok` variant of the iterator element is used.
+    ///
+    /// ### Why is this bad?
+    /// It is verbose and can be simplified
+    /// by first calling the `flatten` method on the `Iterator`.
+    ///
+    /// ### Example
+    ///
+    /// ```no_run
+    /// let x = vec![Some(1), Some(2), Some(3)];
+    /// for n in x {
+    ///     if let Some(n) = n {
+    ///         println!("{}", n);
+    ///     }
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let x = vec![Some(1), Some(2), Some(3)];
+    /// for n in x.into_iter().flatten() {
+    ///     println!("{}", n);
+    /// }
+    /// ```
+    #[clippy::version = "1.52.0"]
+    pub MANUAL_FLATTEN,
+    complexity,
+    "for loops over `Option`s or `Result`s with a single expression can be simplified"
+}
 
 /// Check for unnecessary `if let` usage in a for loop where only the `Some` or `Ok` variant of the
 /// iterator element is used.

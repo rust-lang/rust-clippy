@@ -1,4 +1,4 @@
-use super::{IncrementVisitor, InitializeVisitor, MANUAL_MEMCPY};
+use super::{IncrementVisitor, InitializeVisitor};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet;
 use clippy_utils::sugg::Sugg;
@@ -13,6 +13,35 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty};
 use rustc_span::symbol::sym;
 use std::fmt::Display;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for for-loops that manually copy items between
+    /// slices that could be optimized by having a memcpy.
+    ///
+    /// ### Why is this bad?
+    /// It is not as fast as a memcpy.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let src = vec![1];
+    /// # let mut dst = vec![0; 65];
+    /// for i in 0..src.len() {
+    ///     dst[i + 64] = src[i];
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # let src = vec![1];
+    /// # let mut dst = vec![0; 65];
+    /// dst[64..(src.len() + 64)].clone_from_slice(&src[..]);
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub MANUAL_MEMCPY,
+    perf,
+    "manually copying items between slices"
+}
 
 /// Checks for `for` loops that sequentially copy items from one slice-like
 /// object to another.
