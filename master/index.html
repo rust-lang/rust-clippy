@@ -4914,6 +4914,33 @@ sleep(Duration::new(1, 0));
 </code></pre>
 <p>To fix this problem, either increase your MSRV or use another item
 available in your current MSRV.</p>
+<p>You can also locally change the MSRV that should be checked by Clippy,
+for example if a feature in your crate (e.g., <code>modern_compiler</code>) should
+allow you to use an item:</p>
+<pre><code class="language-rust">//! This crate has a MSRV of 1.3.0, but we also have an optional feature
+//! `sleep_well` which requires at least Rust 1.4.0.
+
+// When the `sleep_well` feature is set, do not warn for functions available
+// in Rust 1.4.0 and below.
+#![cfg_attr(feature = "sleep_well", clippy::msrv = "1.4.0")]
+
+use std::time::Duration;
+
+#[cfg(feature = "sleep_well")]
+fn sleep_for_some_time() {
+    std::thread::sleep(Duration::new(1, 0)); // Will not trigger the lint
+}
+</code></pre>
+<p>You can also increase the MSRV in tests, by using:</p>
+<pre><code class="language-rust">// Use a much higher MSRV for tests while keeping the main one low
+#![cfg_attr(test, clippy::msrv = "1.85.0")]
+
+#[test]
+fn my_test() {
+    // The tests can use items introduced in Rust 1.85.0 and lower
+    // without triggering the `incompatible_msrv` lint.
+}
+</code></pre>
 <h3>Configuration</h3>
 <ul>
 <li>
@@ -7406,7 +7433,7 @@ assert!(x &gt;= 3 &amp;&amp; x &lt; 8);
 <p>(default: <code>current version</code>)</p>
 </li>
 </ul>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.49.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+manual_range_contains">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/ranges.rs#L136">View Source</a></div></div></div></article><article id="manual_range_patterns"><input id="label-manual_range_patterns" type="checkbox"><label for="label-manual_range_patterns"><h2 class="lint-title"><div class="panel-title-name" id="lint-manual_range_patterns">manual_range_patterns
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.49.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+manual_range_contains">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/ranges.rs#L142">View Source</a></div></div></div></article><article id="manual_range_patterns"><input id="label-manual_range_patterns" type="checkbox"><label for="label-manual_range_patterns"><h2 class="lint-title"><div class="panel-title-name" id="lint-manual_range_patterns">manual_range_patterns
 <a href="#manual_range_patterns" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-complexity">complexity</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Looks for combined OR patterns that are all contained in a specific range,
 e.g. <code>6 | 4 | 5 | 9 | 7 | 8</code> can be rewritten as <code>4..=9</code>.</p>
@@ -11871,11 +11898,11 @@ the upper bound, e.g., <code>x..=(y-1)</code>.</p>
 <h3>Why is this bad?</h3>
 <p>The code is more readable with an exclusive range
 like <code>x..y</code>.</p>
-<h3>Known problems</h3>
-<p>This will cause a warning that cannot be fixed if
-the consumer of the range only accepts a specific range type, instead of
-the generic <code>RangeBounds</code> trait
-(<a href="https://github.com/rust-lang/rust-clippy/issues/3307">#3307</a>).</p>
+<h3>Limitations</h3>
+<p>The lint is conservative and will trigger only when switching
+from an inclusive to an exclusive range is provably safe from
+a typing point of view. This corresponds to situations where
+the range is used as an iterator, or for indexing.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">for i in x..=(y-1) {
     // ..
@@ -11886,13 +11913,18 @@ the generic <code>RangeBounds</code> trait
     // ..
 }
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">pre 1.29.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+range_minus_one">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/ranges.rs#L65">View Source</a></div></div></div></article><article id="range_plus_one"><input id="label-range_plus_one" type="checkbox"><label for="label-range_plus_one"><h2 class="lint-title"><div class="panel-title-name" id="lint-range_plus_one">range_plus_one
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">pre 1.29.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+range_minus_one">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/ranges.rs#L71">View Source</a></div></div></div></article><article id="range_plus_one"><input id="label-range_plus_one" type="checkbox"><label for="label-range_plus_one"><h2 class="lint-title"><div class="panel-title-name" id="lint-range_plus_one">range_plus_one
 <a href="#range_plus_one" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for exclusive ranges where 1 is added to the
 upper bound, e.g., <code>x..(y+1)</code>.</p>
 <h3>Why is this bad?</h3>
 <p>The code is more readable with an inclusive range
 like <code>x..=y</code>.</p>
+<h3>Limitations</h3>
+<p>The lint is conservative and will trigger only when switching
+from an exclusive to an inclusive range is provably safe from
+a typing point of view. This corresponds to situations where
+the range is used as an iterator, or for indexing.</p>
 <h3>Known problems</h3>
 <p>Will add unnecessary pair of parentheses when the
 expression is not wrapped in a pair but starts with an opening parenthesis
@@ -11901,10 +11933,6 @@ I.e., <code>let _ = (f()+1)..(f()+1)</code> results in <code>let _ = ((f()+1)..=
 <p>Also in many cases, inclusive ranges are still slower to run than
 exclusive ranges, because they essentially add an extra branch that
 LLVM may fail to hoist out of the loop.</p>
-<p>This will cause a warning that cannot be fixed if the consumer of the
-range only accepts a specific range type, instead of the generic
-<code>RangeBounds</code> trait
-(<a href="https://github.com/rust-lang/rust-clippy/issues/3307">#3307</a>).</p>
 <h3>Example</h3>
 <pre><code class="language-rust">for i in x..(y+1) {
     // ..
@@ -11915,7 +11943,7 @@ range only accepts a specific range type, instead of the generic
     // ..
 }
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">pre 1.29.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+range_plus_one">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/ranges.rs#L18">View Source</a></div></div></div></article><article id="range_step_by_zero"><input id="label-range_step_by_zero" type="checkbox"><label for="label-range_step_by_zero"><h2 class="lint-title"><div class="panel-title-name" id="lint-range_step_by_zero">range_step_by_zero
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">pre 1.29.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+range_plus_one">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/ranges.rs#L23">View Source</a></div></div></div></article><article id="range_step_by_zero"><input id="label-range_step_by_zero" type="checkbox"><label for="label-range_step_by_zero"><h2 class="lint-title"><div class="panel-title-name" id="lint-range_step_by_zero">range_step_by_zero
 <a href="#range_step_by_zero" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-deprecated">deprecated</span> <span class="label lint-level level-none">none</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Nothing. This lint has been deprecated</p>
 <h3>Deprecation reason</h3>
@@ -13056,7 +13084,7 @@ Moreover, trying to use a reversed range to index a slice will panic at run-time
 <ul>
 <li>reverse_range_loop</li>
 </ul>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.45.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+reversed_empty_ranges">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/ranges.rs#L103">View Source</a></div></div></div></article><article id="same_functions_in_if_condition"><input id="label-same_functions_in_if_condition" type="checkbox"><label for="label-same_functions_in_if_condition"><h2 class="lint-title"><div class="panel-title-name" id="lint-same_functions_in_if_condition">same_functions_in_if_condition
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.45.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+reversed_empty_ranges">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/ranges.rs#L109">View Source</a></div></div></div></article><article id="same_functions_in_if_condition"><input id="label-same_functions_in_if_condition" type="checkbox"><label for="label-same_functions_in_if_condition"><h2 class="lint-title"><div class="panel-title-name" id="lint-same_functions_in_if_condition">same_functions_in_if_condition
 <a href="#same_functions_in_if_condition" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for consecutive <code>if</code>s with the same function call.</p>
 <h3>Why is this bad?</h3>
