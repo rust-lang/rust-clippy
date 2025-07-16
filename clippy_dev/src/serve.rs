@@ -23,6 +23,7 @@ pub fn run(port: u16, lint: Option<String>) -> ! {
         let times = [
             "clippy_lints/src",
             "clippy_lints_casts/src",
+            "clippy_lints_early/src",
             "clippy_lints_loops/src",
             "clippy_lints_matches/src",
             "clippy_lints_methods/src",

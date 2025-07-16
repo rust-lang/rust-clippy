@@ -5,6 +5,7 @@ static CARGO_TOML_FILES: &[&str] = &[
     "clippy_config/Cargo.toml",
     "clippy_lints/Cargo.toml",
     "clippy_lints_casts/Cargo.toml",
+    "clippy_lints_early/Cargo.toml",
     "clippy_lints_matches/Cargo.toml",
     "clippy_lints_loops/Cargo.toml",
     "clippy_lints_methods/Cargo.toml",
