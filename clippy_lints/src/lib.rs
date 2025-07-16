@@ -210,7 +210,6 @@ mod mem_replace;
 mod min_ident_chars;
 mod minmax;
 mod misc;
-mod misc_early;
 mod mismatching_type_param_order;
 mod missing_assert_message;
 mod missing_asserts_for_indexing;
@@ -540,7 +539,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_early_pass(|| Box::new(reference::DerefAddrOf));
     let format_args = format_args_storage.clone();
     store.register_late_pass(move |_| Box::new(format_impl::FormatImpl::new(format_args.clone())));
-    store.register_early_pass(|| Box::new(misc_early::MiscEarlyLints));
     store.register_late_pass(|_| Box::new(redundant_closure_call::RedundantClosureCall));
     store.register_early_pass(|| Box::new(unused_unit::UnusedUnit));
     store.register_late_pass(|_| Box::new(unused_unit::UnusedUnit));

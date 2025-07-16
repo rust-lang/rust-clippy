@@ -53,6 +53,7 @@ mod field_scoped_visibility_modifiers;
 mod formatting;
 mod int_plus_one;
 mod literal_representation;
+mod misc;
 mod module_style;
 mod multi_assignments;
 mod multiple_bound_locations;
@@ -128,5 +129,6 @@ pub fn register_lint_passes(store: &mut LintStore, conf: &'static Conf) {
     store.register_early_pass(|| Box::new(formatting::Formatting));
     store.register_early_pass(|| Box::new(double_parens::DoubleParens));
     store.register_early_pass(|| Box::new(suspicious_operation_groupings::SuspiciousOperationGroupings));
+    store.register_early_pass(|| Box::new(misc::MiscEarlyLints));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
