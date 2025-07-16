@@ -3,6 +3,8 @@
 // Manual edits will be overwritten.
 
 #![warn(clippy::assign_ops)] //~ ERROR: lint `clippy::assign_ops`
+#![warn(clippy::cognitive_complexity)] //~ ERROR: lint `clippy::cognitive_complexity`
+#![warn(clippy::cyclomatic_complexity)] //~ ERROR: lint `clippy::cyclomatic_complexity`
 #![warn(clippy::extend_from_slice)] //~ ERROR: lint `clippy::extend_from_slice`
 #![warn(clippy::match_on_vec_items)] //~ ERROR: lint `clippy::match_on_vec_items`
 #![warn(clippy::misaligned_transmute)] //~ ERROR: lint `clippy::misaligned_transmute`
