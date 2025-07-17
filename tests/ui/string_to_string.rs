@@ -19,3 +19,22 @@ fn main() {
     let _ = x.unwrap_or_else(|| v.to_string());
     //~^ string_to_string
 }
+
+mod issue15300 {
+    use std::collections::{BTreeMap, HashSet};
+
+    struct SourceFile {
+        url: String,
+        ty: u32,
+    }
+
+    fn wrong_cloned(sources: BTreeMap<String, SourceFile>) {
+        let _ = sources
+            .iter()
+            .map(|x| x.1)
+            .filter(|x| x.ty == 0)
+            .map(|x| x.url.to_string())
+            //~^ string_to_string
+            .collect::<HashSet<_>>();
+    }
+}
