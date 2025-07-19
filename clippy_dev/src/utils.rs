@@ -1,9 +1,7 @@
 use core::fmt::{self, Display};
 use core::num::NonZero;
 use core::ops::Range;
-use core::slice;
 use core::str::FromStr;
-use rustc_lexer::{self as lexer, FrontmatterAllowed};
 use std::ffi::OsStr;
 use std::fs::{self, OpenOptions};
 use std::io::{self, Read as _, Seek as _, SeekFrom, Write};
@@ -71,6 +69,12 @@ impl<'a> File<'a> {
         }
     }
 
+    /// Opens a file for reading. Panics on failure.
+    #[track_caller]
+    pub fn open_read(path: &'a (impl AsRef<Path> + ?Sized)) -> Self {
+        Self::open(path, OpenOptions::new().read(true))
+    }
+
     /// Opens a file if it exists, panicking on any other failure.
     #[track_caller]
     pub fn open_if_exists(path: &'a (impl AsRef<Path> + ?Sized), options: &mut OpenOptions) -> Option<Self> {
@@ -80,15 +84,6 @@ impl<'a> File<'a> {
             Err(e) if e.kind() == io::ErrorKind::NotFound => None,
             Err(e) => panic_action(&e, ErrAction::Open, path),
         }
-    }
-
-    /// Opens and reads a file into a string, panicking of failure.
-    #[track_caller]
-    pub fn open_read_to_cleared_string<'dst>(
-        path: &'a (impl AsRef<Path> + ?Sized),
-        dst: &'dst mut String,
-    ) -> &'dst mut String {
-        Self::open(path, OpenOptions::new().read(true)).read_to_cleared_string(dst)
     }
 
     /// Read the entire contents of a file to the given buffer.
@@ -426,181 +421,6 @@ pub fn update_text_region_fn(
     move |path, src, dst| update_text_region(path, start, end, src, dst, &mut insert)
 }
 
-#[derive(Clone, Copy)]
-pub enum Token<'a> {
-    /// Matches any number of comments / doc comments.
-    AnyComment,
-    Ident(&'a str),
-    CaptureIdent,
-    LitStr,
-    CaptureLitStr,
-    Bang,
-    CloseBrace,
-    CloseBracket,
-    CloseParen,
-    /// This will consume the first colon even if the second doesn't exist.
-    DoubleColon,
-    Comma,
-    Eq,
-    Lifetime,
-    Lt,
-    Gt,
-    OpenBrace,
-    OpenBracket,
-    OpenParen,
-    Pound,
-    Semi,
-    Slash,
-}
-
-pub struct RustSearcher<'txt> {
-    text: &'txt str,
-    cursor: lexer::Cursor<'txt>,
-    pos: u32,
-    next_token: lexer::Token,
-}
-impl<'txt> RustSearcher<'txt> {
-    #[must_use]
-    #[expect(clippy::inconsistent_struct_constructor)]
-    pub fn new(text: &'txt str) -> Self {
-        let mut cursor = lexer::Cursor::new(text, FrontmatterAllowed::Yes);
-        Self {
-            text,
-            pos: 0,
-            next_token: cursor.advance_token(),
-            cursor,
-        }
-    }
-
-    #[must_use]
-    pub fn peek_text(&self) -> &'txt str {
-        &self.text[self.pos as usize..(self.pos + self.next_token.len) as usize]
-    }
-
-    #[must_use]
-    pub fn peek_len(&self) -> u32 {
-        self.next_token.len
-    }
-
-    #[must_use]
-    pub fn peek(&self) -> lexer::TokenKind {
-        self.next_token.kind
-    }
-
-    #[must_use]
-    pub fn pos(&self) -> u32 {
-        self.pos
-    }
-
-    #[must_use]
-    pub fn at_end(&self) -> bool {
-        self.next_token.kind == lexer::TokenKind::Eof
-    }
-
-    pub fn step(&mut self) {
-        // `next_len` is zero for the sentinel value and the eof marker.
-        self.pos += self.next_token.len;
-        self.next_token = self.cursor.advance_token();
-    }
-
-    /// Consumes the next token if it matches the requested value and captures the value if
-    /// requested. Returns true if a token was matched.
-    fn read_token(&mut self, token: Token<'_>, captures: &mut slice::IterMut<'_, &mut &'txt str>) -> bool {
-        loop {
-            match (token, self.next_token.kind) {
-                (_, lexer::TokenKind::Whitespace)
-                | (
-                    Token::AnyComment,
-                    lexer::TokenKind::BlockComment { terminated: true, .. } | lexer::TokenKind::LineComment { .. },
-                ) => self.step(),
-                (Token::AnyComment, _) => return true,
-                (Token::Bang, lexer::TokenKind::Bang)
-                | (Token::CloseBrace, lexer::TokenKind::CloseBrace)
-                | (Token::CloseBracket, lexer::TokenKind::CloseBracket)
-                | (Token::CloseParen, lexer::TokenKind::CloseParen)
-                | (Token::Comma, lexer::TokenKind::Comma)
-                | (Token::Eq, lexer::TokenKind::Eq)
-                | (Token::Lifetime, lexer::TokenKind::Lifetime { .. })
-                | (Token::Lt, lexer::TokenKind::Lt)
-                | (Token::Gt, lexer::TokenKind::Gt)
-                | (Token::OpenBrace, lexer::TokenKind::OpenBrace)
-                | (Token::OpenBracket, lexer::TokenKind::OpenBracket)
-                | (Token::OpenParen, lexer::TokenKind::OpenParen)
-                | (Token::Pound, lexer::TokenKind::Pound)
-                | (Token::Semi, lexer::TokenKind::Semi)
-                | (Token::Slash, lexer::TokenKind::Slash)
-                | (
-                    Token::LitStr,
-                    lexer::TokenKind::Literal {
-                        kind: lexer::LiteralKind::Str { terminated: true } | lexer::LiteralKind::RawStr { .. },
-                        ..
-                    },
-                ) => {
-                    self.step();
-                    return true;
-                },
-                (Token::Ident(x), lexer::TokenKind::Ident) if x == self.peek_text() => {
-                    self.step();
-                    return true;
-                },
-                (Token::DoubleColon, lexer::TokenKind::Colon) => {
-                    self.step();
-                    if !self.at_end() && matches!(self.next_token.kind, lexer::TokenKind::Colon) {
-                        self.step();
-                        return true;
-                    }
-                    return false;
-                },
-                (
-                    Token::CaptureLitStr,
-                    lexer::TokenKind::Literal {
-                        kind: lexer::LiteralKind::Str { terminated: true } | lexer::LiteralKind::RawStr { .. },
-                        ..
-                    },
-                )
-                | (Token::CaptureIdent, lexer::TokenKind::Ident) => {
-                    **captures.next().unwrap() = self.peek_text();
-                    self.step();
-                    return true;
-                },
-                _ => return false,
-            }
-        }
-    }
-
-    #[must_use]
-    pub fn find_token(&mut self, token: Token<'_>) -> bool {
-        let mut capture = [].iter_mut();
-        while !self.read_token(token, &mut capture) {
-            self.step();
-            if self.at_end() {
-                return false;
-            }
-        }
-        true
-    }
-
-    #[must_use]
-    pub fn find_capture_token(&mut self, token: Token<'_>) -> Option<&'txt str> {
-        let mut res = "";
-        let mut capture = &mut res;
-        let mut capture = slice::from_mut(&mut capture).iter_mut();
-        while !self.read_token(token, &mut capture) {
-            self.step();
-            if self.at_end() {
-                return None;
-            }
-        }
-        Some(res)
-    }
-
-    #[must_use]
-    pub fn match_tokens(&mut self, tokens: &[Token<'_>], captures: &mut [&mut &'txt str]) -> bool {
-        let mut captures = captures.iter_mut();
-        tokens.iter().all(|&t| self.read_token(t, &mut captures))
-    }
-}
-
 #[expect(clippy::must_use_candidate)]
 pub fn try_rename_file(old_name: &Path, new_name: &Path) -> bool {
     match OpenOptions::new().create_new(true).write(true).open(new_name) {
@@ -756,8 +576,8 @@ pub fn delete_dir_if_exists(path: &Path) {
 }
 
 /// Walks all items excluding top-level dot files/directories and any target directories.
-pub fn walk_dir_no_dot_or_target() -> impl Iterator<Item = ::walkdir::Result<::walkdir::DirEntry>> {
-    WalkDir::new(".").into_iter().filter_entry(|e| {
+pub fn walk_dir_no_dot_or_target(p: impl AsRef<Path>) -> impl Iterator<Item = ::walkdir::Result<::walkdir::DirEntry>> {
+    WalkDir::new(p.as_ref()).into_iter().filter_entry(|e| {
         e.path()
             .file_name()
             .is_none_or(|x| x != "target" && x.as_encoded_bytes().first().copied() != Some(b'.'))

@@ -50,7 +50,6 @@ static LINTS: &[&Lint] = &[
     derive_deserialize_allowing_unknown::DERIVE_DESERIALIZE_ALLOWING_UNKNOWN,
     lint_without_lint_pass::DEFAULT_LINT,
     lint_without_lint_pass::INVALID_CLIPPY_VERSION_ATTRIBUTE,
-    lint_without_lint_pass::LINT_WITHOUT_LINT_PASS,
     lint_without_lint_pass::MISSING_CLIPPY_VERSION_ATTRIBUTE,
     msrv_attr_impl::MISSING_MSRV_ATTR_IMPL,
     outer_expn_data_pass::OUTER_EXPN_EXPN_DATA,
@@ -69,7 +68,7 @@ pub fn register_lints(store: &mut LintStore) {
     store.register_late_pass(|_| Box::new(collapsible_calls::CollapsibleCalls));
     store.register_late_pass(|_| Box::new(derive_deserialize_allowing_unknown::DeriveDeserializeAllowingUnknown));
     store.register_late_pass(|_| Box::<symbols::Symbols>::default());
-    store.register_late_pass(|_| Box::<lint_without_lint_pass::LintWithoutLintPass>::default());
+    store.register_late_pass(|_| Box::new(lint_without_lint_pass::LintWithoutLintPass));
     store.register_late_pass(|_| Box::new(unnecessary_def_path::UnnecessaryDefPath));
     store.register_late_pass(|_| Box::new(outer_expn_data_pass::OuterExpnDataPass));
     store.register_late_pass(|_| Box::new(msrv_attr_impl::MsrvAttrImpl));

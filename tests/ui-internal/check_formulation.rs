@@ -1,5 +1,4 @@
 #![deny(clippy::almost_standard_lint_formulation)]
-#![allow(clippy::lint_without_lint_pass)]
 #![feature(rustc_private)]
 
 #[macro_use]
