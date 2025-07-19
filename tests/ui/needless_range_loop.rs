@@ -185,3 +185,23 @@ mod issue_2496 {
         unimplemented!()
     }
 }
+
+fn issue_15068() {
+    let a = vec![vec![0u8; MAX_LEN]; MAX_LEN];
+    let b = vec![0u8; MAX_LEN];
+
+    for i in 0..MAX_LEN {
+        // no error
+        let _ = a[0][i];
+        let _ = b[i];
+    }
+
+    // Could be rewrited to:
+    // ```no_run
+    // for <item> in a[0].take(MAX_LEN) {
+    // ```
+    for i in 0..MAX_LEN {
+        //~^ needless_range_loop
+        let _ = a[0][i];
+    }
+}
