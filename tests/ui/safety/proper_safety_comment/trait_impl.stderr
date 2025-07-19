@@ -1,0 +1,117 @@
+error: missing safety comment on unsafe impl
+  --> tests/ui/safety/proper_safety_comment/trait_impl.rs:7:1
+   |
+LL | unsafe impl UnsafeTrait for u8 {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::proper-safety-comment` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::proper_safety_comment)]`
+
+error: missing safety comment on unsafe impl
+  --> tests/ui/safety/proper_safety_comment/trait_impl.rs:19:1
+   |
+LL | unsafe impl UnsafeTrait for u64 {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: missing safety comment on unsafe impl
+  --> tests/ui/safety/proper_safety_comment/trait_impl.rs:23:5
+   |
+LL |     unsafe impl UnsafeTrait for i8 {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: missing safety comment on unsafe impl
+  --> tests/ui/safety/proper_safety_comment/trait_impl.rs:34:5
+   |
+LL |     unsafe impl A for () {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: missing safety comment on unsafe impl
+  --> tests/ui/safety/proper_safety_comment/trait_impl.rs:42:9
+   |
+LL |         unsafe impl B for () {}
+   |         ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unnecessary safety comment on impl
+  --> tests/ui/safety/proper_safety_comment/trait_impl.rs:54:1
+   |
+LL | /     // SAFETY:
+LL | |     impl C for () {}
+   | |_^
+
+error: missing safety comment on unsafe impl
+  --> tests/ui/safety/proper_safety_comment/trait_impl.rs:63:13
+   |
+LL |             unsafe impl T for $t {}
+   |             ^^^^^^^^^^^^^^^^^^^^^^^
+...
+LL |     no_safety_comment!(());
+   |     ---------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `no_safety_comment` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: missing safety comment on unsafe impl
+  --> tests/ui/safety/proper_safety_comment/trait_impl.rs:85:13
+   |
+LL |             unsafe impl T for $t {}
+   |             ^^^^^^^^^^^^^^^^^^^^^^^
+...
+LL |     no_safety_comment!(());
+   |     ---------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `no_safety_comment` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: missing safety comment on unsafe impl
+  --> tests/ui/safety/proper_safety_comment/trait_impl.rs:93:5
+   |
+LL |     unsafe impl T for i32 {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: missing safety comment on unsafe impl
+  --> tests/ui/safety/proper_safety_comment/trait_impl.rs:85:13
+   |
+LL |             unsafe impl T for $t {}
+   |             ^^^^^^^^^^^^^^^^^^^^^^^
+...
+LL |     no_safety_comment!(u32);
+   |     ----------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `no_safety_comment` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: missing safety comment on unsafe impl
+  --> tests/ui/safety/proper_safety_comment/trait_impl.rs:98:5
+   |
+LL |     unsafe impl T for bool {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: missing safety comment on unsafe impl
+  --> tests/ui/safety/proper_safety_comment/trait_impl.rs:141:5
+   |
+LL |     unsafe impl NoComment for () {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: missing safety comment on unsafe impl
+  --> tests/ui/safety/proper_safety_comment/trait_impl.rs:146:19
+   |
+LL |     /* SAFETY: */ unsafe impl InlineComment for () {}
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: missing safety comment on unsafe impl
+  --> tests/ui/safety/proper_safety_comment/trait_impl.rs:151:5
+   |
+LL |     unsafe impl TrailingComment for () {} // SAFETY:
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: missing safety comment on unsafe impl
+  --> tests/ui/safety/proper_safety_comment/trait_impl.rs:156:5
+   |
+LL |     unsafe impl Interference for () {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: missing safety comment on unsafe impl
+  --> tests/ui/safety/proper_safety_comment/trait_impl.rs:162:5
+   |
+LL |     unsafe impl MultiLineBlockComment for () {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 16 previous errors
+
