@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::SpanRangeExt;
+use clippy_utils::source::SpanExt;
 use clippy_utils::{is_expr_identity_function, is_trait_method};
 use rustc_errors::Applicability;
 use rustc_hir::Expr;
