@@ -138,6 +138,7 @@ mod excessive_bools;
 mod excessive_nesting;
 mod exhaustive_items;
 mod exit;
+mod explicit_struct_update;
 mod explicit_write;
 mod extra_unused_type_parameters;
 mod fallible_impl_from;
@@ -830,5 +831,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(cloned_ref_to_slice_refs::ClonedRefToSliceRefs::new(conf)));
     store.register_late_pass(|_| Box::new(infallible_try_from::InfallibleTryFrom));
     store.register_late_pass(|_| Box::new(coerce_container_to_any::CoerceContainerToAny));
+    store.register_late_pass(|_| Box::new(explicit_struct_update::ExplicitStructUpdate));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
