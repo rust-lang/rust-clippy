@@ -223,17 +223,6 @@ fn trait_bound_bug<'a, T: WithLifetime<'a>>() {
     unimplemented!()
 }
 
-// See issue #740.
-struct Test {
-    vec: Vec<usize>,
-}
-
-impl Test {
-    fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = usize> + 'a> {
-        unimplemented!()
-    }
-}
-
 trait LintContext<'a> {}
 
 fn f<'a, T: LintContext<'a>>(_: &T) {}
@@ -278,7 +267,7 @@ mod nested_elision_sites {
     fn impl_trait_in_output_position<'a>(i: &'a i32) -> impl Fn() -> &'a i32 {
         move || i
     }
-    // lint
+    //~v needless_lifetimes
     fn impl_trait_elidable_nested_named_lifetimes<'a>(i: &'a i32, f: impl for<'b> Fn(&'b i32) -> &'b i32) -> &'a i32 {
         f(i)
     }
@@ -522,15 +511,11 @@ mod rayon {
 
 mod issue13749 {
     pub struct Generic<T>(T);
-    // Non elidable lifetime
-    #[expect(clippy::extra_unused_lifetimes)]
     impl<'a, T> Generic<T> where T: 'a {}
 }
 
 mod issue13749bis {
     pub struct Generic<T>(T);
-    // Non elidable lifetime
-    #[expect(clippy::extra_unused_lifetimes)]
     impl<'a, T: 'a> Generic<T> {}
 }
 
@@ -539,6 +524,54 @@ pub fn issue14607<'s>(x: &'s u8) {
     (|| {
         let _: &'s u8 = x;
     })();
+}
+
+#[rustfmt::skip]
+mod formatting_test {
+    //~vv needless_lifetimes
+    fn _f1<
+        'a, 'b, 'c,
+    >(_: &'a str, _: &'b str, c: &'c str) -> &'c str {
+        c
+    }
+
+    //~vv needless_lifetimes
+    fn _f2<
+        'a, 'b, 'c,
+    >(a: &'a str, _: &'b str, _: &'c str) -> &'a str {
+        a
+    }
+
+    //~vv needless_lifetimes
+    fn _f3<
+        'a, 'b, 'c
+    >(_: &'a str, b: &'b str, _: &'c str) -> &'b str {
+        b
+    }
+
+    //~vvv needless_lifetimes
+    fn _f4<
+        'a, // comment
+        'b, 'c,
+    >(a: &'a str, _: &'b str, c: &'c str) -> (&'a str, &'c str) {
+        (a, c)
+    }
+
+    //~vv needless_lifetimes
+    fn _f5<
+        'a, // comment
+        'b, 'c,
+    >(_: &'a str, _: &'b str, c: &'c str) -> &'c str {
+        c
+    }
+
+    //~vv needless_lifetimes
+    fn _f6<
+        'a,
+        'b, 'c,
+    >(_: &'a str, _: &'b str, c: &'c str) -> &'c str {
+        c
+    }
 }
 
 fn main() {}
