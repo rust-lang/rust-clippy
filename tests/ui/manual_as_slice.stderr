@@ -1,0 +1,92 @@
+error: using a full range slice
+  --> tests/ui/manual_as_slice.rs:13:24
+   |
+LL |     let slice: &[u8] = &array[..];
+   |                        ^^^^^^^^^^
+   |
+   = note: `-D clippy::manual-as-slice` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_as_slice)]`
+help: try
+   |
+LL -     let slice: &[u8] = &array[..];
+LL +     let slice: &[u8] = array.as_slice();
+   |
+
+error: using a full range slice
+  --> tests/ui/manual_as_slice.rs:17:28
+   |
+LL |     let mut slice: &[u8] = &mut array[..];
+   |                            ^^^^^^^^^^^^^^
+   |
+help: try
+   |
+LL -     let mut slice: &[u8] = &mut array[..];
+LL +     let mut slice: &[u8] = array.as_mut_slice();
+   |
+
+error: using a full range slice
+  --> tests/ui/manual_as_slice.rs:20:24
+   |
+LL |     let slice: &[u8] = &nested_1::nested_2::SOME_VALUE[..];
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try
+   |
+LL -     let slice: &[u8] = &nested_1::nested_2::SOME_VALUE[..];
+LL +     let slice: &[u8] = nested_1::nested_2::SOME_VALUE.as_slice();
+   |
+
+error: using a full range slice
+  --> tests/ui/manual_as_slice.rs:24:24
+   |
+LL |     let slice: &[u8] = &slice[..];
+   |                        ^^^^^^^^^^
+   |
+help: try
+   |
+LL -     let slice: &[u8] = &slice[..];
+LL +     let slice: &[u8] = slice.as_slice();
+   |
+
+error: using a full range slice
+  --> tests/ui/manual_as_slice.rs:28:24
+   |
+LL |     let slice: &[u8] = &slice[..];
+   |                        ^^^^^^^^^^
+   |
+help: try
+   |
+LL -     let slice: &[u8] = &slice[..];
+LL +     let slice: &[u8] = slice.as_slice();
+   |
+
+error: using a full range slice
+  --> tests/ui/manual_as_slice.rs:33:13
+   |
+LL |             &$a[..]
+   |             ^^^^^^^
+...
+LL |     perform_the_slice!([1, 2, 3]);
+   |     ----------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `perform_the_slice` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: try
+   |
+LL -             &$a[..]
+LL +             $a.as_slice()
+   |
+
+error: using a full range slice
+  --> tests/ui/manual_as_slice.rs:40:24
+   |
+LL |     let slice: &[u8] = &vec![1, 2, 3][..];
+   |                        ^^^^^^^^^^^^^^^^^^
+   |
+help: try
+   |
+LL -     let slice: &[u8] = &vec![1, 2, 3][..];
+LL +     let slice: &[u8] = vec![1, 2, 3].as_slice();
+   |
+
+error: aborting due to 7 previous errors
+
