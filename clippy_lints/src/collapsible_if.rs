@@ -1,11 +1,13 @@
 use clippy_config::Conf;
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
+use clippy_utils::higher::If;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::{IntoSpan as _, SpanRangeExt, snippet, snippet_block_with_applicability};
-use clippy_utils::{span_contains_non_whitespace, tokenize_with_text};
+use clippy_utils::sugg::{Sugg, make_binop, make_unop};
+use clippy_utils::{SpanlessEq, span_contains_non_whitespace, tokenize_with_text};
 use rustc_ast::BinOpKind;
 use rustc_errors::Applicability;
-use rustc_hir::{Block, Expr, ExprKind, Stmt, StmtKind};
+use rustc_hir::{Block, Expr, ExprKind, Stmt, StmtKind, UnOp};
 use rustc_lexer::TokenKind;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::impl_lint_pass;
@@ -209,6 +211,64 @@ impl CollapsibleIf {
         !matches!(cond.kind, ExprKind::Let(..))
             || (cx.tcx.sess.edition().at_least_rust_2024() && self.msrv.meets(cx, msrvs::LET_CHAINS))
     }
+
+    fn check_collapsible_if_nested_if_else(&self, cx: &LateContext<'_>, if_expr: &Expr<'_>) {
+        if let Some(If {
+            cond,
+            then: Expr {
+                kind: ExprKind::Block(then_block, ..),
+                ..
+            },
+            r#else: Some(else_expr),
+        }) = If::hir(if_expr)
+            && let Some(inner_if_expr) = expr_block(then_block)
+            && let Expr {
+                kind: ExprKind::If(inner_cond, inner_then, ..),
+                ..
+            } = inner_if_expr
+            && !block_starts_with_significant_tokens(cx, then_block, inner_if_expr, self.lint_commented_code)
+            && SpanlessEq::new(cx).eq_expr(inner_then, else_expr)
+        {
+            let mut app = Applicability::MachineApplicable;
+
+            let first_cond_sugg = match cond.kind {
+                ExprKind::Binary(bin_op, lhs, rhs) => {
+                    let new_bin_op = if let BinOpKind::Ne = bin_op.node {
+                        BinOpKind::Eq
+                    } else {
+                        BinOpKind::Ne
+                    };
+
+                    make_binop(
+                        new_bin_op,
+                        &Sugg::hir_with_applicability(cx, lhs, "_", &mut app),
+                        &Sugg::hir_with_applicability(cx, rhs, "_", &mut app),
+                    )
+                },
+                ExprKind::Unary(UnOp::Not, expr) => Sugg::hir_with_applicability(cx, expr, "_", &mut app),
+                ExprKind::Path(_) => make_unop("!", Sugg::hir_with_applicability(cx, cond, "_", &mut app)),
+                _ => Sugg::hir_with_applicability(cx, cond, "_", &mut app),
+            };
+
+            span_lint_and_sugg(
+                cx,
+                COLLAPSIBLE_IF,
+                if_expr.span,
+                "this `if` statement can be collapsed",
+                "collapse else and nested if blocks",
+                format!(
+                    "if {} {}",
+                    make_binop(
+                        BinOpKind::Or,
+                        &first_cond_sugg,
+                        &Sugg::hir_with_applicability(cx, inner_cond, "_", &mut app)
+                    ),
+                    Sugg::hir_with_applicability(cx, else_expr, "_", &mut app)
+                ),
+                app,
+            );
+        }
+    }
 }
 
 impl_lint_pass!(CollapsibleIf => [COLLAPSIBLE_IF, COLLAPSIBLE_ELSE_IF]);
@@ -222,6 +282,7 @@ impl LateLintPass<'_> for CollapsibleIf {
                 && let ExprKind::Block(else_, None) = else_.kind
             {
                 self.check_collapsible_else_if(cx, then.span, else_);
+                self.check_collapsible_if_nested_if_else(cx, expr);
             } else if else_.is_none()
                 && self.eligible_condition(cx, cond)
                 && let ExprKind::Block(then, None) = then.kind
