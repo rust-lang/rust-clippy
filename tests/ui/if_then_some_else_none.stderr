@@ -58,5 +58,16 @@ error: this could be simplified with `bool::then`
 LL |     if s == "1" { Some(true) } else { None }
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `(s == "1").then(|| true)`
 
-error: aborting due to 6 previous errors
+error: this could be simplified with `bool::then`
+  --> tests/ui/if_then_some_else_none.rs:154:9
+   |
+LL | /         if rs.len() == 1 && rs[0].start == rs[0].end {
+LL | |
+LL | |             Some(vec![rs[0].start])
+LL | |         } else {
+LL | |             None
+LL | |         }
+   | |_________^ help: try: `(rs.len() == 1 && rs[0].start == rs[0].end).then(|| vec![rs[0].start])`
+
+error: aborting due to 7 previous errors
 
