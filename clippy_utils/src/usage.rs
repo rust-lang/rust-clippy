@@ -1,3 +1,4 @@
+use crate::macros::root_macro_call_first_node;
 use crate::visitors::{Descend, Visitable, for_each_expr, for_each_expr_without_closures};
 use crate::{self as utils, get_enclosing_loop_or_multi_call_closure};
 use core::ops::ControlFlow;
@@ -9,6 +10,7 @@ use rustc_lint::LateContext;
 use rustc_middle::hir::nested_filter;
 use rustc_middle::mir::FakeReadCause;
 use rustc_middle::ty;
+use rustc_span::sym;
 
 /// Returns a set of mutated local variable IDs, or `None` if mutations could not be determined.
 pub fn mutated_variables<'tcx>(expr: &'tcx Expr<'_>, cx: &LateContext<'tcx>) -> Option<HirIdSet> {
@@ -138,6 +140,22 @@ impl<'tcx> Visitor<'tcx> for BindingUsageFinder<'_, 'tcx> {
     fn maybe_tcx(&mut self) -> Self::MaybeTyCtxt {
         self.cx.tcx
     }
+}
+
+/// Checks if the given expression contains macro call to `todo!()` or `unimplemented!()`.
+pub fn expr_contains_todo_unimplement_macro(cx: &LateContext<'_>, expr: &'_ Expr<'_>) -> bool {
+    for_each_expr_without_closures(expr, |e| {
+        if let Some(macro_call) = root_macro_call_first_node(cx, e)
+            && [sym::todo_macro, sym::unimplemented_macro]
+                .iter()
+                .any(|&sym| cx.tcx.is_diagnostic_item(sym, macro_call.def_id))
+        {
+            ControlFlow::Break(())
+        } else {
+            ControlFlow::Continue(())
+        }
+    })
+    .is_some()
 }
 
 pub fn contains_return_break_continue_macro(expression: &Expr<'_>) -> bool {
