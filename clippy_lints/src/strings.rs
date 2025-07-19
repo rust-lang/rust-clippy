@@ -495,7 +495,9 @@ impl<'tcx> LateLintPass<'tcx> for StringToString {
                     && let ty = cx.typeck_results().expr_ty(self_arg)
                     && is_type_lang_item(cx, ty.peel_refs(), LangItem::String)
                 {
-                    if let Some(parent_span) = is_called_from_map_like(cx, expr) {
+                    if let Some(parent_span) = is_called_from_map_like(cx, expr)
+                        && let ExprKind::Path(_) = self_arg.kind
+                    {
                         suggest_cloned_string_to_string(cx, parent_span);
                     } else {
                         #[expect(clippy::collapsible_span_lint_calls, reason = "rust-clippy#7797")]
