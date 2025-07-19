@@ -45,6 +45,65 @@ fn test_module_style_with_dep_in_subdir() {
 }
 
 #[test]
+fn test_missing_workspace_lints() {
+    if IS_RUSTC_TEST_SUITE {
+        return;
+    }
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let target_dir = root.join("target").join("workspace_test");
+    let cwd = root.join("tests/workspace_test");
+
+    // Make sure we start with a clean state
+    Command::new("cargo")
+        .current_dir(&cwd)
+        .env("CARGO_TARGET_DIR", &target_dir)
+        .arg("clean")
+        .args(["-p", "fail-missing-workspace-lints"])
+        .args(["-p", "pass-missing-workspace-lints"])
+        .output()
+        .unwrap();
+
+    let output = Command::new(&*CARGO_CLIPPY_PATH)
+        .current_dir(&cwd)
+        .env("CARGO_INCREMENTAL", "0")
+        .env("CARGO_TARGET_DIR", &target_dir)
+        .arg("clippy")
+        .args(["-p", "pass-missing-workspace-lints"])
+        .arg("--")
+        .arg("--no-deps")
+        .arg("-Dclippy::missing-workspace-lints")
+        .arg("-Cdebuginfo=0") // disable debuginfo to generate less data in the target dir
+        .output()
+        .unwrap();
+
+    println!("status: {}", output.status);
+    println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+    println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(output.status.success());
+
+    let output_fail = Command::new(&*CARGO_CLIPPY_PATH)
+        .current_dir(&cwd)
+        .env("CARGO_INCREMENTAL", "0")
+        .env("CARGO_TARGET_DIR", &target_dir)
+        .arg("clippy")
+        .args(["-p", "fail-missing-workspace-lints"])
+        .arg("--")
+        .arg("--no-deps")
+        .arg("-Dclippy::missing-workspace-lints")
+        .arg("-Cdebuginfo=0") // disable debuginfo to generate less data in the target dir
+        .output()
+        .unwrap();
+
+    println!("status: {}", output_fail.status);
+    println!("stdout: {}", String::from_utf8_lossy(&output_fail.stdout));
+    println!("stderr: {}", String::from_utf8_lossy(&output_fail.stderr));
+    assert!(!output_fail.status.success());
+    assert!(String::from_utf8(output.stderr).unwrap().contains(
+        "warning: Your project is in a workspace with lints configured, but workspace.lints is not configured."
+    ));
+}
+
+#[test]
 fn test_no_deps_ignores_path_deps_in_workspaces() {
     if IS_RUSTC_TEST_SUITE {
         return;
