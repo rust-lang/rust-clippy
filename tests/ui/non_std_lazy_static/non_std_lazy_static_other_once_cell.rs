@@ -1,6 +1,7 @@
 //@ check-pass
 //@aux-build:once_cell.rs
 
+#![allow(clippy::items_before_use)]
 #![warn(clippy::non_std_lazy_statics)]
 
 // Should not error, since we used a type besides `sync::Lazy`
