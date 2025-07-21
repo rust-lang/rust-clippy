@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint;
+use clippy_utils::fulfill_or_allowed;
 use rustc_attr_data_structures::{AttributeKind, find_attr};
 use rustc_hir::def_id::DefId;
 use rustc_hir::{self as hir, Attribute};
@@ -88,7 +89,14 @@ declare_lint_pass!(MissingInline => [MISSING_INLINE_IN_PUBLIC_ITEMS]);
 
 impl<'tcx> LateLintPass<'tcx> for MissingInline {
     fn check_item(&mut self, cx: &LateContext<'tcx>, it: &'tcx hir::Item<'_>) {
-        if it.span.in_external_macro(cx.sess().source_map()) || is_executable_or_proc_macro(cx) {
+        if it.span.in_external_macro(cx.sess().source_map()) {
+            return;
+        }
+
+        if is_executable_or_proc_macro(cx)
+            // Allow the lint if it is expected, when building with `--test`
+            && !(cx.sess().is_test_crate() && fulfill_or_allowed(cx, MISSING_INLINE_IN_PUBLIC_ITEMS, [it.hir_id()]))
+        {
             return;
         }
 
