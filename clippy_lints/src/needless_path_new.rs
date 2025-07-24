@@ -1,14 +1,12 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::path_res;
 use clippy_utils::source::snippet;
-use clippy_utils::ty::implements_trait;
 use rustc_errors::Applicability;
 use rustc_hir::def::{CtorKind, DefKind, Res};
-use rustc_hir::def_id::DefId;
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::{self, GenericPredicates, List, ParamTy, Ty, TyCtxt};
-use rustc_session::impl_lint_pass;
+use rustc_middle::ty::{self, GenericPredicates, ParamTy, Ty};
+use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 use std::iter;
 
@@ -37,22 +35,7 @@ declare_clippy_lint! {
     being enclosed in `Path::new` when the argument implements the trait"
 }
 
-impl_lint_pass!(NeedlessPathNew<'_> => [NEEDLESS_PATH_NEW]);
-
-pub struct NeedlessPathNew<'tcx> {
-    path_ty: Option<Ty<'tcx>>,
-    asref_def_id: Option<DefId>,
-}
-
-impl<'tcx> NeedlessPathNew<'tcx> {
-    pub fn new(tcx: TyCtxt<'tcx>) -> Self {
-        Self {
-            path_ty: (tcx.get_diagnostic_item(sym::Path))
-                .map(|path_def_id| Ty::new_adt(tcx, tcx.adt_def(path_def_id), List::empty())),
-            asref_def_id: tcx.get_diagnostic_item(sym::AsRef),
-        }
-    }
-}
+declare_lint_pass!(NeedlessPathNew => [NEEDLESS_PATH_NEW]);
 
 fn is_used_anywhere_else<'a>(param_ty: &'_ ParamTy, mut other_sig_tys: impl Iterator<Item = Ty<'a>>) -> bool {
     other_sig_tys.any(|sig_ty| {
@@ -69,17 +52,9 @@ fn is_used_anywhere_else<'a>(param_ty: &'_ ParamTy, mut other_sig_tys: impl Iter
     })
 }
 
-impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew<'tcx> {
+impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) {
         let tcx = cx.tcx;
-
-        let Some(path_ty) = self.path_ty else {
-            return;
-        };
-
-        let Some(asref_def_id) = self.asref_def_id else {
-            return;
-        };
 
         let (fn_did, args) = match e.kind {
             ExprKind::Call(callee, args)
@@ -111,8 +86,6 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPathNew<'tcx> {
                 false
             }
         };
-
-        let implements_asref_path = |arg| implements_trait(cx, arg, asref_def_id, &[path_ty.into()]);
 
         let has_required_preds = |_param_ty: &ParamTy, _preds: GenericPredicates<'_>| -> bool { true };
 
