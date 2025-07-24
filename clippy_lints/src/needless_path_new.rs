@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::path_res;
 use clippy_utils::ty::implements_trait;
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
@@ -71,6 +72,20 @@ fn check_arguments<'tcx>(
     name: &str,
     fn_kind: &str,
 ) {
+    // whether `func` is `Path::new`
+    let is_path_new = |func: &Expr<'_>| {
+        if let ExprKind::Path(ref qpath) = func.kind
+            && let QPath::TypeRelative(ty, path) = qpath
+            && let Some(did) = path_res(cx, *ty).opt_def_id()
+            && cx.tcx.is_diagnostic_item(sym::Path, did)
+            && path.ident.name == sym::new
+        {
+            true
+        } else {
+            false
+        }
+    };
+
     let implements_asref_path = |arg| {
         cx.tcx.get_diagnostic_item(sym::AsRef).map_or(false, |id| {
             implements_trait(cx, cx.typeck_results().expr_ty(arg), id, &[])
@@ -80,11 +95,11 @@ fn check_arguments<'tcx>(
     if let ty::FnDef(..) | ty::FnPtr(..) = type_definition.kind() {
         let parameters = type_definition.fn_sig(cx.tcx).skip_binder().inputs();
         for (argument, parameter) in iter::zip(arguments, parameters) {
-            // if implements_asref_path(argument) &&
-            if let ExprKind::Call(path_new, path_new_arg) = argument.kind
-                && path_new_arg.len() == 1
-                && implements_asref_path(&path_new_arg[0])
-                && let ty::Ref(_, _, Mutability::Not) | ty::RawPtr(_, Mutability::Not) = parameter.kind()
+            // we want `argument` to be `Path::new(x)`, which has one arg, x
+            if let ExprKind::Call(func, [arg]) = argument.kind
+                && is_path_new(func)
+                && implements_asref_path(arg)
+                // && let ty::Ref(_, _, Mutability::Not) | ty::RawPtr(_, Mutability::Not) = parameter.kind()
             {
                 span_lint_and_help(
                     cx,
