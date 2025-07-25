@@ -5,7 +5,11 @@ use clippy_utils::ast_utils::{eq_field_pat, eq_id, eq_maybe_qself, eq_pat, eq_pa
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::msrvs::{self, MsrvStack};
 use clippy_utils::over;
-use rustc_ast::PatKind::*;
+// everything except `Box`, to avoid conflict with `std::boxed::Box`
+use rustc_ast::PatKind::{
+    Deref, Err, Expr, Guard, Ident, MacCall, Missing, Never, Or, Paren, Path, Range, Ref, Rest, Slice, Struct, Tuple,
+    TupleStruct, Wild,
+};
 use rustc_ast::mut_visit::*;
 use rustc_ast::ptr::P;
 use rustc_ast::{self as ast, DUMMY_NODE_ID, Mutability, Pat, PatKind};
@@ -151,7 +155,7 @@ fn insert_necessary_parens(pat: &mut P<Pat>) {
             walk_pat(self, pat);
             let target = match &mut pat.kind {
                 // `i @ a | b`, `box a | b`, and `& mut? a | b`.
-                Ident(.., Some(p)) | Box(p) | Ref(p, _) if matches!(&p.kind, Or(ps) if ps.len() > 1) => p,
+                Ident(.., Some(p)) | PatKind::Box(p) | Ref(p, _) if matches!(&p.kind, Or(ps) if ps.len() > 1) => p,
                 Ref(p, Mutability::Not) if matches!(p.kind, Ident(BindingMode::MUT, ..)) => p, // `&(mut x)`
                 _ => return,
             };
@@ -248,10 +252,10 @@ fn transform_with_focus_on_idx(alternatives: &mut ThinVec<P<Pat>>, focus_idx: us
         //
         // The cases below until `Slice(...)` deal with *singleton* products.
         // These patterns have the shape `C(p)`, and not e.g., `C(p0, ..., pn)`.
-        Box(target) => extend_with_matching(
+        PatKind::Box(target) => extend_with_matching(
             target, start, alternatives,
-            |k| matches!(k, Box(_)),
-            |k| always_pat!(k, Box(p) => p),
+            |k| matches!(k,PatKind:: Box(_)),
+            |k| always_pat!(k, PatKind::Box(p) => p),
         ),
         // Transform `&mut x | ... | &mut y` into `&mut (x | y)`.
         Ref(target, Mutability::Mut) => extend_with_matching(
