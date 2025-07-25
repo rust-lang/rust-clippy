@@ -3,7 +3,7 @@ use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
 use clippy_utils::source::snippet;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::{get_discriminant_value, is_isize_or_usize};
-use clippy_utils::{expr_or_init, is_in_const_context, sym};
+use clippy_utils::{expr_or_init, is_in_const_context, rinterval, sym};
 use rustc_abi::IntegerType;
 use rustc_errors::{Applicability, Diag};
 use rustc_hir::def::{DefKind, Res};
@@ -83,10 +83,10 @@ fn apply_reductions(cx: &LateContext<'_>, nbits: u64, expr: &Expr<'_>, signed: b
     }
 }
 
-pub(super) fn check(
-    cx: &LateContext<'_>,
+pub(super) fn check<'cx>(
+    cx: &LateContext<'cx>,
     expr: &Expr<'_>,
-    cast_expr: &Expr<'_>,
+    cast_expr: &Expr<'cx>,
     cast_from: Ty<'_>,
     cast_to: Ty<'_>,
     cast_to_span: Span,
@@ -166,7 +166,25 @@ pub(super) fn check(
         _ => return,
     };
 
+    let interval_ctx = rinterval::IntervalCtxt::new(cx);
+    let from_interval = interval_ctx.eval(cast_expr);
+
     span_lint_and_then(cx, CAST_POSSIBLE_TRUNCATION, expr.span, msg, |diag| {
+        if let Some(from_interval) = from_interval {
+            let note = if from_interval.min == from_interval.max {
+                format!(
+                    "the cast operant may assume the value `{}`",
+                    from_interval.to_string_untyped()
+                )
+            } else {
+                format!(
+                    "the cast operant may contain values in the range `{}`",
+                    from_interval.to_string_untyped()
+                )
+            };
+            diag.note(note);
+        }
+
         diag.help("if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...");
         // TODO: Remove the condition for const contexts when `try_from` and other commonly used methods
         // become const fn.

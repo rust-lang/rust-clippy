@@ -4,6 +4,7 @@ error: casting `isize` to `i8` may truncate the value
 LL |     1isize as i8;
    |     ^^^^^^^^^^^^
    |
+   = note: the cast operant may assume the value `1`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
    = note: `-D clippy::cast-possible-truncation` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::cast_possible_truncation)]`
@@ -46,6 +47,7 @@ error: casting `isize` to `i32` may truncate the value on targets with 64-bit wi
 LL |     1isize as i32;
    |     ^^^^^^^^^^^^^
    |
+   = note: the cast operant may assume the value `1`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
 help: ... or use `try_from` and handle the error accordingly
    |
@@ -59,6 +61,7 @@ error: casting `isize` to `u32` may truncate the value on targets with 64-bit wi
 LL |     1isize as u32;
    |     ^^^^^^^^^^^^^
    |
+   = note: the cast operant may assume the value `1`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
 help: ... or use `try_from` and handle the error accordingly
    |
@@ -72,6 +75,7 @@ error: casting `usize` to `u32` may truncate the value on targets with 64-bit wi
 LL |     1usize as u32;
    |     ^^^^^^^^^^^^^
    |
+   = note: the cast operant may assume the value `1`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
 help: ... or use `try_from` and handle the error accordingly
    |
@@ -85,6 +89,7 @@ error: casting `usize` to `i32` may truncate the value on targets with 64-bit wi
 LL |     1usize as i32;
    |     ^^^^^^^^^^^^^
    |
+   = note: the cast operant may assume the value `1`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
 help: ... or use `try_from` and handle the error accordingly
    |
@@ -98,6 +103,7 @@ error: casting `usize` to `i32` may wrap around the value on targets with 32-bit
 LL |     1usize as i32;
    |     ^^^^^^^^^^^^^
    |
+   = note: the cast operant may assume the value `1`
    = note: `-D clippy::cast-possible-wrap` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::cast_possible_wrap)]`
 
@@ -107,6 +113,7 @@ error: casting `i64` to `isize` may truncate the value on targets with 32-bit wi
 LL |     1i64 as isize;
    |     ^^^^^^^^^^^^^
    |
+   = note: the cast operant may assume the value `1`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
 help: ... or use `try_from` and handle the error accordingly
    |
@@ -120,6 +127,7 @@ error: casting `i64` to `usize` may truncate the value on targets with 32-bit wi
 LL |     1i64 as usize;
    |     ^^^^^^^^^^^^^
    |
+   = note: the cast operant may assume the value `1`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
 help: ... or use `try_from` and handle the error accordingly
    |
@@ -133,6 +141,7 @@ error: casting `u64` to `isize` may truncate the value on targets with 32-bit wi
 LL |     1u64 as isize;
    |     ^^^^^^^^^^^^^
    |
+   = note: the cast operant may assume the value `1`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
 help: ... or use `try_from` and handle the error accordingly
    |
@@ -145,6 +154,8 @@ error: casting `u64` to `isize` may wrap around the value on targets with 64-bit
    |
 LL |     1u64 as isize;
    |     ^^^^^^^^^^^^^
+   |
+   = note: the cast operant may assume the value `1`
 
 error: casting `u64` to `usize` may truncate the value on targets with 32-bit wide pointers
   --> tests/ui/cast_size.rs:51:5
@@ -152,6 +163,7 @@ error: casting `u64` to `usize` may truncate the value on targets with 32-bit wi
 LL |     1u64 as usize;
    |     ^^^^^^^^^^^^^
    |
+   = note: the cast operant may assume the value `1`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
 help: ... or use `try_from` and handle the error accordingly
    |
@@ -164,6 +176,8 @@ error: casting `u32` to `isize` may wrap around the value on targets with 32-bit
    |
 LL |     1u32 as isize;
    |     ^^^^^^^^^^^^^
+   |
+   = note: the cast operant may assume the value `1`
 
 error: casting `i32` to `f32` causes a loss of precision (`i32` is 32 bits wide, but `f32`'s mantissa is only 23 bits wide)
   --> tests/ui/cast_size.rs:61:5
@@ -183,6 +197,7 @@ error: casting `usize` to `u16` may truncate the value
 LL |     const N: u16 = M as u16;
    |                    ^^^^^^^^
    |
+   = note: the cast operant may assume the value `100`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
 
 error: aborting due to 19 previous errors

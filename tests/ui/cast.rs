@@ -16,25 +16,25 @@
 )]
 
 // FIXME(f16_f128): add tests once const casting is available for these types
-
+fn get_value<T>() -> T { todo!() }
 fn main() {
     // Test clippy::cast_precision_loss
-    let x0 = 1i32;
+    let x0: i32 = get_value();
     x0 as f32;
     //~^ cast_precision_loss
 
-    let x1 = 1i64;
+    let x1: i64 = get_value();
     x1 as f32;
     //~^ cast_precision_loss
 
     x1 as f64;
     //~^ cast_precision_loss
 
-    let x2 = 1u32;
+    let x2: u32 = get_value();
     x2 as f32;
     //~^ cast_precision_loss
 
-    let x3 = 1u64;
+    let x3: u64 = get_value();
     x3 as f32;
     //~^ cast_precision_loss
 
@@ -461,13 +461,13 @@ fn issue11642() {
     (-2_i32 >> 1) as u32;
     //~^ cast_sign_loss
 
-    let x: i32 = 10;
+    let x: i32 = get_value();
     (x * x) as u32;
     //~^ cast_sign_loss
     (x * x * x) as u32;
     //~^ cast_sign_loss
 
-    let y: i16 = -2;
+    let y: i16 = get_value();
     (y * y * y * y * -2) as u16;
     //~^ cast_sign_loss
 
@@ -486,7 +486,7 @@ fn issue11642() {
     (y + y + y + 2) as u16;
     //~^ cast_sign_loss
 
-    let z: i16 = 2;
+    let z: i16 = get_value();
     (z + -2) as u16;
     //~^ cast_sign_loss
 
@@ -568,4 +568,102 @@ fn issue12721() {
 
     (255 % 999999u64) as u8;
     //~^ cast_possible_truncation
+}
+
+fn dxgi_xr10_to_unorm8(x: u16) -> u8 {
+    debug_assert!(x <= 1023);
+    // new range: [-384, 639] (or [-0.75294, 1.25294])
+    let x = x as i16 - 0x180;
+    //~^ cast_possible_wrap
+    // new range: [0, 510] (or [0.0, 1.0])
+    let x = x.clamp(0, 510) as u16;
+    //~^ cast_sign_loss
+    // this is round(x / 510 * 255), but faster
+    ((x + 1) >> 1) as u8
+    //~^ cast_possible_truncation
+}
+fn dxgi_xr10_to_unorm16(x: u16) -> u16 {
+    debug_assert!(x <= 1023);
+    // new range: [-384, 639] (or [-0.75294, 1.25294])
+    let x = x as i16 - 0x180;
+    //~^ cast_possible_wrap
+    // new range: [0, 510] (or [0.0, 1.0])
+    let x = x.clamp(0, 510) as u16;
+    //~^ cast_sign_loss
+    // this is round(x / 510 * 65535), but faster
+    ((x as u32 * 8421376 + 65535) >> 16) as u16
+}
+fn unorm16_to_unorm8(x: u16) -> u8 {
+    ((x as u32 * 255 + 32895) >> 16) as u8
+    //~^ cast_possible_truncation
+}
+
+fn f32_to_f16u(value: f32) -> u16 {
+    // Source: https://github.com/starkat99/half-rs/blob/2c4122db4e8f7d8ce030bb4b5ed8913bd6bbf2b1/src/binary16/arch.rs#L482
+    // Author: Kathryn Long
+    // License: MIT OR Apache-2.0
+
+    // Convert to raw bytes
+    let x: u32 = value.to_bits();
+
+    // Extract IEEE754 components
+    let sign = x & 0x8000_0000u32;
+    let exp = x & 0x7F80_0000u32;
+    let man = x & 0x007F_FFFFu32;
+
+    // Check for all exponent bits being set, which is Infinity or NaN
+    if exp == 0x7F80_0000u32 {
+        // Set mantissa MSB for NaN (and also keep shifted mantissa bits)
+        let nan_bit = if man == 0 { 0 } else { 0x0200u32 };
+        return ((sign >> 16) | 0x7C00u32 | nan_bit | (man >> 13)) as u16;
+        //~^ cast_possible_truncation
+    }
+
+    // The number is normalized, start assembling half precision version
+    let half_sign = sign >> 16;
+    // Unbias the exponent, then bias for half precision
+    let unbiased_exp = ((exp >> 23) as i32) - 127;
+    //~^ cast_possible_wrap
+    let half_exp = unbiased_exp + 15;
+
+    // Check for exponent overflow, return +infinity
+    if half_exp >= 0x1F {
+        return (half_sign | 0x7C00u32) as u16;
+        //~^ cast_possible_truncation
+    }
+
+    // Check for underflow
+    if half_exp <= 0 {
+        // Check mantissa for what we can do
+        if 14 - half_exp > 24 {
+            // No rounding possibility, so this is a full underflow, return signed zero
+            return half_sign as u16;
+        }
+        // Don't forget about hidden leading mantissa bit when assembling mantissa
+        let man = man | 0x0080_0000u32;
+        let mut half_man = man >> (14 - half_exp);
+        // Check for rounding (see comment above functions)
+        let round_bit = 1 << (13 - half_exp);
+        if (man & round_bit) != 0 && (man & (3 * round_bit - 1)) != 0 {
+            half_man += 1;
+        }
+        // No exponent for subnormals
+        return (half_sign | half_man) as u16;
+        //~^ cast_possible_truncation
+    }
+
+    // Rebias the exponent
+    let half_exp = (half_exp as u32) << 10;
+    //~^ cast_sign_loss
+    let half_man = man >> 13;
+    // Check for rounding (see comment above functions)
+    let round_bit = 0x0000_1000u32;
+    if (man & round_bit) != 0 && (man & (3 * round_bit - 1)) != 0 {
+        // Round it
+        ((half_sign | half_exp | half_man) + 1) as u16
+        //~^ cast_possible_truncation
+    } else {
+        (half_sign | half_exp | half_man) as u16
+        //~^ cast_possible_truncation
+    }
 }

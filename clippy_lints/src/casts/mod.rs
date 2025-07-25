@@ -887,7 +887,7 @@ impl<'tcx> LateLintPass<'tcx> for Casts {
             if cast_to.is_numeric() {
                 cast_possible_truncation::check(cx, expr, cast_from_expr, cast_from, cast_to, cast_to_hir.span);
                 if cast_from.is_numeric() {
-                    cast_possible_wrap::check(cx, expr, cast_from, cast_to);
+                    cast_possible_wrap::check(cx, expr, cast_from_expr, cast_from, cast_to);
                     cast_precision_loss::check(cx, expr, cast_from, cast_to);
                     cast_sign_loss::check(cx, expr, cast_from_expr, cast_from, cast_to);
                     cast_abs_to_unsigned::check(cx, expr, cast_from_expr, cast_from, cast_to, self.msrv);
