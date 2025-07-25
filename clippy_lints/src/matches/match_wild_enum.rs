@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
-use clippy_utils::source::SpanRangeExt;
+use clippy_utils::source::SpanExt;
 use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::{is_refutable, peel_hir_pat_refs, recurse_or_patterns};
 use rustc_errors::Applicability;

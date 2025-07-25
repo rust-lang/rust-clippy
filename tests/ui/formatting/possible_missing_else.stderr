@@ -1,0 +1,71 @@
+error: this is formatted as though there should be an `else`
+  --> tests/ui/formatting/possible_missing_else.rs:20:6
+   |
+LL |     } {
+   |      ^
+   |
+note: the lint level is defined here
+  --> tests/ui/formatting/possible_missing_else.rs:2:9
+   |
+LL | #![deny(clippy::possible_missing_else)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: add an `else`
+   |
+LL |     } else {
+   |       ++++
+help: add a line break
+   |
+LL ~     }
+LL ~     {
+   |
+
+error: this is formatted as though there should be an `else`
+  --> tests/ui/formatting/possible_missing_else.rs:25:6
+   |
+LL |     } if foo() {
+   |      ^
+   |
+help: add an `else`
+   |
+LL |     } else if foo() {
+   |       ++++
+help: add a line break
+   |
+LL ~     }
+LL ~     if foo() {
+   |
+
+error: this is formatted as though there should be an `else`
+  --> tests/ui/formatting/possible_missing_else.rs:33:10
+   |
+LL |         } if foo() {
+   |          ^
+   |
+help: add an `else`
+   |
+LL |         } else if foo() {
+   |           ++++
+help: add a line break
+   |
+LL ~         }
+LL ~         if foo() {
+   |
+
+error: this is formatted as though there should be an `else`
+  --> tests/ui/formatting/possible_missing_else.rs:42:10
+   |
+LL |         } if foo() {
+   |          ^
+   |
+help: add an `else`
+   |
+LL |         } else if foo() {
+   |           ++++
+help: add a line break
+   |
+LL ~         }
+LL ~         if foo() {
+   |
+
+error: aborting due to 4 previous errors
+
