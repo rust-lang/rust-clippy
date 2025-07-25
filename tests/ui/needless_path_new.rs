@@ -62,4 +62,12 @@ fn main() {
     // we are conservative and don't suggest changing a parameter
     // if it contains a generic type used elsewhere in the function
     takes_two_impl_paths_with_the_same_generic(Path::new("foo"), Path::new("bar"));
+
+    // the type ascription specifies `Path`, not just `impl AsRef<Path>`
+    let _: Option<&Path> = Some(Path::new("foo")); //~ needless_path_new
+
+    // the return type requires `Path`, not just `impl AsRef<Path>`
+    fn foo() -> Option<&'static Path> {
+        Some(Path::new("foo.txt"))
+    }
 }
