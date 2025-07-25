@@ -1,3 +1,7 @@
+//@no-rustfix
+//@error-in-other-file: use of a deprecated field
+//@error-in-other-file: use of a deprecated field
+
 #![allow(clippy::uninlined_format_args)]
 
 fn main() {}

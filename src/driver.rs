@@ -136,7 +136,6 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
     // JUSTIFICATION: necessary in clippy driver to set `mir_opt_level`
     #[allow(rustc::bad_opt_access)]
     fn config(&mut self, config: &mut interface::Config) {
-        let conf_path = clippy_config::lookup_conf_file();
         let previous = config.register_lints.take();
         let clippy_args_var = self.clippy_args_var.take();
         config.psess_created = Some(Box::new(move |psess| {
@@ -161,7 +160,7 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
             list_builder.insert(clippy_lints::declared_lints::LINTS);
             list_builder.register(lint_store);
 
-            let conf = clippy_config::Conf::read(sess, &conf_path);
+            let conf = clippy_config::Conf::load(sess);
             clippy_lints::register_lint_passes(lint_store, conf);
 
             #[cfg(feature = "internal")]
