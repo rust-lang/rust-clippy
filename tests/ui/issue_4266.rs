@@ -1,3 +1,5 @@
+//@no-rustfix: `wrong_self_convention` has no suggestion
+
 #![allow(dead_code)]
 #![allow(clippy::uninlined_format_args)]
 
