@@ -12238,11 +12238,6 @@ get adjusted or where the callee is marked <code>#[track_caller]</code> are igno
 <h3>Why is this bad?</h3>
 <p>Needlessly creating a closure adds code for no benefit
 and gives the optimizer more work.</p>
-<h3>Known problems</h3>
-<p>If creating the closure inside the closure has a side-
-effect then moving the closure creation out will change when that side-
-effect runs.
-See <a href="https://github.com/rust-lang/rust-clippy/issues/1439">#1439</a> for more details.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">xs.map(|x| foo(x))
 </code></pre>
@@ -12275,7 +12270,7 @@ argument and can be replaced by referencing the method directly.</p>
 <p>may be rewritten as</p>
 <pre><code class="language-rust">Some('a').map(char::to_uppercase);
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.35.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+redundant_closure_for_method_calls">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/eta_reduction.rs#L54">View Source</a></div></div></div></article><article id="redundant_comparisons"><input id="label-redundant_comparisons" type="checkbox"><label for="label-redundant_comparisons"><h2 class="lint-title"><div class="panel-title-name" id="lint-redundant_comparisons">redundant_comparisons
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.35.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+redundant_closure_for_method_calls">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/eta_reduction.rs#L48">View Source</a></div></div></div></article><article id="redundant_comparisons"><input id="label-redundant_comparisons" type="checkbox"><label for="label-redundant_comparisons"><h2 class="lint-title"><div class="panel-title-name" id="lint-redundant_comparisons">redundant_comparisons
 <a href="#redundant_comparisons" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-correctness">correctness</span> <span class="label lint-level level-deny">deny</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for ineffective double comparisons against constants.</p>
 <h3>Why is this bad?</h3>
