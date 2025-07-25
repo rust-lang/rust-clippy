@@ -17,7 +17,7 @@ use rustc_ast::{
     FormatArgPosition, FormatArgPositionKind, FormatArgsPiece, FormatArgumentKind, FormatCount, FormatOptions,
     FormatPlaceholder, FormatTrait,
 };
-use rustc_attr_data_structures::RustcVersion;
+use rustc_attr_data_structures::{AttributeKind, RustcVersion, find_attr};
 use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
 use rustc_errors::SuggestionStyle::{CompletelyHidden, ShowCode};
@@ -165,7 +165,7 @@ declare_clippy_lint! {
     /// nothing will be suggested, e.g. `println!("{0}={1}", var, 1+2)`.
     #[clippy::version = "1.66.0"]
     pub UNINLINED_FORMAT_ARGS,
-    style,
+    pedantic,
     "using non-inlined variables in `format!` calls"
 }
 
@@ -658,7 +658,10 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                     };
                     let selection = SelectionContext::new(&infcx).select(&obligation);
                     let derived = if let Ok(Some(Selection::UserDefined(data))) = selection {
-                        tcx.has_attr(data.impl_def_id, sym::automatically_derived)
+                        find_attr!(
+                            tcx.get_all_attrs(data.impl_def_id),
+                            AttributeKind::AutomaticallyDerived(..)
+                        )
                     } else {
                         false
                     };

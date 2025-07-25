@@ -740,7 +740,7 @@ impl<'tcx> LateLintPass<'tcx> for Documentation {
                             );
                         }
                     },
-                    ItemKind::Trait(_, unsafety, ..) => match (headers.safety, unsafety) {
+                    ItemKind::Trait(_, _, unsafety, ..) => match (headers.safety, unsafety) {
                         (false, Safety::Unsafe) => span_lint(
                             cx,
                             MISSING_SAFETY_DOC,
@@ -1232,7 +1232,6 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
     headers
 }
 
-#[expect(clippy::range_plus_one)] // inclusive ranges aren't the same type
 fn looks_like_refdef(doc: &str, range: Range<usize>) -> Option<Range<usize>> {
     if range.end < range.start {
         return None;

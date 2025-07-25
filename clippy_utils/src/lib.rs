@@ -91,6 +91,7 @@ use std::sync::{Mutex, MutexGuard, OnceLock};
 use itertools::Itertools;
 use rustc_abi::Integer;
 use rustc_ast::ast::{self, LitKind, RangeLimits};
+use rustc_ast::join_path_syms;
 use rustc_attr_data_structures::{AttributeKind, find_attr};
 use rustc_data_structures::fx::FxHashMap;
 use rustc_data_structures::packed::Pu128;
@@ -108,13 +109,13 @@ use rustc_hir::{
     Param, Pat, PatExpr, PatExprKind, PatKind, Path, PathSegment, QPath, Stmt, StmtKind, TraitFn, TraitItem,
     TraitItemKind, TraitRef, TyKind, UnOp, def,
 };
-use rustc_lexer::{TokenKind, tokenize};
+use rustc_lexer::{FrontmatterAllowed, TokenKind, tokenize};
 use rustc_lint::{LateContext, Level, Lint, LintContext};
 use rustc_middle::hir::nested_filter;
 use rustc_middle::hir::place::PlaceBase;
 use rustc_middle::lint::LevelAndSource;
 use rustc_middle::mir::{AggregateKind, Operand, RETURN_PLACE, Rvalue, StatementKind, TerminatorKind};
-use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow};
+use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, PointerCoercion};
 use rustc_middle::ty::layout::IntegerExt;
 use rustc_middle::ty::{
     self as rustc_ty, Binder, BorrowKind, ClosureKind, EarlyBinder, GenericArgKind, GenericArgsRef, IntTy, Ty, TyCtxt,
@@ -1786,9 +1787,9 @@ pub fn in_automatically_derived(tcx: TyCtxt<'_>, id: HirId) -> bool {
     tcx.hir_parent_owner_iter(id)
         .filter(|(_, node)| matches!(node, OwnerNode::Item(item) if matches!(item.kind, ItemKind::Impl(_))))
         .any(|(id, _)| {
-            has_attr(
+            find_attr!(
                 tcx.hir_attrs(tcx.local_def_id_to_hir_id(id.def_id)),
-                sym::automatically_derived,
+                AttributeKind::AutomaticallyDerived(..)
             )
         })
 }
@@ -2774,7 +2775,7 @@ pub fn expr_use_ctxt<'tcx>(cx: &LateContext<'tcx>, e: &Expr<'tcx>) -> ExprUseCtx
 /// Tokenizes the input while keeping the text associated with each token.
 pub fn tokenize_with_text(s: &str) -> impl Iterator<Item = (TokenKind, &str, InnerSpan)> {
     let mut pos = 0;
-    tokenize(s).map(move |t| {
+    tokenize(s, FrontmatterAllowed::No).map(move |t| {
         let end = pos + t.len;
         let range = pos as usize..end as usize;
         let inner = InnerSpan::new(range.start, range.end);
@@ -2789,7 +2790,7 @@ pub fn span_contains_comment(sm: &SourceMap, span: Span) -> bool {
     let Ok(snippet) = sm.span_to_snippet(span) else {
         return false;
     };
-    return tokenize(&snippet).any(|token| {
+    return tokenize(&snippet, FrontmatterAllowed::No).any(|token| {
         matches!(
             token.kind,
             TokenKind::BlockComment { .. } | TokenKind::LineComment { .. }
@@ -3254,8 +3255,8 @@ fn maybe_get_relative_path(from: &DefPath, to: &DefPath, max_super: usize) -> St
                 // a::b::c  ::d::sym refers to
                 // e::f::sym:: ::
                 // result should be super::super::super::super::e::f
-                if let DefPathData::TypeNs(s) = l {
-                    path.push(s.to_string());
+                if let DefPathData::TypeNs(sym) = l {
+                    path.push(sym);
                 }
                 if let DefPathData::TypeNs(_) = r {
                     go_up_by += 1;
@@ -3265,7 +3266,7 @@ fn maybe_get_relative_path(from: &DefPath, to: &DefPath, max_super: usize) -> St
             // a::b::sym:: ::    refers to
             // c::d::e  ::f::sym
             // when looking at `f`
-            Left(DefPathData::TypeNs(sym)) => path.push(sym.to_string()),
+            Left(DefPathData::TypeNs(sym)) => path.push(sym),
             // consider:
             // a::b::c  ::d::sym refers to
             // e::f::sym:: ::
@@ -3277,17 +3278,15 @@ fn maybe_get_relative_path(from: &DefPath, to: &DefPath, max_super: usize) -> St
 
     if go_up_by > max_super {
         // `super` chain would be too long, just use the absolute path instead
-        once(String::from("crate"))
-            .chain(to.data.iter().filter_map(|el| {
-                if let DefPathData::TypeNs(sym) = el.data {
-                    Some(sym.to_string())
-                } else {
-                    None
-                }
-            }))
-            .join("::")
+        join_path_syms(once(kw::Crate).chain(to.data.iter().filter_map(|el| {
+            if let DefPathData::TypeNs(sym) = el.data {
+                Some(sym)
+            } else {
+                None
+            }
+        })))
     } else {
-        repeat_n(String::from("super"), go_up_by).chain(path).join("::")
+        join_path_syms(repeat_n(kw::Super, go_up_by).chain(path))
     }
 }
 
@@ -3567,4 +3566,15 @@ pub fn potential_return_of_enclosing_body(cx: &LateContext<'_>, expr: &Expr<'_>)
     // `expr` is used as part of "something" and is not returned directly from its
     // enclosing body.
     false
+}
+
+/// Checks if the expression has adjustments that require coercion, for example: dereferencing with
+/// overloaded deref, coercing pointers and `dyn` objects.
+pub fn expr_adjustment_requires_coercion(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    cx.typeck_results().expr_adjustments(expr).iter().any(|adj| {
+        matches!(
+            adj.kind,
+            Adjust::Deref(Some(_)) | Adjust::Pointer(PointerCoercion::Unsize) | Adjust::NeverToAny
+        )
+    })
 }
