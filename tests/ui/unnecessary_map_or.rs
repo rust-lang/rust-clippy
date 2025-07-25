@@ -135,6 +135,15 @@ fn issue14201(a: Option<String>, b: Option<String>, s: &String) -> bool {
     x && y
 }
 
+fn issue14714() {
+    assert!(Some("test").map_or(false, |x| x == "test"));
+    //~^ unnecessary_map_or
+
+    // even though we're in a macro context, we still need to parenthesise because of the `then`
+    assert!(Some("test").map_or(false, |x| x == "test").then(|| 1).is_some());
+    //~^ unnecessary_map_or
+}
+
 fn issue15180() {
     let s = std::sync::Mutex::new(Some("foo"));
     _ = s.lock().unwrap().map_or(false, |s| s == "foo");
