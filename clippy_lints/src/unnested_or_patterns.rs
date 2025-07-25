@@ -306,6 +306,7 @@ fn transform_with_focus_on_idx(alternatives: &mut ThinVec<Box<Pat>>, focus_idx: 
 /// In particular, for a record pattern, the order in which the field patterns is irrelevant.
 /// So when we fixate on some `ident_k: pat_k`, we try to find `ident_k` in the other pattern
 /// and check that all `fp_i` where `i ∈ ((0...n) \ k)` between two patterns are equal.
+#[expect(clippy::borrowed_box, reason = "required by the signature of `eq_maybe_qself`")]
 fn extend_with_struct_pat(
     qself1: Option<&Box<ast::QSelf>>,
     path1: &ast::Path,
