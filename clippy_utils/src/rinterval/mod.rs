@@ -12,12 +12,9 @@ pub use arithmetic::*;
 pub use iinterval::*;
 
 use rustc_ast::LitKind;
-use rustc_hir::{
-    BinOpKind, Block, ConstBlock, Expr, ExprKind, HirId, Item, ItemKind, Node, PatExpr, PatExprKind, PathSegment,
-    QPath, UnOp,
-};
+use rustc_hir::{BinOpKind, Expr, ExprKind, PathSegment, UnOp};
 use rustc_lint::LateContext;
-use rustc_middle::ty::{IntTy, Ty, TyCtxt, TyKind, TypeckResults, UintTy};
+use rustc_middle::ty::{IntTy, Ty, TyKind, TypeckResults, UintTy};
 use rustc_span::Symbol;
 
 use crate::consts::{ConstEvalCtxt, Constant};
