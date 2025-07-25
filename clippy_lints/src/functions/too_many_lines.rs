@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint;
-use clippy_utils::source::SpanRangeExt;
+use clippy_utils::source::SpanExt;
 use rustc_hir as hir;
 use rustc_hir::intravisit::FnKind;
 use rustc_lint::{LateContext, LintContext};

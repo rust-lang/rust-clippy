@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::{
-    SpanRangeExt, expr_block, snippet, snippet_block_with_context, snippet_with_applicability, snippet_with_context,
+    SpanExt, expr_block, snippet, snippet_block_with_context, snippet_with_applicability, snippet_with_context,
 };
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{
@@ -25,7 +25,7 @@ use super::{MATCH_BOOL, SINGLE_MATCH, SINGLE_MATCH_ELSE};
 /// match arms.
 fn empty_arm_has_comment(cx: &LateContext<'_>, span: Span) -> bool {
     if let Some(ff) = span.get_source_range(cx)
-        && let Some(text) = ff.as_str()
+        && let Some(text) = ff.current_text()
     {
         text.as_bytes().windows(2).any(|w| w == b"//" || w == b"/*")
     } else {

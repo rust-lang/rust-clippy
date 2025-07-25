@@ -4,7 +4,7 @@
 //! executable MIR bodies, so we have to do this instead.
 #![allow(clippy::float_cmp)]
 
-use crate::source::{SpanRangeExt, walk_span_to_context};
+use crate::source::{SpanExt, walk_span_to_context};
 use crate::{clip, is_direct_expn_of, sext, unsext};
 
 use rustc_abi::Size;
@@ -707,11 +707,10 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
                 if let Some(expr_span) = walk_span_to_context(expr.span, span.ctxt)
                     && let expr_lo = expr_span.lo()
                     && expr_lo >= span.lo
-                    && let Some(src) = (span.lo..expr_lo).get_source_range(&self.tcx)
-                    && let Some(src) = src.as_str()
+                    && let Some(src) = (span.lo..expr_lo).get_source_text(&self.tcx)
                 {
                     use rustc_lexer::TokenKind::{BlockComment, LineComment, OpenBrace, Semi, Whitespace};
-                    if !tokenize(src)
+                    if !tokenize(&src)
                         .map(|t| t.kind)
                         .filter(|t| !matches!(t, Whitespace | LineComment { .. } | BlockComment { .. } | Semi))
                         .eq([OpenBrace])
