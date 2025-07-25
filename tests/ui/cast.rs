@@ -570,6 +570,17 @@ fn issue12721() {
     //~^ cast_possible_truncation
 }
 
+fn issue7486(number: u64, other: u32) -> u32 {
+    // a u64 with guaranteed value to be less than or equal to u32::max_value()
+    let other_u64 = other as u64;
+    // modulo guarantees that the following invariant holds:
+    // result < other_u64
+    // which implies that result < u32::max_value()
+    let result = number % other_u64;
+    result as u32
+    //~^ cast_possible_truncation
+}
+
 fn dxgi_xr10_to_unorm8(x: u16) -> u8 {
     debug_assert!(x <= 1023);
     // new range: [-384, 639] (or [-0.75294, 1.25294])
