@@ -76,22 +76,34 @@ LL |     let _ = x.iter().copied().map(|(x, y)| (x, y));
    |                              ^^^^^^^^^^^^^^^^^^^^^ help: remove the call to `map`
 
 error: unnecessary map of the identity function
-  --> tests/ui/map_identity.rs:88:15
+  --> tests/ui/map_identity.rs:85:15
+   |
+LL |     let _ = it.map(|x| x).next();
+   |               ^^^^^^^^^^^
+   |
+help: remove the call to `map`
+   |
+LL ~     let mut it = [1, 2, 3].into_iter();
+LL ~     let _ = it.next();
+   |
+
+error: unnecessary map of the identity function
+  --> tests/ui/map_identity.rs:91:15
    |
 LL |     let _ = it.map(|x| x).next();
    |               ^^^^^^^^^^^ help: remove the call to `map`
 
 error: unnecessary map of the identity function
-  --> tests/ui/map_identity.rs:93:19
+  --> tests/ui/map_identity.rs:96:19
    |
 LL |     let _ = { it }.map(|x| x).next();
    |                   ^^^^^^^^^^^ help: remove the call to `map`
 
 error: unnecessary map of the identity function
-  --> tests/ui/map_identity.rs:105:30
+  --> tests/ui/map_identity.rs:108:30
    |
 LL |     let _ = x.iter().copied().map(|[x, y]| [x, y]);
    |                              ^^^^^^^^^^^^^^^^^^^^^ help: remove the call to `map`
 
-error: aborting due to 14 previous errors
+error: aborting due to 15 previous errors
 
