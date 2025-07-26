@@ -1,75 +1,13 @@
 use super::LINT_GROUPS_PRIORITY;
+use clippy_config::types::{CargoToml, LintConfigTable, LintTable, Lints};
 use clippy_utils::diagnostics::span_lint_and_then;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_lint::{LateContext, unerased_lint_store};
 use rustc_span::{BytePos, Pos, SourceFile, Span, SyntaxContext};
-use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use serde::Serialize;
 use std::ops::Range;
 use std::path::Path;
-use toml::Spanned;
-
-#[derive(Deserialize, Serialize, Debug)]
-struct LintConfigTable {
-    level: String,
-    priority: Option<i64>,
-}
-
-#[derive(Deserialize, Debug)]
-#[serde(untagged)]
-enum LintConfig {
-    Level(String),
-    Table(LintConfigTable),
-}
-
-impl LintConfig {
-    fn level(&self) -> &str {
-        match self {
-            LintConfig::Level(level) => level,
-            LintConfig::Table(table) => &table.level,
-        }
-    }
-
-    fn priority(&self) -> i64 {
-        match self {
-            LintConfig::Level(_) => 0,
-            LintConfig::Table(table) => table.priority.unwrap_or(0),
-        }
-    }
-
-    fn is_implicit(&self) -> bool {
-        if let LintConfig::Table(table) = self {
-            table.priority.is_none()
-        } else {
-            true
-        }
-    }
-}
-
-type LintTable = BTreeMap<Spanned<String>, Spanned<LintConfig>>;
-
-#[derive(Deserialize, Debug, Default)]
-struct Lints {
-    #[serde(default)]
-    rust: LintTable,
-    #[serde(default)]
-    clippy: LintTable,
-}
-
-#[derive(Deserialize, Debug, Default)]
-struct Workspace {
-    #[serde(default)]
-    lints: Lints,
-}
-
-#[derive(Deserialize, Debug)]
-struct CargoToml {
-    #[serde(default)]
-    lints: Lints,
-    #[serde(default)]
-    workspace: Workspace,
-}
 
 fn toml_span(range: Range<usize>, file: &SourceFile) -> Span {
     Span::new(
@@ -171,5 +109,37 @@ pub fn check(cx: &LateContext<'_>) {
         check_table(cx, cargo_toml.lints.clippy, &clippy_groups, &file);
         check_table(cx, cargo_toml.workspace.lints.rust, &rustc_groups, &file);
         check_table(cx, cargo_toml.workspace.lints.clippy, &clippy_groups, &file);
+    }
+
+    // Also check clippy.toml for lint configurations
+    if let Ok((Some(clippy_config_path), _)) = clippy_config::lookup_conf_file()
+        && let Ok(clippy_file) = cx.tcx.sess.source_map().load_file(&clippy_config_path)
+        && let Some(clippy_src) = clippy_file.src.as_deref()
+    {
+        let mut rustc_groups = FxHashSet::default();
+        let mut clippy_groups = FxHashSet::default();
+        for (group, ..) in unerased_lint_store(cx.tcx.sess).get_lint_groups() {
+            match group.split_once("::") {
+                None => {
+                    rustc_groups.insert(group);
+                },
+                Some(("clippy", group)) => {
+                    clippy_groups.insert(group);
+                },
+                _ => {},
+            }
+        }
+
+        // Try parsing as a full CargoToml structure (with [lints] sections)
+        if let Ok(clippy_config) = toml::from_str::<CargoToml>(clippy_src) {
+            check_table(cx, clippy_config.lints.rust, &rustc_groups, &clippy_file);
+            check_table(cx, clippy_config.lints.clippy, &clippy_groups, &clippy_file);
+            check_table(cx, clippy_config.workspace.lints.rust, &rustc_groups, &clippy_file);
+            check_table(cx, clippy_config.workspace.lints.clippy, &clippy_groups, &clippy_file);
+        } else if let Ok(clippy_lints) = toml::from_str::<Lints>(clippy_src) {
+            // Fallback: try parsing as just the lints section
+            check_table(cx, clippy_lints.rust, &rustc_groups, &clippy_file);
+            check_table(cx, clippy_lints.clippy, &clippy_groups, &clippy_file);
+        }
     }
 }
