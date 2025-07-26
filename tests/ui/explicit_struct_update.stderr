@@ -1,0 +1,64 @@
+error: you seem to be updating a struct field with the same field from another struct of the same type
+  --> tests/ui/explicit_struct_update.rs:21:13
+   |
+LL |       let b = A {
+   |  _____________^
+LL | |         a: a.a,
+LL | |         b: a.b,
+LL | |         c: a.c,
+LL | |         d: a.d,
+LL | |     };
+   | |_____^
+   |
+   = note: `-D clippy::explicit-struct-update` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::explicit_struct_update)]`
+help: consider using struct update syntax instead
+   |
+LL ~     let b = A {
+LL +         ..a
+LL ~     };
+   |
+
+error: you seem to be updating a struct field with the same field from another struct of the same type
+  --> tests/ui/explicit_struct_update.rs:29:13
+   |
+LL |       let c = A {
+   |  _____________^
+LL | |         a: a.a,
+LL | |         b: a.b,
+LL | |         c: 4,
+LL | |         d: 5,
+LL | |     };
+   | |_____^
+   |
+help: consider using struct update syntax instead
+   |
+LL ~     let c = A {
+LL +         c: 4,
+LL +         d: 5,
+LL +         ..a
+LL ~     };
+   |
+
+error: you seem to be updating a struct field with the same field from another struct of the same type
+  --> tests/ui/explicit_struct_update.rs:37:13
+   |
+LL |       let d = A {
+   |  _____________^
+LL | |         a: a.a,
+LL | |         b: a.b,
+LL | |         c: a.c,
+LL | |         d: 5,
+LL | |     };
+   | |_____^
+   |
+help: consider using struct update syntax instead
+   |
+LL ~     let d = A {
+LL +         d: 5,
+LL +         ..a
+LL ~     };
+   |
+
+error: aborting due to 3 previous errors
+
