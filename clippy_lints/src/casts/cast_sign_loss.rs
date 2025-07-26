@@ -2,9 +2,9 @@ use std::convert::Infallible;
 use std::ops::ControlFlow;
 
 use clippy_utils::consts::{ConstEvalCtxt, Constant};
-use clippy_utils::diagnostics::span_lint;
+use clippy_utils::diagnostics::{span_lint, span_lint_and_note};
 use clippy_utils::visitors::{Descend, for_each_expr_without_closures};
-use clippy_utils::{method_chain_args, sext, sym};
+use clippy_utils::{method_chain_args, rinterval, sext, sym};
 use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty};
@@ -38,18 +38,44 @@ const METHODS_UNWRAP: &[Symbol] = &[sym::unwrap, sym::unwrap_unchecked, sym::exp
 
 pub(super) fn check<'cx>(
     cx: &LateContext<'cx>,
-    expr: &Expr<'_>,
-    cast_op: &Expr<'_>,
+    expr: &Expr<'cx>,
+    cast_op: &Expr<'cx>,
     cast_from: Ty<'cx>,
     cast_to: Ty<'_>,
 ) {
     if should_lint(cx, cast_op, cast_from, cast_to) {
-        span_lint(
-            cx,
-            CAST_SIGN_LOSS,
-            expr.span,
-            format!("casting `{cast_from}` to `{cast_to}` may lose the sign of the value"),
-        );
+        let interval_ctx = rinterval::IntervalCtxt::new(cx);
+        let from_interval = interval_ctx.eval(cast_op);
+
+        if let Some(from_interval) = from_interval {
+            let note = if from_interval.min == from_interval.max {
+                format!(
+                    "the cast operant may assume the value `{}`",
+                    from_interval.to_string_untyped()
+                )
+            } else {
+                format!(
+                    "the cast operant may contain values in the range `{}`",
+                    from_interval.to_string_untyped()
+                )
+            };
+
+            span_lint_and_note(
+                cx,
+                CAST_SIGN_LOSS,
+                expr.span,
+                format!("casting `{cast_from}` to `{cast_to}` may lose the sign of the value"),
+                None,
+                note,
+            );
+        } else {
+            span_lint(
+                cx,
+                CAST_SIGN_LOSS,
+                expr.span,
+                format!("casting `{cast_from}` to `{cast_to}` may lose the sign of the value"),
+            );
+        }
     }
 }
 
@@ -87,7 +113,7 @@ fn get_const_signed_int_eval<'cx>(
     expr: &Expr<'_>,
     ty: impl Into<Option<Ty<'cx>>>,
 ) -> Option<i128> {
-    let ty = ty.into().unwrap_or_else(|| cx.typeck_results().expr_ty(expr));
+    let ty: Ty<'cx> = ty.into().unwrap_or_else(|| cx.typeck_results().expr_ty(expr));
 
     if let Constant::Int(n) = ConstEvalCtxt::new(cx).eval(expr)?
         && let ty::Int(ity) = *ty.kind()
@@ -102,7 +128,7 @@ fn get_const_unsigned_int_eval<'cx>(
     expr: &Expr<'_>,
     ty: impl Into<Option<Ty<'cx>>>,
 ) -> Option<u128> {
-    let ty = ty.into().unwrap_or_else(|| cx.typeck_results().expr_ty(expr));
+    let ty: Ty<'cx> = ty.into().unwrap_or_else(|| cx.typeck_results().expr_ty(expr));
 
     if let Constant::Int(n) = ConstEvalCtxt::new(cx).eval(expr)?
         && let ty::Uint(_ity) = *ty.kind()

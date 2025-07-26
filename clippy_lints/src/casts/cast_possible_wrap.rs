@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::rinterval;
 use rustc_hir::Expr;
 use rustc_lint::LateContext;
 use rustc_middle::ty::Ty;
@@ -16,7 +17,13 @@ enum EmitState {
     LintOnPtrSize(u64),
 }
 
-pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, cast_from: Ty<'_>, cast_to: Ty<'_>) {
+pub(super) fn check<'cx>(
+    cx: &LateContext<'cx>,
+    expr: &Expr<'_>,
+    cast_op: &Expr<'cx>,
+    cast_from: Ty<'_>,
+    cast_to: Ty<'_>,
+) {
     let (Some(from_nbits), Some(to_nbits)) = (
         utils::int_ty_to_nbits(cx.tcx, cast_from),
         utils::int_ty_to_nbits(cx.tcx, cast_to),
@@ -37,6 +44,9 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, cast_from: Ty<'_>, ca
     if cast_from.is_signed() || !cast_to.is_signed() {
         return;
     }
+
+    let interval_ctx = rinterval::IntervalCtxt::new(cx);
+    let from_interval = interval_ctx.eval(cast_op);
 
     let should_lint = match (cast_from.is_ptr_sized_integral(), cast_to.is_ptr_sized_integral()) {
         (true, true) => {
@@ -80,6 +90,21 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, cast_from: Ty<'_>, ca
     };
 
     span_lint_and_then(cx, CAST_POSSIBLE_WRAP, expr.span, message, |diag| {
+        if let Some(from_interval) = from_interval {
+            let note = if from_interval.min == from_interval.max {
+                format!(
+                    "the cast operant may assume the value `{}`",
+                    from_interval.to_string_untyped()
+                )
+            } else {
+                format!(
+                    "the cast operant may contain values in the range `{}`",
+                    from_interval.to_string_untyped()
+                )
+            };
+            diag.note(note);
+        }
+
         if let EmitState::LintOnPtrSize(16) = should_lint {
             diag
                 .note("`usize` and `isize` may be as small as 16 bits on some platforms")
