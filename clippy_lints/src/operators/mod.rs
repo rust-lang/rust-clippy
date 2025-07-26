@@ -13,6 +13,7 @@ mod identity_op;
 mod integer_division;
 mod manual_is_multiple_of;
 mod manual_midpoint;
+mod manual_sign_check;
 mod misrefactored_assign_op;
 mod modulo_arithmetic;
 mod modulo_one;
@@ -860,6 +861,40 @@ declare_clippy_lint! {
     "manual implementation of `.is_multiple_of()`"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for manually checking the sign of a floating point number by comparing it to zero with `<`, `>`, `<=`, or `>=`.
+    ///
+    /// ### Why is this bad?
+    /// Floating point numbers have a dedicated sign bit that can be checked with bitwise operators which uses far fewer
+    /// CPU cycles. `std` exposes the `is_sign_positive` and `is_sign_negative` methods for this purpose.
+    ///
+    /// ### Caveats
+    /// The `is_sign_positive` and `is_sign_negative` methods do not behave the same as the comparison operators in some
+    /// cases. Behavior with `NaN` is unspecified, and use with negative zero will return `true`, whereas `-0.0 < 0.0
+    /// == false`.
+    ///
+    /// ### Example
+    /// ```rust
+    /// let foo = 1.0;
+    /// if foo < 0.0 {
+    ///     println!("negative");
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```rust
+    /// let foo = 1.0;
+    /// if foo.is_sign_negative() {
+    ///     println!("negative");
+    /// }
+    /// ```
+    #[clippy::version = "1.92.0"]
+    pub MANUAL_SIGN_CHECK,
+    pedantic,
+    "checking the sign of a floating point number by comparing it to zero, which is slow"
+}
+
 pub struct Operators {
     arithmetic_context: numeric_arithmetic::Context,
     verbose_bit_mask_threshold: u64,
@@ -906,6 +941,7 @@ impl_lint_pass!(Operators => [
     SELF_ASSIGNMENT,
     MANUAL_MIDPOINT,
     MANUAL_IS_MULTIPLE_OF,
+    MANUAL_SIGN_CHECK,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Operators {
@@ -944,6 +980,7 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                     rhs,
                     self.modulo_arithmetic_allow_comparison_to_zero,
                 );
+                manual_sign_check::check(cx, op.node, lhs, rhs);
             },
             ExprKind::AssignOp(op, lhs, rhs) => {
                 let bin_op = op.node.into();

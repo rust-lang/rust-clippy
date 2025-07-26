@@ -1,0 +1,29 @@
+error: checking the sign of a floating point number by comparing it to zero
+  --> tests/ui/manual_sign_check.rs:7:8
+   |
+LL |     if x < 0.0 {}
+   |        ^^^^^^^ help: consider using `is_sign_negative` for clarity and performance: `x.is_sign_negative()`
+   |
+   = note: `-D clippy::manual-sign-check` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_sign_check)]`
+
+error: checking the sign of a floating point number by comparing it to zero
+  --> tests/ui/manual_sign_check.rs:9:8
+   |
+LL |     if x <= 0.0 {}
+   |        ^^^^^^^^ help: consider using `is_sign_positive` for clarity and performance: `!x.is_sign_positive()`
+
+error: checking the sign of a floating point number by comparing it to zero
+  --> tests/ui/manual_sign_check.rs:11:8
+   |
+LL |     if x > 0.0 {}
+   |        ^^^^^^^ help: consider using `is_sign_positive` for clarity and performance: `x.is_sign_positive()`
+
+error: checking the sign of a floating point number by comparing it to zero
+  --> tests/ui/manual_sign_check.rs:13:8
+   |
+LL |     if x >= 0.0 {}
+   |        ^^^^^^^^ help: consider using `is_sign_negative` for clarity and performance: `!x.is_sign_negative()`
+
+error: aborting due to 4 previous errors
+
