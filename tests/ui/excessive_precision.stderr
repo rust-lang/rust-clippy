@@ -192,5 +192,39 @@ LL -     const _: f64 = 3.0000000000000000e+00;
 LL +     const _: f64 = 3.0;
    |
 
-error: aborting due to 16 previous errors
+error: float has excessive precision
+  --> tests/ui/excessive_precision.rs:106:18
+   |
+LL |     let _: f32 = 1.01234567890123456789012345678901234567890;
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: consider making it a `const` item
+  --> tests/ui/excessive_precision.rs:106:5
+   |
+LL |     let _: f32 = 1.01234567890123456789012345678901234567890;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: consider changing the type or truncating it to
+   |
+LL -     let _: f32 = 1.01234567890123456789012345678901234567890;
+LL +     let _: f32 = 1.012_345_7;
+   |
+
+error: float has excessive precision
+  --> tests/ui/excessive_precision.rs:108:18
+   |
+LL |     let _: f64 = 1.01234567890123456789012345678901234567890;
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: consider making it a `const` item
+  --> tests/ui/excessive_precision.rs:108:5
+   |
+LL |     let _: f64 = 1.01234567890123456789012345678901234567890;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: consider changing the type or truncating it to
+   |
+LL -     let _: f64 = 1.01234567890123456789012345678901234567890;
+LL +     let _: f64 = 1.012_345_678_901_234_6;
+   |
+
+error: aborting due to 18 previous errors
 
