@@ -132,6 +132,39 @@ fn main() {
             println!("Hello world!");
         }
     }
+
+    let a = false;
+
+    let b = false;
+    
+    if !a || b {
+        println!("Hello world!");
+    }
+    //~^^^^^^^^ collapsible_if
+
+    if !a || b {
+        println!("Hello world!");
+    }
+
+    if a {
+        // A comment that should not be removed.
+        if b {
+            println!("Hello world!");
+        }
+    } else {
+        println!("Hello world!");
+    }
+
+    let s = "foo";
+
+    if s == "foobar" || a {
+        println!("Hello world!");
+    }
+    //~^^^^^^^^ collapsible_if
+
+    if s == "foobar" || a {
+        println!("Hello world!");
+    }
 }
 
 #[rustfmt::skip]
