@@ -77,7 +77,7 @@ fn contains_any_break_or_continue(block: &Block<'_>) -> bool {
 /// The first two bits of information are in this enum, and the last part is in the
 /// `local_labels` variable, which contains a list of `(block_id, reachable)` pairs ordered by
 /// scope.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 enum NeverLoopResult {
     /// A continue may occur for the main loop.
     MayContinueMainLoop,
@@ -207,6 +207,8 @@ fn all_spans_after_expr(cx: &LateContext<'_>, expr: &Expr<'_>) -> Vec<Span> {
         }
 
         return vec![stmt.span];
+    } else if let Node::Block(_) = cx.tcx.parent_hir_node(expr.hir_id) {
+        return vec![expr.span];
     }
 
     vec![]
@@ -356,7 +358,9 @@ fn never_loop_expr<'tcx>(
     };
     let result = combine_seq(result, || {
         if cx.typeck_results().expr_ty(expr).is_never() {
-            NeverLoopResult::Diverging { break_spans: vec![] }
+            NeverLoopResult::Diverging {
+                break_spans: all_spans_after_expr(cx, expr),
+            }
         } else {
             NeverLoopResult::Normal
         }
