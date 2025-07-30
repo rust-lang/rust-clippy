@@ -8423,6 +8423,9 @@ temporarily.</p>
     let title = movie.title;
 }
 </code></pre>
+<h3>Limitations</h3>
+<p>Trait implementations which use the same function or parameter name as the trait declaration will
+not be warned about, even if the name is below the configured limit.</p>
 <h3>Configuration</h3>
 <ul>
 <li>
@@ -8436,7 +8439,7 @@ configuration of Clippy. By default, any configuration will replace the default 
 <p>(default: <code>1</code>)</p>
 </li>
 </ul>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.72.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+min_ident_chars">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/min_ident_chars.rs#L13">View Source</a></div></div></div></article><article id="min_max"><input id="label-min_max" type="checkbox"><label for="label-min_max"><h2 class="lint-title"><div class="panel-title-name" id="lint-min_max">min_max
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.72.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+min_ident_chars">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/min_ident_chars.rs#L17">View Source</a></div></div></div></article><article id="min_max"><input id="label-min_max" type="checkbox"><label for="label-min_max"><h2 class="lint-title"><div class="panel-title-name" id="lint-min_max">min_max
 <a href="#min_max" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-correctness">correctness</span> <span class="label lint-level level-deny">deny</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for expressions where <code>std::cmp::min</code> and <code>max</code> are
 used to clamp values, but switched so that the result is constant.</p>
