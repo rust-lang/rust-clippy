@@ -5189,7 +5189,7 @@ let Wrapper::Data(data) = wrapper;
 <a href="#infallible_try_from" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-suspicious">suspicious</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Finds manual impls of <code>TryFrom</code> with infallible error types.</p>
 <h3>Why is this bad?</h3>
-<p>Infalliable conversions should be implemented via <code>From</code> with the blanket conversion.</p>
+<p>Infallible conversions should be implemented via <code>From</code> with the blanket conversion.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">use std::convert::Infallible;
 struct MyStruct(i16);
