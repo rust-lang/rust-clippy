@@ -163,9 +163,5 @@ impl LateLintPass<'_> for SemicolonBlock {
 }
 
 fn get_line(cx: &LateContext<'_>, span: Span) -> Option<usize> {
-    if let Ok(line) = cx.sess().source_map().lookup_line(span.lo()) {
-        return Some(line.line);
-    }
-
-    None
+    cx.sess().source_map().lookup_line(span.lo()).ok().map(|line| line.line)
 }
