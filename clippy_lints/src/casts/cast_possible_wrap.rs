@@ -91,18 +91,7 @@ pub(super) fn check<'cx>(
 
     span_lint_and_then(cx, CAST_POSSIBLE_WRAP, expr.span, message, |diag| {
         if let Some(from_interval) = from_interval {
-            let note = if from_interval.min == from_interval.max {
-                format!(
-                    "the cast operant may assume the value `{}`",
-                    from_interval.to_string_untyped()
-                )
-            } else {
-                format!(
-                    "the cast operant may contain values in the range `{}`",
-                    from_interval.to_string_untyped()
-                )
-            };
-            diag.note(note);
+            diag.note(utils::format_cast_operand(from_interval));
         }
 
         if let EmitState::LintOnPtrSize(16) = should_lint {

@@ -16,7 +16,10 @@
 )]
 
 // FIXME(f16_f128): add tests once const casting is available for these types
-fn get_value<T>() -> T { todo!() }
+fn get_value<T>() -> T {
+    todo!()
+}
+
 fn main() {
     // Test clippy::cast_precision_loss
     let x0: i32 = get_value();
@@ -157,9 +160,7 @@ fn main() {
     (-1i16).saturating_abs() as u16;
     (-1i32).saturating_abs() as u32;
     (-1i64).abs() as u64;
-    //~^ cast_sign_loss
     (-1isize).abs() as usize;
-    //~^ cast_sign_loss
 
     (-1i8).checked_abs().unwrap() as u8;
     (i8::MIN).checked_abs().unwrap() as u8;
@@ -167,7 +168,6 @@ fn main() {
     (-1i32).checked_abs().unwrap() as u32;
     // SAFETY: -1 is a small number which will always return Some
     (unsafe { (-1i64).checked_abs().unwrap_unchecked() }) as u64;
-    //~^ cast_sign_loss
     (-1isize).checked_abs().expect("-1 is a small number") as usize;
 
     (-1i8).isqrt() as u8;
@@ -181,9 +181,8 @@ fn main() {
     (i8::MIN).checked_isqrt().unwrap() as u8;
     (-1i16).checked_isqrt().unwrap() as u16;
     (-1i32).checked_isqrt().unwrap() as u32;
-    // SAFETY: -1 is a small number which will always return Some
+    // SAFETY: this is UB, but whatever
     (unsafe { (-1i64).checked_isqrt().unwrap_unchecked() }) as u64;
-    //~^ cast_sign_loss
     (-1isize).checked_isqrt().expect("-1 is a small number") as usize;
 
     (-1i8).rem_euclid(1i8) as u8;
@@ -445,7 +444,6 @@ fn issue11642() {
     //~^ cast_sign_loss
 
     (2_i32).checked_pow(3).unwrap() as u32;
-    //~^ cast_sign_loss
     (-2_i32).pow(3) as u32;
     //~^ cast_sign_loss
 
@@ -588,7 +586,6 @@ fn dxgi_xr10_to_unorm8(x: u16) -> u8 {
     //~^ cast_possible_wrap
     // new range: [0, 510] (or [0.0, 1.0])
     let x = x.clamp(0, 510) as u16;
-    //~^ cast_sign_loss
     // this is round(x / 510 * 255), but faster
     ((x + 1) >> 1) as u8
     //~^ cast_possible_truncation
@@ -600,7 +597,6 @@ fn dxgi_xr10_to_unorm16(x: u16) -> u16 {
     //~^ cast_possible_wrap
     // new range: [0, 510] (or [0.0, 1.0])
     let x = x.clamp(0, 510) as u16;
-    //~^ cast_sign_loss
     // this is round(x / 510 * 65535), but faster
     ((x as u32 * 8421376 + 65535) >> 16) as u16
 }

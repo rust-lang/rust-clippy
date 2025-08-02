@@ -1,3 +1,4 @@
+use clippy_utils::rinterval::IInterval;
 use clippy_utils::ty::{EnumValue, read_explicit_enum_value};
 use rustc_middle::ty::{self, AdtDef, IntTy, Ty, TyCtxt, UintTy, VariantDiscr};
 
@@ -58,5 +59,31 @@ pub(super) fn enum_ty_to_nbits(adt: AdtDef<'_>, tcx: TyCtxt<'_>) -> u64 {
         };
         let pos_bits = if end > 0 { 128 - end.leading_zeros() } else { 0 };
         neg_bits.max(pos_bits).into()
+    }
+}
+
+pub(super) fn format_cast_operand(range: IInterval) -> String {
+    if range.is_empty() {
+        // This is the weird edge cast where we know that the cast will never
+        // actually happen, because it's unreachable.
+        return "the cast operand is unreachable".to_string();
+    }
+
+    if range.ty.is_signed() {
+        let (min, max) = range.as_signed();
+
+        if min == max {
+            format!("the cast operand is `{min}`")
+        } else {
+            format!("the cast operand may contain values in the range `{min}..={max}`")
+        }
+    } else {
+        let (min, max) = range.as_unsigned();
+
+        if min == max {
+            format!("the cast operand is `{min}`")
+        } else {
+            format!("the cast operand may contain values in the range `{min}..={max}`")
+        }
     }
 }
