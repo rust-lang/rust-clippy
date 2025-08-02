@@ -102,7 +102,7 @@ impl SemicolonBlock {
     }
 
     fn semicolon_outside_block(&self, cx: &LateContext<'_>, block: &Block<'_>, tail_stmt_expr: &Expr<'_>) {
-        let insert_span = block.span.with_lo(block.span.hi());
+        let insert_span = block.span.shrink_to_hi();
 
         // For macro call semicolon statements (`mac!();`), the statement's span does not actually
         // include the semicolon itself, so use `mac_call_stmt_semi_span`, which finds the semicolon
