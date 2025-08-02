@@ -88,18 +88,64 @@ fn main() {
     unit_fn_block()
 }
 
-fn issue15380() {
+// TODO: merge the function bodies once https://github.com/rust-lang/rust-clippy/issues/15389 is fixed
+//
+// Right now, if `first` and `second` were to be merged (uitest comments omitted for clarity):
+// ``` fn issue15380() {
+//     ( {0;0});
+//     ({
+//         0;
+//         0
+//     });
+// }
+// ```
+// then the fixed version would look as follows:
+// ```
+// fn issue15380() {
+//     ( {0;0;})
+//     ({
+//         0;
+//         0
+//     });
+// }
+// ```
+// However, that looks like a function call `(f)(x)`, and so we get an error because `{0;0;}` is
+// not a function.
+mod issue15380 {
+    // TODO: apply `[rustfmt::skip]` only to the block once https://github.com/rust-lang/rust-clippy/issues/15388 is fixed
+    //
+    // If we do this right now:
+    // ```
+    // fn issue15380() {
+    //     #[rustfmt::skip]
+    //     ( {0;0});
+    // }
+    // ```
+    // then the fixed version would look as follows:
+    // ```
+    // fn issue15380() {
+    //     #[rustfmt::skip]
+    //     ( {0;0;})
+    // }
+    // ```
+    // But that wouldn't compile because `[rustfmt::skip]` is now placed on an expr
     #[rustfmt::skip]
-    ( {0;0;}
-    //~^ semicolon_inside_block
-
-    ({
+    fn first() {
+        ( {0;0;}
         //~^ semicolon_inside_block
-        0;
-        0;
     }
 
-    #[rustfmt::skip]
-    (({0;}
-    //~^ semicolon_inside_block
+    fn second() {
+        ({
+            //~^ semicolon_inside_block
+            0;
+            0;
+        }
+    }
+
+    #[rustfmt::skip] // TODO: apply onto the block itself, see explanation in `first`
+    fn third() {
+        (({ 0; }
+        //~^ semicolon_inside_block
+    }
 }

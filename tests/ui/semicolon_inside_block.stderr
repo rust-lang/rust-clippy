@@ -53,43 +53,43 @@ LL +     { m!(()); }
    |
 
 error: consider moving the `;` inside the block for consistent formatting
-  --> tests/ui/semicolon_inside_block.rs:93:5
+  --> tests/ui/semicolon_inside_block.rs:134:9
    |
-LL |     ( {0;0});
-   |     ^^^^^^^^^
+LL |         ( {0;0});
+   |         ^^^^^^^^^
    |
 help: put the `;` here
    |
-LL -     ( {0;0});
-LL +     ( {0;0;}
+LL -         ( {0;0});
+LL +         ( {0;0;}
    |
 
 error: consider moving the `;` inside the block for consistent formatting
-  --> tests/ui/semicolon_inside_block.rs:96:5
+  --> tests/ui/semicolon_inside_block.rs:139:9
    |
-LL | /     ({
+LL | /         ({
 LL | |
-LL | |         0;
-LL | |         0
-LL | |     });
-   | |_______^
+LL | |             0;
+LL | |             0
+LL | |         });
+   | |___________^
    |
 help: put the `;` here
    |
-LL ~         0;
-LL ~     }
+LL ~             0;
+LL ~         }
    |
 
 error: consider moving the `;` inside the block for consistent formatting
-  --> tests/ui/semicolon_inside_block.rs:103:5
+  --> tests/ui/semicolon_inside_block.rs:148:9
    |
-LL |     (({0}))    ;
-   |     ^^^^^^^^^^^^
+LL |         (({ 0 }))      ;
+   |         ^^^^^^^^^^^^^^^^
    |
 help: put the `;` here
    |
-LL -     (({0}))    ;
-LL +     (({0;}
+LL -         (({ 0 }))      ;
+LL +         (({ 0; }
    |
 
 error: aborting due to 7 previous errors
