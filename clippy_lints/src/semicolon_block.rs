@@ -152,10 +152,12 @@ impl LateLintPass<'_> for SemicolonBlock {
                 }
             },
             StmtKind::Semi(Expr {
-                kind: ExprKind::Block(block @ Block { expr: Some(tail), .. }, _),
+                kind: ExprKind::Block(block, _),
                 ..
             }) if !block.span.from_expansion() => {
-                self.semicolon_inside_block(cx, block, tail, stmt.span);
+                if let Some(tail) = block.expr {
+                    self.semicolon_inside_block(cx, block, tail, stmt.span);
+                }
             },
             _ => (),
         }
