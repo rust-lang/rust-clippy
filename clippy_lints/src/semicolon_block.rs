@@ -1,10 +1,11 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::source::{IntoSpan, SpanRangeExt};
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, Stmt, StmtKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::impl_lint_pass;
-use rustc_span::Span;
+use rustc_span::{BytePos, Span};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -78,9 +79,12 @@ impl SemicolonBlock {
         }
     }
 
-    fn semicolon_inside_block(&self, cx: &LateContext<'_>, block: &Block<'_>, tail: &Expr<'_>, semi_span: Span) {
+    fn semicolon_inside_block(&self, cx: &LateContext<'_>, tail: &Expr<'_>, semi_span: Span) {
         let insert_span = tail.span.source_callsite().shrink_to_hi();
-        let remove_span = semi_span.with_lo(block.span.hi());
+        let remove_span = semi_span
+            .with_lo(semi_span.hi() - BytePos(1)) // the last byte of `semi_span` is the `;`, so shrink to that
+            .with_leading_whitespace(cx)
+            .into_span();
 
         if self.semicolon_inside_block_ignore_singleline && get_line(cx, remove_span) == get_line(cx, insert_span) {
             return;
@@ -156,7 +160,7 @@ impl LateLintPass<'_> for SemicolonBlock {
                 ..
             }) if !block.span.from_expansion() => {
                 if let Some(tail) = block.expr {
-                    self.semicolon_inside_block(cx, block, tail, stmt.span);
+                    self.semicolon_inside_block(cx, tail, stmt.span);
                 }
             },
             _ => (),

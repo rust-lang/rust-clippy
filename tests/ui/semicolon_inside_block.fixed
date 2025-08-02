@@ -131,7 +131,7 @@ mod issue15380 {
     // But that wouldn't compile because `[rustfmt::skip]` is now placed on an expr
     #[rustfmt::skip]
     fn first() {
-        ( {0;0;}
+        ( {0;0;})
         //~^ semicolon_inside_block
     }
 
@@ -140,12 +140,12 @@ mod issue15380 {
             //~^ semicolon_inside_block
             0;
             0;
-        }
+        })
     }
 
     #[rustfmt::skip] // TODO: apply onto the block itself, see explanation in `first`
     fn third() {
-        (({ 0; }
+        (({ 0; }))
         //~^ semicolon_inside_block
     }
 }

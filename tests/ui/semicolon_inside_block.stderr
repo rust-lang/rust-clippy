@@ -61,7 +61,7 @@ LL |         ( {0;0});
 help: put the `;` here
    |
 LL -         ( {0;0});
-LL +         ( {0;0;}
+LL +         ( {0;0;})
    |
 
 error: consider moving the `;` inside the block for consistent formatting
@@ -77,7 +77,7 @@ LL | |         });
 help: put the `;` here
    |
 LL ~             0;
-LL ~         }
+LL ~         })
    |
 
 error: consider moving the `;` inside the block for consistent formatting
@@ -89,7 +89,7 @@ LL |         (({ 0 }))      ;
 help: put the `;` here
    |
 LL -         (({ 0 }))      ;
-LL +         (({ 0; }
+LL +         (({ 0; }))
    |
 
 error: aborting due to 7 previous errors
