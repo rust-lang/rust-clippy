@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::ty::is_type_diagnostic_item;
-use clippy_utils::{is_expr_untyped_identity_function, is_mutable, is_trait_method, path_to_local};
+use clippy_utils::{is_expr_untyped_identity_function, is_mutable, is_trait_method, path_to_local_with_projections};
 use rustc_errors::Applicability;
 use rustc_hir::{self as hir, ExprKind, Node, PatKind};
 use rustc_lint::LateContext;
@@ -27,7 +27,7 @@ pub(super) fn check(
         let mut sugg = vec![(call_span, String::new())];
         let mut apply = true;
         if !is_mutable(cx, caller) {
-            if let Some(hir_id) = path_to_local(caller)
+            if let Some(hir_id) = path_to_local_with_projections(caller)
                 && let Node::Pat(pat) = cx.tcx.hir_node(hir_id)
                 && let PatKind::Binding(_, _, ident, _) = pat.kind
             {

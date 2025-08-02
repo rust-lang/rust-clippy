@@ -86,6 +86,12 @@ fn issue13904() {
     //~^ map_identity
 
     // lint
+    let mut index = [1, 2, 3].into_iter();
+    let subindex = (index.by_ref().take(3), 42);
+    let _ = subindex.0.map(|n| n).next();
+    //~^ map_identity
+
+    // lint
     #[allow(unused_mut)]
     let mut it = [1, 2, 3].into_iter();
     let _ = it.map(|x| x).next();
