@@ -108,6 +108,12 @@ fn drop_order() {
     let mut v = DropDeIterator(v.into_iter());
     println!("Last element is {}", v.next_back().unwrap().0);
     //~^ ERROR: called `Iterator::last` on a `DoubleEndedIterator`
+
+    let v = vec![S("one"), S("two"), S("three")];
+    let mut v = (DropDeIterator(v.into_iter()), 42);
+    println!("Last element is {}", v.0.next_back().unwrap().0);
+    //~^ ERROR: called `Iterator::last` on a `DoubleEndedIterator`
+
     println!("Done");
 }
 
