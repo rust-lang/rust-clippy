@@ -1,14 +1,8 @@
-use std::convert::Infallible;
-use std::ops::ControlFlow;
-
-use clippy_utils::consts::{ConstEvalCtxt, Constant};
 use clippy_utils::diagnostics::{span_lint, span_lint_and_note};
-use clippy_utils::visitors::{Descend, for_each_expr_without_closures};
-use clippy_utils::{method_chain_args, rinterval, sext, sym};
-use rustc_hir::{BinOpKind, Expr, ExprKind};
+use clippy_utils::rinterval;
+use rustc_hir::Expr;
 use rustc_lint::LateContext;
-use rustc_middle::ty::{self, Ty};
-use rustc_span::Symbol;
+use rustc_middle::ty::Ty;
 
 use super::{CAST_SIGN_LOSS, utils};
 
