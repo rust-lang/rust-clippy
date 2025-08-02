@@ -15,11 +15,11 @@
     clippy::identity_op
 )]
 
-// FIXME(f16_f128): add tests once const casting is available for these types
 fn get_value<T>() -> T {
     todo!()
 }
 
+// FIXME(f16_f128): add tests once const casting is available for these types
 fn main() {
     // Test clippy::cast_precision_loss
     let x0: i32 = get_value();
@@ -55,11 +55,12 @@ fn main() {
     1f64 as f32;
     //~^ cast_possible_truncation
 
-    1i32 as i8;
+    get_value::<i32>() as i8;
     //~^ cast_possible_truncation
 
-    1i32 as u8;
+    get_value::<i32>() as u8;
     //~^ cast_possible_truncation
+    //~| cast_sign_loss
 
     1f64 as isize;
     //~^ cast_possible_truncation
@@ -74,7 +75,7 @@ fn main() {
     //~| cast_sign_loss
 
     {
-        let _x: i8 = 1i32 as _;
+        let _x: i8 = get_value::<i32>() as _;
         //~^ cast_possible_truncation
 
         1f32 as i32;
@@ -88,19 +89,19 @@ fn main() {
         //~| cast_sign_loss
     }
     // Test clippy::cast_possible_wrap
-    1u8 as i8;
+    get_value::<u8>() as i8;
     //~^ cast_possible_wrap
 
-    1u16 as i16;
+    get_value::<u16>() as i16;
     //~^ cast_possible_wrap
 
-    1u32 as i32;
+    get_value::<u32>() as i32;
     //~^ cast_possible_wrap
 
-    1u64 as i64;
+    get_value::<u64>() as i64;
     //~^ cast_possible_wrap
 
-    1usize as isize;
+    get_value::<usize>() as isize;
     //~^ cast_possible_wrap
 
     // should not wrap, usize is never 8 bits
@@ -108,31 +109,31 @@ fn main() {
     //~^ cast_possible_truncation
 
     // wraps on 16 bit ptr size
-    1usize as i16;
+    get_value::<usize>() as i16;
     //~^ cast_possible_truncation
     //~| cast_possible_wrap
 
     // wraps on 32 bit ptr size
-    1usize as i32;
+    get_value::<usize>() as i32;
     //~^ cast_possible_truncation
     //~| cast_possible_wrap
 
     // wraps on 64 bit ptr size
-    1usize as i64;
+    get_value::<usize>() as i64;
     //~^ cast_possible_wrap
 
     // should not wrap, isize is never 8 bits
-    1u8 as isize;
+    get_value::<u8>() as isize;
     // wraps on 16 bit ptr size
-    1u16 as isize;
+    get_value::<u16>() as isize;
     //~^ cast_possible_wrap
 
     // wraps on 32 bit ptr size
-    1u32 as isize;
+    get_value::<u32>() as isize;
     //~^ cast_possible_wrap
 
     // wraps on 64 bit ptr size
-    1u64 as isize;
+    get_value::<u64>() as isize;
     //~^ cast_possible_truncation
     //~| cast_possible_wrap
 
@@ -629,7 +630,6 @@ fn f32_to_f16u(value: f32) -> u16 {
     let half_sign = sign >> 16;
     // Unbias the exponent, then bias for half precision
     let unbiased_exp = ((exp >> 23) as i32) - 127;
-    //~^ cast_possible_wrap
     let half_exp = unbiased_exp + 15;
 
     // Check for exponent overflow, return +infinity

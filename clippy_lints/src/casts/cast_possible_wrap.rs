@@ -45,9 +45,6 @@ pub(super) fn check<'cx>(
         return;
     }
 
-    let interval_ctx = rinterval::IntervalCtxt::new(cx);
-    let from_interval = interval_ctx.eval(cast_op);
-
     let should_lint = match (cast_from.is_ptr_sized_integral(), cast_to.is_ptr_sized_integral()) {
         (true, true) => {
             // casts between two ptr sized integers are trivially always the same size
@@ -88,6 +85,16 @@ pub(super) fn check<'cx>(
             "casting `{cast_from}` to `{cast_to}` may wrap around the value on targets with {ptr_size}-bit wide pointers",
         ),
     };
+
+    let interval_ctx = rinterval::IntervalCtxt::new(cx);
+    let from_interval = interval_ctx.eval(cast_op);
+
+    if let Some(from_interval) = &from_interval
+        && from_interval.fits_into(from_interval.ty.to_signed())
+    {
+        // if the values always fit into the signed type, do not emit a warning
+        return;
+    }
 
     span_lint_and_then(cx, CAST_POSSIBLE_WRAP, expr.span, message, |diag| {
         if let Some(from_interval) = from_interval {

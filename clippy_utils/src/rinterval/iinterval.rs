@@ -77,6 +77,24 @@ impl IntType {
             IntType::I128 => IntType::U128,
         }
     }
+    pub const fn to_signed(self) -> IntType {
+        match self {
+            IntType::U8 | IntType::I8 => IntType::I8,
+            IntType::U16 | IntType::I16 => IntType::I16,
+            IntType::U32 | IntType::I32 => IntType::I32,
+            IntType::U64 | IntType::I64 => IntType::I64,
+            IntType::U128 | IntType::I128 => IntType::I128,
+        }
+    }
+    pub const fn to_unsigned(self) -> IntType {
+        match self {
+            IntType::U8 | IntType::I8 => IntType::U8,
+            IntType::U16 | IntType::I16 => IntType::U16,
+            IntType::U32 | IntType::I32 => IntType::U32,
+            IntType::U64 | IntType::I64 => IntType::U64,
+            IntType::U128 | IntType::I128 => IntType::U128,
+        }
+    }
 }
 
 pub(crate) enum IntTypeInfo {
