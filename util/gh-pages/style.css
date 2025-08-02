@@ -137,9 +137,6 @@ article:hover .panel-title-name .anchor { display: inline;}
 .lint-group {
     min-width: 8em;
 }
-.group-deprecated {
-    opacity: 0.5;
-}
 
 .doc-folding {
     color: #000;

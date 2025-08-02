@@ -202,7 +202,6 @@ const GROUPS_FILTER_DEFAULT = {
     restriction: true,
     style: true,
     suspicious: true,
-    deprecated: false,
 };
 const LEVEL_FILTERS_DEFAULT = {
     allow: true,
@@ -394,28 +393,6 @@ function clearVersionFilters() {
     }
 }
 
-function resetGroupsToDefault() {
-    let needsUpdate = false;
-    let count = 0;
-
-    onEachLazy(document.querySelectorAll("#lint-groups-selector input"), el => {
-        const key = el.getAttribute("data-value");
-        const value = GROUPS_FILTER_DEFAULT[key];
-        if (filters.groups_filter[key] !== value) {
-            filters.groups_filter[key] = value;
-            el.checked = value;
-            needsUpdate = true;
-        }
-        if (value) {
-            count += 1;
-        }
-    });
-    document.querySelector("#lint-groups .badge").innerText = count;
-    if (needsUpdate) {
-        filters.filterLints();
-    }
-}
-
 function generateListOfOptions(list, elementId, filter) {
     let html = '';
     let nbEnabled = 0;
@@ -594,7 +571,7 @@ addListeners();
 highlightLazily();
 
 function updateLintCount() {
-    const allLints = filters.getAllLints().filter(lint => lint.group != "deprecated");
+    const allLints = filters.getAllLints();
     const totalLints = allLints.length;
 
     const countElement = document.getElementById("lint-count");
