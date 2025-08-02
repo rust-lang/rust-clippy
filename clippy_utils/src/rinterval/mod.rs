@@ -12,6 +12,7 @@ pub use arithmetic::*;
 pub use iinterval::*;
 
 use rustc_ast::LitKind;
+use rustc_hir::def::Res;
 use rustc_hir::{BinOpKind, Expr, ExprKind, PathSegment, UnOp};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{IntTy, Ty, TyKind, TypeckResults, UintTy};
@@ -126,6 +127,13 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
     }
     fn binary_op(&self, op: BinOpKind, l_expr: &Expr<'cx>, r_expr: &Expr<'cx>) -> Option<IInterval> {
         let lhs = &self.eval(l_expr)?;
+
+        // The pattern `x * x` is quite common and will always result in a
+        // positive value (absent overflow). To support this, special handling
+        // is required.
+        if matches!(op, BinOpKind::Mul) && self.is_same_variable(l_expr, r_expr) {
+            return Arithmetic::wrapping_pow(lhs, &IInterval::single_unsigned(IntType::U32, 2)).ok();
+        }
 
         // shl and shr have weird issues with type inference, so we need to
         // explicitly type the right-hand side as u32
@@ -362,6 +370,20 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
         None
     }
 
+    fn is_same_variable(&self, expr: &Expr<'cx>, other: &Expr<'cx>) -> bool {
+        // Check if the two expressions are the same variable
+        if let ExprKind::Path(ref path) = expr.kind {
+            if let ExprKind::Path(ref other_path) = other.kind {
+                let res = self.cx.qpath_res(path, expr.hir_id);
+                let other_res = self.cx.qpath_res(other_path, other.hir_id);
+                return match (res, other_res) {
+                    (Res::Local(lhs_id), Res::Local(rhs_id)) => lhs_id == rhs_id,
+                    _ => false,
+                };
+            }
+        }
+        false
+    }
     fn u128_repr_to_interval(n: u128, ty: IntType) -> Option<IInterval> {
         match ty.info() {
             IntTypeInfo::Signed(_, _) => {

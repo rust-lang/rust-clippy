@@ -435,7 +435,6 @@ fn issue11642() {
     fn square(x: i16) -> u32 {
         let x = x as i32;
         (x * x) as u32;
-        //~^ cast_sign_loss
         x.pow(2) as u32;
         (-2_i32).saturating_pow(2) as u32
     }
