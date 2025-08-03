@@ -109,7 +109,7 @@ fn drop_order() {
     println!("Last element is {}", v.last().unwrap().0);
     //~^ ERROR: called `Iterator::last` on a `DoubleEndedIterator`
 
-    let v = vec![S("one"), S("two"), S("three")];
+    let v = vec![S("four"), S("five"), S("six")];
     let v = (DropDeIterator(v.into_iter()), 42);
     println!("Last element is {}", v.0.last().unwrap().0);
     //~^ ERROR: called `Iterator::last` on a `DoubleEndedIterator`
