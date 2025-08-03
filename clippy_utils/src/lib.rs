@@ -466,8 +466,7 @@ pub fn path_to_local_id(expr: &Expr<'_>, id: HirId) -> bool {
 /// For example, `x.field[0].field2` would return the `HirId` of `x`.
 pub fn path_to_local_with_projections(expr: &Expr<'_>) -> Option<HirId> {
     match expr.kind {
-        ExprKind::Field(f, _) => path_to_local_with_projections(f),
-        ExprKind::Index(recv, _, _) => path_to_local_with_projections(recv),
+        ExprKind::Field(recv, _) | ExprKind::Index(recv, _, _) => path_to_local_with_projections(recv),
         ExprKind::Path(QPath::Resolved(
             _,
             Path {
