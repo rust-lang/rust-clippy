@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::{span_lint, span_lint_and_note};
+use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
 use clippy_utils::rinterval;
 use rustc_hir::Expr;
 use rustc_lint::LateContext;
@@ -38,13 +38,16 @@ pub(super) fn check<'cx>(
             && from_interval.ty.is_signed()
             && from_interval.contains_negative()
         {
-            span_lint_and_note(
+            span_lint_and_then(
                 cx,
                 CAST_SIGN_LOSS,
                 expr.span,
                 format!("casting `{cast_from}` to `{cast_to}` may lose the sign of the value"),
-                None,
-                utils::format_cast_operand(from_interval),
+                |diag| {
+                    if !from_interval.is_full() {
+                        diag.note(utils::format_cast_operand(from_interval));
+                    }
+                },
             );
         }
     }

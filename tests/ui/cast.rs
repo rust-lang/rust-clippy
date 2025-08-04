@@ -677,3 +677,13 @@ fn test_range_formatting(value: i32) {
     //~^ cast_possible_truncation
     //~| cast_sign_loss
 }
+
+fn test_narrowing(value: i32) {
+    if value > 0 {
+        // value as u32;
+        (value - 1) as u32;
+        //~^ cast_sign_loss
+    } else {
+        panic!("value must be positive");
+    }
+}

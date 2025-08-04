@@ -120,7 +120,9 @@ pub(super) fn check<'cx>(
     };
 
     span_lint_and_then(cx, CAST_POSSIBLE_TRUNCATION, expr.span, msg, |diag| {
-        if let Some(from_interval) = from_interval {
+        if let Some(from_interval) = from_interval
+            && !from_interval.is_full()
+        {
             diag.note(utils::format_cast_operand(from_interval));
         }
 
