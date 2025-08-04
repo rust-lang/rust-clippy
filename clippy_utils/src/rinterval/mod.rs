@@ -12,8 +12,9 @@ pub use arithmetic::*;
 pub use iinterval::*;
 
 use rustc_ast::LitKind;
+use rustc_data_structures::fx::FxHashMap;
 use rustc_hir::def::Res;
-use rustc_hir::{BinOpKind, Expr, ExprKind, PathSegment, UnOp};
+use rustc_hir::{BinOpKind, Expr, ExprKind, HirId, PathSegment, UnOp};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{IntTy, Ty, TyKind, TypeckResults, UintTy};
 use rustc_span::Symbol;
@@ -29,6 +30,8 @@ pub struct IntervalCtxt<'c, 'cx> {
 
     arth: Arithmetic,
     isize_ty: IntType,
+
+    cache: FxHashMap<HirId, Option<IInterval>>,
 }
 
 impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
@@ -49,6 +52,8 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
 
             arth: Arithmetic { checked: false },
             isize_ty,
+
+            cache: FxHashMap::default(),
         }
     }
 
@@ -56,7 +61,7 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
     ///
     /// If the given expression is not of a supported integer type, None is
     /// returned.
-    pub fn eval(&self, expr: &Expr<'cx>) -> Option<IInterval> {
+    pub fn eval(&mut self, expr: &Expr<'cx>) -> Option<IInterval> {
         let ty = self.to_int_type(self.typeck.expr_ty(expr))?;
 
         let expr = self.cx.expr_or_init(expr.peel_borrows());
@@ -73,7 +78,21 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
     ///
     /// If anything goes wrong or an expression cannot be evaluated, None is
     /// returned.
-    fn eval_ty(&self, expr: &Expr<'cx>, ty: IntType) -> Option<IInterval> {
+    fn eval_ty(&mut self, expr: &Expr<'cx>, ty: IntType) -> Option<IInterval> {
+        // Check the cache first.
+        if let Some(interval) = self.cache.get(&expr.hir_id) {
+            return interval.clone();
+        }
+
+        // Evaluate the expression.
+        let interval = self.eval_ty_uncached(expr, ty);
+
+        // Cache the result.
+        self.cache.insert(expr.hir_id, interval.clone());
+
+        interval
+    }
+    fn eval_ty_uncached(&mut self, expr: &Expr<'cx>, ty: IntType) -> Option<IInterval> {
         match expr.kind {
             ExprKind::Lit(lit) => {
                 return self.literal(&lit.node, ty);
@@ -125,7 +144,7 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
             _ => None,
         }
     }
-    fn binary_op(&self, op: BinOpKind, l_expr: &Expr<'cx>, r_expr: &Expr<'cx>) -> Option<IInterval> {
+    fn binary_op(&mut self, op: BinOpKind, l_expr: &Expr<'cx>, r_expr: &Expr<'cx>) -> Option<IInterval> {
         let lhs = &self.eval(l_expr)?;
 
         // The pattern `x * x` is quite common and will always result in a
@@ -161,7 +180,7 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
             _ => None,
         }
     }
-    fn unary_op(&self, op: UnOp, value: &IInterval) -> Option<IInterval> {
+    fn unary_op(&mut self, op: UnOp, value: &IInterval) -> Option<IInterval> {
         match op {
             UnOp::Neg => self.arth.neg(value).ok(),
             UnOp::Not => Arithmetic::not(value).ok(),
@@ -177,7 +196,7 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
 
     /// Calls to methods that returns an integer.
     fn method_call(
-        &self,
+        &mut self,
         path: &PathSegment<'_>,
         self_arg: &Expr<'cx>,
         args: &[Expr<'cx>],
@@ -225,7 +244,8 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
                 };
 
                 if let Some(f) = f {
-                    return f(&self.arth, &self.eval(self_arg)?).ok();
+                    let self_arg = self.eval(self_arg)?;
+                    return f(&self.arth, &self_arg).ok();
                 }
             },
 
@@ -309,7 +329,9 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
                 };
 
                 if let Some(f) = f {
-                    return f(&self.arth, &self.eval(self_arg)?, &self.eval(arg1)?).ok();
+                    let self_arg = self.eval(self_arg)?;
+                    let arg1 = self.eval(arg1)?;
+                    return f(&self.arth, &self_arg, &arg1).ok();
                 }
             },
 
@@ -322,7 +344,10 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
                     };
 
                 if let Some(f) = f {
-                    return f(&self.arth, &self.eval(self_arg)?, &self.eval(arg1)?, &self.eval(arg2)?).ok();
+                    let self_arg = self.eval(self_arg)?;
+                    let arg1 = self.eval(arg1)?;
+                    let arg2 = self.eval(arg2)?;
+                    return f(&self.arth, &self_arg, &arg1, &arg2).ok();
                 }
             },
             _ => {},
@@ -384,7 +409,7 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
         None
     }
 
-    fn is_same_variable(&self, expr: &Expr<'cx>, other: &Expr<'cx>) -> bool {
+    fn is_same_variable(&self, expr: &Expr<'_>, other: &Expr<'_>) -> bool {
         // Check if the two expressions are the same variable
         if let ExprKind::Path(ref path) = expr.kind {
             if let ExprKind::Path(ref other_path) = other.kind {

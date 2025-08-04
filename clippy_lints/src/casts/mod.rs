@@ -27,8 +27,8 @@ mod utils;
 mod zero_ptr;
 
 use clippy_config::Conf;
-use clippy_utils::is_hir_ty_cfg_dependant;
 use clippy_utils::msrvs::{self, Msrv};
+use clippy_utils::{is_hir_ty_cfg_dependant, rinterval};
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::impl_lint_pass;
@@ -885,11 +885,13 @@ impl<'tcx> LateLintPass<'tcx> for Casts {
             }
 
             if cast_to.is_numeric() {
-                cast_possible_truncation::check(cx, expr, cast_from_expr, cast_from, cast_to, cast_to_hir.span);
+                let i_cx = &mut rinterval::IntervalCtxt::new(cx);
+
+                cast_possible_truncation::check(cx, i_cx, expr, cast_from_expr, cast_from, cast_to, cast_to_hir.span);
                 if cast_from.is_numeric() {
-                    cast_possible_wrap::check(cx, expr, cast_from_expr, cast_from, cast_to);
+                    cast_possible_wrap::check(cx, i_cx, expr, cast_from_expr, cast_from, cast_to);
                     cast_precision_loss::check(cx, expr, cast_from, cast_to);
-                    cast_sign_loss::check(cx, expr, cast_from_expr, cast_from, cast_to);
+                    cast_sign_loss::check(cx, i_cx, expr, cast_from_expr, cast_from, cast_to);
                     cast_abs_to_unsigned::check(cx, expr, cast_from_expr, cast_from, cast_to, self.msrv);
                     cast_nan_to_int::check(cx, expr, cast_from_expr, cast_from, cast_to);
                 }

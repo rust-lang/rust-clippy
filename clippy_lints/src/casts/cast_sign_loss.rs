@@ -8,6 +8,7 @@ use super::{CAST_SIGN_LOSS, utils};
 
 pub(super) fn check<'cx>(
     cx: &LateContext<'cx>,
+    i_cx: &mut rinterval::IntervalCtxt<'_, 'cx>,
     expr: &Expr<'cx>,
     cast_op: &Expr<'cx>,
     cast_from: Ty<'cx>,
@@ -33,8 +34,7 @@ pub(super) fn check<'cx>(
     // reported if the signed integer expression can actually contain negative
     // values.
     if cast_from.is_integral() && cast_from.is_signed() {
-        let interval_ctx = rinterval::IntervalCtxt::new(cx);
-        if let Some(from_interval) = interval_ctx.eval(cast_op)
+        if let Some(from_interval) = i_cx.eval(cast_op)
             && from_interval.ty.is_signed()
             && from_interval.contains_negative()
         {

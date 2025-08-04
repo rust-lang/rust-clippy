@@ -110,7 +110,7 @@ pub(crate) enum IntTypeInfo {
 /// possible to accurately represent the set of all possible values of an
 /// integer expression using only its minimum and maximum values.
 ///
-/// As such, this type represents a **subset** of the actual set of values of
+/// As such, this type represents a **superset** of the actual set of values of
 /// an expression.
 
 #[derive(Clone, Debug, Eq, PartialEq)]

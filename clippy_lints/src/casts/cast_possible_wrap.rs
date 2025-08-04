@@ -19,6 +19,7 @@ enum EmitState {
 
 pub(super) fn check<'cx>(
     cx: &LateContext<'cx>,
+    i_cx: &mut rinterval::IntervalCtxt<'_, 'cx>,
     expr: &Expr<'_>,
     cast_op: &Expr<'cx>,
     cast_from: Ty<'_>,
@@ -86,8 +87,7 @@ pub(super) fn check<'cx>(
         ),
     };
 
-    let interval_ctx = rinterval::IntervalCtxt::new(cx);
-    let from_interval = interval_ctx.eval(cast_op);
+    let from_interval = i_cx.eval(cast_op);
 
     if let Some(from_interval) = &from_interval
         && from_interval.fits_into(from_interval.ty.to_signed())

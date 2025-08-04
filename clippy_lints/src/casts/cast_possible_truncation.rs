@@ -15,6 +15,7 @@ use super::{CAST_ENUM_TRUNCATION, CAST_POSSIBLE_TRUNCATION, utils};
 
 pub(super) fn check<'cx>(
     cx: &LateContext<'cx>,
+    i_cx: &mut rinterval::IntervalCtxt<'_, 'cx>,
     expr: &Expr<'_>,
     cast_expr: &Expr<'cx>,
     cast_from: Ty<'_>,
@@ -28,8 +29,7 @@ pub(super) fn check<'cx>(
 
     let msg = match (cast_from.kind(), utils::int_ty_to_nbits(cx.tcx, cast_to)) {
         (ty::Int(_) | ty::Uint(_), Some(to_nbits)) => {
-            let interval_ctx = rinterval::IntervalCtxt::new(cx);
-            from_interval = interval_ctx.eval(cast_expr);
+            from_interval = i_cx.eval(cast_expr);
 
             let to_ty = if !from_is_size && to_is_size {
                 // if we cast from a fixed-size integer to a pointer-sized integer,
@@ -40,8 +40,7 @@ pub(super) fn check<'cx>(
                     rinterval::IntType::U32
                 }
             } else {
-                interval_ctx
-                    .to_int_type(cast_to)
+                i_cx.to_int_type(cast_to)
                     .expect("the to cast type should be an integral type")
             };
 
