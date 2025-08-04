@@ -192,8 +192,9 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
                     sym::strict_neg => Some(|_, x| Arithmetic::strict_neg(x)),
                     sym::wrapping_neg => Some(|_, x| Arithmetic::wrapping_neg(x)),
 
-                    sym::isqrt => Some(|_, x| Arithmetic::isqrt(x)),
-                    sym::checked_isqrt => Some(|_, x| Arithmetic::isqrt(x)),
+                    sym::isqrt | sym::checked_isqrt => Some(|_, x| Arithmetic::isqrt(x)),
+                    sym::ilog2 | sym::checked_ilog2 => Some(|_, x| Arithmetic::ilog2(x)),
+                    sym::ilog10 | sym::checked_ilog10 => Some(|_, x| Arithmetic::ilog10(x)),
 
                     sym::abs => Some(Arithmetic::abs),
                     sym::checked_abs => Some(|_, x| Arithmetic::strict_abs(x)),
@@ -203,6 +204,12 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
                     sym::unsigned_abs => Some(|_, x| Arithmetic::unsigned_abs(x)),
 
                     sym::not => Some(|_, x| Arithmetic::not(x)),
+
+                    sym::signum => Some(|_, x| Arithmetic::signum(x)),
+
+                    sym::next_power_of_two => Some(Arithmetic::next_power_of_two),
+                    sym::checked_next_power_of_two => Some(|_, x| Arithmetic::strict_next_power_of_two(x)),
+                    sym::wrapping_next_power_of_two => Some(|_, x| Arithmetic::wrapping_next_power_of_two(x)),
 
                     sym::cast_signed => Some(|_, x| Arithmetic::cast_signed(x)),
                     sym::cast_unsigned => Some(|_, x| Arithmetic::cast_unsigned(x)),
@@ -266,11 +273,18 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
 
                     sym::midpoint => Some(|_, l, r| Arithmetic::midpoint(l, r)),
 
+                    sym::abs_diff => Some(|_, l, r| Arithmetic::abs_diff(l, r)),
+
+                    sym::next_multiple_of => Some(|_, l, r| Arithmetic::strict_next_multiple_of(l, r)),
+                    sym::checked_next_multiple_of => Some(|_, l, r| Arithmetic::strict_next_multiple_of(l, r)),
+
                     sym::pow => Some(|_, l, r| Arithmetic::strict_pow(l, r)),
                     sym::checked_pow => Some(|_, l, r| Arithmetic::strict_pow(l, r)),
                     sym::saturating_pow => Some(|_, l, r| Arithmetic::saturating_pow(l, r)),
                     sym::strict_pow => Some(|_, l, r| Arithmetic::strict_pow(l, r)),
                     sym::wrapping_pow => Some(|_, l, r| Arithmetic::wrapping_pow(l, r)),
+
+                    sym::ilog | sym::checked_ilog => Some(|_, l, r| Arithmetic::ilog(l, r)),
 
                     sym::min => Some(|_, l, r| Arithmetic::min(l, r)),
                     sym::max => Some(|_, l, r| Arithmetic::max(l, r)),
@@ -402,7 +416,7 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
             },
         }
     }
-    fn to_int_type(&self, ty: Ty<'_>) -> Option<IntType> {
+    pub fn to_int_type(&self, ty: Ty<'_>) -> Option<IntType> {
         match ty.kind() {
             TyKind::Int(IntTy::Isize) => Some(self.isize_ty),
             TyKind::Int(IntTy::I8) => Some(IntType::I8),
