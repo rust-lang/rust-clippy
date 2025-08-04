@@ -105,7 +105,7 @@ fn main() {
     //~^ cast_possible_wrap
 
     // should not wrap, usize is never 8 bits
-    1usize as i8;
+    get_value::<isize>() as i8;
     //~^ cast_possible_truncation
 
     // wraps on 16 bit ptr size
@@ -550,22 +550,22 @@ fn issue12506() -> usize {
 }
 
 fn issue12721() {
-    fn x() -> u64 {
-        u64::MAX
-    }
+    // Don't lint.
+    (get_value::<u32>() & 0xff) as u8;
+    ((get_value::<u32>() & 0xff00) >> 8) as u8;
 
     // Don't lint.
-    (255 & 999999u64) as u8;
+    (255 & get_value::<u64>()) as u8;
     // Don't lint.
-    let _ = ((x() & 255) & 999999) as u8;
+    let _ = ((get_value::<u64>() & 255) & 999999) as u8;
     // Don't lint.
-    let _ = (999999 & (x() & 255)) as u8;
+    let _ = (999999 & (get_value::<u64>() & 255)) as u8;
 
-    (256 & 999999u64) as u8;
+    (256 & get_value::<u64>()) as u8;
     //~^ cast_possible_truncation
 
-    (255 % 999999u64) as u8;
-    //~^ cast_possible_truncation
+    // Don't lint.
+    (get_value::<u8>() as u64 % get_value::<u64>()) as u8;
 }
 
 fn issue7486(number: u64, other: u32) -> u32 {
@@ -576,7 +576,6 @@ fn issue7486(number: u64, other: u32) -> u32 {
     // which implies that result < u32::max_value()
     let result = number % other_u64;
     result as u32
-    //~^ cast_possible_truncation
 }
 
 fn dxgi_xr10_to_unorm8(x: u16) -> u8 {
@@ -588,7 +587,6 @@ fn dxgi_xr10_to_unorm8(x: u16) -> u8 {
     let x = x.clamp(0, 510) as u16;
     // this is round(x / 510 * 255), but faster
     ((x + 1) >> 1) as u8
-    //~^ cast_possible_truncation
 }
 fn dxgi_xr10_to_unorm16(x: u16) -> u16 {
     debug_assert!(x <= 1023);
@@ -602,7 +600,6 @@ fn dxgi_xr10_to_unorm16(x: u16) -> u16 {
 }
 fn unorm16_to_unorm8(x: u16) -> u8 {
     ((x as u32 * 255 + 32895) >> 16) as u8
-    //~^ cast_possible_truncation
 }
 
 fn f32_to_f16u(value: f32) -> u16 {
@@ -623,7 +620,6 @@ fn f32_to_f16u(value: f32) -> u16 {
         // Set mantissa MSB for NaN (and also keep shifted mantissa bits)
         let nan_bit = if man == 0 { 0 } else { 0x0200u32 };
         return ((sign >> 16) | 0x7C00u32 | nan_bit | (man >> 13)) as u16;
-        //~^ cast_possible_truncation
     }
 
     // The number is normalized, start assembling half precision version
@@ -635,7 +631,6 @@ fn f32_to_f16u(value: f32) -> u16 {
     // Check for exponent overflow, return +infinity
     if half_exp >= 0x1F {
         return (half_sign | 0x7C00u32) as u16;
-        //~^ cast_possible_truncation
     }
 
     // Check for underflow

@@ -244,18 +244,18 @@ LL |     get_value::<usize>() as isize;
    |
    = note: the cast operand may contain values in the range `0..=18446744073709551615`
 
-error: casting `usize` to `i8` may truncate the value
+error: casting `isize` to `i8` may truncate the value
   --> tests/ui/cast.rs:108:5
    |
-LL |     1usize as i8;
-   |     ^^^^^^^^^^^^
+LL |     get_value::<isize>() as i8;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: the cast operand is `1`
+   = note: the cast operand may contain values in the range `-9223372036854775808..=9223372036854775807`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
 help: ... or use `try_from` and handle the error accordingly
    |
-LL -     1usize as i8;
-LL +     i8::try_from(1usize);
+LL -     get_value::<isize>() as i8;
+LL +     i8::try_from(get_value::<isize>());
    |
 
 error: casting `usize` to `i16` may truncate the value
@@ -795,119 +795,35 @@ LL |     bar.unwrap().unwrap() as usize
 error: casting `u64` to `u8` may truncate the value
   --> tests/ui/cast.rs:564:5
    |
-LL |     (256 & 999999u64) as u8;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^
+LL |     (256 & get_value::<u64>()) as u8;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: the cast operand is `0`
+   = note: the cast operand may contain values in the range `0..=256`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
 help: ... or use `try_from` and handle the error accordingly
    |
-LL -     (256 & 999999u64) as u8;
-LL +     u8::try_from(256 & 999999u64);
-   |
-
-error: casting `u64` to `u8` may truncate the value
-  --> tests/ui/cast.rs:567:5
-   |
-LL |     (255 % 999999u64) as u8;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: the cast operand is `255`
-   = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
-help: ... or use `try_from` and handle the error accordingly
-   |
-LL -     (255 % 999999u64) as u8;
-LL +     u8::try_from(255 % 999999u64);
-   |
-
-error: casting `u64` to `u32` may truncate the value
-  --> tests/ui/cast.rs:578:5
-   |
-LL |     result as u32
-   |     ^^^^^^^^^^^^^
-   |
-   = note: the cast operand may contain values in the range `0..=4294967294`
-   = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
-help: ... or use `try_from` and handle the error accordingly
-   |
-LL -     result as u32
-LL +     u32::try_from(result)
+LL -     (256 & get_value::<u64>()) as u8;
+LL +     u8::try_from(256 & get_value::<u64>());
    |
 
 error: casting `u16` to `i16` may wrap around the value
-  --> tests/ui/cast.rs:585:13
+  --> tests/ui/cast.rs:584:13
    |
 LL |     let x = x as i16 - 0x180;
    |             ^^^^^^^^
    |
    = note: the cast operand may contain values in the range `0..=65535`
 
-error: casting `u16` to `u8` may truncate the value
-  --> tests/ui/cast.rs:590:5
-   |
-LL |     ((x + 1) >> 1) as u8
-   |     ^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: the cast operand may contain values in the range `0..=255`
-   = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
-help: ... or use `try_from` and handle the error accordingly
-   |
-LL -     ((x + 1) >> 1) as u8
-LL +     u8::try_from((x + 1) >> 1)
-   |
-
 error: casting `u16` to `i16` may wrap around the value
-  --> tests/ui/cast.rs:596:13
+  --> tests/ui/cast.rs:594:13
    |
 LL |     let x = x as i16 - 0x180;
    |             ^^^^^^^^
    |
    = note: the cast operand may contain values in the range `0..=65535`
 
-error: casting `u32` to `u8` may truncate the value
-  --> tests/ui/cast.rs:604:5
-   |
-LL |     ((x as u32 * 255 + 32895) >> 16) as u8
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: the cast operand may contain values in the range `0..=255`
-   = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
-help: ... or use `try_from` and handle the error accordingly
-   |
-LL -     ((x as u32 * 255 + 32895) >> 16) as u8
-LL +     u8::try_from((x as u32 * 255 + 32895) >> 16)
-   |
-
 error: casting `u32` to `u16` may truncate the value
-  --> tests/ui/cast.rs:625:16
-   |
-LL |         return ((sign >> 16) | 0x7C00u32 | nan_bit | (man >> 13)) as u16;
-   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: the cast operand may contain values in the range `0..=65535`
-   = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
-help: ... or use `try_from` and handle the error accordingly
-   |
-LL -         return ((sign >> 16) | 0x7C00u32 | nan_bit | (man >> 13)) as u16;
-LL +         return u16::try_from((sign >> 16) | 0x7C00u32 | nan_bit | (man >> 13));
-   |
-
-error: casting `u32` to `u16` may truncate the value
-  --> tests/ui/cast.rs:637:16
-   |
-LL |         return (half_sign | 0x7C00u32) as u16;
-   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: the cast operand may contain values in the range `31744..=65535`
-   = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
-help: ... or use `try_from` and handle the error accordingly
-   |
-LL -         return (half_sign | 0x7C00u32) as u16;
-LL +         return u16::try_from(half_sign | 0x7C00u32);
-   |
-
-error: casting `u32` to `u16` may truncate the value
-  --> tests/ui/cast.rs:657:16
+  --> tests/ui/cast.rs:652:16
    |
 LL |         return (half_sign | half_man) as u16;
    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -921,7 +837,7 @@ LL +         return u16::try_from(half_sign | half_man);
    |
 
 error: casting `i32` to `u32` may lose the sign of the value
-  --> tests/ui/cast.rs:662:20
+  --> tests/ui/cast.rs:657:20
    |
 LL |     let half_exp = (half_exp as u32) << 10;
    |                    ^^^^^^^^^^^^^^^^^
@@ -929,7 +845,7 @@ LL |     let half_exp = (half_exp as u32) << 10;
    = note: the cast operand may contain values in the range `-112..=143`
 
 error: casting `u32` to `u16` may truncate the value
-  --> tests/ui/cast.rs:669:9
+  --> tests/ui/cast.rs:664:9
    |
 LL |         ((half_sign | half_exp | half_man) + 1) as u16
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -943,7 +859,7 @@ LL +         u16::try_from((half_sign | half_exp | half_man) + 1)
    |
 
 error: casting `u32` to `u16` may truncate the value
-  --> tests/ui/cast.rs:672:9
+  --> tests/ui/cast.rs:667:9
    |
 LL |         (half_sign | half_exp | half_man) as u16
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -956,5 +872,5 @@ LL -         (half_sign | half_exp | half_man) as u16
 LL +         u16::try_from(half_sign | half_exp | half_man)
    |
 
-error: aborting due to 98 previous errors
+error: aborting due to 92 previous errors
 

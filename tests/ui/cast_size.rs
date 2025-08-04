@@ -18,7 +18,7 @@ fn get_value<T>() -> T {
 
 fn main() {
     // Casting from *size
-    1isize as i8;
+    get_value::<isize>() as i8;
     //~^ cast_possible_truncation
     let x0: isize = get_value();
     let x1: usize = get_value();
@@ -76,5 +76,6 @@ fn main() {
 fn issue15163() {
     const M: usize = 100;
     const N: u16 = M as u16;
+    const O: u16 = (M * 1000) as u16;
     //~^ cast_possible_truncation
 }

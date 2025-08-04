@@ -1,17 +1,17 @@
 error: casting `isize` to `i8` may truncate the value
   --> tests/ui/cast_size.rs:21:5
    |
-LL |     1isize as i8;
-   |     ^^^^^^^^^^^^
+LL |     get_value::<isize>() as i8;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: the cast operand is `1`
+   = note: the cast operand may contain values in the range `-9223372036854775808..=9223372036854775807`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
    = note: `-D clippy::cast-possible-truncation` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::cast_possible_truncation)]`
 help: ... or use `try_from` and handle the error accordingly
    |
-LL -     1isize as i8;
-LL +     i8::try_from(1isize);
+LL -     get_value::<isize>() as i8;
+LL +     i8::try_from(get_value::<isize>());
    |
 
 error: casting `isize` to `f32` causes a loss of precision (`isize` is 32 or 64 bits wide, but `f32`'s mantissa is only 23 bits wide)
@@ -218,12 +218,12 @@ LL |     9_999_999_999_999_999usize as f64;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: casting `usize` to `u16` may truncate the value
-  --> tests/ui/cast_size.rs:78:20
+  --> tests/ui/cast_size.rs:79:20
    |
-LL |     const N: u16 = M as u16;
-   |                    ^^^^^^^^
+LL |     const O: u16 = (M * 1000) as u16;
+   |                    ^^^^^^^^^^^^^^^^^
    |
-   = note: the cast operand is `100`
+   = note: the cast operand is `100000`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
 
 error: aborting due to 22 previous errors
