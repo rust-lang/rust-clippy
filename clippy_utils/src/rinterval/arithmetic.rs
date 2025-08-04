@@ -96,6 +96,53 @@ fn split_by_sign_bit_signed(i: &IInterval, mut f: impl FnMut(i128, i128, SignBit
     }
 }
 
+fn parse_shift_strict(shift: &IInterval, bit_width: u8) -> Option<(u8, u8)> {
+    if shift.is_empty() {
+        return None;
+    }
+
+    if shift.ty.is_signed() {
+        let (min, max) = shift.as_signed();
+        if max < 0 || min >= bit_width as i128 {
+            return None;
+        }
+
+        Some((min.max(0) as u8, max.min((bit_width - 1) as i128) as u8))
+    } else {
+        let (min, max) = shift.as_unsigned();
+        if min >= bit_width as u128 {
+            return None;
+        }
+
+        Some((min as u8, max.min((bit_width - 1) as u128) as u8))
+    }
+}
+fn parse_shift_wrapping(shift: &IInterval, bit_width: u8) -> Option<(u8, u8)> {
+    if shift.is_empty() {
+        return None;
+    }
+
+    // check for large ranges
+    if shift.ty.is_signed() {
+        let (min, max) = shift.as_signed();
+        if max.abs_diff(min) >= (bit_width - 1) as u128 {
+            return Some((0, bit_width - 1));
+        }
+    } else {
+        let (min, max) = shift.as_unsigned();
+        if max - min >= (bit_width - 1) as u128 {
+            return Some((0, bit_width - 1));
+        }
+    }
+
+    // due to how the `% bit_width`, we can completely ignore the maybe sign of
+    // the values and just cast to u8.
+    let min = (shift.min as u8) % bit_width;
+    let max = (shift.max as u8) % bit_width;
+
+    Some((min, max))
+}
+
 pub struct Arithmetic {
     /// If `true`, checked arithmetic will be assumed.
     ///
@@ -2076,23 +2123,16 @@ impl Arithmetic {
     }
 
     pub fn strict_shl(lhs: &IInterval, rhs: &IInterval) -> ArithResult {
-        if rhs.ty != IntType::U32 {
-            return Err(ArithError::TypeError);
-        }
-
         check_non_empty!(lhs, rhs);
 
         let ty = lhs.ty;
-        let bit_width: u32 = ty.bits() as u32;
+        let bit_width = ty.bits();
 
-        let (r_min, r_max) = rhs.as_unsigned();
-        let r_min = r_min as u32;
-        let r_max = (r_max as u32).min(bit_width - 1);
-        if r_min >= bit_width {
+        let Some((r_min, r_max)) = parse_shift_strict(rhs, bit_width) else {
             return Ok(IInterval::empty(ty));
-        }
+        };
 
-        let mask = !u128::MAX.unbounded_shl(bit_width);
+        let mask = !u128::MAX.unbounded_shl(bit_width as u32);
 
         let mut bits = Bits::from_non_empty(lhs);
         bits.zero = (bits.zero << r_min) & mask;
@@ -2108,26 +2148,14 @@ impl Arithmetic {
         Ok(result)
     }
     pub fn wrapping_shl(lhs: &IInterval, rhs: &IInterval) -> ArithResult {
-        if rhs.ty != IntType::U32 {
-            return Err(ArithError::TypeError);
-        }
-
         check_non_empty!(lhs, rhs);
 
         let ty = lhs.ty;
-        let bit_width = ty.bits() as u32;
+        let bit_width = ty.bits();
 
-        let (r_min, r_max) = rhs.as_unsigned();
-        let mut r_min = r_min as u32;
-        let mut r_max = r_max as u32;
-
-        if r_max - r_min >= bit_width - 1 {
-            r_min = 0;
-            r_max = bit_width - 1;
-        } else {
-            r_min %= bit_width;
-            r_max %= bit_width;
-        }
+        let Some((r_min, r_max)) = parse_shift_wrapping(rhs, bit_width) else {
+            return Ok(IInterval::empty(ty));
+        };
 
         let result = if r_min <= r_max {
             Self::strict_shl(
@@ -2171,21 +2199,14 @@ impl Arithmetic {
     }
 
     pub fn strict_shr(lhs: &IInterval, rhs: &IInterval) -> ArithResult {
-        if rhs.ty != IntType::U32 {
-            return Err(ArithError::TypeError);
-        }
-
         check_non_empty!(lhs, rhs);
 
         let ty = lhs.ty;
-        let bit_width: u32 = ty.bits() as u32;
+        let bit_width = ty.bits();
 
-        let (r_min, r_max) = rhs.as_unsigned();
-        let r_min = r_min as u32;
-        let r_max = (r_max as u32).min(bit_width - 1);
-        if r_min >= bit_width {
+        let Some((r_min, r_max)) = parse_shift_strict(rhs, bit_width) else {
             return Ok(IInterval::empty(ty));
-        }
+        };
 
         if ty.is_signed() {
             Ok(split_by_sign_bit_signed(lhs, |min, max, sign| {
@@ -2202,26 +2223,14 @@ impl Arithmetic {
         }
     }
     pub fn wrapping_shr(lhs: &IInterval, rhs: &IInterval) -> ArithResult {
-        if rhs.ty != IntType::U32 {
-            return Err(ArithError::TypeError);
-        }
-
         check_non_empty!(lhs, rhs);
 
         let ty = lhs.ty;
-        let bit_width = ty.bits() as u32;
+        let bit_width = ty.bits();
 
-        let (r_min, r_max) = rhs.as_unsigned();
-        let mut r_min = r_min as u32;
-        let mut r_max = r_max as u32;
-
-        if r_max - r_min >= bit_width - 1 {
-            r_min = 0;
-            r_max = bit_width - 1;
-        } else {
-            r_min %= bit_width;
-            r_max %= bit_width;
-        }
+        let Some((r_min, r_max)) = parse_shift_wrapping(rhs, bit_width) else {
+            return Ok(IInterval::empty(ty));
+        };
 
         if r_min <= r_max {
             Self::strict_shr(

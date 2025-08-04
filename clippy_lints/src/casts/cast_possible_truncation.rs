@@ -29,7 +29,7 @@ pub(super) fn check<'cx>(
 
     let msg = match (cast_from.kind(), utils::int_ty_to_nbits(cx.tcx, cast_to)) {
         (ty::Int(_) | ty::Uint(_), Some(to_nbits)) => {
-            from_interval = i_cx.eval(cast_expr);
+            from_interval = i_cx.eval_int(cast_expr);
 
             let to_ty = if !from_is_size && to_is_size {
                 // if we cast from a fixed-size integer to a pointer-sized integer,

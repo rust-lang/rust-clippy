@@ -678,6 +678,31 @@ fn test_range_formatting(value: i32) {
     //~| cast_sign_loss
 }
 
+fn test_branching(value: i32) {
+    let a: u64 = if get_value() {
+        100
+    } else {
+        panic!("value must be positive")
+    };
+    a as u8;
+
+    let b: u64 = match get_value::<u8>() {
+        0 => 100,
+        1 => return,
+        2 => unreachable!(),
+        3 => todo!(),
+        4 => {
+            if get_value() {
+                return;
+            } else {
+                panic!("value must be positive")
+            }
+        },
+        _ => panic!("value must be positive"),
+    };
+    b as u8;
+}
+
 fn test_narrowing(value: i32) {
     if value > 0 {
         // value as u32;

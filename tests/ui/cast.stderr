@@ -834,7 +834,7 @@ LL |     (get_value::<i8>() as i32 * 64 - 4) as u16;
    = note: the cast operand may contain values in the range `-2^13-4..=2^13-68`
 
 error: casting `i32` to `u32` may lose the sign of the value
-  --> tests/ui/cast.rs:684:9
+  --> tests/ui/cast.rs:709:9
    |
 LL |         (value - 1) as u32;
    |         ^^^^^^^^^^^^^^^^^^

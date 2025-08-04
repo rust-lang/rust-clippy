@@ -34,7 +34,7 @@ pub(super) fn check<'cx>(
     // reported if the signed integer expression can actually contain negative
     // values.
     if cast_from.is_integral() && cast_from.is_signed() {
-        if let Some(from_interval) = i_cx.eval(cast_op)
+        if let Some(from_interval) = i_cx.eval_int(cast_op)
             && from_interval.ty.is_signed()
             && from_interval.contains_negative()
         {

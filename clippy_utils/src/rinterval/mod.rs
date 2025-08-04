@@ -31,7 +31,104 @@ pub struct IntervalCtxt<'c, 'cx> {
     arth: Arithmetic,
     isize_ty: IntType,
 
-    cache: FxHashMap<HirId, Option<IInterval>>,
+    cache: FxHashMap<HirId, Value>,
+}
+
+#[derive(Clone, Debug)]
+enum Value {
+    /// The value is of the never type.
+    Never,
+    /// The value is an integer. The set of possible values is represented by an interval.
+    Int(IInterval),
+
+    /// Any value of an unknown type. We truly know nothing about this value.
+    Unknown,
+}
+impl Value {
+    pub fn as_int(&self, ty: IntType) -> Option<IInterval> {
+        match self {
+            Value::Int(interval) if interval.ty == ty => Some(interval.clone()),
+            // coerce never to an empty interval
+            Value::Never => Some(IInterval::empty(ty)),
+            _ => None,
+        }
+    }
+    pub fn int_or_unknown<E>(interval: Result<IInterval, E>) -> Self {
+        match interval {
+            Ok(interval) => Value::Int(interval),
+            Err(_) => Value::Unknown,
+        }
+    }
+    pub fn unknown_to(self, f: impl FnOnce() -> Self) -> Self {
+        match self {
+            Value::Unknown => f(),
+            _ => self,
+        }
+    }
+    pub fn unknown_to_full(self, ty: IntType) -> Self {
+        match self {
+            Value::Unknown => Value::Int(IInterval::full(ty)),
+            _ => self,
+        }
+    }
+    pub fn full(ty: IntType) -> Self {
+        Value::Int(IInterval::full(ty))
+    }
+
+    pub fn union(self, other: Self) -> Self {
+        match (self, other) {
+            (Value::Never, value) | (value, Value::Never) => value,
+
+            (_, Value::Unknown) | (Value::Unknown, _) => Value::Unknown,
+
+            (Value::Int(a), Value::Int(b)) => {
+                if let Some(interval) = a.hull(&b) {
+                    Value::Int(interval)
+                } else {
+                    // This really shouldn't happen, but just in case
+                    Value::Unknown
+                }
+            },
+        }
+    }
+}
+impl From<IInterval> for Value {
+    fn from(interval: IInterval) -> Self {
+        Value::Int(interval)
+    }
+}
+
+trait Extensions {
+    fn or_full(self, ty: IntType) -> Value;
+    fn or_unknown(self) -> Value;
+}
+impl Extensions for Option<IInterval> {
+    fn or_full(self, ty: IntType) -> Value {
+        match self {
+            Some(interval) if interval.ty == ty => Value::Int(interval),
+            _ => Value::Int(IInterval::full(ty)),
+        }
+    }
+    fn or_unknown(self) -> Value {
+        match self {
+            Some(interval) => Value::Int(interval),
+            None => Value::Unknown,
+        }
+    }
+}
+impl<E> Extensions for Result<IInterval, E> {
+    fn or_full(self, ty: IntType) -> Value {
+        match self {
+            Ok(interval) if interval.ty == ty => Value::Int(interval),
+            _ => Value::Int(IInterval::full(ty)),
+        }
+    }
+    fn or_unknown(self) -> Value {
+        match self {
+            Ok(interval) => Value::Int(interval),
+            Err(_) => Value::Unknown,
+        }
+    }
 }
 
 impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
@@ -61,38 +158,50 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
     ///
     /// If the given expression is not of a supported integer type, None is
     /// returned.
-    pub fn eval(&mut self, expr: &Expr<'cx>) -> Option<IInterval> {
-        let ty = self.to_int_type(self.typeck.expr_ty(expr))?;
-
-        let expr = self.cx.expr_or_init(expr.peel_borrows());
-
-        if let Some(evaluated) = self.eval_ty(expr, ty) {
-            Some(evaluated)
+    pub fn eval_int(&mut self, expr: &Expr<'cx>) -> Option<IInterval> {
+        if let Value::Int(interval) = self.eval(expr) {
+            Some(interval)
         } else {
-            // we couldn't evaluate the expression for some reason, so just
-            // return the full range of the integer type.
-            Some(IInterval::full(ty))
+            None
         }
     }
-    /// Evaluates an expression to an integer interval of the given type.
-    ///
-    /// If anything goes wrong or an expression cannot be evaluated, None is
-    /// returned.
-    fn eval_ty(&mut self, expr: &Expr<'cx>, ty: IntType) -> Option<IInterval> {
+
+    fn eval(&mut self, expr: &Expr<'cx>) -> Value {
+        let cache_key = expr.hir_id;
         // Check the cache first.
-        if let Some(interval) = self.cache.get(&expr.hir_id) {
+        if let Some(interval) = self.cache.get(&cache_key) {
             return interval.clone();
         }
 
-        // Evaluate the expression.
-        let interval = self.eval_ty_uncached(expr, ty);
+        // we only care about values, so ignore borrows
+        let expr = expr.peel_borrows();
+
+        let expr_ty = self.typeck.expr_ty(expr);
+        let Some(ty) = self.to_int_type(expr_ty) else {
+            return if expr_ty.is_never() {
+                Value::Never
+            } else {
+                Value::Unknown
+            };
+        };
+
+        let expr = self.cx.expr_or_init(expr);
+        let value = self.eval_int_ty(expr, ty).unknown_to_full(ty);
 
         // Cache the result.
-        self.cache.insert(expr.hir_id, interval.clone());
+        self.cache.insert(expr.hir_id, value.clone());
+        self.cache.insert(cache_key, value.clone());
 
-        interval
+        value
     }
-    fn eval_ty_uncached(&mut self, expr: &Expr<'cx>, ty: IntType) -> Option<IInterval> {
+    /// Evaluates an expression to an integer interval of the given type.
+    fn eval_int_ty(&mut self, expr: &Expr<'cx>, ty: IntType) -> Value {
+        let expr_ty = self.typeck.expr_ty(expr);
+        if expr_ty.is_never() {
+            // If the expression is never, we can return an empty interval.
+            return IInterval::empty(ty).into();
+        }
+
         match expr.kind {
             ExprKind::Lit(lit) => {
                 return self.literal(&lit.node, ty);
@@ -101,12 +210,14 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
                 return self.binary_op(op.node, lhs, rhs);
             },
             ExprKind::Unary(op, operand) => {
-                let operand_interval = self.eval(operand)?;
-                return self.unary_op(op, &operand_interval);
+                if let Some(operand_interval) = self.eval(operand).as_int(ty) {
+                    return self.unary_op(op, &operand_interval);
+                }
             },
             ExprKind::Cast(expr, _) => {
-                let expr_interval = self.eval(expr)?;
-                return Arithmetic::cast_as(&expr_interval, ty).ok();
+                if let Value::Int(expr_interval) = self.eval(expr) {
+                    return Arithmetic::cast_as(&expr_interval, ty).or_full(ty);
+                }
             },
 
             // For conditional expressions, we evaluate all branches and
@@ -115,17 +226,10 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
             // No attempt is made at trimming down on branches. All branches
             // are assumed to be reachable.
             ExprKind::If(_cond, if_true, Some(if_false)) => {
-                let true_interval = self.eval(if_true)?;
-                let false_interval = self.eval(if_false)?;
-                return true_interval.hull(&false_interval);
+                return Self::branches(&[if_true, if_false], |e| self.eval(*e));
             },
             ExprKind::Match(_expr, arms, _) => {
-                let mut combined = IInterval::empty(ty);
-                for arm in arms {
-                    let arm_interval = self.eval(&arm.body)?;
-                    combined = combined.hull(&arm_interval)?;
-                }
-                return Some(combined);
+                return Self::branches(arms, |arm| self.eval(arm.body));
             },
 
             // Known methods and functions of integer types.
@@ -135,61 +239,73 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
         }
 
         // if all else fails, try to evaluate the expression using const eval
-        self.const_eval(expr, ty)
+        self.const_eval(expr, ty).unknown_to_full(ty)
     }
 
-    fn literal(&self, lit: &LitKind, ty: IntType) -> Option<IInterval> {
+    fn branches<T>(branches: &[T], mut get_value: impl FnMut(&T) -> Value) -> Value {
+        let mut combined = Value::Never;
+
+        for branch in branches {
+            let branch_value = get_value(branch);
+
+            if matches!(branch_value, Value::Unknown) {
+                // once unknown, always unknown
+                return Value::Unknown;
+            }
+
+            combined = combined.union(branch_value);
+        }
+
+        combined
+    }
+
+    fn literal(&self, lit: &LitKind, ty: IntType) -> Value {
         match lit {
-            LitKind::Int(n, _) => Self::u128_repr_to_interval(n.get(), ty),
-            _ => None,
+            LitKind::Int(n, _) => Self::u128_repr_to_interval(n.get(), ty).or_full(ty),
+            _ => Value::Unknown,
         }
     }
-    fn binary_op(&mut self, op: BinOpKind, l_expr: &Expr<'cx>, r_expr: &Expr<'cx>) -> Option<IInterval> {
-        let lhs = &self.eval(l_expr)?;
+    fn binary_op(&mut self, op: BinOpKind, l_expr: &Expr<'cx>, r_expr: &Expr<'cx>) -> Value {
+        let Value::Int(lhs) = &self.eval(l_expr) else {
+            return Value::Unknown;
+        };
 
         // The pattern `x * x` is quite common and will always result in a
         // positive value (absent overflow). To support this, special handling
         // is required.
         if matches!(op, BinOpKind::Mul) && self.is_same_variable(l_expr, r_expr) {
-            return Arithmetic::wrapping_pow(lhs, &IInterval::single_unsigned(IntType::U32, 2)).ok();
+            return Arithmetic::wrapping_pow(lhs, &IInterval::single_unsigned(IntType::U32, 2)).or_unknown();
         }
 
-        // shl and shr have weird issues with type inference, so we need to
-        // explicitly type the right-hand side as u32
-        let rhs = if matches!(op, BinOpKind::Shl | BinOpKind::Shr) {
-            &self.eval_ty(r_expr, IntType::U32).unwrap_or_else(|| {
-                // if we can't evaluate the right-hand side, just return the full
-                // range of the integer type.
-                IInterval::full(IntType::U32)
-            })
-        } else {
-            &self.eval(r_expr)?
+        let Value::Int(rhs) = &self.eval(r_expr) else {
+            return Value::Unknown;
         };
 
         match op {
-            BinOpKind::Add => self.arth.add(lhs, rhs).ok(),
-            BinOpKind::Sub => self.arth.sub(lhs, rhs).ok(),
-            BinOpKind::Mul => self.arth.mul(lhs, rhs).ok(),
-            BinOpKind::Div => self.arth.div(lhs, rhs).ok(),
-            BinOpKind::Rem => self.arth.rem(lhs, rhs).ok(),
-            BinOpKind::BitAnd => Arithmetic::and(lhs, rhs).ok(),
-            BinOpKind::BitOr => Arithmetic::or(lhs, rhs).ok(),
-            BinOpKind::BitXor => Arithmetic::xor(lhs, rhs).ok(),
-            BinOpKind::Shl => self.arth.shl(lhs, rhs).ok(),
-            BinOpKind::Shr => self.arth.shr(lhs, rhs).ok(),
-            _ => None,
+            BinOpKind::Add => self.arth.add(lhs, rhs),
+            BinOpKind::Sub => self.arth.sub(lhs, rhs),
+            BinOpKind::Mul => self.arth.mul(lhs, rhs),
+            BinOpKind::Div => self.arth.div(lhs, rhs),
+            BinOpKind::Rem => self.arth.rem(lhs, rhs),
+            BinOpKind::BitAnd => Arithmetic::and(lhs, rhs),
+            BinOpKind::BitOr => Arithmetic::or(lhs, rhs),
+            BinOpKind::BitXor => Arithmetic::xor(lhs, rhs),
+            BinOpKind::Shl => self.arth.shl(lhs, rhs),
+            BinOpKind::Shr => self.arth.shr(lhs, rhs),
+            _ => return Value::Unknown,
         }
+        .or_unknown()
     }
-    fn unary_op(&mut self, op: UnOp, value: &IInterval) -> Option<IInterval> {
+    fn unary_op(&mut self, op: UnOp, value: &IInterval) -> Value {
         match op {
-            UnOp::Neg => self.arth.neg(value).ok(),
-            UnOp::Not => Arithmetic::not(value).ok(),
+            UnOp::Neg => self.arth.neg(value).or_unknown(),
+            UnOp::Not => Arithmetic::not(value).or_unknown(),
             UnOp::Deref => {
                 // Deref doesn't really make sense for numbers, but it does make
                 // sense for references to numbers. Assuming that the value is
                 // indeed a reference to a number, we can just return the value
                 // of the number.
-                Some(value.clone())
+                Value::Int(value.clone())
             },
         }
     }
@@ -200,8 +316,8 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
         path: &PathSegment<'_>,
         self_arg: &Expr<'cx>,
         args: &[Expr<'cx>],
-        ty: IntType,
-    ) -> Option<IInterval> {
+        ret_ty: IntType,
+    ) -> Value {
         match args {
             [] => {
                 let f: Option<fn(&Arithmetic, &IInterval) -> ArithResult> = match path.ident.name {
@@ -243,9 +359,10 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
                     _ => None,
                 };
 
-                if let Some(f) = f {
-                    let self_arg = self.eval(self_arg)?;
-                    return f(&self.arth, &self_arg).ok();
+                if let Some(f) = f
+                    && let Value::Int(self_arg) = self.eval(self_arg)
+                {
+                    return f(&self.arth, &self_arg).or_full(ret_ty);
                 }
             },
 
@@ -328,10 +445,11 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
                     _ => None,
                 };
 
-                if let Some(f) = f {
-                    let self_arg = self.eval(self_arg)?;
-                    let arg1 = self.eval(arg1)?;
-                    return f(&self.arth, &self_arg, &arg1).ok();
+                if let Some(f) = f
+                    && let Value::Int(self_arg) = self.eval(self_arg)
+                    && let Value::Int(arg1) = self.eval(arg1)
+                {
+                    return f(&self.arth, &self_arg, &arg1).or_full(ret_ty);
                 }
             },
 
@@ -343,11 +461,12 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
                         _ => None,
                     };
 
-                if let Some(f) = f {
-                    let self_arg = self.eval(self_arg)?;
-                    let arg1 = self.eval(arg1)?;
-                    let arg2 = self.eval(arg2)?;
-                    return f(&self.arth, &self_arg, &arg1, &arg2).ok();
+                if let Some(f) = f
+                    && let Value::Int(self_arg) = self.eval(self_arg)
+                    && let Value::Int(arg1) = self.eval(arg1)
+                    && let Value::Int(arg2) = self.eval(arg2)
+                {
+                    return f(&self.arth, &self_arg, &arg1, &arg2).or_full(ret_ty);
                 }
             },
             _ => {},
@@ -369,44 +488,47 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
             let is_option = is_type_diagnostic_item(self.cx, self_ty, sym::Option);
 
             if is_option || true {
-                let self_interval = self.eval_ty(self_arg, ty)?;
+                let self_value = self.eval_int_ty(self_arg, ret_ty);
 
                 match path.ident.name {
                     sym::unwrap | sym::unwrap_unchecked | sym::expect => {
                         // these are all the same in that they return the Some value
-                        return Some(self_interval);
+                        return self_value;
                     },
                     sym::unwrap_or_default => {
                         // the default value of all integer types is 0, so we can
                         // evaluate the Some value and add 0 to it.
-                        let zero = if ty.is_signed() {
-                            IInterval::single_signed(ty, 0)
+                        let zero = if ret_ty.is_signed() {
+                            IInterval::single_signed(ret_ty, 0)
                         } else {
-                            IInterval::single_unsigned(ty, 0)
+                            IInterval::single_unsigned(ret_ty, 0)
                         };
-                        return self_interval.hull(&zero);
+                        return self_value.union(zero.into());
                     },
                     sym::unwrap_or => {
                         // the default value is given as the second argument
-                        let or_interval = self.eval(args.get(0)?)?;
-                        return self_interval.hull(&or_interval);
+                        let Some(arg0) = args.get(0) else {
+                            // this really shouldn't happen, but just in case
+                            return Value::Unknown;
+                        };
+                        let or_interval = self.eval(arg0);
+                        return self_value.union(or_interval);
                     },
                     _ => {},
                 }
             }
         }
 
-        None
+        Value::full(ret_ty)
     }
 
     /// Uses the const eval machinery to evaluate an expression to a single
     /// integer value.
-    fn const_eval(&self, expr: &Expr<'_>, ty: IntType) -> Option<IInterval> {
-        let const_val = self.const_eval.eval(expr)?;
-        if let Constant::Int(n) = const_val {
-            return Self::u128_repr_to_interval(n, ty);
+    fn const_eval(&self, expr: &Expr<'_>, ty: IntType) -> Value {
+        if let Some(Constant::Int(n)) = self.const_eval.eval(expr) {
+            return Self::u128_repr_to_interval(n, ty).or_full(ty);
         }
-        None
+        Value::Unknown
     }
 
     fn is_same_variable(&self, expr: &Expr<'_>, other: &Expr<'_>) -> bool {
@@ -449,7 +571,7 @@ impl<'c, 'cx> IntervalCtxt<'c, 'cx> {
             TyKind::Int(IntTy::I32) => Some(IntType::I32),
             TyKind::Int(IntTy::I64) => Some(IntType::I64),
             TyKind::Int(IntTy::I128) => Some(IntType::I128),
-            TyKind::Uint(UintTy::Usize) => Some(self.isize_ty.swap_signedness()),
+            TyKind::Uint(UintTy::Usize) => Some(self.isize_ty.to_unsigned()),
             TyKind::Uint(UintTy::U8) => Some(IntType::U8),
             TyKind::Uint(UintTy::U16) => Some(IntType::U16),
             TyKind::Uint(UintTy::U32) => Some(IntType::U32),
