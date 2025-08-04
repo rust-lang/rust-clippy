@@ -668,3 +668,12 @@ fn f32_to_f16u(value: f32) -> u16 {
         //~^ cast_possible_truncation
     }
 }
+
+fn test_range_formatting(value: i32) {
+    (get_value::<i8>() as i32 * 64 + 4) as u16;
+    //~^ cast_possible_truncation
+    //~| cast_sign_loss
+    (get_value::<i8>() as i32 * 64 - 4) as u16;
+    //~^ cast_possible_truncation
+    //~| cast_sign_loss
+}

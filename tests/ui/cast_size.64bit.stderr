@@ -4,7 +4,7 @@ error: casting `isize` to `i8` may truncate the value
 LL |     get_value::<isize>() as i8;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: the cast operand may contain values in the range `-9223372036854775808..=9223372036854775807`
+   = note: the cast operand may contain values in the range `-2^63..=2^63-1`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
    = note: `-D clippy::cast-possible-truncation` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::cast_possible_truncation)]`
@@ -47,7 +47,7 @@ error: casting `isize` to `i32` may truncate the value on targets with 64-bit wi
 LL |     get_value::<isize>() as i32;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: the cast operand may contain values in the range `-9223372036854775808..=9223372036854775807`
+   = note: the cast operand may contain values in the range `-2^63..=2^63-1`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
 help: ... or use `try_from` and handle the error accordingly
    |
@@ -61,7 +61,7 @@ error: casting `isize` to `u32` may truncate the value on targets with 64-bit wi
 LL |     get_value::<isize>() as u32;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: the cast operand may contain values in the range `-9223372036854775808..=9223372036854775807`
+   = note: the cast operand may contain values in the range `-2^63..=2^63-1`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
 help: ... or use `try_from` and handle the error accordingly
    |
@@ -75,7 +75,7 @@ error: casting `isize` to `u32` may lose the sign of the value
 LL |     get_value::<isize>() as u32;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: the cast operand may contain values in the range `-9223372036854775808..=9223372036854775807`
+   = note: the cast operand may contain values in the range `-2^63..=2^63-1`
    = note: `-D clippy::cast-sign-loss` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::cast_sign_loss)]`
 
@@ -85,7 +85,7 @@ error: casting `usize` to `u32` may truncate the value on targets with 64-bit wi
 LL |     get_value::<usize>() as u32;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: the cast operand may contain values in the range `0..=18446744073709551615`
+   = note: the cast operand may contain values in the range `0..=2^64-1`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
 help: ... or use `try_from` and handle the error accordingly
    |
@@ -99,7 +99,7 @@ error: casting `usize` to `i32` may truncate the value on targets with 64-bit wi
 LL |     get_value::<usize>() as i32;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: the cast operand may contain values in the range `0..=18446744073709551615`
+   = note: the cast operand may contain values in the range `0..=2^64-1`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
 help: ... or use `try_from` and handle the error accordingly
    |
@@ -113,7 +113,7 @@ error: casting `usize` to `i32` may wrap around the value on targets with 32-bit
 LL |     get_value::<usize>() as i32;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: the cast operand may contain values in the range `0..=18446744073709551615`
+   = note: the cast operand may contain values in the range `0..=2^64-1`
    = note: `-D clippy::cast-possible-wrap` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::cast_possible_wrap)]`
 
@@ -123,7 +123,7 @@ error: casting `i64` to `isize` may truncate the value on targets with 32-bit wi
 LL |     get_value::<i64>() as isize;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: the cast operand may contain values in the range `-9223372036854775808..=9223372036854775807`
+   = note: the cast operand may contain values in the range `-2^63..=2^63-1`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
 help: ... or use `try_from` and handle the error accordingly
    |
@@ -137,7 +137,7 @@ error: casting `i64` to `usize` may truncate the value on targets with 32-bit wi
 LL |     get_value::<i64>() as usize;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: the cast operand may contain values in the range `-9223372036854775808..=9223372036854775807`
+   = note: the cast operand may contain values in the range `-2^63..=2^63-1`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
 help: ... or use `try_from` and handle the error accordingly
    |
@@ -151,7 +151,7 @@ error: casting `i64` to `usize` may lose the sign of the value
 LL |     get_value::<i64>() as usize;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: the cast operand may contain values in the range `-9223372036854775808..=9223372036854775807`
+   = note: the cast operand may contain values in the range `-2^63..=2^63-1`
 
 error: casting `u64` to `isize` may truncate the value on targets with 32-bit wide pointers
   --> tests/ui/cast_size.rs:54:5
@@ -159,7 +159,7 @@ error: casting `u64` to `isize` may truncate the value on targets with 32-bit wi
 LL |     get_value::<u64>() as isize;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: the cast operand may contain values in the range `0..=18446744073709551615`
+   = note: the cast operand may contain values in the range `0..=2^64-1`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
 help: ... or use `try_from` and handle the error accordingly
    |
@@ -173,7 +173,7 @@ error: casting `u64` to `isize` may wrap around the value on targets with 64-bit
 LL |     get_value::<u64>() as isize;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: the cast operand may contain values in the range `0..=18446744073709551615`
+   = note: the cast operand may contain values in the range `0..=2^64-1`
 
 error: casting `u64` to `usize` may truncate the value on targets with 32-bit wide pointers
   --> tests/ui/cast_size.rs:57:5
@@ -181,7 +181,7 @@ error: casting `u64` to `usize` may truncate the value on targets with 32-bit wi
 LL |     get_value::<u64>() as usize;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: the cast operand may contain values in the range `0..=18446744073709551615`
+   = note: the cast operand may contain values in the range `0..=2^64-1`
    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
 help: ... or use `try_from` and handle the error accordingly
    |
@@ -195,7 +195,7 @@ error: casting `u32` to `isize` may wrap around the value on targets with 32-bit
 LL |     get_value::<u32>() as isize;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: the cast operand may contain values in the range `0..=4294967295`
+   = note: the cast operand may contain values in the range `0..=2^32-1`
 
 error: casting `i32` to `usize` may lose the sign of the value
   --> tests/ui/cast_size.rs:63:5
@@ -203,7 +203,7 @@ error: casting `i32` to `usize` may lose the sign of the value
 LL |     get_value::<i32>() as usize;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: the cast operand may contain values in the range `-2147483648..=2147483647`
+   = note: the cast operand may contain values in the range `-2^31..=2^31-1`
 
 error: casting `i32` to `f32` causes a loss of precision (`i32` is 32 bits wide, but `f32`'s mantissa is only 23 bits wide)
   --> tests/ui/cast_size.rs:68:5
