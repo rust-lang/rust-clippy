@@ -11530,7 +11530,23 @@ an array element is a binary operator expression and it lies on two lines.</p>
     -4, -5, -6
 ];
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">pre 1.29.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+possible_missing_comma">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/formatting.rs#L94">View Source</a></div></div></div></article><article id="precedence"><input id="label-precedence" type="checkbox"><label for="label-precedence"><h2 class="lint-title"><div class="panel-title-name" id="lint-precedence">precedence
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">pre 1.29.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+possible_missing_comma">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/formatting.rs#L119">View Source</a></div></div></div></article><article id="possible_missing_else"><input id="label-possible_missing_else" type="checkbox"><label for="label-possible_missing_else"><h2 class="lint-title"><div class="panel-title-name" id="lint-possible_missing_else">possible_missing_else
+<a href="#possible_missing_else" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-suspicious">suspicious</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
+<p>Checks for an <code>if</code> expression followed by either a block or another <code>if</code> that
+looks like it should have an <code>else</code> between them.</p>
+<h3>Why is this bad?</h3>
+<p>This is probably some refactoring remnant, even if the code is correct, it
+might look confusing.</p>
+<h3>Example</h3>
+<pre><code class="language-rust">if foo {
+} { // looks like an `else` is missing here
+}
+
+if foo {
+} if bar { // looks like an `else` is missing here
+}
+</code></pre>
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.90.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+possible_missing_else">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/formatting.rs#L94">View Source</a></div></div></div></article><article id="precedence"><input id="label-precedence" type="checkbox"><label for="label-precedence"><h2 class="lint-title"><div class="panel-title-name" id="lint-precedence">precedence
 <a href="#precedence" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-complexity">complexity</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for operations where precedence may be unclear and suggests to add parentheses.
 It catches a mixed usage of arithmetic and bit shifting/combining operators without parentheses</p>
