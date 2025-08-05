@@ -53,18 +53,25 @@ fn main() {
     }
 
     let mut z = inline!(&mut $(&mut 3u32));
-    //~^ mut_mut
 }
 
 fn issue939() {
     let array = [5, 6, 7, 8, 9];
     let mut args = array.iter().skip(2);
     for &arg in &mut args {
+        // make sure that we still check inside the block, even if we skip `&mut args` because of
+        // it coming from the expansion of `for-in` syntax
+        let a = &mut &mut 2;
+        //~^ mut_mut
         println!("{}", arg);
     }
 
     let args = &mut args;
     for arg in args {
+        // make sure that we still check inside the block, even if we skip `&mut args` because of
+        // it coming from the expansion of `for-in` syntax
+        let a = &mut &mut 2;
+        //~^ mut_mut
         println!(":{}", arg);
     }
 }

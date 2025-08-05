@@ -1,5 +1,4 @@
 use clippy_utils::diagnostics::{span_lint, span_lint_hir};
-use clippy_utils::higher;
 use rustc_hir::{self as hir, AmbigArg, intravisit};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty;
@@ -55,20 +54,11 @@ pub struct MutVisitor<'a, 'tcx> {
 
 impl<'tcx> intravisit::Visitor<'tcx> for MutVisitor<'_, 'tcx> {
     fn visit_expr(&mut self, expr: &'tcx hir::Expr<'_>) {
-        if expr.span.in_external_macro(self.cx.sess().source_map()) {
+        if expr.span.from_expansion() {
             return;
         }
 
-        if let Some(higher::ForLoop { arg, body, .. }) = higher::ForLoop::hir(expr) {
-            // A `for` loop lowers to:
-            // ```rust
-            // match ::std::iter::Iterator::next(&mut iter) {
-            // //                                ^^^^
-            // ```
-            // Let's ignore the generated code.
-            intravisit::walk_expr(self, arg);
-            intravisit::walk_expr(self, body);
-        } else if let hir::ExprKind::AddrOf(hir::BorrowKind::Ref, hir::Mutability::Mut, e) = expr.kind {
+        if let hir::ExprKind::AddrOf(hir::BorrowKind::Ref, hir::Mutability::Mut, e) = expr.kind {
             if let hir::ExprKind::AddrOf(hir::BorrowKind::Ref, hir::Mutability::Mut, _) = e.kind {
                 span_lint_hir(
                     self.cx,
