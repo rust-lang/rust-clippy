@@ -2,7 +2,7 @@ error: unnecessary parentheses
   --> tests/ui/double_parens.rs:15:5
    |
 LL |     ((0))
-   |     ^^^^^ help: remove them: `(0)`
+   |     ^^^^^ help: remove them: `0`
    |
    = note: `-D clippy::double-parens` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::double_parens)]`

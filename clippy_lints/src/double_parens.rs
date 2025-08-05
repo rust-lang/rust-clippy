@@ -43,8 +43,13 @@ declare_lint_pass!(DoubleParens => [DOUBLE_PARENS]);
 impl EarlyLintPass for DoubleParens {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {
         let (outer_span, inner_span) = match &expr.kind {
-            ExprKind::Paren(in_paren) if matches!(in_paren.kind, ExprKind::Paren(_) | ExprKind::Tup(_)) => {
-                (expr.span, in_paren.span)
+            ExprKind::Paren(in_paren) => {
+                let inner_span = match &in_paren.kind {
+                    ExprKind::Paren(inner) => inner.span,
+                    ExprKind::Tup(_) => in_paren.span,
+                    _ => return,
+                };
+                (expr.span, inner_span)
             },
             ExprKind::Call(_, params)
                 if let [param] = &**params

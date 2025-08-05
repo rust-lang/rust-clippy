@@ -12,7 +12,7 @@ impl DummyStruct {
 }
 
 fn simple_double_parens() -> i32 {
-    (0)
+    0
     //~^ double_parens
 }
 
