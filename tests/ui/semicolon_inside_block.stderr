@@ -52,45 +52,5 @@ LL -     { m!(()) };
 LL +     { m!(()); }
    |
 
-error: consider moving the `;` inside the block for consistent formatting
-  --> tests/ui/semicolon_inside_block.rs:93:5
-   |
-LL |     ( {0;0});
-   |     ^^^^^^^^^
-   |
-help: put the `;` here
-   |
-LL -     ( {0;0});
-LL +     ( {0;0;}
-   |
-
-error: consider moving the `;` inside the block for consistent formatting
-  --> tests/ui/semicolon_inside_block.rs:96:5
-   |
-LL | /     ({
-LL | |
-LL | |         0;
-LL | |         0
-LL | |     });
-   | |_______^
-   |
-help: put the `;` here
-   |
-LL ~         0;
-LL ~     }
-   |
-
-error: consider moving the `;` inside the block for consistent formatting
-  --> tests/ui/semicolon_inside_block.rs:103:5
-   |
-LL |     (({0}))    ;
-   |     ^^^^^^^^^^^^
-   |
-help: put the `;` here
-   |
-LL -     (({0}))    ;
-LL +     (({0;}
-   |
-
-error: aborting due to 7 previous errors
+error: aborting due to 4 previous errors
 
