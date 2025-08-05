@@ -78,7 +78,7 @@ impl SemicolonBlock {
         }
     }
 
-    fn semicolon_inside_block(&self, cx: &LateContext<'_>, block: &Block<'_>, tail: &Expr<'_>, semi_span: Span) {
+    fn semicolon_inside_block(&self, cx: &impl LintContext, block: &Block<'_>, tail: &Expr<'_>, semi_span: Span) {
         let insert_span = tail.span.source_callsite().shrink_to_hi();
         let remove_span = semi_span.with_lo(block.span.hi());
 
@@ -101,7 +101,7 @@ impl SemicolonBlock {
         );
     }
 
-    fn semicolon_outside_block(&self, cx: &LateContext<'_>, block: &Block<'_>, tail_stmt_expr: &Expr<'_>) {
+    fn semicolon_outside_block(&self, cx: &impl LintContext, block: &Block<'_>, tail_stmt_expr: &Expr<'_>) {
         let insert_span = block.span.shrink_to_hi();
 
         // For macro call semicolon statements (`mac!();`), the statement's span does not actually
@@ -164,6 +164,6 @@ impl LateLintPass<'_> for SemicolonBlock {
     }
 }
 
-fn get_line(cx: &LateContext<'_>, span: Span) -> Option<usize> {
+fn get_line(cx: &impl LintContext, span: Span) -> Option<usize> {
     cx.sess().source_map().lookup_line(span.lo()).ok().map(|line| line.line)
 }
