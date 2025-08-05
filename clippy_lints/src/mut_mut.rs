@@ -20,8 +20,21 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```no_run
-    /// # let mut y = 1;
-    /// let x = &mut &mut y;
+    /// let x = &mut &mut 1;
+    ///
+    /// let mut x = &mut 1;
+    /// let y = &mut x;
+    ///
+    /// fn foo(x: &mut &mut u32) {}
+    /// ```
+    /// Use instead
+    /// ```no_run
+    /// let x = &mut 1;
+    ///
+    /// let mut x = &mut 1;
+    /// let y = &mut *x; // reborrow
+    ///
+    /// fn foo(x: &mut u32) {}
     /// ```
     #[clippy::version = "pre 1.29.0"]
     pub MUT_MUT,
