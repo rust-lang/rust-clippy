@@ -140,10 +140,11 @@ impl SemicolonBlock {
 impl LateLintPass<'_> for SemicolonBlock {
     fn check_stmt(&mut self, cx: &LateContext<'_>, stmt: &Stmt<'_>) {
         match stmt.kind {
-            StmtKind::Expr(Expr {
-                kind: ExprKind::Block(block, _),
-                ..
-            }) if !block.span.from_expansion() && stmt.span.contains(block.span) => {
+            StmtKind::Expr(expr)
+                if let ExprKind::Block(block, _) = expr.kind
+                    && !block.span.from_expansion()
+                    && stmt.span.contains(block.span) =>
+            {
                 if block.expr.is_none()
                     && let [.., stmt] = block.stmts
                     && let StmtKind::Semi(expr) = stmt.kind
@@ -151,10 +152,10 @@ impl LateLintPass<'_> for SemicolonBlock {
                     self.semicolon_outside_block(cx, block, expr);
                 }
             },
-            StmtKind::Semi(Expr {
-                kind: ExprKind::Block(block, _),
-                ..
-            }) if !block.span.from_expansion() => {
+            StmtKind::Semi(expr)
+                if let ExprKind::Block(block, _) = expr.kind
+                    && !block.span.from_expansion() =>
+            {
                 if let Some(tail) = block.expr {
                     self.semicolon_inside_block(cx, block, tail, stmt.span);
                 }
