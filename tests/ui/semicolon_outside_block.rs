@@ -121,3 +121,15 @@ fn issue14926() {
         },
     }
 }
+
+fn f() {
+    struct Vec;
+    impl Vec {
+        unsafe fn set_len(&mut self, _len: usize) {}
+        fn clear(&mut self) {
+            unsafe {
+                self.set_len(0);
+            }
+        }
+    }
+}
