@@ -81,6 +81,11 @@ fn issue_14139() {
     let (subindex, _) = (index.by_ref().take(3), 42);
     let _ = subindex.last();
     let _ = index.next();
+
+    let mut index = [true, true, false, false, false, true].iter();
+    let subindex = (index.by_ref().take(3), 42);
+    let _ = subindex.0.last();
+    let _ = index.next();
 }
 
 fn drop_order() {

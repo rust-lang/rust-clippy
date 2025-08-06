@@ -18,7 +18,7 @@ LL |     let _ = DeIterator.last();
    |                        help: try: `next_back()`
 
 error: called `Iterator::last` on a `DoubleEndedIterator`; this will needlessly iterate the entire iterator
-  --> tests/ui/double_ended_iterator_last.rs:109:36
+  --> tests/ui/double_ended_iterator_last.rs:114:36
    |
 LL |     println!("Last element is {}", v.last().unwrap().0);
    |                                    ^^^^^^^^
@@ -31,7 +31,7 @@ LL ~     println!("Last element is {}", v.next_back().unwrap().0);
    |
 
 error: called `Iterator::last` on a `DoubleEndedIterator`; this will needlessly iterate the entire iterator
-  --> tests/ui/double_ended_iterator_last.rs:114:36
+  --> tests/ui/double_ended_iterator_last.rs:119:36
    |
 LL |     println!("Last element is {}", v.0.last().unwrap().0);
    |                                    ^^^^^^^^^^
