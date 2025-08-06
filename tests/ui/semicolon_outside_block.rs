@@ -128,6 +128,7 @@ fn f() {
         unsafe fn set_len(&mut self, _len: usize) {}
         fn clear(&mut self) {
             unsafe {
+                //~^ semicolon_outside_block
                 self.set_len(0);
             }
         }
