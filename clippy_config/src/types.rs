@@ -1,15 +1,17 @@
 use clippy_utils::paths::{PathNS, find_crates, lookup_path};
+use itertools::Itertools;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::{Applicability, Diag};
 use rustc_hir::PrimTy;
 use rustc_hir::def::DefKind;
 use rustc_hir::def_id::DefIdMap;
 use rustc_middle::ty::TyCtxt;
-use rustc_span::{Span, Symbol};
+use rustc_span::{DUMMY_SP, Span, Symbol};
 use serde::de::{self, Deserializer, Visitor};
 use serde::{Deserialize, Serialize, ser};
 use std::collections::HashMap;
 use std::fmt;
+use std::ops::Deref;
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -18,11 +20,11 @@ pub struct Rename {
     pub rename: String,
 }
 
-pub type ConfPathWithoutReplacement = ConfPath<false>;
+pub type ConfPathWithoutReplacement = ConfPath<String, false>;
 
 #[derive(Debug, Serialize)]
-pub struct ConfPath<const REPLACEABLE: bool = true> {
-    path: String,
+pub struct ConfPath<T = String, const REPLACEABLE: bool = true> {
+    path: T,
     reason: Option<String>,
     replacement: Option<String>,
     /// Setting `allow_invalid` to true suppresses a warning if `path` does not refer to an existing
@@ -38,7 +40,7 @@ pub struct ConfPath<const REPLACEABLE: bool = true> {
     span: Span,
 }
 
-impl<'de, const REPLACEABLE: bool> Deserialize<'de> for ConfPath<REPLACEABLE> {
+impl<'de, const REPLACEABLE: bool> Deserialize<'de> for ConfPath<String, REPLACEABLE> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -72,8 +74,8 @@ enum ConfPathEnum {
     },
 }
 
-impl<const REPLACEABLE: bool> ConfPath<REPLACEABLE> {
-    pub fn path(&self) -> &str {
+impl<T, const REPLACEABLE: bool> ConfPath<T, REPLACEABLE> {
+    pub fn path(&self) -> &T {
         &self.path
     }
 
@@ -98,6 +100,16 @@ impl<const REPLACEABLE: bool> ConfPath<REPLACEABLE> {
 
     pub fn set_span(&mut self, span: Span) {
         self.span = span;
+    }
+}
+
+impl<T, const REPLACEABLE: bool> ConfPath<T, REPLACEABLE>
+where
+    T: Deref,
+    <T as Deref>::Target: ToSymPath,
+{
+    pub fn to_sym_path(&self) -> Vec<Symbol> {
+        self.path().to_sym_path()
     }
 }
 
@@ -130,24 +142,71 @@ impl ConfPathEnum {
     }
 }
 
+pub trait ToSymPath {
+    fn to_sym_path(&self) -> Vec<Symbol>;
+}
+
+impl ToSymPath for str {
+    fn to_sym_path(&self) -> Vec<Symbol> {
+        self.split("::").map(Symbol::intern).collect()
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct SymPath<'a>(pub &'a [Symbol]);
+
+impl Deref for SymPath<'_> {
+    type Target = [Symbol];
+    fn deref(&self) -> &Self::Target {
+        self.0
+    }
+}
+
+impl fmt::Display for SymPath<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.0.iter().map(Symbol::to_string).join("::"))
+    }
+}
+
+impl ToSymPath for [Symbol] {
+    fn to_sym_path(&self) -> Vec<Symbol> {
+        self.to_owned()
+    }
+}
+
+pub const fn conf_path_from_sym_path(sym_path: &'static [Symbol]) -> ConfPath<SymPath<'static>, false> {
+    ConfPath {
+        path: SymPath(sym_path),
+        reason: None,
+        replacement: None,
+        allow_invalid: false,
+        span: DUMMY_SP,
+    }
+}
+
 /// Creates a map of disallowed items to the reason they were disallowed.
 #[expect(clippy::type_complexity)]
-pub fn create_conf_path_map<const REPLACEABLE: bool>(
+pub fn create_conf_path_map<T, const REPLACEABLE: bool>(
     tcx: TyCtxt<'_>,
-    conf_paths: &'static [ConfPath<REPLACEABLE>],
+    conf_paths: &'static [ConfPath<T, REPLACEABLE>],
     ns: PathNS,
     def_kind_predicate: impl Fn(DefKind) -> bool,
     predicate_description: &str,
     allow_prim_tys: bool,
 ) -> (
-    DefIdMap<(&'static str, &'static ConfPath<REPLACEABLE>)>,
-    FxHashMap<PrimTy, (&'static str, &'static ConfPath<REPLACEABLE>)>,
-) {
-    let mut def_ids: DefIdMap<(&'static str, &ConfPath<REPLACEABLE>)> = DefIdMap::default();
-    let mut prim_tys: FxHashMap<PrimTy, (&'static str, &ConfPath<REPLACEABLE>)> = FxHashMap::default();
+    DefIdMap<(&'static <T as Deref>::Target, &'static ConfPath<T, REPLACEABLE>)>,
+    FxHashMap<PrimTy, (&'static <T as Deref>::Target, &'static ConfPath<T, REPLACEABLE>)>,
+)
+where
+    T: Deref + fmt::Display,
+    <T as Deref>::Target: ToSymPath,
+{
+    let mut def_ids: DefIdMap<(&'static <T as Deref>::Target, &ConfPath<T, REPLACEABLE>)> = DefIdMap::default();
+    let mut prim_tys: FxHashMap<PrimTy, (&'static <T as Deref>::Target, &ConfPath<T, REPLACEABLE>)> =
+        FxHashMap::default();
     for conf_path in conf_paths {
         let path = conf_path.path();
-        let sym_path: Vec<Symbol> = path.split("::").map(Symbol::intern).collect();
+        let sym_path = path.to_sym_path();
         let mut resolutions = lookup_path(tcx, ns, &sym_path);
         resolutions.retain(|&def_id| def_kind_predicate(tcx.def_kind(def_id)));
 
