@@ -1,6 +1,6 @@
 use crate::ClippyConfiguration;
 use crate::types::{
-    DisallowedPath, DisallowedPathWithoutReplacement, InherentImplLintScope, MacroMatcher, MatchLintBehaviour,
+    ConfPath, ConfPathWithoutReplacement, InherentImplLintScope, MacroMatcher, MatchLintBehaviour,
     PubUnderscoreFieldsBehaviour, Rename, SourceItemOrdering, SourceItemOrderingCategory,
     SourceItemOrderingModuleItemGroupings, SourceItemOrderingModuleItemKind, SourceItemOrderingTraitAssocItemKind,
     SourceItemOrderingTraitAssocItemKinds, SourceItemOrderingWithinModuleItemGroupings,
@@ -191,17 +191,16 @@ macro_rules! deserialize {
         (value, value_span)
     }};
 
-    ($map:expr, $ty:ty, $errors:expr, $file:expr, $replacements_allowed:expr) => {{
+    ($map:expr, $ty:ty, $errors:expr, $file:expr, $replaceable:expr) => {{
         let array = $map.next_value::<Vec<toml::Spanned<toml::Value>>>()?;
-        let mut disallowed_paths_span = Range {
+        let mut conf_paths_span = Range {
             start: usize::MAX,
             end: usize::MIN,
         };
-        let mut disallowed_paths = Vec::new();
+        let mut conf_paths = Vec::new();
         for raw_value in array {
             let value_span = raw_value.span();
-            let mut disallowed_path = match DisallowedPath::<$replacements_allowed>::deserialize(raw_value.into_inner())
-            {
+            let mut conf_path = match ConfPath::<$replaceable>::deserialize(raw_value.into_inner()) {
                 Err(e) => {
                     $errors.push(ConfError::spanned(
                         $file,
@@ -211,13 +210,13 @@ macro_rules! deserialize {
                     ));
                     continue;
                 },
-                Ok(disallowed_path) => disallowed_path,
+                Ok(conf_path) => conf_path,
             };
-            disallowed_paths_span = union(&disallowed_paths_span, &value_span);
-            disallowed_path.set_span(span_from_toml_range($file, value_span));
-            disallowed_paths.push(disallowed_path);
+            conf_paths_span = union(&conf_paths_span, &value_span);
+            conf_path.set_span(span_from_toml_range($file, value_span));
+            conf_paths.push(conf_path);
         }
-        (disallowed_paths, disallowed_paths_span)
+        (conf_paths, conf_paths_span)
     }};
 }
 
@@ -226,7 +225,7 @@ macro_rules! define_Conf {
         $(#[doc = $doc:literal])+
         $(#[conf_deprecated($dep:literal, $new_conf:ident)])?
         $(#[default_text = $default_text:expr])?
-        $(#[disallowed_paths_allow_replacements = $replacements_allowed:expr])?
+        $(#[conf_paths_allow_replacements = $replaceable:expr])?
         $(#[lints($($for_lints:ident),* $(,)?)])?
         $name:ident: $ty:ty = $default:expr,
     )*) => {
@@ -284,7 +283,7 @@ macro_rules! define_Conf {
                             // Is this a deprecated field, i.e., is `$dep` set? If so, push a warning.
                             $(warnings.push(ConfError::spanned(self.0, format!("deprecated field `{}`. {}", name.get_ref(), $dep), None, name.span()));)?
                             let (value, value_span) =
-                                deserialize!(map, $ty, errors, self.0 $(, $replacements_allowed)?);
+                                deserialize!(map, $ty, errors, self.0 $(, $replaceable)?);
                             // Was this field set previously?
                             if $name.is_some() {
                                 errors.push(ConfError::spanned(self.0, format!("duplicate field `{}`", name.get_ref()), None, name.span()));
@@ -530,9 +529,9 @@ define_Conf! {
     )]
     avoid_breaking_exported_api: bool = true,
     /// The list of types which may not be held across an await point.
-    #[disallowed_paths_allow_replacements = false]
+    #[conf_paths_allow_replacements = false]
     #[lints(await_holding_invalid_type)]
-    await_holding_invalid_types: Vec<DisallowedPathWithoutReplacement> = Vec::new(),
+    await_holding_invalid_types: Vec<ConfPathWithoutReplacement> = Vec::new(),
     /// DEPRECATED LINT: BLACKLISTED_NAME.
     ///
     /// Use the Disallowed Names lint instead
@@ -586,9 +585,9 @@ define_Conf! {
     /// - `replacement` (optional): suggested alternative macro
     /// - `allow-invalid` (optional, `false` by default): when set to `true`, it will ignore this entry
     ///   if the path doesn't exist, instead of emitting an error
-    #[disallowed_paths_allow_replacements = true]
+    #[conf_paths_allow_replacements = true]
     #[lints(disallowed_macros)]
-    disallowed_macros: Vec<DisallowedPath> = Vec::new(),
+    disallowed_macros: Vec<ConfPath> = Vec::new(),
     /// The list of disallowed methods, written as fully qualified paths.
     ///
     /// **Fields:**
@@ -597,9 +596,9 @@ define_Conf! {
     /// - `replacement` (optional): suggested alternative method
     /// - `allow-invalid` (optional, `false` by default): when set to `true`, it will ignore this entry
     ///   if the path doesn't exist, instead of emitting an error
-    #[disallowed_paths_allow_replacements = true]
+    #[conf_paths_allow_replacements = true]
     #[lints(disallowed_methods)]
-    disallowed_methods: Vec<DisallowedPath> = Vec::new(),
+    disallowed_methods: Vec<ConfPath> = Vec::new(),
     /// The list of disallowed names to lint about. NB: `bar` is not here since it has legitimate uses. The value
     /// `".."` can be used as part of the list to indicate that the configured values should be appended to the
     /// default configuration of Clippy. By default, any configuration will replace the default value.
@@ -613,9 +612,9 @@ define_Conf! {
     /// - `replacement` (optional): suggested alternative type
     /// - `allow-invalid` (optional, `false` by default): when set to `true`, it will ignore this entry
     ///   if the path doesn't exist, instead of emitting an error
-    #[disallowed_paths_allow_replacements = true]
+    #[conf_paths_allow_replacements = true]
     #[lints(disallowed_types)]
-    disallowed_types: Vec<DisallowedPath> = Vec::new(),
+    disallowed_types: Vec<ConfPath> = Vec::new(),
     /// The list of words this lint should not consider as identifiers needing ticks. The value
     /// `".."` can be used as part of the list to indicate, that the configured values should be appended to the
     /// default configuration of Clippy. By default, any configuration will replace the default value. For example:
