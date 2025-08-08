@@ -396,13 +396,9 @@ impl<'a> PatState<'a> {
             PatKind::Tuple(pats, _) => self.add_product_pat(cx, pats),
             PatKind::Slice(head, _, tail) => self.add_product_pat(cx, head.iter().chain(tail)),
 
-            PatKind::TupleStruct(ref path, pats, _) => self.add_struct_pats(
-                cx,
-                pat,
-                path,
-                if let [pat] = pats { Some(pat) } else { None },
-                pats.iter(),
-            ),
+            PatKind::TupleStruct(ref path, pats, _) => {
+                self.add_struct_pats(cx, pat, path, if let [pat] = pats { Some(pat) } else { None }, pats)
+            },
             PatKind::Struct(ref path, pats, _) => self.add_struct_pats(
                 cx,
                 pat,
