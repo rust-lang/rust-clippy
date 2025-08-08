@@ -18,10 +18,10 @@ pub struct Rename {
     pub rename: String,
 }
 
-pub type DisallowedPathWithoutReplacement = DisallowedPath<false>;
+pub type ConfPathWithoutReplacement = ConfPath<false>;
 
 #[derive(Debug, Serialize)]
-pub struct DisallowedPath<const REPLACEMENT_ALLOWED: bool = true> {
+pub struct ConfPath<const REPLACEABLE: bool = true> {
     path: String,
     reason: Option<String>,
     replacement: Option<String>,
@@ -31,20 +31,20 @@ pub struct DisallowedPath<const REPLACEMENT_ALLOWED: bool = true> {
     /// This could be useful when conditional compilation is used, or when a clippy.toml file is
     /// shared among multiple projects.
     allow_invalid: bool,
-    /// The span of the `DisallowedPath`.
+    /// The span of the `ConfPath`.
     ///
     /// Used for diagnostics.
     #[serde(skip_serializing)]
     span: Span,
 }
 
-impl<'de, const REPLACEMENT_ALLOWED: bool> Deserialize<'de> for DisallowedPath<REPLACEMENT_ALLOWED> {
+impl<'de, const REPLACEABLE: bool> Deserialize<'de> for ConfPath<REPLACEABLE> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
-        let enum_ = DisallowedPathEnum::deserialize(deserializer)?;
-        if !REPLACEMENT_ALLOWED && enum_.replacement().is_some() {
+        let enum_ = ConfPathEnum::deserialize(deserializer)?;
+        if !REPLACEABLE && enum_.replacement().is_some() {
             return Err(de::Error::custom("replacement not allowed for this configuration"));
         }
         Ok(Self {
@@ -57,11 +57,11 @@ impl<'de, const REPLACEMENT_ALLOWED: bool> Deserialize<'de> for DisallowedPath<R
     }
 }
 
-// `DisallowedPathEnum` is an implementation detail to enable the `Deserialize` implementation just
-// above. `DisallowedPathEnum` is not meant to be used outside of this file.
+// `ConfPathEnum` is an implementation detail to enable the `Deserialize` implementation just above.
+// `ConfPathEnum` is not meant to be used outside of this file.
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(untagged, deny_unknown_fields)]
-enum DisallowedPathEnum {
+enum ConfPathEnum {
     Simple(String),
     WithReason {
         path: String,
@@ -72,7 +72,7 @@ enum DisallowedPathEnum {
     },
 }
 
-impl<const REPLACEMENT_ALLOWED: bool> DisallowedPath<REPLACEMENT_ALLOWED> {
+impl<const REPLACEABLE: bool> ConfPath<REPLACEABLE> {
     pub fn path(&self) -> &str {
         &self.path
     }
@@ -101,7 +101,7 @@ impl<const REPLACEMENT_ALLOWED: bool> DisallowedPath<REPLACEMENT_ALLOWED> {
     }
 }
 
-impl DisallowedPathEnum {
+impl ConfPathEnum {
     pub fn path(&self) -> &str {
         let (Self::Simple(path) | Self::WithReason { path, .. }) = self;
 
@@ -132,22 +132,21 @@ impl DisallowedPathEnum {
 
 /// Creates a map of disallowed items to the reason they were disallowed.
 #[expect(clippy::type_complexity)]
-pub fn create_disallowed_map<const REPLACEMENT_ALLOWED: bool>(
+pub fn create_conf_path_map<const REPLACEABLE: bool>(
     tcx: TyCtxt<'_>,
-    disallowed_paths: &'static [DisallowedPath<REPLACEMENT_ALLOWED>],
+    conf_paths: &'static [ConfPath<REPLACEABLE>],
     ns: PathNS,
     def_kind_predicate: impl Fn(DefKind) -> bool,
     predicate_description: &str,
     allow_prim_tys: bool,
 ) -> (
-    DefIdMap<(&'static str, &'static DisallowedPath<REPLACEMENT_ALLOWED>)>,
-    FxHashMap<PrimTy, (&'static str, &'static DisallowedPath<REPLACEMENT_ALLOWED>)>,
+    DefIdMap<(&'static str, &'static ConfPath<REPLACEABLE>)>,
+    FxHashMap<PrimTy, (&'static str, &'static ConfPath<REPLACEABLE>)>,
 ) {
-    let mut def_ids: DefIdMap<(&'static str, &'static DisallowedPath<REPLACEMENT_ALLOWED>)> = DefIdMap::default();
-    let mut prim_tys: FxHashMap<PrimTy, (&'static str, &'static DisallowedPath<REPLACEMENT_ALLOWED>)> =
-        FxHashMap::default();
-    for disallowed_path in disallowed_paths {
-        let path = disallowed_path.path();
+    let mut def_ids: DefIdMap<(&'static str, &ConfPath<REPLACEABLE>)> = DefIdMap::default();
+    let mut prim_tys: FxHashMap<PrimTy, (&'static str, &ConfPath<REPLACEABLE>)> = FxHashMap::default();
+    for conf_path in conf_paths {
+        let path = conf_path.path();
         let sym_path: Vec<Symbol> = path.split("::").map(Symbol::intern).collect();
         let mut resolutions = lookup_path(tcx, ns, &sym_path);
         resolutions.retain(|&def_id| def_kind_predicate(tcx.def_kind(def_id)));
@@ -162,7 +161,7 @@ pub fn create_disallowed_map<const REPLACEMENT_ALLOWED: bool>(
 
         if resolutions.is_empty()
             && prim_ty.is_none()
-            && !disallowed_path.allow_invalid
+            && !conf_path.allow_invalid
             // Don't warn about unloaded crates:
             // https://github.com/rust-lang/rust-clippy/pull/14397#issuecomment-2848328221
             && (sym_path.len() < 2 || !find_crates(tcx, sym_path[0]).is_empty())
@@ -179,16 +178,16 @@ pub fn create_disallowed_map<const REPLACEMENT_ALLOWED: bool>(
             };
             tcx.sess
                 .dcx()
-                .struct_span_warn(disallowed_path.span(), message)
+                .struct_span_warn(conf_path.span(), message)
                 .with_help("add `allow-invalid = true` to the entry to suppress this warning")
                 .emit();
         }
 
         for def_id in resolutions {
-            def_ids.insert(def_id, (path, disallowed_path));
+            def_ids.insert(def_id, (path, conf_path));
         }
         if let Some(ty) = prim_ty {
-            prim_tys.insert(ty, (path, disallowed_path));
+            prim_tys.insert(ty, (path, conf_path));
         }
     }
 
