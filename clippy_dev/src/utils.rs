@@ -702,7 +702,7 @@ pub fn split_args_for_threads(
             let mut cmd = (self.make_cmd)();
             let mut cmd_len = 0usize;
             for arg in self.args.by_ref().take(self.batch_size) {
-                cmd.arg(arg.as_ref());
+                cmd.arg(&arg);
                 // `+ 8` to account for the `argv` pointer on unix.
                 // Windows is complicated since the arguments are first converted to UTF-16ish,
                 // but this needs to account for the space between arguments and whatever additional
