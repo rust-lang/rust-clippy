@@ -1,11 +1,13 @@
-use clippy_utils::ast_utils::{IdentIter, eq_id, is_useless_with_eq_exprs};
+use clippy_utils::ast_utils::{eq_id, is_useless_with_eq_exprs};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_applicability;
 use core::ops::{Add, AddAssign};
-use rustc_ast::ast::{BinOpKind, Expr, ExprKind, StmtKind};
+use rustc_ast::ast::BinOpKind;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass};
+use rustc_hir::intravisit::Visitor;
+use rustc_hir::{Expr, ExprKind, StmtKind};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::Span;
 use rustc_span::source_map::Spanned;
@@ -66,8 +68,8 @@ declare_clippy_lint! {
 
 declare_lint_pass!(SuspiciousOperationGroupings => [SUSPICIOUS_OPERATION_GROUPINGS]);
 
-impl EarlyLintPass for SuspiciousOperationGroupings {
-    fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {
+impl LateLintPass<'_> for SuspiciousOperationGroupings {
+    fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {
         if expr.span.from_expansion() {
             return;
         }
@@ -95,7 +97,7 @@ impl EarlyLintPass for SuspiciousOperationGroupings {
     }
 }
 
-fn check_binops(cx: &EarlyContext<'_>, binops: &[&BinaryOp<'_>]) {
+fn check_binops(cx: &LateContext<'_>, binops: &[&BinaryOp<'_>]) {
     let binop_count = binops.len();
     if binop_count < 2 {
         // Single binary operation expressions would likely be false
@@ -107,7 +109,6 @@ fn check_binops(cx: &EarlyContext<'_>, binops: &[&BinaryOp<'_>]) {
     let mut no_difference_info = None;
     let mut double_difference_info = None;
     let mut expected_ident_loc = None;
-
     let mut paired_identifiers = FxHashSet::default();
 
     for (i, BinaryOp { left, right, op, .. }) in binops.iter().enumerate() {
@@ -134,7 +135,7 @@ fn check_binops(cx: &EarlyContext<'_>, binops: &[&BinaryOp<'_>]) {
 
                 // If there was only a single difference, all other idents
                 // must have been the same, and thus were paired.
-                for id in skip_index(IdentIter::from(*left), ident_loc.index) {
+                for id in skip_index(HirExprIdents::new(left), ident_loc.index) {
                     paired_identifiers.insert(id);
                 }
             },
@@ -179,7 +180,7 @@ fn check_binops(cx: &EarlyContext<'_>, binops: &[&BinaryOp<'_>]) {
 }
 
 fn attempt_to_emit_no_difference_lint(
-    cx: &EarlyContext<'_>,
+    cx: &LateContext<'_>,
     binops: &[&BinaryOp<'_>],
     i: usize,
     expected_loc: IdentLocation,
@@ -201,8 +202,14 @@ fn attempt_to_emit_no_difference_lint(
         for b in skip_index(binops.iter(), i) {
             if let (Some(old_ident), Some(new_ident)) = (old_left_ident, get_ident(b.left, expected_loc))
                 && old_ident != new_ident
-                && let Some(sugg) =
-                    suggestion_with_swapped_ident(cx, binop.left, expected_loc, new_ident, &mut applicability)
+                && let Some(sugg) = suggestion_with_swapped_ident(
+                    cx,
+                    CheckFields::No,
+                    binop.left,
+                    expected_loc,
+                    new_ident,
+                    &mut applicability,
+                )
             {
                 emit_suggestion(
                     cx,
@@ -215,8 +222,16 @@ fn attempt_to_emit_no_difference_lint(
 
             if let (Some(old_ident), Some(new_ident)) = (old_right_ident, get_ident(b.right, expected_loc))
                 && old_ident != new_ident
-                && let Some(sugg) =
-                    suggestion_with_swapped_ident(cx, binop.right, expected_loc, new_ident, &mut applicability)
+                // We check for the receiver of the expression in this case
+                // so don't check the fields in order to avoid false negatives
+                && let Some(sugg) = suggestion_with_swapped_ident(
+                    cx,
+                    CheckFields::No,
+                    binop.right,
+                    expected_loc,
+                    new_ident,
+                    &mut applicability,
+                )
             {
                 emit_suggestion(
                     cx,
@@ -230,7 +245,7 @@ fn attempt_to_emit_no_difference_lint(
     }
 }
 
-fn emit_suggestion(cx: &EarlyContext<'_>, span: Span, sugg: String, applicability: Applicability) {
+fn emit_suggestion(cx: &LateContext<'_>, span: Span, sugg: String, applicability: Applicability) {
     span_lint_and_sugg(
         cx,
         SUSPICIOUS_OPERATION_GROUPINGS,
@@ -243,7 +258,7 @@ fn emit_suggestion(cx: &EarlyContext<'_>, span: Span, sugg: String, applicabilit
 }
 
 fn ident_swap_sugg(
-    cx: &EarlyContext<'_>,
+    cx: &LateContext<'_>,
     paired_identifiers: &FxHashSet<Ident>,
     binop: &BinaryOp<'_>,
     location: IdentLocation,
@@ -257,6 +272,13 @@ fn ident_swap_sugg(
         paired_identifiers.contains(&right_ident),
     ) {
         (true, true) | (false, false) => {
+            // // dbg!(&left_ident);
+            // // dbg!(&right_ident);
+            // // dbg!(
+            //     paired_identifiers.contains(&left_ident),
+            //     paired_identifiers.contains(&right_ident)
+            // );
+
             // We don't have a good guess of what ident should be
             // used instead, in these cases.
             *applicability = Applicability::MaybeIncorrect;
@@ -266,7 +288,8 @@ fn ident_swap_sugg(
             // ends up duplicating a clause, the `logic_bug` lint
             // should catch it.
 
-            let right_suggestion = suggestion_with_swapped_ident(cx, binop.right, location, left_ident, applicability)?;
+            let right_suggestion =
+                suggestion_with_swapped_ident(cx, CheckFields::Yes, binop.right, location, left_ident, applicability)?;
 
             replace_right_sugg(cx, binop, &right_suggestion, applicability)
         },
@@ -274,14 +297,16 @@ fn ident_swap_sugg(
             // We haven't seen a pair involving the left one, so
             // it's probably what is wanted.
 
-            let right_suggestion = suggestion_with_swapped_ident(cx, binop.right, location, left_ident, applicability)?;
+            let right_suggestion =
+                suggestion_with_swapped_ident(cx, CheckFields::Yes, binop.right, location, left_ident, applicability)?;
 
             replace_right_sugg(cx, binop, &right_suggestion, applicability)
         },
         (true, false) => {
             // We haven't seen a pair involving the right one, so
             // it's probably what is wanted.
-            let left_suggestion = suggestion_with_swapped_ident(cx, binop.left, location, right_ident, applicability)?;
+            let left_suggestion =
+                suggestion_with_swapped_ident(cx, CheckFields::No, binop.left, location, right_ident, applicability)?;
 
             replace_left_sugg(cx, binop, &left_suggestion, applicability)
         },
@@ -291,7 +316,7 @@ fn ident_swap_sugg(
 }
 
 fn replace_left_sugg(
-    cx: &EarlyContext<'_>,
+    cx: &LateContext<'_>,
     binop: &BinaryOp<'_>,
     left_suggestion: &str,
     applicability: &mut Applicability,
@@ -304,7 +329,7 @@ fn replace_left_sugg(
 }
 
 fn replace_right_sugg(
-    cx: &EarlyContext<'_>,
+    cx: &LateContext<'_>,
     binop: &BinaryOp<'_>,
     right_suggestion: &str,
     applicability: &mut Applicability,
@@ -320,21 +345,23 @@ fn replace_right_sugg(
 struct BinaryOp<'exprs> {
     op: BinOpKind,
     span: Span,
-    left: &'exprs Expr,
-    right: &'exprs Expr,
+    left: &'exprs Expr<'exprs>,
+    right: &'exprs Expr<'exprs>,
 }
 
 impl<'exprs> BinaryOp<'exprs> {
-    fn new(op: BinOpKind, span: Span, (left, right): (&'exprs Expr, &'exprs Expr)) -> Self {
+    fn new(op: BinOpKind, (left, right): (&'exprs Expr<'exprs>, &'exprs Expr<'exprs>)) -> Self {
+        let span = left.span.to(right.span);
+
         Self { op, span, left, right }
     }
 }
 
-fn strip_non_ident_wrappers(expr: &Expr) -> &Expr {
+fn strip_non_ident_wrappers<'hir>(expr: &'hir Expr<'hir>) -> &'hir Expr<'hir> {
     let mut output = expr;
     loop {
         output = match &output.kind {
-            ExprKind::Paren(inner) | ExprKind::Unary(_, inner) => inner,
+            ExprKind::Unary(_, inner) => inner,
             _ => {
                 return output;
             },
@@ -342,17 +369,16 @@ fn strip_non_ident_wrappers(expr: &Expr) -> &Expr {
     }
 }
 
-fn extract_related_binops(kind: &ExprKind) -> Option<Vec<BinaryOp<'_>>> {
+fn extract_related_binops<'hir>(kind: &'hir ExprKind<'hir>) -> Option<Vec<BinaryOp<'hir>>> {
     append_opt_vecs(chained_binops(kind), if_statement_binops(kind))
 }
 
-fn if_statement_binops(kind: &ExprKind) -> Option<Vec<BinaryOp<'_>>> {
+fn if_statement_binops<'hir>(kind: &'hir ExprKind<'hir>) -> Option<Vec<BinaryOp<'hir>>> {
     match kind {
         ExprKind::If(condition, _, _) => chained_binops(&condition.kind),
-        ExprKind::Paren(e) => if_statement_binops(&e.kind),
         ExprKind::Block(block, _) => {
             let mut output = None;
-            for stmt in &block.stmts {
+            for stmt in block.stmts {
                 match &stmt.kind {
                     StmtKind::Expr(e) | StmtKind::Semi(e) => {
                         output = append_opt_vecs(output, if_statement_binops(&e.kind));
@@ -380,22 +406,22 @@ fn append_opt_vecs<A>(target_opt: Option<Vec<A>>, source_opt: Option<Vec<A>>) ->
     }
 }
 
-fn chained_binops(kind: &ExprKind) -> Option<Vec<BinaryOp<'_>>> {
+fn chained_binops<'hir>(kind: &'hir ExprKind<'hir>) -> Option<Vec<BinaryOp<'hir>>> {
     match kind {
         ExprKind::Binary(_, left_outer, right_outer) => chained_binops_helper(left_outer, right_outer),
-        ExprKind::Paren(e) | ExprKind::Unary(_, e) => chained_binops(&e.kind),
+        ExprKind::Unary(_, e) => chained_binops(&e.kind),
         _ => None,
     }
 }
 
-fn chained_binops_helper<'expr>(left_outer: &'expr Expr, right_outer: &'expr Expr) -> Option<Vec<BinaryOp<'expr>>> {
+fn chained_binops_helper<'expr>(
+    left_outer: &'expr Expr<'expr>,
+    right_outer: &'expr Expr<'expr>,
+) -> Option<Vec<BinaryOp<'expr>>> {
     match (&left_outer.kind, &right_outer.kind) {
-        (
-            ExprKind::Paren(left_e) | ExprKind::Unary(_, left_e),
-            ExprKind::Paren(right_e) | ExprKind::Unary(_, right_e),
-        ) => chained_binops_helper(left_e, right_e),
-        (ExprKind::Paren(left_e) | ExprKind::Unary(_, left_e), _) => chained_binops_helper(left_e, right_outer),
-        (_, ExprKind::Paren(right_e) | ExprKind::Unary(_, right_e)) => chained_binops_helper(left_outer, right_e),
+        (ExprKind::Unary(_, left_e), ExprKind::Unary(_, right_e)) => chained_binops_helper(left_e, right_e),
+        (ExprKind::Unary(_, left_e), _) => chained_binops_helper(left_e, right_outer),
+        (_, ExprKind::Unary(_, right_e)) => chained_binops_helper(left_outer, right_e),
         (
             ExprKind::Binary(Spanned { node: left_op, .. }, left_left, left_right),
             ExprKind::Binary(Spanned { node: right_op, .. }, right_left, right_right),
@@ -411,16 +437,16 @@ fn chained_binops_helper<'expr>(left_outer: &'expr Expr, right_outer: &'expr Exp
                 Some(left_ops)
             },
             (Some(mut left_ops), _) => {
-                left_ops.push(BinaryOp::new(*right_op, right_outer.span, (right_left, right_right)));
+                left_ops.push(BinaryOp::new(*right_op, (right_left, right_right)));
                 Some(left_ops)
             },
             (_, Some(mut right_ops)) => {
-                right_ops.insert(0, BinaryOp::new(*left_op, left_outer.span, (left_left, left_right)));
+                right_ops.insert(0, BinaryOp::new(*left_op, (left_left, left_right)));
                 Some(right_ops)
             },
             (None, None) => Some(vec![
-                BinaryOp::new(*left_op, left_outer.span, (left_left, left_right)),
-                BinaryOp::new(*right_op, right_outer.span, (right_left, right_right)),
+                BinaryOp::new(*left_op, (left_left, left_right)),
+                BinaryOp::new(*right_op, (right_left, right_right)),
             ]),
         },
         _ => None,
@@ -490,13 +516,13 @@ impl IdentDifference {
     }
 }
 
-fn ident_difference_expr(left: &Expr, right: &Expr) -> IdentDifference {
+fn ident_difference_expr(left: &Expr<'_>, right: &Expr<'_>) -> IdentDifference {
     ident_difference_expr_with_base_location(left, right, IdentLocation::default()).0
 }
 
 fn ident_difference_expr_with_base_location(
-    left: &Expr,
-    right: &Expr,
+    left: &Expr<'_>,
+    right: &Expr<'_>,
     mut base: IdentLocation,
 ) -> (IdentDifference, IdentLocation) {
     // Ideally, this function should not use IdentIter because it should return
@@ -528,19 +554,15 @@ fn ident_difference_expr_with_base_location(
         &strip_non_ident_wrappers(left).kind,
         &strip_non_ident_wrappers(right).kind,
     ) {
-        (Yield(_), Yield(_))
-        | (Try(_), Try(_))
-        | (Paren(_), Paren(_))
+        (Yield(_, _), Yield(_, _))
         | (Repeat(_, _), Repeat(_, _))
-        | (Struct(_), Struct(_))
-        | (MacCall(_), MacCall(_))
+        | (Struct(_, _, _), Struct(_, _, _))
         | (InlineAsm(_), InlineAsm(_))
         | (Ret(_), Ret(_))
         | (Continue(_), Continue(_))
         | (Break(_, _), Break(_, _))
         | (AddrOf(_, _, _), AddrOf(_, _, _))
-        | (Path(_, _), Path(_, _))
-        | (Range(_, _, _), Range(_, _, _))
+        | (Path(_), Path(_))
         | (Index(_, _, _), Index(_, _, _))
         | (Field(_, _), Field(_, _))
         | (AssignOp(_, _, _), AssignOp(_, _, _))
@@ -551,18 +573,16 @@ fn ident_difference_expr_with_base_location(
         | (Block(_, _), Block(_, _))
         | (Closure(_), Closure(_))
         | (Match(_, _, _), Match(_, _, _))
-        | (Loop(_, _, _), Loop(_, _, _))
-        | (ForLoop { .. }, ForLoop { .. })
-        | (While(_, _, _), While(_, _, _))
+        | (Loop(_, _, _, _), Loop(_, _, _, _))
         | (If(_, _, _), If(_, _, _))
-        | (Let(_, _, _, _), Let(_, _, _, _))
+        | (Let(_), Let(_))
         | (Type(_, _), Type(_, _))
         | (Cast(_, _), Cast(_, _))
         | (Lit(_), Lit(_))
         | (Unary(_, _), Unary(_, _))
         | (Binary(_, _, _), Binary(_, _, _))
         | (Tup(_), Tup(_))
-        | (MethodCall(_), MethodCall(_))
+        | (MethodCall(_, _, _, _), MethodCall(_, _, _, _))
         | (Call(_, _), Call(_, _))
         | (ConstBlock(_), ConstBlock(_))
         | (Array(_), Array(_)) => {
@@ -575,36 +595,26 @@ fn ident_difference_expr_with_base_location(
 
     let mut difference = IdentDifference::NoDifference;
 
-    for (left_attr, right_attr) in left.attrs.iter().zip(right.attrs.iter()) {
-        let (new_difference, new_base) =
-            ident_difference_via_ident_iter_with_base_location(left_attr, right_attr, base);
-        base = new_base;
-        difference += new_difference;
-        if difference.is_complete() {
-            return (difference, base);
-        }
-    }
+    let left_iter = HirExprIdents::new(left);
+    let right_iter = HirExprIdents::new(right);
+    let (new_difference, new_base) = ident_difference_via_ident_iter_with_base_location(left_iter, right_iter, base);
 
-    let (new_difference, new_base) = ident_difference_via_ident_iter_with_base_location(left, right, base);
     base = new_base;
     difference += new_difference;
 
     (difference, base)
 }
 
-fn ident_difference_via_ident_iter_with_base_location<Iterable: Into<IdentIter>>(
-    left: Iterable,
-    right: Iterable,
+fn ident_difference_via_ident_iter_with_base_location(
+    mut left: HirExprIdents,
+    mut right: HirExprIdents,
     mut base: IdentLocation,
 ) -> (IdentDifference, IdentLocation) {
     // See the note in `ident_difference_expr_with_base_location` about `IdentIter`
     let mut difference = IdentDifference::NoDifference;
 
-    let mut left_iterator = left.into();
-    let mut right_iterator = right.into();
-
     loop {
-        match (left_iterator.next(), right_iterator.next()) {
+        match (left.next(), right.next()) {
             (Some(left_ident), Some(right_ident)) => {
                 if !eq_id(left_ident, right_ident) {
                     difference += IdentDifference::Single(base);
@@ -624,21 +634,85 @@ fn ident_difference_via_ident_iter_with_base_location<Iterable: Into<IdentIter>>
     }
 }
 
-fn get_ident(expr: &Expr, location: IdentLocation) -> Option<Ident> {
-    IdentIter::from(expr).nth(location.index)
+/// A version of `IdentIter` but for the HIR.
+struct HirExprIdents(std::vec::IntoIter<Ident>);
+
+impl Iterator for HirExprIdents {
+    type Item = Ident;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next()
+    }
 }
 
+impl HirExprIdents {
+    fn new(expr: &Expr<'_>) -> Self {
+        struct Collector {
+            inner: Vec<Ident>,
+        }
+
+        impl Visitor<'_> for Collector {
+            fn visit_ident(&mut self, ident: Ident) {
+                self.inner.push(ident);
+            }
+        }
+
+        let mut collector = Collector { inner: vec![] };
+
+        collector.visit_expr(expr);
+
+        Self(collector.inner.into_iter())
+    }
+}
+
+fn get_ident(expr: &Expr<'_>, location: IdentLocation) -> Option<Ident> {
+    HirExprIdents::new(expr).nth(location.index)
+}
+
+#[derive(Copy, Clone)]
+enum CheckFields {
+    Yes,
+    No,
+}
+
+#[track_caller]
 fn suggestion_with_swapped_ident(
-    cx: &EarlyContext<'_>,
-    expr: &Expr,
+    cx: &LateContext<'_>,
+    mode: CheckFields,
+    expr: &Expr<'_>,
     location: IdentLocation,
     new_ident: Ident,
     applicability: &mut Applicability,
 ) -> Option<String> {
     get_ident(expr, location).and_then(|current_ident| {
         if eq_id(current_ident, new_ident) {
-            // We never want to suggest a non-change
+            // We never want to suggest a non-change.
             return None;
+        }
+
+        if let ExprKind::Field(path_expr, _) = expr.kind {
+            let ty_of_receiver = cx.typeck_results().expr_ty(path_expr).peel_refs();
+
+            // If it's not an ADT, the "field" access is going to be either
+            // completely invalid or it will be accessing some method on the type.
+            //
+            // These two cases will be caught during typeck, so we don't have to worry.
+            if let Some(adt_def) = ty_of_receiver.ty_adt_def()
+                && let CheckFields::Yes = mode
+                && !adt_def
+                    .variants()
+                    .into_iter()
+                    // Partially redundant as we are going to be processing structs only
+                    // which have only one variant.
+                    .flat_map(|variant| variant.fields.iter().map(|field| field.name))
+                    .any(|ident| ident == new_ident.name)
+            {
+                // This is an ADT, however
+                // if it doesn't have a field
+                // that matches the suggestion
+                // then we just bail out.
+                return None;
+            }
         }
 
         Some(format!(
