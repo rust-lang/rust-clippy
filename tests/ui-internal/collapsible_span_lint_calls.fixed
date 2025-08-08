@@ -1,5 +1,5 @@
 #![deny(clippy::collapsible_span_lint_calls)]
-#![allow(clippy::missing_clippy_version_attribute)]
+#![allow(clippy::missing_clippy_version_attribute, clippy::needless_conversion_for_trait)]
 #![feature(rustc_private)]
 
 extern crate clippy_utils;
