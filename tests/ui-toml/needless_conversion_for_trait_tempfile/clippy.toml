@@ -1,0 +1,4 @@
+watched-functions = [
+    "tempfile::dir::TempDir::path",
+    "tempfile::file::NamedTempFile::path",
+]
