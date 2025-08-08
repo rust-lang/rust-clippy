@@ -135,6 +135,10 @@ path_macros! {
 
 // Paths in the standard library missing a diagnostic item
 
+// `write_box_via_move` is an intrinsic used in the `vec![..]` macro expansion. It moves a value
+// of type `T` into a `Box<MaybeUninit<T>>` and returns the now-initialized `Box<MaybeUninit<T>>`.
+pub static WRITE_BOX_VIA_MOVE: PathLookup = value_path!(alloc::intrinsics::write_box_via_move);
+
 // Paths in external crates
 pub static FUTURES_IO_ASYNCREADEXT: PathLookup = type_path!(futures_util::AsyncReadExt);
 pub static FUTURES_IO_ASYNCWRITEEXT: PathLookup = type_path!(futures_util::AsyncWriteExt);
