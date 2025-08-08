@@ -399,6 +399,11 @@ fn check_other_call_arg<'tcx>(
         && let Some(as_ref_trait_id) = cx.tcx.get_diagnostic_item(sym::AsRef)
         && (trait_predicate.def_id() == deref_trait_id || trait_predicate.def_id() == as_ref_trait_id)
         && let receiver_ty = cx.typeck_results().expr_ty(receiver)
+        // Verify the output type contains the input type to be replaced.
+        // `needless_conversion_for_trait` cannot change the output type (see
+        // `clippy_utils::ty::replace_types`). Hence, this check ensures that `unnecessary_to_owned`
+        // and `needless_conversion_for_trait` do not flag the same code.
+        && fn_sig.output().contains(input)
         // We can't add an `&` when the trait is `Deref` because `Target = &T` won't match
         // `Target = T`.
         && let Some((n_refs, receiver_ty)) = if n_refs > 0 || is_copy(cx, receiver_ty) {

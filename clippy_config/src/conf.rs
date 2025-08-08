@@ -200,7 +200,7 @@ macro_rules! deserialize {
         let mut conf_paths = Vec::new();
         for raw_value in array {
             let value_span = raw_value.span();
-            let mut conf_path = match ConfPath::<$replaceable>::deserialize(raw_value.into_inner()) {
+            let mut conf_path = match ConfPath::<String, $replaceable>::deserialize(raw_value.into_inner()) {
                 Err(e) => {
                     $errors.push(ConfError::spanned(
                         $file,
@@ -889,6 +889,9 @@ define_Conf! {
     /// Whether to also emit warnings for unsafe blocks with metavariable expansions in **private** macros.
     #[lints(macro_metavars_in_unsafe)]
     warn_unsafe_macro_metavars_in_private_macros: bool = false,
+    /// Non-standard functions `needless_conversion_for_trait` should warn about.
+    #[lints(needless_conversion_for_trait)]
+    watched_functions: Vec<ConfPathWithoutReplacement> = Vec::new(),
 }
 
 /// Search for the configuration file.
