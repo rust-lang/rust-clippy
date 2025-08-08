@@ -43,7 +43,7 @@ pub(super) fn check<'tcx>(
                 db.span_suggestion(
                     method_call_span,
                     "...or you can empty the vector with",
-                    "clear()".to_string(),
+                    "clear()",
                     Applicability::MaybeIncorrect,
                 );
             },
