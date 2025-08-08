@@ -127,6 +127,7 @@ path_macros! {
     macro_path: PathNS::Macro,
 }
 
+pub static BOX_NEW: PathLookup = value_path!(alloc::boxed::box_new);
 pub static F16_CONSTS: PathLookup = type_path!(core::f16::consts);
 pub static F32_CONSTS: PathLookup = type_path!(core::f32::consts);
 pub static F64_CONSTS: PathLookup = type_path!(core::f64::consts);
