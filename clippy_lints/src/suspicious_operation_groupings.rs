@@ -272,13 +272,6 @@ fn ident_swap_sugg(
         paired_identifiers.contains(&right_ident),
     ) {
         (true, true) | (false, false) => {
-            // // dbg!(&left_ident);
-            // // dbg!(&right_ident);
-            // // dbg!(
-            //     paired_identifiers.contains(&left_ident),
-            //     paired_identifiers.contains(&right_ident)
-            // );
-
             // We don't have a good guess of what ident should be
             // used instead, in these cases.
             *applicability = Applicability::MaybeIncorrect;
@@ -530,11 +523,11 @@ fn ident_difference_expr_with_base_location(
     // return because if without that restriction the lint would lead to false
     // positives.
     //
-    // But, we cannot (easily?) use a `rustc_ast::visit::Visitor`, since we need
+    // But, we cannot (easily?) use a `rustc_hir::intravisit::Visitor`, since we need
     // the two expressions to be walked in lockstep. And without a `Visitor`, we'd
-    // have to do all the AST traversal ourselves, which is a lot of work, since to
+    // have to do all the HIR traversal ourselves, which is a lot of work, since to
     // do it properly we'd need to be able to handle more or less every possible
-    // AST node since `Item`s can be written inside `Expr`s.
+    // HIR node since `Item`s can be written inside `Expr`s.
     //
     // In practice, it seems likely that expressions, above a certain size, that
     // happen to use the exact same idents in the exact same order, and which are
@@ -597,6 +590,7 @@ fn ident_difference_expr_with_base_location(
 
     let left_iter = HirExprIdents::new(left);
     let right_iter = HirExprIdents::new(right);
+
     let (new_difference, new_base) = ident_difference_via_ident_iter_with_base_location(left_iter, right_iter, base);
 
     base = new_base;
@@ -605,16 +599,22 @@ fn ident_difference_expr_with_base_location(
     (difference, base)
 }
 
-fn ident_difference_via_ident_iter_with_base_location(
-    mut left: HirExprIdents,
-    mut right: HirExprIdents,
+fn ident_difference_via_ident_iter_with_base_location<I>(
+    left: I,
+    right: I,
     mut base: IdentLocation,
-) -> (IdentDifference, IdentLocation) {
+) -> (IdentDifference, IdentLocation)
+where
+    I: IntoIterator<Item = Ident>,
+{
     // See the note in `ident_difference_expr_with_base_location` about `IdentIter`
     let mut difference = IdentDifference::NoDifference;
 
+    let mut left_iter = left.into_iter();
+    let mut right_iter = right.into_iter();
+
     loop {
-        match (left.next(), right.next()) {
+        match (left_iter.next(), right_iter.next()) {
             (Some(left_ident), Some(right_ident)) => {
                 if !eq_id(left_ident, right_ident) {
                     difference += IdentDifference::Single(base);
@@ -669,7 +669,7 @@ fn get_ident(expr: &Expr<'_>, location: IdentLocation) -> Option<Ident> {
     HirExprIdents::new(expr).nth(location.index)
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 enum CheckFields {
     Yes,
     No,
