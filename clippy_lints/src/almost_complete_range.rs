@@ -60,7 +60,7 @@ impl EarlyLintPass for AlmostCompleteRange {
                         diag.span_suggestion(
                             trim_span(cx.sess().source_map(), start.between(end)),
                             "use an inclusive range",
-                            "..=".to_owned(),
+                            "..=",
                             Applicability::MaybeIncorrect,
                         );
                     }
