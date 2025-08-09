@@ -1,0 +1,49 @@
+error: missing safety comment on `unsafe extern`-block
+  --> tests/ui/safety/proper_safety_comment/unsafe_extern.rs:4:1
+   |
+LL | / unsafe extern "C" {
+LL | |
+LL | |     pub safe fn f1();
+...  |
+LL | |     pub fn f3();
+LL | | }
+   | |_^
+   |
+   = note: `-D clippy::proper-safety-comment` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::proper_safety_comment)]`
+
+error: missing safety comment on item in `unsafe extern`-block
+  --> tests/ui/safety/proper_safety_comment/unsafe_extern.rs:6:5
+   |
+LL |     pub safe fn f1();
+   |     ^^^^^^^^^^^^^^^^^
+
+error: missing safety comment on item in `unsafe extern`-block
+  --> tests/ui/safety/proper_safety_comment/unsafe_extern.rs:9:5
+   |
+LL |     pub unsafe fn f2();
+   |     ^^^^^^^^^^^^^^^^^^^
+
+error: missing safety comment on item in `unsafe extern`-block
+  --> tests/ui/safety/proper_safety_comment/unsafe_extern.rs:12:5
+   |
+LL |     pub fn f3();
+   |     ^^^^^^^^^^^^
+
+error: missing safety comment on `unsafe extern`-block
+  --> tests/ui/safety/proper_safety_comment/unsafe_extern.rs:16:1
+   |
+LL | / extern "C" {
+LL | |
+LL | |     pub fn f4();
+LL | | }
+   | |_^
+
+error: missing safety comment on item in `unsafe extern`-block
+  --> tests/ui/safety/proper_safety_comment/unsafe_extern.rs:18:5
+   |
+LL |     pub fn f4();
+   |     ^^^^^^^^^^^^
+
+error: aborting due to 6 previous errors
+
