@@ -1,0 +1,8 @@
+[package]
+name = "undocumented_unsafe_blocks"
+edition = "2024"
+publish = false
+version = "0.1.0"
+
+[lints.clippy]
+unnecessary_safety_comment = "deny"
