@@ -1,3 +1,4 @@
+#![allow(clippy::items_before_use)]
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::ty::{get_type_diagnostic_name, implements_trait};
 use clippy_utils::{higher, sym};

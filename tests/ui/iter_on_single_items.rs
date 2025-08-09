@@ -1,5 +1,5 @@
 #![warn(clippy::iter_on_single_items)]
-#![allow(clippy::iter_next_slice, clippy::redundant_clone)]
+#![allow(clippy::iter_next_slice, clippy::redundant_clone, clippy::items_before_use)]
 
 fn array() {
     assert_eq!([123].into_iter().next(), Some(123));
