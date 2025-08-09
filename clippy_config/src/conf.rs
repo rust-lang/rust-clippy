@@ -13,13 +13,60 @@ use rustc_span::edit_distance::edit_distance;
 use rustc_span::{BytePos, Pos, SourceFile, Span, SyntaxContext};
 use serde::de::{IgnoredAny, IntoDeserializer, MapAccess, Visitor};
 use serde::{Deserialize, Deserializer, Serialize};
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::Range;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::OnceLock;
 use std::{cmp, env, fmt, fs, io};
+use toml::Spanned;
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct LintConfigTable {
+    level: String,
+    priority: Option<i64>,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(untagged)]
+pub enum LintConfig {
+    Level(String),
+    Table(LintConfigTable),
+}
+
+impl LintConfig {
+    pub fn level(&self) -> &str {
+        match self {
+            LintConfig::Level(level) => level,
+            LintConfig::Table(table) => &table.level,
+        }
+    }
+
+    pub fn priority(&self) -> i64 {
+        match self {
+            LintConfig::Level(_) => 0,
+            LintConfig::Table(table) => table.priority.unwrap_or(0),
+        }
+    }
+}
+
+type LintTable = BTreeMap<Spanned<String>, Spanned<LintConfig>>;
+
+#[derive(Deserialize, Debug, Default)]
+pub struct Lints {
+    #[serde(default)]
+    pub clippy: LintTable,
+}
+
+// Lightweight representation of the `[lints]` table for eager reads that don't
+// require span information. This allows the driver to merge CLI flags with
+// clippy.toml settings before the rustc `Session` exists.
+#[derive(Deserialize, Debug, Default)]
+pub struct LintsPlain {
+    #[serde(default)]
+    pub clippy: BTreeMap<String, LintConfig>,
+}
 
 #[rustfmt::skip]
 const DEFAULT_DOC_VALID_IDENTS: &[&str] = &[
@@ -85,6 +132,7 @@ struct TryConf {
     value_spans: HashMap<String, Range<usize>>,
     errors: Vec<ConfError>,
     warnings: Vec<ConfError>,
+    lints: Option<Lints>,
 }
 
 impl TryConf {
@@ -94,6 +142,7 @@ impl TryConf {
             value_spans: HashMap::default(),
             errors: vec![ConfError::from_toml(file, error)],
             warnings: vec![],
+            lints: None,
         }
     }
 }
@@ -248,7 +297,7 @@ macro_rules! define_Conf {
         #[derive(Deserialize)]
         #[serde(field_identifier, rename_all = "kebab-case")]
         #[allow(non_camel_case_types)]
-        enum Field { $($name,)* third_party, }
+        enum Field { $($name,)* lints, third_party, }
 
         struct ConfVisitor<'a>(&'a SourceFile);
 
@@ -263,6 +312,7 @@ macro_rules! define_Conf {
                 let mut value_spans = HashMap::new();
                 let mut errors = Vec::new();
                 let mut warnings = Vec::new();
+                let mut lints = None;
 
                 // Declare a local variable for each field available to a configuration file.
                 $(let mut $name = None;)*
@@ -301,12 +351,16 @@ macro_rules! define_Conf {
                                 None => $new_conf = $name.clone(),
                             })?
                         })*
+                        Field::lints => {
+                            let lints_value = map.next_value::<toml::Spanned<Lints>>()?;
+                            lints = Some(lints_value.into_inner());
+                        }
                         // ignore contents of the third_party key
                         Field::third_party => drop(map.next_value::<IgnoredAny>())
                     }
                 }
                 let conf = Conf { $($name: $name.unwrap_or_else(defaults::$name),)* };
-                Ok(TryConf { conf, value_spans, errors, warnings })
+                Ok(TryConf { conf, value_spans, errors, warnings, lints })
             }
         }
 
@@ -996,6 +1050,8 @@ fn extend_vec_if_indicator_present(vec: &mut Vec<String>, default: &[&str]) {
     }
 }
 
+static CLIPPY_TOML_LINTS: OnceLock<Option<Lints>> = OnceLock::new();
+
 impl Conf {
     pub fn read(sess: &Session, path: &io::Result<(Option<PathBuf>, Vec<String>)>) -> &'static Conf {
         static CONF: OnceLock<Conf> = OnceLock::new();
@@ -1020,6 +1076,7 @@ impl Conf {
             value_spans: _,
             errors,
             warnings,
+            lints,
         } = match path {
             Ok((Some(path), _)) => match sess.source_map().load_file(path) {
                 Ok(file) => deserialize(&file),
@@ -1032,6 +1089,9 @@ impl Conf {
         };
 
         conf.msrv.read_cargo(sess);
+
+        // Store the lints configuration for use in the driver
+        CLIPPY_TOML_LINTS.set(lints).ok();
 
         // all conf errors are non-fatal, we just use the default conf in case of error
         for error in errors {
@@ -1221,4 +1281,26 @@ mod tests {
             "Configuration variable lacks test: {names:?}\nAdd a test to `tests/ui-toml`"
         );
     }
+}
+
+pub fn clippy_toml_lints() -> &'static Option<Lints> {
+    CLIPPY_TOML_LINTS.get().unwrap_or(&None)
+}
+
+/// Reads only the `[lints]` table from the configuration file without requiring a `Session`.
+/// Returns `None` if no config file was found or if the file does not contain a `[lints]` table.
+pub fn read_lints_from_conf_path(path: &io::Result<(Option<PathBuf>, Vec<String>)>) -> Option<LintsPlain> {
+    let (Some(conf_path), _) = path.as_ref().ok()? else {
+        return None;
+    };
+    let Ok(src) = fs::read_to_string(conf_path) else {
+        return None;
+    };
+    let Ok(doc) = src.parse::<toml::Value>() else {
+        return None;
+    };
+    let Some(lints_val) = doc.get("lints") else {
+        return None;
+    };
+    lints_val.clone().try_into().ok()
 }
