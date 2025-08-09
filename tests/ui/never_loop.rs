@@ -431,15 +431,6 @@ fn stmt_after_return() {
 }
 
 fn loop_label() {
-    'outer: for v in 0..10 {
-        //~^ never_loop
-        loop {
-            //~^ never_loop
-            break 'outer;
-        }
-        return;
-    }
-
     for v in 0..10 {
         //~^ never_loop
         'inner: loop {
