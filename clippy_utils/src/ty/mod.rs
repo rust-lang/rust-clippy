@@ -2,6 +2,7 @@
 
 #![allow(clippy::module_name_repetitions)]
 
+use crate::msrvs::{self, Msrv};
 use core::ops::ControlFlow;
 use rustc_abi::VariantIdx;
 use rustc_ast::ast::Mutability;
@@ -12,6 +13,7 @@ use rustc_hir::def::{CtorKind, CtorOf, DefKind, Res};
 use rustc_hir::def_id::DefId;
 use rustc_hir::{Expr, FnDecl, LangItem, find_attr};
 use rustc_hir_analysis::lower_ty;
+use rustc_index::bit_set::DenseBitSet;
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_lint::LateContext;
 use rustc_middle::mir::ConstValue;
@@ -21,8 +23,8 @@ use rustc_middle::ty::adjustment::{Adjust, Adjustment};
 use rustc_middle::ty::layout::ValidityRequirement;
 use rustc_middle::ty::{
     self, AdtDef, AliasTy, AssocItem, AssocTag, Binder, BoundRegion, BoundVarIndexKind, FnSig, GenericArg,
-    GenericArgKind, GenericArgsRef, IntTy, Region, RegionKind, TraitRef, Ty, TyCtxt, TypeSuperVisitable, TypeVisitable,
-    TypeVisitableExt, TypeVisitor, UintTy, Upcast, VariantDef, VariantDiscr,
+    GenericArgKind, GenericArgsRef, IntTy, ParamTy, Region, RegionKind, TraitRef, Ty, TyCtxt, TypeSuperVisitable,
+    TypeVisitable, TypeVisitableExt, TypeVisitor, UintTy, Upcast, VariantDef, VariantDiscr,
 };
 use rustc_span::symbol::Ident;
 use rustc_span::{DUMMY_SP, Span, Symbol, sym};
@@ -30,6 +32,7 @@ use rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt as _
 use rustc_trait_selection::traits::query::normalize::QueryNormalizeExt;
 use rustc_trait_selection::traits::{Obligation, ObligationCause};
 use std::assert_matches::debug_assert_matches;
+use std::collections::VecDeque;
 use std::collections::hash_map::Entry;
 use std::{iter, mem};
 
@@ -1329,4 +1332,285 @@ pub fn adjust_derefs_manually_drop<'tcx>(adjustments: &'tcx [Adjustment<'tcx>], 
         let ty = mem::replace(&mut ty, a.target);
         matches!(a.kind, Adjust::Deref(Some(op)) if op.mutbl == Mutability::Mut) && is_manually_drop(ty)
     })
+}
+
+/// Checks whether an expression is a function or method call and, if so, returns its `DefId`,
+/// `GenericArgs`, and arguments.
+pub fn get_callee_generic_args_and_args<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'tcx>,
+) -> Option<(
+    DefId,
+    GenericArgsRef<'tcx>,
+    Option<&'tcx Expr<'tcx>>,
+    &'tcx [Expr<'tcx>],
+)> {
+    if let hir::ExprKind::Call(callee, args) = expr.kind
+        && let callee_ty = cx.typeck_results().expr_ty(callee)
+        && let ty::FnDef(callee_def_id, _) = callee_ty.kind()
+    {
+        let generic_args = cx.typeck_results().node_args(callee.hir_id);
+        return Some((*callee_def_id, generic_args, None, args));
+    }
+    if let hir::ExprKind::MethodCall(_, recv, args, _) = expr.kind
+        && let Some(method_def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)
+    {
+        let generic_args = cx.typeck_results().node_args(expr.hir_id);
+        return Some((method_def_id, generic_args, Some(recv), args));
+    }
+    None
+}
+
+/// Returns true if the named method is `ToString::to_string` and it's called on a type that
+/// is string-like i.e. implements `AsRef<str>` or `Deref<Target = str>`.
+pub fn is_to_string_on_string_like<'a>(cx: &LateContext<'_>, call_expr: &'a Expr<'a>, method_parent_id: DefId) -> bool {
+    is_to_string(cx, call_expr, method_parent_id) && is_on_string_like(cx, call_expr)
+}
+
+/// Returns true if the named method is `ToString::to_string`.
+pub fn is_to_string(cx: &LateContext<'_>, call_expr: &Expr<'_>, method_parent_id: DefId) -> bool {
+    let hir::ExprKind::MethodCall(method_name, _, _, _) = call_expr.kind else {
+        return false;
+    };
+
+    if method_name.ident.name != sym::to_string || !method_parent_id.is_diag_item(cx, sym::ToString) {
+        return false;
+    }
+
+    true
+}
+
+/// Returns true if `call_expr` is on a type that is string-like i.e. implements `AsRef<str>` or
+/// `Deref<Target = str>`.
+pub fn is_on_string_like<'a>(cx: &LateContext<'_>, call_expr: &'a Expr<'a>) -> bool {
+    if let Some(args) = cx.typeck_results().node_args_opt(call_expr.hir_id)
+        && let [generic_arg] = args.as_slice()
+        && let GenericArgKind::Type(ty) = generic_arg.kind()
+        && let Some(deref_trait_id) = cx.tcx.get_diagnostic_item(sym::Deref)
+        && let Some(as_ref_trait_id) = cx.tcx.get_diagnostic_item(sym::AsRef)
+        && (cx.get_associated_type(ty, deref_trait_id, sym::Target) == Some(cx.tcx.types.str_)
+            || implements_trait(cx, ty, as_ref_trait_id, &[cx.tcx.types.str_.into()]))
+    {
+        true
+    } else {
+        false
+    }
+}
+
+/// Builds a closure to check whether predicates over `param_ty` would be satisfied if `param_ty`
+/// were replaced with `new_ty`.
+///
+/// Used by `inner_arg_implements_trait` and `needless_borrow_count`.
+pub fn build_check_predicates_with_new_ty_closure<'tcx>(
+    cx: &LateContext<'tcx>,
+    fn_id: DefId,
+    callee_generic_args: GenericArgsRef<'tcx>,
+    arg_index: usize,
+    param_ty: ParamTy,
+    check_for_ref_mut_self_methods: bool,
+    msrv: Msrv,
+) -> Option<impl FnMut(Ty<'tcx>) -> bool> {
+    let destruct_trait_def_id = cx.tcx.lang_items().destruct_trait();
+    let meta_sized_trait_def_id = cx.tcx.lang_items().meta_sized_trait();
+    let sized_trait_def_id = cx.tcx.lang_items().sized_trait();
+
+    let fn_sig = cx.tcx.fn_sig(fn_id).instantiate_identity().skip_binder();
+    let predicates = cx.tcx.param_env(fn_id).caller_bounds();
+    let projection_predicates = predicates
+        .iter()
+        .filter_map(|predicate| {
+            if let ty::ClauseKind::Projection(projection_predicate) = predicate.kind().skip_binder() {
+                Some(projection_predicate)
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+
+    let mut trait_with_ref_mut_self_method = false;
+
+    // If no traits were found, or only the `Destruct`, `Sized`, or `Any` traits were found, return.
+    if predicates
+        .iter()
+        .filter_map(|predicate| {
+            if let ty::ClauseKind::Trait(trait_predicate) = predicate.kind().skip_binder()
+                && trait_predicate.trait_ref.self_ty() == param_ty.to_ty(cx.tcx)
+            {
+                Some(trait_predicate.trait_ref.def_id)
+            } else {
+                None
+            }
+        })
+        .inspect(|trait_def_id| {
+            trait_with_ref_mut_self_method |=
+                check_for_ref_mut_self_methods && has_ref_mut_self_method(cx, *trait_def_id);
+        })
+        .all(|trait_def_id| {
+            Some(trait_def_id) == destruct_trait_def_id
+                || Some(trait_def_id) == meta_sized_trait_def_id
+                || Some(trait_def_id) == sized_trait_def_id
+                || cx.tcx.is_diagnostic_item(sym::Any, trait_def_id)
+        })
+    {
+        return None;
+    }
+
+    // See:
+    // - https://github.com/rust-lang/rust-clippy/pull/9674#issuecomment-1289294201
+    // - https://github.com/rust-lang/rust-clippy/pull/9674#issuecomment-1292225232
+    if projection_predicates
+        .iter()
+        .any(|projection_predicate| is_mixed_projection_predicate(cx, fn_id, projection_predicate))
+    {
+        return None;
+    }
+
+    // `args_with_new_ty` can be constructed outside of the closure because the same elements are
+    // modified each time the closure is called.
+    let mut args_with_new_ty = callee_generic_args.to_vec();
+
+    Some(move |new_ty: Ty<'tcx>| {
+        // https://github.com/rust-lang/rust-clippy/pull/9136#pullrequestreview-1037379321
+        if trait_with_ref_mut_self_method && !matches!(new_ty.kind(), ty::Ref(_, _, Mutability::Mut)) {
+            return false;
+        }
+
+        if !replace_types(
+            cx,
+            param_ty,
+            new_ty,
+            fn_sig,
+            arg_index,
+            &projection_predicates,
+            &mut args_with_new_ty,
+        ) {
+            return false;
+        }
+
+        predicates.iter().all(|predicate| {
+            if let ty::ClauseKind::Trait(trait_predicate) = predicate.kind().skip_binder()
+                && cx
+                    .tcx
+                    .is_diagnostic_item(sym::IntoIterator, trait_predicate.trait_ref.def_id)
+                && let ty::Param(param_ty) = trait_predicate.self_ty().kind()
+                && let GenericArgKind::Type(ty) = args_with_new_ty[param_ty.index as usize].kind()
+                && ty.is_array()
+                && !msrv.meets(cx, msrvs::ARRAY_INTO_ITERATOR)
+            {
+                return false;
+            }
+
+            let predicate = ty::EarlyBinder::bind(predicate).instantiate(cx.tcx, &args_with_new_ty[..]);
+            let obligation = Obligation::new(cx.tcx, ObligationCause::dummy(), cx.param_env, predicate);
+            let infcx = cx.tcx.infer_ctxt().build(cx.typing_mode());
+            infcx.predicate_must_hold_modulo_regions(&obligation)
+        })
+    })
+}
+
+fn has_ref_mut_self_method(cx: &LateContext<'_>, trait_def_id: DefId) -> bool {
+    cx.tcx
+        .associated_items(trait_def_id)
+        .in_definition_order()
+        .any(|assoc_item| {
+            if assoc_item.is_method() {
+                let self_ty = cx
+                    .tcx
+                    .fn_sig(assoc_item.def_id)
+                    .instantiate_identity()
+                    .skip_binder()
+                    .inputs()[0];
+                matches!(self_ty.kind(), ty::Ref(_, _, Mutability::Mut))
+            } else {
+                false
+            }
+        })
+}
+
+fn is_mixed_projection_predicate<'tcx>(
+    cx: &LateContext<'tcx>,
+    callee_def_id: DefId,
+    projection_predicate: &ty::ProjectionPredicate<'tcx>,
+) -> bool {
+    let generics = cx.tcx.generics_of(callee_def_id);
+    // The predicate requires the projected type to equal a type parameter from the parent context.
+    if let Some(term_ty) = projection_predicate.term.as_type()
+        && let ty::Param(term_param_ty) = term_ty.kind()
+        && (term_param_ty.index as usize) < generics.parent_count
+    {
+        // The inner-most self type is a type parameter from the current function.
+        let mut projection_term = projection_predicate.projection_term;
+        loop {
+            match *projection_term.self_ty().kind() {
+                ty::Alias(ty::Projection, inner_projection_ty) => {
+                    projection_term = inner_projection_ty.into();
+                },
+                ty::Param(param_ty) => {
+                    return (param_ty.index as usize) >= generics.parent_count;
+                },
+                _ => {
+                    return false;
+                },
+            }
+        }
+    } else {
+        false
+    }
+}
+
+// Iteratively replaces `param_ty` with `new_ty` in `args`, and similarly for each resulting
+// projected type that is a type parameter. Returns `false` if replacing the types would have an
+// effect on the function signature beyond substituting `new_ty` for `param_ty`.
+// See: https://github.com/rust-lang/rust-clippy/pull/9136#discussion_r927212757
+fn replace_types<'tcx>(
+    cx: &LateContext<'tcx>,
+    param_ty: ParamTy,
+    new_ty: Ty<'tcx>,
+    fn_sig: FnSig<'tcx>,
+    arg_index: usize,
+    projection_predicates: &[ty::ProjectionPredicate<'tcx>],
+    args: &mut [GenericArg<'tcx>],
+) -> bool {
+    let mut replaced = DenseBitSet::new_empty(args.len());
+
+    let mut deque = VecDeque::with_capacity(args.len());
+    deque.push_back((param_ty, new_ty));
+
+    while let Some((param_ty, new_ty)) = deque.pop_front() {
+        // If `replaced.is_empty()`, then `param_ty` and `new_ty` are those initially passed in.
+        if !fn_sig
+            .inputs_and_output
+            .iter()
+            .enumerate()
+            .all(|(i, ty)| (replaced.is_empty() && i == arg_index) || !ty.contains(param_ty.to_ty(cx.tcx)))
+        {
+            return false;
+        }
+
+        args[param_ty.index as usize] = GenericArg::from(new_ty);
+
+        // The `replaced.insert(...)` check provides some protection against infinite loops.
+        if replaced.insert(param_ty.index) {
+            for projection_predicate in projection_predicates {
+                if projection_predicate.projection_term.self_ty() == param_ty.to_ty(cx.tcx)
+                    && let Some(term_ty) = projection_predicate.term.as_type()
+                    && let ty::Param(term_param_ty) = term_ty.kind()
+                {
+                    let projection = projection_predicate
+                        .projection_term
+                        .with_replaced_self_ty(cx.tcx, new_ty)
+                        .expect_ty(cx.tcx)
+                        .to_ty(cx.tcx);
+
+                    if let Ok(projected_ty) = cx.tcx.try_normalize_erasing_regions(cx.typing_env(), projection)
+                        && args[term_param_ty.index as usize] != GenericArg::from(projected_ty)
+                    {
+                        deque.push_back((*term_param_ty, projected_ty));
+                    }
+                }
+            }
+        }
+    }
+
+    true
 }
