@@ -1577,7 +1577,9 @@ fn replace_types<'tcx>(
     deque.push_back((param_ty, new_ty));
 
     while let Some((param_ty, new_ty)) = deque.pop_front() {
-        // If `replaced.is_empty()`, then `param_ty` and `new_ty` are those initially passed in.
+        // If `replaced.is_empty()`, then `param_ty` and `new_ty` are those initially passed in. Note that
+        // the types the `all` iterates over include the output type. Thus, if replacing `param_ty` with
+        // `new_ty` would change the output type, this check will fail.
         if !fn_sig
             .inputs_and_output
             .iter()
