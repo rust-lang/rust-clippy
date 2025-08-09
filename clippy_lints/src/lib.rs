@@ -336,6 +336,7 @@ mod semicolon_if_nothing_returned;
 mod serde_api;
 mod set_contains_or_insert;
 mod shadow;
+mod shadow_type;
 mod significant_drop_tightening;
 mod single_call_fn;
 mod single_char_lifetime_names;
@@ -829,5 +830,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(cloned_ref_to_slice_refs::ClonedRefToSliceRefs::new(conf)));
     store.register_late_pass(|_| Box::new(infallible_try_from::InfallibleTryFrom));
     store.register_late_pass(|_| Box::new(coerce_container_to_any::CoerceContainerToAny));
+    store.register_late_pass(|_| Box::<shadow_type::ShadowTypeGeneric>::default());
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
