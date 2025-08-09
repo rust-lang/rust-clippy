@@ -82,5 +82,20 @@ LL ~         line!()
 LL ~     };
    |
 
-error: aborting due to 6 previous errors
+error: consider moving the `;` outside the block for consistent formatting
+  --> tests/ui/semicolon_outside_block.rs:130:13
+   |
+LL | /             unsafe {
+LL | |
+LL | |                 self.set_len(0);
+LL | |             }
+   | |_____________^
+   |
+help: put the `;` here
+   |
+LL ~                 self.set_len(0)
+LL ~             };
+   |
+
+error: aborting due to 7 previous errors
 
