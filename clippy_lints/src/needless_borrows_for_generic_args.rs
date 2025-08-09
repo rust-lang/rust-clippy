@@ -364,7 +364,10 @@ fn referent_used_exactly_once<'tcx>(
             .last()
             .is_none_or(|&(local_def_id, _)| local_def_id != body_owner_local_def_id)
         {
-            possible_borrowers.push((body_owner_local_def_id, PossibleBorrowerMap::new(cx, mir)));
+            possible_borrowers.push((
+                body_owner_local_def_id,
+                PossibleBorrowerMap::new(cx.tcx, cx.typing_env(), mir),
+            ));
         }
         let possible_borrower = &mut possible_borrowers.last_mut().unwrap().1;
         // If `only_borrowers` were used here, the `copyable_iterator::warn` test would fail. The reason is
