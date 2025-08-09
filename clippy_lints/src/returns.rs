@@ -344,6 +344,9 @@ fn check_final_expr<'tcx>(
     replacement: RetReplacement<'tcx>,
     match_ty_opt: Option<Ty<'_>>,
 ) {
+    if is_from_proc_macro(cx, expr) {
+        return;
+    }
     let peeled_drop_expr = expr.peel_drop_temps();
     match &peeled_drop_expr.kind {
         // simple return is always "bad"
