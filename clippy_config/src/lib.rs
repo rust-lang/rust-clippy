@@ -25,5 +25,8 @@ mod conf;
 mod metadata;
 pub mod types;
 
-pub use conf::{Conf, get_configuration_metadata, lookup_conf_file, sanitize_explanation};
+pub use conf::{
+    Conf, Lints, LintsPlain, clippy_toml_lints, get_configuration_metadata, lookup_conf_file,
+    read_lints_from_conf_path, sanitize_explanation,
+};
 pub use metadata::ClippyConfiguration;
