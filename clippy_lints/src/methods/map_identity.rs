@@ -25,17 +25,21 @@ pub(super) fn check(
         && let Some(call_span) = expr.span.trim_start(caller.span)
     {
         let mut sugg = vec![(call_span, String::new())];
-        let mut apply = true;
-        if !is_mutable(cx, caller) {
+        let mut app = Applicability::MachineApplicable;
+
+        let needs_to_be_mutable = || cx.typeck_results().expr_ty_adjusted(expr).is_mutable_ptr();
+        let is_mutable = || is_mutable(cx, caller);
+        if needs_to_be_mutable() && !is_mutable() {
             if let Some(hir_id) = path_to_local_with_projections(caller)
                 && let Node::Pat(pat) = cx.tcx.hir_node(hir_id)
                 && let PatKind::Binding(_, _, ident, _) = pat.kind
             {
+                // We can reach the binding -- suggest making it mutable
                 sugg.push((ident.span.shrink_to_lo(), String::from("mut ")));
             } else {
-                // If we can't make the binding mutable, make the suggestion `Unspecified` to prevent it from being
-                // automatically applied, and add a complementary help message.
-                apply = false;
+                // If we can't make the binding mutable, prevent the suggestion from being automatically applied,
+                // and add a complementary help message.
+                app = Applicability::Unspecified;
             }
         }
 
@@ -53,16 +57,9 @@ pub(super) fn check(
             call_span,
             "unnecessary map of the identity function",
             |diag| {
-                diag.multipart_suggestion(
-                    format!("remove the call to `{name}`"),
-                    sugg,
-                    if apply {
-                        Applicability::MachineApplicable
-                    } else {
-                        Applicability::Unspecified
-                    },
-                );
-                if !apply {
+                diag.multipart_suggestion(format!("remove the call to `{name}`"), sugg, app);
+
+                if app != Applicability::MachineApplicable {
                     let note = if let Some(method_requiring_mut) = method_requiring_mut {
                         format!("this must be made mutable to use `{method_requiring_mut}`")
                     } else {
