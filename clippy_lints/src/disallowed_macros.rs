@@ -8,8 +8,8 @@ use rustc_hir::attrs::AttributeKind;
 use rustc_hir::def::DefKind;
 use rustc_hir::def_id::DefIdMap;
 use rustc_hir::{
-    AmbigArg, Attribute, Expr, ExprKind, ForeignItem, HirId, ImplItem, ImplItemImplKind, Item,
-    ItemKind, OwnerId, Pat, Path, Stmt, TraitItem, Ty,
+    AmbigArg, Attribute, Expr, ExprKind, ForeignItem, HirId, ImplItem, ImplItemImplKind, Item, ItemKind, OwnerId, Pat,
+    Path, Stmt, TraitItem, Ty,
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::TyCtxt;
