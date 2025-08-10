@@ -63,14 +63,12 @@ pub(super) fn check(
                     },
                 );
                 if !apply {
-                    if let Some(method_requiring_mut) = method_requiring_mut {
-                        diag.span_note(
-                            caller.span,
-                            format!("this must be made mutable to use `{method_requiring_mut}`"),
-                        );
+                    let note = if let Some(method_requiring_mut) = method_requiring_mut {
+                        format!("this must be made mutable to use `{method_requiring_mut}`")
                     } else {
-                        diag.span_note(caller.span, "this must be made mutable".to_string());
-                    }
+                        "this must be made mutable".to_string()
+                    };
+                    diag.span_note(caller.span, note);
                 }
             },
         );
