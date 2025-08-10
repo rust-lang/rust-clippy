@@ -703,10 +703,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::<unwrap_in_result::UnwrapInResult>::default()),
         Box::new(|_| Box::new(semicolon_if_nothing_returned::SemicolonIfNothingReturned)),
         Box::new(|_| Box::new(async_yields_async::AsyncYieldsAsync)),
-        {
-            let attrs = attr_storage.clone();
-            Box::new(move |tcx| Box::new(disallowed_macros::DisallowedMacros::new(tcx, conf, attrs.clone())))
-        },
+        Box::new(move |tcx| Box::new(disallowed_macros::DisallowedMacros::new(tcx, conf))),
         Box::new(move |tcx| Box::new(disallowed_methods::DisallowedMethods::new(tcx, conf))),
         Box::new(|_| Box::new(empty_drop::EmptyDrop)),
         Box::new(|_| Box::new(strings::StrToString)),
