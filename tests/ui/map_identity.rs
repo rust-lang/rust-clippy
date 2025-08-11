@@ -1,3 +1,4 @@
+//@require-annotations-for-level: ERROR
 #![warn(clippy::map_identity)]
 #![allow(clippy::needless_return, clippy::disallowed_names)]
 
@@ -84,23 +85,27 @@ fn issue13904() {
     let it = [1, 2, 3].into_iter();
     let _ = it.map(|x| x).next();
     //~^ map_identity
+    //~| HELP: remove the call to `map`, and make `it` mutable
 
     // lint
     let mut index = [1, 2, 3].into_iter();
     let subindex = (index.by_ref().take(3), 42);
     let _ = subindex.0.map(|n| n).next();
     //~^ map_identity
+    //~| HELP: remove the call to `map`, and make `subindex` mutable
 
     // lint
     #[allow(unused_mut)]
     let mut it = [1, 2, 3].into_iter();
     let _ = it.map(|x| x).next();
     //~^ map_identity
+    //~| HELP: remove the call to `map`
 
     // lint
     let it = [1, 2, 3].into_iter();
     let _ = { it }.map(|x| x).next();
     //~^ map_identity
+    //~| HELP: remove the call to `map`
 }
 
 // same as `issue11764`, but for arrays
