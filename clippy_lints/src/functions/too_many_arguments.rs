@@ -21,27 +21,18 @@ pub(super) fn check_fn(
     if !is_trait_impl_item(cx, hir_id) {
         // don't lint extern functions decls, it's not their fault either
         match kind {
-            FnKind::Method(
-                _,
-                &hir::FnSig {
-                    header: hir::FnHeader {
-                        abi: ExternAbi::Rust, ..
-                    },
-                    ..
-                },
-            )
-            | FnKind::ItemFn(
-                _,
-                _,
-                hir::FnHeader {
+            FnKind::Method(_, &hir::FnSig { header, .. }) | FnKind::ItemFn(_, _, header)
+                if let hir::FnHeader {
                     abi: ExternAbi::Rust, ..
-                },
-            ) => check_arg_number(
-                cx,
-                decl,
-                span.with_hi(decl.output.span().hi()),
-                too_many_arguments_threshold,
-            ),
+                } = header =>
+            {
+                check_arg_number(
+                    cx,
+                    decl,
+                    span.with_hi(decl.output.span().hi()),
+                    too_many_arguments_threshold,
+                )
+            },
             _ => {},
         }
     }
