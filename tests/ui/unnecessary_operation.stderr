@@ -68,12 +68,6 @@ LL |     ..get_number();
    |     ^^^^^^^^^^^^^^^ help: statement can be reduced to: `get_number();`
 
 error: unnecessary operation
-  --> tests/ui/unnecessary_operation.rs:93:5
-   |
-LL |     5..get_number();
-   |     ^^^^^^^^^^^^^^^^ help: statement can be reduced to: `5; get_number();`
-
-error: unnecessary operation
   --> tests/ui/unnecessary_operation.rs:95:5
    |
 LL |     [42, get_number()];
@@ -113,25 +107,10 @@ LL | |     };
    | |______^ help: statement can be reduced to: `get_number();`
 
 error: unnecessary operation
-  --> tests/ui/unnecessary_operation.rs:109:5
-   |
-LL | /     FooString {
-LL | |
-LL | |         s: String::from("blah"),
-LL | |     };
-   | |______^ help: statement can be reduced to: `String::from("blah");`
-
-error: unnecessary operation
   --> tests/ui/unnecessary_operation.rs:150:5
    |
 LL |     [42, 55][get_usize()];
    |     ^^^^^^^^^^^^^^^^^^^^^^ help: statement can be written as: `assert!([42, 55].len() > get_usize());`
 
-error: unnecessary operation
-  --> tests/ui/unnecessary_operation.rs:173:5
-   |
-LL |     DescriptorSet { slots: Vec::new() };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: statement can be reduced to: `Vec::new();`
-
-error: aborting due to 21 previous errors
+error: aborting due to 18 previous errors
 
