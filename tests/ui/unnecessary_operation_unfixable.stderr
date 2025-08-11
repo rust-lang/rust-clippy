@@ -1,0 +1,35 @@
+error: unnecessary operation
+  --> tests/ui/unnecessary_operation_unfixable.rs:12:5
+   |
+LL |     DescriptorSet { slots: Vec::new() };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: statement can be reduced to: `Vec::new();`
+   |
+   = note: `-D clippy::unnecessary-operation` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_operation)]`
+
+error: unnecessary operation
+  --> tests/ui/unnecessary_operation_unfixable.rs:21:5
+   |
+LL |     E::Foo { f: Vec::new() };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^ help: statement can be reduced to: `Vec::new();`
+
+error: unnecessary operation
+  --> tests/ui/unnecessary_operation_unfixable.rs:23:5
+   |
+LL |     E::Bar(Vec::new());
+   |     ^^^^^^^^^^^^^^^^^^^ help: statement can be reduced to: `Vec::new();`
+
+error: unnecessary operation
+  --> tests/ui/unnecessary_operation_unfixable.rs:27:5
+   |
+LL |     Tuple(Vec::new());
+   |     ^^^^^^^^^^^^^^^^^^ help: statement can be reduced to: `Vec::new();`
+
+error: unnecessary operation
+  --> tests/ui/unnecessary_operation_unfixable.rs:32:5
+   |
+LL |     [[1, 2, 3].as_slice(), [].as_slice()];
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: statement can be reduced to: `[1, 2, 3].as_slice(); [].as_slice();`
+
+error: aborting due to 5 previous errors
+

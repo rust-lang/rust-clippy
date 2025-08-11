@@ -274,7 +274,7 @@ fn check_unnecessary_operation(cx: &LateContext<'_>, stmt: &Stmt<'_>) {
         && !stmt.span.in_external_macro(cx.sess().source_map())
         && let ctxt = stmt.span.ctxt()
         && expr.range_span().unwrap_or(expr.span).ctxt() == ctxt
-        && let Some(reduced) = reduce_expression(cx, expr)
+        && let Some((reduced, applicability)) = reduce_expression(cx, expr)
         && reduced.iter().all(|e| e.span.ctxt() == ctxt)
     {
         if let ExprKind::Index(..) = &expr.kind {
@@ -317,37 +317,51 @@ fn check_unnecessary_operation(cx: &LateContext<'_>, stmt: &Stmt<'_>) {
                 stmt.span,
                 "unnecessary operation",
                 |diag| {
-                    diag.span_suggestion(
-                        stmt.span,
-                        "statement can be reduced to",
-                        snippet,
-                        Applicability::MachineApplicable,
-                    );
+                    diag.span_suggestion(stmt.span, "statement can be reduced to", snippet, applicability);
                 },
             );
         }
     }
 }
 
-fn reduce_expression<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<Vec<&'a Expr<'a>>> {
+fn reduce_expression<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<(Vec<&'a Expr<'a>>, Applicability)> {
     if expr.range_span().unwrap_or(expr.span).from_expansion() {
         return None;
     }
     match expr.kind {
-        ExprKind::Index(a, b, _) => Some(vec![a, b]),
+        ExprKind::Index(a, b, _) => Some((vec![a, b], Applicability::MachineApplicable)),
         ExprKind::Binary(ref binop, a, b) if binop.node != BinOpKind::And && binop.node != BinOpKind::Or => {
-            Some(vec![a, b])
+            Some((vec![a, b], Applicability::MachineApplicable))
         },
-        ExprKind::Array(v) | ExprKind::Tup(v) => Some(v.iter().collect()),
+        ExprKind::Array(elems) => {
+            let applicability = if elems.iter().all(|elem| expr_type_is_certain(cx, elem)) {
+                Applicability::MachineApplicable
+            } else {
+                // there's a risk that, if we take the elem exprs out of the context of the array,
+                // their types might become ambiguous
+                Applicability::MaybeIncorrect
+            };
+            Some((elems.iter().collect(), applicability))
+        },
+        ExprKind::Tup(v) => Some((v.iter().collect(), Applicability::MachineApplicable)),
         ExprKind::Repeat(inner, _)
         | ExprKind::Type(inner, _)
         | ExprKind::Unary(_, inner)
         | ExprKind::Field(inner, _)
-        | ExprKind::AddrOf(_, _, inner) => reduce_expression(cx, inner).or_else(|| Some(vec![inner])),
+        | ExprKind::AddrOf(_, _, inner) => {
+            reduce_expression(cx, inner).or_else(|| Some((vec![inner], Applicability::MachineApplicable)))
+        },
         ExprKind::Cast(inner, _) if expr_type_is_certain(cx, inner) => {
-            reduce_expression(cx, inner).or_else(|| Some(vec![inner]))
+            reduce_expression(cx, inner).or_else(|| Some((vec![inner], Applicability::MachineApplicable)))
         },
         ExprKind::Struct(_, fields, ref base) => {
+            let applicability = if fields.iter().all(|f| expr_type_is_certain(cx, f.expr)) {
+                Applicability::MachineApplicable
+            } else {
+                // there's a risk that, if we take the field exprs out of the context of the struct constructor,
+                // their types might become ambiguous
+                Applicability::MaybeIncorrect
+            };
             if has_drop(cx, cx.typeck_results().expr_ty(expr)) {
                 None
             } else {
@@ -355,10 +369,20 @@ fn reduce_expression<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<Vec
                     StructTailExpr::Base(base) => Some(base),
                     StructTailExpr::None | StructTailExpr::DefaultFields(_) => None,
                 };
-                Some(fields.iter().map(|f| &f.expr).chain(base).map(Deref::deref).collect())
+                Some((
+                    fields.iter().map(|f| &f.expr).chain(base).map(Deref::deref).collect(),
+                    applicability,
+                ))
             }
         },
         ExprKind::Call(callee, args) => {
+            let applicability = if args.iter().all(|a| expr_type_is_certain(cx, a)) {
+                Applicability::MachineApplicable
+            } else {
+                // there's a risk that, if we take the args out of the context of the
+                // call/constructor, their types might become ambiguous
+                Applicability::MaybeIncorrect
+            };
             if let ExprKind::Path(ref qpath) = callee.kind {
                 if cx.typeck_results().type_dependent_def(expr.hir_id).is_some() {
                     // type-dependent function call like `impl FnOnce for X`
@@ -369,7 +393,7 @@ fn reduce_expression<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<Vec
                     Res::Def(DefKind::Struct | DefKind::Variant | DefKind::Ctor(..), ..)
                         if !has_drop(cx, cx.typeck_results().expr_ty(expr)) =>
                     {
-                        Some(args.iter().collect())
+                        Some((args.iter().collect(), applicability))
                     },
                     _ => None,
                 }
@@ -382,7 +406,7 @@ fn reduce_expression<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<Vec
                 block.expr.as_ref().and_then(|e| {
                     match block.rules {
                         BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided) => None,
-                        BlockCheckMode::DefaultBlock => Some(vec![&**e]),
+                        BlockCheckMode::DefaultBlock => Some((vec![&**e], Applicability::MachineApplicable)),
                         // in case of compiler-inserted signaling blocks
                         BlockCheckMode::UnsafeBlock(_) => reduce_expression(cx, e),
                     }
