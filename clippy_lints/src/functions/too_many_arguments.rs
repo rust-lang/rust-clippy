@@ -22,9 +22,7 @@ pub(super) fn check_fn(
         // don't lint extern functions decls, it's not their fault either
         match kind {
             FnKind::Method(_, &hir::FnSig { header, .. }) | FnKind::ItemFn(_, _, header)
-                if let hir::FnHeader {
-                    abi: ExternAbi::Rust, ..
-                } = header =>
+                if header.abi == ExternAbi::Rust =>
             {
                 check_arg_number(
                     cx,
