@@ -163,12 +163,3 @@ fn issue15173_original<MsU>(handler: impl FnOnce() -> MsU + Clone + 'static) {
         None
     }) as Box<dyn Fn(i32) -> Option<i32>>;
 }
-
-// don't lint if any of the fields has an ambiguous type when used by themselves
-fn issue15381() {
-    struct DescriptorSet {
-        slots: Vec<u32>,
-    }
-
-    DescriptorSet { slots: Vec::new() };
-}

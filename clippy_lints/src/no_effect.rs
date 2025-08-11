@@ -272,11 +272,12 @@ fn has_no_effect(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
 }
 
 fn check_unnecessary_operation(cx: &LateContext<'_>, stmt: &Stmt<'_>) {
+    let mut applicability = Applicability::MachineApplicable;
     if let StmtKind::Semi(expr) = stmt.kind
         && !stmt.span.in_external_macro(cx.sess().source_map())
         && let ctxt = stmt.span.ctxt()
         && expr.span.ctxt() == ctxt
-        && let Some(reduced) = reduce_expression(cx, expr)
+        && let Some(reduced) = reduce_expression(cx, expr, &mut applicability)
         && reduced.iter().all(|e| e.span.ctxt() == ctxt)
     {
         if let ExprKind::Index(..) = &expr.kind {
@@ -319,19 +320,18 @@ fn check_unnecessary_operation(cx: &LateContext<'_>, stmt: &Stmt<'_>) {
                 stmt.span,
                 "unnecessary operation",
                 |diag| {
-                    diag.span_suggestion(
-                        stmt.span,
-                        "statement can be reduced to",
-                        snippet,
-                        Applicability::MachineApplicable,
-                    );
+                    diag.span_suggestion(stmt.span, "statement can be reduced to", snippet, applicability);
                 },
             );
         }
     }
 }
 
-fn reduce_expression<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<Vec<&'a Expr<'a>>> {
+fn reduce_expression<'a>(
+    cx: &LateContext<'_>,
+    expr: &'a Expr<'a>,
+    applicability: &mut Applicability,
+) -> Option<Vec<&'a Expr<'a>>> {
     if expr.span.from_expansion() {
         return None;
     }
@@ -345,9 +345,9 @@ fn reduce_expression<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<Vec
         | ExprKind::Type(inner, _)
         | ExprKind::Unary(_, inner)
         | ExprKind::Field(inner, _)
-        | ExprKind::AddrOf(_, _, inner) => reduce_expression(cx, inner).or_else(|| Some(vec![inner])),
+        | ExprKind::AddrOf(_, _, inner) => reduce_expression(cx, inner, applicability).or_else(|| Some(vec![inner])),
         ExprKind::Cast(inner, _) if expr_type_is_certain(cx, inner) => {
-            reduce_expression(cx, inner).or_else(|| Some(vec![inner]))
+            reduce_expression(cx, inner, applicability).or_else(|| Some(vec![inner]))
         },
         // In the normal `Struct` case, we bail out if any of the fields has an uncertain type.
         // But for two-sided ranges, we know that if the type of one of the sides is certain, then so is the other
@@ -367,9 +367,12 @@ fn reduce_expression<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<Vec
             }
         },
         ExprKind::Struct(_, fields, ref base) => {
-            if fields.iter().any(|f| !expr_type_is_certain(cx, &f.expr))
-                || has_drop(cx, cx.typeck_results().expr_ty(expr))
-            {
+            if fields.iter().any(|f| !expr_type_is_certain(cx, f.expr)) {
+                // there's a risk that if we take the field exprs out of the context of the struct constructor,
+                // their types might become ambiguous
+                *applicability = Applicability::MaybeIncorrect;
+            }
+            if has_drop(cx, cx.typeck_results().expr_ty(expr)) {
                 None
             } else {
                 let base = match base {
@@ -405,7 +408,7 @@ fn reduce_expression<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<Vec
                         BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided) => None,
                         BlockCheckMode::DefaultBlock => Some(vec![&**e]),
                         // in case of compiler-inserted signaling blocks
-                        BlockCheckMode::UnsafeBlock(_) => reduce_expression(cx, e),
+                        BlockCheckMode::UnsafeBlock(_) => reduce_expression(cx, e, applicability),
                     }
                 })
             } else {
