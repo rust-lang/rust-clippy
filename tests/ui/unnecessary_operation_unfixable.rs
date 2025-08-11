@@ -25,4 +25,9 @@ fn issue15381() {
     struct Tuple(Vec<u32>);
     Tuple(Vec::new());
     //~^ unnecessary_operation
+
+    // the type of the second slice gets inferred based on it needing to be the same to that of the
+    // first one, but that doesn't happen when they're outside the array
+    [[1, 2, 3].as_slice(), [].as_slice()];
+    //~^ unnecessary_operation
 }
