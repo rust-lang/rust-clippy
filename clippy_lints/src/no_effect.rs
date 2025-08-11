@@ -348,7 +348,9 @@ fn reduce_expression<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<Vec
             reduce_expression(cx, inner).or_else(|| Some(vec![inner]))
         },
         ExprKind::Struct(_, fields, ref base) => {
-            if has_drop(cx, cx.typeck_results().expr_ty(expr)) {
+            if fields.iter().any(|f| !expr_type_is_certain(cx, &f.expr))
+                || has_drop(cx, cx.typeck_results().expr_ty(expr))
+            {
                 None
             } else {
                 let base = match base {

@@ -157,3 +157,15 @@ fn issue15173_original<MsU>(handler: impl FnOnce() -> MsU + Clone + 'static) {
         None
     }) as Box<dyn Fn(i32) -> Option<i32>>;
 }
+
+fn issue15381() {
+    struct Resources;
+    struct DescriptorSet {
+        slots: Vec<Resources>,
+    }
+
+    fn main() {
+        Vec::new();
+        //~^ unnecessary_operation
+    }
+}
