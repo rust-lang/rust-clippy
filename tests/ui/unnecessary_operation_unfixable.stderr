@@ -1,0 +1,11 @@
+error: unnecessary operation
+  --> tests/ui/unnecessary_operation_unfixable.rs:11:5
+   |
+LL |     DescriptorSet { slots: Vec::new() };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: statement can be reduced to: `Vec::new();`
+   |
+   = note: `-D clippy::unnecessary-operation` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_operation)]`
+
+error: aborting due to 1 previous error
+
