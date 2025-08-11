@@ -1,5 +1,5 @@
 error: unnecessary operation
-  --> tests/ui/unnecessary_operation_unfixable.rs:11:5
+  --> tests/ui/unnecessary_operation_unfixable.rs:12:5
    |
 LL |     DescriptorSet { slots: Vec::new() };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: statement can be reduced to: `Vec::new();`
@@ -7,5 +7,23 @@ LL |     DescriptorSet { slots: Vec::new() };
    = note: `-D clippy::unnecessary-operation` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_operation)]`
 
-error: aborting due to 1 previous error
+error: unnecessary operation
+  --> tests/ui/unnecessary_operation_unfixable.rs:20:5
+   |
+LL |     E::Foo { f: Vec::new() };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^ help: statement can be reduced to: `Vec::new();`
+
+error: unnecessary operation
+  --> tests/ui/unnecessary_operation_unfixable.rs:22:5
+   |
+LL |     E::Bar(Vec::new());
+   |     ^^^^^^^^^^^^^^^^^^^ help: statement can be reduced to: `Vec::new();`
+
+error: unnecessary operation
+  --> tests/ui/unnecessary_operation_unfixable.rs:26:5
+   |
+LL |     Tuple(Vec::new());
+   |     ^^^^^^^^^^^^^^^^^^ help: statement can be reduced to: `Vec::new();`
+
+error: aborting due to 4 previous errors
 

@@ -382,6 +382,11 @@ fn reduce_expression<'a>(
             }
         },
         ExprKind::Call(callee, args) => {
+            if args.iter().any(|a| !expr_type_is_certain(cx, a)) {
+                // there's a risk that if we take the args out of the context of the
+                // call/constructor, their types might become ambiguous
+                *applicability = Applicability::MaybeIncorrect;
+            }
             if let ExprKind::Path(ref qpath) = callee.kind {
                 if cx.typeck_results().type_dependent_def(expr.hir_id).is_some() {
                     // type-dependent function call like `impl FnOnce for X`
