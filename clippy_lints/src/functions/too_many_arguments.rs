@@ -18,16 +18,16 @@ pub(super) fn check_fn(
     too_many_arguments_threshold: u64,
 ) {
     // don't warn for implementations, it's not their fault
-    if !is_trait_impl_item(cx, hir_id) {
+    if !is_trait_impl_item(cx, hir_id)
         // don't lint extern functions decls, it's not their fault either
-        if kind.header().is_some_and(|header| header.abi == ExternAbi::Rust) {
-            check_arg_number(
-                cx,
-                decl,
-                span.with_hi(decl.output.span().hi()),
-                too_many_arguments_threshold,
-            );
-        }
+        && kind.header().is_some_and(|header| header.abi == ExternAbi::Rust)
+    {
+        check_arg_number(
+            cx,
+            decl,
+            span.with_hi(decl.output.span().hi()),
+            too_many_arguments_threshold,
+        );
     }
 }
 
