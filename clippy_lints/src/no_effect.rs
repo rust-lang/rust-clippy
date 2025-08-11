@@ -339,7 +339,15 @@ fn reduce_expression<'a>(
         ExprKind::Binary(ref binop, a, b) if binop.node != BinOpKind::And && binop.node != BinOpKind::Or => {
             Some(vec![a, b])
         },
-        ExprKind::Array(v) | ExprKind::Tup(v) => Some(v.iter().collect()),
+        ExprKind::Array(elems) => {
+            if elems.iter().any(|elem| !expr_type_is_certain(cx, elem)) {
+                // there's a risk that if we take the elem exprs out of the context of the array,
+                // their types might become ambiguous
+                *applicability = Applicability::MaybeIncorrect;
+            }
+            Some(elems.iter().collect())
+        },
+        ExprKind::Tup(v) => Some(v.iter().collect()),
         ExprKind::Repeat(inner, _)
         | ExprKind::Type(inner, _)
         | ExprKind::Unary(_, inner)
