@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{self, Msrv};
+use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::{std_or_core, sym};
 use rustc_errors::Applicability;
@@ -28,7 +29,7 @@ pub(super) fn check<'tcx>(
             && let Some(defid) = path.res.opt_def_id()
             && let Some(prefix) = std_or_core(cx)
             && let mut app = Applicability::MachineApplicable
-            && let sugg = format!("{}", Sugg::hir_with_applicability(cx, cast_expr, "_", &mut app))
+            && let sugg = snippet_with_applicability(cx, cast_expr.span, "_", &mut app)
             && let Some((_, after_lt)) = sugg.split_once("::<")
             && let Some((source, target, target_func)) = match cx.tcx.get_diagnostic_name(defid) {
                 Some(sym::ptr_null) => Some(("const", "mutable", "null_mut")),
@@ -78,7 +79,7 @@ pub(super) fn check_null_ptr_cast_method(cx: &LateContext<'_>, expr: &Expr<'_>) 
         }
         && let Some(prefix) = std_or_core(cx)
         && let mut app = Applicability::MachineApplicable
-        && let sugg = format!("{}", Sugg::hir_with_applicability(cx, cast_expr, "_", &mut app))
+        && let sugg = snippet_with_applicability(cx, cast_expr.span, "_", &mut app)
         && let Some((_, after_lt)) = sugg.split_once("::<")
     {
         span_lint_and_sugg(
