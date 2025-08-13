@@ -3,7 +3,7 @@ use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::{std_or_core, sym};
 use rustc_errors::Applicability;
-use rustc_hir::{Expr, ExprKind, Mutability, QPath};
+use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty, TypeVisitableExt};
 
@@ -19,10 +19,7 @@ pub(super) fn check<'tcx>(
 ) {
     if let ty::RawPtr(from_ty, from_mutbl) = cast_from.kind()
         && let ty::RawPtr(to_ty, to_mutbl) = cast_to.kind()
-        && matches!(
-            (from_mutbl, to_mutbl),
-            (Mutability::Not, Mutability::Mut) | (Mutability::Mut, Mutability::Not)
-        )
+        && from_mutbl != to_mutbl
         && from_ty == to_ty
         && !from_ty.has_erased_regions()
     {
