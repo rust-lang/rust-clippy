@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::is_in_const_context;
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::ty::implements_trait;
 use rustc_errors::Applicability;
@@ -105,6 +106,7 @@ impl<'tcx> LateLintPass<'tcx> for PatternEquality {
         if let ExprKind::Let(let_expr) = expr.kind
             && unary_pattern(let_expr.pat)
             && !expr.span.in_external_macro(cx.sess().source_map())
+            && !is_in_const_context(cx)
         {
             let exp_ty = cx.typeck_results().expr_ty(let_expr.init);
             let pat_ty = cx.typeck_results().pat_ty(let_expr.pat);
