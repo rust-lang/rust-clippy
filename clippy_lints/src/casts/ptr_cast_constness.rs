@@ -54,10 +54,7 @@ pub(super) fn check<'tcx>(
         if msrv.meets(cx, msrvs::POINTER_CAST_CONSTNESS) {
             let mut app = Applicability::MachineApplicable;
             let sugg = Sugg::hir_with_context(cx, cast_expr, expr.span.ctxt(), "_", &mut app);
-            let constness = match *to_mutbl {
-                Mutability::Not => "const",
-                Mutability::Mut => "mut",
-            };
+            let constness = to_mutbl.ptr_str();
 
             span_lint_and_sugg(
                 cx,
