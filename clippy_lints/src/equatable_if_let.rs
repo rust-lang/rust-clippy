@@ -6,9 +6,10 @@ use clippy_utils::qualify_min_const_fn::is_stable_const_fn;
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::ty::implements_trait;
 use rustc_errors::Applicability;
+use rustc_hir::def_id::DefId;
 use rustc_hir::{Expr, ExprKind, Pat, PatKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
-use rustc_middle::ty::Ty;
+use rustc_middle::ty::{Ty, TyCtxt};
 use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
@@ -44,12 +45,36 @@ declare_clippy_lint! {
 impl_lint_pass!(PatternEquality => [EQUATABLE_IF_LET]);
 
 pub(super) struct PatternEquality {
+    eq_trait: Option<DefId>,
+    eq_method: Option<DefId>,
     msrv: Msrv,
 }
 
 impl PatternEquality {
-    pub(super) fn new(conf: &Conf) -> Self {
-        Self { msrv: conf.msrv }
+    pub(super) fn new(tcx: TyCtxt<'_>, conf: &Conf) -> Self {
+        let eq_trait = tcx.lang_items().eq_trait();
+        let eq_method = eq_trait
+            .and_then(|eq_trait| tcx.provided_trait_methods(eq_trait).next())
+            .map(|eq_method| eq_method.def_id);
+
+        Self {
+            eq_trait,
+            eq_method,
+            msrv: conf.msrv,
+        }
+    }
+
+    fn is_structural_partial_eq<'tcx>(&self, cx: &LateContext<'tcx>, ty: Ty<'tcx>, other: Ty<'tcx>) -> bool {
+        if (self.eq_trait).is_some_and(|eq_trait| implements_trait(cx, ty, eq_trait, &[other.into()])) {
+            if !is_in_const_context(cx) {
+                return true;
+            }
+            // TODO: add a MSRV test once `eq` becomes stably-const
+            self.eq_method
+                .is_some_and(|eq_method| is_stable_const_fn(cx, eq_method, self.msrv))
+        } else {
+            false
+        }
     }
 }
 
@@ -71,27 +96,6 @@ fn unary_pattern(pat: &Pat<'_>) -> bool {
         PatKind::Tuple(a, etc) | PatKind::TupleStruct(_, a, etc) => etc.as_opt_usize().is_none() && array_rec(a),
         PatKind::Ref(x, _) | PatKind::Box(x) | PatKind::Deref(x) | PatKind::Guard(x, _) => unary_pattern(x),
         PatKind::Expr(_) => true,
-    }
-}
-
-fn is_structural_partial_eq<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>, other: Ty<'tcx>, msrv: Msrv) -> bool {
-    if let Some(eq_trait) = cx.tcx.lang_items().eq_trait()
-        && implements_trait(cx, ty, eq_trait, &[other.into()])
-    {
-        if !is_in_const_context(cx) {
-            return true;
-        }
-
-        // TODO: add a MSRV test once `eq` becomes stably-const
-        if let Some(eq_method) = cx.tcx.provided_trait_methods(eq_trait).next()
-            && is_stable_const_fn(cx, eq_method.def_id, msrv)
-        {
-            true
-        } else {
-            false
-        }
-    } else {
-        false
     }
 }
 
@@ -137,7 +141,7 @@ impl<'tcx> LateLintPass<'tcx> for PatternEquality {
             let pat_ty = cx.typeck_results().pat_ty(let_expr.pat);
             let mut applicability = Applicability::MachineApplicable;
 
-            if is_structural_partial_eq(cx, exp_ty, pat_ty, self.msrv) && !contains_type_mismatch(cx, let_expr.pat) {
+            if self.is_structural_partial_eq(cx, exp_ty, pat_ty) && !contains_type_mismatch(cx, let_expr.pat) {
                 let pat_str = match let_expr.pat.kind {
                     PatKind::Struct(..) => format!(
                         "({})",
