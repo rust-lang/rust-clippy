@@ -65,10 +65,18 @@ impl PatternEquality {
     }
 
     fn is_structural_partial_eq<'tcx>(&self, cx: &LateContext<'tcx>, ty: Ty<'tcx>, other: Ty<'tcx>) -> bool {
-        (self.eq_trait).is_some_and(|eq_trait| implements_trait(cx, ty, eq_trait, &[other.into()]))
-            && (!is_in_const_context(cx)
-                // TODO: add a MSRV test once `eq` becomes stably-const
-                || (self.eq_method).is_some_and(|eq_method| is_stable_const_fn(cx, eq_method, self.msrv)))
+        let is_partial_eq = || {
+            self.eq_trait
+                .is_some_and(|eq_trait| implements_trait(cx, ty, eq_trait, &[other.into()]))
+        };
+
+        // TODO: add a MSRV test once `eq` becomes stably-const
+        let eq_method_is_const = || {
+            self.eq_method
+                .is_some_and(|eq_method| is_stable_const_fn(cx, eq_method, self.msrv))
+        };
+
+        is_partial_eq() && (!is_in_const_context(cx) || eq_method_is_const())
     }
 }
 
