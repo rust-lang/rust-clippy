@@ -254,7 +254,8 @@ fn main() {
     std::mem::size_of::<u64>() as u8;
     std::mem::size_of_val(&1_u64) as u8;
     std::mem::align_of::<u64>() as u8;
-    std::mem::align_of_val(&1_u64) as u8; // currently not supported by const eval
+    // currently not supported by const eval
+    std::mem::align_of_val(&1_u64) as u8;
     //~^ cast_possible_truncation
 
     std::mem::size_of::<[u8; 256]>() as u8;
