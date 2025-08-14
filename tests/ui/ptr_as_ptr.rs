@@ -2,8 +2,8 @@
 
 #![warn(clippy::ptr_as_ptr)]
 
-#[macro_use]
 extern crate proc_macros;
+use proc_macros::{external, with_span};
 
 mod issue_11278_a {
     #[derive(Debug)]
@@ -20,7 +20,6 @@ mod issue_11278_b {
     }
 }
 
-#[inline_macros]
 fn main() {
     let ptr: *const u32 = &42_u32;
     let mut_ptr: *mut u32 = &mut 42_u32;
@@ -53,11 +52,18 @@ fn main() {
     //~^ ptr_as_ptr
 
     // Make sure the lint is triggered inside a macro
-    let _ = inline!($ptr as *const i32);
-    //~^ ptr_as_ptr
+    macro_rules! foo {
+        () => {
+            ptr as *const i32
+            //~^ ptr_as_ptr
+        };
+    };
+    foo!();
 
     // Do not lint inside macros from external crates
     let _ = external!($ptr as *const i32);
+
+    let _ = with_span!(expr $ptr as *const i32);
 }
 
 #[clippy::msrv = "1.37"]
