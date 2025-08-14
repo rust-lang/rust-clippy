@@ -77,6 +77,7 @@ fn issue_14802() {
     }
 
     impl IcedSlice {
+        #[allow(clippy::identity_op)]
         fn get_len(&self) -> usize {
             std::mem::size_of_val(&self.dst)
             //~^ manual_slice_size_calculation
