@@ -649,7 +649,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(move |_| Box::new(large_futures::LargeFuture::new(conf)));
     store.register_late_pass(|_| Box::new(if_let_mutex::IfLetMutex));
     store.register_late_pass(|_| Box::new(if_not_else::IfNotElse));
-    store.register_late_pass(|_| Box::new(equatable_if_let::PatternEquality));
+    store.register_late_pass(|_| Box::new(equatable_if_let::PatternEquality::new(conf)));
     store.register_late_pass(|_| Box::new(manual_async_fn::ManualAsyncFn));
     store.register_late_pass(|_| Box::new(panic_in_result_fn::PanicInResultFn));
     store.register_early_pass(move || Box::new(non_expressive_names::NonExpressiveNames::new(conf)));

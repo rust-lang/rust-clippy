@@ -143,4 +143,5 @@ mod issue8710 {
 fn issue15376() {
     // PartialEq is not stable in consts yet
     const _: u32 = if let Some(true) = None { 0 } else { 1 };
+    //~^ ERROR: this pattern matching can be expressed using `matches!`
 }
