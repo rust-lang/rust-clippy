@@ -23,7 +23,7 @@ use rustc_middle::ty::{self, FloatTy, IntTy, ScalarInt, Ty, TyCtxt, TypeckResult
 use rustc_middle::{bug, mir, span_bug};
 use rustc_span::def_id::DefId;
 use rustc_span::symbol::Ident;
-use rustc_span::{SyntaxContext, sym};
+use rustc_span::{Symbol, SyntaxContext, sym};
 use std::cell::Cell;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
@@ -505,22 +505,21 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
             }),
             ExprKind::If(cond, then, ref otherwise) => self.ifthenelse(cond, then, *otherwise),
             ExprKind::Binary(op, left, right) => self.binop(op.node, left, right),
-            ExprKind::Call(callee, []) => {
-                // We only handle a few const functions for now.
-                if let ExprKind::Path(qpath) = &callee.kind
-                    && let Some(did) = self.typeck.qpath_res(qpath, callee.hir_id).opt_def_id()
-                {
-                    match self.tcx.get_diagnostic_name(did) {
-                        Some(sym::i8_legacy_fn_max_value) => Some(Constant::Int(i8::MAX as u128)),
-                        Some(sym::i16_legacy_fn_max_value) => Some(Constant::Int(i16::MAX as u128)),
-                        Some(sym::i32_legacy_fn_max_value) => Some(Constant::Int(i32::MAX as u128)),
-                        Some(sym::i64_legacy_fn_max_value) => Some(Constant::Int(i64::MAX as u128)),
-                        Some(sym::i128_legacy_fn_max_value) => Some(Constant::Int(i128::MAX as u128)),
-                        _ => None,
-                    }
-                } else {
-                    None
-                }
+            ExprKind::Call(callee, []) => match self.get_fn_diagnostic_name(callee) {
+                Some(sym::i8_legacy_fn_max_value) => Some(Constant::Int(i8::MAX as u128)),
+                Some(sym::i16_legacy_fn_max_value) => Some(Constant::Int(i16::MAX as u128)),
+                Some(sym::i32_legacy_fn_max_value) => Some(Constant::Int(i32::MAX as u128)),
+                Some(sym::i64_legacy_fn_max_value) => Some(Constant::Int(i64::MAX as u128)),
+                Some(sym::i128_legacy_fn_max_value) => Some(Constant::Int(i128::MAX as u128)),
+                Some(sym::mem_align_of) => self.align_of_call(callee),
+                Some(sym::mem_size_of) => self.size_of_call(callee),
+                _ => None,
+            },
+            ExprKind::Call(callee, [_]) => match self.get_fn_diagnostic_name(callee) {
+                // `align_of_val` doesn't have a diagnostic name, unfortunately.
+                // Some(sym::mem_align_of_val) => self.align_of_call(callee),
+                Some(sym::mem_size_of_val) => self.size_of_call(callee),
+                _ => None,
             },
             ExprKind::Index(arr, index, _) => self.index(arr, index),
             ExprKind::AddrOf(_, _, inner) => self.expr(inner).map(|r| Constant::Ref(Box::new(r))),
@@ -852,6 +851,35 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
                 (BinOpKind::BitOr, Constant::Bool(l), Some(Constant::Bool(r))) => Some(Constant::Bool(l | r)),
                 _ => None,
             },
+        }
+    }
+
+    fn get_fn_diagnostic_name(&self, callee: &Expr<'_>) -> Option<Symbol> {
+        if let ExprKind::Path(qpath) = &callee.kind
+            && let Some(def_id) = self.typeck.qpath_res(qpath, callee.hir_id).opt_def_id()
+        {
+            self.tcx.get_diagnostic_name(def_id)
+        } else {
+            None
+        }
+    }
+
+    fn align_of_call(&self, callee: &Expr<'_>) -> Option<Constant<'tcx>> {
+        let ty = self.typeck.node_args(callee.hir_id).types().next()?;
+        if let Ok(layout) = self.tcx.layout_of(self.typing_env.as_query_input(ty)) {
+            Some(Constant::Int(layout.align.bytes() as u128))
+        } else {
+            None
+        }
+    }
+    fn size_of_call(&self, callee: &Expr<'_>) -> Option<Constant<'tcx>> {
+        let ty = self.typeck.node_args(callee.hir_id).types().next()?;
+        if let Ok(layout) = self.tcx.layout_of(self.typing_env.as_query_input(ty))
+            && layout.is_sized()
+        {
+            Some(Constant::Int(layout.size.bytes() as u128))
+        } else {
+            None
         }
     }
 }
