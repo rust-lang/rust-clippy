@@ -867,7 +867,7 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
     fn align_of_call(&self, callee: &Expr<'_>) -> Option<Constant<'tcx>> {
         let ty = self.typeck.node_args(callee.hir_id).types().next()?;
         if let Ok(layout) = self.tcx.layout_of(self.typing_env.as_query_input(ty)) {
-            Some(Constant::Int(layout.align.bytes() as u128))
+            Some(Constant::Int(u128::from(layout.align.bytes())))
         } else {
             None
         }
@@ -877,7 +877,7 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
         if let Ok(layout) = self.tcx.layout_of(self.typing_env.as_query_input(ty))
             && layout.is_sized()
         {
-            Some(Constant::Int(layout.size.bytes() as u128))
+            Some(Constant::Int(u128::from(layout.size.bytes())))
         } else {
             None
         }
