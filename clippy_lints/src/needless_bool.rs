@@ -321,80 +321,78 @@ fn check_comparison<'a, 'tcx>(
     right_false: Option<(impl FnOnce(Sugg<'a>) -> Sugg<'a>, &'static str)>,
     no_literal: Option<(impl FnOnce(Sugg<'a>, Sugg<'a>) -> Sugg<'a>, &'static str)>,
 ) {
-    if let ExprKind::Binary(op, left_side, right_side) = e.kind {
-        let (l_ty, r_ty) = (
-            cx.typeck_results().expr_ty(left_side),
-            cx.typeck_results().expr_ty(right_side),
-        );
-        if is_expn_of(left_side.span, sym::cfg).is_some() || is_expn_of(right_side.span, sym::cfg).is_some() {
-            return;
-        }
-        if l_ty.is_bool() && r_ty.is_bool() {
-            let mut applicability = Applicability::MachineApplicable;
-            // Eliminate parentheses in `e` by using the lo pos of lhs and hi pos of rhs,
-            // calling `source_callsite` make sure macros are handled correctly, see issue #9907
-            let binop_span = left_side
-                .span
-                .source_callsite()
-                .with_hi(right_side.span.source_callsite().hi());
+    if let ExprKind::Binary(op, left_side, right_side) = e.kind
+        && is_expn_of(left_side.span, sym::cfg).is_none()
+        && is_expn_of(right_side.span, sym::cfg).is_none()
+        && let l_ty = cx.typeck_results().expr_ty(left_side)
+        && l_ty.is_bool()
+        && let r_ty = cx.typeck_results().expr_ty(right_side)
+        && r_ty.is_bool()
+    {
+        let mut applicability = Applicability::MachineApplicable;
+        // Eliminate parentheses in `e` by using the lo pos of lhs and hi pos of rhs,
+        // calling `source_callsite` make sure macros are handled correctly, see issue #9907
+        let binop_span = left_side
+            .span
+            .source_callsite()
+            .with_hi(right_side.span.source_callsite().hi());
 
-            if op.node == BinOpKind::Eq {
-                let expression_info = one_side_is_unary_not(left_side, right_side);
-                if expression_info.one_side_is_unary_not {
-                    span_lint_and_sugg(
-                        cx,
-                        BOOL_COMPARISON,
-                        binop_span,
-                        "this comparison might be written more concisely",
-                        "try simplifying it",
-                        format!(
-                            "{} != {}",
-                            snippet_with_applicability(
-                                cx,
-                                expression_info.left_span.source_callsite(),
-                                "..",
-                                &mut applicability
-                            ),
-                            snippet_with_applicability(
-                                cx,
-                                expression_info.right_span.source_callsite(),
-                                "..",
-                                &mut applicability
-                            )
+        if op.node == BinOpKind::Eq {
+            let expression_info = one_side_is_unary_not(left_side, right_side);
+            if expression_info.one_side_is_unary_not {
+                span_lint_and_sugg(
+                    cx,
+                    BOOL_COMPARISON,
+                    binop_span,
+                    "this comparison might be written more concisely",
+                    "try simplifying it",
+                    format!(
+                        "{} != {}",
+                        snippet_with_applicability(
+                            cx,
+                            expression_info.left_span.source_callsite(),
+                            "..",
+                            &mut applicability
                         ),
-                        applicability,
-                    );
-                }
+                        snippet_with_applicability(
+                            cx,
+                            expression_info.right_span.source_callsite(),
+                            "..",
+                            &mut applicability
+                        )
+                    ),
+                    applicability,
+                );
             }
+        }
 
-            match (fetch_bool_expr(left_side), fetch_bool_expr(right_side)) {
-                (Some(true), None) => left_true.map_or((), |(h, m)| {
-                    suggest_bool_comparison(cx, binop_span, right_side, applicability, m, h);
-                }),
-                (None, Some(true)) => right_true.map_or((), |(h, m)| {
-                    suggest_bool_comparison(cx, binop_span, left_side, applicability, m, h);
-                }),
-                (Some(false), None) => left_false.map_or((), |(h, m)| {
-                    suggest_bool_comparison(cx, binop_span, right_side, applicability, m, h);
-                }),
-                (None, Some(false)) => right_false.map_or((), |(h, m)| {
-                    suggest_bool_comparison(cx, binop_span, left_side, applicability, m, h);
-                }),
-                (None, None) => no_literal.map_or((), |(h, m)| {
-                    let left_side = Sugg::hir_with_applicability(cx, left_side, "..", &mut applicability);
-                    let right_side = Sugg::hir_with_applicability(cx, right_side, "..", &mut applicability);
-                    span_lint_and_sugg(
-                        cx,
-                        BOOL_COMPARISON,
-                        binop_span,
-                        m,
-                        "try simplifying it",
-                        h(left_side, right_side).into_string(),
-                        applicability,
-                    );
-                }),
-                _ => (),
-            }
+        match (fetch_bool_expr(left_side), fetch_bool_expr(right_side)) {
+            (Some(true), None) => left_true.map_or((), |(h, m)| {
+                suggest_bool_comparison(cx, binop_span, right_side, applicability, m, h);
+            }),
+            (None, Some(true)) => right_true.map_or((), |(h, m)| {
+                suggest_bool_comparison(cx, binop_span, left_side, applicability, m, h);
+            }),
+            (Some(false), None) => left_false.map_or((), |(h, m)| {
+                suggest_bool_comparison(cx, binop_span, right_side, applicability, m, h);
+            }),
+            (None, Some(false)) => right_false.map_or((), |(h, m)| {
+                suggest_bool_comparison(cx, binop_span, left_side, applicability, m, h);
+            }),
+            (None, None) => no_literal.map_or((), |(h, m)| {
+                let left_side = Sugg::hir_with_applicability(cx, left_side, "..", &mut applicability);
+                let right_side = Sugg::hir_with_applicability(cx, right_side, "..", &mut applicability);
+                span_lint_and_sugg(
+                    cx,
+                    BOOL_COMPARISON,
+                    binop_span,
+                    m,
+                    "try simplifying it",
+                    h(left_side, right_side).into_string(),
+                    applicability,
+                );
+            }),
+            _ => (),
         }
     }
 }
