@@ -1,6 +1,6 @@
 #![allow(non_local_definitions, clippy::needless_if)]
 #![warn(clippy::bool_comparison)]
-#![allow(clippy::non_canonical_partial_ord_impl, clippy::nonminimal_bool)]
+#![allow(clippy::non_canonical_partial_ord_impl)]
 
 fn main() {
     let x = true;
@@ -72,26 +72,6 @@ fn issue3703() {
     if false < Foo {}
 }
 
-#[allow(dead_code)]
-fn issue4983() {
-    let a = true;
-    let b = false;
-
-    if a == !b {};
-    //~^ bool_comparison
-    if !a == b {};
-    //~^ bool_comparison
-    if a == b {};
-    if !a == !b {};
-
-    if b == !a {};
-    //~^ bool_comparison
-    if !b == a {};
-    //~^ bool_comparison
-    if b == a {};
-    if !b == !a {};
-}
-
 macro_rules! m {
     ($func:ident) => {
         $func()
@@ -139,8 +119,27 @@ fn issue9907() {
     //~^ bool_comparison
     let _ = (false == m!(func)) as usize;
     //~^ bool_comparison
-    // This is not part of the issue, but an unexpected found when fixing the issue,
-    // the provided span was inside of macro rather than the macro callsite.
-    let _ = ((1 < 2) == !m!(func)) as usize;
-    //~^ bool_comparison
+
+    // NOTE: Here's what used to be here:
+    //
+    // > This is not part of the issue, but an unexpected found when fixing the issue,
+    // > the provided span was inside of macro rather than the macro callsite.
+    // > let _ = ((1 < 2) == !m!(func)) as usize;
+    // > <error pattern for `bool_comparison`> (can't put it into a comment or ui_test complains)
+    //
+    // But we don't lint this case since #15367, and similar cases of `<` of `>` apparently still
+    // have this bug (see #15497), so I can't just modify the example. Consider doing that when the
+    // issue is fixed
+}
+
+#[allow(dead_code, clippy::nonminimal_bool)]
+fn issue15367() {
+    let a = true;
+    let b = false;
+
+    // these cases are handled by `nonminimal_bool`, so don't double-lint
+    if a == !b {};
+    if !a == b {};
+    if b == !a {};
+    if !b == a {};
 }

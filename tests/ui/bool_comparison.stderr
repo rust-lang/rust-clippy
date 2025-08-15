@@ -85,71 +85,41 @@ error: order comparisons between booleans can be simplified
 LL |     let _ = if x > y { "yes" } else { "no" };
    |                ^^^^^ help: try simplifying it: `x & !y`
 
-error: this comparison might be written more concisely
-  --> tests/ui/bool_comparison.rs:80:8
-   |
-LL |     if a == !b {};
-   |        ^^^^^^^ help: try simplifying it: `a != b`
-
-error: this comparison might be written more concisely
-  --> tests/ui/bool_comparison.rs:82:8
-   |
-LL |     if !a == b {};
-   |        ^^^^^^^ help: try simplifying it: `a != b`
-
-error: this comparison might be written more concisely
-  --> tests/ui/bool_comparison.rs:87:8
-   |
-LL |     if b == !a {};
-   |        ^^^^^^^ help: try simplifying it: `b != a`
-
-error: this comparison might be written more concisely
-  --> tests/ui/bool_comparison.rs:89:8
-   |
-LL |     if !b == a {};
-   |        ^^^^^^^ help: try simplifying it: `b != a`
-
 error: equality checks against false can be replaced by a negation
-  --> tests/ui/bool_comparison.rs:114:8
+  --> tests/ui/bool_comparison.rs:94:8
    |
 LL |     if false == m!(func) {}
    |        ^^^^^^^^^^^^^^^^^ help: try simplifying it: `!m!(func)`
 
 error: equality checks against false can be replaced by a negation
-  --> tests/ui/bool_comparison.rs:116:8
+  --> tests/ui/bool_comparison.rs:96:8
    |
 LL |     if m!(func) == false {}
    |        ^^^^^^^^^^^^^^^^^ help: try simplifying it: `!m!(func)`
 
 error: equality checks against true are unnecessary
-  --> tests/ui/bool_comparison.rs:118:8
+  --> tests/ui/bool_comparison.rs:98:8
    |
 LL |     if true == m!(func) {}
    |        ^^^^^^^^^^^^^^^^ help: try simplifying it: `m!(func)`
 
 error: equality checks against true are unnecessary
-  --> tests/ui/bool_comparison.rs:120:8
+  --> tests/ui/bool_comparison.rs:100:8
    |
 LL |     if m!(func) == true {}
    |        ^^^^^^^^^^^^^^^^ help: try simplifying it: `m!(func)`
 
 error: equality checks against false can be replaced by a negation
-  --> tests/ui/bool_comparison.rs:138:14
+  --> tests/ui/bool_comparison.rs:118:14
    |
 LL |     let _ = ((1 < 2) == false) as usize;
    |              ^^^^^^^^^^^^^^^^ help: try simplifying it: `1 >= 2`
 
 error: equality checks against false can be replaced by a negation
-  --> tests/ui/bool_comparison.rs:140:14
+  --> tests/ui/bool_comparison.rs:120:14
    |
 LL |     let _ = (false == m!(func)) as usize;
    |              ^^^^^^^^^^^^^^^^^ help: try simplifying it: `!m!(func)`
 
-error: this comparison might be written more concisely
-  --> tests/ui/bool_comparison.rs:144:14
-   |
-LL |     let _ = ((1 < 2) == !m!(func)) as usize;
-   |              ^^^^^^^^^^^^^^^^^^^^ help: try simplifying it: `(1 < 2) != m!(func)`
-
-error: aborting due to 25 previous errors
+error: aborting due to 20 previous errors
 

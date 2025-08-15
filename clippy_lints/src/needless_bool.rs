@@ -7,7 +7,7 @@ use clippy_utils::{
 };
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
-use rustc_hir::{BinOpKind, Expr, ExprKind, UnOp};
+use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::Span;
@@ -293,30 +293,6 @@ impl<'tcx> LateLintPass<'tcx> for BoolComparison {
     }
 }
 
-struct ExpressionInfoWithSpan {
-    one_side_is_unary_not: bool,
-    left_span: Span,
-    right_span: Span,
-}
-
-fn is_unary_not(e: &Expr<'_>) -> (bool, Span) {
-    if let ExprKind::Unary(UnOp::Not, operand) = e.kind {
-        return (true, operand.span);
-    }
-    (false, e.span)
-}
-
-fn one_side_is_unary_not<'tcx>(left_side: &'tcx Expr<'_>, right_side: &'tcx Expr<'_>) -> ExpressionInfoWithSpan {
-    let left = is_unary_not(left_side);
-    let right = is_unary_not(right_side);
-
-    ExpressionInfoWithSpan {
-        one_side_is_unary_not: left.0 != right.0,
-        left_span: left.1,
-        right_span: right.1,
-    }
-}
-
 fn check_comparison<'a, 'tcx>(
     cx: &LateContext<'tcx>,
     e: &'tcx Expr<'_>,
@@ -326,40 +302,11 @@ fn check_comparison<'a, 'tcx>(
     right_false: Option<(impl FnOnce(Sugg<'a>) -> Sugg<'a>, &'static str)>,
     no_literal: Option<(impl FnOnce(Sugg<'a>, Sugg<'a>) -> Sugg<'a>, &'static str)>,
 ) {
-    if let ExprKind::Binary(op, left_side, right_side) = e.kind {
+    if let ExprKind::Binary(_, left_side, right_side) = e.kind {
         let mut applicability = Applicability::MachineApplicable;
         // Eliminate parentheses in `e` by using the lo pos of lhs and hi pos of rhs,
         // calling `source_callsite` make sure macros are handled correctly, see issue #9907
         let binop_span = left_side.span.source_callsite().to(right_side.span.source_callsite());
-
-        if op.node == BinOpKind::Eq {
-            let expression_info = one_side_is_unary_not(left_side, right_side);
-            if expression_info.one_side_is_unary_not {
-                span_lint_and_sugg(
-                    cx,
-                    BOOL_COMPARISON,
-                    binop_span,
-                    "this comparison might be written more concisely",
-                    "try simplifying it",
-                    format!(
-                        "{} != {}",
-                        snippet_with_applicability(
-                            cx,
-                            expression_info.left_span.source_callsite(),
-                            "..",
-                            &mut applicability
-                        ),
-                        snippet_with_applicability(
-                            cx,
-                            expression_info.right_span.source_callsite(),
-                            "..",
-                            &mut applicability
-                        )
-                    ),
-                    applicability,
-                );
-            }
-        }
 
         match (fetch_bool_expr(left_side), fetch_bool_expr(right_side)) {
             (Some(true), None) => left_true.map_or((), |(h, m)| {
