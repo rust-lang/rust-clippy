@@ -146,9 +146,8 @@ fn check_is_ascii(
         CharRange::HexDigit => "is_ascii_hexdigit",
         CharRange::Otherwise | CharRange::LowerHexLetter | CharRange::UpperHexLetter => return,
     };
-    let default_snip = "..";
     let mut app = Applicability::MachineApplicable;
-    let recv = Sugg::hir_with_context(cx, recv, span.ctxt(), default_snip, &mut app).maybe_paren();
+    let recv = Sugg::hir_with_context(cx, recv, span.ctxt(), "..", &mut app).maybe_paren();
     let mut suggestion = vec![(span, format!("{recv}.{sugg}()"))];
     if let Some((ty_span, ty)) = ty_sugg {
         suggestion.push((ty_span, format!("{recv}: {ty}")));
@@ -182,7 +181,7 @@ fn check_pat(pat_kind: &PatKind<'_>) -> CharRange {
                 CharRange::Otherwise
             }
         },
-        PatKind::Range(Some(start), Some(end), kind) if *kind == RangeEnd::Included => check_range(start, end),
+        PatKind::Range(Some(start), Some(end), RangeEnd::Included) => check_range(start, end),
         _ => CharRange::Otherwise,
     }
 }
