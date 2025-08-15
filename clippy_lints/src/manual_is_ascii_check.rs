@@ -97,11 +97,11 @@ impl<'tcx> LateLintPass<'tcx> for ManualIsAsciiCheck {
             return;
         }
 
-        if let Some(macro_call) = matching_root_macro_call(cx, expr.span, sym::matches_macro) {
-            if let ExprKind::Match(recv, [arm, ..], _) = expr.kind {
-                let range = check_pat(&arm.pat.kind);
-                check_is_ascii(cx, macro_call.span, recv, &range, None);
-            }
+        if let Some(macro_call) = matching_root_macro_call(cx, expr.span, sym::matches_macro)
+            && let ExprKind::Match(recv, [arm, ..], _) = expr.kind
+        {
+            let range = check_pat(&arm.pat.kind);
+            check_is_ascii(cx, macro_call.span, recv, &range, None);
         } else if let ExprKind::MethodCall(path, receiver, [arg], ..) = expr.kind
             && path.ident.name == sym::contains
             && let Some(higher::Range {
