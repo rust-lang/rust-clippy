@@ -1,0 +1,256 @@
+error: docs for function which may panic missing `# Panics` section
+  --> tests/ui/doc/doc_header_html.rs:16:1
+   |
+LL | pub fn panicking1() {
+   | ^^^^^^^^^^^^^^^^^^^
+   |
+note: first possible panic found here
+  --> tests/ui/doc/doc_header_html.rs:18:5
+   |
+LL |     panic!();
+   |     ^^^^^^^^
+   = note: markdown syntax is not recognized within a block of raw HTML code
+   = note: `-D clippy::missing-panics-doc` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::missing_panics_doc)]`
+help: to recognize this text as a header, add a blank line
+   |
+LL ~ /// 
+LL ~ /// # Panics
+   |
+
+error: docs for function which may panic missing `# Panics` section
+  --> tests/ui/doc/doc_header_html.rs:31:1
+   |
+LL | pub fn panicking1blockquote() {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: first possible panic found here
+  --> tests/ui/doc/doc_header_html.rs:33:5
+   |
+LL |     panic!();
+   |     ^^^^^^^^
+   = note: markdown syntax is not recognized within a block of raw HTML code
+help: to recognize this text as a header, add a blank line
+   |
+LL ~ /// > 
+LL ~ /// > # Panics
+   |
+
+error: docs for function which may panic missing `# Panics` section
+  --> tests/ui/doc/doc_header_html.rs:47:1
+   |
+LL | pub fn panicking1blockquotelist() {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: first possible panic found here
+  --> tests/ui/doc/doc_header_html.rs:49:5
+   |
+LL |     panic!();
+   |     ^^^^^^^^
+   = note: markdown syntax is not recognized within a block of raw HTML code
+help: to recognize this text as a header, add a blank line
+   |
+LL ~ /// >   
+LL ~ /// >   # Panics
+   |
+
+error: unsafe function's docs are missing a `# Safety` section
+  --> tests/ui/doc/doc_header_html.rs:62:1
+   |
+LL | pub unsafe fn safety1() {
+   | ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: markdown syntax is not recognized within a block of raw HTML code
+   = note: `-D clippy::missing-safety-doc` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::missing_safety_doc)]`
+help: to recognize this text as a header, add a blank line
+   |
+LL ~ /// 
+LL ~ /// # Safety #
+   |
+
+error: docs for function returning `Result` missing `# Errors` section
+  --> tests/ui/doc/doc_header_html.rs:76:1
+   |
+LL | pub fn errors1() -> Result<(), Error> {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: markdown syntax is not recognized within a block of raw HTML code
+   = note: `-D clippy::missing-errors-doc` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::missing_errors_doc)]`
+help: to recognize this text as a header, add a blank line
+   |
+LL ~ /// 
+LL ~ /// # Errors ##
+   |
+
+error: docs for function which may panic missing `# Panics` section
+  --> tests/ui/doc/doc_header_html.rs:153:1
+   |
+LL | pub fn panicking1b() {
+   | ^^^^^^^^^^^^^^^^^^^^
+   |
+note: first possible panic found here
+  --> tests/ui/doc/doc_header_html.rs:155:5
+   |
+LL |     panic!();
+   |     ^^^^^^^^
+   = note: markdown syntax is not recognized within a block of raw HTML code
+help: to recognize this text as a header, add a blank line
+   |
+LL ~ /// 
+LL ~ /// Panics
+   |
+
+error: unsafe function's docs are missing a `# Safety` section
+  --> tests/ui/doc/doc_header_html.rs:169:1
+   |
+LL | pub unsafe fn safety1b() {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: markdown syntax is not recognized within a block of raw HTML code
+help: to recognize this text as a header, add a blank line
+   |
+LL ~ /// 
+LL ~ /// Safety
+   |
+
+error: docs for function returning `Result` missing `# Errors` section
+  --> tests/ui/doc/doc_header_html.rs:184:1
+   |
+LL | pub fn errors1b() -> Result<(), Error> {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: markdown syntax is not recognized within a block of raw HTML code
+help: to recognize this text as a header, add a blank line
+   |
+LL ~ /// 
+LL ~ /// Errors
+   |
+
+error: docs for function which may panic missing `# Panics` section
+  --> tests/ui/doc/doc_header_html.rs:276:1
+   |
+LL | pub fn panicking3() {
+   | ^^^^^^^^^^^^^^^^^^^
+   |
+note: first possible panic found here
+  --> tests/ui/doc/doc_header_html.rs:278:5
+   |
+LL |     panic!();
+   |     ^^^^^^^^
+   = note: markdown syntax is not recognized within a block of raw HTML code
+help: to recognize this text as a header, add a blank line
+   |
+LL ~   
+LL ~   ## Panics
+   |
+
+error: docs for function which may panic missing `# Panics` section
+  --> tests/ui/doc/doc_header_html.rs:294:1
+   |
+LL | pub fn panicking3list() {
+   | ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: first possible panic found here
+  --> tests/ui/doc/doc_header_html.rs:296:5
+   |
+LL |     panic!();
+   |     ^^^^^^^^
+   = note: markdown syntax is not recognized within a block of raw HTML code
+help: to recognize this text as a header, add a blank line
+   |
+LL ~     
+LL ~     ## Panics
+   |
+
+error: docs for function which may panic missing `# Panics` section
+  --> tests/ui/doc/doc_header_html.rs:312:1
+   |
+LL | pub fn panicking3listblockquote() {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: first possible panic found here
+  --> tests/ui/doc/doc_header_html.rs:314:5
+   |
+LL |     panic!();
+   |     ^^^^^^^^
+   = note: markdown syntax is not recognized within a block of raw HTML code
+help: to recognize this text as a header, add a blank line
+   |
+LL ~     > 
+LL ~     > ## Panics
+   |
+
+error: unsafe function's docs are missing a `# Safety` section
+  --> tests/ui/doc/doc_header_html.rs:329:1
+   |
+LL | pub unsafe fn safety3() {
+   | ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: markdown syntax is not recognized within a block of raw HTML code
+help: to recognize this text as a header, add a blank line
+   |
+LL ~   
+LL ~   ## Safety #
+   |
+
+error: docs for function returning `Result` missing `# Errors` section
+  --> tests/ui/doc/doc_header_html.rs:345:1
+   |
+LL | pub fn errors3() -> Result<(), Error> {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: markdown syntax is not recognized within a block of raw HTML code
+help: to recognize this text as a header, add a blank line
+   |
+LL ~   
+LL ~   ## Errors ##
+   |
+
+error: docs for function which may panic missing `# Panics` section
+  --> tests/ui/doc/doc_header_html.rs:436:1
+   |
+LL | pub fn panicking3b() {
+   | ^^^^^^^^^^^^^^^^^^^^
+   |
+note: first possible panic found here
+  --> tests/ui/doc/doc_header_html.rs:438:5
+   |
+LL |     panic!();
+   |     ^^^^^^^^
+   = note: markdown syntax is not recognized within a block of raw HTML code
+help: to recognize this text as a header, add a blank line
+   |
+LL ~   
+LL ~   Panics
+   |
+
+error: unsafe function's docs are missing a `# Safety` section
+  --> tests/ui/doc/doc_header_html.rs:454:1
+   |
+LL | pub unsafe fn safety3b() {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: markdown syntax is not recognized within a block of raw HTML code
+help: to recognize this text as a header, add a blank line
+   |
+LL ~   
+LL ~   Safety
+   |
+
+error: docs for function returning `Result` missing `# Errors` section
+  --> tests/ui/doc/doc_header_html.rs:471:1
+   |
+LL | pub fn errors3b() -> Result<(), Error> {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: markdown syntax is not recognized within a block of raw HTML code
+help: to recognize this text as a header, add a blank line
+   |
+LL ~   
+LL ~   Errors
+   |
+
+error: aborting due to 16 previous errors
+

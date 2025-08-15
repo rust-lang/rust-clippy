@@ -1,0 +1,28 @@
+error: docs for function which may panic missing `# Panics` section
+  --> tests/ui/doc/doc_header_html_unformed.rs:17:1
+   |
+LL | pub fn panicking1() {
+   | ^^^^^^^^^^^^^^^^^^^
+   |
+note: first possible panic found here
+  --> tests/ui/doc/doc_header_html_unformed.rs:19:5
+   |
+LL |     panic!();
+   |     ^^^^^^^^
+   = note: `-D clippy::missing-panics-doc` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::missing_panics_doc)]`
+
+error: docs for function which may panic missing `# Panics` section
+  --> tests/ui/doc/doc_header_html_unformed.rs:33:1
+   |
+LL | pub fn panicking2() {
+   | ^^^^^^^^^^^^^^^^^^^
+   |
+note: first possible panic found here
+  --> tests/ui/doc/doc_header_html_unformed.rs:35:5
+   |
+LL |     panic!();
+   |     ^^^^^^^^
+
+error: aborting due to 2 previous errors
+

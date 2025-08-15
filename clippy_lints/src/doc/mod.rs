@@ -4,10 +4,12 @@ use clippy_config::Conf;
 use clippy_utils::attrs::is_doc_hidden;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_help, span_lint_and_then};
 use clippy_utils::{is_entrypoint_fn, is_trait_impl_item};
+use rustc_ast::attr::AttributeExt as _;
+use rustc_ast::token::CommentKind;
 use rustc_data_structures::fx::FxHashSet;
-use rustc_errors::Applicability;
-use rustc_hir::{Attribute, ImplItemKind, ItemKind, Node, Safety, TraitItemKind};
-use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, LintContext};
+use rustc_errors::{Applicability, Diag, DiagMessage, MultiSpan};
+use rustc_hir::{AttrStyle, Attribute, ImplItemKind, ItemKind, Node, Safety, TraitItemKind};
+use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, Lint, LintContext};
 use rustc_resolve::rustdoc::pulldown_cmark::Event::{
     Code, DisplayMath, End, FootnoteReference, HardBreak, Html, InlineHtml, InlineMath, Rule, SoftBreak, Start,
     TaskListMarker, Text,
@@ -765,20 +767,20 @@ impl<'tcx> LateLintPass<'tcx> for Documentation {
                                 cx,
                                 item.owner_id,
                                 sig,
-                                headers,
+                                &headers,
                                 Some(body),
                                 self.check_private_items,
                             );
                         }
                     },
-                    ItemKind::Trait(_, _, unsafety, ..) => match (headers.safety, unsafety) {
-                        (false, Safety::Unsafe) => span_lint(
+                    ItemKind::Trait(_, _, unsafety, ..) => match (headers.safety.is_missing(), unsafety) {
+                        (true, Safety::Unsafe) => span_lint(
                             cx,
                             MISSING_SAFETY_DOC,
                             cx.tcx.def_span(item.owner_id),
                             "docs for unsafe trait missing `# Safety` section",
                         ),
-                        (true, Safety::Safe) => span_lint(
+                        (false, Safety::Safe) => headers.safety.lint(
                             cx,
                             UNNECESSARY_SAFETY_DOC,
                             cx.tcx.def_span(item.owner_id),
@@ -793,7 +795,7 @@ impl<'tcx> LateLintPass<'tcx> for Documentation {
                 if let TraitItemKind::Fn(sig, ..) = trait_item.kind
                     && !trait_item.span.in_external_macro(cx.tcx.sess.source_map())
                 {
-                    missing_headers::check(cx, trait_item.owner_id, sig, headers, None, self.check_private_items);
+                    missing_headers::check(cx, trait_item.owner_id, sig, &headers, None, self.check_private_items);
                 }
             },
             Node::ImplItem(impl_item) => {
@@ -805,7 +807,7 @@ impl<'tcx> LateLintPass<'tcx> for Documentation {
                         cx,
                         impl_item.owner_id,
                         sig,
-                        headers,
+                        &headers,
                         Some(body_id),
                         self.check_private_items,
                     );
@@ -831,11 +833,98 @@ impl Fragments<'_> {
     }
 }
 
-#[derive(Copy, Clone, Default)]
+#[derive(Clone, Default)]
+enum DocHeaderInfo {
+    #[default]
+    None,
+    Found,
+    SuspiciousHtml(Option<Span>, &'static str, Vec<Container>),
+}
+
+impl DocHeaderInfo {
+    fn suspicious_html(
+        cx: &LateContext<'_>,
+        fragments: Fragments<'_>,
+        idx: usize,
+        attrs: &[Attribute],
+        containers: &[Container],
+    ) -> DocHeaderInfo {
+        let span = fragments.span(cx, idx..idx);
+        let indent = span
+            .and_then(|span| fragments.fragments.iter().find(|fragment| fragment.span.overlaps(span)))
+            .map_or(0, |fragment| fragment.indent);
+        DocHeaderInfo::SuspiciousHtml(
+            span,
+            span.and_then(|span| find_doc_attr_by_span(attrs, span)).map_or(
+                "",
+                |(_doc_attr, doc_attr_comment_kind, attr_style)| match (doc_attr_comment_kind, attr_style) {
+                    (CommentKind::Block, _) => &"        "[..indent],
+                    (CommentKind::Line, AttrStyle::Outer) => &"///        "[..indent + 3],
+                    (CommentKind::Line, AttrStyle::Inner) => &"//!        "[..indent + 3],
+                },
+            ),
+            containers.to_vec(),
+        )
+    }
+    fn is_missing(&self) -> bool {
+        matches!(self, DocHeaderInfo::None | DocHeaderInfo::SuspiciousHtml(..))
+    }
+    fn lint(&self, cx: &LateContext<'_>, lint: &'static Lint, sp: impl Into<MultiSpan>, msg: impl Into<DiagMessage>) {
+        self.lint_and_then(cx, lint, sp, msg, |_| {});
+    }
+    fn lint_and_then(
+        &self,
+        cx: &LateContext<'_>,
+        lint: &'static Lint,
+        sp: impl Into<MultiSpan>,
+        msg: impl Into<DiagMessage>,
+        f: impl FnOnce(&mut Diag<'_, ()>),
+    ) {
+        if let DocHeaderInfo::SuspiciousHtml(html_span, comment_prefix, containers) = self {
+            span_lint_and_then(cx, lint, sp, msg, |diag| {
+                f(diag);
+                diag.note("markdown syntax is not recognized within a block of raw HTML code");
+                if let Some(html_span) = html_span {
+                    diag.span_suggestion(
+                        *html_span,
+                        "to recognize this text as a header, add a blank line",
+                        format!(
+                            "\n{comment_prefix}{containers}",
+                            containers = containers
+                                .iter()
+                                .map(Container::map_to_text)
+                                .collect::<Vec<&str>>()
+                                .join("")
+                        ),
+                        Applicability::Unspecified,
+                    );
+                } else {
+                    diag.help(
+                        "to recognize a markdown header nested within an HTML element,\
+                            add a blank line between the `#` and the HTML",
+                    );
+                }
+            });
+        } else {
+            span_lint_and_then(cx, lint, sp, msg, f);
+        }
+    }
+}
+
+fn find_doc_attr_by_span(attrs: &[Attribute], span: Span) -> Option<(&Attribute, CommentKind, AttrStyle)> {
+    let (doc_attr, (_, doc_attr_comment_kind), attr_style) = attrs
+        .iter()
+        .filter(|attr| attr.span().overlaps(span))
+        .rev()
+        .find_map(|attr| Some((attr, attr.doc_str_and_comment_kind()?, attr.doc_resolution_scope()?)))?;
+    Some((doc_attr, doc_attr_comment_kind, attr_style))
+}
+
+#[derive(Clone, Default)]
 struct DocHeaders {
-    safety: bool,
-    errors: bool,
-    panics: bool,
+    safety: DocHeaderInfo,
+    errors: DocHeaderInfo,
+    panics: DocHeaderInfo,
     first_paragraph_len: usize,
 }
 
@@ -938,9 +1027,20 @@ fn check_attrs(cx: &LateContext<'_>, valid_idents: &FxHashSet<String>, attrs: &[
     ))
 }
 
+#[derive(Clone)]
 enum Container {
     Blockquote,
     List(usize),
+}
+
+impl Container {
+    fn map_to_text(&self) -> &'static str {
+        match self {
+            Container::Blockquote => "> ",
+            // numbered list can have up to nine digits, plus the dot, plus four spaces on either side
+            Container::List(indent) => &"                  "[0..*indent],
+        }
+    }
 }
 
 /// Scan the documentation for code links that are back-to-back with code spans.
@@ -1109,6 +1209,51 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
                 } else if tag.starts_with("</blockquote") || tag.starts_with("</q") {
                     blockquote_level -= 1;
                 }
+                if headers.safety.is_missing() &&
+                    let Some(idx) = tag.find("# Safety").filter(|idx| tag[idx + 8..].trim().bytes().all(|c| c == b'#'))
+                        .or_else(|| tag.find("Safety\n").filter(|_| matches!(events.peek(), Some((Html(ln) | InlineHtml(ln), _)) if ln.trim().bytes().all(|c| c == b'=') || ln.trim().bytes().all(|c| c == b'-'))))
+                        .or_else(|| tag.find("# SAFETY").filter(|idx| tag[idx + 8..].trim().bytes().all(|c| c == b'#')))
+                        .or_else(|| tag.find("SAFETY\n").filter(|_| matches!(events.peek(), Some((Html(ln) | InlineHtml(ln), _)) if ln.trim().bytes().all(|c| c == b'=') || ln.trim().bytes().all(|c| c == b'-'))))
+                        .or_else(|| tag.find("# Implementation safety").filter(|idx| tag[idx + 23..].trim().bytes().all(|c| c == b'#')))
+                        .or_else(|| tag.find("Implementation safety\n").filter(|_| matches!(events.peek(), Some((Html(ln) | InlineHtml(ln), _)) if ln.trim().bytes().all(|c| c == b'=') || ln.trim().bytes().all(|c| c == b'-'))))
+                        .or_else(|| tag.find("# Implementation Safety").filter(|idx| tag[idx + 23..].trim().bytes().all(|c| c == b'#')))
+                        .or_else(|| tag.find("Implementation Safety\n").filter(|_| matches!(events.peek(), Some((Html(ln) | InlineHtml(ln), _)) if ln.trim().bytes().all(|c| c == b'=') || ln.trim().bytes().all(|c| c == b'-')))) &&
+                    tag[..idx].trim().bytes().all(|c| c == b'#')
+                {
+                    headers.safety = DocHeaderInfo::suspicious_html(
+                        cx,
+                        fragments,
+                        range.start,
+                        attrs,
+                        &containers,
+                    );
+                }
+                if headers.errors.is_missing() &&
+                    let Some(idx) = tag.find("# Errors").filter(|idx| tag[idx + 8..].trim().bytes().all(|c| c == b'#'))
+                        .or_else(|| tag.find("Errors\n").filter(|_| matches!(events.peek(), Some((Html(ln) | InlineHtml(ln), _)) if ln.trim().bytes().all(|c| c == b'=') || ln.trim().bytes().all(|c| c == b'-')))) &&
+                    tag[..idx].trim().bytes().all(|c| c == b'#')
+                {
+                    headers.errors = DocHeaderInfo::suspicious_html(
+                        cx,
+                        fragments,
+                        range.start,
+                        attrs,
+                        &containers,
+                    );
+                }
+                if headers.panics.is_missing() &&
+                    let Some(idx) = tag.find("# Panics").filter(|idx| tag[idx + 8..].trim().bytes().all(|c| c == b'#'))
+                        .or_else(|| tag.find("Panics\n").filter(|_| matches!(events.peek(), Some((Html(ln) | InlineHtml(ln), _)) if ln.trim().bytes().all(|c| c == b'=') || ln.trim().bytes().all(|c| c == b'-')))) &&
+                    tag[..idx].trim().bytes().all(|c| c == b'#')
+                {
+                    headers.panics = DocHeaderInfo::suspicious_html(
+                        cx,
+                        fragments,
+                        range.start,
+                        attrs,
+                        &containers,
+                    );
+                }
             },
             Start(BlockQuote(_)) => {
                 blockquote_level += 1;
@@ -1276,13 +1421,28 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
                     continue;
                 }
                 let trimmed_text = text.trim();
-                headers.safety |= in_heading && trimmed_text == "Safety";
-                headers.safety |= in_heading && trimmed_text == "SAFETY";
-                headers.safety |= in_heading && trimmed_text == "Implementation safety";
-                headers.safety |= in_heading && trimmed_text == "Implementation Safety";
-                headers.errors |= in_heading && trimmed_text == "Errors";
-                headers.panics |= in_heading && trimmed_text == "Panics";
-
+                if in_heading {
+                    if headers.safety.is_missing()
+                        && (
+                            trimmed_text == "Safety"
+                            || trimmed_text == "SAFETY"
+                            || trimmed_text == "Implementation safety"
+                            || trimmed_text == "Implementation Safety"
+                        )
+                    {
+                        headers.safety = DocHeaderInfo::Found;
+                    }
+                    if headers.errors.is_missing()
+                        && trimmed_text == "Errors"
+                    {
+                        headers.errors = DocHeaderInfo::Found;
+                    }
+                    if headers.panics.is_missing()
+                        && trimmed_text == "Panics"
+                    {
+                        headers.panics = DocHeaderInfo::Found;
+                    }
+                }
                 if let Some(tags) = code {
                     if tags.rust && !tags.compile_fail && !tags.ignore {
                         needless_doctest_main::check(cx, &text, range.start, fragments);
