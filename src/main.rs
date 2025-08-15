@@ -95,6 +95,10 @@ impl ClippyCmd {
     }
 
     fn path() -> PathBuf {
+        if let Ok(driver) = env::var("CLIPPY_DRIVER") {
+            return PathBuf::from(driver);
+        }
+
         let mut path = env::current_exe()
             .expect("current executable path invalid")
             .with_file_name("clippy-driver");
