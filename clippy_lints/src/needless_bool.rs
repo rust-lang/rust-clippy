@@ -324,10 +324,8 @@ fn check_comparison<'a, 'tcx>(
     if let ExprKind::Binary(op, left_side, right_side) = e.kind
         && is_expn_of(left_side.span, sym::cfg).is_none()
         && is_expn_of(right_side.span, sym::cfg).is_none()
-        && let l_ty = cx.typeck_results().expr_ty(left_side)
-        && l_ty.is_bool()
-        && let r_ty = cx.typeck_results().expr_ty(right_side)
-        && r_ty.is_bool()
+        && cx.typeck_results().expr_ty(left_side).is_bool()
+        && cx.typeck_results().expr_ty(right_side).is_bool()
     {
         let mut applicability = Applicability::MachineApplicable;
         // Eliminate parentheses in `e` by using the lo pos of lhs and hi pos of rhs,
