@@ -332,10 +332,7 @@ fn check_comparison<'a, 'tcx>(
         let mut applicability = Applicability::MachineApplicable;
         // Eliminate parentheses in `e` by using the lo pos of lhs and hi pos of rhs,
         // calling `source_callsite` make sure macros are handled correctly, see issue #9907
-        let binop_span = left_side
-            .span
-            .source_callsite()
-            .with_hi(right_side.span.source_callsite().hi());
+        let binop_span = left_side.span.source_callsite().to(right_side.span.source_callsite());
 
         if op.node == BinOpKind::Eq {
             let expression_info = one_side_is_unary_not(left_side, right_side);
