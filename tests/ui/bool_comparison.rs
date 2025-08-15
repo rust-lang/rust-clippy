@@ -4,91 +4,36 @@
 
 fn main() {
     let x = true;
-    if x == true {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if x == false {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if true == x {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if false == x {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if x != true {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if x != false {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if true != x {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if false != x {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if x < true {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if false < x {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if x > false {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if true > x {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
+    let _ = if x == true { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if x == false { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if true == x { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if false == x { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if x != true { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if x != false { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if true != x { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if false != x { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if x < true { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if false < x { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if x > false { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if true > x { "yes" } else { "no" };
+    //~^ bool_comparison
+
     let y = true;
-    if x < y {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if x > y {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
+    let _ = if x < y { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if x > y { "yes" } else { "no" };
+    //~^ bool_comparison
 }
 
 #[allow(dead_code)]

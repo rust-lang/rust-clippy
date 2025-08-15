@@ -4,91 +4,36 @@
 
 fn main() {
     let x = true;
-    if x {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if !x {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if x {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if !x {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if !x {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if x {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if !x {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if x {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if !x {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if x {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if x {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if !x {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
+    let _ = if x { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if !x { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if x { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if !x { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if !x { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if x { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if !x { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if x { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if !x { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if x { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if x { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if !x { "yes" } else { "no" };
+    //~^ bool_comparison
+
     let y = true;
-    if !x & y {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
-    if x & !y {
-        //~^ bool_comparison
-        "yes"
-    } else {
-        "no"
-    };
+    let _ = if !x & y { "yes" } else { "no" };
+    //~^ bool_comparison
+    let _ = if x & !y { "yes" } else { "no" };
+    //~^ bool_comparison
 }
 
 #[allow(dead_code)]
