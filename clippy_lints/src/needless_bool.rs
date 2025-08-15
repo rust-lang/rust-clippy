@@ -346,7 +346,7 @@ fn check_comparison<'a, 'tcx>(
                         BOOL_COMPARISON,
                         binop_span,
                         "this comparison might be written more concisely",
-                        "try simplifying it as shown",
+                        "try simplifying it",
                         format!(
                             "{} != {}",
                             snippet_with_applicability(
@@ -388,7 +388,7 @@ fn check_comparison<'a, 'tcx>(
                         BOOL_COMPARISON,
                         binop_span,
                         m,
-                        "try simplifying it as shown",
+                        "try simplifying it",
                         h(left_side, right_side).into_string(),
                         applicability,
                     );
@@ -413,7 +413,7 @@ fn suggest_bool_comparison<'a, 'tcx>(
         BOOL_COMPARISON,
         span,
         message,
-        "try simplifying it as shown",
+        "try simplifying it",
         conv_hint(hint).into_string(),
         app,
     );

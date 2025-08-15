@@ -158,7 +158,7 @@ error: this comparison might be written more concisely
   --> tests/ui/nonminimal_bool.rs:182:8
    |
 LL |     if !b == true {}
-   |        ^^^^^^^^^^ help: try simplifying it as shown: `b != true`
+   |        ^^^^^^^^^^ help: try simplifying it: `b != true`
    |
    = note: `-D clippy::bool-comparison` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::bool_comparison)]`
@@ -167,7 +167,7 @@ error: equality checks against true are unnecessary
   --> tests/ui/nonminimal_bool.rs:182:8
    |
 LL |     if !b == true {}
-   |        ^^^^^^^^^^ help: try simplifying it as shown: `!b`
+   |        ^^^^^^^^^^ help: try simplifying it: `!b`
 
 error: this boolean expression can be simplified
   --> tests/ui/nonminimal_bool.rs:186:8
@@ -179,7 +179,7 @@ error: inequality checks against true can be replaced by a negation
   --> tests/ui/nonminimal_bool.rs:186:8
    |
 LL |     if !b != true {}
-   |        ^^^^^^^^^^ help: try simplifying it as shown: `b`
+   |        ^^^^^^^^^^ help: try simplifying it: `b`
 
 error: this boolean expression can be simplified
   --> tests/ui/nonminimal_bool.rs:189:8
@@ -191,13 +191,13 @@ error: this comparison might be written more concisely
   --> tests/ui/nonminimal_bool.rs:189:8
    |
 LL |     if true == !b {}
-   |        ^^^^^^^^^^ help: try simplifying it as shown: `true != b`
+   |        ^^^^^^^^^^ help: try simplifying it: `true != b`
 
 error: equality checks against true are unnecessary
   --> tests/ui/nonminimal_bool.rs:189:8
    |
 LL |     if true == !b {}
-   |        ^^^^^^^^^^ help: try simplifying it as shown: `!b`
+   |        ^^^^^^^^^^ help: try simplifying it: `!b`
 
 error: this boolean expression can be simplified
   --> tests/ui/nonminimal_bool.rs:193:8
@@ -209,7 +209,7 @@ error: inequality checks against true can be replaced by a negation
   --> tests/ui/nonminimal_bool.rs:193:8
    |
 LL |     if true != !b {}
-   |        ^^^^^^^^^^ help: try simplifying it as shown: `b`
+   |        ^^^^^^^^^^ help: try simplifying it: `b`
 
 error: this boolean expression can be simplified
   --> tests/ui/nonminimal_bool.rs:196:8
@@ -245,7 +245,7 @@ error: inequality checks against true can be replaced by a negation
   --> tests/ui/nonminimal_bool.rs:253:8
    |
 LL |     if !S != true {}
-   |        ^^^^^^^^^^ help: try simplifying it as shown: `!!S`
+   |        ^^^^^^^^^^ help: try simplifying it: `!!S`
 
 error: aborting due to 33 previous errors
 
