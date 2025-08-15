@@ -1,0 +1,41 @@
+error: using `.iter().last()` on an array
+  --> tests/ui/iter_last_slice.rs:9:13
+   |
+LL |     let _ = s.iter().last();
+   |             ^^^^^^^^^^^^^^^ help: try calling: `s.last()`
+   |
+   = note: `-D clippy::iter-last-slice` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::iter_last_slice)]`
+
+error: using `.iter().last()` on a slice without end index
+  --> tests/ui/iter_last_slice.rs:13:13
+   |
+LL |     let _ = s[..2].iter().last();
+   |             ^^^^^^^^^^^^^^^^^^^^ help: try calling: `s.get(1)`
+
+error: using `.iter().last()` on a slice without end index
+  --> tests/ui/iter_last_slice.rs:16:13
+   |
+LL |     let _ = s[..=2].iter().last();
+   |             ^^^^^^^^^^^^^^^^^^^^^ help: try calling: `s.get(2)`
+
+error: using `.iter().last()` on a slice without end index
+  --> tests/ui/iter_last_slice.rs:20:13
+   |
+LL |     let _ = v[..5].iter().last();
+   |             ^^^^^^^^^^^^^^^^^^^^ help: try calling: `v.get(4)`
+
+error: using `.iter().last()` on a slice without end index
+  --> tests/ui/iter_last_slice.rs:23:13
+   |
+LL |     let _ = v[..=5].iter().last();
+   |             ^^^^^^^^^^^^^^^^^^^^^ help: try calling: `v.get(5)`
+
+error: using `.iter().last()` on an array
+  --> tests/ui/iter_last_slice.rs:27:13
+   |
+LL |     let _ = v.iter().last();
+   |             ^^^^^^^^^^^^^^^ help: try calling: `v.last()`
+
+error: aborting due to 6 previous errors
+

@@ -393,6 +393,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::methods::ITER_FILTER_IS_OK_INFO,
     crate::methods::ITER_FILTER_IS_SOME_INFO,
     crate::methods::ITER_KV_MAP_INFO,
+    crate::methods::ITER_LAST_SLICE_INFO,
     crate::methods::ITER_NEXT_SLICE_INFO,
     crate::methods::ITER_NTH_INFO,
     crate::methods::ITER_NTH_ZERO_INFO,

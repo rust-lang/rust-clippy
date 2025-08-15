@@ -44,6 +44,7 @@ mod iter_cloned_collect;
 mod iter_count;
 mod iter_filter;
 mod iter_kv_map;
+mod iter_last_slice;
 mod iter_next_slice;
 mod iter_nth;
 mod iter_nth_zero;
@@ -1818,6 +1819,33 @@ declare_clippy_lint! {
     pub ITER_NEXT_SLICE,
     style,
     "using `.iter().next()` on a sliced array, which can be shortened to just `.get()`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `iter().last()` on a Slice or an Array.
+    ///
+    /// ### Why is this bad?
+    /// These can be shortened into `.last()`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let a = [1, 2, 3];
+    /// # let b = vec![1, 2, 3];
+    /// a[..2].iter().last();
+    /// b.iter().last();
+    /// ```
+    /// should be written as:
+    /// ```no_run
+    /// # let a = [1, 2, 3];
+    /// # let b = vec![1, 2, 3];
+    /// a.get(1);
+    /// b.get(0);
+    /// ```
+    #[clippy::version = "1.46.0"]
+    pub ITER_LAST_SLICE,
+    style,
+    "using `.iter().next()` on a slice, array or `Vec`, which can be shortened to just `.get()`"
 }
 
 declare_clippy_lint! {
@@ -4644,6 +4672,7 @@ impl_lint_pass!(Methods => [
     FLAT_MAP_IDENTITY,
     MAP_FLATTEN,
     ITERATOR_STEP_BY_ZERO,
+    ITER_LAST_SLICE,
     ITER_NEXT_SLICE,
     ITER_COUNT,
     ITER_NTH,
@@ -5228,17 +5257,27 @@ impl Methods {
                     }
                 },
                 (sym::last, []) => {
-                    if let Some((sym::cloned, recv2, [], _span2, _)) = method_call(recv) {
-                        iter_overeager_cloned::check(
-                            cx,
-                            expr,
-                            recv,
-                            recv2,
-                            iter_overeager_cloned::Op::LaterCloned,
-                            false,
-                        );
+                    let method_call = method_call(recv);
+
+                    match method_call {
+                        Some((sym::cloned, recv2, [], _, _)) => {
+                            iter_overeager_cloned::check(
+                                cx,
+                                expr,
+                                recv,
+                                recv2,
+                                iter_overeager_cloned::Op::LaterCloned,
+                                false,
+                            );
+                            double_ended_iterator_last::check(cx, expr, recv, call_span);
+                        },
+
+                        Some((sym::iter, recv2, [], _, _)) => iter_last_slice::check(cx, expr, recv2),
+
+                        _ => {
+                            double_ended_iterator_last::check(cx, expr, recv, call_span);
+                        },
                     }
-                    double_ended_iterator_last::check(cx, expr, recv, call_span);
                 },
                 (sym::len, []) => {
                     if let Some((prev_method @ (sym::as_bytes | sym::bytes), prev_recv, [], _, _)) = method_call(recv) {
