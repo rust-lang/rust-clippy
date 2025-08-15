@@ -232,7 +232,12 @@ impl<'tcx> LateLintPass<'tcx> for BoolComparison {
             return;
         }
 
-        if let ExprKind::Binary(Spanned { node, .. }, ..) = e.kind {
+        if let ExprKind::Binary(Spanned { node, .. }, left_side, right_side) = e.kind
+            && is_expn_of(left_side.span, sym::cfg).is_none()
+            && is_expn_of(right_side.span, sym::cfg).is_none()
+            && cx.typeck_results().expr_ty(left_side).is_bool()
+            && cx.typeck_results().expr_ty(right_side).is_bool()
+        {
             let ignore_case = None::<(fn(_) -> _, &str)>;
             let ignore_no_literal = None::<(fn(_, _) -> _, &str)>;
             match node {
@@ -321,12 +326,7 @@ fn check_comparison<'a, 'tcx>(
     right_false: Option<(impl FnOnce(Sugg<'a>) -> Sugg<'a>, &'static str)>,
     no_literal: Option<(impl FnOnce(Sugg<'a>, Sugg<'a>) -> Sugg<'a>, &'static str)>,
 ) {
-    if let ExprKind::Binary(op, left_side, right_side) = e.kind
-        && is_expn_of(left_side.span, sym::cfg).is_none()
-        && is_expn_of(right_side.span, sym::cfg).is_none()
-        && cx.typeck_results().expr_ty(left_side).is_bool()
-        && cx.typeck_results().expr_ty(right_side).is_bool()
-    {
+    if let ExprKind::Binary(op, left_side, right_side) = e.kind {
         let mut applicability = Applicability::MachineApplicable;
         // Eliminate parentheses in `e` by using the lo pos of lhs and hi pos of rhs,
         // calling `source_callsite` make sure macros are handled correctly, see issue #9907
