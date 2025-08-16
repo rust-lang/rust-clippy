@@ -1,10 +1,13 @@
 use rustc_errors::Applicability;
 use rustc_lint::LateContext;
-use rustc_middle::ty::Ty;
+use rustc_middle::ty::{self, Ty};
 
 pub fn check<'tcx>(cx: &LateContext<'tcx>, ty_into: Ty<'_>, cast_to_hir: &'tcx rustc_hir::Ty<'tcx>) {
     if let rustc_hir::TyKind::Ptr(rustc_hir::MutTy { ty, .. }) = cast_to_hir.kind
         && matches!(ty.kind, rustc_hir::TyKind::Infer(()))
+        && let ty::RawPtr(pointee, _) = ty_into.kind()
+        // skip fn item type, since it can not be explicitly expressed with syntax 
+        && !matches!(pointee.kind(), ty::FnDef(..))
     {
         clippy_utils::diagnostics::span_lint_and_sugg(
             cx,
