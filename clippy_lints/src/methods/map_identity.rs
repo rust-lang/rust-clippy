@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::ty::is_type_diagnostic_item;
+use clippy_utils::ty::{is_copy, is_type_diagnostic_item};
 use clippy_utils::{is_expr_untyped_identity_function, is_mutable, is_trait_method, path_to_local_with_projections};
 use rustc_errors::Applicability;
 use rustc_hir::{self as hir, ExprKind, Node, PatKind};
@@ -28,7 +28,14 @@ pub(super) fn check(
         && let Some(call_span) = expr.span.trim_start(caller.span)
     {
         let main_sugg = (call_span, String::new());
-        let mut app = Applicability::MachineApplicable;
+        let mut app = if is_copy(cx, caller_ty) {
+            // there is technically a behavioral change here for `Copy` iterators, where
+            // `iter.map(|x| x).next()` would mutate a temporary copy of the iterator and
+            // changing it to `iter.next()` mutates iter directly
+            Applicability::Unspecified
+        } else {
+            Applicability::MachineApplicable
+        };
 
         let needs_to_be_mutable = cx.typeck_results().expr_ty_adjusted(expr).is_mutable_ptr();
         if needs_to_be_mutable && !is_mutable(cx, caller) {
