@@ -494,9 +494,9 @@ pub fn peel_mid_ty_refs_is_mutable(ty: Ty<'_>) -> (Ty<'_>, usize, Mutability) {
 }
 
 /// Returns the base type for HIR references and pointers.
-pub fn walk_ptrs_hir_ty<'tcx>(ty: &'tcx hir::Ty<'tcx>) -> &'tcx hir::Ty<'tcx> {
+pub fn peel_hir_ty_refs_and_ptrs<'tcx>(ty: &'tcx hir::Ty<'tcx>) -> &'tcx hir::Ty<'tcx> {
     match &ty.kind {
-        TyKind::Ptr(mut_ty) | TyKind::Ref(_, mut_ty) => walk_ptrs_hir_ty(mut_ty.ty),
+        TyKind::Ptr(mut_ty) | TyKind::Ref(_, mut_ty) => peel_hir_ty_refs_and_ptrs(mut_ty.ty),
         _ => ty,
     }
 }
