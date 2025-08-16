@@ -39,7 +39,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, cast_expr: &Expr<'_>,
             RawPartsKind::Mutable => "from_raw_parts_mut",
         };
         let span = expr.span;
-        let mut applicability = Applicability::MachineApplicable;
+        let mut applicability = Applicability::MaybeIncorrect;
         let ptr = snippet_with_context(cx, ptr_arg.span, ctxt, "ptr", &mut applicability).0;
         let len = snippet_with_context(cx, len_arg.span, ctxt, "len", &mut applicability).0;
         span_lint_and_sugg(
