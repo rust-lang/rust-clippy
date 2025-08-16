@@ -1,5 +1,7 @@
+#![feature(array_chunks)]
 #![feature(array_windows)]
 #![feature(box_patterns)]
+#![feature(cmp_minmax)]
 #![feature(macro_metavar_expr_concat)]
 #![feature(f128)]
 #![feature(f16)]
@@ -30,6 +32,7 @@
 
 // FIXME: switch to something more ergonomic here, once available.
 // (Currently there is no way to opt into sysroot crates without `extern crate`.)
+extern crate indexmap;
 extern crate pulldown_cmark;
 extern crate rustc_abi;
 extern crate rustc_arena;
@@ -47,6 +50,7 @@ extern crate rustc_infer;
 extern crate rustc_lexer;
 extern crate rustc_lint;
 extern crate rustc_middle;
+extern crate rustc_mir_dataflow;
 extern crate rustc_parse;
 extern crate rustc_parse_format;
 extern crate rustc_resolve;
