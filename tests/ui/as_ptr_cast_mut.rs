@@ -36,3 +36,12 @@ fn main() {
     let ref_with_write_perm = Covariant(std::ptr::addr_of_mut!(local) as *const _);
     let _ = ref_with_write_perm.as_ptr() as *mut u8;
 }
+
+mod issue15259 {
+    use std::slice::from_raw_parts_mut;
+
+    #[allow(clippy::ptr_arg, clippy::mut_from_ref)]
+    pub fn as_mut_slice<T>(self_: &Vec<T>) -> &mut [T] {
+        unsafe { from_raw_parts_mut(self_.as_ptr() as *mut T, self_.len()) }
+    }
+}
