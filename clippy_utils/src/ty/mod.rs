@@ -475,6 +475,11 @@ pub fn needs_ordered_drop<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
     needs_ordered_drop_inner(cx, ty, &mut FxHashSet::default())
 }
 
+/// Returns `true` if the given type is an `unsafe` function.
+pub fn type_is_unsafe_function<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
+    ty.is_fn() && ty.fn_sig(cx.tcx).safety().is_unsafe()
+}
+
 /// Peels off all references on the type. Returns the underlying type, the number of references
 /// removed, and whether the pointer is ultimately mutable or not.
 pub fn peel_mid_ty_refs_is_mutable(ty: Ty<'_>) -> (Ty<'_>, usize, Mutability) {
@@ -486,11 +491,6 @@ pub fn peel_mid_ty_refs_is_mutable(ty: Ty<'_>) -> (Ty<'_>, usize, Mutability) {
         }
     }
     f(ty, 0, Mutability::Mut)
-}
-
-/// Returns `true` if the given type is an `unsafe` function.
-pub fn type_is_unsafe_function<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
-    ty.is_fn() && ty.fn_sig(cx.tcx).safety().is_unsafe()
 }
 
 /// Returns the base type for HIR references and pointers.
