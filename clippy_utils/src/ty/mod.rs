@@ -501,16 +501,15 @@ pub fn walk_ptrs_hir_ty<'tcx>(ty: &'tcx hir::Ty<'tcx>) -> &'tcx hir::Ty<'tcx> {
     }
 }
 
-/// Returns the base type for references and raw pointers, and count reference
-/// depth.
-pub fn walk_ptrs_ty_depth(ty: Ty<'_>) -> (Ty<'_>, usize) {
-    fn inner(ty: Ty<'_>, depth: usize) -> (Ty<'_>, usize) {
-        match ty.kind() {
-            ty::Ref(_, ty, _) => inner(*ty, depth + 1),
-            _ => (ty, depth),
-        }
+/// Peels off all references on the type. Returns the underlying type and the number of references
+/// removed.
+pub fn peel_middle_ty_refs(mut ty: Ty<'_>) -> (Ty<'_>, usize) {
+    let mut count = 0;
+    while let ty::Ref(_, dest_ty, _) = ty.kind() {
+        ty = *dest_ty;
+        count += 1;
     }
-    inner(ty, 0)
+    (ty, count)
 }
 
 /// Returns `true` if types `a` and `b` are same types having same `Const` generic args,

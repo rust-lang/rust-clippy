@@ -1,10 +1,9 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_hir_and_then};
 use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
 use clippy_utils::sugg::has_enclosing_paren;
-use clippy_utils::ty::{adjust_derefs_manually_drop, implements_trait, is_manually_drop};
+use clippy_utils::ty::{adjust_derefs_manually_drop, implements_trait, is_manually_drop, peel_middle_ty_refs};
 use clippy_utils::{
     DefinedTy, ExprUseNode, expr_use_ctxt, get_parent_expr, is_block_like, is_lint_allowed, path_to_local,
-    peel_middle_ty_refs,
 };
 use rustc_ast::util::parser::ExprPrecedence;
 use rustc_data_structures::fx::FxIndexMap;

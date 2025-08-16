@@ -2,10 +2,8 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::{
     SpanRangeExt, expr_block, snippet, snippet_block_with_context, snippet_with_applicability, snippet_with_context,
 };
-use clippy_utils::ty::implements_trait;
-use clippy_utils::{
-    is_lint_allowed, is_unit_expr, peel_blocks, peel_hir_pat_refs, peel_middle_ty_refs, peel_n_hir_expr_refs,
-};
+use clippy_utils::ty::{implements_trait, peel_middle_ty_refs};
+use clippy_utils::{is_lint_allowed, is_unit_expr, peel_blocks, peel_hir_pat_refs, peel_n_hir_expr_refs};
 use core::ops::ControlFlow;
 use rustc_arena::DroplessArena;
 use rustc_errors::{Applicability, Diag};
