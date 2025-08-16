@@ -185,32 +185,6 @@ LL ~
 error: this loop never actually loops
   --> tests/ui/never_loop.rs:434:5
    |
-LL | /     'outer: for v in 0..10 {
-LL | |
-LL | |         loop {
-...  |
-LL | |         return;
-LL | |     }
-   | |_____^
-   |
-help: if you need the first element of the iterator, try writing
-   |
-LL -     'outer: for v in 0..10 {
-LL +     if let Some(v) = (0..10).next() {
-   |
-
-error: this loop never actually loops
-  --> tests/ui/never_loop.rs:436:9
-   |
-LL | /         loop {
-LL | |
-LL | |             break 'outer;
-LL | |         }
-   | |_________^
-
-error: this loop never actually loops
-  --> tests/ui/never_loop.rs:443:5
-   |
 LL | /     for v in 0..10 {
 LL | |
 LL | |         'inner: loop {
@@ -226,7 +200,7 @@ LL +     if let Some(v) = (0..10).next() {
    |
 
 error: this loop never actually loops
-  --> tests/ui/never_loop.rs:445:9
+  --> tests/ui/never_loop.rs:436:9
    |
 LL | /         'inner: loop {
 LL | |
@@ -235,7 +209,7 @@ LL | |         }
    | |_________^
 
 error: this loop never actually loops
-  --> tests/ui/never_loop.rs:471:5
+  --> tests/ui/never_loop.rs:462:5
    |
 LL | /     'a: for _ in 0..1 {
 LL | |
@@ -251,7 +225,7 @@ LL ~
    |
 
 error: this loop never actually loops
-  --> tests/ui/never_loop.rs:477:5
+  --> tests/ui/never_loop.rs:468:5
    |
 LL | /     'a: for i in 0..1 {
 LL | |
@@ -275,7 +249,7 @@ LL ~
    |
 
 error: this loop never actually loops
-  --> tests/ui/never_loop.rs:492:5
+  --> tests/ui/never_loop.rs:483:5
    |
 LL | /     for v in 0..10 {
 LL | |
@@ -297,5 +271,5 @@ LL ~
 LL ~         
    |
 
-error: aborting due to 24 previous errors
+error: aborting due to 22 previous errors
 

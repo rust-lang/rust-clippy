@@ -31,5 +31,59 @@ LL -     for i in [1, 2, 3].iter() {
 LL +     if let Some(i) = [1, 2, 3].iter().next() {
    |
 
-error: aborting due to 2 previous errors
+error: this loop never actually loops
+  --> tests/ui/never_loop_fixable.rs:23:5
+   |
+LL | /     'outer: for v in 0..10 {
+LL | |
+LL | |         loop {
+...  |
+LL | |         return;
+LL | |     }
+   | |_____^
+   |
+help: if you need the first element of the iterator, try writing
+   |
+LL ~     if let Some(v) = (0..10).next() {
+LL |
+LL ~         
+LL ~         
+   |
+
+error: this loop never actually loops
+  --> tests/ui/never_loop_fixable.rs:25:9
+   |
+LL | /         loop {
+LL | |
+LL | |             break 'outer;
+LL | |         }
+   | |_________^
+
+error: this loop never actually loops
+  --> tests/ui/never_loop_fixable.rs:34:5
+   |
+LL | /     'bar: for _ in 0..100 {
+LL | |
+LL | |         loop {
+...  |
+LL | |     }
+   | |_____^
+   |
+help: if you need the first element of the iterator, try writing
+   |
+LL ~     if let Some(_) = (0..100).next() {
+LL |
+LL ~         
+   |
+
+error: this loop never actually loops
+  --> tests/ui/never_loop_fixable.rs:36:9
+   |
+LL | /         loop {
+LL | |
+LL | |             break 'bar;
+LL | |         }
+   | |_________^
+
+error: aborting due to 6 previous errors
 
