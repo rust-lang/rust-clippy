@@ -305,6 +305,11 @@ impl<'tcx> VarVisitor<'_, 'tcx> {
             }
             return false;
         }
+
+        // check whether the struct/tuple is referenced by a name, when the seqexpr is a field expr.
+        if let ExprKind::Field(sq_expr, _) = seqexpr.kind {
+            return self.check(idx, sq_expr, expr);
+        }
         true
     }
 }
