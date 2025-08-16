@@ -59,3 +59,20 @@ fn test_unit_ref_2(v: &[(usize, ())]) {
         let _ = x;
     }
 }
+
+fn issue15187() {
+    let func: fn(&()) = |_| {};
+    //~^ ERROR: matching over `()` is more explicit
+    let func: fn(&mut ()) = |_| {};
+    //~^ ERROR: matching over `()` is more explicit
+    let func: fn(&&mut ()) = |_| {};
+    //~^ ERROR: matching over `()` is more explicit
+    let func: fn(&&mut &()) = |_| {};
+    //~^ ERROR: matching over `()` is more explicit
+
+    #[allow(clippy::match_single_binding)]
+    match &() {
+        _ => todo!(),
+        //~^ ERROR: matching over `()` is more explicit
+    }
+}

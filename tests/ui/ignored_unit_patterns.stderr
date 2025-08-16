@@ -47,7 +47,7 @@ error: matching over `()` is more explicit
   --> tests/ui/ignored_unit_patterns.rs:50:13
    |
 LL |         (1, _) => unimplemented!(),
-   |             ^ help: use `()` instead of `_`: `()`
+   |             ^ help: use `()` instead of `_`: `&&&&&()`
 
 error: matching over `()` is more explicit
   --> tests/ui/ignored_unit_patterns.rs:57:13
@@ -55,5 +55,35 @@ error: matching over `()` is more explicit
 LL |     for (x, _) in v {
    |             ^ help: use `()` instead of `_`: `()`
 
-error: aborting due to 9 previous errors
+error: matching over `()` is more explicit
+  --> tests/ui/ignored_unit_patterns.rs:64:26
+   |
+LL |     let func: fn(&()) = |_| {};
+   |                          ^ help: use `()` instead of `_`: `&()`
+
+error: matching over `()` is more explicit
+  --> tests/ui/ignored_unit_patterns.rs:66:30
+   |
+LL |     let func: fn(&mut ()) = |_| {};
+   |                              ^ help: use `()` instead of `_`: `&mut ()`
+
+error: matching over `()` is more explicit
+  --> tests/ui/ignored_unit_patterns.rs:68:31
+   |
+LL |     let func: fn(&&mut ()) = |_| {};
+   |                               ^ help: use `()` instead of `_`: `&&mut ()`
+
+error: matching over `()` is more explicit
+  --> tests/ui/ignored_unit_patterns.rs:70:32
+   |
+LL |     let func: fn(&&mut &()) = |_| {};
+   |                                ^ help: use `()` instead of `_`: `&&mut &()`
+
+error: matching over `()` is more explicit
+  --> tests/ui/ignored_unit_patterns.rs:75:9
+   |
+LL |         _ => todo!(),
+   |         ^ help: use `()` instead of `_`: `&()`
+
+error: aborting due to 14 previous errors
 

@@ -47,7 +47,7 @@ pub fn moo(_: ()) {
 fn test_unit_ref_1() {
     let x: (usize, &&&&&()) = (1, &&&&&&());
     match x {
-        (1, ()) => unimplemented!(),
+        (1, &&&&&()) => unimplemented!(),
         //~^ ERROR: matching over `()` is more explicit
         _ => unimplemented!(),
     };
@@ -57,5 +57,22 @@ fn test_unit_ref_2(v: &[(usize, ())]) {
     for (x, ()) in v {
         //~^ ERROR: matching over `()` is more explicit
         let _ = x;
+    }
+}
+
+fn issue15187() {
+    let func: fn(&()) = |&()| {};
+    //~^ ERROR: matching over `()` is more explicit
+    let func: fn(&mut ()) = |&mut ()| {};
+    //~^ ERROR: matching over `()` is more explicit
+    let func: fn(&&mut ()) = |&&mut ()| {};
+    //~^ ERROR: matching over `()` is more explicit
+    let func: fn(&&mut &()) = |&&mut &()| {};
+    //~^ ERROR: matching over `()` is more explicit
+
+    #[allow(clippy::match_single_binding)]
+    match &() {
+        &() => todo!(),
+        //~^ ERROR: matching over `()` is more explicit
     }
 }
