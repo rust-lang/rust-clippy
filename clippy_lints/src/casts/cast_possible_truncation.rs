@@ -27,7 +27,9 @@ fn get_constant_bits(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<u64> {
 }
 
 fn apply_reductions(cx: &LateContext<'_>, nbits: u64, expr: &Expr<'_>, signed: bool) -> u64 {
-    match expr_or_init(cx, expr).kind {
+    let expr = expr_or_init(cx, expr);
+
+    match expr.kind {
         ExprKind::Cast(inner, _) => apply_reductions(cx, nbits, inner, signed),
         ExprKind::Block(block, _) => block.expr.map_or(nbits, |e| apply_reductions(cx, nbits, e, signed)),
         ExprKind::Binary(op, left, right) => match op.node {
@@ -79,6 +81,7 @@ fn apply_reductions(cx: &LateContext<'_>, nbits: u64, expr: &Expr<'_>, signed: b
                 nbits
             }
         },
+        ExprKind::Call(..) => get_constant_bits(cx, expr).unwrap_or(nbits),
         _ => nbits,
     }
 }
@@ -103,7 +106,7 @@ pub(super) fn check(
             let (should_lint, suffix) = match (is_isize_or_usize(cast_from), is_isize_or_usize(cast_to)) {
                 (true, true) | (false, false) => (to_nbits < from_nbits, ""),
                 (true, false) => (
-                    to_nbits <= 32,
+                    to_nbits <= 32 && from_nbits >= to_nbits,
                     if to_nbits == 32 {
                         " on targets with 64-bit wide pointers"
                     } else {
