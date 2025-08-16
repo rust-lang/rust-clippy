@@ -77,15 +77,18 @@ impl<const REPLACEMENT_ALLOWED: bool> DisallowedPath<REPLACEMENT_ALLOWED> {
         &self.path
     }
 
-    pub fn diag_amendment(&self, span: Span) -> impl FnOnce(&mut Diag<'_, ()>) {
+    pub fn replacement(&self) -> Option<&str> {
+        self.replacement.as_deref()
+    }
+
+    pub fn reason(&self) -> &str {
+        self.reason.as_deref().unwrap_or("use")
+    }
+
+    pub fn diag_amendment(&self, span: Span, applicability: Applicability) -> impl FnOnce(&mut Diag<'_, ()>) {
         move |diag| {
             if let Some(replacement) = &self.replacement {
-                diag.span_suggestion(
-                    span,
-                    self.reason.as_ref().map_or_else(|| String::from("use"), Clone::clone),
-                    replacement,
-                    Applicability::MachineApplicable,
-                );
+                diag.span_suggestion(span, self.reason().to_string(), replacement, applicability);
             } else if let Some(reason) = &self.reason {
                 diag.note(reason.clone());
             }
