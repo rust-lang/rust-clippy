@@ -1,0 +1,83 @@
+#![warn(clippy::parsed_string_literals)]
+
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+
+fn main() {
+    _ = Ipv4Addr::new(137, 194, 161, 2);
+    //~^ parsed_string_literals
+
+    _ = Ipv4Addr::LOCALHOST;
+    //~^ parsed_string_literals
+
+    _ = Ipv4Addr::BROADCAST;
+    //~^ parsed_string_literals
+
+    _ = Ipv4Addr::UNSPECIFIED;
+    //~^ parsed_string_literals
+
+    // Wrong address family
+    _ = "::1".parse::<Ipv4Addr>().unwrap();
+    _ = "127.0.0.1".parse::<Ipv6Addr>().unwrap();
+
+    _ = Ipv6Addr::LOCALHOST;
+    //~^ parsed_string_literals
+
+    _ = Ipv6Addr::UNSPECIFIED;
+    //~^ parsed_string_literals
+
+    _ = IpAddr::V6(Ipv6Addr::LOCALHOST);
+    //~^ parsed_string_literals
+
+    _ = IpAddr::V6(Ipv6Addr::UNSPECIFIED);
+    //~^ parsed_string_literals
+
+    // The substition text would be larger than the original and wouldn't use constants
+    _ = "2a04:8ec0:0:47::131".parse::<Ipv6Addr>().unwrap();
+    _ = "2a04:8ec0:0:47::131".parse::<IpAddr>().unwrap();
+
+    _ = true;
+    //~^ parsed_string_literals
+    _ = false;
+    //~^ parsed_string_literals
+
+    let _: i64 = -17_i64;
+    //~^ parsed_string_literals
+    _ = 10_usize;
+    //~^ parsed_string_literals
+    _ = 1.23_f32;
+    //~^ parsed_string_literals
+    _ = 1.2300_f32;
+    //~^ parsed_string_literals
+    _ = 'c';
+    //~^ parsed_string_literals
+    _ = '"';
+    //~^ parsed_string_literals
+    _ = '\'';
+    //~^ parsed_string_literals
+
+    // Check that the original form is preserved ('🦀' == '\u{1f980}')
+    _ = '\u{1f980}';
+    //~^ parsed_string_literals
+    _ = '🦀';
+    //~^ parsed_string_literals
+
+    // Do not lint invalid values
+    _ = "-10".parse::<usize>().unwrap();
+
+    // Do not lint content or code coming from macros
+    macro_rules! mac {
+        (str) => {
+            "10"
+        };
+        (parse $l:literal) => {
+            $l.parse::<u32>().unwrap()
+        };
+    }
+    _ = mac!(str).parse::<u32>().unwrap();
+    _ = mac!(parse "10");
+}
+
+#[clippy::msrv = "1.29"]
+fn msrv_under() {
+    _ = "::".parse::<IpAddr>().unwrap();
+}
