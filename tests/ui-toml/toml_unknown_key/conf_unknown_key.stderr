@@ -71,6 +71,7 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            source-item-ordering
            stack-size-threshold
            standard-macro-braces
+           strict-order-of-use
            struct-field-name-threshold
            suppress-restriction-lint-in-const
            third-party
@@ -165,6 +166,7 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            source-item-ordering
            stack-size-threshold
            standard-macro-braces
+           strict-order-of-use
            struct-field-name-threshold
            suppress-restriction-lint-in-const
            third-party
@@ -259,6 +261,7 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            source-item-ordering
            stack-size-threshold
            standard-macro-braces
+           strict-order-of-use
            struct-field-name-threshold
            suppress-restriction-lint-in-const
            third-party
