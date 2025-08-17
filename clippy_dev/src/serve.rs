@@ -1,16 +1,11 @@
 use crate::utils::{ErrAction, cargo_cmd, expect_action};
 use core::fmt::Display;
-use core::mem;
 use std::path::Path;
 use std::process::Command;
 use std::time::{Duration, SystemTime};
-<<<<<<< HEAD
-use std::{fs, thread};
+
+use std::{env, fs, io, thread};
 use walkdir::WalkDir;
-=======
-use std::{env, thread};
-use std::io;
->>>>>>> 48fa2fac9 (Refactor run and mtime functions: safer error handling, cleaner structure)
 
 /// Python binary depending on OS
 #[cfg(windows)]
@@ -27,45 +22,11 @@ const PYTHON: &str = "python3";
 /// # Panics
 /// Panics if spawning processes fails or the HTTP server cannot be launched.
 pub fn run(port: u16, lint: Option<String>) -> ! {
-    let mut url = Some(match lint {
+    let url = match lint {
         Some(lint) => format!("http://localhost:{port}/#{lint}"),
         None => format!("http://localhost:{port}"),
-    });
+    };
 
-<<<<<<< HEAD
-    let mut last_update = mtime("util/gh-pages/index.html");
-    loop {
-        if is_metadata_outdated(mem::replace(&mut last_update, SystemTime::now())) {
-            // Ignore the command result; we'll fall back to displaying the old metadata.
-            let _ = expect_action(
-                cargo_cmd().arg("collect-metadata").status(),
-                ErrAction::Run,
-                "cargo collect-metadata",
-            );
-            last_update = SystemTime::now();
-        }
-
-        // Only start the web server the first time around.
-        if let Some(url) = url.take() {
-            thread::spawn(move || {
-                let mut child = expect_action(
-                    Command::new(PYTHON)
-                        .args(["-m", "http.server", port.to_string().as_str()])
-                        .current_dir("util/gh-pages")
-                        .spawn(),
-                    ErrAction::Run,
-                    "python -m http.server",
-                );
-                // Give some time for python to start
-                thread::sleep(Duration::from_millis(500));
-                // Launch browser after first export.py has completed and http.server is up
-                let _result = opener::open(url);
-                expect_action(child.wait(), ErrAction::Run, "python -m http.server");
-            });
-        }
-
-        // Delay to avoid updating the metadata too aggressively.
-=======
     let mut server_started = false;
 
     loop {
@@ -77,49 +38,47 @@ pub fn run(port: u16, lint: Option<String>) -> ! {
             "tests/compile-test.rs",
         ]
         .iter()
-        .filter_map(|p| mtime(p).ok())
+        .filter_map(|p| mtime_result(p).ok())
         .collect::<Vec<_>>();
 
         // Rebuild metadata if any file is newer than index.html
         if times.iter().any(|&time| index_time < time) {
-            Command::new(env::var("CARGO").unwrap_or_else(|_| "cargo".into()))
-                .arg("collect-metadata")
-                .spawn()
-                .expect("Failed to spawn cargo collect-metadata process")
-                .wait()
-                .expect("Cargo collect-metadata process failed");
+            let _ = expect_action(
+                cargo_cmd().arg("collect-metadata").status(),
+                ErrAction::Run,
+                "cargo collect-metadata",
+            );
         }
 
         // Start HTTP server and open browser once
         if !server_started {
-            if let Some(url) = url.take() {
-                thread::spawn(move || {
-                    let mut child = Command::new(PYTHON)
-                        .arg("-m")
-                        .arg("http.server")
-                        .arg(port.to_string())
+            let url_clone = url.clone();
+            thread::spawn(move || {
+                let mut child = expect_action(
+                    Command::new(PYTHON)
+                        .args(["-m", "http.server", &port.to_string()])
                         .current_dir("util/gh-pages")
-                        .spawn()
-                        .expect("Failed to spawn Python HTTP server");
+                        .spawn(),
+                    ErrAction::Run,
+                    "python -m http.server",
+                );
 
-                    // Wait until server starts
-                    thread::sleep(Duration::from_millis(500));
+                // Wait until server starts
+                thread::sleep(Duration::from_millis(500));
 
-                    // Open browser after first export
-                    let _ = opener::open(url);
+                // Open browser after server starts
+                let _ = opener::open(url_clone);
 
-                    child.wait().expect("Python HTTP server process failed");
-                });
-                server_started = true;
-            }
+                expect_action(child.wait(), ErrAction::Run, "python -m http.server");
+            });
+            server_started = true;
         }
 
->>>>>>> 48fa2fac9 (Refactor run and mtime functions: safer error handling, cleaner structure)
+        // Delay to avoid updating the metadata too aggressively
         thread::sleep(Duration::from_millis(1000));
     }
 }
 
-<<<<<<< HEAD
 fn log_err_and_continue<T>(res: Result<T, impl Display>, path: &Path) -> Option<T> {
     match res {
         Ok(x) => Some(x),
@@ -127,17 +86,19 @@ fn log_err_and_continue<T>(res: Result<T, impl Display>, path: &Path) -> Option<
             eprintln!("error reading `{}`: {e}", path.display());
             None
         },
-=======
+    }
+}
+
 /// Get the most recent modification time of a file or directory recursively.
 /// Returns `io::Result<SystemTime>`.
-fn mtime(path: impl AsRef<Path>) -> io::Result<SystemTime> {
+fn mtime_result(path: impl AsRef<Path>) -> io::Result<SystemTime> {
     let path = path.as_ref();
 
     if path.is_dir() {
         let mut latest = SystemTime::UNIX_EPOCH;
         for entry in path.read_dir()? {
             let entry = entry?;
-            let entry_time = mtime(entry.path())?;
+            let entry_time = mtime_result(entry.path())?;
             if entry_time > latest {
                 latest = entry_time;
             }
@@ -145,24 +106,33 @@ fn mtime(path: impl AsRef<Path>) -> io::Result<SystemTime> {
         Ok(latest)
     } else {
         Ok(path.metadata()?.modified()?)
->>>>>>> 48fa2fac9 (Refactor run and mtime functions: safer error handling, cleaner structure)
     }
 }
 
-fn mtime(path: &str) -> SystemTime {
+/// Get modification time, returning UNIX_EPOCH on error
+fn mtime(path: &str) -> Option<SystemTime> {
     log_err_and_continue(fs::metadata(path), path.as_ref())
         .and_then(|metadata| log_err_and_continue(metadata.modified(), path.as_ref()))
-        .unwrap_or(SystemTime::UNIX_EPOCH)
 }
 
 fn is_metadata_outdated(time: SystemTime) -> bool {
     // Ignore all IO errors here. We don't want to stop them from hosting the server.
-    if time < mtime("util/gh-pages/index_template.html") || time < mtime("tests/compile-test.rs") {
-        return true;
+    if let Some(template_time) = mtime("util/gh-pages/index_template.html") {
+        if time < template_time {
+            return true;
+        }
     }
+
+    if let Some(test_time) = mtime("tests/compile-test.rs") {
+        if time < test_time {
+            return true;
+        }
+    }
+
     let Some(dir) = log_err_and_continue(fs::read_dir("."), ".".as_ref()) else {
         return false;
     };
+
     dir.map_while(|e| log_err_and_continue(e, ".".as_ref())).any(|e| {
         let name = e.file_name();
         let name_bytes = name.as_encoded_bytes();
