@@ -92,7 +92,6 @@ impl<'tcx> LateLintPass<'tcx> for RestWhenDestructuringStruct {
                     pat.span,
                     "struct destructuring with rest (..)",
                     |diag| {
-                        // println!("{:?}", pat);
                         diag.span_suggestion_verbose(
                             dotdot,
                             "consider explicitly ignoring remaining fields with wildcard patterns (x: _)",
