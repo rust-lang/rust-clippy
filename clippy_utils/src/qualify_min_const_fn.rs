@@ -345,20 +345,11 @@ fn check_terminator<'tcx>(
             }
             Ok(())
         },
-        TerminatorKind::SwitchInt { discr, targets: _ } => check_operand(cx, discr, span, body, msrv),
+        TerminatorKind::SwitchInt { discr, .. } => check_operand(cx, discr, span, body, msrv),
         TerminatorKind::CoroutineDrop | TerminatorKind::Yield { .. } => {
             Err((span, "const fn coroutines are unstable".into()))
         },
-        TerminatorKind::Call {
-            func,
-            args,
-            call_source: _,
-            destination: _,
-            target: _,
-            unwind: _,
-            fn_span: _,
-        }
-        | TerminatorKind::TailCall { func, args, fn_span: _ } => {
+        TerminatorKind::Call { func, args, .. } | TerminatorKind::TailCall { func, args, .. } => {
             let fn_ty = func.ty(body, cx.tcx);
             if let ty::FnDef(fn_def_id, fn_substs) = fn_ty.kind() {
                 // FIXME: when analyzing a function with generic parameters, we may not have enough information to
@@ -401,13 +392,7 @@ fn check_terminator<'tcx>(
                 Err((span, "can only call other const fns within const fn".into()))
             }
         },
-        TerminatorKind::Assert {
-            cond,
-            expected: _,
-            msg: _,
-            target: _,
-            unwind: _,
-        } => check_operand(cx, cond, span, body, msrv),
+        TerminatorKind::Assert { cond, .. } => check_operand(cx, cond, span, body, msrv),
         TerminatorKind::InlineAsm { .. } => Err((span, "cannot use inline assembly in const fn".into())),
     }
 }

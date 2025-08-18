@@ -930,9 +930,7 @@ impl<'a, 'tcx> SpanlessHash<'a, 'tcx> {
                     match piece {
                         InlineAsmTemplatePiece::String(s) => s.hash(&mut self.s),
                         InlineAsmTemplatePiece::Placeholder {
-                            operand_idx,
-                            modifier,
-                            span: _,
+                            operand_idx, modifier, ..
                         } => {
                             operand_idx.hash(&mut self.s);
                             modifier.hash(&mut self.s);
@@ -977,7 +975,7 @@ impl<'a, 'tcx> SpanlessHash<'a, 'tcx> {
                         InlineAsmOperand::Const { anon_const } => {
                             self.hash_body(anon_const.body);
                         },
-                        InlineAsmOperand::SymStatic { path, def_id: _ } => self.hash_qpath(path),
+                        InlineAsmOperand::SymStatic { path, .. } => self.hash_qpath(path),
                         InlineAsmOperand::Label { block } => self.hash_block(block),
                     }
                 }

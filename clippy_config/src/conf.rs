@@ -1017,9 +1017,9 @@ impl Conf {
 
         let TryConf {
             mut conf,
-            value_spans: _,
             errors,
             warnings,
+            ..
         } = match path {
             Ok((Some(path), _)) => match sess.source_map().load_file(path) {
                 Ok(file) => deserialize(&file),

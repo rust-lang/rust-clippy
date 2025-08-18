@@ -373,8 +373,8 @@ fn visit_clone_usage(cloned: mir::Local, clone: mir::Local, mir: &mir::Body<'_>,
             local_consume_or_mutate_locs: cloned_consume_or_mutate_locs,
         },
         LocalUsage {
-            local_use_locs: _,
             local_consume_or_mutate_locs: clone_consume_or_mutate_locs,
+            ..
         },
     )) = visit_local_usage(
         &[cloned, clone],

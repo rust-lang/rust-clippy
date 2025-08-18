@@ -633,7 +633,7 @@ where
             bounded_ty,
             bounds,
             bound_generic_params,
-            origin: _,
+            ..
         }) = predicate.kind
         {
             self.visit_where_bound_predicate(predicate.hir_id, bounded_ty, bounds, bound_generic_params);

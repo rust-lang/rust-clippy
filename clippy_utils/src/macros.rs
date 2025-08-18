@@ -434,12 +434,7 @@ impl FormatArgsStorage {
 
 /// Attempt to find the [`rustc_hir::Expr`] that corresponds to the [`FormatArgument`]'s value
 pub fn find_format_arg_expr<'hir>(start: &'hir Expr<'hir>, target: &FormatArgument) -> Option<&'hir Expr<'hir>> {
-    let SpanData {
-        lo,
-        hi,
-        ctxt,
-        parent: _,
-    } = target.expr.span.data();
+    let SpanData { lo, hi, ctxt, .. } = target.expr.span.data();
 
     for_each_expr_without_closures(start, |expr| {
         // When incremental compilation is enabled spans gain a parent during AST to HIR lowering,
