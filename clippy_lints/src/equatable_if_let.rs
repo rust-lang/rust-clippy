@@ -9,7 +9,7 @@ use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{Expr, ExprKind, Pat, PatKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
-use rustc_middle::ty::{Ty, TyCtxt};
+use rustc_middle::ty::{Instance, Ty, TyCtxt};
 use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
@@ -68,10 +68,16 @@ impl PatternEquality {
                 .is_some_and(|eq_trait| implements_trait(cx, ty, eq_trait, &[other.into()]))
         };
 
-        // TODO: add a MSRV test once `eq` becomes stably-const
         let eq_method_is_const = || {
-            self.eq_method
-                .is_some_and(|eq_method| is_stable_const_fn(cx, eq_method, self.msrv))
+            if let Some(eq_method) = self.eq_method
+                && let args = cx.tcx.mk_args(&[ty.into(), other.into()])
+                && let Ok(Some(instance)) = Instance::try_resolve(cx.tcx, cx.typing_env(), eq_method, args)
+                && is_stable_const_fn(cx, instance.def_id(), self.msrv)
+            {
+                true
+            } else {
+                false
+            }
         };
 
         is_partial_eq() && (!is_in_const_context(cx) || eq_method_is_const())
