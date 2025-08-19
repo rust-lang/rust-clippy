@@ -53,9 +53,7 @@ pub(super) struct PatternEquality {
 impl PatternEquality {
     pub(super) fn new(tcx: TyCtxt<'_>, conf: &Conf) -> Self {
         let eq_trait = tcx.lang_items().eq_trait();
-        let eq_method = eq_trait
-            .and_then(|eq_trait| tcx.provided_trait_methods(eq_trait).next())
-            .map(|eq_method| eq_method.def_id);
+        let eq_method = eq_trait.and_then(|eq_trait| tcx.associated_item_def_ids(eq_trait).first().copied());
 
         Self {
             eq_trait,
