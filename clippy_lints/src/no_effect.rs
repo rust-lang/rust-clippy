@@ -368,11 +368,12 @@ fn reduce_expression<'a>(
                 && let Some(start) = range.start
                 && let Some(end) = range.end =>
         {
-            if [start, end].into_iter().any(|e| expr_type_is_certain(cx, e)) {
-                Some(vec![start, end])
-            } else {
-                None
+            if ![start, end].into_iter().any(|e| expr_type_is_certain(cx, e)) {
+                // there's a risk that if we take the field exprs out of the context of the range constructor,
+                // their types might become ambiguous
+                *applicability = Applicability::MaybeIncorrect;
             }
+            Some(vec![start, end])
         },
         ExprKind::Struct(_, fields, ref base) => {
             if fields.iter().any(|f| !expr_type_is_certain(cx, f.expr)) {
