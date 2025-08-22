@@ -42,27 +42,25 @@ declare_lint_pass!(DoubleParens => [DOUBLE_PARENS]);
 
 impl EarlyLintPass for DoubleParens {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {
-        if expr.span.from_expansion() {
-            return;
-        }
-
         match &expr.kind {
             // ((..))
             // ^^^^^^ expr
             //  ^^^^  inner
             ExprKind::Paren(inner) if matches!(inner.kind, ExprKind::Paren(_) | ExprKind::Tup(_)) => {
                 // suggest removing the outer parens
-                let mut applicability = Applicability::MachineApplicable;
-                let sugg = snippet_with_applicability(cx.sess(), inner.span, "_", &mut applicability);
-                span_lint_and_sugg(
-                    cx,
-                    DOUBLE_PARENS,
-                    expr.span,
-                    "unnecessary parentheses",
-                    "remove them",
-                    sugg.to_string(),
-                    applicability,
-                );
+                if expr.span.eq_ctxt(inner.span) {
+                    let mut applicability = Applicability::MachineApplicable;
+                    let sugg = snippet_with_applicability(cx.sess(), inner.span, "_", &mut applicability);
+                    span_lint_and_sugg(
+                        cx,
+                        DOUBLE_PARENS,
+                        expr.span,
+                        "unnecessary parentheses",
+                        "remove them",
+                        sugg.to_string(),
+                        applicability,
+                    );
+                }
             },
 
             // func((n))
@@ -74,17 +72,19 @@ impl EarlyLintPass for DoubleParens {
                     && let ExprKind::Paren(inner) = &arg.kind =>
             {
                 // suggest removing the inner parens
-                let mut applicability = Applicability::MachineApplicable;
-                let sugg = snippet_with_applicability(cx.sess(), inner.span, "_", &mut applicability);
-                span_lint_and_sugg(
-                    cx,
-                    DOUBLE_PARENS,
-                    arg.span,
-                    "unnecessary parentheses",
-                    "remove them",
-                    sugg.to_string(),
-                    applicability,
-                );
+                if expr.span.eq_ctxt(arg.span) && arg.span.eq_ctxt(inner.span) {
+                    let mut applicability = Applicability::MachineApplicable;
+                    let sugg = snippet_with_applicability(cx.sess(), inner.span, "_", &mut applicability);
+                    span_lint_and_sugg(
+                        cx,
+                        DOUBLE_PARENS,
+                        arg.span,
+                        "unnecessary parentheses",
+                        "remove them",
+                        sugg.to_string(),
+                        applicability,
+                    );
+                }
             },
             _ => {},
         }

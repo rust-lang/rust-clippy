@@ -5,6 +5,7 @@
 
 fn dummy_fn<T>(_: T) {}
 
+#[derive(Clone, Copy)]
 struct DummyStruct;
 
 impl DummyStruct {
@@ -58,6 +59,31 @@ fn inside_macro() {
     assert_eq!((1, 2), (1, 2), "Error");
     assert_eq!(((1, 2)), (1, 2), "Error");
     //~^ double_parens
+}
+
+fn issue9000(x: DummyStruct) {
+    macro_rules! foo {
+        () => {(100)}
+    }
+    // don't lint: the inner paren comes from the macro expansion
+    (foo!());
+    dummy_fn(foo!());
+    x.dummy_method(foo!());
+
+    macro_rules! baz {
+        ($n:literal) => {($n)}
+    }
+    // don't lint: don't get confused by the expression inside the inner paren
+    // having the same context as the overall expression
+    dummy_fn(baz!(100));
+    x.dummy_method(baz!(100));
+
+    // should lint: both parens are inside the macro
+    macro_rules! bar {
+        () => {((100))}
+        //~^ double_parens
+    }
+    bar!();
 }
 
 fn main() {}

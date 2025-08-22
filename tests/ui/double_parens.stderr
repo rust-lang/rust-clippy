@@ -1,5 +1,5 @@
 error: unnecessary parentheses
-  --> tests/ui/double_parens.rs:15:5
+  --> tests/ui/double_parens.rs:16:5
    |
 LL |     ((0))
    |     ^^^^^ help: remove them: `(0)`
@@ -8,34 +8,45 @@ LL |     ((0))
    = help: to override `-D warnings` add `#[allow(clippy::double_parens)]`
 
 error: unnecessary parentheses
-  --> tests/ui/double_parens.rs:20:14
+  --> tests/ui/double_parens.rs:21:14
    |
 LL |     dummy_fn((0));
    |              ^^^ help: remove them: `0`
 
 error: unnecessary parentheses
-  --> tests/ui/double_parens.rs:25:20
+  --> tests/ui/double_parens.rs:26:20
    |
 LL |     x.dummy_method((0));
    |                    ^^^ help: remove them: `0`
 
 error: unnecessary parentheses
-  --> tests/ui/double_parens.rs:30:5
+  --> tests/ui/double_parens.rs:31:5
    |
 LL |     ((1, 2))
    |     ^^^^^^^^ help: remove them: `(1, 2)`
 
 error: unnecessary parentheses
-  --> tests/ui/double_parens.rs:36:5
+  --> tests/ui/double_parens.rs:37:5
    |
 LL |     (())
    |     ^^^^ help: remove them: `()`
 
 error: unnecessary parentheses
-  --> tests/ui/double_parens.rs:59:16
+  --> tests/ui/double_parens.rs:60:16
    |
 LL |     assert_eq!(((1, 2)), (1, 2), "Error");
    |                ^^^^^^^^ help: remove them: `(1, 2)`
 
-error: aborting due to 6 previous errors
+error: unnecessary parentheses
+  --> tests/ui/double_parens.rs:83:16
+   |
+LL |         () => {((100))}
+   |                ^^^^^^^ help: remove them: `(100)`
+...
+LL |     bar!();
+   |     ------ in this macro invocation
+   |
+   = note: this error originates in the macro `bar` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: aborting due to 7 previous errors
 
