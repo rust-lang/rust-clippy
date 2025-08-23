@@ -14,6 +14,7 @@ use rustc_span::{Span, symbol};
 
 /// The essential nodes of a desugared for loop as well as the entire span:
 /// `for pat in arg { body }` becomes `(pat, arg, body)`. Returns `(pat, arg, body, span)`.
+#[derive(Debug)]
 pub struct ForLoop<'tcx> {
     /// `for` loop item
     pub pat: &'tcx Pat<'tcx>,
@@ -319,6 +320,7 @@ pub struct While<'hir> {
     pub body: &'hir Expr<'hir>,
     /// Span of the loop header
     pub span: Span,
+    pub label: Option<ast::Label>,
 }
 
 impl<'hir> While<'hir> {
@@ -334,13 +336,18 @@ impl<'hir> While<'hir> {
                     }),
                 ..
             },
-            _,
+            label,
             LoopSource::While,
             span,
         ) = expr.kind
             && !has_let_expr(condition)
         {
-            return Some(Self { condition, body, span });
+            return Some(Self {
+                condition,
+                body,
+                span,
+                label,
+            });
         }
         None
     }
