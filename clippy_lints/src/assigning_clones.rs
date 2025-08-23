@@ -155,7 +155,7 @@ fn clone_source_borrows_from_dest(cx: &LateContext<'_>, lhs: &Expr<'_>, call_spa
     let Some(mir) = enclosing_mir(cx.tcx, lhs.hir_id) else {
         return false;
     };
-    let PossibleBorrowerMap { map: borrow_map, .. } = PossibleBorrowerMap::new(cx, mir);
+    let PossibleBorrowerMap { map: borrow_map, .. } = PossibleBorrowerMap::new(cx.tcx, cx.typing_env(), mir);
 
     // The operation `dest = src.to_owned()` in MIR is split up across 3 blocks *if* the type has `Drop`
     // code. For types that don't, the second basic block is simply skipped.

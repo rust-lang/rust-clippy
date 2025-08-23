@@ -1,184 +1,350 @@
 error: redundant clone
-  --> tests/ui/redundant_clone.rs:15:42
+  --> tests/ui/redundant_clone.rs:14:17
    |
-LL |     let _s = ["lorem", "ipsum"].join(" ").to_string();
-   |                                          ^^^^^^^^^^^^ help: remove this
+LL |         let _ = x.clone();
+   |                 ^^^^^^^^^
    |
-note: this value is dropped without further use
-  --> tests/ui/redundant_clone.rs:15:14
+note: the lint level is defined here
+  --> tests/ui/redundant_clone.rs:1:9
    |
-LL |     let _s = ["lorem", "ipsum"].join(" ").to_string();
-   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = note: `-D clippy::redundant-clone` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::redundant_clone)]`
+LL | #![deny(clippy::redundant_clone)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^
 
 error: redundant clone
-  --> tests/ui/redundant_clone.rs:19:15
+  --> tests/ui/redundant_clone.rs:19:17
    |
-LL |     let _s = s.clone();
-   |               ^^^^^^^^ help: remove this
-   |
-note: this value is dropped without further use
-  --> tests/ui/redundant_clone.rs:19:14
-   |
-LL |     let _s = s.clone();
-   |              ^
+LL |         let x = black_box(String::new()).clone();
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: redundant clone
-  --> tests/ui/redundant_clone.rs:23:15
+  --> tests/ui/redundant_clone.rs:25:14
    |
-LL |     let _s = s.to_string();
-   |               ^^^^^^^^^^^^ help: remove this
-   |
-note: this value is dropped without further use
-  --> tests/ui/redundant_clone.rs:23:14
-   |
-LL |     let _s = s.to_string();
-   |              ^
+LL |         drop(x.clone());
+   |              ^^^^^^^^^
 
 error: redundant clone
-  --> tests/ui/redundant_clone.rs:27:15
+  --> tests/ui/redundant_clone.rs:31:17
    |
-LL |     let _s = s.to_owned();
-   |               ^^^^^^^^^^^ help: remove this
-   |
-note: this value is dropped without further use
-  --> tests/ui/redundant_clone.rs:27:14
-   |
-LL |     let _s = s.to_owned();
-   |              ^
+LL |         let y = x.clone();
+   |                 ^^^^^^^^^
 
 error: redundant clone
-  --> tests/ui/redundant_clone.rs:30:42
+  --> tests/ui/redundant_clone.rs:38:18
    |
-LL |     let _s = Path::new("/a/b/").join("c").to_owned();
-   |                                          ^^^^^^^^^^^ help: remove this
-   |
-note: this value is dropped without further use
-  --> tests/ui/redundant_clone.rs:30:14
-   |
-LL |     let _s = Path::new("/a/b/").join("c").to_owned();
-   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         let _y = x.clone();
+   |                  ^^^^^^^^^
 
 error: redundant clone
-  --> tests/ui/redundant_clone.rs:33:42
+  --> tests/ui/redundant_clone.rs:44:17
    |
-LL |     let _s = Path::new("/a/b/").join("c").to_path_buf();
-   |                                          ^^^^^^^^^^^^^^ help: remove this
-   |
-note: this value is dropped without further use
-  --> tests/ui/redundant_clone.rs:33:14
-   |
-LL |     let _s = Path::new("/a/b/").join("c").to_path_buf();
-   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         let y = x.clone();
+   |                 ^^^^^^^^^
 
 error: redundant clone
-  --> tests/ui/redundant_clone.rs:36:29
+  --> tests/ui/redundant_clone.rs:50:19
    |
-LL |     let _s = OsString::new().to_owned();
-   |                             ^^^^^^^^^^^ help: remove this
-   |
-note: this value is dropped without further use
-  --> tests/ui/redundant_clone.rs:36:14
-   |
-LL |     let _s = OsString::new().to_owned();
-   |              ^^^^^^^^^^^^^^^
+LL |         black_box(x.clone());
+   |                   ^^^^^^^^^
 
 error: redundant clone
-  --> tests/ui/redundant_clone.rs:39:29
+  --> tests/ui/redundant_clone.rs:54:17
    |
-LL |     let _s = OsString::new().to_os_string();
-   |                             ^^^^^^^^^^^^^^^ help: remove this
-   |
-note: this value is dropped without further use
-  --> tests/ui/redundant_clone.rs:39:14
-   |
-LL |     let _s = OsString::new().to_os_string();
-   |              ^^^^^^^^^^^^^^^
+LL |         let y = x.clone();
+   |                 ^^^^^^^^^
 
 error: redundant clone
-  --> tests/ui/redundant_clone.rs:51:19
+  --> tests/ui/redundant_clone.rs:59:24
    |
-LL |     let _t = tup.0.clone();
-   |                   ^^^^^^^^ help: remove this
-   |
-note: this value is dropped without further use
-  --> tests/ui/redundant_clone.rs:51:14
-   |
-LL |     let _t = tup.0.clone();
-   |              ^^^^^
+LL |         black_box(&mut x.clone());
+   |                        ^^^^^^^^^
 
 error: redundant clone
-  --> tests/ui/redundant_clone.rs:84:25
+  --> tests/ui/redundant_clone.rs:63:21
    |
-LL |     if b { (a.clone(), a.clone()) } else { (Alpha, a) }
-   |                         ^^^^^^^^ help: remove this
-   |
-note: this value is dropped without further use
-  --> tests/ui/redundant_clone.rs:84:24
-   |
-LL |     if b { (a.clone(), a.clone()) } else { (Alpha, a) }
-   |                        ^
+LL |         let mut y = x.clone();
+   |                     ^^^^^^^^^
 
 error: redundant clone
-  --> tests/ui/redundant_clone.rs:142:15
+  --> tests/ui/redundant_clone.rs:68:18
    |
-LL |     let _s = s.clone();
-   |               ^^^^^^^^ help: remove this
-   |
-note: this value is dropped without further use
-  --> tests/ui/redundant_clone.rs:142:14
-   |
-LL |     let _s = s.clone();
-   |              ^
+LL |         let _y = x.clone();
+   |                  ^^^^^^^^^
 
 error: redundant clone
-  --> tests/ui/redundant_clone.rs:144:15
+  --> tests/ui/redundant_clone.rs:118:13
    |
-LL |     let _t = t.clone();
-   |               ^^^^^^^^ help: remove this
-   |
-note: this value is dropped without further use
-  --> tests/ui/redundant_clone.rs:144:14
-   |
-LL |     let _t = t.clone();
-   |              ^
-
-error: redundant clone
-  --> tests/ui/redundant_clone.rs:155:19
-   |
-LL |         let _f = f.clone();
-   |                   ^^^^^^^^ help: remove this
-   |
-note: this value is dropped without further use
-  --> tests/ui/redundant_clone.rs:155:18
-   |
-LL |         let _f = f.clone();
-   |                  ^
-
-error: redundant clone
-  --> tests/ui/redundant_clone.rs:168:14
-   |
-LL |     let y = x.clone().join("matthias");
-   |              ^^^^^^^^ help: remove this
-   |
-note: cloned value is neither consumed nor mutated
-  --> tests/ui/redundant_clone.rs:168:13
-   |
-LL |     let y = x.clone().join("matthias");
+LL |             x.clone()
    |             ^^^^^^^^^
 
 error: redundant clone
-  --> tests/ui/redundant_clone.rs:223:11
+  --> tests/ui/redundant_clone.rs:137:13
    |
-LL |     foo(&x.clone(), move || {
-   |           ^^^^^^^^ help: remove this
-   |
-note: this value is dropped without further use
-  --> tests/ui/redundant_clone.rs:223:10
-   |
-LL |     foo(&x.clone(), move || {
-   |          ^
+LL |             x.clone()
+   |             ^^^^^^^^^
 
-error: aborting due to 15 previous errors
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:151:23
+   |
+LL |             black_box(x.clone());
+   |                       ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:164:22
+   |
+LL |             let _y = x.clone();
+   |                      ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:191:17
+   |
+LL |         let z = x.clone();
+   |                 ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:196:17
+   |
+LL |         let y = x.clone();
+   |                 ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:202:17
+   |
+LL |         let y = x.clone();
+   |                 ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:208:19
+   |
+LL |         black_box(x.0.clone());
+   |                   ^^^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:212:18
+   |
+LL |         let _y = x.0.clone();
+   |                  ^^^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:217:20
+   |
+LL |         black_box((x.0.clone(), 0));
+   |                    ^^^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:221:20
+   |
+LL |         black_box((x.0.clone(), 0));
+   |                    ^^^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:236:19
+   |
+LL |         black_box(x.clone());
+   |                   ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:240:18
+   |
+LL |         let _y = x.clone();
+   |                  ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:270:13
+   |
+LL |             x.clone(),
+   |             ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:271:13
+   |
+LL |             x.x.clone(),
+   |             ^^^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:274:13
+   |
+LL |             x.y.clone(),
+   |             ^^^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:284:13
+   |
+LL |             x.x.clone(),
+   |             ^^^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:315:21
+   |
+LL |         let mut y = x.clone();
+   |                     ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:322:21
+   |
+LL |         let mut y = x.clone();
+   |                     ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:331:17
+   |
+LL |             x = y.clone();
+   |                 ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:339:17
+   |
+LL |             x = y.clone();
+   |                 ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:347:21
+   |
+LL |             let y = x.clone();
+   |                     ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:355:13
+   |
+LL |             x.clone()
+   |             ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:358:13
+   |
+LL |             x.clone()
+   |             ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:366:17
+   |
+LL |             y = x.clone();
+   |                 ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:373:21
+   |
+LL |         let mut y = x.clone();
+   |                     ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:377:17
+   |
+LL |             y = x.clone();
+   |                 ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:393:21
+   |
+LL |         let mut y = x.clone();
+   |                     ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:411:19
+   |
+LL |         black_box(x.clone());
+   |                   ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:415:19
+   |
+LL |         black_box(x.clone());
+   |                   ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:460:19
+   |
+LL |             x.1 = x.0.clone();
+   |                   ^^^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:479:17
+   |
+LL |             y = x.clone();
+   |                 ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:482:17
+   |
+LL |             z = x.clone();
+   |                 ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:495:17
+   |
+LL |             z = x.clone();
+   |                 ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:515:17
+   |
+LL |         let y = x.clone();
+   |                 ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:521:21
+   |
+LL |         let mut y = x.clone();
+   |                     ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:574:17
+   |
+LL |                 x.1.clone(),
+   |                 ^^^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:595:17
+   |
+LL |             (x, z.y.clone())
+   |                 ^^^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:636:21
+   |
+LL |         let mut z = x.1.clone();
+   |                     ^^^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:661:19
+   |
+LL |         black_box(x.0.clone());
+   |                   ^^^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:688:27
+   |
+LL |         let _ = black_box(x.to_string());
+   |                           ^^^^^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:692:27
+   |
+LL |         let _ = black_box(x.to_owned());
+   |                           ^^^^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:696:27
+   |
+LL |         let _ = black_box(x.to_owned());
+   |                           ^^^^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:293:13
+   |
+LL |             x.clone()
+   |             ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:296:18
+   |
+LL |             drop(x.clone());
+   |                  ^^^^^^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:307:17
+   |
+LL |                 y.clone()
+   |                 ^^^^^^^^^
+
+error: aborting due to 57 previous errors
 

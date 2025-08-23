@@ -12,6 +12,8 @@ edition = "2024"
 arrayvec = { version = "0.7", default-features = false }
 cargo_metadata = "0.18"
 clippy_config = { path = "../clippy_config" }
+clippy_data_structures = { path = "../clippy_data_structures" }
+clippy_mir = { path = "../clippy_mir" }
 clippy_utils = { path = "../clippy_utils" }
 declare_clippy_lint = { path = "../declare_clippy_lint" }
 itertools = "0.12"

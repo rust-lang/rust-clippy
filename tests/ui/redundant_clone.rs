@@ -1,293 +1,715 @@
-// rustfix-only-machine-applicable
-#![warn(clippy::redundant_clone)]
-#![allow(
-    clippy::drop_non_drop,
-    clippy::implicit_clone,
-    clippy::pathbuf_init_then_push,
-    clippy::uninlined_format_args,
-    clippy::unnecessary_literal_unwrap
-)]
+#![deny(clippy::redundant_clone)]
 
-use std::ffi::OsString;
-use std::path::Path;
+use core::borrow::Borrow;
+use core::hint::black_box;
+use core::mem::ManuallyDrop;
+use core::ops::Range;
+use std::path::PathBuf;
+use std::rc::Rc;
+use std::sync::Arc;
 
 fn main() {
-    let _s = ["lorem", "ipsum"].join(" ").to_string();
-    //~^ redundant_clone
-
-    let s = String::from("foo");
-    let _s = s.clone();
-    //~^ redundant_clone
-
-    let s = String::from("foo");
-    let _s = s.to_string();
-    //~^ redundant_clone
-
-    let s = String::from("foo");
-    let _s = s.to_owned();
-    //~^ redundant_clone
-
-    let _s = Path::new("/a/b/").join("c").to_owned();
-    //~^ redundant_clone
-
-    let _s = Path::new("/a/b/").join("c").to_path_buf();
-    //~^ redundant_clone
-
-    let _s = OsString::new().to_owned();
-    //~^ redundant_clone
-
-    let _s = OsString::new().to_os_string();
-    //~^ redundant_clone
-
-    // Check that lint level works
-    #[allow(clippy::redundant_clone)]
-    let _s = String::new().to_string();
-
-    // Check that lint level works
-    #[expect(clippy::redundant_clone)]
-    let _s = String::new().to_string();
-
-    let tup = (String::from("foo"),);
-    let _t = tup.0.clone();
-    //~^ redundant_clone
-
-    let tup_ref = &(String::from("foo"),);
-    let _s = tup_ref.0.clone(); // this `.clone()` cannot be removed
-
     {
-        let x = String::new();
-        let y = &x;
-
-        let _x = x.clone(); // ok; `x` is borrowed by `y`
-
-        let _ = y.len();
+        let x = black_box(String::new());
+        let _ = x.clone(); //~ redundant_clone
+        black_box(&x);
+        black_box(x);
     }
-
-    let x = (String::new(),);
-    let _ = Some(String::new()).unwrap_or_else(|| x.0.clone()); // ok; closure borrows `x`
-
-    with_branch(Alpha, true);
-    cannot_double_move(Alpha);
-    cannot_move_from_type_with_drop();
-    borrower_propagation();
-    not_consumed();
-    issue_5405();
-    manually_drop();
-    clone_then_move_cloned();
-    hashmap_neg();
-    false_negative_5707();
-}
-
-#[derive(Clone)]
-struct Alpha;
-fn with_branch(a: Alpha, b: bool) -> (Alpha, Alpha) {
-    if b { (a.clone(), a.clone()) } else { (Alpha, a) }
-    //~^ redundant_clone
-}
-
-fn cannot_double_move(a: Alpha) -> (Alpha, Alpha) {
-    (a.clone(), a)
-}
-
-struct TypeWithDrop {
-    x: String,
-}
-
-impl Drop for TypeWithDrop {
-    fn drop(&mut self) {}
-}
-
-fn cannot_move_from_type_with_drop() -> String {
-    let s = TypeWithDrop { x: String::new() };
-    s.x.clone() // removing this `clone()` summons E0509
-}
-
-fn borrower_propagation() {
-    let s = String::new();
-    let t = String::new();
-
     {
-        fn b() -> bool {
-            unimplemented!()
-        }
-        let _u = if b() { &s } else { &t };
-
-        // ok; `s` and `t` are possibly borrowed
-        let _s = s.clone();
-        let _t = t.clone();
+        let x = black_box(String::new()).clone(); //~ redundant_clone
+        black_box(&x);
+        black_box(x);
     }
-
     {
-        let _u = || s.len();
-        let _v = [&t; 32];
-        let _s = s.clone(); // ok
-        let _t = t.clone(); // ok
+        let x = black_box(String::new());
+        drop(x.clone()); //~ redundant_clone
+        black_box(&x);
+        black_box(x);
     }
-
     {
-        let _u = {
-            let u = Some(&s);
-            let _ = s.clone(); // ok
-            u
+        let x = black_box(String::new());
+        let y = x.clone(); //~ redundant_clone
+        drop(x);
+        black_box(&y);
+        black_box(y);
+    }
+    {
+        let x = black_box(String::new());
+        let _y = x.clone(); //~ redundant_clone
+        black_box(&x);
+        black_box(x);
+    }
+    {
+        let x = black_box(String::new());
+        let y = x.clone(); //~ redundant_clone
+        black_box(&y);
+        black_box(y);
+    }
+    {
+        let x = black_box(String::new());
+        black_box(x.clone()); //~ redundant_clone
+    }
+    {
+        let x = black_box(String::new());
+        let y = x.clone(); //~ redundant_clone
+        black_box(x);
+    }
+    {
+        let x = black_box(String::new());
+        black_box(&mut x.clone()); //~ redundant_clone
+    }
+    {
+        let x = black_box(String::new());
+        let mut y = x.clone(); //~ redundant_clone
+        black_box(&mut y);
+    }
+    {
+        let mut x = black_box(String::new());
+        let _y = x.clone(); //~ redundant_clone
+        black_box(&mut x);
+    }
+    {
+        let x = black_box(String::new());
+        black_box(x.clone());
+        black_box(&x);
+    }
+    {
+        let x = black_box(String::new());
+        black_box(x.clone());
+        black_box(x);
+    }
+    {
+        let x = black_box(String::new());
+        let y = x.clone();
+        black_box(x);
+        black_box(&y);
+    }
+    {
+        let x = black_box(String::new());
+        let y = x.clone();
+        black_box(x);
+        black_box(y);
+    }
+    {
+        let x = black_box(String::new());
+        black_box(&mut x.clone());
+        black_box(&x);
+    }
+    {
+        let x = black_box(String::new());
+        black_box(&mut x.clone());
+        black_box(x);
+    }
+    {
+        let mut x = black_box(String::new());
+        let y = x.clone();
+        black_box(&mut x);
+        black_box(&y);
+    }
+    {
+        let mut x = black_box(String::new());
+        let y = x.clone();
+        black_box(&mut x);
+        black_box(y);
+    }
+    {
+        let x = black_box(String::new());
+        let y = if black_box(true) {
+            x.clone() //~ redundant_clone
+        } else {
+            black_box(String::new())
         };
-        let _s = s.clone(); // ok
+        black_box(y);
     }
-
     {
-        use std::convert::identity as id;
-        let _u = id(id(&s));
-        let _s = s.clone(); // ok, `u` borrows `s`
+        let x = black_box(String::new());
+        let y = if black_box(true) {
+            x.clone()
+        } else {
+            black_box(String::new())
+        };
+        black_box((y, &x));
     }
-
-    let _s = s.clone();
-    //~^ redundant_clone
-    let _t = t.clone();
-    //~^ redundant_clone
-
-    #[derive(Clone)]
-    struct Foo {
-        x: usize,
-    }
-
     {
-        let f = Foo { x: 123 };
-        let _x = Some(f.x);
-        let _f = f.clone();
-        //~^ redundant_clone
+        let x = black_box(String::new());
+        black_box({
+            let x = &x;
+            x.clone() //~ redundant_clone
+        });
     }
-
     {
-        let f = Foo { x: 123 };
-        let _x = &f.x;
-        let _f = f.clone(); // ok
+        let x = black_box(String::new());
+        black_box({
+            let x = &x;
+            x.clone()
+        });
+        black_box(x);
     }
-}
-
-fn not_consumed() {
-    let x = std::path::PathBuf::from("home");
-    let y = x.clone().join("matthias");
-    //~^ redundant_clone
-    // join() creates a new owned PathBuf, does not take a &mut to x variable, thus the .clone() is
-    // redundant. (It also does not consume the PathBuf)
-
-    println!("x: {:?}, y: {:?}", x, y);
-
-    let mut s = String::new();
-    s.clone().push_str("foo"); // OK, removing this `clone()` will change the behavior.
-    s.push_str("bar");
-    assert_eq!(s, "bar");
-
-    let t = Some(s);
-    // OK
-    if let Some(x) = t.clone() {
-        println!("{}", x);
-    }
-    if let Some(x) = t {
-        println!("{}", x);
-    }
-}
-
-#[allow(clippy::clone_on_copy)]
-fn issue_5405() {
-    let a: [String; 1] = [String::from("foo")];
-    let _b: String = a[0].clone();
-
-    let c: [usize; 2] = [2, 3];
-    let _d: usize = c[1].clone();
-}
-
-fn manually_drop() {
-    use std::mem::ManuallyDrop;
-    use std::sync::Arc;
-
-    let a = ManuallyDrop::new(Arc::new("Hello!".to_owned()));
-    let _ = a.clone(); // OK
-
-    let p: *const String = Arc::into_raw(ManuallyDrop::into_inner(a));
-    unsafe {
-        Arc::from_raw(p);
-        Arc::from_raw(p);
-    }
-}
-
-fn clone_then_move_cloned() {
-    // issue #5973
-    let x = Some(String::new());
-    // ok, x is moved while the clone is in use.
-    assert_eq!(x.clone(), None, "not equal {}", x.unwrap());
-
-    // issue #5595
-    fn foo<F: Fn()>(_: &Alpha, _: F) {}
-    let x = Alpha;
-    // ok, data is moved while the clone is in use.
-    foo(&x.clone(), move || {
-        //~^ redundant_clone
-        let _ = x;
-    });
-
-    // issue #6998
-    struct S(String);
-    impl S {
-        fn m(&mut self) {}
-    }
-    let mut x = S(String::new());
-    x.0.clone().chars().for_each(|_| x.m());
-}
-
-fn hashmap_neg() {
-    // issue 5707
-    use std::collections::HashMap;
-    use std::path::PathBuf;
-
-    let p = PathBuf::from("/");
-
-    let mut h: HashMap<&str, &str> = HashMap::new();
-    h.insert("orig-p", p.to_str().unwrap());
-
-    let mut q = p.clone();
-    q.push("foo");
-
-    println!("{:?} {}", h, q.display());
-}
-
-fn false_negative_5707() {
-    fn foo(_x: &Alpha, _y: &mut Alpha) {}
-
-    let x = Alpha;
-    let mut y = Alpha;
-    foo(&x, &mut y);
-    let _z = x.clone(); // pr 7346 can't lint on `x`
-    drop(y);
-}
-
-mod issue10074 {
-    #[derive(Debug, Clone)]
-    enum MyEnum {
-        A = 1,
-    }
-
-    fn false_positive_on_as() {
-        let e = MyEnum::A;
-        let v = e.clone() as u16;
-
-        println!("{e:?}");
-        println!("{v}");
-    }
-}
-
-mod issue13900 {
-    use std::fmt::Display;
-
-    fn do_something(f: impl Display + Clone) -> String {
-        let g = f.clone();
-        format!("{} + {}", f, g)
-    }
-
-    fn regression() {
-        let mut a = String::new();
-        let mut b = String::new();
-        for _ in 1..10 {
-            b = a.clone();
+    {
+        for _ in 0..10 {
+            let x = black_box(String::new());
+            black_box(x.clone()); //~ redundant_clone
         }
+    }
+    {
+        for _ in 0..10 {
+            let mut x = black_box(String::new());
+            black_box(x.clone());
+            black_box(&mut x);
+        }
+    }
+    {
+        let mut x = black_box(String::new());
+        for _ in 0..10 {
+            let _y = x.clone(); //~ redundant_clone
+            black_box(&mut x);
+        }
+    }
+    {
+        let mut x = black_box(String::new());
+        for _ in 0..10 {
+            black_box(x.clone());
+        }
+    }
+    {
+        let mut x = black_box(String::new());
+        for _ in 0..10 {
+            let y = x.clone();
+            black_box((&y, &mut x));
+        }
+    }
+    {
+        let x = black_box(String::new());
+        let y = x.clone();
+        let x = &x;
+        black_box(y);
+        black_box(x);
+    }
+    {
+        let x = black_box(String::new());
+        let y = x.clone();
+        let z = x.clone(); //~ redundant_clone
+        black_box((y, &x));
+    }
+    {
+        let x = black_box(String::new());
+        let y = x.clone(); //~ redundant_clone
+        let z = x.clone();
+        black_box((z, &x));
+    }
+    {
+        let x = black_box(String::new());
+        let y = x.clone(); //~ redundant_clone
+        let z = y.clone();
+        black_box((z, &y));
+    }
+    {
+        let x = black_box((String::new(), 0));
+        black_box(x.0.clone()); //~ redundant_clone
+    }
+    {
+        let x = black_box((String::new(), 0));
+        let _y = x.0.clone(); //~ redundant_clone
+        black_box(&x.0);
+    }
+    {
+        let x = black_box((String::new(), 0));
+        black_box((x.0.clone(), 0)); //~ redundant_clone
+    }
+    {
+        let x = black_box((String::new(), 0));
+        black_box((x.0.clone(), 0)); //~ redundant_clone
+        black_box(&x.1);
+    }
+    {
+        let x = black_box((String::new(), 0));
+        black_box((x.0.clone(), 0));
+        black_box(&x.0);
+    }
+    {
+        let x = black_box((String::new(), 0));
+        black_box((x.0.clone(), 0));
+        black_box(&x);
+    }
+    {
+        let x = black_box((String::new(), 0));
+        black_box(x.clone()); //~ redundant_clone
+    }
+    {
+        let x = black_box((String::new(), 0));
+        let _y = x.clone(); //~ redundant_clone
+        black_box(&x.1);
+    }
+    {
+        let x = black_box((String::new(), 0));
+        black_box((x.clone(), &x.1));
+    }
+    {
+        let x = black_box((String::new(), 0));
+        black_box((x.clone(), &x.0));
+    }
+    {
+        let x = black_box((String::new(), 0));
+        let y = x.clone();
+        let x = &x.1;
+        black_box((y, x));
+    }
+    {
+        #[derive(Clone)]
+        struct X {
+            x: String,
+            y: (String, String),
+            z: u32,
+        }
+        let x = black_box(X {
+            x: String::new(),
+            y: (String::new(), String::new()),
+            z: 0,
+        });
+        black_box((
+            x.clone(),   //~ redundant_clone
+            x.x.clone(), //~ redundant_clone
+            x.y.0.clone(),
+            x.y.1.clone(),
+            x.y.clone(), //~ redundant_clone
+        ));
+
+        let x = black_box(X {
+            x: String::new(),
+            y: (String::new(), String::new()),
+            z: 0,
+        });
+        black_box((
+            x.clone(),
+            x.x.clone(), //~ redundant_clone
+            x.y.0.clone(),
+            x.y.1.clone(),
+            x.y.clone(),
+        ));
+        black_box(&x.y);
+    }
+    {
+        fn f1<T: Clone>(x: T) -> T {
+            x.clone() //~ redundant_clone
+        }
+        fn f2<T: Clone>(x: T) -> T {
+            drop(x.clone()); //~ redundant_clone
+            x
+        }
+        fn f3<T: Clone>(x: T) -> T {
+            black_box(x.clone());
+            x
+        }
+        fn f4(x: String, y: String) -> String {
+            let z = if black_box(true) {
+                x.clone()
+            } else {
+                y.clone() //~ redundant_clone
+            };
+            black_box(z);
+            x
+        }
+    }
+    {
+        let mut x = black_box(String::new());
+        let mut y = x.clone(); //~ redundant_clone
+        black_box(&mut y);
+        x = black_box(String::new());
+        black_box(x);
+    }
+    {
+        let mut x = black_box(String::new());
+        let mut y = x.clone(); //~ redundant_clone
+        black_box(&mut x);
+        y = black_box(String::new());
+        black_box(y);
+    }
+    {
+        let mut x = black_box(String::new());
+        for _ in 0..10 {
+            let y = black_box(String::new());
+            x = y.clone(); //~ redundant_clone
+            black_box(&y);
+        }
+    }
+    {
+        let mut x = black_box(String::new());
+        for _ in 0..10 {
+            let y = black_box(String::new());
+            x = y.clone(); //~ redundant_clone
+            black_box(&y);
+        }
+        black_box(&x);
+    }
+    {
+        let mut x = black_box(String::new());
+        for _ in 0..10 {
+            let y = x.clone(); //~ redundant_clone
+            black_box(y);
+            x = black_box(String::new());
+        }
+    }
+    {
+        let x = black_box(String::new());
+        let y = if black_box(true) {
+            x.clone() //~ redundant_clone
+        } else {
+            black_box(0);
+            x.clone() //~ redundant_clone
+        };
+        black_box(y);
+    }
+    {
+        let mut x = black_box(String::new());
+        let mut y = black_box(String::new());
+        for _ in 0..10 {
+            y = x.clone(); //~ redundant_clone
+            x = black_box(String::new());
+        }
+        black_box(&x);
+    }
+    {
+        let mut x = black_box(String::new());
+        let mut y = x.clone(); //~ redundant_clone
+        for _ in 0..10 {
+            black_box(y);
+            x = black_box(String::new());
+            y = x.clone(); //~ redundant_clone
+        }
+    }
+    {
+        let x = black_box(String::new());
+        let y = black_box(String::new());
+        let z = if black_box(true) { &x } else { &y };
+
+        black_box(x.clone());
+        black_box(y.clone());
+        black_box(z.clone());
+
+        black_box(&z);
+    }
+    {
+        let mut x = black_box(String::new());
+        let mut y = x.clone(); //~ redundant_clone
+        let x2 = x;
+        let y2 = y;
+        x = black_box(String::new());
+        y = black_box(String::new());
+        black_box((x2, x, y));
+    }
+    {
+        let mut x = black_box(String::new());
+        let mut y = x.clone();
+        let x2 = x;
+        let y2 = y;
+        x = black_box(String::new());
+        y = black_box(String::new());
+        black_box((x2, x, y, &y2));
+    }
+    {
+        let x = black_box(Rc::new(String::new()));
+        black_box(x.clone()); //~ redundant_clone
+    }
+    {
+        let x = black_box(Arc::new(String::new()));
+        black_box(x.clone()); //~ redundant_clone
+    }
+    {
+        // Leak an `Rc` via `ManuallyDrop`
+        let x = black_box(ManuallyDrop::new(Rc::new(String::new())));
+        let _ = x.clone();
+        let raw = Rc::into_raw(ManuallyDrop::into_inner(x));
+        unsafe {
+            let _ = Rc::from_raw(raw);
+            let _ = Rc::from_raw(raw);
+        }
+    }
+    {
+        // Leak an `Arc` via `ManuallyDrop`
+        let x = black_box(ManuallyDrop::new(Arc::new(String::new())));
+        let _ = x.clone();
+        let raw = Arc::into_raw(ManuallyDrop::into_inner(x));
+        unsafe {
+            let _ = Arc::from_raw(raw);
+            let _ = Arc::from_raw(raw);
+        }
+    }
+    {
+        // Don't lint trivial clones
+        let x = black_box(Range { start: 0, end: 0 });
+        black_box(x.clone());
+    }
+    {
+        let x = 5;
+        #[allow(clippy::clone_on_copy)]
+        black_box(x.clone());
+    }
+    {
+        let x = black_box(String::new());
+        #[allow(clippy::redundant_clone)]
+        black_box(x.clone());
+        #[expect(clippy::redundant_clone)]
+        black_box(x.clone());
+    }
+    {
+        let mut x = black_box(<(String, String, String, String, String)>::default());
+        for _ in black_box(0..10) {
+            x.4 = x.3;
+            x.3 = x.2;
+            x.2 = x.1;
+            x.1 = x.0.clone(); //~ redundant_clone
+        }
+        black_box(x.0);
+    }
+    {
+        let mut x = black_box(<(String, String, String, String, String)>::default());
+        for _ in black_box(0..10) {
+            x.4 = x.3;
+            x.3 = x.2;
+            x.2 = x.1;
+            x.1 = x.0.clone();
+        }
+        black_box((x.4, x.3));
+    }
+    {
+        let x = black_box(String::new());
+        let mut y = black_box(String::new());
+        let mut z = black_box(String::new());
+        let (y, z) = if black_box(true) {
+            y = x.clone(); //~ redundant_clone
+            (&y, &z)
+        } else {
+            z = x.clone(); //~ redundant_clone
+            (&y, &z)
+        };
+        black_box((y, z));
+    }
+    {
+        let x = black_box(String::new());
+        let mut y = black_box(String::new());
+        let mut z = black_box(String::new());
+        let (x, y) = if black_box(true) {
+            y = x.clone();
+            (&x, &y)
+        } else {
+            z = x.clone(); //~ redundant_clone
+            (&x, &y)
+        };
+        black_box((x, y));
+    }
+    {
+        let x = black_box(String::new());
+        let mut y = black_box(String::new());
+        let mut z = black_box(String::new());
+        let (x, y, z) = if black_box(true) {
+            y = x.clone();
+            (&x, &y, &z)
+        } else {
+            z = x.clone();
+            (&x, &y, &z)
+        };
+        black_box((x, y, z));
+    }
+    {
+        let mut x = black_box((String::new(), 0));
+        let y = x.clone(); //~ redundant_clone
+        x.1 = 5;
+        black_box(&y);
+    }
+    {
+        let x = black_box((String::new(), 0));
+        let mut y = x.clone(); //~ redundant_clone
+        y.1 = 5;
+        black_box(&x);
+    }
+    {
+        let mut x = black_box((String::new(), String::new(), String::new()));
+        black_box(&mut x);
+        let y = if black_box(true) {
+            x.0.clone()
+        } else {
+            black_box(String::new())
+        };
+        black_box((&x.0, &y));
+    }
+    {
+        let mut x = black_box((String::new(), String::new(), String::new()));
+        black_box(&mut x);
+        let y = if black_box(true) {
+            x.1.clone()
+        } else {
+            black_box(String::new())
+        };
+        black_box((&x.1, &y));
+    }
+    {
+        let mut x = black_box((String::new(), String::new(), String::new()));
+        black_box(&mut x);
+        let y = if black_box(true) {
+            x.2.clone()
+        } else {
+            black_box(String::new())
+        };
+        black_box((&x.2, &y));
+    }
+    {
+        let x = black_box(String::new());
+        let y = black_box(String::new());
+        let z = (if black_box(true) { &x } else { &y }).clone();
+        black_box((x, z));
+    }
+    {
+        let x = black_box(String::new());
+        let y = black_box(String::new());
+        let z = (if black_box(true) { &x } else { &y }).clone();
+        black_box((y, z));
+    }
+    {
+        let x = black_box(String::new());
+        let y = black_box(String::new());
+        let z = {
+            let x = (&x, &y);
+            (
+                x.0.clone(),
+                x.1.clone(), //~ redundant_clone
+            )
+        };
+        black_box((z.0, &z.1, &x, &y));
+    }
+    {
+        struct X<'a> {
+            x: &'a String,
+            y: &'a String,
+        }
+        struct Y {
+            x: String,
+            y: String,
+        }
+        let x = black_box(String::new());
+        let y = black_box(String::new());
+        let z = {
+            let x = &x;
+            let y = &y;
+            let z = X { x, y };
+            let x = (z.x, z.y, x, y).0.clone();
+            (x, z.y.clone()) //~ redundant_clone
+        };
+        let a = Y { x, y: z.1 };
+        black_box((a.x, &z.0));
+        black_box(y);
+    }
+    {
+        let x = black_box((String::new(), String::new()));
+        let y = (x.0.clone(), black_box(String::new()));
+        black_box((&x, &y));
+    }
+    {
+        let mut x = black_box(String::new());
+        let y = black_box(&raw mut x);
+        let z = x.clone();
+        unsafe {
+            *y = black_box(String::new());
+        }
+        black_box((&x, &z));
+    }
+    {
+        let x = black_box(String::new());
+        let y = black_box(&raw const x);
+        let mut z = x.clone();
+        black_box(&mut z);
+        unsafe {
+            black_box((&*y, &z));
+        }
+    }
+    {
+        let x = black_box((String::new(), String::new()));
+        let y = black_box(&raw const x.0);
+        let mut z = x.clone();
+        black_box(&mut z);
+        unsafe {
+            black_box((&*y, &z));
+        }
+    }
+    {
+        let x = black_box((String::new(), String::new()));
+        let y = black_box(&raw const x.0);
+        let mut z = x.1.clone(); //~ redundant_clone
+        black_box(&mut z);
+        unsafe {
+            black_box((&*y, &z));
+        }
+    }
+    {
+        let x = black_box(String::new());
+        let y = black_box(String::new());
+        let z = {
+            let mut x = &x;
+            unsafe { *black_box(&raw mut x) = &y }
+            x.clone()
+        };
+        black_box((y, z));
+    }
+    {
+        #[derive(Default, Clone)]
+        struct X(String);
+        struct Y(X);
+        impl Drop for Y {
+            fn drop(&mut self) {}
+        }
+
+        let x = black_box(Y(X(String::new())));
+        black_box(x.0.clone()); //~ redundant_clone
+    }
+    {
+        #[derive(Default, Clone)]
+        struct X(String);
+        struct Y(X);
+        impl Drop for Y {
+            fn drop(&mut self) {}
+        }
+
+        let x = black_box(Y(X(String::new())));
+        black_box(x.0.clone());
+        black_box(&x.0);
+    }
+    {
+        #[derive(Clone)]
+        struct X(String);
+        struct Y(X);
+        impl Drop for Y {
+            fn drop(&mut self) {}
+        }
+
+        let x = black_box(Y(X(String::new())));
+        black_box(x.0.clone());
+    }
+    {
+        let x = black_box(String::new());
+        let _ = black_box(x.to_string()); //~ redundant_clone
+    }
+    {
+        let x = black_box(String::new());
+        let _ = black_box(x.to_owned()); //~ redundant_clone
+    }
+    {
+        let x = black_box(PathBuf::new());
+        let _ = black_box(x.to_owned()); //~ redundant_clone
+    }
+    {
+        struct X(String);
+        impl ToOwned for X {
+            type Owned = i32;
+            fn to_owned(&self) -> Self::Owned {
+                1
+            }
+        }
+        impl Borrow<X> for i32 {
+            fn borrow(&self) -> &X {
+                panic!();
+            }
+        }
+
+        let x = black_box(X(String::new()));
+        let _ = black_box(x.to_owned());
     }
 }

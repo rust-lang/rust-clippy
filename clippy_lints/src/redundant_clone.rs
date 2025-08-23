@@ -1,26 +1,30 @@
-use clippy_utils::diagnostics::{span_lint_hir, span_lint_hir_and_then};
+use clippy_data_structures::bit_slice::WordBitIter;
+use clippy_data_structures::{BitSlice, BitSlice2d, GrowableBitSet2d, SliceSet, bit_slice, move_within_slice};
+use clippy_mir::analysis::{Analysis, BlockOrderMap, OrderedBlock, WorkQueue, get_body_edges, run_analysis};
+use clippy_mir::projection::{self, PlaceFilter, ResolvedPlace as _, Resolver as _};
+use clippy_mir::value_tracking::Visitor as _;
+use clippy_mir::{childless_projection, value_tracking};
+use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::fn_has_unsatisfiable_preds;
-use clippy_utils::mir::{LocalUsage, PossibleBorrowerMap, visit_local_usage};
-use clippy_utils::source::SpanRangeExt;
-use clippy_utils::ty::{has_drop, is_copy, is_type_diagnostic_item, is_type_lang_item, walk_ptrs_ty_depth};
-use rustc_errors::Applicability;
+use clippy_utils::mir::PossibleBorrowerMap;
+use clippy_utils::ty::{implements_trait_with_env, is_type_lang_item};
+use core::ops::Range;
+use core::{iter, mem};
+use rustc_arena::DroplessArena;
+use rustc_data_structures::fx::{FxHashSet, FxIndexSet};
 use rustc_hir::intravisit::FnKind;
-use rustc_hir::{Body, FnDecl, LangItem, def_id};
+use rustc_hir::{self as hir, FnDecl, LangItem, Mutability};
+use rustc_index::{Idx, IndexSlice, IndexVec};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::mir;
-use rustc_middle::ty::{self, Ty};
+use rustc_middle::mir::{
+    BasicBlock, BasicBlockData, Body, BorrowKind, Local, Location, Operand, Place, ProjectionElem, START_BLOCK,
+    SourceInfo, SourceScope, TerminatorKind,
+};
+use rustc_middle::ty::{self, AliasTyKind, Ty, TyCtxt, TypingEnv};
+use rustc_mir_dataflow::lattice::{FlatSet, JoinSemiLattice};
 use rustc_session::declare_lint_pass;
 use rustc_span::def_id::LocalDefId;
-use rustc_span::{BytePos, Span, sym};
-
-macro_rules! unwrap_or_continue {
-    ($x:expr) => {
-        match $x {
-            Some(x) => x,
-            None => continue,
-        }
-    };
-}
+use rustc_span::{DUMMY_SP, Span, sym};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -62,13 +66,12 @@ declare_clippy_lint! {
 declare_lint_pass!(RedundantClone => [REDUNDANT_CLONE]);
 
 impl<'tcx> LateLintPass<'tcx> for RedundantClone {
-    #[expect(clippy::too_many_lines)]
     fn check_fn(
         &mut self,
         cx: &LateContext<'tcx>,
         _: FnKind<'tcx>,
         _: &'tcx FnDecl<'_>,
-        _: &'tcx Body<'_>,
+        _: &'tcx hir::Body<'_>,
         _: Span,
         def_id: LocalDefId,
     ) {
@@ -76,329 +79,1702 @@ impl<'tcx> LateLintPass<'tcx> for RedundantClone {
         if fn_has_unsatisfiable_preds(cx, def_id.to_def_id()) {
             return;
         }
+        let body = cx.tcx.optimized_mir(def_id.to_def_id());
+        if body
+            .basic_blocks
+            .iter()
+            .all(|block| get_clone_call(cx, body, block).is_none())
+        {
+            return;
+        }
 
-        let mir = cx.tcx.optimized_mir(def_id.to_def_id());
+        // Check for clone calls and get the type and locals involved with each.
+        let mut cloned_tys = FxHashSet::default();
+        let arena = DroplessArena::default();
+        let clone_calls =
+            IndexSlice::<BasicBlock, _>::from_raw(arena.alloc_from_iter(body.basic_blocks.iter().map(|block| {
+                get_clone_call(cx, body, block).map(|(ty, call)| {
+                    cloned_tys.insert(ty);
+                    call
+                })
+            })));
 
-        let mut possible_borrower = PossibleBorrowerMap::new(cx, mir);
+        let block_map = BlockOrderMap::new_reverse_postorder(&arena, body);
+        let mut work_queue = WorkQueue::new(&arena, body);
+        let place_filter = PlaceFilter::new_raw_borrow_filter(&arena, body);
+        let body_edges = get_body_edges(&arena, body, &block_map);
 
-        for (bb, bbdata) in mir.basic_blocks.iter_enumerated() {
-            let terminator = bbdata.terminator();
+        let Some((mut ref_target_analysis, mut tmp_state, states)) = RefTargetAnalysis::new(
+            cx,
+            &arena,
+            body,
+            def_id,
+            &block_map,
+            &place_filter,
+            &cloned_tys,
+            clone_calls,
+        ) else {
+            return;
+        };
+        run_analysis(
+            &mut work_queue,
+            body_edges,
+            states,
+            &mut tmp_state,
+            &mut ref_target_analysis,
+        );
+        if ref_target_analysis.clone_srcs.iter().all(Option::is_none) {
+            return;
+        }
 
-            if terminator.source_info.span.from_expansion() {
-                continue;
+        let Some((mut clone_analysis, mut tmp_state, mut states)) = CloneAnalysis::new(
+            cx,
+            body,
+            &arena,
+            def_id,
+            &block_map,
+            &place_filter,
+            &cloned_tys,
+            clone_calls,
+            ref_target_analysis.clone_srcs,
+        ) else {
+            return;
+        };
+        run_analysis(
+            &mut work_queue,
+            body_edges,
+            &mut states,
+            &mut tmp_state,
+            &mut clone_analysis,
+        );
+
+        let mut idx = 0;
+        let mut linted = Vec::new();
+        for &(mut word) in &clone_analysis.required_reads.words {
+            for _ in 0..(bit_slice::WORD_BITS / 2).min(clone_analysis.clone_info.len() - idx) {
+                let clone = CloneIdx::from_usize(idx);
+                let info = &clone_analysis.clone_info[clone];
+                if (word | CloneValue::bit_pair(matches!(info.can_move_from_src, CanMove::No), false)) & 0b11 != 0b11 {
+                    linted.push((clone, CloneValue::from_bit_pair(word), info.source_info));
+                }
+                idx += 1;
+                word >>= 2;
             }
-
-            // Give up on loops
-            if terminator.successors().any(|s| s == bb) {
-                continue;
-            }
-
-            let (fn_def_id, arg, arg_ty, clone_ret) =
-                unwrap_or_continue!(is_call_with_ref_arg(cx, mir, &terminator.kind));
-
-            let from_borrow = cx.tcx.lang_items().get(LangItem::CloneFn) == Some(fn_def_id)
-                || cx.tcx.is_diagnostic_item(sym::to_owned_method, fn_def_id)
-                || (cx.tcx.is_diagnostic_item(sym::to_string_method, fn_def_id)
-                    && is_type_lang_item(cx, arg_ty, LangItem::String));
-
-            let from_deref = !from_borrow
-                && (cx.tcx.is_diagnostic_item(sym::path_to_pathbuf, fn_def_id)
-                    || cx.tcx.is_diagnostic_item(sym::os_str_to_os_string, fn_def_id));
-
-            if !from_borrow && !from_deref {
-                continue;
-            }
-
-            if let ty::Adt(def, _) = arg_ty.kind()
-                && def.is_manually_drop()
-            {
-                continue;
-            }
-
-            // `{ arg = &cloned; clone(move arg); }` or `{ arg = &cloned; to_path_buf(arg); }`
-            let (cloned, cannot_move_out) = unwrap_or_continue!(find_stmt_assigns_to(cx, mir, arg, from_borrow, bb));
-
-            let loc = mir::Location {
-                block: bb,
-                statement_index: bbdata.statements.len(),
-            };
-
-            // `Local` to be cloned, and a local of `clone` call's destination
-            let (local, ret_local) = if from_borrow {
-                // `res = clone(arg)` can be turned into `res = move arg;`
-                // if `arg` is the only borrow of `cloned` at this point.
-
-                if cannot_move_out || !possible_borrower.only_borrowers(&[arg], cloned, loc) {
-                    continue;
-                }
-
-                (cloned, clone_ret)
-            } else {
-                // `arg` is a reference as it is `.deref()`ed in the previous block.
-                // Look into the predecessor block and find out the source of deref.
-
-                let ps = &mir.basic_blocks.predecessors()[bb];
-                if ps.len() != 1 {
-                    continue;
-                }
-                let pred_terminator = mir[ps[0]].terminator();
-
-                // receiver of the `deref()` call
-                let (pred_arg, deref_clone_ret) = if let Some((pred_fn_def_id, pred_arg, pred_arg_ty, res)) =
-                    is_call_with_ref_arg(cx, mir, &pred_terminator.kind)
-                    && res == cloned
-                    && cx.tcx.is_diagnostic_item(sym::deref_method, pred_fn_def_id)
-                    && (is_type_diagnostic_item(cx, pred_arg_ty, sym::PathBuf)
-                        || is_type_diagnostic_item(cx, pred_arg_ty, sym::OsString))
-                {
-                    (pred_arg, res)
-                } else {
-                    continue;
-                };
-
-                let (local, cannot_move_out) =
-                    unwrap_or_continue!(find_stmt_assigns_to(cx, mir, pred_arg, true, ps[0]));
-                let loc = mir::Location {
-                    block: bb,
-                    statement_index: mir.basic_blocks[bb].statements.len(),
-                };
-
-                // This can be turned into `res = move local` if `arg` and `cloned` are not borrowed
-                // at the last statement:
-                //
-                // ```
-                // pred_arg = &local;
-                // cloned = deref(pred_arg);
-                // arg = &cloned;
-                // StorageDead(pred_arg);
-                // res = to_path_buf(cloned);
-                // ```
-                if cannot_move_out || !possible_borrower.only_borrowers(&[arg, cloned], local, loc) {
-                    continue;
-                }
-
-                (local, deref_clone_ret)
-            };
-
-            let clone_usage = if local == ret_local {
-                CloneUsage {
-                    cloned_use_loc: None.into(),
-                    cloned_consume_or_mutate_loc: None,
-                    clone_consumed_or_mutated: true,
-                }
-            } else {
-                let clone_usage = visit_clone_usage(local, ret_local, mir, bb);
-                if clone_usage.cloned_use_loc.maybe_used() && clone_usage.clone_consumed_or_mutated {
-                    // cloned value is used, and the clone is modified or moved
-                    continue;
-                } else if let MirLocalUsage::Used(loc) = clone_usage.cloned_use_loc
-                    && possible_borrower.local_is_alive_at(ret_local, loc)
-                {
-                    // cloned value is used, and the clone is alive.
-                    continue;
-                } else if let Some(loc) = clone_usage.cloned_consume_or_mutate_loc
-                    // cloned value is mutated, and the clone is alive.
-                    && possible_borrower.local_is_alive_at(ret_local, loc)
-                {
-                    continue;
-                }
-                clone_usage
-            };
-
-            let span = terminator.source_info.span;
-            let scope = terminator.source_info.scope;
-            let node = mir.source_scopes[scope]
-                .local_data
-                .as_ref()
-                .unwrap_crate_local()
-                .lint_root;
-
-            if let Some(snip) = span.get_source_text(cx)
-                && let Some(dot) = snip.rfind('.')
-            {
-                let sugg_span = span.with_lo(span.lo() + BytePos(u32::try_from(dot).unwrap()));
-                let mut app = Applicability::MaybeIncorrect;
-
-                let call_snip = &snip[dot + 1..];
-                // Machine applicable when `call_snip` looks like `foobar()`
-                if let Some(call_snip) = call_snip.strip_suffix("()").map(str::trim)
-                    && call_snip
-                        .as_bytes()
-                        .iter()
-                        .all(|b| b.is_ascii_alphabetic() || *b == b'_')
-                {
-                    app = Applicability::MachineApplicable;
-                }
-
-                span_lint_hir_and_then(cx, REDUNDANT_CLONE, node, sugg_span, "redundant clone", |diag| {
-                    diag.span_suggestion(sugg_span, "remove this", "", app);
-                    if clone_usage.cloned_use_loc.maybe_used() {
-                        diag.span_note(span, "cloned value is neither consumed nor mutated");
-                    } else {
-                        diag.span_note(
-                            span.with_hi(span.lo() + BytePos(u32::try_from(dot).unwrap())),
-                            "this value is dropped without further use",
-                        );
-                    }
-                });
-            } else {
-                span_lint_hir(cx, REDUNDANT_CLONE, node, span, "redundant clone");
-            }
+        }
+        linted.sort_by_key(|&(_, _, info)| info.span);
+        for (_, _, info) in linted {
+            span_lint_hir_and_then(
+                cx,
+                REDUNDANT_CLONE,
+                body.source_scopes[info.scope]
+                    .local_data
+                    .as_ref()
+                    .unwrap_crate_local()
+                    .lint_root,
+                info.span,
+                "redundant clone",
+                |_| {},
+            );
         }
     }
 }
 
-/// If `kind` is `y = func(x: &T)` where `T: !Copy`, returns `(DefId of func, x, T, y)`.
-fn is_call_with_ref_arg<'tcx>(
+#[derive(Clone, Copy)]
+struct CloneCall<'tcx> {
+    src: Place<'tcx>,
+    dst: Place<'tcx>,
+}
+
+fn get_clone_call<'tcx>(
     cx: &LateContext<'tcx>,
-    mir: &'tcx mir::Body<'tcx>,
-    kind: &'tcx mir::TerminatorKind<'tcx>,
-) -> Option<(def_id::DefId, mir::Local, Ty<'tcx>, mir::Local)> {
-    if let mir::TerminatorKind::Call {
+    body: &Body<'tcx>,
+    block: &BasicBlockData<'tcx>,
+) -> Option<(Ty<'tcx>, CloneCall<'tcx>)> {
+    if let TerminatorKind::Call {
         func,
         args,
         destination,
         ..
-    } = kind
-        && args.len() == 1
-        && let mir::Operand::Move(mir::Place { local, .. }) = &args[0].node
-        && let ty::FnDef(def_id, _) = *func.ty(mir, cx.tcx).kind()
-        && let (inner_ty, 1) = walk_ptrs_ty_depth(args[0].node.ty(mir, cx.tcx))
-        && !is_copy(cx, inner_ty)
+    } = &block.terminator().kind
+        && let [arg] = &**args
+        && let Operand::Move(src) | Operand::Copy(src) = arg.node
+        && let ty::FnDef(fn_id, fn_args) = *func.ty(body, cx.tcx).kind()
+        && let diag_name = if cx.tcx.lang_items().clone_fn() == Some(fn_id) {
+            None
+        } else if let Some(diag_name) = cx.tcx.get_diagnostic_name(fn_id)
+            && matches!(diag_name, sym::to_owned_method | sym::to_string_method)
+        {
+            Some(diag_name)
+        } else {
+            return None;
+        }
+        && let fn_sig = cx
+            .tcx
+            .instantiate_bound_regions_with_erased(cx.tcx.fn_sig(fn_id).instantiate(cx.tcx, fn_args))
+        && let [arg_ty, res_ty] = **fn_sig.inputs_and_output
+        && let src_ty = cx
+            .tcx
+            .try_normalize_erasing_regions(cx.typing_env(), arg_ty)
+            .unwrap_or(arg_ty)
+        && let ty::Ref(_, src_ty, Mutability::Not) = *src_ty.kind()
+        && match diag_name {
+            Some(sym::to_owned_method) => {
+                cx.tcx
+                    .try_normalize_erasing_regions(cx.typing_env(), res_ty)
+                    .unwrap_or(res_ty)
+                    == src_ty
+            },
+            Some(sym::to_string_method) => is_type_lang_item(cx, src_ty, LangItem::String),
+            None => true,
+            _ => unreachable!(),
+        }
+        // Assume cloning types without drop glue is either trivial or has side-effects.
+        // Don't lint non-freeze types since we can't detect mutation properly.
+        // Don't lint significant drop types since a clone of those will have side-effects.
+        // Always lint type parameters and projections even if it will lead to false positives.
+        && (matches!(
+            src_ty.kind(),
+            ty::Param(_) | ty::Alias(AliasTyKind::Projection | AliasTyKind::Opaque, _)
+        ) || (src_ty.needs_drop(cx.tcx, cx.typing_env())
+            && src_ty.is_freeze(cx.tcx, cx.typing_env())
+            && !src_ty.has_significant_drop(cx.tcx, cx.typing_env())))
+        && src.projection.iter().all(|x| matches!(x, ProjectionElem::Field { .. }))
+        && destination
+            .projection
+            .iter()
+            .all(|x| matches!(x, ProjectionElem::Field { .. }))
     {
-        Some((def_id, *local, inner_ty, destination.as_local()?))
+        Some((src_ty, CloneCall { src, dst: *destination }))
     } else {
         None
     }
 }
 
-type CannotMoveOut = bool;
-
-/// Finds the first `to = (&)from`, and returns
-/// ``Some((from, whether `from` cannot be moved out))``.
-fn find_stmt_assigns_to<'tcx>(
-    cx: &LateContext<'tcx>,
-    mir: &mir::Body<'tcx>,
-    to_local: mir::Local,
-    by_ref: bool,
-    bb: mir::BasicBlock,
-) -> Option<(mir::Local, CannotMoveOut)> {
-    let rvalue = mir.basic_blocks[bb].statements.iter().rev().find_map(|stmt| {
-        if let mir::StatementKind::Assign(box (mir::Place { local, .. }, v)) = &stmt.kind {
-            return if *local == to_local { Some(v) } else { None };
-        }
-
-        None
-    })?;
-
-    match (by_ref, rvalue) {
-        (true, mir::Rvalue::Ref(_, _, place)) | (false, mir::Rvalue::Use(mir::Operand::Copy(place))) => {
-            Some(base_local_and_movability(cx, mir, *place))
-        },
-        (false, mir::Rvalue::Ref(_, _, place)) => {
-            if let [mir::ProjectionElem::Deref] = place.as_ref().projection {
-                Some(base_local_and_movability(cx, mir, *place))
-            } else {
-                None
-            }
-        },
-        _ => None,
-    }
+#[derive(Clone, Copy)]
+enum CanMove {
+    Yes,
+    Take,
+    No,
 }
 
-/// Extracts and returns the undermost base `Local` of given `place`. Returns `place` itself
-/// if it is already a `Local`.
+#[derive(Clone, Copy)]
+struct CloneInfo<'body> {
+    source_info: &'body SourceInfo,
+    can_move_from_src: CanMove,
+}
+static DUMMY_CLONE_INFO: CloneInfo<'_> = CloneInfo {
+    source_info: &SourceInfo {
+        span: DUMMY_SP,
+        scope: SourceScope::ZERO,
+    },
+    can_move_from_src: CanMove::Yes,
+};
+
+/// A pair of projection indices linked by a clone call.
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+struct Link {
+    original: projection::Idx,
+    clone: projection::Idx,
+}
+
+rustc_index::newtype_index! {
+    /// Index in the link interner representing a specific link.
+    #[orderable]
+    struct LinkIdx {}
+}
+
+/// Interner to compress links into a single value.
 ///
-/// Also reports whether given `place` cannot be moved out.
-fn base_local_and_movability<'tcx>(
-    cx: &LateContext<'tcx>,
-    mir: &mir::Body<'tcx>,
-    place: mir::Place<'tcx>,
-) -> (mir::Local, CannotMoveOut) {
-    // Dereference. You cannot move things out from a borrowed value.
-    let mut deref = false;
-    // Accessing a field of an ADT that has `Drop`. Moving the field out will cause E0509.
-    let mut field = false;
-    // If projection is a slice index then clone can be removed only if the
-    // underlying type implements Copy
-    let mut slice = false;
-
-    for (base, elem) in place.as_ref().iter_projections() {
-        let base_ty = base.ty(&mir.local_decls, cx.tcx).ty;
-        deref |= matches!(elem, mir::ProjectionElem::Deref);
-        field |= matches!(elem, mir::ProjectionElem::Field(..)) && has_drop(cx, base_ty);
-        slice |= matches!(elem, mir::ProjectionElem::Index(..)) && !is_copy(cx, base_ty);
+/// These links need to be created dynamically as new links can be created during the analysis by
+/// moving a linked value to a new place.
+#[derive(Default)]
+struct LinkInterner {
+    links: FxIndexSet<Link>,
+}
+impl LinkInterner {
+    fn intern(&mut self, link: Link) -> LinkIdx {
+        LinkIdx::from_usize(self.links.insert_full(link).0)
     }
 
-    (place.local, deref || field || slice)
-}
+    fn get(&self, idx: LinkIdx) -> Link {
+        self.links[idx.as_usize()]
+    }
 
-#[derive(Debug, Default)]
-enum MirLocalUsage {
-    /// The local maybe used, but we are not sure how.
-    Unknown,
-    /// The local is not used.
-    #[default]
-    Unused,
-    /// The local is used at a specific location.
-    Used(mir::Location),
-}
+    fn iter(&self) -> indexmap::set::Iter<'_, Link> {
+        self.links.iter()
+    }
 
-impl MirLocalUsage {
-    fn maybe_used(&self) -> bool {
-        matches!(self, MirLocalUsage::Unknown | MirLocalUsage::Used(_))
+    fn idx_range(&self) -> Range<LinkIdx> {
+        LinkIdx::ZERO..LinkIdx::from_usize(self.links.len())
     }
 }
 
-impl From<Option<mir::Location>> for MirLocalUsage {
-    fn from(loc: Option<mir::Location>) -> Self {
-        loc.map_or(MirLocalUsage::Unused, MirLocalUsage::Used)
-    }
-}
-
-#[derive(Debug, Default)]
-struct CloneUsage {
-    /// The first location where the cloned value is used, if any.
-    cloned_use_loc: MirLocalUsage,
-    /// The first location where the cloned value is consumed or mutated, if any.
-    cloned_consume_or_mutate_loc: Option<mir::Location>,
-    /// Whether the clone value is mutated.
-    clone_consumed_or_mutated: bool,
-}
-
-fn visit_clone_usage(cloned: mir::Local, clone: mir::Local, mir: &mir::Body<'_>, bb: mir::BasicBlock) -> CloneUsage {
-    if let Some((
-        LocalUsage {
-            local_use_locs: cloned_use_locs,
-            local_consume_or_mutate_locs: cloned_consume_or_mutate_locs,
-        },
-        LocalUsage {
-            local_use_locs: _,
-            local_consume_or_mutate_locs: clone_consume_or_mutate_locs,
-        },
-    )) = visit_local_usage(
-        &[cloned, clone],
-        mir,
-        mir::Location {
-            block: bb,
-            statement_index: mir.basic_blocks[bb].statements.len(),
-        },
+/// Doubles the bit index of a word to give a bit index in a pair of words.
+fn double_bit_idx(i: u32) -> (usize, u32) {
+    (
+        i as usize >> (bit_slice::WORD_BITS.trailing_zeros() - 1),
+        (i << 1) & (bit_slice::Word::BITS - 1),
     )
-    .map(|mut vec| (vec.remove(0), vec.remove(0)))
-    {
-        CloneUsage {
-            cloned_use_loc: cloned_use_locs.first().copied().into(),
-            cloned_consume_or_mutate_loc: cloned_consume_or_mutate_locs.first().copied(),
-            // Consider non-temporary clones consumed.
-            // TODO: Actually check for mutation of non-temporaries.
-            clone_consumed_or_mutated: mir.local_kind(clone) != mir::LocalKind::Temp
-                || !clone_consume_or_mutate_locs.is_empty(),
+}
+
+rustc_index::newtype_index! {
+    #[orderable]
+    struct Value {}
+}
+rustc_index::newtype_index! {
+    /// Index representing a specific clone call in the body.
+    #[orderable]
+    #[max = 0x7fff_ffff]
+    struct CloneIdx {}
+}
+
+/// Which side of a clone a specific value is from.
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum CloneValue {
+    Original = 0,
+    Clone = 1,
+}
+impl CloneValue {
+    fn with_clone(self, idx: CloneIdx) -> CloneWithValue {
+        CloneWithValue::from_u32((idx.as_u32() << 1) | self as u32)
+    }
+
+    fn bit_pair(original: bool, clone: bool) -> bit_slice::Word {
+        bit_slice::Word::from(original) | (bit_slice::Word::from(clone) << 1)
+    }
+
+    fn from_bit_pair(word: bit_slice::Word) -> (bool, bool) {
+        (word & 1 != 0, word & 2 != 0)
+    }
+}
+
+rustc_index::newtype_index! {
+    /// A combination of `CloneIdx` and `CloneValue`.
+    #[orderable]
+    #[max = 0xffff_ffff]
+    struct CloneWithValue {}
+}
+#[expect(dead_code)]
+impl CloneWithValue {
+    fn clone_idx(self) -> CloneIdx {
+        CloneIdx::from_u32(self.as_u32() >> 1)
+    }
+
+    fn clone_value(self) -> CloneValue {
+        if self.as_u32() & 1 != 0 {
+            CloneValue::Clone
+        } else {
+            CloneValue::Original
         }
-    } else {
-        CloneUsage {
-            cloned_use_loc: MirLocalUsage::Unknown,
-            cloned_consume_or_mutate_loc: None,
-            clone_consumed_or_mutated: true,
+    }
+
+    fn invert_value(self) -> Self {
+        Self::from_u32(self.as_u32() ^ 1)
+    }
+}
+
+/// How a value was used. Used for diagnostic output only.
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+enum UseKind {
+    Diverged,
+    Dropped,
+}
+
+/// All information about the use of a value. Used for diagnostic output only.
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+struct UseInfo {
+    clone: CloneWithValue,
+    kind: UseKind,
+    sp: Span,
+}
+impl UseInfo {
+    fn new(clone: CloneWithValue, kind: UseKind, sp: Span) -> Self {
+        Self { clone, kind, sp }
+    }
+}
+
+struct Predecessors<'a> {
+    /// The predecessor blocks, or an empty set if there are less the two predecessors.
+    predecessors: &'a SliceSet<OrderedBlock>,
+    /// The value to use for the first projection when predecessor blocks have different values.
+    /// Subsequent projections will use ascending values.
+    first_value: Value,
+}
+impl<'a> Predecessors<'a> {
+    fn for_body(
+        arena: &'a DroplessArena,
+        body: &Body<'_>,
+        block_map: &BlockOrderMap<'_>,
+        projections: &projection::Map<'_>,
+    ) -> &'a IndexSlice<OrderedBlock, Self> {
+        let mut next_value = projections.domain_size_u32();
+        let predecessors = body.basic_blocks.predecessors();
+        IndexSlice::from_raw(arena.alloc_from_iter(block_map.from_ordered().iter().map(|&block| {
+            let first_value = Value::from_u32(next_value);
+            next_value += projections.domain_size_u32();
+            Predecessors {
+                predecessors: if predecessors.len() > 1 {
+                    SliceSet::from_unsorted_slice_dedup(
+                        arena.alloc_from_iter(predecessors[block].iter().map(|&block| block_map.to_ordered()[block])),
+                    )
+                } else {
+                    SliceSet::empty()
+                },
+                first_value,
+            }
+        })))
+    }
+}
+
+enum CloneOp {
+    /// Creates a clone of a specific projection and establishes a link.
+    Clone {
+        clone: CloneIdx,
+        link: LinkIdx,
+        src: projection::Idx,
+        dst: projection::Idx,
+        sp: Span,
+    },
+    /// Copies a child of a projection without establishing a link.
+    CloneStructure {
+        src: projection::Idx,
+        dst: projection::Idx,
+        sp: Span,
+    },
+    /// Copies a child of a projection without establishing a link.
+    CloneStructureRange {
+        src: Range<projection::Idx>,
+        dst: projection::Idx,
+        sp: Span,
+    },
+    Move {
+        src: projection::Idx,
+        dst: projection::Idx,
+    },
+    MoveRange {
+        src: Range<projection::Idx>,
+        dst: projection::Idx,
+    },
+    Mutate {
+        idx: projection::Idx,
+        value: Value,
+        sp: Span,
+        stmt: u32,
+    },
+    MutateRange {
+        range: Range<projection::Idx>,
+        value_start: Value,
+        sp: Span,
+        stmt: u32,
+    },
+    /// Mutates a projection or a child of a projection then marks clones as required.
+    ///
+    /// Used for mutable borrows or when a child is consumed.
+    MutateRequired {
+        idx: projection::Idx,
+        value: Value,
+        sp: Span,
+        stmt: u32,
+    },
+    BorrowMut {
+        range: Range<projection::Idx>,
+        value_start: Value,
+        sp: Span,
+        stmt: u32,
+    },
+    Drop {
+        range: Range<projection::Idx>,
+        sp: Span,
+    },
+    Consume {
+        idx: projection::Idx,
+        sp: Span,
+        stmt: u32,
+    },
+    ConsumeRange {
+        range: Range<projection::Idx>,
+        sp: Span,
+        stmt: u32,
+    },
+    /// Reads a projection or a child of a projection.
+    Read {
+        idx: projection::Idx,
+    },
+    /// Reads a projection via it's parent.
+    ReadStructure {
+        idx: projection::Idx,
+    },
+    /// Reads a projection via it's parent.
+    ReadStructureRange {
+        range: Range<projection::Idx>,
+    },
+}
+
+struct CloneOpVisitor<'arena, 'body, 'tcx> {
+    tcx: TyCtxt<'tcx>,
+    typing_env: TypingEnv<'tcx>,
+    body: &'body Body<'tcx>,
+    projections: projection::Map<'arena>,
+    link_interner: LinkInterner,
+    clone_info: &'arena mut [CloneInfo<'body>],
+    ops: Vec<CloneOp>,
+    next_value: u32,
+    next_clone_id: u32,
+    stmt: u32,
+}
+impl<'body, 'tcx> CloneOpVisitor<'_, 'body, 'tcx> {
+    fn visit_clone_call(&mut self, src: Place<'tcx>, dst: Place<'tcx>, source_info: &'body SourceInfo) {
+        let resolved_src = self.projections.resolve(src);
+        let resolved_dst = self.projections.resolve(dst);
+        let (src_start, src_data) = resolved_src.values();
+        let (dst_start, dst_data) = resolved_dst.values();
+        let sp = source_info.span;
+        if dst_data.contains_values() || src_data.contains_values() {
+            if dst_data.has_value && src_data.has_value {
+                self.clone_info[self.next_clone_id as usize] = CloneInfo {
+                    source_info,
+                    can_move_from_src: {
+                        if let [ref proj @ .., ProjectionElem::Field(_, final_ty)] = **src.projection {
+                            let mut ty = self.body.local_decls[src.local].ty;
+                            let mut proj = proj;
+                            loop {
+                                if ty.ty_adt_def().is_some_and(|adt| adt.destructor(self.tcx).is_some()) {
+                                    if let Some(default_trait) = self.tcx.get_diagnostic_item(sym::Default)
+                                        && implements_trait_with_env(
+                                            self.tcx,
+                                            self.typing_env,
+                                            final_ty,
+                                            default_trait,
+                                            None,
+                                            &[],
+                                        )
+                                    {
+                                        break CanMove::Take;
+                                    }
+                                    break CanMove::No;
+                                }
+                                if let &[ProjectionElem::Field(_, next_ty), ref rest @ ..] = proj {
+                                    ty = next_ty;
+                                    proj = rest;
+                                } else {
+                                    break CanMove::Yes;
+                                }
+                            }
+                        } else {
+                            CanMove::Yes
+                        }
+                    },
+                };
+                self.ops.push(CloneOp::Clone {
+                    clone: CloneIdx::from_u32(self.next_clone_id),
+                    link: self.link_interner.intern(Link {
+                        original: src_start,
+                        clone: dst_start,
+                    }),
+                    src: src_start,
+                    dst: dst_start,
+                    sp,
+                });
+                self.next_clone_id += 1;
+            } else if dst_data.has_value {
+                self.visit_mutate_idx(dst_start, sp);
+            } else if src_data.has_value {
+                self.ops.push(CloneOp::Read { idx: src_start });
+            }
+            if dst_data != src_data {
+                value_tracking::copy_place_fields(
+                    self,
+                    value_tracking::Copy,
+                    dst_start,
+                    dst_data,
+                    src_start,
+                    src_data,
+                    sp,
+                );
+            } else if src_data.value_count > u32::from(src_data.has_value) {
+                self.visit_copy_range(
+                    dst_start.plus(usize::from(src_data.has_value)),
+                    src_start.plus(usize::from(src_data.has_value))..src_start.plus(src_data.value_count as usize),
+                    sp,
+                );
+            }
+        }
+        for idx in resolved_src.parents(&self.projections) {
+            self.visit_read_parent(idx, sp);
+        }
+        for idx in resolved_dst.parents(&self.projections) {
+            self.visit_mutate_parent(idx, sp);
+        }
+    }
+}
+impl<'arena, 'tcx> value_tracking::Visitor<'arena, 'tcx> for CloneOpVisitor<'arena, '_, 'tcx> {
+    type Resolver = projection::Map<'arena>;
+    fn resolver(&self) -> &Self::Resolver {
+        &self.projections
+    }
+    fn tcx(&self) -> TyCtxt<'tcx> {
+        self.tcx
+    }
+    fn body(&self) -> &Body<'tcx> {
+        self.body
+    }
+
+    fn visit_read_idx(&mut self, idx: projection::Idx, _: Span) {
+        self.ops.push(CloneOp::ReadStructure { idx });
+    }
+    fn visit_read_range(&mut self, range: Range<projection::Idx>, _: Span) {
+        self.ops.push(CloneOp::ReadStructureRange { range });
+    }
+
+    fn visit_mutate_idx(&mut self, idx: projection::Idx, sp: Span) {
+        self.ops.push(CloneOp::Mutate {
+            idx,
+            value: Value::from_u32(self.next_value),
+            sp,
+            stmt: self.stmt,
+        });
+        self.next_value += 1;
+    }
+    fn visit_mutate_range(&mut self, range: Range<projection::Idx>, sp: Span) {
+        let len = range.end.as_u32() - range.start.as_u32();
+        self.ops.push(CloneOp::MutateRange {
+            range,
+            value_start: Value::from_u32(self.next_value),
+            sp,
+            stmt: self.stmt,
+        });
+        self.next_value += len;
+    }
+
+    fn visit_consume_idx(&mut self, idx: projection::Idx, sp: Span) {
+        self.ops.push(CloneOp::Consume {
+            idx,
+            sp,
+            stmt: self.stmt,
+        });
+    }
+    fn visit_consume_range(&mut self, range: Range<projection::Idx>, sp: Span) {
+        self.ops.push(CloneOp::ConsumeRange {
+            range,
+            sp,
+            stmt: self.stmt,
+        });
+    }
+
+    // A place can't be uninitialized without first being dropped or moved from. No need to mark
+    // it uninitialized again.
+    fn visit_uninit_idx(&mut self, _: projection::Idx, _: Span) {}
+    fn visit_uninit_range(&mut self, _: Range<projection::Idx>, _: Span) {}
+    fn visit_uninit_place(&mut self, _: Place<'tcx>, _: Span) {}
+    fn visit_uninit_local(&mut self, _: Local, _: Span) {}
+
+    fn visit_move_idx(&mut self, dst: projection::Idx, src: projection::Idx, _: Span) {
+        self.ops.push(CloneOp::Move { src, dst });
+    }
+    fn visit_move_range(&mut self, dst: projection::Idx, src: Range<projection::Idx>, _: Span) {
+        self.ops.push(CloneOp::MoveRange { src, dst });
+    }
+
+    // Tracked clone calls use `visit_copy_place`.
+    fn visit_copy_idx(&mut self, dst: projection::Idx, src: projection::Idx, sp: Span) {
+        self.ops.push(CloneOp::CloneStructure { src, dst, sp });
+    }
+    fn visit_copy_range(&mut self, dst: projection::Idx, src: Range<projection::Idx>, sp: Span) {
+        self.ops.push(CloneOp::CloneStructureRange { src, dst, sp });
+    }
+
+    fn visit_read_parent(&mut self, idx: projection::Idx, _: Span) {
+        self.ops.push(CloneOp::Read { idx });
+    }
+
+    fn visit_consume_parent(&mut self, idx: projection::Idx, sp: Span) {
+        self.ops.push(CloneOp::MutateRequired {
+            idx,
+            value: Value::from_u32(self.next_value),
+            sp,
+            stmt: self.stmt,
+        });
+        self.next_value += 1;
+    }
+
+    fn visit_read_place(&mut self, place: Place<'tcx>, sp: Span) {
+        let place = self.projections.resolve(place);
+        let (mut start, data) = place.values();
+        if data.contains_values() {
+            if data.has_value {
+                self.ops.push(CloneOp::Read { idx: start });
+                start = start.plus(1);
+            }
+            if data.value_count > u32::from(data.has_value) {
+                self.visit_read_range(
+                    start..start.plus(data.value_count as usize - usize::from(data.has_value)),
+                    sp,
+                );
+            }
+        }
+        for idx in place.parents(self.resolver()) {
+            self.visit_read_parent(idx, sp);
+        }
+    }
+
+    fn visit_drop_place(&mut self, place: Place<'tcx>, sp: Span) {
+        let place = self.projections.resolve(place);
+        let (start, data) = place.values();
+        if data.contains_values() {
+            self.ops.push(CloneOp::Drop {
+                range: start..start.plus(data.value_count as usize),
+                sp,
+            });
+        }
+        for idx in place.parents(self.resolver()) {
+            self.visit_mutate_parent(idx, sp);
+        }
+    }
+
+    fn visit_assign_borrow(&mut self, dst: Place<'tcx>, src: Place<'tcx>, kind: BorrowKind, sp: Span) {
+        let src = self.projections.resolve(src);
+        let (mut src_start, src_data) = src.values();
+        if src_data.contains_values() {
+            if matches!(kind, BorrowKind::Mut { .. }) {
+                self.ops.push(CloneOp::BorrowMut {
+                    range: src_start..src_start.plus(src_data.value_count as usize),
+                    value_start: Value::from_u32(self.next_value),
+                    sp,
+                    stmt: self.stmt,
+                });
+                self.next_value += src_data.value_count;
+            } else {
+                if src_data.has_value {
+                    self.ops.push(CloneOp::Read { idx: src_start });
+                    src_start = src_start.plus(1);
+                }
+                if src_data.value_count > u32::from(src_data.has_value) {
+                    self.visit_read_range(
+                        src_start..src_start.plus(src_data.value_count as usize - usize::from(src_data.has_value)),
+                        sp,
+                    );
+                }
+            }
+        }
+        if matches!(kind, BorrowKind::Mut { .. }) {
+            for idx in src.parents(self.resolver()) {
+                self.ops.push(CloneOp::MutateRequired {
+                    idx,
+                    value: Value::from_u32(self.next_value),
+                    sp,
+                    stmt: self.stmt,
+                });
+                self.next_value += 1;
+            }
+        } else {
+            for idx in src.parents(self.resolver()) {
+                self.visit_read_parent(idx, sp);
+            }
+        }
+        self.visit_mutate_place(dst, sp);
+    }
+}
+
+struct CloneDomain<'arena> {
+    /// Which pairs of projections are clones of each other with values that have yet to diverge and
+    /// which clone calls caused that link.
+    ///
+    /// Each link can be caused by multiple clones when merging blocks. e.g.
+    /// ```ignore
+    /// let x = value;
+    /// let y = if cond { x.clone() } else { x.clone() };
+    /// ```
+    ///
+    /// Each clone can also appear in multiple links. e.g.
+    /// ```ignore
+    /// let (x, mut y) = (value1, value2);
+    /// loop {
+    ///     // The second iteration will start with `x` and `y` already linked.
+    ///     let z = x.clone();
+    ///     y = z;
+    /// }
+    /// ```
+    links: GrowableBitSet2d<LinkIdx, CloneIdx>,
+    /// For each projection, track which clone calls the current value is associated with where the
+    /// pair of values have diverged, but have not yet been read. Also tracks which side of the
+    /// clone this value is (it may be both).
+    diverged: BitSlice2d<'arena, projection::Idx, CloneWithValue>,
+    values: &'arena mut IndexSlice<projection::Idx, Option<Value>>,
+    // For each value, track the value of each predecessor block. A value is considered diverged at
+    // the block's entry if there are different values amongst its predecessors.
+    //
+    // Data layout is `[[Value; predecessor_count]; projection_count]`.
+    //
+    // This is only tracked if there are multiple predecessor blocks.
+    // predecessor_values: &'arena mut [Option<Value>],
+}
+
+struct CloneAnalysis<'arena, 'body, 'tcx, 'blocks> {
+    projections: projection::Map<'arena>,
+    clone_info: &'arena IndexSlice<CloneIdx, CloneInfo<'body>>,
+    /// Tracks where clone values diverge and are dropped for diagnostic purposes.
+    clone_use_info: FxHashSet<UseInfo>,
+    /// For both values (original and clone) of each clone call, track whether a read has occurred
+    /// that cannot be replace by a read of the paired value. A read cannot be replace if the values
+    /// have diverged or if the read comes from a structure containing the value.
+    required_reads: &'arena mut BitSlice<CloneWithValue>,
+    ops: &'arena IndexSlice<OrderedBlock, &'arena [CloneOp]>,
+    link_interner: LinkInterner,
+    borrowers: PossibleBorrowerMap<'body, 'tcx>,
+    block_map: &'blocks BlockOrderMap<'blocks>,
+    /// `PossibleBorrowerMap` doesn't handle cleanup blocks well. Since these only drop values we
+    /// can just skip diverging values at the block entry to fix the false negatives.
+    cleanup_blocks: &'arena BitSlice<OrderedBlock>,
+    predecessors: &'arena IndexSlice<OrderedBlock, Predecessors<'arena>>,
+}
+impl<'arena, 'body, 'tcx, 'blocks> CloneAnalysis<'arena, 'body, 'tcx, 'blocks> {
+    #[expect(clippy::too_many_lines, clippy::too_many_arguments, clippy::type_complexity)]
+    fn new(
+        cx: &LateContext<'tcx>,
+        body: &'body Body<'tcx>,
+        arena: &'arena DroplessArena,
+        def_id: LocalDefId,
+        block_map: &'blocks BlockOrderMap<'blocks>,
+        place_filter: &PlaceFilter<'_>,
+        cloned_tys: &FxHashSet<Ty<'tcx>>,
+        clone_calls: &IndexSlice<BasicBlock, Option<CloneCall<'tcx>>>,
+        clone_srcs: &IndexSlice<OrderedBlock, Option<Place<'tcx>>>,
+    ) -> Option<(
+        Self,
+        <Self as Analysis>::Domain,
+        IndexVec<OrderedBlock, <Self as Analysis>::Domain>,
+    )> {
+        let mut visitor = CloneOpVisitor {
+            tcx: cx.tcx,
+            typing_env: cx.typing_env(),
+            body,
+            projections: {
+                let projections = projection::Map::new(
+                    cx.tcx,
+                    cx.typing_env(),
+                    arena,
+                    body,
+                    |ty| cloned_tys.contains(&ty),
+                    def_id.to_def_id(),
+                    place_filter,
+                );
+                if projections.domain_size() == 0 {
+                    return None;
+                }
+                projections
+            },
+            link_interner: LinkInterner::default(),
+            clone_info: arena.alloc_from_iter(iter::repeat_with(|| DUMMY_CLONE_INFO).take(body.basic_blocks.len())),
+            ops: Vec::new(),
+            next_value: 0,
+            next_clone_id: 0,
+            stmt: 0,
+        };
+        let ops = IndexSlice::from_raw(arena.alloc_from_iter(block_map.from_ordered().iter_enumerated().map(
+            |(ordered_block, &block)| {
+                let block_data = &body.basic_blocks[block];
+                for s in &block_data.statements {
+                    visitor.visit_statement(s);
+                    visitor.stmt += 1;
+                }
+                if let Some(term) = &block_data.terminator {
+                    if let Some(src) = clone_srcs[ordered_block]
+                        && let TerminatorKind::Call { args, .. } = &term.kind
+                        && let [arg] = &**args
+                        && let Some(call) = &clone_calls[block]
+                    {
+                        value_tracking::walk_operand(&mut visitor, &arg.node, arg.span);
+                        visitor.visit_clone_call(src, call.dst, &term.source_info);
+                    } else {
+                        visitor.visit_terminator(term);
+                    }
+                }
+                visitor.stmt = 0;
+                &*arena.alloc_from_iter(visitor.ops.drain(..))
+            },
+        )));
+        if visitor.next_clone_id == 0 {
+            return None;
+        }
+
+        let predecessors = Predecessors::for_body(arena, body, block_map, &visitor.projections);
+        let mut states: IndexVec<OrderedBlock, _> = predecessors
+            .iter()
+            .map(|pre| CloneDomain {
+                links: GrowableBitSet2d::new(visitor.next_clone_id),
+                diverged: BitSlice2d::empty_arena(
+                    arena,
+                    visitor.projections.domain_size_u32(),
+                    visitor.next_clone_id * 2,
+                ),
+                values: IndexSlice::from_raw_mut(arena.alloc_from_iter(
+                    iter::repeat_with(|| None).take(visitor.projections.domain_size() * pre.predecessors.len().max(1)),
+                )),
+            })
+            .collect();
+        let tmp_state = CloneDomain {
+            links: GrowableBitSet2d::new(visitor.next_clone_id),
+            diverged: BitSlice2d::empty_arena(arena, visitor.projections.domain_size_u32(), visitor.next_clone_id * 2),
+            values: IndexSlice::from_raw_mut(
+                arena.alloc_from_iter(iter::repeat_with(|| None).take(visitor.projections.domain_size())),
+            ),
+        };
+        let start_state = &mut states[block_map.to_ordered()[START_BLOCK]];
+        for idx in visitor.projections.resolve_args(body) {
+            start_state.values[idx] = Some(Value::from_u32(visitor.next_value));
+            visitor.next_value += 1;
+        }
+
+        let cleanup_blocks = BitSlice::empty_arena(arena, body.basic_blocks.len());
+        for (block, data) in body.basic_blocks.iter_enumerated() {
+            if data.is_cleanup {
+                cleanup_blocks.insert(block_map.to_ordered()[block]);
+            }
+        }
+
+        Some((
+            Self {
+                projections: visitor.projections,
+                clone_info: IndexSlice::from_raw(&visitor.clone_info[..visitor.next_clone_id as usize]),
+                clone_use_info: FxHashSet::default(),
+                required_reads: BitSlice::empty_arena(arena, visitor.next_clone_id as usize * 2),
+                ops,
+                link_interner: visitor.link_interner,
+                borrowers: PossibleBorrowerMap::new(cx.tcx, cx.typing_env(), body),
+                block_map,
+                cleanup_blocks,
+                predecessors,
+            },
+            tmp_state,
+            states,
+        ))
+    }
+
+    fn set_diverged(diverged: &mut BitSlice<CloneWithValue>, clones: &BitSlice<CloneIdx>, value: bit_slice::Word) {
+        diverged.words.chunks_mut(2).zip(&clones.words).for_each(|(dst, &src)| {
+            for i in WordBitIter::new(src) {
+                let (idx, shift) = double_bit_idx(i);
+                dst[idx] |= value << shift;
+            }
+        });
+    }
+
+    fn set_diverged_with_use(
+        use_info: &mut FxHashSet<UseInfo>,
+        diverged: &mut BitSlice<CloneWithValue>,
+        clones: &BitSlice<CloneIdx>,
+        value: bit_slice::Word,
+        clone_value: CloneValue,
+        sp: Span,
+    ) {
+        let mut clone_idx = 0;
+        diverged.words.chunks_mut(2).zip(&clones.words).for_each(|(dst, &src)| {
+            for i in WordBitIter::new(src) {
+                use_info.insert(UseInfo::new(
+                    clone_value.with_clone(CloneIdx::from_u32(i + clone_idx)),
+                    UseKind::Diverged,
+                    sp,
+                ));
+                let (idx, shift) = double_bit_idx(i);
+                dst[idx] |= value << shift;
+            }
+            clone_idx += bit_slice::Word::BITS;
+        });
+    }
+
+    fn diverge_idx(
+        &mut self,
+        links: &mut GrowableBitSet2d<LinkIdx, CloneIdx>,
+        diverged: &mut BitSlice2d<'_, projection::Idx, CloneWithValue>,
+        idx: projection::Idx,
+        sp: Span,
+        loc: Location,
+    ) {
+        for (clones, link) in links.iter_mut_rows(..).zip(self.link_interner.iter()) {
+            let value = if idx == link.original {
+                CloneValue::Original
+            } else if idx == link.clone {
+                CloneValue::Clone
+            } else {
+                continue;
+            };
+            let original_borrowed = !self
+                .borrowers
+                .is_unborrowed_before(self.projections.local_for_idx(link.original), loc);
+            let clone_borrowed = !self
+                .borrowers
+                .is_unborrowed_before(self.projections.local_for_idx(link.clone), loc);
+            if original_borrowed || clone_borrowed {
+                Self::set_diverged(
+                    self.required_reads,
+                    clones,
+                    CloneValue::bit_pair(original_borrowed, clone_borrowed),
+                );
+            }
+            if !original_borrowed {
+                Self::set_diverged(
+                    diverged.row_mut(link.original),
+                    clones,
+                    CloneValue::bit_pair(true, false),
+                );
+            }
+            if !clone_borrowed {
+                Self::set_diverged(diverged.row_mut(link.clone), clones, CloneValue::bit_pair(false, true));
+            }
+            for clone in clones.drain() {
+                self.clone_use_info
+                    .insert(UseInfo::new(value.with_clone(clone), UseKind::Diverged, sp));
+            }
+        }
+    }
+
+    fn diverge_range(
+        &mut self,
+        state: &mut <Self as Analysis>::Domain,
+        range: Range<projection::Idx>,
+        sp: Span,
+        loc: Location,
+    ) {
+        for (clones, link) in state.links.iter_mut_rows(..).zip(self.link_interner.iter()) {
+            let is_original = range.contains(&link.original);
+            let is_clone = range.contains(&link.clone);
+            if !(is_original || is_clone) {
+                continue;
+            }
+
+            let original_borrowed = !self
+                .borrowers
+                .is_unborrowed_before(self.projections.local_for_idx(link.original), loc);
+            let clone_borrowed = !self
+                .borrowers
+                .is_unborrowed_before(self.projections.local_for_idx(link.clone), loc);
+            if original_borrowed || clone_borrowed {
+                Self::set_diverged(
+                    self.required_reads,
+                    clones,
+                    CloneValue::bit_pair(original_borrowed, clone_borrowed),
+                );
+            }
+            if !original_borrowed {
+                Self::set_diverged(
+                    state.diverged.row_mut(link.original),
+                    clones,
+                    CloneValue::bit_pair(true, false),
+                );
+            }
+            if !clone_borrowed {
+                Self::set_diverged(
+                    state.diverged.row_mut(link.clone),
+                    clones,
+                    CloneValue::bit_pair(false, true),
+                );
+            }
+
+            if is_original {
+                for clone in clones.iter() {
+                    self.clone_use_info.insert(UseInfo::new(
+                        CloneValue::Original.with_clone(clone),
+                        UseKind::Diverged,
+                        sp,
+                    ));
+                }
+            }
+            if is_clone {
+                for clone in clones.iter() {
+                    self.clone_use_info.insert(UseInfo::new(
+                        CloneValue::Clone.with_clone(clone),
+                        UseKind::Diverged,
+                        sp,
+                    ));
+                }
+            }
+            clones.clear();
+        }
+    }
+
+    fn diverge_read_idx(
+        &mut self,
+        state: &mut <Self as Analysis>::Domain,
+        idx: projection::Idx,
+        sp: Span,
+        loc: Location,
+    ) {
+        for (clones, link) in state.links.iter_mut_rows(..).zip(self.link_interner.iter()) {
+            let (other_idx, clone_value, other_value, this_value) = if link.clone == idx {
+                (
+                    link.original,
+                    CloneValue::Clone,
+                    CloneValue::bit_pair(true, false),
+                    CloneValue::bit_pair(false, true),
+                )
+            } else if link.original == idx {
+                (
+                    link.clone,
+                    CloneValue::Clone,
+                    CloneValue::bit_pair(false, true),
+                    CloneValue::bit_pair(true, false),
+                )
+            } else {
+                continue;
+            };
+            let diverged = if self
+                .borrowers
+                .is_unborrowed_before(self.projections.local_for_idx(other_idx), loc)
+            {
+                state.diverged.row_mut(other_idx)
+            } else {
+                &mut *self.required_reads
+            };
+            Self::set_diverged(diverged, clones, other_value);
+            let diverged = state.diverged.row_mut(idx);
+            Self::set_diverged_with_use(&mut self.clone_use_info, diverged, clones, this_value, clone_value, sp);
+            for (src, dst) in diverged.words.iter_mut().zip(self.required_reads.words.iter_mut()) {
+                *dst |= mem::take(src);
+            }
+        }
+    }
+
+    fn diverge_read_range(
+        &mut self,
+        state: &mut <Self as Analysis>::Domain,
+        range: Range<projection::Idx>,
+        sp: Span,
+        loc: Location,
+    ) {
+        for (clones, link) in state.links.iter_mut_rows(..).zip(self.link_interner.iter()) {
+            let is_original = range.contains(&link.original);
+            let is_clone = range.contains(&link.clone);
+
+            if is_original {
+                let diverged = state.diverged.row_mut(link.original);
+                Self::set_diverged_with_use(
+                    &mut self.clone_use_info,
+                    diverged,
+                    clones,
+                    CloneValue::bit_pair(true, false),
+                    CloneValue::Original,
+                    sp,
+                );
+                for (src, dst) in diverged.words.iter_mut().zip(self.required_reads.words.iter_mut()) {
+                    *dst |= mem::take(src);
+                }
+            } else if is_clone {
+                let diverged = if self
+                    .borrowers
+                    .is_unborrowed_before(self.projections.local_for_idx(link.original), loc)
+                {
+                    state.diverged.row_mut(link.original)
+                } else {
+                    &mut *self.required_reads
+                };
+                Self::set_diverged(diverged, clones, CloneValue::bit_pair(true, false));
+            }
+
+            if is_clone {
+                let diverged = state.diverged.row_mut(link.clone);
+                Self::set_diverged_with_use(
+                    &mut self.clone_use_info,
+                    diverged,
+                    clones,
+                    CloneValue::bit_pair(false, true),
+                    CloneValue::Clone,
+                    sp,
+                );
+                for (src, dst) in diverged.words.iter_mut().zip(self.required_reads.words.iter_mut()) {
+                    *dst |= mem::take(src);
+                }
+            } else if is_original {
+                let diverged = if self
+                    .borrowers
+                    .is_unborrowed_before(self.projections.local_for_idx(link.clone), loc)
+                {
+                    state.diverged.row_mut(link.clone)
+                } else {
+                    &mut *self.required_reads
+                };
+                Self::set_diverged(diverged, clones, CloneValue::bit_pair(false, true));
+            }
+
+            if is_clone || is_original {
+                clones.clear();
+            }
+        }
+    }
+
+    /// Clears an index preparing it to receive a new value.
+    fn clear_idx(&mut self, state: &mut <Self as Analysis>::Domain, idx: projection::Idx, sp: Span) {
+        let row = state.diverged.row_mut(idx);
+        self.clone_use_info
+            .extend(row.drain().map(|idx| UseInfo::new(idx, UseKind::Dropped, sp)));
+        for (row, link) in state.links.iter_mut_rows(..).zip(self.link_interner.iter()) {
+            if link.clone == idx || link.original == idx {
+                row.clear();
+            }
+        }
+    }
+
+    /// Clears an range preparing it to receive a new set of values.
+    fn clear_range(&mut self, state: &mut <Self as Analysis>::Domain, range: Range<projection::Idx>, sp: Span) {
+        for row in state.diverged.iter_mut_rows(range.clone()) {
+            self.clone_use_info
+                .extend(row.drain().map(|idx| UseInfo::new(idx, UseKind::Dropped, sp)));
+        }
+        for (row, link) in state.links.iter_mut_rows(..).zip(self.link_interner.iter()) {
+            if range.contains(&link.clone) || range.contains(&link.original) {
+                row.clear();
+            }
+        }
+    }
+
+    fn read_idx(&mut self, state: &mut <Self as Analysis>::Domain, idx: projection::Idx) {
+        for (src, dst) in state
+            .diverged
+            .row_mut(idx)
+            .words
+            .iter_mut()
+            .zip(&mut self.required_reads.words)
+        {
+            *dst |= mem::take(src);
+        }
+    }
+
+    fn read_structure_idx(&mut self, state: &mut <Self as Analysis>::Domain, idx: projection::Idx) {
+        self.read_idx(state, idx);
+
+        for (clones, link) in state.links.iter_mut_rows(..).zip(self.link_interner.iter()) {
+            let is_original = link.original == idx;
+            let is_clone = link.clone == idx;
+            if is_original || is_clone {
+                Self::set_diverged(self.required_reads, clones, CloneValue::bit_pair(is_original, is_clone));
+            }
+        }
+    }
+
+    fn read_structure_range(&mut self, state: &mut <Self as Analysis>::Domain, range: Range<projection::Idx>) {
+        for row in state.diverged.iter_mut_rows(range.clone()) {
+            for (src, dst) in row.words.iter_mut().zip(&mut self.required_reads.words) {
+                *dst |= mem::take(src);
+            }
+        }
+        for (clones, link) in state.links.iter_mut_rows(..).zip(self.link_interner.iter()) {
+            let is_original = range.contains(&link.original);
+            let is_clone = range.contains(&link.clone);
+            if is_original || is_clone {
+                Self::set_diverged(self.required_reads, clones, CloneValue::bit_pair(is_original, is_clone));
+            }
+        }
+    }
+}
+impl<'arena> Analysis for CloneAnalysis<'arena, '_, '_, '_> {
+    type Domain = CloneDomain<'arena>;
+
+    fn clone_block_entry(&mut self, src: &Self::Domain, dst: &mut Self::Domain, block: OrderedBlock) {
+        dst.links.clone_from(&src.links);
+        dst.diverged.words_mut().copy_from_slice(src.diverged.words());
+        if src.values.len() == dst.values.len() {
+            dst.values.raw.copy_from_slice(&src.values.raw);
+        } else {
+            let predecessors = &self.predecessors[block];
+            for ((idx, dst_value), src_values) in dst
+                .values
+                .iter_enumerated_mut()
+                .zip(src.values.raw.chunks_exact(predecessors.predecessors.len()))
+            {
+                let mut src_values = src_values.iter();
+                let loc_block = self.block_map.from_ordered()[block];
+                *dst_value = if let Some(value) = src_values.find_map(|&x| x) {
+                    Some(if src_values.all(|&x| x.is_none_or(|x| x == value)) {
+                        value
+                    } else {
+                        // `PossibleBorrowerMap` sees dead references as live on cleanup blocks
+                        // causing a lot of false reads to occur.
+                        if !self.cleanup_blocks.contains(block) {
+                            self.diverge_idx(
+                                &mut dst.links,
+                                &mut dst.diverged,
+                                idx,
+                                DUMMY_SP,
+                                Location {
+                                    block: loc_block,
+                                    statement_index: 0,
+                                },
+                            );
+                        }
+                        predecessors.first_value.plus(idx.as_usize())
+                    })
+                } else {
+                    None
+                };
+            }
+        }
+    }
+
+    fn transfer_domain(
+        &mut self,
+        src: &Self::Domain,
+        dst: &mut Self::Domain,
+        src_block: OrderedBlock,
+        dst_block: OrderedBlock,
+    ) -> bool {
+        let mut changed = dst.links.union(&src.links) | dst.diverged.union(&src.diverged);
+        if src.values.len() == dst.values.len() {
+            for (dst_value, &src_value) in dst.values.iter_mut().zip(src.values.iter()) {
+                changed |= *dst_value != src_value;
+                *dst_value = src_value;
+            }
+        } else {
+            let predecessors = &self.predecessors[dst_block];
+            let idx = predecessors.predecessors.get_index(&src_block).unwrap();
+            assert!(idx < predecessors.predecessors.len());
+            for (dst_value, &src_value) in dst
+                .values
+                .raw
+                .chunks_exact_mut(predecessors.predecessors.len())
+                .map(|x| &mut x[idx])
+                .zip(src.values.iter())
+            {
+                changed |= *dst_value != src_value;
+                *dst_value = src_value;
+            }
+        }
+        changed
+    }
+
+    #[expect(clippy::too_many_lines)]
+    fn apply_block_transform(&mut self, state: &mut Self::Domain, block: OrderedBlock) {
+        if self.cleanup_blocks.contains(block) {
+            return;
+        }
+        let loc_block = self.block_map.from_ordered()[block];
+        for op in self.ops[block] {
+            match *op {
+                CloneOp::Read { idx } => self.read_idx(state, idx),
+                CloneOp::ReadStructure { idx } => self.read_structure_idx(state, idx),
+                CloneOp::ReadStructureRange { ref range } => self.read_structure_range(state, range.clone()),
+                CloneOp::Drop { ref range, sp } => {
+                    self.clear_range(state, range.clone(), sp);
+                    state.values[range.clone()].fill(None);
+                },
+                CloneOp::Consume { idx, sp, stmt } => {
+                    self.diverge_read_idx(
+                        state,
+                        idx,
+                        sp,
+                        Location {
+                            block: loc_block,
+                            statement_index: stmt as usize,
+                        },
+                    );
+                    state.values[idx] = None;
+                },
+                CloneOp::ConsumeRange { ref range, sp, stmt } => {
+                    self.diverge_read_range(
+                        state,
+                        range.clone(),
+                        sp,
+                        Location {
+                            block: loc_block,
+                            statement_index: stmt as usize,
+                        },
+                    );
+                    state.values[range.clone()].fill(None);
+                },
+                CloneOp::Mutate { idx, value, sp, stmt } => {
+                    self.diverge_idx(
+                        &mut state.links,
+                        &mut state.diverged,
+                        idx,
+                        sp,
+                        Location {
+                            block: loc_block,
+                            statement_index: stmt as usize,
+                        },
+                    );
+                    state.values[idx] = Some(value);
+                },
+                CloneOp::MutateRange {
+                    ref range,
+                    value_start,
+                    sp,
+                    stmt,
+                } => {
+                    self.diverge_range(
+                        state,
+                        range.clone(),
+                        sp,
+                        Location {
+                            block: loc_block,
+                            statement_index: stmt as usize,
+                        },
+                    );
+                    for (dst, value) in state.values[range.clone()].iter_mut().zip(value_start..) {
+                        *dst = Some(value);
+                    }
+                },
+                CloneOp::MutateRequired { idx, value, sp, stmt } => {
+                    self.diverge_read_idx(
+                        state,
+                        idx,
+                        sp,
+                        Location {
+                            block: loc_block,
+                            statement_index: stmt as usize,
+                        },
+                    );
+                    state.values[idx] = Some(value);
+                },
+                CloneOp::BorrowMut {
+                    ref range,
+                    value_start,
+                    sp,
+                    stmt,
+                } => {
+                    self.diverge_read_range(
+                        state,
+                        range.clone(),
+                        sp,
+                        Location {
+                            block: loc_block,
+                            statement_index: stmt as usize,
+                        },
+                    );
+                    for (dst, value) in state.values[range.clone()].iter_mut().zip(value_start..) {
+                        *dst = Some(value);
+                    }
+                },
+                CloneOp::Clone {
+                    clone,
+                    link,
+                    src,
+                    dst,
+                    sp,
+                } => {
+                    self.read_idx(state, src);
+                    self.clear_idx(state, dst, sp);
+                    state.links.ensure_row(link).insert(clone);
+                    let src_value = state.values[src];
+                    state.values[dst] = src_value;
+                },
+                CloneOp::CloneStructure { src, dst, sp } => {
+                    self.read_structure_idx(state, src);
+                    self.clear_idx(state, dst, sp);
+                    let src = state.values[src];
+                    state.values[dst] = src;
+                },
+                CloneOp::CloneStructureRange { ref src, dst, sp } => {
+                    self.read_structure_range(state, src.clone());
+                    self.clear_range(state, dst..dst.plus(src.end.as_usize() - src.start.as_usize()), sp);
+                    state
+                        .values
+                        .raw
+                        .copy_within(src.start.as_usize()..src.end.as_usize(), dst.as_usize());
+                },
+                CloneOp::Move { src, dst } => {
+                    for link_idx in self.link_interner.idx_range() {
+                        let link = self.link_interner.get(link_idx);
+                        let new_link = if link.original == src {
+                            Link {
+                                original: dst,
+                                clone: link.clone,
+                            }
+                        } else if link.clone == src {
+                            Link {
+                                original: link.original,
+                                clone: dst,
+                            }
+                        } else {
+                            continue;
+                        };
+
+                        let new_idx = self.link_interner.intern(new_link);
+                        state.links.move_rows(link_idx, new_idx);
+                    }
+
+                    state.diverged.move_rows(src, dst);
+                    let src_value = state.values[src];
+                    state.values[src] = None;
+                    state.values[dst] = src_value;
+                },
+                CloneOp::MoveRange { ref src, dst } => {
+                    for link_idx in self.link_interner.idx_range() {
+                        let link = self.link_interner.get(link_idx);
+                        let mut changed = false;
+                        let original = if let Some(offset) = link.original.as_usize().checked_sub(src.start.as_usize())
+                            && link.original < src.end
+                        {
+                            changed = true;
+                            dst.plus(offset)
+                        } else {
+                            link.original
+                        };
+                        let clone = if let Some(offset) = link.clone.as_usize().checked_sub(src.start.as_usize())
+                            && link.clone < src.end
+                        {
+                            changed = true;
+                            dst.plus(offset)
+                        } else {
+                            link.clone
+                        };
+                        if changed {
+                            let new_idx = self.link_interner.intern(Link { original, clone });
+                            state.links.move_rows(link_idx, new_idx);
+                        }
+                    }
+
+                    state.diverged.move_rows(src.clone(), dst);
+                    move_within_slice(
+                        &mut state.values.raw,
+                        src.start.as_usize()..src.end.as_usize(),
+                        dst.as_usize(),
+                    );
+                },
+            }
+        }
+    }
+}
+
+enum RefTargetOp<'tcx> {
+    Set {
+        dst: projection::Idx,
+        target: Place<'tcx>,
+    },
+    Copy {
+        src: projection::Idx,
+        dst: projection::Idx,
+    },
+    CopyRange {
+        src: Range<projection::Idx>,
+        dst: projection::Idx,
+    },
+    Move {
+        src: projection::Idx,
+        dst: projection::Idx,
+    },
+    MoveRange {
+        src: Range<projection::Idx>,
+        dst: projection::Idx,
+    },
+    SetUnknown(projection::Idx),
+    SetUnknownRange(Range<projection::Idx>),
+    Clear(projection::Idx),
+    ClearRange(Range<projection::Idx>),
+    Clone {
+        block: OrderedBlock,
+        idx: projection::Idx,
+    },
+}
+
+struct RefTargetOpVisitor<'a, 'arena, 'tcx> {
+    tcx: TyCtxt<'tcx>,
+    body: &'a Body<'tcx>,
+    projections: childless_projection::Map<'arena>,
+    ops: Vec<RefTargetOp<'tcx>>,
+    has_set: bool,
+}
+impl<'arena, 'tcx> value_tracking::Visitor<'arena, 'tcx> for RefTargetOpVisitor<'_, 'arena, 'tcx> {
+    type Resolver = childless_projection::Map<'arena>;
+    fn resolver(&self) -> &Self::Resolver {
+        &self.projections
+    }
+    fn body(&self) -> &Body<'tcx> {
+        self.body
+    }
+    fn tcx(&self) -> TyCtxt<'tcx> {
+        self.tcx
+    }
+
+    fn visit_read_idx(&mut self, _: projection::Idx, _: Span) {}
+    fn visit_read_range(&mut self, _: Range<projection::Idx>, _: Span) {}
+
+    fn visit_mutate_idx(&mut self, idx: projection::Idx, _: Span) {
+        self.ops.push(RefTargetOp::SetUnknown(idx));
+    }
+
+    fn visit_uninit_idx(&mut self, idx: projection::Idx, _: Span) {
+        self.ops.push(RefTargetOp::Clear(idx));
+    }
+
+    fn visit_copy_idx(&mut self, dst: projection::Idx, src: projection::Idx, _: Span) {
+        self.ops.push(RefTargetOp::Copy { src, dst });
+    }
+
+    fn visit_move_idx(&mut self, dst: projection::Idx, src: projection::Idx, _: Span) {
+        self.ops.push(RefTargetOp::Move { src, dst });
+    }
+
+    fn visit_mutate_range(&mut self, range: Range<projection::Idx>, _: Span) {
+        self.ops.push(RefTargetOp::SetUnknownRange(range));
+    }
+
+    fn visit_uninit_range(&mut self, range: Range<projection::Idx>, _: Span) {
+        self.ops.push(RefTargetOp::ClearRange(range));
+    }
+
+    fn visit_copy_range(&mut self, dst: projection::Idx, src: Range<projection::Idx>, _: Span) {
+        self.ops.push(RefTargetOp::CopyRange { src, dst });
+    }
+
+    fn visit_move_range(&mut self, dst: projection::Idx, src: Range<projection::Idx>, _: Span) {
+        self.ops.push(RefTargetOp::MoveRange { src, dst });
+    }
+
+    fn visit_assign_borrow(&mut self, dst: Place<'tcx>, src: Place<'tcx>, _: BorrowKind, _: Span) {
+        if let Some(dst) = self.projections.resolve(dst).as_scalar_value() {
+            self.ops.push(
+                if let [elems @ .., ProjectionElem::Deref] = &**src.projection
+                    && let Some(src) = self.projections.resolve_slice_proj(src.local, elems).as_scalar_value()
+                {
+                    RefTargetOp::Copy { src, dst }
+                } else if !src.is_indirect() {
+                    self.has_set = true;
+                    RefTargetOp::Set { dst, target: src }
+                } else {
+                    RefTargetOp::SetUnknown(dst)
+                },
+            );
+        }
+    }
+}
+
+struct RefTargetAnalysis<'arena, 'tcx> {
+    ops: &'arena IndexSlice<OrderedBlock, &'arena [RefTargetOp<'tcx>]>,
+    // This stores the results of the analysis. This is fairly cheap to calculate during the
+    // analysis and doing so saves a final pass over every block.
+    clone_srcs: &'arena mut IndexSlice<OrderedBlock, Option<Place<'tcx>>>,
+}
+impl<'arena, 'tcx> RefTargetAnalysis<'arena, 'tcx> {
+    #[expect(clippy::too_many_arguments, clippy::type_complexity)]
+    fn new(
+        cx: &LateContext<'tcx>,
+        arena: &'arena DroplessArena,
+        body: &Body<'tcx>,
+        def_id: LocalDefId,
+        block_map: &BlockOrderMap<'_>,
+        place_filter: &PlaceFilter<'_>,
+        cloned_tys: &FxHashSet<Ty<'tcx>>,
+        clone_calls: &IndexSlice<BasicBlock, Option<CloneCall<'tcx>>>,
+    ) -> Option<(
+        Self,
+        <Self as Analysis>::Domain,
+        &'arena mut IndexSlice<OrderedBlock, <Self as Analysis>::Domain>,
+    )> {
+        let mut visitor = RefTargetOpVisitor {
+            tcx: cx.tcx,
+            body,
+            projections: {
+                let projections = childless_projection::Map::new(
+                    cx.tcx,
+                    cx.typing_env(),
+                    arena,
+                    body,
+                    |ty| matches!(*ty.kind(), ty::Ref(_, ty, _) if cloned_tys.contains(&ty)),
+                    def_id.to_def_id(),
+                    place_filter,
+                );
+                if projections.domain_size() == 0 {
+                    return None;
+                }
+                projections
+            },
+            ops: Vec::new(),
+            has_set: false,
+        };
+        let ops = IndexSlice::from_raw(arena.alloc_from_iter(block_map.from_ordered().iter_enumerated().map(
+            |(ordered_block, &block)| {
+                let block_data = &body.basic_blocks[block];
+                for s in &block_data.statements {
+                    visitor.visit_statement(s);
+                }
+                if let Some(term) = &block_data.terminator {
+                    if let Some(call) = &clone_calls[block]
+                        && let Some(idx) = visitor.projections.resolve(call.src).as_scalar_value()
+                    {
+                        visitor.ops.push(RefTargetOp::Clone {
+                            block: ordered_block,
+                            idx,
+                        });
+                    }
+                    visitor.visit_terminator(term);
+                }
+                &*arena.alloc_from_iter(visitor.ops.drain(..))
+            },
+        )));
+        if !visitor.has_set {
+            return None;
+        }
+
+        let clone_srcs = IndexSlice::<OrderedBlock, _>::from_raw_mut(
+            arena.alloc_from_iter(iter::repeat_with(|| None).take(body.basic_blocks.len())),
+        );
+        let states =
+            IndexSlice::<OrderedBlock, _>::from_raw_mut(
+                arena.alloc_from_iter(
+                    iter::repeat_with(|| {
+                        IndexSlice::<projection::Idx, _>::from_raw_mut(arena.alloc_from_iter(
+                            iter::repeat_with(|| FlatSet::Bottom).take(visitor.projections.domain_size()),
+                        ))
+                    })
+                    .take(body.basic_blocks.len()),
+                ),
+            );
+        let tmp_state = IndexSlice::<projection::Idx, _>::from_raw_mut(
+            arena.alloc_from_iter(iter::repeat_with(|| FlatSet::Bottom).take(visitor.projections.domain_size())),
+        );
+        states[block_map.to_ordered()[START_BLOCK]][visitor.projections.resolve_args(body)].fill(FlatSet::Top);
+        Some((Self { ops, clone_srcs }, tmp_state, states))
+    }
+}
+impl<'arena, 'tcx> Analysis for RefTargetAnalysis<'arena, 'tcx> {
+    type Domain = &'arena mut IndexSlice<projection::Idx, FlatSet<Place<'tcx>>>;
+
+    fn clone_block_entry(&mut self, src: &Self::Domain, dst: &mut Self::Domain, _: OrderedBlock) {
+        dst.raw.copy_from_slice(&src.raw);
+    }
+
+    fn transfer_domain(
+        &mut self,
+        src: &Self::Domain,
+        dst: &mut Self::Domain,
+        _: OrderedBlock,
+        _: OrderedBlock,
+    ) -> bool {
+        dst.iter_mut()
+            .zip(src.iter())
+            .fold(false, |changed, (dst, src)| dst.join(src) || changed)
+    }
+
+    fn apply_block_transform(&mut self, state: &mut Self::Domain, block: OrderedBlock) {
+        for op in self.ops[block] {
+            match op {
+                &RefTargetOp::Clear(idx) => state[idx] = FlatSet::Bottom,
+                RefTargetOp::ClearRange(range) => state[range.clone()].fill(FlatSet::Bottom),
+                &RefTargetOp::Copy { src, dst } => state[dst] = state[src],
+                RefTargetOp::CopyRange { src, dst } => {
+                    state
+                        .raw
+                        .copy_within(src.start.as_usize()..src.end.as_usize(), dst.as_usize());
+                },
+                &RefTargetOp::Move { src, dst } => {
+                    state[dst] = state[src];
+                    state[src] = FlatSet::Bottom;
+                },
+                RefTargetOp::MoveRange { src, dst } => {
+                    state
+                        .raw
+                        .copy_within(src.start.as_usize()..src.end.as_usize(), dst.as_usize());
+                    state[src.clone()].fill(FlatSet::Bottom);
+                },
+                &RefTargetOp::SetUnknown(idx) => state[idx] = FlatSet::Top,
+                RefTargetOp::SetUnknownRange(range) => state[range.clone()].fill(FlatSet::Top),
+                &RefTargetOp::Set { dst, target } => state[dst] = FlatSet::Elem(target),
+                &RefTargetOp::Clone { block, idx } => {
+                    self.clone_srcs[block] = if let FlatSet::Elem(x) = state[idx] {
+                        Some(x)
+                    } else {
+                        None
+                    };
+                },
+            }
         }
     }
 }
