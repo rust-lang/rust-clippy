@@ -39,7 +39,7 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>, msrv: Msrv)
         && msrv.meets(cx, msrvs::POINTER_CAST)
         && !is_from_proc_macro(cx, expr)
     {
-        let mut app = Applicability::MachineApplicable;
+        let mut app = Applicability::MaybeIncorrect;
         let turbofish = match &cast_to_hir_ty.kind {
             TyKind::Infer(()) => String::new(),
             TyKind::Ptr(mut_ty) => {

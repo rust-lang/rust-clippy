@@ -83,7 +83,7 @@ pub(super) fn check_null_ptr_cast_method(cx: &LateContext<'_>, expr: &Expr<'_>) 
             _ => return,
         }
         && let Some(prefix) = std_or_core(cx)
-        && let mut app = Applicability::MachineApplicable
+        && let mut app = Applicability::MaybeIncorrect
         && let sugg = format!("{}", Sugg::hir_with_applicability(cx, cast_expr, "_", &mut app))
         && let Some((_, after_lt)) = sugg.split_once("::<")
     {
