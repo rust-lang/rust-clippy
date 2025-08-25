@@ -310,7 +310,18 @@ fn expr_in_nested_block(cx: &LateContext<'_>, match_expr: &Expr<'_>) -> bool {
 fn expr_must_have_curlies(cx: &LateContext<'_>, match_expr: &Expr<'_>) -> bool {
     let parent = cx.tcx.parent_hir_node(match_expr.hir_id);
     if let Node::Expr(Expr {
-        kind: ExprKind::Closure(..) | ExprKind::Binary(..),
+        kind:
+            ExprKind::Closure(..)
+            | ExprKind::Binary(..)
+            | ExprKind::Unary(..)
+            | ExprKind::Tup(..)
+            | ExprKind::Array(..)
+            | ExprKind::Call(..)
+            | ExprKind::MethodCall(..)
+            | ExprKind::DropTemps(..)
+            | ExprKind::Let(..)
+            | ExprKind::If(..)
+            | ExprKind::Index(..),
         ..
     })
     | Node::AnonConst(..) = parent
