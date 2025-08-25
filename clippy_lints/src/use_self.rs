@@ -117,6 +117,11 @@ impl<'tcx> LateLintPass<'tcx> for UseSelf {
                 impl_id: item.owner_id.def_id,
                 types_to_skip,
             }
+        } else if let ItemKind::Struct(..) | ItemKind::Enum(..) = item.kind {
+            StackItem::Check {
+                impl_id: item.owner_id.def_id,
+                types_to_skip: FxHashSet::default(),
+            }
         } else {
             StackItem::NoCheck
         };
