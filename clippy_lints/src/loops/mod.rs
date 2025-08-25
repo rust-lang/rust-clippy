@@ -1,4 +1,5 @@
 mod char_indices_as_byte_indices;
+mod const_sized_chunks;
 mod empty_loop;
 mod explicit_counter_loop;
 mod explicit_into_iter_loop;
@@ -784,6 +785,107 @@ declare_clippy_lint! {
     "using the character position yielded by `.chars().enumerate()` in a context where a byte index is expected"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `.chunks_exact()` on slices where the `chunk_size` is a constant and suggests
+    /// replacing it with its const generic equivalent, `.array_chunks()`, in a way that the value of the
+    /// const parameter `N` can be inferred.
+    ///
+    /// Specifically, in a for-loop, consuming the iterator over the (non-overlapping) chunks, the lint
+    /// suggests destructuring the chunks to allow for `N`, the number of elements in a chunk, to be inferred.
+    ///
+    /// ### Why is this bad?
+    /// When `.chunks_exact()` is used, a bounds check is required before an element can be accessed.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let numbers = Vec::from_iter(0..10);
+    /// for chunk in numbers.chunks_exact(2) {
+    ///     println!("{n} is an odd number", n = chunk[1]);
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// #![feature(array_chunks)]
+    /// let numbers = Vec::from_iter(0..10);
+    /// for [_, n] in numbers.array_chunks() {
+    ///     println!("{n} is an odd number");
+    /// }
+    /// ```
+    #[clippy::version = "1.89.0"]
+    pub CONST_SIZED_CHUNKS_EXACT,
+    nursery,
+    "calling `.chunks_exact()` with a constant `chunk_size` where `.array_chunks()` could be used instead"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `.chunks_exact_mut()` on slices where the `chunk_size` is a constant and suggests
+    /// replacing it with its const generic equivalent, `.array_chunks_mut()`, in a way that the value of the
+    /// const parameter `N` can be inferred.
+    ///
+    /// Specifically, in a for-loop, consuming the iterator over the (non-overlapping) chunks, the lint
+    /// suggests destructuring the chunks to allow for `N`, the number of elements in a chunk, to be inferred.
+    ///
+    /// ### Why is this bad?
+    /// When `.chunks_exact_mut()` is used, a bounds check is required before an element can be accessed.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let mut numbers = Vec::from_iter(0..10);
+    /// for chunk in numbers.chunks_exact_mut(2) {
+    ///     chunk[1] += chunk[0];
+    ///     println!("{n} is an odd number", n = chunk[1]);
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// #![feature(array_chunks)]
+    /// let mut numbers = Vec::from_iter(0..10);
+    /// for [m, n] in numbers.array_chunks_mut() {
+    ///     *n += *m;
+    ///     println!("{n} is an odd number");
+    /// }
+    /// ```
+    #[clippy::version = "1.89.0"]
+    pub CONST_SIZED_CHUNKS_EXACT_MUT,
+    nursery,
+    "calling `.chunks_exact_mut()` with a constant `chunk_size` where `.array_chunks_mut()` could be used instead"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `.windows()` on slices where the `size` is a constant and suggests replacing it with
+    /// its const generic equivalent, `.array_windows()`, in a way that the value of the const parameter `N` can
+    /// be inferred.
+    ///
+    /// Specifically, in a for-loop, consuming the windowed iterator over the overlapping chunks, the lint
+    /// suggests destructuring the chunks to allow for `N`, the number of elements in a chunk, to be inferred.
+    ///
+    /// ### Why is this bad?
+    /// When `.windows()` is used, a bounds check is required before an element can be accessed.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let numbers = Vec::from_iter(0..10);
+    /// for chunk in numbers.windows(2) {
+    ///     println!("{n} is an odd number", n = chunk[0] + chunk[1]);
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// #![feature(array_windows)]
+    /// let numbers = Vec::from_iter(0..10);
+    /// for [m, n] in numbers.array_windows() {
+    ///     println!("{n} is an odd number", n = m + n);
+    /// }
+    /// ```
+    #[clippy::version = "1.89.0"]
+    pub CONST_SIZED_WINDOWS,
+    nursery,
+    "calling `.windows()` with a constant `size` where `.array_windows()` could be used instead"
+}
+
 pub struct Loops {
     msrv: Msrv,
     enforce_iter_loop_reborrow: bool,
@@ -822,6 +924,9 @@ impl_lint_pass!(Loops => [
     INFINITE_LOOP,
     MANUAL_SLICE_FILL,
     CHAR_INDICES_AS_BYTE_INDICES,
+    CONST_SIZED_CHUNKS_EXACT,
+    CONST_SIZED_CHUNKS_EXACT_MUT,
+    CONST_SIZED_WINDOWS,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Loops {
@@ -906,6 +1011,7 @@ impl Loops {
         manual_find::check(cx, pat, arg, body, span, expr);
         unused_enumerate_index::check(cx, pat, arg, body);
         char_indices_as_byte_indices::check(cx, pat, arg, body);
+        const_sized_chunks::check(cx, pat, arg);
     }
 
     fn check_for_loop_arg(&self, cx: &LateContext<'_>, _: &Pat<'_>, arg: &Expr<'_>) {
