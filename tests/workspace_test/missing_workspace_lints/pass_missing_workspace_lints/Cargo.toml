@@ -1,0 +1,7 @@
+[package]
+name = "pass-missing-workspace-lints"
+version = "0.1.0"
+publish = false
+
+[lints]
+workspace = true
