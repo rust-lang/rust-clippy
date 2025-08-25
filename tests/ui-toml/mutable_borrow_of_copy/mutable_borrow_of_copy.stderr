@@ -1,0 +1,16 @@
+error: mutable borrow of a value which was just copied
+  --> tests/ui-toml/mutable_borrow_of_copy/mutable_borrow_of_copy.rs:9:13
+   |
+LL |     let _ = &mut { a };
+   |             ^^^^^^^^^^
+   |
+   = note: `-D clippy::mutable-borrow-of-copy` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::mutable_borrow_of_copy)]`
+help: try building the reference inside the block
+   |
+LL -     let _ = &mut { a };
+LL +     let _ = { &mut a };
+   |
+
+error: aborting due to 1 previous error
+
