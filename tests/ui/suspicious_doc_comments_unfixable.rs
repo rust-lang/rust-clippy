@@ -1,4 +1,4 @@
-#![allow(unused, clippy::empty_line_after_doc_comments)]
+#![allow(unused, clippy::empty_line_after_doc_comments, clippy::items_before_use)]
 #![warn(clippy::suspicious_doc_comments)]
 //@no-rustfix
 ///! a

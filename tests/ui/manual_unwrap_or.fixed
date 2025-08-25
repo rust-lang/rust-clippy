@@ -3,7 +3,8 @@
     unused_variables,
     clippy::unnecessary_wraps,
     clippy::unnecessary_literal_unwrap,
-    clippy::manual_unwrap_or_default
+    clippy::manual_unwrap_or_default,
+    clippy::items_before_use
 )]
 
 fn option_unwrap_or() {
