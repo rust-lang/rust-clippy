@@ -1,0 +1,101 @@
+error: condition duplicates match guard
+  --> tests/ui/duplicate_match_guards.rs:11:13
+   |
+LL | /             if true {
+LL | |
+LL | |                 return;
+LL | |             }
+   | |_____________^
+   |
+   = note: `-D clippy::duplicate-match-guards` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::duplicate_match_guards)]`
+help: remove the condition
+   |
+LL ~
+LL +             return;
+   |
+
+error: condition duplicates match guard
+  --> tests/ui/duplicate_match_guards.rs:17:13
+   |
+LL | /             if a > b {
+LL | |
+LL | |                 return;
+LL | |             }
+   | |_____________^
+   |
+help: remove the condition
+   |
+LL ~
+LL +             return;
+   |
+
+error: condition duplicates match guard
+  --> tests/ui/duplicate_match_guards.rs:24:13
+   |
+LL | /             if b < a {
+LL | |
+LL | |                 return;
+LL | |             }
+   | |_____________^
+   |
+help: remove the condition
+   |
+LL ~
+LL +             return;
+   |
+
+error: condition duplicates match guard
+  --> tests/ui/duplicate_match_guards.rs:31:13
+   |
+LL | /             if a > 0 && b > 0 {
+LL | |
+LL | |                 return;
+LL | |             }
+   | |_____________^
+   |
+help: remove the condition
+   |
+LL ~
+LL +             return;
+   |
+
+error: condition duplicates match guard
+  --> tests/ui/duplicate_match_guards.rs:40:13
+   |
+LL | /             if a > b {
+LL | | /*before*/
+LL | |                 return;
+LL | |                 /* after
+LL | |             */}
+   | |_______________^
+   |
+help: remove the condition
+   |
+LL ~
+LL +         /*before*/
+LL +                         return;
+LL +                         /* after
+LL +                     */
+   |
+
+error: condition duplicates match guard
+  --> tests/ui/duplicate_match_guards.rs:48:22
+   |
+LL |           0 if true => if true {
+   |  ______________________^
+LL | |
+LL | |                 return;
+LL | |         },
+   | |_________^
+   |
+help: remove the condition
+   |
+LL ~         0 if true => {
+LL +
+LL +             return;
+LL ~     },
+   |
+
+error: aborting due to 6 previous errors
+
