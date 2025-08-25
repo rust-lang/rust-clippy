@@ -77,6 +77,7 @@ fn issue_14802() {
     }
 
     impl IcedSlice {
+        #[allow(clippy::identity_op)]
         fn get_len(&self) -> usize {
             self.dst.len() * size_of::<u8>()
             //~^ manual_slice_size_calculation
