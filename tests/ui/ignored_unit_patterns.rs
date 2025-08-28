@@ -4,6 +4,7 @@
     clippy::let_unit_value,
     clippy::redundant_pattern_matching,
     clippy::single_match,
+    clippy::match_single_binding,
     clippy::needless_borrow
 )]
 
@@ -61,6 +62,14 @@ fn test_unit_ref_2(v: &[(usize, ())]) {
 }
 
 fn issue15187() {
+    type LifetimeBound<'r> = &'r fn(&'r ());
+
+    fn main() {
+        let func = move |_| {};
+        //~^ ERROR: matching over `()` is more explicit
+        let func_ref_bound: LifetimeBound = &(&(func as fn(_)));
+    }
+
     let func: fn(&()) = |_| {};
     //~^ ERROR: matching over `()` is more explicit
     let func: fn(&mut ()) = |_| {};
@@ -69,10 +78,46 @@ fn issue15187() {
     //~^ ERROR: matching over `()` is more explicit
     let func: fn(&&mut &()) = |_| {};
     //~^ ERROR: matching over `()` is more explicit
+    fn foo1() -> fn(&()) {
+        |_| {}
+    }
+    //~^^ ERROR: matching over `()` is more explicit
+    fn foo2() -> impl Fn(&()) {
+        |_| {}
+    }
+    //~^^ ERROR: matching over `()` is more explicit
+    fn foo3() -> &'static dyn Fn(&'static ()) {
+        &|_| {}
+    }
+    //~^^ ERROR: matching over `()` is more explicit
+    let func: fn(&mut ()) = |_| {};
+    //~^ ERROR: matching over `()` is more explicit
+    let func: fn(&&mut ()) = |_| {};
+    //~^ ERROR: matching over `()` is more explicit
+    let func: fn(&&mut &()) = |_| {};
+    //~^ ERROR: matching over `()` is more explicit
 
-    #[allow(clippy::match_single_binding)]
     match &() {
         _ => todo!(),
         //~^ ERROR: matching over `()` is more explicit
+    }
+
+    struct S {
+        foo: &'static &'static &'static mut (),
+        bar: u8,
+    }
+    let s = S { foo: &&&mut (), bar: 1 };
+    match s {
+        S { foo: _, bar: 1 } => todo!(),
+        //~^ ERROR: matching over `()` is more explicit
+        _ => todo!(),
+    }
+
+    struct T(&'static &'static &'static mut (), u8);
+    let f = T(&&&mut (), 1);
+    match f {
+        T(_, 1) => todo!(),
+        //~^ ERROR: matching over `()` is more explicit
+        _ => todo!(),
     }
 }

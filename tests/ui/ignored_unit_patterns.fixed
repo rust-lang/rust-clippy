@@ -4,6 +4,7 @@
     clippy::let_unit_value,
     clippy::redundant_pattern_matching,
     clippy::single_match,
+    clippy::match_single_binding,
     clippy::needless_borrow
 )]
 
@@ -47,7 +48,7 @@ pub fn moo(_: ()) {
 fn test_unit_ref_1() {
     let x: (usize, &&&&&()) = (1, &&&&&&());
     match x {
-        (1, &&&&&()) => unimplemented!(),
+        (1, ()) => unimplemented!(),
         //~^ ERROR: matching over `()` is more explicit
         _ => unimplemented!(),
     };
@@ -61,18 +62,62 @@ fn test_unit_ref_2(v: &[(usize, ())]) {
 }
 
 fn issue15187() {
-    let func: fn(&()) = |&()| {};
+    type LifetimeBound<'r> = &'r fn(&'r ());
+
+    fn main() {
+        let func = move |()| {};
+        //~^ ERROR: matching over `()` is more explicit
+        let func_ref_bound: LifetimeBound = &(&(func as fn(_)));
+    }
+
+    let func: fn(&()) = |()| {};
     //~^ ERROR: matching over `()` is more explicit
-    let func: fn(&mut ()) = |&mut ()| {};
+    let func: fn(&mut ()) = |()| {};
     //~^ ERROR: matching over `()` is more explicit
-    let func: fn(&&mut ()) = |&&mut ()| {};
+    let func: fn(&&mut ()) = |()| {};
     //~^ ERROR: matching over `()` is more explicit
-    let func: fn(&&mut &()) = |&&mut &()| {};
+    let func: fn(&&mut &()) = |()| {};
+    //~^ ERROR: matching over `()` is more explicit
+    fn foo1() -> fn(&()) {
+        |()| {}
+    }
+    //~^^ ERROR: matching over `()` is more explicit
+    fn foo2() -> impl Fn(&()) {
+        |()| {}
+    }
+    //~^^ ERROR: matching over `()` is more explicit
+    fn foo3() -> &'static dyn Fn(&'static ()) {
+        &|()| {}
+    }
+    //~^^ ERROR: matching over `()` is more explicit
+    let func: fn(&mut ()) = |()| {};
+    //~^ ERROR: matching over `()` is more explicit
+    let func: fn(&&mut ()) = |()| {};
+    //~^ ERROR: matching over `()` is more explicit
+    let func: fn(&&mut &()) = |()| {};
     //~^ ERROR: matching over `()` is more explicit
 
-    #[allow(clippy::match_single_binding)]
     match &() {
-        &() => todo!(),
+        () => todo!(),
         //~^ ERROR: matching over `()` is more explicit
+    }
+
+    struct S {
+        foo: &'static &'static &'static mut (),
+        bar: u8,
+    }
+    let s = S { foo: &&&mut (), bar: 1 };
+    match s {
+        S { foo: (), bar: 1 } => todo!(),
+        //~^ ERROR: matching over `()` is more explicit
+        _ => todo!(),
+    }
+
+    struct T(&'static &'static &'static mut (), u8);
+    let f = T(&&&mut (), 1);
+    match f {
+        T((), 1) => todo!(),
+        //~^ ERROR: matching over `()` is more explicit
+        _ => todo!(),
     }
 }

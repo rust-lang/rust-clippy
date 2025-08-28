@@ -45,7 +45,7 @@ impl<'tcx> LateLintPass<'tcx> for IgnoredUnitPatterns {
             && let (pat_ty, refs) = peel_refs_with_mutabilities(pat_ty)
             && pat_ty.is_unit()
         {
-            match cx.tcx.parent_hir_node(pat.hir_id) {
+            let should_add_refs = match cx.tcx.parent_hir_node(pat.hir_id) {
                 Node::Param(param) if matches!(cx.tcx.parent_hir_node(param.hir_id), Node::Item(_)) => {
                     // Ignore function parameters
                     return;
@@ -54,10 +54,18 @@ impl<'tcx> LateLintPass<'tcx> for IgnoredUnitPatterns {
                     // Ignore let bindings with explicit type
                     return;
                 },
-                _ => {},
-            }
+                // Node::Arm(_) | Node::Pat(_) | Node::PatField(_) => {
+                //     // The pattern `()` does match (arbitrarily nested) references to `()`
+                //     false
+                // },
+                _ => false,
+            };
 
-            let sugg = refs.into_iter().map(Mutability::ref_prefix_str).chain(["()"]).collect();
+            let sugg = if should_add_refs {
+                refs.into_iter().map(Mutability::ref_prefix_str).chain(["()"]).collect()
+            } else {
+                "()".to_string()
+            };
             span_lint_and_sugg(
                 cx,
                 IGNORED_UNIT_PATTERNS,
