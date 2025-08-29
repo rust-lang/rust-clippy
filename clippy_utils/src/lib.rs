@@ -49,7 +49,7 @@ extern crate rustc_span;
 extern crate rustc_trait_selection;
 extern crate smallvec;
 
-pub mod ast_utils;
+pub mod ast;
 pub mod attrs;
 mod check_proc_macro;
 pub mod comparisons;

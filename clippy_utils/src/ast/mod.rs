@@ -6,7 +6,6 @@
 
 use crate::{both, over};
 use rustc_ast::{self as ast, *};
-use rustc_span::symbol::Ident;
 use std::mem;
 
 pub mod ident_iter;
@@ -25,10 +24,6 @@ pub fn unordered_over<X, Y>(left: &[X], right: &[Y], mut eq_fn: impl FnMut(&X, &
     left.len() == right.len() && left.iter().all(|l| right.iter().any(|r| eq_fn(l, r)))
 }
 
-pub fn eq_id(l: Ident, r: Ident) -> bool {
-    l.name == r.name
-}
-
 pub fn eq_pat(l: &Pat, r: &Pat) -> bool {
     use PatKind::*;
     match (&l.kind, &r.kind) {
@@ -38,7 +33,7 @@ pub fn eq_pat(l: &Pat, r: &Pat) -> bool {
         (Wild, Wild) | (Rest, Rest) => true,
         (Expr(l), Expr(r)) => eq_expr(l, r),
         (Ident(b1, i1, s1), Ident(b2, i2, s2)) => {
-            b1 == b2 && eq_id(*i1, *i2) && both(s1.as_deref(), s2.as_deref(), eq_pat)
+            b1 == b2 && i1.name == i2.name && both(s1.as_deref(), s2.as_deref(), eq_pat)
         },
         (Range(lf, lt, le), Range(rf, rt, re)) => {
             eq_expr_opt(lf.as_deref(), rf.as_deref())
@@ -79,7 +74,7 @@ pub fn eq_range_end(l: &RangeEnd, r: &RangeEnd) -> bool {
 
 pub fn eq_field_pat(l: &PatField, r: &PatField) -> bool {
     l.is_placeholder == r.is_placeholder
-        && eq_id(l.ident, r.ident)
+        && l.ident.name == r.ident.name
         && eq_pat(&l.pat, &r.pat)
         && over(&l.attrs, &r.attrs, eq_attr)
 }
@@ -101,7 +96,7 @@ pub fn eq_path(l: &Path, r: &Path) -> bool {
 }
 
 pub fn eq_path_seg(l: &PathSegment, r: &PathSegment) -> bool {
-    eq_id(l.ident, r.ident) && both(l.args.as_ref(), r.args.as_ref(), |l, r| eq_generic_args(l, r))
+    l.ident.name == r.ident.name && both(l.args.as_ref(), r.args.as_ref(), |l, r| eq_generic_args(l, r))
 }
 
 pub fn eq_generic_args(l: &GenericArgs, r: &GenericArgs) -> bool {
@@ -124,7 +119,7 @@ pub fn eq_angle_arg(l: &AngleBracketedArg, r: &AngleBracketedArg) -> bool {
 
 pub fn eq_generic_arg(l: &GenericArg, r: &GenericArg) -> bool {
     match (l, r) {
-        (GenericArg::Lifetime(l), GenericArg::Lifetime(r)) => eq_id(l.ident, r.ident),
+        (GenericArg::Lifetime(l), GenericArg::Lifetime(r)) => l.ident.name == r.ident.name,
         (GenericArg::Type(l), GenericArg::Type(r)) => eq_ty(l, r),
         (GenericArg::Const(l), GenericArg::Const(r)) => eq_expr(&l.value, &r.value),
         _ => false,
@@ -213,7 +208,7 @@ pub fn eq_expr(l: &Expr, r: &Expr) -> bool {
             eq_expr(l1, r1) && eq_expr(l2, r2)
         },
         (AssignOp(lo, lp, lv), AssignOp(ro, rp, rv)) => lo.node == ro.node && eq_expr(lp, rp) && eq_expr(lv, rv),
-        (Field(lp, lf), Field(rp, rf)) => eq_id(*lf, *rf) && eq_expr(lp, rp),
+        (Field(lp, lf), Field(rp, rf)) => lf.name == rf.name && eq_expr(lp, rp),
         (Match(ls, la, lkind), Match(rs, ra, rkind)) => (lkind == rkind) && eq_expr(ls, rs) && over(la, ra, eq_arm),
         (
             Closure(box ast::Closure {
@@ -274,7 +269,7 @@ fn eq_coroutine_kind(a: Option<CoroutineKind>, b: Option<CoroutineKind>) -> bool
 
 pub fn eq_field(l: &ExprField, r: &ExprField) -> bool {
     l.is_placeholder == r.is_placeholder
-        && eq_id(l.ident, r.ident)
+        && l.ident.name == r.ident.name
         && eq_expr(&l.expr, &r.expr)
         && over(&l.attrs, &r.attrs, eq_attr)
 }
@@ -288,7 +283,7 @@ pub fn eq_arm(l: &Arm, r: &Arm) -> bool {
 }
 
 pub fn eq_label(l: Option<&Label>, r: Option<&Label>) -> bool {
-    both(l, r, |l, r| eq_id(l.ident, r.ident))
+    both(l, r, |l, r| l.ident.name == r.ident.name)
 }
 
 pub fn eq_block(l: &Block, r: &Block) -> bool {
@@ -332,7 +327,7 @@ pub fn eq_item<K>(l: &Item<K>, r: &Item<K>, mut eq_kind: impl FnMut(&K, &K) -> b
 pub fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
     use ItemKind::*;
     match (l, r) {
-        (ExternCrate(ls, li), ExternCrate(rs, ri)) => ls == rs && eq_id(*li, *ri),
+        (ExternCrate(ls, li), ExternCrate(rs, ri)) => ls == rs && li.name == ri.name,
         (Use(l), Use(r)) => eq_use_tree(l, r),
         (
             Static(box StaticItem {
@@ -351,7 +346,7 @@ pub fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
                 safety: rs,
                 define_opaque: _,
             }),
-        ) => eq_id(*li, *ri) && lm == rm && ls == rs && eq_ty(lt, rt) && eq_expr_opt(le.as_deref(), re.as_deref()),
+        ) => li.name == ri.name && lm == rm && ls == rs && eq_ty(lt, rt) && eq_expr_opt(le.as_deref(), re.as_deref()),
         (
             Const(box ConstItem {
                 defaultness: ld,
@@ -371,7 +366,7 @@ pub fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
             }),
         ) => {
             eq_defaultness(*ld, *rd)
-                && eq_id(*li, *ri)
+                && li.name == ri.name
                 && eq_generics(lg, rg)
                 && eq_ty(lt, rt)
                 && eq_expr_opt(le.as_deref(), re.as_deref())
@@ -398,14 +393,14 @@ pub fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
         ) => {
             eq_defaultness(*ld, *rd)
                 && eq_fn_sig(lf, rf)
-                && eq_id(*li, *ri)
+                && li.name == ri.name
                 && eq_generics(lg, rg)
                 && eq_opt_fn_contract(lc, rc)
                 && both(lb.as_ref(), rb.as_ref(), |l, r| eq_block(l, r))
         },
         (Mod(ls, li, lmk), Mod(rs, ri, rmk)) => {
             ls == rs
-                && eq_id(*li, *ri)
+                && li.name == ri.name
                 && match (lmk, rmk) {
                     (ModKind::Loaded(litems, linline, _), ModKind::Loaded(ritems, rinline, _)) => {
                         linline == rinline && over(litems, ritems, |l, r| eq_item(l, r, eq_item_kind))
@@ -440,10 +435,10 @@ pub fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
                 && both(lt.as_ref(), rt.as_ref(), |l, r| eq_ty(l, r))
         },
         (Enum(li, lg, le), Enum(ri, rg, re)) => {
-            eq_id(*li, *ri) && eq_generics(lg, rg) && over(&le.variants, &re.variants, eq_variant)
+            li.name == ri.name && eq_generics(lg, rg) && over(&le.variants, &re.variants, eq_variant)
         },
         (Struct(li, lg, lv), Struct(ri, rg, rv)) | (Union(li, lg, lv), Union(ri, rg, rv)) => {
-            eq_id(*li, *ri) && eq_generics(lg, rg) && eq_variant_data(lv, rv)
+            li.name == ri.name && eq_generics(lg, rg) && eq_variant_data(lv, rv)
         },
         (
             Trait(box ast::Trait {
@@ -468,13 +463,13 @@ pub fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
             matches!(lc, ast::Const::No) == matches!(rc, ast::Const::No)
                 && la == ra
                 && matches!(lu, Safety::Default) == matches!(ru, Safety::Default)
-                && eq_id(*li, *ri)
+                && li.name == ri.name
                 && eq_generics(lg, rg)
                 && over(lb, rb, eq_generic_bound)
                 && over(lis, ris, |l, r| eq_item(l, r, eq_assoc_item_kind))
         },
         (TraitAlias(li, lg, lb), TraitAlias(ri, rg, rb)) => {
-            eq_id(*li, *ri) && eq_generics(lg, rg) && over(lb, rb, eq_generic_bound)
+            li.name == ri.name && eq_generics(lg, rg) && over(lb, rb, eq_generic_bound)
         },
         (
             Impl(ast::Impl {
@@ -503,7 +498,7 @@ pub fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
         },
         (MacCall(l), MacCall(r)) => eq_mac_call(l, r),
         (MacroDef(li, ld), MacroDef(ri, rd)) => {
-            eq_id(*li, *ri) && ld.macro_rules == rd.macro_rules && eq_delim_args(&ld.body, &rd.body)
+            li.name == ri.name && ld.macro_rules == rd.macro_rules && eq_delim_args(&ld.body, &rd.body)
         },
         _ => false,
     }
@@ -529,7 +524,7 @@ pub fn eq_foreign_item_kind(l: &ForeignItemKind, r: &ForeignItemKind) -> bool {
                 safety: rs,
                 define_opaque: _,
             }),
-        ) => eq_id(*li, *ri) && eq_ty(lt, rt) && lm == rm && eq_expr_opt(le.as_deref(), re.as_deref()) && ls == rs,
+        ) => li.name == ri.name && eq_ty(lt, rt) && lm == rm && eq_expr_opt(le.as_deref(), re.as_deref()) && ls == rs,
         (
             Fn(box ast::Fn {
                 defaultness: ld,
@@ -552,7 +547,7 @@ pub fn eq_foreign_item_kind(l: &ForeignItemKind, r: &ForeignItemKind) -> bool {
         ) => {
             eq_defaultness(*ld, *rd)
                 && eq_fn_sig(lf, rf)
-                && eq_id(*li, *ri)
+                && li.name == ri.name
                 && eq_generics(lg, rg)
                 && eq_opt_fn_contract(lc, rc)
                 && both(lb.as_ref(), rb.as_ref(), |l, r| eq_block(l, r))
@@ -576,7 +571,7 @@ pub fn eq_foreign_item_kind(l: &ForeignItemKind, r: &ForeignItemKind) -> bool {
             }),
         ) => {
             eq_defaultness(*ld, *rd)
-                && eq_id(*li, *ri)
+                && li.name == ri.name
                 && eq_generics(lg, rg)
                 && over(lb, rb, eq_generic_bound)
                 && both(lt.as_ref(), rt.as_ref(), |l, r| eq_ty(l, r))
@@ -608,7 +603,7 @@ pub fn eq_assoc_item_kind(l: &AssocItemKind, r: &AssocItemKind) -> bool {
             }),
         ) => {
             eq_defaultness(*ld, *rd)
-                && eq_id(*li, *ri)
+                && li.name == ri.name
                 && eq_generics(lg, rg)
                 && eq_ty(lt, rt)
                 && eq_expr_opt(le.as_deref(), re.as_deref())
@@ -635,7 +630,7 @@ pub fn eq_assoc_item_kind(l: &AssocItemKind, r: &AssocItemKind) -> bool {
         ) => {
             eq_defaultness(*ld, *rd)
                 && eq_fn_sig(lf, rf)
-                && eq_id(*li, *ri)
+                && li.name == ri.name
                 && eq_generics(lg, rg)
                 && eq_opt_fn_contract(lc, rc)
                 && both(lb.as_ref(), rb.as_ref(), |l, r| eq_block(l, r))
@@ -659,7 +654,7 @@ pub fn eq_assoc_item_kind(l: &AssocItemKind, r: &AssocItemKind) -> bool {
             }),
         ) => {
             eq_defaultness(*ld, *rd)
-                && eq_id(*li, *ri)
+                && li.name == ri.name
                 && eq_generics(lg, rg)
                 && over(lb, rb, eq_generic_bound)
                 && both(lt.as_ref(), rt.as_ref(), |l, r| eq_ty(l, r))
@@ -673,7 +668,7 @@ pub fn eq_variant(l: &Variant, r: &Variant) -> bool {
     l.is_placeholder == r.is_placeholder
         && over(&l.attrs, &r.attrs, eq_attr)
         && eq_vis(&l.vis, &r.vis)
-        && eq_id(l.ident, r.ident)
+        && l.ident.name == r.ident.name
         && eq_variant_data(&l.data, &r.data)
         && both(l.disr_expr.as_ref(), r.disr_expr.as_ref(), |l, r| {
             eq_expr(&l.value, &r.value)
@@ -695,7 +690,7 @@ pub fn eq_struct_field(l: &FieldDef, r: &FieldDef) -> bool {
     l.is_placeholder == r.is_placeholder
         && over(&l.attrs, &r.attrs, eq_attr)
         && eq_vis(&l.vis, &r.vis)
-        && both(l.ident.as_ref(), r.ident.as_ref(), |l, r| eq_id(*l, *r))
+        && both(l.ident.as_ref(), r.ident.as_ref(), |l, r| l.name == r.name)
         && eq_ty(&l.ty, &r.ty)
 }
 
@@ -753,7 +748,7 @@ pub fn eq_where_predicate(l: &WherePredicate, r: &WherePredicate) -> bool {
                     && over(&l.bounds, &r.bounds, eq_generic_bound)
             },
             (RegionPredicate(l), RegionPredicate(r)) => {
-                eq_id(l.lifetime.ident, r.lifetime.ident) && over(&l.bounds, &r.bounds, eq_generic_bound)
+                l.lifetime.ident.name == r.lifetime.ident.name && over(&l.bounds, &r.bounds, eq_generic_bound)
             },
             (EqPredicate(l), EqPredicate(r)) => eq_ty(&l.lhs_ty, &r.lhs_ty) && eq_ty(&l.rhs_ty, &r.rhs_ty),
             _ => false,
@@ -772,7 +767,7 @@ pub fn eq_use_tree_kind(l: &UseTreeKind, r: &UseTreeKind) -> bool {
     use UseTreeKind::*;
     match (l, r) {
         (Glob, Glob) => true,
-        (Simple(l), Simple(r)) => both(l.as_ref(), r.as_ref(), |l, r| eq_id(*l, *r)),
+        (Simple(l), Simple(r)) => both(l.as_ref(), r.as_ref(), |l, r| l.name == r.name),
         (Nested { items: l, .. }, Nested { items: r, .. }) => over(l, r, |(l, _), (r, _)| eq_use_tree(l, r)),
         _ => false,
     }
@@ -834,10 +829,14 @@ pub fn eq_ty(l: &Ty, r: &Ty) -> bool {
         (Array(le, ls), Array(re, rs)) => eq_ty(le, re) && eq_expr(&ls.value, &rs.value),
         (Ptr(l), Ptr(r)) => l.mutbl == r.mutbl && eq_ty(&l.ty, &r.ty),
         (Ref(ll, l), Ref(rl, r)) => {
-            both(ll.as_ref(), rl.as_ref(), |l, r| eq_id(l.ident, r.ident)) && l.mutbl == r.mutbl && eq_ty(&l.ty, &r.ty)
+            both(ll.as_ref(), rl.as_ref(), |l, r| l.ident.name == r.ident.name)
+                && l.mutbl == r.mutbl
+                && eq_ty(&l.ty, &r.ty)
         },
         (PinnedRef(ll, l), PinnedRef(rl, r)) => {
-            both(ll.as_ref(), rl.as_ref(), |l, r| eq_id(l.ident, r.ident)) && l.mutbl == r.mutbl && eq_ty(&l.ty, &r.ty)
+            both(ll.as_ref(), rl.as_ref(), |l, r| l.ident.name == r.ident.name)
+                && l.mutbl == r.mutbl
+                && eq_ty(&l.ty, &r.ty)
         },
         (FnPtr(l), FnPtr(r)) => {
             l.safety == r.safety
@@ -879,7 +878,7 @@ pub fn eq_poly_ref_trait(l: &PolyTraitRef, r: &PolyTraitRef) -> bool {
 pub fn eq_generic_param(l: &GenericParam, r: &GenericParam) -> bool {
     use GenericParamKind::*;
     l.is_placeholder == r.is_placeholder
-        && eq_id(l.ident, r.ident)
+        && l.ident.name == r.ident.name
         && over(&l.bounds, &r.bounds, eq_generic_bound)
         && match (&l.kind, &r.kind) {
             (Lifetime, Lifetime) => true,
@@ -905,7 +904,7 @@ pub fn eq_generic_bound(l: &GenericBound, r: &GenericBound) -> bool {
     use GenericBound::*;
     match (l, r) {
         (Trait(ptr1), Trait(ptr2)) => eq_poly_ref_trait(ptr1, ptr2),
-        (Outlives(l), Outlives(r)) => eq_id(l.ident, r.ident),
+        (Outlives(l), Outlives(r)) => l.ident.name == r.ident.name,
         _ => false,
     }
 }
@@ -928,7 +927,7 @@ fn eq_term(l: &Term, r: &Term) -> bool {
 
 pub fn eq_assoc_item_constraint(l: &AssocItemConstraint, r: &AssocItemConstraint) -> bool {
     use AssocItemConstraintKind::*;
-    eq_id(l.ident, r.ident)
+    l.ident.name == r.ident.name
         && match (&l.kind, &r.kind) {
             (Equality { term: l }, Equality { term: r }) => eq_term(l, r),
             (Bound { bounds: l }, Bound { bounds: r }) => over(l, r, eq_generic_bound),

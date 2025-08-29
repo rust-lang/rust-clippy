@@ -1,7 +1,7 @@
 #![allow(clippy::wildcard_imports, clippy::enum_glob_use)]
 
 use clippy_config::Conf;
-use clippy_utils::ast_utils::{eq_field_pat, eq_id, eq_maybe_qself, eq_pat, eq_path};
+use clippy_utils::ast_utils::{eq_field_pat, eq_maybe_qself, eq_pat, eq_path};
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::msrvs::{self, MsrvStack};
 use clippy_utils::over;
@@ -263,7 +263,7 @@ fn transform_with_focus_on_idx(alternatives: &mut ThinVec<Box<Pat>>, focus_idx: 
         Ident(b1, i1, Some(target)) => extend_with_matching(
             target, start, alternatives,
             // Binding names must match.
-            |k| matches!(k, Ident(b2, i2, Some(_)) if b1 == b2 && eq_id(*i1, *i2)),
+            |k| matches!(k, Ident(b2, i2, Some(_)) if b1 == b2 && i1.name == i2.name),
             |k| always_pat!(k, Ident(_, _, Some(p)) => p),
         ),
         // Transform `[pre, x, post] | ... | [pre, y, post]` into `[pre, x | y, post]`.
@@ -329,7 +329,7 @@ fn extend_with_struct_pat(
                         let pos = fps2.iter().position(|fp2| {
                             // Avoid `Foo { bar } | Foo { bar }` => `Foo { bar | bar }`
                             !(fp1.is_shorthand && fp2.is_shorthand)
-                                && eq_id(fp1.ident, fp2.ident)
+                                && fp1.ident.name == fp2.ident.name
                         });
                         pos_in_2.set(pos);
                         pos.is_some()
