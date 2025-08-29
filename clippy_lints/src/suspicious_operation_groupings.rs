@@ -1,4 +1,4 @@
-use clippy_utils::ast_utils::{IdentIter, is_useless_with_eq_exprs};
+use clippy_utils::ast::{IdentIter, is_useless_with_eq_exprs};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_applicability;
 use core::ops::{Add, AddAssign};
