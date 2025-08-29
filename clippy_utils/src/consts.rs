@@ -411,7 +411,7 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
         }
     }
 
-    /// Attempts to evaluate the expression and returns both the value and whether it's dependant on
+    /// Attempts to evaluate the expression and returns both the value and whether it's dependent on
     /// other items.
     pub fn eval_with_source(&self, e: &Expr<'_>) -> Option<(Constant<'tcx>, ConstantSource)> {
         self.source.set(ConstantSource::Local);

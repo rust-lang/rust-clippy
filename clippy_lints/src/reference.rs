@@ -83,7 +83,7 @@ impl LateLintPass<'_> for DerefAddrOf {
 
 /// Is this a `ManuallyDrop` reached through a union, and when is `DerefMut` called on it?
 enum ManuallyDropThroughUnion {
-    /// `ManuallyDrop` reached through a union and immediately explicitely dereferenced
+    /// `ManuallyDrop` reached through a union and immediately explicitly dereferenced
     Directly,
     /// `ManuallyDrop` reached through a union, and dereferenced later on
     Indirect,

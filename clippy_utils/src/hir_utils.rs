@@ -1198,7 +1198,7 @@ impl<'a, 'tcx> SpanlessHash<'a, 'tcx> {
 
     pub fn hash_path(&mut self, path: &Path<'_>) {
         match path.res {
-            // constant hash since equality is dependant on inter-expression context
+            // constant hash since equality is dependent on inter-expression context
             // e.g. The expressions `if let Some(x) = foo() {}` and `if let Some(y) = foo() {}` are considered equal
             // even though the binding names are different and they have different `HirId`s.
             Res::Local(_) => 1_usize.hash(&mut self.s),
