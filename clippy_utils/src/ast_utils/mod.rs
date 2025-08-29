@@ -3,15 +3,17 @@
 //! - The `eq_foobar` functions test for semantic equality but ignores `NodeId`s and `Span`s.
 
 #![allow(clippy::wildcard_imports, clippy::enum_glob_use)]
-
+#![warn(missing_docs)]
 use crate::{both, over};
 use rustc_ast::{self as ast, *};
 use rustc_span::symbol::Ident;
 use std::mem;
 
+/// Utilities for iterating over identifiers in AST nodes
 pub mod ident_iter;
 pub use ident_iter::IdentIter;
 
+/// Checks if a binary operator is useless when both operands are the same expression.
 pub fn is_useless_with_eq_exprs(kind: BinOpKind) -> bool {
     use BinOpKind::*;
     matches!(
@@ -24,11 +26,11 @@ pub fn is_useless_with_eq_exprs(kind: BinOpKind) -> bool {
 pub fn unordered_over<X, Y>(left: &[X], right: &[Y], mut eq_fn: impl FnMut(&X, &Y) -> bool) -> bool {
     left.len() == right.len() && left.iter().all(|l| right.iter().any(|r| eq_fn(l, r)))
 }
-
+/// Returns `true` if the two given `[Ident]` nodes are structurally equivalent.
 pub fn eq_id(l: Ident, r: Ident) -> bool {
     l.name == r.name
 }
-
+/// Returns `true` if the two given `[Pat]` nodes are structurally equivalent.
 pub fn eq_pat(l: &Pat, r: &Pat) -> bool {
     use PatKind::*;
     match (&l.kind, &r.kind) {
@@ -67,6 +69,7 @@ pub fn eq_pat(l: &Pat, r: &Pat) -> bool {
     }
 }
 
+/// Returns `true` if the two given `[RangeEnd]` nodes are structurally equivalent.
 pub fn eq_range_end(l: &RangeEnd, r: &RangeEnd) -> bool {
     match (l, r) {
         (RangeEnd::Excluded, RangeEnd::Excluded) => true,
@@ -76,18 +79,19 @@ pub fn eq_range_end(l: &RangeEnd, r: &RangeEnd) -> bool {
         _ => false,
     }
 }
-
+/// Returns `true` if the two given `[PatField]` nodes are structurally equivalent.
 pub fn eq_field_pat(l: &PatField, r: &PatField) -> bool {
     l.is_placeholder == r.is_placeholder
         && eq_id(l.ident, r.ident)
         && eq_pat(&l.pat, &r.pat)
         && over(&l.attrs, &r.attrs, eq_attr)
 }
-
+/// Returns `true` if the two given `[QSelf]` nodes are structurally equivalent.
 pub fn eq_qself(l: &QSelf, r: &QSelf) -> bool {
     l.position == r.position && eq_ty(&l.ty, &r.ty)
 }
 
+/// Returns `true` if the two given optional `[QSelf]` nodes are structurally equivalent.
 pub fn eq_maybe_qself(l: Option<&QSelf>, r: Option<&QSelf>) -> bool {
     match (l, r) {
         (Some(l), Some(r)) => eq_qself(l, r),
@@ -96,14 +100,17 @@ pub fn eq_maybe_qself(l: Option<&QSelf>, r: Option<&QSelf>) -> bool {
     }
 }
 
+/// Returns `true` if the two given `[Path]` nodes are structurally equivalent.
 pub fn eq_path(l: &Path, r: &Path) -> bool {
     over(&l.segments, &r.segments, eq_path_seg)
 }
 
+/// Returns `true` if the two given `[PathSegment]` nodes are structurally equivalent.
 pub fn eq_path_seg(l: &PathSegment, r: &PathSegment) -> bool {
     eq_id(l.ident, r.ident) && both(l.args.as_ref(), r.args.as_ref(), |l, r| eq_generic_args(l, r))
 }
 
+/// Returns `true` if the two given `[GenericArgs]` nodes are structurally equivalent.
 pub fn eq_generic_args(l: &GenericArgs, r: &GenericArgs) -> bool {
     match (l, r) {
         (AngleBracketed(l), AngleBracketed(r)) => over(&l.args, &r.args, eq_angle_arg),
@@ -114,6 +121,7 @@ pub fn eq_generic_args(l: &GenericArgs, r: &GenericArgs) -> bool {
     }
 }
 
+/// Returns `true` if the two given `[AngleBracketedArg]` nodes are structurally equivalent.
 pub fn eq_angle_arg(l: &AngleBracketedArg, r: &AngleBracketedArg) -> bool {
     match (l, r) {
         (AngleBracketedArg::Arg(l), AngleBracketedArg::Arg(r)) => eq_generic_arg(l, r),
@@ -122,6 +130,7 @@ pub fn eq_angle_arg(l: &AngleBracketedArg, r: &AngleBracketedArg) -> bool {
     }
 }
 
+/// Returns `true` if the two given `[GenericArg]` nodes are structurally equivalent.
 pub fn eq_generic_arg(l: &GenericArg, r: &GenericArg) -> bool {
     match (l, r) {
         (GenericArg::Lifetime(l), GenericArg::Lifetime(r)) => eq_id(l.ident, r.ident),
@@ -131,10 +140,12 @@ pub fn eq_generic_arg(l: &GenericArg, r: &GenericArg) -> bool {
     }
 }
 
+/// Returns `true` if the two given optional `[Expr]` nodes are structurally equivalent.
 pub fn eq_expr_opt(l: Option<&Expr>, r: Option<&Expr>) -> bool {
     both(l, r, eq_expr)
 }
 
+/// Returns `true` if the two given `[StructRest]` nodes are structurally equivalent.
 pub fn eq_struct_rest(l: &StructRest, r: &StructRest) -> bool {
     match (l, r) {
         (StructRest::Base(lb), StructRest::Base(rb)) => eq_expr(lb, rb),
@@ -144,6 +155,8 @@ pub fn eq_struct_rest(l: &StructRest, r: &StructRest) -> bool {
 }
 
 #[allow(clippy::too_many_lines)] // Just a big match statement
+
+/// Returns `true` if the two given `[Expr]` AST nodes are structurally equivalent.
 pub fn eq_expr(l: &Expr, r: &Expr) -> bool {
     use ExprKind::*;
     if !over(&l.attrs, &r.attrs, eq_attr) {
@@ -272,6 +285,7 @@ fn eq_coroutine_kind(a: Option<CoroutineKind>, b: Option<CoroutineKind>) -> bool
     )
 }
 
+/// Returns `true` if the two given `[ExprField]` nodes are structurally equivalent.
 pub fn eq_field(l: &ExprField, r: &ExprField) -> bool {
     l.is_placeholder == r.is_placeholder
         && eq_id(l.ident, r.ident)
@@ -279,6 +293,7 @@ pub fn eq_field(l: &ExprField, r: &ExprField) -> bool {
         && over(&l.attrs, &r.attrs, eq_attr)
 }
 
+/// Returns `true` if the two given `[Arm]` nodes are structurally equivalent.
 pub fn eq_arm(l: &Arm, r: &Arm) -> bool {
     l.is_placeholder == r.is_placeholder
         && eq_pat(&l.pat, &r.pat)
@@ -287,14 +302,17 @@ pub fn eq_arm(l: &Arm, r: &Arm) -> bool {
         && over(&l.attrs, &r.attrs, eq_attr)
 }
 
+/// Returns `true` if the two given optional `[Label]` nodes are structurally equivalent.
 pub fn eq_label(l: Option<&Label>, r: Option<&Label>) -> bool {
     both(l, r, |l, r| eq_id(l.ident, r.ident))
 }
 
+/// Returns `true` if the two given `[Block]` nodes are structurally equivalent.
 pub fn eq_block(l: &Block, r: &Block) -> bool {
     l.rules == r.rules && over(&l.stmts, &r.stmts, eq_stmt)
 }
 
+/// Returns `true` if the two given `[Stmt]` nodes are structurally equivalent.
 pub fn eq_stmt(l: &Stmt, r: &Stmt) -> bool {
     use StmtKind::*;
     match (&l.kind, &r.kind) {
@@ -314,6 +332,7 @@ pub fn eq_stmt(l: &Stmt, r: &Stmt) -> bool {
     }
 }
 
+/// Returns `true` if the two given `[LocalKind]` nodes are structurally equivalent.
 pub fn eq_local_kind(l: &LocalKind, r: &LocalKind) -> bool {
     use LocalKind::*;
     match (l, r) {
@@ -324,11 +343,13 @@ pub fn eq_local_kind(l: &LocalKind, r: &LocalKind) -> bool {
     }
 }
 
+/// Compares two [`Item`] nodes for structural equality, using the provided closure `eq_kind` to compare the `ItemKind`.
 pub fn eq_item<K>(l: &Item<K>, r: &Item<K>, mut eq_kind: impl FnMut(&K, &K) -> bool) -> bool {
     over(&l.attrs, &r.attrs, eq_attr) && eq_vis(&l.vis, &r.vis) && eq_kind(&l.kind, &r.kind)
 }
 
 #[expect(clippy::too_many_lines)] // Just a big match statement
+/// Returns `true` if the two given `[ItemKind]` nodes are structurally equivalent.
 pub fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
     use ItemKind::*;
     match (l, r) {
@@ -509,6 +530,7 @@ pub fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
     }
 }
 
+/// Returns `true` if the two given `[ForeignItemKind]` nodes are structurally equivalent.
 pub fn eq_foreign_item_kind(l: &ForeignItemKind, r: &ForeignItemKind) -> bool {
     use ForeignItemKind::*;
     match (l, r) {
@@ -586,6 +608,7 @@ pub fn eq_foreign_item_kind(l: &ForeignItemKind, r: &ForeignItemKind) -> bool {
     }
 }
 
+/// Returns `true` if the two given `[AssocItemKind]` nodes are structurally equivalent.
 pub fn eq_assoc_item_kind(l: &AssocItemKind, r: &AssocItemKind) -> bool {
     use AssocItemKind::*;
     match (l, r) {
@@ -669,6 +692,7 @@ pub fn eq_assoc_item_kind(l: &AssocItemKind, r: &AssocItemKind) -> bool {
     }
 }
 
+/// Returns `true` if the two given `[Variant]` nodes are structurally equivalent.
 pub fn eq_variant(l: &Variant, r: &Variant) -> bool {
     l.is_placeholder == r.is_placeholder
         && over(&l.attrs, &r.attrs, eq_attr)
@@ -680,6 +704,7 @@ pub fn eq_variant(l: &Variant, r: &Variant) -> bool {
         })
 }
 
+/// Returns `true` if the two given `[VariantData]` nodes are structurally equivalent.
 pub fn eq_variant_data(l: &VariantData, r: &VariantData) -> bool {
     use VariantData::*;
     match (l, r) {
@@ -691,6 +716,7 @@ pub fn eq_variant_data(l: &VariantData, r: &VariantData) -> bool {
     }
 }
 
+/// Returns `true` if the two given `[FieldDef]` nodes are structurally equivalent.
 pub fn eq_struct_field(l: &FieldDef, r: &FieldDef) -> bool {
     l.is_placeholder == r.is_placeholder
         && over(&l.attrs, &r.attrs, eq_attr)
@@ -699,6 +725,7 @@ pub fn eq_struct_field(l: &FieldDef, r: &FieldDef) -> bool {
         && eq_ty(&l.ty, &r.ty)
 }
 
+/// Returns `true` if the two given `[FnSig]` nodes are structurally equivalent.
 pub fn eq_fn_sig(l: &FnSig, r: &FnSig) -> bool {
     eq_fn_decl(&l.decl, &r.decl) && eq_fn_header(&l.header, &r.header)
 }
@@ -716,6 +743,7 @@ fn eq_opt_coroutine_kind(l: Option<CoroutineKind>, r: Option<CoroutineKind>) -> 
     )
 }
 
+/// Returns `true` if the two given `[FnHeader]` nodes are structurally equivalent.
 pub fn eq_fn_header(l: &FnHeader, r: &FnHeader) -> bool {
     matches!(l.safety, Safety::Default) == matches!(r.safety, Safety::Default)
         && eq_opt_coroutine_kind(l.coroutine_kind, r.coroutine_kind)
@@ -724,6 +752,7 @@ pub fn eq_fn_header(l: &FnHeader, r: &FnHeader) -> bool {
 }
 
 #[expect(clippy::ref_option, reason = "This is the type how it is stored in the AST")]
+/// Returns `true` if the two given optional `[FnContract]` nodes are structurally equivalent.
 pub fn eq_opt_fn_contract(l: &Option<Box<FnContract>>, r: &Option<Box<FnContract>>) -> bool {
     match (l, r) {
         (Some(l), Some(r)) => {
@@ -735,6 +764,7 @@ pub fn eq_opt_fn_contract(l: &Option<Box<FnContract>>, r: &Option<Box<FnContract
     }
 }
 
+/// Returns `true` if the two given `[Generics]` nodes are structurally equivalent.
 pub fn eq_generics(l: &Generics, r: &Generics) -> bool {
     over(&l.params, &r.params, eq_generic_param)
         && over(&l.where_clause.predicates, &r.where_clause.predicates, |l, r| {
@@ -742,6 +772,7 @@ pub fn eq_generics(l: &Generics, r: &Generics) -> bool {
         })
 }
 
+/// Returns `true` if the two given `[WherePredicate]` nodes are structurally equivalent.
 pub fn eq_where_predicate(l: &WherePredicate, r: &WherePredicate) -> bool {
     use WherePredicateKind::*;
     over(&l.attrs, &r.attrs, eq_attr)
@@ -760,14 +791,17 @@ pub fn eq_where_predicate(l: &WherePredicate, r: &WherePredicate) -> bool {
         }
 }
 
+/// Returns `true` if the two given `[UseTree]` nodes are structurally equivalent.
 pub fn eq_use_tree(l: &UseTree, r: &UseTree) -> bool {
     eq_path(&l.prefix, &r.prefix) && eq_use_tree_kind(&l.kind, &r.kind)
 }
 
+/// Returns `true` if the two given `[AnonConst]` nodes are structurally equivalent.
 pub fn eq_anon_const(l: &AnonConst, r: &AnonConst) -> bool {
     eq_expr(&l.value, &r.value)
 }
 
+/// Returns `true` if the two given `[UseTreeKind]` nodes are structurally equivalent.
 pub fn eq_use_tree_kind(l: &UseTreeKind, r: &UseTreeKind) -> bool {
     use UseTreeKind::*;
     match (l, r) {
@@ -778,6 +812,7 @@ pub fn eq_use_tree_kind(l: &UseTreeKind, r: &UseTreeKind) -> bool {
     }
 }
 
+/// Returns `true` if the two given `[Defaultness]` values are structurally equivalent.
 pub fn eq_defaultness(l: Defaultness, r: Defaultness) -> bool {
     matches!(
         (l, r),
@@ -785,6 +820,7 @@ pub fn eq_defaultness(l: Defaultness, r: Defaultness) -> bool {
     )
 }
 
+/// Returns `true` if the two given `[Visibility]` nodes are structurally equivalent.
 pub fn eq_vis(l: &Visibility, r: &Visibility) -> bool {
     use VisibilityKind::*;
     match (&l.kind, &r.kind) {
@@ -794,6 +830,7 @@ pub fn eq_vis(l: &Visibility, r: &Visibility) -> bool {
     }
 }
 
+/// Returns `true` if the two given `[FnDecl]` nodes are structurally equivalent.
 pub fn eq_fn_decl(l: &FnDecl, r: &FnDecl) -> bool {
     eq_fn_ret_ty(&l.output, &r.output)
         && over(&l.inputs, &r.inputs, |l, r| {
@@ -804,6 +841,7 @@ pub fn eq_fn_decl(l: &FnDecl, r: &FnDecl) -> bool {
         })
 }
 
+/// Returns `true` if the two given `[ClosureBinder]` nodes are structurally equivalent.
 pub fn eq_closure_binder(l: &ClosureBinder, r: &ClosureBinder) -> bool {
     match (l, r) {
         (ClosureBinder::NotPresent, ClosureBinder::NotPresent) => true,
@@ -814,6 +852,7 @@ pub fn eq_closure_binder(l: &ClosureBinder, r: &ClosureBinder) -> bool {
     }
 }
 
+/// Returns `true` if the two given `[FnRetTy]` nodes are structurally equivalent.
 pub fn eq_fn_ret_ty(l: &FnRetTy, r: &FnRetTy) -> bool {
     match (l, r) {
         (FnRetTy::Default(_), FnRetTy::Default(_)) => true,
@@ -822,6 +861,7 @@ pub fn eq_fn_ret_ty(l: &FnRetTy, r: &FnRetTy) -> bool {
     }
 }
 
+/// Returns `true` if the two given `[Ty]` nodes are structurally equivalent.
 pub fn eq_ty(l: &Ty, r: &Ty) -> bool {
     use TyKind::*;
     match (&l.kind, &r.kind) {
@@ -855,6 +895,7 @@ pub fn eq_ty(l: &Ty, r: &Ty) -> bool {
     }
 }
 
+/// Returns `true` if the two given `[Extern]` specifications are structurally equivalent.
 pub fn eq_ext(l: &Extern, r: &Extern) -> bool {
     use Extern::*;
     match (l, r) {
@@ -864,10 +905,12 @@ pub fn eq_ext(l: &Extern, r: &Extern) -> bool {
     }
 }
 
+/// Returns `true` if the two given `[StrLit]` nodes are structurally equivalent.
 pub fn eq_str_lit(l: &StrLit, r: &StrLit) -> bool {
     l.style == r.style && l.symbol == r.symbol && l.suffix == r.suffix
 }
 
+/// Returns `true` if the two given `[PolyTraitRef]` nodes are structurally equivalent.
 pub fn eq_poly_ref_trait(l: &PolyTraitRef, r: &PolyTraitRef) -> bool {
     l.modifiers == r.modifiers
         && eq_path(&l.trait_ref.path, &r.trait_ref.path)
@@ -876,6 +919,7 @@ pub fn eq_poly_ref_trait(l: &PolyTraitRef, r: &PolyTraitRef) -> bool {
         })
 }
 
+/// Returns `true` if the two given `[GenericParam]` nodes are structurally equivalent.
 pub fn eq_generic_param(l: &GenericParam, r: &GenericParam) -> bool {
     use GenericParamKind::*;
     l.is_placeholder == r.is_placeholder
@@ -901,6 +945,7 @@ pub fn eq_generic_param(l: &GenericParam, r: &GenericParam) -> bool {
         && over(&l.attrs, &r.attrs, eq_attr)
 }
 
+/// Returns `true` if the two given `[GenericBound]` nodes are structurally equivalent.
 pub fn eq_generic_bound(l: &GenericBound, r: &GenericBound) -> bool {
     use GenericBound::*;
     match (l, r) {
@@ -910,6 +955,7 @@ pub fn eq_generic_bound(l: &GenericBound, r: &GenericBound) -> bool {
     }
 }
 
+/// Returns `true` if the two given `[PreciseCapturingArg]` nodes are structurally equivalent.
 pub fn eq_precise_capture(l: &PreciseCapturingArg, r: &PreciseCapturingArg) -> bool {
     match (l, r) {
         (PreciseCapturingArg::Lifetime(l), PreciseCapturingArg::Lifetime(r)) => l.ident == r.ident,
@@ -926,6 +972,8 @@ fn eq_term(l: &Term, r: &Term) -> bool {
     }
 }
 
+
+/// Returns `true` if the two given `[AssocItemConstraint]` nodes are structurally equivalent.
 pub fn eq_assoc_item_constraint(l: &AssocItemConstraint, r: &AssocItemConstraint) -> bool {
     use AssocItemConstraintKind::*;
     eq_id(l.ident, r.ident)
@@ -936,10 +984,12 @@ pub fn eq_assoc_item_constraint(l: &AssocItemConstraint, r: &AssocItemConstraint
         }
 }
 
+/// Returns `true` if the two given `[MacCall]` nodes are structurally equivalent.
 pub fn eq_mac_call(l: &MacCall, r: &MacCall) -> bool {
     eq_path(&l.path, &r.path) && eq_delim_args(&l.args, &r.args)
 }
 
+/// Returns `true` if the two given `[Attribute]` nodes are structurally equivalent.
 pub fn eq_attr(l: &Attribute, r: &Attribute) -> bool {
     use AttrKind::*;
     l.style == r.style
@@ -950,6 +1000,7 @@ pub fn eq_attr(l: &Attribute, r: &Attribute) -> bool {
         }
 }
 
+/// Returns `true` if the two given `[AttrArgs]` nodes are structurally equivalent.
 pub fn eq_attr_args(l: &AttrArgs, r: &AttrArgs) -> bool {
     use AttrArgs::*;
     match (l, r) {
@@ -960,6 +1011,7 @@ pub fn eq_attr_args(l: &AttrArgs, r: &AttrArgs) -> bool {
     }
 }
 
+/// Returns `true` if the two given `[DelimArgs]` nodes are structurally equivalent.
 pub fn eq_delim_args(l: &DelimArgs, r: &DelimArgs) -> bool {
     l.delim == r.delim
         && l.tokens.len() == r.tokens.len()
