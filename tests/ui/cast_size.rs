@@ -12,12 +12,16 @@
 )]
 #![allow(clippy::no_effect, clippy::unnecessary_operation)]
 
+fn get_value<T>() -> T {
+    todo!()
+}
+
 fn main() {
     // Casting from *size
-    1isize as i8;
+    get_value::<isize>() as i8;
     //~^ cast_possible_truncation
-    let x0 = 1isize;
-    let x1 = 1usize;
+    let x0: isize = get_value();
+    let x1: usize = get_value();
     // FIXME(f16_f128): enable f16 and f128 conversions once const eval supports them
     // x0 as f16;
     // x1 as f16;
@@ -32,29 +36,32 @@ fn main() {
     // x0 as f128;
     // x1 as f128;
 
-    1isize as i32;
+    get_value::<isize>() as i32;
     //~^ cast_possible_truncation
-    1isize as u32;
+    get_value::<isize>() as u32;
     //~^ cast_possible_truncation
-    1usize as u32;
+    //~| cast_sign_loss
+    get_value::<usize>() as u32;
     //~^ cast_possible_truncation
-    1usize as i32;
-    //~^ cast_possible_truncation
-    //~| cast_possible_wrap
-    1i64 as isize;
-    //~^ cast_possible_truncation
-    1i64 as usize;
-    //~^ cast_possible_truncation
-    1u64 as isize;
+    get_value::<usize>() as i32;
     //~^ cast_possible_truncation
     //~| cast_possible_wrap
-    1u64 as usize;
+    get_value::<i64>() as isize;
     //~^ cast_possible_truncation
-    1u32 as isize;
+    get_value::<i64>() as usize;
+    //~^ cast_possible_truncation
+    //~| cast_sign_loss
+    get_value::<u64>() as isize;
+    //~^ cast_possible_truncation
+    //~| cast_possible_wrap
+    get_value::<u64>() as usize;
+    //~^ cast_possible_truncation
+    get_value::<u32>() as isize;
     //~^ cast_possible_wrap
-    1u32 as usize; // Should not trigger any lint
-    1i32 as isize; // Neither should this
-    1i32 as usize;
+    get_value::<u32>() as usize; // Should not trigger any lint
+    get_value::<i32>() as isize; // Neither should this
+    get_value::<i32>() as usize;
+    //~^ cast_sign_loss
 
     // Big integer literal to float
     // 999_999 as f16;
@@ -69,5 +76,6 @@ fn main() {
 fn issue15163() {
     const M: usize = 100;
     const N: u16 = M as u16;
+    const O: u16 = (M * 1000) as u16;
     //~^ cast_possible_truncation
 }
