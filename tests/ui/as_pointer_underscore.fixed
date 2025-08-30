@@ -13,3 +13,11 @@ fn g(s: &mut S) -> usize {
     s as *mut S as usize
     //~^ as_pointer_underscore
 }
+
+fn issue_15281() {
+    fn bar(_: usize) {}
+    // pointer to fn item, lint should not trigger
+    let _ = &bar as *const _;
+    let _ = &(bar as fn(usize)) as *const fn(usize);
+    //~^ as_pointer_underscore
+}
