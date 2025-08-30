@@ -16,8 +16,7 @@ declare_clippy_lint! {
     /// Checks that common macros are used with consistent bracing.
     ///
     /// ### Why is this bad?
-    /// This is mostly a consistency lint although using () or []
-    /// doesn't give you a semicolon in item position, which can be unexpected.
+    /// This is mostly a consistency lint.
     ///
     /// ### Example
     /// ```no_run
@@ -33,8 +32,8 @@ declare_clippy_lint! {
     "check consistent use of braces in macro"
 }
 
-/// The (callsite span, (open brace, close brace), source snippet)
-type MacroInfo = (Span, (char, char), SourceText);
+/// The (callsite span, old open brace, (open brace, close brace), source snippet)
+type MacroInfo = (Span, char, (char, char), SourceText);
 
 pub struct MacroBraces {
     macro_braces: FxHashMap<String, (char, char)>,
@@ -54,29 +53,33 @@ impl_lint_pass!(MacroBraces => [NONSTANDARD_MACRO_BRACES]);
 
 impl EarlyLintPass for MacroBraces {
     fn check_item(&mut self, cx: &EarlyContext<'_>, item: &ast::Item) {
-        if let Some((span, braces, snip)) = is_offending_macro(cx, item.span, self) {
-            emit_help(cx, &snip, braces, span);
+        if let Some((span, _, braces, snip)) = is_offending_macro(cx, item.span, self) {
+            emit_help(cx, &snip, braces, span, false);
             self.done.insert(span);
         }
     }
 
     fn check_stmt(&mut self, cx: &EarlyContext<'_>, stmt: &ast::Stmt) {
-        if let Some((span, braces, snip)) = is_offending_macro(cx, stmt.span, self) {
-            emit_help(cx, &snip, braces, span);
+        if let Some((span, old_open_brace, braces, snip)) = is_offending_macro(cx, stmt.span, self) {
+            // if we turn `macro!{}` into `macro!()`/`macro![]`, we'll no longer get the implicit
+            // trailing semicolon, see #9913
+            // NOTE: `stmt.kind != StmtKind::MacCall` because `EarlyLintPass` happens after macro expansion
+            let add_semi = matches!(stmt.kind, ast::StmtKind::Expr(..)) && old_open_brace == '{';
+            emit_help(cx, &snip, braces, span, add_semi);
             self.done.insert(span);
         }
     }
 
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &ast::Expr) {
-        if let Some((span, braces, snip)) = is_offending_macro(cx, expr.span, self) {
-            emit_help(cx, &snip, braces, span);
+        if let Some((span, _, braces, snip)) = is_offending_macro(cx, expr.span, self) {
+            emit_help(cx, &snip, braces, span, false);
             self.done.insert(span);
         }
     }
 
     fn check_ty(&mut self, cx: &EarlyContext<'_>, ty: &ast::Ty) {
-        if let Some((span, braces, snip)) = is_offending_macro(cx, ty.span, self) {
-            emit_help(cx, &snip, braces, span);
+        if let Some((span, _, braces, snip)) = is_offending_macro(cx, ty.span, self) {
+            emit_help(cx, &snip, braces, span, false);
             self.done.insert(span);
         }
     }
@@ -97,32 +100,32 @@ fn is_offending_macro(cx: &EarlyContext<'_>, span: Span, mac_braces: &MacroBrace
         && let Some(snip) = span_call_site.get_source_text(cx)
         // we must check only invocation sites
         // https://github.com/rust-lang/rust-clippy/issues/7422
-        && snip.starts_with(&format!("{name}!"))
+        && let Some(macro_args_str) = snip.strip_prefix(name).and_then(|snip| snip.strip_prefix('!'))
+        && let Some(old_open_brace) = macro_args_str.trim_start().chars().next()
+        && old_open_brace != braces.0
         && unnested_or_local()
-        // make formatting consistent
-        && let c = snip.replace(' ', "")
-        && !c.starts_with(&format!("{name}!{}", braces.0))
         && !mac_braces.done.contains(&span_call_site)
     {
-        Some((span_call_site, braces, snip))
+        Some((span_call_site, old_open_brace, braces, snip))
     } else {
         None
     }
 }
 
-fn emit_help(cx: &EarlyContext<'_>, snip: &str, (open, close): (char, char), span: Span) {
+fn emit_help(cx: &EarlyContext<'_>, snip: &str, (open, close): (char, char), span: Span, add_semi: bool) {
+    let semi = if add_semi { ";" } else { "" };
     if let Some((macro_name, macro_args_str)) = snip.split_once('!') {
         let mut macro_args = macro_args_str.trim().to_string();
         // now remove the wrong braces
-        macro_args.remove(0);
         macro_args.pop();
+        macro_args.remove(0);
         span_lint_and_sugg(
             cx,
             NONSTANDARD_MACRO_BRACES,
             span,
             format!("use of irregular braces for `{macro_name}!` macro"),
             "consider writing",
-            format!("{macro_name}!{open}{macro_args}{close}"),
+            format!("{macro_name}!{open}{macro_args}{close}{semi}"),
             Applicability::MachineApplicable,
         );
     }
