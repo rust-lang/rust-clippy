@@ -101,4 +101,12 @@ fn main() {
     const _: f64 = 3.0;
     //~^ excessive_precision
     const _: f64 = 3.0000000000000000;
+
+    // Overly specified constants
+    let _: f32 = 1.012_345_7;
+    //~^ excessive_precision
+    let _: f64 = 1.012_345_678_901_234_6;
+    //~^ excessive_precision
+    const _: f32 = 1.01234567890123456789012345678901234567890;
+    const _: f64 = 1.01234567890123456789012345678901234567890;
 }
