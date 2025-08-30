@@ -137,6 +137,13 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
                     },
                 },
                 sym::alloc => {
+                    if let Res::Def(DefKind::Mod, crate_def_id) = first_segment.res
+                        && let crate_name = cx.tcx.crate_name(crate_def_id.krate)
+                        && crate_name != first_segment.ident.name
+                    {
+                        return;
+                    }
+
                     if cx.tcx.crate_name(def_id.krate) == sym::core {
                         (ALLOC_INSTEAD_OF_CORE, "alloc", "core")
                     } else {
