@@ -1,5 +1,5 @@
 error: temporary with significant `Drop` can be early dropped
-  --> tests/ui/significant_drop_tightening_unfixable.rs:28:13
+  --> tests/ui/significant_drop_tightening_unfixable.rs:27:13
    |
 LL |       fn main() {
    |  _______________-
@@ -17,7 +17,7 @@ LL | |     }
 help: merge the temporary construction with its single usage
    |
 LL ~         
-LL +         let stdin = stdin().lock().take(40);
+LL +         let mut stdin = stdin().lock().take(40);
 LL |
 ...
 LL |         //Even if it overflows like expected, it will reallocate.
@@ -25,7 +25,7 @@ LL ~
    |
 
 error: temporary with significant `Drop` can be early dropped
-  --> tests/ui/significant_drop_tightening_unfixable.rs:34:17
+  --> tests/ui/significant_drop_tightening_unfixable.rs:33:17
    |
 LL |       fn main() {
    |  _______________-
@@ -41,7 +41,7 @@ LL | |     }
    |
    = help: merge the temporary construction with its single usage
 note: single usage here
-  --> tests/ui/significant_drop_tightening_unfixable.rs:36:9
+  --> tests/ui/significant_drop_tightening_unfixable.rs:35:9
    |
 LL | /         if stdin.read_line(&mut buffer).is_err() {
 LL | |             eprintln!("An error has occured while reading.");

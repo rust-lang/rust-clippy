@@ -5,7 +5,7 @@ mod issue_15574 {
     use std::io::{BufRead, Read, stdin};
     use std::process;
 
-    // NOTE: this requires `no_rustfix` for multiple reasons:
+    // NOTE: this requires `no_rustfix` for two reasons:
     //
     // There should be two suggestions, one to merge the line:
     // ```
@@ -17,8 +17,7 @@ mod issue_15574 {
     // ```
     // and one to merge the latter into the `if`.
     //
-    // This causes the following problems:
-    // - the first suggestion lacks the `mut` before `stdin`, which doesn't compile
+    // That causes the following problems:
     // - the second suggestion isn't a suggestion but a help message, so the warning isn't gone after
     //   rustfix
     // - when the second help becomes a suggestion, it will overlap with the first one

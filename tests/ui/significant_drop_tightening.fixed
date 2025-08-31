@@ -142,6 +142,16 @@ pub fn unnecessary_contention_with_single_owned_results() {
     }
 }
 
+fn issue_15602() {
+    use std::io::{Read, Take, stdin};
+
+    
+    let mut shadowing @ Take { .. } = std::io::stdin().lock().take(40);
+    //~^ significant_drop_tightening
+    
+    do_heavy_computation_that_takes_time(())
+}
+
 // Marker used for illustration purposes.
 pub fn do_heavy_computation_that_takes_time<T>(_: T) {}
 
