@@ -3482,6 +3482,7 @@ pub mod a;
 <a href="#excessive_precision" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-style">style</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for float literals with a precision greater
 than that supported by the underlying type.</p>
+<p>The lint is suppressed for literals with over <code>const_literal_digits_threshold</code> digits.</p>
 <h3>Why is this bad?</h3>
 <p>Rust will truncate the literal silently.</p>
 <h3>Example</h3>
@@ -3492,7 +3493,14 @@ println!("{}", v); //  0.123_456_789
 <pre><code class="language-rust">let v: f64 = 0.123_456_789_9;
 println!("{}", v); //  0.123_456_789_9
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">pre 1.29.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+excessive_precision">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/float_literal.rs#L11">View Source</a></div></div></div></article><article id="exhaustive_enums"><input id="label-exhaustive_enums" type="checkbox"><label for="label-exhaustive_enums"><h2 class="lint-title"><div class="panel-title-name" id="lint-exhaustive_enums">exhaustive_enums
+<h3>Configuration</h3>
+<ul>
+<li>
+<p><code>const-literal-digits-threshold</code>:  The minimum digits a const float literal must have to supress the <code>excessive_precicion</code> lint</p>
+<p>(default: <code>30</code>)</p>
+</li>
+</ul>
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">pre 1.29.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+excessive_precision">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/float_literal.rs#L12">View Source</a></div></div></div></article><article id="exhaustive_enums"><input id="label-exhaustive_enums" type="checkbox"><label for="label-exhaustive_enums"><h2 class="lint-title"><div class="panel-title-name" id="lint-exhaustive_enums">exhaustive_enums
 <a href="#exhaustive_enums" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-restriction">restriction</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Warns on any exported <code>enum</code>s that are not tagged <code>#[non_exhaustive]</code></p>
 <h3>Why restrict this?</h3>
@@ -6587,7 +6595,7 @@ This may be especially surprising when the lost precision is to the left of the 
 <pre><code class="language-rust">let _: f32 = 16_777_216.0;
 let _: f64 = 16_777_217.0;
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.43.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+lossy_float_literal">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/float_literal.rs#L36">View Source</a></div></div></div></article><article id="macro_metavars_in_unsafe"><input id="label-macro_metavars_in_unsafe" type="checkbox"><label for="label-macro_metavars_in_unsafe"><h2 class="lint-title"><div class="panel-title-name" id="lint-macro_metavars_in_unsafe">macro_metavars_in_unsafe
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.43.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+lossy_float_literal">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/float_literal.rs#L39">View Source</a></div></div></div></article><article id="macro_metavars_in_unsafe"><input id="label-macro_metavars_in_unsafe" type="checkbox"><label for="label-macro_metavars_in_unsafe"><h2 class="lint-title"><div class="panel-title-name" id="lint-macro_metavars_in_unsafe">macro_metavars_in_unsafe
 <a href="#macro_metavars_in_unsafe" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-suspicious">suspicious</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Looks for macros that expand metavariables in an unsafe block.</p>
 <h3>Why is this bad?</h3>
