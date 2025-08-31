@@ -88,7 +88,7 @@ impl<'tcx> LateLintPass<'tcx> for SignificantDropTightening<'tcx> {
                 "temporary with significant `Drop` can be early dropped",
                 |diag| {
                     match apa.counter {
-                        0 | 1 => {},
+                        0 | 1 => unreachable!("checked above"),
                         2 => {
                             let indent = " ".repeat(indent_of(cx, apa.last_stmt_span).unwrap_or(0));
                             let init_method = snippet(cx, apa.first_method_span, "..");
@@ -276,13 +276,7 @@ impl<'tcx> Visitor<'tcx> for StmtsChecker<'_, '_, '_, '_, 'tcx> {
             if let hir::StmtKind::Let(local) = self.ap.curr_stmt.kind
                 && let hir::PatKind::Binding(_, hir_id, ident, _) = local.pat.kind
                 && !self.ap.apas.contains_key(&hir_id)
-                && {
-                    if let Some(local_hir_id) = expr.res_local_id() {
-                        local_hir_id == hir_id
-                    } else {
-                        true
-                    }
-                }
+                && expr.res_local_id().is_none_or(|local_hir_id| local_hir_id == hir_id)
             {
                 let mut apa = AuxParamsAttr {
                     first_block_hir_id: self.ap.curr_block_hir_id,
@@ -418,7 +412,8 @@ fn dummy_stmt_expr<'any>(expr: &'any hir::Expr<'any>) -> hir::Stmt<'any> {
 }
 
 fn has_drop(cx: &LateContext<'_>, expr: &hir::Expr<'_>, first_bind_ident: Option<Ident>) -> bool {
-    if let hir::ExprKind::Call(fun, [first_arg]) = expr.kind
+    if let Some(first_bind_ident) = first_bind_ident
+        && let hir::ExprKind::Call(fun, [first_arg]) = expr.kind
         && let hir::ExprKind::Path(hir::QPath::Resolved(_, fun_path)) = &fun.kind
         && let Res::Def(DefKind::Fn, did) = fun_path.res
         && cx.tcx.is_diagnostic_item(sym::mem_drop, did)
@@ -426,7 +421,6 @@ fn has_drop(cx: &LateContext<'_>, expr: &hir::Expr<'_>, first_bind_ident: Option
         let has_ident = |local_expr: &hir::Expr<'_>| {
             if let hir::ExprKind::Path(hir::QPath::Resolved(_, arg_path)) = &local_expr.kind
                 && let [first_arg_ps, ..] = arg_path.segments
-                && let Some(first_bind_ident) = first_bind_ident
                 && first_arg_ps.ident == first_bind_ident
             {
                 true
@@ -448,7 +442,5 @@ fn has_drop(cx: &LateContext<'_>, expr: &hir::Expr<'_>, first_bind_ident: Option
 
 fn is_inexpensive_expr(expr: &hir::Expr<'_>) -> bool {
     let actual = peel_hir_expr_unary(expr).0;
-    let is_path = matches!(actual.kind, hir::ExprKind::Path(_));
-    let is_lit = matches!(actual.kind, hir::ExprKind::Lit(_));
-    is_path || is_lit
+    matches!(actual.kind, hir::ExprKind::Path(_) | hir::ExprKind::Lit(_))
 }
