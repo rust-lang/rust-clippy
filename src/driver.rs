@@ -8,6 +8,7 @@
 
 // FIXME: switch to something more ergonomic here, once available.
 // (Currently there is no way to opt into sysroot crates without `extern crate`.)
+extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_interface;
 extern crate rustc_session;
@@ -18,15 +19,18 @@ extern crate rustc_span;
 #[cfg(feature = "jemalloc")]
 extern crate tikv_jemalloc_sys as jemalloc_sys;
 
+use clippy_config::Conf;
 use clippy_utils::sym;
 use declare_clippy_lint::LintListBuilder;
+use rustc_data_structures::fx::FxHashSet;
 use rustc_interface::interface;
-use rustc_session::EarlyDiagCtxt;
 use rustc_session::config::ErrorOutputType;
 use rustc_session::parse::ParseSess;
+use rustc_session::{EarlyDiagCtxt, Session};
 use rustc_span::symbol::Symbol;
 
 use std::env;
+use std::fmt::Write;
 use std::fs::read_to_string;
 use std::path::Path;
 use std::process::exit;
@@ -130,6 +134,7 @@ impl rustc_driver::Callbacks for RustcCallbacks {
 
 struct ClippyCallbacks {
     clippy_args_var: Option<String>,
+    testing: bool,
 }
 
 impl rustc_driver::Callbacks for ClippyCallbacks {
@@ -139,6 +144,7 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
         let conf_path = clippy_config::lookup_conf_file();
         let previous = config.register_lints.take();
         let clippy_args_var = self.clippy_args_var.take();
+        let testing = self.testing;
         config.psess_created = Some(Box::new(move |psess| {
             track_clippy_args(psess, clippy_args_var.as_deref());
             track_files(psess);
@@ -157,11 +163,14 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
                 (previous)(sess, lint_store);
             }
 
+            let conf = clippy_config::Conf::read(sess, &conf_path);
+            let disabled = build_disabled_set(sess, conf, testing);
+            clippy_utils::diagnostics::set_disabled(disabled);
+
             let mut list_builder = LintListBuilder::default();
             list_builder.insert(clippy_lints::declared_lints::LINTS);
             list_builder.register(lint_store);
 
-            let conf = clippy_config::Conf::read(sess, &conf_path);
             clippy_lints::register_lint_passes(lint_store, conf);
 
             #[cfg(feature = "internal")]
@@ -180,6 +189,33 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
         // Disable flattening and inlining of format_args!(), so the HIR matches with the AST.
         config.opts.unstable_opts.flatten_format_args = false;
     }
+}
+
+fn build_disabled_set(sess: &Session, conf: &'static Conf, testing: bool) -> FxHashSet<&'static str> {
+    if !testing {
+        return FxHashSet::default();
+    }
+    let disabled = conf
+        .disabled_in_tests
+        .iter()
+        .map(String::as_str)
+        .collect::<FxHashSet<_>>();
+    let declared_lint_names = clippy_lints::declared_lints::LINTS
+        .iter()
+        .map(|lint| lint.name_lower())
+        .collect::<FxHashSet<_>>();
+    #[allow(rustc::potential_query_instability)]
+    for &name in &disabled {
+        if !declared_lint_names.contains(name) {
+            let mut msg = format!("unknown lint `{name}`");
+            let replaced = name.replace('-', "_");
+            if declared_lint_names.contains(&replaced) {
+                writeln!(msg, ". Did you mean `{replaced}`?").unwrap();
+            }
+            sess.dcx().warn(msg);
+        }
+    }
+    disabled
 }
 
 #[allow(clippy::ignored_unit_patterns)]
@@ -336,7 +372,13 @@ pub fn main() {
         let clippy_enabled = !cap_lints_allow && relevant_package && !info_query;
         if clippy_enabled {
             args.extend(clippy_args);
-            rustc_driver::run_compiler(&args, &mut ClippyCallbacks { clippy_args_var });
+            rustc_driver::run_compiler(
+                &args,
+                &mut ClippyCallbacks {
+                    clippy_args_var,
+                    testing: orig_args.iter().any(|arg| arg == "--test"),
+                },
+            );
         } else {
             rustc_driver::run_compiler(&args, &mut RustcCallbacks { clippy_args_var });
         }
