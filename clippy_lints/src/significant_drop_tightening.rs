@@ -87,39 +87,47 @@ impl<'tcx> LateLintPass<'tcx> for SignificantDropTightening<'tcx> {
                 first_bind_ident.span,
                 "temporary with significant `Drop` can be early dropped",
                 |diag| {
-                    match apa.counter {
-                        0 | 1 => unreachable!("checked above"),
-                        2 => {
-                            let indent = " ".repeat(indent_of(cx, apa.last_stmt_span).unwrap_or(0));
-                            let init_method = snippet(cx, apa.first_method_span, "..");
-                            let usage_method = snippet(cx, apa.last_method_span, "..");
-                            let stmt = if let Some(last_bind_ident) = apa.last_bind_ident {
-                                format!(
-                                    "\n{indent}let {} = {init_method}.{usage_method};",
-                                    snippet(cx, last_bind_ident.span, ".."),
-                                )
-                            } else {
-                                format!("\n{indent}{init_method}.{usage_method};")
-                            };
-
-                            diag.multipart_suggestion_verbose(
-                                "merge the temporary construction with its single usage",
-                                vec![(apa.first_stmt_span, stmt), (apa.last_stmt_span, String::new())],
-                                Applicability::MaybeIncorrect,
-                            );
-                        },
-                        _ => {
-                            diag.span_suggestion(
-                                apa.last_stmt_span.shrink_to_hi(),
-                                "drop the temporary after the end of its last usage",
-                                format!(
-                                    "\n{}drop({});",
-                                    " ".repeat(indent_of(cx, apa.last_stmt_span).unwrap_or(0)),
-                                    first_bind_ident
-                                ),
-                                Applicability::MaybeIncorrect,
-                            );
-                        },
+                    if !apa.last_stmt_span.is_dummy() {
+                        match apa.counter {
+                            0 | 1 => unreachable!("checked above"),
+                            2 =>
+                            {
+                                #[expect(clippy::if_not_else, reason = "for symmetry with the outer check")]
+                                if !apa.last_method_span.is_dummy() {
+                                    let indent = " ".repeat(indent_of(cx, apa.last_stmt_span).unwrap_or(0));
+                                    let init_method = snippet(cx, apa.first_method_span, "..");
+                                    let usage_method = snippet(cx, apa.last_method_span, "..");
+                                    let stmt = if let Some(last_bind_ident) = apa.last_bind_ident {
+                                        format!(
+                                            "\n{indent}let {} = {init_method}.{usage_method};",
+                                            snippet(cx, last_bind_ident.span, ".."),
+                                        )
+                                    } else {
+                                        format!("\n{indent}{init_method}.{usage_method};")
+                                    };
+                                    diag.multipart_suggestion_verbose(
+                                        "merge the temporary construction with its single usage",
+                                        vec![(apa.first_stmt_span, stmt), (apa.last_stmt_span, String::new())],
+                                        Applicability::MaybeIncorrect,
+                                    );
+                                } else {
+                                    diag.help("merge the temporary construction with its single usage");
+                                    diag.span_note(apa.last_stmt_span, "single usage here");
+                                }
+                            },
+                            _ => {
+                                diag.span_suggestion(
+                                    apa.last_stmt_span.shrink_to_hi(),
+                                    "drop the temporary after the end of its last usage",
+                                    format!(
+                                        "\n{}drop({});",
+                                        " ".repeat(indent_of(cx, apa.last_stmt_span).unwrap_or(0)),
+                                        first_bind_ident
+                                    ),
+                                    Applicability::MaybeIncorrect,
+                                );
+                            },
+                        }
                     }
                     diag.note("this might lead to unnecessary resource contention");
                     diag.span_label(
