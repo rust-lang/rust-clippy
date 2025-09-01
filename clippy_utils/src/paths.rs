@@ -1,21 +1,170 @@
-//! This module contains paths to types and functions Clippy needs to know
-//! about.
-//!
-//! Whenever possible, please consider diagnostic items over hardcoded paths.
-//! See <https://github.com/rust-lang/rust-clippy/issues/5393> for more information.
+//! Utilities for resolving paths to their definitions.
 
-use crate::{MaybePath, path_def_id, sym};
+use crate::sym;
 use rustc_ast::Mutability;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_hir::def::Namespace::{MacroNS, TypeNS, ValueNS};
 use rustc_hir::def::{DefKind, Namespace, Res};
 use rustc_hir::def_id::{DefId, LOCAL_CRATE, LocalDefId};
-use rustc_hir::{ItemKind, Node, UseKind};
+use rustc_hir::{
+    self as hir, Expr, ExprKind, HirId, ItemKind, LangItem, Node, Pat, PatExpr, PatExprKind, PatKind, QPath, TyKind,
+    UseKind,
+};
 use rustc_lint::LateContext;
 use rustc_middle::ty::fast_reject::SimplifiedType;
-use rustc_middle::ty::{FloatTy, IntTy, Ty, TyCtxt, UintTy};
+use rustc_middle::ty::layout::HasTyCtxt;
+use rustc_middle::ty::{FloatTy, IntTy, Ty, TyCtxt, TypeckResults, UintTy};
 use rustc_span::{Ident, STDLIB_STABLE_CRATES, Symbol};
 use std::sync::OnceLock;
+
+/// A HIR node which might be a `QPath`.
+pub trait MaybeQPath {
+    /// If this node is a path gets both the contained path and the `HirId` to
+    /// use for type dependant lookup.
+    fn opt_qpath(&self) -> Option<(&QPath<'_>, HirId)>;
+}
+
+impl MaybeQPath for (&'_ QPath<'_>, HirId) {
+    #[inline]
+    fn opt_qpath(&self) -> Option<(&QPath<'_>, HirId)> {
+        Some((self.0, self.1))
+    }
+}
+impl MaybeQPath for Expr<'_> {
+    #[inline]
+    fn opt_qpath(&self) -> Option<(&QPath<'_>, HirId)> {
+        match &self.kind {
+            ExprKind::Path(qpath) => Some((qpath, self.hir_id)),
+            _ => None,
+        }
+    }
+}
+impl MaybeQPath for PatExpr<'_> {
+    #[inline]
+    fn opt_qpath(&self) -> Option<(&QPath<'_>, HirId)> {
+        match &self.kind {
+            PatExprKind::Path(qpath) => Some((qpath, self.hir_id)),
+            _ => None,
+        }
+    }
+}
+impl<AmbigArg> MaybeQPath for hir::Ty<'_, AmbigArg> {
+    #[inline]
+    fn opt_qpath(&self) -> Option<(&QPath<'_>, HirId)> {
+        match &self.kind {
+            TyKind::Path(qpath) => Some((qpath, self.hir_id)),
+            _ => None,
+        }
+    }
+}
+impl MaybeQPath for Pat<'_> {
+    #[inline]
+    fn opt_qpath(&self) -> Option<(&QPath<'_>, HirId)> {
+        match self.kind {
+            PatKind::Expr(e) => e.opt_qpath(),
+            _ => None,
+        }
+    }
+}
+
+/// A type which contains the results of type dependant name resolution.
+///
+/// All the functions on this trait will lookup the path's resolution. This lookup
+/// is not free and should be done at most once per item. e.g.
+///
+/// ```ignore
+/// // Don't do this
+/// let is_option_ctor = item.is_path_lang_item(tcx, LangItem::OptionSome)
+///     || item.is_path_lang_item(tcx, LangItem::OptionNone);
+///
+/// // Prefer this
+/// let is_option_ctor = item.path_def_id().is_some_and(|did| {
+///     tcx.lang_items().option_none_variant() == Some(did)
+///         || tcx.lang_items().option_some_variant() == Some(did)
+/// });
+/// ```
+pub trait PathRes<'tcx> {
+    /// Gets the resolution of this item if it's a path. Returns `Res::Err` otherwise.
+    fn path_res(&self, path: &impl MaybeQPath) -> Res;
+
+    /// Gets the `DefId` of the item this path resolves to.
+    #[inline]
+    fn path_def_id(&self, path: &impl MaybeQPath) -> Option<DefId> {
+        self.path_res(path).opt_def_id()
+    }
+
+    /// Checks if the path resolves to the specified item.
+    #[inline]
+    fn is_path_item(&self, path: &impl MaybeQPath, did: DefId) -> bool {
+        self.path_def_id(path) == Some(did)
+    }
+
+    /// Gets the diagnostic name of the item this path resolves to.
+    fn path_diag_name(&self, path: &impl MaybeQPath) -> Option<Symbol>
+    where
+        Self: HasTyCtxt<'tcx>,
+    {
+        self.path_def_id(path)
+            .and_then(|did| self.tcx().get_diagnostic_name(did))
+    }
+
+    /// Checks if the path resolves to the specified diagnostic item.
+    fn is_path_diag_item(&self, path: &impl MaybeQPath, name: Symbol) -> bool
+    where
+        Self: HasTyCtxt<'tcx>,
+    {
+        self.path_def_id(path)
+            .is_some_and(|did| self.tcx().is_diagnostic_item(name, did))
+    }
+
+    /// Checks if the path resolves to the specified `LangItem`.
+    fn is_path_lang_item(&self, path: &impl MaybeQPath, item: LangItem) -> bool
+    where
+        Self: HasTyCtxt<'tcx>,
+    {
+        self.path_def_id(path)
+            .is_some_and(|did| self.tcx().lang_items().get(item) == Some(did))
+    }
+
+    /// If the path resolves to a constructor, gets the `DefId` of the corresponding  variant.
+    fn path_ctor_variant_id(&self, path: &impl MaybeQPath) -> Option<DefId>
+    where
+        Self: HasTyCtxt<'tcx>,
+    {
+        if let Res::Def(DefKind::Ctor(..), id) = self.path_res(path) {
+            self.tcx().opt_parent(id)
+        } else {
+            None
+        }
+    }
+
+    /// Checks if the path resolves to the constructor of the specified `LangItem`.
+    fn is_path_lang_ctor(&self, path: &impl MaybeQPath, item: LangItem) -> bool
+    where
+        Self: HasTyCtxt<'tcx>,
+    {
+        self.path_ctor_variant_id(path)
+            .is_some_and(|did| self.tcx().lang_items().get(item) == Some(did))
+    }
+}
+impl<'tcx> PathRes<'tcx> for LateContext<'tcx> {
+    #[inline]
+    fn path_res(&self, path: &impl MaybeQPath) -> Res {
+        match path.opt_qpath() {
+            Some((qpath, id)) => self.qpath_res(qpath, id),
+            None => Res::Err,
+        }
+    }
+}
+impl PathRes<'_> for TypeckResults<'_> {
+    #[inline]
+    fn path_res(&self, path: &impl MaybeQPath) -> Res {
+        match path.opt_qpath() {
+            Some((qpath, id)) => self.qpath_res(qpath, id),
+            None => Res::Err,
+        }
+    }
+}
 
 /// Specifies whether to resolve a path in the [`TypeNS`], [`ValueNS`], [`MacroNS`] or in an
 /// arbitrary namespace
@@ -95,8 +244,9 @@ impl PathLookup {
     }
 
     /// Resolves `maybe_path` to a [`DefId`] and checks if the [`PathLookup`] matches it
-    pub fn matches_path<'tcx>(&self, cx: &LateContext<'_>, maybe_path: &impl MaybePath<'tcx>) -> bool {
-        path_def_id(cx, maybe_path).is_some_and(|def_id| self.matches(cx, def_id))
+    pub fn matches_path(&self, cx: &LateContext<'_>, maybe_path: &impl MaybeQPath) -> bool {
+        cx.path_def_id(maybe_path)
+            .is_some_and(|def_id| self.matches(cx, def_id))
     }
 
     /// Checks if the path resolves to `ty`'s definition, must be an `Adt`
