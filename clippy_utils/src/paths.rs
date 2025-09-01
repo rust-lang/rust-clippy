@@ -4,7 +4,8 @@
 //! Whenever possible, please consider diagnostic items over hardcoded paths.
 //! See <https://github.com/rust-lang/rust-clippy/issues/5393> for more information.
 
-use crate::{MaybePath, path_def_id, sym};
+use crate::res::{MaybeQPath, PathRes};
+use crate::sym;
 use rustc_ast::Mutability;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_hir::def::Namespace::{MacroNS, TypeNS, ValueNS};
@@ -95,8 +96,9 @@ impl PathLookup {
     }
 
     /// Resolves `maybe_path` to a [`DefId`] and checks if the [`PathLookup`] matches it
-    pub fn matches_path<'tcx>(&self, cx: &LateContext<'_>, maybe_path: &impl MaybePath<'tcx>) -> bool {
-        path_def_id(cx, maybe_path).is_some_and(|def_id| self.matches(cx, def_id))
+    pub fn matches_path<'a>(&self, cx: &LateContext<'_>, maybe_path: impl MaybeQPath<'a>) -> bool {
+        cx.path_def_id(maybe_path)
+            .is_some_and(|def_id| self.matches(cx, def_id))
     }
 
     /// Checks if the path resolves to `ty`'s definition, must be an `Adt`

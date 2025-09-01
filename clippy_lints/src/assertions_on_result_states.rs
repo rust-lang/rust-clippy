@@ -3,9 +3,8 @@ use clippy_utils::macros::{PanicExpn, find_assert_args, root_macro_call_first_no
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::ty::{has_debug_impl, is_copy, is_type_diagnostic_item};
 use clippy_utils::usage::local_used_after_expr;
-use clippy_utils::{path_res, sym};
+use clippy_utils::{path_to_local, sym};
 use rustc_errors::Applicability;
-use rustc_hir::def::Res;
 use rustc_hir::{Expr, ExprKind, Node};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
@@ -61,7 +60,7 @@ impl<'tcx> LateLintPass<'tcx> for AssertionsOnResultStates {
             if !is_copy(cx, result_type) {
                 if result_type_with_refs != result_type {
                     return;
-                } else if let Res::Local(binding_id) = path_res(cx, recv)
+                } else if let Some(binding_id) = path_to_local(recv)
                     && local_used_after_expr(cx, binding_id, recv)
                 {
                     return;

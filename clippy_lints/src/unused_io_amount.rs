@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::macros::{is_panic, root_macro_call_first_node};
-use clippy_utils::{is_res_lang_ctor, paths, peel_blocks, sym};
+use clippy_utils::res::PathRes;
+use clippy_utils::{paths, peel_blocks, sym};
 use hir::{ExprKind, HirId, PatKind};
 use rustc_hir as hir;
 use rustc_lint::{LateContext, LateLintPass};
@@ -135,8 +136,8 @@ fn non_consuming_err_arm<'a>(cx: &LateContext<'a>, arm: &hir::Arm<'a>) -> bool {
         return false;
     }
 
-    if let PatKind::TupleStruct(ref path, [inner_pat], _) = arm.pat.kind {
-        return is_res_lang_ctor(cx, cx.qpath_res(path, inner_pat.hir_id), hir::LangItem::ResultErr);
+    if let PatKind::TupleStruct(ref path, [_], _) = arm.pat.kind {
+        return cx.is_path_lang_ctor((path, arm.pat.hir_id), hir::LangItem::ResultErr);
     }
 
     false
@@ -203,7 +204,7 @@ fn is_ok_wild_or_dotdot_pattern<'a>(cx: &LateContext<'a>, pat: &hir::Pat<'a>) ->
 
     if let PatKind::TupleStruct(ref path, inner_pat, _) = pat.kind
         // we check against Result::Ok to avoid linting on Err(_) or something else.
-        && is_res_lang_ctor(cx, cx.qpath_res(path, pat.hir_id), hir::LangItem::ResultOk)
+        && cx.is_path_lang_ctor((path, pat.hir_id), hir::LangItem::ResultOk)
     {
         if matches!(inner_pat, []) {
             return true;

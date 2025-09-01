@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::res::PathRes;
 use clippy_utils::source::snippet;
 use clippy_utils::ty::is_type_diagnostic_item;
-use clippy_utils::{is_res_lang_ctor, path_def_id, path_res};
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_hir::LangItem::{OptionNone, OptionSome};
@@ -49,12 +49,10 @@ pub(super) fn check<'tcx>(
         return;
     }
 
-    if !is_res_lang_ctor(cx, path_res(cx, def_arg), OptionNone) {
+    if !cx.is_path_lang_ctor(def_arg, OptionNone) {
         // nothing to lint!
         return;
     }
-
-    let f_arg_is_some = is_res_lang_ctor(cx, path_res(cx, map_arg), OptionSome);
 
     if is_option {
         let self_snippet = snippet(cx, recv.span, "..");
@@ -62,8 +60,7 @@ pub(super) fn check<'tcx>(
             && let arg_snippet = snippet(cx, fn_decl_span, "..")
             && let body = cx.tcx.hir_body(body)
             && let Some((func, [arg_char])) = reduce_unit_expression(body.value)
-            && let Some(id) = path_def_id(cx, func).map(|ctor_id| cx.tcx.parent(ctor_id))
-            && Some(id) == cx.tcx.lang_items().option_some_variant()
+            && cx.is_path_lang_ctor(func, OptionSome)
         {
             let func_snippet = snippet(cx, arg_char.span, "..");
             let msg = "called `map_or(None, ..)` on an `Option` value";
@@ -89,7 +86,7 @@ pub(super) fn check<'tcx>(
             format!("{self_snippet}.and_then({func_snippet})"),
             Applicability::MachineApplicable,
         );
-    } else if f_arg_is_some {
+    } else if cx.is_path_lang_ctor(map_arg, OptionSome) {
         let msg = "called `map_or(None, Some)` on a `Result` value";
         let self_snippet = snippet(cx, recv.span, "..");
         span_lint_and_sugg(

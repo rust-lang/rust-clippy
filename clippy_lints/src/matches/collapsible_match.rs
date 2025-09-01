@@ -1,16 +1,16 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::higher::IfLetOrMatch;
 use clippy_utils::msrvs::Msrv;
+use clippy_utils::res::PathRes;
 use clippy_utils::source::snippet;
 use clippy_utils::visitors::is_local_used;
 use clippy_utils::{
-    SpanlessEq, get_ref_operators, is_res_lang_ctor, is_unit_expr, path_to_local, peel_blocks_with_stmt,
-    peel_ref_operators,
+    SpanlessEq, get_ref_operators, is_unit_expr, path_to_local, peel_blocks_with_stmt, peel_ref_operators,
 };
 use rustc_ast::BorrowKind;
 use rustc_errors::MultiSpan;
 use rustc_hir::LangItem::OptionNone;
-use rustc_hir::{Arm, Expr, ExprKind, HirId, Pat, PatExpr, PatExprKind, PatKind};
+use rustc_hir::{Arm, Expr, ExprKind, HirId, Pat, PatKind};
 use rustc_lint::LateContext;
 use rustc_span::Span;
 
@@ -131,11 +131,7 @@ fn arm_is_wild_like(cx: &LateContext<'_>, arm: &Arm<'_>) -> bool {
     }
     match arm.pat.kind {
         PatKind::Binding(..) | PatKind::Wild => true,
-        PatKind::Expr(PatExpr {
-            kind: PatExprKind::Path(qpath),
-            hir_id,
-            ..
-        }) => is_res_lang_ctor(cx, cx.qpath_res(qpath, *hir_id), OptionNone),
+        PatKind::Expr(e) => cx.is_path_lang_ctor(e, OptionNone),
         _ => false,
     }
 }

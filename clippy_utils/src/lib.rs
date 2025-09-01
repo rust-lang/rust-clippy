@@ -65,6 +65,7 @@ pub mod numeric_literal;
 pub mod paths;
 pub mod ptr;
 pub mod qualify_min_const_fn;
+pub mod res;
 pub mod source;
 pub mod str_utils;
 pub mod sugg;
@@ -129,6 +130,7 @@ use visitors::{Visitable, for_each_unconsumed_temporary};
 use crate::ast_utils::unordered_over;
 use crate::consts::{ConstEvalCtxt, Constant, mir_to_const};
 use crate::higher::Range;
+use crate::res::PathRes;
 use crate::ty::{adt_and_variant_of_res, can_partially_move_ty, expr_sig, is_copy, is_recursively_primitive_type};
 use crate::visitors::for_each_expr_without_closures;
 
@@ -250,10 +252,10 @@ pub fn is_inside_always_const_context(tcx: TyCtxt<'_>, hir_id: HirId) -> bool {
 
 /// Checks if a `Res` refers to a constructor of a `LangItem`
 /// For example, use this to check whether a function call or a pattern is `Some(..)`.
-pub fn is_res_lang_ctor(cx: &LateContext<'_>, res: Res, lang_item: LangItem) -> bool {
+pub fn is_res_lang_ctor(tcx: TyCtxt<'_>, res: Res, lang_item: LangItem) -> bool {
     if let Res::Def(DefKind::Ctor(..), id) = res
-        && let Some(lang_id) = cx.tcx.lang_items().get(lang_item)
-        && let Some(id) = cx.tcx.opt_parent(id)
+        && let Some(lang_id) = tcx.lang_items().get(lang_item)
+        && let Some(id) = tcx.opt_parent(id)
     {
         id == lang_id
     } else {
@@ -331,11 +333,7 @@ pub fn is_wild(pat: &Pat<'_>) -> bool {
 
 // Checks if arm has the form `None => None`
 pub fn is_none_arm(cx: &LateContext<'_>, arm: &Arm<'_>) -> bool {
-    matches!(
-        arm.pat.kind,
-        PatKind::Expr(PatExpr { kind: PatExprKind::Path(qpath), .. })
-            if is_res_lang_ctor(cx, cx.qpath_res(qpath, arm.pat.hir_id), OptionNone)
-    )
+    cx.is_path_lang_ctor(arm.pat, OptionNone)
 }
 
 /// Checks if the given `QPath` belongs to a type alias.
@@ -430,22 +428,6 @@ pub fn qpath_generic_tys<'tcx>(qpath: &QPath<'tcx>) -> impl Iterator<Item = &'tc
         })
 }
 
-/// If `maybe_path` is a path node which resolves to an item, resolves it to a `DefId` and checks if
-/// it matches the given lang item.
-pub fn is_path_lang_item<'tcx>(cx: &LateContext<'_>, maybe_path: &impl MaybePath<'tcx>, lang_item: LangItem) -> bool {
-    path_def_id(cx, maybe_path).is_some_and(|id| cx.tcx.lang_items().get(lang_item) == Some(id))
-}
-
-/// If `maybe_path` is a path node which resolves to an item, resolves it to a `DefId` and checks if
-/// it matches the given diagnostic item.
-pub fn is_path_diagnostic_item<'tcx>(
-    cx: &LateContext<'_>,
-    maybe_path: &impl MaybePath<'tcx>,
-    diag_item: Symbol,
-) -> bool {
-    path_def_id(cx, maybe_path).is_some_and(|id| cx.tcx.is_diagnostic_item(diag_item, id))
-}
-
 /// If the expression is a path to a local, returns the canonical `HirId` of the local.
 pub fn path_to_local(expr: &Expr<'_>) -> Option<HirId> {
     if let ExprKind::Path(QPath::Resolved(None, path)) = expr.kind
@@ -477,56 +459,6 @@ pub fn path_to_local_with_projections(expr: &Expr<'_>) -> Option<HirId> {
         )) => Some(*local),
         _ => None,
     }
-}
-
-pub trait MaybePath<'hir> {
-    fn hir_id(&self) -> HirId;
-    fn qpath_opt(&self) -> Option<&QPath<'hir>>;
-}
-
-macro_rules! maybe_path {
-    ($ty:ident, $kind:ident) => {
-        impl<'hir> MaybePath<'hir> for hir::$ty<'hir> {
-            fn hir_id(&self) -> HirId {
-                self.hir_id
-            }
-            fn qpath_opt(&self) -> Option<&QPath<'hir>> {
-                match &self.kind {
-                    hir::$kind::Path(qpath) => Some(qpath),
-                    _ => None,
-                }
-            }
-        }
-    };
-}
-maybe_path!(Expr, ExprKind);
-impl<'hir> MaybePath<'hir> for Pat<'hir> {
-    fn hir_id(&self) -> HirId {
-        self.hir_id
-    }
-    fn qpath_opt(&self) -> Option<&QPath<'hir>> {
-        match &self.kind {
-            PatKind::Expr(PatExpr {
-                kind: PatExprKind::Path(qpath),
-                ..
-            }) => Some(qpath),
-            _ => None,
-        }
-    }
-}
-maybe_path!(Ty, TyKind);
-
-/// If `maybe_path` is a path node, resolves it, otherwise returns `Res::Err`
-pub fn path_res<'tcx>(cx: &LateContext<'_>, maybe_path: &impl MaybePath<'tcx>) -> Res {
-    match maybe_path.qpath_opt() {
-        None => Res::Err,
-        Some(qpath) => cx.qpath_res(qpath, maybe_path.hir_id()),
-    }
-}
-
-/// If `maybe_path` is a path node which resolves to an item, retrieves the item ID
-pub fn path_def_id<'tcx>(cx: &LateContext<'_>, maybe_path: &impl MaybePath<'tcx>) -> Option<DefId> {
-    path_res(cx, maybe_path).opt_def_id()
 }
 
 /// Gets the `hir::TraitRef` of the trait the given method is implemented for.
@@ -766,7 +698,7 @@ pub fn is_default_equivalent(cx: &LateContext<'_>, e: &Expr<'_>) -> bool {
         },
         ExprKind::Call(repl_func, []) => is_default_equivalent_call(cx, repl_func, Some(e)),
         ExprKind::Call(from_func, [arg]) => is_default_equivalent_from(cx, from_func, arg),
-        ExprKind::Path(qpath) => is_res_lang_ctor(cx, cx.qpath_res(qpath, e.hir_id), OptionNone),
+        ExprKind::Path(qpath) => cx.is_path_lang_ctor((qpath, e.hir_id), OptionNone),
         ExprKind::AddrOf(rustc_hir::BorrowKind::Ref, _, expr) => matches!(expr.kind, ExprKind::Array([])),
         ExprKind::Block(Block { stmts: [], expr, .. }, _) => expr.is_some_and(|e| is_default_equivalent(cx, e)),
         _ => false,
@@ -776,19 +708,21 @@ pub fn is_default_equivalent(cx: &LateContext<'_>, e: &Expr<'_>) -> bool {
 fn is_default_equivalent_from(cx: &LateContext<'_>, from_func: &Expr<'_>, arg: &Expr<'_>) -> bool {
     if let ExprKind::Path(QPath::TypeRelative(ty, seg)) = from_func.kind
         && seg.ident.name == sym::from
+        && let TyKind::Path(QPath::Resolved(_, ty_path)) = ty.kind
+        && let Res::Def(DefKind::Struct, ty_did) = ty_path.res
     {
         match arg.kind {
             ExprKind::Lit(hir::Lit {
                 node: LitKind::Str(sym, _),
                 ..
-            }) => return sym.is_empty() && is_path_lang_item(cx, ty, LangItem::String),
-            ExprKind::Array([]) => return is_path_diagnostic_item(cx, ty, sym::Vec),
+            }) => return sym.is_empty() && cx.tcx.lang_items().string() == Some(ty_did),
+            ExprKind::Array([]) => return cx.tcx.is_diagnostic_item(sym::Vec, ty_did),
             ExprKind::Repeat(_, len) => {
                 if let ConstArgKind::Anon(anon_const) = len.kind
                     && let ExprKind::Lit(const_lit) = cx.tcx.hir_body(anon_const.body).value.kind
                     && let LitKind::Int(v, _) = const_lit.node
                 {
-                    return v == 0 && is_path_diagnostic_item(cx, ty, sym::Vec);
+                    return v == 0 && cx.tcx.is_diagnostic_item(sym::Vec, ty_did);
                 }
             },
             _ => (),
@@ -1671,7 +1605,7 @@ pub fn is_try<'tcx>(cx: &LateContext<'_>, expr: &'tcx Expr<'tcx>) -> Option<&'tc
     fn is_ok(cx: &LateContext<'_>, arm: &Arm<'_>) -> bool {
         if let PatKind::TupleStruct(ref path, pat, ddpos) = arm.pat.kind
             && ddpos.as_opt_usize().is_none()
-            && is_res_lang_ctor(cx, cx.qpath_res(path, arm.pat.hir_id), ResultOk)
+            && cx.is_path_lang_ctor((path, arm.pat.hir_id), ResultOk)
             && let PatKind::Binding(_, hir_id, _, None) = pat[0].kind
             && path_to_local_id(arm.body, hir_id)
         {
@@ -1682,7 +1616,7 @@ pub fn is_try<'tcx>(cx: &LateContext<'_>, expr: &'tcx Expr<'tcx>) -> Option<&'tc
 
     fn is_err(cx: &LateContext<'_>, arm: &Arm<'_>) -> bool {
         if let PatKind::TupleStruct(ref path, _, _) = arm.pat.kind {
-            is_res_lang_ctor(cx, cx.qpath_res(path, arm.pat.hir_id), ResultErr)
+            cx.is_path_lang_ctor((path, arm.pat.hir_id), ResultErr)
         } else {
             false
         }
@@ -2058,7 +1992,8 @@ pub fn is_expr_untyped_identity_function(cx: &LateContext<'_>, expr: &Expr<'_>) 
 pub fn is_expr_identity_function(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
     match expr.kind {
         ExprKind::Closure(&Closure { body, .. }) => is_body_identity_function(cx, cx.tcx.hir_body(body)),
-        _ => path_def_id(cx, expr).is_some_and(|id| cx.tcx.is_diagnostic_item(sym::convert_identity, id)),
+        ExprKind::Path(ref qpath) => cx.is_path_diag_item((qpath, expr.hir_id), sym::convert_identity),
+        _ => false,
     }
 }
 
@@ -2934,13 +2869,12 @@ pub fn pat_and_expr_can_be_question_mark<'a, 'hir>(
     pat: &'a Pat<'hir>,
     else_body: &Expr<'_>,
 ) -> Option<&'a Pat<'hir>> {
-    if let PatKind::TupleStruct(pat_path, [inner_pat], _) = pat.kind
-        && is_res_lang_ctor(cx, cx.qpath_res(&pat_path, pat.hir_id), OptionSome)
+    if let PatKind::TupleStruct(ref pat_path, [inner_pat], _) = pat.kind
+        && cx.is_path_lang_ctor((pat_path, pat.hir_id), OptionSome)
         && !is_refutable(cx, inner_pat)
         && let else_body = peel_blocks(else_body)
         && let ExprKind::Ret(Some(ret_val)) = else_body.kind
-        && let ExprKind::Path(ret_path) = ret_val.kind
-        && is_res_lang_ctor(cx, cx.qpath_res(&ret_path, ret_val.hir_id), OptionNone)
+        && cx.is_path_lang_ctor(ret_val, OptionNone)
     {
         Some(inner_pat)
     } else {

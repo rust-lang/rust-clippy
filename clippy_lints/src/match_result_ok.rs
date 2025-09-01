@@ -1,7 +1,8 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::res::PathRes;
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::ty::is_type_diagnostic_item;
-use clippy_utils::{higher, is_res_lang_ctor, sym};
+use clippy_utils::{higher, sym};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, LangItem, PatKind};
 use rustc_lint::{LateContext, LateLintPass};
@@ -58,7 +59,7 @@ impl<'tcx> LateLintPass<'tcx> for MatchResultOk {
             && let PatKind::TupleStruct(ref pat_path, [ok_pat], _)  = let_pat.kind //get operation
             && ok_path.ident.name == sym::ok
             && is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(recv), sym::Result)
-            && is_res_lang_ctor(cx, cx.qpath_res(pat_path, let_pat.hir_id), LangItem::OptionSome)
+            && cx.is_path_lang_ctor((pat_path, let_pat.hir_id), LangItem::OptionSome)
             && let ctxt = expr.span.ctxt()
             && let_expr.span.ctxt() == ctxt
             && let_pat.span.ctxt() == ctxt

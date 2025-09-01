@@ -1,10 +1,10 @@
 use super::NEEDLESS_MATCH;
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::res::PathRes;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::ty::{is_type_diagnostic_item, same_type_and_consts};
 use clippy_utils::{
-    SpanlessEq, eq_expr_value, get_parent_expr_for_hir, higher, is_else_clause, is_res_lang_ctor, over, path_res,
-    peel_blocks_with_stmt,
+    SpanlessEq, eq_expr_value, get_parent_expr_for_hir, higher, is_else_clause, over, peel_blocks_with_stmt,
 };
 use rustc_errors::Applicability;
 use rustc_hir::LangItem::OptionNone;
@@ -105,8 +105,7 @@ fn check_if_let_inner(cx: &LateContext<'_>, if_let: &higher::IfLet<'_>) -> bool 
             }
             let let_expr_ty = cx.typeck_results().expr_ty(if_let.let_expr);
             if is_type_diagnostic_item(cx, let_expr_ty, sym::Option) {
-                return is_res_lang_ctor(cx, path_res(cx, else_expr), OptionNone)
-                    || eq_expr_value(cx, if_let.let_expr, else_expr);
+                return cx.is_path_lang_ctor(else_expr, OptionNone) || eq_expr_value(cx, if_let.let_expr, else_expr);
             }
             return eq_expr_value(cx, if_let.let_expr, else_expr);
         }

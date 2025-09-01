@@ -4,12 +4,13 @@ use clippy_config::Conf;
 use clippy_config::types::MatchLintBehaviour;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{self, Msrv};
+use clippy_utils::res::PathRes;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::{implements_trait, is_type_diagnostic_item};
 use clippy_utils::{
-    eq_expr_value, higher, is_else_clause, is_in_const_context, is_lint_allowed, is_path_lang_item, is_res_lang_ctor,
-    pat_and_expr_can_be_question_mark, path_res, path_to_local, path_to_local_id, peel_blocks, peel_blocks_with_stmt,
+    eq_expr_value, higher, is_else_clause, is_in_const_context, is_lint_allowed, is_res_lang_ctor,
+    pat_and_expr_can_be_question_mark, path_to_local, path_to_local_id, peel_blocks, peel_blocks_with_stmt,
     span_contains_cfg, span_contains_comment, sym,
 };
 use rustc_errors::Applicability;
@@ -218,15 +219,15 @@ fn is_early_return(smbl: Symbol, cx: &LateContext<'_>, if_block: &IfBlockType<'_
                     sym::Option => {
                         // We only need to check `if let Some(x) = option` not `if let None = option`,
                         // because the later one will be suggested as `if option.is_none()` thus causing conflict.
-                        is_res_lang_ctor(cx, res, OptionSome)
+                        is_res_lang_ctor(cx.tcx, res, OptionSome)
                             && if_else.is_some()
                             && expr_return_none_or_err(smbl, cx, if_else.unwrap(), let_expr, None)
                     },
                     sym::Result => {
-                        (is_res_lang_ctor(cx, res, ResultOk)
+                        (is_res_lang_ctor(cx.tcx, res, ResultOk)
                             && if_else.is_some()
                             && expr_return_none_or_err(smbl, cx, if_else.unwrap(), let_expr, Some(let_pat_sym)))
-                            || is_res_lang_ctor(cx, res, ResultErr)
+                            || is_res_lang_ctor(cx.tcx, res, ResultErr)
                                 && expr_return_none_or_err(smbl, cx, if_then, let_expr, Some(let_pat_sym))
                                 && if_else.is_none()
                     },
@@ -246,7 +247,7 @@ fn expr_return_none_or_err(
     match peel_blocks_with_stmt(expr).kind {
         ExprKind::Ret(Some(ret_expr)) => expr_return_none_or_err(smbl, cx, ret_expr, cond_expr, err_sym),
         ExprKind::Path(ref qpath) => match smbl {
-            sym::Option => is_res_lang_ctor(cx, cx.qpath_res(qpath, expr.hir_id), OptionNone),
+            sym::Option => cx.is_path_lang_ctor((qpath, expr.hir_id), OptionNone),
             sym::Result => path_to_local(expr).is_some() && path_to_local(expr) == path_to_local(cond_expr),
             _ => false,
         },
@@ -341,7 +342,7 @@ fn extract_ctor_call<'a, 'tcx>(
     pat: &'a Pat<'tcx>,
 ) -> Option<&'a Pat<'tcx>> {
     if let PatKind::TupleStruct(variant_path, [val_binding], _) = &pat.kind
-        && is_res_lang_ctor(cx, cx.qpath_res(variant_path, pat.hir_id), expected_ctor)
+        && cx.is_path_lang_ctor((variant_path, pat.hir_id), expected_ctor)
     {
         Some(val_binding)
     } else {
@@ -392,7 +393,7 @@ fn check_arm_is_none_or_err<'tcx>(cx: &LateContext<'tcx>, mode: TryMode, arm: &A
                 // check `=> return Err(...)`
                 && let ExprKind::Ret(Some(wrapped_ret_expr)) = arm_body.kind
                 && let ExprKind::Call(ok_ctor, [ret_expr]) = wrapped_ret_expr.kind
-                && is_res_lang_ctor(cx, path_res(cx, ok_ctor), ResultErr)
+                && cx.is_path_lang_ctor(ok_ctor, ResultErr)
                 // check `...` is `val` from binding
                 && path_to_local_id(ret_expr, ok_val)
             {
@@ -403,10 +404,10 @@ fn check_arm_is_none_or_err<'tcx>(cx: &LateContext<'tcx>, mode: TryMode, arm: &A
         },
         TryMode::Option => {
             // Check the pat is `None`
-            if is_res_lang_ctor(cx, path_res(cx, arm.pat), OptionNone)
+            if cx.is_path_lang_ctor(arm.pat, OptionNone)
                 // Check `=> return None`
                 && let ExprKind::Ret(Some(ret_expr)) = arm_body.kind
-                && is_res_lang_ctor(cx, path_res(cx, ret_expr), OptionNone)
+                && cx.is_path_lang_ctor(ret_expr, OptionNone)
                 && !ret_expr.span.from_expansion()
             {
                 true
@@ -506,7 +507,7 @@ fn is_try_block(cx: &LateContext<'_>, bl: &Block<'_>) -> bool {
     if let Some(expr) = bl.expr
         && let ExprKind::Call(callee, [_]) = expr.kind
     {
-        is_path_lang_item(cx, callee, LangItem::TryTraitFromOutput)
+        cx.is_path_lang_item(callee, LangItem::TryTraitFromOutput)
     } else {
         false
     }

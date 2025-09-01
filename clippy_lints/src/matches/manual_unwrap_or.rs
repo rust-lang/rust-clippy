@@ -9,9 +9,10 @@ use rustc_middle::ty::{GenericArgKind, Ty};
 use rustc_span::sym;
 
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::res::PathRes;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::{expr_type_is_certain, get_type_diagnostic_name, implements_trait};
-use clippy_utils::{is_default_equivalent, is_lint_allowed, path_res, peel_blocks, span_contains_comment};
+use clippy_utils::{is_default_equivalent, is_lint_allowed, peel_blocks, span_contains_comment};
 
 use super::{MANUAL_UNWRAP_OR, MANUAL_UNWRAP_OR_DEFAULT};
 
@@ -114,10 +115,7 @@ fn handle(
             && is_default_equivalent(cx, peel_blocks(body_none))
         {
             // We now check if the condition is a None variant, in which case we need to specify the type
-            if path_res(cx, condition)
-                .opt_def_id()
-                .is_some_and(|id| Some(cx.tcx.parent(id)) == cx.tcx.lang_items().option_none_variant())
-            {
+            if cx.is_path_lang_ctor(condition, LangItem::OptionNone) {
                 return span_lint_and_sugg(
                     cx,
                     MANUAL_UNWRAP_OR_DEFAULT,

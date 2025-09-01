@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::res::PathRes;
+use clippy_utils::sym;
 use clippy_utils::ty::is_c_void;
-use clippy_utils::{path_def_id, sym};
 use rustc_hir::def_id::DefId;
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
@@ -41,7 +42,7 @@ impl LateLintPass<'_> for FromRawWithVoidPtr {
         if let ExprKind::Call(box_from_raw, [arg]) = expr.kind
             && let ExprKind::Path(QPath::TypeRelative(ty, seg)) = box_from_raw.kind
             && seg.ident.name == sym::from_raw
-            && let Some(type_str) = path_def_id(cx, ty).and_then(|id| def_id_matches_type(cx, id))
+            && let Some(type_str) = cx.path_def_id(ty).and_then(|id| def_id_matches_type(cx, id))
             && let arg_kind = cx.typeck_results().expr_ty(arg).kind()
             && let ty::RawPtr(ty, _) = arg_kind
             && is_c_void(cx, *ty)
@@ -62,22 +63,14 @@ impl LateLintPass<'_> for FromRawWithVoidPtr {
 /// Checks whether a `DefId` matches `Box`, `Rc`, `Arc`, or one of the `Weak` types.
 /// Returns a static string slice with the name of the type, if one was found.
 fn def_id_matches_type(cx: &LateContext<'_>, def_id: DefId) -> Option<&'static str> {
-    // Box
     if Some(def_id) == cx.tcx.lang_items().owned_box() {
         return Some("Box");
     }
 
-    if let Some(symbol) = cx.tcx.get_diagnostic_name(def_id) {
-        if symbol == sym::Arc {
-            return Some("Arc");
-        } else if symbol == sym::Rc {
-            return Some("Rc");
-        }
-    }
-
-    if matches!(cx.tcx.get_diagnostic_name(def_id), Some(sym::RcWeak | sym::ArcWeak)) {
-        Some("Weak")
-    } else {
-        None
+    match cx.tcx.get_diagnostic_name(def_id) {
+        Some(sym::Arc) => Some("Arc"),
+        Some(sym::Rc) => Some("Rc"),
+        Some(sym::RcWeak | sym::ArcWeak) => Some("Weak"),
+        _ => None,
     }
 }

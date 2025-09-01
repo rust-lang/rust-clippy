@@ -1,17 +1,18 @@
 use crate::map_unit_fn::OPTION_MAP_UNIT_FN;
 use crate::matches::MATCH_AS_REF;
+use clippy_utils::res::PathRes;
 use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::{is_copy, is_type_diagnostic_item, peel_mid_ty_refs_is_mutable, type_is_unsafe_function};
 use clippy_utils::{
-    CaptureKind, can_move_expr_to_closure, expr_requires_coercion, is_else_clause, is_lint_allowed, is_res_lang_ctor,
-    path_res, path_to_local_id, peel_blocks, peel_hir_expr_refs, peel_hir_expr_while,
+    CaptureKind, can_move_expr_to_closure, expr_requires_coercion, is_else_clause, is_lint_allowed, path_to_local_id,
+    peel_blocks, peel_hir_expr_refs, peel_hir_expr_while,
 };
 use rustc_ast::util::parser::ExprPrecedence;
 use rustc_errors::Applicability;
 use rustc_hir::LangItem::{OptionNone, OptionSome};
 use rustc_hir::def::Res;
-use rustc_hir::{BindingMode, Expr, ExprKind, HirId, Mutability, Pat, PatExpr, PatExprKind, PatKind, Path, QPath};
+use rustc_hir::{BindingMode, Expr, ExprKind, HirId, Mutability, Pat, PatKind, Path, QPath};
 use rustc_lint::LateContext;
 use rustc_span::{SyntaxContext, sym};
 
@@ -254,13 +255,9 @@ pub(super) fn try_parse_pattern<'tcx>(
         match pat.kind {
             PatKind::Wild => Some(OptionPat::Wild),
             PatKind::Ref(pat, _) => f(cx, pat, ref_count + 1, ctxt),
-            PatKind::Expr(PatExpr {
-                kind: PatExprKind::Path(qpath),
-                hir_id,
-                ..
-            }) if is_res_lang_ctor(cx, cx.qpath_res(qpath, *hir_id), OptionNone) => Some(OptionPat::None),
+            PatKind::Expr(e) if cx.is_path_lang_ctor(e, OptionNone) => Some(OptionPat::None),
             PatKind::TupleStruct(ref qpath, [pattern], _)
-                if is_res_lang_ctor(cx, cx.qpath_res(qpath, pat.hir_id), OptionSome) && pat.span.ctxt() == ctxt =>
+                if cx.is_path_lang_ctor((qpath, pat.hir_id), OptionSome) && pat.span.ctxt() == ctxt =>
             {
                 Some(OptionPat::Some { pattern, ref_count })
             },
@@ -272,5 +269,5 @@ pub(super) fn try_parse_pattern<'tcx>(
 
 // Checks for the `None` value.
 fn is_none_expr(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
-    is_res_lang_ctor(cx, path_res(cx, peel_blocks(expr)), OptionNone)
+    cx.is_path_lang_ctor(peel_blocks(expr), OptionNone)
 }

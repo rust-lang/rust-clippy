@@ -1,8 +1,7 @@
 use super::MANUAL_MAP;
 use super::manual_utils::{SomeExpr, check_with};
 use clippy_utils::diagnostics::span_lint_and_sugg;
-
-use clippy_utils::{is_res_lang_ctor, path_res};
+use clippy_utils::res::PathRes;
 
 use rustc_hir::LangItem::OptionSome;
 use rustc_hir::{Arm, Block, BlockCheckMode, Expr, ExprKind, Pat, UnsafeSource};
@@ -90,9 +89,7 @@ fn get_some_expr<'tcx>(
     ) -> Option<SomeExpr<'tcx>> {
         // TODO: Allow more complex expressions.
         match expr.kind {
-            ExprKind::Call(callee, [arg])
-                if ctxt == expr.span.ctxt() && is_res_lang_ctor(cx, path_res(cx, callee), OptionSome) =>
-            {
+            ExprKind::Call(callee, [arg]) if ctxt == expr.span.ctxt() && cx.is_path_lang_ctor(callee, OptionSome) => {
                 Some(SomeExpr::new_no_negated(arg, needs_unsafe_block))
             },
             ExprKind::Block(

@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::SpanRangeExt;
-use clippy_utils::{expr_or_init, is_path_diagnostic_item, std_or_core, sym};
+use clippy_utils::{expr_or_init, std_or_core, sym};
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, GenericArg, Mutability, QPath, Ty, TyKind};
@@ -52,8 +52,11 @@ fn is_expr_const_aligned(cx: &LateContext<'_>, expr: &Expr<'_>, to: &Ty<'_>) -> 
 }
 
 fn is_align_of_call(cx: &LateContext<'_>, fun: &Expr<'_>, to: &Ty<'_>) -> bool {
-    if let ExprKind::Path(QPath::Resolved(_, path)) = fun.kind
-        && is_path_diagnostic_item(cx, fun, sym::mem_align_of)
+    if let ExprKind::Path(QPath::Resolved(None, path)) = fun.kind
+        && path
+            .res
+            .opt_def_id()
+            .is_some_and(|did| cx.tcx.is_diagnostic_item(sym::mem_align_of, did))
         && let Some(args) = path.segments.last().and_then(|seg| seg.args)
         && let [GenericArg::Type(generic_ty)] = args.args
     {

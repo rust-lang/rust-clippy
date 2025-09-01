@@ -1,8 +1,9 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::method_chain_args;
+use clippy_utils::res::PathRes;
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::{method_chain_args, path_def_id};
 use rustc_errors::Applicability;
-use rustc_hir as hir;
+use rustc_hir::{self as hir, LangItem};
 use rustc_lint::{LateContext, Lint};
 use rustc_middle::ty;
 use rustc_span::Symbol;
@@ -17,8 +18,7 @@ pub(super) fn check(
 ) -> bool {
     if let Some(args) = method_chain_args(info.chain, chain_methods)
         && let hir::ExprKind::Call(fun, [arg_char]) = info.other.kind
-        && let Some(id) = path_def_id(cx, fun).map(|ctor_id| cx.tcx.parent(ctor_id))
-        && Some(id) == cx.tcx.lang_items().option_some_variant()
+        && cx.is_path_lang_ctor(fun, LangItem::OptionSome)
     {
         let mut applicability = Applicability::MachineApplicable;
         let self_ty = cx.typeck_results().expr_ty_adjusted(args[0].0).peel_refs();

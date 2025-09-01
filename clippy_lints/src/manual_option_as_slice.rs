@@ -1,6 +1,7 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg};
 use clippy_utils::msrvs::Msrv;
+use clippy_utils::res::PathRes;
 use clippy_utils::{is_none_arm, msrvs, peel_hir_expr_refs, sym};
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
@@ -95,12 +96,12 @@ impl LateLintPass<'_> for ManualOptionAsSlice {
             },
             ExprKind::MethodCall(seg, callee, [or_else, map], _) => match seg.ident.name {
                 sym::map_or => {
-                    if is_empty_slice(cx, or_else) && is_slice_from_ref(cx, map) {
+                    if is_empty_slice(cx, or_else) && cx.is_path_diag_item(map, sym::slice_from_ref) {
                         check_as_ref(cx, callee, span, self.msrv);
                     }
                 },
                 sym::map_or_else => {
-                    if returns_empty_slice(cx, or_else) && is_slice_from_ref(cx, map) {
+                    if returns_empty_slice(cx, or_else) && cx.is_path_diag_item(map, sym::slice_from_ref) {
                         check_as_ref(cx, callee, span, self.msrv);
                     }
                 },
@@ -114,7 +115,7 @@ impl LateLintPass<'_> for ManualOptionAsSlice {
 fn check_map(cx: &LateContext<'_>, map: &Expr<'_>, span: Span, msrv: Msrv) {
     if let ExprKind::MethodCall(seg, callee, [mapping], _) = map.kind
         && seg.ident.name == sym::map
-        && is_slice_from_ref(cx, mapping)
+        && cx.is_path_diag_item(mapping, sym::slice_from_ref)
     {
         check_as_ref(cx, callee, span, msrv);
     }
@@ -165,7 +166,7 @@ fn extract_ident_from_some_pat(cx: &LateContext<'_>, pat: &Pat<'_>) -> Option<Sy
 /// Returns true if `expr` is `std::slice::from_ref(<name>)`. Used in `if let`s.
 fn check_some_body(cx: &LateContext<'_>, name: Symbol, expr: &Expr<'_>) -> bool {
     if let ExprKind::Call(slice_from_ref, [arg]) = expr.peel_blocks().kind
-        && is_slice_from_ref(cx, slice_from_ref)
+        && cx.is_path_diag_item(slice_from_ref, sym::slice_from_ref)
         && let ExprKind::Path(QPath::Resolved(None, path)) = arg.kind
         && let [seg] = path.segments
     {
@@ -189,7 +190,7 @@ fn check_arms(cx: &LateContext<'_>, none_arm: &Arm<'_>, some_arm: &Arm<'_>) -> b
 
 fn returns_empty_slice(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
     match expr.kind {
-        ExprKind::Path(_) => clippy_utils::is_path_diagnostic_item(cx, expr, sym::default_fn),
+        ExprKind::Path(_) => cx.is_path_diag_item(expr, sym::default_fn),
         ExprKind::Closure(cl) => is_empty_slice(cx, cx.tcx.hir_body(cl.body).value),
         _ => false,
     }
@@ -214,11 +215,7 @@ fn is_empty_slice(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
             _ => false,
         },
         ExprKind::Array([]) => true,
-        ExprKind::Call(def, []) => clippy_utils::is_path_diagnostic_item(cx, def, sym::default_fn),
+        ExprKind::Call(def, []) => cx.is_path_diag_item(def, sym::default_fn),
         _ => false,
     }
-}
-
-fn is_slice_from_ref(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
-    clippy_utils::is_path_diagnostic_item(cx, expr, sym::slice_from_ref)
 }

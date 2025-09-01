@@ -1,8 +1,7 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
+use clippy_utils::res::PathRes;
 use clippy_utils::ty::implements_trait;
-use clippy_utils::{
-    is_diag_trait_item, is_from_proc_macro, is_res_lang_ctor, last_path_segment, path_res, std_or_core,
-};
+use clippy_utils::{is_diag_trait_item, is_from_proc_macro, last_path_segment, std_or_core};
 use rustc_errors::Applicability;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{Expr, ExprKind, ImplItem, ImplItemKind, LangItem, Node, UnOp};
@@ -256,16 +255,8 @@ fn expr_is_cmp<'tcx>(
     needs_fully_qualified: &mut bool,
 ) -> bool {
     let impl_item_did = impl_item.owner_id.def_id;
-    if let ExprKind::Call(
-        Expr {
-            kind: ExprKind::Path(some_path),
-            hir_id: some_hir_id,
-            ..
-        },
-        [cmp_expr],
-    ) = expr.kind
-    {
-        is_res_lang_ctor(cx, cx.qpath_res(some_path, *some_hir_id), LangItem::OptionSome)
+    if let ExprKind::Call(callee, [cmp_expr]) = expr.kind {
+        cx.is_path_lang_ctor(callee, LangItem::OptionSome)
             // Fix #11178, allow `Self::cmp(self, ..)` too
             && self_cmp_call(cx, cmp_expr, impl_item_did, needs_fully_qualified)
     } else if let ExprKind::MethodCall(_, recv, [], _) = expr.kind {
@@ -287,9 +278,7 @@ fn self_cmp_call<'tcx>(
     needs_fully_qualified: &mut bool,
 ) -> bool {
     match cmp_expr.kind {
-        ExprKind::Call(path, [_, _]) => path_res(cx, path)
-            .opt_def_id()
-            .is_some_and(|def_id| cx.tcx.is_diagnostic_item(sym::ord_cmp_method, def_id)),
+        ExprKind::Call(path, [_, _]) => cx.is_path_diag_item(path, sym::ord_cmp_method),
         ExprKind::MethodCall(_, recv, [_], ..) => {
             let ExprKind::Path(path) = recv.kind else {
                 return false;

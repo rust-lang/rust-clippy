@@ -1,7 +1,8 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::macros::{FormatArgsStorage, format_args_inputs_span};
+use clippy_utils::res::PathRes;
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::{is_expn_of, path_def_id, sym};
+use clippy_utils::{is_expn_of, sym};
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{BindingMode, Block, BlockCheckMode, Expr, ExprKind, Node, PatKind, QPath, Stmt, StmtKind};
@@ -59,12 +60,12 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitWrite {
             && let ExprKind::MethodCall(write_fun, write_recv, [write_arg], _) = *look_in_block(cx, &write_call.kind)
             && let ExprKind::Call(write_recv_path, []) = write_recv.kind
             && write_fun.ident.name == sym::write_fmt
-            && let Some(def_id) = path_def_id(cx, write_recv_path)
+            && let Some(diag_name) = cx.path_diag_name(write_recv_path)
         {
             // match calls to std::io::stdout() / std::io::stderr ()
-            let (dest_name, prefix) = match cx.tcx.get_diagnostic_name(def_id) {
-                Some(sym::io_stdout) => ("stdout", ""),
-                Some(sym::io_stderr) => ("stderr", "e"),
+            let (dest_name, prefix) = match diag_name {
+                sym::io_stdout => ("stdout", ""),
+                sym::io_stderr => ("stderr", "e"),
                 _ => return,
             };
             let Some(format_args) = self.format_args.get(cx, write_arg, ExpnId::root()) else {

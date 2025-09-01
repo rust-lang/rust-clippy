@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::res::PathRes;
 use clippy_utils::source::snippet_opt;
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
@@ -30,23 +31,20 @@ pub(super) fn check(cx: &LateContext<'_>, qpath: &hir::QPath<'_>, def_id: DefId)
 }
 
 fn replacement(cx: &LateContext<'_>, cty: &hir::Ty<'_>) -> Option<(Span, String)> {
-    if clippy_utils::is_path_lang_item(cx, cty, hir::LangItem::String) {
+    if cx.is_path_lang_item(cty, hir::LangItem::String) {
         return Some((cty.span, "str".into()));
     }
-    if clippy_utils::is_path_diagnostic_item(cx, cty, sym::Vec) {
-        return if let hir::TyKind::Path(hir::QPath::Resolved(_, path)) = cty.kind
-            && let [.., last_seg] = path.segments
-            && let Some(args) = last_seg.args
-            && let [t, ..] = args.args
-            && let Some(snip) = snippet_opt(cx, t.span())
+    match cx.path_diag_name(cty) {
+        Some(sym::Vec)
+            if let hir::TyKind::Path(hir::QPath::Resolved(_, path)) = cty.kind
+                && let [.., last_seg] = path.segments
+                && let Some(args) = last_seg.args
+                && let [t, ..] = args.args
+                && let Some(snip) = snippet_opt(cx, t.span()) =>
         {
             Some((cty.span, format!("[{snip}]")))
-        } else {
-            None
-        };
-    }
-    if clippy_utils::is_path_diagnostic_item(cx, cty, sym::cstring_type) {
-        return Some((
+        },
+        Some(sym::cstring_type) => Some((
             cty.span,
             (if clippy_utils::is_no_std_crate(cx) {
                 "core::ffi::CStr"
@@ -54,13 +52,9 @@ fn replacement(cx: &LateContext<'_>, cty: &hir::Ty<'_>) -> Option<(Span, String)
                 "std::ffi::CStr"
             })
             .into(),
-        ));
+        )),
+        Some(sym::OsString) => Some((cty.span, "std::ffi::OsStr".into())),
+        Some(sym::PathBuf) => Some((cty.span, "std::path::Path".into())),
+        _ => None,
     }
-    // Neither OsString nor PathBuf are available outside std
-    for (diag, repl) in [(sym::OsString, "std::ffi::OsStr"), (sym::PathBuf, "std::path::Path")] {
-        if clippy_utils::is_path_diagnostic_item(cx, cty, diag) {
-            return Some((cty.span, repl.into()));
-        }
-    }
-    None
 }

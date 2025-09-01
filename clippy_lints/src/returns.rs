@@ -1,11 +1,11 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_hir_and_then};
+use clippy_utils::res::PathRes;
 use clippy_utils::source::{SpanRangeExt, snippet_with_context};
 use clippy_utils::sugg::has_enclosing_paren;
 use clippy_utils::visitors::for_each_expr;
 use clippy_utils::{
-    binary_expr_needs_parentheses, fn_def_id, is_from_proc_macro, is_inside_let_else, is_res_lang_ctor,
-    leaks_droppable_temporary_with_limited_lifetime, path_res, path_to_local_id, span_contains_cfg,
-    span_find_starting_semi, sym,
+    binary_expr_needs_parentheses, fn_def_id, is_from_proc_macro, is_inside_let_else,
+    leaks_droppable_temporary_with_limited_lifetime, path_to_local_id, span_contains_cfg, span_find_starting_semi, sym,
 };
 use core::ops::ControlFlow;
 use rustc_ast::MetaItemInner;
@@ -200,7 +200,7 @@ impl<'tcx> LateLintPass<'tcx> for Return {
             && let ExprKind::Match(maybe_cons, _, MatchSource::TryDesugar(_)) = ret.kind
             && let ExprKind::Call(_, [maybe_result_err]) = maybe_cons.kind
             && let ExprKind::Call(maybe_constr, _) = maybe_result_err.kind
-            && is_res_lang_ctor(cx, path_res(cx, maybe_constr), ResultErr)
+            && cx.is_path_lang_ctor(maybe_constr, ResultErr)
 
             // Ensure this is not the final stmt, otherwise removing it would cause a compile error
             && let OwnerNode::Item(item) = cx.tcx.hir_owner_node(cx.tcx.hir_get_parent_item(expr.hir_id))

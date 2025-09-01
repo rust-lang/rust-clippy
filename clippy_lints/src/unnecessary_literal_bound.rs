@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::path_res;
+use clippy_utils::res::PathRes;
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
@@ -138,7 +138,7 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryLiteralBound {
             return;
         };
 
-        if path_res(cx, inner_hir_ty) != Res::PrimTy(PrimTy::Str) {
+        if cx.path_res(inner_hir_ty) != Res::PrimTy(PrimTy::Str) {
             return;
         }
 

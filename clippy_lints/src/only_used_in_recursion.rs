@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::{get_expr_use_or_unification_node, path_def_id, path_to_local, path_to_local_id};
+use clippy_utils::res::PathRes;
+use clippy_utils::{get_expr_use_or_unification_node, path_to_local, path_to_local_id};
 use core::cell::Cell;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
@@ -290,9 +291,8 @@ impl<'tcx> LateLintPass<'tcx> for OnlyUsedInRecursion {
                     Some((Node::Expr(parent), child_id)) => match parent.kind {
                         // Recursive call. Track which index the parameter is used in.
                         ExprKind::Call(callee, args)
-                            if path_def_id(cx, callee).is_some_and(|id| {
-                                id == param.fn_id && has_matching_args(param.fn_kind, typeck.node_args(callee.hir_id))
-                            }) =>
+                            if cx.is_path_item(callee, param.fn_id)
+                                && has_matching_args(param.fn_kind, typeck.node_args(callee.hir_id)) =>
                         {
                             if let Some(idx) = args.iter().position(|arg| arg.hir_id == child_id) {
                                 param.uses.push(Usage::new(span, idx));
