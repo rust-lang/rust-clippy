@@ -136,7 +136,6 @@ impl rustc_driver::Callbacks for RustcCallbacks {
 
 struct ClippyCallbacks {
     clippy_args_var: Option<String>,
-    testing: bool,
 }
 
 impl rustc_driver::Callbacks for ClippyCallbacks {
@@ -146,7 +145,6 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
         let conf_path = clippy_config::lookup_conf_file();
         let previous = config.register_lints.take();
         let clippy_args_var = self.clippy_args_var.take();
-        let testing = self.testing;
         config.psess_created = Some(Box::new(move |psess| {
             track_clippy_args(psess, clippy_args_var.as_deref());
             track_files(psess);
@@ -166,7 +164,7 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
             }
 
             let conf = clippy_config::Conf::read(sess, &conf_path);
-            let disabled = build_disabled_set(sess, conf, testing);
+            let disabled = build_disabled_set(sess, conf);
             set_post_expect_filter(sess, disabled);
 
             let mut list_builder = LintListBuilder::default();
@@ -193,8 +191,8 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
     }
 }
 
-fn build_disabled_set(sess: &Session, conf: &'static Conf, testing: bool) -> FxHashSet<&'static str> {
-    if !testing {
+fn build_disabled_set(sess: &Session, conf: &'static Conf) -> FxHashSet<&'static str> {
+    if sess.is_test_crate() {
         return FxHashSet::default();
     }
     let disabled = conf
@@ -386,13 +384,7 @@ pub fn main() {
         let clippy_enabled = !cap_lints_allow && relevant_package && !info_query;
         if clippy_enabled {
             args.extend(clippy_args);
-            rustc_driver::run_compiler(
-                &args,
-                &mut ClippyCallbacks {
-                    clippy_args_var,
-                    testing: orig_args.iter().any(|arg| arg == "--test"),
-                },
-            );
+            rustc_driver::run_compiler(&args, &mut ClippyCallbacks { clippy_args_var });
         } else {
             rustc_driver::run_compiler(&args, &mut RustcCallbacks { clippy_args_var });
         }
