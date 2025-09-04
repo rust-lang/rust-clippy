@@ -10,6 +10,7 @@
 // (Currently there is no way to opt into sysroot crates without `extern crate`.)
 extern crate rustc_data_structures;
 extern crate rustc_driver;
+extern crate rustc_errors;
 extern crate rustc_interface;
 extern crate rustc_session;
 extern crate rustc_span;
@@ -23,6 +24,7 @@ use clippy_config::Conf;
 use clippy_utils::sym;
 use declare_clippy_lint::LintListBuilder;
 use rustc_data_structures::fx::FxHashSet;
+use rustc_errors::DiagInner;
 use rustc_interface::interface;
 use rustc_session::config::ErrorOutputType;
 use rustc_session::parse::ParseSess;
@@ -165,7 +167,7 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
 
             let conf = clippy_config::Conf::read(sess, &conf_path);
             let disabled = build_disabled_set(sess, conf, testing);
-            clippy_utils::diagnostics::set_disabled(disabled);
+            set_post_expect_filter(sess, disabled);
 
             let mut list_builder = LintListBuilder::default();
             list_builder.insert(clippy_lints::declared_lints::LINTS);
@@ -216,6 +218,18 @@ fn build_disabled_set(sess: &Session, conf: &'static Conf, testing: bool) -> FxH
         }
     }
     disabled
+}
+
+#[allow(clippy::implicit_hasher)]
+pub fn set_post_expect_filter(sess: &Session, disabled: FxHashSet<&'static str>) {
+    if !disabled.is_empty() {
+        sess.dcx().set_post_expect_filter(Box::new(move |diag: &DiagInner| {
+            diag.lint_name().is_some_and(|name| {
+                let name = name.strip_prefix("clippy::").unwrap_or(name);
+                disabled.contains(name)
+            })
+        }));
+    }
 }
 
 #[allow(clippy::ignored_unit_patterns)]
