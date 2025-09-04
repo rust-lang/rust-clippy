@@ -1,0 +1,11 @@
+error: Discarding a Result<Future>: did you mean to call .await on this first?
+  --> tests/ui/discarded_future.rs:12:13
+   |
+LL |     let _ = result_future();
+   |             ^^^^^^^^^^^^^^^ help: consider `.await` on it: `result_future().await`
+   |
+   = note: `-D clippy::discarded-future` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::discarded_future)]`
+
+error: aborting due to 1 previous error
+
