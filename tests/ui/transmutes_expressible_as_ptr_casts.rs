@@ -80,6 +80,7 @@ struct Single(u64);
 #[repr(C)]
 struct Pair(u32, u32);
 
+#[allow(clippy::eq_op)]
 fn cannot_be_expressed_as_pointer_cast(in_param: Single) -> Pair {
     assert_eq!(size_of::<Single>(), size_of::<Pair>());
 

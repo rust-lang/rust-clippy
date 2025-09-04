@@ -24,6 +24,7 @@ struct S {
 
 impl S {
     /// Get size of object including `self`, in bytes.
+    #[allow(clippy::identity_op)]
     pub fn size(&self) -> usize {
         std::mem::size_of_val(&self) + (std::mem::size_of::<u8>() * self.data.capacity())
         //~^ size_of_ref

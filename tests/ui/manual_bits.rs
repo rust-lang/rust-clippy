@@ -1,5 +1,6 @@
 #![warn(clippy::manual_bits)]
 #![allow(
+    clippy::identity_op,
     clippy::no_effect,
     clippy::useless_conversion,
     path_statements,

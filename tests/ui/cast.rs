@@ -251,6 +251,27 @@ fn main() {
     999999u64.clamp(0, 256) as u8;
     //~^ cast_possible_truncation
 
+    std::mem::size_of::<u64>() as u8;
+    std::mem::size_of_val(&1_u64) as u8;
+    std::mem::align_of::<u64>() as u8;
+    // currently not supported by const eval
+    std::mem::align_of_val(&1_u64) as u8;
+    //~^ cast_possible_truncation
+
+    std::mem::size_of::<[u8; 256]>() as u8;
+    //~^ cast_possible_truncation
+    std::mem::size_of_val(&[0_u8; 256]) as u8;
+    //~^ cast_possible_truncation
+    std::mem::size_of_val("foo") as u8;
+    //~^ cast_possible_truncation
+
+    #[repr(C, align(256))]
+    struct HighAlign([u8; 256]);
+    std::mem::size_of::<HighAlign>() as u8;
+    //~^ cast_possible_truncation
+    std::mem::align_of::<HighAlign>() as u8;
+    //~^ cast_possible_truncation
+
     #[derive(Clone, Copy)]
     enum E1 {
         A,
