@@ -148,7 +148,7 @@ fn check_fold_with_fn(
             fold_span.with_hi(expr.span.hi()),
             "this `.fold` can be written more succinctly using another method",
             "try",
-            format!("{method}{turbofish}()", method = replacement.method_name,),
+            format!("{method}{turbofish}()", method = replacement.method_name),
             applicability,
         );
     }
