@@ -8,7 +8,6 @@
 //! Thank you!
 //! ~The `INTERNAL_METADATA_COLLECTOR` lint
 
-use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::{Applicability, Diag, DiagMessage, MultiSpan, SubdiagMessage};
 #[cfg(debug_assertions)]
 use rustc_errors::{EmissionGuarantee, SubstitutionPart, Suggestions};
@@ -16,23 +15,6 @@ use rustc_hir::HirId;
 use rustc_lint::{LateContext, Lint, LintContext};
 use rustc_span::Span;
 use std::env;
-use std::sync::OnceLock;
-
-pub static DISABLED: OnceLock<FxHashSet<&'static str>> = OnceLock::new();
-
-#[allow(clippy::implicit_hasher)]
-pub fn set_disabled(disabled: FxHashSet<&'static str>) {
-    DISABLED
-        .set(disabled)
-        .unwrap_or_else(|_| panic!("`set_disabled` was already called"));
-}
-
-fn is_disabled(lint: &Lint) -> bool {
-    DISABLED.get().is_some_and(|disabled| {
-        let name = lint.name_lower();
-        disabled.contains(name.strip_prefix("clippy::").unwrap_or(&name))
-    })
-}
 
 fn docs_link(diag: &mut Diag<'_, ()>, lint: &'static Lint) {
     if env::var("CLIPPY_DISABLE_DOCS_LINKS").is_err()
@@ -122,9 +104,6 @@ fn validate_diag(diag: &Diag<'_, impl EmissionGuarantee>) {
 /// ```
 #[track_caller]
 pub fn span_lint<T: LintContext>(cx: &T, lint: &'static Lint, sp: impl Into<MultiSpan>, msg: impl Into<DiagMessage>) {
-    if is_disabled(lint) {
-        return;
-    }
     #[expect(clippy::disallowed_methods)]
     cx.span_lint(lint, sp, |diag| {
         diag.primary_message(msg);
@@ -178,9 +157,6 @@ pub fn span_lint_and_help<T: LintContext>(
     help_span: Option<Span>,
     help: impl Into<SubdiagMessage>,
 ) {
-    if is_disabled(lint) {
-        return;
-    }
     #[expect(clippy::disallowed_methods)]
     cx.span_lint(lint, span, |diag| {
         diag.primary_message(msg);
@@ -242,9 +218,6 @@ pub fn span_lint_and_note<T: LintContext>(
     note_span: Option<Span>,
     note: impl Into<SubdiagMessage>,
 ) {
-    if is_disabled(lint) {
-        return;
-    }
     #[expect(clippy::disallowed_methods)]
     cx.span_lint(lint, span, |diag| {
         diag.primary_message(msg);
@@ -286,9 +259,6 @@ where
     M: Into<DiagMessage>,
     F: FnOnce(&mut Diag<'_, ()>),
 {
-    if is_disabled(lint) {
-        return;
-    }
     #[expect(clippy::disallowed_methods)]
     cx.span_lint(lint, sp, |diag| {
         diag.primary_message(msg);
@@ -326,9 +296,6 @@ where
 /// the `#[allow]` will work.
 #[track_caller]
 pub fn span_lint_hir(cx: &LateContext<'_>, lint: &'static Lint, hir_id: HirId, sp: Span, msg: impl Into<DiagMessage>) {
-    if is_disabled(lint) {
-        return;
-    }
     #[expect(clippy::disallowed_methods)]
     cx.tcx.node_span_lint(lint, hir_id, sp, |diag| {
         diag.primary_message(msg);
@@ -372,9 +339,6 @@ pub fn span_lint_hir_and_then(
     msg: impl Into<DiagMessage>,
     f: impl FnOnce(&mut Diag<'_, ()>),
 ) {
-    if is_disabled(lint) {
-        return;
-    }
     #[expect(clippy::disallowed_methods)]
     cx.tcx.node_span_lint(lint, hir_id, sp, |diag| {
         diag.primary_message(msg);
