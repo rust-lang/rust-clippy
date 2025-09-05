@@ -2,6 +2,7 @@
 #![allow(
     clippy::eq_op,
     clippy::needless_borrows_for_generic_args,
+    clippy::needless_conversion_for_trait,
     clippy::needless_return,
     clippy::nonminimal_bool,
     clippy::uninlined_format_args
