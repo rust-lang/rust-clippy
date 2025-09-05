@@ -45,11 +45,46 @@ declare_clippy_lint! {
     restriction,
     "disallows idents that are too short"
 }
-impl_lint_pass!(MinIdentChars => [MIN_IDENT_CHARS]);
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for identifiers which are too long (higher than the configured threshold).
+    /// Note: This lint can be very noisy when enabled; it may be desirable to only enable it
+    /// temporarily.
+    ///
+    /// ### Why restrict this?
+    /// To improve readability of code and make it possible to enforce this lint to align a code
+    /// style on this subject within a team.
+    ///
+    /// ### Example of long identifiers
+    /// ```rust,ignore
+    /// for from_a_long_list_of_movies_which_might_contain_ferris_or_not_you_never_know in movies {
+    ///     let title = from_a_long_list_of_movies_which_might_contain_ferris_or_not_you_never_know.title;
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```rust,ignore
+    /// for movie in movies {
+    ///     let title = movie.title;
+    /// }
+    /// ```
+    ///
+    /// ### Limitations
+    /// Trait implementations which use the same function or parameter name as the trait declaration will
+    /// not be warned about, even if the name is longer than the configured limit.
+    #[clippy::version = "1.92.0"]
+    pub MAX_IDENT_CHARS,
+    restriction,
+    "disallows idents which exceeding the max ident length"
+}
+
+impl_lint_pass!(MinIdentChars => [MIN_IDENT_CHARS, MAX_IDENT_CHARS]);
+
+#[allow(clippy::struct_field_names)]
 pub struct MinIdentChars {
     allowed_idents_below_min_chars: FxHashSet<String>,
     min_ident_chars_threshold: u64,
+    max_variable_name_length: u32,
 }
 
 impl MinIdentChars {
@@ -57,6 +92,7 @@ impl MinIdentChars {
         Self {
             allowed_idents_below_min_chars: conf.allowed_idents_below_min_chars.iter().cloned().collect(),
             min_ident_chars_threshold: conf.min_ident_chars_threshold,
+            max_variable_name_length: conf.max_ident_chars_length,
         }
     }
 
@@ -67,6 +103,10 @@ impl MinIdentChars {
             && !str.starts_with('_')
             && !str.is_empty()
             && !self.allowed_idents_below_min_chars.contains(str)
+    }
+
+    fn is_ident_too_long(&self, cx: &LateContext<'_>, str: &str, span: Span) -> bool {
+        !span.in_external_macro(cx.sess().source_map()) && str.len() > self.max_variable_name_length as usize
     }
 }
 
@@ -93,6 +133,9 @@ impl LateLintPass<'_> for MinIdentChars {
                 if self.is_ident_too_short(cx, str, ident.span) {
                     emit_min_ident_chars(self, cx, str, ident.span);
                 }
+                if self.is_ident_too_long(cx, str, ident.span) {
+                    emit_max_ident_chars(self, cx, str, ident.span);
+                }
             }
         }
 
@@ -107,6 +150,13 @@ impl LateLintPass<'_> for MinIdentChars {
             && is_not_in_trait_impl(cx, pat, ident)
         {
             emit_min_ident_chars(self, cx, str, ident.span);
+        }
+
+        if let PatKind::Binding(_, _, ident, ..) = pat.kind
+            && let str = ident.as_str()
+            && self.is_ident_too_long(cx, str, ident.span)
+        {
+            emit_max_ident_chars(self, cx, str, ident.span);
         }
     }
 }
@@ -199,6 +249,34 @@ impl Visitor<'_> for IdentVisitor<'_, '_> {
 
             emit_min_ident_chars(conf, cx, str, ident.span);
         }
+
+        if conf.is_ident_too_long(cx, str, ident.span) {
+            // Check whether the node is part of a `use` statement. We don't want to emit a warning if the user
+            // has no control over the type.
+            let usenode = opt_as_use_node(node).or_else(|| {
+                cx.tcx
+                    .hir_parent_iter(hir_id)
+                    .find_map(|(_, node)| opt_as_use_node(node))
+            });
+
+            // If the name of the identifier is the same as the one of the imported item, this means that we
+            // found a `use foo::bar`. We can early-return to not emit the warning.
+            // If however the identifier is different, this means it is an alias (`use foo::bar as baz`). In
+            // this case, we need to emit the warning for `baz`.
+            if let Some(imported_item_path) = usenode
+                // use `present_items` because it could be in any of type_ns, value_ns, macro_ns
+                && let Some(Res::Def(_, imported_item_defid)) = imported_item_path.res.value_ns
+                && cx.tcx.item_name(imported_item_defid).as_str() == str
+            {
+                return;
+            }
+
+            if is_from_proc_macro(cx, &ident) {
+                return;
+            }
+
+            emit_min_ident_chars(conf, cx, str, ident.span);
+        }
     }
 }
 
@@ -213,6 +291,15 @@ fn emit_min_ident_chars(conf: &MinIdentChars, cx: &impl LintContext, ident: &str
         ))
     };
     span_lint(cx, MIN_IDENT_CHARS, span, help);
+}
+
+fn emit_max_ident_chars(conf: &MinIdentChars, cx: &impl LintContext, ident: &str, span: Span) {
+    let help = Cow::Owned(format!(
+        "this ident is too long ({} > {})",
+        ident.len(),
+        conf.max_variable_name_length,
+    ));
+    span_lint(cx, MAX_IDENT_CHARS, span, help);
 }
 
 /// Attempt to convert the node to an [`ItemKind::Use`] node.
