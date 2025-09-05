@@ -28,8 +28,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, cast_from: Ty<'_>, ca
     let from_nbits_str = if arch_dependent {
         "64".to_owned()
     } else if is_isize_or_usize(cast_from) {
-        // FIXME: handle 16 bits `usize` type
-        "32 or 64".to_owned()
+        "16, 32, or 64".to_owned()
     } else {
         from_nbits.to_string()
     };
