@@ -6,6 +6,7 @@
     clippy::no_effect,
     clippy::nonstandard_macro_braces,
     clippy::unnecessary_operation,
+    clippy::items_before_use,
     nonstandard_style,
     unused
 )]
