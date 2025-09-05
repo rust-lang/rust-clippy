@@ -9,6 +9,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::arbitrary_source_item_ordering::ARBITRARY_SOURCE_ITEM_ORDERING_INFO,
     crate::arc_with_non_send_sync::ARC_WITH_NON_SEND_SYNC_INFO,
     crate::as_conversions::AS_CONVERSIONS_INFO,
+    crate::as_ptr_in_map::AS_PTR_IN_MAP_INFO,
     crate::asm_syntax::INLINE_ASM_X86_ATT_SYNTAX_INFO,
     crate::asm_syntax::INLINE_ASM_X86_INTEL_SYNTAX_INFO,
     crate::assertions_on_constants::ASSERTIONS_ON_CONSTANTS_INFO,
