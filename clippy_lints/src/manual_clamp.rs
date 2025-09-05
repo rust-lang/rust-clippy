@@ -451,12 +451,7 @@ fn is_match_pattern<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> Opt
             Some((*first_hir_id, *second_hir_id)),
         ) {
             return Some(ClampSuggestion {
-                params: InputMinMax {
-                    input: value,
-                    min: params.min,
-                    max: params.max,
-                    is_float: params.is_float,
-                },
+                params: InputMinMax { input: value, ..params },
                 span: expr.span,
                 make_assignment: None,
                 hir_with_ignore_attr: None,
@@ -510,9 +505,7 @@ fn is_two_if_pattern<'tcx>(cx: &LateContext<'tcx>, block: &'tcx Block<'tcx>) -> 
                 Some(ClampSuggestion {
                     params: InputMinMax {
                         input: maybe_input_first_path,
-                        min: input_min_max.min,
-                        max: input_min_max.max,
-                        is_float: input_min_max.is_float,
+                        ..input_min_max
                     },
                     span: first_expr.span.to(second_expr.span),
                     make_assignment: Some(maybe_input_first_path),
