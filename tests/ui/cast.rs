@@ -47,7 +47,6 @@ fn main() {
 
     1f32 as u32;
     //~^ cast_possible_truncation
-    //~| cast_sign_loss
 
     1f64 as f32;
     //~^ cast_possible_truncation
@@ -63,12 +62,10 @@ fn main() {
 
     1f64 as usize;
     //~^ cast_possible_truncation
-    //~| cast_sign_loss
 
     1f32 as u32 as u16;
     //~^ cast_possible_truncation
     //~| cast_possible_truncation
-    //~| cast_sign_loss
 
     {
         let _x: i8 = 1i32 as _;
@@ -82,7 +79,6 @@ fn main() {
 
         1f32 as u8;
         //~^ cast_possible_truncation
-        //~| cast_sign_loss
     }
     // Test clippy::cast_possible_wrap
     1u8 as i8;
