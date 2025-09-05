@@ -15,26 +15,29 @@
     clippy::identity_op
 )]
 
-// FIXME(f16_f128): add tests once const casting is available for these types
+fn get_value<T>() -> T {
+    todo!()
+}
 
+// FIXME(f16_f128): add tests once const casting is available for these types
 fn main() {
     // Test clippy::cast_precision_loss
-    let x0 = 1i32;
+    let x0: i32 = get_value();
     x0 as f32;
     //~^ cast_precision_loss
 
-    let x1 = 1i64;
+    let x1: i64 = get_value();
     x1 as f32;
     //~^ cast_precision_loss
 
     x1 as f64;
     //~^ cast_precision_loss
 
-    let x2 = 1u32;
+    let x2: u32 = get_value();
     x2 as f32;
     //~^ cast_precision_loss
 
-    let x3 = 1u64;
+    let x3: u64 = get_value();
     x3 as f32;
     //~^ cast_precision_loss
 
@@ -52,11 +55,12 @@ fn main() {
     1f64 as f32;
     //~^ cast_possible_truncation
 
-    1i32 as i8;
+    get_value::<i32>() as i8;
     //~^ cast_possible_truncation
 
-    1i32 as u8;
+    get_value::<i32>() as u8;
     //~^ cast_possible_truncation
+    //~| cast_sign_loss
 
     1f64 as isize;
     //~^ cast_possible_truncation
@@ -71,7 +75,7 @@ fn main() {
     //~| cast_sign_loss
 
     {
-        let _x: i8 = 1i32 as _;
+        let _x: i8 = get_value::<i32>() as _;
         //~^ cast_possible_truncation
 
         1f32 as i32;
@@ -85,51 +89,51 @@ fn main() {
         //~| cast_sign_loss
     }
     // Test clippy::cast_possible_wrap
-    1u8 as i8;
+    get_value::<u8>() as i8;
     //~^ cast_possible_wrap
 
-    1u16 as i16;
+    get_value::<u16>() as i16;
     //~^ cast_possible_wrap
 
-    1u32 as i32;
+    get_value::<u32>() as i32;
     //~^ cast_possible_wrap
 
-    1u64 as i64;
+    get_value::<u64>() as i64;
     //~^ cast_possible_wrap
 
-    1usize as isize;
+    get_value::<usize>() as isize;
     //~^ cast_possible_wrap
 
     // should not wrap, usize is never 8 bits
-    1usize as i8;
+    get_value::<isize>() as i8;
     //~^ cast_possible_truncation
 
     // wraps on 16 bit ptr size
-    1usize as i16;
+    get_value::<usize>() as i16;
     //~^ cast_possible_truncation
     //~| cast_possible_wrap
 
     // wraps on 32 bit ptr size
-    1usize as i32;
+    get_value::<usize>() as i32;
     //~^ cast_possible_truncation
     //~| cast_possible_wrap
 
     // wraps on 64 bit ptr size
-    1usize as i64;
+    get_value::<usize>() as i64;
     //~^ cast_possible_wrap
 
     // should not wrap, isize is never 8 bits
-    1u8 as isize;
+    get_value::<u8>() as isize;
     // wraps on 16 bit ptr size
-    1u16 as isize;
+    get_value::<u16>() as isize;
     //~^ cast_possible_wrap
 
     // wraps on 32 bit ptr size
-    1u32 as isize;
+    get_value::<u32>() as isize;
     //~^ cast_possible_wrap
 
     // wraps on 64 bit ptr size
-    1u64 as isize;
+    get_value::<u64>() as isize;
     //~^ cast_possible_truncation
     //~| cast_possible_wrap
 
@@ -157,9 +161,7 @@ fn main() {
     (-1i16).saturating_abs() as u16;
     (-1i32).saturating_abs() as u32;
     (-1i64).abs() as u64;
-    //~^ cast_sign_loss
     (-1isize).abs() as usize;
-    //~^ cast_sign_loss
 
     (-1i8).checked_abs().unwrap() as u8;
     (i8::MIN).checked_abs().unwrap() as u8;
@@ -167,7 +169,6 @@ fn main() {
     (-1i32).checked_abs().unwrap() as u32;
     // SAFETY: -1 is a small number which will always return Some
     (unsafe { (-1i64).checked_abs().unwrap_unchecked() }) as u64;
-    //~^ cast_sign_loss
     (-1isize).checked_abs().expect("-1 is a small number") as usize;
 
     (-1i8).isqrt() as u8;
@@ -181,9 +182,8 @@ fn main() {
     (i8::MIN).checked_isqrt().unwrap() as u8;
     (-1i16).checked_isqrt().unwrap() as u16;
     (-1i32).checked_isqrt().unwrap() as u32;
-    // SAFETY: -1 is a small number which will always return Some
+    // SAFETY: this is UB, but whatever
     (unsafe { (-1i64).checked_isqrt().unwrap_unchecked() }) as u64;
-    //~^ cast_sign_loss
     (-1isize).checked_isqrt().expect("-1 is a small number") as usize;
 
     (-1i8).rem_euclid(1i8) as u8;
@@ -436,7 +436,6 @@ fn issue11642() {
     fn square(x: i16) -> u32 {
         let x = x as i32;
         (x * x) as u32;
-        //~^ cast_sign_loss
         x.pow(2) as u32;
         (-2_i32).saturating_pow(2) as u32
     }
@@ -445,7 +444,6 @@ fn issue11642() {
     //~^ cast_sign_loss
 
     (2_i32).checked_pow(3).unwrap() as u32;
-    //~^ cast_sign_loss
     (-2_i32).pow(3) as u32;
     //~^ cast_sign_loss
 
@@ -461,13 +459,13 @@ fn issue11642() {
     (-2_i32 >> 1) as u32;
     //~^ cast_sign_loss
 
-    let x: i32 = 10;
+    let x: i32 = get_value();
     (x * x) as u32;
     //~^ cast_sign_loss
     (x * x * x) as u32;
     //~^ cast_sign_loss
 
-    let y: i16 = -2;
+    let y: i16 = get_value();
     (y * y * y * y * -2) as u16;
     //~^ cast_sign_loss
 
@@ -486,7 +484,7 @@ fn issue11642() {
     (y + y + y + 2) as u16;
     //~^ cast_sign_loss
 
-    let z: i16 = 2;
+    let z: i16 = get_value();
     (z + -2) as u16;
     //~^ cast_sign_loss
 
@@ -552,20 +550,165 @@ fn issue12506() -> usize {
 }
 
 fn issue12721() {
-    fn x() -> u64 {
-        u64::MAX
+    // Don't lint.
+    (get_value::<u32>() & 0xff) as u8;
+    ((get_value::<u32>() & 0xff00) >> 8) as u8;
+
+    // Don't lint.
+    (255 & get_value::<u64>()) as u8;
+    // Don't lint.
+    let _ = ((get_value::<u64>() & 255) & 999999) as u8;
+    // Don't lint.
+    let _ = (999999 & (get_value::<u64>() & 255)) as u8;
+
+    (256 & get_value::<u64>()) as u8;
+    //~^ cast_possible_truncation
+
+    // Don't lint.
+    (get_value::<u8>() as u64 % get_value::<u64>()) as u8;
+}
+
+fn issue7486(number: u64, other: u32) -> u32 {
+    // a u64 with guaranteed value to be less than or equal to u32::max_value()
+    let other_u64 = other as u64;
+    // modulo guarantees that the following invariant holds:
+    // result < other_u64
+    // which implies that result < u32::max_value()
+    let result = number % other_u64;
+    result as u32
+}
+
+fn dxgi_xr10_to_unorm8(x: u16) -> u8 {
+    debug_assert!(x <= 1023);
+    // new range: [-384, 639] (or [-0.75294, 1.25294])
+    let x = x as i16 - 0x180;
+    //~^ cast_possible_wrap
+    // new range: [0, 510] (or [0.0, 1.0])
+    let x = x.clamp(0, 510) as u16;
+    // this is round(x / 510 * 255), but faster
+    ((x + 1) >> 1) as u8
+}
+fn dxgi_xr10_to_unorm16(x: u16) -> u16 {
+    debug_assert!(x <= 1023);
+    // new range: [-384, 639] (or [-0.75294, 1.25294])
+    let x = x as i16 - 0x180;
+    //~^ cast_possible_wrap
+    // new range: [0, 510] (or [0.0, 1.0])
+    let x = x.clamp(0, 510) as u16;
+    // this is round(x / 510 * 65535), but faster
+    ((x as u32 * 8421376 + 65535) >> 16) as u16
+}
+fn unorm16_to_unorm8(x: u16) -> u8 {
+    ((x as u32 * 255 + 32895) >> 16) as u8
+}
+
+fn f32_to_f16u(value: f32) -> u16 {
+    // Source: https://github.com/starkat99/half-rs/blob/2c4122db4e8f7d8ce030bb4b5ed8913bd6bbf2b1/src/binary16/arch.rs#L482
+    // Author: Kathryn Long
+    // License: MIT OR Apache-2.0
+
+    // Convert to raw bytes
+    let x: u32 = value.to_bits();
+
+    // Extract IEEE754 components
+    let sign = x & 0x8000_0000u32;
+    let exp = x & 0x7F80_0000u32;
+    let man = x & 0x007F_FFFFu32;
+
+    // Check for all exponent bits being set, which is Infinity or NaN
+    if exp == 0x7F80_0000u32 {
+        // Set mantissa MSB for NaN (and also keep shifted mantissa bits)
+        let nan_bit = if man == 0 { 0 } else { 0x0200u32 };
+        return ((sign >> 16) | 0x7C00u32 | nan_bit | (man >> 13)) as u16;
     }
 
-    // Don't lint.
-    (255 & 999999u64) as u8;
-    // Don't lint.
-    let _ = ((x() & 255) & 999999) as u8;
-    // Don't lint.
-    let _ = (999999 & (x() & 255)) as u8;
+    // The number is normalized, start assembling half precision version
+    let half_sign = sign >> 16;
+    // Unbias the exponent, then bias for half precision
+    let unbiased_exp = ((exp >> 23) as i32) - 127;
+    let half_exp = unbiased_exp + 15;
 
-    (256 & 999999u64) as u8;
-    //~^ cast_possible_truncation
+    // Check for exponent overflow, return +infinity
+    if half_exp >= 0x1F {
+        return (half_sign | 0x7C00u32) as u16;
+    }
 
-    (255 % 999999u64) as u8;
+    // Check for underflow
+    if half_exp <= 0 {
+        // Check mantissa for what we can do
+        if 14 - half_exp > 24 {
+            // No rounding possibility, so this is a full underflow, return signed zero
+            return half_sign as u16;
+        }
+        // Don't forget about hidden leading mantissa bit when assembling mantissa
+        let man = man | 0x0080_0000u32;
+        let mut half_man = man >> (14 - half_exp);
+        // Check for rounding (see comment above functions)
+        let round_bit = 1 << (13 - half_exp);
+        if (man & round_bit) != 0 && (man & (3 * round_bit - 1)) != 0 {
+            half_man += 1;
+        }
+        // No exponent for subnormals
+        return (half_sign | half_man) as u16;
+        //~^ cast_possible_truncation
+    }
+
+    // Rebias the exponent
+    let half_exp = (half_exp as u32) << 10;
+    //~^ cast_sign_loss
+    let half_man = man >> 13;
+    // Check for rounding (see comment above functions)
+    let round_bit = 0x0000_1000u32;
+    if (man & round_bit) != 0 && (man & (3 * round_bit - 1)) != 0 {
+        // Round it
+        ((half_sign | half_exp | half_man) + 1) as u16
+        //~^ cast_possible_truncation
+    } else {
+        (half_sign | half_exp | half_man) as u16
+        //~^ cast_possible_truncation
+    }
+}
+
+fn test_range_formatting(value: i32) {
+    (get_value::<i8>() as i32 * 64 + 4) as u16;
     //~^ cast_possible_truncation
+    //~| cast_sign_loss
+    (get_value::<i8>() as i32 * 64 - 4) as u16;
+    //~^ cast_possible_truncation
+    //~| cast_sign_loss
+}
+
+fn test_branching(value: i32) {
+    let a: u64 = if get_value() {
+        100
+    } else {
+        panic!("value must be positive")
+    };
+    a as u8;
+
+    let b: u64 = match get_value::<u8>() {
+        0 => 100,
+        1 => return,
+        2 => unreachable!(),
+        3 => todo!(),
+        4 => {
+            if get_value() {
+                return;
+            } else {
+                panic!("value must be positive")
+            }
+        },
+        _ => panic!("value must be positive"),
+    };
+    b as u8;
+}
+
+fn test_narrowing(value: i32) {
+    if value > 0 {
+        // value as u32;
+        (value - 1) as u32;
+        //~^ cast_sign_loss
+    } else {
+        panic!("value must be positive");
+    }
 }
