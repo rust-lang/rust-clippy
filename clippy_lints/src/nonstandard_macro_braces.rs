@@ -83,30 +83,40 @@ impl EarlyLintPass for MacroBraces {
 }
 
 fn is_offending_macro(cx: &EarlyContext<'_>, span: Span, mac_braces: &MacroBraces) -> Option<MacroInfo> {
-    let unnested_or_local = || {
-        !span.ctxt().outer_expn_data().call_site.from_expansion()
+    let unnested_or_local = |span: Span| {
+        !span.from_expansion()
             || span
                 .macro_backtrace()
                 .last()
                 .is_some_and(|e| e.macro_def_id.is_some_and(DefId::is_local))
     };
-    let span_call_site = span.ctxt().outer_expn_data().call_site;
-    if let ExpnKind::Macro(MacroKind::Bang, mac_name) = span.ctxt().outer_expn_data().kind
+    let mut span_expn = span.ctxt().outer_expn_data();
+    loop {
+        if let ExpnKind::Macro(MacroKind::Bang, mac_name) = span_expn.kind
         && let name = mac_name.as_str()
+
         && let Some(&braces) = mac_braces.macro_braces.get(name)
-        && let Some(snip) = span_call_site.get_source_text(cx)
+
+        && let Some(snip) = span_expn.call_site.get_source_text(cx)
         // we must check only invocation sites
         // https://github.com/rust-lang/rust-clippy/issues/7422
         && snip.starts_with(&format!("{name}!"))
-        && unnested_or_local()
+
+        && unnested_or_local(span_expn.call_site)
+
         // make formatting consistent
         && let c = snip.replace(' ', "")
         && !c.starts_with(&format!("{name}!{}", braces.0))
-        && !mac_braces.done.contains(&span_call_site)
-    {
-        Some((span_call_site, braces, snip))
-    } else {
-        None
+        && !mac_braces.done.contains(&span_expn.call_site)
+        {
+            return Some((span_expn.call_site, braces, snip));
+        }
+
+        if span_expn.call_site.ctxt().is_root() {
+            return None;
+        }
+
+        span_expn = span_expn.call_site.ctxt().outer_expn_data();
     }
 }
 
