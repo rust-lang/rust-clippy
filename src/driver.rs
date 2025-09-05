@@ -192,7 +192,7 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
 }
 
 fn build_disabled_set(sess: &Session, conf: &'static Conf) -> FxHashSet<&'static str> {
-    if sess.is_test_crate() {
+    if !sess.is_test_crate() {
         return FxHashSet::default();
     }
     let disabled = conf
