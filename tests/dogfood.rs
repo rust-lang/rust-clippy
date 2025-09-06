@@ -103,6 +103,8 @@ fn run_clippy_for_package(project: &str) -> bool {
         "clippy::significant_drop_tightening",
         "-D",
         "clippy::tuple_array_conversions",
+        "-D",
+        "clippy::useless_let_if_seq",
     ]);
     if !cfg!(feature = "internal") {
         // running a clippy built without internal lints on the clippy source
