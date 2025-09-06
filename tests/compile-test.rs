@@ -356,14 +356,13 @@ fn main() {
             _ => panic!("unknown speedtest: {speedtest} || accepted speedtests are: [ui, cargo, toml, internal]"),
         };
 
-        let iterations;
-        if let Ok(iterations_str) = std::env::var("SPEEDTEST_ITERATIONS") {
-            iterations = iterations_str
+        let iterations = if let Ok(iterations_str) = std::env::var("SPEEDTEST_ITERATIONS") {
+            iterations_str
                 .parse::<u64>()
-                .unwrap_or_else(|_| panic!("Couldn't parse `{iterations_str}`, please use a valid u64"));
+                .unwrap_or_else(|_| panic!("Couldn't parse `{iterations_str}`, please use a valid u64"))
         } else {
-            iterations = 1000;
-        }
+            1000
+        };
 
         let mut sum = 0;
         for _ in 0..iterations {

@@ -37,12 +37,14 @@ pub(crate) fn check_if_let<'tcx>(
         let pat = snippet_with_applicability(cx, let_pat.span, "..", &mut applicability);
 
         // strip potential borrows (#6503), but only if the type is a reference
-        let mut ex_new = let_expr;
-        if let ExprKind::AddrOf(BorrowKind::Ref, .., ex_inner) = let_expr.kind
+        let ex_new = if let ExprKind::AddrOf(BorrowKind::Ref, .., ex_inner) = let_expr.kind
             && let ty::Ref(..) = cx.typeck_results().expr_ty(ex_inner).kind()
         {
-            ex_new = ex_inner;
-        }
+            ex_inner
+        } else {
+            let_expr
+        };
+
         span_lint_and_sugg(
             cx,
             MATCH_LIKE_MATCHES_MACRO,
@@ -163,12 +165,14 @@ pub(super) fn check_match<'tcx>(
         };
 
         // strip potential borrows (#6503), but only if the type is a reference
-        let mut ex_new = scrutinee;
-        if let ExprKind::AddrOf(BorrowKind::Ref, .., ex_inner) = scrutinee.kind
+        let ex_new = if let ExprKind::AddrOf(BorrowKind::Ref, .., ex_inner) = scrutinee.kind
             && let ty::Ref(..) = cx.typeck_results().expr_ty(ex_inner).kind()
         {
-            ex_new = ex_inner;
-        }
+            ex_inner
+        } else {
+            scrutinee
+        };
+
         span_lint_and_sugg(
             cx,
             MATCH_LIKE_MATCHES_MACRO,

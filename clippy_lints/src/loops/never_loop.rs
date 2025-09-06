@@ -37,15 +37,13 @@ pub(super) fn check<'tcx>(
                 {
                     // If the block contains a break or continue, or if the loop has a label, `MachineApplicable` is not
                     // appropriate.
-                    let mut app = if !contains_any_break_or_continue(block) && label.is_none() {
+                    let app = if !contains_any_break_or_continue(block) && label.is_none() {
                         Applicability::MachineApplicable
+                    } else if !never_spans.is_empty() {
+                        Applicability::HasPlaceholders
                     } else {
                         Applicability::Unspecified
                     };
-
-                    if !never_spans.is_empty() {
-                        app = Applicability::HasPlaceholders;
-                    }
 
                     let mut suggestions = vec![(
                         for_span.with_hi(iterator.span.hi()),

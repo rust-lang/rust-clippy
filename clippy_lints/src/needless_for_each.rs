@@ -77,6 +77,7 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessForEach {
             // and suggesting `for … in … { unsafe { } }` is a little ugly.
             && !matches!(body.value.kind, ExprKind::Block(Block { rules: BlockCheckMode::UnsafeBlock(_), .. }, ..))
         {
+            #[expect(clippy::useless_let_if_seq, reason = "suggestion is less readable")]
             let mut applicability = Applicability::MachineApplicable;
 
             // If any closure parameter has an explicit type specified, applying the lint would necessarily
