@@ -6,7 +6,7 @@ use std::fs::{self, OpenOptions};
 use std::io::{self, Write as _};
 use std::path::{Path, PathBuf};
 
-#[derive(Clone, Copy, PartialEq, ValueEnum)]
+#[derive(Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum Pass {
     Early,
     Late,

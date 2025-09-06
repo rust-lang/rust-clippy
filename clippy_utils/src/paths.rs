@@ -21,7 +21,7 @@ use std::sync::OnceLock;
 
 /// Specifies whether to resolve a path in the [`TypeNS`], [`ValueNS`], [`MacroNS`] or in an
 /// arbitrary namespace
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum PathNS {
     Type,
     Value,

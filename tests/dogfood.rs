@@ -92,6 +92,8 @@ fn run_clippy_for_package(project: &str) -> bool {
         "-D",
         "clippy::dbg_macro",
         "-D",
+        "clippy::derive_partial_eq_without_eq",
+        "-D",
         "clippy::iter_on_single_items",
         "-D",
         "clippy::needless_pass_by_ref_mut",
