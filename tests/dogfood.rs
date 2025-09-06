@@ -93,6 +93,8 @@ fn run_clippy_for_package(project: &str) -> bool {
         "clippy::dbg_macro",
         "-D",
         "clippy::needless_pass_by_ref_mut",
+        "-D",
+        "clippy::significant_drop_tightening",
     ]);
     if !cfg!(feature = "internal") {
         // running a clippy built without internal lints on the clippy source

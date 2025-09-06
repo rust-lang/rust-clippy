@@ -86,7 +86,7 @@ use core::mem;
 use core::ops::ControlFlow;
 use std::collections::hash_map::Entry;
 use std::iter::{once, repeat_n, zip};
-use std::sync::{Mutex, MutexGuard, OnceLock};
+use std::sync::{Mutex, OnceLock};
 
 use itertools::Itertools;
 use rustc_abi::Integer;
@@ -2288,9 +2288,7 @@ static TEST_ITEM_NAMES_CACHE: OnceLock<Mutex<FxHashMap<LocalModDefId, Vec<Symbol
 /// The names are sorted using the default `Symbol` ordering.
 fn with_test_item_names(tcx: TyCtxt<'_>, module: LocalModDefId, f: impl FnOnce(&[Symbol]) -> bool) -> bool {
     let cache = TEST_ITEM_NAMES_CACHE.get_or_init(|| Mutex::new(FxHashMap::default()));
-    let mut map: MutexGuard<'_, FxHashMap<LocalModDefId, Vec<Symbol>>> = cache.lock().unwrap();
-    let value = map.entry(module);
-    match value {
+    match cache.lock().unwrap().entry(module) {
         Entry::Occupied(entry) => f(entry.get()),
         Entry::Vacant(entry) => {
             let mut names = Vec::new();
