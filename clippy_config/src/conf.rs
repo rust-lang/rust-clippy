@@ -681,7 +681,7 @@ define_Conf! {
     lint_inconsistent_struct_field_initializers: bool = false,
     /// The lower bound for linting decimal literals
     #[lints(decimal_literal_representation)]
-    literal_representation_threshold: u64 = 16384,
+    literal_representation_threshold: u64 = 0x4000,
     /// Whether the matches should be considered by the lint, and whether there should
     /// be filtering for common types.
     #[lints(manual_let_else)]
