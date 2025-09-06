@@ -91,6 +91,8 @@ fn run_clippy_for_package(project: &str) -> bool {
         "clippy::pedantic",
         "-D",
         "clippy::dbg_macro",
+        "-D",
+        "clippy::needless_pass_by_ref_mut",
     ]);
     if !cfg!(feature = "internal") {
         // running a clippy built without internal lints on the clippy source

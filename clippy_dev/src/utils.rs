@@ -58,7 +58,7 @@ pub struct File<'a> {
 impl<'a> File<'a> {
     /// Opens a file panicking on failure.
     #[track_caller]
-    pub fn open(path: &'a (impl AsRef<Path> + ?Sized), options: &mut OpenOptions) -> Self {
+    pub fn open(path: &'a (impl AsRef<Path> + ?Sized), options: &OpenOptions) -> Self {
         let path = path.as_ref();
         Self {
             inner: expect_action(options.open(path), ErrAction::Open, path),
@@ -68,7 +68,7 @@ impl<'a> File<'a> {
 
     /// Opens a file if it exists, panicking on any other failure.
     #[track_caller]
-    pub fn open_if_exists(path: &'a (impl AsRef<Path> + ?Sized), options: &mut OpenOptions) -> Option<Self> {
+    pub fn open_if_exists(path: &'a (impl AsRef<Path> + ?Sized), options: &OpenOptions) -> Option<Self> {
         let path = path.as_ref();
         match options.open(path) {
             Ok(inner) => Some(Self { inner, path }),
