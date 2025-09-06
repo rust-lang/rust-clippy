@@ -1,6 +1,6 @@
 #![warn(clippy::eq_op)]
 #![allow(clippy::double_parens, clippy::identity_op, clippy::nonminimal_bool)]
-#![allow(clippy::suspicious_xor_used_as_pow)]
+#![allow(clippy::suspicious_xor_used_as_pow, clippy::assertions_on_constants)]
 
 fn main() {
     // simple values and comparisons
@@ -153,4 +153,11 @@ fn eq_op_macros_shouldnt_trigger_in_tests() {
     let b = 2;
     assert_eq!(a, a);
     assert_eq!(a + b, b + a);
+}
+
+fn issue15609() {
+    const {
+        assert!(0x20 == b' ');
+    }
+    assert_eq!(0x20, b' ');
 }
