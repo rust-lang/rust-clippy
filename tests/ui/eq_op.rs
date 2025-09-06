@@ -154,3 +154,8 @@ fn eq_op_macros_shouldnt_trigger_in_tests() {
     assert_eq!(a, a);
     assert_eq!(a + b, b + a);
 }
+
+fn issue15609() {
+    const _: () = assert!(0x20 == b' ');
+    assert_eq!(0x20, b' ');
+}
