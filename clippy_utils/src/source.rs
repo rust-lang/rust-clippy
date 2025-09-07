@@ -731,8 +731,7 @@ pub fn trim_span(sm: &SourceMap, span: Span) -> Span {
     SpanData {
         lo: data.lo + BytePos::from_usize(trim_start),
         hi: data.hi - BytePos::from_usize(trim_end),
-        ctxt: data.ctxt,
-        parent: data.parent,
+        ..data
     }
     .span()
 }
