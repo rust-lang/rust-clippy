@@ -97,6 +97,8 @@ fn run_clippy_for_package(project: &str) -> bool {
         "clippy::needless_pass_by_ref_mut",
         "-D",
         "clippy::significant_drop_tightening",
+        "-D",
+        "clippy::tuple_array_conversions",
     ]);
     if !cfg!(feature = "internal") {
         // running a clippy built without internal lints on the clippy source
