@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::{span_lint_hir, span_lint_hir_and_then};
+use clippy_utils::higher::Range;
 use clippy_utils::res::MaybeResPath;
 use clippy_utils::source::SpanRangeExt;
 use clippy_utils::ty::{expr_type_is_certain, has_drop};
@@ -353,6 +354,26 @@ fn reduce_expression<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<(Ve
         },
         ExprKind::Cast(inner, _) if expr_type_is_certain(cx, inner) => {
             reduce_expression(cx, inner).or_else(|| Some((vec![inner], Applicability::MachineApplicable)))
+        },
+        // In the normal `Struct` case, we bail out if any of the fields has an uncertain type.
+        // But for two-sided ranges, we know that if the type of one of the sides is certain, then so is the other
+        // one's. So we only check that, more relaxed pre-condition.
+        //
+        // Note that that condition true in general for any struct with a generic present in two fields, but
+        // generalizing the check to those would be cumbersome.
+        ExprKind::Struct(..)
+            if let Some(range) = Range::hir(cx, expr)
+                && let Some(start) = range.start
+                && let Some(end) = range.end =>
+        {
+            let applicability = if [start, end].into_iter().any(|e| expr_type_is_certain(cx, e)) {
+                Applicability::MachineApplicable
+            } else {
+                // there's a risk that if we take the field exprs out of the context of the range constructor,
+                // their types might become ambiguous
+                Applicability::MaybeIncorrect
+            };
+            Some((vec![start, end], applicability))
         },
         ExprKind::Struct(_, fields, ref base) => {
             let applicability = if fields.iter().all(|f| expr_type_is_certain(cx, f.expr)) {
