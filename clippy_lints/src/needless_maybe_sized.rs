@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::is_from_proc_macro;
 use rustc_errors::Applicability;
 use rustc_hir::def_id::{DefId, DefIdMap};
 use rustc_hir::{BoundPolarity, GenericBound, Generics, PolyTraitRef, TraitBoundModifiers, WherePredicateKind};
@@ -34,6 +35,7 @@ declare_clippy_lint! {
 declare_lint_pass!(NeedlessMaybeSized => [NEEDLESS_MAYBE_SIZED]);
 
 #[allow(clippy::struct_field_names)]
+#[derive(Debug)]
 struct Bound<'tcx> {
     /// The [`DefId`] of the type parameter the bound refers to
     param: DefId,
@@ -46,7 +48,7 @@ struct Bound<'tcx> {
 }
 
 /// Finds all of the [`Bound`]s that refer to a type parameter and are not from a macro expansion
-fn type_param_bounds<'tcx>(generics: &'tcx Generics<'tcx>) -> impl Iterator<Item = Bound<'tcx>> {
+fn type_param_bounds<'tcx>(cx: &LateContext<'_>, generics: &'tcx Generics<'tcx>) -> impl Iterator<Item = Bound<'tcx>> {
     generics
         .predicates
         .iter()
@@ -73,7 +75,8 @@ fn type_param_bounds<'tcx>(generics: &'tcx Generics<'tcx>) -> impl Iterator<Item
                         }),
                         GenericBound::Outlives(_) | GenericBound::Use(..) => None,
                     })
-                    .filter(|bound| !bound.trait_bound.span.from_expansion()),
+                    .filter(|bound| !bound.trait_bound.span.from_expansion())
+                    .filter(|bound| !is_from_proc_macro(cx, bound.trait_bound)),
             )
         })
         .flatten()
@@ -115,7 +118,7 @@ impl LateLintPass<'_> for NeedlessMaybeSized {
             return;
         };
 
-        let maybe_sized_params: DefIdMap<_> = type_param_bounds(generics)
+        let maybe_sized_params: DefIdMap<_> = type_param_bounds(cx, generics)
             .filter(|bound| {
                 bound.trait_bound.trait_ref.trait_def_id() == Some(sized_trait)
                     && matches!(bound.trait_bound.modifiers.polarity, BoundPolarity::Maybe(_))
@@ -123,7 +126,7 @@ impl LateLintPass<'_> for NeedlessMaybeSized {
             .map(|bound| (bound.param, bound))
             .collect();
 
-        for bound in type_param_bounds(generics) {
+        for bound in type_param_bounds(cx, generics) {
             if bound.trait_bound.modifiers == TraitBoundModifiers::NONE
                 && let Some(sized_bound) = maybe_sized_params.get(&bound.param)
                 && let Some(path) = path_to_sized_bound(cx, bound.trait_bound)
