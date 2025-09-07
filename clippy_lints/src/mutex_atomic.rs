@@ -1,7 +1,8 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::{is_type_diagnostic_item, ty_from_hir_ty};
-use rustc_errors::Diag;
-use rustc_hir::{Expr, Item, ItemKind, LetStmt};
+use rustc_errors::{Applicability, Diag};
+use rustc_hir::{Expr, ExprKind, Item, ItemKind, LetStmt, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, IntTy, Ty, UintTy};
 use rustc_session::declare_lint_pass;
@@ -119,7 +120,19 @@ fn check_expr<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>, ty: Ty<'tcx>) {
     {
         let msg = "using a `Mutex` where an atomic would do";
         let diag = |diag: &mut Diag<'_, _>| {
-            diag.help(format!("consider using an `{atomic_name}` instead"));
+            // if `expr = Mutex::new(arg)`, we can try emitting a suggestion
+            if let ExprKind::Call(qpath, [arg]) = expr.kind
+                && let ExprKind::Path(QPath::TypeRelative(_mutex, new)) = qpath.kind
+                && new.ident.name == sym::new
+            {
+                let mut applicability = Applicability::MaybeIncorrect;
+                let arg = Sugg::hir_with_applicability(cx, arg, "_", &mut applicability);
+
+                let suggs = vec![(expr.span, format!("std::sync::atomic::{atomic_name}::new({arg})"))];
+                diag.multipart_suggestion("try", suggs, applicability);
+            } else {
+                diag.help(format!("consider using an `{atomic_name}` instead"));
+            }
             diag.help("if you just want the locking behavior and not the internal type, consider using `Mutex<()>`");
         };
         match *mutex_param.kind() {
