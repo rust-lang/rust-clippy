@@ -375,7 +375,7 @@ fn reduce_expression<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<(Ve
             };
             Some((vec![start, end], applicability))
         },
-        ExprKind::Struct(_, fields, ref base) => {
+        ExprKind::Struct(_, fields, ref base) if !has_drop(cx, cx.typeck_results().expr_ty(expr)) => {
             let applicability = if fields.iter().all(|f| expr_type_is_certain(cx, f.expr)) {
                 Applicability::MachineApplicable
             } else {
@@ -383,20 +383,23 @@ fn reduce_expression<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<(Ve
                 // their types might become ambiguous
                 Applicability::MaybeIncorrect
             };
-            if has_drop(cx, cx.typeck_results().expr_ty(expr)) {
-                None
-            } else {
-                let base = match base {
-                    StructTailExpr::Base(base) => Some(base),
-                    StructTailExpr::None | StructTailExpr::DefaultFields(_) => None,
-                };
-                Some((
-                    fields.iter().map(|f| &f.expr).chain(base).map(Deref::deref).collect(),
-                    applicability,
-                ))
-            }
+            let base = match base {
+                StructTailExpr::Base(base) => Some(base),
+                StructTailExpr::None | StructTailExpr::DefaultFields(_) => None,
+            };
+            Some((
+                fields.iter().map(|f| &f.expr).chain(base).map(Deref::deref).collect(),
+                applicability,
+            ))
         },
-        ExprKind::Call(callee, args) => {
+        ExprKind::Call(callee, args)
+            if let ExprKind::Path(ref qpath) = callee.kind
+                // not a type-dependent function call like `impl FnOnce for X`
+                && cx.typeck_results().type_dependent_def(expr.hir_id).is_none()
+                && let Res::Def(def_kind, ..) = cx.qpath_res(qpath, callee.hir_id)
+                && matches!(def_kind, DefKind::Struct | DefKind::Variant | DefKind::Ctor(..))
+                && !has_drop(cx, cx.typeck_results().expr_ty(expr)) =>
+        {
             let applicability = if args.iter().all(|a| expr_type_is_certain(cx, a)) {
                 Applicability::MachineApplicable
             } else {
@@ -404,36 +407,18 @@ fn reduce_expression<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<(Ve
                 // call/constructor, their types might become ambiguous
                 Applicability::MaybeIncorrect
             };
-            if let ExprKind::Path(ref qpath) = callee.kind {
-                if cx.typeck_results().type_dependent_def(expr.hir_id).is_some() {
-                    // type-dependent function call like `impl FnOnce for X`
-                    return None;
-                }
-                let res = cx.qpath_res(qpath, callee.hir_id);
-                match res {
-                    Res::Def(DefKind::Struct | DefKind::Variant | DefKind::Ctor(..), ..)
-                        if !has_drop(cx, cx.typeck_results().expr_ty(expr)) =>
-                    {
-                        Some((args.iter().collect(), applicability))
-                    },
-                    _ => None,
-                }
-            } else {
-                None
-            }
+            Some((args.iter().collect(), applicability))
         },
-        ExprKind::Block(block, _) => {
-            if block.stmts.is_empty() && !block.targeted_by_break {
-                block.expr.as_ref().and_then(|e| {
-                    match block.rules {
-                        BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided) => None,
-                        BlockCheckMode::DefaultBlock => Some((vec![&**e], Applicability::MachineApplicable)),
-                        // in case of compiler-inserted signaling blocks
-                        BlockCheckMode::UnsafeBlock(_) => reduce_expression(cx, e),
-                    }
-                })
-            } else {
-                None
+        ExprKind::Block(block, _)
+            if !block.targeted_by_break
+                && block.stmts.is_empty()
+                && let Some(e) = &block.expr =>
+        {
+            match block.rules {
+                BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided) => None,
+                BlockCheckMode::DefaultBlock => Some((vec![&**e], Applicability::MachineApplicable)),
+                // in case of compiler-inserted signaling blocks
+                BlockCheckMode::UnsafeBlock(_) => reduce_expression(cx, e),
             }
         },
         _ => None,
