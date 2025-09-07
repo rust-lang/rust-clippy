@@ -55,11 +55,10 @@ impl<'tcx> LateLintPass<'tcx> for ArcWithNonSendSync {
             })
             && let Some(send) = cx.tcx.get_diagnostic_item(sym::Send)
             && let Some(sync) = cx.tcx.lang_items().sync_trait()
-            && let [is_send, is_sync] = [send, sync].map(|id| implements_trait(cx, arg_ty, id, &[]))
-            && let reason = match (is_send, is_sync) {
-                (false, false) => "neither `Send` nor `Sync`",
-                (false, true) => "not `Send`",
-                (true, false) => "not `Sync`",
+            && let reason = match [send, sync].map(|id| implements_trait(cx, arg_ty, id, &[])) {
+                [false, false] => "neither `Send` nor `Sync`",
+                [false, true] => "not `Send`",
+                [true, false] => "not `Sync`",
                 _ => return,
             }
             && !is_from_proc_macro(cx, expr)
