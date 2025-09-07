@@ -1,0 +1,85 @@
+error: this function contains a call to itself
+  --> tests/ui/direct_recursion.rs:8:5
+   |
+LL |     i_call_myself_always();
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: the lint level is defined here
+  --> tests/ui/direct_recursion.rs:1:9
+   |
+LL | #![deny(clippy::direct_recursion)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: this function contains a call to itself
+  --> tests/ui/direct_recursion.rs:14:9
+   |
+LL |         i_call_myself_conditionally(false);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: this function contains a call to itself
+  --> tests/ui/direct_recursion.rs:49:9
+   |
+LL |         i_have_one_blessing_but_two_calls(bound - 2)
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: this function contains a call to itself
+  --> tests/ui/direct_recursion.rs:79:9
+   |
+LL | /         ackermann_2_electric_recursion(
+LL | |
+LL | |             m,
+LL | |             ackermann_2_electric_recursion(m + 1, n),
+LL | |
+LL | |         )
+   | |_________^
+
+error: this function contains a call to itself
+  --> tests/ui/direct_recursion.rs:82:13
+   |
+LL |             ackermann_2_electric_recursion(m + 1, n),
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: this function contains a call to itself
+  --> tests/ui/direct_recursion.rs:94:13
+   |
+LL |             parent();
+   |             ^^^^^^^^
+
+error: this function contains a call to itself
+  --> tests/ui/direct_recursion.rs:96:13
+   |
+LL |             grand_parent();
+   |             ^^^^^^^^^^^^^^
+
+error: this function contains a call to itself
+  --> tests/ui/direct_recursion.rs:99:9
+   |
+LL |         grand_parent();
+   |         ^^^^^^^^^^^^^^
+
+error: this function creates a reference to itself
+  --> tests/ui/direct_recursion.rs:108:42
+   |
+LL |     if a < 2 { a } else { (a - 2..a).map(fibo).sum() }
+   |                                          ^^^^
+
+error: this function contains a call to itself
+  --> tests/ui/direct_recursion.rs:128:17
+   |
+LL |             n + Self::rec_sum(n - 1)
+   |                 ^^^^^^^^^^^^^^^^^^^^
+
+error: this method contains a call to itself
+  --> tests/ui/direct_recursion.rs:150:13
+   |
+LL |             self.myfun(num - 1);
+   |             ^^^^^^^^^^^^^^^^^^^
+
+error: this method contains a call to itself
+  --> tests/ui/direct_recursion.rs:167:13
+   |
+LL |             self.f()
+   |             ^^^^^^^^
+
+error: aborting due to 12 previous errors
+

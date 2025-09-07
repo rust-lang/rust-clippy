@@ -113,6 +113,7 @@ mod default_union_representation;
 mod dereference;
 mod derivable_impls;
 mod derive;
+mod direct_recursion;
 mod disallowed_macros;
 mod disallowed_methods;
 mod disallowed_names;
@@ -831,5 +832,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(cloned_ref_to_slice_refs::ClonedRefToSliceRefs::new(conf)));
     store.register_late_pass(|_| Box::new(infallible_try_from::InfallibleTryFrom));
     store.register_late_pass(|_| Box::new(coerce_container_to_any::CoerceContainerToAny));
+    store.register_late_pass(|_| Box::<direct_recursion::DirectRecursion>::default());
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
