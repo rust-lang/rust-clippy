@@ -833,10 +833,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(cloned_ref_to_slice_refs::ClonedRefToSliceRefs::new(conf)));
     store.register_late_pass(|_| Box::new(infallible_try_from::InfallibleTryFrom));
     store.register_late_pass(|_| Box::new(coerce_container_to_any::CoerceContainerToAny));
-<<<<<<< HEAD
     store.register_late_pass(|_| Box::new(toplevel_ref_arg::ToplevelRefArg));
-=======
     store.register_late_pass(|_| Box::new(default_box_assignments::DefaultBoxAssignments));
->>>>>>> abaeaeef1 (Add `default_box_assignments` lint)
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
