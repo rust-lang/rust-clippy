@@ -1,0 +1,10 @@
+// This test ensures that the (JS) filters are working as expected.
+
+go-to: |DOC_PATH|
+// Check that by default, all lints are displayed except the "deprecated" ones.
+store-count: ("article .lint-title", nb_lints)
+store-count: ("article:not(.hidden) .lint-title", nb_visible_lints)
+store-count: ("article.hidden .lint-title", nb_hidden_lints)
+store-count: ("span.group-deprecated", nb_deprecated_lints)
+assert: |nb_deprecated_lints| == |nb_hidden_lints|
+assert: |nb_lints| == |nb_visible_lints| + |nb_deprecated_lints|
