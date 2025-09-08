@@ -2,7 +2,7 @@ error: creating a new box
   --> tests/ui/default_box_assignments.rs:4:5
    |
 LL |     *b = Box::new(T::default());
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace existing content with inner value instead: `*(*b) = T::default()`
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace existing content with inner value instead: `**b = T::default()`
    |
    = note: this creates a needless allocation
    = note: `-D clippy::default-box-assignments` implied by `-D warnings`
@@ -12,7 +12,7 @@ error: creating a new box
   --> tests/ui/default_box_assignments.rs:9:5
    |
 LL |     *b = Box::new(t);
-   |     ^^^^^^^^^^^^^^^^ help: replace existing content with inner value instead: `*(*b) = t`
+   |     ^^^^^^^^^^^^^^^^ help: replace existing content with inner value instead: `**b = t`
    |
    = note: this creates a needless allocation
 

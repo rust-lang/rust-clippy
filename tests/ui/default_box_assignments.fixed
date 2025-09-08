@@ -1,12 +1,12 @@
 #![warn(clippy::default_box_assignments)]
 
 fn with_default<T: Default>(b: &mut Box<T>) {
-    *(*b) = T::default();
+    **b = T::default();
     //~^ default_box_assignments
 }
 
 fn with_sized<T>(b: &mut Box<T>, t: T) {
-    *(*b) = t;
+    **b = t;
     //~^ default_box_assignments
 }
 
