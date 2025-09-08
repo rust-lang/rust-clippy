@@ -1,4 +1,3 @@
-use crate::rustc_lint::LintContext as _;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_from_proc_macro;
 use itertools::Itertools;
@@ -47,7 +46,7 @@ declare_lint_pass!(RestWhenDestructuringStruct => [REST_WHEN_DESTRUCTURING_STRUC
 
 impl<'tcx> LateLintPass<'tcx> for RestWhenDestructuringStruct {
     fn check_pat(&mut self, cx: &rustc_lint::LateContext<'tcx>, pat: &'tcx rustc_hir::Pat<'tcx>) {
-        if let rustc_hir::PatKind::Struct(path, fields, true) = pat.kind
+        if let rustc_hir::PatKind::Struct(path, fields, Some(dotdot)) = pat.kind
             && !pat.span.in_external_macro(cx.tcx.sess.source_map())
             && !is_from_proc_macro(cx, pat)
             && let qty = cx.typeck_results().qpath_res(&path, pat.hir_id)
@@ -64,22 +63,6 @@ impl<'tcx> LateLintPass<'tcx> for RestWhenDestructuringStruct {
                 .filter(|pf| !fields.iter().any(|x| x.ident == *pf))
                 .map(|x| format!("{x}: _"));
             let fmt_fields = rest_fields.join(", ");
-
-            let sm = cx.sess().source_map();
-
-            // It is not possible to get the span of the et cetera symbol at HIR level
-            // so we have to get it in a bit of a roundabout way:
-
-            // Find the end of the last field if any.
-            let last_field = fields.iter().last().map(|x| x.span.shrink_to_hi());
-            // If no last field take the whole pattern.
-            let last_field = last_field.unwrap_or(pat.span.shrink_to_lo());
-            // Create a new span starting and ending just before the first .
-            let before_dot = sm.span_extend_to_next_char(last_field, '.', true).shrink_to_hi();
-            // Extend the span to the end of the line
-            let rest_of_line = sm.span_extend_to_next_char(before_dot, '\n', true);
-            // Shrink the span so it only contains dots
-            let dotdot = sm.span_take_while(rest_of_line, |x| *x == '.');
 
             span_lint_and_then(
                 cx,
