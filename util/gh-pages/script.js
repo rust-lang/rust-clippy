@@ -61,9 +61,9 @@ window.searchState = {
                 continue;
             }
             if (lint.searchFilteredOut) {
-                lint.elem.style.display = "none";
+                lint.elem.classList.add("hidden");
             } else {
-                lint.elem.style.display = "";
+                lint.elem.classList.remove("hidden");
             }
         }
         if (searchStr.length > 0) {
@@ -329,9 +329,9 @@ window.filters = {
                 || !(filters.version_filter["≤"] === null || lint.version <= filters.version_filter["≤"])
             );
             if (lint.filteredOut || lint.searchFilteredOut) {
-                lint.elem.style.display = "none";
+                lint.elem.classList.add("hidden");
             } else {
-                lint.elem.style.display = "";
+                lint.elem.classList.remove("hidden");
             }
         }
     },
