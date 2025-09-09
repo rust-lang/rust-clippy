@@ -201,10 +201,11 @@ declare_lint_pass!(Derive => [
 impl<'tcx> LateLintPass<'tcx> for Derive {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'_>) {
         if let ItemKind::Impl(Impl {
-            of_trait: Some(trait_ref),
+            of_trait: Some(of_trait),
             ..
         }) = item.kind
         {
+            let trait_ref = &of_trait.trait_ref;
             let ty = cx.tcx.type_of(item.owner_id).instantiate_identity();
             let is_automatically_derived = cx.tcx.is_automatically_derived(item.owner_id.to_def_id());
 
@@ -432,6 +433,11 @@ impl<'tcx> Visitor<'tcx> for UnsafeVisitor<'_, 'tcx> {
     fn visit_expr(&mut self, expr: &'tcx Expr<'_>) -> Self::Result {
         if let ExprKind::Block(block, _) = expr.kind
             && block.rules == BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided)
+            && block
+                .span
+                .source_callee()
+                .and_then(|expr| expr.macro_def_id)
+                .is_none_or(|did| !self.cx.tcx.is_diagnostic_item(sym::pin_macro, did))
         {
             return ControlFlow::Break(());
         }

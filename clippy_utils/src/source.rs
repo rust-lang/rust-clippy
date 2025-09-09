@@ -7,7 +7,7 @@ use std::sync::Arc;
 use rustc_ast::{LitKind, StrStyle};
 use rustc_errors::Applicability;
 use rustc_hir::{BlockCheckMode, Expr, ExprKind, UnsafeSource};
-use rustc_lexer::{LiteralKind, TokenKind, tokenize};
+use rustc_lexer::{FrontmatterAllowed, LiteralKind, TokenKind, tokenize};
 use rustc_lint::{EarlyContext, LateContext};
 use rustc_middle::ty::TyCtxt;
 use rustc_session::Session;
@@ -277,7 +277,7 @@ fn map_range(
 }
 
 fn ends_with_line_comment_or_broken(text: &str) -> bool {
-    let Some(last) = tokenize(text).last() else {
+    let Some(last) = tokenize(text, FrontmatterAllowed::No).last() else {
         return false;
     };
     match last.kind {
@@ -310,7 +310,8 @@ fn with_leading_whitespace_inner(lines: &[RelativeBytePos], src: &str, range: Ra
         && ends_with_line_comment_or_broken(&start[prev_start..])
         && let next_line = lines.partition_point(|&pos| pos.to_usize() < range.end)
         && let next_start = lines.get(next_line).map_or(src.len(), |&x| x.to_usize())
-        && tokenize(src.get(range.end..next_start)?).any(|t| !matches!(t.kind, TokenKind::Whitespace))
+        && tokenize(src.get(range.end..next_start)?, FrontmatterAllowed::No)
+            .any(|t| !matches!(t.kind, TokenKind::Whitespace))
     {
         Some(range.start)
     } else {
@@ -341,11 +342,8 @@ impl SourceFileRange {
     /// Attempts to get the text from the source file. This can fail if the source text isn't
     /// loaded.
     pub fn as_str(&self) -> Option<&str> {
-        self.sf
-            .src
-            .as_ref()
-            .map(|src| src.as_str())
-            .or_else(|| self.sf.external_src.get().and_then(|src| src.get_source()))
+        (self.sf.src.as_ref().map(|src| src.as_str()))
+            .or_else(|| self.sf.external_src.get()?.get_source())
             .and_then(|x| x.get(self.range.clone()))
     }
 }

@@ -49,7 +49,7 @@ declare_clippy_lint! {
 }
 
 impl<'tcx> QuestionMark {
-    pub(crate) fn check_manual_let_else(&mut self, cx: &LateContext<'tcx>, stmt: &'tcx Stmt<'tcx>) {
+    pub(crate) fn check_manual_let_else(&self, cx: &LateContext<'tcx>, stmt: &'tcx Stmt<'tcx>) {
         if let StmtKind::Let(local) = stmt.kind
             && let Some(init) = local.init
             && local.els.is_none()
@@ -245,17 +245,36 @@ fn replace_in_pattern(
         }
 
         match pat.kind {
-            PatKind::Binding(_ann, _id, binding_name, opt_subpt) => {
-                let Some((pat_to_put, binding_mode)) = ident_map.get(&binding_name.name) else {
-                    break 'a;
-                };
-                let sn_pfx = binding_mode.prefix_str();
-                let (sn_ptp, _) = snippet_with_context(cx, pat_to_put.span, span.ctxt(), "", app);
-                if let Some(subpt) = opt_subpt {
-                    let subpt = replace_in_pattern(cx, span, ident_map, subpt, app, false);
-                    return format!("{sn_pfx}{sn_ptp} @ {subpt}");
+            PatKind::Binding(ann, _id, binding_name, opt_subpt) => {
+                match (ident_map.get(&binding_name.name), opt_subpt) {
+                    (Some((pat_to_put, binding_mode)), opt_subpt) => {
+                        let sn_pfx = binding_mode.prefix_str();
+                        let (sn_ptp, _) = snippet_with_context(cx, pat_to_put.span, span.ctxt(), "", app);
+                        if let Some(subpt) = opt_subpt {
+                            let subpt = replace_in_pattern(cx, span, ident_map, subpt, app, false);
+                            return format!("{sn_pfx}{sn_ptp} @ {subpt}");
+                        }
+                        return format!("{sn_pfx}{sn_ptp}");
+                    },
+                    (None, Some(subpt)) => {
+                        let subpt = replace_in_pattern(cx, span, ident_map, subpt, app, false);
+                        // scanning for a value that matches is not sensitive to order
+                        #[expect(rustc::potential_query_instability)]
+                        if ident_map.values().any(|(other_pat, _)| {
+                            if let PatKind::Binding(_, _, other_name, _) = other_pat.kind {
+                                other_name == binding_name
+                            } else {
+                                false
+                            }
+                        }) {
+                            // this name is shadowed, and, therefore, not usable
+                            return subpt;
+                        }
+                        let binding_pfx = ann.prefix_str();
+                        return format!("{binding_pfx}{binding_name} @ {subpt}");
+                    },
+                    (None, None) => break 'a,
                 }
-                return format!("{sn_pfx}{sn_ptp}");
             },
             PatKind::Or(pats) => {
                 let patterns = pats
@@ -268,7 +287,7 @@ fn replace_in_pattern(
                 }
                 return or_pat;
             },
-            PatKind::Struct(path, fields, has_dot_dot) => {
+            PatKind::Struct(path, fields, dot_dot) => {
                 let fields = fields
                     .iter()
                     .map(|fld| {
@@ -292,7 +311,7 @@ fn replace_in_pattern(
                     .collect::<Vec<_>>();
                 let fields_string = fields.join(", ");
 
-                let dot_dot_str = if has_dot_dot { " .." } else { "" };
+                let dot_dot_str = if dot_dot.is_some() { " .." } else { "" };
                 let (sn_pth, _) = snippet_with_context(cx, path.span(), span.ctxt(), "", app);
                 return format!("{sn_pth} {{ {fields_string}{dot_dot_str} }}");
             },

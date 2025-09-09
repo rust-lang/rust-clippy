@@ -3,7 +3,7 @@ use crate::utils::{
     walk_dir_no_dot_or_target,
 };
 use itertools::Itertools;
-use rustc_lexer::{TokenKind, tokenize};
+use rustc_lexer::{FrontmatterAllowed, TokenKind, tokenize};
 use std::fmt::Write;
 use std::fs;
 use std::io::{self, Read};
@@ -92,7 +92,7 @@ fn fmt_conf(check: bool) -> Result<(), Error> {
     let mut fields = Vec::new();
     let mut state = State::Start;
 
-    for (i, t) in tokenize(conf)
+    for (i, t) in tokenize(conf, FrontmatterAllowed::No)
         .map(|x| {
             let start = pos;
             pos += x.len;
@@ -223,7 +223,7 @@ fn fmt_conf(check: bool) -> Result<(), Error> {
         if check {
             return Err(Error::CheckFailed);
         }
-        fs::write(path, new_text.as_bytes())?;
+        fs::write(path, new_text)?;
     }
     Ok(())
 }

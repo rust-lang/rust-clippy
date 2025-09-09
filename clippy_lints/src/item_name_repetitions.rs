@@ -502,7 +502,8 @@ impl LateLintPass<'_> for ItemNameRepetitions {
                 );
             }
 
-            if both_are_public && item_camel.len() > mod_camel.len() {
+            let is_macro = matches!(item.kind, ItemKind::Macro(_, _, _));
+            if both_are_public && item_camel.len() > mod_camel.len() && !is_macro {
                 let matching = count_match_start(mod_camel, &item_camel);
                 let rmatching = count_match_end(mod_camel, &item_camel);
                 let nchars = mod_camel.chars().count();

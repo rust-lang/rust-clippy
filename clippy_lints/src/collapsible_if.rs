@@ -5,7 +5,7 @@ use clippy_utils::source::{IntoSpan as _, SpanRangeExt, snippet, snippet_block_w
 use clippy_utils::{span_contains_non_whitespace, tokenize_with_text};
 use rustc_ast::BinOpKind;
 use rustc_errors::Applicability;
-use rustc_hir::{Block, Expr, ExprKind, Stmt, StmtKind};
+use rustc_hir::{Block, Expr, ExprKind, StmtKind};
 use rustc_lexer::TokenKind;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::impl_lint_pass;
@@ -136,13 +136,12 @@ impl CollapsibleIf {
                         return;
                     }
 
+                    // Peel off any parentheses.
+                    let (_, else_block_span, _) = peel_parens(cx.tcx.sess.source_map(), else_.span);
+
                     // Prevent "elseif"
                     // Check that the "else" is followed by whitespace
-                    let requires_space = if let Some(c) = snippet(cx, up_to_else, "..").chars().last() {
-                        !c.is_whitespace()
-                    } else {
-                        false
-                    };
+                    let requires_space = snippet(cx, up_to_else, "..").ends_with(|c: char| !c.is_whitespace());
                     let mut applicability = Applicability::MachineApplicable;
                     diag.span_suggestion(
                         else_block.span,
@@ -152,7 +151,7 @@ impl CollapsibleIf {
                             if requires_space { " " } else { "" },
                             snippet_block_with_applicability(
                                 cx,
-                                else_.span,
+                                else_block_span,
                                 "..",
                                 Some(else_block.span),
                                 &mut applicability
@@ -170,8 +169,7 @@ impl CollapsibleIf {
             && cx.tcx.hir_attrs(inner.hir_id).is_empty()
             && let ExprKind::If(check_inner, _, None) = &inner.kind
             && self.eligible_condition(cx, check_inner)
-            && let ctxt = expr.span.ctxt()
-            && inner.span.ctxt() == ctxt
+            && expr.span.eq_ctxt(inner.span)
             && !block_starts_with_significant_tokens(cx, then, inner, self.lint_commented_code)
         {
             span_lint_and_then(
@@ -187,7 +185,8 @@ impl CollapsibleIf {
                             .with_leading_whitespace(cx)
                             .into_span()
                     };
-                    let inner_if = inner.span.split_at(2).0;
+                    let (paren_start, inner_if_span, paren_end) = peel_parens(cx.tcx.sess.source_map(), inner.span);
+                    let inner_if = inner_if_span.split_at(2).0;
                     let mut sugg = vec![
                         // Remove the outer then block `{`
                         (then_open_bracket, String::new()),
@@ -196,6 +195,17 @@ impl CollapsibleIf {
                         // Replace inner `if` by `&&`
                         (inner_if, String::from("&&")),
                     ];
+
+                    if !paren_start.is_empty() {
+                        // Remove any leading parentheses '('
+                        sugg.push((paren_start, String::new()));
+                    }
+
+                    if !paren_end.is_empty() {
+                        // Remove any trailing parentheses ')'
+                        sugg.push((paren_end, String::new()));
+                    }
+
                     sugg.extend(parens_around(check));
                     sugg.extend(parens_around(check_inner));
 
@@ -247,14 +257,9 @@ fn block_starts_with_significant_tokens(
 /// If `block` is a block with either one expression or a statement containing an expression,
 /// return the expression. We don't peel blocks recursively, as extra blocks might be intentional.
 fn expr_block<'tcx>(block: &Block<'tcx>) -> Option<&'tcx Expr<'tcx>> {
-    match block.stmts {
-        [] => block.expr,
-        [
-            Stmt {
-                kind: StmtKind::Semi(expr),
-                ..
-            },
-        ] if block.expr.is_none() => Some(expr),
+    match (block.stmts, block.expr) {
+        ([], expr) => expr,
+        ([stmt], None) if let StmtKind::Semi(expr) = stmt.kind => Some(expr),
         _ => None,
     }
 }
@@ -284,4 +289,38 @@ fn span_extract_keyword(sm: &SourceMap, span: Span, keyword: &str) -> Option<Spa
                 .0
         })
         .next()
+}
+
+/// Peel the parentheses from an `if` expression, e.g. `((if true {} else {}))`.
+fn peel_parens(sm: &SourceMap, mut span: Span) -> (Span, Span, Span) {
+    use crate::rustc_span::Pos;
+
+    let start = span.shrink_to_lo();
+    let end = span.shrink_to_hi();
+
+    let snippet = sm.span_to_snippet(span).unwrap();
+    if let Some((trim_start, _, trim_end)) = peel_parens_str(&snippet) {
+        let mut data = span.data();
+        data.lo = data.lo + BytePos::from_usize(trim_start);
+        data.hi = data.hi - BytePos::from_usize(trim_end);
+        span = data.span();
+    }
+
+    (start.with_hi(span.lo()), span, end.with_lo(span.hi()))
+}
+
+fn peel_parens_str(snippet: &str) -> Option<(usize, &str, usize)> {
+    let trimmed = snippet.trim();
+    if !(trimmed.starts_with('(') && trimmed.ends_with(')')) {
+        return None;
+    }
+
+    let trim_start = (snippet.len() - snippet.trim_start().len()) + 1;
+    let trim_end = (snippet.len() - snippet.trim_end().len()) + 1;
+
+    let inner = snippet.get(trim_start..snippet.len() - trim_end)?;
+    Some(match peel_parens_str(inner) {
+        None => (trim_start, inner, trim_end),
+        Some((start, inner, end)) => (trim_start + start, inner, trim_end + end),
+    })
 }

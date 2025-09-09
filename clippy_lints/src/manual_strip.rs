@@ -75,12 +75,10 @@ impl<'tcx> LateLintPass<'tcx> for ManualStrip {
             && let ExprKind::Path(target_path) = &target_arg.kind
             && let Some(method_def_id) = cx.typeck_results().type_dependent_def_id(cond.hir_id)
         {
-            let strip_kind = if cx.tcx.is_diagnostic_item(sym::str_starts_with, method_def_id) {
-                StripKind::Prefix
-            } else if cx.tcx.is_diagnostic_item(sym::str_ends_with, method_def_id) {
-                StripKind::Suffix
-            } else {
-                return;
+            let strip_kind = match cx.tcx.get_diagnostic_name(method_def_id) {
+                Some(sym::str_starts_with) => StripKind::Prefix,
+                Some(sym::str_ends_with) => StripKind::Suffix,
+                _ => return,
             };
             let target_res = cx.qpath_res(target_path, target_arg.hir_id);
             if target_res == Res::Err {
@@ -184,7 +182,7 @@ fn eq_pattern_length<'tcx>(cx: &LateContext<'tcx>, pattern: &Expr<'_>, expr: &'t
         ..
     }) = expr.kind
     {
-        constant_length(cx, pattern).is_some_and(|length| *n == length)
+        constant_length(cx, pattern).is_some_and(|length| n == length)
     } else {
         len_arg(cx, expr).is_some_and(|arg| eq_expr_value(cx, pattern, arg))
     }

@@ -5,12 +5,12 @@ use clippy_utils::ty::{for_each_top_level_late_bound_region, is_copy};
 use clippy_utils::{is_self, is_self_ty};
 use core::ops::ControlFlow;
 use rustc_abi::ExternAbi;
-use rustc_ast::attr;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
+use rustc_hir::attrs::{AttributeKind, InlineAttr};
 use rustc_hir::intravisit::FnKind;
-use rustc_hir::{BindingMode, Body, FnDecl, Impl, ItemKind, MutTy, Mutability, Node, PatKind};
+use rustc_hir::{BindingMode, Body, FnDecl, Impl, ItemKind, MutTy, Mutability, Node, PatKind, find_attr};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::adjustment::{Adjust, PointerCoercion};
 use rustc_middle::ty::layout::LayoutOf;
@@ -120,7 +120,7 @@ impl PassByRefOrValue {
         }
     }
 
-    fn check_poly_fn(&mut self, cx: &LateContext<'_>, def_id: LocalDefId, decl: &FnDecl<'_>, span: Option<Span>) {
+    fn check_poly_fn(&self, cx: &LateContext<'_>, def_id: LocalDefId, decl: &FnDecl<'_>, span: Option<Span>) {
         if self.avoid_breaking_exported_api && cx.effective_visibilities.is_exported(def_id) {
             return;
         }
@@ -270,11 +270,13 @@ impl<'tcx> LateLintPass<'tcx> for PassByRefOrValue {
                     return;
                 }
                 let attrs = cx.tcx.hir_attrs(hir_id);
+                if find_attr!(attrs, AttributeKind::Inline(InlineAttr::Always, _)) {
+                    return;
+                }
+
                 for a in attrs {
-                    if let Some(meta_items) = a.meta_item_list()
-                        && (a.has_name(sym::proc_macro_derive)
-                            || (a.has_name(sym::inline) && attr::list_contains_name(&meta_items, sym::always)))
-                    {
+                    // FIXME(jdonszelmann): make part of the find_attr above
+                    if a.has_name(sym::proc_macro_derive) {
                         return;
                     }
                 }

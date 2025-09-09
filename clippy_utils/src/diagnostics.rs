@@ -22,10 +22,14 @@ fn docs_link(diag: &mut Diag<'_, ()>, lint: &'static Lint) {
     {
         diag.help(format!(
             "for further information visit https://rust-lang.github.io/rust-clippy/{}/index.html#{lint}",
-            &option_env!("RUST_RELEASE_NUM").map_or("master".to_string(), |n| {
-                // extract just major + minor version and ignore patch versions
-                format!("rust-{}", n.rsplit_once('.').unwrap().1)
-            })
+            match option_env!("CFG_RELEASE_CHANNEL") {
+                // Clippy version is 0.1.xx
+                //
+                // Always use .0 because we do not generate separate lint doc pages for rust patch releases
+                Some("stable") => concat!("rust-1.", env!("CARGO_PKG_VERSION_PATCH"), ".0"),
+                Some("beta") => "beta",
+                _ => "master",
+            }
         ));
     }
 }
@@ -98,6 +102,7 @@ fn validate_diag(diag: &Diag<'_, impl EmissionGuarantee>) {
 /// 17 |     std::mem::forget(seven);
 ///    |     ^^^^^^^^^^^^^^^^^^^^^^^
 /// ```
+#[track_caller]
 pub fn span_lint<T: LintContext>(cx: &T, lint: &'static Lint, sp: impl Into<MultiSpan>, msg: impl Into<DiagMessage>) {
     #[expect(clippy::disallowed_methods)]
     cx.span_lint(lint, sp, |diag| {
@@ -143,6 +148,7 @@ pub fn span_lint<T: LintContext>(cx: &T, lint: &'static Lint, sp: impl Into<Mult
 ///    |
 ///    = help: consider using `f64::NAN` if you would like a constant representing NaN
 /// ```
+#[track_caller]
 pub fn span_lint_and_help<T: LintContext>(
     cx: &T,
     lint: &'static Lint,
@@ -203,6 +209,7 @@ pub fn span_lint_and_help<T: LintContext>(
 /// 10 |     forget(&SomeStruct);
 ///    |            ^^^^^^^^^^^
 /// ```
+#[track_caller]
 pub fn span_lint_and_note<T: LintContext>(
     cx: &T,
     lint: &'static Lint,
@@ -244,6 +251,7 @@ pub fn span_lint_and_note<T: LintContext>(
 /// If you're unsure which function you should use, you can test if the `#[expect]` attribute works
 /// where you would expect it to.
 /// If it doesn't, you likely need to use [`span_lint_hir_and_then`] instead.
+#[track_caller]
 pub fn span_lint_and_then<C, S, M, F>(cx: &C, lint: &'static Lint, sp: S, msg: M, f: F)
 where
     C: LintContext,
@@ -286,6 +294,7 @@ where
 /// Instead, use this function and also pass the `HirId` of `<expr_1>`, which will let
 /// the compiler check lint level attributes at the place of the expression and
 /// the `#[allow]` will work.
+#[track_caller]
 pub fn span_lint_hir(cx: &LateContext<'_>, lint: &'static Lint, hir_id: HirId, sp: Span, msg: impl Into<DiagMessage>) {
     #[expect(clippy::disallowed_methods)]
     cx.tcx.node_span_lint(lint, hir_id, sp, |diag| {
@@ -321,6 +330,7 @@ pub fn span_lint_hir(cx: &LateContext<'_>, lint: &'static Lint, hir_id: HirId, s
 /// Instead, use this function and also pass the `HirId` of `<expr_1>`, which will let
 /// the compiler check lint level attributes at the place of the expression and
 /// the `#[allow]` will work.
+#[track_caller]
 pub fn span_lint_hir_and_then(
     cx: &LateContext<'_>,
     lint: &'static Lint,
@@ -374,6 +384,7 @@ pub fn span_lint_hir_and_then(
 ///     = note: `-D fold-any` implied by `-D warnings`
 /// ```
 #[cfg_attr(not(debug_assertions), expect(clippy::collapsible_span_lint_calls))]
+#[track_caller]
 pub fn span_lint_and_sugg<T: LintContext>(
     cx: &T,
     lint: &'static Lint,

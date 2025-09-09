@@ -662,7 +662,7 @@ declare_clippy_lint! {
     /// /// [^1]: defined here
     /// fn my_fn() {}
     /// ```
-    #[clippy::version = "1.88.0"]
+    #[clippy::version = "1.89.0"]
     pub DOC_SUSPICIOUS_FOOTNOTES,
     suspicious,
     "looks like a link or footnote ref, but with no definition"
@@ -740,7 +740,7 @@ impl<'tcx> LateLintPass<'tcx> for Documentation {
                             );
                         }
                     },
-                    ItemKind::Trait(_, unsafety, ..) => match (headers.safety, unsafety) {
+                    ItemKind::Trait(_, _, unsafety, ..) => match (headers.safety, unsafety) {
                         (false, Safety::Unsafe) => span_lint(
                             cx,
                             MISSING_SAFETY_DOC,
@@ -795,8 +795,8 @@ impl Fragments<'_> {
     /// get the span for the markdown range. Note that this function is not cheap, use it with
     /// caution.
     #[must_use]
-    fn span(&self, cx: &LateContext<'_>, range: Range<usize>) -> Option<Span> {
-        source_span_for_markdown_range(cx.tcx, self.doc, &range, self.fragments)
+    fn span(self, cx: &LateContext<'_>, range: Range<usize>) -> Option<Span> {
+        source_span_for_markdown_range(cx.tcx, self.doc, &range, self.fragments).map(|(sp, _)| sp)
     }
 }
 
@@ -1139,12 +1139,12 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
                         None,
                         "a backtick may be missing a pair",
                     );
+                    text_to_check.clear();
                 } else {
-                    for (text, range, assoc_code_level) in text_to_check {
+                    for (text, range, assoc_code_level) in text_to_check.drain(..) {
                         markdown::check(cx, valid_idents, &text, &fragments, range, assoc_code_level, blockquote_level);
                     }
                 }
-                text_to_check = Vec::new();
             },
             Start(FootnoteDefinition(..)) => in_footnote_definition = true,
             End(TagEnd::FootnoteDefinition) => in_footnote_definition = false,
@@ -1232,7 +1232,6 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
     headers
 }
 
-#[expect(clippy::range_plus_one)] // inclusive ranges aren't the same type
 fn looks_like_refdef(doc: &str, range: Range<usize>) -> Option<Range<usize>> {
     if range.end < range.start {
         return None;
@@ -1249,7 +1248,9 @@ fn looks_like_refdef(doc: &str, range: Range<usize>) -> Option<Range<usize>> {
             b'[' => {
                 start = Some(i + offset);
             },
-            b']' if let Some(start) = start => {
+            b']' if let Some(start) = start
+                && doc.as_bytes().get(i + offset + 1) == Some(&b':') =>
+            {
                 return Some(start..i + offset + 1);
             },
             _ => {},

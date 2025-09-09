@@ -1,12 +1,11 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_hir_and_then};
 use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
 use clippy_utils::sugg::has_enclosing_paren;
-use clippy_utils::ty::{implements_trait, is_manually_drop};
+use clippy_utils::ty::{adjust_derefs_manually_drop, implements_trait, is_manually_drop};
 use clippy_utils::{
     DefinedTy, ExprUseNode, expr_use_ctxt, get_parent_expr, is_block_like, is_lint_allowed, path_to_local,
     peel_middle_ty_refs,
 };
-use core::mem;
 use rustc_ast::util::parser::ExprPrecedence;
 use rustc_data_structures::fx::FxIndexMap;
 use rustc_errors::Applicability;
@@ -364,7 +363,7 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                                 // * `&self` methods on `&T` can have auto-borrow, but `&self` methods on `T` will take
                                 //   priority.
                                 if let Some(fn_id) = typeck.type_dependent_def_id(hir_id)
-                                    && let Some(trait_id) = cx.tcx.trait_of_item(fn_id)
+                                    && let Some(trait_id) = cx.tcx.trait_of_assoc(fn_id)
                                     && let arg_ty = cx.tcx.erase_regions(adjusted_ty)
                                     && let ty::Ref(_, sub_ty, _) = *arg_ty.kind()
                                     && let args =
@@ -707,14 +706,6 @@ fn try_parse_ref_op<'tcx>(
     ))
 }
 
-// Checks if the adjustments contains a deref of `ManuallyDrop<_>`
-fn adjust_derefs_manually_drop<'tcx>(adjustments: &'tcx [Adjustment<'tcx>], mut ty: Ty<'tcx>) -> bool {
-    adjustments.iter().any(|a| {
-        let ty = mem::replace(&mut ty, a.target);
-        matches!(a.kind, Adjust::Deref(Some(ref op)) if op.mutbl == Mutability::Mut) && is_manually_drop(ty)
-    })
-}
-
 // Checks whether the type for a deref call actually changed the type, not just the mutability of
 // the reference.
 fn deref_method_same_type<'tcx>(result_ty: Ty<'tcx>, arg_ty: Ty<'tcx>) -> bool {
@@ -824,7 +815,7 @@ impl TyCoercionStability {
                 TyKind::Slice(_)
                 | TyKind::Array(..)
                 | TyKind::Ptr(_)
-                | TyKind::BareFn(_)
+                | TyKind::FnPtr(_)
                 | TyKind::Pat(..)
                 | TyKind::Never
                 | TyKind::Tup(_)
@@ -972,7 +963,7 @@ fn report<'tcx>(
                 "&"
             };
 
-            let expr_str = if !expr_is_macro_call && is_ufcs && expr.precedence() < ExprPrecedence::Prefix {
+            let expr_str = if !expr_is_macro_call && is_ufcs && cx.precedence(expr) < ExprPrecedence::Prefix {
                 Cow::Owned(format!("({expr_str})"))
             } else {
                 expr_str
@@ -1015,10 +1006,10 @@ fn report<'tcx>(
                         Node::Expr(e) => match e.kind {
                             ExprKind::Call(callee, _) if callee.hir_id != data.first_expr.hir_id => false,
                             ExprKind::Call(..) => {
-                                expr.precedence() < ExprPrecedence::Unambiguous
+                                cx.precedence(expr) < ExprPrecedence::Unambiguous
                                     || matches!(expr.kind, ExprKind::Field(..))
                             },
-                            _ => expr.precedence() < e.precedence(),
+                            _ => cx.precedence(expr) < cx.precedence(e),
                         },
                         _ => false,
                     };
@@ -1066,7 +1057,7 @@ fn report<'tcx>(
                         Mutability::Not => "&",
                         Mutability::Mut => "&mut ",
                     };
-                    (prefix, expr.precedence() < ExprPrecedence::Prefix)
+                    (prefix, cx.precedence(expr) < ExprPrecedence::Prefix)
                 },
                 None if !ty.is_ref() && data.adjusted_ty.is_ref() => ("&", false),
                 _ => ("", false),
@@ -1172,7 +1163,7 @@ impl<'tcx> Dereferencing<'tcx> {
                 },
                 Some(parent) if !parent.span.from_expansion() => {
                     // Double reference might be needed at this point.
-                    if parent.precedence() == ExprPrecedence::Unambiguous {
+                    if cx.precedence(parent) == ExprPrecedence::Unambiguous {
                         // Parentheses would be needed here, don't lint.
                         *outer_pat = None;
                     } else {

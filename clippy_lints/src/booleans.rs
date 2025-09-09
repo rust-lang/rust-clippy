@@ -1,15 +1,15 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_hir_and_then};
+use clippy_utils::higher::has_let_expr;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::SpanRangeExt;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::{implements_trait, is_type_diagnostic_item};
 use clippy_utils::{eq_expr_value, sym};
 use rustc_ast::ast::LitKind;
-use rustc_attr_data_structures::RustcVersion;
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::{FnKind, Visitor, walk_expr};
-use rustc_hir::{BinOpKind, Body, Expr, ExprKind, FnDecl, UnOp};
+use rustc_hir::{BinOpKind, Body, Expr, ExprKind, FnDecl, RustcVersion, UnOp};
 use rustc_lint::{LateContext, LateLintPass, Level};
 use rustc_session::impl_lint_pass;
 use rustc_span::def_id::LocalDefId;
@@ -646,7 +646,9 @@ impl<'tcx> Visitor<'tcx> for NonminimalBoolVisitor<'_, 'tcx> {
     fn visit_expr(&mut self, e: &'tcx Expr<'_>) {
         if !e.span.from_expansion() {
             match &e.kind {
-                ExprKind::Binary(binop, _, _) if binop.node == BinOpKind::Or || binop.node == BinOpKind::And => {
+                ExprKind::Binary(binop, _, _)
+                    if binop.node == BinOpKind::Or || binop.node == BinOpKind::And && !has_let_expr(e) =>
+                {
                     self.bool_expr(e);
                 },
                 ExprKind::Unary(UnOp::Not, inner) => {

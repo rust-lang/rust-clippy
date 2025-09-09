@@ -1,3 +1,6 @@
+// we have some HELP annotations -- don't complain about them not being present everywhere
+//@require-annotations-for-level: ERROR
+
 #![warn(clippy::redundant_closure, clippy::redundant_closure_for_method_calls)]
 #![allow(unused)]
 #![allow(
@@ -542,4 +545,93 @@ mod issue_13073 {
         let _field = bind.or_else(|| get_default()).unwrap();
         //~^ redundant_closure
     }
+}
+
+fn issue_14789() {
+    _ = Some(1u8).map(
+        #[expect(clippy::redundant_closure)]
+        |a| foo(a),
+    );
+
+    _ = Some("foo").map(
+        #[expect(clippy::redundant_closure_for_method_calls)]
+        |s| s.to_owned(),
+    );
+
+    let _: Vec<u8> = None.map_or_else(
+        #[expect(clippy::redundant_closure)]
+        || vec![],
+        std::convert::identity,
+    );
+}
+
+fn issue_15072() {
+    use std::ops::Deref;
+
+    struct Foo;
+    impl Deref for Foo {
+        type Target = fn() -> &'static str;
+
+        fn deref(&self) -> &Self::Target {
+            fn hello() -> &'static str {
+                "Hello, world!"
+            }
+            &(hello as fn() -> &'static str)
+        }
+    }
+
+    fn accepts_fn(f: impl Fn() -> &'static str) {
+        println!("{}", f());
+    }
+
+    fn some_fn() -> &'static str {
+        todo!()
+    }
+
+    let f = &Foo;
+    accepts_fn(|| f());
+    //~^ redundant_closure
+
+    let g = &some_fn;
+    accepts_fn(|| g());
+    //~^ redundant_closure
+
+    struct Bar(Foo);
+    impl Deref for Bar {
+        type Target = Foo;
+
+        fn deref(&self) -> &Self::Target {
+            &self.0
+        }
+    }
+
+    let b = &Bar(Foo);
+    accepts_fn(|| b());
+    //~^ redundant_closure
+}
+
+fn issue8817() {
+    fn f(_: u32) -> u32 {
+        todo!()
+    }
+    let g = |_: u32| -> u32 { todo!() };
+    struct S(u32);
+    enum MyError {
+        A(S),
+    }
+
+    Some(5)
+        .map(|n| f(n))
+        //~^ redundant_closure
+        //~| HELP: replace the closure with the function itself
+        .map(|n| g(n))
+        //~^ redundant_closure
+        //~| HELP: replace the closure with the function itself
+        .map(|n| S(n))
+        //~^ redundant_closure
+        //~| HELP: replace the closure with the tuple struct itself
+        .map(|n| MyError::A(n))
+        //~^ redundant_closure
+        //~| HELP: replace the closure with the tuple variant itself
+        .unwrap(); // just for nicer formatting
 }

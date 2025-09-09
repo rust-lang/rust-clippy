@@ -118,7 +118,7 @@ impl_lint_pass!(WildcardImports => [ENUM_GLOB_USE, WILDCARD_IMPORTS]);
 
 impl LateLintPass<'_> for WildcardImports {
     fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
-        if cx.sess().is_test_crate() {
+        if cx.sess().is_test_crate() || item.span.in_external_macro(cx.sess().source_map()) {
             return;
         }
 
@@ -130,7 +130,7 @@ impl LateLintPass<'_> for WildcardImports {
         }
         if let ItemKind::Use(use_path, UseKind::Glob) = &item.kind
             && (self.warn_on_all || !self.check_exceptions(cx, item, use_path.segments))
-            && let used_imports = cx.tcx.names_imported_by_glob_use(item.owner_id.def_id)
+            && let Some(used_imports) = cx.tcx.resolutions(()).glob_map.get(&item.owner_id.def_id)
             && !used_imports.is_empty() // Already handled by `unused_imports`
             && !used_imports.contains(&kw::Underscore)
         {

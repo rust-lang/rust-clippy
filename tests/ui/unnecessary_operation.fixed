@@ -78,25 +78,25 @@ fn main() {
     //~^ unnecessary_operation
     get_number();
     //~^ unnecessary_operation
-    5;get_number();
+    5; get_number();
     //~^ unnecessary_operation
     get_number();
     //~^ unnecessary_operation
     get_number();
     //~^ unnecessary_operation
-    5;6;get_number();
+    5; 6; get_number();
     //~^ unnecessary_operation
     get_number();
     //~^ unnecessary_operation
     get_number();
     //~^ unnecessary_operation
-    5;get_number();
+    5; get_number();
     //~^ unnecessary_operation
-    42;get_number();
+    42; get_number();
     //~^ unnecessary_operation
     assert!([42, 55].len() > get_usize());
     //~^ unnecessary_operation
-    42;get_number();
+    42; get_number();
     //~^ unnecessary_operation
     get_number();
     //~^ unnecessary_operation
@@ -143,4 +143,17 @@ const _: () = {
 const fn foo() {
     assert!([42, 55].len() > get_usize());
     //~^ unnecessary_operation
+}
+
+fn issue15173() {
+    // No lint as `Box::new(None)` alone would be ambiguous
+    Box::new(None) as Box<Option<i32>>;
+}
+
+#[expect(clippy::redundant_closure_call)]
+fn issue15173_original<MsU>(handler: impl FnOnce() -> MsU + Clone + 'static) {
+    Box::new(move |value| {
+        (|_| handler.clone()())(value);
+        None
+    }) as Box<dyn Fn(i32) -> Option<i32>>;
 }

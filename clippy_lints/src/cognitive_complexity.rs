@@ -14,21 +14,28 @@ use rustc_span::def_id::LocalDefId;
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for methods with high cognitive complexity.
+    /// We used to think it measured how hard a method is to understand.
     ///
     /// ### Why is this bad?
-    /// Methods of high cognitive complexity tend to be hard to
-    /// both read and maintain. Also LLVM will tend to optimize small methods better.
+    /// Ideally, we would like to be able to measure how hard a function is
+    /// to understand given its context (what we call its Cognitive Complexity).
+    /// But that's not what this lint does. See "Known problems"
     ///
     /// ### Known problems
-    /// Sometimes it's hard to find a way to reduce the
-    /// complexity.
+    /// The true Cognitive Complexity of a method is not something we can
+    /// calculate using modern technology. This lint has been left in
+    /// `restriction` so as to not mislead users into using this lint as a
+    /// measurement tool.
     ///
-    /// ### Example
-    /// You'll see it when you get the warning.
+    /// For more detailed information, see [rust-clippy#3793](https://github.com/rust-lang/rust-clippy/issues/3793)
+    ///
+    /// ### Lints to consider instead of this
+    ///
+    /// * [`excessive_nesting`](https://rust-lang.github.io/rust-clippy/master/index.html#excessive_nesting)
+    /// * [`too_many_lines`](https://rust-lang.github.io/rust-clippy/master/index.html#too_many_lines)
     #[clippy::version = "1.35.0"]
     pub COGNITIVE_COMPLEXITY,
-    nursery,
+    restriction,
     "functions that should be split up into multiple functions",
     @eval_always = true
 }
@@ -49,7 +56,7 @@ impl_lint_pass!(CognitiveComplexity => [COGNITIVE_COMPLEXITY]);
 
 impl CognitiveComplexity {
     fn check<'tcx>(
-        &mut self,
+        &self,
         cx: &LateContext<'tcx>,
         kind: FnKind<'tcx>,
         decl: &'tcx FnDecl<'_>,
@@ -103,7 +110,6 @@ impl CognitiveComplexity {
                 FnKind::ItemFn(ident, _, _) | FnKind::Method(ident, _) => ident.span,
                 FnKind::Closure => {
                     let header_span = body_span.with_hi(decl.output.span().lo());
-                    #[expect(clippy::range_plus_one)]
                     if let Some(range) = header_span.map_range(cx, |_, src, range| {
                         let mut idxs = src.get(range.clone())?.match_indices('|');
                         Some(range.start + idxs.next()?.0..range.start + idxs.next()?.0 + 1)
