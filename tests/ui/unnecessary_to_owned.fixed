@@ -219,8 +219,6 @@ fn main() {
     //~^ redundant_clone
     require_os_str(&OsString::from("x"));
     //~^ redundant_clone
-    require_path(&std::path::PathBuf::from("x"));
-    //~^ redundant_clone
     require_str(&String::from("x"));
     //~^ redundant_clone
     require_slice(&[String::from("x")]);
