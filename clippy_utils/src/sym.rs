@@ -111,6 +111,7 @@ generate! {
     clone_into,
     cloned,
     cognitive_complexity,
+    collapsible_else_if,
     collect,
     const_ptr,
     contains,
