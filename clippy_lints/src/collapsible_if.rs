@@ -1,5 +1,5 @@
 use clippy_config::Conf;
-use clippy_utils::diagnostics::{span_lint_and_then, span_lint_hir_and_then};
+use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::{IntoSpan as _, SpanRangeExt, snippet, snippet_block_with_applicability};
 use clippy_utils::{span_contains_non_whitespace, sym, tokenize_with_text};
@@ -102,7 +102,7 @@ impl CollapsibleIf {
             // we need to actually fulfill its expectation (#13365)
             match cx.tcx.hir_attrs(else_.hir_id) {
                 [] if !block_starts_with_significant_tokens(cx, else_block, else_, self.lint_commented_code) => {},
-                // This is an expectation of the `collapsible_else_if` lint
+                // The attribute is present
                 [attr]
                     if matches!(Level::from_attr(attr), Some((Level::Expect, _)))
                         && let Some(metas) = attr.meta_item_list()
@@ -187,15 +187,36 @@ impl CollapsibleIf {
 
     fn check_collapsible_if_if(&self, cx: &LateContext<'_>, expr: &Expr<'_>, check: &Expr<'_>, then: &Block<'_>) {
         if let Some(inner) = expr_block(then)
-            && cx.tcx.hir_attrs(inner.hir_id).is_empty()
             && let ExprKind::If(check_inner, _, None) = &inner.kind
             && self.eligible_condition(cx, check_inner)
             && expr.span.eq_ctxt(inner.span)
-            && !block_starts_with_significant_tokens(cx, then, inner, self.lint_commented_code)
         {
-            span_lint_and_then(
+            // if the inner `if` has a `#[expect(clippy::collapsible_if)]` attribute,
+            // we need to actually fulfill its expectation (#13365)
+            match cx.tcx.hir_attrs(inner.hir_id) {
+                [] if !block_starts_with_significant_tokens(cx, then, inner, self.lint_commented_code) => {},
+                // The attribute is present
+                [attr]
+                    if matches!(Level::from_attr(attr), Some((Level::Expect, _)))
+                        && let Some(metas) = attr.meta_item_list()
+                        && let Some(MetaItemInner::MetaItem(meta_item)) = metas.first()
+                        && let [tool, lint_name] = meta_item.path.segments.as_slice()
+                        && tool.ident.name == sym::clippy
+                        && matches!(
+                            lint_name.ident.name,
+                            sym::collapsible_if | sym::style | sym::all
+                        )
+                        // There isn't significant text apart from the attr
+                        && let span_before_attr = then.span.split_at(1).1.until(attr.span())
+                        && !span_contains_non_whitespace(cx, span_before_attr, self.lint_commented_code)
+                        && let span_after_attr = attr.span().between(inner.span)
+                        && !span_contains_non_whitespace(cx, span_after_attr, self.lint_commented_code) => {},
+                _ => return,
+            }
+            span_lint_hir_and_then(
                 cx,
                 COLLAPSIBLE_IF,
+                inner.hir_id,
                 expr.span,
                 "this `if` statement can be collapsed",
                 |diag| {
