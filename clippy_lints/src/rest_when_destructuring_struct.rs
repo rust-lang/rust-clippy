@@ -3,7 +3,7 @@ use clippy_utils::is_from_proc_macro;
 use itertools::Itertools;
 use rustc_abi::VariantIdx;
 use rustc_lint::LateLintPass;
-use rustc_middle::ty;
+use rustc_middle::ty::{self, Visibility};
 use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
@@ -56,13 +56,33 @@ impl<'tcx> LateLintPass<'tcx> for RestWhenDestructuringStruct {
             let vid = qty
                 .opt_def_id()
                 .map_or(VariantIdx::ZERO, |x| a.variant_index_with_id(x));
+
+            let leave_dotdot = a.variants()[vid].field_list_has_applicable_non_exhaustive();
+
             let mut rest_fields = a.variants()[vid]
                 .fields
                 .iter()
+                .filter(|f| {
+                    if a.did().is_local() {
+                        true
+                    } else {
+                        matches!(f.vis, Visibility::Public)
+                    }
+                })
                 .map(|field| field.ident(cx.tcx))
                 .filter(|pf| !fields.iter().any(|x| x.ident == *pf))
                 .map(|x| format!("{x}: _"));
-            let fmt_fields = rest_fields.join(", ");
+
+            let mut fmt_fields = rest_fields.join(", ");
+
+            if fmt_fields.is_empty() && leave_dotdot {
+                // The struct is non_exhaustive, from a non-local crate and all public fields are explicitly named.
+                return;
+            }
+
+            if leave_dotdot {
+                fmt_fields.push_str(", ..");
+            }
 
             span_lint_and_then(
                 cx,
