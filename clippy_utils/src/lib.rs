@@ -1349,16 +1349,13 @@ pub fn peel_blocks_with_stmt<'a>(mut expr: &'a Expr<'a>) -> &'a Expr<'a> {
 
 /// Checks if the given expression is the else clause of either an `if` or `if let` expression.
 pub fn is_else_clause(tcx: TyCtxt<'_>, expr: &Expr<'_>) -> bool {
-    let mut iter = tcx.hir_parent_iter(expr.hir_id);
-    match iter.next() {
-        Some((
-            _,
-            Node::Expr(Expr {
-                kind: ExprKind::If(_, _, Some(else_expr)),
-                ..
-            }),
-        )) => else_expr.hir_id == expr.hir_id,
-        _ => false,
+    if let Node::Expr(expr) = tcx.parent_hir_node(expr.hir_id)
+        && let ExprKind::If(_, _, Some(else_expr)) = expr.kind
+        && else_expr.hir_id == expr.hir_id
+    {
+        true
+    } else {
+        false
     }
 }
 
