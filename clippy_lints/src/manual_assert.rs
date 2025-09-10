@@ -7,6 +7,7 @@ use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::declare_lint_pass;
+use rustc_span::sym;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -39,6 +40,8 @@ impl<'tcx> LateLintPass<'tcx> for ManualAssert {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
         if let Some(higher::If { cond, then, r#else: None }) = higher::If::hir(expr)
             && !matches!(cond.kind, ExprKind::Let(_))
+            // Don't lint on `if cfg!(..) { panic!(..) }
+            && root_macro_call(cond.span).is_none_or(|macro_call| cx.tcx.item_name(macro_call.def_id) != sym::cfg)
             && !expr.span.from_expansion()
             && let then = peel_blocks_with_stmt(then)
             && let Some(macro_call) = root_macro_call(then.span)

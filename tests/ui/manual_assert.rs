@@ -106,6 +106,22 @@ fn issue12505() {
     }
 }
 
+fn issue13883() {
+    if cfg!(debug_assertions) {
+        panic!("foobar")
+    }
+
+    macro_rules! foo {
+        () => {
+            true
+        };
+    }
+    if foo!() {
+        //~^ manual_assert
+        panic!("not a `cfg`, so lint")
+    }
+}
+
 fn issue15227(left: u64, right: u64) -> u64 {
     macro_rules! is_x86_feature_detected {
         ($feature:literal) => {
