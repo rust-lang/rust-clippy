@@ -1,106 +1,59 @@
-use clippy_utils::consts::{ConstEvalCtxt, Constant};
 use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
 use clippy_utils::source::snippet;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::{get_discriminant_value, is_isize_or_usize};
-use clippy_utils::{expr_or_init, is_in_const_context, sym};
+use clippy_utils::{is_in_const_context, rinterval};
 use rustc_abi::IntegerType;
 use rustc_errors::{Applicability, Diag};
 use rustc_hir::def::{DefKind, Res};
-use rustc_hir::{BinOpKind, Expr, ExprKind};
+use rustc_hir::{Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, FloatTy, Ty};
 use rustc_span::Span;
 
 use super::{CAST_ENUM_TRUNCATION, CAST_POSSIBLE_TRUNCATION, utils};
 
-fn constant_int(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<u128> {
-    if let Some(Constant::Int(c)) = ConstEvalCtxt::new(cx).eval(expr) {
-        Some(c)
-    } else {
-        None
-    }
-}
-
-fn get_constant_bits(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<u64> {
-    constant_int(cx, expr).map(|c| u64::from(128 - c.leading_zeros()))
-}
-
-fn apply_reductions(cx: &LateContext<'_>, nbits: u64, expr: &Expr<'_>, signed: bool) -> u64 {
-    match expr_or_init(cx, expr).kind {
-        ExprKind::Cast(inner, _) => apply_reductions(cx, nbits, inner, signed),
-        ExprKind::Block(block, _) => block.expr.map_or(nbits, |e| apply_reductions(cx, nbits, e, signed)),
-        ExprKind::Binary(op, left, right) => match op.node {
-            BinOpKind::Div => {
-                apply_reductions(cx, nbits, left, signed).saturating_sub(if signed {
-                    // let's be conservative here
-                    0
-                } else {
-                    // by dividing by 1, we remove 0 bits, etc.
-                    get_constant_bits(cx, right).map_or(0, |b| b.saturating_sub(1))
-                })
-            },
-            BinOpKind::Rem => get_constant_bits(cx, right)
-                .unwrap_or(u64::MAX)
-                .min(apply_reductions(cx, nbits, left, signed)),
-            BinOpKind::BitAnd => get_constant_bits(cx, right)
-                .unwrap_or(u64::MAX)
-                .min(get_constant_bits(cx, left).unwrap_or(u64::MAX))
-                .min(apply_reductions(cx, nbits, right, signed))
-                .min(apply_reductions(cx, nbits, left, signed)),
-            BinOpKind::Shr => apply_reductions(cx, nbits, left, signed)
-                .saturating_sub(constant_int(cx, right).map_or(0, |s| u64::try_from(s).unwrap_or_default())),
-            _ => nbits,
-        },
-        ExprKind::MethodCall(method, left, [right], _) => {
-            if signed {
-                return nbits;
-            }
-            let max_bits = if method.ident.name == sym::min {
-                get_constant_bits(cx, right)
-            } else {
-                None
-            };
-            apply_reductions(cx, nbits, left, signed).min(max_bits.unwrap_or(u64::MAX))
-        },
-        ExprKind::MethodCall(method, _, [lo, hi], _) => {
-            if method.ident.name == sym::clamp
-                //FIXME: make this a diagnostic item
-                && let (Some(lo_bits), Some(hi_bits)) = (get_constant_bits(cx, lo), get_constant_bits(cx, hi))
-            {
-                return lo_bits.max(hi_bits);
-            }
-            nbits
-        },
-        ExprKind::MethodCall(method, _value, [], _) => {
-            if method.ident.name == sym::signum {
-                0 // do not lint if cast comes from a `signum` function
-            } else {
-                nbits
-            }
-        },
-        _ => nbits,
-    }
-}
-
-pub(super) fn check(
-    cx: &LateContext<'_>,
+pub(super) fn check<'cx>(
+    cx: &LateContext<'cx>,
+    i_cx: &mut rinterval::IntervalCtxt<'_, 'cx>,
     expr: &Expr<'_>,
-    cast_expr: &Expr<'_>,
+    cast_expr: &Expr<'cx>,
     cast_from: Ty<'_>,
     cast_to: Ty<'_>,
     cast_to_span: Span,
 ) {
+    let mut from_interval = None;
+
+    let from_is_size = is_isize_or_usize(cast_from);
+    let to_is_size = is_isize_or_usize(cast_to);
+
     let msg = match (cast_from.kind(), utils::int_ty_to_nbits(cx.tcx, cast_to)) {
         (ty::Int(_) | ty::Uint(_), Some(to_nbits)) => {
-            let from_nbits = apply_reductions(
-                cx,
-                utils::int_ty_to_nbits(cx.tcx, cast_from).unwrap(),
-                cast_expr,
-                cast_from.is_signed(),
-            );
+            from_interval = i_cx.eval_int(cast_expr);
 
-            let (should_lint, suffix) = match (is_isize_or_usize(cast_from), is_isize_or_usize(cast_to)) {
+            let to_ty = if !from_is_size && to_is_size {
+                // if we cast from a fixed-size integer to a pointer-sized integer,
+                // we want assume the worst case of usize being 32-bit
+                if cast_to.is_signed() {
+                    rinterval::IntType::I32
+                } else {
+                    rinterval::IntType::U32
+                }
+            } else {
+                i_cx.to_int_type(cast_to)
+                    .expect("the to cast type should be an integral type")
+            };
+
+            if let Some(from_interval) = &from_interval
+                && from_interval.fits_into(to_ty)
+            {
+                // No truncation possible.
+                return;
+            }
+
+            let from_nbits = utils::int_ty_to_nbits(cx.tcx, cast_from).unwrap();
+
+            let (should_lint, suffix) = match (from_is_size, to_is_size) {
                 (true, true) | (false, false) => (to_nbits < from_nbits, ""),
                 (true, false) => (
                     to_nbits <= 32,
@@ -133,7 +86,7 @@ pub(super) fn check(
             };
 
             let cast_from_ptr_size = def.repr().int.is_none_or(|ty| matches!(ty, IntegerType::Pointer(_),));
-            let suffix = match (cast_from_ptr_size, is_isize_or_usize(cast_to)) {
+            let suffix = match (cast_from_ptr_size, to_is_size) {
                 (_, false) if from_nbits > to_nbits => "",
                 (false, true) if from_nbits > 64 => "",
                 (false, true) if from_nbits > 32 => " on targets with 32-bit wide pointers",
@@ -167,6 +120,12 @@ pub(super) fn check(
     };
 
     span_lint_and_then(cx, CAST_POSSIBLE_TRUNCATION, expr.span, msg, |diag| {
+        if let Some(from_interval) = from_interval
+            && !from_interval.is_full()
+        {
+            diag.note(utils::format_cast_operand(from_interval));
+        }
+
         diag.help("if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...");
         // TODO: Remove the condition for const contexts when `try_from` and other commonly used methods
         // become const fn.

@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::rinterval;
 use rustc_hir::Expr;
 use rustc_lint::LateContext;
 use rustc_middle::ty::Ty;
@@ -16,7 +17,14 @@ enum EmitState {
     LintOnPtrSize(u64),
 }
 
-pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, cast_from: Ty<'_>, cast_to: Ty<'_>) {
+pub(super) fn check<'cx>(
+    cx: &LateContext<'cx>,
+    i_cx: &mut rinterval::IntervalCtxt<'_, 'cx>,
+    expr: &Expr<'_>,
+    cast_op: &Expr<'cx>,
+    cast_from: Ty<'_>,
+    cast_to: Ty<'_>,
+) {
     let (Some(from_nbits), Some(to_nbits)) = (
         utils::int_ty_to_nbits(cx.tcx, cast_from),
         utils::int_ty_to_nbits(cx.tcx, cast_to),
@@ -79,7 +87,22 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, cast_from: Ty<'_>, ca
         ),
     };
 
+    let from_interval = i_cx.eval_int(cast_op);
+
+    if let Some(from_interval) = &from_interval
+        && from_interval.fits_into(from_interval.ty.to_signed())
+    {
+        // if the values always fit into the signed type, do not emit a warning
+        return;
+    }
+
     span_lint_and_then(cx, CAST_POSSIBLE_WRAP, expr.span, message, |diag| {
+        if let Some(from_interval) = from_interval
+            && !from_interval.is_full()
+        {
+            diag.note(utils::format_cast_operand(from_interval));
+        }
+
         if let EmitState::LintOnPtrSize(16) = should_lint {
             diag
                 .note("`usize` and `isize` may be as small as 16 bits on some platforms")
