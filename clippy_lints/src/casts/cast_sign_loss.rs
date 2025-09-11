@@ -76,9 +76,8 @@ fn should_lint<'cx>(cx: &LateContext<'cx>, cast_op: &Expr<'_>, cast_from: Ty<'cx
             true
         },
 
-        (false, true) => !cast_to.is_signed(),
-
-        (_, _) => false,
+        // Don't lint float -> int casts as they have different semantics
+        _ => false,
     }
 }
 
