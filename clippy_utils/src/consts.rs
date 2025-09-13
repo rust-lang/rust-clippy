@@ -643,16 +643,38 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
                 if let Some(node) = self.tcx.hir_get_if_local(def_id)
                     && let Node::Item(Item {
                         kind: ItemKind::Const(.., body_id),
+                        owner_id,
                         ..
                     }) = node
-                    && let Node::Expr(Expr {
+                {
+                    // check for `const C: _ = cfg!(foo);`
+                    if let Node::Expr(Expr {
                         kind: ExprKind::Lit(_),
                         span,
                         ..
                     }) = self.tcx.hir_node(body_id.hir_id)
-                    && is_direct_expn_of(*span, sym::cfg).is_some()
-                {
-                    return None;
+                        && is_direct_expn_of(*span, sym::cfg).is_some()
+                    {
+                        return None;
+                    }
+
+                    // check for:
+                    // ```
+                    // #[cfg(foo)]
+                    // const C: _ = _;
+                    // ```
+                    //
+                    // NOTE: it shouldn't be possible to have `#[cfg]` applied to the initializer, because e.g.
+                    // something like this wouldn't work:
+                    // const C: _ = {
+                    //     #[cfg(foo)]
+                    //     1
+                    //     #[cfg(bar)]
+                    //     2
+                    // };
+                    if self.tcx.has_attr(owner_id.def_id, sym::cfg_trace) {
+                        return None;
+                    }
                 }
 
                 let args = self.typeck.node_args(id);
