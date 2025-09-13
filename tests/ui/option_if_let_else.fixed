@@ -162,7 +162,7 @@ fn main() {
 
     let s = String::new();
     // Lint, both branches immutably borrow `s`.
-    let _ = Some(0).map_or(s.len(), |x| s.len() + x);
+    let _ = Some(0).map_or_else(|| s.len(), |x| s.len() + x);
     //~^ option_if_let_else
 
     let s = String::new();

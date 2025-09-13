@@ -49,7 +49,7 @@ impl ops::BitOrAssign for EagernessSuggestion {
 
 /// Determine the eagerness of the given function call.
 fn fn_eagerness(cx: &LateContext<'_>, fn_id: DefId, name: Symbol, have_one_arg: bool) -> EagernessSuggestion {
-    use EagernessSuggestion::{Eager, Lazy, NoChange};
+    use EagernessSuggestion::{Lazy, NoChange};
 
     let ty = match cx.tcx.impl_of_assoc(fn_id) {
         Some(id) => cx.tcx.type_of(id).instantiate_identity(),
@@ -57,14 +57,7 @@ fn fn_eagerness(cx: &LateContext<'_>, fn_id: DefId, name: Symbol, have_one_arg: 
     };
 
     if (matches!(name, sym::is_empty | sym::len) || name.as_str().starts_with("as_")) && have_one_arg {
-        if matches!(
-            cx.tcx.crate_name(fn_id.krate),
-            sym::std | sym::core | sym::alloc | sym::proc_macro
-        ) {
-            Eager
-        } else {
-            NoChange
-        }
+        NoChange
     } else if let ty::Adt(def, subs) = ty.kind() {
         // Types where the only fields are generic types (or references to) with no trait bounds other
         // than marker traits.
