@@ -12,15 +12,17 @@ declare_clippy_lint! {
     ///
     /// ### Why restrict this?
     /// In cryptographic contexts, division can result in timing sidechannel vulnerabilities,
-    /// and needs to be replaced with constant-time code instead (e.g. Barrett reduction).
+    /// and needs to be replaced with constant-time code instead.
+    ///
+    /// Most often, the compiler will optimize away any constant-time implementation of
+    /// an algorithm. The solution to achieve constant-time operation is often to either implement
+    /// a constant-time algorithm in assembly code, or to delegate such operations to a well-known,
+    /// audited and / or certified cryptographic library.
     ///
     /// ### Example
     /// ```no_run
-    /// let my_div = 10 / 2;
-    /// ```
-    /// Use instead:
-    /// ```no_run
-    /// let my_div = 10 >> 1;
+    /// let _ = 10 / 2; // This will run faster because it's a division by a multiple of 2.
+    /// let _ = 10 / 3; // This will run slower than the above.
     /// ```
     #[clippy::version = "1.79.0"]
     pub INTEGER_DIVISION_REMAINDER_USED,
