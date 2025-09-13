@@ -1,0 +1,65 @@
+error: use of `offset` with a literal
+  --> tests/ui/ptr_offset_by_literal.rs:9:17
+   |
+LL |         let _ = ptr.offset(0);
+   |                 ^^^^^^^^^^^^^ help: try: `ptr`
+   |
+   = note: `-D clippy::ptr-offset-by-literal` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::ptr_offset_by_literal)]`
+
+error: use of `offset` with a literal
+  --> tests/ui/ptr_offset_by_literal.rs:11:17
+   |
+LL |         let _ = ptr.offset(-0);
+   |                 ^^^^^^^^^^^^^^ help: try: `ptr`
+
+error: use of `offset` with a literal
+  --> tests/ui/ptr_offset_by_literal.rs:14:17
+   |
+LL |         let _ = ptr.offset(5);
+   |                 ^^^^^^^^^^^^^ help: try: `ptr.add(5)`
+
+error: use of `offset` with a literal
+  --> tests/ui/ptr_offset_by_literal.rs:16:17
+   |
+LL |         let _ = ptr.offset(-5);
+   |                 ^^^^^^^^^^^^^^ help: try: `ptr.sub(5)`
+
+error: use of `wrapping_offset` with a literal
+  --> tests/ui/ptr_offset_by_literal.rs:22:17
+   |
+LL |         let _ = ptr.wrapping_offset(5isize);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `ptr.wrapping_add(5)`
+
+error: use of `wrapping_offset` with a literal
+  --> tests/ui/ptr_offset_by_literal.rs:24:17
+   |
+LL |         let _ = ptr.wrapping_offset(-5isize);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `ptr.wrapping_sub(5)`
+
+error: use of `offset` with a literal
+  --> tests/ui/ptr_offset_by_literal.rs:27:17
+   |
+LL |         let _ = ptr.offset(-(5));
+   |                 ^^^^^^^^^^^^^^^^ help: try: `ptr.sub(5)`
+
+error: use of `wrapping_offset` with a literal
+  --> tests/ui/ptr_offset_by_literal.rs:29:17
+   |
+LL |         let _ = ptr.wrapping_offset(-(5));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `ptr.wrapping_sub(5)`
+
+error: use of `offset` with a literal
+  --> tests/ui/ptr_offset_by_literal.rs:33:17
+   |
+LL |         let _ = ptr.offset(9_223_372_036_854_775_807isize);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `ptr.add(9223372036854775807)`
+
+error: use of `offset` with a literal
+  --> tests/ui/ptr_offset_by_literal.rs:35:17
+   |
+LL |         let _ = ptr.offset(-9_223_372_036_854_775_808isize);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `ptr.sub(9223372036854775808)`
+
+error: aborting due to 10 previous errors
+

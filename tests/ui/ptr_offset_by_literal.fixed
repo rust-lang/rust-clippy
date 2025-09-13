@@ -1,0 +1,38 @@
+fn main() {
+    let arr = [b'a', b'b', b'c'];
+    let ptr = arr.as_ptr();
+
+    let var = 32;
+    const CONST: isize = 42;
+
+    unsafe {
+        let _ = ptr;
+        //~^ ptr_offset_by_literal
+        let _ = ptr;
+        //~^ ptr_offset_by_literal
+
+        let _ = ptr.add(5);
+        //~^ ptr_offset_by_literal
+        let _ = ptr.sub(5);
+        //~^ ptr_offset_by_literal
+
+        let _ = ptr.offset(var);
+        let _ = ptr.offset(CONST);
+
+        let _ = ptr.wrapping_add(5);
+        //~^ ptr_offset_by_literal
+        let _ = ptr.wrapping_sub(5);
+        //~^ ptr_offset_by_literal
+
+        let _ = ptr.sub(5);
+        //~^ ptr_offset_by_literal
+        let _ = ptr.wrapping_sub(5);
+        //~^ ptr_offset_by_literal
+
+        // isize::MAX and isize::MIN on 64-bit systems.
+        let _ = ptr.add(9223372036854775807);
+        //~^ ptr_offset_by_literal
+        let _ = ptr.sub(9223372036854775808);
+        //~^ ptr_offset_by_literal
+    }
+}

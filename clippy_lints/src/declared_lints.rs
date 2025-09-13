@@ -624,6 +624,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::ptr::MUT_FROM_REF_INFO,
     crate::ptr::PTR_ARG_INFO,
     crate::ptr::PTR_EQ_INFO,
+    crate::ptr_offset_by_literal::PTR_OFFSET_BY_LITERAL_INFO,
     crate::ptr_offset_with_cast::PTR_OFFSET_WITH_CAST_INFO,
     crate::pub_underscore_fields::PUB_UNDERSCORE_FIELDS_INFO,
     crate::pub_use::PUB_USE_INFO,
