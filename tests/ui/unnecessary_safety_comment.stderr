@@ -112,5 +112,41 @@ help: consider removing the safety comment
 LL |     // SAFETY: unnecessary
    |     ^^^^^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 9 previous errors
+error: associated function has unnecessary safety comment
+  --> tests/ui/unnecessary_safety_comment.rs:110:9
+   |
+LL |         fn baz() {}
+   |         ^^^^^^^^^^^
+   |
+help: consider removing the safety comment
+  --> tests/ui/unnecessary_safety_comment.rs:109:9
+   |
+LL |         // Safety: unnecessary
+   |         ^^^^^^^^^^^^^^^^^^^^^^
+
+error: associated constant has unnecessary safety comment
+  --> tests/ui/unnecessary_safety_comment.rs:116:9
+   |
+LL |         const BAR: usize = 0;
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the safety comment
+  --> tests/ui/unnecessary_safety_comment.rs:115:9
+   |
+LL |         // SAFETY: unnecessary
+   |         ^^^^^^^^^^^^^^^^^^^^^^
+
+error: associated function has unnecessary safety comment
+  --> tests/ui/unnecessary_safety_comment.rs:120:9
+   |
+LL |         fn foo() {}
+   |         ^^^^^^^^^^^
+   |
+help: consider removing the safety comment
+  --> tests/ui/unnecessary_safety_comment.rs:119:9
+   |
+LL |         // Safety: unnecessary
+   |         ^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 12 previous errors
 
