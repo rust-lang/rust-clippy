@@ -4,7 +4,8 @@ use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::{SpanRangeExt, snippet};
 use clippy_utils::ty::{
-    get_iterator_item_ty, implements_trait, is_copy, is_type_diagnostic_item, is_type_lang_item, peel_and_count_ty_refs,
+    get_callee_generic_args_and_args, get_iterator_item_ty, implements_trait, is_copy, is_to_string_on_string_like,
+    is_type_diagnostic_item, is_type_lang_item, peel_and_count_ty_refs,
 };
 use clippy_utils::visitors::find_all_ret_expressions;
 use clippy_utils::{
@@ -19,7 +20,7 @@ use rustc_lint::LateContext;
 use rustc_middle::mir::Mutability;
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, OverloadedDeref};
 use rustc_middle::ty::{
-    self, ClauseKind, GenericArg, GenericArgKind, GenericArgsRef, ParamTy, ProjectionPredicate, TraitPredicate, Ty,
+    self, ClauseKind, GenericArg, GenericArgKind, ParamTy, ProjectionPredicate, TraitPredicate, Ty,
 };
 use rustc_span::Symbol;
 use rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt as _;
@@ -399,6 +400,11 @@ fn check_other_call_arg<'tcx>(
         && let Some(as_ref_trait_id) = cx.tcx.get_diagnostic_item(sym::AsRef)
         && (trait_predicate.def_id() == deref_trait_id || trait_predicate.def_id() == as_ref_trait_id)
         && let receiver_ty = cx.typeck_results().expr_ty(receiver)
+        // Verify the output type contains the input type to be replaced.
+        // `needless_conversion_for_trait` cannot change the output type (see
+        // `clippy_utils::ty::replace_types`). Hence, this check ensures that `unnecessary_to_owned`
+        // and `needless_conversion_for_trait` do not flag the same code.
+        && fn_sig.output().contains(input)
         // We can't add an `&` when the trait is `Deref` because `Target = &T` won't match
         // `Target = T`.
         && let Some((n_refs, receiver_ty)) = if n_refs > 0 || is_copy(cx, receiver_ty) {
@@ -440,33 +446,6 @@ fn skip_addr_of_ancestors<'tcx>(
         } else {
             return Some((parent, expr));
         }
-    }
-    None
-}
-
-/// Checks whether an expression is a function or method call and, if so, returns its `DefId`,
-/// `GenericArgs`, and arguments.
-fn get_callee_generic_args_and_args<'tcx>(
-    cx: &LateContext<'tcx>,
-    expr: &'tcx Expr<'tcx>,
-) -> Option<(
-    DefId,
-    GenericArgsRef<'tcx>,
-    Option<&'tcx Expr<'tcx>>,
-    &'tcx [Expr<'tcx>],
-)> {
-    if let ExprKind::Call(callee, args) = expr.kind
-        && let callee_ty = cx.typeck_results().expr_ty(callee)
-        && let ty::FnDef(callee_def_id, _) = callee_ty.kind()
-    {
-        let generic_args = cx.typeck_results().node_args(callee.hir_id);
-        return Some((*callee_def_id, generic_args, None, args));
-    }
-    if let ExprKind::MethodCall(_, recv, args, _) = expr.kind
-        && let Some(method_def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)
-    {
-        let generic_args = cx.typeck_results().node_args(expr.hir_id);
-        return Some((method_def_id, generic_args, Some(recv), args));
     }
     None
 }
@@ -624,38 +603,12 @@ fn is_cloned_or_copied(cx: &LateContext<'_>, method_name: Symbol, method_def_id:
 fn is_to_owned_like<'a>(cx: &LateContext<'a>, call_expr: &Expr<'a>, method_name: Symbol, method_def_id: DefId) -> bool {
     is_cow_into_owned(cx, method_name, method_def_id)
         || (method_name != sym::to_string && is_clone_like(cx, method_name, method_def_id))
-        || is_to_string_on_string_like(cx, call_expr, method_name, method_def_id)
+        || is_to_string_on_string_like(cx, call_expr, method_def_id)
 }
 
 /// Returns true if the named method is `Cow::into_owned`.
 fn is_cow_into_owned(cx: &LateContext<'_>, method_name: Symbol, method_def_id: DefId) -> bool {
     method_name == sym::into_owned && is_diag_item_method(cx, method_def_id, sym::Cow)
-}
-
-/// Returns true if the named method is `ToString::to_string` and it's called on a type that
-/// is string-like i.e. implements `AsRef<str>` or `Deref<Target = str>`.
-fn is_to_string_on_string_like<'a>(
-    cx: &LateContext<'_>,
-    call_expr: &'a Expr<'a>,
-    method_name: Symbol,
-    method_def_id: DefId,
-) -> bool {
-    if method_name != sym::to_string || !is_diag_trait_item(cx, method_def_id, sym::ToString) {
-        return false;
-    }
-
-    if let Some(args) = cx.typeck_results().node_args_opt(call_expr.hir_id)
-        && let [generic_arg] = args.as_slice()
-        && let GenericArgKind::Type(ty) = generic_arg.kind()
-        && let Some(deref_trait_id) = cx.tcx.get_diagnostic_item(sym::Deref)
-        && let Some(as_ref_trait_id) = cx.tcx.get_diagnostic_item(sym::AsRef)
-        && (cx.get_associated_type(ty, deref_trait_id, sym::Target) == Some(cx.tcx.types.str_)
-            || implements_trait(cx, ty, as_ref_trait_id, &[cx.tcx.types.str_.into()]))
-    {
-        true
-    } else {
-        false
-    }
 }
 
 fn std_map_key<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<Ty<'tcx>> {
