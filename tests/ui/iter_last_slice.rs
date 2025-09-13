@@ -1,0 +1,34 @@
+#![warn(clippy::iter_last_slice)]
+#![allow(clippy::useless_vec)]
+
+fn main() {
+    // test code goes here
+    let s = [1, 2, 3];
+    let v = vec![1, 2, 3];
+
+    let _ = s.iter().last();
+    //~^ iter_last_slice
+    // Should be replaced by s.last()
+
+    let _ = s[..2].iter().last();
+    //~^ iter_last_slice
+    // Should be replaced by s.get(1)
+    let _ = s[..=2].iter().last();
+    //~^ iter_last_slice
+    // Should be replaced by s.get(2)
+
+    let _ = v[..5].iter().last();
+    //~^ iter_last_slice
+    // Should be replaced by v.get(4)
+    let _ = v[..=5].iter().last();
+    //~^ iter_last_slice
+    // Should be replaced by v.get(5)
+
+    let _ = v.iter().last();
+    //~^ iter_last_slice
+    // Should be replaced by v.last()
+
+    let o = Some(5);
+    o.iter().last();
+    // Shouldn't be linted since this is not a Slice or an Array
+}

@@ -3,7 +3,8 @@
     dead_code,
     clippy::let_unit_value,
     clippy::useless_vec,
-    clippy::double_ended_iterator_last
+    clippy::double_ended_iterator_last,
+    clippy::iter_last_slice
 )]
 
 fn main() {
