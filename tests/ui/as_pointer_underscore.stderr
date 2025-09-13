@@ -13,5 +13,11 @@ error: using inferred pointer cast
 LL |     s as *mut _ as usize
    |          ^^^^^^ help: use explicit type: `*mut S`
 
-error: aborting due to 2 previous errors
+error: using inferred pointer cast
+  --> tests/ui/as_pointer_underscore.rs:21:36
+   |
+LL |     let _ = &(bar as fn(usize)) as *const _;
+   |                                    ^^^^^^^^ help: use explicit type: `*const fn(usize)`
+
+error: aborting due to 3 previous errors
 
