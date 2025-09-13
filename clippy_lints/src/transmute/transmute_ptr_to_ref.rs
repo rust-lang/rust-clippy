@@ -4,7 +4,7 @@ use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::sugg;
 use rustc_errors::Applicability;
-use rustc_hir::{self as hir, Expr, GenericArg, Mutability, Path, TyKind};
+use rustc_hir::{self as hir, Expr, ExprKind, GenericArg, Mutability, Node, Path, TyKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty, TypeVisitableExt};
 
@@ -59,7 +59,22 @@ pub(super) fn check<'tcx>(
                         sugg::make_unop(deref, arg.as_ty(format!("{cast} {to_ref_ty}"))).to_string()
                     };
 
-                    diag.span_suggestion(e.span, "try", sugg, app);
+                    if let Node::Expr(Expr {
+                        kind:
+                            ExprKind::Call(
+                                Expr {
+                                    kind: ExprKind::Call(..),
+                                    ..
+                                },
+                                ..,
+                            ),
+                        ..
+                    }) = cx.tcx.parent_hir_node(e.hir_id)
+                    {
+                        diag.span_suggestion(e.span, "try", format!("({sugg})"), app);
+                    } else {
+                        diag.span_suggestion(e.span, "try", sugg, app);
+                    }
                 },
             );
             true
