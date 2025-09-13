@@ -1,0 +1,119 @@
+error: unnecessary runtime parsing of an IPv4 address
+  --> tests/ui/parsed_string_literals.rs:6:9
+   |
+LL |     _ = "137.194.161.2".parse::<Ipv4Addr>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Ipv4Addr::new(137, 194, 161, 2)`
+   |
+   = note: `-D clippy::parsed-string-literals` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::parsed_string_literals)]`
+
+error: unnecessary runtime parsing of an IPv4 address
+  --> tests/ui/parsed_string_literals.rs:9:9
+   |
+LL |     _ = "127.0.0.1".parse::<Ipv4Addr>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Ipv4Addr::LOCALHOST`
+
+error: unnecessary runtime parsing of an IPv4 address
+  --> tests/ui/parsed_string_literals.rs:12:9
+   |
+LL |     _ = "255.255.255.255".parse::<Ipv4Addr>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Ipv4Addr::BROADCAST`
+
+error: unnecessary runtime parsing of an IPv4 address
+  --> tests/ui/parsed_string_literals.rs:15:9
+   |
+LL |     _ = "0.0.0.0".parse::<Ipv4Addr>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Ipv4Addr::UNSPECIFIED`
+
+error: unnecessary runtime parsing of an IPv6 address
+  --> tests/ui/parsed_string_literals.rs:22:9
+   |
+LL |     _ = "::1".parse::<Ipv6Addr>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Ipv6Addr::LOCALHOST`
+
+error: unnecessary runtime parsing of an IPv6 address
+  --> tests/ui/parsed_string_literals.rs:25:9
+   |
+LL |     _ = "::".parse::<Ipv6Addr>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Ipv6Addr::UNSPECIFIED`
+
+error: unnecessary runtime parsing of an IPv6 address
+  --> tests/ui/parsed_string_literals.rs:28:9
+   |
+LL |     _ = "::1".parse::<IpAddr>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `IpAddr::V6(Ipv6Addr::LOCALHOST)`
+
+error: unnecessary runtime parsing of an IPv6 address
+  --> tests/ui/parsed_string_literals.rs:31:9
+   |
+LL |     _ = "::".parse::<IpAddr>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `IpAddr::V6(Ipv6Addr::UNSPECIFIED)`
+
+error: unnecessary runtime parsing of a boolean
+  --> tests/ui/parsed_string_literals.rs:38:9
+   |
+LL |     _ = "true".parse::<bool>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `true`
+
+error: unnecessary runtime parsing of a boolean
+  --> tests/ui/parsed_string_literals.rs:40:9
+   |
+LL |     _ = "false".parse::<bool>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `false`
+
+error: unnecessary runtime parsing of a signed integer
+  --> tests/ui/parsed_string_literals.rs:43:18
+   |
+LL |     let _: i64 = "-17".parse().unwrap();
+   |                  ^^^^^^^^^^^^^^^^^^^^^^ help: use: `-17_i64`
+
+error: unnecessary runtime parsing of an unsigned integer
+  --> tests/ui/parsed_string_literals.rs:45:9
+   |
+LL |     _ = "10".parse::<usize>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `10_usize`
+
+error: unnecessary runtime parsing of a real number
+  --> tests/ui/parsed_string_literals.rs:47:9
+   |
+LL |     _ = "1.23".parse::<f32>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `1.23_f32`
+
+error: unnecessary runtime parsing of a real number
+  --> tests/ui/parsed_string_literals.rs:49:9
+   |
+LL |     _ = "1.2300".parse::<f32>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `1.2300_f32`
+
+error: unnecessary runtime parsing of a character
+  --> tests/ui/parsed_string_literals.rs:51:9
+   |
+LL |     _ = "c".parse::<char>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `'c'`
+
+error: unnecessary runtime parsing of a character
+  --> tests/ui/parsed_string_literals.rs:53:9
+   |
+LL |     _ = r#"""#.parse::<char>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `'"'`
+
+error: unnecessary runtime parsing of a character
+  --> tests/ui/parsed_string_literals.rs:55:9
+   |
+LL |     _ = "'".parse::<char>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `'\''`
+
+error: unnecessary runtime parsing of a character
+  --> tests/ui/parsed_string_literals.rs:59:9
+   |
+LL |     _ = "\u{1f980}".parse::<char>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `'\u{1f980}'`
+
+error: unnecessary runtime parsing of a character
+  --> tests/ui/parsed_string_literals.rs:61:9
+   |
+LL |     _ = "🦀".parse::<char>().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `'🦀'`
+
+error: aborting due to 19 previous errors
+
