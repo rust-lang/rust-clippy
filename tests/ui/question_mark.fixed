@@ -2,6 +2,7 @@
 #![allow(unreachable_code)]
 #![allow(dead_code)]
 #![allow(clippy::unnecessary_wraps)]
+#![allow(dropping_copy_types)]
 
 use std::sync::MutexGuard;
 
@@ -464,4 +465,18 @@ fn issue_13642(x: Option<i32>) -> Option<()> {
     };
 
     None
+}
+
+mod issue14894 {
+    struct CannotCopy {}
+
+    fn use_after_question_mark(do_something_else: impl FnOnce() -> Result<CannotCopy, ()>) -> Result<(), ()> {
+        let result = do_something_else();
+        if let Err(reason) = result {
+            return Err(reason);
+        }
+        drop(result);
+
+        Ok(())
+    }
 }
