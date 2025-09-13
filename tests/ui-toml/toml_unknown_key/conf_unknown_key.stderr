@@ -36,6 +36,7 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            check-private-items
            cognitive-complexity-threshold
            const-literal-digits-threshold
+           disabled-in-tests
            disallowed-macros
            disallowed-methods
            disallowed-names
@@ -131,6 +132,7 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            check-private-items
            cognitive-complexity-threshold
            const-literal-digits-threshold
+           disabled-in-tests
            disallowed-macros
            disallowed-methods
            disallowed-names
@@ -226,6 +228,7 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            check-private-items
            cognitive-complexity-threshold
            const-literal-digits-threshold
+           disabled-in-tests
            disallowed-macros
            disallowed-methods
            disallowed-names
