@@ -1,4 +1,4 @@
-use clippy_utils::ast_utils::{IdentIter, eq_id, is_useless_with_eq_exprs};
+use clippy_utils::ast::{IdentIter, is_useless_with_eq_exprs};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_applicability;
 use core::ops::{Add, AddAssign};
@@ -606,7 +606,7 @@ fn ident_difference_via_ident_iter_with_base_location<Iterable: Into<IdentIter>>
     loop {
         match (left_iterator.next(), right_iterator.next()) {
             (Some(left_ident), Some(right_ident)) => {
-                if !eq_id(left_ident, right_ident) {
+                if left_ident.name != right_ident.name {
                     difference += IdentDifference::Single(base);
                     if difference.is_complete() {
                         return (difference, base);
@@ -636,7 +636,7 @@ fn suggestion_with_swapped_ident(
     applicability: &mut Applicability,
 ) -> Option<String> {
     get_ident(expr, location).and_then(|current_ident| {
-        if eq_id(current_ident, new_ident) {
+        if current_ident.name == new_ident.name {
             // We never want to suggest a non-change
             return None;
         }

@@ -1,10 +1,9 @@
 #![allow(clippy::wildcard_imports, clippy::enum_glob_use)]
 
 use clippy_config::Conf;
-use clippy_utils::ast_utils::{eq_field_pat, eq_id, eq_maybe_qself, eq_pat, eq_path};
+use clippy_utils::ast::EqCtxt;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::msrvs::{self, MsrvStack};
-use clippy_utils::over;
 use rustc_ast::PatKind::*;
 use rustc_ast::mut_visit::*;
 use rustc_ast::{self as ast, DUMMY_NODE_ID, Mutability, Pat, PatKind};
@@ -50,12 +49,14 @@ declare_clippy_lint! {
 
 pub struct UnnestedOrPatterns {
     msrv: MsrvStack,
+    eq_ctxt: EqCtxt,
 }
 
 impl UnnestedOrPatterns {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
             msrv: MsrvStack::new(conf.msrv),
+            eq_ctxt: EqCtxt::default(),
         }
     }
 }
@@ -65,7 +66,7 @@ impl_lint_pass!(UnnestedOrPatterns => [UNNESTED_OR_PATTERNS]);
 impl EarlyLintPass for UnnestedOrPatterns {
     fn check_arm(&mut self, cx: &EarlyContext<'_>, a: &ast::Arm) {
         if self.msrv.meets(msrvs::OR_PATTERNS) {
-            lint_unnested_or_patterns(cx, &a.pat);
+            lint_unnested_or_patterns(cx, &a.pat, &mut self.eq_ctxt);
         }
     }
 
@@ -73,26 +74,26 @@ impl EarlyLintPass for UnnestedOrPatterns {
         if self.msrv.meets(msrvs::OR_PATTERNS)
             && let ast::ExprKind::Let(pat, _, _, _) = &e.kind
         {
-            lint_unnested_or_patterns(cx, pat);
+            lint_unnested_or_patterns(cx, pat, &mut self.eq_ctxt);
         }
     }
 
     fn check_param(&mut self, cx: &EarlyContext<'_>, p: &ast::Param) {
         if self.msrv.meets(msrvs::OR_PATTERNS) {
-            lint_unnested_or_patterns(cx, &p.pat);
+            lint_unnested_or_patterns(cx, &p.pat, &mut self.eq_ctxt);
         }
     }
 
     fn check_local(&mut self, cx: &EarlyContext<'_>, l: &ast::Local) {
         if self.msrv.meets(msrvs::OR_PATTERNS) {
-            lint_unnested_or_patterns(cx, &l.pat);
+            lint_unnested_or_patterns(cx, &l.pat, &mut self.eq_ctxt);
         }
     }
 
     extract_msrv_attr!();
 }
 
-fn lint_unnested_or_patterns(cx: &EarlyContext<'_>, pat: &Pat) {
+fn lint_unnested_or_patterns(cx: &EarlyContext<'_>, pat: &Pat, eq_ctxt: &mut EqCtxt) {
     if let Ident(.., None) | Expr(_) | Wild | Path(..) | Range(..) | Rest | MacCall(_) = pat.kind {
         // This is a leaf pattern, so cloning is unprofitable.
         return;
@@ -104,7 +105,7 @@ fn lint_unnested_or_patterns(cx: &EarlyContext<'_>, pat: &Pat) {
     remove_all_parens(&mut pat);
 
     // Transform all unnested or-patterns into nested ones, and if there were none, quit.
-    if !unnest_or_patterns(&mut pat) {
+    if !unnest_or_patterns(&mut pat, eq_ctxt) {
         return;
     }
 
@@ -163,11 +164,12 @@ fn insert_necessary_parens(pat: &mut Box<Pat>) {
 
 /// Unnest or-patterns `p0 | ... | p1` in the pattern `pat`.
 /// For example, this would transform `Some(0) | FOO | Some(2)` into `Some(0 | 2) | FOO`.
-fn unnest_or_patterns(pat: &mut Box<Pat>) -> bool {
-    struct Visitor {
+fn unnest_or_patterns(pat: &mut Box<Pat>, eq_ctxt: &mut EqCtxt) -> bool {
+    struct Visitor<'a> {
         changed: bool,
+        eq_ctxt: &'a mut EqCtxt,
     }
-    impl MutVisitor for Visitor {
+    impl MutVisitor for Visitor<'_> {
         fn visit_pat(&mut self, p: &mut Pat) {
             // This is a bottom up transformation, so recurse first.
             walk_pat(self, p);
@@ -192,7 +194,7 @@ fn unnest_or_patterns(pat: &mut Box<Pat>) -> bool {
             // Focus on `p_n` and then try to transform all `p_i` where `i > n`.
             let mut focus_idx = 0;
             while focus_idx < alternatives.len() {
-                this_level_changed |= transform_with_focus_on_idx(alternatives, focus_idx);
+                this_level_changed |= transform_with_focus_on_idx(alternatives, focus_idx, self.eq_ctxt);
                 focus_idx += 1;
             }
             self.changed |= this_level_changed;
@@ -204,7 +206,10 @@ fn unnest_or_patterns(pat: &mut Box<Pat>) -> bool {
         }
     }
 
-    let mut visitor = Visitor { changed: false };
+    let mut visitor = Visitor {
+        changed: false,
+        eq_ctxt,
+    };
     visitor.visit_pat(pat);
     visitor.changed
 }
@@ -223,7 +228,7 @@ macro_rules! always_pat {
 /// Focus on `focus_idx` in `alternatives`,
 /// attempting to extend it with elements of the same constructor `C`
 /// in `alternatives[focus_idx + 1..]`.
-fn transform_with_focus_on_idx(alternatives: &mut ThinVec<Box<Pat>>, focus_idx: usize) -> bool {
+fn transform_with_focus_on_idx(alternatives: &mut ThinVec<Box<Pat>>, focus_idx: usize, eq_cx: &mut EqCtxt) -> bool {
     // Extract the kind; we'll need to make some changes in it.
     let mut focus_kind = mem::replace(&mut alternatives[focus_idx].kind, Wild);
     // We'll focus on `alternatives[focus_idx]`,
@@ -263,19 +268,19 @@ fn transform_with_focus_on_idx(alternatives: &mut ThinVec<Box<Pat>>, focus_idx: 
         Ident(b1, i1, Some(target)) => extend_with_matching(
             target, start, alternatives,
             // Binding names must match.
-            |k| matches!(k, Ident(b2, i2, Some(_)) if b1 == b2 && eq_id(*i1, *i2)),
+            |k| matches!(k, Ident(b2, i2, Some(_)) if b1 == b2 && i1.name == i2.name),
             |k| always_pat!(k, Ident(_, _, Some(p)) => p),
         ),
         // Transform `[pre, x, post] | ... | [pre, y, post]` into `[pre, x | y, post]`.
         Slice(ps1) => extend_with_matching_product(
             ps1, start, alternatives,
-            |k, ps1, idx| matches!(k, Slice(ps2) if eq_pre_post(ps1, ps2, idx)),
+            |k, ps1, idx| matches!(k, Slice(ps2) if eq_pre_post(ps1, ps2, idx, eq_cx)),
             |k| always_pat!(k, Slice(ps) => ps),
         ),
         // Transform `(pre, x, post) | ... | (pre, y, post)` into `(pre, x | y, post)`.
         Tuple(ps1) => extend_with_matching_product(
             ps1, start, alternatives,
-            |k, ps1, idx| matches!(k, Tuple(ps2) if eq_pre_post(ps1, ps2, idx)),
+            |k, ps1, idx| matches!(k, Tuple(ps2) if eq_pre_post(ps1, ps2, idx, eq_cx)),
             |k| always_pat!(k, Tuple(ps) => ps),
         ),
         // Transform `S(pre, x, post) | ... | S(pre, y, post)` into `S(pre, x | y, post)`.
@@ -284,14 +289,14 @@ fn transform_with_focus_on_idx(alternatives: &mut ThinVec<Box<Pat>>, focus_idx: 
             |k, ps1, idx| matches!(
                 k,
                 TupleStruct(qself2, path2, ps2)
-                    if eq_maybe_qself(qself1.as_deref(), qself2.as_deref())
-                       && eq_path(path1, path2) && eq_pre_post(ps1, ps2, idx)
+                    if eq_cx.eq(qself1, qself2)
+                       && eq_cx.eq(path1, path2) && eq_pre_post(ps1, ps2, idx, eq_cx)
             ),
             |k| always_pat!(k, TupleStruct(_, _, ps) => ps),
         ),
         // Transform a record pattern `S { fp_0, ..., fp_n }`.
         Struct(qself1, path1, fps1, rest1) => {
-            extend_with_struct_pat(qself1.as_deref(), path1, fps1, *rest1, start, alternatives)
+            extend_with_struct_pat(qself1.as_deref(), path1, fps1, *rest1, start, alternatives, eq_cx)
         },
     };
 
@@ -310,6 +315,7 @@ fn extend_with_struct_pat(
     rest1: ast::PatFieldsRest,
     start: usize,
     alternatives: &mut ThinVec<Box<Pat>>,
+    eq_cx: &mut EqCtxt,
 ) -> bool {
     (0..fps1.len()).any(|idx| {
         let pos_in_2 = Cell::new(None); // The element `k`.
@@ -319,8 +325,8 @@ fn extend_with_struct_pat(
             |k| {
                 matches!(k, Struct(qself2, path2, fps2, rest2)
                 if rest1 == *rest2 // If one struct pattern has `..` so must the other.
-                && eq_maybe_qself(qself1, qself2.as_deref())
-                && eq_path(path1, path2)
+                && eq_cx.eq(&qself1, &qself2.as_deref())
+                && eq_cx.eq(path1, path2)
                 && fps1.len() == fps2.len()
                 && fps1.iter().enumerate().all(|(idx_1, fp1)| {
                     if idx_1 == idx {
@@ -329,12 +335,12 @@ fn extend_with_struct_pat(
                         let pos = fps2.iter().position(|fp2| {
                             // Avoid `Foo { bar } | Foo { bar }` => `Foo { bar | bar }`
                             !(fp1.is_shorthand && fp2.is_shorthand)
-                                && eq_id(fp1.ident, fp2.ident)
+                                && fp1.ident.name == fp2.ident.name
                         });
                         pos_in_2.set(pos);
                         pos.is_some()
                     } else {
-                        fps2.iter().any(|fp2| eq_field_pat(fp1, fp2))
+                        fps2.iter().any(|fp2| eq_cx.eq(fp1, fp2))
                     }
                 }))
             },
@@ -354,7 +360,7 @@ fn extend_with_matching_product(
     targets: &mut [Box<Pat>],
     start: usize,
     alternatives: &mut ThinVec<Box<Pat>>,
-    predicate: impl Fn(&PatKind, &[Box<Pat>], usize) -> bool,
+    mut predicate: impl FnMut(&PatKind, &[Box<Pat>], usize) -> bool,
     extract: impl Fn(PatKind) -> ThinVec<Box<Pat>>,
 ) -> bool {
     (0..targets.len()).any(|idx| {
@@ -409,7 +415,7 @@ fn extend_with_tail_or(target: &mut Pat, tail_or: ThinVec<Box<Pat>>) -> bool {
 fn drain_matching(
     start: usize,
     alternatives: &mut ThinVec<Box<Pat>>,
-    predicate: impl Fn(&PatKind) -> bool,
+    mut predicate: impl FnMut(&PatKind) -> bool,
     extract: impl Fn(PatKind) -> Box<Pat>,
 ) -> ThinVec<Box<Pat>> {
     let mut tail_or = ThinVec::new();
@@ -451,9 +457,9 @@ fn extend_with_matching(
 }
 
 /// Are the patterns in `ps1` and `ps2` equal save for `ps1[idx]` compared to `ps2[idx]`?
-fn eq_pre_post(ps1: &[Box<Pat>], ps2: &[Box<Pat>], idx: usize) -> bool {
+fn eq_pre_post(ps1: &[Box<Pat>], ps2: &[Box<Pat>], idx: usize, eq_cx: &mut EqCtxt) -> bool {
     ps1.len() == ps2.len()
         && ps1[idx].is_rest() == ps2[idx].is_rest() // Avoid `[x, ..] | [x, 0]` => `[x, .. | 0]`.
-        && over(&ps1[..idx], &ps2[..idx], |l, r| eq_pat(l, r))
-        && over(&ps1[idx + 1..], &ps2[idx + 1..], |l, r| eq_pat(l, r))
+        && eq_cx.eq(&ps1[..idx], &ps2[..idx])
+        && eq_cx.eq(&ps1[idx + 1..], &ps2[idx + 1..])
 }
