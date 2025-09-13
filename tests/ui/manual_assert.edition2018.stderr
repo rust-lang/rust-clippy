@@ -190,7 +190,25 @@ LL +         const BAR: () = assert!(N != 0, );
    |
 
 error: only a `panic!` in `if`-then statement
-  --> tests/ui/manual_assert.rs:116:5
+  --> tests/ui/manual_assert.rs:119:5
+   |
+LL | /     if foo!() {
+LL | |
+LL | |         panic!("not a `cfg`, so lint")
+LL | |     }
+   | |_____^
+   |
+help: try instead
+   |
+LL -     if foo!() {
+LL -
+LL -         panic!("not a `cfg`, so lint")
+LL -     }
+LL +     assert!(!foo!(), "not a `cfg`, so lint")
+   |
+
+error: only a `panic!` in `if`-then statement
+  --> tests/ui/manual_assert.rs:132:5
    |
 LL | /     if !is_x86_feature_detected!("ssse3") {
 LL | |
@@ -207,5 +225,5 @@ LL -     }
 LL +     assert!(is_x86_feature_detected!("ssse3"), "SSSE3 is not supported");
    |
 
-error: aborting due to 11 previous errors
+error: aborting due to 12 previous errors
 
