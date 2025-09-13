@@ -80,7 +80,6 @@ impl fmt::Display for Convention {
     }
 }
 
-#[allow(clippy::too_many_arguments)]
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,
     item_name: Symbol,

@@ -880,7 +880,7 @@ impl<'tcx> LateLintPass<'tcx> for Loops {
 }
 
 impl Loops {
-    #[allow(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments)]
     fn check_for_loop<'tcx>(
         &self,
         cx: &LateContext<'tcx>,
