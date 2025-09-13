@@ -382,6 +382,7 @@ mod unnecessary_semicolon;
 mod unnecessary_struct_initialization;
 mod unnecessary_wraps;
 mod unneeded_struct_pattern;
+mod unneeded_try_convert;
 mod unnested_or_patterns;
 mod unsafe_removed_from_name;
 mod unused_async;
@@ -783,6 +784,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(implied_bounds_in_impls::ImpliedBoundsInImpls));
     store.register_late_pass(|_| Box::new(missing_asserts_for_indexing::MissingAssertsForIndexing));
     store.register_late_pass(|_| Box::new(unnecessary_map_on_constructor::UnnecessaryMapOnConstructor));
+    store.register_late_pass(|_| Box::new(unneeded_try_convert::UnneededTryConvert));
     store.register_late_pass(move |_| {
         Box::new(needless_borrows_for_generic_args::NeedlessBorrowsForGenericArgs::new(
             conf,
