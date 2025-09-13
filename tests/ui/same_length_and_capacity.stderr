@@ -1,0 +1,20 @@
+error: usage of `Vec::from_raw_parts` with the same expression for length and capacity
+  --> tests/ui/same_length_and_capacity.rs:10:39
+   |
+LL |     let _reconstructed_vec = unsafe { Vec::from_raw_parts(ptr, len, len) };
+   |                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if the length and capacity are the same, you most likely went through a boxed slice; consider reconstructing the `Vec` using a `Box` instead, e.g. `Box::from(slice::from_raw_parts(...)).into_vec()`
+   = note: `-D clippy::same-length-and-capacity` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::same_length_and_capacity)]`
+
+error: usage of `String::from_raw_parts` with the same expression for length and capacity
+  --> tests/ui/same_length_and_capacity.rs:19:42
+   |
+LL |     let _reconstructed_string = unsafe { String::from_raw_parts(string_ptr, string_len, string_len) };
+   |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if the length and capacity are the same, you most likely went through a boxed `str`; consider reconstructing the `String` using `String::from` instead, e.g. `String::from(str::from_utf8_unchecked(slice::from_raw_parts(...)))`
+
+error: aborting due to 2 previous errors
+
