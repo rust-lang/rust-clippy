@@ -1,6 +1,7 @@
+use crate::res::MaybeResPath;
 use crate::source::snippet;
 use crate::visitors::{Descend, for_each_expr_without_closures};
-use crate::{path_to_local_id, strip_pat_refs, sym};
+use crate::{strip_pat_refs, sym};
 use core::ops::ControlFlow;
 use rustc_hir::{Body, BodyId, ExprKind, HirId, PatKind};
 use rustc_lint::LateContext;
@@ -33,7 +34,7 @@ fn extract_clone_suggestions<'tcx>(
     let mut spans = Vec::new();
     for_each_expr_without_closures(body, |e| {
         if let ExprKind::MethodCall(seg, recv, [], _) = e.kind
-            && path_to_local_id(recv, id)
+            && recv.res_local_id() == Some(id)
         {
             if seg.ident.name == sym::capacity {
                 return ControlFlow::Break(());
