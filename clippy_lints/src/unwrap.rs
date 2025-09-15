@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
-use clippy_utils::ty::is_type_diagnostic_item;
+use clippy_utils::res::MaybeDef;
 use clippy_utils::usage::is_potentially_local_place;
 use clippy_utils::{higher, path_to_local, sym};
 use rustc_errors::Applicability;
@@ -134,11 +134,11 @@ fn collect_unwrap_info<'tcx>(
     is_entire_condition: bool,
 ) -> Vec<UnwrapInfo<'tcx>> {
     fn is_relevant_option_call(cx: &LateContext<'_>, ty: Ty<'_>, method_name: Symbol) -> bool {
-        is_type_diagnostic_item(cx, ty, sym::Option) && matches!(method_name, sym::is_none | sym::is_some)
+        ty.is_diag_item(cx, sym::Option) && matches!(method_name, sym::is_none | sym::is_some)
     }
 
     fn is_relevant_result_call(cx: &LateContext<'_>, ty: Ty<'_>, method_name: Symbol) -> bool {
-        is_type_diagnostic_item(cx, ty, sym::Result) && matches!(method_name, sym::is_err | sym::is_ok)
+        ty.is_diag_item(cx, sym::Result) && matches!(method_name, sym::is_err | sym::is_ok)
     }
 
     match expr.kind {
@@ -161,7 +161,7 @@ fn collect_unwrap_info<'tcx>(
         {
             let unwrappable = matches!(name, sym::is_some | sym::is_ok);
             let safe_to_unwrap = unwrappable != invert;
-            let kind = if is_type_diagnostic_item(cx, ty, sym::Option) {
+            let kind = if ty.is_diag_item(cx, sym::Option) {
                 UnwrappableKind::Option
             } else {
                 UnwrappableKind::Result
