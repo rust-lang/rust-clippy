@@ -1,13 +1,13 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_note, span_lint_and_then};
 use clippy_utils::higher::has_let_expr;
+use clippy_utils::res::MaybeResPath;
 use clippy_utils::source::{IntoSpan, SpanRangeExt, first_line_of_span, indent_of, reindent_multiline, snippet};
 use clippy_utils::ty::{InteriorMut, needs_ordered_drop};
 use clippy_utils::visitors::for_each_expr_without_closures;
 use clippy_utils::{
     ContainsName, HirEqInterExpr, SpanlessEq, capture_local_usage, eq_expr_value, find_binding_init,
-    get_enclosing_block, hash_expr, hash_stmt, if_sequence, is_else_clause, is_lint_allowed, path_to_local,
-    search_same,
+    get_enclosing_block, hash_expr, hash_stmt, if_sequence, is_else_clause, is_lint_allowed, search_same,
 };
 use core::iter;
 use core::ops::ControlFlow;
@@ -344,7 +344,7 @@ fn eq_binding_names(s: &Stmt<'_>, names: &[(HirId, Symbol)]) -> bool {
 /// Checks if the statement modifies or moves any of the given locals.
 fn modifies_any_local<'tcx>(cx: &LateContext<'tcx>, s: &'tcx Stmt<'_>, locals: &HirIdSet) -> bool {
     for_each_expr_without_closures(s, |e| {
-        if let Some(id) = path_to_local(e)
+        if let Some(id) = e.res_local_id()
             && locals.contains(&id)
             && !capture_local_usage(cx, e).is_imm_ref()
         {
@@ -393,7 +393,7 @@ fn scan_block_for_eq<'tcx>(
     let mut cond_locals = HirIdSet::default();
     for &cond in conds {
         let _: Option<!> = for_each_expr_without_closures(cond, |e| {
-            if let Some(id) = path_to_local(e) {
+            if let Some(id) = e.res_local_id() {
                 cond_locals.insert(id);
             }
             ControlFlow::Continue(())
@@ -597,7 +597,7 @@ fn method_caller_is_mutable<'tcx>(
     interior_mut.is_interior_mut_ty(cx, caller_ty)
         || caller_ty.is_mutable_ptr()
         // `find_binding_init` will return the binding iff its not mutable
-        || path_to_local(caller_expr)
+        || caller_expr.res_local_id()
             .and_then(|hid| find_binding_init(cx, hid))
             .is_none()
 }
