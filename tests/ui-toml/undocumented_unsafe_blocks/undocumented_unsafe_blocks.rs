@@ -701,6 +701,7 @@ mod issue_11709_regression {
     const UNIX_EPOCH_JULIAN_DAY: i32 =
         unsafe { Date::__from_ordinal_date_unchecked(1970, 1) }.into_julian_day_just_make_this_line_longer();
     //~[disabled]^ undocumented_unsafe_blocks
+    //~[default]^^^ unnecessary_safety_comment
 }
 
 fn issue_13039() {
@@ -732,6 +733,22 @@ fn rfl_issue15034() -> i32 {
     #[allow(clippy::unnecessary_cast)]
     return unsafe { h() };
     //~[disabled]^ ERROR: unsafe block missing a safety comment
+}
+
+mod issue_14555 {
+    // SAFETY: ...
+    mod x {}
+    //~^ unnecessary_safety_comment
+
+    // SAFETY: ...
+    #[doc(hidden)]
+    mod y {}
+    //~[default]^ unnecessary_safety_comment
+
+    #[doc(hidden)]
+    // SAFETY: ...
+    mod z {}
+    //~[disabled]^ unnecessary_safety_comment
 }
 
 fn main() {}
