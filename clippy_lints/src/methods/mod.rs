@@ -151,9 +151,9 @@ use clippy_utils::consts::{ConstEvalCtxt, Constant};
 use clippy_utils::diagnostics::{span_lint, span_lint_and_help};
 use clippy_utils::macros::FormatArgsStorage;
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::res::MaybeDef;
+use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
 use clippy_utils::ty::{contains_ty_adt_constructor_opaque, implements_trait, is_copy};
-use clippy_utils::{contains_return, is_bool, is_trait_method, iter_input_pats, peel_blocks, return_ty, sym};
+use clippy_utils::{contains_return, is_bool, iter_input_pats, peel_blocks, return_ty, sym};
 pub use path_ends_with_ext::DEFAULT_ALLOWED_DOTFILES;
 use rustc_abi::ExternAbi;
 use rustc_data_structures::fx::FxHashSet;
@@ -5081,7 +5081,7 @@ impl Methods {
                     cloned_instead_of_copied::check(cx, expr, recv, span, self.msrv);
                     option_as_ref_cloned::check(cx, recv, span);
                 },
-                (sym::collect, []) if is_trait_method(cx, expr, sym::Iterator) => {
+                (sym::collect, []) if cx.ty_based_def(expr).opt_parent(cx).is_diag_item(cx, sym::Iterator) => {
                     needless_collect::check(cx, span, expr, recv, call_span);
                     match method_call(recv) {
                         Some((name @ (sym::cloned | sym::copied), recv2, [], _, _)) => {
@@ -5102,17 +5102,26 @@ impl Methods {
                         _ => {},
                     }
                 },
-                (sym::count, []) if is_trait_method(cx, expr, sym::Iterator) => match method_call(recv) {
-                    Some((sym::cloned, recv2, [], _, _)) => {
-                        iter_overeager_cloned::check(cx, expr, recv, recv2, iter_overeager_cloned::Op::RmCloned, false);
-                    },
-                    Some((name2 @ (sym::into_iter | sym::iter | sym::iter_mut), recv2, [], _, _)) => {
-                        iter_count::check(cx, expr, recv2, name2);
-                    },
-                    Some((sym::map, _, [arg], _, _)) => suspicious_map::check(cx, expr, recv, arg),
-                    Some((sym::filter, recv2, [arg], _, _)) => bytecount::check(cx, expr, recv2, arg),
-                    Some((sym::bytes, recv2, [], _, _)) => bytes_count_to_len::check(cx, expr, recv, recv2),
-                    _ => {},
+                (sym::count, []) if cx.ty_based_def(expr).opt_parent(cx).is_diag_item(cx, sym::Iterator) => {
+                    match method_call(recv) {
+                        Some((sym::cloned, recv2, [], _, _)) => {
+                            iter_overeager_cloned::check(
+                                cx,
+                                expr,
+                                recv,
+                                recv2,
+                                iter_overeager_cloned::Op::RmCloned,
+                                false,
+                            );
+                        },
+                        Some((name2 @ (sym::into_iter | sym::iter | sym::iter_mut), recv2, [], _, _)) => {
+                            iter_count::check(cx, expr, recv2, name2);
+                        },
+                        Some((sym::map, _, [arg], _, _)) => suspicious_map::check(cx, expr, recv, arg),
+                        Some((sym::filter, recv2, [arg], _, _)) => bytecount::check(cx, expr, recv2, arg),
+                        Some((sym::bytes, recv2, [], _, _)) => bytes_count_to_len::check(cx, expr, recv, recv2),
+                        _ => {},
+                    }
                 },
                 (sym::min | sym::max, [arg]) => {
                     unnecessary_min_or_max::check(cx, expr, name, recv, arg);
@@ -5484,7 +5493,7 @@ impl Methods {
                     }
                     unnecessary_lazy_eval::check(cx, expr, recv, arg, "then_some");
                 },
-                (sym::try_into, []) if is_trait_method(cx, expr, sym::TryInto) => {
+                (sym::try_into, []) if cx.ty_based_def(expr).opt_parent(cx).is_diag_item(cx, sym::TryInto) => {
                     unnecessary_fallible_conversions::check_method(cx, expr);
                 },
                 (sym::to_owned, []) => {
