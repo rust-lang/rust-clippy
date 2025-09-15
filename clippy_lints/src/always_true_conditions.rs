@@ -58,7 +58,6 @@ fn find_path(expr: &Expr<'_>) -> Option<Res> {
 impl LateLintPass<'_> for AlwaysTrueConditions {
     fn check_expr(&mut self, cx: &LateContext<'_>, e: &Expr<'_>) {
         if let ExprKind::If(cond, _, _) = e.kind
-            && let ExprKind::DropTemps(cond) = cond.kind
             && let ExprKind::Binary(f_op_kind, f_cond, l_cond) = cond.kind
             && let BinOpKind::Or = f_op_kind.node
         {
