@@ -201,7 +201,7 @@ impl<'tcx> LateLintPass<'tcx> for UndocumentedUnsafeBlocks {
             (span, help_span)
         };
 
-        let item_has_safety_comment = item_has_safety_comment(cx, item);
+        let item_has_safety_comment = item_has_safety_comment(cx, item, self.accept_comment_above_attributes);
         match item_has_safety_comment {
             HasSafetyComment::Yes(pos) => check_has_safety_comment(cx, item, mk_spans(pos)),
             HasSafetyComment::No => check_has_no_safety_comment(cx, item),
@@ -272,6 +272,7 @@ fn check_has_safety_comment(cx: &LateContext<'_>, item: &hir::Item<'_>, (span, h
         },
     }
 }
+
 fn check_has_no_safety_comment(cx: &LateContext<'_>, item: &hir::Item<'_>) {
     if let ItemKind::Impl(Impl {
         of_trait: Some(of_trait),
@@ -482,6 +483,7 @@ fn include_attrs_in_span(cx: &LateContext<'_>, hir_id: HirId, span: Span) -> Spa
     }))
 }
 
+#[derive(Debug)]
 enum HasSafetyComment {
     Yes(BytePos),
     No,
@@ -489,7 +491,11 @@ enum HasSafetyComment {
 }
 
 /// Checks if the lines immediately preceding the item contain a safety comment.
-fn item_has_safety_comment(cx: &LateContext<'_>, item: &hir::Item<'_>) -> HasSafetyComment {
+fn item_has_safety_comment(
+    cx: &LateContext<'_>,
+    item: &hir::Item<'_>,
+    accept_comment_above_attributes: bool,
+) -> HasSafetyComment {
     match span_from_macro_expansion_has_safety_comment(cx, item.span) {
         HasSafetyComment::Maybe => (),
         has_safety_comment => return has_safety_comment,
@@ -523,10 +529,15 @@ fn item_has_safety_comment(cx: &LateContext<'_>, item: &hir::Item<'_>) -> HasSaf
         },
     };
 
+    let mut span = item.span;
+    if accept_comment_above_attributes {
+        span = include_attrs_in_span(cx, item.hir_id(), span);
+    }
+
     let source_map = cx.sess().source_map();
     // If the comment is in the first line of the file, there is no preceding line
     if let Some(comment_start) = comment_start
-        && let Ok(unsafe_line) = source_map.lookup_line(item.span.lo())
+        && let Ok(unsafe_line) = source_map.lookup_line(span.lo())
         && let Ok(comment_start_line) = source_map.lookup_line(comment_start.into())
         && let include_first_line_of_file = matches!(comment_start, CommentStartBeforeItem::Start)
         && (include_first_line_of_file || Arc::ptr_eq(&unsafe_line.sf, &comment_start_line.sf))
@@ -570,8 +581,6 @@ fn stmt_has_safety_comment(
         _ => return HasSafetyComment::Maybe,
     };
 
-    // if span_with_attrs_has_safety_comment(cx, span, hir_id, accept_comment_above_attrib
-    // }
     let mut span = span;
     if accept_comment_above_attributes {
         span = include_attrs_in_span(cx, hir_id, span);
@@ -584,6 +593,7 @@ fn stmt_has_safety_comment(
         && Arc::ptr_eq(&unsafe_line.sf, &comment_start_line.sf)
         && let Some(src) = unsafe_line.sf.src.as_deref()
     {
+        // dbg!(src);
         return if comment_start_line.line >= unsafe_line.line {
             HasSafetyComment::No
         } else {
