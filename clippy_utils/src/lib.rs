@@ -250,19 +250,6 @@ pub fn is_inside_always_const_context(tcx: TyCtxt<'_>, hir_id: HirId) -> bool {
     }
 }
 
-/// Checks if a `Res` refers to a constructor of a `LangItem`
-/// For example, use this to check whether a function call or a pattern is `Some(..)`.
-pub fn is_res_lang_ctor(cx: &LateContext<'_>, res: Res, lang_item: LangItem) -> bool {
-    if let Res::Def(DefKind::Ctor(..), id) = res
-        && let Some(lang_id) = cx.tcx.lang_items().get(lang_item)
-        && let Some(id) = cx.tcx.opt_parent(id)
-    {
-        id == lang_id
-    } else {
-        false
-    }
-}
-
 /// Checks if `{ctor_call_id}(...)` is `{enum_item}::{variant_name}(...)`.
 pub fn is_enum_variant_ctor(
     cx: &LateContext<'_>,
@@ -336,7 +323,7 @@ pub fn is_none_arm(cx: &LateContext<'_>, arm: &Arm<'_>) -> bool {
     matches!(
         arm.pat.kind,
         PatKind::Expr(PatExpr { kind: PatExprKind::Path(qpath), .. })
-            if is_res_lang_ctor(cx, cx.qpath_res(qpath, arm.pat.hir_id), OptionNone)
+            if cx.qpath_res(qpath, arm.pat.hir_id).ctor_parent(cx).is_lang_item(cx, OptionNone)
     )
 }
 
@@ -702,7 +689,10 @@ pub fn is_default_equivalent(cx: &LateContext<'_>, e: &Expr<'_>) -> bool {
         },
         ExprKind::Call(repl_func, []) => is_default_equivalent_call(cx, repl_func, Some(e)),
         ExprKind::Call(from_func, [arg]) => is_default_equivalent_from(cx, from_func, arg),
-        ExprKind::Path(qpath) => is_res_lang_ctor(cx, cx.qpath_res(qpath, e.hir_id), OptionNone),
+        ExprKind::Path(qpath) => cx
+            .qpath_res(qpath, e.hir_id)
+            .ctor_parent(cx)
+            .is_lang_item(cx, OptionNone),
         ExprKind::AddrOf(rustc_hir::BorrowKind::Ref, _, expr) => matches!(expr.kind, ExprKind::Array([])),
         ExprKind::Block(Block { stmts: [], expr, .. }, _) => expr.is_some_and(|e| is_default_equivalent(cx, e)),
         _ => false,
@@ -1607,7 +1597,10 @@ pub fn is_try<'tcx>(cx: &LateContext<'_>, expr: &'tcx Expr<'tcx>) -> Option<&'tc
     fn is_ok(cx: &LateContext<'_>, arm: &Arm<'_>) -> bool {
         if let PatKind::TupleStruct(ref path, pat, ddpos) = arm.pat.kind
             && ddpos.as_opt_usize().is_none()
-            && is_res_lang_ctor(cx, cx.qpath_res(path, arm.pat.hir_id), ResultOk)
+            && cx
+                .qpath_res(path, arm.pat.hir_id)
+                .ctor_parent(cx)
+                .is_lang_item(cx, ResultOk)
             && let PatKind::Binding(_, hir_id, _, None) = pat[0].kind
             && path_to_local_id(arm.body, hir_id)
         {
@@ -1618,7 +1611,9 @@ pub fn is_try<'tcx>(cx: &LateContext<'_>, expr: &'tcx Expr<'tcx>) -> Option<&'tc
 
     fn is_err(cx: &LateContext<'_>, arm: &Arm<'_>) -> bool {
         if let PatKind::TupleStruct(ref path, _, _) = arm.pat.kind {
-            is_res_lang_ctor(cx, cx.qpath_res(path, arm.pat.hir_id), ResultErr)
+            cx.qpath_res(path, arm.pat.hir_id)
+                .ctor_parent(cx)
+                .is_lang_item(cx, ResultErr)
         } else {
             false
         }
@@ -2868,12 +2863,18 @@ pub fn pat_and_expr_can_be_question_mark<'a, 'hir>(
     else_body: &Expr<'_>,
 ) -> Option<&'a Pat<'hir>> {
     if let PatKind::TupleStruct(pat_path, [inner_pat], _) = pat.kind
-        && is_res_lang_ctor(cx, cx.qpath_res(&pat_path, pat.hir_id), OptionSome)
+        && cx
+            .qpath_res(&pat_path, pat.hir_id)
+            .ctor_parent(cx)
+            .is_lang_item(cx, OptionSome)
         && !is_refutable(cx, inner_pat)
         && let else_body = peel_blocks(else_body)
         && let ExprKind::Ret(Some(ret_val)) = else_body.kind
         && let ExprKind::Path(ret_path) = ret_val.kind
-        && is_res_lang_ctor(cx, cx.qpath_res(&ret_path, ret_val.hir_id), OptionNone)
+        && cx
+            .qpath_res(&ret_path, ret_val.hir_id)
+            .ctor_parent(cx)
+            .is_lang_item(cx, OptionNone)
     {
         Some(inner_pat)
     } else {
