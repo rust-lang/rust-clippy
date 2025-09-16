@@ -133,5 +133,29 @@ error: transmute from a pointer type (`*const &u32`) to a reference type (`&&u32
 LL |             _ => std::mem::transmute::<_, &&'b u32>(x),
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `&*(x as *const () as *const &'b u32)`
 
-error: aborting due to 22 previous errors
+error: transmute from a pointer type (`*mut std::ffi::c_void`) to a reference type (`&mut std::boxed::Box<dyn for<'a> std::ops::FnMut(&'a u32)>`)
+  --> tests/ui/transmute_ptr_to_ref.rs:117:9
+   |
+LL |         std::mem::transmute::<*mut std::ffi::c_void, &mut Box<dyn FnMut(&u32)>>(mut_num_func_ptr)(&num);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `(&mut *mut_num_func_ptr.cast::<Box<dyn FnMut(&u32)>>())`
+
+error: transmute from a pointer type (`*mut std::ffi::c_void`) to a reference type (`&mut std::boxed::Box<dyn for<'a> std::ops::FnMut(&'a u32)>`)
+  --> tests/ui/transmute_ptr_to_ref.rs:128:9
+   |
+LL |         std::mem::transmute::<*mut std::ffi::c_void, &mut Box<dyn FnMut(&u32)>>(mut_num_func_ptr)(&num);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `(&mut *(mut_num_func_ptr as *mut Box<dyn FnMut(&u32)>))`
+
+error: transmute from a pointer type (`*const std::ffi::c_void`) to a reference type (`&std::boxed::Box<dyn for<'a> std::ops::Fn(&'a u32)>`)
+  --> tests/ui/transmute_ptr_to_ref.rs:140:9
+   |
+LL |         std::mem::transmute::<*const std::ffi::c_void, &Box<dyn Fn(&u32)>>(num_func_ptr)(&num);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `(&*num_func_ptr.cast::<Box<dyn Fn(&u32)>>())`
+
+error: transmute from a pointer type (`*const std::ffi::c_void`) to a reference type (`&std::boxed::Box<dyn for<'a> std::ops::Fn(&'a u32)>`)
+  --> tests/ui/transmute_ptr_to_ref.rs:151:9
+   |
+LL |         std::mem::transmute::<*const std::ffi::c_void, &Box<dyn Fn(&u32)>>(num_func_ptr)(&num);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `(&*(num_func_ptr as *const Box<dyn Fn(&u32)>))`
+
+error: aborting due to 26 previous errors
 
