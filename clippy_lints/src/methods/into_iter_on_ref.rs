@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::is_trait_method;
+use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
 use clippy_utils::ty::has_iter_method;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
@@ -20,7 +20,7 @@ pub(super) fn check(
     let self_ty = cx.typeck_results().expr_ty_adjusted(receiver);
     if let ty::Ref(..) = self_ty.kind()
         && method_name == sym::into_iter
-        && is_trait_method(cx, expr, sym::IntoIterator)
+        && cx.ty_based_def(expr).opt_parent(cx).is_diag_item(cx, sym::IntoIterator)
         && let Some((kind, method_name)) = ty_has_iter_method(cx, self_ty)
     {
         span_lint_and_sugg(

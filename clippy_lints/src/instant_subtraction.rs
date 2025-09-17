@@ -1,9 +1,9 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{self, Msrv};
+use clippy_utils::res::{MaybeDef, MaybeQPath};
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::sugg::Sugg;
-use clippy_utils::{is_path_diagnostic_item, ty};
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
@@ -86,16 +86,16 @@ impl LateLintPass<'_> for InstantSubtraction {
             rhs,
         ) = expr.kind
             && let typeck = cx.typeck_results()
-            && ty::is_type_diagnostic_item(cx, typeck.expr_ty(lhs), sym::Instant)
+            && typeck.expr_ty(lhs).is_diag_item(cx, sym::Instant)
         {
             let rhs_ty = typeck.expr_ty(rhs);
 
             if is_instant_now_call(cx, lhs)
-                && ty::is_type_diagnostic_item(cx, rhs_ty, sym::Instant)
+                && rhs_ty.is_diag_item(cx, sym::Instant)
                 && let Some(sugg) = Sugg::hir_opt(cx, rhs)
             {
                 print_manual_instant_elapsed_sugg(cx, expr, sugg);
-            } else if ty::is_type_diagnostic_item(cx, rhs_ty, sym::Duration)
+            } else if rhs_ty.is_diag_item(cx, sym::Duration)
                 && !expr.span.from_expansion()
                 && self.msrv.meets(cx, msrvs::TRY_FROM)
             {
@@ -107,7 +107,7 @@ impl LateLintPass<'_> for InstantSubtraction {
 
 fn is_instant_now_call(cx: &LateContext<'_>, expr_block: &'_ Expr<'_>) -> bool {
     if let ExprKind::Call(fn_expr, []) = expr_block.kind
-        && is_path_diagnostic_item(cx, fn_expr, sym::instant_now)
+        && fn_expr.ty_rel_def(cx).is_diag_item(cx, sym::instant_now)
     {
         true
     } else {

@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::res::MaybeDef;
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::ty::{is_type_lang_item, peel_and_count_ty_refs};
+use clippy_utils::ty::peel_and_count_ty_refs;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
@@ -57,7 +58,7 @@ fn specializes_tostring(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
         return true;
     }
 
-    if is_type_lang_item(cx, ty, hir::LangItem::String) {
+    if ty.is_lang_item(cx, hir::LangItem::String) {
         return true;
     }
 

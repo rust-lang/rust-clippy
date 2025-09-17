@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
-use clippy_utils::ty::is_type_diagnostic_item;
+use clippy_utils::res::{MaybeDef, MaybeResPath};
 use clippy_utils::usage::is_potentially_local_place;
-use clippy_utils::{higher, path_to_local, sym};
+use clippy_utils::{higher, sym};
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::{FnKind, Visitor, walk_expr, walk_fn};
 use rustc_hir::{BinOpKind, Body, Expr, ExprKind, FnDecl, HirId, Node, UnOp};
@@ -134,11 +134,11 @@ fn collect_unwrap_info<'tcx>(
     is_entire_condition: bool,
 ) -> Vec<UnwrapInfo<'tcx>> {
     fn is_relevant_option_call(cx: &LateContext<'_>, ty: Ty<'_>, method_name: Symbol) -> bool {
-        is_type_diagnostic_item(cx, ty, sym::Option) && matches!(method_name, sym::is_none | sym::is_some)
+        ty.is_diag_item(cx, sym::Option) && matches!(method_name, sym::is_none | sym::is_some)
     }
 
     fn is_relevant_result_call(cx: &LateContext<'_>, ty: Ty<'_>, method_name: Symbol) -> bool {
-        is_type_diagnostic_item(cx, ty, sym::Result) && matches!(method_name, sym::is_err | sym::is_ok)
+        ty.is_diag_item(cx, sym::Result) && matches!(method_name, sym::is_err | sym::is_ok)
     }
 
     match expr.kind {
@@ -154,14 +154,14 @@ fn collect_unwrap_info<'tcx>(
         },
         ExprKind::Unary(UnOp::Not, expr) => collect_unwrap_info(cx, if_expr, expr, branch, !invert, false),
         ExprKind::MethodCall(method_name, receiver, [], _)
-            if let Some(local_id) = path_to_local(receiver)
+            if let Some(local_id) = receiver.res_local_id()
                 && let ty = cx.typeck_results().expr_ty(receiver)
                 && let name = method_name.ident.name
                 && (is_relevant_option_call(cx, ty, name) || is_relevant_result_call(cx, ty, name)) =>
         {
             let unwrappable = matches!(name, sym::is_some | sym::is_ok);
             let safe_to_unwrap = unwrappable != invert;
-            let kind = if is_type_diagnostic_item(cx, ty, sym::Option) {
+            let kind = if ty.is_diag_item(cx, sym::Option) {
                 UnwrappableKind::Option
             } else {
                 UnwrappableKind::Result
@@ -309,7 +309,7 @@ impl<'tcx> Visitor<'tcx> for UnwrappableVariablesVisitor<'_, 'tcx> {
             // find `unwrap[_err]()` or `expect("...")` calls:
             if let ExprKind::MethodCall(method_name, self_arg, ..) = expr.kind
                 && let (self_arg, as_ref_kind) = consume_option_as_ref(self_arg)
-                && let Some(id) = path_to_local(self_arg)
+                && let Some(id) = self_arg.res_local_id()
                 && matches!(method_name.ident.name, sym::unwrap | sym::expect | sym::unwrap_err)
                 && let call_to_unwrap = matches!(method_name.ident.name, sym::unwrap | sym::expect)
                 && let Some(unwrappable) = self.unwrappables.iter()
