@@ -51,26 +51,29 @@ impl<'tcx> LateLintPass<'tcx> for ManualAssert {
             // Should this have a config value?
             && !is_else_clause(cx.tcx, expr)
         {
-            let mut applicability = Applicability::MachineApplicable;
-            let mut comments = span_extract_comment(cx.sess().source_map(), expr.span);
-            if !comments.is_empty() {
-                comments += "\n";
-            }
-            let cond_sugg = !sugg::Sugg::hir_with_context(cx, cond, expr.span.ctxt(), "..", &mut applicability);
-            let semicolon = if is_parent_stmt(cx, expr.hir_id) { ";" } else { "" };
-            let base_sugg = format!("assert!({cond_sugg}, {format_args_snip}){semicolon}");
-
-            let indent = indent_of(cx, expr.span);
-            let full_sugg = reindent_multiline(format!("{comments}{base_sugg}").into(), true, indent);
             span_lint_and_then(
                 cx,
                 MANUAL_ASSERT,
                 expr.span,
                 "only a `panic!` in `if`-then statement",
                 |diag| {
+                    let mut applicability = Applicability::MachineApplicable;
+                    let mut comments = span_extract_comment(cx.sess().source_map(), expr.span);
+                    if !comments.is_empty() {
+                        comments += "\n";
+                    }
+                    let cond_sugg = !sugg::Sugg::hir_with_context(cx, cond, expr.span.ctxt(), "..", &mut applicability);
+                    let semicolon = if is_parent_stmt(cx, expr.hir_id) { ";" } else { "" };
+
+                    let indent = indent_of(cx, expr.span);
+                    let full_sugg = reindent_multiline(
+                        format!("{comments}assert!({cond_sugg}, {format_args_snip}){semicolon}").as_str(),
+                        true,
+                        indent,
+                    );
                     diag.multipart_suggestion(
                         "replace `if`-then-`panic!` with `assert!`",
-                        vec![(expr.span, full_sugg.into())],
+                        vec![(expr.span, full_sugg)],
                         applicability,
                     );
                 },
