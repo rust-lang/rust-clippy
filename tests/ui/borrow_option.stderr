@@ -1,0 +1,44 @@
+error: you seem to be trying to use `&Option<T>`. Consider using `Option<&T>` instead
+  --> tests/ui/borrow_option.rs:25:14
+   |
+LL |     let foo: &Option<bool>;
+   |              ^^^^^^^^^^^^^ help: try: `Option<&bool>`
+   |
+note: the lint level is defined here
+  --> tests/ui/borrow_option.rs:1:9
+   |
+LL | #![deny(clippy::borrowed_option)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: you seem to be trying to use `&Option<T>`. Consider using `Option<&T>` instead
+  --> tests/ui/borrow_option.rs:30:10
+   |
+LL |     foo: &'a Option<bool>,
+   |          ^^^^^^^^^^^^^^^^ help: try: `Option<&'a bool>`
+
+error: you seem to be trying to use `&Option<T>`. Consider using `Option<&T>` instead
+  --> tests/ui/borrow_option.rs:35:17
+   |
+LL |     fn test4(b: &Option<bool>);
+   |                 ^^^^^^^^^^^^^ help: try: `Option<&bool>`
+
+error: you seem to be trying to use `&Option<T>`. Consider using `Option<&T>` instead
+  --> tests/ui/borrow_option.rs:39:24
+   |
+LL | pub fn test5(_display: &Option<impl Display>) {}
+   |                        ^^^^^^^^^^^^^^^^^^^^^ help: try: `Option<&impl Display>`
+
+error: you seem to be trying to use `&Option<T>`. Consider using `Option<&T>` instead
+  --> tests/ui/borrow_option.rs:41:24
+   |
+LL | pub fn test6(_display: &Option<impl Display + Send>) {}
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Option<&(impl Display + Send)>`
+
+error: you seem to be trying to use `&Option<T>`. Consider using `Option<&T>` instead
+  --> tests/ui/borrow_option.rs:43:28
+   |
+LL | pub fn test7<'a>(_display: &'a Option<impl Display + 'a>) {}
+   |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Option<&'a (impl Display + 'a)>`
+
+error: aborting due to 6 previous errors
+

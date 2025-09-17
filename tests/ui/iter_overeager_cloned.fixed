@@ -3,6 +3,7 @@
     dead_code,
     clippy::let_unit_value,
     clippy::useless_vec,
+    clippy::borrowed_option,
     clippy::double_ended_iterator_last
 )]
 

@@ -1,6 +1,7 @@
 #![warn(clippy::option_if_let_else)]
 #![allow(
     clippy::ref_option_ref,
+    clippy::borrowed_option,
     clippy::equatable_if_let,
     clippy::let_unit_value,
     clippy::redundant_locals,
