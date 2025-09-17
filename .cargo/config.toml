@@ -30,3 +30,6 @@ rustflags = ["--remap-path-prefix", "=lintcheck"]
 # without increasing total build times.
 [profile.dev.package.quine-mc_cluskey]
 opt-level = 3
+
+[target.x86_64-pc-windows-msvc]
+linker = "rust-lld.exe"
