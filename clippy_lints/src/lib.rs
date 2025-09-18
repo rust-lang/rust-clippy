@@ -409,13 +409,11 @@ mod zero_sized_map_values;
 mod zombie_processes;
 // end lints modules, do not remove this comment, it's used in `update_lints`
 
-use crate::utils::attr_collector::{AttrCollector, AttrStorage};
 use clippy_config::{Conf, get_configuration_metadata, sanitize_explanation};
 use clippy_utils::macros::FormatArgsStorage;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_lint::Lint;
 use utils::attr_collector::{AttrCollector, AttrStorage};
-
 
 pub fn explain(name: &str) -> i32 {
     let target = format!("clippy::{}", name.to_ascii_uppercase());
@@ -834,7 +832,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(infallible_try_from::InfallibleTryFrom));
     store.register_late_pass(|_| Box::new(coerce_container_to_any::CoerceContainerToAny));
     store.register_late_pass(|_| Box::new(toplevel_ref_arg::ToplevelRefArg));
-    store.register_late_pass(|_| Box::new(use_crate_prefix_for_self_imports::UseCratePrefixForSelfImports));  
     store.register_late_pass(|_| Box::new(use_crate_prefix_for_self_imports::UseCratePrefixForSelfImports::default()));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
