@@ -6357,6 +6357,7 @@ Released 2018-09-13
 [`match_str_case_mismatch`]: https://rust-lang.github.io/rust-clippy/master/index.html#match_str_case_mismatch
 [`match_wild_err_arm`]: https://rust-lang.github.io/rust-clippy/master/index.html#match_wild_err_arm
 [`match_wildcard_for_single_variants`]: https://rust-lang.github.io/rust-clippy/master/index.html#match_wildcard_for_single_variants
+[`max_ident_chars`]: https://rust-lang.github.io/rust-clippy/master/index.html#max_ident_chars
 [`maybe_infinite_iter`]: https://rust-lang.github.io/rust-clippy/master/index.html#maybe_infinite_iter
 [`maybe_misused_cfg`]: https://rust-lang.github.io/rust-clippy/master/index.html#maybe_misused_cfg
 [`mem_discriminant_non_enum`]: https://rust-lang.github.io/rust-clippy/master/index.html#mem_discriminant_non_enum
@@ -6877,6 +6878,7 @@ Released 2018-09-13
 [`literal-representation-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#literal-representation-threshold
 [`matches-for-let-else`]: https://doc.rust-lang.org/clippy/lint_configuration.html#matches-for-let-else
 [`max-fn-params-bools`]: https://doc.rust-lang.org/clippy/lint_configuration.html#max-fn-params-bools
+[`max-ident-chars-length`]: https://doc.rust-lang.org/clippy/lint_configuration.html#max-ident-chars-length
 [`max-include-file-size`]: https://doc.rust-lang.org/clippy/lint_configuration.html#max-include-file-size
 [`max-struct-bools`]: https://doc.rust-lang.org/clippy/lint_configuration.html#max-struct-bools
 [`max-suggested-slice-pattern-length`]: https://doc.rust-lang.org/clippy/lint_configuration.html#max-suggested-slice-pattern-length
