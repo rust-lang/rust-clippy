@@ -85,7 +85,6 @@ impl<'a, 'tcx> LateLintPass<'tcx> for UseCratePrefixForSelfImports<'a, 'tcx> {
             self.insert_item(item);
         }
     }
-
 }
 
 impl<'tcx> UseCratePrefixForSelfImports<'_, 'tcx> {
