@@ -162,8 +162,6 @@ mod ignored_unit_patterns;
 mod impl_hash_with_borrow_str_and_bytes;
 mod implicit_hasher;
 mod implicit_return;
-mod implicit_saturating_add;
-mod implicit_saturating_sub;
 mod implied_bounds_in_impls;
 mod incompatible_msrv;
 mod inconsistent_struct_constructor;
@@ -224,6 +222,8 @@ mod manual_range_patterns;
 mod manual_rem_euclid;
 mod manual_retain;
 mod manual_rotate;
+mod manual_saturating_add;
+mod manual_saturating_sub;
 mod manual_slice_size_calculation;
 mod manual_string_new;
 mod manual_strip;
@@ -493,7 +493,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(unit_return_expecting_ord::UnitReturnExpectingOrd));
     store.register_late_pass(|_| Box::new(strings::StringAdd));
     store.register_late_pass(|_| Box::new(implicit_return::ImplicitReturn));
-    store.register_late_pass(move |_| Box::new(implicit_saturating_sub::ImplicitSaturatingSub::new(conf)));
+    store.register_late_pass(move |_| Box::new(manual_saturating_sub::ManualSaturatingSub::new(conf)));
     store.register_late_pass(|_| Box::new(default_numeric_fallback::DefaultNumericFallback));
     store.register_late_pass(move |_| {
         Box::new(inconsistent_struct_constructor::InconsistentStructConstructor::new(
@@ -727,7 +727,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_early_pass(|| Box::new(multi_assignments::MultiAssignments));
     store.register_late_pass(|_| Box::new(bool_to_int_with_if::BoolToIntWithIf));
     store.register_late_pass(|_| Box::new(box_default::BoxDefault));
-    store.register_late_pass(|_| Box::new(implicit_saturating_add::ImplicitSaturatingAdd));
+    store.register_late_pass(|_| Box::new(manual_saturating_add::ManualSaturatingAdd));
     store.register_early_pass(|| Box::new(partial_pub_fields::PartialPubFields));
     store.register_late_pass(|_| Box::new(missing_trait_methods::MissingTraitMethods));
     store.register_late_pass(|_| Box::new(from_raw_with_void_ptr::FromRawWithVoidPtr));
