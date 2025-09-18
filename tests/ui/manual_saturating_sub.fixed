@@ -1,5 +1,5 @@
 #![allow(unused_assignments, unused_mut, clippy::assign_op_pattern)]
-#![warn(clippy::implicit_saturating_sub)]
+#![warn(clippy::manual_saturating_sub)]
 
 use std::cmp::PartialEq;
 use std::ops::SubAssign;
@@ -238,13 +238,13 @@ fn arbitrary_expression() {
     let (a, b) = (15u64, 20u64);
 
     let _ = (a * 2).saturating_sub(b);
-    //~^ implicit_saturating_sub
+    //~^ manual_saturating_sub
 
     let _ = a.saturating_sub(b * 2);
-    //~^ implicit_saturating_sub
+    //~^ manual_saturating_sub
 
     let _ = a.saturating_sub(b * 2);
-    //~^ implicit_saturating_sub
+    //~^ manual_saturating_sub
 
     let _ = if with_side_effect(a) > a {
         with_side_effect(a) - a
