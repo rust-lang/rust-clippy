@@ -937,6 +937,19 @@ fn report<'tcx>(
             is_ufcs,
             mutbl,
         } => {
+            // Skip when inside a `deref` or `deref_mut` implementation of the `Deref` trait.
+            let fn_def_id = cx.tcx.hir_enclosing_body_owner(expr.hir_id).to_def_id();
+            if !cx.tcx.is_closure_like(fn_def_id)
+                && matches!(cx.tcx.item_name(fn_def_id), sym::deref | sym::deref_mut)
+                && let Some(impl_defid) = cx.tcx.impl_of_assoc(fn_def_id)
+                && let Some(impl_trait_ref) = cx.tcx.impl_trait_ref(impl_defid)
+                && cx
+                    .tcx
+                    .is_diagnostic_item(sym::Deref, impl_trait_ref.skip_binder().def_id)
+            {
+                return;
+            }
+
             let mut app = Applicability::MachineApplicable;
             let (expr_str, expr_is_macro_call) =
                 snippet_with_context(cx, expr.span, data.first_expr.span.ctxt(), "..", &mut app);
