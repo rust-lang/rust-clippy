@@ -94,6 +94,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::dbg_macro::DBG_MACRO_INFO,
     crate::default::DEFAULT_TRAIT_ACCESS_INFO,
     crate::default::FIELD_REASSIGN_WITH_DEFAULT_INFO,
+    crate::default_box_assignments::DEFAULT_BOX_ASSIGNMENTS_INFO,
     crate::default_constructed_unit_structs::DEFAULT_CONSTRUCTED_UNIT_STRUCTS_INFO,
     crate::default_instead_of_iter_empty::DEFAULT_INSTEAD_OF_ITER_EMPTY_INFO,
     crate::default_numeric_fallback::DEFAULT_NUMERIC_FALLBACK_INFO,
