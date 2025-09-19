@@ -15,9 +15,12 @@ pub(super) fn check<'tcx>(
     right: &'tcx Expr<'_>,
 ) {
     if op.is_comparison() {
+        // `<left> <op> <const_right>`
         if let Some(cmp_opt) = fetch_int_literal(cx, right) {
             check_compare(cx, left, op, cmp_opt, e.span);
+        // `<const_left> <op> <right>`
         } else if let Some(cmp_val) = fetch_int_literal(cx, left) {
+            // turn into `<right> <inv(op)> <const_left>`
             check_compare(cx, right, invert_cmp(op), cmp_val, e.span);
         }
     }
@@ -37,13 +40,15 @@ fn invert_cmp(cmp: BinOpKind) -> BinOpKind {
 }
 
 fn check_compare<'a>(cx: &LateContext<'a>, bit_op: &Expr<'a>, cmp_op: BinOpKind, cmp_value: u128, span: Span) {
-    if let ExprKind::Binary(op, left, right) = &bit_op.kind {
-        if op.node != BinOpKind::BitAnd && op.node != BinOpKind::BitOr || is_from_proc_macro(cx, bit_op) {
-            return;
-        }
-        if let Some(mask) = fetch_int_literal(cx, right).or_else(|| fetch_int_literal(cx, left)) {
-            check_bit_mask(cx, op.node, cmp_op, mask, cmp_value, span);
-        }
+    // whether `<bit_op> <cmp_op> <cmp_value>`
+    // is `(<left> <op> <right>) <cmp_op> <cmp_value>`
+    // is `(<masked> <op> <mask>) <cmp_op> <cmp_value>` (either `left` or `right` is the `mask`)
+    if let ExprKind::Binary(op, left, right) = &bit_op.kind
+        && matches!(op.node, BinOpKind::BitAnd | BinOpKind::BitOr)
+        && !is_from_proc_macro(cx, bit_op)
+        && let Some(mask) = fetch_int_literal(cx, right).or_else(|| fetch_int_literal(cx, left))
+    {
+        check_bit_mask(cx, op.node, cmp_op, mask, cmp_value, span);
     }
 }
 
