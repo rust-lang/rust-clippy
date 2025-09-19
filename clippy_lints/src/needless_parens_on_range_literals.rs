@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::higher;
-use clippy_utils::source::{SpanRangeExt, snippet_with_applicability};
+use clippy_utils::source::{SpanRangeExt, snippet_with_context};
 
 use rustc_ast::ast;
 use rustc_errors::Applicability;
@@ -41,7 +41,8 @@ declare_clippy_lint! {
 declare_lint_pass!(NeedlessParensOnRangeLiterals => [NEEDLESS_PARENS_ON_RANGE_LITERALS]);
 
 fn check_for_parens(cx: &LateContext<'_>, e: &Expr<'_>, is_start: bool) {
-    if let ExprKind::Lit(literal) = e.kind
+    if !e.span.from_expansion()
+        && let ExprKind::Lit(literal) = e.kind
         // the indicator that parenthesis surround the literal is that the span of the expression and the literal differ
         && literal.span != e.span
         // inspect the source code of the expression for parenthesis
@@ -56,7 +57,7 @@ fn check_for_parens(cx: &LateContext<'_>, e: &Expr<'_>, is_start: bool) {
         }
 
         let mut applicability = Applicability::MachineApplicable;
-        let suggestion = snippet_with_applicability(cx, literal.span, "_", &mut applicability);
+        let suggestion = snippet_with_context(cx, literal.span, e.span.ctxt(), "_", &mut applicability).0;
         span_lint_and_sugg(
             cx,
             NEEDLESS_PARENS_ON_RANGE_LITERALS,
