@@ -8,7 +8,7 @@ use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_infer::infer::InferCtxt;
 use rustc_infer::traits::{Obligation, ObligationCause};
 use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
-use rustc_middle::ty::{self, ClausePolarity, GenericClauses, ParamTy, Ty};
+use rustc_middle::ty::{self, ClauseKind, ClausePolarity, GenericClauses, ParamTy, Ty};
 use rustc_trait_selection::infer::TyCtxtInferExt as _;
 use rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt as _;
 use std::iter;
@@ -129,8 +129,31 @@ fn has_required_clauses<'tcx>(
     let has_required_clauses = clauses
         .clauses
         .iter()
-        .filter_map(|(clause, _)| clause.as_trait_clause())
-        .map(|clause| clause.skip_binder())
+        .filter_map(|(clause, _)| {
+            let clause = clause.kind();
+            #[expect(clippy::match_same_arms, reason = "branches have different reasons to be `None`")]
+            match clause.skip_binder() {
+                // This is what we analyze
+                // NOTE: repeats the contents of `Clause::as_trait_clause`,
+                // except we don't `Binder::rebind` as we don't care about the binder
+                ClauseKind::Trait(trait_clause) => Some(trait_clause),
+
+                // Trivially holds for `P`: `Path::new` has signature `&S -> &Path`, so any "outlives" that holds for
+                // `P` does so for `S` as well
+                ClauseKind::TypeOutlives(_) | ClauseKind::RegionOutlives(_) => None,
+
+                // Irrelevant to us: neither `AsRef` nor `Sized` have associated types
+                ClauseKind::Projection(_) => None,
+
+                // Irrelevant: we don't have anything to do with consts
+                ClauseKind::ConstArgHasType(..) | ClauseKind::ConstEvaluatable(_) | ClauseKind::HostEffect(_) => None,
+
+                // Irrelevant?: we don't deal with unstable impls
+                ClauseKind::UnstableFeature(_) => None,
+
+                ClauseKind::WellFormed(_) => None,
+            }
+        })
         .filter(|clause| {
             // dbg!(clause.self_ty(), param_ty);
             clause.self_ty() == param_ty
