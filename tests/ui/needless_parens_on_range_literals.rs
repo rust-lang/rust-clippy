@@ -7,9 +7,13 @@ fn main() {
     //~| needless_parens_on_range_literals
     let _ = 'a'..('z');
     //~^ needless_parens_on_range_literals
+
     let _ = (1.)..2.;
     let _ = (1.)..(2.);
     //~^ needless_parens_on_range_literals
+    let _ = (1.0)..2.;
+    //~^ needless_parens_on_range_literals
+
     let _ = ('a')..;
     //~^ needless_parens_on_range_literals
     let _ = ..('z');
