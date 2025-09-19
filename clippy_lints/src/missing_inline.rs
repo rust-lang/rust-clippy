@@ -81,20 +81,24 @@ fn check_missing_inline_attrs(
     }
 }
 
-fn is_executable_or_proc_macro(cx: &LateContext<'_>) -> bool {
+fn is_proc_macro(cx: &LateContext<'_>) -> bool {
     use rustc_session::config::CrateType;
 
     cx.tcx
         .crate_types()
         .iter()
-        .any(|t: &CrateType| matches!(t, CrateType::Executable | CrateType::ProcMacro))
+        .any(|t: &CrateType| matches!(t, CrateType::ProcMacro))
 }
 
 declare_lint_pass!(MissingInline => [MISSING_INLINE_IN_PUBLIC_ITEMS]);
 
 impl<'tcx> LateLintPass<'tcx> for MissingInline {
     fn check_item(&mut self, cx: &LateContext<'tcx>, it: &'tcx hir::Item<'_>) {
-        if it.span.in_external_macro(cx.sess().source_map()) || is_executable_or_proc_macro(cx) {
+        if it.span.in_external_macro(cx.sess().source_map()) {
+            return;
+        }
+
+        if is_proc_macro(cx) {
             return;
         }
 
@@ -149,7 +153,7 @@ impl<'tcx> LateLintPass<'tcx> for MissingInline {
     }
 
     fn check_impl_item(&mut self, cx: &LateContext<'tcx>, impl_item: &'tcx hir::ImplItem<'_>) {
-        if impl_item.span.in_external_macro(cx.sess().source_map()) || is_executable_or_proc_macro(cx) {
+        if impl_item.span.in_external_macro(cx.sess().source_map()) || is_proc_macro(cx) {
             return;
         }
 
