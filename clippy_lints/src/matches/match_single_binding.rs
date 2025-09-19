@@ -307,26 +307,6 @@ fn expr_in_nested_block(cx: &LateContext<'_>, match_expr: &Expr<'_>) -> bool {
     false
 }
 
-fn expr_must_have_curlies(cx: &LateContext<'_>, match_expr: &Expr<'_>) -> bool {
-    let parent = cx.tcx.parent_hir_node(match_expr.hir_id);
-    if let Node::Expr(Expr {
-        kind: ExprKind::Closure(..) | ExprKind::Binary(..),
-        ..
-    })
-    | Node::AnonConst(..) = parent
-    {
-        return true;
-    }
-
-    if let Node::Arm(arm) = &cx.tcx.parent_hir_node(match_expr.hir_id)
-        && let ExprKind::Match(..) = arm.body.kind
-    {
-        return true;
-    }
-
-    false
-}
-
 fn indent_of_nth_line(snippet: &str, nth: usize) -> Option<usize> {
     snippet
         .lines()
@@ -379,14 +359,36 @@ fn sugg_with_curlies<'a>(
 
     let mut indent = " ".repeat(indent_of(cx, ex.span).unwrap_or(0));
     let (mut cbrace_start, mut cbrace_end) = (String::new(), String::new());
-    if !expr_in_nested_block(cx, match_expr)
-        && ((needs_var_binding && is_var_binding_used_later) || expr_must_have_curlies(cx, match_expr))
-    {
+    let mut add_curlies_impl = || {
         cbrace_end = format!("\n{indent}}}");
         // Fix body indent due to the closure
         indent = " ".repeat(indent_of(cx, bind_names).unwrap_or(0));
         cbrace_start = format!("{{\n{indent}");
         snippet_body = reindent_snippet_if_in_block(&snippet_body, !assignment_str.is_empty());
+    };
+    let mut add_curlies = || {
+        if assignment.is_some() {
+            if needs_var_binding && is_var_binding_used_later {
+                add_curlies_impl();
+            }
+            return;
+        }
+
+        let mut parent = cx.tcx.parent_hir_node(match_expr.hir_id);
+        if let Node::Stmt(stmt) = parent {
+            parent = cx.tcx.parent_hir_node(stmt.hir_id);
+        }
+
+        if let Node::Block(..) = parent
+            && !(needs_var_binding && is_var_binding_used_later)
+        {
+            return;
+        }
+
+        add_curlies_impl();
+    };
+    if !expr_in_nested_block(cx, match_expr) {
+        add_curlies();
     }
 
     format!("{cbrace_start}{scrutinee};\n{indent}{assignment_str}{snippet_body}{cbrace_end}")
