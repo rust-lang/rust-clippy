@@ -6,7 +6,7 @@ use rustc_hir::def::Res;
 use rustc_hir::{Item, ItemKind, UsePath, def_id};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::impl_lint_pass;
-use rustc_span::{BytePos, FileName, RealFileName, Span, Symbol};
+use rustc_span::{BytePos, FileName, RealFileName, Span, Symbol, kw};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -44,7 +44,7 @@ declare_clippy_lint! {
     /// #[path = "./foo.rs"]
     /// pub fn bar() {}
     /// ```
-    #[clippy::version = "1.84.0"]
+    #[clippy::version = "1.92.0"]
     pub USE_CRATE_PREFIX_FOR_SELF_IMPORTS,
     nursery,
     "checks that imports from the current crate use the `crate::` prefix"
@@ -80,7 +80,7 @@ impl<'a, 'tcx> LateLintPass<'tcx> for UseCratePrefixForSelfImports<'a, 'tcx> {
         if self.in_same_block(item.span) {
             self.insert_item(item);
         } else {
-            self.deal(cx);
+            self.try_lint(cx);
             self.clear();
             self.insert_item(item);
         }
@@ -115,18 +115,14 @@ impl<'tcx> UseCratePrefixForSelfImports<'_, 'tcx> {
         }
     }
 
-    fn deal(&self, cx: &LateContext<'tcx>) {
+    fn try_lint(&self, cx: &LateContext<'tcx>) {
         for use_path in &self.use_block {
-            if let Some(segment) = use_path.segments.first()
+            if let [segment, ..] = &use_path.segments
                 && let Res::Def(_, def_id) = segment.res
                 && def_id.krate == LOCAL_CRATE
             {
                 let root = segment.ident.name;
-                if root != rustc_span::symbol::kw::Crate
-                    && root != rustc_span::symbol::kw::Super
-                    && root != rustc_span::symbol::kw::SelfLower
-                    && !self.mod_names.contains(&root)
-                {
+                if !matches!(root, kw::Crate | kw::Super | kw::SelfLower) && !self.mod_names.contains(&root) {
                     span_lint_and_sugg(
                         cx,
                         USE_CRATE_PREFIX_FOR_SELF_IMPORTS,
