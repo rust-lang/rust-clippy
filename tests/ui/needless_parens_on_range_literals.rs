@@ -18,4 +18,28 @@ fn main() {
     //~^ needless_parens_on_range_literals
     let _ = ..('z');
     //~^ needless_parens_on_range_literals
+
+    macro_rules! verbatim {
+        ($e:expr) => {
+            $e
+        };
+    }
+    macro_rules! add_paren {
+        ($e:expr) => {
+            ($e)
+        };
+    }
+
+    // lint: the paren was added by the user
+    let _ = verbatim!((0))..1;
+    //~^ needless_parens_on_range_literals
+    let _ = 0..verbatim!((1));
+    //~^ needless_parens_on_range_literals
+
+    // lint: the macro doesn't have anything to do with the paren
+    let _ = (verbatim!(0))..1;
+    //~^ needless_parens_on_range_literals
+
+    // don't lint: the paren was added by the macro
+    let _ = add_paren!(0)..1;
 }

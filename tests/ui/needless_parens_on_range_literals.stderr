@@ -43,5 +43,23 @@ error: needless parenthesis on range literals can be removed
 LL |     let _ = ..('z');
    |               ^^^^^ help: try: `'z'`
 
-error: aborting due to 7 previous errors
+error: needless parenthesis on range literals can be removed
+  --> tests/ui/needless_parens_on_range_literals.rs:34:23
+   |
+LL |     let _ = verbatim!((0))..1;
+   |                       ^^^ help: try: `0`
+
+error: needless parenthesis on range literals can be removed
+  --> tests/ui/needless_parens_on_range_literals.rs:36:26
+   |
+LL |     let _ = 0..verbatim!((1));
+   |                          ^^^ help: try: `1`
+
+error: needless parenthesis on range literals can be removed
+  --> tests/ui/needless_parens_on_range_literals.rs:40:13
+   |
+LL |     let _ = (verbatim!(0))..1;
+   |             ^^^^^^^^^^^^^^ help: try: `0`
+
+error: aborting due to 10 previous errors
 

@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::{SpanRangeExt, snippet_with_applicability};
+use clippy_utils::source::{SpanRangeExt, snippet_with_context};
 
 use rustc_ast::{Expr, ExprKind};
 use rustc_errors::Applicability;
@@ -39,7 +39,8 @@ declare_clippy_lint! {
 declare_lint_pass!(NeedlessParensOnRangeLiterals => [NEEDLESS_PARENS_ON_RANGE_LITERALS]);
 
 fn check_for_parens(cx: &EarlyContext<'_>, e: &Expr, is_start: bool) {
-    if let ExprKind::Paren(literal) = &e.kind
+    if !e.span.from_expansion()
+        && let ExprKind::Paren(literal) = &e.kind
         && let ExprKind::Lit(lit) = &literal.kind
     {
         if is_start
@@ -52,7 +53,7 @@ fn check_for_parens(cx: &EarlyContext<'_>, e: &Expr, is_start: bool) {
         }
 
         let mut applicability = Applicability::MachineApplicable;
-        let suggestion = snippet_with_applicability(cx, literal.span, "_", &mut applicability);
+        let suggestion = snippet_with_context(cx, literal.span, e.span.ctxt(), "_", &mut applicability).0;
         span_lint_and_sugg(
             cx,
             NEEDLESS_PARENS_ON_RANGE_LITERALS,
