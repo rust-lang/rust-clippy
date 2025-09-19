@@ -41,19 +41,20 @@ declare_clippy_lint! {
 declare_lint_pass!(NeedlessParensOnRangeLiterals => [NEEDLESS_PARENS_ON_RANGE_LITERALS]);
 
 fn check_for_parens(cx: &LateContext<'_>, e: &Expr<'_>, is_start: bool) {
-    if is_start
-        && let ExprKind::Lit(literal) = e.kind
-        && let ast::LitKind::Float(_sym, ast::LitFloatType::Unsuffixed) = literal.node
-    {
-        // don't check floating point literals on the start expression of a range
-        return;
-    }
     if let ExprKind::Lit(literal) = e.kind
         // the indicator that parenthesis surround the literal is that the span of the expression and the literal differ
         && literal.span != e.span
         // inspect the source code of the expression for parenthesis
         && e.span.check_source_text(cx, |s| s.starts_with('(') && s.ends_with(')'))
     {
+        if is_start
+            && let ast::LitKind::Float(_, ast::LitFloatType::Unsuffixed) = literal.node
+            && literal.span.check_source_text(cx, |s| s.ends_with('.'))
+        {
+            // don't lint `(2.)..end`, since removing the parens would result in invalid syntax
+            return;
+        }
+
         let mut applicability = Applicability::MachineApplicable;
         let suggestion = snippet_with_applicability(cx, literal.span, "_", &mut applicability);
         span_lint_and_sugg(
