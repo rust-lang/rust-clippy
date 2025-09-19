@@ -7,7 +7,7 @@ use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_infer::infer::InferCtxt;
 use rustc_infer::traits::{Obligation, ObligationCause};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::{self, GenericPredicates, ParamTy, PredicatePolarity, Ty};
+use rustc_middle::ty::{self, ClauseKind, GenericPredicates, ParamTy, PredicatePolarity, Ty};
 use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 use rustc_trait_selection::infer::TyCtxtInferExt;
@@ -134,8 +134,31 @@ fn has_required_preds<'tcx>(
     let has_required_preds = preds
         .predicates
         .iter()
-        .filter_map(|(clause, _)| clause.as_trait_clause())
-        .map(|pred| pred.skip_binder())
+        .filter_map(|(clause, _)| {
+            let clause = clause.kind();
+            #[expect(clippy::match_same_arms, reason = "branches have different reasons to be `None`")]
+            match clause.skip_binder() {
+                // This is what we analyze
+                // NOTE: repeats the contents of `Clause::as_trait_clause`,
+                // except we don't `Binder::rebind` as we don't care about the binder
+                ClauseKind::Trait(trait_clause) => Some(trait_clause),
+
+                // Trivially holds for `P`: `Path::new` has signature `&S -> &Path`, so any "outlives" that holds for
+                // `P` does so for `S` as well
+                ClauseKind::TypeOutlives(_) | ClauseKind::RegionOutlives(_) => None,
+
+                // Irrelevant to us: neither `AsRef` nor `Sized` have associated types
+                ClauseKind::Projection(_) => None,
+
+                // Irrelevant: we don't have anything to do with consts
+                ClauseKind::ConstArgHasType(..) | ClauseKind::ConstEvaluatable(_) | ClauseKind::HostEffect(_) => None,
+
+                // Irrelevant?: we don't deal with unstable impls
+                ClauseKind::UnstableFeature(_) => None,
+
+                ClauseKind::WellFormed(_) => None,
+            }
+        })
         .filter(|pred| {
             // dbg!(pred.self_ty(), param_ty);
             pred.self_ty() == param_ty
