@@ -72,6 +72,7 @@ mod map_err_ignore;
 mod map_flatten;
 mod map_identity;
 mod map_unwrap_or;
+mod map_unwrap_or_else;
 mod map_with_unused_argument_over_ranges;
 mod mut_mutex_lock;
 mod needless_as_bytes;
@@ -86,7 +87,6 @@ mod open_options;
 mod option_as_ref_cloned;
 mod option_as_ref_deref;
 mod option_map_or_none;
-mod option_map_unwrap_or;
 mod or_fun_call;
 mod or_then_unwrap;
 mod path_buf_push_overwrite;
@@ -5551,7 +5551,7 @@ impl Methods {
                             );
                         },
                         Some((sym::map, m_recv, [m_arg], span, _)) => {
-                            option_map_unwrap_or::check(cx, expr, m_recv, m_arg, recv, u_arg, span, self.msrv);
+                            map_unwrap_or::check(cx, expr, m_recv, m_arg, recv, u_arg, span, self.msrv);
                         },
                         Some((then_method @ (sym::then | sym::then_some), t_recv, [t_arg], _, _)) => {
                             obfuscated_if_else::check(cx, expr, t_recv, t_arg, Some(u_arg), then_method, name);
@@ -5583,7 +5583,7 @@ impl Methods {
                 (sym::unwrap_or_else, [u_arg]) => {
                     match method_call(recv) {
                         Some((sym::map, recv, [map_arg], _, _))
-                            if map_unwrap_or::check(cx, expr, recv, map_arg, u_arg, self.msrv) => {},
+                            if map_unwrap_or_else::check(cx, expr, recv, map_arg, u_arg, self.msrv) => {},
                         Some((then_method @ (sym::then | sym::then_some), t_recv, [t_arg], _, _)) => {
                             obfuscated_if_else::check(
                                 cx,
