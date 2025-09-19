@@ -265,3 +265,15 @@ where
         Self { _kv: None }
     }
 }
+
+// From issue #14552, but with `#[cfg]` condition inverted,
+// otherwise Clippy wouldn't see the code to lint it
+
+pub struct NewWithCfg;
+impl NewWithCfg {
+    #[cfg(not(test))]
+    pub fn new() -> NewWithCfg {
+        //~^ new_without_default
+        unimplemented!()
+    }
+}

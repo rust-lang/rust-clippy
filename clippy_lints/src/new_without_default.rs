@@ -74,10 +74,8 @@ impl<'tcx> LateLintPass<'tcx> for NewWithoutDefault {
             .filter_by_name_unhygienic(sym::new)
         {
             if let AssocKind::Fn { has_self: false, .. } = assoc_item.kind
-                && let impl_item = cx
-                    .tcx
-                    .hir_node_by_def_id(assoc_item.def_id.expect_local())
-                    .expect_impl_item()
+                && let assoc_item_hir_id = cx.tcx.local_def_id_to_hir_id(assoc_item.def_id.expect_local())
+                && let impl_item = cx.tcx.hir_node(assoc_item_hir_id).expect_impl_item()
                 && !impl_item.span.in_external_macro(cx.sess().source_map())
                 && let hir::ImplItemKind::Fn(ref sig, _) = impl_item.kind
                 && let id = impl_item.owner_id
@@ -120,6 +118,24 @@ impl<'tcx> LateLintPass<'tcx> for NewWithoutDefault {
                 }
 
                 let mut appl = Applicability::MachineApplicable;
+                let attrs_sugg = match cx.tcx.hir_attrs(assoc_item_hir_id) {
+                    [] => String::new(),
+                    [attr] if attr.has_name(sym::cfg_trace) => {
+                        format!(
+                            "{}\n",
+                            snippet_with_applicability(cx.sess(), attr.span(), "_", &mut appl)
+                        )
+                    },
+                    _ => {
+                        // There might be some other attributes which the `impl Default` ought to inherit from `fn new`.
+                        // At the same time, there are many attributes that actually can't be put on an impl block --
+                        // like `#[inline]`, for example. And for some attributes we can't even build a suggestion,
+                        // since `Attribute::span` may panic. Because of all this, remain conservative: don't inherit
+                        // any attrs, and just reduce the applicability
+                        appl = Applicability::MaybeIncorrect;
+                        String::new()
+                    },
+                };
                 let generics_sugg = snippet_with_applicability(cx, generics.span, "", &mut appl);
                 let where_clause_sugg = if generics.has_where_clause_predicates {
                     format!(
@@ -143,6 +159,7 @@ impl<'tcx> LateLintPass<'tcx> for NewWithoutDefault {
                             item.span,
                             "try adding this",
                             &create_new_without_default_suggest_msg(
+                                &attrs_sugg,
                                 &self_type_snip,
                                 &generics_sugg,
                                 &where_clause_sugg,
@@ -157,13 +174,14 @@ impl<'tcx> LateLintPass<'tcx> for NewWithoutDefault {
 }
 
 fn create_new_without_default_suggest_msg(
+    attrs_sugg: &str,
     self_type_snip: &str,
     generics_sugg: &str,
     where_clause_sugg: &str,
 ) -> String {
     #[rustfmt::skip]
     format!(
-"impl{generics_sugg} Default for {self_type_snip}{where_clause_sugg} {{
+"{attrs_sugg}impl{generics_sugg} Default for {self_type_snip}{where_clause_sugg} {{
     fn default() -> Self {{
         Self::new()
     }}
