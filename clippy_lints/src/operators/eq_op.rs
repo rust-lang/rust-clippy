@@ -1,4 +1,4 @@
-use clippy_utils::ast_utils::is_useless_with_eq_exprs;
+use clippy_utils::ast::is_useless_with_eq_exprs;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
 use clippy_utils::macros::{find_assert_eq_args, first_node_macro_backtrace};
 use clippy_utils::{eq_expr_value, is_in_test_function, sym};
