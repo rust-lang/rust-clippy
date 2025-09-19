@@ -3,5 +3,17 @@ name = "workspace_test"
 version = "0.1.0"
 edition = "2018"
 
+[lints]
+workspace = true
+
 [workspace]
-members = ["subcrate", "module_style/pass_no_mod_with_dep_in_subdir", "module_style/pass_mod_with_dep_in_subdir"]
+members = [
+    "missing_workspace_lints/pass_missing_workspace_lints",
+    "missing_workspace_lints/fail_missing_workspace_lints",
+    "subcrate",
+    "module_style/pass_no_mod_with_dep_in_subdir",
+    "module_style/pass_mod_with_dep_in_subdir",
+]
+
+[workspace.lints.clippy]
+absolute_paths = "allow"
