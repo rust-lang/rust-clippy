@@ -1,5 +1,5 @@
 use clippy_config::Conf;
-use clippy_config::types::{DisallowedPath, create_disallowed_map};
+use clippy_config::types::{ConfPath, create_conf_path_map};
 use clippy_utils::diagnostics::{span_lint_and_then, span_lint_hir_and_then};
 use clippy_utils::macros::macro_backtrace;
 use clippy_utils::paths::PathNS;
@@ -64,7 +64,7 @@ declare_clippy_lint! {
 }
 
 pub struct DisallowedMacros {
-    disallowed: DefIdMap<(&'static str, &'static DisallowedPath)>,
+    disallowed: DefIdMap<(&'static str, &'static ConfPath)>,
     seen: FxHashSet<ExpnId>,
     // Track the most recently seen node that can have a `derive` attribute.
     // Needed to use the correct lint level.
@@ -77,7 +77,7 @@ pub struct DisallowedMacros {
 
 impl DisallowedMacros {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf, early_macro_cache: AttrStorage) -> Self {
-        let (disallowed, _) = create_disallowed_map(
+        let (disallowed, _) = create_conf_path_map(
             tcx,
             &conf.disallowed_macros,
             PathNS::Macro,
@@ -103,9 +103,9 @@ impl DisallowedMacros {
                 return;
             }
 
-            if let Some(&(path, disallowed_path)) = self.disallowed.get(&mac.def_id) {
+            if let Some(&(path, conf_path)) = self.disallowed.get(&mac.def_id) {
                 let msg = format!("use of a disallowed macro `{path}`");
-                let add_note = disallowed_path.diag_amendment(mac.span);
+                let add_note = conf_path.diag_amendment(mac.span);
                 if matches!(mac.kind, MacroKind::Derive)
                     && let Some(derive_src) = derive_src
                 {
