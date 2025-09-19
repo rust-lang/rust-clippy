@@ -10754,8 +10754,8 @@ OpenOptions::new().read(true).truncate(true);
 <a href="#nonstandard_macro_braces" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-nursery">nursery</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks that common macros are used with consistent bracing.</p>
 <h3>Why is this bad?</h3>
-<p>This is mostly a consistency lint although using () or []
-doesn’t give you a semicolon in item position, which can be unexpected.</p>
+<p>Having non-conventional braces on well-stablished macros can be confusing
+when debugging, and they bring incosistencies with the rest of the ecosystem.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">vec!{1, 2, 3};
 </code></pre>
