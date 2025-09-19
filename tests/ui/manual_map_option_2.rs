@@ -1,5 +1,5 @@
 #![warn(clippy::manual_map)]
-#![allow(clippy::toplevel_ref_arg)]
+#![allow(clippy::toplevel_ref_arg, clippy::borrowed_option)]
 
 fn main() {
     // Lint. `y` is declared within the arm, so it isn't captured by the map closure

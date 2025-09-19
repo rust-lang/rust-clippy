@@ -5,6 +5,7 @@
 //@[all] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/ref_option/all
 
 #![warn(clippy::ref_option)]
+#![allow(clippy::borrowed_option)]
 
 pub trait PubTrait {
     fn pub_trait_opt(&self, a: &Option<Vec<u8>>);

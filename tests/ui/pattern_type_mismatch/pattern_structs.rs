@@ -1,4 +1,5 @@
 #![warn(clippy::pattern_type_mismatch)]
+#![allow(clippy::borrowed_option)]
 
 fn main() {}
 

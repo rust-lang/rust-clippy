@@ -188,6 +188,38 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for usage of [`&Option<T>`](https://doc.rust-lang.org/std/option/index.html) anywhere in the code.
+    ///
+    /// ### Why is this bad?
+    /// An `&Option<T>` parameter prevents calling the function if the caller holds a different type, e.g. `Result<T, E>`.
+    /// Using `Option<&T>` generalizes the function, e.g. allowing to pass `res.ok().as_ref()`.
+    /// Returning `&Option<T>` needlessly exposes implementation details and has no advantage over `Option<&T>`.
+    /// `&Option<T>` requieres a dereferencing to determine the variant (`Some` or `None`), while `Option<&T>` does not.
+    ///
+    /// ### Example
+    /// ```rust,compile_fail
+    /// fn foo(bar: &Option<String>) -> &Option<String> { bar }
+    /// fn call_foo(bar: &Result<String, ()>) {
+    ///     foo(bar.ok()); // does not work
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    ///
+    /// ```rust
+    /// fn foo(bar: Option<&String>) -> Option<&String> { bar }
+    /// fn call_foo(bar: &Result<String, ()>) {
+    ///     foo(bar.ok().as_ref()); // works!
+    /// }
+    /// ```
+    #[clippy::version = "1.74.0"]
+    pub BORROWED_OPTION,
+    complexity,
+    "`&Option<T>` instead of `Option<&T>`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for usage of redundant allocations anywhere in the code.
     ///
     /// ### Why is this bad?
@@ -403,6 +435,7 @@ impl_lint_pass!(Types => [
     OPTION_OPTION,
     LINKEDLIST,
     BORROWED_BOX,
+    BORROWED_OPTION,
     REDUNDANT_ALLOCATION,
     RC_BUFFER,
     RC_MUTEX,
