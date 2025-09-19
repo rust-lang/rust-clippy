@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::{SpanExt as _, snippet_with_applicability};
+use clippy_utils::source::{SpanExt as _, snippet_with_context};
 
 use rustc_ast::{Expr, ExprKind};
 use rustc_errors::Applicability;
@@ -40,7 +40,8 @@ declare_lint_pass!(NeedlessParensOnRangeLiterals => [
 ]);
 
 fn check_for_parens(cx: &EarlyContext<'_>, e: &Expr, is_start: bool) {
-    if let ExprKind::Paren(literal) = &e.kind
+    if !e.span.from_expansion()
+        && let ExprKind::Paren(literal) = &e.kind
         && let ExprKind::Lit(lit) = &literal.kind
     {
         if is_start
@@ -59,7 +60,7 @@ fn check_for_parens(cx: &EarlyContext<'_>, e: &Expr, is_start: bool) {
             "needless parenthesis on range literals can be removed",
             |diag| {
                 let mut applicability = Applicability::MachineApplicable;
-                let suggestion = snippet_with_applicability(cx, literal.span, "_", &mut applicability);
+                let suggestion = snippet_with_context(cx, literal.span, e.span.ctxt(), "_", &mut applicability).0;
                 diag.span_suggestion(e.span, "try", suggestion, applicability);
             },
         );

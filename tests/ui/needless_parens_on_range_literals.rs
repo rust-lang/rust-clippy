@@ -18,4 +18,24 @@ fn main() {
     //~^ needless_parens_on_range_literals
     let _ = ..('z');
     //~^ needless_parens_on_range_literals
+
+    macro_rules! zero {
+        () => {
+            0
+        };
+    }
+    macro_rules! add_paren {
+        ($e:expr) => {
+            ($e)
+        };
+    }
+
+    // lint: the paren was added by the user
+    let _ = (zero!())..1;
+    //~^ needless_parens_on_range_literals
+    let _ = 0..(zero!());
+    //~^ needless_parens_on_range_literals
+
+    // don't lint: the paren was added by the macro
+    let _ = add_paren!(0)..1;
 }
