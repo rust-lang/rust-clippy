@@ -1,11 +1,9 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::higher;
-use clippy_utils::source::{snippet, snippet_with_applicability};
+use clippy_utils::source::snippet_with_applicability;
 
-use rustc_ast::ast;
+use rustc_ast::{Expr, ExprKind};
 use rustc_errors::Applicability;
-use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, declare_lint_pass};
 
 declare_clippy_lint! {
   /// ### What it does
@@ -41,26 +39,15 @@ declare_lint_pass!(NeedlessParensOnRangeLiterals => [
     NEEDLESS_PARENS_ON_RANGE_LITERALS,
 ]);
 
-fn snippet_enclosed_in_parenthesis(snippet: &str) -> bool {
-    snippet.starts_with('(') && snippet.ends_with(')')
-}
+fn check_for_parens(cx: &EarlyContext<'_>, e: &Expr, is_start: bool) {
+    if let ExprKind::Paren(literal) = &e.kind
+        && let ExprKind::Lit(lit) = &literal.kind
+    {
+        if is_start && lit.kind == rustc_ast::token::LitKind::Float && lit.suffix.is_none() {
+            // don't lint `(2.)..end`, since removing the parens would result in invalid syntax
+            return;
+        }
 
-fn check_for_parens(cx: &LateContext<'_>, e: &Expr<'_>, is_start: bool) {
-    if is_start
-        && let ExprKind::Lit(literal) = e.kind
-        && let ast::LitKind::Float(_sym, ast::LitFloatType::Unsuffixed) = literal.node
-    {
-        // don't check floating point literals on the start expression of a range
-        return;
-    }
-    if let ExprKind::Lit(literal) = e.kind
-        // the indicator that parenthesis surround the literal is that the span of the expression and the literal differ
-        && let (literal_span_lo, literal_span_hi) = literal.span.lo_hi()
-        && let (e_span_lo, e_span_hi) = e.span.lo_hi()
-        && literal_span_hi - literal_span_lo != e_span_hi - e_span_lo
-        // inspect the source code of the expression for parenthesis
-        && snippet_enclosed_in_parenthesis(&snippet(cx, e.span, ""))
-    {
         span_lint_and_then(
             cx,
             NEEDLESS_PARENS_ON_RANGE_LITERALS,
@@ -75,9 +62,9 @@ fn check_for_parens(cx: &LateContext<'_>, e: &Expr<'_>, is_start: bool) {
     }
 }
 
-impl<'tcx> LateLintPass<'tcx> for NeedlessParensOnRangeLiterals {
-    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        if let Some(higher::Range { start, end, .. }) = higher::Range::hir(cx, expr) {
+impl EarlyLintPass for NeedlessParensOnRangeLiterals {
+    fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {
+        if let ExprKind::Range(start, end, ..) = &expr.kind {
             if let Some(start) = start {
                 check_for_parens(cx, start, true);
             }

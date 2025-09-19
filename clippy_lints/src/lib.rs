@@ -545,6 +545,7 @@ rustc_lint::early_lint_methods!(
         EmptyLineAfter: empty_line_after::EmptyLineAfter = empty_line_after::EmptyLineAfter::new(),
         InlineTraitBounds: inline_trait_bounds::InlineTraitBounds = inline_trait_bounds::InlineTraitBounds::default(),
         DefinitionInModuleRoot: definition_in_module_root::DefinitionInModuleRoot = definition_in_module_root::DefinitionInModuleRoot::default(),
+        NeedlessParensOnRangeLiterals: needless_parens_on_range_literals::NeedlessParensOnRangeLiterals = needless_parens_on_range_literals::NeedlessParensOnRangeLiterals,
         // add early passes here, used by `cargo dev new_lint`
     ]]
 );
@@ -682,7 +683,6 @@ rustc_lint::late_lint_methods!(
         Return: returns::Return = returns::Return,
         CollapsibleIf: collapsible_if::CollapsibleIf = collapsible_if::CollapsibleIf::new(conf),
         ItemsAfterStatements: items_after_statements::ItemsAfterStatements = items_after_statements::ItemsAfterStatements,
-        NeedlessParensOnRangeLiterals: needless_parens_on_range_literals::NeedlessParensOnRangeLiterals = needless_parens_on_range_literals::NeedlessParensOnRangeLiterals,
         NeedlessContinue: needless_continue::NeedlessContinue = needless_continue::NeedlessContinue,
         CreateDir: create_dir::CreateDir = create_dir::CreateDir,
         ItemNameRepetitions: item_name_repetitions::ItemNameRepetitions = item_name_repetitions::ItemNameRepetitions::new(conf),
