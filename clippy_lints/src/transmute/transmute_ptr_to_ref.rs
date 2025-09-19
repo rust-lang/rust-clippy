@@ -21,6 +21,24 @@ pub(super) fn check<'tcx>(
 ) -> bool {
     match (&from_ty.kind(), &to_ty.kind()) {
         (ty::RawPtr(from_ptr_ty, _), ty::Ref(_, to_ref_ty, mutbl)) => {
+            // Transmutation alternatives became available in const contexts
+            // after the creation of this lint. We avoid linting in such scenarios
+            // because transmute was the only correct option back then.
+            if cx.tcx.hir_is_inside_const_context(e.hir_id) {
+                match mutbl {
+                    Mutability::Mut => {
+                        if !msrv.meets(cx, msrvs::CONST_MUT_REFS) {
+                            return false;
+                        }
+                    },
+                    Mutability::Not => {
+                        if !msrv.meets(cx, msrvs::CONST_RAW_PTR_DEREF) {
+                            return false;
+                        }
+                    },
+                }
+            }
+
             span_lint_and_then(
                 cx,
                 TRANSMUTE_PTR_TO_REF,
