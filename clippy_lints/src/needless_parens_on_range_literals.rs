@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::snippet_with_applicability;
+use clippy_utils::source::{SpanExt as _, snippet_with_applicability};
 
 use rustc_ast::{Expr, ExprKind};
 use rustc_errors::Applicability;
@@ -43,7 +43,11 @@ fn check_for_parens(cx: &EarlyContext<'_>, e: &Expr, is_start: bool) {
     if let ExprKind::Paren(literal) = &e.kind
         && let ExprKind::Lit(lit) = &literal.kind
     {
-        if is_start && lit.kind == rustc_ast::token::LitKind::Float && lit.suffix.is_none() {
+        if is_start
+            && lit.kind == rustc_ast::token::LitKind::Float
+            && lit.suffix.is_none()
+            && literal.span.check_text(cx, |s| s.ends_with('.'))
+        {
             // don't lint `(2.)..end`, since removing the parens would result in invalid syntax
             return;
         }

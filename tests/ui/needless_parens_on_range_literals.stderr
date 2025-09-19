@@ -20,22 +20,28 @@ LL |     let _ = 'a'..('z');
    |                  ^^^^^ help: try: `'z'`
 
 error: needless parenthesis on range literals can be removed
-  --> tests/ui/needless_parens_on_range_literals.rs:11:19
+  --> tests/ui/needless_parens_on_range_literals.rs:12:19
    |
 LL |     let _ = (1.)..(2.);
    |                   ^^^^ help: try: `2.`
 
 error: needless parenthesis on range literals can be removed
-  --> tests/ui/needless_parens_on_range_literals.rs:13:13
+  --> tests/ui/needless_parens_on_range_literals.rs:14:13
+   |
+LL |     let _ = (1.0)..2.;
+   |             ^^^^^ help: try: `1.0`
+
+error: needless parenthesis on range literals can be removed
+  --> tests/ui/needless_parens_on_range_literals.rs:17:13
    |
 LL |     let _ = ('a')..;
    |             ^^^^^ help: try: `'a'`
 
 error: needless parenthesis on range literals can be removed
-  --> tests/ui/needless_parens_on_range_literals.rs:15:15
+  --> tests/ui/needless_parens_on_range_literals.rs:19:15
    |
 LL |     let _ = ..('z');
    |               ^^^^^ help: try: `'z'`
 
-error: aborting due to 6 previous errors
+error: aborting due to 7 previous errors
 
