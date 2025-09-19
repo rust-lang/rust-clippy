@@ -1,5 +1,4 @@
 #![allow(clippy::derive_partial_eq_without_eq)]
-#![deny(unfulfilled_lint_expectations)]
 
 #[derive(PartialEq, Hash)]
 struct Foo;

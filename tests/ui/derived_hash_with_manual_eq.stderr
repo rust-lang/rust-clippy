@@ -1,24 +1,24 @@
 error: you are deriving `Hash` but have implemented `PartialEq` explicitly
-  --> tests/ui/derived_hash_with_manual_eq.rs:13:10
+  --> tests/ui/derived_hash_with_manual_eq.rs:12:10
    |
 LL | #[derive(Hash)]
    |          ^^^^
    |
 note: `PartialEq` implemented here
-  --> tests/ui/derived_hash_with_manual_eq.rs:18:1
+  --> tests/ui/derived_hash_with_manual_eq.rs:17:1
    |
 LL | impl PartialEq for Bar {
    | ^^^^^^^^^^^^^^^^^^^^^^
    = note: `#[deny(clippy::derived_hash_with_manual_eq)]` on by default
 
 error: you are deriving `Hash` but have implemented `PartialEq` explicitly
-  --> tests/ui/derived_hash_with_manual_eq.rs:24:10
+  --> tests/ui/derived_hash_with_manual_eq.rs:23:10
    |
 LL | #[derive(Hash)]
    |          ^^^^
    |
 note: `PartialEq` implemented here
-  --> tests/ui/derived_hash_with_manual_eq.rs:29:1
+  --> tests/ui/derived_hash_with_manual_eq.rs:28:1
    |
 LL | impl PartialEq<Baz> for Baz {
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^

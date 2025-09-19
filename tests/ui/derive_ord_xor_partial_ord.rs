@@ -1,5 +1,4 @@
 #![warn(clippy::derive_ord_xor_partial_ord)]
-#![deny(unfulfilled_lint_expectations)]
 #![allow(clippy::unnecessary_wraps)]
 #![allow(clippy::non_canonical_partial_ord_impl)]
 

@@ -68,3 +68,6 @@ harness = false
 [lints.rust.unexpected_cfgs]
 level = "warn"
 check-cfg = ['cfg(bootstrap)']
+
+[lints.rust.unfulfilled_lint_expectations]
+level = "deny"

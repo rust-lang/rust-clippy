@@ -5,7 +5,6 @@
     clippy::repr_packed_without_abi,
     dead_code
 )]
-#![deny(unfulfilled_lint_expectations)]
 #![warn(clippy::expl_impl_clone_on_copy)]
 #![expect(incomplete_features)] // `unsafe_fields` is incomplete for the time being
 #![feature(unsafe_fields)] // `clone()` cannot be derived automatically on unsafe fields
