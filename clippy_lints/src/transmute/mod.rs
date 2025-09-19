@@ -37,7 +37,7 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```ignore
-    /// let ptr: *const T = core::intrinsics::transmute('x')
+    /// let ptr: *const T = std::mem::transmute('x')
     /// ```
     #[clippy::version = "pre 1.29.0"]
     pub WRONG_TRANSMUTE,
@@ -56,7 +56,8 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```rust,ignore
-    /// core::intrinsics::transmute(t); // where the result type is the same as `t`'s
+    /// let t : u8 = 12;
+    /// let u : u8 = std::mem::transmute(t);
     /// ```
     #[clippy::version = "pre 1.29.0"]
     pub USELESS_TRANSMUTE,
@@ -67,7 +68,7 @@ declare_clippy_lint! {
 // FIXME: Merge this lint with USELESS_TRANSMUTE once that is out of the nursery.
 declare_clippy_lint! {
     /// ### What it does
-    ///Checks for transmutes that could be a pointer cast.
+    /// Checks for transmutes that could be a pointer cast.
     ///
     /// ### Why is this bad?
     /// Readability. The code tricks people into thinking that
@@ -100,7 +101,7 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```rust,ignore
-    /// core::intrinsics::transmute(t) // where the result type is the same as
+    /// std::mem::transmute(t) // where the result type is the same as
     ///                                // `*t` or `&t`'s
     /// ```
     #[clippy::version = "pre 1.29.0"]
@@ -116,12 +117,6 @@ declare_clippy_lint! {
     /// ### Why is this bad?
     /// This can always be rewritten with `&` and `*`.
     ///
-    /// ### Known problems
-    /// - `mem::transmute` in statics and constants is stable from Rust 1.46.0,
-    /// while dereferencing raw pointer is not stable yet.
-    /// If you need to do this in those places,
-    /// you would have to use `transmute` instead.
-    ///
     /// ### Example
     /// ```rust,ignore
     /// unsafe {
@@ -129,7 +124,9 @@ declare_clippy_lint! {
     /// }
     ///
     /// // can be written:
-    /// let _: &T = &*p;
+    /// unsafe {
+    ///     let _: &T = &*p;
+    /// }
     /// ```
     #[clippy::version = "pre 1.29.0"]
     pub TRANSMUTE_PTR_TO_REF,
