@@ -1,0 +1,75 @@
+error: struct destructuring with rest (..)
+  --> tests/ui/rest_when_destructuring_struct.rs:28:9
+   |
+LL |     let S { a, b, .. } = s;
+   |         ^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::rest-when-destructuring-struct` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::rest_when_destructuring_struct)]`
+help: consider explicitly ignoring remaining fields with wildcard patterns (x: _)
+   |
+LL -     let S { a, b, .. } = s;
+LL +     let S { a, b, c: _ } = s;
+   |
+
+error: struct destructuring with rest (..)
+  --> tests/ui/rest_when_destructuring_struct.rs:31:9
+   |
+LL |     let S { a, b, c, .. } = s;
+   |         ^^^^^^^^^^^^^^^^^
+   |
+help: consider explicitly ignoring remaining fields with wildcard patterns (x: _)
+   |
+LL -     let S { a, b, c, .. } = s;
+LL +     let S { a, b, c,  } = s;
+   |
+
+error: struct destructuring with rest (..)
+  --> tests/ui/rest_when_destructuring_struct.rs:38:9
+   |
+LL |         E::B { .. } => (),
+   |         ^^^^^^^^^^^
+   |
+help: consider explicitly ignoring remaining fields with wildcard patterns (x: _)
+   |
+LL -         E::B { .. } => (),
+LL +         E::B { b1: _, b2: _ } => (),
+   |
+
+error: struct destructuring with rest (..)
+  --> tests/ui/rest_when_destructuring_struct.rs:40:9
+   |
+LL |         E::C { .. } => (),
+   |         ^^^^^^^^^^^
+   |
+help: consider explicitly ignoring remaining fields with wildcard patterns (x: _)
+   |
+LL -         E::C { .. } => (),
+LL +         E::C {  } => (),
+   |
+
+error: struct destructuring with rest (..)
+  --> tests/ui/rest_when_destructuring_struct.rs:46:9
+   |
+LL |         E::B { b1: _, .. } => (),
+   |         ^^^^^^^^^^^^^^^^^^
+   |
+help: consider explicitly ignoring remaining fields with wildcard patterns (x: _)
+   |
+LL -         E::B { b1: _, .. } => (),
+LL +         E::B { b1: _, b2: _ } => (),
+   |
+
+error: struct destructuring with rest (..)
+  --> tests/ui/rest_when_destructuring_struct.rs:63:9
+   |
+LL |     let NonExhaustiveStruct { field1: _, .. } = ne;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider explicitly ignoring remaining fields with wildcard patterns (x: _)
+   |
+LL |     let NonExhaustiveStruct { field1: _, field2: _, .. } = ne;
+   |                                          ++++++++++
+
+error: aborting due to 6 previous errors
+
