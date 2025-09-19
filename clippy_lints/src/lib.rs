@@ -269,6 +269,7 @@ mod needless_maybe_sized;
 mod needless_parens_on_range_literals;
 mod needless_pass_by_ref_mut;
 mod needless_pass_by_value;
+mod needless_path_new;
 mod needless_question_mark;
 mod needless_update;
 mod neg_cmp_op_on_partial_ord;
@@ -831,5 +832,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(infallible_try_from::InfallibleTryFrom));
     store.register_late_pass(|_| Box::new(coerce_container_to_any::CoerceContainerToAny));
     store.register_late_pass(|_| Box::new(toplevel_ref_arg::ToplevelRefArg));
+    store.register_late_pass(|_| Box::new(needless_path_new::NeedlessPathNew));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
