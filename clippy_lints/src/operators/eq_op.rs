@@ -2,10 +2,29 @@ use clippy_utils::ast_utils::is_useless_with_eq_exprs;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
 use clippy_utils::macros::{find_assert_eq_args, first_node_macro_backtrace};
 use clippy_utils::{eq_expr_value, is_in_test_function, sym};
-use rustc_hir::{BinOpKind, Expr};
+use rustc_ast::LitKind;
+use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::LateContext;
 
 use super::EQ_OP;
+
+fn is_literal_in_different_form(l: &Expr<'_>, r: &Expr<'_>) -> bool {
+    if let (ExprKind::Lit(l), ExprKind::Lit(r)) = (l.kind, r.kind) {
+        return match (l.node, r.node) {
+            (LitKind::Str(_, l_style), LitKind::Str(_, r_style))
+            | (LitKind::ByteStr(_, l_style), LitKind::ByteStr(_, r_style))
+            | (LitKind::CStr(_, l_style), LitKind::CStr(_, r_style)) => l_style != r_style,
+            (LitKind::Int(_, l_style), LitKind::Int(_, r_style)) => l_style != r_style,
+            (LitKind::Float(_, l_style), LitKind::Float(_, r_style)) => l_style != r_style,
+            (LitKind::Byte(_), LitKind::Byte(_))
+            | (LitKind::Char(_), LitKind::Char(_))
+            | (LitKind::Bool(_), LitKind::Bool(_)) => false,
+            _ => true,
+        };
+    }
+
+    false
+}
 
 pub(crate) fn check_assert<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
     if let Some(macro_call) = first_node_macro_backtrace(cx, e).find(|macro_call| {
@@ -17,6 +36,7 @@ pub(crate) fn check_assert<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
         && eq_expr_value(cx, lhs, rhs)
         && macro_call.is_local()
         && !is_in_test_function(cx.tcx, e.hir_id)
+        && !is_literal_in_different_form(lhs, rhs)
     {
         span_lint(
             cx,
@@ -37,7 +57,11 @@ pub(crate) fn check<'tcx>(
     left: &'tcx Expr<'_>,
     right: &'tcx Expr<'_>,
 ) {
-    if is_useless_with_eq_exprs(op) && eq_expr_value(cx, left, right) && !is_in_test_function(cx.tcx, e.hir_id) {
+    if is_useless_with_eq_exprs(op)
+        && eq_expr_value(cx, left, right)
+        && !is_in_test_function(cx.tcx, e.hir_id)
+        && !is_literal_in_different_form(left, right)
+    {
         span_lint_and_then(
             cx,
             EQ_OP,
