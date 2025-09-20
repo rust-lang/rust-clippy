@@ -61,10 +61,10 @@ check-private-items = true
 
 The list of available configurations along their default values is
 [here](https://doc.rust-lang.org/nightly/clippy/lint_configuration.html).
-You can enable unstable features via the `unsable-conf` configuration option. If this configuration is set to `true`,
+You can enable unstable features via the `unstable-conf` configuration option. If this configuration is set to `true`,
 Clippy will warn about unknown or renamed keys, and will allow the modification of unstable configuration options. One
-can use `unstable-conf = true` sparingly in their development cycle to check for unknown Rust to check for typos or
-nonexistent configuration options. 
+can use `unstable-conf = true` sparingly in their development cycle to check for typos or
+nonexistent configuration options.
 
 While TOML tables (`[table]`) are currently ignored at the time of writing, they could be added in a future version
 for lint-specific configuration or similar.
