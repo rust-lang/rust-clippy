@@ -100,6 +100,16 @@ fn main() {
         thing.write_volatile(&"goodbye".into()); // OK
     }
 
+    // Zero size types OK
+    unsafe {
+        struct Empty;
+
+        (0xdead as *mut Empty).write_volatile(Empty); // OK
+        // Note that this is OK because Wrapper<Empty> is itself ZST, not because of the repr transparent
+        // handling tested below.
+        (0xdead as *mut Wrapper<Empty>).write_volatile(Wrapper((), Empty, ())); // OK
+    }
+
     // Via repr transparent newtype
     unsafe {
         (0xdead as *mut Wrapper<usize>).write_volatile(Wrapper((), 123, ())); // OK
@@ -125,6 +135,14 @@ fn main() {
         let wideptr: *const [u32] = std::ptr::from_raw_parts(things.as_ptr(), things.len());
         (0xdead as *mut *const [u32]).write_volatile(wideptr);
         //~^ volatile_composites
+    }
+
+    // Plain pointers and pointers with lifetimes are OK
+    unsafe {
+        let v: u32 = 123;
+        let rv: &u32 = &v;
+
+        (0xdead as *mut &u32).write_volatile(rv); // OK
     }
 
     // C-style enums are OK
@@ -186,6 +204,12 @@ fn main() {
     // Can't see through generic wrapper
     unsafe {
         do_device_write::<MyDevRegisters>(0xdead as *mut _, Default::default()); // OK
+    }
+
+    let mut s = String::from("foo");
+    unsafe {
+        std::ptr::write_volatile(&mut s, String::from("bar"));
+        //~^ volatile_composites
     }
 }
 

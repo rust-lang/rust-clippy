@@ -1,8 +1,10 @@
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::sym;
+use clippy_utils::ty::is_type_diagnostic_item;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::{self, Ty};
+use rustc_middle::ty::layout::LayoutOf;
+use rustc_middle::ty::{self, Ty, TypeVisitableExt};
 use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
@@ -50,60 +52,37 @@ declare_clippy_lint! {
     ///     }
     /// }
     /// ```
-    #[clippy::version = "1.91.0"]
+    #[clippy::version = "1.92.0"]
     pub VOLATILE_COMPOSITES,
     nursery,
     "warn about volatile read/write applied to composite types"
 }
 declare_lint_pass!(VolatileComposites => [VOLATILE_COMPOSITES]);
 
-// functions:
-// core::ptr::{read_volatile,write_volatile}
-// methods:
-// pointer::{read_volatile,write_volatile}
-// NonNull::{read_volatile,write_volatile}
-
-// primitive type:
-// unit, [iu]{8,16,32,64,128?}, f{32,64}, thin pointer, usize, isize, bool, char
-// C enum with primitive repr
-// #[repr(transparent)] wrapper of above
-
-// Zero-sized types are intrinsically safe to use volatile on since they won't
-// actually generate *any* loads or stores. But this is also used to skip zero
-// fields of #[repr(transparent)] structures.
+/// Zero-sized types are intrinsically safe to use volatile on since they won't
+/// actually generate *any* loads or stores. But this is also used to skip zero-sized
+/// fields of `#[repr(transparent)]` structures.
 fn is_zero_sized_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
-    if let Ok(ty) = cx.tcx.try_normalize_erasing_regions(cx.typing_env(), ty)
-        && let Ok(layout) = cx.tcx.layout_of(cx.typing_env().as_query_input(ty))
-    {
-        layout.layout.size().bytes() == 0
-    } else {
-        false
+    cx.layout_of(ty).is_ok_and(|layout| layout.is_zst())
+}
+
+/// A thin raw pointer or reference.
+fn is_narrow_ptr<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
+    match ty.kind() {
+        ty::RawPtr(inner, _) | ty::Ref(_, inner, _) => inner.has_trivial_sizedness(cx.tcx, ty::SizedTraitKind::Sized),
+        _ => false,
     }
 }
 
-// Make sure the raw pointer has no metadata
-fn is_narrow_raw_ptr<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
-    if let ty::RawPtr(_inner, _) = ty.kind() {
-        ty.pointee_metadata_ty_or_projection(cx.tcx).is_unit()
-    } else {
-        false
-    }
-}
-
-// Enum with some fixed representation and no data-carrying variants
+/// Enum with some fixed representation and no data-carrying variants.
 fn is_enum_repr_c<'tcx>(_cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
-    if let ty::Adt(adt_def, _args) = ty.kind()
-        && adt_def.is_enum()
-        && adt_def.repr().inhibit_struct_field_reordering()
-    {
-        adt_def.is_payloadfree()
-    } else {
-        false
-    }
+    ty.ty_adt_def().is_some_and(|adt_def| {
+        adt_def.is_enum() && adt_def.repr().inhibit_struct_field_reordering() && adt_def.is_payloadfree()
+    })
 }
 
-// #[repr(transparent)] structures are also OK if the only non-zero
-// sized field contains a volatile-safe type
+/// `#[repr(transparent)]` structures are also OK if the only non-zero
+/// sized field contains a volatile-safe type.
 fn is_struct_repr_transparent<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
     if let ty::Adt(adt_def, args) = ty.kind()
         && adt_def.is_struct()
@@ -123,8 +102,8 @@ fn is_struct_repr_transparent<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> boo
     }
 }
 
-// SIMD can be useful to get larger atomic loads/stores, though this is still
-// pretty machine-dependent.
+/// SIMD can be useful to get larger single loads/stores, though this is still
+/// pretty machine-dependent.
 fn is_simd_repr<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
     if let ty::Adt(adt_def, _args) = ty.kind()
         && adt_def.is_struct()
@@ -137,21 +116,19 @@ fn is_simd_repr<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
     }
 }
 
-// We can't know about a generic type, so just let it pass to avoid noise
-fn is_generic<'tcx>(_cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
-    ty.flags().intersects(ty::TypeFlags::HAS_PARAM)
-}
-
+/// Top-level predicate for whether a type is volatile-safe or not.
 fn is_volatile_safe_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
     ty.is_primitive()
-        || is_narrow_raw_ptr(cx, ty)
+        || is_narrow_ptr(cx, ty)
         || is_zero_sized_ty(cx, ty)
         || is_enum_repr_c(cx, ty)
         || is_simd_repr(cx, ty)
         || is_struct_repr_transparent(cx, ty)
-        || is_generic(cx, ty)
+        // We can't know about a generic type, so just let it pass to avoid noise
+        || ty.has_non_region_param()
 }
 
+/// Print diagnostic for volatile read/write on non-volatile-safe types.
 fn report_volatile_safe<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>, ty: Ty<'tcx>) {
     if !is_volatile_safe_ty(cx, ty) {
         span_lint(
@@ -177,7 +154,7 @@ impl<'tcx> LateLintPass<'tcx> for VolatileComposites {
                     // Raw pointers
                     ty::RawPtr(innerty, _) => report_volatile_safe(cx, expr, *innerty),
                     // std::ptr::NonNull
-                    ty::Adt(adt_def, args) if cx.tcx.is_diagnostic_item(sym::NonNull, adt_def.did()) => {
+                    ty::Adt(_, args) if is_type_diagnostic_item(cx, self_ty, sym::NonNull) => {
                         report_volatile_safe(cx, expr, args.type_at(0));
                     },
                     _ => (),
@@ -192,7 +169,7 @@ impl<'tcx> LateLintPass<'tcx> for VolatileComposites {
                         cx.tcx.get_diagnostic_name(def_id),
                         Some(sym::ptr_read_volatile | sym::ptr_write_volatile)
                     )
-                    && let ty::RawPtr(ptrty, _) = cx.typeck_results().expr_ty(arg_ptr).kind()
+                    && let ty::RawPtr(ptrty, _) = cx.typeck_results().expr_ty_adjusted(arg_ptr).kind()
                 {
                     report_volatile_safe(cx, expr, *ptrty);
                 }
