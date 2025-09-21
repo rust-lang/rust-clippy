@@ -113,7 +113,14 @@ One can use @rust-rfcbot's capabilities to facilitate registering concerns and c
 command. [Refer to rust-rfcbot's documentation for more information](https://github.com/rust-lang/rfcbot-rs)
 but this should be enough for our usecase.
 
-While a key is not stable, it's marked on documentation as unstable,  and it will report an error 
+While a key is not stable, it's marked on documentation as unstable, and it will report an error if used without
+`unstable-conf` enabled.
+
+---
+
+When `unstable-conf` is not enabled, we are in "stable mode". This means that unknown configuration lints are
+suppressed, renamed configuration lints are supressed, and we only allow the use of stable configuration options,
+emitting an error otherwise.
 
 # Drawbacks
 
