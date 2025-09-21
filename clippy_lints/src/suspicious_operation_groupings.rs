@@ -8,6 +8,7 @@ use rustc_errors::Applicability;
 use rustc_hir::intravisit::Visitor;
 use rustc_hir::{Expr, ExprKind, StmtKind};
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::ty::{AssocKind, Ty, TyCtxt};
 use rustc_session::declare_lint_pass;
 use rustc_span::Span;
 use rustc_span::source_map::Spanned;
@@ -675,6 +676,24 @@ enum CheckFields {
     No,
 }
 
+fn has_inherent_method<'tcx>(tcx: TyCtxt<'tcx>, ty: Ty<'tcx>, method_name: Ident) -> bool {
+    let Some(adt) = ty.ty_adt_def() else { return false };
+
+    tcx.inherent_impls(adt.did())
+        .iter()
+        .flat_map(|impl_id| tcx.associated_item_def_ids(impl_id))
+        .any(|assoc_id| {
+            let item = tcx.associated_item(assoc_id);
+            let AssocKind::Fn { name, has_self } = item.kind else {
+                return false;
+            };
+
+            has_self && name == method_name.name
+        });
+
+    false
+}
+
 #[track_caller]
 fn suggestion_with_swapped_ident(
     cx: &LateContext<'_>,
@@ -690,13 +709,44 @@ fn suggestion_with_swapped_ident(
             return None;
         }
 
+        let tys = cx.typeck_results();
+
+        // If this is a method call, extract the method called and it's receiver
+        if let ExprKind::MethodCall(path_seg, receiver, _, _) = expr.kind
+            && let ExprKind::Field(src, _) = receiver.kind
+        {
+            // if it's a field, extract it's source place
+            // type of the source
+            let ty_of_src = tys.expr_ty(src);
+
+            // If the source is an ADT (only way we can determine methods)
+            if let Some(adt_def) = ty_of_src.peel_refs().ty_adt_def() {
+                // iterate over fields of all variants
+                let iter = adt_def.variants().into_iter().flat_map(|variant| variant.fields.iter());
+
+                iter
+                    // only include fields that aren't the one we're gonna
+                    // ask to replace
+                    .filter(|f| f.name != current_ident.name)
+                    // type of the field
+                    .map(|f| cx.tcx.type_of(f.did).instantiate_identity())
+                    // filter any type that doesn't have the method specified by the
+                    // path segment from `MethodCall`
+                    .find(|ty| has_inherent_method(cx.tcx, *ty, path_seg.ident))?;
+                // // if the iterator returns none, it's empty
+                // .next()
+                // .is_none()
+            }
+        }
+
         if let ExprKind::Field(path_expr, _) = expr.kind {
-            let ty_of_receiver = cx.typeck_results().expr_ty(path_expr).peel_refs();
+            let ty_of_receiver = tys.expr_ty(path_expr).peel_refs();
 
             // If it's not an ADT, the "field" access is going to be either
             // completely invalid or it will be accessing some method on the type.
             //
             // These two cases will be caught during typeck, so we don't have to worry.
+
             if let Some(adt_def) = ty_of_receiver.ty_adt_def()
                 && let CheckFields::Yes = mode
                 && !adt_def
