@@ -715,27 +715,24 @@ fn suggestion_with_swapped_ident(
         if let ExprKind::MethodCall(path_seg, receiver, _, _) = expr.kind
             && let ExprKind::Field(src, _) = receiver.kind
         {
-            // if it's a field, extract it's source place
-            // type of the source
+            // If it's a field expression, extract it's source place.
+
+            // Type of the source.
             let ty_of_src = tys.expr_ty(src);
 
             // If the source is an ADT (only way we can determine methods)
+            // I couldn't particularly find a way to get all inherent methods on
+            // something like a `u8` but it's probably possible.
             if let Some(adt_def) = ty_of_src.peel_refs().ty_adt_def() {
-                // iterate over fields of all variants
-                let iter = adt_def.variants().into_iter().flat_map(|variant| variant.fields.iter());
+                // Iterate over fields of the first variant.
+                //
+                // `enum`s and `union`s are a bit too complicated to handle,
+                // so we're only considering operating on `struct`s.
+                let iter = adt_def.variants().iter().next()?.fields.iter();
 
-                iter
-                    // only include fields that aren't the one we're gonna
-                    // ask to replace
-                    .filter(|f| f.name != current_ident.name)
-                    // type of the field
+                iter.filter(|f| f.name != current_ident.name)
                     .map(|f| cx.tcx.type_of(f.did).instantiate_identity())
-                    // filter any type that doesn't have the method specified by the
-                    // path segment from `MethodCall`
                     .find(|ty| has_inherent_method(cx.tcx, *ty, path_seg.ident))?;
-                // // if the iterator returns none, it's empty
-                // .next()
-                // .is_none()
             }
         }
 
@@ -746,7 +743,6 @@ fn suggestion_with_swapped_ident(
             // completely invalid or it will be accessing some method on the type.
             //
             // These two cases will be caught during typeck, so we don't have to worry.
-
             if let Some(adt_def) = ty_of_receiver.ty_adt_def()
                 && let CheckFields::Yes = mode
                 && !adt_def
