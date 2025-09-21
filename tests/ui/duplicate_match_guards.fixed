@@ -35,8 +35,8 @@ fn main() {
         #[rustfmt::skip]
         0 if a > b => {
             // before
-            return;
-            // after
+        return;
+        // after
         },
         //~^^^^^^ duplicate_match_guards
         #[rustfmt::skip]
@@ -57,8 +57,8 @@ fn main() {
         #[rustfmt::skip]
         0 if a > b => {
             // before
-                return;
-            /* after, on the line of the second `if` */
+            return;
+        /* after, on the line of the second `if` */
         },
         //~^^^^^ duplicate_match_guards
         #[rustfmt::skip]
@@ -79,9 +79,9 @@ fn main() {
         #[rustfmt::skip]
         0 if a > b => {
             // before
-                return;
-                /* after,
-            continued */
+            return;
+            /* after,
+        continued */
         },
         //~^^^^^^ duplicate_match_guards
         #[rustfmt::skip]

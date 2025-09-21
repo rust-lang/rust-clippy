@@ -91,11 +91,9 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuards {
             if body_has_block {
                 // the common case:
                 // ```
-                // match 0u32 {
-                //     0 if true => {
-                //         if true {
-                //             return;
-                //         }
+                // <pat> if <guard> => {
+                //     if <cond> {
+                //         return;
                 //     }
                 // }
                 // ```
@@ -110,15 +108,6 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuards {
                     // Bail out just to be sure
                     return;
                 }
-
-                let sugg_span = then
-                    .span
-                    .with_lo(then.span.lo() + BytePos(1))
-                    .with_hi(then.span.hi() - BytePos(1));
-
-                let sugg_span = trim_span(sm, sugg_span);
-
-                let sugg = snippet_with_applicability(cx, sugg_span, "..", &mut applicability);
 
                 // Since we remove one level of curlies, we should be able to dedent `then` left one level, so this:
                 // ```
@@ -138,7 +127,16 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMatchGuards {
                 //     curlies
                 // }
                 // ```
-                let indent = indent_of(cx, sugg_span);
+
+                let indent = indent_of(cx, arm_body_expr.span);
+
+                let sugg_span = then
+                    .span
+                    .with_lo(then.span.lo() + BytePos(1))
+                    .with_hi(then.span.hi() - BytePos(1));
+                let sugg_span = trim_span(cx.sess().source_map(), sugg_span);
+
+                let sugg = snippet_with_applicability(cx, sugg_span, "..", &mut applicability);
                 let sugg = reindent_multiline(&sugg, true, indent.map(|i| i.saturating_sub(4)));
 
                 span_lint_and_sugg(

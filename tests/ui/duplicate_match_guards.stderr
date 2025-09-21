@@ -46,8 +46,8 @@ LL | |             }
 help: remove the condition
    |
 LL ~             // before
-LL +             return;
-LL +             // after
+LL +         return;
+LL +         // after
    |
 
 error: condition duplicates match guard
@@ -96,8 +96,8 @@ LL | |             /* after, on the line of the second `if` */}
 help: remove the condition
    |
 LL ~             // before
-LL +                 return;
-LL +             /* after, on the line of the second `if` */
+LL +             return;
+LL +         /* after, on the line of the second `if` */
    |
 
 error: condition duplicates match guard
@@ -145,9 +145,9 @@ LL | |             continued */}
 help: remove the condition
    |
 LL ~             // before
-LL +                 return;
-LL +                 /* after,
-LL +             continued */
+LL +             return;
+LL +             /* after,
+LL +         continued */
    |
 
 error: condition duplicates match guard
