@@ -95,5 +95,23 @@ error: `as` casting between raw pointers while changing only its constness
 LL |     let _ptr: *mut u32 = r as *const _ as *mut _;
    |                          ^^^^^^^^^^^^^^^^^^^^^^^ help: try `pointer::cast_mut`, a safer alternative: `(r as *const u32).cast_mut()`
 
-error: aborting due to 15 previous errors
+error: implicit casting from mut pointer to const pointer
+  --> tests/ui/ptr_cast_constness.rs:121:25
+   |
+LL |     let _: *const i32 = p;
+   |                         ^ help: try `pointer::cast_const`, a safer alternative: `p.cast_const()`
+
+error: implicit casting from mut pointer to const pointer
+  --> tests/ui/ptr_cast_constness.rs:123:22
+   |
+LL |     expect_const_ptr(p);
+   |                      ^ help: try `pointer::cast_const`, a safer alternative: `p.cast_const()`
+
+error: implicit casting from mut pointer to const pointer
+  --> tests/ui/ptr_cast_constness.rs:125:24
+   |
+LL |     let _: *const u8 = p as *mut u8;
+   |                        ^^^^^^^^^^^^ help: try `pointer::cast_const`, a safer alternative: `(p as *mut u8).cast_const()`
+
+error: aborting due to 18 previous errors
 

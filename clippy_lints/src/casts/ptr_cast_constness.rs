@@ -2,10 +2,11 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::sugg::Sugg;
-use clippy_utils::{std_or_core, sym};
+use clippy_utils::{get_parent_expr, std_or_core, sym};
 use rustc_errors::Applicability;
 use rustc_hir::{self as hir, Expr, ExprKind, QPath};
 use rustc_lint::LateContext;
+use rustc_middle::ty::adjustment::{Adjust, PointerCoercion};
 use rustc_middle::ty::{self, Ty, TypeVisitableExt};
 
 use super::PTR_CAST_CONSTNESS;
@@ -98,6 +99,28 @@ pub(super) fn check_null_ptr_cast_method(cx: &LateContext<'_>, expr: &Expr<'_>) 
             "changing constness of a null pointer",
             format!("use `{method}()` directly instead"),
             format!("{prefix}::ptr::{method}::<{after_lt}"),
+            app,
+        );
+    }
+}
+
+pub(super) fn check_implicit_cast_from_mut(cx: &LateContext<'_>, expr: &Expr<'_>, msrv: Msrv) {
+    if msrv.meets(cx, msrvs::POINTER_CAST_CONSTNESS)
+        && let ty::RawPtr(..) = cx.typeck_results().expr_ty(expr).kind()
+        && !matches!(get_parent_expr(cx, expr).map(|e| e.kind), Some(ExprKind::Cast(..)))
+        && let [coercion] = cx.typeck_results().expr_adjustments(expr)
+        && let Adjust::Pointer(PointerCoercion::MutToConstPointer) = coercion.kind
+        && !expr.span.from_expansion()
+    {
+        let mut app = Applicability::MachineApplicable;
+        let sugg = Sugg::hir_with_applicability(cx, expr, "_", &mut app);
+        span_lint_and_sugg(
+            cx,
+            PTR_CAST_CONSTNESS,
+            expr.span,
+            "implicit casting from mut pointer to const pointer",
+            "try `pointer::cast_const`, a safer alternative",
+            format!("{}.cast_const()", sugg.maybe_paren()),
             app,
         );
     }
