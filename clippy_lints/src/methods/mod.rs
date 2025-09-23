@@ -5216,7 +5216,7 @@ impl Methods {
                         // use the sourcemap to get the span of the closure
                         iter_filter::check(cx, expr, arg, span);
                     }
-                    filter_some::check(cx, expr, recv, arg);
+                    filter_some::check(cx, expr, recv, arg, self.msrv);
                 },
                 (sym::find, [arg]) => {
                     if let Some((sym::cloned, recv2, [], _span2, _)) = method_call(recv) {
