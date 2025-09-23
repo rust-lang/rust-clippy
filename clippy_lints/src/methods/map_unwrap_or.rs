@@ -26,8 +26,9 @@ pub(super) fn check<'tcx>(
     map_span: Span,
     msrv: Msrv,
 ) {
-    let is_option = is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(recv), sym::Option);
-    let is_result = is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(recv), sym::Result);
+    let recv_ty = cx.typeck_results().expr_ty(recv).peel_refs();
+    let is_option = is_type_diagnostic_item(cx, recv_ty, sym::Option);
+    let is_result = is_type_diagnostic_item(cx, recv_ty, sym::Result);
 
     if is_result && !msrv.meets(cx, msrvs::RESULT_MAP_OR) {
         return;
