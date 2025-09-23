@@ -1,0 +1,8 @@
+#![warn(clippy::filter_some)]
+
+fn main() {
+    let _ = false.then_some(0);
+    //~^ filter_some
+    let _ = (1 == 0).then_some(0);
+    //~^ filter_some
+}

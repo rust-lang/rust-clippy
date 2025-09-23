@@ -25,6 +25,7 @@ mod filter_map_bool_then;
 mod filter_map_identity;
 mod filter_map_next;
 mod filter_next;
+mod filter_some;
 mod flat_map_identity;
 mod flat_map_option;
 mod format_collect;
@@ -4639,6 +4640,29 @@ declare_clippy_lint! {
     "detects redundant calls to `Iterator::cloned`"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `Some(_).filter(_)`.
+    ///
+    /// ### Why is this bad?
+    /// Readability, this can be written more concisely as `_.then_some(_)`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let x = false;
+    /// Some(0).filter(|_| x);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let x = false;
+    /// x.then_some(0);
+    /// ```
+    #[clippy::version = "1.91.0"]
+    pub FILTER_SOME,
+    complexity,
+    "using `Some(x).filter`, which is more succinctly expressed as `.then(x)`"
+}
+
 #[expect(clippy::struct_excessive_bools)]
 pub struct Methods {
     avoid_breaking_exported_api: bool,
@@ -4820,6 +4844,7 @@ impl_lint_pass!(Methods => [
     SWAP_WITH_TEMPORARY,
     IP_CONSTANT,
     REDUNDANT_ITER_CLONED,
+    FILTER_SOME,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -5191,6 +5216,7 @@ impl Methods {
                         // use the sourcemap to get the span of the closure
                         iter_filter::check(cx, expr, arg, span);
                     }
+                    filter_some::check(cx, expr, recv, arg);
                 },
                 (sym::find, [arg]) => {
                     if let Some((sym::cloned, recv2, [], _span2, _)) = method_call(recv) {
