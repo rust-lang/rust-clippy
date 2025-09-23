@@ -15,12 +15,10 @@ pub(super) fn check(
     receiver: &hir::Expr<'_>,
     args: &[hir::Expr<'_>],
 ) {
-    if !(args.is_empty() && method_name == sym::clone) {
-        return;
-    }
-    let obj_ty = cx.typeck_results().expr_ty(receiver).peel_refs();
-
-    if let ty::Adt(adt, subst) = obj_ty.kind()
+    if method_name == sym::clone
+        && args.is_empty()
+        && let obj_ty = cx.typeck_results().expr_ty(receiver).peel_refs()
+        && let ty::Adt(adt, subst) = obj_ty.kind()
         && let Some(name) = cx.tcx.get_diagnostic_name(adt.did())
     {
         let caller_type = match name {
