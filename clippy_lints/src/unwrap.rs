@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
-use clippy_utils::ty::is_type_diagnostic_item;
+use clippy_utils::ty::get_type_diagnostic_name;
 use clippy_utils::usage::is_potentially_local_place;
 use clippy_utils::{higher, path_to_local, sym};
 use rustc_errors::Applicability;
@@ -133,12 +133,14 @@ fn collect_unwrap_info<'tcx>(
     invert: bool,
     is_entire_condition: bool,
 ) -> Vec<UnwrapInfo<'tcx>> {
-    fn is_relevant_option_call(cx: &LateContext<'_>, ty: Ty<'_>, method_name: Symbol) -> bool {
-        is_type_diagnostic_item(cx, ty, sym::Option) && matches!(method_name, sym::is_none | sym::is_some)
-    }
-
-    fn is_relevant_result_call(cx: &LateContext<'_>, ty: Ty<'_>, method_name: Symbol) -> bool {
-        is_type_diagnostic_item(cx, ty, sym::Result) && matches!(method_name, sym::is_err | sym::is_ok)
+    fn option_or_result_call(cx: &LateContext<'_>, ty: Ty<'_>, method_name: Symbol) -> Option<(UnwrappableKind, bool)> {
+        match (get_type_diagnostic_name(cx, ty)?, method_name) {
+            (sym::Option, sym::is_some) => Some((UnwrappableKind::Option, true)),
+            (sym::Option, sym::is_none) => Some((UnwrappableKind::Option, false)),
+            (sym::Result, sym::is_ok) => Some((UnwrappableKind::Result, true)),
+            (sym::Result, sym::is_err) => Some((UnwrappableKind::Result, false)),
+            _ => None,
+        }
     }
 
     match expr.kind {
@@ -157,15 +159,9 @@ fn collect_unwrap_info<'tcx>(
             if let Some(local_id) = path_to_local(receiver)
                 && let ty = cx.typeck_results().expr_ty(receiver)
                 && let name = method_name.ident.name
-                && (is_relevant_option_call(cx, ty, name) || is_relevant_result_call(cx, ty, name)) =>
+                && let Some((kind, unwrappable)) = option_or_result_call(cx, ty, name) =>
         {
-            let unwrappable = matches!(name, sym::is_some | sym::is_ok);
             let safe_to_unwrap = unwrappable != invert;
-            let kind = if is_type_diagnostic_item(cx, ty, sym::Option) {
-                UnwrappableKind::Option
-            } else {
-                UnwrappableKind::Result
-            };
 
             vec![UnwrapInfo {
                 local_id,
