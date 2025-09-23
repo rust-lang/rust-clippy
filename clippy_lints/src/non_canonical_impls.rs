@@ -4,11 +4,11 @@ use clippy_utils::{
     is_diag_trait_item, is_from_proc_macro, is_res_lang_ctor, last_path_segment, path_res, std_or_core,
 };
 use rustc_errors::Applicability;
-use rustc_hir::def_id::LocalDefId;
-use rustc_hir::{Block, Body, Expr, ExprKind, ImplItem, ImplItemKind, Item, LangItem, Node, UnOp};
+use rustc_hir::def_id::{DefId, LocalDefId};
+use rustc_hir::{Block, Body, Expr, ExprKind, ImplItem, ImplItemKind, Item, ItemKind, LangItem, UnOp};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
-use rustc_middle::ty::EarlyBinder;
-use rustc_session::declare_lint_pass;
+use rustc_middle::ty::{EarlyBinder, TyCtxt};
+use rustc_session::impl_lint_pass;
 use rustc_span::sym;
 use rustc_span::symbol::kw;
 
@@ -109,40 +109,91 @@ declare_clippy_lint! {
     suspicious,
     "non-canonical implementation of `PartialOrd` on an `Ord` type"
 }
-declare_lint_pass!(NonCanonicalImpls => [NON_CANONICAL_CLONE_IMPL, NON_CANONICAL_PARTIAL_ORD_IMPL]);
+impl_lint_pass!(NonCanonicalImpls => [NON_CANONICAL_CLONE_IMPL, NON_CANONICAL_PARTIAL_ORD_IMPL]);
+
+#[expect(
+    clippy::struct_field_names,
+    reason = "`_trait` suffix is meaningful on its own, \
+              and creating an inner `StoredTraits` struct would just add a level of indirection"
+)]
+pub(crate) struct NonCanonicalImpls {
+    partial_ord_trait: Option<DefId>,
+    ord_trait: Option<DefId>,
+    clone_trait: Option<DefId>,
+    copy_trait: Option<DefId>,
+}
+
+impl NonCanonicalImpls {
+    pub(crate) fn new(tcx: TyCtxt<'_>) -> Self {
+        let lang_items = tcx.lang_items();
+        Self {
+            partial_ord_trait: lang_items.partial_ord_trait(),
+            ord_trait: tcx.get_diagnostic_item(sym::Ord),
+            clone_trait: lang_items.clone_trait(),
+            copy_trait: lang_items.copy_trait(),
+        }
+    }
+}
 
 impl LateLintPass<'_> for NonCanonicalImpls {
-    fn check_impl_item<'tcx>(&mut self, cx: &LateContext<'tcx>, impl_item: &ImplItem<'tcx>) {
-        if let ImplItemKind::Fn(_, impl_item_id) = impl_item.kind
-            && let Node::Item(item) = cx.tcx.parent_hir_node(impl_item.hir_id())
-            && let Some(trait_impl) = cx.tcx.impl_trait_ref(item.owner_id).map(EarlyBinder::skip_binder)
-            && let trait_name = cx.tcx.get_diagnostic_name(trait_impl.def_id)
-            // NOTE: check this early to avoid expensive checks that come after this one
-            && matches!(trait_name, Some(sym::Clone | sym::PartialOrd))
+    fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
+        if let ItemKind::Impl(impl_) = item.kind
+            // Both `PartialOrd` and `Clone` have one required method, and `PartialOrd` can have 5 methods in total
+            && (1..=5).contains(&impl_.items.len())
+            && let Some(of_trait) = impl_.of_trait
+            && let Some(trait_did) = of_trait.trait_ref.trait_def_id()
+            // Check this early to hopefully bail out as soon as possible
+            && [self.clone_trait, self.partial_ord_trait].contains(&Some(trait_did))
             && !cx.tcx.is_automatically_derived(item.owner_id.to_def_id())
-            && let body = cx.tcx.hir_body(impl_item_id)
-            && let ExprKind::Block(block, ..) = body.value.kind
-            && !block.span.in_external_macro(cx.sess().source_map())
-            && !is_from_proc_macro(cx, impl_item)
         {
-            if trait_name == Some(sym::Clone)
-                && let Some(copy_def_id) = cx.tcx.get_diagnostic_item(sym::Copy)
-                && implements_trait(cx, trait_impl.self_ty(), copy_def_id, &[])
-            {
-                check_clone_on_copy(cx, impl_item, block);
-            } else if trait_name == Some(sym::PartialOrd)
-                // If `Self` and `Rhs` are not the same type, then a corresponding `Ord` impl is not possible,
-                // since it doesn't have an `Rhs`
-                && match trait_impl.args.as_slice() {
-                    [_] => true,
-                    [lhs, rhs] => lhs == rhs,
-                    _ => false,
+            let assoc_fns = impl_
+                .items
+                .iter()
+                .map(|id| cx.tcx.hir_impl_item(*id))
+                .filter_map(|assoc| {
+                    if let ImplItemKind::Fn(_, body_id) = assoc.kind
+                        && let body = cx.tcx.hir_body(body_id)
+                        && let ExprKind::Block(block, ..) = body.value.kind
+                        && !block.span.in_external_macro(cx.sess().source_map())
+                    {
+                        Some((assoc, body, block))
+                    } else {
+                        None
+                    }
+                });
+
+            #[expect(clippy::collapsible_if)]
+            // Reason: In the first branch, we don't want to pull the "implements `Copy`" check into the
+            // let-chain, because it failing doesn't change the fact that it doesn't make sense for us to go to
+            // the second branch. The same goes for the inner checks in the second branch, but
+            // there, the lint still fires, as there is no third branch. And we don't want that.
+            if Some(trait_did) == self.clone_trait {
+                if let Some(copy_trait) = self.copy_trait
+                    && let Some(trait_impl) = cx.tcx.impl_trait_ref(item.owner_id).map(EarlyBinder::skip_binder)
+                    && implements_trait(cx, trait_impl.self_ty(), copy_trait, &[])
+                {
+                    for (assoc, _, block) in assoc_fns {
+                        check_clone_on_copy(cx, assoc, block);
+                    }
                 }
-                && impl_item.ident.name == sym::partial_cmp
-                && let Some(ord_def_id) = cx.tcx.get_diagnostic_item(sym::Ord)
-                && implements_trait(cx, trait_impl.self_ty(), ord_def_id, &[])
-            {
-                check_partial_ord_on_ord(cx, impl_item, item, body, block);
+            } else if Some(trait_did) == self.partial_ord_trait {
+                if let Some(trait_impl) = cx.tcx.impl_trait_ref(item.owner_id).map(EarlyBinder::skip_binder)
+                    // If `Self` and `Rhs` are not the same type, then a corresponding `Ord` impl is not possible,
+                    // since it doesn't have an `Rhs`
+                    && match trait_impl.args.as_slice() {
+                        [_] => true,
+                        [lhs, rhs] => lhs == rhs,
+                        _ => false,
+                    }
+                    && let Some(ord_trait) = self.ord_trait
+                    && implements_trait(cx, trait_impl.self_ty(), ord_trait, &[])
+                {
+                    for (assoc, body, block) in assoc_fns {
+                        if assoc.ident.name == sym::partial_cmp {
+                            check_partial_ord_on_ord(cx, assoc, item, body, block);
+                        }
+                    }
+                }
             }
         }
     }
@@ -160,6 +211,10 @@ fn check_clone_on_copy(cx: &LateContext<'_>, impl_item: &ImplItem<'_>, block: &B
             return;
         }
 
+        if is_from_proc_macro(cx, impl_item) {
+            return;
+        }
+
         span_lint_and_sugg(
             cx,
             NON_CANONICAL_CLONE_IMPL,
@@ -172,6 +227,10 @@ fn check_clone_on_copy(cx: &LateContext<'_>, impl_item: &ImplItem<'_>, block: &B
     }
 
     if impl_item.ident.name == sym::clone_from {
+        if is_from_proc_macro(cx, impl_item) {
+            return;
+        }
+
         span_lint_and_sugg(
             cx,
             NON_CANONICAL_CLONE_IMPL,
@@ -211,6 +270,8 @@ fn check_partial_ord_on_ord<'tcx>(
         }) = stmt.kind
         && expr_is_cmp(cx, ret, impl_item, &mut needs_fully_qualified)
     {
+        return;
+    } else if is_from_proc_macro(cx, impl_item) {
         return;
     }
 
