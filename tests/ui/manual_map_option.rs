@@ -6,6 +6,7 @@
     clippy::match_ref_pats,
     clippy::redundant_pattern_matching,
     clippy::unnecessary_map_on_constructor,
+    clippy::borrowed_option,
     for_loops_over_fallibles,
     dead_code
 )]

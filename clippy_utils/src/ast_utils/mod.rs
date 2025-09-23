@@ -400,7 +400,7 @@ pub fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
                 && eq_fn_sig(lf, rf)
                 && eq_id(*li, *ri)
                 && eq_generics(lg, rg)
-                && eq_opt_fn_contract(lc, rc)
+                && eq_opt_fn_contract(lc.as_deref(), rc.as_deref())
                 && both(lb.as_ref(), rb.as_ref(), |l, r| eq_block(l, r))
         },
         (Mod(ls, li, lmk), Mod(rs, ri, rmk)) => {
@@ -554,7 +554,7 @@ pub fn eq_foreign_item_kind(l: &ForeignItemKind, r: &ForeignItemKind) -> bool {
                 && eq_fn_sig(lf, rf)
                 && eq_id(*li, *ri)
                 && eq_generics(lg, rg)
-                && eq_opt_fn_contract(lc, rc)
+                && eq_opt_fn_contract(lc.as_deref(), rc.as_deref())
                 && both(lb.as_ref(), rb.as_ref(), |l, r| eq_block(l, r))
         },
         (
@@ -637,7 +637,7 @@ pub fn eq_assoc_item_kind(l: &AssocItemKind, r: &AssocItemKind) -> bool {
                 && eq_fn_sig(lf, rf)
                 && eq_id(*li, *ri)
                 && eq_generics(lg, rg)
-                && eq_opt_fn_contract(lc, rc)
+                && eq_opt_fn_contract(lc.as_deref(), rc.as_deref())
                 && both(lb.as_ref(), rb.as_ref(), |l, r| eq_block(l, r))
         },
         (
@@ -723,8 +723,7 @@ pub fn eq_fn_header(l: &FnHeader, r: &FnHeader) -> bool {
         && eq_ext(&l.ext, &r.ext)
 }
 
-#[expect(clippy::ref_option, reason = "This is the type how it is stored in the AST")]
-pub fn eq_opt_fn_contract(l: &Option<Box<FnContract>>, r: &Option<Box<FnContract>>) -> bool {
+pub fn eq_opt_fn_contract(l: Option<&FnContract>, r: Option<&FnContract>) -> bool {
     match (l, r) {
         (Some(l), Some(r)) => {
             eq_expr_opt(l.requires.as_deref(), r.requires.as_deref())

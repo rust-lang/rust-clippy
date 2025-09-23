@@ -615,7 +615,7 @@ fn relocalize_format_args_indexes(
         // If there are format options, we need to handle them as well
         if *format_options != FormatOptions::default() {
             // lambda to process width and precision format counts and add them to the suggestion
-            let mut process_format_count = |count: &Option<FormatCount>, formatter: &dyn Fn(usize) -> String| {
+            let mut process_format_count = |count: Option<&FormatCount>, formatter: &dyn Fn(usize) -> String| {
                 if let Some(FormatCount::Argument(FormatArgPosition {
                     index: Ok(format_arg_index),
                     kind: FormatArgPositionKind::Number,
@@ -626,8 +626,8 @@ fn relocalize_format_args_indexes(
                 }
             };
 
-            process_format_count(&format_options.width, &|index: usize| format!("{index}$"));
-            process_format_count(&format_options.precision, &|index: usize| format!(".{index}$"));
+            process_format_count(format_options.width.as_ref(), &|index: usize| format!("{index}$"));
+            process_format_count(format_options.precision.as_ref(), &|index: usize| format!(".{index}$"));
         }
     }
 }

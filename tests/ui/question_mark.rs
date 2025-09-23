@@ -1,5 +1,5 @@
 #![feature(try_blocks)]
-#![allow(clippy::unnecessary_wraps)]
+#![allow(clippy::unnecessary_wraps, clippy::borrowed_option)]
 
 use std::sync::MutexGuard;
 

@@ -1,0 +1,59 @@
+#![deny(clippy::borrowed_option)]
+#![allow(dead_code, unused_variables)]
+#![allow(
+    clippy::uninlined_format_args,
+    clippy::disallowed_names,
+    clippy::needless_pass_by_ref_mut,
+    clippy::needless_lifetimes
+)]
+
+use std::fmt::Display;
+
+pub fn test1(foo: &mut Option<bool>) {
+    // Although this function could be changed to "Option<&mut bool>",
+    // avoiding the borrowed option, mutable references to boxes are not
+    // flagged by this lint.
+    //
+    // This omission is intentional: By passing a "&mut Option<T>",
+    // the memory location of the pointed-to object could be
+    // modified. By passing a "Option<&mut T>", the contents
+    // could change, but not the location.
+    println!("{:?}", foo)
+}
+
+pub fn test2() {
+    let foo: Option<&bool>;
+    //~^ borrowed_option
+}
+
+struct Test3<'a> {
+    foo: Option<&'a bool>,
+    //~^ borrowed_option
+}
+
+trait Test4 {
+    fn test4(b: Option<&bool>);
+    //~^ borrowed_option
+}
+
+pub fn test5(_display: Option<&impl Display>) {}
+//~^ borrowed_option
+pub fn test6(_display: Option<&(impl Display + Send)>) {}
+//~^ borrowed_option
+pub fn test7<'a>(_display: Option<&'a (impl Display + 'a)>) {}
+//~^ borrowed_option
+
+#[allow(clippy::borrowed_box, clippy::borrowed_option)]
+trait Trait {
+    fn f(o: &Option<bool>);
+}
+
+// Trait impls are not linted
+impl Trait for () {
+    fn f(_: &Option<bool>) {}
+}
+
+fn main() {
+    test1(&mut Some(false));
+    test2();
+}
