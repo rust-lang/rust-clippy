@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::snippet_with_context;
+use clippy_utils::sugg::Sugg;
+use clippy_utils::ty::peel_and_count_ty_refs;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
@@ -17,8 +18,9 @@ pub(super) fn check(
 ) {
     if method_name == sym::clone
         && args.is_empty()
-        && let obj_ty = cx.typeck_results().expr_ty(receiver).peel_refs()
-        && let ty::Adt(adt, subst) = obj_ty.kind()
+        && let receiver_ty = cx.typeck_results().expr_ty(receiver)
+        && let (receiver_ty_peeled, n_refs, _) = peel_and_count_ty_refs(receiver_ty)
+        && let ty::Adt(adt, subst) = receiver_ty_peeled.kind()
         && let Some(name) = cx.tcx.get_diagnostic_name(adt.did())
     {
         let caller_type = match name {
@@ -36,20 +38,23 @@ pub(super) fn check(
             |diag| {
                 // Sometimes unnecessary ::<_> after Rc/Arc/Weak
                 let mut app = Applicability::Unspecified;
-                let snippet = snippet_with_context(cx, receiver.span, expr.span.ctxt(), "..", &mut app).0;
+                let mut sugg = Sugg::hir_with_context(cx, receiver, expr.span.ctxt(), "..", &mut app);
+                if n_refs == 0 {
+                    sugg = sugg.addr();
+                }
                 let generic = subst.type_at(0);
                 if generic.is_suggestable(cx.tcx, true) {
                     diag.span_suggestion(
                         expr.span,
                         "try",
-                        format!("{caller_type}::<{generic}>::clone(&{snippet})"),
+                        format!("{caller_type}::<{generic}>::clone({sugg})"),
                         app,
                     );
                 } else {
                     diag.span_suggestion(
                         expr.span,
                         "try",
-                        format!("{caller_type}::</* generic */>::clone(&{snippet})"),
+                        format!("{caller_type}::</* generic */>::clone({sugg})"),
                         Applicability::HasPlaceholders,
                     );
                 }
