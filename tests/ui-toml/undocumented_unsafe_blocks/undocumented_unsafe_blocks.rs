@@ -757,6 +757,14 @@ mod issue_todo {
     #[doc(hidden)]
     mod y {}
     //~[default]^ unnecessary_safety_comment
+
+    fn foo() {
+        #[doc(hidden)]
+        // SAFETY: unnecessary_safety_comment should not trigger here
+        #[allow(unsafe_code)]
+        unsafe {}
+        //~[disabled]^ undocumented_unsafe_blocks
+    }
 }
 
 fn main() {}

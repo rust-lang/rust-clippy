@@ -482,5 +482,13 @@ help: consider removing the safety comment
 LL |     // SAFETY: ...
    |     ^^^^^^^^^^^^^^
 
-error: aborting due to 55 previous errors
+error: unsafe block missing a safety comment
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:765:9
+   |
+LL |         unsafe {}
+   |         ^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+
+error: aborting due to 56 previous errors
 
