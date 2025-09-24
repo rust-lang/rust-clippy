@@ -246,5 +246,22 @@ LL +         e.insert(42);
 LL +     }
    |
 
-error: aborting due to 11 previous errors
+error: usage of `contains_key` followed by `insert` on a `HashMap`
+  --> tests/ui/entry.rs:258:5
+   |
+LL | /     if !m.contains_key(&k) {
+LL | |
+LL | |         assert!(m.insert(k, v).is_none());
+LL | |     }
+   | |_____^
+   |
+help: try
+   |
+LL ~     if let std::collections::hash_map::Entry::Vacant(e) = m.entry(k) {
+LL +
+LL +         assert!({ e.insert(v); None::<V> }.is_none());
+LL +     }
+   |
+
+error: aborting due to 12 previous errors
 

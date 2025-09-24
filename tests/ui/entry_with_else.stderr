@@ -134,7 +134,7 @@ LL +             if true { Some(e.insert(v)) } else { Some(e.insert(v2)) }
 LL +         }
 LL +         std::collections::hash_map::Entry::Vacant(e) => {
 LL +             e.insert(v);
-LL +             None
+LL +             None::<V>
 LL +         }
 LL ~     };
    |
@@ -162,5 +162,28 @@ LL +         None
 LL ~     };
    |
 
-error: aborting due to 7 previous errors
+error: usage of `contains_key` followed by `insert` on a `HashMap`
+  --> tests/ui/entry_with_else.rs:65:13
+   |
+LL |       let _ = if !m.contains_key(&k) {
+   |  _____________^
+LL | |
+LL | |         m.insert(k, v)
+LL | |     } else {
+LL | |         None
+LL | |     };
+   | |_____^
+   |
+help: try
+   |
+LL ~     let _ = if let std::collections::hash_map::Entry::Vacant(e) = m.entry(k) {
+LL +
+LL +         e.insert(v);
+LL +         None::<V>
+LL +     } else {
+LL +         None
+LL ~     };
+   |
+
+error: aborting due to 8 previous errors
 

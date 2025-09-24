@@ -60,6 +60,14 @@ fn insert_if_absent0<K: Eq + Hash + Copy, V: Copy>(m: &mut HashMap<K, V>, k: K, 
     } else {
         None
     };
+
+    // used to result in type ambiguity before #15759
+    let _ = if !m.contains_key(&k) {
+        //~^ map_entry
+        m.insert(k, v)
+    } else {
+        None
+    };
 }
 
 fn main() {}

@@ -12,6 +12,7 @@ use rustc_hir::hir_id::HirIdSet;
 use rustc_hir::intravisit::{Visitor, walk_body, walk_expr};
 use rustc_hir::{Block, Expr, ExprKind, HirId, Pat, Stmt, StmtKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::ty::IsSuggestable;
 use rustc_session::declare_lint_pass;
 use rustc_span::{DUMMY_SP, Span, SyntaxContext, sym};
 use std::fmt;
@@ -24,17 +25,6 @@ declare_clippy_lint! {
     ///
     /// ### Why is this bad?
     /// Using `entry` is more efficient.
-    ///
-    /// ### Known problems
-    /// The suggestion may have type inference errors in some cases. e.g.
-    /// ```no_run
-    /// let mut map = std::collections::HashMap::new();
-    /// let _ = if !map.contains_key(&0) {
-    ///     map.insert(0, 0)
-    /// } else {
-    ///     None
-    /// };
-    /// ```
     ///
     /// ### Example
     /// ```no_run
@@ -653,15 +643,24 @@ impl<'tcx> InsertSearchResults<'tcx> {
         (
             self.snippet(cx, span, app, |res, insertion, ctxt, app| {
                 // Insertion into a map would return `None`, but the entry returns a mutable reference.
-                let value_str = snippet_with_context(cx, insertion.value.span, ctxt, "..", app).0;
+                let value = insertion.value;
+                let value_str = snippet_with_context(cx, value.span, ctxt, "..", app).0;
+
+                let value_ty = cx.typeck_results().expr_ty(value);
+                debug_assert!(
+                    value_ty.is_suggestable(cx.tcx, true),
+                    "an unsuggestable type used as the element type:{value_ty:#?}\nexpr={value:#?}"
+                );
+                let none_str = format_args!("None::<{value_ty}>");
+
                 let _: fmt::Result = if is_expr_final_block_expr(cx.tcx, insertion.call) {
                     write!(
                         res,
-                        "e.insert({value_str});\n{indent}None",
+                        "e.insert({value_str});\n{indent}{none_str}",
                         indent = snippet_indent(cx, insertion.call.span).as_deref().unwrap_or(""),
                     )
                 } else {
-                    write!(res, "{{ e.insert({value_str}); None }}")
+                    write!(res, "{{ e.insert({value_str}); {none_str} }}")
                 };
             }),
             "Vacant(e)",

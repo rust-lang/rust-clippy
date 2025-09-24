@@ -62,7 +62,7 @@ fn insert_if_absent0<K: Eq + Hash + Copy, V: Copy>(m: &mut HashMap<K, V>, k: K, 
         }
         std::collections::hash_map::Entry::Vacant(e) => {
             e.insert(v);
-            None
+            None::<V>
         }
     };
 
@@ -70,6 +70,15 @@ fn insert_if_absent0<K: Eq + Hash + Copy, V: Copy>(m: &mut HashMap<K, V>, k: K, 
         //~^ map_entry
         foo();
         Some(e.insert(v))
+    } else {
+        None
+    };
+
+    // used to result in type ambiguity before #15759
+    let _ = if let std::collections::hash_map::Entry::Vacant(e) = m.entry(k) {
+        //~^ map_entry
+        e.insert(v);
+        None::<V>
     } else {
         None
     };
