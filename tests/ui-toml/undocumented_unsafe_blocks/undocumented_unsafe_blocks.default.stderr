@@ -414,5 +414,17 @@ help: consider removing the safety comment
 LL |     // SAFETY: ...
    |     ^^^^^^^^^^^^^^
 
-error: aborting due to 45 previous errors
+error: statement has unnecessary safety comment
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:773:9
+   |
+LL |         let x = 34;
+   |         ^^^^^^^^^^^
+   |
+help: consider removing the safety comment
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:771:9
+   |
+LL |         // SAFETY: ...
+   |         ^^^^^^^^^^^^^^
+
+error: aborting due to 46 previous errors
 

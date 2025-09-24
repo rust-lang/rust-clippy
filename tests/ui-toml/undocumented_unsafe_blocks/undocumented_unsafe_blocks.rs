@@ -751,7 +751,7 @@ mod issue_14555 {
     //~^ unnecessary_safety_comment
 }
 
-mod issue_todo {
+mod issue_15754 {
     #[must_use]
     // SAFETY: ...
     #[doc(hidden)]
@@ -764,6 +764,14 @@ mod issue_todo {
         #[allow(unsafe_code)]
         unsafe {}
         //~[disabled]^ undocumented_unsafe_blocks
+    }
+
+    fn bar() {
+        #[doc(hidden)]
+        // SAFETY: ...
+        #[allow(clippy::unnecessary_cast)]
+        let x = 34;
+        //~[default]^ unnecessary_safety_comment
     }
 }
 
