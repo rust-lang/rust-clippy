@@ -48,13 +48,6 @@ fn insert_if_absent0<K: Eq + Hash + Copy, V: Copy>(m: &mut HashMap<K, V>, k: K, 
 
     if m.contains_key(&k) {
         //~^ map_entry
-        if true { m.insert(k, v) } else { m.insert(k, v2) }
-    } else {
-        m.insert(k, v)
-    };
-
-    if m.contains_key(&k) {
-        //~^ map_entry
         foo();
         m.insert(k, v)
     } else {

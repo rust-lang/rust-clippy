@@ -55,17 +55,6 @@ fn insert_if_absent0<K: Eq + Hash + Copy, V: Copy>(m: &mut HashMap<K, V>, k: K, 
         }
     }
 
-    match m.entry(k) {
-        std::collections::hash_map::Entry::Occupied(mut e) => {
-            //~^ map_entry
-            if true { Some(e.insert(v)) } else { Some(e.insert(v2)) }
-        }
-        std::collections::hash_map::Entry::Vacant(e) => {
-            e.insert(v);
-            None
-        }
-    };
-
     if let std::collections::hash_map::Entry::Occupied(mut e) = m.entry(k) {
         //~^ map_entry
         foo();
