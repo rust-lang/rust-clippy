@@ -22,55 +22,52 @@ pub(super) fn check<'tcx>(
     msrv: Msrv,
 ) -> bool {
     let recv_ty = cx.typeck_results().expr_ty(recv).peel_refs();
-    let is_option = recv_ty.is_diag_item(cx, sym::Option);
-    let is_result = recv_ty.is_diag_item(cx, sym::Result);
+    let is_option = match recv_ty.opt_diag_name(cx) {
+        Some(sym::Option) => true,
+        Some(sym::Result) if msrv.meets(cx, msrvs::RESULT_MAP_OR_ELSE) => false,
+        _ => return false,
+    };
 
-    if is_result && !msrv.meets(cx, msrvs::RESULT_MAP_OR_ELSE) {
+    // Don't make a suggestion that may fail to compile due to mutably borrowing
+    // the same variable twice.
+    let map_mutated_vars = mutated_variables(recv, cx);
+    let unwrap_mutated_vars = mutated_variables(unwrap_arg, cx);
+    if let (Some(map_mutated_vars), Some(unwrap_mutated_vars)) = (map_mutated_vars, unwrap_mutated_vars) {
+        if map_mutated_vars.intersection(&unwrap_mutated_vars).next().is_some() {
+            return false;
+        }
+    } else {
         return false;
     }
 
-    if is_option || is_result {
-        // Don't make a suggestion that may fail to compile due to mutably borrowing
-        // the same variable twice.
-        let map_mutated_vars = mutated_variables(recv, cx);
-        let unwrap_mutated_vars = mutated_variables(unwrap_arg, cx);
-        if let (Some(map_mutated_vars), Some(unwrap_mutated_vars)) = (map_mutated_vars, unwrap_mutated_vars) {
-            if map_mutated_vars.intersection(&unwrap_mutated_vars).next().is_some() {
-                return false;
-            }
-        } else {
-            return false;
-        }
-
-        // lint message
-        let msg = if is_option {
-            "called `map(<f>).unwrap_or_else(<g>)` on an `Option` value"
-        } else {
-            "called `map(<f>).unwrap_or_else(<g>)` on a `Result` value"
-        };
-        // get snippets for args to map() and unwrap_or_else()
-        let map_snippet = snippet(cx, map_arg.span, "..");
-        let unwrap_snippet = snippet(cx, unwrap_arg.span, "..");
-        // lint, with note if neither arg is > 1 line and both map() and
-        // unwrap_or_else() have the same span
-        let multiline = map_snippet.lines().count() > 1 || unwrap_snippet.lines().count() > 1;
-        let same_span = map_arg.span.eq_ctxt(unwrap_arg.span);
-        if same_span && !multiline {
-            let var_snippet = snippet(cx, recv.span, "..");
-            span_lint_and_sugg(
-                cx,
-                MAP_UNWRAP_OR,
-                expr.span,
-                msg,
-                "try",
-                format!("{var_snippet}.map_or_else({unwrap_snippet}, {map_snippet})"),
-                Applicability::MachineApplicable,
-            );
-            return true;
-        } else if same_span && multiline {
-            span_lint(cx, MAP_UNWRAP_OR, expr.span, msg);
-            return true;
-        }
+    // lint message
+    let msg = if is_option {
+        "called `map(<f>).unwrap_or_else(<g>)` on an `Option` value"
+    } else {
+        "called `map(<f>).unwrap_or_else(<g>)` on a `Result` value"
+    };
+    // get snippets for args to map() and unwrap_or_else()
+    let map_snippet = snippet(cx, map_arg.span, "..");
+    let unwrap_snippet = snippet(cx, unwrap_arg.span, "..");
+    // lint, with note if neither arg is > 1 line and both map() and
+    // unwrap_or_else() have the same span
+    let multiline = map_snippet.lines().count() > 1 || unwrap_snippet.lines().count() > 1;
+    let same_span = map_arg.span.eq_ctxt(unwrap_arg.span);
+    if same_span && !multiline {
+        let var_snippet = snippet(cx, recv.span, "..");
+        span_lint_and_sugg(
+            cx,
+            MAP_UNWRAP_OR,
+            expr.span,
+            msg,
+            "try",
+            format!("{var_snippet}.map_or_else({unwrap_snippet}, {map_snippet})"),
+            Applicability::MachineApplicable,
+        );
+        return true;
+    } else if same_span && multiline {
+        span_lint(cx, MAP_UNWRAP_OR, expr.span, msg);
+        return true;
     }
 
     false
