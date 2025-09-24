@@ -88,8 +88,8 @@ impl<'tcx> LateLintPass<'tcx> for HashMapPass {
 
         let lint_msg = format!("usage of `contains_key` followed by `insert` on a `{}`", map_ty.name());
         let mut app = Applicability::MachineApplicable;
-        let map_str = snippet_with_context(cx, contains_expr.map.span, contains_expr.call_ctxt, "..", &mut app).0;
-        let key_str = snippet_with_context(cx, contains_expr.key.span, contains_expr.call_ctxt, "..", &mut app).0;
+        let map_str = snippet_with_context(cx, contains_expr.map.span, contains_expr.call_ctxt, "(_)", &mut app).0;
+        let key_str = snippet_with_context(cx, contains_expr.key.span, contains_expr.call_ctxt, "_", &mut app).0;
 
         let sugg = if let Some(else_expr) = else_expr {
             let Some(else_search) = find_insert_calls(cx, &contains_expr, else_expr) else {
@@ -143,8 +143,11 @@ impl<'tcx> LateLintPass<'tcx> for HashMapPass {
                 let indent_str = snippet_indent(cx, expr.span);
                 let indent_str = indent_str.as_deref().unwrap_or("");
                 Some(format!(
-                    "match {map_str}.entry({key_str}) {{\n{indent_str}    {entry}::{then_entry} => {}\n\
-                        {indent_str}    {entry}::{else_entry} => {}\n{indent_str}}}",
+                    "\
+            match {map_str}.entry({key_str}) {{
+{indent_str}    {entry}::{then_entry} => {}
+{indent_str}    {entry}::{else_entry} => {}
+{indent_str}}}",
                     reindent_multiline(&then_str, true, Some(4 + indent_str.len())),
                     reindent_multiline(&else_str, true, Some(4 + indent_str.len())),
                     entry = map_ty.entry_path(),
@@ -172,7 +175,7 @@ impl<'tcx> LateLintPass<'tcx> for HashMapPass {
                 && let span_in_between = span_in_between.split_at(1).1
                 && !span_contains_non_whitespace(cx, span_in_between, true)
             {
-                let value_str = snippet_with_context(cx, insertion.value.span, then_expr.span.ctxt(), "..", &mut app).0;
+                let value_str = snippet_with_context(cx, insertion.value.span, then_expr.span.ctxt(), "_", &mut app).0;
                 if contains_expr.negated {
                     if insertion.value.can_have_side_effects() {
                         Some(format!("{map_str}.entry({key_str}).or_insert_with(|| {value_str});"))
@@ -317,15 +320,12 @@ struct InsertExpr<'tcx> {
 ///
 /// If the given expression is not an `insert` call into a `BTreeMap` or a `HashMap`, return `None`.
 fn try_parse_insert<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<InsertExpr<'tcx>> {
-    if let ExprKind::MethodCall(_, map, [key, value], _) = expr.kind {
-        let id = cx.typeck_results().type_dependent_def_id(expr.hir_id)?;
-        if let Some(insert) = cx.tcx.get_diagnostic_name(id)
-            && matches!(insert, sym::btreemap_insert | sym::hashmap_insert)
-        {
-            Some(InsertExpr { map, key, value })
-        } else {
-            None
-        }
+    if let ExprKind::MethodCall(_, map, [key, value], _) = expr.kind
+        && let Some(id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)
+        && let Some(insert) = cx.tcx.get_diagnostic_name(id)
+        && matches!(insert, sym::btreemap_insert | sym::hashmap_insert)
+    {
+        Some(InsertExpr { map, key, value })
     } else {
         None
     }
@@ -623,6 +623,25 @@ impl<'tcx> InsertSearchResults<'tcx> {
         self.is_single_insert.then(|| self.edits[0].as_insertion().unwrap())
     }
 
+    /// Create a snippet with all the `insert`s on the map replaced with `insert`s on the entry.
+    ///
+    /// `write_wrapped` will be called whenever the `insert` is an expression that is used, or has
+    /// its type unified with another branch -- for example, in cases like:
+    /// ```ignore
+    /// let _ = if !m.contains(&k) {
+    ///     m.insert(k, v)
+    /// } else {
+    ///     None
+    /// };
+    ///
+    /// let _ = if m.contains(&k) {
+    ///     if true { m.insert(k, v) } else { m.insert(k, v2) }
+    /// } else {
+    ///     m.insert(k, v3)
+    /// }
+    /// ```
+    /// The idea is that it will wrap the `insert` call so that it still type-checks with the code
+    /// surrounding it.
     fn snippet(
         &self,
         cx: &LateContext<'_>,
@@ -633,6 +652,7 @@ impl<'tcx> InsertSearchResults<'tcx> {
         let ctxt = span.ctxt();
         let mut res = String::new();
         for insertion in self.edits.iter().filter_map(|e| e.as_insertion()) {
+            // Take everything until the call verbatim
             res.push_str(&snippet_with_applicability(
                 cx,
                 span.until(insertion.call.span),
@@ -642,11 +662,8 @@ impl<'tcx> InsertSearchResults<'tcx> {
             if is_expr_used_or_unified(cx.tcx, insertion.call) {
                 write_wrapped(&mut res, insertion, ctxt, app);
             } else {
-                let _: fmt::Result = write!(
-                    res,
-                    "e.insert({})",
-                    snippet_with_context(cx, insertion.value.span, ctxt, "..", app).0
-                );
+                let value_str = snippet_with_context(cx, insertion.value.span, ctxt, "_", app).0;
+                let _: fmt::Result = write!(res, "e.insert({value_str})");
             }
             span = span.trim_start(insertion.call.span).unwrap_or(DUMMY_SP);
         }
@@ -658,11 +675,8 @@ impl<'tcx> InsertSearchResults<'tcx> {
         (
             self.snippet(cx, span, app, |res, insertion, ctxt, app| {
                 // Insertion into a map would return `Some(&mut value)`, but the entry returns `&mut value`
-                let _: fmt::Result = write!(
-                    res,
-                    "Some(e.insert({}))",
-                    snippet_with_context(cx, insertion.value.span, ctxt, "..", app).0
-                );
+                let value_str = snippet_with_context(cx, insertion.value.span, ctxt, "_", app).0;
+                let _: fmt::Result = write!(res, "Some(e.insert({value_str}))");
             }),
             "Occupied(mut e)",
         )
@@ -672,19 +686,15 @@ impl<'tcx> InsertSearchResults<'tcx> {
         (
             self.snippet(cx, span, app, |res, insertion, ctxt, app| {
                 // Insertion into a map would return `None`, but the entry returns a mutable reference.
+                let value_str = snippet_with_context(cx, insertion.value.span, ctxt, "_", app).0;
                 let _: fmt::Result = if is_expr_final_block_expr(cx.tcx, insertion.call) {
                     write!(
                         res,
-                        "e.insert({});\n{}None",
-                        snippet_with_context(cx, insertion.value.span, ctxt, "..", app).0,
-                        snippet_indent(cx, insertion.call.span).as_deref().unwrap_or(""),
+                        "e.insert({value_str});\n{indent}None",
+                        indent = snippet_indent(cx, insertion.call.span).as_deref().unwrap_or(""),
                     )
                 } else {
-                    write!(
-                        res,
-                        "{{ e.insert({}); None }}",
-                        snippet_with_context(cx, insertion.value.span, ctxt, "..", app).0,
-                    )
+                    write!(res, "{{ e.insert({value_str}); None }}")
                 };
             }),
             "Vacant(e)",
@@ -697,14 +707,15 @@ impl<'tcx> InsertSearchResults<'tcx> {
         for edit in &self.edits {
             match *edit {
                 Edit::Insertion(insertion) => {
-                    // Cut out the value from `map.insert(key, value)`
+                    // Take everything until the call verbatim
                     res.push_str(&snippet_with_applicability(
                         cx,
                         span.until(insertion.call.span),
                         "..",
                         app,
                     ));
-                    res.push_str(&snippet_with_context(cx, insertion.value.span, ctxt, "..", app).0);
+                    let value_str = snippet_with_context(cx, insertion.value.span, ctxt, "_", app).0;
+                    res.push_str(&value_str);
                     span = span.trim_start(insertion.call.span).unwrap_or(DUMMY_SP);
                 },
                 Edit::RemoveSemi(semi_span) => {
