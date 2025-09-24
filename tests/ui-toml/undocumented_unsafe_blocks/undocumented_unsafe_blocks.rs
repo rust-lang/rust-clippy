@@ -748,7 +748,15 @@ mod issue_14555 {
     #[doc(hidden)]
     // SAFETY: ...
     mod z {}
-    //~[disabled]^ unnecessary_safety_comment
+    //~^ unnecessary_safety_comment
+}
+
+mod issue_todo {
+    #[must_use]
+    // SAFETY: ...
+    #[doc(hidden)]
+    mod y {}
+    //~[default]^ unnecessary_safety_comment
 }
 
 fn main() {}

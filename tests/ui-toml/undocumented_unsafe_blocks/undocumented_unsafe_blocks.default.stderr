@@ -390,5 +390,29 @@ help: consider removing the safety comment
 LL |     // SAFETY: ...
    |     ^^^^^^^^^^^^^^
 
-error: aborting due to 43 previous errors
+error: module has unnecessary safety comment
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:750:5
+   |
+LL |     mod z {}
+   |     ^^^^^^^^
+   |
+help: consider removing the safety comment
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:749:5
+   |
+LL |     // SAFETY: ...
+   |     ^^^^^^^^^^^^^^
+
+error: module has unnecessary safety comment
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:758:5
+   |
+LL |     mod y {}
+   |     ^^^^^^^^
+   |
+help: consider removing the safety comment
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:756:5
+   |
+LL |     // SAFETY: ...
+   |     ^^^^^^^^^^^^^^
+
+error: aborting due to 45 previous errors
 
