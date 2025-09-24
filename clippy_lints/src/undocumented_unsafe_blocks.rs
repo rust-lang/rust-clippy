@@ -726,8 +726,9 @@ fn span_has_safety_comment(cx: &LateContext<'_>, span: Span, accept_comment_abov
 }
 
 /// Checks if the given text has a safety comment for the immediately proceeding line.
-/// 
-/// If `accept_comment_above_attributes` is true, it will ignore attributes inbetween blocks of comments
+///
+/// If `accept_comment_above_attributes` is true, it will ignore attributes inbetween blocks of
+/// comments
 fn text_has_safety_comment(
     src: &str,
     line_starts: &[RelativeBytePos],
