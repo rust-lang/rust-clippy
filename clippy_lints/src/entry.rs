@@ -696,6 +696,8 @@ impl<'tcx> InsertSearchResults<'tcx> {
                 } else {
                     write!(res, "{{ e.insert({value_str}); None }}")
                 };
+                // This might leave `None`'s type ambiguous, so reduce applicability
+                *app = Applicability::MaybeIncorrect;
             }),
             "Vacant(e)",
         )

@@ -1,3 +1,4 @@
+//@no-rustfix
 #![allow(clippy::needless_pass_by_value, clippy::collapsible_if)]
 #![warn(clippy::map_entry)]
 
@@ -87,6 +88,13 @@ mod issue13306 {
                 false
             }
         }
+    }
+}
+
+fn issue15307<K: Eq + Hash, V>(mut m: HashMap<K, V>, k: K, v: V) {
+    if !m.contains_key(&k) {
+        //~^ map_entry
+        assert!(m.insert(k, v).is_none());
     }
 }
 
