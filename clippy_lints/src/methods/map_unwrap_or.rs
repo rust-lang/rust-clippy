@@ -36,7 +36,8 @@ pub(super) fn check<'tcx>(
 
     // lint if the caller of `map()` is an `Option`
     if is_option || is_result {
-        if !is_copy(cx, cx.typeck_results().expr_ty(unwrap_arg)) {
+        let unwrap_arg_ty = cx.typeck_results().expr_ty(unwrap_arg);
+        if !is_copy(cx, unwrap_arg_ty) {
             // Replacing `.map(<f>).unwrap_or(<a>)` with `.map_or(<a>, <f>)` can sometimes lead to
             // borrowck errors, see #10579 for one such instance.
             // In particular, if `a` causes a move and `f` references that moved binding, then we cannot lint:
@@ -124,6 +125,13 @@ pub(super) fn check<'tcx>(
                     } else if suggest_is_some_and {
                         if is_result { "is_ok_and" } else { "is_some_and" }
                     } else {
+                        let unwrap_arg_ty = unwrap_arg_ty.peel_refs();
+                        if unwrap_arg_ty.is_array()
+                            && let unwrap_arg_ty_adj = cx.typeck_results().expr_ty_adjusted(unwrap_arg).peel_refs()
+                            && unwrap_arg_ty_adj.is_slice()
+                        {
+                            return;
+                        }
                         "map_or"
                     }),
                 ),
