@@ -701,7 +701,8 @@ mod issue_11709_regression {
     const UNIX_EPOCH_JULIAN_DAY: i32 =
         unsafe { Date::__from_ordinal_date_unchecked(1970, 1) }.into_julian_day_just_make_this_line_longer();
     //~[disabled]^ undocumented_unsafe_blocks
-    //~[default]^^^ unnecessary_safety_comment
+    // This shouldn't be linted, Issue #15755
+    //~[default]^^^^ unnecessary_safety_comment
 }
 
 fn issue_13039() {
