@@ -457,7 +457,6 @@ fn block_has_safety_comment(cx: &LateContext<'_>, span: Span, accept_comment_abo
     ) || span_has_safety_comment(cx, span, accept_comment_above_attributes)
 }
 
-#[derive(Debug)]
 enum HasSafetyComment {
     Yes(BytePos),
     No,

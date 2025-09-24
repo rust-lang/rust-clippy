@@ -355,73 +355,73 @@ LL |     // SAFETY: fail ONLY if `accept-comment-above-attribute = false`
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: statement has unnecessary safety comment
-  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:720:5
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:721:5
    |
 LL |     _ = bar();
    |     ^^^^^^^^^^
    |
 help: consider removing the safety comment
-  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:719:5
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:720:5
    |
 LL |     // SAFETY: unnecessary_safety_comment triggers here
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: module has unnecessary safety comment
-  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:740:5
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:741:5
    |
 LL |     mod x {}
    |     ^^^^^^^^
    |
 help: consider removing the safety comment
-  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:739:5
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:740:5
    |
 LL |     // SAFETY: ...
    |     ^^^^^^^^^^^^^^
 
 error: module has unnecessary safety comment
-  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:745:5
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:746:5
    |
 LL |     mod y {}
    |     ^^^^^^^^
    |
 help: consider removing the safety comment
-  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:743:5
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:744:5
    |
 LL |     // SAFETY: ...
    |     ^^^^^^^^^^^^^^
 
 error: module has unnecessary safety comment
-  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:750:5
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:751:5
    |
 LL |     mod z {}
    |     ^^^^^^^^
    |
 help: consider removing the safety comment
-  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:749:5
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:750:5
    |
 LL |     // SAFETY: ...
    |     ^^^^^^^^^^^^^^
 
 error: module has unnecessary safety comment
-  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:758:5
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:759:5
    |
 LL |     mod y {}
    |     ^^^^^^^^
    |
 help: consider removing the safety comment
-  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:756:5
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:757:5
    |
 LL |     // SAFETY: ...
    |     ^^^^^^^^^^^^^^
 
 error: statement has unnecessary safety comment
-  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:773:9
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:774:9
    |
 LL |         let x = 34;
    |         ^^^^^^^^^^^
    |
 help: consider removing the safety comment
-  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:771:9
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:772:9
    |
 LL |         // SAFETY: ...
    |         ^^^^^^^^^^^^^^
