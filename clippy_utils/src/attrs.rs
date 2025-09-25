@@ -14,10 +14,8 @@ use std::str::FromStr;
 
 /// Deprecation status of attributes known by Clippy.
 pub enum DeprecationStatus {
-    /// Attribute is deprecated
-    Deprecated,
-    /// Attribute is deprecated and was replaced by the named attribute
-    Replaced(&'static str),
+    /// Attribute is deprecated and was possibly replaced by the named attribute
+    Deprecated(Option<&'static str>),
     None,
 }
 
@@ -26,7 +24,7 @@ pub const BUILTIN_ATTRIBUTES: &[(Symbol, DeprecationStatus)] = &[
     (sym::author,                DeprecationStatus::None),
     (sym::version,               DeprecationStatus::None),
     (sym::cognitive_complexity,  DeprecationStatus::None),
-    (sym::cyclomatic_complexity, DeprecationStatus::Replaced("cognitive_complexity")),
+    (sym::cyclomatic_complexity, DeprecationStatus::Deprecated(Some("cognitive_complexity"))),
     (sym::dump,                  DeprecationStatus::None),
     (sym::msrv,                  DeprecationStatus::None),
     // The following attributes are for the 3rd party crate authors.
@@ -81,28 +79,23 @@ pub fn get_attr<'a, A: AttributeExt + 'a>(
                 return false;
             };
 
-            let mut diag = sess
-                .dcx()
-                .struct_span_err(segment2.span, "usage of deprecated attribute");
             match deprecation_status {
-                DeprecationStatus::Deprecated => {
+                DeprecationStatus::Deprecated(new_name) => {
+                    let mut diag = sess
+                        .dcx()
+                        .struct_span_err(segment2.span, "usage of deprecated attribute");
+                    if let Some(new_name) = new_name {
+                        diag.span_suggestion(
+                            segment2.span,
+                            "consider using",
+                            new_name,
+                            Applicability::MachineApplicable,
+                        );
+                    }
                     diag.emit();
                     false
                 },
-                DeprecationStatus::Replaced(new_name) => {
-                    diag.span_suggestion(
-                        segment2.span,
-                        "consider using",
-                        new_name,
-                        Applicability::MachineApplicable,
-                    );
-                    diag.emit();
-                    false
-                },
-                DeprecationStatus::None => {
-                    diag.cancel();
-                    segment2.name == name
-                },
+                DeprecationStatus::None => segment2.name == name,
             }
         } else {
             false
