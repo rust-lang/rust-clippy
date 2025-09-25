@@ -59,22 +59,15 @@ pub(super) fn check<'tcx>(
 }
 
 fn get_content_if_ctor_matches_in_closure(cx: &LateContext<'_>, expr: &Expr<'_>, item: LangItem) -> Option<Span> {
-    if let ExprKind::Closure(closure) = expr.kind {
-        if let Body {
+    if let ExprKind::Closure(closure) = expr.kind
+        && let Body {
             params: [],
             value: body,
         } = cx.tcx.hir_body(closure.body)
-        {
-            if let ExprKind::Call(some_expr, [arg]) = body.kind
-                && is_res_lang_ctor(cx, path_res(cx, some_expr), item)
-            {
-                Some(arg.span.source_callsite())
-            } else {
-                None
-            }
-        } else {
-            None
-        }
+        && let ExprKind::Call(some_expr, [arg]) = body.kind
+        && is_res_lang_ctor(cx, path_res(cx, some_expr), item)
+    {
+        Some(arg.span.source_callsite())
     } else {
         None
     }
