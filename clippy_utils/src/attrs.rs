@@ -37,35 +37,6 @@ pub const BUILTIN_ATTRIBUTES: &[(Symbol, DeprecationStatus)] = &[
     (sym::format_args,           DeprecationStatus::None),
 ];
 
-pub struct LimitStack {
-    stack: Vec<u64>,
-}
-
-impl Drop for LimitStack {
-    fn drop(&mut self) {
-        assert_eq!(self.stack.len(), 1);
-    }
-}
-
-#[expect(missing_docs, reason = "they're all trivial...")]
-impl LimitStack {
-    #[must_use]
-    pub fn new(limit: u64) -> Self {
-        Self { stack: vec![limit] }
-    }
-    pub fn limit(&self) -> u64 {
-        *self.stack.last().expect("there should always be a value in the stack")
-    }
-    pub fn push_attrs(&mut self, sess: &Session, attrs: &[impl AttributeExt], name: Symbol) {
-        let stack = &mut self.stack;
-        parse_attrs(sess, attrs, name, |val| stack.push(val));
-    }
-    pub fn pop_attrs(&mut self, sess: &Session, attrs: &[impl AttributeExt], name: Symbol) {
-        let stack = &mut self.stack;
-        parse_attrs(sess, attrs, name, |val| assert_eq!(stack.pop(), Some(val)));
-    }
-}
-
 /// Given `attrs`, extract all the instances of a built-in Clippy attribute called `name`
 pub fn get_builtin_attr<'a, A: AttributeExt + 'a>(
     sess: &'a Session,
@@ -107,20 +78,6 @@ pub fn get_builtin_attr<'a, A: AttributeExt + 'a>(
             false
         }
     })
-}
-
-fn parse_attrs<F: FnMut(u64)>(sess: &Session, attrs: &[impl AttributeExt], name: Symbol, mut f: F) {
-    for attr in get_builtin_attr(sess, attrs, name) {
-        let Some(value) = attr.value_str() else {
-            sess.dcx().span_err(attr.span(), "bad clippy attribute");
-            continue;
-        };
-        let Ok(value) = u64::from_str(value.as_str()) else {
-            sess.dcx().span_err(attr.span(), "not a number");
-            continue;
-        };
-        f(value);
-    }
 }
 
 /// If `attrs` contain exactly one instance of a built-in Clippy attribute called `name`,
@@ -189,4 +146,53 @@ pub fn span_contains_cfg(cx: &LateContext<'_>, s: Span) -> bool {
         }
         false
     })
+}
+
+/// Currently used to keep track of the current value of `#[clippy::cognitive_complexity(N)]`
+pub struct LimitStack {
+    default: u64,
+    stack: Vec<u64>,
+}
+
+impl Drop for LimitStack {
+    fn drop(&mut self) {
+        assert_eq!(self.stack, Vec::<u64>::new()); // avoid `.is_empty()`, for a nicer error message
+    }
+}
+
+#[expect(missing_docs, reason = "they're all trivial...")]
+impl LimitStack {
+    #[must_use]
+    /// Initialize the stack starting with a default value, which usually comes from configuration
+    pub fn new(limit: u64) -> Self {
+        Self {
+            default: limit,
+            stack: vec![],
+        }
+    }
+    pub fn limit(&self) -> u64 {
+        self.stack.last().copied().unwrap_or(self.default)
+    }
+    pub fn push_attrs(&mut self, sess: &Session, attrs: &[impl AttributeExt], name: Symbol) {
+        let stack = &mut self.stack;
+        parse_attrs(sess, attrs, name, |val| stack.push(val));
+    }
+    pub fn pop_attrs(&mut self, sess: &Session, attrs: &[impl AttributeExt], name: Symbol) {
+        let stack = &mut self.stack;
+        parse_attrs(sess, attrs, name, |val| assert_eq!(stack.pop(), Some(val)));
+    }
+}
+
+fn parse_attrs<F: FnMut(u64)>(sess: &Session, attrs: &[impl AttributeExt], name: Symbol, mut f: F) {
+    for attr in get_builtin_attr(sess, attrs, name) {
+        let Some(value) = attr.value_str() else {
+            sess.dcx().span_err(attr.span(), "bad clippy attribute");
+            continue;
+        };
+        let Ok(value) = u64::from_str(value.as_str()) else {
+            sess.dcx().span_err(attr.span(), "not a number");
+            continue;
+        };
+        f(value);
+    }
 }
