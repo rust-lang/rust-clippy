@@ -1,0 +1,137 @@
+error: use
+  --> tests/ui/explicit_default_arguments.rs:23:17
+   |
+LL | const DB_CONST: DbResult<()> = Ok(());
+   |                 ^^^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `DbResult`
+   |
+   = note: `-D clippy::explicit-default-arguments` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::explicit_default_arguments)]`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:26:18
+   |
+LL | const NET_CONST: NetResult<&str> = Ok("");
+   |                  ^^^^^^^^^^^^^^^ help: unnecessary generics, `&str` already is the default: `NetResult`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:31:19
+   |
+LL | static STATIC_DB: DbResult<()> = Ok(());
+   |                   ^^^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `DbResult`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:34:18
+   |
+LL | static OPTIONAL: Optional<i64> = Some(42);
+   |                  ^^^^^^^^^^^^^ help: unnecessary generics, `i64` already is the default: `Optional`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:43:20
+   |
+LL |     fn method() -> DbResult<()>;
+   |                    ^^^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `DbResult`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:48:20
+   |
+LL |     type AssocDb = DbResult<()>;
+   |                    ^^^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `DbResult`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:52:20
+   |
+LL |     fn method() -> DbResult<()> {
+   |                    ^^^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `DbResult`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:59:21
+   |
+LL | fn db_function(arg: DbResult<()>) -> DbResult<()> {
+   |                     ^^^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `DbResult`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:59:38
+   |
+LL | fn db_function(arg: DbResult<()>) -> DbResult<()> {
+   |                                      ^^^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `DbResult`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:71:15
+   |
+LL |     db_field: DbResult<()>,
+   |               ^^^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `DbResult`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:78:5
+   |
+LL |     DbResult<()>,
+   |     ^^^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `DbResult`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:85:13
+   |
+LL |     Success(DbResult<()>),
+   |             ^^^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `DbResult`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:92:32
+   |
+LL |     db: std::mem::ManuallyDrop<DbResult<()>>,
+   |                                ^^^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `DbResult`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:98:16
+   |
+LL | type DbAlias = DbResult<()>;
+   |                ^^^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `DbResult`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:103:22
+   |
+LL | static COMPLEX_FULL: ComplexThing<i8, u8, u32, f64> = ComplexStruct(PhantomData);
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: unnecessary generics, [`u32`, `f64`] already are already the defaults: `ComplexThing<i8, u8>`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:108:23
+   |
+LL | static NESTED_RESULT: outer::NestedResult<usize> = Ok(42);
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: unnecessary generics, `usize` already is the default: `outer::NestedResult`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:113:20
+   |
+LL |     type AssocDb = DbResult<()>;
+   |                    ^^^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `DbResult`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:117:20
+   |
+LL |     fn method() -> DbResult<()> {
+   |                    ^^^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `DbResult`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:125:12
+   |
+LL |     let a: DbResult<()> = Ok(());
+   |            ^^^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `DbResult`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:130:15
+   |
+LL |     let f: fn(DbResult<()>) -> DbResult<()> = db_function;
+   |               ^^^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `DbResult`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:130:32
+   |
+LL |     let f: fn(DbResult<()>) -> DbResult<()> = db_function;
+   |                                ^^^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `DbResult`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:140:20
+   |
+LL |     let boxed_int: BoxedDefault<i128> = Box::new(0);
+   |                    ^^^^^^^^^^^^^^^^^^ help: unnecessary generics, `i128` already is the default: `BoxedDefault`
+
+error: aborting due to 22 previous errors
+
