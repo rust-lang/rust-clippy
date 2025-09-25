@@ -1,6 +1,7 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg};
 use clippy_utils::msrvs::Msrv;
+use clippy_utils::source::SpanExt;
 use clippy_utils::{is_none_arm, msrvs, peel_hir_expr_refs, sym};
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
@@ -134,7 +135,7 @@ fn check_as_ref(cx: &LateContext<'_>, expr: &Expr<'_>, span: Span, msrv: Msrv) {
             },
         )
     {
-        if let Some(snippet) = clippy_utils::source::snippet_opt(cx, callee.span) {
+        if let Some(snippet) = callee.span.get_source_text(cx) {
             span_lint_and_sugg(
                 cx,
                 MANUAL_OPTION_AS_SLICE,

@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::higher::VecArgs;
-use clippy_utils::source::{snippet_opt, snippet_with_applicability};
+use clippy_utils::source::{SpanExt, snippet_with_applicability};
 use clippy_utils::ty::get_type_diagnostic_name;
 use clippy_utils::usage::{local_used_after_expr, local_used_in};
 use clippy_utils::{
@@ -217,35 +217,35 @@ fn check_closure<'tcx>(cx: &LateContext<'tcx>, outer_receiver: Option<&Expr<'tcx
                     expr.span,
                     "redundant closure",
                     |diag| {
-                        if let Some(mut snippet) = snippet_opt(cx, callee.span) {
-                            if path_to_local(callee).is_some_and(|l| {
-                                // FIXME: Do we really need this `local_used_in` check?
-                                // Isn't it checking something like... `callee(callee)`?
-                                // If somehow this check is needed, add some test for it,
-                                // 'cuz currently nothing changes after deleting this check.
-                                local_used_in(cx, l, args) || local_used_after_expr(cx, l, expr)
-                            }) {
-                                match closure_kind {
-                                    // Mutable closure is used after current expr; we cannot consume it.
-                                    ClosureKind::FnMut => snippet = format!("&mut {snippet}"),
-                                    ClosureKind::Fn if !callee_ty_raw.is_ref() => {
-                                        snippet = format!("&{snippet}");
-                                    },
-                                    _ => (),
-                                }
-                            } else if let n_refs =
-                                callee_ty_adjustments
-                                    .iter()
-                                    .rev()
-                                    .fold(0, |acc, adjustment| match adjustment.kind {
+                        if let Some(snippet) = callee.span.get_source_text(cx) {
+                            let snippet =
+                                if path_to_local(callee).is_some_and(|l| {
+                                    // FIXME: Do we really need this `local_used_in` check?
+                                    // Isn't it checking something like... `callee(callee)`?
+                                    // If somehow this check is needed, add some test for it,
+                                    // 'cuz currently nothing changes after deleting this check.
+                                    local_used_in(cx, l, args) || local_used_after_expr(cx, l, expr)
+                                }) {
+                                    match closure_kind {
+                                        // Mutable closure is used after current expr; we cannot consume it.
+                                        ClosureKind::FnMut => format!("&mut {snippet}"),
+                                        ClosureKind::Fn if !callee_ty_raw.is_ref() => {
+                                            format!("&{snippet}")
+                                        },
+                                        _ => snippet.to_owned(),
+                                    }
+                                } else if let n_refs = callee_ty_adjustments.iter().rev().fold(0, |acc, adjustment| {
+                                    match adjustment.kind {
                                         Adjust::Deref(Some(_)) => acc + 1,
                                         Adjust::Deref(_) if acc > 0 => acc + 1,
                                         _ => acc,
-                                    })
-                                && n_refs > 0
-                            {
-                                snippet = format!("{}{snippet}", "*".repeat(n_refs));
-                            }
+                                    }
+                                }) && n_refs > 0
+                                {
+                                    format!("{}{snippet}", "*".repeat(n_refs))
+                                } else {
+                                    snippet.to_owned()
+                                };
 
                             let replace_with = match callee_ty_adjusted.kind() {
                                 ty::FnDef(def, _) => cx.tcx.def_descr(*def),
