@@ -1,3 +1,4 @@
+use clippy_utils::source::SpanExt;
 use rustc_errors::Applicability;
 use rustc_hir::attrs::AttributeKind;
 use rustc_hir::{Attribute, Item, ItemKind};
@@ -5,7 +6,6 @@ use rustc_lint::LateContext;
 
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_from_proc_macro;
-use clippy_utils::source::snippet_opt;
 
 use super::TOO_LONG_FIRST_DOC_PARAGRAPH;
 
@@ -81,9 +81,9 @@ pub(super) fn check(
             if should_suggest_empty_doc
                 && let Some(second_span) = spans.get(1)
                 && let new_span = first_span.with_hi(second_span.lo()).with_lo(first_span.hi())
-                && let Some(snippet) = snippet_opt(cx, new_span)
+                && let Some(snippet) = new_span.get_text(cx)
             {
-                let Some(first) = snippet_opt(cx, *first_span) else {
+                let Some(first) = first_span.get_text(cx) else {
                     return;
                 };
                 let Some(comment_form) = first.get(..3) else {

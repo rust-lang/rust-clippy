@@ -1467,7 +1467,7 @@ pub fn first_line_of_span<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> Span {
 
 fn first_char_in_first_line<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> Option<BytePos> {
     let line_span = line_span(sm, span);
-    snippet_opt(sm, line_span).and_then(|snip| {
+    line_span.get_text(sm).and_then(|snip| {
         snip.find(|c: char| !c.is_whitespace())
             .map(|pos| line_span.lo() + BytePos::from_usize(pos))
     })
@@ -1499,16 +1499,16 @@ fn line_span<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> Span {
 /// //          ^^ -- will return 4
 /// ```
 pub fn indent_of<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> Option<usize> {
-    snippet_opt(sm, line_span(sm, span)).and_then(|snip| snip.find(|c: char| !c.is_whitespace()))
+    line_span(sm, span)
+        .get_text(sm)
+        .and_then(|snip| snip.find(|c: char| !c.is_whitespace()))
 }
 
 /// Gets a snippet of the indentation of the line of a span
 pub fn snippet_indent<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> Option<String> {
-    snippet_opt(sm, line_span(sm, span)).map(|mut s| {
-        let len = s.len() - s.trim_start().len();
-        s.truncate(len);
-        s
-    })
+    line_span(sm, span)
+        .get_text(sm)
+        .map(|s| s[..s.len() - s.trim_start().len()].to_owned())
 }
 
 // If the snippet is empty, it's an attribute that was inserted during macro
@@ -1517,12 +1517,7 @@ pub fn snippet_indent<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> Option<Str
 // For some reason these attributes don't have any expansion info on them, so
 // we have to check it this way until there is a better way.
 pub fn is_present_in_source<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> bool {
-    if let Some(snippet) = snippet_opt(sm, span)
-        && snippet.is_empty()
-    {
-        return false;
-    }
-    true
+    span.get_text(sm).is_none_or(|src| !src.is_empty())
 }
 
 /// Returns the position just before rarrow
@@ -1608,7 +1603,10 @@ fn reindent_multiline_inner(s: &str, ignore_first: bool, indent: Option<usize>, 
 /// snippet(cx, span2, "..") // -> "Vec::new()"
 /// ```
 pub fn snippet<'a, 'sm>(sm: impl HasSourceMap<'sm>, span: Span, default: &'a str) -> Cow<'a, str> {
-    snippet_opt(sm, span).map_or_else(|| Cow::Borrowed(default), From::from)
+    match span.get_text(sm) {
+        Some(src) => Cow::Owned(src.to_owned()),
+        None => Cow::Borrowed(default),
+    }
 }
 
 /// Same as [`snippet`], but it adapts the applicability level by following rules:
@@ -1635,20 +1633,14 @@ fn snippet_with_applicability_sm<'a>(
     if *applicability != Applicability::Unspecified && span.from_expansion() {
         *applicability = Applicability::MaybeIncorrect;
     }
-    snippet_opt(sm, span).map_or_else(
-        || {
-            if *applicability == Applicability::MachineApplicable {
-                *applicability = Applicability::HasPlaceholders;
-            }
-            Cow::Borrowed(default)
-        },
-        From::from,
-    )
-}
-
-/// Converts a span to a code snippet. Returns `None` if not available.
-pub fn snippet_opt<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> Option<String> {
-    sm.source_map().span_to_snippet(span).ok()
+    if let Some(src) = span.get_text(sm) {
+        Cow::Owned(src.to_owned())
+    } else {
+        if *applicability == Applicability::MachineApplicable {
+            *applicability = Applicability::HasPlaceholders;
+        }
+        Cow::Borrowed(default)
+    }
 }
 
 /// Converts a span (from a block) to a code snippet if available, otherwise use default.

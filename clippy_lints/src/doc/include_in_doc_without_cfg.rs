@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::snippet_opt;
+use clippy_utils::source::SpanExt;
 use rustc_ast::{AttrArgs, AttrKind, AttrStyle, Attribute};
 use rustc_errors::Applicability;
 use rustc_lint::EarlyContext;
@@ -15,7 +15,7 @@ pub fn check(cx: &EarlyContext<'_>, attrs: &[Attribute]) {
             && !attr.span.contains(meta.span)
             // Since the `include_str` is already expanded at this point, we can only take the
             // whole attribute snippet and then modify for our suggestion.
-            && let Some(snippet) = snippet_opt(cx, attr.span)
+            && let Some(snippet) = attr.span.get_text(cx)
             // We cannot remove this because a `#[doc = include_str!("...")]` attribute can occupy
             // several lines.
             && let Some(start) = snippet.find('[')
