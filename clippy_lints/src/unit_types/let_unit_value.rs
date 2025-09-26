@@ -1,6 +1,6 @@
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_then};
 use clippy_utils::macros::{FormatArgsStorage, find_format_arg_expr, is_format_macro, root_macro_call_first_node};
-use clippy_utils::source::{indent_of, reindent_multiline, snippet_with_context};
+use clippy_utils::source::{SpanExt, indent_of, reindent_multiline};
 use clippy_utils::visitors::{for_each_local_assignment, for_each_value_source};
 use core::ops::ControlFlow;
 use rustc_ast::{FormatArgs, FormatArgumentKind};
@@ -24,7 +24,8 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, format_args: &FormatArgsStorag
 
     if let Some(init) = local.init
         && !local.pat.span.from_expansion()
-        && !local.span.in_external_macro(cx.sess().source_map())
+        && let ctxt = local.span.ctxt()
+        && !ctxt.in_external_macro(cx.sess().source_map())
         && !local.span.is_from_async_await()
         && cx.typeck_results().pat_ty(local.pat).is_unit()
     {
@@ -62,11 +63,9 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, format_args: &FormatArgsStorag
                     },
                 );
             }
-        } else {
-            if let ExprKind::Match(_, _, MatchSource::AwaitDesugar) = init.kind {
-                return;
-            }
-
+        } else if !matches!(init.kind, ExprKind::Match(_, _, MatchSource::AwaitDesugar))
+            && let Some(src) = init.span.get_source_text_at_ctxt(cx, ctxt)
+        {
             span_lint_and_then(
                 cx,
                 LET_UNIT_VALUE,
@@ -74,10 +73,7 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, format_args: &FormatArgsStorag
                 "this let-binding has unit value",
                 |diag| {
                     let mut suggestions = Vec::new();
-
-                    // Suggest omitting the `let` binding
-                    let mut app = Applicability::MachineApplicable;
-                    let snip = snippet_with_context(cx, init.span, local.span.ctxt(), "()", &mut app).0;
+                    let app = applicability_for_ctxt(ctxt);
 
                     // If this is a binding pattern, we need to add suggestions to remove any usages
                     // of the variable
@@ -100,24 +96,20 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, format_args: &FormatArgsStorag
                         if has_in_format_capture {
                             suggestions.push((
                                 init.span,
-                                format!("();\n{}", reindent_multiline(&snip, false, indent_of(cx, local.span))),
+                                format!("();\n{}", reindent_multiline(&src, false, indent_of(cx, local.span))),
                             ));
-                            diag.multipart_suggestion(
-                                "replace variable usages with `()`",
-                                suggestions,
-                                Applicability::MachineApplicable,
-                            );
+                            diag.multipart_suggestion("replace variable usages with `()`", suggestions, app);
                             return;
                         }
                     }
 
-                    suggestions.push((local.span, format!("{snip};")));
+                    suggestions.push((local.span, format!("{src};")));
                     let message = if suggestions.len() == 1 {
                         "omit the `let` binding"
                     } else {
                         "omit the `let` binding and replace variable usages with `()`"
                     };
-                    diag.multipart_suggestion(message, suggestions, Applicability::MachineApplicable);
+                    diag.multipart_suggestion(message, suggestions, app);
                 },
             );
         }

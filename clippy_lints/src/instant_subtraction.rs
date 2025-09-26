@@ -1,7 +1,7 @@
 use clippy_config::Conf;
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_sugg};
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::source::snippet_with_context;
+use clippy_utils::source::SpanExt;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::{is_path_diagnostic_item, ty};
 use rustc_errors::Applicability;
@@ -133,19 +133,18 @@ fn print_unchecked_duration_subtraction_sugg(
     right_expr: &Expr<'_>,
     expr: &Expr<'_>,
 ) {
-    let mut applicability = Applicability::MachineApplicable;
-
     let ctxt = expr.span.ctxt();
-    let left_expr = snippet_with_context(cx, left_expr.span, ctxt, "<instant>", &mut applicability).0;
-    let right_expr = snippet_with_context(cx, right_expr.span, ctxt, "<duration>", &mut applicability).0;
-
-    span_lint_and_sugg(
-        cx,
-        UNCHECKED_DURATION_SUBTRACTION,
-        expr.span,
-        "unchecked subtraction of a 'Duration' from an 'Instant'",
-        "try",
-        format!("{left_expr}.checked_sub({right_expr}).unwrap()"),
-        applicability,
-    );
+    if let Some(left_expr) = left_expr.span.get_source_text_at_ctxt(cx, ctxt)
+        && let Some(right_expr) = right_expr.span.get_source_text_at_ctxt(cx, ctxt)
+    {
+        span_lint_and_sugg(
+            cx,
+            UNCHECKED_DURATION_SUBTRACTION,
+            expr.span,
+            "unchecked subtraction of a 'Duration' from an 'Instant'",
+            "try",
+            format!("{left_expr}.checked_sub({right_expr}).unwrap()"),
+            applicability_for_ctxt(ctxt),
+        );
+    }
 }

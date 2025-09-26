@@ -1,5 +1,5 @@
-use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg, span_lint_and_then};
-use clippy_utils::source::{SpanExt, snippet_with_context};
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint, span_lint_and_sugg, span_lint_and_then};
+use clippy_utils::source::SpanExt;
 use clippy_utils::sugg::{Sugg, has_enclosing_paren};
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{
@@ -546,19 +546,19 @@ fn check_len(
             return;
         }
 
-        if method_name == sym::len && has_is_empty(cx, receiver) {
-            let mut applicability = Applicability::MachineApplicable;
+        if method_name == sym::len
+            && has_is_empty(cx, receiver)
+            && let ctxt = span.ctxt()
+            && let Some(src) = receiver.span.get_source_text_at_ctxt(cx, ctxt)
+        {
             span_lint_and_sugg(
                 cx,
                 LEN_ZERO,
                 span,
                 format!("length comparison to {}", if compare_to == 0 { "zero" } else { "one" }),
                 format!("using `{op}is_empty` is clearer and more explicit"),
-                format!(
-                    "{op}{}.is_empty()",
-                    snippet_with_context(cx, receiver.span, span.ctxt(), "_", &mut applicability).0,
-                ),
-                applicability,
+                format!("{op}{src}.is_empty()"),
+                applicability_for_ctxt(ctxt),
             );
         }
     }

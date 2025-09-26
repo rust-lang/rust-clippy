@@ -1,12 +1,11 @@
 use clippy_config::Conf;
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_sugg};
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::source::snippet_with_context;
+use clippy_utils::source::SpanExt;
 use clippy_utils::sugg::{Sugg, has_enclosing_paren};
 use clippy_utils::{SpanlessEq, sym};
 use rustc_ast::{BinOpKind, LitIntType, LitKind, UnOp};
 use rustc_data_structures::packed::Pu128;
-use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self};
@@ -55,8 +54,6 @@ impl_lint_pass!(ManualDivCeil => [MANUAL_DIV_CEIL]);
 
 impl<'tcx> LateLintPass<'tcx> for ManualDivCeil {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'_>) {
-        let mut applicability = Applicability::MachineApplicable;
-
         if let ExprKind::Binary(div_op, div_lhs, div_rhs) = expr.kind
             && div_op.node == BinOpKind::Div
             && check_int_ty_and_feature(cx, div_lhs)
@@ -71,7 +68,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualDivCeil {
                 && check_literal(sub_rhs)
                 && check_eq_expr(cx, sub_lhs, div_rhs)
             {
-                build_suggestion(cx, expr, inner_lhs, div_rhs, &mut applicability);
+                build_suggestion(cx, expr, inner_lhs, div_rhs);
                 return;
             }
 
@@ -82,7 +79,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualDivCeil {
                 && check_literal(sub_rhs)
                 && check_eq_expr(cx, sub_lhs, div_rhs)
             {
-                build_suggestion(cx, expr, inner_rhs, div_rhs, &mut applicability);
+                build_suggestion(cx, expr, inner_rhs, div_rhs);
                 return;
             }
 
@@ -93,17 +90,17 @@ impl<'tcx> LateLintPass<'tcx> for ManualDivCeil {
                 && check_literal(inner_rhs)
                 && check_eq_expr(cx, add_rhs, div_rhs)
             {
-                build_suggestion(cx, expr, add_lhs, div_rhs, &mut applicability);
+                build_suggestion(cx, expr, add_lhs, div_rhs);
             }
 
             // (x + (Y - 1)) / Y
             if inner_op.node == BinOpKind::Add && differ_by_one(inner_rhs, div_rhs) {
-                build_suggestion(cx, expr, inner_lhs, div_rhs, &mut applicability);
+                build_suggestion(cx, expr, inner_lhs, div_rhs);
             }
 
             // ((Y - 1) + x) / Y
             if inner_op.node == BinOpKind::Add && differ_by_one(inner_lhs, div_rhs) {
-                build_suggestion(cx, expr, inner_rhs, div_rhs, &mut applicability);
+                build_suggestion(cx, expr, inner_rhs, div_rhs);
             }
 
             // (x - (-Y - 1)) / Y
@@ -111,7 +108,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualDivCeil {
                 && let ExprKind::Unary(UnOp::Neg, abs_div_rhs) = div_rhs.kind
                 && differ_by_one(abs_div_rhs, inner_rhs)
             {
-                build_suggestion(cx, expr, inner_lhs, div_rhs, &mut applicability);
+                build_suggestion(cx, expr, inner_lhs, div_rhs);
             }
         }
     }
@@ -157,14 +154,11 @@ fn check_eq_expr(cx: &LateContext<'_>, lhs: &Expr<'_>, rhs: &Expr<'_>) -> bool {
     SpanlessEq::new(cx).eq_expr(lhs, rhs)
 }
 
-fn build_suggestion(
-    cx: &LateContext<'_>,
-    expr: &Expr<'_>,
-    lhs: &Expr<'_>,
-    rhs: &Expr<'_>,
-    applicability: &mut Applicability,
-) {
-    let dividend_sugg = Sugg::hir_with_applicability(cx, lhs, "..", applicability).maybe_paren();
+fn build_suggestion(cx: &LateContext<'_>, expr: &Expr<'_>, lhs: &Expr<'_>, rhs: &Expr<'_>) {
+    let ctxt = expr.span.ctxt();
+    let mut applicability = applicability_for_ctxt(ctxt);
+
+    let dividend_sugg = Sugg::hir_with_applicability(cx, lhs, "..", &mut applicability).maybe_paren();
     let type_suffix = if cx.typeck_results().expr_ty(lhs).is_numeric()
         && matches!(
             lhs.kind,
@@ -199,17 +193,17 @@ fn build_suggestion(
     } else {
         format!("{dividend_sugg_str}{type_suffix}")
     };
-    let divisor_snippet = snippet_with_context(cx, rhs.span, expr.span.ctxt(), "..", applicability);
 
-    let sugg = format!("{suggestion_before_div_ceil}.div_ceil({})", divisor_snippet.0);
-
+    let Some(divisor_snippet) = rhs.span.get_source_text_at_ctxt(cx, ctxt) else {
+        return;
+    };
     span_lint_and_sugg(
         cx,
         MANUAL_DIV_CEIL,
         expr.span,
         "manually reimplementing `div_ceil`",
         "consider using `.div_ceil()`",
-        sugg,
-        *applicability,
+        format!("{suggestion_before_div_ceil}.div_ceil({divisor_snippet})"),
+        applicability,
     );
 }

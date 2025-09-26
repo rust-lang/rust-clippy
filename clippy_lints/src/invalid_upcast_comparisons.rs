@@ -1,4 +1,4 @@
-use rustc_errors::Applicability;
+use clippy_utils::source::SpanExt;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::layout::LayoutOf;
@@ -10,7 +10,6 @@ use clippy_utils::comparisons;
 use clippy_utils::comparisons::Rel;
 use clippy_utils::consts::{ConstEvalCtxt, FullInt};
 use clippy_utils::diagnostics::span_lint;
-use clippy_utils::source::snippet_with_context;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -69,15 +68,10 @@ fn numeric_cast_precast_bounds(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<
 }
 
 fn err_upcast_comparison(cx: &LateContext<'_>, span: Span, expr: &Expr<'_>, always: bool) {
-    if let ExprKind::Cast(cast_val, _) = expr.kind {
-        let mut applicability = Applicability::MachineApplicable;
-        let (cast_val_snip, _) = snippet_with_context(
-            cx,
-            cast_val.span,
-            expr.span.ctxt(),
-            "the expression",
-            &mut applicability,
-        );
+    if let ExprKind::Cast(cast_val, _) = expr.kind
+        && let ctxt = expr.span.ctxt()
+        && let Some(cast_val_snip) = cast_val.span.get_source_text_at_ctxt(cx, ctxt)
+    {
         span_lint(
             cx,
             INVALID_UPCAST_COMPARISONS,

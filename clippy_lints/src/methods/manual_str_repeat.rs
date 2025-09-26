@@ -1,10 +1,9 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_sugg};
 use clippy_utils::is_path_diagnostic_item;
-use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
+use clippy_utils::source::{SpanExt, snippet_with_applicability};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::{is_type_diagnostic_item, is_type_lang_item};
 use rustc_ast::LitKind;
-use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, LangItem};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty};
@@ -64,10 +63,9 @@ pub(super) fn check(
         && let ctxt = collect_expr.span.ctxt()
         && ctxt == take_expr.span.ctxt()
         && ctxt == take_self_arg.span.ctxt()
+        && let Some(count_snip) = take_arg.span.get_source_text_at_ctxt(cx, ctxt)
     {
-        let mut app = Applicability::MachineApplicable;
-        let count_snip = snippet_with_context(cx, take_arg.span, ctxt, "..", &mut app).0;
-
+        let mut app = applicability_for_ctxt(ctxt);
         let val_str = match repeat_kind {
             RepeatKind::Char(_) if repeat_arg.span.ctxt() != ctxt => return,
             RepeatKind::Char('\'') => r#""'""#.into(),
