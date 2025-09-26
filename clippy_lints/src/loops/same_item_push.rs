@@ -23,7 +23,7 @@ pub(super) fn check<'tcx>(
     msrv: Msrv,
 ) {
     fn emit_lint(cx: &LateContext<'_>, vec: &Expr<'_>, pushed_item: &Expr<'_>, ctxt: SyntaxContext, msrv: Msrv) {
-        let mut app = Applicability::Unspecified;
+        let mut app: Applicability = Applicability::Unspecified;
         let vec_str = snippet_with_context(cx, vec.span, ctxt, "", &mut app).0;
         let item_str = snippet_with_context(cx, pushed_item.span, ctxt, "", &mut app).0;
 

@@ -1,10 +1,9 @@
 use clippy_config::Conf;
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_sugg};
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::source::snippet_with_context;
+use clippy_utils::source::SpanExt;
 use clippy_utils::ty::peel_and_count_ty_refs;
 use clippy_utils::{expr_or_init, is_in_const_context, std_or_core};
-use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
@@ -58,15 +57,14 @@ impl<'tcx> LateLintPass<'tcx> for ManualSliceSizeCalculation {
             && !expr.span.from_expansion()
             && let Some((receiver, refs_count)) = simplify(cx, left, right)
             && (!is_in_const_context(cx) || self.msrv.meets(cx, msrvs::CONST_SIZE_OF_VAL))
+            && let ctxt = expr.span.ctxt()
+            && let Some(val_name) = receiver.span.get_text_at_ctxt(cx, ctxt)
         {
-            let ctxt = expr.span.ctxt();
-            let mut app = Applicability::MachineApplicable;
             let deref = if refs_count > 0 {
                 "*".repeat(refs_count - 1)
             } else {
                 "&".into()
             };
-            let val_name = snippet_with_context(cx, receiver.span, ctxt, "slice", &mut app).0;
             let Some(sugg) = std_or_core(cx) else { return };
 
             span_lint_and_sugg(
@@ -76,7 +74,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualSliceSizeCalculation {
                 "manual slice size calculation",
                 "try",
                 format!("{sugg}::mem::size_of_val({deref}{val_name})"),
-                app,
+                applicability_for_ctxt(ctxt),
             );
         }
     }

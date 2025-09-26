@@ -13,7 +13,7 @@ use rustc_errors::{Applicability, Diag, DiagMessage, MultiSpan, SubdiagMessage};
 use rustc_errors::{EmissionGuarantee, SubstitutionPart, Suggestions};
 use rustc_hir::HirId;
 use rustc_lint::{LateContext, Lint, LintContext};
-use rustc_span::Span;
+use rustc_span::{Span, SyntaxContext};
 use std::env;
 
 fn docs_link(diag: &mut Diag<'_, ()>, lint: &'static Lint) {
@@ -68,6 +68,26 @@ fn validate_diag(diag: &Diag<'_, impl EmissionGuarantee>) {
             None,
             "suggestion must not have overlapping parts"
         );
+    }
+}
+
+/// `MachineApplicable` if this is the root context, `MaybeIncorrect` otherwise.
+#[inline]
+pub fn applicability_for_ctxt(ctxt: SyntaxContext) -> Applicability {
+    if ctxt.is_root() {
+        Applicability::MaybeIncorrect
+    } else {
+        Applicability::MachineApplicable
+    }
+}
+
+/// `MachineApplicable` if the span is from the root context, `MaybeIncorrect` otherwise.
+#[inline]
+pub fn applicability_for_span(sp: Span) -> Applicability {
+    if sp.from_expansion() {
+        Applicability::MaybeIncorrect
+    } else {
+        Applicability::MachineApplicable
     }
 }
 

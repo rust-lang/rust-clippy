@@ -1,11 +1,10 @@
 use clippy_config::Conf;
 use clippy_utils::consts::{ConstEvalCtxt, FullInt};
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_sugg};
 use clippy_utils::is_in_const_context;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeResPath;
-use clippy_utils::source::snippet_with_context;
-use rustc_errors::Applicability;
+use clippy_utils::source::SpanExt;
 use rustc_hir::{BinOpKind, Expr, ExprKind, Node, TyKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::impl_lint_pass;
@@ -86,8 +85,9 @@ impl<'tcx> LateLintPass<'tcx> for ManualRemEuclid {
                 _ => return,
             }
 
-            let mut app = Applicability::MachineApplicable;
-            let rem_of = snippet_with_context(cx, rem2_lhs.span, ctxt, "_", &mut app).0;
+            let Some(rem_of) = rem2_lhs.span.get_text_at_ctxt(cx, ctxt) else {
+                return;
+            };
             span_lint_and_sugg(
                 cx,
                 MANUAL_REM_EUCLID,
@@ -95,7 +95,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualRemEuclid {
                 "manual `rem_euclid` implementation",
                 "consider using",
                 format!("{rem_of}.rem_euclid({const1})"),
-                app,
+                applicability_for_ctxt(ctxt),
             );
         }
     }

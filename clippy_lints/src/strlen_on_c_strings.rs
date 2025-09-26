@@ -1,9 +1,8 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_sugg};
 use clippy_utils::res::MaybeDef;
-use clippy_utils::source::snippet_with_context;
+use clippy_utils::source::SpanExt;
 use clippy_utils::visitors::is_expr_unsafe;
 use clippy_utils::{match_libc_symbol, sym};
-use rustc_errors::Applicability;
 use rustc_hir::{Block, BlockCheckMode, Expr, ExprKind, LangItem, Node, UnsafeSource};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
@@ -47,8 +46,17 @@ impl<'tcx> LateLintPass<'tcx> for StrlenOnCStrings {
             && let ExprKind::MethodCall(path, self_arg, [], _) = recv.kind
             && !recv.span.from_expansion()
             && path.ident.name == sym::as_ptr
+            && let ty = cx.typeck_results().expr_ty(self_arg).peel_refs()
+            && let method_name = if ty.is_diag_item(cx, sym::cstring_type) {
+                "as_bytes"
+            } else if ty.is_lang_item(cx, LangItem::CStr) {
+                "to_bytes"
+            } else {
+                return;
+            }
+            && let ctxt = expr.span.ctxt()
+            && let Some(val_name) = self_arg.span.get_text_at_ctxt(cx, ctxt)
         {
-            let ctxt = expr.span.ctxt();
             let span = match cx.tcx.parent_hir_node(expr.hir_id) {
                 Node::Block(&Block {
                     rules: BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided),
@@ -57,18 +65,6 @@ impl<'tcx> LateLintPass<'tcx> for StrlenOnCStrings {
                 }) if span.ctxt() == ctxt && !is_expr_unsafe(cx, self_arg) => span,
                 _ => expr.span,
             };
-
-            let ty = cx.typeck_results().expr_ty(self_arg).peel_refs();
-            let mut app = Applicability::MachineApplicable;
-            let val_name = snippet_with_context(cx, self_arg.span, ctxt, "..", &mut app).0;
-            let method_name = if ty.is_diag_item(cx, sym::cstring_type) {
-                "as_bytes"
-            } else if ty.is_lang_item(cx, LangItem::CStr) {
-                "to_bytes"
-            } else {
-                return;
-            };
-
             span_lint_and_sugg(
                 cx,
                 STRLEN_ON_C_STRINGS,
@@ -76,7 +72,7 @@ impl<'tcx> LateLintPass<'tcx> for StrlenOnCStrings {
                 "using `libc::strlen` on a `CString` or `CStr` value",
                 "try",
                 format!("{val_name}.{method_name}().len()"),
-                app,
+                applicability_for_ctxt(ctxt),
             );
         }
     }

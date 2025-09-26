@@ -1,11 +1,10 @@
 use clippy_config::Conf;
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_then};
 use clippy_utils::mir::{PossibleBorrowerMap, enclosing_mir, expr_local, local_assignments, used_exactly_once};
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::source::snippet_with_context;
+use clippy_utils::source::SpanExt;
 use clippy_utils::ty::{implements_trait, is_copy};
 use clippy_utils::{DefinedTy, ExprUseNode, expr_use_ctxt, peel_n_hir_expr_refs};
-use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_hir::{Body, Expr, ExprKind, Mutability, Path, QPath};
@@ -117,6 +116,8 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessBorrowsForGenericArgs<'tcx> {
                 self.msrv,
             )
             && count != 0
+            && let ctxt = expr.span.ctxt()
+            && let Some(snip) = peel_n_hir_expr_refs(expr, count).0.span.get_text_at_ctxt(cx, ctxt)
         {
             span_lint_and_then(
                 cx,
@@ -124,10 +125,12 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessBorrowsForGenericArgs<'tcx> {
                 expr.span,
                 "the borrowed expression implements the required traits",
                 |diag| {
-                    let mut app = Applicability::MachineApplicable;
-                    let snip_span = peel_n_hir_expr_refs(expr, count).0.span;
-                    let snip = snippet_with_context(cx, snip_span, expr.span.ctxt(), "..", &mut app).0;
-                    diag.span_suggestion(expr.span, "change this to", snip.into_owned(), app);
+                    diag.span_suggestion(
+                        expr.span,
+                        "change this to",
+                        snip.to_owned(),
+                        applicability_for_ctxt(ctxt),
+                    );
                 },
             );
         }

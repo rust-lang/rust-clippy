@@ -1,12 +1,12 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
+use clippy_utils::source::{SpanExt, snippet_with_applicability};
+use itertools::Itertools;
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{Expr, ExprKind, StructTailExpr};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::SyntaxContext;
-use std::borrow::Cow;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -54,13 +54,15 @@ impl<'tcx> LateLintPass<'tcx> for NumberedFields {
             // This is the only syntax macros can use that works for all struct types.
             && !e.span.from_expansion()
             && let mut has_side_effects = false
-            && let Ok(mut expr_spans) = fields
+            && let Some(mut expr_spans) = fields
                 .iter()
                 .map(|f| {
                     has_side_effects |= f.expr.can_have_side_effects();
-                    f.ident.as_str().parse::<usize>().map(|x| (x, f.expr.span))
+                    let name = f.ident.as_str().parse::<usize>().ok()?;
+                    let snip = f.expr.span.get_text_at_ctxt(cx, SyntaxContext::root())?;
+                    Some((name, snip))
                 })
-                .collect::<Result<Vec<_>, _>>()
+                .collect::<Option<Vec<_>>>()
             // We can only reorder the expressions if there are no side effects.
             && (!has_side_effects || expr_spans.is_sorted_by_key(|&(idx, _)| idx))
         {
@@ -81,13 +83,7 @@ impl<'tcx> LateLintPass<'tcx> for NumberedFields {
                         format!(
                             "{}({})",
                             snippet_with_applicability(cx, path.span(), "..", &mut app),
-                            expr_spans
-                                .into_iter()
-                                .map(
-                                    |(_, span)| snippet_with_context(cx, span, SyntaxContext::root(), "..", &mut app).0
-                                )
-                                .intersperse(Cow::Borrowed(", "))
-                                .collect::<String>()
+                            expr_spans.into_iter().format_with(", ", |(_, src), fmt| fmt(&src))
                         ),
                         app,
                     );

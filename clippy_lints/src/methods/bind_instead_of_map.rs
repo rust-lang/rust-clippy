@@ -1,7 +1,7 @@
 use super::{BIND_INSTEAD_OF_MAP, contains_return};
-use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::peel_blocks;
-use clippy_utils::source::{snippet, snippet_with_context};
+use clippy_utils::source::{SpanExt, snippet};
 use clippy_utils::visitors::find_all_ret_expressions;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
@@ -95,17 +95,24 @@ impl BindInsteadOfMap {
             && self.is_variant(cx, path.res)
             && !contains_return(inner_expr)
             && let Some(msg) = self.lint_msg(cx)
+            && let ctxt = closure_expr.span.ctxt()
+            && let Some(some_inner_snip) = inner_expr.span.get_text_at_ctxt(cx, ctxt)
         {
-            let mut app = Applicability::MachineApplicable;
-            let some_inner_snip = snippet_with_context(cx, inner_expr.span, closure_expr.span.ctxt(), "_", &mut app).0;
-
             let closure_args_snip = snippet(cx, closure_args_span, "..");
             let option_snip = snippet(cx, recv.span, "..");
             let note = format!(
                 "{option_snip}.{}({closure_args_snip} {some_inner_snip})",
                 self.good_method_name
             );
-            span_lint_and_sugg(cx, BIND_INSTEAD_OF_MAP, expr.span, msg, "try", note, app);
+            span_lint_and_sugg(
+                cx,
+                BIND_INSTEAD_OF_MAP,
+                expr.span,
+                msg,
+                "try",
+                note,
+                applicability_for_ctxt(ctxt),
+            );
             true
         } else {
             false
