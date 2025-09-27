@@ -174,5 +174,25 @@ LL +     }
 LL + }
    |
 
-error: aborting due to 9 previous errors
+error: you should consider adding a `Default` implementation for `NewWithCfg`
+  --> tests/ui/new_without_default.rs:275:5
+   |
+LL | /     pub fn new() -> NewWithCfg {
+LL | |
+LL | |         unimplemented!()
+LL | |     }
+   | |_____^
+   |
+help: try adding this
+   |
+LL + #[cfg(not(test))]
+LL + impl Default for NewWithCfg {
+LL +     fn default() -> Self {
+LL +         Self::new()
+LL +     }
+LL + }
+LL | impl NewWithCfg {
+   |
+
+error: aborting due to 10 previous errors
 
