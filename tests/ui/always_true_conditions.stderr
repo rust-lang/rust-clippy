@@ -1,0 +1,27 @@
+error: expression will always be true, did you mean &&?
+  --> tests/ui/always_true_conditions.rs:4:5
+   |
+LL | /     if name != "Min" || name != "Max" || name != "Middle" {
+LL | |
+LL | |         println!("always prints");
+LL | |     } else {
+LL | |         println!("never prints");
+LL | |     }
+   | |_____^
+   |
+   = note: `-D clippy::always-true-conditions` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::always_true_conditions)]`
+
+error: expression will always be true, did you mean &&?
+  --> tests/ui/always_true_conditions.rs:18:5
+   |
+LL | /     if name != "Min" || name != "Max" {
+LL | |
+LL | |         println!("always prints");
+LL | |     } else {
+LL | |         println!("never prints");
+LL | |     }
+   | |_____^
+
+error: aborting due to 2 previous errors
+
