@@ -92,6 +92,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::crate_in_macro_def::CRATE_IN_MACRO_DEF_INFO,
     crate::create_dir::CREATE_DIR_INFO,
     crate::dbg_macro::DBG_MACRO_INFO,
+    crate::decimal_bit_mask::DECIMAL_BIT_MASK_INFO,
     crate::default::DEFAULT_TRAIT_ACCESS_INFO,
     crate::default::FIELD_REASSIGN_WITH_DEFAULT_INFO,
     crate::default_constructed_unit_structs::DEFAULT_CONSTRUCTED_UNIT_STRUCTS_INFO,
