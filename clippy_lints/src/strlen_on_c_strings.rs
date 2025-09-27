@@ -14,8 +14,8 @@ declare_clippy_lint! {
     /// and suggest calling `as_bytes().len()` or `to_bytes().len()` respectively instead.
     ///
     /// ### Why is this bad?
-    /// This avoids calling an unsafe `libc` function.
-    /// Currently, it also avoids calculating the length.
+    /// `libc::strlen` requires an unsafe block, which we don't really need if all
+    /// we want to know is the length of the string.
     ///
     /// ### Example
     /// ```rust, ignore
