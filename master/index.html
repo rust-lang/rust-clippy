@@ -7069,7 +7069,7 @@ let duration = Instant::now() - prev_instant;
 let prev_instant = Instant::now();
 let duration = prev_instant.elapsed();
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.65.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+manual_instant_elapsed">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/instant_subtraction.rs#L14">View Source</a></div></div></div></article><article id="manual_is_ascii_check"><input id="label-manual_is_ascii_check" type="checkbox"><label for="label-manual_is_ascii_check"><h2 class="lint-title"><div class="panel-title-name" id="lint-manual_is_ascii_check">manual_is_ascii_check
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.65.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+manual_instant_elapsed">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/time_subtraction.rs#L14">View Source</a></div></div></div></article><article id="manual_is_ascii_check"><input id="label-manual_is_ascii_check" type="checkbox"><label for="label-manual_is_ascii_check"><h2 class="lint-title"><div class="panel-title-name" id="lint-manual_is_ascii_check">manual_is_ascii_check
 <a href="#manual_is_ascii_check" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-style">style</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Suggests to use dedicated built-in methods,
 <code>is_ascii_(lowercase|uppercase|digit|hexdigit)</code> for checking on corresponding
@@ -15411,18 +15411,28 @@ use std::fs::File;
 let file = BufReader::new(File::open("./bytes.txt").unwrap());
 file.bytes();
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.87.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+unbuffered_bytes">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/methods/mod.rs#L4458">View Source</a></div></div></div></article><article id="unchecked_duration_subtraction"><input id="label-unchecked_duration_subtraction" type="checkbox"><label for="label-unchecked_duration_subtraction"><h2 class="lint-title"><div class="panel-title-name" id="lint-unchecked_duration_subtraction">unchecked_duration_subtraction
-<a href="#unchecked_duration_subtraction" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
-<p>Lints subtraction between an <code>Instant</code> and a <code>Duration</code>.</p>
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.87.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+unbuffered_bytes">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/methods/mod.rs#L4458">View Source</a></div></div></div></article><article id="unchecked_time_subtraction"><input id="label-unchecked_time_subtraction" type="checkbox"><label for="label-unchecked_time_subtraction"><h2 class="lint-title"><div class="panel-title-name" id="lint-unchecked_time_subtraction">unchecked_time_subtraction
+<a href="#unchecked_time_subtraction" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
+<p>Lints subtraction between an <code>Instant</code> and a <code>Duration</code>, or between two <code>Duration</code> values.</p>
 <h3>Why is this bad?</h3>
 <p>Unchecked subtraction could cause underflow on certain platforms, leading to
 unintentional panics.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">let time_passed = Instant::now() - Duration::from_secs(5);
+let dur1 = Duration::from_secs(3);
+let dur2 = Duration::from_secs(5);
+let diff = dur1 - dur2;
 </code></pre>
 <p>Use instead:</p>
 <pre><code class="language-rust">let time_passed = Instant::now().checked_sub(Duration::from_secs(5));
+let dur1 = Duration::from_secs(3);
+let dur2 = Duration::from_secs(5);
+let diff = dur1.checked_sub(dur2);
 </code></pre>
+<h3>Past names</h3>
+<ul>
+<li>unchecked_duration_subtraction</li>
+</ul>
 <h3>Configuration</h3>
 <ul>
 <li>
@@ -15430,7 +15440,7 @@ unintentional panics.</p>
 <p>(default: <code>current version</code>)</p>
 </li>
 </ul>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.67.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+unchecked_duration_subtraction">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/instant_subtraction.rs#L42">View Source</a></div></div></div></article><article id="unconditional_recursion"><input id="label-unconditional_recursion" type="checkbox"><label for="label-unconditional_recursion"><h2 class="lint-title"><div class="panel-title-name" id="lint-unconditional_recursion">unconditional_recursion
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.67.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+unchecked_time_subtraction">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/time_subtraction.rs#L42">View Source</a></div></div></div></article><article id="unconditional_recursion"><input id="label-unconditional_recursion" type="checkbox"><label for="label-unconditional_recursion"><h2 class="lint-title"><div class="panel-title-name" id="lint-unconditional_recursion">unconditional_recursion
 <a href="#unconditional_recursion" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-suspicious">suspicious</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks that there isn’t an infinite recursion in trait
 implementations.</p>
