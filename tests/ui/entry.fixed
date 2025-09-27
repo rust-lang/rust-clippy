@@ -248,4 +248,11 @@ mod issue14449 {
     }
 }
 
+fn issue15307<K: Eq + Hash, V>(mut m: HashMap<K, V>, k: K, v: V) {
+    if let std::collections::hash_map::Entry::Vacant(e) = m.entry(k) {
+        //~^ map_entry
+        assert!({ e.insert(v); None::<V> }.is_none());
+    }
+}
+
 fn main() {}

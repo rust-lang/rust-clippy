@@ -6,14 +6,16 @@ use clippy_utils::{
     SpanlessEq, can_move_expr_to_closure_no_visit, higher, is_expr_final_block_expr, is_expr_used_or_unified,
     peel_hir_expr_while,
 };
-use core::fmt::{self, Write};
+use core::fmt::Write;
 use rustc_errors::Applicability;
 use rustc_hir::hir_id::HirIdSet;
 use rustc_hir::intravisit::{Visitor, walk_body, walk_expr};
 use rustc_hir::{Block, Expr, ExprKind, HirId, Pat, Stmt, StmtKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::ty::IsSuggestable;
 use rustc_session::declare_lint_pass;
 use rustc_span::{DUMMY_SP, Span, SyntaxContext, sym};
+use std::fmt;
 use std::ops::ControlFlow;
 
 declare_clippy_lint! {
@@ -23,17 +25,6 @@ declare_clippy_lint! {
     ///
     /// ### Why is this bad?
     /// Using `entry` is more efficient.
-    ///
-    /// ### Known problems
-    /// The suggestion may have type inference errors in some cases. e.g.
-    /// ```no_run
-    /// let mut map = std::collections::HashMap::new();
-    /// let _ = if !map.contains_key(&0) {
-    ///     map.insert(0, 0)
-    /// } else {
-    ///     None
-    /// };
-    /// ```
     ///
     /// ### Example
     /// ```no_run
@@ -628,11 +619,8 @@ impl<'tcx> InsertSearchResults<'tcx> {
             if is_expr_used_or_unified(cx.tcx, insertion.call) {
                 write_wrapped(&mut res, insertion, ctxt, app);
             } else {
-                let _: fmt::Result = write!(
-                    res,
-                    "e.insert({})",
-                    snippet_with_context(cx, insertion.value.span, ctxt, "..", app).0
-                );
+                let value_str = snippet_with_context(cx, insertion.value.span, ctxt, "..", app).0;
+                let _: fmt::Result = write!(res, "e.insert({value_str})");
             }
             span = span.trim_start(insertion.call.span).unwrap_or(DUMMY_SP);
         }
@@ -644,11 +632,8 @@ impl<'tcx> InsertSearchResults<'tcx> {
         (
             self.snippet(cx, span, app, |res, insertion, ctxt, app| {
                 // Insertion into a map would return `Some(&mut value)`, but the entry returns `&mut value`
-                let _: fmt::Result = write!(
-                    res,
-                    "Some(e.insert({}))",
-                    snippet_with_context(cx, insertion.value.span, ctxt, "..", app).0
-                );
+                let value_str = snippet_with_context(cx, insertion.value.span, ctxt, "..", app).0;
+                let _: fmt::Result = write!(res, "Some(e.insert({value_str}))");
             }),
             "Occupied(mut e)",
         )
@@ -658,19 +643,24 @@ impl<'tcx> InsertSearchResults<'tcx> {
         (
             self.snippet(cx, span, app, |res, insertion, ctxt, app| {
                 // Insertion into a map would return `None`, but the entry returns a mutable reference.
+                let value = insertion.value;
+                let value_str = snippet_with_context(cx, value.span, ctxt, "..", app).0;
+
+                let value_ty = cx.typeck_results().expr_ty(value);
+                debug_assert!(
+                    value_ty.is_suggestable(cx.tcx, true),
+                    "an unsuggestable type used as the element type:{value_ty:#?}\nexpr={value:#?}"
+                );
+                let none_str = format_args!("None::<{value_ty}>");
+
                 let _: fmt::Result = if is_expr_final_block_expr(cx.tcx, insertion.call) {
                     write!(
                         res,
-                        "e.insert({});\n{}None",
-                        snippet_with_context(cx, insertion.value.span, ctxt, "..", app).0,
-                        snippet_indent(cx, insertion.call.span).as_deref().unwrap_or(""),
+                        "e.insert({value_str});\n{indent}{none_str}",
+                        indent = snippet_indent(cx, insertion.call.span).as_deref().unwrap_or(""),
                     )
                 } else {
-                    write!(
-                        res,
-                        "{{ e.insert({}); None }}",
-                        snippet_with_context(cx, insertion.value.span, ctxt, "..", app).0,
-                    )
+                    write!(res, "{{ e.insert({value_str}); {none_str} }}")
                 };
             }),
             "Vacant(e)",
@@ -690,7 +680,8 @@ impl<'tcx> InsertSearchResults<'tcx> {
                         "..",
                         app,
                     ));
-                    res.push_str(&snippet_with_context(cx, insertion.value.span, ctxt, "..", app).0);
+                    let value_str = snippet_with_context(cx, insertion.value.span, ctxt, "..", app).0;
+                    let _: fmt::Result = write!(res, "{value_str}");
                     span = span.trim_start(insertion.call.span).unwrap_or(DUMMY_SP);
                 },
                 Edit::RemoveSemi(semi_span) => {
