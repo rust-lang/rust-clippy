@@ -77,10 +77,7 @@ impl ClippyCmd {
                 },
                 "--fix" => {
                     if cargo_subcommand != "check" {
-                        eprintln!(
-                            "Running `cargo clippy {}` is not available with the --fix flag",
-                            cargo_subcommand
-                        );
+                        eprintln!("Running `cargo clippy {cargo_subcommand}` is not available with the --fix flag");
                         process::exit(1) // Same code as `--explain` encountering an unknown lint
                     }
                     cargo_subcommand = "fix";
