@@ -62,7 +62,7 @@ fn is_missing_punctuation(doc_string: &str) -> Option<usize> {
             Event::Start(Tag::Link { .. }) | Event::End(TagEnd::Link) if no_report_depth == 0 && !offset.is_empty() => {
                 text_offset = Some(offset.end);
             },
-            Event::Text(..) if no_report_depth == 0 && !offset.is_empty() => {
+            Event::Code(..) | Event::Text(..) if no_report_depth == 0 && !offset.is_empty() => {
                 if doc_string[..offset.end].trim_end().ends_with(')') {
                     text_offset = Some(offset.end - 1);
                 } else {
