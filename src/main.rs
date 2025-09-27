@@ -67,7 +67,22 @@ impl ClippyCmd {
 
         for arg in old_args.by_ref() {
             match arg.as_str() {
+                "build" => {
+                    cargo_subcommand = "build";
+                    continue;
+                },
+                "test" => {
+                    cargo_subcommand = "test";
+                    continue;
+                },
                 "--fix" => {
+                    if cargo_subcommand != "check" {
+                        eprintln!(
+                            "Running `cargo clippy {}` is not available with the --fix flag",
+                            cargo_subcommand
+                        );
+                        process::exit(1) // Same code as `--explain` encountering an unknown lint
+                    }
                     cargo_subcommand = "fix";
                     continue;
                 },
@@ -154,15 +169,17 @@ pub fn help_message() -> &'static str {
 
 <green,bold>Usage</>:
     <cyan,bold>cargo clippy</> <cyan>[OPTIONS] [--] [<<ARGS>>...]</>
+    <cyan,bold>cargo clippy test</> <cyan>[OPTIONS] [--] [<<ARGS>>...]</> for running `test` with Clippy as add-on
+    <cyan,bold>cargo clippy build</> <cyan>[OPTIONS] [--] [<<ARGS>>...]</> for running `build` with Clippy as add-on
 
 <green,bold>Common options:</>
     <cyan,bold>--no-deps</>                Run Clippy only on the given crate, without linting the dependencies
-    <cyan,bold>--fix</>                    Automatically apply lint suggestions. This flag implies <cyan>--no-deps</> and <cyan>--all-targets</>
+    <cyan,bold>--fix</>                    Automatically apply lint suggestions. This flag implies <cyan>--no-deps</> and <cyan>--all-targets</> (not available on test/build)
     <cyan,bold>-h</>, <cyan,bold>--help</>               Print this message
     <cyan,bold>-V</>, <cyan,bold>--version</>            Print version info and exit
     <cyan,bold>--explain [LINT]</>         Print the documentation for a given lint
 
-See all options with <cyan,bold>cargo check --help</>.
+See all options with <cyan,bold>cargo check --help</> or <cyan,bold>cargo build/test --help</> for the build or test subcommands
 
 <green,bold>Allowing / Denying lints</>
 
@@ -213,9 +230,17 @@ mod tests {
     }
 
     #[test]
-    fn check() {
+    fn cargo_subcommand() {
         let args = "cargo clippy".split_whitespace().map(ToString::to_string);
         let cmd = ClippyCmd::new(args);
         assert_eq!("check", cmd.cargo_subcommand);
+
+        let args = "cargo clippy build".split_whitespace().map(ToString::to_string);
+        let cmd = ClippyCmd::new(args);
+        assert_eq!("build", cmd.cargo_subcommand);
+
+        let args = "cargo clippy test".split_whitespace().map(ToString::to_string);
+        let cmd = ClippyCmd::new(args);
+        assert_eq!("test", cmd.cargo_subcommand);
     }
 }
