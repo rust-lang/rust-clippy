@@ -203,10 +203,6 @@ declare_clippy_lint! {
     /// set to zero or one by the bit mask, the comparison is constant `true` or
     /// `false` (depending on mask, compared value, and operators).
     ///
-    /// So the code is actively misleading, and the only reason someone would write
-    /// this intentionally is to win an underhanded Rust contest or create a
-    /// test-case for this lint.
-    ///
     /// ### Example
     /// ```no_run
     /// # let x = 1;
