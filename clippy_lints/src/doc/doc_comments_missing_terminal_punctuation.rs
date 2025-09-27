@@ -30,9 +30,8 @@ pub fn check(cx: &LateContext<'_>, doc: &str, fragments: Fragments<'_>) {
     }
 }
 
+/// If punctuation is missing, returns the offset where new punctuation should be inserted.
 #[must_use]
-/// If punctuation is missing, returns the docstring and the offset
-/// where new punctuation should be inserted.
 fn is_missing_punctuation(doc_string: &str) -> Option<usize> {
     const TERMINAL_PUNCTUATION_MARKS: &[char] = &['.', '?', '!', '…'];
 
@@ -65,22 +64,27 @@ fn is_missing_punctuation(doc_string: &str) -> Option<usize> {
             Event::InlineHtml(_) | Event::Start(Tag::Image { .. }) | Event::End(TagEnd::Image) => {
                 text_offset = None;
             },
-            Event::Text(..) | Event::Start(Tag::Link { .. }) | Event::End(TagEnd::Link)
-                if no_report_depth == 0 && !offset.is_empty() =>
-            {
-                text_offset = Some(offset);
+            Event::Start(Tag::Link { .. }) | Event::End(TagEnd::Link) if no_report_depth == 0 && !offset.is_empty() => {
+                text_offset = Some(offset.end);
+            },
+            Event::Text(..) if no_report_depth == 0 && !offset.is_empty() => {
+                if doc_string[..offset.end].trim_end().ends_with(')') {
+                    text_offset = Some(offset.end - 1);
+                } else {
+                    text_offset = Some(offset.end);
+                }
             },
             _ => {},
         }
     }
 
     let text_offset = text_offset?;
-    if doc_string[..text_offset.end]
-        .trim_end_matches(|c: char| c.is_whitespace() || c == ')' || c == ']' || c == '}')
+    if doc_string[..text_offset]
+        .trim_end()
         .ends_with(TERMINAL_PUNCTUATION_MARKS)
     {
         None
     } else {
-        Some(text_offset.end)
+        Some(text_offset)
     }
 }
