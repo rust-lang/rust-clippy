@@ -113,7 +113,7 @@ impl<'tcx> LateLintPass<'tcx> for UndocumentedUnsafeBlocks {
             && !block.span.in_external_macro(cx.tcx.sess.source_map())
             && !is_lint_allowed(cx, UNDOCUMENTED_UNSAFE_BLOCKS, block.hir_id)
             && !is_unsafe_from_proc_macro(cx, block.span)
-            && !block_has_safety_comment(cx, block.span)
+            && !block_has_safety_comment(cx, block.span, self.accept_comment_above_attributes)
             && !block_parents_have_safety_comment(
                 self.accept_comment_above_statement,
                 self.accept_comment_above_attributes,
@@ -201,7 +201,7 @@ impl<'tcx> LateLintPass<'tcx> for UndocumentedUnsafeBlocks {
             (span, help_span)
         };
 
-        let item_has_safety_comment = item_has_safety_comment(cx, item);
+        let item_has_safety_comment = item_has_safety_comment(cx, item, self.accept_comment_above_attributes);
         match item_has_safety_comment {
             HasSafetyComment::Yes(pos) => check_has_safety_comment(cx, item, mk_spans(pos)),
             HasSafetyComment::No => check_has_no_safety_comment(cx, item),
@@ -272,6 +272,7 @@ fn check_has_safety_comment(cx: &LateContext<'_>, item: &hir::Item<'_>, (span, h
         },
     }
 }
+
 fn check_has_no_safety_comment(cx: &LateContext<'_>, item: &hir::Item<'_>) {
     if let ItemKind::Impl(Impl {
         of_trait: Some(of_trait),
@@ -407,21 +408,21 @@ fn block_parents_have_safety_comment(
     cx: &LateContext<'_>,
     id: HirId,
 ) -> bool {
-    let (span, hir_id) = match cx.tcx.parent_hir_node(id) {
-        Node::Expr(expr) if let Some(inner) = find_unsafe_block_parent_in_expr(cx, expr) => inner,
+    let span = match cx.tcx.parent_hir_node(id) {
+        Node::Expr(expr) if let Some((span, _)) = find_unsafe_block_parent_in_expr(cx, expr) => span,
         Node::Stmt(hir::Stmt {
             kind:
-                hir::StmtKind::Let(hir::LetStmt { span, hir_id, .. })
-                | hir::StmtKind::Expr(hir::Expr { span, hir_id, .. })
-                | hir::StmtKind::Semi(hir::Expr { span, hir_id, .. }),
+                hir::StmtKind::Let(hir::LetStmt { span, .. })
+                | hir::StmtKind::Expr(hir::Expr { span, .. })
+                | hir::StmtKind::Semi(hir::Expr { span, .. }),
             ..
         })
-        | Node::LetStmt(hir::LetStmt { span, hir_id, .. }) => (*span, *hir_id),
+        | Node::LetStmt(hir::LetStmt { span, .. }) => *span,
 
-        node if let Some((span, hir_id)) = span_and_hid_of_item_alike_node(&node)
+        node if let Some((span, _)) = span_and_hid_of_item_alike_node(&node)
             && is_const_or_static(&node) =>
         {
-            (span, hir_id)
+            span
         },
 
         _ => return false,
@@ -429,24 +430,7 @@ fn block_parents_have_safety_comment(
     // if unsafe block is part of a let/const/static statement,
     // and accept_comment_above_statement is set to true
     // we accept the safety comment in the line the precedes this statement.
-    accept_comment_above_statement
-        && span_with_attrs_has_safety_comment(cx, span, hir_id, accept_comment_above_attributes)
-}
-
-/// Extends `span` to also include its attributes, then checks if that span has a safety comment.
-fn span_with_attrs_has_safety_comment(
-    cx: &LateContext<'_>,
-    span: Span,
-    hir_id: HirId,
-    accept_comment_above_attributes: bool,
-) -> bool {
-    let span = if accept_comment_above_attributes {
-        include_attrs_in_span(cx, hir_id, span)
-    } else {
-        span
-    };
-
-    span_has_safety_comment(cx, span)
+    accept_comment_above_statement && span_has_safety_comment(cx, span, accept_comment_above_attributes)
 }
 
 /// Checks if an expression is "branchy", e.g. loop, match/if/etc.
@@ -458,7 +442,7 @@ fn is_branchy(expr: &hir::Expr<'_>) -> bool {
 }
 
 /// Checks if the lines immediately preceding the block contain a safety comment.
-fn block_has_safety_comment(cx: &LateContext<'_>, span: Span) -> bool {
+fn block_has_safety_comment(cx: &LateContext<'_>, span: Span, accept_comment_above_attributes: bool) -> bool {
     // This intentionally ignores text before the start of a function so something like:
     // ```
     //     // SAFETY: reason
@@ -468,18 +452,9 @@ fn block_has_safety_comment(cx: &LateContext<'_>, span: Span) -> bool {
     // attributes and doc comments.
 
     matches!(
-        span_from_macro_expansion_has_safety_comment(cx, span),
+        span_from_macro_expansion_has_safety_comment(cx, span, accept_comment_above_attributes),
         HasSafetyComment::Yes(_)
-    ) || span_has_safety_comment(cx, span)
-}
-
-fn include_attrs_in_span(cx: &LateContext<'_>, hir_id: HirId, span: Span) -> Span {
-    span.to(cx.tcx.hir_attrs(hir_id).iter().fold(span, |acc, attr| {
-        if attr.is_doc_comment() {
-            return acc;
-        }
-        acc.to(attr.span())
-    }))
+    ) || span_has_safety_comment(cx, span, accept_comment_above_attributes)
 }
 
 enum HasSafetyComment {
@@ -490,8 +465,12 @@ enum HasSafetyComment {
 
 /// Checks if the lines immediately preceding the item contain a safety comment.
 #[allow(clippy::collapsible_match)]
-fn item_has_safety_comment(cx: &LateContext<'_>, item: &hir::Item<'_>) -> HasSafetyComment {
-    match span_from_macro_expansion_has_safety_comment(cx, item.span) {
+fn item_has_safety_comment(
+    cx: &LateContext<'_>,
+    item: &hir::Item<'_>,
+    accept_comment_above_attributes: bool,
+) -> HasSafetyComment {
+    match span_from_macro_expansion_has_safety_comment(cx, item.span, accept_comment_above_attributes) {
         HasSafetyComment::Maybe => (),
         has_safety_comment => return has_safety_comment,
     }
@@ -541,6 +520,7 @@ fn item_has_safety_comment(cx: &LateContext<'_>, item: &hir::Item<'_>) -> HasSaf
                 &unsafe_line.sf.lines()
                     [(comment_start_line.line + usize::from(!include_first_line_of_file))..=unsafe_line.line],
                 unsafe_line.sf.start_pos,
+                accept_comment_above_attributes,
             ) {
                 Some(b) => HasSafetyComment::Yes(b),
                 None => HasSafetyComment::No,
@@ -558,7 +538,7 @@ fn stmt_has_safety_comment(
     hir_id: HirId,
     accept_comment_above_attributes: bool,
 ) -> HasSafetyComment {
-    match span_from_macro_expansion_has_safety_comment(cx, span) {
+    match span_from_macro_expansion_has_safety_comment(cx, span, accept_comment_above_attributes) {
         HasSafetyComment::Maybe => (),
         has_safety_comment => return has_safety_comment,
     }
@@ -571,13 +551,6 @@ fn stmt_has_safety_comment(
         Node::Block(block) => walk_span_to_context(block.span, SyntaxContext::root()).map(Span::lo),
         _ => return HasSafetyComment::Maybe,
     };
-
-    // if span_with_attrs_has_safety_comment(cx, span, hir_id, accept_comment_above_attrib
-    // }
-    let mut span = span;
-    if accept_comment_above_attributes {
-        span = include_attrs_in_span(cx, hir_id, span);
-    }
 
     let source_map = cx.sess().source_map();
     if let Some(comment_start) = comment_start
@@ -593,6 +566,7 @@ fn stmt_has_safety_comment(
                 src,
                 &unsafe_line.sf.lines()[comment_start_line.line + 1..=unsafe_line.line],
                 unsafe_line.sf.start_pos,
+                accept_comment_above_attributes,
             ) {
                 Some(b) => HasSafetyComment::Yes(b),
                 None => HasSafetyComment::No,
@@ -649,7 +623,11 @@ fn comment_start_before_item_in_mod(
     })
 }
 
-fn span_from_macro_expansion_has_safety_comment(cx: &LateContext<'_>, span: Span) -> HasSafetyComment {
+fn span_from_macro_expansion_has_safety_comment(
+    cx: &LateContext<'_>,
+    span: Span,
+    accept_comment_above_attributes: bool,
+) -> HasSafetyComment {
     let source_map = cx.sess().source_map();
     let ctxt = span.ctxt();
     if ctxt == SyntaxContext::root() {
@@ -669,6 +647,7 @@ fn span_from_macro_expansion_has_safety_comment(cx: &LateContext<'_>, span: Span
                 src,
                 &unsafe_line.sf.lines()[macro_line.line + 1..=unsafe_line.line],
                 unsafe_line.sf.start_pos,
+                accept_comment_above_attributes,
             ) {
                 Some(b) => HasSafetyComment::Yes(b),
                 None => HasSafetyComment::No,
@@ -715,7 +694,7 @@ fn get_body_search_span(cx: &LateContext<'_>) -> Option<Span> {
     None
 }
 
-fn span_has_safety_comment(cx: &LateContext<'_>, span: Span) -> bool {
+fn span_has_safety_comment(cx: &LateContext<'_>, span: Span, accept_comment_above_attributes: bool) -> bool {
     let source_map = cx.sess().source_map();
     let ctxt = span.ctxt();
     if ctxt.is_root()
@@ -735,6 +714,7 @@ fn span_has_safety_comment(cx: &LateContext<'_>, span: Span) -> bool {
                     src,
                     &unsafe_line.sf.lines()[body_line.line + 1..=unsafe_line.line],
                     unsafe_line.sf.start_pos,
+                    accept_comment_above_attributes,
                 )
                 .is_some()
         } else {
@@ -747,7 +727,15 @@ fn span_has_safety_comment(cx: &LateContext<'_>, span: Span) -> bool {
 }
 
 /// Checks if the given text has a safety comment for the immediately proceeding line.
-fn text_has_safety_comment(src: &str, line_starts: &[RelativeBytePos], start_pos: BytePos) -> Option<BytePos> {
+///
+/// If `accept_comment_above_attributes` is true, it will ignore attributes inbetween blocks of
+/// comments
+fn text_has_safety_comment(
+    src: &str,
+    line_starts: &[RelativeBytePos],
+    start_pos: BytePos,
+    accept_comment_above_attributes: bool,
+) -> Option<BytePos> {
     let mut lines = line_starts
         .array_windows::<2>()
         .rev()
@@ -758,7 +746,7 @@ fn text_has_safety_comment(src: &str, line_starts: &[RelativeBytePos], start_pos
             let trimmed = text.trim_start();
             Some((start + (text.len() - trimmed.len()), trimmed))
         })
-        .filter(|(_, text)| !text.is_empty());
+        .filter(|(_, text)| !(text.is_empty() || (accept_comment_above_attributes && is_attribute(text))));
 
     let (line_start, line) = lines.next()?;
     let mut in_codeblock = false;
@@ -800,6 +788,10 @@ fn text_has_safety_comment(src: &str, line_starts: &[RelativeBytePos], start_pos
             None => return None,
         }
     }
+}
+
+fn is_attribute(text: &str) -> bool {
+    (text.starts_with("#[") || text.starts_with("#![")) && text.trim_end().ends_with(']')
 }
 
 fn span_and_hid_of_item_alike_node(node: &Node<'_>) -> Option<(Span, HirId)> {
