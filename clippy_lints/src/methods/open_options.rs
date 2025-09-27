@@ -189,7 +189,7 @@ fn check_open_options(cx: &LateContext<'_>, settings: &[(OpenOption, Argument, S
                 diag.span_suggestion(
                     create_span.shrink_to_hi(),
                     "add",
-                    ".truncate(true)".to_string(),
+                    ".truncate(true)",
                     rustc_errors::Applicability::MaybeIncorrect,
                 )
                 .help("if you intend to overwrite an existing file entirely, call `.truncate(true)`")

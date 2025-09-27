@@ -126,6 +126,9 @@ path_macros! {
     macro_path: PathNS::Macro,
 }
 
+// Paths in `core`/`alloc`/`std`. This should be avoided and cleaned up by adding diagnostic items.
+pub static BOX_NEW: PathLookup = value_path!(alloc::boxed::box_new);
+
 // Paths in external crates
 pub static FUTURES_IO_ASYNCREADEXT: PathLookup = type_path!(futures_util::AsyncReadExt);
 pub static FUTURES_IO_ASYNCWRITEEXT: PathLookup = type_path!(futures_util::AsyncWriteExt);
