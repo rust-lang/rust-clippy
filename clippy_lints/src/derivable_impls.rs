@@ -105,6 +105,7 @@ fn check_struct<'tcx>(
     if let TyKind::Path(QPath::Resolved(_, p)) = self_ty.kind
         && let Some(PathSegment { args, .. }) = p.segments.last()
     {
+        #[expect(clippy::map_unwrap_or)]
         let args = args.map(|a| a.args).unwrap_or(&[]);
 
         // ty_args contains the generic parameters of the type declaration, while args contains the
