@@ -1,7 +1,7 @@
 use crate::update_lints::{RenamedLint, find_lint_decls, generate_lint_files, read_deprecated_lints};
 use crate::utils::{
-    ErrAction, FileUpdater, RustSearcher, Token, UpdateMode, UpdateStatus, Version, delete_dir_if_exists,
-    delete_file_if_exists, expect_action, try_rename_dir, try_rename_file, walk_dir_no_dot_or_target,
+    ErrAction, FileUpdater, RustSearcher, Token, UpdateMode, UpdateStatus, delete_dir_if_exists, delete_file_if_exists,
+    expect_action, try_rename_dir, try_rename_file, walk_dir_no_dot_or_target,
 };
 use rustc_lexer::TokenKind;
 use std::ffi::OsString;
@@ -24,7 +24,7 @@ use std::path::Path;
 /// * If `old_name` doesn't name an existing lint.
 /// * If `old_name` names a deprecated or renamed lint.
 #[expect(clippy::too_many_lines)]
-pub fn rename(clippy_version: Version, old_name: &str, new_name: &str, uplift: bool) {
+pub fn rename(old_name: &str, new_name: &str, uplift: bool) {
     if let Some((prefix, _)) = old_name.split_once("::") {
         panic!("`{old_name}` should not contain the `{prefix}` prefix");
     }
@@ -68,7 +68,6 @@ pub fn rename(clippy_version: Version, old_name: &str, new_name: &str, uplift: b
                     } else {
                         String::from_iter(["clippy::", new_name])
                     },
-                    version: clippy_version.rust_display().to_string(),
                 },
             );
         },

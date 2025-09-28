@@ -1,5 +1,5 @@
 use crate::update_lints::{DeprecatedLint, Lint, find_lint_decls, generate_lint_files, read_deprecated_lints};
-use crate::utils::{UpdateMode, Version};
+use crate::utils::UpdateMode;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::{fs, io};
@@ -13,7 +13,7 @@ use std::{fs, io};
 /// # Panics
 ///
 /// If a file path could not read from or written to
-pub fn deprecate(clippy_version: Version, name: &str, reason: &str) {
+pub fn deprecate(name: &str, reason: &str) {
     if let Some((prefix, _)) = name.split_once("::") {
         panic!("`{name}` should not contain the `{prefix}` prefix");
     }
@@ -37,7 +37,7 @@ pub fn deprecate(clippy_version: Version, name: &str, reason: &str) {
             DeprecatedLint {
                 name: prefixed_name,
                 reason: reason.into(),
-                version: clippy_version.rust_display().to_string(),
+                version: "nightly".to_string(),
             },
         ),
     }
