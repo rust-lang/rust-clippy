@@ -168,10 +168,10 @@ declare_clippy_lint! {
     /// ```rust
     /// // example code which does not raise Clippy warning
     /// ```
-    #[clippy::version = "1.70.0"] // <- In which version was this implemented, keep it up to date!
+    #[clippy::version = "dev"]
     pub LINT_NAME, // <- The lint name IN_ALL_CAPS
     pedantic, // <- The lint group
-    "default lint description" // <- A lint description, e.g. "A function has an unit return type."
+    "default lint description" // <- A lint description, e.g. "function with the unit return type"
 }
 ```
 

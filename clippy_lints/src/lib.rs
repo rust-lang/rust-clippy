@@ -401,6 +401,7 @@ mod zombie_processes;
 
 use clippy_config::{Conf, get_configuration_metadata, sanitize_explanation};
 use clippy_utils::macros::FormatArgsStorage;
+use deprecated_lints::Deprecation;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_data_structures::sync;
 use rustc_lint::{EarlyLintPass, LateLintPass, Lint};
@@ -437,7 +438,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     for (old_name, new_name) in deprecated_lints::RENAMED {
         store.register_renamed(old_name, new_name);
     }
-    for (name, reason) in deprecated_lints::DEPRECATED {
+    for Deprecation { name, reason, .. } in deprecated_lints::DEPRECATED {
         store.register_removed(name, reason);
     }
 

@@ -98,7 +98,6 @@ pub struct DeprecatedLint<'cx> {
 pub struct RenamedLint<'cx> {
     pub old_name: &'cx str,
     pub new_name: &'cx str,
-    pub version: &'cx str,
 }
 
 impl<'cx> ParseCxImpl<'cx> {
@@ -186,21 +185,16 @@ impl<'cx> ParseCxImpl<'cx> {
         #[allow(clippy::enum_glob_use)]
         use cursor::Pat::*;
         #[rustfmt::skip]
-        static DECL_TOKENS: &[cursor::Pat<'_>] = &[
+        static VERSIONED_DECL: &[cursor::Pat<'_>] = &[
             // #[clippy::version = "version"]
             Pound, OpenBracket, Ident("clippy"), DoubleColon, Ident("version"), Eq, CaptureLitStr, CloseBracket,
             // ("first", "second"),
             OpenParen, CaptureLitStr, Comma, CaptureLitStr, CloseParen, Comma,
         ];
         #[rustfmt::skip]
-        static DEPRECATED_TOKENS: &[cursor::Pat<'_>] = &[
-            // !{ DEPRECATED(DEPRECATED_VERSION) = [
-            Bang, OpenBrace, Ident("DEPRECATED"), OpenParen, Ident("DEPRECATED_VERSION"), CloseParen, Eq, OpenBracket,
-        ];
-        #[rustfmt::skip]
-        static RENAMED_TOKENS: &[cursor::Pat<'_>] = &[
-            // !{ RENAMED(RENAMED_VERSION) = [
-            Bang, OpenBrace, Ident("RENAMED"), OpenParen, Ident("RENAMED_VERSION"), CloseParen, Eq, OpenBracket,
+        static UNVERSIONED_DECL: &[cursor::Pat<'_>] = &[
+            // ("first", "second"),
+            OpenParen, CaptureLitStr, Comma, CaptureLitStr, CloseParen, Comma,
         ];
 
         let path = "clippy_lints/src/deprecated_lints.rs";
@@ -214,12 +208,12 @@ impl<'cx> ParseCxImpl<'cx> {
 
         // First instance is the macro definition.
         assert!(
-            cursor.find_ident("declare_with_version").is_some(),
+            cursor.find_ident("deprecated").is_some(),
             "error reading deprecated lints"
         );
 
-        if cursor.find_ident("declare_with_version").is_some() && cursor.match_all(DEPRECATED_TOKENS, &mut []) {
-            while cursor.match_all(DECL_TOKENS, &mut captures) {
+        if cursor.find_ident("deprecated").is_some() && cursor.match_all(&[Bang, OpenBracket], &mut []) {
+            while cursor.match_all(VERSIONED_DECL, &mut captures) {
                 deprecated.push(DeprecatedLint {
                     name: self.parse_str_single_line(path.as_ref(), cursor.get_text(captures[1])),
                     reason: self.parse_str_single_line(path.as_ref(), cursor.get_text(captures[2])),
@@ -230,12 +224,13 @@ impl<'cx> ParseCxImpl<'cx> {
             panic!("error reading deprecated lints");
         }
 
-        if cursor.find_ident("declare_with_version").is_some() && cursor.match_all(RENAMED_TOKENS, &mut []) {
-            while cursor.match_all(DECL_TOKENS, &mut captures) {
+        // pub const RENAMED: &[(&str, &str)] = &[
+        //           ^^^^^^^                  ^  ^
+        if cursor.find_ident("RENAMED").is_some() && cursor.find_pat(Eq) && cursor.find_pat(OpenBracket) {
+            while cursor.match_all(UNVERSIONED_DECL, &mut captures) {
                 renamed.push(RenamedLint {
-                    old_name: self.parse_str_single_line(path.as_ref(), cursor.get_text(captures[1])),
-                    new_name: self.parse_str_single_line(path.as_ref(), cursor.get_text(captures[2])),
-                    version: self.parse_str_single_line(path.as_ref(), cursor.get_text(captures[0])),
+                    old_name: self.parse_str_single_line(path.as_ref(), cursor.get_text(captures[0])),
+                    new_name: self.parse_str_single_line(path.as_ref(), cursor.get_text(captures[1])),
                 });
             }
         } else {
