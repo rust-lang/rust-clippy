@@ -9392,13 +9392,24 @@ be safe.</p>
 <a href="#mut_mut" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for instances of <code>mut mut</code> references.</p>
 <h3>Why is this bad?</h3>
-<p>Multiple <code>mut</code>s don’t add anything meaningful to the
-source. This is either a copy’n’paste error, or it shows a fundamental
-misunderstanding of references.</p>
+<p>This is usually just a typo or a misunderstanding of how references work.</p>
 <h3>Example</h3>
-<pre><code class="language-rust">let x = &amp;mut &amp;mut y;
+<pre><code class="language-rust">let x = &amp;mut &amp;mut 1;
+
+let mut x = &amp;mut 1;
+let y = &amp;mut x;
+
+fn foo(x: &amp;mut &amp;mut u32) {}
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">pre 1.29.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+mut_mut">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/mut_mut.rs#L8">View Source</a></div></div></div></article><article id="mut_mutex_lock"><input id="label-mut_mutex_lock" type="checkbox"><label for="label-mut_mutex_lock"><h2 class="lint-title"><div class="panel-title-name" id="lint-mut_mutex_lock">mut_mutex_lock
+<p>Use instead</p>
+<pre><code class="language-rust">let x = &amp;mut 1;
+
+let mut x = &amp;mut 1;
+let y = &amp;mut *x; // reborrow
+
+fn foo(x: &amp;mut u32) {}
+</code></pre>
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">pre 1.29.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+mut_mut">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/mut_mut.rs#L12">View Source</a></div></div></div></article><article id="mut_mutex_lock"><input id="label-mut_mutex_lock" type="checkbox"><label for="label-mut_mutex_lock"><h2 class="lint-title"><div class="panel-title-name" id="lint-mut_mutex_lock">mut_mutex_lock
 <a href="#mut_mutex_lock" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-style">style</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for <code>&amp;mut Mutex::lock</code> calls</p>
 <h3>Why is this bad?</h3>
