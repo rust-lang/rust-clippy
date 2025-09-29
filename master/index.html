@@ -2889,12 +2889,12 @@ foo((0));
 </code></pre>
 <p>Use instead:</p>
 <pre><code class="language-rust">fn simple_no_parens() -&gt; i32 {
-    0
+    (0)
 }
 
 foo(0);
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">pre 1.29.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+double_parens">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/double_parens.rs#L6">View Source</a></div></div></div></article><article id="drain_collect"><input id="label-drain_collect" type="checkbox"><label for="label-drain_collect"><h2 class="lint-title"><div class="panel-title-name" id="lint-drain_collect">drain_collect
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">pre 1.29.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+double_parens">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/double_parens.rs#L8">View Source</a></div></div></div></article><article id="drain_collect"><input id="label-drain_collect" type="checkbox"><label for="label-drain_collect"><h2 class="lint-title"><div class="panel-title-name" id="lint-drain_collect">drain_collect
 <a href="#drain_collect" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-perf">perf</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for calls to <code>.drain()</code> that clear the collection, immediately followed by a call to <code>.collect()</code>.</p>
 <blockquote>
