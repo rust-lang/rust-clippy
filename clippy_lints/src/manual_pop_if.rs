@@ -222,7 +222,7 @@ fn check_is_some_and_pattern<'tcx>(
         && let ExprKind::Closure(closure) = closure_arg.kind
         && let body = cx.tcx.hir_body(closure.body)
         && let Some((pop_collection, _pop_span)) = check_pop_unwrap(then_block, pop_method)
-        && eq_expr_value(cx, collection_expr, pop_collection)
+        && eq_expr_value(cx, if_expr_span.ctxt(), collection_expr, pop_collection)
         && let Some(param) = body.params.first()
         && let Some(ident) = param.pat.simple_ident()
     {
@@ -283,7 +283,7 @@ fn check_if_let_pattern<'tcx>(
                 && is_local_used(cx, inner_cond, binding_id)
                 && !pop_value_is_used(inner_then)
                 && let Some((pop_collection, _pop_span)) = check_pop_unwrap(inner_then, pop_method)
-                && eq_expr_value(cx, collection_expr, pop_collection)
+                && eq_expr_value(cx, if_expr_span.ctxt(), collection_expr, pop_collection)
             {
                 return Some(ManualPopIfPattern {
                     kind,
@@ -335,7 +335,7 @@ fn check_let_chain_pattern<'tcx>(
             && is_local_used(cx, right, binding_id)
             && !pop_value_is_used(then_block)
             && let Some((pop_collection, _pop_span)) = check_pop_unwrap(then_block, pop_method)
-            && eq_expr_value(cx, collection_expr, pop_collection)
+            && eq_expr_value(cx, if_expr_span.ctxt(), collection_expr, pop_collection)
         {
             return Some(ManualPopIfPattern {
                 kind,
@@ -382,7 +382,7 @@ fn check_map_unwrap_or_pattern<'tcx>(
         && let body = cx.tcx.hir_body(closure.body)
         && cx.typeck_results().expr_ty(body.value).is_bool()
         && let Some((pop_collection, _pop_span)) = check_pop_unwrap(then_block, pop_method)
-        && eq_expr_value(cx, collection_expr, pop_collection)
+        && eq_expr_value(cx, if_expr_span.ctxt(), collection_expr, pop_collection)
         && let Some(param) = body.params.first()
         && let Some(ident) = param.pat.simple_ident()
     {
