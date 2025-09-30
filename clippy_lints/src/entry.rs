@@ -4,7 +4,7 @@ use clippy_utils::ty::is_copy;
 use clippy_utils::visitors::for_each_expr;
 use clippy_utils::{
     SpanlessEq, can_move_expr_to_closure_no_visit, higher, is_expr_final_block_expr, is_expr_used_or_unified,
-    peel_hir_expr_while,
+    peel_hir_expr_while, span_contains_non_whitespace,
 };
 use core::fmt::{self, Write};
 use rustc_errors::Applicability;
@@ -13,7 +13,7 @@ use rustc_hir::intravisit::{Visitor, walk_body, walk_expr};
 use rustc_hir::{Block, Expr, ExprKind, HirId, Pat, Stmt, StmtKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
-use rustc_span::{DUMMY_SP, Span, SyntaxContext, sym};
+use rustc_span::{BytePos, DUMMY_SP, Pos, Span, SyntaxContext, sym};
 use std::ops::ControlFlow;
 
 declare_clippy_lint! {
@@ -166,7 +166,11 @@ impl<'tcx> LateLintPass<'tcx> for HashMapPass {
                     "if let {}::{entry_kind} = {map_str}.entry({key_str}) {body_str}",
                     map_ty.entry_path(),
                 ))
-            } else if let Some(insertion) = then_search.as_single_insertion() {
+            } else if let Some(insertion) = then_search.as_single_insertion()
+                && let span_in_between = then_expr.span.shrink_to_lo().between(insertion.call.span)
+                && let span_in_between = span_in_between.with_lo(span_in_between.lo() + BytePos::from_usize(1))
+                && !span_contains_non_whitespace(cx, span_in_between, true)
+            {
                 let value_str = snippet_with_context(cx, insertion.value.span, then_expr.span.ctxt(), "..", &mut app).0;
                 if contains_expr.negated {
                     if insertion.value.can_have_side_effects() {
