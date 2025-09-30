@@ -653,7 +653,8 @@ pub fn snippet_block_with_context(
 /// would result in `box []`. If given the context of the address of expression, this function will
 /// correctly get a snippet of `vec![]`.
 ///
-/// NOTE: Typically the `outer` context should be taken from the parent node, not from the node itself.
+/// NOTE: Typically the `outer` context should be taken from the parent node, not from the node
+/// itself.
 ///
 /// This will also return whether or not the snippet is a macro call.
 pub fn snippet_with_context<'a>(
