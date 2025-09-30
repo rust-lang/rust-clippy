@@ -45,7 +45,7 @@ impl<'tcx> LateLintPass<'tcx> for UselessPathbufConversion {
             && is_type_diagnostic_item(cx, *inner_ty, sym::Path)
         {
             let mut app = Applicability::MachineApplicable;
-            let arg_snippet = snippet_with_context(cx, arg.span, arg.span.ctxt(), "..", &mut app).0;
+            let arg_snippet = snippet_with_context(cx, arg.span, inner.span.ctxt(), "..", &mut app).0;
 
             let sugg = format!("Path::new({arg_snippet})");
 
