@@ -5,7 +5,8 @@
     clippy::needless_lifetimes,
     clippy::owned_cow,
     clippy::ptr_arg,
-    clippy::uninlined_format_args
+    clippy::uninlined_format_args,
+    clippy::useless_pathbuf_conversion
 )]
 #![warn(clippy::unnecessary_to_owned, clippy::redundant_clone)]
 
@@ -218,6 +219,8 @@ fn main() {
     require_c_str(&CString::from_vec_with_nul(vec![0]).unwrap());
     //~^ redundant_clone
     require_os_str(&OsString::from("x"));
+    //~^ redundant_clone
+    require_path(&std::path::PathBuf::from("x"));
     //~^ redundant_clone
     require_str(&String::from("x"));
     //~^ redundant_clone

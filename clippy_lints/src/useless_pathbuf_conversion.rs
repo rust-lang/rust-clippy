@@ -1,6 +1,9 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::is_path_diagnostic_item;
-use clippy_utils::source::snippet;
+use clippy_utils::source::snippet_with_context;
+use clippy_utils::ty::is_type_diagnostic_item;
+
+use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
@@ -34,12 +37,18 @@ impl<'tcx> LateLintPass<'tcx> for UselessPathbufConversion {
         if let ExprKind::AddrOf(_, _, inner) = &expr.kind
             && let ExprKind::Call(func, [arg]) = &inner.kind
             && let ExprKind::Path(ref qpath) = func.kind
-            && let Some(def_id) = cx.qpath_res(qpath, func.hir_id).opt_def_id()
-            && cx.tcx.item_name(def_id) == sym::from
-            && let QPath::TypeRelative(pathbuf, _) = qpath
+            && let QPath::TypeRelative(pathbuf, from) = qpath
             && is_path_diagnostic_item(cx, *pathbuf, sym::PathBuf)
+            && from.ident.name == sym::from
+            && let expr_ty = cx.typeck_results().expr_ty_adjusted(expr)
+            && let rustc_middle::ty::Ref(_, inner_ty, _) = expr_ty.kind()
+            && is_type_diagnostic_item(cx, *inner_ty, sym::Path)
         {
-            let sugg = format!("Path::new({})", snippet(cx, arg.span, ".."));
+            let mut app = Applicability::MachineApplicable;
+            let arg_snippet = snippet_with_context(cx, arg.span, arg.span.ctxt(), "..", &mut app).0;
+
+            let sugg = format!("Path::new({arg_snippet})");
+
             span_lint_and_sugg(
                 cx,
                 USELESS_PATHBUF_CONVERSION,
@@ -47,7 +56,7 @@ impl<'tcx> LateLintPass<'tcx> for UselessPathbufConversion {
                 "unnecessary `PathBuf::from` when a `&Path` is enough",
                 "consider using",
                 sugg,
-                rustc_errors::Applicability::MachineApplicable,
+                app,
             );
         }
     }

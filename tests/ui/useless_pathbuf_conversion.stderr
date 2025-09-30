@@ -1,5 +1,5 @@
 error: unnecessary `PathBuf::from` when a `&Path` is enough
-  --> tests/ui/useless_pathbuf_conversion.rs:7:14
+  --> tests/ui/useless_pathbuf_conversion.rs:9:14
    |
 LL |     use_path(&PathBuf::from("abc"));
    |              ^^^^^^^^^^^^^^^^^^^^^ help: consider using: `Path::new("abc")`
