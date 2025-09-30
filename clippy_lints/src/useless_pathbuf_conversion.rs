@@ -36,7 +36,7 @@ impl<'tcx> LateLintPass<'tcx> for UselessPathbufConversion {
             && let ExprKind::Path(ref qpath) = func.kind
             && let Some(def_id) = cx.qpath_res(qpath, func.hir_id).opt_def_id()
             && cx.tcx.item_name(def_id) == sym::from
-            && let QPath::TypeRelative(pathbuf, from) = qpath
+            && let QPath::TypeRelative(pathbuf, _) = qpath
             && is_path_diagnostic_item(cx, *pathbuf, sym::PathBuf)
         {
             let sugg = format!("Path::new({})", snippet(cx, arg.span, ".."));
