@@ -24,6 +24,7 @@ pub(super) fn check(cx: &LateContext<'_>, hir_ty: &hir::Ty<'_>, qpath: &QPath<'_
                     diag.span_suggestion(hir_ty.span, "try", format!("Rc<{alternate}>"), app);
                 },
             );
+            true
         } else {
             let Some(ty) = qpath_generic_tys(qpath).next() else {
                 return false;
@@ -55,7 +56,7 @@ pub(super) fn check(cx: &LateContext<'_>, hir_ty: &hir::Ty<'_>, qpath: &QPath<'_
                     );
                 },
             );
-            return true;
+            true
         }
     } else if name == Some(sym::Arc) {
         if let Some(alternate) = match_buffer_type(cx, qpath) {
@@ -69,6 +70,7 @@ pub(super) fn check(cx: &LateContext<'_>, hir_ty: &hir::Ty<'_>, qpath: &QPath<'_
                     diag.span_suggestion(hir_ty.span, "try", format!("Arc<{alternate}>"), app);
                 },
             );
+            true
         } else if let Some(ty) = qpath_generic_tys(qpath).next() {
             let Some(id) = path_def_id(cx, ty) else { return false };
             if !cx.tcx.is_diagnostic_item(sym::Vec, id) {
@@ -97,11 +99,13 @@ pub(super) fn check(cx: &LateContext<'_>, hir_ty: &hir::Ty<'_>, qpath: &QPath<'_
                     );
                 },
             );
-            return true;
+            true
+        } else {
+            false
         }
+    } else {
+        false
     }
-
-    false
 }
 
 fn match_buffer_type(cx: &LateContext<'_>, qpath: &QPath<'_>) -> Option<&'static str> {
