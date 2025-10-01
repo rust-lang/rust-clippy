@@ -91,8 +91,9 @@ impl<'tcx> LateLintPass<'tcx> for CollapsibleCalls {
             let and_then_snippets =
                 get_and_then_snippets(cx, call_cx.span, call_lint.span, call_sp.span, call_msg.span);
             let mut sle = SpanlessEq::new(cx).deny_side_effects();
+            let ctxt = expr.span.ctxt();
             match ps.ident.as_str() {
-                "span_suggestion" if sle.eq_expr(call_sp, &span_call_args[0]) => {
+                "span_suggestion" if sle.eq_expr(ctxt, call_sp, &span_call_args[0]) => {
                     suggest_suggestion(
                         cx,
                         expr,
@@ -100,11 +101,11 @@ impl<'tcx> LateLintPass<'tcx> for CollapsibleCalls {
                         &span_suggestion_snippets(cx, span_call_args),
                     );
                 },
-                "span_help" if sle.eq_expr(call_sp, &span_call_args[0]) => {
+                "span_help" if sle.eq_expr(ctxt, call_sp, &span_call_args[0]) => {
                     let help_snippet = snippet(cx, span_call_args[1].span, r#""...""#);
                     suggest_help(cx, expr, &and_then_snippets, help_snippet.borrow(), true);
                 },
-                "span_note" if sle.eq_expr(call_sp, &span_call_args[0]) => {
+                "span_note" if sle.eq_expr(ctxt, call_sp, &span_call_args[0]) => {
                     let note_snippet = snippet(cx, span_call_args[1].span, r#""...""#);
                     suggest_note(cx, expr, &and_then_snippets, note_snippet.borrow(), true);
                 },

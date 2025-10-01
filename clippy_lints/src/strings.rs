@@ -11,6 +11,7 @@ use rustc_hir::{BinOpKind, BorrowKind, Expr, ExprKind, LangItem, Node, QPath};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty;
 use rustc_session::declare_lint_pass;
+use rustc_span::SyntaxContext;
 use rustc_span::source_map::Spanned;
 
 declare_clippy_lint! {
@@ -145,7 +146,8 @@ declare_lint_pass!(StringAdd => [STRING_ADD, STRING_ADD_ASSIGN, STRING_SLICE]);
 
 impl<'tcx> LateLintPass<'tcx> for StringAdd {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
-        if e.span.in_external_macro(cx.sess().source_map()) {
+        let ctxt = e.span.ctxt();
+        if ctxt.in_external_macro(cx.sess().source_map()) {
             return;
         }
         match e.kind {
@@ -162,7 +164,7 @@ impl<'tcx> LateLintPass<'tcx> for StringAdd {
                         if let Some(p) = parent
                             && let ExprKind::Assign(target, _, _) = p.kind
                                 // avoid duplicate matches
-                                && SpanlessEq::new(cx).eq_expr(target, left)
+                                && SpanlessEq::new(cx).eq_expr(ctxt, target, left)
                         {
                             return;
                         }
@@ -176,7 +178,7 @@ impl<'tcx> LateLintPass<'tcx> for StringAdd {
                 }
             },
             ExprKind::Assign(target, src, _) => {
-                if is_string(cx, target) && is_add(cx, src, target) {
+                if is_string(cx, target) && is_add(cx, ctxt, src, target) {
                     span_lint(
                         cx,
                         STRING_ADD_ASSIGN,
@@ -206,7 +208,7 @@ fn is_string(cx: &LateContext<'_>, e: &Expr<'_>) -> bool {
     is_type_lang_item(cx, cx.typeck_results().expr_ty(e).peel_refs(), LangItem::String)
 }
 
-fn is_add(cx: &LateContext<'_>, src: &Expr<'_>, target: &Expr<'_>) -> bool {
+fn is_add(cx: &LateContext<'_>, ctxt: SyntaxContext, src: &Expr<'_>, target: &Expr<'_>) -> bool {
     match peel_blocks(src).kind {
         ExprKind::Binary(
             Spanned {
@@ -214,7 +216,7 @@ fn is_add(cx: &LateContext<'_>, src: &Expr<'_>, target: &Expr<'_>) -> bool {
             },
             left,
             _,
-        ) => SpanlessEq::new(cx).eq_expr(target, left),
+        ) => SpanlessEq::new(cx).eq_expr(ctxt, target, left),
         _ => false,
     }
 }

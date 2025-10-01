@@ -18,7 +18,7 @@ use rustc_middle::ty::TyCtxt;
 use rustc_session::impl_lint_pass;
 use rustc_span::hygiene::walk_chain;
 use rustc_span::source_map::SourceMap;
-use rustc_span::{Span, Symbol};
+use rustc_span::{Span, Symbol, SyntaxContext};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -179,8 +179,8 @@ impl<'tcx> LateLintPass<'tcx> for CopyAndPaste<'tcx> {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         if !expr.span.from_expansion() && matches!(expr.kind, ExprKind::If(..)) && !is_else_clause(cx.tcx, expr) {
             let (conds, blocks) = if_sequence(expr);
-            lint_same_cond(cx, &conds, &mut self.interior_mut);
-            lint_same_fns_in_if_cond(cx, &conds);
+            lint_same_cond(cx, SyntaxContext::root(), &conds, &mut self.interior_mut);
+            lint_same_fns_in_if_cond(cx, SyntaxContext::root(), &conds);
             let all_same =
                 !is_lint_allowed(cx, IF_SAME_THEN_ELSE, expr.hir_id) && lint_if_same_then_else(cx, &conds, &blocks);
             if !all_same && conds.len() != blocks.len() {
@@ -196,7 +196,10 @@ fn lint_if_same_then_else(cx: &LateContext<'_>, conds: &[&Expr<'_>], blocks: &[&
         .array_windows::<2>()
         .enumerate()
         .fold(true, |all_eq, (i, &[lhs, rhs])| {
-            if eq.eq_block(lhs, rhs) && !has_let_expr(conds[i]) && conds.get(i + 1).is_none_or(|e| !has_let_expr(e)) {
+            if eq.eq_block(SyntaxContext::root(), lhs, rhs)
+                && !has_let_expr(conds[i])
+                && conds.get(i + 1).is_none_or(|e| !has_let_expr(e))
+            {
                 span_lint_and_note(
                     cx,
                     IF_SAME_THEN_ELSE,
@@ -376,7 +379,12 @@ fn eq_stmts(
             .all(|b| get_stmt(b).is_some_and(|s| eq_binding_names(s, new_bindings)))
     } else {
         true
-    }) && blocks.iter().all(|b| get_stmt(b).is_some_and(|s| eq.eq_stmt(s, stmt)))
+    }) && blocks.iter().all(|b| {
+        get_stmt(b).is_some_and(|s| {
+            eq.set_eval_ctxt(SyntaxContext::root());
+            eq.eq_stmt(s, stmt)
+        })
+    })
 }
 
 #[expect(clippy::too_many_lines)]
@@ -387,7 +395,7 @@ fn scan_block_for_eq<'tcx>(
     blocks: &[&'tcx Block<'_>],
 ) -> BlockEq {
     let mut eq = SpanlessEq::new(cx);
-    let mut eq = eq.inter_expr();
+    let mut eq = eq.inter_expr(SyntaxContext::root());
     let mut moved_locals = Vec::new();
 
     let mut cond_locals = HirIdSet::default();
@@ -498,6 +506,7 @@ fn scan_block_for_eq<'tcx>(
         });
     if let Some(e) = block.expr {
         for block in blocks {
+            eq.set_eval_ctxt(SyntaxContext::root());
             if block.expr.is_some_and(|expr| !eq.eq_expr(expr, e)) {
                 moved_locals.truncate(moved_locals_at_start);
                 return BlockEq {
@@ -603,7 +612,12 @@ fn method_caller_is_mutable<'tcx>(
 }
 
 /// Implementation of `IFS_SAME_COND`.
-fn lint_same_cond<'tcx>(cx: &LateContext<'tcx>, conds: &[&Expr<'_>], interior_mut: &mut InteriorMut<'tcx>) {
+fn lint_same_cond<'tcx>(
+    cx: &LateContext<'tcx>,
+    ctxt: SyntaxContext,
+    conds: &[&Expr<'_>],
+    interior_mut: &mut InteriorMut<'tcx>,
+) {
     for group in search_same(
         conds,
         |e| hash_expr(cx, e),
@@ -614,10 +628,10 @@ fn lint_same_cond<'tcx>(cx: &LateContext<'tcx>, conds: &[&Expr<'_>], interior_mu
                 if method_caller_is_mutable(cx, caller, interior_mut) {
                     false
                 } else {
-                    SpanlessEq::new(cx).eq_expr(lhs, rhs)
+                    SpanlessEq::new(cx).eq_expr(ctxt, lhs, rhs)
                 }
             } else {
-                eq_expr_value(cx, lhs, rhs)
+                eq_expr_value(cx, ctxt, lhs, rhs)
             }
         },
     ) {
@@ -627,17 +641,17 @@ fn lint_same_cond<'tcx>(cx: &LateContext<'tcx>, conds: &[&Expr<'_>], interior_mu
 }
 
 /// Implementation of `SAME_FUNCTIONS_IN_IF_CONDITION`.
-fn lint_same_fns_in_if_cond(cx: &LateContext<'_>, conds: &[&Expr<'_>]) {
+fn lint_same_fns_in_if_cond(cx: &LateContext<'_>, ctxt: SyntaxContext, conds: &[&Expr<'_>]) {
     let eq: &dyn Fn(&&Expr<'_>, &&Expr<'_>) -> bool = &|&lhs, &rhs| -> bool {
         // Do not lint if any expr originates from a macro
         if lhs.span.from_expansion() || rhs.span.from_expansion() {
             return false;
         }
         // Do not spawn warning if `IFS_SAME_COND` already produced it.
-        if eq_expr_value(cx, lhs, rhs) {
+        if eq_expr_value(cx, ctxt, lhs, rhs) {
             return false;
         }
-        SpanlessEq::new(cx).eq_expr(lhs, rhs)
+        SpanlessEq::new(cx).eq_expr(ctxt, lhs, rhs)
     };
 
     for group in search_same(conds, |e| hash_expr(cx, e), eq) {

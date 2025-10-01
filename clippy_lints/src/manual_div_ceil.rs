@@ -64,12 +64,14 @@ impl<'tcx> LateLintPass<'tcx> for ManualDivCeil {
             && let ExprKind::Binary(inner_op, inner_lhs, inner_rhs) = div_lhs.kind
             && self.msrv.meets(cx, msrvs::DIV_CEIL)
         {
+            let ctxt = expr.span.ctxt();
+
             // (x + (y - 1)) / y
             if let ExprKind::Binary(sub_op, sub_lhs, sub_rhs) = inner_rhs.kind
                 && inner_op.node == BinOpKind::Add
                 && sub_op.node == BinOpKind::Sub
                 && check_literal(sub_rhs)
-                && check_eq_expr(cx, sub_lhs, div_rhs)
+                && SpanlessEq::new(cx).eq_expr(ctxt, sub_lhs, div_rhs)
             {
                 build_suggestion(cx, expr, inner_lhs, div_rhs, &mut applicability);
                 return;
@@ -80,7 +82,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualDivCeil {
                 && inner_op.node == BinOpKind::Add
                 && sub_op.node == BinOpKind::Sub
                 && check_literal(sub_rhs)
-                && check_eq_expr(cx, sub_lhs, div_rhs)
+                && SpanlessEq::new(cx).eq_expr(ctxt, sub_lhs, div_rhs)
             {
                 build_suggestion(cx, expr, inner_rhs, div_rhs, &mut applicability);
                 return;
@@ -91,7 +93,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualDivCeil {
                 && inner_op.node == BinOpKind::Sub
                 && add_op.node == BinOpKind::Add
                 && check_literal(inner_rhs)
-                && check_eq_expr(cx, add_rhs, div_rhs)
+                && SpanlessEq::new(cx).eq_expr(ctxt, add_rhs, div_rhs)
             {
                 build_suggestion(cx, expr, add_lhs, div_rhs, &mut applicability);
             }
@@ -151,10 +153,6 @@ fn check_literal(expr: &Expr<'_>) -> bool {
         return true;
     }
     false
-}
-
-fn check_eq_expr(cx: &LateContext<'_>, lhs: &Expr<'_>, rhs: &Expr<'_>) -> bool {
-    SpanlessEq::new(cx).eq_expr(lhs, rhs)
 }
 
 fn build_suggestion(

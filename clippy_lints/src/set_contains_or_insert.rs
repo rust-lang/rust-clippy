@@ -7,8 +7,8 @@ use clippy_utils::{SpanlessEq, higher, peel_hir_expr_while, sym};
 use rustc_hir::{Expr, ExprKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
-use rustc_span::Span;
 use rustc_span::symbol::Symbol;
+use rustc_span::{Span, SyntaxContext};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -119,8 +119,8 @@ fn find_insert_calls<'tcx>(
 ) -> Option<OpExpr<'tcx>> {
     for_each_expr(cx, expr, |e| {
         if let Some((insert_expr, _)) = try_parse_op_call(cx, e, sym::insert)
-            && SpanlessEq::new(cx).eq_expr(contains_expr.receiver, insert_expr.receiver)
-            && SpanlessEq::new(cx).eq_expr(contains_expr.value, insert_expr.value)
+            && SpanlessEq::new(cx).eq_expr(SyntaxContext::root(), contains_expr.receiver, insert_expr.receiver)
+            && SpanlessEq::new(cx).eq_expr(SyntaxContext::root(), contains_expr.value, insert_expr.value)
         {
             ControlFlow::Break(insert_expr)
         } else {

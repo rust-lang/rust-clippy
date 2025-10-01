@@ -15,7 +15,8 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, op: BinOpKind, lhs: &'tcx Expr
         },
         _ => return,
     };
-    if !(eq_expr_value(cx, llhs, rlhs) && eq_expr_value(cx, lrhs, rrhs)) {
+    let ctxt = span.ctxt();
+    if !(eq_expr_value(cx, ctxt, llhs, rlhs) && eq_expr_value(cx, ctxt, lrhs, rrhs)) {
         return;
     }
     macro_rules! lint_double_comparison {

@@ -16,7 +16,7 @@ use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::ty;
 use rustc_session::impl_lint_pass;
 use rustc_span::source_map::Spanned;
-use rustc_span::{Symbol, sym};
+use rustc_span::{Symbol, SyntaxContext, sym};
 use std::iter;
 
 declare_clippy_lint! {
@@ -184,7 +184,7 @@ fn eq_pattern_length<'tcx>(cx: &LateContext<'tcx>, pattern: &Expr<'_>, expr: &'t
     {
         constant_length(cx, pattern).is_some_and(|length| n == length)
     } else {
-        len_arg(cx, expr).is_some_and(|arg| eq_expr_value(cx, pattern, arg))
+        len_arg(cx, expr).is_some_and(|arg| eq_expr_value(cx, SyntaxContext::root(), pattern, arg))
     }
 }
 

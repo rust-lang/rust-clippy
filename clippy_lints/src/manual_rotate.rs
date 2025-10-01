@@ -84,7 +84,7 @@ impl LateLintPass<'_> for ManualRotate {
             if l_shift_dir == r_shift_dir {
                 return;
             }
-            if !clippy_utils::eq_expr_value(cx, l_expr, r_expr) {
+            if !clippy_utils::eq_expr_value(cx, expr.span.ctxt(), l_expr, r_expr) {
                 return;
             }
             let Some(bit_width) = (match cx.typeck_results().expr_ty(expr).kind() {

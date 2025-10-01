@@ -11,6 +11,7 @@ use rustc_hir::{BinOpKind, Expr, ExprKind, PathSegment, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_session::declare_lint_pass;
+use rustc_span::SyntaxContext;
 use rustc_span::source_map::Spanned;
 use std::f32::consts as f32_consts;
 use std::f64::consts as f64_consts;
@@ -363,8 +364,9 @@ fn detect_hypot(cx: &LateContext<'_>, receiver: &Expr<'_>) -> Option<String> {
                 rmul_lhs,
                 rmul_rhs,
             ) = add_rhs.kind
-            && eq_expr_value(cx, lmul_lhs, lmul_rhs)
-            && eq_expr_value(cx, rmul_lhs, rmul_rhs)
+            && let ctxt = receiver.span.ctxt()
+            && eq_expr_value(cx, ctxt, lmul_lhs, lmul_rhs)
+            && eq_expr_value(cx, ctxt, rmul_lhs, rmul_rhs)
         {
             return Some(format!(
                 "{}.hypot({})",
@@ -514,11 +516,11 @@ fn check_mul_add(cx: &LateContext<'_>, expr: &Expr<'_>) {
 /// test is positive or an expression which tests whether or not test
 /// is nonnegative.
 /// Used for check-custom-abs function below
-fn is_testing_positive(cx: &LateContext<'_>, expr: &Expr<'_>, test: &Expr<'_>) -> bool {
+fn is_testing_positive(cx: &LateContext<'_>, ctxt: SyntaxContext, expr: &Expr<'_>, test: &Expr<'_>) -> bool {
     if let ExprKind::Binary(Spanned { node: op, .. }, left, right) = expr.kind {
         match op {
-            BinOpKind::Gt | BinOpKind::Ge => is_zero(cx, right) && eq_expr_value(cx, left, test),
-            BinOpKind::Lt | BinOpKind::Le => is_zero(cx, left) && eq_expr_value(cx, right, test),
+            BinOpKind::Gt | BinOpKind::Ge => is_zero(cx, right) && eq_expr_value(cx, ctxt, left, test),
+            BinOpKind::Lt | BinOpKind::Le => is_zero(cx, left) && eq_expr_value(cx, ctxt, right, test),
             _ => false,
         }
     } else {
@@ -527,11 +529,11 @@ fn is_testing_positive(cx: &LateContext<'_>, expr: &Expr<'_>, test: &Expr<'_>) -
 }
 
 /// See [`is_testing_positive`]
-fn is_testing_negative(cx: &LateContext<'_>, expr: &Expr<'_>, test: &Expr<'_>) -> bool {
+fn is_testing_negative(cx: &LateContext<'_>, ctxt: SyntaxContext, expr: &Expr<'_>, test: &Expr<'_>) -> bool {
     if let ExprKind::Binary(Spanned { node: op, .. }, left, right) = expr.kind {
         match op {
-            BinOpKind::Gt | BinOpKind::Ge => is_zero(cx, left) && eq_expr_value(cx, right, test),
-            BinOpKind::Lt | BinOpKind::Le => is_zero(cx, right) && eq_expr_value(cx, left, test),
+            BinOpKind::Gt | BinOpKind::Ge => is_zero(cx, left) && eq_expr_value(cx, ctxt, right, test),
+            BinOpKind::Lt | BinOpKind::Le => is_zero(cx, right) && eq_expr_value(cx, ctxt, left, test),
             _ => false,
         }
     } else {
@@ -555,14 +557,19 @@ fn is_zero(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
 /// one of the two expressions
 /// If the two expressions are not negations of each other, then it
 /// returns None.
-fn are_negated<'a>(cx: &LateContext<'_>, expr1: &'a Expr<'a>, expr2: &'a Expr<'a>) -> Option<(bool, &'a Expr<'a>)> {
+fn are_negated<'a>(
+    cx: &LateContext<'_>,
+    ctxt: SyntaxContext,
+    expr1: &'a Expr<'a>,
+    expr2: &'a Expr<'a>,
+) -> Option<(bool, &'a Expr<'a>)> {
     if let ExprKind::Unary(UnOp::Neg, expr1_negated) = &expr1.kind
-        && eq_expr_value(cx, expr1_negated, expr2)
+        && eq_expr_value(cx, ctxt, expr1_negated, expr2)
     {
         return Some((false, expr2));
     }
     if let ExprKind::Unary(UnOp::Neg, expr2_negated) = &expr2.kind
-        && eq_expr_value(cx, expr1, expr2_negated)
+        && eq_expr_value(cx, ctxt, expr1, expr2_negated)
     {
         return Some((true, expr1));
     }
@@ -577,7 +584,8 @@ fn check_custom_abs(cx: &LateContext<'_>, expr: &Expr<'_>) {
     }) = higher::If::hir(expr)
         && let if_body_expr = peel_blocks(then)
         && let else_body_expr = peel_blocks(r#else)
-        && let Some((if_expr_positive, body)) = are_negated(cx, if_body_expr, else_body_expr)
+        && let ctxt = expr.span.ctxt()
+        && let Some((if_expr_positive, body)) = are_negated(cx, ctxt, if_body_expr, else_body_expr)
     {
         let positive_abs_sugg = (
             "manual implementation of `abs` method",
@@ -587,13 +595,13 @@ fn check_custom_abs(cx: &LateContext<'_>, expr: &Expr<'_>) {
             "manual implementation of negation of `abs` method",
             format!("-{}.abs()", Sugg::hir(cx, body, "..").maybe_paren()),
         );
-        let sugg = if is_testing_positive(cx, cond, body) {
+        let sugg = if is_testing_positive(cx, ctxt, cond, body) {
             if if_expr_positive {
                 positive_abs_sugg
             } else {
                 negative_abs_sugg
             }
-        } else if is_testing_negative(cx, cond, body) {
+        } else if is_testing_negative(cx, ctxt, cond, body) {
             if if_expr_positive {
                 negative_abs_sugg
             } else {
@@ -614,14 +622,14 @@ fn check_custom_abs(cx: &LateContext<'_>, expr: &Expr<'_>) {
     }
 }
 
-fn are_same_base_logs(cx: &LateContext<'_>, expr_a: &Expr<'_>, expr_b: &Expr<'_>) -> bool {
+fn are_same_base_logs(cx: &LateContext<'_>, ctxt: SyntaxContext, expr_a: &Expr<'_>, expr_b: &Expr<'_>) -> bool {
     if let ExprKind::MethodCall(PathSegment { ident: method_a, .. }, _, args_a, _) = expr_a.kind
         && let ExprKind::MethodCall(PathSegment { ident: method_b, .. }, _, args_b, _) = expr_b.kind
     {
         return method_a.name == method_b.name
             && args_a.len() == args_b.len()
             && (matches!(method_a.name, sym::ln | sym::log2 | sym::log10)
-                || method_a.name == sym::log && args_a.len() == 1 && eq_expr_value(cx, &args_a[0], &args_b[0]));
+                || method_a.name == sym::log && args_a.len() == 1 && eq_expr_value(cx, ctxt, &args_a[0], &args_b[0]));
     }
 
     false
@@ -636,7 +644,7 @@ fn check_log_division(cx: &LateContext<'_>, expr: &Expr<'_>) {
         lhs,
         rhs,
     ) = &expr.kind
-        && are_same_base_logs(cx, lhs, rhs)
+        && are_same_base_logs(cx, expr.span.ctxt(), lhs, rhs)
         && let ExprKind::MethodCall(_, largs_self, ..) = &lhs.kind
         && let ExprKind::MethodCall(_, rargs_self, ..) = &rhs.kind
     {

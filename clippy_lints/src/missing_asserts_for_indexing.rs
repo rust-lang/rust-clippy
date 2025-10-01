@@ -249,7 +249,10 @@ fn check_index<'hir>(cx: &LateContext<'_>, expr: &'hir Expr<'hir>, map: &mut Uni
         let hash = hash_expr(cx, slice);
 
         let indexes = map.entry(hash).or_default();
-        let entry = indexes.iter_mut().find(|entry| eq_expr_value(cx, entry.slice(), slice));
+        let ctxt = expr.span.ctxt();
+        let entry = indexes
+            .iter_mut()
+            .find(|entry| eq_expr_value(cx, ctxt, entry.slice(), slice));
 
         if let Some(entry) = entry {
             match entry {
@@ -307,7 +310,10 @@ fn check_assert<'hir>(cx: &LateContext<'_>, expr: &'hir Expr<'hir>, map: &mut Un
         let hash = hash_expr(cx, slice);
         let indexes = map.entry(hash).or_default();
 
-        let entry = indexes.iter_mut().find(|entry| eq_expr_value(cx, entry.slice(), slice));
+        let ctxt = expr.span.ctxt();
+        let entry = indexes
+            .iter_mut()
+            .find(|entry| eq_expr_value(cx, ctxt, entry.slice(), slice));
 
         if let Some(entry) = entry {
             if let IndexEntry::IndexWithoutAssert {
