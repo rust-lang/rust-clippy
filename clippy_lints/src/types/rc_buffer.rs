@@ -6,14 +6,15 @@ use rustc_hir::def_id::DefId;
 use rustc_hir::{self as hir, QPath, TyKind};
 use rustc_lint::LateContext;
 use rustc_span::symbol::sym;
+use std::borrow::Cow;
 
 use super::RC_BUFFER;
 
 pub(super) fn check(cx: &LateContext<'_>, hir_ty: &hir::Ty<'_>, qpath: &QPath<'_>, def_id: DefId) -> bool {
-    let app = Applicability::Unspecified;
+    let mut app = Applicability::Unspecified;
     let name = cx.tcx.get_diagnostic_name(def_id);
     if name == Some(sym::Rc) {
-        if let Some(alternate) = match_buffer_type(cx, qpath) {
+        if let Some(alternate) = match_buffer_type(cx, qpath, &mut app) {
             #[expect(clippy::collapsible_span_lint_calls, reason = "rust-clippy#7797")]
             span_lint_and_then(
                 cx,
@@ -26,40 +27,10 @@ pub(super) fn check(cx: &LateContext<'_>, hir_ty: &hir::Ty<'_>, qpath: &QPath<'_
             );
             true
         } else {
-            let Some(ty) = qpath_generic_tys(qpath).next() else {
-                return false;
-            };
-            let Some(id) = path_def_id(cx, ty) else { return false };
-            if !cx.tcx.is_diagnostic_item(sym::Vec, id) {
-                return false;
-            }
-            let TyKind::Path(qpath) = &ty.kind else { return false };
-            let inner_span = match qpath_generic_tys(qpath).next() {
-                Some(ty) => ty.span,
-                None => return false,
-            };
-            span_lint_and_then(
-                cx,
-                RC_BUFFER,
-                hir_ty.span,
-                "usage of `Rc<T>` when `T` is a buffer type",
-                |diag| {
-                    let mut applicability = app;
-                    diag.span_suggestion(
-                        hir_ty.span,
-                        "try",
-                        format!(
-                            "Rc<[{}]>",
-                            snippet_with_applicability(cx, inner_span, "..", &mut applicability)
-                        ),
-                        app,
-                    );
-                },
-            );
-            true
+            false
         }
     } else if name == Some(sym::Arc) {
-        if let Some(alternate) = match_buffer_type(cx, qpath) {
+        if let Some(alternate) = match_buffer_type(cx, qpath, &mut app) {
             #[expect(clippy::collapsible_span_lint_calls, reason = "rust-clippy#7797")]
             span_lint_and_then(
                 cx,
@@ -71,35 +42,6 @@ pub(super) fn check(cx: &LateContext<'_>, hir_ty: &hir::Ty<'_>, qpath: &QPath<'_
                 },
             );
             true
-        } else if let Some(ty) = qpath_generic_tys(qpath).next() {
-            let Some(id) = path_def_id(cx, ty) else { return false };
-            if !cx.tcx.is_diagnostic_item(sym::Vec, id) {
-                return false;
-            }
-            let TyKind::Path(qpath) = &ty.kind else { return false };
-            let inner_span = match qpath_generic_tys(qpath).next() {
-                Some(ty) => ty.span,
-                None => return false,
-            };
-            span_lint_and_then(
-                cx,
-                RC_BUFFER,
-                hir_ty.span,
-                "usage of `Arc<T>` when `T` is a buffer type",
-                |diag| {
-                    let mut applicability = app;
-                    diag.span_suggestion(
-                        hir_ty.span,
-                        "try",
-                        format!(
-                            "Arc<[{}]>",
-                            snippet_with_applicability(cx, inner_span, "..", &mut applicability)
-                        ),
-                        app,
-                    );
-                },
-            );
-            true
         } else {
             false
         }
@@ -108,13 +50,25 @@ pub(super) fn check(cx: &LateContext<'_>, hir_ty: &hir::Ty<'_>, qpath: &QPath<'_
     }
 }
 
-fn match_buffer_type(cx: &LateContext<'_>, qpath: &QPath<'_>) -> Option<&'static str> {
+fn match_buffer_type(
+    cx: &LateContext<'_>,
+    qpath: &QPath<'_>,
+    applicability: &mut Applicability,
+) -> Option<Cow<'static, str>> {
     let ty = qpath_generic_tys(qpath).next()?;
     let id = path_def_id(cx, ty)?;
     let path = match cx.tcx.get_diagnostic_name(id) {
-        Some(sym::OsString) => "std::ffi::OsStr",
-        Some(sym::PathBuf) => "std::path::Path",
-        _ if Some(id) == cx.tcx.lang_items().string() => "str",
+        Some(sym::OsString) => "std::ffi::OsStr".into(),
+        Some(sym::PathBuf) => "std::path::Path".into(),
+        Some(sym::Vec) => {
+            let TyKind::Path(vec_qpath) = &ty.kind else {
+                return None;
+            };
+            let vec_generic_ty = qpath_generic_tys(vec_qpath).next()?;
+            let snippet = snippet_with_applicability(cx, vec_generic_ty.span, "_", applicability);
+            format!("[{snippet}]").into()
+        },
+        _ if Some(id) == cx.tcx.lang_items().string() => "str".into(),
         _ => return None,
     };
     Some(path)
