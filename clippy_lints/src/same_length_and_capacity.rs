@@ -24,13 +24,21 @@ declare_clippy_lint! {
     /// ### Example
     ///
     /// ```no_run
+    /// #![feature(vec_into_raw_parts)]
     /// let mut original: Vec::<i32> = Vec::with_capacity(20);
     /// original.extend([1, 2, 3, 4, 5]);
     ///
     /// let (ptr, mut len, cap) = original.into_raw_parts();
     ///
-    /// // Pretend we added three more integers:
-    /// len = 8;
+    /// // I will add three more integers:
+    /// unsafe {
+    ///    let ptr = ptr as *mut i32;
+    ///
+    ///    for i in 6..9 {
+    ///        *ptr.add(i - 1) = i as i32;
+    ///        len += 1;
+    ///    }
+    /// }
     ///
     /// // But I forgot the capacity was separate from the length:
     /// let reconstructed = unsafe { Vec::from_raw_parts(ptr, len, len) };
@@ -38,7 +46,23 @@ declare_clippy_lint! {
     ///
     /// Use instead:
     /// ```no_run
-    /// // Correction to the last line of the given example code:
+    /// #![feature(vec_into_raw_parts)]
+    /// let mut original: Vec::<i32> = Vec::with_capacity(20);
+    /// original.extend([1, 2, 3, 4, 5]);
+    ///
+    /// let (ptr, mut len, cap) = original.into_raw_parts();
+    ///
+    /// // I will add three more integers:
+    /// unsafe {
+    ///    let ptr = ptr as *mut i32;
+    ///
+    ///    for i in 6..9 {
+    ///        *ptr.add(i - 1) = i as i32;
+    ///        len += 1;
+    ///    }
+    /// }
+    ///
+    /// // This time, leverage the previously saved capacity:
     /// let reconstructed = unsafe { Vec::from_raw_parts(ptr, len, cap) };
     /// ```
     #[clippy::version = "1.91.0"]
