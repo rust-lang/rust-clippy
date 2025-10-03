@@ -32,6 +32,13 @@ fn main() {
 
     let x: Result<String, i64> = Ok(String::new());
     x.unwrap_or_default();
+
+    // edge case
+    let bizarro = Some(String::new());
+    match bizarro {
+        _ => String::new(),
+        Some(bizarro) => bizarro,
+    };
 }
 
 // Issue #12531

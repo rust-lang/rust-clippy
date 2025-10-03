@@ -64,6 +64,13 @@ fn main() {
     } else {
         String::new()
     };
+
+    // edge case
+    let bizarro = Some(String::new());
+    match bizarro {
+        _ => String::new(),
+        Some(bizarro) => bizarro,
+    };
 }
 
 // Issue #12531
