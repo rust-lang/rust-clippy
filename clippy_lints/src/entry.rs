@@ -3,8 +3,7 @@ use clippy_utils::source::{reindent_multiline, snippet_indent, snippet_with_appl
 use clippy_utils::ty::is_copy;
 use clippy_utils::visitors::for_each_expr;
 use clippy_utils::{
-    SpanlessEq, can_move_expr_to_closure_no_visit, higher, is_expr_final_block_expr, is_expr_used_or_unified,
-    peel_hir_expr_while,
+    SpanlessEq, can_move_expr_to_closure_no_visit, higher, is_expr_used_or_unified, peel_hir_expr_while,
 };
 use core::fmt::{self, Write};
 use rustc_errors::Applicability;
@@ -87,106 +86,133 @@ impl<'tcx> LateLintPass<'tcx> for HashMapPass {
 
         let lint_msg = format!("usage of `contains_key` followed by `insert` on a `{}`", map_ty.name());
         let mut app = Applicability::MachineApplicable;
-        let map_str = snippet_with_context(cx, contains_expr.map.span, contains_expr.call_ctxt, "..", &mut app).0;
-        let key_str = snippet_with_context(cx, contains_expr.key.span, contains_expr.call_ctxt, "..", &mut app).0;
+        let map_str = snippet_with_context(cx, contains_expr.map.span, contains_expr.call_ctxt, "(_)", &mut app).0;
+        let key_str = snippet_with_context(cx, contains_expr.key.span, contains_expr.call_ctxt, "_", &mut app).0;
 
-        let sugg = if let Some(else_expr) = else_expr {
-            let Some(else_search) = find_insert_calls(cx, &contains_expr, else_expr) else {
-                return;
-            };
-
-            if then_search.edits.is_empty() && else_search.edits.is_empty() {
-                // No insertions
-                return;
-            } else if then_search.is_key_used_and_no_copy || else_search.is_key_used_and_no_copy {
-                // If there are other uses of the key, and the key is not copy,
-                // we cannot perform a fix automatically, but continue to emit a lint.
-                None
-            } else if then_search.edits.is_empty() || else_search.edits.is_empty() {
-                // if .. { insert } else { .. } or if .. { .. } else { insert }
-                let ((then_str, entry_kind), else_str) = match (else_search.edits.is_empty(), contains_expr.negated) {
-                    (true, true) => (
-                        then_search.snippet_vacant(cx, then_expr.span, &mut app),
-                        snippet_with_applicability(cx, else_expr.span, "{ .. }", &mut app),
-                    ),
-                    (true, false) => (
-                        then_search.snippet_occupied(cx, then_expr.span, &mut app),
-                        snippet_with_applicability(cx, else_expr.span, "{ .. }", &mut app),
-                    ),
-                    (false, true) => (
-                        else_search.snippet_occupied(cx, else_expr.span, &mut app),
-                        snippet_with_applicability(cx, then_expr.span, "{ .. }", &mut app),
-                    ),
-                    (false, false) => (
-                        else_search.snippet_vacant(cx, else_expr.span, &mut app),
-                        snippet_with_applicability(cx, then_expr.span, "{ .. }", &mut app),
-                    ),
-                };
-                Some(format!(
-                    "if let {}::{entry_kind} = {map_str}.entry({key_str}) {then_str} else {else_str}",
-                    map_ty.entry_path(),
-                ))
-            } else {
-                // if .. { insert } else { insert }
-                let ((then_str, then_entry), (else_str, else_entry)) = if contains_expr.negated {
-                    (
-                        then_search.snippet_vacant(cx, then_expr.span, &mut app),
-                        else_search.snippet_occupied(cx, else_expr.span, &mut app),
-                    )
-                } else {
-                    (
-                        then_search.snippet_occupied(cx, then_expr.span, &mut app),
-                        else_search.snippet_vacant(cx, else_expr.span, &mut app),
-                    )
-                };
-                let indent_str = snippet_indent(cx, expr.span);
-                let indent_str = indent_str.as_deref().unwrap_or("");
-                Some(format!(
-                    "match {map_str}.entry({key_str}) {{\n{indent_str}    {entry}::{then_entry} => {}\n\
-                        {indent_str}    {entry}::{else_entry} => {}\n{indent_str}}}",
-                    reindent_multiline(&then_str, true, Some(4 + indent_str.len())),
-                    reindent_multiline(&else_str, true, Some(4 + indent_str.len())),
-                    entry = map_ty.entry_path(),
-                ))
-            }
-        } else {
-            if then_search.edits.is_empty() {
-                // no insertions
-                return;
-            }
-
-            // if .. { insert }
-            if !then_search.allow_insert_closure {
-                let (body_str, entry_kind) = if contains_expr.negated {
-                    then_search.snippet_vacant(cx, then_expr.span, &mut app)
-                } else {
-                    then_search.snippet_occupied(cx, then_expr.span, &mut app)
-                };
-                Some(format!(
-                    "if let {}::{entry_kind} = {map_str}.entry({key_str}) {body_str}",
-                    map_ty.entry_path(),
-                ))
-            } else if let Some(insertion) = then_search.as_single_insertion() {
-                let value_str = snippet_with_context(cx, insertion.value.span, then_expr.span.ctxt(), "..", &mut app).0;
-                if contains_expr.negated {
-                    if insertion.value.can_have_side_effects() {
-                        Some(format!("{map_str}.entry({key_str}).or_insert_with(|| {value_str});"))
-                    } else {
-                        Some(format!("{map_str}.entry({key_str}).or_insert({value_str});"))
-                    }
-                } else {
-                    // TODO: suggest using `if let Some(v) = map.get_mut(k) { .. }` here.
-                    // This would need to be a different lint.
+        let sugg = 'sugg: {
+            if let Some(else_expr) = else_expr {
+                let Some(else_search) = find_insert_calls(cx, &contains_expr, else_expr) else {
                     return;
+                };
+
+                if then_search.edits.is_empty() && else_search.edits.is_empty() {
+                    // No insertions
+                    return;
+                } else if then_search.is_key_used_and_no_copy || else_search.is_key_used_and_no_copy {
+                    // If there are other uses of the key, and the key is not copy,
+                    // we cannot perform a fix automatically, but continue to emit a lint.
+                    None
+                } else if then_search.edits.is_empty() || else_search.edits.is_empty() {
+                    // if .. { insert } else { .. } or if .. { .. } else { insert }
+                    let ((then_str, entry_kind), else_str) = match (else_search.edits.is_empty(), contains_expr.negated)
+                    {
+                        (true, true) => (
+                            if let Some(snippet_vacant) = then_search.snippet_vacant(cx, then_expr.span, &mut app) {
+                                snippet_vacant
+                            } else {
+                                break 'sugg None;
+                            },
+                            snippet_with_applicability(cx, else_expr.span, "{ .. }", &mut app),
+                        ),
+                        (true, false) => (
+                            then_search.snippet_occupied(cx, then_expr.span, &mut app),
+                            snippet_with_applicability(cx, else_expr.span, "{ .. }", &mut app),
+                        ),
+                        (false, true) => (
+                            else_search.snippet_occupied(cx, else_expr.span, &mut app),
+                            snippet_with_applicability(cx, then_expr.span, "{ .. }", &mut app),
+                        ),
+                        (false, false) => (
+                            if let Some(snippet_vacant) = else_search.snippet_vacant(cx, else_expr.span, &mut app) {
+                                snippet_vacant
+                            } else {
+                                break 'sugg None;
+                            },
+                            snippet_with_applicability(cx, then_expr.span, "{ .. }", &mut app),
+                        ),
+                    };
+                    Some(format!(
+                        "if let {}::{entry_kind} = {map_str}.entry({key_str}) {then_str} else {else_str}",
+                        map_ty.entry_path(),
+                    ))
+                } else {
+                    // if .. { insert } else { insert }
+                    let ((then_str, then_entry), (else_str, else_entry)) = if contains_expr.negated {
+                        (
+                            if let Some(snippet_vacant) = then_search.snippet_vacant(cx, then_expr.span, &mut app) {
+                                snippet_vacant
+                            } else {
+                                break 'sugg None;
+                            },
+                            else_search.snippet_occupied(cx, else_expr.span, &mut app),
+                        )
+                    } else {
+                        (
+                            then_search.snippet_occupied(cx, then_expr.span, &mut app),
+                            if let Some(snippet_vacant) = else_search.snippet_vacant(cx, else_expr.span, &mut app) {
+                                snippet_vacant
+                            } else {
+                                break 'sugg None;
+                            },
+                        )
+                    };
+                    let indent_str = snippet_indent(cx, expr.span);
+                    let indent_str = indent_str.as_deref().unwrap_or("");
+                    Some(format!(
+                        "\
+            match {map_str}.entry({key_str}) {{
+{indent_str}    {entry}::{then_entry} => {}
+{indent_str}    {entry}::{else_entry} => {}
+{indent_str}}}",
+                        reindent_multiline(&then_str, true, Some(4 + indent_str.len())),
+                        reindent_multiline(&else_str, true, Some(4 + indent_str.len())),
+                        entry = map_ty.entry_path(),
+                    ))
                 }
             } else {
-                let block_str = then_search.snippet_closure(cx, then_expr.span, &mut app);
-                if contains_expr.negated {
-                    Some(format!("{map_str}.entry({key_str}).or_insert_with(|| {block_str});"))
-                } else {
-                    // TODO: suggest using `if let Some(v) = map.get_mut(k) { .. }` here.
-                    // This would need to be a different lint.
+                if then_search.edits.is_empty() {
+                    // no insertions
                     return;
+                }
+
+                // if .. { insert }
+                if !then_search.allow_insert_closure {
+                    let (body_str, entry_kind) = if contains_expr.negated {
+                        if let Some(snippet_vacant) = then_search.snippet_vacant(cx, then_expr.span, &mut app) {
+                            snippet_vacant
+                        } else {
+                            break 'sugg None;
+                        }
+                    } else {
+                        then_search.snippet_occupied(cx, then_expr.span, &mut app)
+                    };
+                    Some(format!(
+                        "if let {}::{entry_kind} = {map_str}.entry({key_str}) {body_str}",
+                        map_ty.entry_path(),
+                    ))
+                } else if let Some(insertion) = then_search.as_single_insertion() {
+                    let value_str =
+                        snippet_with_context(cx, insertion.value.span, then_expr.span.ctxt(), "_", &mut app).0;
+                    if contains_expr.negated {
+                        if insertion.value.can_have_side_effects() {
+                            Some(format!("{map_str}.entry({key_str}).or_insert_with(|| {value_str});"))
+                        } else {
+                            Some(format!("{map_str}.entry({key_str}).or_insert({value_str});"))
+                        }
+                    } else {
+                        // TODO: suggest using `if let Some(v) = map.get_mut(k) { .. }` here.
+                        // This would need to be a different lint.
+                        return;
+                    }
+                } else {
+                    let block_str = then_search.snippet_closure(cx, then_expr.span, &mut app);
+                    if contains_expr.negated {
+                        Some(format!("{map_str}.entry({key_str}).or_insert_with(|| {block_str});"))
+                    } else {
+                        // TODO: suggest using `if let Some(v) = map.get_mut(k) { .. }` here.
+                        // This would need to be a different lint.
+                        return;
+                    }
                 }
             }
         };
@@ -312,15 +338,12 @@ struct InsertExpr<'tcx> {
 ///
 /// If the given expression is not an `insert` call into a `BTreeMap` or a `HashMap`, return `None`.
 fn try_parse_insert<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<InsertExpr<'tcx>> {
-    if let ExprKind::MethodCall(_, map, [key, value], _) = expr.kind {
-        let id = cx.typeck_results().type_dependent_def_id(expr.hir_id)?;
-        if let Some(insert) = cx.tcx.get_diagnostic_name(id)
-            && matches!(insert, sym::btreemap_insert | sym::hashmap_insert)
-        {
-            Some(InsertExpr { map, key, value })
-        } else {
-            None
-        }
+    if let ExprKind::MethodCall(_, map, [key, value], _) = expr.kind
+        && let Some(id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)
+        && let Some(insert) = cx.tcx.get_diagnostic_name(id)
+        && matches!(insert, sym::btreemap_insert | sym::hashmap_insert)
+    {
+        Some(InsertExpr { map, key, value })
     } else {
         None
     }
@@ -524,7 +547,7 @@ impl<'tcx> Visitor<'tcx> for InsertSearcher<'_, 'tcx> {
                 ExprKind::If(cond_expr, then_expr, Some(else_expr)) => {
                     self.is_single_insert = false;
                     self.visit_non_tail_expr(cond_expr);
-                    // Each branch may contain it's own insert expression.
+                    // Each branch may contain its own insert expression.
                     let mut is_map_used = self.visit_cond_arm(then_expr);
                     is_map_used |= self.visit_cond_arm(else_expr);
                     self.is_map_used = is_map_used;
@@ -532,7 +555,7 @@ impl<'tcx> Visitor<'tcx> for InsertSearcher<'_, 'tcx> {
                 ExprKind::Match(scrutinee_expr, arms, _) => {
                     self.is_single_insert = false;
                     self.visit_non_tail_expr(scrutinee_expr);
-                    // Each branch may contain it's own insert expression.
+                    // Each branch may contain its own insert expression.
                     let mut is_map_used = self.is_map_used;
                     for arm in arms {
                         self.visit_pat(arm.pat);
@@ -609,16 +632,39 @@ impl<'tcx> InsertSearchResults<'tcx> {
         self.is_single_insert.then(|| self.edits[0].as_insertion().unwrap())
     }
 
+    /// Create a snippet with all the `insert`s on the map replaced with `insert`s on the entry.
+    ///
+    /// `write_wrapped` will be called whenever the `insert` is an expression that is used, or has
+    /// its type unified with another branch -- for example, in cases like:
+    /// ```ignore
+    /// let _ = if !m.contains(&k) {
+    ///     m.insert(k, v)
+    /// } else {
+    ///     None
+    /// };
+    ///
+    /// let _ = if m.contains(&k) {
+    ///     if true { m.insert(k, v) } else { m.insert(k, v2) }
+    /// } else {
+    ///     m.insert(k, v3)
+    /// }
+    /// ```
+    /// The idea is that it will either:
+    /// - wrap the `insert` call so that it still type-checks with the code surrounding it
+    /// - or bail out if the result would be too ugly
+    ///
+    /// In the latter case, the whole function bails out as well
     fn snippet(
         &self,
         cx: &LateContext<'_>,
         mut span: Span,
         app: &mut Applicability,
-        write_wrapped: impl Fn(&mut String, Insertion<'_>, SyntaxContext, &mut Applicability),
-    ) -> String {
+        write_wrapped: impl Fn(String, Insertion<'tcx>, SyntaxContext, &mut Applicability) -> Option<String>,
+    ) -> Option<String> {
         let ctxt = span.ctxt();
         let mut res = String::new();
         for insertion in self.edits.iter().filter_map(|e| e.as_insertion()) {
+            // Take everything until the call verbatim
             res.push_str(&snippet_with_applicability(
                 cx,
                 span.until(insertion.call.span),
@@ -626,55 +672,41 @@ impl<'tcx> InsertSearchResults<'tcx> {
                 app,
             ));
             if is_expr_used_or_unified(cx.tcx, insertion.call) {
-                write_wrapped(&mut res, insertion, ctxt, app);
+                res = write_wrapped(res, insertion, ctxt, app)?;
             } else {
-                let _: fmt::Result = write!(
-                    res,
-                    "e.insert({})",
-                    snippet_with_context(cx, insertion.value.span, ctxt, "..", app).0
-                );
+                let value_str = snippet_with_context(cx, insertion.value.span, ctxt, "_", app).0;
+                let _: fmt::Result = write!(res, "e.insert({value_str})");
             }
             span = span.trim_start(insertion.call.span).unwrap_or(DUMMY_SP);
         }
         res.push_str(&snippet_with_applicability(cx, span, "..", app));
-        res
+        Some(res)
     }
 
     fn snippet_occupied(&self, cx: &LateContext<'_>, span: Span, app: &mut Applicability) -> (String, &'static str) {
-        (
-            self.snippet(cx, span, app, |res, insertion, ctxt, app| {
+        let snippet = self
+            .snippet(cx, span, app, |mut res, insertion, ctxt, app| {
                 // Insertion into a map would return `Some(&mut value)`, but the entry returns `&mut value`
-                let _: fmt::Result = write!(
-                    res,
-                    "Some(e.insert({}))",
-                    snippet_with_context(cx, insertion.value.span, ctxt, "..", app).0
-                );
-            }),
-            "Occupied(mut e)",
-        )
+                let value_str = snippet_with_context(cx, insertion.value.span, ctxt, "_", app).0;
+                let _: fmt::Result = write!(res, "Some(e.insert({value_str}))");
+                Some(res)
+            })
+            .expect("we pass `write_wrapped` that always returns `Some`, so this will always return `Some`");
+        (snippet, "Occupied(mut e)")
     }
 
-    fn snippet_vacant(&self, cx: &LateContext<'_>, span: Span, app: &mut Applicability) -> (String, &'static str) {
-        (
-            self.snippet(cx, span, app, |res, insertion, ctxt, app| {
-                // Insertion into a map would return `None`, but the entry returns a mutable reference.
-                let _: fmt::Result = if is_expr_final_block_expr(cx.tcx, insertion.call) {
-                    write!(
-                        res,
-                        "e.insert({});\n{}None",
-                        snippet_with_context(cx, insertion.value.span, ctxt, "..", app).0,
-                        snippet_indent(cx, insertion.call.span).as_deref().unwrap_or(""),
-                    )
-                } else {
-                    write!(
-                        res,
-                        "{{ e.insert({}); None }}",
-                        snippet_with_context(cx, insertion.value.span, ctxt, "..", app).0,
-                    )
-                };
-            }),
-            "Vacant(e)",
-        )
+    fn snippet_vacant(
+        &self,
+        cx: &LateContext<'_>,
+        span: Span,
+        app: &mut Applicability,
+    ) -> Option<(String, &'static str)> {
+        let snippet = self.snippet(cx, span, app, |_, _, _, _| {
+            // Insertion into a map would return `None`, but the entry returns a mutable reference;
+            // we used to suggest `{ e.insert(value); None }` here, but that was deemed too ugly so we stopped
+            None
+        })?;
+        Some((snippet, "Vacant(e)"))
     }
 
     fn snippet_closure(&self, cx: &LateContext<'_>, mut span: Span, app: &mut Applicability) -> String {
@@ -683,14 +715,15 @@ impl<'tcx> InsertSearchResults<'tcx> {
         for edit in &self.edits {
             match *edit {
                 Edit::Insertion(insertion) => {
-                    // Cut out the value from `map.insert(key, value)`
+                    // Take everything until the call verbatim
                     res.push_str(&snippet_with_applicability(
                         cx,
                         span.until(insertion.call.span),
                         "..",
                         app,
                     ));
-                    res.push_str(&snippet_with_context(cx, insertion.value.span, ctxt, "..", app).0);
+                    let value_str = snippet_with_context(cx, insertion.value.span, ctxt, "_", app).0;
+                    res.push_str(&value_str);
                     span = span.trim_start(insertion.call.span).unwrap_or(DUMMY_SP);
                 },
                 Edit::RemoveSemi(semi_span) => {
