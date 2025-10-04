@@ -99,4 +99,30 @@ mod issue_12048 {
     }
 }
 
+mod issue_15034 {
+    struct Foo;
+    trait Baz {
+        fn baz() {}
+    }
+
+    impl Baz for Foo {
+        // Safety: unnecessary
+        fn baz() {}
+        //~^ unnecessary_safety_comment
+    }
+
+    impl Foo {
+        // SAFETY: unnecessary
+        const BAR: usize = 0;
+        //~^ unnecessary_safety_comment
+
+        // Safety: unnecessary
+        fn foo() {}
+        //~^ unnecessary_safety_comment
+
+        // Safety: necessary
+        unsafe fn bar() {}
+    }
+}
+
 fn main() {}
