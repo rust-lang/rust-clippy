@@ -19,7 +19,7 @@
 
 use clippy_config::Conf;
 use clippy_utils::consts::{ConstEvalCtxt, Constant};
-use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
+use clippy_utils::diagnostics::{span_lint, span_lint_and_help, span_lint_and_then};
 use clippy_utils::is_in_const_context;
 use clippy_utils::macros::macro_backtrace;
 use clippy_utils::paths::{PathNS, lookup_path_str};
@@ -159,6 +159,51 @@ declare_clippy_lint! {
     "referencing `const` with interior mutability"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks whether a global variable defined.
+    ///
+    /// ### Why restrict this?
+    ///
+    /// - Global variables can be modified from any part of the program, making it difficult to
+    ///   track and control their state.
+    /// - Global variables introduce implicit dependencies that are not visible in function
+    ///   signatures, making the code harder to understand and maintain.
+    /// - Global variables introduce persistent state, complicating unit tests and making them
+    ///   prone to side effects.
+    /// - Global variables create tight coupling between different parts of the program, making it
+    ///   harder to modify one part without affecting others.
+    ///
+    /// ### Example
+    ///
+    /// ```no_run
+    /// use std::sync::Mutex;
+    ///
+    /// struct State {}
+    ///
+    /// static STATE: Mutex<State> = Mutex::new(State {});
+    ///
+    /// fn foo() {
+    ///    // Access global variable `STATE`.
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    ///
+    /// ```no_run
+    /// struct State {}
+    ///
+    /// fn foo(state: &mut State) {
+    ///    // Access `state` argument instead of a global variable.
+    /// }
+    /// ```
+    #[clippy::version = "1.88.0"]
+    pub GLOBAL_VARIABLES,
+    nursery,
+    "declaring global variables"
+}
+
 #[derive(Clone, Copy)]
 enum IsFreeze {
     /// The type and all possible values are `Freeze`
@@ -256,7 +301,7 @@ pub struct NonCopyConst<'tcx> {
     freeze_tys: FxHashMap<Ty<'tcx>, IsFreeze>,
 }
 
-impl_lint_pass!(NonCopyConst<'_> => [DECLARE_INTERIOR_MUTABLE_CONST, BORROW_INTERIOR_MUTABLE_CONST]);
+impl_lint_pass!(NonCopyConst<'_> => [DECLARE_INTERIOR_MUTABLE_CONST, BORROW_INTERIOR_MUTABLE_CONST, GLOBAL_VARIABLES]);
 
 impl<'tcx> NonCopyConst<'tcx> {
     pub fn new(tcx: TyCtxt<'tcx>, conf: &'static Conf) -> Self {
@@ -695,43 +740,81 @@ impl<'tcx> NonCopyConst<'tcx> {
 
 impl<'tcx> LateLintPass<'tcx> for NonCopyConst<'tcx> {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'_>) {
-        if let ItemKind::Const(ident, .., body_id) = item.kind
-            && !ident.is_special()
-            && let ty = cx.tcx.type_of(item.owner_id).instantiate_identity()
-            && match self.is_ty_freeze(cx.tcx, cx.typing_env(), ty) {
-                IsFreeze::No => true,
-                IsFreeze::Yes => false,
-                IsFreeze::Maybe => match cx.tcx.const_eval_poly(item.owner_id.to_def_id()) {
-                    Ok(val) if let Ok(is_freeze) = self.is_value_freeze(cx.tcx, cx.typing_env(), ty, val) => !is_freeze,
-                    _ => !self.is_init_expr_freeze(
-                        cx.tcx,
-                        cx.typing_env(),
-                        cx.tcx.typeck(item.owner_id),
-                        GenericArgs::identity_for_item(cx.tcx, item.owner_id),
-                        cx.tcx.hir_body(body_id).value,
-                    ),
-                },
-            }
-            && !item.span.in_external_macro(cx.sess().source_map())
+        let ty = || cx.tcx.type_of(item.owner_id).instantiate_identity();
+
+        let is_init_expr_freeze = |this: &mut Self, body_id| {
+            this.is_init_expr_freeze(
+                cx.tcx,
+                cx.typing_env(),
+                cx.tcx.typeck(item.owner_id),
+                GenericArgs::identity_for_item(cx.tcx, item.owner_id),
+                cx.tcx.hir_body(body_id).value,
+            )
+        };
+
+        let is_thread_local_or_external_macro = || {
+            item.span.in_external_macro(cx.sess().source_map())
             // Only needed when compiling `std`
-            && !is_thread_local(cx, item)
-        {
-            span_lint_and_then(
-                cx,
-                DECLARE_INTERIOR_MUTABLE_CONST,
-                ident.span,
-                "named constant with interior mutability",
-                |diag| {
-                    let Some(sync_trait) = cx.tcx.lang_items().sync_trait() else {
-                        return;
-                    };
-                    if implements_trait(cx, ty, sync_trait, &[]) {
-                        diag.help("did you mean to make this a `static` item");
-                    } else {
-                        diag.help("did you mean to make this a `thread_local!` item");
+            || is_thread_local(cx, item)
+        };
+
+        match item.kind {
+            ItemKind::Const(ident, .., body_id) => {
+                if !clippy_utils::is_lint_allowed(cx, DECLARE_INTERIOR_MUTABLE_CONST, item.hir_id())
+                    && !ident.is_special()
+                    && let ty = ty()
+                    && match self.is_ty_freeze(cx.tcx, cx.typing_env(), ty) {
+                        IsFreeze::No => true,
+                        IsFreeze::Yes => false,
+                        IsFreeze::Maybe => match cx.tcx.const_eval_poly(item.owner_id.to_def_id()) {
+                            Ok(val) if let Ok(is_freeze) = self.is_value_freeze(cx.tcx, cx.typing_env(), ty, val) => {
+                                !is_freeze
+                            },
+                            _ => !is_init_expr_freeze(self, body_id),
+                        },
                     }
-                },
-            );
+                    && !is_thread_local_or_external_macro()
+                {
+                    span_lint_and_then(
+                        cx,
+                        DECLARE_INTERIOR_MUTABLE_CONST,
+                        ident.span,
+                        "named constant with interior mutability",
+                        |diag| {
+                            let Some(sync_trait) = cx.tcx.lang_items().sync_trait() else {
+                                return;
+                            };
+
+                            diag.help(if implements_trait(cx, ty, sync_trait, &[]) {
+                                "did you mean to make this a `static` item"
+                            } else {
+                                "did you mean to make this a `thread_local!` item"
+                            });
+                        },
+                    );
+                }
+            },
+            ItemKind::Static(_, ident, _, body_id) => {
+                if !clippy_utils::is_lint_allowed(cx, GLOBAL_VARIABLES, item.hir_id())
+                    && !ident.is_special()
+                    && match self.is_ty_freeze(cx.tcx, cx.typing_env(), ty()) {
+                        IsFreeze::No => true,
+                        IsFreeze::Yes => false,
+                        IsFreeze::Maybe => !is_init_expr_freeze(self, body_id),
+                    }
+                    && !is_thread_local_or_external_macro()
+                {
+                    span_lint_and_help(
+                        cx,
+                        GLOBAL_VARIABLES,
+                        ident.span,
+                        "global variable should not be used",
+                        None,
+                        "consider passing this as a function argument or using a `thread_local`",
+                    );
+                }
+            },
+            _ => {},
         }
     }
 
