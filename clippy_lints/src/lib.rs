@@ -584,7 +584,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(fallible_impl_from::FallibleImplFrom));
     store.register_late_pass(move |_| Box::new(question_mark::QuestionMark::new(conf)));
     store.register_late_pass(|_| Box::new(question_mark_used::QuestionMarkUsed));
-    store.register_early_pass(|| Box::new(suspicious_operation_groupings::SuspiciousOperationGroupings));
+    store.register_late_pass(|_| Box::new(suspicious_operation_groupings::SuspiciousOperationGroupings));
     store.register_late_pass(|_| Box::new(suspicious_trait_impl::SuspiciousImpl));
     store.register_late_pass(|_| Box::new(map_unit_fn::MapUnit));
     store.register_late_pass(|_| Box::new(inherent_impl::MultipleInherentImpl));
