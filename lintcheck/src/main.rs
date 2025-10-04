@@ -180,7 +180,7 @@ impl Crate {
         let shared_target_dir = shared_target_dir(&format!("_{thread_index:?}"));
         let all_output = cmd
             // use the looping index to create individual target dirs
-            .env("CARGO_TARGET_DIR", shared_target_dir.as_os_str())
+            .env("CARGO_TARGET_DIR", &shared_target_dir)
             // Roughly equivalent to `cargo clippy`/`cargo clippy --fix`
             .env("RUSTC_WORKSPACE_WRAPPER", clippy_driver_path)
             .output()

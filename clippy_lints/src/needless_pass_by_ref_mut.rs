@@ -279,7 +279,7 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPassByRefMut<'tcx> {
                         |diag| {
                             diag.span_suggestion(
                                 sp,
-                                "consider changing to".to_string(),
+                                "consider changing to",
                                 format!("&{}", snippet(cx, cx.tcx.hir_span(inner_ty.ty.hir_id), "_"),),
                                 Applicability::Unspecified,
                             );
