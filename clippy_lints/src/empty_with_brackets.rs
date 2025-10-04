@@ -1,16 +1,13 @@
-use clippy_utils::attrs::span_contains_cfg;
-use clippy_utils::diagnostics::{span_lint_and_then, span_lint_hir_and_then};
-use rustc_data_structures::fx::FxIndexMap;
-use rustc_errors::Applicability;
-use rustc_hir::def::CtorOf;
-use rustc_hir::def::DefKind::Ctor;
-use rustc_hir::def::Res::Def;
+use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::source::{IntoSpan, SpanRangeExt, walk_span_to_context};
+use core::mem;
+use rustc_errors::{Applicability, SuggestionStyle};
+use rustc_hir::def::{CtorKind, DefKind, Res};
 use rustc_hir::def_id::LocalDefId;
-use rustc_hir::{Expr, ExprKind, Item, ItemKind, Node, Path, QPath, Variant, VariantData};
-use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::TyCtxt;
+use rustc_hir::{Expr, ExprKind, Generics, Item, ItemKind, QPath, Variant, VariantData};
+use rustc_lint::{LateContext, LateLintPass, Lint};
 use rustc_session::impl_lint_pass;
-use rustc_span::Span;
+use rustc_span::{DUMMY_SP, Span};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -75,219 +72,242 @@ declare_clippy_lint! {
     "finds enum variants with empty brackets"
 }
 
-#[derive(Debug)]
-enum Usage {
-    Unused { redundant_use_sites: Vec<Span> },
-    Used,
-    NoDefinition { redundant_use_sites: Vec<Span> },
+struct TupleDef {
+    did: LocalDefId,
+    lint_sp: Span,
+    edit_sp: Span,
+    needs_semi: bool,
+    lint: &'static Lint,
+    msg: &'static str,
+}
+
+struct TupleUse {
+    did: LocalDefId,
+    /// The span of the call parenthesis, or `DUMMY_SP` if this use can't be changed.
+    edit_sp: Span,
 }
 
 #[derive(Default)]
 pub struct EmptyWithBrackets {
-    // Value holds `Usage::Used` if the empty tuple variant was used as a function
-    empty_tuple_enum_variants: FxIndexMap<LocalDefId, Usage>,
+    tuple_defs: Vec<TupleDef>,
+    tuple_uses: Vec<TupleUse>,
+    // Used to skip over constructor path expressions when they've already been seen as a
+    // call expression.
+    skip_next_expr: bool,
 }
 
 impl_lint_pass!(EmptyWithBrackets => [EMPTY_STRUCTS_WITH_BRACKETS, EMPTY_ENUM_VARIANTS_WITH_BRACKETS]);
 
-impl LateLintPass<'_> for EmptyWithBrackets {
+impl<'tcx> LateLintPass<'tcx> for EmptyWithBrackets {
     fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
-        // FIXME: handle `struct $name {}`
-        if let ItemKind::Struct(ident, generics, var_data) = &item.kind
-            && !item.span.from_expansion()
-            && !ident.span.from_expansion()
-            && has_brackets(var_data)
-            && let span_after_ident = item.span.with_lo(generics.span.hi())
-            && has_no_fields(cx, var_data, span_after_ident)
-        {
-            span_lint_and_then(
+        if let ItemKind::Struct(ident, generics, ref var_data) = item.kind {
+            self.check_def(
                 cx,
+                var_data,
+                item.owner_id.def_id,
+                item.span,
+                ident.span,
+                Some(generics),
                 EMPTY_STRUCTS_WITH_BRACKETS,
-                span_after_ident,
-                "found empty brackets on struct declaration",
-                |diagnostic| {
-                    diagnostic.span_suggestion_hidden(
-                        span_after_ident,
-                        "remove the brackets",
-                        ";",
-                        Applicability::Unspecified,
-                    );
-                },
+                "non-unit struct contains no fields",
             );
         }
     }
 
     fn check_variant(&mut self, cx: &LateContext<'_>, variant: &Variant<'_>) {
-        // FIXME: handle `$name {}`
-        if !variant.span.from_expansion()
-            && !variant.ident.span.from_expansion()
-            && let span_after_ident = variant.span.with_lo(variant.ident.span.hi())
-            && has_no_fields(cx, &variant.data, span_after_ident)
+        self.check_def(
+            cx,
+            &variant.data,
+            variant.def_id,
+            variant.span,
+            variant.ident.span,
+            None,
+            EMPTY_ENUM_VARIANTS_WITH_BRACKETS,
+            "non-unit variant contains no fields",
+        );
+    }
+
+    fn check_expr(&mut self, cx: &LateContext<'_>, e: &Expr<'_>) {
+        match e.kind {
+            ExprKind::Call(callee, [])
+                if let ExprKind::Path(QPath::Resolved(_, path)) = callee.kind
+                    && let Res::Def(DefKind::Ctor(_, CtorKind::Fn), did) = path.res
+                    && let Some(did) = did.as_local()
+                    && let e_data = e.span.data()
+                    && e_data.ctxt.is_root() =>
+            {
+                // The next visited expression with be `callee`. Make sure we don't add it
+                // as a tuple use.
+                self.skip_next_expr = true;
+                let edit_sp = if let Some(callee_sp) = walk_span_to_context(callee.span, e_data.ctxt)
+                    && let edit_range = (callee_sp.hi()..e_data.hi)
+                    && let Some(edit_range) = edit_range.map_range(cx, |_, src, range| {
+                        let src = src
+                            .get(range.clone())?
+                            .trim_start()
+                            .strip_prefix('(')?
+                            .trim_start()
+                            .strip_prefix(')')?;
+                        // Any trailing closing parens are from the call expression being wrapped in parens.
+                        let len = src.len();
+                        src.trim_start_matches(|c: char| c == ')' || c.is_whitespace())
+                            .is_empty()
+                            .then_some(range.start..range.end - len)
+                    }) {
+                    edit_range.into_span()
+                } else {
+                    DUMMY_SP
+                };
+                self.tuple_uses.push(TupleUse {
+                    did: cx.tcx.local_parent(did),
+                    edit_sp,
+                });
+            },
+
+            ExprKind::Path(QPath::Resolved(_, path))
+                if let Res::Def(DefKind::Ctor(_, CtorKind::Fn), did) = path.res
+                    && let Some(did) = did.as_local()
+                    && !mem::replace(&mut self.skip_next_expr, false)
+                    && cx.tcx.fn_sig(did).skip_binder().skip_binder().inputs_and_output.len() == 1 =>
+            {
+                self.tuple_uses.push(TupleUse {
+                    did: cx.tcx.local_parent(did),
+                    edit_sp: DUMMY_SP,
+                });
+            },
+
+            _ => {},
+        }
+    }
+
+    fn check_crate_post(&mut self, cx: &LateContext<'tcx>) {
+        if self.tuple_defs.is_empty() {
+            return;
+        }
+        self.tuple_uses.sort_unstable_by_key(|x| x.did.local_def_index);
+
+        let mut replacements = Vec::with_capacity(16);
+        'def_loop: for def in &self.tuple_defs {
+            replacements.clear();
+            replacements.push((
+                def.edit_sp,
+                if def.needs_semi {
+                    String::from(";")
+                } else {
+                    String::new()
+                },
+            ));
+
+            let start = self
+                .tuple_uses
+                .partition_point(|x| x.did.local_def_index < def.did.local_def_index);
+            for u in &self.tuple_uses[start..] {
+                if u.did != def.did {
+                    break;
+                }
+                if u.edit_sp == DUMMY_SP {
+                    continue 'def_loop;
+                }
+                replacements.push((u.edit_sp, String::new()));
+            }
+
+            span_lint_and_then(cx, def.lint, def.lint_sp, def.msg, |diag| {
+                diag.multipart_suggestion_with_style(
+                    "remove the parenthesis",
+                    replacements.clone(),
+                    Applicability::MachineApplicable,
+                    SuggestionStyle::HideCodeAlways,
+                );
+            });
+        }
+    }
+}
+
+impl EmptyWithBrackets {
+    #[expect(clippy::too_many_arguments)]
+    fn check_def(
+        &mut self,
+        cx: &LateContext<'_>,
+        data: &VariantData<'_>,
+        did: LocalDefId,
+        item_sp: Span,
+        name_sp: Span,
+        struct_generics: Option<&Generics<'_>>,
+        lint: &'static Lint,
+        msg: &'static str,
+    ) {
+        // Start by normalizing the various variant forms into:
+        // * Does the replacement need a semicolon
+        // * Which brace characters to use
+        // * The span that should only contain braces and whitespace.
+        let (needs_semi, start_char, end_char, start_sp, end_pos, ctxt) = match *data {
+            VariantData::Struct { fields: [], .. } => {
+                if let Some(g) = struct_generics {
+                    // `struct Name<generics> where {}`
+                    let data = item_sp.data();
+                    (true, '{', '}', g.where_clause_span, data.hi, data.ctxt)
+                } else {
+                    // `Variant {}`
+                    let data = item_sp.data();
+                    (false, '{', '}', name_sp, data.hi, data.ctxt)
+                }
+            },
+            VariantData::Tuple([], _, _) => {
+                if let Some(g) = struct_generics {
+                    // `struct Name<generics>() where;`
+                    let data = g.where_clause_span.data();
+                    (false, '(', ')', g.span, data.lo, data.ctxt)
+                } else {
+                    // `Variant()`
+                    let data = item_sp.data();
+                    (false, '(', ')', name_sp, data.hi, data.ctxt)
+                }
+            },
+            VariantData::Struct { .. } | VariantData::Tuple(..) | VariantData::Unit(..) => return,
+        };
+
+        let start_data = start_sp.data();
+        if start_data.ctxt == ctxt
+            && !ctxt.in_external_macro(cx.tcx.sess.source_map())
+            && let Some(lint_range) = (start_data.hi..end_pos).clone().map_range(cx, |_, src, range| {
+                // Check that the source text only contains whitespace and the braces.
+                // Anything else (e.g. comments, cfgs, macro vars, etc.) should stop this
+                // lint from triggering.
+                let src = src.get(range.clone())?;
+                let src2 = src.trim_start();
+                let start = range.start + (src.len() - src2.len());
+                let src3 = src2.trim_end();
+                let end = range.end - (src2.len() - src3.len());
+                src3.strip_prefix(start_char)?
+                    .strip_suffix(end_char)?
+                    .trim_start()
+                    .is_empty()
+                    .then_some(start..end)
+            })
         {
-            match variant.data {
-                VariantData::Struct { .. } => {
-                    // Empty struct variants can be linted immediately
-                    span_lint_and_then(
-                        cx,
-                        EMPTY_ENUM_VARIANTS_WITH_BRACKETS,
-                        span_after_ident,
-                        "enum variant has empty brackets",
-                        |diagnostic| {
-                            diagnostic.span_suggestion_hidden(
-                                span_after_ident,
-                                "remove the brackets",
-                                "",
-                                Applicability::MaybeIncorrect,
-                            );
-                        },
+            // Don't edit the out any trailing whitespace to avoid problems with
+            // where clauses.
+            let edit_sp = Span::new(start_data.hi, lint_range.end, ctxt, None);
+            let lint_sp = Span::new(lint_range.start, lint_range.end, ctxt, None);
+            if start_char == '{' {
+                span_lint_and_then(cx, lint, lint_sp, msg, |diagnostic| {
+                    diagnostic.span_suggestion_hidden(
+                        edit_sp,
+                        "remove the braces",
+                        if needs_semi { String::from(";") } else { String::new() },
+                        Applicability::MaybeIncorrect,
                     );
-                },
-                VariantData::Tuple(.., local_def_id) => {
-                    // Don't lint reachable tuple enums
-                    if cx.effective_visibilities.is_reachable(variant.def_id) {
-                        return;
-                    }
-                    if let Some(entry) = self.empty_tuple_enum_variants.get_mut(&local_def_id) {
-                        // empty_tuple_enum_variants contains Usage::NoDefinition if the variant was called before the
-                        // definition was encountered. Now that there's a definition, convert it
-                        // to Usage::Unused.
-                        if let Usage::NoDefinition { redundant_use_sites } = entry {
-                            *entry = Usage::Unused {
-                                redundant_use_sites: redundant_use_sites.clone(),
-                            };
-                        }
-                    } else {
-                        self.empty_tuple_enum_variants.insert(
-                            local_def_id,
-                            Usage::Unused {
-                                redundant_use_sites: vec![],
-                            },
-                        );
-                    }
-                },
-                VariantData::Unit(..) => {},
+                });
+            } else if !cx.effective_visibilities.is_exported(did) {
+                self.tuple_defs.push(TupleDef {
+                    did,
+                    lint_sp,
+                    edit_sp,
+                    needs_semi,
+                    lint,
+                    msg,
+                });
             }
         }
-    }
-
-    fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {
-        if let Some(def_id) = check_expr_for_enum_as_function(expr) {
-            if let Some(parentheses_span) = call_parentheses_span(cx.tcx, expr) {
-                // Do not count expressions from macro expansion as a redundant use site.
-                if expr.span.from_expansion() {
-                    return;
-                }
-                match self.empty_tuple_enum_variants.get_mut(&def_id) {
-                    Some(
-                        &mut (Usage::Unused {
-                            ref mut redundant_use_sites,
-                        }
-                        | Usage::NoDefinition {
-                            ref mut redundant_use_sites,
-                        }),
-                    ) => {
-                        redundant_use_sites.push(parentheses_span);
-                    },
-                    None => {
-                        // The variant isn't in the IndexMap which means its definition wasn't encountered yet.
-                        self.empty_tuple_enum_variants.insert(
-                            def_id,
-                            Usage::NoDefinition {
-                                redundant_use_sites: vec![parentheses_span],
-                            },
-                        );
-                    },
-                    _ => {},
-                }
-            } else {
-                // The parentheses are not redundant.
-                self.empty_tuple_enum_variants.insert(def_id, Usage::Used);
-            }
-        }
-    }
-
-    fn check_crate_post(&mut self, cx: &LateContext<'_>) {
-        for (local_def_id, usage) in &self.empty_tuple_enum_variants {
-            // Ignore all variants with Usage::Used or Usage::NoDefinition
-            let Usage::Unused { redundant_use_sites } = usage else {
-                continue;
-            };
-            // Attempt to fetch the Variant from LocalDefId.
-            let Node::Variant(variant) = cx.tcx.hir_node(
-                cx.tcx
-                    .local_def_id_to_hir_id(cx.tcx.parent(local_def_id.to_def_id()).expect_local()),
-            ) else {
-                continue;
-            };
-            // Span of the parentheses in variant definition
-            let span = variant.span.with_lo(variant.ident.span.hi());
-            span_lint_hir_and_then(
-                cx,
-                EMPTY_ENUM_VARIANTS_WITH_BRACKETS,
-                variant.hir_id,
-                span,
-                "enum variant has empty brackets",
-                |diagnostic| {
-                    if redundant_use_sites.is_empty() {
-                        // If there's no redundant use sites, the definition is the only place to modify.
-                        diagnostic.span_suggestion_hidden(
-                            span,
-                            "remove the brackets",
-                            "",
-                            Applicability::MaybeIncorrect,
-                        );
-                    } else {
-                        let mut parentheses_spans: Vec<_> =
-                            redundant_use_sites.iter().map(|span| (*span, String::new())).collect();
-                        parentheses_spans.push((span, String::new()));
-                        diagnostic.multipart_suggestion(
-                            "remove the brackets",
-                            parentheses_spans,
-                            Applicability::MaybeIncorrect,
-                        );
-                    }
-                },
-            );
-        }
-    }
-}
-
-fn has_brackets(var_data: &VariantData<'_>) -> bool {
-    !matches!(var_data, VariantData::Unit(..))
-}
-
-fn has_no_fields(cx: &LateContext<'_>, var_data: &VariantData<'_>, braces_span: Span) -> bool {
-    var_data.fields().is_empty() &&
-    // there might still be field declarations hidden from the AST
-    // (conditionally compiled code using #[cfg(..)])
-    !span_contains_cfg(cx, braces_span)
-}
-
-// If expression HIR ID and callee HIR ID are same, returns the span of the parentheses, else,
-// returns None.
-fn call_parentheses_span(tcx: TyCtxt<'_>, expr: &Expr<'_>) -> Option<Span> {
-    if let Node::Expr(parent) = tcx.parent_hir_node(expr.hir_id)
-        && let ExprKind::Call(callee, ..) = parent.kind
-        && callee.hir_id == expr.hir_id
-    {
-        Some(parent.span.with_lo(expr.span.hi()))
-    } else {
-        None
-    }
-}
-
-// Returns the LocalDefId of the variant being called as a function if it exists.
-fn check_expr_for_enum_as_function(expr: &Expr<'_>) -> Option<LocalDefId> {
-    if let ExprKind::Path(QPath::Resolved(
-        _,
-        Path {
-            res: Def(Ctor(CtorOf::Variant, _), def_id),
-            ..
-        },
-    )) = expr.kind
-    {
-        def_id.as_local()
-    } else {
-        None
     }
 }
