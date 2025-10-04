@@ -13,7 +13,7 @@ LL -     1isize as i8;
 LL +     i8::try_from(1isize);
    |
 
-error: casting `isize` to `f32` causes a loss of precision (`isize` is 32 or 64 bits wide, but `f32`'s mantissa is only 23 bits wide)
+error: casting `isize` to `f32` causes a loss of precision (`isize` is 16, 32, or 64 bits wide, but `f32`'s mantissa is only 23 bits wide)
   --> tests/ui/cast_size.rs:24:5
    |
 LL |     x0 as f32;
@@ -22,7 +22,7 @@ LL |     x0 as f32;
    = note: `-D clippy::cast-precision-loss` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::cast_precision_loss)]`
 
-error: casting `usize` to `f32` causes a loss of precision (`usize` is 32 or 64 bits wide, but `f32`'s mantissa is only 23 bits wide)
+error: casting `usize` to `f32` causes a loss of precision (`usize` is 16, 32, or 64 bits wide, but `f32`'s mantissa is only 23 bits wide)
   --> tests/ui/cast_size.rs:26:5
    |
 LL |     x1 as f32;
