@@ -1,4 +1,5 @@
 #![feature(box_patterns)]
+#![feature(hasher_prefixfree_extras)]
 #![feature(if_let_guard)]
 #![feature(macro_metavar_expr)]
 #![feature(never_type)]
@@ -48,8 +49,9 @@ extern crate rustc_session;
 extern crate rustc_span;
 extern crate rustc_trait_selection;
 extern crate smallvec;
+extern crate thin_vec;
 
-pub mod ast_utils;
+pub mod ast;
 pub mod attrs;
 mod check_proc_macro;
 pub mod comparisons;
@@ -87,7 +89,7 @@ use std::sync::{Mutex, MutexGuard, OnceLock};
 
 use itertools::Itertools;
 use rustc_abi::Integer;
-use rustc_ast::ast::{self, LitKind, RangeLimits};
+use rustc_ast::ast::{LitKind, RangeLimits};
 use rustc_ast::join_path_syms;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_data_structures::packed::Pu128;
@@ -125,7 +127,7 @@ use rustc_span::{InnerSpan, Span};
 use source::{SpanRangeExt, walk_span_to_context};
 use visitors::{Visitable, for_each_unconsumed_temporary};
 
-use crate::ast_utils::unordered_over;
+use crate::ast::unordered_over;
 use crate::consts::{ConstEvalCtxt, Constant, mir_to_const};
 use crate::higher::Range;
 use crate::msrvs::Msrv;
@@ -2319,7 +2321,7 @@ pub fn peel_hir_expr_while<'tcx>(
 pub fn peel_n_hir_expr_refs<'a>(expr: &'a Expr<'a>, count: usize) -> (&'a Expr<'a>, usize) {
     let mut remaining = count;
     let e = peel_hir_expr_while(expr, |e| match e.kind {
-        ExprKind::AddrOf(ast::BorrowKind::Ref, _, e) if remaining != 0 => {
+        ExprKind::AddrOf(rustc_ast::BorrowKind::Ref, _, e) if remaining != 0 => {
             remaining -= 1;
             Some(e)
         },
@@ -2345,7 +2347,7 @@ pub fn peel_hir_expr_unary<'a>(expr: &'a Expr<'a>) -> (&'a Expr<'a>, usize) {
 pub fn peel_hir_expr_refs<'a>(expr: &'a Expr<'a>) -> (&'a Expr<'a>, usize) {
     let mut count = 0;
     let e = peel_hir_expr_while(expr, |e| match e.kind {
-        ExprKind::AddrOf(ast::BorrowKind::Ref, _, e) => {
+        ExprKind::AddrOf(rustc_ast::BorrowKind::Ref, _, e) => {
             count += 1;
             Some(e)
         },
@@ -2695,7 +2697,7 @@ pub enum ExprUseNode<'tcx> {
     /// Access of a field.
     FieldAccess(Ident),
     /// Borrow expression.
-    AddrOf(ast::BorrowKind, Mutability),
+    AddrOf(rustc_ast::BorrowKind, Mutability),
     Other,
 }
 impl<'tcx> ExprUseNode<'tcx> {
