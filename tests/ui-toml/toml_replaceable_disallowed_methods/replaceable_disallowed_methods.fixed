@@ -1,10 +1,44 @@
 fn bad() {}
 fn questionable() {}
 fn good() {}
+fn free(_: WithMethod) {}
+
+pub struct WithMethod;
+
+impl WithMethod {
+    pub fn evil(self) {}
+    pub fn mean(self) {}
+    pub fn ugly(self) {}
+    pub fn nice(self) {}
+    pub fn cruel(self, _: i32) {}
+    pub fn kind(self, _: i32) {}
+}
 
 fn main() {
     good();
     //~^ disallowed_methods
     good();
     //~^ disallowed_methods
+    f64::round_ties_even(3f64);
+    //~^ disallowed_methods
+    crate::free(WithMethod);
+    //~^ disallowed_methods
+    crate::free(WithMethod);
+    //~^ disallowed_methods
+    WithMethod.nice();
+    //~^ disallowed_methods
+    WithMethod::nice(WithMethod);
+    //~^ disallowed_methods
+    WithMethod::nice(WithMethod);
+    //~^ disallowed_methods
+    WithMethod::nice(WithMethod);
+    //~^ disallowed_methods
+    WithMethod::kind(WithMethod, 1);
+    //~^ disallowed_methods
+    WithMethod::kind(WithMethod, 1);
+    //~^ disallowed_methods
+
+    WithMethod.nice();
+    good();
+    free(WithMethod);
 }
