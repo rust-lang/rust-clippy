@@ -48,7 +48,9 @@ fn get_none<'tcx>(cx: &LateContext<'_>, arm: &Arm<'tcx>, allow_wildcard: bool) -
         && cx.tcx.lang_items().get(LangItem::ResultErr) == Some(def_id)
     {
         Some(arm.body)
-    } else if let (PatKind::Wild, true) = (arm.pat.kind, allow_wildcard) {
+    } else if let PatKind::Wild = arm.pat.kind
+        && allow_wildcard
+    {
         // We consider that the `Some` check will filter it out if it's not right.
         Some(arm.body)
     } else {
@@ -65,8 +67,8 @@ fn get_some_and_none_bodies<'tcx>(
         && let Some(body_none) = get_none(cx, arm2, true)
     {
         Some(((arm1.body, binding_id), body_none))
-    } else if let Some(binding_id) = get_some(cx, arm2.pat)
-        && let Some(body_none) = get_none(cx, arm1, false)
+    } else if let Some(body_none) = get_none(cx, arm1, false)
+        && let Some(binding_id) = get_some(cx, arm2.pat)
     {
         Some(((arm2.body, binding_id), body_none))
     } else {

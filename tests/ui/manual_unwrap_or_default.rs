@@ -66,6 +66,8 @@ fn main() {
     };
 
     // edge case
+    // because the `Some(bizarro)` pattern is not actually reachable,
+    // changing this match to `unwrap_or_default` would have side effects
     let bizarro = Some(String::new());
     match bizarro {
         _ => String::new(),
