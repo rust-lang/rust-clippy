@@ -1,0 +1,64 @@
+error: assignment via raw pointer always executes destructor
+  --> tests/ui/raw_assign_to_drop.rs:8:10
+   |
+LL |         *r = "foo".to_owned();
+   |          ^ the old value may be uninitialized, causing Undefined Behavior when the destructor executes
+   |
+   = note: the destructor defined by `std::string::String` is executed during assignment of the new value
+   = help: use `std::ptr::write()` to overwrite a possibly uninitialized place
+   = help: use `std::ptr::drop_in_place()` to drop the previous value, having established such value exists
+   = note: `-D clippy::raw-assign-to-drop` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::raw_assign_to_drop)]`
+
+error: assignment via raw pointer always executes destructor
+  --> tests/ui/raw_assign_to_drop.rs:14:11
+   |
+LL |         (*r, *r) = ("foo".to_owned(), "bar".to_owned());
+   |           ^ the old value may be uninitialized, causing Undefined Behavior when the destructor executes
+   |
+   = note: the destructor defined by `std::string::String` is executed during assignment of the new value
+   = help: use `std::ptr::write()` to overwrite a possibly uninitialized place
+   = help: use `std::ptr::drop_in_place()` to drop the previous value, having established such value exists
+
+error: assignment via raw pointer always executes destructor
+  --> tests/ui/raw_assign_to_drop.rs:14:15
+   |
+LL |         (*r, *r) = ("foo".to_owned(), "bar".to_owned());
+   |               ^ the old value may be uninitialized, causing Undefined Behavior when the destructor executes
+   |
+   = note: the destructor defined by `std::string::String` is executed during assignment of the new value
+   = help: use `std::ptr::write()` to overwrite a possibly uninitialized place
+   = help: use `std::ptr::drop_in_place()` to drop the previous value, having established such value exists
+
+error: assignment via raw pointer always executes destructor
+  --> tests/ui/raw_assign_to_drop.rs:18:11
+   |
+LL |         (*r, *i) = ("foo".to_owned(), 47);
+   |           ^ the old value may be uninitialized, causing Undefined Behavior when the destructor executes
+   |
+   = note: the destructor defined by `std::string::String` is executed during assignment of the new value
+   = help: use `std::ptr::write()` to overwrite a possibly uninitialized place
+   = help: use `std::ptr::drop_in_place()` to drop the previous value, having established such value exists
+
+error: assignment via raw pointer always executes destructor
+  --> tests/ui/raw_assign_to_drop.rs:22:10
+   |
+LL |         *(&mut x as *mut _) = "Foo".to_owned();
+   |          ^^^^^^^^^^^^^^^^^^ the old value may be uninitialized, causing Undefined Behavior when the destructor executes
+   |
+   = note: the destructor defined by `std::string::String` is executed during assignment of the new value
+   = help: use `std::ptr::write()` to overwrite a possibly uninitialized place
+   = help: use `std::ptr::drop_in_place()` to drop the previous value, having established such value exists
+
+error: assignment via raw pointer always executes destructor
+  --> tests/ui/raw_assign_to_drop.rs:29:10
+   |
+LL |         *v.as_mut_ptr() = Default::default();
+   |          ^^^^^^^^^^^^^^ the old value may be uninitialized, causing Undefined Behavior when the destructor executes
+   |
+   = note: the destructor defined by `std::string::String` is executed during assignment of the new value
+   = help: use `std::ptr::write()` to overwrite a possibly uninitialized place
+   = help: use `std::ptr::drop_in_place()` to drop the previous value, having established such value exists
+
+error: aborting due to 6 previous errors
+
