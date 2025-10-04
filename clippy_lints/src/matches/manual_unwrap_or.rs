@@ -10,8 +10,13 @@ use rustc_span::sym;
 
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::sugg::Sugg;
-use clippy_utils::ty::{expr_type_is_certain, get_type_diagnostic_name, implements_trait};
-use clippy_utils::{is_default_equivalent, is_lint_allowed, path_res, peel_blocks, span_contains_comment};
+use clippy_utils::ty::{
+    expr_type_is_certain, get_type_diagnostic_name, implements_trait, is_copy, is_type_diagnostic_item,
+};
+use clippy_utils::usage::local_used_after_expr;
+use clippy_utils::{
+    is_default_equivalent, is_lint_allowed, path_res, path_to_local, peel_blocks, span_contains_comment,
+};
 
 use super::{MANUAL_UNWRAP_OR, MANUAL_UNWRAP_OR_DEFAULT};
 
@@ -84,7 +89,9 @@ fn handle(
     binding_id: HirId,
 ) {
     // Only deal with situations where both alternatives return the same non-adjusted type.
-    if cx.typeck_results().expr_ty(body_some) != cx.typeck_results().expr_ty(body_none) {
+    if cx.typeck_results().expr_ty(body_some) != cx.typeck_results().expr_ty(body_none)
+        || !safe_to_move_scrutinee(cx, expr, condition)
+    {
         return;
     }
 
@@ -178,6 +185,29 @@ fn find_type_name<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<&'static
         sym::Option => Some("Option"),
         sym::Result => Some("Result"),
         _ => None,
+    }
+}
+
+/// Checks whether it is safe to move scrutinee.
+/// It is not safe to move if:
+///     1. `scrutinee` is a `Result` that doesn't implemenet `Copy`, mainly because the `Err`
+///        variant is not copyable.
+///     2. `expr` is a local variable that is used after the if-let-else expression.
+/// ```rust,ignore
+/// let foo: Result<usize, String> = Ok(0);
+/// let v = if let Ok(v) = foo { v } else { 1 };
+/// let bar = foo;
+/// ```
+fn safe_to_move_scrutinee(cx: &LateContext<'_>, expr: &Expr<'_>, scrutinee: &Expr<'_>) -> bool {
+    if let Some(hir_id) = path_to_local(scrutinee)
+        && let scrutinee_ty = cx.typeck_results().expr_ty(scrutinee)
+        && is_type_diagnostic_item(cx, scrutinee_ty, sym::Result)
+        && !is_copy(cx, scrutinee_ty)
+        && local_used_after_expr(cx, hir_id, expr)
+    {
+        false
+    } else {
+        true
     }
 }
 
