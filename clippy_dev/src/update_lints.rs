@@ -81,12 +81,11 @@ pub fn generate_lint_files(
         &mut |_, src, dst| {
             let mut searcher = RustSearcher::new(src);
             assert!(
-                searcher.find_token(Token::Ident("declare_with_version"))
-                    && searcher.find_token(Token::Ident("declare_with_version")),
+                searcher.find_token(Token::Ident("deprecated")) && searcher.find_token(Token::Ident("deprecated")),
                 "error reading deprecated lints"
             );
             dst.push_str(&src[..searcher.pos() as usize]);
-            dst.push_str("! { DEPRECATED(DEPRECATED_VERSION) = [\n");
+            dst.push_str("![\n");
             for lint in deprecated {
                 write!(
                     dst,
@@ -96,20 +95,15 @@ pub fn generate_lint_files(
                 .unwrap();
             }
             dst.push_str(
-                "]}\n\n\
+                "];\n\n\
                     #[rustfmt::skip]\n\
-                    declare_with_version! { RENAMED(RENAMED_VERSION) = [\n\
+                    pub const RENAMED: &[(&str, &str)] = &[\n\
                 ",
             );
             for lint in renamed {
-                write!(
-                    dst,
-                    "    #[clippy::version = \"{}\"]\n    (\"{}\", \"{}\"),\n",
-                    lint.version, lint.old_name, lint.new_name,
-                )
-                .unwrap();
+                writeln!(dst, "    (\"{}\", \"{}\"),", lint.old_name, lint.new_name).unwrap();
             }
-            dst.push_str("]}\n");
+            dst.push_str("];\n");
             UpdateStatus::from_changed(src != dst)
         },
     );
@@ -220,7 +214,6 @@ pub struct DeprecatedLint {
 pub struct RenamedLint {
     pub old_name: String,
     pub new_name: String,
-    pub version: String,
 }
 
 /// Finds all lint declarations (`declare_clippy_lint!`)
@@ -318,21 +311,14 @@ pub fn read_deprecated_lints() -> (Vec<DeprecatedLint>, Vec<RenamedLint>) {
     #[allow(clippy::enum_glob_use)]
     use Token::*;
     #[rustfmt::skip]
-    static DECL_TOKENS: &[Token<'_>] = &[
+    static VERSION_TOKENS: &[Token<'_>] = &[
         // #[clippy::version = "version"]
         Pound, OpenBracket, Ident("clippy"), DoubleColon, Ident("version"), Eq, CaptureLitStr, CloseBracket,
+    ];
+    #[rustfmt::skip]
+    static DECL_TOKENS: &[Token<'_>] = &[
         // ("first", "second"),
         OpenParen, CaptureLitStr, Comma, CaptureLitStr, CloseParen, Comma,
-    ];
-    #[rustfmt::skip]
-    static DEPRECATED_TOKENS: &[Token<'_>] = &[
-        // !{ DEPRECATED(DEPRECATED_VERSION) = [
-        Bang, OpenBrace, Ident("DEPRECATED"), OpenParen, Ident("DEPRECATED_VERSION"), CloseParen, Eq, OpenBracket,
-    ];
-    #[rustfmt::skip]
-    static RENAMED_TOKENS: &[Token<'_>] = &[
-        // !{ RENAMED(RENAMED_VERSION) = [
-        Bang, OpenBrace, Ident("RENAMED"), OpenParen, Ident("RENAMED_VERSION"), CloseParen, Eq, OpenBracket,
     ];
 
     let path = "clippy_lints/src/deprecated_lints.rs";
@@ -345,15 +331,16 @@ pub fn read_deprecated_lints() -> (Vec<DeprecatedLint>, Vec<RenamedLint>) {
 
     // First instance is the macro definition.
     assert!(
-        searcher.find_token(Ident("declare_with_version")),
+        searcher.find_token(Ident("deprecated")),
         "error reading deprecated lints"
     );
 
-    if searcher.find_token(Ident("declare_with_version")) && searcher.match_tokens(DEPRECATED_TOKENS, &mut []) {
+    if searcher.find_token(Ident("deprecated")) && searcher.match_tokens(&[Bang, OpenBracket], &mut []) {
         let mut version = "";
         let mut name = "";
         let mut reason = "";
-        while searcher.match_tokens(DECL_TOKENS, &mut [&mut version, &mut name, &mut reason]) {
+        while searcher.match_tokens(VERSION_TOKENS, &mut [&mut version]) {
+            assert!(searcher.match_tokens(DECL_TOKENS, &mut [&mut name, &mut reason]));
             deprecated.push(DeprecatedLint {
                 name: parse_str_single_line(path.as_ref(), name),
                 reason: parse_str_single_line(path.as_ref(), reason),
@@ -364,15 +351,15 @@ pub fn read_deprecated_lints() -> (Vec<DeprecatedLint>, Vec<RenamedLint>) {
         panic!("error reading deprecated lints");
     }
 
-    if searcher.find_token(Ident("declare_with_version")) && searcher.match_tokens(RENAMED_TOKENS, &mut []) {
-        let mut version = "";
+    // pub const RENAMED: &[(&str, &str)] = &[
+    //           ^^^^^^^                  ^  ^
+    if searcher.find_token(Ident("RENAMED")) && searcher.find_token(Eq) && searcher.find_token(OpenBracket) {
         let mut old_name = "";
         let mut new_name = "";
-        while searcher.match_tokens(DECL_TOKENS, &mut [&mut version, &mut old_name, &mut new_name]) {
+        while searcher.match_tokens(DECL_TOKENS, &mut [&mut old_name, &mut new_name]) {
             renamed.push(RenamedLint {
                 old_name: parse_str_single_line(path.as_ref(), old_name),
                 new_name: parse_str_single_line(path.as_ref(), new_name),
-                version: parse_str_single_line(path.as_ref(), version),
             });
         }
     } else {
