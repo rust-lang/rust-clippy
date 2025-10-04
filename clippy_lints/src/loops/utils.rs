@@ -255,7 +255,7 @@ fn is_conditional(expr: &Expr<'_>) -> bool {
 
 /// If `arg` was the argument to a `for` loop, return the "cleanest" way of writing the
 /// actual `Iterator` that the loop uses.
-pub(super) fn make_iterator_snippet(cx: &LateContext<'_>, arg: &Expr<'_>, applic_ref: &mut Applicability) -> String {
+pub(super) fn make_iterator_snippet(cx: &LateContext<'_>, arg: &Expr<'_>, applicability: &mut Applicability) -> String {
     let impls_iterator = cx
         .tcx
         .get_diagnostic_item(sym::Iterator)
@@ -263,7 +263,7 @@ pub(super) fn make_iterator_snippet(cx: &LateContext<'_>, arg: &Expr<'_>, applic
     if impls_iterator {
         format!(
             "{}",
-            sugg::Sugg::hir_with_applicability(cx, arg, "_", applic_ref).maybe_paren()
+            sugg::Sugg::hir_with_applicability(cx, arg, "_", applicability).maybe_paren()
         )
     } else {
         // (&x).into_iter() ==> x.iter()
@@ -281,12 +281,12 @@ pub(super) fn make_iterator_snippet(cx: &LateContext<'_>, arg: &Expr<'_>, applic
                 };
                 format!(
                     "{}.{method_name}()",
-                    sugg::Sugg::hir_with_applicability(cx, caller, "_", applic_ref).maybe_paren(),
+                    sugg::Sugg::hir_with_applicability(cx, caller, "_", applicability).maybe_paren(),
                 )
             },
             _ => format!(
                 "{}.into_iter()",
-                sugg::Sugg::hir_with_applicability(cx, arg, "_", applic_ref).maybe_paren()
+                sugg::Sugg::hir_with_applicability(cx, arg, "_", applicability).maybe_paren()
             ),
         }
     }
