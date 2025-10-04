@@ -426,5 +426,53 @@ help: consider removing the safety comment
 LL |         // SAFETY: ...
    |         ^^^^^^^^^^^^^^
 
-error: aborting due to 46 previous errors
+error: function has safety comment, but maybe a `# Safety` segment would be better
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:781:5
+   |
+LL |     unsafe fn unsafe_comment() {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider changing the `SAFETY` comment for a `# Safety` doc comment
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:780:5
+   |
+LL |     // SAFETY: Bla
+   |     ^^^^^^^^^^^^^^
+
+error: function has safety comment, but maybe a `# Safety` segment would be better
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:787:5
+   |
+LL |     unsafe fn unsafe_block_comment() {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider changing the `SAFETY` comment for a `# Safety` doc comment
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:785:8
+   |
+LL |        SAFETY: Bla
+   |        ^^^^^^^^^^^
+
+error: function has unnecessary safety comment
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:791:5
+   |
+LL |     fn safe_comment() {}
+   |     ^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the safety comment
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:790:5
+   |
+LL |     // SAFETY: Bla
+   |     ^^^^^^^^^^^^^^
+
+error: function has unnecessary safety comment
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:795:5
+   |
+LL |     fn safe_doc_comment() {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the safety comment
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:794:5
+   |
+LL |     /// SAFETY: Bla
+   |     ^^^^^^^^^^^^^^^
+
+error: aborting due to 50 previous errors
 
