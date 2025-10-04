@@ -1,0 +1,26 @@
+error: found `.or_else(|| Some(…)).unwrap()`
+  --> tests/ui/or_else_then_unwrap.rs:31:20
+   |
+LL |     let _ = option.or_else(|| Some(Wrapper::new("fallback"))).unwrap(); // should trigger lint
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_else(|| Wrapper::new("fallback"))`
+   |
+   = note: `-D clippy::or-else-then-unwrap` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::or_else_then_unwrap)]`
+
+error: found `.or_else(|| Some(…)).unwrap()`
+  --> tests/ui/or_else_then_unwrap.rs:39:10
+   |
+LL |           .or_else(|| Some(Wrapper::new("fallback"))) // should trigger lint
+   |  __________^
+...  |
+LL | |         .unwrap()
+   | |_________________^ help: try: `unwrap_or_else(|| Wrapper::new("fallback"))`
+
+error: found `.or_else(|| Some(…)).unwrap()`
+  --> tests/ui/or_else_then_unwrap.rs:49:20
+   |
+LL |     let _ = option.or_else(|| Some(vec!["fallback"])).unwrap(); // should trigger lint
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_else(|| vec!["fallback"])`
+
+error: aborting due to 3 previous errors
+
