@@ -1,13 +1,10 @@
+#![allow(clippy::identity_op, clippy::no_effect, clippy::unnecessary_operation)]
+
 const THREE_BITS: i64 = 7;
 const EVEN_MORE_REDIRECTION: i64 = THREE_BITS;
 
 #[warn(clippy::bad_bit_mask)]
-#[allow(
-    clippy::ineffective_bit_mask,
-    clippy::identity_op,
-    clippy::no_effect,
-    clippy::unnecessary_operation
-)]
+#[allow(clippy::ineffective_bit_mask)]
 fn main() {
     let x = 5;
 
@@ -68,7 +65,7 @@ fn main() {
 }
 
 #[warn(clippy::ineffective_bit_mask)]
-#[allow(clippy::bad_bit_mask, clippy::no_effect, clippy::unnecessary_operation)]
+#[allow(clippy::bad_bit_mask)]
 fn ineffective() {
     let x = 5;
 
@@ -88,4 +85,16 @@ fn ineffective() {
     x | 1 >= 7; // not an error (yet), better written as x >= 6
     x | 3 > 4; // not an error (yet), better written as x >= 4
     x | 4 <= 19;
+}
+
+fn issue14167() {
+    #[cfg(test)]
+    const FORCE_DYNAMIC_DETECTION: u8 = 0b00010000;
+
+    #[cfg(not(test))]
+    const FORCE_DYNAMIC_DETECTION: u8 = 0b0000000;
+
+    const CAPS_STATIC: u8 = 0b00001111;
+
+    CAPS_STATIC & FORCE_DYNAMIC_DETECTION == 0;
 }
