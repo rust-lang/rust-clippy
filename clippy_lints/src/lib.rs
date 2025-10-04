@@ -325,6 +325,7 @@ mod reference;
 mod regex;
 mod repeat_vec_with_capacity;
 mod reserve_after_initialization;
+mod rest_when_destructuring_struct;
 mod return_self_not_must_use;
 mod returns;
 mod same_name_method;
@@ -831,5 +832,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(infallible_try_from::InfallibleTryFrom));
     store.register_late_pass(|_| Box::new(coerce_container_to_any::CoerceContainerToAny));
     store.register_late_pass(|_| Box::new(toplevel_ref_arg::ToplevelRefArg));
+    store.register_late_pass(|_| Box::new(rest_when_destructuring_struct::RestWhenDestructuringStruct));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
