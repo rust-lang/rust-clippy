@@ -776,4 +776,24 @@ mod issue_15754 {
     }
 }
 
+mod unsafe_fns {
+    // SAFETY: Bla
+    unsafe fn unsafe_comment() {}
+    //~^ unnecessary_safety_comment
+
+    /*
+       SAFETY: Bla
+    */
+    unsafe fn unsafe_block_comment() {}
+    //~^ unnecessary_safety_comment
+
+    // SAFETY: Bla
+    fn safe_comment() {}
+    //~^ unnecessary_safety_comment
+
+    /// SAFETY: Bla
+    fn safe_doc_comment() {}
+    //~^ unnecessary_safety_comment
+}
+
 fn main() {}
