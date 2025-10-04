@@ -1,0 +1,20 @@
+error: `format!(..)` appended to existing `String`
+  --> tests/ui/format_push_string_no_std.rs:10:5
+   |
+LL |     string.push_str(&format!("{:?}", 1234));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::format-push-string` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::format_push_string)]`
+help: consider using `write!` to avoid the extra allocation
+   |
+LL + use core::fmt::Write as _;
+LL | extern crate alloc;
+LL |
+...
+LL | fn foo(string: &mut String) {
+LL ~     let _ = write!(string, "{:?}", 1234);
+   |
+
+error: aborting due to 1 previous error
+
