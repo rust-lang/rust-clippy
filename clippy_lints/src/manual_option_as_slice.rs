@@ -1,5 +1,5 @@
 use clippy_config::Conf;
-use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg};
+use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::msrvs::Msrv;
 use clippy_utils::{is_none_pattern, msrvs, peel_hir_expr_refs, sym};
 use rustc_errors::Applicability;
@@ -134,19 +134,22 @@ fn check_as_ref(cx: &LateContext<'_>, expr: &Expr<'_>, span: Span, msrv: Msrv) {
             },
         )
     {
-        if let Some(snippet) = clippy_utils::source::snippet_opt(cx, callee.span) {
-            span_lint_and_sugg(
-                cx,
-                MANUAL_OPTION_AS_SLICE,
-                span,
-                "use `Option::as_slice`",
-                "use",
-                format!("{snippet}.as_slice()"),
-                Applicability::MachineApplicable,
-            );
-        } else {
-            span_lint(cx, MANUAL_OPTION_AS_SLICE, span, "use `Option_as_slice`");
-        }
+        span_lint_and_then(
+            cx,
+            MANUAL_OPTION_AS_SLICE,
+            span,
+            "manual implementation of `Option::as_slice`",
+            |diag| {
+                if let Some(snippet) = clippy_utils::source::snippet_opt(cx, callee.span) {
+                    diag.span_suggestion(
+                        span,
+                        "use",
+                        format!("{snippet}.as_slice()"),
+                        Applicability::MachineApplicable,
+                    );
+                }
+            },
+        );
     }
 }
 

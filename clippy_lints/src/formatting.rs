@@ -294,10 +294,10 @@ fn check_array(cx: &EarlyContext<'_>, expr: &Expr) {
                 && lhs.span.eq_ctxt(op.span)
                 && let space_span = lhs.span.between(op.span)
                 && let Some(space_snippet) = snippet_opt(cx, space_span)
-                && let lint_span = lhs.span.with_lo(lhs.span.hi())
                 && space_snippet.contains('\n')
                 && indentation(cx, op.span) <= indentation(cx, lhs.span)
             {
+                let lint_span = lhs.span.shrink_to_hi();
                 span_lint_and_note(
                     cx,
                     POSSIBLE_MISSING_COMMA,
