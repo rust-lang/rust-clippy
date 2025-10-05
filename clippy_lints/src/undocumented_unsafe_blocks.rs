@@ -263,7 +263,7 @@ fn check_has_safety_comment(cx: &LateContext<'_>, item: &hir::Item<'_>, (span, h
                     UNNECESSARY_SAFETY_COMMENT,
                     span,
                     format!(
-                        "{} has safety comment, but maybe a `# Safety` segment would be better",
+                        "{} has unnecessary safety comment",
                         cx.tcx.def_descr(item.owner_id.to_def_id()),
                     ),
                     |diag| {

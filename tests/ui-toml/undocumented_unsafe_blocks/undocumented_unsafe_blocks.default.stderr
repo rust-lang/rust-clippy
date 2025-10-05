@@ -426,7 +426,7 @@ help: consider removing the safety comment
 LL |         // SAFETY: ...
    |         ^^^^^^^^^^^^^^
 
-error: function has safety comment, but maybe a `# Safety` segment would be better
+error: function has unnecessary safety comment
   --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:781:5
    |
 LL |     unsafe fn unsafe_comment() {}
@@ -438,7 +438,7 @@ help: consider changing the `SAFETY` comment for a `# Safety` doc comment
 LL |     // SAFETY: Bla
    |     ^^^^^^^^^^^^^^
 
-error: function has safety comment, but maybe a `# Safety` segment would be better
+error: function has unnecessary safety comment
   --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:787:5
    |
 LL |     unsafe fn unsafe_block_comment() {}
