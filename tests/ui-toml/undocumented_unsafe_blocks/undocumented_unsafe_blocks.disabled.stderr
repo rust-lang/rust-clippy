@@ -247,10 +247,10 @@ LL |     const BIG_NUMBER: i32 = 1000000;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 help: consider removing the safety comment
-  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:507:5
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:507:8
    |
 LL |     // SAFETY:
-   |     ^^^^^^^^^^
+   |        ^^^^^^^
    = note: `-D clippy::unnecessary-safety-comment` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_safety_comment)]`
 
@@ -297,10 +297,10 @@ LL | |     };
    | |______^
    |
 help: consider removing the safety comment
-  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:542:5
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:542:8
    |
 LL |     // SAFETY: this is more than one level away, so it should warn
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: unsafe block missing a safety comment
   --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:545:12
@@ -445,10 +445,10 @@ LL |     _ = bar();
    |     ^^^^^^^^^^
    |
 help: consider removing the safety comment
-  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:720:5
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:720:8
    |
 LL |     // SAFETY: unnecessary_safety_comment triggers here
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: unsafe block missing a safety comment
   --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:735:12
@@ -465,10 +465,10 @@ LL |     mod x {}
    |     ^^^^^^^^
    |
 help: consider removing the safety comment
-  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:740:5
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:740:8
    |
 LL |     // SAFETY: ...
-   |     ^^^^^^^^^^^^^^
+   |        ^^^^^^^
 
 error: module has unnecessary safety comment
   --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:751:5
@@ -477,10 +477,10 @@ LL |     mod z {}
    |     ^^^^^^^^
    |
 help: consider removing the safety comment
-  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:750:5
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:750:8
    |
 LL |     // SAFETY: ...
-   |     ^^^^^^^^^^^^^^
+   |        ^^^^^^^
 
 error: unsafe block missing a safety comment
   --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:766:9
@@ -497,10 +497,10 @@ LL |     unsafe fn unsafe_comment() {}
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 help: consider changing the `SAFETY` comment for a `# Safety` doc comment
-  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:780:5
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:780:8
    |
 LL |     // SAFETY: Bla
-   |     ^^^^^^^^^^^^^^
+   |        ^^^^^^^
 
 error: function has unnecessary safety comment
   --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:787:5
@@ -512,7 +512,7 @@ help: consider changing the `SAFETY` comment for a `# Safety` doc comment
   --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:785:8
    |
 LL |        SAFETY: Bla
-   |        ^^^^^^^^^^^
+   |        ^^^^^^^
 
 error: function has unnecessary safety comment
   --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:791:5
@@ -521,10 +521,10 @@ LL |     fn safe_comment() {}
    |     ^^^^^^^^^^^^^^^^^^^^
    |
 help: consider removing the safety comment
-  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:790:5
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:790:8
    |
 LL |     // SAFETY: Bla
-   |     ^^^^^^^^^^^^^^
+   |        ^^^^^^^
 
 error: function has unnecessary safety comment
   --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:795:5
@@ -533,10 +533,10 @@ LL |     fn safe_doc_comment() {}
    |     ^^^^^^^^^^^^^^^^^^^^^^^^
    |
 help: consider removing the safety comment
-  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:794:5
+  --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:794:9
    |
 LL |     /// SAFETY: Bla
-   |     ^^^^^^^^^^^^^^^
+   |         ^^^^^^^
 
 error: aborting due to 60 previous errors
 

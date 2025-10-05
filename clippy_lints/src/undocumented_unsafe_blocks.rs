@@ -191,8 +191,12 @@ impl<'tcx> LateLintPass<'tcx> for UndocumentedUnsafeBlocks {
 
         let mk_spans = |pos: BytePos| {
             let source_map = cx.tcx.sess.source_map();
-            let span = Span::new(pos, pos, SyntaxContext::root(), None);
-            let help_span = source_map.span_extend_to_next_char(span, '\n', true);
+            let help_span = Span::new(
+                pos,
+                pos + BytePos(u32::try_from("SAFETY:".len()).unwrap()),
+                SyntaxContext::root(),
+                None,
+            );
             let span = if source_map.is_multiline(item.span) {
                 source_map.span_until_char(item.span, '\n')
             } else {
@@ -270,22 +274,12 @@ fn check_has_safety_comment(cx: &LateContext<'_>, item: &hir::Item<'_>, (span, h
                         if is_doc {
                             // If it's already within a doc comment, we try to suggest the change
 
-                            let source_map = cx.sess().source_map();
-                            if let Ok(unsafe_line) = source_map.lookup_line(item.span.lo())
-                                && let Some(src) = unsafe_line.sf.src.as_deref()
-                            {
-                                let help_pos_lo = source_map.lookup_byte_offset(help_span.lo());
-                                let help_pos_hi = source_map.lookup_byte_offset(help_span.hi());
-
-                                diag.span_suggestion(
-                                    help_span,
-                                    "consider changing it to a `# Safety` section",
-                                    src.get(help_pos_lo.pos.to_usize()..help_pos_hi.pos.to_usize())
-                                        .unwrap()
-                                        .replace("SAFETY:", "# Safety"),
-                                    Applicability::MachineApplicable,
-                                );
-                            }
+                            diag.span_suggestion(
+                                help_span,
+                                "consider changing it to a `# Safety` section",
+                                "# Safety",
+                                Applicability::MachineApplicable,
+                            );
                         } else {
                             diag.span_help(
                                 help_span,
@@ -814,9 +808,11 @@ fn text_has_safety_comment(
                 in_codeblock = !in_codeblock;
             }
 
-            if !in_codeblock && line.to_ascii_uppercase().contains("SAFETY:") {
+            if !in_codeblock && let Some(safety_pos) = line.to_ascii_uppercase().find("SAFETY:") {
                 return SafetyComment::Present {
-                    pos: start_pos + BytePos(u32::try_from(line_start).unwrap()),
+                    pos: start_pos
+                        + BytePos(u32::try_from(line_start).unwrap())
+                        + BytePos(u32::try_from(safety_pos).unwrap()),
                     is_doc: line.starts_with("///"),
                 };
             }
