@@ -1,6 +1,7 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::msrvs::Msrv;
+use clippy_utils::source::SpanRangeExt;
 use clippy_utils::{is_none_pattern, msrvs, peel_hir_expr_refs, sym};
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
@@ -140,7 +141,7 @@ fn check_as_ref(cx: &LateContext<'_>, expr: &Expr<'_>, span: Span, msrv: Msrv) {
             span,
             "manual implementation of `Option::as_slice`",
             |diag| {
-                if let Some(snippet) = clippy_utils::source::snippet_opt(cx, callee.span) {
+                if let Some(snippet) = callee.span.get_source_text(cx) {
                     diag.span_suggestion(
                         span,
                         "use",

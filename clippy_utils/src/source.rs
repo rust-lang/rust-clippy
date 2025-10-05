@@ -393,10 +393,10 @@ pub fn first_line_of_span(sess: &impl HasSession, span: Span) -> Span {
 
 fn first_char_in_first_line(sess: &impl HasSession, span: Span) -> Option<BytePos> {
     let line_span = line_span(sess, span);
-    snippet_opt(sess, line_span).and_then(|snip| {
+    line_span.with_source_text(sess, |snip| {
         snip.find(|c: char| !c.is_whitespace())
             .map(|pos| line_span.lo() + BytePos::from_usize(pos))
-    })
+    })?
 }
 
 /// Extends the span to the beginning of the spans line, incl. whitespaces.
@@ -425,12 +425,13 @@ fn line_span(sess: &impl HasSession, span: Span) -> Span {
 /// //          ^^ -- will return 4
 /// ```
 pub fn indent_of(sess: &impl HasSession, span: Span) -> Option<usize> {
-    snippet_opt(sess, line_span(sess, span)).and_then(|snip| snip.find(|c: char| !c.is_whitespace()))
+    line_span(sess, span).with_source_text(sess, |snip| snip.find(|c: char| !c.is_whitespace()))?
 }
 
 /// Gets a snippet of the indentation of the line of a span
 pub fn snippet_indent(sess: &impl HasSession, span: Span) -> Option<String> {
-    snippet_opt(sess, line_span(sess, span)).map(|mut s| {
+    line_span(sess, span).with_source_text(sess, |s| {
+        let mut s = s.to_owned();
         let len = s.len() - s.trim_start().len();
         s.truncate(len);
         s
@@ -443,7 +444,7 @@ pub fn snippet_indent(sess: &impl HasSession, span: Span) -> Option<String> {
 // For some reason these attributes don't have any expansion info on them, so
 // we have to check it this way until there is a better way.
 pub fn is_present_in_source(sess: &impl HasSession, span: Span) -> bool {
-    if let Some(snippet) = snippet_opt(sess, span)
+    if let Some(snippet) = span.get_source_text(sess)
         && snippet.is_empty()
     {
         return false;
@@ -534,7 +535,11 @@ fn reindent_multiline_inner(s: &str, ignore_first: bool, indent: Option<usize>, 
 /// snippet(cx, span2, "..") // -> "Vec::new()"
 /// ```
 pub fn snippet<'a>(sess: &impl HasSession, span: Span, default: &'a str) -> Cow<'a, str> {
-    snippet_opt(sess, span).map_or_else(|| Cow::Borrowed(default), From::from)
+    if let Some(snippet) = span.get_source_text(sess) {
+        Cow::Owned(snippet.to_owned())
+    } else {
+        Cow::Borrowed(default)
+    }
 }
 
 /// Same as [`snippet`], but it adapts the applicability level by following rules:
@@ -561,20 +566,14 @@ fn snippet_with_applicability_sess<'a>(
     if *applicability != Applicability::Unspecified && span.from_expansion() {
         *applicability = Applicability::MaybeIncorrect;
     }
-    snippet_opt(sess, span).map_or_else(
-        || {
-            if *applicability == Applicability::MachineApplicable {
-                *applicability = Applicability::HasPlaceholders;
-            }
-            Cow::Borrowed(default)
-        },
-        From::from,
-    )
-}
-
-/// Converts a span to a code snippet. Returns `None` if not available.
-pub fn snippet_opt(sess: &impl HasSession, span: Span) -> Option<String> {
-    sess.sess().source_map().span_to_snippet(span).ok()
+    if let Some(snippet) = span.get_source_text(sess) {
+        Cow::Owned(snippet.to_owned())
+    } else {
+        if *applicability == Applicability::MachineApplicable {
+            *applicability = Applicability::HasPlaceholders;
+        }
+        Cow::Borrowed(default)
+    }
 }
 
 /// Converts a span (from a block) to a code snippet if available, otherwise use default.

@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::macros::macro_backtrace;
-use clippy_utils::source::snippet_opt;
+use clippy_utils::source::SpanRangeExt;
 use clippy_utils::{sym, tokenize_with_text};
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
@@ -44,7 +44,7 @@ impl LateLintPass<'_> for UselessConcat {
             // Check if the `concat` macro from the `core` library.
             && cx.tcx.is_diagnostic_item(sym::macro_concat, macro_call.def_id)
             // We get the original code to parse it.
-            && let Some(original_code) = snippet_opt(cx, macro_call.span)
+            && let Some(original_code) = macro_call.span.get_source_text(cx)
             // This check allows us to ensure that the code snippet:
             // 1. Doesn't come from proc-macro expansion.
             // 2. Doesn't come from foreign macro expansion.

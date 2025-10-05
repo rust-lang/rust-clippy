@@ -7,7 +7,7 @@ mod unneeded_field_pattern;
 mod unneeded_wildcard_pattern;
 mod zero_prefixed_literal;
 
-use clippy_utils::source::snippet_opt;
+use clippy_utils::source::SpanRangeExt;
 use rustc_ast::ast::{Expr, ExprKind, Generics, LitFloatType, LitIntType, LitKind, Pat};
 use rustc_ast::token;
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
@@ -350,10 +350,11 @@ impl MiscEarlyLints {
         // Note that this check also covers special case that `line!()` is eagerly expanded by compiler.
         // See <https://github.com/rust-lang/rust-clippy/issues/4507> for a regression.
         // FIXME: Find a better way to detect those cases.
-        let lit_snip = match snippet_opt(cx, span) {
+        let lit_snip = match span.get_source_text(cx) {
             Some(snip) if snip.starts_with(|c: char| c.is_ascii_digit()) => snip,
             _ => return,
         };
+        let lit_snip = lit_snip.as_str();
 
         let lit_kind = LitKind::from_token_lit(lit);
         if let Ok(LitKind::Int(value, lit_int_type)) = lit_kind {
@@ -362,17 +363,17 @@ impl MiscEarlyLints {
                 LitIntType::Unsigned(ty) => ty.name_str(),
                 LitIntType::Unsuffixed => "",
             };
-            literal_suffix::check(cx, span, &lit_snip, suffix, "integer");
+            literal_suffix::check(cx, span, lit_snip, suffix, "integer");
             if lit_snip.starts_with("0x") {
-                mixed_case_hex_literals::check(cx, span, suffix, &lit_snip);
+                mixed_case_hex_literals::check(cx, span, suffix, lit_snip);
             } else if lit_snip.starts_with("0b") || lit_snip.starts_with("0o") {
                 // nothing to do
             } else if value != 0 && lit_snip.starts_with('0') {
-                zero_prefixed_literal::check(cx, span, &lit_snip);
+                zero_prefixed_literal::check(cx, span, lit_snip);
             }
         } else if let Ok(LitKind::Float(_, LitFloatType::Suffixed(float_ty))) = lit_kind {
             let suffix = float_ty.name_str();
-            literal_suffix::check(cx, span, &lit_snip, suffix, "float");
+            literal_suffix::check(cx, span, lit_snip, suffix, "float");
         }
     }
 }

@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::numeric_literal::NumericLiteral;
-use clippy_utils::source::{SpanRangeExt, snippet_opt};
+use clippy_utils::source::SpanRangeExt;
 use clippy_utils::visitors::{Visitable, for_each_expr_without_closures};
 use clippy_utils::{get_parent_expr, is_hir_ty_cfg_dependant, is_ty_alias, path_to_local};
 use rustc_ast::{LitFloatType, LitIntType, LitKind};
@@ -23,7 +23,8 @@ pub(super) fn check<'tcx>(
     cast_from: Ty<'tcx>,
     cast_to: Ty<'tcx>,
 ) -> bool {
-    let cast_str = snippet_opt(cx, cast_expr.span).unwrap_or_default();
+    let cast_str = cast_expr.span.get_source_text(cx);
+    let cast_str = cast_str.as_deref().unwrap_or("");
 
     if let ty::RawPtr(..) = cast_from.kind()
         // check both mutability and type are the same
@@ -56,7 +57,7 @@ pub(super) fn check<'tcx>(
                 "casting raw pointers to the same type and constness is unnecessary (`{cast_from}` -> `{cast_to}`)"
             ),
             "try",
-            cast_str.clone(),
+            cast_str.to_string(),
             Applicability::MaybeIncorrect,
         );
     }
@@ -102,7 +103,7 @@ pub(super) fn check<'tcx>(
     }
 
     if let Some(lit) = get_numeric_literal(cast_expr) {
-        let literal_str = &cast_str;
+        let literal_str = cast_str;
 
         if let LitKind::Int(n, _) = lit.node
             && let Some(src) = cast_expr.span.get_source_text(cx)
@@ -167,7 +168,7 @@ pub(super) fn check<'tcx>(
                 sym::assert_ne_macro,
                 sym::debug_assert_ne_macro,
             ];
-            matches!(expr.span.ctxt().outer_expn_data().macro_def_id, Some(def_id) if 
+            matches!(expr.span.ctxt().outer_expn_data().macro_def_id, Some(def_id) if
                 cx.tcx.get_diagnostic_name(def_id).is_some_and(|sym| ALLOWED_MACROS.contains(&sym)))
         }
 
@@ -198,7 +199,7 @@ pub(super) fn check<'tcx>(
             match surrounding {
                 MaybeParenOrBlock::Paren => format!("({cast_str})"),
                 MaybeParenOrBlock::Block => format!("{{ {cast_str} }}"),
-                MaybeParenOrBlock::Nothing => cast_str,
+                MaybeParenOrBlock::Nothing => cast_str.to_string(),
             },
             Applicability::MachineApplicable,
         );

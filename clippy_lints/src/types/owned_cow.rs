@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::snippet_opt;
+use clippy_utils::source::SpanRangeExt;
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{self as hir};
@@ -38,7 +38,7 @@ fn replacement(cx: &LateContext<'_>, cty: &hir::Ty<'_>) -> Option<(Span, String)
             && let [.., last_seg] = path.segments
             && let Some(args) = last_seg.args
             && let [t, ..] = args.args
-            && let Some(snip) = snippet_opt(cx, t.span())
+            && let Some(snip) = t.span().get_source_text(cx)
         {
             Some((cty.span, format!("[{snip}]")))
         } else {

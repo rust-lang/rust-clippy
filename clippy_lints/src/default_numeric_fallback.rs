@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::numeric_literal;
-use clippy_utils::source::snippet_opt;
+use clippy_utils::source::SpanRangeExt;
 use rustc_ast::ast::{LitFloatType, LitIntType, LitKind};
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::{Visitor, walk_expr, walk_pat, walk_stmt};
@@ -11,6 +11,7 @@ use rustc_hir::{
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty::{self, FloatTy, IntTy, PolyFnSig, Ty};
 use rustc_session::declare_lint_pass;
+use std::borrow::Cow;
 use std::iter;
 
 declare_clippy_lint! {
@@ -103,12 +104,13 @@ impl<'a, 'tcx> NumericFallbackVisitor<'a, 'tcx> {
                 lit.span,
                 "default numeric fallback might occur",
                 |diag| {
-                    let src = if let Some(src) = snippet_opt(self.cx, lit.span) {
-                        src
+                    let src = lit.span.get_source_text(self.cx);
+                    let src: Cow<'_, str> = if let Some(src) = src.as_deref() {
+                        src.into()
                     } else {
                         match lit.node {
-                            LitKind::Int(src, _) => format!("{src}"),
-                            LitKind::Float(src, _) => format!("{src}"),
+                            LitKind::Int(src, _) => format!("{src}").into(),
+                            LitKind::Float(src, _) => format!("{src}").into(),
                             _ => unreachable!("Default numeric fallback never results in other types"),
                         }
                     };
