@@ -24,6 +24,7 @@ mod needless_bitwise_bool;
 mod numeric_arithmetic;
 mod op_ref;
 mod self_assignment;
+mod unsigned_subtraction_gt_zero;
 mod verbose_bit_mask;
 
 pub(crate) mod arithmetic_side_effects;
@@ -933,6 +934,34 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Lints comparisons of an unsigned integer subtraction against zero, like `(a - b) > 0`.
+    ///
+    /// ### Why is this bad?
+    /// If `a < b`, `a - b` will panic in debug builds and wrap in release builds, making the
+    /// comparison effectively behave like `a != b`. This is likely unintended; `a > b` is clearer
+    /// and avoids potential panics and wraparound.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let (a, b): (u32, u32) = (1, 2);
+    /// if a - b > 0 {}
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// let (a, b): (u32, u32) = (1, 2);
+    /// if a > b {}
+    /// // Or, if you meant inequality:
+    /// if a != b {}
+    /// ```
+    #[clippy::version = "1.95.0"]
+    pub UNSIGNED_SUBTRACTION_GT_ZERO,
+    suspicious,
+    "suspicious comparison of unsigned subtraction to zero"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for bit masks that can be replaced by a call
     /// to `trailing_zeros`
     ///
@@ -989,6 +1018,7 @@ impl_lint_pass!(Operators => [
     OP_REF,
     REDUNDANT_COMPARISONS,
     SELF_ASSIGNMENT,
+    UNSIGNED_SUBTRACTION_GT_ZERO,
     VERBOSE_BIT_MASK,
 ]);
 
@@ -1036,6 +1066,7 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                 const_comparisons::check(cx, op, lhs, rhs, e.span);
                 duration_subsec::check(cx, e, op.node, lhs, rhs);
                 float_equality_without_abs::check(cx, e, op.node, lhs, rhs);
+                unsigned_subtraction_gt_zero::check(cx, e, op.node, lhs, rhs);
                 integer_division::check(cx, e, op.node, lhs, rhs);
                 integer_division_remainder_used::check(cx, op.node, lhs, rhs, e.span);
                 cmp_owned::check(cx, e, op.node, lhs, rhs);
