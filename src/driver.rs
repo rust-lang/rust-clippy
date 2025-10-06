@@ -8,6 +8,7 @@
 
 // FIXME: switch to something more ergonomic here, once available.
 // (Currently there is no way to opt into sysroot crates without `extern crate`.)
+extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_interface;
 extern crate rustc_session;
@@ -32,6 +33,9 @@ use std::path::Path;
 use std::process::exit;
 
 use anstream::println;
+
+mod clippy_lint_rules;
+use clippy_lint_rules::apply_merged_clippy_lints;
 
 /// If a command-line option matches `find_arg`, then apply the predicate `pred` on its value. If
 /// true, then return it. The parameter is assumed to be either `--arg=value` or `--arg value`.
@@ -131,6 +135,8 @@ impl rustc_driver::Callbacks for RustcCallbacks {
 struct ClippyCallbacks {
     clippy_args_var: Option<String>,
 }
+
+// clippy lints argv handling lives in `driver_lints.rs`
 
 impl rustc_driver::Callbacks for ClippyCallbacks {
     // JUSTIFICATION: necessary in clippy driver to set `mir_opt_level`
@@ -336,6 +342,10 @@ pub fn main() {
         let clippy_enabled = !cap_lints_allow && relevant_package && !info_query;
         if clippy_enabled {
             args.extend(clippy_args);
+
+            // Merge and apply clippy.toml lints, preserving non-clippy flags
+            args = apply_merged_clippy_lints(args);
+
             rustc_driver::run_compiler(&args, &mut ClippyCallbacks { clippy_args_var });
         } else {
             rustc_driver::run_compiler(&args, &mut RustcCallbacks { clippy_args_var });
