@@ -1,0 +1,40 @@
+error: suspicious comparison of unsigned subtraction to zero
+  --> tests/ui/unsigned_subtraction_gt_zero.rs:6:8
+   |
+LL |     if a - b > 0 {}
+   |        ^^^^^^^^^ help: try: `a > b`
+   |
+   = help: `a - b > 0` will panic in debug mode when `a < b` and wrap in release mode; `a > b` is clearer and will never panic
+   = help: if you meant inequality, use `a != b`
+   = note: `-D clippy::unsigned-subtraction-gt-zero` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unsigned_subtraction_gt_zero)]`
+
+error: suspicious comparison of unsigned subtraction to zero
+  --> tests/ui/unsigned_subtraction_gt_zero.rs:9:8
+   |
+LL |     if 0 < a - b {}
+   |        ^^^^^^^^^ help: try: `a > b`
+   |
+   = help: `a - b > 0` will panic in debug mode when `a < b` and wrap in release mode; `a > b` is clearer and will never panic
+   = help: if you meant inequality, use `a != b`
+
+error: suspicious comparison of unsigned subtraction to zero
+  --> tests/ui/unsigned_subtraction_gt_zero.rs:13:8
+   |
+LL |     if x - y > 0 {}
+   |        ^^^^^^^^^ help: try: `x > y`
+   |
+   = help: `x - y > 0` will panic in debug mode when `x < y` and wrap in release mode; `x > y` is clearer and will never panic
+   = help: if you meant inequality, use `x != y`
+
+error: suspicious comparison of unsigned subtraction to zero
+  --> tests/ui/unsigned_subtraction_gt_zero.rs:16:8
+   |
+LL |     if 0 < x - y {}
+   |        ^^^^^^^^^ help: try: `x > y`
+   |
+   = help: `x - y > 0` will panic in debug mode when `x < y` and wrap in release mode; `x > y` is clearer and will never panic
+   = help: if you meant inequality, use `x != y`
+
+error: aborting due to 4 previous errors
+
