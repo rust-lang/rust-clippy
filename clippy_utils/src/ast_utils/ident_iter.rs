@@ -3,6 +3,7 @@ use rustc_ast::visit::{Visitor, walk_attribute, walk_expr};
 use rustc_ast::{Attribute, Expr};
 use rustc_span::symbol::Ident;
 
+/// An iterator over identifiers.
 pub struct IdentIter(std::vec::IntoIter<Ident>);
 
 impl Iterator for IdentIter {
