@@ -393,6 +393,7 @@ mod unused_unit;
 mod unwrap;
 mod unwrap_in_result;
 mod upper_case_acronyms;
+mod use_crate_prefix_for_self_imports;
 mod use_self;
 mod useless_concat;
 mod useless_conversion;
@@ -830,5 +831,8 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(infallible_try_from::InfallibleTryFrom));
     store.register_late_pass(|_| Box::new(coerce_container_to_any::CoerceContainerToAny));
     store.register_late_pass(|_| Box::new(toplevel_ref_arg::ToplevelRefArg));
+    store.register_late_pass(|_| {
+        Box::<use_crate_prefix_for_self_imports::UseCratePrefixForSelfImports<'_, '_>>::default()
+    });
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
