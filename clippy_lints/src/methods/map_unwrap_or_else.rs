@@ -1,12 +1,12 @@
 use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg};
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::res::MaybeDef;
 use clippy_utils::source::snippet;
 use clippy_utils::usage::mutated_variables;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
-use rustc_span::symbol::sym;
+
+use crate::methods::map_unwrap_or::OptionOrResult;
 
 use super::MAP_UNWRAP_OR;
 
@@ -22,11 +22,12 @@ pub(super) fn check<'tcx>(
     msrv: Msrv,
 ) -> bool {
     let recv_ty = cx.typeck_results().expr_ty(recv).peel_refs();
-    let is_option = match recv_ty.opt_diag_name(cx) {
-        Some(sym::Option) => true,
-        Some(sym::Result) if msrv.meets(cx, msrvs::RESULT_MAP_OR_ELSE) => false,
-        _ => return false,
+    let Some(recv_ty_kind) = OptionOrResult::new(cx, recv_ty) else {
+        return false;
     };
+    if recv_ty_kind.is_result() && !msrv.meets(cx, msrvs::RESULT_MAP_OR_ELSE) {
+        return false;
+    }
 
     // Don't make a suggestion that may fail to compile due to mutably borrowing
     // the same variable twice.
@@ -41,7 +42,7 @@ pub(super) fn check<'tcx>(
     }
 
     // lint message
-    let msg = if is_option {
+    let msg = if recv_ty_kind.is_option() {
         "called `map(<f>).unwrap_or_else(<g>)` on an `Option` value"
     } else {
         "called `map(<f>).unwrap_or_else(<g>)` on a `Result` value"

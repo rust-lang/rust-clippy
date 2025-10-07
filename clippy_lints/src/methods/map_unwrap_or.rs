@@ -10,7 +10,9 @@ use rustc_hir::intravisit::{Visitor, walk_path};
 use rustc_hir::{ExprKind, HirId, LangItem, Node, PatKind, Path, QPath};
 use rustc_lint::LateContext;
 use rustc_middle::hir::nested_filter;
+use rustc_middle::ty::Ty;
 use rustc_span::{Span, sym};
+use std::fmt::Display;
 use std::ops::ControlFlow;
 
 use super::MAP_UNWRAP_OR;
@@ -28,11 +30,13 @@ pub(super) fn check<'tcx>(
     msrv: Msrv,
 ) {
     let recv_ty = cx.typeck_results().expr_ty(recv).peel_refs();
-    let is_option = match recv_ty.opt_diag_name(cx) {
-        Some(sym::Option) => true,
-        Some(sym::Result) if msrv.meets(cx, msrvs::RESULT_MAP_OR) => false,
-        _ => return,
+    let Some(recv_ty_kind) = OptionOrResult::new(cx, recv_ty) else {
+        return;
     };
+
+    if recv_ty_kind.is_result() && !msrv.meets(cx, msrvs::RESULT_MAP_OR) {
+        return;
+    }
 
     let unwrap_arg_ty = cx.typeck_results().expr_ty(unwrap_arg);
     if !is_copy(cx, unwrap_arg_ty) {
@@ -77,44 +81,24 @@ pub(super) fn check<'tcx>(
         return;
     }
 
-    // is_some_and is stabilised && `unwrap_or` argument is false; suggest `is_some_and` instead
-    let suggest_is_some_and = matches!(&unwrap_arg.kind, ExprKind::Lit(lit)
-            if matches!(lit.node, rustc_ast::LitKind::Bool(false)))
-        && msrv.meets(cx, msrvs::OPTION_RESULT_IS_VARIANT_AND);
-
     let mut applicability = Applicability::MachineApplicable;
     // get snippet for unwrap_or()
     let unwrap_snippet = snippet_with_applicability(cx, unwrap_arg.span, "..", &mut applicability);
     // lint message
     // comparing the snippet from source to raw text ("None") below is safe
     // because we already have checked the type.
-    let unwrap_snippet_none = is_option
+    let unwrap_snippet_none = recv_ty_kind.is_option()
         && unwrap_arg
             .basic_res()
             .ctor_parent(cx)
             .is_lang_item(cx, LangItem::OptionNone);
-    let arg = if unwrap_snippet_none {
-        "None"
-    } else if suggest_is_some_and {
-        "false"
-    } else {
-        "<a>"
-    };
+    let arg = if unwrap_snippet_none { "None" } else { "<a>" };
     let suggest = if unwrap_snippet_none {
         "and_then(<f>)"
-    } else if suggest_is_some_and {
-        if is_option {
-            "is_some_and(<f>)"
-        } else {
-            "is_ok_and(<f>)"
-        }
     } else {
         "map_or(<a>, <f>)"
     };
-    let msg = format!(
-        "called `map(<f>).unwrap_or({arg})` on an `{}` value",
-        if is_option { "Option" } else { "Result" }
-    );
+    let msg = format!("called `map(<f>).unwrap_or({arg})` on an `{recv_ty_kind}` value");
 
     span_lint_and_then(cx, MAP_UNWRAP_OR, expr.span, msg, |diag| {
         let map_arg_span = map_arg.span;
@@ -124,8 +108,6 @@ pub(super) fn check<'tcx>(
                 map_span,
                 String::from(if unwrap_snippet_none {
                     "and_then"
-                } else if suggest_is_some_and {
-                    if is_option { "is_some_and" } else { "is_ok_and" }
                 } else {
                     let unwrap_arg_ty = unwrap_arg_ty.peel_refs();
                     if unwrap_arg_ty.is_array()
@@ -140,12 +122,44 @@ pub(super) fn check<'tcx>(
             (expr.span.with_lo(unwrap_recv.span.hi()), String::new()),
         ];
 
-        if !unwrap_snippet_none && !suggest_is_some_and {
+        if !unwrap_snippet_none {
             suggestion.push((map_arg_span.with_hi(map_arg_span.lo()), format!("{unwrap_snippet}, ")));
         }
 
         diag.multipart_suggestion(format!("use `{suggest}` instead"), suggestion, applicability);
     });
+}
+
+pub(super) enum OptionOrResult {
+    Option,
+    Result,
+}
+
+impl OptionOrResult {
+    pub fn new<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<Self> {
+        match ty.opt_diag_name(cx) {
+            Some(sym::Option) => Some(OptionOrResult::Option),
+            Some(sym::Result) => Some(OptionOrResult::Result),
+            _ => None,
+        }
+    }
+
+    pub fn is_option(&self) -> bool {
+        matches!(self, OptionOrResult::Option)
+    }
+
+    pub fn is_result(&self) -> bool {
+        matches!(self, OptionOrResult::Result)
+    }
+}
+
+impl Display for OptionOrResult {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            OptionOrResult::Option => write!(f, "Option"),
+            OptionOrResult::Result => write!(f, "Result"),
+        }
+    }
 }
 
 struct UnwrapVisitor<'a, 'tcx> {
