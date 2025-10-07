@@ -10,7 +10,7 @@ use rustc_span::Span;
 use super::SUSPICIOUS_DOC_COMMENTS;
 
 pub fn check(cx: &LateContext<'_>, attrs: &[Attribute]) -> bool {
-    let replacements: Vec<_> = collect_doc_replacements(attrs);
+    let replacements = collect_doc_replacements(attrs).collect::<Vec<_>>();
 
     if let Some((&(lo_span, _), &(hi_span, _))) = replacements.first().zip(replacements.last()) {
         span_lint_and_then(
@@ -33,26 +33,23 @@ pub fn check(cx: &LateContext<'_>, attrs: &[Attribute]) -> bool {
     }
 }
 
-fn collect_doc_replacements(attrs: &[Attribute]) -> Vec<(Span, String)> {
-    attrs
-        .iter()
-        .filter_map(|attr| {
-            if let Attribute::Parsed(AttributeKind::DocComment {
-                style: AttrStyle::Outer,
-                kind,
-                comment,
-                ..
-            }) = attr
-                && let Some(com) = comment.as_str().strip_prefix('!')
-            {
-                let sugg = match kind {
-                    CommentKind::Line => format!("//!{com}"),
-                    CommentKind::Block => format!("/*!{com}*/"),
-                };
-                Some((attr.span(), sugg))
-            } else {
-                None
-            }
-        })
-        .collect()
+fn collect_doc_replacements(attrs: &[Attribute]) -> impl Iterator<Item = (Span, String)> {
+    attrs.iter().filter_map(|attr| {
+        if let Attribute::Parsed(AttributeKind::DocComment {
+            style: AttrStyle::Outer,
+            kind,
+            comment,
+            ..
+        }) = attr
+            && let Some(com) = comment.as_str().strip_prefix('!')
+        {
+            let sugg = match kind {
+                CommentKind::Line => format!("//!{com}"),
+                CommentKind::Block => format!("/*!{com}*/"),
+            };
+            Some((attr.span(), sugg))
+        } else {
+            None
+        }
+    })
 }
