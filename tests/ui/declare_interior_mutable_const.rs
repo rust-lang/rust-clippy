@@ -198,3 +198,9 @@ impl WithGenericAssocCell for i32 {
 
 thread_local!(static THREAD_LOCAL_CELL: Cell<u32> = const { Cell::new(0) });
 thread_local!(static THREAD_LOCAL_CELL2: Cell<u32> = Cell::new(0));
+
+fn issue13865() {
+    #[clippy::ignore_interior_mutability]
+    struct IgnoreInteriorMut(Cell<u32>);
+    const IIM: IgnoreInteriorMut = IgnoreInteriorMut(Cell::new(0));
+}

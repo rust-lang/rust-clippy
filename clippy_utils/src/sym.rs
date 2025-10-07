@@ -196,6 +196,7 @@ generate! {
     help,
     hidden_glob_reexports,
     hygiene,
+    ignore_interior_mutability,
     ilog,
     insert,
     insert_str,
