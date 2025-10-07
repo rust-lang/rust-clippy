@@ -1294,7 +1294,7 @@ impl<'tcx> InteriorMut<'tcx> {
 
     /// Check if given type has interior mutability such as [`std::cell::Cell`] or
     /// [`std::cell::RefCell`] etc. and if it does, returns a chain of types that causes
-    /// this type to be interior mutable.  False negatives may be expected for infinitely recursive
+    /// this type to be interior mutable. False negatives may be expected for infinitely recursive
     /// types, and `None` will be returned there.
     pub fn interior_mut_ty_chain(&mut self, cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<&'tcx ty::List<Ty<'tcx>>> {
         self.interior_mut_ty_chain_inner(cx, ty, 0)
@@ -1399,13 +1399,11 @@ pub fn make_normalized_projection_with_regions<'tcx>(
             .enumerate()
             .find(|(_, arg)| arg.has_escaping_bound_vars())
         {
-            debug_assert!(
-                false,
+            panic!(
                 "args contain late-bound region at index `{i}` which can't be normalized.\n\
                     use `TyCtxt::instantiate_bound_regions_with_erased`\n\
                     note: arg is `{arg:#?}`",
             );
-            return None;
         }
         let cause = ObligationCause::dummy();
         let (infcx, param_env) = tcx.infer_ctxt().build_with_typing_env(typing_env);
