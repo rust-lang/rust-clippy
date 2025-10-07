@@ -9,7 +9,7 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::{self};
 use rustc_span::Span;
 
-use rustc_hir::*;
+use rustc_hir::{Body, ExprKind, FnDecl, Stmt, StmtKind};
 use rustc_lint::LateLintPass;
 use rustc_session::impl_lint_pass;
 
@@ -43,7 +43,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.92.0"]
     pub UNNECESSARY_COLLECT,
     pedantic,
-    "default lint description"
+    "checks for functions returning vecs produced from vec::from_iter"
 }
 
 pub struct UnnecessaryCollect {
