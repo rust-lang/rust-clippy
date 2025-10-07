@@ -21,12 +21,11 @@ use clippy_config::Conf;
 use clippy_utils::consts::{ConstEvalCtxt, Constant, const_item_rhs_to_expr};
 use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
 use clippy_utils::macros::macro_backtrace;
-use clippy_utils::paths::{PathNS, lookup_path_str};
-use clippy_utils::ty::{get_field_idx_by_name, implements_trait};
+use clippy_utils::ty::{InteriorMut, get_field_idx_by_name, implements_trait};
 use clippy_utils::{is_in_const_context, sym};
 use rustc_data_structures::fx::FxHashMap;
 use rustc_hir::def::{DefKind, Res};
-use rustc_hir::def_id::{DefId, DefIdSet};
+use rustc_hir::def_id::DefId;
 use rustc_hir::{
     ConstArgKind, ConstItemRhs, Expr, ExprKind, ImplItem, ImplItemKind, Item, ItemKind, Node, StructTailExpr,
     TraitItem, TraitItemKind, UnOp,
@@ -255,7 +254,7 @@ impl<'tcx> BorrowSource<'tcx> {
 }
 
 pub struct NonCopyConst<'tcx> {
-    ignore_tys: DefIdSet,
+    interior_mut: InteriorMut<'tcx>,
     // Cache checked types. We can recurse through a type multiple times so this
     // can be hit quite frequently.
     freeze_tys: FxHashMap<Ty<'tcx>, IsFreeze>,
@@ -264,11 +263,7 @@ pub struct NonCopyConst<'tcx> {
 impl<'tcx> NonCopyConst<'tcx> {
     pub fn new(tcx: TyCtxt<'tcx>, conf: &'static Conf) -> Self {
         Self {
-            ignore_tys: conf
-                .ignore_interior_mutability
-                .iter()
-                .flat_map(|ignored_ty| lookup_path_str(tcx, PathNS::Type, ignored_ty))
-                .collect(),
+            interior_mut: InteriorMut::new(tcx, &conf.ignore_interior_mutability),
             freeze_tys: FxHashMap::default(),
         }
     }
@@ -292,7 +287,7 @@ impl<'tcx> NonCopyConst<'tcx> {
                         *e = IsFreeze::No;
                         return IsFreeze::No;
                     },
-                    ty::Adt(adt, _) if self.ignore_tys.contains(&adt.did()) => return IsFreeze::Yes,
+                    ty::Adt(_, _) if !self.interior_mut.is_interior_mut_ty(cx, ty) => return IsFreeze::Yes,
                     ty::Adt(adt, args) if adt.is_enum() => IsFreeze::from_variants(adt.variants().iter().map(|v| {
                         IsFreeze::from_fields(
                             v.fields
