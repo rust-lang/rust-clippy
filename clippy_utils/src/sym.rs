@@ -403,6 +403,7 @@ generate! {
     trim_right,
     trim_start,
     trim_start_matches,
+    trim_trailing_sep,
     truncate,
     try_fold,
     try_for_each,

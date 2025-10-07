@@ -184,6 +184,7 @@ const IGNORED_INHERENT_FUNCTIONS: &[ConfPath<SymPath<'static>, false>] = conf_pa
     &[sym::std, sym::ffi, sym::os_str, sym::OsStr, sym::to_ascii_lowercase],
     &[sym::std, sym::ffi, sym::os_str, sym::OsStr, sym::to_ascii_uppercase],
     &[sym::std, sym::ffi, sym::os_str, sym::OsString, sym::leak],
+    &[sym::std, sym::path, sym::Path, sym::trim_trailing_sep],
     &[sym::std, sym::path, sym::PathBuf, sym::leak],
 );
 
