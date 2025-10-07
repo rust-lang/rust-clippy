@@ -271,13 +271,13 @@ impl<'tcx> NonCopyConst<'tcx> {
     }
 
     /// Checks if a value of the given type is `Freeze`, or may be depending on the value.
-    fn is_ty_freeze(&mut self, tcx: TyCtxt<'tcx>, typing_env: TypingEnv<'tcx>, ty: Ty<'tcx>) -> IsFreeze {
-        let ty = tcx.try_normalize_erasing_regions(typing_env, ty).unwrap_or(ty);
+    fn is_ty_freeze(&mut self, cx: &LateContext<'tcx>, typing_env: TypingEnv<'tcx>, ty: Ty<'tcx>) -> IsFreeze {
+        let ty = cx.tcx.try_normalize_erasing_regions(typing_env, ty).unwrap_or(ty);
         match self.freeze_tys.entry(ty) {
             Entry::Occupied(e) => *e.get(),
             Entry::Vacant(e) => {
                 let e = e.insert(IsFreeze::Yes);
-                if ty.is_freeze(tcx, typing_env) {
+                if ty.is_freeze(cx.tcx, typing_env) {
                     return IsFreeze::Yes;
                 }
                 let is_freeze = match *ty.kind() {
@@ -290,14 +290,15 @@ impl<'tcx> NonCopyConst<'tcx> {
                         IsFreeze::from_fields(
                             v.fields
                                 .iter()
-                                .map(|f| self.is_ty_freeze(tcx, typing_env, f.ty(tcx, args))),
+                                .map(|f| self.is_ty_freeze(cx, typing_env, f.ty(cx.tcx, args))),
                         )
                     })),
                     // Workaround for `ManuallyDrop`-like unions.
                     ty::Adt(adt, args)
                         if adt.is_union()
                             && adt.non_enum_variant().fields.iter().any(|f| {
-                                tcx.layout_of(typing_env.as_query_input(f.ty(tcx, args)))
+                                cx.tcx
+                                    .layout_of(typing_env.as_query_input(f.ty(cx.tcx, args)))
                                     .is_ok_and(|l| l.layout.size().bytes() == 0)
                             }) =>
                     {
@@ -309,12 +310,10 @@ impl<'tcx> NonCopyConst<'tcx> {
                         adt.non_enum_variant()
                             .fields
                             .iter()
-                            .map(|f| self.is_ty_freeze(tcx, typing_env, f.ty(tcx, args))),
+                            .map(|f| self.is_ty_freeze(cx, typing_env, f.ty(cx.tcx, args))),
                     ),
-                    ty::Array(ty, _) | ty::Pat(ty, _) => self.is_ty_freeze(tcx, typing_env, ty),
-                    ty::Tuple(tys) => {
-                        IsFreeze::from_fields(tys.iter().map(|ty| self.is_ty_freeze(tcx, typing_env, ty)))
-                    },
+                    ty::Array(ty, _) | ty::Pat(ty, _) => self.is_ty_freeze(cx, typing_env, ty),
+                    ty::Tuple(tys) => IsFreeze::from_fields(tys.iter().map(|ty| self.is_ty_freeze(cx, typing_env, ty))),
                     // Treat type parameters as though they were `Freeze`.
                     ty::Param(_) | ty::Alias(..) => return IsFreeze::Yes,
                     // TODO: check other types.
@@ -335,21 +334,22 @@ impl<'tcx> NonCopyConst<'tcx> {
     /// cannot be read, but the result depends on the value.
     fn is_value_freeze(
         &mut self,
-        tcx: TyCtxt<'tcx>,
+        cx: &LateContext<'tcx>,
         typing_env: TypingEnv<'tcx>,
         ty: Ty<'tcx>,
         val: ConstValue,
     ) -> Result<bool, ()> {
-        let ty = tcx.try_normalize_erasing_regions(typing_env, ty).unwrap_or(ty);
-        match self.is_ty_freeze(tcx, typing_env, ty) {
+        let ty = cx.tcx.try_normalize_erasing_regions(typing_env, ty).unwrap_or(ty);
+        match self.is_ty_freeze(cx, typing_env, ty) {
             IsFreeze::Yes => Ok(true),
             IsFreeze::Maybe if matches!(ty.kind(), ty::Adt(..) | ty::Array(..) | ty::Tuple(..)) => {
-                for &(val, ty) in tcx
+                for &(val, ty) in cx
+                    .tcx
                     .try_destructure_mir_constant_for_user_output(val, ty)
                     .ok_or(())?
                     .fields
                 {
-                    if !self.is_value_freeze(tcx, typing_env, ty, val)? {
+                    if !self.is_value_freeze(cx, typing_env, ty, val)? {
                         return Ok(false);
                     }
                 }
@@ -368,16 +368,16 @@ impl<'tcx> NonCopyConst<'tcx> {
     /// `typeck` and `e` are from the constant's definition site.
     fn is_init_expr_freeze(
         &mut self,
-        tcx: TyCtxt<'tcx>,
+        cx: &LateContext<'tcx>,
         typing_env: TypingEnv<'tcx>,
         typeck: &'tcx TypeckResults<'tcx>,
         gen_args: GenericArgsRef<'tcx>,
         e: &'tcx Expr<'tcx>,
     ) -> bool {
         // Make sure to instantiate all types coming from `typeck` with `gen_args`.
-        let ty = EarlyBinder::bind(typeck.expr_ty(e)).instantiate(tcx, gen_args);
-        let ty = tcx.try_normalize_erasing_regions(typing_env, ty).unwrap_or(ty);
-        match self.is_ty_freeze(tcx, typing_env, ty) {
+        let ty = EarlyBinder::bind(typeck.expr_ty(e)).instantiate(cx.tcx, gen_args);
+        let ty = cx.tcx.try_normalize_erasing_regions(typing_env, ty).unwrap_or(ty);
+        match self.is_ty_freeze(cx, typing_env, ty) {
             IsFreeze::Yes => true,
             IsFreeze::No => false,
             IsFreeze::Maybe => match e.kind {
@@ -386,23 +386,25 @@ impl<'tcx> NonCopyConst<'tcx> {
                         && b.stmts.is_empty()
                         && let Some(e) = b.expr =>
                 {
-                    self.is_init_expr_freeze(tcx, typing_env, typeck, gen_args, e)
+                    self.is_init_expr_freeze(cx, typing_env, typeck, gen_args, e)
                 },
                 ExprKind::Path(ref p) => {
                     let res = typeck.qpath_res(p, e.hir_id);
-                    let gen_args = EarlyBinder::bind(typeck.node_args(e.hir_id)).instantiate(tcx, gen_args);
+                    let gen_args = EarlyBinder::bind(typeck.node_args(e.hir_id)).instantiate(cx.tcx, gen_args);
                     match res {
                         Res::Def(DefKind::Const | DefKind::AssocConst, did)
-                            if let Ok(val) =
-                                tcx.const_eval_resolve(typing_env, UnevaluatedConst::new(did, gen_args), DUMMY_SP)
-                                && let Ok(is_freeze) = self.is_value_freeze(tcx, typing_env, ty, val) =>
+                            if let Ok(val) = cx.tcx.const_eval_resolve(
+                                typing_env,
+                                UnevaluatedConst::new(did, gen_args),
+                                DUMMY_SP,
+                            ) && let Ok(is_freeze) = self.is_value_freeze(cx, typing_env, ty, val) =>
                         {
                             is_freeze
                         },
                         Res::Def(DefKind::Const | DefKind::AssocConst, did)
-                            if let Some((typeck, init)) = get_const_hir_value(tcx, typing_env, did, gen_args) =>
+                            if let Some((typeck, init)) = get_const_hir_value(cx.tcx, typing_env, did, gen_args) =>
                         {
-                            self.is_init_expr_freeze(tcx, typing_env, typeck, gen_args, init)
+                            self.is_init_expr_freeze(cx, typing_env, typeck, gen_args, init)
                         },
                         // Either this is a unit constructor, or some unknown value.
                         // In either case we consider the value to be `Freeze`.
@@ -415,15 +417,15 @@ impl<'tcx> NonCopyConst<'tcx> {
                         && matches!(res, Res::Def(DefKind::Ctor(..), _) | Res::SelfCtor(_)) =>
                 {
                     args.iter()
-                        .all(|e| self.is_init_expr_freeze(tcx, typing_env, typeck, gen_args, e))
+                        .all(|e| self.is_init_expr_freeze(cx, typing_env, typeck, gen_args, e))
                 },
                 ExprKind::Struct(_, fields, StructTailExpr::None) => fields
                     .iter()
-                    .all(|f| self.is_init_expr_freeze(tcx, typing_env, typeck, gen_args, f.expr)),
+                    .all(|f| self.is_init_expr_freeze(cx, typing_env, typeck, gen_args, f.expr)),
                 ExprKind::Tup(exprs) | ExprKind::Array(exprs) => exprs
                     .iter()
-                    .all(|e| self.is_init_expr_freeze(tcx, typing_env, typeck, gen_args, e)),
-                ExprKind::Repeat(e, _) => self.is_init_expr_freeze(tcx, typing_env, typeck, gen_args, e),
+                    .all(|e| self.is_init_expr_freeze(cx, typing_env, typeck, gen_args, e)),
+                ExprKind::Repeat(e, _) => self.is_init_expr_freeze(cx, typing_env, typeck, gen_args, e),
                 _ => true,
             },
         }
@@ -433,24 +435,24 @@ impl<'tcx> NonCopyConst<'tcx> {
     /// definitely a non-`Freeze` type.
     fn is_non_freeze_expr_borrowed(
         &mut self,
-        tcx: TyCtxt<'tcx>,
+        cx: &LateContext<'tcx>,
         typing_env: TypingEnv<'tcx>,
         typeck: &'tcx TypeckResults<'tcx>,
         mut src_expr: &'tcx Expr<'tcx>,
     ) -> Option<BorrowSource<'tcx>> {
-        let mut parents = tcx.hir_parent_iter(src_expr.hir_id);
+        let mut parents = cx.tcx.hir_parent_iter(src_expr.hir_id);
         loop {
             let ty = typeck.expr_ty(src_expr);
             // Normalized as we need to check if this is an array later.
-            let ty = tcx.try_normalize_erasing_regions(typing_env, ty).unwrap_or(ty);
-            let is_freeze = self.is_ty_freeze(tcx, typing_env, ty);
+            let ty = cx.tcx.try_normalize_erasing_regions(typing_env, ty).unwrap_or(ty);
+            let is_freeze = self.is_ty_freeze(cx, typing_env, ty);
             if is_freeze.is_freeze() {
                 return None;
             }
             if let [adjust, ..] = typeck.expr_adjustments(src_expr) {
                 return does_adjust_borrow(adjust)
                     .filter(|_| is_freeze.is_not_freeze())
-                    .map(|cause| BorrowSource::new(tcx, src_expr, cause));
+                    .map(|cause| BorrowSource::new(cx.tcx, src_expr, cause));
             }
             let Some((_, Node::Expr(use_expr))) = parents.next() else {
                 return None;
@@ -459,7 +461,7 @@ impl<'tcx> NonCopyConst<'tcx> {
                 ExprKind::Field(..) => {},
                 ExprKind::Index(..) if ty.is_array() => {},
                 ExprKind::AddrOf(..) if is_freeze.is_not_freeze() => {
-                    return Some(BorrowSource::new(tcx, use_expr, BorrowCause::Borrow));
+                    return Some(BorrowSource::new(cx.tcx, use_expr, BorrowCause::Borrow));
                 },
                 // All other expressions use the value.
                 _ => return None,
@@ -473,29 +475,29 @@ impl<'tcx> NonCopyConst<'tcx> {
     /// result depends on the value.
     fn is_non_freeze_val_borrowed(
         &mut self,
-        tcx: TyCtxt<'tcx>,
+        cx: &LateContext<'tcx>,
         typing_env: TypingEnv<'tcx>,
         typeck: &'tcx TypeckResults<'tcx>,
         mut src_expr: &'tcx Expr<'tcx>,
         mut val: ConstValue,
     ) -> Result<Option<BorrowSource<'tcx>>, ()> {
-        let mut parents = tcx.hir_parent_iter(src_expr.hir_id);
+        let mut parents = cx.tcx.hir_parent_iter(src_expr.hir_id);
         let mut ty = typeck.expr_ty(src_expr);
         loop {
             // Normalized as we need to check if this is an array later.
-            ty = tcx.try_normalize_erasing_regions(typing_env, ty).unwrap_or(ty);
+            ty = cx.tcx.try_normalize_erasing_regions(typing_env, ty).unwrap_or(ty);
             if let [adjust, ..] = typeck.expr_adjustments(src_expr) {
                 let res = if let Some(cause) = does_adjust_borrow(adjust)
-                    && !self.is_value_freeze(tcx, typing_env, ty, val)?
+                    && !self.is_value_freeze(cx, typing_env, ty, val)?
                 {
-                    Some(BorrowSource::new(tcx, src_expr, cause))
+                    Some(BorrowSource::new(cx.tcx, src_expr, cause))
                 } else {
                     None
                 };
                 return Ok(res);
             }
             // Check only the type here as the result gets cached for each type.
-            if self.is_ty_freeze(tcx, typing_env, ty).is_freeze() {
+            if self.is_ty_freeze(cx, typing_env, ty).is_freeze() {
                 return Ok(None);
             }
             let Some((_, Node::Expr(use_expr))) = parents.next() else {
@@ -504,7 +506,8 @@ impl<'tcx> NonCopyConst<'tcx> {
             let next_val = match use_expr.kind {
                 ExprKind::Field(_, name) => {
                     if let Some(idx) = get_field_idx_by_name(ty, name.name) {
-                        tcx.try_destructure_mir_constant_for_user_output(val, ty)
+                        cx.tcx
+                            .try_destructure_mir_constant_for_user_output(val, ty)
                             .ok_or(())?
                             .fields
                             .get(idx)
@@ -513,23 +516,21 @@ impl<'tcx> NonCopyConst<'tcx> {
                     }
                 },
                 ExprKind::Index(_, idx, _) if ty.is_array() => {
-                    let val = tcx.try_destructure_mir_constant_for_user_output(val, ty).ok_or(())?;
-                    if let Some(Constant::Int(idx)) = ConstEvalCtxt::with_env(tcx, typing_env, typeck).eval(idx) {
+                    let val = cx.tcx.try_destructure_mir_constant_for_user_output(val, ty).ok_or(())?;
+                    if let Some(Constant::Int(idx)) = ConstEvalCtxt::with_env(cx.tcx, typing_env, typeck).eval(idx) {
                         val.fields.get(idx as usize)
                     } else {
                         // It's some value in the array so check all of them.
                         for &(val, _) in val.fields {
-                            if let Some(src) =
-                                self.is_non_freeze_val_borrowed(tcx, typing_env, typeck, use_expr, val)?
-                            {
+                            if let Some(src) = self.is_non_freeze_val_borrowed(cx, typing_env, typeck, use_expr, val)? {
                                 return Ok(Some(src));
                             }
                         }
                         return Ok(None);
                     }
                 },
-                ExprKind::AddrOf(..) if !self.is_value_freeze(tcx, typing_env, ty, val)? => {
-                    return Ok(Some(BorrowSource::new(tcx, use_expr, BorrowCause::Borrow)));
+                ExprKind::AddrOf(..) if !self.is_value_freeze(cx, typing_env, ty, val)? => {
+                    return Ok(Some(BorrowSource::new(cx.tcx, use_expr, BorrowCause::Borrow)));
                 },
                 // All other expressions use the value.
                 _ => return Ok(None),
@@ -552,7 +553,7 @@ impl<'tcx> NonCopyConst<'tcx> {
     #[expect(clippy::too_many_arguments, clippy::too_many_lines)]
     fn is_non_freeze_init_borrowed(
         &mut self,
-        tcx: TyCtxt<'tcx>,
+        cx: &LateContext<'tcx>,
         typing_env: TypingEnv<'tcx>,
         typeck: &'tcx TypeckResults<'tcx>,
         mut src_expr: &'tcx Expr<'tcx>,
@@ -561,13 +562,13 @@ impl<'tcx> NonCopyConst<'tcx> {
         mut init_expr: &'tcx Expr<'tcx>,
     ) -> Option<BorrowSource<'tcx>> {
         // Make sure to instantiate all types coming from `init_typeck` with `init_args`.
-        let mut parents = tcx.hir_parent_iter(src_expr.hir_id);
+        let mut parents = cx.tcx.hir_parent_iter(src_expr.hir_id);
         loop {
             // First handle any adjustments since they are cheap to check.
             if let [adjust, ..] = typeck.expr_adjustments(src_expr) {
                 return does_adjust_borrow(adjust)
-                    .filter(|_| !self.is_init_expr_freeze(tcx, typing_env, init_typeck, init_args, init_expr))
-                    .map(|cause| BorrowSource::new(tcx, src_expr, cause));
+                    .filter(|_| !self.is_init_expr_freeze(cx, typing_env, init_typeck, init_args, init_expr))
+                    .map(|cause| BorrowSource::new(cx.tcx, src_expr, cause));
             }
 
             // Then read through constants and blocks on the init expression before
@@ -583,22 +584,22 @@ impl<'tcx> NonCopyConst<'tcx> {
                     },
                     ExprKind::Path(ref init_path) => {
                         let next_init_args =
-                            EarlyBinder::bind(init_typeck.node_args(init_expr.hir_id)).instantiate(tcx, init_args);
+                            EarlyBinder::bind(init_typeck.node_args(init_expr.hir_id)).instantiate(cx.tcx, init_args);
                         match init_typeck.qpath_res(init_path, init_expr.hir_id) {
                             Res::Def(DefKind::Ctor(..), _) => return None,
                             Res::Def(DefKind::Const | DefKind::AssocConst, did)
-                                if let Ok(val) = tcx.const_eval_resolve(
+                                if let Ok(val) = cx.tcx.const_eval_resolve(
                                     typing_env,
                                     UnevaluatedConst::new(did, next_init_args),
                                     DUMMY_SP,
                                 ) && let Ok(res) =
-                                    self.is_non_freeze_val_borrowed(tcx, typing_env, init_typeck, src_expr, val) =>
+                                    self.is_non_freeze_val_borrowed(cx, typing_env, init_typeck, src_expr, val) =>
                             {
                                 return res;
                             },
                             Res::Def(DefKind::Const | DefKind::AssocConst, did)
                                 if let Some((next_typeck, value)) =
-                                    get_const_hir_value(tcx, typing_env, did, next_init_args) =>
+                                    get_const_hir_value(cx.tcx, typing_env, did, next_init_args) =>
                             {
                                 init_typeck = next_typeck;
                                 init_args = next_init_args;
@@ -607,7 +608,7 @@ impl<'tcx> NonCopyConst<'tcx> {
                             // There's no more that we can read from the init expression. Switch to a
                             // type based check.
                             _ => {
-                                return self.is_non_freeze_expr_borrowed(tcx, typing_env, typeck, src_expr);
+                                return self.is_non_freeze_expr_borrowed(cx, typing_env, typeck, src_expr);
                             },
                         }
                     },
@@ -619,8 +620,8 @@ impl<'tcx> NonCopyConst<'tcx> {
             // gets cached.
             let ty = typeck.expr_ty(src_expr);
             // Normalized as we need to check if this is an array later.
-            let ty = tcx.try_normalize_erasing_regions(typing_env, ty).unwrap_or(ty);
-            if self.is_ty_freeze(tcx, typing_env, ty).is_freeze() {
+            let ty = cx.tcx.try_normalize_erasing_regions(typing_env, ty).unwrap_or(ty);
+            if self.is_ty_freeze(cx, typing_env, ty).is_freeze() {
                 return None;
             }
 
@@ -653,11 +654,12 @@ impl<'tcx> NonCopyConst<'tcx> {
                         arg
                     },
                     // Revert to a type based check as we don't know the field's value.
-                    _ => return self.is_non_freeze_expr_borrowed(tcx, typing_env, typeck, use_expr),
+                    _ => return self.is_non_freeze_expr_borrowed(cx, typing_env, typeck, use_expr),
                 },
                 ExprKind::Index(_, idx, _) if ty.is_array() => match init_expr.kind {
                     ExprKind::Array(fields) => {
-                        if let Some(Constant::Int(idx)) = ConstEvalCtxt::with_env(tcx, typing_env, typeck).eval(idx) {
+                        if let Some(Constant::Int(idx)) = ConstEvalCtxt::with_env(cx.tcx, typing_env, typeck).eval(idx)
+                        {
                             // If the index is out of bounds it means the code
                             // unconditionally panics. In that case there is no borrow.
                             fields.get(idx as usize)?
@@ -665,7 +667,7 @@ impl<'tcx> NonCopyConst<'tcx> {
                             // Unknown index, just run the check for all values.
                             return fields.iter().find_map(|f| {
                                 self.is_non_freeze_init_borrowed(
-                                    tcx,
+                                    cx,
                                     typing_env,
                                     typeck,
                                     use_expr,
@@ -678,12 +680,12 @@ impl<'tcx> NonCopyConst<'tcx> {
                     },
                     // Just assume the index expression doesn't panic here.
                     ExprKind::Repeat(field, _) => field,
-                    _ => return self.is_non_freeze_expr_borrowed(tcx, typing_env, typeck, use_expr),
+                    _ => return self.is_non_freeze_expr_borrowed(cx, typing_env, typeck, use_expr),
                 },
                 ExprKind::AddrOf(..)
-                    if !self.is_init_expr_freeze(tcx, typing_env, init_typeck, init_args, init_expr) =>
+                    if !self.is_init_expr_freeze(cx, typing_env, init_typeck, init_args, init_expr) =>
                 {
-                    return Some(BorrowSource::new(tcx, use_expr, BorrowCause::Borrow));
+                    return Some(BorrowSource::new(cx.tcx, use_expr, BorrowCause::Borrow));
                 },
                 // All other expressions use the value.
                 _ => return None,
@@ -698,13 +700,13 @@ impl<'tcx> LateLintPass<'tcx> for NonCopyConst<'tcx> {
         if let ItemKind::Const(ident, .., body_id) = item.kind
             && !ident.is_special()
             && let ty = cx.tcx.type_of(item.owner_id).instantiate_identity()
-            && match self.is_ty_freeze(cx.tcx, cx.typing_env(), ty) {
+            && match self.is_ty_freeze(cx, cx.typing_env(), ty) {
                 IsFreeze::No => true,
                 IsFreeze::Yes => false,
                 IsFreeze::Maybe => match cx.tcx.const_eval_poly(item.owner_id.to_def_id()) {
-                    Ok(val) if let Ok(is_freeze) = self.is_value_freeze(cx.tcx, cx.typing_env(), ty, val) => !is_freeze,
+                    Ok(val) if let Ok(is_freeze) = self.is_value_freeze(cx, cx.typing_env(), ty, val) => !is_freeze,
                     _ => !self.is_init_expr_freeze(
-                        cx.tcx,
+                        cx,
                         cx.typing_env(),
                         cx.tcx.typeck(item.owner_id),
                         GenericArgs::identity_for_item(cx.tcx, item.owner_id),
@@ -738,15 +740,13 @@ impl<'tcx> LateLintPass<'tcx> for NonCopyConst<'tcx> {
     fn check_trait_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx TraitItem<'_>) {
         if let TraitItemKind::Const(_, body_id_opt) = item.kind
             && let ty = cx.tcx.type_of(item.owner_id).instantiate_identity()
-            && match self.is_ty_freeze(cx.tcx, cx.typing_env(), ty) {
+            && match self.is_ty_freeze(cx, cx.typing_env(), ty) {
                 IsFreeze::No => true,
                 IsFreeze::Maybe if let Some(body_id) = body_id_opt => {
                     match cx.tcx.const_eval_poly(item.owner_id.to_def_id()) {
-                        Ok(val) if let Ok(is_freeze) = self.is_value_freeze(cx.tcx, cx.typing_env(), ty, val) => {
-                            !is_freeze
-                        },
+                        Ok(val) if let Ok(is_freeze) = self.is_value_freeze(cx, cx.typing_env(), ty, val) => !is_freeze,
                         _ => !self.is_init_expr_freeze(
-                            cx.tcx,
+                            cx,
                             cx.typing_env(),
                             cx.tcx.typeck(item.owner_id),
                             GenericArgs::identity_for_item(cx.tcx, item.owner_id),
@@ -770,7 +770,7 @@ impl<'tcx> LateLintPass<'tcx> for NonCopyConst<'tcx> {
     fn check_impl_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx ImplItem<'_>) {
         if let ImplItemKind::Const(_, body_id) = item.kind
             && let ty = cx.tcx.type_of(item.owner_id).instantiate_identity()
-            && match self.is_ty_freeze(cx.tcx, cx.typing_env(), ty) {
+            && match self.is_ty_freeze(cx, cx.typing_env(), ty) {
                 IsFreeze::Yes => false,
                 IsFreeze::No => {
                     // If this is a trait impl, check if the trait definition is the source
@@ -790,7 +790,7 @@ impl<'tcx> LateLintPass<'tcx> for NonCopyConst<'tcx> {
                         })
                         .fold_ty(cx.tcx.type_of(item.owner_id).instantiate_identity());
                         // `ty` may not be normalizable, but that should be fine.
-                        !self.is_ty_freeze(cx.tcx, cx.typing_env(), ty).is_not_freeze()
+                        !self.is_ty_freeze(cx, cx.typing_env(), ty).is_not_freeze()
                     } else {
                         true
                     }
@@ -798,9 +798,9 @@ impl<'tcx> LateLintPass<'tcx> for NonCopyConst<'tcx> {
                 // Even if this is from a trait, there are values which don't have
                 // interior mutability.
                 IsFreeze::Maybe => match cx.tcx.const_eval_poly(item.owner_id.to_def_id()) {
-                    Ok(val) if let Ok(is_freeze) = self.is_value_freeze(cx.tcx, cx.typing_env(), ty, val) => !is_freeze,
+                    Ok(val) if let Ok(is_freeze) = self.is_value_freeze(cx, cx.typing_env(), ty, val) => !is_freeze,
                     _ => !self.is_init_expr_freeze(
-                        cx.tcx,
+                        cx,
                         cx.typing_env(),
                         cx.tcx.typeck(item.owner_id),
                         GenericArgs::identity_for_item(cx.tcx, item.owner_id),
@@ -825,22 +825,22 @@ impl<'tcx> LateLintPass<'tcx> for NonCopyConst<'tcx> {
             && let Res::Def(DefKind::Const | DefKind::AssocConst, did) = typeck.qpath_res(qpath, e.hir_id)
             // As of `1.80` constant contexts can't borrow any type with interior mutability
             && !is_in_const_context(cx)
-            && !self.is_ty_freeze(cx.tcx, cx.typing_env(), typeck.expr_ty(e)).is_freeze()
+            && !self.is_ty_freeze(cx, cx.typing_env(), typeck.expr_ty(e)).is_freeze()
             && let Some(borrow_src) = {
                 // The extra block helps formatting a lot.
                 if let Ok(val) = cx.tcx.const_eval_resolve(
                     cx.typing_env(),
                     UnevaluatedConst::new(did, typeck.node_args(e.hir_id)),
                     DUMMY_SP,
-                ) && let Ok(src) = self.is_non_freeze_val_borrowed(cx.tcx, cx.typing_env(), typeck, e, val)
+                ) && let Ok(src) = self.is_non_freeze_val_borrowed(cx, cx.typing_env(), typeck, e, val)
                 {
                     src
                 } else if let init_args = typeck.node_args(e.hir_id)
                     && let Some((init_typeck, init)) = get_const_hir_value(cx.tcx, cx.typing_env(), did, init_args)
                 {
-                    self.is_non_freeze_init_borrowed(cx.tcx, cx.typing_env(), typeck, e, init_typeck, init_args, init)
+                    self.is_non_freeze_init_borrowed(cx, cx.typing_env(), typeck, e, init_typeck, init_args, init)
                 } else {
-                    self.is_non_freeze_expr_borrowed(cx.tcx, cx.typing_env(), typeck, e)
+                    self.is_non_freeze_expr_borrowed(cx, cx.typing_env(), typeck, e)
                 }
             }
             && !borrow_src.expr.span.in_external_macro(cx.sess().source_map())
