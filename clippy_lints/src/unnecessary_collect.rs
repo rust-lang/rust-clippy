@@ -44,7 +44,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.92.0"]
     pub UNNECESSARY_COLLECT,
     nursery,
-    "default lint description"
+    "checks for functions returning vecs produced from vec::from_iter"
 }
 
 pub struct UnnecessaryCollect {

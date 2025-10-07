@@ -107,7 +107,7 @@ impl<'tcx> LateLintPass<'tcx> for NonSendFieldInSendTy {
                         non_send_fields.push(NonSendField {
                             def: field_def,
                             ty: field_ty,
-                            generic_params: collect_generic_params(field_ty),
+                            generic_params: iter_generic_params(field_ty).collect(),
                         });
                     }
                 }
@@ -169,15 +169,14 @@ impl NonSendField<'_> {
 }
 
 /// Given a type, collect all of its generic parameters.
-/// Example: `MyStruct<P, Box<Q, R>>` => `vec![P, Q, R]`
-fn collect_generic_params(ty: Ty<'_>) -> Vec<Ty<'_>> {
+/// Example: `MyStruct<P, Box<Q, R>>` => `[P, Q, R]`
+fn iter_generic_params(ty: Ty<'_>) -> impl Iterator<Item = Ty<'_>> {
     ty.walk()
         .filter_map(|inner| match inner.kind() {
             GenericArgKind::Type(inner_ty) => Some(inner_ty),
             _ => None,
         })
         .filter(|&inner_ty| is_ty_param(inner_ty))
-        .collect()
 }
 
 /// Be more strict when the heuristic is disabled

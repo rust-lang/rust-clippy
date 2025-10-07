@@ -153,6 +153,7 @@ pub fn camel_case_indices(s: &str) -> Vec<StrIndex> {
 /// # use clippy_utils::str_utils::{camel_case_split, StrIndex};
 /// assert_eq!(camel_case_split("AbcDef"), vec!["Abc", "Def"]);
 /// ```
+#[allow(clippy::unnecessary_collect)]
 pub fn camel_case_split(s: &str) -> Vec<&str> {
     let mut offsets = camel_case_indices(s)
         .iter()

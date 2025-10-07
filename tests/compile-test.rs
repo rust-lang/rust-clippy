@@ -44,6 +44,7 @@ static INTERNAL_TEST_DEPENDENCIES: &[&str] = &["clippy_config", "clippy_lints", 
 /// dependencies must be added to Cargo.toml at the project root. Test
 /// dependencies that are not *directly* used by this test module require an
 /// `extern crate` declaration.
+#[allow(clippy::unnecessary_collect)]
 fn internal_extern_flags() -> Vec<String> {
     let current_exe_path = env::current_exe().unwrap();
     let deps_path = current_exe_path.parent().unwrap();
