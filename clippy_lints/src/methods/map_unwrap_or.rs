@@ -77,11 +77,6 @@ pub(super) fn check<'tcx>(
         return;
     }
 
-    // is_some_and is stabilised && `unwrap_or` argument is false; suggest `is_some_and` instead
-    let suggest_is_some_and = matches!(&unwrap_arg.kind, ExprKind::Lit(lit)
-            if matches!(lit.node, rustc_ast::LitKind::Bool(false)))
-        && msrv.meets(cx, msrvs::OPTION_RESULT_IS_VARIANT_AND);
-
     let mut applicability = Applicability::MachineApplicable;
     // get snippet for unwrap_or()
     let unwrap_snippet = snippet_with_applicability(cx, unwrap_arg.span, "..", &mut applicability);
@@ -89,21 +84,9 @@ pub(super) fn check<'tcx>(
     // comparing the snippet from source to raw text ("None") below is safe
     // because we already have checked the type.
     let unwrap_snippet_none = is_option && is_res_lang_ctor(cx, path_res(cx, unwrap_arg), LangItem::OptionNone);
-    let arg = if unwrap_snippet_none {
-        "None"
-    } else if suggest_is_some_and {
-        "false"
-    } else {
-        "<a>"
-    };
+    let arg = if unwrap_snippet_none { "None" } else { "<a>" };
     let suggest = if unwrap_snippet_none {
         "and_then(<f>)"
-    } else if suggest_is_some_and {
-        if is_option {
-            "is_some_and(<f>)"
-        } else {
-            "is_ok_and(<f>)"
-        }
     } else {
         "map_or(<a>, <f>)"
     };
@@ -120,8 +103,6 @@ pub(super) fn check<'tcx>(
                 map_span,
                 String::from(if unwrap_snippet_none {
                     "and_then"
-                } else if suggest_is_some_and {
-                    if is_option { "is_some_and" } else { "is_ok_and" }
                 } else {
                     let unwrap_arg_ty = unwrap_arg_ty.peel_refs();
                     if unwrap_arg_ty.is_array()
@@ -136,7 +117,7 @@ pub(super) fn check<'tcx>(
             (expr.span.with_lo(unwrap_recv.span.hi()), String::new()),
         ];
 
-        if !unwrap_snippet_none && !suggest_is_some_and {
+        if !unwrap_snippet_none {
             suggestion.push((map_arg_span.with_hi(map_arg_span.lo()), format!("{unwrap_snippet}, ")));
         }
 
