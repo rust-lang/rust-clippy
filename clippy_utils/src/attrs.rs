@@ -28,6 +28,7 @@ pub fn get_builtin_attr<'a, A: AttributeExt + 'a>(
                 sym::cyclomatic_complexity => Some("cognitive_complexity"),
                 sym::author
                 | sym::version
+                | sym::ignore_interior_mutability
                 | sym::cognitive_complexity
                 | sym::dump
                 | sym::msrv

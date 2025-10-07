@@ -14,7 +14,7 @@ use rustc_hir::def_id::DefId;
 use rustc_hir::{Expr, FnDecl, LangItem, find_attr};
 use rustc_hir_analysis::lower_ty;
 use rustc_infer::infer::TyCtxtInferExt;
-use rustc_lint::LateContext;
+use rustc_lint::{LateContext, LintContext};
 use rustc_middle::mir::ConstValue;
 use rustc_middle::mir::interpret::Scalar;
 use rustc_middle::traits::EvaluationResult;
@@ -36,7 +36,7 @@ use std::{iter, mem};
 
 use crate::paths::{PathNS, lookup_path_str};
 use crate::res::{MaybeDef, MaybeQPath};
-use crate::sym;
+use crate::{get_unique_builtin_attr, sym};
 
 mod type_certainty;
 pub use type_certainty::expr_type_is_certain;
@@ -1071,6 +1071,17 @@ impl<'tcx> InteriorMut<'tcx> {
     /// this type to be interior mutable. False negatives may be expected for infinitely recursive
     /// types, and `None` will be returned there.
     pub fn interior_mut_ty_chain(&mut self, cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<&'tcx ty::List<Ty<'tcx>>> {
+        // Check if given type has a `#[clippy::ignore_interior_mutability]` attribute
+        if let Some(did) = ty.ty_adt_def().map(AdtDef::did)
+            && !self.ignored_def_ids.contains(&did)
+            && let attrs = cx.tcx.get_all_attrs(did)
+            && get_unique_builtin_attr(cx.sess(), attrs, sym::ignore_interior_mutability).is_some()
+        {
+            self.ignored_def_ids.insert(did);
+            // Small optimization: since we know that we're going to ignore interior mutability for
+            // this type anyway, running `self.interior_mut_ty_chain_inner` is unnecessary
+            return None;
+        }
         self.interior_mut_ty_chain_inner(cx, ty, 0)
     }
 

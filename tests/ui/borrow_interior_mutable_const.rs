@@ -234,4 +234,11 @@ fn main() {
             }
         }
     }
+    fn issue13865() {
+        #[clippy::ignore_interior_mutability]
+        struct Foo(Cell<i32>);
+
+        const FOO: Foo = Foo(Cell::new(0));
+        let _ = &FOO;
+    }
 }

@@ -70,8 +70,9 @@ declare_clippy_lint! {
     /// no way to both create a value as a constant and modify any mutable field using the
     /// type's public interface (e.g. `bytes::Bytes`). As there is no reasonable way to
     /// scan a crate's interface to see if this is the case, all such types will be linted.
-    /// If this happens use the `ignore-interior-mutability` configuration option to allow
-    /// the type.
+    /// If this happens, use the `ignore-interior-mutability` configuration option or put
+    /// the `#[clippy::ignore_interior_mutability]` attribute onto a type to allow the
+    /// type.
     ///
     /// ### Example
     /// ```no_run
@@ -131,8 +132,9 @@ declare_clippy_lint! {
     /// no way to both create a value as a constant and modify any mutable field using the
     /// type's public interface (e.g. `bytes::Bytes`). As there is no reasonable way to
     /// scan a crate's interface to see if this is the case, all such types will be linted.
-    /// If this happens use the `ignore-interior-mutability` configuration option to allow
-    /// the type.
+    /// If this happens, use the `ignore-interior-mutability` configuration option or put
+    /// the `#[clippy::ignore_interior_mutability]` attribute onto a type to allow the
+    /// type.
     ///
     /// ### Example
     /// ```no_run
