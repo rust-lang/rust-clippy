@@ -82,7 +82,16 @@ fn run_clippy_for_package(project: &str) -> bool {
 
     command.arg("--");
     command.arg("-Cdebuginfo=0"); // disable debuginfo to generate less data in the target dir
-    command.args(["-D", "clippy::all", "-D", "clippy::pedantic", "-D", "clippy::dbg_macro"]);
+    command.args([
+        "-D",
+        "unfulfilled_lint_expectations",
+        "-D",
+        "clippy::all",
+        "-D",
+        "clippy::pedantic",
+        "-D",
+        "clippy::dbg_macro",
+    ]);
     if !cfg!(feature = "internal") {
         // running a clippy built without internal lints on the clippy source
         // that contains e.g. `allow(clippy::symbol_as_str)`
