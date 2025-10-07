@@ -386,6 +386,7 @@ generate! {
     trim_right,
     trim_start,
     trim_start_matches,
+    trim_trailing_sep,
     truncate,
     try_for_each,
     unreachable_pub,
