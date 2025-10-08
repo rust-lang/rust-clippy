@@ -7,6 +7,7 @@ use rustc_hir as hir;
 use rustc_hir::def::Res;
 use rustc_lint::LateContext;
 use rustc_middle::ty::layout::LayoutOf;
+use rustc_span::Symbol;
 
 pub fn check(
     cx: &LateContext<'_>,
@@ -14,7 +15,7 @@ pub fn check(
     arith_lhs: &hir::Expr<'_>,
     arith_rhs: &hir::Expr<'_>,
     unwrap_arg: &hir::Expr<'_>,
-    arith: &str,
+    arith: Symbol,
 ) {
     let ty = cx.typeck_results().expr_ty(arith_lhs);
     if !ty.is_integral() {
@@ -25,40 +26,74 @@ pub fn check(
         return;
     };
 
+    let Some(checked_arith) = CheckedArith::new(arith) else {
+        return;
+    };
+
     if ty.is_signed() {
         use self::MinMax::{Max, Min};
         use self::Sign::{Neg, Pos};
+        use CheckedArith::{Add, Sub};
 
         let Some(sign) = lit_sign(arith_rhs) else {
             return;
         };
 
-        match (arith, sign, mm) {
-            ("add", Pos, Max) | ("add", Neg, Min) | ("sub", Neg, Max) | ("sub", Pos, Min) => (),
+        match (&checked_arith, sign, mm) {
+            (Add, Pos, Max) | (Add, Neg, Min) | (Sub, Neg, Max) | (Sub, Pos, Min) => (),
             // "mul" is omitted because lhs can be negative.
             _ => return,
         }
     } else {
-        match (mm, arith) {
-            (MinMax::Max, "add" | "mul") | (MinMax::Min, "sub") => (),
+        use self::MinMax::{Max, Min};
+        use CheckedArith::{Add, Mul, Sub};
+        match (mm, &checked_arith) {
+            (Max, Add | Mul) | (Min, Sub) => (),
             _ => return,
         }
     }
 
     let mut applicability = Applicability::MachineApplicable;
+    let saturating_arith = checked_arith.as_saturating();
     span_lint_and_sugg(
         cx,
         super::MANUAL_SATURATING_ARITHMETIC,
         expr.span,
         "manual saturating arithmetic",
-        format!("consider using `saturating_{arith}`"),
+        format!("consider using `{saturating_arith}`"),
         format!(
-            "{}.saturating_{arith}({})",
+            "{}.{saturating_arith}({})",
             snippet_with_applicability(cx, arith_lhs.span, "..", &mut applicability),
             snippet_with_applicability(cx, arith_rhs.span, "..", &mut applicability),
         ),
         applicability,
     );
+}
+
+enum CheckedArith {
+    Add,
+    Sub,
+    Mul,
+}
+
+impl CheckedArith {
+    fn new(sym: Symbol) -> Option<Self> {
+        let res = match sym {
+            sym::checked_add => Self::Add,
+            sym::checked_sub => Self::Sub,
+            sym::checked_mul => Self::Mul,
+            _ => return None,
+        };
+        Some(res)
+    }
+
+    fn as_saturating(&self) -> &'static str {
+        match self {
+            Self::Add => "saturating_add",
+            Self::Sub => "saturating_sub",
+            Self::Mul => "saturating_mul",
+        }
+    }
 }
 
 #[derive(PartialEq, Eq)]
