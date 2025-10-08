@@ -3,7 +3,7 @@ use clippy_utils::is_from_proc_macro;
 use itertools::Itertools;
 use rustc_abi::VariantIdx;
 use rustc_lint::LateLintPass;
-use rustc_middle::ty::{self, Visibility};
+use rustc_middle::ty;
 use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
@@ -39,7 +39,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.89.0"]
     pub REST_WHEN_DESTRUCTURING_STRUCT,
-    nursery,
+    restriction,
     "rest (..) in destructuring expression"
 }
 declare_lint_pass!(RestWhenDestructuringStruct => [REST_WHEN_DESTRUCTURING_STRUCT]);
@@ -57,21 +57,17 @@ impl<'tcx> LateLintPass<'tcx> for RestWhenDestructuringStruct {
                 .opt_def_id()
                 .map_or(VariantIdx::ZERO, |x| a.variant_index_with_id(x));
 
-            let leave_dotdot = a.variants()[vid].field_list_has_applicable_non_exhaustive();
+            let leave_dotdot = a.variants()[vid]
+                .fields
+                .iter()
+                .any(|f| !f.vis.is_accessible_from(cx.tcx.parent_module(pat.hir_id), cx.tcx));
 
             let mut rest_fields = a.variants()[vid]
                 .fields
                 .iter()
-                .filter(|f| {
-                    if a.did().is_local() {
-                        true
-                    } else {
-                        matches!(f.vis, Visibility::Public)
-                    }
-                })
-                .map(|field| field.ident(cx.tcx))
-                .filter(|pf| !fields.iter().any(|x| x.ident == *pf))
-                .map(|x| format!("{x}: _"));
+                .filter(|f| f.vis.is_accessible_from(cx.tcx.parent_module(pat.hir_id), cx.tcx))
+                .filter(|pf| !fields.iter().any(|x| x.ident.name == pf.name))
+                .map(|x| format!("{}: _", x.ident(cx.tcx)));
 
             let mut fmt_fields = rest_fields.join(", ");
 
