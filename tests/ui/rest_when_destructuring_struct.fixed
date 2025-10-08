@@ -22,6 +22,15 @@ enum E {
     C {},
 }
 
+mod m {
+    #[derive(Default)]
+    pub struct Sm {
+        pub a: u8,
+        pub(crate) b: u8,
+        c: u8,
+    }
+}
+
 fn main() {
     let s = S { a: 1, b: 2, c: 3 };
 
@@ -67,4 +76,9 @@ fn main() {
     let NonExhaustiveStruct {
         field1: _, field2: _, ..
     } = ne;
+
+    use m::Sm;
+
+    let Sm { a: _, b: _, .. } = Sm::default();
+    //~^ rest_when_destructuring_struct
 }
