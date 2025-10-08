@@ -3,18 +3,19 @@ use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::{path_res, sym};
 use rustc_ast::ast;
 use rustc_errors::Applicability;
-use rustc_hir as hir;
 use rustc_hir::def::Res;
+use rustc_hir::{self as hir, Expr};
 use rustc_lint::LateContext;
+use rustc_middle::ty::Ty;
 use rustc_middle::ty::layout::LayoutOf;
 use rustc_span::Symbol;
 
-pub fn check(
+pub fn check_unwrap_or(
     cx: &LateContext<'_>,
-    expr: &hir::Expr<'_>,
-    arith_lhs: &hir::Expr<'_>,
-    arith_rhs: &hir::Expr<'_>,
-    unwrap_arg: &hir::Expr<'_>,
+    expr: &Expr<'_>,
+    arith_lhs: &Expr<'_>,
+    arith_rhs: &Expr<'_>,
+    unwrap_arg: &Expr<'_>,
     arith: Symbol,
 ) {
     let ty = cx.typeck_results().expr_ty(arith_lhs);
@@ -30,6 +31,42 @@ pub fn check(
         return;
     };
 
+    check(cx, expr, arith_lhs, arith_rhs, ty, mm, checked_arith);
+}
+
+/// Precondition: should be called on `x.saturating_sub(y).unwrap_or_default()`
+pub(super) fn check_unwrap_or_default(
+    cx: &LateContext<'_>,
+    expr: &Expr<'_>,
+    arith_lhs: &Expr<'_>,
+    arith_rhs: &Expr<'_>,
+) {
+    let ty = cx.typeck_results().expr_ty(arith_lhs);
+    if !ty.is_integral() {
+        return;
+    }
+
+    let mm = if ty.is_signed() {
+        return; // iN::default() is 0, which is neither MIN nor MAX
+    } else {
+        MinMax::Min // uN::default() is 0, which is also the MIN
+    };
+
+    // See precondition
+    let checked_arith = CheckedArith::Sub;
+
+    check(cx, expr, arith_lhs, arith_rhs, ty, mm, checked_arith);
+}
+
+fn check(
+    cx: &LateContext<'_>,
+    expr: &Expr<'_>,
+    arith_lhs: &Expr<'_>,
+    arith_rhs: &Expr<'_>,
+    ty: Ty<'_>,
+    mm: MinMax,
+    checked_arith: CheckedArith,
+) {
     if ty.is_signed() {
         use self::MinMax::{Max, Min};
         use self::Sign::{Neg, Pos};
@@ -39,7 +76,7 @@ pub fn check(
             return;
         };
 
-        match (&checked_arith, sign, mm) {
+        match (checked_arith, sign, mm) {
             (Add, Pos, Max) | (Add, Neg, Min) | (Sub, Neg, Max) | (Sub, Pos, Min) => (),
             // "mul" is omitted because lhs can be negative.
             _ => return,
@@ -47,7 +84,7 @@ pub fn check(
     } else {
         use self::MinMax::{Max, Min};
         use CheckedArith::{Add, Mul, Sub};
-        match (mm, &checked_arith) {
+        match (mm, checked_arith) {
             (Max, Add | Mul) | (Min, Sub) => (),
             _ => return,
         }
@@ -70,6 +107,7 @@ pub fn check(
     );
 }
 
+#[derive(Clone, Copy)]
 enum CheckedArith {
     Add,
     Sub,
@@ -87,7 +125,7 @@ impl CheckedArith {
         Some(res)
     }
 
-    fn as_saturating(&self) -> &'static str {
+    fn as_saturating(self) -> &'static str {
         match self {
             Self::Add => "saturating_add",
             Self::Sub => "saturating_sub",
@@ -102,7 +140,7 @@ enum MinMax {
     Max,
 }
 
-fn is_min_or_max(cx: &LateContext<'_>, expr: &hir::Expr<'_>) -> Option<MinMax> {
+fn is_min_or_max(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<MinMax> {
     // `T::max_value()` `T::min_value()` inherent methods
     if let hir::ExprKind::Call(func, []) = &expr.kind
         && let hir::ExprKind::Path(hir::QPath::TypeRelative(_, segment)) = &func.kind
@@ -140,7 +178,7 @@ fn is_min_or_max(cx: &LateContext<'_>, expr: &hir::Expr<'_>) -> Option<MinMax> {
         (0, if bits == 128 { !0 } else { (1 << bits) - 1 })
     };
 
-    let check_lit = |expr: &hir::Expr<'_>, check_min: bool| {
+    let check_lit = |expr: &Expr<'_>, check_min: bool| {
         if let hir::ExprKind::Lit(lit) = &expr.kind
             && let ast::LitKind::Int(value, _) = lit.node
         {
@@ -175,7 +213,7 @@ enum Sign {
     Neg,
 }
 
-fn lit_sign(expr: &hir::Expr<'_>) -> Option<Sign> {
+fn lit_sign(expr: &Expr<'_>) -> Option<Sign> {
     if let hir::ExprKind::Unary(hir::UnOp::Neg, inner) = &expr.kind {
         if let hir::ExprKind::Lit(..) = &inner.kind {
             return Some(Sign::Neg);
