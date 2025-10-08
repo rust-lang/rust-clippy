@@ -1,5 +1,5 @@
 error: struct destructuring with rest (..)
-  --> tests/ui/rest_when_destructuring_struct.rs:28:9
+  --> tests/ui/rest_when_destructuring_struct.rs:37:9
    |
 LL |     let S { a, b, .. } = s;
    |         ^^^^^^^^^^^^^^
@@ -13,7 +13,7 @@ LL +     let S { a, b, c: _ } = s;
    |
 
 error: struct destructuring with rest (..)
-  --> tests/ui/rest_when_destructuring_struct.rs:31:9
+  --> tests/ui/rest_when_destructuring_struct.rs:40:9
    |
 LL |     let S { a, b, c, .. } = s;
    |         ^^^^^^^^^^^^^^^^^
@@ -25,7 +25,7 @@ LL +     let S { a, b, c,  } = s;
    |
 
 error: struct destructuring with rest (..)
-  --> tests/ui/rest_when_destructuring_struct.rs:38:9
+  --> tests/ui/rest_when_destructuring_struct.rs:47:9
    |
 LL |         E::B { .. } => (),
    |         ^^^^^^^^^^^
@@ -37,7 +37,7 @@ LL +         E::B { b1: _, b2: _ } => (),
    |
 
 error: struct destructuring with rest (..)
-  --> tests/ui/rest_when_destructuring_struct.rs:40:9
+  --> tests/ui/rest_when_destructuring_struct.rs:49:9
    |
 LL |         E::C { .. } => (),
    |         ^^^^^^^^^^^
@@ -49,7 +49,7 @@ LL +         E::C {  } => (),
    |
 
 error: struct destructuring with rest (..)
-  --> tests/ui/rest_when_destructuring_struct.rs:46:9
+  --> tests/ui/rest_when_destructuring_struct.rs:55:9
    |
 LL |         E::B { b1: _, .. } => (),
    |         ^^^^^^^^^^^^^^^^^^
@@ -61,7 +61,7 @@ LL +         E::B { b1: _, b2: _ } => (),
    |
 
 error: struct destructuring with rest (..)
-  --> tests/ui/rest_when_destructuring_struct.rs:63:9
+  --> tests/ui/rest_when_destructuring_struct.rs:72:9
    |
 LL |     let NonExhaustiveStruct { field1: _, .. } = ne;
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -71,5 +71,16 @@ help: consider explicitly ignoring remaining fields with wildcard patterns (x: _
 LL |     let NonExhaustiveStruct { field1: _, field2: _, .. } = ne;
    |                                          ++++++++++
 
-error: aborting due to 6 previous errors
+error: struct destructuring with rest (..)
+  --> tests/ui/rest_when_destructuring_struct.rs:82:9
+   |
+LL |     let Sm { .. } = Sm::default();
+   |         ^^^^^^^^^
+   |
+help: consider explicitly ignoring remaining fields with wildcard patterns (x: _)
+   |
+LL |     let Sm { a: _, b: _, .. } = Sm::default();
+   |              +++++++++++
+
+error: aborting due to 7 previous errors
 
