@@ -496,7 +496,7 @@ error: function has unnecessary safety comment
 LL |     unsafe fn unsafe_comment() {}
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: consider changing the `SAFETY` comment for a `# Safety` doc comment
+help: consider changing the `safety` comment for a `# Safety` doc comment
   --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:780:8
    |
 LL |     // SAFETY: Bla
@@ -508,7 +508,7 @@ error: function has unnecessary safety comment
 LL |     unsafe fn unsafe_block_comment() {}
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: consider changing the `SAFETY` comment for a `# Safety` doc comment
+help: consider changing the `safety` comment for a `# Safety` doc comment
   --> tests/ui-toml/undocumented_unsafe_blocks/undocumented_unsafe_blocks.rs:785:8
    |
 LL |        SAFETY: Bla

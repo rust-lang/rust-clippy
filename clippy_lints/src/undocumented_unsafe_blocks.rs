@@ -283,7 +283,7 @@ fn check_has_safety_comment(cx: &LateContext<'_>, item: &hir::Item<'_>, (span, h
                         } else {
                             diag.span_help(
                                 help_span,
-                                "consider changing the `SAFETY` comment for a `# Safety` doc comment",
+                                "consider changing the `safety` comment for a `# Safety` doc comment",
                             );
                         }
                     },
@@ -502,11 +502,6 @@ enum HasSafetyComment {
     Maybe,
 }
 
-enum SafetyComment {
-    Present { pos: BytePos, is_doc: bool },
-    Absent,
-}
-
 /// Checks if the lines immediately preceding the item contain a safety comment.
 fn item_has_safety_comment(
     cx: &LateContext<'_>,
@@ -558,16 +553,13 @@ fn item_has_safety_comment(
         return if comment_start_line.line >= unsafe_line.line {
             HasSafetyComment::No
         } else {
-            match text_has_safety_comment(
+            text_has_safety_comment(
                 src,
                 &unsafe_line.sf.lines()
                     [(comment_start_line.line + usize::from(!include_first_line_of_file))..=unsafe_line.line],
                 unsafe_line.sf.start_pos,
                 accept_comment_above_attributes,
-            ) {
-                SafetyComment::Present { pos, is_doc } => HasSafetyComment::Yes(pos, is_doc),
-                SafetyComment::Absent => HasSafetyComment::No,
-            }
+            )
         };
     }
     HasSafetyComment::Maybe
@@ -604,15 +596,12 @@ fn stmt_has_safety_comment(
         return if comment_start_line.line >= unsafe_line.line {
             HasSafetyComment::No
         } else {
-            match text_has_safety_comment(
+            text_has_safety_comment(
                 src,
                 &unsafe_line.sf.lines()[comment_start_line.line + 1..=unsafe_line.line],
                 unsafe_line.sf.start_pos,
                 accept_comment_above_attributes,
-            ) {
-                SafetyComment::Present { pos, is_doc } => HasSafetyComment::Yes(pos, is_doc),
-                SafetyComment::Absent => HasSafetyComment::No,
-            }
+            )
         };
     }
     HasSafetyComment::Maybe
@@ -685,15 +674,12 @@ fn span_from_macro_expansion_has_safety_comment(
         && let Some(src) = unsafe_line.sf.src.as_deref()
     {
         if macro_line.line < unsafe_line.line {
-            match text_has_safety_comment(
+            text_has_safety_comment(
                 src,
                 &unsafe_line.sf.lines()[macro_line.line + 1..=unsafe_line.line],
                 unsafe_line.sf.start_pos,
                 accept_comment_above_attributes,
-            ) {
-                SafetyComment::Present { pos, is_doc } => HasSafetyComment::Yes(pos, is_doc),
-                SafetyComment::Absent => HasSafetyComment::No,
-            }
+            )
         } else {
             HasSafetyComment::No
         }
@@ -759,7 +745,7 @@ fn span_has_safety_comment(cx: &LateContext<'_>, span: Span, accept_comment_abov
                         unsafe_line.sf.start_pos,
                         accept_comment_above_attributes,
                     ),
-                    SafetyComment::Present { .. }
+                    HasSafetyComment::Yes(..)
                 )
         } else {
             // Problem getting source text. Pretend a comment was found.
@@ -779,7 +765,7 @@ fn text_has_safety_comment(
     line_starts: &[RelativeBytePos],
     start_pos: BytePos,
     accept_comment_above_attributes: bool,
-) -> SafetyComment {
+) -> HasSafetyComment {
     let mut lines = line_starts
         .array_windows::<2>()
         .rev()
@@ -793,7 +779,7 @@ fn text_has_safety_comment(
         .filter(|(_, text)| !(text.is_empty() || (accept_comment_above_attributes && is_attribute(text))));
 
     let Some((line_start, line)) = lines.next() else {
-        return SafetyComment::Absent;
+        return HasSafetyComment::No;
     };
 
     let mut in_codeblock = false;
@@ -809,16 +795,16 @@ fn text_has_safety_comment(
             }
 
             if !in_codeblock && let Some(safety_pos) = line.to_ascii_uppercase().find("SAFETY:") {
-                return SafetyComment::Present {
-                    pos: start_pos
+                return HasSafetyComment::Yes(
+                    start_pos
                         + BytePos(u32::try_from(line_start).unwrap())
                         + BytePos(u32::try_from(safety_pos).unwrap()),
-                    is_doc: line.starts_with("///"),
-                };
+                    line.starts_with("///"),
+                );
             }
             match lines.next() {
                 Some((s, x)) if x.starts_with("//") => (line, line_start) = (x, s),
-                _ => return SafetyComment::Absent,
+                _ => return HasSafetyComment::No,
             }
         }
     }
@@ -833,18 +819,18 @@ fn text_has_safety_comment(
             if let Some(safety_pos) = src[..a.unwrap().len as usize].to_ascii_uppercase().find("SAFETY:")
                 && tokens.all(|t| t.kind == TokenKind::Whitespace)
             {
-                return SafetyComment::Present {
-                    pos: start_pos
+                return HasSafetyComment::Yes(
+                    start_pos
                         + BytePos(u32::try_from(line_start).unwrap())
                         + BytePos(u32::try_from(safety_pos).unwrap()),
-                    is_doc: line.starts_with("/**"),
-                };
+                    line.starts_with("/**"),
+                );
             }
-            return SafetyComment::Absent;
+            return HasSafetyComment::No;
         }
         match lines.next() {
             Some(x) => (line_start, line) = x,
-            None => return SafetyComment::Absent,
+            None => return HasSafetyComment::No,
         }
     }
 }
