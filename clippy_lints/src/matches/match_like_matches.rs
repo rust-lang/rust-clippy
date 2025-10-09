@@ -6,7 +6,7 @@ use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::{is_lint_allowed, is_wild, span_contains_comment};
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
-use rustc_hir::{Arm, BorrowKind, Expr, ExprKind, Pat, PatKind, QPath};
+use rustc_hir::{Arm, BinOpKind, BorrowKind, Expr, ExprKind, Pat, PatKind, QPath};
 use rustc_lint::{LateContext, LintContext};
 use rustc_middle::ty;
 use rustc_span::source_map::Spanned;
@@ -92,7 +92,10 @@ pub(super) fn check_match<'tcx>(
             // ```rs
             // matches!(e, Either::Left $(if $guard)|+)
             // ```
-            middle_arms.is_empty()
+            //
+            // But if the guard _is_ present, it may not be an `if-let` guard, as `matches!` doesn't
+            // support these (currently?)
+            (middle_arms.is_empty() && first_arm.guard.is_none_or(|g| !contains_if_let(g)))
 
             // - (added in #6216) There are middle arms
             //
@@ -195,6 +198,16 @@ pub(super) fn check_match<'tcx>(
         true
     } else {
         false
+    }
+}
+
+fn contains_if_let(guard: &Expr<'_>) -> bool {
+    match guard.kind {
+        ExprKind::Binary(and, e1, e2) if matches!(and.node, BinOpKind::And) => {
+            contains_if_let(e1) || contains_if_let(e2)
+        },
+        ExprKind::Let(_) => true,
+        _ => false,
     }
 }
 
