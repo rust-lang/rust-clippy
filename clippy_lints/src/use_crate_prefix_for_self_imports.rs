@@ -3,7 +3,7 @@ use def_id::LOCAL_CRATE;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
-use rustc_hir::{Item, ItemKind, UsePath, def_id};
+use rustc_hir::{Attribute, Item, ItemKind, UsePath, def_id};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::impl_lint_pass;
 use rustc_span::{BytePos, FileName, RealFileName, Span, Symbol, kw};
@@ -83,6 +83,30 @@ impl<'a, 'tcx> LateLintPass<'tcx> for UseCratePrefixForSelfImports<'a, 'tcx> {
             self.try_lint(cx);
             self.clear();
             self.insert_item(item);
+        }
+    }
+
+    fn check_attribute(&mut self, cx: &LateContext<'tcx>, attribute: &'a Attribute) {
+        let FileName::Real(RealFileName::LocalPath(p)) = cx.sess().source_map().span_to_filename(attribute.span())
+        else {
+            self.clear();
+            return;
+        };
+        let Some(file_name) = p.file_name() else {
+            self.clear();
+            return;
+        };
+        // only check `main.rs` and `lib.rs`
+        if !(file_name == "main.rs" || file_name == "lib.rs") {
+            return;
+        }
+
+        if self.in_same_block(attribute.span()) {
+            self.spans.push(attribute.span());
+        } else {
+            self.try_lint(cx);
+            self.clear();
+            self.spans.push(attribute.span());
         }
     }
 }
