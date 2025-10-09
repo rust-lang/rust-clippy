@@ -16988,6 +16988,10 @@ impl Foo {
 <p><code>msrv</code>:  The minimum rust version that the project supports. Defaults to the <code>rust-version</code> field in <code>Cargo.toml</code></p>
 <p>(default: <code>current version</code>)</p>
 </li>
+<li>
+<p><code>recursive-self-in-type-definitions</code>:  Whether the type itself in a struct or enum should be replaced with <code>Self</code> when encountering recursive types.</p>
+<p>(default: <code>true</code>)</p>
+</li>
 </ul>
 </div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">pre 1.29.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+use_self">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/use_self.rs#L21">View Source</a></div></div></div></article><article id="used_underscore_binding"><input id="label-used_underscore_binding" type="checkbox"><label for="label-used_underscore_binding"><h2 class="lint-title"><div class="panel-title-name" id="lint-used_underscore_binding">used_underscore_binding
 <a href="#used_underscore_binding" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
