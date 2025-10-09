@@ -8,7 +8,7 @@ use rustc_span::Span;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
 use clippy_utils::ty::has_iter_method;
-use clippy_utils::{is_trait_method, sym};
+use clippy_utils::{is_let_desugar, is_trait_method, sym};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -139,20 +139,6 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessForEach {
             });
         }
     }
-}
-
-/// Check if the block is a desugared `_ = expr` statement.
-fn is_let_desugar(block: &Block<'_>) -> bool {
-    matches!(
-        block,
-        Block {
-            stmts: [Stmt {
-                kind: StmtKind::Let(_),
-                ..
-            },],
-            ..
-        }
-    )
 }
 
 /// This type plays two roles.

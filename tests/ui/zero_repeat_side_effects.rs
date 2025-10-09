@@ -1,5 +1,10 @@
 #![warn(clippy::zero_repeat_side_effects)]
-#![expect(clippy::unnecessary_operation, clippy::useless_vec, clippy::needless_late_init)]
+#![expect(
+    clippy::unnecessary_operation,
+    clippy::useless_vec,
+    clippy::needless_late_init,
+    clippy::single_match
+)]
 
 fn f() -> i32 {
     println!("side effect");
@@ -100,4 +105,21 @@ fn issue_14681() {
     //~^ zero_repeat_side_effects
     foo(&[Some(Some(S::new())); 0]);
     //~^ zero_repeat_side_effects
+}
+
+fn issue_15824() {
+    fn f() {}
+
+    match 0 {
+        0 => _ = [f(); 0],
+        //~^ zero_repeat_side_effects
+        _ => {},
+    }
+
+    let mut a = [(); 0];
+    match 0 {
+        0 => a = [f(); 0],
+        //~^ zero_repeat_side_effects
+        _ => {},
+    }
 }
