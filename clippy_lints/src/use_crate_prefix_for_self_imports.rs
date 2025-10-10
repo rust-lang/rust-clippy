@@ -1,4 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::source::SpanRangeExt;
+use clippy_utils::tokenize_with_text;
 use def_id::LOCAL_CRATE;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
@@ -56,8 +58,7 @@ pub struct UseCratePrefixForSelfImports<'a, 'tcx> {
     use_block: Vec<&'a UsePath<'tcx>>,
     /// collect `mod` in current block
     mod_names: FxHashSet<Symbol>,
-    /// spans of `mod`, `use`, and attributes
-    spans: Vec<Span>,
+    latest_span: Option<Span>,
 }
 
 impl_lint_pass!(UseCratePrefixForSelfImports<'_, '_> => [USE_CRATE_PREFIX_FOR_SELF_IMPORTS]);
@@ -77,41 +78,12 @@ impl<'a, 'tcx> LateLintPass<'tcx> for UseCratePrefixForSelfImports<'a, 'tcx> {
             return;
         }
 
-        if self.in_same_block(item.span) {
-            self.insert_item(item);
-        } else {
-            self.try_lint(cx);
-            self.clear();
-            self.insert_item(item);
-        }
-    }
-
-    fn check_attribute(&mut self, cx: &LateContext<'tcx>, attribute: &'a Attribute) {
-        let FileName::Real(RealFileName::LocalPath(p)) = cx.sess().source_map().span_to_filename(attribute.span())
-        else {
-            self.clear();
-            return;
-        };
-        let Some(file_name) = p.file_name() else {
-            self.clear();
-            return;
-        };
-        // only check `main.rs` and `lib.rs`
-        if !(file_name == "main.rs" || file_name == "lib.rs") {
-            return;
-        }
-
-        if self.in_same_block(attribute.span()) {
-            self.spans.push(attribute.span());
-        } else {
-            self.try_lint(cx);
-            self.clear();
-            self.spans.push(attribute.span());
-        }
+        self.insert_item(cx, item);
     }
 }
 
 impl<'tcx> UseCratePrefixForSelfImports<'_, 'tcx> {
+    /*
     fn in_same_block(&self, span: Span) -> bool {
         if self.spans.is_empty() {
             return true;
@@ -124,19 +96,53 @@ impl<'tcx> UseCratePrefixForSelfImports<'_, 'tcx> {
         }
         false
     }
+     */
 
-    fn insert_item(&mut self, item: &Item<'tcx>) {
-        match item.kind {
-            ItemKind::Mod(ident, _) => {
-                self.spans.push(item.span);
-                self.mod_names.insert(ident.name);
+    fn in_same_block(&self, cx: &LateContext<'tcx>, span: Span) -> bool {
+        match self.latest_span {
+            Some(latest_span) => {
+                let gap_span = latest_span.between(span);
+                let gap_snippet = gap_span.get_source_text(cx).unwrap();
+                for (token, source, inner_span) in tokenize_with_text(&gap_snippet) {
+                    match token {
+                        rustc_lexer::TokenKind::Whitespace => return false,
+                        _ => {},
+                    }
+                }
+                true
             },
-            ItemKind::Use(use_tree, _) => {
-                self.spans.push(item.span);
-                self.use_block.push(use_tree);
-            },
-            _ => {},
+            None => true,
         }
+    }
+
+    fn insert_item(&mut self, cx: &LateContext<'tcx>, item: &Item<'tcx>) {
+        if self.in_same_block(cx, item.span) {
+            match item.kind {
+                ItemKind::Mod(ident, _) => {
+                    self.mod_names.insert(ident.name);
+                },
+                ItemKind::Use(use_tree, _) => {
+                    self.use_block.push(use_tree);
+                },
+                _ => {},
+            }
+        } else {
+            self.try_lint(cx);
+            self.clear();
+            match item.kind {
+                ItemKind::Mod(ident, _) => {
+                    self.mod_names.insert(ident.name);
+                },
+                ItemKind::Use(use_tree, _) => {
+                    self.use_block.push(use_tree);
+                },
+                _ => {},
+            }
+        }
+        self.latest_span = match self.latest_span {
+            Some(span) => Some(span.with_hi(item.span.hi())),
+            None => Some(item.span),
+        };
     }
 
     fn try_lint(&self, cx: &LateContext<'tcx>) {
@@ -164,6 +170,6 @@ impl<'tcx> UseCratePrefixForSelfImports<'_, 'tcx> {
     fn clear(&mut self) {
         self.use_block.clear();
         self.mod_names.clear();
-        self.spans.clear();
+        // self.spans.clear();
     }
 }
