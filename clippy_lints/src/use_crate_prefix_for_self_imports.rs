@@ -106,9 +106,14 @@ impl<'tcx> UseCratePrefixForSelfImports<'_, 'tcx> {
                 }
                 let gap_span = latest_span.between(span);
                 let gap_snippet = gap_span.get_source_text(cx).unwrap();
+                println!("{:?}", tokenize_with_text(&gap_snippet).collect::<Vec<_>>());
                 for (token, source, inner_span) in tokenize_with_text(&gap_snippet) {
                     match token {
-                        rustc_lexer::TokenKind::Whitespace => return false,
+                        rustc_lexer::TokenKind::Whitespace => {
+                            if source.chars().filter(|c| *c == '\n').count() > 1 {
+                                return false;
+                            }
+                        },
                         _ => {},
                     }
                 }
