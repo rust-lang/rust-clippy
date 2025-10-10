@@ -876,7 +876,7 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```rust
-    /// let foo = 1.0;
+    /// let foo: f32 = 1.0;
     /// if foo < 0.0 {
     ///     println!("negative");
     /// }
@@ -884,7 +884,7 @@ declare_clippy_lint! {
     ///
     /// Use instead:
     /// ```rust
-    /// let foo = 1.0;
+    /// let foo: f32 = 1.0;
     /// if foo.is_sign_negative() {
     ///     println!("negative");
     /// }
