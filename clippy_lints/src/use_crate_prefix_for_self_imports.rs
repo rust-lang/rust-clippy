@@ -101,6 +101,9 @@ impl<'tcx> UseCratePrefixForSelfImports<'_, 'tcx> {
     fn in_same_block(&self, cx: &LateContext<'tcx>, span: Span) -> bool {
         match self.latest_span {
             Some(latest_span) => {
+                if latest_span.contains(span) {
+                    return true;
+                }
                 let gap_span = latest_span.between(span);
                 let gap_snippet = gap_span.get_source_text(cx).unwrap();
                 for (token, source, inner_span) in tokenize_with_text(&gap_snippet) {
@@ -117,27 +120,18 @@ impl<'tcx> UseCratePrefixForSelfImports<'_, 'tcx> {
 
     fn insert_item(&mut self, cx: &LateContext<'tcx>, item: &Item<'tcx>) {
         if self.in_same_block(cx, item.span) {
-            match item.kind {
-                ItemKind::Mod(ident, _) => {
-                    self.mod_names.insert(ident.name);
-                },
-                ItemKind::Use(use_tree, _) => {
-                    self.use_block.push(use_tree);
-                },
-                _ => {},
-            }
         } else {
             self.try_lint(cx);
             self.clear();
-            match item.kind {
-                ItemKind::Mod(ident, _) => {
-                    self.mod_names.insert(ident.name);
-                },
-                ItemKind::Use(use_tree, _) => {
-                    self.use_block.push(use_tree);
-                },
-                _ => {},
-            }
+        }
+        match item.kind {
+            ItemKind::Mod(ident, _) => {
+                self.mod_names.insert(ident.name);
+            },
+            ItemKind::Use(use_tree, _) => {
+                self.use_block.push(use_tree);
+            },
+            _ => {},
         }
         self.latest_span = match self.latest_span {
             Some(span) => Some(span.with_hi(item.span.hi())),
@@ -170,6 +164,6 @@ impl<'tcx> UseCratePrefixForSelfImports<'_, 'tcx> {
     fn clear(&mut self) {
         self.use_block.clear();
         self.mod_names.clear();
-        // self.spans.clear();
+        self.latest_span = None;
     }
 }
