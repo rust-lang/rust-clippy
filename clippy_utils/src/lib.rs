@@ -3652,3 +3652,17 @@ pub fn is_expr_async_block(expr: &Expr<'_>) -> bool {
 pub fn can_use_if_let_chains(cx: &LateContext<'_>, msrv: Msrv) -> bool {
     cx.tcx.sess.edition().at_least_rust_2024() && msrv.meets(cx, msrvs::LET_CHAINS)
 }
+
+/// Check if the block is a desugared `_ = expr` statement.
+pub fn is_let_desugar(block: &Block<'_>) -> bool {
+    matches!(
+        block,
+        Block {
+            stmts: [Stmt {
+                kind: StmtKind::Let(_),
+                ..
+            },],
+            ..
+        }
+    )
+}

@@ -1,5 +1,10 @@
 #![warn(clippy::zero_repeat_side_effects)]
-#![expect(clippy::unnecessary_operation, clippy::useless_vec, clippy::needless_late_init)]
+#![expect(
+    clippy::unnecessary_operation,
+    clippy::useless_vec,
+    clippy::needless_late_init,
+    clippy::single_match
+)]
 
 fn f() -> i32 {
     println!("side effect");
@@ -13,26 +18,32 @@ fn main() {
     // should trigger
 
     // on arrays
-    f(); let a: [i32; 0] = [];
+    f();
+    let a: [i32; 0] = [];
     //~^ zero_repeat_side_effects
     let mut b;
-    f(); b = [] as [i32; 0];
+    f();
+    b = [] as [i32; 0];
     //~^ zero_repeat_side_effects
 
     // on vecs
     // vecs dont support inferring value of consts
-    f(); let c: std::vec::Vec<i32> = vec![];
+    f();
+    let c: std::vec::Vec<i32> = vec![];
     //~^ zero_repeat_side_effects
     let d;
-    f(); d = vec![] as std::vec::Vec<i32>;
+    f();
+    d = vec![] as std::vec::Vec<i32>;
     //~^ zero_repeat_side_effects
 
     // for macros
-    println!("side effect"); let e: [(); 0] = [];
+    println!("side effect");
+    let e: [(); 0] = [];
     //~^ zero_repeat_side_effects
 
     // for nested calls
-    { f() }; let g: [i32; 0] = [];
+    { f() };
+    let g: [i32; 0] = [];
     //~^ zero_repeat_side_effects
 
     // as function param
@@ -100,4 +111,27 @@ fn issue_14681() {
     //~^ zero_repeat_side_effects
     foo(&{ Some(Some(S::new())); [] as [std::option::Option<std::option::Option<S>>; 0] });
     //~^ zero_repeat_side_effects
+}
+
+fn issue_15824() {
+    fn f() {}
+
+    match 0 {
+        0 => {
+            f();
+            _ = [] as [(); 0]
+        },
+        //~^ zero_repeat_side_effects
+        _ => {},
+    }
+
+    let mut a = [(); 0];
+    match 0 {
+        0 => {
+            f();
+            a = [] as [(); 0]
+        },
+        //~^ zero_repeat_side_effects
+        _ => {},
+    }
 }
