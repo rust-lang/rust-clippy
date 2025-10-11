@@ -6394,6 +6394,7 @@ Released 2018-09-13
 [`iter_filter_is_ok`]: https://rust-lang.github.io/rust-clippy/master/index.html#iter_filter_is_ok
 [`iter_filter_is_some`]: https://rust-lang.github.io/rust-clippy/master/index.html#iter_filter_is_some
 [`iter_kv_map`]: https://rust-lang.github.io/rust-clippy/master/index.html#iter_kv_map
+[`iter_last_slice`]: https://rust-lang.github.io/rust-clippy/master/index.html#iter_last_slice
 [`iter_next_loop`]: https://rust-lang.github.io/rust-clippy/master/index.html#iter_next_loop
 [`iter_next_slice`]: https://rust-lang.github.io/rust-clippy/master/index.html#iter_next_slice
 [`iter_not_returning_iterator`]: https://rust-lang.github.io/rust-clippy/master/index.html#iter_not_returning_iterator
