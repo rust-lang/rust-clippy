@@ -16,3 +16,11 @@ your crate for maximum compatibility. E.g. if your crate is compiled with the
 
 This chapter will give an overview on how to use Clippy on different popular CI
 providers.
+
+## CI Time optimization
+
+You can optimize time in your CI by running `cargo clippy test`, this will test your application at the same time as
+it's linted. If Clippy doesn't report anything (or only has warnings), you will be saving precious CI time, as
+there's no need to rebuild your application.
+
+So, compilation time is halved compared to running `cargo clippy` and THEN `cargo test`.
