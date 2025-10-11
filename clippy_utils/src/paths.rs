@@ -131,10 +131,35 @@ path_macros! {
     macro_path: PathNS::Macro,
 }
 
-pub static F16_CONSTS: PathLookup = type_path!(core::f16::consts);
-pub static F32_CONSTS: PathLookup = type_path!(core::f32::consts);
-pub static F64_CONSTS: PathLookup = type_path!(core::f64::consts);
-pub static F128_CONSTS: PathLookup = type_path!(core::f128::consts);
+// Paths in standard library (`alloc`/`core`/`std`, or against builtin scalar types)
+// should be added as diagnostic items directly into the standard library, through a
+// PR against the `rust-lang/rust` repository. That makes Clippy more robust in case
+// the item is moved around, e.g. if the library structure is reorganized.
+//
+// If their use is required before the next sync (which happens every two weeks),
+// they can be temporarily added below, prefixed with `DIAG_ITEM`, and commented
+// with a reference to the PR adding the diagnostic item:
+//
+// ```rust
+// // `sym::io_error_new` added in <https://github.com/rust-lang/rust/pull/142787>
+// pub static DIAG_ITEM_IO_ERROR_NEW: PathLookup = value_path!(std::io::Error::new);
+// ```
+//
+// During development, the "Added in …" comment is not required, but will make the
+// test fail once the PR is submitted and becomes mandatory to ensure that a proper
+// PR against `rust-lang/rust` has been created.
+//
+// You can request advice from the Clippy team members if you are not sure of how to
+// add the diagnostic item to the standard library, or how to name it.
+
+// `sym::f16_consts_mod` added in <https://github.com/rust-lang/rust/pull/147420>
+pub static DIAG_ITEM_F16_CONSTS_MOD: PathLookup = type_path!(core::f16::consts);
+// `sym::f32_consts_mod` added in <https://github.com/rust-lang/rust/pull/147420>
+pub static DIAG_ITEM_F32_CONSTS_MOD: PathLookup = type_path!(core::f32::consts);
+// `sym::f64_consts_mod` added in <https://github.com/rust-lang/rust/pull/147420>
+pub static DIAG_ITEM_F64_CONSTS_MOD: PathLookup = type_path!(core::f64::consts);
+// `sym::f128_consts_mod` added in <https://github.com/rust-lang/rust/pull/147420>
+pub static DIAG_ITEM_F128_CONSTS_MOD: PathLookup = type_path!(core::f128::consts);
 
 // Paths in external crates
 pub static FUTURES_IO_ASYNCREADEXT: PathLookup = type_path!(futures_util::AsyncReadExt);
