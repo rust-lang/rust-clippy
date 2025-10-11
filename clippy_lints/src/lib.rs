@@ -41,7 +41,6 @@ extern crate rustc_hir;
 extern crate rustc_hir_analysis;
 extern crate rustc_hir_pretty;
 extern crate rustc_hir_typeck;
-extern crate rustc_index;
 extern crate rustc_infer;
 extern crate rustc_lexer;
 extern crate rustc_lint;
@@ -258,6 +257,7 @@ mod needless_bool;
 mod needless_borrowed_ref;
 mod needless_borrows_for_generic_args;
 mod needless_continue;
+mod needless_conversion_for_trait;
 mod needless_else;
 mod needless_for_each;
 mod needless_if;
@@ -834,5 +834,10 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(toplevel_ref_arg::ToplevelRefArg));
     store.register_late_pass(|_| Box::new(volatile_composites::VolatileComposites));
     store.register_late_pass(|_| Box::new(replace_box::ReplaceBox));
+    store.register_late_pass(move |tcx| {
+        Box::new(needless_conversion_for_trait::NeedlessConversionForTrait::new(
+            tcx, conf,
+        ))
+    });
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
