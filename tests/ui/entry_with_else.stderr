@@ -119,31 +119,6 @@ error: usage of `contains_key` followed by `insert` on a `HashMap`
    |
 LL | /     if m.contains_key(&k) {
 LL | |
-LL | |         if true { m.insert(k, v) } else { m.insert(k, v2) }
-LL | |     } else {
-LL | |         m.insert(k, v)
-LL | |     };
-   | |_____^
-   |
-help: try
-   |
-LL ~     match m.entry(k) {
-LL +         std::collections::hash_map::Entry::Occupied(mut e) => {
-LL +
-LL +             if true { Some(e.insert(v)) } else { Some(e.insert(v2)) }
-LL +         }
-LL +         std::collections::hash_map::Entry::Vacant(e) => {
-LL +             e.insert(v);
-LL +             None
-LL +         }
-LL ~     };
-   |
-
-error: usage of `contains_key` followed by `insert` on a `HashMap`
-  --> tests/ui/entry_with_else.rs:56:5
-   |
-LL | /     if m.contains_key(&k) {
-LL | |
 LL | |         foo();
 LL | |         m.insert(k, v)
 LL | |     } else {
@@ -162,5 +137,5 @@ LL +         None
 LL ~     };
    |
 
-error: aborting due to 7 previous errors
+error: aborting due to 6 previous errors
 
