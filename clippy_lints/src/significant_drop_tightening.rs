@@ -80,52 +80,61 @@ impl<'tcx> LateLintPass<'tcx> for SignificantDropTightening<'tcx> {
             if apa.counter <= 1 || !apa.has_expensive_expr_after_last_attr {
                 continue;
             }
-            let first_bind_ident = apa.first_bind_ident.unwrap();
+            let first_bind = apa.first_bind.as_ref().unwrap();
             span_lint_and_then(
                 cx,
                 SIGNIFICANT_DROP_TIGHTENING,
-                first_bind_ident.span,
+                first_bind.ident.span,
                 "temporary with significant `Drop` can be early dropped",
                 |diag| {
-                    match apa.counter {
-                        0 | 1 => {},
-                        2 => {
-                            let indent = " ".repeat(indent_of(cx, apa.last_stmt_span).unwrap_or(0));
-                            let init_method = snippet(cx, apa.first_method_span, "..");
-                            let usage_method = snippet(cx, apa.last_method_span, "..");
-                            let stmt = if let Some(last_bind_ident) = apa.last_bind_ident {
-                                format!(
-                                    "\n{indent}let {} = {init_method}.{usage_method};",
-                                    snippet(cx, last_bind_ident.span, ".."),
-                                )
-                            } else {
-                                format!("\n{indent}{init_method}.{usage_method};")
-                            };
-
-                            diag.multipart_suggestion_verbose(
-                                "merge the temporary construction with its single usage",
-                                vec![(apa.first_stmt_span, stmt), (apa.last_stmt_span, String::new())],
-                                Applicability::MaybeIncorrect,
-                            );
-                        },
-                        _ => {
-                            diag.span_suggestion(
-                                apa.last_stmt_span.shrink_to_hi(),
-                                "drop the temporary after the end of its last usage",
-                                format!(
-                                    "\n{}drop({});",
-                                    " ".repeat(indent_of(cx, apa.last_stmt_span).unwrap_or(0)),
-                                    first_bind_ident
-                                ),
-                                Applicability::MaybeIncorrect,
-                            );
-                        },
+                    if !apa.last_stmt_span.is_dummy() {
+                        match apa.counter {
+                            0 | 1 => unreachable!("checked above"),
+                            2 =>
+                            {
+                                #[expect(clippy::if_not_else, reason = "for symmetry with the outer check")]
+                                if !apa.last_method_span.is_dummy() {
+                                    let indent = " ".repeat(indent_of(cx, apa.last_stmt_span).unwrap_or(0));
+                                    let init_method = snippet(cx, apa.first_method_span, "..");
+                                    let usage_method = snippet(cx, apa.last_method_span, "..");
+                                    let stmt = if let Some(last_bind) = &apa.last_bind {
+                                        format!(
+                                            "\n{indent}let {} = {init_method}.{usage_method};",
+                                            snippet(cx, last_bind.span, ".."),
+                                        )
+                                    } else {
+                                        format!("\n{indent}{init_method}.{usage_method};")
+                                    };
+                                    diag.multipart_suggestion_verbose(
+                                        "merge the temporary construction with its single usage",
+                                        vec![(apa.first_stmt_span, stmt), (apa.last_stmt_span, String::new())],
+                                        Applicability::MaybeIncorrect,
+                                    );
+                                } else {
+                                    diag.help("merge the temporary construction with its single usage");
+                                    diag.span_note(apa.last_stmt_span, "single usage here");
+                                }
+                            },
+                            _ => {
+                                diag.span_suggestion(
+                                    apa.last_stmt_span.shrink_to_hi(),
+                                    "drop the temporary after the end of its last usage",
+                                    format!(
+                                        "\n{}drop({});",
+                                        " ".repeat(indent_of(cx, apa.last_stmt_span).unwrap_or(0)),
+                                        first_bind.ident
+                                    ),
+                                    Applicability::MaybeIncorrect,
+                                );
+                            },
+                        }
                     }
                     diag.note("this might lead to unnecessary resource contention");
                     diag.span_label(
                         apa.first_block_span,
                         format!(
-                            "temporary `{first_bind_ident}` is currently being dropped at the end of its contained scope"
+                            "temporary `{}` is currently being dropped at the end of its contained scope",
+                            first_bind.ident
                         ),
                     );
                 },
@@ -276,18 +285,15 @@ impl<'tcx> Visitor<'tcx> for StmtsChecker<'_, '_, '_, '_, 'tcx> {
             if let hir::StmtKind::Let(local) = self.ap.curr_stmt.kind
                 && let hir::PatKind::Binding(_, hir_id, ident, _) = local.pat.kind
                 && !self.ap.apas.contains_key(&hir_id)
-                && {
-                    if let Some(local_hir_id) = expr.res_local_id() {
-                        local_hir_id == hir_id
-                    } else {
-                        true
-                    }
-                }
+                && expr.res_local_id().is_none_or(|local_hir_id| local_hir_id == hir_id)
             {
                 let mut apa = AuxParamsAttr {
                     first_block_hir_id: self.ap.curr_block_hir_id,
                     first_block_span: self.ap.curr_block_span,
-                    first_bind_ident: Some(ident),
+                    first_bind: Some(Binding {
+                        ident,
+                        span: local.pat.span,
+                    }),
                     first_method_span: {
                         let expr_or_init = expr_or_init(self.cx, expr);
                         if let hir::ExprKind::MethodCall(_, local_expr, _, span) = expr_or_init.kind {
@@ -311,7 +317,10 @@ impl<'tcx> Visitor<'tcx> for StmtsChecker<'_, '_, '_, '_, 'tcx> {
                 match self.ap.curr_stmt.kind {
                     hir::StmtKind::Let(local) => {
                         if let hir::PatKind::Binding(_, _, ident, _) = local.pat.kind {
-                            apa.last_bind_ident = Some(ident);
+                            apa.last_bind = Some(Binding {
+                                ident,
+                                span: local.pat.span,
+                            });
                         }
                         if let Some(local_init) = local.init
                             && let hir::ExprKind::MethodCall(_, _, _, span) = local_init.kind
@@ -320,7 +329,7 @@ impl<'tcx> Visitor<'tcx> for StmtsChecker<'_, '_, '_, '_, 'tcx> {
                         }
                     },
                     hir::StmtKind::Semi(semi_expr) => {
-                        if has_drop(semi_expr, apa.first_bind_ident, self.cx) {
+                        if has_drop(semi_expr, apa.first_bind.as_ref(), self.cx) {
                             apa.has_expensive_expr_after_last_attr = false;
                             apa.last_stmt_span = DUMMY_SP;
                             return;
@@ -362,6 +371,21 @@ impl<'others, 'stmt, 'tcx> AuxParams<'others, 'stmt, 'tcx> {
     }
 }
 
+/// The pattern part of a let stmt, if it's of kind [`PatKind::Binding`]
+///
+/// ```
+/// let ref mut binding @ OPT_SUBPATTERN = 0;
+/// //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `span`
+/// //          ^^^^^^^ `ident`
+/// ```
+#[derive(Debug)]
+struct Binding {
+    /// `binding` in the example above
+    ident: Ident,
+    /// the span of the whole binding pattern
+    span: Span,
+}
+
 /// Auxiliary parameters used on expression created with `#[has_significant_drop]`.
 #[derive(Debug)]
 struct AuxParamsAttr {
@@ -377,7 +401,7 @@ struct AuxParamsAttr {
     first_block_span: Span,
     /// The binding or variable that references the initial construction of the type marked with
     /// `#[has_significant_drop]`.
-    first_bind_ident: Option<Ident>,
+    first_bind: Option<Binding>,
     /// Similar to `init_bind_ident` but encompasses the right-hand method call.
     first_method_span: Span,
     /// Similar to `init_bind_ident` but encompasses the whole contained statement.
@@ -385,7 +409,7 @@ struct AuxParamsAttr {
 
     /// The last visited binding or variable span within a block that had any referenced inner type
     /// marked with `#[has_significant_drop]`.
-    last_bind_ident: Option<Ident>,
+    last_bind: Option<Binding>,
     /// Similar to `last_bind_span` but encompasses the right-hand method call.
     last_method_span: Span,
     /// Similar to `last_bind_span` but encompasses the whole contained statement.
@@ -399,10 +423,10 @@ impl Default for AuxParamsAttr {
             has_expensive_expr_after_last_attr: false,
             first_block_hir_id: HirId::INVALID,
             first_block_span: DUMMY_SP,
-            first_bind_ident: None,
+            first_bind: None,
             first_method_span: DUMMY_SP,
             first_stmt_span: DUMMY_SP,
-            last_bind_ident: None,
+            last_bind: None,
             last_method_span: DUMMY_SP,
             last_stmt_span: DUMMY_SP,
         }
@@ -417,8 +441,9 @@ fn dummy_stmt_expr<'any>(expr: &'any hir::Expr<'any>) -> hir::Stmt<'any> {
     }
 }
 
-fn has_drop(expr: &hir::Expr<'_>, first_bind_ident: Option<Ident>, lcx: &LateContext<'_>) -> bool {
-    if let hir::ExprKind::Call(fun, [first_arg]) = expr.kind
+fn has_drop(expr: &hir::Expr<'_>, first_bind: Option<&Binding>, lcx: &LateContext<'_>) -> bool {
+    if let Some(first_bind) = first_bind
+        && let hir::ExprKind::Call(fun, [first_arg]) = expr.kind
         && let hir::ExprKind::Path(hir::QPath::Resolved(_, fun_path)) = &fun.kind
         && let Res::Def(DefKind::Fn, did) = fun_path.res
         && lcx.tcx.is_diagnostic_item(sym::mem_drop, did)
@@ -426,8 +451,7 @@ fn has_drop(expr: &hir::Expr<'_>, first_bind_ident: Option<Ident>, lcx: &LateCon
         let has_ident = |local_expr: &hir::Expr<'_>| {
             if let hir::ExprKind::Path(hir::QPath::Resolved(_, arg_path)) = &local_expr.kind
                 && let [first_arg_ps, ..] = arg_path.segments
-                && let Some(first_bind_ident) = first_bind_ident
-                && first_arg_ps.ident == first_bind_ident
+                && first_arg_ps.ident == first_bind.ident
             {
                 true
             } else {
@@ -448,7 +472,5 @@ fn has_drop(expr: &hir::Expr<'_>, first_bind_ident: Option<Ident>, lcx: &LateCon
 
 fn is_inexpensive_expr(expr: &hir::Expr<'_>) -> bool {
     let actual = peel_hir_expr_unary(expr).0;
-    let is_path = matches!(actual.kind, hir::ExprKind::Path(_));
-    let is_lit = matches!(actual.kind, hir::ExprKind::Lit(_));
-    is_path || is_lit
+    matches!(actual.kind, hir::ExprKind::Path(_) | hir::ExprKind::Lit(_))
 }
