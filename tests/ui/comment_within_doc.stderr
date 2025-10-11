@@ -1,0 +1,53 @@
+error: code comment surrounded by doc comments
+  --> tests/ui/comment_within_doc.rs:3:1
+   |
+LL | //! Hello
+   | ^^^^^^^^^
+LL | // oups
+   | --^^^^^
+   | |
+   | help: did you mean to make it a doc comment?: `//!`
+LL | //! tadam
+   | ^^^^^^^^^
+   |
+   = note: `-D clippy::comment-within-doc` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::comment_within_doc)]`
+
+error: code comment surrounded by doc comments
+  --> tests/ui/comment_within_doc.rs:8:1
+   |
+LL | /// Hello
+   | ^^^^^^^^^
+LL | // oups
+   | --^^^^^
+   | |
+   | help: did you mean to make it a doc comment?: `///`
+LL | /// hehe
+   | ^^^^^^^^
+
+error: code comment surrounded by doc comments
+  --> tests/ui/comment_within_doc.rs:15:5
+   |
+LL |     //! targe
+   |     ^^^^^^^^^
+LL |     // oups
+   |     --^^^^^
+   |     |
+   |     help: did you mean to make it a doc comment?: `//!`
+LL |     //! hello
+   |     ^^^^^^^^^
+
+error: code comment surrounded by doc comments
+  --> tests/ui/comment_within_doc.rs:19:5
+   |
+LL |     /// nope
+   |     ^^^^^^^^
+LL |     // oups
+   |     --^^^^^
+   |     |
+   |     help: did you mean to make it a doc comment?: `///`
+LL |     /// yep
+   |     ^^^^^^^
+
+error: aborting due to 4 previous errors
+
