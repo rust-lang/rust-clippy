@@ -277,7 +277,7 @@ pub fn implements_trait_with_env_from_iter<'tcx>(
         .map(|arg| arg.into().unwrap_or_else(|| infcx.next_ty_var(DUMMY_SP).into()))
         .collect::<Vec<_>>();
 
-    let trait_ref = TraitRef::new(tcx, trait_id, [GenericArg::from(ty)].into_iter().chain(args));
+    let trait_ref = TraitRef::new(tcx, trait_id, iter::once(GenericArg::from(ty)).chain(args));
 
     debug_assert_matches!(
         tcx.def_kind(trait_id),

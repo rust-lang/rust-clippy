@@ -113,12 +113,14 @@ where
         };
 
         // strip potential borrows (#6503), but only if the type is a reference
-        let mut ex_new = ex;
-        if let ExprKind::AddrOf(BorrowKind::Ref, .., ex_inner) = ex.kind
+        let ex_new = if let ExprKind::AddrOf(BorrowKind::Ref, .., ex_inner) = ex.kind
             && let ty::Ref(..) = cx.typeck_results().expr_ty(ex_inner).kind()
         {
-            ex_new = ex_inner;
-        }
+            ex_inner
+        } else {
+            ex
+        };
+
         span_lint_and_sugg(
             cx,
             MATCH_LIKE_MATCHES_MACRO,

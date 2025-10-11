@@ -106,7 +106,7 @@ enum VecToArray {
 impl UselessVec {
     /// Checks if the surrounding environment requires this expression to actually be of type
     /// `Vec<_>`, or if it can be changed to `&[]`/`[]` without causing type errors.
-    fn expr_usage_requires_vec(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) -> VecToArray {
+    fn expr_usage_requires_vec(&self, cx: &LateContext<'_>, expr: &Expr<'_>) -> VecToArray {
         match cx.tcx.parent_hir_node(expr.hir_id) {
             // search for `let foo = vec![_]` expressions where all uses of `foo`
             // adjust to slices or call a method that exist on slices (e.g. len)
