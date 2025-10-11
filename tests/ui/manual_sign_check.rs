@@ -1,0 +1,17 @@
+#![allow(clippy::needless_if)]
+#![warn(clippy::manual_sign_check)]
+
+fn main() {
+    let x: f32 = 1.0;
+
+    if x < 0.0 {}
+    //~^ manual_sign_check
+    if x <= 0.0 {}
+    //~^ manual_sign_check
+    if x > 0.0 {}
+    //~^ manual_sign_check
+    if x >= 0.0 {}
+    //~^ manual_sign_check
+    if x == 0.0 {}
+    if x < 1.0 {}
+}
