@@ -96,12 +96,7 @@ pub(crate) fn check<'tcx>(
                     |diag| {
                         let mut applicability = Applicability::MachineApplicable;
                         let (rsnip, _) = snippet_with_context(cx, r.span, e.span.ctxt(), "...", &mut applicability);
-                        diag.span_suggestion_verbose(
-                            right.span,
-                            "use the right value directly",
-                            rsnip,
-                            Applicability::MachineApplicable,
-                        );
+                        diag.span_suggestion_verbose(right.span, "use the right value directly", rsnip, applicability);
                     },
                 );
             }
@@ -124,12 +119,7 @@ pub(crate) fn check<'tcx>(
                     |diag| {
                         let mut applicability = Applicability::MachineApplicable;
                         let (lsnip, _) = snippet_with_context(cx, l.span, e.span.ctxt(), "...", &mut applicability);
-                        diag.span_suggestion_verbose(
-                            left.span,
-                            "use the left value directly",
-                            lsnip,
-                            Applicability::MachineApplicable,
-                        );
+                        diag.span_suggestion_verbose(left.span, "use the left value directly", lsnip, applicability);
                     },
                 );
             }
@@ -147,12 +137,7 @@ pub(crate) fn check<'tcx>(
                 span_lint_and_then(cx, OP_REF, e.span, "taken reference of right operand", |diag| {
                     let mut applicability = Applicability::MachineApplicable;
                     let (rsnip, _) = snippet_with_context(cx, r.span, e.span.ctxt(), "...", &mut applicability);
-                    diag.span_suggestion_verbose(
-                        right.span,
-                        "use the right value directly",
-                        rsnip,
-                        Applicability::MachineApplicable,
-                    );
+                    diag.span_suggestion_verbose(right.span, "use the right value directly", rsnip, applicability);
                 });
             }
         },
