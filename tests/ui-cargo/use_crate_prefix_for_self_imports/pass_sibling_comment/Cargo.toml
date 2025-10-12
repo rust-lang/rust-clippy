@@ -1,5 +1,5 @@
 [package]
-name = "pass_sibling"
+name = "pass_sibling_comment"
 version = "0.1.0"
 edition = "2024"
 publish = false

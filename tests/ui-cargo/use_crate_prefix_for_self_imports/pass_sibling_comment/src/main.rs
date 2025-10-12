@@ -1,7 +1,7 @@
 #![warn(clippy::use_crate_prefix_for_self_imports)]
 
 mod foo;
-//fadsfsadfa
+// some comments here
 use foo::Foo;
 
 fn main() {
