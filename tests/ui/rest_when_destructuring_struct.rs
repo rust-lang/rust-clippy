@@ -1,12 +1,6 @@
 //@aux-build:proc_macros.rs
 //@aux-build:non-exhaustive-struct.rs
 #![warn(clippy::rest_when_destructuring_struct)]
-#![allow(dead_code)]
-#![allow(unused_variables)]
-
-extern crate proc_macros;
-
-extern crate non_exhaustive_struct;
 
 use non_exhaustive_struct::NonExhaustiveStruct;
 

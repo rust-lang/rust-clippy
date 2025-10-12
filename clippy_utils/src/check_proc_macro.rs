@@ -596,7 +596,7 @@ fn pat_search_pat(tcx: TyCtxt<'_>, pat: &rustc_hir::Pat<'_>) -> (Pat, Pat) {
             let (_, end) = pat_search_pat(tcx, p);
             (Pat::Str("&"), end)
         },
-        PatKind::Expr(expr) => pat_search_pat_expr_kind(expr),
+        PatKind::Expr(expr) => pat_expr_search_pat(expr),
         PatKind::Guard(pat, guard) => {
             let (start, _) = pat_search_pat(tcx, pat);
             let (_, end) = expr_search_pat(tcx, guard);
@@ -608,7 +608,7 @@ fn pat_search_pat(tcx: TyCtxt<'_>, pat: &rustc_hir::Pat<'_>) -> (Pat, Pat) {
         },
         PatKind::Range(r_start, r_end, range) => {
             let start = match r_start {
-                Some(e) => pat_search_pat_expr_kind(e).0,
+                Some(e) => pat_expr_search_pat(e).0,
                 None => match range {
                     rustc_hir::RangeEnd::Included => Pat::Str("..="),
                     rustc_hir::RangeEnd::Excluded => Pat::Str(".."),
@@ -616,7 +616,7 @@ fn pat_search_pat(tcx: TyCtxt<'_>, pat: &rustc_hir::Pat<'_>) -> (Pat, Pat) {
             };
 
             let end = match r_end {
-                Some(e) => pat_search_pat_expr_kind(e).1,
+                Some(e) => pat_expr_search_pat(e).1,
                 None => match range {
                     rustc_hir::RangeEnd::Included => Pat::Str("..="),
                     rustc_hir::RangeEnd::Excluded => Pat::Str(".."),
@@ -628,7 +628,7 @@ fn pat_search_pat(tcx: TyCtxt<'_>, pat: &rustc_hir::Pat<'_>) -> (Pat, Pat) {
     }
 }
 
-fn pat_search_pat_expr_kind(expr: &PatExpr<'_>) -> (Pat, Pat) {
+fn pat_expr_search_pat(expr: &PatExpr<'_>) -> (Pat, Pat) {
     match expr.kind {
         PatExprKind::Lit { lit, negated } => {
             let (start, end) = lit_search_pat(&lit.node);
