@@ -84,7 +84,7 @@ pub(crate) fn check<'tcx>(
                     |diag| {
                         let mut applicability = Applicability::MachineApplicable;
                         let (lsnip, _) = snippet_with_context(cx, l.span, e.span.ctxt(), "...", &mut applicability);
-                        diag.span_suggestion(left.span, "use the left value directly", lsnip, applicability);
+                        diag.span_suggestion_verbose(left.span, "use the left value directly", lsnip, applicability);
                     },
                 );
             } else if !lcpy && rcpy && implements_trait(cx, left_ty, trait_id, &[rty.into()]) {
@@ -96,7 +96,7 @@ pub(crate) fn check<'tcx>(
                     |diag| {
                         let mut applicability = Applicability::MachineApplicable;
                         let (rsnip, _) = snippet_with_context(cx, r.span, e.span.ctxt(), "...", &mut applicability);
-                        diag.span_suggestion(
+                        diag.span_suggestion_verbose(
                             right.span,
                             "use the right value directly",
                             rsnip,
@@ -124,7 +124,7 @@ pub(crate) fn check<'tcx>(
                     |diag| {
                         let mut applicability = Applicability::MachineApplicable;
                         let (lsnip, _) = snippet_with_context(cx, l.span, e.span.ctxt(), "...", &mut applicability);
-                        diag.span_suggestion(
+                        diag.span_suggestion_verbose(
                             left.span,
                             "use the left value directly",
                             lsnip,
@@ -147,7 +147,7 @@ pub(crate) fn check<'tcx>(
                 span_lint_and_then(cx, OP_REF, e.span, "taken reference of right operand", |diag| {
                     let mut applicability = Applicability::MachineApplicable;
                     let (rsnip, _) = snippet_with_context(cx, r.span, e.span.ctxt(), "...", &mut applicability);
-                    diag.span_suggestion(
+                    diag.span_suggestion_verbose(
                         right.span,
                         "use the right value directly",
                         rsnip,
