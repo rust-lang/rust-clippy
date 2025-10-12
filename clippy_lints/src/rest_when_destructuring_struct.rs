@@ -80,15 +80,23 @@ impl<'tcx> LateLintPass<'tcx> for RestWhenDestructuringStruct {
                 fmt_fields.push_str(", ..");
             }
 
+            let message = if a.variants()[vid].fields.is_empty() {
+                "consider remove rest pattern (`..`)"
+            } else if fields.is_empty() {
+                "consider explicitly ignoring fields with wildcard patterns (`x: _`)"
+            } else {
+                "consider explicitly ignoring remaining fields with wildcard patterns (`x: _`)"
+            };
+
             span_lint_and_then(
                 cx,
                 REST_WHEN_DESTRUCTURING_STRUCT,
                 pat.span,
-                "struct destructuring with rest (..)",
+                "struct destructuring with rest (`..`)",
                 |diag| {
                     diag.span_suggestion_verbose(
                         dotdot,
-                        "consider explicitly ignoring remaining fields with wildcard patterns (x: _)",
+                        message,
                         fmt_fields,
                         rustc_errors::Applicability::MachineApplicable,
                     );
