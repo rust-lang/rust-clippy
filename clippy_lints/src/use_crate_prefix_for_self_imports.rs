@@ -5,10 +5,10 @@ use def_id::LOCAL_CRATE;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
-use rustc_hir::{Attribute, Item, ItemKind, UsePath, def_id};
+use rustc_hir::{Item, ItemKind, UsePath, def_id};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::impl_lint_pass;
-use rustc_span::{BytePos, FileName, RealFileName, Span, Symbol, kw};
+use rustc_span::{FileName, RealFileName, Span, Symbol, kw};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -83,21 +83,6 @@ impl<'a, 'tcx> LateLintPass<'tcx> for UseCratePrefixForSelfImports<'a, 'tcx> {
 }
 
 impl<'tcx> UseCratePrefixForSelfImports<'_, 'tcx> {
-    /*
-    fn in_same_block(&self, span: Span) -> bool {
-        if self.spans.is_empty() {
-            return true;
-        }
-        if self.spans.iter().any(|x| x.contains(span)) {
-            return true;
-        }
-        if self.spans.iter().any(|x| span.lo() - x.hi() == BytePos(1)) {
-            return true;
-        }
-        false
-    }
-     */
-
     fn in_same_block(&self, cx: &LateContext<'tcx>, span: Span) -> bool {
         match self.latest_span {
             Some(latest_span) => {
@@ -106,15 +91,10 @@ impl<'tcx> UseCratePrefixForSelfImports<'_, 'tcx> {
                 }
                 let gap_span = latest_span.between(span);
                 let gap_snippet = gap_span.get_source_text(cx).unwrap();
-                println!("{:?}", tokenize_with_text(&gap_snippet).collect::<Vec<_>>());
-                for (token, source, inner_span) in tokenize_with_text(&gap_snippet) {
-                    match token {
-                        rustc_lexer::TokenKind::Whitespace => {
-                            if source.chars().filter(|c| *c == '\n').count() > 1 {
-                                return false;
-                            }
-                        },
-                        _ => {},
+                for (token, source, _) in tokenize_with_text(&gap_snippet) {
+                    if token == rustc_lexer::TokenKind::Whitespace && source.chars().filter(|c| *c == '\n').count() > 1
+                    {
+                        return false;
                     }
                 }
                 true
@@ -124,8 +104,10 @@ impl<'tcx> UseCratePrefixForSelfImports<'_, 'tcx> {
     }
 
     fn insert_item(&mut self, cx: &LateContext<'tcx>, item: &Item<'tcx>) {
-        if self.in_same_block(cx, item.span) {
-        } else {
+        if item.span.from_expansion() {
+            return;
+        }
+        if !self.in_same_block(cx, item.span) {
             self.try_lint(cx);
             self.clear();
         }
@@ -139,7 +121,7 @@ impl<'tcx> UseCratePrefixForSelfImports<'_, 'tcx> {
             _ => {},
         }
         self.latest_span = match self.latest_span {
-            Some(span) => Some(span.with_hi(item.span.hi())),
+            Some(latest_span) => Some(latest_span.with_hi(item.span.hi())),
             None => Some(item.span),
         };
     }
