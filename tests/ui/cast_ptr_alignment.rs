@@ -1,3 +1,4 @@
+//@require-annotations-for-level: ERROR
 #![feature(core_intrinsics)]
 #![warn(clippy::cast_ptr_alignment)]
 #![expect(clippy::no_effect, clippy::cast_lossless, clippy::borrow_as_ptr)]
@@ -50,5 +51,23 @@ fn issue_2881() {
         (ptr as *mut u16).write_unaligned(0);
         core::ptr::write_unaligned(ptr as *mut u16, 0);
         core::intrinsics::unaligned_volatile_store(ptr as *mut u16, 0);
+    }
+}
+
+fn issue_3440() {
+    #[rustfmt::skip] // the error message comment gets split in 2 lines...
+    trait Trait {
+        unsafe fn frob(bytes: *const u8) -> *const Self
+        where
+            Self: Sized,
+        {
+            let _ = bytes as *const [Self; 2];
+            //~^ ERROR: casting from `*const u8` to a possibly more-strictly-aligned pointer (`*const [Self; 2]`)
+            //~| NOTE: the alignment of the target pointer isn't known because the alignment of `Self` can vary
+
+            bytes as *const Self
+            //~^ ERROR: casting from `*const u8` to a possibly more-strictly-aligned pointer (`*const Self`)
+            //~| NOTE: the alignment of `Self` can vary
+        }
     }
 }

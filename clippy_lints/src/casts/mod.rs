@@ -222,7 +222,7 @@ declare_clippy_lint! {
 declare_clippy_lint! {
     /// ### What it does
     /// Checks for casts, using `as` or `pointer::cast`, from a
-    /// less strictly aligned pointer to a more strictly aligned pointer.
+    /// less strictly aligned pointer to a (possibly) more strictly aligned pointer.
     ///
     /// ### Why is this bad?
     /// Dereferencing the resulting pointer may be undefined behavior.
