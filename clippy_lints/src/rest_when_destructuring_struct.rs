@@ -81,7 +81,7 @@ impl<'tcx> LateLintPass<'tcx> for RestWhenDestructuringStruct {
             }
 
             let message = if a.variants()[vid].fields.is_empty() {
-                "consider remove rest pattern (`..`)"
+                "consider removing the rest pattern (`..`)"
             } else if fields.is_empty() {
                 "consider explicitly ignoring fields with wildcard patterns (`x: _`)"
             } else {
