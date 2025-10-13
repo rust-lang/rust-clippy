@@ -9285,6 +9285,9 @@ ansi_term = "=0.11.0"
 </div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">pre 1.29.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+multiple_crate_versions">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/cargo/mod.rs#L121">View Source</a></div></div></div></article><article id="multiple_inherent_impl"><input id="label-multiple_inherent_impl" type="checkbox"><label for="label-multiple_inherent_impl"><h2 class="lint-title"><div class="panel-title-name" id="lint-multiple_inherent_impl">multiple_inherent_impl
 <a href="#multiple_inherent_impl" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-restriction">restriction</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for multiple inherent implementations of a struct</p>
+<p>The config option controls the scope in which multiple inherent <code>impl</code> blocks for the same
+struct are linted, allowing values of <code>module</code> (only within the same module), <code>file</code>
+(within the same file), or <code>crate</code> (anywhere in the crate, default).</p>
 <h3>Why restrict this?</h3>
 <p>Splitting the implementation of a type makes the code harder to navigate.</p>
 <h3>Example</h3>
@@ -9303,7 +9306,14 @@ impl X {
     fn other() {}
 }
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">pre 1.29.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+multiple_inherent_impl">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/inherent_impl.rs#L11">View Source</a></div></div></div></article><article id="multiple_unsafe_ops_per_block"><input id="label-multiple_unsafe_ops_per_block" type="checkbox"><label for="label-multiple_unsafe_ops_per_block"><h2 class="lint-title"><div class="panel-title-name" id="lint-multiple_unsafe_ops_per_block">multiple_unsafe_ops_per_block
+<h3>Configuration</h3>
+<ul>
+<li>
+<p><code>inherent-impl-lint-scope</code>:  Sets the scope (“crate”, “file”, or “module”) in which duplicate inherent <code>impl</code> blocks for the same type are linted.</p>
+<p>(default: <code>"crate"</code>)</p>
+</li>
+</ul>
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">pre 1.29.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+multiple_inherent_impl">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/inherent_impl.rs#L13">View Source</a></div></div></div></article><article id="multiple_unsafe_ops_per_block"><input id="label-multiple_unsafe_ops_per_block" type="checkbox"><label for="label-multiple_unsafe_ops_per_block"><h2 class="lint-title"><div class="panel-title-name" id="lint-multiple_unsafe_ops_per_block">multiple_unsafe_ops_per_block
 <a href="#multiple_unsafe_ops_per_block" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-restriction">restriction</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for <code>unsafe</code> blocks that contain more than one unsafe operation.</p>
 <h3>Why restrict this?</h3>
