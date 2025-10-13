@@ -83,5 +83,28 @@ LL |
 LL ~         
    |
 
-error: aborting due to 4 previous errors
+error: temporary with significant `Drop` can be early dropped
+  --> tests/ui/significant_drop_tightening.rs:144:9
+   |
+LL |   fn issue_15602() {
+   |  __________________-
+LL | |     use std::io::{Read, Take, stdin};
+LL | |
+LL | |     let stdin = std::io::stdin().lock();
+   | |         ^^^^^
+...  |
+LL | |     do_heavy_computation_that_takes_time(())
+LL | | }
+   | |_- temporary `stdin` is currently being dropped at the end of its contained scope
+   |
+   = note: this might lead to unnecessary resource contention
+help: merge the temporary construction with its single usage
+   |
+LL ~     
+LL +     let mut shadowing @ Take { .. } = std::io::stdin().lock().take(40);
+LL |
+LL ~     
+   |
+
+error: aborting due to 5 previous errors
 
