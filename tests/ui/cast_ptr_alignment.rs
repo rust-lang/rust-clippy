@@ -1,13 +1,6 @@
-//! Test casts for alignment issues
-
 #![feature(core_intrinsics)]
 #![warn(clippy::cast_ptr_alignment)]
-#![allow(
-    clippy::no_effect,
-    clippy::unnecessary_operation,
-    clippy::cast_lossless,
-    clippy::borrow_as_ptr
-)]
+#![expect(clippy::no_effect, clippy::cast_lossless, clippy::borrow_as_ptr)]
 
 fn main() {
     /* These should be warned against */
@@ -33,13 +26,20 @@ fn main() {
     // cast to less-strictly-aligned type
     (&1u16 as *const u16) as *const u8;
     (&mut 1u16 as *mut u16) as *mut u8;
-    // For c_void, we should trust the user. See #2677
+}
+
+// For c_void, we should trust the user
+fn issue_2677() {
     (&1u32 as *const u32 as *const std::os::raw::c_void) as *const u32;
     (&1u32 as *const u32 as *const libc::c_void) as *const u32;
-    // For ZST, we should trust the user. See #4256
-    (&1u32 as *const u32 as *const ()) as *const u32;
+}
 
-    // Issue #2881
+// For ZST, we should trust the user
+fn issue_4256() {
+    (&1u32 as *const u32 as *const ()) as *const u32;
+}
+
+fn issue_2881() {
     let mut data = [0u8, 0u8];
     unsafe {
         let ptr = &data as *const [u8; 2] as *const u8;
