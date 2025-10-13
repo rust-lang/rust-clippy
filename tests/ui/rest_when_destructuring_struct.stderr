@@ -42,7 +42,7 @@ error: struct destructuring with rest (`..`)
 LL |         E::C { .. } => (),
    |         ^^^^^^^^^^^
    |
-help: consider remove rest pattern (`..`)
+help: consider removing the rest pattern (`..`)
    |
 LL -         E::C { .. } => (),
 LL +         E::C {  } => (),
