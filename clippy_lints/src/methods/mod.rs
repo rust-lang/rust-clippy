@@ -134,9 +134,8 @@ mod unnecessary_join;
 mod unnecessary_lazy_eval;
 mod unnecessary_literal_unwrap;
 mod unnecessary_map_or;
+mod unnecessary_map_or_else;
 mod unnecessary_min_or_max;
-mod unnecessary_option_map_or_else;
-mod unnecessary_result_map_or_else;
 mod unnecessary_sort_by;
 mod unnecessary_to_owned;
 mod unwrap_expect_used;
@@ -5408,8 +5407,7 @@ impl Methods {
                 },
                 (sym::map_or_else, [def, map]) => {
                     result_map_or_else_none::check(cx, expr, recv, def, map);
-                    unnecessary_option_map_or_else::check(cx, expr, recv, def, map);
-                    unnecessary_result_map_or_else::check(cx, expr, recv, def, map);
+                    unnecessary_map_or_else::check(cx, expr, recv, def, map);
                 },
                 (sym::next, []) => {
                     if let Some((name2, recv2, args2, _, _)) = method_call(recv) {

@@ -103,11 +103,11 @@ use rustc_hir::definitions::{DefPath, DefPathData};
 use rustc_hir::hir_id::{HirIdMap, HirIdSet};
 use rustc_hir::intravisit::{Visitor, walk_expr};
 use rustc_hir::{
-    self as hir, Arm, BindingMode, Block, BlockCheckMode, Body, ByRef, Closure, ConstArgKind, CoroutineDesugaring,
-    CoroutineKind, CoroutineSource, Destination, Expr, ExprField, ExprKind, FnDecl, FnRetTy, GenericArg, GenericArgs,
-    HirId, Impl, ImplItem, ImplItemKind, Item, ItemKind, LangItem, LetStmt, MatchSource, Mutability, Node, OwnerId,
-    OwnerNode, Param, Pat, PatExpr, PatExprKind, PatKind, Path, PathSegment, QPath, Stmt, StmtKind, TraitFn, TraitItem,
-    TraitItemKind, TraitRef, TyKind, UnOp, def, find_attr,
+    self as hir, Arm, BindingMode, Block, BlockCheckMode, Body, BodyId, ByRef, Closure, ConstArgKind,
+    CoroutineDesugaring, CoroutineKind, CoroutineSource, Destination, Expr, ExprField, ExprKind, FnDecl, FnRetTy,
+    GenericArg, GenericArgs, HirId, Impl, ImplItem, ImplItemKind, Item, ItemKind, LangItem, LetStmt, MatchSource,
+    Mutability, Node, OwnerId, OwnerNode, Param, Pat, PatExpr, PatExprKind, PatKind, Path, PathSegment, QPath, Stmt,
+    StmtKind, TraitFn, TraitItem, TraitItemKind, TraitRef, TyKind, UnOp, def, find_attr,
 };
 use rustc_lexer::{FrontmatterAllowed, TokenKind, tokenize};
 use rustc_lint::{LateContext, Level, Lint, LintContext};
@@ -1833,6 +1833,8 @@ fn is_body_identity_function(cx: &LateContext<'_>, func: &Body<'_>) -> bool {
         return false;
     };
 
+    let mut param_pat = param.pat;
+
     let mut expr = func.value;
     loop {
         match expr.kind {
@@ -1861,7 +1863,25 @@ fn is_body_identity_function(cx: &LateContext<'_>, func: &Body<'_>) -> bool {
                     return false;
                 }
             },
-            _ => return is_expr_identity_of_pat(cx, param.pat, expr, true),
+            ExprKind::Block(
+                &Block {
+                    stmts, expr: Some(e), ..
+                },
+                _,
+            ) => {
+                for stmt in stmts {
+                    if let StmtKind::Let(local) = stmt.kind
+                        && let Some(init) = local.init
+                        && is_expr_identity_of_pat(cx, param_pat, init, func.id(), true)
+                    {
+                        param_pat = local.pat;
+                    } else {
+                        return false;
+                    }
+                }
+                expr = e;
+            },
+            _ => return is_expr_identity_of_pat(cx, param_pat, expr, func.id(), true),
         }
     }
 }
@@ -1875,9 +1895,16 @@ fn is_body_identity_function(cx: &LateContext<'_>, func: &Body<'_>) -> bool {
 ///
 /// Note that `by_hir` is used to determine bindings are checked by their `HirId` or by their name.
 /// This can be useful when checking patterns in `let` bindings or `match` arms.
-pub fn is_expr_identity_of_pat(cx: &LateContext<'_>, pat: &Pat<'_>, expr: &Expr<'_>, by_hir: bool) -> bool {
+pub fn is_expr_identity_of_pat(
+    cx: &LateContext<'_>,
+    pat: &Pat<'_>,
+    expr: &Expr<'_>,
+    func_id: BodyId,
+    by_hir: bool,
+) -> bool {
     if cx
-        .typeck_results()
+        .tcx
+        .typeck_body(func_id)
         .pat_binding_modes()
         .get(pat.hir_id)
         .is_some_and(|mode| matches!(mode.0, ByRef::Yes(..)))
@@ -1889,11 +1916,11 @@ pub fn is_expr_identity_of_pat(cx: &LateContext<'_>, pat: &Pat<'_>, expr: &Expr<
     }
 
     // NOTE: we're inside a (function) body, so this won't ICE
-    let qpath_res = |qpath, hir| cx.typeck_results().qpath_res(qpath, hir);
+    let qpath_res = |qpath, hir| cx.tcx.typeck_body(func_id).qpath_res(qpath, hir);
 
     match (pat.kind, expr.kind) {
         (PatKind::Binding(_, id, _, _), _) if by_hir => {
-            expr.res_local_id() == Some(id) && cx.typeck_results().expr_adjustments(expr).is_empty()
+            expr.res_local_id() == Some(id) && cx.tcx.typeck_body(func_id).expr_adjustments(expr).is_empty()
         },
         (PatKind::Binding(_, _, ident, _), ExprKind::Path(QPath::Resolved(_, path))) => {
             matches!(path.segments, [ segment] if segment.ident.name == ident.name)
@@ -1901,10 +1928,13 @@ pub fn is_expr_identity_of_pat(cx: &LateContext<'_>, pat: &Pat<'_>, expr: &Expr<
         (PatKind::Tuple(pats, dotdot), ExprKind::Tup(tup))
             if dotdot.as_opt_usize().is_none() && pats.len() == tup.len() =>
         {
-            over(pats, tup, |pat, expr| is_expr_identity_of_pat(cx, pat, expr, by_hir))
+            over(pats, tup, |pat, expr| {
+                is_expr_identity_of_pat(cx, pat, expr, func_id, by_hir)
+            })
         },
         (PatKind::Slice(before, None, after), ExprKind::Array(arr)) if before.len() + after.len() == arr.len() => {
-            zip(before.iter().chain(after), arr).all(|(pat, expr)| is_expr_identity_of_pat(cx, pat, expr, by_hir))
+            zip(before.iter().chain(after), arr)
+                .all(|(pat, expr)| is_expr_identity_of_pat(cx, pat, expr, func_id, by_hir))
         },
         (PatKind::TupleStruct(pat_ident, field_pats, dotdot), ExprKind::Call(ident, fields))
             if dotdot.as_opt_usize().is_none() && field_pats.len() == fields.len() =>
@@ -1913,7 +1943,7 @@ pub fn is_expr_identity_of_pat(cx: &LateContext<'_>, pat: &Pat<'_>, expr: &Expr<
             if let ExprKind::Path(ident) = &ident.kind
                 && qpath_res(&pat_ident, pat.hir_id) == qpath_res(ident, expr.hir_id)
                 // check fields
-                && over(field_pats, fields, |pat, expr| is_expr_identity_of_pat(cx, pat, expr,by_hir))
+                && over(field_pats, fields, |pat, expr| is_expr_identity_of_pat(cx, pat, expr,func_id, by_hir))
             {
                 true
             } else {
@@ -1927,7 +1957,8 @@ pub fn is_expr_identity_of_pat(cx: &LateContext<'_>, pat: &Pat<'_>, expr: &Expr<
             qpath_res(&pat_ident, pat.hir_id) == qpath_res(ident, expr.hir_id)
                 // check fields
                 && unordered_over(field_pats, fields, |field_pat, field| {
-                    field_pat.ident == field.ident && is_expr_identity_of_pat(cx, field_pat.pat, field.expr, by_hir)
+                    field_pat.ident == field.ident &&
+                    is_expr_identity_of_pat(cx, field_pat.pat, field.expr, func_id, by_hir)
                 })
         },
         _ => false,
@@ -1966,7 +1997,38 @@ pub fn is_expr_untyped_identity_function(cx: &LateContext<'_>, expr: &Expr<'_>) 
 pub fn is_expr_identity_function(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
     match expr.kind {
         ExprKind::Closure(&Closure { body, .. }) => is_body_identity_function(cx, cx.tcx.hir_body(body)),
-        _ => expr.basic_res().is_diag_item(cx, sym::convert_identity),
+        _ if expr.basic_res().is_diag_item(cx, sym::convert_identity) => true,
+
+        ExprKind::Path(qpath) => {
+            let res = cx.qpath_res(&qpath, expr.hir_id);
+            match res {
+                // Case 1: Local variable (could be a closure)
+                Res::Local(hir_id) => {
+                    if let Some(init_expr) = find_binding_init(cx, hir_id) {
+                        let origin = expr_or_init(cx, init_expr);
+                        if let ExprKind::Closure(&Closure { body, .. }) = origin.kind {
+                            is_body_identity_function(cx, cx.tcx.hir_body(body))
+                        } else {
+                            false
+                        }
+                    } else {
+                        false
+                    }
+                },
+                // Case 2: Function definition
+                Res::Def(DefKind::Fn, def_id) => {
+                    if let Some(local_def_id) = def_id.as_local()
+                        && let Some(body) = cx.tcx.hir_maybe_body_owned_by(local_def_id)
+                    {
+                        is_body_identity_function(cx, body)
+                    } else {
+                        false
+                    }
+                },
+                _ => false,
+            }
+        },
+        _ => false,
     }
 }
 

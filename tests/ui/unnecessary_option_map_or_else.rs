@@ -27,7 +27,8 @@ fn main() {
     // Auto-deref
     let string = String::new();
     let option = Some(&string);
-    let _: &str = option.map_or_else(|| &string, |x| x); //~ ERROR: unused "map closure" when calling
+    let _: &str = option.map_or_else(|| &string, |x| x);
+    // This should in theory lint with a smarter check
 
     // Temporary variable
     let option = Some(());
@@ -44,6 +45,11 @@ fn main() {
     let string = String::new();
     let option = Some(&string);
     let _: &str = option.map_or_else(|| &string, identity); //~ ERROR: unused "map closure" when calling
+
+    // std::convert::identity
+    let string = String::new();
+    let option = Some(&string);
+    let _: &str = option.map_or_else(|| &string, std::convert::identity); //~ ERROR: unused "map closure" when calling
 
     // Closure bound to a variable
     let do_nothing = |x: String| x;
@@ -79,4 +85,8 @@ fn main() {
     let num = 5;
     let option = Some(num);
     let _: i32 = option.map_or_else(|| 0, increase);
+
+    let x: Option<((), ())> = Some(((), ()));
+    x.map_or_else(|| ((), ()), |(a, b)| (a, b));
+    //~^ unnecessary_option_map_or_else
 }
