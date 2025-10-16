@@ -28,6 +28,7 @@ Note: This Clippy release does not introduce many new lints and is focused entir
 
 ### Enhancements
 
+* [`search_is_some`] now fixes code spanning multiple lines
 * [`or_fun_call`] now lints `Option::get_or_insert`, `Result::map_or`, `Option/Result::and` methods
   [#15071](https://github.com/rust-lang/rust-clippy/pull/15071)
   [#15073](https://github.com/rust-lang/rust-clippy/pull/15073)
