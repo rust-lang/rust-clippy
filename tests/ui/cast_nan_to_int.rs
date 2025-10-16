@@ -4,6 +4,7 @@
 #![allow(clippy::eq_op)]
 
 fn main() {
+    #[expect(clippy::zero_divided_by_zero)]
     let _ = (0.0_f32 / -0.0) as usize;
     //~^ cast_nan_to_int
 
