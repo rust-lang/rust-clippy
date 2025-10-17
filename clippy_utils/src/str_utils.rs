@@ -1,12 +1,17 @@
+//! Utilities for analyzing and transforming strings.
+
 /// Dealing with string indices can be hard, this struct ensures that both the
 /// character and byte index are provided for correct indexing.
 #[derive(Debug, Default, PartialEq, Eq)]
 pub struct StrIndex {
+    /// The character-relative index within a string
     pub char_index: usize,
+    /// The byte-relative index within a string
     pub byte_index: usize,
 }
 
 impl StrIndex {
+    /// Creates a `StrIndex` from character and byte indices.
     pub fn new(char_index: usize, byte_index: usize) -> Self {
         Self { char_index, byte_index }
     }
@@ -169,11 +174,14 @@ pub fn camel_case_split(s: &str) -> Vec<&str> {
 /// character and byte count are provided for correct indexing.
 #[derive(Debug, Default, PartialEq, Eq)]
 pub struct StrCount {
+    /// The number of characters in a string.
     pub char_count: usize,
+    /// The number of bytes in a string.
     pub byte_count: usize,
 }
 
 impl StrCount {
+    /// Creates a `StrCount` from character and byte counts.
     pub fn new(char_count: usize, byte_count: usize) -> Self {
         Self { char_count, byte_count }
     }
