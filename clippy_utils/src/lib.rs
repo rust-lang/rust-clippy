@@ -135,6 +135,52 @@ use crate::res::{MaybeDef, MaybeResPath};
 use crate::ty::{adt_and_variant_of_res, can_partially_move_ty, expr_sig, is_copy, is_recursively_primitive_type};
 use crate::visitors::for_each_expr_without_closures;
 
+/// A macro that generates the [`EarlyLintPass`](rustc_lint::EarlyLintPass) methods necessary to
+/// update [`MsrvStack`] when `#[clippy::msrv]` is encountered.
+///
+/// Unlike [late lint passes](rustc_lint::LateLintPass), early lint passes must manually keep track
+/// of `#[clippy::msrv]` attributes using an [`MsrvStack`]. This macro automates the process by
+/// generating `check_attributes()` and `check_attributes_post()` methods that update [`MsrvStack`]
+/// for you.
+///
+/// This macro assumes that the [`MsrvStack`] is stored as a field of the lint pass named `msrv`.
+///
+/// If you need to add further logic to `check_attributes()` or `check_attributes_post()`, you will
+/// need to update [`MsrvStack`] manually using
+/// [`MsrvStack::check_attributes()`](crate::msrvs::MsrvStack::check_attributes) and
+/// [`MsrvStack::check_attributes_post()`](crate::msrvs::MsrvStack::check_attributes_post).
+///
+/// For more information, [see the development guide on
+/// MSRVs](https://doc.rust-lang.org/nightly/clippy/development/adding_lints.html#specifying-the-lints-minimum-supported-rust-version-msrv).
+///
+/// [`MsrvStack`]: crate::msrvs::MsrvStack
+///
+/// # Example
+///
+/// ```
+/// # #![feature(rustc_private)]
+/// #
+/// # extern crate rustc_ast;
+/// # extern crate rustc_lint;
+/// # extern crate rustc_lint_defs;
+/// #
+/// # use clippy_utils::{extract_msrv_attr, msrvs::MsrvStack};
+/// # use rustc_lint::EarlyLintPass;
+/// # use rustc_lint_defs::impl_lint_pass;
+/// #
+/// pub struct MyLintPass {
+///     // This must be named `msrv` for it to compile.
+///     msrv: MsrvStack,
+/// }
+/// #
+/// # impl_lint_pass!(MyLintPass => []);
+///
+/// impl EarlyLintPass for MyLintPass {
+///     // ...
+///
+///     extract_msrv_attr!();
+/// }
+/// ```
 #[macro_export]
 macro_rules! extract_msrv_attr {
     () => {
