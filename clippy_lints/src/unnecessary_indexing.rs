@@ -1,10 +1,9 @@
 use std::ops::ControlFlow;
 
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::res::{MaybeDef, MaybeResPath};
 use clippy_utils::source::snippet;
-use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::visitors::for_each_expr;
-use clippy_utils::{path_to_local, path_to_local_id};
 use rustc_ast::{LitKind, Mutability};
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, HirId, LetStmt, Node, UnOp};
@@ -55,23 +54,22 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryIndexing {
             && method.ident.as_str() == "is_empty"
             && let expr_ty = cx.typeck_results().expr_ty(conditional_receiver)
             && let peeled = expr_ty.peel_refs()
-            && (peeled.is_slice() || peeled.is_array() || is_type_diagnostic_item(cx, peeled, sym::Vec))
+            && (peeled.is_slice() || peeled.is_array() || peeled.is_diag_item(cx, sym::Vec))
             && let ExprKind::Block(block, _) = if_expr.then.kind
             // do not lint if conditional receiver is mutable reference
             && expr_ty.ref_mutability() != Some(Mutability::Mut)
-            && let Some(con_path) = path_to_local(conditional_receiver)
+            && let Some(con_path) = conditional_receiver.res_local_id()
             && let Some(r) = process_indexing(cx, block, con_path)
-                && let Some(receiver_span) = r.index_receiver_span
         {
-            let receiver = snippet(cx, receiver_span, "..");
-            let mut suggestions: Vec<(Span, String)> = vec![];
-            let mut message = "consider using `if..let` syntax instead of indexing".to_string();
             span_lint_and_then(
                 cx,
                 UNNECESSARY_INDEXING,
                 expr.span,
                 "condition can be simplified with `if..let` syntax",
                 |diag| {
+                    let receiver = snippet(cx, r.index_receiver_span, "..");
+                    let mut suggestions: Vec<(Span, String)> = vec![];
+                    let mut message = "consider using `if..let` syntax instead of indexing".to_string();
                     if let Some(first_local) = r.first_local
                         && let Some(name) = first_local.pat.simple_ident().map(|ident| ident.name)
                     {
@@ -119,7 +117,7 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryIndexing {
 
 struct IndexCheckResult<'a> {
     // span of the receiver for the index operation, only Some in the event the indexing is via a direct primitive
-    index_receiver_span: Option<Span>,
+    index_receiver_span: Span,
     // first local in the block - used as pattern for `Some(pat)`
     first_local: Option<&'a LetStmt<'a>>,
     // any other index expressions to replace with `pat` (or "element" if no local exists)
@@ -148,7 +146,7 @@ fn process_indexing<'a>(
         if let ExprKind::Index(receiver, index, _) = x.kind
             && let ExprKind::Lit(lit) = index.kind
             && let LitKind::Int(val, _) = lit.node
-            && path_to_local_id(receiver, conditional_receiver_hid)
+            && receiver.res_local_id() == Some(conditional_receiver_hid)
             && val.0 == 0
         {
             index_receiver_span = Some(receiver.span);
@@ -182,7 +180,7 @@ fn process_indexing<'a>(
     });
 
     res.is_none().then_some(IndexCheckResult {
-        index_receiver_span,
+        index_receiver_span: index_receiver_span?,
         first_local,
         extra_exprs_borrow,
         extra_exprs_copy,
