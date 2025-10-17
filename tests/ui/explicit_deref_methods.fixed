@@ -50,6 +50,51 @@ impl DerefMut for Aaa {
     }
 }
 
+mod issue_15392 {
+    use std::ops::{Deref, DerefMut};
+
+    struct Inner;
+
+    struct WrapperA(Inner);
+
+    impl Deref for WrapperA {
+        type Target = Inner;
+        fn deref(&self) -> &Inner {
+            &self.0
+        }
+    }
+
+    impl DerefMut for WrapperA {
+        fn deref_mut(&mut self) -> &mut Inner {
+            &mut self.0
+        }
+    }
+
+    enum MyEnum {
+        A(WrapperA),
+    }
+
+    impl Deref for MyEnum {
+        type Target = Inner;
+
+        fn deref(&self) -> &Inner {
+            // forwarding is ok
+            match self {
+                MyEnum::A(wrap_a) => Deref::deref(wrap_a),
+            }
+        }
+    }
+
+    impl DerefMut for MyEnum {
+        fn deref_mut(&mut self) -> &mut Inner {
+            // forwarding is ok
+            match self {
+                MyEnum::A(wrap_a) => DerefMut::deref_mut(wrap_a),
+            }
+        }
+    }
+}
+
 fn main() {
     let a: &mut String = &mut String::from("foo");
 

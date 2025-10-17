@@ -12,8 +12,8 @@ use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
 use rustc_hir::intravisit::{InferKind, Visitor, VisitorExt, walk_ty};
 use rustc_hir::{
-    self as hir, AmbigArg, BindingMode, Body, BodyId, BorrowKind, Expr, ExprKind, HirId, MatchSource, Mutability, Node,
-    Pat, PatKind, Path, QPath, TyKind, UnOp,
+    self as hir, AmbigArg, BindingMode, Body, BodyId, BorrowKind, Expr, ExprKind, HirId, Impl, Item, ItemKind,
+    MatchSource, Mutability, Node, Pat, PatKind, Path, QPath, TyKind, UnOp,
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, AutoBorrowMutability};
@@ -50,6 +50,8 @@ declare_clippy_lint! {
     /// let _ = Foo::deref(&foo);
     /// let _ = <Foo as Deref>::deref(&foo);
     /// ```
+    ///
+    /// This lint also excludes explicit `deref` or `deref_mut` method calls inside implementations of the `Deref` or `DerefMut` traits.
     #[clippy::version = "1.44.0"]
     pub EXPLICIT_DEREF_METHODS,
     pedantic,
@@ -169,6 +171,9 @@ pub struct Dereferencing<'tcx> {
     ///
     /// e.g. `m!(x) | Foo::Bar(ref x)`
     ref_locals: FxIndexMap<HirId, Option<RefPat>>,
+
+    /// Whether the current context is within a `Deref` or `DerefMut` impl.
+    in_deref_or_deref_mut_impl: bool,
 }
 
 #[derive(Debug)]
@@ -246,7 +251,14 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
         // Stop processing sub expressions when a macro call is seen
         if expr.span.from_expansion() {
             if let Some((state, data)) = self.state.take() {
-                report(cx, expr, state, data, cx.typeck_results());
+                report(
+                    cx,
+                    expr,
+                    state,
+                    data,
+                    cx.typeck_results(),
+                    self.in_deref_or_deref_mut_impl,
+                );
             }
             return;
         }
@@ -255,7 +267,7 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
         let Some((kind, sub_expr, skip_expr)) = try_parse_ref_op(cx.tcx, typeck, expr) else {
             // The whole chain of reference operations has been seen
             if let Some((state, data)) = self.state.take() {
-                report(cx, expr, state, data, typeck);
+                report(cx, expr, state, data, typeck, self.in_deref_or_deref_mut_impl);
             }
             return;
         };
@@ -263,7 +275,14 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
 
         if is_from_proc_macro(cx, expr) {
             if let Some((state, data)) = self.state.take() {
-                report(cx, expr, state, data, cx.typeck_results());
+                report(
+                    cx,
+                    expr,
+                    state,
+                    data,
+                    cx.typeck_results(),
+                    self.in_deref_or_deref_mut_impl,
+                );
             }
             return;
         }
@@ -515,7 +534,14 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
             (Some((State::DerefedBorrow(state), data)), RefOp::AddrOf(mutability)) => {
                 let adjusted_ty = data.adjusted_ty;
                 let stability = state.stability;
-                report(cx, expr, State::DerefedBorrow(state), data, typeck);
+                report(
+                    cx,
+                    expr,
+                    State::DerefedBorrow(state),
+                    data,
+                    typeck,
+                    self.in_deref_or_deref_mut_impl,
+                );
                 if stability.is_deref_stable() {
                     self.state = Some((
                         State::Borrow { mutability },
@@ -530,7 +556,14 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                 let adjusted_ty = data.adjusted_ty;
                 let stability = state.stability;
                 let for_field_access = state.for_field_access;
-                report(cx, expr, State::DerefedBorrow(state), data, typeck);
+                report(
+                    cx,
+                    expr,
+                    State::DerefedBorrow(state),
+                    data,
+                    typeck,
+                    self.in_deref_or_deref_mut_impl,
+                );
                 if let Some(name) = for_field_access
                     && let sub_expr_ty = typeck.expr_ty(sub_expr)
                     && !ty_contains_field(sub_expr_ty, name)
@@ -602,7 +635,7 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                 ));
             },
 
-            (Some((state, data)), _) => report(cx, expr, state, data, typeck),
+            (Some((state, data)), _) => report(cx, expr, state, data, typeck, self.in_deref_or_deref_mut_impl),
         }
     }
 
@@ -672,6 +705,31 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
             }
             self.current_body = None;
         }
+    }
+
+    fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
+        if is_deref_or_deref_mut_impl(cx, item) {
+            self.in_deref_or_deref_mut_impl = true;
+        }
+    }
+
+    fn check_item_post(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
+        if is_deref_or_deref_mut_impl(cx, item) {
+            self.in_deref_or_deref_mut_impl = false;
+        }
+    }
+}
+
+fn is_deref_or_deref_mut_impl(cx: &LateContext<'_>, item: &Item<'_>) -> bool {
+    if let ItemKind::Impl(Impl {
+        of_trait: Some(of_trait),
+        ..
+    }) = &item.kind
+        && let Some(trait_id) = of_trait.trait_ref.trait_def_id()
+    {
+        cx.tcx.lang_items().deref_trait() == Some(trait_id) || cx.tcx.lang_items().deref_mut_trait() == Some(trait_id)
+    } else {
+        false
     }
 }
 
@@ -938,6 +996,7 @@ fn report<'tcx>(
     state: State,
     data: StateData<'tcx>,
     typeck: &'tcx TypeckResults<'tcx>,
+    in_deref_or_deref_mut_impl: bool,
 ) {
     match state {
         State::DerefMethod {
@@ -945,6 +1004,11 @@ fn report<'tcx>(
             is_ufcs,
             mutbl,
         } => {
+            // Skip when inside implementation of the `Deref` or `DerefMut` trait.
+            if in_deref_or_deref_mut_impl {
+                return;
+            }
+
             let mut app = Applicability::MachineApplicable;
             let (expr_str, expr_is_macro_call) =
                 snippet_with_context(cx, expr.span, data.first_expr.span.ctxt(), "..", &mut app);
