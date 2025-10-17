@@ -1,0 +1,88 @@
+#![warn(clippy::redundant_box)]
+
+fn main() {}
+
+fn string_slice_is_ok_to_box() {
+    let the_slice = "";
+    let the_ok = Box::new(the_slice);
+}
+
+fn ref_to_string_slice_is_redundant_to_box() {
+    let the_slice = "";
+    let redundant = Box::new(&the_slice);
+    //~^ redundant_box
+}
+
+fn vec_slice_is_ok_to_box() {
+    let the_vec = Vec::<u8>::new();
+    let the_slice = &the_vec[0..3];
+    let the_ok = Box::new(the_slice);
+}
+
+fn wide_int_is_ok_to_box() {
+    let the_wide_int = 1u128;
+    let the_ok = Box::new(the_wide_int);
+}
+
+fn wide_int_ref_is_redundant_to_box() {
+    let the_wide_int = 1u128;
+    let redundant = Box::new(&the_wide_int);
+    //~^ redundant_box
+}
+
+// Tests for some of the cases listed on https://github.com/rust-lang/rust-clippy/issues/2394
+// Box<&T>
+//TODO: Maybe these could go away as they are caught by `clippy::redundant_allocation``
+fn generic_boxed_thin_ref_is_redundant_to_box() {
+    #[allow(clippy::redundant_allocation)]
+    fn fun<T>(t: &T) -> Box<&T> {
+        //~^ redundant_box
+        Box::new(t)
+        //~^ redundant_box
+    }
+
+    let thin = 1u32;
+    let redundant = fun(&thin);
+    //~^ redundant_box
+}
+
+fn generic_boxed_wide_ref_is_ok_to_box() {
+    fn fun<T>(ok_to_box: T) -> Box<T> {
+        Box::new(ok_to_box)
+    }
+
+    let wide = "";
+    let ok_boxed_wide_ref = fun(wide);
+}
+
+// Box::new(SomeT) where sizeof::<T>() <= sizeof::<usize>()
+// unless there are Box::into_raw calls within the function
+fn smaller_than_usize_is_redundant_to_box() {
+    let redundant = Box::new(1u16);
+    //~^ redundant_box
+}
+
+fn usize_ref_is_redundant_to_box() {
+    let the_val = 1usize;
+    let redundant = Box::new(&the_val);
+    //~^ redundant_box
+}
+
+fn reference_to_a_literal_is_redundant_to_box() {
+    let a = 1u32;
+    let redundant = Box::new(&a);
+    //~^ redundant_box
+}
+
+fn type_annotations_of_a_boxed_int_is_redundant_to_box() {
+    let a = 1u32;
+    let redundant = Box::new(&a);
+    //~^ redundant_box
+    let redundant: Box<&u32> = redundant;
+    //~^ redundant_box
+}
+
+fn smaller_than_usize_is_ok_to_box_if_using_into_raw() {
+    let boxed = Box::new(1u8);
+    let ptr = Box::into_raw(boxed);
+}
