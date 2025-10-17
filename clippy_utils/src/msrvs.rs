@@ -161,14 +161,19 @@ impl Msrv {
             .and_then(|v| parse_version(Symbol::intern(&v)));
 
         match (self.0, cargo_msrv) {
+            // If the MSRV is specified in `Cargo.toml` but not `clippy.toml`, use `Cargo.toml`'s
+            // value.
             (None, Some(cargo_msrv)) => self.0 = Some(cargo_msrv),
-            (Some(clippy_msrv), Some(cargo_msrv)) => {
-                if clippy_msrv != cargo_msrv {
-                    sess.dcx().warn(format!(
-                        "the MSRV in `clippy.toml` and `Cargo.toml` differ; using `{clippy_msrv}` from `clippy.toml`"
-                    ));
-                }
+
+            // If the MSRV is different in both `Cargo.toml` and `clippy.toml`, emit a warning and
+            // retain `clippy.toml`'s value.
+            (Some(clippy_msrv), Some(cargo_msrv)) if clippy_msrv != cargo_msrv => {
+                sess.dcx().warn(format!(
+                    "the MSRV in `clippy.toml` and `Cargo.toml` differ; using `{clippy_msrv}` from `clippy.toml`"
+                ));
             },
+
+            // If the MSRV is specified in `clippy.toml` or not at all, retain the current value.
             _ => {},
         }
     }
