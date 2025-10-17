@@ -131,17 +131,16 @@ impl<'tcx> MutableKeyType<'tcx> {
                 cx.tcx.get_diagnostic_name(def.did()),
                 Some(sym::HashMap | sym::BTreeMap | sym::HashSet | sym::BTreeSet)
             )
+            && let subst_ty = args.type_at(0)
+            && let Some(chain) = self.interior_mut.interior_mut_ty_chain(cx, subst_ty)
         {
-            let subst_ty = args.type_at(0);
-            if let Some(chain) = self.interior_mut.interior_mut_ty_chain(cx, subst_ty) {
-                span_lint_and_then(cx, MUTABLE_KEY_TYPE, span, "mutable key type", |diag| {
-                    for ty in chain.iter().rev() {
-                        diag.note(with_forced_trimmed_paths!(format!(
-                            "... because it contains `{ty}`, which has interior mutability"
-                        )));
-                    }
-                });
-            }
+            span_lint_and_then(cx, MUTABLE_KEY_TYPE, span, "mutable key type", |diag| {
+                for ty in chain.iter().rev() {
+                    diag.note(with_forced_trimmed_paths!(format!(
+                        "... because it contains `{ty}`, which has interior mutability"
+                    )));
+                }
+            });
         }
     }
 }
