@@ -12,6 +12,17 @@ macro_rules! condition {
     };
 }
 
+#[clippy::msrv = "1.61"]
+fn older() {
+    let _ = Some(0).filter(|_| false);
+}
+
+#[clippy::msrv = "1.62"]
+fn newer() {
+    let _ = Some(0).filter(|_| false);
+    //~^ filter_some
+}
+
 fn main() {
     let _ = Some(0).filter(|_| false);
     //~^ filter_some
