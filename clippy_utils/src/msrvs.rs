@@ -147,6 +147,14 @@ impl Msrv {
         self.current(cx).is_none_or(|msrv| msrv >= required)
     }
 
+    /// Sets the current MSRV to the `rust-version` field specified in `Cargo.toml` if it is not
+    /// already set.
+    ///
+    /// If the current MSRV is set (usually through `clippy.toml`) and `rust-version` is also set
+    /// in `Cargo.toml`, this function will emit a warning if they are not the same value.
+    ///
+    /// This method is only meant to be called when creating `Conf`, and should not be called in
+    /// lint passes.
     pub fn read_cargo(&mut self, sess: &Session) {
         let cargo_msrv = std::env::var("CARGO_PKG_RUST_VERSION")
             .ok()
