@@ -2,14 +2,23 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::res::MaybeDef;
 use clippy_utils::source::snippet_with_applicability;
 use rustc_errors::Applicability;
-use rustc_hir::{Expr, ExprKind, LangItem, is_range_literal};
+use rustc_hir::{Expr, ExprKind, LangItem, QPath, is_range_literal};
 use rustc_lint::LateContext;
 
 use super::SLICED_STRING_AS_BYTES;
 
+/// Checks if `index` is any type of range literal except `RangeFull` (i.e. `..`)
+fn is_bounded_range_literal(index: &Expr<'_>) -> bool {
+    is_range_literal(index)
+        && !matches!(
+            index.kind,
+            ExprKind::Struct(QPath::LangItem(LangItem::RangeFull, ..), ..)
+        )
+}
+
 pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, recv: &Expr<'_>) {
     if let ExprKind::Index(indexed, index, _) = recv.kind
-        && is_range_literal(index)
+        && is_bounded_range_literal(index)
         && let ty = cx.typeck_results().expr_ty(indexed).peel_refs()
         && (ty.is_str() || ty.is_lang_item(cx, LangItem::String))
     {
