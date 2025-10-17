@@ -57,6 +57,20 @@ fn dogfood() {
     );
 }
 
+const DENY_LINTS: &[&str] = &[
+    "unfulfilled_lint_expectations",
+    "clippy::all",
+    "clippy::pedantic",
+    "clippy::dbg_macro",
+    "clippy::decimal_literal_representation",
+    "clippy::derive_partial_eq_without_eq",
+    "clippy::iter_on_single_items",
+    "clippy::needless_pass_by_ref_mut",
+    "clippy::significant_drop_tightening",
+    "clippy::tuple_array_conversions",
+    "clippy::useless_let_if_seq",
+];
+
 #[must_use]
 fn run_clippy_for_package(project: &str) -> bool {
     let root_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -82,7 +96,11 @@ fn run_clippy_for_package(project: &str) -> bool {
 
     command.arg("--");
     command.arg("-Cdebuginfo=0"); // disable debuginfo to generate less data in the target dir
-    command.args(["-D", "clippy::all", "-D", "clippy::pedantic", "-D", "clippy::dbg_macro"]);
+
+    for lint in DENY_LINTS {
+        command.args(["-D", lint]);
+    }
+
     if !cfg!(feature = "internal") {
         // running a clippy built without internal lints on the clippy source
         // that contains e.g. `allow(clippy::symbol_as_str)`

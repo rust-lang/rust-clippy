@@ -151,14 +151,12 @@ impl LateLintPass<'_> for RedundantTypeAnnotations {
                     }
                 },
                 hir::ExprKind::MethodCall(_, _, _, _) => {
-                    let mut is_ref = false;
-                    let mut ty_kind = &ty.kind;
-
                     // If the annotation is a ref we "peel" it
-                    if let hir::TyKind::Ref(_, mut_ty) = &ty.kind {
-                        is_ref = true;
-                        ty_kind = &mut_ty.ty.kind;
-                    }
+                    let (is_ref, ty_kind) = if let hir::TyKind::Ref(_, mut_ty) = &ty.kind {
+                        (true, &mut_ty.ty.kind)
+                    } else {
+                        (false, &ty.kind)
+                    };
 
                     if let hir::TyKind::Path(ty_path) = ty_kind
                         && let hir::QPath::Resolved(_, resolved_path_ty) = ty_path
