@@ -151,28 +151,54 @@ impl Msrv {
     }
 }
 
-/// Tracks the current MSRV from `clippy.toml`, `Cargo.toml` or set via `#[clippy::msrv]` in early
-/// lint passes, use [`Msrv`] for late passes
+/// Tracks the current MSRV from `clippy.toml`, `Cargo.toml`, and `#[clippy::msrv]` in early lint
+/// passes.
+///
+/// This type is designed to be stored as a field of the early lint pass and updated with the
+/// [`extract_msrv_attr!`](crate::extract_msrv_attr) macro or by manually calling
+/// [`Self::check_attributes()`] and [`Self::check_attributes_post()`].
+///
+/// You can check the current MSRV with [`Self::current()`], and can check if it is equal or above
+/// a certain version with [`Self::meets()`].
+///
+/// If you are writing a late lint pass, use [`Msrv`] instead.
+///
+/// For more information, [see the development guide on
+/// MSRVs](https://doc.rust-lang.org/nightly/clippy/development/adding_lints.html#specifying-the-lints-minimum-supported-rust-version-msrv).
 #[derive(Debug, Clone)]
 pub struct MsrvStack {
     stack: SmallVec<[RustcVersion; 2]>,
 }
 
 impl MsrvStack {
+    /// Creates a new MSRV stack with an initial value.
+    ///
+    /// You likely want to get the [`Msrv`] from `Conf::msrv`.
     pub fn new(initial: Msrv) -> Self {
         Self {
             stack: SmallVec::from_iter(initial.0),
         }
     }
 
+    /// Returns the MSRV at the current node, if it is known.
     pub fn current(&self) -> Option<RustcVersion> {
         self.stack.last().copied()
     }
 
+    /// Returns true if the MSRV at the current node meets the required version.
+    ///
+    /// See [`clippy_utils::msrvs`](crate::msrvs) for a list of constants representing the required
+    /// versions for different features.
+    ///
+    /// If the MSRV is unknown (when [`Self::current()`] returns [`None`]), this will return true.
     pub fn meets(&self, required: RustcVersion) -> bool {
         self.current().is_none_or(|msrv| msrv >= required)
     }
 
+    /// Pushes to the MSRV stack if `#[clippy::msrv]` is found.
+    ///
+    /// Usually, you will want [`extract_msrv_attr!`](crate::extract_msrv_attr) to handle calling
+    /// this for you.
     pub fn check_attributes(&mut self, sess: &Session, attrs: &[Attribute]) {
         if let Some(version) = parse_attrs(sess, attrs) {
             SEEN_MSRV_ATTR.store(true, Ordering::Relaxed);
@@ -180,6 +206,10 @@ impl MsrvStack {
         }
     }
 
+    /// Pops from the MSRV stack if `#[clippy::msrv]` is found.
+    ///
+    /// Usually, you will want [`extract_msrv_attr!`](crate::extract_msrv_attr) to handle calling
+    /// this for you.
     pub fn check_attributes_post(&mut self, sess: &Session, attrs: &[Attribute]) {
         if parse_attrs(sess, attrs).is_some() {
             self.stack.pop();
