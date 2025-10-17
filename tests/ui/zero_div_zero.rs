@@ -1,3 +1,5 @@
+#![feature(f128)]
+#![feature(f16)]
 #[allow(unused_variables, clippy::eq_op)]
 #[warn(clippy::zero_divided_by_zero)]
 fn main() {
@@ -11,6 +13,12 @@ fn main() {
     //~^ zero_divided_by_zero
 
     let one_more_f64_nan = 0.0f64 / 0.0f64;
+    //~^ zero_divided_by_zero
+
+    let f16_nan = 0.0 / 0.0f16;
+    //~^ zero_divided_by_zero
+
+    let f128_nan = 0.0 / 0.0f128;
     //~^ zero_divided_by_zero
 
     let zero = 0.0;

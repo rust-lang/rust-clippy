@@ -2,6 +2,7 @@ use clippy_utils::consts::{ConstEvalCtxt, Constant};
 use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::ty;
 use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
@@ -9,7 +10,7 @@ declare_clippy_lint! {
     /// Checks for `0.0 / 0.0`.
     ///
     /// ### Why is this bad?
-    /// It's less readable than `f32::NAN` or `f64::NAN`.
+    /// It's less readable than using the proper associated `NAN` constant.
     ///
     /// ### Example
     /// ```no_run
@@ -23,7 +24,7 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub ZERO_DIVIDED_BY_ZERO,
     complexity,
-    "usage of `0.0 / 0.0` to obtain NaN instead of `f32::NAN` or `f64::NAN`"
+    "usage of `0.0 / 0.0` to obtain NaN instead of using a predefined constant"
 }
 
 declare_lint_pass!(ZeroDiv => [ZERO_DIVIDED_BY_ZERO]);
@@ -40,23 +41,20 @@ impl<'tcx> LateLintPass<'tcx> for ZeroDiv {
             && let ctxt = expr.span.ctxt()
             && let Some(lhs_value) = ecx.eval_local(left, ctxt)
             && let Some(rhs_value) = ecx.eval_local(right, ctxt)
-            // FIXME(f16_f128): add these types when eq is available on all platforms
-            && (Constant::F32(0.0) == lhs_value || Constant::F64(0.0) == lhs_value)
-            && (Constant::F32(0.0) == rhs_value || Constant::F64(0.0) == rhs_value)
+            && matches!(lhs_value, Constant::F16(0.0) | Constant::F32(0.0) | Constant::F64(0.0) | Constant::F128(0.0))
+            && matches!(rhs_value, Constant::F16(0.0) | Constant::F32(0.0) | Constant::F64(0.0) | Constant::F128(0.0))
+            && let ty::Float(float_ty) = cx.typeck_results().expr_ty(expr).kind()
         {
-            // since we're about to suggest a use of f32::NAN or f64::NAN,
-            // match the precision of the literals that are given.
-            let float_type = match (lhs_value, rhs_value) {
-                (Constant::F64(_), _) | (_, Constant::F64(_)) => "f64",
-                _ => "f32",
-            };
             span_lint_and_help(
                 cx,
                 ZERO_DIVIDED_BY_ZERO,
                 expr.span,
                 "constant division of `0.0` with `0.0` will always result in NaN",
                 None,
-                format!("consider using `{float_type}::NAN` if you would like a constant representing NaN",),
+                format!(
+                    "consider using `{}::NAN` if you would like a constant representing NaN",
+                    float_ty.name_str()
+                ),
             );
         }
     }
