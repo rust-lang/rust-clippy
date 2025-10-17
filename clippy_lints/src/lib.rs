@@ -63,6 +63,7 @@ pub mod deprecated_lints;
 // begin lints modules, do not remove this comment, it's used in `update_lints`
 mod absolute_paths;
 mod almost_complete_range;
+mod always_true_conditions;
 mod approx_const;
 mod arbitrary_source_item_ordering;
 mod arc_with_non_send_sync;

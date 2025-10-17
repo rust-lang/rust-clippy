@@ -24,6 +24,7 @@ mod needless_bitwise_bool;
 mod numeric_arithmetic;
 mod op_ref;
 mod self_assignment;
+mod trivial_var_primitive_disjunction;
 mod verbose_bit_mask;
 
 pub(crate) mod arithmetic_side_effects;
@@ -958,6 +959,39 @@ declare_clippy_lint! {
     "use binary, hex, or octal literals for bitwise operations"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Flags a relatively common error, where users comparing a variable to a primitive use `||` instead of `&&`, in conjunction
+    /// with `!=`. This lint was originally meant for simple `n != 1 || n != 2` type expressions, but the lint will now detect
+    /// the primitive and variable in any order for any length, as long as the variable stays the same, and the conditional
+    /// is always made of 1 primitive and 1 variable.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// This is bad because however complex this expression is, its meaning is the same - `true`, and thus
+    /// the code can be greatly simplified by replacing it with that value.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let foo = "anything";
+    /// if foo != "thing1" || foo != "thing2" {
+    ///     println!("always executes");
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let foo = "anything";
+    /// if foo != "thing1" && foo != "thing2" {
+    ///     println!("sometimes executes");
+    /// }
+    /// ```
+     #[clippy::version = "1.93.0"]
+    pub TRIVIAL_VAR_PRIMITIVE_DISJUNCTION,
+    nursery,
+    "flags trivial disjunctions involving only a var and a primitive"
+}
+
 pub struct Operators {
     arithmetic_context: numeric_arithmetic::Context,
     verbose_bit_mask_threshold: u64,
@@ -1007,7 +1041,8 @@ impl_lint_pass!(Operators => [
     MANUAL_IS_MULTIPLE_OF,
     MANUAL_DIV_CEIL,
     INVALID_UPCAST_COMPARISONS,
-    DECIMAL_BITWISE_OPERANDS
+    DECIMAL_BITWISE_OPERANDS,
+    TRIVIAL_VAR_PRIMITIVE_DISJUNCTION,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Operators {
@@ -1028,6 +1063,7 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                     manual_midpoint::check(cx, e, op.node, lhs, rhs, self.msrv);
                     manual_is_multiple_of::check(cx, e, op.node, lhs, rhs, self.msrv);
                     decimal_bitwise_operands::check(cx, op.node, lhs, rhs);
+                    trivial_var_primitive_disjunction::check(cx, e, lhs, rhs, op.node);
                 }
                 self.arithmetic_context.check_binary(cx, e, op.node, lhs, rhs);
                 bit_mask::check(cx, e, op.node, lhs, rhs);
