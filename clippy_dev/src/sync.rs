@@ -6,11 +6,10 @@ use std::process::exit;
 
 use xshell::{Shell, cmd};
 
+const JOSH_FILTER: &str = ":rev(d9fb15c4b1ebe9e7dc419e07f53af681d7860cbe:prefix=src/tools/clippy):/src/tools/clippy:from(27e6879445d30bbd340680a8353f342e63596d97:prune=trivial-merge)";
 // const JOSH_FILTER: &str =
-// ":rev(d9fb15c4b1ebe9e7dc419e07f53af681d7860cbe:prefix=src/tools/clippy):/src/tools/clippy:
-// from(b19acfca58b1f2cc7b4fe1adadd3a8b5c97b840d:prune=trivial-merge)";
-const JOSH_FILTER: &str =
-    ":rev(d9fb15c4b1ebe9e7dc419e07f53af681d7860cbe:prefix=src/tools/clippy):/src/tools/clippy:prune=trivial-merge";
+//     ":rev(d9fb15c4b1ebe9e7dc419e07f53af681d7860cbe:prefix=src/tools/clippy):/src/tools/clippy:
+// prune=trivial-merge";
 const JOSH_PORT: &str = "42042";
 const TOOLCHAIN_TOML: &str = "rust-toolchain.toml";
 const UTILS_README: &str = "clippy_utils/README.md";
