@@ -52,7 +52,7 @@ fn main() {
     let instance = SomeStruct {};
     let _ = instance.or_else(|| Some(SomeStruct {})).unwrap(); // should not trigger lint
 
-    // or takes no argument
+    // `or_else` takes no argument
     let instance = SomeOtherStruct {};
     let _ = instance.or_else().unwrap(); // should not trigger lint and should not panic
 
