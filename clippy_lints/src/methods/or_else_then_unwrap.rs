@@ -18,28 +18,25 @@ pub(super) fn check<'tcx>(
     or_span: Span,
 ) {
     let ty = cx.typeck_results().expr_ty(recv); // get type of x (we later check if it's Option or Result)
-    let title;
-    let or_else_arg_content: Span;
-
-    if is_type_diagnostic_item(cx, ty, sym::Option) {
-        title = "found `.or_else(|| Some(…)).unwrap()`";
-        if let Some(content) = get_content_if_ctor_matches_in_closure(cx, or_else_arg, LangItem::OptionSome) {
-            or_else_arg_content = content;
-        } else {
-            return;
-        }
-    } else if is_type_diagnostic_item(cx, ty, sym::Result) {
-        title = "found `.or_else(|| Ok(…)).unwrap()`";
-        if let Some(content) = get_content_if_ctor_matches_in_closure(cx, or_else_arg, LangItem::ResultOk) {
-            or_else_arg_content = content;
-        } else {
-            return;
-        }
-    } else {
+    let (title, or_else_arg_content) = match ty
+        .ty_adt_def()
+        .map(AdtDef::did)
+        .and_then(|did| cx.tcx.get_diagnostic_name(did))
+    {
+        Some(sym::Option)
+            if let Some(content) = get_content_if_ctor_matches_in_closure(cx, or_else_arg, LangItem::OptionSome) =>
+        {
+            ("found `.or_else(|| Some(…)).unwrap()`", content)
+        },
+        Some(sym::Result)
+            if let Some(content) = get_content_if_ctor_matches_in_closure(cx, or_else_arg, LangItem::ResultOk) =>
+        {
+            ("found `.or_else(|| Ok(…)).unwrap()`", content)
+        },
         // Someone has implemented a struct with .or(...).unwrap() chaining,
         // but it's not an Option or a Result, so bail
-        return;
-    }
+        _ => return,
+    };
 
     let mut applicability = Applicability::MachineApplicable;
     let suggestion = format!(
