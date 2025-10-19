@@ -70,8 +70,8 @@ fn main() {
     let _ = option.or_else(|| Some(Wrapper::new("fallback"))).map(|v| v).unwrap(); // should not trigger lint
 
     // We don't lint external macros
-    proc_macros::external!{
-        let option: Option<Wrapper> = None;
-        let _ = option.or_else(|| Some(Wrapper::new("fallback"))).unwrap();
-     };
+    proc_macros::external! {
+       let option: Option<Wrapper> = None;
+       let _ = option.or_else(|| Some(Wrapper::new("fallback"))).unwrap();
+    };
 }

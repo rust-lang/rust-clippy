@@ -45,20 +45,9 @@ pub(super) fn check<'tcx>(
     );
 
     let span = unwrap_expr.span.with_lo(or_span.lo());
-    span_lint_and_then(
-        cx,
-        OR_ELSE_THEN_UNWRAP,
-        span,
-        title,
-        |diag| {
-            diag.span_suggestion_verbose(
-                span,
-                "try",
-                suggestion,
-                applicability,
-            );
-        }
-    );
+    span_lint_and_then(cx, OR_ELSE_THEN_UNWRAP, span, title, |diag| {
+        diag.span_suggestion_verbose(span, "try", suggestion, applicability);
+    });
 }
 
 fn get_content_if_ctor_matches_in_closure(cx: &LateContext<'_>, expr: &Expr<'_>, item: LangItem) -> Option<Span> {
