@@ -28,9 +28,7 @@ impl Wrapper {
 
 fn main() {
     let option: Option<Wrapper> = None;
-    let _ = option.unwrap_or_else(|| Wrapper::new("fallback")); // should trigger lint
-    //
-    //~^^ or_else_then_unwrap
+    let _ = option.unwrap_or_else(|| Wrapper::new("fallback")); //~ or_else_then_unwrap
 
     // as part of a method chain
     let option: Option<Wrapper> = None;
@@ -51,7 +49,7 @@ fn main() {
     let instance = SomeStruct {};
     let _ = instance.or_else(|| Some(SomeStruct {})).unwrap(); // should not trigger lint
 
-    // or takes no argument
+    // `or_else` takes no argument
     let instance = SomeOtherStruct {};
     let _ = instance.or_else().unwrap(); // should not trigger lint and should not panic
 

@@ -1,11 +1,11 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::{is_res_lang_ctor, path_res};
 use rustc_errors::Applicability;
 use rustc_hir::lang_items::LangItem;
 use rustc_hir::{Body, Expr, ExprKind};
 use rustc_lint::LateContext;
+use rustc_middle::ty::AdtDef;
 use rustc_span::{Span, sym};
 
 use super::OR_ELSE_THEN_UNWRAP;
@@ -44,14 +44,20 @@ pub(super) fn check<'tcx>(
         snippet_with_applicability(cx, or_else_arg_content, "..", &mut applicability)
     );
 
-    span_lint_and_sugg(
+    let span = unwrap_expr.span.with_lo(or_span.lo());
+    span_lint_and_then(
         cx,
         OR_ELSE_THEN_UNWRAP,
-        unwrap_expr.span.with_lo(or_span.lo()),
+        span,
         title,
-        "try",
-        suggestion,
-        applicability,
+        |diag| {
+            diag.span_suggestion_verbose(
+                span,
+                "try",
+                suggestion,
+                applicability,
+            );
+        }
     );
 }
 
