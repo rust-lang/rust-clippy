@@ -61,8 +61,8 @@ fn get_content_if_ctor_matches_in_closure(cx: &LateContext<'_>, expr: &Expr<'_>,
             params: [],
             value: body,
         } = cx.tcx.hir_body(closure.body)
-        && let ExprKind::Call(some_expr, [arg]) = body.kind
-        && is_res_lang_ctor(cx, path_res(cx, some_expr), item)
+        && let ExprKind::Call(some_or_ok, [arg]) = body.kind
+        && is_res_lang_ctor(cx, path_res(cx, some_or_ok), item)
     {
         Some(arg.span.source_callsite())
     } else {
