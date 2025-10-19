@@ -28,9 +28,7 @@ impl Wrapper {
 
 fn main() {
     let option: Option<Wrapper> = None;
-    let _ = option.or_else(|| Some(Wrapper::new("fallback"))).unwrap(); // should trigger lint
-    //
-    //~^^ or_else_then_unwrap
+    let _ = option.or_else(|| Some(Wrapper::new("fallback"))).unwrap(); //~ or_else_then_unwrap
 
     // as part of a method chain
     let option: Option<Wrapper> = None;
