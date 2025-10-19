@@ -1,5 +1,9 @@
+//@aux-build:proc_macros.rs
+
 #![warn(clippy::or_then_unwrap)]
 #![allow(clippy::map_identity, clippy::let_unit_value, clippy::unnecessary_literal_unwrap)]
+
+extern crate proc_macros;
 
 struct SomeStruct;
 impl SomeStruct {
@@ -64,4 +68,10 @@ fn main() {
     // other function between
     let option: Option<Wrapper> = None;
     let _ = option.or_else(|| Some(Wrapper::new("fallback"))).map(|v| v).unwrap(); // should not trigger lint
+
+    // We don't lint external macros
+    proc_macros::external!{
+        let option: Option<Wrapper> = None;
+        let _ = option.or_else(|| Some(Wrapper::new("fallback"))).unwrap();
+     };
 }
