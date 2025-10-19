@@ -1,6 +1,6 @@
+use crate::clippy_utils::res::{MaybeDef, MaybeQPath};
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::{is_res_lang_ctor, path_res};
 use rustc_errors::Applicability;
 use rustc_hir::lang_items::LangItem;
 use rustc_hir::{Body, Expr, ExprKind};
@@ -57,7 +57,7 @@ fn get_content_if_ctor_matches_in_closure(cx: &LateContext<'_>, expr: &Expr<'_>,
             value: body,
         } = cx.tcx.hir_body(closure.body)
         && let ExprKind::Call(some_or_ok, [arg]) = body.kind
-        && is_res_lang_ctor(cx, path_res(cx, some_or_ok), item)
+        && some_or_ok.res(cx).ctor_parent(cx).is_lang_item(cx, item)
     {
         Some(arg.span.source_callsite())
     } else {
