@@ -3132,11 +3132,6 @@ the uninhabitedness is visible in documentation, and whether it can be pattern
 matched to mark code unreachable. If the field is not visible, then the struct
 acts like any other struct with private fields.</p>
 </li>
-<li>
-<p>If the enum has no variants only because all variants happen to be
-<a href="https://doc.rust-lang.org/reference/conditional-compilation.html">disabled by conditional compilation</a>, then it would be appropriate
-to allow the lint, with <code>#[allow(empty_enum)]</code>.</p>
-</li>
 </ul>
 <p>For further information, visit
 <a href="https://doc.rust-lang.org/std/primitive.never.html">the never type’s documentation</a>.</p>
@@ -3152,7 +3147,7 @@ type CannotExist = !;
 /// ...or define a newtype which is distinct.
 struct CannotExist2(pub !);
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">pre 1.29.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+empty_enum">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/empty_enum.rs#L6">View Source</a></div></div></div></article><article id="empty_enum_variants_with_brackets"><input id="label-empty_enum_variants_with_brackets" type="checkbox"><label for="label-empty_enum_variants_with_brackets"><h2 class="lint-title"><div class="panel-title-name" id="lint-empty_enum_variants_with_brackets">empty_enum_variants_with_brackets
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">pre 1.29.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+empty_enum">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/empty_enum.rs#L7">View Source</a></div></div></div></article><article id="empty_enum_variants_with_brackets"><input id="label-empty_enum_variants_with_brackets" type="checkbox"><label for="label-empty_enum_variants_with_brackets"><h2 class="lint-title"><div class="panel-title-name" id="lint-empty_enum_variants_with_brackets">empty_enum_variants_with_brackets
 <a href="#empty_enum_variants_with_brackets" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-restriction">restriction</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Finds enum variants without fields that are declared with empty brackets.</p>
 <h3>Why restrict this?</h3>
