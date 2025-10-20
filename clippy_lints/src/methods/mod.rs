@@ -1204,6 +1204,7 @@ declare_clippy_lint! {
     ///
     /// Methods with Self references are fine:
     /// ```no_run
+    /// #[derive(Default)]
     /// struct Calculator {
     ///     precision: u32,
     /// }
