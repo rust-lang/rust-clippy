@@ -1,10 +1,9 @@
 use crate::parse::cursor::{self, Capture, Cursor};
-use crate::utils::Version;
+use crate::utils::{File, Version, create_new_dir};
 use clap::ValueEnum;
 use indoc::{formatdoc, writedoc};
 use std::fmt::{self, Write as _};
-use std::fs::{self, OpenOptions};
-use std::io::{self, Write as _};
+use std::fs::OpenOptions;
 use std::path::{Path, PathBuf};
 
 #[derive(Clone, Copy, PartialEq, ValueEnum)]
@@ -30,35 +29,12 @@ struct LintData<'a> {
     ty: Option<&'a str>,
 }
 
-trait Context {
-    fn context<C: AsRef<str>>(self, text: C) -> Self;
-}
-
-impl<T> Context for io::Result<T> {
-    fn context<C: AsRef<str>>(self, text: C) -> Self {
-        match self {
-            Ok(t) => Ok(t),
-            Err(e) => {
-                let message = format!("{}: {e}", text.as_ref());
-                Err(io::Error::other(message))
-            },
-        }
-    }
-}
-
 /// Creates the files required to implement and test a new lint and runs `update_lints`.
 ///
 /// # Errors
 ///
 /// This function errors out if the files couldn't be created or written to.
-pub fn create(
-    clippy_version: Version,
-    pass: Pass,
-    name: &str,
-    category: &str,
-    mut ty: Option<&str>,
-    msrv: bool,
-) -> io::Result<()> {
+pub fn create(clippy_version: Version, pass: Pass, name: &str, category: &str, mut ty: Option<&str>, msrv: bool) {
     if category == "cargo" && ty.is_none() {
         // `cargo` is a special category, these lints should always be in `clippy_lints/src/cargo`
         ty = Some("cargo");
@@ -72,11 +48,11 @@ pub fn create(
         ty,
     };
 
-    create_lint(&lint, msrv).context("Unable to create lint implementation")?;
-    create_test(&lint, msrv).context("Unable to create a test for the new lint")?;
+    create_lint(&lint, msrv);
+    create_test(&lint, msrv);
 
     if lint.ty.is_none() {
-        add_lint(&lint, msrv).context("Unable to add lint to clippy_lints/src/lib.rs")?;
+        add_lint(&lint, msrv);
     }
 
     if pass == Pass::Early {
@@ -86,45 +62,36 @@ pub fn create(
             an early pass, as they lack many features and utilities"
         );
     }
-
-    Ok(())
 }
 
-fn create_lint(lint: &LintData<'_>, enable_msrv: bool) -> io::Result<()> {
+fn create_lint(lint: &LintData<'_>, enable_msrv: bool) {
     if let Some(ty) = lint.ty {
-        create_lint_for_ty(lint, enable_msrv, ty)
+        create_lint_for_ty(lint, enable_msrv, ty);
     } else {
-        let lint_contents = get_lint_file_contents(lint, enable_msrv);
-        let lint_path = format!("clippy_lints/src/{}.rs", lint.name);
-        write_file(&lint_path, lint_contents.as_bytes())?;
-        println!("Generated lint file: `{lint_path}`");
-
-        Ok(())
+        let path = format!("clippy_lints/src/{}.rs", lint.name);
+        File::create_new(&path).write(get_lint_file_contents(lint, enable_msrv));
+        println!("Generated lint file: `{path}`");
     }
 }
 
-fn create_test(lint: &LintData<'_>, msrv: bool) -> io::Result<()> {
-    fn create_project_layout<P: Into<PathBuf>>(
-        lint_name: &str,
-        location: P,
-        case: &str,
-        hint: &str,
-        msrv: bool,
-    ) -> io::Result<()> {
+fn create_test(lint: &LintData<'_>, msrv: bool) {
+    fn create_project_layout<P: Into<PathBuf>>(lint_name: &str, location: P, case: &str, hint: &str, msrv: bool) {
         let mut path = location.into().join(case);
-        fs::create_dir(&path)?;
-        write_file(path.join("Cargo.toml"), get_manifest_contents(lint_name, hint))?;
+        create_new_dir(&path);
+
+        path.push("Cargo.toml");
+        File::create_new(&path).write(get_manifest_contents(lint_name, hint));
+        path.pop();
 
         path.push("src");
-        fs::create_dir(&path)?;
-        write_file(path.join("main.rs"), get_test_file_contents(lint_name, msrv))?;
-
-        Ok(())
+        create_new_dir(&path);
+        path.push("main.rs");
+        File::create_new(&path).write(get_test_file_contents(lint_name, msrv));
     }
 
     if lint.category == "cargo" {
         let test_dir = format!("tests/ui-cargo/{}", lint.name);
-        fs::create_dir(&test_dir)?;
+        create_new_dir(&test_dir);
 
         create_project_layout(
             lint.name,
@@ -132,30 +99,28 @@ fn create_test(lint: &LintData<'_>, msrv: bool) -> io::Result<()> {
             "fail",
             "Content that triggers the lint goes here",
             msrv,
-        )?;
+        );
         create_project_layout(
             lint.name,
             &test_dir,
             "pass",
             "This file should not trigger the lint",
             false,
-        )?;
+        );
 
         println!("Generated test directories: `{test_dir}/pass`, `{test_dir}/fail`");
     } else {
         let test_path = format!("tests/ui/{}.rs", lint.name);
-        let test_contents = get_test_file_contents(lint.name, msrv);
-        write_file(&test_path, test_contents)?;
-
+        File::create_new(&test_path).write(get_test_file_contents(lint.name, msrv));
         println!("Generated test file: `{test_path}`");
     }
-
-    Ok(())
 }
 
-fn add_lint(lint: &LintData<'_>, enable_msrv: bool) -> io::Result<()> {
+fn add_lint(lint: &LintData<'_>, enable_msrv: bool) {
     let path = "clippy_lints/src/lib.rs";
-    let mut lib_rs = fs::read_to_string(path).context("reading")?;
+    let mut file = File::open(&path, OpenOptions::new().read(true).write(true));
+    let mut lib_rs = String::new();
+    file.read_append_to_string(&mut lib_rs);
 
     let (comment, ctor_arg) = if lint.pass == Pass::Late {
         ("// add late passes here", "_")
@@ -174,19 +139,7 @@ fn add_lint(lint: &LintData<'_>, enable_msrv: bool) -> io::Result<()> {
 
     lib_rs.insert_str(comment_start, &new_lint);
 
-    fs::write(path, lib_rs).context("writing")
-}
-
-fn write_file<P: AsRef<Path>, C: AsRef<[u8]>>(path: P, contents: C) -> io::Result<()> {
-    fn inner(path: &Path, contents: &[u8]) -> io::Result<()> {
-        OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(path)?
-            .write_all(contents)
-    }
-
-    inner(path.as_ref(), contents.as_ref()).context(format!("writing to file: {}", path.as_ref().display()))
+    file.replace_contents(lib_rs);
 }
 
 fn to_camel_case(name: &str) -> String {
@@ -367,7 +320,7 @@ fn get_lint_declaration(version: Version, name_upper: &str, category: &str) -> S
     )
 }
 
-fn create_lint_for_ty(lint: &LintData<'_>, enable_msrv: bool, ty: &str) -> io::Result<()> {
+fn create_lint_for_ty(lint: &LintData<'_>, enable_msrv: bool, ty: &str) {
     match ty {
         "cargo" => assert_eq!(
             lint.category, "cargo",
@@ -392,7 +345,7 @@ fn create_lint_for_ty(lint: &LintData<'_>, enable_msrv: bool, ty: &str) -> io::R
     );
 
     let mod_file_path = ty_dir.join("mod.rs");
-    let context_import = setup_mod_file(&mod_file_path, lint)?;
+    let context_import = setup_mod_file(&mod_file_path, lint);
     let (pass_lifetimes, msrv_ty, msrv_ref, msrv_cx) = match context_import {
         "LateContext" => ("<'_>", "Msrv", "", "cx, "),
         _ => ("", "MsrvStack", "&", ""),
@@ -435,20 +388,21 @@ fn create_lint_for_ty(lint: &LintData<'_>, enable_msrv: bool, ty: &str) -> io::R
         );
     }
 
-    write_file(lint_file_path.as_path(), lint_file_contents)?;
+    File::create_new(&lint_file_path).write(lint_file_contents);
     println!("Generated lint file: `clippy_lints/src/{ty}/{}.rs`", lint.name);
     println!(
         "Be sure to add a call to `{}::check` in `clippy_lints/src/{ty}/mod.rs`!",
         lint.name
     );
-
-    Ok(())
 }
 
-fn setup_mod_file(path: &Path, lint: &LintData<'_>) -> io::Result<&'static str> {
+fn setup_mod_file(path: &Path, lint: &LintData<'_>) -> &'static str {
     let lint_name_upper = lint.name.to_uppercase();
 
-    let mut file_contents = fs::read_to_string(path)?;
+    let mut file = File::open(path, OpenOptions::new().read(true).write(true));
+    let mut file_contents = String::new();
+    file.read_append_to_string(&mut file_contents);
+
     assert!(
         !file_contents.contains(&format!("pub {lint_name_upper},")),
         "Lint `{}` already defined in `{}`",
@@ -504,15 +458,8 @@ fn setup_mod_file(path: &Path, lint: &LintData<'_>) -> io::Result<&'static str> 
     // Just add the mod declaration at the top, it'll be fixed by rustfmt
     file_contents.insert_str(0, &format!("mod {};\n", &lint.name));
 
-    let mut file = OpenOptions::new()
-        .write(true)
-        .truncate(true)
-        .open(path)
-        .context(format!("trying to open: `{}`", path.display()))?;
-    file.write_all(file_contents.as_bytes())
-        .context(format!("writing to file: `{}`", path.display()))?;
-
-    Ok(lint_context)
+    file.replace_contents(file_contents);
+    lint_context
 }
 
 // Find both the last lint declaration (declare_clippy_lint!) and the lint pass impl

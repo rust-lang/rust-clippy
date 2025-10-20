@@ -37,13 +37,13 @@ fn main() {
             category,
             r#type,
             msrv,
-        } => match new_lint::create(clippy.version, pass, &name, &category, r#type.as_deref(), msrv) {
-            Ok(()) => new_parse_cx(|cx| {
+        } => {
+            new_lint::create(clippy.version, pass, &name, &category, r#type.as_deref(), msrv);
+            new_parse_cx(|cx| {
                 let data = cx.parse_lint_decls();
                 cx.dcx.exit_on_err();
                 data.gen_decls(UpdateMode::Change);
-            }),
-            Err(e) => eprintln!("Unable to create lint: {e}"),
+            });
         },
         DevCommand::Setup(SetupCommand { subcommand }) => match subcommand {
             SetupSubcommand::Intellij { remove, repo_path } => {
