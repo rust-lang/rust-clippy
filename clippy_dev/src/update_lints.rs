@@ -143,11 +143,8 @@ pub fn generate_lint_files(update_mode: UpdateMode, data: &LintData<'_>) {
                     writeln!(dst, "#![allow({})]", lint.new_name).unwrap();
                 }
             }
-            seen_lints.clear();
             for &(lint, _) in &renamed {
-                if seen_lints.insert(lint) {
-                    writeln!(dst, "#![warn(clippy::{lint})] //~ ERROR: lint `clippy::{lint}`").unwrap();
-                }
+                writeln!(dst, "#![warn(clippy::{lint})] //~ ERROR: lint `clippy::{lint}`").unwrap();
             }
             dst.push_str("\nfn main() {}\n");
             UpdateStatus::from_changed(src != dst)
