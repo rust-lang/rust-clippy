@@ -107,6 +107,20 @@ impl<'a> File<'a> {
         Self::open(path, OpenOptions::new().read(true))
     }
 
+    /// Creates a new file with the specified contents, panicking on failure.
+    #[track_caller]
+    pub fn create_new(path: &'a impl AsRef<Path>) -> Self {
+        let path = path.as_ref();
+        Self {
+            inner: expect_action(
+                OpenOptions::new().create_new(true).write(true).open(path),
+                ErrAction::Open,
+                path,
+            ),
+            path,
+        }
+    }
+
     /// Read the entire contents of a file to the given buffer.
     #[track_caller]
     pub fn read_append_to_string<'dst>(&mut self, dst: &'dst mut String) -> &'dst mut String {
@@ -122,21 +136,24 @@ impl<'a> File<'a> {
 
     /// Writes the entire contents of the specified buffer to the file, panicking on failure.
     #[track_caller]
-    pub fn write(&mut self, data: &[u8]) {
-        expect_action(self.inner.write_all(data), ErrAction::Write, self.path);
+    pub fn write(&mut self, data: impl AsRef<[u8]>) {
+        expect_action(self.inner.write_all(data.as_ref()), ErrAction::Write, self.path);
     }
 
     /// Replaces the entire contents of a file.
     #[track_caller]
-    pub fn replace_contents(&mut self, data: &[u8]) {
-        let res = match self.inner.seek(SeekFrom::Start(0)) {
-            Ok(_) => {
-                self.write(data);
-                self.inner.set_len(data.len() as u64)
-            },
-            Err(e) => Err(e),
-        };
-        expect_action(res, ErrAction::Write, self.path);
+    pub fn replace_contents(&mut self, data: impl AsRef<[u8]>) {
+        fn f(file: &mut File<'_>, data: &[u8]) {
+            let res = match file.inner.seek(SeekFrom::Start(0)) {
+                Ok(_) => {
+                    file.write(data);
+                    file.inner.set_len(data.len() as u64)
+                },
+                Err(e) => Err(e),
+            };
+            expect_action(res, ErrAction::Write, file.path);
+        }
+        f(self, data.as_ref());
     }
 }
 
@@ -463,6 +480,14 @@ pub fn update_text_region_fn(
     mut insert: impl FnMut(&mut String),
 ) -> impl FnMut(&Path, &str, &mut String) -> UpdateStatus {
     move |path, src, dst| update_text_region(path, start, end, src, dst, &mut insert)
+}
+
+/// Creates a new directory, panicking on failure.
+///
+/// This will fail if the parent directory does not exist.
+#[track_caller]
+pub fn create_new_dir(path: impl AsRef<Path>) {
+    expect_action(fs::create_dir(path.as_ref()), ErrAction::Create, path.as_ref());
 }
 
 #[track_caller]
