@@ -2,7 +2,7 @@ pub mod cursor;
 
 use self::cursor::{Capture, Cursor};
 use crate::utils::{ErrAction, File, Scoped, expect_action, walk_dir_no_dot_or_target};
-use core::fmt::{Display, Write as _};
+use core::fmt::{self, Display, Write as _};
 use core::range::Range;
 use rustc_arena::DroplessArena;
 use rustc_data_structures::fx::FxHashMap;
@@ -82,6 +82,48 @@ impl StrBuf {
     }
 }
 
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+pub enum LintTool {
+    Rustc,
+    Clippy,
+}
+impl LintTool {
+    /// Gets the namespace prefix to use when naming a lint including the `::`.
+    pub fn prefix(self) -> &'static str {
+        match self {
+            Self::Rustc => "",
+            Self::Clippy => "clippy::",
+        }
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+pub struct LintName<'cx> {
+    pub name: &'cx str,
+    pub tool: LintTool,
+}
+impl<'cx> LintName<'cx> {
+    pub fn new_rustc(name: &'cx str) -> Self {
+        Self {
+            name,
+            tool: LintTool::Rustc,
+        }
+    }
+
+    pub fn new_clippy(name: &'cx str) -> Self {
+        Self {
+            name,
+            tool: LintTool::Clippy,
+        }
+    }
+}
+impl Display for LintName<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.tool.prefix())?;
+        f.write_str(self.name)
+    }
+}
+
 pub struct ActiveLint<'cx> {
     pub group: &'cx str,
     pub module: &'cx str,
@@ -95,7 +137,7 @@ pub struct DeprecatedLint<'cx> {
 }
 
 pub struct RenamedLint<'cx> {
-    pub new_name: &'cx str,
+    pub new_name: LintName<'cx>,
     pub version: &'cx str,
 }
 
@@ -259,7 +301,7 @@ impl<'cx> ParseCxImpl<'cx> {
                         .insert(
                             self.parse_clippy_lint_name(path.as_ref(), cursor.get_text(captures[1])),
                             Lint::Renamed(RenamedLint {
-                                new_name: self.parse_str_single_line(path.as_ref(), cursor.get_text(captures[2])),
+                                new_name: self.parse_lint_name(path.as_ref(), cursor.get_text(captures[2])),
                                 version: self.parse_str_single_line(path.as_ref(), cursor.get_text(captures[0])),
                             }),
                         )
@@ -315,5 +357,14 @@ impl<'cx> ParseCxImpl<'cx> {
                 path.display()
             ),
         }
+    }
+
+    fn parse_lint_name(&mut self, path: &Path, s: &str) -> LintName<'cx> {
+        let s = self.parse_str_single_line(path, s);
+        let (name, tool) = match s.strip_prefix("clippy::") {
+            Some(s) => (s, LintTool::Clippy),
+            None => (s, LintTool::Rustc),
+        };
+        LintName { name, tool }
     }
 }

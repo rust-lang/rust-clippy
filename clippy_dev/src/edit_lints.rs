@@ -1,5 +1,5 @@
 use crate::parse::cursor::{self, Capture, Cursor};
-use crate::parse::{ActiveLint, DeprecatedLint, Lint, LintData, ParseCx, RenamedLint};
+use crate::parse::{ActiveLint, DeprecatedLint, Lint, LintData, LintName, ParseCx, RenamedLint};
 use crate::update_lints::generate_lint_files;
 use crate::utils::{
     ErrAction, FileUpdater, UpdateMode, UpdateStatus, Version, delete_dir_if_exists, delete_file_if_exists,
@@ -48,14 +48,7 @@ pub fn deprecate<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, name
 pub fn uplift<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, old_name: &'env str, new_name: &'env str) {
     let mut data = cx.parse_lint_decls();
 
-    update_rename_targets(
-        &mut data,
-        cx.str_buf.with(|buf| {
-            buf.extend(["clippy::", old_name]);
-            cx.arena.alloc_str(buf)
-        }),
-        new_name,
-    );
+    update_rename_targets(&mut data, old_name, LintName::new_rustc(new_name));
 
     let Entry::Occupied(mut lint) = data.lints.entry(old_name) else {
         eprintln!("error: failed to find lint `{old_name}`");
@@ -64,7 +57,7 @@ pub fn uplift<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, old_nam
     let Lint::Active(prev_lint) = mem::replace(
         lint.get_mut(),
         Lint::Renamed(RenamedLint {
-            new_name,
+            new_name: LintName::new_rustc(new_name),
             version: cx.str_buf.alloc_display(cx.arena, clippy_version.rust_display()),
         }),
     ) else {
@@ -105,18 +98,7 @@ pub fn rename<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, old_nam
     let mut updater = FileUpdater::default();
     let mut data = cx.parse_lint_decls();
 
-    let new_name_prefixed = cx.str_buf.with(|buf| {
-        buf.extend(["clippy::", new_name]);
-        cx.arena.alloc_str(buf)
-    });
-    update_rename_targets(
-        &mut data,
-        cx.str_buf.with(|buf| {
-            buf.extend(["clippy::", old_name]);
-            cx.arena.alloc_str(buf)
-        }),
-        new_name_prefixed,
-    );
+    update_rename_targets(&mut data, old_name, LintName::new_clippy(new_name));
 
     let Entry::Occupied(mut lint) = data.lints.entry(old_name) else {
         eprintln!("error: failed to find lint `{old_name}`");
@@ -125,7 +107,7 @@ pub fn rename<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, old_nam
     let Lint::Active(mut prev_lint) = mem::replace(
         lint.get_mut(),
         Lint::Renamed(RenamedLint {
-            new_name: new_name_prefixed,
+            new_name: LintName::new_clippy(new_name),
             version: cx.str_buf.alloc_display(cx.arena, clippy_version.rust_display()),
         }),
     ) else {
@@ -157,7 +139,7 @@ pub fn rename<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, old_nam
 
         rename_test_files(old_name, new_name, &create_ignored_prefixes(old_name, &data));
     } else {
-        println!("Renamed `clippy::{old_name}` to `clippy::{new_name}`");
+        println!("Renamed `{old_name}` to `{new_name}`");
         println!("Since `{new_name}` already exists the existing code has not been changed");
         return;
     }
@@ -171,7 +153,7 @@ pub fn rename<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, old_nam
     }
     generate_lint_files(UpdateMode::Change, &data);
 
-    println!("Renamed `clippy::{old_name}` to `clippy::{new_name}`");
+    println!("Renamed `{old_name}` to `{new_name}`");
     println!("All code referencing the old name has been updated");
     println!("Make sure to inspect the results as some things may have been missed");
     println!("note: `cargo uibless` still needs to be run to update the test results");
@@ -213,7 +195,8 @@ fn remove_lint_declaration(name: &str, lint: &ActiveLint<'_>, data: &LintData<'_
 ///
 /// This is needed because rustc doesn't allow a lint to be renamed to a lint that has
 /// also been renamed.
-fn update_rename_targets<'cx>(data: &mut LintData<'cx>, old_name: &str, new_name: &'cx str) {
+fn update_rename_targets<'cx>(data: &mut LintData<'cx>, old_name: &str, new_name: LintName<'cx>) {
+    let old_name = LintName::new_clippy(old_name);
     for lint in data.lints.values_mut() {
         if let Lint::Renamed(lint) = lint
             && lint.new_name == old_name
