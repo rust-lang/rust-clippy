@@ -8,32 +8,29 @@ use super::METHOD_WITHOUT_SELF_RELATION;
 
 /// Check if a type contains a reference to `Self` anywhere in its structure.
 /// This includes direct references and generic parameters.
-fn contains_self<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>, self_ty: Ty<'tcx>) -> bool {
+fn contains_self<'tcx>(ty: Ty<'tcx>, self_ty: Ty<'tcx>) -> bool {
     // Direct comparison with Self type
     if ty == self_ty {
         return true;
     }
 
     match ty.kind() {
-        // Check if this is a reference to Self
-        ty::Ref(_, inner_ty, _) => contains_self(cx, *inner_ty, self_ty),
-
-        // Check if this is a raw pointer to Self
-        ty::RawPtr(inner_ty, _) => contains_self(cx, *inner_ty, self_ty),
+        // Check if this is a reference or raw pointer to Self
+        ty::Ref(_, inner_ty, _) | ty::RawPtr(inner_ty, _) => contains_self(*inner_ty, self_ty),
 
         // Check generic types like Option<Self>, Vec<Self>, Result<Self, E>, etc.
-        ty::Adt(_, args) => args.types().any(|arg_ty| contains_self(cx, arg_ty, self_ty)),
+        ty::Adt(_, args) => args.types().any(|arg_ty| contains_self(arg_ty, self_ty)),
 
         // Check tuples like (Self, i32) or (String, Self)
-        ty::Tuple(types) => types.iter().any(|ty| contains_self(cx, ty, self_ty)),
+        ty::Tuple(types) => types.iter().any(|ty| contains_self(ty, self_ty)),
 
         // Check array types like [Self; 10]
-        ty::Array(elem_ty, _) | ty::Slice(elem_ty) => contains_self(cx, *elem_ty, self_ty),
+        ty::Array(elem_ty, _) | ty::Slice(elem_ty) => contains_self(*elem_ty, self_ty),
 
         // Check function pointer types
         ty::FnPtr(sig, _) => {
             let sig = sig.skip_binder();
-            sig.inputs().iter().any(|&ty| contains_self(cx, ty, self_ty)) || contains_self(cx, sig.output(), self_ty)
+            sig.inputs().iter().any(|&ty| contains_self(ty, self_ty)) || contains_self(sig.output(), self_ty)
         },
 
         // Check closures (uncommon but possible)
@@ -43,14 +40,14 @@ fn contains_self<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>, self_ty: Ty<'tcx>) 
                 .inputs()
                 .skip_binder()
                 .iter()
-                .any(|&ty| contains_self(cx, ty, self_ty))
-                || contains_self(cx, args.as_closure().sig().output().skip_binder(), self_ty)
+                .any(|&ty| contains_self(ty, self_ty))
+                || contains_self(args.as_closure().sig().output().skip_binder(), self_ty)
         },
 
         // Check opaque types (impl Trait, async fn return types)
         ty::Alias(ty::AliasTyKind::Opaque, alias_ty) => {
             // Check the bounds of the opaque type
-            alias_ty.args.types().any(|arg_ty| contains_self(cx, arg_ty, self_ty))
+            alias_ty.args.types().any(|arg_ty| contains_self(arg_ty, self_ty))
         },
 
         // Check trait objects (dyn Trait)
@@ -59,11 +56,11 @@ fn contains_self<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>, self_ty: Ty<'tcx>) 
             // Check if any of the trait bounds reference Self
             predicates.iter().any(|predicate| match predicate.skip_binder() {
                 ExistentialPredicate::Trait(trait_ref) => {
-                    trait_ref.args.types().any(|arg_ty| contains_self(cx, arg_ty, self_ty))
+                    trait_ref.args.types().any(|arg_ty| contains_self(arg_ty, self_ty))
                 },
                 ExistentialPredicate::Projection(projection) => {
-                    projection.args.types().any(|arg_ty| contains_self(cx, arg_ty, self_ty))
-                        || contains_self(cx, projection.term.as_type().unwrap(), self_ty)
+                    projection.args.types().any(|arg_ty| contains_self(arg_ty, self_ty))
+                        || contains_self(projection.term.as_type().unwrap(), self_ty)
                 },
                 ExistentialPredicate::AutoTrait(_) => false,
             })
@@ -85,15 +82,15 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, impl_item: &'tcx ImplItem<'_>,
         }
 
         // Check all input parameters for Self references
-        for &param_ty in method_sig.inputs().iter() {
-            if contains_self(cx, param_ty, self_ty) {
+        for &param_ty in method_sig.inputs() {
+            if contains_self(param_ty, self_ty) {
                 return;
             }
         }
 
         // Check return type for Self references
         let return_ty = method_sig.output();
-        if contains_self(cx, return_ty, self_ty) {
+        if contains_self(return_ty, self_ty) {
             return;
         }
 
