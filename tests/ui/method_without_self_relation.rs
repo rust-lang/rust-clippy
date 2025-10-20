@@ -130,6 +130,21 @@ impl Display for Calculator {
     }
 }
 
+// Test trait implementation without self parameter
+trait UtilityTrait {
+    fn process_data(x: i32, y: i32) -> i32;
+}
+
+struct UtilityImpl;
+
+impl UtilityTrait for UtilityImpl {
+    // Should NOT trigger - this is a trait implementation
+    // Even though it has no Self relation, it's required by the trait
+    fn process_data(x: i32, y: i32) -> i32 {
+        x + y
+    }
+}
+
 // Test with generic type
 struct Container<T> {
     value: T,

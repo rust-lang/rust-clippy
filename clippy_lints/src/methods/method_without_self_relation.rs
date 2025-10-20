@@ -70,8 +70,18 @@ fn contains_self<'tcx>(ty: Ty<'tcx>, self_ty: Ty<'tcx>) -> bool {
     }
 }
 
-pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, impl_item: &'tcx ImplItem<'_>, self_ty: Ty<'tcx>) {
+pub(super) fn check<'tcx>(
+    cx: &LateContext<'tcx>,
+    impl_item: &'tcx ImplItem<'_>,
+    self_ty: Ty<'tcx>,
+    implements_trait: bool,
+) {
     if let ImplItemKind::Fn(ref sig, _) = impl_item.kind {
+        // Don't lint trait implementations - these methods are defined by the trait
+        if implements_trait {
+            return;
+        }
+
         // Get the method signature from the type system
         let method_sig = cx.tcx.fn_sig(impl_item.owner_id).instantiate_identity();
         let method_sig = method_sig.skip_binder();

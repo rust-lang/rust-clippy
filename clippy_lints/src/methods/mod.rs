@@ -5085,7 +5085,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
             }
 
             new_ret_no_self::check_impl_item(cx, impl_item, self_ty, implements_trait);
-            method_without_self_relation::check(cx, impl_item, self_ty);
+            method_without_self_relation::check(cx, impl_item, self_ty, implements_trait);
         }
     }
 
