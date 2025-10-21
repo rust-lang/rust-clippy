@@ -9,16 +9,11 @@ use core::ops::ControlFlow;
 use rustc_hir as hir;
 use rustc_hir::LangItem::{OptionNone, OptionSome};
 use rustc_lint::LateContext;
-use rustc_span::Symbol;
+use std::fmt::Display;
 
 use super::{UNNECESSARY_FILTER_MAP, UNNECESSARY_FIND_MAP};
 
-pub(super) fn check<'tcx>(
-    cx: &LateContext<'tcx>,
-    expr: &'tcx hir::Expr<'tcx>,
-    arg: &'tcx hir::Expr<'tcx>,
-    name: Symbol,
-) {
+pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'tcx>, arg: &'tcx hir::Expr<'tcx>, kind: Kind) {
     if !cx.ty_based_def(expr).opt_parent(cx).is_diag_item(cx, sym::Iterator) {
         return;
     }
@@ -44,7 +39,7 @@ pub(super) fn check<'tcx>(
         let in_ty = cx.typeck_results().node_type(body.params[0].hir_id);
         let sugg = if !found_filtering {
             // Check if the closure is .filter_map(|x| Some(x))
-            if name == sym::filter_map
+            if kind.is_filter_map()
                 && let hir::ExprKind::Call(expr, [arg]) = body.value.kind
                 && expr.res(cx).ctor_parent(cx).is_lang_item(cx, OptionSome)
                 && let hir::ExprKind::Path(_) = arg.kind
@@ -57,18 +52,16 @@ pub(super) fn check<'tcx>(
                 );
                 return;
             }
-            if name == sym::filter_map {
-                "map(..)"
-            } else {
-                "map(..).next()"
+            match kind {
+                Kind::FilterMap => "map(..)",
+                Kind::FindMap => "map(..).next()",
             }
         } else if !found_mapping && !mutates_arg && (!clone_or_copy_needed || is_copy(cx, in_ty)) {
             let ty = cx.typeck_results().expr_ty(body.value);
             if option_arg_ty(cx, ty).is_some_and(|t| t == in_ty) {
-                if name == sym::filter_map {
-                    "filter(..)"
-                } else {
-                    "find(..)"
+                match kind {
+                    Kind::FilterMap => "filter(..)",
+                    Kind::FindMap => "find(..)",
                 }
             } else {
                 return;
@@ -78,14 +71,34 @@ pub(super) fn check<'tcx>(
         };
         span_lint(
             cx,
-            if name == sym::filter_map {
-                UNNECESSARY_FILTER_MAP
-            } else {
-                UNNECESSARY_FIND_MAP
+            match kind {
+                Kind::FilterMap => UNNECESSARY_FILTER_MAP,
+                Kind::FindMap => UNNECESSARY_FIND_MAP,
             },
             expr.span,
-            format!("this `.{name}(..)` can be written more simply using `.{sugg}`"),
+            format!("this `.{kind}(..)` can be written more simply using `.{sugg}`"),
         );
+    }
+}
+
+#[derive(Clone, Copy)]
+pub(super) enum Kind {
+    FilterMap,
+    FindMap,
+}
+
+impl Kind {
+    fn is_filter_map(self) -> bool {
+        matches!(self, Self::FilterMap)
+    }
+}
+
+impl Display for Kind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::FilterMap => f.write_str("filter_map"),
+            Self::FindMap => f.write_str("find_map"),
+        }
     }
 }
 
