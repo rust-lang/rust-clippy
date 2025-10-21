@@ -1,0 +1,32 @@
+[package]
+name = "workspace_dependencies"
+version = "0.1.0"
+publish = false
+edition = "2021"
+
+[workspace]
+members = []
+
+[workspace.dependencies]
+serde = "1.0"
+tokio = { version = "1.0", features = ["full"] }
+regex = "1.5"
+log = "0.4"
+
+[dependencies]
+# Good: using workspace = true
+serde = { workspace = true }
+# Good: using workspace = true with additional features
+tokio = { workspace = true, features = ["rt"] }
+# Good: dependency not in workspace can have inline version
+rand = "0.8"
+
+[dev-dependencies]
+# Good: using workspace = true
+regex = { workspace = true }
+# Good: dependency not in workspace
+criterion = "0.5"
+
+[build-dependencies]
+# Good: using workspace = true
+log = { workspace = true }

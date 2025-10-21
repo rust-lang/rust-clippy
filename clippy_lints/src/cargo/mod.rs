@@ -3,6 +3,7 @@ mod feature_name;
 mod lint_groups_priority;
 mod multiple_crate_versions;
 mod wildcard_dependencies;
+mod workspace_dependencies;
 
 use cargo_metadata::MetadataCommand;
 use clippy_config::Conf;
@@ -213,6 +214,46 @@ declare_clippy_lint! {
     "a lint group in `Cargo.toml` at the same priority as a lint"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks that dependencies defined in `[workspace.dependencies]` are used with
+    /// `workspace = true` in package dependency declarations instead of specifying
+    /// version, git, or path information directly.
+    ///
+    /// ### Why is this bad?
+    /// When using workspace dependencies, all version information should be centralized
+    /// in the workspace's `Cargo.toml` to ensure consistency across all crates in the
+    /// workspace. Specifying version information in individual packages defeats this
+    /// purpose and can lead to version mismatches.
+    ///
+    /// ### Example
+    /// ```toml
+    /// # In workspace Cargo.toml
+    /// [workspace.dependencies]
+    /// serde = "1.0"
+    ///
+    /// # In package Cargo.toml (bad)
+    /// [dependencies]
+    /// serde = "1.0"
+    /// ```
+    /// Use instead:
+    /// ```toml
+    /// # In workspace Cargo.toml
+    /// [workspace.dependencies]
+    /// serde = "1.0"
+    ///
+    /// # In package Cargo.toml (good)
+    /// [dependencies]
+    /// serde = { workspace = true }
+    /// # or with features
+    /// serde = { workspace = true, features = ["derive"] }
+    /// ```
+    #[clippy::version = "1.84.0"]
+    pub WORKSPACE_DEPENDENCIES,
+    cargo,
+    "dependencies defined in workspace should use `workspace = true`"
+}
+
 pub struct Cargo {
     allowed_duplicate_crates: FxHashSet<String>,
     ignore_publish: bool,
@@ -225,6 +266,7 @@ impl_lint_pass!(Cargo => [
     MULTIPLE_CRATE_VERSIONS,
     WILDCARD_DEPENDENCIES,
     LINT_GROUPS_PRIORITY,
+    WORKSPACE_DEPENDENCIES,
 ]);
 
 impl Cargo {
@@ -247,6 +289,7 @@ impl LateLintPass<'_> for Cargo {
         static WITH_DEPS_LINTS: &[&Lint] = &[MULTIPLE_CRATE_VERSIONS];
 
         lint_groups_priority::check(cx);
+        workspace_dependencies::check(cx);
 
         if !NO_DEPS_LINTS
             .iter()

@@ -1,0 +1,27 @@
+[package]
+name = "workspace_dependencies"
+version = "0.1.0"
+publish = false
+edition = "2021"
+
+[workspace]
+members = []
+
+[workspace.dependencies]
+serde = "1.0"
+tokio = { version = "1.0", features = ["full"] }
+regex = "1.5"
+
+[dependencies]
+# Bad: specifying version directly when workspace has it
+serde = "1.0"
+# Bad: using table form with version
+tokio = { version = "1.0", features = ["rt"] }
+
+[dev-dependencies]
+# Bad: dev-dependency with inline version
+regex = "1.5"
+
+[build-dependencies]
+# Bad: build-dependency with inline version
+serde = "1.0"
