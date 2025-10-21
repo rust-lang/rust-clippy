@@ -2,14 +2,13 @@ use super::utils::clone_or_copy_needed;
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::res::{MaybeDef, MaybeQPath, MaybeResPath, MaybeTypeckRes};
 use clippy_utils::sym;
-use clippy_utils::ty::is_copy;
+use clippy_utils::ty::{is_copy, option_arg_ty};
 use clippy_utils::usage::mutated_variables;
 use clippy_utils::visitors::{Descend, for_each_expr_without_closures};
 use core::ops::ControlFlow;
 use rustc_hir as hir;
 use rustc_hir::LangItem::{OptionNone, OptionSome};
 use rustc_lint::LateContext;
-use rustc_middle::ty;
 use rustc_span::Symbol;
 
 use super::{UNNECESSARY_FILTER_MAP, UNNECESSARY_FIND_MAP};
@@ -46,9 +45,9 @@ pub(super) fn check<'tcx>(
         let sugg = if !found_filtering {
             // Check if the closure is .filter_map(|x| Some(x))
             if name == sym::filter_map
-                && let hir::ExprKind::Call(expr, args) = body.value.kind
+                && let hir::ExprKind::Call(expr, [arg]) = body.value.kind
                 && expr.res(cx).ctor_parent(cx).is_lang_item(cx, OptionSome)
-                && let hir::ExprKind::Path(_) = args[0].kind
+                && let hir::ExprKind::Path(_) = arg.kind
             {
                 span_lint(
                     cx,
@@ -64,17 +63,15 @@ pub(super) fn check<'tcx>(
                 "map(..).next()"
             }
         } else if !found_mapping && !mutates_arg && (!clone_or_copy_needed || is_copy(cx, in_ty)) {
-            match cx.typeck_results().expr_ty(body.value).kind() {
-                ty::Adt(adt, subst)
-                    if cx.tcx.is_diagnostic_item(sym::Option, adt.did()) && in_ty == subst.type_at(0) =>
-                {
-                    if name == sym::filter_map {
-                        "filter(..)"
-                    } else {
-                        "find(..)"
-                    }
-                },
-                _ => return,
+            let ty = cx.typeck_results().expr_ty(body.value);
+            if option_arg_ty(cx, ty).is_some_and(|t| t == in_ty) {
+                if name == sym::filter_map {
+                    "filter(..)"
+                } else {
+                    "find(..)"
+                }
+            } else {
+                return;
             }
         } else {
             return;
@@ -95,11 +92,22 @@ pub(super) fn check<'tcx>(
 // returns (found_mapping, found_filtering)
 fn check_expression<'tcx>(cx: &LateContext<'tcx>, arg_id: hir::HirId, expr: &'tcx hir::Expr<'_>) -> (bool, bool) {
     match expr.kind {
+        hir::ExprKind::Path(ref path)
+            if cx
+                .qpath_res(path, expr.hir_id)
+                .ctor_parent(cx)
+                .is_lang_item(cx, OptionNone) =>
+        {
+            // None
+            (false, true)
+        },
         hir::ExprKind::Call(func, args) => {
             if func.res(cx).ctor_parent(cx).is_lang_item(cx, OptionSome) {
                 if args[0].res_local_id() == Some(arg_id) {
+                    // Some(arg_id)
                     return (false, false);
                 }
+                // Some(not arg_id)
                 return (true, false);
             }
             (true, true)
@@ -109,8 +117,10 @@ fn check_expression<'tcx>(cx: &LateContext<'tcx>, arg_id: hir::HirId, expr: &'tc
                 && cx.typeck_results().expr_ty(recv).is_bool()
                 && arg.res_local_id() == Some(arg_id)
             {
+                // bool.then_some(arg_id)
                 (false, true)
             } else {
+                // bool.then_some(not arg_id)
                 (true, true)
             }
         },
@@ -133,14 +143,6 @@ fn check_expression<'tcx>(cx: &LateContext<'tcx>, arg_id: hir::HirId, expr: &'tc
             let if_check = check_expression(cx, arg_id, if_arm);
             let else_check = check_expression(cx, arg_id, else_arm);
             (if_check.0 | else_check.0, if_check.1 | else_check.1)
-        },
-        hir::ExprKind::Path(ref path)
-            if cx
-                .qpath_res(path, expr.hir_id)
-                .ctor_parent(cx)
-                .is_lang_item(cx, OptionNone) =>
-        {
-            (false, true)
         },
         _ => (true, true),
     }
