@@ -4057,7 +4057,7 @@ const ALLOWED_ERROR_VEHICLE_LENGTH_CM: f64 = 0.1;
 let within_tolerance = (x - y).abs() &lt; ALLOWED_ERROR_VEHICLE_LENGTH_CM;
 println!("{within_tolerance}"); // true
 </code></pre>
-<p>NB! Do not use <code>f64::EPSILON</code> - while the error margin is often called “epsilon”, this is
+<p>NOTE: Do not use <code>f64::EPSILON</code> - while the error margin is often called “epsilon”, this is
 a different use of the term that is not suitable for floating point equality comparison.
 Indeed, for the example above using <code>f64::EPSILON</code> as the allowed error would return <code>false</code>.</p>
 <p>For the scenario where no meaningful absolute error can be defined, refer to
@@ -4105,7 +4105,7 @@ const ALLOWED_ERROR_VEHICLE_LENGTH_CM: f64 = 0.1;
 let within_tolerance = (x - Y).abs() &lt; ALLOWED_ERROR_VEHICLE_LENGTH_CM;
 println!("{within_tolerance}"); // true
 </code></pre>
-<p>NB! Do not use <code>f64::EPSILON</code> - while the error margin is often called “epsilon”, this is
+<p>NOTE: Do not use <code>f64::EPSILON</code> - while the error margin is often called “epsilon”, this is
 a different use of the term that is not suitable for floating point equality comparison.
 Indeed, for the example above using <code>f64::EPSILON</code> as the allowed error would return <code>false</code>.</p>
 <p>For the scenario where no meaningful absolute error can be defined, refer to
@@ -4115,7 +4115,7 @@ for a reference implementation of relative error based comparison of floating po
 </div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">HasPlaceholders</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">pre 1.29.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+float_cmp_const">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/operators/mod.rs#L634">View Source</a></div></div></div></article><article id="float_equality_without_abs"><input id="label-float_equality_without_abs" type="checkbox"><label for="label-float_equality_without_abs"><h2 class="lint-title"><div class="panel-title-name" id="lint-float_equality_without_abs">float_equality_without_abs
 <a href="#float_equality_without_abs" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-suspicious">suspicious</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for statements of the form <code>(a - b) &lt; f32::EPSILON</code> or
-<code>(a - b) &lt; f64::EPSILON</code>. Notes the missing <code>.abs()</code>.</p>
+<code>(a - b) &lt; f64::EPSILON</code>. Note the missing <code>.abs()</code>.</p>
 <h3>Why is this bad?</h3>
 <p>The code without <code>.abs()</code> is more likely to have a bug.</p>
 <h3>Known problems</h3>
