@@ -35,6 +35,8 @@ declare_tool_lint! {
 }
 declare_lint_pass!(RepeatedIsDiagnosticItem => [REPEATED_IS_DIAGNOSTIC_ITEM]);
 
+const NOTE: &str = "each call performs the same compiler query -- it's faster to query once, and reuse the results";
+
 impl LateLintPass<'_> for RepeatedIsDiagnosticItem {
     #[expect(clippy::too_many_lines)]
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {
@@ -57,7 +59,7 @@ impl LateLintPass<'_> for RepeatedIsDiagnosticItem {
                         expr.span,
                         format!("repeated calls to `{recv_ty}::is_diag_item`"),
                         |diag| {
-                            diag.note("this calls `TyCtxt::is_diagnostic_item` internally, which is expensive");
+                            diag.note(NOTE);
 
                             let mut app = Applicability::MachineApplicable;
                             let cx_str = snippet_with_applicability(cx, cx1.span, "_", &mut app);
@@ -87,7 +89,7 @@ impl LateLintPass<'_> for RepeatedIsDiagnosticItem {
                         expr.span,
                         "repeated calls to `TyCtxt::is_diagnostic_item`",
                         |diag| {
-                            diag.note("this calls an expensive compiler query");
+                            diag.note(NOTE);
 
                             let mut app = Applicability::MachineApplicable;
                             let tcx = snippet_with_applicability(cx, tcx1.span, "_", &mut app);
@@ -127,7 +129,7 @@ impl LateLintPass<'_> for RepeatedIsDiagnosticItem {
                         expr.span,
                         format!("repeated calls to `{recv_ty}::is_diag_item`"),
                         |diag| {
-                            diag.note("this calls `TyCtxt::is_diagnostic_item` internally, which is expensive");
+                            diag.note(NOTE);
 
                             let mut app = Applicability::MachineApplicable;
                             let cx_str = snippet_with_applicability(cx, cx1.span, "_", &mut app);
@@ -157,7 +159,7 @@ impl LateLintPass<'_> for RepeatedIsDiagnosticItem {
                         expr.span,
                         "repeated calls to `TyCtxt::is_diagnostic_item`",
                         |diag| {
-                            diag.note("this calls an expensive compiler query");
+                            diag.note(NOTE);
 
                             let mut app = Applicability::MachineApplicable;
                             let tcx = snippet_with_applicability(cx, tcx1.span, "_", &mut app);
