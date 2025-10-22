@@ -83,5 +83,47 @@ LL -     };
 LL +     let _ = (!S).as_ref();
    |
 
-error: aborting due to 4 previous errors
+error: manual implementation of `Option::as_mut`
+  --> tests/ui/match_as_ref.rs:105:27
+   |
+LL |       let _: Option<&i32> = match Some(0) {
+   |  ___________________________^
+LL | |
+LL | |         None => None,
+LL | |         Some(ref mut v) => Some(v),
+LL | |     };
+   | |_____^
+   |
+help: use `Option::as_mut()` directly
+   |
+LL -     let _: Option<&i32> = match Some(0) {
+LL -
+LL -         None => None,
+LL -         Some(ref mut v) => Some(v),
+LL -     };
+LL +     let _: Option<&i32> = Some(0).as_mut().map(|x| x as _);
+   |
+
+error: manual implementation of `Option::as_mut`
+  --> tests/ui/match_as_ref.rs:111:43
+   |
+LL |       let _: Option<&dyn std::fmt::Debug> = match Some(0) {
+   |  ___________________________________________^
+LL | |
+LL | |         None => None,
+LL | |         Some(ref mut v) => Some(v),
+LL | |     };
+   | |_____^
+   |
+help: use `Option::as_mut()` directly
+   |
+LL -     let _: Option<&dyn std::fmt::Debug> = match Some(0) {
+LL -
+LL -         None => None,
+LL -         Some(ref mut v) => Some(v),
+LL -     };
+LL +     let _: Option<&dyn std::fmt::Debug> = Some(0).as_mut().map(|x| x as _);
+   |
+
+error: aborting due to 6 previous errors
 

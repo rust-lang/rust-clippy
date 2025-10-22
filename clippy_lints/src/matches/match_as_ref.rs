@@ -25,14 +25,35 @@ pub(crate) fn check(cx: &LateContext<'_>, ex: &Expr<'_>, arms: &[Arm<'_>], expr:
         && let input_ty = cx.typeck_results().expr_ty(ex)
         && let Some(input_ty) = option_arg_ty(cx, input_ty)
         && let Some(output_ty) = option_arg_ty(cx, output_ty)
-        && let ty::Ref(_, output_ty, _) = *output_ty.kind()
+        && let ty::Ref(_, output_ty, output_mutbl) = *output_ty.kind()
     {
         let method = match arm_ref_mutbl {
             Mutability::Not => "as_ref",
             Mutability::Mut => "as_mut",
         };
 
-        let cast = if input_ty == output_ty { "" } else { ".map(|x| x as _)" };
+        let cast = if arm_ref_mutbl != output_mutbl || input_ty != output_ty {
+            // We'll need to downcast either the type (`&i32 as &dyn std::fmt::Debug`):
+            // ```
+            // let _: Option<&dyn std::fmt::Debug> = match 0i32 {
+            //     Some(ref t) => Some(t),
+            //     None => None,
+            // };
+            // ```
+            // or the reference (`&mut i32 as &i32`)
+            // ```
+            // let _: Option<&i32> = match 0i32 {
+            //     Some(ref mut t) => Some(t),
+            //     None => None,
+            // };
+            // ```
+            // or both.
+            //
+            // `.map` will take care of all of it.
+            ".map(|x| x as _)"
+        } else {
+            ""
+        };
 
         let mut applicability = Applicability::MachineApplicable;
         span_lint_and_then(
