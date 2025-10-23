@@ -3110,8 +3110,31 @@ impl Drop for S {
 <p>Use instead:</p>
 <pre><code class="language-rust">struct S;
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.62.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+empty_drop">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/empty_drop.rs#L8">View Source</a></div></div></div></article><article id="empty_enum"><input id="label-empty_enum" type="checkbox"><label for="label-empty_enum"><h2 class="lint-title"><div class="panel-title-name" id="lint-empty_enum">empty_enum
-<a href="#empty_enum" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.62.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+empty_drop">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/empty_drop.rs#L8">View Source</a></div></div></div></article><article id="empty_enum_variants_with_brackets"><input id="label-empty_enum_variants_with_brackets" type="checkbox"><label for="label-empty_enum_variants_with_brackets"><h2 class="lint-title"><div class="panel-title-name" id="lint-empty_enum_variants_with_brackets">empty_enum_variants_with_brackets
+<a href="#empty_enum_variants_with_brackets" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-restriction">restriction</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
+<p>Finds enum variants without fields that are declared with empty brackets.</p>
+<h3>Why restrict this?</h3>
+<p>Empty brackets after a enum variant declaration are redundant and can be omitted,
+and it may be desirable to do so consistently for style.</p>
+<p>However, removing the brackets also introduces a public constant named after the variant,
+so this is not just a syntactic simplification but an API change, and adding them back
+is a <em>breaking</em> API change.</p>
+<h3>Example</h3>
+<pre><code class="language-rust">enum MyEnum {
+    HasData(u8),
+    HasNoData(),       // redundant parentheses
+    NoneHereEither {}, // redundant braces
+}
+</code></pre>
+<p>Use instead:</p>
+<pre><code class="language-rust">enum MyEnum {
+    HasData(u8),
+    HasNoData,
+    NoneHereEither,
+}
+</code></pre>
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.77.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+empty_enum_variants_with_brackets">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/empty_with_brackets.rs#L43">View Source</a></div></div></div></article><article id="empty_enums"><input id="label-empty_enums" type="checkbox"><label for="label-empty_enums"><h2 class="lint-title"><div class="panel-title-name" id="lint-empty_enums">empty_enums
+<a href="#empty_enums" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for <code>enum</code>s with no variants, which therefore are uninhabited types
 (cannot be instantiated).</p>
 <p>As of this writing, the <code>never_type</code> is still a nightly-only experimental API.
@@ -3147,30 +3170,11 @@ type CannotExist = !;
 /// ...or define a newtype which is distinct.
 struct CannotExist2(pub !);
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">pre 1.29.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+empty_enum">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/empty_enum.rs#L7">View Source</a></div></div></div></article><article id="empty_enum_variants_with_brackets"><input id="label-empty_enum_variants_with_brackets" type="checkbox"><label for="label-empty_enum_variants_with_brackets"><h2 class="lint-title"><div class="panel-title-name" id="lint-empty_enum_variants_with_brackets">empty_enum_variants_with_brackets
-<a href="#empty_enum_variants_with_brackets" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-restriction">restriction</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
-<p>Finds enum variants without fields that are declared with empty brackets.</p>
-<h3>Why restrict this?</h3>
-<p>Empty brackets after a enum variant declaration are redundant and can be omitted,
-and it may be desirable to do so consistently for style.</p>
-<p>However, removing the brackets also introduces a public constant named after the variant,
-so this is not just a syntactic simplification but an API change, and adding them back
-is a <em>breaking</em> API change.</p>
-<h3>Example</h3>
-<pre><code class="language-rust">enum MyEnum {
-    HasData(u8),
-    HasNoData(),       // redundant parentheses
-    NoneHereEither {}, // redundant braces
-}
-</code></pre>
-<p>Use instead:</p>
-<pre><code class="language-rust">enum MyEnum {
-    HasData(u8),
-    HasNoData,
-    NoneHereEither,
-}
-</code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.77.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+empty_enum_variants_with_brackets">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/empty_with_brackets.rs#L43">View Source</a></div></div></div></article><article id="empty_line_after_doc_comments"><input id="label-empty_line_after_doc_comments" type="checkbox"><label for="label-empty_line_after_doc_comments"><h2 class="lint-title"><div class="panel-title-name" id="lint-empty_line_after_doc_comments">empty_line_after_doc_comments
+<h3>Past names</h3>
+<ul>
+<li>empty_enum</li>
+</ul>
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">pre 1.29.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+empty_enums">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/empty_enums.rs#L7">View Source</a></div></div></div></article><article id="empty_line_after_doc_comments"><input id="label-empty_line_after_doc_comments" type="checkbox"><label for="label-empty_line_after_doc_comments"><h2 class="lint-title"><div class="panel-title-name" id="lint-empty_line_after_doc_comments">empty_line_after_doc_comments
 <a href="#empty_line_after_doc_comments" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-suspicious">suspicious</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for empty lines after doc comments.</p>
 <h3>Why is this bad?</h3>
