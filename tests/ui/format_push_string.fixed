@@ -1,11 +1,12 @@
 #![warn(clippy::format_push_string)]
 
+use std::fmt::Write as _;
 fn main() {
     let mut string = String::new();
-    string += &format!("{:?}", 1234);
+    let _ = write!(string, "{:?}", 1234);
     //~^ format_push_string
 
-    string.push_str(&format!("{:?}", 5678));
+    let _ = write!(string, "{:?}", 5678);
     //~^ format_push_string
 
     macro_rules! string {
@@ -13,108 +14,117 @@ fn main() {
             String::new()
         };
     }
-    string!().push_str(&format!("{:?}", 5678));
+    let _ = write!(string!(), "{:?}", 5678);
     //~^ format_push_string
 }
 
 mod import_write {
     mod push_str {
         mod not_imported {
+            use std::fmt::Write as _;
             fn main(string: &mut String) {
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
         }
 
         mod imported_anonymously {
+            use std::fmt::Write as _;
             fn main(string: &mut String) {
                 use std::fmt::Write as _;
 
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
         }
 
         mod imported {
+            use std::fmt::Write as _;
             fn main(string: &mut String) {
                 use std::fmt::Write;
 
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
         }
 
         mod imported_anonymously_in_module {
             use std::fmt::Write as _;
+            use std::fmt::Write as _;
 
             fn main(string: &mut String) {
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
         }
 
         mod imported_in_module {
+            use std::fmt::Write as _;
             use std::fmt::Write;
 
             fn main(string: &mut String) {
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
         }
 
         // make sure that we won't import for the second time
         mod not_imported_and_not_imported {
+            use std::fmt::Write as _;
             fn foo(string: &mut String) {
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
 
             fn bar(string: &mut String) {
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
         }
 
         mod not_imported_and_imported {
+            use std::fmt::Write as _;
             fn foo(string: &mut String) {
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
 
             fn bar(string: &mut String) {
                 use std::fmt::Write;
 
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
         }
 
         mod imported_and_not_imported {
+            use std::fmt::Write as _;
             fn foo(string: &mut String) {
                 use std::fmt::Write;
 
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
 
             fn bar(string: &mut String) {
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
         }
 
         mod imported_and_imported {
+            use std::fmt::Write as _;
             fn foo(string: &mut String) {
                 use std::fmt::Write;
 
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
 
             fn bar(string: &mut String) {
                 use std::fmt::Write;
 
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
         }
@@ -122,101 +132,110 @@ mod import_write {
 
     mod add_assign {
         mod not_imported {
+            use std::fmt::Write as _;
             fn main(string: &mut String) {
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
         }
 
         mod imported_anonymously {
+            use std::fmt::Write as _;
             fn main(string: &mut String) {
                 use std::fmt::Write as _;
 
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
         }
 
         mod imported {
+            use std::fmt::Write as _;
             fn main(string: &mut String) {
                 use std::fmt::Write;
 
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
         }
 
         mod imported_anonymously_in_module {
             use std::fmt::Write as _;
+            use std::fmt::Write as _;
 
             fn main(string: &mut String) {
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
         }
 
         mod imported_in_module {
+            use std::fmt::Write as _;
             use std::fmt::Write;
 
             fn main(string: &mut String) {
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
         }
 
         // make sure that we won't import for the second time
         mod not_imported_and_not_imported {
+            use std::fmt::Write as _;
             fn foo(string: &mut String) {
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
 
             fn bar(string: &mut String) {
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
         }
 
         mod not_imported_and_imported {
+            use std::fmt::Write as _;
             fn foo(string: &mut String) {
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
 
             fn bar(string: &mut String) {
                 use std::fmt::Write;
 
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
         }
 
         mod imported_and_not_imported {
+            use std::fmt::Write as _;
             fn foo(string: &mut String) {
                 use std::fmt::Write;
 
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
 
             fn bar(string: &mut String) {
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
         }
 
         mod imported_and_imported {
+            use std::fmt::Write as _;
             fn foo(string: &mut String) {
                 use std::fmt::Write;
 
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
 
             fn bar(string: &mut String) {
                 use std::fmt::Write;
 
-                string.push_str(&format!("{:?}", 1234));
+                let _ = write!(string, "{:?}", 1234);
                 //~^ format_push_string
             }
         }
