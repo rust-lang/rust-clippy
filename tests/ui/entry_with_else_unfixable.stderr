@@ -1,0 +1,17 @@
+error: usage of `contains_key` followed by `insert` on a `HashMap`
+  --> tests/ui/entry_with_else_unfixable.rs:10:5
+   |
+LL | /     if m.contains_key(&k) {
+LL | |
+LL | |         if true { m.insert(k, v) } else { m.insert(k, v2) }
+LL | |     } else {
+LL | |         m.insert(k, v)
+LL | |     };
+   | |_____^
+   |
+   = help: consider using the `Entry` API: https://doc.rust-lang.org/std/collections/struct.HashMap.html#entry-api
+   = note: `-D clippy::map-entry` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::map_entry)]`
+
+error: aborting due to 1 previous error
+
