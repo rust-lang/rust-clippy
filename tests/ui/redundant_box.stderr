@@ -1,0 +1,65 @@
+error: TODO: lint msg
+  --> tests/ui/redundant_box.rs:12:21
+   |
+LL |     let redundant = Box::new(&the_slice);
+   |                     ^^^^^^^^^^^^^^^^^^^^ help: Remove Box: `&the_slice`
+   |
+   = note: `-D clippy::redundant-box` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::redundant_box)]`
+
+error: TODO: lint msg
+  --> tests/ui/redundant_box.rs:29:21
+   |
+LL |     let redundant = Box::new(&the_wide_int);
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^ help: Remove Box: `&the_wide_int`
+
+error: TODO: lint msg
+  --> tests/ui/redundant_box.rs:38:25
+   |
+LL |     fn fun<T>(t: &T) -> Box<&T> {
+   |                         ^^^^^^^ help: Remove Box: `&T`
+
+error: TODO: lint msg
+  --> tests/ui/redundant_box.rs:40:9
+   |
+LL |         Box::new(t)
+   |         ^^^^^^^^^^^ help: Remove Box: `t`
+
+error: TODO: lint msg
+  --> tests/ui/redundant_box.rs:45:21
+   |
+LL |     let redundant = fun(&thin);
+   |                     ^^^^^^^^^^ help: Remove Box: `&thin`
+
+error: TODO: lint msg
+  --> tests/ui/redundant_box.rs:61:21
+   |
+LL |     let redundant = Box::new(1u16);
+   |                     ^^^^^^^^^^^^^^ help: Remove Box: `1u16`
+
+error: TODO: lint msg
+  --> tests/ui/redundant_box.rs:67:21
+   |
+LL |     let redundant = Box::new(&the_val);
+   |                     ^^^^^^^^^^^^^^^^^^ help: Remove Box: `&the_val`
+
+error: TODO: lint msg
+  --> tests/ui/redundant_box.rs:73:21
+   |
+LL |     let redundant = Box::new(&a);
+   |                     ^^^^^^^^^^^^ help: Remove Box: `&a`
+
+error: TODO: lint msg
+  --> tests/ui/redundant_box.rs:79:21
+   |
+LL |     let redundant = Box::new(&a);
+   |                     ^^^^^^^^^^^^ help: Remove Box: `&a`
+
+error: TODO: lint msg
+  --> tests/ui/redundant_box.rs:81:20
+   |
+LL |     let redundant: Box<&u32> = redundant;
+   |                    ^^^^^^^^^ help: Remove Box: `&u32`
+
+error: aborting due to 10 previous errors
+
