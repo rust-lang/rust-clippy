@@ -24,11 +24,15 @@ struct GenericParam<T> {
     t: T,
 }
 
+#[derive(Clone, Copy)]
+struct Ptr(*const u32);
 fn transmute_ptr_to_ptr() {
     let ptr = &1u32 as *const u32;
     let mut_ptr = &mut 1u32 as *mut u32;
     unsafe {
         // pointer-to-pointer transmutes; bad
+        let _: *const f32 = Ptr(ptr).0.cast::<f32>();
+        //~^ transmute_ptr_to_ptr
         let _: *const f32 = ptr.cast::<f32>();
         //~^ transmute_ptr_to_ptr
 
@@ -59,6 +63,8 @@ fn transmute_ptr_to_ptr() {
 
         let _: *mut u32 = ptr.cast_mut();
         //~^ transmute_ptr_to_ptr
+        let _: *mut u32 = Ptr(ptr).0.cast_mut();
+        //~^ transmute_ptr_to_ptr
     }
 
     // transmute internal lifetimes, should not lint
@@ -81,9 +87,13 @@ const _: &() = {
     unsafe { transmute::<&'static Zst, &'static ()>(zst) }
 };
 
+#[derive(Clone, Copy)]
+struct Ptr8(*const u8);
 #[clippy::msrv = "1.37"]
 fn msrv_1_37(ptr: *const u8) {
     unsafe {
+        let _: *const i8 = Ptr8(ptr).0 as *const i8;
+        //~^ transmute_ptr_to_ptr
         let _: *const i8 = ptr as *const i8;
         //~^ transmute_ptr_to_ptr
     }
