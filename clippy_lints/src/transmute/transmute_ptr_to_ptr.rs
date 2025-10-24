@@ -14,7 +14,7 @@ pub(super) fn check<'tcx>(
     e: &'tcx Expr<'_>,
     from_ty: Ty<'tcx>,
     to_ty: Ty<'tcx>,
-    arg: &'tcx Expr<'_>,
+    arg: Option<sugg::Sugg<'_>>,
     msrv: Msrv,
 ) -> bool {
     match (from_ty.kind(), to_ty.kind()) {
@@ -25,7 +25,7 @@ pub(super) fn check<'tcx>(
                 e.span,
                 "transmute from a pointer to a pointer",
                 |diag| {
-                    if let Some(arg) = sugg::Sugg::hir_opt(cx, arg) {
+                    if let Some(arg) = arg {
                         if from_mutbl == to_mutbl
                             && to_pointee_ty.is_sized(cx.tcx, cx.typing_env())
                             && msrv.meets(cx, msrvs::POINTER_CAST)
