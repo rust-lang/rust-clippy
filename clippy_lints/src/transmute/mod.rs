@@ -16,10 +16,11 @@ mod utils;
 mod wrong_transmute;
 
 use clippy_config::Conf;
-use clippy_utils::is_in_const_context;
 use clippy_utils::msrvs::Msrv;
+use clippy_utils::{is_in_const_context, sugg};
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::ty::{self, Ty};
 use rustc_session::impl_lint_pass;
 use rustc_span::symbol::sym;
 
@@ -465,6 +466,29 @@ declare_clippy_lint! {
     "warns if a transmute call doesn't have all generics specified"
 }
 
+/// When transmuting, a struct containing a single field works like the field.
+/// This function extracts the field type and the expression to get the field.
+fn extract_struct_field<'tcx>(
+    cx: &LateContext<'tcx>,
+    outer_type: Ty<'tcx>,
+    outer: &'tcx Expr<'tcx>,
+) -> (Ty<'tcx>, Option<sugg::Sugg<'tcx>>) {
+    let outer = sugg::Sugg::hir_opt(cx, outer);
+    if let ty::Adt(struct_def, struct_args) = *outer_type.kind()
+        && struct_def.is_struct()
+        && let mut fields = struct_def.all_fields()
+        && let Some(first) = fields.next()
+        && fields.next().is_none()
+    {
+        (
+            first.ty(cx.tcx, struct_args),
+            outer.map(|outer| sugg::Sugg::NonParen(format!("{}.{}", outer.maybe_paren(), first.name).into())),
+        )
+    } else {
+        (outer_type, outer)
+    }
+}
+
 pub struct Transmute {
     msrv: Msrv,
 }
@@ -515,11 +539,14 @@ impl<'tcx> LateLintPass<'tcx> for Transmute {
                 return;
             }
 
+            // A struct having a single pointer can be treated like a pointer.
+            let (from_field_ty, from_field_expr) = extract_struct_field(cx, from_ty, arg);
+
             let linted = wrong_transmute::check(cx, e, from_ty, to_ty)
                 | crosspointer_transmute::check(cx, e, from_ty, to_ty)
                 | transmuting_null::check(cx, e, arg, to_ty)
                 | transmute_null_to_fn::check(cx, e, arg, to_ty)
-                | transmute_ptr_to_ref::check(cx, e, from_ty, to_ty, arg, path, self.msrv)
+                | transmute_ptr_to_ref::check(cx, e, from_field_ty, to_ty, from_field_expr.clone(), path, self.msrv)
                 | missing_transmute_annotations::check(cx, path, arg, from_ty, to_ty, e.hir_id)
                 | transmute_ref_to_ref::check(cx, e, from_ty, to_ty, arg, const_context)
                 | transmute_ptr_to_ptr::check(cx, e, from_ty, to_ty, arg, self.msrv)
