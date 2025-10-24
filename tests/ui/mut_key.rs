@@ -113,3 +113,14 @@ fn main() {
     let _map = HashMap::<&mut usize, usize>::new();
     let _map = HashMap::<Result<&mut usize, ()>, usize>::new();
 }
+
+fn issue13865() {
+    #[clippy::ignore_interior_mutability]
+    struct IgnoreMut {
+        cell: std::cell::Cell<&'static [u32]>,
+    }
+
+    fn main() {
+        let a: HashSet<IgnoreMut> = HashSet::new();
+    }
+}

@@ -180,6 +180,7 @@ generate! {
     has_significant_drop,
     hidden_glob_reexports,
     hygiene,
+    ignore_interior_mutability,
     insert,
     insert_str,
     inspect,
