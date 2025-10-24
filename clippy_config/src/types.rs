@@ -508,7 +508,7 @@ impl Serialize for SourceItemOrderingModuleItemGroupings {
 }
 
 /// Represents all kinds of trait associated items.
-#[derive(Clone, Debug, Deserialize, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq, PartialOrd, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SourceItemOrderingTraitAssocItemKind {
     Const,
