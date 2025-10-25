@@ -240,7 +240,7 @@ declare_clippy_lint! {
 
 pub struct Write {
     format_args: FormatArgsStorage,
-    in_debug_impl: bool,
+    debug_impl_depth: u32,
     allow_print_in_tests: bool,
 }
 
@@ -248,9 +248,13 @@ impl Write {
     pub fn new(conf: &'static Conf, format_args: FormatArgsStorage) -> Self {
         Self {
             format_args,
-            in_debug_impl: false,
+            debug_impl_depth: 0,
             allow_print_in_tests: conf.allow_print_in_tests,
         }
+    }
+
+    fn in_debug_impl(&self) -> bool {
+        self.debug_impl_depth != 0
     }
 }
 
@@ -269,13 +273,13 @@ impl_lint_pass!(Write => [
 impl<'tcx> LateLintPass<'tcx> for Write {
     fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
         if is_debug_impl(cx, item) {
-            self.in_debug_impl = true;
+            self.debug_impl_depth += 1;
         }
     }
 
     fn check_item_post(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
         if is_debug_impl(cx, item) {
-            self.in_debug_impl = false;
+            self.debug_impl_depth -= 1;
         }
     }
 
@@ -329,7 +333,7 @@ impl<'tcx> LateLintPass<'tcx> for Write {
 
             check_literal(cx, format_args, name);
 
-            if !self.in_debug_impl {
+            if !self.in_debug_impl() {
                 for piece in &format_args.template {
                     if let &FormatArgsPiece::Placeholder(FormatPlaceholder {
                         span: Some(span),
