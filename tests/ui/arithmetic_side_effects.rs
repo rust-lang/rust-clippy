@@ -17,6 +17,7 @@
 extern crate proc_macro_derive;
 
 use core::num::{NonZero, Saturating, Wrapping};
+use core::time::Duration;
 
 const ONE: i32 = 1;
 const ZERO: i32 = 0;
@@ -685,6 +686,44 @@ pub fn explicit_methods() {
     //~^ arithmetic_side_effects
     Box::new(one).add(one);
     //~^ arithmetic_side_effects
+}
+
+pub fn issue_15943(days: u8) -> Duration {
+    Duration::from_secs(86400 * u64::from(days))
+}
+
+pub fn type_conversion_add() {
+    let _ = u128::MAX + u128::from(1u8);
+    //~^ arithmetic_side_effects
+    let _ = 1u128 + u128::from(1u16);
+    let _ = 1u128 + u128::from(1u32);
+    let _ = 1u128 + u128::from(1u64);
+
+    let _ = 1u64 + u64::from(1u8);
+    let _ = 1u64 + u64::from(1u16);
+    let _ = 1u64 + u64::from(1u32);
+
+    let _ = 1u32 + u32::from(1u8);
+    let _ = 1u32 + u32::from(1u16);
+
+    let _ = 1u16 + u16::from(1u8);
+}
+
+pub fn type_conversion_mul() {
+    let _ = u128::MAX * u128::from(1u8);
+    //~^ arithmetic_side_effects
+    let _ = 1u128 * u128::from(1u16);
+    let _ = 1u128 * u128::from(1u32);
+    let _ = 1u128 * u128::from(1u64);
+
+    let _ = 1u64 * u64::from(1u8);
+    let _ = 1u64 * u64::from(1u16);
+    let _ = 1u64 * u64::from(1u32);
+
+    let _ = 1u32 * u32::from(1u8);
+    let _ = 1u32 * u32::from(1u16);
+
+    let _ = 1u16 * u16::from(1u8);
 }
 
 fn main() {}

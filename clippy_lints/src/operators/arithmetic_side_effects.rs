@@ -6,7 +6,7 @@ use clippy_utils::res::MaybeDef;
 use clippy_utils::{expr_or_init, is_from_proc_macro, is_lint_allowed, peel_hir_expr_refs, peel_hir_expr_unary, sym};
 use rustc_data_structures::fx::{FxHashMap, FxHashSet};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::{self, Ty};
+use rustc_middle::ty::{self, Ty, UintTy};
 use rustc_session::impl_lint_pass;
 use rustc_span::{Span, Symbol};
 use {rustc_ast as ast, rustc_hir as hir};
@@ -88,72 +88,14 @@ impl ArithmeticSideEffects {
         self.allowed_unary.contains(ty_string_elem)
     }
 
-    fn is_non_zero_u(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
-        if let ty::Adt(adt, substs) = ty.kind()
-            && cx.tcx.is_diagnostic_item(sym::NonZero, adt.did())
-            && let int_type = substs.type_at(0)
-            && matches!(int_type.kind(), ty::Uint(_))
-        {
-            true
-        } else {
-            false
-        }
-    }
-
-    /// Verifies built-in types that have specific allowed operations
-    fn has_specific_allowed_type_and_operation<'tcx>(
-        cx: &LateContext<'tcx>,
-        lhs_ty: Ty<'tcx>,
-        op: hir::BinOpKind,
-        rhs_ty: Ty<'tcx>,
-    ) -> bool {
-        let is_div_or_rem = matches!(op, hir::BinOpKind::Div | hir::BinOpKind::Rem);
-        let is_sat_or_wrap = |ty: Ty<'_>| ty.is_diag_item(cx, sym::Saturating) || ty.is_diag_item(cx, sym::Wrapping);
-
-        // If the RHS is `NonZero<u*>`, then division or module by zero will never occur.
-        if Self::is_non_zero_u(cx, rhs_ty) && is_div_or_rem {
-            return true;
-        }
-
-        // `Saturation` and `Wrapping` can overflow if the RHS is zero in a division or module.
-        if is_sat_or_wrap(lhs_ty) {
-            return !is_div_or_rem;
-        }
-
-        false
-    }
-
-    // For example, 8i32 or &i64::MAX.
-    fn is_integral(ty: Ty<'_>) -> bool {
-        ty.peel_refs().is_integral()
-    }
-
     // Common entry-point to avoid code duplication.
     fn issue_lint<'tcx>(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>) {
         if is_from_proc_macro(cx, expr) {
             return;
         }
-
         let msg = "arithmetic operation that can potentially result in unexpected side-effects";
         span_lint(cx, ARITHMETIC_SIDE_EFFECTS, expr.span, msg);
         self.expr_span = Some(expr.span);
-    }
-
-    /// Returns the numeric value of a literal integer originated from `expr`, if any.
-    ///
-    /// Literal integers can be originated from adhoc declarations like `1`, associated constants
-    /// like `i32::MAX` or constant references like `N` from `const N: i32 = 1;`,
-    fn literal_integer(cx: &LateContext<'_>, expr: &hir::Expr<'_>) -> Option<u128> {
-        let actual = peel_hir_expr_unary(expr).0;
-        if let hir::ExprKind::Lit(lit) = actual.kind
-            && let ast::LitKind::Int(n, _) = lit.node
-        {
-            return Some(n.get());
-        }
-        if let Some(Constant::Int(n)) = ConstEvalCtxt::new(cx).eval(expr) {
-            return Some(n);
-        }
-        None
     }
 
     /// Methods like `add_assign` are send to their `BinOps` references.
@@ -213,8 +155,8 @@ impl ArithmeticSideEffects {
             && let hir::ExprKind::MethodCall(method, receiver, [], _) = actual_lhs.kind
             && method.ident.name == sym::get
             && let receiver_ty = cx.typeck_results().expr_ty(receiver).peel_refs()
-            && Self::is_non_zero_u(cx, receiver_ty)
-            && let Some(1) = Self::literal_integer(cx, actual_rhs)
+            && is_non_zero_u(cx, receiver_ty)
+            && let Some(1) = literal_integer(cx, actual_rhs)
         {
             return;
         }
@@ -224,19 +166,21 @@ impl ArithmeticSideEffects {
         if self.has_allowed_binary(lhs_ty, rhs_ty) {
             return;
         }
-        if Self::has_specific_allowed_type_and_operation(cx, lhs_ty, op, rhs_ty) {
+        if has_specific_allowed_type_and_operation(cx, lhs_ty, op, rhs_ty) {
             return;
         }
-
-        let has_valid_op = if Self::is_integral(lhs_ty) && Self::is_integral(rhs_ty) {
+        if manage_integer_types(cx, op, (actual_lhs, lhs_ty), actual_rhs) {
+            return;
+        }
+        if manage_integer_types(cx, op, (actual_rhs, rhs_ty), actual_lhs) {
+            return;
+        }
+        let has_valid_op = if is_integer(lhs_ty) && is_integer(rhs_ty) {
             if let hir::BinOpKind::Shl | hir::BinOpKind::Shr = op {
                 // At least for integers, shifts are already handled by the CTFE
                 return;
             }
-            match (
-                Self::literal_integer(cx, actual_lhs),
-                Self::literal_integer(cx, actual_rhs),
-            ) {
+            match (literal_integer(cx, actual_lhs), literal_integer(cx, actual_rhs)) {
                 (None, None) => false,
                 (None, Some(n)) => match (&op, n) {
                     // Division and module are always valid if applied to non-zero integers
@@ -285,7 +229,7 @@ impl ArithmeticSideEffects {
             return;
         }
         let instance_ty = cx.typeck_results().expr_ty_adjusted(receiver);
-        if !Self::is_integral(instance_ty) {
+        if !is_integer(instance_ty) {
             return;
         }
         self.manage_sugar_methods(cx, expr, receiver, ps, arg);
@@ -293,7 +237,7 @@ impl ArithmeticSideEffects {
             return;
         }
         let (actual_arg, _) = peel_hir_expr_refs(arg);
-        match Self::literal_integer(cx, actual_arg) {
+        match literal_integer(cx, actual_arg) {
             None | Some(0) => self.issue_lint(cx, arg),
             Some(_) => {},
         }
@@ -317,7 +261,7 @@ impl ArithmeticSideEffects {
             return;
         }
         let actual_un_expr = peel_hir_expr_refs(un_expr).0;
-        if Self::literal_integer(cx, actual_un_expr).is_some() {
+        if literal_integer(cx, actual_un_expr).is_some() {
             return;
         }
         self.issue_lint(cx, expr);
@@ -383,5 +327,120 @@ impl<'tcx> LateLintPass<'tcx> for ArithmeticSideEffects {
         if Some(expr.span) == self.expr_span {
             self.expr_span = None;
         }
+    }
+}
+
+/// For example, if the variable `foo` of type `u32` comes from another variable `bar` of type
+/// `u8` like `let foo = u64::from(bar)`.
+fn find_original_primitive_ty<'tcx>(cx: &LateContext<'tcx>, expr: &hir::Expr<'_>) -> Option<Ty<'tcx>> {
+    if let hir::ExprKind::Call(_, [arg]) = expr.kind {
+        Some(cx.typeck_results().expr_ty(arg))
+    } else {
+        None
+    }
+}
+
+/// Verifies built-in types that have specific allowed operations
+fn has_specific_allowed_type_and_operation<'tcx>(
+    cx: &LateContext<'tcx>,
+    lhs_ty: Ty<'tcx>,
+    op: hir::BinOpKind,
+    rhs_ty: Ty<'tcx>,
+) -> bool {
+    let is_div_or_rem = matches!(op, hir::BinOpKind::Div | hir::BinOpKind::Rem);
+    let is_sat_or_wrap = |ty: Ty<'_>| ty.is_diag_item(cx, sym::Saturating) || ty.is_diag_item(cx, sym::Wrapping);
+
+    // If the RHS is `NonZero<u*>`, then division or module by zero will never occur.
+    if is_non_zero_u(cx, rhs_ty) && is_div_or_rem {
+        return true;
+    }
+
+    // `Saturation` and `Wrapping` can overflow if the RHS is zero in a division or module.
+    if is_sat_or_wrap(lhs_ty) {
+        return !is_div_or_rem;
+    }
+
+    false
+}
+
+// For example, `i8` or `u128`
+fn is_integer(ty: Ty<'_>) -> bool {
+    ty.peel_refs().is_integral()
+}
+
+fn is_non_zero_u(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
+    if let ty::Adt(adt, substs) = ty.kind()
+        && cx.tcx.is_diagnostic_item(sym::NonZero, adt.did())
+        && let int_type = substs.type_at(0)
+        && matches!(int_type.kind(), ty::Uint(_))
+    {
+        true
+    } else {
+        false
+    }
+}
+
+/// Returns the numeric value of a literal integer originated from `expr`, if any.
+///
+/// Literal integers can be originated from adhoc declarations like `1`, associated constants
+/// like `i32::MAX` or constant references like `N` from `const N: i32 = 1;`,
+fn literal_integer(cx: &LateContext<'_>, expr: &hir::Expr<'_>) -> Option<u128> {
+    let actual = peel_hir_expr_unary(expr).0;
+    if let hir::ExprKind::Lit(lit) = actual.kind
+        && let ast::LitKind::Int(n, _) = lit.node
+    {
+        return Some(n.get());
+    }
+    if let Some(Constant::Int(n)) = ConstEvalCtxt::new(cx).eval(expr) {
+        return Some(n);
+    }
+    None
+}
+
+/// If one side is a literal it is possible to evaluate overflows as long as the other side has a
+/// smaller type. `0` and `1` suffixes indicate different sides.
+///
+/// For example, `1000u64 + u64::from(some_runtime_variable_of_type_u8)`.
+fn manage_integer_types(
+    cx: &LateContext<'_>,
+    op: hir::BinOpKind,
+    (expr0, ty0): (&hir::Expr<'_>, Ty<'_>),
+    expr1: &hir::Expr<'_>,
+) -> bool {
+    let Some(num0) = literal_integer(cx, expr0) else {
+        return false;
+    };
+    let Some(orig_ty1) = find_original_primitive_ty(cx, expr1) else {
+        return false;
+    };
+    let Some(num1) = max_int_num(orig_ty1) else {
+        return false;
+    };
+    let Some(rslt) = (match op {
+        hir::BinOpKind::Add => num0.checked_add(num1),
+        hir::BinOpKind::Mul => num0.checked_mul(num1),
+        _ => None,
+    }) else {
+        return false;
+    };
+    match ty0.peel_refs().kind() {
+        ty::Uint(UintTy::U16) => u16::try_from(rslt).is_ok(),
+        ty::Uint(UintTy::U32) => u32::try_from(rslt).is_ok(),
+        ty::Uint(UintTy::U64) => u64::try_from(rslt).is_ok(),
+        ty::Uint(UintTy::U128) => true,
+        ty::Uint(UintTy::Usize) => usize::try_from(rslt).is_ok(),
+        _ => false,
+    }
+}
+
+fn max_int_num(ty: Ty<'_>) -> Option<u128> {
+    match ty.peel_refs().kind() {
+        ty::Uint(UintTy::U8) => Some(u8::MAX.into()),
+        ty::Uint(UintTy::U16) => Some(u16::MAX.into()),
+        ty::Uint(UintTy::U32) => Some(u32::MAX.into()),
+        ty::Uint(UintTy::U64) => Some(u64::MAX.into()),
+        ty::Uint(UintTy::U128) => Some(u128::MAX),
+        ty::Uint(UintTy::Usize) => usize::MAX.try_into().ok(),
+        _ => None,
     }
 }
