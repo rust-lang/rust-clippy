@@ -171,7 +171,6 @@ mod inherent_to_string;
 mod init_numbered_fields;
 mod inline_fn_without_body;
 mod int_plus_one;
-mod integer_division_remainder_used;
 mod invalid_upcast_comparisons;
 mod item_name_repetitions;
 mod items_after_statements;

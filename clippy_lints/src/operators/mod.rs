@@ -11,6 +11,7 @@ mod float_cmp;
 mod float_equality_without_abs;
 mod identity_op;
 mod integer_division;
+mod integer_division_remainder_used;
 mod manual_div_ceil;
 mod manual_is_multiple_of;
 mod manual_midpoint;
