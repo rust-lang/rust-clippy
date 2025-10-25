@@ -3524,3 +3524,14 @@ pub fn is_expr_async_block(expr: &Expr<'_>) -> bool {
 pub fn can_use_if_let_chains(cx: &LateContext<'_>, msrv: Msrv) -> bool {
     cx.tcx.sess.edition().at_least_rust_2024() && msrv.meets(cx, msrvs::LET_CHAINS)
 }
+
+/// Checks if the given expression is a method call to a `Vec` method
+/// that also exists on slices. If this returns true, it means that
+/// this expression does not actually require a `Vec` and could just work with an array.
+pub fn is_allowed_vec_method(e: &Expr<'_>) -> bool {
+    if let ExprKind::MethodCall(path, _, [], _) = e.kind {
+        matches!(path.ident.name, sym::as_ptr | sym::is_empty | sym::len)
+    } else {
+        false
+    }
+}
