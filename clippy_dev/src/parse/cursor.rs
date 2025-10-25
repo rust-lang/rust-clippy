@@ -22,12 +22,14 @@ pub enum Pat<'a> {
     Comma,
     DoubleColon,
     Eq,
+    FatArrow,
     Lifetime,
     Lt,
     Gt,
     OpenBrace,
     OpenBracket,
     OpenParen,
+    CaptureOptLifetimeArg,
     Pound,
     Semi,
 }
@@ -121,7 +123,6 @@ impl<'txt> Cursor<'txt> {
                     Pat::AnyComment,
                     TokenKind::BlockComment { terminated: true, .. } | TokenKind::LineComment { .. },
                 ) => self.step(),
-                (Pat::AnyComment, _) => return true,
                 (Pat::Bang, TokenKind::Bang)
                 | (Pat::CloseBrace, TokenKind::CloseBrace)
                 | (Pat::CloseBracket, TokenKind::CloseBracket)
@@ -152,11 +153,47 @@ impl<'txt> Cursor<'txt> {
                 },
                 (Pat::DoubleColon, TokenKind::Colon) => {
                     self.step();
-                    if !self.at_end() && matches!(self.next_token.kind, TokenKind::Colon) {
+                    if matches!(self.next_token.kind, TokenKind::Colon) {
                         self.step();
                         return true;
                     }
                     return false;
+                },
+                (Pat::FatArrow, TokenKind::Eq) => {
+                    self.step();
+                    if matches!(self.next_token.kind, TokenKind::Gt) {
+                        self.step();
+                        return true;
+                    }
+                    return false;
+                },
+                (Pat::CaptureOptLifetimeArg, TokenKind::Lt) => {
+                    self.step();
+                    loop {
+                        match self.next_token.kind {
+                            TokenKind::Lifetime { .. } => break,
+                            TokenKind::Whitespace => self.step(),
+                            _ => return false,
+                        }
+                    }
+                    *captures.next().unwrap() = Capture {
+                        pos: self.pos,
+                        len: self.next_token.len,
+                    };
+                    self.step();
+                    loop {
+                        match self.next_token.kind {
+                            TokenKind::Gt => break,
+                            TokenKind::Whitespace => self.step(),
+                            _ => return false,
+                        }
+                    }
+                    self.step();
+                    return true;
+                },
+                (Pat::CaptureOptLifetimeArg, _) => {
+                    *captures.next().unwrap() = Capture { pos: 0, len: 0 };
+                    return true;
                 },
                 #[rustfmt::skip]
                 (
@@ -173,6 +210,7 @@ impl<'txt> Cursor<'txt> {
                     self.step();
                     return true;
                 },
+                (Pat::AnyComment, _) => return true,
                 _ => return false,
             }
         }
@@ -219,8 +257,8 @@ impl<'txt> Cursor<'txt> {
         }
     }
 
-    /// Consume the returns the position of the next non-whitespace token if it's an
-    /// identifier. Returns `None` otherwise.
+    /// Consume the returns the position of the next non-whitespace token if it's the
+    /// specified identifier. Returns `None` otherwise.
     pub fn match_ident(&mut self, s: &str) -> Option<u32> {
         loop {
             match self.next_token.kind {
@@ -228,6 +266,23 @@ impl<'txt> Cursor<'txt> {
                     let pos = self.pos;
                     self.step();
                     return Some(pos);
+                },
+                TokenKind::Whitespace => self.step(),
+                _ => return None,
+            }
+        }
+    }
+
+    /// Consumes and captures the next non-whitespace token if it's an identifier. Returns
+    /// `None` otherwise.
+    pub fn capture_ident(&mut self) -> Option<Capture> {
+        loop {
+            match self.next_token.kind {
+                TokenKind::Ident => {
+                    let pos = self.pos;
+                    let len = self.next_token.len;
+                    self.step();
+                    return Some(Capture { pos, len });
                 },
                 TokenKind::Whitespace => self.step(),
                 _ => return None,
