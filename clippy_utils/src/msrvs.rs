@@ -114,7 +114,7 @@ impl<'de> Deserialize<'de> for Msrv {
 }
 
 impl Msrv {
-    /// Returns the MSRV at the current node, if it is known.
+    /// Returns the MSRV at the current node, if known.
     ///
     /// If the crate being linted uses an `#[clippy::msrv]` attribute, this will search the parent
     /// nodes for that attribute. As such, prefer to run this check after cheaper pattern matching
@@ -133,7 +133,7 @@ impl Msrv {
         self.0
     }
 
-    /// Returns true if the MSRV at the current node meets the required version.
+    /// Checks whether the MSRV at the current node meets the required version.
     ///
     /// See [`clippy_utils::msrvs`] for a list of constants representing the required versions for
     /// different features.
@@ -191,8 +191,9 @@ impl Msrv {
 ///
 /// If you are writing a late lint pass, use [`Msrv`] instead.
 ///
-/// For more information, [see the development guide on
-/// MSRVs](https://doc.rust-lang.org/nightly/clippy/development/adding_lints.html#specifying-the-lints-minimum-supported-rust-version-msrv).
+/// For more information, [see the development guide on MSRVs][doc-msrv].
+///
+/// [doc-msrv]: https://doc.rust-lang.org/nightly/clippy/development/adding_lints.html#specifying-the-lints-minimum-supported-rust-version-msrv
 #[derive(Debug, Clone)]
 pub struct MsrvStack {
     stack: SmallVec<[RustcVersion; 2]>,
@@ -201,19 +202,19 @@ pub struct MsrvStack {
 impl MsrvStack {
     /// Creates a new MSRV stack with an initial value.
     ///
-    /// You likely want to get the [`Msrv`] from `Conf::msrv`.
+    /// You likely want to get the [`Msrv`] from `Conf::msrv` instead.
     pub fn new(initial: Msrv) -> Self {
         Self {
             stack: SmallVec::from_iter(initial.0),
         }
     }
 
-    /// Returns the MSRV at the current node, if it is known.
+    /// Returns the MSRV at the current node, if known.
     pub fn current(&self) -> Option<RustcVersion> {
         self.stack.last().copied()
     }
 
-    /// Returns true if the MSRV at the current node meets the required version.
+    /// Checks whether the MSRV at the current node meets the required version.
     ///
     /// See [`clippy_utils::msrvs`](crate::msrvs) for a list of constants representing the required
     /// versions for different features.
