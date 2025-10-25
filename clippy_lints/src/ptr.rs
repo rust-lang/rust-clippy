@@ -3,7 +3,7 @@ use clippy_utils::res::{MaybeDef, MaybeResPath};
 use clippy_utils::source::SpanRangeExt;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::visitors::contains_unsafe_block;
-use clippy_utils::{get_expr_use_or_unification_node, is_lint_allowed, std_or_core, sym};
+use clippy_utils::{get_expr_use_or_unification_node, is_allowed_vec_method, is_lint_allowed, std_or_core, sym};
 use hir::LifetimeKind;
 use rustc_abi::ExternAbi;
 use rustc_errors::{Applicability, MultiSpan};
@@ -24,8 +24,6 @@ use rustc_span::symbol::Symbol;
 use rustc_trait_selection::infer::InferCtxtExt as _;
 use rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt as _;
 use std::{fmt, iter};
-
-use crate::vec::is_allowed_vec_method;
 
 declare_clippy_lint! {
     /// ### What it does
