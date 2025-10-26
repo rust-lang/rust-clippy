@@ -1,5 +1,5 @@
 error: the function `takes_ref` doesn't need a mutable reference
-  --> tests/ui/unnecessary_mut_passed.rs:57:15
+  --> tests/ui/unnecessary_mut_passed.rs:61:15
    |
 LL |     takes_ref(&mut 42);
    |               ^^^^^^^
@@ -13,7 +13,7 @@ LL +     takes_ref(&42);
    |
 
 error: the function `takes_ref_ref` doesn't need a mutable reference
-  --> tests/ui/unnecessary_mut_passed.rs:59:19
+  --> tests/ui/unnecessary_mut_passed.rs:63:19
    |
 LL |     takes_ref_ref(&mut &42);
    |                   ^^^^^^^^
@@ -25,7 +25,7 @@ LL +     takes_ref_ref(&&42);
    |
 
 error: the function `takes_ref_refmut` doesn't need a mutable reference
-  --> tests/ui/unnecessary_mut_passed.rs:61:22
+  --> tests/ui/unnecessary_mut_passed.rs:65:22
    |
 LL |     takes_ref_refmut(&mut &mut 42);
    |                      ^^^^^^^^^^^^
@@ -37,7 +37,7 @@ LL +     takes_ref_refmut(&&mut 42);
    |
 
 error: the function `takes_raw_const` doesn't need a mutable reference
-  --> tests/ui/unnecessary_mut_passed.rs:63:21
+  --> tests/ui/unnecessary_mut_passed.rs:67:21
    |
 LL |     takes_raw_const(&mut 42);
    |                     ^^^^^^^
@@ -49,7 +49,7 @@ LL +     takes_raw_const(&42);
    |
 
 error: the function `as_ptr` doesn't need a mutable reference
-  --> tests/ui/unnecessary_mut_passed.rs:67:12
+  --> tests/ui/unnecessary_mut_passed.rs:71:12
    |
 LL |     as_ptr(&mut 42);
    |            ^^^^^^^
@@ -61,7 +61,7 @@ LL +     as_ptr(&42);
    |
 
 error: the function `as_ptr` doesn't need a mutable reference
-  --> tests/ui/unnecessary_mut_passed.rs:70:12
+  --> tests/ui/unnecessary_mut_passed.rs:74:12
    |
 LL |     as_ptr(&mut &42);
    |            ^^^^^^^^
@@ -73,7 +73,7 @@ LL +     as_ptr(&&42);
    |
 
 error: the function `as_ptr` doesn't need a mutable reference
-  --> tests/ui/unnecessary_mut_passed.rs:73:12
+  --> tests/ui/unnecessary_mut_passed.rs:77:12
    |
 LL |     as_ptr(&mut &mut 42);
    |            ^^^^^^^^^^^^
@@ -85,7 +85,7 @@ LL +     as_ptr(&&mut 42);
    |
 
 error: the function `as_ptr` doesn't need a mutable reference
-  --> tests/ui/unnecessary_mut_passed.rs:76:12
+  --> tests/ui/unnecessary_mut_passed.rs:80:12
    |
 LL |     as_ptr(&mut 42);
    |            ^^^^^^^
@@ -97,7 +97,7 @@ LL +     as_ptr(&42);
    |
 
 error: the method `takes_ref` doesn't need a mutable reference
-  --> tests/ui/unnecessary_mut_passed.rs:81:25
+  --> tests/ui/unnecessary_mut_passed.rs:85:25
    |
 LL |     my_struct.takes_ref(&mut 42);
    |                         ^^^^^^^
@@ -109,7 +109,7 @@ LL +     my_struct.takes_ref(&42);
    |
 
 error: the method `takes_ref_ref` doesn't need a mutable reference
-  --> tests/ui/unnecessary_mut_passed.rs:83:29
+  --> tests/ui/unnecessary_mut_passed.rs:87:29
    |
 LL |     my_struct.takes_ref_ref(&mut &42);
    |                             ^^^^^^^^
@@ -121,7 +121,7 @@ LL +     my_struct.takes_ref_ref(&&42);
    |
 
 error: the method `takes_ref_refmut` doesn't need a mutable reference
-  --> tests/ui/unnecessary_mut_passed.rs:85:32
+  --> tests/ui/unnecessary_mut_passed.rs:89:32
    |
 LL |     my_struct.takes_ref_refmut(&mut &mut 42);
    |                                ^^^^^^^^^^^^
@@ -133,7 +133,7 @@ LL +     my_struct.takes_ref_refmut(&&mut 42);
    |
 
 error: the method `takes_raw_const` doesn't need a mutable reference
-  --> tests/ui/unnecessary_mut_passed.rs:87:31
+  --> tests/ui/unnecessary_mut_passed.rs:91:31
    |
 LL |     my_struct.takes_raw_const(&mut 42);
    |                               ^^^^^^^
@@ -144,8 +144,56 @@ LL -     my_struct.takes_raw_const(&mut 42);
 LL +     my_struct.takes_raw_const(&42);
    |
 
+error: the function `takes_raw_const` doesn't need a mutable reference
+  --> tests/ui/unnecessary_mut_passed.rs:156:21
+   |
+LL |     takes_raw_const(&raw mut n);
+   |                     ^^^^^^^^^^
+   |
+help: make this a `const` ptr
+   |
+LL -     takes_raw_const(&raw mut n);
+LL +     takes_raw_const(&raw const n);
+   |
+
+error: the function `takes_raw_const` doesn't need a mutable reference
+  --> tests/ui/unnecessary_mut_passed.rs:162:22
+   |
+LL |     takes_raw_const( &   raw    mut n);
+   |                      ^^^^^^^^^^^^^^^^
+   |
+help: make this a `const` ptr
+   |
+LL -     takes_raw_const( &   raw    mut n);
+LL +     takes_raw_const( &   raw    const n);
+   |
+
+error: the function `as_ptr` doesn't need a mutable reference
+  --> tests/ui/unnecessary_mut_passed.rs:166:12
+   |
+LL |     as_ptr(&raw mut n);
+   |            ^^^^^^^^^^
+   |
+help: make this a `const` ptr
+   |
+LL -     as_ptr(&raw mut n);
+LL +     as_ptr(&raw const n);
+   |
+
+error: the method `takes_raw_const` doesn't need a mutable reference
+  --> tests/ui/unnecessary_mut_passed.rs:169:31
+   |
+LL |     my_struct.takes_raw_const(&raw mut n);
+   |                               ^^^^^^^^^^
+   |
+help: make this a `const` ptr
+   |
+LL -     my_struct.takes_raw_const(&raw mut n);
+LL +     my_struct.takes_raw_const(&raw const n);
+   |
+
 error: the method `takes_nothing` doesn't need a mutable reference
-  --> tests/ui/unnecessary_mut_passed.rs:175:5
+  --> tests/ui/unnecessary_mut_passed.rs:187:5
    |
 LL |     (&mut my_struct).takes_nothing();
    |     ^^^^^^^^^^^^^^^^
@@ -157,7 +205,7 @@ LL +     (&my_struct).takes_nothing();
    |
 
 error: the method `takes_ref` doesn't need a mutable reference
-  --> tests/ui/unnecessary_mut_passed.rs:180:5
+  --> tests/ui/unnecessary_mut_passed.rs:192:5
    |
 LL |     (&mut my_struct).takes_ref(&mut 42);
    |     ^^^^^^^^^^^^^^^^
@@ -169,7 +217,7 @@ LL +     (&my_struct).takes_ref(&mut 42);
    |
 
 error: the method `takes_ref` doesn't need a mutable reference
-  --> tests/ui/unnecessary_mut_passed.rs:180:32
+  --> tests/ui/unnecessary_mut_passed.rs:192:32
    |
 LL |     (&mut my_struct).takes_ref(&mut 42);
    |                                ^^^^^^^
@@ -181,7 +229,7 @@ LL +     (&mut my_struct).takes_ref(&42);
    |
 
 error: the method `takes_ref` doesn't need a mutable reference
-  --> tests/ui/unnecessary_mut_passed.rs:184:5
+  --> tests/ui/unnecessary_mut_passed.rs:196:5
    |
 LL |     (&mut my_struct).takes_ref((&mut 42));
    |     ^^^^^^^^^^^^^^^^
@@ -193,7 +241,7 @@ LL +     (&my_struct).takes_ref((&mut 42));
    |
 
 error: the method `takes_ref` doesn't need a mutable reference
-  --> tests/ui/unnecessary_mut_passed.rs:184:32
+  --> tests/ui/unnecessary_mut_passed.rs:196:32
    |
 LL |     (&mut my_struct).takes_ref((&mut 42));
    |                                ^^^^^^^^^
@@ -205,7 +253,7 @@ LL +     (&mut my_struct).takes_ref((&42));
    |
 
 error: the method `takes_ref` doesn't need a mutable reference
-  --> tests/ui/unnecessary_mut_passed.rs:188:25
+  --> tests/ui/unnecessary_mut_passed.rs:200:25
    |
 LL |     my_struct.takes_ref((&mut 42));
    |                         ^^^^^^^^^
@@ -216,5 +264,5 @@ LL -     my_struct.takes_ref((&mut 42));
 LL +     my_struct.takes_ref((&42));
    |
 
-error: aborting due to 18 previous errors
+error: aborting due to 22 previous errors
 

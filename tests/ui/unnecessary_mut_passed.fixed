@@ -41,6 +41,10 @@ struct MyStruct;
 
 impl MyStruct {
     fn takes_nothing(&self) {}
+    // XXX: enable the tests for these if `arbitrary_self_types` is extended to support `*const Self`
+    //
+    // fn takes_nothing_raw(self: *const Self) {}
+    // fn takes_nothing_raw_and_raw_const(self: *const Self, a: *const i32) {}
     fn takes_ref(&self, a: &i32) {}
     fn takes_refmut(&self, a: &mut i32) {}
     fn takes_ref_ref(&self, a: &&i32) {}
@@ -146,16 +150,24 @@ fn main() {
     my_struct.takes_raw_mut(a);
 }
 
-// not supported currently
 fn raw_ptrs(my_struct: MyStruct) {
     let mut n = 42;
 
-    takes_raw_const(&raw mut n);
+    takes_raw_const(&raw const n);
+    //~^ unnecessary_mut_passed
+
+    // bad formatting
+    #[rustfmt::skip]
+    #[allow(clippy::double_parens)]
+    takes_raw_const( &   raw    const n);
+    //~^ unnecessary_mut_passed
 
     let as_ptr: fn(*const i32) = takes_raw_const;
-    as_ptr(&raw mut n);
+    as_ptr(&raw const n);
+    //~^ unnecessary_mut_passed
 
-    my_struct.takes_raw_const(&raw mut n);
+    my_struct.takes_raw_const(&raw const n);
+    //~^ unnecessary_mut_passed
 
     // No error
 
@@ -187,4 +199,15 @@ fn issue15722(mut my_struct: MyStruct) {
     #[expect(clippy::double_parens)]
     my_struct.takes_ref((&42));
     //~^ unnecessary_mut_passed
+
+    // XXX: enable these if `arbitrary_self_types` is extended to support `*const Self`
+    //
+    // let mut n = 42;
+    // (&raw mut my_struct).takes_nothing_raw();
+    // (&raw const my_struct).takes_nothing_raw();
+    // (&raw mut my_struct).takes_nothing_raw_and_raw_const(&raw mut n);
+    // #[expect(clippy::double_parens)]
+    // (&raw mut my_struct).takes_nothing_raw_and_raw_const((&raw mut n));
+    // #[expect(clippy::double_parens)]
+    // my_struct.takes_nothing_raw_and_raw_const((&raw mut n));
 }
