@@ -6,7 +6,8 @@ use std::process::exit;
 
 use xshell::{Shell, cmd};
 
-const JOSH_FILTER: &str = ":rev(d9fb15c4b1ebe9e7dc419e07f53af681d7860cbe:prefix=src/tools/clippy):/src/tools/clippy:from(2a5c4ae5ed0566c19267dd319b904daf1e3dbaf9:prune=trivial-merge)";
+const JOSH_FILTER: &str =
+    ":rev(d9fb15c4b1ebe9e7dc419e07f53af681d7860cbe:prefix=src/tools/clippy):/src/tools/clippy:prune=trivial-merge";
 // const JOSH_FILTER: &str =
 // ":rev(d9fb15c4b1ebe9e7dc419e07f53af681d7860cbe:prefix=src/tools/clippy):/src/tools/clippy";
 const JOSH_PORT: &str = "42042";
