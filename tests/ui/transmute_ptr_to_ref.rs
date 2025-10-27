@@ -73,23 +73,30 @@ impl std::ops::Add for Ptr {
         self
     }
 }
-fn issue1966(v: PtrSlice, w: PtrSliceRef, x: Ptr, y: PtrRefNamed, z: PtrRef) {
+mod ptr_mod {
+    #[derive(Clone, Copy)]
+    pub struct Ptr(*const u32);
+}
+fn issue1966(u: PtrSlice, v: PtrSliceRef, w: Ptr, x: PtrRefNamed, y: PtrRef, z: ptr_mod::Ptr) {
     unsafe {
-        let _: &i32 = std::mem::transmute(x);
+        let _: &i32 = std::mem::transmute(w);
         //~^ transmute_ptr_to_ref
-        let _: &u32 = std::mem::transmute(x);
+        let _: &u32 = std::mem::transmute(w);
         //~^ transmute_ptr_to_ref
-        let _: &&u32 = core::mem::transmute(y);
+        let _: &&u32 = core::mem::transmute(x);
         //~^ transmute_ptr_to_ref
-        let _ = std::mem::transmute::<_, &u32>(x);
+        // The field is not accessible.  The program should not generate code
+        // that accesses the field.
+        let _: &u32 = std::mem::transmute(z);
+        let _ = std::mem::transmute::<_, &u32>(w);
         //~^ transmute_ptr_to_ref
-        let _: &[&str] = core::mem::transmute(w);
+        let _: &[&str] = core::mem::transmute(v);
         //~^ transmute_ptr_to_ref
-        let _ = std::mem::transmute::<_, &[i32]>(v);
+        let _ = std::mem::transmute::<_, &[i32]>(u);
         //~^ transmute_ptr_to_ref
-        let _: &&u32 = std::mem::transmute(z);
+        let _: &&u32 = std::mem::transmute(y);
         //~^ transmute_ptr_to_ref
-        let _: &u32 = std::mem::transmute(x + x);
+        let _: &u32 = std::mem::transmute(w + w);
         //~^ transmute_ptr_to_ref
     }
 }

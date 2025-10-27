@@ -474,19 +474,20 @@ fn extract_struct_field<'tcx>(
     outer_type: Ty<'tcx>,
     outer: &'tcx Expr<'tcx>,
 ) -> (Ty<'tcx>, Option<Sugg<'tcx>>) {
-    let outer = Sugg::hir_opt(cx, outer);
+    let outer_sugg = Sugg::hir_opt(cx, outer);
     if let ty::Adt(struct_def, struct_args) = *outer_type.kind()
         && struct_def.is_struct()
         && let mut fields = struct_def.all_fields()
         && let Some(first) = fields.next()
         && fields.next().is_none()
+        && first.vis.is_accessible_from(cx.tcx.parent_module(outer.hir_id), cx.tcx)
     {
         (
             first.ty(cx.tcx, struct_args),
-            outer.map(|outer| Sugg::NonParen(format!("{}.{}", outer.maybe_paren(), first.name).into())),
+            outer_sugg.map(|outer| Sugg::NonParen(format!("{}.{}", outer.maybe_paren(), first.name).into())),
         )
     } else {
-        (outer_type, outer)
+        (outer_type, outer_sugg)
     }
 }
 
