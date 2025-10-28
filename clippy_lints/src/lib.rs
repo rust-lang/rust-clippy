@@ -354,6 +354,7 @@ mod transmute;
 mod tuple_array_conversions;
 mod types;
 mod unconditional_recursion;
+mod undocumented_may_panic_call;
 mod undocumented_unsafe_blocks;
 mod unicode;
 mod uninhabited_references;
@@ -848,6 +849,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::new(toplevel_ref_arg::ToplevelRefArg)),
         Box::new(|_| Box::new(volatile_composites::VolatileComposites)),
         Box::new(|_| Box::<replace_box::ReplaceBox>::default()),
+        Box::new(move |tcx| Box::new(undocumented_may_panic_call::UndocumentedMayPanicCall::new(tcx, conf)))
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);

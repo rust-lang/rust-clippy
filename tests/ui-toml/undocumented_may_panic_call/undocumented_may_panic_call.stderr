@@ -1,0 +1,11 @@
+error: call to a function that may panic is not documented with a `// Panic:` comment
+  --> tests/ui-toml/undocumented_may_panic_call/undocumented_may_panic_call.rs:6:5
+   |
+LL |     v.push(4);
+   |     ^^^^^^^^^
+   |
+   = note: `-D clippy::undocumented-may-panic-call` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::undocumented_may_panic_call)]`
+
+error: aborting due to 1 previous error
+

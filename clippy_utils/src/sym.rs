@@ -227,6 +227,7 @@ generate! {
     max_by_key,
     max_value,
     maximum,
+    may_panic,
     min,
     min_by,
     min_by_key,
