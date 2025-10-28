@@ -30,7 +30,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.92.0"]
     pub REPLACE_BOX,
-    perf,
+    nursery,
     "assigning a newly created box to `Box<T>` is inefficient"
 }
 declare_lint_pass!(ReplaceBox => [REPLACE_BOX]);
