@@ -18,14 +18,17 @@ fn main() {
     let _y = 1; // this is fine
     let _z = ((), 1); // this as well
     if true {
-        // do not lint this, since () is explicit
+        // do not lint these, since () is explicit
         let _a = ();
         let () = returns_unit();
         let () = ();
         () = returns_unit();
         () = ();
         let _a: () = ();
+
+        // should lint: explicit type annotation is redundant
         let _a: () = returns_unit();
+        //~^ let_unit_value
     }
 
     consume_units_with_for_loop(); // should be fine as well
@@ -91,18 +94,23 @@ fn _returns_generic() {
 
     let _: () = f();
     let x: () = f();
+    //~^ ERROR: this let-binding has unit value
 
     let _: () = f2(0i32);
     let x: () = f2(0i32);
+    //~^ ERROR: this let-binding has unit value
 
     let _: () = f3(());
+    //~^ ERROR: this let-binding has unit value
     let x: () = f3(());
+    //~^ ERROR: this let-binding has unit value
 
     fn f4<T>(mut x: Vec<T>) -> T {
         x.pop().unwrap()
     }
     let _: () = f4(vec![()]);
     let x: () = f4(vec![()]);
+    //~^ ERROR: this let-binding has unit value
 
     let _: () = {
         let x = 5;
@@ -111,6 +119,7 @@ fn _returns_generic() {
 
     let _: () = if true { f() } else { f2(0) };
     let x: () = if true { f() } else { f2(0) };
+    //~^ ERROR: this let-binding has unit value
 
     let x = match Some(0) {
         //~^ let_unit_value
@@ -161,6 +170,7 @@ fn _returns_generic() {
             let _: () = x;
             let _: () = y;
             let _: () = z;
+            //~^ ERROR: this let-binding has unit value
             let _: () = x1;
             let _: () = x2;
             let _: () = opt;

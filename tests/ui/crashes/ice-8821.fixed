@@ -4,6 +4,6 @@ fn f() {}
 static FN: fn() = f;
 
 fn main() {
-    let _: () = FN();
+    FN();
     //~^ ERROR: this let-binding has unit value
 }
