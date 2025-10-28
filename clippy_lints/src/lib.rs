@@ -199,6 +199,7 @@ mod macro_use;
 mod main_recursion;
 mod manual_abs_diff;
 mod manual_assert;
+mod manual_assert_eq;
 mod manual_async_fn;
 mod manual_bits;
 mod manual_checked_ops;
@@ -865,6 +866,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(move |tcx| Box::new(duration_suboptimal_units::DurationSuboptimalUnits::new(tcx, conf))),
         Box::new(move |_| Box::new(manual_take::ManualTake::new(conf))),
         Box::new(|_| Box::new(manual_checked_ops::ManualCheckedOps)),
+        Box::new(|_| Box::new(manual_assert_eq::ManualAssertEq)),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);
