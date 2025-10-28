@@ -295,7 +295,7 @@ fn panic_like_macros_1() {
 }
 
 fn panic_like_macros_2() {
-    let mut x = 0;
+    let mut x: i32 = 0;
 
     loop {
         do_something();
@@ -310,7 +310,7 @@ fn panic_like_macros_2() {
     }
     loop {
         do_something();
-        assert!(x % 2 == 0);
+        assert!(x.is_positive());
     }
     loop {
         do_something();
