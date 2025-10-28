@@ -250,7 +250,7 @@ LL |     let _ = v1[0] + v1[12];
    = note: asserting the length before indexing will elide bounds checks
 
 error: indexing into a slice multiple times with an `assert` that does not cover the highest index
-  --> tests/ui/missing_asserts_for_indexing.rs:131:13
+  --> tests/ui/missing_asserts_for_indexing.rs:132:13
    |
 LL |     assert!(v1.len() == 2);
    |     ---------------------- help: provide the highest index that is indexed with: `assert!(v1.len() == 3)`
@@ -259,24 +259,24 @@ LL |     let _ = v1[0] + v1[1] + v1[2];
    |             ^^^^^^^^^^^^^^^^^^^^^
    |
 note: slice indexed here
-  --> tests/ui/missing_asserts_for_indexing.rs:131:13
+  --> tests/ui/missing_asserts_for_indexing.rs:132:13
    |
 LL |     let _ = v1[0] + v1[1] + v1[2];
    |             ^^^^^
 note: slice indexed here
-  --> tests/ui/missing_asserts_for_indexing.rs:131:21
+  --> tests/ui/missing_asserts_for_indexing.rs:132:21
    |
 LL |     let _ = v1[0] + v1[1] + v1[2];
    |                     ^^^^^
 note: slice indexed here
-  --> tests/ui/missing_asserts_for_indexing.rs:131:29
+  --> tests/ui/missing_asserts_for_indexing.rs:132:29
    |
 LL |     let _ = v1[0] + v1[1] + v1[2];
    |                             ^^^^^
    = note: asserting the length before indexing will elide bounds checks
 
 error: indexing into a slice multiple times with an `assert` that does not cover the highest index
-  --> tests/ui/missing_asserts_for_indexing.rs:136:13
+  --> tests/ui/missing_asserts_for_indexing.rs:137:13
    |
 LL |     assert!(2 == v3.len());
    |     ---------------------- help: provide the highest index that is indexed with: `assert!(v3.len() == 3)`
@@ -285,24 +285,24 @@ LL |     let _ = v3[0] + v3[1] + v3[2];
    |             ^^^^^^^^^^^^^^^^^^^^^
    |
 note: slice indexed here
-  --> tests/ui/missing_asserts_for_indexing.rs:136:13
+  --> tests/ui/missing_asserts_for_indexing.rs:137:13
    |
 LL |     let _ = v3[0] + v3[1] + v3[2];
    |             ^^^^^
 note: slice indexed here
-  --> tests/ui/missing_asserts_for_indexing.rs:136:21
+  --> tests/ui/missing_asserts_for_indexing.rs:137:21
    |
 LL |     let _ = v3[0] + v3[1] + v3[2];
    |                     ^^^^^
 note: slice indexed here
-  --> tests/ui/missing_asserts_for_indexing.rs:136:29
+  --> tests/ui/missing_asserts_for_indexing.rs:137:29
    |
 LL |     let _ = v3[0] + v3[1] + v3[2];
    |                             ^^^^^
    = note: asserting the length before indexing will elide bounds checks
 
 error: indexing into a slice multiple times with an `assert` that does not cover the highest index
-  --> tests/ui/missing_asserts_for_indexing.rs:158:13
+  --> tests/ui/missing_asserts_for_indexing.rs:159:13
    |
 LL |     assert_eq!(v1.len(), 2);
    |     ----------------------- help: provide the highest index that is indexed with: `assert_eq!(v1.len(), 3)`
@@ -311,24 +311,24 @@ LL |     let _ = v1[0] + v1[1] + v1[2];
    |             ^^^^^^^^^^^^^^^^^^^^^
    |
 note: slice indexed here
-  --> tests/ui/missing_asserts_for_indexing.rs:158:13
+  --> tests/ui/missing_asserts_for_indexing.rs:159:13
    |
 LL |     let _ = v1[0] + v1[1] + v1[2];
    |             ^^^^^
 note: slice indexed here
-  --> tests/ui/missing_asserts_for_indexing.rs:158:21
+  --> tests/ui/missing_asserts_for_indexing.rs:159:21
    |
 LL |     let _ = v1[0] + v1[1] + v1[2];
    |                     ^^^^^
 note: slice indexed here
-  --> tests/ui/missing_asserts_for_indexing.rs:158:29
+  --> tests/ui/missing_asserts_for_indexing.rs:159:29
    |
 LL |     let _ = v1[0] + v1[1] + v1[2];
    |                             ^^^^^
    = note: asserting the length before indexing will elide bounds checks
 
 error: indexing into a slice multiple times with an `assert` that does not cover the highest index
-  --> tests/ui/missing_asserts_for_indexing.rs:163:13
+  --> tests/ui/missing_asserts_for_indexing.rs:164:13
    |
 LL |     assert_eq!(2, v3.len());
    |     ----------------------- help: provide the highest index that is indexed with: `assert_eq!(v3.len(), 3)`
@@ -337,24 +337,24 @@ LL |     let _ = v3[0] + v3[1] + v3[2];
    |             ^^^^^^^^^^^^^^^^^^^^^
    |
 note: slice indexed here
-  --> tests/ui/missing_asserts_for_indexing.rs:163:13
+  --> tests/ui/missing_asserts_for_indexing.rs:164:13
    |
 LL |     let _ = v3[0] + v3[1] + v3[2];
    |             ^^^^^
 note: slice indexed here
-  --> tests/ui/missing_asserts_for_indexing.rs:163:21
+  --> tests/ui/missing_asserts_for_indexing.rs:164:21
    |
 LL |     let _ = v3[0] + v3[1] + v3[2];
    |                     ^^^^^
 note: slice indexed here
-  --> tests/ui/missing_asserts_for_indexing.rs:163:29
+  --> tests/ui/missing_asserts_for_indexing.rs:164:29
    |
 LL |     let _ = v3[0] + v3[1] + v3[2];
    |                             ^^^^^
    = note: asserting the length before indexing will elide bounds checks
 
 error: indexing into a slice multiple times with an `assert` that does not cover the highest index
-  --> tests/ui/missing_asserts_for_indexing.rs:172:17
+  --> tests/ui/missing_asserts_for_indexing.rs:173:17
    |
 LL |         assert_eq!(v.len(), 2);
    |         ---------------------- help: provide the highest index that is indexed with: `assert_eq!(v.len(), 3)`
@@ -362,24 +362,24 @@ LL |         let _ = v[0] + v[1] + v[2];
    |                 ^^^^^^^^^^^^^^^^^^
    |
 note: slice indexed here
-  --> tests/ui/missing_asserts_for_indexing.rs:172:17
+  --> tests/ui/missing_asserts_for_indexing.rs:173:17
    |
 LL |         let _ = v[0] + v[1] + v[2];
    |                 ^^^^
 note: slice indexed here
-  --> tests/ui/missing_asserts_for_indexing.rs:172:24
+  --> tests/ui/missing_asserts_for_indexing.rs:173:24
    |
 LL |         let _ = v[0] + v[1] + v[2];
    |                        ^^^^
 note: slice indexed here
-  --> tests/ui/missing_asserts_for_indexing.rs:172:31
+  --> tests/ui/missing_asserts_for_indexing.rs:173:31
    |
 LL |         let _ = v[0] + v[1] + v[2];
    |                               ^^^^
    = note: asserting the length before indexing will elide bounds checks
 
 error: indexing into a slice multiple times with an `assert` that does not cover the highest index
-  --> tests/ui/missing_asserts_for_indexing.rs:178:17
+  --> tests/ui/missing_asserts_for_indexing.rs:179:17
    |
 LL |         debug_assert_eq!(v.len(), 2);
    |         ---------------------------- help: provide the highest index that is indexed with: `debug_assert_eq!(v.len(), 3)`
@@ -387,17 +387,17 @@ LL |         let _ = v[0] + v[1] + v[2];
    |                 ^^^^^^^^^^^^^^^^^^
    |
 note: slice indexed here
-  --> tests/ui/missing_asserts_for_indexing.rs:178:17
+  --> tests/ui/missing_asserts_for_indexing.rs:179:17
    |
 LL |         let _ = v[0] + v[1] + v[2];
    |                 ^^^^
 note: slice indexed here
-  --> tests/ui/missing_asserts_for_indexing.rs:178:24
+  --> tests/ui/missing_asserts_for_indexing.rs:179:24
    |
 LL |         let _ = v[0] + v[1] + v[2];
    |                        ^^^^
 note: slice indexed here
-  --> tests/ui/missing_asserts_for_indexing.rs:178:31
+  --> tests/ui/missing_asserts_for_indexing.rs:179:31
    |
 LL |         let _ = v[0] + v[1] + v[2];
    |                               ^^^^

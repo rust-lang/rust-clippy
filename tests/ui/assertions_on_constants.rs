@@ -54,8 +54,11 @@ fn main() {
     const _: () = assert!(true);
     //~^ assertions_on_constants
 
-    assert!(8 == (7 + 1));
-    //~^ assertions_on_constants
+    #[allow(clippy::manual_assert_eq, reason = "tests `assert!` specifically")]
+    {
+        assert!(8 == (7 + 1));
+        //~^ assertions_on_constants
+    }
 
     // Don't lint if the value is dependent on a defined constant:
     const N: usize = 1024;
@@ -68,8 +71,11 @@ const _: () = {
     assert!(true);
     //~^ assertions_on_constants
 
-    assert!(8 == (7 + 1));
-    //~^ assertions_on_constants
+    #[allow(clippy::manual_assert_eq, reason = "tests `assert!` specifically")]
+    {
+        assert!(8 == (7 + 1));
+        //~^ assertions_on_constants
+    }
 
     assert!(C);
 };
