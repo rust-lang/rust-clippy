@@ -1,4 +1,4 @@
-#![warn(clippy::empty_drop)]
+#![warn(clippy::empty_drops)]
 
 // should cause an error
 struct Foo;

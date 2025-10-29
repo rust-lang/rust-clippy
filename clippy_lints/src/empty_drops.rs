@@ -27,13 +27,13 @@ declare_clippy_lint! {
     /// struct S;
     /// ```
     #[clippy::version = "1.62.0"]
-    pub EMPTY_DROP,
+    pub EMPTY_DROPS,
     restriction,
     "empty `Drop` implementations"
 }
-declare_lint_pass!(EmptyDrop => [EMPTY_DROP]);
+declare_lint_pass!(EmptyDrops => [EMPTY_DROPS]);
 
-impl LateLintPass<'_> for EmptyDrop {
+impl LateLintPass<'_> for EmptyDrops {
     fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
         if let ItemKind::Impl(Impl {
             of_trait: Some(of_trait),
@@ -50,7 +50,7 @@ impl LateLintPass<'_> for EmptyDrop {
             && block.stmts.is_empty()
             && block.expr.is_none()
         {
-            span_lint_and_then(cx, EMPTY_DROP, item.span, "empty drop implementation", |diag| {
+            span_lint_and_then(cx, EMPTY_DROPS, item.span, "empty drop implementation", |diag| {
                 diag.span_suggestion_hidden(
                     item.span,
                     "try removing this impl",

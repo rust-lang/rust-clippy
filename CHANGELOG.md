@@ -6251,6 +6251,7 @@ Released 2018-09-13
 [`else_if_without_else`]: https://rust-lang.github.io/rust-clippy/master/index.html#else_if_without_else
 [`empty_docs`]: https://rust-lang.github.io/rust-clippy/master/index.html#empty_docs
 [`empty_drop`]: https://rust-lang.github.io/rust-clippy/master/index.html#empty_drop
+[`empty_drops`]: https://rust-lang.github.io/rust-clippy/master/index.html#empty_drops
 [`empty_enum`]: https://rust-lang.github.io/rust-clippy/master/index.html#empty_enum
 [`empty_enum_variants_with_brackets`]: https://rust-lang.github.io/rust-clippy/master/index.html#empty_enum_variants_with_brackets
 [`empty_enums`]: https://rust-lang.github.io/rust-clippy/master/index.html#empty_enums

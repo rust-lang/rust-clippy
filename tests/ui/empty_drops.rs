@@ -1,10 +1,10 @@
-#![warn(clippy::empty_drop)]
+#![warn(clippy::empty_drops)]
 
 // should cause an error
 struct Foo;
 
 impl Drop for Foo {
-    //~^ empty_drop
+    //~^ empty_drops
     fn drop(&mut self) {}
 }
 
@@ -21,7 +21,7 @@ impl Drop for Bar {
 struct Baz;
 
 impl Drop for Baz {
-    //~^ empty_drop
+    //~^ empty_drops
     fn drop(&mut self) {
         {}
     }
