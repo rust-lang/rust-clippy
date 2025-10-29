@@ -1,8 +1,8 @@
 error: unneeded sub `cfg` when there is only one condition
   --> tests/ui/non_minimal_cfg.rs:3:7
    |
-LL | #[cfg(all(windows))]
-   |       ^^^^^^^^^^^^ help: try: `windows`
+LL | #[cfg(all(foo))]
+   |       ^^^^^^^^ help: try: `foo`
    |
    = note: `-D clippy::non-minimal-cfg` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::non_minimal_cfg)]`
@@ -10,20 +10,80 @@ LL | #[cfg(all(windows))]
 error: unneeded sub `cfg` when there is only one condition
   --> tests/ui/non_minimal_cfg.rs:7:7
    |
-LL | #[cfg(any(windows))]
-   |       ^^^^^^^^^^^^ help: try: `windows`
+LL | #[cfg(any(foo))]
+   |       ^^^^^^^^ help: try: `foo`
 
 error: unneeded sub `cfg` when there is only one condition
   --> tests/ui/non_minimal_cfg.rs:11:11
    |
-LL | #[cfg(all(any(unix), all(not(windows))))]
-   |           ^^^^^^^^^ help: try: `unix`
+LL | #[cfg(any(any(foo), all(not(bar))))]
+   |           ^^^^^^^^ help: try: `foo`
 
 error: unneeded sub `cfg` when there is only one condition
-  --> tests/ui/non_minimal_cfg.rs:11:22
+  --> tests/ui/non_minimal_cfg.rs:11:21
    |
-LL | #[cfg(all(any(unix), all(not(windows))))]
-   |                      ^^^^^^^^^^^^^^^^^ help: try: `not(windows)`
+LL | #[cfg(any(any(foo), all(not(bar))))]
+   |                     ^^^^^^^^^^^^^ help: try: `not(bar)`
 
-error: aborting due to 4 previous errors
+error: unneeded sub `cfg` when there is no condition
+  --> tests/ui/non_minimal_cfg.rs:16:7
+   |
+LL | #[cfg(all())]
+   |       ^^^^^
+   |
+help: use a boolean literal instead
+   |
+LL - #[cfg(all())]
+LL + #[cfg(true)]
+   |
+
+error: unneeded sub `cfg` when there is no condition
+  --> tests/ui/non_minimal_cfg.rs:20:17
+   |
+LL | #[cfg(any(true, any()))]
+   |                 ^^^^^
+   |
+help: use a boolean literal instead
+   |
+LL - #[cfg(any(true, any()))]
+LL + #[cfg(any(true, false))]
+   |
+
+error: unneeded sub `cfg` when there is only one condition
+  --> tests/ui/non_minimal_cfg.rs:24:12
+   |
+LL | #[cfg_attr(all(foo), doc = "all")]
+   |            ^^^^^^^^ help: try: `foo`
+
+error: unneeded sub `cfg` when there is only one condition
+  --> tests/ui/non_minimal_cfg.rs:26:16
+   |
+LL | #[cfg_attr(any(any(foo), all(not(bar))), doc = "mixed")]
+   |                ^^^^^^^^ help: try: `foo`
+
+error: unneeded sub `cfg` when there is only one condition
+  --> tests/ui/non_minimal_cfg.rs:26:26
+   |
+LL | #[cfg_attr(any(any(foo), all(not(bar))), doc = "mixed")]
+   |                          ^^^^^^^^^^^^^ help: try: `not(bar)`
+
+error: unneeded sub `cfg` when there is only one condition
+  --> tests/ui/non_minimal_cfg.rs:29:12
+   |
+LL | #[cfg_attr(any(not_active), doc = "catches not active cfg_attrs")]
+   |            ^^^^^^^^^^^^^^^ help: try: `not_active`
+
+error: unneeded sub `cfg` when there is no condition
+  --> tests/ui/non_minimal_cfg.rs:47:12
+   |
+LL | #[cfg_attr(any(), inline)]
+   |            ^^^^^
+   |
+help: use a boolean literal instead
+   |
+LL - #[cfg_attr(any(), inline)]
+LL + #[cfg_attr(false, inline)]
+   |
+
+error: aborting due to 11 previous errors
 

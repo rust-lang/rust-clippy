@@ -160,9 +160,11 @@ declare_clippy_lint! {
     /// are stable now, they should be used instead of the old `cfg_attr(rustfmt)` attributes.
     ///
     /// ### Known problems
-    /// This lint doesn't detect crate level inner attributes, because they get
-    /// processed before the PreExpansionPass lints get executed. See
-    /// [#3123](https://github.com/rust-lang/rust-clippy/pull/3123#issuecomment-422321765)
+    /// Does not detect attributes applied to macro invocations such as
+    /// ```no_run
+    /// #[cfg_attr(rustfmt, rustfmt_skip)]
+    /// println!("..");
+    /// ```
     ///
     /// ### Example
     /// ```no_run
@@ -314,10 +316,15 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for `any` and `all` combinators in `cfg` with only one condition.
+    /// Checks for `any` and `all` combinators in `cfg` or `cfg_attr` with only one condition.
     ///
     /// ### Why is this bad?
     /// If there is only one condition, no need to wrap it into `any` or `all` combinators.
+    ///
+    /// ### Known Problems
+    /// Only attributes that are attached to items included in the current compilation will be linted,
+    /// for the examples below the lint will only fire when `Bar` is compiled - in this case when on
+    /// a `unix` target.
     ///
     /// ### Example
     /// ```no_run
@@ -474,22 +481,27 @@ declare_clippy_lint! {
     "ignored tests without messages"
 }
 
-pub struct Attributes {
+pub struct LateAttributes {
     msrv: Msrv,
 }
 
-impl_lint_pass!(Attributes => [
+impl_lint_pass!(LateAttributes => [
     INLINE_ALWAYS,
     REPR_PACKED_WITHOUT_ABI,
+    DEPRECATED_CLIPPY_CFG_ATTR,
 ]);
 
-impl Attributes {
+impl LateAttributes {
     pub fn new(conf: &'static Conf) -> Self {
         Self { msrv: conf.msrv }
     }
 }
 
-impl<'tcx> LateLintPass<'tcx> for Attributes {
+impl<'tcx> LateLintPass<'tcx> for LateAttributes {
+    fn check_crate(&mut self, cx: &LateContext<'tcx>) {
+        deprecated_cfg_attr::check_stripped(cx);
+    }
+
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'_>) {
         let attrs = cx.tcx.hir_attrs(item.hir_id());
         if let ItemKind::Fn { ident, .. } = item.kind
@@ -526,35 +538,6 @@ impl EarlyAttributes {
 }
 
 impl_lint_pass!(EarlyAttributes => [
-    DEPRECATED_CFG_ATTR,
-    NON_MINIMAL_CFG,
-    DEPRECATED_CLIPPY_CFG_ATTR,
-    UNNECESSARY_CLIPPY_CFG,
-]);
-
-impl EarlyLintPass for EarlyAttributes {
-    fn check_attribute(&mut self, cx: &EarlyContext<'_>, attr: &Attribute) {
-        deprecated_cfg_attr::check(cx, attr, &self.msrv);
-        deprecated_cfg_attr::check_clippy(cx, attr);
-        non_minimal_cfg::check(cx, attr);
-    }
-
-    extract_msrv_attr!();
-}
-
-pub struct PostExpansionEarlyAttributes {
-    msrv: MsrvStack,
-}
-
-impl PostExpansionEarlyAttributes {
-    pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: MsrvStack::new(conf.msrv),
-        }
-    }
-}
-
-impl_lint_pass!(PostExpansionEarlyAttributes => [
     ALLOW_ATTRIBUTES,
     ALLOW_ATTRIBUTES_WITHOUT_REASON,
     DEPRECATED_SEMVER,
@@ -564,9 +547,13 @@ impl_lint_pass!(PostExpansionEarlyAttributes => [
     SHOULD_PANIC_WITHOUT_EXPECT,
     MIXED_ATTRIBUTES_STYLE,
     DUPLICATED_ATTRIBUTES,
+    DEPRECATED_CFG_ATTR,
+    DEPRECATED_CLIPPY_CFG_ATTR,
+    UNNECESSARY_CLIPPY_CFG,
+    NON_MINIMAL_CFG,
 ]);
 
-impl EarlyLintPass for PostExpansionEarlyAttributes {
+impl EarlyLintPass for EarlyAttributes {
     fn check_crate(&mut self, cx: &EarlyContext<'_>, krate: &ast::Crate) {
         blanket_clippy_restriction_lints::check_command_line(cx);
         duplicated_attributes::check(cx, &krate.attrs);
@@ -584,6 +571,15 @@ impl EarlyLintPass for PostExpansionEarlyAttributes {
             }
             if is_lint_level(ident.name, attr.id) {
                 blanket_clippy_restriction_lints::check(cx, ident.name, items);
+            }
+            if matches!(ident.name, sym::cfg_trace | sym::cfg_attr_trace)
+                && let Some(meta_item) = items.first().and_then(|item| item.meta_item())
+            {
+                non_minimal_cfg::check(cx, items, &self.msrv);
+                deprecated_cfg_attr::check(cx, meta_item);
+                if let Some(behind_cfg) = items.get(1).and_then(|item| item.meta_item()) {
+                    unnecessary_clippy_cfg::check(cx, meta_item, behind_cfg, attr);
+                }
             }
             if items.is_empty() || !attr.has_name(sym::deprecated) {
                 return;
@@ -620,13 +616,51 @@ impl EarlyLintPass for PostExpansionEarlyAttributes {
     }
 
     fn check_item(&mut self, cx: &EarlyContext<'_>, item: &'_ ast::Item) {
-        match item.kind {
+        match &item.kind {
             ast::ItemKind::ExternCrate(..) | ast::ItemKind::Use(..) => useless_attribute::check(cx, item, &item.attrs),
+            ast::ItemKind::Struct(.., variant) => {
+                for field in variant.fields() {
+                    deprecated_cfg_attr::check_rustfmt(cx, &field.attrs, &self.msrv);
+                }
+            },
+            ast::ItemKind::ForeignMod(foreign) => {
+                for item in &foreign.items {
+                    deprecated_cfg_attr::check_rustfmt(cx, &item.attrs, &self.msrv);
+                }
+            },
             _ => {},
         }
 
+        deprecated_cfg_attr::check_rustfmt(cx, &item.attrs, &self.msrv);
         mixed_attributes_style::check(cx, item.span, &item.attrs);
         duplicated_attributes::check(cx, &item.attrs);
+    }
+
+    fn check_stmt(&mut self, cx: &EarlyContext<'_>, stmt: &ast::Stmt) {
+        match &stmt.kind {
+            ast::StmtKind::Let(local) => deprecated_cfg_attr::check_rustfmt(cx, &local.attrs, &self.msrv),
+            ast::StmtKind::Semi(expr) => deprecated_cfg_attr::check_rustfmt(cx, &expr.attrs, &self.msrv),
+            _ => {},
+        }
+    }
+
+    fn check_arm(&mut self, cx: &EarlyContext<'_>, arm: &ast::Arm) {
+        deprecated_cfg_attr::check_rustfmt(cx, &arm.attrs, &self.msrv);
+    }
+
+    fn check_trait_item(&mut self, cx: &EarlyContext<'_>, item: &ast::AssocItem) {
+        deprecated_cfg_attr::check_rustfmt(cx, &item.attrs, &self.msrv);
+    }
+
+    fn check_impl_item(&mut self, cx: &EarlyContext<'_>, item: &ast::AssocItem) {
+        deprecated_cfg_attr::check_rustfmt(cx, &item.attrs, &self.msrv);
+    }
+
+    fn check_variant(&mut self, cx: &EarlyContext<'_>, variant: &ast::Variant) {
+        deprecated_cfg_attr::check_rustfmt(cx, &variant.attrs, &self.msrv);
+        for field in variant.data.fields() {
+            deprecated_cfg_attr::check_rustfmt(cx, &field.attrs, &self.msrv);
+        }
     }
 
     extract_msrv_attr!();
