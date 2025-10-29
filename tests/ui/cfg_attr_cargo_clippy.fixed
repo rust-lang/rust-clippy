@@ -7,14 +7,22 @@
 //~^ deprecated_clippy_cfg_attr
 #[cfg_attr(not(clippy), derive(Debug))]
 //~^ deprecated_clippy_cfg_attr
-#[cfg(clippy)]
-//~^ deprecated_clippy_cfg_attr
+struct Attrs;
+
 #[cfg(not(clippy))]
 //~^ deprecated_clippy_cfg_attr
+struct Not;
+
+#[cfg(clippy)]
+//~^ deprecated_clippy_cfg_attr
+struct Stripped;
+
 #[cfg(any(clippy))]
 //~^ deprecated_clippy_cfg_attr
+struct StrippedAny;
+
 #[cfg(all(clippy))]
 //~^ deprecated_clippy_cfg_attr
-pub struct Bar;
+struct StrippedAll;
 
 fn main() {}

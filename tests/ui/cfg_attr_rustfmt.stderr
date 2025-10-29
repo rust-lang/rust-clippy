@@ -1,23 +1,52 @@
-error: `cfg_attr` is deprecated for rustfmt and got replaced by tool attributes
-  --> tests/ui/cfg_attr_rustfmt.rs:18:5
+error: `cfg_attr` is deprecated for rustfmt
+  --> tests/ui/cfg_attr_rustfmt.rs:10:1
    |
-LL |     #[cfg_attr(rustfmt, rustfmt::skip)]
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `#[rustfmt::skip]`
+LL | #[cfg_attr(rustfmt, rustfmt_skip)]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: `-D clippy::deprecated-cfg-attr` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::deprecated_cfg_attr)]`
-
-error: `cfg_attr` is deprecated for rustfmt and got replaced by tool attributes
-  --> tests/ui/cfg_attr_rustfmt.rs:23:1
+help: use the `rustfmt::skip` tool attribute instead
    |
-LL | #[cfg_attr(rustfmt, rustfmt_skip)]
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `#[rustfmt::skip]`
-
-error: `cfg_attr` is deprecated for rustfmt and got replaced by tool attributes
-  --> tests/ui/cfg_attr_rustfmt.rs:43:5
+LL - #[cfg_attr(rustfmt, rustfmt_skip)]
+LL + #[rustfmt::skip]
    |
-LL |     #[cfg_attr(rustfmt, rustfmt::skip)]
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `#[rustfmt::skip]`
 
-error: aborting due to 3 previous errors
+error: `cfg_attr` is deprecated for rustfmt
+  --> tests/ui/cfg_attr_rustfmt.rs:14:5
+   |
+LL |     #[cfg_attr(rustfmt, rustfmt_skip)]
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use the `rustfmt::skip` tool attribute instead
+   |
+LL -     #[cfg_attr(rustfmt, rustfmt_skip)]
+LL +     #[rustfmt::skip]
+   |
+
+error: `cfg_attr` is deprecated for rustfmt
+  --> tests/ui/cfg_attr_rustfmt.rs:18:5
+   |
+LL |     #[cfg_attr(rustfmt, rustfmt_skip)]
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use the `rustfmt::skip` tool attribute instead
+   |
+LL -     #[cfg_attr(rustfmt, rustfmt_skip)]
+LL +     #[rustfmt::skip]
+   |
+
+error: `cfg_attr` is deprecated for rustfmt
+  --> tests/ui/cfg_attr_rustfmt.rs:38:1
+   |
+LL | #[cfg_attr(rustfmt, rustfmt::skip)]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use the `rustfmt::skip` tool attribute instead
+   |
+LL - #[cfg_attr(rustfmt, rustfmt::skip)]
+LL + #[rustfmt::skip]
+   |
+
+error: aborting due to 4 previous errors
 
