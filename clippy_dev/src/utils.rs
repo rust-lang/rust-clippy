@@ -96,13 +96,10 @@ impl<'a> File<'a> {
         }
     }
 
-    /// Opens and reads a file into a string, panicking of failure.
+    /// Opens a file for reading, panicking of failure.
     #[track_caller]
-    pub fn open_read_to_cleared_string<'dst>(
-        path: &'a (impl AsRef<Path> + ?Sized),
-        dst: &'dst mut String,
-    ) -> &'dst mut String {
-        Self::open(path, OpenOptions::new().read(true)).read_to_cleared_string(dst)
+    pub fn open_read(path: &'a (impl AsRef<Path> + ?Sized)) -> Self {
+        Self::open(path, OpenOptions::new().read(true))
     }
 
     /// Read the entire contents of a file to the given buffer.
@@ -430,51 +427,59 @@ pub fn update_text_region_fn(
 }
 
 #[track_caller]
-pub fn try_rename_file(old_name: &Path, new_name: &Path) -> bool {
-    match OpenOptions::new().create_new(true).write(true).open(new_name) {
-        Ok(file) => drop(file),
-        Err(e) if matches!(e.kind(), io::ErrorKind::AlreadyExists | io::ErrorKind::NotFound) => return false,
-        Err(ref e) => panic_action(e, ErrAction::Create, new_name),
+pub fn try_rename_file(old_name: impl AsRef<Path>, new_name: impl AsRef<Path>) -> bool {
+    #[track_caller]
+    fn f(old_name: &Path, new_name: &Path) -> bool {
+        match OpenOptions::new().create_new(true).write(true).open(new_name) {
+            Ok(file) => drop(file),
+            Err(e) if matches!(e.kind(), io::ErrorKind::AlreadyExists | io::ErrorKind::NotFound) => return false,
+            Err(ref e) => panic_action(e, ErrAction::Create, new_name),
+        }
+        match fs::rename(old_name, new_name) {
+            Ok(()) => true,
+            Err(ref e) => {
+                drop(fs::remove_file(new_name));
+                // `NotADirectory` happens on posix when renaming a directory to an existing file.
+                // Windows will ignore this and rename anyways.
+                if matches!(e.kind(), io::ErrorKind::NotFound | io::ErrorKind::NotADirectory) {
+                    false
+                } else {
+                    panic_action(e, ErrAction::Rename, old_name);
+                }
+            },
+        }
     }
-    match fs::rename(old_name, new_name) {
-        Ok(()) => true,
-        Err(ref e) => {
-            drop(fs::remove_file(new_name));
-            // `NotADirectory` happens on posix when renaming a directory to an existing file.
-            // Windows will ignore this and rename anyways.
-            if matches!(e.kind(), io::ErrorKind::NotFound | io::ErrorKind::NotADirectory) {
-                false
-            } else {
-                panic_action(e, ErrAction::Rename, old_name);
-            }
-        },
-    }
+    f(old_name.as_ref(), new_name.as_ref())
 }
 
 #[track_caller]
-pub fn try_rename_dir(old_name: &Path, new_name: &Path) -> bool {
-    match fs::create_dir(new_name) {
-        Ok(()) => {},
-        Err(e) if matches!(e.kind(), io::ErrorKind::AlreadyExists | io::ErrorKind::NotFound) => return false,
-        Err(ref e) => panic_action(e, ErrAction::Create, new_name),
+pub fn try_rename_dir(old_name: impl AsRef<Path>, new_name: impl AsRef<Path>) -> bool {
+    #[track_caller]
+    fn f(old_name: &Path, new_name: &Path) -> bool {
+        match fs::create_dir(new_name) {
+            Ok(()) => {},
+            Err(e) if matches!(e.kind(), io::ErrorKind::AlreadyExists | io::ErrorKind::NotFound) => return false,
+            Err(ref e) => panic_action(e, ErrAction::Create, new_name),
+        }
+        // Windows can't reliably rename to an empty directory.
+        #[cfg(windows)]
+        drop(fs::remove_dir(new_name));
+        match fs::rename(old_name, new_name) {
+            Ok(()) => true,
+            Err(ref e) => {
+                // Already dropped earlier on windows.
+                #[cfg(not(windows))]
+                drop(fs::remove_dir(new_name));
+                // `NotADirectory` happens on posix when renaming a file to an existing directory.
+                if matches!(e.kind(), io::ErrorKind::NotFound | io::ErrorKind::NotADirectory) {
+                    false
+                } else {
+                    panic_action(e, ErrAction::Rename, old_name);
+                }
+            },
+        }
     }
-    // Windows can't reliably rename to an empty directory.
-    #[cfg(windows)]
-    drop(fs::remove_dir(new_name));
-    match fs::rename(old_name, new_name) {
-        Ok(()) => true,
-        Err(ref e) => {
-            // Already dropped earlier on windows.
-            #[cfg(not(windows))]
-            drop(fs::remove_dir(new_name));
-            // `NotADirectory` happens on posix when renaming a file to an existing directory.
-            if matches!(e.kind(), io::ErrorKind::NotFound | io::ErrorKind::NotADirectory) {
-                false
-            } else {
-                panic_action(e, ErrAction::Rename, old_name);
-            }
-        },
-    }
+    f(old_name.as_ref(), new_name.as_ref())
 }
 
 #[track_caller]
@@ -576,21 +581,29 @@ pub fn split_args_for_threads(
 }
 
 #[track_caller]
-pub fn delete_file_if_exists(path: &Path) -> bool {
-    match fs::remove_file(path) {
-        Ok(()) => true,
-        Err(e) if matches!(e.kind(), io::ErrorKind::NotFound | io::ErrorKind::IsADirectory) => false,
-        Err(ref e) => panic_action(e, ErrAction::Delete, path),
+pub fn delete_file_if_exists(path: impl AsRef<Path>) -> bool {
+    #[track_caller]
+    fn f(path: &Path) -> bool {
+        match fs::remove_file(path) {
+            Ok(()) => true,
+            Err(e) if matches!(e.kind(), io::ErrorKind::NotFound | io::ErrorKind::IsADirectory) => false,
+            Err(ref e) => panic_action(e, ErrAction::Delete, path),
+        }
     }
+    f(path.as_ref())
 }
 
 #[track_caller]
-pub fn delete_dir_if_exists(path: &Path) {
-    match fs::remove_dir_all(path) {
-        Ok(()) => {},
-        Err(e) if matches!(e.kind(), io::ErrorKind::NotFound | io::ErrorKind::NotADirectory) => {},
-        Err(ref e) => panic_action(e, ErrAction::Delete, path),
+pub fn delete_dir_if_exists(path: impl AsRef<Path>) {
+    #[track_caller]
+    fn f(path: &Path) {
+        match fs::remove_dir_all(path) {
+            Ok(()) => {},
+            Err(e) if matches!(e.kind(), io::ErrorKind::NotFound | io::ErrorKind::NotADirectory) => {},
+            Err(ref e) => panic_action(e, ErrAction::Delete, path),
+        }
     }
+    f(path.as_ref());
 }
 
 /// Walks all items excluding top-level dot files/directories and any target directories.
@@ -600,6 +613,28 @@ pub fn walk_dir_no_dot_or_target(p: impl AsRef<Path>) -> impl Iterator<Item = ::
             .file_name()
             .is_none_or(|x| x != "target" && x.as_encoded_bytes().first().copied() != Some(b'.'))
     })
+}
+
+pub fn slice_groups<T>(slice: &[T], split_idx: impl FnMut(&T, &[T]) -> usize) -> impl Iterator<Item = &[T]> {
+    struct I<'a, T, F> {
+        slice: &'a [T],
+        split_idx: F,
+    }
+    impl<'a, T, F: FnMut(&T, &[T]) -> usize> Iterator for I<'a, T, F> {
+        type Item = &'a [T];
+        fn next(&mut self) -> Option<Self::Item> {
+            let (head, tail) = self.slice.split_first()?;
+            let idx = (self.split_idx)(head, tail) + 1;
+            if let Some((head, tail)) = self.slice.split_at_checked(idx) {
+                self.slice = tail;
+                Some(head)
+            } else {
+                self.slice = &mut [];
+                None
+            }
+        }
+    }
+    I { slice, split_idx }
 }
 
 pub fn slice_groups_mut<T>(
