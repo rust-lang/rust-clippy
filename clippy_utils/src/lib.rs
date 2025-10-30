@@ -1837,6 +1837,12 @@ fn is_body_identity_function<'a>(cx: &LateContext<'_>, func: &Body<'a>) -> bool 
 
     let mut param_pat = param.pat;
 
+    // Given a sequence of `Stmt`s of the form `let p = e` where `e` is an expr identical to the
+    // current `param_pat`, advance the current `param_pat` to `p`.
+    //
+    // Note: This is similar to `clippy_lints::utils::get_last_chain_binding_hir_id`, but it works
+    // directly over a `Pattern` rather than a `HirId`. And it checks for compatibility via
+    // `is_expr_identity_of_pat` rather than `HirId` equality
     let mut advance_param_pat_over_stmts = |stmts: &[Stmt<'a>]| {
         for stmt in stmts {
             if let StmtKind::Let(local) = stmt.kind
