@@ -238,6 +238,12 @@ impl LintPass<'_> {
 }
 
 impl ConfDef<'_> {
+    pub fn gen_file(&mut self, src: &str, dst: &mut String) {
+        dst.push_str(&src[..self.decl_sp.range.start as usize]);
+        self.gen_mac(src, dst);
+        dst.push_str(&src[self.decl_sp.range.end as usize..]);
+    }
+
     pub fn gen_mac(&mut self, src: &str, dst: &mut String) {
         self.opts.sort_unstable_by_key(|o| o.name);
         dst.push_str("define_Conf! {");
@@ -310,6 +316,7 @@ pub fn gen_sorted_lints_file(
     lints: &mut [ActiveLint<'_, '_>],
     passes: &mut [LintPass<'_>],
     ranges: &mut VecBuf<Range<u32>>,
+    copy_src: &mut dyn FnMut(&str, &mut String),
 ) {
     ranges.with(|ranges| {
         ranges.extend(lints.iter().map(|x| x.data.decl_range));
@@ -321,7 +328,7 @@ pub fn gen_sorted_lints_file(
 
         let mut ranges = ranges.iter();
         let pos = if let Some(range) = ranges.next() {
-            dst.push_str(&src[..range.start as usize]);
+            copy_src(&src[..range.start as usize], dst);
             for lint in &*lints {
                 lint.gen_mac(dst);
                 dst.push_str("\n\n");
@@ -333,29 +340,31 @@ pub fn gen_sorted_lints_file(
             }
             range.end
         } else {
-            dst.push_str(src);
+            copy_src(src, dst);
             return;
         };
 
         let pos = ranges.fold(pos, |start, range| {
             let s = &src[start as usize..range.start as usize];
-            dst.push_str(if s.trim_start().is_empty() {
-                // Only whitespace between this and the previous item. No need to keep that.
-                ""
-            } else if src[..pos as usize].ends_with("\n\n")
-                && let Some(s) = s.strip_prefix("\n\n")
-            {
-                // Empty line before and after. Remove one of them.
-                s
-            } else {
-                // Remove only full lines unless something is in the way.
-                s.strip_prefix('\n').unwrap_or(s)
-            });
+            // Don't keep whitespace between declarations.
+            if !s.trim_start().is_empty() {
+                let s = if src[..pos as usize].ends_with("\n\n")
+                    && let Some(s) = s.strip_prefix("\n\n")
+                {
+                    // Empty line before and after. Remove one of them.
+                    s
+                } else {
+                    // Remove the line end immediately proceeding a declaration.
+                    s.strip_prefix('\n').unwrap_or(s)
+                };
+                copy_src(s, dst);
+            }
             range.end
         });
 
         // Since we always generate an empty line at the end, make sure to always skip it.
         let s = &src[pos as usize..];
-        dst.push_str(s.strip_prefix('\n').map_or(s, |s| s.strip_prefix('\n').unwrap_or(s)));
+        let s = s.strip_prefix('\n').map_or(s, |s| s.strip_prefix('\n').unwrap_or(s));
+        copy_src(s, dst);
     });
 }
