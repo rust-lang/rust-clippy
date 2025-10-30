@@ -50,6 +50,7 @@ macro_rules! mac {
 
 #[clippy::msrv = "1.69"]
 fn under_msrv_is_some_and(opt: Option<u32>, res: Result<u32, ()>) {
+    let _ = res.map(|x| x != 0) == Ok(true);
     let _ = res.into_iter().any(|x| x != 0);
     let _ = opt.map(|x| x != 0).unwrap_or_default();
     let _ = opt.iter().all(|x| *x != 0);
@@ -58,6 +59,8 @@ fn under_msrv_is_some_and(opt: Option<u32>, res: Result<u32, ()>) {
 
 #[clippy::msrv = "1.70"]
 fn meets_msrv_is_some_and(opt: Option<u32>, res: Result<u32, ()>) {
+    let _ = res.map(|x| x != 0) == Ok(true);
+    //~^ manual_is_variant_and
     let _ = res.into_iter().any(|x| x != 0);
     //~^ manual_is_variant_and
     let _ = opt.map(|x| x != 0).unwrap_or_default();
@@ -69,6 +72,8 @@ fn meets_msrv_is_some_and(opt: Option<u32>, res: Result<u32, ()>) {
 
 #[clippy::msrv = "1.81"]
 fn under_msrv_is_none_or(opt: Option<u32>, res: Result<u32, ()>) {
+    let _ = res.map(|x| x != 0) == Ok(true);
+    //~^ manual_is_variant_and
     let _ = res.into_iter().any(|x| x != 0);
     //~^ manual_is_variant_and
     let _ = opt.map(|x| x != 0).unwrap_or_default();
@@ -80,6 +85,8 @@ fn under_msrv_is_none_or(opt: Option<u32>, res: Result<u32, ()>) {
 
 #[clippy::msrv = "1.82"]
 fn meets_msrv_is_none_or(opt: Option<u32>, res: Result<u32, ()>) {
+    let _ = res.map(|x| x != 0) == Ok(true);
+    //~^ manual_is_variant_and
     let _ = res.into_iter().any(|x| x != 0);
     //~^ manual_is_variant_and
     let _ = opt.map(|x| x != 0).unwrap_or_default();
