@@ -101,6 +101,7 @@ decl_ident_pats! {
     RENAMED,
     RENAMED_VERSION,
     clippy,
+    r#for = "for",
     r#pub = "pub",
     version,
 }

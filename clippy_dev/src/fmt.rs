@@ -113,6 +113,7 @@ pub fn run(update_mode: UpdateMode) {
         cx.dcx.exit_on_err();
 
         let mut updater = FileUpdater::default();
+        let copy: &mut dyn FnMut(&str, &mut String) = &mut |src, dst| dst.push_str(src);
 
         #[expect(clippy::mutable_key_type)]
         let mut lints = lint_data.lints.mk_by_file_map();
@@ -122,13 +123,13 @@ pub fn run(update_mode: UpdateMode) {
             let mut lints = lints.remove(file);
             let lints = lints.as_deref_mut().unwrap_or_default();
             updater.update_loaded_file_checked("cargo dev fmt", update_mode, file, &mut |_, src, dst| {
-                gen_sorted_lints_file(src, dst, lints, passes, &mut ranges);
+                gen_sorted_lints_file(src, dst, lints, passes, &mut ranges, copy);
                 UpdateStatus::from_changed(src != dst)
             });
         }
         for (&file, lints) in &mut lints {
             updater.update_loaded_file_checked("cargo dev fmt", update_mode, file, &mut |_, src, dst| {
-                gen_sorted_lints_file(src, dst, lints, &mut [], &mut ranges);
+                gen_sorted_lints_file(src, dst, lints, &mut [], &mut ranges, copy);
                 UpdateStatus::from_changed(src != dst)
             });
         }
@@ -138,9 +139,7 @@ pub fn run(update_mode: UpdateMode) {
             update_mode,
             conf_data.decl_sp.file,
             &mut |_, src, dst| {
-                dst.push_str(&src[..conf_data.decl_sp.range.start as usize]);
-                conf_data.gen_mac(src, dst);
-                dst.push_str(&src[conf_data.decl_sp.range.end as usize..]);
+                conf_data.gen_file(src, dst);
                 UpdateStatus::from_changed(src != dst)
             },
         );
