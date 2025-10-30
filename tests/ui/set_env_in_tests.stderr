@@ -1,12 +1,28 @@
 error: env::set_var called from a test
-  --> tests/ui/set_env_in_tests.rs:15:18
+  --> tests/ui/set_env_in_tests.rs:16:18
+   |
+LL |         unsafe { set_var("CLIPPY_TESTS_THIS_IS_NOT_OK", "1") }
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: this might indicate state leakage and cause flaky tests
+   = note: `-D clippy::set-env-in-tests` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::set_env_in_tests)]`
+
+error: env::set_var called from a test
+  --> tests/ui/set_env_in_tests.rs:19:18
    |
 LL |         unsafe { env::set_var("CLIPPY_TESTS_THIS_IS_NOT_OK", "1") }
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = help: this might indicate state leakage and flaky tests
-   = note: `-D clippy::set-env-in-tests` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::set_env_in_tests)]`
+   = help: this might indicate state leakage and cause flaky tests
 
-error: aborting due to 1 previous error
+error: env::set_var called from a test
+  --> tests/ui/set_env_in_tests.rs:22:18
+   |
+LL |         unsafe { std::env::set_var("CLIPPY_TESTS_THIS_IS_NOT_OK", "1") }
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: this might indicate state leakage and cause flaky tests
+
+error: aborting due to 3 previous errors
 

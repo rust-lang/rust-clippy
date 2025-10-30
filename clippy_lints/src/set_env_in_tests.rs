@@ -7,11 +7,15 @@ use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for use of `std::env::set_env` in tests
+    /// Checks for use of `std::env::set_env` in tests.
     ///
     /// ### Why restrict this?
-    /// Setting environment varibales in tests could lead
-    /// to leaking state between tests.
+    /// Setting environment varibales in tests often means the subject code
+    /// is reading and acting on the environment. By default, rust tests
+    /// are run concurrently, and setting environment variables cannot be
+    /// done in a way that is scoped only to the test. Even if care is taken
+    /// to clean up any mutations, concurrent test runs will affect each
+    /// other's environment.
     ///
     /// ### Example
     /// ```no_run
@@ -44,7 +48,7 @@ impl<'tcx> LateLintPass<'tcx> for SetEnvInTests {
                 expr.span,
                 "env::set_var called from a test",
                 None,
-                "this might indicate state leakage and flaky tests",
+                "this might indicate state leakage and cause flaky tests",
             );
         }
     }
