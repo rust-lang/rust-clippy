@@ -26,13 +26,7 @@ LL | |     );
    | |_____^ help: consider using `unwrap_or_else`: `x.unwrap_or_else(|err| err)`
 
 error: unused "map closure" when calling `Result::map_or_else` value
-  --> tests/ui/unnecessary_result_map_or_else.rs:79:5
-   |
-LL |     x.map_or_else(|err| err, |(a, b)| (a, b));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `unwrap_or_else`: `x.unwrap_or_else(|err| err)`
-
-error: unused "map closure" when calling `Result::map_or_else` value
-  --> tests/ui/unnecessary_result_map_or_else.rs:84:5
+  --> tests/ui/unnecessary_result_map_or_else.rs:39:5
    |
 LL | /     x.map_or_else(
 LL | |
@@ -43,5 +37,35 @@ LL | |         },
 LL | |     );
    | |_____^ help: consider using `unwrap_or_else`: `x.unwrap_or_else(|err| err)`
 
-error: aborting due to 5 previous errors
+error: unused "map closure" when calling `Result::map_or_else` value
+  --> tests/ui/unnecessary_result_map_or_else.rs:91:5
+   |
+LL |     x.map_or_else(|err| err, |(a, b)| (a, b));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `unwrap_or_else`: `x.unwrap_or_else(|err| err)`
+
+error: unused "map closure" when calling `Result::map_or_else` value
+  --> tests/ui/unnecessary_result_map_or_else.rs:96:5
+   |
+LL | /     x.map_or_else(
+LL | |
+LL | |         |err| err,
+LL | |         |n| {
+...  |
+LL | |         },
+LL | |     );
+   | |_____^ help: consider using `unwrap_or_else`: `x.unwrap_or_else(|err| err)`
+
+error: unused "map closure" when calling `Result::map_or_else` value
+  --> tests/ui/unnecessary_result_map_or_else.rs:108:5
+   |
+LL | /     x.map_or_else(
+LL | |
+LL | |         |err| err,
+LL | |         |n| {
+...  |
+LL | |         },
+LL | |     );
+   | |_____^ help: consider using `unwrap_or_else`: `x.unwrap_or_else(|err| err)`
+
+error: aborting due to 7 previous errors
 

@@ -26,6 +26,10 @@ fn main() {
     let x: Result<(), ()> = Ok(());
     x.unwrap_or_else(|err| err);
 
+    // Temporary variable with pattern
+    let x: Result<((), ()), ((), ())> = Ok(((), ()));
+    x.unwrap_or_else(|err| err);
+
     // Should not warn.
     let x: Result<usize, usize> = Ok(0);
     x.map_or_else(|err| err, |n| n + 1);
@@ -73,5 +77,9 @@ fn main() {
 
     // Returned temporary variable.
     let x: Result<(), ()> = Ok(());
+    x.unwrap_or_else(|err| err);
+
+    // Returned temporary variable with pattern
+    let x: Result<((), ()), ((), ())> = Ok(((), ()));
     x.unwrap_or_else(|err| err);
 }

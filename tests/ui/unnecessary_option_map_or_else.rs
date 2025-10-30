@@ -19,11 +19,11 @@ fn main() {
     // Expected errors
     // Basic scenario
     let option = Some(());
-    option.map_or_else(|| (), |x| x); //~ ERROR: unused "map closure" when calling
+    option.map_or_else(|| (), |x| x); //~ unnecessary_option_map_or_else
 
     // Type ascription
     let option = Some(());
-    option.map_or_else(|| (), |x: ()| x); //~ ERROR: unused "map closure" when calling
+    option.map_or_else(|| (), |x: ()| x); //~ unnecessary_option_map_or_else
 
     // Auto-deref
     let string = String::new();
@@ -34,11 +34,23 @@ fn main() {
     // Temporary variable
     let option = Some(());
     option.map_or_else(
-        //~^ ERROR: unused "map closure" when calling
+        //~^ unnecessary_option_map_or_else
         || (),
         |x| {
             let tmp = x;
             tmp
+        },
+    );
+
+    // Temporary variable with pattern
+    let option = Some(((), ()));
+    option.map_or_else(
+        //~^ unnecessary_option_map_or_else
+        || ((), ()),
+        |x| {
+            let tmp = x;
+            let (a, b) = tmp;
+            (a, b)
         },
     );
 
@@ -50,13 +62,13 @@ fn main() {
     // std::convert::identity
     let string = String::new();
     let option = Some(&string);
-    let _: &str = option.map_or_else(|| &string, std::convert::identity); //~ ERROR: unused "map closure" when calling
+    let _: &str = option.map_or_else(|| &string, std::convert::identity); //~ unnecessary_option_map_or_else
 
     // Closure bound to a variable
     let do_nothing = |x: String| x;
     let string = String::new();
     let option = Some(string.clone());
-    let _: String = option.map_or_else(|| string, do_nothing); //~ ERROR: unused "map closure" when calling
+    let _: String = option.map_or_else(|| string, do_nothing); //~ unnecessary_option_map_or_else
 
     // Correct usages
     let option = Some(());
@@ -100,6 +112,18 @@ fn main() {
             let tmp = n;
             let tmp2 = tmp;
             return tmp2;
+        },
+    );
+
+    // Returned temporary variable with pattern
+    let x: Option<((), ())> = Some(((), ()));
+    x.map_or_else(
+        //~^ unnecessary_option_map_or_else
+        || ((), ()),
+        |n| {
+            let tmp = n;
+            let (a, b) = tmp;
+            return (a, b);
         },
     );
 }
