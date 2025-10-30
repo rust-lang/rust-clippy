@@ -4677,6 +4677,7 @@ declare_clippy_lint! {
 }
 
 declare_clippy_lint! {
+    /// ### What it does
     /// Checks for usage of `.map_or_else()` "map closure" for `Option` type.
     ///
     /// ### Why is this bad?
