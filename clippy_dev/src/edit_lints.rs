@@ -180,7 +180,7 @@ fn remove_lint_declaration(
     let delete_mod = if data.lints.iter().all(|(_, l)| l.name_sp.file != lint_file) {
         delete_file_if_exists(lint_file.path.get())
     } else {
-        updater.update_file(lint_file.path.get(), &mut |_, src, dst| -> UpdateStatus {
+        updater.change_file(lint_file.path.get(), |src, dst| {
             let mut start = &src[..lint_data.decl_range.start as usize];
             if start.ends_with("\n\n") {
                 start = &start[..start.len() - 1];
@@ -191,7 +191,6 @@ fn remove_lint_declaration(
             }
             dst.push_str(start);
             dst.push_str(end);
-            UpdateStatus::Changed
         });
         false
     };

@@ -107,9 +107,21 @@ impl<'a> File<'a> {
         Self::open(path, OpenOptions::new().read(true))
     }
 
+    /// Opens a file for reading and writing, panicking of failure.
+    #[track_caller]
+    pub fn open_rw(path: &'a (impl AsRef<Path> + ?Sized)) -> Self {
+        Self::open(path, OpenOptions::new().read(true).write(true))
+    }
+
+    /// Truncates and opens a file for writing, panicking of failure.
+    #[track_caller]
+    pub fn open_truncated(path: &'a (impl AsRef<Path> + ?Sized)) -> Self {
+        Self::open(path, OpenOptions::new().truncate(true).write(true))
+    }
+
     /// Creates a new file with the specified contents, panicking on failure.
     #[track_caller]
-    pub fn create_new(path: &'a impl AsRef<Path>) -> Self {
+    pub fn create_new(path: &'a (impl AsRef<Path> + ?Sized)) -> Self {
         let path = path.as_ref();
         Self {
             inner: expect_action(
@@ -335,11 +347,6 @@ impl UpdateStatus {
     pub fn from_changed(value: bool) -> Self {
         if value { Self::Changed } else { Self::Unchanged }
     }
-
-    #[must_use]
-    pub fn is_changed(self) -> bool {
-        matches!(self, Self::Changed)
-    }
 }
 
 #[derive(Clone, Copy)]
@@ -373,7 +380,7 @@ impl FileUpdater {
         path: &Path,
         update: &mut dyn FnMut(&Path, &str, &mut String) -> UpdateStatus,
     ) {
-        let mut file = File::open(path, OpenOptions::new().read(true).write(true));
+        let mut file = File::open_rw(path);
         file.read_to_cleared_string(&mut self.src_buf);
         self.dst_buf.clear();
         match (mode, update(path, &self.src_buf, &mut self.dst_buf)) {
@@ -410,20 +417,9 @@ impl FileUpdater {
                 process::exit(1);
             },
             (UpdateMode::Change, UpdateStatus::Changed) => {
-                File::open(file.path.get(), OpenOptions::new().truncate(true).write(true))
-                    .write(self.dst_buf.as_bytes());
+                File::open_truncated(file.path.get()).write(self.dst_buf.as_bytes());
             },
             (UpdateMode::Check | UpdateMode::Change, UpdateStatus::Unchanged) => {},
-        }
-    }
-
-    #[track_caller]
-    fn update_file_inner(&mut self, path: &Path, update: &mut dyn FnMut(&Path, &str, &mut String) -> UpdateStatus) {
-        let mut file = File::open(path, OpenOptions::new().read(true).write(true));
-        file.read_to_cleared_string(&mut self.src_buf);
-        self.dst_buf.clear();
-        if update(path, &self.src_buf, &mut self.dst_buf).is_changed() {
-            file.replace_contents(self.dst_buf.as_bytes());
         }
     }
 
@@ -444,7 +440,30 @@ impl FileUpdater {
         path: impl AsRef<Path>,
         update: &mut dyn FnMut(&Path, &str, &mut String) -> UpdateStatus,
     ) {
-        self.update_file_inner(path.as_ref(), update);
+        self.update_file_checked_inner("", UpdateMode::Change, path.as_ref(), update);
+    }
+
+    #[track_caller]
+    pub fn write_new_file(&mut self, path: impl AsRef<Path>, f: impl FnOnce(&mut String)) {
+        self.dst_buf.clear();
+        f(&mut self.dst_buf);
+        File::create_new(path.as_ref()).write(&self.dst_buf);
+    }
+
+    #[track_caller]
+    pub fn change_file(&mut self, path: impl AsRef<Path>, f: impl FnOnce(&str, &mut String)) {
+        let mut file = File::open_rw(path.as_ref());
+        file.read_to_cleared_string(&mut self.src_buf);
+        self.dst_buf.clear();
+        f(&self.src_buf, &mut self.dst_buf);
+        file.replace_contents(&self.dst_buf);
+    }
+
+    #[track_caller]
+    pub fn change_loaded_file(&mut self, file: &SourceFile<'_>, f: impl FnOnce(&str, &mut String)) {
+        self.dst_buf.clear();
+        f(&file.contents, &mut self.dst_buf);
+        File::open_truncated(file.path.get()).write(&self.dst_buf);
     }
 }
 
@@ -759,6 +778,46 @@ impl StrBuf {
         }
     }
 
+    /// Allocates the string onto the arena with all ascii characters converted to
+    /// uppercase.
+    pub fn alloc_ascii_upper<'cx>(&mut self, arena: &'cx DroplessArena, s: &str) -> &'cx str {
+        self.0.clear();
+        self.0.push_str(s);
+        self.0.make_ascii_uppercase();
+        if self.0.is_empty() {
+            ""
+        } else {
+            arena.alloc_str(&self.0)
+        }
+    }
+
+    /// Allocates the string onto the arena after converting the kebab-cased identifier
+    /// to pascal casing.
+    pub fn alloc_kebab_to_pascal<'cx>(&mut self, arena: &'cx DroplessArena, s: &str) -> &'cx str {
+        self.0.clear();
+        let mut first = true;
+        for c in s.chars() {
+            if c == '-' {
+                first = true;
+            } else if first {
+                self.0.push(c.to_ascii_uppercase());
+                first = false;
+            } else {
+                self.0.push(c);
+            }
+        }
+        if self.0.is_empty() {
+            ""
+        } else {
+            arena.alloc_str(&self.0)
+        }
+    }
+
+    /// Allocates the string onto the arena after converting the kebab-cased identifier
+    /// to snake casing.
+    pub fn alloc_kebab_to_snake<'cx>(&mut self, arena: &'cx DroplessArena, s: &str) -> &'cx str {
+        self.alloc_replaced(arena, s, '-', "_")
+    }
     /// Collects all elements into the buffer and allocates that onto the arena.
     pub fn alloc_collect<'cx, I>(&mut self, arena: &'cx DroplessArena, iter: I) -> &'cx str
     where
@@ -830,10 +889,19 @@ pub struct SourceFile<'cx> {
 }
 impl<'cx> SourceFile<'cx> {
     #[must_use]
+    pub fn new_empty(path: &'cx str) -> Self {
+        Self {
+            path: Cell::new(path),
+            line_starts: OnceCell::new(),
+            contents: String::new(),
+        }
+    }
+
+    #[must_use]
     pub fn load(path: &'cx str) -> Self {
         let mut contents = String::new();
         File::open_read(path).read_append_to_string(&mut contents);
-        SourceFile {
+        Self {
             path: Cell::new(path),
             line_starts: OnceCell::new(),
             contents,
