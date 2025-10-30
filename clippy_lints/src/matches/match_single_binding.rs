@@ -82,7 +82,7 @@ pub(crate) fn check<'a>(cx: &LateContext<'a>, ex: &Expr<'a>, arms: &[Arm<'_>], e
                         snippet_with_context(cx, pat_span, ctxt, "..", &mut app).0
                     ),
                 ),
-                None if is_expr_identity_of_pat(cx, arms[0].pat, ex, cx.enclosing_body.unwrap(), false) => {
+                None if is_expr_identity_of_pat(cx, arms[0].pat, ex, false) => {
                     span_lint_and_sugg(
                         cx,
                         MATCH_SINGLE_BINDING,

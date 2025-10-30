@@ -1,5 +1,10 @@
 #![warn(clippy::unnecessary_result_map_or_else)]
-#![allow(clippy::unnecessary_literal_unwrap, clippy::let_and_return, clippy::let_unit_value)]
+#![allow(
+    clippy::unnecessary_literal_unwrap,
+    clippy::let_and_return,
+    clippy::let_unit_value,
+    clippy::needless_return
+)]
 
 fn main() {
     let x: Result<(), ()> = Ok(());
@@ -73,4 +78,16 @@ fn main() {
     let x: Result<((), ()), ((), ())> = Ok(((), ()));
     x.map_or_else(|err| err, |(a, b)| (a, b));
     //~^ unnecessary_result_map_or_else
+
+    // Returned temporary variable.
+    let x: Result<(), ()> = Ok(());
+    x.map_or_else(
+        //~^ unnecessary_result_map_or_else
+        |err| err,
+        |n| {
+            let tmp = n;
+            let tmp2 = tmp;
+            return tmp2;
+        },
+    );
 }

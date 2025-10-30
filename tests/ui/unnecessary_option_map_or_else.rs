@@ -3,7 +3,8 @@
     clippy::let_and_return,
     clippy::let_unit_value,
     clippy::unnecessary_lazy_evaluations,
-    clippy::unnecessary_literal_unwrap
+    clippy::unnecessary_literal_unwrap,
+    clippy::needless_return
 )]
 
 const fn identity<T>(x: T) -> T {
@@ -44,7 +45,7 @@ fn main() {
     // Identity
     let string = String::new();
     let option = Some(&string);
-    let _: &str = option.map_or_else(|| &string, identity); //~ ERROR: unused "map closure" when calling
+    let _: &str = option.map_or_else(|| &string, identity);
 
     // std::convert::identity
     let string = String::new();
@@ -89,4 +90,16 @@ fn main() {
     let x: Option<((), ())> = Some(((), ()));
     x.map_or_else(|| ((), ()), |(a, b)| (a, b));
     //~^ unnecessary_option_map_or_else
+
+    // Returned temporary variable.
+    let x: Option<()> = Some(());
+    x.map_or_else(
+        //~^ unnecessary_option_map_or_else
+        || (),
+        |n| {
+            let tmp = n;
+            let tmp2 = tmp;
+            return tmp2;
+        },
+    );
 }

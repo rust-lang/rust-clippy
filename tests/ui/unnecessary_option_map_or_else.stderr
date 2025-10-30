@@ -1,5 +1,5 @@
 error: unused "map closure" when calling `Option::map_or_else` value
-  --> tests/ui/unnecessary_option_map_or_else.rs:21:5
+  --> tests/ui/unnecessary_option_map_or_else.rs:22:5
    |
 LL |     option.map_or_else(|| (), |x| x);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `unwrap_or_else`: `option.unwrap_or_else(|| ())`
@@ -8,13 +8,13 @@ LL |     option.map_or_else(|| (), |x| x);
    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_option_map_or_else)]`
 
 error: unused "map closure" when calling `Option::map_or_else` value
-  --> tests/ui/unnecessary_option_map_or_else.rs:25:5
+  --> tests/ui/unnecessary_option_map_or_else.rs:26:5
    |
 LL |     option.map_or_else(|| (), |x: ()| x);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `unwrap_or_else`: `option.unwrap_or_else(|| ())`
 
 error: unused "map closure" when calling `Option::map_or_else` value
-  --> tests/ui/unnecessary_option_map_or_else.rs:35:5
+  --> tests/ui/unnecessary_option_map_or_else.rs:36:5
    |
 LL | /     option.map_or_else(
 LL | |
@@ -26,28 +26,34 @@ LL | |     );
    | |_____^ help: consider using `unwrap_or_else`: `option.unwrap_or_else(|| ())`
 
 error: unused "map closure" when calling `Option::map_or_else` value
-  --> tests/ui/unnecessary_option_map_or_else.rs:47:19
-   |
-LL |     let _: &str = option.map_or_else(|| &string, identity);
-   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `unwrap_or_else`: `option.unwrap_or_else(|| &string)`
-
-error: unused "map closure" when calling `Option::map_or_else` value
-  --> tests/ui/unnecessary_option_map_or_else.rs:52:19
+  --> tests/ui/unnecessary_option_map_or_else.rs:53:19
    |
 LL |     let _: &str = option.map_or_else(|| &string, std::convert::identity);
    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `unwrap_or_else`: `option.unwrap_or_else(|| &string)`
 
 error: unused "map closure" when calling `Option::map_or_else` value
-  --> tests/ui/unnecessary_option_map_or_else.rs:58:21
+  --> tests/ui/unnecessary_option_map_or_else.rs:59:21
    |
 LL |     let _: String = option.map_or_else(|| string, do_nothing);
    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `unwrap_or_else`: `option.unwrap_or_else(|| string)`
 
 error: unused "map closure" when calling `Option::map_or_else` value
-  --> tests/ui/unnecessary_option_map_or_else.rs:90:5
+  --> tests/ui/unnecessary_option_map_or_else.rs:91:5
    |
 LL |     x.map_or_else(|| ((), ()), |(a, b)| (a, b));
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `unwrap_or_else`: `x.unwrap_or_else(|| ((), ()))`
+
+error: unused "map closure" when calling `Option::map_or_else` value
+  --> tests/ui/unnecessary_option_map_or_else.rs:96:5
+   |
+LL | /     x.map_or_else(
+LL | |
+LL | |         || (),
+LL | |         |n| {
+...  |
+LL | |         },
+LL | |     );
+   | |_____^ help: consider using `unwrap_or_else`: `x.unwrap_or_else(|| ())`
 
 error: aborting due to 7 previous errors
 
