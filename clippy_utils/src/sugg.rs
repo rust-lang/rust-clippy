@@ -3,12 +3,12 @@
 
 use crate::source::{snippet, snippet_opt, snippet_with_applicability, snippet_with_context};
 use crate::ty::expr_sig;
-use crate::{get_parent_expr_for_hir, higher};
+use crate::{get_parent_expr_for_hir, higher, strip_pat_refs};
 use rustc_ast::util::parser::AssocOp;
 use rustc_ast::{UnOp, ast};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
-use rustc_hir::{self as hir, Closure, ExprKind, HirId, MatchSource, MutTy, Node, TyKind};
+use rustc_hir::{self as hir, Closure, ExprKind, HirId, MatchSource, MutTy, Node, PatKind, TyKind};
 use rustc_hir_typeck::expr_use_visitor::{Delegate, ExprUseVisitor, PlaceBase, PlaceWithHirId};
 use rustc_lint::{EarlyContext, LateContext, LintContext};
 use rustc_middle::hir::place::ProjectionKind;
@@ -809,8 +809,22 @@ pub fn deref_closure_args(cx: &LateContext<'_>, closure: &hir::Expr<'_>) -> Opti
     if let ExprKind::Closure(&Closure {
         fn_decl, def_id, body, ..
     }) = closure.kind
+        && let closure_body = cx.tcx.hir_body(body)
+        && let [closure_arg] = closure_body.params
     {
-        let closure_body = cx.tcx.hir_body(body);
+        // suggest `any(|x| ..)` instead of `any(|&x| ..)` for `find(|&x| ..).is_some()`
+        if matches!(closure_arg.pat.kind, PatKind::Ref(..)) {
+            let mut applicability = Applicability::MachineApplicable;
+            let suggestion =
+                snippet_with_applicability(cx, closure.span, "..", &mut applicability).replacen('&', "", 1);
+            return Some(DerefClosure {
+                applicability,
+                suggestion,
+            });
+        }
+        if !matches!(strip_pat_refs(closure_arg.pat).kind, PatKind::Binding(..)) {
+            return None;
+        }
         // is closure arg a type annotated double reference (i.e.: `|x: &&i32| ...`)
         // a type annotation is present if param `kind` is different from `TyKind::Infer`
         let closure_arg_is_type_annotated_double_ref = if let TyKind::Ref(_, MutTy { ty, .. }) = fn_decl.inputs[0].kind
@@ -835,12 +849,10 @@ pub fn deref_closure_args(cx: &LateContext<'_>, closure: &hir::Expr<'_>) -> Opti
             .consume_body(closure_body)
             .into_ok();
 
-        if !visitor.suggestion_start.is_empty() {
-            return Some(DerefClosure {
-                applicability: visitor.applicability,
-                suggestion: visitor.finish(),
-            });
-        }
+        return Some(DerefClosure {
+            applicability: visitor.applicability,
+            suggestion: visitor.finish(),
+        });
     }
     None
 }
