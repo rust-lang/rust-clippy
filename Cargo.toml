@@ -22,6 +22,7 @@ path = "src/driver.rs"
 
 [dependencies]
 clippy_config = { path = "clippy_config" }
+clippy_dev = { path = "clippy_dev" }
 clippy_lints = { path = "clippy_lints" }
 clippy_utils = { path = "clippy_utils" }
 declare_clippy_lint = { path = "declare_clippy_lint" }
