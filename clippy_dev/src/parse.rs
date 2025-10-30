@@ -79,6 +79,7 @@ impl Display for LintName<'_> {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct ActiveLintData<'cx> {
     pub decl_range: Range<u32>,
     /// The raw text of the documentation comments. May include leading/trailing
@@ -95,26 +96,31 @@ pub struct ActiveLintData<'cx> {
     pub opts: &'cx str,
 }
 
+#[derive(Clone, Copy)]
 pub struct DeprecatedLintData<'cx> {
     pub reason: &'cx str,
 }
 
+#[derive(Clone, Copy)]
 pub struct RenamedLintData<'cx> {
     pub new_name: LintName<'cx>,
 }
 
+#[derive(Clone, Copy)]
 pub enum LintData<'cx> {
     Active(ActiveLintData<'cx>),
     Deprecated(DeprecatedLintData<'cx>),
     Renamed(RenamedLintData<'cx>),
 }
 
+#[derive(Clone, Copy)]
 pub struct ActiveLint<'a, 'cx> {
     pub name: &'cx str,
     pub version: &'cx str,
     pub data: &'a ActiveLintData<'cx>,
 }
 
+#[derive(Clone, Copy)]
 pub struct Lint<'cx> {
     pub name_sp: Span<'cx>,
     pub version: &'cx str,
@@ -135,6 +141,21 @@ impl LintPassMac {
     }
 }
 
+#[derive(Clone, Copy)]
+enum ImplTrait {
+    EarlyLintPass,
+    LateLintPass,
+}
+impl ImplTrait {
+    fn from_str(s: &str) -> Option<Self> {
+        match s {
+            "EarlyLintPass" => Some(Self::EarlyLintPass),
+            "LateLintPass" => Some(Self::LateLintPass),
+            _ => None,
+        }
+    }
+}
+
 pub struct LintPass<'cx> {
     /// The raw text of the documentation comments. May include leading/trailing
     /// whitespace and empty lines.
@@ -144,6 +165,16 @@ pub struct LintPass<'cx> {
     pub mac: LintPassMac,
     pub decl_sp: Span<'cx>,
     pub lints: &'cx mut [&'cx str],
+    pub is_early: bool,
+    pub is_late: bool,
+}
+impl LintPass<'_> {
+    fn add_trait_impl(&mut self, kind: ImplTrait) {
+        match kind {
+            ImplTrait::EarlyLintPass => self.is_early = true,
+            ImplTrait::LateLintPass => self.is_late = true,
+        }
+    }
 }
 
 pub struct LintMap<'cx>(FxHashMap<&'cx str, Lint<'cx>>);
@@ -165,6 +196,22 @@ impl<'cx> LintMap<'cx> {
             }
         }
         lints
+    }
+
+    pub fn lints_in_file<'s>(&'s self, file: &SourceFile<'_>) -> impl Iterator<Item = ActiveLint<'s, 'cx>> {
+        self.iter().filter_map(move |(&name, lint)| {
+            if let LintData::Active(data) = &lint.data
+                && lint.name_sp.file == file
+            {
+                Some(ActiveLint {
+                    name,
+                    version: lint.version,
+                    data,
+                })
+            } else {
+                None
+            }
+        })
     }
 
     #[track_caller]
@@ -202,11 +249,23 @@ impl<'cx> LintPasses<'cx> {
             tail.iter().take_while(|&x| x.decl_sp.file == head.decl_sp.file).count()
         })
     }
+
+    pub fn in_same_file_as_mut<'s>(&'s mut self, i: usize) -> &'s mut [LintPass<'cx>] {
+        let file = self[i].decl_sp.file;
+        let pre = self[..i].iter().rev().take_while(|&x| x.decl_sp.file == file).count();
+        let post = self[i + 1..].iter().take_while(|&x| x.decl_sp.file == file).count();
+        &mut self[i - pre..i + 1 + post]
+    }
 }
 impl<'cx> Deref for LintPasses<'cx> {
-    type Target = [LintPass<'cx>];
+    type Target = Vec<LintPass<'cx>>;
     fn deref(&self) -> &Self::Target {
-        self.0.deref()
+        &self.0
+    }
+}
+impl DerefMut for LintPasses<'_> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
@@ -363,18 +422,19 @@ impl<'cx> ParseCxImpl<'cx> {
     }
 
     /// Parse a source file looking for `declare_clippy_lint` macro invocations.
+    #[expect(clippy::too_many_lines)]
     fn parse_lint_src_file(&mut self, data: &mut ParsedLints<'cx>, file: &'cx SourceFile<'cx>) {
         #[allow(clippy::enum_glob_use)]
         use cursor::Pat::*;
 
         let mut cursor = Cursor::new(&file.contents);
         let mut captures = [Capture::EMPTY; 6];
+        let mut trait_impls = Vec::new();
+        let first_lint_pass = data.lint_passes.len();
+
         while let Some(mac_name) = cursor.find_capture_ident() {
-            if !cursor.eat_bang() {
-                continue;
-            }
             match cursor.get_text(mac_name) {
-                "declare_clippy_lint" => {
+                "declare_clippy_lint" if cursor.eat_bang() => {
                     #[rustfmt::skip]
                     static DECL_START: &[cursor::Pat] = &[
                         // { /// docs
@@ -428,7 +488,7 @@ impl<'cx> ParseCxImpl<'cx> {
                         });
                     }
                 },
-                mac @ ("declare_lint_pass" | "impl_lint_pass") => {
+                mac @ ("declare_lint_pass" | "impl_lint_pass") if cursor.eat_bang() => {
                     let mut has_lt = false;
                     let mut lints: &mut [_] = &mut [];
                     if let Err(expected) = cursor
@@ -450,7 +510,7 @@ impl<'cx> ParseCxImpl<'cx> {
                     {
                         cursor.emit_unexpected(&mut self.dcx, file, expected);
                     } else {
-                        data.lint_passes.0.push(LintPass {
+                        data.lint_passes.push(LintPass {
                             docs: cursor.get_text(captures[0]),
                             name: cursor.get_text(captures[1]),
                             lt: has_lt.then(|| cursor.get_text(captures[2])),
@@ -461,10 +521,40 @@ impl<'cx> ParseCxImpl<'cx> {
                             },
                             decl_sp: Span::new(file, mac_name.pos..cursor.pos()),
                             lints,
+                            is_early: false,
+                            is_late: false,
                         });
                     }
                 },
+                "impl"
+                    if cursor.opt_match_all(&[Lt, Lifetime, Gt], &mut []).is_ok()
+                        && let Some(trait_) = cursor.capture_ident()
+                        && let Some(trait_) = ImplTrait::from_str(cursor.get_text(trait_))
+                        && cursor.opt_match_all(&[Lt, Lifetime, Gt], &mut []).is_ok()
+                        && cursor
+                            .match_all(&[Ident(IdentPat::r#for), CaptureIdent], &mut captures)
+                            .is_ok() =>
+                {
+                    let impl_ty = cursor.get_text(captures[0]);
+                    if let Some(pass) = data.lint_passes[first_lint_pass..]
+                        .iter_mut()
+                        .find(|pass| pass.name == impl_ty)
+                    {
+                        pass.add_trait_impl(trait_);
+                    } else {
+                        trait_impls.push((impl_ty, trait_));
+                    }
+                },
                 _ => {},
+            }
+        }
+
+        for &(impl_ty, trait_) in &trait_impls {
+            if let Some(pass) = data.lint_passes[first_lint_pass..]
+                .iter_mut()
+                .find(|pass| pass.name == impl_ty)
+            {
+                pass.add_trait_impl(trait_);
             }
         }
     }
