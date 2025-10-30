@@ -8,7 +8,7 @@
 #![allow(clippy::double_parens)]
 
 extern crate proc_macros;
-use proc_macros::{external, inline_macros};
+use proc_macros::{external, inline_macros, with_span};
 
 #[inline_macros]
 fn main() {
@@ -82,6 +82,14 @@ fn main() {
         //~^ almost_complete_range
         let _ = '0'..='9';
         //~^ almost_complete_range
+    );
+    with_span!(span
+        let _ = 'a'..'z';
+        let _ = 'A'..'Z';
+        let _ = '0'..'9';
+        let _ = ('a')..'z';
+        let _ = 'A'..('Z');
+        let _ = ('0') .. ('9');
     );
 }
 
