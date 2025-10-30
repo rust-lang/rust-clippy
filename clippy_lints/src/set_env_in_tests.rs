@@ -22,7 +22,7 @@ declare_clippy_lint! {
     /// #[cfg(test)]
     /// mod tests {
     ///     fn my_test() {
-    ///         unsafe std::env::set_var("MY_VAR", "1");
+    ///         unsafe { std::env::set_var("MY_VAR", "1"); }
     ///     }
     /// }
     /// ```
