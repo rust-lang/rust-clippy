@@ -4,10 +4,12 @@ use clippy_config::Conf;
 use clippy_utils::attrs::is_doc_hidden;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_help, span_lint_and_then};
 use clippy_utils::{is_entrypoint_fn, is_trait_impl_item};
+use itertools::Itertools as _;
 use rustc_ast::attr::AttributeExt as _;
 use rustc_ast::token::CommentKind;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::{Applicability, Diag, DiagMessage, MultiSpan};
+use rustc_hir::attrs::AttributeKind;
 use rustc_hir::{AttrStyle, Attribute, ImplItemKind, ItemKind, Node, Safety, TraitItemKind};
 use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, Lint, LintContext};
 use rustc_resolve::rustdoc::pulldown_cmark::Event::{
@@ -838,7 +840,12 @@ enum DocHeaderInfo {
     #[default]
     None,
     Found,
-    SuspiciousHtml(Option<Span>, &'static str, Vec<Container>),
+    SuspiciousHtml {
+        span: Option<Span>,
+        comment: &'static str,
+        indent: usize,
+        containers: Vec<Container>,
+    },
 }
 
 impl DocHeaderInfo {
@@ -853,21 +860,22 @@ impl DocHeaderInfo {
         let indent = span
             .and_then(|span| fragments.fragments.iter().find(|fragment| fragment.span.overlaps(span)))
             .map_or(0, |fragment| fragment.indent);
-        DocHeaderInfo::SuspiciousHtml(
+        DocHeaderInfo::SuspiciousHtml {
             span,
-            span.and_then(|span| find_doc_attr_by_span(attrs, span)).map_or(
+            comment: span.and_then(|span| find_doc_attr_by_span(attrs, span)).map_or(
                 "",
                 |(_doc_attr, doc_attr_comment_kind, attr_style)| match (doc_attr_comment_kind, attr_style) {
-                    (CommentKind::Block, _) => &"        "[..indent],
-                    (CommentKind::Line, AttrStyle::Outer) => &"///        "[..indent + 3],
-                    (CommentKind::Line, AttrStyle::Inner) => &"//!        "[..indent + 3],
+                    (CommentKind::Block, _) => "",
+                    (CommentKind::Line, AttrStyle::Outer) => "///",
+                    (CommentKind::Line, AttrStyle::Inner) => "//!",
                 },
             ),
-            containers.to_vec(),
-        )
+            indent,
+            containers: containers.to_vec(),
+        }
     }
     fn is_missing(&self) -> bool {
-        matches!(self, DocHeaderInfo::None | DocHeaderInfo::SuspiciousHtml(..))
+        matches!(self, DocHeaderInfo::None | DocHeaderInfo::SuspiciousHtml { .. })
     }
     fn lint(&self, cx: &LateContext<'_>, lint: &'static Lint, sp: impl Into<MultiSpan>, msg: impl Into<DiagMessage>) {
         self.lint_and_then(cx, lint, sp, msg, |_| {});
@@ -880,7 +888,13 @@ impl DocHeaderInfo {
         msg: impl Into<DiagMessage>,
         f: impl FnOnce(&mut Diag<'_, ()>),
     ) {
-        if let DocHeaderInfo::SuspiciousHtml(html_span, comment_prefix, containers) = self {
+        if let DocHeaderInfo::SuspiciousHtml {
+            span: html_span,
+            comment,
+            indent,
+            containers,
+        } = self
+        {
             span_lint_and_then(cx, lint, sp, msg, |diag| {
                 f(diag);
                 diag.note("markdown syntax is not recognized within a block of raw HTML code");
@@ -889,7 +903,8 @@ impl DocHeaderInfo {
                         *html_span,
                         "to recognize this text as a header, add a blank line",
                         format!(
-                            "\n{comment_prefix}{containers}",
+                            "\n{comment}{indent}{containers}",
+                            indent = std::iter::repeat_n(' ', *indent).join(""),
                             containers = containers
                                 .iter()
                                 .map(Container::map_to_text)
@@ -911,13 +926,19 @@ impl DocHeaderInfo {
     }
 }
 
-fn find_doc_attr_by_span(attrs: &[Attribute], span: Span) -> Option<(&Attribute, CommentKind, AttrStyle)> {
-    let (doc_attr, (_, doc_attr_comment_kind), attr_style) = attrs
+fn find_doc_attr_by_span(attrs: &[Attribute], this_span: Span) -> Option<(&Attribute, CommentKind, AttrStyle)> {
+    let (doc_attr, (_, doc_attr_fragment_kind), attr_style) = attrs
         .iter()
-        .filter(|attr| attr.span().overlaps(span))
+        .filter(|attr| {
+            matches!(
+                attr,
+                Attribute::Parsed(AttributeKind::DocComment { span, .. })
+                if span.overlaps(this_span),
+            )
+        })
         .rev()
-        .find_map(|attr| Some((attr, attr.doc_str_and_comment_kind()?, attr.doc_resolution_scope()?)))?;
-    Some((doc_attr, doc_attr_comment_kind, attr_style))
+        .find_map(|attr| Some((attr, attr.doc_str_and_fragment_kind()?, attr.doc_resolution_scope()?)))?;
+    Some((doc_attr, doc_attr_fragment_kind.comment_kind(), attr_style))
 }
 
 #[derive(Clone, Default)]

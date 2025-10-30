@@ -19,13 +19,31 @@ LL ~ /// # Panics
    |
 
 error: docs for function which may panic missing `# Panics` section
-  --> tests/ui/doc/doc_header_html.rs:31:1
+  --> tests/ui/doc/doc_header_html.rs:37:1
+   |
+LL | pub fn panicking1_deeptrim() {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: first possible panic found here
+  --> tests/ui/doc/doc_header_html.rs:39:5
+   |
+LL |     panic!();
+   |     ^^^^^^^^
+   = note: markdown syntax is not recognized within a block of raw HTML code
+help: to recognize this text as a header, add a blank line
+   |
+LL ~             
+LL ~             # Panics
+   |
+
+error: docs for function which may panic missing `# Panics` section
+  --> tests/ui/doc/doc_header_html.rs:52:1
    |
 LL | pub fn panicking1blockquote() {
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: first possible panic found here
-  --> tests/ui/doc/doc_header_html.rs:33:5
+  --> tests/ui/doc/doc_header_html.rs:54:5
    |
 LL |     panic!();
    |     ^^^^^^^^
@@ -37,13 +55,13 @@ LL ~ /// > # Panics
    |
 
 error: docs for function which may panic missing `# Panics` section
-  --> tests/ui/doc/doc_header_html.rs:47:1
+  --> tests/ui/doc/doc_header_html.rs:68:1
    |
 LL | pub fn panicking1blockquotelist() {
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: first possible panic found here
-  --> tests/ui/doc/doc_header_html.rs:49:5
+  --> tests/ui/doc/doc_header_html.rs:70:5
    |
 LL |     panic!();
    |     ^^^^^^^^
@@ -55,7 +73,7 @@ LL ~ /// >   # Panics
    |
 
 error: unsafe function's docs are missing a `# Safety` section
-  --> tests/ui/doc/doc_header_html.rs:62:1
+  --> tests/ui/doc/doc_header_html.rs:83:1
    |
 LL | pub unsafe fn safety1() {
    | ^^^^^^^^^^^^^^^^^^^^^^^
@@ -70,7 +88,7 @@ LL ~ /// # Safety #
    |
 
 error: docs for function returning `Result` missing `# Errors` section
-  --> tests/ui/doc/doc_header_html.rs:76:1
+  --> tests/ui/doc/doc_header_html.rs:97:1
    |
 LL | pub fn errors1() -> Result<(), Error> {
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -85,13 +103,13 @@ LL ~ /// # Errors ##
    |
 
 error: docs for function which may panic missing `# Panics` section
-  --> tests/ui/doc/doc_header_html.rs:153:1
+  --> tests/ui/doc/doc_header_html.rs:174:1
    |
 LL | pub fn panicking1b() {
    | ^^^^^^^^^^^^^^^^^^^^
    |
 note: first possible panic found here
-  --> tests/ui/doc/doc_header_html.rs:155:5
+  --> tests/ui/doc/doc_header_html.rs:176:5
    |
 LL |     panic!();
    |     ^^^^^^^^
@@ -103,7 +121,7 @@ LL ~ /// Panics
    |
 
 error: unsafe function's docs are missing a `# Safety` section
-  --> tests/ui/doc/doc_header_html.rs:169:1
+  --> tests/ui/doc/doc_header_html.rs:190:1
    |
 LL | pub unsafe fn safety1b() {
    | ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -116,7 +134,7 @@ LL ~ /// Safety
    |
 
 error: docs for function returning `Result` missing `# Errors` section
-  --> tests/ui/doc/doc_header_html.rs:184:1
+  --> tests/ui/doc/doc_header_html.rs:205:1
    |
 LL | pub fn errors1b() -> Result<(), Error> {
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -129,13 +147,13 @@ LL ~ /// Errors
    |
 
 error: docs for function which may panic missing `# Panics` section
-  --> tests/ui/doc/doc_header_html.rs:276:1
+  --> tests/ui/doc/doc_header_html.rs:297:1
    |
 LL | pub fn panicking3() {
    | ^^^^^^^^^^^^^^^^^^^
    |
 note: first possible panic found here
-  --> tests/ui/doc/doc_header_html.rs:278:5
+  --> tests/ui/doc/doc_header_html.rs:299:5
    |
 LL |     panic!();
    |     ^^^^^^^^
@@ -147,13 +165,13 @@ LL ~   ## Panics
    |
 
 error: docs for function which may panic missing `# Panics` section
-  --> tests/ui/doc/doc_header_html.rs:294:1
+  --> tests/ui/doc/doc_header_html.rs:315:1
    |
 LL | pub fn panicking3list() {
    | ^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: first possible panic found here
-  --> tests/ui/doc/doc_header_html.rs:296:5
+  --> tests/ui/doc/doc_header_html.rs:317:5
    |
 LL |     panic!();
    |     ^^^^^^^^
@@ -165,13 +183,13 @@ LL ~     ## Panics
    |
 
 error: docs for function which may panic missing `# Panics` section
-  --> tests/ui/doc/doc_header_html.rs:312:1
+  --> tests/ui/doc/doc_header_html.rs:333:1
    |
 LL | pub fn panicking3listblockquote() {
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: first possible panic found here
-  --> tests/ui/doc/doc_header_html.rs:314:5
+  --> tests/ui/doc/doc_header_html.rs:335:5
    |
 LL |     panic!();
    |     ^^^^^^^^
@@ -183,7 +201,7 @@ LL ~     > ## Panics
    |
 
 error: unsafe function's docs are missing a `# Safety` section
-  --> tests/ui/doc/doc_header_html.rs:329:1
+  --> tests/ui/doc/doc_header_html.rs:350:1
    |
 LL | pub unsafe fn safety3() {
    | ^^^^^^^^^^^^^^^^^^^^^^^
@@ -196,7 +214,7 @@ LL ~   ## Safety #
    |
 
 error: docs for function returning `Result` missing `# Errors` section
-  --> tests/ui/doc/doc_header_html.rs:345:1
+  --> tests/ui/doc/doc_header_html.rs:366:1
    |
 LL | pub fn errors3() -> Result<(), Error> {
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -209,13 +227,13 @@ LL ~   ## Errors ##
    |
 
 error: docs for function which may panic missing `# Panics` section
-  --> tests/ui/doc/doc_header_html.rs:436:1
+  --> tests/ui/doc/doc_header_html.rs:457:1
    |
 LL | pub fn panicking3b() {
    | ^^^^^^^^^^^^^^^^^^^^
    |
 note: first possible panic found here
-  --> tests/ui/doc/doc_header_html.rs:438:5
+  --> tests/ui/doc/doc_header_html.rs:459:5
    |
 LL |     panic!();
    |     ^^^^^^^^
@@ -227,7 +245,7 @@ LL ~   Panics
    |
 
 error: unsafe function's docs are missing a `# Safety` section
-  --> tests/ui/doc/doc_header_html.rs:454:1
+  --> tests/ui/doc/doc_header_html.rs:475:1
    |
 LL | pub unsafe fn safety3b() {
    | ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -240,7 +258,7 @@ LL ~   Safety
    |
 
 error: docs for function returning `Result` missing `# Errors` section
-  --> tests/ui/doc/doc_header_html.rs:471:1
+  --> tests/ui/doc/doc_header_html.rs:492:1
    |
 LL | pub fn errors3b() -> Result<(), Error> {
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -252,5 +270,5 @@ LL ~
 LL ~   Errors
    |
 
-error: aborting due to 16 previous errors
+error: aborting due to 17 previous errors
 

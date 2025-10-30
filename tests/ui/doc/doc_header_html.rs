@@ -18,6 +18,27 @@ pub fn panicking1() {
     panic!();
 }
 
+#[rustfmt::skip]
+/**
+            <div>
+            # Panics
+
+            Here's one where some panic docs are supposed to appear,
+            but don't, because of the div.
+
+            Make sure the generated suggestion puts a blank
+            line between the header and the HTML.
+
+            This particular example also has an extremely deep trim.
+            Make sure that works.
+
+            </div>
+*/
+pub fn panicking1_deeptrim() {
+    //~^ missing_panics_doc
+    panic!();
+}
+
 /// > <div>
 /// > # Panics
 /// >
