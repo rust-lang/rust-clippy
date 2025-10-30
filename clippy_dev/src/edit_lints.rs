@@ -180,7 +180,7 @@ fn remove_lint_declaration(
     let delete_mod = if data.lints.iter().all(|(_, l)| l.name_sp.file != lint_file) {
         delete_file_if_exists(lint_file.path.get())
     } else {
-        updater.update_file(lint_file.path.get(), &mut |_, src, dst| -> UpdateStatus {
+        updater.change_file(lint_file.path.get(), |src, dst| {
             let mut start = &src[..lint_data.decl_range.start as usize];
             if start.ends_with("\n\n") {
                 start = &start[..start.len() - 1];
@@ -191,7 +191,6 @@ fn remove_lint_declaration(
             }
             dst.push_str(start);
             dst.push_str(end);
-            UpdateStatus::Changed
         });
         false
     };
@@ -341,7 +340,7 @@ fn snake_to_pascal(s: &str) -> String {
 fn uplift_update_fn<'a>(
     old_name: &'a str,
     new_name: &'a str,
-    remove_mod: bool,
+    mut remove_mod: bool,
 ) -> impl use<'a> + FnMut(&Path, &str, &mut String) -> UpdateStatus {
     move |_, src, dst| {
         let mut copy_pos = 0u32;
@@ -357,6 +356,17 @@ fn uplift_update_fn<'a>(
                         copy_pos += 1;
                     }
                     changed = true;
+                    remove_mod = false;
+                },
+                "pub" if remove_mod && cursor.eat_ident("mod") && cursor.eat_ident(old_name) && cursor.eat_semi() => {
+                    dst.push_str(&src[copy_pos as usize..ident.pos as usize]);
+                    dst.push_str(new_name);
+                    copy_pos = cursor.pos();
+                    if src[copy_pos as usize..].starts_with('\n') {
+                        copy_pos += 1;
+                    }
+                    changed = true;
+                    remove_mod = false;
                 },
                 "clippy" if cursor.eat_double_colon() && cursor.eat_ident(old_name) => {
                     dst.push_str(&src[copy_pos as usize..ident.pos as usize]);
@@ -364,7 +374,6 @@ fn uplift_update_fn<'a>(
                     copy_pos = cursor.pos();
                     changed = true;
                 },
-
                 _ => {},
             }
         }
