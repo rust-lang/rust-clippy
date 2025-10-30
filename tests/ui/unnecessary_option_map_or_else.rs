@@ -7,10 +7,6 @@
     clippy::needless_return
 )]
 
-const fn identity<T>(x: T) -> T {
-    x
-}
-
 const fn double_it(x: i32) -> i32 {
     x * 2
 }
@@ -53,11 +49,6 @@ fn main() {
             (a, b)
         },
     );
-
-    // Identity
-    let string = String::new();
-    let option = Some(&string);
-    let _: &str = option.map_or_else(|| &string, identity);
 
     // std::convert::identity
     let string = String::new();
