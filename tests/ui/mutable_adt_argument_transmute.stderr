@@ -7,5 +7,29 @@ LL |         let _: Option<&mut i32> = std::mem::transmute(Some(&5i32));
    = note: `-D clippy::mutable-adt-argument-transmute` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::mutable_adt_argument_transmute)]`
 
-error: aborting due to 1 previous error
+error: transmute of type argument &i32 to &i32
+  --> tests/ui/mutable_adt_argument_transmute.rs:7:39
+   |
+LL |         let _: Result<&mut i32, ()> = std::mem::transmute(Result::<&i32, ()>::Ok(&5i32));
+   |                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: transmute of type argument &std::string::String to &std::string::String
+  --> tests/ui/mutable_adt_argument_transmute.rs:10:13
+   |
+LL |             std::mem::transmute(Result::<Option<&String>, ()>::Ok(Some(&"foo".to_string())));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: transmute of type argument &f32 to &f32
+  --> tests/ui/mutable_adt_argument_transmute.rs:12:43
+   |
+LL |         let _: Result<&mut f32, &usize> = std::mem::transmute(Result::<&f32, &usize>::Ok(&2f32));
+   |                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: transmute of type argument &usize to &usize
+  --> tests/ui/mutable_adt_argument_transmute.rs:14:41
+   |
+LL |         let _: Result<(), &mut usize> = std::mem::transmute(Result::<(), &usize>::Ok(()));
+   |                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 5 previous errors
 
