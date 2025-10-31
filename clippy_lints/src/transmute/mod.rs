@@ -53,7 +53,7 @@ declare_clippy_lint! {
     ///
     /// ```ignore
     /// unsafe {
-    ///    std::mem::transmute::<Option<&i32>, Option<&mut i32>>(&Some(5));
+    ///    std::mem::transmute::<Option<&i32>, Option<&mut i32>>(Some(&5));
     /// }
     /// ```
     #[clippy::version = "1.92.0"]
