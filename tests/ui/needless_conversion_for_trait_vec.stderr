@@ -1,0 +1,12 @@
+error: the inner argument implements the required traits
+  --> tests/ui/needless_conversion_for_trait_vec.rs:2:33
+   |
+LL |     let _ = std::fs::write("x", vec![0]);
+   |                                 ^^^^^^^
+   |
+   = help: use the macro arguments directly
+   = note: `-D clippy::needless-conversion-for-trait` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::needless_conversion_for_trait)]`
+
+error: aborting due to 1 previous error
+

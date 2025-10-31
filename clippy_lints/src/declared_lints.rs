@@ -540,6 +540,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::needless_borrowed_ref::NEEDLESS_BORROWED_REFERENCE_INFO,
     crate::needless_borrows_for_generic_args::NEEDLESS_BORROWS_FOR_GENERIC_ARGS_INFO,
     crate::needless_continue::NEEDLESS_CONTINUE_INFO,
+    crate::needless_conversion_for_trait::NEEDLESS_CONVERSION_FOR_TRAIT_INFO,
     crate::needless_else::NEEDLESS_ELSE_INFO,
     crate::needless_for_each::NEEDLESS_FOR_EACH_INFO,
     crate::needless_ifs::NEEDLESS_IFS_INFO,
