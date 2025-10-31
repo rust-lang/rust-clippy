@@ -1,0 +1,11 @@
+error: transmute of type argument &i32 to &i32
+  --> tests/ui/mutable_adt_argument_transmute.rs:5:35
+   |
+LL |         let _: Option<&mut i32> = std::mem::transmute(Some(&5i32));
+   |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::mutable-adt-argument-transmute` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::mutable_adt_argument_transmute)]`
+
+error: aborting due to 1 previous error
+
