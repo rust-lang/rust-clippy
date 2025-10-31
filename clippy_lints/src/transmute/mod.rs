@@ -1,6 +1,7 @@
 mod crosspointer_transmute;
 mod eager_transmute;
 mod missing_transmute_annotations;
+mod transmute_adt_argument;
 mod transmute_int_to_bool;
 mod transmute_int_to_non_zero;
 mod transmute_null_to_fn;
@@ -151,6 +152,23 @@ declare_clippy_lint! {
     pub MISSING_TRANSMUTE_ANNOTATIONS,
     suspicious,
     "warns if a transmute call doesn't have all generics specified"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for transmutes between the same adt, where at least one of the type argument goes from &T to &mut T.
+    /// This is a more specialized version of https://doc.rust-lang.org/rustc/lints/listing/deny-by-default.html#mutable-transmutes.
+    /// ### Example
+    ///
+    /// ```ignore
+    /// unsafe {
+    ///    std::mem::transmute::<Option<&i32>, Option<&mut i32>>(Some(&5));
+    /// }
+    /// ```
+    #[clippy::version = "1.95.0"]
+    pub MUTABLE_ADT_ARGUMENT_TRANSMUTE,
+    correctness,
+    "transmutes on the same adt where at least one of the type argument goes from &T to &mut T"
 }
 
 declare_clippy_lint! {
@@ -472,6 +490,7 @@ impl_lint_pass!(Transmute => [
     CROSSPOINTER_TRANSMUTE,
     EAGER_TRANSMUTE,
     MISSING_TRANSMUTE_ANNOTATIONS,
+    MUTABLE_ADT_ARGUMENT_TRANSMUTE,
     TRANSMUTES_EXPRESSIBLE_AS_PTR_CASTS,
     TRANSMUTE_BYTES_TO_STR,
     TRANSMUTE_INT_TO_BOOL,
@@ -551,6 +570,7 @@ impl<'tcx> LateLintPass<'tcx> for Transmute {
             let (from_field_ty, from_field_expr) = Self::extract_struct_field(cx, e, from_ty, arg);
 
             let linted = wrong_transmute::check(cx, e, from_ty, to_ty)
+                | transmute_adt_argument::check(cx, e, from_ty, to_ty)
                 | crosspointer_transmute::check(cx, e, from_ty, to_ty)
                 | transmuting_null::check(cx, e, arg, to_ty)
                 | transmute_null_to_fn::check(cx, e, arg, to_ty)
