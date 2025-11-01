@@ -114,7 +114,7 @@ mod double_parens;
 mod drop_forget_ref;
 mod duplicate_mod;
 mod else_if_without_else;
-mod empty_drop;
+mod empty_drops;
 mod empty_enums;
 mod empty_line_after;
 mod empty_with_brackets;
@@ -652,7 +652,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(move |tcx| Box::new(disallowed_methods::DisallowedMethods::new(tcx, conf)));
     store.register_early_pass(|| Box::new(asm_syntax::InlineAsmX86AttSyntax));
     store.register_early_pass(|| Box::new(asm_syntax::InlineAsmX86IntelSyntax));
-    store.register_late_pass(|_| Box::new(empty_drop::EmptyDrop));
+    store.register_late_pass(|_| Box::new(empty_drops::EmptyDrops));
     store.register_late_pass(|_| Box::new(strings::StrToString));
     store.register_late_pass(|_| Box::new(zero_sized_map_values::ZeroSizedMapValues));
     store.register_late_pass(|_| Box::<vec_init_then_push::VecInitThenPush>::default());
