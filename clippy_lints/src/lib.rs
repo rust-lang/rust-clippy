@@ -126,6 +126,7 @@ mod error_impl_error;
 mod escape;
 mod eta_reduction;
 mod excessive_bools;
+mod excessive_file_length;
 mod excessive_nesting;
 mod exhaustive_items;
 mod exit;
@@ -739,6 +740,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(tests_outside_test_module::TestsOutsideTestModule));
     store.register_late_pass(|_| Box::new(manual_slice_size_calculation::ManualSliceSizeCalculation::new(conf)));
     store.register_early_pass(move || Box::new(excessive_nesting::ExcessiveNesting::new(conf)));
+    store.register_early_pass(move || Box::new(excessive_file_length::ExcessiveFileLength::new(conf)));
     store.register_late_pass(|_| Box::new(items_after_test_module::ItemsAfterTestModule));
     store.register_early_pass(|| Box::new(ref_patterns::RefPatterns));
     store.register_late_pass(|_| Box::new(default_constructed_unit_structs::DefaultConstructedUnitStructs));
