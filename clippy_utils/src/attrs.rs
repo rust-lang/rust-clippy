@@ -33,6 +33,7 @@ pub const BUILTIN_ATTRIBUTES: &[(Symbol, DeprecationStatus)] = &[
     // See book/src/attribs.md
     (sym::has_significant_drop,  DeprecationStatus::None),
     (sym::format_args,           DeprecationStatus::None),
+    (sym::may_panic,             DeprecationStatus::None),
 ];
 
 pub struct LimitStack {

@@ -1,0 +1,35 @@
+error: call to a function that may panic is not documented with a `// Panic:` comment
+  --> tests/ui/undocumented_may_panic_call.rs:14:13
+   |
+LL |     let _ = dangerous(1);
+   |             ^^^^^^^^^^^^
+   |
+   = note: `-D clippy::undocumented-may-panic-call` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::undocumented_may_panic_call)]`
+
+error: call to a function that may panic is not documented with a `// Panic:` comment
+  --> tests/ui/undocumented_may_panic_call.rs:25:12
+   |
+LL |         && dangerous(1);
+   |            ^^^^^^^^^^^^
+
+error: call to a function that may panic is not documented with a `// Panic:` comment
+  --> tests/ui/undocumented_may_panic_call.rs:46:13
+   |
+LL |     let _ = s.panic_method();
+   |             ^^^^^^^^^^^^^^^^
+
+error: call to a function that may panic is not documented with a `// Panic:` comment
+  --> tests/ui/undocumented_may_panic_call.rs:71:13
+   |
+LL |     let _ = t.trait_panic_method();
+   |             ^^^^^^^^^^^^^^^^^^^^^^
+
+error: call to a function that may panic is not documented with a `// Panic:` comment
+  --> tests/ui/undocumented_may_panic_call.rs:81:13
+   |
+LL |     let _ = t.trait_panic_method();
+   |             ^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 5 previous errors
+
