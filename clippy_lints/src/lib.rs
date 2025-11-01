@@ -297,6 +297,7 @@ mod raw_strings;
 mod rc_clone_in_vec_init;
 mod read_zero_byte_vec;
 mod redundant_async_block;
+mod redundant_box;
 mod redundant_clone;
 mod redundant_closure_call;
 mod redundant_else;
@@ -819,5 +820,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(toplevel_ref_arg::ToplevelRefArg));
     store.register_late_pass(|_| Box::new(volatile_composites::VolatileComposites));
     store.register_late_pass(|_| Box::new(replace_box::ReplaceBox));
+    store.register_late_pass(|_| Box::new(redundant_box::RedundantBox));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
