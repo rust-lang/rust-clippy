@@ -4,6 +4,7 @@ use clippy_utils::diagnostics::{span_lint_and_then, span_lint_hir_and_then};
 use clippy_utils::macros::macro_backtrace;
 use clippy_utils::paths::PathNS;
 use rustc_data_structures::fx::FxHashSet;
+use rustc_errors::Applicability;
 use rustc_hir::def::DefKind;
 use rustc_hir::def_id::DefIdMap;
 use rustc_hir::{
@@ -105,7 +106,7 @@ impl DisallowedMacros {
 
             if let Some(&(path, disallowed_path)) = self.disallowed.get(&mac.def_id) {
                 let msg = format!("use of a disallowed macro `{path}`");
-                let add_note = disallowed_path.diag_amendment(mac.span);
+                let add_note = disallowed_path.diag_amendment(mac.span, Applicability::MachineApplicable);
                 if matches!(mac.kind, MacroKind::Derive)
                     && let Some(derive_src) = derive_src
                 {
