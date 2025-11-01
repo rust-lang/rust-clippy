@@ -24,12 +24,22 @@ struct GenericParam<T> {
     t: T,
 }
 
+#[derive(Clone, Copy)]
+struct PtrNamed {
+    ptr: *const u32,
+}
+#[derive(Clone, Copy)]
+struct Ptr(*const u32);
 fn transmute_ptr_to_ptr() {
     let ptr = &1u32 as *const u32;
     let mut_ptr = &mut 1u32 as *mut u32;
     unsafe {
         // pointer-to-pointer transmutes; bad
+        let _: *const f32 = transmute(Ptr(ptr));
+        //~^ transmute_ptr_to_ptr
         let _: *const f32 = transmute(ptr);
+        //~^ transmute_ptr_to_ptr
+        let _: *const f32 = transmute(PtrNamed { ptr });
         //~^ transmute_ptr_to_ptr
 
         let _: *mut f32 = transmute(mut_ptr);
@@ -59,6 +69,8 @@ fn transmute_ptr_to_ptr() {
 
         let _: *mut u32 = transmute(ptr);
         //~^ transmute_ptr_to_ptr
+        let _: *mut u32 = transmute(Ptr(ptr));
+        //~^ transmute_ptr_to_ptr
     }
 
     // transmute internal lifetimes, should not lint
@@ -81,9 +93,13 @@ const _: &() = {
     unsafe { transmute::<&'static Zst, &'static ()>(zst) }
 };
 
+#[derive(Clone, Copy)]
+struct Ptr8(*const u8);
 #[clippy::msrv = "1.37"]
 fn msrv_1_37(ptr: *const u8) {
     unsafe {
+        let _: *const i8 = transmute(Ptr8(ptr));
+        //~^ transmute_ptr_to_ptr
         let _: *const i8 = transmute(ptr);
         //~^ transmute_ptr_to_ptr
     }
