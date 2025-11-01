@@ -2,7 +2,7 @@ use super::PTR_ARG;
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::res::MaybeResPath;
 use clippy_utils::source::SpanRangeExt;
-use clippy_utils::{get_expr_use_or_unification_node, is_lint_allowed, sym};
+use clippy_utils::{get_expr_use_or_unification_node, is_allowed_vec_method, is_lint_allowed, sym};
 use hir::LifetimeKind;
 use rustc_abi::ExternAbi;
 use rustc_errors::Applicability;
@@ -22,8 +22,6 @@ use rustc_span::symbol::Symbol;
 use rustc_trait_selection::infer::InferCtxtExt as _;
 use rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt as _;
 use std::{fmt, iter};
-
-use crate::vec::is_allowed_vec_method;
 
 pub(super) fn check_body<'tcx>(
     cx: &LateContext<'tcx>,
