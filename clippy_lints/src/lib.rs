@@ -201,6 +201,7 @@ mod manual_clamp;
 mod manual_float_methods;
 mod manual_hash_one;
 mod manual_ignore_case_cmp;
+mod manual_ilog2;
 mod manual_is_ascii_check;
 mod manual_is_power_of_two;
 mod manual_let_else;
@@ -819,5 +820,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(toplevel_ref_arg::ToplevelRefArg));
     store.register_late_pass(|_| Box::new(volatile_composites::VolatileComposites));
     store.register_late_pass(|_| Box::new(replace_box::ReplaceBox));
+    store.register_late_pass(move |_| Box::new(manual_ilog2::ManualIlog2::new(conf)));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
