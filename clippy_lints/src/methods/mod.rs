@@ -9,6 +9,7 @@ mod chars_last_cmp;
 mod chars_last_cmp_with_unwrap;
 mod chars_next_cmp;
 mod chars_next_cmp_with_unwrap;
+mod chunks_exact_to_as_chunks;
 mod clear_with_drain;
 mod clone_on_copy;
 mod clone_on_ref_ptr;
@@ -2120,6 +2121,32 @@ declare_clippy_lint! {
     pub BYTES_NTH,
     style,
     "replace `.bytes().nth()` with `.as_bytes().get()`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `chunks_exact` or `chunks_exact_mut` with a constant chunk size.
+    ///
+    /// ### Why is this bad?
+    /// `as_chunks` provides better ergonomics and type safety by returning arrays instead of slices.
+    /// It was stabilized in Rust 1.88.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let slice = [1, 2, 3, 4, 5, 6];
+    /// let mut it = slice.chunks_exact(2);
+    /// for chunk in it {}
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let slice = [1, 2, 3, 4, 5, 6];
+    /// let (chunks, remainder) = slice.as_chunks::<2>();
+    /// for chunk in chunks {}
+    /// ```
+    #[clippy::version = "1.93.0"]
+    pub CHUNKS_EXACT_TO_AS_CHUNKS,
+    style,
+    "using `chunks_exact` with constant when `as_chunks` is more ergonomic"
 }
 
 declare_clippy_lint! {
@@ -4822,6 +4849,7 @@ impl_lint_pass!(Methods => [
     ITER_NTH,
     ITER_NTH_ZERO,
     BYTES_NTH,
+    CHUNKS_EXACT_TO_AS_CHUNKS,
     ITER_SKIP_NEXT,
     GET_UNWRAP,
     GET_LAST_WITH_LEN,
@@ -5078,6 +5106,9 @@ impl Methods {
                         },
                         _ => {},
                     }
+                },
+                (name @ (sym::chunks_exact | sym::chunks_exact_mut), [arg]) => {
+                    chunks_exact_to_as_chunks::check(cx, recv, arg, expr, call_span, name, self.msrv);
                 },
                 (sym::and_then, [arg]) => {
                     let biom_option_linted = bind_instead_of_map::check_and_then_some(cx, expr, recv, arg);
