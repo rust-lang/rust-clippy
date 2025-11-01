@@ -6189,6 +6189,7 @@ Released 2018-09-13
 [`almost_complete_letter_range`]: https://rust-lang.github.io/rust-clippy/master/index.html#almost_complete_letter_range
 [`almost_complete_range`]: https://rust-lang.github.io/rust-clippy/master/index.html#almost_complete_range
 [`almost_swapped`]: https://rust-lang.github.io/rust-clippy/master/index.html#almost_swapped
+[`always_true_conditions`]: https://rust-lang.github.io/rust-clippy/master/index.html#always_true_conditions
 [`approx_constant`]: https://rust-lang.github.io/rust-clippy/master/index.html#approx_constant
 [`arbitrary_source_item_ordering`]: https://rust-lang.github.io/rust-clippy/master/index.html#arbitrary_source_item_ordering
 [`arc_with_non_send_sync`]: https://rust-lang.github.io/rust-clippy/master/index.html#arc_with_non_send_sync
