@@ -38,8 +38,10 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            const-literal-digits-threshold
            disallowed-macros
            disallowed-methods
+           disallowed-methods-profiles
            disallowed-names
            disallowed-types
+           disallowed-types-profiles
            doc-valid-idents
            enable-raw-pointer-heuristic-for-send
            enforce-iter-loop-reborrow
@@ -135,8 +137,10 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            const-literal-digits-threshold
            disallowed-macros
            disallowed-methods
+           disallowed-methods-profiles
            disallowed-names
            disallowed-types
+           disallowed-types-profiles
            doc-valid-idents
            enable-raw-pointer-heuristic-for-send
            enforce-iter-loop-reborrow
@@ -232,8 +236,10 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            const-literal-digits-threshold
            disallowed-macros
            disallowed-methods
+           disallowed-methods-profiles
            disallowed-names
            disallowed-types
+           disallowed-types-profiles
            doc-valid-idents
            enable-raw-pointer-heuristic-for-send
            enforce-iter-loop-reborrow
