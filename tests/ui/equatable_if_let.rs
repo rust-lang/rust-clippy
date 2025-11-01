@@ -7,6 +7,7 @@
     clippy::needless_ifs
 )]
 #![warn(clippy::equatable_if_let)]
+#![feature(const_trait_impl, const_cmp)]
 
 extern crate proc_macros;
 use proc_macros::{external, inline_macros};
@@ -138,4 +139,33 @@ mod issue8710 {
             todo!();
         }
     }
+}
+
+#[allow(irrefutable_let_patterns, clippy::partialeq_to_none, clippy::eq_op)]
+fn issue15376() {
+    struct NonConstEq;
+
+    impl PartialEq for NonConstEq {
+        fn eq(&self, _other: &Self) -> bool {
+            true
+        }
+    }
+
+    const _: u32 = if let NonConstEq = NonConstEq { 0 } else { 1 };
+    //~^ ERROR: this pattern matching can be expressed using `matches!`
+    const _: u32 = if let Some(NonConstEq) = None { 0 } else { 1 };
+    //~^ ERROR: this pattern matching can be expressed using `matches!`
+
+    struct ConstEq;
+
+    impl const PartialEq for ConstEq {
+        fn eq(&self, _other: &Self) -> bool {
+            true
+        }
+    }
+
+    const _: u32 = if let ConstEq = ConstEq { 0 } else { 1 };
+    //~^ ERROR: this pattern matching can be expressed using equality
+    const _: u32 = if let Some(ConstEq) = None { 0 } else { 1 };
+    //~^ ERROR: this pattern matching can be expressed using equality
 }
