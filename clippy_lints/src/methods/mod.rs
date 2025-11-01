@@ -5753,7 +5753,7 @@ impl Methods {
                     );
                 },
                 (name, [arg]) if matches!(name.as_str(), "chunks_exact" | "chunks_exact_mut") => {
-                    chunks_exact_to_as_chunks::check(cx, expr, recv, arg, name.as_str(), &self.msrv);
+                    chunks_exact_to_as_chunks::check(cx, expr, recv, arg, name.as_str(), self.msrv);
                 },
                 _ => {},
             }

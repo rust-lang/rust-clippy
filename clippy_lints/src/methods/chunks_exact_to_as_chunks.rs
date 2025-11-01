@@ -12,7 +12,7 @@ pub(super) fn check(
     recv: &Expr<'_>,
     arg: &Expr<'_>,
     method_name: &str,
-    msrv: &Msrv,
+    msrv: Msrv,
 ) {
     // Check for Rust version
     if !msrv.meets(cx, msrvs::AS_CHUNKS) {
