@@ -669,6 +669,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::semicolon_if_nothing_returned::SEMICOLON_IF_NOTHING_RETURNED_INFO,
     crate::serde_api::SERDE_API_MISUSE_INFO,
     crate::set_contains_or_insert::SET_CONTAINS_OR_INSERT_INFO,
+    crate::set_env_in_tests::SET_ENV_IN_TESTS_INFO,
     crate::shadow::SHADOW_REUSE_INFO,
     crate::shadow::SHADOW_SAME_INFO,
     crate::shadow::SHADOW_UNRELATED_INFO,

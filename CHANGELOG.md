@@ -6849,6 +6849,7 @@ Released 2018-09-13
 [`separated_literal_suffix`]: https://rust-lang.github.io/rust-clippy/master/index.html#separated_literal_suffix
 [`serde_api_misuse`]: https://rust-lang.github.io/rust-clippy/master/index.html#serde_api_misuse
 [`set_contains_or_insert`]: https://rust-lang.github.io/rust-clippy/master/index.html#set_contains_or_insert
+[`set_env_in_tests`]: https://rust-lang.github.io/rust-clippy/master/index.html#set_env_in_tests
 [`shadow_reuse`]: https://rust-lang.github.io/rust-clippy/master/index.html#shadow_reuse
 [`shadow_same`]: https://rust-lang.github.io/rust-clippy/master/index.html#shadow_same
 [`shadow_unrelated`]: https://rust-lang.github.io/rust-clippy/master/index.html#shadow_unrelated

@@ -322,6 +322,7 @@ mod semicolon_block;
 mod semicolon_if_nothing_returned;
 mod serde_api;
 mod set_contains_or_insert;
+mod set_env_in_tests;
 mod shadow;
 mod significant_drop_tightening;
 mod single_call_fn;
@@ -819,5 +820,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(toplevel_ref_arg::ToplevelRefArg));
     store.register_late_pass(|_| Box::new(volatile_composites::VolatileComposites));
     store.register_late_pass(|_| Box::new(replace_box::ReplaceBox));
+    store.register_late_pass(|_| Box::new(set_env_in_tests::SetEnvInTests));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
