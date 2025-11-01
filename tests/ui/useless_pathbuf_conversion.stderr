@@ -1,0 +1,11 @@
+error: unnecessary `PathBuf::from` when a `&Path` is enough
+  --> tests/ui/useless_pathbuf_conversion.rs:9:14
+   |
+LL |     use_path(&PathBuf::from("abc"));
+   |              ^^^^^^^^^^^^^^^^^^^^^ help: consider using: `Path::new("abc")`
+   |
+   = note: `-D clippy::useless-pathbuf-conversion` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::useless_pathbuf_conversion)]`
+
+error: aborting due to 1 previous error
+
