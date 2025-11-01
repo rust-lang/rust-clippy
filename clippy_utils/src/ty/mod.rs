@@ -13,7 +13,7 @@ use rustc_hir::def_id::DefId;
 use rustc_hir::{Expr, FnDecl, LangItem, find_attr};
 use rustc_hir_analysis::lower_ty;
 use rustc_infer::infer::TyCtxtInferExt;
-use rustc_lint::LateContext;
+use rustc_lint::{LateContext, LintContext};
 use rustc_middle::mir::ConstValue;
 use rustc_middle::mir::interpret::Scalar;
 use rustc_middle::traits::EvaluationResult;
@@ -25,7 +25,7 @@ use rustc_middle::ty::{
     TypeVisitableExt, TypeVisitor, UintTy, Upcast, VariantDef, VariantDiscr,
 };
 use rustc_span::symbol::Ident;
-use rustc_span::{DUMMY_SP, Span, Symbol, sym};
+use rustc_span::{DUMMY_SP, Span, Symbol};
 use rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt as _;
 use rustc_trait_selection::traits::query::normalize::QueryNormalizeExt;
 use rustc_trait_selection::traits::{Obligation, ObligationCause};
@@ -35,6 +35,7 @@ use std::{iter, mem};
 
 use crate::paths::{PathNS, lookup_path_str};
 use crate::res::{MaybeDef, MaybeQPath};
+use crate::{get_unique_builtin_attr, sym};
 
 mod type_certainty;
 pub use type_certainty::expr_type_is_certain;
@@ -1068,9 +1069,20 @@ impl<'tcx> InteriorMut<'tcx> {
 
     /// Check if given type has interior mutability such as [`std::cell::Cell`] or
     /// [`std::cell::RefCell`] etc. and if it does, returns a chain of types that causes
-    /// this type to be interior mutable.  False negatives may be expected for infinitely recursive
+    /// this type to be interior mutable. False negatives may be expected for infinitely recursive
     /// types, and `None` will be returned there.
     pub fn interior_mut_ty_chain(&mut self, cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<&'tcx ty::List<Ty<'tcx>>> {
+        // Check if given type has a `#[clippy::ignore_interior_mutability]` attribute
+        if let Some(did) = ty.ty_adt_def().map(AdtDef::did)
+            && !self.ignored_def_ids.contains(&did)
+            && let attrs = cx.tcx.get_all_attrs(did)
+            && get_unique_builtin_attr(cx.sess(), attrs, sym::ignore_interior_mutability).is_some()
+        {
+            self.ignored_def_ids.insert(did);
+            // Small optimization: since we know that we're going to ignore interior mutability for
+            // this type anyway, running `self.interior_mut_ty_chain_inner` is unnecessary
+            return None;
+        }
         self.interior_mut_ty_chain_inner(cx, ty, 0)
     }
 
@@ -1164,13 +1176,11 @@ pub fn make_normalized_projection_with_regions<'tcx>(
             .enumerate()
             .find(|(_, arg)| arg.has_escaping_bound_vars())
         {
-            debug_assert!(
-                false,
+            panic!(
                 "args contain late-bound region at index `{i}` which can't be normalized.\n\
                     use `TyCtxt::instantiate_bound_regions_with_erased`\n\
                     note: arg is `{arg:#?}`",
             );
-            return None;
         }
         let cause = ObligationCause::dummy();
         let (infcx, param_env) = tcx.infer_ctxt().build_with_typing_env(typing_env);
@@ -1220,17 +1230,14 @@ pub fn deref_chain<'cx, 'tcx>(cx: &'cx LateContext<'tcx>, ty: Ty<'tcx>) -> impl 
 /// This does not look for impls in the type's `Deref::Target` type.
 /// If you need this, you should wrap this call in `clippy_utils::ty::deref_chain().any(...)`.
 pub fn get_adt_inherent_method<'a>(cx: &'a LateContext<'_>, ty: Ty<'_>, method_name: Symbol) -> Option<&'a AssocItem> {
-    if let Some(ty_did) = ty.ty_adt_def().map(AdtDef::did) {
-        cx.tcx.inherent_impls(ty_did).iter().find_map(|&did| {
-            cx.tcx
-                .associated_items(did)
-                .filter_by_name_unhygienic(method_name)
-                .next()
-                .filter(|item| item.as_tag() == AssocTag::Fn)
-        })
-    } else {
-        None
-    }
+    let ty_did = ty.ty_adt_def().map(AdtDef::did)?;
+    cx.tcx.inherent_impls(ty_did).iter().find_map(|&did| {
+        cx.tcx
+            .associated_items(did)
+            .filter_by_name_unhygienic(method_name)
+            .next()
+            .filter(|item| item.as_tag() == AssocTag::Fn)
+    })
 }
 
 /// Gets the type of a field by name.
