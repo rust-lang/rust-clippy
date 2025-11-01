@@ -1,0 +1,36 @@
+error: using `chunks_exact` with a constant chunk size
+  --> tests/ui/chunks_exact_to_as_chunks.rs:8:18
+   |
+LL |     let mut it = slice.chunks_exact(4);
+   |                  ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using `as_chunks::<4>()` for better ergonomics
+   = note: `-D clippy::chunks-exact-to-as-chunks` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::chunks_exact_to_as_chunks)]`
+
+error: using `chunks_exact` with a constant chunk size
+  --> tests/ui/chunks_exact_to_as_chunks.rs:14:18
+   |
+LL |     let mut it = slice.chunks_exact(CHUNK_SIZE);
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using `as_chunks::<4>()` for better ergonomics
+
+error: using `chunks_exact` with a constant chunk size
+  --> tests/ui/chunks_exact_to_as_chunks.rs:24:18
+   |
+LL |     let mut it = slice.chunks_exact(3);
+   |                  ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using `as_chunks::<3>()` for better ergonomics
+
+error: using `chunks_exact_mut` with a constant chunk size
+  --> tests/ui/chunks_exact_to_as_chunks.rs:31:18
+   |
+LL |     let mut it = arr.chunks_exact_mut(4);
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using `as_chunks_mut::<4>()` for better ergonomics
+
+error: aborting due to 4 previous errors
+
