@@ -438,12 +438,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         store.register_removed(name, reason);
     }
 
-    // NOTE: Do not add any more pre-expansion passes. These should be removed eventually.
-    // Due to the architecture of the compiler, currently `cfg_attr` attributes on crate
-    // level (i.e `#![cfg_attr(...)]`) will still be expanded even when using a pre-expansion pass.
-    store.register_pre_expansion_pass(move || Box::new(attrs::EarlyAttributes::new(conf)));
-
-    store.register_early_pass(move || Box::new(attrs::PostExpansionEarlyAttributes::new(conf)));
+    store.register_early_pass(move || Box::new(attrs::EarlyAttributes::new(conf)));
 
     let format_args_storage = FormatArgsStorage::default();
     let format_args = format_args_storage.clone();
@@ -476,7 +471,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(unnecessary_mut_passed::UnnecessaryMutPassed));
     store.register_late_pass(|_| Box::<significant_drop_tightening::SignificantDropTightening<'_>>::default());
     store.register_late_pass(move |_| Box::new(len_zero::LenZero::new(conf)));
-    store.register_late_pass(move |_| Box::new(attrs::Attributes::new(conf)));
+    store.register_late_pass(move |_| Box::new(attrs::LateAttributes::new(conf)));
     store.register_late_pass(|_| Box::new(blocks_in_conditions::BlocksInConditions));
     store.register_late_pass(|_| Box::new(unicode::Unicode));
     store.register_late_pass(|_| Box::new(uninit_vec::UninitVec));

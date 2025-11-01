@@ -1,19 +1,49 @@
-#![allow(unused)]
+//@compile-flags: --cfg foo --cfg bar
 
-#[cfg(windows)]
+#[cfg(foo)]
 //~^ non_minimal_cfg
-fn hermit() {}
+fn all() {}
 
-#[cfg(windows)]
+#[cfg(foo)]
 //~^ non_minimal_cfg
-fn wasi() {}
-
-#[cfg(all(unix, not(windows)))]
-//~^ non_minimal_cfg
-//~| non_minimal_cfg
-fn the_end() {}
-
-#[cfg(any())]
 fn any() {}
 
-fn main() {}
+#[cfg(any(foo, not(bar)))]
+//~^ non_minimal_cfg
+//~| non_minimal_cfg
+fn mixed() {}
+
+#[cfg(true)]
+//~^ non_minimal_cfg
+fn empty_all() {}
+
+#[cfg(any(true, false))]
+//~^ non_minimal_cfg
+fn empty_any() {}
+
+#[cfg_attr(foo, doc = "all")]
+//~^ non_minimal_cfg
+#[cfg_attr(any(foo, not(bar)), doc = "mixed")]
+//~^ non_minimal_cfg
+//~| non_minimal_cfg
+#[cfg_attr(not_active, doc = "catches not active cfg_attrs")]
+//~^ non_minimal_cfg
+fn cfg_attr() {}
+
+macro_rules! in_macro {
+    ($($tt:tt)*) => {
+        #[cfg(any($($tt)*))]
+        struct FromMacro;
+    }
+}
+
+in_macro!(foo);
+
+#[clippy::msrv = "1.87"]
+#[cfg_attr(any(), inline)]
+fn msrv_1_87() {}
+
+#[clippy::msrv = "1.88"]
+#[cfg_attr(false, inline)]
+//~^ non_minimal_cfg
+fn msrv_1_88() {}
