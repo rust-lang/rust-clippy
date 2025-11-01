@@ -5158,7 +5158,7 @@ superfluous.</p>
 <code>T</code> implements <code>ToString</code> directly (like <code>&amp;&amp;str</code> or <code>&amp;&amp;String</code>).</p>
 <h3>Why is this bad?</h3>
 <p>In versions of the compiler before Rust 1.82.0, this bypasses the specialized
-implementation of<code>ToString</code> and instead goes through the more expensive string
+implementation of <code>ToString</code> and instead goes through the more expensive string
 formatting facilities.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">// Generic implementation for `T: Display` is used (slow)
