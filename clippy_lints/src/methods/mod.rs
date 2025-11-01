@@ -4815,6 +4815,7 @@ impl_lint_pass!(Methods => [
     ITER_NTH,
     ITER_NTH_ZERO,
     BYTES_NTH,
+    CHUNKS_EXACT_TO_AS_CHUNKS,
     ITER_SKIP_NEXT,
     GET_UNWRAP,
     GET_LAST_WITH_LEN,
@@ -5752,8 +5753,8 @@ impl Methods {
                         unwrap_expect_used::Variant::Unwrap,
                     );
                 },
-                (name, [arg]) if matches!(name.as_str(), "chunks_exact" | "chunks_exact_mut") => {
-                    chunks_exact_to_as_chunks::check(cx, expr, recv, arg, name.as_str(), self.msrv);
+                (name @ (sym::chunks_exact | sym::chunks_exact_mut), [arg]) => {
+                    chunks_exact_to_as_chunks::check(cx, expr, recv, arg, name, self.msrv);
                 },
                 _ => {},
             }

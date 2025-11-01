@@ -1,8 +1,10 @@
 use clippy_utils::consts::{ConstEvalCtxt, Constant};
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::msrvs::{self, Msrv};
+use clippy_utils::sym;
 use rustc_hir::Expr;
 use rustc_lint::LateContext;
+use rustc_span::Symbol;
 
 use super::CHUNKS_EXACT_TO_AS_CHUNKS;
 
@@ -11,7 +13,7 @@ pub(super) fn check(
     expr: &Expr<'_>,
     recv: &Expr<'_>,
     arg: &Expr<'_>,
-    method_name: &str,
+    method_name: Symbol,
     msrv: Msrv,
 ) {
     // Check for Rust version
@@ -29,7 +31,7 @@ pub(super) fn check(
     let constant_eval = ConstEvalCtxt::new(cx);
     if let Some(Constant::Int(chunk_size)) = constant_eval.eval(arg) {
         // Emit the lint
-        let suggestion = if method_name == "chunks_exact_mut" {
+        let suggestion = if method_name == sym::chunks_exact_mut {
             "as_chunks_mut"
         } else {
             "as_chunks"
