@@ -1,14 +1,17 @@
+use std::ops::ControlFlow;
+
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_in_test;
 use clippy_utils::macros::{MacroCall, macro_backtrace};
 use clippy_utils::source::snippet_with_applicability;
+use clippy_utils::visitors::for_each_expr;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir::{Closure, ClosureKind, CoroutineKind, Expr, ExprKind, LetStmt, LocalSource, Node, Stmt, StmtKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::impl_lint_pass;
-use rustc_span::{Span, SyntaxContext, sym};
+use rustc_span::{BytePos, Span, SyntaxContext, sym};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -53,8 +56,8 @@ impl DbgMacro {
     }
 }
 
-impl LateLintPass<'_> for DbgMacro {
-    fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {
+impl<'tcx> LateLintPass<'tcx> for DbgMacro {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         let cur_syntax_ctxt = expr.span.ctxt();
 
         if cur_syntax_ctxt != self.prev_ctxt &&
@@ -66,8 +69,6 @@ impl LateLintPass<'_> for DbgMacro {
             // allows `dbg!` in test code if allow-dbg-in-test is set to true in clippy.toml
             !(self.allow_dbg_in_tests && is_in_test(cx.tcx, expr.hir_id))
         {
-            self.prev_ctxt = cur_syntax_ctxt;
-
             span_lint_and_then(
                 cx,
                 DBG_MACRO,
@@ -75,51 +76,69 @@ impl LateLintPass<'_> for DbgMacro {
                 "the `dbg!` macro is intended as a debugging tool",
                 |diag| {
                     let mut applicability = Applicability::MachineApplicable;
-                    let (sugg_span, suggestion) =
-                        match is_async_move_desugar(expr).unwrap_or(expr).peel_drop_temps().kind {
-                            // dbg!()
-                            ExprKind::Block(..) => {
-                                // If the `dbg!` macro is a "free" statement and not contained within other expressions,
-                                // remove the whole statement.
-                                if let Node::Stmt(_) = cx.tcx.parent_hir_node(expr.hir_id)
-                                    && let Some(semi_span) =
-                                        cx.sess().source_map().mac_call_stmt_semi_span(macro_call.span)
-                                {
-                                    (macro_call.span.to(semi_span), String::new())
-                                } else {
-                                    (macro_call.span, String::from("()"))
+                    let expr = is_async_move_desugar(expr).unwrap_or(expr).peel_drop_temps();
+                    let (sugg_span, suggestion) = match expr.kind {
+                        // dbg!()
+                        ExprKind::Block(..) => {
+                            // If the `dbg!` macro is a "free" statement and not contained within other expressions,
+                            // remove the whole statement.
+                            if let Node::Stmt(_) = cx.tcx.parent_hir_node(expr.hir_id)
+                                && let Some(semi_span) = cx.sess().source_map().mac_call_stmt_semi_span(macro_call.span)
+                            {
+                                (macro_call.span.to(semi_span), String::new())
+                            } else {
+                                (macro_call.span, String::from("()"))
+                            }
+                        },
+                        // dbg!(1)
+                        ExprKind::Match(val, ..) => (
+                            macro_call.span,
+                            snippet_with_applicability(cx, val.span.source_callsite(), "..", &mut applicability)
+                                .to_string(),
+                        ),
+                        // dbg!(2, 3)
+                        ExprKind::Tup(
+                            [
+                                Expr {
+                                    kind: ExprKind::Match(first, ..),
+                                    ..
+                                },
+                                ..,
+                                Expr {
+                                    kind: ExprKind::Match(last, ..),
+                                    ..
+                                },
+                            ],
+                        ) => {
+                            let snippet = snippet_with_applicability(
+                                cx,
+                                first.span.source_callsite().to(last.span.source_callsite()),
+                                "..",
+                                &mut applicability,
+                            );
+                            (macro_call.span, format!("({snippet})"))
+                        },
+                        _ => {
+                            let macro_arg_span = if let Some(sub_expr_span) = for_each_expr(cx, expr, |sub_expr| {
+                                if sub_expr.span.ctxt() == self.prev_ctxt {
+                                    return ControlFlow::Break(sub_expr.span);
                                 }
-                            },
-                            // dbg!(1)
-                            ExprKind::Match(val, ..) => (
-                                macro_call.span,
-                                snippet_with_applicability(cx, val.span.source_callsite(), "..", &mut applicability)
-                                    .to_string(),
-                            ),
-                            // dbg!(2, 3)
-                            ExprKind::Tup(
-                                [
-                                    Expr {
-                                        kind: ExprKind::Match(first, ..),
-                                        ..
-                                    },
-                                    ..,
-                                    Expr {
-                                        kind: ExprKind::Match(last, ..),
-                                        ..
-                                    },
-                                ],
-                            ) => {
-                                let snippet = snippet_with_applicability(
-                                    cx,
-                                    first.span.source_callsite().to(last.span.source_callsite()),
-                                    "..",
-                                    &mut applicability,
-                                );
-                                (macro_call.span, format!("({snippet})"))
-                            },
-                            _ => unreachable!(),
-                        };
+                                ControlFlow::Continue(())
+                            }) {
+                                // Find the first sub-expression with the previous syntax context.
+                                sub_expr_span
+                            } else {
+                                // Fallback: unwrap the argument span from the `dbg!` macro call manually.
+                                macro_call
+                                    .span
+                                    .source_callsite()
+                                    .with_lo(macro_call.span.lo() + BytePos(5)) // after `dbg!(`
+                                    .with_hi(macro_call.span.hi() - BytePos(1))
+                            };
+                            let snippet = snippet_with_applicability(cx, macro_arg_span, "..", &mut applicability);
+                            (macro_call.span, snippet.to_string())
+                        },
+                    };
 
                     diag.span_suggestion(
                         sugg_span,
@@ -129,6 +148,8 @@ impl LateLintPass<'_> for DbgMacro {
                     );
                 },
             );
+
+            self.prev_ctxt = cur_syntax_ctxt;
         }
     }
 

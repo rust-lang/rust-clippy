@@ -139,3 +139,8 @@ mod issue14914 {
         //~^ dbg_macro
     }
 }
+
+fn issue16008() {
+    for _ in [1, 2] {}
+    //~^ dbg_macro
+}
