@@ -8988,8 +8988,9 @@ be given explicitly: Setting the input-type explicitly avoids confusion about wh
 argument’s type actually is. Setting the output-type explicitly avoids type-inference
 to infer a technically correct yet unexpected type.</p>
 <h3>Example</h3>
-<pre><code class="language-rust">// Avoid "naked" calls to `transmute()`!
-let x: i32 = std::mem::transmute([1u16, 2u16]);
+<pre><code class="language-rust">let mut x: i32 = 0;
+// Avoid "naked" calls to `transmute()`!
+x = std::mem::transmute([1u16, 2u16]);
 
 // `first_answers` is intended to transmute a slice of bool to a slice of u8.
 // But the programmer forgot to index the first element of the outer slice,
