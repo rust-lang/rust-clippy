@@ -72,9 +72,11 @@ where
         return None;
     }
 
+    let mut app = Applicability::MachineApplicable;
+
     // `map` won't perform any adjustments.
     if expr_requires_coercion(cx, expr) {
-        return None;
+        app = Applicability::MaybeIncorrect;
     }
 
     // Determine which binding mode to use.
@@ -110,8 +112,6 @@ where
         },
         None => return None,
     }
-
-    let mut app = Applicability::MachineApplicable;
 
     // Remove address-of expressions from the scrutinee. Either `as_ref` will be called, or
     // it's being passed by value.
