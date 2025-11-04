@@ -59,30 +59,30 @@ jobs:
 
     - name: Test
       if: matrix.host == 'x86_64-unknown-linux-gnu'
-      run: cargo test --features internal
+      run: cargo test --features internal --no-fail-fast
 
     - name: Test
       if: matrix.host != 'x86_64-unknown-linux-gnu'
-      run: cargo test --features internal -- --skip dogfood
+      run: cargo test --features internal --no-fail-fast -- --skip dogfood
 
     - name: Test clippy_lints
-      run: cargo test
+      run: cargo test --no-fail-fast
       working-directory: clippy_lints
 
     - name: Test clippy_utils
-      run: cargo test
+      run: cargo test --no-fail-fast
       working-directory: clippy_utils
 
     - name: Test clippy_config
-      run: cargo test
+      run: cargo test --no-fail-fast
       working-directory: clippy_config
 
     - name: Test rustc_tools_util
-      run: cargo test
+      run: cargo test --no-fail-fast
       working-directory: rustc_tools_util
 
     - name: Test clippy_dev
-      run: cargo test
+      run: cargo test --no-fail-fast
       working-directory: clippy_dev
 
     - name: Test clippy-driver
