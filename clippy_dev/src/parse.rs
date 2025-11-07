@@ -113,6 +113,21 @@ impl StrBuf {
         arena.alloc_str(&self.0)
     }
 
+    /// Collects all elements into the buffer and allocates that onto the arena.
+    pub fn alloc_collect<'cx, I>(&mut self, arena: &'cx DroplessArena, iter: I) -> &'cx str
+    where
+        I: IntoIterator,
+        String: Extend<I::Item>,
+    {
+        self.0.clear();
+        self.0.extend(iter);
+        if self.0.is_empty() {
+            ""
+        } else {
+            arena.alloc_str(&self.0)
+        }
+    }
+
     /// Allocates the result of replacing all instances the pattern with the given string
     /// onto the arena.
     pub fn alloc_replaced<'cx>(
@@ -253,6 +268,7 @@ pub struct LintPass<'cx> {
 pub struct LintData<'cx> {
     pub lints: FxHashMap<&'cx str, Lint<'cx>>,
     pub lint_passes: Vec<LintPass<'cx>>,
+    pub deprecated_file: &'cx SourceFile<'cx>,
 }
 impl<'cx> LintData<'cx> {
     #[expect(clippy::mutable_key_type)]
@@ -285,6 +301,16 @@ impl<'cx> ParseCxImpl<'cx> {
             #[expect(clippy::default_trait_access)]
             lints: FxHashMap::with_capacity_and_hasher(1000, Default::default()),
             lint_passes: Vec::with_capacity(400),
+            deprecated_file: self.source_files.alloc(SourceFile::load(self.str_buf.alloc_collect(
+                self.arena,
+                [
+                    "clippy_lints",
+                    path::MAIN_SEPARATOR_STR,
+                    "src",
+                    path::MAIN_SEPARATOR_STR,
+                    "deprecated_lints.rs",
+                ],
+            ))),
         };
 
         for e in expect_action(fs::read_dir("."), ErrAction::Read, ".") {
@@ -305,24 +331,19 @@ impl<'cx> ParseCxImpl<'cx> {
             crate_path.push_str("src");
             for e in walk_dir_no_dot_or_target(&crate_path) {
                 let e = expect_action(e, ErrAction::Read, &crate_path);
-                if let Some(file_path) = e.path().to_str()
-                    && file_path.ends_with(".rs")
+                if e.path().as_os_str().as_encoded_bytes().ends_with(b".rs")
+                    && let Some(file_path) = e.path().to_str()
+                    && file_path != data.deprecated_file.path.get()
                 {
                     let file = self
                         .source_files
                         .alloc(SourceFile::load(self.arena.alloc_str(file_path)));
-                    if file_path
-                        .split(path::MAIN_SEPARATOR)
-                        .eq(["clippy_lints", "src", "deprecated_lints.rs"])
-                    {
-                        self.parse_deprecated_lints(&mut data, file);
-                    } else {
-                        self.parse_lint_src_file(&mut data, file);
-                    }
+                    self.parse_lint_src_file(&mut data, file);
                 }
             }
         }
 
+        self.parse_deprecated_lints(&mut data);
         data
     }
 
@@ -429,7 +450,7 @@ impl<'cx> ParseCxImpl<'cx> {
         }
     }
 
-    fn parse_deprecated_lints(&mut self, data: &mut LintData<'cx>, file: &'cx SourceFile<'cx>) {
+    fn parse_deprecated_lints(&mut self, data: &mut LintData<'cx>) {
         #[allow(clippy::enum_glob_use)]
         use cursor::Pat::*;
         #[rustfmt::skip]
@@ -450,6 +471,7 @@ impl<'cx> ParseCxImpl<'cx> {
             Bang, OpenBrace, Ident("RENAMED"), OpenParen, Ident("RENAMED_VERSION"), CloseParen, Eq, OpenBracket,
         ];
 
+        let file = data.deprecated_file;
         let mut cursor = Cursor::new(&file.contents);
         let mut captures = [Capture::EMPTY; 3];
 
