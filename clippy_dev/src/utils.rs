@@ -13,6 +13,8 @@ use std::process::{self, Command, Stdio};
 use std::{env, thread};
 use walkdir::WalkDir;
 
+use crate::parse::SourceFile;
+
 pub struct Scoped<'inner, 'outer: 'inner, T>(T, PhantomData<&'inner mut T>, PhantomData<&'outer mut ()>);
 impl<T> Scoped<'_, '_, T> {
     pub fn new(value: T) -> Self {
@@ -115,13 +117,19 @@ impl<'a> File<'a> {
         self.read_append_to_string(dst)
     }
 
+    /// Writes the entire contents of the specified buffer to the file, panicking on failure.
+    #[track_caller]
+    pub fn write(&mut self, data: &[u8]) {
+        expect_action(self.inner.write_all(data), ErrAction::Write, self.path);
+    }
+
     /// Replaces the entire contents of a file.
     #[track_caller]
     pub fn replace_contents(&mut self, data: &[u8]) {
         let res = match self.inner.seek(SeekFrom::Start(0)) {
-            Ok(_) => match self.inner.write_all(data) {
-                Ok(()) => self.inner.set_len(data.len() as u64),
-                Err(e) => Err(e),
+            Ok(_) => {
+                self.write(data);
+                self.inner.set_len(data.len() as u64)
             },
             Err(e) => Err(e),
         };
@@ -357,6 +365,34 @@ impl FileUpdater {
                 process::exit(1);
             },
             (UpdateMode::Change, UpdateStatus::Changed) => file.replace_contents(self.dst_buf.as_bytes()),
+            (UpdateMode::Check | UpdateMode::Change, UpdateStatus::Unchanged) => {},
+        }
+    }
+
+    #[track_caller]
+    pub fn update_loaded_file_checked(
+        &mut self,
+        tool: &str,
+        mode: UpdateMode,
+        file: &SourceFile<'_>,
+        update: &mut dyn FnMut(&Path, &str, &mut String) -> UpdateStatus,
+    ) {
+        self.dst_buf.clear();
+        match (
+            mode,
+            update(file.path.get().as_ref(), &file.contents, &mut self.dst_buf),
+        ) {
+            (UpdateMode::Check, UpdateStatus::Changed) => {
+                eprintln!(
+                    "the contents of `{}` are out of date\nplease run `{tool}` to update",
+                    file.path.get(),
+                );
+                process::exit(1);
+            },
+            (UpdateMode::Change, UpdateStatus::Changed) => {
+                File::open(file.path.get(), OpenOptions::new().truncate(true).write(true))
+                    .write(self.dst_buf.as_bytes());
+            },
             (UpdateMode::Check | UpdateMode::Change, UpdateStatus::Unchanged) => {},
         }
     }

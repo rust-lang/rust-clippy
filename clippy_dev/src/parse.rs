@@ -255,13 +255,14 @@ pub struct LintData<'cx> {
     pub lint_passes: Vec<LintPass<'cx>>,
 }
 impl<'cx> LintData<'cx> {
-    pub fn mk_file_to_lint_decl_map(&self) -> FxHashMap<&'cx str, Vec<(&'cx str, Range<u32>)>> {
+    #[expect(clippy::mutable_key_type)]
+    pub fn mk_file_to_lint_decl_map(&self) -> FxHashMap<&'cx SourceFile<'cx>, Vec<(&'cx str, Range<u32>)>> {
         #[expect(clippy::default_trait_access)]
         let mut lints = FxHashMap::with_capacity_and_hasher(500, Default::default());
         for (&name, lint) in &self.lints {
             if let Lint::Active(lint) = lint {
                 lints
-                    .entry(lint.file.path.get())
+                    .entry(lint.file)
                     .or_insert_with(|| Vec::with_capacity(8))
                     .push((name, lint.declaration_range));
             }
@@ -271,9 +272,7 @@ impl<'cx> LintData<'cx> {
 
     pub fn iter_passes_by_file_mut<'s>(&'s mut self) -> impl Iterator<Item = &'s mut [LintPass<'cx>]> {
         slice_groups_mut(&mut self.lint_passes, |head, tail| {
-            tail.iter()
-                .take_while(|&x| x.file.path.get() == head.file.path.get())
-                .count()
+            tail.iter().take_while(|&x| x.file == head.file).count()
         })
     }
 }
