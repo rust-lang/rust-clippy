@@ -66,10 +66,10 @@ impl LintData<'_> {
             }),
         );
 
-        updater.update_file_checked(
+        updater.update_loaded_file_checked(
             "cargo dev update_lints",
             update_mode,
-            "clippy_lints/src/deprecated_lints.rs",
+            self.deprecated_file,
             &mut |_, src, dst| {
                 let mut cursor = Cursor::new(src);
                 assert!(
