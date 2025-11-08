@@ -73,6 +73,7 @@ mod map_collect_result_unit;
 mod map_err_ignore;
 mod map_flatten;
 mod map_identity;
+mod map_or_identity;
 mod map_unwrap_or;
 mod map_unwrap_or_else;
 mod map_with_unused_argument_over_ranges;
@@ -4750,6 +4751,29 @@ declare_clippy_lint! {
     "filtering `std::io::Lines` with `filter_map()`, `flat_map()`, or `flatten()` might cause an infinite loop"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks the usage of `.map_or(...)` with an identity function for `Option` and `Result` types.
+    ///
+    /// ### Why is this bad?
+    /// This can be written more concisely by using `unwrap_or()`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let opt = Some(1);
+    /// opt.map_or(42, |v| v);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let opt = Some(1);
+    /// opt.unwrap_or(42);
+    /// ```
+    #[clippy::version = "1.93.0"]
+    pub MAP_OR_IDENTITY,
+    suspicious,
+    "using an identity function when mapping with `.map_or(|err| ..., |x| x)`"
+}
+
 #[expect(clippy::struct_excessive_bools)]
 pub struct Methods {
     avoid_breaking_exported_api: bool,
@@ -4934,6 +4958,7 @@ impl_lint_pass!(Methods => [
     REDUNDANT_ITER_CLONED,
     UNNECESSARY_OPTION_MAP_OR_ELSE,
     LINES_FILTER_MAP_OK,
+    MAP_OR_IDENTITY,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -5405,6 +5430,7 @@ impl Methods {
                     option_map_or_none::check(cx, expr, recv, def, map);
                     manual_ok_or::check(cx, expr, recv, def, map);
                     unnecessary_map_or::check(cx, expr, recv, def, map, span, self.msrv);
+                    map_or_identity::check(cx, expr, recv, def, map);
                 },
                 (sym::map_or_else, [def, map]) => {
                     result_map_or_else_none::check(cx, expr, recv, def, map);

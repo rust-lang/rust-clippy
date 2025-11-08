@@ -1,0 +1,17 @@
+#![warn(clippy::map_or_identity)]
+
+mod issue15801 {
+
+    fn foo(opt: Option<i32>, default: i32) -> i32 {
+        opt.unwrap_or(default)
+        //~^ map_or_identity
+    }
+
+    fn bar(res: Result<i32, &str>, default: i32) -> i32 {
+        res.unwrap_or(default)
+        //~^ map_or_identity
+    }
+}
+fn main() {
+    // test code goes here
+}
