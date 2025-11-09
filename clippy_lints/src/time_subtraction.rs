@@ -119,7 +119,7 @@ impl LateLintPass<'_> for UncheckedTimeSubtraction {
                         );
                     } else {
                         // instant - duration
-                        print_unchecked_duration_subtraction_sugg(cx, lhs, rhs, expr);
+                        print_unchecked_duration_subtraction_sugg(cx, lhs, true, rhs, expr);
                     }
                 }
             } else if lhs_ty.is_diag_item(cx, sym::Duration)
@@ -137,7 +137,7 @@ impl LateLintPass<'_> for UncheckedTimeSubtraction {
                     );
                 } else {
                     // duration - duration
-                    print_unchecked_duration_subtraction_sugg(cx, lhs, rhs, expr);
+                    print_unchecked_duration_subtraction_sugg(cx, lhs, false, rhs, expr);
                 }
             }
         }
@@ -188,13 +188,11 @@ fn print_manual_instant_elapsed_sugg(cx: &LateContext<'_>, expr: &Expr<'_>, sugg
 fn print_unchecked_duration_subtraction_sugg(
     cx: &LateContext<'_>,
     left_expr: &Expr<'_>,
+    left_is_instant: bool,
     right_expr: &Expr<'_>,
     expr: &Expr<'_>,
 ) {
-    let typeck = cx.typeck_results();
-    let left_ty = typeck.expr_ty(left_expr);
-
-    let lint_msg = if left_ty.is_diag_item(cx, sym::Instant) {
+    let lint_msg = if left_is_instant {
         "unchecked subtraction of a 'Duration' from an 'Instant'"
     } else {
         "unchecked subtraction between 'Duration' values"
