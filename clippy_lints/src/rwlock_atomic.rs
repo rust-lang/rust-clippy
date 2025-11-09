@@ -1,0 +1,190 @@
+use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::res::MaybeDef;
+use clippy_utils::source::{IntoSpan, SpanRangeExt};
+use clippy_utils::sugg::Sugg;
+use clippy_utils::ty::ty_from_hir_ty;
+use rustc_errors::{Applicability, Diag};
+use rustc_hir::{self as hir, Expr, ExprKind, Item, ItemKind, LetStmt, QPath};
+use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_middle::mir::Mutability;
+use rustc_middle::ty::{self, IntTy, Ty, UintTy};
+use rustc_session::declare_lint_pass;
+use rustc_span::sym;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `RwLock<X>` where an atomic will do.
+    ///
+    /// ### Why restrict this?
+    /// Using a RwLock just to make access to a plain bool or
+    /// reference sequential is shooting flies with cannons.
+    /// `std::sync::atomic::AtomicBool` and `std::sync::atomic::AtomicPtr` are leaner and
+    /// faster.
+    ///
+    /// On the other hand, `RwLock`s are, in general, easier to
+    /// verify correctness. An atomic does not behave the same as
+    /// an equivalent RwLock.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let y = true;
+    /// # use std::sync::RwLock;
+    /// let x = RwLock::new(&y);
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # let y = true;
+    /// # use std::sync::atomic::AtomicBool;
+    /// let x = AtomicBool::new(y);
+    /// ```
+    #[clippy::version = "1.90.0"]
+    pub RWLOCK_ATOMIC,
+    restriction,
+    "using a RwLock where an atomic value could be used instead."
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `RwLock<X>` where `X` is an integral
+    /// type.
+    ///
+    /// ### Why restrict this?
+    /// Using a RwLock just to make access to a plain integer
+    /// sequential is
+    /// shooting flies with cannons. `std::sync::atomic::AtomicUsize` is leaner and faster.
+    ///
+    /// On the other hand, `RwLock`s are, in general, easier to
+    /// verify correctness. An atomic does not behave the same as
+    /// an equivalent RwLock.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # use std::sync::RwLock;
+    /// let x = RwLock::new(0usize);
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # use std::sync::atomic::AtomicUsize;
+    /// let x = AtomicUsize::new(0usize);
+    /// ```
+    #[clippy::version = "1.90.0"]
+    pub RWLOCK_INTEGER,
+    restriction,
+    "using a RwLock for an integer type"
+}
+
+declare_lint_pass!(RwLock => [RWLOCK_ATOMIC, RWLOCK_INTEGER]);
+
+// NOTE: we don't use `check_expr` because that would make us lint every _use_ of such RwLocks, not
+// just their definitions
+impl<'tcx> LateLintPass<'tcx> for RwLock {
+    fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'_>) {
+        if !item.span.from_expansion()
+            && let ItemKind::Static(_, _, ty, body_id) = item.kind
+        {
+            let body = cx.tcx.hir_body(body_id);
+            let mid_ty = ty_from_hir_ty(cx, ty);
+            check_expr(cx, body.value.peel_blocks(), &TypeAscriptionKind::Required(ty), mid_ty);
+        }
+    }
+    fn check_local(&mut self, cx: &LateContext<'tcx>, stmt: &'tcx LetStmt<'_>) {
+        if !stmt.span.from_expansion()
+            && let Some(init) = stmt.init
+        {
+            let mid_ty = cx.typeck_results().expr_ty(init);
+            check_expr(cx, init.peel_blocks(), &TypeAscriptionKind::Optional(stmt.ty), mid_ty);
+        }
+    }
+}
+
+/// Whether the type ascription `: RwLock<X>` (which we'll suggest replacing with `AtomicX`) is
+/// required
+enum TypeAscriptionKind<'tcx> {
+    /// Yes; for us, this is the case for statics
+    Required(&'tcx hir::Ty<'tcx>),
+    /// No; the ascription might've been necessary in an expression like:
+    /// ```ignore
+    /// let rwlock: RwLock<u64> = RwLock::new(0);
+    /// ```
+    /// to specify the type of `0`, but since `AtomicX` already refers to a concrete type, we won't
+    /// need this ascription anymore.
+    Optional(Option<&'tcx hir::Ty<'tcx>>),
+}
+
+fn check_expr<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>, ty_ascription: &TypeAscriptionKind<'tcx>, ty: Ty<'tcx>) {
+    if let ty::Adt(_, subst) = ty.kind()
+        && ty.is_diag_item(cx, sym::RwLock)
+        && let rwlock_param = subst.type_at(0)
+        && let Some(atomic_name) = get_atomic_name(rwlock_param)
+    {
+        let msg = "using a `RwLock` where an atomic would do";
+        let diag = |diag: &mut Diag<'_, _>| {
+            // if `expr = RwLock::new(arg)`, we can try emitting a suggestion
+            if let ExprKind::Call(qpath, [arg]) = expr.kind
+                && let ExprKind::Path(QPath::TypeRelative(_rwlock, new)) = qpath.kind
+                && new.ident.name == sym::new
+            {
+                let mut applicability = Applicability::MaybeIncorrect;
+                let arg = Sugg::hir_with_applicability(cx, arg, "_", &mut applicability);
+                let mut suggs = vec![(expr.span, format!("std::sync::atomic::{atomic_name}::new({arg})"))];
+                match ty_ascription {
+                    TypeAscriptionKind::Required(ty_ascription) => {
+                        suggs.push((ty_ascription.span, format!("std::sync::atomic::{atomic_name}")));
+                    },
+                    TypeAscriptionKind::Optional(Some(ty_ascription)) => {
+                        // See https://github.com/rust-lang/rust-clippy/pull/15386 for why this is
+                        // required
+                        let colon_ascription = (cx.sess().source_map())
+                            .span_extend_to_prev_char_before(ty_ascription.span, ':', true)
+                            .with_leading_whitespace(cx)
+                            .into_span();
+                        suggs.push((colon_ascription, String::new()));
+                    },
+                    TypeAscriptionKind::Optional(None) => {}, // nothing to remove/replace
+                }
+                diag.multipart_suggestion("try", suggs, applicability);
+            } else {
+                diag.help(format!("consider using an `{atomic_name}` instead"));
+            }
+            diag.help("if you just want the locking behavior and not the internal type, consider using `RwLock<()>`");
+        };
+        match *rwlock_param.kind() {
+            ty::Uint(t) if t != UintTy::Usize => span_lint_and_then(cx, RWLOCK_INTEGER, expr.span, msg, diag),
+            ty::Int(t) if t != IntTy::Isize => span_lint_and_then(cx, RWLOCK_INTEGER, expr.span, msg, diag),
+            _ => span_lint_and_then(cx, RWLOCK_ATOMIC, expr.span, msg, diag),
+        }
+    }
+}
+
+fn get_atomic_name(ty: Ty<'_>) -> Option<&'static str> {
+    match ty.kind() {
+        ty::Bool => Some("AtomicBool"),
+        ty::Uint(uint_ty) => {
+            match uint_ty {
+                UintTy::U8 => Some("AtomicU8"),
+                UintTy::U16 => Some("AtomicU16"),
+                UintTy::U32 => Some("AtomicU32"),
+                UintTy::U64 => Some("AtomicU64"),
+                UintTy::Usize => Some("AtomicUsize"),
+                // `AtomicU128` is unstable and only available on a few platforms: https://github.com/rust-lang/rust/issues/99069
+                UintTy::U128 => None,
+            }
+        },
+        ty::Int(int_ty) => {
+            match int_ty {
+                IntTy::I8 => Some("AtomicI8"),
+                IntTy::I16 => Some("AtomicI16"),
+                IntTy::I32 => Some("AtomicI32"),
+                IntTy::I64 => Some("AtomicI64"),
+                IntTy::Isize => Some("AtomicIsize"),
+                // `AtomicU128` is unstable and only available on a few platforms: https://github.com/rust-lang/rust/issues/99069
+                IntTy::I128 => None,
+            }
+        },
+        // `AtomicPtr` only accepts `*mut T`
+        ty::RawPtr(_, Mutability::Mut) => Some("AtomicPtr"),
+        _ => None,
+    }
+}

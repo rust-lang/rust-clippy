@@ -537,6 +537,8 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::mutable_debug_assertion::DEBUG_ASSERT_WITH_MUT_CALL_INFO,
     crate::mutex_atomic::MUTEX_ATOMIC_INFO,
     crate::mutex_atomic::MUTEX_INTEGER_INFO,
+    crate::rwlock_atomic::RWLOCK_ATOMIC_INFO,
+    crate::rwlock_atomic::RWLOCK_INTEGER_INFO,
     crate::needless_arbitrary_self_type::NEEDLESS_ARBITRARY_SELF_TYPE_INFO,
     crate::needless_bool::NEEDLESS_BOOL_INFO,
     crate::needless_bool::NEEDLESS_BOOL_ASSIGN_INFO,
