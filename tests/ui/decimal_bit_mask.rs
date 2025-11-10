@@ -18,7 +18,9 @@ fn main() {
     99 | 0b1010; //~ decimal_bit_mask
     99 ^ 0b1010; //~ decimal_bit_mask
     0xD | 99; //~ decimal_bit_mask
-    88 & 99; //~ decimal_bit_mask
+    88 & 99;
+    //~^ decimal_bit_mask
+    //~| decimal_bit_mask
 
     // GOOD: Bitwise operation, binary/hex literal, one literal
     x & 0b1010;
