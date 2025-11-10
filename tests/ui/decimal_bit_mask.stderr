@@ -1,74 +1,74 @@
 error: using decimal literal for bit mask
-  --> tests/ui/decimal_bit_mask.rs:6:5
+  --> tests/ui/decimal_bit_mask.rs:6:9
    |
 LL |     x & 99;
-   |     ^^^^^^
+   |         ^^
    |
    = help: consider using binary (0b...) or hexadecimal (0x...) notation for better readability
    = note: `-D clippy::decimal-bit-mask` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::decimal_bit_mask)]`
 
 error: using decimal literal for bit mask
-  --> tests/ui/decimal_bit_mask.rs:7:5
+  --> tests/ui/decimal_bit_mask.rs:7:9
    |
 LL |     x | 99;
-   |     ^^^^^^
+   |         ^^
    |
    = help: consider using binary (0b...) or hexadecimal (0x...) notation for better readability
 
 error: using decimal literal for bit mask
-  --> tests/ui/decimal_bit_mask.rs:8:5
+  --> tests/ui/decimal_bit_mask.rs:8:9
    |
 LL |     x ^ 99;
-   |     ^^^^^^
+   |         ^^
    |
    = help: consider using binary (0b...) or hexadecimal (0x...) notation for better readability
 
 error: using decimal literal for bit mask
-  --> tests/ui/decimal_bit_mask.rs:9:5
+  --> tests/ui/decimal_bit_mask.rs:9:10
    |
 LL |     x &= 99;
-   |     ^^^^^^^
+   |          ^^
    |
    = help: consider using binary (0b...) or hexadecimal (0x...) notation for better readability
 
 error: using decimal literal for bit mask
-  --> tests/ui/decimal_bit_mask.rs:10:5
+  --> tests/ui/decimal_bit_mask.rs:10:10
    |
 LL |     x |= 99;
-   |     ^^^^^^^
+   |          ^^
    |
    = help: consider using binary (0b...) or hexadecimal (0x...) notation for better readability
 
 error: using decimal literal for bit mask
-  --> tests/ui/decimal_bit_mask.rs:11:5
+  --> tests/ui/decimal_bit_mask.rs:11:10
    |
 LL |     x ^= 99;
-   |     ^^^^^^^
+   |          ^^
    |
    = help: consider using binary (0b...) or hexadecimal (0x...) notation for better readability
 
 error: using decimal literal for bit mask
-  --> tests/ui/decimal_bit_mask.rs:14:5
+  --> tests/ui/decimal_bit_mask.rs:14:14
    |
 LL |     0b1010 & 99;
-   |     ^^^^^^^^^^^
+   |              ^^
    |
    = help: consider using binary (0b...) or hexadecimal (0x...) notation for better readability
 
 error: using decimal literal for bit mask
-  --> tests/ui/decimal_bit_mask.rs:15:5
+  --> tests/ui/decimal_bit_mask.rs:15:14
    |
 LL |     0b1010 | 99;
-   |     ^^^^^^^^^^^
+   |              ^^
    |
    = help: consider using binary (0b...) or hexadecimal (0x...) notation for better readability
 
 error: using decimal literal for bit mask
-  --> tests/ui/decimal_bit_mask.rs:16:5
+  --> tests/ui/decimal_bit_mask.rs:16:14
    |
 LL |     0b1010 ^ 99;
-   |     ^^^^^^^^^^^
+   |              ^^
    |
    = help: consider using binary (0b...) or hexadecimal (0x...) notation for better readability
 
@@ -76,7 +76,7 @@ error: using decimal literal for bit mask
   --> tests/ui/decimal_bit_mask.rs:17:5
    |
 LL |     99 & 0b1010;
-   |     ^^^^^^^^^^^
+   |     ^^
    |
    = help: consider using binary (0b...) or hexadecimal (0x...) notation for better readability
 
@@ -84,7 +84,7 @@ error: using decimal literal for bit mask
   --> tests/ui/decimal_bit_mask.rs:18:5
    |
 LL |     99 | 0b1010;
-   |     ^^^^^^^^^^^
+   |     ^^
    |
    = help: consider using binary (0b...) or hexadecimal (0x...) notation for better readability
 
@@ -92,15 +92,15 @@ error: using decimal literal for bit mask
   --> tests/ui/decimal_bit_mask.rs:19:5
    |
 LL |     99 ^ 0b1010;
-   |     ^^^^^^^^^^^
+   |     ^^
    |
    = help: consider using binary (0b...) or hexadecimal (0x...) notation for better readability
 
 error: using decimal literal for bit mask
-  --> tests/ui/decimal_bit_mask.rs:20:5
+  --> tests/ui/decimal_bit_mask.rs:20:11
    |
 LL |     0xD | 99;
-   |     ^^^^^^^^
+   |           ^^
    |
    = help: consider using binary (0b...) or hexadecimal (0x...) notation for better readability
 
@@ -108,18 +108,17 @@ error: using decimal literal for bit mask
   --> tests/ui/decimal_bit_mask.rs:21:5
    |
 LL |     88 & 99;
-   |     ^^^^^^^
+   |     ^^
    |
    = help: consider using binary (0b...) or hexadecimal (0x...) notation for better readability
 
 error: using decimal literal for bit mask
-  --> tests/ui/decimal_bit_mask.rs:21:5
+  --> tests/ui/decimal_bit_mask.rs:21:10
    |
 LL |     88 & 99;
-   |     ^^^^^^^
+   |          ^^
    |
    = help: consider using binary (0b...) or hexadecimal (0x...) notation for better readability
-   = note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
 
 error: aborting due to 15 previous errors
 
