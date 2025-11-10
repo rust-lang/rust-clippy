@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_help;
-use clippy_utils::source::snippet_opt;
+use clippy_utils::source::SpanRangeExt;
 use rustc_hir::{AssignOpKind, BinOpKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
@@ -42,9 +42,9 @@ impl<'tcx> LateLintPass<'tcx> for DecimalBitMask {
         {
             for expr in [left, right] {
                 if let ExprKind::Lit(_) = expr.kind
-                    && let Some(snippet) = snippet_opt(cx, expr.span)
-                    && !snippet.starts_with("0b")
-                    && !snippet.starts_with("0x")
+                    && expr
+                        .span
+                        .check_source_text(cx, |src| !src.starts_with("0b") && !src.starts_with("0x"))
                 {
                     span_lint_and_help(
                         cx,
@@ -69,9 +69,7 @@ impl<'tcx> LateLintPass<'tcx> for DecimalBitMask {
                 ..
             },
         ) = &e.kind
-            && let Some(snippet) = snippet_opt(cx, *span)
-            && !snippet.starts_with("0b")
-            && !snippet.starts_with("0x")
+            && span.check_source_text(cx, |src| !src.starts_with("0b") && !src.starts_with("0x"))
         {
             span_lint_and_help(
                 cx,
