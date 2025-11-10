@@ -49,7 +49,7 @@ impl<'tcx> LateLintPass<'tcx> for DecimalBitMask {
                     span_lint_and_help(
                         cx,
                         DECIMAL_BIT_MASK,
-                        e.span,
+                        expr.span,
                         "using decimal literal for bit mask",
                         None,
                         "consider using binary (0b...) or hexadecimal (0x...) notation for better readability",
@@ -76,7 +76,7 @@ impl<'tcx> LateLintPass<'tcx> for DecimalBitMask {
             span_lint_and_help(
                 cx,
                 DECIMAL_BIT_MASK,
-                e.span,
+                *span,
                 "using decimal literal for bit mask",
                 None,
                 "consider using binary (0b...) or hexadecimal (0x...) notation for better readability",
