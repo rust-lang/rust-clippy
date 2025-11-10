@@ -36,46 +36,25 @@ impl<'tcx> LateLintPass<'tcx> for DecimalBitMask {
                 node: BinOpKind::BitAnd | BinOpKind::BitOr | BinOpKind::BitXor,
                 ..
             },
-            Expr {
-                kind: kind1,
-                span: span1,
-                ..
-            },
-            Expr {
-                kind: kind2,
-                span: span2,
-                ..
-            },
+            left,
+            right,
         ) = &e.kind
         {
-            if let ExprKind::Lit(_) = kind1
-                && let Some(snippet) = snippet_opt(cx, *span1)
-                && !snippet.starts_with("0b")
-                && !snippet.starts_with("0x")
-            {
-                span_lint_and_help(
-                    cx,
-                    DECIMAL_BIT_MASK,
-                    e.span,
-                    "using decimal literal for bit mask",
-                    None,
-                    "consider using binary (0b...) or hexadecimal (0x...) notation for better readability",
-                );
-            }
-
-            if let ExprKind::Lit(_) = kind2
-                && let Some(snippet) = snippet_opt(cx, *span2)
-                && !snippet.starts_with("0b")
-                && !snippet.starts_with("0x")
-            {
-                span_lint_and_help(
-                    cx,
-                    DECIMAL_BIT_MASK,
-                    e.span,
-                    "using decimal literal for bit mask",
-                    None,
-                    "consider using binary (0b...) or hexadecimal (0x...) notation for better readability",
-                );
+            for expr in [left, right] {
+                if let ExprKind::Lit(_) = expr.kind
+                    && let Some(snippet) = snippet_opt(cx, expr.span)
+                    && !snippet.starts_with("0b")
+                    && !snippet.starts_with("0x")
+                {
+                    span_lint_and_help(
+                        cx,
+                        DECIMAL_BIT_MASK,
+                        e.span,
+                        "using decimal literal for bit mask",
+                        None,
+                        "consider using binary (0b...) or hexadecimal (0x...) notation for better readability",
+                    );
+                }
             }
         }
         if let ExprKind::AssignOp(
