@@ -1,6 +1,6 @@
-use clippy_utils::diagnostics::span_lint;
+use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::source::snippet_opt;
-use rustc_hir::*;
+use rustc_hir::{AssignOpKind, BinOpKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::source_map::Spanned;
@@ -53,11 +53,13 @@ impl<'tcx> LateLintPass<'tcx> for DecimalBitMask {
                 && !snippet.starts_with("0b")
                 && !snippet.starts_with("0x")
             {
-                span_lint(
+                span_lint_and_help(
                     cx,
                     DECIMAL_BIT_MASK,
                     e.span,
-                    "Using decimal literal for bit mask. Consider using binary (0b...) or hexadecimal (0x...) notation for better readability.",
+                    "using decimal literal for bit mask",
+                    None,
+                    "consider using binary (0b...) or hexadecimal (0x...) notation for better readability",
                 );
             }
 
@@ -66,11 +68,13 @@ impl<'tcx> LateLintPass<'tcx> for DecimalBitMask {
                 && !snippet.starts_with("0b")
                 && !snippet.starts_with("0x")
             {
-                span_lint(
+                span_lint_and_help(
                     cx,
                     DECIMAL_BIT_MASK,
                     e.span,
-                    "Using decimal literal for bit mask. Consider using binary (0b...) or hexadecimal (0x...) notation for better readability.",
+                    "using decimal literal for bit mask",
+                    None,
+                    "consider using binary (0b...) or hexadecimal (0x...) notation for better readability",
                 );
             }
         }
@@ -86,18 +90,18 @@ impl<'tcx> LateLintPass<'tcx> for DecimalBitMask {
                 ..
             },
         ) = &e.kind
+            && let Some(snippet) = snippet_opt(cx, *span)
+            && !snippet.starts_with("0b")
+            && !snippet.starts_with("0x")
         {
-            if let Some(snippet) = snippet_opt(cx, *span)
-                && !snippet.starts_with("0b")
-                && !snippet.starts_with("0x")
-            {
-                span_lint(
-                    cx,
-                    DECIMAL_BIT_MASK,
-                    e.span,
-                    "Using decimal literal for bit mask. Consider using binary (0b...) or hexadecimal (0x...) notation for better readability.",
-                );
-            }
+            span_lint_and_help(
+                cx,
+                DECIMAL_BIT_MASK,
+                e.span,
+                "using decimal literal for bit mask",
+                None,
+                "consider using binary (0b...) or hexadecimal (0x...) notation for better readability",
+            );
         }
     }
 }
