@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::res::MaybeResPath;
-use clippy_utils::source::{IntoSpan, SpanRangeExt, first_line_of_span, indent_of, reindent_multiline, snippet};
+use clippy_utils::source::{SpanExt, first_line_of_span, indent_of, reindent_multiline, snippet};
 use clippy_utils::ty::needs_ordered_drop;
 use clippy_utils::visitors::for_each_expr_without_closures;
 use clippy_utils::{
@@ -44,21 +44,23 @@ pub(super) fn check<'tcx>(
         let suggestion = reindent_multiline(&suggestion, true, cond_indent);
         (replace_span, suggestion)
     });
-    let end_suggestion = res.end_span(last_block, sm).map(|span| {
+    let end_suggestion = res.end_span(last_block, sm).and_then(|span| {
         let moved_snipped = reindent_multiline(&snippet(cx, span, "_"), true, None);
         let indent = indent_of(cx, expr.span.shrink_to_hi());
         let suggestion = "}\n".to_string() + &moved_snipped;
         let suggestion = reindent_multiline(&suggestion, true, indent);
 
-        let span = span.with_hi(last_block.span.hi());
         // Improve formatting if the inner block has indentation (i.e. normal Rust formatting)
-        let span = span
-            .map_range(cx, |_, src, range| {
-                (range.start > 4 && src.get(range.start - 4..range.start)? == "    ")
-                    .then_some(range.start - 4..range.end)
+        let span = span.map_range(cx, |range| {
+            range.set_end_if_after(last_block.span.hi())?.edit_range(|src, range| {
+                if src.get(..range.start)?.ends_with("    ") {
+                    Some(range.start - 4..range.end)
+                } else {
+                    Some(range)
+                }
             })
-            .map_or(span, |range| range.with_ctxt(span.ctxt()));
-        (span, suggestion.clone())
+        })?;
+        Some((span, suggestion))
     });
 
     let (span, msg, end_span) = match (&start_suggestion, &end_suggestion) {

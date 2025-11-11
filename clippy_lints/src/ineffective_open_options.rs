@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::res::MaybeDef;
-use clippy_utils::source::SpanRangeExt;
+use clippy_utils::source::SpanExt;
 use clippy_utils::{peel_blocks, peel_hir_expr_while, sym};
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
@@ -68,15 +68,15 @@ impl<'tcx> LateLintPass<'tcx> for IneffectiveOpenOptions {
                         match name.ident.name {
                             sym::append => append = true,
                             sym::write
-                                if let Some(range) = call_span.map_range(cx, |_, text, range| {
-                                    if text.get(..range.start)?.ends_with('.') {
-                                        Some(range.start - 1..range.end)
-                                    } else {
-                                        None
-                                    }
+                                if let Some(call_span) = call_span.map_range(cx, |range| {
+                                    range.add_leading_whitespace()?.edit_range(|text, range| {
+                                        text.get(..range.start)?
+                                            .ends_with('.')
+                                            .then_some(range.start.wrapping_sub(1)..range.end)
+                                    })
                                 }) =>
                             {
-                                write = Some(call_span.with_lo(range.start));
+                                write = Some(call_span);
                             },
                             _ => {},
                         }

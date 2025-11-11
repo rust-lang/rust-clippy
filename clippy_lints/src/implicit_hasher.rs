@@ -13,7 +13,7 @@ use rustc_session::declare_lint_pass;
 use rustc_span::Span;
 
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::{IntoSpan, SpanRangeExt, snippet};
+use clippy_utils::source::{SpanExt, snippet};
 use clippy_utils::sym;
 
 declare_clippy_lint! {
@@ -117,17 +117,13 @@ impl<'tcx> LateLintPass<'tcx> for ImplicitHasher {
                     if !item.span.eq_ctxt(target.span()) {
                         return;
                     }
-
-                    let generics_suggestion_span = impl_.generics.span.substitute_dummy({
-                        let range = (item.span.lo()..target.span().lo()).map_range(cx, |_, src, range| {
-                            Some(src.get(range.clone())?.find("impl")? + 4..range.end)
-                        });
-                        if let Some(range) = range {
-                            range.with_ctxt(item.span.ctxt())
-                        } else {
-                            return;
-                        }
-                    });
+                    let Some(generics_span) = item.span.map_range(cx, |file| {
+                        file.set_end_if_within(target.span().lo())?
+                            .edit_range(|src, range| Some(src.get(range.clone())?.find("impl")? + 4..range.end))
+                    }) else {
+                        return;
+                    };
+                    let generics_suggestion_span = impl_.generics.span.substitute_dummy(generics_span);
 
                     let mut ctr_vis = ImplicitHasherConstructorVisitor::new(cx, target);
                     for item in impl_.items.iter().map(|&item| cx.tcx.hir_impl_item(item)) {
@@ -164,19 +160,17 @@ impl<'tcx> LateLintPass<'tcx> for ImplicitHasher {
                         if generics.span.from_expansion() {
                             continue;
                         }
-                        let generics_suggestion_span = generics.span.substitute_dummy({
-                            let range =
-                                (item.span.lo()..body.params[0].pat.span.lo()).map_range(cx, |_, src, range| {
+                        let Some(generics_span) = item.span.map_range(cx, |file| {
+                            file.set_end_if_within(body.params[0].pat.span.lo())?
+                                .edit_range(|src, range| {
                                     let (pre, post) = src.get(range.clone())?.split_once("fn")?;
                                     let pos = post.find('(')? + pre.len() + 2;
                                     Some(pos..pos)
-                                });
-                            if let Some(range) = range {
-                                range.with_ctxt(item.span.ctxt())
-                            } else {
-                                return;
-                            }
-                        });
+                                })
+                        }) else {
+                            return;
+                        };
+                        let generics_suggestion_span = generics.span.substitute_dummy(generics_span);
 
                         let mut ctr_vis = ImplicitHasherConstructorVisitor::new(cx, target);
                         ctr_vis.visit_body(body);
