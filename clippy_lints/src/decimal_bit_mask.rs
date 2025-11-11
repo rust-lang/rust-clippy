@@ -1,8 +1,9 @@
 use clippy_utils::diagnostics::span_lint_and_help;
-use clippy_utils::source::SpanRangeExt;
+use rustc_data_structures::packed::Pu128;
 use rustc_hir::{AssignOpKind, BinOpKind, Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::declare_lint_pass;
+use rustc_span::Span;
 use rustc_span::source_map::Spanned;
 
 declare_clippy_lint! {
@@ -11,74 +12,98 @@ declare_clippy_lint! {
     ///
     /// ### Why is this bad?
     /// Using decimal literals for bit masks can make the code less readable and obscure the intended bit pattern.
-    /// Binary or hexadecimal literals make the bit pattern more explicit and easier to understand at a glance.
+    /// Binary or hexadecimal or octal literals make the bit pattern more explicit and easier to understand at a glance.
     ///
     /// ### Example
     /// ```rust,no_run
-    /// let a = 15 & 6; // Bit pattern is not immediately clear
+    /// let a = 14 & 6; // Bit pattern is not immediately clear
     /// ```
     /// Use instead:
     /// ```rust,no_run
-    /// let a = 0b1111 & 0b0110;
+    /// let a = 0b1110 & 0b0110;
     /// ```
     #[clippy::version = "1.87.0"]
     pub DECIMAL_BIT_MASK,
     nursery,
-    "default lint description"
+    "use binary, hex or octal literals for bitwise operations"
 }
 
 declare_lint_pass!(DecimalBitMask => [DECIMAL_BIT_MASK]);
 
-impl<'tcx> LateLintPass<'tcx> for DecimalBitMask {
-    fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
-        if let ExprKind::Binary(
-            Spanned {
-                node: BinOpKind::BitAnd | BinOpKind::BitOr | BinOpKind::BitXor,
-                ..
-            },
-            left,
-            right,
-        ) = &e.kind
-        {
-            for expr in [left, right] {
-                if let ExprKind::Lit(_) = expr.kind
-                    && expr
-                        .span
-                        .check_source_text(cx, |src| !src.starts_with("0b") && !src.starts_with("0x"))
-                {
-                    span_lint_and_help(
-                        cx,
-                        DECIMAL_BIT_MASK,
-                        expr.span,
-                        "using decimal literal for bit mask",
-                        None,
-                        "consider using binary (0b...) or hexadecimal (0x...) notation for better readability",
-                    );
-                }
+fn check_bitwise_binary_expr(cx: &LateContext<'_>, e: &Expr<'_>) {
+    if let ExprKind::Binary(
+        Spanned {
+            node: BinOpKind::BitAnd | BinOpKind::BitOr | BinOpKind::BitXor,
+            ..
+        },
+        left,
+        right,
+    ) = &e.kind
+    {
+        for expr in [left, right] {
+            if let ExprKind::Lit(_) = &expr.kind
+                && !is_not_decimal_number(cx, expr.span)
+                && !is_power_of_twoish(expr)
+            {
+                emit_lint(cx, expr.span);
             }
         }
-        if let ExprKind::AssignOp(
-            Spanned {
-                node: AssignOpKind::BitAndAssign | AssignOpKind::BitOrAssign | AssignOpKind::BitXorAssign,
-                ..
-            },
-            _,
-            Expr {
-                kind: ExprKind::Lit(_),
-                span,
-                ..
-            },
-        ) = &e.kind
-            && span.check_source_text(cx, |src| !src.starts_with("0b") && !src.starts_with("0x"))
-        {
-            span_lint_and_help(
-                cx,
-                DECIMAL_BIT_MASK,
-                *span,
-                "using decimal literal for bit mask",
-                None,
-                "consider using binary (0b...) or hexadecimal (0x...) notation for better readability",
-            );
+    }
+}
+
+fn check_bitwise_assign_expr(cx: &LateContext<'_>, e: &Expr<'_>) {
+    if let ExprKind::AssignOp(
+        Spanned {
+            node: AssignOpKind::BitAndAssign | AssignOpKind::BitOrAssign | AssignOpKind::BitXorAssign,
+            ..
+        },
+        _,
+        expr @ Expr {
+            kind: ExprKind::Lit(lit),
+            ..
+        },
+    ) = &e.kind
+        && !is_power_of_twoish(expr)
+        && !is_not_decimal_number(cx, lit.span)
+    {
+        emit_lint(cx, lit.span);
+    }
+}
+
+fn is_not_decimal_number(cx: &LateContext<'_>, span: Span) -> bool {
+    if let Ok(src) = cx.sess().source_map().span_to_snippet(span) {
+        src.contains("0b") || src.contains("0x") || src.contains("0o")
+    } else {
+        true
+    }
+}
+
+fn is_power_of_twoish(expr: &Expr<'_>) -> bool {
+    if let ExprKind::Lit(lit) = &expr.kind
+        && let rustc_ast::LitKind::Int(Pu128(val), _) = lit.node
+    {
+        return val.is_power_of_two() || val.wrapping_add(1).is_power_of_two();
+    }
+    false
+}
+
+fn emit_lint(cx: &LateContext<'_>, span: Span) {
+    span_lint_and_help(
+        cx,
+        DECIMAL_BIT_MASK,
+        span,
+        "using decimal literal for bitwise operation",
+        None,
+        "use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability",
+    );
+}
+
+impl<'tcx> LateLintPass<'tcx> for DecimalBitMask {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
+        if e.span.from_expansion() {
+            return;
         }
+        check_bitwise_binary_expr(cx, e);
+        check_bitwise_assign_expr(cx, e);
     }
 }
