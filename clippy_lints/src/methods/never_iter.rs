@@ -1,103 +1,36 @@
-use super::NEVER_LOOP;
-use super::utils::make_iterator_snippet;
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::higher::ForLoop;
-use clippy_utils::macros::root_macro_call_first_node;
 use clippy_utils::source::snippet;
 use clippy_utils::visitors::{Descend, for_each_expr_without_closures};
 use rustc_errors::Applicability;
-use rustc_hir::{
-    Block, Destination, Expr, ExprKind, HirId, InlineAsm, InlineAsmOperand, Node, Pat, Stmt, StmtKind, StructTailExpr,
-};
+use rustc_hir::{Block, Destination, Expr, ExprKind, HirId, InlineAsm, InlineAsmOperand, Node, Stmt, StmtKind};
 use rustc_lint::LateContext;
 use rustc_span::{BytePos, Span, sym};
 use std::iter::once;
 use std::ops::ControlFlow;
 
-pub(super) fn check<'tcx>(
-    cx: &LateContext<'tcx>,
-    block: &Block<'tcx>,
-    loop_id: HirId,
-    span: Span,
-    for_loop: Option<&ForLoop<'_>>,
-) {
-    match never_loop_block(cx, block, &mut Vec::new(), loop_id) {
-        NeverLoopResult::Diverging {
-            ref break_spans,
-            ref never_spans,
-        } => {
-            span_lint_and_then(cx, NEVER_LOOP, span, "this loop never actually loops", |diag| {
-                if let Some(ForLoop {
-                    arg: iterator,
-                    pat,
-                    span: for_span,
-                    label,
-                    ..
-                }) = for_loop
-                {
-                    // If the block contains a break or continue, or if the loop has a label, `MachineApplicable` is not
-                    // appropriate.
-                    let mut app = if !contains_any_break_or_continue(block) && label.is_none() {
-                        Applicability::MachineApplicable
-                    } else {
-                        Applicability::Unspecified
-                    };
-
-                    if !never_spans.is_empty() {
-                        app = Applicability::HasPlaceholders;
-                    }
-
-                    let mut suggestions = vec![(
-                        for_span.with_hi(iterator.span.hi()),
-                        for_to_if_let_sugg(cx, iterator, pat),
-                    )];
-                    // Make sure to clear up the diverging sites when we remove a loopp.
-                    suggestions.extend(break_spans.iter().map(|span| (*span, String::new())));
-                    diag.multipart_suggestion_verbose(
-                        "if you need the first element of the iterator, try writing",
-                        suggestions,
-                        app,
-                    );
-
-                    for span in never_spans {
-                        diag.span_help(
-                            *span,
-                            "this code is unreachable. Consider moving the reachable parts out",
-                        );
-                    }
-                }
-            });
-        },
-        NeverLoopResult::MayContinueMainLoop | NeverLoopResult::Normal => (),
-    }
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for iterator methods with closures that always diverge.
+    ///
+    /// ### Why is this bad?
+    /// The iterator method will only process the first element before diverging,
+    /// which is often not the intended behavior.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// fn diverge() -> ! {
+    ///     panic!();
+    /// }
+    ///
+    /// [0, 1].into_iter().for_each(|x| diverge()); // Only calls diverge once
+    /// ```
+    #[clippy::version = "1.75.0"]
+    pub NEVER_ITER,
+    correctness,
+    "iterator methods with closures that always diverge"
 }
 
-fn contains_any_break_or_continue(block: &Block<'_>) -> bool {
-    for_each_expr_without_closures(block, |e| match e.kind {
-        ExprKind::Break(..) | ExprKind::Continue(..) => ControlFlow::Break(()),
-        ExprKind::InlineAsm(asm) if contains_label(asm) => ControlFlow::Break(()),
-        ExprKind::Loop(..) => ControlFlow::Continue(Descend::No),
-        _ => ControlFlow::Continue(Descend::Yes),
-    })
-    .is_some()
-}
-
-fn contains_label(asm: &InlineAsm<'_>) -> bool {
-    asm.operands
-        .iter()
-        .any(|(op, _span)| matches!(op, InlineAsmOperand::Label { .. }))
-}
-
-/// The `never_loop` analysis keeps track of three things:
-///
-/// * Has any (reachable) code path hit a `continue` of the main loop?
-/// * Is the current code path diverging (that is, the next expression is not reachable)
-/// * For each block label `'a` inside the main loop, has any (reachable) code path encountered a
-///   `break 'a`?
-///
-/// The first two bits of information are in this enum, and the last part is in the
-/// `local_labels` variable, which contains a list of `(block_id, reachable)` pairs ordered by
-/// scope.
+// Copy the necessary logic from never_loop to analyze closures
 #[derive(Clone, Debug)]
 enum NeverLoopResult {
     /// A continue may occur for the main loop.
@@ -111,62 +44,6 @@ enum NeverLoopResult {
     /// We have not encountered any main loop continue,
     /// and subsequent control flow is (possibly) reachable
     Normal,
-}
-
-#[must_use]
-fn absorb_break(arg: &NeverLoopResult) -> NeverLoopResult {
-    match arg {
-        NeverLoopResult::Diverging { .. } | NeverLoopResult::Normal => NeverLoopResult::Normal,
-        NeverLoopResult::MayContinueMainLoop => NeverLoopResult::MayContinueMainLoop,
-    }
-}
-
-// Combine two results for parts that are called in order.
-#[must_use]
-fn combine_seq(first: NeverLoopResult, second: impl FnOnce() -> NeverLoopResult) -> NeverLoopResult {
-    match first {
-        NeverLoopResult::Diverging { .. } | NeverLoopResult::MayContinueMainLoop => first,
-        NeverLoopResult::Normal => second(),
-    }
-}
-
-// Combine an iterator of results for parts that are called in order.
-#[must_use]
-fn combine_seq_many(iter: impl IntoIterator<Item = NeverLoopResult>) -> NeverLoopResult {
-    for e in iter {
-        if let NeverLoopResult::Diverging { .. } | NeverLoopResult::MayContinueMainLoop = e {
-            return e;
-        }
-    }
-    NeverLoopResult::Normal
-}
-
-// Combine two results where only one of the part may have been executed.
-#[must_use]
-fn combine_branches(b1: NeverLoopResult, b2: NeverLoopResult) -> NeverLoopResult {
-    match (b1, b2) {
-        (NeverLoopResult::MayContinueMainLoop, _) | (_, NeverLoopResult::MayContinueMainLoop) => {
-            NeverLoopResult::MayContinueMainLoop
-        },
-        (NeverLoopResult::Normal, _) | (_, NeverLoopResult::Normal) => NeverLoopResult::Normal,
-        (
-            NeverLoopResult::Diverging {
-                break_spans: mut break_spans1,
-                never_spans: mut never_spans1,
-            },
-            NeverLoopResult::Diverging {
-                break_spans: mut break_spans2,
-                never_spans: mut never_spans2,
-            },
-        ) => {
-            break_spans1.append(&mut break_spans2);
-            never_spans1.append(&mut never_spans2);
-            NeverLoopResult::Diverging {
-                break_spans: break_spans1,
-                never_spans: never_spans1,
-            }
-        },
-    }
 }
 
 fn never_loop_block<'tcx>(
@@ -242,11 +119,6 @@ fn all_spans_after_expr(cx: &LateContext<'_>, expr: &Expr<'_>) -> Vec<Span> {
     vec![]
 }
 
-fn is_label_for_block(cx: &LateContext<'_>, dest: &Destination) -> bool {
-    dest.target_id
-        .is_ok_and(|hir_id| matches!(cx.tcx.hir_node(hir_id), Node::Block(_)))
-}
-
 #[expect(clippy::too_many_lines)]
 fn never_loop_expr<'tcx>(
     cx: &LateContext<'tcx>,
@@ -266,32 +138,12 @@ fn never_loop_expr<'tcx>(
         ExprKind::Let(let_expr) => never_loop_expr(cx, let_expr.init, local_labels, main_loop_id),
         ExprKind::Array(es) | ExprKind::Tup(es) => never_loop_expr_all(cx, es.iter(), local_labels, main_loop_id),
         ExprKind::Use(expr, _) => never_loop_expr(cx, expr, local_labels, main_loop_id),
-        ExprKind::MethodCall(method_name, receiver, es, _) => {
-            let result = never_loop_expr_all(cx, once(receiver).chain(es.iter()), local_labels, main_loop_id);
-            
-            // Check if this is an iterator reduction method where the closure always diverges
-            if is_iterator_reduction_method(method_name.ident.name) {
-                if let [arg] = es {
-                    if let ExprKind::Closure(closure) = arg.kind {
-                        let closure_body = cx.tcx.hir().body(closure.body);
-                        let diverges_in_closure = never_loop_block(cx, closure_body.value, local_labels, main_loop_id);
-                        
-                        // If the closure diverges, then the iterator method will never iterate over more than the first element
-                        if let NeverLoopResult::Diverging { .. } = diverges_in_closure {
-                            return NeverLoopResult::Diverging {
-                                break_spans: vec![],
-                                never_spans: all_spans_after_expr(cx, expr),
-                            };
-                        }
-                    }
-                }
-            }
-            
-            result
+        ExprKind::MethodCall(_, receiver, es, _) => {
+            never_loop_expr_all(cx, once(receiver).chain(es.iter()), local_labels, main_loop_id)
         },
         ExprKind::Struct(_, fields, base) => {
             let fields = never_loop_expr_all(cx, fields.iter().map(|f| f.expr), local_labels, main_loop_id);
-            if let StructTailExpr::Base(base) = base {
+            if let rustc_hir::StructTailExpr::Base(base) = base {
                 combine_seq(fields, || never_loop_expr(cx, base, local_labels, main_loop_id))
             } else {
                 fields
@@ -358,8 +210,6 @@ fn never_loop_expr<'tcx>(
                 never_loop_expr(cx, e, local_labels, main_loop_id)
             });
             combine_seq(first, || {
-                // checks if break targets a block instead of a loop
-                mark_block_as_reachable(expr, local_labels);
                 NeverLoopResult::Diverging {
                     break_spans: vec![],
                     never_spans: vec![],
@@ -371,14 +221,8 @@ fn never_loop_expr<'tcx>(
                 never_loop_expr(cx, e, local_labels, main_loop_id)
             });
             combine_seq(first, || {
-                // checks if break targets a block instead of a loop
-                mark_block_as_reachable(expr, local_labels);
                 NeverLoopResult::Diverging {
-                    break_spans: if is_label_for_block(cx, &dest) {
-                        vec![]
-                    } else {
-                        all_spans_after_expr(cx, expr)
-                    },
+                    break_spans: vec![],
                     never_spans: vec![],
                 }
             })
@@ -433,17 +277,7 @@ fn never_loop_expr<'tcx>(
             NeverLoopResult::Normal
         }
     });
-    if let NeverLoopResult::Diverging { .. } = result
-        && let Some(macro_call) = root_macro_call_first_node(cx, expr)
-        && let Some(sym::todo_macro) = cx.tcx.get_diagnostic_name(macro_call.def_id)
-    {
-        // We return MayContinueMainLoop here because we treat `todo!()`
-        // as potentially containing any code, including a continue of the main loop.
-        // This effectively silences the lint whenever a loop contains this macro anywhere.
-        NeverLoopResult::MayContinueMainLoop
-    } else {
-        result
-    }
+    result
 }
 
 fn never_loop_expr_all<'tcx, T: Iterator<Item = &'tcx Expr<'tcx>>>(
@@ -455,18 +289,88 @@ fn never_loop_expr_all<'tcx, T: Iterator<Item = &'tcx Expr<'tcx>>>(
     combine_seq_many(es.map(|e| never_loop_expr(cx, e, local_labels, main_loop_id)))
 }
 
-fn for_to_if_let_sugg(cx: &LateContext<'_>, iterator: &Expr<'_>, pat: &Pat<'_>) -> String {
-    let pat_snippet = snippet(cx, pat.span, "_");
-    let iter_snippet = make_iterator_snippet(cx, iterator, &mut Applicability::Unspecified);
-
-    format!("if let Some({pat_snippet}) = {iter_snippet}.next()")
+// Combine two results for parts that are called in order.
+#[must_use]
+fn combine_seq(first: NeverLoopResult, second: impl FnOnce() -> NeverLoopResult) -> NeverLoopResult {
+    match first {
+        NeverLoopResult::Diverging { .. } | NeverLoopResult::MayContinueMainLoop => first,
+        NeverLoopResult::Normal => second(),
+    }
 }
 
-fn mark_block_as_reachable(expr: &Expr<'_>, local_labels: &mut [(HirId, bool)]) {
-    if let ExprKind::Break(Destination { target_id: Ok(t), .. }, _) = expr.kind
-        && let Some((_, reachable)) = local_labels.iter_mut().find(|(label, _)| *label == t)
-    {
-        *reachable = true;
+// Combine an iterator of results for parts that are called in order.
+#[must_use]
+fn combine_seq_many(iter: impl IntoIterator<Item = NeverLoopResult>) -> NeverLoopResult {
+    for e in iter {
+        if let NeverLoopResult::Diverging { .. } | NeverLoopResult::MayContinueMainLoop = e {
+            return e;
+        }
+    }
+    NeverLoopResult::Normal
+}
+
+// Combine two results where only one of the part may have been executed.
+#[must_use]
+fn combine_branches(b1: NeverLoopResult, b2: NeverLoopResult) -> NeverLoopResult {
+    match (b1, b2) {
+        (NeverLoopResult::MayContinueMainLoop, _) | (_, NeverLoopResult::MayContinueMainLoop) => {
+            NeverLoopResult::MayContinueMainLoop
+        },
+        (NeverLoopResult::Normal, _) | (_, NeverLoopResult::Normal) => NeverLoopResult::Normal,
+        (
+            NeverLoopResult::Diverging {
+                break_spans: mut break_spans1,
+                never_spans: mut never_spans1,
+            },
+            NeverLoopResult::Diverging {
+                break_spans: mut break_spans2,
+                never_spans: mut never_spans2,
+            },
+        ) => {
+            break_spans1.append(&mut break_spans2);
+            never_spans1.append(&mut never_spans2);
+            NeverLoopResult::Diverging {
+                break_spans: break_spans1,
+                never_spans: never_spans1,
+            }
+        },
+    }
+}
+
+#[must_use]
+fn absorb_break(arg: &NeverLoopResult) -> NeverLoopResult {
+    match arg {
+        NeverLoopResult::Diverging { .. } | NeverLoopResult::Normal => NeverLoopResult::Normal,
+        NeverLoopResult::MayContinueMainLoop => NeverLoopResult::MayContinueMainLoop,
+    }
+}
+
+pub fn check_iterator_diverge<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
+    if let ExprKind::MethodCall(method_name, _receiver, args, _) = expr.kind {
+        if is_iterator_reduction_method(method_name.ident.name) {
+            if let [arg] = args {
+                if let ExprKind::Closure(closure) = arg.kind {
+                    let mut local_labels = Vec::new();
+                    let closure_body = cx.tcx.hir().body(closure.body);
+                    let diverges_in_closure = never_loop_block(cx, closure_body.value, &mut local_labels, expr.hir_id);
+                    
+                    if let NeverLoopResult::Diverging { .. } = diverges_in_closure {
+                        span_lint_and_then(
+                            cx,
+                            NEVER_ITER,
+                            expr.span,
+                            "this iterator method never processes more than the first element",
+                            |diag| {
+                                diag.span_help(
+                                    expr.span,
+                                    "this method will only process the first element due to divergence in the closure"
+                                );
+                            }
+                        );
+                    }
+                }
+            }
+        }
     }
 }
 

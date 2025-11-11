@@ -78,6 +78,7 @@ mod map_with_unused_argument_over_ranges;
 mod mut_mutex_lock;
 mod needless_as_bytes;
 mod needless_character_iteration;
+mod never_iter;
 mod needless_collect;
 mod needless_option_as_deref;
 mod needless_option_take;
@@ -4897,6 +4898,7 @@ impl_lint_pass!(Methods => [
     REDUNDANT_ITER_CLONED,
     UNNECESSARY_OPTION_MAP_OR_ELSE,
     LINES_FILTER_MAP_OK,
+    NEVER_ITER,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -5025,6 +5027,7 @@ impl Methods {
                     zst_offset::check(cx, expr, recv);
                 },
                 (sym::all, [arg]) => {
+                    never_iter::check_iterator_diverge(cx, expr);
                     needless_character_iteration::check(cx, expr, recv, arg, true);
                     match method_call(recv) {
                         Some((sym::cloned, recv2, [], _, _)) => {
@@ -5054,6 +5057,7 @@ impl Methods {
                     }
                 },
                 (sym::any, [arg]) => {
+                    never_iter::check_iterator_diverge(cx, expr);
                     needless_character_iteration::check(cx, expr, recv, arg, false);
                     match method_call(recv) {
                         Some((sym::cloned, recv2, [], _, _)) => iter_overeager_cloned::check(
@@ -5200,6 +5204,7 @@ impl Methods {
                     }
                 },
                 (sym::find, [arg]) => {
+                    never_iter::check_iterator_diverge(cx, expr);
                     if let Some((sym::cloned, recv2, [], _span2, _)) = method_call(recv) {
                         // if `arg` has side-effect, the semantic will change
                         iter_overeager_cloned::check(
@@ -5227,6 +5232,7 @@ impl Methods {
                     );
                 },
                 (sym::find_map, [arg]) => {
+                    never_iter::check_iterator_diverge(cx, expr);
                     unnecessary_filter_map::check(cx, expr, arg, call_span, unnecessary_filter_map::Kind::FindMap);
                 },
                 (sym::flat_map, [arg]) => {
@@ -5254,20 +5260,24 @@ impl Methods {
                     lines_filter_map_ok::check_flatten(cx, expr, recv, call_span, self.msrv);
                 },
                 (sym::fold, [init, acc]) => {
+                    never_iter::check_iterator_diverge(cx, expr);
                     manual_try_fold::check(cx, expr, init, acc, call_span, self.msrv);
                     unnecessary_fold::check(cx, expr, init, acc, span);
                 },
-                (sym::for_each, [arg]) => match method_call(recv) {
-                    Some((sym::inspect, _, [_], span2, _)) => inspect_for_each::check(cx, expr, span2),
-                    Some((sym::cloned, recv2, [], _, _)) => iter_overeager_cloned::check(
-                        cx,
-                        expr,
-                        recv,
-                        recv2,
-                        iter_overeager_cloned::Op::NeedlessMove(arg),
-                        false,
-                    ),
-                    _ => {},
+                (sym::for_each, [arg]) => {
+                    never_iter::check_iterator_diverge(cx, expr);
+                    match method_call(recv) {
+                        Some((sym::inspect, _, [_], span2, _)) => inspect_for_each::check(cx, expr, span2),
+                        Some((sym::cloned, recv2, [], _, _)) => iter_overeager_cloned::check(
+                            cx,
+                            expr,
+                            recv,
+                            recv2,
+                            iter_overeager_cloned::Op::NeedlessMove(arg),
+                            false,
+                        ),
+                        _ => {},
+                    }
                 },
                 (sym::get, [arg]) => {
                     get_first::check(cx, expr, recv, arg);
@@ -5715,7 +5725,10 @@ impl Methods {
                         unwrap_expect_used::Variant::Unwrap,
                     );
                 },
-                _ => {},
+                _ => {
+                    // Check for other iterator reduction methods that don't have specific lint logic
+                    never_iter::check_iterator_diverge(cx, expr);
+                },
             }
         }
     }
