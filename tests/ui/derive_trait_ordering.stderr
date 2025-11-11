@@ -1,0 +1,47 @@
+error: traits in `#[derive(...)]` are not in alphabetical order
+  --> $DIR/derive_trait_ordering.rs:9:1
+   |
+9  | #[derive(Copy, Clone, Debug, PartialEq, Eq)]  // should trigger lint (Eq should come before PartialEq)
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider reordering the traits alphabetically
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#derive_trait_ordering
+
+error: traits in `#[derive(...)]` are not in alphabetical order
+  --> $DIR/derive_trait_ordering.rs:12:1
+   |
+12 | #[derive(Debug, Copy, Clone, Eq, PartialEq)]  // should trigger lint (Copy should come first)
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider reordering the traits alphabetically
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#derive_trait_ordering
+
+error: traits in `#[derive(...)]` are not in alphabetical order
+  --> $DIR/derive_trait_ordering.rs:15:1
+   |
+15 | #[derive(PartialEq, Eq, Clone, Copy, Debug)]  // should trigger lint (Clone, Copy should come first)
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider reordering the traits alphabetically
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#derive_trait_ordering
+
+error: traits in `#[derive(...)]` are not in alphabetical order
+  --> $DIR/derive_trait_ordering.rs:24:1
+   |
+24 | #[derive(Copy, Clone, Debug, PartialEq, Eq)]  // should trigger lint
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider reordering the traits alphabetically
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#derive_trait_ordering
+
+error: traits in `#[derive(...)]` are not in alphabetical order
+  --> $DIR/derive_trait_ordering.rs:29:1
+   |
+29 | #[derive(Copy, Clone, Debug)]  // should trigger lint
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider reordering the traits alphabetically
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#derive_trait_ordering
+
+error: traits in `#[derive(...)]` are not in alphabetical order
+  --> $DIR/derive_trait_ordering.rs:35:1
+   |
+35 | #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq)]  // should trigger lint
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider reordering the traits alphabetically
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#derive_trait_ordering

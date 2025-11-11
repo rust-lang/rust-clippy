@@ -7,6 +7,7 @@ use rustc_session::declare_lint_pass;
 mod derive_ord_xor_partial_ord;
 mod derive_partial_eq_without_eq;
 mod derived_hash_with_manual_eq;
+mod derive_trait_ordering;
 mod expl_impl_clone_on_copy;
 mod unsafe_derive_deserialize;
 
@@ -188,6 +189,7 @@ declare_lint_pass!(Derive => [
     EXPL_IMPL_CLONE_ON_COPY,
     DERIVED_HASH_WITH_MANUAL_EQ,
     DERIVE_ORD_XOR_PARTIAL_ORD,
+    DERIVE_TRAIT_ORDERING,
     UNSAFE_DERIVE_DESERIALIZE,
     DERIVE_PARTIAL_EQ_WITHOUT_EQ
 ]);
