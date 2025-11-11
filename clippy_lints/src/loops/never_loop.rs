@@ -27,6 +27,39 @@ pub(super) fn check<'tcx>(
             ref never_spans,
         } => {
             span_lint_and_then(cx, NEVER_LOOP, span, "this loop never actually loops", |diag| {
+                // Add notes about where the loop stops looping - only for non-obvious cases
+                // Check if there are any obvious divergent macros (panic, todo, etc.) 
+                // by looking for such macros in the block
+                let has_obvious_divergence = {
+                    let mut found_obvious = false;
+                    for_each_expr_without_closures(block, |expr| {
+                        if let Some(macro_call) = root_macro_call_first_node(cx, expr) {
+                            if matches!(
+                                cx.tcx.get_diagnostic_name(macro_call.def_id),
+                                Some(sym::panic_macro | sym::unimplemented_macro | sym::unreachable_macro | sym::todo_macro)
+                            ) {
+                                found_obvious = true;
+                                return ControlFlow::Break(());
+                            }
+                        }
+                        ControlFlow::Continue(Descend::Yes)
+                    });
+                    found_obvious
+                };
+
+                // Only add notes if the cause is not obvious
+                if !has_obvious_divergence && (!break_spans.is_empty() || !never_spans.is_empty()) {
+                    for span in break_spans {
+                        diag.span_note(*span, "loop exits or continues here");
+                    }
+                    for span in never_spans {
+                        diag.span_note(
+                            *span,
+                            "loop diverges here (e.g., panic, return, or never type)",
+                        );
+                    }
+                }
+
                 if let Some(ForLoop {
                     arg: iterator,
                     pat,
