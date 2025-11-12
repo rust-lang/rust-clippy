@@ -202,3 +202,16 @@ fn issue13902() {
         //~^ redundant_pattern_matching
     }
 }
+
+fn issue14989() {
+    macro_rules! x {
+        () => {
+            None::<i32>
+        };
+    }
+
+    if let Some(_) = (x! {}) {};
+    //~^ redundant_pattern_matching
+    while let Some(_) = (x! {}) {}
+    //~^ redundant_pattern_matching
+}
