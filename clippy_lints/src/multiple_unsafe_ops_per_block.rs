@@ -1,5 +1,7 @@
-use clippy_utils::desugar_await;
+use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::msrvs::Msrv;
+use clippy_utils::{desugar_await, msrvs};
 use hir::def::{DefKind, Res};
 use hir::{BlockCheckMode, ExprKind, QPath, UnOp};
 use rustc_ast::{BorrowKind, Mutability};
@@ -8,7 +10,7 @@ use rustc_hir::intravisit::{Visitor, walk_body, walk_expr};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter;
 use rustc_middle::ty::{self, TypeckResults};
-use rustc_session::declare_lint_pass;
+use rustc_session::impl_lint_pass;
 use rustc_span::{DesugaringKind, Span};
 
 declare_clippy_lint! {
@@ -60,7 +62,18 @@ declare_clippy_lint! {
     restriction,
     "more than one unsafe operation per `unsafe` block"
 }
-declare_lint_pass!(MultipleUnsafeOpsPerBlock => [MULTIPLE_UNSAFE_OPS_PER_BLOCK]);
+
+pub struct MultipleUnsafeOpsPerBlock {
+    msrv: Msrv,
+}
+
+impl_lint_pass!(MultipleUnsafeOpsPerBlock => [MULTIPLE_UNSAFE_OPS_PER_BLOCK]);
+
+impl MultipleUnsafeOpsPerBlock {
+    pub fn new(conf: &Conf) -> Self {
+        Self { msrv: conf.msrv }
+    }
+}
 
 impl<'tcx> LateLintPass<'tcx> for MultipleUnsafeOpsPerBlock {
     fn check_block(&mut self, cx: &LateContext<'tcx>, block: &'tcx hir::Block<'_>) {
@@ -70,7 +83,7 @@ impl<'tcx> LateLintPass<'tcx> for MultipleUnsafeOpsPerBlock {
         {
             return;
         }
-        let unsafe_ops = UnsafeExprCollector::collect_unsafe_exprs(cx, block);
+        let unsafe_ops = UnsafeExprCollector::collect_unsafe_exprs(cx, block, self.msrv);
         if unsafe_ops.len() > 1 {
             span_lint_and_then(
                 cx,
@@ -90,18 +103,37 @@ impl<'tcx> LateLintPass<'tcx> for MultipleUnsafeOpsPerBlock {
     }
 }
 
+#[derive(Clone, Copy)]
+enum UnderRawPtr {
+    /// The expression is not located under a raw pointer
+    No,
+    /// The expression is located under a raw pointer, MSRV yet unknown
+    Yes,
+    /// The expression is located under a raw pointer and MSRV has been determined.
+    /// `true` means that taking a raw pointer to a union field is a safe operation.
+    WithSafeMsrv(bool),
+}
+
 struct UnsafeExprCollector<'cx, 'tcx> {
     cx: &'cx LateContext<'tcx>,
     typeck_results: &'tcx TypeckResults<'tcx>,
+    msrv: Msrv,
     unsafe_ops: Vec<(&'static str, Span)>,
+    under_raw_ptr: UnderRawPtr,
 }
 
 impl<'cx, 'tcx> UnsafeExprCollector<'cx, 'tcx> {
-    fn collect_unsafe_exprs(cx: &'cx LateContext<'tcx>, block: &'tcx hir::Block<'tcx>) -> Vec<(&'static str, Span)> {
+    fn collect_unsafe_exprs(
+        cx: &'cx LateContext<'tcx>,
+        block: &'tcx hir::Block<'tcx>,
+        msrv: Msrv,
+    ) -> Vec<(&'static str, Span)> {
         let mut collector = Self {
             cx,
             typeck_results: cx.typeck_results(),
+            msrv,
             unsafe_ops: vec![],
+            under_raw_ptr: UnderRawPtr::No,
         };
         collector.visit_block(block);
         collector.unsafe_ops
@@ -112,6 +144,11 @@ impl<'tcx> Visitor<'tcx> for UnsafeExprCollector<'_, 'tcx> {
     type NestedFilter = nested_filter::OnlyBodies;
 
     fn visit_expr(&mut self, expr: &'tcx hir::Expr<'tcx>) {
+        // `self.under_raw_ptr` is preventively reset, while the current value is
+        // preserved in `under_raw_ptr`.
+        let under_raw_ptr = self.under_raw_ptr;
+        self.under_raw_ptr = UnderRawPtr::No;
+
         match expr.kind {
             // The `await` itself will desugar to two unsafe calls, but we should ignore those.
             // Instead, check the expression that is `await`ed
@@ -121,16 +158,22 @@ impl<'tcx> Visitor<'tcx> for UnsafeExprCollector<'_, 'tcx> {
 
             ExprKind::InlineAsm(_) => self.unsafe_ops.push(("inline assembly used here", expr.span)),
 
-            ExprKind::AddrOf(BorrowKind::Raw, _, mut inner) => {
-                while let ExprKind::Field(prefix, _) = inner.kind {
-                    inner = prefix;
-                }
-                return self.visit_expr(inner);
+            ExprKind::AddrOf(BorrowKind::Raw, _, _) => {
+                self.under_raw_ptr = UnderRawPtr::Yes;
             },
 
             ExprKind::Field(e, _) => {
                 if self.typeck_results.expr_ty(e).is_union() {
-                    self.unsafe_ops.push(("union field access occurs here", expr.span));
+                    // Restore `self.under_raw_pointer` and determine safety of taking a raw pointer to
+                    // a union field if this is not known already.
+                    self.under_raw_ptr = if matches!(under_raw_ptr, UnderRawPtr::Yes) {
+                        UnderRawPtr::WithSafeMsrv(self.msrv.meets(self.cx, msrvs::SAFE_RAW_PTR_TO_UNION_FIELD))
+                    } else {
+                        under_raw_ptr
+                    };
+                    if matches!(self.under_raw_ptr, UnderRawPtr::No | UnderRawPtr::WithSafeMsrv(false)) {
+                        self.unsafe_ops.push(("union field access occurs here", expr.span));
+                    }
                 }
             },
 
