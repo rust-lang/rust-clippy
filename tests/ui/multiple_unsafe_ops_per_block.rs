@@ -1,5 +1,6 @@
 //@needs-asm-support
 //@aux-build:proc_macros.rs
+#![feature(stmt_expr_attributes)]
 #![expect(
     dropping_copy_types,
     clippy::unnecessary_operation,
@@ -227,7 +228,16 @@ fn issue16076() {
     let u = U { i: 0 };
 
     // Taking a raw pointer to a place is safe since Rust 1.92
+    #[clippy::msrv = "1.92"]
     unsafe {
+        _ = &raw const u.i;
+        _ = &raw const u.i;
+    }
+
+    // However it was not the case before Rust 1.92
+    #[clippy::msrv = "1.91"]
+    unsafe {
+        //~^ multiple_unsafe_ops_per_block
         _ = &raw const u.i;
         _ = &raw const u.i;
     }

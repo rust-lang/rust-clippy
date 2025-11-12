@@ -781,6 +781,7 @@ define_Conf! {
         mem_replace_option_with_some,
         mem_replace_with_default,
         missing_const_for_fn,
+        multiple_unsafe_ops_per_block,
         needless_borrow,
         non_std_lazy_statics,
         option_as_ref_deref,

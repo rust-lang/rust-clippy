@@ -765,7 +765,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(move |_| Box::new(semicolon_block::SemicolonBlock::new(conf))),
         Box::new(|_| Box::new(permissions_set_readonly_false::PermissionsSetReadonlyFalse)),
         Box::new(|_| Box::new(size_of_ref::SizeOfRef)),
-        Box::new(|_| Box::new(multiple_unsafe_ops_per_block::MultipleUnsafeOpsPerBlock)),
+        Box::new(move |_| Box::new(multiple_unsafe_ops_per_block::MultipleUnsafeOpsPerBlock::new(conf))),
         Box::new(move |_| Box::new(extra_unused_type_parameters::ExtraUnusedTypeParameters::new(conf))),
         Box::new(|_| Box::new(no_mangle_with_rust_abi::NoMangleWithRustAbi)),
         Box::new(|_| Box::new(collection_is_never_read::CollectionIsNeverRead)),
