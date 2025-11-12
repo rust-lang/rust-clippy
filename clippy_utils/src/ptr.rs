@@ -7,6 +7,7 @@ use rustc_lint::LateContext;
 use rustc_span::{Span, Symbol};
 use std::borrow::Cow;
 
+/// Finds replacement suggestions for method calls on the function parameter at `idx`.
 pub fn get_spans(
     cx: &LateContext<'_>,
     opt_body_id: Option<BodyId>,
@@ -24,6 +25,7 @@ pub fn get_spans(
     }
 }
 
+/// Walks a function body to find replaceable method calls on `id`, returning `None` if `.capacity()` is used.
 fn extract_clone_suggestions<'tcx>(
     cx: &LateContext<'tcx>,
     id: HirId,
