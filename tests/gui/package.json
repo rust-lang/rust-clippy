@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "browser-ui-test": "0.22.2"
+  }
+}

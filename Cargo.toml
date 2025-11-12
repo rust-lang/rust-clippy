@@ -70,6 +70,12 @@ harness = false
 name = "dogfood"
 harness = false
 
+[[test]]
+name = "gui"
+harness = false
+path = "tests/gui/runner.rs"
+crate-type = ["bin"]
+
 [lints.rust.unexpected_cfgs]
 level = "warn"
 check-cfg = ['cfg(bootstrap)']

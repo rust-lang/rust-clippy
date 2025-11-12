@@ -106,6 +106,17 @@ jobs:
     - name: Test metadata collection
       run: cargo collect-metadata
 
+    - name: Install npm
+      uses: actions/setup-node@v5
+      with:
+        node-version: 22
+    - name: Install browser-ui-test
+      run: npm install
+    - name: Test clippy lints page
+      run: cargo test --test gui
+      env:
+        FORCE_GUI: 1
+
   integration_build:
     runs-on: ubuntu-latest
 
