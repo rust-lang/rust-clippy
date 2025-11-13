@@ -1,7 +1,8 @@
 use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::source::SpanRangeExt;
 use rustc_data_structures::packed::Pu128;
 use rustc_hir::{AssignOpKind, BinOpKind, Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::Span;
 use rustc_span::source_map::Spanned;
@@ -71,11 +72,7 @@ fn check_bitwise_assign_expr(cx: &LateContext<'_>, e: &Expr<'_>) {
 }
 
 fn is_not_decimal_number(cx: &LateContext<'_>, span: Span) -> bool {
-    if let Ok(src) = cx.sess().source_map().span_to_snippet(span) {
-        src.contains("0b") || src.contains("0x") || src.contains("0o")
-    } else {
-        true
-    }
+    span.check_source_text(cx, |src| src.contains("0b") || src.contains("0x") || src.contains("0o"))
 }
 
 fn is_power_of_twoish(expr: &Expr<'_>) -> bool {
