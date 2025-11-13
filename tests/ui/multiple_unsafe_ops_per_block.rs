@@ -209,4 +209,60 @@ async fn issue13879() {
     }
 }
 
+fn issue16076() {
+    #[derive(Clone, Copy)]
+    union U {
+        i: u32,
+        f: f32,
+    }
+
+    let u = U { i: 0 };
+
+    // Taking a raw pointer to a place is safe since Rust 1.92
+    unsafe {
+        _ = &raw const u.i;
+        _ = &raw const u.i;
+    }
+
+    // Taking a reference to a union field is not safe
+    unsafe {
+        //~^ multiple_unsafe_ops_per_block
+        _ = &u.i;
+        _ = &u.i;
+    }
+
+    // Check that we still check and lint the prefix of the raw pointer to a field access
+    #[expect(clippy::deref_addrof)]
+    unsafe {
+        //~^ multiple_unsafe_ops_per_block
+        _ = &raw const (*&raw const u).i;
+        _ = &raw const (*&raw const u).i;
+    }
+
+    union V {
+        u: U,
+    }
+
+    // Taking a raw pointer to a union field of an union field (etc.) is safe
+    let v = V { u };
+    unsafe {
+        _ = &raw const v.u.i;
+        _ = &raw const v.u.i;
+    }
+}
+
+fn check_closures() {
+    unsafe fn apply(f: impl Fn()) {
+        todo!()
+    }
+    unsafe fn f(_x: i32) {
+        todo!()
+    }
+
+    unsafe {
+        //~^ multiple_unsafe_ops_per_block
+        apply(|| f(0));
+    }
+}
+
 fn main() {}
