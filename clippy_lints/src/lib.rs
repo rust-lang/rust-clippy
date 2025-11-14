@@ -386,6 +386,7 @@ mod upper_case_acronyms;
 mod use_self;
 mod useless_concat;
 mod useless_conversion;
+mod useless_pathbuf_conversion;
 mod vec;
 mod vec_init_then_push;
 mod visibility;
@@ -569,6 +570,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(infinite_iter::InfiniteIter));
     store.register_late_pass(|_| Box::new(inline_fn_without_body::InlineFnWithoutBody));
     store.register_late_pass(|_| Box::<useless_conversion::UselessConversion>::default());
+    store.register_late_pass(|_| Box::new(useless_pathbuf_conversion::UselessPathbufConversion));
     store.register_late_pass(|_| Box::new(implicit_hasher::ImplicitHasher));
     store.register_late_pass(|_| Box::new(fallible_impl_from::FallibleImplFrom));
     store.register_late_pass(move |_| Box::new(question_mark::QuestionMark::new(conf)));
