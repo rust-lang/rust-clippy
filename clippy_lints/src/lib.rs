@@ -113,6 +113,7 @@ mod doc;
 mod double_parens;
 mod drop_forget_ref;
 mod duplicate_mod;
+mod duplicate_trait_bonds;
 mod else_if_without_else;
 mod empty_drop;
 mod empty_enums;
@@ -819,5 +820,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     store.register_late_pass(|_| Box::new(toplevel_ref_arg::ToplevelRefArg));
     store.register_late_pass(|_| Box::new(volatile_composites::VolatileComposites));
     store.register_late_pass(|_| Box::new(replace_box::ReplaceBox::default()));
+    store.register_late_pass(|_| Box::new(duplicate_trait_bonds::DuplicateTraitBonds));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }

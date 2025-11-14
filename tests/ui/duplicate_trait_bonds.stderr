@@ -1,0 +1,53 @@
+error: duplicate trait bound `Clone` found
+  --> tests/ui/duplicate_trait_bonds.rs:4:27
+   |
+LL | struct SomeStruct<T: Clone + Clone> {
+   |                           ^^^^^^^^ help: consider removing the duplicate
+   |
+   = note: `-D clippy::duplicate-trait-bonds` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::duplicate_trait_bonds)]`
+
+error: duplicate trait bound `Sync` found
+  --> tests/ui/duplicate_trait_bonds.rs:9:25
+   |
+LL | trait ExampleTrait: Sync + Sync {}
+   |                         ^^^^^^^ help: consider removing the duplicate
+
+error: duplicate trait bound `Sync` found
+  --> tests/ui/duplicate_trait_bonds.rs:12:28
+   |
+LL | impl<T: Send + Sync + Clone + Sync> ExampleTrait for SomeStruct<T>
+   |                            ^^^^^^^ help: consider removing the duplicate
+
+error: duplicate trait bound `Copy` found
+  --> tests/ui/duplicate_trait_bonds.rs:15:24
+   |
+LL |     SomeStruct<T>: Copy + Copy + Clone + Copy
+   |                        ^^^^^^^        ^^^^^^^
+   |
+help: consider removing the duplicate
+   |
+LL -     SomeStruct<T>: Copy + Copy + Clone + Copy
+LL +     SomeStruct<T>: Copy + Clone
+   |
+
+error: duplicate trait bound `Debug` found
+  --> tests/ui/duplicate_trait_bonds.rs:20:49
+   |
+LL | fn func_with_dup_bond<T: std::fmt::Debug + Clone + std::fmt::Debug + Clone + Clone>(_s: SomeStruct<T>) {}
+   |                                                 ^^^^^^^^^^^^^^^^^^ help: consider removing the duplicate
+
+error: duplicate trait bound `Clone` found
+  --> tests/ui/duplicate_trait_bonds.rs:20:67
+   |
+LL | fn func_with_dup_bond<T: std::fmt::Debug + Clone + std::fmt::Debug + Clone + Clone>(_s: SomeStruct<T>) {}
+   |                                                                   ^^^^^^^^^^^^^^^^
+   |
+help: consider removing the duplicate
+   |
+LL - fn func_with_dup_bond<T: std::fmt::Debug + Clone + std::fmt::Debug + Clone + Clone>(_s: SomeStruct<T>) {}
+LL + fn func_with_dup_bond<T: std::fmt::Debug + Clone + std::fmt::Debug>(_s: SomeStruct<T>) {}
+   |
+
+error: aborting due to 6 previous errors
+
