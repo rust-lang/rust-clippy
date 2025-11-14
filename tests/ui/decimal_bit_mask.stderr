@@ -1,0 +1,124 @@
+error: using decimal literal for bitwise operation
+  --> tests/ui/decimal_bit_mask.rs:16:9
+   |
+LL |     x & 99;
+   |         ^^
+   |
+   = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
+   = note: `-D clippy::decimal-bit-mask` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::decimal_bit_mask)]`
+
+error: using decimal literal for bitwise operation
+  --> tests/ui/decimal_bit_mask.rs:17:9
+   |
+LL |     x | (/* comment */99);
+   |         ^^^^^^^^^^^^^^^^^
+   |
+   = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
+
+error: using decimal literal for bitwise operation
+  --> tests/ui/decimal_bit_mask.rs:18:9
+   |
+LL |     x ^ (99);
+   |         ^^^^
+   |
+   = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
+
+error: using decimal literal for bitwise operation
+  --> tests/ui/decimal_bit_mask.rs:19:10
+   |
+LL |     x &= 99;
+   |          ^^
+   |
+   = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
+
+error: using decimal literal for bitwise operation
+  --> tests/ui/decimal_bit_mask.rs:20:10
+   |
+LL |     x |= 99;
+   |          ^^
+   |
+   = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
+
+error: using decimal literal for bitwise operation
+  --> tests/ui/decimal_bit_mask.rs:21:11
+   |
+LL |     x ^= (99);
+   |           ^^
+   |
+   = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
+
+error: using decimal literal for bitwise operation
+  --> tests/ui/decimal_bit_mask.rs:24:14
+   |
+LL |     0b1010 & 99;
+   |              ^^
+   |
+   = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
+
+error: using decimal literal for bitwise operation
+  --> tests/ui/decimal_bit_mask.rs:25:14
+   |
+LL |     0b1010 | 99;
+   |              ^^
+   |
+   = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
+
+error: using decimal literal for bitwise operation
+  --> tests/ui/decimal_bit_mask.rs:26:14
+   |
+LL |     0b1010 ^ 99;
+   |              ^^
+   |
+   = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
+
+error: using decimal literal for bitwise operation
+  --> tests/ui/decimal_bit_mask.rs:27:5
+   |
+LL |     99 & 0b1010;
+   |     ^^
+   |
+   = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
+
+error: using decimal literal for bitwise operation
+  --> tests/ui/decimal_bit_mask.rs:28:5
+   |
+LL |     99 | 0b1010;
+   |     ^^
+   |
+   = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
+
+error: using decimal literal for bitwise operation
+  --> tests/ui/decimal_bit_mask.rs:29:5
+   |
+LL |     99 ^ 0b1010;
+   |     ^^
+   |
+   = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
+
+error: using decimal literal for bitwise operation
+  --> tests/ui/decimal_bit_mask.rs:30:11
+   |
+LL |     0xD | 99;
+   |           ^^
+   |
+   = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
+
+error: using decimal literal for bitwise operation
+  --> tests/ui/decimal_bit_mask.rs:31:5
+   |
+LL |     88 & 99;
+   |     ^^
+   |
+   = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
+
+error: using decimal literal for bitwise operation
+  --> tests/ui/decimal_bit_mask.rs:31:10
+   |
+LL |     88 & 99;
+   |          ^^
+   |
+   = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
+
+error: aborting due to 15 previous errors
+
