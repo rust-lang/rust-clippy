@@ -3,34 +3,11 @@ use clippy_utils::source::SpanRangeExt;
 use rustc_ast::LitKind;
 use rustc_data_structures::packed::Pu128;
 use rustc_hir::{AssignOpKind, BinOpKind, Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::declare_lint_pass;
+use rustc_lint::LateContext;
 use rustc_span::Span;
 use rustc_span::source_map::Spanned;
 
-declare_clippy_lint! {
-    /// ### What it does
-    /// Checks for decimal literals used as bit masks in bitwise operations.
-    ///
-    /// ### Why is this bad?
-    /// Using decimal literals for bit masks can make the code less readable and obscure the intended bit pattern.
-    /// Binary, hexadecimal, or octal literals make the bit pattern more explicit and easier to understand at a glance.
-    ///
-    /// ### Example
-    /// ```rust,no_run
-    /// let a = 14 & 6; // Bit pattern is not immediately clear
-    /// ```
-    /// Use instead:
-    /// ```rust,no_run
-    /// let a = 0b1110 & 0b0110;
-    /// ```
-    #[clippy::version = "1.92.0"]
-    pub DECIMAL_BITWISE_OPERANDS,
-    nursery,
-    "use binary, hex, or octal literals for bitwise operations"
-}
-
-declare_lint_pass!(DecimalBitwiseOperands => [DECIMAL_BITWISE_OPERANDS]);
+use super::DECIMAL_BITWISE_OPERANDS;
 
 fn check_bitwise_binary_expr(cx: &LateContext<'_>, expr: &Expr<'_>) {
     if let ExprKind::Binary(op, left, right) = &expr.kind
@@ -85,12 +62,10 @@ fn emit_lint(cx: &LateContext<'_>, span: Span) {
     );
 }
 
-impl<'tcx> LateLintPass<'tcx> for DecimalBitwiseOperands {
-    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        if expr.span.from_expansion() {
-            return;
-        }
-        check_bitwise_binary_expr(cx, expr);
-        check_bitwise_assign_expr(cx, expr);
+pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
+    if expr.span.from_expansion() {
+        return;
     }
+    check_bitwise_binary_expr(cx, expr);
+    check_bitwise_assign_expr(cx, expr);
 }
