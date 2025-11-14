@@ -32,7 +32,7 @@ declare_clippy_lint! {
 
 declare_lint_pass!(DecimalBitMask => [DECIMAL_BIT_MASK]);
 
-fn check_bitwise_binary_expr(cx: &LateContext<'_>, e: &Expr<'_>) {
+fn check_bitwise_binary_expr(cx: &LateContext<'_>, expr: &Expr<'_>) {
     if let ExprKind::Binary(
         Spanned {
             node: BinOpKind::BitAnd | BinOpKind::BitOr | BinOpKind::BitXor,
@@ -40,7 +40,7 @@ fn check_bitwise_binary_expr(cx: &LateContext<'_>, e: &Expr<'_>) {
         },
         left,
         right,
-    ) = &e.kind
+    ) = &expr.kind
     {
         for expr in [left, right] {
             if let ExprKind::Lit(lit) = &expr.kind
@@ -53,7 +53,7 @@ fn check_bitwise_binary_expr(cx: &LateContext<'_>, e: &Expr<'_>) {
     }
 }
 
-fn check_bitwise_assign_expr(cx: &LateContext<'_>, e: &Expr<'_>) {
+fn check_bitwise_assign_expr(cx: &LateContext<'_>, expr: &Expr<'_>) {
     if let ExprKind::AssignOp(
         Spanned {
             node: AssignOpKind::BitAndAssign | AssignOpKind::BitOrAssign | AssignOpKind::BitXorAssign,
@@ -64,7 +64,7 @@ fn check_bitwise_assign_expr(cx: &LateContext<'_>, e: &Expr<'_>) {
             kind: ExprKind::Lit(lit),
             ..
         },
-    ) = &e.kind
+    ) = &expr.kind
         && !is_power_of_twoish(lit)
         && !is_not_decimal_number(cx, lit.span)
     {
@@ -95,11 +95,11 @@ fn emit_lint(cx: &LateContext<'_>, span: Span) {
 }
 
 impl<'tcx> LateLintPass<'tcx> for DecimalBitMask {
-    fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
-        if e.span.from_expansion() {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
+        if expr.span.from_expansion() {
             return;
         }
-        check_bitwise_binary_expr(cx, e);
-        check_bitwise_assign_expr(cx, e);
+        check_bitwise_binary_expr(cx, expr);
+        check_bitwise_assign_expr(cx, expr);
     }
 }
