@@ -9,18 +9,18 @@ LL |     x & 99;
    = help: to override `-D warnings` add `#[allow(clippy::decimal_bit_mask)]`
 
 error: using decimal literal for bitwise operation
-  --> tests/ui/decimal_bit_mask.rs:17:9
+  --> tests/ui/decimal_bit_mask.rs:17:23
    |
 LL |     x | (/* comment */99);
-   |         ^^^^^^^^^^^^^^^^^
+   |                       ^^
    |
    = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
 
 error: using decimal literal for bitwise operation
-  --> tests/ui/decimal_bit_mask.rs:18:9
+  --> tests/ui/decimal_bit_mask.rs:18:10
    |
 LL |     x ^ (99);
-   |         ^^^^
+   |          ^^
    |
    = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
 
@@ -57,18 +57,18 @@ LL |     0b1010 & 99;
    = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
 
 error: using decimal literal for bitwise operation
-  --> tests/ui/decimal_bit_mask.rs:25:14
+  --> tests/ui/decimal_bit_mask.rs:25:15
    |
-LL |     0b1010 | 99;
-   |              ^^
+LL |     0b1010 | (99);
+   |               ^^
    |
    = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
 
 error: using decimal literal for bitwise operation
-  --> tests/ui/decimal_bit_mask.rs:26:14
+  --> tests/ui/decimal_bit_mask.rs:26:28
    |
-LL |     0b1010 ^ 99;
-   |              ^^
+LL |     0b1010 ^ (/* comment */99);
+   |                            ^^
    |
    = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
 
@@ -81,18 +81,18 @@ LL |     99 & 0b1010;
    = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
 
 error: using decimal literal for bitwise operation
-  --> tests/ui/decimal_bit_mask.rs:28:5
+  --> tests/ui/decimal_bit_mask.rs:28:6
    |
-LL |     99 | 0b1010;
-   |     ^^
+LL |     (99) | 0b1010;
+   |      ^^
    |
    = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
 
 error: using decimal literal for bitwise operation
-  --> tests/ui/decimal_bit_mask.rs:29:5
+  --> tests/ui/decimal_bit_mask.rs:29:19
    |
-LL |     99 ^ 0b1010;
-   |     ^^
+LL |     (/* comment */99) ^ 0b1010;
+   |                   ^^
    |
    = help: use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability
 

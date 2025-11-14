@@ -22,11 +22,11 @@ fn main() {
 
     // BAD: Bitwise operation, decimal literal, two literals
     0b1010 & 99; //~ decimal_bit_mask
-    0b1010 | 99; //~ decimal_bit_mask
-    0b1010 ^ 99; //~ decimal_bit_mask
+    0b1010 | (99); //~ decimal_bit_mask
+    0b1010 ^ (/* comment */99); //~ decimal_bit_mask
     99 & 0b1010; //~ decimal_bit_mask
-    99 | 0b1010; //~ decimal_bit_mask
-    99 ^ 0b1010; //~ decimal_bit_mask
+    (99) | 0b1010; //~ decimal_bit_mask
+    (/* comment */99) ^ 0b1010; //~ decimal_bit_mask
     0xD | 99; //~ decimal_bit_mask
     88 & 99;
     //~^ decimal_bit_mask
@@ -84,7 +84,7 @@ fn main() {
 
     // GOOD: Power of two and power of two minus one
     x & 16; // 2^4
-    x | 31; // 2^5 - 1
+    x | (31); // 2^5 - 1
     x ^ 0x40; // 2^6 (hex)
     x ^= 7; // 2^3 - 1
 

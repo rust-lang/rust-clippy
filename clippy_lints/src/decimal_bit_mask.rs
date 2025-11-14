@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::source::SpanRangeExt;
+use rustc_ast::LitKind;
 use rustc_data_structures::packed::Pu128;
 use rustc_hir::{AssignOpKind, BinOpKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
@@ -42,11 +43,11 @@ fn check_bitwise_binary_expr(cx: &LateContext<'_>, e: &Expr<'_>) {
     ) = &e.kind
     {
         for expr in [left, right] {
-            if let ExprKind::Lit(_) = &expr.kind
-                && !is_not_decimal_number(cx, expr.span)
-                && !is_power_of_twoish(expr)
+            if let ExprKind::Lit(lit) = &expr.kind
+                && !is_not_decimal_number(cx, lit.span)
+                && !is_power_of_twoish(lit)
             {
-                emit_lint(cx, expr.span);
+                emit_lint(cx, lit.span);
             }
         }
     }
@@ -59,12 +60,12 @@ fn check_bitwise_assign_expr(cx: &LateContext<'_>, e: &Expr<'_>) {
             ..
         },
         _,
-        expr @ Expr {
+        Expr {
             kind: ExprKind::Lit(lit),
             ..
         },
     ) = &e.kind
-        && !is_power_of_twoish(expr)
+        && !is_power_of_twoish(lit)
         && !is_not_decimal_number(cx, lit.span)
     {
         emit_lint(cx, lit.span);
@@ -75,10 +76,8 @@ fn is_not_decimal_number(cx: &LateContext<'_>, span: Span) -> bool {
     span.check_source_text(cx, |src| src.contains("0b") || src.contains("0x") || src.contains("0o"))
 }
 
-fn is_power_of_twoish(expr: &Expr<'_>) -> bool {
-    if let ExprKind::Lit(lit) = &expr.kind
-        && let rustc_ast::LitKind::Int(Pu128(val), _) = lit.node
-    {
+fn is_power_of_twoish(lit: &Spanned<LitKind>) -> bool {
+    if let LitKind::Int(Pu128(val), _) = lit.node {
         return val.is_power_of_two() || val.wrapping_add(1).is_power_of_two();
     }
     false
