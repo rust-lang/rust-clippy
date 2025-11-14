@@ -14,7 +14,7 @@ declare_clippy_lint! {
     ///
     /// ### Why is this bad?
     /// Using decimal literals for bit masks can make the code less readable and obscure the intended bit pattern.
-    /// Binary or hexadecimal or octal literals make the bit pattern more explicit and easier to understand at a glance.
+    /// Binary, hexadecimal, or octal literals make the bit pattern more explicit and easier to understand at a glance.
     ///
     /// ### Example
     /// ```rust,no_run
@@ -27,7 +27,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.87.0"]
     pub DECIMAL_BIT_MASK,
     nursery,
-    "use binary, hex or octal literals for bitwise operations"
+    "use binary, hex, or octal literals for bitwise operations"
 }
 
 declare_lint_pass!(DecimalBitMask => [DECIMAL_BIT_MASK]);
@@ -92,7 +92,7 @@ fn emit_lint(cx: &LateContext<'_>, span: Span) {
         span,
         "using decimal literal for bitwise operation",
         None,
-        "use binary (0b...) or hex (0x...) or octal (0o...) notation for better readability",
+        "use binary (0b...), hex (0x...), or octal (0o...) notation for better readability",
     );
 }
 
