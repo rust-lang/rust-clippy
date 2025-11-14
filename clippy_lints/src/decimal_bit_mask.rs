@@ -44,7 +44,7 @@ fn check_bitwise_binary_expr(cx: &LateContext<'_>, expr: &Expr<'_>) {
     {
         for expr in [left, right] {
             if let ExprKind::Lit(lit) = &expr.kind
-                && !is_not_decimal_number(cx, lit.span)
+                && is_decimal_number(cx, lit.span)
                 && !is_power_of_twoish(lit)
             {
                 emit_lint(cx, lit.span);
@@ -65,15 +65,17 @@ fn check_bitwise_assign_expr(cx: &LateContext<'_>, expr: &Expr<'_>) {
             ..
         },
     ) = &expr.kind
+        && is_decimal_number(cx, lit.span)
         && !is_power_of_twoish(lit)
-        && !is_not_decimal_number(cx, lit.span)
     {
         emit_lint(cx, lit.span);
     }
 }
 
-fn is_not_decimal_number(cx: &LateContext<'_>, span: Span) -> bool {
-    span.check_source_text(cx, |src| src.contains("0b") || src.contains("0x") || src.contains("0o"))
+fn is_decimal_number(cx: &LateContext<'_>, span: Span) -> bool {
+    span.check_source_text(cx, |src| {
+        !(src.starts_with("0b") || src.starts_with("0x") || src.starts_with("0o"))
+    })
 }
 
 fn is_power_of_twoish(lit: &Spanned<LitKind>) -> bool {
