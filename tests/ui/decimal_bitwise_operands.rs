@@ -1,6 +1,6 @@
 #![allow(clippy::erasing_op)]
 #![allow(clippy::no_effect)]
-#![warn(clippy::decimal_bit_mask)]
+#![warn(clippy::decimal_bitwise_operands)]
 
 macro_rules! bitwise_op {
     ($x:expr, $y:expr) => {
@@ -13,24 +13,24 @@ pub const SOME_CONST: i32 = 12345;
 fn main() {
     let mut x = 0;
     // BAD: Bitwise operation, decimal literal, one literal
-    x & 99; //~ decimal_bit_mask
-    x | (/* comment */99); //~ decimal_bit_mask
-    x ^ (99); //~ decimal_bit_mask
-    x &= 99; //~ decimal_bit_mask
-    x |= 99; //~ decimal_bit_mask
-    x ^= (99); //~ decimal_bit_mask
+    x & 99; //~ decimal_bitwise_operands
+    x | (/* comment */99); //~ decimal_bitwise_operands
+    x ^ (99); //~ decimal_bitwise_operands
+    x &= 99; //~ decimal_bitwise_operands
+    x |= 99; //~ decimal_bitwise_operands
+    x ^= (99); //~ decimal_bitwise_operands
 
     // BAD: Bitwise operation, decimal literal, two literals
-    0b1010 & 99; //~ decimal_bit_mask
-    0b1010 | (99); //~ decimal_bit_mask
-    0b1010 ^ (/* comment */99); //~ decimal_bit_mask
-    99 & 0b1010; //~ decimal_bit_mask
-    (99) | 0b1010; //~ decimal_bit_mask
-    (/* comment */99) ^ 0b1010; //~ decimal_bit_mask
-    0xD | 99; //~ decimal_bit_mask
+    0b1010 & 99; //~ decimal_bitwise_operands
+    0b1010 | (99); //~ decimal_bitwise_operands
+    0b1010 ^ (/* comment */99); //~ decimal_bitwise_operands
+    99 & 0b1010; //~ decimal_bitwise_operands
+    (99) | 0b1010; //~ decimal_bitwise_operands
+    (/* comment */99) ^ 0b1010; //~ decimal_bitwise_operands
+    0xD | 99; //~ decimal_bitwise_operands
     88 & 99;
-    //~^ decimal_bit_mask
-    //~| decimal_bit_mask
+    //~^ decimal_bitwise_operands
+    //~| decimal_bitwise_operands
 
     // GOOD: Bitwise operation, binary/hex/octal literal, one literal
     x & 0b1010;

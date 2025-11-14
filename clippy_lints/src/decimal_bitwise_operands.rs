@@ -25,12 +25,12 @@ declare_clippy_lint! {
     /// let a = 0b1110 & 0b0110;
     /// ```
     #[clippy::version = "1.92.0"]
-    pub DECIMAL_BIT_MASK,
+    pub DECIMAL_BITWISE_OPERANDS,
     nursery,
     "use binary, hex, or octal literals for bitwise operations"
 }
 
-declare_lint_pass!(DecimalBitMask => [DECIMAL_BIT_MASK]);
+declare_lint_pass!(DecimalBitwiseOperands => [DECIMAL_BITWISE_OPERANDS]);
 
 fn check_bitwise_binary_expr(cx: &LateContext<'_>, expr: &Expr<'_>) {
     if let ExprKind::Binary(op, left, right) = &expr.kind
@@ -77,7 +77,7 @@ fn is_power_of_twoish(lit: &Spanned<LitKind>) -> bool {
 fn emit_lint(cx: &LateContext<'_>, span: Span) {
     span_lint_and_help(
         cx,
-        DECIMAL_BIT_MASK,
+        DECIMAL_BITWISE_OPERANDS,
         span,
         "using decimal literal for bitwise operation",
         None,
@@ -85,7 +85,7 @@ fn emit_lint(cx: &LateContext<'_>, span: Span) {
     );
 }
 
-impl<'tcx> LateLintPass<'tcx> for DecimalBitMask {
+impl<'tcx> LateLintPass<'tcx> for DecimalBitwiseOperands {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         if expr.span.from_expansion() {
             return;
