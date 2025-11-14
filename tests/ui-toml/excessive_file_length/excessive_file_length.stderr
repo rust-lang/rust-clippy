@@ -1,0 +1,12 @@
+error: this file has too many lines (16/10)
+  --> tests/ui-toml/excessive_file_length/excessive_file_length.rs:1:1
+   |
+LL | #![warn(clippy::excessive_file_length)]
+   | ^
+   |
+   = help: consider splitting this file into smaller modules to improve maintainability
+   = note: `-D clippy::excessive-file-length` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::excessive_file_length)]`
+
+error: aborting due to 1 previous error
+

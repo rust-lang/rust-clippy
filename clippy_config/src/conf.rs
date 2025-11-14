@@ -657,6 +657,9 @@ define_Conf! {
     /// The maximum amount of nesting a block can reside in
     #[lints(excessive_nesting)]
     excessive_nesting_threshold: u64 = 0,
+    /// The maximum number of lines a file can have
+    #[lints(excessive_file_length)]
+    excessive_file_length_threshold: u64 = 500,
     /// The maximum byte size a `Future` can have, before it triggers the `clippy::large_futures` lint
     #[lints(large_futures)]
     future_size_threshold: u64 = 16 * 1024,
