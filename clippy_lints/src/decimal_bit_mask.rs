@@ -24,7 +24,7 @@ declare_clippy_lint! {
     /// ```rust,no_run
     /// let a = 0b1110 & 0b0110;
     /// ```
-    #[clippy::version = "1.87.0"]
+    #[clippy::version = "1.92.0"]
     pub DECIMAL_BIT_MASK,
     nursery,
     "use binary, hex, or octal literals for bitwise operations"
