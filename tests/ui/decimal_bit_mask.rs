@@ -92,6 +92,7 @@ fn main() {
     (x + 1) & 0xFF;
     (x * 2) | (y & 0xF);
     (x ^ y) & 0b11110000;
+    x | (1 << 9);
 
     // GOOD: Special cases
     x & 0; // All bits off
