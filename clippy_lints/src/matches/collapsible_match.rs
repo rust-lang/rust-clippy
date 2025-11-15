@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::higher::{If, IfLetOrMatch};
 use clippy_utils::msrvs::Msrv;
 use clippy_utils::res::{MaybeDef, MaybeResPath};
-use clippy_utils::source::{IntoSpan, SpanExt, snippet};
+use clippy_utils::source::{FileRangeExt, SpanExt, StrExt, snippet};
 use clippy_utils::usage::mutated_variables;
 use clippy_utils::visitors::is_local_used;
 use clippy_utils::{SpanlessEq, get_ref_operators, is_unit_expr, peel_blocks_with_stmt, peel_ref_operators};
@@ -14,7 +14,7 @@ use rustc_hir_typeck::expr_use_visitor::{Delegate, ExprUseVisitor, PlaceBase, Pl
 use rustc_lint::LateContext;
 use rustc_middle::mir::FakeReadCause;
 use rustc_middle::ty;
-use rustc_span::{BytePos, Ident, Span, SyntaxContext};
+use rustc_span::{Ident, Span, SyntaxContext};
 
 use super::{COLLAPSIBLE_MATCH, pat_contains_disallowed_or};
 use crate::collapsible_if::{parens_around, peel_parens};
@@ -144,6 +144,17 @@ fn check_arm<'tcx>(
             (Some(a), Some(b)) => SpanlessEq::new(cx).eq_expr(ctxt, a, b),
         }
         && !pat_bindings_moved_or_mutated(cx, outer_pat, inner.cond)
+        && let Some([outer_then_start, outer_then_end]) = outer_then_body.span.map_split_range(cx, |scx, range| {
+                let [outer_then_start, outer_then_end] = range.map_split_range_text(scx, |s| {
+                    s.get_prefix_suffix('{', '}')
+                })?;
+                let outer_arrow_sp = outer_guard.map_or(outer_pat.span, |g| g.span);
+                Some([
+                    outer_then_start.extend_start_to(scx, outer_arrow_sp.hi_ctxt())?,
+                    outer_then_end.with_leading_whitespace(scx)?,
+                ])
+            })
+        && let Some([paren_start, inner_if_span, paren_end]) = peel_parens(cx, inner_expr.span)
     {
         span_lint_hir_and_then(
             cx,
@@ -152,29 +163,11 @@ fn check_arm<'tcx>(
             inner_expr.span,
             "this `if` can be collapsed into the outer `match`",
             |diag| {
-                let outer_then_open_bracket = outer_then_body
-                    .span
-                    .split_at(1)
-                    .0
-                    .with_leading_whitespace(cx)
-                    .into_span();
-                let outer_then_closing_bracket = {
-                    let end = outer_then_body.span.shrink_to_hi();
-                    end.with_lo(end.lo() - BytePos(1))
-                        .with_leading_whitespace(cx)
-                        .into_span()
-                };
-                let outer_arrow_end = if let Some(outer_guard) = outer_guard {
-                    outer_guard.span.shrink_to_hi()
-                } else {
-                    outer_pat.span.shrink_to_hi()
-                };
-                let (paren_start, inner_if_span, paren_end) = peel_parens(cx, inner_expr.span);
                 let inner_if = inner_if_span.split_at(2).0;
                 let mut sugg = vec![
                     (inner.then.span.shrink_to_lo(), "=> ".to_string()),
-                    (outer_arrow_end.to(outer_then_open_bracket), String::new()),
-                    (outer_then_closing_bracket, String::new()),
+                    (outer_then_start, String::new()),
+                    (outer_then_end, String::new()),
                 ];
 
                 if let Some(outer_guard) = outer_guard {

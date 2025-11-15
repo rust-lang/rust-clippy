@@ -1,15 +1,18 @@
-#![feature(box_patterns)]
-#![feature(control_flow_into_value)]
-#![feature(exact_div)]
-#![feature(f128)]
-#![feature(f16)]
-#![feature(iter_intersperse)]
-#![feature(iter_partition_in_place)]
-#![feature(macro_metavar_expr_concat)]
-#![feature(never_type)]
-#![feature(rustc_private)]
-#![feature(stmt_expr_attributes)]
-#![feature(unwrap_infallible)]
+#![feature(
+    array_try_map,
+    box_patterns,
+    control_flow_into_value,
+    exact_div,
+    f128,
+    f16,
+    iter_intersperse,
+    iter_partition_in_place,
+    macro_metavar_expr_concat,
+    never_type,
+    rustc_private,
+    stmt_expr_attributes,
+    unwrap_infallible
+)]
 #![recursion_limit = "512"]
 #![allow(
     clippy::missing_docs_in_private_items,
