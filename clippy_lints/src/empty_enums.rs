@@ -55,6 +55,7 @@ impl LateLintPass<'_> for EmptyEnums {
     fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
         if let ItemKind::Enum(.., def) = item.kind
             && def.variants.is_empty()
+            && !item.span.in_external_macro(cx.tcx.sess.source_map())
             && !span_contains_cfg(cx, item.span)
         {
             span_lint_and_help(
