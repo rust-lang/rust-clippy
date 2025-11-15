@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::{SpanExt, position_before_rarrow};
+use clippy_utils::source::{FileRangeExt, SpanExt};
 use clippy_utils::{is_never_expr, is_unit_expr};
 use rustc_ast::{Block, StmtKind};
 use rustc_errors::Applicability;
@@ -12,7 +12,7 @@ use rustc_hir::{
 use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::edition::Edition;
-use rustc_span::{BytePos, Pos as _, Span, sym};
+use rustc_span::{Span, sym};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -78,7 +78,7 @@ impl<'tcx> LateLintPass<'tcx> for UnusedUnit {
                 return;
             }
 
-            lint_unneeded_unit_return(cx, hir_ty.span, span);
+            lint_unneeded_unit_return(cx, hir_ty.span);
         }
     }
 
@@ -112,7 +112,7 @@ impl<'tcx> LateLintPass<'tcx> for UnusedUnit {
             && args.span_ext.hi() != hir_ty.span.hi()
             && is_unit_ty(hir_ty)
         {
-            lint_unneeded_unit_return(cx, hir_ty.span, poly.span);
+            lint_unneeded_unit_return(cx, hir_ty.span);
         }
     }
 }
@@ -158,24 +158,21 @@ fn get_def(span: Span) -> Option<Span> {
     }
 }
 
-fn lint_unneeded_unit_return(cx: &LateContext<'_>, ty_span: Span, span: Span) {
-    let (ret_span, appl) =
-        if let Some(Some(rpos)) = span.with_hi(ty_span.hi()).with_source_text(cx, position_before_rarrow) {
-            (
-                ty_span.with_lo(span.lo() + BytePos::from_usize(rpos)),
-                Applicability::MachineApplicable,
-            )
-        } else {
-            (ty_span, Applicability::MaybeIncorrect)
-        };
-
-    span_lint_and_sugg(
-        cx,
-        UNUSED_UNIT,
-        ret_span,
-        "unneeded unit return type",
-        "remove the `-> ()`",
-        String::new(),
-        appl,
-    );
+fn lint_unneeded_unit_return(cx: &LateContext<'_>, ty_span: Span) {
+    if let Some(sp) = ty_span.map_range(cx, |scx, range| {
+        range
+            .with_leading_whitespace(scx)?
+            .with_leading_match(scx, "->")?
+            .with_leading_whitespace(scx)
+    }) {
+        span_lint_and_sugg(
+            cx,
+            UNUSED_UNIT,
+            sp,
+            "unneeded unit return type",
+            "remove the `-> ()`",
+            String::new(),
+            Applicability::MachineApplicable,
+        );
+    }
 }

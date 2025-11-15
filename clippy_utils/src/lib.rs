@@ -1,11 +1,14 @@
-#![feature(box_patterns)]
-#![feature(if_let_guard)]
-#![feature(macro_metavar_expr)]
-#![feature(never_type)]
-#![feature(rustc_private)]
-#![feature(assert_matches)]
-#![feature(unwrap_infallible)]
-#![feature(array_windows)]
+#![feature(
+    array_windows,
+    assert_matches,
+    box_patterns,
+    if_let_guard,
+    macro_metavar_expr,
+    never_type,
+    pattern,
+    rustc_private,
+    unwrap_infallible
+)]
 #![recursion_limit = "512"]
 #![allow(
     clippy::missing_errors_doc,
