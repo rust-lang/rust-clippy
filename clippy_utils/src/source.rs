@@ -1,25 +1,63 @@
-//! Utils for extracting, inspecting or transforming source code
+//! Utilities for interacting with the source text and manipulating spans.
+//!
+//! The main entry points for working with the source text are on the [`SpanExt`] trait. This trait
+//! is implemented on a few types and exists as a bridge between a [`Span`] and the source text
+//! backing it. The following are the main functions:
+//!
+//! * [`SpanExt::get_text`]: Gets a `SourceText` representing the text the span refers to. It works
+//!   very similarly to an `Arc<str>`.
+//! * [`SpanExt::check_text`]: A slightly simpler way to check a predicate on the text than using
+//!   `get_text`.
+//! * [`SpanExt::map_range`]: The main way to adjust the range portion of a span or to split a span
+//!   into multiple ranges. See [`SpanEditCx`] for range adjustment utilities.
+//!
+//! When working with `Span`s it's important to make sure the they are from the correct
+//! [`SyntaxContext`]. A `SyntaxContext` roughly corresponds to which desugaring or macro expansion
+//! a `Span` is from. e.g. if `m!()` expands to `1 + 2` the binary operation and both literals will
+//! have a `Span` with a `SyntaxContext` indicating that particular expansion of `m!`. To handle
+//! moving up the chain of expansions use [`SpanExt::walk_to_ctxt`] or [`SpanExt::walk_to_root`].
+//!
+//! # Warnings
+//!
+//! You _cannot_ assume anything about the `Span` or source text of any item. The parser will apply
+//! token substitution in some cases (e.g. replacing `（`, with `(`), macros can rearrange tokens,
+//! proc-macros in particular can freely set the `Span` of any token to a different one. These can
+//! only be detected by checking the source text. With this the source text of all AST/HIR item can
+//! be almost anything. In short, validate all range adjustments against the source text.
 
-#![allow(clippy::module_name_repetitions)]
-
-use std::sync::Arc;
-
+use core::fmt;
+use core::ops::{Deref, Index, Range, RangeFrom, RangeFull, RangeTo};
+use core::slice::SliceIndex;
+use core::str::pattern::{Pattern, ReverseSearcher};
 use rustc_ast::{LitKind, StrStyle};
 use rustc_errors::Applicability;
+use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{BlockCheckMode, Expr, ExprKind, UnsafeSource};
 use rustc_lexer::{FrontmatterAllowed, LiteralKind, TokenKind, tokenize};
-use rustc_lint::{EarlyContext, LateContext};
+use rustc_lint::{EarlyContext, LateContext, LintContext};
 use rustc_middle::ty::TyCtxt;
 use rustc_session::Session;
 use rustc_span::source_map::{SourceMap, original_sp};
 use rustc_span::{
-    BytePos, DUMMY_SP, DesugaringKind, FileNameDisplayPreference, Pos, RelativeBytePos, SourceFile, SourceFileAndLine,
-    Span, SpanData, SyntaxContext, hygiene,
+    BytePos, DUMMY_SP, DesugaringKind, ExpnKind, FileNameDisplayPreference, Pos, RelativeBytePos, SourceFile,
+    SourceFileAndLine, Span, SpanData, SyntaxContext, hygiene,
 };
-use std::borrow::Cow;
-use std::fmt;
-use std::ops::{Deref, Index, Range};
+use std::borrow::{Borrow, Cow};
 
+/// Creates a type which implements `Display` by calling the specified function.
+#[inline]
+#[must_use]
+pub fn display(f: impl Fn(&mut fmt::Formatter<'_>) -> fmt::Result) -> impl fmt::Display {
+    struct S<T>(T);
+    impl<T: Fn(&mut fmt::Formatter<'_>) -> fmt::Result> fmt::Display for S<T> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            self.0(f)
+        }
+    }
+    S(f)
+}
+
+/// A type which contains a `SourceMap`.
 pub trait HasSourceMap<'sm>: Copy {
     #[must_use]
     fn source_map(self) -> &'sm SourceMap;
@@ -45,7 +83,7 @@ impl<'sm> HasSourceMap<'sm> for TyCtxt<'sm> {
 impl<'sm> HasSourceMap<'sm> for &'sm EarlyContext<'_> {
     #[inline]
     fn source_map(self) -> &'sm SourceMap {
-        ::rustc_lint::LintContext::sess(self).source_map()
+        self.sess().source_map()
     }
 }
 impl<'sm> HasSourceMap<'sm> for &LateContext<'sm> {
@@ -55,106 +93,1068 @@ impl<'sm> HasSourceMap<'sm> for &LateContext<'sm> {
     }
 }
 
-/// Conversion of a value into the range portion of a `Span`.
-pub trait SpanRange: Sized {
+/// Conversion trait for a set of ranges within a file into `Span`s.
+pub trait IntoSpans: Sized {
+    type Output;
+    #[must_use]
+    fn into_spans(self, scx: &SpanEditCx<'_>) -> Self::Output;
+    #[inline]
+    fn dbg_check(&self, _scx: &SpanEditCx<'_>, _old_range: FileRange) {}
+}
+impl IntoSpans for FileRange {
+    type Output = Span;
+    #[inline]
+    fn into_spans(self, scx: &SpanEditCx<'_>) -> Self::Output {
+        let offset = scx.file().start_pos.0;
+        Span::new(
+            BytePos(self.start.0.wrapping_add(offset)),
+            BytePos(self.end.0.wrapping_add(offset)),
+            scx.ctxt,
+            scx.parent,
+        )
+    }
+
+    #[cfg(debug_assertions)]
+    #[track_caller]
+    fn dbg_check(&self, scx: &SpanEditCx<'_>, old_range: FileRange) {
+        scx.dbg_check_range(Some(old_range), self.clone());
+    }
+}
+impl<const N: usize> IntoSpans for [FileRange; N] {
+    type Output = [Span; N];
+    #[inline]
+    fn into_spans(self, scx: &SpanEditCx<'_>) -> Self::Output {
+        let offset = scx.file().start_pos.0;
+        self.map(|r| {
+            Span::new(
+                BytePos(r.start.0.wrapping_add(offset)),
+                BytePos(r.end.0.wrapping_add(offset)),
+                scx.ctxt,
+                scx.parent,
+            )
+        })
+    }
+
+    #[cfg(debug_assertions)]
+    #[track_caller]
+    fn dbg_check(&self, scx: &SpanEditCx<'_>, old_range: FileRange) {
+        for r in self {
+            scx.dbg_check_range(Some(old_range.clone()), r.clone());
+        }
+    }
+}
+
+/// Conversion trait for a set of substrings into sub-ranges.
+pub trait IntoSubRanges: Sized {
+    type Output;
+    #[must_use]
+    fn into_sub_ranges(self, base: &str) -> Self::Output;
+}
+impl IntoSubRanges for &str {
+    type Output = FileRange;
+    #[inline]
+    #[cfg_attr(debug_assertions, track_caller)]
+    fn into_sub_ranges(self, base: &str) -> Self::Output {
+        let addr = base.as_ptr().addr();
+        debug_assert!(
+            addr <= self.as_ptr().addr() && self.as_ptr().addr() + self.len() <= addr + base.len(),
+            "the string is not a valid substring",
+        );
+        let start = self.as_ptr().addr() - addr;
+        RelativeBytePos::from_usize(start)..RelativeBytePos::from_usize(start + self.len())
+    }
+}
+impl<const N: usize> IntoSubRanges for [&str; N] {
+    type Output = [FileRange; N];
+    #[inline]
+    #[cfg_attr(debug_assertions, track_caller)]
+    fn into_sub_ranges(self, base: &str) -> Self::Output {
+        let addr = base.as_ptr().addr();
+        #[cfg(debug_assertions)]
+        for &s in &self {
+            debug_assert!(
+                addr <= s.as_ptr().addr() && s.as_ptr().addr() + s.len() <= addr + base.len(),
+                "the string is not a valid substring",
+            );
+        }
+        self.map(|s| {
+            let start = s.as_ptr().addr() - addr;
+            RelativeBytePos::from_usize(start)..RelativeBytePos::from_usize(start + s.len())
+        })
+    }
+}
+
+/// A position in the `SourceMap` and the `SyntaxContext` it came from.
+#[derive(Clone, Copy)]
+pub struct PosWithCtxt {
+    pub pos: BytePos,
+    pub ctxt: SyntaxContext,
+}
+
+pub trait SpanLike: Copy {
+    /// Gets this value as an interned `Span`.
+    #[must_use]
+    fn span(self) -> Span;
+    /// Gets this `Span`'s data.
+    #[must_use]
+    fn data(self) -> SpanData;
+}
+impl SpanLike for Span {
+    #[inline]
+    fn span(self) -> Span {
+        self
+    }
+    #[inline]
+    fn data(self) -> SpanData {
+        self.data()
+    }
+}
+impl SpanLike for SpanData {
+    #[inline]
+    fn span(self) -> Span {
+        Span::new(self.lo, self.hi, self.ctxt, self.parent)
+    }
+    #[inline]
+    fn data(self) -> SpanData {
+        self
+    }
+}
+impl SpanLike for &SpanData {
+    #[inline]
+    fn span(self) -> Span {
+        Span::new(self.lo, self.hi, self.ctxt, self.parent)
+    }
+    #[inline]
+    fn data(self) -> SpanData {
+        *self
+    }
+}
+
+/// A type representing a range in the `SourceMap`.
+pub trait SourceRange: Sized {
+    #[must_use]
     fn into_range(self) -> Range<BytePos>;
 }
-impl SpanRange for Span {
+impl SourceRange for Range<BytePos> {
+    #[inline]
+    fn into_range(self) -> Range<BytePos> {
+        self
+    }
+}
+impl<T: SpanLike> SourceRange for T {
+    #[inline]
     fn into_range(self) -> Range<BytePos> {
         let data = self.data();
         data.lo..data.hi
     }
 }
-impl SpanRange for SpanData {
-    fn into_range(self) -> Range<BytePos> {
-        self.lo..self.hi
-    }
-}
-impl SpanRange for Range<BytePos> {
-    fn into_range(self) -> Range<BytePos> {
-        self
-    }
-}
 
-/// Conversion of a value into a `Span`
-pub trait IntoSpan: Sized {
-    fn into_span(self) -> Span;
-    fn with_ctxt(self, ctxt: SyntaxContext) -> Span;
-}
-impl IntoSpan for Span {
-    fn into_span(self) -> Span {
-        self
-    }
-    fn with_ctxt(self, ctxt: SyntaxContext) -> Span {
-        self.with_ctxt(ctxt)
-    }
-}
-impl IntoSpan for SpanData {
-    fn into_span(self) -> Span {
-        self.span()
-    }
-    fn with_ctxt(self, ctxt: SyntaxContext) -> Span {
-        Span::new(self.lo, self.hi, ctxt, self.parent)
-    }
-}
-impl IntoSpan for Range<BytePos> {
-    fn into_span(self) -> Span {
-        Span::with_root_ctxt(self.start, self.end)
-    }
-    fn with_ctxt(self, ctxt: SyntaxContext) -> Span {
-        Span::new(self.start, self.end, ctxt, None)
-    }
-}
-
-pub trait SpanExt: SpanRange {
-    /// Attempts to get a handle to the source text. Returns `None` if either the span is malformed,
-    /// or the source text is not accessible.
-    fn get_text<'sm>(self, sm: impl HasSourceMap<'sm>) -> Option<SourceText> {
-        get_source_range(sm.source_map(), self.into_range()).and_then(SourceText::new)
+/// Helper functions to interact with the source text of a span/range.
+pub trait SpanExt: SourceRange {
+    /// Gets the `lo` position and the `SyntaxContext`
+    #[inline]
+    #[must_use]
+    fn lo_ctxt(self) -> PosWithCtxt
+    where
+        Self: SpanLike,
+    {
+        let data = self.data();
+        PosWithCtxt {
+            pos: data.lo,
+            ctxt: data.ctxt,
+        }
     }
 
-    /// Gets the source file, and range in the file, of the given span. Returns `None` if the span
-    /// extends through multiple files, or is malformed.
-    fn get_source_range<'sm>(self, sm: impl HasSourceMap<'sm>) -> Option<SourceFileRange> {
-        get_source_range(sm.source_map(), self.into_range())
+    /// Gets the `hi` position and the `SyntaxContext`
+    #[must_use]
+    fn hi_ctxt(self) -> PosWithCtxt
+    where
+        Self: SpanLike,
+    {
+        let data = self.data();
+        PosWithCtxt {
+            pos: data.hi,
+            ctxt: data.ctxt,
+        }
     }
 
-    /// Calls the given function with the source text referenced and returns the value. Returns
-    /// `None` if the source text cannot be retrieved.
-    fn with_source_text<'sm, T>(self, sm: impl HasSourceMap<'sm>, f: impl for<'a> FnOnce(&'a str) -> T) -> Option<T> {
-        with_source_text(sm.source_map(), self.into_range(), f)
-    }
-
-    /// Checks if the referenced source text satisfies the given predicate. Returns `false` if the
-    /// source text cannot be retrieved.
-    fn check_text<'sm>(self, sm: impl HasSourceMap<'sm>, pred: impl for<'a> FnOnce(&'a str) -> bool) -> bool {
-        self.with_source_text(sm, pred).unwrap_or(false)
-    }
-
-    /// Calls the given function with the both the text of the source file and the referenced range,
-    /// and returns the value. Returns `None` if the source text cannot be retrieved.
-    fn with_source_text_and_range<'sm, T>(
-        self,
-        sm: impl HasSourceMap<'sm>,
-        f: impl for<'a> FnOnce(&'a str, Range<usize>) -> T,
-    ) -> Option<T> {
-        with_source_text_and_range(sm.source_map(), self.into_range(), f)
-    }
-
-    /// Calls the given function with the both the text of the source file and the referenced range,
-    /// and creates a new span with the returned range. Returns `None` if the source text cannot be
-    /// retrieved, or no result is returned.
+    /// Attempts to create a new edit context for a source range within a crate-local file. Returns
+    /// both the context and the adjusted range, or `None` if the range is within a non-local file.
     ///
-    /// The new range must reside within the same source file.
-    fn map_range<'sm>(
-        self,
-        sm: impl HasSourceMap<'sm>,
-        f: impl for<'a> FnOnce(&'a SourceFile, &'a str, Range<usize>) -> Option<Range<usize>>,
-    ) -> Option<Range<BytePos>> {
-        map_range(sm.source_map(), self.into_range(), f)
+    /// With debug assertions this will assert that the range:
+    /// * Is within a crate-local file.
+    /// * Does not start after it's end.
+    /// * Does not exceed the bounds of a single source file.
+    /// * Lies on a UTF-8 boundary.
+    #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    fn mk_edit_cx<'sm>(self, sm: impl HasSourceMap<'sm>) -> Option<(SpanEditCx<'sm>, FileRange)>
+    where
+        Self: SpanLike,
+    {
+        SpanEditCx::for_local(sm.source_map(), self.data())
     }
 
-    /// Extends the range to include all preceding whitespace characters.
+    /// Attempts to get a handle to the source text of a crate-local file. Returns `None` if the
+    /// range is within a non-local file or cannot index the file's text.
+    ///
+    /// With debug assertions this will assert that the range:
+    /// * Is within a crate-local file.
+    /// * Does not start after it's end.
+    /// * Does not exceed the bounds of a single source file.
+    /// * Lies on a UTF-8 boundary.
+    #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    fn get_text<'sm>(self, sm: impl HasSourceMap<'sm>) -> Option<SourceText> {
+        // TODO(@Jarcho): Actually check all use sites so we can use `for_local`
+        // like the documentation says.
+        self.get_external_text(sm)
+    }
+
+    /// Attempts to get a handle to the source text. Returns `None` if an external file could not be
+    /// loaded or the range cannot index the file's text.
+    ///
+    /// With debug assertions this will assert that the range:
+    /// * Does not start after it's end.
+    /// * Does not exceed the bounds of a single source file.
+    /// * Lies on a UTF-8 boundary.
+    #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    fn get_external_text<'sm>(self, sm: impl HasSourceMap<'sm>) -> Option<SourceText> {
+        SourceText::for_external_range(sm.source_map(), self.into_range())
+    }
+
+    /// Attempts to get a handle to the source text of a crate-local file after walking up the
+    /// specified context. Returns `None` if the context could not be reached; or the range is
+    /// within a non-local file or cannot index the file's text.
+    ///
+    /// With debug assertions this will assert that the range:
+    /// * Is within a crate-local file.
+    /// * Does not start after it's end.
+    /// * Does not exceed the bounds of a single source file.
+    /// * Lies on a UTF-8 boundary.
+    #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    fn get_text_at_ctxt<'sm>(self, sm: impl HasSourceMap<'sm>, ctxt: SyntaxContext) -> Option<SourceText>
+    where
+        Self: SpanLike,
+    {
+        self.walk_to_ctxt(ctxt).and_then(|sp| sp.get_text(sm))
+    }
+
+    /// Checks if the source text of a crate-local file satisfies the given predicate. Returns
+    /// `false` if the range is within a non-local file or cannot index the file's text.
+    ///
+    /// With debug assertions this will assert that the range:
+    /// * Does not start after it's end.
+    /// * Does not exceed the bounds of a single source file.
+    /// * Lies on a UTF-8 boundary.
+    #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    fn check_text<'sm>(self, sm: impl HasSourceMap<'sm>, pred: impl FnOnce(&str) -> bool) -> bool {
+        // TODO(@Jarcho): Actually check all use sites so we can use `get_text` like the
+        // documentation says.
+        self.get_external_text(sm).as_deref().is_some_and(pred)
+    }
+
+    /// Maps or splits the range of the current span within a crate-local file. Returns `None` if
+    /// the given function returns `None`, or the span is within a non-local file.
+    ///
+    /// A span can be split into multiple parts by returning an array of `FileRange`s instead of a
+    /// single `FileRange`. Each range returned will be combined with the same parent and
+    /// `SyntaxContext` of the original span
+    ///
+    /// With debug assertions this will assert that both the initial and mapped ranges:
+    /// * Do not start after their respective ends.
+    /// * Do not exceed the bounds of a single source file.
+    /// * Lie on a UTF-8 boundary.
+    #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    fn map_range<'sm, T: IntoSpans>(
+        self,
+        sm: impl HasSourceMap<'sm>,
+        f: impl for<'a> FnOnce(&'a SpanEditCx<'sm>, FileRange) -> Option<T>,
+    ) -> Option<T::Output>
+    where
+        Self: SpanLike,
+    {
+        if let Some((scx, range)) = SpanEditCx::for_local(sm.source_map(), self.data())
+            && let Some(ranges) = f(&scx, range.clone())
+        {
+            ranges.dbg_check(&scx, range);
+            Some(ranges.into_spans(&scx))
+        } else {
+            None
+        }
+    }
+
+    /// Walks this span up the macro call chain to the target context. Returns `None` if the target
+    /// context cannot be found.
+    ///
+    /// Since both early and late lint passes see the expanded code the only way to detect macro
+    /// expanded code is via a span's `SyntaxContext`. This function can be used to get e.g. the
+    /// span of function argument as typed at the caller rather than the span of macro generated
+    /// code that makes up the argument's value.
+    ///
+    /// Given the following code:
+    ///
+    /// ```rust,ignore
+    /// macro_rules! m1 { ($e:expr) => { f1($e) }; }
+    /// macro_rules! m2 { ($e:expr) => { f2(m1!($e)) }; }
+    /// f3(m2!(0))
+    /// ```
+    ///
+    /// This expands to `f3(f2(f1(0)))` with the following `SyntaxContext`s:
+    ///
+    /// |Context     |Contents    |
+    /// |------------|------------|
+    /// |Root context|`f3(_)`, `0`|
+    /// |`m2!`       |`f2(_)`     |
+    /// |`m1!`       |`f1(_)`     |
+    ///
+    /// The following table lists the results of various possible argument combinations:
+    ///
+    /// |Span   |Context     |Result  |
+    /// |-------|------------|--------|
+    /// |`f3(_)`|Root        |`f3(_)` |
+    /// |`f3(_)`|`m1!`, `m2!`|None    |
+    /// |`f2(_)`|Root        |`m2!(0)`|
+    /// |`f2(_)`|`m2!`       |`f2(_)` |
+    /// |`f2(_)`|`m1!`       |None    |
+    /// |`f1(_)`|Root        |`m2!(0)`|
+    /// |`f1(_)`|`m2!`       |`m1!(0)`|
+    /// |`f1(_)`|`m1!`       |`f1(_)` |
+    /// |`0`    |Root        |`0`     |
+    /// |`0`    |`m1!`, `m2!`|None    |
+    #[inline]
+    #[must_use]
+    fn walk_to_ctxt(self, ctxt: SyntaxContext) -> Option<Span>
+    where
+        Self: SpanLike,
+    {
+        #[inline]
+        fn fast(sp: Span, ctxt: SyntaxContext) -> Option<Span> {
+            if sp.ctxt() == ctxt { Some(sp) } else { slow(sp, ctxt) }
+        }
+        #[cold]
+        #[inline(never)]
+        fn slow(sp: Span, ctxt: SyntaxContext) -> Option<Span> {
+            let expn = sp.ctxt().outer_expn_data();
+            if expn.call_site.ctxt() != ctxt {
+                let sp = hygiene::walk_chain(expn.call_site, ctxt);
+                (sp.ctxt() == ctxt).then_some(sp)
+            } else if matches!(expn.kind, ExpnKind::Desugaring(DesugaringKind::RangeExpr)) {
+                // This will include any parenthesis surrounding the range.
+                Some(if cfg!(debug_assertions) {
+                    // The context change is only needed to satisfy debug assertions.
+                    sp.with_ctxt(ctxt)
+                } else {
+                    sp
+                })
+            } else {
+                Some(expn.call_site)
+            }
+        }
+
+        fast(self.span(), ctxt)
+    }
+
+    /// Walks this span up the macro call chain to the root context.
+    ///
+    /// See `walk_to_ctxt` for details.
+    #[inline]
+    #[must_use]
+    fn walk_to_root(self) -> Span
+    where
+        Self: SpanLike,
+    {
+        #[inline]
+        fn fast(sp: Span) -> Span {
+            if sp.from_expansion() { slow(sp) } else { sp }
+        }
+        #[cold]
+        #[inline(never)]
+        fn slow(sp: Span) -> Span {
+            let expn = sp.ctxt().outer_expn_data();
+            if expn.call_site.from_expansion() {
+                hygiene::walk_chain(expn.call_site, SyntaxContext::root())
+            } else if matches!(expn.kind, ExpnKind::Desugaring(DesugaringKind::RangeExpr)) {
+                // This will include any parenthesis surrounding the range.
+                if cfg!(debug_assertions) {
+                    // The context change is only needed to satisfy debug assertions.
+                    sp.with_ctxt(SyntaxContext::root())
+                } else {
+                    sp
+                }
+            } else {
+                expn.call_site
+            }
+        }
+
+        fast(self.span())
+    }
+}
+impl<T: SourceRange> SpanExt for T {}
+
+mod source_text {
+    use rustc_span::SourceFile;
+    use rustc_span::source_map::SourceMap;
+    use std::sync::Arc;
+
+    /// Handle to a substring of text in a source file.
+    #[derive(Clone)]
+    pub struct SourceText {
+        file: Arc<SourceFile>,
+        // This is a pointer into the text owned by the source file. If the source is external
+        // then the `FreezeLock` on the text must be frozen.
+        text: *const str,
+    }
+    impl SourceText {
+        /// Gets the text of the given crate-local file. Returns `None` if the file is non-local.
+        ///
+        /// With debug assertions this will assert that the file is local.
+        #[inline]
+        #[must_use]
+        #[cfg_attr(debug_assertions, track_caller)]
+        pub fn for_local_file(file: Arc<SourceFile>) -> Option<Self> {
+            let text: *const str = if let Some(text) = &file.src {
+                &raw const ***text
+            } else {
+                debug_assert!(
+                    false,
+                    "attempted to access the non-local file `{}` as local.",
+                    file.name.display(rustc_span::FileNameDisplayPreference::Local)
+                );
+                return None;
+            };
+            Some(Self { file, text })
+        }
+
+        /// Gets the text of the given file. Returns `None` if the file's text could not be loaded.
+        #[must_use]
+        pub fn for_external_file(sm: &SourceMap, file: Arc<SourceFile>) -> Option<Self> {
+            let text: *const str = if let Some(text) = &file.src {
+                &raw const ***text
+            } else if !sm.ensure_source_file_source_present(&file) {
+                return None;
+            }
+            // `get` or `freeze` must be used to ensure the contents of the lock cannot change.
+            // Since `ensure_source_file_source_present` calls `freeze` when loading the source
+            // we use `get` to avoid the extra load.
+            else if let Some(src) = file.external_src.get()
+                && let Some(text) = src.get_source()
+            {
+                text
+            } else {
+                return None;
+            };
+            Some(Self { file, text })
+        }
+
+        /// Gets the source text.
+        #[inline]
+        #[must_use]
+        pub fn as_str(&self) -> &str {
+            // SAFETY: `text` is owned by `sf` and comes from either an `Option<Arc<String>>`, or a
+            // frozen `FeezeLock<ExternalSrc>` (which ultimately contains an `Arc<String>`). Neither
+            // of these can change so long as we own `sf`.
+            unsafe { &*self.text }
+        }
+
+        /// Gets the source file containing the text.
+        #[inline]
+        #[must_use]
+        pub fn file(&self) -> &Arc<SourceFile> {
+            &self.file
+        }
+
+        /// Takes ownership of the source file handle.
+        #[inline]
+        #[must_use]
+        pub fn into_file(self) -> Arc<SourceFile> {
+            self.file
+        }
+
+        /// Applies the mapping function to the contained string.
+        #[inline]
+        #[must_use]
+        pub fn map_text(mut self, f: impl FnOnce(&SourceText) -> &str) -> Self {
+            // The only strings that `f` can return are those with a lifetime derived from it's
+            // input, and `'static` strings. Both are safe to use here.
+            self.text = f(&self);
+            self
+        }
+
+        /// Applies the mapping function to the contained string. Returns `None` if the function
+        /// does.
+        #[inline]
+        #[must_use]
+        pub fn try_map_text(mut self, f: impl FnOnce(&SourceText) -> Option<&str>) -> Option<Self> {
+            // The only strings that `f` can return are those with a lifetime derived from it's
+            // input, and `'static` strings. Both are safe to use here.
+            match f(&self) {
+                Some(s) => {
+                    self.text = s;
+                    Some(self)
+                },
+                None => None,
+            }
+        }
+    }
+}
+pub use self::source_text::SourceText;
+impl SourceText {
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    pub fn for_external_range(sm: &SourceMap, range: Range<BytePos>) -> Option<Self> {
+        let sfp = sm.lookup_byte_offset(range.start);
+        let text = Self::for_external_file(sm, sfp.sf)?;
+        let range = RelativeBytePos(sfp.pos.0)..RelativeBytePos(range.end.0.wrapping_sub(text.file().start_pos.0));
+        dbg_check_range(sm, &text, None, range.clone());
+        text.apply_index(range.into_slice_idx())
+    }
+
+    /// Converts this into an owned string.
+    #[inline]
+    #[must_use]
+    pub fn to_owned(&self) -> String {
+        self.as_str().to_owned()
+    }
+
+    /// Applies an indexing operation to the contained string. Returns `None` if the index is
+    /// not valid.
+    #[inline]
+    #[must_use]
+    pub fn apply_index(self, idx: impl SliceIndex<str, Output = str>) -> Option<Self> {
+        self.try_map_text(|s| s.get(idx))
+    }
+}
+impl Deref for SourceText {
+    type Target = str;
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        self.as_str()
+    }
+}
+impl Borrow<str> for SourceText {
+    #[inline]
+    fn borrow(&self) -> &str {
+        self.as_str()
+    }
+}
+impl AsRef<str> for SourceText {
+    #[inline]
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+impl<T> Index<T> for SourceText
+where
+    str: Index<T>,
+{
+    type Output = <str as Index<T>>::Output;
+    #[inline]
+    fn index(&self, idx: T) -> &Self::Output {
+        &self.as_str()[idx]
+    }
+}
+impl fmt::Display for SourceText {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.as_str().fmt(f)
+    }
+}
+impl fmt::Debug for SourceText {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.as_str().fmt(f)
+    }
+}
+
+/// Like `SliceIndex`, but for indexing a file's text rather than any string. This uses
+/// `RelativeBytePos` instead of `usize`.
+pub trait FileIndex {
+    type SliceRange: SliceIndex<str, Output = str>;
+
+    #[must_use]
+    fn into_slice_idx(self) -> Self::SliceRange;
+
+    /// Converts this into a bounded range by limiting unbounded ends to the file's bounds.
+    #[must_use]
+    fn into_file_range(self, scx: &SpanEditCx<'_>) -> FileRange;
+}
+impl FileIndex for RangeFull {
+    type SliceRange = Self;
+    #[inline]
+    fn into_slice_idx(self) -> Self::SliceRange {
+        self
+    }
+    #[inline]
+    fn into_file_range(self, scx: &SpanEditCx<'_>) -> FileRange {
+        RelativeBytePos(0)..scx.file().source_len
+    }
+}
+impl FileIndex for Range<RelativeBytePos> {
+    type SliceRange = Range<usize>;
+    #[inline]
+    fn into_slice_idx(self) -> Self::SliceRange {
+        self.start.to_usize()..self.end.to_usize()
+    }
+    #[inline]
+    fn into_file_range(self, _: &SpanEditCx<'_>) -> FileRange {
+        self
+    }
+}
+impl FileIndex for RangeTo<RelativeBytePos> {
+    type SliceRange = RangeTo<usize>;
+    #[inline]
+    fn into_slice_idx(self) -> Self::SliceRange {
+        ..self.end.to_usize()
+    }
+    #[inline]
+    fn into_file_range(self, _: &SpanEditCx<'_>) -> FileRange {
+        RelativeBytePos(0)..self.end
+    }
+}
+impl FileIndex for RangeFrom<RelativeBytePos> {
+    type SliceRange = RangeFrom<usize>;
+    #[inline]
+    fn into_slice_idx(self) -> Self::SliceRange {
+        self.start.to_usize()..
+    }
+    #[inline]
+    fn into_file_range(self, scx: &SpanEditCx<'_>) -> FileRange {
+        self.start..scx.file().source_len
+    }
+}
+
+/// The range type used for specifying a range within a file.
+pub type FileRange = Range<RelativeBytePos>;
+
+#[cfg_attr(not(debug_assertions), inline)]
+#[cfg_attr(debug_assertions, track_caller)]
+fn dbg_check_range(sm: &SourceMap, text: &SourceText, old: Option<FileRange>, new: FileRange) {
+    #[cfg(debug_assertions)]
+    if text.get(new.clone().into_slice_idx()).is_none() {
+        use core::fmt::Write;
+
+        let file = &**text.file();
+        let mut msg = String::with_capacity(512);
+        let _ = write!(
+            msg,
+            "error: invalid range `{}..{}`: ",
+            // Signed numbers will better show most errors.
+            new.start.0.cast_signed(),
+            new.end.0.cast_signed(),
+        );
+        if new.start > file.source_len || new.end > file.source_len {
+            let _ = write!(
+                msg,
+                "the bounds are outside the current file (len: {})",
+                file.source_len.0,
+            );
+        } else if new.start > new.end {
+            msg.push_str("the start and end overlap");
+        } else {
+            msg.push_str("the ends are not on UTF-8 boundaries");
+        }
+
+        // Attempt to display the new range bounds as line and column positions.
+        let new_start = BytePos(new.start.0.wrapping_add(file.start_pos.0));
+        let new_end = BytePos(new.end.0.wrapping_add(file.start_pos.0));
+        let files_end = sm.files().last().map(|f| f.start_pos.0 + f.source_len.0);
+        let mut print_loc = |label: &str, pos: BytePos| {
+            if files_end.is_some_and(|end| pos.0 <= end) {
+                let sfp = sm.lookup_byte_offset(pos);
+                let file_name = sfp.sf.name.display(FileNameDisplayPreference::Local);
+                if let Some(text) = SourceText::for_external_file(sm, sfp.sf.clone())
+                    && text.get(sfp.pos.to_usize()..).is_some()
+                {
+                    let (line, col, _) = sfp.sf.lookup_file_pos_with_col_display(pos);
+                    let _ = write!(msg, "\n  {label}: {file_name}:{line}:{}", col.to_u32());
+                } else {
+                    let line = sfp.sf.lookup_line(RelativeBytePos(sfp.pos.0)).unwrap_or(0);
+                    let offset = sfp.pos.0 - file.lines()[line].0;
+                    let _ = write!(msg, "\n  {label}: {file_name}:{} + {}", line + 1, offset);
+                }
+            } else {
+                let _ = write!(msg, "\n  {label}: not a file");
+            }
+        };
+        if old.as_ref().is_none_or(|old| new.start != old.start) {
+            print_loc("new start", new_start);
+        }
+        if old.as_ref().is_none_or(|old| new.end != old.end) {
+            print_loc("new end", new_end);
+        }
+
+        // We aren't debug checking the old range, only using it to add additional context.
+        if let Some(old) = old
+            && let Some(old_text) = text.get(old.clone().into_slice_idx())
+        {
+            let old_start = BytePos(old.start.0 + file.start_pos.0);
+            let old_end = BytePos(old.end.0 + file.start_pos.0);
+            let (start_line, start_col, _) = file.lookup_file_pos_with_col_display(old_start);
+            let (end_line, end_col, _) = file.lookup_file_pos_with_col_display(old_end);
+            let _ = write!(
+                msg,
+                "\n  current: {}:{}:{}: {}:{}",
+                file.name.display(FileNameDisplayPreference::Local),
+                start_line,
+                start_col.to_u32(),
+                end_line,
+                end_col.to_u32(),
+            );
+            // Display the old text indented.
+            msg.extend(old_text.split('\n').flat_map(|x| ["\n  ", x]));
+        } else {
+            let _ = write!(
+                msg,
+                "\n  current file: {}",
+                file.name.display(FileNameDisplayPreference::Local)
+            );
+        }
+
+        std::panic::panic_any(msg);
+    };
+}
+
+/// The context used to manipulate source ranges within a single file.
+pub struct SpanEditCx<'sm> {
+    text: SourceText,
+    ctxt: SyntaxContext,
+    parent: Option<LocalDefId>,
+
+    // Used only to create debug assertion messages.
+    #[cfg(debug_assertions)]
+    sm: &'sm SourceMap,
+    #[cfg(not(debug_assertions))]
+    sm: core::marker::PhantomData<&'sm SourceMap>,
+}
+impl<'sm> SpanEditCx<'sm> {
+    /// Creates a new edit context for a span within a single file. Returns `None` if the source
+    /// could not be loaded.
+    ///
+    /// With debug assertions this will validate that the span:
+    /// * Is contained within a single file.
+    /// * The start and end do not overlap.
+    /// * Lies on UTF-8 boundaries.
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    pub fn for_external(sm: &'sm SourceMap, data: SpanData) -> Option<(Self, FileRange)> {
+        let sfp = sm.lookup_byte_offset(data.lo);
+        let end = RelativeBytePos(data.hi.0.wrapping_sub(sfp.sf.start_pos.0));
+
+        let scx = Self {
+            text: SourceText::for_external_file(sm, sfp.sf)?,
+            ctxt: data.ctxt,
+            parent: data.parent,
+
+            #[cfg(debug_assertions)]
+            sm,
+            #[cfg(not(debug_assertions))]
+            sm: core::marker::PhantomData,
+        };
+        scx.dbg_check_range(None, RelativeBytePos(sfp.pos.0)..end);
+        Some((scx, RelativeBytePos(sfp.pos.0)..end))
+    }
+
+    /// Creates a new edit context for a span within a crate-local file. Returns `None` if span is
+    /// within a non-local file.
+    ///
+    /// With debug assertions this will validate that the span:
+    /// * Is within a single crate-local file.
+    /// * The start and end do not overlap.
+    /// * Lies on UTF-8 boundaries.
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    pub fn for_local(sm: &'sm SourceMap, data: SpanData) -> Option<(Self, FileRange)> {
+        let sfp = sm.lookup_byte_offset(data.lo);
+        let end = RelativeBytePos(data.hi.0.wrapping_sub(sfp.sf.start_pos.0));
+
+        let scx = Self {
+            text: SourceText::for_local_file(sfp.sf)?,
+            ctxt: data.ctxt,
+            parent: data.parent,
+
+            #[cfg(debug_assertions)]
+            sm,
+            #[cfg(not(debug_assertions))]
+            sm: core::marker::PhantomData,
+        };
+        scx.dbg_check_range(None, RelativeBytePos(sfp.pos.0)..end);
+        Some((scx, RelativeBytePos(sfp.pos.0)..end))
+    }
+
+    /// Converts this into the inner `SourceText`.
+    #[inline]
+    #[must_use]
+    pub fn into_file_text(self) -> SourceText {
+        self.text
+    }
+
+    /// Converts this into the inner `SourceText` after slicing it. Returns `None` if the text can't
+    /// be indexed by the range.
+    #[inline]
+    #[must_use]
+    pub fn into_sliced_text(self, idx: impl FileIndex) -> Option<SourceText> {
+        self.text.apply_index(idx.into_slice_idx())
+    }
+
+    /// Gets a reference to the contained source file.
+    #[inline]
+    #[must_use]
+    pub fn file(&self) -> &SourceFile {
+        self.text.file()
+    }
+
+    /// Gets the text of the whole file.
+    #[inline]
+    #[must_use]
+    pub fn file_text(&self) -> &str {
+        self.text.as_str()
+    }
+
+    /// Gets a subslice of the file's text. Returns `None` if the range is invalid.
+    #[inline]
+    #[must_use]
+    pub fn get_text(&self, index: impl FileIndex) -> Option<&str> {
+        self.text.as_str().get(index.into_slice_idx())
+    }
+
+    /// Gets a subslice of the file's text. Returns `None` if the span is invalid.
+    ///
+    /// With debug assertions this will validate that the span:
+    /// * Is from the same syntax context.
+    /// * Is contained within the current file.
+    /// * The start and end do not overlap.
+    /// * Lies on UTF-8 boundaries.
+    #[inline]
+    #[must_use]
+    pub fn get_text_by_span(&self, sp: impl SpanLike) -> Option<&str> {
+        self.get_text(self.span_to_file_range(sp))
+    }
+
+    /// Gets a subslice of the file's text. Returns `None` if the range is invalid.
+    ///
+    /// With debug assertions this will validate that the range:
+    /// * Is contained within the current file.
+    /// * The start and end do not overlap.
+    /// * Lies on UTF-8 boundaries.
+    #[inline]
+    #[must_use]
+    pub fn get_text_by_src_range(&self, range: Range<BytePos>) -> Option<&str> {
+        self.get_text(self.src_to_file_range(range))
+    }
+
+    /// Gets the `SyntaxContext` this was created with.
+    #[inline]
+    #[must_use]
+    pub fn ctxt(&self) -> SyntaxContext {
+        self.ctxt
+    }
+
+    /// Checks if this file contains the specified `SourceMap` position.
+    #[inline]
+    #[must_use]
+    pub fn contains_pos(&self, pos: BytePos) -> bool {
+        let file = self.file();
+        pos.0.wrapping_sub(file.start_pos.0) <= file.source_len.0
+    }
+
+    /// Converts the file range into a `SourceMap` range.
+    ///
+    /// With debug assertions this will validate that the range:
+    /// * Is contained within the current file.
+    /// * The start and end do not overlap.
+    /// * Lies on UTF-8 boundaries.
+    #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    pub fn mk_source_range(&self, range: FileRange) -> Range<BytePos> {
+        self.dbg_check_range(None, range.clone());
+        let offset = self.file().start_pos.0;
+        BytePos(range.start.0.wrapping_add(offset))..BytePos(range.end.0.wrapping_add(offset))
+    }
+
+    /// Converts the file range into a `Span`.
+    ///
+    /// With debug assertions this will validate that the range:
+    /// * Is contained within the current file.
+    /// * The start and end do not overlap.
+    /// * Lies on UTF-8 boundaries.
+    #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    pub fn mk_span(&self, range: FileRange) -> Span {
+        let range = self.mk_source_range(range);
+        Span::new(range.start, range.end, self.ctxt, self.parent)
+    }
+
+    /// Converts the span into a file range.
+    ///
+    /// With debug assertions this will validate that the span:
+    /// * Is from the same syntax context.
+    /// * Is contained within the current file.
+    /// * The start and end do not overlap.
+    /// * Lies on UTF-8 boundaries.
+    #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    pub fn span_to_file_range(&self, sp: impl SpanLike) -> FileRange {
+        let data = sp.data();
+        debug_assert_eq!(self.ctxt, data.ctxt);
+        self.src_to_file_range(data.lo..data.hi)
+    }
+
+    /// Converts the `SourceMap` range into a file range.
+    ///
+    /// With debug assertions this will validate that the range:
+    /// * Is contained within the current file.
+    /// * The start and end do not overlap.
+    /// * Lies on UTF-8 boundaries.
+    #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    pub fn src_to_file_range(&self, range: Range<BytePos>) -> FileRange {
+        let offset = self.file().start_pos.0;
+        let range =
+            RelativeBytePos(range.start.0.wrapping_sub(offset))..RelativeBytePos(range.end.0.wrapping_sub(offset));
+        self.dbg_check_range(None, range.clone());
+        range
+    }
+
+    /// Gets the indent text of the line containing the specified position. Returns `None` if the
+    /// position is outside the file's text.
+    ///
+    /// If the position is inside the line indent only the indent up to the position will be
+    /// retrieved.
+    #[must_use]
+    pub fn get_line_indent_before(&self, pos: RelativeBytePos) -> Option<&str> {
+        let file = self.file();
+        let lines = file.lines();
+
+        // `lines` either starts with zero or is empty. If it's empty we can use zero as the line
+        // start.
+        let line = lines.partition_point(|&start| start <= pos);
+        let start = lines.get(line.wrapping_sub(1)).map_or(RelativeBytePos(0), |&x| x);
+        self.get_text(start..pos)
+            .map(|src| &src[..src.len() - src.trim_start().len()])
+    }
+
+    /// Runs debug checks on a range, panicking on failure. Does nothing if debug assertions are
+    /// disabled.
+    ///
+    /// A second range can be given as a previous range before a transformation occurred. This will
+    /// be displayed as additional context in the panic message, but will not cause additional
+    /// validation.
+    #[inline]
+    #[cfg_attr(debug_assertions, track_caller)]
+    pub fn dbg_check_range(&self, old: Option<FileRange>, new: FileRange) {
+        // `cfg` since we only have a source map with debug assertions.
+        #[cfg(debug_assertions)]
+        dbg_check_range(self.sm, &self.text, old, new);
+    }
+}
+
+/// A collection of helper functions for adjusting a range within a file.
+pub trait FileRangeExt: Sized + FileIndex {
+    /// If the range doesn't overlap with the specified span returns the range between the two.
+    /// Returns `None` otherwise.
+    ///
+    /// With debug assertions enabled this will assert that the span:
+    /// * Is within the same `SyntaxContext`
+    /// * Is within the same file as the current range.
+    /// * Lies on a UTF-8 boundary.
+    #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    fn get_range_between(self, scx: &SpanEditCx<'_>, other: impl SpanLike) -> Option<FileRange> {
+        <FileRange as FileRangeExt>::get_range_between(self.into_file_range(scx), scx, other)
+    }
+
+    /// If the range starts at or after the specified position returns the range from that position
+    /// to the end of the range. Returns `None` otherwise.
+    ///
+    /// With debug assertions enabled this will assert that the position:
+    /// * Is within the same `SyntaxContext`
+    /// * Is within the same file.
+    /// * Lies on a UTF-8 boundary.
+    #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    fn extend_start_to(self, scx: &SpanEditCx<'_>, pos: PosWithCtxt) -> Option<FileRange> {
+        <FileRange as FileRangeExt>::extend_start_to(self.into_file_range(scx), scx, pos)
+    }
+
+    /// If the range ends before or at the specified position returns the range from the start of
+    /// the range to that position. Returns `None` otherwise.
+    ///
+    /// With debug assertions enabled this will assert that the position:
+    /// * Is within the same `SyntaxContext`
+    /// * Is within the same file.
+    /// * Lies on a UTF-8 boundary.
+    #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    fn extend_end_to(self, scx: &SpanEditCx<'_>, pos: PosWithCtxt) -> Option<FileRange> {
+        <FileRange as FileRangeExt>::extend_end_to(self.into_file_range(scx), scx, pos)
+    }
+
+    /// If the specified position lies within or at the end of range returns the range from that
+    /// position to the end of the range. Returns `None` otherwise.
+    ///
+    /// With debug assertions enabled this will assert that the position:
+    /// * Is within the same `SyntaxContext`
+    /// * Is within the same file.
+    /// * Lies on a UTF-8 boundary.
+    #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    fn shrink_start_to(self, scx: &SpanEditCx<'_>, pos: PosWithCtxt) -> Option<FileRange> {
+        <FileRange as FileRangeExt>::shrink_start_to(self.into_file_range(scx), scx, pos)
+    }
+
+    /// If the specified position lies within or at the end of range returns the range from the
+    /// start of the range to that position. Returns `None` otherwise.
+    ///
+    /// With debug assertions enabled this will assert that the position:
+    /// * Is within the same `SyntaxContext`
+    /// * Is within the same file.
+    /// * Lies on a UTF-8 boundary.
+    #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    fn shrink_end_to(self, scx: &SpanEditCx<'_>, pos: PosWithCtxt) -> Option<FileRange> {
+        <FileRange as FileRangeExt>::shrink_end_to(self.into_file_range(scx), scx, pos)
+    }
+
+    /// Creates a new file range that represents the result of mapping the text of the specified
+    /// range. Returns `None` if either the mapping function returns `None`, or the range cannot
+    /// index the file's text.
+    ///
+    /// The string returned by the mapping function must be derived from the input string. A
+    /// `'static` lifetime string will not work. This will be asserted if debug assertions are
+    /// enabled.
+    #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    fn map_range_text<'cx, T: IntoSubRanges>(
+        self,
+        scx: &'cx SpanEditCx<'_>,
+        f: impl FnOnce(&'cx str) -> Option<T>,
+    ) -> Option<T::Output> {
+        <FileRange as FileRangeExt>::map_range_text(self.into_file_range(scx), scx, f)
+    }
+
+    /// Extends the range to include all immediately preceding whitespace. Returns `None` if the
+    /// range cannot index the file's text.
     ///
     /// The range will not be expanded if it would cross a line boundary, the line the range would
     /// be extended to ends with a line comment and the text after the range contains a
@@ -167,130 +1167,239 @@ pub trait SpanExt: SpanRange {
     ///
     /// When the range points to `foo`, suggesting to remove the range after it's been extended will
     /// cause the `)` to be placed inside the line comment as `( // Some comment)`.
-    fn with_leading_whitespace<'sm>(self, sm: impl HasSourceMap<'sm>) -> Range<BytePos> {
-        with_leading_whitespace(sm.source_map(), self.into_range())
+    #[inline]
+    #[must_use]
+    fn with_leading_whitespace(self, scx: &SpanEditCx<'_>) -> Option<FileRange> {
+        <FileRange as FileRangeExt>::with_leading_whitespace(self.into_file_range(scx), scx)
     }
 
-    /// Trims the leading whitespace from the range.
-    fn trim_start<'sm>(self, sm: impl HasSourceMap<'sm>) -> Range<BytePos> {
-        trim_start(sm.source_map(), self.into_range())
+    /// Extends the range to include all immediately proceeding whitespace. Returns `None` if the
+    /// range cannot index the file's text.
+    #[inline]
+    #[must_use]
+    fn with_trailing_whitespace(self, scx: &SpanEditCx<'_>) -> Option<FileRange> {
+        <FileRange as FileRangeExt>::with_trailing_whitespace(self.into_file_range(scx), scx)
+    }
+
+    // Extends the range to include the immediately preceding pattern. Returns `None` if the pattern
+    // does not immediately precede the range, or if the range cannot index the file's text.
+    #[inline]
+    #[must_use]
+    fn with_leading_match<P>(self, scx: &SpanEditCx<'_>, pat: P) -> Option<FileRange>
+    where
+        P: Pattern,
+        for<'a> P::Searcher<'a>: ReverseSearcher<'a>,
+    {
+        <FileRange as FileRangeExt>::with_leading_match(self.into_file_range(scx), scx, pat)
+    }
+
+    // Extends the range to include the immediately proceeding pattern. Returns `None` if the pattern
+    // does not immediately proceed the range, or if the range cannot index the file's text.
+    #[inline]
+    #[must_use]
+    fn with_trailing_match(self, scx: &SpanEditCx<'_>, pat: impl Pattern) -> Option<FileRange> {
+        <FileRange as FileRangeExt>::with_trailing_match(self.into_file_range(scx), scx, pat)
     }
 }
-impl<T: SpanRange> SpanExt for T {}
+impl FileRangeExt for FileRange {
+    #[inline]
+    #[cfg_attr(debug_assertions, track_caller)]
+    fn get_range_between(self, scx: &SpanEditCx<'_>, sp: impl SpanLike) -> Option<FileRange> {
+        #[inline]
+        #[cfg_attr(debug_assertions, track_caller)]
+        fn f(self_: FileRange, scx: &SpanEditCx<'_>, sp: SpanData) -> Option<FileRange> {
+            debug_assert_eq!(scx.ctxt, sp.ctxt);
+            let file = scx.file();
+            let other = RelativeBytePos(sp.lo.0.wrapping_sub(file.start_pos.0))
+                ..RelativeBytePos(sp.hi.0.wrapping_sub(file.start_pos.0));
+            scx.dbg_check_range(None, other.clone());
+            if self_.end.0 <= other.start.0 {
+                Some(self_.end..other.start)
+            } else if self_.start.0 >= other.end.0 {
+                Some(other.end..self_.start)
+            } else {
+                None
+            }
+        }
+        f(self, scx, sp.data())
+    }
 
-/// Handle to a range of text in a source file.
-pub struct SourceText(SourceFileRange);
-impl SourceText {
-    /// Takes ownership of the source file handle if the source text is accessible.
-    pub fn new(text: SourceFileRange) -> Option<Self> {
-        if text.as_str().is_some() {
-            Some(Self(text))
+    #[inline]
+    #[cfg_attr(debug_assertions, track_caller)]
+    fn extend_start_to(self, scx: &SpanEditCx<'_>, pos: PosWithCtxt) -> Option<FileRange> {
+        debug_assert_eq!(scx.ctxt, pos.ctxt);
+        let file = scx.file();
+        let pos = RelativeBytePos(pos.pos.0.wrapping_sub(file.start_pos.0));
+        scx.dbg_check_range(None, pos..pos);
+        (pos <= self.start).then_some(pos..self.end)
+    }
+
+    #[inline]
+    #[cfg_attr(debug_assertions, track_caller)]
+    fn extend_end_to(self, scx: &SpanEditCx<'_>, pos: PosWithCtxt) -> Option<FileRange> {
+        debug_assert_eq!(scx.ctxt, pos.ctxt);
+        let file = scx.file();
+        let pos = RelativeBytePos(pos.pos.0.wrapping_sub(file.start_pos.0));
+        scx.dbg_check_range(None, pos..pos);
+        (pos >= self.end).then_some(self.start..pos)
+    }
+
+    #[inline]
+    #[cfg_attr(debug_assertions, track_caller)]
+    fn shrink_start_to(self, scx: &SpanEditCx<'_>, pos: PosWithCtxt) -> Option<FileRange> {
+        debug_assert_eq!(scx.ctxt, pos.ctxt);
+        let file = scx.file();
+        let pos = RelativeBytePos(pos.pos.0.wrapping_sub(file.start_pos.0));
+        scx.dbg_check_range(None, pos..pos);
+        (self.start <= pos && pos <= self.end).then_some(pos..self.end)
+    }
+
+    #[inline]
+    #[cfg_attr(debug_assertions, track_caller)]
+    fn shrink_end_to(self, scx: &SpanEditCx<'_>, pos: PosWithCtxt) -> Option<FileRange> {
+        debug_assert_eq!(scx.ctxt, pos.ctxt);
+        let file = scx.file();
+        let pos = RelativeBytePos(pos.pos.0.wrapping_sub(file.start_pos.0));
+        scx.dbg_check_range(None, pos..pos);
+        (self.start <= pos && pos <= self.end).then_some(self.start..pos)
+    }
+
+    #[inline]
+    #[cfg_attr(debug_assertions, track_caller)]
+    #[allow(clippy::manual_map, reason = "track_caller doesn't work through `map`")]
+    fn map_range_text<'cx, T: IntoSubRanges>(
+        self,
+        scx: &'cx SpanEditCx<'_>,
+        f: impl FnOnce(&'cx str) -> Option<T>,
+    ) -> Option<T::Output> {
+        let file = scx.text.as_str();
+        match file.get(self.start.to_usize()..self.end.to_usize()).and_then(f) {
+            Some(s) => Some(s.into_sub_ranges(file)),
+            None => None,
+        }
+    }
+
+    fn with_leading_whitespace(self, scx: &SpanEditCx<'_>) -> Option<FileRange> {
+        let file = scx.file();
+        let text = scx.file_text();
+        let lines: &[RelativeBytePos] = file.lines();
+        let text_before = text.get(..self.start.to_usize())?.trim_end();
+
+        // Start with the line after the extended range starts.
+        // Note `lines` either starts with zero or is empty.
+        let post_search_line = lines.partition_point(|&pos| pos.to_usize() <= text_before.len());
+        // If this is `None` we're still on the final line.
+        if let Some(&search_line_end) = lines.get(post_search_line)
+            // Did we extend over a line boundary?
+            && search_line_end <= self.start
+            // `lines.get` shouldn't ever fail, but `0` always works as a start position.
+            && let search_start = lines.get(post_search_line - 1).map_or(0, |&x| x.to_usize())
+            && ends_with_line_comment_or_broken(&text_before[search_start..])
+            // We extended into a comment line, check if there's any non-whitespace that would be moved into it.
+            && let next_line = lines.partition_point(|&pos| pos < self.end)
+            && let next_start = lines.get(next_line).map_or(file.source_len, |&x| x)
+            && !text.get(self.end.to_usize()..next_start.to_usize())?.trim_start().is_empty()
+        {
+            // A non-whitespace character would be moved into a comment. Do not change the range.
+            Some(self)
+        } else {
+            Some(RelativeBytePos::from_usize(text_before.len())..self.end)
+        }
+    }
+
+    fn with_trailing_whitespace(self, scx: &SpanEditCx<'_>) -> Option<FileRange> {
+        scx.get_text(self.end..)
+            .map(|s| self.start..RelativeBytePos::from_usize(scx.text.len() - s.trim_start().len()))
+    }
+
+    fn with_leading_match<P>(self, scx: &SpanEditCx<'_>, pat: P) -> Option<FileRange>
+    where
+        P: Pattern,
+        for<'a> P::Searcher<'a>: ReverseSearcher<'a>,
+    {
+        scx.get_text(..self.start)
+            .and_then(|s| s.strip_suffix(pat))
+            .map(|s| RelativeBytePos::from_usize(s.len())..self.end)
+    }
+
+    fn with_trailing_match(self, scx: &SpanEditCx<'_>, pat: impl Pattern) -> Option<FileRange> {
+        scx.get_text(self.end..)
+            .and_then(|s| s.strip_prefix(pat))
+            .map(|s| self.start..RelativeBytePos::from_usize(scx.text.len() - s.len()))
+    }
+}
+impl FileRangeExt for RangeFull {}
+impl FileRangeExt for RangeTo<RelativeBytePos> {}
+impl FileRangeExt for RangeFrom<RelativeBytePos> {}
+
+pub trait StrExt {
+    /// Gets the substring which ranges from the start of the first match of the pattern to the end
+    /// of the second match. Returns `None` if the pattern doesn't occur twice.
+    fn find_bounded_inclusive(&self, pat: impl Pattern) -> Option<&Self>;
+
+    /// Gets the non-overlapping prefix and suffix. Returns `None` if the string doesn't start with
+    /// the prefix or end with the suffix.
+    ///
+    /// The prefix will be taken first, with the suffix taken from the remainder of the string.
+    fn get_prefix_suffix<P>(&self, prefix: impl Pattern, suffix: P) -> Option<[&Self; 2]>
+    where
+        P: Pattern,
+        for<'a> P::Searcher<'a>: ReverseSearcher<'a>;
+
+    /// Splits a string into a prefix and everything proceeding it. Returns `None` if the string
+    /// doesn't start with the prefix.
+    fn split_prefix(&self, pat: impl Pattern) -> Option<[&Self; 2]>;
+
+    /// Splits a string into a suffix and everything preceding it. Returns `None` if the string
+    /// doesn't end with the suffix.
+    fn split_suffix<P>(&self, pat: P) -> Option<[&Self; 2]>
+    where
+        P: Pattern,
+        for<'a> P::Searcher<'a>: ReverseSearcher<'a>;
+}
+impl StrExt for str {
+    fn find_bounded_inclusive(&self, pat: impl Pattern) -> Option<&Self> {
+        let mut iter = self.match_indices(pat);
+        if let Some((first_pos, _)) = iter.next()
+            && let Some((second_pos, second)) = iter.next()
+        {
+            Some(&self[first_pos..second_pos + second.len()])
         } else {
             None
         }
     }
 
-    /// Gets the source text.
-    pub fn as_str(&self) -> &str {
-        self.0.as_str().unwrap()
-    }
-
-    /// Converts this into an owned string.
-    pub fn to_owned(&self) -> String {
-        self.as_str().to_owned()
-    }
-}
-impl Deref for SourceText {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_str()
-    }
-}
-impl AsRef<str> for SourceText {
-    fn as_ref(&self) -> &str {
-        self.as_str()
-    }
-}
-impl<T> Index<T> for SourceText
-where
-    str: Index<T>,
-{
-    type Output = <str as Index<T>>::Output;
-    fn index(&self, idx: T) -> &Self::Output {
-        &self.as_str()[idx]
-    }
-}
-impl fmt::Display for SourceText {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.as_str().fmt(f)
-    }
-}
-impl fmt::Debug for SourceText {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.as_str().fmt(f)
-    }
-}
-
-fn get_source_range(sm: &SourceMap, sp: Range<BytePos>) -> Option<SourceFileRange> {
-    let start = sm.lookup_byte_offset(sp.start);
-    let end = sm.lookup_byte_offset(sp.end);
-    if !Arc::ptr_eq(&start.sf, &end.sf) || start.pos > end.pos {
-        return None;
-    }
-    sm.ensure_source_file_source_present(&start.sf);
-    let range = start.pos.to_usize()..end.pos.to_usize();
-    Some(SourceFileRange { sf: start.sf, range })
-}
-
-fn with_source_text<T>(sm: &SourceMap, sp: Range<BytePos>, f: impl for<'a> FnOnce(&'a str) -> T) -> Option<T> {
-    if let Some(src) = get_source_range(sm, sp)
-        && let Some(src) = src.as_str()
+    fn get_prefix_suffix<P>(&self, prefix: impl Pattern, suffix: P) -> Option<[&Self; 2]>
+    where
+        P: Pattern,
+        for<'a> P::Searcher<'a>: ReverseSearcher<'a>,
     {
-        Some(f(src))
-    } else {
-        None
+        if let Some([pre, s]) = self.split_prefix(prefix)
+            && let Some([_, suf]) = s.split_suffix(suffix)
+        {
+            Some([pre, suf])
+        } else {
+            None
+        }
     }
-}
 
-fn with_source_text_and_range<T>(
-    sm: &SourceMap,
-    sp: Range<BytePos>,
-    f: impl for<'a> FnOnce(&'a str, Range<usize>) -> T,
-) -> Option<T> {
-    if let Some(src) = get_source_range(sm, sp)
-        && let Some(text) = &src.sf.src
+    #[inline]
+    fn split_prefix(&self, pat: impl Pattern) -> Option<[&Self; 2]> {
+        self.strip_prefix(pat)
+            .map(|rest| [&self[..self.len() - rest.len()], rest])
+    }
+
+    #[inline]
+    fn split_suffix<P>(&self, pat: P) -> Option<[&Self; 2]>
+    where
+        P: Pattern,
+        for<'a> P::Searcher<'a>: ReverseSearcher<'a>,
     {
-        Some(f(text, src.range))
-    } else {
-        None
+        self.strip_suffix(pat).map(|rest| [rest, &self[rest.len()..]])
     }
 }
 
-#[expect(clippy::cast_possible_truncation)]
-fn map_range(
-    sm: &SourceMap,
-    sp: Range<BytePos>,
-    f: impl for<'a> FnOnce(&'a SourceFile, &'a str, Range<usize>) -> Option<Range<usize>>,
-) -> Option<Range<BytePos>> {
-    if let Some(src) = get_source_range(sm, sp.clone())
-        && let Some(text) = &src.sf.src
-        && let Some(range) = f(&src.sf, text, src.range.clone())
-    {
-        debug_assert!(
-            range.start <= text.len() && range.end <= text.len(),
-            "Range `{range:?}` is outside the source file (file `{}`, length `{}`)",
-            src.sf.name.display(FileNameDisplayPreference::Local),
-            text.len(),
-        );
-        debug_assert!(range.start <= range.end, "Range `{range:?}` has overlapping bounds");
-        let dstart = (range.start as u32).wrapping_sub(src.range.start as u32);
-        let dend = (range.end as u32).wrapping_sub(src.range.start as u32);
-        Some(BytePos(sp.start.0.wrapping_add(dstart))..BytePos(sp.start.0.wrapping_add(dend)))
-    } else {
-        None
-    }
-}
-
+/// Checks if the last token of the string is either a line comment or an incomplete token.
 fn ends_with_line_comment_or_broken(text: &str) -> bool {
     let Some(last) = tokenize(text, FrontmatterAllowed::No).last() else {
         return false;
@@ -311,55 +1420,6 @@ fn ends_with_line_comment_or_broken(text: &str) -> bool {
                 | LiteralKind::RawStr { n_hashes: None }
         ),
         _ => false,
-    }
-}
-
-fn with_leading_whitespace_inner(lines: &[RelativeBytePos], src: &str, range: Range<usize>) -> Option<usize> {
-    debug_assert!(lines.is_empty() || lines[0].to_u32() == 0);
-
-    let start = src.get(..range.start)?.trim_end();
-    let next_line = lines.partition_point(|&pos| pos.to_usize() <= start.len());
-    if let Some(line_end) = lines.get(next_line)
-        && line_end.to_usize() <= range.start
-        && let prev_start = lines.get(next_line - 1).map_or(0, |&x| x.to_usize())
-        && ends_with_line_comment_or_broken(&start[prev_start..])
-        && let next_line = lines.partition_point(|&pos| pos.to_usize() < range.end)
-        && let next_start = lines.get(next_line).map_or(src.len(), |&x| x.to_usize())
-        && tokenize(src.get(range.end..next_start)?, FrontmatterAllowed::No)
-            .any(|t| !matches!(t.kind, TokenKind::Whitespace))
-    {
-        Some(range.start)
-    } else {
-        Some(start.len())
-    }
-}
-
-fn with_leading_whitespace(sm: &SourceMap, sp: Range<BytePos>) -> Range<BytePos> {
-    map_range(sm, sp.clone(), |sf, src, range| {
-        Some(with_leading_whitespace_inner(sf.lines(), src, range.clone())?..range.end)
-    })
-    .unwrap_or(sp)
-}
-
-fn trim_start(sm: &SourceMap, sp: Range<BytePos>) -> Range<BytePos> {
-    map_range(sm, sp.clone(), |_, src, range| {
-        let src = src.get(range.clone())?;
-        Some(range.start + (src.len() - src.trim_start().len())..range.end)
-    })
-    .unwrap_or(sp)
-}
-
-pub struct SourceFileRange {
-    pub sf: Arc<SourceFile>,
-    pub range: Range<usize>,
-}
-impl SourceFileRange {
-    /// Attempts to get the text from the source file. This can fail if the source text isn't
-    /// loaded.
-    pub fn as_str(&self) -> Option<&str> {
-        (self.sf.src.as_ref().map(|src| src.as_str()))
-            .or_else(|| self.sf.external_src.get()?.get_source())
-            .and_then(|x| x.get(self.range.clone()))
     }
 }
 
