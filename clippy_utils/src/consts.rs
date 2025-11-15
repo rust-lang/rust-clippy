@@ -5,7 +5,7 @@
 #![expect(clippy::float_cmp)]
 
 use crate::res::MaybeDef;
-use crate::source::{SpanExt, walk_span_to_context};
+use crate::source::{FileRangeExt, SpanExt};
 use crate::{clip, is_direct_expn_of, sext, sym, unsext};
 
 use rustc_abi::Size;
@@ -898,11 +898,9 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
             // Try to detect any `cfg`ed statements or empty macro expansions.
             let span = block.span.data();
             if span.ctxt == SyntaxContext::root() {
-                if let Some(expr_span) = walk_span_to_context(expr.span, span.ctxt)
-                    && let expr_lo = expr_span.lo()
-                    && expr_lo >= span.lo
-                    && let Some(src) = (span.lo..expr_lo).get_source_range(self.tcx)
-                    && let Some(src) = src.as_str()
+                if let Some((scx, range)) = span.mk_edit_cx(self.tcx)
+                    && let Some(search_range) = range.shrink_end_to(&scx, expr.span.walk_to_root().lo_ctxt())
+                    && let Some(src) = scx.get_text(search_range)
                 {
                     use rustc_lexer::TokenKind::{BlockComment, LineComment, OpenBrace, Semi, Whitespace};
                     if !tokenize(src, FrontmatterAllowed::No)

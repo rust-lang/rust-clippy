@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::SpanExt;
+use clippy_utils::source::{FileRangeExt, SpanExt};
 use rustc_errors::Applicability;
 use rustc_hir::{BorrowKind, Expr, ExprKind, Mutability};
 use rustc_lint::{LateContext, LateLintPass};
@@ -85,34 +85,32 @@ fn check_arguments<'tcx>(
         let parameters = type_definition.fn_sig(cx.tcx).skip_binder().inputs();
         for (argument, parameter) in iter::zip(arguments, parameters) {
             if let ty::Ref(_, _, Mutability::Not) | ty::RawPtr(_, Mutability::Not) = parameter.kind()
-                && let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Mut, arg) = argument.kind
+                && let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Mut, _) = argument.kind
+                && let Some(mut_span) = argument.span.map_range(cx, |scx, range| {
+                    range.map_range_text(scx, |src| {
+                        src.trim_start_matches(|c: char| c.is_whitespace() || c == '(')
+                            .strip_prefix('&')
+                            .and_then(|s| {
+                                // Get just the `mut` and surrounding whitespace.
+                                s.trim_start()
+                                    .strip_prefix("mut")
+                                    .map(|x| &s[..s.len() - x.trim_start().len()])
+                            })
+                    })
+                })
             {
-                let applicability = Applicability::MachineApplicable;
-
-                let span_to_remove = {
-                    let span_until_arg = argument.span.until(arg.span);
-                    if let Some(Some(ref_pos)) = span_until_arg.with_source_text(cx, |src| {
-                        src
-                            // we don't use `strip_prefix` here, because `argument` might be enclosed in parens, in
-                            // which case `&` is no longer the prefix
-                            .find('&')
-                            // just a sanity check, in case some proc-macro messes up the spans
-                            .filter(|ref_pos| src[*ref_pos..].contains("mut"))
-                    }) && let Ok(lo) = u32::try_from(ref_pos + '&'.len_utf8())
-                    {
-                        span_until_arg.split_at(lo).1
-                    } else {
-                        return;
-                    }
-                };
-
                 span_lint_and_then(
                     cx,
                     UNNECESSARY_MUT_PASSED,
                     argument.span,
                     format!("the {fn_kind} `{name}` doesn't need a mutable reference"),
                     |diag| {
-                        diag.span_suggestion_verbose(span_to_remove, "remove this `mut`", String::new(), applicability);
+                        diag.span_suggestion_verbose(
+                            mut_span,
+                            "remove this `mut`",
+                            String::new(),
+                            Applicability::MachineApplicable,
+                        );
                     },
                 );
             }

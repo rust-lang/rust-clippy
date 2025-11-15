@@ -1,10 +1,14 @@
-#![feature(box_patterns)]
-#![feature(if_let_guard)]
-#![feature(macro_metavar_expr)]
-#![feature(never_type)]
-#![feature(rustc_private)]
-#![feature(assert_matches)]
-#![feature(unwrap_infallible)]
+#![feature(
+    assert_matches,
+    box_patterns,
+    if_let_guard,
+    macro_metavar_expr,
+    maybe_uninit_array_assume_init,
+    never_type,
+    pattern,
+    rustc_private,
+    unwrap_infallible
+)]
 #![cfg_attr(bootstrap, feature(array_windows))]
 #![recursion_limit = "512"]
 #![allow(
