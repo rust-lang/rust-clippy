@@ -1,8 +1,12 @@
-#![feature(box_patterns)]
-#![feature(macro_metavar_expr)]
-#![feature(never_type)]
-#![feature(rustc_private)]
-#![feature(unwrap_infallible)]
+#![feature(
+    box_patterns,
+    macro_metavar_expr,
+    maybe_uninit_array_assume_init,
+    never_type,
+    pattern,
+    rustc_private,
+    unwrap_infallible
+)]
 #![recursion_limit = "512"]
 #![allow(clippy::missing_errors_doc, clippy::missing_panics_doc, clippy::must_use_candidate)]
 #![warn(
@@ -2814,6 +2818,7 @@ pub fn tokenize_with_text(s: &str) -> impl Iterator<Item = (TokenKind, &str, Inn
 
 /// Checks whether a given span has any comment token
 /// This checks for all types of comment: line "//", block "/**", doc "///" "//!"
+#[cfg_attr(debug_assertions, track_caller)]
 pub fn span_contains_comment<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> bool {
     span.check_text(sm, |snippet| {
         tokenize(snippet, FrontmatterAllowed::No).any(|token| {
@@ -2829,6 +2834,7 @@ pub fn span_contains_comment<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> boo
 /// token, including comments unless `skip_comments` is set.
 /// This is useful to determine if there are any actual code tokens in the span that are omitted in
 /// the late pass, such as platform-specific code.
+#[cfg_attr(debug_assertions, track_caller)]
 pub fn span_contains_non_whitespace<'sm>(sm: impl HasSourceMap<'sm>, span: Span, skip_comments: bool) -> bool {
     span.check_text(sm, |snippet| {
         tokenize_with_text(snippet).any(|(token, _, _)| match token {
@@ -2842,6 +2848,7 @@ pub fn span_contains_non_whitespace<'sm>(sm: impl HasSourceMap<'sm>, span: Span,
 /// Returns all the comments a given span contains
 ///
 /// Comments are returned wrapped with their relevant delimiters
+#[cfg_attr(debug_assertions, track_caller)]
 pub fn span_extract_comment<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> String {
     span_extract_comments(sm, span).join("\n")
 }
@@ -2849,14 +2856,14 @@ pub fn span_extract_comment<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> Stri
 /// Returns all the comments a given span contains.
 ///
 /// Comments are returned wrapped with their relevant delimiters.
+#[cfg_attr(debug_assertions, track_caller)]
 pub fn span_extract_comments<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> Vec<String> {
-    span.with_source_text(sm, |snippet| {
-        tokenize_with_text(snippet)
+    span.get_text(sm).map_or(Vec::new(), |s| {
+        tokenize_with_text(&s)
             .filter(|(t, ..)| matches!(t, TokenKind::BlockComment { .. } | TokenKind::LineComment { .. }))
             .map(|(_, s, _)| s.to_string())
             .collect::<Vec<_>>()
     })
-    .unwrap_or_default()
 }
 
 pub fn span_find_starting_semi(sm: &SourceMap, span: Span) -> Span {
