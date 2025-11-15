@@ -1,0 +1,69 @@
+error: using `chunks_exact` with a constant chunk size
+  --> tests/ui/chunks_exact_with_const_size.rs:9:24
+   |
+LL |     let result = slice.chunks_exact(4);
+   |                        ^^^^^^^^^^^^^^^
+   |
+help: consider using `as_chunks::<4>()` instead
+  --> tests/ui/chunks_exact_with_const_size.rs:9:24
+   |
+LL |     let result = slice.chunks_exact(4);
+   |                        ^^^^^^^^^^^^^^^
+   = note: you can access the chunks using `result.0.iter()`, and the remainder using `result.1`
+   = note: `-D clippy::chunks-exact-with-const-size` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::chunks_exact_with_const_size)]`
+
+error: using `chunks_exact` with a constant chunk size
+  --> tests/ui/chunks_exact_with_const_size.rs:14:24
+   |
+LL |     let result = slice.chunks_exact(CHUNK_SIZE);
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using `as_chunks::<CHUNK_SIZE>()` instead
+  --> tests/ui/chunks_exact_with_const_size.rs:14:24
+   |
+LL |     let result = slice.chunks_exact(CHUNK_SIZE);
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: you can access the chunks using `result.0.iter()`, and the remainder using `result.1`
+
+error: using `chunks_exact` with a constant chunk size
+  --> tests/ui/chunks_exact_with_const_size.rs:23:24
+   |
+LL |     let result = slice.chunks_exact(3);
+   |                        ^^^^^^^^^^^^^^^
+   |
+help: consider using `as_chunks::<3>()` instead
+  --> tests/ui/chunks_exact_with_const_size.rs:23:24
+   |
+LL |     let result = slice.chunks_exact(3);
+   |                        ^^^^^^^^^^^^^^^
+   = note: you can access the chunks using `result.0.iter()`, and the remainder using `result.1`
+
+error: using `chunks_exact_mut` with a constant chunk size
+  --> tests/ui/chunks_exact_with_const_size.rs:28:22
+   |
+LL |     let result = arr.chunks_exact_mut(4);
+   |                      ^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using `as_chunks_mut::<4>()` instead
+  --> tests/ui/chunks_exact_with_const_size.rs:28:22
+   |
+LL |     let result = arr.chunks_exact_mut(4);
+   |                      ^^^^^^^^^^^^^^^^^^^
+   = note: you can access the chunks using `result.0.iter()`, and the remainder using `result.1`
+
+error: using `chunks_exact` with a constant chunk size
+  --> tests/ui/chunks_exact_with_const_size.rs:37:10
+   |
+LL |         .chunks_exact(2);
+   |          ^^^^^^^^^^^^^^^
+   |
+help: consider using `as_chunks::<2>()` instead
+  --> tests/ui/chunks_exact_with_const_size.rs:37:10
+   |
+LL |         .chunks_exact(2);
+   |          ^^^^^^^^^^^^^^^
+   = note: you can access the chunks using `result.0.iter()`, and the remainder using `result.1`
+
+error: aborting due to 5 previous errors
+
