@@ -105,32 +105,35 @@ pub fn has_non_exhaustive_attr(tcx: TyCtxt<'_>, adt: AdtDef<'_>) -> bool {
             .any(|field_def| find_attr!(tcx, field_def.did, NonExhaustive(..)))
 }
 
-/// Checks whether the given span contains a `#[cfg(..)]` attribute
+/// Checks whether the given span contains a `#[cfg(..)]` attribute.
 pub fn span_contains_cfg(cx: &LateContext<'_>, s: Span) -> bool {
-    s.check_text(cx, |src| {
-        // PERF: A `#[cfg]` needs a literal `#`, so skip the lexer when the source has none.
-        if !src.contains('#') {
-            return false;
-        }
+    s.check_text(cx, text_contains_cfg)
+}
 
-        let mut iter = tokenize_with_text(src);
+/// Checks whether the text contains a `#[cfg(..)]` attribute.
+pub fn text_contains_cfg(src: &str) -> bool {
+    // PERF: A `#[cfg]` needs a literal `#`, so skip the lexer when the source has none.
+    if !src.contains('#') {
+        return false;
+    }
 
-        // Search for the token sequence [`#`, `[`, `cfg`]
-        while iter.any(|(t, ..)| matches!(t, TokenKind::Pound)) {
-            let mut iter = iter.by_ref().skip_while(|(t, ..)| {
-                matches!(
-                    t,
-                    TokenKind::Whitespace | TokenKind::LineComment { .. } | TokenKind::BlockComment { .. }
-                )
-            });
-            if matches!(iter.next(), Some((TokenKind::OpenBracket, ..)))
-                && matches!(iter.next(), Some((TokenKind::Ident, "cfg", _)))
-            {
-                return true;
-            }
+    let mut iter = tokenize_with_text(src);
+
+    // Search for the token sequence [`#`, `[`, `cfg`]
+    while iter.any(|(t, ..)| matches!(t, TokenKind::Pound)) {
+        let mut iter = iter.by_ref().skip_while(|(t, ..)| {
+            matches!(
+                t,
+                TokenKind::Whitespace | TokenKind::LineComment { .. } | TokenKind::BlockComment { .. }
+            )
+        });
+        if matches!(iter.next(), Some((TokenKind::OpenBracket, ..)))
+            && matches!(iter.next(), Some((TokenKind::Ident, "cfg", _)))
+        {
+            return true;
         }
-        false
-    })
+    }
+    false
 }
 
 /// Currently used to keep track of the current value of `#[clippy::cognitive_complexity(N)]`

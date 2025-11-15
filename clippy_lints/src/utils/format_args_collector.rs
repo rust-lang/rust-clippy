@@ -1,5 +1,5 @@
 use clippy_utils::macros::FormatArgsStorage;
-use clippy_utils::source::{SpanExt, walk_span_to_context};
+use clippy_utils::source::SpanExt;
 use rustc_ast::{Crate, Expr, ExprKind, FormatArgs};
 use rustc_data_structures::fx::FxHashMap;
 use rustc_lexer::{FrontmatterAllowed, TokenKind, tokenize};
@@ -43,7 +43,6 @@ impl EarlyLintPass for FormatArgsCollector {
         self.storage.set(mem::take(&mut self.format_args));
     }
 }
-
 impl FormatArgsCollector {
     /// Detects if the format string or an argument has its span set by a proc macro to something
     /// inside a macro callsite, e.g.
@@ -68,8 +67,8 @@ impl FormatArgsCollector {
         let mut fmt_sp = fmt_sp.data();
 
         // Find the first macro call that contains the format string.
-        let arg_sp = if let Some(arg_sp) = walk_span_to_context(args.span, fmt_sp.ctxt) {
-            arg_sp.data()
+        let arg_sp = if let Some(arg_sp) = args.span.walk_into_other(&fmt_sp) {
+            arg_sp
         } else {
             // Try to find a common parent for the format call and the format string.
             self.parent_spans.clear();
@@ -98,10 +97,7 @@ impl FormatArgsCollector {
         if fmt_sp.ctxt.in_external_macro(sm) {
             return true;
         }
-        let Some(src) = arg_sp.get_source_range(sm) else {
-            return true;
-        };
-        let Some(src_text) = src.sf.src.as_ref().map(|x| &***x) else {
+        let Some((scx, arg_range)) = arg_sp.mk_edit_cx(sm) else {
             return true;
         };
 
@@ -109,11 +105,9 @@ impl FormatArgsCollector {
         args.arguments
             .explicit_args()
             .iter()
-            .try_fold(src.range.end, |start, arg| {
-                let expr_sp = walk_span_to_context(arg.expr.span, fmt_sp.ctxt)?.data();
-                let expr_start = (expr_sp.lo.0 - src.sf.start_pos.0) as usize;
-                let expr_end = (expr_sp.hi.0 - src.sf.start_pos.0) as usize;
-                let mut tks = tokenize(src_text.get(start..expr_start)?, FrontmatterAllowed::No)
+            .try_fold(arg_range.end, |start, arg| {
+                let range = scx.span_to_file_range(arg.expr.span.walk_into_other(&fmt_sp)?);
+                let mut tks = tokenize(scx.get_text(start..range.start)?, FrontmatterAllowed::No)
                     .map(|x| x.kind)
                     .filter(|x| {
                         !matches!(
@@ -135,7 +129,7 @@ impl FormatArgsCollector {
                         None => true,
                     }
                     && tks.next().is_none();
-                matches.then_some(expr_end)
+                matches.then_some(range.end)
             })
             .is_none()
     }
