@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::{SpanExt, snippet_with_applicability, snippet_with_context};
+use clippy_utils::source::{FileRangeExt, SpanExt, snippet_with_applicability, snippet_with_context};
 use rustc_ast::ast::{Expr, ExprKind, MethodCall};
 use rustc_errors::Applicability;
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
@@ -102,18 +102,20 @@ impl EarlyLintPass for DoubleParens {
 
 /// Check that the span does indeed look like `(  (..)  )`
 fn check_source(cx: &EarlyContext<'_>, inner: &Expr) -> bool {
-    if let Some(sfr) = inner.span.get_source_range(cx)
-        // this is the same as `SourceFileRange::as_str`, but doesn't apply the range right away, because
-        // we're interested in the source code outside it
-        && let Some(src) = sfr.sf.src.as_ref().map(|src| src.as_str())
-        && let Some((start, outer_after_inner)) = src.split_at_checked(sfr.range.end)
-        && let Some((outer_before_inner, inner)) = start.split_at_checked(sfr.range.start)
-        && outer_before_inner.trim_end().ends_with('(')
-        && inner.starts_with('(')
-        && inner.ends_with(')')
-        && outer_after_inner.trim_start().starts_with(')')
-        // Don't lint macro repetition patterns like `($($result),*)` where parens are necessary
-        && !inner.trim_start_matches('(').trim_start().starts_with("$(")
+    if let Some((scx, range)) = inner.span.mk_edit_cx(cx)
+        && let Some(text) = scx.get_text(range.clone())
+        && let Some(text) = text.strip_prefix('(')
+        && let Some(text) = text.strip_suffix(')')
+        // Don't lint pattern expansions. e.g. `(($($var)*))` may expand to `((foo))` or
+        // `((foo, bar))` depending on what `$var` expands to.
+        && !text
+            .trim_start()
+            .strip_prefix('$')
+            .is_some_and(|text| text.trim_start().starts_with('('))
+        && let Some(range) = range.with_trailing_whitespace(&scx)
+        && let Some(range) = range.with_leading_whitespace(&scx)
+        && let Some(range) = range.with_trailing_match(&scx, ')')
+        && range.with_leading_match(&scx, '(').is_some()
     {
         true
     } else {

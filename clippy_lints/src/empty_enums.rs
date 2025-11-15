@@ -63,6 +63,7 @@ impl LateLintPass<'_> for EmptyEnums {
             && def.variants.is_empty()
             // Only suggest the `never_type` if the feature is enabled
             && cx.tcx.features().never_type()
+            && !item.span.in_external_macro(cx.tcx.sess.source_map())
             && !span_contains_cfg(cx, item.span)
         {
             span_lint_and_help(

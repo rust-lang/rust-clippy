@@ -1,12 +1,12 @@
 use super::UNUSED_ENUMERATE_INDEX;
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::res::MaybeDef;
-use clippy_utils::source::{SpanExt, walk_span_to_context};
+use clippy_utils::source::{FileRangeExt, SpanExt};
 use clippy_utils::{expr_or_init, pat_is_wild};
 use rustc_errors::Applicability;
 use rustc_hir::{Closure, Expr, ExprKind, Pat, PatKind, TyKind};
 use rustc_lint::LateContext;
-use rustc_span::{Span, SyntaxContext, sym};
+use rustc_span::{Span, sym};
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,
@@ -26,13 +26,8 @@ pub(super) fn check<'tcx>(
         && !pat.span.from_expansion()
         && !idx_pat.span.from_expansion()
         && !inner_pat.span.from_expansion()
-        && let Some(enumerate_range) = enumerate_span.map_range(cx, |_, text, range| {
-            text.get(..range.start)?
-                .ends_with('.')
-                .then_some(range.start - 1..range.end)
-        })
+        && let Some(enumerate_span) = enumerate_span.map_range(cx, |scx, range| range.with_leading_match(scx, '.'))
     {
-        let enumerate_span = Span::new(enumerate_range.start, enumerate_range.end, SyntaxContext::root(), None);
         span_lint_hir_and_then(
             cx,
             UNUSED_ENUMERATE_INDEX,
@@ -73,10 +68,7 @@ pub(super) fn check_method<'tcx>(
         && !param.span.from_expansion()
     {
         let ty_spans = if let TyKind::Tup([_, inner]) = input.kind {
-            let Some(inner) = walk_span_to_context(inner.span, SyntaxContext::root()) else {
-                return;
-            };
-            Some((input.span, inner))
+            Some((input.span, inner.span.walk_to_root()))
         } else {
             None
         };
