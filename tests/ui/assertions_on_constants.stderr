@@ -89,15 +89,15 @@ LL |     const _: () = assert!(true);
    = help: remove the assertion
 
 error: this assertion is always `true`
-  --> tests/ui/assertions_on_constants.rs:57:5
+  --> tests/ui/assertions_on_constants.rs:59:9
    |
-LL |     assert!(8 == (7 + 1));
-   |     ^^^^^^^^^^^^^^^^^^^^^
+LL |         assert!(8 == (7 + 1));
+   |         ^^^^^^^^^^^^^^^^^^^^^
    |
    = help: remove the assertion
 
 error: this assertion is always `true`
-  --> tests/ui/assertions_on_constants.rs:68:5
+  --> tests/ui/assertions_on_constants.rs:71:5
    |
 LL |     assert!(true);
    |     ^^^^^^^^^^^^^
@@ -105,15 +105,15 @@ LL |     assert!(true);
    = help: remove the assertion
 
 error: this assertion is always `true`
-  --> tests/ui/assertions_on_constants.rs:71:5
+  --> tests/ui/assertions_on_constants.rs:76:9
    |
-LL |     assert!(8 == (7 + 1));
-   |     ^^^^^^^^^^^^^^^^^^^^^
+LL |         assert!(8 == (7 + 1));
+   |         ^^^^^^^^^^^^^^^^^^^^^
    |
    = help: remove the assertion
 
 error: this assertion has a constant value
-  --> tests/ui/assertions_on_constants.rs:79:5
+  --> tests/ui/assertions_on_constants.rs:85:5
    |
 LL |     assert!(C);
    |     ^^^^^^^^^^
@@ -121,7 +121,7 @@ LL |     assert!(C);
    = help: consider moving this to an anonymous constant: `const _: () = { assert!(..); }`
 
 error: this assertion has a constant value
-  --> tests/ui/assertions_on_constants.rs:90:5
+  --> tests/ui/assertions_on_constants.rs:96:5
    |
 LL |     assert!(C);
    |     ^^^^^^^^^^
@@ -129,7 +129,7 @@ LL |     assert!(C);
    = help: consider moving this into a const block: `const { assert!(..) }`
 
 error: this assertion has a constant value
-  --> tests/ui/assertions_on_constants.rs:96:5
+  --> tests/ui/assertions_on_constants.rs:102:5
    |
 LL |     assert!(C);
    |     ^^^^^^^^^^

@@ -31,8 +31,11 @@ fn main() {
         }
     }
 
-    assert!(var == 1, "p5 {var}");
-    //~[edition2021]^ uninlined_format_args
-    debug_assert!(var == 1, "p6 {var}");
-    //~[edition2021]^ uninlined_format_args
+    #[allow(clippy::manual_assert_eq)]
+    {
+        assert!(var == 1, "p5 {var}");
+        //~[edition2021]^ uninlined_format_args
+        debug_assert!(var == 1, "p6 {var}");
+        //~[edition2021]^ uninlined_format_args
+    }
 }
