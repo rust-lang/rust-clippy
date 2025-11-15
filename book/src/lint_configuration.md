@@ -892,6 +892,7 @@ The minimum rust version that the project supports. Defaults to the `rust-versio
 * [`mem_replace_option_with_some`](https://rust-lang.github.io/rust-clippy/master/index.html#mem_replace_option_with_some)
 * [`mem_replace_with_default`](https://rust-lang.github.io/rust-clippy/master/index.html#mem_replace_with_default)
 * [`missing_const_for_fn`](https://rust-lang.github.io/rust-clippy/master/index.html#missing_const_for_fn)
+* [`multiple_unsafe_ops_per_block`](https://rust-lang.github.io/rust-clippy/master/index.html#multiple_unsafe_ops_per_block)
 * [`needless_borrow`](https://rust-lang.github.io/rust-clippy/master/index.html#needless_borrow)
 * [`non_std_lazy_statics`](https://rust-lang.github.io/rust-clippy/master/index.html#non_std_lazy_statics)
 * [`option_as_ref_deref`](https://rust-lang.github.io/rust-clippy/master/index.html#option_as_ref_deref)

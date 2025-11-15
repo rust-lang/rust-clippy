@@ -1,14 +1,16 @@
-use clippy_utils::desugar_await;
+use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::visitors::{Descend, Visitable, for_each_expr};
-use core::ops::ControlFlow::Continue;
+use clippy_utils::msrvs::Msrv;
+use clippy_utils::{desugar_await, msrvs};
 use hir::def::{DefKind, Res};
 use hir::{BlockCheckMode, ExprKind, QPath, UnOp};
-use rustc_ast::Mutability;
+use rustc_ast::{BorrowKind, Mutability};
 use rustc_hir as hir;
+use rustc_hir::intravisit::{Visitor, walk_body, walk_expr};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty;
-use rustc_session::declare_lint_pass;
+use rustc_middle::hir::nested_filter;
+use rustc_middle::ty::{self, TypeckResults};
+use rustc_session::impl_lint_pass;
 use rustc_span::{DesugaringKind, Span};
 
 declare_clippy_lint! {
@@ -60,7 +62,18 @@ declare_clippy_lint! {
     restriction,
     "more than one unsafe operation per `unsafe` block"
 }
-declare_lint_pass!(MultipleUnsafeOpsPerBlock => [MULTIPLE_UNSAFE_OPS_PER_BLOCK]);
+
+pub struct MultipleUnsafeOpsPerBlock {
+    msrv: Msrv,
+}
+
+impl_lint_pass!(MultipleUnsafeOpsPerBlock => [MULTIPLE_UNSAFE_OPS_PER_BLOCK]);
+
+impl MultipleUnsafeOpsPerBlock {
+    pub fn new(conf: &Conf) -> Self {
+        Self { msrv: conf.msrv }
+    }
+}
 
 impl<'tcx> LateLintPass<'tcx> for MultipleUnsafeOpsPerBlock {
     fn check_block(&mut self, cx: &LateContext<'tcx>, block: &'tcx hir::Block<'_>) {
@@ -70,8 +83,7 @@ impl<'tcx> LateLintPass<'tcx> for MultipleUnsafeOpsPerBlock {
         {
             return;
         }
-        let mut unsafe_ops = vec![];
-        collect_unsafe_exprs(cx, block, &mut unsafe_ops);
+        let unsafe_ops = UnsafeExprCollector::collect_unsafe_exprs(cx, block, self.msrv);
         if unsafe_ops.len() > 1 {
             span_lint_and_then(
                 cx,
@@ -91,25 +103,77 @@ impl<'tcx> LateLintPass<'tcx> for MultipleUnsafeOpsPerBlock {
     }
 }
 
-fn collect_unsafe_exprs<'tcx>(
-    cx: &LateContext<'tcx>,
-    node: impl Visitable<'tcx>,
-    unsafe_ops: &mut Vec<(&'static str, Span)>,
-) {
-    for_each_expr(cx, node, |expr| {
+#[derive(Clone, Copy)]
+enum UnderRawPtr {
+    /// The expression is not located under a raw pointer
+    No,
+    /// The expression is located under a raw pointer, MSRV yet unknown
+    Yes,
+    /// The expression is located under a raw pointer and MSRV has been determined.
+    /// `true` means that taking a raw pointer to a union field is a safe operation.
+    WithSafeMsrv(bool),
+}
+
+struct UnsafeExprCollector<'cx, 'tcx> {
+    cx: &'cx LateContext<'tcx>,
+    typeck_results: &'tcx TypeckResults<'tcx>,
+    msrv: Msrv,
+    unsafe_ops: Vec<(&'static str, Span)>,
+    under_raw_ptr: UnderRawPtr,
+}
+
+impl<'cx, 'tcx> UnsafeExprCollector<'cx, 'tcx> {
+    fn collect_unsafe_exprs(
+        cx: &'cx LateContext<'tcx>,
+        block: &'tcx hir::Block<'tcx>,
+        msrv: Msrv,
+    ) -> Vec<(&'static str, Span)> {
+        let mut collector = Self {
+            cx,
+            typeck_results: cx.typeck_results(),
+            msrv,
+            unsafe_ops: vec![],
+            under_raw_ptr: UnderRawPtr::No,
+        };
+        collector.visit_block(block);
+        collector.unsafe_ops
+    }
+}
+
+impl<'tcx> Visitor<'tcx> for UnsafeExprCollector<'_, 'tcx> {
+    type NestedFilter = nested_filter::OnlyBodies;
+
+    fn visit_expr(&mut self, expr: &'tcx hir::Expr<'tcx>) {
+        // `self.under_raw_ptr` is preventively reset, while the current value is
+        // preserved in `under_raw_ptr`.
+        let under_raw_ptr = self.under_raw_ptr;
+        self.under_raw_ptr = UnderRawPtr::No;
+
         match expr.kind {
             // The `await` itself will desugar to two unsafe calls, but we should ignore those.
             // Instead, check the expression that is `await`ed
             _ if let Some(e) = desugar_await(expr) => {
-                collect_unsafe_exprs(cx, e, unsafe_ops);
-                return Continue(Descend::No);
+                return self.visit_expr(e);
             },
 
-            ExprKind::InlineAsm(_) => unsafe_ops.push(("inline assembly used here", expr.span)),
+            ExprKind::InlineAsm(_) => self.unsafe_ops.push(("inline assembly used here", expr.span)),
+
+            ExprKind::AddrOf(BorrowKind::Raw, _, _) => {
+                self.under_raw_ptr = UnderRawPtr::Yes;
+            },
 
             ExprKind::Field(e, _) => {
-                if cx.typeck_results().expr_ty(e).is_union() {
-                    unsafe_ops.push(("union field access occurs here", expr.span));
+                if self.typeck_results.expr_ty(e).is_union() {
+                    // Restore `self.under_raw_pointer` and determine safety of taking a raw pointer to
+                    // a union field if this is not known already.
+                    self.under_raw_ptr = if matches!(under_raw_ptr, UnderRawPtr::Yes) {
+                        UnderRawPtr::WithSafeMsrv(self.msrv.meets(self.cx, msrvs::SAFE_RAW_PTR_TO_UNION_FIELD))
+                    } else {
+                        under_raw_ptr
+                    };
+                    if matches!(self.under_raw_ptr, UnderRawPtr::No | UnderRawPtr::WithSafeMsrv(false)) {
+                        self.unsafe_ops.push(("union field access occurs here", expr.span));
+                    }
                 }
             },
 
@@ -127,32 +191,32 @@ fn collect_unsafe_exprs<'tcx>(
                     ..
                 },
             )) => {
-                unsafe_ops.push(("access of a mutable static occurs here", expr.span));
+                self.unsafe_ops
+                    .push(("access of a mutable static occurs here", expr.span));
             },
 
-            ExprKind::Unary(UnOp::Deref, e) if cx.typeck_results().expr_ty_adjusted(e).is_raw_ptr() => {
-                unsafe_ops.push(("raw pointer dereference occurs here", expr.span));
+            ExprKind::Unary(UnOp::Deref, e) if self.typeck_results.expr_ty_adjusted(e).is_raw_ptr() => {
+                self.unsafe_ops.push(("raw pointer dereference occurs here", expr.span));
             },
 
             ExprKind::Call(path_expr, _) => {
-                let sig = match *cx.typeck_results().expr_ty(path_expr).kind() {
-                    ty::FnDef(id, _) => cx.tcx.fn_sig(id).skip_binder(),
-                    ty::FnPtr(sig_tys, hdr) => sig_tys.with(hdr),
-                    _ => return Continue(Descend::Yes),
+                let opt_sig = match *self.typeck_results.expr_ty(path_expr).kind() {
+                    ty::FnDef(id, _) => Some(self.cx.tcx.fn_sig(id).skip_binder()),
+                    ty::FnPtr(sig_tys, hdr) => Some(sig_tys.with(hdr)),
+                    _ => None,
                 };
-                if sig.safety().is_unsafe() {
-                    unsafe_ops.push(("unsafe function call occurs here", expr.span));
+                if opt_sig.is_some_and(|sig| sig.safety().is_unsafe()) {
+                    self.unsafe_ops.push(("unsafe function call occurs here", expr.span));
                 }
             },
 
             ExprKind::MethodCall(..) => {
-                if let Some(sig) = cx
-                    .typeck_results()
+                let opt_sig = self
+                    .typeck_results
                     .type_dependent_def_id(expr.hir_id)
-                    .map(|def_id| cx.tcx.fn_sig(def_id))
-                    && sig.skip_binder().safety().is_unsafe()
-                {
-                    unsafe_ops.push(("unsafe method call occurs here", expr.span));
+                    .map(|def_id| self.cx.tcx.fn_sig(def_id));
+                if opt_sig.is_some_and(|sig| sig.skip_binder().safety().is_unsafe()) {
+                    self.unsafe_ops.push(("unsafe method call occurs here", expr.span));
                 }
             },
 
@@ -173,15 +237,26 @@ fn collect_unsafe_exprs<'tcx>(
                         }
                     ))
                 ) {
-                    unsafe_ops.push(("modification of a mutable static occurs here", expr.span));
-                    collect_unsafe_exprs(cx, rhs, unsafe_ops);
-                    return Continue(Descend::No);
+                    self.unsafe_ops
+                        .push(("modification of a mutable static occurs here", expr.span));
+                    return self.visit_expr(rhs);
                 }
             },
 
             _ => {},
         }
 
-        Continue::<(), _>(Descend::Yes)
-    });
+        walk_expr(self, expr);
+    }
+
+    fn visit_body(&mut self, body: &hir::Body<'tcx>) {
+        let saved_typeck_results = self.typeck_results;
+        self.typeck_results = self.cx.tcx.typeck_body(body.id());
+        walk_body(self, body);
+        self.typeck_results = saved_typeck_results;
+    }
+
+    fn maybe_tcx(&mut self) -> Self::MaybeTyCtxt {
+        self.cx.tcx
+    }
 }
