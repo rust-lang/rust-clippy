@@ -1,7 +1,6 @@
 use clippy_utils::attrs::span_contains_cfg;
 use clippy_utils::diagnostics::{span_lint_and_then, span_lint_hir_and_then};
-use clippy_utils::source::SpanExt;
-use clippy_utils::span_contains_non_whitespace;
+use clippy_utils::source::{FileRangeExt, SpanExt};
 use rustc_data_structures::fx::{FxIndexMap, IndexEntry};
 use rustc_errors::Applicability;
 use rustc_hir::def::DefKind::Ctor;
@@ -12,7 +11,7 @@ use rustc_hir::{Expr, ExprKind, Item, ItemKind, Node, Pat, PatKind, Path, QPath,
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, TyCtxt};
 use rustc_session::impl_lint_pass;
-use rustc_span::{BytePos, Span};
+use rustc_span::Span;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -187,13 +186,19 @@ impl LateLintPass<'_> for EmptyWithBrackets {
             };
 
             // Span of the parentheses in variant definition
-            let span = variant.span.with_lo(variant.ident.span.hi());
-            let span_inner = span
-                .with_lo(SpanExt::trim_start(span, cx).start + BytePos(1))
-                .with_hi(span.hi() - BytePos(1));
-            if span_contains_non_whitespace(cx, span_inner, false) {
+            let Some(span) = variant.span.map_range(cx, |scx, range| {
+                let range = range.shrink_start_to(scx, variant.ident.span.hi_ctxt())?;
+                matches!(
+                    scx.get_text(range.clone())?
+                        .trim_start()
+                        .strip_prefix(['(', '{'])?
+                        .trim_start(),
+                    ")" | "}",
+                )
+                .then_some(range)
+            }) else {
                 continue;
-            }
+            };
             span_lint_hir_and_then(
                 cx,
                 EMPTY_ENUM_VARIANTS_WITH_BRACKETS,

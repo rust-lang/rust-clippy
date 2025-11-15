@@ -1,12 +1,11 @@
-use std::borrow::Cow;
-
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::SpanExt as _;
+use core::fmt;
+use rustc_data_structures::either::Either;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, GenericArg, HirId, LetStmt, Node, Path, TyKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty};
-use rustc_span::Span;
 
 use crate::transmute::MISSING_TRANSMUTE_ANNOTATIONS;
 
@@ -84,9 +83,18 @@ pub(super) fn check<'tcx>(
             let to_ty_no_name = ty_cannot_be_named(to_ty);
             if from_ty_no_name || to_ty_no_name {
                 let to_name = match (from_ty_no_name, to_ty_no_name) {
-                    (true, false) => maybe_name_by_expr(cx, arg.span, "the origin type"),
-                    (false, true) => "the destination type".into(),
-                    _ => "the source and destination types".into(),
+                    (true, false) => {
+                        let data = arg.span.data();
+                        if data.hi.0 - data.lo.0 < 6
+                            && let Some(src) = data.get_text(cx)
+                        {
+                            Either::Left(fmt::from_fn(move |f| write!(f, "`{src}`'s type")))
+                        } else {
+                            Either::Right("the origin type")
+                        }
+                    },
+                    (false, true) => Either::Right("the destination type"),
+                    _ => Either::Right("the source and destination types"),
                 };
                 diag.help(format!(
                     "consider giving {to_name} a name, and adding missing type annotations"
@@ -109,12 +117,4 @@ fn ty_cannot_be_named(ty: Ty<'_>) -> bool {
         ty.kind(),
         ty::Alias(ty::AliasTyKind::Opaque | ty::AliasTyKind::Inherent, _)
     )
-}
-
-fn maybe_name_by_expr<'a>(cx: &LateContext<'_>, span: Span, default: &'a str) -> Cow<'a, str> {
-    span.with_source_text(cx, |name| {
-        (name.len() + 9 < default.len()).then_some(format!("`{name}`'s type").into())
-    })
-    .flatten()
-    .unwrap_or(default.into())
 }
