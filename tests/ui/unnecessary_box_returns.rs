@@ -45,7 +45,7 @@ pub fn bxed_foo() -> Box<Foo> {
 
 // don't lint: str is unsized
 fn bxed_str() -> Box<str> {
-    "Hello, world!".to_string().into_boxed_str()
+    Box::from("Hello, world!")
 }
 
 // don't lint: function contains the word, "box"
