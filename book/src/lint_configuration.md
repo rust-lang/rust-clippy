@@ -1167,3 +1167,13 @@ Whether to also emit warnings for unsafe blocks with metavariable expansions in 
 ---
 **Affected lints:**
 * [`macro_metavars_in_unsafe`](https://rust-lang.github.io/rust-clippy/master/index.html#macro_metavars_in_unsafe)
+
+
+## `watched-functions`
+Non-standard functions `needless_conversion_for_trait` should warn about.
+
+**Default Value:** `[]`
+
+---
+**Affected lints:**
+* [`needless_conversion_for_trait`](https://rust-lang.github.io/rust-clippy/master/index.html#needless_conversion_for_trait)
