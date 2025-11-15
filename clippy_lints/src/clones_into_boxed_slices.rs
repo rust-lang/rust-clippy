@@ -20,11 +20,11 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```no_run
-    /// "example".to_string().to_boxed_str()
+    /// let boxed: Box<str> = "example".to_string().into_boxed_str();
     /// ```
     /// Use instead:
     /// ```no_run
-    /// Box::from("example")
+    /// let boxed: Box<str> = Box::from("example");
     /// ```
     #[clippy::version = "1.93.0"]
     pub CLONES_INTO_BOXED_SLICES,
