@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::{span_lint_hir, span_lint_hir_and_then};
+use clippy_utils::higher::Range;
 use clippy_utils::res::MaybeResPath;
 use clippy_utils::source::SpanRangeExt;
 use clippy_utils::ty::{expr_type_is_certain, has_drop};
@@ -274,7 +275,7 @@ fn check_unnecessary_operation(cx: &LateContext<'_>, stmt: &Stmt<'_>) {
         && !stmt.span.in_external_macro(cx.sess().source_map())
         && let ctxt = stmt.span.ctxt()
         && expr.range_span().unwrap_or(expr.span).ctxt() == ctxt
-        && let Some(reduced) = reduce_expression(cx, expr)
+        && let Some((reduced, applicability)) = reduce_expression(cx, expr)
         && reduced.iter().all(|e| e.span.ctxt() == ctxt)
     {
         if let ExprKind::Index(..) = &expr.kind {
@@ -317,78 +318,107 @@ fn check_unnecessary_operation(cx: &LateContext<'_>, stmt: &Stmt<'_>) {
                 stmt.span,
                 "unnecessary operation",
                 |diag| {
-                    diag.span_suggestion(
-                        stmt.span,
-                        "statement can be reduced to",
-                        snippet,
-                        Applicability::MachineApplicable,
-                    );
+                    diag.span_suggestion(stmt.span, "statement can be reduced to", snippet, applicability);
                 },
             );
         }
     }
 }
 
-fn reduce_expression<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<Vec<&'a Expr<'a>>> {
+fn reduce_expression<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<(Vec<&'a Expr<'a>>, Applicability)> {
     if expr.range_span().unwrap_or(expr.span).from_expansion() {
         return None;
     }
     match expr.kind {
-        ExprKind::Index(a, b, _) => Some(vec![a, b]),
+        ExprKind::Index(a, b, _) => Some((vec![a, b], Applicability::MachineApplicable)),
         ExprKind::Binary(ref binop, a, b) if binop.node != BinOpKind::And && binop.node != BinOpKind::Or => {
-            Some(vec![a, b])
+            Some((vec![a, b], Applicability::MachineApplicable))
         },
-        ExprKind::Array(v) | ExprKind::Tup(v) => Some(v.iter().collect()),
+        ExprKind::Array(elems) => {
+            let applicability = if elems.iter().all(|elem| expr_type_is_certain(cx, elem)) {
+                Applicability::MachineApplicable
+            } else {
+                // there's a risk that, if we take the elem exprs out of the context of the array,
+                // their types might become ambiguous
+                Applicability::MaybeIncorrect
+            };
+            Some((elems.iter().collect(), applicability))
+        },
+        ExprKind::Tup(v) => Some((v.iter().collect(), Applicability::MachineApplicable)),
         ExprKind::Repeat(inner, _)
         | ExprKind::Type(inner, _)
         | ExprKind::Unary(_, inner)
         | ExprKind::Field(inner, _)
-        | ExprKind::AddrOf(_, _, inner) => reduce_expression(cx, inner).or_else(|| Some(vec![inner])),
+        | ExprKind::AddrOf(_, _, inner) => {
+            reduce_expression(cx, inner).or_else(|| Some((vec![inner], Applicability::MachineApplicable)))
+        },
         ExprKind::Cast(inner, _) if expr_type_is_certain(cx, inner) => {
-            reduce_expression(cx, inner).or_else(|| Some(vec![inner]))
+            reduce_expression(cx, inner).or_else(|| Some((vec![inner], Applicability::MachineApplicable)))
         },
-        ExprKind::Struct(_, fields, ref base) => {
-            if has_drop(cx, cx.typeck_results().expr_ty(expr)) {
-                None
+        // In the normal `Struct` case, we bail out if any of the fields has an uncertain type.
+        // But for two-sided ranges, we know that if the type of one of the sides is certain, then so is the other
+        // one's. So we only check that, more relaxed pre-condition.
+        //
+        // Note that that condition true in general for any struct with a generic present in two fields, but
+        // generalizing the check to those would be cumbersome.
+        ExprKind::Struct(..)
+            if let Some(range) = Range::hir(cx, expr)
+                && let Some(start) = range.start
+                && let Some(end) = range.end =>
+        {
+            let applicability = if [start, end].into_iter().any(|e| expr_type_is_certain(cx, e)) {
+                Applicability::MachineApplicable
             } else {
-                let base = match base {
-                    StructTailExpr::Base(base) => Some(base),
-                    StructTailExpr::None | StructTailExpr::DefaultFields(_) => None,
-                };
-                Some(fields.iter().map(|f| &f.expr).chain(base).map(Deref::deref).collect())
-            }
+                // there's a risk that if we take the field exprs out of the context of the range constructor,
+                // their types might become ambiguous
+                Applicability::MaybeIncorrect
+            };
+            Some((vec![start, end], applicability))
         },
-        ExprKind::Call(callee, args) => {
-            if let ExprKind::Path(ref qpath) = callee.kind {
-                if cx.typeck_results().type_dependent_def(expr.hir_id).is_some() {
-                    // type-dependent function call like `impl FnOnce for X`
-                    return None;
-                }
-                let res = cx.qpath_res(qpath, callee.hir_id);
-                match res {
-                    Res::Def(DefKind::Struct | DefKind::Variant | DefKind::Ctor(..), ..)
-                        if !has_drop(cx, cx.typeck_results().expr_ty(expr)) =>
-                    {
-                        Some(args.iter().collect())
-                    },
-                    _ => None,
-                }
+        ExprKind::Struct(_, fields, ref base) if !has_drop(cx, cx.typeck_results().expr_ty(expr)) => {
+            let applicability = if fields.iter().all(|f| expr_type_is_certain(cx, f.expr)) {
+                Applicability::MachineApplicable
             } else {
-                None
-            }
+                // there's a risk that, if we take the field exprs out of the context of the struct constructor,
+                // their types might become ambiguous
+                Applicability::MaybeIncorrect
+            };
+            let base = match base {
+                StructTailExpr::Base(base) => Some(base),
+                StructTailExpr::None | StructTailExpr::DefaultFields(_) => None,
+            };
+            Some((
+                fields.iter().map(|f| &f.expr).chain(base).map(Deref::deref).collect(),
+                applicability,
+            ))
         },
-        ExprKind::Block(block, _) => {
-            if block.stmts.is_empty() && !block.targeted_by_break {
-                block.expr.as_ref().and_then(|e| {
-                    match block.rules {
-                        BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided) => None,
-                        BlockCheckMode::DefaultBlock => Some(vec![&**e]),
-                        // in case of compiler-inserted signaling blocks
-                        BlockCheckMode::UnsafeBlock(_) => reduce_expression(cx, e),
-                    }
-                })
+        ExprKind::Call(callee, args)
+            if let ExprKind::Path(ref qpath) = callee.kind
+                // not a type-dependent function call like `impl FnOnce for X`
+                && cx.typeck_results().type_dependent_def(expr.hir_id).is_none()
+                && let Res::Def(def_kind, ..) = cx.qpath_res(qpath, callee.hir_id)
+                && matches!(def_kind, DefKind::Struct | DefKind::Variant | DefKind::Ctor(..))
+                && !has_drop(cx, cx.typeck_results().expr_ty(expr)) =>
+        {
+            let applicability = if args.iter().all(|a| expr_type_is_certain(cx, a)) {
+                Applicability::MachineApplicable
             } else {
-                None
+                // there's a risk that, if we take the args out of the context of the
+                // call/constructor, their types might become ambiguous
+                Applicability::MaybeIncorrect
+            };
+            Some((args.iter().collect(), applicability))
+        },
+        ExprKind::Block(block, _)
+            if !block.targeted_by_break
+                && block.stmts.is_empty()
+                && let Some(e) = &block.expr =>
+        {
+            match block.rules {
+                BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided) => None,
+                BlockCheckMode::DefaultBlock => Some((vec![&**e], Applicability::MachineApplicable)),
+                // in case of compiler-inserted signaling blocks
+                BlockCheckMode::UnsafeBlock(_) => reduce_expression(cx, e),
             }
         },
         _ => None,
