@@ -160,9 +160,13 @@ fn handle(
             );
         } else if let Some(ty_name) = find_type_name(cx, cx.typeck_results().expr_ty(condition))
             && cx.typeck_results().expr_adjustments(body_some).is_empty()
-            && let Some(or_body_snippet) = peel_blocks(body_none).span.get_text(cx)
+            && let ctxt = expr.span.ctxt()
+            && let body_none = peel_blocks(body_none)
+            && body_none.span.ctxt() == ctxt
+            && !ctxt.in_external_macro(cx.tcx.sess.source_map())
+            && let Some(or_body_snippet) = body_none.span.get_text(cx)
             && let Some(indent) = indent_of(cx, expr.span)
-            && ConstEvalCtxt::new(cx).eval_local(body_none, expr.span.ctxt()).is_some()
+            && ConstEvalCtxt::new(cx).eval_local(body_none, ctxt).is_some()
         {
             let reindented_or_body = reindent_multiline(&or_body_snippet, true, Some(indent));
             let mut app = Applicability::MachineApplicable;
