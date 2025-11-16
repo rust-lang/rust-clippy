@@ -592,7 +592,7 @@ fn pat_search_pat(tcx: TyCtxt<'_>, pat: &rustc_hir::Pat<'_>) -> (Pat, Pat) {
             (Pat::Str("box"), end)
         },
         PatKind::Deref(_) => (Pat::Str("deref!"), Pat::Str("")),
-        PatKind::Ref(p, _) => {
+        PatKind::Ref(p, _, _) => {
             let (_, end) = pat_search_pat(tcx, p);
             (Pat::Str("&"), end)
         },
