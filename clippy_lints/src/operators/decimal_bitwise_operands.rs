@@ -9,30 +9,32 @@ use rustc_span::source_map::Spanned;
 
 use super::DECIMAL_BITWISE_OPERANDS;
 
-fn check_bitwise_binary_expr(cx: &LateContext<'_>, expr: &Expr<'_>) {
-    if let ExprKind::Binary(op, left, right) = &expr.kind
-        && matches!(op.node, BinOpKind::BitAnd | BinOpKind::BitOr | BinOpKind::BitXor)
-    {
-        for expr in [left, right] {
-            if let ExprKind::Lit(lit) = &expr.kind
-                && is_decimal_number(cx, lit.span)
-                && !is_power_of_twoish(lit)
-            {
-                emit_lint(cx, lit.span);
-            }
+pub(super) fn check_binary<'tcx>(cx: &LateContext<'tcx>, op: BinOpKind, left: &'tcx Expr<'_>, right: &'tcx Expr<'_>) {
+    if !matches!(op, BinOpKind::BitAnd | BinOpKind::BitOr | BinOpKind::BitXor) {
+        return;
+    }
+
+    for expr in [left, right] {
+        if let ExprKind::Lit(lit) = &expr.kind
+            && is_decimal_number(cx, lit.span)
+            && !is_power_of_twoish(lit)
+        {
+            emit_lint(cx, lit.span);
         }
     }
 }
 
-fn check_bitwise_assign_expr(cx: &LateContext<'_>, expr: &Expr<'_>) {
-    if let ExprKind::AssignOp(op, _, e) = &expr.kind
-        && matches!(
-            op.node,
-            AssignOpKind::BitAndAssign | AssignOpKind::BitOrAssign | AssignOpKind::BitXorAssign
-        )
-        && let ExprKind::Lit(lit) = e.kind
+pub(super) fn check_assign<'tcx>(cx: &LateContext<'tcx>, op: AssignOpKind, rhs: &'tcx Expr<'_>) {
+    if !matches!(
+        op,
+        AssignOpKind::BitAndAssign | AssignOpKind::BitOrAssign | AssignOpKind::BitXorAssign
+    ) {
+        return;
+    }
+
+    if let ExprKind::Lit(lit) = &rhs.kind
         && is_decimal_number(cx, lit.span)
-        && !is_power_of_twoish(&lit)
+        && !is_power_of_twoish(lit)
     {
         emit_lint(cx, lit.span);
     }
@@ -60,12 +62,4 @@ fn emit_lint(cx: &LateContext<'_>, span: Span) {
         None,
         "use binary (0b...), hex (0x...), or octal (0o...) notation for better readability",
     );
-}
-
-pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-    if expr.span.from_expansion() {
-        return;
-    }
-    check_bitwise_binary_expr(cx, expr);
-    check_bitwise_assign_expr(cx, expr);
 }
