@@ -1,5 +1,4 @@
-#![allow(clippy::erasing_op)]
-#![allow(clippy::no_effect)]
+#![allow(clippy::erasing_op, clippy::no_effect)]
 #![warn(clippy::decimal_bitwise_operands)]
 
 macro_rules! bitwise_op {

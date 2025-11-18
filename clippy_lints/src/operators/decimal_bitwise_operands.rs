@@ -5,7 +5,6 @@ use rustc_data_structures::packed::Pu128;
 use rustc_hir::{AssignOpKind, BinOpKind, Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_span::Span;
-use rustc_span::source_map::Spanned;
 
 use super::DECIMAL_BITWISE_OPERANDS;
 
@@ -17,7 +16,7 @@ pub(super) fn check_binary<'tcx>(cx: &LateContext<'tcx>, op: BinOpKind, left: &'
     for expr in [left, right] {
         if let ExprKind::Lit(lit) = &expr.kind
             && is_decimal_number(cx, lit.span)
-            && !is_power_of_twoish(lit)
+            && !is_power_of_twoish(lit.node)
         {
             emit_lint(cx, lit.span);
         }
@@ -25,16 +24,12 @@ pub(super) fn check_binary<'tcx>(cx: &LateContext<'tcx>, op: BinOpKind, left: &'
 }
 
 pub(super) fn check_assign<'tcx>(cx: &LateContext<'tcx>, op: AssignOpKind, rhs: &'tcx Expr<'_>) {
-    if !matches!(
+    if matches!(
         op,
         AssignOpKind::BitAndAssign | AssignOpKind::BitOrAssign | AssignOpKind::BitXorAssign
-    ) {
-        return;
-    }
-
-    if let ExprKind::Lit(lit) = &rhs.kind
+    ) && let ExprKind::Lit(lit) = &rhs.kind
         && is_decimal_number(cx, lit.span)
-        && !is_power_of_twoish(lit)
+        && !is_power_of_twoish(lit.node)
     {
         emit_lint(cx, lit.span);
     }
@@ -46,8 +41,8 @@ fn is_decimal_number(cx: &LateContext<'_>, span: Span) -> bool {
     })
 }
 
-fn is_power_of_twoish(lit: &Spanned<LitKind>) -> bool {
-    if let LitKind::Int(Pu128(val), _) = lit.node {
+fn is_power_of_twoish(node: LitKind) -> bool {
+    if let LitKind::Int(Pu128(val), _) = node {
         return val.is_power_of_two() || val.wrapping_add(1).is_power_of_two();
     }
     false
