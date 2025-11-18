@@ -120,5 +120,29 @@ LL |     88 & 99;
    |
    = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
 
-error: aborting due to 15 previous errors
+error: using decimal literal for bitwise operation
+  --> tests/ui/decimal_bitwise_operands.rs:35:15
+   |
+LL |     37 & 38 & 39;
+   |               ^^
+   |
+   = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
+
+error: using decimal literal for bitwise operation
+  --> tests/ui/decimal_bitwise_operands.rs:35:5
+   |
+LL |     37 & 38 & 39;
+   |     ^^
+   |
+   = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
+
+error: using decimal literal for bitwise operation
+  --> tests/ui/decimal_bitwise_operands.rs:35:10
+   |
+LL |     37 & 38 & 39;
+   |          ^^
+   |
+   = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
+
+error: aborting due to 18 previous errors
 

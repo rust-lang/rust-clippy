@@ -32,6 +32,11 @@ fn main() {
     //~^ decimal_bitwise_operands
     //~| decimal_bitwise_operands
 
+    37 & 38 & 39;
+    //~^ decimal_bitwise_operands
+    //~| decimal_bitwise_operands
+    //~| decimal_bitwise_operands
+
     // GOOD: Bitwise operation, binary/hex/octal literal, one literal
     x & 0b1010;
     x | 0b1010;
