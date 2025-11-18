@@ -777,7 +777,7 @@ pub fn for_each_local_assignment<'tcx, B>(
 }
 
 /// Checks whether the given [expression](Expr) contains any `break` or `continue` expressions. This
-/// does not enter any bodies or nested items.
+/// does not enter any bodies or nested items, because a `break` or `continue` would not apply to the expression's scope.
 pub fn contains_break_or_continue(expr: &Expr<'_>) -> bool {
     for_each_expr_without_closures(expr, |e| {
         if matches!(e.kind, ExprKind::Break(..) | ExprKind::Continue(..)) {
