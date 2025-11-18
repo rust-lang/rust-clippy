@@ -2,11 +2,13 @@
 
 /// Dealing with string indices can be hard, this struct ensures that both the
 /// character and byte index are provided for correct indexing.
+///
+/// `char_index` and `byte_index` *are not guaranteed* to agree with eachother.
 #[derive(Debug, Default, PartialEq, Eq)]
 pub struct StrIndex {
-    /// The character-relative index within a string
+    /// The number of characters between the start of the `str` and this position
     pub char_index: usize,
-    /// The byte-relative index within a string
+    /// The number of bytes between the start of the `str` and this position
     pub byte_index: usize,
 }
 
@@ -172,6 +174,8 @@ pub fn camel_case_split(s: &str) -> Vec<&str> {
 
 /// Dealing with string comparison can be complicated, this struct ensures that both the
 /// character and byte count are provided for correct indexing.
+///
+/// `char_count` and `byte_count` *are not guaranteed* to agree with eachother.
 #[derive(Debug, Default, PartialEq, Eq)]
 pub struct StrCount {
     /// The number of characters in a string.

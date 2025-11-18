@@ -231,7 +231,7 @@ pub fn is_assert_macro(cx: &LateContext<'_>, def_id: DefId) -> bool {
     matches!(name, sym::assert_macro | sym::debug_assert_macro)
 }
 
-/// A `panic!()` expression, which may contain arguments
+/// An expansion of a `panic!()` expression into its arguments
 #[derive(Debug)]
 pub enum PanicExpn<'a> {
     /// No arguments - `panic!()`

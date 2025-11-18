@@ -644,8 +644,9 @@ pub fn snippet_block_with_applicability(
     reindent_multiline(&snip, true, indent)
 }
 
-/// Same as [`snippet_block_with_applicability()`], but first walks the span up to the given context
-/// using [`snippet_with_context()`].
+/// Walks a span (from a block) up to the given context (using [`snippet_with_context()`]) and
+/// converts it to a code snippet if available, otherwise use default. Adapts the applicability
+/// level `app` by the rules of [`snippet_with_applicability()`].
 pub fn snippet_block_with_context(
     sess: &impl HasSession,
     span: Span,

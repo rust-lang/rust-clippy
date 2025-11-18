@@ -1,4 +1,4 @@
-//! Contains utility functions for checking expression usage.
+//! Contains utility functions for checking variable usage.
 
 use crate::macros::root_macro_call_first_node;
 use crate::res::MaybeResPath;
@@ -191,7 +191,8 @@ pub fn contains_todo_unimplement_macro(cx: &LateContext<'_>, expr: &'_ Expr<'_>)
     .is_some()
 }
 
-/// Checks whether the given expression contains `return`, `break`, `continue`, or a macro call.
+/// Checks whether the given expression contains `return`, `break`, `continue`, or a macro call
+/// (which may itself contain any of those expressions).
 pub fn contains_return_break_continue_macro(expression: &Expr<'_>) -> bool {
     for_each_expr_without_closures(expression, |e| {
         match e.kind {

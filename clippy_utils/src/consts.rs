@@ -286,7 +286,8 @@ impl Constant {
         }
     }
 
-    /// Recursively consume [`Constant::Ref`] and return the innermost value.
+    /// Consume [`Constant::Ref`], removing all references to return the contained expression, e.g.
+    /// `&&T` -> `T`.
     #[must_use]
     pub fn peel_refs(mut self) -> Self {
         while let Constant::Ref(r) = self {
@@ -1082,8 +1083,9 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
 ///
 /// - If `ty` is an [`Adt`](ty::Adt) describing a struct, returns a [`Constant::Adt`] containing
 ///   `val`.
-/// - If `val` is a [`Int`](Scalar::Int), `ty` determines the variant of the returned constant.
-///   Returns `None` if `val` cannot be converted to the type described by `ty`.
+/// - If `val` is a [`Int`](Scalar::Int) (which also includes booleans and raw pointers), `ty`
+///   determines the variant of the returned constant. Returns `None` if `val` cannot be converted
+///   to the type described by `ty`.
 /// - If `ty` is a [`Ref`](ty::Ref) referring to a [`Str`](ty::Str) (i.e. a `&str`), returns a
 ///   [`Constant::Str`].
 /// - If `val` is a [`ConstValue::Indirect`] and `ty` is an [`Array`](ty::Array) of
