@@ -145,5 +145,5 @@ impl EarlyLintPass for Visibility {
 }
 
 fn is_from_proc_macro(cx: &EarlyContext<'_>, span: Span) -> bool {
-    !span.check_source_text(cx, |src| src.starts_with("pub"))
+    !span.check_text(cx, |src| src.starts_with("pub"))
 }

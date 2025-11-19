@@ -2763,7 +2763,7 @@ pub fn span_contains_comment<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> boo
 /// This is useful to determine if there are any actual code tokens in the span that are omitted in
 /// the late pass, such as platform-specific code.
 pub fn span_contains_non_whitespace<'sm>(cx: impl HasSourceMap<'sm>, span: Span, skip_comments: bool) -> bool {
-    matches!(span.get_source_text(cx), Some(snippet) if tokenize_with_text(&snippet).any(|(token, _, _)|
+    matches!(span.get_text(cx), Some(snippet) if tokenize_with_text(&snippet).any(|(token, _, _)|
         match token {
             TokenKind::Whitespace => false,
             TokenKind::BlockComment { .. } | TokenKind::LineComment { .. } => !skip_comments,
