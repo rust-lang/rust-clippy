@@ -93,7 +93,7 @@ impl LateLintPass<'_> for SingleRangeInVecInit {
 
         if inner_expr.span.is_desugaring(DesugaringKind::RangeExpr)
             && let ty = cx.typeck_results().expr_ty(start.expr)
-            && let Some(snippet) = span.get_source_text(cx)
+            && let Some(snippet) = span.get_text(cx)
             // `is_from_proc_macro` will skip any `vec![]`. Let's not!
             && snippet.starts_with(suggested_type.starts_with())
             && snippet.ends_with(suggested_type.ends_with())

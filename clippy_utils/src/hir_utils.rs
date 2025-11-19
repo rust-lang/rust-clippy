@@ -904,7 +904,7 @@ fn reduce_exprkind<'hir>(cx: &LateContext<'_>, kind: &'hir ExprKind<'hir>) -> &'
             ([], None) if block.span.is_empty() => &ExprKind::Tup(&[]),
             // `{}` => `()`
             ([], None)
-                if block.span.check_source_text(cx, |src| {
+                if block.span.check_text(cx, |src| {
                     tokenize(src, FrontmatterAllowed::No)
                         .map(|t| t.kind)
                         .filter(|t| {
