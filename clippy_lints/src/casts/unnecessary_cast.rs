@@ -106,7 +106,7 @@ pub(super) fn check<'tcx>(
         let literal_str = &cast_str;
 
         if let LitKind::Int(n, _) = lit.node
-            && let Some(src) = cast_expr.span.get_source_text(cx)
+            && let Some(src) = cast_expr.span.get_text(cx)
             && cast_to.is_floating_point()
             && let Some(num_lit) = NumericLiteral::from_lit_kind(&src, &lit.node)
             && let from_nbits = 128 - n.get().leading_zeros()
@@ -133,7 +133,7 @@ pub(super) fn check<'tcx>(
             | LitKind::Float(_, LitFloatType::Suffixed(_))
                 if cast_from.kind() == cast_to.kind() =>
             {
-                if let Some(src) = cast_expr.span.get_source_text(cx)
+                if let Some(src) = cast_expr.span.get_text(cx)
                     && let Some(num_lit) = NumericLiteral::from_lit_kind(&src, &lit.node)
                 {
                     lint_unnecessary_cast(cx, expr, num_lit.integer, cast_from, cast_to);
@@ -281,7 +281,7 @@ fn is_cast_from_ty_alias<'tcx>(cx: &LateContext<'tcx>, expr: impl Visitable<'tcx
             let res = cx.qpath_res(&qpath, expr.hir_id);
             // Function call
             if let Res::Def(DefKind::Fn, def_id) = res {
-                let Some(snippet) = cx.tcx.def_span(def_id).get_source_text(cx) else {
+                let Some(snippet) = cx.tcx.def_span(def_id).get_text(cx) else {
                     return ControlFlow::Continue(());
                 };
                 // This is the worst part of this entire function. This is the only way I know of to
