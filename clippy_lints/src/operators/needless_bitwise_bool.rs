@@ -24,8 +24,8 @@ pub(super) fn check(cx: &LateContext<'_>, e: &Expr<'_>, op: BinOpKind, lhs: &Exp
             e.span,
             "use of bitwise operator instead of lazy operator between booleans",
             |diag| {
-                if let Some(lhs_snip) = lhs.span.get_source_text(cx)
-                    && let Some(rhs_snip) = rhs.span.get_source_text(cx)
+                if let Some(lhs_snip) = lhs.span.get_text(cx)
+                    && let Some(rhs_snip) = rhs.span.get_text(cx)
                 {
                     let sugg = format!("{lhs_snip} {op_str} {rhs_snip}");
                     diag.span_suggestion(e.span, "try", sugg, Applicability::MachineApplicable);

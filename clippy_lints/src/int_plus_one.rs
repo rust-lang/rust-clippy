@@ -130,8 +130,8 @@ impl IntPlusOne {
             BinOpKind::Le => "<",
             _ => return None,
         };
-        if let Some(snippet) = node.span.get_source_text(cx)
-            && let Some(other_side_snippet) = other_side.span.get_source_text(cx)
+        if let Some(snippet) = node.span.get_text(cx)
+            && let Some(other_side_snippet) = other_side.span.get_text(cx)
         {
             let rec = match side {
                 Side::Lhs => Some(format!("{snippet} {binop_string} {other_side_snippet}")),
