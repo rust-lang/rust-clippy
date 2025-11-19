@@ -509,7 +509,7 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                 count_needed_derefs(receiver_ty, cx.typeck_results().expr_adjustments(receiver).iter())
             && implements_trait(cx, target, display_trait_id, &[])
             && let Some(sized_trait_id) = cx.tcx.lang_items().sized_trait()
-            && let Some(receiver_snippet) = receiver.span.source_callsite().get_source_text(cx)
+            && let Some(receiver_snippet) = receiver.span.source_callsite().get_text(cx)
         {
             let needs_ref = !implements_trait(cx, receiver_ty, sized_trait_id, &[]);
             if n_needed_derefs == 0 && !needs_ref {
