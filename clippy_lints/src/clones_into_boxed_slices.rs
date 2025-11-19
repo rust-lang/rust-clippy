@@ -72,13 +72,11 @@ fn show_lint(
             sugg = sugg.addr_deref();
         }
     }
-    while ref_count > 0 {
+    for _ in 0..ref_count {
         sugg = sugg.deref();
-        ref_count -= 1;
     }
-    while ref_count < 0 {
+    for _ in 0..-ref_count {
         sugg = sugg.addr();
-        ref_count += 1;
     }
 
     span_lint_and_sugg(
@@ -99,11 +97,7 @@ fn show_lint(
 
 // Is the given type a slice, path, or one of the str types
 fn ty_is_slice_like(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
-    ty.is_slice()
-        || ty.is_str()
-        || ty.is_diag_item(cx, sym::cstr_type)
-        || ty.is_diag_item(cx, sym::Path)
-        || ty.is_diag_item(cx, sym::OsStr)
+    ty.is_slice() || ty.is_str() || matches!(ty.opt_diag_name(cx.tcx), Some(sym::cstr_type | sym::Path | sym::OsStr))
 }
 
 // Checks if an expression is one of the into_boxed_... methods preceded by a clone-like function
