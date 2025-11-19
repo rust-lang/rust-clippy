@@ -2,13 +2,13 @@ use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::source::SpanRangeExt;
 use rustc_ast::LitKind;
 use rustc_data_structures::packed::Pu128;
-use rustc_hir::{AssignOpKind, BinOpKind, Expr, ExprKind};
+use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_span::Span;
 
 use super::DECIMAL_BITWISE_OPERANDS;
 
-pub(super) fn check_binary<'tcx>(cx: &LateContext<'tcx>, op: BinOpKind, left: &'tcx Expr<'_>, right: &'tcx Expr<'_>) {
+pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, op: BinOpKind, left: &'tcx Expr<'_>, right: &'tcx Expr<'_>) {
     if !matches!(op, BinOpKind::BitAnd | BinOpKind::BitOr | BinOpKind::BitXor) {
         return;
     }
@@ -20,18 +20,6 @@ pub(super) fn check_binary<'tcx>(cx: &LateContext<'tcx>, op: BinOpKind, left: &'
         {
             emit_lint(cx, lit.span);
         }
-    }
-}
-
-pub(super) fn check_assign<'tcx>(cx: &LateContext<'tcx>, op: AssignOpKind, rhs: &'tcx Expr<'_>) {
-    if matches!(
-        op,
-        AssignOpKind::BitAndAssign | AssignOpKind::BitOrAssign | AssignOpKind::BitXorAssign
-    ) && let ExprKind::Lit(lit) = &rhs.kind
-        && is_decimal_number(cx, lit.span)
-        && !is_power_of_twoish(lit.node)
-    {
-        emit_lint(cx, lit.span);
     }
 }
 

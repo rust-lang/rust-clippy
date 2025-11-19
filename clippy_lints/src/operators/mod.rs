@@ -1027,7 +1027,7 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                     needless_bitwise_bool::check(cx, e, op.node, lhs, rhs);
                     manual_midpoint::check(cx, e, op.node, lhs, rhs, self.msrv);
                     manual_is_multiple_of::check(cx, e, op.node, lhs, rhs, self.msrv);
-                    decimal_bitwise_operands::check_binary(cx, op.node, lhs, rhs);
+                    decimal_bitwise_operands::check(cx, op.node, lhs, rhs);
                 }
                 self.arithmetic_context.check_binary(cx, e, op.node, lhs, rhs);
                 bit_mask::check(cx, e, op.node, lhs, rhs);
@@ -1052,10 +1052,10 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                 manual_div_ceil::check(cx, e, op.node, lhs, rhs, self.msrv);
             },
             ExprKind::AssignOp(op, lhs, rhs) => {
-                if !e.span.from_expansion() {
-                    decimal_bitwise_operands::check_assign(cx, op.node, rhs);
-                }
                 let bin_op = op.node.into();
+                if !e.span.from_expansion() {
+                    decimal_bitwise_operands::check(cx, bin_op, lhs, rhs);
+                }
                 self.arithmetic_context.check_binary(cx, e, bin_op, lhs, rhs);
                 misrefactored_assign_op::check(cx, e, bin_op, lhs, rhs);
                 modulo_arithmetic::check(cx, e, bin_op, lhs, rhs, false);
