@@ -30,7 +30,6 @@ fn main() {
     88 & 99;
     //~^ decimal_bitwise_operands
     //~| decimal_bitwise_operands
-
     37 & 38 & 39;
     //~^ decimal_bitwise_operands
     //~| decimal_bitwise_operands
@@ -91,6 +90,11 @@ fn main() {
     x | (31); // 2^5 - 1
     x ^ 0x40; // 2^6 (hex)
     x ^= 7; // 2^3 - 1
+
+    // GOOD: Bitwise operation, single digit decimal literal
+    5 & 9;
+    x ^ 6;
+    x ^= 7;
 
     // GOOD: More complex expressions
     (x + 1) & 0xFF;

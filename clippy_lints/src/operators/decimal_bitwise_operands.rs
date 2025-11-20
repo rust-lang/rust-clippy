@@ -16,7 +16,9 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, op: BinOpKind, left: &'tcx Exp
     for expr in [left, right] {
         if let ExprKind::Lit(lit) = &expr.kind
             && is_decimal_number(cx, lit.span)
-            && !is_power_of_twoish(lit.node)
+            && let LitKind::Int(Pu128(val), _) = lit.node
+            && !is_single_digit(val)
+            && !is_power_of_twoish(val)
         {
             emit_lint(cx, lit.span);
         }
@@ -29,11 +31,12 @@ fn is_decimal_number(cx: &LateContext<'_>, span: Span) -> bool {
     })
 }
 
-fn is_power_of_twoish(node: LitKind) -> bool {
-    if let LitKind::Int(Pu128(val), _) = node {
-        return val.is_power_of_two() || val.wrapping_add(1).is_power_of_two();
-    }
-    false
+fn is_power_of_twoish(val: u128) -> bool {
+    val.is_power_of_two() || val.wrapping_add(1).is_power_of_two()
+}
+
+fn is_single_digit(val: u128) -> bool {
+    val <= 9
 }
 
 fn emit_lint(cx: &LateContext<'_>, span: Span) {

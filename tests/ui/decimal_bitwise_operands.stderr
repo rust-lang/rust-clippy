@@ -121,7 +121,7 @@ LL |     88 & 99;
    = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
 
 error: using decimal literal for bitwise operation
-  --> tests/ui/decimal_bitwise_operands.rs:34:15
+  --> tests/ui/decimal_bitwise_operands.rs:33:15
    |
 LL |     37 & 38 & 39;
    |               ^^
@@ -129,7 +129,7 @@ LL |     37 & 38 & 39;
    = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
 
 error: using decimal literal for bitwise operation
-  --> tests/ui/decimal_bitwise_operands.rs:34:5
+  --> tests/ui/decimal_bitwise_operands.rs:33:5
    |
 LL |     37 & 38 & 39;
    |     ^^
@@ -137,7 +137,7 @@ LL |     37 & 38 & 39;
    = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
 
 error: using decimal literal for bitwise operation
-  --> tests/ui/decimal_bitwise_operands.rs:34:10
+  --> tests/ui/decimal_bitwise_operands.rs:33:10
    |
 LL |     37 & 38 & 39;
    |          ^^
