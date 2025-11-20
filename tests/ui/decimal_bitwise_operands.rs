@@ -1,4 +1,4 @@
-#![allow(clippy::erasing_op, clippy::no_effect)]
+#![allow(clippy::erasing_op, clippy::no_effect, clippy::unnecessary_operation)]
 #![warn(clippy::decimal_bitwise_operands)]
 
 macro_rules! bitwise_op {
@@ -16,7 +16,12 @@ fn main() {
     x | (/* comment */99); //~ decimal_bitwise_operands
     x ^ (99); //~ decimal_bitwise_operands
     x &= 99; //~ decimal_bitwise_operands
-    x |= 99; //~ decimal_bitwise_operands
+    x |= { 99 }; //~ decimal_bitwise_operands
+    x |= { { 99 } }; //~ decimal_bitwise_operands
+    x |= {
+        0b1000;
+        99 //~ decimal_bitwise_operands
+    };
     x ^= (99); //~ decimal_bitwise_operands
 
     // BAD: Bitwise operation, decimal literal, two literals
@@ -26,7 +31,7 @@ fn main() {
     99 & 0b1010; //~ decimal_bitwise_operands
     (99) | 0b1010; //~ decimal_bitwise_operands
     (/* comment */99) ^ 0b1010; //~ decimal_bitwise_operands
-    0xD | 99; //~ decimal_bitwise_operands
+    0xD | { 99 }; //~ decimal_bitwise_operands
     88 & 99;
     //~^ decimal_bitwise_operands
     //~| decimal_bitwise_operands

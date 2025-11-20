@@ -14,14 +14,27 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, op: BinOpKind, left: &'tcx Exp
     }
 
     for expr in [left, right] {
-        if let ExprKind::Lit(lit) = &expr.kind
-            && let LitKind::Int(Pu128(val), _) = lit.node
-            && is_decimal_number(cx, lit.span)
-            && !is_single_digit(val)
-            && !is_power_of_twoish(val)
-        {
-            emit_lint(cx, lit.span, val);
-        }
+        check_expr(cx, expr);
+    }
+}
+
+fn check_expr(cx: &LateContext<'_>, expr: &Expr<'_>) {
+    match &expr.kind {
+        ExprKind::Block(block, _) => {
+            if let Some(block_expr) = block.expr {
+                check_expr(cx, block_expr);
+            }
+        },
+        ExprKind::Lit(lit) => {
+            if let LitKind::Int(Pu128(val), _) = lit.node
+                && is_decimal_number(cx, lit.span)
+                && !is_single_digit(val)
+                && !is_power_of_twoish(val)
+            {
+                emit_lint(cx, lit.span, val);
+            }
+        },
+        _ => (),
     }
 }
 
