@@ -4,7 +4,7 @@ error: using decimal literal for bitwise operation
 LL |     x & 99;
    |         ^^
    |
-   = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
+   = help: use binary (0b1100011), hex (0x63), or octal (0o143) notation for better readability
    = note: `-D clippy::decimal-bitwise-operands` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::decimal_bitwise_operands)]`
 
@@ -14,7 +14,7 @@ error: using decimal literal for bitwise operation
 LL |     x | (/* comment */99);
    |                       ^^
    |
-   = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
+   = help: use binary (0b1100011), hex (0x63), or octal (0o143) notation for better readability
 
 error: using decimal literal for bitwise operation
   --> tests/ui/decimal_bitwise_operands.rs:17:10
@@ -22,7 +22,7 @@ error: using decimal literal for bitwise operation
 LL |     x ^ (99);
    |          ^^
    |
-   = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
+   = help: use binary (0b1100011), hex (0x63), or octal (0o143) notation for better readability
 
 error: using decimal literal for bitwise operation
   --> tests/ui/decimal_bitwise_operands.rs:18:10
@@ -30,7 +30,7 @@ error: using decimal literal for bitwise operation
 LL |     x &= 99;
    |          ^^
    |
-   = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
+   = help: use binary (0b1100011), hex (0x63), or octal (0o143) notation for better readability
 
 error: using decimal literal for bitwise operation
   --> tests/ui/decimal_bitwise_operands.rs:19:10
@@ -38,7 +38,7 @@ error: using decimal literal for bitwise operation
 LL |     x |= 99;
    |          ^^
    |
-   = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
+   = help: use binary (0b1100011), hex (0x63), or octal (0o143) notation for better readability
 
 error: using decimal literal for bitwise operation
   --> tests/ui/decimal_bitwise_operands.rs:20:11
@@ -46,7 +46,7 @@ error: using decimal literal for bitwise operation
 LL |     x ^= (99);
    |           ^^
    |
-   = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
+   = help: use binary (0b1100011), hex (0x63), or octal (0o143) notation for better readability
 
 error: using decimal literal for bitwise operation
   --> tests/ui/decimal_bitwise_operands.rs:23:14
@@ -54,7 +54,7 @@ error: using decimal literal for bitwise operation
 LL |     0b1010 & 99;
    |              ^^
    |
-   = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
+   = help: use binary (0b1100011), hex (0x63), or octal (0o143) notation for better readability
 
 error: using decimal literal for bitwise operation
   --> tests/ui/decimal_bitwise_operands.rs:24:15
@@ -62,7 +62,7 @@ error: using decimal literal for bitwise operation
 LL |     0b1010 | (99);
    |               ^^
    |
-   = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
+   = help: use binary (0b1100011), hex (0x63), or octal (0o143) notation for better readability
 
 error: using decimal literal for bitwise operation
   --> tests/ui/decimal_bitwise_operands.rs:25:28
@@ -70,7 +70,7 @@ error: using decimal literal for bitwise operation
 LL |     0b1010 ^ (/* comment */99);
    |                            ^^
    |
-   = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
+   = help: use binary (0b1100011), hex (0x63), or octal (0o143) notation for better readability
 
 error: using decimal literal for bitwise operation
   --> tests/ui/decimal_bitwise_operands.rs:26:5
@@ -78,7 +78,7 @@ error: using decimal literal for bitwise operation
 LL |     99 & 0b1010;
    |     ^^
    |
-   = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
+   = help: use binary (0b1100011), hex (0x63), or octal (0o143) notation for better readability
 
 error: using decimal literal for bitwise operation
   --> tests/ui/decimal_bitwise_operands.rs:27:6
@@ -86,7 +86,7 @@ error: using decimal literal for bitwise operation
 LL |     (99) | 0b1010;
    |      ^^
    |
-   = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
+   = help: use binary (0b1100011), hex (0x63), or octal (0o143) notation for better readability
 
 error: using decimal literal for bitwise operation
   --> tests/ui/decimal_bitwise_operands.rs:28:19
@@ -94,7 +94,7 @@ error: using decimal literal for bitwise operation
 LL |     (/* comment */99) ^ 0b1010;
    |                   ^^
    |
-   = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
+   = help: use binary (0b1100011), hex (0x63), or octal (0o143) notation for better readability
 
 error: using decimal literal for bitwise operation
   --> tests/ui/decimal_bitwise_operands.rs:29:11
@@ -102,7 +102,7 @@ error: using decimal literal for bitwise operation
 LL |     0xD | 99;
    |           ^^
    |
-   = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
+   = help: use binary (0b1100011), hex (0x63), or octal (0o143) notation for better readability
 
 error: using decimal literal for bitwise operation
   --> tests/ui/decimal_bitwise_operands.rs:30:5
@@ -110,7 +110,7 @@ error: using decimal literal for bitwise operation
 LL |     88 & 99;
    |     ^^
    |
-   = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
+   = help: use binary (0b1011000), hex (0x58), or octal (0o130) notation for better readability
 
 error: using decimal literal for bitwise operation
   --> tests/ui/decimal_bitwise_operands.rs:30:10
@@ -118,7 +118,7 @@ error: using decimal literal for bitwise operation
 LL |     88 & 99;
    |          ^^
    |
-   = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
+   = help: use binary (0b1100011), hex (0x63), or octal (0o143) notation for better readability
 
 error: using decimal literal for bitwise operation
   --> tests/ui/decimal_bitwise_operands.rs:33:15
@@ -126,7 +126,7 @@ error: using decimal literal for bitwise operation
 LL |     37 & 38 & 39;
    |               ^^
    |
-   = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
+   = help: use binary (0b100111), hex (0x27), or octal (0o47) notation for better readability
 
 error: using decimal literal for bitwise operation
   --> tests/ui/decimal_bitwise_operands.rs:33:5
@@ -134,7 +134,7 @@ error: using decimal literal for bitwise operation
 LL |     37 & 38 & 39;
    |     ^^
    |
-   = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
+   = help: use binary (0b100101), hex (0x25), or octal (0o45) notation for better readability
 
 error: using decimal literal for bitwise operation
   --> tests/ui/decimal_bitwise_operands.rs:33:10
@@ -142,7 +142,7 @@ error: using decimal literal for bitwise operation
 LL |     37 & 38 & 39;
    |          ^^
    |
-   = help: use binary (0b...), hex (0x...), or octal (0o...) notation for better readability
+   = help: use binary (0b100110), hex (0x26), or octal (0o46) notation for better readability
 
 error: aborting due to 18 previous errors
 

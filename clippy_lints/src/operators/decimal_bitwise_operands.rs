@@ -15,12 +15,12 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, op: BinOpKind, left: &'tcx Exp
 
     for expr in [left, right] {
         if let ExprKind::Lit(lit) = &expr.kind
-            && is_decimal_number(cx, lit.span)
             && let LitKind::Int(Pu128(val), _) = lit.node
+            && is_decimal_number(cx, lit.span)
             && !is_single_digit(val)
             && !is_power_of_twoish(val)
         {
-            emit_lint(cx, lit.span);
+            emit_lint(cx, lit.span, val);
         }
     }
 }
@@ -39,13 +39,13 @@ fn is_single_digit(val: u128) -> bool {
     val <= 9
 }
 
-fn emit_lint(cx: &LateContext<'_>, span: Span) {
+fn emit_lint(cx: &LateContext<'_>, span: Span, val: u128) {
     span_lint_and_help(
         cx,
         DECIMAL_BITWISE_OPERANDS,
         span,
         "using decimal literal for bitwise operation",
         None,
-        "use binary (0b...), hex (0x...), or octal (0o...) notation for better readability",
+        format!("use binary (0b{val:b}), hex (0x{val:x}), or octal (0o{val:o}) notation for better readability"),
     );
 }
