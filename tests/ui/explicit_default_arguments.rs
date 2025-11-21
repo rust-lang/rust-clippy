@@ -50,7 +50,10 @@ impl ExampleTrait for () {
 }
 
 // Function signatures
-fn db_function(arg: DbResult<()>) -> DbResult<()> {
+fn db_function(arg: DbResult<()>) -> DbResult<()>
+where
+    DbResult<()>: Send,
+{
     arg
 }
 
@@ -58,7 +61,7 @@ fn net_function(arg: NetResult) -> NetResult {
     arg
 }
 
-fn foo() -> ComplexThing<i8, i16, u32> {
+fn foo() -> ComplexThing<i8, i16> {
     todo!()
 }
 
@@ -93,7 +96,16 @@ static COMPLEX_PARTIAL: ComplexThing<i16, u16, u8> = ComplexStruct(PhantomData);
 static NESTED_RESULT: outer::NestedResult<usize> = Ok(42);
 
 // Trait implementation with generics
-impl<T> ExampleTrait for ComplexThing<T, T> {
+impl<T> ExampleTrait for ComplexThing<DbResult<()>, T> {
+    type AssocDb = DbResult<()>;
+    type AssocNet = NetResult;
+
+    fn method() -> DbResult<()> {
+        Ok(())
+    }
+}
+
+impl ExampleTrait for DbResult<()> {
     type AssocDb = DbResult<()>;
     type AssocNet = NetResult;
 
