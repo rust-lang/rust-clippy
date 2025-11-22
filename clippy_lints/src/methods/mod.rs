@@ -3915,6 +3915,10 @@ declare_clippy_lint! {
     /// result.map(|a| a > 10) == Ok(true);
     /// option.map(|a| a > 10) != Some(true);
     /// result.map(|a| a > 10) != Ok(true);
+    ///
+    /// option.into_iter().any(|a| a > 10);
+    /// result.into_iter().any(|a| a > 10);
+    /// option.into_iter().all(|a| a > 10);
     /// ```
     /// Use instead:
     /// ```no_run
@@ -3927,6 +3931,10 @@ declare_clippy_lint! {
     /// result.is_ok_and(|a| a > 10);
     /// option.is_none_or(|a| a > 10);
     /// !result.is_ok_and(|a| a > 10);
+    ///
+    /// option.is_some_and(|a| a > 10);
+    /// result.is_ok_and(|a| a > 10);
+    /// option.is_none_or(|a| a > 10);
     /// ```
     #[clippy::version = "1.77.0"]
     pub MANUAL_IS_VARIANT_AND,
@@ -5025,6 +5033,7 @@ impl Methods {
                     zst_offset::check(cx, expr, recv);
                 },
                 (sym::all, [arg]) => {
+                    manual_is_variant_and::check_iter_reduce(cx, expr, recv, arg, span, self.msrv, name);
                     needless_character_iteration::check(cx, expr, recv, arg, true);
                     match method_call(recv) {
                         Some((sym::cloned, recv2, [], _, _)) => {
@@ -5054,6 +5063,7 @@ impl Methods {
                     }
                 },
                 (sym::any, [arg]) => {
+                    manual_is_variant_and::check_iter_reduce(cx, expr, recv, arg, span, self.msrv, name);
                     needless_character_iteration::check(cx, expr, recv, arg, false);
                     match method_call(recv) {
                         Some((sym::cloned, recv2, [], _, _)) => iter_overeager_cloned::check(
@@ -5330,7 +5340,7 @@ impl Methods {
                     if name == sym::map {
                         map_clone::check(cx, expr, recv, m_arg, self.msrv);
                         map_with_unused_argument_over_ranges::check(cx, expr, recv, m_arg, self.msrv, span);
-                        manual_is_variant_and::check_map(cx, expr);
+                        manual_is_variant_and::check_map(cx, expr, self.msrv);
                         match method_call(recv) {
                             Some((map_name @ (sym::iter | sym::into_iter), recv2, _, _, _)) => {
                                 iter_kv_map::check(cx, map_name, expr, recv2, m_arg, self.msrv);
@@ -5596,7 +5606,7 @@ impl Methods {
                 (sym::unwrap_or_default, []) => {
                     match method_call(recv) {
                         Some((sym::map, m_recv, [arg], span, _)) => {
-                            manual_is_variant_and::check(cx, expr, m_recv, arg, span, self.msrv);
+                            manual_is_variant_and::check_map_unwrap_or_default(cx, expr, m_recv, arg, span, self.msrv);
                         },
                         Some((then_method @ (sym::then | sym::then_some), t_recv, [t_arg], _, _)) => {
                             obfuscated_if_else::check(
