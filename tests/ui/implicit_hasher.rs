@@ -109,3 +109,20 @@ pub async fn election_vote(_data: HashMap<i32, i32>) {}
 //~^ implicit_hasher
 
 fn main() {}
+
+mod issue16128 {
+    use super::*;
+
+    impl<K: Hash + Eq, V> Foo<u64> for HashMap<K, V> {
+        //~^ implicit_hasher
+        fn make() -> (Self, Self) {
+            macro_rules! times_by_ten {
+                ($num:expr) => {
+                    $num * 10
+                };
+            }
+
+            (HashMap::new(), HashMap::with_capacity(times_by_ten!(5)))
+        }
+    }
+}
