@@ -33,7 +33,7 @@ LL | |     };
    | |_____^ help: try: `s.as_ref().map(|x| { if let Some(ref s) = s { (x.clone(), s) } else { panic!() } })`
 
 error: manual implementation of `Option::map`
-  --> tests/ui/manual_map_option_2.rs:65:17
+  --> tests/ui/manual_map_option_2.rs:60:17
    |
 LL |           let _ = match Some(0) {
    |  _________________^
@@ -44,7 +44,7 @@ LL | |         };
    | |_________^ help: try: `Some(0).map(|x| f(x))`
 
 error: manual implementation of `Option::map`
-  --> tests/ui/manual_map_option_2.rs:71:13
+  --> tests/ui/manual_map_option_2.rs:66:13
    |
 LL |       let _ = match Some(0) {
    |  _____________^
@@ -55,7 +55,7 @@ LL | |     };
    | |_____^ help: try: `Some(0).map(|x| unsafe { f(x) })`
 
 error: manual implementation of `Option::map`
-  --> tests/ui/manual_map_option_2.rs:76:13
+  --> tests/ui/manual_map_option_2.rs:71:13
    |
 LL |       let _ = match Some(0) {
    |  _____________^
@@ -66,7 +66,7 @@ LL | |     };
    | |_____^ help: try: `Some(0).map(|x| unsafe { f(x) })`
 
 error: manual implementation of `Option::map`
-  --> tests/ui/manual_map_option_2.rs:113:17
+  --> tests/ui/manual_map_option_2.rs:83:17
    |
 LL |           let _ = match Some(0) {
    |  _________________^
@@ -87,7 +87,7 @@ LL ~             });
    |
 
 error: manual implementation of `Option::map`
-  --> tests/ui/manual_map_option_2.rs:136:37
+  --> tests/ui/manual_map_option_2.rs:100:37
    |
 LL |           let _: Option<Box<&[u8]>> = match Some(0) {
    |  _____________________________________^
