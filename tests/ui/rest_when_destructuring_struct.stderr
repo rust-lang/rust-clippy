@@ -1,0 +1,86 @@
+error: struct destructuring with rest (`..`)
+  --> tests/ui/rest_when_destructuring_struct.rs:31:9
+   |
+LL |     let S { a, b, .. } = s;
+   |         ^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::rest-when-destructuring-struct` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::rest_when_destructuring_struct)]`
+help: consider explicitly ignoring remaining fields with wildcard patterns (`x: _`)
+   |
+LL -     let S { a, b, .. } = s;
+LL +     let S { a, b, c: _ } = s;
+   |
+
+error: struct destructuring with rest (`..`)
+  --> tests/ui/rest_when_destructuring_struct.rs:34:9
+   |
+LL |     let S { a, b, c, .. } = s;
+   |         ^^^^^^^^^^^^^^^^^
+   |
+help: consider explicitly ignoring remaining fields with wildcard patterns (`x: _`)
+   |
+LL -     let S { a, b, c, .. } = s;
+LL +     let S { a, b, c,  } = s;
+   |
+
+error: struct destructuring with rest (`..`)
+  --> tests/ui/rest_when_destructuring_struct.rs:41:9
+   |
+LL |         E::B { .. } => (),
+   |         ^^^^^^^^^^^
+   |
+help: consider explicitly ignoring fields with wildcard patterns (`x: _`)
+   |
+LL -         E::B { .. } => (),
+LL +         E::B { b1: _, b2: _ } => (),
+   |
+
+error: struct destructuring with rest (`..`)
+  --> tests/ui/rest_when_destructuring_struct.rs:43:9
+   |
+LL |         E::C { .. } => (),
+   |         ^^^^^^^^^^^
+   |
+help: consider removing the rest pattern (`..`)
+   |
+LL -         E::C { .. } => (),
+LL +         E::C {  } => (),
+   |
+
+error: struct destructuring with rest (`..`)
+  --> tests/ui/rest_when_destructuring_struct.rs:49:9
+   |
+LL |         E::B { b1: _, .. } => (),
+   |         ^^^^^^^^^^^^^^^^^^
+   |
+help: consider explicitly ignoring remaining fields with wildcard patterns (`x: _`)
+   |
+LL -         E::B { b1: _, .. } => (),
+LL +         E::B { b1: _, b2: _ } => (),
+   |
+
+error: struct destructuring with rest (`..`)
+  --> tests/ui/rest_when_destructuring_struct.rs:66:9
+   |
+LL |     let NonExhaustiveStruct { field1: _, .. } = ne;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider explicitly ignoring remaining fields with wildcard patterns (`x: _`)
+   |
+LL |     let NonExhaustiveStruct { field1: _, field2: _, .. } = ne;
+   |                                          ++++++++++
+
+error: struct destructuring with rest (`..`)
+  --> tests/ui/rest_when_destructuring_struct.rs:76:9
+   |
+LL |     let Sm { .. } = Sm::default();
+   |         ^^^^^^^^^
+   |
+help: consider explicitly ignoring fields with wildcard patterns (`x: _`)
+   |
+LL |     let Sm { a: _, b: _, .. } = Sm::default();
+   |              +++++++++++
+
+error: aborting due to 7 previous errors
+
