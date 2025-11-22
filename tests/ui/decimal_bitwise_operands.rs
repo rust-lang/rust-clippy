@@ -17,7 +17,7 @@ pub const SOME_CONST: i32 = 12345;
 fn main() {
     let mut x = 0;
     // BAD: Bitwise operation, decimal literal, one literal
-    x & 99; //~ decimal_bitwise_operands
+    x & 9_8765_4321; //~ decimal_bitwise_operands
     x | (/* comment */99); //~ decimal_bitwise_operands
     x ^ (99); //~ decimal_bitwise_operands
     x &= 99; //~ decimal_bitwise_operands
