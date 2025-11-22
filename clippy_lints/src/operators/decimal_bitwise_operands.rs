@@ -27,6 +27,12 @@ fn check_expr(cx: &LateContext<'_>, expr: &Expr<'_>) {
                 check_expr(cx, block_expr);
             }
         },
+        ExprKind::Cast(cast_expr, _) => {
+            check_expr(cx, cast_expr);
+        },
+        ExprKind::Unary(_, unary_expr) => {
+            check_expr(cx, unary_expr);
+        },
         ExprKind::Lit(lit) => {
             if let LitKind::Int(Pu128(val), _) = lit.node
                 && is_decimal_number(cx, lit.span, &lit.node)

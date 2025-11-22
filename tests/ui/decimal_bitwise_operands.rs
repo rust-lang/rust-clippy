@@ -1,4 +1,9 @@
-#![allow(clippy::erasing_op, clippy::no_effect, clippy::unnecessary_operation)]
+#![allow(
+    clippy::erasing_op,
+    clippy::no_effect,
+    clippy::unnecessary_operation,
+    clippy::unnecessary_cast
+)]
 #![warn(clippy::decimal_bitwise_operands)]
 
 macro_rules! bitwise_op {
@@ -68,6 +73,16 @@ fn main() {
     99 + 99;
     0b1010 - 0b1101;
     0xD * 0xD;
+
+    // BAD: Unary and cast, decimal
+    x & !100; //~ decimal_bitwise_operands
+    x & -100; //~ decimal_bitwise_operands
+    x & (100 as i32); //~ decimal_bitwise_operands
+
+    // GOOD: Unary and cast, non-decimal
+    x & !0b1101;
+    x & -0xD;
+    x & (0o333 as i32);
 
     // GOOD: Bitwise operation, variables only
     let y = 0;
