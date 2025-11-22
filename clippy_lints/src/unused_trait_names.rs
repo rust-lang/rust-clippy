@@ -2,7 +2,7 @@ use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::is_from_proc_macro;
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::source::snippet_opt;
+use clippy_utils::source::SpanExt;
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{Item, ItemKind, UseKind};
@@ -70,7 +70,7 @@ impl<'tcx> LateLintPass<'tcx> for UnusedTraitNames {
             && let module = cx.tcx.parent_module_from_def_id(item.owner_id.def_id)
             && cx.tcx.visibility(item.owner_id.def_id) == Visibility::Restricted(module.to_def_id())
             && let Some(last_segment) = path.segments.last()
-            && let Some(snip) = snippet_opt(cx, last_segment.ident.span)
+            && let Some(snip) = last_segment.ident.span.get_text(cx)
             && self.msrv.meets(cx, msrvs::UNDERSCORE_IMPORTS)
             && !is_from_proc_macro(cx, &last_segment.ident)
         {

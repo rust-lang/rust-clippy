@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::macros::macro_backtrace;
-use clippy_utils::source::snippet_opt;
+use clippy_utils::source::SpanExt;
 use clippy_utils::{sym, tokenize_with_text};
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
@@ -44,16 +44,16 @@ impl LateLintPass<'_> for UselessConcat {
             // Check if the `concat` macro from the `core` library.
             && cx.tcx.is_diagnostic_item(sym::macro_concat, macro_call.def_id)
             // We get the original code to parse it.
-            && let Some(original_code) = snippet_opt(cx, macro_call.span)
+            && let Some(original_code) = macro_call.span.get_text(cx)
             // This check allows us to ensure that the code snippet:
             // 1. Doesn't come from proc-macro expansion.
             // 2. Doesn't come from foreign macro expansion.
             //
             // It works as follows: if the snippet we get doesn't contain `concat!(`, then it
             // means it's not code written in the current crate so we shouldn't lint.
-            && let mut parts = original_code.split('!')
-            && parts.next().is_some_and(|p| p.trim() == "concat")
-            && parts.next().is_some_and(|p| p.trim().starts_with('('))
+            && let Some(src) = original_code.strip_prefix("concat")
+            && let Some(src) = src.trim_start().strip_prefix('!')
+            && src.trim_start().starts_with('(')
         {
             let mut literal = None;
             let mut nb_commas = 0;

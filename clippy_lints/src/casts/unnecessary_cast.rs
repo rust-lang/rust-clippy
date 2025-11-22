@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::numeric_literal::NumericLiteral;
 use clippy_utils::res::MaybeResPath;
-use clippy_utils::source::{SpanRangeExt, snippet_opt};
+use clippy_utils::source::SpanExt;
 use clippy_utils::visitors::{Visitable, for_each_expr_without_closures};
 use clippy_utils::{get_parent_expr, is_hir_ty_cfg_dependant, is_ty_alias};
 use rustc_ast::{LitFloatType, LitIntType, LitKind};
@@ -24,7 +24,10 @@ pub(super) fn check<'tcx>(
     cast_from: Ty<'tcx>,
     cast_to: Ty<'tcx>,
 ) -> bool {
-    let cast_str = snippet_opt(cx, cast_expr.span).unwrap_or_default();
+    // FIXME: Delay this to where it's needed.
+    let Some(src) = cast_expr.span.get_text(cx) else {
+        return false;
+    };
 
     if let ty::RawPtr(..) = cast_from.kind()
         // check both mutability and type are the same
@@ -57,7 +60,7 @@ pub(super) fn check<'tcx>(
                 "casting raw pointers to the same type and constness is unnecessary (`{cast_from}` -> `{cast_to}`)"
             ),
             "try",
-            cast_str.clone(),
+            src.to_owned(),
             Applicability::MaybeIncorrect,
         );
     }
@@ -103,10 +106,7 @@ pub(super) fn check<'tcx>(
     }
 
     if let Some(lit) = get_numeric_literal(cast_expr) {
-        let literal_str = &cast_str;
-
         if let LitKind::Int(n, _) = lit.node
-            && let Some(src) = cast_expr.span.get_source_text(cx)
             && cast_to.is_floating_point()
             && let Some(num_lit) = NumericLiteral::from_lit_kind(&src, &lit.node)
             && let from_nbits = 128 - n.get().leading_zeros()
@@ -122,20 +122,18 @@ pub(super) fn check<'tcx>(
 
         match lit.node {
             LitKind::Int(_, LitIntType::Unsuffixed) if cast_to.is_integral() => {
-                lint_unnecessary_cast(cx, expr, literal_str, cast_from, cast_to);
+                lint_unnecessary_cast(cx, expr, &src, cast_from, cast_to);
                 return false;
             },
             LitKind::Float(_, LitFloatType::Unsuffixed) if cast_to.is_floating_point() => {
-                lint_unnecessary_cast(cx, expr, literal_str, cast_from, cast_to);
+                lint_unnecessary_cast(cx, expr, &src, cast_from, cast_to);
                 return false;
             },
             LitKind::Int(_, LitIntType::Signed(_) | LitIntType::Unsigned(_))
             | LitKind::Float(_, LitFloatType::Suffixed(_))
                 if cast_from.kind() == cast_to.kind() =>
             {
-                if let Some(src) = cast_expr.span.get_source_text(cx)
-                    && let Some(num_lit) = NumericLiteral::from_lit_kind(&src, &lit.node)
-                {
+                if let Some(num_lit) = NumericLiteral::from_lit_kind(&src, &lit.node) {
                     lint_unnecessary_cast(cx, expr, num_lit.integer, cast_from, cast_to);
                     return true;
                 }
@@ -197,9 +195,9 @@ pub(super) fn check<'tcx>(
             format!("casting to the same type is unnecessary (`{cast_from}` -> `{cast_to}`)"),
             "try",
             match surrounding {
-                MaybeParenOrBlock::Paren => format!("({cast_str})"),
-                MaybeParenOrBlock::Block => format!("{{ {cast_str} }}"),
-                MaybeParenOrBlock::Nothing => cast_str,
+                MaybeParenOrBlock::Paren => format!("({src})"),
+                MaybeParenOrBlock::Block => format!("{{ {src} }}"),
+                MaybeParenOrBlock::Nothing => src.to_owned(),
             },
             Applicability::MachineApplicable,
         );
@@ -281,7 +279,7 @@ fn is_cast_from_ty_alias<'tcx>(cx: &LateContext<'tcx>, expr: impl Visitable<'tcx
             let res = cx.qpath_res(&qpath, expr.hir_id);
             // Function call
             if let Res::Def(DefKind::Fn, def_id) = res {
-                let Some(snippet) = cx.tcx.def_span(def_id).get_source_text(cx) else {
+                let Some(snippet) = cx.tcx.def_span(def_id).get_text(cx) else {
                     return ControlFlow::Continue(());
                 };
                 // This is the worst part of this entire function. This is the only way I know of to

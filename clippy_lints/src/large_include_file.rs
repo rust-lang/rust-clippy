@@ -1,7 +1,7 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::macros::root_macro_call_first_node;
-use clippy_utils::source::snippet_opt;
+use clippy_utils::source::SpanExt;
 use rustc_ast::{AttrArgs, AttrKind, Attribute, LitKind};
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass};
@@ -96,7 +96,7 @@ impl EarlyLintPass for LargeIncludeFile {
             && !attr.span.contains(meta.span)
             // Since the `include_str` is already expanded at this point, we can only take the
             // whole attribute snippet and then modify for our suggestion.
-            && let Some(snippet) = snippet_opt(cx, attr.span)
+            && let Some(snippet) = attr.span.get_text(cx)
             // We cannot remove this because a `#[doc = include_str!("...")]` attribute can
             // occupy several lines.
             && let Some(start) = snippet.find('[')
