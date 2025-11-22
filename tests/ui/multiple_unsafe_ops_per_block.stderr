@@ -359,5 +359,67 @@ note: unsafe function call occurs here
 LL |         apply(|| f(0));
    |                  ^^^^
 
-error: aborting due to 16 previous errors
+error: this `unsafe` block contains 2 unsafe operations, expected only one
+  --> tests/ui/multiple_unsafe_ops_per_block.rs:326:5
+   |
+LL | /     unsafe {
+LL | |
+LL | |         let _ = format!("{}", foo());
+LL | |         let _ = format!("{}", foo());
+LL | |     }
+   | |_____^
+   |
+note: unsafe function call occurs here
+  --> tests/ui/multiple_unsafe_ops_per_block.rs:328:31
+   |
+LL |         let _ = format!("{}", foo());
+   |                               ^^^^^
+note: unsafe function call occurs here
+  --> tests/ui/multiple_unsafe_ops_per_block.rs:329:31
+   |
+LL |         let _ = format!("{}", foo());
+   |                               ^^^^^
+
+error: this `unsafe` block contains 2 unsafe operations, expected only one
+  --> tests/ui/multiple_unsafe_ops_per_block.rs:337:5
+   |
+LL | /     unsafe {
+LL | |
+LL | |         assert!(foo() == 0, "{}", 1 + 2);
+LL | |         assert!(foo() == 0, "{}", 1 + 2);
+LL | |     }
+   | |_____^
+   |
+note: unsafe function call occurs here
+  --> tests/ui/multiple_unsafe_ops_per_block.rs:339:17
+   |
+LL |         assert!(foo() == 0, "{}", 1 + 2);
+   |                 ^^^^^
+note: unsafe function call occurs here
+  --> tests/ui/multiple_unsafe_ops_per_block.rs:340:17
+   |
+LL |         assert!(foo() == 0, "{}", 1 + 2);
+   |                 ^^^^^
+
+error: this `unsafe` block contains 2 unsafe operations, expected only one
+  --> tests/ui/multiple_unsafe_ops_per_block.rs:343:5
+   |
+LL | /     unsafe {
+LL | |
+LL | |         assert!(foo() == 0, "{}", foo());
+LL | |     }
+   | |_____^
+   |
+note: unsafe function call occurs here
+  --> tests/ui/multiple_unsafe_ops_per_block.rs:345:17
+   |
+LL |         assert!(foo() == 0, "{}", foo());
+   |                 ^^^^^
+note: unsafe function call occurs here
+  --> tests/ui/multiple_unsafe_ops_per_block.rs:345:35
+   |
+LL |         assert!(foo() == 0, "{}", foo());
+   |                                   ^^^^^
+
+error: aborting due to 19 previous errors
 

@@ -312,4 +312,38 @@ fn check_closures() {
     }
 }
 
+fn issue16116() {
+    unsafe fn foo() -> u32 {
+        0
+    }
+
+    unsafe {
+        // Do not lint even though `format!` expansion
+        // contains unsafe calls.
+        let _ = format!("{}", foo());
+    }
+
+    unsafe {
+        //~^ multiple_unsafe_ops_per_block
+        let _ = format!("{}", foo());
+        let _ = format!("{}", foo());
+    }
+
+    unsafe {
+        // Do not lint: only one `assert!()` argument is unsafe
+        assert!(foo() == 0, "{}", 1 + 2);
+    }
+
+    unsafe {
+        //~^ multiple_unsafe_ops_per_block
+        assert!(foo() == 0, "{}", 1 + 2);
+        assert!(foo() == 0, "{}", 1 + 2);
+    }
+
+    unsafe {
+        //~^ multiple_unsafe_ops_per_block
+        assert!(foo() == 0, "{}", foo());
+    }
+}
+
 fn main() {}

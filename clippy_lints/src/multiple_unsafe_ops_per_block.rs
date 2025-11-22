@@ -119,6 +119,12 @@ impl<'tcx> Visitor<'tcx> for UnsafeExprCollector<'tcx> {
     type NestedFilter = nested_filter::OnlyBodies;
 
     fn visit_expr(&mut self, expr: &'tcx hir::Expr<'tcx>) {
+        if expr.span.in_external_macro(self.tcx.sess.source_map()) {
+            // Check the content of the expanded code to still catch the unsafe
+            // operation passed as macro arguments.
+            return walk_expr(self, expr);
+        }
+
         match expr.kind {
             // The `await` itself will desugar to two unsafe calls, but we should ignore those.
             // Instead, check the expression that is `await`ed
