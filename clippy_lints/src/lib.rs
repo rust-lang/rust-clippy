@@ -398,7 +398,7 @@ mod zero_sized_map_values;
 mod zombie_processes;
 // end lints modules, do not remove this comment, it's used in `update_lints`
 
-use clippy_config::{Conf, get_configuration_metadata, sanitize_explanation};
+use clippy_config::{Conf, sanitize_explanation};
 use clippy_utils::macros::FormatArgsStorage;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_data_structures::sync;
@@ -407,12 +407,11 @@ use rustc_middle::ty::TyCtxt;
 use utils::attr_collector::{AttrCollector, AttrStorage};
 
 pub fn explain(name: &str) -> i32 {
-    let target = format!("clippy::{}", name.to_ascii_uppercase());
-
+    let target = format!("clippy::{name}");
     if let Some(info) = declared_lints::LINTS.iter().find(|info| info.lint.name == target) {
         println!("{}", sanitize_explanation(info.explanation));
         // Check if the lint has configuration
-        let mut mdconf = get_configuration_metadata();
+        let mut mdconf = Conf::get_metadata();
         let name = name.to_ascii_lowercase();
         mdconf.retain(|cconf| cconf.lints.contains(&&*name));
         if !mdconf.is_empty() {
@@ -834,7 +833,11 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(move |_| Box::new(unused_trait_names::UnusedTraitNames::new(conf))),
         Box::new(|_| Box::new(manual_ignore_case_cmp::ManualIgnoreCaseCmp)),
         Box::new(|_| Box::new(unnecessary_literal_bound::UnnecessaryLiteralBound)),
-        Box::new(move |_| Box::new(arbitrary_source_item_ordering::ArbitrarySourceItemOrdering::new(conf))),
+        Box::new(move |tcx| {
+            Box::new(arbitrary_source_item_ordering::ArbitrarySourceItemOrdering::new(
+                tcx, conf,
+            ))
+        }),
         Box::new(|_| Box::new(useless_concat::UselessConcat)),
         Box::new(|_| Box::new(unneeded_struct_pattern::UnneededStructPattern)),
         Box::new(|_| Box::<unnecessary_semicolon::UnnecessarySemicolon>::default()),

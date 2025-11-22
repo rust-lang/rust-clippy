@@ -46,7 +46,7 @@ pub struct ManualOptionAsSlice {
 
 impl ManualOptionAsSlice {
     pub fn new(conf: &Conf) -> Self {
-        Self { msrv: conf.msrv }
+        Self { msrv: conf.msrv.into() }
     }
 }
 

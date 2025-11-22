@@ -488,7 +488,7 @@ impl_lint_pass!(Transmute => [
 ]);
 impl Transmute {
     pub fn new(conf: &'static Conf) -> Self {
-        Self { msrv: conf.msrv }
+        Self { msrv: conf.msrv.into() }
     }
 }
 impl<'tcx> LateLintPass<'tcx> for Transmute {

@@ -42,7 +42,7 @@ impl_lint_pass!(ManualIsPowerOfTwo => [MANUAL_IS_POWER_OF_TWO]);
 
 impl ManualIsPowerOfTwo {
     pub fn new(conf: &'static Conf) -> Self {
-        Self { msrv: conf.msrv }
+        Self { msrv: conf.msrv.into() }
     }
 
     fn build_sugg(&self, cx: &LateContext<'_>, expr: &Expr<'_>, receiver: &Expr<'_>) {

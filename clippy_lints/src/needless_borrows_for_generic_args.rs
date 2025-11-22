@@ -72,7 +72,7 @@ impl NeedlessBorrowsForGenericArgs<'_> {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
             possible_borrowers: Vec::new(),
-            msrv: conf.msrv,
+            msrv: conf.msrv.into(),
         }
     }
 }
