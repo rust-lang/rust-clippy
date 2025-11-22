@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::numeric_literal;
 use clippy_utils::source::SpanRangeExt;
 use rustc_ast::LitKind;
 use rustc_data_structures::packed::Pu128;
@@ -59,6 +60,11 @@ fn emit_lint(cx: &LateContext<'_>, span: Span, val: u128) {
         span,
         "using decimal literal for bitwise operation",
         None,
-        format!("use binary (0b{val:b}), hex (0x{val:x}), or octal (0o{val:o}) notation for better readability"),
+        format!(
+            "use binary ({}), hex ({}), or octal ({}) notation for better readability",
+            numeric_literal::format(&format!("0b{val:b}"), None, false),
+            numeric_literal::format(&format!("0x{val:x}"), None, false),
+            numeric_literal::format(&format!("0o{val:o}"), None, false),
+        ),
     );
 }
