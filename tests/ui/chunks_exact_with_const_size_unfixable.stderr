@@ -1,0 +1,30 @@
+error: using `chunks_exact` with a constant chunk size
+  --> tests/ui/chunks_exact_with_const_size_unfixable.rs:9:32
+   |
+LL |     let mut chunk_iter = slice.chunks_exact(CHUNK_SIZE);
+   |                                ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using `as_chunks::<CHUNK_SIZE>()` instead
+  --> tests/ui/chunks_exact_with_const_size_unfixable.rs:9:32
+   |
+LL |     let mut chunk_iter = slice.chunks_exact(CHUNK_SIZE);
+   |                                ^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: you can access the chunks using `chunk_iter.0.iter()`, and the remainder using `chunk_iter.1`
+   = note: `-D clippy::chunks-exact-with-const-size` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::chunks_exact_with_const_size)]`
+
+error: using `chunks_exact_mut` with a constant chunk size
+  --> tests/ui/chunks_exact_with_const_size_unfixable.rs:16:31
+   |
+LL |     let mut chunk_iter = arr2.chunks_exact_mut(CHUNK_SIZE);
+   |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using `as_chunks_mut::<CHUNK_SIZE>()` instead
+  --> tests/ui/chunks_exact_with_const_size_unfixable.rs:16:31
+   |
+LL |     let mut chunk_iter = arr2.chunks_exact_mut(CHUNK_SIZE);
+   |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: you can access the chunks using `chunk_iter.0.iter()`, and the remainder using `chunk_iter.1`
+
+error: aborting due to 2 previous errors
+
