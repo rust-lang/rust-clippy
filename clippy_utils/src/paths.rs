@@ -131,6 +131,10 @@ path_macros! {
     macro_path: PathNS::Macro,
 }
 
+// Note that `sym::box_new` is a diagnostic item for `Box::new`, which calls the conventional
+// function `box_new`. The latter is what we are interested in.
+pub static BOX_NEW: PathLookup = value_path!(alloc::boxed::box_new);
+
 // Paths in external crates
 pub static FUTURES_IO_ASYNCREADEXT: PathLookup = type_path!(futures_util::AsyncReadExt);
 pub static FUTURES_IO_ASYNCWRITEEXT: PathLookup = type_path!(futures_util::AsyncWriteExt);

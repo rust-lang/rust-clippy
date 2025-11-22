@@ -478,7 +478,7 @@ pub fn try_rename_dir(old_name: &Path, new_name: &Path) -> bool {
 
 #[track_caller]
 pub fn run_exit_on_err(path: &(impl AsRef<Path> + ?Sized), cmd: &mut Command) {
-    match expect_action(cmd.status(), ErrAction::Run, path.as_ref()).code() {
+    match expect_action(cmd.status(), ErrAction::Run, path).code() {
         Some(0) => {},
         Some(n) => process::exit(n),
         None => {
@@ -538,7 +538,7 @@ pub fn split_args_for_threads(
             let mut cmd = (self.make_cmd)();
             let mut cmd_len = 0usize;
             for arg in self.args.by_ref().take(self.batch_size) {
-                cmd.arg(arg.as_ref());
+                cmd.arg(&arg);
                 // `+ 8` to account for the `argv` pointer on unix.
                 // Windows is complicated since the arguments are first converted to UTF-16ish,
                 // but this needs to account for the space between arguments and whatever additional

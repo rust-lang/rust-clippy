@@ -1,5 +1,5 @@
 use clippy_config::Conf;
-use clippy_config::types::{DisallowedPath, create_disallowed_map};
+use clippy_config::types::{ConfPath, create_conf_path_map};
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::paths::PathNS;
 use rustc_hir::def::{CtorKind, DefKind, Res};
@@ -62,12 +62,12 @@ declare_clippy_lint! {
 }
 
 pub struct DisallowedMethods {
-    disallowed: DefIdMap<(&'static str, &'static DisallowedPath)>,
+    disallowed: DefIdMap<(&'static str, &'static ConfPath)>,
 }
 
 impl DisallowedMethods {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {
-        let (disallowed, _) = create_disallowed_map(
+        let (disallowed, _) = create_conf_path_map(
             tcx,
             &conf.disallowed_methods,
             PathNS::Value,
@@ -95,13 +95,13 @@ impl<'tcx> LateLintPass<'tcx> for DisallowedMethods {
             },
             _ => return,
         };
-        if let Some(&(path, disallowed_path)) = self.disallowed.get(&id) {
+        if let Some(&(path, conf_path)) = self.disallowed.get(&id) {
             span_lint_and_then(
                 cx,
                 DISALLOWED_METHODS,
                 span,
                 format!("use of a disallowed method `{path}`"),
-                disallowed_path.diag_amendment(span),
+                conf_path.diag_amendment(span),
             );
         }
     }
