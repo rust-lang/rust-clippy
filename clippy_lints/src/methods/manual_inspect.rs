@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::{MaybeDef, MaybeResPath};
-use clippy_utils::source::{IntoSpan, SpanRangeExt};
+use clippy_utils::source::{FileRangeExt, SpanExt, StrExt};
 use clippy_utils::ty::get_field_by_name;
 use clippy_utils::visitors::{for_each_expr, for_each_expr_without_closures};
 use clippy_utils::{ExprUseNode, expr_use_ctxt, sym};
@@ -100,18 +100,22 @@ pub(crate) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, arg: &Expr<'_>, name:
         let mut addr_of_edits = Vec::with_capacity(delayed.len());
         for x in delayed {
             match x {
-                UseKind::Return(s) => edits.push((s.with_leading_whitespace(cx).with_ctxt(s.ctxt()), String::new())),
+                UseKind::Return(s) => {
+                    if let Some(sp) = s.map_range(cx, |scx, range| range.with_leading_whitespace(scx)) {
+                        edits.push((sp, String::new()));
+                    } else {
+                        return;
+                    }
+                },
                 UseKind::Borrowed(s) => {
-                    let range = s.map_range(cx, |_, src, range| {
-                        let src = src.get(range.clone())?;
-                        let trimmed = src.trim_start_matches([' ', '\t', '\n', '\r', '(']);
-                        trimmed.starts_with('&').then(|| {
-                            let pos = range.start + src.len() - trimmed.len();
-                            pos..pos + 1
+                    if let Some(sp) = s.map_range(cx, |scx, range| {
+                        range.map_range_text(scx, |src| {
+                            src.trim_start_matches([' ', '\t', '\n', '\r', '('])
+                                .split_prefix('&')
+                                .map(|[x, _]| x)
                         })
-                    });
-                    if let Some(range) = range {
-                        addr_of_edits.push((range.with_ctxt(s.ctxt()), String::new()));
+                    }) {
+                        addr_of_edits.push((sp, String::new()));
                     } else {
                         requires_copy = true;
                         requires_deref = true;
@@ -162,6 +166,9 @@ pub(crate) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, arg: &Expr<'_>, name:
             && (!requires_copy || cx.type_is_copy_modulo_regions(arg_ty))
             // This case could be handled, but a fair bit of care would need to be taken.
             && (!requires_deref || arg_ty.is_freeze(cx.tcx, cx.typing_env()))
+            && let Some(final_expr_span) = final_expr
+                .span
+                .map_range(cx, |scx, range| range.with_leading_whitespace(scx))
         {
             if requires_deref {
                 edits.push((param.span.shrink_to_lo(), "&".into()));
@@ -174,13 +181,7 @@ pub(crate) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, arg: &Expr<'_>, name:
                 _ => return,
             };
             edits.push((name_span, edit.to_string()));
-            edits.push((
-                final_expr
-                    .span
-                    .with_leading_whitespace(cx)
-                    .with_ctxt(final_expr.span.ctxt()),
-                String::new(),
-            ));
+            edits.push((final_expr_span, String::new()));
             let app = if edits.iter().any(|(s, _)| s.from_expansion()) {
                 Applicability::MaybeIncorrect
             } else {
