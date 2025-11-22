@@ -1,12 +1,11 @@
 use super::FILTER_MAP_BOOL_THEN;
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_then};
 use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
-use clippy_utils::source::{SpanRangeExt, snippet_with_context};
+use clippy_utils::source::SpanExt;
 use clippy_utils::ty::is_copy;
 use clippy_utils::{CaptureKind, can_move_expr_to_closure, contains_return, is_from_proc_macro, peel_blocks};
 use rustc_ast::Mutability;
 use rustc_data_structures::fx::FxHashSet;
-use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, HirId, Param, Pat};
 use rustc_lint::{LateContext, LintContext};
 use rustc_middle::ty::Binder;
@@ -43,12 +42,11 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, arg: &
             .iter()
             .filter(|adj| matches!(adj.kind, Adjust::Deref(_)))
             .count()
-        && let Some(param_snippet) = param.span.get_source_text(cx)
+        && let Some(param_snippet) = param.span.get_text(cx)
+        && let ctxt = expr.span.ctxt()
+        && let Some(filter) = recv.span.get_text_at_ctxt(cx, ctxt)
+        && let Some(map) = then_body.span.get_text_at_ctxt(cx, ctxt)
     {
-        let mut applicability = Applicability::MachineApplicable;
-        let (filter, _) = snippet_with_context(cx, recv.span, expr.span.ctxt(), "..", &mut applicability);
-        let (map, _) = snippet_with_context(cx, then_body.span, expr.span.ctxt(), "..", &mut applicability);
-
         span_lint_and_then(
             cx,
             FILTER_MAP_BOOL_THEN,
@@ -63,7 +61,7 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, arg: &
                             "filter(|&{param_snippet}| {derefs}{filter}).map(|{param_snippet}| {map})",
                             derefs = "*".repeat(needed_derefs)
                         ),
-                        applicability,
+                        applicability_for_ctxt(ctxt),
                     );
                 } else {
                     diag.help("consider using `filter` then `map` instead");

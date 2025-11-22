@@ -1,7 +1,6 @@
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_then};
 use clippy_utils::is_slice_of_primitives;
-use clippy_utils::source::snippet_with_context;
-use rustc_errors::Applicability;
+use clippy_utils::source::SpanExt;
 use rustc_hir::Expr;
 use rustc_lint::LateContext;
 
@@ -12,6 +11,8 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>, recv: &'tcx
         && let Some(impl_id) = cx.tcx.impl_of_assoc(method_id)
         && cx.tcx.type_of(impl_id).instantiate_identity().is_slice()
         && let Some(slice_type) = is_slice_of_primitives(cx, recv)
+        && let ctxt = e.span.ctxt()
+        && let Some(recv_snip) = recv.span.get_text_at_ctxt(cx, ctxt)
     {
         span_lint_and_then(
             cx,
@@ -19,9 +20,12 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>, recv: &'tcx
             e.span,
             format!("used `sort` on primitive type `{slice_type}`"),
             |diag| {
-                let mut app = Applicability::MachineApplicable;
-                let recv_snip = snippet_with_context(cx, recv.span, e.span.ctxt(), "..", &mut app).0;
-                diag.span_suggestion(e.span, "try", format!("{recv_snip}.sort_unstable()"), app);
+                diag.span_suggestion(
+                    e.span,
+                    "try",
+                    format!("{recv_snip}.sort_unstable()"),
+                    applicability_for_ctxt(ctxt),
+                );
                 diag.note(
                     "an unstable sort typically performs faster without any observable difference for this data type",
                 );

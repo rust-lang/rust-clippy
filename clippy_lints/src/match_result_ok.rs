@@ -1,8 +1,7 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_sugg};
 use clippy_utils::res::MaybeDef;
-use clippy_utils::source::snippet_with_context;
+use clippy_utils::source::SpanExt;
 use clippy_utils::{as_some_pattern, higher, sym};
-use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
@@ -61,10 +60,9 @@ impl<'tcx> LateLintPass<'tcx> for MatchResultOk {
             && let ctxt = expr.span.ctxt()
             && let_expr.span.ctxt() == ctxt
             && let_pat.span.ctxt() == ctxt
+            && let Some(some_expr_string) = ok_pat.span.get_text_at_ctxt(cx, ctxt)
+            && let Some(trimmed_ok) = recv.span.get_text_at_ctxt(cx, ctxt)
         {
-            let mut applicability = Applicability::MachineApplicable;
-            let some_expr_string = snippet_with_context(cx, ok_pat.span, ctxt, "", &mut applicability).0;
-            let trimmed_ok = snippet_with_context(cx, recv.span, ctxt, "", &mut applicability).0;
             let sugg = format!(
                 "{ifwhile} let Ok({some_expr_string}) = {}",
                 trimmed_ok.trim().trim_end_matches('.'),
@@ -76,7 +74,7 @@ impl<'tcx> LateLintPass<'tcx> for MatchResultOk {
                 "matching on `Some` with `ok()` is redundant",
                 format!("consider matching on `Ok({some_expr_string})` and removing the call to `ok` instead"),
                 sugg,
-                applicability,
+                applicability_for_ctxt(ctxt),
             );
         }
     }

@@ -1,7 +1,6 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::snippet_with_context;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_sugg};
+use clippy_utils::source::SpanExt;
 use clippy_utils::ty::is_copy;
-use rustc_errors::Applicability;
 use rustc_hir::{BindingMode, ByRef, Expr, ExprKind, MatchSource, Node, PatKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty;
@@ -63,15 +62,17 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, receiver: &Expr<'_>) 
             _ => false,
         };
 
-        let mut app = Applicability::MachineApplicable;
-        let snip = snippet_with_context(cx, receiver.span, expr.span.ctxt(), "_", &mut app).0;
+        let ctxt = expr.span.ctxt();
+        let Some(snip) = receiver.span.get_text_at_ctxt(cx, ctxt) else {
+            return;
+        };
 
         let deref_count = arg_adjustments
             .iter()
             .take_while(|adj| matches!(adj.kind, Adjust::Deref(_)))
             .count();
         let (help, sugg) = if deref_count == 0 {
-            ("try removing the `clone` call", snip.into())
+            ("try removing the `clone` call", snip.to_owned())
         } else if parent_is_suffix_expr {
             ("try dereferencing it", format!("({}{snip})", "*".repeat(deref_count)))
         } else {
@@ -87,7 +88,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, receiver: &Expr<'_>) 
             )),
             help,
             sugg,
-            app,
+            applicability_for_ctxt(ctxt),
         );
     }
 }

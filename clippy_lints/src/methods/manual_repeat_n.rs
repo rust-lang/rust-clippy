@@ -1,9 +1,8 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_sugg};
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
-use clippy_utils::source::{snippet, snippet_with_context};
+use clippy_utils::source::SpanExt;
 use clippy_utils::{expr_use_ctxt, fn_def_id, std_or_core};
-use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_span::sym;
@@ -25,20 +24,18 @@ pub(super) fn check<'tcx>(
         && !expr_use_ctxt(cx, expr).is_ty_unified
         && let Some(std_or_core) = std_or_core(cx)
         && msrv.meets(cx, msrvs::REPEAT_N)
+        && let ctxt = expr.span.ctxt()
+        && let Some(repeat_src) = repeat_arg.span.get_text_at_ctxt(cx, ctxt)
+        && let Some(take_src) = take_arg.span.get_text_at_ctxt(cx, ctxt)
     {
-        let mut app = Applicability::MachineApplicable;
         span_lint_and_sugg(
             cx,
             MANUAL_REPEAT_N,
             expr.span,
             "this `repeat().take()` can be written more concisely",
             "consider using `repeat_n()` instead",
-            format!(
-                "{std_or_core}::iter::repeat_n({}, {})",
-                snippet_with_context(cx, repeat_arg.span, expr.span.ctxt(), "..", &mut app).0,
-                snippet(cx, take_arg.span, "..")
-            ),
-            app,
+            format!("{std_or_core}::iter::repeat_n({repeat_src}, {take_src})"),
+            applicability_for_ctxt(ctxt),
         );
     }
 }

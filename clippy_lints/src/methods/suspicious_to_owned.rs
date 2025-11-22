@@ -1,7 +1,6 @@
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_then};
 use clippy_utils::res::MaybeDef;
-use clippy_utils::source::snippet_with_context;
-use rustc_errors::Applicability;
+use clippy_utils::source::SpanExt;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
 use rustc_middle::ty::print::with_forced_trimmed_paths;
@@ -17,9 +16,9 @@ pub fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, recv: &hir::Expr<'_>) -
         .is_diag_item(cx, sym::ToOwned)
         && let input_type = cx.typeck_results().expr_ty(expr)
         && input_type.is_diag_item(cx, sym::Cow)
+        && let ctxt = expr.span.ctxt()
+        && let Some(recv_snip) = recv.span.get_text_at_ctxt(cx, ctxt)
     {
-        let mut app = Applicability::MaybeIncorrect;
-        let recv_snip = snippet_with_context(cx, recv.span, expr.span.ctxt(), "..", &mut app).0;
         span_lint_and_then(
             cx,
             SUSPICIOUS_TO_OWNED,
@@ -28,6 +27,7 @@ pub fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, recv: &hir::Expr<'_>) -
                 "this `to_owned` call clones the {input_type} itself and does not cause the {input_type} contents to become owned"
             )),
             |diag| {
+                let app = applicability_for_ctxt(ctxt);
                 diag.span_suggestion(
                     expr.span,
                     "depending on intent, either make the Cow an Owned variant",

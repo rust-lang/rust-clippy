@@ -1,8 +1,8 @@
 use clippy_config::Conf;
-use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg, span_lint_and_then};
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint, span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::msrvs::Msrv;
 use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
-use clippy_utils::source::{SpanRangeExt, snippet_with_context};
+use clippy_utils::source::SpanExt;
 use clippy_utils::sugg::{Sugg, has_enclosing_paren};
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{fulfill_or_allowed, get_parent_as_impl, parent_item_name, peel_ref_operators, sym};
@@ -304,19 +304,19 @@ impl LenZero {
                 return;
             }
 
-            if method_name == sym::len && has_is_empty(cx, receiver, self.msrv) {
-                let mut applicability = Applicability::MachineApplicable;
+            if method_name == sym::len
+                && has_is_empty(cx, receiver, self.msrv)
+                && let ctxt = span.ctxt()
+                && let Some(sugg_snip) = receiver.span.get_text_at_ctxt(cx, ctxt)
+            {
                 span_lint_and_sugg(
                     cx,
                     LEN_ZERO,
                     span,
                     format!("length comparison to {}", if compare_to == 0 { "zero" } else { "one" }),
                     format!("using `{op}is_empty` is clearer and more explicit"),
-                    format!(
-                        "{op}{}.is_empty()",
-                        snippet_with_context(cx, receiver.span, span.ctxt(), "_", &mut applicability).0,
-                    ),
-                    applicability,
+                    format!("{op}{sugg_snip}.is_empty()"),
+                    applicability_for_ctxt(ctxt),
                 );
             }
         }
@@ -343,7 +343,7 @@ impl LenZero {
 }
 
 fn span_without_enclosing_paren(cx: &LateContext<'_>, span: Span) -> Span {
-    let Some(snippet) = span.get_source_text(cx) else {
+    let Some(snippet) = span.get_text(cx) else {
         return span;
     };
     if has_enclosing_paren(snippet) {

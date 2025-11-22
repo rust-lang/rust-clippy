@@ -1,14 +1,13 @@
 use clippy_config::Conf;
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_then};
 use clippy_utils::eager_or_lazy::switch_to_eager_eval;
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::source::{snippet_with_applicability, snippet_with_context, walk_span_to_context};
+use clippy_utils::source::{SpanExt, snippet_with_applicability, walk_span_to_context};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::{
     as_some_expr, contains_return, expr_adjustment_requires_coercion, higher, is_else_clause, is_in_const_context,
     is_none_expr, peel_blocks, sym,
 };
-use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::impl_lint_pass;
@@ -96,11 +95,13 @@ impl<'tcx> LateLintPass<'tcx> for IfThenSomeElseNone {
                         return;
                     }
 
-                    let mut app = Applicability::MachineApplicable;
+                    let mut app = applicability_for_ctxt(ctxt);
                     let cond_snip = Sugg::hir_with_context(cx, cond, ctxt, "[condition]", &mut app)
                         .maybe_paren()
                         .to_string();
-                    let arg_snip = snippet_with_context(cx, then_arg.span, ctxt, "[body]", &mut app).0;
+                    let Some(arg_snip) = then_arg.span.get_text_at_ctxt(cx, ctxt) else {
+                        return;
+                    };
                     let method_body = if let Some(first_stmt) = then_block.stmts.first()
                         && let Some(first_stmt_span) = walk_span_to_context(first_stmt.span, ctxt)
                     {
@@ -109,9 +110,9 @@ impl<'tcx> LateLintPass<'tcx> for IfThenSomeElseNone {
                         let closure = if method_name == sym::then { "|| " } else { "" };
                         format!("{closure} {{ {} {arg_snip} }}", block_snippet.trim_end())
                     } else if method_name == sym::then {
-                        (std::borrow::Cow::Borrowed("|| ") + arg_snip).into_owned()
+                        format!("|| {arg_snip}")
                     } else {
-                        arg_snip.into_owned()
+                        arg_snip.to_owned()
                     };
 
                     diag.span_suggestion(

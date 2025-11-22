@@ -1,6 +1,6 @@
-use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_sugg, span_lint_and_then};
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_help, span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::res::{MaybeDef, MaybeQPath, MaybeResPath, MaybeTypeckRes};
-use clippy_utils::source::{snippet, snippet_with_context};
+use clippy_utils::source::{SpanExt, snippet};
 use clippy_utils::sugg::{DiagExt as _, Sugg};
 use clippy_utils::ty::{is_copy, same_type_modulo_regions};
 use clippy_utils::{get_parent_expr, is_ty_alias, sym};
@@ -209,17 +209,18 @@ impl<'tcx> LateLintPass<'tcx> for UselessConversion {
                 if cx.ty_based_def(e).opt_parent(cx).is_diag_item(cx, sym::Into) && name.ident.name == sym::into {
                     let a = cx.typeck_results().expr_ty(e);
                     let b = cx.typeck_results().expr_ty(recv);
-                    if same_type_modulo_regions(a, b) {
-                        let mut app = Applicability::MachineApplicable;
-                        let sugg = snippet_with_context(cx, recv.span, e.span.ctxt(), "<expr>", &mut app).0;
+                    if same_type_modulo_regions(a, b)
+                        && let ctxt = e.span.ctxt()
+                        && let Some(sugg) = recv.span.get_text_at_ctxt(cx, ctxt)
+                    {
                         span_lint_and_sugg(
                             cx,
                             USELESS_CONVERSION,
                             e.span,
                             format!("useless conversion to the same type: `{b}`"),
                             "consider removing `.into()`",
-                            sugg.into_owned(),
-                            app,
+                            sugg.to_owned(),
+                            applicability_for_ctxt(ctxt),
                         );
                     }
                 }
