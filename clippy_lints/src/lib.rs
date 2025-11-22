@@ -87,6 +87,7 @@ mod casts;
 mod cfg_not_test;
 mod checked_conversions;
 mod cloned_ref_to_slice_refs;
+mod clones_into_boxed_slices;
 mod coerce_container_to_any;
 mod cognitive_complexity;
 mod collapsible_if;
@@ -848,6 +849,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::new(toplevel_ref_arg::ToplevelRefArg)),
         Box::new(|_| Box::new(volatile_composites::VolatileComposites)),
         Box::new(|_| Box::<replace_box::ReplaceBox>::default()),
+        Box::new(|_| Box::new(clones_into_boxed_slices::ClonesIntoBoxedSlices)),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);
