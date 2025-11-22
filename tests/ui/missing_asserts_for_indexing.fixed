@@ -122,6 +122,7 @@ fn index_different_slice_in_same_expr(v1: &[u8], v2: &[u8]) {
     let _ = v1[0] + v2[1];
 }
 
+#[allow(clippy::manual_assert_eq, reason = "specifically testing `assert!` + `==`")]
 fn issue11835(v1: &[u8], v2: &[u8], v3: &[u8], v4: &[u8]) {
     assert!(v1.len() == 3);
     assert!(v2.len() == 4);

@@ -136,8 +136,11 @@ fn issue14201(a: Option<String>, b: Option<String>, s: &String) -> bool {
 }
 
 fn issue14714() {
-    assert!(Some("test").map_or(false, |x| x == "test"));
-    //~^ unnecessary_map_or
+    #[allow(clippy::manual_assert_eq, reason = "will fire after the fix")]
+    {
+        assert!(Some("test").map_or(false, |x| x == "test"));
+        //~^ unnecessary_map_or
+    };
 
     // even though we're in a macro context, we still need to parenthesise because of the `then`
     assert!(Some("test").map_or(false, |x| x == "test").then(|| 1).is_some());

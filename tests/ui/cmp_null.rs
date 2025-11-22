@@ -33,6 +33,10 @@ fn main() {
     //~^ cmp_null
 }
 
+#[allow(
+    clippy::manual_assert_eq,
+    reason = "the lint only works on `assert`, not `assert_eq`"
+)]
 fn issue15010() {
     let f: *mut i32 = std::ptr::null_mut();
     debug_assert!(f != std::ptr::null_mut());
