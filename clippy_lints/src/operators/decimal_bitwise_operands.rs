@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::numeric_literal;
+use clippy_utils::numeric_literal::NumericLiteral;
 use clippy_utils::source::SpanRangeExt;
 use rustc_ast::LitKind;
 use rustc_data_structures::packed::Pu128;
@@ -28,7 +29,7 @@ fn check_expr(cx: &LateContext<'_>, expr: &Expr<'_>) {
         },
         ExprKind::Lit(lit) => {
             if let LitKind::Int(Pu128(val), _) = lit.node
-                && is_decimal_number(cx, lit.span)
+                && is_decimal_number(cx, lit.span, &lit.node)
                 && !is_single_digit(val)
                 && !is_power_of_twoish(val)
             {
@@ -39,9 +40,9 @@ fn check_expr(cx: &LateContext<'_>, expr: &Expr<'_>) {
     }
 }
 
-fn is_decimal_number(cx: &LateContext<'_>, span: Span) -> bool {
+fn is_decimal_number(cx: &LateContext<'_>, span: Span, lit_kind: &LitKind) -> bool {
     span.check_source_text(cx, |src| {
-        !(src.starts_with("0b") || src.starts_with("0x") || src.starts_with("0o"))
+        NumericLiteral::from_lit_kind(src, lit_kind).is_some_and(|l| l.is_decimal())
     })
 }
 
