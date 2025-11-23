@@ -13041,6 +13041,11 @@ pub fn parse() -&gt; Result&lt;(), ParseError&gt; {
 <h3>Configuration</h3>
 <ul>
 <li>
+<p><code>large-error-ignored</code>:  A list of paths to types that should be ignored as overly large <code>Err</code>-variants in a
+<code>Result</code> returned from a function</p>
+<p>(default: <code>[]</code>)</p>
+</li>
+<li>
 <p><code>large-error-threshold</code>:  The maximum size of the <code>Err</code>-variant in a <code>Result</code> returned from a function</p>
 <p>(default: <code>128</code>)</p>
 </li>
