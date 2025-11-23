@@ -1,7 +1,7 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeDef;
-use clippy_utils::source::{snippet, snippet_with_applicability};
+use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::{get_parent_expr, sym};
 use rustc_ast::LitKind;
@@ -14,7 +14,37 @@ use rustc_span::{Span, Symbol};
 
 use super::MANUAL_IS_VARIANT_AND;
 
-pub(super) fn check(
+#[derive(Clone, Copy, PartialEq)]
+enum Flavor {
+    Option,
+    Result,
+}
+
+impl Flavor {
+    const fn new(sym: Symbol) -> Option<Self> {
+        match sym {
+            sym::Option => Some(Self::Option),
+            sym::Result => Some(Self::Result),
+            _ => None,
+        }
+    }
+
+    const fn symbol(self) -> Symbol {
+        match self {
+            Self::Option => sym::Option,
+            Self::Result => sym::Result,
+        }
+    }
+
+    const fn positive(self) -> Symbol {
+        match self {
+            Self::Option => sym::Some,
+            Self::Result => sym::Ok,
+        }
+    }
+}
+
+pub(super) fn check_map_unwrap_or_default(
     cx: &LateContext<'_>,
     expr: &Expr<'_>,
     map_recv: &Expr<'_>,
@@ -30,11 +60,13 @@ pub(super) fn check(
     }
 
     // 2. the caller of `map()` is neither `Option` nor `Result`
-    let is_option = cx.typeck_results().expr_ty(map_recv).is_diag_item(cx, sym::Option);
-    let is_result = cx.typeck_results().expr_ty(map_recv).is_diag_item(cx, sym::Result);
-    if !is_option && !is_result {
+    let Some(flavor) = (cx.typeck_results())
+        .expr_ty(map_recv)
+        .opt_diag_name(cx)
+        .and_then(Flavor::new)
+    else {
         return;
-    }
+    };
 
     // 3. the caller of `unwrap_or_default` is neither `Option<bool>` nor `Result<bool, _>`
     if !cx.typeck_results().expr_ty(expr).is_bool() {
@@ -46,44 +78,23 @@ pub(super) fn check(
         return;
     }
 
-    let lint_msg = if is_option {
-        "called `map(<f>).unwrap_or_default()` on an `Option` value"
-    } else {
-        "called `map(<f>).unwrap_or_default()` on a `Result` value"
+    let lint_span = expr.span.with_lo(map_span.lo());
+    let lint_msg = match flavor {
+        Flavor::Option => "called `map(<f>).unwrap_or_default()` on an `Option` value",
+        Flavor::Result => "called `map(<f>).unwrap_or_default()` on a `Result` value",
     };
-    let suggestion = if is_option { "is_some_and" } else { "is_ok_and" };
 
-    span_lint_and_sugg(
-        cx,
-        MANUAL_IS_VARIANT_AND,
-        expr.span.with_lo(map_span.lo()),
-        lint_msg,
-        "use",
-        format!("{}({})", suggestion, snippet(cx, map_arg.span, "..")),
-        Applicability::MachineApplicable,
-    );
-}
+    span_lint_and_then(cx, MANUAL_IS_VARIANT_AND, lint_span, lint_msg, |diag| {
+        let method = match flavor {
+            Flavor::Option => "is_some_and",
+            Flavor::Result => "is_ok_and",
+        };
 
-#[derive(Clone, Copy, PartialEq)]
-enum Flavor {
-    Option,
-    Result,
-}
+        let mut app = Applicability::MachineApplicable;
+        let map_arg_snippet = snippet_with_applicability(cx, map_arg.span, "_", &mut app);
 
-impl Flavor {
-    const fn symbol(self) -> Symbol {
-        match self {
-            Self::Option => sym::Option,
-            Self::Result => sym::Result,
-        }
-    }
-
-    const fn positive(self) -> Symbol {
-        match self {
-            Self::Option => sym::Some,
-            Self::Result => sym::Ok,
-        }
-    }
+        diag.span_suggestion(lint_span, "use", format!("{method}({map_arg_snippet})"), app);
+    });
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -178,7 +189,7 @@ fn emit_lint<'tcx>(
         cx,
         MANUAL_IS_VARIANT_AND,
         span,
-        format!("called `.map() {op} {pos}()`", pos = flavor.positive(),),
+        format!("called `.map() {op} {pos}()`", pos = flavor.positive()),
         "use",
         format!(
             "{inversion}{recv}.{method}({body})",
@@ -195,24 +206,23 @@ pub(super) fn check_map(cx: &LateContext<'_>, expr: &Expr<'_>) {
         && op.span.eq_ctxt(expr.span)
         && let Ok(op) = Op::try_from(op.node)
     {
-        // Check `left` and `right` expression in any order, and for `Option` and `Result`
+        // Check `left` and `right` expression in any order
         for (expr1, expr2) in [(left, right), (right, left)] {
-            for flavor in [Flavor::Option, Flavor::Result] {
-                if let ExprKind::Call(call, [arg]) = expr1.kind
-                    && let ExprKind::Lit(lit) = arg.kind
-                    && let LitKind::Bool(bool_cst) = lit.node
-                    && let ExprKind::Path(QPath::Resolved(_, path)) = call.kind
-                    && let Res::Def(DefKind::Ctor(CtorOf::Variant, CtorKind::Fn), _) = path.res
-                    && let ty = cx.typeck_results().expr_ty(expr1)
-                    && let ty::Adt(adt, args) = ty.kind()
-                    && cx.tcx.is_diagnostic_item(flavor.symbol(), adt.did())
-                    && args.type_at(0).is_bool()
-                    && let ExprKind::MethodCall(_, recv, [map_expr], _) = expr2.kind
-                    && cx.typeck_results().expr_ty(recv).is_diag_item(cx, flavor.symbol())
-                    && let Ok(map_func) = MapFunc::try_from(map_expr)
-                {
-                    return emit_lint(cx, parent_expr.span, op, flavor, bool_cst, map_func, recv);
-                }
+            if let ExprKind::Call(call, [arg]) = expr1.kind
+                && let ExprKind::Lit(lit) = arg.kind
+                && let LitKind::Bool(bool_cst) = lit.node
+                && let ExprKind::Path(QPath::Resolved(_, path)) = call.kind
+                && let Res::Def(DefKind::Ctor(CtorOf::Variant, CtorKind::Fn), _) = path.res
+                && let ExprKind::MethodCall(_, recv, [map_expr], _) = expr2.kind
+                && let ty = cx.typeck_results().expr_ty(expr1)
+                && let ty::Adt(adt, args) = ty.kind()
+                && let Some(flavor) = cx.tcx.get_diagnostic_name(adt.did()).and_then(Flavor::new)
+                && args.type_at(0).is_bool()
+                && cx.typeck_results().expr_ty(recv).is_diag_item(cx, flavor.symbol())
+                && let Ok(map_func) = MapFunc::try_from(map_expr)
+            {
+                emit_lint(cx, parent_expr.span, op, flavor, bool_cst, map_func, recv);
+                return;
             }
         }
     }
