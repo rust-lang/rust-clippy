@@ -1,4 +1,4 @@
-// These names are confusing, I should probably change them in the main branch.
+// These names are confusing and unnecessary, I should probably change them
 #![warn(clippy::explicit_default_arguments)]
 
 use std::marker::PhantomData;
@@ -33,14 +33,19 @@ static OPTIONAL: Optional<i64> = Some(42);
 static CUSTOM_OPT: Optional<f32> = Some(1.5);
 
 // Associated types in traits
-trait ExampleTrait {
+trait ExampleTrait1 {
     type AssocDb;
     type AssocNet;
 
     fn method() -> DbResult<()>;
 }
 
-impl ExampleTrait for () {
+trait ExampleTrait2<T> {
+    type AssocTy1;
+    type AssocTy2<F>;
+}
+
+impl ExampleTrait1 for () {
     type AssocDb = DbResult<()>;
     type AssocNet = NetResult;
 
@@ -62,6 +67,24 @@ fn net_function(arg: NetResult) -> NetResult {
 }
 
 fn foo() -> ComplexThing<i8, i16> {
+    todo!()
+}
+
+fn bar<T: ExampleTrait1>(val: T) -> T::AssocDb {
+    todo!()
+}
+impl ComplexThing<DbResult<()>, ()> {
+    const HELLO: usize = 5;
+}
+fn baz<T: ExampleTrait1>(val: T) -> [i32; <ComplexThing<DbResult<()>, ()>>::HELLO] {
+    todo!()
+}
+
+fn quz<T: ExampleTrait2<i32>>() -> <T>::AssocTy1 {
+    todo!()
+}
+
+fn qux<T: ExampleTrait2<i32>>() -> <T as ExampleTrait2<i32>>::AssocTy2<DbResult<&'static DbResult<()>>> {
     todo!()
 }
 
@@ -96,7 +119,7 @@ static COMPLEX_PARTIAL: ComplexThing<i16, u16, u8> = ComplexStruct(PhantomData);
 static NESTED_RESULT: outer::NestedResult<usize> = Ok(42);
 
 // Trait implementation with generics
-impl<T> ExampleTrait for ComplexThing<DbResult<()>, T> {
+impl<T> ExampleTrait1 for ComplexThing<DbResult<()>, T> {
     type AssocDb = DbResult<()>;
     type AssocNet = NetResult;
 
@@ -105,7 +128,7 @@ impl<T> ExampleTrait for ComplexThing<DbResult<()>, T> {
     }
 }
 
-impl ExampleTrait for DbResult<()> {
+impl ExampleTrait1 for DbResult<()> {
     type AssocDb = DbResult<()>;
     type AssocNet = NetResult;
 
