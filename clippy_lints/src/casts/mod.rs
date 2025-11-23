@@ -834,7 +834,7 @@ declare_clippy_lint! {
     /// const SIZE: usize = 15;
     /// let arr: [u8; SIZE] = [0; SIZE];
     /// ```
-    #[clippy::version = "1.85.0"]
+    #[clippy::version = "1.93.0"]
     pub NEEDLESS_TYPE_CAST,
     pedantic,
     "binding defined with one type but always cast to another"
