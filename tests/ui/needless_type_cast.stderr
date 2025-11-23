@@ -1,0 +1,35 @@
+error: this binding is defined as `u8` but is always cast to `i32`
+  --> tests/ui/needless_type_cast.rs:6:16
+   |
+LL |     let count: u8 = 10;
+   |                ^^ help: consider defining it as: `i32`
+   |
+   = note: `-D clippy::needless-type-cast` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::needless_type_cast)]`
+
+error: this binding is defined as `u16` but is always cast to `u64`
+  --> tests/ui/needless_type_cast.rs:12:16
+   |
+LL |     let value: u16 = 20;
+   |                ^^^ help: consider defining it as: `u64`
+
+error: this binding is defined as `u8` but is always cast to `usize`
+  --> tests/ui/needless_type_cast.rs:38:17
+   |
+LL |     let single: u8 = 1;
+   |                 ^^ help: consider defining it as: `usize`
+
+error: this binding is defined as `u8` but is always cast to `u32`
+  --> tests/ui/needless_type_cast.rs:45:16
+   |
+LL |     let width: u8 = 10;
+   |                ^^ help: consider defining it as: `u32`
+
+error: this binding is defined as `u8` but is always cast to `u32`
+  --> tests/ui/needless_type_cast.rs:47:17
+   |
+LL |     let height: u8 = 20;
+   |                 ^^ help: consider defining it as: `u32`
+
+error: aborting due to 5 previous errors
+
