@@ -6,12 +6,12 @@ use clippy_utils::source::snippet;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{
-    self as hir, EnumDef, FnRetTy, FnSig, GenericParam, GenericParamKind, Generics, Impl, ImplItem, ImplItemKind, Item,
-    ItemKind, OwnerId, Path, PathSegment, QPath, TraitItem, TraitItemKind, TyKind, Variant, WhereBoundPredicate,
-    WherePredicateKind,
+    self as hir, AmbigArg, EnumDef, FnRetTy, FnSig, GenericParam, GenericParamKind, Generics, Impl, ImplItem,
+    ImplItemKind, Item, ItemKind, MutTy, OwnerId, Path, PathSegment, QPath, TraitItem, TraitItemKind, TyKind, Variant,
+    WhereBoundPredicate, WherePredicateKind,
 };
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::{self, GenericArg, GenericParamDef, Ty};
+use rustc_middle::ty::{self, AliasTy, ConstKind, GenericArg, GenericParamDef, Ty, UnevaluatedConst};
 
 use rustc_session::declare_lint_pass;
 
@@ -83,6 +83,7 @@ fn match_generics<'tcx>(
             },
         )
 }
+
 // NOTE: this whole algorithm avoids using `lower_ty
 fn check_alias_args<'tcx>(cx: &LateContext<'tcx>, resolved_ty: Ty<'tcx>, hir_ty: hir::Ty<'tcx>) {
     println!("resolved alias (ty::Ty): {resolved_ty}");
@@ -188,6 +189,7 @@ fn get_tys_fn_sig<'tcx>(
             .chain(output),
     )
 }
+// FIXME: check trait bounds in predicates because they can have generic args too
 fn get_tys_generics_predicates<'tcx>(
     cx: &LateContext<'tcx>,
     generics: &Generics<'tcx>,
@@ -241,6 +243,104 @@ fn get_tys_generics_predicates<'tcx>(
             }
         }));
     Box::new(params.chain(predicates))
+}
+
+fn walk_ty_recursive<'tcx>(
+    // cx: &LateContext<'tcx>,
+    ty: Ty<'tcx>,
+    hir_ty: hir::Ty<'tcx>,
+) -> Box<dyn Iterator<Item = TyPair<'tcx>> + 'tcx> {
+    let generic_arg_to_ty = |args: &rustc_hir::GenericArgs<'tcx>| -> Box<dyn Iterator<Item = hir::Ty<'tcx>>> {
+        Box::new(args.args.iter().flat_map(|arg| match arg {
+            rustc_hir::GenericArg::Type(ty) => Some(*ty.as_unambig_ty()),
+            _ => None,
+        }))
+    };
+    let result: Box<dyn Iterator<Item = TyPair<'tcx>>> = match (ty.kind(), hir_ty.kind) {
+        // FIXME: if check_expr doesn't look at const args, this needs to change. Likely will need to change check_item
+        // too
+        (ty::Array(ty, _), TyKind::Array(hir_ty, _)) | (ty::Slice(ty), TyKind::Slice(hir_ty)) => {
+            Box::new(iter::once((*ty, *hir_ty)))
+        },
+        (ty::RawPtr(ty, _), TyKind::Ptr(MutTy { ty: hir_ty, .. }))
+        | (ty::Ref(_, ty, _), TyKind::Ref(_, MutTy { ty: hir_ty, .. })) => Box::new(iter::once((*ty, *hir_ty))),
+        (
+            ty::Adt(_, generics),
+            TyKind::Path(QPath::Resolved(
+                None,
+                Path {
+                    segments:
+                        [
+                            ..,
+                            PathSegment {
+                                args: Some(generics_hir),
+                                ..
+                            },
+                        ],
+                    ..
+                },
+            )),
+        ) => Box::new(
+            generics
+                .iter()
+                .flat_map(|arg| arg.as_type())
+                .zip(generic_arg_to_ty(*generics_hir)),
+        ),
+        (
+            ty::Alias(ty::Projection, AliasTy { args, .. }),
+            TyKind::Path(QPath::TypeRelative(hir_ty, PathSegment { args: hir_gat_args, .. })),
+        ) => {
+            println!(
+                "FOUND TYPE RELATIVE: `{:#?}`, gat args: `{:?}`",
+                // snippet(cx, hir_ty.span, "<error>"),
+                args.as_slice(),
+                hir_gat_args
+            );
+            let hir_gat_args_iter = hir_gat_args.map_or_else(|| Box::new(iter::empty()), generic_arg_to_ty);
+            Box::new(
+                args.iter()
+                    .flat_map(|arg| arg.as_type())
+                    .zip(iter::once(*hir_ty).chain(hir_gat_args_iter)),
+            )
+        },
+        (
+            ty::Alias(ty::Projection, AliasTy { args, .. }),
+            TyKind::Path(QPath::Resolved(
+                Some(hir_ty),
+                Path {
+                    segments:
+                        [
+                            PathSegment {
+                                args: hir_trait_args, ..
+                            },
+                            ..,
+                            PathSegment { args: hir_gat_args, .. },
+                        ],
+                    ..
+                },
+            )),
+        ) => {
+            println!(
+                "FOUND TYPE RELATIVE: `{:#?}`, trait args: `{:?}`, \n gat args: `{:?}`",
+                args.as_slice(),
+                hir_trait_args,
+                hir_gat_args
+            );
+            let hir_trait_args_iter = hir_trait_args.map_or_else(|| Box::new(iter::empty()), generic_arg_to_ty);
+            let hir_gat_args_iter = hir_gat_args.map_or_else(|| Box::new(iter::empty()), generic_arg_to_ty);
+            Box::new(
+                args.iter()
+                    .flat_map(|arg| arg.as_type())
+                    .zip(iter::once(*hir_ty).chain(hir_trait_args_iter).chain(hir_gat_args_iter)),
+            )
+        },
+        _ => Box::new(iter::empty()),
+    };
+    Box::new(
+        result
+            .flat_map(|(ty, hir_ty)| walk_ty_recursive(ty, hir_ty))
+            .chain(iter::once((ty, hir_ty))),
+    )
 }
 
 #[allow(unused)]
@@ -324,7 +424,13 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitDefaultArguments {
             tys.extend(other_tys);
             tys
         };
-        for (resolved_ty, hir_ty) in tys_to_check {
+
+        for (resolved_ty, hir_ty) in tys_to_check
+            .iter()
+            .flat_map(|(ty, hir_ty)| walk_ty_recursive(*ty, *hir_ty))
+            .collect::<Vec<_>>()
+        {
+            println!("CHECKING `{}`/`{}`", resolved_ty, snippet(cx, hir_ty.span, "<error>"));
             check_alias_args(cx, resolved_ty, hir_ty);
         }
     }
