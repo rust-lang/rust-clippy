@@ -71,6 +71,10 @@ fn collect_binding_from_let<'a>(
     let_expr: &rustc_hir::LetExpr<'a>,
     bindings: &mut FxHashMap<HirId, BindingInfo<'a>>,
 ) {
+    if let_expr.ty.is_none() {
+        return;
+    }
+
     if let PatKind::Binding(_, hir_id, _, _) = let_expr.pat.kind {
         let ty = cx.typeck_results().pat_ty(let_expr.pat);
         if ty.is_numeric() {
