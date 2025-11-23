@@ -121,32 +121,31 @@ fn check_binding_usages<'a>(cx: &LateContext<'a>, body: &Body<'a>, hir_id: HirId
     let mut usages: Vec<UsageInfo<'a>> = Vec::new();
 
     for_each_expr_without_closures(body.value, |expr| {
-        if let ExprKind::Path(ref qpath) = expr.kind {
-            if let Res::Local(id) = cx.qpath_res(qpath, expr.hir_id) {
-                if id == hir_id {
-                    let parent_id = cx.tcx.parent_hir_id(expr.hir_id);
-                    let parent = cx.tcx.hir_node(parent_id);
+        if let ExprKind::Path(ref qpath) = expr.kind
+            && let Res::Local(id) = cx.qpath_res(qpath, expr.hir_id)
+            && id == hir_id
+        {
+            let parent_id = cx.tcx.parent_hir_id(expr.hir_id);
+            let parent = cx.tcx.hir_node(parent_id);
 
-                    if let rustc_hir::Node::Expr(parent_expr) = parent {
-                        if let ExprKind::Cast(_, _) = parent_expr.kind {
-                            let target_ty = cx.typeck_results().expr_ty(parent_expr);
-                            usages.push(UsageInfo {
-                                is_cast: true,
-                                cast_to: Some(target_ty),
-                            });
-                        } else {
-                            usages.push(UsageInfo {
-                                is_cast: false,
-                                cast_to: None,
-                            });
-                        }
-                    } else {
-                        usages.push(UsageInfo {
-                            is_cast: false,
-                            cast_to: None,
-                        });
-                    }
+            if let rustc_hir::Node::Expr(parent_expr) = parent {
+                if let ExprKind::Cast(_, _) = parent_expr.kind {
+                    let target_ty = cx.typeck_results().expr_ty(parent_expr);
+                    usages.push(UsageInfo {
+                        is_cast: true,
+                        cast_to: Some(target_ty),
+                    });
+                } else {
+                    usages.push(UsageInfo {
+                        is_cast: false,
+                        cast_to: None,
+                    });
                 }
+            } else {
+                usages.push(UsageInfo {
+                    is_cast: false,
+                    cast_to: None,
+                });
             }
         }
         ControlFlow::<()>::Continue(())
@@ -160,9 +159,8 @@ fn check_binding_usages<'a>(cx: &LateContext<'a>, body: &Body<'a>, hir_id: HirId
         return;
     }
 
-    let first_target = match usages.first().and_then(|u| u.cast_to) {
-        Some(ty) => ty,
-        None => return,
+    let Some(first_target) = usages.first().and_then(|u| u.cast_to) else {
+        return;
     };
 
     if !usages.iter().all(|u| u.cast_to == Some(first_target)) {
