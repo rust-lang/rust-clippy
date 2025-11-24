@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::higher::VecArgs;
 use clippy_utils::macros::root_macro_call_first_node;
-use clippy_utils::source::{SpanRangeExt, snippet_with_context};
+use clippy_utils::source::{SpanExt, snippet_with_context};
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{is_no_std_crate, sym};
 use rustc_ast::{LitIntType, LitKind, UintTy};
@@ -93,7 +93,7 @@ impl LateLintPass<'_> for SingleRangeInVecInit {
 
         if inner_expr.span.is_desugaring(DesugaringKind::RangeExpr)
             && let ty = cx.typeck_results().expr_ty(start.expr)
-            && let Some(snippet) = span.get_source_text(cx)
+            && let Some(snippet) = span.get_text(cx)
             // `is_from_proc_macro` will skip any `vec![]`. Let's not!
             && snippet.starts_with(suggested_type.starts_with())
             && snippet.ends_with(suggested_type.ends_with())
