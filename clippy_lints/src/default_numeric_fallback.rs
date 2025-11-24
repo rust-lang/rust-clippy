@@ -1,6 +1,5 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
-use clippy_utils::numeric_literal;
-use clippy_utils::source::snippet_opt;
+use clippy_utils::source::SpanExt;
 use rustc_ast::ast::{LitFloatType, LitIntType, LitKind};
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::{Visitor, walk_expr, walk_pat, walk_stmt};
@@ -63,6 +62,20 @@ impl<'tcx> LateLintPass<'tcx> for DefaultNumericFallback {
     }
 }
 
+enum SuffixKind {
+    Int,
+    Float,
+}
+impl SuffixKind {
+    fn from_ty(ty: Ty<'_>) -> Option<Self> {
+        match *ty.kind() {
+            ty::Int(IntTy::I32) => Some(Self::Int),
+            ty::Float(FloatTy::F64) => Some(Self::Float),
+            _ => None,
+        }
+    }
+}
+
 struct NumericFallbackVisitor<'a, 'tcx> {
     /// Stack manages type bound of exprs. The top element holds current expr type.
     ty_bounds: Vec<ExplicitTyBound>,
@@ -90,12 +103,10 @@ impl<'a, 'tcx> NumericFallbackVisitor<'a, 'tcx> {
                 lit.node,
                 LitKind::Int(_, LitIntType::Unsuffixed) | LitKind::Float(_, LitFloatType::Unsuffixed)
             )
+            && let Some(suffix_kind) = SuffixKind::from_ty(lit_ty)
+            && let Some(src) = lit.span.get_text(self.cx)
+            && let Some(&final_char) = src.as_bytes().last()
         {
-            let (suffix, is_float) = match lit_ty.kind() {
-                ty::Int(IntTy::I32) => ("i32", false),
-                ty::Float(FloatTy::F64) => ("f64", true),
-                _ => return,
-            };
             span_lint_hir_and_then(
                 self.cx,
                 DEFAULT_NUMERIC_FALLBACK,
@@ -103,18 +114,19 @@ impl<'a, 'tcx> NumericFallbackVisitor<'a, 'tcx> {
                 lit.span,
                 "default numeric fallback might occur",
                 |diag| {
-                    let src = if let Some(src) = snippet_opt(self.cx, lit.span) {
-                        src
-                    } else {
-                        match lit.node {
-                            LitKind::Int(src, _) => format!("{src}"),
-                            LitKind::Float(src, _) => format!("{src}"),
-                            _ => unreachable!("Default numeric fallback never results in other types"),
-                        }
+                    let sugg = match (suffix_kind, final_char) {
+                        (SuffixKind::Int, b'_') => "i32",
+                        (SuffixKind::Int, _) => "_i32",
+                        (SuffixKind::Float, b'_') => "f64",
+                        (SuffixKind::Float, b'.') => "0_f64",
+                        (SuffixKind::Float, _) => "_f64",
                     };
-
-                    let sugg = numeric_literal::format(&src, Some(suffix), is_float);
-                    diag.span_suggestion(lit.span, "consider adding suffix", sugg, Applicability::MaybeIncorrect);
+                    diag.span_suggestion_verbose(
+                        lit.span.shrink_to_hi(),
+                        "add a suffix",
+                        sugg,
+                        Applicability::MaybeIncorrect,
+                    );
                 },
             );
         }

@@ -1,0 +1,189 @@
+error: the is formatted like a unary operator, but it's parsed as a binary operator
+  --> tests/ui/formatting/possible_missing_comma.rs:13:23
+   |
+LL |         let _ = [1, 2 *y];
+   |                       ^
+   |
+note: the lint level is defined here
+  --> tests/ui/formatting/possible_missing_comma.rs:2:9
+   |
+LL | #![deny(clippy::possible_missing_comma)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: add a comma before
+   |
+LL |         let _ = [1, 2, *y];
+   |                      +
+help: add a space after
+   |
+LL |         let _ = [1, 2 * y];
+   |                        +
+
+error: the is formatted like a unary operator, but it's parsed as a binary operator
+  --> tests/ui/formatting/possible_missing_comma.rs:14:23
+   |
+LL |         let _ = [1, 2 -x];
+   |                       ^
+   |
+help: add a comma before
+   |
+LL |         let _ = [1, 2, -x];
+   |                      +
+help: add a space after
+   |
+LL |         let _ = [1, 2 - x];
+   |                        +
+
+error: the is formatted like a unary operator, but it's parsed as a binary operator
+  --> tests/ui/formatting/possible_missing_comma.rs:15:27
+   |
+LL |         let _ = [1, x - 2 -x];
+   |                           ^
+   |
+help: add a comma before
+   |
+LL |         let _ = [1, x - 2, -x];
+   |                          +
+help: add a space after
+   |
+LL |         let _ = [1, x - 2 - x];
+   |                            +
+
+error: the is formatted like a unary operator, but it's parsed as a binary operator
+  --> tests/ui/formatting/possible_missing_comma.rs:16:23
+   |
+LL |         let _ = [1, 2 -x - 2];
+   |                       ^
+   |
+help: add a comma before
+   |
+LL |         let _ = [1, 2, -x - 2];
+   |                      +
+help: add a space after
+   |
+LL |         let _ = [1, 2 - x - 2];
+   |                        +
+
+error: the is formatted like a unary operator, but it's parsed as a binary operator
+  --> tests/ui/formatting/possible_missing_comma.rs:17:31
+   |
+LL |         let _ = [1, 2 * x * 2 -x];
+   |                               ^
+   |
+help: add a comma before
+   |
+LL |         let _ = [1, 2 * x * 2, -x];
+   |                              +
+help: add a space after
+   |
+LL |         let _ = [1, 2 * x * 2 - x];
+   |                                +
+
+error: the is formatted like a unary operator, but it's parsed as a binary operator
+  --> tests/ui/formatting/possible_missing_comma.rs:23:13
+   |
+LL |             -x,
+   |             ^
+   |
+help: add a comma before
+   |
+LL |             -2 * x * 2,
+   |                       +
+help: add a space after
+   |
+LL |             - x,
+   |              +
+
+error: the is formatted like a unary operator, but it's parsed as a binary operator
+  --> tests/ui/formatting/possible_missing_comma.rs:22:13
+   |
+LL |             -2 * x * 2
+   |             ^
+   |
+help: add a comma before
+   |
+LL |             x,
+   |              +
+help: add a space after
+   |
+LL |             - 2 * x * 2
+   |              +
+
+error: the is formatted like a unary operator, but it's parsed as a binary operator
+  --> tests/ui/formatting/possible_missing_comma.rs:26:20
+   |
+LL |         let _ = (1 &x);
+   |                    ^
+   |
+help: add a comma before
+   |
+LL |         let _ = (1, &x);
+   |                   +
+help: add a space after
+   |
+LL |         let _ = (1 & x);
+   |                     +
+
+error: the is formatted like a unary operator, but it's parsed as a binary operator
+  --> tests/ui/formatting/possible_missing_comma.rs:27:23
+   |
+LL |         let _ = (1, x -1);
+   |                       ^
+   |
+help: add a comma before
+   |
+LL |         let _ = (1, x, -1);
+   |                      +
+help: add a space after
+   |
+LL |         let _ = (1, x - 1);
+   |                        +
+
+error: the is formatted like a unary operator, but it's parsed as a binary operator
+  --> tests/ui/formatting/possible_missing_comma.rs:51:20
+   |
+LL |         let _ = (y &&x);
+   |                    ^^
+   |
+help: add a comma before
+   |
+LL |         let _ = (y, &&x);
+   |                   +
+help: add a space after
+   |
+LL |         let _ = (y && x);
+   |                      +
+
+error: the is formatted like a unary operator, but it's parsed as a binary operator
+  --> tests/ui/formatting/possible_missing_comma.rs:69:20
+   |
+LL |         let _ = (x -1);
+   |                    ^
+   |
+   = note: this error originates in the macro `__inline_mac_fn_main` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: add a comma before
+   |
+LL |         let _ = (x, -1);
+   |                   +
+help: add a space after
+   |
+LL |         let _ = (x - 1);
+   |                     +
+
+error: the is formatted like a unary operator, but it's parsed as a binary operator
+  --> tests/ui/formatting/possible_missing_comma.rs:70:20
+   |
+LL |         let _ = (x -$(@tt 1));
+   |                    ^
+   |
+   = note: this error originates in the macro `__inline_mac_fn_main` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: add a comma before
+   |
+LL |         let _ = (x, -$(@tt 1));
+   |                   +
+help: add a space after
+   |
+LL |         let _ = (x - $(@tt 1));
+   |                     +
+
+error: aborting due to 12 previous errors
+

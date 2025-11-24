@@ -1,6 +1,6 @@
 use super::WHILE_LET_LOOP;
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::{snippet, snippet_indent, snippet_opt};
+use clippy_utils::source::{SpanExt, snippet, snippet_indent};
 use clippy_utils::ty::needs_ordered_drop;
 use clippy_utils::visitors::any_temporaries_need_ordered_drop;
 use clippy_utils::{higher, peel_blocks};
@@ -101,8 +101,8 @@ fn could_be_while_let<'tcx>(
         // Prevent trivial reassignments such as `let x = x;` or `let _ = …;`, but
         // keep them if the type has been explicitly specified.
         && (!is_trivial_assignment(pat, peel_blocks(inner_expr)) || ty.is_some())
-        && let Some(pat_str) = snippet_opt(cx, pat.span)
-        && let Some(init_str) = snippet_opt(cx, peel_blocks(inner_expr).span)
+        && let Some(pat_str) = pat.span.get_text(cx)
+        && let Some(init_str) = peel_blocks(inner_expr).span.get_text(cx)
     {
         let ty_str = ty
             .map(|ty| format!(": {}", snippet(cx, ty.span, "_")))

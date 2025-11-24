@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::snippet_opt;
+use clippy_utils::source::SpanExt;
 use clippy_utils::ty::{implements_trait, is_copy};
 use rustc_ast::BindingMode;
 use rustc_errors::Applicability;
@@ -107,14 +107,18 @@ pub(super) fn check<'tcx>(
         span_lint_and_then(cx, lint, expr.span, msg, |diag| match op {
             Op::RmCloned | Op::LaterCloned => {
                 let method_span = expr.span.with_lo(cloned_call.span.hi());
-                if let Some(mut snip) = snippet_opt(cx, method_span) {
-                    snip.push_str(trailing_clone);
+                if let Some(snip) = method_span.get_text(cx) {
                     let replace_span = expr.span.with_lo(cloned_recv.span.hi());
-                    diag.span_suggestion(replace_span, "try", snip, Applicability::MachineApplicable);
+                    diag.span_suggestion(
+                        replace_span,
+                        "try",
+                        format!("{snip}{trailing_clone}"),
+                        Applicability::MachineApplicable,
+                    );
                 }
             },
             Op::FixClosure(name, predicate_expr) => {
-                if let Some(predicate) = snippet_opt(cx, predicate_expr.span) {
+                if let Some(predicate) = predicate_expr.span.get_text(cx) {
                     let new_closure = if let ExprKind::Closure(_) = predicate_expr.kind {
                         predicate.replacen('|', "|&", 1)
                     } else {
@@ -127,7 +131,7 @@ pub(super) fn check<'tcx>(
             },
             Op::NeedlessMove(_) => {
                 let method_span = expr.span.with_lo(cloned_call.span.hi());
-                if let Some(snip) = snippet_opt(cx, method_span) {
+                if let Some(snip) = method_span.get_text(cx) {
                     let replace_span = expr.span.with_lo(cloned_recv.span.hi());
                     diag.span_suggestion(replace_span, "try", snip, Applicability::MaybeIncorrect);
                 }
