@@ -1,8 +1,7 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_sugg};
 use clippy_utils::res::MaybeDef;
-use clippy_utils::source::snippet_with_context;
+use clippy_utils::source::SpanExt;
 use clippy_utils::sym;
-use rustc_errors::Applicability;
 use rustc_hir::{ExprKind, Stmt, StmtKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::declare_lint_pass;
@@ -39,19 +38,17 @@ impl LateLintPass<'_> for UnusedResultOk {
             && ok_path.ident.name == sym::ok
             && cx.typeck_results().expr_ty(recv).is_diag_item(cx, sym::Result)
             && !stmt.span.in_external_macro(cx.sess().source_map())
+            && let ctxt = expr.span.ctxt()
+            && let Some(snippet) = recv.span.get_text_at_ctxt(cx, ctxt)
         {
-            let ctxt = expr.span.ctxt();
-            let mut applicability = Applicability::MaybeIncorrect;
-            let snippet = snippet_with_context(cx, recv.span, ctxt, "", &mut applicability).0;
-            let sugg = format!("let _ = {snippet}");
             span_lint_and_sugg(
                 cx,
                 UNUSED_RESULT_OK,
                 expr.span,
                 "ignoring a result with `.ok()` is misleading",
                 "consider using `let _ =` and removing the call to `.ok()` instead",
-                sugg,
-                applicability,
+                format!("let _ = {snippet}"),
+                applicability_for_ctxt(ctxt),
             );
         }
     }

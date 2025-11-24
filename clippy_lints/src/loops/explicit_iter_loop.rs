@@ -1,14 +1,13 @@
 use super::EXPLICIT_ITER_LOOP;
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_sugg};
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeDef;
-use clippy_utils::source::snippet_with_context;
+use clippy_utils::source::SpanExt;
 use clippy_utils::sym;
 use clippy_utils::ty::{
     implements_trait, implements_trait_with_env, is_copy, make_normalized_projection,
     make_normalized_projection_with_regions, normalize_with_regions,
 };
-use rustc_errors::Applicability;
 use rustc_hir::{Expr, Mutability};
 use rustc_lint::LateContext;
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, AutoBorrowMutability};
@@ -36,8 +35,10 @@ pub(super) fn check(
         }
     }
 
-    let mut applicability = Applicability::MachineApplicable;
-    let object = snippet_with_context(cx, self_arg.span, call_expr.span.ctxt(), "_", &mut applicability).0;
+    let ctxt = call_expr.span.ctxt();
+    let Some(object) = self_arg.span.get_text_at_ctxt(cx, ctxt) else {
+        return;
+    };
     span_lint_and_sugg(
         cx,
         EXPLICIT_ITER_LOOP,
@@ -46,7 +47,7 @@ pub(super) fn check(
          iteration methods",
         "to write this more concisely, try",
         format!("{}{object}", adjust.display()),
-        applicability,
+        applicability_for_ctxt(ctxt),
     );
 }
 

@@ -1,8 +1,7 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_sugg};
 use clippy_utils::is_in_const_context;
-use clippy_utils::source::snippet_with_context;
+use clippy_utils::source::SpanExt;
 use clippy_utils::ty::implements_trait;
-use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, Pat, PatKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty::Ty;
@@ -105,12 +104,13 @@ impl<'tcx> LateLintPass<'tcx> for PatternEquality {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         if let ExprKind::Let(let_expr) = expr.kind
             && unary_pattern(let_expr.pat)
-            && !expr.span.in_external_macro(cx.sess().source_map())
+            && let ctxt = expr.span.ctxt()
+            && !ctxt.in_external_macro(cx.sess().source_map())
+            && let Some(pat_src) = let_expr.pat.span.get_text_at_ctxt(cx, ctxt)
+            && let Some(init_src) = let_expr.init.span.get_text_at_ctxt(cx, ctxt)
         {
             let exp_ty = cx.typeck_results().expr_ty(let_expr.init);
             let pat_ty = cx.typeck_results().pat_ty(let_expr.pat);
-            let mut applicability = Applicability::MachineApplicable;
-
             if is_structural_partial_eq(cx, exp_ty, pat_ty)
                 && !contains_type_mismatch(cx, let_expr.pat)
                 // Calls to trait methods (`PartialEq::eq` in this case) aren't stable yet. We could _technically_
@@ -122,13 +122,8 @@ impl<'tcx> LateLintPass<'tcx> for PatternEquality {
                 && !is_in_const_context(cx)
             {
                 let pat_str = match let_expr.pat.kind {
-                    PatKind::Struct(..) => format!(
-                        "({})",
-                        snippet_with_context(cx, let_expr.pat.span, expr.span.ctxt(), "..", &mut applicability).0,
-                    ),
-                    _ => snippet_with_context(cx, let_expr.pat.span, expr.span.ctxt(), "..", &mut applicability)
-                        .0
-                        .to_string(),
+                    PatKind::Struct(..) => format!("({pat_src})"),
+                    _ => pat_src.to_owned(),
                 };
                 span_lint_and_sugg(
                     cx,
@@ -136,11 +131,8 @@ impl<'tcx> LateLintPass<'tcx> for PatternEquality {
                     expr.span,
                     "this pattern matching can be expressed using equality",
                     "try",
-                    format!(
-                        "{} == {pat_str}",
-                        snippet_with_context(cx, let_expr.init.span, expr.span.ctxt(), "..", &mut applicability).0,
-                    ),
-                    applicability,
+                    format!("{init_src} == {pat_str}"),
+                    applicability_for_ctxt(ctxt),
                 );
             } else {
                 span_lint_and_sugg(
@@ -149,12 +141,8 @@ impl<'tcx> LateLintPass<'tcx> for PatternEquality {
                     expr.span,
                     "this pattern matching can be expressed using `matches!`",
                     "try",
-                    format!(
-                        "matches!({}, {})",
-                        snippet_with_context(cx, let_expr.init.span, expr.span.ctxt(), "..", &mut applicability).0,
-                        snippet_with_context(cx, let_expr.pat.span, expr.span.ctxt(), "..", &mut applicability).0,
-                    ),
-                    applicability,
+                    format!("matches!({init_src}, {pat_src})"),
+                    applicability_for_ctxt(ctxt),
                 );
             }
         }

@@ -1,11 +1,10 @@
 use clippy_config::Conf;
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_sugg};
 use clippy_utils::get_parent_expr;
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::source::snippet_with_context;
+use clippy_utils::source::SpanExt;
 use rustc_ast::ast::LitKind;
 use rustc_data_structures::packed::Pu128;
-use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind, GenericArg, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
@@ -59,19 +58,16 @@ impl<'tcx> LateLintPass<'tcx> for ManualBits {
             && let ExprKind::Lit(lit) = &other_expr.kind
             && let LitKind::Int(Pu128(8), _) = lit.node
             && self.msrv.meets(cx, msrvs::INTEGER_BITS)
+            && let Some(ty_snip) = real_ty_span.get_text_at_ctxt(cx, ctxt)
         {
-            let mut app = Applicability::MachineApplicable;
-            let ty_snip = snippet_with_context(cx, real_ty_span, ctxt, "..", &mut app).0;
-            let sugg = create_sugg(cx, expr, format!("{ty_snip}::BITS"));
-
             span_lint_and_sugg(
                 cx,
                 MANUAL_BITS,
                 expr.span,
                 "usage of `size_of::<T>()` to obtain the size of `T` in bits",
                 "consider using",
-                sugg,
-                app,
+                create_sugg(cx, expr, format!("{ty_snip}::BITS")),
+                applicability_for_ctxt(ctxt),
             );
         }
     }

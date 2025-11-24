@@ -1,11 +1,10 @@
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_then};
 use clippy_utils::macros::{PanicExpn, find_assert_args, root_macro_call_first_node};
 use clippy_utils::res::{MaybeDef, MaybeResPath};
-use clippy_utils::source::snippet_with_context;
+use clippy_utils::source::SpanExt;
 use clippy_utils::sym;
 use clippy_utils::ty::{has_debug_impl, is_copy};
 use clippy_utils::usage::local_used_after_expr;
-use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{Expr, ExprKind, Node};
 use rustc_lint::{LateContext, LateLintPass};
@@ -77,10 +76,11 @@ impl<'tcx> LateLintPass<'tcx> for AssertionsOnResultStates {
                 },
                 _ => return,
             };
+            let ctxt = condition.span.ctxt();
+            let Some(recv) = recv.span.get_text_at_ctxt(cx, ctxt) else {
+                return;
+            };
             span_lint_and_then(cx, ASSERTIONS_ON_RESULT_STATES, macro_call.span, message, |diag| {
-                let mut app = Applicability::MachineApplicable;
-                let recv = snippet_with_context(cx, recv.span, condition.span.ctxt(), "..", &mut app).0;
-
                 // `assert!` doesn't return anything, but `Result::unwrap(_err)` does, so we might need to add a
                 // semicolon to the suggestion to avoid leaking the type
                 let sugg = match cx.tcx.parent_hir_node(e.hir_id) {
@@ -91,7 +91,7 @@ impl<'tcx> LateLintPass<'tcx> for AssertionsOnResultStates {
                     // this is the last-resort option, because it's rather verbose
                     _ => format!("{{ {recv}.{replacement}(); }}"),
                 };
-                diag.span_suggestion(macro_call.span, "replace with", sugg, app);
+                diag.span_suggestion(macro_call.span, "replace with", sugg, applicability_for_ctxt(ctxt));
             });
         }
     }

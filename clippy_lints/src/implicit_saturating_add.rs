@@ -1,10 +1,9 @@
 use clippy_utils::consts::{ConstEvalCtxt, Constant};
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_sugg};
 use clippy_utils::get_parent_expr;
-use clippy_utils::source::snippet_with_context;
+use clippy_utils::source::SpanExt;
 use rustc_ast::ast::{LitIntType, LitKind};
 use rustc_data_structures::packed::Pu128;
-use rustc_errors::Applicability;
 use rustc_hir::{AssignOpKind, BinOpKind, Block, Expr, ExprKind, Stmt, StmtKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{IntTy, Ty, UintTy};
@@ -71,9 +70,8 @@ impl<'tcx> LateLintPass<'tcx> for ImplicitSaturatingAdd {
             && let ExprKind::Lit(lit) = value.kind
             && let LitKind::Int(Pu128(1), LitIntType::Unsuffixed) = lit.node
             && block.expr.is_none()
+            && let Some(code) = target.span.get_text_at_ctxt(cx, ctxt)
         {
-            let mut app = Applicability::MachineApplicable;
-            let code = snippet_with_context(cx, target.span, ctxt, "_", &mut app).0;
             let sugg = if let Some(parent) = get_parent_expr(cx, expr)
                 && let ExprKind::If(_cond, _then, Some(else_)) = parent.kind
                 && else_.hir_id == expr.hir_id
@@ -89,7 +87,7 @@ impl<'tcx> LateLintPass<'tcx> for ImplicitSaturatingAdd {
                 "manual saturating add detected",
                 "use instead",
                 sugg,
-                app,
+                applicability_for_ctxt(ctxt),
             );
         }
     }

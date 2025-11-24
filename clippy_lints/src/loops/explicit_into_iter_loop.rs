@@ -1,8 +1,7 @@
 use super::EXPLICIT_INTO_ITER_LOOP;
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_sugg};
 use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
-use clippy_utils::source::snippet_with_context;
-use rustc_errors::Applicability;
+use clippy_utils::source::SpanExt;
 use rustc_hir::Expr;
 use rustc_lint::LateContext;
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, AutoBorrowMutability};
@@ -79,8 +78,10 @@ pub(super) fn check(cx: &LateContext<'_>, self_arg: &Expr<'_>, call_expr: &Expr<
         _ => return,
     };
 
-    let mut applicability = Applicability::MachineApplicable;
-    let object = snippet_with_context(cx, self_arg.span, call_expr.span.ctxt(), "_", &mut applicability).0;
+    let ctxt = call_expr.span.ctxt();
+    let Some(object) = self_arg.span.get_text_at_ctxt(cx, ctxt) else {
+        return;
+    };
     span_lint_and_sugg(
         cx,
         EXPLICIT_INTO_ITER_LOOP,
@@ -89,6 +90,6 @@ pub(super) fn check(cx: &LateContext<'_>, self_arg: &Expr<'_>, call_expr: &Expr<
             iteration methods",
         "to write this more concisely, try",
         format!("{}{object}", adjust.display()),
-        applicability,
+        applicability_for_ctxt(ctxt),
     );
 }

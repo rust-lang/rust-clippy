@@ -1,9 +1,8 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_sugg};
 use clippy_utils::res::MaybeDef;
-use clippy_utils::source::snippet_with_context;
+use clippy_utils::source::SpanExt;
 use clippy_utils::sym;
 use clippy_utils::ty::{implements_trait, peel_and_count_ty_refs};
-use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
 use rustc_span::Symbol;
@@ -21,9 +20,9 @@ pub fn check(cx: &LateContext<'_>, method_name: Symbol, expr: &hir::Expr<'_>, re
         && return_type == input_type
         && let Some(clone_trait) = cx.tcx.lang_items().clone_trait()
         && implements_trait(cx, return_type, clone_trait, &[])
+        && let ctxt = expr.span.ctxt()
+        && let Some(recv_snip) = recv.span.get_text_at_ctxt(cx, ctxt)
     {
-        let mut app = Applicability::MachineApplicable;
-        let recv_snip = snippet_with_context(cx, recv.span, expr.span.ctxt(), "..", &mut app).0;
         span_lint_and_sugg(
             cx,
             IMPLICIT_CLONE,
@@ -35,7 +34,7 @@ pub fn check(cx: &LateContext<'_>, method_name: Symbol, expr: &hir::Expr<'_>, re
             } else {
                 format!("{recv_snip}.clone()")
             },
-            app,
+            applicability_for_ctxt(ctxt),
         );
     }
 }

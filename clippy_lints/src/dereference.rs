@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_hir_and_then};
 use clippy_utils::res::MaybeResPath;
-use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
+use clippy_utils::source::{SpanExt, snippet_with_context};
 use clippy_utils::sugg::has_enclosing_paren;
 use clippy_utils::ty::{adjust_derefs_manually_drop, implements_trait, is_manually_drop, peel_and_count_ty_refs};
 use clippy_utils::{
@@ -20,7 +20,7 @@ use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, AutoBorrowMut
 use rustc_middle::ty::{self, Ty, TyCtxt, TypeVisitableExt, TypeckResults};
 use rustc_session::impl_lint_pass;
 use rustc_span::symbol::sym;
-use rustc_span::{Span, Symbol};
+use rustc_span::{Span, Symbol, SyntaxContext};
 use std::borrow::Cow;
 
 declare_clippy_lint! {
@@ -229,8 +229,6 @@ struct RefPat {
     always_deref: bool,
     /// The spans of all the ref bindings for this local.
     spans: Vec<Span>,
-    /// The applicability of this suggestion.
-    app: Applicability,
     /// All the replacements which need to be made.
     replacements: Vec<(Span, String)>,
     /// The [`HirId`] that the lint should be emitted at.
@@ -617,37 +615,29 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
             if let Some(opt_prev_pat) = self.ref_locals.get_mut(&id) {
                 // This binding id has been seen before. Add this pattern to the list of changes.
                 if let Some(prev_pat) = opt_prev_pat {
-                    if pat.span.from_expansion() {
+                    if !pat.span.from_expansion()
+                        && let Some(src) = name.span.get_text_at_ctxt(cx, SyntaxContext::root())
+                    {
+                        prev_pat.spans.push(pat.span);
+                        prev_pat.replacements.push((pat.span, src.to_owned()));
+                    } else {
                         // Doesn't match the context of the previous pattern. Can't lint here.
                         *opt_prev_pat = None;
-                    } else {
-                        prev_pat.spans.push(pat.span);
-                        prev_pat.replacements.push((
-                            pat.span,
-                            snippet_with_context(cx, name.span, pat.span.ctxt(), "..", &mut prev_pat.app)
-                                .0
-                                .into(),
-                        ));
                     }
                 }
-                return;
-            }
-
-            if !pat.span.from_expansion()
+            } else if !pat.span.from_expansion()
                 && let ty::Ref(_, tam, _) = *cx.typeck_results().pat_ty(pat).kind()
                 // only lint immutable refs, because borrowed `&mut T` cannot be moved out
                 && let ty::Ref(_, _, Mutability::Not) = *tam.kind()
+                && let Some(src) = name.span.get_text_at_ctxt(cx, SyntaxContext::root())
             {
-                let mut app = Applicability::MachineApplicable;
-                let snip = snippet_with_context(cx, name.span, pat.span.ctxt(), "..", &mut app).0;
                 self.current_body = self.current_body.or(cx.enclosing_body);
                 self.ref_locals.insert(
                     id,
                     Some(RefPat {
                         always_deref: true,
                         spans: vec![pat.span],
-                        app,
-                        replacements: vec![(pat.span, snip.into())],
+                        replacements: vec![(pat.span, src.to_owned())],
                         hir_id: pat.hir_id,
                     }),
                 );
@@ -659,7 +649,6 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
         if Some(body.id()) == self.current_body {
             for pat in self.ref_locals.drain(..).filter_map(|(_, x)| x) {
                 let replacements = pat.replacements;
-                let app = pat.app;
                 let lint = if pat.always_deref {
                     NEEDLESS_BORROW
                 } else {
@@ -672,7 +661,7 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                     pat.spans,
                     "this pattern creates a reference to a reference",
                     |diag| {
-                        diag.multipart_suggestion("try", replacements, app);
+                        diag.multipart_suggestion("try", replacements, Applicability::MachineApplicable);
                     },
                 );
             }
@@ -996,27 +985,27 @@ impl<'tcx> Dereferencing<'tcx> {
                     span,
                     kind: ExprKind::Unary(UnOp::Deref, _),
                     ..
-                }) if !span.from_expansion() => {
+                }) if !span.from_expansion()
+                    && let Some(src) = e.span.get_text_at_ctxt(cx, SyntaxContext::root()) =>
+                {
                     // Remove explicit deref.
-                    let snip = snippet_with_context(cx, e.span, span.ctxt(), "..", &mut pat.app).0;
-                    pat.replacements.push((span, snip.into()));
+                    pat.replacements.push((span, src.to_owned()));
                 },
-                Some(parent) if !parent.span.from_expansion() => {
-                    // Double reference might be needed at this point.
-                    if cx.precedence(parent) == ExprPrecedence::Unambiguous {
-                        // Parentheses would be needed here, don't lint.
-                        *outer_pat = None;
-                    } else {
-                        pat.always_deref = false;
-                        let snip = snippet_with_context(cx, e.span, parent.span.ctxt(), "..", &mut pat.app).0;
-                        pat.replacements.push((e.span, format!("&{snip}")));
-                    }
-                },
-                _ if !e.span.from_expansion() => {
+                Some(parent)
+                    if !parent.span.from_expansion()
+                        && cx.precedence(parent) != ExprPrecedence::Unambiguous
+                        && let Some(src) = e.span.get_text_at_ctxt(cx, SyntaxContext::root()) =>
+                {
                     // Double reference might be needed at this point.
                     pat.always_deref = false;
-                    let snip = snippet_with_applicability(cx, e.span, "..", &mut pat.app);
-                    pat.replacements.push((e.span, format!("&{snip}")));
+                    pat.replacements.push((e.span, format!("&{src}")));
+                },
+                _ if !e.span.from_expansion()
+                    && let Some(src) = e.span.get_text_at_ctxt(cx, SyntaxContext::root()) =>
+                {
+                    // Double reference might be needed at this point.
+                    pat.always_deref = false;
+                    pat.replacements.push((e.span, format!("&{src}")));
                 },
                 // Edge case for macros. The span of the identifier will usually match the context of the
                 // binding, but not if the identifier was created in a macro. e.g. `concat_idents` and proc

@@ -1,7 +1,6 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::snippet_with_context;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_sugg};
+use clippy_utils::source::SpanExt;
 use clippy_utils::{last_path_segment, std_or_core};
-use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, GenericArg, QPath, TyKind, def};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
@@ -41,10 +40,11 @@ impl<'tcx> LateLintPass<'tcx> for DefaultIterEmpty {
             && let ctxt = expr.span.ctxt()
             && ty.span.ctxt() == ctxt
         {
-            let mut applicability = Applicability::MachineApplicable;
             let Some(path) = std_or_core(cx) else { return };
             let path = format!("{path}::iter::empty");
-            let sugg = make_sugg(cx, ty_path, ctxt, &mut applicability, &path);
+            let Some(sugg) = make_sugg(cx, ty_path, ctxt, &path) else {
+                return;
+            };
             span_lint_and_sugg(
                 cx,
                 DEFAULT_INSTEAD_OF_ITER_EMPTY,
@@ -52,30 +52,21 @@ impl<'tcx> LateLintPass<'tcx> for DefaultIterEmpty {
                 format!("`{path}()` is the more idiomatic way"),
                 "try",
                 sugg,
-                applicability,
+                applicability_for_ctxt(ctxt),
             );
         }
     }
 }
 
-fn make_sugg(
-    cx: &LateContext<'_>,
-    ty_path: &QPath<'_>,
-    ctxt: SyntaxContext,
-    applicability: &mut Applicability,
-    path: &str,
-) -> String {
+fn make_sugg(cx: &LateContext<'_>, ty_path: &QPath<'_>, ctxt: SyntaxContext, path: &str) -> Option<String> {
     if let Some(last) = last_path_segment(ty_path).args
         && let Some(iter_ty) = last.args.iter().find_map(|arg| match arg {
             GenericArg::Type(ty) => Some(ty),
             _ => None,
         })
     {
-        format!(
-            "{path}::<{}>()",
-            snippet_with_context(cx, iter_ty.span, ctxt, "..", applicability).0
-        )
+        Some(format!("{path}::<{}>()", iter_ty.span.get_text_at_ctxt(cx, ctxt)?,))
     } else {
-        format!("{path}()")
+        Some(format!("{path}()"))
     }
 }

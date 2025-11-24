@@ -1,8 +1,7 @@
-use clippy_utils::diagnostics::{span_lint_hir, span_lint_hir_and_then};
-use clippy_utils::source::{snippet, snippet_with_context};
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_hir, span_lint_hir_and_then};
+use clippy_utils::source::{SpanExt, snippet};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::{is_lint_allowed, iter_input_pats};
-use rustc_errors::Applicability;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{BindingMode, Body, ByRef, FnDecl, Mutability, PatKind, Stmt, StmtKind};
 use rustc_lint::{LateContext, LateLintPass};
@@ -87,14 +86,16 @@ impl<'tcx> LateLintPass<'tcx> for ToplevelRefArg {
             && !stmt.span.in_external_macro(cx.tcx.sess.source_map())
         {
             let ctxt = local.span.ctxt();
-            let mut app = Applicability::MachineApplicable;
+            let mut app = applicability_for_ctxt(ctxt);
             let sugg_init = Sugg::hir_with_context(cx, init, ctxt, "..", &mut app);
             let (mutopt, initref) = match mutabl {
                 Mutability::Mut => ("mut ", sugg_init.mut_addr()),
                 Mutability::Not => ("", sugg_init.addr()),
             };
             let tyopt = if let Some(ty) = local.ty {
-                let ty_snip = snippet_with_context(cx, ty.span, ctxt, "_", &mut app).0;
+                let Some(ty_snip) = ty.span.get_text_at_ctxt(cx, ctxt) else {
+                    return;
+                };
                 format!(": &{mutopt}{ty_snip}")
             } else {
                 String::new()

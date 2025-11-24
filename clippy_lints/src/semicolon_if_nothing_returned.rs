@@ -1,6 +1,5 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::snippet_with_context;
-use rustc_errors::Applicability;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_sugg};
+use clippy_utils::source::SpanExt;
 use rustc_hir::{Block, ExprKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::declare_lint_pass;
@@ -42,8 +41,8 @@ impl<'tcx> LateLintPass<'tcx> for SemicolonIfNothingReturned {
             && !from_attr_macro(expr.span)
             && let t_expr = cx.typeck_results().expr_ty(expr)
             && t_expr.is_unit()
-            && let mut app = Applicability::MachineApplicable
-            && let snippet = snippet_with_context(cx, expr.span, block.span.ctxt(), "}", &mut app).0
+            && let ctxt = block.span.ctxt()
+            && let Some(snippet) = expr.span.get_text_at_ctxt(cx, ctxt)
             && !snippet.ends_with('}')
             && !snippet.ends_with(';')
             && cx.sess().source_map().is_multiline(block.span)
@@ -59,7 +58,7 @@ impl<'tcx> LateLintPass<'tcx> for SemicolonIfNothingReturned {
                 "consider adding a `;` to the last statement for consistent formatting",
                 "add a `;` here",
                 format!("{snippet};"),
-                app,
+                applicability_for_ctxt(ctxt),
             );
         }
     }

@@ -1,7 +1,6 @@
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::{applicability_for_ctxt, span_lint_and_then};
 use clippy_utils::res::{MaybeDef, MaybeResPath};
-use clippy_utils::source::snippet_with_context;
-use rustc_errors::Applicability;
+use clippy_utils::source::SpanExt;
 use rustc_hir::{BorrowKind, Expr, ExprKind, Mutability, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
@@ -53,15 +52,15 @@ impl LateLintPass<'_> for SwapPtrToRef {
                 e.span,
                 "call to `core::mem::swap` with a parameter derived from a raw pointer",
                 |diag| {
-                    if !((from_ptr1 && arg1_span.is_none()) || (from_ptr2 && arg2_span.is_none())) {
-                        let mut app = Applicability::MachineApplicable;
-                        let snip1 = snippet_with_context(cx, arg1_span.unwrap_or(arg1.span), ctxt, "..", &mut app).0;
-                        let snip2 = snippet_with_context(cx, arg2_span.unwrap_or(arg2.span), ctxt, "..", &mut app).0;
+                    if !((from_ptr1 && arg1_span.is_none()) || (from_ptr2 && arg2_span.is_none()))
+                        && let Some(snip1) = arg1_span.unwrap_or(arg1.span).get_text_at_ctxt(cx, ctxt)
+                        && let Some(snip2) = arg2_span.unwrap_or(arg2.span).get_text_at_ctxt(cx, ctxt)
+                    {
                         diag.span_suggestion(
                             e.span,
                             "use ptr::swap",
                             format!("core::ptr::swap({snip1}, {snip2})"),
-                            app,
+                            applicability_for_ctxt(ctxt),
                         );
                     }
                 },
