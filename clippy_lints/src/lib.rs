@@ -866,6 +866,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(move |_| Box::new(manual_take::ManualTake::new(conf))),
         Box::new(|_| Box::new(manual_checked_ops::ManualCheckedOps)),
         Box::new(move |tcx| Box::new(manual_pop_if::ManualPopIf::new(tcx, conf))),
+        Box::new(move |tcx| Box::new(undocumented_may_panic_call::UndocumentedMayPanicCall::new(tcx, conf))),
         Box::new(move |tcx| Box::new(undocumented_may_panic_call::UndocumentedMayPanicCall::new(tcx, conf)))
         // add late passes here, used by `cargo dev new_lint`
     ];
