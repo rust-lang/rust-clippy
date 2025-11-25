@@ -34,7 +34,7 @@ pub fn get_builtin_attr<'a, A: AttributeExt + 'a>(
                 // The following attributes are for the 3rd party crate authors.
                 // See book/src/attribs.md
                 | sym::has_significant_drop
-                | sym::format_args 
+                | sym::format_args
                 | sym::may_panic => None,
                 _ => {
                     sess.dcx().span_err(segment2.span, "usage of unknown attribute");

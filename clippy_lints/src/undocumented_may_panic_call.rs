@@ -1,7 +1,8 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint;
+use clippy_utils::macros::macro_backtrace;
 use clippy_utils::paths::{PathNS, lookup_path_str};
-use clippy_utils::{get_unique_attr, sym};
+use clippy_utils::{get_builtin_attr, is_from_proc_macro, sym};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
@@ -24,7 +25,7 @@ declare_clippy_lint! {
     /// #[clippy::may_panic]
     /// fn my_panicable_func(n: u32) {
     ///     if n % 2 == 0 {
-    ///         panic!("even number not allowed")
+    ///         panic!("even numbers are not allowed")
     ///     }
     /// }
     ///
@@ -38,7 +39,7 @@ declare_clippy_lint! {
     /// #[clippy::may_panic]
     /// fn my_panicable_func(n: u32) {
     ///     if n % 2 == 0 {
-    ///         panic!("even number not allowed")
+    ///         panic!("even numbers are not allowed")
     ///     }
     /// }
     ///
@@ -83,16 +84,13 @@ impl UndocumentedMayPanicCall {
     // A function is a may_panic_function if it has the may_panic attribute
     // or is in the may-panic-functions configuration
     fn is_may_panic_function(&self, cx: &LateContext<'_>, def_id: DefId) -> bool {
-        if get_unique_attr(cx.sess(), cx.tcx.get_all_attrs(def_id), sym::may_panic).is_some() {
-            return true;
-        }
-
-        self.may_panic_def_ids.contains(&def_id)
+        get_builtin_attr(cx.sess(), cx.tcx.get_all_attrs(def_id), sym::may_panic).count() > 0
+            || self.may_panic_def_ids.contains(&def_id)
     }
 }
 
-impl LateLintPass<'_> for UndocumentedMayPanicCall {
-    fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ rustc_hir::Expr<'_>) {
+impl<'tcx> LateLintPass<'tcx> for UndocumentedMayPanicCall {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'tcx>) {
         let def_id = match &expr.kind {
             hir::ExprKind::Call(func, _args) => {
                 if let hir::ExprKind::Path(qpath) = &func.kind {
@@ -109,23 +107,59 @@ impl LateLintPass<'_> for UndocumentedMayPanicCall {
 
         if let Some(def_id) = def_id
             && self.is_may_panic_function(cx, def_id)
-            && !has_panic_comment_above(cx, expr.span)
+            && let Some(lint_span) = check_for_missing_panic_comment(cx, expr)
         {
             span_lint(
                 cx,
                 UNDOCUMENTED_MAY_PANIC_CALL,
-                expr.span,
+                lint_span,
                 "call to a function that may panic is not documented with a `// Panic:` comment",
             );
         }
     }
 }
 
-/// Checks if the lines immediately preceding the call contain a "Panic:" comment.
-fn has_panic_comment_above(cx: &LateContext<'_>, call_span: rustc_span::Span) -> bool {
+/// Checks if a panic comment is missing and returns the span to lint at
+/// Returns `None` if a panic comment exists
+/// Returns `Some(span)` if a panic comment is missing
+fn check_for_missing_panic_comment<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx hir::Expr<'tcx>,
+) -> Option<rustc_span::Span> {
+    let call_span = expr.span;
+
+    if call_span.from_expansion() {
+        // For external macros or proc macros, the user cannot modify the macro body,
+        // so we only check callsites
+        let is_external_or_proc_macro =
+            call_span.in_external_macro(cx.sess().source_map()) || is_from_proc_macro(cx, expr);
+
+        // For locally defined macros, check the macro body first before checking the callsite
+        if !is_external_or_proc_macro && has_panic_comment_above_span(cx, call_span) {
+            return None;
+        }
+
+        let mut lint_span = None;
+        for macro_call in macro_backtrace(call_span) {
+            if has_panic_comment_above_span(cx, macro_call.span) {
+                return None;
+            }
+            lint_span = Some(macro_call.span);
+        }
+
+        lint_span
+    } else if has_panic_comment_above_span(cx, call_span) {
+        None
+    } else {
+        Some(call_span)
+    }
+}
+
+/// Checks if the lines immediately preceding a span contain a "Panic:" comment
+fn has_panic_comment_above_span(cx: &LateContext<'_>, span: rustc_span::Span) -> bool {
     let source_map = cx.sess().source_map();
 
-    if let Ok(call_line) = source_map.lookup_line(call_span.lo())
+    if let Ok(call_line) = source_map.lookup_line(span.lo())
         && call_line.line > 0
         && let Some(src) = call_line.sf.src.as_deref()
     {
