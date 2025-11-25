@@ -6,10 +6,31 @@ use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
+#[derive(Clone)]
 struct Dummy {}
+impl Dummy {
+    fn from(_s: &str) -> Self {
+        Self {}
+    }
+    fn into_boxed_str(self) -> Box<str> {
+        Box::from("dummy")
+    }
+    fn into_boxed_c_str(self) -> Box<CStr> {
+        Box::from(c"dummy")
+    }
+}
 impl Display for Dummy {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
         write!(f, "implements display")
+    }
+}
+
+trait SameName {
+    fn into_boxed_c_str(self) -> Box<CStr>;
+}
+impl SameName for Vec<u32> {
+    fn into_boxed_c_str(self) -> Box<CStr> {
+        Box::from(c"u32 vec")
     }
 }
 
@@ -25,10 +46,10 @@ macro_rules! to_string {
     };
 }
 
+// Don't lint in macros
 macro_rules! in_macro {
     ($s:expr) => {
         $s.to_string().into_boxed_str()
-        //~^ clones_into_boxed_slices
     };
 }
 
@@ -114,13 +135,23 @@ fn main() {
     //Shouldn't lint because to_string is necessary
     let _: Box<str> = Dummy {}.to_string().into_boxed_str();
 
-    // Do lint when only inner comes from macro
+    // Don't lint macros
     let _: Box<str> = create_str!("te", "st").to_string().into_boxed_str();
+    let _: Box<str> = to_string!("test").into_boxed_str();
+    let _: Box<str> = in_macro!("test");
+
+    let _: Box<str> = { s.to_string() }.into_boxed_str();
+    let _: Box<str> = String::from(&{ s.to_string() }).into_boxed_str();
     //~^ clones_into_boxed_slices
 
-    // Don't lint when only part is in macro
-    let _: Box<str> = to_string!("test").into_boxed_str();
+    let _: Box<str> = (&{ s }).to_string().into_boxed_str();
+    //~^ clones_into_boxed_slices
 
-    // Don't lint here but do lint in the macro def
-    let _: Box<str> = in_macro!("test");
+    let _: Box<str> = Dummy {}.clone().into_boxed_str();
+    let _: Box<str> = Dummy::from("test").into_boxed_str();
+    let _: Box<CStr> = Dummy::from("test").into_boxed_c_str();
+
+    let test_vec = vec![42u32];
+    let _: Box<CStr> = test_vec.clone().into_boxed_c_str();
+    let _: Box<CStr> = Vec::from(&[43u32]).into_boxed_c_str();
 }

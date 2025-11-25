@@ -13,6 +13,7 @@ mod clear_with_drain;
 mod clone_on_copy;
 mod clone_on_ref_ptr;
 mod cloned_instead_of_copied;
+mod clones_into_boxed_slices;
 mod collapsible_str_replace;
 mod double_ended_iterator_last;
 mod drain_collect;
@@ -157,7 +158,7 @@ use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
 use clippy_utils::{contains_return, iter_input_pats, peel_blocks, sym};
 pub use path_ends_with_ext::DEFAULT_ALLOWED_DOTFILES;
 use rustc_data_structures::fx::FxHashSet;
-use rustc_hir::{self as hir, Expr, ExprKind, Node, Stmt, StmtKind, TraitItem, TraitItemKind};
+use rustc_hir::{self as hir, Expr, ExprKind, Node, QPath, Stmt, StmtKind, TraitItem, TraitItemKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty::TraitRef;
 use rustc_session::impl_lint_pass;
@@ -4750,6 +4751,27 @@ declare_clippy_lint! {
     "filtering `std::io::Lines` with `filter_map()`, `flat_map()`, or `flatten()` might cause an infinite loop"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for clones that are immediately converted into boxed slices instead of using `Box::from(...)`.
+    ///
+    /// ### Why is this bad?
+    /// Using `Box::from(...)` is more concise and avoids creating an unnecessary temporary object.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let boxed: Box<str> = "example".to_string().into_boxed_str();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let boxed: Box<str> = Box::from("example");
+    /// ```
+    #[clippy::version = "1.93.0"]
+    pub CLONES_INTO_BOXED_SLICES,
+    perf,
+    "Cloning then converting into boxed slice instead of using Box::from"
+}
+
 #[expect(clippy::struct_excessive_bools)]
 pub struct Methods {
     avoid_breaking_exported_api: bool,
@@ -4934,6 +4956,7 @@ impl_lint_pass!(Methods => [
     REDUNDANT_ITER_CLONED,
     UNNECESSARY_OPTION_MAP_OR_ELSE,
     LINES_FILTER_MAP_OK,
+    CLONES_INTO_BOXED_SLICES,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -5315,6 +5338,45 @@ impl Methods {
                 },
                 (sym::hash, [arg]) => {
                     unit_hash::check(cx, expr, recv, arg);
+                },
+                (
+                    second_name @ (sym::into_boxed_c_str
+                    | sym::into_boxed_os_str
+                    | sym::into_boxed_path
+                    | sym::into_boxed_slice
+                    | sym::into_boxed_str),
+                    _,
+                ) if self.msrv.meets(cx, msrvs::CLONES_INTO_BOXED_SLICES) => {
+                    let first_ty = cx.typeck_results().expr_ty(recv).peel_refs();
+                    let full_span = expr.span.to(recv.span);
+                    if let Some((
+                        sym::clone
+                        | sym::to_os_string
+                        | sym::to_owned
+                        | sym::to_path_buf
+                        | sym::to_string
+                        | sym::to_vec,
+                        left,
+                        _,
+                        _,
+                        _,
+                    )) = method_call(recv)
+                    {
+                        clones_into_boxed_slices::check(cx, first_ty, second_name, full_span, left);
+                    } else if let ExprKind::Call(
+                        Expr {
+                            hir_id: _,
+                            kind: ExprKind::Path(QPath::TypeRelative(_, call_path)),
+                            span: _,
+                        },
+                        args,
+                    ) = recv.kind
+                        && call_path.ident.name == sym::from
+                        //&& cx.ty_based_def(recv).opt_parent(cx).is_diag_item(cx, sym::From)
+                        && cx.typeck_results().expr_ty(&args[0]).is_ref()
+                    {
+                        clones_into_boxed_slices::check(cx, first_ty, second_name, full_span, &args[0]);
+                    }
                 },
                 (sym::is_empty, []) => {
                     match method_call(recv) {
