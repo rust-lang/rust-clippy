@@ -1,4 +1,7 @@
-use super::{DocHeaders, MISSING_ERRORS_DOC, MISSING_PANICS_DOC, MISSING_SAFETY_DOC, UNNECESSARY_SAFETY_DOC};
+use super::{
+    DocHeaders, MISSING_ERRORS_DOC, MISSING_EXAMPLES_DOC, MISSING_PANICS_DOC, MISSING_SAFETY_DOC,
+    UNNECESSARY_SAFETY_DOC,
+};
 use clippy_utils::diagnostics::{span_lint, span_lint_and_note};
 use clippy_utils::macros::{is_panic, root_macro_call_first_node};
 use clippy_utils::res::MaybeDef;
@@ -34,6 +37,9 @@ pub fn check(
     }
 
     let span = cx.tcx.def_span(owner_id);
+    if !headers.examples {
+        span_lint(cx, MISSING_EXAMPLES_DOC, span, "docs missing `# Examples` section");
+    }
     match (headers.safety, sig.header.safety()) {
         (false, Safety::Unsafe) => span_lint(
             cx,

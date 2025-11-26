@@ -213,6 +213,33 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks the doc comments of publicly visible functions and warns if
+    /// there is no `# Examples` section.
+    ///
+    /// ### Why is this bad?
+    /// Examples help readers better understand how and why to use the function.
+    ///
+    /// ### Examples
+    /// The following function has an `# Examples` section in its doc comment:
+    ///
+    /// ```
+    /// /// # Examples
+    /// ///
+    /// /// ```
+    /// /// assert_eq!(bikeshed_color(), "blue");
+    /// /// ```
+    /// pub fn bikeshed_color() -> &'static str {
+    ///     "blue"
+    /// }
+    /// ```
+    #[clippy::version = "1.93.0"]
+    pub MISSING_EXAMPLES_DOC,
+    restriction,
+    "`pub fn` without `# Examples` in doc comment"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for `fn main() { .. }` in doctests
     ///
     /// ### Why is this bad?
@@ -721,6 +748,7 @@ impl_lint_pass!(Documentation => [
     MISSING_SAFETY_DOC,
     MISSING_ERRORS_DOC,
     MISSING_PANICS_DOC,
+    MISSING_EXAMPLES_DOC,
     NEEDLESS_DOCTEST_MAIN,
     TEST_ATTR_IN_DOCTEST,
     UNNECESSARY_SAFETY_DOC,
@@ -832,10 +860,12 @@ impl Fragments<'_> {
 }
 
 #[derive(Copy, Clone, Default)]
+#[expect(clippy::struct_excessive_bools)]
 struct DocHeaders {
     safety: bool,
     errors: bool,
     panics: bool,
+    examples: bool,
     first_paragraph_len: usize,
 }
 
@@ -1281,6 +1311,7 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
                          "Safety" | "SAFETY" | "Implementation safety" | "Implementation Safety" => headers.safety = true,
                          "Errors" => headers.errors = true,
                          "Panics" => headers.panics = true,
+                         "Examples" => headers.examples = true,
                          _ => {}
                     }
                 }
