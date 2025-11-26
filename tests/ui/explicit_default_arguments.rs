@@ -34,10 +34,10 @@ static CUSTOM_OPT: Optional<f32> = Some(1.5);
 
 // Associated types in traits
 trait ExampleTrait1 {
-    type AssocDb;
+    type AssocTy;
     type AssocNet;
 
-    fn method() -> DbResult<()>;
+    fn method(&self) -> DbResult<()>;
 }
 
 trait ExampleTrait2<T> {
@@ -46,12 +46,17 @@ trait ExampleTrait2<T> {
 }
 
 impl ExampleTrait1 for () {
-    type AssocDb = DbResult<()>;
+    type AssocTy = DbResult<()>;
     type AssocNet = NetResult;
 
-    fn method() -> DbResult<()> {
+    fn method(&self) -> DbResult<()> {
         Ok(())
     }
+}
+
+impl ExampleTrait2<DbResult<()>> for () {
+    type AssocTy1 = DbResult<DbResult<()>>;
+    type AssocTy2<T> = NetResult;
 }
 
 // Function signatures
@@ -66,11 +71,25 @@ fn net_function(arg: NetResult) -> NetResult {
     arg
 }
 
-fn foo() -> ComplexThing<i8, i16> {
-    todo!()
+trait ObjSafe<A, B, C, D, E> {
+    type AssocTy1;
+    type AssocTy2;
+    type AssocTy3;
+    type AssocTy4;
+}
+// fn foo() -> ComplexThing<i8, i16> {
+//     todo!()
+// }
+fn foo<T: ExampleTrait1<AssocTy = i32>>(
+    _hello: Box<dyn ExampleTrait1<AssocTy = i32, AssocNet = DbResult<()>> + >,
+    // _world: Box<dyn ObjSafe<u8, u16, u32, u64, DbResult<()>, AssocTy1 = DbResult<()>, AssocTy2 = i16, AssocTy3 = i32, AssocTy4 = i64>>,
+) -> impl ExampleTrait2<DbResult<()>, AssocTy1 = DbResult<DbResult<()>>>
+where
+    i32: Send
+{
 }
 
-fn bar<T: ExampleTrait1>(val: T) -> T::AssocDb {
+fn bar<T: ExampleTrait1>(val: T) -> T::AssocTy {
     todo!()
 }
 impl ComplexThing<DbResult<()>, ()> {
@@ -80,11 +99,12 @@ fn baz<T: ExampleTrait1>(val: T) -> [i32; <ComplexThing<DbResult<()>, ()>>::HELL
     todo!()
 }
 
-fn quz<T: ExampleTrait2<i32>>() -> <T>::AssocTy1 {
-    todo!()
+fn quz() -> impl ExampleTrait2<DbResult<()>>
+{
+
 }
 
-fn qux<T: ExampleTrait2<i32>>() -> <T as ExampleTrait2<i32>>::AssocTy2<DbResult<&'static DbResult<()>>> {
+fn qux<T: ExampleTrait2<DbResult<()>>>() -> <T as ExampleTrait2<DbResult<()>>>::AssocTy2<DbResult<&'static DbResult<()>>> {
     todo!()
 }
 
@@ -109,6 +129,10 @@ union DataHolder {
     net: std::mem::ManuallyDrop<NetResult>,
 }
 
+struct Random<T = DbResult<()>> {
+    val: T,
+}
+
 // Type aliases
 
 // Complex type scenarios
@@ -120,19 +144,19 @@ static NESTED_RESULT: outer::NestedResult<usize> = Ok(42);
 
 // Trait implementation with generics
 impl<T> ExampleTrait1 for ComplexThing<DbResult<()>, T> {
-    type AssocDb = DbResult<()>;
+    type AssocTy = DbResult<()>;
     type AssocNet = NetResult;
 
-    fn method() -> DbResult<()> {
+    fn method(&self) -> DbResult<()> {
         Ok(())
     }
 }
 
 impl ExampleTrait1 for DbResult<()> {
-    type AssocDb = DbResult<()>;
+    type AssocTy = DbResult<()>;
     type AssocNet = NetResult;
 
-    fn method() -> DbResult<()> {
+    fn method(&self) -> DbResult<()> {
         Ok(())
     }
 }
