@@ -904,15 +904,6 @@ fn check_attrs(cx: &LateContext<'_>, valid_idents: &FxHashSet<String>, attrs: &[
         },
     );
 
-    doc_paragraphs_missing_punctuation::check(
-        cx,
-        &doc,
-        Fragments {
-            doc: &doc,
-            fragments: &fragments,
-        },
-    );
-
     // NOTE: check_doc uses it own cb function,
     // to avoid causing duplicated diagnostics for the broken link checker.
     let mut full_fake_broken_link_callback = |bl: BrokenLink<'_>| -> Option<(CowStr<'_>, CowStr<'_>)> {
@@ -1079,6 +1070,8 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
     fragments: Fragments<'_>,
     attrs: &[Attribute],
 ) -> DocHeaders {
+    let mut missing_punctuation = doc_paragraphs_missing_punctuation::MissingPunctuation::default();
+
     // true if a safety header was found
     let mut headers = DocHeaders::default();
     let mut code = None;
@@ -1098,6 +1091,8 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
     let mut events = events.peekable();
 
     while let Some((event, range)) = events.next() {
+        missing_punctuation.check(cx, &event, range.clone(), doc, fragments);
+
         match event {
             Html(tag) | InlineHtml(tag) => {
                 if tag.starts_with("<code") {
