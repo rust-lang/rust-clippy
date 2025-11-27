@@ -1276,12 +1276,14 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
                     continue;
                 }
                 let trimmed_text = text.trim();
-                headers.safety |= in_heading && trimmed_text == "Safety";
-                headers.safety |= in_heading && trimmed_text == "SAFETY";
-                headers.safety |= in_heading && trimmed_text == "Implementation safety";
-                headers.safety |= in_heading && trimmed_text == "Implementation Safety";
-                headers.errors |= in_heading && trimmed_text == "Errors";
-                headers.panics |= in_heading && trimmed_text == "Panics";
+                if in_heading {
+                    match trimmed_text {
+                         "Safety" | "SAFETY" | "Implementation safety" | "Implementation Safety" => headers.safety = true,
+                         "Errors" => headers.errors = true,
+                         "Panics" => headers.panics = true,
+                         _ => {}
+                    }
+                }
 
                 if let Some(tags) = code {
                     if tags.rust && !tags.compile_fail && !tags.ignore {
