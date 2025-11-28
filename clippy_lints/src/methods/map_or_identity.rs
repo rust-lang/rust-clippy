@@ -15,7 +15,7 @@ use super::MAP_OR_IDENTITY;
 ///
 /// Note: `symbol` can only be `sym::Option` or `sym::Result`
 fn emit_lint(cx: &LateContext<'_>, expr: &Expr<'_>, recv: &Expr<'_>, def_arg: &Expr<'_>, symbol: Symbol) {
-    assert!(symbol == sym::Option || symbol == sym::Result);
+    debug_assert!(symbol == sym::Option || symbol == sym::Result);
     let msg = format!("unused \"map closure\" when calling `{symbol}::map_or` value");
     let mut applicability = Applicability::MachineApplicable;
     let self_snippet = snippet_with_applicability(cx, recv.span, "_", &mut applicability);
@@ -34,6 +34,7 @@ fn emit_lint(cx: &LateContext<'_>, expr: &Expr<'_>, recv: &Expr<'_>, def_arg: &E
 /// lint use of `_.map_or(err, |n| n)` for `Result`s and `Option`s.
 pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, recv: &Expr<'_>, def_arg: &Expr<'_>, map_arg: &Expr<'_>) {
     // lint if the caller of `map_or()` is a `Result` or an `Option`
+    // and if the mapping function is the identity function
     if let Some(x @ (sym::Result | sym::Option)) = cx.typeck_results().expr_ty(recv).opt_diag_name(cx)
         && is_expr_identity_function(cx, map_arg)
     {
