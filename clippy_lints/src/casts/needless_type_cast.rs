@@ -1,68 +1,52 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::snippet;
-use clippy_utils::visitors::for_each_expr_without_closures;
+use clippy_utils::visitors::{for_each_expr, for_each_expr_without_closures};
 use core::ops::ControlFlow;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
-use rustc_hir::def::Res;
-use rustc_hir::{Block, Body, ExprKind, HirId, LetStmt, PatKind, StmtKind};
+use rustc_hir::def::{DefKind, Res};
+use rustc_hir::{Body, Expr, ExprKind, HirId, LetStmt, PatKind, StmtKind};
 use rustc_lint::LateContext;
-use rustc_middle::ty::Ty;
+use rustc_middle::ty::{Ty, TypeVisitableExt};
 use rustc_span::Span;
 
 use super::NEEDLESS_TYPE_CAST;
 
 struct BindingInfo<'a> {
     source_ty: Ty<'a>,
-    ty_span: Option<Span>,
-    pat_span: Span,
+    ty_span: Span,
 }
 
 struct UsageInfo<'a> {
-    is_cast: bool,
     cast_to: Option<Ty<'a>>,
+    in_generic_context: bool,
 }
 
 pub(super) fn check<'a>(cx: &LateContext<'a>, body: &Body<'a>) {
     let mut bindings: FxHashMap<HirId, BindingInfo<'a>> = FxHashMap::default();
 
-    collect_bindings_from_block(cx, body.value, &mut bindings);
-
     for_each_expr_without_closures(body.value, |expr| {
-        if let ExprKind::Let(let_expr) = expr.kind {
-            collect_binding_from_let(cx, let_expr, &mut bindings);
+        match expr.kind {
+            ExprKind::Block(block, _) => {
+                for stmt in block.stmts {
+                    if let StmtKind::Let(let_stmt) = stmt.kind {
+                        collect_binding_from_local(cx, let_stmt, &mut bindings);
+                    }
+                }
+            },
+            ExprKind::Let(let_expr) => {
+                collect_binding_from_let(cx, let_expr, &mut bindings);
+            },
+            _ => {},
         }
         ControlFlow::<()>::Continue(())
     });
 
     #[allow(rustc::potential_query_instability)]
     let mut binding_vec: Vec<_> = bindings.into_iter().collect();
-    binding_vec.sort_by_key(|(_, info)| info.pat_span.lo());
+    binding_vec.sort_by_key(|(_, info)| info.ty_span.lo());
 
     for (hir_id, binding_info) in binding_vec {
         check_binding_usages(cx, body, hir_id, &binding_info);
-    }
-}
-
-fn collect_bindings_from_block<'a>(
-    cx: &LateContext<'a>,
-    expr: &rustc_hir::Expr<'a>,
-    bindings: &mut FxHashMap<HirId, BindingInfo<'a>>,
-) {
-    if let ExprKind::Block(block, _) = expr.kind {
-        collect_bindings_from_block_inner(cx, block, bindings);
-    }
-}
-
-fn collect_bindings_from_block_inner<'a>(
-    cx: &LateContext<'a>,
-    block: &Block<'a>,
-    bindings: &mut FxHashMap<HirId, BindingInfo<'a>>,
-) {
-    for stmt in block.stmts {
-        if let StmtKind::Let(let_stmt) = stmt.kind {
-            collect_binding_from_local(cx, let_stmt, bindings);
-        }
     }
 }
 
@@ -71,19 +55,20 @@ fn collect_binding_from_let<'a>(
     let_expr: &rustc_hir::LetExpr<'a>,
     bindings: &mut FxHashMap<HirId, BindingInfo<'a>>,
 ) {
-    if let_expr.ty.is_none() {
+    if let_expr.ty.is_none() || let_expr.span.from_expansion() || has_generic_return_type(cx, let_expr.init) {
         return;
     }
 
-    if let PatKind::Binding(_, hir_id, _, _) = let_expr.pat.kind {
+    if let PatKind::Binding(_, hir_id, _, _) = let_expr.pat.kind
+        && let Some(ty_hir) = let_expr.ty
+    {
         let ty = cx.typeck_results().pat_ty(let_expr.pat);
         if ty.is_numeric() {
             bindings.insert(
                 hir_id,
                 BindingInfo {
                     source_ty: ty,
-                    ty_span: let_expr.ty.map(|t| t.span),
-                    pat_span: let_expr.pat.span,
+                    ty_span: ty_hir.span,
                 },
             );
         }
@@ -95,105 +80,165 @@ fn collect_binding_from_local<'a>(
     let_stmt: &LetStmt<'a>,
     bindings: &mut FxHashMap<HirId, BindingInfo<'a>>,
 ) {
-    // Only check bindings with explicit type annotations
-    // Otherwise, the suggestion to change the type may not be valid
-    // (e.g., `let x = 42u8;` cannot just change to `let x: i64 = 42u8;`)
-    if let_stmt.ty.is_none() {
+    if let_stmt.ty.is_none()
+        || let_stmt.span.from_expansion()
+        || let_stmt.init.is_some_and(|init| has_generic_return_type(cx, init))
+    {
         return;
     }
 
-    if let PatKind::Binding(_, hir_id, _, _) = let_stmt.pat.kind {
+    if let PatKind::Binding(_, hir_id, _, _) = let_stmt.pat.kind
+        && let Some(ty_hir) = let_stmt.ty
+    {
         let ty = cx.typeck_results().pat_ty(let_stmt.pat);
         if ty.is_numeric() {
             bindings.insert(
                 hir_id,
                 BindingInfo {
                     source_ty: ty,
-                    ty_span: let_stmt.ty.map(|t| t.span),
-                    pat_span: let_stmt.pat.span,
+                    ty_span: ty_hir.span,
                 },
             );
         }
     }
 }
 
-fn check_binding_usages<'a>(cx: &LateContext<'a>, body: &Body<'a>, hir_id: HirId, binding_info: &BindingInfo<'a>) {
-    let mut usages: Vec<UsageInfo<'a>> = Vec::new();
+fn has_generic_return_type(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    match &expr.kind {
+        ExprKind::MethodCall(..) => {
+            if let Some(def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id) {
+                let sig = cx.tcx.fn_sig(def_id).instantiate_identity();
+                let ret_ty = sig.output().skip_binder();
+                return ret_ty.has_param();
+            }
+            false
+        },
+        ExprKind::Call(callee, _) => {
+            if let ExprKind::Path(qpath) = &callee.kind {
+                let res = cx.qpath_res(qpath, callee.hir_id);
+                if let Res::Def(DefKind::Fn | DefKind::AssocFn, def_id) = res {
+                    let sig = cx.tcx.fn_sig(def_id).instantiate_identity();
+                    let ret_ty = sig.output().skip_binder();
+                    return ret_ty.has_param();
+                }
+            }
+            false
+        },
+        _ => false,
+    }
+}
 
-    for_each_expr_without_closures(body.value, |expr| {
+fn is_generic_res(cx: &LateContext<'_>, res: Res) -> bool {
+    let has_type_params = |def_id| {
+        cx.tcx
+            .generics_of(def_id)
+            .own_params
+            .iter()
+            .any(|p| p.kind.is_ty_or_const())
+    };
+    match res {
+        Res::Def(DefKind::Fn | DefKind::AssocFn, def_id) => has_type_params(def_id),
+        // Ctor → Variant → ADT: constructor's parent is variant, variant's parent is the ADT
+        Res::Def(DefKind::Ctor(..), def_id) => has_type_params(cx.tcx.parent(cx.tcx.parent(def_id))),
+        _ => false,
+    }
+}
+
+fn is_cast_in_generic_context<'a>(cx: &LateContext<'a>, cast_expr: &Expr<'a>) -> bool {
+    let mut current_id = cast_expr.hir_id;
+
+    loop {
+        let parent_id = cx.tcx.parent_hir_id(current_id);
+        if parent_id == current_id {
+            return false;
+        }
+
+        let parent = cx.tcx.hir_node(parent_id);
+
+        match parent {
+            rustc_hir::Node::Expr(parent_expr) => {
+                match &parent_expr.kind {
+                    // Closure body is a separate type inference context
+                    ExprKind::Closure(_) => return false,
+                    ExprKind::Call(callee, _) => {
+                        if let ExprKind::Path(qpath) = &callee.kind {
+                            let res = cx.qpath_res(qpath, callee.hir_id);
+                            if is_generic_res(cx, res) {
+                                return true;
+                            }
+                        }
+                    },
+                    ExprKind::MethodCall(..) => {
+                        if let Some(def_id) = cx.typeck_results().type_dependent_def_id(parent_expr.hir_id)
+                            && cx
+                                .tcx
+                                .generics_of(def_id)
+                                .own_params
+                                .iter()
+                                .any(|p| p.kind.is_ty_or_const())
+                        {
+                            return true;
+                        }
+                    },
+                    _ => {},
+                }
+                current_id = parent_id;
+            },
+            _ => return false,
+        }
+    }
+}
+
+fn check_binding_usages<'a>(cx: &LateContext<'a>, body: &Body<'a>, hir_id: HirId, binding_info: &BindingInfo<'a>) {
+    let mut usages = Vec::new();
+
+    for_each_expr(cx, body.value, |expr| {
         if let ExprKind::Path(ref qpath) = expr.kind
+            && !expr.span.from_expansion()
             && let Res::Local(id) = cx.qpath_res(qpath, expr.hir_id)
             && id == hir_id
         {
             let parent_id = cx.tcx.parent_hir_id(expr.hir_id);
             let parent = cx.tcx.hir_node(parent_id);
 
-            if let rustc_hir::Node::Expr(parent_expr) = parent {
-                if let ExprKind::Cast(_, _) = parent_expr.kind {
-                    let target_ty = cx.typeck_results().expr_ty(parent_expr);
-                    usages.push(UsageInfo {
-                        is_cast: true,
-                        cast_to: Some(target_ty),
-                    });
-                } else {
-                    usages.push(UsageInfo {
-                        is_cast: false,
-                        cast_to: None,
-                    });
+            let usage = if let rustc_hir::Node::Expr(parent_expr) = parent
+                && let ExprKind::Cast(..) = parent_expr.kind
+                && !parent_expr.span.from_expansion()
+            {
+                UsageInfo {
+                    cast_to: Some(cx.typeck_results().expr_ty(parent_expr)),
+                    in_generic_context: is_cast_in_generic_context(cx, parent_expr),
                 }
             } else {
-                usages.push(UsageInfo {
-                    is_cast: false,
+                UsageInfo {
                     cast_to: None,
-                });
-            }
+                    in_generic_context: false,
+                }
+            };
+            usages.push(usage);
         }
         ControlFlow::<()>::Continue(())
     });
 
-    if usages.is_empty() {
-        return;
-    }
-
-    if !usages.iter().all(|u| u.is_cast) {
-        return;
-    }
-
-    let Some(first_target) = usages.first().and_then(|u| u.cast_to) else {
+    let Some(first_target) = usages
+        .first()
+        .and_then(|u| u.cast_to)
+        .filter(|&t| t != binding_info.source_ty)
+        .filter(|&t| usages.iter().all(|u| u.cast_to == Some(t) && !u.in_generic_context))
+    else {
         return;
     };
-
-    if !usages.iter().all(|u| u.cast_to == Some(first_target)) {
-        return;
-    }
-
-    if first_target == binding_info.source_ty {
-        return;
-    }
-
-    let suggestion = if binding_info.ty_span.is_some() {
-        format!("{first_target}")
-    } else {
-        format!(": {first_target}")
-    };
-
-    let span = binding_info.ty_span.unwrap_or(binding_info.pat_span);
-    let current_snippet = snippet(cx, span, "_");
 
     span_lint_and_sugg(
         cx,
         NEEDLESS_TYPE_CAST,
-        span,
+        binding_info.ty_span,
         format!(
             "this binding is defined as `{}` but is always cast to `{}`",
             binding_info.source_ty, first_target
         ),
         "consider defining it as",
-        if binding_info.ty_span.is_some() {
-            suggestion
-        } else {
-            format!("{current_snippet}{suggestion}")
-        },
+        first_target.to_string(),
         Applicability::MaybeIncorrect,
     );
 }
