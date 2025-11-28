@@ -1830,7 +1830,7 @@ pub fn is_must_use_func_call(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
 /// * `|x| let y = x; ...; let z = y; return z`
 ///
 /// Consider calling [`is_expr_untyped_identity_function`] or [`is_expr_identity_function`] instead.
-fn is_body_identity_function<'a>(cx: &LateContext<'_>, func: &Body<'a>) -> bool {
+fn is_body_identity_function<'hir>(cx: &LateContext<'_>, func: &Body<'hir>) -> bool {
     let [param] = func.params else {
         return false;
     };
@@ -1843,7 +1843,7 @@ fn is_body_identity_function<'a>(cx: &LateContext<'_>, func: &Body<'a>) -> bool 
     // Note: This is similar to `clippy_lints::utils::get_last_chain_binding_hir_id`, but it works
     // directly over a `Pattern` rather than a `HirId`. And it checks for compatibility via
     // `is_expr_identity_of_pat` rather than `HirId` equality
-    let mut advance_param_pat_over_stmts = |stmts: &[Stmt<'a>]| {
+    let mut advance_param_pat_over_stmts = |stmts: &[Stmt<'hir>]| {
         for stmt in stmts {
             if let StmtKind::Let(local) = stmt.kind
                 && let Some(init) = local.init
