@@ -1,0 +1,23 @@
+error: using `chunks_exact` with a constant chunk size
+  --> tests/ui/chunks_exact_with_const_size.rs:13:24
+   |
+LL |     for chunk in slice.chunks_exact(4) {
+   |                        ^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<4>().0.iter()`
+   |
+   = note: `-D clippy::chunks-exact-with-const-size` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::chunks_exact_with_const_size)]`
+
+error: using `chunks_exact` with a constant chunk size
+  --> tests/ui/chunks_exact_with_const_size.rs:20:24
+   |
+LL |     for chunk in slice.chunks_exact(CHUNK_SIZE) {
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<CHUNK_SIZE>().0.iter()`
+
+error: using `chunks_exact_mut` with a constant chunk size
+  --> tests/ui/chunks_exact_with_const_size.rs:28:22
+   |
+LL |     for chunk in arr.chunks_exact_mut(4) {
+   |                      ^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks_mut::<4>().0.iter()`
+
+error: aborting due to 3 previous errors
+
