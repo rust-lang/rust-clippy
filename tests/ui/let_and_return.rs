@@ -271,4 +271,12 @@ fn issue15987() -> i32 {
     r
 }
 
+// https://github.com/rust-lang/rust-clippy/issues/16135
+fn issue16135() -> *const u8 {
+    let boxed_value = Box::new(42u8);
+    let ptr = Box::into_raw(boxed_value);
+    ptr
+    //~^ let_and_return
+}
+
 fn main() {}
