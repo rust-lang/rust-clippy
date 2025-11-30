@@ -81,6 +81,7 @@ msrv_aliases! {
     1,16,0 { STR_REPEAT, RESULT_UNWRAP_OR_DEFAULT }
     1,15,0 { MAYBE_BOUND_IN_WHERE }
     1,13,0 { QUESTION_MARK_OPERATOR }
+    1,7,0  { CLONES_INTO_BOXED_SLICES }
 }
 
 /// `#[clippy::msrv]` attributes are rarely used outside of Clippy's test suite, as a basic
