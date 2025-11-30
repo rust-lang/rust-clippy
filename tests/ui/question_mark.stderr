@@ -333,5 +333,137 @@ LL | |             return Err(reason);
 LL | |         }
    | |_________^ help: replace it with: `result?;`
 
-error: aborting due to 35 previous errors
+error: this block may be rewritten with the `?` operator
+  --> tests/ui/question_mark.rs:621:9
+   |
+LL | /         if let Some(x) = x {
+LL | |
+LL | |             dbg!(x);
+LL | |             Some(x * 2)
+LL | |         } else {
+LL | |             None
+LL | |         }
+   | |_________^
+   |
+help: replace it with
+   |
+LL ~         let x = x?;
+LL +
+LL +         dbg!(x);
+LL +         Some(x * 2)
+   |
+
+error: this block may be rewritten with the `?` operator
+  --> tests/ui/question_mark.rs:631:9
+   |
+LL | /         if let Some(ref mut x) = x {
+LL | |
+LL | |             dbg!(*x);
+LL | |             Some(*x * 2)
+LL | |         } else {
+LL | |             None
+LL | |         }
+   | |_________^
+   |
+help: replace it with
+   |
+LL ~         let x = x.as_mut()?;
+LL +
+LL +         dbg!(*x);
+LL +         Some(*x * 2)
+   |
+
+error: this block may be rewritten with the `?` operator
+  --> tests/ui/question_mark.rs:642:9
+   |
+LL | /         if let Some(x) = x {
+LL | |
+LL | |             dbg!(x);
+LL | |             return Some(x * 2);
+LL | |         } else {
+LL | |             return None;
+LL | |         }
+   | |_________^
+   |
+help: replace it with
+   |
+LL ~         let x = x?;
+LL +
+LL +         dbg!(x);
+LL +         return Some(x * 2);
+   |
+
+error: this block may be rewritten with the `?` operator
+  --> tests/ui/question_mark.rs:673:9
+   |
+LL | /         if let Some(x) = x {
+LL | |
+LL | |             dbg!(x);
+LL | |             Some(x * 2)
+LL | |         } else {
+LL | |             None
+LL | |         }
+   | |_________^
+   |
+help: replace it with
+   |
+LL ~         let x = x?;
+LL +
+LL +         dbg!(x);
+LL +         Some(x * 2)
+   |
+
+error: this block may be rewritten with the `?` operator
+  --> tests/ui/question_mark.rs:698:9
+   |
+LL | /         if let Some(x) = m!() {
+LL | |
+LL | |             dbg!(x);
+LL | |             Some(x)
+LL | |         } else {
+LL | |             None
+LL | |         }
+   | |_________^
+   |
+help: replace it with
+   |
+LL ~         let x = m!()?;
+LL +
+LL +         dbg!(x);
+LL +         Some(x)
+   |
+
+error: this block may be rewritten with the `?` operator
+  --> tests/ui/question_mark.rs:710:13
+   |
+LL |             if let Some(x) = x { dbg!(x); Some(x * 2) } else { None }
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: replace it with
+   |
+LL -             if let Some(x) = x { dbg!(x); Some(x * 2) } else { None }
+LL +             let x = x?; dbg!(x); Some(x * 2)
+   |
+
+error: this block may be rewritten with the `?` operator
+  --> tests/ui/question_mark.rs:714:13
+   |
+LL | /             if let Some(x) = x
+LL | |             {
+LL | |
+LL | |                 dbg!(x);
+...  |
+LL | |                 None
+LL | |             }
+   | |_____________^
+   |
+help: replace it with
+   |
+LL ~             let x = x?;
+LL +
+LL +             dbg!(x);
+LL +             Some(x * 2)
+   |
+
+error: aborting due to 42 previous errors
 
