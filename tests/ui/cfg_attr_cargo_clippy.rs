@@ -7,14 +7,22 @@
 //~^ deprecated_clippy_cfg_attr
 #[cfg_attr(not(feature = "cargo-clippy"), derive(Debug))]
 //~^ deprecated_clippy_cfg_attr
-#[cfg(feature = "cargo-clippy")]
-//~^ deprecated_clippy_cfg_attr
+struct Attrs;
+
 #[cfg(not(feature = "cargo-clippy"))]
 //~^ deprecated_clippy_cfg_attr
+struct Not;
+
+#[cfg(feature = "cargo-clippy")]
+//~^ deprecated_clippy_cfg_attr
+struct Stripped;
+
 #[cfg(any(feature = "cargo-clippy"))]
 //~^ deprecated_clippy_cfg_attr
+struct StrippedAny;
+
 #[cfg(all(feature = "cargo-clippy"))]
 //~^ deprecated_clippy_cfg_attr
-pub struct Bar;
+struct StrippedAll;
 
 fn main() {}
