@@ -32,7 +32,7 @@ LL |     let _ = x as *const () == ptr::null();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `(x as *const ()).is_null()`
 
 error: comparing with null is better expressed by the `.is_null()` method
-  --> tests/ui/cmp_null.rs:38:19
+  --> tests/ui/cmp_null.rs:42:19
    |
 LL |     debug_assert!(f != std::ptr::null_mut());
    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `!f.is_null()`
