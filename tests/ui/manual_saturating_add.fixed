@@ -1,5 +1,5 @@
 #![allow(unused)]
-#![warn(clippy::implicit_saturating_add)]
+#![warn(clippy::manual_saturating_add)]
 
 fn main() {
     let mut u_8: u8 = 255;
