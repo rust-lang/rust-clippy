@@ -1,0 +1,119 @@
+error: unnecessary runtime parsing of an IPv4 address
+  --> tests/ui/parsed_string_literals/ip_addresses.rs:8:20
+   |
+LL |     let original = "137.194.161.2".parse::<Ipv4Addr>().unwrap();
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Ipv4Addr::new(137, 194, 161, 2)`
+   |
+   = note: `-D clippy::parsed-string-literals` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::parsed_string_literals)]`
+
+error: unnecessary runtime parsing of an IPv4 address
+  --> tests/ui/parsed_string_literals/ip_addresses.rs:14:20
+   |
+LL |     let original = "137.194.161.2".parse::<V4>().unwrap();
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `V4::new(137, 194, 161, 2)`
+
+error: unnecessary runtime parsing of an IPv4 address
+  --> tests/ui/parsed_string_literals/ip_addresses.rs:19:24
+   |
+LL |     let original: V4 = "137.194.161.2".parse().unwrap();
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `[137, 194, 161, 2].into()`
+
+error: unnecessary runtime parsing of an IPv4 address
+  --> tests/ui/parsed_string_literals/ip_addresses.rs:26:16
+   |
+LL |     original = "137.194.161.2".parse().unwrap();
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `[137, 194, 161, 2].into()`
+
+error: unnecessary runtime parsing of an IPv4 address
+  --> tests/ui/parsed_string_literals/ip_addresses.rs:31:20
+   |
+LL |     let original = "127.0.0.1".parse::<V4>().unwrap();
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `V4::LOCALHOST`
+
+error: unnecessary runtime parsing of an IPv4 address
+  --> tests/ui/parsed_string_literals/ip_addresses.rs:37:16
+   |
+LL |     original = "127.0.0.1".parse().unwrap();
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `[127, 0, 0, 1].into()`
+
+error: unnecessary runtime parsing of an IPv4 address
+  --> tests/ui/parsed_string_literals/ip_addresses.rs:42:31
+   |
+LL |     let original = IpAddr::V4("127.0.0.1".parse().unwrap());
+   |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `[127, 0, 0, 1].into()`
+
+error: unnecessary runtime parsing of an IPv4 address
+  --> tests/ui/parsed_string_literals/ip_addresses.rs:47:25
+   |
+LL |     let cst_broadcast = "255.255.255.255".parse::<V4>().unwrap();
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `V4::BROADCAST`
+
+error: unnecessary runtime parsing of an IPv4 address
+  --> tests/ui/parsed_string_literals/ip_addresses.rs:49:27
+   |
+LL |     let cst_unspecified = "0.0.0.0".parse::<V4>().unwrap();
+   |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `V4::UNSPECIFIED`
+
+error: unnecessary runtime parsing of an IPv6 address
+  --> tests/ui/parsed_string_literals/ip_addresses.rs:55:20
+   |
+LL |     let original = "2a04:0000:0000:0000:0000:0000:0000:abcd".parse::<Ipv6Addr>().unwrap();
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Ipv6Addr::new(0x2a04, 0, 0, 0, 0, 0, 0, 0xabcd)`
+
+error: unnecessary runtime parsing of an IPv6 address
+  --> tests/ui/parsed_string_literals/ip_addresses.rs:61:20
+   |
+LL |     let original = "2a04:0000:0000:0000:0000:0000:0000:abcd".parse::<V6>().unwrap();
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `V6::new(0x2a04, 0, 0, 0, 0, 0, 0, 0xabcd)`
+
+error: unnecessary runtime parsing of an IPv6 address
+  --> tests/ui/parsed_string_literals/ip_addresses.rs:68:16
+   |
+LL |     original = "2a04:0000:0000:0000:0000:0000:0000:abcd".parse().unwrap();
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `[0x2a04, 0, 0, 0, 0, 0, 0, 0xabcd].into()`
+
+error: unnecessary runtime parsing of an IPv6 address
+  --> tests/ui/parsed_string_literals/ip_addresses.rs:73:20
+   |
+LL |     let original = "::1".parse::<V6>().unwrap();
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `V6::LOCALHOST`
+
+error: unnecessary runtime parsing of an IPv6 address
+  --> tests/ui/parsed_string_literals/ip_addresses.rs:83:27
+   |
+LL |     let cst_unspecified = "::".parse::<V6>().unwrap();
+   |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `V6::UNSPECIFIED`
+
+error: unnecessary runtime parsing of an IPv4 address
+  --> tests/ui/parsed_string_literals/ip_addresses.rs:90:20
+   |
+LL |     let original = "137.194.161.2".parse::<IpAddr>().unwrap();
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `IpAddr::V4([137, 194, 161, 2].into())`
+
+error: unnecessary runtime parsing of an IPv6 address
+  --> tests/ui/parsed_string_literals/ip_addresses.rs:93:20
+   |
+LL |     let original = "2a04:0000:0000:0000:0000:0000:0000:abcd".parse::<IpAddr>().unwrap();
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `IpAddr::V6([0x2a04, 0, 0, 0, 0, 0, 0, 0xabcd].into())`
+
+error: unnecessary runtime parsing of an IPv4 address
+  --> tests/ui/parsed_string_literals/ip_addresses.rs:100:20
+   |
+LL |     let original = "127.0.0.1".parse::<IpAddr>().unwrap();
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `IpAddr::V4([127, 0, 0, 1].into())`
+
+error: unnecessary runtime parsing of an IPv4 address
+  --> tests/ui/parsed_string_literals/ip_addresses.rs:106:16
+   |
+LL |     original = "137.194.161.2".parse().unwrap();
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `[137, 194, 161, 2].into()`
+
+error: unnecessary runtime parsing of an IPv4 address
+  --> tests/ui/parsed_string_literals/ip_addresses.rs:112:16
+   |
+LL |     original = "137.194.161.2".parse::<_>().unwrap();
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `[137, 194, 161, 2].into()`
+
+error: aborting due to 19 previous errors
+
