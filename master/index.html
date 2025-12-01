@@ -6278,11 +6278,15 @@ fn foo() {
 <h3>Configuration</h3>
 <ul>
 <li>
+<p><code>allow-large-stack-frames-in-tests</code>:  Whether functions inside <code>#[cfg(test)]</code> modules or test functions should be checked.</p>
+<p>(default: <code>true</code>)</p>
+</li>
+<li>
 <p><code>stack-size-threshold</code>:  The maximum allowed stack size for functions in bytes</p>
 <p>(default: <code>512000</code>)</p>
 </li>
 </ul>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.72.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+large_stack_frames">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/large_stack_frames.rs#L15">View Source</a></div></div></div></article><article id="large_types_passed_by_value"><input id="label-large_types_passed_by_value" type="checkbox"><label for="label-large_types_passed_by_value"><h2 class="lint-title"><div class="panel-title-name" id="lint-large_types_passed_by_value">large_types_passed_by_value
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.72.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+large_stack_frames">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/large_stack_frames.rs#L16">View Source</a></div></div></div></article><article id="large_types_passed_by_value"><input id="label-large_types_passed_by_value" type="checkbox"><label for="label-large_types_passed_by_value"><h2 class="lint-title"><div class="panel-title-name" id="lint-large_types_passed_by_value">large_types_passed_by_value
 <a href="#large_types_passed_by_value" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for functions taking arguments by value, where
 the argument type is <code>Copy</code> and large enough to be worth considering
