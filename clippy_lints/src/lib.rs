@@ -240,6 +240,7 @@ mod multiple_bound_locations;
 mod multiple_unsafe_ops_per_block;
 mod mut_key;
 mod mut_mut;
+mod mutable_borrow_of_copy;
 mod mutable_debug_assertion;
 mod mutex_atomic;
 mod needless_arbitrary_self_type;
@@ -447,6 +448,8 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
 
     let format_args_storage = FormatArgsStorage::default();
     let attr_storage = AttrStorage::default();
+<<<<<<< Conflict 1 of 1
++++++++ Contents of side #1
 
     let early_lints: [Box<dyn Fn() -> Box<dyn EarlyLintPass + 'static> + sync::DynSend + sync::DynSync>; _] = [
         {
@@ -848,6 +851,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::new(toplevel_ref_arg::ToplevelRefArg)),
         Box::new(|_| Box::new(volatile_composites::VolatileComposites)),
         Box::new(|_| Box::<replace_box::ReplaceBox>::default()),
+        Box::new(|_| Box::new(mutable_borrow_of_copy::MutableBorrowOfCopy::new(conf))),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);
