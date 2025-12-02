@@ -1,0 +1,49 @@
+#![warn(clippy::rwlock_integer)]
+#![warn(clippy::rwlock_atomic)]
+#![allow(clippy::borrow_as_ptr)]
+
+use std::sync::RwLock;
+
+fn main() {
+    let _ = std::sync::atomic::AtomicBool::new(true);
+    //~^ rwlock_atomic
+
+    let _ = std::sync::atomic::AtomicUsize::new(5usize);
+    //~^ rwlock_atomic
+
+    let _ = std::sync::atomic::AtomicIsize::new(9isize);
+    //~^ rwlock_atomic
+
+    let mut x = 4u32;
+    // `AtomicPtr` only accepts `*mut T`, so this should not lint
+    let _ = RwLock::new(&x as *const u32);
+
+    let _ = std::sync::atomic::AtomicPtr::new(&mut x as *mut u32);
+    //~^ rwlock_atomic
+
+    let _ = std::sync::atomic::AtomicU32::new(0u32);
+    //~^ rwlock_integer
+
+    let _ = std::sync::atomic::AtomicI32::new(0i32);
+    //~^ rwlock_integer
+
+    let _ = RwLock::new(0f32); // there are no float atomics, so this should not lint
+    let _ = std::sync::atomic::AtomicU8::new(0u8);
+    //~^ rwlock_integer
+
+    let _ = std::sync::atomic::AtomicI16::new(0i16);
+    //~^ rwlock_integer
+
+    let _x = std::sync::atomic::AtomicI8::new(0);
+    //~^ rwlock_integer
+
+    const X: i64 = 0;
+    let _ = std::sync::atomic::AtomicI64::new(X);
+    //~^ rwlock_integer
+
+    // there are no 128 atomics, so these two should not lint
+    {
+        let _ = RwLock::new(0u128);
+        let _x: RwLock<i128> = RwLock::new(0);
+    }
+}

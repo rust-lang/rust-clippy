@@ -668,6 +668,8 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::returns::NEEDLESS_RETURN_INFO,
     crate::returns::NEEDLESS_RETURN_WITH_QUESTION_MARK_INFO,
     crate::same_length_and_capacity::SAME_LENGTH_AND_CAPACITY_INFO,
+    crate::rwlock_atomic::RWLOCK_ATOMIC_INFO,
+    crate::rwlock_atomic::RWLOCK_INTEGER_INFO,
     crate::same_name_method::SAME_NAME_METHOD_INFO,
     crate::self_named_constructors::SELF_NAMED_CONSTRUCTORS_INFO,
     crate::semicolon_block::SEMICOLON_INSIDE_BLOCK_INFO,
