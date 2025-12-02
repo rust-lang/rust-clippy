@@ -1,0 +1,23 @@
+error: manual checked division
+  --> tests/ui/manual_checked_div.rs:9:23
+   |
+LL |         let _result = a / b;
+   |                       ^^^^^ help: consider using `checked_div`: `a.checked_div(b)`
+   |
+   = note: `-D clippy::manual-checked-div` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_checked_div)]`
+
+error: manual checked division
+  --> tests/ui/manual_checked_div.rs:14:23
+   |
+LL |         let _result = a / b;
+   |                       ^^^^^ help: consider using `checked_div`: `a.checked_div(b)`
+
+error: manual checked division
+  --> tests/ui/manual_checked_div.rs:21:23
+   |
+LL |         let _result = a / b;
+   |                       ^^^^^ help: consider using `checked_div`: `a.checked_div(b)`
+
+error: aborting due to 3 previous errors
+
