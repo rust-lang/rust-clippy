@@ -172,6 +172,7 @@ const IGNORED_INHERENT_FUNCTIONS: &[ConfPath<SymPath<'static>, false>] = conf_pa
     &[sym::alloc, sym::vec, sym::Vec, sym::into_chunks],
     &[sym::alloc, sym::vec, sym::Vec, sym::into_flattened],
     &[sym::alloc, sym::vec, sym::Vec, sym::leak],
+    &[sym::alloc, sym::vec, sym::Vec, sym::recycle],
     &[sym::alloc, sym::vec, sym::Vec, sym::spare_capacity_mut],
     &[sym::str, sym::trim],
     &[sym::str, sym::trim_ascii],
