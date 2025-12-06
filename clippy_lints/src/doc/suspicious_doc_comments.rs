@@ -32,7 +32,7 @@ pub fn check(cx: &LateContext<'_>, attrs: &[Attribute]) -> bool {
         false
     }
 }
-
+#[expect(clippy::unnecessary_collect)]
 fn collect_doc_replacements(attrs: &[Attribute]) -> Vec<(Span, String)> {
     attrs
         .iter()
