@@ -1,0 +1,17 @@
+error: docs missing `# Examples` section
+  --> tests/ui/doc_examples.rs:3:1
+   |
+LL | pub fn pub_fn_missing_docs() {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::missing-examples-doc` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::missing_examples_doc)]`
+
+error: docs missing `# Examples` section
+  --> tests/ui/doc_examples.rs:9:1
+   |
+LL | pub fn pub_fn_missing_examples() {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+
