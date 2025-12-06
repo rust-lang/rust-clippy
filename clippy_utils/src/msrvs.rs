@@ -23,6 +23,7 @@ macro_rules! msrv_aliases {
 
 // names may refer to stabilized feature flags or library items
 msrv_aliases! {
+    1,92,0 { SAFE_RAW_PTR_TO_UNION_FIELD }
     1,88,0 { LET_CHAINS }
     1,87,0 { OS_STR_DISPLAY, INT_MIDPOINT, CONST_CHAR_IS_DIGIT, UNSIGNED_IS_MULTIPLE_OF, INTEGER_SIGN_CAST }
     1,85,0 { UINT_FLOAT_MIDPOINT, CONST_SIZE_OF_VAL }
