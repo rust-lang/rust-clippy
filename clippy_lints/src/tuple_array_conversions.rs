@@ -1,12 +1,12 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_help;
-use clippy_utils::is_from_proc_macro;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeResPath;
-use clippy_utils::visitors::for_each_local_use_after_expr;
+use clippy_utils::visitors::{for_each_expr, for_each_local_use_after_expr};
+use clippy_utils::{get_enclosing_block, is_from_proc_macro};
 use itertools::Itertools;
 use rustc_ast::LitKind;
-use rustc_hir::{Expr, ExprKind, Node, PatKind};
+use rustc_hir::{Expr, ExprKind, HirId, Node, PatKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty::{self, Ty};
 use rustc_session::impl_lint_pass;
@@ -170,6 +170,7 @@ fn all_bindings_are_for_conv<'tcx>(
         && locals
             .iter()
             .all(|&l| for_each_local_use_after_expr(cx, l, expr.hir_id, |_| ControlFlow::Break::<()>(())).is_continue())
+        && !locals.iter().any(|&l| local_used_until_expr(cx, l, expr.hir_id))
         && local_parents.first().is_some_and(|node| {
             let Some(ty) = match node {
                 Node::Pat(pat) => Some(pat.hir_id),
@@ -207,4 +208,23 @@ impl PartialEq<PatKind<'_>> for ToType {
             ToType::Tuple => matches!(other, PatKind::Slice(_, _, _)),
         }
     }
+}
+
+fn local_used_until_expr(cx: &LateContext<'_>, local_id: HirId, expr_id: HirId) -> bool {
+    let Some(b) = get_enclosing_block(cx, local_id) else {
+        return false;
+    };
+
+    for_each_expr(cx, b, |e| {
+        if e.hir_id == expr_id {
+            return ControlFlow::Break(false);
+        }
+
+        if e.res_local_id() == Some(local_id) {
+            return ControlFlow::Break(true);
+        }
+
+        ControlFlow::Continue(())
+    })
+    .unwrap_or(false)
 }
