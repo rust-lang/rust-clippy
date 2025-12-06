@@ -1,4 +1,5 @@
 #![allow(non_fmt_panics, clippy::needless_bool, clippy::eq_op)]
+#![expect(clippy::manual_assert_eq)]
 
 macro_rules! assert_const {
     ($len:expr) => {
