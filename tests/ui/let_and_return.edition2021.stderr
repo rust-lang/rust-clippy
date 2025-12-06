@@ -148,5 +148,19 @@ LL ~
 LL ~             ({ true } || { false } && { 2 <= 3 })
    |
 
-error: aborting due to 10 previous errors
+error: returning the result of a `let` binding from a block
+  --> tests/ui/let_and_return.rs:278:5
+   |
+LL |     let ptr = Box::into_raw(boxed_value);
+   |     ------------------------------------- unnecessary `let` binding
+LL |     ptr
+   |     ^^^
+   |
+help: return the expression directly
+   |
+LL ~     
+LL ~     Box::into_raw(boxed_value)
+   |
+
+error: aborting due to 11 previous errors
 
