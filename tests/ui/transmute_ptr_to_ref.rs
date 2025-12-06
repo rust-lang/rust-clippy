@@ -135,4 +135,38 @@ fn issue13357(ptr: *const [i32], s_ptr: *const &str, a_s_ptr: *const [&str]) {
     }
 }
 
+#[clippy::msrv = "1.58"]
+const TEST_CONST_AVAILABLE: u32 = {
+    let a = 0u32;
+    let a = &a as *const u32;
+    let _: &u32 = unsafe { std::mem::transmute(a) };
+    //~^ transmute_ptr_to_ref
+    42
+};
+
+#[clippy::msrv = "1.83"]
+const TEST_CONST_MUT_AVAILABLE: u32 = {
+    let mut a = 0u32;
+    let a = &mut a as *mut u32;
+    let _: &mut u32 = unsafe { std::mem::transmute(a) };
+    //~^ transmute_ptr_to_ref
+    42
+};
+
+#[clippy::msrv = "1.57"]
+const TEST_CONST_NOT_AVAILABLE: u32 = {
+    let a = 0u32;
+    let a = &a as *const u32;
+    let _: &u32 = unsafe { std::mem::transmute(a) };
+    42
+};
+
+#[clippy::msrv = "1.82"]
+const TEST_CONST_MUT_NOT_AVAILABLE: u32 = {
+    let mut a = 0u32;
+    let a = &mut a as *mut u32;
+    let _: &mut u32 = unsafe { std::mem::transmute(a) };
+    42
+};
+
 fn main() {}
