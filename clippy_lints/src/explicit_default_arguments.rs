@@ -232,9 +232,10 @@ fn get_tys_from_generics<'tcx>(
     default_tys
 }
 
+/// Helper function to...
 fn match_trait_ref_constraint_idents<'tcx, T: Iterator<Item = &'tcx hir::TraitRef<'tcx>>>(
     refs: T,
-    ident_map: FxHashMap<Ident, Ty<'tcx>>,
+    ident_map: FxHashMap<Ident, (Ty<'tcx>, impl Iterator<Item = Ty<'tcx>> + Clone)>,
 ) -> Vec<TyPair<'tcx>> {
     refs.filter_map(|trait_ref| {
         if let hir::TraitRef {
@@ -256,13 +257,31 @@ fn match_trait_ref_constraint_idents<'tcx, T: Iterator<Item = &'tcx hir::TraitRe
             Some(
                 constraints
                     .iter()
-                    .filter_map(|AssocItemConstraint { ident, kind, .. }| {
-                        if let AssocItemConstraintKind::Equality { term: Term::Ty(hir_ty) } = kind {
-                            ident_map.get(ident).map(|&ty| (ty, **hir_ty))
-                        } else {
-                            None
-                        }
-                    }),
+                    .filter_map(
+                        |AssocItemConstraint {
+                             ident,
+                             kind,
+                             gen_args: hir_gen_args,
+                             ..
+                         }| {
+                            if let AssocItemConstraintKind::Equality { term: Term::Ty(hir_ty) } = kind {
+                                ident_map.get(ident).map(|(ty, gen_args)| {
+                                    iter::once((*ty, **hir_ty)).chain(gen_args.clone().into_iter().zip(
+                                        hir_gen_args.args.iter().filter_map(|arg| {
+                                            if let hir::GenericArg::Type(ty) = arg {
+                                                Some(*ty.as_unambig_ty())
+                                            } else {
+                                                None
+                                            }
+                                        }),
+                                    ))
+                                })
+                            } else {
+                                None
+                            }
+                        },
+                    )
+                    .flatten(),
             )
         } else {
             None
@@ -388,7 +407,7 @@ fn walk_ty_recursive<'tcx>(
                         predicate.skip_binder()
                         && let Some(ty) = term.as_type()
                     {
-                        Some((tcx.item_ident(def_id), ty))
+                        Some((tcx.item_ident(def_id), (ty, [].iter().copied())))
                     } else {
                         None
                     }
@@ -479,7 +498,19 @@ fn walk_ty_recursive<'tcx>(
                 .filter_map(|(clause, _)| clause.as_projection_clause())
                 .filter_map(|predicate| {
                     if let Some(ty) = predicate.term().skip_binder().as_type() {
-                        Some((tcx.item_ident(predicate.skip_binder().def_id()), ty))
+                        println!("AliasTerm term: {:?}", ty,);
+                        Some((
+                            tcx.item_ident(predicate.skip_binder().def_id()),
+                            (
+                                ty,
+                                predicate
+                                    .skip_binder()
+                                    .projection_term
+                                    .own_args(tcx)
+                                    .iter()
+                                    .filter_map(|arg| arg.as_type()),
+                            ),
+                        ))
                     } else {
                         None
                     }
