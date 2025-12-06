@@ -6,7 +6,7 @@
 // Check that tautalogically false bounds are accepted, and are used
 // in type inference.
 #![feature(trivial_bounds)]
-#![allow(unused)]
+#![allow(unused, clippy::clones_into_boxed_slices)]
 trait A {}
 
 impl A for i32 {}
