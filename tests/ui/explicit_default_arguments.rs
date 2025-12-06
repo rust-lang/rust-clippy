@@ -56,7 +56,7 @@ impl ExampleTrait1 for () {
 
 impl ExampleTrait2<DbResult<()>> for () {
     type AssocTy1 = DbResult<DbResult<()>>;
-    type AssocTy2<T> = NetResult;
+    type AssocTy2<T> = DbResult<()>;
 }
 
 // Function signatures
@@ -82,8 +82,7 @@ trait ObjSafe<A, B, C, D, E> {
 // }
 fn foo<T: ExampleTrait1<AssocTy = i32>>(
     _hello: Box<dyn ExampleTrait1<AssocTy = i32, AssocNet = DbResult<()>> + >,
-    // _world: Box<dyn ObjSafe<u8, u16, u32, u64, DbResult<()>, AssocTy1 = DbResult<()>, AssocTy2 = i16, AssocTy3 = i32, AssocTy4 = i64>>,
-) -> impl ExampleTrait2<DbResult<()>, AssocTy1 = DbResult<DbResult<()>>>
+) -> impl ExampleTrait2<DbResult<()>, AssocTy1 = DbResult<DbResult<()>>, AssocTy2<DbResult<()>> = DbResult<()>>
 where
     i32: Send
 {
