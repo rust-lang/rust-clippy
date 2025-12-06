@@ -65,7 +65,7 @@ pub fn can_partially_move_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool
         return false;
     }
     match ty.kind() {
-        ty::Param(_) => false,
+        ty::Param(_) | ty::Ref(..) => false,
         ty::Adt(def, subs) => def.all_fields().any(|f| !is_copy(cx, f.ty(cx.tcx, subs))),
         _ => true,
     }
