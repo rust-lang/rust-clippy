@@ -212,11 +212,7 @@ fn check_expr<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>, ty_ascription: &T
         && let mutex_param = subst.type_at(0)
         && let Some(atomic_name) = get_atomic_name(mutex_param)
     {
-        let msg: &str = if lock_name == "Mutex" {
-            "using a `Mutex` where an atomic would do"
-        } else {
-            "using a `RwLock` where an atomic would do"
-        };
+        let msg = format!("using a `{lock_name}` where an atomic would do");
         let diag = |diag: &mut Diag<'_, _>| {
             // if `expr = Mutex::new(arg)` or `expr = RwLock::new(arg)`, we can try emitting a suggestion
             if let ExprKind::Call(qpath, [arg]) = expr.kind
