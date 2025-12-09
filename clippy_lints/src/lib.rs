@@ -242,7 +242,6 @@ mod multiple_unsafe_ops_per_block;
 mod mut_key;
 mod mut_mut;
 mod mutable_debug_assertion;
-mod mutex_atomic;
 mod needless_arbitrary_self_type;
 mod needless_bool;
 mod needless_borrowed_ref;
@@ -317,7 +316,7 @@ mod replace_box;
 mod reserve_after_initialization;
 mod return_self_not_must_use;
 mod returns;
-mod rwlock_atomic;
+mod rwlock_mutex_atomic;
 mod same_name_method;
 mod self_named_constructors;
 mod semicolon_block;
@@ -585,7 +584,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::new(entry::HashMapPass)),
         Box::new(|_| Box::new(minmax::MinMaxPass)),
         Box::new(|_| Box::new(zero_div_zero::ZeroDiv)),
-        Box::new(|_| Box::new(mutex_atomic::Mutex)),
+        Box::new(|_| Box::new(rwlock_mutex_atomic::SyncGuard)),
         Box::new(|_| Box::new(needless_update::NeedlessUpdate)),
         Box::new(|_| Box::new(needless_borrowed_ref::NeedlessBorrowedRef)),
         Box::new(|_| Box::new(borrow_deref_ref::BorrowDerefRef)),
@@ -851,7 +850,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::new(volatile_composites::VolatileComposites)),
         Box::new(|_| Box::<replace_box::ReplaceBox>::default()),
         Box::new(move |_| Box::new(manual_ilog2::ManualIlog2::new(conf))),
-        Box::new(|_| Box::new(rwlock_atomic::RwLock)),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);
