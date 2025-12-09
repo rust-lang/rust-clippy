@@ -13,6 +13,70 @@ use rustc_span::sym;
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for usage of `RwLock<X>` where an atomic will do.
+    ///
+    /// ### Why is this bad?
+    /// Using a RwLock just to make access to a plain bool or
+    /// reference sequential is shooting flies with cannons.
+    /// `std::sync::atomic::AtomicBool` and `std::sync::atomic::AtomicPtr` are leaner and
+    /// faster.
+    ///
+    /// On the other hand, `RwLock`s are, in general, easier to reason about
+    /// and to verify for correctness. Atomics do not provide the same
+    /// synchronization semantics as an equivalent `RwLock`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let y = true;
+    /// # use std::sync::RwLock;
+    /// let x = RwLock::new(&y);
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # let y = true;
+    /// # use std::sync::atomic::AtomicBool;
+    /// let x = AtomicBool::new(y);
+    /// ```
+    #[clippy::version = "1.93.0"]
+    pub RWLOCK_ATOMIC,
+    restriction,
+    "using a RwLock where an atomic value could be used instead."
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `RwLock<X>` where `X` is an integral
+    /// type.
+    ///
+    /// ### Why is this bad?
+    /// Using a RwLock just to make access to a plain integer
+    /// sequential is
+    /// shooting flies with cannons. `std::sync::atomic::AtomicUsize` is leaner and faster.
+    ///
+    /// On the other hand, `RwLock`s are, in general, easier to reason about
+    /// and to verify for correctness. Atomics do not provide the same
+    /// synchronization semantics as an equivalent `RwLock`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # use std::sync::RwLock;
+    /// let x = RwLock::new(0usize);
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # use std::sync::atomic::AtomicUsize;
+    /// let x = AtomicUsize::new(0usize);
+    /// ```
+    #[clippy::version = "1.93.0"]
+    pub RWLOCK_INTEGER,
+    restriction,
+    "using a RwLock for an integer type"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for usage of `Mutex<X>` where an atomic will do.
     ///
     /// ### Why restrict this?
@@ -91,11 +155,16 @@ declare_clippy_lint! {
     "using a mutex for an integer type"
 }
 
-declare_lint_pass!(Mutex => [MUTEX_ATOMIC, MUTEX_INTEGER]);
+declare_lint_pass!(SyncGuard => [
+    RWLOCK_ATOMIC,
+    RWLOCK_INTEGER,
+    MUTEX_ATOMIC,
+    MUTEX_INTEGER
+]);
 
 // NOTE: we don't use `check_expr` because that would make us lint every _use_ of such mutexes, not
 // just their definitions
-impl<'tcx> LateLintPass<'tcx> for Mutex {
+impl<'tcx> LateLintPass<'tcx> for SyncGuard {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'_>) {
         if !item.span.from_expansion()
             && let ItemKind::Static(_, _, ty, body_id) = item.kind
@@ -123,6 +192,8 @@ enum TypeAscriptionKind<'tcx> {
     /// No; the ascription might've been necessary in an expression like:
     /// ```ignore
     /// let mutex: Mutex<u64> = Mutex::new(0);
+    /// // Or
+    /// let rwlock: RwLock<u64> = RwLock::new(0);
     /// ```
     /// to specify the type of `0`, but since `AtomicX` already refers to a concrete type, we won't
     /// need this ascription anymore.
@@ -131,13 +202,23 @@ enum TypeAscriptionKind<'tcx> {
 
 fn check_expr<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>, ty_ascription: &TypeAscriptionKind<'tcx>, ty: Ty<'tcx>) {
     if let ty::Adt(_, subst) = ty.kind()
-        && ty.is_diag_item(cx, sym::Mutex)
+        && let Some((lock_name, lint_integer, lint_atomic)) = if ty.is_diag_item(cx, sym::Mutex) {
+            Some(("Mutex", MUTEX_INTEGER, MUTEX_ATOMIC))
+        } else if ty.is_diag_item(cx, sym::RwLock) {
+            Some(("RwLock", RWLOCK_INTEGER, RWLOCK_ATOMIC))
+        } else {
+            None
+        }
         && let mutex_param = subst.type_at(0)
         && let Some(atomic_name) = get_atomic_name(mutex_param)
     {
-        let msg = "using a `Mutex` where an atomic would do";
+        let msg: &str = if lock_name == "Mutex" {
+            "using a `Mutex` where an atomic would do"
+        } else {
+            "using a `RwLock` where an atomic would do"
+        };
         let diag = |diag: &mut Diag<'_, _>| {
-            // if `expr = Mutex::new(arg)`, we can try emitting a suggestion
+            // if `expr = Mutex::new(arg)` or `expr = RwLock::new(arg)`, we can try emitting a suggestion
             if let ExprKind::Call(qpath, [arg]) = expr.kind
                 && let ExprKind::Path(QPath::TypeRelative(_mutex, new)) = qpath.kind
                 && new.ident.name == sym::new
@@ -164,12 +245,14 @@ fn check_expr<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>, ty_ascription: &T
             } else {
                 diag.help(format!("consider using an `{atomic_name}` instead"));
             }
-            diag.help("if you just want the locking behavior and not the internal type, consider using `Mutex<()>`");
+            diag.help(format!(
+                "if you just want the locking behavior and not the internal type, consider using `{lock_name}<()>`"
+            ));
         };
         match *mutex_param.kind() {
-            ty::Uint(t) if t != UintTy::Usize => span_lint_and_then(cx, MUTEX_INTEGER, expr.span, msg, diag),
-            ty::Int(t) if t != IntTy::Isize => span_lint_and_then(cx, MUTEX_INTEGER, expr.span, msg, diag),
-            _ => span_lint_and_then(cx, MUTEX_ATOMIC, expr.span, msg, diag),
+            ty::Uint(t) if t != UintTy::Usize => span_lint_and_then(cx, lint_integer, expr.span, msg, diag),
+            ty::Int(t) if t != IntTy::Isize => span_lint_and_then(cx, lint_integer, expr.span, msg, diag),
+            _ => span_lint_and_then(cx, lint_atomic, expr.span, msg, diag),
         }
     }
 }
