@@ -181,5 +181,17 @@ error: transmute from a pointer type (`*const [&str]`) to a reference type (`&[&
 LL |         let _: &[&str] = core::mem::transmute(a_s_ptr);
    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `&*(a_s_ptr as *const [&str])`
 
-error: aborting due to 30 previous errors
+error: transmute from a pointer type (`*const u32`) to a reference type (`&u32`)
+  --> tests/ui/transmute_ptr_to_ref.rs:142:28
+   |
+LL |     let _: &u32 = unsafe { std::mem::transmute(a) };
+   |                            ^^^^^^^^^^^^^^^^^^^^^^ help: try: `&*a`
+
+error: transmute from a pointer type (`*mut u32`) to a reference type (`&mut u32`)
+  --> tests/ui/transmute_ptr_to_ref.rs:151:32
+   |
+LL |     let _: &mut u32 = unsafe { std::mem::transmute(a) };
+   |                                ^^^^^^^^^^^^^^^^^^^^^^ help: try: `&mut *a`
+
+error: aborting due to 32 previous errors
 
