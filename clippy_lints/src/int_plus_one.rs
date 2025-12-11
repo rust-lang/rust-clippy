@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::SpanRangeExt;
+use clippy_utils::source::SpanExt;
 use rustc_ast::ast::{BinOpKind, Expr, ExprKind, LitKind};
 use rustc_ast::token;
 use rustc_errors::Applicability;
@@ -130,8 +130,8 @@ impl IntPlusOne {
             BinOpKind::Le => "<",
             _ => return None,
         };
-        if let Some(snippet) = node.span.get_source_text(cx)
-            && let Some(other_side_snippet) = other_side.span.get_source_text(cx)
+        if let Some(snippet) = node.span.get_text(cx)
+            && let Some(other_side_snippet) = other_side.span.get_text(cx)
         {
             let rec = match side {
                 Side::Lhs => Some(format!("{snippet} {binop_string} {other_side_snippet}")),
