@@ -1,7 +1,7 @@
 use super::NEEDLESS_RANGE_LOOP;
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::snippet;
-use clippy_utils::ty::has_iter_method;
+use clippy_utils::source::{snippet, snippet_with_applicability};
+use clippy_utils::ty::{has_iter_method, is_slice_like};
 use clippy_utils::visitors::is_local_used;
 use clippy_utils::{SpanlessEq, contains_name, higher, is_integer_literal, peel_hir_expr_while, sugg};
 use rustc_ast::ast;
@@ -93,6 +93,9 @@ pub(super) fn check<'tcx>(
                 format!(".skip({})", snippet(cx, start.span, ".."))
             };
 
+            // Preserve original lower bound for slice-based suggestions
+            let slice_skip = skip.clone();
+
             let mut end_is_start_plus_val = false;
 
             let take = if let Some(end) = *end {
@@ -114,7 +117,9 @@ pub(super) fn check<'tcx>(
                     end_is_start_plus_val = start_equal_left | start_equal_right;
                 }
 
-                if is_len_call(end, indexed) || is_end_eq_array_len(cx, end, range_ty, indexed_ty) {
+                let end_is_indexed_len =
+                    matches!(range_ty.limits(), ast::RangeLimits::HalfOpen) && is_len_call(end, indexed);
+                if end_is_indexed_len || is_end_eq_array_len(cx, end, range_ty, indexed_ty) {
                     String::new()
                 } else if visitor.indexed_mut.contains(&indexed) && contains_name(indexed, take_expr, cx) {
                     return;
@@ -140,6 +145,12 @@ pub(super) fn check<'tcx>(
             };
 
             let take_is_empty = take.is_empty();
+
+            // Prevent slice suggestions for types that support usize (like VecDeque)
+            let use_slice_bound = !take_is_empty
+                && is_slice_like(cx, indexed_ty.peel_refs())
+                && (*end).is_some_and(|end| !range_is_provably_empty(cx, start, end, range_ty.limits()));
+
             let mut method_1 = take;
             let mut method_2 = skip;
 
@@ -147,7 +158,27 @@ pub(super) fn check<'tcx>(
                 mem::swap(&mut method_1, &mut method_2);
             }
 
+            let panic_behavior_note = "this suggestion preserves panic behavior, but the panic will occur \
+                before iteration if the range end is out of bounds";
+
             if visitor.nonindex {
+                let mut applicability = Applicability::HasPlaceholders;
+                let (repl, note) = if use_slice_bound {
+                    // Use a slice bound to preserve panic behavior.
+                    let end_snippet = snippet_with_applicability(cx, end.unwrap().span, "..", &mut applicability);
+                    let range = match range_ty.limits() {
+                        ast::RangeLimits::Closed => format!("..={end_snippet}"),
+                        ast::RangeLimits::HalfOpen => format!("..{end_snippet}"),
+                    };
+
+                    (
+                        format!("{indexed}[{range}].{method}().enumerate(){slice_skip}"),
+                        Some(panic_behavior_note),
+                    )
+                } else {
+                    (format!("{indexed}.{method}().enumerate(){method_1}{method_2}"), None)
+                };
+
                 span_lint_and_then(
                     cx,
                     NEEDLESS_RANGE_LOOP,
@@ -156,19 +187,32 @@ pub(super) fn check<'tcx>(
                     |diag| {
                         diag.multipart_suggestion(
                             "consider using an iterator and enumerate()",
-                            vec![
-                                (pat.span, format!("({}, <item>)", ident.name)),
-                                (span, format!("{indexed}.{method}().enumerate(){method_1}{method_2}")),
-                            ],
-                            Applicability::HasPlaceholders,
+                            vec![(pat.span, format!("({}, <item>)", ident.name)), (span, repl)],
+                            applicability,
                         );
+                        if let Some(note) = note {
+                            diag.note(note);
+                        }
                     },
                 );
             } else {
-                let repl = if starts_at_zero && take_is_empty {
-                    format!("&{ref_mut}{indexed}")
+                let mut applicability = Applicability::HasPlaceholders;
+                let (repl, note) = if starts_at_zero && take_is_empty {
+                    (format!("&{ref_mut}{indexed}"), None)
+                } else if use_slice_bound {
+                    // Use a slice bound to preserve panic behavior
+                    let end_snippet = snippet_with_applicability(cx, end.unwrap().span, "..", &mut applicability);
+                    let range = match range_ty.limits() {
+                        ast::RangeLimits::Closed => format!("..={end_snippet}"),
+                        ast::RangeLimits::HalfOpen => format!("..{end_snippet}"),
+                    };
+
+                    (
+                        format!("{indexed}[{range}].{method}(){slice_skip}"),
+                        Some(panic_behavior_note),
+                    )
                 } else {
-                    format!("{indexed}.{method}(){method_1}{method_2}")
+                    (format!("{indexed}.{method}(){method_1}{method_2}"), None)
                 };
 
                 span_lint_and_then(
@@ -180,8 +224,11 @@ pub(super) fn check<'tcx>(
                         diag.multipart_suggestion(
                             "consider using an iterator",
                             vec![(pat.span, "<item>".to_string()), (span, repl)],
-                            Applicability::HasPlaceholders,
+                            applicability,
                         );
+                        if let Some(note) = note {
+                            diag.note(note);
+                        }
                     },
                 );
             }
@@ -202,6 +249,12 @@ fn is_len_call(expr: &Expr<'_>, var: Symbol) -> bool {
     false
 }
 
+fn range_is_provably_empty(cx: &LateContext<'_>, start: &Expr<'_>, end: &Expr<'_>, limits: ast::RangeLimits) -> bool {
+    // true for cases like start..start
+    let ctxt = start.span.ctxt();
+    matches!(limits, ast::RangeLimits::HalfOpen) && SpanlessEq::new(cx).eq_expr(ctxt, start, end)
+}
+
 fn is_end_eq_array_len<'tcx>(
     cx: &LateContext<'tcx>,
     end: &Expr<'_>,
@@ -214,8 +267,8 @@ fn is_end_eq_array_len<'tcx>(
         && let Some(arr_len) = arr_len_const.try_to_target_usize(cx.tcx)
     {
         return match range_ty.limits() {
-            ast::RangeLimits::Closed => end_int.get() + 1 >= arr_len.into(),
-            ast::RangeLimits::HalfOpen => end_int.get() >= arr_len.into(),
+            ast::RangeLimits::Closed => end_int.get().checked_add(1) == Some(arr_len.into()),
+            ast::RangeLimits::HalfOpen => end_int.get() == arr_len.into(),
         };
     }
 
