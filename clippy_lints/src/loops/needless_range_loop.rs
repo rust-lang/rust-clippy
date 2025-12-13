@@ -166,6 +166,12 @@ pub(super) fn check<'tcx>(
             } else {
                 let repl = if starts_at_zero && take_is_empty {
                     format!("&{ref_mut}{indexed}")
+                } else if !take_is_empty {
+                    // Adding condition for when 'take' is not empty Fixing `.take(n)` with slicing to preserve panic semantics
+                    format!(
+                        "{indexed}[..{}].{method}(){method_2}",
+                        snippet(cx, end.unwrap().span, "..")
+                    )
                 } else {
                     format!("{indexed}.{method}(){method_1}{method_2}")
                 };
@@ -180,6 +186,10 @@ pub(super) fn check<'tcx>(
                             "consider using an iterator",
                             vec![(pat.span, "<item>".to_string()), (span, repl)],
                             Applicability::HasPlaceholders,
+                        );
+                        diag.note(
+                            "this suggestion preserves panic behavior, but the panic will occur \
+                            before iteration if the upper bound exceeds the collection length",
                         );
                     },
                 );
