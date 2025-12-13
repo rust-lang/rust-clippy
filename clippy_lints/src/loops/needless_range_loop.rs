@@ -167,7 +167,8 @@ pub(super) fn check<'tcx>(
                 let repl = if starts_at_zero && take_is_empty {
                     format!("&{ref_mut}{indexed}")
                 } else if !take_is_empty {
-                    // Adding condition for when 'take' is not empty Fixing `.take(n)` with slicing to preserve panic semantics
+                    // Adding condition for when 'take' is not empty Fixing `.take(n)` with slicing to preserve panic
+                    // semantics
                     format!(
                         "{indexed}[..{}].{method}(){method_2}",
                         snippet(cx, end.unwrap().span, "..")
