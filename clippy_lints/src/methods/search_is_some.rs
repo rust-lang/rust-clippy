@@ -2,11 +2,9 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
 use clippy_utils::source::{snippet, snippet_with_applicability};
 use clippy_utils::sugg::deref_closure_args;
-use clippy_utils::{is_receiver_of_method_call, strip_pat_refs, sym};
-use hir::ExprKind;
+use clippy_utils::{is_receiver_of_method_call, sym};
 use rustc_errors::Applicability;
 use rustc_hir as hir;
-use rustc_hir::PatKind;
 use rustc_lint::LateContext;
 use rustc_span::{Span, Symbol};
 
@@ -34,25 +32,15 @@ pub(super) fn check<'tcx>(
     {
         let msg = format!("called `{option_check_method}()` after searching an `Iterator` with `{search_method}`");
         let search_snippet = snippet(cx, search_arg.span, "..");
+        // `find()` provides a reference to the item, but `any` does not, so we
+        // should fix item usages for suggestion
         // suggest `any(|x| ..)` instead of `any(|&x| ..)` for `find(|&x| ..).is_some()`
         // suggest `any(|..| *..)` instead of `any(|..| **..)` for `find(|..| **..).is_some()`
         let mut applicability = Applicability::MachineApplicable;
-        let any_search_snippet = if search_method == sym::find
-            && let ExprKind::Closure(&hir::Closure { body, .. }) = search_arg.kind
-            && let closure_body = cx.tcx.hir_body(body)
-            && let Some(closure_arg) = closure_body.params.first()
-        {
-            if let PatKind::Ref(..) = closure_arg.pat.kind {
-                Some(search_snippet.replacen('&', "", 1))
-            } else if let PatKind::Binding(..) = strip_pat_refs(closure_arg.pat).kind {
-                // `find()` provides a reference to the item, but `any` does not,
-                // so we should fix item usages for suggestion
-                if let Some(closure_sugg) = deref_closure_args(cx, search_arg) {
-                    applicability = closure_sugg.applicability;
-                    Some(closure_sugg.suggestion)
-                } else {
-                    Some(search_snippet.to_string())
-                }
+        let any_search_snippet = if search_method == sym::find {
+            if let Some(closure_sugg) = deref_closure_args(cx, search_arg) {
+                applicability = closure_sugg.applicability;
+                Some(closure_sugg.suggestion)
             } else {
                 None
             }
