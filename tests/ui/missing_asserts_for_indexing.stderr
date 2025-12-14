@@ -187,5 +187,41 @@ LL -         debug_assert_eq!(v.len(), 2);
 LL +         debug_assert_eq!(v.len(), 3);
    |
 
-error: aborting due to 15 previous errors
+error: indexing into a slice multiple times with an `assert` that does not cover the highest index
+  --> tests/ui/missing_asserts_for_indexing.rs:193:13
+   |
+LL |     let _ = v2[0] + v2[1] + v2[2];
+   |             ^^^^^   ^^^^^   ^^^^^
+   |
+help: provide the highest index that is indexed with
+   |
+LL -     assert!(v2.len() >= N);
+LL +     assert!(v2.len() > N);
+   |
+
+error: indexing into a slice multiple times with an `assert` that does not cover the highest index
+  --> tests/ui/missing_asserts_for_indexing.rs:196:13
+   |
+LL |     let _ = v3[0] + v3[1] + v3[2] + v3[3];
+   |             ^^^^^   ^^^^^   ^^^^^   ^^^^^
+   |
+help: provide the highest index that is indexed with
+   |
+LL -     assert!(v3.len() >= N);
+LL +     assert!(v3.len() >= 4);
+   |
+
+error: indexing into a slice multiple times with an `assert` that does not cover the highest index
+  --> tests/ui/missing_asserts_for_indexing.rs:199:13
+   |
+LL |     let _ = v4[0] + v4[1] + v4[2] + v4[3];
+   |             ^^^^^   ^^^^^   ^^^^^   ^^^^^
+   |
+help: provide the highest index that is indexed with
+   |
+LL -     assert!(v4.len() > N);
+LL +     assert!(v4.len() > 3);
+   |
+
+error: aborting due to 18 previous errors
 
