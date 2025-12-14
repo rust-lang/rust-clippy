@@ -26,6 +26,7 @@ mod while_let_on_iterator;
 
 use clippy_config::Conf;
 use clippy_utils::msrvs::Msrv;
+use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
 use clippy_utils::{higher, sym};
 use rustc_ast::Label;
 use rustc_hir::{Expr, ExprKind, LoopSource, Pat};
@@ -881,13 +882,31 @@ impl<'tcx> LateLintPass<'tcx> for Loops {
             manual_while_let_some::check(cx, condition, body, span);
         }
 
-        if let ExprKind::MethodCall(path, recv, [arg], _) = expr.kind
-            && matches!(
-                path.ident.name,
-                sym::all | sym::any | sym::filter_map | sym::find_map | sym::flat_map | sym::for_each | sym::map
-            )
-        {
-            unused_enumerate_index::check_method(cx, expr, recv, arg);
+        if let ExprKind::MethodCall(path, recv, args, _) = expr.kind {
+            let name = path.ident.name;
+            let is_iterator_method = cx
+                .ty_based_def(expr)
+                .assoc_fn_parent(cx)
+                .is_diag_item(cx, sym::Iterator);
+
+            match (name, args) {
+                (sym::for_each | sym::all | sym::any, [arg]) => {
+                    unused_enumerate_index::check_method(cx, expr, recv, arg);
+                    if is_iterator_method {
+                        never_loop::check_iterator_reduction(cx, expr, recv, args);
+                    }
+                },
+
+                (sym::filter_map | sym::find_map | sym::flat_map | sym::map, [arg]) => {
+                    unused_enumerate_index::check_method(cx, expr, recv, arg);
+                },
+
+                (sym::try_for_each | sym::reduce | sym::fold | sym::try_fold, args) if is_iterator_method => {
+                    never_loop::check_iterator_reduction(cx, expr, recv, args);
+                },
+
+                _ => {},
+            }
         }
     }
 }
