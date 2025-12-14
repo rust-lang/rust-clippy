@@ -96,7 +96,7 @@ fn create_lint(lint: &LintData<'_>, enable_msrv: bool) -> io::Result<()> {
     } else {
         let lint_contents = get_lint_file_contents(lint, enable_msrv);
         let lint_path = format!("clippy_lints/src/{}.rs", lint.name);
-        write_file(&lint_path, lint_contents.as_bytes())?;
+        write_file(&lint_path, &lint_contents)?;
         println!("Generated lint file: `{lint_path}`");
 
         Ok(())
@@ -435,7 +435,7 @@ fn create_lint_for_ty(lint: &LintData<'_>, enable_msrv: bool, ty: &str) -> io::R
         );
     }
 
-    write_file(lint_file_path.as_path(), lint_file_contents)?;
+    write_file(&lint_file_path, lint_file_contents)?;
     println!("Generated lint file: `clippy_lints/src/{ty}/{}.rs`", lint.name);
     println!(
         "Be sure to add a call to `{}::check` in `clippy_lints/src/{ty}/mod.rs`!",

@@ -4,6 +4,7 @@
 #![allow(unused_must_use, unused_variables)]
 #![allow(
     clippy::let_unit_value,
+    clippy::needless_conversion_for_trait,
     clippy::needless_question_mark,
     clippy::never_loop,
     clippy::no_effect,

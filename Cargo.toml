@@ -38,6 +38,7 @@ ui_test = "0.30.2"
 regex = "1.5.5"
 serde = { version = "1.0.145", features = ["derive"] }
 serde_json = "1.0.122"
+tempfile = "3.20"
 walkdir = "2.3"
 filetime = "0.2.9"
 itertools = "0.12"
