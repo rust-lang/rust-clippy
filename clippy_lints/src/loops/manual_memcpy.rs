@@ -442,30 +442,28 @@ fn get_assignments<'a, 'tcx>(
         .map(get_assignment)
 }
 
-fn get_loop_counters<'a, 'tcx>(
-    cx: &'a LateContext<'tcx>,
+fn get_loop_counters<'tcx>(
+    cx: &LateContext<'tcx>,
     body: &'tcx Block<'tcx>,
     expr: &'tcx Expr<'_>,
-) -> Option<impl Iterator<Item = Start<'tcx>> + 'a> {
-    // Look for variables that are incremented once per loop iteration.
+) -> Option<Vec<Start<'tcx>>> {
     let mut increment_visitor = IncrementVisitor::new(cx);
     walk_block(&mut increment_visitor, body);
 
-    // For each candidate, check the parent block to see if
-    // it's initialized to zero at the start of the loop.
-    get_enclosing_block(cx, expr.hir_id).and_then(|block| {
+    get_enclosing_block(cx, expr.hir_id).map(move |block| {
         increment_visitor
             .into_results()
-            .filter_map(move |var_id| {
+            .filter_map(move |(var_id, _)| {
+                // var_id is now the HirId struct
                 let mut initialize_visitor = InitializeVisitor::new(cx, expr, var_id);
                 walk_block(&mut initialize_visitor, block);
 
-                initialize_visitor.get_result().map(|(_, _, initializer)| Start {
+                initialize_visitor.get_result().map(|(_, _, initializer, _)| Start {
                     id: var_id,
                     kind: StartKind::Counter { initializer },
                 })
             })
-            .into()
+            .collect()
     })
 }
 
