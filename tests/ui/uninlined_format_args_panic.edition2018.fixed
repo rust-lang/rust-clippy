@@ -4,6 +4,7 @@
 
 #![warn(clippy::uninlined_format_args)]
 #![allow(clippy::literal_string_with_formatting_args)]
+#![expect(clippy::manual_assert_eq)]
 
 fn main() {
     let var = 1;

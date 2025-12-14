@@ -915,14 +915,20 @@ fn assert_generic_args_match<'tcx>(tcx: TyCtxt<'tcx>, did: DefId, args: &[Generi
         .chain(&g.own_params)
         .map(|x| &x.kind);
 
-    assert!(
-        count == args.len(),
-        "wrong number of arguments for `{did:?}`: expected `{count}`, found {}\n\
+    #[expect(
+        clippy::manual_assert_eq,
+        reason = "the message contains `assert_eq!`-like formatting itself"
+    )]
+    {
+        assert!(
+            count == args.len(),
+            "wrong number of arguments for `{did:?}`: expected `{count}`, found {}\n\
             note: the expected arguments are: `[{}]`\n\
             the given arguments are: `{args:#?}`",
-        args.len(),
-        params.clone().map(ty::GenericParamDefKind::descr).format(", "),
-    );
+            args.len(),
+            params.clone().map(ty::GenericParamDefKind::descr).format(", "),
+        );
+    }
 
     if let Some((idx, (param, arg))) =
         params
