@@ -1,5 +1,6 @@
 #![warn(clippy::empty_enum_variants_with_brackets)]
 #![allow(dead_code)]
+#![feature(more_qualified_paths)]
 
 pub enum PublicTestEnum {
     NonEmptyBraces { x: i32, y: i32 }, // No error
@@ -100,6 +101,35 @@ pub enum PubFoo {
     Variant1(i32),
     Variant2,
     Variant3(),
+}
+
+fn issue16157() {
+    enum E {
+        V(),
+        //~^ empty_enum_variants_with_brackets
+    }
+
+    let E::V() = E::V();
+
+    <E>::V() = E::V();
+    <E>::V {} = E::V();
+}
+
+fn variant_with_braces() {
+    enum E {
+        V(),
+        //~^ empty_enum_variants_with_brackets
+    }
+    E::V() = E::V();
+    E::V() = E::V {};
+    <E>::V {} = <E>::V {};
+
+    enum F {
+        U {},
+        //~^ empty_enum_variants_with_brackets
+    }
+    F::U {} = F::U {};
+    <F>::U {} = F::U {};
 }
 
 fn main() {}
