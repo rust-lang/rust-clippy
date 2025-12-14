@@ -1,4 +1,7 @@
+//@aux-build:proc_macros.rs
 #![warn(clippy::byte_char_slices)]
+
+use proc_macros::with_span;
 
 fn main() {
     let bad = &[b'a', b'b', b'c'];
@@ -14,4 +17,6 @@ fn main() {
     let good = vec![b'a', b'a'];
     //~^ useless_vec
     let good: u8 = [b'a', b'c'].into_iter().sum();
+
+    let bad = with_span!(span & [b'a', b'b', b'c']);
 }

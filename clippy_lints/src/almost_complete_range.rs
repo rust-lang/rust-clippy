@@ -1,5 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::is_from_proc_macro;
 use clippy_utils::msrvs::{self, MsrvStack};
 use clippy_utils::source::{trim_span, walk_span_to_context};
 use rustc_ast::ast::{Expr, ExprKind, LitKind, Pat, PatKind, RangeEnd, RangeLimits};
@@ -45,6 +46,7 @@ impl EarlyLintPass for AlmostCompleteRange {
         if let ExprKind::Range(Some(start), Some(end), RangeLimits::HalfOpen) = &e.kind
             && is_incomplete_range(start, end)
             && !e.span.in_external_macro(cx.sess().source_map())
+            && !is_from_proc_macro(cx, e)
         {
             span_lint_and_then(
                 cx,
