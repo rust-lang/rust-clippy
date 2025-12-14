@@ -453,6 +453,8 @@ declare_clippy_lint! {
     /// ### What it does
     /// Checks for ignored tests without messages.
     ///
+    /// Note: you need to run `cargo clippy --tests` to enable tests checking.
+    ///
     /// ### Why is this bad?
     /// The reason for ignoring the test may not be obvious.
     ///

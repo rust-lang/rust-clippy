@@ -17,6 +17,8 @@ declare_clippy_lint! {
     /// Checks for test functions (functions annotated with `#[test]`) that are prefixed
     /// with `test_` which is redundant.
     ///
+    /// Note: you need to run `cargo clippy --tests` to enable tests checking.
+    ///
     /// ### Why is this bad?
     /// This is redundant because test functions are already annotated with `#[test]`.
     /// Moreover, it clutters the output of `cargo test` since test functions are expanded as
