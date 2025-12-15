@@ -9410,12 +9410,18 @@ fn read_char(ptr: *const u8) -&gt; char {
     unsafe { char::from_u32_unchecked(int_value) }
 }
 </code></pre>
-<h3>Note</h3>
-<p>Taking a raw pointer to a union field is always safe and will
+<h3>Notes</h3>
+<ul>
+<li>Unsafe operations only count towards the total for the innermost
+enclosing <code>unsafe</code> block.</li>
+<li>Each call to a macro expanding to unsafe operations count for one
+unsafe operation.</li>
+<li>Taking a raw pointer to a union field is always safe and will
 not be considered unsafe by this lint, even when linting code written
 with a specified Rust version of 1.91 or earlier (which required
-using an <code>unsafe</code> block).</p>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.69.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+multiple_unsafe_ops_per_block">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/multiple_unsafe_ops_per_block.rs#L14">View Source</a></div></div></div></article><article id="must_use_candidate"><input id="label-must_use_candidate" type="checkbox"><label for="label-must_use_candidate"><h2 class="lint-title"><div class="panel-title-name" id="lint-must_use_candidate">must_use_candidate
+using an <code>unsafe</code> block).</li>
+</ul>
+</div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.69.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+multiple_unsafe_ops_per_block">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/multiple_unsafe_ops_per_block.rs#L15">View Source</a></div></div></div></article><article id="must_use_candidate"><input id="label-must_use_candidate" type="checkbox"><label for="label-must_use_candidate"><h2 class="lint-title"><div class="panel-title-name" id="lint-must_use_candidate">must_use_candidate
 <a href="#must_use_candidate" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for public functions that have no
 <code>#[must_use]</code> attribute, but return something not already marked
