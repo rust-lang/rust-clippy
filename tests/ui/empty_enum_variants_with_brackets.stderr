@@ -1,82 +1,63 @@
-error: enum variant has empty brackets
-  --> tests/ui/empty_enum_variants_with_brackets.rs:7:16
+error: non-unit variant contains no fields
+  --> tests/ui/empty_enum_variants_with_brackets.rs:11:17
    |
 LL |     EmptyBraces {},
-   |                ^^^
+   |                 ^^
    |
-   = note: `-D clippy::empty-enum-variants-with-brackets` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::empty_enum_variants_with_brackets)]`
-   = help: remove the brackets
+note: the lint level is defined here
+  --> tests/ui/empty_enum_variants_with_brackets.rs:2:9
+   |
+LL | #![deny(clippy::empty_enum_variants_with_brackets)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: remove the braces
 
-error: enum variant has empty brackets
-  --> tests/ui/empty_enum_variants_with_brackets.rs:15:16
+error: non-unit variant contains no fields
+  --> tests/ui/empty_enum_variants_with_brackets.rs:18:17
    |
 LL |     EmptyBraces {},
-   |                ^^^
+   |                 ^^
    |
-   = help: remove the brackets
+   = help: remove the braces
 
-error: enum variant has empty brackets
-  --> tests/ui/empty_enum_variants_with_brackets.rs:17:21
+error: non-unit variant contains no fields
+  --> tests/ui/empty_enum_variants_with_brackets.rs:19:21
    |
 LL |     EmptyParentheses(),
    |                     ^^
    |
-   = help: remove the brackets
+   = help: remove the parenthesis
 
-error: enum variant has empty brackets
-  --> tests/ui/empty_enum_variants_with_brackets.rs:28:16
+error: non-unit variant contains no fields
+  --> tests/ui/empty_enum_variants_with_brackets.rs:57:16
    |
 LL |         Unknown(),
    |                ^^
    |
-   = help: remove the brackets
+   = help: remove the parenthesis
 
-error: enum variant has empty brackets
-  --> tests/ui/empty_enum_variants_with_brackets.rs:47:16
+error: non-unit variant contains no fields
+  --> tests/ui/empty_enum_variants_with_brackets.rs:71:16
    |
 LL |         Unknown(),
    |                ^^
    |
-   = help: remove the brackets
+   = help: remove the parenthesis
 
-error: enum variant has empty brackets
-  --> tests/ui/empty_enum_variants_with_brackets.rs:53:20
-   |
-LL |         Parentheses(),
-   |                    ^^
-   |
-help: remove the brackets
-   |
-LL ~         Parentheses,
-LL |
-...
-LL |         // The parentheses in the below line are redundant.
-LL ~         RedundantParenthesesFunctionCall::Parentheses;
-   |
-
-error: enum variant has empty brackets
+error: non-unit variant contains no fields
   --> tests/ui/empty_enum_variants_with_brackets.rs:76:20
    |
 LL |         Parentheses(),
    |                    ^^
    |
-help: remove the brackets
-   |
-LL ~         RedundantParenthesesFunctionCall2::Parentheses;
-LL |         RedundantParenthesesFunctionCall2::NoParentheses;
-...
-LL |         // Used as a function call but with redundant parentheses
-LL ~         Parentheses,
-   |
+   = help: remove the parenthesis
 
-error: enum variant has empty brackets
-  --> tests/ui/empty_enum_variants_with_brackets.rs:95:13
+error: non-unit variant contains no fields
+  --> tests/ui/empty_enum_variants_with_brackets.rs:89:20
    |
-LL |     Variant3(),
-   |             ^^
+LL |         Parentheses(),
+   |                    ^^
    |
-   = help: remove the brackets
+   = help: remove the parenthesis
 
-error: aborting due to 8 previous errors
+error: aborting due to 7 previous errors
 

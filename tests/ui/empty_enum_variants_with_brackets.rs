@@ -1,34 +1,61 @@
-#![warn(clippy::empty_enum_variants_with_brackets)]
+//@aux-build:proc_macros.rs
+#![deny(clippy::empty_enum_variants_with_brackets)]
 #![allow(dead_code)]
 
+extern crate proc_macros;
+use proc_macros::{external, with_span};
+
 pub enum PublicTestEnum {
-    NonEmptyBraces { x: i32, y: i32 }, // No error
-    NonEmptyParentheses(i32, i32),     // No error
-    EmptyBraces {},
-    //~^ empty_enum_variants_with_brackets
-    EmptyParentheses(), // No error as enum is pub
+    NonEmptyBraces { x: i32, y: i32 },
+    NonEmptyParentheses(i32, i32),
+    EmptyBraces {}, //~ empty_enum_variants_with_brackets
+    EmptyParentheses(),
 }
 
 enum TestEnum {
-    NonEmptyBraces { x: i32, y: i32 }, // No error
-    NonEmptyParentheses(i32, i32),     // No error
-    EmptyBraces {},
-    //~^ empty_enum_variants_with_brackets
-    EmptyParentheses(),
-    //~^ empty_enum_variants_with_brackets
-    AnotherEnum, // No error
+    NonEmptyBraces { x: i32, y: i32 },
+    NonEmptyParentheses(i32, i32),
+    EmptyBraces {},     //~ empty_enum_variants_with_brackets
+    EmptyParentheses(), //~ empty_enum_variants_with_brackets
+    AnotherEnum,
+}
+
+enum TestEnumWithFeatures {
+    NonEmptyBraces {
+        #[cfg(feature = "thisisneverenabled")]
+        x: i32,
+    },
+    NonEmptyParentheses(#[cfg(feature = "thisisneverenabled")] i32),
+}
+
+external! {
+    enum External {
+        Foo {},
+    }
+}
+
+with_span! {
+    span
+    enum ProcMacro {
+        Foo(),
+    }
+}
+
+macro_rules! m {
+    ($($ty:ty),*) => {
+        enum Macro {
+            Foo($($ty),*),
+        }
+    }
 }
 
 mod issue12551 {
+    // Check if the variant is passed as an argument.
     enum EvenOdd {
-        // Used as functions -> no error
         Even(),
         Odd(),
-        // Not used as a function
-        Unknown(),
-        //~^ empty_enum_variants_with_brackets
+        Unknown(), //~ empty_enum_variants_with_brackets
     }
-
     fn even_odd(x: i32) -> EvenOdd {
         (x % 2 == 0).then(EvenOdd::Even).unwrap_or_else(EvenOdd::Odd)
     }
@@ -38,68 +65,30 @@ mod issue12551 {
             .then(NaturalOrNot::Natural)
             .unwrap_or_else(NaturalOrNot::NotNatural)
     }
-
     enum NaturalOrNot {
-        // Used as functions -> no error
         Natural(),
         NotNatural(),
-        // Not used as a function
-        Unknown(),
-        //~^ empty_enum_variants_with_brackets
+        Unknown(), //~ empty_enum_variants_with_brackets
     }
 
+    // Check that call sites are fixed.
     enum RedundantParenthesesFunctionCall {
-        // Used as a function call but with redundant parentheses
-        Parentheses(),
-        //~^ empty_enum_variants_with_brackets
-        // Not used as a function
+        Parentheses(), //~ empty_enum_variants_with_brackets
         NoParentheses,
     }
-
-    #[allow(clippy::no_effect)]
     fn redundant_parentheses_function_call() {
-        // The parentheses in the below line are redundant.
-        RedundantParenthesesFunctionCall::Parentheses();
-        RedundantParenthesesFunctionCall::NoParentheses;
+        let _ = RedundantParenthesesFunctionCall::Parentheses();
+        let _ = RedundantParenthesesFunctionCall::NoParentheses;
     }
 
-    // Same test as above but with usage of the enum occurring before the definition.
-    #[allow(clippy::no_effect)]
     fn redundant_parentheses_function_call_2() {
-        // The parentheses in the below line are redundant.
-        RedundantParenthesesFunctionCall2::Parentheses();
-        RedundantParenthesesFunctionCall2::NoParentheses;
+        let _ = RedundantParenthesesFunctionCall2::Parentheses();
+        let _ = RedundantParenthesesFunctionCall2::NoParentheses;
     }
-
     enum RedundantParenthesesFunctionCall2 {
-        // Used as a function call but with redundant parentheses
-        Parentheses(),
-        //~^ empty_enum_variants_with_brackets
-        // Not used as a function
+        Parentheses(), //~ empty_enum_variants_with_brackets
         NoParentheses,
     }
-}
-
-enum TestEnumWithFeatures {
-    NonEmptyBraces {
-        #[cfg(feature = "thisisneverenabled")]
-        x: i32,
-    }, // No error
-    NonEmptyParentheses(#[cfg(feature = "thisisneverenabled")] i32), // No error
-}
-
-#[derive(Clone)]
-enum Foo {
-    Variant1(i32),
-    Variant2,
-    Variant3(), //~ ERROR: enum variant has empty brackets
-}
-
-#[derive(Clone)]
-pub enum PubFoo {
-    Variant1(i32),
-    Variant2,
-    Variant3(),
 }
 
 fn main() {}
