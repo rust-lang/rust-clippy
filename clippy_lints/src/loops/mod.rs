@@ -4,6 +4,7 @@ mod explicit_counter_loop;
 mod explicit_into_iter_loop;
 mod explicit_iter_loop;
 mod for_kv_map;
+mod for_unbounded_range;
 mod infinite_loop;
 mod iter_next_loop;
 mod manual_find;
@@ -785,6 +786,35 @@ declare_clippy_lint! {
     "using the character position yielded by `.chars().enumerate()` in a context where a byte index is expected"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for unbounded for loops over char or integers.
+    ///
+    /// ### Why is this bad?
+    /// Using a unbounded range over char and integers will unexpectedly not handle overflows so it will lead to panics
+    /// or infinite loops.
+    ///
+    /// Instead there should be a max value set, usually the `MAX` constant for a given type such as `'\0'..char::MAX`
+    /// or `250..u8::MAX`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// for i in 250u8.. {
+    ///   println!("{i}");
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// for i in 250u8..=u8::MAX {
+    ///   println!("{i}");
+    /// }
+    /// ```
+    #[clippy::version = "1.94.0"]
+    pub FOR_UNBOUNDED_RANGE,
+    nursery,
+    "using a for loop over unbounded range (`0..`)"
+}
+
 pub struct Loops {
     msrv: Msrv,
     enforce_iter_loop_reborrow: bool,
@@ -823,6 +853,7 @@ impl_lint_pass!(Loops => [
     INFINITE_LOOP,
     MANUAL_SLICE_FILL,
     CHAR_INDICES_AS_BYTE_INDICES,
+    FOR_UNBOUNDED_RANGE,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Loops {
@@ -951,6 +982,7 @@ impl Loops {
         manual_find::check(cx, pat, arg, body, span, expr);
         unused_enumerate_index::check(cx, arg, pat, None, body);
         char_indices_as_byte_indices::check(cx, pat, arg, body);
+        for_unbounded_range::check(cx, arg, span);
     }
 
     fn check_for_loop_arg(&self, cx: &LateContext<'_>, _: &Pat<'_>, arg: &Expr<'_>) {
