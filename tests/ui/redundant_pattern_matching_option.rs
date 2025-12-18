@@ -260,3 +260,11 @@ fn issue16235() {
     //~^ redundant_pattern_matching
     if let Some(Ban::Bar) = ban {}
 }
+
+fn slices() {
+    if let Some([_, _]) = Some([1, 3]) {}
+    if let Some([..]) = Some([1, 3]) {}
+    //~^ redundant_pattern_matching
+    if let Some([]) = Some(&[1, 3] as &[i32]) {}
+    //~^ redundant_pattern_matching
+}

@@ -163,6 +163,8 @@ fn is_infalliable(pat: &Pat<'_>, cx: &LateContext<'_>) -> bool {
             (adt_def.is_enum() && adt_def.variants().len() == 1) || adt_def.is_struct()
         },
         Expr(..) | Range(..) | Binding(..) | Err(_) | Guard(..) => false,
+        // for slices we have to account for the length, because thats what distinguishes each slice
+        Slice(s1, _dotdotlike, s2) => s1.is_empty() && s2.is_empty(),
 
         _ => true,
     })
