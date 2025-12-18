@@ -37,4 +37,247 @@ fn mut_ref_ref_mutex_lock() {
     *guard += 1;
 }
 
+mod issue16253 {
+    use std::sync::{Arc, Mutex};
+
+    struct RefMutex(&'static Mutex<i32>);
+    impl RefMutex {
+        fn foo(self, refself: &Self, refmutself: &mut Self) {
+            // since `.0` is `&Mutex`, we can't get to `&mut Mutex` no matter what `self` is
+            refself.0.lock().unwrap();
+            refmutself.0.lock().unwrap();
+            self.0.lock().unwrap();
+        }
+    }
+
+    struct ArcMutex(Arc<Mutex<i32>>);
+    impl ArcMutex {
+        fn foo(self, refself: &Self, refmutself: &mut Self) {
+            // since `.0` is `Arc<Mutex> = &Mutex`, we can't get a `&mut Mutex` no matter what `self` is
+            refself.0.lock().unwrap();
+            refmutself.0.lock().unwrap();
+            self.0.lock().unwrap();
+        }
+    }
+
+    struct RefMutMutex(&'static mut Mutex<i32>);
+    impl RefMutMutex {
+        fn foo(self, refself: &Self, refmutself: &mut Self) {
+            // since `.0` is `&mut Mutex`, we _can_ get a `&mut Mutex` if we have `self`/`&mut self`
+            refself.0.lock().unwrap();
+            refmutself.0.lock().unwrap();
+            //~^ mut_mutex_lock
+            self.0.lock().unwrap();
+            //~^ mut_mutex_lock
+        }
+    }
+
+    struct ValueMutex(Mutex<i32>);
+    impl ValueMutex {
+        fn foo(mut self, refself: &Self, refmutself: &mut Self) {
+            // since `.0` is `Mutex`, we _can_ get a `&mut Mutex` if we have `self`/`&mut self`
+            refself.0.lock().unwrap();
+            refmutself.0.lock().unwrap();
+            //~^ mut_mutex_lock
+            self.0.lock().unwrap();
+            //~^ mut_mutex_lock
+        }
+    }
+
+    struct RefRefMutex(&'static RefMutex);
+    impl RefRefMutex {
+        fn foo(self, refself: &Self, refmutself: &mut Self) {
+            // since `.0` is `&RefMutex = &&Mutex`,
+            // we can't get to `&mut Mutex` no matter what `self` is
+            refself.0.0.lock().unwrap();
+            refmutself.0.0.lock().unwrap();
+            self.0.0.lock().unwrap();
+        }
+    }
+
+    struct ArcRefMutex(Arc<RefMutex>);
+    impl ArcRefMutex {
+        fn foo(self, refself: &Self, refmutself: &mut Self) {
+            // since `.0` is `Arc<RefMutex> = &RefMutex = &&Mutex`,
+            // we can't get to `&mut Mutex` no matter what `self` is
+            refself.0.0.lock().unwrap();
+            refmutself.0.0.lock().unwrap();
+            self.0.0.lock().unwrap();
+        }
+    }
+
+    struct RefMutRefMutex(&'static mut RefMutex);
+    impl RefMutRefMutex {
+        fn foo(self, refself: &Self, refmutself: &mut Self) {
+            // since `.0` is `&mut RefMutex = &mut &Mutex`,
+            // we can't get to `&mut Mutex` no matter what `self` is
+            refself.0.0.lock().unwrap();
+            refmutself.0.0.lock().unwrap();
+            self.0.0.lock().unwrap();
+        }
+    }
+
+    struct ValueRefMutex(RefMutex);
+    impl ValueRefMutex {
+        fn foo(self, refself: &Self, refmutself: &mut Self) {
+            // since `.0` is `RefMutex = &Mutex`,
+            // we can't get to `&mut Mutex` no matter what `self` is
+            refself.0.0.lock().unwrap();
+            refmutself.0.0.lock().unwrap();
+            self.0.0.lock().unwrap();
+        }
+    }
+
+    struct RefArcMutex(&'static ArcMutex);
+    impl RefArcMutex {
+        fn foo(self, refself: &Self, refmutself: &mut Self) {
+            // since `.0` is `Arc<RefMutex> = &RefMutex = &&Mutex`,
+            // we can't get to `&mut Mutex` no matter what `self` is
+            refself.0.0.lock().unwrap();
+            refmutself.0.0.lock().unwrap();
+            self.0.0.lock().unwrap();
+        }
+    }
+
+    struct ArcArcMutex(Arc<ArcMutex>);
+    impl ArcArcMutex {
+        fn foo(self, refself: &Self, refmutself: &mut Self) {
+            // since `.0` is `Arc<ArcMutex> = &ArcMutex = &&Mutex`,
+            // we can't get to `&mut Mutex` no matter what `self` is
+            refself.0.0.lock().unwrap();
+            refmutself.0.0.lock().unwrap();
+            self.0.0.lock().unwrap();
+        }
+    }
+
+    struct RefMutArcMutex(&'static mut ArcMutex);
+    impl RefMutArcMutex {
+        fn foo(self, refself: &Self, refmutself: &mut Self) {
+            // since `.0` is `&mut ArcMutex = &mut &Mutex`,
+            // we can't get to `&mut Mutex` no matter what `self` is
+            refself.0.0.lock().unwrap();
+            refmutself.0.0.lock().unwrap();
+            self.0.0.lock().unwrap();
+        }
+    }
+
+    struct ValueArcMutex(ArcMutex);
+    impl ValueArcMutex {
+        fn foo(self, refself: &Self, refmutself: &mut Self) {
+            // since `.0` is `ArcMutex = &Mutex`,
+            // we can't get to `&mut Mutex` no matter what `self` is
+            refself.0.0.lock().unwrap();
+            refmutself.0.0.lock().unwrap();
+            self.0.0.lock().unwrap();
+        }
+    }
+
+    struct RefRefMutMutex(&'static RefMutMutex);
+    impl RefRefMutMutex {
+        fn foo(self, refself: &Self, refmutself: &mut Self) {
+            // since `.0` is `&RefMutMutex = &&mut Mutex`,
+            // we can't get to `&mut Mutex` no matter what `self` is
+            refself.0.0.lock().unwrap();
+            refmutself.0.0.lock().unwrap();
+            self.0.0.lock().unwrap();
+        }
+    }
+
+    struct ArcRefMutMutex(Arc<RefMutMutex>);
+    impl ArcRefMutMutex {
+        fn foo(self, refself: &Self, refmutself: &mut Self) {
+            // since `.0` is `Arc<RefMutMutex> = &RefMutMutex = &&mut Mutex`,
+            // we can't get to `&mut Mutex` no matter what `self` is
+            refself.0.0.lock().unwrap();
+            refmutself.0.0.lock().unwrap();
+            self.0.0.lock().unwrap();
+        }
+    }
+
+    struct RefMutRefMutMutex(&'static mut RefMutMutex);
+    impl RefMutRefMutMutex {
+        fn foo(self, refself: &Self, refmutself: &mut Self) {
+            // since `.0` is `&mut RefMutMutex = &mut &mut Mutex`,
+            // we _can_ get to `&mut Mutex` if we have `self`/`&mut self`
+            refself.0.0.lock().unwrap();
+            refmutself.0.0.lock().unwrap();
+            //~^ mut_mutex_lock
+            self.0.0.lock().unwrap();
+            //~^ mut_mutex_lock
+        }
+    }
+
+    struct ValueRefMutMutex(RefMutMutex);
+    impl ValueRefMutMutex {
+        fn foo(self, refself: &Self, refmutself: &mut Self) {
+            // since `.0` is `RefMutMutex = &mut Mutex`,
+            // we _can_ get to `&mut Mutex` if we have `self`/`&mut self`
+            refself.0.0.lock().unwrap();
+            refmutself.0.0.lock().unwrap();
+            //~^ mut_mutex_lock
+            self.0.0.lock().unwrap();
+            //~^ mut_mutex_lock
+        }
+    }
+
+    struct RefValueMutex(&'static ValueMutex);
+    impl RefValueMutex {
+        fn foo(self, refself: &Self, refmutself: &mut Self) {
+            // since `.0` is `&ValueMutex = &Mutex`,
+            // we can't get to `&mut Mutex` no matter what `self` is
+            refself.0.0.lock().unwrap();
+            refmutself.0.0.lock().unwrap();
+            self.0.0.lock().unwrap();
+        }
+    }
+
+    struct ArcValueMutex(Arc<ValueMutex>);
+    impl ArcValueMutex {
+        fn foo(self, refself: &Self, refmutself: &mut Self) {
+            // since `.0` is `Arc<ValueMutex> = &ValueMutex = &Mutex`,
+            // we can't get to `&mut Mutex` no matter what `self` is
+            refself.0.0.lock().unwrap();
+            refmutself.0.0.lock().unwrap();
+            self.0.0.lock().unwrap();
+        }
+    }
+
+    struct RefMutValueMutex(&'static mut ValueMutex);
+    impl RefMutValueMutex {
+        fn foo(self, refself: &Self, refmutself: &mut Self) {
+            // since `.0` is `&mut ValueMutex = &mut Mutex`,
+            // we _can_ get to `&mut Mutex` if we have `self`/`&mut self`
+            refself.0.0.lock().unwrap();
+            refmutself.0.0.lock().unwrap();
+            //~^ mut_mutex_lock
+            self.0.0.lock().unwrap();
+            //~^ mut_mutex_lock
+        }
+    }
+
+    struct ValueValueMutex(ValueMutex);
+    impl ValueValueMutex {
+        fn foo(mut self, refself: &Self, refmutself: &mut Self) {
+            // since `.0` is `ValueMutex = Mutex`,
+            // we _can_ get to `&mut Mutex` if we have `self`/`&mut self`
+            refself.0.0.lock().unwrap();
+            refmutself.0.0.lock().unwrap();
+            //~^ mut_mutex_lock
+            self.0.0.lock().unwrap();
+            //~^ mut_mutex_lock
+        }
+    }
+
+    fn index(mutexes: &mut [Mutex<u32>]) {
+        // even though `[0]` is _currently_ an `.index(0)`, it can be turned into `.index_mut()` to
+        // enable mutable access: `&mut [Mutex] -> &mut Mutex`
+        mutexes[0].lock().unwrap();
+        //~^ mut_mutex_lock
+
+        // `exes` is `&[Mutex] = &Mutex`, so we can't get to `&mut Mutex` no matter what
+        let exes: &_ = mutexes;
+        exes[0].lock().unwrap();
+    }
+}
+
 fn main() {}

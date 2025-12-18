@@ -13,5 +13,83 @@ error: calling `&mut Mutex::lock` unnecessarily locks an exclusive (mutable) ref
 LL |     let mut value = mut_ref_mut_ref_mutex.lock().unwrap();
    |                                           ^^^^ help: change this to: `get_mut`
 
-error: aborting due to 2 previous errors
+error: calling `&mut Mutex::lock` unnecessarily locks an exclusive (mutable) reference
+  --> tests/ui/mut_mutex_lock.rs:68:26
+   |
+LL |             refmutself.0.lock().unwrap();
+   |                          ^^^^ help: change this to: `get_mut`
+
+error: calling `&mut Mutex::lock` unnecessarily locks an exclusive (mutable) reference
+  --> tests/ui/mut_mutex_lock.rs:70:20
+   |
+LL |             self.0.lock().unwrap();
+   |                    ^^^^ help: change this to: `get_mut`
+
+error: calling `&mut Mutex::lock` unnecessarily locks an exclusive (mutable) reference
+  --> tests/ui/mut_mutex_lock.rs:80:26
+   |
+LL |             refmutself.0.lock().unwrap();
+   |                          ^^^^ help: change this to: `get_mut`
+
+error: calling `&mut Mutex::lock` unnecessarily locks an exclusive (mutable) reference
+  --> tests/ui/mut_mutex_lock.rs:82:20
+   |
+LL |             self.0.lock().unwrap();
+   |                    ^^^^ help: change this to: `get_mut`
+
+error: calling `&mut Mutex::lock` unnecessarily locks an exclusive (mutable) reference
+  --> tests/ui/mut_mutex_lock.rs:203:28
+   |
+LL |             refmutself.0.0.lock().unwrap();
+   |                            ^^^^ help: change this to: `get_mut`
+
+error: calling `&mut Mutex::lock` unnecessarily locks an exclusive (mutable) reference
+  --> tests/ui/mut_mutex_lock.rs:205:22
+   |
+LL |             self.0.0.lock().unwrap();
+   |                      ^^^^ help: change this to: `get_mut`
+
+error: calling `&mut Mutex::lock` unnecessarily locks an exclusive (mutable) reference
+  --> tests/ui/mut_mutex_lock.rs:216:28
+   |
+LL |             refmutself.0.0.lock().unwrap();
+   |                            ^^^^ help: change this to: `get_mut`
+
+error: calling `&mut Mutex::lock` unnecessarily locks an exclusive (mutable) reference
+  --> tests/ui/mut_mutex_lock.rs:218:22
+   |
+LL |             self.0.0.lock().unwrap();
+   |                      ^^^^ help: change this to: `get_mut`
+
+error: calling `&mut Mutex::lock` unnecessarily locks an exclusive (mutable) reference
+  --> tests/ui/mut_mutex_lock.rs:251:28
+   |
+LL |             refmutself.0.0.lock().unwrap();
+   |                            ^^^^ help: change this to: `get_mut`
+
+error: calling `&mut Mutex::lock` unnecessarily locks an exclusive (mutable) reference
+  --> tests/ui/mut_mutex_lock.rs:253:22
+   |
+LL |             self.0.0.lock().unwrap();
+   |                      ^^^^ help: change this to: `get_mut`
+
+error: calling `&mut Mutex::lock` unnecessarily locks an exclusive (mutable) reference
+  --> tests/ui/mut_mutex_lock.rs:264:28
+   |
+LL |             refmutself.0.0.lock().unwrap();
+   |                            ^^^^ help: change this to: `get_mut`
+
+error: calling `&mut Mutex::lock` unnecessarily locks an exclusive (mutable) reference
+  --> tests/ui/mut_mutex_lock.rs:266:22
+   |
+LL |             self.0.0.lock().unwrap();
+   |                      ^^^^ help: change this to: `get_mut`
+
+error: calling `&mut Mutex::lock` unnecessarily locks an exclusive (mutable) reference
+  --> tests/ui/mut_mutex_lock.rs:274:20
+   |
+LL |         mutexes[0].lock().unwrap();
+   |                    ^^^^ help: change this to: `get_mut`
+
+error: aborting due to 15 previous errors
 
