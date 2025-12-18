@@ -1,0 +1,78 @@
+//@aux-build:proc_macros.rs
+//@aux-build:non-exhaustive-struct.rs
+#![warn(clippy::rest_when_destructuring_struct)]
+
+use non_exhaustive_struct::NonExhaustiveStruct;
+
+struct S {
+    a: u8,
+    b: u8,
+    c: u8,
+}
+
+enum E {
+    A { a1: u8, a2: u8 },
+    B { b1: u8, b2: u8 },
+    C {},
+}
+
+mod m {
+    #[derive(Default)]
+    pub struct Sm {
+        pub a: u8,
+        pub(crate) b: u8,
+        c: u8,
+    }
+}
+
+fn main() {
+    let s = S { a: 1, b: 2, c: 3 };
+
+    let S { a, b, c: _ } = s;
+    //~^ rest_when_destructuring_struct
+
+    let S { a, b, c,  } = s;
+    //~^ rest_when_destructuring_struct
+
+    let e = E::A { a1: 1, a2: 2 };
+
+    match e {
+        E::A { a1, a2 } => (),
+        E::B { b1: _, b2: _ } => (),
+        //~^ rest_when_destructuring_struct
+        E::C {  } => (),
+        //~^ rest_when_destructuring_struct
+    }
+
+    match e {
+        E::A { a1: _, a2: _ } => (),
+        E::B { b1: _, b2: _ } => (),
+        //~^ rest_when_destructuring_struct
+        E::C {} => (),
+    }
+
+    proc_macros::external! {
+        let s1 = S { a: 1, b: 2, c: 3 };
+        let S { a, b, .. } = s1;
+    }
+
+    proc_macros::with_span! {
+        span
+        let s2 = S { a: 1, b: 2, c: 3 };
+        let S { a, b, .. } = s2;
+    }
+
+    let ne = NonExhaustiveStruct::default();
+    let NonExhaustiveStruct { field1: _, field2: _, .. } = ne;
+    //~^ rest_when_destructuring_struct
+
+    let ne = NonExhaustiveStruct::default();
+    let NonExhaustiveStruct {
+        field1: _, field2: _, ..
+    } = ne;
+
+    use m::Sm;
+
+    let Sm { a: _, b: _, .. } = Sm::default();
+    //~^ rest_when_destructuring_struct
+}
