@@ -231,3 +231,32 @@ fn issue16045() {
         }
     }
 }
+
+fn issue16235() {
+    #![allow(clippy::disallowed_names)]
+    enum Baz {
+        Qux,
+    }
+
+    enum Ban {
+        Foo,
+        Bar,
+    }
+    struct Quux {
+        #[allow(dead_code)]
+        corge: bool,
+    }
+
+    let foo = Some((2, 4));
+    let bar = Some(Baz::Qux);
+    let grault = Some(Quux { corge: true });
+    let ban = Some(Ban::Foo);
+
+    if let Some((_, _)) = foo {}
+    //~^ redundant_pattern_matching
+    if let Some(Baz::Qux) = bar {}
+    //~^ redundant_pattern_matching
+    if let Some(Quux { corge: _ }) = grault {}
+    //~^ redundant_pattern_matching
+    if let Some(Ban::Bar) = ban {}
+}

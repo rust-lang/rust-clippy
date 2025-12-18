@@ -1,3 +1,4 @@
+#![allow(clippy::enum_glob_use)]
 use super::REDUNDANT_PATTERN_MATCHING;
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
@@ -10,7 +11,7 @@ use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::LangItem::{self, OptionNone, OptionSome, PollPending, PollReady, ResultErr, ResultOk};
 use rustc_hir::def::{DefKind, Res};
-use rustc_hir::{Arm, Expr, ExprKind, Node, Pat, PatExpr, PatExprKind, PatKind, QPath, UnOp};
+use rustc_hir::{Arm, Expr, ExprKind, Node, Pat, PatExpr, PatExprKind, PatKind, Path, QPath, UnOp};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, GenericArgKind, Ty};
 use rustc_span::{Span, Symbol};
@@ -117,6 +118,55 @@ fn try_get_generic_ty(ty: Ty<'_>, index: usize) -> Option<Ty<'_>> {
     }
 }
 
+fn is_infalliable(pat: &Pat<'_>, cx: &LateContext<'_>) -> bool {
+    use PatKind::*;
+    pat.walk_short(|pat| match pat.kind {
+        Expr(PatExpr {
+            hir_id: _,
+            span: _,
+            kind:
+                PatExprKind::Path(QPath::Resolved(
+                    _,
+                    Path {
+                        res: Res::Def(DefKind::Struct | DefKind::Variant | DefKind::Enum | DefKind::Ctor(..), did),
+                        ..
+                    },
+                )),
+        })
+        | TupleStruct(
+            QPath::Resolved(
+                _,
+                Path {
+                    res: Res::Def(DefKind::Struct | DefKind::Variant | DefKind::Enum | DefKind::Ctor(..), did),
+                    ..
+                },
+            ),
+            _,
+            _,
+        )
+        | Struct(
+            QPath::Resolved(
+                _,
+                Path {
+                    res: Res::Def(DefKind::Struct | DefKind::Variant | DefKind::Enum | DefKind::Ctor(..), did),
+                    ..
+                },
+            ),
+            _,
+            _,
+        ) => {
+            let mut did = *did;
+            while ![DefKind::Enum, DefKind::Struct].contains(&cx.tcx.def_kind(did)) {
+                did = did.opt_parent(&cx.tcx).unwrap_or(did);
+            }
+            let adt_def = cx.tcx.adt_def(did);
+            (adt_def.is_enum() && adt_def.variants().len() == 1) || adt_def.is_struct()
+        },
+        Expr(..) | Range(..) | Binding(..) | Err(_) | Guard(..) => false,
+
+        _ => true,
+    })
+}
 fn find_method_and_type<'tcx>(
     cx: &LateContext<'tcx>,
     check_pat: &Pat<'_>,
@@ -124,7 +174,7 @@ fn find_method_and_type<'tcx>(
 ) -> Option<(&'static str, Ty<'tcx>)> {
     match check_pat.kind {
         PatKind::TupleStruct(ref qpath, args, rest) => {
-            let is_wildcard = matches!(args.first().map(|p| &p.kind), Some(PatKind::Wild));
+            let is_wildcard = args.first().is_some_and(|pat| is_infalliable(pat, cx));
             let is_rest = matches!((args, rest.as_opt_usize()), ([], Some(_)));
 
             if is_wildcard || is_rest {
@@ -324,7 +374,7 @@ fn found_good_method<'tcx>(
 ) -> Option<(&'static str, Option<&'tcx Expr<'tcx>>)> {
     match (&arms[0].pat.kind, &arms[1].pat.kind) {
         (PatKind::TupleStruct(path_left, [pattern_left], _), PatKind::TupleStruct(path_right, [pattern_right], _)) => {
-            if let (PatKind::Wild, PatKind::Wild) = (&pattern_left.kind, &pattern_right.kind) {
+            if is_infalliable(pattern_left, cx) && is_infalliable(pattern_right, cx) {
                 find_good_method_for_match(
                     cx,
                     arms,
@@ -365,7 +415,7 @@ fn found_good_method<'tcx>(
             }),
             PatKind::TupleStruct(path_right, [pattern], _),
         ) => {
-            if let PatKind::Wild = pattern.kind {
+            if is_infalliable(pattern, cx) {
                 find_good_method_for_match(
                     cx,
                     arms,
@@ -392,8 +442,8 @@ fn found_good_method<'tcx>(
                 None
             }
         },
-        (PatKind::TupleStruct(path_left, [pattern], _), PatKind::Wild) => {
-            if let PatKind::Wild = pattern.kind {
+        (PatKind::TupleStruct(path_left, [pattern], _), _) if is_infalliable(arms[1].pat, cx) => {
+            if is_infalliable(pattern, cx) {
                 get_good_method(cx, arms, path_left)
             } else {
                 None
@@ -404,8 +454,8 @@ fn found_good_method<'tcx>(
                 kind: PatExprKind::Path(path_left),
                 ..
             }),
-            PatKind::Wild,
-        ) => get_good_method(cx, arms, path_left),
+            _,
+        ) if is_infalliable(arms[1].pat, cx) => get_good_method(cx, arms, path_left),
         _ => None,
     }
 }
