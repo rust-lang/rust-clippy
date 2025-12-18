@@ -375,6 +375,7 @@ mod unneeded_struct_pattern;
 mod unnested_or_patterns;
 mod unsafe_removed_from_name;
 mod unused_async;
+mod unused_async_trait_impl;
 mod unused_io_amount;
 mod unused_peekable;
 mod unused_result_ok;
@@ -855,6 +856,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::new(volatile_composites::VolatileComposites)),
         Box::new(|_| Box::<replace_box::ReplaceBox>::default()),
         Box::new(move |_| Box::new(manual_ilog2::ManualIlog2::new(conf))),
+        Box::new(|_| Box::new(unused_async_trait_impl::UnusedAsyncTraitImpl)),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);
