@@ -278,6 +278,45 @@ mod issue16253 {
         let exes: &_ = mutexes;
         exes[0].lock().unwrap();
     }
+
+    mod deref_but_not_deref_mut {
+        use super::*;
+
+        struct Foo(Mutex<i32>);
+
+        impl std::ops::Deref for Foo {
+            type Target = Mutex<i32>;
+
+            fn deref(&self) -> &Self::Target {
+                &self.0
+            }
+        }
+
+        fn main(f: &mut Foo) {
+            // This can't be changed to use `get_mut`, as `Foo: DerefMut<Target = Mutex<i32>>` doesn't hold
+            f.lock().unwrap();
+        }
+    }
+
+    mod index_but_not_index_mut {
+        use super::*;
+
+        struct Foo(Mutex<i32>);
+
+        impl std::ops::Index<usize> for Foo {
+            type Output = Mutex<i32>;
+
+            fn index(&self, _: usize) -> &Self::Output {
+                &self.0
+            }
+        }
+
+        fn main(f: &mut Foo) {
+            // This can't be changed to use `index_mut`, as `Foo: IndexMut<usize, Output = Mutex<i32>>` doesn't
+            // hold
+            f[0].lock().unwrap();
+        }
+    }
 }
 
 fn main() {}

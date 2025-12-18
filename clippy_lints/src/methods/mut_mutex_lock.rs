@@ -1,58 +1,66 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::expr_custom_deref_adjustment;
 use clippy_utils::res::MaybeDef;
-use clippy_utils::ty::peel_and_count_ty_refs;
+use clippy_utils::ty::implements_trait;
 use rustc_errors::Applicability;
-use rustc_hir::{Expr, ExprKind, Mutability};
+use rustc_hir::{Expr, ExprKind, Mutability, UnOp};
 use rustc_lint::LateContext;
+use rustc_middle::ty::adjustment::Adjust;
 use rustc_span::{Span, sym};
 
 use super::MUT_MUTEX_LOCK;
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, recv: &'tcx Expr<'tcx>, name_span: Span) {
-    // given a `recv` like `a.b.mutex`, this returns `[a.b.mutex, a.b, a]`
-    let mut projection_chain = std::iter::successors(Some(recv), |recv| {
-        if let ExprKind::Index(r, ..) | ExprKind::Field(r, _) = recv.kind {
-            Some(r)
-        } else {
-            None
-        }
-    });
-
-    if (cx.typeck_results().expr_ty_adjusted(recv))
-        .peel_refs()
-        .is_diag_item(cx, sym::Mutex)
-        // If, somewhere along the projection chain, we stumble upon a field of type `&T`, or dereference a
-        // type like `Arc<T>` to `&T`, we no longer have mutable access to the undelying `Mutex`
-        && projection_chain.all(|recv| {
-            let expr_ty = cx.typeck_results().expr_ty(recv);
-            // The reason we don't use `expr_ty_adjusted` here is twofold:
-            //
-            // Consider code like this:
-            // ```rs
-            // struct Foo(Mutex<i32>);
-            //
-            // fn fun(f: &Foo) {
-            //     f.0.lock()
-            // }
-            // ```
-            // - In the outermost receiver (`f.0`), the adjusted type would be `&Mutex`, due to an adjustment
-            //   performed by `Mutex::lock`.
-            // - In the intermediary receivers (here, only `f`), the adjusted type would be fully dereferenced
-            //   (`Foo`), which would make us miss the fact that `f` is actually behind a `&` -- this
-            //   information is preserved in the pre-adjustment type (`&Foo`)
-            peel_and_count_ty_refs(expr_ty).2 != Some(Mutability::Not)
-                && expr_custom_deref_adjustment(cx, recv) != Some(Mutability::Not)
-        })
-    {
-        span_lint_and_sugg(
-            cx,
-            MUT_MUTEX_LOCK,
-            name_span,
-            "calling `&mut Mutex::lock` unnecessarily locks an exclusive (mutable) reference",
-            "change this to",
-            "get_mut".to_owned(),
-            Applicability::MaybeIncorrect,
-        );
+    let typeck = cx.typeck_results();
+    if !typeck.expr_ty_adjusted(recv).peel_refs().is_diag_item(cx, sym::Mutex) {
+        return;
     }
+
+    let deref_mut_trait = cx.tcx.lang_items().deref_mut_trait();
+    let index_mut_trait = cx.tcx.lang_items().index_mut_trait();
+    let impls_deref_mut = |ty| deref_mut_trait.is_some_and(|trait_id| implements_trait(cx, ty, trait_id, &[]));
+    let impls_index_mut = |ty, idx| index_mut_trait.is_some_and(|trait_id| implements_trait(cx, ty, trait_id, &[idx]));
+    let mut r = recv;
+    'outer: loop {
+        if !(typeck.expr_adjustments(r))
+            .iter()
+            .map_while(|a| match a.kind {
+                Adjust::Deref(x) => Some((a.target, x)),
+                _ => None,
+            })
+            .try_fold(typeck.expr_ty(r), |ty, (target, deref)| match deref {
+                None => (ty.ref_mutability() != Some(Mutability::Not)).then_some(target),
+                Some(_) => impls_deref_mut(ty).then_some(target),
+            })
+            .is_some()
+        {
+            return;
+        }
+        loop {
+            match r.kind {
+                ExprKind::Field(base, _) => r = base,
+                ExprKind::Index(base, idx, _)
+                    if impls_index_mut(typeck.expr_ty_adjusted(base), typeck.expr_ty_adjusted(idx).into()) =>
+                {
+                    r = base;
+                },
+                // `base` here can't actually have adjustments
+                ExprKind::Unary(UnOp::Deref, base) if impls_deref_mut(typeck.expr_ty_adjusted(base)) => {
+                    r = base;
+                    continue;
+                },
+                _ => break 'outer,
+            }
+            continue 'outer;
+        }
+    }
+
+    span_lint_and_sugg(
+        cx,
+        MUT_MUTEX_LOCK,
+        name_span,
+        "calling `&mut Mutex::lock` unnecessarily locks an exclusive (mutable) reference",
+        "change this to",
+        "get_mut".to_owned(),
+        Applicability::MaybeIncorrect,
+    );
 }
