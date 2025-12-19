@@ -21,17 +21,17 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, recv: &'tcx Expr<'tcx>, name_s
     let impls_index_mut = |ty, idx| index_mut_trait.is_some_and(|trait_id| implements_trait(cx, ty, trait_id, &[idx]));
     let mut r = recv;
     'outer: loop {
-        if !(typeck.expr_adjustments(r))
+        if (typeck.expr_adjustments(r))
             .iter()
             .map_while(|a| match a.kind {
                 Adjust::Deref(x) => Some((a.target, x)),
                 _ => None,
             })
             .try_fold(typeck.expr_ty(r), |ty, (target, deref)| match deref {
-                None => (ty.ref_mutability() != Some(Mutability::Not)).then_some(target),
                 Some(_) => impls_deref_mut(ty).then_some(target),
+                None => (ty.ref_mutability() != Some(Mutability::Not)).then_some(target),
             })
-            .is_some()
+            .is_none()
         {
             return;
         }
