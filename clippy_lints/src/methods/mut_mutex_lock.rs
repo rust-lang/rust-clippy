@@ -73,8 +73,22 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, recv: &'tcx Expr<'tcx>, name_s
             // that the field type is not a `&T`, and we'll do that in the next iteration of the
             // loop, during adjustment checking
             ExprKind::Field(base, _) => r = base,
-            // No more projections to check
-            _ => break,
+            // We arrived at the innermost receiver
+            _ => {
+                if let ExprKind::Path(ref p) = r.kind
+                    && cx
+                        .qpath_res(p, r.hir_id)
+                        .opt_def_id()
+                        .and_then(|id| cx.tcx.static_mutability(id))
+                        == Some(Mutability::Not)
+                {
+                    // The mutex is stored in a `static`, and we don't want to suggest making that
+                    // mutable
+                    return;
+                }
+                // No more projections to check
+                break;
+            },
         }
     }
 

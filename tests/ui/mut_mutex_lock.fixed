@@ -37,6 +37,12 @@ fn mut_ref_ref_mutex_lock() {
     *guard += 1;
 }
 
+static MTX: Mutex<i32> = Mutex::new(0);
+
+fn dont_suggest_on_statics() {
+    MTX.lock().unwrap();
+}
+
 mod issue16253 {
     use std::sync::{Arc, Mutex};
 
