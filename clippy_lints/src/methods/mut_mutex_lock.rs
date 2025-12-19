@@ -20,7 +20,7 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, recv: &'tcx Expr<'tcx>, name_s
     let impls_deref_mut = |ty| deref_mut_trait.is_some_and(|trait_id| implements_trait(cx, ty, trait_id, &[]));
     let impls_index_mut = |ty, idx| index_mut_trait.is_some_and(|trait_id| implements_trait(cx, ty, trait_id, &[idx]));
     let mut r = recv;
-    'outer: loop {
+    loop {
         if (typeck.expr_adjustments(r))
             .iter()
             .map_while(|a| match a.kind {
@@ -35,28 +35,23 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, recv: &'tcx Expr<'tcx>, name_s
         {
             return;
         }
-        loop {
-            match r.kind {
-                ExprKind::Field(base, _) => r = base,
-                ExprKind::Index(base, idx, _) => {
-                    if impls_index_mut(typeck.expr_ty_adjusted(base), typeck.expr_ty_adjusted(idx).into()) {
-                        r = base;
-                    } else {
-                        return;
-                    }
-                },
-                ExprKind::Unary(UnOp::Deref, base) => {
-                    if impls_deref_mut(typeck.expr_ty_adjusted(base)) {
-                        r = base;
-                        // `base` here can't actually have adjustments
-                        continue;
-                    } else {
-                        return;
-                    }
-                },
-                _ => break 'outer,
-            }
-            continue 'outer;
+        match r.kind {
+            ExprKind::Field(base, _) => r = base,
+            ExprKind::Index(base, idx, _) => {
+                if impls_index_mut(typeck.expr_ty_adjusted(base), typeck.expr_ty_adjusted(idx).into()) {
+                    r = base;
+                } else {
+                    return;
+                }
+            },
+            ExprKind::Unary(UnOp::Deref, base) => {
+                if impls_deref_mut(typeck.expr_ty_adjusted(base)) {
+                    r = base;
+                } else {
+                    return;
+                }
+            },
+            _ => break,
         }
     }
 
