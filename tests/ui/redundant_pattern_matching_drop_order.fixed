@@ -3,6 +3,7 @@
 #![allow(
     clippy::if_same_then_else,
     clippy::equatable_if_let,
+    clippy::mut_mutex_lock,
     clippy::needless_ifs,
     clippy::needless_else
 )]

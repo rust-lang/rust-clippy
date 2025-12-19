@@ -173,7 +173,7 @@ async fn baz() -> u32 {
     42
 }
 
-async fn no_await(x: std::sync::Mutex<u32>) {
+async fn no_await(x: &std::sync::Mutex<u32>) {
     let mut guard = x.lock().unwrap();
     *guard += 1;
 }
@@ -182,7 +182,7 @@ async fn no_await(x: std::sync::Mutex<u32>) {
 // something the needs to be fixed in rustc. There's already drop-tracking, but this is currently
 // disabled, see rust-lang/rust#93751. This case isn't picked up by drop-tracking though. If the
 // `*guard += 1` is removed it is picked up.
-async fn dropped_before_await(x: std::sync::Mutex<u32>) {
+async fn dropped_before_await(x: &std::sync::Mutex<u32>) {
     let mut guard = x.lock().unwrap();
     //~^ ERROR: this `MutexGuard` is held across an await point
     *guard += 1;

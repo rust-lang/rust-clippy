@@ -247,7 +247,7 @@ LL +     }
    |
 
 error: usage of `contains_key` followed by `insert` on a `HashMap`
-  --> tests/ui/entry.rs:285:5
+  --> tests/ui/entry.rs:284:5
    |
 LL | /     if !m.contains_key(&k) {
 LL | |

@@ -4,6 +4,7 @@
 #![allow(dead_code, unused_assignments)]
 #![allow(
     clippy::match_single_binding,
+    clippy::mut_mutex_lock,
     clippy::single_match,
     clippy::uninlined_format_args,
     clippy::needless_lifetimes
