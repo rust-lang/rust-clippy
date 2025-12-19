@@ -38,15 +38,21 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, recv: &'tcx Expr<'tcx>, name_s
         loop {
             match r.kind {
                 ExprKind::Field(base, _) => r = base,
-                ExprKind::Index(base, idx, _)
-                    if impls_index_mut(typeck.expr_ty_adjusted(base), typeck.expr_ty_adjusted(idx).into()) =>
-                {
-                    r = base;
+                ExprKind::Index(base, idx, _) => {
+                    if impls_index_mut(typeck.expr_ty_adjusted(base), typeck.expr_ty_adjusted(idx).into()) {
+                        r = base;
+                    } else {
+                        return;
+                    }
                 },
-                // `base` here can't actually have adjustments
-                ExprKind::Unary(UnOp::Deref, base) if impls_deref_mut(typeck.expr_ty_adjusted(base)) => {
-                    r = base;
-                    continue;
+                ExprKind::Unary(UnOp::Deref, base) => {
+                    if impls_deref_mut(typeck.expr_ty_adjusted(base)) {
+                        r = base;
+                        // `base` here can't actually have adjustments
+                        continue;
+                    } else {
+                        return;
+                    }
                 },
                 _ => break 'outer,
             }
