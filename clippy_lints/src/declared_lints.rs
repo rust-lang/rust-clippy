@@ -61,6 +61,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::casts::CAST_POSSIBLE_WRAP_INFO,
     crate::casts::CAST_PRECISION_LOSS_INFO,
     crate::casts::CAST_PTR_ALIGNMENT_INFO,
+    crate::casts::CAST_PTR_SIZED_INT_INFO,
     crate::casts::CAST_SIGN_LOSS_INFO,
     crate::casts::CAST_SLICE_DIFFERENT_SIZES_INFO,
     crate::casts::CAST_SLICE_FROM_RAW_PARTS_INFO,
