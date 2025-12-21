@@ -88,7 +88,7 @@ where
 {
 }
 
-fn bar<T: ExampleTrait1>(val: T) -> T::AssocTy {
+fn bar<T: ExampleTrait2<DbResult<()>>>(val: T) -> T::AssocTy<DbResult<()>> {
     todo!()
 }
 impl ComplexThing<DbResult<()>, ()> {
@@ -160,6 +160,23 @@ impl ExampleTrait1 for DbResult<()> {
     }
 }
 
+fn with_generics<T>(val: T, other: u32) {}
+
+struct Pat<T> {
+    field: Option<T>
+}
+impl<T> Pat<T> {
+    fn new<A>() {}
+}
+
+enum Other<A, B, C, D> {
+    One(A, B, C, D, u8),
+}
+
+fn has_pattern(Pat::<i32> { field }: Pat<i32>) {
+
+}
+
 fn main() {
     // Local variables
     let a: DbResult<()> = Ok(());
@@ -176,4 +193,21 @@ fn main() {
     // Box with default
     let boxed_int: BoxedDefault<i128> = Box::new(0);
     let boxed_float: BoxedDefault<f64> = Box::new(0.0);
+
+    <Pat<i32>>::new::<i32>();
+    with_generics::<i32>(10, 0);
+    Ok(()) as DbResult<()>;
+
+    let expr = [1; 5];
+
+    if let Other::One::<i8, i16, i32, i64>(0, 1,2, 3, 4) = Other::One::<i8, i16, i32, i64>(0, 1, 2, 3, 4) {
+
+    }
+    if let Pat::<i32>{ field: Some::<i32>(10) } = (Pat { field: Some::<i32>(10)}) {
+
+    }
+    let vec: Vec<i32> = vec![];
+    if let arr @ [_, ..] = vec.as_slice() {
+
+    }
 }
