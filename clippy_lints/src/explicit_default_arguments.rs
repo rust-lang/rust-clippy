@@ -6,9 +6,10 @@ use clippy_utils::source::snippet;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{
-    self as hir, AssocItemConstraint, AssocItemConstraintKind, EnumDef, Expr, ExprKind, FnDecl, FnPtrTy, FnRetTy,
-    FnSig, GenericArgs, GenericParam, GenericParamKind, Generics, Impl, ImplItemKind, Item, ItemKind, LetExpr, LetStmt,
-    MutTy, OpaqueTy, OwnerId, PatKind, Path, PathSegment, QPath, StmtKind, Term, TraitItemKind, TyKind, Variant,
+    self as hir, AssocItemConstraint, AssocItemConstraintKind, Closure, EnumDef, Expr, ExprKind, FnDecl, FnPtrTy,
+    FnRetTy, FnSig, GenericArgs, GenericParam, GenericParamKind, Generics, Impl, ImplItemKind, Item, ItemKind, LetExpr,
+    LetStmt, MutTy, OpaqueTy, OwnerId, PatKind, Path, PathSegment, QPath, StmtKind, Term, TraitItemKind, TyKind,
+    Variant,
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{
@@ -88,13 +89,7 @@ fn match_generics<'tcx>(
         )
 }
 
-// NOTE: this whole algorithm avoids using `lower_ty
 fn check_alias_args<'tcx>(cx: &LateContext<'tcx>, resolved_ty: Ty<'tcx>, hir_ty: hir::Ty<'tcx>) {
-    // println!("[ty::Ty]: {resolved_ty}");
-    // println!(
-    //     "[hir::Ty]: {}",
-    //     snippet(&cx.tcx, hir_ty.span, "<error>")
-    // );
     let (alias_ty_params, aliased_ty_args, hir_ty_args) = {
         let TyKind::Path(
             qpath @ QPath::Resolved(
@@ -302,6 +297,9 @@ fn path_generic_args<'hir>(
     )
 }
 
+// TODO: move this to clippy_utils?
+/// Walks `Ty` and `hir::Ty` in lockstep. Only use with type pairs that came from outside bodies,
+/// e.g. function definitions.
 fn walk_ty_recursive<'tcx>(
     tcx: TyCtxt<'tcx>,
     ty: Ty<'tcx>,
@@ -311,7 +309,6 @@ fn walk_ty_recursive<'tcx>(
         if let hir::TraitRef {
             path:
                 Path {
-                    // FIXME: this feels wrong
                     segments:
                         [
                             ..,
@@ -337,34 +334,16 @@ fn walk_ty_recursive<'tcx>(
         }
     };
     let tys: Box<dyn Iterator<Item = TyPair<'tcx>>> = match (ty.kind(), hir_ty.kind) {
-        (
-            ty::Adt(_, generics),
-            TyKind::Path(QPath::Resolved(
-                None,
-                path,
-            )),
-        ) => Box::new(
+        (ty::Adt(_, generics), TyKind::Path(QPath::Resolved(None, path))) => Box::new(
             generics
                 .iter()
                 .filter_map(|arg| arg.as_type())
-                .zip(path_generic_args(path.segments))
+                .zip(path_generic_args(path.segments)),
         ),
-        // NOTE: const args here
         (ty::Array(ty, _), TyKind::Array(hir_ty, _))
-        // FIXME: doesn't exist
-        | (ty::Pat(ty, _), TyKind::Pat(hir_ty, _))
         | (ty::Slice(ty), TyKind::Slice(hir_ty))
         | (ty::RawPtr(ty, _), TyKind::Ptr(MutTy { ty: hir_ty, .. }))
         | (ty::Ref(_, ty, _), TyKind::Ref(_, MutTy { ty: hir_ty, .. })) => Box::new(iter::once((*ty, *hir_ty))),
-        // FIXME:
-        (
-            ty::FnDef(_, generics),
-            // FIXME:
-            TyKind::Path(qpath),
-        ) => {
-            // println!("FOUND QPATH: {qpath:?} with generics {:?}", generics.as_slice());
-            Box::new(iter::empty())
-        },
         (
             ty::FnPtr(tys, _),
             TyKind::FnPtr(FnPtrTy {
@@ -411,7 +390,7 @@ fn walk_ty_recursive<'tcx>(
                         predicate.skip_binder()
                         && let Some(ty) = term.as_type()
                     {
-                        // GATs are ignored as they are not object safe.
+                        // TODO: Check GATs if they ever become object safe (they aren't checked right now).
                         Some((tcx.item_ident(def_id), (ty, [].iter().copied())))
                     } else {
                         None
@@ -427,10 +406,7 @@ fn walk_ty_recursive<'tcx>(
 
             Box::new(trait_generics.chain(trait_preds.into_iter()))
         },
-        (
-            ty::Alias(ty::Projection, AliasTy { args, .. }),
-            TyKind::Path(QPath::TypeRelative(hir_ty, path_segment)),
-        ) => {
+        (ty::Alias(ty::Projection, AliasTy { args, .. }), TyKind::Path(QPath::TypeRelative(hir_ty, path_segment))) => {
             let hir_gat_args_iter = path_generic_args(iter::once(path_segment));
             Box::new(
                 args.iter()
@@ -438,7 +414,8 @@ fn walk_ty_recursive<'tcx>(
                     .zip(iter::once(*hir_ty).chain(hir_gat_args_iter)),
             )
         },
-        // Same as the TypeRelative version for projections except that we have a trait. Something like `<T as Trait>::Assoc::<..>`
+        // Same as the TypeRelative version for projections except that we have a trait. Something like `<T as
+        // Trait>::Assoc::<..>`
         (
             ty::Alias(ty::Projection, AliasTy { args, .. }),
             TyKind::Path(QPath::Resolved(
@@ -449,7 +426,7 @@ fn walk_ty_recursive<'tcx>(
                             // Since this is a projection, there really should be only 2 elements
                             hir_trait_path_segment,
                             ..,
-                            hir_gat_path_segment
+                            hir_gat_path_segment,
                         ],
                     ..
                 },
@@ -459,11 +436,9 @@ fn walk_ty_recursive<'tcx>(
             let hir_trait_args_iter = path_generic_args(iter::once(hir_trait_path_segment));
             let hir_gat_args_iter = path_generic_args(iter::once(hir_gat_path_segment));
             Box::new(
-                args.iter().flat_map(|arg| arg.as_type()).zip(
-                    iter::once(*hir_ty)
-                        .chain(hir_trait_args_iter)
-                        .chain(hir_gat_args_iter),
-                ),
+                args.iter()
+                    .flat_map(|arg| arg.as_type())
+                    .zip(iter::once(*hir_ty).chain(hir_trait_args_iter).chain(hir_gat_args_iter)),
             )
         },
         (
@@ -623,6 +598,9 @@ fn check_typair<'tcx>(cx: &LateContext<'tcx>, (resolved_ty, hir_ty): TyPair<'tcx
 #[allow(unused)]
 impl<'tcx> LateLintPass<'tcx> for ExplicitDefaultArguments {
     fn check_stmt(&mut self, cx: &LateContext<'tcx>, stmt: &'tcx rustc_hir::Stmt<'tcx>) {
+        if stmt.span.from_expansion() {
+            return;
+        }
         match stmt.kind {
             StmtKind::Let(LetStmt { ty: Some(hir_ty), .. }) => {
                 let ty = cx.tcx.type_of(stmt.hir_id.owner).skip_binder();
@@ -631,13 +609,14 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitDefaultArguments {
             _ => {},
         }
     }
-    // TODO: check expressions for turbofish, casts, constructor params and type qualified paths
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
+        if expr.span.from_expansion() {
+            return;
+        }
         println!("expr: {}", snippet(cx, expr.span, "<error>"));
-        println!("expr kind: {:?}", expr.kind);
+        // println!("expr kind: {:?}", expr.kind);
         let ty = cx.typeck_results().expr_ty(expr);
         println!("type: {}", ty);
-        // TODO: remember to add to commmit description that statics were added
         // FIXME: all this TyKind::Path stuff
         if let ExprKind::Path(_) = expr.kind {
             println!("It's a path");
@@ -673,12 +652,40 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitDefaultArguments {
             ty::Infer(_) => println!("ty::Infer"),
             ty::Error(_) => println!("ty::Error"),
         }
-        println!();
         match expr.kind {
-            // FIXME:
-            ExprKind::Path(QPath::TypeRelative(ty, segment)) => {
-                path_generic_args(iter::once(segment));
-                // path_generic_args(path)
+            ExprKind::Path(qpath) | ExprKind::Struct(&qpath, _, _) => match qpath {
+                QPath::TypeRelative(ty, segment) => {
+                    check_typair(cx, (cx.typeck_results().node_type(ty.hir_id), *ty));
+                    for ty_pair in path_generic_args(iter::once(segment))
+                        .into_iter()
+                        .map(|hir_ty| (cx.typeck_results().node_type(hir_ty.hir_id), hir_ty))
+                    {
+                        check_typair(cx, ty_pair);
+                    }
+                },
+                QPath::Resolved(ty, path) => {
+                    if let Some(ty) = ty {
+                        check_typair(cx, (cx.typeck_results().node_type(ty.hir_id), *ty));
+                    }
+                    for ty_pair in path_generic_args(path.segments)
+                        .into_iter()
+                        .map(|hir_ty| (cx.typeck_results().node_type(hir_ty.hir_id), hir_ty))
+                    {
+                        check_typair(cx, ty_pair);
+                    }
+                },
+                _ => {},
+            },
+            ExprKind::Closure(Closure {
+                fn_decl: FnDecl { inputs, output, .. },
+                ..
+            }) => {
+                for input in *inputs {
+                    check_typair(cx, (cx.typeck_results().node_type(input.hir_id), *input));
+                }
+                if let FnRetTy::Return(ty) = *output {
+                    check_typair(cx, (cx.typeck_results().node_type(ty.hir_id), *ty));
+                }
             },
             ExprKind::Cast(_, &ty)
             | ExprKind::Type(_, &ty)
@@ -687,8 +694,12 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitDefaultArguments {
             | ExprKind::OffsetOf(&ty, _) => check_typair(cx, (cx.typeck_results().expr_ty(expr), ty)),
             _ => {},
         }
+        println!();
     }
     fn check_pat(&mut self, cx: &LateContext<'tcx>, pat: &'tcx rustc_hir::Pat<'tcx>) {
+        if pat.span.from_expansion() {
+            return;
+        }
         println!("found pat: {}", snippet(cx, pat.span, "<error>"));
         match pat.kind {
             PatKind::Struct(qpath, _, _) => {},
@@ -697,6 +708,9 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitDefaultArguments {
         }
     }
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {
+        if item.span.from_expansion() {
+            return;
+        }
         for ty_pair in get_item_tys(cx.tcx, *item) {
             check_typair(cx, ty_pair);
         }
