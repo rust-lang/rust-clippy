@@ -88,7 +88,7 @@ where
 {
 }
 
-fn bar<T: ExampleTrait2<DbResult<()>>>(val: T) -> T::AssocTy<DbResult<()>> {
+fn bar<T: ExampleTrait1>(val: T) -> T::AssocTy {
     todo!()
 }
 impl ComplexThing<DbResult<()>, ()> {
@@ -194,7 +194,7 @@ fn main() {
     let boxed_int: BoxedDefault<i128> = Box::new(0);
     let boxed_float: BoxedDefault<f64> = Box::new(0.0);
 
-    <Pat<i32>>::new::<i32>();
+    <Pat<DbResult<()>>>::new::<DbResult<()>>();
     with_generics::<i32>(10, 0);
     Ok(()) as DbResult<()>;
 
