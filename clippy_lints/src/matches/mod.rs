@@ -530,7 +530,25 @@ declare_clippy_lint! {
     style,
     "use the proper utility function avoiding an `if let`"
 }
-
+declare_clippy_lint! {
+    // TODO: adapt from REDUNDANT_PATTERN_MATCHING
+    /// ### What it does
+    ///
+    /// ### Why is this bad?
+    ///
+    /// ### Example
+    /// ```no_run
+    /// // example code where clippy issues a warning
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// // example code which does not raise clippy warning
+    /// ```
+    #[clippy::version = "1.94.0"]
+    pub REDUNDANT_PATTERN_MATCHING_COMPLEX,
+    nursery,
+    "default lint description"
+}
 declare_clippy_lint! {
     /// ### What it does
     /// Checks for `match`  or `if let` expressions producing a
@@ -1048,6 +1066,7 @@ impl_lint_pass!(Matches => [
     MANUAL_FILTER,
     REDUNDANT_GUARDS,
     MANUAL_OK_ERR,
+    REDUNDANT_PATTERN_MATCHING_COMPLEX,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Matches {

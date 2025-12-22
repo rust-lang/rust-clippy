@@ -1,5 +1,5 @@
 #![allow(clippy::enum_glob_use)]
-use super::REDUNDANT_PATTERN_MATCHING;
+use super::{REDUNDANT_PATTERN_MATCHING, REDUNDANT_PATTERN_MATCHING_COMPLEX};
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
 use clippy_utils::source::walk_span_to_context;
@@ -118,9 +118,16 @@ fn try_get_generic_ty(ty: Ty<'_>, index: usize) -> Option<Ty<'_>> {
     }
 }
 
-fn is_infalliable(pat: &Pat<'_>, cx: &LateContext<'_>) -> bool {
+pub enum PatternKind {
+    // if the pattern is just a single wildcard
+    Wildcard,
+    Complex,
+}
+fn is_infalliable(pat: &Pat<'_>, cx: &LateContext<'_>) -> Option<PatternKind> {
     use PatKind::*;
-    pat.walk_short(|pat| match pat.kind {
+    if let Wild = pat.kind {
+        Some(PatternKind::Wildcard)
+    } else if pat.walk_short(|pat| match pat.kind {
         Expr(PatExpr {
             hir_id: _,
             span: _,
@@ -167,34 +174,38 @@ fn is_infalliable(pat: &Pat<'_>, cx: &LateContext<'_>) -> bool {
         Slice(s1, _dotdotlike, s2) => s1.is_empty() && s2.is_empty(),
 
         _ => true,
-    })
+    }) {
+        Some(PatternKind::Complex)
+    } else {
+        None
+    }
 }
 fn find_method_and_type<'tcx>(
     cx: &LateContext<'tcx>,
     check_pat: &Pat<'_>,
     op_ty: Ty<'tcx>,
-) -> Option<(&'static str, Ty<'tcx>)> {
+) -> Option<(&'static str, Ty<'tcx>, PatternKind)> {
     match check_pat.kind {
         PatKind::TupleStruct(ref qpath, args, rest) => {
-            let is_wildcard = args.first().is_some_and(|pat| is_infalliable(pat, cx));
+            let is_wildcard = args.first().and_then(|pat| is_infalliable(pat, cx));
             let is_rest = matches!((args, rest.as_opt_usize()), ([], Some(_)));
 
-            if is_wildcard || is_rest {
+            if let Some(kind) = is_wildcard.or(is_rest.then_some(PatternKind::Wildcard)) {
                 let res = cx.typeck_results().qpath_res(qpath, check_pat.hir_id);
                 let id = res.opt_def_id().map(|ctor_id| cx.tcx.parent(ctor_id))?;
                 let lang_items = cx.tcx.lang_items();
                 if Some(id) == lang_items.result_ok_variant() {
-                    Some(("is_ok()", try_get_generic_ty(op_ty, 0).unwrap_or(op_ty)))
+                    Some(("is_ok()", try_get_generic_ty(op_ty, 0).unwrap_or(op_ty), kind))
                 } else if Some(id) == lang_items.result_err_variant() {
-                    Some(("is_err()", try_get_generic_ty(op_ty, 1).unwrap_or(op_ty)))
+                    Some(("is_err()", try_get_generic_ty(op_ty, 1).unwrap_or(op_ty), kind))
                 } else if Some(id) == lang_items.option_some_variant() {
-                    Some(("is_some()", op_ty))
+                    Some(("is_some()", op_ty, kind))
                 } else if Some(id) == lang_items.poll_ready_variant() {
-                    Some(("is_ready()", op_ty))
+                    Some(("is_ready()", op_ty, kind))
                 } else if is_pat_variant(cx, check_pat, qpath, Item::Diag(sym::IpAddr, sym::V4)) {
-                    Some(("is_ipv4()", op_ty))
+                    Some(("is_ipv4()", op_ty, kind))
                 } else if is_pat_variant(cx, check_pat, qpath, Item::Diag(sym::IpAddr, sym::V6)) {
-                    Some(("is_ipv6()", op_ty))
+                    Some(("is_ipv6()", op_ty, kind))
                 } else {
                     None
                 }
@@ -218,7 +229,7 @@ fn find_method_and_type<'tcx>(
                     return None;
                 };
                 // `None` and `Pending` don't have an inner type.
-                Some((method, cx.tcx.types.unit))
+                Some((method, cx.tcx.types.unit, PatternKind::Wildcard))
             } else {
                 None
             }
@@ -244,7 +255,7 @@ fn find_method_sugg_for_if_let<'tcx>(
     let op_ty = cx.typeck_results().expr_ty(let_expr);
     // Determine which function should be used, and the type contained by the corresponding
     // variant.
-    let Some((good_method, inner_ty)) = find_method_and_type(cx, check_pat, op_ty) else {
+    let Some((good_method, inner_ty, kind)) = find_method_and_type(cx, check_pat, op_ty) else {
         return;
     };
 
@@ -282,7 +293,11 @@ fn find_method_sugg_for_if_let<'tcx>(
 
     span_lint_and_then(
         cx,
-        REDUNDANT_PATTERN_MATCHING,
+        if matches!(kind, PatternKind::Wildcard) {
+            REDUNDANT_PATTERN_MATCHING
+        } else {
+            REDUNDANT_PATTERN_MATCHING_COMPLEX
+        },
         let_pat.span,
         format!("redundant pattern matching, consider using `{good_method}`"),
         |diag| {
@@ -301,7 +316,7 @@ fn find_method_sugg_for_if_let<'tcx>(
             // ^^^^^^^^^^^^^^^^^^^^^^
             let span = expr_span.until(res_span.shrink_to_hi());
 
-            let mut app = if needs_drop {
+            let mut app = if needs_drop || matches!(kind, PatternKind::Complex) {
                 Applicability::MaybeIncorrect
             } else {
                 Applicability::MachineApplicable
@@ -317,6 +332,7 @@ fn find_method_sugg_for_if_let<'tcx>(
                 diag.note("this will change drop order of the result, as well as all temporaries");
                 diag.note("add `#[allow(clippy::redundant_pattern_matching)]` if this is important");
             }
+            // TODO: for complex patterns do we need a note if its opt in?
         },
     );
 }
@@ -376,7 +392,9 @@ fn found_good_method<'tcx>(
 ) -> Option<(&'static str, Option<&'tcx Expr<'tcx>>)> {
     match (&arms[0].pat.kind, &arms[1].pat.kind) {
         (PatKind::TupleStruct(path_left, [pattern_left], _), PatKind::TupleStruct(path_right, [pattern_right], _)) => {
-            if is_infalliable(pattern_left, cx) && is_infalliable(pattern_right, cx) {
+            if let Some(_left_kind) = is_infalliable(pattern_left, cx)
+                && let Some(_left_kind) = is_infalliable(pattern_right, cx)
+            {
                 find_good_method_for_match(
                     cx,
                     arms,
@@ -417,7 +435,7 @@ fn found_good_method<'tcx>(
             }),
             PatKind::TupleStruct(path_right, [pattern], _),
         ) => {
-            if is_infalliable(pattern, cx) {
+            if let Some(_left_kind) = is_infalliable(pattern, cx) {
                 find_good_method_for_match(
                     cx,
                     arms,
@@ -444,8 +462,10 @@ fn found_good_method<'tcx>(
                 None
             }
         },
-        (PatKind::TupleStruct(path_left, [pattern], _), _) if is_infalliable(arms[1].pat, cx) => {
-            if is_infalliable(pattern, cx) {
+        (PatKind::TupleStruct(path_left, [pattern], _), _)
+            if let Some(_left_kind) = is_infalliable(arms[1].pat, cx) =>
+        {
+            if let Some(_left_kind) = is_infalliable(pattern, cx) {
                 get_good_method(cx, arms, path_left)
             } else {
                 None
@@ -457,7 +477,7 @@ fn found_good_method<'tcx>(
                 ..
             }),
             _,
-        ) if is_infalliable(arms[1].pat, cx) => get_good_method(cx, arms, path_left),
+        ) if let Some(_left_kind) = is_infalliable(arms[1].pat, cx) => get_good_method(cx, arms, path_left),
         _ => None,
     }
 }
