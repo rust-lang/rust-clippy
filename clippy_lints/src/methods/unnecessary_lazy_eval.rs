@@ -83,3 +83,74 @@ pub(super) fn check<'tcx>(
     }
     false
 }
+
+/// lint use of `_.map_or_else(|| value, f)` for `Option`s and `Result`s that can be
+/// replaced with `_.map_or(value, f)`
+pub(super) fn check_map_or_else<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx hir::Expr<'_>,
+    recv: &'tcx hir::Expr<'_>,
+    def_arg: &'tcx hir::Expr<'_>,
+    map_arg: &'tcx hir::Expr<'_>,
+) {
+    let is_option = cx.typeck_results().expr_ty(recv).is_diag_item(cx, sym::Option);
+    let is_result = cx.typeck_results().expr_ty(recv).is_diag_item(cx, sym::Result);
+
+    if !(is_option || is_result) {
+        return;
+    }
+
+    if let hir::ExprKind::Closure(&hir::Closure {
+        body,
+        fn_decl,
+        kind: hir::ClosureKind::Closure,
+        ..
+    }) = def_arg.kind
+    {
+        let body = cx.tcx.hir_body(body);
+        let body_expr = &body.value;
+
+        if usage::BindingUsageFinder::are_params_used(cx, body) || is_from_proc_macro(cx, expr) {
+            return;
+        }
+
+        if eager_or_lazy::switch_to_eager_eval(cx, body_expr) {
+            let msg = if is_option {
+                "unnecessary closure used to substitute value for `Option::None`"
+            } else {
+                "unnecessary closure used to substitute value for `Result::Err`"
+            };
+            let applicability = if body
+                .params
+                .iter()
+                .all(|param| matches!(param.pat.kind, hir::PatKind::Binding(..) | hir::PatKind::Wild))
+                && matches!(
+                    fn_decl.output,
+                    FnRetTy::DefaultReturn(_)
+                        | FnRetTy::Return(hir::Ty {
+                            kind: hir::TyKind::Infer(()),
+                            ..
+                        })
+                ) {
+                Applicability::MachineApplicable
+            } else {
+                Applicability::MaybeIncorrect
+            };
+
+            if let hir::ExprKind::MethodCall(.., span) = expr.kind {
+                span_lint_and_then(cx, UNNECESSARY_LAZY_EVALUATIONS, expr.span, msg, |diag| {
+                    diag.span_suggestion_verbose(
+                        span,
+                        "use `map_or` instead",
+                        format!(
+                            "map_or({}, {})",
+                            snippet(cx, body_expr.span, ".."),
+                            snippet(cx, map_arg.span, "..")
+                        ),
+                        applicability,
+                    );
+                });
+            }
+        }
+    }
+}
