@@ -1,6 +1,6 @@
 use crate::reference::DEREF_ADDROF;
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::SpanRangeExt;
+use clippy_utils::source::SpanExt;
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{get_parent_expr, is_expr_temporary_value, is_from_proc_macro, is_lint_allowed, is_mutable};
 use rustc_errors::Applicability;
@@ -79,7 +79,7 @@ impl<'tcx> LateLintPass<'tcx> for BorrowDerefRef {
             // If the new borrow might be itself borrowed mutably and the original reference is not a temporary
             // value, do not propose to use it directly.
             && (is_expr_temporary_value(cx, deref_target) || !potentially_bound_to_mutable_ref(cx, e))
-            && let Some(deref_text) = deref_target.span.get_source_text(cx)
+            && let Some(deref_text) = deref_target.span.get_text(cx)
         {
             span_lint_and_then(
                 cx,
