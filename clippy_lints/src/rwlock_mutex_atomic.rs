@@ -25,6 +25,9 @@ declare_clippy_lint! {
     /// and to verify for correctness. Atomics do not provide the same
     /// synchronization semantics as an equivalent `RwLock`.
     ///
+    /// ### Known problems
+    /// * This lint has a false positive that warns without considering the case
+    ///
     /// ### Example
     /// ```no_run
     /// # let y = true;
@@ -57,6 +60,9 @@ declare_clippy_lint! {
     /// On the other hand, `RwLock`s are, in general, easier to reason about
     /// and to verify for correctness. Atomics do not provide the same
     /// synchronization semantics as an equivalent `RwLock`.
+    ///
+    /// ### Known problems
+    /// * This lint has a false positive that warns without considering the case
     ///
     /// ### Example
     /// ```no_run
