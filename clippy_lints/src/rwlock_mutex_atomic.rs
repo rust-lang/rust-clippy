@@ -202,12 +202,11 @@ enum TypeAscriptionKind<'tcx> {
 
 fn check_expr<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>, ty_ascription: &TypeAscriptionKind<'tcx>, ty: Ty<'tcx>) {
     if let ty::Adt(_, subst) = ty.kind()
-        && let Some((lock_name, lint_integer, lint_atomic)) = if ty.is_diag_item(cx, sym::Mutex) {
-            Some(("Mutex", MUTEX_INTEGER, MUTEX_ATOMIC))
-        } else if ty.is_diag_item(cx, sym::RwLock) {
-            Some(("RwLock", RWLOCK_INTEGER, RWLOCK_ATOMIC))
-        } else {
-            None
+        && let Some(name) = ty.opt_diag_name(cx)
+        && let Some((lock_name, lint_integer, lint_atomic)) = match name {
+            sym::Mutex => Some(("Mutex", MUTEX_INTEGER, MUTEX_ATOMIC)),
+            sym::RwLock => Some(("RwLock", RWLOCK_INTEGER, RWLOCK_ATOMIC)),
+            _ => None,
         }
         && let mutex_param = subst.type_at(0)
         && let Some(atomic_name) = get_atomic_name(mutex_param)
