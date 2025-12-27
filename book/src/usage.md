@@ -16,6 +16,16 @@ just run
 cargo clippy
 ```
 
+## Running build/test at the same time as Clippy
+
+You can also emit binaries and test your project with Clippy enabled! Reducing your compilation times as there's no
+need to recompile.
+
+```bash
+cargo clippy test
+cargo clippy build
+```
+
 ### Lint configuration
 
 The above command will run the default set of lints, which are included in the
