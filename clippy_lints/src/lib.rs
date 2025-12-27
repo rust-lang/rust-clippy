@@ -37,7 +37,6 @@ extern crate rustc_hir;
 extern crate rustc_hir_analysis;
 extern crate rustc_hir_pretty;
 extern crate rustc_hir_typeck;
-extern crate rustc_index;
 extern crate rustc_infer;
 extern crate rustc_lexer;
 extern crate rustc_lint;
@@ -249,6 +248,7 @@ mod needless_bool;
 mod needless_borrowed_ref;
 mod needless_borrows_for_generic_args;
 mod needless_continue;
+mod needless_conversion_for_trait;
 mod needless_else;
 mod needless_for_each;
 mod needless_ifs;
@@ -857,6 +857,11 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::<replace_box::ReplaceBox>::default()),
         Box::new(move |_| Box::new(manual_ilog2::ManualIlog2::new(conf))),
         Box::new(|_| Box::new(same_length_and_capacity::SameLengthAndCapacity)),
+        Box::new(move |tcx| {
+            Box::new(needless_conversion_for_trait::NeedlessConversionForTrait::new(
+                tcx, conf,
+            ))
+        }),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);
