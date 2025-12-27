@@ -33,13 +33,6 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, format_args: &FormatArgsStorag
             return;
         }
 
-        // skip `let _: () = { ... }`
-        if let Some(ty) = local.ty
-            && let TyKind::Tup([]) = ty.kind
-        {
-            return;
-        }
-
         if (local.ty.is_some_and(|ty| !matches!(ty.kind, TyKind::Infer(())))
             || matches!(local.pat.kind, PatKind::Tuple([], ddpos) if ddpos.as_opt_usize().is_none()))
             && expr_needs_inferred_result(cx, init)
