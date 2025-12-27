@@ -1,0 +1,54 @@
+error: temporary with significant `Drop` can be early dropped
+  --> tests/ui/significant_drop_tightening_unfixable.rs:28:13
+   |
+LL |       fn main() {
+   |  _______________-
+LL | |         //Let's read from stdin
+LL | |         println!("Hello, what's your name?");
+LL | |         let stdin = stdin().lock();
+   | |             ^^^^^
+...  |
+LL | |     }
+   | |_____- temporary `stdin` is currently being dropped at the end of its contained scope
+   |
+   = note: this might lead to unnecessary resource contention
+   = note: `-D clippy::significant-drop-tightening` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::significant_drop_tightening)]`
+help: merge the temporary construction with its single usage
+   |
+LL ~         
+LL +         let stdin = stdin().lock().take(40);
+LL |
+...
+LL |         //Even if it overflows like expected, it will reallocate.
+LL ~         
+   |
+
+error: temporary with significant `Drop` can be early dropped
+  --> tests/ui/significant_drop_tightening_unfixable.rs:34:17
+   |
+LL |       fn main() {
+   |  _______________-
+LL | |         //Let's read from stdin
+LL | |         println!("Hello, what's your name?");
+LL | |         let stdin = stdin().lock();
+...  |
+LL | |         let mut stdin = stdin.take(40);
+   | |                 ^^^^^
+...  |
+LL | |     }
+   | |_____- temporary `stdin` is currently being dropped at the end of its contained scope
+   |
+   = help: merge the temporary construction with its single usage
+note: single usage here
+  --> tests/ui/significant_drop_tightening_unfixable.rs:36:9
+   |
+LL | /         if stdin.read_line(&mut buffer).is_err() {
+LL | |             eprintln!("An error has occured while reading.");
+LL | |             return;
+LL | |         } //Now we print the result, our data is safe
+   | |_________^
+   = note: this might lead to unnecessary resource contention
+
+error: aborting due to 2 previous errors
+
