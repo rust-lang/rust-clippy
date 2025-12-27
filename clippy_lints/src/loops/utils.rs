@@ -1,20 +1,21 @@
 use clippy_utils::res::MaybeResPath;
 use clippy_utils::ty::{has_iter_method, implements_trait};
 use clippy_utils::{get_parent_expr, is_integer_const, sugg};
-use rustc_ast::ast::{LitIntType, LitKind};
+
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::{Visitor, walk_expr, walk_local};
 use rustc_hir::{AssignOpKind, BorrowKind, Expr, ExprKind, HirId, HirIdMap, LetStmt, Mutability, PatKind};
 use rustc_lint::LateContext;
 use rustc_middle::hir::nested_filter;
 use rustc_middle::ty::{self, Ty};
-use rustc_span::source_map::Spanned;
+
+use rustc_span::Span;
 use rustc_span::symbol::{Symbol, sym};
 
 #[derive(Debug, PartialEq, Eq)]
 enum IncrementVisitorVarState {
-    Initial,  // Not examined yet
-    IncrOnce, // Incremented exactly once, may be a loop counter
+    Initial,        // Not examined yet
+    IncrOnce(Span), // Incremented exactly once, may be a loop counter
     DontWarn,
 }
 
@@ -34,10 +35,10 @@ impl<'a, 'tcx> IncrementVisitor<'a, 'tcx> {
         }
     }
 
-    pub(super) fn into_results(self) -> impl Iterator<Item = HirId> {
+    pub(super) fn into_results(self) -> impl Iterator<Item = (HirId, Span)> {
         self.states.into_iter().filter_map(|(id, state)| {
-            if state == IncrementVisitorVarState::IncrOnce {
-                Some(id)
+            if let IncrementVisitorVarState::IncrOnce(span) = state {
+                Some((id, span))
             } else {
                 None
             }
@@ -51,7 +52,7 @@ impl<'tcx> Visitor<'tcx> for IncrementVisitor<'_, 'tcx> {
         if let Some(def_id) = expr.res_local_id() {
             if let Some(parent) = get_parent_expr(self.cx, expr) {
                 let state = self.states.entry(def_id).or_insert(IncrementVisitorVarState::Initial);
-                if *state == IncrementVisitorVarState::IncrOnce {
+                if matches!(*state, IncrementVisitorVarState::IncrOnce(_)) {
                     *state = IncrementVisitorVarState::DontWarn;
                     return;
                 }
@@ -61,10 +62,10 @@ impl<'tcx> Visitor<'tcx> for IncrementVisitor<'_, 'tcx> {
                         if lhs.hir_id == expr.hir_id {
                             *state = if op.node == AssignOpKind::AddAssign
                                 && is_integer_const(self.cx, rhs, 1)
-                                && *state == IncrementVisitorVarState::Initial
+                                && matches!(*state, IncrementVisitorVarState::Initial)
                                 && self.depth == 0
                             {
-                                IncrementVisitorVarState::IncrOnce
+                                IncrementVisitorVarState::IncrOnce(parent.span)
                             } else {
                                 // Assigned some other value or assigned multiple times
                                 IncrementVisitorVarState::DontWarn
@@ -97,12 +98,14 @@ impl<'tcx> Visitor<'tcx> for IncrementVisitor<'_, 'tcx> {
 }
 
 enum InitializeVisitorState<'hir> {
-    Initial,                            // Not examined yet
+    Initial, // Not examined yet
+    #[allow(dead_code)]
     Declared(Symbol, Option<Ty<'hir>>), // Declared but not (yet) initialized
     Initialized {
         name: Symbol,
         ty: Option<Ty<'hir>>,
         initializer: &'hir Expr<'hir>,
+        stmt_span: Span,
     },
     DontWarn,
 }
@@ -130,9 +133,15 @@ impl<'a, 'tcx> InitializeVisitor<'a, 'tcx> {
         }
     }
 
-    pub(super) fn get_result(&self) -> Option<(Symbol, Option<Ty<'tcx>>, &'tcx Expr<'tcx>)> {
-        if let InitializeVisitorState::Initialized { name, ty, initializer } = self.state {
-            Some((name, ty, initializer))
+    pub(super) fn get_result(&self) -> Option<(Symbol, Option<Ty<'tcx>>, &'tcx Expr<'tcx>, Span)> {
+        if let InitializeVisitorState::Initialized {
+            name,
+            ty,
+            initializer,
+            stmt_span,
+        } = self.state
+        {
+            Some((name, ty, initializer, stmt_span))
         } else {
             None
         }
@@ -154,6 +163,7 @@ impl<'tcx> Visitor<'tcx> for InitializeVisitor<'_, 'tcx> {
                     initializer: init,
                     ty,
                     name: ident.name,
+                    stmt_span: l.span,
                 }
             });
         }
@@ -176,6 +186,7 @@ impl<'tcx> Visitor<'tcx> for InitializeVisitor<'_, 'tcx> {
         }
 
         // If node is the desired variable, see how it's used
+        // If node is the desired variable, see how it's used
         if expr.res_local_id() == Some(self.var_id) {
             if self.past_loop {
                 self.state = InitializeVisitorState::DontWarn;
@@ -187,40 +198,9 @@ impl<'tcx> Visitor<'tcx> for InitializeVisitor<'_, 'tcx> {
                     ExprKind::AssignOp(_, lhs, _) if lhs.hir_id == expr.hir_id => {
                         self.state = InitializeVisitorState::DontWarn;
                     },
-                    ExprKind::Assign(lhs, rhs, _) if lhs.hir_id == expr.hir_id => {
-                        self.state = if self.depth == 0 {
-                            match self.state {
-                                InitializeVisitorState::Declared(name, mut ty) => {
-                                    if ty.is_none() {
-                                        if let ExprKind::Lit(Spanned {
-                                            node: LitKind::Int(_, LitIntType::Unsuffixed),
-                                            ..
-                                        }) = rhs.kind
-                                        {
-                                            ty = None;
-                                        } else {
-                                            ty = self.cx.typeck_results().expr_ty_opt(rhs);
-                                        }
-                                    }
-
-                                    InitializeVisitorState::Initialized {
-                                        initializer: rhs,
-                                        ty,
-                                        name,
-                                    }
-                                },
-                                InitializeVisitorState::Initialized { ty, name, .. } => {
-                                    InitializeVisitorState::Initialized {
-                                        initializer: rhs,
-                                        ty,
-                                        name,
-                                    }
-                                },
-                                _ => InitializeVisitorState::DontWarn,
-                            }
-                        } else {
-                            InitializeVisitorState::DontWarn
-                        }
+                    // If the variable is reassigned (`i = value;`), it invalidates the simple counter pattern.
+                    ExprKind::Assign(lhs, _, _) if lhs.hir_id == expr.hir_id => {
+                        self.state = InitializeVisitorState::DontWarn;
                     },
                     ExprKind::AddrOf(BorrowKind::Ref, Mutability::Mut, _) => {
                         self.state = InitializeVisitorState::DontWarn;

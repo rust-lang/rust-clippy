@@ -1,67 +1,190 @@
 error: the variable `_index` is used as a loop counter
   --> tests/ui/explicit_counter_loop.rs:7:5
    |
-LL |     for _v in &vec {
-   |     ^^^^^^^^^^^^^^ help: consider using: `for (_index, _v) in vec.iter().enumerate()`
+LL | /     for _v in &vec {
+LL | |
+LL | |
+LL | |         _index += 1
+LL | |     }
+   | |_____^
    |
    = note: `-D clippy::explicit-counter-loop` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::explicit_counter_loop)]`
+help: consider rewriting the loop to use an iterator adapter
+   |
+LL ~     
+LL ~     for (_index, _v) in vec.iter().enumerate() {
+LL |
+LL |
+LL ~         
+   |
 
 error: the variable `_index` is used as a loop counter
-  --> tests/ui/explicit_counter_loop.rs:15:5
+  --> tests/ui/explicit_counter_loop.rs:19:5
    |
-LL |     for _v in &vec {
-   |     ^^^^^^^^^^^^^^ help: consider using: `for (_index, _v) in vec.iter().enumerate()`
+LL | /     for _v in &mut vec {
+LL | |
+LL | |
+LL | |         _index += 1;
+LL | |     }
+   | |_____^
+   |
+help: consider rewriting the loop to use an iterator adapter
+   |
+LL ~     
+LL ~     for (_index, _v) in vec.iter_mut().enumerate() {
+LL |
+LL |
+LL ~         ;
+   |
 
 error: the variable `_index` is used as a loop counter
-  --> tests/ui/explicit_counter_loop.rs:22:5
+  --> tests/ui/explicit_counter_loop.rs:26:5
    |
-LL |     for _v in &mut vec {
-   |     ^^^^^^^^^^^^^^^^^^ help: consider using: `for (_index, _v) in vec.iter_mut().enumerate()`
-
-error: the variable `_index` is used as a loop counter
-  --> tests/ui/explicit_counter_loop.rs:29:5
+LL | /     for _v in vec {
+LL | |
+LL | |
+LL | |         _index += 1;
+LL | |     }
+   | |_____^
    |
-LL |     for _v in vec {
-   |     ^^^^^^^^^^^^^ help: consider using: `for (_index, _v) in vec.into_iter().enumerate()`
-
-error: the variable `count` is used as a loop counter
-  --> tests/ui/explicit_counter_loop.rs:118:9
+help: consider rewriting the loop to use an iterator adapter
    |
-LL |         for ch in text.chars() {
-   |         ^^^^^^^^^^^^^^^^^^^^^^ help: consider using: `for (count, ch) in text.chars().enumerate()`
-
-error: the variable `count` is used as a loop counter
-  --> tests/ui/explicit_counter_loop.rs:131:9
+LL ~     
+LL ~     for (_index, _v) in vec.into_iter().enumerate() {
+LL |
+LL |
+LL ~         ;
    |
-LL |         for ch in text.chars() {
-   |         ^^^^^^^^^^^^^^^^^^^^^^ help: consider using: `for (count, ch) in text.chars().enumerate()`
 
 error: the variable `count` is used as a loop counter
-  --> tests/ui/explicit_counter_loop.rs:191:9
+  --> tests/ui/explicit_counter_loop.rs:115:9
    |
-LL |         for _i in 3..10 {
-   |         ^^^^^^^^^^^^^^^ help: consider using: `for (count, _i) in (3..10).enumerate()`
+LL | /         for ch in text.chars() {
+LL | |
+LL | |
+LL | |             println!("{count}");
+...  |
+LL | |         }
+   | |_________^
+   |
+help: consider rewriting the loop to use an iterator adapter
+   |
+LL ~         
+LL ~         for (count, ch) in text.chars().enumerate() {
+LL |
+LL |
+LL |             println!("{count}");
+LL ~             ;
+   |
+
+error: the variable `count` is used as a loop counter
+  --> tests/ui/explicit_counter_loop.rs:128:9
+   |
+LL | /         for ch in text.chars() {
+LL | |
+LL | |
+LL | |             println!("{count}");
+...  |
+LL | |         }
+   | |_________^
+   |
+help: consider rewriting the loop to use an iterator adapter
+   |
+LL ~         
+LL ~         for (count, ch) in text.chars().enumerate() {
+LL |
+LL |
+LL |             println!("{count}");
+LL ~             ;
+   |
+
+error: the variable `count` is used as a loop counter
+  --> tests/ui/explicit_counter_loop.rs:188:9
+   |
+LL | /         for _i in 3..10 {
+LL | |
+LL | |
+LL | |             count += 1;
+LL | |         }
+   | |_________^
+   |
+help: consider rewriting the loop to use an iterator adapter
+   |
+LL ~         
+LL ~         for (count, _i) in (3..10).enumerate() {
+LL |
+LL |
+LL ~             ;
+   |
 
 error: the variable `idx_usize` is used as a loop counter
-  --> tests/ui/explicit_counter_loop.rs:233:9
+  --> tests/ui/explicit_counter_loop.rs:230:9
    |
-LL |         for _item in slice {
-   |         ^^^^^^^^^^^^^^^^^^ help: consider using: `for (idx_usize, _item) in slice.iter().enumerate()`
+LL | /         for _item in slice {
+LL | |
+LL | |
+LL | |             if idx_usize == index_usize {
+...  |
+LL | |             idx_usize += 1;
+LL | |         }
+   | |_________^
+   |
+help: consider rewriting the loop to use an iterator adapter
+   |
+LL ~         
+LL |
+LL |         // should suggest `enumerate`
+LL ~         for (idx_usize, _item) in slice.iter().enumerate() {
+LL |
+...
+LL |
+LL ~             ;
+   |
 
 error: the variable `idx_u32` is used as a loop counter
-  --> tests/ui/explicit_counter_loop.rs:247:9
+  --> tests/ui/explicit_counter_loop.rs:244:9
    |
-LL |         for _item in slice {
-   |         ^^^^^^^^^^^^^^^^^^ help: consider using: `for (idx_u32, _item) in (0_u32..).zip(slice.iter())`
+LL | /         for _item in slice {
+LL | |
+LL | |
+LL | |             if idx_u32 == index_u32 {
+...  |
+LL | |             idx_u32 += 1;
+LL | |         }
+   | |_________^
    |
    = note: `idx_u32` is of type `u32`, making it ineligible for `Iterator::enumerate`
+help: consider rewriting the loop to use an iterator adapter
+   |
+LL ~         
+LL |
+LL |         // should suggest `zip`
+LL ~         for (idx_u32, _item) in (0_u32..).zip(slice.iter()) {
+LL |
+...
+LL |
+LL ~             ;
+   |
 
 error: the variable `_index` is used as a loop counter
-  --> tests/ui/explicit_counter_loop.rs:293:9
+  --> tests/ui/explicit_counter_loop.rs:290:9
    |
-LL |         'label: for v in vec {
-   |         ^^^^^^^^^^^^^^^^^^^^ help: consider using: `'label: for (_index, v) in vec.into_iter().enumerate()`
+LL | /         'label: for v in vec {
+LL | |
+LL | |             _index += 1;
+LL | |             if v == 1 {
+...  |
+LL | |         }
+   | |_________^
+   |
+help: consider rewriting the loop to use an iterator adapter
+   |
+LL ~         
+LL ~         'label: for (_index, v) in vec.into_iter().enumerate() {
+LL |
+LL ~             ;
+   |
 
-error: aborting due to 10 previous errors
+error: aborting due to 9 previous errors
 
