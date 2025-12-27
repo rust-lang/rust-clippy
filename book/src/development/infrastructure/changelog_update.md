@@ -98,8 +98,10 @@ that label in the changelog. If you can, remove the `beta-accepted` labels
 
 ### 5. Update `clippy::version` attributes
 
-Next, make sure to check that the `#[clippy::version]` attributes for the added
-lints contain the correct version. 
+Next, make sure to check that the `#[clippy::version]` attributes for the newly
+added and deprecated lints contain the version of the release you're writing the
+changelog for.
+
 In order to find lints that need a version update, go through the lints in the 
 "New Lints" section and run the following command for each lint name:
 
@@ -109,6 +111,9 @@ grep -rB1 "pub $LINT_NAME" .
 
 The version shown should match the version of the release the changelog is 
 written for. If not, update the version to the changelog version.
+
+Newly created lints will have `#[clippy::version = "dev"]` and be handled
+during the sync, but many existing PRs will still have an incorrect version.
 
 [changelog]: https://github.com/rust-lang/rust-clippy/blob/master/CHANGELOG.md
 [forge]: https://forge.rust-lang.org/

@@ -74,6 +74,7 @@ declare_tool_lint! {
     ///
     /// Valid values are:
     /// * "pre 1.29.0"
+    /// * "dev"
     /// * any valid semantic version
     pub clippy::INVALID_CLIPPY_VERSION_ATTRIBUTE,
     Warn,
@@ -216,7 +217,7 @@ pub(super) fn is_lint_ref_type(cx: &LateContext<'_>, ty: &hir::Ty<'_>) -> bool {
 
 fn check_invalid_clippy_version_attribute(cx: &LateContext<'_>, item: &'_ Item<'_>) {
     if let Some(value) = extract_clippy_version_value(cx, item) {
-        if value.as_str() == "pre 1.29.0" {
+        if matches!(value.as_str(), "pre 1.29.0" | "dev") {
             return;
         }
 
