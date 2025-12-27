@@ -1,4 +1,5 @@
 #![warn(clippy::let_underscore_lock)]
+#![allow(clippy::mut_mutex_lock)]
 
 extern crate parking_lot;
 

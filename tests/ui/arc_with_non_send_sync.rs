@@ -1,6 +1,5 @@
 //@aux-build:proc_macros.rs
 #![warn(clippy::arc_with_non_send_sync)]
-#![allow(unused_variables)]
 
 #[macro_use]
 extern crate proc_macros;
@@ -35,7 +34,7 @@ fn main() {
     let _ = Arc::new(RefCell::new(42));
     //~^ arc_with_non_send_sync
 
-    let mutex = Mutex::new(1);
+    let mutex = &Mutex::new(1);
     let _ = Arc::new(mutex.lock().unwrap());
     //~^ arc_with_non_send_sync
 
