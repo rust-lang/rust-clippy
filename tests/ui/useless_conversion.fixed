@@ -131,6 +131,16 @@ fn main() {
     dont_lint_into_iter_on_copy_iter();
     dont_lint_into_iter_on_static_copy_iter();
 
+    #[allow(clippy::into_iter_on_ref)]
+    {
+        // triggers the IntoIterator trait
+        fn consume(_: impl IntoIterator) {}
+
+        // Should suggest `*items` instead of `&**items`
+        let items = &&[1, 2, 3];
+        consume(*items); //~ ERROR: explicit call to `.into_iter()`
+    }
+
     let _: String = "foo".into();
     let _: String = From::from("foo");
     let _ = String::from("foo");
