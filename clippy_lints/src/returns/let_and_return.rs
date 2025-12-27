@@ -45,7 +45,10 @@ pub(super) fn check_block<'tcx>(cx: &LateContext<'tcx>, block: &'tcx Block<'_>) 
                         } else {
                             format!("({src})")
                         }
-                    } else if !cx.typeck_results().expr_adjustments(retexpr).is_empty() {
+                    } else if !cx.typeck_results().expr_adjustments(retexpr).is_empty()
+                        // Do not suggest 'as _' for raw pointers; it's an invalid cast
+                        && !cx.typeck_results().expr_ty_adjusted(retexpr).is_raw_ptr()
+                    {
                         if has_enclosing_paren(&src) {
                             format!("{src} as _")
                         } else {

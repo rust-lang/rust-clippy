@@ -271,4 +271,17 @@ fn issue15987() -> i32 {
     r
 }
 
+// https://github.com/rust-lang/rust-clippy/issues/16135
+mod issue16135 {
+    struct S;
+    trait T {}
+    impl T for &S {}
+
+    fn f(x: &S) -> Box<dyn T + '_> {
+        let x = Box::new(Clone::clone(&x));
+        x
+        //~^ let_and_return
+    }
+}
+
 fn main() {}
