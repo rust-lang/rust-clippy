@@ -1,0 +1,19 @@
+#![warn(clippy::for_unbounded_range)]
+
+fn do_something<T: Copy>(_t: T) {}
+
+fn main() {
+    for i in 0_u8..=u8::MAX {
+        do_something(i);
+    }
+
+    for i in 0_u8..=u8::MAX {
+        //~^ for_unbounded_range
+        do_something(i);
+    }
+
+    for i in '\0'..=char::MAX {
+        //~^ for_unbounded_range
+        do_something(i);
+    }
+}
