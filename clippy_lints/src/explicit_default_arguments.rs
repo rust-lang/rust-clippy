@@ -1,6 +1,5 @@
 use std::iter;
 
-use clippy_utils::MaybePath;
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::source::snippet_opt;
 use rustc_data_structures::fx::FxHashMap;
@@ -14,8 +13,8 @@ use rustc_hir::{
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{
-    self, AliasTy, ExistentialPredicate, ExistentialProjection, ExistentialTraitRef, GenericArg, GenericParamDef,
-    TraitPredicate, TraitRef, Ty, TyCtxt,
+    self, AliasTy, Binder, ExistentialPredicate, ExistentialProjection, ExistentialTraitRef, GenericArg,
+    GenericParamDef, TraitPredicate, TraitRef, Ty, TyCtxt,
 };
 
 use rustc_session::declare_lint_pass;
@@ -111,7 +110,7 @@ fn check_alias_args<'tcx>(cx: &LateContext<'tcx>, resolved_ty: Ty<'tcx>, hir_ty:
         return;
     };
     let (alias_ty_params, aliased_ty_args, hir_ty_args) = {
-        let Res::Def(DefKind::TyAlias, alias_def_id) = cx.qpath_res(&qpath, hir_ty.hir_id()) else {
+        let Res::Def(DefKind::TyAlias, alias_def_id) = cx.qpath_res(&qpath, hir_ty.hir_id) else {
             // The ty doesn't refer to a type alias
             return;
         };
@@ -160,13 +159,13 @@ fn check_alias_args<'tcx>(cx: &LateContext<'tcx>, resolved_ty: Ty<'tcx>, hir_ty:
             });
     let sugg_text_snippet = format!(
         "{no_generics_hir_ty_snippet}{}{}{}",
-        (sugg_generics_snippet.len() > 0).then_some("<").unwrap_or(""),
+        if sugg_generics_snippet.is_empty() { "" } else { "<" },
         sugg_generics_snippet,
-        (sugg_generics_snippet.len() > 0).then_some(">").unwrap_or(""),
+        if sugg_generics_snippet.is_empty() { "" } else { ">" },
     );
     for redundant_ty_span in redundant_tys_spans {
         span_lint_hir_and_then(
-            &cx,
+            cx,
             EXPLICIT_DEFAULT_ARGUMENTS,
             hir_ty.hir_id,
             hir_ty.span,
@@ -179,8 +178,6 @@ fn check_alias_args<'tcx>(cx: &LateContext<'tcx>, resolved_ty: Ty<'tcx>, hir_ty:
             },
         );
     }
-
-    return;
 }
 
 type TyPair<'a> = (Ty<'a>, hir::Ty<'a>);
@@ -216,9 +213,14 @@ fn get_tys_from_generics<'tcx>(
     generics: &Generics<'tcx>,
     item_owner_id: OwnerId,
 ) -> impl IntoIterator<Item = TyPair<'tcx>> + 'tcx {
+    // Might be a good idea to look at
+    // https://doc.rust-lang.org/nightly/nightly-rustc/src/rustc_hir_analysis/collect/predicates_of.rs.html
+    // if checking predicates is ever implemented. The
+    // [`ParamEnv`](https://rustc-dev-guide.rust-lang.org/typing_parameter_envs.html) is where the predicates would be
+    // found in the `rustc_middle` level.
+
     // Assumes the generics are the same order in `rustc_middle` and the hir.
-    let default_tys = tcx
-        .generics_of(item_owner_id)
+    tcx.generics_of(item_owner_id)
         .own_params
         .iter()
         .filter_map(move |param| {
@@ -237,22 +239,15 @@ fn get_tys_from_generics<'tcx>(
                     GenericParamKind::Const { ty, .. } => Some(**ty),
                     _ => None,
                 }),
-        );
-    // Might be a good idea to look at
-    // https://doc.rust-lang.org/nightly/nightly-rustc/src/rustc_hir_analysis/collect/predicates_of.rs.html
-    // if checking predicates is ever implemented. The
-    // [`ParamEnv`](https://rustc-dev-guide.rust-lang.org/typing_parameter_envs.html) is where the predicates would be
-    // found in the `rustc_middle` level.
-
-    default_tys
+        )
 }
 
-/// Creates a TypePair for every equality constraint by using the provided index. The index is
-/// required because ordering in the HIR and rustc_middle do not match, so checking the assoc ty is
-/// required.
+/// Creates a `TypePair` for every equality constraint by using the provided index. The index is
+/// required because ordering in the HIR and `rustc_middle` do not match, so checking the assoc ty
+/// is required.
 fn get_constraint_types<'tcx, T: IntoIterator<Item = &'tcx hir::TraitRef<'tcx>>>(
     refs: T,
-    ident_index: FxHashMap<Ident, (Ty<'tcx>, impl IntoIterator<Item = Ty<'tcx>> + Clone)>,
+    ident_index: &FxHashMap<Ident, (Ty<'tcx>, impl IntoIterator<Item = Ty<'tcx>> + Clone)>,
 ) -> Vec<TyPair<'tcx>> {
     // As usual, we are assuming that GATs are in the same order in the HIR and rustc_middle.
     refs.into_iter()
@@ -331,6 +326,7 @@ fn path_generic_args<'hir>(
 // TODO: move this to clippy_utils?
 /// Walks `Ty` and `hir::Ty` in lockstep. Only use with type pairs that came from outside bodies,
 /// e.g. function definitions.
+#[allow(clippy::too_many_lines)]
 fn walk_ty_recursive<'tcx>(
     tcx: TyCtxt<'tcx>,
     ty: Ty<'tcx>,
@@ -368,7 +364,7 @@ fn walk_ty_recursive<'tcx>(
         (ty::Adt(_, generics), TyKind::Path(QPath::Resolved(None, path))) => Box::new(
             generics
                 .iter()
-                .filter_map(|arg| arg.as_type())
+                .filter_map(GenericArg::as_type)
                 .zip(path_generic_args(path.segments)),
         ),
         (ty::Array(ty, _), TyKind::Array(hir_ty, _))
@@ -395,13 +391,13 @@ fn walk_ty_recursive<'tcx>(
                 Box::new(iter::empty())
             }
         },
-        (ty::Dynamic(predicates, _, _), TyKind::TraitObject(hir_predicates, _)) => {
+        (ty::Dynamic(predicates, _), TyKind::TraitObject(hir_predicates, _)) => {
             // Assumes that generics in `rustc_middle` are in the same order as the hir.
             let trait_generics = predicates
                 .iter()
                 .filter_map(move |predicate| {
                     if let ExistentialPredicate::Trait(ExistentialTraitRef { args, .. }) = predicate.skip_binder() {
-                        Some(args.iter().filter_map(|arg| arg.as_type()))
+                        Some(args.iter().filter_map(GenericArg::as_type))
                     } else {
                         None
                     }
@@ -432,16 +428,16 @@ fn walk_ty_recursive<'tcx>(
             // associated item.
             let trait_preds = get_constraint_types(
                 hir_predicates.iter().map(|poly_trait_ref| &poly_trait_ref.trait_ref),
-                ident_index,
+                &ident_index,
             );
 
-            Box::new(trait_generics.chain(trait_preds.into_iter()))
+            Box::new(trait_generics.chain(trait_preds))
         },
         (ty::Alias(ty::Projection, AliasTy { args, .. }), TyKind::Path(QPath::TypeRelative(hir_ty, path_segment))) => {
             let hir_gat_args_iter = path_generic_args(iter::once(path_segment));
             Box::new(
                 args.iter()
-                    .flat_map(|arg| arg.as_type())
+                    .filter_map(GenericArg::as_type)
                     .zip(iter::once(*hir_ty).chain(hir_gat_args_iter)),
             )
         },
@@ -468,7 +464,7 @@ fn walk_ty_recursive<'tcx>(
             let hir_gat_args_iter = path_generic_args(iter::once(hir_gat_path_segment));
             Box::new(
                 args.iter()
-                    .flat_map(|arg| arg.as_type())
+                    .filter_map(GenericArg::as_type)
                     .zip(iter::once(*hir_ty).chain(hir_trait_args_iter).chain(hir_gat_args_iter)),
             )
         },
@@ -476,7 +472,8 @@ fn walk_ty_recursive<'tcx>(
             // `args` doesn't seem to have anything useful, not 100% sure.
             ty::Alias(ty::Opaque, AliasTy { args: _, def_id, .. }),
             TyKind::OpaqueDef(OpaqueTy {
-                bounds: [hir_bounds @ ..],
+                #[allow(clippy::redundant_at_rest_pattern)]
+                    bounds: [hir_bounds @ ..],
                 ..
             }),
         )
@@ -489,7 +486,7 @@ fn walk_ty_recursive<'tcx>(
                     if let Some(TraitPredicate {
                         trait_ref: TraitRef { def_id, args, .. },
                         ..
-                    }) = bound.0.as_trait_clause().map(|binder| binder.skip_binder())
+                    }) = bound.0.as_trait_clause().map(Binder::skip_binder)
                     {
                         // If predicates are ever checked, this part could use some love.
                         Some(
@@ -515,8 +512,8 @@ fn walk_ty_recursive<'tcx>(
                 .iter()
                 .filter_map(|(clause, _)| clause.as_projection_clause())
                 .filter_map(|predicate| {
-                    if let Some(ty) = predicate.term().skip_binder().as_type() {
-                        Some((
+                    predicate.term().skip_binder().as_type().map(|ty| {
+                        (
                             tcx.item_ident(predicate.skip_binder().def_id()),
                             (
                                 ty,
@@ -527,15 +524,13 @@ fn walk_ty_recursive<'tcx>(
                                     .iter()
                                     .filter_map(|arg| arg.as_type()),
                             ),
-                        ))
-                    } else {
-                        None
-                    }
+                        )
+                    })
                 })
                 .collect();
 
             let trait_preds =
-                get_constraint_types(hir_bounds.iter().filter_map(|bound| bound.trait_ref()), ident_index);
+                get_constraint_types(hir_bounds.iter().filter_map(|bound| bound.trait_ref()), &ident_index);
             Box::new(trait_bounds_args.chain(trait_preds))
         },
 
@@ -576,7 +571,7 @@ fn get_item_tys<'tcx>(tcx: TyCtxt<'tcx>, item: Item<'tcx>) -> impl IntoIterator<
             trait_items
                 .iter()
                 .map(move |item| tcx.hir_trait_item(*item))
-                .flat_map(move |trait_item| -> Option<Box<dyn Iterator<Item = TyPair<'_>>>> {
+                .filter_map(move |trait_item| -> Option<Box<dyn Iterator<Item = TyPair<'_>>>> {
                     match trait_item.kind {
                         TraitItemKind::Fn(sig, _) => Some(Box::new(
                             get_tys_fn_sig(tcx, sig, trait_item.owner_id)
@@ -587,7 +582,7 @@ fn get_item_tys<'tcx>(tcx: TyCtxt<'tcx>, item: Item<'tcx>) -> impl IntoIterator<
                             tcx.type_of(trait_item.owner_id).skip_binder(),
                             *ty,
                         )))),
-                        _ => None,
+                        TraitItemKind::Type(_, _) => None,
                     }
                 })
                 .flatten(),
@@ -597,20 +592,18 @@ fn get_item_tys<'tcx>(tcx: TyCtxt<'tcx>, item: Item<'tcx>) -> impl IntoIterator<
             items
                 .iter()
                 .map(move |item| tcx.hir_impl_item(*item))
-                .flat_map(move |impl_item| -> Option<Box<dyn Iterator<Item = TyPair<'_>>>> {
+                .flat_map(move |impl_item| -> Box<dyn Iterator<Item = TyPair<'_>>> {
                     match impl_item.kind {
-                        ImplItemKind::Fn(sig, _) => Some(Box::new(
+                        ImplItemKind::Fn(sig, _) => Box::new(
                             get_tys_fn_sig(tcx, sig, impl_item.owner_id)
                                 .into_iter()
                                 .chain(get_tys_from_generics(tcx, impl_item.generics, impl_item.owner_id)),
-                        )),
-                        ImplItemKind::Const(ty, _) | ImplItemKind::Type(ty) => Some(Box::new(iter::once((
-                            tcx.type_of(impl_item.owner_id).skip_binder(),
-                            *ty,
-                        )))),
+                        ),
+                        ImplItemKind::Const(ty, _) | ImplItemKind::Type(ty) => {
+                            Box::new(iter::once((tcx.type_of(impl_item.owner_id).skip_binder(), *ty)))
+                        },
                     }
                 })
-                .flatten()
                 .chain(iter::once((tcx.type_of(item.owner_id).skip_binder(), *self_ty))),
         ),
         _ => Box::new(iter::empty()),
@@ -630,12 +623,9 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitDefaultArguments {
         if stmt.span.from_expansion() {
             return;
         }
-        match stmt.kind {
-            StmtKind::Let(LetStmt { ty: Some(hir_ty), .. }) => {
-                let ty = cx.tcx.type_of(stmt.hir_id.owner).skip_binder();
-                check_typair(cx, (ty, **hir_ty));
-            },
-            _ => {},
+        if let StmtKind::Let(LetStmt { ty: Some(hir_ty), .. }) = stmt.kind {
+            let ty = cx.tcx.type_of(stmt.hir_id.owner).skip_binder();
+            check_typair(cx, (ty, **hir_ty));
         }
     }
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {

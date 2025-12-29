@@ -20,7 +20,7 @@ fn basic_ok_non_default() -> Result<i32> {
 }
 
 // ============================================================================
-// Test 2: Multiple type parameters with defaults
+// Test 2: multiple type parameters with defaults
 // ============================================================================
 
 type Multi<T = i32, U = String> = std::result::Result<T, U>;
@@ -41,7 +41,7 @@ fn multi_none() -> Multi {
 }
 
 // ============================================================================
-// Test 3: Complex default expressions
+// Test 3: complex default expressions
 // ============================================================================
 
 type Complex<T = std::collections::HashMap<String, Vec<i32>>> = Option<T>;
@@ -56,7 +56,7 @@ fn complex_implicit() -> Complex {
 }
 
 // ============================================================================
-// Test 4: Trait implementations
+// Test 4: trait implementations
 // ============================================================================
 
 trait MyTrait1 {}
@@ -69,7 +69,7 @@ impl MyTrait1 for Result {
 impl MyTrait2 for Result {}
 
 // ============================================================================
-// Test 5: Type alias definitions using types with defaults
+// Test 5: type alias definitions using types with defaults
 // ============================================================================
 
 type AliasWithDefault = Result;
@@ -79,7 +79,7 @@ type AliasImplicit = Result;
 type AliasNonDefault = Result<String>;
 
 // ============================================================================
-// Test 6: Defaults that are type aliases themselves
+// Test 6: defaults that are type aliases themselves
 // ============================================================================
 
 type DefaultType = i32;
@@ -95,7 +95,7 @@ fn alias_implicit() -> UsingDefault {
 }
 
 // ============================================================================
-// Test 7: Macro usage
+// Test 7: macro usage
 // ============================================================================
 
 macro_rules! def_foo {
