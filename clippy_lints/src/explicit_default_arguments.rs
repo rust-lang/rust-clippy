@@ -44,7 +44,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.90.0"]
     pub EXPLICIT_DEFAULT_ARGUMENTS,
     style,
-    "default lint description"
+    "removes unnecessarily duplicated default value"
 }
 
 declare_lint_pass!(ExplicitDefaultArguments => [EXPLICIT_DEFAULT_ARGUMENTS]);
