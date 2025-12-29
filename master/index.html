@@ -14461,8 +14461,8 @@ obtained via <code>char_indices</code> over the same string), it is totally OK.<
 <p>Checks for usage of <code>libc::strlen</code> on a <code>CString</code> or <code>CStr</code> value,
 and suggest calling <code>as_bytes().len()</code> or <code>to_bytes().len()</code> respectively instead.</p>
 <h3>Why is this bad?</h3>
-<p>This avoids calling an unsafe <code>libc</code> function.
-Currently, it also avoids calculating the length.</p>
+<p>libc::strlen is an unsafe function, which we don’t need to call
+if all we want to know is the length of the c-string.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">use std::ffi::CString;
 let cstring = CString::new("foo").expect("CString::new failed");
