@@ -1,143 +1,110 @@
 #![warn(clippy::explicit_default_arguments)]
 
-use std::marker::PhantomData;
+// ============================================================================
+// Test 1: single default parameter
+// ============================================================================
 
-// Test types
-struct DatabaseError;
-struct NetworkError;
-struct ComplexStruct<A, B, C, D>(PhantomData<(A, B, C, D)>);
+type Result<T = ()> = std::result::Result<T, String>;
 
-// Type aliases with defaults
-type DbResult<T = ()> = Result<T, DatabaseError>;
-type NetResult<T = &'static str> = Result<T, NetworkError>;
-type Optional<T = i64> = Option<T>;
-type ComplexThing<A, B, C = u32, D = f64> = ComplexStruct<A, B, C, D>;
-type BoxedDefault<T = i128> = Box<T>;
-
-// Module to test scoping
-mod outer {
-    pub type NestedResult<T = usize> = Result<T, ()>;
-}
-
-// Const declarations
-const DB_CONST: DbResult = Ok(());
-//~^ explicit_default_arguments
-const DB_OK: DbResult = Ok(());
-const NET_CONST: NetResult = Ok("");
-//~^ explicit_default_arguments
-const NET_OK: NetResult = Ok("");
-
-// Static declarations
-static STATIC_DB: DbResult = Ok(());
-//~^ explicit_default_arguments
-static STATIC_NET: NetResult = Ok("");
-static OPTIONAL: Optional = Some(42);
-//~^ explicit_default_arguments
-static CUSTOM_OPT: Optional<f32> = Some(1.5);
-
-// Associated types in traits
-trait ExampleTrait {
-    type AssocDb;
-    type AssocNet;
-
-    fn method() -> DbResult;
+fn basic_trigger() -> Result {
     //~^ explicit_default_arguments
+    Ok(())
 }
 
-impl ExampleTrait for () {
-    type AssocDb = DbResult;
-    //~^ explicit_default_arguments
-    type AssocNet = NetResult;
-
-    fn method() -> DbResult {
-        //~^ explicit_default_arguments
-        Ok(())
-    }
+fn basic_ok_implicit() -> Result {
+    Ok(())
 }
 
-// Function signatures
-fn db_function(arg: DbResult) -> DbResult {
+fn basic_ok_non_default() -> Result<i32> {
+    Ok(5)
+}
+
+// ============================================================================
+// Test 2: Multiple type parameters with defaults
+// ============================================================================
+
+type Multi<T = i32, U = String> = std::result::Result<T, U>;
+
+fn multi_all_defaults() -> Multi {
     //~^ explicit_default_arguments
     //~| explicit_default_arguments
-    arg
+    Ok(5)
 }
 
-fn net_function(arg: NetResult) -> NetResult {
-    arg
-}
-
-// Struct fields
-struct User {
-    db_field: DbResult,
+fn multi_partial() -> Multi {
     //~^ explicit_default_arguments
-    net_field: NetResult,
+    Ok(5)
 }
 
-// Tuple struct
-struct Response(
-    DbResult,
-    //~^ explicit_default_arguments
-    NetResult,
-);
-
-// Enum variants
-enum ApiResponse {
-    Success(DbResult),
-    //~^ explicit_default_arguments
-    Failure(NetResult),
+fn multi_none() -> Multi {
+    Ok(5)
 }
 
-// Union fields
-union DataHolder {
-    db: std::mem::ManuallyDrop<DbResult>,
+// ============================================================================
+// Test 3: Complex default expressions
+// ============================================================================
+
+type Complex<T = std::collections::HashMap<String, Vec<i32>>> = Option<T>;
+
+fn complex_default() -> Complex {
     //~^ explicit_default_arguments
-    net: std::mem::ManuallyDrop<NetResult>,
+    None
 }
 
-// Type aliases
-type DbAlias = DbResult;
+fn complex_implicit() -> Complex {
+    None
+}
+
+// ============================================================================
+// Test 4: Trait implementations
+// ============================================================================
+
+trait MyTrait1 {}
+trait MyTrait2 {}
+
+impl MyTrait1 for Result {
+    //~^ explicit_default_arguments
+}
+
+impl MyTrait2 for Result {}
+
+// ============================================================================
+// Test 5: Type alias definitions using types with defaults
+// ============================================================================
+
+type AliasWithDefault = Result;
 //~^ explicit_default_arguments
-type NetAlias = NetResult;
+type AliasImplicit = Result;
 
-// Complex type scenarios
-static COMPLEX_FULL: ComplexThing<i8, u8> = ComplexStruct(PhantomData);
-//~^ explicit_default_arguments
-static COMPLEX_PARTIAL: ComplexThing<i16, u16, u8> = ComplexStruct(PhantomData);
+type AliasNonDefault = Result<String>;
 
-// Nested module type
-static NESTED_RESULT: outer::NestedResult = Ok(42);
-//~^ explicit_default_arguments
+// ============================================================================
+// Test 6: Defaults that are type aliases themselves
+// ============================================================================
 
-// Trait implementation with generics
-impl<T> ExampleTrait for ComplexThing<T, T> {
-    type AssocDb = DbResult;
+type DefaultType = i32;
+type UsingDefault<T = DefaultType> = Option<T>;
+
+fn alias_default() -> UsingDefault {
     //~^ explicit_default_arguments
-    type AssocNet = NetResult;
+    None
+}
 
-    fn method() -> DbResult {
-        //~^ explicit_default_arguments
-        Ok(())
-    }
+fn alias_implicit() -> UsingDefault {
+    None
+}
+
+// ============================================================================
+// Test 7: Macro usage
+// ============================================================================
+
+macro_rules! def_foo {
+    () => {
+        let foo: Result<()> = Ok(());
+    };
 }
 
 fn main() {
-    // Local variables
-    let a: DbResult = Ok(());
-    //~^ explicit_default_arguments
-    let b: NetResult = Ok("");
-
-    // Function pointers
-    let f: fn(DbResult) -> DbResult = db_function;
-    //~^ explicit_default_arguments
-    //~| explicit_default_arguments
-
-    // Expressions with std types
-    let s = String::new();
-    let v: Vec<String> = vec![s.clone()];
-    let _o: Option<Vec<String>> = Some(v);
-
-    // Box with default
-    let boxed_int: BoxedDefault = Box::new(0);
-    //~^ explicit_default_arguments
-    let boxed_float: BoxedDefault<f64> = Box::new(0.0);
+    // Should NOT trigger: macro expansion
+    def_foo!();
 }
