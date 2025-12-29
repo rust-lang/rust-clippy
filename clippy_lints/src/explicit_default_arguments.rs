@@ -28,14 +28,16 @@ declare_clippy_lint! {
     /// It is redundant and adds visual clutter.
     ///
     /// ### Example
-    /// ```no_run
+    /// ```rust
+    /// struct MyError {}
     /// type Result<T = ()> = core::result::Result<T, MyError>;
     /// fn foo() -> Result<()> {
     ///     Ok(())
     /// }
     /// ```
     /// Use instead:
-    /// ```no_run
+    /// ```rust
+    /// struct MyError {}
     /// type Result<T = ()> = core::result::Result<T, MyError>;
     /// fn foo() -> Result {
     ///     Ok(())
