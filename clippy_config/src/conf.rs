@@ -407,6 +407,9 @@ define_Conf! {
     #[lints(renamed_function_params)]
     allow_renamed_params_for: Vec<String> =
         DEFAULT_ALLOWED_TRAITS_WITH_RENAMED_PARAMS.iter().map(ToString::to_string).collect(),
+    /// Whether to allow uninlined literals in the format arguments, such as strings, chars, and booleans.
+    #[lints(uninlined_format_args)]
+    allow_uninlined_literals: bool = true,
     /// Whether `unwrap` should be allowed in code always evaluated at compile time
     #[lints(unwrap_used)]
     allow_unwrap_in_consts: bool = true,

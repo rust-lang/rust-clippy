@@ -7169,6 +7169,7 @@ Released 2018-09-13
 [`allow-print-in-tests`]: https://doc.rust-lang.org/clippy/lint_configuration.html#allow-print-in-tests
 [`allow-private-module-inception`]: https://doc.rust-lang.org/clippy/lint_configuration.html#allow-private-module-inception
 [`allow-renamed-params-for`]: https://doc.rust-lang.org/clippy/lint_configuration.html#allow-renamed-params-for
+[`allow-uninlined-literals`]: https://doc.rust-lang.org/clippy/lint_configuration.html#allow-uninlined-literals
 [`allow-unwrap-in-consts`]: https://doc.rust-lang.org/clippy/lint_configuration.html#allow-unwrap-in-consts
 [`allow-unwrap-in-tests`]: https://doc.rust-lang.org/clippy/lint_configuration.html#allow-unwrap-in-tests
 [`allow-useless-vec-in-tests`]: https://doc.rust-lang.org/clippy/lint_configuration.html#allow-useless-vec-in-tests

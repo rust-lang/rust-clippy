@@ -194,6 +194,16 @@ default configuration of Clippy. By default, any configuration will replace the 
 * [`renamed_function_params`](https://rust-lang.github.io/rust-clippy/master/index.html#renamed_function_params)
 
 
+## `allow-uninlined-literals`
+Whether to allow uninlined literals in the format arguments, such as strings, chars, and booleans.
+
+**Default Value:** `true`
+
+---
+**Affected lints:**
+* [`uninlined_format_args`](https://rust-lang.github.io/rust-clippy/master/index.html#uninlined_format_args)
+
+
 ## `allow-unwrap-in-consts`
 Whether `unwrap` should be allowed in code always evaluated at compile time
 
