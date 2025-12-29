@@ -1,9 +1,10 @@
 use std::iter;
 
 use clippy_utils::MaybePath;
-use clippy_utils::diagnostics::span_lint_hir;
-use clippy_utils::source::snippet;
+use clippy_utils::diagnostics::span_lint_hir_and_then;
+use clippy_utils::source::snippet_opt;
 use rustc_data_structures::fx::FxHashMap;
+use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{
     self as hir, AssocItemConstraint, AssocItemConstraintKind, Closure, EnumDef, Expr, ExprKind, FnDecl, FnPtrTy,
@@ -90,32 +91,31 @@ fn match_generics<'tcx>(
 }
 
 fn check_alias_args<'tcx>(cx: &LateContext<'tcx>, resolved_ty: Ty<'tcx>, hir_ty: hir::Ty<'tcx>) {
+    let TyKind::Path(
+        qpath @ QPath::Resolved(
+            _,
+            Path {
+                segments:
+                    [
+                        ..,
+                        PathSegment {
+                            args: Some(hir_ty_generics),
+                            ..
+                        },
+                    ],
+                ..
+            },
+        ),
+    ) = hir_ty.kind
+    else {
+        return;
+    };
     let (alias_ty_params, aliased_ty_args, hir_ty_args) = {
-        let TyKind::Path(
-            qpath @ QPath::Resolved(
-                _,
-                Path {
-                    segments:
-                        [
-                            ..,
-                            PathSegment {
-                                args: Some(hir_ty_generics),
-                                ..
-                            },
-                        ],
-                    ..
-                },
-            ),
-        ) = hir_ty.kind
-        else {
-            return;
-        };
         let Res::Def(DefKind::TyAlias, alias_def_id) = cx.qpath_res(&qpath, hir_ty.hir_id()) else {
             // The ty doesn't refer to a type alias
             return;
         };
         let aliased_ty = cx.tcx.type_of(alias_def_id).skip_binder();
-        // println!("aliased ty: {aliased_ty}");
         let ty::Adt(_, aliased_ty_args) = aliased_ty.kind() else {
             // The ty alias doesn't refer to an ADT
             return;
@@ -131,6 +131,7 @@ fn check_alias_args<'tcx>(cx: &LateContext<'tcx>, resolved_ty: Ty<'tcx>, hir_ty:
     };
     let (defaults, aliased_to_alias) = match_generics(cx, aliased_ty_args.as_slice(), alias_ty_params.as_slice());
 
+    let mut redundant_tys_spans = Vec::new();
     for (i, generic_arg) in resolved_ty_args.iter().enumerate() {
         // Was the default explicitly written, or was it there because just because it got resolved?
         // If something was specified and the resolved form of the type alias had the default,
@@ -138,15 +139,45 @@ fn check_alias_args<'tcx>(cx: &LateContext<'tcx>, resolved_ty: Ty<'tcx>, hir_ty:
         if let Some(redundant_ty) = aliased_to_alias.get(&i).and_then(|i| hir_ty_args.args.get(*i as usize))
             && defaults.get(&i).copied() == generic_arg.as_type()
         {
-            // TODO: show a hint
-            span_lint_hir(
-                &cx,
-                EXPLICIT_DEFAULT_ARGUMENTS,
-                redundant_ty.hir_id(),
-                redundant_ty.span(),
-                "redudant usage of default argument",
-            );
+            redundant_tys_spans.push(redundant_ty.span());
         }
+    }
+    let no_generics_hir_ty_snippet = snippet_opt(cx, hir_ty.span.until(hir_ty_generics.span_ext)).unwrap();
+    let sugg_generics_snippet =
+        hir_ty_generics
+            .args
+            .iter()
+            .enumerate()
+            .fold(String::new(), |mut generics_string, (i, arg)| {
+                if redundant_tys_spans.contains(&arg.span()) {
+                    return generics_string;
+                }
+                if i > 0 {
+                    generics_string.push_str(", ");
+                }
+                generics_string.push_str(&snippet_opt(cx, arg.span()).unwrap());
+                generics_string
+            });
+    let sugg_text_snippet = format!(
+        "{no_generics_hir_ty_snippet}{}{}{}",
+        (sugg_generics_snippet.len() > 0).then_some("<").unwrap_or(""),
+        sugg_generics_snippet,
+        (sugg_generics_snippet.len() > 0).then_some(">").unwrap_or(""),
+    );
+    for redundant_ty_span in redundant_tys_spans {
+        span_lint_hir_and_then(
+            &cx,
+            EXPLICIT_DEFAULT_ARGUMENTS,
+            hir_ty.hir_id,
+            hir_ty.span,
+            format!(
+                "redudant usage of default argument `{}`",
+                snippet_opt(cx, redundant_ty_span).unwrap()
+            ),
+            |diag| {
+                diag.span_suggestion(hir_ty.span, "try", &sugg_text_snippet, Applicability::MachineApplicable);
+            },
+        );
     }
 
     return;
@@ -485,7 +516,6 @@ fn walk_ty_recursive<'tcx>(
                 .filter_map(|(clause, _)| clause.as_projection_clause())
                 .filter_map(|predicate| {
                     if let Some(ty) = predicate.term().skip_binder().as_type() {
-                        // println!("AliasTerm term: {:?}", ty,);
                         Some((
                             tcx.item_ident(predicate.skip_binder().def_id()),
                             (
@@ -594,7 +624,6 @@ fn check_typair<'tcx>(cx: &LateContext<'tcx>, (resolved_ty, hir_ty): TyPair<'tcx
     }
 }
 
-// TODO: check if inside macro
 #[allow(unused)]
 impl<'tcx> LateLintPass<'tcx> for ExplicitDefaultArguments {
     fn check_stmt(&mut self, cx: &LateContext<'tcx>, stmt: &'tcx rustc_hir::Stmt<'tcx>) {
@@ -613,45 +642,7 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitDefaultArguments {
         if expr.span.from_expansion() {
             return;
         }
-        println!("expr: {}", snippet(cx, expr.span, "<error>"));
-        // println!("expr kind: {:?}", expr.kind);
         let ty = cx.typeck_results().expr_ty(expr);
-        println!("type: {}", ty);
-        // FIXME: all this TyKind::Path stuff
-        if let ExprKind::Path(_) = expr.kind {
-            println!("It's a path");
-        }
-        match ty.kind() {
-            ty::Bool => println!("ty::Bool"),
-            ty::Char => println!("ty::Char"),
-            ty::Int(_) => println!("ty::Int"),
-            ty::Uint(_) => println!("ty::Uint"),
-            ty::Float(_) => println!("ty::Float"),
-            ty::Adt(_, _) => println!("ty::Adt"),
-            ty::Foreign(_) => println!("ty::Foreign"),
-            ty::Str => println!("ty::Str"),
-            ty::Array(_, _) => println!("ty::Array"),
-            ty::Pat(_, _) => println!("ty::Pat"),
-            ty::Slice(_) => println!("ty::Slice"),
-            ty::RawPtr(_, _) => println!("ty::RawPtr"),
-            ty::Ref(_, _, _) => println!("ty::Ref"),
-            ty::FnDef(_, args) => println!("ty::FnDef, {:?}", args.as_slice()),
-            ty::FnPtr(_, _) => println!("ty::FnPtr"),
-            ty::UnsafeBinder(_) => println!("ty::UnsafeBinder"),
-            ty::Dynamic(_, _, _) => println!("ty::Dynamic"),
-            ty::Closure(_, _) => println!("ty::Closure"),
-            ty::CoroutineClosure(_, _) => println!("ty::CoroutineClosure"),
-            ty::Coroutine(_, _) => println!("ty::Coroutine"),
-            ty::CoroutineWitness(_, _) => println!("ty::CoroutineWitness"),
-            ty::Never => println!("ty::Never"),
-            ty::Tuple(_) => println!("ty::Tuple"),
-            ty::Alias(_, _) => println!("ty::Alias"),
-            ty::Param(_) => println!("ty::Param"),
-            ty::Bound(_, _) => println!("ty::Bound"),
-            ty::Placeholder(_) => println!("ty::Placeholder"),
-            ty::Infer(_) => println!("ty::Infer"),
-            ty::Error(_) => println!("ty::Error"),
-        }
         match expr.kind {
             ExprKind::Path(qpath) | ExprKind::Struct(&qpath, _, _) => match qpath {
                 QPath::TypeRelative(ty, segment) => {
@@ -694,13 +685,11 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitDefaultArguments {
             | ExprKind::OffsetOf(&ty, _) => check_typair(cx, (cx.typeck_results().expr_ty(expr), ty)),
             _ => {},
         }
-        println!();
     }
     fn check_pat(&mut self, cx: &LateContext<'tcx>, pat: &'tcx rustc_hir::Pat<'tcx>) {
         if pat.span.from_expansion() {
             return;
         }
-        println!("found pat: {}", snippet(cx, pat.span, "<error>"));
         match pat.kind {
             PatKind::Struct(qpath, _, _) => {},
             PatKind::TupleStruct(qpath, _, _) => {},
