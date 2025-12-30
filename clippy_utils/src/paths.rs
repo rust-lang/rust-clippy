@@ -26,6 +26,7 @@ pub enum PathNS {
     Type,
     Value,
     Macro,
+    Field,
 
     /// Resolves to the name in the first available namespace, e.g. for `std::vec` this would return
     /// either the macro or the module but **not** both
@@ -41,6 +42,7 @@ impl PathNS {
             PathNS::Type => TypeNS,
             PathNS::Value => ValueNS,
             PathNS::Macro => MacroNS,
+            PathNS::Field => return false,
             PathNS::Arbitrary => return true,
         };
 
@@ -299,7 +301,7 @@ fn local_item_child_by_name(tcx: TyCtxt<'_>, local_id: LocalDefId, ns: PathNS, n
                         PathNS::Type => opt_def_id(path.res.type_ns),
                         PathNS::Value => opt_def_id(path.res.value_ns),
                         PathNS::Macro => opt_def_id(path.res.macro_ns),
-                        PathNS::Arbitrary => unreachable!(),
+                        PathNS::Arbitrary | PathNS::Field => unreachable!(),
                     }
                 } else {
                     None
@@ -318,13 +320,15 @@ fn local_item_child_by_name(tcx: TyCtxt<'_>, local_id: LocalDefId, ns: PathNS, n
             .filter_by_name_unhygienic(name)
             .find(|assoc_item| ns.matches(Some(assoc_item.namespace())))
             .map(|assoc_item| assoc_item.def_id),
-        ItemKind::Struct(_, _, rustc_hir::VariantData::Struct { fields, .. }) => fields.iter().find_map(|field| {
-            if field.ident.name == name {
-                Some(field.def_id.to_def_id())
-            } else {
-                None
-            }
-        }),
+        ItemKind::Struct(_, _, rustc_hir::VariantData::Struct { fields, .. }) if ns == PathNS::Field => {
+            fields.iter().find_map(|field| {
+                if field.ident.name == name {
+                    Some(field.def_id.to_def_id())
+                } else {
+                    None
+                }
+            })
+        },
         _ => None,
     }
 }
