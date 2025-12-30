@@ -1,15 +1,15 @@
 use super::CHUNKS_EXACT_WITH_CONST_SIZE;
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::higher::ForLoop;
 use clippy_utils::msrvs::{self, Msrv};
+use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::visitors::is_const_evaluatable;
-use clippy_utils::{expr_use_ctxt, get_parent_expr, sym};
+use clippy_utils::{expr_use_ctxt, sym};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, Node, PatKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty;
-use rustc_span::{Span, Symbol};
+use rustc_span::{DesugaringKind, ExpnKind, Span, Symbol};
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,
@@ -49,60 +49,58 @@ pub(super) fn check<'tcx>(
             |diag| {
                 let use_ctxt = expr_use_ctxt(cx, expr);
 
-                let in_for_loop = {
-                    let mut cur_expr = expr;
-                    loop {
-                        if let Some(parent_expr) = get_parent_expr(cx, cur_expr) {
-                            if let Some(for_loop) = ForLoop::hir(parent_expr)
-                                && for_loop.arg.hir_id == expr.hir_id
-                            {
-                                break true;
-                            }
-                            cur_expr = parent_expr;
-                        } else {
-                            break false;
-                        }
-                    }
-                };
-
-                let is_iterator_method = if let Node::Expr(parent_expr) = use_ctxt.node
-                    && let ExprKind::MethodCall(_, receiver, _, _) = parent_expr.kind
-                    && receiver.hir_id == use_ctxt.child_id
-                    && let Some(method_did) = cx.typeck_results().type_dependent_def_id(parent_expr.hir_id)
-                    && let Some(trait_did) = cx.tcx.trait_of_assoc(method_did)
-                {
-                    matches!(
-                        cx.tcx.get_diagnostic_name(trait_did),
-                        Some(sym::Iterator | sym::IntoIterator)
-                    )
-                } else {
-                    false
-                };
-
-                if in_for_loop {
-                    diag.span_suggestion(
-                        call_span,
-                        "consider using `as_chunks` instead",
-                        format!("{as_chunks}.0"),
-                        applicability,
-                    );
-                } else if is_iterator_method {
-                    diag.span_suggestion(
-                        call_span,
-                        "consider using `as_chunks` instead",
-                        format!("{as_chunks}.0.iter()"),
-                        applicability,
-                    );
-                } else {
+                if use_ctxt.is_ty_unified {
                     diag.span_help(call_span, format!("consider using `{as_chunks}` instead"));
+                    return;
+                }
 
-                    if let Node::LetStmt(let_stmt) = use_ctxt.node
-                        && let PatKind::Binding(_, _, ident, _) = let_stmt.pat.kind
-                    {
-                        diag.note(format!(
-                            "you can access the chunks using `{ident}.0.iter()`, and the remainder using `{ident}.1`"
-                        ));
+                if let Node::Expr(use_expr) = use_ctxt.node {
+                    match use_expr.kind {
+                        ExprKind::Call(_, [recv]) | ExprKind::MethodCall(_, recv, [], _)
+                            if recv.hir_id == use_ctxt.child_id
+                                && matches!(
+                                    use_expr.span.ctxt().outer_expn_data().kind,
+                                    ExpnKind::Desugaring(DesugaringKind::ForLoop),
+                                ) =>
+                        {
+                            // Suggest `.0`
+                            diag.span_suggestion(
+                                call_span,
+                                "consider using `as_chunks` instead",
+                                format!("{as_chunks}.0"),
+                                applicability,
+                            );
+                            return;
+                        },
+                        ExprKind::MethodCall(_, recv, ..)
+                            if recv.hir_id == use_ctxt.child_id
+                                && cx
+                                    .ty_based_def(use_expr)
+                                    .assoc_fn_parent(cx)
+                                    .is_diag_item(cx, sym::Iterator) =>
+                        {
+                            // Suggest `.0.iter()`
+                            diag.span_suggestion(
+                                call_span,
+                                "consider using `as_chunks` instead",
+                                format!("{as_chunks}.0.iter()"),
+                                applicability,
+                            );
+                            return;
+                        },
+                        _ => {},
                     }
+                }
+
+                // Fallback suggestion
+                diag.span_help(call_span, format!("consider using `{as_chunks}` instead"));
+
+                if let Node::LetStmt(let_stmt) = use_ctxt.node
+                    && let PatKind::Binding(_, _, ident, _) = let_stmt.pat.kind
+                {
+                    diag.note(format!(
+                        "you can access the chunks using `{ident}.0.iter()`, and the remainder using `{ident}.1`"
+                    ));
                 }
             },
         );
