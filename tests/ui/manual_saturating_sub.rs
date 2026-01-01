@@ -1,5 +1,5 @@
 #![allow(unused_assignments, unused_mut, clippy::assign_op_pattern)]
-#![warn(clippy::implicit_saturating_sub)]
+#![warn(clippy::manual_saturating_sub)]
 
 use std::cmp::PartialEq;
 use std::ops::SubAssign;
@@ -25,7 +25,7 @@ fn main() {
 
     // Lint
     if u_8 > 0 {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         u_8 = u_8 - 1;
     }
 
@@ -33,7 +33,7 @@ fn main() {
         10 => {
             // Lint
             if u_8 > 0 {
-                //~^ implicit_saturating_sub
+                //~^ manual_saturating_sub
                 u_8 -= 1;
             }
         },
@@ -48,7 +48,7 @@ fn main() {
 
     // Lint
     if u_16 > 0 {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         u_16 -= 1;
     }
 
@@ -59,7 +59,7 @@ fn main() {
 
     // Lint
     if u_32 != 0 {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         u_32 -= 1;
     }
 
@@ -81,19 +81,19 @@ fn main() {
 
     // Lint
     if u_64 > 0 {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         u_64 -= 1;
     }
 
     // Lint
     if 0 < u_64 {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         u_64 -= 1;
     }
 
     // Lint
     if 0 != u_64 {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         u_64 -= 1;
     }
 
@@ -115,7 +115,7 @@ fn main() {
 
     // Lint
     if u_usize > 0 {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         u_usize -= 1;
     }
 
@@ -128,25 +128,25 @@ fn main() {
 
     // Lint
     if i_8 > i8::MIN {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         i_8 -= 1;
     }
 
     // Lint
     if i_8 > i8::MIN {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         i_8 -= 1;
     }
 
     // Lint
     if i_8 != i8::MIN {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         i_8 -= 1;
     }
 
     // Lint
     if i_8 != i8::MIN {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         i_8 -= 1;
     }
 
@@ -157,25 +157,25 @@ fn main() {
 
     // Lint
     if i_16 > i16::MIN {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         i_16 -= 1;
     }
 
     // Lint
     if i_16 > i16::MIN {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         i_16 -= 1;
     }
 
     // Lint
     if i_16 != i16::MIN {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         i_16 -= 1;
     }
 
     // Lint
     if i_16 != i16::MIN {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         i_16 -= 1;
     }
 
@@ -186,25 +186,25 @@ fn main() {
 
     // Lint
     if i_32 > i32::MIN {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         i_32 -= 1;
     }
 
     // Lint
     if i_32 > i32::MIN {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         i_32 -= 1;
     }
 
     // Lint
     if i_32 != i32::MIN {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         i_32 -= 1;
     }
 
     // Lint
     if i_32 != i32::MIN {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         i_32 -= 1;
     }
 
@@ -215,19 +215,19 @@ fn main() {
 
     // Lint
     if i64::MIN < i_64 {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         i_64 -= 1;
     }
 
     // Lint
     if i64::MIN != i_64 {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         i_64 -= 1;
     }
 
     // Lint
     if i64::MIN < i_64 {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         i_64 -= 1;
     }
 
@@ -296,7 +296,7 @@ fn regression_13524(a: usize, b: usize, c: bool) -> usize {
     if c {
         123
     } else if a >= b {
-        //~^ implicit_saturating_sub
+        //~^ manual_saturating_sub
         0
     } else {
         b - a
@@ -312,13 +312,13 @@ fn arbitrary_expression() {
     let (a, b) = (15u64, 20u64);
 
     let _ = if a * 2 > b { a * 2 - b } else { 0 };
-    //~^ implicit_saturating_sub
+    //~^ manual_saturating_sub
 
     let _ = if a > b * 2 { a - b * 2 } else { 0 };
-    //~^ implicit_saturating_sub
+    //~^ manual_saturating_sub
 
     let _ = if a < b * 2 { 0 } else { a - b * 2 };
-    //~^ implicit_saturating_sub
+    //~^ manual_saturating_sub
 
     let _ = if with_side_effect(a) > a {
         with_side_effect(a) - a
