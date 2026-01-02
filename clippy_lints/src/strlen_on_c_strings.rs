@@ -4,9 +4,9 @@ use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeDef;
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::visitors::is_expr_unsafe;
-use clippy_utils::{match_libc_symbol, sym};
+use clippy_utils::{is_in_const_context, match_libc_symbol, sym};
 use rustc_errors::Applicability;
-use rustc_hir::{Block, BlockCheckMode, Expr, ExprKind, Node, UnsafeSource};
+use rustc_hir::{Block, BlockCheckMode, Expr, ExprKind, LangItem, Node, UnsafeSource};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::impl_lint_pass;
 
@@ -72,16 +72,40 @@ impl<'tcx> LateLintPass<'tcx> for StrlenOnCStrings<'_> {
 
             let mut app = Applicability::MachineApplicable;
             let val_name = snippet_with_context(cx, self_arg.span, ctxt, "..", &mut app).0;
-
-            span_lint_and_sugg(
-                cx,
-                STRLEN_ON_C_STRINGS,
-                span,
-                "using `libc::strlen` on a `CString` or `CStr` value",
-                "try",
-                format!("{val_name}.count_bytes()"),
-                app,
-            );
+            let can_use_count_bytes = if is_in_const_context(cx) {
+                self.msrv.meets(cx, msrvs::CSTR_COUNT_BYTES_CONST)
+            } else {
+                self.msrv.meets(cx, msrvs::CSTR_COUNT_BYTES)
+            };
+            if can_use_count_bytes {
+                span_lint_and_sugg(
+                    cx,
+                    STRLEN_ON_C_STRINGS,
+                    span,
+                    "using `libc::strlen` on a `CString` or `CStr` value",
+                    "try",
+                    format!("{val_name}.count_bytes()"),
+                    app,
+                );
+            } else {
+                let ty = cx.typeck_results().expr_ty(self_arg).peel_refs();
+                let method_name = if ty.is_diag_item(cx, sym::cstring_type) {
+                    "as_bytes"
+                } else if ty.is_lang_item(cx, LangItem::CStr) {
+                    "to_bytes"
+                } else {
+                    return;
+                };
+                span_lint_and_sugg(
+                    cx,
+                    STRLEN_ON_C_STRINGS,
+                    span,
+                    "using `libc::strlen` on a `CString` or `CStr` value",
+                    "try",
+                    format!("{val_name}.{method_name}().len()"),
+                    app,
+                );
+            }
         }
     }
 }
