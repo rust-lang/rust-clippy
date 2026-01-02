@@ -454,7 +454,7 @@ fn has_eligible_receiver(cx: &LateContext<'_>, recv: &Expr<'_>, expr: &Expr<'_>)
     }
 }
 
-fn adjustments(cx: &LateContext<'_>, expr: &Expr<'_>) -> String {
+pub(super) fn adjustments(cx: &LateContext<'_>, expr: &Expr<'_>) -> String {
     let mut prefix = String::new();
 
     let adjustments = cx.typeck_results().expr_adjustments(expr);
