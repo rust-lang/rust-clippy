@@ -43,5 +43,11 @@ error: this call to `to_path_buf` can be replaced with `std::slice::from_ref`
 LL |     let _b = &[_a.to_path_buf()];
    |              ^^^^^^^^^^^^^^^^^^^ help: try: `std::slice::from_ref(&_a)`
 
-error: aborting due to 7 previous errors
+error: this call to `to_path_buf` can be replaced with `std::slice::from_ref`
+  --> tests/ui/cloned_ref_to_slice_refs.rs:100:14
+   |
+LL |     let _d = &[accessor!(_a).to_path_buf()];
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `std::slice::from_ref(&accessor!(_a))`
+
+error: aborting due to 8 previous errors
 
