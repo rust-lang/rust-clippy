@@ -4,7 +4,7 @@ use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::visitors::is_const_evaluatable;
-use clippy_utils::{is_in_const_context, is_mutable};
+use clippy_utils::{is_clone_like, is_in_const_context, is_mutable};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
@@ -73,8 +73,10 @@ impl<'tcx> LateLintPass<'tcx> for ClonedRefToSliceRefs<'_> {
             && let ExprKind::Array([item]) = &arr.kind
 
             // check for clones
-            && let ExprKind::MethodCall(_, val, _, _) = item.kind
-            && cx.ty_based_def(item).opt_parent(cx).is_diag_item(cx, sym::Clone)
+            && let ExprKind::MethodCall(path, val, _, _) = item.kind
+            && let opt_parent_def = cx.ty_based_def(item).opt_parent(cx)
+            && (opt_parent_def.is_diag_item(cx, sym::Clone)
+                || opt_parent_def.is_some_and(|def| is_clone_like(cx, path.ident.name, def)))
 
             // check for immutability or purity
             && (!is_mutable(cx, val) || is_const_evaluatable(cx, val))
@@ -91,7 +93,10 @@ impl<'tcx> LateLintPass<'tcx> for ClonedRefToSliceRefs<'_> {
                 cx,
                 CLONED_REF_TO_SLICE_REFS,
                 expr.span,
-                format!("this call to `clone` can be replaced with `{builtin_crate}::slice::from_ref`"),
+                format!(
+                    "this call to `{}` can be replaced with `{builtin_crate}::slice::from_ref`",
+                    path.ident.name
+                ),
                 "try",
                 format!("{builtin_crate}::slice::from_ref({sugg})"),
                 Applicability::MaybeIncorrect,

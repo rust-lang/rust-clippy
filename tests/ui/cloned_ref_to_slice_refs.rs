@@ -62,3 +62,22 @@ fn main() {
         let _ = &[data_1.clone(), data_2.clone()];
     }
 }
+
+fn issue16320(items: &[String]) {
+    use std::ffi::OsString;
+    use std::path::PathBuf;
+
+    let _a = String::new();
+    let _b = &[_a.to_owned()];
+    //~^ cloned_ref_to_slice_refs
+    let _c = &[_a.to_string()];
+    //~^ cloned_ref_to_slice_refs
+
+    let _a = OsString::new();
+    let _b = &[_a.to_os_string()];
+    //~^ cloned_ref_to_slice_refs
+
+    let _a = PathBuf::new();
+    let _b = &[_a.to_path_buf()];
+    //~^ cloned_ref_to_slice_refs
+}
