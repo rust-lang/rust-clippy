@@ -42,6 +42,17 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, arg: &'t
         return true;
     }
 
+    if let ExprKind::Call(func1, [arg1]) = arg.kind
+        && cx.get_def_path(func1.basic_res().def_id()).last().is_some_and(|&x| {
+            (x == rustc_span::Symbol::intern("without_provenance"))
+                || (x == rustc_span::Symbol::intern("without_provenance_mut"))
+        })
+        && is_integer_const(cx, arg1, 0)
+    {
+        span_lint(cx, TRANSMUTING_NULL, expr.span, LINT_MSG);
+        return true;
+    }
+
     // Catching:
     // `std::mem::transmute({ 0 as *const u64 })` and similar const blocks
     if let ExprKind::Block(block, _) = arg.kind
