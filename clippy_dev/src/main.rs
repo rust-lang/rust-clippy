@@ -34,7 +34,7 @@ fn main() {
             category,
             r#type,
             msrv,
-        } => match new_lint::create(clippy.version, pass, &name, &category, r#type.as_deref(), msrv) {
+        } => match new_lint::create(pass, &name, &category, r#type.as_deref(), msrv) {
             Ok(()) => new_parse_cx(|cx| update_lints::update(cx, UpdateMode::Change)),
             Err(e) => eprintln!("Unable to create lint: {e}"),
         },
@@ -79,13 +79,7 @@ fn main() {
             new_name,
             uplift,
         } => new_parse_cx(|cx| {
-            rename_lint::rename(
-                cx,
-                clippy.version,
-                &old_name,
-                new_name.as_ref().unwrap_or(&old_name),
-                uplift,
-            );
+            rename_lint::rename(cx, &old_name, new_name.as_ref().unwrap_or(&old_name), uplift);
         }),
         DevCommand::Deprecate { name, reason } => {
             new_parse_cx(|cx| deprecate_lint::deprecate(cx, clippy.version, &name, &reason));
