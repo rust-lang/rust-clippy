@@ -62,3 +62,41 @@ fn main() {
         let _ = &[data_1.clone(), data_2.clone()];
     }
 }
+
+fn issue16320(items: &[String]) {
+    use std::ffi::OsString;
+    use std::path::PathBuf;
+
+    let _a = String::new();
+    let _b = &[_a.to_owned()];
+    //~^ cloned_ref_to_slice_refs
+    let _c = &[_a.to_string()];
+    //~^ cloned_ref_to_slice_refs
+
+    let _a = OsString::new();
+    let _b = &[_a.to_os_string()];
+    //~^ cloned_ref_to_slice_refs
+
+    let _a = PathBuf::new();
+    let _b = &[_a.to_path_buf()];
+    //~^ cloned_ref_to_slice_refs
+}
+
+fn wrongly_unmangled_macros(items: &[String]) {
+    use std::path::PathBuf;
+
+    struct Wrapper {
+        inner: PathBuf,
+    }
+
+    let _a = Wrapper { inner: PathBuf::new() };
+
+    macro_rules! accessor {
+        ($e:expr) => {
+            $e.inner
+        };
+    }
+
+    let _d = &[accessor!(_a).to_path_buf()];
+    //~^ cloned_ref_to_slice_refs
+}
