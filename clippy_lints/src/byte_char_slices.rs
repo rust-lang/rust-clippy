@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::is_from_proc_macro;
 use rustc_ast::ast::{BorrowKind, Expr, ExprKind, Mutability};
 use rustc_ast::token::{Lit, LitKind};
 use rustc_errors::Applicability;
@@ -33,6 +34,7 @@ impl EarlyLintPass for ByteCharSlice {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {
         if !expr.span.from_expansion()
             && let Some(slice) = is_byte_char_slices(expr)
+            && !is_from_proc_macro(cx, expr)
         {
             span_lint_and_sugg(
                 cx,
