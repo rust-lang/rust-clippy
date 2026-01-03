@@ -255,8 +255,7 @@ mod issue_16173 {
 
     async fn f() {}
 
-    async fn foo() {
-        let mu_map = Mutex::new(HashMap::new());
+    async fn foo(mu_map: &Mutex<HashMap<i32, i32>>) {
         if !mu_map.lock().unwrap().contains_key(&0) {
             f().await;
             mu_map.lock().unwrap().insert(0, 0);

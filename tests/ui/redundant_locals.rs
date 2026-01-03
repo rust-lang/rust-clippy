@@ -1,9 +1,8 @@
 //@aux-build:proc_macros.rs
-#![allow(unused, clippy::no_effect, clippy::needless_pass_by_ref_mut)]
+#![allow(clippy::mut_mutex_lock, clippy::no_effect, clippy::needless_pass_by_ref_mut)]
 #![warn(clippy::redundant_locals)]
 #![feature(coroutines, stmt_expr_attributes)]
 
-extern crate proc_macros;
 use proc_macros::{external, with_span};
 
 fn main() {}
