@@ -74,5 +74,29 @@ LL -     println!("{}, {}", local_i32, local_opt.unwrap());
 LL +     println!("{local_i32}, {}", local_opt.unwrap());
    |
 
-error: aborting due to 6 previous errors
+error: variables can be used directly in the `format!` string
+  --> tests/ui-toml/allow_mixed_uninlined_format_args/uninlined_format_args.rs:24:5
+   |
+LL |     format!("The answer is: {} and x is {}", "42", x);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: change this to
+   |
+LL -     format!("The answer is: {} and x is {}", "42", x);
+LL +     format!("The answer is: {} and x is {x}", "42");
+   |
+
+error: variables can be used directly in the `format!` string
+  --> tests/ui-toml/allow_mixed_uninlined_format_args/uninlined_format_args.rs:26:5
+   |
+LL |     format!("The answer is: {} and x is {}", '4', x);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: change this to
+   |
+LL -     format!("The answer is: {} and x is {}", '4', x);
+LL +     format!("The answer is: {} and x is {x}", '4');
+   |
+
+error: aborting due to 8 previous errors
 
