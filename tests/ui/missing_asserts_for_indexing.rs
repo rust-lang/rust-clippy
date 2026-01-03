@@ -180,4 +180,24 @@ mod issue15988 {
     }
 }
 
+fn assert_cmp_to_const(v1: &[u8], v2: &[u8], v3: &[u8], v4: &[u8]) {
+    const N: usize = 2;
+
+    assert!(v1.len() >= N);
+    assert!(v2.len() >= N);
+    assert!(v3.len() >= N);
+    assert!(v4.len() > N);
+
+    let _ = v1[0] + v1[1];
+
+    let _ = v2[0] + v2[1] + v2[2];
+    //~^ missing_asserts_for_indexing
+
+    let _ = v3[0] + v3[1] + v3[2] + v3[3];
+    //~^ missing_asserts_for_indexing
+
+    let _ = v4[0] + v4[1] + v4[2] + v4[3];
+    //~^ missing_asserts_for_indexing
+}
+
 fn main() {}
