@@ -1,6 +1,7 @@
 use super::REDUNDANT_PATTERN_MATCHING;
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
+use clippy_utils::source::walk_span_to_context;
 use clippy_utils::sugg::{Sugg, make_unop};
 use clippy_utils::ty::needs_ordered_drop;
 use clippy_utils::visitors::{any_temporaries_need_ordered_drop, for_each_expr_without_closures};
@@ -267,13 +268,15 @@ pub(super) fn check_match<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, op
     if let Ok(arms) = arms.try_into() // TODO: use `slice::as_array` once stabilized
         && let Some((good_method, maybe_guard)) = found_good_method(cx, arms)
     {
-        let span = is_expn_of(expr.span, sym::matches).unwrap_or(expr.span.to(op.span));
+        let ctxt = expr.span.source_callsite().ctxt();
+        let op_span = walk_span_to_context(op.span, ctxt).unwrap_or(op.span);
+        let span = is_expn_of(expr.span, sym::matches).unwrap_or(expr.span.to(op_span));
         let result_expr = match &op.kind {
             ExprKind::AddrOf(_, _, borrowed) => borrowed,
             _ => op,
         };
         let mut app = Applicability::MachineApplicable;
-        let receiver_sugg = Sugg::hir_with_applicability(cx, result_expr, "_", &mut app).maybe_paren();
+        let receiver_sugg = Sugg::hir_with_context(cx, result_expr, ctxt, "_", &mut app).maybe_paren();
         let mut sugg = format!("{receiver_sugg}.{good_method}");
 
         if let Some(guard) = maybe_guard {
@@ -296,7 +299,7 @@ pub(super) fn check_match<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, op
                 return;
             }
 
-            let guard = Sugg::hir(cx, guard, "..");
+            let guard = Sugg::hir_with_context(cx, guard, ctxt, "..", &mut app);
             let _ = write!(sugg, " && {}", guard.maybe_paren());
         }
 

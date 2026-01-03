@@ -615,3 +615,17 @@ mod issue14894 {
         Ok(())
     }
 }
+
+fn wrongly_unmangled_macros() -> Option<i32> {
+    macro_rules! test_expr {
+        ($val:expr) => {
+            Some($val)
+        };
+    }
+
+    let Some(x) = test_expr!(42) else {
+        return None;
+    };
+    //~^^^ question_mark
+    Some(x)
+}

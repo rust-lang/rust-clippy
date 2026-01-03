@@ -25,8 +25,9 @@ pub(crate) fn check(cx: &LateContext<'_>, scrutinee: &Expr<'_>, arms: &[Arm<'_>]
             move |diag| {
                 if arms.len() == 2 {
                     let mut app = Applicability::MachineApplicable;
+                    let ctxt = expr.span.ctxt();
                     let test_sugg = if let PatKind::Expr(arm_bool) = arms[0].pat.kind {
-                        let test = Sugg::hir_with_applicability(cx, scrutinee, "_", &mut app);
+                        let test = Sugg::hir_with_context(cx, scrutinee, ctxt, "_", &mut app);
                         if let PatExprKind::Lit { lit, .. } = arm_bool.kind {
                             match &lit.node {
                                 LitKind::Bool(true) => Some(test),
@@ -36,7 +37,7 @@ pub(crate) fn check(cx: &LateContext<'_>, scrutinee: &Expr<'_>, arms: &[Arm<'_>]
                             .map(|test| {
                                 if let Some(guard) = &arms[0]
                                     .guard
-                                    .map(|g| Sugg::hir_with_applicability(cx, g, "_", &mut app))
+                                    .map(|g| Sugg::hir_with_context(cx, g, ctxt, "_", &mut app))
                                 {
                                     test.and(guard)
                                 } else {
@@ -51,7 +52,6 @@ pub(crate) fn check(cx: &LateContext<'_>, scrutinee: &Expr<'_>, arms: &[Arm<'_>]
                     };
 
                     if let Some(test_sugg) = test_sugg {
-                        let ctxt = expr.span.ctxt();
                         let (true_expr, false_expr) = (arms[0].body, arms[1].body);
                         let sugg = match (is_unit_expr(true_expr), is_unit_expr(false_expr)) {
                             (false, false) => Some(format!(

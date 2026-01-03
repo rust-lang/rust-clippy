@@ -500,3 +500,15 @@ mod issue14894 {
         Ok(())
     }
 }
+
+fn wrongly_unmangled_macros() -> Option<i32> {
+    macro_rules! test_expr {
+        ($val:expr) => {
+            Some($val)
+        };
+    }
+
+    let x = test_expr!(42)?;
+    //~^^^ question_mark
+    Some(x)
+}
