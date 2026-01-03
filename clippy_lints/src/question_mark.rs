@@ -147,7 +147,8 @@ fn check_let_some_else_return_none(cx: &LateContext<'_>, stmt: &Stmt<'_>) {
         && !span_contains_cfg(cx, els.span)
     {
         let mut applicability = Applicability::MaybeIncorrect;
-        let init_expr_str = Sugg::hir_with_applicability(cx, init_expr, "..", &mut applicability).maybe_paren();
+        let init_expr_str =
+            Sugg::hir_with_context(cx, init_expr, stmt.span.ctxt(), "..", &mut applicability).maybe_paren();
         // Take care when binding is `ref`
         let sugg = if let PatKind::Binding(
             BindingMode(ByRef::Yes(_, ref_mutability), binding_mutability),
