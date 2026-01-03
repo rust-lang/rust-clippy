@@ -243,7 +243,6 @@ mod multiple_unsafe_ops_per_block;
 mod mut_key;
 mod mut_mut;
 mod mutable_debug_assertion;
-mod mutex_atomic;
 mod needless_arbitrary_self_type;
 mod needless_bool;
 mod needless_borrowed_ref;
@@ -318,6 +317,7 @@ mod replace_box;
 mod reserve_after_initialization;
 mod return_self_not_must_use;
 mod returns;
+mod rwlock_mutex_atomic;
 mod same_length_and_capacity;
 mod same_name_method;
 mod self_named_constructors;
@@ -587,7 +587,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::new(entry::HashMapPass)),
         Box::new(|_| Box::new(minmax::MinMaxPass)),
         Box::new(|_| Box::new(zero_div_zero::ZeroDiv)),
-        Box::new(|_| Box::new(mutex_atomic::Mutex)),
+        Box::new(|_| Box::new(rwlock_mutex_atomic::SyncGuard)),
         Box::new(|_| Box::new(needless_update::NeedlessUpdate)),
         Box::new(|_| Box::new(needless_borrowed_ref::NeedlessBorrowedRef)),
         Box::new(|_| Box::new(borrow_deref_ref::BorrowDerefRef)),
