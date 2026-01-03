@@ -4,6 +4,7 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in 0..vec.len() {
    |              ^^^^^^^^^^^^
    |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
    = note: `-D clippy::needless-range-loop` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::needless_range_loop)]`
 help: consider using an iterator
@@ -18,6 +19,7 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in 0..vec.len() {
    |              ^^^^^^^^^^^^
    |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
 help: consider using an iterator
    |
 LL -     for i in 0..vec.len() {
@@ -30,6 +32,7 @@ error: the loop variable `j` is only used to index `STATIC`
 LL |     for j in 0..4 {
    |              ^^^^
    |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
 help: consider using an iterator
    |
 LL -     for j in 0..4 {
@@ -42,6 +45,7 @@ error: the loop variable `j` is only used to index `CONST`
 LL |     for j in 0..4 {
    |              ^^^^
    |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
 help: consider using an iterator
    |
 LL -     for j in 0..4 {
@@ -66,10 +70,11 @@ error: the loop variable `i` is only used to index `vec2`
 LL |     for i in 0..vec.len() {
    |              ^^^^^^^^^^^^
    |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
 help: consider using an iterator
    |
 LL -     for i in 0..vec.len() {
-LL +     for <item> in vec2.iter().take(vec.len()) {
+LL +     for <item> in vec2[..vec.len()].iter() {
    |
 
 error: the loop variable `i` is only used to index `vec`
@@ -78,6 +83,7 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in 5..vec.len() {
    |              ^^^^^^^^^^^^
    |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
 help: consider using an iterator
    |
 LL -     for i in 5..vec.len() {
@@ -90,10 +96,11 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in 0..MAX_LEN {
    |              ^^^^^^^^^^
    |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
 help: consider using an iterator
    |
 LL -     for i in 0..MAX_LEN {
-LL +     for <item> in vec.iter().take(MAX_LEN) {
+LL +     for <item> in vec[..MAX_LEN].iter() {
    |
 
 error: the loop variable `i` is only used to index `vec`
@@ -102,10 +109,11 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in 0..=MAX_LEN {
    |              ^^^^^^^^^^^
    |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
 help: consider using an iterator
    |
 LL -     for i in 0..=MAX_LEN {
-LL +     for <item> in vec.iter().take(MAX_LEN + 1) {
+LL +     for <item> in vec[..MAX_LEN].iter() {
    |
 
 error: the loop variable `i` is only used to index `vec`
@@ -114,10 +122,11 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in 5..10 {
    |              ^^^^^
    |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
 help: consider using an iterator
    |
 LL -     for i in 5..10 {
-LL +     for <item> in vec.iter().take(10).skip(5) {
+LL +     for <item> in vec[..10].iter().skip(5) {
    |
 
 error: the loop variable `i` is only used to index `vec`
@@ -126,10 +135,11 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in 5..=10 {
    |              ^^^^^^
    |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
 help: consider using an iterator
    |
 LL -     for i in 5..=10 {
-LL +     for <item> in vec.iter().take(10 + 1).skip(5) {
+LL +     for <item> in vec[..10].iter().skip(5) {
    |
 
 error: the loop variable `i` is used to index `vec`
@@ -186,10 +196,11 @@ error: the loop variable `i` is only used to index `a`
 LL |     for i in 0..MAX_LEN {
    |              ^^^^^^^^^^
    |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
 help: consider using an iterator
    |
 LL -     for i in 0..MAX_LEN {
-LL +     for <item> in a.iter().take(MAX_LEN) {
+LL +     for <item> in a[..MAX_LEN].iter() {
    |
 
 error: aborting due to 16 previous errors
