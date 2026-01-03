@@ -1,0 +1,35 @@
+error: redundant pattern matching, consider using `is_some()`
+  --> tests/ui/redundant_pattern_matching_complex.rs:33:12
+   |
+LL |     if let Some((_, _)) = foo {}
+   |     -------^^^^^^^^^^^^------ help: try: `if foo.is_some()`
+   |
+   = note: `-D clippy::redundant-pattern-matching-complex` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::redundant_pattern_matching_complex)]`
+
+error: redundant pattern matching, consider using `is_some()`
+  --> tests/ui/redundant_pattern_matching_complex.rs:35:12
+   |
+LL |     if let Some(Baz::Qux) = bar {}
+   |     -------^^^^^^^^^^^^^^------ help: try: `if bar.is_some()`
+
+error: redundant pattern matching, consider using `is_some()`
+  --> tests/ui/redundant_pattern_matching_complex.rs:37:12
+   |
+LL |     if let Some(Quux { corge: _ }) = grault {}
+   |     -------^^^^^^^^^^^^^^^^^^^^^^^--------- help: try: `if grault.is_some()`
+
+error: redundant pattern matching, consider using `is_some()`
+  --> tests/ui/redundant_pattern_matching_complex.rs:44:12
+   |
+LL |     if let Some([..]) = Some([1, 3]) {}
+   |     -------^^^^^^^^^^--------------- help: try: `if Some([1, 3]).is_some()`
+
+error: redundant pattern matching, consider using `is_some()`
+  --> tests/ui/redundant_pattern_matching_complex.rs:46:12
+   |
+LL |     if let Some([]) = Some(&[1, 3] as &[i32]) {}
+   |     -------^^^^^^^^-------------------------- help: try: `if Some(&[1, 3] as &[i32]).is_some()`
+
+error: aborting due to 5 previous errors
+

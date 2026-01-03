@@ -6881,6 +6881,7 @@ Released 2018-09-13
 [`redundant_locals`]: https://rust-lang.github.io/rust-clippy/master/index.html#redundant_locals
 [`redundant_pattern`]: https://rust-lang.github.io/rust-clippy/master/index.html#redundant_pattern
 [`redundant_pattern_matching`]: https://rust-lang.github.io/rust-clippy/master/index.html#redundant_pattern_matching
+[`redundant_pattern_matching_complex`]: https://rust-lang.github.io/rust-clippy/master/index.html#redundant_pattern_matching_complex
 [`redundant_pub_crate`]: https://rust-lang.github.io/rust-clippy/master/index.html#redundant_pub_crate
 [`redundant_slicing`]: https://rust-lang.github.io/rust-clippy/master/index.html#redundant_slicing
 [`redundant_static_lifetimes`]: https://rust-lang.github.io/rust-clippy/master/index.html#redundant_static_lifetimes
