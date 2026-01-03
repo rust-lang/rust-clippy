@@ -224,5 +224,19 @@ LL +         None => Ok(Ok(0)),
 LL +     }?
    |
 
-error: aborting due to 15 previous errors
+error: returning the result of a `let` binding from a block
+  --> tests/ui/let_and_return.rs:282:9
+   |
+LL |         let x = Box::new(Clone::clone(&x));
+   |         ----------------------------------- unnecessary `let` binding
+LL |         x
+   |         ^
+   |
+help: return the expression directly
+   |
+LL ~         
+LL ~         (Box::new(Clone::clone(&x))) as _
+   |
+
+error: aborting due to 16 previous errors
 
