@@ -2,12 +2,16 @@ use clippy_config::Conf;
 use clippy_config::types::{DisallowedPath, create_disallowed_map};
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::paths::PathNS;
+use clippy_utils::source::snippet_with_applicability;
+use rustc_errors::Applicability;
 use rustc_hir::def::{CtorKind, DefKind, Res};
 use rustc_hir::def_id::DefIdMap;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::TyCtxt;
 use rustc_session::impl_lint_pass;
+
+use std::borrow::Cow;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -34,6 +38,15 @@ declare_clippy_lint! {
     ///     { path = "std::vec::Vec::leak", reason = "no leaking memory" },
     ///     # Can also add a `replacement` that will be offered as a suggestion.
     ///     { path = "std::sync::Mutex::new", reason = "prefer faster & simpler non-poisonable mutex", replacement = "parking_lot::Mutex::new" },
+    ///     # Replacement can be specified as a bare name. If you do this, the method name will be
+    ///     # replaced without altering the rest of the call.
+    ///     #     self.bad_method() becomes self.good_method()
+    ///     #     Type::bad_method() becomes Type::good_method()
+    ///     { path = "crate::Type::bad_method", replacement = "good_method" }
+    ///     # If replacement is specifed as a full path, the call will be converted to a fully-qualified call.
+    ///     #     self.evil_method() becomes crate::free_function(self)
+    ///     #     Type::evil_method() becomes crate::free_function()
+    ///     { path = "crate::Type::evil_method", replacement = "crate::free_function" }
     ///     # This would normally error if the path is incorrect, but with `allow-invalid` = `true`,
     ///     # it will be silently ignored
     ///     { path = "std::fs::InvalidPath", reason = "use alternative instead", allow-invalid = true },
@@ -92,8 +105,70 @@ impl<'tcx> LateLintPass<'tcx> for DisallowedMethods {
             return;
         }
         let (id, span) = match &expr.kind {
-            ExprKind::Path(path) if let Res::Def(_, id) = cx.qpath_res(path, expr.hir_id) => (id, expr.span),
-            ExprKind::MethodCall(name, ..) if let Some(id) = cx.typeck_results().type_dependent_def_id(expr.hir_id) => {
+            ExprKind::Path(call_path) if let Res::Def(_, id) = cx.qpath_res(call_path, expr.hir_id) => {
+                if let Some(&(path, disallowed_path)) = self.disallowed.get(&id)
+                    && let Some(replacement) = disallowed_path.replacement()
+                    && !replacement.contains("::")
+                    && let &rustc_hir::QPath::Resolved(
+                        _,
+                        &rustc_hir::Path {
+                            segments: &[.., method_name_in_call],
+                            ..
+                        },
+                    )
+                    | &rustc_hir::QPath::TypeRelative(_, &method_name_in_call) = call_path
+                {
+                    // FQP method call with non-fully-qualified replacement.
+                    // To support this, we need to only replace the last node in the path, not the whole thing.
+                    span_lint_and_then(
+                        cx,
+                        DISALLOWED_METHODS,
+                        expr.span,
+                        format!("use of a disallowed method `{path}`"),
+                        disallowed_path.diag_amendment(method_name_in_call.ident.span, Applicability::MaybeIncorrect),
+                    );
+                    return;
+                }
+                (id, expr.span)
+            },
+            ExprKind::MethodCall(name, self_expr, params_exprs, call_span)
+                if let Some(id) = cx.typeck_results().type_dependent_def_id(expr.hir_id) =>
+            {
+                if let Some(&(path, disallowed_path)) = self.disallowed.get(&id)
+                    && let Some(replacement) = disallowed_path.replacement()
+                    && replacement.contains("::")
+                {
+                    span_lint_and_then(
+                        cx,
+                        DISALLOWED_METHODS,
+                        name.ident.span,
+                        format!("use of a disallowed method `{path}`"),
+                        |diag| {
+                            // FnCtxt is not exported, so we cannot use its `lookup_method` method.
+                            // Instead, we convert to a FQP if the user supplies a `::` path here.
+                            // Not MachineApplicable because adjustments (auto deref etc) aren't handled.
+                            let mut applicability = Applicability::MaybeIncorrect;
+                            let self_snippet = snippet_with_applicability(cx, self_expr.span, "..", &mut applicability);
+                            let (comma, params_snippet) = if let (Some(first), Some(last)) =
+                                (params_exprs.first(), params_exprs.last())
+                            {
+                                (
+                                    ", ",
+                                    snippet_with_applicability(cx, first.span.to(last.span), "..", &mut applicability),
+                                )
+                            } else {
+                                ("", Cow::default())
+                            };
+                            diag.span_suggestion(
+                                self_expr.span.to(*call_span),
+                                disallowed_path.reason(),
+                                format!("{replacement}({self_snippet}{comma}{params_snippet})"),
+                                applicability,
+                            );
+                        },
+                    );
+                    return;
+                }
                 (id, name.ident.span)
             },
             _ => return,
@@ -104,7 +179,7 @@ impl<'tcx> LateLintPass<'tcx> for DisallowedMethods {
                 DISALLOWED_METHODS,
                 span,
                 format!("use of a disallowed method `{path}`"),
-                disallowed_path.diag_amendment(span),
+                disallowed_path.diag_amendment(span, Applicability::MaybeIncorrect),
             );
         }
     }
