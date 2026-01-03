@@ -1,0 +1,229 @@
+error: casting `usize` to `u8`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:11:13
+   |
+LL |     let _ = x as u8;
+   |             ^^^^^^^
+   |
+   = help: `usize` varies in size depending on the target, so casting to `u8` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+   = note: `-D clippy::cast-ptr-sized-int` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::cast_ptr_sized_int)]`
+
+error: casting `usize` to `u16`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:12:13
+   |
+LL |     let _ = x as u16;
+   |             ^^^^^^^^
+   |
+   = help: `usize` varies in size depending on the target, so casting to `u16` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `usize` to `u32`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:13:13
+   |
+LL |     let _ = x as u32;
+   |             ^^^^^^^^
+   |
+   = help: `usize` varies in size depending on the target, so casting to `u32` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `usize` to `i8`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:14:13
+   |
+LL |     let _ = x as i8;
+   |             ^^^^^^^
+   |
+   = help: `usize` varies in size depending on the target, so casting to `i8` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `usize` to `i16`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:15:13
+   |
+LL |     let _ = x as i16;
+   |             ^^^^^^^^
+   |
+   = help: `usize` varies in size depending on the target, so casting to `i16` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `usize` to `i32`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:16:13
+   |
+LL |     let _ = x as i32;
+   |             ^^^^^^^^
+   |
+   = help: `usize` varies in size depending on the target, so casting to `i32` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `isize` to `u8`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:21:13
+   |
+LL |     let _ = y as u8;
+   |             ^^^^^^^
+   |
+   = help: `isize` varies in size depending on the target, so casting to `u8` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `isize` to `u16`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:22:13
+   |
+LL |     let _ = y as u16;
+   |             ^^^^^^^^
+   |
+   = help: `isize` varies in size depending on the target, so casting to `u16` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `isize` to `u32`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:23:13
+   |
+LL |     let _ = y as u32;
+   |             ^^^^^^^^
+   |
+   = help: `isize` varies in size depending on the target, so casting to `u32` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `isize` to `i8`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:24:13
+   |
+LL |     let _ = y as i8;
+   |             ^^^^^^^
+   |
+   = help: `isize` varies in size depending on the target, so casting to `i8` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `isize` to `i16`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:25:13
+   |
+LL |     let _ = y as i16;
+   |             ^^^^^^^^
+   |
+   = help: `isize` varies in size depending on the target, so casting to `i16` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `isize` to `i32`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:26:13
+   |
+LL |     let _ = y as i32;
+   |             ^^^^^^^^
+   |
+   = help: `isize` varies in size depending on the target, so casting to `i32` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `u32` to `usize`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:32:13
+   |
+LL |     let _ = c as usize;
+   |             ^^^^^^^^^^
+   |
+   = help: `usize` varies in size depending on the target, so casting from `u32` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `u64` to `usize`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:33:13
+   |
+LL |     let _ = d as usize;
+   |             ^^^^^^^^^^
+   |
+   = help: `usize` varies in size depending on the target, so casting from `u64` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `u128` to `usize`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:34:13
+   |
+LL |     let _ = e as usize;
+   |             ^^^^^^^^^^
+   |
+   = help: `usize` varies in size depending on the target, so casting from `u128` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `i32` to `usize`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:39:13
+   |
+LL |     let _ = h as usize;
+   |             ^^^^^^^^^^
+   |
+   = help: `usize` varies in size depending on the target, so casting from `i32` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `i64` to `usize`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:40:13
+   |
+LL |     let _ = i as usize;
+   |             ^^^^^^^^^^
+   |
+   = help: `usize` varies in size depending on the target, so casting from `i64` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `i128` to `usize`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:41:13
+   |
+LL |     let _ = j as usize;
+   |             ^^^^^^^^^^
+   |
+   = help: `usize` varies in size depending on the target, so casting from `i128` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `u32` to `isize`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:43:13
+   |
+LL |     let _ = c as isize;
+   |             ^^^^^^^^^^
+   |
+   = help: `isize` varies in size depending on the target, so casting from `u32` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `u64` to `isize`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:44:13
+   |
+LL |     let _ = d as isize;
+   |             ^^^^^^^^^^
+   |
+   = help: `isize` varies in size depending on the target, so casting from `u64` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `u128` to `isize`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:45:13
+   |
+LL |     let _ = e as isize;
+   |             ^^^^^^^^^^
+   |
+   = help: `isize` varies in size depending on the target, so casting from `u128` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `i32` to `isize`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:46:13
+   |
+LL |     let _ = h as isize;
+   |             ^^^^^^^^^^
+   |
+   = help: `isize` varies in size depending on the target, so casting from `i32` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `i64` to `isize`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:47:13
+   |
+LL |     let _ = i as isize;
+   |             ^^^^^^^^^^
+   |
+   = help: `isize` varies in size depending on the target, so casting from `i64` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `i128` to `isize`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:48:13
+   |
+LL |     let _ = j as isize;
+   |             ^^^^^^^^^^
+   |
+   = help: `isize` varies in size depending on the target, so casting from `i128` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: casting `usize` to `i64`: the behavior depends on the target pointer width
+  --> tests/ui/cast_ptr_sized_int.rs:51:13
+   |
+LL |     let _ = x as i64;
+   |             ^^^^^^^^
+   |
+   = help: `usize` varies in size depending on the target, so casting to `i64` may produce different results across platforms
+   = help: consider using `TryFrom` or `TryInto` for explicit fallible conversions
+
+error: aborting due to 25 previous errors
+
