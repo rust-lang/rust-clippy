@@ -48,5 +48,21 @@ LL |     let _ = (f32::INFINITY / f32::NEG_INFINITY) as usize;
    |
    = note: this always evaluates to 0
 
-error: aborting due to 6 previous errors
+error: casting a known NaN to usize
+  --> tests/ui/cast_nan_to_int.rs:25:13
+   |
+LL |     let _ = f16::NAN as usize;
+   |             ^^^^^^^^^^^^^^^^^
+   |
+   = note: this always evaluates to 0
+
+error: casting a known NaN to u128
+  --> tests/ui/cast_nan_to_int.rs:28:13
+   |
+LL |     let _ = f128::NAN as u128;
+   |             ^^^^^^^^^^^^^^^^^
+   |
+   = note: this always evaluates to 0
+
+error: aborting due to 8 previous errors
 
