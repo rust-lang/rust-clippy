@@ -7,6 +7,7 @@
 #![warn(clippy::large_futures)]
 
 async fn big_fut(_arg: [u8; 1024 * 16]) {}
+//~^ large_futures
 
 async fn wait() {
     let f = async {
@@ -45,16 +46,17 @@ pub fn foo() -> impl std::future::Future<Output = ()> {
         async {}.await;
         dbg!(x);
     }
+    //~^ large_futures
 }
 
 pub async fn lines() {
     async {
-        //~^ large_futures
-
         let x = [0i32; 1024 * 16];
         async {}.await;
+
         println!("{:?}", x);
     }
+    //~^ large_futures
     .await;
 }
 
@@ -62,7 +64,6 @@ pub async fn macro_expn() {
     macro_rules! macro_ {
         () => {
             async {
-                //~^ large_futures
                 let x = [0i32; 1024 * 16];
                 async {}.await;
                 println!("macro: {:?}", x);
@@ -71,5 +72,6 @@ pub async fn macro_expn() {
     }
     macro_!().await
 }
+//~^ large_futures
 
 fn main() {}
