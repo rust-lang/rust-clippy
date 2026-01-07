@@ -301,7 +301,8 @@ fn local_item_child_by_name(tcx: TyCtxt<'_>, local_id: LocalDefId, ns: PathNS, n
                         PathNS::Type => opt_def_id(path.res.type_ns),
                         PathNS::Value => opt_def_id(path.res.value_ns),
                         PathNS::Macro => opt_def_id(path.res.macro_ns),
-                        PathNS::Arbitrary | PathNS::Field => unreachable!(),
+                        PathNS::Field => None,
+                        PathNS::Arbitrary => unreachable!(),
                     }
                 } else {
                     None
