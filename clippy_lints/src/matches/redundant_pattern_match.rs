@@ -1,4 +1,5 @@
-use super::REDUNDANT_PATTERN_MATCHING;
+#![allow(clippy::enum_glob_use)]
+use super::{REDUNDANT_PATTERN_MATCHING, REDUNDANT_PATTERN_MATCHING_COMPLEX};
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
 use clippy_utils::sugg::{Sugg, make_unop};
@@ -9,7 +10,7 @@ use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::LangItem::{self, OptionNone, OptionSome, PollPending, PollReady, ResultErr, ResultOk};
 use rustc_hir::def::{DefKind, Res};
-use rustc_hir::{Arm, Expr, ExprKind, Node, Pat, PatExpr, PatExprKind, PatKind, QPath, UnOp};
+use rustc_hir::{Arm, Expr, ExprKind, Node, Pat, PatExpr, PatExprKind, PatKind, Path, QPath, UnOp};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, GenericArgKind, Ty};
 use rustc_span::{Span, Symbol};
@@ -115,33 +116,96 @@ fn try_get_generic_ty(ty: Ty<'_>, index: usize) -> Option<Ty<'_>> {
         None
     }
 }
+#[derive(Clone, Copy)]
+pub enum PatternKind {
+    // if the pattern is just a single wildcard
+    Wildcard,
+    Complex,
+}
 
+fn is_infalliable(pat: &Pat<'_>, cx: &LateContext<'_>) -> Option<PatternKind> {
+    use PatKind::*;
+    if let Wild = pat.kind {
+        Some(PatternKind::Wildcard)
+    } else if pat.walk_short(|pat| match pat.kind {
+        Expr(PatExpr {
+            hir_id: _,
+            span: _,
+            kind:
+                PatExprKind::Path(QPath::Resolved(
+                    _,
+                    Path {
+                        res: Res::Def(DefKind::Struct | DefKind::Variant | DefKind::Enum | DefKind::Ctor(..), did),
+                        ..
+                    },
+                )),
+        })
+        | TupleStruct(
+            QPath::Resolved(
+                _,
+                Path {
+                    res: Res::Def(DefKind::Struct | DefKind::Variant | DefKind::Enum | DefKind::Ctor(..), did),
+                    ..
+                },
+            ),
+            _,
+            _,
+        )
+        | Struct(
+            QPath::Resolved(
+                _,
+                Path {
+                    res: Res::Def(DefKind::Struct | DefKind::Variant | DefKind::Enum | DefKind::Ctor(..), did),
+                    ..
+                },
+            ),
+            _,
+            _,
+        ) => {
+            let mut did = *did;
+            while ![DefKind::Enum, DefKind::Struct].contains(&cx.tcx.def_kind(did)) {
+                did = did.opt_parent(&cx.tcx).unwrap_or(did);
+            }
+            let adt_def = cx.tcx.adt_def(did);
+            (adt_def.is_enum() && adt_def.variants().len() == 1) || adt_def.is_struct()
+        },
+        Expr(..) | Range(..) | Binding(..) | Err(_) | Guard(..) => false,
+        // for slices we have to account for the length, because thats what distinguishes each slice
+        Slice(s1, _dotdotlike, s2) => s1.is_empty() && s2.is_empty(),
+
+        _ => true,
+    }) {
+        Some(PatternKind::Complex)
+    } else {
+        None
+    }
+}
 fn find_method_and_type<'tcx>(
     cx: &LateContext<'tcx>,
     check_pat: &Pat<'_>,
     op_ty: Ty<'tcx>,
-) -> Option<(&'static str, Ty<'tcx>)> {
+) -> Option<(&'static str, Ty<'tcx>, PatternKind)> {
     match check_pat.kind {
         PatKind::TupleStruct(ref qpath, args, rest) => {
-            let is_wildcard = matches!(args.first().map(|p| &p.kind), Some(PatKind::Wild));
+            let is_wildcard = args.first().and_then(|pat| is_infalliable(pat, cx));
             let is_rest = matches!((args, rest.as_opt_usize()), ([], Some(_)));
 
-            if is_wildcard || is_rest {
+            if let Some(kind) = is_wildcard.or(is_rest.then_some(PatternKind::Wildcard)) {
                 let res = cx.typeck_results().qpath_res(qpath, check_pat.hir_id);
                 let id = res.opt_def_id().map(|ctor_id| cx.tcx.parent(ctor_id))?;
                 let lang_items = cx.tcx.lang_items();
                 if Some(id) == lang_items.result_ok_variant() {
-                    Some(("is_ok()", try_get_generic_ty(op_ty, 0).unwrap_or(op_ty)))
+                    Some(("is_ok()", try_get_generic_ty(op_ty, 0).unwrap_or(op_ty), kind))
                 } else if Some(id) == lang_items.result_err_variant() {
-                    Some(("is_err()", try_get_generic_ty(op_ty, 1).unwrap_or(op_ty)))
+                    Some(("is_err()", try_get_generic_ty(op_ty, 1).unwrap_or(op_ty), kind))
                 } else if Some(id) == lang_items.option_some_variant() {
-                    Some(("is_some()", op_ty))
+                    Some(("is_some()", op_ty, kind))
                 } else if Some(id) == lang_items.poll_ready_variant() {
-                    Some(("is_ready()", op_ty))
+                    Some(("is_ready()", op_ty, kind))
                 } else if is_pat_variant(cx, check_pat, qpath, Item::Diag(sym::IpAddr, sym::V4)) {
-                    Some(("is_ipv4()", op_ty))
+                    Some(("is_ipv4()", op_ty, kind))
                 } else if is_pat_variant(cx, check_pat, qpath, Item::Diag(sym::IpAddr, sym::V6)) {
-                    Some(("is_ipv6()", op_ty))
+                    Some(("is_ipv6()", op_ty, kind))
                 } else {
                     None
                 }
@@ -165,7 +229,7 @@ fn find_method_and_type<'tcx>(
                     return None;
                 };
                 // `None` and `Pending` don't have an inner type.
-                Some((method, cx.tcx.types.unit))
+                Some((method, cx.tcx.types.unit, PatternKind::Wildcard))
             } else {
                 None
             }
@@ -192,7 +256,7 @@ fn find_method_sugg_for_if_let<'tcx>(
     let op_ty = cx.typeck_results().expr_ty(let_expr);
     // Determine which function should be used, and the type contained by the corresponding
     // variant.
-    let Some((good_method, inner_ty)) = find_method_and_type(cx, check_pat, op_ty) else {
+    let Some((good_method, inner_ty, kind)) = find_method_and_type(cx, check_pat, op_ty) else {
         return;
     };
 
@@ -230,7 +294,11 @@ fn find_method_sugg_for_if_let<'tcx>(
 
     span_lint_and_then(
         cx,
-        REDUNDANT_PATTERN_MATCHING,
+        if matches!(kind, PatternKind::Wildcard) {
+            REDUNDANT_PATTERN_MATCHING
+        } else {
+            REDUNDANT_PATTERN_MATCHING_COMPLEX
+        },
         let_pat.span,
         format!("redundant pattern matching, consider using `{good_method}`"),
         |diag| {
@@ -243,7 +311,7 @@ fn find_method_sugg_for_if_let<'tcx>(
             // ^^^^^^^^^^^^^^^^^^^^^^
             let span = expr_span.until(let_span.shrink_to_hi());
 
-            let mut app = if needs_drop {
+            let mut app = if needs_drop || matches!(kind, PatternKind::Complex) {
                 Applicability::MaybeIncorrect
             } else {
                 Applicability::MachineApplicable
@@ -259,13 +327,14 @@ fn find_method_sugg_for_if_let<'tcx>(
                 diag.note("this will change drop order of the result, as well as all temporaries");
                 diag.note("add `#[allow(clippy::redundant_pattern_matching)]` if this is important");
             }
+            // TODO: for complex patterns do we need a note if its opt in?
         },
     );
 }
 
 pub(super) fn check_match<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, op: &Expr<'_>, arms: &[Arm<'_>]) {
     if let Ok(arms) = arms.try_into() // TODO: use `slice::as_array` once stabilized
-        && let Some((good_method, maybe_guard)) = found_good_method(cx, arms)
+        && let Some((good_method, maybe_guard, kind)) = found_good_method(cx, arms)
     {
         let span = is_expn_of(expr.span, sym::matches).unwrap_or(expr.span.to(op.span));
         let result_expr = match &op.kind {
@@ -302,7 +371,11 @@ pub(super) fn check_match<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, op
 
         span_lint_and_sugg(
             cx,
-            REDUNDANT_PATTERN_MATCHING,
+            if matches!(kind, PatternKind::Wildcard) {
+                REDUNDANT_PATTERN_MATCHING
+            } else {
+                REDUNDANT_PATTERN_MATCHING_COMPLEX
+            },
             span,
             format!("redundant pattern matching, consider using `{good_method}`"),
             "try",
@@ -315,10 +388,12 @@ pub(super) fn check_match<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, op
 fn found_good_method<'tcx>(
     cx: &LateContext<'_>,
     arms: &'tcx [Arm<'tcx>; 2],
-) -> Option<(&'static str, Option<&'tcx Expr<'tcx>>)> {
+) -> Option<(&'static str, Option<&'tcx Expr<'tcx>>, PatternKind)> {
     match (&arms[0].pat.kind, &arms[1].pat.kind) {
         (PatKind::TupleStruct(path_left, [pattern_left], _), PatKind::TupleStruct(path_right, [pattern_right], _)) => {
-            if let (PatKind::Wild, PatKind::Wild) = (&pattern_left.kind, &pattern_right.kind) {
+            if let Some(left_kind) = is_infalliable(pattern_left, cx)
+                && let Some(right_kind) = is_infalliable(pattern_right, cx)
+            {
                 find_good_method_for_match(
                     cx,
                     arms,
@@ -328,6 +403,8 @@ fn found_good_method<'tcx>(
                     Item::Lang(ResultErr),
                     "is_ok()",
                     "is_err()",
+                    left_kind,
+                    right_kind,
                 )
                 .or_else(|| {
                     find_good_method_for_match(
@@ -339,6 +416,8 @@ fn found_good_method<'tcx>(
                         Item::Diag(sym::IpAddr, sym::V6),
                         "is_ipv4()",
                         "is_ipv6()",
+                        left_kind,
+                        right_kind,
                     )
                 })
             } else {
@@ -359,7 +438,7 @@ fn found_good_method<'tcx>(
             }),
             PatKind::TupleStruct(path_right, [pattern], _),
         ) => {
-            if let PatKind::Wild = pattern.kind {
+            if let Some(kind) = is_infalliable(pattern, cx) {
                 find_good_method_for_match(
                     cx,
                     arms,
@@ -369,6 +448,8 @@ fn found_good_method<'tcx>(
                     Item::Lang(OptionNone),
                     "is_some()",
                     "is_none()",
+                    kind,
+                    PatternKind::Wildcard,
                 )
                 .or_else(|| {
                     find_good_method_for_match(
@@ -380,15 +461,19 @@ fn found_good_method<'tcx>(
                         Item::Lang(PollPending),
                         "is_ready()",
                         "is_pending()",
+                        kind,
+                        PatternKind::Wildcard,
                     )
                 })
             } else {
                 None
             }
         },
-        (PatKind::TupleStruct(path_left, [pattern], _), PatKind::Wild) => {
-            if let PatKind::Wild = pattern.kind {
-                get_good_method(cx, arms, path_left)
+        (PatKind::TupleStruct(path_left, [pattern], _), _)
+            if let Some(right_kind) = is_infalliable(arms[1].pat, cx) =>
+        {
+            if let Some(left_kind) = is_infalliable(pattern, cx) {
+                get_good_method(cx, arms, path_left, left_kind, right_kind)
             } else {
                 None
             }
@@ -398,8 +483,10 @@ fn found_good_method<'tcx>(
                 kind: PatExprKind::Path(path_left),
                 ..
             }),
-            PatKind::Wild,
-        ) => get_good_method(cx, arms, path_left),
+            _,
+        ) if let Some(right_kind) = is_infalliable(arms[1].pat, cx) => {
+            get_good_method(cx, arms, path_left, PatternKind::Wildcard, right_kind)
+        },
         _ => None,
     }
 }
@@ -418,7 +505,9 @@ fn get_good_method<'tcx>(
     cx: &LateContext<'_>,
     arms: &'tcx [Arm<'tcx>; 2],
     path_left: &QPath<'_>,
-) -> Option<(&'static str, Option<&'tcx Expr<'tcx>>)> {
+    left_kind: PatternKind,
+    right_kind: PatternKind,
+) -> Option<(&'static str, Option<&'tcx Expr<'tcx>>, PatternKind)> {
     let ident = get_ident(path_left)?;
 
     let (expected_item_left, should_be_left, should_be_right) = match ident.name {
@@ -432,7 +521,16 @@ fn get_good_method<'tcx>(
         sym::V6 => (Item::Diag(sym::IpAddr, sym::V6), "is_ipv6()", "is_ipv4()"),
         _ => return None,
     };
-    find_good_method_for_matches_macro(cx, arms, path_left, expected_item_left, should_be_left, should_be_right)
+    find_good_method_for_matches_macro(
+        cx,
+        arms,
+        path_left,
+        expected_item_left,
+        should_be_left,
+        should_be_right,
+        left_kind,
+        right_kind,
+    )
 }
 
 #[derive(Clone, Copy)]
@@ -479,7 +577,9 @@ fn find_good_method_for_match<'a, 'tcx>(
     expected_item_right: Item,
     should_be_left: &'a str,
     should_be_right: &'a str,
-) -> Option<(&'a str, Option<&'tcx Expr<'tcx>>)> {
+    left_kind: PatternKind,
+    right_kind: PatternKind,
+) -> Option<(&'a str, Option<&'tcx Expr<'tcx>>, PatternKind)> {
     let first_pat = arms[0].pat;
     let second_pat = arms[1].pat;
 
@@ -497,14 +597,15 @@ fn find_good_method_for_match<'a, 'tcx>(
 
     match body_node_pair {
         (ExprKind::Lit(lit_left), ExprKind::Lit(lit_right)) => match (&lit_left.node, &lit_right.node) {
-            (LitKind::Bool(true), LitKind::Bool(false)) => Some((should_be_left, arms[0].guard)),
-            (LitKind::Bool(false), LitKind::Bool(true)) => Some((should_be_right, arms[1].guard)),
+            (LitKind::Bool(true), LitKind::Bool(false)) => Some((should_be_left, arms[0].guard, left_kind)),
+            (LitKind::Bool(false), LitKind::Bool(true)) => Some((should_be_right, arms[1].guard, right_kind)),
             _ => None,
         },
         _ => None,
     }
 }
 
+#[expect(clippy::too_many_arguments)]
 fn find_good_method_for_matches_macro<'a, 'tcx>(
     cx: &LateContext<'_>,
     arms: &'tcx [Arm<'tcx>; 2],
@@ -512,7 +613,9 @@ fn find_good_method_for_matches_macro<'a, 'tcx>(
     expected_item_left: Item,
     should_be_left: &'a str,
     should_be_right: &'a str,
-) -> Option<(&'a str, Option<&'tcx Expr<'tcx>>)> {
+    left_kind: PatternKind,
+    right_kind: PatternKind,
+) -> Option<(&'a str, Option<&'tcx Expr<'tcx>>, PatternKind)> {
     let first_pat = arms[0].pat;
 
     let body_node_pair = if is_pat_variant(cx, first_pat, path_left, expected_item_left) {
@@ -523,8 +626,8 @@ fn find_good_method_for_matches_macro<'a, 'tcx>(
 
     match body_node_pair {
         (ExprKind::Lit(lit_left), ExprKind::Lit(lit_right)) => match (&lit_left.node, &lit_right.node) {
-            (LitKind::Bool(true), LitKind::Bool(false)) => Some((should_be_left, arms[0].guard)),
-            (LitKind::Bool(false), LitKind::Bool(true)) => Some((should_be_right, arms[1].guard)),
+            (LitKind::Bool(true), LitKind::Bool(false)) => Some((should_be_left, arms[0].guard, left_kind)),
+            (LitKind::Bool(false), LitKind::Bool(true)) => Some((should_be_right, arms[1].guard, right_kind)),
             _ => None,
         },
         _ => None,
