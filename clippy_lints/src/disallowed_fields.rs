@@ -2,11 +2,12 @@ use clippy_config::Conf;
 use clippy_config::types::{DisallowedPath, create_disallowed_map};
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::paths::PathNS;
+use clippy_utils::ty::get_field_def_id_by_name;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefIdMap;
 use rustc_hir::{Expr, ExprKind, Pat, PatKind};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::{self, TyCtxt};
+use rustc_middle::ty::TyCtxt;
 use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
@@ -84,14 +85,7 @@ impl<'tcx> LateLintPass<'tcx> for DisallowedFields {
                 // parent `Ty`. Then we go through all its fields to find the one with the expected
                 // name and get the `DefId` from it.
                 if let Some(parent_ty) = cx.typeck_results().expr_ty_adjusted_opt(e)
-                    && let ty::Adt(adt_def, ..) = parent_ty.kind()
-                    && let Some(field_def_id) = adt_def.all_fields().find_map(|field| {
-                        if field.name == ident.name {
-                            Some(field.did)
-                        } else {
-                            None
-                        }
-                    })
+                    && let Some(field_def_id) = get_field_def_id_by_name(parent_ty, ident.name)
                 {
                     (field_def_id, ident.span)
                 } else {
