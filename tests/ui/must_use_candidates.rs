@@ -102,3 +102,13 @@ pub extern "C" fn unmangled(i: bool) -> bool {
 fn main() {
     assert_eq!(1, pure(1));
 }
+
+//~v must_use_candidate
+pub fn result_uninhabited() -> Result<i32, std::convert::Infallible> {
+    todo!()
+}
+
+//~v must_use_candidate
+pub fn controlflow_uninhabited() -> std::ops::ControlFlow<std::convert::Infallible, i32> {
+    todo!()
+}
