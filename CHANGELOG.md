@@ -6914,6 +6914,8 @@ Released 2018-09-13
 [`return_self_not_must_use`]: https://rust-lang.github.io/rust-clippy/master/index.html#return_self_not_must_use
 [`reverse_range_loop`]: https://rust-lang.github.io/rust-clippy/master/index.html#reverse_range_loop
 [`reversed_empty_ranges`]: https://rust-lang.github.io/rust-clippy/master/index.html#reversed_empty_ranges
+[`rwlock_atomic`]: https://rust-lang.github.io/rust-clippy/master/index.html#rwlock_atomic
+[`rwlock_integer`]: https://rust-lang.github.io/rust-clippy/master/index.html#rwlock_integer
 [`same_functions_in_if_condition`]: https://rust-lang.github.io/rust-clippy/master/index.html#same_functions_in_if_condition
 [`same_item_push`]: https://rust-lang.github.io/rust-clippy/master/index.html#same_item_push
 [`same_length_and_capacity`]: https://rust-lang.github.io/rust-clippy/master/index.html#same_length_and_capacity

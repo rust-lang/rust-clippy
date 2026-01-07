@@ -1,5 +1,5 @@
 error: using a `Mutex` where an atomic would do
-  --> tests/ui/mutex_atomic_unfixable.rs:7:30
+  --> tests/ui/rwlock_mutex_atomic_unfixable.rs:7:30
    |
 LL |     static MTX: Mutex<u32> = Mutex::new(0);
    |                              ^^^^^^^^^^^^^
