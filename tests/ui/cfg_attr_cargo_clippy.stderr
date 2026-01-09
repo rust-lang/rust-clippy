@@ -20,25 +20,25 @@ LL | #[cfg_attr(not(feature = "cargo-clippy"), derive(Debug))]
    |                ^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `clippy`
 
 error: `feature = "cargo-clippy"` was replaced by `clippy`
-  --> tests/ui/cfg_attr_cargo_clippy.rs:10:7
-   |
-LL | #[cfg(feature = "cargo-clippy")]
-   |       ^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `clippy`
-
-error: `feature = "cargo-clippy"` was replaced by `clippy`
   --> tests/ui/cfg_attr_cargo_clippy.rs:12:11
    |
 LL | #[cfg(not(feature = "cargo-clippy"))]
    |           ^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `clippy`
 
 error: `feature = "cargo-clippy"` was replaced by `clippy`
-  --> tests/ui/cfg_attr_cargo_clippy.rs:14:11
+  --> tests/ui/cfg_attr_cargo_clippy.rs:16:7
+   |
+LL | #[cfg(feature = "cargo-clippy")]
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `clippy`
+
+error: `feature = "cargo-clippy"` was replaced by `clippy`
+  --> tests/ui/cfg_attr_cargo_clippy.rs:20:11
    |
 LL | #[cfg(any(feature = "cargo-clippy"))]
    |           ^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `clippy`
 
 error: `feature = "cargo-clippy"` was replaced by `clippy`
-  --> tests/ui/cfg_attr_cargo_clippy.rs:16:11
+  --> tests/ui/cfg_attr_cargo_clippy.rs:24:11
    |
 LL | #[cfg(all(feature = "cargo-clippy"))]
    |           ^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `clippy`

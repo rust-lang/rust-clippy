@@ -443,11 +443,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         store.register_removed(name, reason);
     }
 
-    // NOTE: Do not add any more pre-expansion passes. These should be removed eventually.
-    // Due to the architecture of the compiler, currently `cfg_attr` attributes on crate
-    // level (i.e `#![cfg_attr(...)]`) will still be expanded even when using a pre-expansion pass.
-    store.register_pre_expansion_pass(move || Box::new(attrs::EarlyAttributes::new(conf)));
-
     let format_args_storage = FormatArgsStorage::default();
     let attr_storage = AttrStorage::default();
 
@@ -464,7 +459,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
             let attrs = attr_storage.clone();
             Box::new(move || Box::new(AttrCollector::new(attrs.clone())))
         },
-        Box::new(move || Box::new(attrs::PostExpansionEarlyAttributes::new(conf))),
+        Box::new(move || Box::new(attrs::EarlyAttributes::new(conf))),
         Box::new(|| Box::new(unnecessary_self_imports::UnnecessarySelfImports)),
         Box::new(move || Box::new(redundant_static_lifetimes::RedundantStaticLifetimes::new(conf))),
         Box::new(move || Box::new(redundant_field_names::RedundantFieldNames::new(conf))),
@@ -542,7 +537,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::<significant_drop_tightening::SignificantDropTightening<'_>>::default()),
         Box::new(move |_| Box::new(len_zero::LenZero::new(conf))),
         Box::new(|_| Box::new(len_without_is_empty::LenWithoutIsEmpty)),
-        Box::new(move |_| Box::new(attrs::Attributes::new(conf))),
+        Box::new(move |_| Box::new(attrs::LateAttributes::new(conf))),
         Box::new(|_| Box::new(blocks_in_conditions::BlocksInConditions)),
         Box::new(|_| Box::new(unicode::Unicode)),
         Box::new(|_| Box::new(uninit_vec::UninitVec)),
