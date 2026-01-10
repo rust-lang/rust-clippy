@@ -397,7 +397,9 @@ pub(super) fn check_ok_is_some_and<'tcx>(
     expr: &'tcx Expr<'tcx>,
     is_some_and_recv: &'tcx Expr<'tcx>,
     arg: &'tcx Expr<'tcx>,
-) {
+) -> bool {
+    let mut fired = false;
+
     // `is_some_and` and `is_ok_and` were both stabilized in the same release, so if the receiver
     // already calls `is_some_and` then `is_ok_and` is necessarily available too: no MSRV check.
     if !expr.span.from_expansion()
@@ -406,17 +408,26 @@ pub(super) fn check_ok_is_some_and<'tcx>(
             .ty_based_def(is_some_and_recv)
             .is_diag_item(cx, sym::result_ok_method)
     {
-        let mut app = Applicability::MachineApplicable;
-        let recv_snip = snippet_with_context(cx, result_recv.span, expr.span.ctxt(), "_", &mut app).0;
-        let arg_snip = snippet_with_context(cx, arg.span, expr.span.ctxt(), "_", &mut app).0;
-        span_lint_and_sugg(
+        span_lint_and_then(
             cx,
             MANUAL_IS_VARIANT_AND,
             expr.span,
             "called `.ok().is_some_and(..)` on a `Result` value",
-            "use `is_ok_and` instead",
-            format!("{recv_snip}.is_ok_and({arg_snip})"),
-            app,
+            |diag| {
+                let mut app = Applicability::MachineApplicable;
+                let ctxt = expr.span.ctxt();
+                let recv_snip = snippet_with_context(cx, result_recv.span, ctxt, "_", &mut app).0;
+                let arg_snip = snippet_with_context(cx, arg.span, ctxt, "_", &mut app).0;
+                diag.span_suggestion(
+                    expr.span,
+                    "use `is_ok_and` instead",
+                    format!("{recv_snip}.is_ok_and({arg_snip})"),
+                    app,
+                );
+                fired = true;
+            },
         );
     }
+
+    fired
 }
