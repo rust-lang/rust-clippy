@@ -1,6 +1,7 @@
 //@aux-build:option_helpers.rs
 
 #![warn(clippy::map_unwrap_or)]
+#![allow(clippy::needless_is_variant_and)]
 
 #[macro_use]
 extern crate option_helpers;
