@@ -1,7 +1,12 @@
 //@aux-build:option_helpers.rs
 //@aux-build:proc_macros.rs
 #![warn(clippy::manual_is_variant_and)]
-#![allow(clippy::nonminimal_bool, clippy::eq_op, clippy::unnecessary_lazy_evaluations)]
+#![allow(
+    clippy::nonminimal_bool,
+    clippy::needless_is_variant_and, // fires after the `unnecessary_map_or` fixes
+    clippy::eq_op,
+    clippy::unnecessary_lazy_evaluations
+)]
 
 #[macro_use]
 extern crate option_helpers;

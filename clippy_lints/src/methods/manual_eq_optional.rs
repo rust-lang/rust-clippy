@@ -1,3 +1,15 @@
+//! This module defines both `unnecessary_map_or` (`.map_or(false, |n| n == 5)` -> `== Some(5)`)
+//! and `needless_is_variant_and` (`.is_some_and(|n| n == 5)` -> `== Some(5)`
+//!
+//! The reason we can't remove the former in favor of `manual_is_variant_and` +
+//! `needless_is_variant_and` is that the "is variant and" methods have high MSRVs, which would
+//! unnecessarily stop the composed transformation
+//! ```txt .map_or(false, |n| n == 5)
+//! -> .is_some_and(|n| n == 5)
+//! -> == Some(5)
+//! ```
+//! from happening on older versions of Rust.
+
 use std::borrow::Cow;
 
 use clippy_utils::diagnostics::span_lint_and_then;
@@ -10,39 +22,77 @@ use clippy_utils::{get_parent_expr, is_from_proc_macro};
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind, PatKind};
-use rustc_lint::LateContext;
+use rustc_lint::{LateContext, Lint};
 use rustc_span::sym;
 
-use super::UNNECESSARY_MAP_OR;
+use super::{NEEDLESS_IS_VARIANT_AND, UNNECESSARY_MAP_OR};
 
-pub(super) fn check<'a>(
+/// Checks that `map_or` is one of the following:
+/// - `.map_or(false, |x| x == y)`
+/// - `.map_or(false, |x| y == x)` - swapped comparison
+/// - `.map_or(true, |x| x != y)`
+/// - `.map_or(true, |x| y != x)` - swapped comparison
+pub(super) fn check_map_or<'a>(
     cx: &LateContext<'a>,
     expr: &Expr<'a>,
     recv: &Expr<'_>,
     def: &Expr<'_>,
-    map: &Expr<'_>,
+    map: &'a Expr<'a>,
 ) -> bool {
     if let ExprKind::Lit(def_kind) = def.kind
         && let LitKind::Bool(def_bool) = def_kind.node
-        && let typeck = cx.typeck_results()
-        && let recv_ty = typeck.expr_ty_adjusted(recv)
-        && let wrap = match recv_ty.opt_diag_name(cx) {
-            Some(sym::Option) => "Some",
-            Some(sym::Result) => "Ok",
-            Some(_) | None => return false,
-        }
-        && typeck.expr_adjustments(recv).is_empty()
-        && let ExprKind::Closure(map_closure) = map.kind
-        && let closure_body = cx.tcx.hir_body(map_closure.body)
+    {
+        return check_inner(cx, expr, recv, "map_or", map, def_bool, UNNECESSARY_MAP_OR);
+    }
+    false
+}
+
+/// Checks for `.is_some_and(|x| x == y)` or `.is_some_and(|x| y == x)`
+pub(super) fn check_is_some_and<'a>(cx: &LateContext<'a>, expr: &Expr<'a>, recv: &Expr<'_>, map: &'a Expr<'a>) {
+    let def_bool = false; // `is_some_and` is equiv to `map_or(false, `
+    check_inner(cx, expr, recv, "is_some_and", map, def_bool, NEEDLESS_IS_VARIANT_AND);
+}
+
+/// Checks for `.is_none_or(|x| x != y)` or `.is_none_or(|x| y != x)`
+pub(super) fn check_is_none_or<'a>(cx: &LateContext<'a>, expr: &Expr<'a>, recv: &Expr<'_>, map: &'a Expr<'a>) {
+    let def_bool = true; // `is_none_or` is equiv to `map_or(true, `
+    check_inner(cx, expr, recv, "is_none_or", map, def_bool, NEEDLESS_IS_VARIANT_AND);
+}
+
+/// Checks for `.is_ok_and(|x| x == y)` or `.is_ok_and(|x| y == x)`
+pub(super) fn check_is_ok_and<'a>(cx: &LateContext<'a>, expr: &Expr<'a>, recv: &Expr<'_>, map: &'a Expr<'a>) {
+    let def_bool = false; // `is_ok_and` is equiv to `map_or(false, `
+    check_inner(cx, expr, recv, "is_ok_and", map, def_bool, NEEDLESS_IS_VARIANT_AND);
+}
+
+/// Checks whether:
+/// - the receiver is either an `Option` or `Result`
+/// - the `(def_bool, closure)`-pair looks like one of:
+///   - `(false, |x| x == y)` or `(false, |x| y == x)` -- can be replaced with `== Some/Ok(y)`
+///   - `(true,  |x| x != y)` or `(true,  |x| y != x)` -- can be replaced with `!= Some/Ok(y)`
+fn check_inner<'a>(
+    cx: &LateContext<'a>,
+    expr: &Expr<'a>,
+    recv: &Expr<'_>,
+    method_name: &'static str,
+    closure: &'a Expr<'a>,
+    def_bool: bool,
+    lint: &'static Lint,
+) -> bool {
+    let typeck = cx.typeck_results();
+    let recv_ty = typeck.expr_ty_adjusted(recv);
+    let wrap = match recv_ty.opt_diag_name(cx) {
+        Some(sym::Option) => "Some",
+        Some(sym::Result) => "Ok",
+        Some(_) | None => return false,
+    };
+    if typeck.expr_adjustments(recv).is_empty()
+        && let ExprKind::Closure(closure) = closure.kind
+        && let closure_body = cx.tcx.hir_body(closure.body)
         && let closure_body_value = closure_body.value.peel_blocks()
         && let ExprKind::Binary(op, l, r) = closure_body_value.kind
         && let [param] = closure_body.params
         && let PatKind::Binding(_, hir_id, _, _) = param.pat.kind
-        // checking that map_or is one of the following:
-        // .map_or(false, |x| x == y)
-        // .map_or(false, |x| y == x) - swapped comparison
-        // .map_or(true, |x| x != y)
-        // .map_or(true, |x| y != x) - swapped comparison
         && ((BinOpKind::Eq == op.node && !def_bool) || (BinOpKind::Ne == op.node && def_bool))
         && let non_binding_location = if l.res_local_id() == Some(hir_id) { r } else { l }
         && switch_to_eager_eval(cx, non_binding_location)
@@ -60,9 +110,9 @@ pub(super) fn check<'a>(
         let mut fired = false;
         span_lint_and_then(
             cx,
-            UNNECESSARY_MAP_OR,
+            lint,
             expr.span,
-            "this `map_or` can be simplified",
+            format!("this `{method_name}` can be simplified"),
             |diag| {
                 // we may need to add parens around the suggestion
                 // in case the parent expression has additional method calls,
