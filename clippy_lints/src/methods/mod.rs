@@ -59,6 +59,7 @@ mod lib;
 mod lines_filter_map_ok;
 mod manual_c_str_literals;
 mod manual_contains;
+mod manual_eq_optional;
 mod manual_inspect;
 mod manual_is_variant_and;
 mod manual_next_back;
@@ -133,7 +134,6 @@ mod unnecessary_iter_cloned;
 mod unnecessary_join;
 mod unnecessary_lazy_eval;
 mod unnecessary_literal_unwrap;
-mod unnecessary_map_or;
 mod unnecessary_min_or_max;
 mod unnecessary_option_map_or_else;
 mod unnecessary_result_map_or_else;
@@ -4170,8 +4170,6 @@ declare_clippy_lint! {
     /// ### Why is this bad?
     /// Calls such as `opt.map_or(false, |val| val == 5)` are needlessly long and cumbersome,
     /// and can be reduced to, for example, `opt == Some(5)` assuming `opt` implements `PartialEq`.
-    /// Also, calls such as `opt.map_or(true, |val| val == 5)` can be reduced to
-    /// `opt.is_none_or(|val| val == 5)`.
     /// This lint offers readability and conciseness improvements.
     ///
     /// ### Example
@@ -4179,7 +4177,7 @@ declare_clippy_lint! {
     /// pub fn a(x: Option<i32>) -> (bool, bool) {
     ///     (
     ///         x.map_or(false, |n| n == 5),
-    ///         x.map_or(true, |n| n > 5),
+    ///         x.map_or(true, |n| n != 5),
     ///     )
     /// }
     /// ```
@@ -4188,7 +4186,7 @@ declare_clippy_lint! {
     /// pub fn a(x: Option<i32>) -> (bool, bool) {
     ///     (
     ///         x == Some(5),
-    ///         x.is_none_or(|n| n > 5),
+    ///         x != Some(5),
     ///     )
     /// }
     /// ```
@@ -4196,6 +4194,41 @@ declare_clippy_lint! {
     pub UNNECESSARY_MAP_OR,
     style,
     "reduce unnecessary calls to `.map_or(bool, …)`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Converts some constructs mapping an Enum value for equality comparison.
+    ///
+    /// ### Why is this bad?
+    /// Calls such as `opt.is_some_and(|val| val == 5)` are needlessly long and cumbersome,
+    /// and can be reduced to, for example, `opt == Some(5)` assuming `opt` implements `PartialEq`.
+    /// This lint offers readability and conciseness improvements.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// pub fn a(opt: Option<i32>, res: Result<i32, i32>) -> (bool, bool, bool) {
+    ///     (
+    ///         opt.is_some_and(|n| n == 5),
+    ///         opt.is_none_or(|n| n != 5),
+    ///         res.is_ok_and(|n| n == 5),
+    ///     )
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// pub fn a(opt: Option<i32>, res: Result<i32, i32>) -> (bool, bool, bool) {
+    ///     (
+    ///         opt == Some(5),
+    ///         opt != Some(5),
+    ///         res == Ok(5),
+    ///     )
+    /// }
+    /// ```
+    #[clippy::version = "1.94.0"]
+    pub NEEDLESS_IS_VARIANT_AND,
+    style,
+    "reduce unnecessary calls to `.is_some_and(…)`, `.is_none_or(…)`, and `.is_ok_and(…)`"
 }
 
 declare_clippy_lint! {
@@ -4923,6 +4956,7 @@ impl_lint_pass!(Methods => [
     MAP_ALL_ANY_IDENTITY,
     MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
     UNNECESSARY_MAP_OR,
+    NEEDLESS_IS_VARIANT_AND,
     DOUBLE_ENDED_ITERATOR_LAST,
     USELESS_NONZERO_NEW_UNCHECKED,
     MANUAL_REPEAT_N,
@@ -5354,7 +5388,10 @@ impl Methods {
                 (sym::is_file, []) => filetype_is_file::check(cx, expr, recv),
                 (sym::is_digit, [radix]) => is_digit_ascii_radix::check(cx, expr, recv, radix, self.msrv),
                 (sym::is_none, []) => check_is_some_is_none(cx, expr, recv, call_span, false, self.msrv),
+                (sym::is_none_or, [predicate]) => manual_eq_optional::check_is_none_or(cx, expr, recv, predicate),
+                (sym::is_ok_and, [predicate]) => manual_eq_optional::check_is_ok_and(cx, expr, recv, predicate),
                 (sym::is_some, []) => check_is_some_is_none(cx, expr, recv, call_span, true, self.msrv),
+                (sym::is_some_and, [predicate]) => manual_eq_optional::check_is_some_and(cx, expr, recv, predicate),
                 (sym::iter | sym::iter_mut | sym::into_iter, []) => {
                     iter_on_single_or_empty_collections::check(cx, expr, name, recv);
                 },
@@ -5432,7 +5469,7 @@ impl Methods {
                     // while `manual_is_variant_and` suggests `.is_some_and(|n| n == 5)`.
                     //
                     // Try to give the first suggestion when possible, as it's more specific.
-                    if !unnecessary_map_or::check(cx, expr, recv, def, map) {
+                    if !manual_eq_optional::check_map_or(cx, expr, recv, def, map) {
                         manual_is_variant_and::check_map_or(cx, expr, recv, span, def, map, self.msrv);
                     }
                 },

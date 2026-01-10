@@ -217,6 +217,7 @@ generate! {
     is_none,
     is_none_or,
     is_ok,
+    is_ok_and,
     is_partitioned,
     is_some,
     is_some_and,
