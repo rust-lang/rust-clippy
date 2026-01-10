@@ -431,6 +431,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::methods::NEEDLESS_AS_BYTES_INFO,
     crate::methods::NEEDLESS_CHARACTER_ITERATION_INFO,
     crate::methods::NEEDLESS_COLLECT_INFO,
+    crate::methods::NEEDLESS_IS_VARIANT_AND_INFO,
     crate::methods::NEEDLESS_OPTION_AS_DEREF_INFO,
     crate::methods::NEEDLESS_OPTION_TAKE_INFO,
     crate::methods::NEEDLESS_SPLITN_INFO,
