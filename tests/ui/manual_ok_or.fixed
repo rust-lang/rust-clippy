@@ -2,6 +2,7 @@
 #![allow(clippy::or_fun_call)]
 #![allow(clippy::disallowed_names)]
 #![allow(clippy::redundant_closure)]
+#![allow(clippy::unnecessary_lazy_evaluations)]
 #![allow(dead_code)]
 #![allow(unused_must_use)]
 

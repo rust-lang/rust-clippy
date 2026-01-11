@@ -238,6 +238,21 @@ fn main() {
     // neither bind_instead_of_map nor unnecessary_lazy_eval applies here
     let _: Result<usize, usize> = res.and_then(|x| Err(x));
     let _: Result<usize, usize> = res.or_else(|err| Ok(err));
+
+    // Issue #15829 - map_or_else
+    // Should lint - Option
+    let _ = opt.map_or_else(|| 42, |_| 42);
+    //~^ unnecessary_lazy_evaluations
+
+    // Should lint - Result
+    let _ = res.map_or_else(|_| 42, |_| 42);
+    //~^ unnecessary_lazy_evaluations
+
+    // Should not lint - map_or_else (for unnecessary_lazy_evaluations)
+    // closure uses its parameter
+    let _ = res.map_or_else(|err| err, |x| x + 1);
+    // closure contains function call
+    let _ = opt.map_or_else(|| some_call(), |x| x + 1);
 }
 
 #[allow(unused)]
