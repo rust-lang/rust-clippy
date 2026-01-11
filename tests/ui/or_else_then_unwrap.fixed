@@ -1,0 +1,74 @@
+//@aux-build:proc_macros.rs
+
+#![warn(clippy::or_then_unwrap)]
+#![allow(clippy::map_identity, clippy::let_unit_value, clippy::unnecessary_literal_unwrap)]
+
+extern crate proc_macros;
+
+struct SomeStruct;
+impl SomeStruct {
+    fn or_else<F: FnOnce() -> Option<Self>>(self, _: F) -> Self {
+        self
+    }
+    fn unwrap(&self) {}
+}
+
+struct SomeOtherStruct;
+impl SomeOtherStruct {
+    fn or_else(self) -> Self {
+        self
+    }
+    fn unwrap(&self) {}
+}
+
+struct Wrapper {
+    inner: &'static str,
+}
+impl Wrapper {
+    fn new(inner: &'static str) -> Self {
+        Self { inner }
+    }
+}
+
+fn main() {
+    let option: Option<Wrapper> = None;
+    let _ = option.unwrap_or_else(|| Wrapper::new("fallback")); //~ or_else_then_unwrap
+
+    // as part of a method chain
+    let option: Option<Wrapper> = None;
+    let _ = option
+        .map(|v| v)
+        .unwrap_or_else(|| Wrapper::new("fallback"))
+        .inner
+        .to_string()
+        .chars();
+
+    // Call with macro should preserve the macro call rather than expand it
+    let option: Option<Vec<&'static str>> = None;
+    let _ = option.unwrap_or_else(|| vec!["fallback"]); // should trigger lint
+    //
+    //~^^ or_else_then_unwrap
+
+    // Not Option/Result
+    let instance = SomeStruct {};
+    let _ = instance.or_else(|| Some(SomeStruct {})).unwrap(); // should not trigger lint
+
+    // `or_else` takes no argument
+    let instance = SomeOtherStruct {};
+    let _ = instance.or_else().unwrap(); // should not trigger lint and should not panic
+
+    // None in or
+    let option: Option<Wrapper> = None;
+    #[allow(clippy::unnecessary_lazy_evaluations)]
+    let _ = option.or_else(|| None).unwrap(); // should not trigger lint
+
+    // other function between
+    let option: Option<Wrapper> = None;
+    let _ = option.or_else(|| Some(Wrapper::new("fallback"))).map(|v| v).unwrap(); // should not trigger lint
+
+    // We don't lint external macros
+    proc_macros::external! {
+       let option: Option<Wrapper> = None;
+       let _ = option.or_else(|| Some(Wrapper::new("fallback"))).unwrap();
+    };
+}

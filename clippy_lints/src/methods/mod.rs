@@ -90,6 +90,7 @@ mod option_as_ref_cloned;
 mod option_as_ref_deref;
 mod option_map_or_none;
 mod option_map_unwrap_or;
+mod or_else_then_unwrap;
 mod or_fun_call;
 mod or_then_unwrap;
 mod path_buf_push_overwrite;
@@ -917,6 +918,42 @@ declare_clippy_lint! {
     pub CHARS_NEXT_CMP,
     style,
     "using `.chars().next()` to check if a string starts with a char"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `.or_else(…).unwrap()` calls to Options and Results.
+    ///
+    /// ### Why is this bad?
+    /// You should use `.unwrap_or_else(…)` instead for clarity.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let fallback = "fallback";
+    /// // Result
+    /// # type Error = &'static str;
+    /// # let result: Result<Vec<&str>, Error> = Err("error");
+    /// let value = result.or_else(|_| Ok::<Vec<&str>, Error>(vec![fallback])).unwrap();
+    ///
+    /// // Option
+    /// # let option: Option<Vec<&str>> = None;
+    /// let value = option.or_else(|| Some(vec![fallback])).unwrap();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # let fallback = "fallback";
+    /// // Result
+    /// # let result: Result<Vec<&str>, &str> = Err("error");
+    /// let value = result.unwrap_or_else(|_| vec![fallback]);
+    ///
+    /// // Option
+    /// # let option: Option<Vec<&str>> = None;
+    /// let value = option.unwrap_or_else(|| vec![fallback]);
+    /// ```
+    #[clippy::version = "1.90.0"]
+    pub OR_ELSE_THEN_UNWRAP,
+    complexity,
+    "checks for `.or_else(…).unwrap()` calls to Options and Results."
 }
 
 declare_clippy_lint! {
@@ -4790,6 +4827,7 @@ impl_lint_pass!(Methods => [
     RESULT_MAP_OR_INTO_OPTION,
     OPTION_MAP_OR_NONE,
     BIND_INSTEAD_OF_MAP,
+    OR_ELSE_THEN_UNWRAP,
     OR_FUN_CALL,
     OR_THEN_UNWRAP,
     EXPECT_FUN_CALL,
@@ -5596,6 +5634,9 @@ impl Methods {
                         },
                         Some((sym::or, recv, [or_arg], or_span, _)) => {
                             or_then_unwrap::check(cx, expr, recv, or_arg, or_span);
+                        },
+                        Some((sym::or_else, recv, [or_arg], or_span, _)) => {
+                            or_else_then_unwrap::check(cx, expr, recv, or_arg, or_span);
                         },
                         _ => {},
                     }
