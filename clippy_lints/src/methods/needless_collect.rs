@@ -508,8 +508,8 @@ impl<'tcx> Visitor<'tcx> for IterFunctionVisitor<'_, 'tcx> {
                             func: IterFunctionKind::Contains(args[0].span),
                             span: expr.span,
                         })),
-                        name if let is_push_back = self.extra_spec.push_symbol.back.is_some_and(|sym| name == sym)
-                            && (is_push_back || self.extra_spec.push_symbol.front.is_some_and(|sym| name == sym))
+                        name if let is_push_back = self.extra_spec.push_symbol.back == Some(name)
+                            && (is_push_back || self.extra_spec.push_symbol.front == Some(name))
                             && self.uses.is_empty() =>
                         {
                             let span = get_span_of_expr_or_parent_stmt(self.cx, expr);
@@ -546,9 +546,7 @@ impl<'tcx> Visitor<'tcx> for IterFunctionVisitor<'_, 'tcx> {
                                 },
                             }
                         },
-                        name if self.extra_spec.extend_symbol.is_some_and(|sym| name == sym)
-                            && self.uses.is_empty() =>
-                        {
+                        name if self.extra_spec.extend_symbol == Some(name) && self.uses.is_empty() => {
                             let span = get_span_of_expr_or_parent_stmt(self.cx, expr);
                             self.extras.push(ExtraFunction::Extend(ExtraFunctionSpan {
                                 func_span: span,
