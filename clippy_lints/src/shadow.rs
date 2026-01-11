@@ -200,7 +200,7 @@ pub fn is_local_used_except<'tcx>(
     except: Option<HirId>,
 ) -> bool {
     for_each_expr(cx, visitable, |e| {
-        if except.is_some_and(|it| it == e.hir_id) {
+        if except == Some(e.hir_id) {
             ControlFlow::Continue(Descend::No)
         } else if e.res_local_id() == Some(id) {
             ControlFlow::Break(())
