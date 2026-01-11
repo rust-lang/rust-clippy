@@ -150,7 +150,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualFloatMethods {
             && let ctxt = expr.span.ctxt()
             && let Some(const_1) = ecx.eval_local(const_1, ctxt)
             && let Some(const_2) = ecx.eval_local(const_2, ctxt)
-            && first.res_local_id().is_some_and(|f| second.res_local_id().is_some_and(|s| f == s))
+            && first.res_local_id().is_some_and(|f| Some(f) == second.res_local_id())
             // The actual infinity check, we also allow `NEG_INFINITY` before` INFINITY` just in
             // case somebody does that for some reason
             && (const_1.is_pos_infinity() && const_2.is_neg_infinity()
