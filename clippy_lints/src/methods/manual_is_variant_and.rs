@@ -3,7 +3,7 @@ use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeDef;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::sugg::Sugg;
-use clippy_utils::{get_parent_expr, sym};
+use clippy_utils::{get_parent_expr, is_from_proc_macro, sym};
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::def::{CtorKind, CtorOf, DefKind, Res};
@@ -226,4 +226,64 @@ pub(super) fn check_map(cx: &LateContext<'_>, expr: &Expr<'_>) {
             }
         }
     }
+}
+
+pub(super) fn check_map_or<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &Expr<'tcx>,
+    recv: &Expr<'_>,
+    method_span: Span,
+    def: &Expr<'_>,
+    map: &Expr<'_>,
+    msrv: Msrv,
+) {
+    let ExprKind::Lit(def_kind) = def.kind else {
+        return;
+    };
+    let LitKind::Bool(def_bool) = def_kind.node else {
+        return;
+    };
+
+    let recv_ty = cx.typeck_results().expr_ty_adjusted(recv);
+
+    let flavor = match recv_ty.opt_diag_name(cx) {
+        Some(sym::Option) => Flavor::Option,
+        Some(sym::Result) => Flavor::Result,
+        Some(_) | None => return,
+    };
+
+    let ext_def_span = def.span.until(map.span);
+
+    let suggested_method = if !def_bool && msrv.meets(cx, msrvs::OPTION_RESULT_IS_VARIANT_AND) {
+        match flavor {
+            Flavor::Option => "is_some_and",
+            Flavor::Result => "is_ok_and",
+        }
+    } else if def_bool && matches!(flavor, Flavor::Option) && msrv.meets(cx, msrvs::IS_NONE_OR) {
+        "is_none_or"
+    } else {
+        return;
+    };
+
+    if is_from_proc_macro(cx, expr) {
+        return;
+    }
+
+    span_lint_and_then(
+        cx,
+        MANUAL_IS_VARIANT_AND,
+        expr.span,
+        "this `map_or` can be simplified",
+        |diag| {
+            let sugg = vec![
+                (method_span, suggested_method.to_owned()),
+                (ext_def_span, String::new()),
+            ];
+            diag.multipart_suggestion_verbose(
+                format!("use `{suggested_method}` instead"),
+                sugg,
+                Applicability::MachineApplicable,
+            );
+        },
+    );
 }

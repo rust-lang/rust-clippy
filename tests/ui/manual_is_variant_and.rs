@@ -1,8 +1,11 @@
 //@aux-build:option_helpers.rs
 #![warn(clippy::manual_is_variant_and)]
+#![allow(clippy::nonminimal_bool, clippy::eq_op, clippy::unnecessary_lazy_evaluations)]
 
 #[macro_use]
 extern crate option_helpers;
+#[macro_use]
+extern crate proc_macros;
 
 struct Foo<T>(T);
 
@@ -82,6 +85,27 @@ fn option_methods() {
     //~^ manual_is_variant_and
     let _ = opt_map!(opt2, |x| x == 'a').unwrap_or_default(); // should not lint
 
+    // Check for `option.map_or(true, _)` and `option.map_or(false, _)` use.
+    let _ = Some(5).map_or(false, |n| {
+        //~^ manual_is_variant_and
+        let _ = n;
+        6 >= 5
+    });
+    let _ = Some(vec![5]).map_or(false, |n| n == [5]);
+    //~^ manual_is_variant_and
+    let _ = Some(vec![1]).map_or(false, |n| vec![2] == n);
+    //~^ manual_is_variant_and
+    let _ = Some(5).map_or(false, |n| n == n);
+    //~^ manual_is_variant_and
+    let _ = Some(5).map_or(false, |n| n == if 2 > 1 { n } else { 0 });
+    //~^ manual_is_variant_and
+    let _ = Ok::<Vec<i32>, i32>(vec![5]).map_or(false, |n| n == [5]);
+    //~^ manual_is_variant_and
+    let _ = Some(5).map_or(true, |n| n == 5);
+    //~^ manual_is_variant_and
+    let _ = Some(5).map_or(true, |n| 5 == n);
+    //~^ manual_is_variant_and
+
     // Should not lint.
     let _ = Foo::<u32>(0).map(|x| x.is_multiple_of(2)) == Some(true);
     let _ = Some(2).map(|x| x % 2 == 0) != foo();
@@ -89,12 +113,22 @@ fn option_methods() {
     let _ = mac!(some 2).map(|x| x % 2 == 0) == Some(true);
     let _ = mac!(some_map 2) == Some(true);
     let _ = mac!(map Some(2)) == Some(true);
+    let _ = mac!(some 2).map_or(true, |x| x % 2 == 0);
+    let _ = mac!(some 2).map_or(false, |x| x % 2 == 0);
+    external! {
+        let _ = Some(5).map_or(false, |n| n > 5);
+    }
+    with_span! {
+        let _ = Some(5).map_or(false, |n| n > 5);
+    }
+
 }
 
 #[rustfmt::skip]
 fn result_methods() {
     let res: Result<i32, ()> = Ok(1);
 
+    // Check for `result.map(_).unwrap_or_default()` use.
     // multi line cases
     let _ = res.map(|x| {
     //~^ manual_is_variant_and
@@ -119,11 +153,79 @@ fn result_methods() {
     let _ = res2.map(char::is_alphanumeric).unwrap_or_default(); // should lint
     //~^ manual_is_variant_and
     let _ = opt_map!(res2, |x| x == 'a').unwrap_or_default(); // should not lint
+
+    // Check for `result.map_or(false, _)` use.
+    let _ = res.map_or(false, |x| x > 8);
+    //~^ manual_is_variant_and
+
+    // Don't lint, `unnecessary_map_or` will take over
+    #[derive(PartialEq)]
+    struct S1;
+    let r: Result<i32, S1> = Ok(3);
+    let _ = r.map_or(false, |x| x == 7);
+    //~^ unnecessary_map_or
+
+    // Lint, as `S2` doesn't implement `PartialEq`
+    struct S2;
+    let r: Result<i32, S2> = Ok(3);
+    let _ = r.map_or(false, |x| x == 7);
+    //~^ manual_is_variant_and
+
 }
 
 fn main() {
     option_methods();
     result_methods();
+}
+
+#[clippy::msrv = "1.69.0"]
+fn msrv_1_69() {
+    // is_some_and added in 1.70.0
+    let _ = Some(5).map_or(false, |n| n > if 2 > 1 { n } else { 0 });
+}
+
+#[clippy::msrv = "1.81.0"]
+fn msrv_1_81() {
+    // is_none_or added in 1.82.0
+    let _ = Some(5).map_or(true, |n| n > if 2 > 1 { n } else { 0 });
+}
+
+fn with_refs(o: &mut Option<u32>) -> bool {
+    o.map_or(true, |n| n > 5) || (o as &Option<u32>).map_or(true, |n| n < 5)
+    //~^ manual_is_variant_and
+    //~| manual_is_variant_and
+}
+
+struct S;
+
+impl std::ops::Deref for S {
+    type Target = Option<u32>;
+    fn deref(&self) -> &Self::Target {
+        &Some(0)
+    }
+}
+
+fn with_deref(o: &S) -> bool {
+    o.map_or(true, |n| n > 5)
+    //~^ manual_is_variant_and
+}
+
+fn issue14201(a: Option<String>, b: Option<String>, s: &String) -> bool {
+    let x = a.map_or(false, |a| a == *s);
+    //~^ manual_is_variant_and
+    let y = b.map_or(true, |b| b == *s);
+    //~^ manual_is_variant_and
+    x && y
+}
+
+fn issue15180() {
+    let s = std::sync::Mutex::new(Some("foo"));
+    _ = s.lock().unwrap().map_or(false, |s| s == "foo");
+    //~^ manual_is_variant_and
+
+    let s = &&&&Some("foo");
+    _ = s.map_or(false, |s| s == "foo");
+    //~^ manual_is_variant_and
 }
 
 fn issue15202() {
@@ -194,8 +296,11 @@ mod with_func {
     fn check_option(b: Option<u8>) {
         let a1 = b.map(iad) == Some(true);
         //~^ manual_is_variant_and
-        let a2 = b.is_some_and(iad);
-        assert_eq!(a1, a2);
+        let a2 = b.map_or(false, iad);
+        //~^ manual_is_variant_and
+        let a3 = b.is_some_and(iad);
+        assert_eq!(a1, a3);
+        assert_eq!(a2, a3);
 
         let a1 = b.map(iad) == Some(false);
         //~^ manual_is_variant_and
@@ -209,15 +314,21 @@ mod with_func {
 
         let a1 = b.map(iad) != Some(false);
         //~^ manual_is_variant_and
-        let a2 = b.is_none_or(iad);
-        assert_eq!(a1, a2);
+        let a2 = b.map_or(true, iad);
+        //~^ manual_is_variant_and
+        let a3 = b.is_none_or(iad);
+        assert_eq!(a2, a3);
+        assert_eq!(a1, a3);
     }
 
     fn check_result(b: Result<u8, ()>) {
         let a1 = b.map(iad) == Ok(true);
         //~^ manual_is_variant_and
-        let a2 = b.is_ok_and(iad);
-        assert_eq!(a1, a2);
+        let a2 = b.map_or(false, iad);
+        //~^ manual_is_variant_and
+        let a3 = b.is_ok_and(iad);
+        assert_eq!(a1, a3);
+        assert_eq!(a2, a3);
 
         let a1 = b.map(iad) == Ok(false);
         //~^ manual_is_variant_and
