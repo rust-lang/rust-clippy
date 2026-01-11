@@ -2843,6 +2843,10 @@ punctuation mark.</p>
 ///
 /// It was chosen by a fair dice roll.
 </code></pre>
+<h3>Terminal punctuation marks</h3>
+<p>This lint treats these characters as end markers: ‘.’, ‘?’, ‘!’, ‘…’ and ‘:’.</p>
+<p>The colon is not exactly a terminal punctuation mark, but this is required for paragraphs that
+introduce a table or a list for example.</p>
 </div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.93.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+doc_paragraphs_missing_punctuation">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/doc/mod.rs#L674">View Source</a></div></div></div></article><article id="doc_suspicious_footnotes"><input id="label-doc_suspicious_footnotes" type="checkbox"><label for="label-doc_suspicious_footnotes"><h2 class="lint-title"><div class="panel-title-name" id="lint-doc_suspicious_footnotes">doc_suspicious_footnotes
 <a href="#doc_suspicious_footnotes" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-suspicious">suspicious</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Detects syntax that looks like a footnote reference.</p>
