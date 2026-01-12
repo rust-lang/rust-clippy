@@ -4733,6 +4733,9 @@ fn test() {}
 #[ignore = "Some good reason"]
 fn test() {}
 </code></pre>
+<h3>Note</h3>
+<p>Clippy can only lint compiled code. For this lint to trigger, you must configure <code>cargo clippy</code>
+to include test compilation, for instance, by using flags such as <code>--tests</code> or <code>--all-targets</code>.</p>
 </div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.88.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+ignore_without_reason">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/attrs/mod.rs#L452">View Source</a></div></div></div></article><article id="ignored_unit_patterns"><input id="label-ignored_unit_patterns" type="checkbox"><label for="label-ignored_unit_patterns"><h2 class="lint-title"><div class="panel-title-name" id="lint-ignored_unit_patterns">ignored_unit_patterns
 <a href="#ignored_unit_patterns" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for usage of <code>_</code> in patterns of type <code>()</code>.</p>
@@ -12773,6 +12776,9 @@ mod tests {
   }
 }
 </code></pre>
+<h3>Note</h3>
+<p>Clippy can only lint compiled code. For this lint to trigger, you must configure <code>cargo clippy</code>
+to include test compilation, for instance, by using flags such as <code>--tests</code> or <code>--all-targets</code>.</p>
 </div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.88.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+redundant_test_prefix">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/redundant_test_prefix.rs#L15">View Source</a></div></div></div></article><article id="redundant_type_annotations"><input id="label-redundant_type_annotations" type="checkbox"><label for="label-redundant_type_annotations"><h2 class="lint-title"><div class="panel-title-name" id="lint-redundant_type_annotations">redundant_type_annotations
 <a href="#redundant_type_annotations" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-restriction">restriction</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Warns about needless / redundant type annotations.</p>
