@@ -32,9 +32,9 @@ pub(crate) fn check(cx: &LateContext<'_>, ex: &Expr<'_>, arms: &[Arm<'_>]) {
         match peel_hir_pat_refs(arm.pat).0.kind {
             PatKind::Wild if arm.guard.is_none() => {
                 if is_expn_of(arm.body.span, sym::unreachable).is_some() {
-        continue;
-    }
-    wildcard_span = Some(arm.pat.span);
+                    continue;
+                }
+                wildcard_span = Some(arm.pat.span);
             },
             PatKind::Binding(_, _, ident, None) => {
                 wildcard_span = Some(arm.pat.span);
