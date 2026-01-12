@@ -30,6 +30,10 @@ pub(super) fn check<'tcx>(
             return;
         }
 
+        if expr_use_ctxt(cx, expr).is_ty_unified {
+            return;
+        }
+
         let suggestion_method = if method_name == sym::chunks_exact_mut {
             "as_chunks_mut"
         } else {
@@ -49,11 +53,6 @@ pub(super) fn check<'tcx>(
             |diag| {
                 let use_ctxt = expr_use_ctxt(cx, expr);
 
-                if use_ctxt.is_ty_unified {
-                    diag.span_help(call_span, format!("consider using `{as_chunks}` instead"));
-                    return;
-                }
-
                 if let Node::Expr(use_expr) = use_ctxt.node {
                     match use_expr.kind {
                         ExprKind::Call(_, [recv]) | ExprKind::MethodCall(_, recv, [], _)
@@ -63,7 +62,6 @@ pub(super) fn check<'tcx>(
                                     ExpnKind::Desugaring(DesugaringKind::ForLoop),
                                 ) =>
                         {
-                            // Suggest `.0`
                             diag.span_suggestion(
                                 call_span,
                                 "consider using `as_chunks` instead",
@@ -79,7 +77,6 @@ pub(super) fn check<'tcx>(
                                     .assoc_fn_parent(cx)
                                     .is_diag_item(cx, sym::Iterator) =>
                         {
-                            // Suggest `.0.iter()`
                             diag.span_suggestion(
                                 call_span,
                                 "consider using `as_chunks` instead",
@@ -92,7 +89,6 @@ pub(super) fn check<'tcx>(
                     }
                 }
 
-                // Fallback suggestion
                 diag.span_help(call_span, format!("consider using `{as_chunks}` instead"));
 
                 if let Node::LetStmt(let_stmt) = use_ctxt.node
