@@ -1,3 +1,4 @@
+//@check-pass
 #![warn(clippy::wildcard_enum_match_arm)]
 
 enum Color {
