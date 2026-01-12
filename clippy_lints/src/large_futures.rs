@@ -6,7 +6,7 @@ use rustc_abi::Size;
 use rustc_errors::Applicability;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::{FnKind, Visitor, walk_body, walk_expr};
-use rustc_hir::{Body, Expr, FnDecl};
+use rustc_hir::{Body, Expr, FnDecl, HirIdSet};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter;
 use rustc_middle::ty::Ty;
@@ -47,12 +47,14 @@ declare_clippy_lint! {
 
 pub struct LargeFuture {
     future_size_threshold: u64,
+    visited: HirIdSet,
 }
 
 impl LargeFuture {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
             future_size_threshold: conf.future_size_threshold,
+            visited: HirIdSet::default(),
         }
     }
 }
@@ -60,8 +62,8 @@ impl LargeFuture {
 impl_lint_pass!(LargeFuture => [LARGE_FUTURES]);
 
 struct AsyncFnVisitor<'a, 'tcx> {
+    parent: &'a mut LargeFuture,
     cx: &'a LateContext<'tcx>,
-    future_size_threshold: u64,
     /// Depth of the visitor with value `0` denoting the top-level expression.
     depth: usize,
     /// Whether a clippy suggestion was emitted for deeper levels of expressions.
@@ -77,6 +79,11 @@ impl<'tcx> Visitor<'tcx> for AsyncFnVisitor<'_, 'tcx> {
         // and hence it is redudant to also emit a suggestion for these expressions.
         // Expressions on the same depth level can however emit a suggestion too.
 
+        if !self.parent.visited.insert(expr.hir_id) {
+            // This expression was already visited once.
+            return;
+        }
+
         self.depth += 1;
         let old_emitted = self.emitted;
         self.emitted = false; // Reset emitted for deeper level, but recover it later.
@@ -86,7 +93,7 @@ impl<'tcx> Visitor<'tcx> for AsyncFnVisitor<'_, 'tcx> {
         if !self.emitted
             && !expr.span.from_expansion()
             && let Some(ty) = self.cx.typeck_results().expr_ty_opt(expr)
-            && let Some(size) = type_is_large_future(self.cx, ty, self.future_size_threshold)
+            && let Some(size) = type_is_large_future(self.cx, ty, self.parent.future_size_threshold)
         {
             if self.depth == 0 {
                 // Special lint for top level fn bodies.
@@ -154,9 +161,9 @@ impl<'tcx> LateLintPass<'tcx> for LargeFuture {
         _: LocalDefId,
     ) {
         let mut visitor = AsyncFnVisitor {
+            parent: self,
             cx,
             depth: 0,
-            future_size_threshold: self.future_size_threshold,
             emitted: false,
         };
         walk_body(&mut visitor, body);
