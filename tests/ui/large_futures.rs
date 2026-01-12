@@ -13,25 +13,20 @@ async fn wait() {
     let f = async {
         big_fut([0u8; 1024 * 16]).await;
         //~^ large_futures
-        //~^^ large_futures
-        //~^^^ large_futures
     };
     f.await
     //~^ large_futures
-    //~^^ large_futures
 }
 async fn calls_fut(fut: impl std::future::Future<Output = ()>) {
     loop {
         wait().await;
         //~^ large_futures
-        //~^^ large_futures
 
         if true {
             return fut.await;
         } else {
             wait().await;
             //~^ large_futures
-            //~^^ large_futures
         }
     }
 }
@@ -39,15 +34,12 @@ async fn calls_fut(fut: impl std::future::Future<Output = ()>) {
 pub async fn test() {
     let fut = big_fut([0u8; 1024 * 16]);
     //~^ large_futures
-    //~^^ large_futures
 
     foo().await;
     //~^ large_futures
-    //~^^ large_futures
 
     calls_fut(fut).await;
     //~^ large_futures
-    //~^^ large_futures
 }
 
 pub fn foo() -> impl std::future::Future<Output = ()> {
@@ -60,7 +52,6 @@ pub fn foo() -> impl std::future::Future<Output = ()> {
 }
 
 pub async fn lines() {
-    //~vv large_futures
     //~v large_futures
     async {
         let x = [0i32; 1024 * 16];
