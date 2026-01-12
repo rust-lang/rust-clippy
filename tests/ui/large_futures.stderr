@@ -25,7 +25,7 @@ LL +         Box::pin(big_fut([0u8; 1024 * 16])).await;
    |
 
 error: usage of large future with a size of 16386 bytes
-  --> tests/ui/large_futures.rs:17:5
+  --> tests/ui/large_futures.rs:19:5
    |
 LL |     f.await
    |     ^
@@ -50,7 +50,7 @@ LL +         Box::pin(big_fut([0u8; 1024 * 16])).await;
    |
 
 error: usage of large future with a size of 16386 bytes
-  --> tests/ui/large_futures.rs:17:5
+  --> tests/ui/large_futures.rs:19:5
    |
 LL |     f.await
    |     ^
@@ -76,7 +76,7 @@ LL +         Box::pin(big_fut([0u8; 1024 * 16])).await;
    |
 
 error: usage of large future with a size of 16387 bytes
-  --> tests/ui/large_futures.rs:22:9
+  --> tests/ui/large_futures.rs:25:9
    |
 LL |         wait().await;
    |         ^^^^^^
@@ -88,7 +88,7 @@ LL +         Box::pin(wait()).await;
    |
 
 error: usage of large future with a size of 16387 bytes
-  --> tests/ui/large_futures.rs:28:13
+  --> tests/ui/large_futures.rs:32:13
    |
 LL |             wait().await;
    |             ^^^^^^
@@ -100,7 +100,7 @@ LL +             Box::pin(wait()).await;
    |
 
 error: usage of large future with a size of 16387 bytes
-  --> tests/ui/large_futures.rs:22:9
+  --> tests/ui/large_futures.rs:25:9
    |
 LL |         wait().await;
    |         ^^^^^^
@@ -113,7 +113,7 @@ LL +         Box::pin(wait()).await;
    |
 
 error: usage of large future with a size of 16387 bytes
-  --> tests/ui/large_futures.rs:28:13
+  --> tests/ui/large_futures.rs:32:13
    |
 LL |             wait().await;
    |             ^^^^^^
@@ -126,7 +126,7 @@ LL +             Box::pin(wait()).await;
    |
 
 error: usage of large future with a size of 16385 bytes
-  --> tests/ui/large_futures.rs:35:15
+  --> tests/ui/large_futures.rs:40:15
    |
 LL |     let fut = big_fut([0u8; 1024 * 16]);
    |               ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -135,73 +135,73 @@ help: consider `Box::pin` on it or reducing direct ownership of the items in sco
    |
 LL -     let fut = big_fut([0u8; 1024 * 16]);
 LL +     let fut = Box::pin(big_fut([0u8; 1024 * 16]));
-   |
-
-error: usage of large future with a size of 65540 bytes
-  --> tests/ui/large_futures.rs:36:5
-   |
-LL |     foo().await;
-   |     ^^^^^
-   |
-help: consider `Box::pin` on it or reducing direct ownership of the items in scope and use references instead where possible
-   |
-LL -     foo().await;
-LL +     Box::pin(foo()).await;
-   |
-
-error: usage of large future with a size of 16385 bytes
-  --> tests/ui/large_futures.rs:39:15
-   |
-LL |     calls_fut(fut).await;
-   |               ^^^
-   |
-help: consider `Box::pin` on it or reducing direct ownership of the items in scope and use references instead where possible
-   |
-LL -     calls_fut(fut).await;
-LL +     calls_fut(Box::pin(fut)).await;
-   |
-
-error: usage of large future with a size of 16385 bytes
-  --> tests/ui/large_futures.rs:35:15
-   |
-LL |     let fut = big_fut([0u8; 1024 * 16]);
-   |               ^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
-help: consider `Box::pin` on it or reducing direct ownership of the items in scope and use references instead where possible
-   |
-LL -     let fut = big_fut([0u8; 1024 * 16]);
-LL +     let fut = Box::pin(big_fut([0u8; 1024 * 16]));
-   |
-
-error: usage of large future with a size of 65540 bytes
-  --> tests/ui/large_futures.rs:36:5
-   |
-LL |     foo().await;
-   |     ^^^^^
-   |
-   = note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
-help: consider `Box::pin` on it or reducing direct ownership of the items in scope and use references instead where possible
-   |
-LL -     foo().await;
-LL +     Box::pin(foo()).await;
-   |
-
-error: usage of large future with a size of 16385 bytes
-  --> tests/ui/large_futures.rs:39:15
-   |
-LL |     calls_fut(fut).await;
-   |               ^^^
-   |
-   = note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
-help: consider `Box::pin` on it or reducing direct ownership of the items in scope and use references instead where possible
-   |
-LL -     calls_fut(fut).await;
-LL +     calls_fut(Box::pin(fut)).await;
    |
 
 error: usage of large future with a size of 65540 bytes
   --> tests/ui/large_futures.rs:44:5
+   |
+LL |     foo().await;
+   |     ^^^^^
+   |
+help: consider `Box::pin` on it or reducing direct ownership of the items in scope and use references instead where possible
+   |
+LL -     foo().await;
+LL +     Box::pin(foo()).await;
+   |
+
+error: usage of large future with a size of 16385 bytes
+  --> tests/ui/large_futures.rs:48:15
+   |
+LL |     calls_fut(fut).await;
+   |               ^^^
+   |
+help: consider `Box::pin` on it or reducing direct ownership of the items in scope and use references instead where possible
+   |
+LL -     calls_fut(fut).await;
+LL +     calls_fut(Box::pin(fut)).await;
+   |
+
+error: usage of large future with a size of 16385 bytes
+  --> tests/ui/large_futures.rs:40:15
+   |
+LL |     let fut = big_fut([0u8; 1024 * 16]);
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
+help: consider `Box::pin` on it or reducing direct ownership of the items in scope and use references instead where possible
+   |
+LL -     let fut = big_fut([0u8; 1024 * 16]);
+LL +     let fut = Box::pin(big_fut([0u8; 1024 * 16]));
+   |
+
+error: usage of large future with a size of 65540 bytes
+  --> tests/ui/large_futures.rs:44:5
+   |
+LL |     foo().await;
+   |     ^^^^^
+   |
+   = note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
+help: consider `Box::pin` on it or reducing direct ownership of the items in scope and use references instead where possible
+   |
+LL -     foo().await;
+LL +     Box::pin(foo()).await;
+   |
+
+error: usage of large future with a size of 16385 bytes
+  --> tests/ui/large_futures.rs:48:15
+   |
+LL |     calls_fut(fut).await;
+   |               ^^^
+   |
+   = note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
+help: consider `Box::pin` on it or reducing direct ownership of the items in scope and use references instead where possible
+   |
+LL -     calls_fut(fut).await;
+LL +     calls_fut(Box::pin(fut)).await;
+   |
+
+error: usage of large future with a size of 65540 bytes
+  --> tests/ui/large_futures.rs:55:5
    |
 LL | /     async {
 LL | |         let x = [0i32; 1024 * 16];
@@ -220,7 +220,7 @@ LL +     })
    |
 
 error: usage of large future with a size of 65540 bytes
-  --> tests/ui/large_futures.rs:53:5
+  --> tests/ui/large_futures.rs:65:5
    |
 LL | /     async {
 LL | |         let x = [0i32; 1024 * 16];
@@ -240,7 +240,7 @@ LL +     })
    |
 
 error: usage of large future with a size of 65540 bytes
-  --> tests/ui/large_futures.rs:53:5
+  --> tests/ui/large_futures.rs:65:5
    |
 LL | /     async {
 LL | |         let x = [0i32; 1024 * 16];
@@ -261,7 +261,7 @@ LL +     })
    |
 
 error: definition for a large future with a size of 65544 bytes
-  --> tests/ui/large_futures.rs:63:27
+  --> tests/ui/large_futures.rs:75:27
    |
 LL |   pub async fn macro_expn() {
    |  ___________________________^
@@ -274,7 +274,7 @@ LL | | }
    | |_^
    |
 help: consider `Box::pin` when constructing it or reducing direct ownership of the items in scope and use references instead where possible
-  --> tests/ui/large_futures.rs:63:27
+  --> tests/ui/large_futures.rs:75:27
    |
 LL |   pub async fn macro_expn() {
    |  ___________________________^
