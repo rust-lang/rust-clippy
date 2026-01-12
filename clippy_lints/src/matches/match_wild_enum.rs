@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::res::MaybeDef;
 use clippy_utils::source::SpanRangeExt;
-use clippy_utils::{is_refutable, peel_hir_pat_refs, recurse_or_patterns};
+use clippy_utils::{is_expn_of, is_refutable, peel_hir_pat_refs, recurse_or_patterns};
 use rustc_errors::Applicability;
 use rustc_hir::def::{CtorKind, DefKind, Res};
 use rustc_hir::{Arm, Expr, PatExpr, PatExprKind, PatKind, PathSegment, QPath, Ty, TyKind};
@@ -30,7 +30,12 @@ pub(crate) fn check(cx: &LateContext<'_>, ex: &Expr<'_>, arms: &[Arm<'_>]) {
     let mut has_non_wild = false;
     for arm in arms {
         match peel_hir_pat_refs(arm.pat).0.kind {
-            PatKind::Wild if arm.guard.is_none() => wildcard_span = Some(arm.pat.span),
+            PatKind::Wild if arm.guard.is_none() => {
+                if is_expn_of(arm.body.span, sym::unreachable).is_some() {
+        continue;
+    }
+    wildcard_span = Some(arm.pat.span);
+            },
             PatKind::Binding(_, _, ident, None) => {
                 wildcard_span = Some(arm.pat.span);
                 wildcard_ident = Some(ident);
