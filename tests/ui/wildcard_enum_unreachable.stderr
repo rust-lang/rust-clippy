@@ -1,0 +1,11 @@
+error: wildcard match will also match any future added variants
+  --> tests/ui/wildcard_enum_unreachable.rs:13:9
+   |
+LL |         _ => unreachable!(),
+   |         ^ help: try: `Color::Blue | Color::Green`
+   |
+   = note: `-D clippy::wildcard-enum-match-arm` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::wildcard_enum_match_arm)]`
+
+error: aborting due to 1 previous error
+
