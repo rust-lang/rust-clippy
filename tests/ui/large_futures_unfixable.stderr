@@ -1,0 +1,16 @@
+error: definition for a large future with a size of 16385 bytes
+  --> tests/ui/large_futures_unfixable.rs:4:41
+   |
+LL | async fn big_fut(_arg: [u8; 1024 * 16]) {}
+   |                                         ^^
+   |
+help: consider `Box::pin` when constructing it or reducing direct ownership of the items in scope and use references instead where possible
+  --> tests/ui/large_futures_unfixable.rs:4:41
+   |
+LL | async fn big_fut(_arg: [u8; 1024 * 16]) {}
+   |                                         ^^
+   = note: `-D clippy::large-futures` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::large_futures)]`
+
+error: aborting due to 1 previous error
+
