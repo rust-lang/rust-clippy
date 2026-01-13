@@ -1,13 +1,10 @@
-#![allow(
-    clippy::future_not_send,
-    clippy::manual_async_fn,
-    clippy::never_loop,
-    clippy::uninlined_format_args
-)]
+#![allow(clippy::manual_async_fn)]
 #![warn(clippy::large_futures)]
 
+// Note: large_futures are allowed here, as rustfix cannot actually fix this case.
+// See large_futures_unfixable instead.
+#[allow(clippy::large_futures)]
 async fn big_fut(_arg: [u8; 1024 * 16]) {}
-//~^ large_futures
 
 async fn wait() {
     let f = async {
@@ -62,7 +59,8 @@ pub async fn lines() {
     .await;
 }
 
-//~v large_futures
+// Note: large_futures are allowed here, as rustfix cannot actually fix this case.
+#[allow(clippy::large_futures)]
 pub async fn macro_expn() {
     macro_rules! macro_ {
         () => {

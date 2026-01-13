@@ -1,12 +1,14 @@
+use crate::clippy_utils::res::MaybeDef;
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_hir_and_then;
+use clippy_utils::res::MaybeResPath;
 use clippy_utils::source::snippet;
 use clippy_utils::ty::implements_trait;
 use rustc_abi::Size;
 use rustc_errors::Applicability;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::{FnKind, Visitor, walk_body, walk_expr};
-use rustc_hir::{Body, Expr, FnDecl, HirIdSet};
+use rustc_hir::{Body, Expr, ExprKind, FnDecl, HirIdSet, LangItem, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter;
 use rustc_middle::ty::Ty;
@@ -81,6 +83,16 @@ impl<'tcx> Visitor<'tcx> for AsyncFnVisitor<'_, 'tcx> {
 
         if !self.parent.visited.insert(expr.hir_id) {
             // This expression was already visited once.
+            return;
+        }
+
+        if let ExprKind::Call(method, _) = expr.kind
+            && let ExprKind::Path(QPath::TypeRelative(ty, seg)) = method.kind
+            && ty.basic_res().is_lang_item(self.cx, LangItem::OwnedBox)
+            && seg.ident.name.as_str() == "pin"
+        {
+            // When the current expression is already a `Box::pin(...)` call,
+            // our suggestion has been applied. Do not recurse deeper.
             return;
         }
 
