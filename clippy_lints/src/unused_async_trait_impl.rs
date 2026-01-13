@@ -10,7 +10,7 @@ use rustc_hir::{
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter;
-use rustc_session::impl_lint_pass;
+use rustc_session::declare_lint_pass;
 use rustc_span::Span;
 use rustc_span::def_id::LocalDefId;
 
@@ -21,7 +21,12 @@ declare_clippy_lint! {
     /// ### Why is this bad?
     /// Async functions with no async code create computational overhead.
     /// Even though the trait requires the function to return a future,
-    /// returning a `core::future::ready` with the result is more efficient.
+    /// returning a `core::future::ready` with the result is more efficient
+    /// as it reduces the number of states in the Future state machine by at least one.
+    ///
+    /// Note that the behaviour is slightly different when using core::future::ready,
+    /// as the value is computed immediately and stored in a future for later retrieval at the first (and only valid) call to `poll`.
+    /// An `async` block generates code that completely defers the computation of this value until the Future is polled.
     ///
     /// ### Example
     /// ```no_run
@@ -48,19 +53,13 @@ declare_clippy_lint! {
     ///     }
     /// }
     /// ```
-    ///
-    /// ### Note
-    /// An `async` block generates code that defers execution until the Future is polled.
-    /// When using `core::future::ready` the code is executed immediately.
     #[clippy::version = "1.94.0"]
     pub UNUSED_ASYNC_TRAIT_IMPL,
     pedantic,
     "finds async trait impl functions with no await statements"
 }
 
-pub struct UnusedAsyncTraitImpl;
-
-impl_lint_pass!(UnusedAsyncTraitImpl => [UNUSED_ASYNC_TRAIT_IMPL]);
+declare_lint_pass!(UnusedAsyncTraitImpl => [UNUSED_ASYNC_TRAIT_IMPL]);
 
 struct AsyncFnVisitor<'a, 'tcx> {
     cx: &'a LateContext<'tcx>,
