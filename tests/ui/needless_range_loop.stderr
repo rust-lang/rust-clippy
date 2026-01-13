@@ -4,7 +4,6 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in 0..vec.len() {
    |              ^^^^^^^^^^^^
    |
-   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
    = note: `-D clippy::needless-range-loop` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::needless_range_loop)]`
 help: consider using an iterator
@@ -19,7 +18,6 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in 0..vec.len() {
    |              ^^^^^^^^^^^^
    |
-   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
 help: consider using an iterator
    |
 LL -     for i in 0..vec.len() {
@@ -32,7 +30,6 @@ error: the loop variable `j` is only used to index `STATIC`
 LL |     for j in 0..4 {
    |              ^^^^
    |
-   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
 help: consider using an iterator
    |
 LL -     for j in 0..4 {
@@ -45,7 +42,6 @@ error: the loop variable `j` is only used to index `CONST`
 LL |     for j in 0..4 {
    |              ^^^^
    |
-   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
 help: consider using an iterator
    |
 LL -     for j in 0..4 {
@@ -83,7 +79,6 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in 5..vec.len() {
    |              ^^^^^^^^^^^^
    |
-   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
 help: consider using an iterator
    |
 LL -     for i in 5..vec.len() {

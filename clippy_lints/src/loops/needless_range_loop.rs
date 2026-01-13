@@ -1,6 +1,6 @@
 use super::NEEDLESS_RANGE_LOOP;
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::snippet;
+use clippy_utils::source::{snippet, snippet_with_applicability};
 use clippy_utils::ty::has_iter_method;
 use clippy_utils::visitors::is_local_used;
 use clippy_utils::{SpanlessEq, contains_name, higher, is_integer_const, peel_hir_expr_while, sugg};
@@ -164,17 +164,24 @@ pub(super) fn check<'tcx>(
                     },
                 );
             } else {
-                let repl = if starts_at_zero && take_is_empty {
-                    format!("&{ref_mut}{indexed}")
+                let mut applicability = Applicability::HasPlaceholders;
+                let (repl, note) = if starts_at_zero && take_is_empty {
+                    (format!("&{ref_mut}{indexed}"), None)
                 } else if !take_is_empty {
                     // Adding condition for when 'take' is not empty Fixing `.take(n)` with slicing to preserve panic
                     // semantics
-                    format!(
-                        "{indexed}[..{}].{method}(){method_2}",
-                        snippet(cx, end.unwrap().span, "..")
+                    (
+                        format!(
+                            "{indexed}[..{}].{method}(){method_2}",
+                            snippet_with_applicability(cx, end.unwrap().span, "..", &mut applicability)
+                        ),
+                        Some(
+                            "this suggestion preserves panic behavior, but the panic will occur \
+                            before iteration if the upper bound exceeds the collection length",
+                        ),
                     )
                 } else {
-                    format!("{indexed}.{method}(){method_1}{method_2}")
+                    (format!("{indexed}.{method}(){method_1}{method_2}"), None)
                 };
 
                 span_lint_and_then(
@@ -186,12 +193,11 @@ pub(super) fn check<'tcx>(
                         diag.multipart_suggestion(
                             "consider using an iterator",
                             vec![(pat.span, "<item>".to_string()), (span, repl)],
-                            Applicability::HasPlaceholders,
+                            applicability,
                         );
-                        diag.note(
-                            "this suggestion preserves panic behavior, but the panic will occur \
-                            before iteration if the upper bound exceeds the collection length",
-                        );
+                        if let Some(note) = note {
+                            diag.note(note);
+                        }
                     },
                 );
             }

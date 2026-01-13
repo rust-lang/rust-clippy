@@ -19,7 +19,6 @@ error: the loop variable `i` is only used to index `ms`
 LL |     for i in 0..ms.len() {
    |              ^^^^^^^^^^^
    |
-   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
 help: consider using an iterator
    |
 LL -     for i in 0..ms.len() {
@@ -32,7 +31,6 @@ error: the loop variable `i` is only used to index `ms`
 LL |     for i in 0..ms.len() {
    |              ^^^^^^^^^^^
    |
-   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
 help: consider using an iterator
    |
 LL -     for i in 0..ms.len() {
@@ -71,7 +69,6 @@ error: the loop variable `i` is only used to index `arr`
 LL |     for i in 0..3 {
    |              ^^^^
    |
-   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
 help: consider using an iterator
    |
 LL -     for i in 0..3 {
@@ -97,7 +94,6 @@ error: the loop variable `i` is only used to index `arr`
 LL |     for i in 1..3 {
    |              ^^^^
    |
-   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
 help: consider using an iterator
    |
 LL -     for i in 1..3 {
