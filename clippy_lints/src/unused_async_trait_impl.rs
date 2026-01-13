@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
-use clippy_utils::source::SpanRangeExt;
+use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::usage::is_todo_unimplemented_stub;
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::{Visitor, walk_expr};
@@ -112,7 +112,9 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsyncTraitImpl {
             };
             visitor.visit_nested_body(body_id);
 
-            if !visitor.found_await {
+            if !visitor.found_await
+                && let Some(builtin_crate) = clippy_utils::std_or_core(cx)
+            {
                 span_lint_hir_and_then(
                     cx,
                     UNUSED_ASYNC_TRAIT_IMPL,
@@ -120,29 +122,31 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsyncTraitImpl {
                     sig.span,
                     "unused `async` for async trait impl function with no await statements",
                     |diag| {
-                        if let Some(output_src) = sig.decl.output.span().get_source_text(cx)
-                            && let Some(body_src) = body.value.span.get_source_text(cx)
-                            && let Some(builtin_crate) = clippy_utils::std_or_core(cx)
-                        {
-                            let output_str = output_src.as_str();
-                            let body_str = body_src.as_str();
+                        let mut applicability = Applicability::MachineApplicable;
 
-                            let sugg = vec![
-                                (async_span, String::new()),
-                                (sig.decl.output.span(), format!("impl Future<Output = {output_str}>")),
-                                (
-                                    body.value.span,
-                                    format!("{{ {builtin_crate}::future::ready({body_str}) }}"),
-                                ),
-                            ];
+                        let signature_snippet =
+                            snippet_with_applicability(cx, sig.decl.output.span(), "_", &mut applicability);
+                        let body_snippet = snippet_with_applicability(cx, body.value.span, "_", &mut applicability);
 
-                            diag.help(format!("a Future can be constructed from the return value with `{builtin_crate}::future::ready`"));
-                            diag.multipart_suggestion(
-                                    format!("consider removing the `async` from this function and returning `impl Future<Output = {output_str}>` instead"),
+                        let sugg = vec![
+                            (async_span, String::new()),
+                            (
+                                sig.decl.output.span(),
+                                format!("impl Future<Output = {signature_snippet}>"),
+                            ),
+                            (
+                                body.value.span,
+                                format!("{{ {builtin_crate}::future::ready({body_snippet}) }}",),
+                            ),
+                        ];
+                        diag.help(format!(
+                            "a Future can be constructed from the return value with `{builtin_crate}::future::ready`"
+                        ));
+                        diag.multipart_suggestion(
+                                    format!("consider removing the `async` from this function and returning `impl Future<Output = {signature_snippet}>` instead"),
                                     sugg,
-                                    Applicability::MachineApplicable
+                                    applicability
                                 );
-                        }
                     },
                 );
             }
