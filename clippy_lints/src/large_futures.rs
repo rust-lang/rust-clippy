@@ -3,6 +3,7 @@ use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::res::MaybeResPath;
 use clippy_utils::source::snippet;
+use clippy_utils::sym;
 use clippy_utils::ty::implements_trait;
 use rustc_abi::Size;
 use rustc_errors::Applicability;
@@ -89,7 +90,7 @@ impl<'tcx> Visitor<'tcx> for AsyncFnVisitor<'_, 'tcx> {
         if let ExprKind::Call(method, _) = expr.kind
             && let ExprKind::Path(QPath::TypeRelative(ty, seg)) = method.kind
             && ty.basic_res().is_lang_item(self.cx, LangItem::OwnedBox)
-            && seg.ident.name.as_str() == "pin"
+            && seg.ident.name == sym::pin
         {
             // When the current expression is already a `Box::pin(...)` call,
             // our suggestion has been applied. Do not recurse deeper.
