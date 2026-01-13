@@ -4,12 +4,12 @@ error: unused `async` for async trait impl function with no await statements
 LL |     async fn do_something() -> u32 {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = help: a Future can be constructed from the return value with `core::future::ready`
+   = help: a Future can be constructed from the return value with `std::future::ready`
    = note: `-D clippy::unused-async-trait-impl` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::unused_async_trait_impl)]`
 help: consider removing the `async` from this function and returning `impl Future<Output = u32>` instead
    |
-LL ~      fn do_something() -> impl Future<Output = u32> { core::future::ready({
+LL ~      fn do_something() -> impl Future<Output = u32> { std::future::ready({
 LL +
 LL +         1
 LL +     }) }

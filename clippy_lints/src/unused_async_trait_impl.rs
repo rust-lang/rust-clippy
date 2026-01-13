@@ -122,6 +122,7 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsyncTraitImpl {
                     |diag| {
                         if let Some(output_src) = sig.decl.output.span().get_source_text(cx)
                             && let Some(body_src) = body.value.span.get_source_text(cx)
+                            && let Some(builtin_crate) = clippy_utils::std_or_core(cx)
                         {
                             let output_str = output_src.as_str();
                             let body_str = body_src.as_str();
@@ -129,10 +130,13 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsyncTraitImpl {
                             let sugg = vec![
                                 (async_span, String::new()),
                                 (sig.decl.output.span(), format!("impl Future<Output = {output_str}>")),
-                                (body.value.span, format!("{{ core::future::ready({body_str}) }}")),
+                                (
+                                    body.value.span,
+                                    format!("{{ {builtin_crate}::future::ready({body_str}) }}"),
+                                ),
                             ];
 
-                            diag.help("a Future can be constructed from the return value with `core::future::ready`");
+                            diag.help(format!("a Future can be constructed from the return value with `{builtin_crate}::future::ready`"));
                             diag.multipart_suggestion(
                                     format!("consider removing the `async` from this function and returning `impl Future<Output = {output_str}>` instead"),
                                     sugg,
