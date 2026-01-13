@@ -6,6 +6,7 @@ trait HasAsyncMethod {
 
 struct Inefficient;
 struct Efficient;
+struct Stub;
 
 impl HasAsyncMethod for Inefficient {
     async fn do_something() -> u32 {
@@ -20,7 +21,8 @@ impl HasAsyncMethod for Efficient {
     }
 }
 
-fn main() {
-    Inefficient::do_something();
-    Efficient::do_something();
+impl HasAsyncMethod for Stub {
+    async fn do_something() -> u32 {
+        todo!() // Do not emit the lint in this case.
+    }
 }
