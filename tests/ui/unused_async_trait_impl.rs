@@ -17,7 +17,7 @@ impl HasAsyncMethod for Inefficient {
 
 impl HasAsyncMethod for Efficient {
     fn do_something() -> impl Future<Output = u32> {
-        core::future::ready(1)
+        std::future::ready(1)
     }
 }
 
