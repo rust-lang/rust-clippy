@@ -1,18 +1,15 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
-use clippy_utils::is_def_id_trait_method;
 use clippy_utils::source::SpanRangeExt;
 use clippy_utils::usage::is_todo_unimplemented_stub;
 use rustc_errors::Applicability;
-use rustc_hir::intravisit::{FnKind, Visitor, walk_expr, walk_fn};
+use rustc_hir::intravisit::{Visitor, walk_expr};
 use rustc_hir::{
-    Body, Closure, ClosureKind, CoroutineDesugaring, CoroutineKind, Defaultness, Expr, ExprKind, FnDecl, IsAsync, Node,
-    TraitItem, YieldSource,
+    Body, Closure, ClosureKind, CoroutineDesugaring, CoroutineKind, Expr, ExprKind, ImplItem, ImplItemKind, IsAsync,
+    YieldSource,
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter;
 use rustc_session::declare_lint_pass;
-use rustc_span::Span;
-use rustc_span::def_id::LocalDefId;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -102,19 +99,10 @@ impl<'tcx> Visitor<'tcx> for AsyncFnVisitor<'_, 'tcx> {
 }
 
 impl<'tcx> LateLintPass<'tcx> for UnusedAsyncTraitImpl {
-    fn check_fn(
-        &mut self,
-        cx: &LateContext<'tcx>,
-        fn_kind: FnKind<'tcx>,
-        fn_decl: &'tcx FnDecl<'tcx>,
-        body: &Body<'tcx>,
-        span: Span,
-        def_id: LocalDefId,
-    ) {
-        if let IsAsync::Async(async_span) = fn_kind.asyncness()
-            && !span.from_expansion()
-            && is_def_id_trait_method(cx, def_id)
-            && !is_default_trait_impl(cx, def_id)
+    fn check_impl_item(&mut self, cx: &LateContext<'tcx>, impl_item: &'tcx ImplItem<'_>) {
+        if let ImplItemKind::Fn(ref sig, body_id) = impl_item.kind
+            && let IsAsync::Async(async_span) = sig.header.asyncness
+            && let body = cx.tcx.hir_body(body_id)
             && !async_fn_contains_todo_unimplemented_macro(cx, body)
         {
             let mut visitor = AsyncFnVisitor {
@@ -122,16 +110,17 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsyncTraitImpl {
                 found_await: false,
                 async_depth: 0,
             };
-            walk_fn(&mut visitor, fn_kind, fn_decl, body.id(), def_id);
+            visitor.visit_nested_body(body_id);
+
             if !visitor.found_await {
                 span_lint_hir_and_then(
                     cx,
                     UNUSED_ASYNC_TRAIT_IMPL,
-                    cx.tcx.local_def_id_to_hir_id(def_id),
-                    span,
+                    cx.tcx.local_def_id_to_hir_id(impl_item.owner_id.def_id),
+                    sig.span,
                     "unused `async` for async trait impl function with no await statements",
                     |diag| {
-                        if let Some(output_src) = fn_decl.output.span().get_source_text(cx)
+                        if let Some(output_src) = sig.decl.output.span().get_source_text(cx)
                             && let Some(body_src) = body.value.span.get_source_text(cx)
                         {
                             let output_str = output_src.as_str();
@@ -139,7 +128,7 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsyncTraitImpl {
 
                             let sugg = vec![
                                 (async_span, String::new()),
-                                (fn_decl.output.span(), format!("impl Future<Output = {output_str}>")),
+                                (sig.decl.output.span(), format!("impl Future<Output = {output_str}>")),
                                 (body.value.span, format!("{{ core::future::ready({body_str}) }}")),
                             ];
 
@@ -155,16 +144,6 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsyncTraitImpl {
             }
         }
     }
-}
-
-fn is_default_trait_impl(cx: &LateContext<'_>, def_id: LocalDefId) -> bool {
-    matches!(
-        cx.tcx.hir_node_by_def_id(def_id),
-        Node::TraitItem(TraitItem {
-            defaultness: Defaultness::Default { .. },
-            ..
-        })
-    )
 }
 
 fn async_fn_contains_todo_unimplemented_macro(cx: &LateContext<'_>, body: &Body<'_>) -> bool {
