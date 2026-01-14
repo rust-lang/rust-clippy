@@ -753,7 +753,7 @@ impl<T: LintContext> DiagExt<T> for rustc_errors::Diag<'_, ()> {
 
 /// Extends the given span of an item so that it can be used in a suggestion like:
 ///
-/// ```rust, no compile
+/// ```ignore
 /// diag.span_suggestion(new_span, .., "", ..);
 /// ```
 ///
