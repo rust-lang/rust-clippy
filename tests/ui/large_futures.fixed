@@ -2,7 +2,8 @@
 #![warn(clippy::large_futures)]
 
 // Note: large_futures are allowed here, as rustfix cannot actually fix this case.
-// See large_futures_unfixable instead.
+// The reason we still keep it around is that it's used as a helper in other tests.
+// See large_futures_unfixable.rs where this definition is demonstrated to emit a lint as well.
 #[allow(clippy::large_futures)]
 async fn big_fut(_arg: [u8; 1024 * 16]) {}
 
