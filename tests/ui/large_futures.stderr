@@ -85,9 +85,10 @@ LL +     calls_fut(Box::pin(fut)).await;
    |
 
 error: usage of large future with a size of 65540 bytes
-  --> tests/ui/large_futures.rs:45:5
+  --> tests/ui/large_futures.rs:44:5
    |
 LL | /     async {
+LL | |
 LL | |         let x = [0i32; 1024 * 16];
 LL | |         async {}.await;
 LL | |         dbg!(x);
@@ -97,6 +98,7 @@ LL | |     }
 help: consider `Box::pin` on it or reducing direct ownership of the items in scope and use references instead where possible
    |
 LL ~     Box::pin(async {
+LL +
 LL +         let x = [0i32; 1024 * 16];
 LL +         async {}.await;
 LL +         dbg!(x);
@@ -104,18 +106,21 @@ LL +     })
    |
 
 error: usage of large future with a size of 65540 bytes
-  --> tests/ui/large_futures.rs:54:5
+  --> tests/ui/large_futures.rs:53:5
    |
 LL | /     async {
+LL | |
 LL | |         let x = [0i32; 1024 * 16];
 LL | |         async {}.await;
-...  |
+LL | |
+LL | |         println!("{:?}", x);
 LL | |     }
    | |_____^
    |
 help: consider `Box::pin` on it or reducing direct ownership of the items in scope and use references instead where possible
    |
 LL ~     Box::pin(async {
+LL +
 LL +         let x = [0i32; 1024 * 16];
 LL +         async {}.await;
 LL + 
@@ -124,9 +129,10 @@ LL +     })
    |
 
 error: usage of large future with a size of 65540 bytes
-  --> tests/ui/large_futures.rs:68:13
+  --> tests/ui/large_futures.rs:67:13
    |
 LL | /             async {
+LL | |
 LL | |                 let x = [0i32; 1024 * 16];
 LL | |                 async {}.await;
 LL | |                 println!("macro: {:?}", x);
@@ -140,6 +146,7 @@ LL |       macro_!().await
 help: consider `Box::pin` on it or reducing direct ownership of the items in scope and use references instead where possible
    |
 LL ~             Box::pin(async {
+LL +
 LL +                 let x = [0i32; 1024 * 16];
 LL +                 async {}.await;
 LL +                 println!("macro: {:?}", x);

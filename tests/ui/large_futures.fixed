@@ -41,8 +41,8 @@ pub async fn test() {
 }
 
 pub fn foo() -> impl std::future::Future<Output = ()> {
-    //~v large_futures
     Box::pin(async {
+        //~^ large_futures
         let x = [0i32; 1024 * 16];
         async {}.await;
         dbg!(x);
@@ -50,8 +50,8 @@ pub fn foo() -> impl std::future::Future<Output = ()> {
 }
 
 pub async fn lines() {
-    //~v large_futures
     Box::pin(async {
+        //~^ large_futures
         let x = [0i32; 1024 * 16];
         async {}.await;
 
@@ -64,8 +64,8 @@ pub async fn lines() {
 pub async fn macro_expn() {
     macro_rules! macro_ {
         () => {
-            //~v large_futures
             Box::pin(async {
+                //~^ large_futures
                 let x = [0i32; 1024 * 16];
                 async {}.await;
                 println!("macro: {:?}", x);
