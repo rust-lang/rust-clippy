@@ -33,7 +33,18 @@ mod indented {
     impl crate::HasAsyncMethod for Indented {
         async fn do_something() -> u32 {
             //~^ unused_async_trait_impl
-            1
+            let mut x = 0;
+            for y in 0..64 {
+                x = (x + 1) * y;
+            }
+
+            let fake_fut = async {
+                if x == 0 {
+                    panic!("Fake example");
+                }
+            };
+
+            x
         }
     }
 }

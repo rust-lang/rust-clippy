@@ -36,7 +36,18 @@ mod indented {
         fn do_something() -> impl Future<Output = u32> {
             std::future::ready({
                 //~^ unused_async_trait_impl
-                1
+                let mut x = 0;
+                for y in 0..64 {
+                    x = (x + 1) * y;
+                }
+
+                let fake_fut = async {
+                    if x == 0 {
+                        panic!("Fake example");
+                    }
+                };
+
+                x
             })
         }
     }
