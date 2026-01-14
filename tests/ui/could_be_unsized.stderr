@@ -1,0 +1,23 @@
+error: generic param could have a `?Sized` bound
+  --> tests/ui/could_be_unsized.rs:5:10
+   |
+LL | trait T1<T> {}
+   |          ^
+   |
+   = note: `-D clippy::could-be-unsized` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::could_be_unsized)]`
+
+error: generic param could have a `?Sized` bound
+  --> tests/ui/could_be_unsized.rs:15:10
+   |
+LL | trait T4<T> {
+   |          ^
+
+error: generic param could have a `?Sized` bound
+  --> tests/ui/could_be_unsized.rs:25:10
+   |
+LL | trait T6<T, U, V: Sized> {
+   |          ^
+
+error: aborting due to 3 previous errors
+
