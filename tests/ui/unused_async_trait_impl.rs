@@ -1,0 +1,75 @@
+#![warn(clippy::unused_async_trait_impl)]
+
+trait HasAsyncMethod {
+    async fn do_something() -> u32;
+}
+
+struct Inefficient;
+struct Efficient;
+struct Stub;
+
+impl HasAsyncMethod for Inefficient {
+    async fn do_something() -> u32 {
+        //~^ unused_async_trait_impl
+        1
+    }
+}
+
+impl HasAsyncMethod for Efficient {
+    fn do_something() -> impl Future<Output = u32> {
+        std::future::ready(1)
+    }
+}
+
+impl HasAsyncMethod for Stub {
+    async fn do_something() -> u32 {
+        todo!() // Do not emit the lint in this case.
+    }
+}
+
+// Test to check if the identation of the various snippets goes as intended.
+mod indented {
+    struct Indented;
+
+    impl crate::HasAsyncMethod for Indented {
+        async fn do_something() -> u32 {
+            //~^ unused_async_trait_impl
+            let mut x = 0;
+            for y in 0..64 {
+                x = (x + 1) * y;
+            }
+
+            let fake_fut = async {
+                if x == 0 {
+                    panic!("Fake example");
+                }
+            };
+
+            x
+        }
+    }
+
+    struct Complex<T>(std::marker::PhantomData<T>);
+
+    impl<T> crate::HasAsyncMethod for Complex<T>
+    where
+        T: Sized,
+    {
+        async fn do_something() -> u32 {
+            //~^ unused_async_trait_impl
+            5
+        }
+    }
+}
+
+trait HasDefaultAsyncMethod {
+    // The lint should not suggest a change for trait fn's as changing that decl
+    // implies a less restrictive Future type.
+    async fn do_something() -> u32 {
+        0
+    }
+}
+
+impl HasDefaultAsyncMethod for Stub {
+    // Nothing!
+}
