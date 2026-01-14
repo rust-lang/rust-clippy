@@ -13,15 +13,15 @@ use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for trait function implementations that are declared `async` but have no `.await`s inside of them.
+    /// Checks for trait method implementations that are declared `async` but have no `.await`s inside of them.
     ///
     /// ### Why is this bad?
     /// Async functions with no async code create computational overhead.
-    /// Even though the trait requires the function to return a future,
+    /// Even though the trait requires the method to return a future,
     /// returning a `core::future::ready` with the result is more efficient
     /// as it reduces the number of states in the Future state machine by at least one.
     ///
-    /// Note that the behaviour is slightly different when using core::future::ready,
+    /// Note that the behaviour is slightly different when using `core::future::ready`,
     /// as the value is computed immediately and stored in a future for later retrieval at the first (and only valid) call to `poll`.
     /// An `async` block generates code that completely defers the computation of this value until the Future is polled.
     ///
