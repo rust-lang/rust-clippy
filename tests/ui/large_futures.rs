@@ -61,10 +61,10 @@ pub async fn lines() {
 }
 
 // Note: large_futures are allowed here, as rustfix cannot actually fix this case.
-#[allow(clippy::large_futures)]
 pub async fn macro_expn() {
     macro_rules! macro_ {
         () => {
+            //~v large_futures
             async {
                 let x = [0i32; 1024 * 16];
                 async {}.await;

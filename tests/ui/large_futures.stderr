@@ -123,5 +123,28 @@ LL +         println!("{:?}", x);
 LL +     })
    |
 
-error: aborting due to 9 previous errors
+error: usage of large future with a size of 65540 bytes
+  --> tests/ui/large_futures.rs:68:13
+   |
+LL | /             async {
+LL | |                 let x = [0i32; 1024 * 16];
+LL | |                 async {}.await;
+LL | |                 println!("macro: {:?}", x);
+LL | |             }
+   | |_____________^
+...
+LL |       macro_!().await
+   |       --------- in this macro invocation
+   |
+   = note: this error originates in the macro `macro_` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider `Box::pin` on it or reducing direct ownership of the items in scope and use references instead where possible
+   |
+LL ~             Box::pin(async {
+LL +                 let x = [0i32; 1024 * 16];
+LL +                 async {}.await;
+LL +                 println!("macro: {:?}", x);
+LL +             })
+   |
+
+error: aborting due to 10 previous errors
 

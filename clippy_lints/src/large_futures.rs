@@ -14,7 +14,7 @@ use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter;
 use rustc_middle::ty::Ty;
 use rustc_session::impl_lint_pass;
-use rustc_span::Span;
+use rustc_span::{DesugaringKind, Span};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -104,7 +104,7 @@ impl<'tcx> Visitor<'tcx> for AsyncFnVisitor<'_, 'tcx> {
         self.depth -= 1;
 
         if !self.emitted
-            && !expr.span.from_expansion()
+            && !expr.span.is_desugaring(DesugaringKind::Await)
             && let Some(ty) = self.cx.typeck_results().expr_ty_opt(expr)
             && let Some(size) = type_is_large_future(self.cx, ty, self.parent.future_size_threshold)
         {
