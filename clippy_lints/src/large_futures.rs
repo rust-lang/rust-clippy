@@ -67,6 +67,8 @@ impl_lint_pass!(LargeFuture => [LARGE_FUTURES]);
 struct AsyncFnVisitor<'a, 'tcx> {
     parent: &'a mut LargeFuture,
     cx: &'a LateContext<'tcx>,
+    /// Span of the function decl to be used when emitting a lint concerning the entire decl.
+    top_level_span: Span,
     /// Depth of the visitor with value `0` denoting the top-level expression.
     depth: usize,
     /// Whether a clippy suggestion was emitted for deeper levels of expressions.
@@ -114,10 +116,10 @@ impl<'tcx> Visitor<'tcx> for AsyncFnVisitor<'_, 'tcx> {
                     self.cx,
                     LARGE_FUTURES,
                     expr.hir_id,
-                    expr.span,
+                    self.top_level_span,
                     format!("definition for a large future with a size of {} bytes", size.bytes()),
                     |db| {
-                        db.span_help(expr.span, "consider `Box::pin` when constructing it or reducing direct ownership of the items in scope and use references instead where possible");
+                        db.help("consider `Box::pin` when constructing it or reducing direct ownership of the items in scope and use references instead where possible");
                     },
                 );
             } else {
@@ -170,12 +172,13 @@ impl<'tcx> LateLintPass<'tcx> for LargeFuture {
         _: FnKind<'tcx>,
         _: &'tcx FnDecl<'_>,
         body: &'tcx Body<'_>,
-        _: Span,
+        span: Span,
         _: LocalDefId,
     ) {
         let mut visitor = AsyncFnVisitor {
             parent: self,
             cx,
+            top_level_span: span,
             depth: 0,
             emitted: false,
         };
