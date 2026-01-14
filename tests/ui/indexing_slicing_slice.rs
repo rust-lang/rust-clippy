@@ -165,17 +165,16 @@ fn main() {
         true_value: 4,
     };
 
-    // Lint on this, because `get` does exist with same signature
+    // Lint: `get` exists with matching input type
     map_with_get[true];
     //~^ indexing_slicing
 
+    // Don't lint: `get()` doesn't accept the index type
     let s = S::<i32>(1);
     s[0];
-    //~^ indexing_slicing
 
     let y = Y::<i32>(1);
     y[0];
-    //~^ indexing_slicing
 
     let z = Z::<i32>(1);
     z[0];
