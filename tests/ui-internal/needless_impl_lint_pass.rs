@@ -5,30 +5,46 @@ extern crate rustc_lint;
 extern crate rustc_middle;
 extern crate rustc_session;
 
-use clippy_utils::msrvs::Msrv;
 use rustc_session::{declare_lint_pass, impl_lint_pass};
 
-struct WithoutFieldsSemi;
+mod semi {
+    use super::*;
 
-impl_lint_pass!(WithoutFieldsSemi => []);
-//~^ needless_impl_lint_pass
+    struct WithoutFields;
 
-struct WithoutFieldsBraces {}
-
-impl_lint_pass!(WithoutFieldsBraces => []);
-//~^ needless_impl_lint_pass
-
-impl_lint_pass!(WithoutFieldsAfterMacro => []);
-//~^ needless_impl_lint_pass
-
-struct WithoutFieldsAfterMacro;
-
-struct WithFields {
-    msrv: Msrv,
+    impl_lint_pass!(WithoutFields => []);
+    //~^ needless_impl_lint_pass
 }
 
-// don't lint: can't use `declare_lint_pass!` because of the field
-impl_lint_pass!(WithFields => []);
+mod braces {
+    use super::*;
+
+    struct WithoutFields {}
+
+    impl_lint_pass!(WithoutFields => []);
+    //~^ needless_impl_lint_pass
+}
+
+mod after_macro {
+    use super::*;
+
+    impl_lint_pass!(WithoutFields => []);
+    //~^ needless_impl_lint_pass
+
+    struct WithoutFields;
+}
+
+mod has_fields {
+    use super::*;
+    use clippy_utils::msrvs::Msrv;
+
+    struct WithFields {
+        msrv: Msrv,
+    }
+
+    // don't lint: can't use `declare_lint_pass!` because of the field
+    impl_lint_pass!(WithFields => []);
+}
 
 // don't lint: `impl_lint_pass!` not written by the user
 declare_lint_pass!(NoFields2 => []);
