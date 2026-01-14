@@ -129,8 +129,17 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsyncTraitImpl {
                         let async_span = cx.sess().source_map().span_extend_while_whitespace(async_span);
 
                         let signature_snippet = snippet_with_applicability(cx, sig.decl.output.span(), "_", &mut app);
+
+                        // Fetch body snippet and truncate excess indentation. Like this:
+                        // {
+                        //     4
+                        // }
                         let body_snippet = snippet_block_with_applicability(cx, body.value.span, "_", None, &mut app);
-                        let new_body_inner_snippet = reindent_multiline(
+                        // Wrap body snippet in `std::future::ready(...)` and indent everything by one level, like this:
+                        //     core::future::ready({
+                        //         4
+                        //     })
+                        let new_body_inner_snippet: String = reindent_multiline(
                             &format!("{builtin_crate}::future::ready({body_snippet})"),
                             false,
                             Some(4),
@@ -144,6 +153,13 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsyncTraitImpl {
                             ),
                             (
                                 body.value.span,
+                                // Wrap the entire snippet in fresh curly braces and indent everything except the first
+                                // line by the indentation level of the original body snippet, like this:
+                                // {
+                                // <indent>     core::future::ready({
+                                // <indent>         4
+                                // <indent>     }
+                                // <indent> }
                                 reindent_multiline(
                                     &format!("{{\n{new_body_inner_snippet}\n}}"),
                                     true,
