@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::source::snippet_indent;
 use clippy_utils::{is_expn_of, sym};
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
@@ -68,7 +69,16 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessImplLintPass {
                     let lint_pass_decl = cx.tcx.hir_node_by_def_id(lint_pass_struct).expect_item();
                     diag.span_label(lint_pass_decl.span, "struct defined here");
                     let remove_lint_pass_span = clippy_utils::sugg::remove_item_span(cx, lint_pass_decl.span);
+                    let module_id = cx.tcx.parent_module_from_def_id(lint_pass_struct);
+                    let (module, _, _) = cx.tcx.hir_get_module(module_id);
+                    let import_span = module.spans.inject_use_span;
+                    let import_sugg = format!(
+                        "use rustc_session::declare_lint_pass;\n{indent_of_imports}",
+                        indent_of_imports = snippet_indent(cx.sess(), import_span).unwrap_or_default(),
+                    );
+
                     let sugg = vec![
+                        (import_span, import_sugg),
                         (remove_lint_pass_span, String::new()),
                         // Cut out the `impl` from `impl_lint_pass!` and replace it with `declare`
                         // -- sidesteps the annoyance of creating the snippets
@@ -79,7 +89,6 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessImplLintPass {
                         sugg,
                         Applicability::MaybeIncorrect, // because of the import
                     );
-                    diag.help("You may need to import it first: `use rustc_session::declare_lint_pass;`");
                 },
             );
         }
