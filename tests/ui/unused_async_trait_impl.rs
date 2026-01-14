@@ -27,6 +27,7 @@ impl HasAsyncMethod for Stub {
     }
 }
 
+// Test to check if the identation of the various snippets goes as intended.
 mod indented {
     struct Indented;
 
@@ -47,4 +48,28 @@ mod indented {
             x
         }
     }
+
+    struct Complex<T>(std::marker::PhantomData<T>);
+
+    impl<T> crate::HasAsyncMethod for Complex<T>
+    where
+        T: Sized,
+    {
+        async fn do_something() -> u32 {
+            //~^ unused_async_trait_impl
+            5
+        }
+    }
+}
+
+trait HasDefaultAsyncMethod {
+    // The lint should not suggest a change for trait fn's as changing that decl
+    // implies a less restrictive Future type.
+    async fn do_something() -> u32 {
+        0
+    }
+}
+
+impl HasDefaultAsyncMethod for Stub {
+    // Nothing!
 }
