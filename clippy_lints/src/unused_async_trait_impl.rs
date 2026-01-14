@@ -1,5 +1,7 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
-use clippy_utils::source::snippet_with_applicability;
+use clippy_utils::source::{
+    indent_of, reindent_multiline, snippet_block_with_applicability, snippet_with_applicability,
+};
 use clippy_utils::usage::is_todo_unimplemented_stub;
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::{Visitor, walk_expr};
@@ -125,7 +127,12 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsyncTraitImpl {
                         let mut app = Applicability::MachineApplicable;
 
                         let signature_snippet = snippet_with_applicability(cx, sig.decl.output.span(), "_", &mut app);
-                        let body_snippet = snippet_with_applicability(cx, body.value.span, "_", &mut app);
+                        let body_snippet = snippet_block_with_applicability(cx, body.value.span, "_", None, &mut app);
+                        let new_body_inner_snippet = reindent_multiline(
+                            &format!("{builtin_crate}::future::ready({body_snippet})"),
+                            false,
+                            Some(4),
+                        );
 
                         let sugg = vec![
                             (async_span, String::new()),
@@ -135,7 +142,11 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsyncTraitImpl {
                             ),
                             (
                                 body.value.span,
-                                format!("{{ {builtin_crate}::future::ready({body_snippet}) }}",),
+                                reindent_multiline(
+                                    &format!("{{\n{new_body_inner_snippet}\n}}"),
+                                    true,
+                                    indent_of(cx, body.value.span),
+                                ),
                             ),
                         ];
                         diag.help(format!(

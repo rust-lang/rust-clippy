@@ -12,10 +12,12 @@ LL | |     }
    = help: to override `-D warnings` add `#[allow(clippy::unused_async_trait_impl)]`
 help: consider removing the `async` from this function and returning `impl Future<Output = u32>` instead
    |
-LL ~      fn do_something() -> impl Future<Output = u32> { core::future::ready({
+LL ~      fn do_something() -> impl Future<Output = u32> {
+LL +         core::future::ready({
 LL +
-LL +         1
-LL +     }) }
+LL +             1
+LL +         })
+LL +     }
    |
 
 error: aborting due to 1 previous error
