@@ -1,8 +1,11 @@
 error: unused `async` for async trait impl function with no await statements
   --> tests/ui/unused_async_trait_impl.rs:12:5
    |
-LL |     async fn do_something() -> u32 {
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL | /     async fn do_something() -> u32 {
+LL | |
+LL | |         1
+LL | |     }
+   | |_____^
    |
    = help: a Future can be constructed from the return value with `std::future::ready`
    = note: `-D clippy::unused-async-trait-impl` implied by `-D warnings`

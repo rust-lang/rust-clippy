@@ -119,7 +119,7 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsyncTraitImpl {
                     cx,
                     UNUSED_ASYNC_TRAIT_IMPL,
                     cx.tcx.local_def_id_to_hir_id(impl_item.owner_id.def_id),
-                    sig.span,
+                    impl_item.span,
                     "unused `async` for async trait impl function with no await statements",
                     |diag| {
                         let mut applicability = Applicability::MachineApplicable;
