@@ -22,7 +22,7 @@ pub async fn should_not_warn() {
 }
 
 pub async fn bar() {
-    should_warn().await;
+    Box::pin(should_warn()).await;
     //~^ large_futures
 
     async {
