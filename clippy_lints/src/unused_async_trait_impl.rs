@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::source::{
-    indent_of, reindent_multiline, snippet_block_with_applicability, snippet_with_applicability,
+    HasSession, indent_of, reindent_multiline, snippet_block_with_applicability, snippet_with_applicability,
 };
 use clippy_utils::usage::is_todo_unimplemented_stub;
 use rustc_errors::Applicability;
@@ -125,6 +125,8 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsyncTraitImpl {
                     "unused `async` for async trait impl function with no await statements",
                     |diag| {
                         let mut app = Applicability::MachineApplicable;
+
+                        let async_span = cx.sess().source_map().span_extend_while_whitespace(async_span);
 
                         let signature_snippet = snippet_with_applicability(cx, sig.decl.output.span(), "_", &mut app);
                         let body_snippet = snippet_block_with_applicability(cx, body.value.span, "_", None, &mut app);

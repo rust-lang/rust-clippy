@@ -9,7 +9,7 @@ struct Efficient;
 struct Stub;
 
 impl HasAsyncMethod for Inefficient {
-     fn do_something() -> impl Future<Output = u32> {
+    fn do_something() -> impl Future<Output = u32> {
         std::future::ready({
             //~^ unused_async_trait_impl
             1
