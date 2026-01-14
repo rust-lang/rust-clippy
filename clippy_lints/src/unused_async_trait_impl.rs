@@ -122,11 +122,10 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsyncTraitImpl {
                     impl_item.span,
                     "unused `async` for async trait impl function with no await statements",
                     |diag| {
-                        let mut applicability = Applicability::MachineApplicable;
+                        let mut app = Applicability::MachineApplicable;
 
-                        let signature_snippet =
-                            snippet_with_applicability(cx, sig.decl.output.span(), "_", &mut applicability);
-                        let body_snippet = snippet_with_applicability(cx, body.value.span, "_", &mut applicability);
+                        let signature_snippet = snippet_with_applicability(cx, sig.decl.output.span(), "_", &mut app);
+                        let body_snippet = snippet_with_applicability(cx, body.value.span, "_", &mut app);
 
                         let sugg = vec![
                             (async_span, String::new()),
@@ -145,7 +144,7 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsyncTraitImpl {
                         diag.multipart_suggestion(
                                     format!("consider removing the `async` from this function and returning `impl Future<Output = {signature_snippet}>` instead"),
                                     sugg,
-                                    applicability
+                                    app
                                 );
                     },
                 );
