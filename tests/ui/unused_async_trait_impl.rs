@@ -26,3 +26,14 @@ impl HasAsyncMethod for Stub {
         todo!() // Do not emit the lint in this case.
     }
 }
+
+mod indented {
+    struct Indented;
+
+    impl crate::HasAsyncMethod for Indented {
+        async fn do_something() -> u32 {
+            //~^ unused_async_trait_impl
+            1
+        }
+    }
+}
