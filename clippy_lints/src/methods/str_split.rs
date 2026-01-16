@@ -19,8 +19,10 @@ pub(super) fn check<'a>(cx: &LateContext<'a>, expr: &'_ Expr<'_>, split_recv: &'
         && cx.typeck_results().expr_ty_adjusted(trim_recv).peel_refs().is_str()
         && !is_const_evaluatable(cx, trim_recv)
         && let ExprKind::Lit(split_lit) = split_arg.kind
-        && (matches!(split_lit.node, LitKind::Char('\n'))
-            || matches!(split_lit.node, LitKind::Str(sym::LF | sym::CRLF, _)))
+        && matches!(
+            split_lit.node,
+            LitKind::Char('\n') | LitKind::Str(sym::LF | sym::CRLF, _)
+        )
     {
         let mut app = Applicability::MaybeIncorrect;
         span_lint_and_sugg(
