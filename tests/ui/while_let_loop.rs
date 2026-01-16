@@ -28,7 +28,7 @@ fn main() {
     }
 
     loop {
-        // no error, else branch does something other than break
+        //~^ while_let_loop
         let Some(_x) = y else {
             let _z = 1;
             break;
@@ -255,22 +255,91 @@ fn let_assign() {
 }
 
 fn issue16378() {
-    // This does not lint today because of the extra statement(s)
-    // before the `break`.
-    // TODO: When the `break` statement/expr in the `let`/`else` is the
-    // only way to leave the loop, the lint could trigger and move
-    // the statements preceeding the `break` after the loop, as in:
-    // ```rust
-    // while let Some(x) = std::hint::black_box(None::<i32>) {
-    //     println!("x = {x}");
-    // }
-    // println!("fail");
-    // ```
     loop {
+        //~^ while_let_loop
         let Some(x) = std::hint::black_box(None::<i32>) else {
             println!("fail");
             break;
         };
         println!("x = {x}");
+    }
+}
+
+fn test_hoist_with_multiple_stmts() {
+    let y = Some(true);
+    loop {
+        //~^ while_let_loop
+        let Some(x) = y else {
+            let a = 1;
+            let b = 2;
+            let _c = a + b;
+            println!("sum: {}", a + b);
+            eprintln!("failed");
+            break;
+        };
+        println!("x = {x}");
+    }
+}
+
+fn test_hoist_with_semicolon_less_stmt() {
+    let y = Some(true);
+    loop {
+        //~^ while_let_loop
+        let Some(x) = y else {
+            if std::hint::black_box(true) {
+                println!("pass");
+            }
+            match 42 {
+                0 => println!("zero"),
+                _ => println!("non-zero"),
+            }
+            break;
+        };
+        println!("x = {x}");
+    }
+}
+
+fn no_hoist_with_return() -> Option<i32> {
+    // Should NOT lint: the else block contains a return statement
+    loop {
+        let Some(x) = std::hint::black_box(None::<i32>) else {
+            if true {
+                return None;
+            }
+            break;
+        };
+        println!("x = {x}");
+    }
+    Some(42)
+}
+
+fn no_hoist_with_labeled_break() {
+    // Should NOT lint: the else block contains a labeled break to outer loop
+    'outer: loop {
+        loop {
+            let Some(x) = std::hint::black_box(None::<i32>) else {
+                if true {
+                    break 'outer;
+                }
+                break;
+            };
+            println!("x = {x}");
+        }
+    }
+}
+
+fn no_hoist_with_labeled_continue() {
+    // Should NOT lint: the else block contains a labeled continue to outer loop
+    'outer: loop {
+        loop {
+            let Some(x) = std::hint::black_box(None::<i32>) else {
+                if true {
+                    continue 'outer;
+                }
+                break;
+            };
+            println!("x = {x}");
+        }
+        break;
     }
 }
