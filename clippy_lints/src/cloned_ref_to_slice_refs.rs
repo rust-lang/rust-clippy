@@ -12,7 +12,7 @@ use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, PathSegment};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
-use rustc_middle::ty::adjustment::{Adjust, OverloadedDeref};
+use rustc_middle::ty::adjustment::{Adjust, DerefAdjustKind, OverloadedDeref};
 use rustc_session::impl_lint_pass;
 use rustc_span::sym;
 
@@ -135,7 +135,7 @@ fn adjust_to_clone_like(
             && let [rest @ .., adjust, _] = recv_adjustments
             && matches!(
                 adjust.kind,
-                Adjust::Deref(Some(OverloadedDeref {
+                Adjust::Deref(DerefAdjustKind::Overloaded(OverloadedDeref {
                     mutbl: Mutability::Not,
                     ..
                 }))
@@ -184,7 +184,7 @@ fn adjust_to_clone_like(
         || !source_ty.is_ref()
         || recv_adjustments
             .iter()
-            .any(|a| matches!(a.kind, Adjust::Deref(Some(_))))
+            .any(|a| matches!(a.kind, Adjust::Deref(DerefAdjustKind::Overloaded(_))))
     {
         (true, adjust_count)
     } else {
