@@ -4978,6 +4978,9 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                 };
                 lint_binary_expr_with_method_call(cx, &mut info);
             },
+            ExprKind::Binary(op, lhs, rhs) if op.node == hir::BinOpKind::Or => {
+                manual_is_variant_and::check_or(cx, expr, lhs, rhs, self.msrv);
+            },
             _ => (),
         }
     }
