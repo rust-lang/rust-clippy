@@ -61,5 +61,11 @@ error: unnecessary use of `to_path_buf` to create a slice from a reference
 LL |     let _b = &[w.to_path_buf()];
    |              ^^^^^^^^^^^^^^^^^^ help: try: `std::slice::from_ref(&***w)`
 
-error: aborting due to 10 previous errors
+error: unnecessary use of `to_path_buf` to create a slice from a reference
+  --> tests/ui/cloned_ref_to_slice_refs.rs:136:14
+   |
+LL |     let _d = &[accessor!(_a).to_path_buf()];
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `std::slice::from_ref(&accessor!(_a))`
+
+error: aborting due to 11 previous errors
 

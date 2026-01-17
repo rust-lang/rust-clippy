@@ -12,7 +12,7 @@ use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, PathSegment};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
-use rustc_middle::ty::adjustment::{Adjust, OverloadedDeref};
+use rustc_middle::ty::adjustment::{Adjust, DerefAdjustKind, OverloadedDeref};
 use rustc_session::impl_lint_pass;
 use rustc_span::sym;
 
@@ -78,8 +78,7 @@ impl<'tcx> LateLintPass<'tcx> for ClonedRefToSliceRefs<'_> {
             && let ExprKind::Array([item]) = &arr.kind
 
             // check for clones
-            && let ExprKind::MethodCall(path, val, _, _) = item.kind
-            && let Some(adjustment) = adjust_to_clone_like(cx, item, path, val)
+            && let Some((path, val, adjustment)) = adjust_to_clone_like(cx, item)
 
             // check for immutability or purity
             && (!is_mutable(cx, val) || is_const_evaluatable(cx, val))
@@ -106,13 +105,16 @@ impl<'tcx> LateLintPass<'tcx> for ClonedRefToSliceRefs<'_> {
     }
 }
 
-/// If the `expr` is clone-like with proper type, return the adjustment string
-fn adjust_to_clone_like(
-    cx: &LateContext<'_>,
-    expr: &Expr<'_>,
-    path: &PathSegment<'_>,
-    recv: &Expr<'_>,
-) -> Option<String> {
+/// If the `expr` is clone-like method call, return the method path, the receiver and the necessary
+/// type adjustments if automatic dereferencing is applied. Otherwise, return `None`.
+fn adjust_to_clone_like<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'tcx>,
+) -> Option<(&'tcx PathSegment<'tcx>, &'tcx Expr<'tcx>, String)> {
+    let ExprKind::MethodCall(path, recv, _, _) = expr.kind else {
+        return None;
+    };
+
     let parent_def = cx.ty_based_def(expr).opt_parent(cx)?;
     if !parent_def.is_diag_item(cx, sym::Clone) && !is_clone_like(cx, path.ident.name, parent_def) {
         return None;
@@ -126,45 +128,40 @@ fn adjust_to_clone_like(
 
     let recv_adjustments = cx.typeck_results().expr_adjustments(recv);
 
-    // Special cases:
-    // 1. OsString -> OsStr -> &OsStr
-    // 2. PathBuf -> Path -> &Path
-    let is_special_case = || {
-        if let Some(name) = recv_ty_inner.opt_diag_name(cx)
-            && matches!(name, sym::OsStr | sym::Path)
-            && let [rest @ .., adjust, _] = recv_adjustments
-            && matches!(
-                adjust.kind,
-                Adjust::Deref(Some(OverloadedDeref {
-                    mutbl: Mutability::Not,
-                    ..
-                }))
-            )
-            && adjust.target.is_diag_item(cx, name)
-            && let source = if let [.., adjust] = rest {
-                adjust.target
-            } else {
-                cx.typeck_results().expr_ty(recv)
-            }
-            && source.is_diag_item(
-                cx,
-                match name {
-                    sym::OsStr => sym::OsString,
-                    sym::Path => sym::PathBuf,
-                    _ => unreachable!(),
-                },
-            )
-        {
-            return Some(source);
-        }
-
-        None
-    };
-
+    // The return type of the clone-like method should be the same as the inner type of the reference
+    // being cloned, except for the following special cases:
+    // 1. `OsString`, which is first dereferenced to `OsStr` and the borrowed as `&OsStr`.
+    // 2. `PathBuf`, which is first dereferenced to `Path` and then borrowed as `&Path`.
     let target_ty = if ret_ty == *recv_ty_inner {
         ret_ty
+    } else if let Some(name @ (sym::OsStr | sym::Path)) = recv_ty_inner.opt_diag_name(cx)
+        // Looking for the `OSString -> OSStr` or `PathBuf -> Path` adjustment in the abovementioned special cases
+        && let [rest @ .., adjust, _] = recv_adjustments
+        && matches!(
+            adjust.kind,
+            Adjust::Deref(DerefAdjustKind::Overloaded(OverloadedDeref {
+                mutbl: Mutability::Not,
+                ..
+            }))
+        )
+        && adjust.target.is_diag_item(cx, name)
+        && let source = if let [.., adjust] = rest {
+            adjust.target
+        } else {
+            cx.typeck_results().expr_ty(recv)
+        }
+        && source.is_diag_item(
+            cx,
+            match name {
+                sym::OsStr => sym::OsString,
+                sym::Path => sym::PathBuf,
+                _ => unreachable!(),
+            },
+        )
+    {
+        source
     } else {
-        is_special_case()?
+        return None;
     };
 
     let source_ty = cx.typeck_results().expr_ty(recv);
@@ -184,16 +181,20 @@ fn adjust_to_clone_like(
         || !source_ty.is_ref()
         || recv_adjustments
             .iter()
-            .any(|a| matches!(a.kind, Adjust::Deref(Some(_))))
+            .any(|a| matches!(a.kind, Adjust::Deref(DerefAdjustKind::Overloaded(_))))
     {
         (true, adjust_count)
     } else {
         (false, adjust_count - 1)
     };
 
-    Some(if needs_borrow {
-        format!("&{}", "*".repeat(deref_count))
-    } else {
-        "*".repeat(deref_count)
-    })
+    Some((
+        path,
+        recv,
+        if needs_borrow {
+            format!("&{}", "*".repeat(deref_count))
+        } else {
+            "*".repeat(deref_count)
+        },
+    ))
 }
