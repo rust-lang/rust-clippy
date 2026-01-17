@@ -117,3 +117,22 @@ fn issue16320(items: &[String]) {
     let _b = std::slice::from_ref(&***w);
     //~^ cloned_ref_to_slice_refs
 }
+
+fn wrongly_unmangled_macros(items: &[String]) {
+    use std::path::PathBuf;
+
+    struct Wrapper {
+        inner: PathBuf,
+    }
+
+    let _a = Wrapper { inner: PathBuf::new() };
+
+    macro_rules! accessor {
+        ($e:expr) => {
+            $e.inner
+        };
+    }
+
+    let _d = std::slice::from_ref(&accessor!(_a));
+    //~^ cloned_ref_to_slice_refs
+}
