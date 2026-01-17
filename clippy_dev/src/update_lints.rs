@@ -78,12 +78,11 @@ pub fn generate_lint_files(
         &mut |_, src, dst| {
             let mut cursor = Cursor::new(src);
             assert!(
-                cursor.find_ident("declare_with_version").is_some()
-                    && cursor.find_ident("declare_with_version").is_some(),
+                cursor.find_ident("deprecated").is_some() && cursor.find_ident("deprecated").is_some(),
                 "error reading deprecated lints"
             );
             dst.push_str(&src[..cursor.pos() as usize]);
-            dst.push_str("! { DEPRECATED(DEPRECATED_VERSION) = [\n");
+            dst.push_str("![\n");
             for lint in deprecated {
                 write!(
                     dst,
@@ -93,20 +92,15 @@ pub fn generate_lint_files(
                 .unwrap();
             }
             dst.push_str(
-                "]}\n\n\
+                "];\n\n\
                     #[rustfmt::skip]\n\
-                    declare_with_version! { RENAMED(RENAMED_VERSION) = [\n\
+                    pub const RENAMED: &[(&str, &str)] = &[\n\
                 ",
             );
             for lint in renamed {
-                write!(
-                    dst,
-                    "    #[clippy::version = \"{}\"]\n    (\"{}\", \"{}\"),\n",
-                    lint.version, lint.old_name, lint.new_name,
-                )
-                .unwrap();
+                writeln!(dst, "    (\"{}\", \"{}\"),", lint.old_name, lint.new_name).unwrap();
             }
-            dst.push_str("]}\n");
+            dst.push_str("];\n");
             UpdateStatus::from_changed(src != dst)
         },
     );

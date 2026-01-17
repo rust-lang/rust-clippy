@@ -2,8 +2,8 @@ use crate::parse::cursor::{self, Capture, Cursor};
 use crate::parse::{ParseCx, RenamedLint};
 use crate::update_lints::generate_lint_files;
 use crate::utils::{
-    ErrAction, FileUpdater, UpdateMode, UpdateStatus, Version, delete_dir_if_exists, delete_file_if_exists,
-    expect_action, try_rename_dir, try_rename_file, walk_dir_no_dot_or_target,
+    ErrAction, FileUpdater, UpdateMode, UpdateStatus, delete_dir_if_exists, delete_file_if_exists, expect_action,
+    try_rename_dir, try_rename_file, walk_dir_no_dot_or_target,
 };
 use rustc_lexer::TokenKind;
 use std::ffi::OsString;
@@ -26,7 +26,7 @@ use std::path::Path;
 /// * If `old_name` doesn't name an existing lint.
 /// * If `old_name` names a deprecated or renamed lint.
 #[expect(clippy::too_many_lines)]
-pub fn rename<'cx>(cx: ParseCx<'cx>, clippy_version: Version, old_name: &'cx str, new_name: &'cx str, uplift: bool) {
+pub fn rename<'cx>(cx: ParseCx<'cx>, old_name: &'cx str, new_name: &'cx str, uplift: bool) {
     let mut updater = FileUpdater::default();
     let mut lints = cx.find_lint_decls();
     let (deprecated_lints, mut renamed_lints) = cx.read_deprecated_lints();
@@ -65,7 +65,6 @@ pub fn rename<'cx>(cx: ParseCx<'cx>, clippy_version: Version, old_name: &'cx str
                 RenamedLint {
                     old_name: old_name_prefixed,
                     new_name: new_name_prefixed,
-                    version: cx.str_buf.alloc_display(cx.arena, clippy_version.rust_display()),
                 },
             );
         },
