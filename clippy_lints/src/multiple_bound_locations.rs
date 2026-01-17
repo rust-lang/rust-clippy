@@ -6,7 +6,7 @@ use rustc_session::declare_lint_pass;
 use rustc_span::Span;
 
 use clippy_utils::diagnostics::span_lint;
-use clippy_utils::source::SpanRangeExt;
+use clippy_utils::source::SpanExt;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -54,10 +54,8 @@ impl EarlyLintPass for MultipleBoundLocations {
                 match &clause.kind {
                     WherePredicateKind::BoundPredicate(pred) => {
                         if (!pred.bound_generic_params.is_empty() || !pred.bounds.is_empty())
-                            && let Some(Some(bound_span)) = pred
-                                .bounded_ty
-                                .span
-                                .with_source_text(cx, |src| generic_params_with_bounds.get(src))
+                            && let Some(src) = pred.bounded_ty.span.get_text(cx)
+                            && let Some(bound_span) = generic_params_with_bounds.get(&*src)
                         {
                             emit_lint(cx, *bound_span, pred.bounded_ty.span);
                         }

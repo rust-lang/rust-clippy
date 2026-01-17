@@ -1,6 +1,6 @@
 use crate::consts::ConstEvalCtxt;
 use crate::macros::macro_backtrace;
-use crate::source::{SpanRange, SpanRangeExt, walk_span_to_context};
+use crate::source::{SpanExt, walk_span_to_context};
 use crate::tokenize_with_text;
 use rustc_ast::ast;
 use rustc_ast::ast::InlineAsmTemplatePiece;
@@ -19,9 +19,8 @@ use rustc_hir::{
 use rustc_lexer::{FrontmatterAllowed, TokenKind, tokenize};
 use rustc_lint::LateContext;
 use rustc_middle::ty::TypeckResults;
-use rustc_span::{BytePos, ExpnKind, MacroKind, Symbol, SyntaxContext, sym};
+use rustc_span::{ExpnKind, MacroKind, Symbol, SyntaxContext, sym};
 use std::hash::{Hash, Hasher};
-use std::ops::Range;
 use std::slice;
 
 /// Callback that is called when two expressions are not equal in the sense of `SpanlessEq`, but
@@ -379,6 +378,15 @@ impl HirEqInterExpr<'_, '_, '_> {
             return false;
         }
 
+        let Some((lscx, _)) = lspan.mk_edit_cx(self.inner.cx) else {
+            // Can't access the crate-local file, should be impossible.
+            return false;
+        };
+        let Some((rscx, _)) = rspan.mk_edit_cx(self.inner.cx) else {
+            // Can't access the crate-local file, should be impossible.
+            return false;
+        };
+
         let mut lstart = lspan.lo;
         let mut rstart = rspan.lo;
 
@@ -406,9 +414,11 @@ impl HirEqInterExpr<'_, '_, '_> {
                 // Only one of the blocks had a weird macro.
                 return false;
             }
-            if !eq_span_tokens(self.inner.cx, lstart..lstmt_span.lo, rstart..rstmt_span.lo, |t| {
-                !matches!(t, Whitespace | Semi)
-            }) {
+            if !eq_span_tokens(
+                lscx.get_text_by_src_range(lstart..lstmt_span.lo),
+                rscx.get_text_by_src_range(rstart..rstmt_span.lo),
+                |t| !matches!(t, Whitespace | Semi),
+            ) {
                 return false;
             }
 
@@ -441,9 +451,11 @@ impl HirEqInterExpr<'_, '_, '_> {
             // Only one of the blocks had a weird macro
             return false;
         }
-        eq_span_tokens(self.inner.cx, lstart..lend, rstart..rend, |t| {
-            !matches!(t, Whitespace | Semi)
-        })
+        eq_span_tokens(
+            lscx.get_text_by_src_range(lstart..lend),
+            rscx.get_text_by_src_range(rstart..rend),
+            |t| !matches!(t, Whitespace | Semi),
+        )
     }
 
     fn should_ignore(&self, expr: &Expr<'_>) -> bool {
@@ -868,9 +880,11 @@ impl HirEqInterExpr<'_, '_, '_> {
                         left_data.kind,
                         ExpnKind::Macro(MacroKind::Bang, name)
                         if name == sym::cfg || name == sym::option_env
-                    ) && !eq_span_tokens(self.inner.cx, left_data.call_site, right_data.call_site, |t| {
-                        !matches!(t, Whitespace | LineComment { .. } | BlockComment { .. })
-                    }))
+                    ) && !eq_span_tokens(
+                        left_data.call_site.get_text(self.inner.cx).as_deref(),
+                        right_data.call_site.get_text(self.inner.cx).as_deref(),
+                        |t| !matches!(t, Whitespace | LineComment { .. } | BlockComment { .. }),
+                    ))
                 {
                     // Either a different chain of macro calls, or different arguments to the `cfg` macro.
                     return false;
@@ -904,7 +918,7 @@ fn reduce_exprkind<'hir>(cx: &LateContext<'_>, kind: &'hir ExprKind<'hir>) -> &'
             ([], None) if block.span.is_empty() => &ExprKind::Tup(&[]),
             // `{}` => `()`
             ([], None)
-                if block.span.check_source_text(cx, |src| {
+                if block.span.check_text(cx, |src| {
                     tokenize(src, FrontmatterAllowed::No)
                         .map(|t| t.kind)
                         .filter(|t| {
@@ -1596,30 +1610,20 @@ pub fn hash_expr(cx: &LateContext<'_>, e: &Expr<'_>) -> u64 {
     h.finish()
 }
 
-fn eq_span_tokens(
-    cx: &LateContext<'_>,
-    left: impl SpanRange,
-    right: impl SpanRange,
-    pred: impl Fn(TokenKind) -> bool,
-) -> bool {
-    fn f(cx: &LateContext<'_>, left: Range<BytePos>, right: Range<BytePos>, pred: impl Fn(TokenKind) -> bool) -> bool {
-        if let Some(lsrc) = left.get_source_range(cx)
-            && let Some(lsrc) = lsrc.as_str()
-            && let Some(rsrc) = right.get_source_range(cx)
-            && let Some(rsrc) = rsrc.as_str()
-        {
-            let pred = |&(token, ..): &(TokenKind, _, _)| pred(token);
-            let map = |(_, source, _)| source;
+fn eq_span_tokens(lsrc: Option<&str>, rsrc: Option<&str>, pred: impl Fn(TokenKind) -> bool) -> bool {
+    if let Some(lsrc) = lsrc
+        && let Some(rsrc) = rsrc
+    {
+        let pred = |&(token, ..): &(TokenKind, _, _)| pred(token);
+        let map = |(_, source, _)| source;
 
-            let ltok = tokenize_with_text(lsrc).filter(pred).map(map);
-            let rtok = tokenize_with_text(rsrc).filter(pred).map(map);
-            ltok.eq(rtok)
-        } else {
-            // Unable to access the source. Conservatively assume the blocks aren't equal.
-            false
-        }
+        let ltok = tokenize_with_text(lsrc).filter(pred).map(map);
+        let rtok = tokenize_with_text(rsrc).filter(pred).map(map);
+        ltok.eq(rtok)
+    } else {
+        // Unable to access the source. Conservatively assume the blocks aren't equal.
+        false
     }
-    f(cx, left.into_range(), right.into_range(), pred)
 }
 
 /// Returns true if the expression contains ambiguous literals (unsuffixed float or int literals)

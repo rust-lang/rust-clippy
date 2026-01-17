@@ -2,7 +2,8 @@
 #![allow(
     clippy::match_single_binding,
     clippy::unnecessary_cast,
-    clippy::missing_transmute_annotations
+    clippy::missing_transmute_annotations,
+    clippy::needless_lifetimes
 )]
 
 fn ptr_to_ref<T, U>(p: *const T, m: *mut T, o: *const U, om: *mut U) {

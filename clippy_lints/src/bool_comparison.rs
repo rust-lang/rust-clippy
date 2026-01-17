@@ -149,8 +149,8 @@ fn check_comparison<'a, 'tcx>(
     }
 }
 
-fn suggest_bool_comparison<'a, 'tcx>(
-    cx: &LateContext<'tcx>,
+fn suggest_bool_comparison<'a>(
+    cx: &LateContext<'_>,
     span: Span,
     expr: &Expr<'_>,
     mut app: Applicability,

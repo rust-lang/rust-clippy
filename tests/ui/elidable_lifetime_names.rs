@@ -5,7 +5,7 @@ type Ref<'r> = &'r u8;
 // No error; same lifetime on two params.
 fn lifetime_param_1<'a>(_x: Ref<'a>, _y: &'a u8) {}
 
-//~v ERROR: could be elided: 'a, 'b
+//~v elidable_lifetime_names
 fn lifetime_param_2<'a, 'b>(_x: Ref<'a>, _y: &'b u8) {}
 
 // No error; bounded lifetime.
@@ -30,7 +30,7 @@ where
     unreachable!()
 }
 
-//~v ERROR: could be elided: 'a
+//~v elidable_lifetime_names
 fn fn_bound_2<'a, F, I>(_m: Lt<'a, I>, _f: F) -> Lt<'a, I>
 where
     for<'x> F: Fn(Lt<'x, I>) -> Lt<'x, I>,
@@ -40,7 +40,7 @@ where
 
 struct Foo<'a>(&'a u8);
 
-//~v ERROR: could be elided: 'a
+//~v elidable_lifetime_names
 fn struct_with_lt<'a>(_foo: Foo<'a>) -> &'a str {
     unimplemented!()
 }
@@ -55,14 +55,14 @@ fn struct_with_lt3<'a>(_foo: &Foo<'a>) -> &'a str {
     unimplemented!()
 }
 
-//~v ERROR: could be elided: 'b
+//~v elidable_lifetime_names
 fn struct_with_lt4a<'a, 'b>(_foo: &'a Foo<'b>) -> &'a str {
     unimplemented!()
 }
 
 type FooAlias<'a> = Foo<'a>;
 
-//~v ERROR: could be elided: 'a
+//~v elidable_lifetime_names
 fn alias_with_lt<'a>(_foo: FooAlias<'a>) -> &'a str {
     unimplemented!()
 }
@@ -77,7 +77,7 @@ fn alias_with_lt3<'a>(_foo: &FooAlias<'a>) -> &'a str {
     unimplemented!()
 }
 
-//~v ERROR: could be elided: 'b
+//~v elidable_lifetime_names
 fn alias_with_lt4a<'a, 'b>(_foo: &'a FooAlias<'b>) -> &'a str {
     unimplemented!()
 }
@@ -87,7 +87,7 @@ struct Cow<'a> {
     x: &'a str,
 }
 
-//~v ERROR: could be elided: 'a
+//~v elidable_lifetime_names
 fn out_return_type_lts<'a>(e: &'a str) -> Cow<'a> {
     unimplemented!()
 }
@@ -99,10 +99,10 @@ mod issue2944 {
         bar: &'a Bar,
     }
 
-    //~v ERROR: could be elided: 'a
+    //~v elidable_lifetime_names
     impl<'a> Foo for Baz<'a> {}
     impl Bar {
-        //~v ERROR: could be elided: 'a
+        //~v elidable_lifetime_names
         fn baz<'a>(&'a self) -> impl Foo + 'a {
             Baz { bar: self }
         }
@@ -135,9 +135,7 @@ mod issue13923 {
         }
     }
 
-    //~v ERROR: could be elided: 'py
     impl<'t, 'py> ContentString<'t> {
-        // `'py` can be elided because of `&self`
         fn map_content2(&self, f: impl FnOnce(&'t str) -> &'t str) -> Content<'t, 'py> {
             match self {
                 Self::T1(content) => Content::T1(f(content)),
@@ -146,9 +144,7 @@ mod issue13923 {
         }
     }
 
-    //~v ERROR: could be elided: 'py
     impl<'t, 'py> ContentString<'t> {
-        // `'py` can be elided because of `&'_ self`
         fn map_content3(&'_ self, f: impl FnOnce(&'t str) -> &'t str) -> Content<'t, 'py> {
             match self {
                 Self::T1(content) => Content::T1(f(content)),
@@ -167,9 +163,7 @@ mod issue13923 {
         }
     }
 
-    //~v ERROR: could be elided: 'py
     impl<'t, 'py> ContentString<'t> {
-        // `'py` can be elided because of `&Self`
         fn map_content5(
             self: std::pin::Pin<&Self>,
             f: impl FnOnce(&'t str) -> &'t str,
@@ -273,4 +267,38 @@ fn issue15666() {
     //~v elidable_lifetime_names
     impl<'a, 'b, 'c> T for S3<'a, 'b, 'c> {}
     //   ^^  ^^  ^^
+}
+
+#[clippy::msrv = "1.63"]
+mod dyn_inference_under_msrv {
+    fn _f<'a>(x: &'a [u32]) -> Box<dyn Iterator<Item = u32> + 'a> {
+        Box::new(x.iter().copied())
+    }
+
+    fn _f2<'a>(x: Box<dyn Iterator<Item = u32> + 'a>) -> Box<dyn Iterator<Item = u32> + 'a> {
+        x
+    }
+
+    //~v elidable_lifetime_names
+    fn _f3<'a, 'b>(x: &'a [u32], _: Box<dyn Iterator<Item = u32> + 'b>) -> Box<dyn Iterator<Item = u32> + 'a> {
+        Box::new(x.iter().copied())
+    }
+}
+
+#[clippy::msrv = "1.64"]
+mod dyn_inference_at_msrv {
+    //~v elidable_lifetime_names
+    fn _f<'a>(x: &'a [u32]) -> Box<dyn Iterator<Item = u32> + 'a> {
+        Box::new(x.iter().copied())
+    }
+
+    //~v elidable_lifetime_names
+    fn _f2<'a>(x: Box<dyn Iterator<Item = u32> + 'a>) -> Box<dyn Iterator<Item = u32> + 'a> {
+        x
+    }
+
+    //~v elidable_lifetime_names
+    fn _f3<'a, 'b>(x: &'a [u32], _: Box<dyn Iterator<Item = u32> + 'b>) -> Box<dyn Iterator<Item = u32> + 'a> {
+        Box::new(x.iter().copied())
+    }
 }
