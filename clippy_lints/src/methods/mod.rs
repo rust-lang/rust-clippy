@@ -4768,7 +4768,7 @@ declare_clippy_lint! {
     /// let opt = Some(1);
     /// opt.unwrap_or(42);
     /// ```
-    #[clippy::version = "1.93.0"]
+    #[clippy::version = "1.95.0"]
     pub MAP_OR_IDENTITY,
     suspicious,
     "using an identity function when mapping with `.map_or(|err| ..., |x| x)`"
