@@ -1,4 +1,4 @@
-error: unused "map closure" when calling `Option::map_or` value
+error: expression can be simplified using `Option::unwrap_or()`
   --> tests/ui/map_or_identity.rs:6:9
    |
 LL |         opt.map_or(default, |o| o)
@@ -7,7 +7,7 @@ LL |         opt.map_or(default, |o| o)
    = note: `-D clippy::map-or-identity` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::map_or_identity)]`
 
-error: unused "map closure" when calling `Result::map_or` value
+error: expression can be simplified using `Result::unwrap_or()`
   --> tests/ui/map_or_identity.rs:11:9
    |
 LL |         res.map_or(default, |o| o)
