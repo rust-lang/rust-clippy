@@ -1,5 +1,5 @@
 use super::MUTABLE_ADT_ARGUMENT_TRANSMUTE;
-use clippy_utils::diagnostics::span_lint;
+use clippy_utils::diagnostics::span_lint_and_then;
 use rustc_hir::Expr;
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, GenericArgKind, Ty};
@@ -8,7 +8,7 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>, from_ty: Ty
     // assumes walk will return all types in the same order
     let mut from_ty_walker = from_ty.walk();
     let mut to_ty_walker = to_ty.walk();
-    let mut found = false;
+    let mut found = vec![];
     while let Some((from_ty, to_ty)) = from_ty_walker.next().zip(to_ty_walker.next()) {
         if let (GenericArgKind::Type(from_ty), GenericArgKind::Type(to_ty)) = (from_ty.kind(), to_ty.kind()) {
             match (from_ty.kind(), to_ty.kind()) {
@@ -41,13 +41,7 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>, from_ty: Ty
                 | (ty::Error(_), ty::Error(_)) => {},
                 (ty::Ref(_, _, from_mut), ty::Ref(_, _, to_mut)) => {
                     if from_mut < to_mut {
-                        span_lint(
-                            cx,
-                            MUTABLE_ADT_ARGUMENT_TRANSMUTE,
-                            e.span,
-                            format!("transmute of type argument {from_ty} to {to_ty}"),
-                        );
-                        found = true;
+                        found.push((from_ty, to_ty));
                     }
                 },
                 (ty::Adt(adt1, _), ty::Adt(adt2, _)) if adt1 == adt2 => {},
@@ -58,5 +52,21 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>, from_ty: Ty
             }
         }
     }
-    found
+    if found.is_empty() {
+        false
+    } else {
+        span_lint_and_then(
+            cx,
+            MUTABLE_ADT_ARGUMENT_TRANSMUTE,
+            e.span,
+            "transmuting references into their mutable version is unsound",
+            |diag| {
+                found.dedup_by(|ty1, ty2| ty1.1 == ty2.1);
+                for (from_ty, to_ty) in found {
+                    diag.note(format!("transmute of type argument {from_ty} to {to_ty}"));
+                }
+            },
+        );
+        true
+    }
 }
