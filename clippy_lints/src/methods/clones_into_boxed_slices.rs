@@ -132,13 +132,13 @@ pub(super) fn check(
     // reference first for the suggestion
     } else if inner_ty.is_lang_item(cx, LangItem::String) {
         show_lint(cx, full_span, arg, false, (None, "(...)", Some(".as_str()")), None);
-    } else if inner_ty.is_diag_item(cx, sym::cstring_type) {
-        show_lint(cx, full_span, arg, false, (None, "(...)", Some(".as_c_str()")), None);
-    } else if inner_ty.is_diag_item(cx, sym::PathBuf) {
-        show_lint(cx, full_span, arg, false, (None, "(...)", Some(".as_path()")), None);
-    } else if inner_ty.is_diag_item(cx, sym::Vec) {
-        show_lint(cx, full_span, arg, false, (Some("&"), "(...)", Some("[..]")), None);
-    } else if inner_ty.is_diag_item(cx, sym::OsString) {
-        show_lint(cx, full_span, arg, false, (None, "(...)", Some(".as_os_str()")), None);
+    } else if let Some(diag) = inner_ty.opt_diag_name(cx) {
+        match diag {
+            sym::cstring_type => show_lint(cx, full_span, arg, false, (None, "(...)", Some(".as_c_str()")), None),
+            sym::PathBuf => show_lint(cx, full_span, arg, false, (None, "(...)", Some(".as_path()")), None),
+            sym::Vec => show_lint(cx, full_span, arg, false, (Some("&"), "(...)", Some("[..]")), None),
+            sym::OsString => show_lint(cx, full_span, arg, false, (None, "(...)", Some(".as_os_str()")), None),
+            _ => (),
+        }
     }
 }
