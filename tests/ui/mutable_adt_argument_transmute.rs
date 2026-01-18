@@ -14,5 +14,7 @@ fn main() {
         let _: Result<(), &mut usize> = std::mem::transmute(Result::<(), &usize>::Ok(()));
         //~^ mutable_adt_argument_transmute
         let _: Option<&i32> = std::mem::transmute(Some(&5i32));
+        let _: Option<(&mut i32, &mut i32, &mut u32)> = std::mem::transmute(Some((&5i32, &10i32, &15u32)));
+        //~^ mutable_adt_argument_transmute
     }
 }
