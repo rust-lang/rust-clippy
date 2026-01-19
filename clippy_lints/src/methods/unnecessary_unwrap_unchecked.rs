@@ -1,7 +1,8 @@
-use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::res::{MaybeDef, MaybeQPath};
 use clippy_utils::ty::{option_arg_ty, same_type_modulo_regions};
 use clippy_utils::{is_from_proc_macro, last_path_segment, over, sym};
+use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Namespace, Res};
 use rustc_hir::def_id::DefId;
 use rustc_hir::{Body, Expr, ExprKind, PatKind, Safety};
@@ -31,14 +32,6 @@ impl Variant {
             Variant::Assoc(AssocKind::Method) => {
                 "usage of `unwrap_unchecked` when an `_unchecked` variant of the method exists"
             },
-        }
-    }
-
-    fn as_str(self) -> &'static str {
-        match self {
-            Variant::Fn => "function",
-            Variant::Assoc(AssocKind::Fn) => "associated function",
-            Variant::Assoc(AssocKind::Method) => "method",
         }
     }
 }
@@ -201,12 +194,12 @@ fn find_unchecked_sibling_method<'tcx>(
     }
 }
 
-pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, recv: &Expr<'_>, span: Span) {
+pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, recv: &Expr<'_>, call_span: Span) {
     if expr.span.from_expansion() {
         return;
     }
     let expected_ret_ty = cx.typeck_results().expr_ty(expr);
-    let (variant, unchecked_ident) = match recv.kind {
+    let (variant, checked_span, unchecked_sugg, unchecked_full_path) = match recv.kind {
         // Construct `Variant::Fn(_)`, if applicable. This is necessary for us to handle
         // functions like `std::str::from_utf8_unchecked`.
         ExprKind::Call(path, _)
@@ -218,7 +211,21 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, recv: 
                 && same_functions_modulo_safety(cx, checked_def_id, unchecked_def_id, expected_ret_ty)
                 && (cx.tcx.visibility(unchecked_def_id)).is_at_least(cx.tcx.visibility(checked_def_id), cx.tcx) =>
         {
-            (Variant::Fn, unchecked_ident)
+            let unchecked_full_path = cx.tcx.def_path_str(unchecked_def_id);
+            (
+                Variant::Fn,
+                checked_ident.span,
+                if checked_ident.span == path.span {
+                    // replacing `bar(x)` with `bar_unchecked(x)`
+                    // `bar_unchecked` might not be in scope, so suggest the full path
+                    unchecked_full_path.clone()
+                } else {
+                    // replacing `foo::bar(x)` with `foo::bar_unchecked(x)`
+                    // since the path is qualified, we can just replace the final segment
+                    unchecked_ident.to_string()
+                },
+                unchecked_full_path,
+            )
         },
         // We unfortunately must handle `A::a(&a)` and `a.a()` separately, this handles the
         // former
@@ -232,7 +239,14 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, recv: 
                 && same_functions_modulo_safety(cx, checked_def_id, unchecked.def_id, expected_ret_ty)
                 && (cx.tcx.visibility(unchecked.def_id)).is_at_least(cx.tcx.visibility(checked_def_id), cx.tcx) =>
         {
-            (Variant::Assoc(AssocKind::new(has_self)), unchecked_ident)
+            let unchecked_full_path = cx.tcx.def_path_str(unchecked.def_id);
+            (
+                Variant::Assoc(AssocKind::new(has_self)),
+                // since this is basically a method call, we only need to replace the method ident
+                checked_ident.span,
+                unchecked_ident.to_string(),
+                unchecked_full_path,
+            )
         },
         // ... And now the latter ^^
         ExprKind::MethodCall(segment, _, _, _)
@@ -243,22 +257,34 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, recv: 
                 && same_functions_modulo_safety(cx, checked_def_id, unchecked.def_id, expected_ret_ty)
                 && (cx.tcx.visibility(unchecked.def_id)).is_at_least(cx.tcx.visibility(checked_def_id), cx.tcx) =>
         {
-            (Variant::Assoc(AssocKind::Method), unchecked_ident)
+            let unchecked_full_path = cx.tcx.def_path_str(unchecked.def_id);
+            (
+                Variant::Assoc(AssocKind::Method),
+                // since this is a method call, we only need to replace the method ident
+                checked_ident.span,
+                unchecked_ident.to_string(),
+                unchecked_full_path,
+            )
         },
         _ => return,
     };
 
     if !is_from_proc_macro(cx, expr) {
-        span_lint_and_help(
-            cx,
-            UNNECESSARY_UNWRAP_UNCHECKED,
-            span,
-            variant.msg(),
-            None,
-            format!(
-                "call the {} `{unchecked_ident}` instead, and remove the `unwrap_unchecked` call",
-                variant.as_str(),
-            ),
-        );
+        span_lint_and_then(cx, UNNECESSARY_UNWRAP_UNCHECKED, expr.span, variant.msg(), |diag| {
+            let sugg = vec![
+                // replace the function with the unchecked version
+                (checked_span, unchecked_sugg),
+                // remove the call to `.unwrap_unchecked()`
+                (call_span.with_lo(recv.span.hi()), String::new()),
+            ];
+            diag.multipart_suggestion_verbose(
+                format!("use `{unchecked_full_path}` instead, and remove the call to `.unwrap_unchecked()`"),
+                sugg,
+                // TODO: make this `MachineApplicable` when the function comes from std/alloc/core
+                // The reasoning is that, if the function comes from std/alloc/core, its checked and unchecked are
+                // pretty likely to have their semantics match.
+                Applicability::MaybeIncorrect,
+            );
+        });
     }
 }
