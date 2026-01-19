@@ -26,15 +26,18 @@ impl<'tcx> VariantAndIdent {
             ExprKind::Call(path, _)
                 if let ExprKind::Path(qpath) = path.kind
                     && let parent = cx.tcx.parent(path.res(cx).def_id())
-                    // Don't use `parent_module`. We only want to lint if its first parent is a `Mod`
+                    // Don't use `parent_module`. We only want to lint if its first parent is a `Mod`,
+                    // i.e. if this is a free-standing function
                     && cx.tcx.def_kind(parent) == DefKind::Mod
                     && let children = parent.as_local().map_or_else(
                         || cx.tcx.module_children(parent),
                         // We must use a !query for local modules to prevent an ICE.
                         |parent| cx.tcx.module_children_local(parent),
                     )
-                    && !children.is_empty()
-                    && let Some(unchecked_ident) = unchecked_ident(&last_path_segment(&qpath).ident)
+                    // Make sure that there are other functions in this module
+                    // (otherwise there couldn't be an unchecked version)
+                    && children.len() > 1
+                    && let Some(unchecked_ident) = unchecked_ident(last_path_segment(&qpath).ident)
                     && let Some(unchecked_def_id) = children.iter().find_map(|child| {
                         if child.ident == unchecked_ident
                             && let Res::Def(DefKind::Fn, def_id) = child.res
@@ -58,7 +61,7 @@ impl<'tcx> VariantAndIdent {
                     && let parent = cx.tcx.parent(path.res(cx).def_id())
                     // Don't use `parent_impl`. We only want to lint if its first parent is an `Impl`
                     && matches!(cx.tcx.def_kind(parent), DefKind::Impl { .. })
-                    && let Some(unchecked_ident) = unchecked_ident(&last_path_segment(&qpath).ident)
+                    && let Some(unchecked_ident) = unchecked_ident(last_path_segment(&qpath).ident)
                     && let Some(unchecked) = cx.tcx.associated_items(parent).find_by_ident_and_namespace(
                         cx.tcx,
                         unchecked_ident,
@@ -79,8 +82,7 @@ impl<'tcx> VariantAndIdent {
                     && let parent = cx.tcx.parent(def_id)
                     // Don't use `parent_impl`. We only want to lint if its first parent is an `Impl`
                     && matches!(cx.tcx.def_kind(parent), DefKind::Impl { .. })
-                    && let ident = segment.ident.to_string()
-                    && let Some(unchecked_ident) = unchecked_ident(&ident)
+                    && let Some(unchecked_ident) = unchecked_ident(segment.ident)
                     && let Some(unchecked) = cx.tcx.associated_items(parent).find_by_ident_and_namespace(
                         cx.tcx,
                         unchecked_ident,
@@ -122,13 +124,13 @@ impl<'tcx> VariantAndIdent {
 
 #[derive(Clone, Copy, Debug)]
 enum Variant {
-    /// Free `fn` in a module. `DefId` is the `_unchecked` function.
+    /// Free `fn` in a module
     Fn,
-    /// Associated item from an `impl`. `DefId` is the `_unchecked` associated item.
+    /// Associated item from an `impl`
     Assoc(AssocKind),
 }
 
-fn unchecked_ident(checked_ident: &impl ToString) -> Option<Ident> {
+fn unchecked_ident(checked_ident: Ident) -> Option<Ident> {
     let checked_ident = checked_ident.to_string();
     // Only add `_unchecked` if it doesn't already end with `_`
     (!checked_ident.ends_with('_')).then(|| Ident::from_str(&(checked_ident + "_unchecked")))
