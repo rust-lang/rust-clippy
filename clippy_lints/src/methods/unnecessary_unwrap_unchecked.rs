@@ -13,102 +13,17 @@ use rustc_span::symbol::Ident;
 use super::UNNECESSARY_UNWRAP_UNCHECKED;
 
 #[derive(Clone, Copy, Debug)]
-struct VariantAndIdent {
-    variant: Variant,
-    ident: Ident,
+enum Variant {
+    /// Free `fn` in a module
+    Fn,
+    /// Associated item from an `impl`
+    Assoc(AssocKind),
 }
 
-impl<'tcx> VariantAndIdent {
-    fn new(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, recv: &Expr<'_>) -> Option<Self> {
-        let expected_ret_ty = cx.typeck_results().expr_ty(expr);
-        match recv.kind {
-            // Construct `Variant::Fn(_)`, if applicable. This is necessary for us to handle
-            // functions like `std::str::from_utf8_unchecked`.
-            ExprKind::Call(path, _)
-                if let ExprKind::Path(qpath) = path.kind
-                    && let checked_def_id = path.res(cx).def_id()
-                    && let parent = cx.tcx.parent(checked_def_id)
-                    // Don't use `parent_module`. We only want to lint if its first parent is a `Mod`,
-                    // i.e. if this is a free-standing function
-                    && cx.tcx.def_kind(parent) == DefKind::Mod
-                    && let children = parent.as_local().map_or_else(
-                        || cx.tcx.module_children(parent),
-                        // We must use a !query for local modules to prevent an ICE.
-                        |parent| cx.tcx.module_children_local(parent),
-                    )
-                    // Make sure that there are other functions in this module
-                    // (otherwise there couldn't be an unchecked version)
-                    && children.len() > 1
-                    && let Some(unchecked_ident) = unchecked_ident(last_path_segment(&qpath).ident)
-                    && let Some(unchecked_def_id) = children.iter().find_map(|child| {
-                        if child.ident == unchecked_ident
-                            && let Res::Def(DefKind::Fn, def_id) = child.res
-                        {
-                            Some(def_id)
-                        } else {
-                            None
-                        }
-                    })
-                    && same_functions_modulo_safety(cx, checked_def_id, unchecked_def_id, expected_ret_ty)
-                    && (cx.tcx.visibility(unchecked_def_id)).is_at_least(cx.tcx.visibility(checked_def_id), cx.tcx) =>
-            {
-                Some(Self {
-                    variant: Variant::Fn,
-                    ident: unchecked_ident,
-                })
-            },
-            // We unfortunately must handle `A::a(&a)` and `a.a()` separately, this handles the
-            // former
-            ExprKind::Call(path, _)
-                if let ExprKind::Path(qpath) = path.kind
-                    && let checked_def_id = path.res(cx).def_id()
-                    && let parent = cx.tcx.parent(checked_def_id)
-                    // Don't use `parent_impl`. We only want to lint if its first parent is an `Impl`
-                    && matches!(cx.tcx.def_kind(parent), DefKind::Impl { .. })
-                    && let Some(unchecked_ident) = unchecked_ident(last_path_segment(&qpath).ident)
-                    && let Some(unchecked) = cx.tcx.associated_items(parent).find_by_ident_and_namespace(
-                        cx.tcx,
-                        unchecked_ident,
-                        Namespace::ValueNS,
-                        parent,
-                    )
-                    && let ty::AssocKind::Fn { has_self, .. } = unchecked.kind
-                    && same_functions_modulo_safety(cx, checked_def_id, unchecked.def_id, expected_ret_ty)
-                    && (cx.tcx.visibility(unchecked.def_id)).is_at_least(cx.tcx.visibility(checked_def_id), cx.tcx) =>
-            {
-                Some(Self {
-                    variant: Variant::Assoc(AssocKind::new(has_self)),
-                    ident: unchecked_ident,
-                })
-            },
-            // ... And now the latter ^^
-            ExprKind::MethodCall(segment, _, _, _)
-                if let Some(checked_def_id) = cx.typeck_results().type_dependent_def_id(recv.hir_id)
-                    && let parent = cx.tcx.parent(checked_def_id)
-                    // Don't use `parent_impl`. We only want to lint if its first parent is an `Impl`
-                    && matches!(cx.tcx.def_kind(parent), DefKind::Impl { .. })
-                    && let Some(unchecked_ident) = unchecked_ident(segment.ident)
-                    && let Some(unchecked) = cx.tcx.associated_items(parent).find_by_ident_and_namespace(
-                        cx.tcx,
-                        unchecked_ident,
-                        Namespace::ValueNS,
-                        parent,
-                    )
-                    && same_functions_modulo_safety(cx, checked_def_id, unchecked.def_id, expected_ret_ty)
-                    && (cx.tcx.visibility(unchecked.def_id)).is_at_least(cx.tcx.visibility(checked_def_id), cx.tcx) =>
-            {
-                Some(Self {
-                    variant: Variant::Assoc(AssocKind::Method),
-                    ident: unchecked_ident,
-                })
-            },
-            _ => None,
-        }
-    }
-
+impl Variant {
     fn msg(self) -> &'static str {
         // Don't use `format!` instead -- it won't be optimized out.
-        match self.variant {
+        match self {
             Variant::Fn => "usage of `unwrap_unchecked` when an `_unchecked` variant of the function exists",
             Variant::Assoc(AssocKind::Fn) => {
                 "usage of `unwrap_unchecked` when an `_unchecked` variant of the associated function exists"
@@ -120,20 +35,12 @@ impl<'tcx> VariantAndIdent {
     }
 
     fn as_str(self) -> &'static str {
-        match self.variant {
+        match self {
             Variant::Fn => "function",
             Variant::Assoc(AssocKind::Fn) => "associated function",
             Variant::Assoc(AssocKind::Method) => "method",
         }
     }
-}
-
-#[derive(Clone, Copy, Debug)]
-enum Variant {
-    /// Free `fn` in a module
-    Fn,
-    /// Associated item from an `impl`
-    Assoc(AssocKind),
 }
 
 fn unchecked_ident(checked_ident: Ident) -> Option<Ident> {
@@ -237,10 +144,86 @@ impl AssocKind {
 }
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, recv: &Expr<'_>, span: Span) {
-    if !expr.span.from_expansion()
-        && let Some(variant) = VariantAndIdent::new(cx, expr, recv)
-        && !is_from_proc_macro(cx, expr)
-    {
+    if expr.span.from_expansion() {
+        return;
+    }
+    let expected_ret_ty = cx.typeck_results().expr_ty(expr);
+    let (variant, unchecked_ident) = match recv.kind {
+        // Construct `Variant::Fn(_)`, if applicable. This is necessary for us to handle
+        // functions like `std::str::from_utf8_unchecked`.
+        ExprKind::Call(path, _)
+            if let ExprKind::Path(qpath) = path.kind
+                && let checked_def_id = path.res(cx).def_id()
+                && let parent = cx.tcx.parent(checked_def_id)
+                // Don't use `parent_module`. We only want to lint if its first parent is a `Mod`,
+                // i.e. if this is a free-standing function
+                && cx.tcx.def_kind(parent) == DefKind::Mod
+                && let children = parent.as_local().map_or_else(
+                    || cx.tcx.module_children(parent),
+                    // We must use a !query for local modules to prevent an ICE.
+                    |parent| cx.tcx.module_children_local(parent),
+                )
+                // Make sure that there are other functions in this module
+                // (otherwise there couldn't be an unchecked version)
+                && children.len() > 1
+                && let Some(unchecked_ident) = unchecked_ident(last_path_segment(&qpath).ident)
+                && let Some(unchecked_def_id) = children.iter().find_map(|child| {
+                    if child.ident == unchecked_ident
+                        && let Res::Def(DefKind::Fn, def_id) = child.res
+                    {
+                        Some(def_id)
+                    } else {
+                        None
+                    }
+                })
+                && same_functions_modulo_safety(cx, checked_def_id, unchecked_def_id, expected_ret_ty)
+                && (cx.tcx.visibility(unchecked_def_id)).is_at_least(cx.tcx.visibility(checked_def_id), cx.tcx) =>
+        {
+            (Variant::Fn, unchecked_ident)
+        },
+        // We unfortunately must handle `A::a(&a)` and `a.a()` separately, this handles the
+        // former
+        ExprKind::Call(path, _)
+            if let ExprKind::Path(qpath) = path.kind
+                && let checked_def_id = path.res(cx).def_id()
+                && let parent = cx.tcx.parent(checked_def_id)
+                // Don't use `parent_impl`. We only want to lint if its first parent is an `Impl`
+                && matches!(cx.tcx.def_kind(parent), DefKind::Impl { .. })
+                && let Some(unchecked_ident) = unchecked_ident(last_path_segment(&qpath).ident)
+                && let Some(unchecked) = cx.tcx.associated_items(parent).find_by_ident_and_namespace(
+                    cx.tcx,
+                    unchecked_ident,
+                    Namespace::ValueNS,
+                    parent,
+                )
+                && let ty::AssocKind::Fn { has_self, .. } = unchecked.kind
+                && same_functions_modulo_safety(cx, checked_def_id, unchecked.def_id, expected_ret_ty)
+                && (cx.tcx.visibility(unchecked.def_id)).is_at_least(cx.tcx.visibility(checked_def_id), cx.tcx) =>
+        {
+            (Variant::Assoc(AssocKind::new(has_self)), unchecked_ident)
+        },
+        // ... And now the latter ^^
+        ExprKind::MethodCall(segment, _, _, _)
+            if let Some(checked_def_id) = cx.typeck_results().type_dependent_def_id(recv.hir_id)
+                && let parent = cx.tcx.parent(checked_def_id)
+                // Don't use `parent_impl`. We only want to lint if its first parent is an `Impl`
+                && matches!(cx.tcx.def_kind(parent), DefKind::Impl { .. })
+                && let Some(unchecked_ident) = unchecked_ident(segment.ident)
+                && let Some(unchecked) = cx.tcx.associated_items(parent).find_by_ident_and_namespace(
+                    cx.tcx,
+                    unchecked_ident,
+                    Namespace::ValueNS,
+                    parent,
+                )
+                && same_functions_modulo_safety(cx, checked_def_id, unchecked.def_id, expected_ret_ty)
+                && (cx.tcx.visibility(unchecked.def_id)).is_at_least(cx.tcx.visibility(checked_def_id), cx.tcx) =>
+        {
+            (Variant::Assoc(AssocKind::Method), unchecked_ident)
+        },
+        _ => return,
+    };
+
+    if !is_from_proc_macro(cx, expr) {
         span_lint_and_help(
             cx,
             UNNECESSARY_UNWRAP_UNCHECKED,
@@ -248,9 +231,8 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, recv: 
             variant.msg(),
             None,
             format!(
-                "call the {} `{}` instead, and remove the `unwrap_unchecked` call",
+                "call the {} `{unchecked_ident}` instead, and remove the `unwrap_unchecked` call",
                 variant.as_str(),
-                variant.ident,
             ),
         );
     }
