@@ -5251,7 +5251,7 @@ impl Methods {
                     unnecessary_literal_unwrap::check(cx, expr, recv, name, args);
                 },
                 (sym::unwrap_unchecked, []) => {
-                    unnecessary_unwrap_unchecked::check(cx, expr, recv, span);
+                    unnecessary_unwrap_unchecked::check(cx, expr, recv, call_span);
                     unnecessary_literal_unwrap::check(cx, expr, recv, name, args);
                 },
                 (sym::expect_err, [_]) | (sym::unwrap_err | sym::unwrap_err_unchecked, []) => {
