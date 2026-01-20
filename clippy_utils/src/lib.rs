@@ -1840,7 +1840,7 @@ fn is_body_identity_function<'hir>(cx: &LateContext<'_>, func: &Body<'hir>) -> b
     // Given a sequence of `Stmt`s of the form `let p = e` where `e` is an expr identical to the
     // current `param_pat`, advance the current `param_pat` to `p`.
     //
-    // Note: This is similar to `clippy_lints::utils::get_last_chain_binding_hir_id`, but it works
+    // Note: This is similar to `clippy_utils::get_last_chain_binding_hir_id`, but it works
     // directly over a `Pattern` rather than a `HirId`. And it checks for compatibility via
     // `is_expr_identity_of_pat` rather than `HirId` equality
     let mut advance_param_pat_over_stmts = |stmts: &[Stmt<'hir>]| {
@@ -1899,14 +1899,9 @@ fn is_body_identity_function<'hir>(cx: &LateContext<'_>, func: &Body<'hir>) -> b
                 expr = e;
             },
             ExprKind::Block(&Block { stmts, expr: None, .. }, _) => {
-                let Some((last_stmt, stmts)) = stmts.split_last() else {
-                    return false;
-                };
-                if !advance_param_pat_over_stmts(stmts) {
-                    return false;
-                }
-
-                if let StmtKind::Semi(e) | StmtKind::Expr(e) = last_stmt.kind
+                if let Some((last_stmt, stmts)) = stmts.split_last()
+                    && advance_param_pat_over_stmts(stmts)
+                    && let StmtKind::Semi(e) | StmtKind::Expr(e) = last_stmt.kind
                     && let ExprKind::Ret(Some(ret_val)) = e.kind
                 {
                     expr = ret_val;
@@ -2022,22 +2017,13 @@ pub fn is_expr_identity_function(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool 
         _ if expr.basic_res().is_diag_item(cx, sym::convert_identity) => true,
 
         ExprKind::Path(qpath) => {
-            let res = cx.qpath_res(&qpath, expr.hir_id);
-            match res {
-                // Case 1: Local variable (could be a closure)
-                Res::Local(hir_id) => {
-                    if let Some(init_expr) = find_binding_init(cx, hir_id) {
-                        let origin = expr_or_init(cx, init_expr);
-                        if let ExprKind::Closure(&Closure { body, .. }) = origin.kind {
-                            is_body_identity_function(cx, cx.tcx.hir_body(body))
-                        } else {
-                            false
-                        }
-                    } else {
-                        false
-                    }
-                },
-                _ => false,
+            if let Res::Local(hir_id) = cx.qpath_res(&qpath, expr.hir_id)
+                && let Some(init_expr) = find_binding_init(cx, hir_id)
+                && let ExprKind::Closure(&Closure { body, .. }) = expr_or_init(cx, init_expr).kind
+            {
+                is_body_identity_function(cx, cx.tcx.hir_body(body))
+            } else {
+                false
             }
         },
         _ => false,
