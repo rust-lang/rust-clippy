@@ -280,3 +280,16 @@ fn has_comment() -> Vec<usize> {
 }
 
 fn main() {}
+
+fn wrongly_unmangled_macros() -> i32 {
+    let x = 1;
+    macro_rules! plus_one {
+        ($e:expr) => {
+            $e + 1
+        };
+    }
+
+    let y = plus_one!(x);
+    y
+    //~^ let_and_return
+}
