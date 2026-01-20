@@ -5430,7 +5430,6 @@ impl Methods {
                     option_map_or_none::check(cx, expr, recv, def, map);
                     manual_ok_or::check(cx, expr, recv, def, map);
                     unnecessary_map_or::check(cx, expr, recv, def, map, span, self.msrv);
-                    map_or_identity::check(cx, expr, recv, def, map);
                 },
                 (sym::map_or_else, [def, map]) => {
                     result_map_or_else_none::check(cx, expr, recv, def, map);
@@ -5750,6 +5749,10 @@ impl Methods {
                 (sym::into_iter, []) => {
                     into_iter_on_ref::check(cx, expr, method_span, recv);
                 },
+                (sym::map_or, [def, map]) => {
+                    map_or_identity::check(cx, expr, recv, def, map);
+                },
+
                 (sym::to_string, []) => {
                     inefficient_to_string::check(cx, expr, recv, self.msrv);
                 },

@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_expr_identity_function;
 use clippy_utils::res::MaybeDef;
-use clippy_utils::source::snippet_with_applicability;
+use clippy_utils::source::snippet_with_context;
 use rustc_errors::Applicability;
 use rustc_hir::Expr;
 
@@ -20,8 +20,8 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, recv: &Expr<'_>, def_
         let msg = format!("expression can be simplified using `{symbol}::unwrap_or()`");
         span_lint_and_then(cx, MAP_OR_IDENTITY, expr.span, msg, |diag| {
             let mut applicability = Applicability::MachineApplicable;
-            let self_snippet = snippet_with_applicability(cx, recv.span, "_", &mut applicability);
-            let err_snippet = snippet_with_applicability(cx, def_arg.span, "..", &mut applicability);
+            let (self_snippet, _) = snippet_with_context(cx, recv.span, expr.span.ctxt(), "_", &mut applicability);
+            let (err_snippet, _) = snippet_with_context(cx, def_arg.span, expr.span.ctxt(), "..", &mut applicability);
             let sugg = format!("{self_snippet}.unwrap_or({err_snippet})");
 
             diag.span_suggestion(expr.span, "consider using `unwrap_or`", sugg, applicability);
