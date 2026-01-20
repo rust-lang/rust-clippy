@@ -143,6 +143,64 @@ impl AssocKind {
     }
 }
 
+fn find_unchecked_sibling_fn(
+    cx: &LateContext<'_>,
+    checked_def_id: DefId,
+    checked_ident: Ident,
+) -> Option<(DefId, Ident)> {
+    // Don't use `parent_module`. We only want to lint if its first parent is a `Mod`,
+    // i.e. if this is a free-standing function
+    let parent = cx.tcx.parent(checked_def_id);
+    if cx.tcx.def_kind(parent) == DefKind::Mod
+        && let children = parent.as_local().map_or_else(
+            || cx.tcx.module_children(parent),
+            // We must use a !query for local modules to prevent an ICE.
+            |parent| cx.tcx.module_children_local(parent),
+        )
+        // Make sure that there are other functions in this module
+        // (otherwise there couldn't be an unchecked version)
+        && children.len() > 1
+        && let Some(unchecked_ident) = unchecked_ident(checked_ident)
+        && let Some(unchecked_def_id) = children.iter().find_map(|child| {
+            if child.ident == unchecked_ident
+                && let Res::Def(DefKind::Fn, def_id) = child.res
+            {
+                Some(def_id)
+            } else {
+                None
+            }
+        })
+    {
+        Some((unchecked_def_id, unchecked_ident))
+    } else {
+        None
+    }
+}
+
+fn find_unchecked_sibling_method<'tcx>(
+    cx: &LateContext<'tcx>,
+    checked_def_id: DefId,
+    checked_ident: Ident,
+) -> Option<(&'tcx ty::AssocItem, Ident)> {
+    // Don't use `parent_impl`. We only want to lint if its first parent is an `Impl`
+    let parent = cx.tcx.parent(checked_def_id);
+    if matches!(cx.tcx.def_kind(parent), DefKind::Impl { .. })
+        && let Some(unchecked_ident) = unchecked_ident(checked_ident)
+        // XXX: look into methods from other impls as well?
+        // would need to make sure that the impl generics etc. match
+        && let Some(unchecked) = cx.tcx.associated_items(parent).find_by_ident_and_namespace(
+            cx.tcx,
+            unchecked_ident,
+            Namespace::ValueNS,
+            parent,
+        )
+    {
+        Some((unchecked, unchecked_ident))
+    } else {
+        None
+    }
+}
+
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, recv: &Expr<'_>, span: Span) {
     if expr.span.from_expansion() {
         return;
@@ -153,29 +211,10 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, recv: 
         // functions like `std::str::from_utf8_unchecked`.
         ExprKind::Call(path, _)
             if let ExprKind::Path(qpath) = path.kind
+                && let checked_ident = last_path_segment(&qpath).ident
                 && let checked_def_id = path.res(cx).def_id()
-                && let parent = cx.tcx.parent(checked_def_id)
-                // Don't use `parent_module`. We only want to lint if its first parent is a `Mod`,
-                // i.e. if this is a free-standing function
-                && cx.tcx.def_kind(parent) == DefKind::Mod
-                && let children = parent.as_local().map_or_else(
-                    || cx.tcx.module_children(parent),
-                    // We must use a !query for local modules to prevent an ICE.
-                    |parent| cx.tcx.module_children_local(parent),
-                )
-                // Make sure that there are other functions in this module
-                // (otherwise there couldn't be an unchecked version)
-                && children.len() > 1
-                && let Some(unchecked_ident) = unchecked_ident(last_path_segment(&qpath).ident)
-                && let Some(unchecked_def_id) = children.iter().find_map(|child| {
-                    if child.ident == unchecked_ident
-                        && let Res::Def(DefKind::Fn, def_id) = child.res
-                    {
-                        Some(def_id)
-                    } else {
-                        None
-                    }
-                })
+                && let Some((unchecked_def_id, unchecked_ident)) =
+                    find_unchecked_sibling_fn(cx, checked_def_id, checked_ident)
                 && same_functions_modulo_safety(cx, checked_def_id, unchecked_def_id, expected_ret_ty)
                 && (cx.tcx.visibility(unchecked_def_id)).is_at_least(cx.tcx.visibility(checked_def_id), cx.tcx) =>
         {
@@ -185,17 +224,10 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, recv: 
         // former
         ExprKind::Call(path, _)
             if let ExprKind::Path(qpath) = path.kind
+                && let checked_ident = last_path_segment(&qpath).ident
                 && let checked_def_id = path.res(cx).def_id()
-                && let parent = cx.tcx.parent(checked_def_id)
-                // Don't use `parent_impl`. We only want to lint if its first parent is an `Impl`
-                && matches!(cx.tcx.def_kind(parent), DefKind::Impl { .. })
-                && let Some(unchecked_ident) = unchecked_ident(last_path_segment(&qpath).ident)
-                && let Some(unchecked) = cx.tcx.associated_items(parent).find_by_ident_and_namespace(
-                    cx.tcx,
-                    unchecked_ident,
-                    Namespace::ValueNS,
-                    parent,
-                )
+                && let Some((unchecked, unchecked_ident)) =
+                    find_unchecked_sibling_method(cx, checked_def_id, checked_ident)
                 && let ty::AssocKind::Fn { has_self, .. } = unchecked.kind
                 && same_functions_modulo_safety(cx, checked_def_id, unchecked.def_id, expected_ret_ty)
                 && (cx.tcx.visibility(unchecked.def_id)).is_at_least(cx.tcx.visibility(checked_def_id), cx.tcx) =>
@@ -204,17 +236,10 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, recv: 
         },
         // ... And now the latter ^^
         ExprKind::MethodCall(segment, _, _, _)
-            if let Some(checked_def_id) = cx.typeck_results().type_dependent_def_id(recv.hir_id)
-                && let parent = cx.tcx.parent(checked_def_id)
-                // Don't use `parent_impl`. We only want to lint if its first parent is an `Impl`
-                && matches!(cx.tcx.def_kind(parent), DefKind::Impl { .. })
-                && let Some(unchecked_ident) = unchecked_ident(segment.ident)
-                && let Some(unchecked) = cx.tcx.associated_items(parent).find_by_ident_and_namespace(
-                    cx.tcx,
-                    unchecked_ident,
-                    Namespace::ValueNS,
-                    parent,
-                )
+            if let checked_ident = segment.ident
+                && let Some(checked_def_id) = cx.typeck_results().type_dependent_def_id(recv.hir_id)
+                && let Some((unchecked, unchecked_ident)) =
+                    find_unchecked_sibling_method(cx, checked_def_id, checked_ident)
                 && same_functions_modulo_safety(cx, checked_def_id, unchecked.def_id, expected_ret_ty)
                 && (cx.tcx.visibility(unchecked.def_id)).is_at_least(cx.tcx.visibility(checked_def_id), cx.tcx) =>
         {
