@@ -73,9 +73,7 @@ impl ArithmeticSideEffects {
             return true;
         }
 
-        if matches!(lhs_ty.opt_diag_name(cx), Some(sym::String))
-            && (rhs_ty.is_str() || matches!(rhs_ty.opt_diag_name(cx), Some(sym::String)))
-        {
+        if lhs_ty.is_diag_item(cx, sym::String) && (rhs_ty.is_str() || rhs_ty.is_diag_item(cx, sym::String)) {
             return true;
         }
 
