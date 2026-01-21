@@ -2519,6 +2519,10 @@ declare_clippy_lint! {
     /// guarantee that the mutex isn't locked, instead of just a runtime
     /// guarantee.
     ///
+    /// ### Known problems
+    ///
+    /// This lint doesn't take lifetimes into account.
+    ///
     /// ### Example
     /// ```no_run
     /// use std::sync::{Arc, Mutex};
