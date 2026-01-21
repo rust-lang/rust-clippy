@@ -5,12 +5,20 @@ use clippy_utils::source::snippet_with_applicability;
 use rustc_errors::Applicability;
 use rustc_hir::Expr;
 use rustc_lint::LateContext;
+use rustc_span::Span;
 use rustc_span::symbol::sym;
 
 use super::{UNNECESSARY_OPTION_MAP_OR_ELSE, UNNECESSARY_RESULT_MAP_OR_ELSE};
 
 /// lint use of `_.map_or_else(|err| err, |n| n)` for `Result`s and `Option`s.
-pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, recv: &Expr<'_>, def_arg: &Expr<'_>, map_arg: &Expr<'_>) {
+pub(super) fn check(
+    cx: &LateContext<'_>,
+    expr: &Expr<'_>,
+    recv: &Expr<'_>,
+    def_arg: &Expr<'_>,
+    map_arg: &Expr<'_>,
+    call_span: Span,
+) {
     // lint if the caller of `map_or_else()` is a `Result` or an `Option`
     let (symbol, lint) = match cx.typeck_results().expr_ty(recv).opt_diag_name(cx) {
         Some(x @ sym::Result) => (x, UNNECESSARY_RESULT_MAP_OR_ELSE),
@@ -23,11 +31,10 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, recv: &Expr<'_>, def_
 
         span_lint_and_then(cx, lint, expr.span, msg, |diag| {
             let mut applicability = Applicability::MachineApplicable;
-            let self_snippet = snippet_with_applicability(cx, recv.span, "_", &mut applicability);
             let err_snippet = snippet_with_applicability(cx, def_arg.span, "..", &mut applicability);
-            let sugg = format!("{self_snippet}.unwrap_or_else({err_snippet})");
+            let sugg = format!("unwrap_or_else({err_snippet})");
 
-            diag.span_suggestion(expr.span, "consider using `unwrap_or_else`", sugg, applicability);
+            diag.span_suggestion_verbose(call_span, "consider using `unwrap_or_else`", sugg, applicability);
         });
     }
 }
