@@ -55,12 +55,6 @@ fn main() {
     let option = Some(&string);
     let _: &str = option.map_or_else(|| &string, std::convert::identity); //~ unnecessary_option_map_or_else
 
-    // Closure bound to a variable
-    let do_nothing = |x: String| x;
-    let string = String::new();
-    let option = Some(string.clone());
-    let _: String = option.map_or_else(|| string, do_nothing); //~ unnecessary_option_map_or_else
-
     // Correct usages
     let option = Some(());
     option.map_or_else(|| (), |_| ());

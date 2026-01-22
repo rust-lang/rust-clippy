@@ -2015,17 +2015,6 @@ pub fn is_expr_identity_function(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool 
     match expr.kind {
         ExprKind::Closure(&Closure { body, .. }) => is_body_identity_function(cx, cx.tcx.hir_body(body)),
         _ if expr.basic_res().is_diag_item(cx, sym::convert_identity) => true,
-
-        ExprKind::Path(qpath) => {
-            if let Res::Local(hir_id) = cx.qpath_res(&qpath, expr.hir_id)
-                && let Some(init_expr) = find_binding_init(cx, hir_id)
-                && let ExprKind::Closure(&Closure { body, .. }) = expr_or_init(cx, init_expr).kind
-            {
-                is_body_identity_function(cx, cx.tcx.hir_body(body))
-            } else {
-                false
-            }
-        },
         _ => false,
     }
 }
