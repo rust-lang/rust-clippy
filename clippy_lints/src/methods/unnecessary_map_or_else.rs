@@ -19,7 +19,6 @@ pub(super) fn check(
     map_arg: &Expr<'_>,
     call_span: Span,
 ) {
-    // lint if the caller of `map_or_else()` is a `Result` or an `Option`
     let (symbol, lint) = match cx.typeck_results().expr_ty(recv).opt_diag_name(cx) {
         Some(x @ sym::Result) => (x, UNNECESSARY_RESULT_MAP_OR_ELSE),
         Some(x @ sym::Option) => (x, UNNECESSARY_OPTION_MAP_OR_ELSE),
