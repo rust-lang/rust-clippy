@@ -2014,8 +2014,7 @@ pub fn is_expr_untyped_identity_function(cx: &LateContext<'_>, expr: &Expr<'_>) 
 pub fn is_expr_identity_function(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
     match expr.kind {
         ExprKind::Closure(&Closure { body, .. }) => is_body_identity_function(cx, cx.tcx.hir_body(body)),
-        _ if expr.basic_res().is_diag_item(cx, sym::convert_identity) => true,
-        _ => false,
+        _ => expr.basic_res().is_diag_item(cx, sym::convert_identity),
     }
 }
 
