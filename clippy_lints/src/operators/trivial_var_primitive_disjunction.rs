@@ -34,7 +34,6 @@ pub(super) fn check(cx: &LateContext<'_>, e: &Expr<'_>, left: &Expr<'_>, right: 
         let lhs = context_applicable(left);
         let rhs = context_applicable(right);
 
-
         if let (Some((lhs_var, lhs_lit)), Some((rhs_var, rhs_lit))) = (lhs, rhs)
             && lhs_var == rhs_var
             && lhs_lit != rhs_lit

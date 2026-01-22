@@ -1,7 +1,6 @@
 #![warn(clippy::trivial_var_primitive_disjunction)]
 #![allow(clippy::nonminimal_bool, clippy::eq_op)]
 
-
 fn foo_m(name: &str) {
     if name != "Min" && name != "Max" {
         todo!()
