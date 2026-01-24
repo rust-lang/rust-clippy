@@ -4,6 +4,7 @@
 
 pub trait MyTrait {
     fn get_id(&self) -> usize;
+    //~^ getter_prefixes
     fn get_unit(&self);
     fn get_unit_explicit(&self) -> ();
     fn get_static_id() -> usize;
@@ -58,6 +59,7 @@ pub struct MyStruct {
 
 impl MyStruct {
     pub fn get_id(&self) -> usize {
+        //~^ getter_prefixes
         self.id
     }
 

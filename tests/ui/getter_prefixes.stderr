@@ -8,7 +8,7 @@ LL |     fn get_id(&self) -> usize;
    = help: to override `-D warnings` add `#[allow(clippy::getter_prefixes)]`
 
 error: prefixing a getter with `get_` does not follow naming conventions
-  --> tests/ui/getter_prefixes.rs:60:12
+  --> tests/ui/getter_prefixes.rs:61:12
    |
 LL |     pub fn get_id(&self) -> usize {
    |            ^^^^^^ help: replace it with: `id`

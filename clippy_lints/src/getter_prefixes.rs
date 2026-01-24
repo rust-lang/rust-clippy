@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use rustc_ast::ast::*;
+use rustc_ast::ast::{AssocItem, AssocItemKind, Fn, FnRetTy, FnSig, Impl, Item, ItemKind, Ty};
 use rustc_errors::Applicability;
 use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_session::impl_lint_pass;
@@ -65,13 +65,13 @@ impl_lint_pass!(GetterPrefixes => [GETTER_PREFIXES]);
 impl EarlyLintPass for GetterPrefixes {
     fn check_item(&mut self, _: &EarlyContext<'_>, item: &Item) {
         if let ItemKind::Impl(Impl { of_trait: None, .. }) = item.kind {
-            self.inherent_impl_ctx = true
+            self.inherent_impl_ctx = true;
         }
     }
 
     fn check_item_post(&mut self, _: &EarlyContext<'_>, item: &Item) {
         if let ItemKind::Impl(_) = item.kind {
-            self.inherent_impl_ctx = false
+            self.inherent_impl_ctx = false;
         }
     }
 
