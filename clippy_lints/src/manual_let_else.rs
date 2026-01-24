@@ -301,7 +301,7 @@ fn replace_in_pattern(
                     .collect::<Vec<_>>();
                 let fields_string = fields.join(", ");
 
-                let dot_dot_str = if dot_dot.is_some() { " .." } else { "" };
+                let dot_dot_str = if dot_dot.is_some() { ", .." } else { "" };
                 let (sn_pth, _) = snippet_with_context(cx, path.span(), span.ctxt(), "", app);
                 return format!("{sn_pth} {{ {fields_string}{dot_dot_str} }}");
             },
