@@ -603,7 +603,7 @@ mod issue8845 {
     }
 
     impl Something {
-        fn get_value(&self) -> u8 {
+        fn get(&self) -> u8 {
             match self {
                 Something::Num(n) => *n,
                 //~^ use_self
@@ -636,7 +636,7 @@ mod issue8845 {
     }
 
     impl Foo {
-        fn get_value(&self) -> u8 {
+        fn get(&self) -> u8 {
             let Foo(x) = self;
             //~^ use_self
             *x
@@ -650,7 +650,7 @@ mod issue8845 {
     }
 
     impl Bar {
-        fn get_value(&self) -> u8 {
+        fn get(&self) -> u8 {
             let Bar { x, .. } = self;
             //~^ use_self
             *x

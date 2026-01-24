@@ -200,6 +200,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::functions::TOO_MANY_ARGUMENTS_INFO,
     crate::functions::TOO_MANY_LINES_INFO,
     crate::future_not_send::FUTURE_NOT_SEND_INFO,
+    crate::getter_prefixes::GETTER_PREFIXES_INFO,
     crate::if_let_mutex::IF_LET_MUTEX_INFO,
     crate::if_not_else::IF_NOT_ELSE_INFO,
     crate::if_then_some_else_none::IF_THEN_SOME_ELSE_NONE_INFO,
