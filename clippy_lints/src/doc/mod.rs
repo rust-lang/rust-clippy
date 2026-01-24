@@ -1016,6 +1016,7 @@ struct CodeTags {
     no_run: bool,
     ignore: bool,
     compile_fail: bool,
+    test_harness: bool,
 
     rust: bool,
 }
@@ -1026,6 +1027,7 @@ impl Default for CodeTags {
             no_run: false,
             ignore: false,
             compile_fail: false,
+            test_harness: false,
 
             rust: true,
         }
@@ -1059,7 +1061,11 @@ impl CodeTags {
                     tags.compile_fail = true;
                     seen_rust_tags = !seen_other_tags || seen_rust_tags;
                 },
-                "test_harness" | "standalone_crate" => {
+                "test_harness" => {
+                    tags.test_harness = true;
+                    seen_rust_tags = !seen_other_tags || seen_rust_tags;
+                },
+                "standalone_crate" => {
                     seen_rust_tags = !seen_other_tags || seen_rust_tags;
                 },
                 _ if item.starts_with("ignore-") => seen_rust_tags = true,
@@ -1295,7 +1301,7 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
                     if tags.rust && !tags.compile_fail && !tags.ignore {
                         needless_doctest_main::check(cx, &text, range.start, fragments);
 
-                        if !tags.no_run {
+                        if !tags.no_run && !tags.test_harness {
                             test_attr_in_doctest::check(cx, &text, range.start, fragments);
                         }
                     }
