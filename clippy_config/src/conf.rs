@@ -35,7 +35,7 @@ const DEFAULT_DOC_VALID_IDENTS: &[&str] = &[
     "IPv4", "IPv6",
     "InfiniBand", "RoCE",
     "ClojureScript", "CoffeeScript", "JavaScript", "PostScript", "PureScript", "TypeScript",
-    "PowerPC", "WebAssembly",
+    "PowerPC", "PowerShell", "WebAssembly",
     "NaN", "NaNs",
     "OAuth", "GraphQL",
     "OCaml",
