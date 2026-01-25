@@ -31,5 +31,41 @@ error: static items with drop implementation
 LL | static A9: &[FooWithDrop] = &[FooWithDrop];
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 5 previous errors
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:36:1
+   |
+LL | static B1: Nested<FooWithDrop> = Nested(FooWithDrop, ());
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:40:1
+   |
+LL | static B3: Nested<FooWithoutDrop, Nested<FooWithDrop>> = Nested(FooWithoutDrop, Nested(FooWithDrop, ()));
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:44:1
+   |
+LL | static B5: Nested<&FooWithDrop> = Nested(&FooWithDrop, ());
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:48:1
+   |
+LL | static B7: Nested<(FooWithoutDrop, FooWithDrop)> = Nested((FooWithoutDrop, FooWithDrop), ());
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:52:1
+   |
+LL | static B9: Nested<[FooWithDrop; 1]> = Nested([FooWithDrop], ());
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:56:1
+   |
+LL | static B11: Nested<&[FooWithDrop]> = Nested(&[FooWithDrop], ());
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 11 previous errors
 
