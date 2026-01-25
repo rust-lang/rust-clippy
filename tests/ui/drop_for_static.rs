@@ -29,8 +29,7 @@ static A9: &[FooWithDrop] = &[FooWithDrop];
 static A10: &[FooWithoutDrop] = &[FooWithoutDrop];
 
 struct Nested<T>(T);
-static B9: Nested::<FooWithDrop> = Nested(FooWithDrop);
-static B10: Nested::<FooWithoutDrop> = Nested(FooWithoutDrop);
-
+static B9: Nested<FooWithDrop> = Nested(FooWithDrop);
+static B10: Nested<FooWithoutDrop> = Nested(FooWithoutDrop);
 
 fn main() {}
