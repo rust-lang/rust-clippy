@@ -1,12 +1,15 @@
 use clippy_utils::as_some_expr;
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::res::{MaybeDef, MaybeQPath, MaybeResPath};
+use clippy_utils::source::snippet_with_context;
+use clippy_utils::sugg::Sugg;
+use clippy_utils::ty::is_copy;
 use clippy_utils::visitors::contains_unsafe_block;
-
+use rustc_errors::Applicability;
 use rustc_hir::LangItem::OptionNone;
 use rustc_hir::{Arm, Expr, ExprKind, HirId, Pat, PatKind};
 use rustc_lint::LateContext;
-use rustc_span::{SyntaxContext, sym};
+use rustc_span::{Span, SyntaxContext, sym};
 
 use super::MANUAL_FILTER;
 use super::manual_utils::{SomeExpr, check_with};
@@ -41,12 +44,11 @@ fn get_cond_expr<'tcx>(
 fn peels_blocks_incl_unsafe_opt<'a>(expr: &'a Expr<'a>) -> Option<&'a Expr<'a>> {
     // we don't want to use `peel_blocks` here because we don't care if the block is unsafe, it's
     // checked by `contains_unsafe_block`
-    if let ExprKind::Block(block, None) = expr.kind
-        && block.stmts.is_empty()
-    {
-        return block.expr;
+    if let ExprKind::Block(block, None) = expr.kind {
+        return if block.stmts.is_empty() { block.expr } else { None };
     }
-    None
+
+    Some(expr)
 }
 
 fn peels_blocks_incl_unsafe<'a>(expr: &'a Expr<'a>) -> &'a Expr<'a> {
@@ -86,6 +88,62 @@ fn add_ampersand_if_copy(body_str: String, has_copy_trait: bool) -> String {
         with_ampersand
     } else {
         body_str
+    }
+}
+
+pub(crate) fn check_method_call<'tcx>(
+    cx: &LateContext<'tcx>,
+    scrutinee: &'tcx Expr<'_>,
+    arg: &'tcx Expr<'_>,
+    call_span: Span,
+    expr: &'tcx Expr<'_>,
+) {
+    let ty = cx.typeck_results().expr_ty(scrutinee).peel_refs();
+    if ty.is_diag_item(cx, sym::Option)
+        && let ExprKind::Closure(closure) = arg.kind
+        && let body = cx.tcx.hir_body(closure.body)
+        && let Some(fn_arg_span) = closure.fn_arg_span
+        && let [param] = body.params
+        && let expr_span_ctxt = expr.span.ctxt()
+        && let Some(some_expr) = get_cond_expr(cx, param.pat, body.value, expr_span_ctxt)
+    {
+        span_lint_and_then(
+            cx,
+            MANUAL_FILTER,
+            call_span,
+            "manual implementation of `Option::filter`",
+            |diag| {
+                let mut applicability = Applicability::MachineApplicable;
+
+                let mut cond_snip =
+                    Sugg::hir_with_context(cx, some_expr.expr, expr_span_ctxt, "..", &mut applicability);
+                if some_expr.needs_unsafe_block {
+                    cond_snip = cond_snip.unsafeify();
+                }
+                if some_expr.needs_negated {
+                    cond_snip = !cond_snip;
+                }
+
+                let (prefix_snip, _) = snippet_with_context(
+                    cx,
+                    closure.fn_decl_span.shrink_to_lo().until(fn_arg_span),
+                    expr_span_ctxt,
+                    "..",
+                    &mut applicability,
+                );
+                let (param_snip, _) =
+                    snippet_with_context(cx, param.pat.span, expr_span_ctxt, "..", &mut applicability);
+                diag.span_suggestion(
+                    call_span,
+                    "try",
+                    format!(
+                        "filter({prefix_snip}|{}{param_snip}| {cond_snip})",
+                        if is_copy(cx, ty) { "&" } else { "" }
+                    ),
+                    applicability,
+                );
+            },
+        );
     }
 }
 
