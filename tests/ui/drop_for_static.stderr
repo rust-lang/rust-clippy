@@ -8,7 +8,7 @@ LL | static A1: FooWithDrop = FooWithDrop;
    = help: to override `-D warnings` add `#[allow(clippy::drop_for_static)]`
 
 error: static items with drop implementation
-  --> tests/ui/drop_for_static.rs:16:1
+  --> tests/ui/drop_for_static.rs:15:1
    |
 LL | static A3: [FooWithDrop; 1] = [FooWithDrop];
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
