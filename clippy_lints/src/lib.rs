@@ -111,6 +111,7 @@ mod disallowed_script_idents;
 mod disallowed_types;
 mod doc;
 mod double_parens;
+mod drop_for_static;
 mod drop_forget_ref;
 mod duplicate_mod;
 mod duration_suboptimal_units;
@@ -708,6 +709,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         },
         Box::new(move |tcx| Box::new(disallowed_methods::DisallowedMethods::new(tcx, conf))),
         Box::new(|_| Box::new(empty_drop::EmptyDrop)),
+        Box::new(|_| Box::new(drop_for_static::DropForStatic)),
         Box::new(|_| Box::new(strings::StrToString)),
         Box::new(|_| Box::new(zero_sized_map_values::ZeroSizedMapValues)),
         Box::new(|_| Box::<vec_init_then_push::VecInitThenPush>::default()),
