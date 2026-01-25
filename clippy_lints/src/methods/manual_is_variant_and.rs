@@ -1,9 +1,9 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeDef;
-use clippy_utils::source::snippet_with_applicability;
+use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
 use clippy_utils::sugg::Sugg;
-use clippy_utils::{get_parent_expr, sym};
+use clippy_utils::{SpanlessEq, get_parent_expr, sym};
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::def::{CtorKind, CtorOf, DefKind, Res};
@@ -227,4 +227,66 @@ pub(super) fn check_map(cx: &LateContext<'_>, expr: &Expr<'_>) {
             }
         }
     }
+}
+
+pub(super) fn check_or<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'tcx>,
+    lhs: &'tcx Expr<'tcx>,
+    rhs: &'tcx Expr<'tcx>,
+    msrv: Msrv,
+) {
+    let (some_recv, some_arg) = if let (
+        ExprKind::MethodCall(none_path, none_recv, [], _),
+        ExprKind::MethodCall(some_path, some_recv, [some_arg], _),
+    )
+    | (
+        ExprKind::MethodCall(some_path, some_recv, [some_arg], _),
+        ExprKind::MethodCall(none_path, none_recv, [], _),
+    ) = (lhs.kind, rhs.kind)
+        && none_path.ident.name == sym::is_none
+        && some_path.ident.name == sym::is_some_and
+        && cx
+            .typeck_results()
+            .expr_ty_adjusted(none_recv)
+            .peel_refs()
+            .is_diag_item(cx, sym::Option)
+        && cx
+            .typeck_results()
+            .expr_ty_adjusted(some_recv)
+            .peel_refs()
+            .is_diag_item(cx, sym::Option)
+        && SpanlessEq::new(cx).eq_expr(none_recv, some_recv)
+    {
+        (some_recv, some_arg)
+    } else {
+        return;
+    };
+
+    if !msrv.meets(cx, msrvs::IS_NONE_OR) {
+        return;
+    }
+
+    let Ok(map_func) = MapFunc::try_from(some_arg) else {
+        return;
+    };
+
+    span_lint_and_then(
+        cx,
+        MANUAL_IS_VARIANT_AND,
+        expr.span,
+        "manual implementation of `Option::is_none_or`",
+        |diag| {
+            let mut app = Applicability::MachineApplicable;
+            let (recv_snip, _) = snippet_with_context(cx, some_recv.span, expr.span.ctxt(), "_", &mut app);
+            let map_func_snip = map_func.sugg(cx, false, &mut app);
+
+            diag.span_suggestion(
+                expr.span,
+                "use",
+                format!("{recv_snip}.is_none_or({map_func_snip})"),
+                app,
+            );
+        },
+    );
 }
