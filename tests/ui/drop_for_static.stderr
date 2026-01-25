@@ -1,0 +1,17 @@
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:11:1
+   |
+LL | static A1: FooWithDrop = FooWithDrop;
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::drop-for-static` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::drop_for_static)]`
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:16:1
+   |
+LL | static A3: [FooWithDrop; 1] = [FooWithDrop];
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+
