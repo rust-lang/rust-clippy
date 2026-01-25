@@ -116,6 +116,7 @@ mod disallowed_script_idents;
 mod disallowed_types;
 mod doc;
 mod double_parens;
+mod drop_for_static;
 mod drop_forget_ref;
 mod duplicate_mod;
 mod duration_suboptimal_units;
