@@ -58,8 +58,7 @@ impl LateLintPass<'_> for DropForStatic {
                         walk_kinds.push(&ty.kind);
                     },
                     TyKind::Tup(ty) => walk_kinds.extend(ty.iter().map(|ty| &ty.kind)),
-                    _ => {
-                    },
+                    _ => {},
                 }
             }
         }
