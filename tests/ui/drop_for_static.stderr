@@ -10,8 +10,26 @@ LL | static A1: FooWithDrop = FooWithDrop;
 error: static items with drop implementation
   --> tests/ui/drop_for_static.rs:15:1
    |
-LL | static A3: [FooWithDrop; 1] = [FooWithDrop];
+LL | static A3: &FooWithDrop = &FooWithDrop;
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:19:1
+   |
+LL | static A5: (FooWithoutDrop, FooWithDrop) = (FooWithoutDrop, FooWithDrop);
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:23:1
+   |
+LL | static A7: [FooWithDrop; 1] = [FooWithDrop];
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 2 previous errors
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:27:1
+   |
+LL | static A9: &[FooWithDrop] = &[FooWithDrop];
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 5 previous errors
 
