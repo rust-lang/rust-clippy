@@ -622,7 +622,7 @@ Current stable, released 2025-12-11
 * Added [`self_only_used_in_recursion`] to `pedantic`
   [#14787](https://github.com/rust-lang/rust-clippy/pull/14787)
 * Added [`redundant_iter_cloned`] to `perf`
-  [#15277](https://github.com/rust-lang/rust-clippy/pull/15277)  
+  [#15277](https://github.com/rust-lang/rust-clippy/pull/15277)
 
 ### Moves and Deprecations
 
@@ -705,7 +705,7 @@ Current stable, released 2025-10-30
 
 * [`excessive_precision`] added `const_literal_digits_threshold` option to suppress overly precise constants.
   [#15193](https://github.com/rust-lang/rust-clippy/pull/15193)
-* [`unwrap_in_result`] rewritten for better accuracy; now lints on `.unwrap()` and `.expect()` 
+* [`unwrap_in_result`] rewritten for better accuracy; now lints on `.unwrap()` and `.expect()`
   directly and no longer mixes `Result` and `Option`.
   [#15445](https://github.com/rust-lang/rust-clippy/pull/15445)
 * [`panic`] now works in `const` contexts.
@@ -722,7 +722,7 @@ Current stable, released 2025-10-30
   [#15438](https://github.com/rust-lang/rust-clippy/pull/15438)
 * [`float_equality_without_abs`] now checks `f16` and `f128` types.
   [#15054](https://github.com/rust-lang/rust-clippy/pull/15054)
-* [`doc_markdown`] expanded whitelist (`InfiniBand`, `RoCE`, `PowerPC`) and improved handling of 
+* [`doc_markdown`] expanded whitelist (`InfiniBand`, `RoCE`, `PowerPC`) and improved handling of
   identifiers like NixOS.
   [#15558](https://github.com/rust-lang/rust-clippy/pull/15558)
 * [`clone_on_ref_ptr`] now suggests fully qualified paths to avoid resolution errors.
