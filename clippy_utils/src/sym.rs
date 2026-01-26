@@ -147,6 +147,7 @@ generate! {
     exp,
     expect_err,
     expn_data,
+    exported_private_dependencies,
     extend,
     filter,
     filter_map,
