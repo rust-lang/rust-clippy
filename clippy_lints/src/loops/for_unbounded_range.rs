@@ -12,8 +12,6 @@ pub fn check<'tcx>(cx: &LateContext<'tcx>, arg: &'tcx Expr<'tcx>, span: Span) {
         && let ty = cx.typeck_results().expr_ty_adjusted(range_start)
         && (ty.is_integral() || ty.is_char())
     {
-        let until_max = format!("={ty}::MAX");
-
         span_lint_hir_and_then(
             cx,
             FOR_UNBOUNDED_RANGE,
@@ -24,7 +22,7 @@ pub fn check<'tcx>(cx: &LateContext<'tcx>, arg: &'tcx Expr<'tcx>, span: Span) {
                 diag.span_suggestion_verbose(
                     arg.span.shrink_to_hi(),
                     "for loops over unbounded ranges will wrap around, consider using `start..=MAX` instead",
-                    until_max,
+                    format!("={ty}::MAX"),
                     rustc_errors::Applicability::MachineApplicable,
                 );
             },
