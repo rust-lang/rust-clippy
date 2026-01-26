@@ -79,10 +79,6 @@ impl<'tcx> Visitor<'tcx> for DropForStaticVisitor<'_, 'tcx> {
                 walk_path(self, path);
             }
         }
-        // we already found, stop looking
-        if !self.drop_for_static_found {
-            walk_path(self, path);
-        }
     }
 
     fn maybe_tcx(&mut self) -> Self::MaybeTyCtxt {
