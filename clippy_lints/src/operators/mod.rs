@@ -1038,7 +1038,7 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                 float_equality_without_abs::check(cx, e, op.node, lhs, rhs);
                 integer_division::check(cx, e, op.node, lhs, rhs);
                 integer_division_remainder_used::check(cx, op.node, lhs, rhs, e.span);
-                cmp_owned::check(cx, op.node, lhs, rhs);
+                cmp_owned::check(cx, e, op.node, lhs, rhs);
                 float_cmp::check(cx, e, op.node, lhs, rhs);
                 modulo_one::check(cx, e, op.node, rhs);
                 modulo_arithmetic::check(
