@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint;
-use rustc_hir::def_id::DefId;
+use clippy_utils::ty::has_drop;
 use rustc_hir::intravisit::{Visitor, walk_path};
 use rustc_hir::{HirId, Item, ItemKind, Path};
 use rustc_lint::{LateContext, LateLintPass};
@@ -44,10 +44,8 @@ declare_lint_pass!(DropForStatic => [DROP_FOR_STATIC]);
 
 impl LateLintPass<'_> for DropForStatic {
     fn check_item<'a>(&mut self, cx: &LateContext<'a>, item: &'a Item<'a>) {
-        if let Some(drop_trait_def_id) = cx.tcx.lang_items().drop_trait()
-            && let ItemKind::Static(_, _, _, _) = item.kind
-        {
-            let mut visitor = DropForStaticVisitor::new(cx, drop_trait_def_id);
+        if let ItemKind::Static(_, _, _, _) = item.kind {
+            let mut visitor = DropForStaticVisitor::new(cx);
             visitor.visit_item(item);
             if visitor.drop_for_static_found {
                 span_lint(cx, DROP_FOR_STATIC, item.span, "static items with drop implementation");
@@ -58,14 +56,12 @@ impl LateLintPass<'_> for DropForStatic {
 
 struct DropForStaticVisitor<'a, 'tcx> {
     cx: &'a LateContext<'tcx>,
-    drop_trait_def_id: DefId,
     drop_for_static_found: bool,
 }
 impl<'a, 'tcx> DropForStaticVisitor<'a, 'tcx> {
-    fn new(cx: &'a LateContext<'tcx>, drop_trait_def_id: DefId) -> Self {
+    fn new(cx: &'a LateContext<'tcx>) -> Self {
         Self {
             cx,
-            drop_trait_def_id,
             drop_for_static_found: false,
         }
     }
@@ -77,9 +73,11 @@ impl<'tcx> Visitor<'tcx> for DropForStaticVisitor<'_, 'tcx> {
     fn visit_path(&mut self, path: &Path<'tcx>, _: HirId) {
         if let Some(def_id) = path.res.opt_def_id() {
             let ty = self.cx.tcx.type_of(def_id).instantiate_identity();
-            self.cx.tcx.for_each_relevant_impl(self.drop_trait_def_id, ty, |_| {
+            if has_drop(self.cx, ty) {
                 self.drop_for_static_found = true;
-            });
+            } else {
+                walk_path(self, path);
+            }
         }
         // we already found, stop looking
         if !self.drop_for_static_found {
