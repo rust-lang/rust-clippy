@@ -1,10 +1,11 @@
-use clippy_utils::diagnostics::span_lint;
+use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::ty::has_drop;
 use rustc_hir::intravisit::{Visitor, walk_path};
 use rustc_hir::{HirId, Item, ItemKind, Path};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter;
 use rustc_session::declare_lint_pass;
+use rustc_span::Span;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -44,11 +45,17 @@ declare_lint_pass!(DropForStatic => [DROP_FOR_STATIC]);
 
 impl LateLintPass<'_> for DropForStatic {
     fn check_item<'a>(&mut self, cx: &LateContext<'a>, item: &'a Item<'a>) {
-        if let ItemKind::Static(_, ident, _, _) = item.kind {
+        if let ItemKind::Static(_, ident, ty, _) = item.kind && let Some(ty_amb) = ty.try_as_ambig_ty(){
             let mut visitor = DropForStaticVisitor::new(cx);
-            visitor.visit_item(item);
-            if visitor.drop_for_static_found {
-                span_lint(cx, DROP_FOR_STATIC, ident.span, "static items with drop implementation");
+            visitor.visit_ty(ty_amb);
+            if let Some(type_with_drop_span) = visitor.type_with_drop_span {
+                span_lint_and_then(
+                    cx,
+                    DROP_FOR_STATIC,
+                    ident.span,
+                    "static items with drop implementation",
+                    |diag|{ diag.span_label(type_with_drop_span, "type with drop implementation here"); },
+                );
             }
         }
     }
@@ -56,13 +63,13 @@ impl LateLintPass<'_> for DropForStatic {
 
 struct DropForStaticVisitor<'a, 'tcx> {
     cx: &'a LateContext<'tcx>,
-    drop_for_static_found: bool,
+    type_with_drop_span: Option<Span>,
 }
 impl<'a, 'tcx> DropForStaticVisitor<'a, 'tcx> {
     fn new(cx: &'a LateContext<'tcx>) -> Self {
         Self {
             cx,
-            drop_for_static_found: false,
+            type_with_drop_span: None,
         }
     }
 }
@@ -74,7 +81,7 @@ impl<'tcx> Visitor<'tcx> for DropForStaticVisitor<'_, 'tcx> {
         if let Some(def_id) = path.res.opt_def_id() {
             let ty = self.cx.tcx.type_of(def_id).instantiate_identity();
             if has_drop(self.cx, ty) {
-                self.drop_for_static_found = true;
+                self.type_with_drop_span = Some(path.span);
             } else {
                 walk_path(self, path);
             }
