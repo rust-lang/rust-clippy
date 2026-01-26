@@ -11,7 +11,7 @@ declare_clippy_lint! {
     /// ### What it does
     /// Checks for `static` variables whose types implement `Drop`.
     ///
-    /// ### Why restrict this?
+    /// ### Why is this bad?
     /// Rust does not call `Drop::drop` for `static` variables at the end of a program's
     /// execution. If a type relies on its `Drop` implementation to release resources
     /// (like closing files, releasing locks, or deleting temporary files), these
