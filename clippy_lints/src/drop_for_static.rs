@@ -45,7 +45,9 @@ declare_lint_pass!(DropForStatic => [DROP_FOR_STATIC]);
 
 impl LateLintPass<'_> for DropForStatic {
     fn check_item<'a>(&mut self, cx: &LateContext<'a>, item: &'a Item<'a>) {
-        if let ItemKind::Static(_, ident, ty, _) = item.kind && let Some(ty_amb) = ty.try_as_ambig_ty(){
+        if let ItemKind::Static(_, ident, ty, _) = item.kind
+            && let Some(ty_amb) = ty.try_as_ambig_ty()
+        {
             let mut visitor = DropForStaticVisitor::new(cx);
             visitor.visit_ty(ty_amb);
             if let Some(type_with_drop_span) = visitor.type_with_drop_span {
@@ -54,7 +56,9 @@ impl LateLintPass<'_> for DropForStatic {
                     DROP_FOR_STATIC,
                     ident.span,
                     "static items with drop implementation",
-                    |diag|{ diag.span_label(type_with_drop_span, "type with drop implementation here"); },
+                    |diag| {
+                        diag.span_label(type_with_drop_span, "type with drop implementation here");
+                    },
                 );
             }
         }
