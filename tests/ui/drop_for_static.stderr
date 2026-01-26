@@ -2,7 +2,7 @@ error: static items with drop implementation
   --> tests/ui/drop_for_static.rs:11:8
    |
 LL | static A1: FooWithDrop = FooWithDrop;
-   |        ^^
+   |        ^^  ----------- type with drop implementation here
    |
    = note: `-D clippy::drop-for-static` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::drop_for_static)]`
@@ -11,61 +11,61 @@ error: static items with drop implementation
   --> tests/ui/drop_for_static.rs:15:8
    |
 LL | static A3: &FooWithDrop = &FooWithDrop;
-   |        ^^
+   |        ^^   ----------- type with drop implementation here
 
 error: static items with drop implementation
   --> tests/ui/drop_for_static.rs:19:8
    |
 LL | static A5: (FooWithoutDrop, FooWithDrop) = (FooWithoutDrop, FooWithDrop);
-   |        ^^
+   |        ^^                   ----------- type with drop implementation here
 
 error: static items with drop implementation
   --> tests/ui/drop_for_static.rs:23:8
    |
 LL | static A7: [FooWithDrop; 1] = [FooWithDrop];
-   |        ^^
+   |        ^^   ----------- type with drop implementation here
 
 error: static items with drop implementation
   --> tests/ui/drop_for_static.rs:27:8
    |
 LL | static A9: &[FooWithDrop] = &[FooWithDrop];
-   |        ^^
+   |        ^^    ----------- type with drop implementation here
 
 error: static items with drop implementation
   --> tests/ui/drop_for_static.rs:36:8
    |
 LL | static B1: Nested<FooWithDrop> = Nested(FooWithDrop, ());
-   |        ^^
+   |        ^^         ----------- type with drop implementation here
 
 error: static items with drop implementation
   --> tests/ui/drop_for_static.rs:40:8
    |
 LL | static B3: Nested<FooWithoutDrop, Nested<FooWithDrop>> = Nested(FooWithoutDrop, Nested(FooWithDrop, ()));
-   |        ^^
+   |        ^^                                ----------- type with drop implementation here
 
 error: static items with drop implementation
   --> tests/ui/drop_for_static.rs:44:8
    |
 LL | static B5: Nested<&FooWithDrop> = Nested(&FooWithDrop, ());
-   |        ^^
+   |        ^^          ----------- type with drop implementation here
 
 error: static items with drop implementation
   --> tests/ui/drop_for_static.rs:48:8
    |
 LL | static B7: Nested<(FooWithoutDrop, FooWithDrop)> = Nested((FooWithoutDrop, FooWithDrop), ());
-   |        ^^
+   |        ^^                          ----------- type with drop implementation here
 
 error: static items with drop implementation
   --> tests/ui/drop_for_static.rs:52:8
    |
 LL | static B9: Nested<[FooWithDrop; 1]> = Nested([FooWithDrop], ());
-   |        ^^
+   |        ^^          ----------- type with drop implementation here
 
 error: static items with drop implementation
   --> tests/ui/drop_for_static.rs:56:8
    |
 LL | static B11: Nested<&[FooWithDrop]> = Nested(&[FooWithDrop], ());
-   |        ^^^
+   |        ^^^           ----------- type with drop implementation here
 
 error: aborting due to 11 previous errors
 
