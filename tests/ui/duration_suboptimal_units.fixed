@@ -89,3 +89,8 @@ mod my_duration {
         let dur = Duration::from_secs(60);
     }
 }
+
+fn issue16457() {
+    // Methods taking something else than `u64` are not covered
+    _ = Duration::from_nanos_u128(1 << 90);
+}
