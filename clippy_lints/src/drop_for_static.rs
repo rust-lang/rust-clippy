@@ -48,6 +48,8 @@ impl LateLintPass<'_> for DropForStatic {
     fn check_item<'a>(&mut self, cx: &LateContext<'a>, item: &'a Item<'a>) {
         if let ItemKind::Static(_, ident, ty, _) = item.kind
             && let Some(ty_amb) = ty.try_as_ambig_ty()
+            && let ty = cx.tcx.type_of(item.owner_id.def_id).instantiate_identity()
+            && ty.needs_drop(cx.tcx, cx.typing_env())
         {
             let mut visitor = DropForStaticVisitor::new(cx);
             visitor.visit_ty(ty_amb);
@@ -63,6 +65,23 @@ impl LateLintPass<'_> for DropForStatic {
                 );
             }
         }
+        // if let ItemKind::Static(_, ident, ty, _) = item.kind
+        //     && let Some(ty_amb) = ty.try_as_ambig_ty()
+        // {
+        //     let mut visitor = DropForStaticVisitor::new(cx);
+        //     visitor.visit_ty(ty_amb);
+        //     if let Some(type_with_drop_span) = visitor.type_with_drop_span {
+        //         span_lint_and_then(
+        //             cx,
+        //             DROP_FOR_STATIC,
+        //             ident.span,
+        //             "static items with drop implementation",
+        //             |diag| {
+        //                 diag.span_label(type_with_drop_span, "type with drop implementation
+        // here");             },
+        //         );
+        //     }
+        // }
     }
 }
 
@@ -84,7 +103,10 @@ impl<'tcx> Visitor<'tcx> for DropForStaticVisitor<'_, 'tcx> {
 
     fn visit_path(&mut self, path: &Path<'tcx>, _: HirId) {
         if let Res::Def(def_kind, def_id) = path.res
-            && matches!(def_kind, DefKind::Struct | DefKind::Union | DefKind::Enum)
+            && matches!(
+                def_kind,
+                DefKind::Struct | DefKind::Union | DefKind::Enum | DefKind::TyAlias
+            )
         {
             let ty = self.cx.tcx.type_of(def_id).instantiate_identity();
             if has_drop(self.cx, ty) {
