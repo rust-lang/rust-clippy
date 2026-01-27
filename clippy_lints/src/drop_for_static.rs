@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::ty::has_drop;
 use rustc_hir::intravisit::{Visitor, walk_path};
-use rustc_hir::{HirId, Item, ItemKind, Path};
+use rustc_hir::{HirId, Item, ItemKind, Path, def::{Res, DefKind}};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter;
 use rustc_session::declare_lint_pass;
@@ -82,7 +82,9 @@ impl<'tcx> Visitor<'tcx> for DropForStaticVisitor<'_, 'tcx> {
     type NestedFilter = nested_filter::All;
 
     fn visit_path(&mut self, path: &Path<'tcx>, _: HirId) {
-        if let Some(def_id) = path.res.opt_def_id() {
+        if let Res::Def(def_kind, def_id) = path.res
+            &&  matches!(def_kind, DefKind::Struct | DefKind::Union | DefKind::Enum)
+        {
             let ty = self.cx.tcx.type_of(def_id).instantiate_identity();
             if has_drop(self.cx, ty) {
                 self.type_with_drop_span = Some(path.span);
