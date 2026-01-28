@@ -21,25 +21,25 @@ static A5: [FooWithDrop; 1] = [FooWithDrop];
 static A6: [FooWithoutDrop; 1] = [FooWithoutDrop];
 
 // ----------------------
-// nested types scenarios
+// generic type scenarios
 // ----------------------
 
-struct Nested<T1, T2 = ()>(T1, T2);
-static B1: Nested<FooWithDrop> = Nested(FooWithDrop, ());
+struct Generic<T1, T2 = ()>(T1, T2);
+static B1: Generic<FooWithDrop> = Generic(FooWithDrop, ());
 //~^ drop_for_static
-static B2: Nested<FooWithoutDrop> = Nested(FooWithoutDrop, ());
+static B2: Generic<FooWithoutDrop> = Generic(FooWithoutDrop, ());
 
-static B3: Nested<FooWithoutDrop, Nested<FooWithDrop>> = Nested(FooWithoutDrop, Nested(FooWithDrop, ()));
+static B3: Generic<FooWithoutDrop, Generic<FooWithDrop>> = Generic(FooWithoutDrop, Generic(FooWithDrop, ()));
 //~^ drop_for_static
-static B4: Nested<FooWithoutDrop, Nested<FooWithoutDrop>> = Nested(FooWithoutDrop, Nested(FooWithoutDrop, ()));
+static B4: Generic<FooWithoutDrop, Generic<FooWithoutDrop>> = Generic(FooWithoutDrop, Generic(FooWithoutDrop, ()));
 
-static B5: Nested<(FooWithoutDrop, FooWithDrop)> = Nested((FooWithoutDrop, FooWithDrop), ());
+static B5: Generic<(FooWithoutDrop, FooWithDrop)> = Generic((FooWithoutDrop, FooWithDrop), ());
 //~^ drop_for_static
-static B6: Nested<(FooWithoutDrop, FooWithoutDrop)> = Nested((FooWithoutDrop, FooWithoutDrop), ());
+static B6: Generic<(FooWithoutDrop, FooWithoutDrop)> = Generic((FooWithoutDrop, FooWithoutDrop), ());
 
-static B7: Nested<[FooWithDrop; 1]> = Nested([FooWithDrop], ());
+static B7: Generic<[FooWithDrop; 1]> = Generic([FooWithDrop], ());
 //~^ drop_for_static
-static B8: Nested<[FooWithoutDrop; 1]> = Nested([FooWithoutDrop], ());
+static B8: Generic<[FooWithoutDrop; 1]> = Generic([FooWithoutDrop], ());
 
 // ----------------------
 // type alias
@@ -61,23 +61,86 @@ static C5: [BarWithDrop; 1] = [FooWithDrop];
 static C6: [BarWithoutDrop; 1] = [FooWithoutDrop];
 
 // ----------------------
-// nested type alias
+// Generic type with alias
 // ----------------------
 
-static D1: Nested<BarWithDrop> = Nested(FooWithDrop, ());
+static D1: Generic<BarWithDrop> = Generic(FooWithDrop, ());
 //~^ drop_for_static
-static D2: Nested<BarWithoutDrop> = Nested(FooWithoutDrop, ());
+static D2: Generic<BarWithoutDrop> = Generic(FooWithoutDrop, ());
 
-static D3: Nested<BarWithoutDrop, Nested<BarWithDrop>> = Nested(FooWithoutDrop, Nested(FooWithDrop, ()));
+static D3: Generic<BarWithoutDrop, Generic<BarWithDrop>> = Generic(FooWithoutDrop, Generic(FooWithDrop, ()));
 //~^ drop_for_static
-static D4: Nested<BarWithoutDrop, Nested<BarWithoutDrop>> = Nested(FooWithoutDrop, Nested(FooWithoutDrop, ()));
+static D4: Generic<BarWithoutDrop, Generic<BarWithoutDrop>> = Generic(FooWithoutDrop, Generic(FooWithoutDrop, ()));
 
-static D5: Nested<(BarWithoutDrop, BarWithDrop)> = Nested((FooWithoutDrop, FooWithDrop), ());
+static D5: Generic<(BarWithoutDrop, BarWithDrop)> = Generic((FooWithoutDrop, FooWithDrop), ());
 //~^ drop_for_static
-static D6: Nested<(BarWithoutDrop, BarWithoutDrop)> = Nested((FooWithoutDrop, FooWithoutDrop), ());
+static D6: Generic<(BarWithoutDrop, BarWithoutDrop)> = Generic((FooWithoutDrop, FooWithoutDrop), ());
 
-static D7: Nested<[BarWithDrop; 1]> = Nested([FooWithDrop], ());
+static D7: Generic<[BarWithDrop; 1]> = Generic([FooWithDrop], ());
 //~^ drop_for_static
-static D8: Nested<[BarWithoutDrop; 1]> = Nested([FooWithoutDrop], ());
+static D8: Generic<[BarWithoutDrop; 1]> = Generic([FooWithoutDrop], ());
+
+// ----------------------
+// associated type
+// ----------------------
+
+trait FooTrait {
+    type FooAssoc;
+}
+
+struct FooImplWithDrop;
+impl FooTrait for FooImplWithDrop {
+    type FooAssoc = FooWithDrop;
+}
+struct FooImplWithoutDrop;
+impl FooTrait for FooImplWithoutDrop {
+    type FooAssoc = FooWithoutDrop;
+}
+
+static F1: <FooImplWithDrop as FooTrait>::FooAssoc = FooWithDrop;
+//~^ drop_for_static
+static F2: <FooImplWithoutDrop as FooTrait>::FooAssoc = FooWithoutDrop;
+
+static F3: (
+    //~^ drop_for_static
+    <FooImplWithoutDrop as FooTrait>::FooAssoc,
+    <FooImplWithDrop as FooTrait>::FooAssoc,
+) = (FooWithoutDrop, FooWithDrop);
+static F4: (
+    <FooImplWithoutDrop as FooTrait>::FooAssoc,
+    <FooImplWithoutDrop as FooTrait>::FooAssoc,
+) = (FooWithoutDrop, FooWithoutDrop);
+
+static F5: [<FooImplWithDrop as FooTrait>::FooAssoc; 1] = [FooWithDrop];
+//~^ drop_for_static
+static F6: [<FooImplWithoutDrop as FooTrait>::FooAssoc; 1] = [FooWithoutDrop];
+
+// ----------------------
+// generic with associated type scenarios
+// ----------------------
+
+static E1: Generic<<FooImplWithDrop as FooTrait>::FooAssoc> = Generic(FooWithDrop, ());
+//~^ drop_for_static
+static E2: Generic<<FooImplWithoutDrop as FooTrait>::FooAssoc> = Generic(FooWithoutDrop, ());
+
+static E3: Generic<<FooImplWithoutDrop as FooTrait>::FooAssoc, Generic<<FooImplWithDrop as FooTrait>::FooAssoc>> =
+    //~^ drop_for_static
+    Generic(FooWithoutDrop, Generic(FooWithDrop, ()));
+static E4: Generic<<FooImplWithoutDrop as FooTrait>::FooAssoc, Generic<FooWithoutDrop>> =
+    Generic(FooWithoutDrop, Generic(FooWithoutDrop, ()));
+
+static E5: Generic<(
+    //~^ drop_for_static
+    <FooImplWithoutDrop as FooTrait>::FooAssoc,
+    <FooImplWithDrop as FooTrait>::FooAssoc,
+)> = Generic((FooWithoutDrop, FooWithDrop), ());
+static E6: Generic<(
+    <FooImplWithoutDrop as FooTrait>::FooAssoc,
+    <FooImplWithoutDrop as FooTrait>::FooAssoc,
+)> = Generic((FooWithoutDrop, FooWithoutDrop), ());
+
+static E7: Generic<[<FooImplWithDrop as FooTrait>::FooAssoc; 1]> = Generic([FooWithDrop], ());
+//~^ drop_for_static
+static E8: Generic<[<FooImplWithoutDrop as FooTrait>::FooAssoc; 1]> = Generic([FooWithoutDrop], ());
 
 fn main() {}
