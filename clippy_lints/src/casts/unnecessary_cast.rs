@@ -1,7 +1,8 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::numeric_literal::NumericLiteral;
 use clippy_utils::res::MaybeResPath as _;
-use clippy_utils::source::{SpanRangeExt, snippet_with_applicability};
+use clippy_utils::source::{SpanRangeExt, snippet, snippet_with_applicability};
+use clippy_utils::sugg::has_enclosing_paren;
 use clippy_utils::visitors::{Visitable, for_each_expr_without_closures};
 use clippy_utils::{get_parent_expr, is_hir_ty_cfg_dependant, is_ty_alias};
 use rustc_ast::{LitFloatType, LitIntType, LitKind};
@@ -50,6 +51,14 @@ pub(super) fn check<'tcx>(
             _ => {},
         }
 
+        // Preserve parentheses around `expr` in case of cascaded casts
+        let surrounding =
+            if matches!(cast_expr.kind, ExprKind::Cast(..)) && has_enclosing_paren(snippet(cx, expr.span, "")) {
+                MaybeParenOrBlock::Paren
+            } else {
+                MaybeParenOrBlock::Nothing
+            };
+
         emit_lint(
             cx,
             expr,
@@ -57,7 +66,7 @@ pub(super) fn check<'tcx>(
                 "casting raw pointers to the same type and constness is unnecessary (`{cast_from}` -> `{cast_to}`)"
             ),
             &cast_str,
-            MaybeParenOrBlock::Nothing,
+            surrounding,
             app.max(Applicability::MaybeIncorrect),
         );
     }
