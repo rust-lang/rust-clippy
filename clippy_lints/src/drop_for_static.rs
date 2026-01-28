@@ -65,23 +65,6 @@ impl LateLintPass<'_> for DropForStatic {
                 );
             }
         }
-        // if let ItemKind::Static(_, ident, ty, _) = item.kind
-        //     && let Some(ty_amb) = ty.try_as_ambig_ty()
-        // {
-        //     let mut visitor = DropForStaticVisitor::new(cx);
-        //     visitor.visit_ty(ty_amb);
-        //     if let Some(type_with_drop_span) = visitor.type_with_drop_span {
-        //         span_lint_and_then(
-        //             cx,
-        //             DROP_FOR_STATIC,
-        //             ident.span,
-        //             "static items with drop implementation",
-        //             |diag| {
-        //                 diag.span_label(type_with_drop_span, "type with drop implementation
-        // here");             },
-        //         );
-        //     }
-        // }
     }
 }
 
@@ -102,12 +85,7 @@ impl<'tcx> Visitor<'tcx> for DropForStaticVisitor<'_, 'tcx> {
     type NestedFilter = nested_filter::All;
 
     fn visit_path(&mut self, path: &Path<'tcx>, _: HirId) {
-        if let Res::Def(def_kind, def_id) = path.res
-            && matches!(
-                def_kind,
-                DefKind::Struct | DefKind::Union | DefKind::Enum | DefKind::TyAlias
-            )
-        {
+        if let Res::Def(DefKind::Struct | DefKind::Union | DefKind::Enum | DefKind::TyAlias, def_id) = path.res {
             let ty = self.cx.tcx.type_of(def_id).instantiate_identity();
             if has_drop(self.cx, ty) {
                 self.type_with_drop_span = Some(path.span);
