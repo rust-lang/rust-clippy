@@ -1,12 +1,7 @@
-use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::ty::has_drop;
-use rustc_hir::def::{DefKind, Res};
-use rustc_hir::intravisit::{Visitor, walk_path};
-use rustc_hir::{HirId, Item, ItemKind, Path};
+use clippy_utils::diagnostics::span_lint;
+use rustc_hir::{Item, ItemKind};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::hir::nested_filter;
 use rustc_session::declare_lint_pass;
-use rustc_span::Span;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -46,56 +41,11 @@ declare_lint_pass!(DropForStatic => [DROP_FOR_STATIC]);
 
 impl LateLintPass<'_> for DropForStatic {
     fn check_item<'a>(&mut self, cx: &LateContext<'a>, item: &'a Item<'a>) {
-        if let ItemKind::Static(_, ident, ty, _) = item.kind
-            && let Some(ty_amb) = ty.try_as_ambig_ty()
+        if let ItemKind::Static(_, ident, _, _) = item.kind
             && let ty = cx.tcx.type_of(item.owner_id.def_id).instantiate_identity()
             && ty.needs_drop(cx.tcx, cx.typing_env())
         {
-            let mut visitor = DropForStaticVisitor::new(cx);
-            visitor.visit_ty(ty_amb);
-            if let Some(type_with_drop_span) = visitor.type_with_drop_span {
-                span_lint_and_then(
-                    cx,
-                    DROP_FOR_STATIC,
-                    ident.span,
-                    "static items with drop implementation",
-                    |diag| {
-                        diag.span_label(type_with_drop_span, "type with drop implementation here");
-                    },
-                );
-            }
+            span_lint(cx, DROP_FOR_STATIC, ident.span, "static items with drop implementation");
         }
-    }
-}
-
-struct DropForStaticVisitor<'a, 'tcx> {
-    cx: &'a LateContext<'tcx>,
-    type_with_drop_span: Option<Span>,
-}
-impl<'a, 'tcx> DropForStaticVisitor<'a, 'tcx> {
-    fn new(cx: &'a LateContext<'tcx>) -> Self {
-        Self {
-            cx,
-            type_with_drop_span: None,
-        }
-    }
-}
-
-impl<'tcx> Visitor<'tcx> for DropForStaticVisitor<'_, 'tcx> {
-    type NestedFilter = nested_filter::All;
-
-    fn visit_path(&mut self, path: &Path<'tcx>, _: HirId) {
-        if let Res::Def(DefKind::Struct | DefKind::Union | DefKind::Enum | DefKind::TyAlias, def_id) = path.res {
-            let ty = self.cx.tcx.type_of(def_id).instantiate_identity();
-            if has_drop(self.cx, ty) {
-                self.type_with_drop_span = Some(path.span);
-            } else {
-                walk_path(self, path);
-            }
-        }
-    }
-
-    fn maybe_tcx(&mut self) -> Self::MaybeTyCtxt {
-        self.cx.tcx
     }
 }
