@@ -246,7 +246,7 @@ A list of crate names to allow duplicates of
 
 ## `allowed-idents-below-min-chars`
 Allowed names below the minimum allowed characters. The value `".."` can be used as part of
-the list to indicate, that the configured values should be appended to the default
+the list to indicate that the configured values should be appended to the default
 configuration of Clippy. By default, any configuration will replace the default value.
 
 **Default Value:** `["i", "j", "x", "y", "z", "w", "n"]`
@@ -570,7 +570,7 @@ The list of disallowed types, written as fully qualified paths.
 
 ## `doc-valid-idents`
 The list of words this lint should not consider as identifiers needing ticks. The value
-`".."` can be used as part of the list to indicate, that the configured values should be appended to the
+`".."` can be used as part of the list to indicate that the configured values should be appended to the
 default configuration of Clippy. By default, any configuration will replace the default value. For example:
 * `doc-valid-idents = ["ClipPy"]` would replace the default list with `["ClipPy"]`.
 * `doc-valid-idents = ["ClipPy", ".."]` would append `ClipPy` to the default list.
