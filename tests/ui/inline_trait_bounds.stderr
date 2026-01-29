@@ -1,0 +1,20 @@
+error: inline trait bounds
+  --> tests/ui/inline_trait_bounds.rs:4:15
+   |
+LL | fn inline_foo<T: Clone>() {}
+   |               ^
+   |
+   = help: consider a `where` bound instead
+   = note: `-D clippy::inline-trait-bounds` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::inline_trait_bounds)]`
+
+error: inline trait bounds
+  --> tests/ui/inline_trait_bounds.rs:14:18
+   |
+LL | struct InlineFoo<T: Clone>(T);
+   |                  ^
+   |
+   = help: consider a `where` bound instead
+
+error: aborting due to 2 previous errors
+
