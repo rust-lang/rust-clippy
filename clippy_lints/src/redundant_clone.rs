@@ -367,7 +367,7 @@ struct CloneUsage {
     clone_consumed_or_mutated: bool,
 }
 
-fn visit_clone_usage(source: mir::Local, clone: mir::Local, mir: &mir::Body<'_>, bb: mir::BasicBlock) -> CloneUsage {
+fn visit_clone_usage(cloned: mir::Local, clone: mir::Local, mir: &mir::Body<'_>, bb: mir::BasicBlock) -> CloneUsage {
     if let Some((
         LocalUsage {
             local_use_locs: cloned_use_locs,
@@ -378,7 +378,7 @@ fn visit_clone_usage(source: mir::Local, clone: mir::Local, mir: &mir::Body<'_>,
             local_consume_or_mutate_locs: clone_consume_or_mutate_locs,
         },
     )) = visit_local_usage(
-        &[source, clone],
+        &[cloned, clone],
         mir,
         mir::Location {
             block: bb,
