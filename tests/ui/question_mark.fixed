@@ -1,5 +1,5 @@
 #![feature(try_blocks)]
-#![allow(clippy::unnecessary_wraps, clippy::no_effect)]
+#![allow(clippy::unnecessary_wraps, clippy::no_effect, clippy::let_unit_value)]
 
 use std::sync::MutexGuard;
 
@@ -498,6 +498,94 @@ mod issue14894 {
         drop(result);
 
         Ok(())
+    }
+}
+
+mod issue13626 {
+    fn basic(x: Option<u32>) -> Option<u32> {
+        let x = x?;
+        //~^ question_mark
+        dbg!(x);
+        Some(x * 2)
+    }
+
+    fn mut_ref(mut x: Option<u32>) -> Option<u32> {
+        let x = x.as_mut()?;
+        //~^ question_mark
+        dbg!(*x);
+        Some(*x * 2)
+    }
+
+    #[allow(clippy::needless_return)]
+    fn explicit_return(x: Option<u32>) -> Option<u32> {
+        let x = x?;
+        //~^ question_mark
+        dbg!(x);
+        return Some(x * 2);
+    }
+
+    #[deny(clippy::question_mark_used)]
+    fn question_mark_forbidden(x: Option<u32>) -> Option<u32> {
+        if let Some(x) = x {
+            dbg!(x);
+            Some(x * 2)
+        } else {
+            None
+        }
+    }
+
+    #[clippy::msrv = "1.12"]
+    fn msrv_1_12(x: Option<u32>) -> Option<u32> {
+        if let Some(x) = x {
+            dbg!(x);
+            Some(x * 2)
+        } else {
+            None
+        }
+    }
+
+    #[clippy::msrv = "1.13"]
+    fn msrv_1_13(x: Option<u32>) -> Option<u32> {
+        let x = x?;
+        //~^ question_mark
+        dbg!(x);
+        Some(x * 2)
+    }
+
+    const fn no_lint_in_const(x: Option<u32>) -> Option<u32> {
+        if let Some(x) = x {
+            let x = x + 2;
+            Some(x * 2)
+        } else {
+            None
+        }
+    }
+
+    fn with_macro() -> Option<()> {
+        macro_rules! m {
+            () => {
+                Some(())
+            };
+        };
+
+        let x = m!()?;
+        //~^ question_mark
+        dbg!(x);
+        Some(x)
+    }
+
+    #[rustfmt::skip]
+    mod bad_formatting{
+        fn t1(x: Option<u32>) -> Option<u32> {
+            let x = x?; dbg!(x); Some(x * 2)
+            //~^ question_mark
+        }
+        fn t2(x: Option<u32>) -> Option<u32> {
+            let x = x?;
+            //~^^ question_mark
+            dbg!(x);
+            Some(x * 2)
+        }
     }
 }
 
