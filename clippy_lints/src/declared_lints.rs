@@ -538,6 +538,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::multiple_unsafe_ops_per_block::MULTIPLE_UNSAFE_OPS_PER_BLOCK_INFO,
     crate::mut_key::MUTABLE_KEY_TYPE_INFO,
     crate::mut_mut::MUT_MUT_INFO,
+    crate::mutable_borrow_of_copy::MUTABLE_BORROW_OF_COPY_INFO,
     crate::mutable_debug_assertion::DEBUG_ASSERT_WITH_MUT_CALL_INFO,
     crate::mutex_atomic::MUTEX_ATOMIC_INFO,
     crate::mutex_atomic::MUTEX_INTEGER_INFO,
