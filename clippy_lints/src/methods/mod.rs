@@ -4965,6 +4965,16 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                 io_other_error::check(cx, expr, func, args, self.msrv);
                 swap_with_temporary::check(cx, expr, func, args);
                 ip_constant::check(cx, expr, func, args);
+                unwrap_expect_used::check_call(
+                    cx,
+                    expr,
+                    func,
+                    args,
+                    self.allow_unwrap_in_tests,
+                    self.allow_expect_in_tests,
+                    self.allow_unwrap_in_consts,
+                    self.allow_expect_in_consts,
+                );
             },
             ExprKind::MethodCall(..) => {
                 self.check_methods(cx, expr);

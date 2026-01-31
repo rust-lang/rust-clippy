@@ -3,6 +3,7 @@ use clippy_utils::res::MaybeDef;
 use clippy_utils::ty::is_never_like;
 use clippy_utils::{is_in_test, is_inside_always_const_context, is_lint_allowed};
 use rustc_hir::Expr;
+use rustc_hir::def::DefKind;
 use rustc_lint::{LateContext, Lint};
 use rustc_middle::ty;
 use rustc_span::sym;
@@ -86,4 +87,71 @@ pub(super) fn check(
             }
         },
     );
+}
+
+#[expect(clippy::too_many_arguments, clippy::fn_params_excessive_bools)]
+pub(super) fn check_call(
+    cx: &LateContext<'_>,
+    expr: &Expr<'_>,
+    func: &Expr<'_>,
+    args: &[Expr<'_>],
+    allow_unwrap_in_consts: bool,
+    allow_unwrap_in_tests: bool,
+    allow_expect_in_consts: bool,
+    allow_expect_in_tests: bool,
+) {
+    let Some(recv) = args.first() else {
+        return;
+    };
+    let Some((DefKind::AssocFn, def_id)) = cx.typeck_results().type_dependent_def(func.hir_id) else {
+        return;
+    };
+
+    match cx.tcx.item_name(def_id) {
+        sym::unwrap => {
+            check(
+                cx,
+                expr,
+                recv,
+                false,
+                allow_unwrap_in_consts,
+                allow_unwrap_in_tests,
+                Variant::Unwrap,
+            );
+        },
+        sym::expect => {
+            check(
+                cx,
+                expr,
+                recv,
+                false,
+                allow_expect_in_consts,
+                allow_expect_in_tests,
+                Variant::Expect,
+            );
+        },
+        clippy_utils::sym::unwrap_err => {
+            check(
+                cx,
+                expr,
+                recv,
+                true,
+                allow_unwrap_in_consts,
+                allow_unwrap_in_tests,
+                Variant::Unwrap,
+            );
+        },
+        clippy_utils::sym::expect_err => {
+            check(
+                cx,
+                expr,
+                recv,
+                true,
+                allow_expect_in_consts,
+                allow_expect_in_tests,
+                Variant::Expect,
+            );
+        },
+        _ => (),
+    }
 }
