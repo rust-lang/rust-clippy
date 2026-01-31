@@ -6433,6 +6433,7 @@ Released 2018-09-13
 [`derive_ord_xor_partial_ord`]: https://rust-lang.github.io/rust-clippy/master/index.html#derive_ord_xor_partial_ord
 [`derive_partial_eq_without_eq`]: https://rust-lang.github.io/rust-clippy/master/index.html#derive_partial_eq_without_eq
 [`derived_hash_with_manual_eq`]: https://rust-lang.github.io/rust-clippy/master/index.html#derived_hash_with_manual_eq
+[`disallowed_fields`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_fields
 [`disallowed_macros`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_macros
 [`disallowed_method`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_method
 [`disallowed_methods`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_methods
@@ -7252,6 +7253,7 @@ Released 2018-09-13
 [`check-private-items`]: https://doc.rust-lang.org/clippy/lint_configuration.html#check-private-items
 [`cognitive-complexity-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#cognitive-complexity-threshold
 [`const-literal-digits-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#const-literal-digits-threshold
+[`disallowed-fields`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-fields
 [`disallowed-macros`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-macros
 [`disallowed-methods`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-methods
 [`disallowed-names`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-names
