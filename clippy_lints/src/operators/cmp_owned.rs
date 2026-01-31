@@ -10,10 +10,10 @@ use rustc_span::symbol::sym;
 
 use super::CMP_OWNED;
 
-pub(super) fn check(cx: &LateContext<'_>, op: BinOpKind, lhs: &Expr<'_>, rhs: &Expr<'_>) {
+pub(super) fn check(cx: &LateContext<'_>, e: &Expr<'_>, op: BinOpKind, lhs: &Expr<'_>, rhs: &Expr<'_>) {
     if op.is_comparison() {
-        check_op(cx, lhs, rhs, true);
-        check_op(cx, rhs, lhs, false);
+        check_op(cx, e, lhs, rhs, true);
+        check_op(cx, e, rhs, lhs, false);
     }
 }
 
@@ -35,7 +35,11 @@ fn symmetric_partial_eq<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>, other: Ty<'t
     })
 }
 
-fn check_op(cx: &LateContext<'_>, expr: &Expr<'_>, other: &Expr<'_>, left: bool) {
+fn check_op(cx: &LateContext<'_>, outer: &Expr<'_>, expr: &Expr<'_>, other: &Expr<'_>, left: bool) {
+    if !outer.span.eq_ctxt(expr.span) {
+        return;
+    }
+
     let typeck = cx.typeck_results();
     let (arg, arg_span) = match expr.kind {
         ExprKind::MethodCall(_, arg, [], _)
