@@ -88,6 +88,13 @@ Now you can run Clippy by invoking the following command:
 cargo clippy
 ```
 
+You can also test or build your project with Clippy lints as add-on with this command:
+
+```terminal
+cargo clippy build
+cargo clippy test
+```
+
 #### Automatically applying Clippy suggestions
 
 Clippy can automatically apply some lint suggestions, just like the compiler. Note that `--fix` implies
