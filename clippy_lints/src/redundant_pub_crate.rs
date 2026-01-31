@@ -62,12 +62,7 @@ impl<'tcx> LateLintPass<'tcx> for RedundantPubCrate {
                 span,
                 format!("pub(crate) {descr} inside private module"),
                 |diag| {
-                    diag.span_suggestion(
-                        item.vis_span,
-                        "consider using",
-                        "pub".to_string(),
-                        Applicability::MachineApplicable,
-                    );
+                    diag.span_suggestion(item.vis_span, "consider using", "pub", Applicability::MachineApplicable);
                 },
             );
         }
