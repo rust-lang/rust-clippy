@@ -7103,6 +7103,7 @@ Released 2018-09-13
 [`uninit_vec`]: https://rust-lang.github.io/rust-clippy/master/index.html#uninit_vec
 [`uninlined_format_args`]: https://rust-lang.github.io/rust-clippy/master/index.html#uninlined_format_args
 [`unit_arg`]: https://rust-lang.github.io/rust-clippy/master/index.html#unit_arg
+[`unit_as_impl_trait`]: https://rust-lang.github.io/rust-clippy/master/index.html#unit_as_impl_trait
 [`unit_cmp`]: https://rust-lang.github.io/rust-clippy/master/index.html#unit_cmp
 [`unit_hash`]: https://rust-lang.github.io/rust-clippy/master/index.html#unit_hash
 [`unit_return_expecting_ord`]: https://rust-lang.github.io/rust-clippy/master/index.html#unit_return_expecting_ord
