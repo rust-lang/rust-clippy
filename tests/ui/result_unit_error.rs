@@ -11,10 +11,10 @@ fn private_unit_errors() -> Result<String, ()> {
 }
 
 pub trait HasUnitError {
-    fn get_that_error(&self) -> Result<bool, ()>;
+    fn that_error(&self) -> Result<bool, ()>;
     //~^ result_unit_err
 
-    fn get_this_one_too(&self) -> Result<bool, ()> {
+    fn this_one_too(&self) -> Result<bool, ()> {
         //~^ result_unit_err
 
         Err(())
@@ -22,7 +22,7 @@ pub trait HasUnitError {
 }
 
 impl HasUnitError for () {
-    fn get_that_error(&self) -> Result<bool, ()> {
+    fn that_error(&self) -> Result<bool, ()> {
         Ok(true)
     }
 }
