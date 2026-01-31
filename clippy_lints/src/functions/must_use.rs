@@ -173,12 +173,12 @@ fn check_needless_must_use(
                 "remove `must_use`",
             );
         }
-    } else if reason.is_none() && is_must_use_ty(cx, return_ty(cx, item_id)) {
+    } else if reason.is_none() && is_must_use_ty(cx, return_ty(cx, item_id), true) {
         // Ignore async functions unless Future::Output type is a must_use type
         if sig.header.is_async() {
             let infcx = cx.tcx.infer_ctxt().build(cx.typing_mode());
             if let Some(future_ty) = infcx.err_ctxt().get_impl_future_output_ty(return_ty(cx, item_id))
-                && !is_must_use_ty(cx, future_ty)
+                && !is_must_use_ty(cx, future_ty, true)
             {
                 return;
             }
@@ -209,7 +209,9 @@ fn check_must_use_candidate<'tcx>(
         || item_span.in_external_macro(cx.sess().source_map())
         || returns_unit(decl)
         || !cx.effective_visibilities.is_exported(item_id.def_id)
-        || is_must_use_ty(cx, return_ty(cx, item_id))
+        // The `simplify_uninhabited` argument can be later changed to `true` when
+        // rustc's `must_use` lint handles `Result<T, !>` and `ControlFlow<!, T>` as `T`.
+        || is_must_use_ty(cx, return_ty(cx, item_id), false)
         || item_span.from_expansion()
     {
         return;

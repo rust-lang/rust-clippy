@@ -305,17 +305,31 @@ pub fn has_drop<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
     }
 }
 
-// Returns whether the type has #[must_use] attribute
-pub fn is_must_use_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
+// Returns whether the `ty` has `#[must_use]` attribute. If `simplify_uninhabited` is set and
+// `ty` is a `Result`/`ControlFlow` whose `Err`/`Break` payload is an uninhabited type,
+// the `Ok`/`Continue` payload type will be used instead. See <https://github.com/rust-lang/rust/pull/148214>.
+pub fn is_must_use_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>, simplify_uninhabited: bool) -> bool {
     match ty.kind() {
-        ty::Adt(adt, _) => find_attr!(cx.tcx.get_all_attrs(adt.did()), AttributeKind::MustUse { .. }),
+        ty::Adt(adt, args) => match cx.tcx.get_diagnostic_name(adt.did()) {
+            Some(sym::Result)
+                if simplify_uninhabited && args.type_at(1).is_privately_uninhabited(cx.tcx, cx.typing_env()) =>
+            {
+                is_must_use_ty(cx, args.type_at(0), simplify_uninhabited)
+            },
+            Some(sym::ControlFlow)
+                if simplify_uninhabited && args.type_at(0).is_privately_uninhabited(cx.tcx, cx.typing_env()) =>
+            {
+                is_must_use_ty(cx, args.type_at(1), simplify_uninhabited)
+            },
+            _ => find_attr!(cx.tcx.get_all_attrs(adt.did()), AttributeKind::MustUse { .. }),
+        },
         ty::Foreign(did) => find_attr!(cx.tcx.get_all_attrs(*did), AttributeKind::MustUse { .. }),
         ty::Slice(ty) | ty::Array(ty, _) | ty::RawPtr(ty, _) | ty::Ref(_, ty, _) => {
             // for the Array case we don't need to care for the len == 0 case
             // because we don't want to lint functions returning empty arrays
-            is_must_use_ty(cx, *ty)
+            is_must_use_ty(cx, *ty, simplify_uninhabited)
         },
-        ty::Tuple(args) => args.iter().any(|ty| is_must_use_ty(cx, ty)),
+        ty::Tuple(args) => args.iter().any(|ty| is_must_use_ty(cx, ty, simplify_uninhabited)),
         ty::Alias(ty::Opaque, AliasTy { def_id, .. }) => {
             for (predicate, _) in cx.tcx.explicit_item_self_bounds(def_id).skip_binder() {
                 if let ty::ClauseKind::Trait(trait_predicate) = predicate.kind().skip_binder()
