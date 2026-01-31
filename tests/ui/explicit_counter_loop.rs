@@ -13,11 +13,8 @@ fn main() {
     let mut _index = 1;
     _index = 0;
     for _v in &vec {
-        //~^ explicit_counter_loop
-
         _index += 1
     }
-
     let mut _index = 0;
     for _v in &mut vec {
         //~^ explicit_counter_loop
