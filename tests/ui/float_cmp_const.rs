@@ -1,4 +1,6 @@
 //@no-rustfix: suggestions have an error margin placeholder
+#![feature(f128)]
+#![feature(f16)]
 #![warn(clippy::float_cmp_const)]
 #![allow(clippy::float_cmp)]
 #![allow(unused, clippy::no_effect, clippy::unnecessary_operation)]
@@ -66,5 +68,15 @@ fn main() {
 
     // has errors
     NON_ZERO_ARRAY == NON_ZERO_ARRAY2;
+    //~^ float_cmp_const
+
+    const F16_NON_ZERO_ARRAY: [f16; 3] = [0.0, 0.1, 0.2];
+    const F16_NON_ZERO_ARRAY2: [f16; 3] = [0.2, 0.1, 0.0];
+    F16_NON_ZERO_ARRAY == F16_NON_ZERO_ARRAY2;
+    //~^ float_cmp_const
+
+    const F128_NON_ZERO_ARRAY: [f128; 3] = [0.0, 0.1, 0.2];
+    const F128_NON_ZERO_ARRAY2: [f128; 3] = [0.2, 0.1, 0.0];
+    F128_NON_ZERO_ARRAY == F128_NON_ZERO_ARRAY2;
     //~^ float_cmp_const
 }
