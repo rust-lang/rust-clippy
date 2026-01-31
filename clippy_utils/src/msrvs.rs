@@ -91,8 +91,16 @@ msrv_aliases! {
 /// during the early lint passes
 static SEEN_MSRV_ATTR: AtomicBool = AtomicBool::new(false);
 
-/// Tracks the current MSRV from `clippy.toml`, `Cargo.toml` or set via `#[clippy::msrv]` in late
-/// lint passes, use [`MsrvStack`] for early passes
+/// Tracks the current MSRV from `clippy.toml`, `Cargo.toml` and `#[clippy::msrv]` in late lint
+/// passes.
+///
+/// You can check the current MSRV with [`Self::current()`], and can check if it is equal or above
+/// a certain version with [`Self::meets()`].
+///
+/// If you are writing an early lint pass, use [`MsrvStack`] instead.
+///
+/// For more information, [see the development guide on
+/// MSRVs](https://doc.rust-lang.org/nightly/clippy/development/adding_lints.html#specifying-the-lints-minimum-supported-rust-version-msrv).
 #[derive(Copy, Clone, Debug, Default)]
 pub struct Msrv(Option<RustcVersion>);
 
@@ -109,10 +117,11 @@ impl<'de> Deserialize<'de> for Msrv {
 }
 
 impl Msrv {
-    /// Returns the MSRV at the current node
+    /// Returns the MSRV at the current node, if known.
     ///
-    /// If the crate being linted uses an `#[clippy::msrv]` attribute this will search the parent
-    /// nodes for that attribute, prefer to run this check after cheaper pattern matching operations
+    /// If the crate being linted uses an `#[clippy::msrv]` attribute, this will search the parent
+    /// nodes for that attribute. As such, prefer to run this check after cheaper pattern matching
+    /// operations.
     pub fn current(self, cx: &LateContext<'_>) -> Option<RustcVersion> {
         if SEEN_MSRV_ATTR.load(Ordering::Relaxed) {
             let start = cx.last_node_with_lint_attrs;
@@ -127,55 +136,101 @@ impl Msrv {
         self.0
     }
 
-    /// Checks if a required version from [this module](self) is met at the current node
+    /// Checks whether the MSRV at the current node meets the required version.
     ///
-    /// If the crate being linted uses an `#[clippy::msrv]` attribute this will search the parent
-    /// nodes for that attribute, prefer to run this check after cheaper pattern matching operations
+    /// See [`clippy_utils::msrvs`] for a list of constants representing the required versions for
+    /// different features.
+    ///
+    /// If the MSRV is unknown (when [`Self::current()`] returns [`None`]), this will return true.
+    ///
+    /// If the crate being linted uses an `#[clippy::msrv]` attribute, this will search the parent
+    /// nodes for that attribute. As such, prefer to run this check after cheaper pattern matching
+    /// operations.
     pub fn meets(self, cx: &LateContext<'_>, required: RustcVersion) -> bool {
         self.current(cx).is_none_or(|msrv| msrv >= required)
     }
 
+    /// Sets the current MSRV to the `rust-version` field specified in `Cargo.toml` if it is not
+    /// already set.
+    ///
+    /// If the current MSRV is set (usually through `clippy.toml`) and `rust-version` is also set
+    /// in `Cargo.toml`, this function will emit a warning if they are not the same value.
+    ///
+    /// This method is only meant to be called when creating `Conf`, and should not be called in
+    /// lint passes.
     pub fn read_cargo(&mut self, sess: &Session) {
         let cargo_msrv = std::env::var("CARGO_PKG_RUST_VERSION")
             .ok()
             .and_then(|v| parse_version(Symbol::intern(&v)));
 
         match (self.0, cargo_msrv) {
+            // If the MSRV is specified in `Cargo.toml` but not `clippy.toml`, use `Cargo.toml`'s
+            // value.
             (None, Some(cargo_msrv)) => self.0 = Some(cargo_msrv),
-            (Some(clippy_msrv), Some(cargo_msrv)) => {
-                if clippy_msrv != cargo_msrv {
-                    sess.dcx().warn(format!(
-                        "the MSRV in `clippy.toml` and `Cargo.toml` differ; using `{clippy_msrv}` from `clippy.toml`"
-                    ));
-                }
+
+            // If the MSRV is different in both `Cargo.toml` and `clippy.toml`, emit a warning and
+            // retain `clippy.toml`'s value.
+            (Some(clippy_msrv), Some(cargo_msrv)) if clippy_msrv != cargo_msrv => {
+                sess.dcx().warn(format!(
+                    "the MSRV in `clippy.toml` and `Cargo.toml` differ; using `{clippy_msrv}` from `clippy.toml`"
+                ));
             },
+
+            // If the MSRV is specified in `clippy.toml` or not at all, retain the current value.
             _ => {},
         }
     }
 }
 
-/// Tracks the current MSRV from `clippy.toml`, `Cargo.toml` or set via `#[clippy::msrv]` in early
-/// lint passes, use [`Msrv`] for late passes
+/// Tracks the current MSRV from `clippy.toml`, `Cargo.toml`, and `#[clippy::msrv]` in early lint
+/// passes.
+///
+/// This type is designed to be stored as a field of the early lint pass and updated with the
+/// [`extract_msrv_attr!`](crate::extract_msrv_attr) macro or by manually calling
+/// [`Self::check_attributes()`] and [`Self::check_attributes_post()`].
+///
+/// You can check the current MSRV with [`Self::current()`], and can check if it is equal or above
+/// a certain version with [`Self::meets()`].
+///
+/// If you are writing a late lint pass, use [`Msrv`] instead.
+///
+/// For more information, [see the development guide on MSRVs][doc-msrv].
+///
+/// [doc-msrv]: https://doc.rust-lang.org/nightly/clippy/development/adding_lints.html#specifying-the-lints-minimum-supported-rust-version-msrv
 #[derive(Debug, Clone)]
 pub struct MsrvStack {
     stack: SmallVec<[RustcVersion; 2]>,
 }
 
 impl MsrvStack {
+    /// Creates a new MSRV stack with an initial value.
+    ///
+    /// You likely want to get the [`Msrv`] from `Conf::msrv` instead.
     pub fn new(initial: Msrv) -> Self {
         Self {
             stack: SmallVec::from_iter(initial.0),
         }
     }
 
+    /// Returns the MSRV at the current node, if known.
     pub fn current(&self) -> Option<RustcVersion> {
         self.stack.last().copied()
     }
 
+    /// Checks whether the MSRV at the current node meets the required version.
+    ///
+    /// See [`clippy_utils::msrvs`](crate::msrvs) for a list of constants representing the required
+    /// versions for different features.
+    ///
+    /// If the MSRV is unknown (when [`Self::current()`] returns [`None`]), this will return true.
     pub fn meets(&self, required: RustcVersion) -> bool {
         self.current().is_none_or(|msrv| msrv >= required)
     }
 
+    /// Pushes to the MSRV stack if `#[clippy::msrv]` is found.
+    ///
+    /// Usually, you will want [`extract_msrv_attr!`](crate::extract_msrv_attr) to handle calling
+    /// this for you.
     pub fn check_attributes(&mut self, sess: &Session, attrs: &[Attribute]) {
         if let Some(version) = parse_attrs(sess, attrs) {
             SEEN_MSRV_ATTR.store(true, Ordering::Relaxed);
@@ -183,6 +238,10 @@ impl MsrvStack {
         }
     }
 
+    /// Pops from the MSRV stack if `#[clippy::msrv]` is found.
+    ///
+    /// Usually, you will want [`extract_msrv_attr!`](crate::extract_msrv_attr) to handle calling
+    /// this for you.
     pub fn check_attributes_post(&mut self, sess: &Session, attrs: &[Attribute]) {
         if parse_attrs(sess, attrs).is_some() {
             self.stack.pop();
