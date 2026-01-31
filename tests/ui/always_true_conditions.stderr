@@ -1,0 +1,35 @@
+error: expression will always be true, did you mean to use &&?
+  --> tests/ui/always_true_conditions.rs:12:8
+   |
+LL |     if name != "Min" || name != "Max" {
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::always-true-conditions` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::always_true_conditions)]`
+
+error: expression will always be true, did you mean to use &&?
+  --> tests/ui/always_true_conditions.rs:49:8
+   |
+LL |     if 3 != b || 5 != b {
+   |        ^^^^^^^^^^^^^^^^
+
+error: expression will always be true, did you mean to use &&?
+  --> tests/ui/always_true_conditions.rs:54:8
+   |
+LL |     if b != 3 || 5 != b {
+   |        ^^^^^^^^^^^^^^^^
+
+error: expression will always be true, did you mean to use &&?
+  --> tests/ui/always_true_conditions.rs:61:19
+   |
+LL |     let x: bool = ("a" != input || "b" != input);
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: expression will always be true, did you mean to use &&?
+  --> tests/ui/always_true_conditions.rs:64:19
+   |
+LL |     let z: bool = (input != "2" || input != "4");
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 5 previous errors
+
