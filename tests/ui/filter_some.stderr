@@ -1,0 +1,75 @@
+error: use of `Some(_).filter(_)`
+  --> tests/ui/filter_some.rs:22:13
+   |
+LL |     let _ = Some(0).filter(|_| false);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `then_some` instead: `false.then_some(0)`
+   |
+   = note: this change will alter the order in which the condition and the value are evaluated
+   = note: `-D clippy::filter-some` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::filter_some)]`
+
+error: use of `Some(_).filter(_)`
+  --> tests/ui/filter_some.rs:27:13
+   |
+LL |     let _ = Some(0).filter(|_| false);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `then_some` instead: `false.then_some(0)`
+   |
+   = note: this change will alter the order in which the condition and the value are evaluated
+
+error: use of `Some(_).filter(_)`
+  --> tests/ui/filter_some.rs:30:13
+   |
+LL |     let _ = Some(0).filter(|_| 1 == 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `then_some` instead: `(1 == 0).then_some(0)`
+   |
+   = note: this change will alter the order in which the condition and the value are evaluated
+
+error: use of `Some(_).filter(_)`
+  --> tests/ui/filter_some.rs:32:13
+   |
+LL |       let _ = Some(0).filter(|_| match 0 {
+   |  _____________^
+LL | |
+LL | |         0 => false,
+LL | |         1 => true,
+LL | |         _ => true,
+LL | |     });
+   | |______^
+   |
+   = note: this change will alter the order in which the condition and the value are evaluated
+help: consider using `then_some` instead
+   |
+LL ~     let _ = match 0 {
+LL +
+LL +         0 => false,
+LL +         1 => true,
+LL +         _ => true,
+LL ~     }.then_some(0);
+   |
+
+error: use of `Some(_).filter(_)`
+  --> tests/ui/filter_some.rs:43:24
+   |
+LL |     let _ = unchanged!(Some(0).filter(|_| false));
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `then_some` instead: `false.then_some(0)`
+   |
+   = note: this change will alter the order in which the condition and the value are evaluated
+
+error: use of `Some(_).filter(_)`
+  --> tests/ui/filter_some.rs:45:13
+   |
+LL |     let _ = Some(0).filter(|_| vec![false].is_empty());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `then_some` instead: `vec![false].is_empty().then_some(0)`
+   |
+   = note: this change will alter the order in which the condition and the value are evaluated
+
+error: use of `Some(_).filter(_)`
+  --> tests/ui/filter_some.rs:49:13
+   |
+LL |     let _ = Some(0).filter(|_| condition!(false));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `then_some` instead: `condition!(false).then_some(0)`
+   |
+   = note: this change will alter the order in which the condition and the value are evaluated
+
+error: aborting due to 7 previous errors
+
