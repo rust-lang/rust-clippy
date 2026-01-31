@@ -3,6 +3,7 @@ use clippy_config::types::{DisallowedPath, create_disallowed_map};
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::paths::PathNS;
 use rustc_data_structures::fx::FxHashMap;
+use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefIdMap;
 use rustc_hir::{AmbigArg, Item, ItemKind, PolyTraitRef, PrimTy, Ty, TyKind, UseKind};
@@ -86,7 +87,7 @@ impl DisallowedTypes {
             DISALLOWED_TYPES,
             span,
             format!("use of a disallowed type `{path}`"),
-            disallowed_path.diag_amendment(span),
+            disallowed_path.diag_amendment(span, Applicability::MachineApplicable),
         );
     }
 }
