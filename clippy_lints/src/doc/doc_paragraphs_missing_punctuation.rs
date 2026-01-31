@@ -1,62 +1,31 @@
+use clippy_utils::diagnostics::span_lint_and_then;
 use rustc_errors::Applicability;
 use rustc_lint::LateContext;
-use rustc_resolve::rustdoc::main_body_opts;
-
-use rustc_resolve::rustdoc::pulldown_cmark::{Event, Options, Parser, Tag, TagEnd};
+use rustc_resolve::rustdoc::pulldown_cmark::{Event, Tag, TagEnd};
+use rustc_span::Span;
+use std::ops::Range;
 
 use super::{DOC_PARAGRAPHS_MISSING_PUNCTUATION, Fragments};
 
-const MSG: &str = "doc paragraphs should end with a terminal punctuation mark";
-const PUNCTUATION_SUGGESTION: char = '.';
-
-pub fn check(cx: &LateContext<'_>, doc: &str, fragments: Fragments<'_>) {
-    for missing_punctuation in is_missing_punctuation(doc) {
-        match missing_punctuation {
-            MissingPunctuation::Fixable(offset) => {
-                // This ignores `#[doc]` attributes, which we do not handle.
-                if let Some(span) = fragments.span(cx, offset..offset) {
-                    clippy_utils::diagnostics::span_lint_and_sugg(
-                        cx,
-                        DOC_PARAGRAPHS_MISSING_PUNCTUATION,
-                        span,
-                        MSG,
-                        "end the paragraph with some punctuation",
-                        PUNCTUATION_SUGGESTION.to_string(),
-                        Applicability::MaybeIncorrect,
-                    );
-                }
-            },
-            MissingPunctuation::Unfixable(offset) => {
-                // This ignores `#[doc]` attributes, which we do not handle.
-                if let Some(span) = fragments.span(cx, offset..offset) {
-                    clippy_utils::diagnostics::span_lint_and_help(
-                        cx,
-                        DOC_PARAGRAPHS_MISSING_PUNCTUATION,
-                        span,
-                        MSG,
-                        None,
-                        "end the paragraph with some punctuation",
-                    );
-                }
-            },
-        }
-    }
+#[derive(Default)]
+pub(super) struct MissingPunctuation {
+    no_report_depth: u32,
+    current_paragraph: Option<Position>,
 }
 
-#[must_use]
-/// If punctuation is missing, returns the offset where new punctuation should be inserted.
-fn is_missing_punctuation(doc_string: &str) -> Vec<MissingPunctuation> {
-    // The colon is not exactly a terminal punctuation mark, but this is required for paragraphs that
-    // introduce a table or a list for example.
-    const TERMINAL_PUNCTUATION_MARKS: &[char] = &['.', '?', '!', '…', ':'];
+impl MissingPunctuation {
+    pub fn check(
+        &mut self,
+        cx: &LateContext<'_>,
+        event: &Event<'_>,
+        range: Range<usize>,
+        doc: &str,
+        fragments: Fragments<'_>,
+    ) {
+        // The colon is not exactly a terminal punctuation mark, but this is required for paragraphs that
+        // introduce a table or a list for example.
+        const TERMINAL_PUNCTUATION_MARKS: &[char] = &['.', '?', '!', '…', ':'];
 
-    let mut no_report_depth = 0;
-    let mut missing_punctuation = Vec::new();
-    let mut current_paragraph = None;
-
-    for (event, offset) in
-        Parser::new_ext(doc_string, main_body_opts() - Options::ENABLE_SMART_PUNCTUATION).into_offset_iter()
-    {
         match event {
             Event::Start(
                 Tag::CodeBlock(..)
@@ -66,61 +35,82 @@ fn is_missing_punctuation(doc_string: &str) -> Vec<MissingPunctuation> {
                 | Tag::List(..)
                 | Tag::Table(_),
             ) => {
-                no_report_depth += 1;
+                self.no_report_depth += 1;
             },
             Event::End(TagEnd::FootnoteDefinition) => {
-                no_report_depth -= 1;
+                self.no_report_depth -= 1;
             },
             Event::End(
                 TagEnd::CodeBlock | TagEnd::Heading(_) | TagEnd::HtmlBlock | TagEnd::List(_) | TagEnd::Table,
             ) => {
-                no_report_depth -= 1;
-                current_paragraph = None;
+                self.no_report_depth -= 1;
+                self.current_paragraph = None;
             },
             Event::InlineHtml(_) | Event::Start(Tag::Image { .. }) | Event::End(TagEnd::Image) => {
-                current_paragraph = None;
+                self.current_paragraph = None;
             },
             Event::End(TagEnd::Paragraph) => {
-                if let Some(mp) = current_paragraph {
-                    missing_punctuation.push(mp);
+                if let Some(position) = self.current_paragraph
+                    && let Some(span) = position.span(cx, fragments)
+                {
+                    span_lint_and_then(
+                        cx,
+                        DOC_PARAGRAPHS_MISSING_PUNCTUATION,
+                        span,
+                        "doc paragraphs should end with a terminal punctuation mark",
+                        |diag| {
+                            if matches!(position, Position::Fixable(_)) {
+                                diag.span_suggestion(
+                                    span,
+                                    "end the paragraph with some punctuation",
+                                    '.',
+                                    Applicability::MaybeIncorrect,
+                                );
+                            } else {
+                                diag.help("end the paragraph with some punctuation");
+                            }
+                        },
+                    );
                 }
             },
             Event::Code(..) | Event::Start(Tag::Link { .. }) | Event::End(TagEnd::Link)
-                if no_report_depth == 0 && !offset.is_empty() =>
+                if self.no_report_depth == 0 && !range.is_empty() =>
             {
-                if doc_string[..offset.end]
-                    .trim_end()
-                    .ends_with(TERMINAL_PUNCTUATION_MARKS)
-                {
-                    current_paragraph = None;
+                if doc[..range.end].trim_end().ends_with(TERMINAL_PUNCTUATION_MARKS) {
+                    self.current_paragraph = None;
                 } else {
-                    current_paragraph = Some(MissingPunctuation::Fixable(offset.end));
+                    self.current_paragraph = Some(Position::Fixable(range.end));
                 }
             },
-            Event::Text(..) if no_report_depth == 0 && !offset.is_empty() => {
-                let trimmed = doc_string[..offset.end].trim_end();
+            Event::Text(..) if self.no_report_depth == 0 && !range.is_empty() => {
+                let trimmed = doc[..range.end].trim_end();
                 if trimmed.ends_with(TERMINAL_PUNCTUATION_MARKS) {
-                    current_paragraph = None;
+                    self.current_paragraph = None;
                 } else if let Some(t) = trimmed.strip_suffix(|c| c == ')' || c == '"') {
                     if t.ends_with(TERMINAL_PUNCTUATION_MARKS) {
                         // Avoid false positives.
-                        current_paragraph = None;
+                        self.current_paragraph = None;
                     } else {
-                        current_paragraph = Some(MissingPunctuation::Unfixable(offset.end));
+                        self.current_paragraph = Some(Position::Unfixable(range.end));
                     }
                 } else {
-                    current_paragraph = Some(MissingPunctuation::Fixable(offset.end));
+                    self.current_paragraph = Some(Position::Fixable(range.end));
                 }
             },
             _ => {},
         }
     }
-
-    missing_punctuation
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-enum MissingPunctuation {
+enum Position {
     Fixable(usize),
     Unfixable(usize),
+}
+
+impl Position {
+    fn span(self, cx: &LateContext<'_>, fragments: Fragments<'_>) -> Option<Span> {
+        let (Position::Fixable(pos) | Position::Unfixable(pos)) = self;
+        fragments.span(cx, pos..pos)
+    }
 }

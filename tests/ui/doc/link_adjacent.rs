@@ -10,6 +10,10 @@
 //!
 //! Neither is this: [first](x)`second`
 //!
+//! Neither is this: `first`[](x)
+//!
+//! Neither is this: `first`[`second` not code](x)
+//!
 //! This is: [`first`](x)`second`
 //~^ ERROR: adjacent
 //!
@@ -24,6 +28,9 @@
 //!
 //! So is this [`first`](x)`second`[`third`](x)
 //~^ ERROR: adjacent
+//!
+//! `first`[`second`](x)[third](x)
+//~^ ERROR: adjacent
 
 /// Test case for code links that are adjacent to code text.
 ///
@@ -34,6 +41,10 @@
 /// Neither is this: [`first`](x) `second` arst
 ///
 /// Neither is this: [first](x)`second` arst
+///
+/// Neither is this: `first`[](x) arst
+///
+/// Neither is this: `first`[`second` not code](x) arst
 ///
 /// This is: [`first`](x)`second` arst
 //~^ ERROR: adjacent
@@ -48,5 +59,8 @@
 //~^ ERROR: adjacent
 ///
 /// So is this [`first`](x)`second`[`third`](x) arst
+//~^ ERROR: adjacent
+///
+/// `first`[`second`](x)[third](x) arst
 //~^ ERROR: adjacent
 pub struct WithTrailing;
