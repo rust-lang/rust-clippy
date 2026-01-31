@@ -149,5 +149,11 @@ error: manually reimplementing `div_ceil`
 LL |     let _ = y.next_multiple_of(8) / 8;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `.div_ceil()`: `y.div_ceil(8)`
 
-error: aborting due to 23 previous errors
+error: manually reimplementing `div_ceil`
+  --> tests/ui/manual_div_ceil.rs:147:13
+   |
+LL |     let _ = (test_lhs!(x) + (y - 1)) / y;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `.div_ceil()`: `test_lhs!(x).div_ceil(y)`
+
+error: aborting due to 24 previous errors
 
