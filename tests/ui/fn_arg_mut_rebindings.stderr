@@ -1,0 +1,40 @@
+error: argument `x` is declared as not mutable, and later rebound as mutable
+  --> tests/ui/fn_arg_mut_rebindings.rs:14:22
+   |
+LL | fn fn_body_rebinding(x: bool) {
+   |                      ^^^^^^^ help: consider just declaring as mutable: `mut x: bool`
+   |
+help: and remove this
+  --> tests/ui/fn_arg_mut_rebindings.rs:16:5
+   |
+LL |     let mut x = x;
+   |     ^^^^^^^^^^^^^^
+   = note: `-D clippy::fn-arg-mut-rebindings` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::fn_arg_mut_rebindings)]`
+
+error: argument `x` is declared as not mutable, and later rebound as mutable
+  --> tests/ui/fn_arg_mut_rebindings.rs:48:37
+   |
+LL |     fn provided_fn_rebinding(&self, x: bool) {
+   |                                     ^^^^^^^ help: consider just declaring as mutable: `mut x: bool`
+   |
+help: and remove this
+  --> tests/ui/fn_arg_mut_rebindings.rs:50:9
+   |
+LL |         let mut x = x;
+   |         ^^^^^^^^^^^^^^
+
+error: argument `x` is declared as not mutable, and later rebound as mutable
+  --> tests/ui/fn_arg_mut_rebindings.rs:59:33
+   |
+LL |     fn impl_fn_rebinding(&self, x: bool) {
+   |                                 ^^^^^^^ help: consider just declaring as mutable: `mut x: bool`
+   |
+help: and remove this
+  --> tests/ui/fn_arg_mut_rebindings.rs:61:9
+   |
+LL |         let mut x = x;
+   |         ^^^^^^^^^^^^^^
+
+error: aborting due to 3 previous errors
+
