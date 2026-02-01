@@ -1,4 +1,5 @@
 //@aux-build:proc_macros.rs
+//@no-rustfix
 
 #![warn(clippy::fn_arg_mut_rebindings)]
 
