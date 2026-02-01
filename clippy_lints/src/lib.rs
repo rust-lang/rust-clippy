@@ -138,6 +138,7 @@ mod fallible_impl_from;
 mod field_scoped_visibility_modifiers;
 mod float_literal;
 mod floating_point_arithmetic;
+mod fn_arg_mut_rebindings;
 mod format;
 mod format_args;
 mod format_impl;
@@ -871,6 +872,7 @@ rustc_lint::late_lint_methods!(
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
         NeedlessNonzeroGet: needless_nonzero_get::NeedlessNonzeroGet = needless_nonzero_get::NeedlessNonzeroGet::new(conf),
         UnnecessaryBoxPin: unnecessary_box_pin::UnnecessaryBoxPin = unnecessary_box_pin::UnnecessaryBoxPin::new(conf),
+        FnArgMutRebindings: fn_arg_mut_rebindings::FnArgMutRebindings = fn_arg_mut_rebindings::FnArgMutRebindings,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
