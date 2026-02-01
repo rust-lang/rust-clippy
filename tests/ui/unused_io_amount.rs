@@ -1,5 +1,5 @@
 #![warn(clippy::unused_io_amount)]
-#![expect(clippy::redundant_pattern_matching)]
+#![expect(clippy::redundant_pattern_matching, clippy::fn_arg_mut_rebindings)]
 
 extern crate futures;
 use futures::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};

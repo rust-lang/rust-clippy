@@ -141,6 +141,7 @@ mod fallible_impl_from;
 mod field_scoped_visibility_modifiers;
 mod float_literal;
 mod floating_point_arithmetic;
+mod fn_arg_mut_rebindings;
 mod format;
 mod format_args;
 mod format_impl;
@@ -868,6 +869,7 @@ rustc_lint::late_lint_methods!(
         RedundantElse: redundant_else::RedundantElse = redundant_else::RedundantElse,
         RestWhenDestructuringStruct: rest_when_destructuring_struct::RestWhenDestructuringStruct = rest_when_destructuring_struct::RestWhenDestructuringStruct,
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
+        FnArgMutRebindings: fn_arg_mut_rebindings::FnArgMutRebindings = fn_arg_mut_rebindings::FnArgMutRebindings,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
