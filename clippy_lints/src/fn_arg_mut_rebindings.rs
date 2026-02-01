@@ -41,8 +41,8 @@ declare_clippy_lint! {
 declare_lint_pass!(FnArgMutRebindings => [FN_ARG_MUT_REBINDINGS]);
 
 impl LateLintPass<'_> for FnArgMutRebindings {
-    fn check_local(&mut self, ctx: &LateContext<'_>, st: &'_ LetStmt<'_>) {
-        if !st.span.in_external_macro(ctx.tcx.sess.source_map())
+    fn check_local(&mut self, cx: &LateContext<'_>, st: &'_ LetStmt<'_>) {
+        if !st.span.in_external_macro(cx.tcx.sess.source_map())
 
             // check let statement binds as mutable
             && let PatKind::Binding(BindingMode::MUT, _, ident, None) = st.pat.kind
@@ -55,11 +55,11 @@ impl LateLintPass<'_> for FnArgMutRebindings {
             && let Res::Local(id) = path.res
 
             // check let statement scope is whole function body
-            && let Some((_, owner)) = ctx.tcx.hir_parent_owner_iter(st.hir_id).next()
+            && let Some((_, owner)) = cx.tcx.hir_parent_owner_iter(st.hir_id).next()
             && let Some(body_id) = fn_body_id(&owner)
-            && let &Body { params, value } = ctx.tcx.hir_body(body_id)
+            && let &Body { params, value } = cx.tcx.hir_body(body_id)
             && let ExprKind::Block(fn_block, _) = value.kind
-            && let Some(st_block) = get_enclosing_block(ctx, st.hir_id)
+            && let Some(st_block) = get_enclosing_block(cx, st.hir_id)
             && fn_block.hir_id == st_block.hir_id
 
             // check param declares as immutable
@@ -74,7 +74,7 @@ impl LateLintPass<'_> for FnArgMutRebindings {
             }) = params.iter().find(|p| p.pat.hir_id == id)
         {
             span_lint_and_then(
-                ctx,
+                cx,
                 FN_ARG_MUT_REBINDINGS,
                 pat_span,
                 format!(
@@ -85,7 +85,7 @@ impl LateLintPass<'_> for FnArgMutRebindings {
                     diag.span_suggestion(
                         pat_span,
                         "consider just declaring as mutable",
-                        format!("mut {}", snippet(ctx, pat_span, "_")),
+                        format!("mut {}", snippet(cx, pat_span, "_")),
                         Applicability::MaybeIncorrect,
                     );
                     diag.span_help(st.span, "and remove this");
