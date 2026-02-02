@@ -5551,7 +5551,7 @@ impl Methods {
                     unnecessary_sort_by::check(cx, expr, call_span, arg, true);
                 },
                 (sym::split, [arg]) => {
-                    str_split::check(cx, expr, recv, arg);
+                    str_split::check(cx, expr, recv, call_span, arg);
                 },
                 (sym::splitn | sym::rsplitn, [count_arg, pat_arg]) => {
                     if let Some(Constant::Int(count)) = ConstEvalCtxt::new(cx).eval(count_arg) {
