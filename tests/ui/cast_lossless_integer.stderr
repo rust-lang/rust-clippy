@@ -524,5 +524,18 @@ LL -     let _ = 0u8 as ty!();
 LL +     let _ = <ty!()>::from(0u8);
    |
 
-error: aborting due to 40 previous errors
+error: casts from `u8` to `u32` can be expressed infallibly using `From`
+  --> tests/ui/cast_lossless_integer.rs:188:5
+   |
+LL |     foo!() as u32;
+   |     ^^^^^^^^^^^^^
+   |
+   = help: an `as` cast can become silently lossy if the types change in the future
+help: use `u32::from` instead
+   |
+LL -     foo!() as u32;
+LL +     u32::from(foo!());
+   |
+
+error: aborting due to 41 previous errors
 

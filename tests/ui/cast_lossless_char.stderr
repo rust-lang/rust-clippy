@@ -1,0 +1,56 @@
+error: casts from `char` to `u32` can be expressed infallibly using `From`
+  --> tests/ui/cast_lossless_char.rs:9:11
+   |
+LL |   let _ = '|' as u32;
+   |           ^^^^^^^^^^
+   |
+   = help: an `as` cast can become silently lossy if the types change in the future
+   = note: `-D clippy::cast-lossless` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::cast_lossless)]`
+help: use `u32::from` instead
+   |
+LL -   let _ = '|' as u32;
+LL +   let _ = u32::from('|');
+   |
+
+error: casts from `char` to `u64` can be expressed infallibly using `From`
+  --> tests/ui/cast_lossless_char.rs:13:11
+   |
+LL |   let _ = '|' as u64;
+   |           ^^^^^^^^^^
+   |
+   = help: an `as` cast can become silently lossy if the types change in the future
+help: use `u64::from` instead
+   |
+LL -   let _ = '|' as u64;
+LL +   let _ = u64::from('|');
+   |
+
+error: casts from `char` to `u128` can be expressed infallibly using `From`
+  --> tests/ui/cast_lossless_char.rs:17:11
+   |
+LL |   let _ = '|' as u128;
+   |           ^^^^^^^^^^^
+   |
+   = help: an `as` cast can become silently lossy if the types change in the future
+help: use `u128::from` instead
+   |
+LL -   let _ = '|' as u128;
+LL +   let _ = u128::from('|');
+   |
+
+error: casts from `char` to `u32` can be expressed infallibly using `From`
+  --> tests/ui/cast_lossless_char.rs:21:11
+   |
+LL |   let _ = '|' as U32;
+   |           ^^^^^^^^^^
+   |
+   = help: an `as` cast can become silently lossy if the types change in the future
+help: use `U32::from` instead
+   |
+LL -   let _ = '|' as U32;
+LL +   let _ = U32::from('|');
+   |
+
+error: aborting due to 4 previous errors
+
