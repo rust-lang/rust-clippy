@@ -779,7 +779,7 @@ pub fn str_literal_to_char_literal(
     {
         let snip = snippet_with_applicability(sess, expr.span, string, applicability);
         let ch = if let StrStyle::Raw(nhash) = style {
-            let nhash =  usize::from(nhash);
+            let nhash = usize::from(nhash);
             // for raw string: r##"a"##
             &snip[(nhash + 2)..(snip.len() - 1 - nhash)]
         } else {

@@ -91,9 +91,9 @@ fn should_lint(cx: &LateContext<'_>, cast_from: Ty<'_>, cast_to: Ty<'_>, msrv: M
             matches!(utils::int_ty_to_nbits(cx.tcx, cast_from), Some(n) if n <= 16)
         },
         // No `f16` to `f32`: https://github.com/rust-lang/rust/issues/123831
-        (ty::Float(FloatTy::F16), ty::Float(FloatTy::F32)) | (ty::Uint(UintTy::Usize) | ty::Int(IntTy::Isize), _) | (_, ty::Uint(UintTy::Usize) | ty::Int(IntTy::Isize)) => {
-            false
-        },
+        (ty::Float(FloatTy::F16), ty::Float(FloatTy::F32))
+        | (ty::Uint(UintTy::Usize) | ty::Int(IntTy::Isize), _)
+        | (_, ty::Uint(UintTy::Usize) | ty::Int(IntTy::Isize)) => false,
         (ty::Uint(_) | ty::Int(_), ty::Int(_)) | (ty::Uint(_), ty::Uint(_)) => {
             matches!(
                 (utils::int_ty_to_nbits(cx.tcx, cast_from), utils::int_ty_to_nbits(cx.tcx, cast_to)),

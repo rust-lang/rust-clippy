@@ -1,31 +1,30 @@
 #![allow(clippy::char_lit_as_u8)]
 #![warn(clippy::cast_lossless)]
 
-
 type I32 = i32;
 type U32 = u32;
 
 fn main() {
-  let _ = u32::from('|');
-  //~^ cast_lossless
-  let _ = '|' as i32;
-  
-  let _ = u64::from('|');
-  //~^ cast_lossless
-  let _ = '|' as i64;
+    let _ = u32::from('|');
+    //~^ cast_lossless
+    let _ = '|' as i32;
 
-  let _ = u128::from('|');
-  //~^ cast_lossless
-  let _ = '|' as i128;
-  
-  let _ = U32::from('|');
-  //~^ cast_lossless
-  let _ = '|' as I32;
+    let _ = u64::from('|');
+    //~^ cast_lossless
+    let _ = '|' as i64;
 
-  let _ = '|' as usize;
-  let _ = '|' as isize;
-  let _ = '|' as i8;
-  let _ = '|' as u8;
-  let _ = '|' as i16;
-  let _ = '|' as u16;
+    let _ = u128::from('|');
+    //~^ cast_lossless
+    let _ = '|' as i128;
+
+    let _ = U32::from('|');
+    //~^ cast_lossless
+    let _ = '|' as I32;
+
+    let _ = '|' as usize;
+    let _ = '|' as isize;
+    let _ = '|' as i8;
+    let _ = '|' as u8;
+    let _ = '|' as i16;
+    let _ = '|' as u16;
 }

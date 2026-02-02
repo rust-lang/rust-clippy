@@ -201,4 +201,3 @@ fn cast_using_macro() {
     let _ = mac!(0u8 => u32);
     let _ = mac!(0u8, as, u32);
 }
-
