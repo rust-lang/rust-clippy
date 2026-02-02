@@ -347,7 +347,7 @@ impl SuggestContext<'_, '_, '_> {
                     self.output.push(')');
                 },
                 Term(n) => {
-                    let terminal = self.terminals[n as usize];
+                    let terminal = self.terminals[usize::from(n)];
                     if let Some(str) = simplify_not(self.cx, self.msrv, terminal) {
                         self.output.push_str(&str);
                     } else {
@@ -389,7 +389,7 @@ impl SuggestContext<'_, '_, '_> {
             },
             &Term(n) => {
                 self.output.push_str(
-                    &self.terminals[n as usize]
+                    &self.terminals[usize::from(n)]
                         .span
                         .source_callsite()
                         .get_source_text(self.cx)?,
@@ -527,7 +527,7 @@ fn terminal_stats(b: &Bool) -> Stats {
                     recurse(inner, stats);
                 }
             },
-            &Term(n) => stats.terminals[n as usize] += 1,
+            &Term(n) => stats.terminals[usize::from(n)] += 1,
         }
     }
     use quine_mc_cluskey::Bool::{And, False, Not, Or, Term, True};

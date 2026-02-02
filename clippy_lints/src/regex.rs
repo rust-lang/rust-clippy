@@ -191,7 +191,7 @@ fn lint_syntax_error(cx: &LateContext<'_>, error: &regex_syntax::Error, unescape
 
     if let Some((primary, auxiliary, kind)) = parts
         && let Some(literal_snippet) = base.get_source_text(cx)
-        && let Some(inner) = literal_snippet.get(offset as usize..)
+        && let Some(inner) = literal_snippet.get(usize::from(offset)..)
         // Only convert to native rustc spans if the parsed regex matches the
         // source snippet exactly, to ensure the span offsets are correct
         && inner.get(..unescaped.len()) == Some(unescaped)
