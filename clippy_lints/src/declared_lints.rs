@@ -75,6 +75,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::casts::PTR_CAST_CONSTNESS_INFO,
     crate::casts::REF_AS_PTR_INFO,
     crate::casts::UNNECESSARY_CAST_INFO,
+    crate::casts::UNNECESSARY_INTERMEDIATE_CAST_INFO,
     crate::casts::ZERO_PTR_INFO,
     crate::cfg_not_test::CFG_NOT_TEST_INFO,
     crate::checked_conversions::CHECKED_CONVERSIONS_INFO,

@@ -71,9 +71,6 @@ fn main() {
     1_f32;
     //~^ unnecessary_cast
 
-    let _: *mut u8 = [1u8, 2].as_ptr() as *mut u8;
-    //~^ unnecessary_cast
-
     [1u8, 2].as_ptr();
     //~^ unnecessary_cast
     [1u8, 2].as_ptr() as *mut u8;
