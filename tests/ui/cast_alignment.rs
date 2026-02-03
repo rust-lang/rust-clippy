@@ -6,7 +6,8 @@
     clippy::no_effect,
     clippy::unnecessary_operation,
     clippy::cast_lossless,
-    clippy::borrow_as_ptr
+    clippy::borrow_as_ptr,
+    clippy::unnecessary_intermediate_cast
 )]
 
 fn main() {
