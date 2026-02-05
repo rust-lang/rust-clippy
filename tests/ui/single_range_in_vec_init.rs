@@ -82,3 +82,34 @@ fn issue16044() {
     let input = vec![0..as_i32!(10)];
     //~^ single_range_in_vec_init
 }
+
+// Issue #16508: detect all kinds of ranges
+fn issue16508() {
+    // RangeTo: ..b
+    [..10i32];
+    //~^ single_range_in_vec_init
+    vec![..10i32];
+    //~^ single_range_in_vec_init
+
+    // RangeFrom: a..
+    [0i32..];
+    //~^ single_range_in_vec_init
+    vec![0i32..];
+    //~^ single_range_in_vec_init
+
+    // RangeInclusive: a..=b
+    [0..=10i32];
+    //~^ single_range_in_vec_init
+    vec![0..=10i32];
+    //~^ single_range_in_vec_init
+
+    // RangeToInclusive: ..=b
+    [..=10i32];
+    //~^ single_range_in_vec_init
+    vec![..=10i32];
+    //~^ single_range_in_vec_init
+
+    // RangeFull should NOT lint (no type to infer)
+    [..];
+    vec![..];
+}
