@@ -21,7 +21,7 @@ use rustc_trait_selection::error_reporting::InferCtxtErrorExt;
 
 use core::ops::ControlFlow;
 
-use super::{DOUBLE_MUST_USE, MUST_USE_CANDIDATE, MUST_USE_UNIT};
+use super::{DOUBLE_MUST_USE, MUST_USE_CANDIDATE, MUST_USE_UNIT, MUST_USE_WITHOUT_NOTE};
 
 pub(super) fn check_item<'tcx>(cx: &LateContext<'tcx>, item: &'tcx hir::Item<'_>) {
     let attrs = cx.tcx.hir_attrs(item.hir_id());
@@ -47,6 +47,7 @@ pub(super) fn check_item<'tcx>(cx: &LateContext<'tcx>, item: &'tcx hir::Item<'_>
                 attrs,
                 sig,
             );
+            check_must_use_without_note(cx, *attr_span, *reason, item.span);
         } else if is_public && !is_proc_macro(attrs) && !find_attr!(attrs, AttributeKind::NoMangle(..)) {
             check_must_use_candidate(
                 cx,
@@ -80,6 +81,7 @@ pub(super) fn check_impl_item<'tcx>(cx: &LateContext<'tcx>, item: &'tcx hir::Imp
                 attrs,
                 sig,
             );
+            check_must_use_without_note(cx, *attr_span, *reason, item.span);
         } else if is_public && !is_proc_macro(attrs) && trait_ref_of_method(cx, item.owner_id).is_none() {
             check_must_use_candidate(
                 cx,
@@ -114,6 +116,7 @@ pub(super) fn check_trait_item<'tcx>(cx: &LateContext<'tcx>, item: &'tcx hir::Tr
                 attrs,
                 sig,
             );
+            check_must_use_without_note(cx, *attr_span, *reason, item.span);
         } else if let hir::TraitFn::Provided(eid) = *eid {
             let body = cx.tcx.hir_body(eid);
             if attr.is_none() && is_public && !is_proc_macro(attrs) {
@@ -191,6 +194,23 @@ fn check_needless_must_use(
             "this function has a `#[must_use]` attribute with no message, but returns a type already marked as `#[must_use]`",
             None,
             "either add some descriptive message or remove the attribute",
+        );
+    }
+}
+
+fn check_must_use_without_note(cx: &LateContext<'_>, attr_span: Span, reason: Option<Symbol>, item_span: Span) {
+    if item_span.in_external_macro(cx.sess().source_map()) {
+        return;
+    }
+
+    if reason.is_none() {
+        span_lint_and_help(
+            cx,
+            MUST_USE_WITHOUT_NOTE,
+            attr_span,
+            "`#[must_use]` attribute without a note",
+            None,
+            "add a note why it must be used `#[must_use = \"...\"]`",
         );
     }
 }
