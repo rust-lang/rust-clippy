@@ -22,9 +22,13 @@ use rustc_trait_selection::error_reporting::InferCtxtErrorExt;
 
 use core::ops::ControlFlow;
 
-use super::{DOUBLE_MUST_USE, MUST_USE_CANDIDATE, MUST_USE_UNIT};
+use super::{DOUBLE_MUST_USE, MUST_USE_CANDIDATE, MUST_USE_UNIT, MUST_USE_WITHOUT_NOTE};
 
 pub(super) fn check_item<'tcx>(cx: &LateContext<'tcx>, item: &'tcx hir::Item<'_>) {
+    if item.span.in_external_macro(cx.sess().source_map()) {
+        return;
+    }
+
     let attrs = cx.tcx.hir_attrs(item.hir_id());
     let attr = find_attr!(cx.tcx.hir_attrs(item.hir_id()), AttributeKind::MustUse { span, reason } => (span, reason));
     if let hir::ItemKind::Fn {
@@ -37,17 +41,19 @@ pub(super) fn check_item<'tcx>(cx: &LateContext<'tcx>, item: &'tcx hir::Item<'_>
         let is_public = cx.effective_visibilities.is_exported(item.owner_id.def_id);
         let fn_header_span = item.span.with_hi(sig.decl.output.span().hi());
         if let Some((attr_span, reason)) = attr {
-            check_needless_must_use(
+            let is_needless_must_use = check_needless_must_use(
                 cx,
                 sig.decl,
                 item.owner_id,
-                item.span,
                 fn_header_span,
                 *attr_span,
                 *reason,
                 attrs,
                 sig,
             );
+            if !is_needless_must_use {
+                check_must_use_without_note(cx, *attr_span, *reason);
+            }
         } else if is_public && !is_proc_macro(attrs) && !find_attr!(attrs, AttributeKind::NoMangle(..)) {
             check_must_use_candidate(
                 cx,
@@ -63,6 +69,10 @@ pub(super) fn check_item<'tcx>(cx: &LateContext<'tcx>, item: &'tcx hir::Item<'_>
 }
 
 pub(super) fn check_impl_item<'tcx>(cx: &LateContext<'tcx>, item: &'tcx hir::ImplItem<'_>) {
+    if item.span.in_external_macro(cx.sess().source_map()) {
+        return;
+    }
+
     if let hir::ImplItemKind::Fn(ref sig, ref body_id) = item.kind {
         let is_public = cx.effective_visibilities.is_exported(item.owner_id.def_id);
         let fn_header_span = item.span.with_hi(sig.decl.output.span().hi());
@@ -70,17 +80,19 @@ pub(super) fn check_impl_item<'tcx>(cx: &LateContext<'tcx>, item: &'tcx hir::Imp
         let attr =
             find_attr!(cx.tcx.hir_attrs(item.hir_id()), AttributeKind::MustUse { span, reason } => (span, reason));
         if let Some((attr_span, reason)) = attr {
-            check_needless_must_use(
+            let is_needless_must_use = check_needless_must_use(
                 cx,
                 sig.decl,
                 item.owner_id,
-                item.span,
                 fn_header_span,
                 *attr_span,
                 *reason,
                 attrs,
                 sig,
             );
+            if !is_needless_must_use {
+                check_must_use_without_note(cx, *attr_span, *reason);
+            }
         } else if is_public && !is_proc_macro(attrs) && trait_ref_of_method(cx, item.owner_id).is_none() {
             check_must_use_candidate(
                 cx,
@@ -96,6 +108,10 @@ pub(super) fn check_impl_item<'tcx>(cx: &LateContext<'tcx>, item: &'tcx hir::Imp
 }
 
 pub(super) fn check_trait_item<'tcx>(cx: &LateContext<'tcx>, item: &'tcx hir::TraitItem<'_>) {
+    if item.span.in_external_macro(cx.sess().source_map()) {
+        return;
+    }
+
     if let hir::TraitItemKind::Fn(ref sig, ref eid) = item.kind {
         let is_public = cx.effective_visibilities.is_exported(item.owner_id.def_id);
         let fn_header_span = item.span.with_hi(sig.decl.output.span().hi());
@@ -104,17 +120,19 @@ pub(super) fn check_trait_item<'tcx>(cx: &LateContext<'tcx>, item: &'tcx hir::Tr
         let attr =
             find_attr!(cx.tcx.hir_attrs(item.hir_id()), AttributeKind::MustUse { span, reason } => (span, reason));
         if let Some((attr_span, reason)) = attr {
-            check_needless_must_use(
+            let is_needless_must_use = check_needless_must_use(
                 cx,
                 sig.decl,
                 item.owner_id,
-                item.span,
                 fn_header_span,
                 *attr_span,
                 *reason,
                 attrs,
                 sig,
             );
+            if !is_needless_must_use {
+                check_must_use_without_note(cx, *attr_span, *reason);
+            }
         } else if let hir::TraitFn::Provided(eid) = *eid {
             let body = cx.tcx.hir_body(eid);
             if attr.is_none() && is_public && !is_proc_macro(attrs) {
@@ -138,16 +156,12 @@ fn check_needless_must_use(
     cx: &LateContext<'_>,
     decl: &hir::FnDecl<'_>,
     item_id: hir::OwnerId,
-    item_span: Span,
     fn_header_span: Span,
     attr_span: Span,
     reason: Option<Symbol>,
     attrs: &[Attribute],
     sig: &FnSig<'_>,
-) {
-    if item_span.in_external_macro(cx.sess().source_map()) {
-        return;
-    }
+) -> bool {
     if returns_unit(decl) {
         if attrs.len() == 1 {
             span_lint_and_then(
@@ -156,7 +170,7 @@ fn check_needless_must_use(
                 fn_header_span,
                 "this unit-returning function has a `#[must_use]` attribute",
                 |diag| {
-                    diag.span_suggestion(attr_span, "remove the attribute", "", Applicability::MachineApplicable);
+                    diag.span_suggestion(attr_span, "remove `must_use`", "", Applicability::MachineApplicable);
                 },
             );
         } else {
@@ -174,14 +188,16 @@ fn check_needless_must_use(
                 "remove `must_use`",
             );
         }
+        return true;
     } else if reason.is_none() && is_must_use_ty(cx, return_ty(cx, item_id)) {
         // Ignore async functions unless Future::Output type is a must_use type
         if sig.header.is_async() {
             let infcx = cx.tcx.infer_ctxt().build(cx.typing_mode());
-            if let Some(future_ty) = infcx.err_ctxt().get_impl_future_output_ty(return_ty(cx, item_id))
+            let future_ty_option = infcx.err_ctxt().get_impl_future_output_ty(return_ty(cx, item_id));
+            if let Some(future_ty) = future_ty_option
                 && !is_must_use_ty(cx, future_ty)
             {
-                return;
+                return false;
             }
         }
 
@@ -191,9 +207,29 @@ fn check_needless_must_use(
             fn_header_span,
             "this function has a `#[must_use]` attribute with no message, but returns a type already marked as `#[must_use]`",
             None,
-            "either add some descriptive message or remove the attribute",
+            "either add some descriptive message or remove `must_use`",
         );
+        return true;
     }
+
+    return false;
+}
+
+/// Checks for `must_use` usage without reason attribute
+fn check_must_use_without_note(cx: &LateContext<'_>, attr_span: Span, reason: Option<Symbol>) {
+    if reason.is_some() {
+        return;
+    }
+
+    let msg = "`#[must_use]` attribute without a note. Add a note why it must be used.";
+    span_lint_and_then(cx, MUST_USE_WITHOUT_NOTE, attr_span, msg, |diag| {
+        diag.span_suggestion(
+            attr_span,
+            msg,
+            format!("#[must_use = \"/* reason */\"]"),
+            Applicability::HasPlaceholders,
+        );
+    });
 }
 
 fn check_must_use_candidate<'tcx>(
@@ -207,7 +243,6 @@ fn check_must_use_candidate<'tcx>(
 ) {
     if has_mutable_arg(cx, body)
         || mutates_static(cx, body)
-        || item_span.in_external_macro(cx.sess().source_map())
         || returns_unit(decl)
         || !cx.effective_visibilities.is_exported(item_id.def_id)
         || is_must_use_ty(cx, return_ty(cx, item_id))

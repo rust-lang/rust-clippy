@@ -6791,6 +6791,7 @@ Released 2018-09-13
 [`multiple_unsafe_ops_per_block`]: https://rust-lang.github.io/rust-clippy/master/index.html#multiple_unsafe_ops_per_block
 [`must_use_candidate`]: https://rust-lang.github.io/rust-clippy/master/index.html#must_use_candidate
 [`must_use_unit`]: https://rust-lang.github.io/rust-clippy/master/index.html#must_use_unit
+[`must_use_without_note`]: https://rust-lang.github.io/rust-clippy/master/index.html#must_use_without_note
 [`mut_from_ref`]: https://rust-lang.github.io/rust-clippy/master/index.html#mut_from_ref
 [`mut_mut`]: https://rust-lang.github.io/rust-clippy/master/index.html#mut_mut
 [`mut_mutex_lock`]: https://rust-lang.github.io/rust-clippy/master/index.html#mut_mutex_lock
