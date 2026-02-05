@@ -5275,6 +5275,9 @@ impl Methods {
                         call_span,
                         self.msrv,
                     );
+                    if let Some((map_name @ (sym::iter | sym::into_iter), recv2, _, _, _)) = method_call(recv) {
+                        iter_kv_map::check(cx, map_name, expr, recv2, arg, self.msrv, sym::filter_map);
+                    }
                 },
                 (sym::find_map, [arg]) => {
                     unnecessary_filter_map::check(cx, expr, arg, call_span, unnecessary_filter_map::Kind::FindMap);
@@ -5285,6 +5288,9 @@ impl Methods {
                     lines_filter_map_ok::check_filter_or_flat_map(
                         cx, expr, recv, "flat_map", arg, call_span, self.msrv,
                     );
+                    if let Some((map_name @ (sym::iter | sym::into_iter), recv2, _, _, _)) = method_call(recv) {
+                        iter_kv_map::check(cx, map_name, expr, recv2, arg, self.msrv, sym::flat_map);
+                    }
                 },
                 (sym::flatten, []) => {
                     match method_call(recv) {
@@ -5383,7 +5389,7 @@ impl Methods {
                         manual_is_variant_and::check_map(cx, expr);
                         match method_call(recv) {
                             Some((map_name @ (sym::iter | sym::into_iter), recv2, _, _, _)) => {
-                                iter_kv_map::check(cx, map_name, expr, recv2, m_arg, self.msrv);
+                                iter_kv_map::check(cx, map_name, expr, recv2, m_arg, self.msrv, sym::map);
                             },
                             Some((sym::cloned, recv2, [], _, _)) => iter_overeager_cloned::check(
                                 cx,
