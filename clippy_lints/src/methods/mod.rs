@@ -5343,8 +5343,8 @@ impl Methods {
                 },
                 (sym::is_file, []) => filetype_is_file::check(cx, expr, recv),
                 (sym::is_digit, [radix]) => is_digit_ascii_radix::check(cx, expr, recv, radix, self.msrv),
-                (sym::is_none, []) => check_is_some_is_none(cx, expr, recv, call_span, false),
-                (sym::is_some, []) => check_is_some_is_none(cx, expr, recv, call_span, true),
+                (sym::is_none, []) => check_is_some_is_none(cx, expr, recv, call_span, false, self.msrv),
+                (sym::is_some, []) => check_is_some_is_none(cx, expr, recv, call_span, true, self.msrv),
                 (sym::iter | sym::iter_mut | sym::into_iter, []) => {
                     iter_on_single_or_empty_collections::check(cx, expr, name, recv);
                 },
@@ -5768,7 +5768,14 @@ impl Methods {
     }
 }
 
-fn check_is_some_is_none(cx: &LateContext<'_>, expr: &Expr<'_>, recv: &Expr<'_>, call_span: Span, is_some: bool) {
+fn check_is_some_is_none<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'tcx>,
+    recv: &'tcx Expr<'tcx>,
+    call_span: Span,
+    is_some: bool,
+    msrv: Msrv,
+) {
     match method_call(recv) {
         Some((name @ (sym::find | sym::position | sym::rposition), f_recv, [arg], span, _)) => {
             search_is_some::check(cx, expr, name, is_some, f_recv, arg, recv, span);
@@ -5778,6 +5785,9 @@ fn check_is_some_is_none(cx: &LateContext<'_>, expr: &Expr<'_>, recv: &Expr<'_>,
         },
         Some((sym::first, f_recv, [], _, _)) => {
             unnecessary_first_then_check::check(cx, call_span, recv, f_recv, is_some);
+        },
+        Some((sym::filter, f_recv, [arg], _, _)) => {
+            manual_is_variant_and::check_is_some_is_none(cx, call_span, f_recv, arg, is_some, msrv);
         },
         _ => {},
     }
