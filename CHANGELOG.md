@@ -7393,6 +7393,7 @@ Released 2018-09-13
 [`used_underscore_items`]: https://rust-lang.github.io/rust-clippy/master/index.html#used_underscore_items
 [`useless_asref`]: https://rust-lang.github.io/rust-clippy/master/index.html#useless_asref
 [`useless_attribute`]: https://rust-lang.github.io/rust-clippy/master/index.html#useless_attribute
+[`useless_borrows_in_formatting`]: https://rust-lang.github.io/rust-clippy/master/index.html#useless_borrows_in_formatting
 [`useless_concat`]: https://rust-lang.github.io/rust-clippy/master/index.html#useless_concat
 [`useless_conversion`]: https://rust-lang.github.io/rust-clippy/master/index.html#useless_conversion
 [`useless_format`]: https://rust-lang.github.io/rust-clippy/master/index.html#useless_format
