@@ -1,0 +1,100 @@
+error: consider using `dedup_by_key`
+  --> tests/ui/unnecessary_dedup_by.rs:48:5
+   |
+LL |     v1.dedup_by(|a, b| a == b);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::unnecessary-dedup-by` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_dedup_by)]`
+help: try
+   |
+LL -     v1.dedup_by(|a, b| a == b);
+LL +     v1.dedup_by_key(|a| *a);
+   |
+
+error: consider using `dedup_by_key`
+  --> tests/ui/unnecessary_dedup_by.rs:51:5
+   |
+LL |     v2.dedup_by(|a, b| a.0 == b.0);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try
+   |
+LL -     v2.dedup_by(|a, b| a.0 == b.0);
+LL +     v2.dedup_by_key(|a| a.0);
+   |
+
+error: consider using `dedup_by_key`
+  --> tests/ui/unnecessary_dedup_by.rs:58:5
+   |
+LL |     v2.dedup_by(|a, b| b.0 == a.0);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try
+   |
+LL -     v2.dedup_by(|a, b| b.0 == a.0);
+LL +     v2.dedup_by_key(|b| b.0);
+   |
+
+error: consider using `dedup_by_key`
+  --> tests/ui/unnecessary_dedup_by.rs:61:5
+   |
+LL |     v2.dedup_by(|a, b| b.0 * 2 == a.0 * 2);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try
+   |
+LL -     v2.dedup_by(|a, b| b.0 * 2 == a.0 * 2);
+LL +     v2.dedup_by_key(|b| b.0 * 2);
+   |
+
+error: consider using `dedup_by_key`
+  --> tests/ui/unnecessary_dedup_by.rs:66:5
+   |
+LL |     v4.dedup_by(|a, b| a.inner.x == b.inner.x);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try
+   |
+LL -     v4.dedup_by(|a, b| a.inner.x == b.inner.x);
+LL +     v4.dedup_by_key(|a| a.inner.x);
+   |
+
+error: consider using `dedup_by_key`
+  --> tests/ui/unnecessary_dedup_by.rs:70:5
+   |
+LL |     v4.dedup_by(|Outer { inner: _, y: y1 }, Outer { inner: _, y: y2 }| y1 == y2);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try
+   |
+LL -     v4.dedup_by(|Outer { inner: _, y: y1 }, Outer { inner: _, y: y2 }| y1 == y2);
+LL +     v4.dedup_by_key(|Outer { inner: _, y: y1 }| *y1);
+   |
+
+error: consider using `dedup_by_key`
+  --> tests/ui/unnecessary_dedup_by.rs:73:5
+   |
+LL |     v5.dedup_by(|a, b| a.key() == b.key());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try
+   |
+LL -     v5.dedup_by(|a, b| a.key() == b.key());
+LL +     v5.dedup_by_key(|a| a.key());
+   |
+
+error: consider using `dedup_by_key`
+  --> tests/ui/unnecessary_dedup_by.rs:78:5
+   |
+LL |     v7.dedup_by(|a, b| a == b);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try
+   |
+LL -     v7.dedup_by(|a, b| a == b);
+LL +     v7.dedup_by_key(|a| *a);
+   |
+
+error: aborting due to 8 previous errors
+
