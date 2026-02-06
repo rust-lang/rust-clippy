@@ -1,0 +1,82 @@
+#![warn(clippy::unnecessary_dedup_by)]
+
+struct Inner {
+    x: i32,
+}
+struct Outer {
+    inner: Inner,
+    y: i32,
+}
+
+struct Wrapper(i32);
+impl Wrapper {
+    fn key(&self) -> i32 {
+        self.0
+    }
+}
+
+struct Named(String);
+impl Named {
+    fn name(&self) -> &String {
+        &self.0
+    }
+}
+
+fn unnecessary_dedup_by() {
+    let mut v1 = vec![1, 2, 2, 3, 3, 4, 4, 5];
+    let mut v2 = vec![(1, 2, 3), (1, 2, 3), (4, 5, 6), (4, 5, 6)];
+    let mut v3 = vec!["name1".to_string(), "name1".to_string(), "name2".to_string()];
+    let mut v4 = vec![
+        Outer {
+            inner: Inner { x: 1 },
+            y: 10,
+        },
+        Outer {
+            inner: Inner { x: 1 },
+            y: 20,
+        },
+        Outer {
+            inner: Inner { x: 2 },
+            y: 30,
+        },
+    ];
+    let mut v5 = vec![Wrapper(1), Wrapper(1), Wrapper(2)];
+    let mut v6 = vec![Named("a".to_string()), Named("a".to_string())];
+
+    let mut v7 = vec![&1, &1, &2];
+
+    v1.dedup_by(|a, b| a == b);
+    //~^ unnecessary_dedup_by
+
+    v2.dedup_by(|a, b| a.0 == b.0);
+    //~^ unnecessary_dedup_by
+
+    v2.dedup_by(|a, b| a.0 == b.1);
+
+    v2.dedup_by(|a, b| a.0 == b.0 / 10);
+
+    v2.dedup_by(|a, b| b.0 == a.0);
+    //~^ unnecessary_dedup_by
+
+    v2.dedup_by(|a, b| b.0 * 2 == a.0 * 2);
+    //~^ unnecessary_dedup_by
+
+    v3.dedup_by(|a, b| a == b);
+
+    v4.dedup_by(|a, b| a.inner.x == b.inner.x);
+    //~^ unnecessary_dedup_by
+
+    // Test with Struct destructuring
+    v4.dedup_by(|Outer { inner: _, y: y1 }, Outer { inner: _, y: y2 }| y1 == y2);
+    //~^ unnecessary_dedup_by
+
+    v5.dedup_by(|a, b| a.key() == b.key());
+    //~^ unnecessary_dedup_by
+
+    v6.dedup_by(|a, b| a.name() == b.name());
+
+    v7.dedup_by(|a, b| a == b);
+    //~^ unnecessary_dedup_by
+}
+
+fn main() {}
