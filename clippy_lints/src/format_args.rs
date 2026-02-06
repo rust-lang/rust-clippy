@@ -229,6 +229,34 @@ declare_clippy_lint! {
     "formatting a pointer"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Suggests removing an unnecessary trailing comma before the closing parenthesis in
+    /// single-line macro invocations.
+    ///
+    /// ### Why is this bad?
+    /// The trailing comma is redundant and removing it keeps the code cleaner.
+    ///
+    /// ### Known limitations
+    /// This lint currently only runs on format-like macros (e.g. `format!`, `println!`,
+    /// `write!`) because it relies on format-argument parsing; applying it to arbitrary
+    /// user macros could cause incorrect suggestions. It may be extended to other
+    /// macros in the future. Only single-line macro invocations are linted.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// println!("Foo={}", 1,);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// println!("Foo={}", 1);
+    /// ```
+    #[clippy::version = "1.95.0"]
+    pub UNNECESSARY_TRAILING_COMMA,
+    style,
+    "unnecessary trailing comma before closing parenthesis"
+}
+
 impl_lint_pass!(FormatArgs<'_> => [
     FORMAT_IN_FORMAT_ARGS,
     TO_STRING_IN_FORMAT_ARGS,
@@ -236,6 +264,7 @@ impl_lint_pass!(FormatArgs<'_> => [
     UNNECESSARY_DEBUG_FORMATTING,
     UNUSED_FORMAT_SPECS,
     POINTER_FORMAT,
+    UNNECESSARY_TRAILING_COMMA,
 ]);
 
 #[expect(clippy::struct_field_names)]
@@ -280,6 +309,7 @@ impl<'tcx> LateLintPass<'tcx> for FormatArgs<'tcx> {
                 has_pointer_format: &mut self.has_pointer_format,
             };
 
+            linter.check_trailing_comma();
             linter.check_templates();
 
             if self.msrv.meets(cx, msrvs::FORMAT_ARGS_CAPTURE) {
@@ -302,6 +332,31 @@ struct FormatArgsExpr<'a, 'tcx> {
 }
 
 impl<'tcx> FormatArgsExpr<'_, 'tcx> {
+    /// Check if there is a comma after the last format macro arg.
+    #[allow(clippy::result_large_err, reason = "due to span_to_source()")]
+    fn check_trailing_comma(&self) {
+        let sm = self.cx.sess().source_map();
+        let span = self.macro_call.span.source_callsite();
+        if !sm.is_multiline(span)
+            && let span = sm.span_extend_to_prev_char_before(span.shrink_to_hi(), ')', false)
+            && let Ok(span) = sm.span_extend_prev_while(span.shrink_to_lo(), |c| c.is_whitespace() || c == ',')
+            && let Ok(true) = sm.span_to_source(span, |src, start, end| {
+                Ok(src.get(start..end).is_some_and(|s| s.contains(',')))
+            })
+        {
+            let name = self.cx.tcx.item_name(self.macro_call.def_id);
+            span_lint_and_sugg(
+                self.cx,
+                UNNECESSARY_TRAILING_COMMA,
+                span,
+                format!("unnecessary trailing comma in `{name}!` macro"),
+                "remove the trailing comma",
+                String::new(),
+                Applicability::MachineApplicable,
+            );
+        }
+    }
+
     fn check_templates(&mut self) {
         for piece in &self.format_args.template {
             if let FormatArgsPiece::Placeholder(placeholder) = piece

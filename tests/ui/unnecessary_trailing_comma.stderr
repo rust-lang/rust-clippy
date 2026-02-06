@@ -1,0 +1,23 @@
+error: unnecessary trailing comma in `println!` macro
+  --> tests/ui/unnecessary_trailing_comma.rs:9:19
+   |
+LL |     println!("Foo" , );
+   |                   ^^^ help: remove the trailing comma
+   |
+   = note: `-D clippy::unnecessary-trailing-comma` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_trailing_comma)]`
+
+error: unnecessary trailing comma in `println!` macro
+  --> tests/ui/unnecessary_trailing_comma.rs:10:25
+   |
+LL |     println!("Foo={}", 1,);
+   |                         ^ help: remove the trailing comma
+
+error: unnecessary trailing comma in `println!` macro
+  --> tests/ui/unnecessary_trailing_comma.rs:11:36
+   |
+LL |     println!(concat!("b", "o", "o"),);
+   |                                    ^ help: remove the trailing comma
+
+error: aborting due to 3 previous errors
+
