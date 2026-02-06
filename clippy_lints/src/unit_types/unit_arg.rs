@@ -245,9 +245,8 @@ fn fmt_stmts_and_call(
         let block_indent = call_expr_indent + 4;
         stmts_and_call_snippet = reindent_multiline(&stmts_and_call_snippet, true, Some(block_indent));
         stmts_and_call_snippet = format!(
-            "{{\n{}{}\n{}}}",
+            "{{\n{}{stmts_and_call_snippet}\n{}}}",
             " ".repeat(block_indent),
-            &stmts_and_call_snippet,
             " ".repeat(call_expr_indent)
         );
     }

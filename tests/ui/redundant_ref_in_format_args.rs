@@ -1,0 +1,118 @@
+// When testing or blessing this lint, set TESTNAME so only this test runs:
+//   TESTNAME=redundant_ref_in_format_args cargo uitest
+//   TESTNAME=redundant_ref_in_format_args cargo uibless
+#![warn(clippy::redundant_ref_in_format_args)]
+#![allow(unused, clippy::useless_format)]
+
+fn main() {
+    let s: &str = "hello";
+    println!("{}", &s); //~ redundant_ref_in_format_args
+    println!("{:?}", &s); //~ redundant_ref_in_format_args
+    println!("{}", &&s); //~ redundant_ref_in_format_args
+
+    let string = String::from("world");
+    println!("{}", &string); //~ redundant_ref_in_format_args
+    println!("{:?}", &string); //~ redundant_ref_in_format_args
+    println!("{}", &&string); //~ redundant_ref_in_format_args
+    println!("{}", &&string[..2]); //~ redundant_ref_in_format_args
+    println!("{:?}", &&string[..2]); //~ redundant_ref_in_format_args
+    // these are ok
+    println!("{}", &string[..2]);
+    println!("{:?}", &string[..2]);
+
+    let n: i32 = 42;
+    println!("{}", &n); //~ redundant_ref_in_format_args
+    println!("{:?}", &n); //~ redundant_ref_in_format_args
+    println!("{}", &&n); //~ redundant_ref_in_format_args
+
+    // Reference to slice element
+    let slice: [i32; 3] = [1, 2, 3];
+    println!("{}", &slice[0]); //~ redundant_ref_in_format_args
+    println!("{:?}", &slice[0]); //~ redundant_ref_in_format_args
+    println!("{}", &&slice[0]); //~ redundant_ref_in_format_args
+
+    // big array: should not suggest removing & because of the size of the output
+    println!(
+        "{:?}",
+        &[
+            //~^ redundant_ref_in_format_args
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5,
+            6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1,
+            2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+        ]
+    );
+
+    println!("{:?}", &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
+    //~^ redundant_ref_in_format_args
+
+    let a: [i32; 2] = [1, 2];
+    println!("{:016x?}", &[a[0], a[1], a[0], a[1]]); //~ redundant_ref_in_format_args
+
+    // &slice[0..1] with {:?}: inner type [i32] is unsized, so we don't suggest removing &
+    println!("{:?}", &slice[0..1]); // don't change
+    println!("{:?}", &&slice[0..1]); //~ redundant_ref_in_format_args
+
+    // Pointer formatting ({:p}): never suggest any changes to it
+    let x: i32 = 0;
+    println!("{:p}", &x); // don't change
+    println!("{:p}", &&x); // should change, but out of scope
+
+    struct Wrap(i32);
+    let w: Wrap = Wrap(42);
+    println!("{}", &w.0); //~ redundant_ref_in_format_args
+    println!("{:?}", &w.0); //~ redundant_ref_in_format_args
+    println!("{}", &&w.0); //~ redundant_ref_in_format_args
+
+    struct WrapRef<'a>(&'a i32);
+    let n: i32 = 42;
+    let w: WrapRef<'_> = WrapRef(&n);
+    println!("{}", &w.0); //~ redundant_ref_in_format_args
+    println!("{:?}", &w.0); //~ redundant_ref_in_format_args
+    println!("{}", &&w.0); //~ redundant_ref_in_format_args
+
+    let a: &mut String = &mut String::from("foo");
+    println!("{}", &*a); //~ redundant_ref_in_format_args
+    println!("{:?}", &*a); //~ redundant_ref_in_format_args
+
+    // Parenthesized expressions: &(expr)
+    let n: i32 = 42;
+    println!("{}", &(n)); //~ redundant_ref_in_format_args
+    println!("{:?}", &(n + 1)); //~ redundant_ref_in_format_args
+    println!("{}", &(String::from("paren"))); //~ redundant_ref_in_format_args
+
+    // Block expressions: &{ expr }
+    println!("{}", &{ n }); //~ redundant_ref_in_format_args
+    println!("{:?}", &{ n + 1 }); //~ redundant_ref_in_format_args
+    println!("{}", &{ String::from("block") }); //~ redundant_ref_in_format_args
+
+    let v1 = 42.12345;
+    let v2 = 20;
+    let v3 = 10;
+    println!("{0:1$.2$}", &v1, &v2, &v3);
+    //~^ redundant_ref_in_format_args
+    //~| redundant_ref_in_format_args
+    //~| redundant_ref_in_format_args
+    println!("{0:1$.2$?}", &v1, &v2, &v3);
+    //~^ redundant_ref_in_format_args
+    //~| redundant_ref_in_format_args
+    //~| redundant_ref_in_format_args
+    println!("{0:1$.2$}", &v1, v2, v3); //~ redundant_ref_in_format_args
+    println!("{0:1$.2$}", v1, &v2, v3); //~ redundant_ref_in_format_args
+    println!("{0:1$.2$}", v1, v2, &v3); //~ redundant_ref_in_format_args
+
+    // Macro wrapping println! - should not lint (println! call is inside macro expansion)
+    macro_rules! my_println {
+        ($($args:tt)*) => {
+            println!($($args)*);
+        };
+    }
+    my_println!("{}", &n);
+
+    // Arguments coming from a macro - should not lint (& comes from expansion)
+    macro_rules! make_ref {
+        ($e:expr) => {
+            &$e
+        };
+    }
+    println!("{}", make_ref!(n));
+}

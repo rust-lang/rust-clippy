@@ -1,0 +1,266 @@
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:9:20
+   |
+LL |     println!("{}", &s);
+   |                    ^^ help: remove the redundant `&`: `s`
+   |
+   = note: `-D clippy::redundant-ref-in-format-args` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::redundant_ref_in_format_args)]`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:10:22
+   |
+LL |     println!("{:?}", &s);
+   |                      ^^ help: remove the redundant `&`: `s`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:11:20
+   |
+LL |     println!("{}", &&s);
+   |                    ^^^ help: remove the redundant `&`: `s`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:14:20
+   |
+LL |     println!("{}", &string);
+   |                    ^^^^^^^ help: remove the redundant `&`: `string`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:15:22
+   |
+LL |     println!("{:?}", &string);
+   |                      ^^^^^^^ help: remove the redundant `&`: `string`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:16:20
+   |
+LL |     println!("{}", &&string);
+   |                    ^^^^^^^^ help: remove the redundant `&`: `string`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:17:20
+   |
+LL |     println!("{}", &&string[..2]);
+   |                    ^^^^^^^^^^^^^ help: remove the redundant `&`: `&string[..2]`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:18:22
+   |
+LL |     println!("{:?}", &&string[..2]);
+   |                      ^^^^^^^^^^^^^ help: remove the redundant `&`: `&string[..2]`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:24:20
+   |
+LL |     println!("{}", &n);
+   |                    ^^ help: remove the redundant `&`: `n`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:25:22
+   |
+LL |     println!("{:?}", &n);
+   |                      ^^ help: remove the redundant `&`: `n`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:26:20
+   |
+LL |     println!("{}", &&n);
+   |                    ^^^ help: remove the redundant `&`: `n`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:30:20
+   |
+LL |     println!("{}", &slice[0]);
+   |                    ^^^^^^^^^ help: remove the redundant `&`: `slice[0]`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:31:22
+   |
+LL |     println!("{:?}", &slice[0]);
+   |                      ^^^^^^^^^ help: remove the redundant `&`: `slice[0]`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:32:20
+   |
+LL |     println!("{}", &&slice[0]);
+   |                    ^^^^^^^^^^ help: remove the redundant `&`: `slice[0]`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:37:9
+   |
+LL | /         &[
+LL | |
+LL | |             0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5,
+LL | |             6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1,
+LL | |             2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+LL | |         ]
+   | |_________^
+   |
+help: remove the redundant `&`
+   |
+LL ~         [
+LL +
+LL +             0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5,
+LL +             6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1,
+LL +             2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+LL +         ]
+   |
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:45:22
+   |
+LL |     println!("{:?}", &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove the redundant `&`: `[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0]`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:49:26
+   |
+LL |     println!("{:016x?}", &[a[0], a[1], a[0], a[1]]);
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove the redundant `&`: `[a[0], a[1], a[0], a[1]]`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:53:22
+   |
+LL |     println!("{:?}", &&slice[0..1]);
+   |                      ^^^^^^^^^^^^^ help: remove the redundant `&`: `&slice[0..1]`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:62:20
+   |
+LL |     println!("{}", &w.0);
+   |                    ^^^^ help: remove the redundant `&`: `w.0`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:63:22
+   |
+LL |     println!("{:?}", &w.0);
+   |                      ^^^^ help: remove the redundant `&`: `w.0`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:64:20
+   |
+LL |     println!("{}", &&w.0);
+   |                    ^^^^^ help: remove the redundant `&`: `w.0`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:69:20
+   |
+LL |     println!("{}", &w.0);
+   |                    ^^^^ help: remove the redundant `&`: `w.0`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:70:22
+   |
+LL |     println!("{:?}", &w.0);
+   |                      ^^^^ help: remove the redundant `&`: `w.0`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:71:20
+   |
+LL |     println!("{}", &&w.0);
+   |                    ^^^^^ help: remove the redundant `&`: `w.0`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:74:20
+   |
+LL |     println!("{}", &*a);
+   |                    ^^^ help: remove the redundant `&`: `*a`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:75:22
+   |
+LL |     println!("{:?}", &*a);
+   |                      ^^^ help: remove the redundant `&`: `*a`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:79:20
+   |
+LL |     println!("{}", &(n));
+   |                    ^^^^ help: remove the redundant `&`: `(n)`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:80:22
+   |
+LL |     println!("{:?}", &(n + 1));
+   |                      ^^^^^^^^ help: remove the redundant `&`: `(n + 1)`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:81:20
+   |
+LL |     println!("{}", &(String::from("paren")));
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^ help: remove the redundant `&`: `(String::from("paren"))`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:84:20
+   |
+LL |     println!("{}", &{ n });
+   |                    ^^^^^^ help: remove the redundant `&`: `{ n }`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:85:22
+   |
+LL |     println!("{:?}", &{ n + 1 });
+   |                      ^^^^^^^^^^ help: remove the redundant `&`: `{ n + 1 }`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:86:20
+   |
+LL |     println!("{}", &{ String::from("block") });
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove the redundant `&`: `{ String::from("block") }`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:91:27
+   |
+LL |     println!("{0:1$.2$}", &v1, &v2, &v3);
+   |                           ^^^ help: remove the redundant `&`: `v1`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:91:32
+   |
+LL |     println!("{0:1$.2$}", &v1, &v2, &v3);
+   |                                ^^^ help: remove the redundant `&`: `v2`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:91:37
+   |
+LL |     println!("{0:1$.2$}", &v1, &v2, &v3);
+   |                                     ^^^ help: remove the redundant `&`: `v3`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:95:28
+   |
+LL |     println!("{0:1$.2$?}", &v1, &v2, &v3);
+   |                            ^^^ help: remove the redundant `&`: `v1`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:95:33
+   |
+LL |     println!("{0:1$.2$?}", &v1, &v2, &v3);
+   |                                 ^^^ help: remove the redundant `&`: `v2`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:95:38
+   |
+LL |     println!("{0:1$.2$?}", &v1, &v2, &v3);
+   |                                      ^^^ help: remove the redundant `&`: `v3`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:99:27
+   |
+LL |     println!("{0:1$.2$}", &v1, v2, v3);
+   |                           ^^^ help: remove the redundant `&`: `v1`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:100:31
+   |
+LL |     println!("{0:1$.2$}", v1, &v2, v3);
+   |                               ^^^ help: remove the redundant `&`: `v2`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:101:35
+   |
+LL |     println!("{0:1$.2$}", v1, v2, &v3);
+   |                                   ^^^ help: remove the redundant `&`: `v3`
+
+error: aborting due to 41 previous errors
+

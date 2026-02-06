@@ -232,8 +232,8 @@ fn suggest_help(
         "this call is collapsible",
         "collapse into",
         format!(
-            "span_lint_and_help({}, {}, {}, {}, {}, {help})",
-            and_then_snippets.cx, and_then_snippets.lint, and_then_snippets.span, and_then_snippets.msg, &option_span,
+            "span_lint_and_help({}, {}, {}, {}, {option_span}, {help})",
+            and_then_snippets.cx, and_then_snippets.lint, and_then_snippets.span, and_then_snippets.msg
         ),
         app,
     );
