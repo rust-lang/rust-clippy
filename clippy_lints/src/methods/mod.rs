@@ -124,6 +124,7 @@ mod type_id_on_box;
 mod unbuffered_bytes;
 mod uninit_assumed_init;
 mod unit_hash;
+mod unnecessary_dedup_by;
 mod unnecessary_fallible_conversions;
 mod unnecessary_filter_map;
 mod unnecessary_first_then_check;
@@ -4750,6 +4751,36 @@ declare_clippy_lint! {
     "filtering `std::io::Lines` with `filter_map()`, `flat_map()`, or `flatten()` might cause an infinite loop"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `Vec::dedup_by` passing in a closure
+    /// that is equivalent to a simple key extraction and could be
+    /// written more idiomatically using `Vec::dedup_by_key`.
+    ///
+    /// ### Why is this bad?
+    /// It is more clear to use `Vec::dedup_by_key` than to use
+    /// `Vec::dedup_by` and a more complicated closure.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// pub fn m1(mut v: Vec<(i64, i64)>) -> Vec<(i64, i64)> {
+    ///     v.dedup_by(|(sym1, _), (sym2, _)| sym1 == sym2);
+    ///     v
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// pub fn m2(mut v: Vec<(i64, i64)>) -> Vec<(i64, i64)> {
+    ///     v.dedup_by_key(|(sym, _)| *sym);
+    ///     v
+    /// }
+    /// ```
+    #[clippy::version = "1.95.0"]
+    pub UNNECESSARY_DEDUP_BY,
+    complexity,
+    "use of `Vec::dedup_by` when `Vec::dedup_by_key` would be clearer"
+}
+
 #[expect(clippy::struct_excessive_bools)]
 pub struct Methods {
     avoid_breaking_exported_api: bool,
@@ -4934,6 +4965,7 @@ impl_lint_pass!(Methods => [
     REDUNDANT_ITER_CLONED,
     UNNECESSARY_OPTION_MAP_OR_ELSE,
     LINES_FILTER_MAP_OK,
+    UNNECESSARY_DEDUP_BY,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -5198,6 +5230,9 @@ impl Methods {
                 },
                 (sym::min | sym::max, [arg]) => {
                     unnecessary_min_or_max::check(cx, expr, name, recv, arg);
+                },
+                (sym::dedup_by, [arg]) => {
+                    unnecessary_dedup_by::check(cx, expr, call_span, arg);
                 },
                 (sym::drain, ..) => {
                     if let Node::Stmt(Stmt { hir_id: _, kind, .. }) = cx.tcx.parent_hir_node(expr.hir_id)
