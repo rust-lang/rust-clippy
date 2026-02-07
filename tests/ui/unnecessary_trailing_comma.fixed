@@ -7,6 +7,8 @@ fn main() {}
 #[rustfmt::skip]
 fn simple() {
     println!("Foo"); //~ unnecessary_trailing_comma
+    println!{"Foo"}; //~ unnecessary_trailing_comma
+    println!["Foo"]; //~ unnecessary_trailing_comma
     println!("Foo={}", 1); //~ unnecessary_trailing_comma
     println!(concat!("b", "o", "o")); //~ unnecessary_trailing_comma
 

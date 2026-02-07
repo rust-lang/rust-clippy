@@ -8,16 +8,28 @@ LL |     println!("Foo" , );
    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_trailing_comma)]`
 
 error: unnecessary trailing comma in `println!` macro
-  --> tests/ui/unnecessary_trailing_comma.rs:10:25
+  --> tests/ui/unnecessary_trailing_comma.rs:10:19
+   |
+LL |     println!{"Foo" , };
+   |                   ^^^ help: remove the trailing comma
+
+error: unnecessary trailing comma in `println!` macro
+  --> tests/ui/unnecessary_trailing_comma.rs:11:19
+   |
+LL |     println!["Foo" , ];
+   |                   ^^^ help: remove the trailing comma
+
+error: unnecessary trailing comma in `println!` macro
+  --> tests/ui/unnecessary_trailing_comma.rs:12:25
    |
 LL |     println!("Foo={}", 1,);
    |                         ^ help: remove the trailing comma
 
 error: unnecessary trailing comma in `println!` macro
-  --> tests/ui/unnecessary_trailing_comma.rs:11:36
+  --> tests/ui/unnecessary_trailing_comma.rs:13:36
    |
 LL |     println!(concat!("b", "o", "o"),);
    |                                    ^ help: remove the trailing comma
 
-error: aborting due to 3 previous errors
+error: aborting due to 5 previous errors
 

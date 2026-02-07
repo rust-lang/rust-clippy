@@ -338,7 +338,12 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
         let sm = self.cx.sess().source_map();
         let span = self.macro_call.span.source_callsite();
         if !sm.is_multiline(span)
-            && let span = sm.span_extend_to_prev_char_before(span.shrink_to_hi(), ')', false)
+            && let span = span.shrink_to_hi()
+            && let Some(span) = [')', ']', '}'].into_iter().find_map(|c| {
+                // remove one of the allowed closing macro delimeters
+                let s = sm.span_extend_to_prev_char_before(span, c, false);
+                if s != span { Some(s) } else { None }
+            })
             && let Ok(span) = sm.span_extend_prev_while(span.shrink_to_lo(), |c| c.is_whitespace() || c == ',')
             && let Ok(true) = sm.span_to_source(span, |src, start, end| {
                 Ok(src.get(start..end).is_some_and(|s| s.contains(',')))
