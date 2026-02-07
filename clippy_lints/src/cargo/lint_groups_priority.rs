@@ -100,7 +100,7 @@ fn check_table(cx: &LateContext<'_>, table: &DeTable<'_>, known_groups: &FxHashS
                             "to have lints override the group set `{}` to a lower priority",
                             group.as_ref()
                         ),
-                        format!("{{ level = {:?}, priority = {low_priority} }}", group_config.level,),
+                        format!("{{ level = {:?}, priority = {low_priority} }}", group_config.level),
                         Applicability::MaybeIncorrect,
                     );
                 },

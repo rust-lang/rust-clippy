@@ -187,7 +187,7 @@ pub(super) fn check_match<'tcx>(
                 diag.span_suggestion_verbose(
                     e.span,
                     "use `matches!` directly",
-                    format!("{}matches!({snippet}, {pat_and_guard})", if b0 { "" } else { "!" },),
+                    format!("{}matches!({snippet}, {pat_and_guard})", if b0 { "" } else { "!" }),
                     applicability,
                 );
             },
