@@ -340,9 +340,9 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
         if !sm.is_multiline(span)
             && let span = span.shrink_to_hi()
             && let Some(span) = [')', ']', '}'].into_iter().find_map(|c| {
-                // remove one of the allowed closing macro delimeters
+                // remove one of the allowed closing macro delimiters
                 let s = sm.span_extend_to_prev_char_before(span, c, false);
-                if s != span { Some(s) } else { None }
+                if s == span { None } else { Some(s) }
             })
             && let Ok(span) = sm.span_extend_prev_while(span.shrink_to_lo(), |c| c.is_whitespace() || c == ',')
             && let Ok(true) = sm.span_to_source(span, |src, start, end| {
