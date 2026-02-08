@@ -1,4 +1,5 @@
 #![feature(
+    bool_to_result,
     exit_status_error,
     new_range,
     os_str_slice,
