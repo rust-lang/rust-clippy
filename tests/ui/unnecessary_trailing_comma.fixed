@@ -6,11 +6,26 @@ fn main() {}
 // fmt breaks - https://github.com/rust-lang/rustfmt/issues/6797
 #[rustfmt::skip]
 fn simple() {
+    println!["Foo(,)"];
     println!("Foo"); //~ unnecessary_trailing_comma
     println!{"Foo"}; //~ unnecessary_trailing_comma
     println!["Foo"]; //~ unnecessary_trailing_comma
-    println!("Foo={}", 1); //~ unnecessary_trailing_comma
+    println!("Foo={}",   1); //~ unnecessary_trailing_comma
     println!(concat!("b", "o", "o")); //~ unnecessary_trailing_comma
+    println!("Foo(,)"); //~ unnecessary_trailing_comma
+    println!("Foo[,]"); //~ unnecessary_trailing_comma
+    println!["Foo(,)"]; //~ unnecessary_trailing_comma
+    println!["Foo[,]"]; //~ unnecessary_trailing_comma
+    println!["Foo{{,}}"]; //~ unnecessary_trailing_comma
+    println!{"Foo{{,}}"}; //~ unnecessary_trailing_comma
+    println!{"Foo(,)"}; //~ unnecessary_trailing_comma
+    println!{"Foo[,]"}; //~ unnecessary_trailing_comma
+    println!["Foo(,"]; //~ unnecessary_trailing_comma
+    println!["Foo[,"]; //~ unnecessary_trailing_comma
+    println!["Foo{{,}}"]; //~ unnecessary_trailing_comma
+    println!{"Foo{{,}}"}; //~ unnecessary_trailing_comma
+    println!{"Foo(,"}; //~ unnecessary_trailing_comma
+    println!{"Foo[,"}; //~ unnecessary_trailing_comma
 
     // This should eventually work, but requires more work
     println!(concat!("Foo", "=", "{}"), 1,);
@@ -21,6 +36,26 @@ fn simple() {
     println!("{}", 1);
     println!(concat!("b", "o", "o"));
     println!(concat!("Foo", "=", "{}"), 1);
+
+    println!("Foo" );
+    println!{"Foo" };
+    println!["Foo" ];
+    println!("Foo={}", 1);
+    println!(concat!("b", "o", "o"));
+    println!("Foo(,)");
+    println!("Foo[,]");
+    println!["Foo(,)"];
+    println!["Foo[,]"];
+    println!["Foo{{,}}"];
+    println!{"Foo{{,}}"};
+    println!{"Foo(,)"};
+    println!{"Foo[,]"};
+    println!["Foo(,"];
+    println!["Foo[,"];
+    println!["Foo{{,}}"];
+    println!{"Foo{{,}}"};
+    println!{"Foo(,"};
+    println!{"Foo[,"};
 
     // Multi-line macro - must NOT lint (single-line only)
     println!(

@@ -28,7 +28,7 @@ use rustc_middle::ty::adjustment::{Adjust, Adjustment, DerefAdjustKind};
 use rustc_middle::ty::{self, GenericArg, List, TraitRef, Ty, TyCtxt, Upcast};
 use rustc_session::impl_lint_pass;
 use rustc_span::edition::Edition::Edition2021;
-use rustc_span::{Span, Symbol, sym};
+use rustc_span::{BytePos, Pos, Span, SpanSnippetError, Symbol, sym};
 use rustc_trait_selection::infer::TyCtxtInferExt;
 use rustc_trait_selection::traits::{Obligation, ObligationCause, Selection, SelectionContext};
 
@@ -338,22 +338,38 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
         let sm = self.cx.sess().source_map();
         let span = self.macro_call.span.source_callsite();
         if !sm.is_multiline(span)
-            && let span = span.shrink_to_hi()
-            && let Some(span) = [')', ']', '}'].into_iter().find_map(|c| {
-                // remove one of the allowed closing macro delimiters
-                let s = sm.span_extend_to_prev_char_before(span, c, false);
-                if s == span { None } else { Some(s) }
-            })
-            && let Ok(span) = sm.span_extend_prev_while(span.shrink_to_lo(), |c| c.is_whitespace() || c == ',')
-            && let Ok(true) = sm.span_to_source(span, |src, start, end| {
-                Ok(src.get(start..end).is_some_and(|s| s.contains(',')))
+            && let Ok(removal_span) = sm.span_to_source(span, |s, start, end| {
+                // This fn returns a span between the last non-whitespace character
+                // and the closing parenthesis, but only if it contains a ',' char.
+                // Iterates in reverse, checking last char is a closing parenthesis,
+                // then looking for a comma before it, ignoring whitespace.
+                if let Some(text) = s.get(start..end)
+                    && let mut chars = text.char_indices().rev()
+                    && let Some((last_char_index, ')' | ']' | '}')) = chars.next()
+                {
+                    let mut has_comma = false;
+                    while let Some((index, c)) = chars.next() {
+                        if c == ',' {
+                            has_comma = true;
+                        } else if c.is_whitespace() {
+                            continue;
+                        } else if has_comma {
+                            return Ok(span
+                                .with_lo(span.lo() + BytePos::from_usize(index + c.len_utf8()))
+                                .with_hi(span.lo() + BytePos::from_usize(last_char_index)));
+                        } else {
+                            break;
+                        }
+                    }
+                }
+                Err(SpanSnippetError::IllFormedSpan(span))
             })
         {
             let name = self.cx.tcx.item_name(self.macro_call.def_id);
             span_lint_and_sugg(
                 self.cx,
                 UNNECESSARY_TRAILING_COMMA,
-                span,
+                removal_span,
                 format!("unnecessary trailing comma in `{name}!` macro"),
                 "remove the trailing comma",
                 String::new(),
