@@ -9,7 +9,7 @@ LL | ||         Self { value: 0 }
 LL | |      }
    | |______^
    |
-   = help: When a type derives `Default`, users expect `new()` and `default()` to be equivalent. Consider delegating to `Self::default()` for consistency, or rename `new` if the behavior is intentionally different.
+   = help: when a type derives `Default`, users expect `new()` and `default()` to be equivalent. Consider delegating to `Self::default()` for consistency, or rename `new` if the behavior is intentionally different
    = note: `-D clippy::default-mismatches-new` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::default_mismatches_new)]`
 
@@ -24,7 +24,7 @@ LL | ||         Self(0)
 LL | |      }
    | |______^
    |
-   = help: When a type derives `Default`, users expect `new()` and `default()` to be equivalent. Consider delegating to `Self::default()` for consistency, or rename `new` if the behavior is intentionally different.
+   = help: when a type derives `Default`, users expect `new()` and `default()` to be equivalent. Consider delegating to `Self::default()` for consistency, or rename `new` if the behavior is intentionally different
 
 error: `new()` may produce different values than the auto-derived `Default` for `NonZeroDeriveDefault`
   --> tests/ui/default_mismatches_new.rs:130:22
@@ -37,7 +37,7 @@ LL | ||         Self(42)
 LL | |      }
    | |______^
    |
-   = help: When a type derives `Default`, users expect `new()` and `default()` to be equivalent. Consider delegating to `Self::default()` for consistency, or rename `new` if the behavior is intentionally different.
+   = help: when a type derives `Default`, users expect `new()` and `default()` to be equivalent. Consider delegating to `Self::default()` for consistency, or rename `new` if the behavior is intentionally different
 
 error: `new()` may produce different values than the auto-derived `Default` for `ExtraBlockDefault`
   --> tests/ui/default_mismatches_new.rs:139:22
@@ -50,7 +50,7 @@ LL | ||         { Self::default() }
 LL | |      }
    | |______^
    |
-   = help: When a type derives `Default`, users expect `new()` and `default()` to be equivalent. Consider delegating to `Self::default()` for consistency, or rename `new` if the behavior is intentionally different.
+   = help: when a type derives `Default`, users expect `new()` and `default()` to be equivalent. Consider delegating to `Self::default()` for consistency, or rename `new` if the behavior is intentionally different
 
 error: `new()` may produce different values than the auto-derived `Default` for `ExtraBlockRetDefault`
   --> tests/ui/default_mismatches_new.rs:148:22
@@ -65,7 +65,7 @@ LL | ||         };
 LL | |      }
    | |______^
    |
-   = help: When a type derives `Default`, users expect `new()` and `default()` to be equivalent. Consider delegating to `Self::default()` for consistency, or rename `new` if the behavior is intentionally different.
+   = help: when a type derives `Default`, users expect `new()` and `default()` to be equivalent. Consider delegating to `Self::default()` for consistency, or rename `new` if the behavior is intentionally different
 
 error: `new()` may produce different values than the auto-derived `Default` for `MultiStatements`
   --> tests/ui/default_mismatches_new.rs:163:22
@@ -80,7 +80,7 @@ LL | ||         Self(i)
 LL | |      }
    | |______^
    |
-   = help: When a type derives `Default`, users expect `new()` and `default()` to be equivalent. Consider delegating to `Self::default()` for consistency, or rename `new` if the behavior is intentionally different.
+   = help: when a type derives `Default`, users expect `new()` and `default()` to be equivalent. Consider delegating to `Self::default()` for consistency, or rename `new` if the behavior is intentionally different
 
 error: aborting due to 6 previous errors
 

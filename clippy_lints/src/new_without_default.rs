@@ -382,9 +382,9 @@ fn suggest_default_mismatch_new<'tcx>(
         format!("`new()` may produce different values than the auto-derived `Default` for `{self_type_snip}`"),
         |diag| {
             diag.help(
-                "When a type derives `Default`, users expect `new()` and `default()` to be equivalent. \
+                "when a type derives `Default`, users expect `new()` and `default()` to be equivalent. \
                 Consider delegating to `Self::default()` for consistency, or rename `new` if the \
-                behavior is intentionally different.",
+                behavior is intentionally different",
             );
             diag.span_suggestion(span, "use", "Self::default()", Applicability::MaybeIncorrect);
         },
