@@ -334,7 +334,7 @@ mod issue12154 {
     }
 
     // Not necessarily related to the issue but another FP from the http crate that was fixed with it:
-    // https://docs.rs/http/latest/src/http/header/name.rs.html#1424
+    // https://docs.rs/http/latest/src/http/header/name.rs.html#1408
     // We used to simply peel refs from the LHS and RHS, so we couldn't differentiate
     // between `PartialEq<T> for &T` and `PartialEq<&T> for T` impls.
     #[derive(PartialEq)]

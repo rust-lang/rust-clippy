@@ -154,7 +154,7 @@ in this chapter:
 [expr_ty]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.TypeckResults.html#method.expr_ty
 [node_type]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.TypeckResults.html#method.node_type
 [is_char]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.Ty.html#method.is_char
-[is_char_source]: https://doc.rust-lang.org/nightly/nightly-rustc/src/rustc_middle/ty/sty.rs.html#1831-1834
+[is_char_source]: https://doc.rust-lang.org/nightly/nightly-rustc/src/rustc_middle/ty/sty.rs.html#1429-1432
 [kind]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.Ty.html#method.kind
 [LateContext]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint/struct.LateContext.html
 [LateLintPass]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint/trait.LateLintPass.html
