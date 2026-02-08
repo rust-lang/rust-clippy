@@ -3,6 +3,7 @@
     exit_status_error,
     hash_set_entry,
     if_let_guard,
+    macro_metavar_expr_concat,
     new_range,
     new_range_api,
     os_str_slice,
