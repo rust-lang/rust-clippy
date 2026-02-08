@@ -1,4 +1,5 @@
 #![feature(
+    bool_to_result,
     exit_status_error,
     new_range,
     new_range_api,
