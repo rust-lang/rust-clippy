@@ -1,6 +1,7 @@
 #![feature(
     bool_to_result,
     exit_status_error,
+    macro_metavar_expr_concat,
     new_range,
     new_range_api,
     os_str_slice,
