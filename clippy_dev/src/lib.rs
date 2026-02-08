@@ -1,4 +1,5 @@
 #![feature(
+    bool_to_result,
     exit_status_error,
     hash_set_entry,
     if_let_guard,
