@@ -348,11 +348,11 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                     && let Some((last_char_index, ')' | ']' | '}')) = chars.next()
                 {
                     let mut has_comma = false;
-                    while let Some((index, c)) = chars.next() {
+                    for (index, c) in chars {
                         if c == ',' {
                             has_comma = true;
                         } else if c.is_whitespace() {
-                            continue;
+                            // keep iterating
                         } else if has_comma {
                             return Ok(span
                                 .with_lo(span.lo() + BytePos::from_usize(index + c.len_utf8()))
