@@ -217,7 +217,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.95.0"]
     pub UNUSED_FORMAT_PRECISION,
-    complexity,
+    correctness,
     "precision has no effect for this type"
 }
 
