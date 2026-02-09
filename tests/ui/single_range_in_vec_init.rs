@@ -82,3 +82,18 @@ fn issue16044() {
     let input = vec![0..as_i32!(10)];
     //~^ single_range_in_vec_init
 }
+
+// Test cases for all range types
+fn issue16508() {
+    // Half-open ranges with end only
+    [..10];
+    //~^ single_range_in_vec_init
+    vec![..10];
+    //~^ single_range_in_vec_init
+
+    // Closed ranges
+    [0..=10];
+    //~^ single_range_in_vec_init
+    vec![0..=10];
+    //~^ single_range_in_vec_init
+}

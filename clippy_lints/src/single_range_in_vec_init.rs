@@ -1,12 +1,12 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::higher::VecArgs;
+use clippy_utils::higher::{Range, VecArgs};
 use clippy_utils::macros::root_macro_call_first_node;
 use clippy_utils::source::{SpanRangeExt, snippet_with_context};
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{is_no_std_crate, sym};
-use rustc_ast::{LitIntType, LitKind, UintTy};
+use rustc_ast::{LitIntType, LitKind, RangeLimits, UintTy};
 use rustc_errors::Applicability;
-use rustc_hir::{Expr, ExprKind, StructTailExpr};
+use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::DesugaringKind;
@@ -87,21 +87,36 @@ impl LateLintPass<'_> for SingleRangeInVecInit {
             return;
         };
 
-        let ExprKind::Struct(_, [start, end], StructTailExpr::None) = inner_expr.kind else {
+        // Use higher::Range to support all range types: a..b, ..b, a.., a..=b
+        let Some(range) = Range::hir(cx, inner_expr) else {
             return;
         };
 
-        if inner_expr.span.is_desugaring(DesugaringKind::RangeExpr)
-            && let ty = cx.typeck_results().expr_ty(start.expr)
-            && let Some(snippet) = span.get_source_text(cx)
+        if !inner_expr.span.is_desugaring(DesugaringKind::RangeExpr) {
+            return;
+        }
+
+        // Get type from whichever part exists
+        let ty = range.start.or(range.end)
+            .map(|e| cx.typeck_results().expr_ty(e))
+            .unwrap_or_else(|| cx.typeck_results().expr_ty(inner_expr));
+
+        if let Some(snippet) = span.get_source_text(cx)
             // `is_from_proc_macro` will skip any `vec![]`. Let's not!
             && snippet.starts_with(suggested_type.starts_with())
             && snippet.ends_with(suggested_type.ends_with())
         {
             let mut applicability = Applicability::MaybeIncorrect;
-            let (start_snippet, _) = snippet_with_context(cx, start.expr.span, span.ctxt(), "..", &mut applicability);
-            let (end_snippet, _) = snippet_with_context(cx, end.expr.span, span.ctxt(), "..", &mut applicability);
 
+            // Generate snippets for start and end
+            let start_snippet = range.start.map(|e| {
+                snippet_with_context(cx, e.span, span.ctxt(), "..", &mut applicability).0
+            });
+            let end_snippet = range.end.map(|e| {
+                snippet_with_context(cx, e.span, span.ctxt(), "..", &mut applicability).0
+            });
+
+            // Determine if we can suggest collect (for ranges that implement RangeStepIterator)
             let should_emit_every_value = if let Some(step_def_id) = cx.tcx.get_diagnostic_item(sym::range_step)
                 && implements_trait(cx, ty, step_def_id, &[])
             {
@@ -109,9 +124,13 @@ impl LateLintPass<'_> for SingleRangeInVecInit {
             } else {
                 false
             };
-            let should_emit_of_len = if let Some(copy_def_id) = cx.tcx.lang_items().copy_trait()
+
+            // Determine if we can suggest [start; len] or vec![start; len]
+            // For this, we need an end value that is a usize literal
+            let should_emit_of_len = if let Some(end_expr) = range.end
+                && let Some(copy_def_id) = cx.tcx.lang_items().copy_trait()
                 && implements_trait(cx, ty, copy_def_id, &[])
-                && let ExprKind::Lit(lit_kind) = end.expr.kind
+                && let ExprKind::Lit(lit_kind) = end_expr.kind
                 && let LitKind::Int(.., suffix_type) = lit_kind.node
                 && let LitIntType::Unsigned(UintTy::Usize) | LitIntType::Unsuffixed = suffix_type
             {
@@ -127,20 +146,42 @@ impl LateLintPass<'_> for SingleRangeInVecInit {
                     span,
                     format!("{suggested_type} of `Range` that is only one element"),
                     |diag| {
+                        // Build the collect suggestion text
+                        // Note: RangeTo (..end) and RangeFrom (start..) need special handling:
+                        // - ..end is not an iterator, so we use (0..end)
+                        // - start.. is infinite, so we don't suggest collect for it
+                        let collect_range_text = match (start_snippet.as_deref(), end_snippet.as_deref(), range.limits) {
+                            (Some(start), Some(end), RangeLimits::HalfOpen) => format!("{start}..{end}"),
+                            (Some(start), Some(end), RangeLimits::Closed) => format!("{start}..={end}"),
+                            (None, Some(end), _) => format!("0..{end}"), // ..end becomes 0..end
+                            // start.. is infinite, skip collect suggestion for it
+                            _ => return,
+                        };
+
+                        // Suggest using .collect() for the entire range
                         if should_emit_every_value && !is_no_std_crate(cx) {
                             diag.span_suggestion(
                                 span,
                                 "if you wanted a `Vec` that contains the entire range, try",
-                                format!("({start_snippet}..{end_snippet}).collect::<std::vec::Vec<{ty}>>()"),
+                                format!("({collect_range_text}).collect::<std::vec::Vec<{ty}>>()"),
                                 applicability,
                             );
                         }
 
+                        // Suggest using array/vec initialization for length
                         if should_emit_of_len {
+                            // For ranges like `..end`, use 0 as default start
+                            // For ranges like `start..end`, use the start value
+                            let start_value = start_snippet.as_deref().unwrap_or("0");
+
+                            // For `..end`, end is the length
+                            // For `start..end`, end is the length (and start is the value to repeat)
+                            let len_value = end_snippet.as_deref().expect("should have end value");
+
                             diag.span_suggestion(
                                 inner_expr.span,
-                                format!("if you wanted {suggested_type} of len {end_snippet}, try"),
-                                format!("{start_snippet}; {end_snippet}"),
+                                format!("if you wanted {suggested_type} of len {len_value}, try"),
+                                format!("{start_value}; {len_value}"),
                                 applicability,
                             );
                         }
