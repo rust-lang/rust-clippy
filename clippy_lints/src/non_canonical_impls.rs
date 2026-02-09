@@ -331,9 +331,28 @@ fn expr_is_cmp<'tcx>(
             },
             [cmp_expr],
         ) => {
-            typeck.qpath_res(some_path, *some_hir_id).ctor_parent(cx).is_lang_item(cx, LangItem::OptionSome)
-                // Fix #11178, allow `Self::cmp(self, ..)`
-                && self_cmp_call(cx, typeck, cmp_expr, needs_fully_qualified)
+            let is_some = typeck
+                .qpath_res(some_path, *some_hir_id)
+                .ctor_parent(cx)
+                .is_lang_item(cx, LangItem::OptionSome);
+            if is_some {
+                if self_cmp_call(cx, typeck, cmp_expr, needs_fully_qualified) {
+                    return true;
+                }
+                // Allow `Some(Ordering::Equal)` (and other variants) for ZSTs
+                // Check if cmp_expr is an Ordering variant using source snippet
+                let source_map = cx.sess().source_map();
+                if let Ok(snippet) = source_map.span_to_snippet(cmp_expr.span) {
+                    if snippet.starts_with("Ordering::")
+                        || snippet == "Equal"
+                        || snippet == "Less"
+                        || snippet == "Greater"
+                    {
+                        return true;
+                    }
+                }
+            }
+            false
         },
         ExprKind::MethodCall(_, recv, [], _) => {
             typeck
@@ -341,6 +360,24 @@ fn expr_is_cmp<'tcx>(
                 .assoc_parent(cx)
                 .is_diag_item(cx, sym::Into)
                 && self_cmp_call(cx, typeck, recv, needs_fully_qualified)
+        },
+        // Allow `Some(Ordering::Equal)` (and other variants) for ZSTs
+        ExprKind::Struct(qpath, fields, _) => {
+            if last_path_segment(qpath).ident.name == sym::Some {
+                if let Some(field) = fields.first() {
+                    let source_map = cx.sess().source_map();
+                    if let Ok(snippet) = source_map.span_to_snippet(field.expr.span) {
+                        if snippet.starts_with("Ordering::")
+                            || snippet == "Equal"
+                            || snippet == "Less"
+                            || snippet == "Greater"
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            false
         },
         _ => false,
     }
