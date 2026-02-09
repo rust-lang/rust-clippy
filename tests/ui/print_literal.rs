@@ -1,5 +1,9 @@
 #![warn(clippy::print_literal)]
-#![expect(clippy::literal_string_with_formatting_args, clippy::uninlined_format_args)]
+#![expect(
+    clippy::literal_string_with_formatting_args,
+    clippy::uninlined_format_args,
+    clippy::unused_format_precision
+)]
 
 fn main() {
     // these should be fine
