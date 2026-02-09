@@ -1,3 +1,4 @@
+#![allow(clippy::clear_instead_of_new)]
 //@aux-build:proc_macros.rs
 #![warn(clippy::reserve_after_initialization)]
 #![no_main]

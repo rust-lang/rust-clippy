@@ -78,6 +78,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::casts::ZERO_PTR_INFO,
     crate::cfg_not_test::CFG_NOT_TEST_INFO,
     crate::checked_conversions::CHECKED_CONVERSIONS_INFO,
+    crate::clear_instead_of_new::CLEAR_INSTEAD_OF_NEW_INFO,
     crate::cloned_ref_to_slice_refs::CLONED_REF_TO_SLICE_REFS_INFO,
     crate::coerce_container_to_any::COERCE_CONTAINER_TO_ANY_INFO,
     crate::cognitive_complexity::COGNITIVE_COMPLEXITY_INFO,
