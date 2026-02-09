@@ -203,7 +203,7 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Detects use of format precision for standard non-float types where it has no effect
+    /// Checks for format precision for standard non-float types where it has no effect
     /// (integers, bool, char, pointers). Precision is meaningful for floats, `str` (truncation), or user types.
     ///
     /// ### Why is this bad?
