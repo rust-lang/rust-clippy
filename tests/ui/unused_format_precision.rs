@@ -8,6 +8,14 @@ fn main() {
     println!("{v:.1}"); //~ ERROR: precision has no effect for type `u8`
     println!("{:.1}", &v); //~ ERROR: precision has no effect for type `u8`
 
+    let prec = 1;
+    println!("{:.prec$}", 42_u8); //~ ERROR: precision has no effect for type `u8`
+    println!("{0:.1$}", 42_u8, prec); //~ ERROR: precision has no effect for type `u8`
+    println!("{:.*}", prec, 42_u8); //~ ERROR: precision has no effect for type `u8`
+    println!("{:.prec$?}", 42_u8); //~ ERROR: precision has no effect for type `u8`
+    println!("{v:.prec$}"); //~ ERROR: precision has no effect for type `u8`
+    println!("{:.prec$}", &v); //~ ERROR: precision has no effect for type `u8`
+
     let v = 42_i8;
     println!("{:.1}", 42_i8); //~ ERROR: precision has no effect for type `i8`
     println!("{:.1?}", 42_i8); //~ ERROR: precision has no effect for type `i8`
