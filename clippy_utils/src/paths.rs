@@ -288,6 +288,20 @@ fn local_item_child_by_name(tcx: TyCtxt<'_>, local_id: LocalDefId, ns: PathNS, n
             &root_mod
         },
         Node::Item(item) => &item.kind,
+        Node::Variant(variant) if ns == PathNS::Field => {
+            return if let rustc_hir::VariantData::Struct { fields, .. } = variant.data
+                && let Some(field_def_id) = fields.iter().find_map(|field| {
+                    if field.ident.name == name {
+                        Some(field.def_id.to_def_id())
+                    } else {
+                        None
+                    }
+                }) {
+                Some(field_def_id)
+            } else {
+                None
+            };
+        },
         _ => return None,
     };
 
@@ -325,6 +339,15 @@ fn local_item_child_by_name(tcx: TyCtxt<'_>, local_id: LocalDefId, ns: PathNS, n
             fields.iter().find_map(|field| {
                 if field.ident.name == name {
                     Some(field.def_id.to_def_id())
+                } else {
+                    None
+                }
+            })
+        },
+        ItemKind::Enum(_, _, rustc_hir::EnumDef { variants }) if ns == PathNS::Type => {
+            variants.iter().find_map(|variant| {
+                if variant.ident.name == name {
+                    Some(variant.def_id.to_def_id())
                 } else {
                     None
                 }

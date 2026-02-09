@@ -7,6 +7,11 @@ struct X {
     y: u32,
 }
 
+enum Z {
+    A { x: u32 },
+    B { x: u32 },
+}
+
 use crate::X as Y;
 
 fn b(X { y }: X) {}
@@ -35,5 +40,11 @@ fn main() {
 
     match x {
         RangeTo { end } => {}, //~ disallowed_fields
+    }
+
+    let x = Z::B { x: 0 };
+    match x {
+        Z::A { x } => {},
+        Z::B { x } => {}, //~ disallowed_fields
     }
 }

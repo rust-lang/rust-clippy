@@ -9,4 +9,6 @@ disallowed-fields = [
     "conf_disallowed_fields::X::y",
     # re-exports
     "conf_disallowed_fields::Y::y",
+    # field of a variant
+    "conf_disallowed_fields::Z::B::x",
 ]

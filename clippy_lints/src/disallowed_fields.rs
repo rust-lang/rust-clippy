@@ -106,28 +106,55 @@ impl<'tcx> LateLintPass<'tcx> for DisallowedFields {
     }
 
     fn check_pat(&mut self, cx: &LateContext<'tcx>, pat: &'tcx Pat<'_>) {
-        if let PatKind::Struct(struct_path, pat_fields, _) = pat.kind
-            && let Res::Def(DefKind::Struct, struct_def_id) = cx.typeck_results().qpath_res(&struct_path, pat.hir_id)
-        {
-            let adt_def = cx.tcx.adt_def(struct_def_id);
-            for field in pat_fields {
-                if let Some(def_id) = adt_def.all_fields().find_map(|adt_field| {
-                    if field.ident.name == adt_field.name {
-                        Some(adt_field.did)
-                    } else {
-                        None
+        let PatKind::Struct(struct_path, pat_fields, _) = pat.kind else {
+            return;
+        };
+        match cx.typeck_results().qpath_res(&struct_path, pat.hir_id) {
+            Res::Def(DefKind::Struct, struct_def_id) => {
+                let adt_def = cx.tcx.adt_def(struct_def_id);
+                for field in pat_fields {
+                    if let Some(def_id) = adt_def.all_fields().find_map(|adt_field| {
+                        if field.ident.name == adt_field.name {
+                            Some(adt_field.did)
+                        } else {
+                            None
+                        }
+                    }) && let Some(&(path, disallowed_path)) = self.disallowed.get(&def_id)
+                    {
+                        span_lint_and_then(
+                            cx,
+                            DISALLOWED_FIELDS,
+                            field.span,
+                            format!("use of a disallowed field `{path}`"),
+                            disallowed_path.diag_amendment(field.span),
+                        );
                     }
-                }) && let Some(&(path, disallowed_path)) = self.disallowed.get(&def_id)
-                {
-                    span_lint_and_then(
-                        cx,
-                        DISALLOWED_FIELDS,
-                        field.span,
-                        format!("use of a disallowed field `{path}`"),
-                        disallowed_path.diag_amendment(field.span),
-                    );
                 }
-            }
+            },
+            Res::Def(DefKind::Variant, variant_def_id) => {
+                let enum_def_id = cx.tcx.parent(variant_def_id);
+                let variant = cx.tcx.adt_def(enum_def_id).variant_with_id(variant_def_id);
+
+                for field in pat_fields {
+                    if let Some(def_id) = variant.fields.iter().find_map(|adt_field| {
+                        if field.ident.name == adt_field.name {
+                            Some(adt_field.did)
+                        } else {
+                            None
+                        }
+                    }) && let Some(&(path, disallowed_path)) = self.disallowed.get(&def_id)
+                    {
+                        span_lint_and_then(
+                            cx,
+                            DISALLOWED_FIELDS,
+                            field.span,
+                            format!("use of a disallowed field `{path}`"),
+                            disallowed_path.diag_amendment(field.span),
+                        );
+                    }
+                }
+            },
+            _ => {},
         }
     }
 }
