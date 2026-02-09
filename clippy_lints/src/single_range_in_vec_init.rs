@@ -97,9 +97,10 @@ impl LateLintPass<'_> for SingleRangeInVecInit {
         }
 
         // Get type from whichever part exists
-        let ty = range.start.or(range.end)
-            .map(|e| cx.typeck_results().expr_ty(e))
-            .unwrap_or_else(|| cx.typeck_results().expr_ty(inner_expr));
+        let ty = range.start.or(range.end).map_or_else(
+            || cx.typeck_results().expr_ty(inner_expr),
+            |e| cx.typeck_results().expr_ty(e),
+        );
 
         if let Some(snippet) = span.get_source_text(cx)
             // `is_from_proc_macro` will skip any `vec![]`. Let's not!
@@ -109,12 +110,12 @@ impl LateLintPass<'_> for SingleRangeInVecInit {
             let mut applicability = Applicability::MaybeIncorrect;
 
             // Generate snippets for start and end
-            let start_snippet = range.start.map(|e| {
-                snippet_with_context(cx, e.span, span.ctxt(), "..", &mut applicability).0
-            });
-            let end_snippet = range.end.map(|e| {
-                snippet_with_context(cx, e.span, span.ctxt(), "..", &mut applicability).0
-            });
+            let start_snippet = range
+                .start
+                .map(|e| snippet_with_context(cx, e.span, span.ctxt(), "..", &mut applicability).0);
+            let end_snippet = range
+                .end
+                .map(|e| snippet_with_context(cx, e.span, span.ctxt(), "..", &mut applicability).0);
 
             // Determine if we can suggest collect (for ranges that implement RangeStepIterator)
             let should_emit_every_value = if let Some(step_def_id) = cx.tcx.get_diagnostic_item(sym::range_step)
@@ -150,7 +151,8 @@ impl LateLintPass<'_> for SingleRangeInVecInit {
                         // Note: RangeTo (..end) and RangeFrom (start..) need special handling:
                         // - ..end is not an iterator, so we use (0..end)
                         // - start.. is infinite, so we don't suggest collect for it
-                        let collect_range_text = match (start_snippet.as_deref(), end_snippet.as_deref(), range.limits) {
+                        let collect_range_text = match (start_snippet.as_deref(), end_snippet.as_deref(), range.limits)
+                        {
                             (Some(start), Some(end), RangeLimits::HalfOpen) => format!("{start}..{end}"),
                             (Some(start), Some(end), RangeLimits::Closed) => format!("{start}..={end}"),
                             (None, Some(end), _) => format!("0..{end}"), // ..end becomes 0..end
