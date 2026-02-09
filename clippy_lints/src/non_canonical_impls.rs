@@ -342,14 +342,13 @@ fn expr_is_cmp<'tcx>(
                 // Allow `Some(Ordering::Equal)` (and other variants) for ZSTs
                 // Check if cmp_expr is an Ordering variant using source snippet
                 let source_map = cx.sess().source_map();
-                if let Ok(snippet) = source_map.span_to_snippet(cmp_expr.span) {
-                    if snippet.starts_with("Ordering::")
+                if let Ok(snippet) = source_map.span_to_snippet(cmp_expr.span)
+                    && (snippet.starts_with("Ordering::")
                         || snippet == "Equal"
                         || snippet == "Less"
-                        || snippet == "Greater"
-                    {
-                        return true;
-                    }
+                        || snippet == "Greater")
+                {
+                    return true;
                 }
             }
             false
@@ -363,19 +362,15 @@ fn expr_is_cmp<'tcx>(
         },
         // Allow `Some(Ordering::Equal)` (and other variants) for ZSTs
         ExprKind::Struct(qpath, fields, _) => {
-            if last_path_segment(qpath).ident.name == sym::Some {
-                if let Some(field) = fields.first() {
-                    let source_map = cx.sess().source_map();
-                    if let Ok(snippet) = source_map.span_to_snippet(field.expr.span) {
-                        if snippet.starts_with("Ordering::")
-                            || snippet == "Equal"
-                            || snippet == "Less"
-                            || snippet == "Greater"
-                        {
-                            return true;
-                        }
-                    }
-                }
+            if last_path_segment(qpath).ident.name == sym::Some
+                && let Some(field) = fields.first()
+                && let Ok(snippet) = cx.sess().source_map().span_to_snippet(field.expr.span)
+                && (snippet.starts_with("Ordering::")
+                    || snippet == "Equal"
+                    || snippet == "Less"
+                    || snippet == "Greater")
+            {
+                return true;
             }
             false
         },
