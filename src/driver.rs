@@ -317,7 +317,6 @@ fn main() -> ExitCode {
     })
 }
 
-#[must_use]
 fn help_message() -> &'static str {
     color_print::cstr!(
         "Checks a file to catch common mistakes and improve your Rust code.

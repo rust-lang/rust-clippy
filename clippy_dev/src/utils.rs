@@ -132,7 +132,6 @@ impl<'a> File<'a> {
 }
 
 /// Creates a `Command` for running cargo.
-#[must_use]
 pub fn cargo_cmd() -> Command {
     if let Some(path) = env::var_os("CARGO") {
         Command::new(path)
@@ -162,7 +161,6 @@ impl FromStr for Version {
 }
 impl Version {
     /// Displays the version as a rust version. i.e. `x.y.0`
-    #[must_use]
     pub fn rust_display(self) -> impl Display {
         struct X(Version);
         impl Display for X {
@@ -174,7 +172,6 @@ impl Version {
     }
 
     /// Displays the version as it should appear in clippy's toml files. i.e. `0.x.y`
-    #[must_use]
     pub fn toml_display(self) -> impl Display {
         struct X(Version);
         impl Display for X {
@@ -216,7 +213,6 @@ pub struct CargoPackage<'a> {
     pub not_a_platform_range: Range<usize>,
 }
 
-#[must_use]
 pub fn parse_cargo_package(s: &str) -> CargoPackage<'_> {
     let mut in_package = false;
     let mut in_platform_deps = false;
@@ -265,7 +261,6 @@ pub struct ClippyInfo {
     pub has_intellij_hook: bool,
 }
 impl ClippyInfo {
-    #[must_use]
     pub fn search_for_manifest() -> Self {
         let mut path = env::current_dir().expect("error reading the working directory");
         let mut buf = String::new();
@@ -305,12 +300,10 @@ pub enum UpdateStatus {
     Changed,
 }
 impl UpdateStatus {
-    #[must_use]
     pub fn from_changed(value: bool) -> Self {
         if value { Self::Changed } else { Self::Unchanged }
     }
 
-    #[must_use]
     pub fn is_changed(self) -> bool {
         matches!(self, Self::Changed)
     }
@@ -322,12 +315,10 @@ pub enum UpdateMode {
     Check,
 }
 impl UpdateMode {
-    #[must_use]
     pub fn from_check(check: bool) -> Self {
         if check { Self::Check } else { Self::Change }
     }
 
-    #[must_use]
     pub fn is_check(self) -> bool {
         matches!(self, Self::Check)
     }
@@ -489,7 +480,6 @@ pub fn run_exit_on_err(path: &(impl AsRef<Path> + ?Sized), cmd: &mut Command) {
 }
 
 #[track_caller]
-#[must_use]
 pub fn run_with_output(path: &(impl AsRef<Path> + ?Sized), cmd: &mut Command) -> Vec<u8> {
     fn f(path: &Path, cmd: &mut Command) -> Vec<u8> {
         let output = expect_action(

@@ -150,7 +150,6 @@ where
     }
 }
 
-#[must_use]
 pub fn help_message() -> &'static str {
     color_print::cstr!(
 "Checks a package to catch common mistakes and improve your Rust code.

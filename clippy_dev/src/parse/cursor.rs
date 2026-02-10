@@ -49,7 +49,6 @@ pub struct Cursor<'txt> {
     text: &'txt str,
 }
 impl<'txt> Cursor<'txt> {
-    #[must_use]
     pub fn new(text: &'txt str) -> Self {
         let mut inner = lex::Cursor::new(text, lex::FrontmatterAllowed::Yes);
         Self {
@@ -61,40 +60,34 @@ impl<'txt> Cursor<'txt> {
     }
 
     /// Gets the text of the captured token assuming it came from this cursor.
-    #[must_use]
     pub fn get_text(&self, capture: Capture) -> &'txt str {
         &self.text[capture.pos as usize..(capture.pos + capture.len) as usize]
     }
 
     /// Gets the text that makes up the next token in the stream, or the empty string if
     /// stream is exhausted.
-    #[must_use]
     pub fn peek_text(&self) -> &'txt str {
         &self.text[self.pos as usize..(self.pos + self.next_token.len) as usize]
     }
 
     /// Gets the length of the next token in bytes, or zero if the stream is exhausted.
-    #[must_use]
     pub fn peek_len(&self) -> u32 {
         self.next_token.len
     }
 
     /// Gets the next token in the stream, or [`TokenKind::Eof`] if the stream is
     /// exhausted.
-    #[must_use]
     pub fn peek(&self) -> TokenKind {
         self.next_token.kind
     }
 
     /// Gets the offset of the next token in the source string, or the string's length if
     /// the stream is exhausted.
-    #[must_use]
     pub fn pos(&self) -> u32 {
         self.pos
     }
 
     /// Gets whether the cursor has exhausted its input.
-    #[must_use]
     pub fn at_end(&self) -> bool {
         self.next_token.kind == TokenKind::Eof
     }
@@ -240,7 +233,6 @@ impl<'txt> Cursor<'txt> {
     ///
     /// Not generally suitable for multi-token patterns or patterns that can match
     /// nothing.
-    #[must_use]
     pub fn find_pat(&mut self, pat: Pat<'_>) -> bool {
         let mut capture = [].iter_mut();
         while !self.match_impl(pat, &mut capture) {
@@ -261,7 +253,6 @@ impl<'txt> Cursor<'txt> {
     /// unmodified.
     ///
     /// If the match fails the cursor will be positioned at the first failing token.
-    #[must_use]
     pub fn match_all(&mut self, pats: &[Pat<'_>], captures: &mut [Capture]) -> bool {
         let mut captures = captures.iter_mut();
         pats.iter().all(|&p| self.match_impl(p, &mut captures))
@@ -272,7 +263,6 @@ impl<'txt> Cursor<'txt> {
     ///
     /// If the pattern attempts to capture anything this will panic. If the match fails
     /// the cursor will be positioned at the first failing token.
-    #[must_use]
     pub fn match_pat(&mut self, pat: Pat<'_>) -> bool {
         self.match_impl(pat, &mut [].iter_mut())
     }
