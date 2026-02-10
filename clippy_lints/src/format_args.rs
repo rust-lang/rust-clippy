@@ -251,9 +251,9 @@ declare_clippy_lint! {
     /// let s: &str = "hello";
     /// println!("{}", s);
     /// ```
-    #[clippy::version = "1.89.0"]
+    #[clippy::version = "1.95.0"]
     pub REDUNDANT_REF_IN_FORMAT_ARGS,
-    nursery,
+    perf,
     "redundant reference in format args causes double reference"
 }
 

@@ -155,58 +155,94 @@ LL |     println!("{:?}", &*a);
    |                      ^^^ help: remove the redundant `&`: `*a`
 
 error: redundant reference in `println!` argument
-  --> tests/ui/redundant_ref_in_format_args.rs:75:27
+  --> tests/ui/redundant_ref_in_format_args.rs:74:20
+   |
+LL |     println!("{}", &(n));
+   |                    ^^^^ help: remove the redundant `&`: `(n)`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:75:22
+   |
+LL |     println!("{:?}", &(n + 1));
+   |                      ^^^^^^^^ help: remove the redundant `&`: `(n + 1)`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:76:20
+   |
+LL |     println!("{}", &(String::from("paren")));
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^ help: remove the redundant `&`: `(String::from("paren"))`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:79:20
+   |
+LL |     println!("{}", &{ n });
+   |                    ^^^^^^ help: remove the redundant `&`: `{ n }`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:80:22
+   |
+LL |     println!("{:?}", &{ n + 1 });
+   |                      ^^^^^^^^^^ help: remove the redundant `&`: `{ n + 1 }`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:81:20
+   |
+LL |     println!("{}", &{ String::from("block") });
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove the redundant `&`: `{ String::from("block") }`
+
+error: redundant reference in `println!` argument
+  --> tests/ui/redundant_ref_in_format_args.rs:86:27
    |
 LL |     println!("{0:1$.2$}", &v1, &v2, &v3);
    |                           ^^^ help: remove the redundant `&`: `v1`
 
 error: redundant reference in `println!` argument
-  --> tests/ui/redundant_ref_in_format_args.rs:75:32
+  --> tests/ui/redundant_ref_in_format_args.rs:86:32
    |
 LL |     println!("{0:1$.2$}", &v1, &v2, &v3);
    |                                ^^^ help: remove the redundant `&`: `v2`
 
 error: redundant reference in `println!` argument
-  --> tests/ui/redundant_ref_in_format_args.rs:75:37
+  --> tests/ui/redundant_ref_in_format_args.rs:86:37
    |
 LL |     println!("{0:1$.2$}", &v1, &v2, &v3);
    |                                     ^^^ help: remove the redundant `&`: `v3`
 
 error: redundant reference in `println!` argument
-  --> tests/ui/redundant_ref_in_format_args.rs:79:28
+  --> tests/ui/redundant_ref_in_format_args.rs:90:28
    |
 LL |     println!("{0:1$.2$?}", &v1, &v2, &v3);
    |                            ^^^ help: remove the redundant `&`: `v1`
 
 error: redundant reference in `println!` argument
-  --> tests/ui/redundant_ref_in_format_args.rs:79:33
+  --> tests/ui/redundant_ref_in_format_args.rs:90:33
    |
 LL |     println!("{0:1$.2$?}", &v1, &v2, &v3);
    |                                 ^^^ help: remove the redundant `&`: `v2`
 
 error: redundant reference in `println!` argument
-  --> tests/ui/redundant_ref_in_format_args.rs:79:38
+  --> tests/ui/redundant_ref_in_format_args.rs:90:38
    |
 LL |     println!("{0:1$.2$?}", &v1, &v2, &v3);
    |                                      ^^^ help: remove the redundant `&`: `v3`
 
 error: redundant reference in `println!` argument
-  --> tests/ui/redundant_ref_in_format_args.rs:83:27
+  --> tests/ui/redundant_ref_in_format_args.rs:94:27
    |
 LL |     println!("{0:1$.2$}", &v1, v2, v3);
    |                           ^^^ help: remove the redundant `&`: `v1`
 
 error: redundant reference in `println!` argument
-  --> tests/ui/redundant_ref_in_format_args.rs:84:31
+  --> tests/ui/redundant_ref_in_format_args.rs:95:31
    |
 LL |     println!("{0:1$.2$}", v1, &v2, v3);
    |                               ^^^ help: remove the redundant `&`: `v2`
 
 error: redundant reference in `println!` argument
-  --> tests/ui/redundant_ref_in_format_args.rs:85:35
+  --> tests/ui/redundant_ref_in_format_args.rs:96:35
    |
 LL |     println!("{0:1$.2$}", v1, v2, &v3);
    |                                   ^^^ help: remove the redundant `&`: `v3`
 
-error: aborting due to 32 previous errors
+error: aborting due to 38 previous errors
 

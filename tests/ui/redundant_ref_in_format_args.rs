@@ -69,6 +69,17 @@ fn main() {
     println!("{}", &*a); //~ redundant_ref_in_format_args
     println!("{:?}", &*a); //~ redundant_ref_in_format_args
 
+    // Parenthesized expressions: &(expr)
+    let n: i32 = 42;
+    println!("{}", &(n)); //~ redundant_ref_in_format_args
+    println!("{:?}", &(n + 1)); //~ redundant_ref_in_format_args
+    println!("{}", &(String::from("paren"))); //~ redundant_ref_in_format_args
+
+    // Block expressions: &{ expr }
+    println!("{}", &{ n }); //~ redundant_ref_in_format_args
+    println!("{:?}", &{ n + 1 }); //~ redundant_ref_in_format_args
+    println!("{}", &{ String::from("block") }); //~ redundant_ref_in_format_args
+
     let v1 = 42.12345;
     let v2 = 20;
     let v3 = 10;
@@ -83,4 +94,20 @@ fn main() {
     println!("{0:1$.2$}", &v1, v2, v3); //~ redundant_ref_in_format_args
     println!("{0:1$.2$}", v1, &v2, v3); //~ redundant_ref_in_format_args
     println!("{0:1$.2$}", v1, v2, &v3); //~ redundant_ref_in_format_args
+
+    // Macro wrapping println! - should not lint (println! call is inside macro expansion)
+    macro_rules! my_println {
+        ($($args:tt)*) => {
+            println!($($args)*);
+        };
+    }
+    my_println!("{}", &n);
+
+    // Arguments coming from a macro - should not lint (& comes from expansion)
+    macro_rules! make_ref {
+        ($e:expr) => {
+            &$e
+        };
+    }
+    println!("{}", make_ref!(n));
 }
