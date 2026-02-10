@@ -86,9 +86,9 @@ fn issue16044() {
 // Test cases for all range types
 fn issue16508() {
     // Half-open ranges with end only
-    [0; 10];
+    (0..10).collect::<std::vec::Vec<i32>>();
     //~^ single_range_in_vec_init
-    vec![0; 10];
+    (0..10).collect::<std::vec::Vec<i32>>();
     //~^ single_range_in_vec_init
 
     // Closed ranges

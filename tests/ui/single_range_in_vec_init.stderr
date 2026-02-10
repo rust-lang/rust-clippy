@@ -183,11 +183,6 @@ help: if you wanted a `Vec` that contains the entire range, try
 LL -     [..10];
 LL +     (0..10).collect::<std::vec::Vec<i32>>();
    |
-help: if you wanted an array of len 10, try
-   |
-LL -     [..10];
-LL +     [0; 10];
-   |
 
 error: a `Vec` of `Range` that is only one element
   --> tests/ui/single_range_in_vec_init.rs:91:5
@@ -199,11 +194,6 @@ help: if you wanted a `Vec` that contains the entire range, try
    |
 LL -     vec![..10];
 LL +     (0..10).collect::<std::vec::Vec<i32>>();
-   |
-help: if you wanted a `Vec` of len 10, try
-   |
-LL -     vec![..10];
-LL +     vec![0; 10];
    |
 
 error: an array of `Range` that is only one element

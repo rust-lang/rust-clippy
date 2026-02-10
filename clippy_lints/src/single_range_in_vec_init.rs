@@ -171,13 +171,10 @@ impl LateLintPass<'_> for SingleRangeInVecInit {
                         }
 
                         // Suggest using array/vec initialization for length
-                        if should_emit_of_len {
-                            // For ranges like `..end`, use 0 as default start
-                            // For ranges like `start..end`, use the start value
-                            let start_value = start_snippet.as_deref().unwrap_or("0");
-
-                            // For `..end`, end is the length
-                            // For `start..end`, end is the length (and start is the value to repeat)
+                        // Only for ranges with explicit start (not `..end`)
+                        if should_emit_of_len && start_snippet.is_some() {
+                            // For ranges like `start..end`, end is the length (and start is the value to repeat)
+                            let start_value = start_snippet.as_deref().expect("should have start value");
                             let len_value = end_snippet.as_deref().expect("should have end value");
 
                             diag.span_suggestion(
