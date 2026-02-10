@@ -13,7 +13,7 @@ use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_then};
 use clippy_utils::source::snippet_indent;
 use clippy_utils::ty::is_must_use_ty;
 use clippy_utils::visitors::for_each_expr_without_closures;
-use clippy_utils::{return_ty, trait_ref_of_method};
+use clippy_utils::{is_entrypoint_fn, return_ty, trait_ref_of_method};
 use rustc_hir::attrs::AttributeKind;
 use rustc_hir::find_attr;
 use rustc_span::Symbol;
@@ -211,6 +211,7 @@ fn check_must_use_candidate<'tcx>(
         || !cx.effective_visibilities.is_exported(item_id.def_id)
         || is_must_use_ty(cx, return_ty(cx, item_id))
         || item_span.from_expansion()
+        || is_entrypoint_fn(cx, item_id.def_id.to_def_id())
     {
         return;
     }
