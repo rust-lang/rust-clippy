@@ -5120,7 +5120,7 @@ For example, <code>[_, _, _, e, ..]</code> is a slice pattern with 4 elements.</
 <a href="#indexing_slicing" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-restriction">restriction</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for usage of indexing or slicing that may panic at runtime.</p>
 <p>This lint does not report on indexing or slicing operations
-that always panic, clippy’s <code>out_of_bound_indexing</code> already
+that always panic, <a href="#out_of_bounds_indexing">out_of_bounds_indexing</a> already
 handles those cases.</p>
 <h3>Why restrict this?</h3>
 <p>To avoid implicit panics from indexing and slicing.</p>
