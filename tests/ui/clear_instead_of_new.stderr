@@ -52,13 +52,13 @@ LL |     list = LinkedList::new();
 error: assigning a new empty collection to `v4`
   --> tests/ui/clear_instead_of_new.rs:82:5
    |
-LL |     v4 = Vec::new(); // Should still trigger
+LL |     v4 = Vec::new();
    |     ^^^^^^^^^^^^^^^ help: consider using `.clear()` instead: `v4.clear()`
 
 error: assigning a new empty collection to `v5`
   --> tests/ui/clear_instead_of_new.rs:88:5
    |
-LL |     v5 = Vec::new(); // OK - with_capacity is different
+LL |     v5 = Vec::new();
    |     ^^^^^^^^^^^^^^^ help: consider using `.clear()` instead: `v5.clear()`
 
 error: assigning a new empty collection to `v`

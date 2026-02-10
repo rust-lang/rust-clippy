@@ -38,26 +38,23 @@ declare_lint_pass!(ClearInsteadOfNew => [CLEAR_INSTEAD_OF_NEW]);
 impl<'tcx> LateLintPass<'tcx> for ClearInsteadOfNew {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         // Look for assignment expressions: x = Collection::new()
-        if let ExprKind::Assign(target, value, _) = expr.kind {
-            if let ExprKind::Path(QPath::Resolved(None, target_path)) = target.kind {
-                if let Some(target_segment) = target_path.segments.first() {
-                    if let ExprKind::Call(func, args) = value.kind {
-                        if args.is_empty() && is_collection_new_call(cx, func) {
-                            let var_name = target_segment.ident.as_str();
-
-                            span_lint_and_sugg(
-                                cx,
-                                CLEAR_INSTEAD_OF_NEW,
-                                expr.span,
-                                format!("assigning a new empty collection to `{var_name}`"),
-                                "consider using `.clear()` instead",
-                                format!("{var_name}.clear()"),
-                                Applicability::MaybeIncorrect,
-                            );
-                        }
-                    }
-                }
-            }
+        if let ExprKind::Assign(target, value, _) = expr.kind
+            && let ExprKind::Path(QPath::Resolved(None, target_path)) = target.kind
+            && let Some(target_segment) = target_path.segments.first()
+            && let ExprKind::Call(func, args) = value.kind
+            && args.is_empty()
+            && is_collection_new_call(cx, func)
+        {
+            let var_name = target_segment.ident.as_str();
+            span_lint_and_sugg(
+                cx,
+                CLEAR_INSTEAD_OF_NEW,
+                expr.span,
+                format!("assigning a new empty collection to `{var_name}`"),
+                "consider using `.clear()` instead",
+                format!("{var_name}.clear()"),
+                Applicability::MachineApplicable,
+            );
         }
     }
 }

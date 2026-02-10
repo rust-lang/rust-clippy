@@ -79,13 +79,13 @@ fn should_not_trigger() {
     // With type parameters
     let mut v4: Vec<i32> = Vec::new();
     v4.push(1);
-    v4 = Vec::new(); // Should still trigger
+    v4 = Vec::new();
     //~^ ERROR: assigning a new empty collection to `v4`
     //~| HELP: consider using `.clear()` instead
 
     // Collection with capacity - should not trigger (different from new())
     let mut v5: Vec<i32> = Vec::with_capacity(10);
-    v5 = Vec::new(); // OK - with_capacity is different
+    v5 = Vec::new();
     //~^ ERROR: assigning a new empty collection to `v5`
     //~| HELP: consider using `.clear()` instead
 }
