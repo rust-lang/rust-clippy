@@ -14,6 +14,11 @@ fn main() {
     println!("{}", &string); //~ redundant_ref_in_format_args
     println!("{:?}", &string); //~ redundant_ref_in_format_args
     println!("{}", &&string); //~ redundant_ref_in_format_args
+    println!("{}", &&string[..2]); //~ redundant_ref_in_format_args
+    println!("{:?}", &&string[..2]); //~ redundant_ref_in_format_args
+    // these are ok
+    println!("{}", &string[..2]);
+    println!("{:?}", &string[..2]);
 
     let n: i32 = 42;
     println!("{}", &n); //~ redundant_ref_in_format_args
@@ -45,7 +50,7 @@ fn main() {
 
     // &slice[0..1] with {:?}: inner type [i32] is unsized, so we don't suggest removing &
     println!("{:?}", &slice[0..1]); // don't change
-    println!("{:?}", &&slice[0..1]); // should change, but out of scope
+    println!("{:?}", &&slice[0..1]); //~ redundant_ref_in_format_args
 
     // Pointer formatting ({:p}): never suggest any changes to it
     let x: i32 = 0;

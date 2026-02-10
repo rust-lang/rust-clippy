@@ -12,11 +12,11 @@ use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeDef;
 use clippy_utils::source::{SpanRangeExt, snippet, snippet_opt};
 use clippy_utils::ty::implements_trait;
-use clippy_utils::{is_from_proc_macro, is_in_test, peel_hir_expr_refs, trait_ref_of_method};
+use clippy_utils::{is_from_proc_macro, is_in_test, peel_hir_expr_while, trait_ref_of_method};
 use itertools::Itertools;
 use rustc_ast::{
-    FormatArgPosition, FormatArgPositionKind, FormatArgsPiece, FormatArgumentKind, FormatCount, FormatOptions,
-    FormatPlaceholder, FormatTrait,
+    BorrowKind, FormatArgPosition, FormatArgPositionKind, FormatArgsPiece, FormatArgumentKind, FormatCount,
+    FormatOptions, FormatPlaceholder, FormatTrait,
 };
 use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
@@ -259,12 +259,12 @@ declare_clippy_lint! {
 
 impl_lint_pass!(FormatArgs<'_> => [
     FORMAT_IN_FORMAT_ARGS,
+    POINTER_FORMAT,
+    REDUNDANT_REF_IN_FORMAT_ARGS,
     TO_STRING_IN_FORMAT_ARGS,
     UNINLINED_FORMAT_ARGS,
     UNNECESSARY_DEBUG_FORMATTING,
     UNUSED_FORMAT_SPECS,
-    POINTER_FORMAT,
-    REDUNDANT_REF_IN_FORMAT_ARGS,
 ]);
 
 #[expect(clippy::struct_field_names)]
@@ -388,13 +388,21 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                 FormatTrait::Debug => self.cx.tcx.get_diagnostic_item(sym::Debug),
                 _ => None,
             }
-            && let (inner, count) = peel_hir_expr_refs(arg_expr)
-            && count > 0
-            && let inner_ty = self.cx.typeck_results().expr_ty(inner)
             && let Some(sized_trait) = self.cx.tcx.lang_items().sized_trait()
-            && implements_trait(self.cx, inner_ty, sized_trait, &[])
-            && implements_trait(self.cx, inner_ty, fmt_trait, &[])
-            && let Some(inner_snippet) = snippet_opt(self.cx, inner.span)
+            && let peeled_expr = peel_hir_expr_while(arg_expr, |e| {
+                // Need to handle `&&&T` to `&T` when a single ref is still required
+                if let ExprKind::AddrOf(BorrowKind::Ref, _, e) = e.kind
+                    && let ty = self.cx.typeck_results().expr_ty(e)
+                    && implements_trait(self.cx, ty, sized_trait, &[])
+                    && implements_trait(self.cx, ty, fmt_trait, &[])
+                {
+                    Some(e)
+                } else {
+                    None
+                }
+            })
+            && !std::ptr::eq(arg_expr, peeled_expr)
+            && let Some(peeled_snippet) = snippet_opt(self.cx, peeled_expr.span)
         {
             let name = self.cx.tcx.item_name(self.macro_call.def_id);
             span_lint_and_sugg(
@@ -403,7 +411,7 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                 arg_expr.span,
                 format!("redundant reference in `{name}!` argument"),
                 "remove the redundant `&`",
-                inner_snippet,
+                peeled_snippet,
                 Applicability::MachineApplicable,
             );
         }
