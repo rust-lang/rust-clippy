@@ -135,12 +135,12 @@ impl LateLintPass<'_> for SingleRangeInVecInit {
                 && let LitKind::Int(.., suffix_type) = lit_kind.node
                 && let LitIntType::Unsigned(UintTy::Usize) | LitIntType::Unsuffixed = suffix_type
             {
-                true
+                Some(end_expr)
             } else {
-                false
+                None
             };
 
-            if should_emit_every_value || should_emit_of_len {
+            if should_emit_every_value || should_emit_of_len.is_some() {
                 span_lint_and_then(
                     cx,
                     SINGLE_RANGE_IN_VEC_INIT,
@@ -171,16 +171,17 @@ impl LateLintPass<'_> for SingleRangeInVecInit {
                         }
 
                         // Suggest using array/vec initialization for length
-                        // Only for ranges with explicit start (not `..end`)
-                        if should_emit_of_len && start_snippet.is_some() {
-                            // For ranges like `start..end`, end is the length (and start is the value to repeat)
-                            let start_value = start_snippet.as_deref().expect("should have start value");
-                            let len_value = end_snippet.as_deref().expect("should have end value");
+                        // Only for ranges with explicit start (not `..end`) and when end is a usize literal
+                        if let Some(len_expr) = should_emit_of_len
+                            && let Some(start_value) = start_snippet
+                        {
+                            let len_snippet =
+                                snippet_with_context(cx, len_expr.span, span.ctxt(), "..", &mut applicability).0;
 
                             diag.span_suggestion(
                                 inner_expr.span,
-                                format!("if you wanted {suggested_type} of len {len_value}, try"),
-                                format!("{start_value}; {len_value}"),
+                                format!("if you wanted {suggested_type} of len {len_snippet}, try"),
+                                format!("{start_value}; {len_snippet}"),
                                 applicability,
                             );
                         }
