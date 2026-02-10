@@ -96,4 +96,10 @@ fn issue16508() {
     //~^ single_range_in_vec_init
     vec![0..=10];
     //~^ single_range_in_vec_init
+
+    // RangeTo Closed (..=end)
+    [..=10];
+    //~^ single_range_in_vec_init
+    vec![..=10];
+    //~^ single_range_in_vec_init
 }

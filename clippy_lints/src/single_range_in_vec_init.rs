@@ -150,18 +150,19 @@ impl LateLintPass<'_> for SingleRangeInVecInit {
                         // Build the collect suggestion text
                         // Note: RangeTo (..end) and RangeFrom (start..) need special handling:
                         // - ..end is not an iterator, so we use (0..end)
+                        // - ..=end should become (0..=end)
                         // - start.. is infinite, so we don't suggest collect for it
-                        let collect_range_text = match (start_snippet.as_deref(), end_snippet.as_deref(), range.limits)
-                        {
-                            (Some(start), Some(end), RangeLimits::HalfOpen) => format!("{start}..{end}"),
-                            (Some(start), Some(end), RangeLimits::Closed) => format!("{start}..={end}"),
-                            (None, Some(end), _) => format!("0..{end}"), // ..end becomes 0..end
-                            // start.. is infinite, skip collect suggestion for it
-                            _ => return,
-                        };
-
-                        // Suggest using .collect() for the entire range
                         if should_emit_every_value && !is_no_std_crate(cx) {
+                            let collect_range_text =
+                                match (start_snippet.as_deref(), end_snippet.as_deref(), range.limits) {
+                                    (Some(start), Some(end), RangeLimits::HalfOpen) => format!("{start}..{end}"),
+                                    (Some(start), Some(end), RangeLimits::Closed) => format!("{start}..={end}"),
+                                    (None, Some(end), RangeLimits::HalfOpen) => format!("0..{end}"),
+                                    (None, Some(end), RangeLimits::Closed) => format!("0..={end}"),
+                                    // start.. is infinite, skip collect suggestion for it
+                                    _ => return,
+                                };
+
                             diag.span_suggestion(
                                 span,
                                 "if you wanted a `Vec` that contains the entire range, try",
