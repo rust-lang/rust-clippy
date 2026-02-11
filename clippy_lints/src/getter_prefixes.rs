@@ -9,9 +9,11 @@ use rustc_span::Span;
 use rustc_span::symbol::kw;
 
 declare_clippy_lint! {
-    /// **What it does:** Checks for the `get_` prefix on public getters.
+    /// ### What it does
+    /// Checks for the `get_` prefix on public getters.
     ///
-    /// **Why is this bad?** The Rust API Guidelines section on naming
+    /// ### Why is this bad?
+    /// The Rust API Guidelines section on naming
     /// [specifies](https://rust-lang-nursery.github.io/api-guidelines/naming.html#getter-names-follow-rust-convention-c-getter)
     /// that the `get_` prefix is not used for getters in Rust code unless
     /// there is a single and obvious thing that could reasonably be gotten by
@@ -25,18 +27,17 @@ declare_clippy_lint! {
     /// - `get_unchecked_mut`
     /// - `get_ref`
     ///
-    /// **Known problems:** None.
-    ///
-    /// **Example:**
-    ///
-    /// ```rust
+    /// ### Example
+    /// ```no_run
     /// // Bad
     /// impl B {
     ///     pub fn get_id(&self) -> usize {
     ///         self.id
     ///     }
     /// }
-    ///
+    /// ```
+    /// Use instead:
+    /// ```no_run
     /// // Good
     /// impl G {
     ///     pub fn id(&self) -> usize {
