@@ -11,16 +11,16 @@ LL | pub fn returns_unit_error() -> Result<u32, ()> {
 error: this returns a `Result<_, ()>`
   --> tests/ui/result_unit_error.rs:14:5
    |
-LL |     fn that_error(&self) -> Result<bool, ()>;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |     fn get_that_error(&self) -> Result<bool, ()>;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = help: use a custom `Error` type instead
 
 error: this returns a `Result<_, ()>`
   --> tests/ui/result_unit_error.rs:17:5
    |
-LL |     fn this_one_too(&self) -> Result<bool, ()> {
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |     fn get_this_one_too(&self) -> Result<bool, ()> {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = help: use a custom `Error` type instead
 

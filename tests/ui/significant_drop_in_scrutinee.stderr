@@ -22,13 +22,13 @@ LL ~     match value {
 error: temporary with significant `Drop` in `match` scrutinee will live until the end of the `match` expression
   --> tests/ui/significant_drop_in_scrutinee.rs:147:11
    |
-LL |     match s.lock_m().get() {
-   |           ^^^^^^^^^^^^^^^^
+LL |     match s.lock_m().get_the_value() {
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^
 ...
-LL |             println!("{}", s.lock_m().get());
+LL |             println!("{}", s.lock_m().get_the_value());
    |                            ---------- another value with significant `Drop` created here
 ...
-LL |             println!("{}", s.lock_m().get());
+LL |             println!("{}", s.lock_m().get_the_value());
    |                            ---------- another value with significant `Drop` created here
 ...
 LL |     }
@@ -37,20 +37,20 @@ LL |     }
    = note: this might lead to deadlocks or other unexpected behavior
 help: try moving the temporary above the match
    |
-LL ~     let value = s.lock_m().get();
+LL ~     let value = s.lock_m().get_the_value();
 LL ~     match value {
    |
 
 error: temporary with significant `Drop` in `match` scrutinee will live until the end of the `match` expression
   --> tests/ui/significant_drop_in_scrutinee.rs:169:11
    |
-LL |     match s.lock_m_m().get() {
-   |           ^^^^^^^^^^^^^^^^^^
+LL |     match s.lock_m_m().get_the_value() {
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ...
-LL |             println!("{}", s.lock_m().get());
+LL |             println!("{}", s.lock_m().get_the_value());
    |                            ---------- another value with significant `Drop` created here
 ...
-LL |             println!("{}", s.lock_m().get());
+LL |             println!("{}", s.lock_m().get_the_value());
    |                            ---------- another value with significant `Drop` created here
 ...
 LL |     }
@@ -59,7 +59,7 @@ LL |     }
    = note: this might lead to deadlocks or other unexpected behavior
 help: try moving the temporary above the match
    |
-LL ~     let value = s.lock_m_m().get();
+LL ~     let value = s.lock_m_m().get_the_value();
 LL ~     match value {
    |
 

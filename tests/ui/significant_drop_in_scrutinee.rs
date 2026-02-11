@@ -101,7 +101,7 @@ struct MutexGuardWrapper<'a> {
 }
 
 impl<'a> MutexGuardWrapper<'a> {
-    fn get(&self) -> u64 {
+    fn get_the_value(&self) -> u64 {
         *self.mg.deref()
     }
 }
@@ -111,7 +111,7 @@ struct MutexGuardWrapperWrapper<'a> {
 }
 
 impl<'a> MutexGuardWrapperWrapper<'a> {
-    fn get(&self) -> u64 {
+    fn get_the_value(&self) -> u64 {
         *self.mg.mg.deref()
     }
 }
@@ -144,15 +144,15 @@ fn should_trigger_lint_with_wrapped_mutex() {
     // Should trigger lint because a temporary contains a type with a significant drop and its
     // lifetime is not obvious. Additionally, it is not obvious from looking at the scrutinee that
     // the temporary contains such a type, making it potentially even more surprising.
-    match s.lock_m().get() {
+    match s.lock_m().get_the_value() {
         //~^ significant_drop_in_scrutinee
         1 => {
             println!("Got 1. Is it still 1?");
-            println!("{}", s.lock_m().get());
+            println!("{}", s.lock_m().get_the_value());
         },
         2 => {
             println!("Got 2. Is it still 2?");
-            println!("{}", s.lock_m().get());
+            println!("{}", s.lock_m().get_the_value());
         },
         _ => {},
     }
@@ -166,15 +166,15 @@ fn should_trigger_lint_with_double_wrapped_mutex() {
     // significant drop and its lifetime is not obvious. Additionally, it is not obvious from
     // looking at the scrutinee that the temporary contains such a type, making it potentially even
     // more surprising.
-    match s.lock_m_m().get() {
+    match s.lock_m_m().get_the_value() {
         //~^ significant_drop_in_scrutinee
         1 => {
             println!("Got 1. Is it still 1?");
-            println!("{}", s.lock_m().get());
+            println!("{}", s.lock_m().get_the_value());
         },
         2 => {
             println!("Got 2. Is it still 2?");
-            println!("{}", s.lock_m().get());
+            println!("{}", s.lock_m().get_the_value());
         },
         _ => {},
     }

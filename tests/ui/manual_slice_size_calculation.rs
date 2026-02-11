@@ -77,7 +77,7 @@ fn issue_14802() {
     }
 
     impl IcedSlice {
-        fn len(&self) -> usize {
+        fn get_len(&self) -> usize {
             self.dst.len() * size_of::<u8>()
             //~^ manual_slice_size_calculation
         }

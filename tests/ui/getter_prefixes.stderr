@@ -1,17 +1,65 @@
 error: prefixing a getter with `get_` does not follow naming conventions
-  --> tests/ui/getter_prefixes.rs:6:8
+  --> tests/ui/getter_prefixes.rs:17:12
    |
-LL |     fn get_id(&self) -> usize;
-   |        ^^^^^^ help: replace it with: `id`
+LL |     pub fn get_return_stmt(&self) -> &str {
+   |            ^^^^^^^^^^^^^^^ help: replace it with: `return_stmt`
    |
    = note: `-D clippy::getter-prefixes` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::getter_prefixes)]`
 
 error: prefixing a getter with `get_` does not follow naming conventions
-  --> tests/ui/getter_prefixes.rs:61:12
+  --> tests/ui/getter_prefixes.rs:22:12
    |
-LL |     pub fn get_id(&self) -> usize {
-   |            ^^^^^^ help: replace it with: `id`
+LL |     pub fn get_lit(self) -> Self {
+   |            ^^^^^^^ help: replace it with: `lit`
 
-error: aborting due to 2 previous errors
+error: prefixing a getter with `get_` does not follow naming conventions
+  --> tests/ui/getter_prefixes.rs:27:12
+   |
+LL |     pub fn get_array(&self) -> [&str; 2] {
+   |            ^^^^^^^^^ help: replace it with: `array`
+
+error: prefixing a getter with `get_` does not follow naming conventions
+  --> tests/ui/getter_prefixes.rs:32:12
+   |
+LL |     pub fn get_tuple(&self) -> (&str, &i32) {
+   |            ^^^^^^^^^ help: replace it with: `tuple`
+
+error: prefixing a getter with `get_` does not follow naming conventions
+  --> tests/ui/getter_prefixes.rs:37:12
+   |
+LL |     pub fn get_cast_value(&self) -> i64 {
+   |            ^^^^^^^^^^^^^^ help: replace it with: `cast_value`
+
+error: prefixing a getter with `get_` does not follow naming conventions
+  --> tests/ui/getter_prefixes.rs:42:12
+   |
+LL |     pub fn get_parens_value(&self) -> &i32 {
+   |            ^^^^^^^^^^^^^^^^ help: replace it with: `parens_value`
+
+error: prefixing a getter with `get_` does not follow naming conventions
+  --> tests/ui/getter_prefixes.rs:47:12
+   |
+LL |     pub fn get_unary(&self) -> i32 {
+   |            ^^^^^^^^^ help: replace it with: `unary`
+
+error: prefixing a getter with `get_` does not follow naming conventions
+  --> tests/ui/getter_prefixes.rs:52:12
+   |
+LL |     pub fn get_binary(&self) -> i32 {
+   |            ^^^^^^^^^^ help: replace it with: `binary`
+
+error: prefixing a getter with `get_` does not follow naming conventions
+  --> tests/ui/getter_prefixes.rs:57:12
+   |
+LL |     pub fn get_method_call(&self) -> Option<&usize> {
+   |            ^^^^^^^^^^^^^^^ help: replace it with: `method_call`
+
+error: prefixing a getter with `get_` does not follow naming conventions
+  --> tests/ui/getter_prefixes.rs:62:12
+   |
+LL |     pub fn get_index_value(&self) -> usize {
+   |            ^^^^^^^^^^^^^^^ help: replace it with: `index_value`
+
+error: aborting due to 10 previous errors
 
