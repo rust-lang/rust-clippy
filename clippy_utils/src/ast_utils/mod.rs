@@ -795,14 +795,14 @@ pub fn eq_const_item_rhs(l: &ConstItemRhsKind, r: &ConstItemRhsKind) -> bool {
     use ConstItemRhsKind::*;
     match (l, r) {
         (TypeConst { rhs: Some(l) }, TypeConst { rhs: Some(r) }) => eq_anon_const(l, r),
-        (TypeConst { rhs: None }, TypeConst { rhs: None }) => true,
-        (TypeConst { rhs: Some(..) }, TypeConst { rhs: None }) => false,
-        (TypeConst { rhs: None }, TypeConst { rhs: Some(..) }) => false,
+        (TypeConst { rhs: None }, TypeConst { rhs: None }) | (Body { rhs: None }, Body { rhs: None }) => true,
         (Body { rhs: Some(l) }, Body { rhs: Some(r) }) => eq_expr(l, r),
-        (Body { rhs: None }, Body { rhs: None }) => true,
-        (Body { rhs: None }, Body { rhs: Some(..) }) => false,
-        (Body { rhs: Some(..) }, Body { rhs: None }) => false,
-        (TypeConst {..}, Body { .. }) | ( Body { .. }, TypeConst { .. }) => false,
+        (TypeConst { rhs: Some(..) }, TypeConst { rhs: None })
+        | (TypeConst { rhs: None }, TypeConst { rhs: Some(..) })
+        | (Body { rhs: None }, Body { rhs: Some(..) })
+        | (Body { rhs: Some(..) }, Body { rhs: None })
+        | (TypeConst { .. }, Body { .. })
+        | (Body { .. }, TypeConst { .. }) => false,
     }
 }
 
