@@ -253,7 +253,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.95.0"]
     pub UNNECESSARY_TRAILING_COMMA,
-    style,
+    pedantic,
     "unnecessary trailing comma before closing parenthesis"
 }
 
