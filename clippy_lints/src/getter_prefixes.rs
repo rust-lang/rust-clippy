@@ -29,8 +29,12 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```no_run
-    /// // Bad
+    /// struct B {
+    ///     id: usize
+    /// }
+    ///
     /// impl B {
+    ///     // Bad
     ///     pub fn get_id(&self) -> usize {
     ///         self.id
     ///     }
@@ -38,15 +42,17 @@ declare_clippy_lint! {
     /// ```
     /// Use instead:
     /// ```no_run
-    /// // Good
+    /// struct G {
+    ///     id: usize
+    /// }
+    ///
     /// impl G {
+    ///     // Good
     ///     pub fn id(&self) -> usize {
     ///         self.id
     ///     }
-    /// }
     ///
-    /// // Also allowed
-    /// impl A {
+    ///     // Also allowed
     ///     pub fn get(&self) -> usize {
     ///         self.id
     ///     }
