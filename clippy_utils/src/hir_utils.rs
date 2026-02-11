@@ -686,7 +686,16 @@ impl HirEqInterExpr<'_, '_, '_> {
                         .zip(*args_b)
                         .all(|(arg_a, arg_b)| self.eq_const_arg(arg_a, arg_b))
             },
-            (ConstArgKind::Literal(kind_l), ConstArgKind::Literal(kind_r)) => kind_l == kind_r,
+            (
+                ConstArgKind::Literal {
+                    lit: kind_l,
+                    negated: negated_l,
+                },
+                ConstArgKind::Literal {
+                    lit: kind_r,
+                    negated: negated_r,
+                },
+            ) => kind_l == kind_r && negated_l == negated_r,
             (ConstArgKind::Array(l_arr), ConstArgKind::Array(r_arr)) => {
                 l_arr.elems.len() == r_arr.elems.len()
                     && l_arr
@@ -703,7 +712,7 @@ impl HirEqInterExpr<'_, '_, '_> {
                 | ConstArgKind::TupleCall(..)
                 | ConstArgKind::Infer(..)
                 | ConstArgKind::Struct(..)
-                | ConstArgKind::Literal(..)
+                | ConstArgKind::Literal { .. }
                 | ConstArgKind::Array(..)
                 | ConstArgKind::Error(..),
                 _,
@@ -1599,7 +1608,10 @@ impl<'a, 'tcx> SpanlessHash<'a, 'tcx> {
                 }
             },
             ConstArgKind::Infer(..) | ConstArgKind::Error(..) => {},
-            ConstArgKind::Literal(lit) => lit.hash(&mut self.s),
+            ConstArgKind::Literal { lit, negated } => {
+                lit.hash(&mut self.s);
+                negated.hash(&mut self.s);
+            },
         }
     }
 

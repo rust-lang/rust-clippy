@@ -17,7 +17,7 @@ use rustc_lint::LateContext;
 use rustc_middle::mir::ConstValue;
 use rustc_middle::mir::interpret::Scalar;
 use rustc_middle::traits::EvaluationResult;
-use rustc_middle::ty::adjustment::{Adjust, Adjustment};
+use rustc_middle::ty::adjustment::{Adjust, Adjustment, DerefAdjustKind};
 use rustc_middle::ty::layout::ValidityRequirement;
 use rustc_middle::ty::{
     self, AdtDef, AliasTy, AssocItem, AssocTag, Binder, BoundRegion, BoundVarIndexKind, FnSig, GenericArg,
@@ -29,8 +29,11 @@ use rustc_span::{DUMMY_SP, Span, Symbol, sym};
 use rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt as _;
 use rustc_trait_selection::traits::query::normalize::QueryNormalizeExt;
 use rustc_trait_selection::traits::{Obligation, ObligationCause};
+#[cfg(bootstrap)]
 use std::assert_matches::debug_assert_matches;
 use std::collections::hash_map::Entry;
+#[cfg(not(bootstrap))]
+use std::debug_assert_matches;
 use std::{iter, mem};
 
 use crate::paths::{PathNS, lookup_path_str};
@@ -779,15 +782,15 @@ pub fn is_c_void(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
     }
 }
 
-pub fn for_each_top_level_late_bound_region<B>(
-    ty: Ty<'_>,
-    f: impl FnMut(BoundRegion) -> ControlFlow<B>,
+pub fn for_each_top_level_late_bound_region<'cx, B>(
+    ty: Ty<'cx>,
+    f: impl FnMut(BoundRegion<'cx>) -> ControlFlow<B>,
 ) -> ControlFlow<B> {
     struct V<F> {
         index: u32,
         f: F,
     }
-    impl<'tcx, B, F: FnMut(BoundRegion) -> ControlFlow<B>> TypeVisitor<TyCtxt<'tcx>> for V<F> {
+    impl<'tcx, B, F: FnMut(BoundRegion<'tcx>) -> ControlFlow<B>> TypeVisitor<TyCtxt<'tcx>> for V<F> {
         type Result = ControlFlow<B>;
         fn visit_region(&mut self, r: Region<'tcx>) -> Self::Result {
             if let RegionKind::ReBound(BoundVarIndexKind::Bound(idx), bound) = r.kind()
@@ -1241,7 +1244,7 @@ pub fn get_adt_inherent_method<'a>(cx: &'a LateContext<'_>, ty: Ty<'_>, method_n
                 .associated_items(did)
                 .filter_by_name_unhygienic(method_name)
                 .next()
-                .filter(|item| item.as_tag() == AssocTag::Fn)
+                .filter(|item| item.tag() == AssocTag::Fn)
         })
     } else {
         None
@@ -1342,6 +1345,7 @@ pub fn get_field_idx_by_name(ty: Ty<'_>, name: Symbol) -> Option<usize> {
 pub fn adjust_derefs_manually_drop<'tcx>(adjustments: &'tcx [Adjustment<'tcx>], mut ty: Ty<'tcx>) -> bool {
     adjustments.iter().any(|a| {
         let ty = mem::replace(&mut ty, a.target);
-        matches!(a.kind, Adjust::Deref(Some(op)) if op.mutbl == Mutability::Mut) && is_manually_drop(ty)
+        matches!(a.kind, Adjust::Deref(DerefAdjustKind::Overloaded(op)) if op.mutbl == Mutability::Mut)
+            && is_manually_drop(ty)
     })
 }

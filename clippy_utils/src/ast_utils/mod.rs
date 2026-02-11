@@ -355,7 +355,7 @@ pub fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
                 ident: li,
                 generics: lg,
                 ty: lt,
-                rhs: lb,
+                rhs_kind: lb,
                 define_opaque: _,
             }),
             Const(box ConstItem {
@@ -363,7 +363,7 @@ pub fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
                 ident: ri,
                 generics: rg,
                 ty: rt,
-                rhs: rb,
+                rhs_kind: rb,
                 define_opaque: _,
             }),
         ) => {
@@ -371,7 +371,7 @@ pub fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
                 && eq_id(*li, *ri)
                 && eq_generics(lg, rg)
                 && eq_ty(lt, rt)
-                && both(lb.as_ref(), rb.as_ref(), eq_const_item_rhs)
+                && both(Some(lb), Some(rb), eq_const_item_rhs)
         },
         (
             Fn(box ast::Fn {
@@ -615,7 +615,7 @@ pub fn eq_assoc_item_kind(l: &AssocItemKind, r: &AssocItemKind) -> bool {
                 ident: li,
                 generics: lg,
                 ty: lt,
-                rhs: lb,
+                rhs_kind: lb,
                 define_opaque: _,
             }),
             Const(box ConstItem {
@@ -623,7 +623,7 @@ pub fn eq_assoc_item_kind(l: &AssocItemKind, r: &AssocItemKind) -> bool {
                 ident: ri,
                 generics: rg,
                 ty: rt,
-                rhs: rb,
+                rhs_kind: rb,
                 define_opaque: _,
             }),
         ) => {
@@ -631,7 +631,7 @@ pub fn eq_assoc_item_kind(l: &AssocItemKind, r: &AssocItemKind) -> bool {
                 && eq_id(*li, *ri)
                 && eq_generics(lg, rg)
                 && eq_ty(lt, rt)
-                && both(lb.as_ref(), rb.as_ref(), eq_const_item_rhs)
+                && both(Some(lb), Some(rb), eq_const_item_rhs)
         },
         (
             Fn(box ast::Fn {
@@ -791,12 +791,18 @@ pub fn eq_anon_const(l: &AnonConst, r: &AnonConst) -> bool {
     eq_expr(&l.value, &r.value)
 }
 
-pub fn eq_const_item_rhs(l: &ConstItemRhs, r: &ConstItemRhs) -> bool {
-    use ConstItemRhs::*;
+pub fn eq_const_item_rhs(l: &ConstItemRhsKind, r: &ConstItemRhsKind) -> bool {
+    use ConstItemRhsKind::*;
     match (l, r) {
-        (TypeConst(l), TypeConst(r)) => eq_anon_const(l, r),
-        (Body(l), Body(r)) => eq_expr(l, r),
-        (TypeConst(..), Body(..)) | (Body(..), TypeConst(..)) => false,
+        (TypeConst { rhs: Some(l) }, TypeConst { rhs: Some(r) }) => eq_anon_const(l, r),
+        (TypeConst { rhs: None }, TypeConst { rhs: None }) | (Body { rhs: None }, Body { rhs: None }) => true,
+        (Body { rhs: Some(l) }, Body { rhs: Some(r) }) => eq_expr(l, r),
+        (TypeConst { rhs: Some(..) }, TypeConst { rhs: None })
+        | (TypeConst { rhs: None }, TypeConst { rhs: Some(..) })
+        | (Body { rhs: None }, Body { rhs: Some(..) })
+        | (Body { rhs: Some(..) }, Body { rhs: None })
+        | (TypeConst { .. }, Body { .. })
+        | (Body { .. }, TypeConst { .. }) => false,
     }
 }
 
