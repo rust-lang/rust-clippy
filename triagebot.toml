@@ -55,6 +55,11 @@ labels = ["S-waiting-on-concerns"]
 # Amend a review to include a link to what was changed since the review
 [review-changes-since]
 
+# Adds a "View all comments" link on the issue/PR body that shows all the comments of it
+# Documentation at: https://forge.rust-lang.org/triagebot/view-all-comments-link.html
+[view-all-comments-link]
+threshold = 20
+
 [assign]
 contributing_url = "https://github.com/rust-lang/rust-clippy/blob/master/CONTRIBUTING.md"
 users_on_vacation = [
