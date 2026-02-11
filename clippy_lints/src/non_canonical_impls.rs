@@ -3,6 +3,7 @@ use clippy_utils::res::{MaybeDef, MaybeQPath};
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{is_from_proc_macro, last_path_segment, std_or_core};
 use rustc_errors::Applicability;
+use rustc_hir::def::{DefKind, Res as HirRes};
 use rustc_hir::def_id::DefId;
 use rustc_hir::{Block, Body, Expr, ExprKind, ImplItem, ImplItemKind, Item, ItemKind, LangItem, UnOp};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
@@ -340,14 +341,7 @@ fn expr_is_cmp<'tcx>(
                     return true;
                 }
                 // Allow `Some(Ordering::Equal)` (and other variants) for ZSTs
-                // Check if cmp_expr is an Ordering variant using source snippet
-                let source_map = cx.sess().source_map();
-                if let Ok(snippet) = source_map.span_to_snippet(cmp_expr.span)
-                    && (snippet.starts_with("Ordering::")
-                        || snippet == "Equal"
-                        || snippet == "Less"
-                        || snippet == "Greater")
-                {
+                if is_ordering_variant(cx, typeck, cmp_expr) {
                     return true;
                 }
             }
@@ -364,11 +358,7 @@ fn expr_is_cmp<'tcx>(
         ExprKind::Struct(qpath, fields, _) => {
             if last_path_segment(qpath).ident.name == sym::Some
                 && let Some(field) = fields.first()
-                && let Ok(snippet) = cx.sess().source_map().span_to_snippet(field.expr.span)
-                && (snippet.starts_with("Ordering::")
-                    || snippet == "Equal"
-                    || snippet == "Less"
-                    || snippet == "Greater")
+                && is_ordering_variant(cx, typeck, field.expr)
             {
                 return true;
             }
@@ -376,6 +366,38 @@ fn expr_is_cmp<'tcx>(
         },
         _ => false,
     }
+}
+
+/// Returns `true` if `expr` is an `Ordering` variant (`Equal`, `Less`, or `Greater`).
+fn is_ordering_variant(cx: &LateContext<'_>, typeck: &TypeckResults<'_>, expr: &Expr<'_>) -> bool {
+    // Get the Res from the expression
+    let res = match expr.kind {
+        // `Ordering::Equal(...)` - constructor call
+        ExprKind::Call(
+            Expr {
+                kind: ExprKind::Path(path),
+                hir_id,
+                ..
+            },
+            _,
+        ) => typeck.qpath_res(path, *hir_id),
+        // `Equal` or `Ordering::Equal` - direct path to variant
+        ExprKind::Path(path) => typeck.qpath_res(&path, expr.hir_id),
+        _ => return false,
+    };
+
+    // Get the variant def_id
+    let variant_def_id = match res {
+        HirRes::Def(DefKind::Variant, variant_did) => variant_did,
+        HirRes::Def(DefKind::Ctor(_, _), ctor_did) => cx.tcx.parent(ctor_did),
+        _ => return false,
+    };
+
+    // Get the enum def_id from the variant
+    let enum_def_id = cx.tcx.parent(variant_def_id);
+
+    // Check if the enum is std::cmp::Ordering using its lang item
+    Some(enum_def_id) == cx.tcx.lang_items().ordering_enum()
 }
 
 /// Returns whether this is any of `self.cmp(..)`, `Self::cmp(self, ..)` or `Ord::cmp(self, ..)`.

@@ -293,7 +293,7 @@ impl PartialOrd for L {
     }
 }
 
-// #16508, do not lint -- ZST returns constant Ordering
+// #16423, do not lint -- ZST returns constant Ordering
 
 #[derive(PartialEq, Eq)]
 pub struct Zst;

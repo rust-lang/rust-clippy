@@ -283,7 +283,7 @@ impl PartialOrd for L {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> { Some(self.cmp(other)) }
 }
 
-// #16508, do not lint -- ZST returns constant Ordering
+// #16423, do not lint -- ZST returns constant Ordering
 
 #[derive(PartialEq, Eq)]
 pub struct Zst;
