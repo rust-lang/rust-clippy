@@ -4965,6 +4965,16 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                 io_other_error::check(cx, expr, func, args, self.msrv);
                 swap_with_temporary::check(cx, expr, func, args);
                 ip_constant::check(cx, expr, func, args);
+                unwrap_expect_used::check_call(
+                    cx,
+                    expr,
+                    func,
+                    args,
+                    self.allow_unwrap_in_tests,
+                    self.allow_expect_in_tests,
+                    self.allow_unwrap_in_consts,
+                    self.allow_expect_in_consts,
+                );
             },
             ExprKind::MethodCall(..) => {
                 self.check_methods(cx, expr);
@@ -4977,6 +4987,9 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                     eq: op.node == hir::BinOpKind::Eq,
                 };
                 lint_binary_expr_with_method_call(cx, &mut info);
+            },
+            ExprKind::Binary(op, lhs, rhs) if op.node == hir::BinOpKind::Or => {
+                manual_is_variant_and::check_or(cx, expr, lhs, rhs, self.msrv);
             },
             _ => (),
         }
@@ -5538,7 +5551,7 @@ impl Methods {
                     unnecessary_sort_by::check(cx, expr, call_span, arg, true);
                 },
                 (sym::split, [arg]) => {
-                    str_split::check(cx, expr, recv, arg);
+                    str_split::check(cx, expr, recv, call_span, arg);
                 },
                 (sym::splitn | sym::rsplitn, [count_arg, pat_arg]) => {
                     if let Some(Constant::Int(count)) = ConstEvalCtxt::new(cx).eval(count_arg) {

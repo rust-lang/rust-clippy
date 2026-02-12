@@ -5,6 +5,7 @@ use clippy_utils::{
     SpanlessEq, get_expr_use_or_unification_node, get_parent_expr, is_lint_allowed, method_calls, peel_blocks, sym,
 };
 use rustc_errors::Applicability;
+use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefId;
 use rustc_hir::{BinOpKind, BorrowKind, Expr, ExprKind, LangItem, Node};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
@@ -409,6 +410,23 @@ impl<'tcx> LateLintPass<'tcx> for StrToString {
                         snippet_with_context(cx, self_arg.span, expr.span.ctxt(), "..", &mut applicability);
                     diag.span_suggestion(expr.span, "try", format!("{snippet}.to_owned()"), applicability);
                 },
+            );
+        } else if let ExprKind::Path(_) = expr.kind
+            && let Some(parent) = get_parent_expr(cx, expr)
+            && let ExprKind::Call(_, args) | ExprKind::MethodCall(_, _, args, _) = &parent.kind
+            && args.iter().any(|a| a.hir_id == expr.hir_id)
+            && let Res::Def(DefKind::AssocFn, def_id) = expr.res(cx)
+            && cx.tcx.is_diagnostic_item(sym::to_string_method, def_id)
+        {
+            // Detected `ToString::to_string` passed as an argument (generic: any call or method call)
+            span_lint_and_sugg(
+                cx,
+                STR_TO_STRING,
+                expr.span,
+                "`ToString::to_string` used as `&str` to `String` converter",
+                "try",
+                "ToOwned::to_owned".to_string(),
+                Applicability::MachineApplicable,
             );
         }
     }

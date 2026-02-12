@@ -364,15 +364,15 @@ fn report_indexes(cx: &LateContext<'_>, map: UnindexMap<u64, Vec<IndexEntry<'_>>
                         // `v.len() < 5` and `v.len() <= 5` does nothing in terms of bounds checks.
                         // The user probably meant `v.len() > 5`
                         LengthComparison::LengthLessThanInt | LengthComparison::LengthLessThanOrEqualInt => {
-                            Some(format!("assert!({slice_str}.len() > {highest_index})",))
+                            Some(format!("assert!({slice_str}.len() > {highest_index})"))
                         },
                         // `5 < v.len()` == `v.len() > 5`
                         LengthComparison::IntLessThanLength if asserted_len < highest_index => {
-                            Some(format!("assert!({slice_str}.len() > {highest_index})",))
+                            Some(format!("assert!({slice_str}.len() > {highest_index})"))
                         },
                         // `5 <= v.len() == `v.len() >= 5`
                         LengthComparison::IntLessThanOrEqualLength if asserted_len <= highest_index => {
-                            Some(format!("assert!({slice_str}.len() > {highest_index})",))
+                            Some(format!("assert!({slice_str}.len() > {highest_index})"))
                         },
                         // `highest_index` here is rather a length, so we need to add 1 to it
                         LengthComparison::LengthEqualInt if asserted_len < highest_index + 1 => match macro_call {

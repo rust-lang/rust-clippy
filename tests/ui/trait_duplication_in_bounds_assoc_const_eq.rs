@@ -3,7 +3,6 @@
 #![feature(min_generic_const_args)]
 
 trait AssocConstTrait {
-
     type const ASSOC: usize;
 }
 fn assoc_const_args<T>()
