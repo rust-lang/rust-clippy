@@ -243,4 +243,32 @@ fn issue16561() {
         2
     };
     //~^^^^^^^^^^^^^ collapsible_if
+
+    if let Some(s) = opt {
+        if s == 1 {
+            s;
+        } else {
+            // Should not be collapsed because of this comment
+        }
+    }
+
+    if let Some(s) = opt {
+        if s == 1 {
+            s;
+        } else {
+            // Should not lint because lint-commented-code is not enabled
+        }
+    } else {
+        // Should not lint because lint-commented-code is not enabled
+    }
+
+    if let Some(s) = opt {
+        if s == 1 {
+            s;
+        } else {
+            // Should be collapsed because comments are the same
+        }
+    } else {
+        // Should not be collapsed because of this comment
+    }
 }

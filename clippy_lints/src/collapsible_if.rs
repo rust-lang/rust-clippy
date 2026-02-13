@@ -3,13 +3,14 @@ use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::msrvs::Msrv;
 use clippy_utils::source::{IntoSpan as _, SpanRangeExt, snippet, snippet_block_with_applicability};
 use clippy_utils::{
-    SpanlessEq, can_use_if_let_chains, is_unit_expr, span_contains_non_whitespace, sym, tokenize_with_text,
+    SpanlessEq, can_use_if_let_chains, is_unit_expr, span_contains_non_whitespace, span_extract_comments, sym,
+    tokenize_with_text,
 };
 use rustc_ast::{BinOpKind, MetaItemInner};
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, StmtKind};
 use rustc_lexer::TokenKind;
-use rustc_lint::{LateContext, LateLintPass, Level};
+use rustc_lint::{LateContext, LateLintPass, Level, LintContext};
 use rustc_session::impl_lint_pass;
 use rustc_span::source_map::SourceMap;
 use rustc_span::{BytePos, Span, Symbol};
@@ -185,8 +186,30 @@ impl CollapsibleIf {
             && self.check_significant_tokens_and_expect_attrs(cx, then, inner, sym::collapsible_if)
             && match (else_, *else_inner) {
                 (None, None) => true,
-                (None, Some(e)) | (Some(e), None) => is_unit_expr(e),
-                (Some(a), Some(b)) => SpanlessEq::new(cx).eq_expr(a, b),
+
+                (Some(e), None) => is_unit_expr(e),
+                (None, Some(e)) => {
+                    is_unit_expr(e)
+                        && (self.lint_commented_code
+                            || span_extract_comments(cx.sess().source_map(), e.span).is_empty())
+                },
+                (Some(a), Some(b)) => {
+                    if !SpanlessEq::new(cx).eq_expr(a, b) {
+                        return;
+                    }
+
+                    let comments_a = span_extract_comments(cx.sess().source_map(), a.span);
+                    if !self.lint_commented_code && !comments_a.is_empty() {
+                        return;
+                    }
+                    let comments_b = span_extract_comments(cx.sess().source_map(), b.span);
+                    if !self.lint_commented_code && !comments_b.is_empty() {
+                        return;
+                    }
+
+                    // Do not lint if there are different comments in the `else` and the inner `else`
+                    comments_a == comments_b
+                },
             }
         {
             span_lint_hir_and_then(

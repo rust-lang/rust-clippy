@@ -1021,16 +1021,14 @@ pub fn method_chain_args<'a>(expr: &'a Expr<'_>, methods: &[Symbol]) -> Option<V
     let mut matched = Vec::with_capacity(methods.len());
     for method_name in methods.iter().rev() {
         // method chains are stored last -> first
-        if let ExprKind::MethodCall(path, receiver, args, _) = current.kind {
-            if path.ident.name == *method_name {
-                if receiver.span.from_expansion() || args.iter().any(|e| e.span.from_expansion()) {
-                    return None;
-                }
-                matched.push((receiver, args)); // build up `matched` backwards
-                current = receiver; // go to parent expression
-            } else {
+        if let ExprKind::MethodCall(path, receiver, args, _) = current.kind
+            && path.ident.name == *method_name
+        {
+            if receiver.span.from_expansion() || args.iter().any(|e| e.span.from_expansion()) {
                 return None;
             }
+            matched.push((receiver, args)); // build up `matched` backwards
+            current = receiver; // go to parent expression
         } else {
             return None;
         }
