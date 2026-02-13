@@ -6,7 +6,7 @@ fn make_result<T>(t: T) -> Result<T, ()> {
     Ok(t)
 }
 
-#[must_use]
+#[must_use = "To test that intentional `drop` of the `must_use` value doesn't fire a lint warning"]
 fn must_use<T>(t: T) -> T {
     t
 }
