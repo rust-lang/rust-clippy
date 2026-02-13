@@ -196,7 +196,7 @@ impl CollapsibleIf {
                     is_unit_expr(e) && (self.lint_commented_code || span_extract_comments(cx, e.span).is_empty())
                 },
                 (Some(a), Some(b)) => {
-                    if !SpanlessEq::new(cx).eq_expr(a, b) {
+                    if !SpanlessEq::new(cx).eq_expr(expr.span.ctxt(), a, b) {
                         return;
                     }
 
