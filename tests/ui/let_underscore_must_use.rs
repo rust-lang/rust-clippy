@@ -8,7 +8,7 @@ struct Foo {
     field: i32,
 }
 
-#[must_use]
+#[must_use = "`let _ = f()` should emit a lint warning"]
 fn f() -> u32 {
     0
 }
@@ -17,7 +17,7 @@ fn g() -> Result<u32, u32> {
     Ok(0)
 }
 
-#[must_use]
+#[must_use = "`let _ = l(0_u32)` should emit a lint warning"]
 fn l<T>(x: T) -> T {
     x
 }
@@ -29,7 +29,7 @@ fn h() -> u32 {
 struct S;
 
 impl S {
-    #[must_use]
+    #[must_use = "`let _ = s.f()` should emit a lint warning"]
     pub fn f(&self) -> u32 {
         0
     }
@@ -42,7 +42,7 @@ impl S {
         0
     }
 
-    #[must_use]
+    #[must_use = "`let _ = S::h()` should emit a lint warning"]
     fn h() -> u32 {
         0
     }
@@ -53,7 +53,7 @@ impl S {
 }
 
 trait Trait {
-    #[must_use]
+    #[must_use = "`let _ = S::a()` should emit a lint warning"]
     fn a() -> u32;
 }
 

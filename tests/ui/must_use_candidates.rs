@@ -1,3 +1,4 @@
+//@no-rustfix: suggestion contains a placeholder
 #![feature(never_type)]
 #![allow(
     unused_mut,

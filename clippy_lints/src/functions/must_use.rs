@@ -256,8 +256,8 @@ fn check_must_use_candidate<'tcx>(
         diag.span_suggestion(
             item_span.shrink_to_lo(),
             "add the attribute",
-            format!("#[must_use] \n{indent}"),
-            Applicability::MachineApplicable,
+            format!("#[must_use = \"/* reason */\"] \n{indent}"),
+            Applicability::HasPlaceholders,
         );
         if let Some(msg) = match return_ty(cx, item_id).opt_diag_name(cx) {
             Some(sym::ControlFlow) => Some("`ControlFlow<B, C>` as `C` when `B` is uninhabited"),
