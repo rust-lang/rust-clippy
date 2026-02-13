@@ -2,7 +2,7 @@ error: this unit-returning function has a `#[must_use]` attribute
   --> tests/ui/must_use_unit.rs:10:1
    |
 LL | #[must_use]
-   | ----------- help: remove the attribute
+   | ----------- help: remove `must_use`
 LL | pub fn must_use_default() {}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^
    |
@@ -13,7 +13,7 @@ error: this unit-returning function has a `#[must_use]` attribute
   --> tests/ui/must_use_unit.rs:14:1
    |
 LL | #[must_use]
-   | ----------- help: remove the attribute
+   | ----------- help: remove `must_use`
 LL | pub fn must_use_unit() -> () {}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -21,7 +21,7 @@ error: this unit-returning function has a `#[must_use]` attribute
   --> tests/ui/must_use_unit.rs:18:1
    |
 LL | #[must_use = "With note"]
-   | ------------------------- help: remove the attribute
+   | ------------------------- help: remove `must_use`
 LL | pub fn must_use_with_note() {}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

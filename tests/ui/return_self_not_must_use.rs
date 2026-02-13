@@ -36,7 +36,7 @@ impl Bar {
         self
     }
     // There should be no warning here! (already a `must_use` attribute)
-    #[must_use]
+    #[must_use = "Correctly mark a builder method as `must_use`"]
     pub fn foo4(&self) -> Self {
         Self
     }
@@ -53,7 +53,7 @@ impl Whatever for Bar {
     }
 }
 
-#[must_use]
+#[must_use = "Must use struct"]
 pub struct Foo;
 
 impl Foo {
