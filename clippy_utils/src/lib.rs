@@ -2343,11 +2343,7 @@ fn with_test_item_names(tcx: TyCtxt<'_>, module: LocalModDefId, f: impl FnOnce(&
                         // We could also check for the type name `test::TestDescAndFn`
                         && let Res::Def(DefKind::Struct, _) = path.res
                 {
-                    let has_test_marker = tcx
-                        .hir_attrs(item.hir_id())
-                        .iter()
-                        .any(|a| a.has_name(sym::rustc_test_marker));
-                    if has_test_marker {
+                    if find_attr!(tcx.hir_attrs(item.hir_id()), AttributeKind::RustcTestMarker(..)) {
                         names.push(ident.name);
                     }
                 }
