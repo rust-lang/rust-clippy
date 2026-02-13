@@ -314,7 +314,7 @@ fn issue14440(opt: Option<i32>) {
     opt.and_then(|x| unsafe { if f(x as u32) { Some(x) } else { None } });
     //~^ manual_filter
 }
-
+#[allow(clippy::collapsible_if)]
 fn issue_17804() {
     struct Inner(u8);
     impl Inner {
