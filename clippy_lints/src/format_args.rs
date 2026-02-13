@@ -28,7 +28,7 @@ use rustc_middle::ty::adjustment::{Adjust, Adjustment, DerefAdjustKind};
 use rustc_middle::ty::{self, GenericArg, List, TraitRef, Ty, TyCtxt, Upcast};
 use rustc_session::impl_lint_pass;
 use rustc_span::edition::Edition::Edition2021;
-use rustc_span::{BytePos, Pos, Span, SpanSnippetError, Symbol, sym};
+use rustc_span::{BytePos, Pos, Span, Symbol, sym};
 use rustc_trait_selection::infer::TyCtxtInferExt;
 use rustc_trait_selection::traits::{Obligation, ObligationCause, Selection, SelectionContext};
 
@@ -235,7 +235,8 @@ declare_clippy_lint! {
     /// single-line macro invocations.
     ///
     /// ### Why is this bad?
-    /// The trailing comma is redundant and removing it keeps the code cleaner.
+    /// The trailing comma is redundant and removing it is more consistent with how
+    /// `rustfmt` formats regular function calls.
     ///
     /// ### Known limitations
     /// This lint currently only runs on format-like macros (e.g. `format!`, `println!`,
@@ -333,44 +334,20 @@ struct FormatArgsExpr<'a, 'tcx> {
 
 impl<'tcx> FormatArgsExpr<'_, 'tcx> {
     /// Check if there is a comma after the last format macro arg.
-    #[allow(clippy::result_large_err, reason = "due to span_to_source()")]
     fn check_trailing_comma(&self) {
-        let sm = self.cx.sess().source_map();
-        let span = self.macro_call.span.source_callsite();
-        if !sm.is_multiline(span)
-            && let Ok(removal_span) = sm.span_to_source(span, |s, start, end| {
-                // This fn returns a span between the last non-whitespace character
-                // and the closing parenthesis, but only if it contains a ',' char.
-                // Iterates in reverse, checking last char is a closing parenthesis,
-                // then looking for a comma before it, ignoring whitespace.
-                if let Some(text) = s.get(start..end)
-                    && let mut chars = text.char_indices().rev()
-                    && let Some((last_char_index, ')' | ']' | '}')) = chars.next()
-                {
-                    let mut has_comma = false;
-                    for (index, c) in chars {
-                        if c == ',' {
-                            has_comma = true;
-                        } else if c.is_whitespace() {
-                            // keep iterating
-                        } else if has_comma {
-                            return Ok(span
-                                .with_lo(span.lo() + BytePos::from_usize(index + c.len_utf8()))
-                                .with_hi(span.lo() + BytePos::from_usize(last_char_index)));
-                        } else {
-                            break;
-                        }
-                    }
-                }
-                Err(SpanSnippetError::IllFormedSpan(span))
-            })
+        let span = self.macro_call.span;
+        if let Some(src) = span.get_source_text(self.cx)
+            && let Some(src) = src.strip_suffix([')', ']', '}'])
+            && let src = src.trim_end_matches(|c: char| c.is_whitespace() && c != '\n')
+            && let Some(src) = src.strip_suffix(',')
         {
-            let name = self.cx.tcx.item_name(self.macro_call.def_id);
+            let src = src.trim_end_matches(|c: char| c.is_whitespace() && c != '\n');
             span_lint_and_sugg(
                 self.cx,
                 UNNECESSARY_TRAILING_COMMA,
-                removal_span,
-                format!("unnecessary trailing comma in `{name}!` macro"),
+                span.with_lo(span.lo() + BytePos::from_usize(src.len()))
+                    .with_hi(span.hi() - BytePos(1)),
+                "unnecessary trailing comma",
                 "remove the trailing comma",
                 String::new(),
                 Applicability::MachineApplicable,
