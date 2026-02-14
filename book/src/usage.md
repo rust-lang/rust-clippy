@@ -23,6 +23,11 @@ lint group `clippy::all`. You might want to use even more lints, or you may not
 agree with every Clippy lint, and for that there are ways to configure lint
 levels.
 
+The lint levels are:
+* allow: can appear in the source code
+* warn: emits a warning
+* deny: can't appear in the source code
+
 > _Note:_ Clippy is meant to be used with a generous sprinkling of
 > `#[allow(..)]`s through your code. So if you disagree with a lint, don't feel
 > bad disabling them for parts of your code or the whole project.
