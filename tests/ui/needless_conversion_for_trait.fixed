@@ -1,0 +1,109 @@
+#![allow(unused_imports, unused_parens, clippy::let_unit_value, clippy::manual_async_fn)]
+#![feature(str_as_str)]
+
+use std::borrow::{Borrow, BorrowMut};
+use std::ffi::{OsStr, OsString};
+use std::io::Read;
+use std::ops::{Deref, DerefMut};
+use std::path::{Path, PathBuf};
+use std::process::Command;
+
+fn main() {
+    let mut s = String::new();
+    let mut vec = Vec::<u8>::new();
+    let mut path_buf = PathBuf::from("x");
+    let osstr = OsStr::new("");
+    let osstring = OsString::new();
+    let path = Path::new("x");
+    let mut readable = Box::new(&[] as &[u8]);
+
+    // inherent functions
+
+    let _ = std::fs::write("x", (Box::new([]) as Box<[u8]>)); //~ needless_conversion_for_trait
+    let _ = std::fs::write("x", (&[] as &[u8])); //~ needless_conversion_for_trait
+
+    let _ = is_empty(s.clone()); //~ needless_conversion_for_trait
+    let _ = is_empty(s.clone()); //~ needless_conversion_for_trait
+
+    let _ = std::fs::write("x", &s); //~ needless_conversion_for_trait
+    let _ = std::fs::write("x", &mut s); //~ needless_conversion_for_trait
+    let _ = std::fs::write("x", &s); //~ needless_conversion_for_trait
+    let _ = is_empty(s.clone()); //~ needless_conversion_for_trait
+    let _ = std::fs::write("x", s.clone()); //~ needless_conversion_for_trait
+
+    let _ = std::fs::write("x", &mut vec); //~ needless_conversion_for_trait
+    let _ = std::fs::write("x", &vec); //~ needless_conversion_for_trait
+    let _ = std::fs::write("x", vec); //~ needless_conversion_for_trait
+
+    let _ = Command::new("ls").args(["-a", "-l"]); //~ needless_conversion_for_trait
+    let _ = Command::new("ls").args(["-a", "-l"]); //~ needless_conversion_for_trait
+
+    let _ = std::fs::write("x", ""); //~ needless_conversion_for_trait
+    let _ = std::fs::write("x", ""); //~ needless_conversion_for_trait
+
+    let _ = os_str_or_bytes(osstr); //~ needless_conversion_for_trait
+    let _ = is_empty_os(osstring.clone()); //~ needless_conversion_for_trait
+    let _ = std::fs::write("x", ""); //~ needless_conversion_for_trait
+    let _ = std::fs::write(osstr, ""); //~ needless_conversion_for_trait
+
+    let _ = std::fs::write(&osstring, ""); //~ needless_conversion_for_trait
+    let _ = is_empty_os(osstring.clone()); //~ needless_conversion_for_trait
+    let _ = os_string_or_bytes(osstring.clone()); //~ needless_conversion_for_trait
+
+    let _ = std::fs::write(PathBuf::from("x"), ""); //~ needless_conversion_for_trait
+    let _ = std::fs::write(path, ""); //~ needless_conversion_for_trait
+    let _ = std::fs::write(PathBuf::from("x"), ""); //~ needless_conversion_for_trait
+    let _ = Command::new("ls").args(path); //~ needless_conversion_for_trait
+    let _ = std::fs::write("x", ""); //~ needless_conversion_for_trait
+    let _ = std::fs::write(path, ""); //~ needless_conversion_for_trait
+
+    let _ = std::fs::write(&mut path_buf, ""); //~ needless_conversion_for_trait
+    let _ = std::fs::write(&path_buf, ""); //~ needless_conversion_for_trait
+    let _ = std::fs::write(path_buf.clone(), ""); //~ needless_conversion_for_trait
+
+    // trait methods
+
+    let _ = std::fs::write("x", ""); //~ needless_conversion_for_trait
+
+    let _ = std::fs::write("x", ""); //~ needless_conversion_for_trait
+
+    let _ = std::fs::write("x", &s); //~ needless_conversion_for_trait
+
+    read(&mut readable); //~ needless_conversion_for_trait
+    read(&mut readable); //~ needless_conversion_for_trait
+
+    read(&mut readable); //~ needless_conversion_for_trait
+
+    let _ = std::fs::write("x", ""); //~ needless_conversion_for_trait
+    let _ = std::fs::write("x", ""); //~ needless_conversion_for_trait
+
+    let _ = std::fs::write("x", &s); //~ needless_conversion_for_trait
+
+    read(&mut readable); //~ needless_conversion_for_trait
+}
+
+#[must_use]
+fn is_empty<T: From<Box<str>> + PartialEq>(x: T) -> bool {
+    x == T::from(String::new().into_boxed_str())
+}
+
+#[must_use]
+fn is_empty_os<T: From<Box<OsStr>> + PartialEq>(x: T) -> bool {
+    x == T::from(OsString::new().into_boxed_os_str())
+}
+
+// This is a hack, but I can't readily think of a trait that both `&OsStr` and `&[u8]` implement.
+// Reference: https://github.com/rust-lang/rust/issues/111544
+trait OsStrOrBytes {}
+impl OsStrOrBytes for &OsStr {}
+impl OsStrOrBytes for &[u8] {}
+fn os_str_or_bytes(_: impl OsStrOrBytes) {}
+
+// Similar hack for `OsString` and `Vec<u8>`.
+// Reference: https://github.com/rust-lang/rust/issues/111544
+trait OsStringOrBytes {}
+impl OsStringOrBytes for OsString {}
+impl OsStringOrBytes for Vec<u8> {}
+fn os_string_or_bytes(_: impl OsStringOrBytes) {}
+
+fn read(_: impl Read) {}

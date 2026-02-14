@@ -1,0 +1,13 @@
+#![feature(rustc_private)]
+
+extern crate tempfile;
+
+use tempfile::{NamedTempFile, TempDir};
+
+fn main() {
+    let tempdir = TempDir::new().unwrap();
+    let tempfile = NamedTempFile::new().unwrap();
+
+    let _ = std::fs::write(&tempdir, ""); //~ needless_conversion_for_trait
+    let _ = std::fs::write(&tempfile, ""); //~ needless_conversion_for_trait
+}
