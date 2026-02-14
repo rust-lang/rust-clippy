@@ -62,6 +62,7 @@ impl<'txt> Cursor<'txt> {
 
     /// Gets the text of the captured token assuming it came from this cursor.
     #[must_use]
+    #[allow(clippy::getter_prefixes)]
     pub fn get_text(&self, capture: Capture) -> &'txt str {
         &self.text[capture.pos as usize..(capture.pos + capture.len) as usize]
     }
