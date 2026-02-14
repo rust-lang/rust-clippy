@@ -702,8 +702,7 @@ fn check_if_applicable_to_argument<'tcx>(cx: &LateContext<'tcx>, arg: &Expr<'tcx
             sym::to_vec => cx
                 .tcx
                 .impl_of_assoc(method_def_id)
-                .filter(|&impl_did| cx.tcx.type_of(impl_did).instantiate_identity().is_slice())
-                .is_some(),
+                .is_some_and(|impl_did| cx.tcx.type_of(impl_did).instantiate_identity().is_slice()),
             _ => false,
         }
         && let original_arg_ty = cx.typeck_results().node_type(caller.hir_id).peel_refs()
