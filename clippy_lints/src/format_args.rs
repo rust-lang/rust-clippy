@@ -2,7 +2,7 @@ use std::collections::hash_map::Entry;
 
 use arrayvec::ArrayVec;
 use clippy_config::Conf;
-use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg, span_lint_and_then};
+use clippy_utils::diagnostics::{span_lint, span_lint_and_help, span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::macros::{
     FormatArgsStorage, FormatParamUsage, MacroCall, find_format_arg_expr, format_arg_removal_span,
     format_placeholder_format_span, is_assert_macro, is_format_macro, is_panic, matching_root_macro_call,
@@ -14,9 +14,10 @@ use clippy_utils::source::{SpanRangeExt, snippet};
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{is_from_proc_macro, is_in_test, trait_ref_of_method};
 use itertools::Itertools;
+use rustc_ast::FormatTrait::{Binary, Debug, Display, LowerExp, LowerHex, Octal, Pointer, UpperExp, UpperHex};
 use rustc_ast::{
     FormatArgPosition, FormatArgPositionKind, FormatArgsPiece, FormatArgumentKind, FormatCount, FormatOptions,
-    FormatPlaceholder, FormatTrait,
+    FormatPlaceholder,
 };
 use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
@@ -203,6 +204,30 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Detects format width that is less than the minimum size of the output for
+    /// certain format traits, making the width (and zero-pad) ineffective.
+    ///
+    /// ### Why is this bad?
+    /// For example, `{:#02x}` adds a `0x` prefix, so the minimum output width is 3.
+    /// A width of 2 is ignored, and the likely intent was `{:#04x}` for two-digit hex.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// // width 2 in all examples is ignored because the minimum output size is larger
+    /// format!("{0:#2x} {0:#2o} {0:#2b}", 1_u8); // outputs "0x1" and similar
+    /// format!("{:#2e}", 1_u8); // outputs "1e0"
+    /// format!("{:#2p}", 1 as *const usize); // outputs "0x1"
+    /// ```
+    /// The minimum output width for `#x` is 3 (e.g. `0x1`). Use a width larger than
+    /// that for the format to have effect (e.g. `{:#04x}` for two-digit zero-padded hex).
+    #[clippy::version = "1.95.0"]
+    pub USELESS_FORMAT_WIDTH,
+    correctness,
+    "format width is less than the minimum output size for the format trait"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Detects [pointer format] as well as `Debug` formatting of raw pointers or function pointers
     /// or any types that have a derived `Debug` impl that recursively contains them.
     ///
@@ -235,6 +260,7 @@ impl_lint_pass!(FormatArgs<'_> => [
     UNINLINED_FORMAT_ARGS,
     UNNECESSARY_DEBUG_FORMATTING,
     UNUSED_FORMAT_SPECS,
+    USELESS_FORMAT_WIDTH,
     POINTER_FORMAT,
 ]);
 
@@ -310,8 +336,9 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                 && let Some(arg_expr) = find_format_arg_expr(self.expr, arg)
             {
                 self.check_unused_format_specifier(placeholder, arg_expr);
+                self.check_useless_format_width(placeholder);
 
-                if placeholder.format_trait == FormatTrait::Display
+                if placeholder.format_trait == Display
                     && placeholder.format_options == FormatOptions::default()
                     && !self.is_aliased(index)
                 {
@@ -320,7 +347,7 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                     self.check_to_string_in_format_args(name, arg_expr);
                 }
 
-                if placeholder.format_trait == FormatTrait::Debug {
+                if placeholder.format_trait == Debug {
                     let name = self.cx.tcx.item_name(self.macro_call.def_id);
                     self.check_unnecessary_debug_formatting(name, arg_expr);
                     if let Some(span) = placeholder.span
@@ -330,7 +357,7 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                     }
                 }
 
-                if placeholder.format_trait == FormatTrait::Pointer
+                if placeholder.format_trait == Pointer
                     && let Some(span) = placeholder.span
                 {
                     span_lint(self.cx, POINTER_FORMAT, span, "pointer formatting detected");
@@ -385,6 +412,30 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                         );
                     }
                 },
+            );
+        }
+    }
+
+    /// Lint when format width is <= 2 but the format trait's minimum output is larger
+    /// (e.g. `{:#02X}` outputs "0x1" so width 2 is ignored).
+    fn check_useless_format_width(&self, placeholder: &FormatPlaceholder) {
+        let min_width = match placeholder.format_trait {
+            // 0x prefix, e.g. 0x1, 0o1, 0b1
+            LowerHex | UpperHex | Octal | Binary if placeholder.format_options.alternate => 3,
+            LowerExp | UpperExp | Pointer => 3, // e.g. 1e0 with exponent, 0x1 for pointer
+            _ => return,
+        };
+        if let Some(FormatCount::Literal(width_value)) = placeholder.format_options.width
+            && width_value <= min_width
+            && let Some(placeholder_span) = placeholder.span
+        {
+            span_lint_and_help(
+                self.cx,
+                USELESS_FORMAT_WIDTH,
+                placeholder_span,
+                "format width is less than the minimum output size for this format trait, so the width is ignored",
+                None,
+                format!("consider removing the width or increasing it above {min_width}"),
             );
         }
     }
