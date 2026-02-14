@@ -134,6 +134,7 @@ generate! {
     cycle,
     cyclomatic_complexity,
     de,
+    dedup_by,
     deprecated_in_future,
     diagnostics,
     disallowed_types,
