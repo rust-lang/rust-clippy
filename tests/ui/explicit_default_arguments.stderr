@@ -1,0 +1,53 @@
+error: redudant usage of default argument `()`
+  --> tests/ui/explicit_default_arguments.rs:9:23
+   |
+LL | fn basic_trigger() -> Result<()> {
+   |                       ^^^^^^^^^^ help: try: `Result`
+   |
+   = note: `-D clippy::explicit-default-arguments` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::explicit_default_arguments)]`
+
+error: redudant usage of default argument `i32`
+  --> tests/ui/explicit_default_arguments.rs:28:28
+   |
+LL | fn multi_all_defaults() -> Multi<i32, String> {
+   |                            ^^^^^^^^^^^^^^^^^^ help: try: `Multi`
+
+error: redudant usage of default argument `String`
+  --> tests/ui/explicit_default_arguments.rs:28:28
+   |
+LL | fn multi_all_defaults() -> Multi<i32, String> {
+   |                            ^^^^^^^^^^^^^^^^^^ help: try: `Multi`
+
+error: redudant usage of default argument `i32`
+  --> tests/ui/explicit_default_arguments.rs:34:23
+   |
+LL | fn multi_partial() -> Multi<i32> {
+   |                       ^^^^^^^^^^ help: try: `Multi`
+
+error: redudant usage of default argument `std::collections::HashMap<String, Vec<i32>>`
+  --> tests/ui/explicit_default_arguments.rs:49:25
+   |
+LL | fn complex_default() -> Complex<std::collections::HashMap<String, Vec<i32>>> {
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Complex`
+
+error: redudant usage of default argument `()`
+  --> tests/ui/explicit_default_arguments.rs:65:19
+   |
+LL | impl MyTrait1 for Result<()> {
+   |                   ^^^^^^^^^^ help: try: `Result`
+
+error: redudant usage of default argument `()`
+  --> tests/ui/explicit_default_arguments.rs:75:25
+   |
+LL | type AliasWithDefault = Result<()>;
+   |                         ^^^^^^^^^^ help: try: `Result`
+
+error: redudant usage of default argument `DefaultType`
+  --> tests/ui/explicit_default_arguments.rs:88:23
+   |
+LL | fn alias_default() -> UsingDefault<DefaultType> {
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `UsingDefault`
+
+error: aborting due to 8 previous errors
+
