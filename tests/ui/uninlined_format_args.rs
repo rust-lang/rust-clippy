@@ -368,3 +368,8 @@ fn user_format() {
     usr_println!(true, "{:.1}", local_f64);
     //~^ uninlined_format_args
 }
+
+fn issue16310() {
+    format!("The answer is: {}", "42");
+    format!("The answer is: {}", '4');
+}

@@ -18,3 +18,11 @@ fn main() {
     println!("{}, {}", local_i32, local_opt.unwrap());
     //~^ uninlined_format_args
 }
+
+fn issue16310() {
+    let x = 1;
+    format!("The answer is: {} and x is {}", "42", x);
+    //~^ uninlined_format_args
+    format!("The answer is: {} and x is {}", '4', x);
+    //~^ uninlined_format_args
+}
