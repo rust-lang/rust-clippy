@@ -68,6 +68,7 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            module-items-ordered-within-groupings
            msrv
            pass-by-value-size-limit
+           profiles
            pub-underscore-fields-behavior
            recursive-self-in-type-definitions
            semicolon-inside-block-ignore-singleline
@@ -167,6 +168,7 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            module-items-ordered-within-groupings
            msrv
            pass-by-value-size-limit
+           profiles
            pub-underscore-fields-behavior
            recursive-self-in-type-definitions
            semicolon-inside-block-ignore-singleline
@@ -266,6 +268,7 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            module-items-ordered-within-groupings
            msrv
            pass-by-value-size-limit
+           profiles
            pub-underscore-fields-behavior
            recursive-self-in-type-definitions
            semicolon-inside-block-ignore-singleline
