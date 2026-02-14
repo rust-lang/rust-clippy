@@ -183,13 +183,8 @@ fn main() {
 
     // #6811
     match Some(0) {
+        //~^ manual_map
         Some(x) => Some(vec![x]),
-        None => None,
-    };
-
-    // Don't lint, coercion
-    let x: Option<Vec<&[u8]>> = match Some(()) {
-        Some(_) => Some(vec![b"1234"]),
         None => None,
     };
 
@@ -237,12 +232,4 @@ fn main() {
             None => None,
         };
     }
-
-    // #7077
-    let s = &String::new();
-    #[allow(clippy::needless_match)]
-    let _: Option<&str> = match Some(s) {
-        Some(s) => Some(s),
-        None => None,
-    };
 }

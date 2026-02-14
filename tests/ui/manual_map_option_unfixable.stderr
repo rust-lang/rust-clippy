@@ -1,0 +1,162 @@
+error: manual implementation of `Option::map`
+  --> tests/ui/manual_map_option_unfixable.rs:11:27
+   |
+LL |       let _: Option<&str> = match Some(s) {
+   |  ___________________________^
+LL | |
+LL | |         Some(s) => Some(s),
+LL | |         None => None,
+LL | |     };
+   | |_____^ help: try: `Some(s).map(|s| s)`
+   |
+   = note: you may need to add explicit `as` casts/dereferences if this `match` is coerced to another type
+   = note: `-D clippy::manual-map` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_map)]`
+
+error: manual implementation of `Option::map`
+  --> tests/ui/manual_map_option_unfixable.rs:19:33
+   |
+LL |       let x: Option<Vec<&[u8]>> = match Some(()) {
+   |  _________________________________^
+LL | |
+LL | |         Some(_) => Some(vec![b"1234"]),
+LL | |         None => None,
+LL | |     };
+   | |_____^ help: try: `Some(()).map(|_| vec![b"1234"])`
+   |
+   = note: you may need to add explicit `as` casts/dereferences if this `match` is coerced to another type
+
+error: manual implementation of `Option::map`
+  --> tests/ui/manual_map_option_unfixable.rs:27:37
+   |
+LL |       let x: Option<(String, &str)> = match &s {
+   |  _____________________________________^
+LL | |
+LL | |         Some(x) => Some({ if let Some(ref s) = s { (x.clone(), s) } else { panic!() } }),
+LL | |         None => None,
+LL | |     };
+   | |_____^ help: try: `s.as_ref().map(|x| { if let Some(ref s) = s { (x.clone(), s) } else { panic!() } })`
+   |
+   = note: you may need to add explicit `as` casts/dereferences if this `match` is coerced to another type
+
+error: manual implementation of `Option::map`
+  --> tests/ui/manual_map_option_unfixable.rs:39:58
+   |
+LL |           let _: Option<Result<Box<dyn DummyTrait>, ()>> = match Some(0) {
+   |  __________________________________________________________^
+LL | |
+LL | |             Some(_) => Some(match f() {
+LL | |                 Ok(res) => Ok(Box::new(res)),
+...  |
+LL | |             None => None,
+LL | |         };
+   | |_________^
+   |
+   = note: you may need to add explicit `as` casts/dereferences if this `match` is coerced to another type
+help: try
+   |
+LL ~         let _: Option<Result<Box<dyn DummyTrait>, ()>> = Some(0).map(|_| match f() {
+LL +                 Ok(res) => Ok(Box::new(res)),
+LL +                 _ => Err(()),
+LL ~             });
+   |
+
+error: manual implementation of `Option::map`
+  --> tests/ui/manual_map_option_unfixable.rs:48:37
+   |
+LL |           let _: Option<Box<&[u8]>> = match Some(()) {
+   |  _____________________________________^
+LL | |
+LL | |             Some(_) => Some(Box::new(b"1234")),
+LL | |             None => None,
+LL | |         };
+   | |_________^ help: try: `Some(()).map(|_| Box::new(b"1234"))`
+   |
+   = note: you may need to add explicit `as` casts/dereferences if this `match` is coerced to another type
+
+error: manual implementation of `Option::map`
+  --> tests/ui/manual_map_option_unfixable.rs:55:36
+   |
+LL |           let _: Option<Box<&str>> = match Some(()) {
+   |  ____________________________________^
+LL | |
+LL | |             Some(_) => Some(Box::new(&x)),
+LL | |             None => None,
+LL | |         };
+   | |_________^ help: try: `Some(()).map(|_| Box::new(&x))`
+   |
+   = note: you may need to add explicit `as` casts/dereferences if this `match` is coerced to another type
+
+error: manual implementation of `Option::map`
+  --> tests/ui/manual_map_option_unfixable.rs:61:31
+   |
+LL |           let _: Option<&str> = match Some(()) {
+   |  _______________________________^
+LL | |
+LL | |             Some(_) => Some(&x),
+LL | |             None => None,
+LL | |         };
+   | |_________^ help: try: `Some(()).map(|_| &x)`
+   |
+   = note: you may need to add explicit `as` casts/dereferences if this `match` is coerced to another type
+
+error: manual implementation of `Option::map`
+  --> tests/ui/manual_map_option_unfixable.rs:73:11
+   |
+LL |           f(match Some(()) {
+   |  ___________^
+LL | |
+LL | |             Some(_) => Some(Box::new(x)),
+LL | |             None => None,
+LL | |         });
+   | |_________^ help: try: `Some(()).map(|_| Box::new(x))`
+   |
+   = note: you may need to add explicit `as` casts/dereferences if this `match` is coerced to another type
+
+error: manual implementation of `Option::map`
+  --> tests/ui/manual_map_option_unfixable.rs:82:9
+   |
+LL | /         match s {
+LL | |
+LL | |             Some(x) => Some({ if let Some(s) = s { (x.clone(), s) } else { panic!() } }),
+LL | |             None => None,
+LL | |         }
+   | |_________^ help: try: `s.as_ref().map(|x| { if let Some(s) = s { (x.clone(), s) } else { panic!() } })`
+   |
+   = note: you may need to add explicit `as` casts/dereferences if this `match` is coerced to another type
+
+error: manual implementation of `Option::map`
+  --> tests/ui/manual_map_option_unfixable.rs:92:20
+   |
+LL |               return match s {
+   |  ____________________^
+LL | |
+LL | |                 Some(x) => Some({ if let Some(s) = s { (x.clone(), s) } else { panic!() } }),
+LL | |                 None => None,
+LL | |             };
+   | |_____________^ help: try: `s.as_ref().map(|x| { if let Some(s) = s { (x.clone(), s) } else { panic!() } })`
+   |
+   = note: you may need to add explicit `as` casts/dereferences if this `match` is coerced to another type
+
+error: manual implementation of `Option::map`
+  --> tests/ui/manual_map_option_unfixable.rs:105:13
+   |
+LL | /             match s {
+LL | |
+LL | |                 Some(x) => Some({ if let Some(s) = s { (x.clone(), s) } else { panic!() } }),
+LL | |                 None => None,
+LL | |             }
+   | |_____________^ help: try: `s.as_ref().map(|x| { if let Some(s) = s { (x.clone(), s) } else { panic!() } })`
+   |
+   = note: you may need to add explicit `as` casts/dereferences if this `match` is coerced to another type
+
+error: manual implementation of `Option::map`
+  --> tests/ui/manual_map_option_unfixable.rs:116:5
+   |
+LL |     if let Some(o) = opt { Some(o) } else { None }
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `opt.map(|o| o)`
+   |
+   = note: you may need to add explicit `as` casts/dereferences if this `match` is coerced to another type
+
+error: aborting due to 12 previous errors
+
