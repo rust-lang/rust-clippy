@@ -3,6 +3,7 @@
     clippy::borrow_deref_ref,
     clippy::deref_addrof,
     clippy::inherent_to_string_shadow_display,
+    clippy::redundant_ref_in_format_args,
     clippy::to_string_in_format_args,
     clippy::uninlined_format_args
 )]
