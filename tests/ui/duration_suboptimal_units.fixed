@@ -7,7 +7,7 @@ const SIXTY: u64 = 60;
 
 macro_rules! mac {
     (slow_rythm) => {
-        3600
+        60 * 60
     };
     (duration) => {
         Duration::from_mins(5)
@@ -23,14 +23,17 @@ fn main() {
     let dur = Duration::from_secs(42);
     let dur = Duration::from_hours(3);
 
+    let dur = Duration::from_secs(60);
     let dur = Duration::from_mins(1);
     //~^ duration_suboptimal_units
+    let dur = Duration::from_secs(180);
     let dur = Duration::from_mins(3);
     //~^ duration_suboptimal_units
     let dur = Duration::from_mins(10);
     //~^ duration_suboptimal_units
     let dur = Duration::from_hours(24);
     //~^ duration_suboptimal_units
+    let dur = Duration::from_millis(5_000);
     let dur = Duration::from_secs(5);
     //~^ duration_suboptimal_units
     let dur = Duration::from_hours(13);
@@ -44,7 +47,15 @@ fn main() {
 
     const {
         let dur = Duration::from_secs(0);
+        let dur = Duration::from_millis(5_000);
         let dur = Duration::from_secs(5);
+        //~^ duration_suboptimal_units
+        let dur = Duration::from_secs(11);
+        //~^ duration_suboptimal_units
+
+        let dur = Duration::from_secs(180);
+        // 39600 secs = 3 hours
+        let dur = Duration::from_hours(11);
         //~^ duration_suboptimal_units
         let dur = Duration::from_mins(3);
         //~^ duration_suboptimal_units
@@ -54,11 +65,8 @@ fn main() {
         let dur = Duration::from_secs(SIXTY);
     }
 
-    // Qualified Durations must be kept
-    std::time::Duration::from_mins(1);
-    //~^ duration_suboptimal_units
-
     // We lint in normal macros
+    assert_eq!(Duration::from_secs(3_600), Duration::from_mins(6));
     assert_eq!(Duration::from_hours(1), Duration::from_mins(6));
     //~^ duration_suboptimal_units
 
@@ -66,10 +74,10 @@ fn main() {
     let dur = mac!(duration);
 
     // We don't lint in macros if duration comes from outside
-    let dur = mac!(arg => 3600);
+    let dur = mac!(arg => 60 * 60);
 
     // We don't lint in external macros
-    let dur = proc_macros::external! { Duration::from_secs(3_600) };
+    let dur = proc_macros::external! { Duration::from_secs(60 * 60) };
 
     // We don't lint values coming from macros
     let dur = Duration::from_secs(mac!(slow_rythm));
