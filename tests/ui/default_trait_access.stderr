@@ -52,5 +52,11 @@ error: calling `TupleStructDerivedDefault::default()` is more clear than this ex
 LL |     let s17: TupleStructDerivedDefault = Default::default();
    |                                          ^^^^^^^^^^^^^^^^^^ help: try: `TupleStructDerivedDefault::default()`
 
-error: aborting due to 8 previous errors
+error: calling `nested_module::DerivedDefault::default()` is more clear than this expression
+  --> tests/ui/default_trait_access.rs:71:47
+   |
+LL |     let _s22: nested_module::DerivedDefault = Default::default();
+   |                                               ^^^^^^^^^^^^^^^^^^ help: try: `nested_module::DerivedDefault::default()`
+
+error: aborting due to 9 previous errors
 
