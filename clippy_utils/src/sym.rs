@@ -270,7 +270,6 @@ generate! {
     or_insert,
     or_insert_with,
     outer_expn,
-    panic_str,
     parse,
     partition,
     paths,
