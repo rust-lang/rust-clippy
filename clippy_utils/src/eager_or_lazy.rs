@@ -65,11 +65,11 @@ fn fn_eagerness(cx: &LateContext<'_>, fn_id: DefId, name: Symbol, have_one_arg: 
         } else {
             NoChange
         }
-    } else if let ty::Adt(def, subs) = ty.kind() {
+    } else if let ty::Adt(def, subs) = ty.kind()
         // Types where the only fields are generic types (or references to) with no trait bounds other
         // than marker traits.
         // Due to the limited operations on these types functions should be fairly cheap.
-        if def.variants().iter().flat_map(|v| v.fields.iter()).any(|x| {
+        && def.variants().iter().flat_map(|v| v.fields.iter()).any(|x| {
             matches!(
                 cx.tcx.type_of(x.did).instantiate_identity().peel_refs().kind(),
                 ty::Param(_)
@@ -78,20 +78,17 @@ fn fn_eagerness(cx: &LateContext<'_>, fn_id: DefId, name: Symbol, have_one_arg: 
             ty::ClauseKind::Trait(pred) => cx.tcx.trait_def(pred.trait_ref.def_id).is_marker,
             _ => true,
         }) && subs.types().all(|x| matches!(x.peel_refs().kind(), ty::Param(_)))
+    {
+        // Limit the function to either `(self) -> bool` or `(&self) -> bool`
+        match &**cx
+            .tcx
+            .fn_sig(fn_id)
+            .instantiate_identity()
+            .skip_binder()
+            .inputs_and_output
         {
-            // Limit the function to either `(self) -> bool` or `(&self) -> bool`
-            match &**cx
-                .tcx
-                .fn_sig(fn_id)
-                .instantiate_identity()
-                .skip_binder()
-                .inputs_and_output
-            {
-                [arg, res] if !arg.is_mutable_ptr() && arg.peel_refs() == ty && res.is_bool() => NoChange,
-                _ => Lazy,
-            }
-        } else {
-            Lazy
+            [arg, res] if !arg.is_mutable_ptr() && arg.peel_refs() == ty && res.is_bool() => NoChange,
+            _ => Lazy,
         }
     } else {
         Lazy
