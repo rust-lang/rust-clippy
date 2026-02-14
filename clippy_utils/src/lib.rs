@@ -3165,7 +3165,7 @@ fn get_path_to_ty<'tcx>(tcx: TyCtxt<'tcx>, from: LocalDefId, ty: Ty<'tcx>, args:
 }
 
 /// Produce a path from some local caller to the callee. Suitable for user output/suggestions.
-fn get_path_to_callee(tcx: TyCtxt<'_>, from: LocalDefId, callee: DefId) -> String {
+pub fn get_path_to_callee(tcx: TyCtxt<'_>, from: LocalDefId, callee: DefId) -> String {
     // only search for a relative path if the call is fully local
     if callee.is_local() {
         let callee_path = tcx.def_path(callee);
