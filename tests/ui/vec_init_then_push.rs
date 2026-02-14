@@ -1,3 +1,4 @@
+#![allow(clippy::clear_instead_of_new)]
 #![allow(unused_variables)]
 #![warn(clippy::vec_init_then_push)]
 //@no-rustfix

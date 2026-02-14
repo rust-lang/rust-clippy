@@ -1,3 +1,4 @@
+#![allow(clippy::clear_instead_of_new)]
 #![allow(unused, clippy::useless_vec)]
 #![warn(clippy::collection_is_never_read)]
 
