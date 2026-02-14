@@ -1,0 +1,87 @@
+//@aux-build:proc_macros.rs
+#![warn(clippy::needless_is_variant_and, clippy::manual_is_variant_and)]
+#![allow(clippy::no_effect)]
+#![allow(clippy::eq_op)]
+#![allow(clippy::unnecessary_lazy_evaluations)]
+#![allow(clippy::nonminimal_bool)]
+#[clippy::msrv = "1.82.0"]
+#[macro_use]
+extern crate proc_macros;
+
+fn main() {
+    // should trigger
+    let _ = Some(5).is_some_and(|n| n == 5);
+    //~^ needless_is_variant_and
+    let _ = Some(5).is_none_or(|n| n != 5);
+    //~^ needless_is_variant_and
+    let _ = Some(5).is_some_and(|n| {
+        //~^ needless_is_variant_and
+        let _ = 1;
+        n == 5
+    });
+    let _ = Ok::<i32, i32>(5).is_ok_and(|n| n == 5);
+    //~^ needless_is_variant_and
+    let _ = Some(5).is_some_and(|n| n == 5).then(|| 1);
+    //~^ needless_is_variant_and
+    let _ = !Some(5).is_some_and(|n| n == 5);
+    //~^ needless_is_variant_and
+    let _ = Some(5).is_some_and(|n| n == 5) || false;
+    //~^ needless_is_variant_and
+    let _ = Some(5).is_some_and(|n| n == 5) as usize;
+    //~^ needless_is_variant_and
+
+    macro_rules! x {
+        () => {
+            Some(1)
+        };
+    }
+    // methods lints dont fire on macros
+    let _ = x!().is_some_and(|n| n == 1);
+    let _ = x!().is_some_and(|n| n == vec![1][0]);
+
+    external! {
+        let _ = Some(5).is_some_and(|n| n == 5);
+    }
+
+    with_span! {
+        let _ = Some(5).is_some_and(|n| n == 5);
+    }
+
+    // do not lint in absense of PartialEq
+    struct S;
+    let r: Result<i32, S> = Ok(3);
+    let _ = r.is_ok_and(|x| x == 7);
+
+    #[derive(PartialEq)]
+    struct S2;
+    let r: Result<i32, S2> = Ok(4);
+    let _ = r.is_ok_and(|x| x == 8);
+    //~^ needless_is_variant_and
+
+    // do not lint constructs that are not comparisons
+    let func = |_x| true;
+    let r: Result<i32, S> = Ok(3);
+    let _ = r.is_ok_and(func);
+    let _ = Some(5).is_some_and(func);
+    let _ = Some(5).is_none_or(func);
+}
+
+fn issue14714() {
+    assert!(Some("test").is_some_and(|x| x == "test"));
+    //~^ needless_is_variant_and
+
+    // even though we're in a macro context, we still need to parenthesise because of the `then`
+    assert!(Some("test").is_some_and(|x| x == "test").then(|| 1).is_some());
+    //~^ needless_is_variant_and
+
+    // method lints don't fire on macros
+    macro_rules! m {
+        ($x:expr) => {
+            // should become !($x == Some(1))
+            let _ = !$x.is_some_and(|v| v == 1);
+            // should become $x == Some(1)
+            let _ = $x.is_some_and(|v| v == 1);
+        };
+    }
+    m!(Some(5));
+}
