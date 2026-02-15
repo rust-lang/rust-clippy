@@ -51,3 +51,8 @@ fn issue16511(x: Option<&str>) {
     let _ = w.mapper(ToString::to_string);
     //~^ str_to_string
 }
+
+// No lint: non-str types should not trigger str_to_string. See #16569
+fn no_lint_non_str() {
+    let _ = [1, 2].iter().map(i32::to_string);
+}
