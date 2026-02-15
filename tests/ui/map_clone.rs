@@ -158,4 +158,11 @@ fn main() {
         let y = Some(&x);
         let _z = y.map(RcWeak::clone);
     }
+
+    // Issue #16529
+    {
+        let r: Result<i32, i64> = Ok(1);
+        let _r = r.as_ref().map(Clone::clone);
+        //~^ map_clone
+    }
 }
