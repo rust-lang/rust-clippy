@@ -482,15 +482,11 @@ fn get_input_traits_and_projections<'tcx>(
     let mut projection_predicates = Vec::new();
     for predicate in cx.tcx.param_env(callee_def_id).caller_bounds() {
         match predicate.kind().skip_binder() {
-            ClauseKind::Trait(trait_predicate) => {
-                if trait_predicate.trait_ref.self_ty() == input {
-                    trait_predicates.push(trait_predicate);
-                }
+            ClauseKind::Trait(trait_predicate) if trait_predicate.trait_ref.self_ty() == input => {
+                trait_predicates.push(trait_predicate);
             },
-            ClauseKind::Projection(projection_predicate) => {
-                if projection_predicate.projection_term.self_ty() == input {
-                    projection_predicates.push(projection_predicate);
-                }
+            ClauseKind::Projection(projection_predicate) if projection_predicate.projection_term.self_ty() == input => {
+                projection_predicates.push(projection_predicate);
             },
             _ => {},
         }
