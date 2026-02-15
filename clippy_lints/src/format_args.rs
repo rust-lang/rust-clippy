@@ -337,11 +337,12 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
     fn check_trailing_comma(&self) {
         let span = self.macro_call.span;
         if let Some(src) = span.get_source_text(self.cx)
+            && !src.contains('\n')
             && let Some(src) = src.strip_suffix([')', ']', '}'])
-            && let src = src.trim_end_matches(|c: char| c.is_whitespace() && c != '\n')
+            && let src = src.trim_end_matches(|c: char| c.is_whitespace())
             && let Some(src) = src.strip_suffix(',')
         {
-            let src = src.trim_end_matches(|c: char| c.is_whitespace() && c != '\n');
+            let src = src.trim_end_matches(|c: char| c.is_whitespace());
             span_lint_and_sugg(
                 self.cx,
                 UNNECESSARY_TRAILING_COMMA,

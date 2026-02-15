@@ -62,6 +62,10 @@ fn simple() {
         "very long string to prevent fmt from making it into a single line: {}",
         1,
     );
+
+    print!("{}"
+        , 1
+        ,);
 }
 
 // The macro invocation itself should never be fixed
