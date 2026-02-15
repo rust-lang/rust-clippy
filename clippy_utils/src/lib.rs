@@ -3149,7 +3149,7 @@ pub fn get_path_from_caller_to_method_type<'tcx>(
     }
 }
 
-fn get_path_to_ty<'tcx>(tcx: TyCtxt<'tcx>, from: LocalDefId, ty: Ty<'tcx>, args: GenericArgsRef<'tcx>) -> String {
+pub fn get_path_to_ty<'tcx>(tcx: TyCtxt<'tcx>, from: LocalDefId, ty: Ty<'tcx>, args: GenericArgsRef<'tcx>) -> String {
     match ty.kind() {
         rustc_ty::Adt(adt, _) => get_path_to_callee(tcx, from, adt.did()),
         // TODO these types need to be recursively resolved as well
@@ -3165,7 +3165,7 @@ fn get_path_to_ty<'tcx>(tcx: TyCtxt<'tcx>, from: LocalDefId, ty: Ty<'tcx>, args:
 }
 
 /// Produce a path from some local caller to the callee. Suitable for user output/suggestions.
-pub fn get_path_to_callee(tcx: TyCtxt<'_>, from: LocalDefId, callee: DefId) -> String {
+fn get_path_to_callee(tcx: TyCtxt<'_>, from: LocalDefId, callee: DefId) -> String {
     // only search for a relative path if the call is fully local
     if callee.is_local() {
         let callee_path = tcx.def_path(callee);

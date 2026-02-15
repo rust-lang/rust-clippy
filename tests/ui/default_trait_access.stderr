@@ -58,5 +58,23 @@ error: calling `nested_module::DerivedDefault::default()` is more clear than thi
 LL |     let _s22: nested_module::DerivedDefault = Default::default();
    |                                               ^^^^^^^^^^^^^^^^^^ help: try: `nested_module::DerivedDefault::default()`
 
-error: aborting due to 9 previous errors
+error: calling `<(usize, String)>::default()` is more clear than this expression
+  --> tests/ui/default_trait_access.rs:74:33
+   |
+LL |     let _s23: (usize, String) = Default::default();
+   |                                 ^^^^^^^^^^^^^^^^^^ help: try: `<(usize, String)>::default()`
+
+error: calling `<[usize; 3]>::default()` is more clear than this expression
+  --> tests/ui/default_trait_access.rs:77:28
+   |
+LL |     let _s24: [usize; 3] = Default::default();
+   |                            ^^^^^^^^^^^^^^^^^^ help: try: `<[usize; 3]>::default()`
+
+error: calling `T::default()` is more clear than this expression
+  --> tests/ui/default_trait_access.rs:85:9
+   |
+LL |         Default::default()
+   |         ^^^^^^^^^^^^^^^^^^ help: try: `T::default()`
+
+error: aborting due to 12 previous errors
 

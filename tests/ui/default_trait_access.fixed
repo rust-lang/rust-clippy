@@ -70,13 +70,20 @@ fn main() {
 
     let _s22: nested_module::DerivedDefault = nested_module::DerivedDefault::default();
     //~^ default_trait_access
+
+    let _s23: (usize, String) = <(usize, String)>::default();
+    //~^ default_trait_access
+
+    let _s24: [usize; 3] = <[usize; 3]>::default();
+    //~^ default_trait_access
 }
 
 struct DefaultFactory;
 
 impl DefaultFactory {
     pub fn make_t_badly<T: Default>() -> T {
-        Default::default()
+        T::default()
+        //~^ default_trait_access
     }
 
     pub fn make_t_nicely<T: Default>() -> T {
