@@ -417,6 +417,8 @@ impl<'tcx> LateLintPass<'tcx> for StrToString {
             && args.iter().any(|a| a.hir_id == expr.hir_id)
             && let Res::Def(DefKind::AssocFn, def_id) = expr.res(cx)
             && cx.tcx.is_diagnostic_item(sym::to_string_method, def_id)
+            && let Some(args) = cx.typeck_results().node_args_opt(expr.hir_id)
+            && args.type_at(0).peel_refs().is_str()
         {
             // Detected `ToString::to_string` passed as an argument (generic: any call or method call)
             span_lint_and_sugg(
