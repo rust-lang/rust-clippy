@@ -145,7 +145,7 @@ impl<'tcx> LateLintPass<'tcx> for LenZero {
                 if method.ident.name == sym::ne {
                     "!"
                 } else {
-                    Default::default()
+                    <&str>::default()
                 },
             );
         }
