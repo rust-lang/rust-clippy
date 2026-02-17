@@ -1,4 +1,5 @@
 #![warn(clippy::swap_with_temporary)]
+#![allow(clippy::clear_instead_of_new)]
 
 use std::mem::swap;
 
