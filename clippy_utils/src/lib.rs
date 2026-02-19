@@ -2340,12 +2340,11 @@ fn with_test_item_names(tcx: TyCtxt<'_>, module: LocalModDefId, f: impl FnOnce(&
                     && let item = tcx.hir_item(id)
                     && let ItemKind::Const(ident, _generics, ty, _body) = item.kind
                     && let TyKind::Path(QPath::Resolved(_, path)) = ty.kind
-                        // We could also check for the type name `test::TestDescAndFn`
-                        && let Res::Def(DefKind::Struct, _) = path.res
+                    // We could also check for the type name `test::TestDescAndFn`
+                    && let Res::Def(DefKind::Struct, _) = path.res
+                    && find_attr!(tcx.hir_attrs(item.hir_id()), AttributeKind::RustcTestMarker(..))
                 {
-                    if find_attr!(tcx.hir_attrs(item.hir_id()), AttributeKind::RustcTestMarker(..)) {
-                        names.push(ident.name);
-                    }
+                    names.push(ident.name);
                 }
             }
             names.sort_unstable();
