@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::{
-    SpanRangeExt, expr_block, snippet, snippet_block_with_context, snippet_with_applicability, snippet_with_context,
+    SpanRangeExt, expr_block, indent_of, snippet, snippet_block_with_context, snippet_with_applicability,
+    snippet_with_context,
 };
 use clippy_utils::ty::{implements_trait, peel_and_count_ty_refs};
 use clippy_utils::{is_lint_allowed, is_unit_expr, peel_blocks, peel_hir_pat_refs, peel_n_hir_expr_refs};
@@ -173,12 +174,32 @@ fn report_single_pattern(
         (msg, sugg)
     } else {
         let msg = "you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`";
+        let body_str = if matches!(arm.body.kind, ExprKind::Block(..)) {
+            expr_block(cx, arm.body, ctxt, "..", Some(expr.span), &mut app)
+        } else {
+            let ty = cx.typeck_results().expr_ty(arm.body);
+            if ty.is_unit() {
+                // Bare unit expression: add semicolon to avoid violating
+                // `semicolon_if_nothing_returned` in the suggestion (issue #16579)
+                let indent = indent_of(cx, expr.span).unwrap_or(0);
+
+                format!(
+                    "{{\n{space}{};\n{closing}}}",
+                    snippet_with_context(cx, arm.body.span, ctxt, "..", &mut app).0,
+                    space = " ".repeat(indent + 4),
+                    closing = " ".repeat(indent),
+                )
+            } else {
+                // Returns a value, keep as-is using expr_block
+                expr_block(cx, arm.body, ctxt, "..", Some(expr.span), &mut app)
+            }
+        };
         let sugg = format!(
-            "if let {} = {} {}{els_str}",
+            "if let {} = {} {body_str}{els_str}",
             snippet_with_applicability(cx, arm.pat.span, "..", &mut app),
             snippet_with_context(cx, ex.span, ctxt, "..", &mut app).0,
-            expr_block(cx, arm.body, ctxt, "..", Some(expr.span), &mut app),
         );
+
         (msg, sugg)
     };
 
