@@ -117,21 +117,6 @@ fn dont_lint_into_iter_on_static_copy_iter() {
 }
 
 fn main() {
-    test_generic(10i32);
-    test_generic2::<i32, i32>(10i32);
-    test_questionmark().unwrap();
-    test_issue_3913().unwrap();
-
-    dont_lint_on_type_alias();
-    dont_lint_into_iter_on_immutable_local_implementing_iterator_in_expr();
-    lint_into_iter_on_mutable_local_implementing_iterator_in_expr();
-    lint_into_iter_on_expr_implementing_iterator();
-    lint_into_iter_on_expr_implementing_iterator_2();
-    lint_into_iter_on_const_implementing_iterator();
-    lint_into_iter_on_const_implementing_iterator_2();
-    dont_lint_into_iter_on_copy_iter();
-    dont_lint_into_iter_on_static_copy_iter();
-
     {
         // triggers the IntoIterator trait
         fn consume(_: impl IntoIterator) {}

@@ -64,6 +64,4 @@ fn no_suggestion_if_comments_present() {
         .flat_map(|x| x.iter());
 }
 
-fn main() {
-    long_span();
-}
+fn main() {}

@@ -113,10 +113,7 @@ fn result_methods() {
     let _ = opt_map!(res2, |x| x == 'a').unwrap_or_default(); // should not lint
 }
 
-fn main() {
-    option_methods();
-    result_methods();
-}
+fn main() {}
 
 fn issue15202() {
     let xs = [None, Some(b'_'), Some(b'1')];
