@@ -3,7 +3,7 @@
 #![feature(macro_metavar_expr)]
 #![feature(never_type)]
 #![feature(rustc_private)]
-#![feature(assert_matches)]
+#![cfg_attr(bootstrap, feature(assert_matches))]
 #![feature(unwrap_infallible)]
 #![recursion_limit = "512"]
 #![allow(clippy::missing_errors_doc, clippy::missing_panics_doc, clippy::must_use_candidate)]
@@ -2340,16 +2340,11 @@ fn with_test_item_names(tcx: TyCtxt<'_>, module: LocalModDefId, f: impl FnOnce(&
                     && let item = tcx.hir_item(id)
                     && let ItemKind::Const(ident, _generics, ty, _body) = item.kind
                     && let TyKind::Path(QPath::Resolved(_, path)) = ty.kind
-                        // We could also check for the type name `test::TestDescAndFn`
-                        && let Res::Def(DefKind::Struct, _) = path.res
+                    // We could also check for the type name `test::TestDescAndFn`
+                    && let Res::Def(DefKind::Struct, _) = path.res
+                    && find_attr!(tcx.hir_attrs(item.hir_id()), AttributeKind::RustcTestMarker(..))
                 {
-                    let has_test_marker = tcx
-                        .hir_attrs(item.hir_id())
-                        .iter()
-                        .any(|a| a.has_name(sym::rustc_test_marker));
-                    if has_test_marker {
-                        names.push(ident.name);
-                    }
+                    names.push(ident.name);
                 }
             }
             names.sort_unstable();
