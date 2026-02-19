@@ -43,7 +43,7 @@ LL ~     taking_three_units((), (), ());
    |
 
 error: passing a unit value to a function
-  --> tests/ui/unit_arg_fixable.rs:35:5
+  --> tests/ui/unit_arg_fixable.rs:33:5
    |
 LL |     fn_take_unit(Default::default());
    |     ^^^^^^^^^^^^^------------------^
@@ -51,7 +51,7 @@ LL |     fn_take_unit(Default::default());
    |                  help: use a unit literal instead: `()`
 
 error: passing a unit value to a function
-  --> tests/ui/unit_arg_fixable.rs:49:5
+  --> tests/ui/unit_arg_fixable.rs:47:5
    |
 LL |     fn_take_unit(another_mac!());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -63,7 +63,7 @@ LL ~     fn_take_unit(());
    |
 
 error: passing a unit value to a function
-  --> tests/ui/unit_arg_fixable.rs:51:5
+  --> tests/ui/unit_arg_fixable.rs:49:5
    |
 LL |     fn_take_unit(another_mac!(1));
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -75,7 +75,7 @@ LL ~     fn_take_unit(());
    |
 
 error: passing a unit value to a function
-  --> tests/ui/unit_arg_fixable.rs:60:5
+  --> tests/ui/unit_arg_fixable.rs:58:5
    |
 LL |     fn_take_unit(mac!(nondef Default::default()));
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^------------------^^
@@ -83,7 +83,7 @@ LL |     fn_take_unit(mac!(nondef Default::default()));
    |                              help: use a unit literal instead: `()`
 
 error: passing a unit value to a function
-  --> tests/ui/unit_arg_fixable.rs:62:5
+  --> tests/ui/unit_arg_fixable.rs:60:5
    |
 LL |     fn_take_unit(mac!(empty_block));
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -95,7 +95,7 @@ LL ~     fn_take_unit(());
    |
 
 error: passing a unit value to a function
-  --> tests/ui/unit_arg_fixable.rs:69:5
+  --> tests/ui/unit_arg_fixable.rs:67:5
    |
 LL |     fn_take_unit(def());
    |     ^^^^^^^^^^^^^^^^^^^

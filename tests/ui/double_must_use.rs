@@ -68,8 +68,4 @@ pub fn must_use_controlflow_with_uninhabited_2() -> ControlFlow<std::convert::In
     unimplemented!();
 }
 
-fn main() {
-    must_use_result();
-    must_use_tuple();
-    must_use_with_note();
-}
+fn main() {}
