@@ -88,7 +88,7 @@ impl LateLintPass<'_> for DurationSuboptimalUnits {
             && value != 0
             && let Some((promoted_constructor, promoted_value)) = self.promote(cx, func_name.ident.name, value)
             // Does not promote for literals with resulting values <=10
-            && (!matches!(expr.kind, ExprKind::Call(_, [Expr { kind: ExprKind::Lit(_), .. }])) || promoted_value > 10)
+            && (!matches!(arg.kind, ExprKind::Lit(_)) || promoted_value > 10)
         {
             span_lint_and_then(
                 cx,
