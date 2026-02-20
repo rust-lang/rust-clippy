@@ -581,6 +581,17 @@ define_Conf! {
     /// Use the Cognitive Complexity lint instead.
     #[conf_deprecated("Please use `cognitive-complexity-threshold` instead", cognitive_complexity_threshold)]
     cyclomatic_complexity_threshold: u64 = 25,
+    /// The list of disallowed fields, written as fully qualified paths.
+    ///
+    /// **Fields:**
+    /// - `path` (required): the fully qualified path to the field that should be disallowed
+    /// - `reason` (optional): explanation why this field is disallowed
+    /// - `replacement` (optional): suggested alternative method
+    /// - `allow-invalid` (optional, `false` by default): when set to `true`, it will ignore this entry
+    ///   if the path doesn't exist, instead of emitting an error
+    #[disallowed_paths_allow_replacements = true]
+    #[lints(disallowed_fields)]
+    disallowed_fields: Vec<DisallowedPath> = Vec::new(),
     /// The list of disallowed macros, written as fully qualified paths.
     ///
     /// **Fields:**
