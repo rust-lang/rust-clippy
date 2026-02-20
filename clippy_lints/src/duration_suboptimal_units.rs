@@ -87,6 +87,13 @@ impl LateLintPass<'_> for DurationSuboptimalUnits {
             // There is no need to promote e.g. 0 seconds to 0 hours
             && value != 0
             && let Some((promoted_constructor, promoted_value)) = self.promote(cx, func_name.ident.name, value)
+            // For plain integer literals, only lint if the promoted value is large enough.
+            // Small promoted values (e.g. `from_millis(1_000)` -> `from_secs(1)`) are not
+            // necessarily more readable, and keeping the smaller unit makes quick adjustments
+            // easier (e.g. changing 1_000 to 1_200 without also changing the function name).
+            // For expressions (e.g. `10 * 60`), always lint since the expression already
+            // signals intent to compute a converted value.
+            && !(matches!(arg.kind, ExprKind::Lit(_)) && promoted_value <= 10)
         {
             span_lint_and_then(
                 cx,

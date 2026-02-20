@@ -6,12 +6,17 @@
 use std::time::Duration;
 
 fn main() {
-    let dur = Duration::from_mins(1);
+    // Literals with small promoted values should not lint (issue #16532)
+    let dur = Duration::from_secs(60);
+    let dur = Duration::from_hours(24);
+
+    // Literals with large promoted values should still lint
+    let dur = Duration::from_days(11);
     //~^ duration_suboptimal_units
 
-    let dur = Duration::from_days(1);
-    //~^ duration_suboptimal_units
-
+    // Expressions should always lint
     let dur = Duration::from_weeks(13);
+    //~^ duration_suboptimal_units
+    let dur = Duration::from_days(1);
     //~^ duration_suboptimal_units
 }

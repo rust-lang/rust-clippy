@@ -10,7 +10,7 @@ macro_rules! mac {
         3600
     };
     (duration) => {
-        Duration::from_mins(5)
+        Duration::from_mins(12)
         //~^ duration_suboptimal_units
     };
     (arg => $e:expr) => {
@@ -23,17 +23,27 @@ fn main() {
     let dur = Duration::from_secs(42);
     let dur = Duration::from_hours(3);
 
-    let dur = Duration::from_mins(1);
+    // Literals with small promoted values should not lint (issue #16532)
+    let dur = Duration::from_secs(60);
+    let dur = Duration::from_secs(180);
+    let dur = Duration::from_millis(5_000);
+    let dur = Duration::from_millis(1_000);
+    let dur = Duration::from_secs(3_600);
+
+    // Literals with large promoted values should still lint
+    let dur = Duration::from_mins(11);
     //~^ duration_suboptimal_units
-    let dur = Duration::from_mins(3);
+    let dur = Duration::from_mins(11);
     //~^ duration_suboptimal_units
+
+    // Expressions should always lint regardless of the promoted value
     let dur = Duration::from_mins(10);
     //~^ duration_suboptimal_units
     let dur = Duration::from_hours(24);
     //~^ duration_suboptimal_units
-    let dur = Duration::from_secs(5);
-    //~^ duration_suboptimal_units
     let dur = Duration::from_hours(13);
+    //~^ duration_suboptimal_units
+    let dur = Duration::from_mins(1);
     //~^ duration_suboptimal_units
 
     // Constants are intentionally not resolved, as we don't want to recommend a literal value over
@@ -44,22 +54,26 @@ fn main() {
 
     const {
         let dur = Duration::from_secs(0);
-        let dur = Duration::from_secs(5);
-        //~^ duration_suboptimal_units
-        let dur = Duration::from_mins(3);
-        //~^ duration_suboptimal_units
+        // Literals with small promoted values should not lint in const blocks either
+        let dur = Duration::from_millis(5_000);
+        let dur = Duration::from_secs(180);
+
+        // Expressions should still lint in const blocks
         let dur = Duration::from_hours(24);
         //~^ duration_suboptimal_units
 
         let dur = Duration::from_secs(SIXTY);
     }
 
-    // Qualified Durations must be kept
-    std::time::Duration::from_mins(1);
+    // Qualified Durations with small promoted values should not lint
+    std::time::Duration::from_secs(60);
+
+    // Qualified Durations with expressions should still lint
+    std::time::Duration::from_mins(10);
     //~^ duration_suboptimal_units
 
     // We lint in normal macros
-    assert_eq!(Duration::from_hours(1), Duration::from_mins(6));
+    assert_eq!(Duration::from_mins(10), Duration::from_mins(6));
     //~^ duration_suboptimal_units
 
     // We lint in normal macros (marker is in macro itself)
