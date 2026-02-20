@@ -18,6 +18,8 @@ declare_clippy_lint! {
     ///
     /// Checks for instances where a `std::time::Duration` is constructed using a smaller time unit
     /// when the value could be expressed more clearly using a larger unit.
+    /// For values that would convert to 10 or fewer of the larger unit,
+    /// this lint does not apply.
     ///
     /// ### Why is this bad?
     ///
@@ -29,8 +31,8 @@ declare_clippy_lint! {
     /// ```
     /// use std::time::Duration;
     ///
-    /// let dur = Duration::from_millis(5_000);
-    /// let dur = Duration::from_secs(180);
+    /// let dur = Duration::from_millis(50_000);
+    /// let dur = Duration::from_secs(1800);
     /// let dur = Duration::from_mins(10 * 60);
     /// ```
     ///
@@ -38,8 +40,8 @@ declare_clippy_lint! {
     /// ```
     /// use std::time::Duration;
     ///
-    /// let dur = Duration::from_secs(5);
-    /// let dur = Duration::from_mins(3);
+    /// let dur = Duration::from_secs(50);
+    /// let dur = Duration::from_mins(30);
     /// let dur = Duration::from_hours(10);
     /// ```
     #[clippy::version = "1.95.0"]
@@ -80,8 +82,8 @@ impl LateLintPass<'_> for DurationSuboptimalUnits {
             // We intentionally don't want to evaluate referenced constants, as we don't want to
             // recommend a literal value over using constants:
             //
-            // let dur = Duration::from_secs(SIXTY);
-            //           ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Duration::from_mins(1)`
+            // let dur = Duration::from_millis(TWELVE_THOUSAND);
+            //           ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Duration::from_secs(12)`
             && let Some(Constant::Int(value)) = ConstEvalCtxt::new(cx).eval_local(arg, expr.span.ctxt())
             && let Ok(value) = u64::try_from(value) // Cannot fail
             // There is no need to promote e.g. 0 seconds to 0 hours
