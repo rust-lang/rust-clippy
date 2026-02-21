@@ -229,16 +229,18 @@ declare_clippy_lint! {
 declare_clippy_lint! {
     /// ### What it does
     /// Checks for casts, using `as` or `pointer::cast`, from a
-    /// less strictly aligned pointer to a more strictly aligned pointer.
+    /// less strictly aligned pointer to a (possibly) more strictly aligned pointer.
     ///
     /// ### Why is this bad?
     /// Dereferencing the resulting pointer may be undefined behavior.
     ///
     /// ### Known problems
-    /// Using [`std::ptr::read_unaligned`](https://doc.rust-lang.org/std/ptr/fn.read_unaligned.html) and [`std::ptr::write_unaligned`](https://doc.rust-lang.org/std/ptr/fn.write_unaligned.html) or
-    /// similar on the resulting pointer is fine. Is over-zealous: casts with
-    /// manual alignment checks or casts like `u64` -> `u8` -> `u16` can be
-    /// fine. Miri is able to do a more in-depth analysis.
+    /// Using [`std::ptr::read_unaligned`](https://doc.rust-lang.org/std/ptr/fn.read_unaligned.html)
+    /// and [`std::ptr::write_unaligned`](https://doc.rust-lang.org/std/ptr/fn.write_unaligned.html)
+    /// or similar on the resulting pointer is fine.
+    ///
+    /// Is over-zealous: casts with manual alignment checks or casts like `u64` -> `u8` -> `u16` can be fine.
+    /// Miri is able to do a more in-depth analysis.
     ///
     /// ### Example
     /// ```no_run
