@@ -104,8 +104,10 @@ pub struct LintInfo {
     pub lint: &'static Lint,
     pub category: LintCategory,
     pub explanation: &'static str,
-    /// e.g. `clippy_lints/src/absolute_paths.rs#43`
-    pub location: &'static str,
+    /// e.g. `clippy_lints/src/absolute_paths.rs`
+    pub file: &'static str,
+    /// The line number in `file`
+    pub line: u32,
     pub version: &'static str,
 }
 
@@ -115,6 +117,16 @@ impl LintInfo {
     #[expect(clippy::missing_panics_doc)]
     pub fn name_lower(&self) -> String {
         self.lint.name.strip_prefix("clippy::").unwrap().to_ascii_lowercase()
+    }
+
+    #[must_use]
+    pub fn location_terminal(&self) -> String {
+        format!("{}:{}", self.file, self.line)
+    }
+
+    #[must_use]
+    pub fn location_github(&self) -> String {
+        format!("{}#L{}", self.file, self.line)
     }
 }
 
@@ -143,7 +155,8 @@ macro_rules! declare_clippy_lint_inner {
             lint: $lint_name,
             category: $crate::LintCategory::$category,
             explanation: concat!($($docs,"\n",)*),
-            location: concat!(file!(), "#L", line!()),
+            file: file!(),
+            line: line!(),
             version: $version,
         };
     };
