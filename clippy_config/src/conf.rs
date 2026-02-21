@@ -413,6 +413,15 @@ define_Conf! {
     /// Whether `unwrap` should be allowed in test functions or `#[cfg(test)]`
     #[lints(unwrap_used)]
     allow_unwrap_in_tests: bool = false,
+    /// List of types to allow `unwrap()` and `expect()` on.
+    ///
+    /// #### Example
+    ///
+    /// ```toml
+    /// allow-unwrap-types = [ "std::sync::LockResult" ]
+    /// ```
+    #[lints(expect_used, unwrap_used)]
+    allow_unwrap_types: Vec<String> = Vec::new(),
     /// Whether `useless_vec` should ignore test functions or `#[cfg(test)]`
     #[lints(useless_vec)]
     allow_useless_vec_in_tests: bool = false,
