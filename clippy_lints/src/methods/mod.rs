@@ -4760,6 +4760,7 @@ pub struct Methods {
     allow_unwrap_in_consts: bool,
     allowed_dotfiles: FxHashSet<&'static str>,
     format_args: FormatArgsStorage,
+    allow_unwrap_types: Vec<String>,
 }
 
 impl Methods {
@@ -4776,6 +4777,7 @@ impl Methods {
             allow_unwrap_in_consts: conf.allow_unwrap_in_consts,
             allowed_dotfiles,
             format_args,
+            allow_unwrap_types: conf.allow_unwrap_types.clone(),
         }
     }
 }
@@ -4974,6 +4976,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                     self.allow_expect_in_tests,
                     self.allow_unwrap_in_consts,
                     self.allow_expect_in_consts,
+                    &self.allow_unwrap_types,
                 );
             },
             ExprKind::MethodCall(..) => {
@@ -5722,6 +5725,7 @@ impl Methods {
                         false,
                         self.allow_expect_in_consts,
                         self.allow_expect_in_tests,
+                        &self.allow_unwrap_types,
                         unwrap_expect_used::Variant::Expect,
                     );
                     expect_fun_call::check(cx, &self.format_args, expr, method_span, recv, arg);
@@ -5734,6 +5738,7 @@ impl Methods {
                         true,
                         self.allow_expect_in_consts,
                         self.allow_expect_in_tests,
+                        &self.allow_unwrap_types,
                         unwrap_expect_used::Variant::Expect,
                     );
                 },
@@ -5754,6 +5759,7 @@ impl Methods {
                         false,
                         self.allow_unwrap_in_consts,
                         self.allow_unwrap_in_tests,
+                        &self.allow_unwrap_types,
                         unwrap_expect_used::Variant::Unwrap,
                     );
                 },
@@ -5765,6 +5771,7 @@ impl Methods {
                         true,
                         self.allow_unwrap_in_consts,
                         self.allow_unwrap_in_tests,
+                        &self.allow_unwrap_types,
                         unwrap_expect_used::Variant::Unwrap,
                     );
                 },
