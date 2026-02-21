@@ -407,6 +407,9 @@ define_Conf! {
     #[lints(renamed_function_params)]
     allow_renamed_params_for: Vec<String> =
         DEFAULT_ALLOWED_TRAITS_WITH_RENAMED_PARAMS.iter().map(ToString::to_string).collect(),
+    /// Whether `unreachable` should be allowed in test functions or `#[cfg(test)]`
+    #[lints(unreachable)]
+    allow_unreachable_in_tests: bool = false,
     /// Whether `unwrap` should be allowed in code always evaluated at compile time
     #[lints(unwrap_used)]
     allow_unwrap_in_consts: bool = true,
