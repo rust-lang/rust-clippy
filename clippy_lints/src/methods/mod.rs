@@ -9,6 +9,7 @@ mod chars_last_cmp;
 mod chars_last_cmp_with_unwrap;
 mod chars_next_cmp;
 mod chars_next_cmp_with_unwrap;
+mod clear_instead_of_new;
 mod clear_with_drain;
 mod clone_on_copy;
 mod clone_on_ref_ptr;
@@ -4749,6 +4750,38 @@ declare_clippy_lint! {
     suspicious,
     "filtering `std::io::Lines` with `filter_map()`, `flat_map()`, or `flatten()` might cause an infinite loop"
 }
+declare_clippy_lint! {
+    /// ### What it does
+    /// Detects when you reassign a collection variable with `Collection::new()`
+    /// instead of just calling `.clear()` on it.
+    ///
+    /// ### Why is this bad?
+    /// Creating a new collection discards the allocated memory of the previous
+    /// collection. Using `.clear()` instead reuses the allocated memory, which
+    /// can be more efficient, especially if the collection had a large capacity.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # fn f(v: &Vec<i32>) {}
+    /// let mut vec = Vec::new();
+    /// vec.push(1);
+    /// f(&vec);
+    /// vec = Vec::new();
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # fn f(v: &Vec<i32>) {}
+    /// let mut vec = Vec::new();
+    /// vec.push(1);
+    /// f(&vec);
+    /// vec.clear();
+    /// ```
+    #[clippy::version = "1.95.0"]
+    pub CLEAR_INSTEAD_OF_NEW,
+    perf,
+    "assigning a new empty collection instead of clearing the existing one"
+}
 
 #[expect(clippy::struct_excessive_bools)]
 pub struct Methods {
@@ -4796,6 +4829,7 @@ impl_lint_pass!(Methods => [
     EXPECT_FUN_CALL,
     CHARS_NEXT_CMP,
     CHARS_LAST_CMP,
+    CLEAR_INSTEAD_OF_NEW,
     CLONE_ON_COPY,
     CLONE_ON_REF_PTR,
     COLLAPSIBLE_STR_REPLACE,
@@ -4990,6 +5024,9 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
             },
             ExprKind::Binary(op, lhs, rhs) if op.node == hir::BinOpKind::Or => {
                 manual_is_variant_and::check_or(cx, expr, lhs, rhs, self.msrv);
+            },
+            ExprKind::Assign(..) => {
+                clear_instead_of_new::check(cx, expr);
             },
             _ => (),
         }

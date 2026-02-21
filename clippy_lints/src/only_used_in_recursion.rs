@@ -231,7 +231,7 @@ impl Params {
 
     fn remove_by_id(&mut self, id: HirId) {
         if let Some(param) = self.get_by_id_mut(id) {
-            param.uses = Vec::new();
+            param.uses.clear();
             let key = (param.fn_id, param.idx);
             self.by_fn.remove(&key);
             // FIXME(rust/#120456) - is `swap_remove` correct?
