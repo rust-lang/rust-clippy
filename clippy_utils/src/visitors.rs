@@ -1,3 +1,5 @@
+//! Utilities for analyzing the contents of expressions and other [visitable](Visitable) items.
+
 use crate::get_enclosing_block;
 use crate::msrvs::Msrv;
 use crate::qualify_min_const_fn::is_stable_const_fn;
@@ -36,7 +38,9 @@ impl Continue for () {
 /// descending into child nodes.
 #[derive(Clone, Copy)]
 pub enum Descend {
+    /// Controlled [`Visitor`] should descend into child nodes.
     Yes,
+    /// Controlled [`Visitor`] should not descend into child nodes.
     No,
 }
 impl From<bool> for Descend {
@@ -204,6 +208,9 @@ fn contains_try(expr: &Expr<'_>) -> bool {
     .is_some()
 }
 
+/// Calls a given function of the form `|return_expr: &Expr| -> bool` for all `return` expressions
+/// in the given [expression](Expr), and returns whether that callback returned true for all found
+/// `return`s.
 pub fn find_all_ret_expressions<'hir, F>(_cx: &LateContext<'_>, expr: &'hir Expr<'hir>, callback: F) -> bool
 where
     F: FnMut(&'hir Expr<'hir>) -> bool,
@@ -589,9 +596,11 @@ pub fn for_each_local_use_after_expr<'tcx, B>(
     }
 }
 
-// Calls the given function for every unconsumed temporary created by the expression. Note the
-// function is only guaranteed to be called for types which need to be dropped, but it may be called
-// for other types.
+/// Calls a given function of the form `|temporary_type: Ty| -> ControlFlow<B>` for every unconsumed
+/// temporary created by the given [expression](Expr), and returns the result of that function.
+///
+/// Note the function is only guaranteed to be called for types which need to be dropped, but it may
+/// be called for other types.
 #[expect(clippy::too_many_lines)]
 pub fn for_each_unconsumed_temporary<'tcx, B>(
     cx: &LateContext<'tcx>,
@@ -708,6 +717,8 @@ pub fn for_each_unconsumed_temporary<'tcx, B>(
     helper(cx.typeck_results(), true, e, &mut f)
 }
 
+/// Checks whether the drop order matters for any unconsumed temporary created by the given
+/// [expression](Expr).
 pub fn any_temporaries_need_ordered_drop<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) -> bool {
     for_each_unconsumed_temporary(cx, e, |ty| {
         if needs_ordered_drop(cx, ty) {
@@ -765,6 +776,8 @@ pub fn for_each_local_assignment<'tcx, B>(
     }
 }
 
+/// Checks whether the given [expression](Expr) contains any `break` or `continue` expressions. This
+/// does not enter any bodies or nested items, because a `break` or `continue` would not apply to the expression's scope.
 pub fn contains_break_or_continue(expr: &Expr<'_>) -> bool {
     for_each_expr_without_closures(expr, |e| {
         if matches!(e.kind, ExprKind::Break(..) | ExprKind::Continue(..)) {

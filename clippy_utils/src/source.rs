@@ -20,7 +20,9 @@ use std::borrow::Cow;
 use std::fmt;
 use std::ops::{Deref, Index, Range};
 
+/// Either a [`Session`] or a type which can be associated with one.
 pub trait HasSession {
+    /// Gets the [`Session`] associated with `self`.
     fn sess(&self) -> &Session;
 }
 impl HasSession for Session {
@@ -46,6 +48,7 @@ impl HasSession for LateContext<'_> {
 
 /// Conversion of a value into the range portion of a `Span`.
 pub trait SpanRange: Sized {
+    /// Converts `self` into the range portion of a [`Span`].
     fn into_range(self) -> Range<BytePos>;
 }
 impl SpanRange for Span {
@@ -67,7 +70,9 @@ impl SpanRange for Range<BytePos> {
 
 /// Conversion of a value into a `Span`
 pub trait IntoSpan: Sized {
+    /// Converts `self` into a [`Span`].
     fn into_span(self) -> Span;
+    /// Converts `self` into a [`Span`], with [context](SyntaxContext).
     fn with_ctxt(self, ctxt: SyntaxContext) -> Span;
 }
 impl IntoSpan for Span {
@@ -95,6 +100,7 @@ impl IntoSpan for Range<BytePos> {
     }
 }
 
+/// Extensions to [`SpanRange`].
 pub trait SpanRangeExt: SpanRange {
     /// Attempts to get a handle to the source text. Returns `None` if either the span is malformed,
     /// or the source text is not accessible.
@@ -338,8 +344,11 @@ fn trim_start(sm: &SourceMap, sp: Range<BytePos>) -> Range<BytePos> {
     .unwrap_or(sp)
 }
 
+/// A range within a specific [source file](SourceFile).
 pub struct SourceFileRange {
+    /// The [source file](SourceFile) referred to by this range
     pub sf: Arc<SourceFile>,
+    /// The range within the associated [source file](SourceFile)
     pub range: Range<usize>,
 }
 impl SourceFileRange {
@@ -441,6 +450,11 @@ pub fn snippet_indent(sess: &impl HasSession, span: Span) -> Option<String> {
 // sources that the user has no control over.
 // For some reason these attributes don't have any expansion info on them, so
 // we have to check it this way until there is a better way.
+//
+/// Checks whether the code snippet referred to by the given [`Span`] is present in the source code.
+///
+/// For example, if the span refers to an attribute inserted during macro expansion, this will
+/// return false.
 pub fn is_present_in_source(sess: &impl HasSession, span: Span) -> bool {
     if let Some(snippet) = snippet_opt(sess, span)
         && snippet.is_empty()
@@ -630,6 +644,9 @@ pub fn snippet_block_with_applicability(
     reindent_multiline(&snip, true, indent)
 }
 
+/// Walks a span (from a block) up to the given context (using [`snippet_with_context()`]) and
+/// converts it to a code snippet if available, otherwise use default. Adapts the applicability
+/// level `app` by the rules of [`snippet_with_applicability()`].
 pub fn snippet_block_with_context(
     sess: &impl HasSession,
     span: Span,

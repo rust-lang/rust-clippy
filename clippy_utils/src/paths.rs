@@ -23,8 +23,11 @@ use std::sync::OnceLock;
 /// arbitrary namespace
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum PathNS {
+    /// The [type namespace](TypeNS)
     Type,
+    /// The [value namespace](ValueNS)
     Value,
+    /// The [macro namespace](MacroNS)
     Macro,
     Field,
 

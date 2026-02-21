@@ -1,3 +1,5 @@
+//! Utilities for analyzing macro invocations and expansions.
+
 #![allow(clippy::similar_names)] // `expr` and `expn`
 
 use std::sync::{Arc, OnceLock};
@@ -65,6 +67,7 @@ pub struct MacroCall {
 }
 
 impl MacroCall {
+    /// Returns true if this macro call is from the root expansion or a locally defined macro
     pub fn is_local(&self) -> bool {
         span_is_local(self.span)
     }
@@ -228,6 +231,7 @@ pub fn is_assert_macro(cx: &LateContext<'_>, def_id: DefId) -> bool {
     matches!(name, sym::assert_macro | sym::debug_assert_macro)
 }
 
+/// An expansion of a `panic!()` expression into its arguments
 #[derive(Debug)]
 pub enum PanicExpn<'a> {
     /// No arguments - `panic!()`
@@ -241,6 +245,7 @@ pub enum PanicExpn<'a> {
 }
 
 impl<'a> PanicExpn<'a> {
+    /// Parses a `panic!()` expression
     pub fn parse(expr: &'a Expr<'a>) -> Option<Self> {
         let ExprKind::Call(callee, args) = &expr.kind else {
             return None;
@@ -516,7 +521,9 @@ pub enum FormatParamUsage {
 
 /// A node with a `HirId` and a `Span`
 pub trait HirNode {
+    /// Returns this node's [`HirId`]
     fn hir_id(&self) -> HirId;
+    /// Returns this node's [`Span`]
     fn span(&self) -> Span;
 }
 
