@@ -318,18 +318,14 @@ fn check_with_condition<'tcx>(
         && let ExprKind::Path(QPath::Resolved(_, ares_path)) = target.kind
     {
         // Handle symmetric conditions in the if statement
-        let (cond_var, cond_num_val) = if SpanlessEq::new(cx).eq_expr(cond_left, target) {
-            if BinOpKind::Gt == cond_op || BinOpKind::Ne == cond_op {
-                (cond_left, cond_right)
-            } else {
-                return;
-            }
-        } else if SpanlessEq::new(cx).eq_expr(cond_right, target) {
-            if BinOpKind::Lt == cond_op || BinOpKind::Ne == cond_op {
-                (cond_right, cond_left)
-            } else {
-                return;
-            }
+        let (cond_var, cond_num_val) = if SpanlessEq::new(cx).eq_expr(cond_left, target)
+            && (BinOpKind::Gt == cond_op || BinOpKind::Ne == cond_op)
+        {
+            (cond_left, cond_right)
+        } else if SpanlessEq::new(cx).eq_expr(cond_right, target)
+            && (BinOpKind::Lt == cond_op || BinOpKind::Ne == cond_op)
+        {
+            (cond_right, cond_left)
         } else {
             return;
         };

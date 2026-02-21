@@ -2,7 +2,9 @@ use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::msrvs::Msrv;
 use clippy_utils::source::{IntoSpan as _, SpanRangeExt, snippet, snippet_block_with_applicability};
-use clippy_utils::{can_use_if_let_chains, span_contains_non_whitespace, sym, tokenize_with_text};
+use clippy_utils::{
+    SpanlessEq, can_use_if_let_chains, is_unit_expr, span_contains_non_whitespace, sym, tokenize_with_text,
+};
 use rustc_ast::{BinOpKind, MetaItemInner};
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, StmtKind};
@@ -93,7 +95,7 @@ impl CollapsibleIf {
         }
     }
 
-    fn check_collapsible_else_if(&self, cx: &LateContext<'_>, then_span: Span, else_block: &Block<'_>) {
+    fn check_collapsible_else_if(&self, cx: &LateContext<'_>, then_span: Span, else_block: &Block<'_>) -> bool {
         if let Some(else_) = expr_block(else_block)
             && !else_.span.from_expansion()
             && let ExprKind::If(else_if_cond, ..) = else_.kind
@@ -161,15 +163,31 @@ impl CollapsibleIf {
                     );
                 },
             );
+
+            return true;
         }
+
+        false
     }
 
-    fn check_collapsible_if_if(&self, cx: &LateContext<'_>, expr: &Expr<'_>, check: &Expr<'_>, then: &Block<'_>) {
+    fn check_collapsible_if_if(
+        &self,
+        cx: &LateContext<'_>,
+        expr: &Expr<'_>,
+        check: &Expr<'_>,
+        then: &Block<'_>,
+        else_: Option<&Expr<'_>>,
+    ) {
         if let Some(inner) = expr_block(then)
-            && let ExprKind::If(check_inner, _, None) = &inner.kind
+            && let ExprKind::If(check_inner, then_inner, else_inner) = &inner.kind
             && self.eligible_condition(cx, check_inner)
             && expr.span.eq_ctxt(inner.span)
             && self.check_significant_tokens_and_expect_attrs(cx, then, inner, sym::collapsible_if)
+            && match (else_, *else_inner) {
+                (None, None) => true,
+                (None, Some(e)) | (Some(e), None) => is_unit_expr(e),
+                (Some(a), Some(b)) => SpanlessEq::new(cx).eq_expr(a, b),
+            }
         {
             span_lint_hir_and_then(
                 cx,
@@ -208,6 +226,11 @@ impl CollapsibleIf {
 
                     sugg.extend(parens_around(check));
                     sugg.extend(parens_around(check_inner));
+
+                    if let Some(else_inner) = else_inner {
+                        let else_inner_span = then_inner.span.shrink_to_hi().to(else_inner.span);
+                        sugg.push((else_inner_span, String::new()));
+                    }
 
                     diag.multipart_suggestion("collapse nested if block", sugg, Applicability::MachineApplicable);
                 },
@@ -271,13 +294,15 @@ impl LateLintPass<'_> for CollapsibleIf {
                 // collapsing such blocks can lead to less readable code (#4971)
                 && !(single_inner_if_else(then) && single_inner_if_else(else_))
                 && let ExprKind::Block(else_, None) = else_.kind
+                && self.check_collapsible_else_if(cx, then.span, else_)
             {
-                self.check_collapsible_else_if(cx, then.span, else_);
-            } else if else_.is_none()
-                && self.eligible_condition(cx, cond)
+                return;
+            }
+
+            if self.eligible_condition(cx, cond)
                 && let ExprKind::Block(then, None) = then.kind
             {
-                self.check_collapsible_if_if(cx, expr, cond, then);
+                self.check_collapsible_if_if(cx, expr, cond, then, *else_);
             }
         }
     }

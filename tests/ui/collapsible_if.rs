@@ -4,7 +4,8 @@
     clippy::needless_ifs,
     clippy::nonminimal_bool,
     clippy::eq_op,
-    clippy::redundant_pattern_matching
+    clippy::redundant_pattern_matching,
+    clippy::needless_else
 )]
 
 #[rustfmt::skip]
@@ -209,4 +210,37 @@ fn in_brackets() {
             }
         }
     }
+}
+
+fn issue16561() {
+    let opt = Some(1);
+    let _ = if let Some(s) = opt {
+        if s == 1 { s } else { 1 }
+    } else {
+        1
+    };
+    //~^^^^^ collapsible_if
+
+    if let Some(s) = opt {
+        if s == 1 {
+            s;
+        } else {
+        }
+    }
+    //~^^^^^^ collapsible_if
+
+    if let Some(s) = opt {
+        if s == 1 {
+            s
+        } else if true {
+            1
+        } else {
+            2
+        }
+    } else if true {
+        1
+    } else {
+        2
+    };
+    //~^^^^^^^^^^^^^ collapsible_if
 }
