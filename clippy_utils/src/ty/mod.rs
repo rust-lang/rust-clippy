@@ -308,10 +308,20 @@ pub fn has_drop<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
     }
 }
 
-// Returns whether the type has #[must_use] attribute
+// Returns whether the `ty` has `#[must_use]` attribute. If `ty` is a `Result`/`ControlFlow`
+// whose `Err`/`Break` payload is an uninhabited type, the `Ok`/`Continue` payload type
+// will be used instead. See <https://github.com/rust-lang/rust/pull/148214>.
 pub fn is_must_use_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
     match ty.kind() {
-        ty::Adt(adt, _) => find_attr!(cx.tcx.get_all_attrs(adt.did()), AttributeKind::MustUse { .. }),
+        ty::Adt(adt, args) => match cx.tcx.get_diagnostic_name(adt.did()) {
+            Some(sym::Result) if args.type_at(1).is_privately_uninhabited(cx.tcx, cx.typing_env()) => {
+                is_must_use_ty(cx, args.type_at(0))
+            },
+            Some(sym::ControlFlow) if args.type_at(0).is_privately_uninhabited(cx.tcx, cx.typing_env()) => {
+                is_must_use_ty(cx, args.type_at(1))
+            },
+            _ => find_attr!(cx.tcx.get_all_attrs(adt.did()), AttributeKind::MustUse { .. }),
+        },
         ty::Foreign(did) => find_attr!(cx.tcx.get_all_attrs(*did), AttributeKind::MustUse { .. }),
         ty::Slice(ty) | ty::Array(ty, _) | ty::RawPtr(ty, _) | ty::Ref(_, ty, _) => {
             // for the Array case we don't need to care for the len == 0 case
