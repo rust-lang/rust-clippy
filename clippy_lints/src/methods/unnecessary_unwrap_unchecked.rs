@@ -36,10 +36,91 @@ impl Variant {
     }
 }
 
+/// This only exists so the help message shows `associated function` or `method`, depending on
+/// whether it has a `self` parameter.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum AssocKind {
+    /// No `self`: `fn new() -> Self`
+    Fn,
+    /// Has `self`: `fn ty<'tcx>(&self) -> Ty<'tcx>`
+    Method,
+}
+
+impl AssocKind {
+    fn new(fn_has_self_parameter: bool) -> Self {
+        if fn_has_self_parameter { Self::Method } else { Self::Fn }
+    }
+}
+
 fn unchecked_ident(checked_ident: Ident) -> Option<Ident> {
     let checked_ident = checked_ident.to_string();
     // Only add `_unchecked` if it doesn't already end with `_`
     (!checked_ident.ends_with('_')).then(|| Ident::from_str(&(checked_ident + "_unchecked")))
+}
+
+/// Find a function called the same as `checked`, but with added `_unchecked`.
+///
+/// This doesn't check if the methods are actually "similar" -- for that, see
+/// [`same_functions_modulo_safety`]
+fn find_unchecked_sibling_fn(
+    cx: &LateContext<'_>,
+    checked_def_id: DefId,
+    checked_ident: Ident,
+) -> Option<(DefId, Ident)> {
+    // Don't use `parent_module`. We only want to lint if its first parent is a `Mod`,
+    // i.e. if this is a free-standing function
+    let parent = cx.tcx.parent(checked_def_id);
+    if cx.tcx.def_kind(parent) == DefKind::Mod
+        && let children = parent.as_local().map_or_else(
+            || cx.tcx.module_children(parent),
+            // We must use a !query for local modules to prevent an ICE.
+            |parent| cx.tcx.module_children_local(parent),
+        )
+        // Make sure that there are other functions in this module
+        // (otherwise there couldn't be an unchecked version)
+        && children.len() > 1
+        && let Some(unchecked_ident) = unchecked_ident(checked_ident)
+        && let Some(unchecked_def_id) = children.iter().find_map(|child| {
+            if child.ident == unchecked_ident
+                && let Res::Def(DefKind::Fn, def_id) = child.res
+            {
+                Some(def_id)
+            } else {
+                None
+            }
+        })
+    {
+        Some((unchecked_def_id, unchecked_ident))
+    } else {
+        None
+    }
+}
+
+/// Find a method called the same as `checked`, but with added `_unchecked`.
+///
+/// This doesn't check if the methods are actually "similar" -- for that, see
+/// [`same_functions_modulo_safety`]
+fn find_unchecked_sibling_method<'tcx>(
+    cx: &LateContext<'tcx>,
+    checked_def_id: DefId,
+    checked_ident: Ident,
+) -> Option<(&'tcx ty::AssocItem, Ident)> {
+    // Don't use `parent_impl`. We only want to lint if its first parent is an `Impl`
+    let parent = cx.tcx.parent(checked_def_id);
+    if matches!(cx.tcx.def_kind(parent), DefKind::Impl { .. })
+        && let Some(unchecked_ident) = unchecked_ident(checked_ident)
+        // Only look in the same impl (to avoid dealing with generics etc.)
+        && let Some(unchecked) = cx.tcx.associated_items(parent).find_by_ident_and_namespace(
+            cx.tcx,
+            unchecked_ident,
+            Namespace::ValueNS,
+            parent,
+        )
+    {
+        Some((unchecked, unchecked_ident))
+    } else {
+        None
+    }
 }
 
 /// Checks that `checked_def_id` and `unchecked_def_id` refer to functions with:
@@ -124,87 +205,6 @@ fn same_functions_modulo_safety<'tcx>(
             && cx.tcx.visibility(unchecked_def_id) == cx.tcx.visibility(checked_def_id)
     } else {
         false
-    }
-}
-
-/// This only exists so the help message shows `associated function` or `method`, depending on
-/// whether it has a `self` parameter.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum AssocKind {
-    /// No `self`: `fn new() -> Self`
-    Fn,
-    /// Has `self`: `fn ty<'tcx>(&self) -> Ty<'tcx>`
-    Method,
-}
-
-impl AssocKind {
-    fn new(fn_has_self_parameter: bool) -> Self {
-        if fn_has_self_parameter { Self::Method } else { Self::Fn }
-    }
-}
-
-/// Find a function called the same as `checked`, but with added `_unchecked`.
-///
-/// This doesn't check if the methods are actually "similar" -- for that, see
-/// [`same_functions_modulo_safety`]
-fn find_unchecked_sibling_fn(
-    cx: &LateContext<'_>,
-    checked_def_id: DefId,
-    checked_ident: Ident,
-) -> Option<(DefId, Ident)> {
-    // Don't use `parent_module`. We only want to lint if its first parent is a `Mod`,
-    // i.e. if this is a free-standing function
-    let parent = cx.tcx.parent(checked_def_id);
-    if cx.tcx.def_kind(parent) == DefKind::Mod
-        && let children = parent.as_local().map_or_else(
-            || cx.tcx.module_children(parent),
-            // We must use a !query for local modules to prevent an ICE.
-            |parent| cx.tcx.module_children_local(parent),
-        )
-        // Make sure that there are other functions in this module
-        // (otherwise there couldn't be an unchecked version)
-        && children.len() > 1
-        && let Some(unchecked_ident) = unchecked_ident(checked_ident)
-        && let Some(unchecked_def_id) = children.iter().find_map(|child| {
-            if child.ident == unchecked_ident
-                && let Res::Def(DefKind::Fn, def_id) = child.res
-            {
-                Some(def_id)
-            } else {
-                None
-            }
-        })
-    {
-        Some((unchecked_def_id, unchecked_ident))
-    } else {
-        None
-    }
-}
-
-/// Find a method called the same as `checked`, but with added `_unchecked`.
-///
-/// This doesn't check if the methods are actually "similar" -- for that, see
-/// [`same_functions_modulo_safety`]
-fn find_unchecked_sibling_method<'tcx>(
-    cx: &LateContext<'tcx>,
-    checked_def_id: DefId,
-    checked_ident: Ident,
-) -> Option<(&'tcx ty::AssocItem, Ident)> {
-    // Don't use `parent_impl`. We only want to lint if its first parent is an `Impl`
-    let parent = cx.tcx.parent(checked_def_id);
-    if matches!(cx.tcx.def_kind(parent), DefKind::Impl { .. })
-        && let Some(unchecked_ident) = unchecked_ident(checked_ident)
-        // Only look in the same impl (to avoid dealing with generics etc.)
-        && let Some(unchecked) = cx.tcx.associated_items(parent).find_by_ident_and_namespace(
-            cx.tcx,
-            unchecked_ident,
-            Namespace::ValueNS,
-            parent,
-        )
-    {
-        Some((unchecked, unchecked_ident))
-    } else {
-        None
     }
 }
 
