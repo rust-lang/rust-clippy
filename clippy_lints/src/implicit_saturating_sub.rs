@@ -403,7 +403,7 @@ fn print_lint_and_sugg(cx: &LateContext<'_>, var_name: Symbol, expr: &Expr<'_>) 
         expr.span,
         "implicitly performing saturating subtraction",
         "try",
-        format!("{var_name} = {var_name}.saturating_sub({});", '1'),
+        format!("{var_name} = {var_name}.saturating_sub(1);"),
         Applicability::MachineApplicable,
     );
 }
