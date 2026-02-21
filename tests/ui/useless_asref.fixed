@@ -293,6 +293,11 @@ fn issue16098(exts: Vec<&str>) {
     //~^ useless_asref
 }
 
+fn issue_16529() {
+    let r: Result<i32, i64> = Ok(1);
+    let _r = r.as_ref().map(Clone::clone);
+}
+
 fn main() {
     not_ok();
     ok();
