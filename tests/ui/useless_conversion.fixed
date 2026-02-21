@@ -463,3 +463,34 @@ fn issue16165() {
     for _ in mac!(iter [1, 2]) {}
     //~^ useless_conversion
 }
+
+fn takes_into_iter_usize(_: impl IntoIterator<Item = usize>) {}
+fn takes_into_iter_usize_result(_: impl IntoIterator<Item = usize>) -> Result<(), ()> {
+    Ok(())
+}
+
+async fn issue16590() {
+    let a: Vec<usize> = vec![];
+    let b: Vec<usize> = vec![];
+
+    takes_into_iter_usize(b);
+    //~^ useless_conversion
+}
+
+fn in_for_loop() {
+    let a: Vec<usize> = vec![1, 2, 3];
+    let b: Vec<usize> = vec![4, 5, 6];
+
+    for _ in &a {
+        takes_into_iter_usize(b.clone());
+        //~^ useless_conversion
+    }
+}
+
+fn after_question_mark() -> Result<(), ()> {
+    let b: Vec<usize> = vec![4, 5, 6];
+
+    takes_into_iter_usize_result(b.clone())?;
+    //~^ useless_conversion
+    Ok(())
+}

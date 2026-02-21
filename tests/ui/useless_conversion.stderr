@@ -412,5 +412,47 @@ error: useless conversion to the same type: `std::slice::Iter<'_, i32>`
 LL |     for _ in mac!(iter [1, 2]).into_iter() {}
    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider removing `.into_iter()`: `mac!(iter [1, 2])`
 
-error: aborting due to 45 previous errors
+error: explicit call to `.into_iter()` in function argument accepting `IntoIterator`
+  --> tests/ui/useless_conversion.rs:476:27
+   |
+LL |     takes_into_iter_usize(b.into_iter());
+   |                           ^------------
+   |                            |
+   |                            help: consider removing the `.into_iter()`
+   |
+note: this parameter accepts any `IntoIterator`, so you don't need to call `.into_iter()`
+  --> tests/ui/useless_conversion.rs:467:34
+   |
+LL | fn takes_into_iter_usize(_: impl IntoIterator<Item = usize>) {}
+   |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: explicit call to `.into_iter()` in function argument accepting `IntoIterator`
+  --> tests/ui/useless_conversion.rs:485:31
+   |
+LL |         takes_into_iter_usize(b.clone().into_iter());
+   |                               ^^^^^^^^^------------
+   |                                        |
+   |                                        help: consider removing the `.into_iter()`
+   |
+note: this parameter accepts any `IntoIterator`, so you don't need to call `.into_iter()`
+  --> tests/ui/useless_conversion.rs:467:34
+   |
+LL | fn takes_into_iter_usize(_: impl IntoIterator<Item = usize>) {}
+   |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: explicit call to `.into_iter()` in function argument accepting `IntoIterator`
+  --> tests/ui/useless_conversion.rs:493:34
+   |
+LL |     takes_into_iter_usize_result(b.clone().into_iter())?;
+   |                                  ^^^^^^^^^------------
+   |                                           |
+   |                                           help: consider removing the `.into_iter()`
+   |
+note: this parameter accepts any `IntoIterator`, so you don't need to call `.into_iter()`
+  --> tests/ui/useless_conversion.rs:468:41
+   |
+LL | fn takes_into_iter_usize_result(_: impl IntoIterator<Item = usize>) -> Result<(), ()> {
+   |                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 48 previous errors
 
