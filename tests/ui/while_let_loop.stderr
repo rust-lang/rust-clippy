@@ -22,6 +22,24 @@ LL | |     }
    | |_____^ help: try: `while let Some(_x) = y { .. }`
 
 error: this loop could be written as a `while let` loop
+  --> tests/ui/while_let_loop.rs:30:5
+   |
+LL | /     loop {
+LL | |
+LL | |         let Some(_x) = y else {
+LL | |             let _z = 1;
+LL | |             break;
+LL | |         };
+LL | |     }
+   | |_____^
+   |
+help: try
+   |
+LL ~     while let Some(_x) = y { .. }
+LL +     let _z = 1;
+   |
+
+error: this loop could be written as a `while let` loop
   --> tests/ui/while_let_loop.rs:38:5
    |
 LL | /     loop {
@@ -186,5 +204,69 @@ LL +         ..
 LL +     }
    |
 
-error: aborting due to 12 previous errors
+error: this loop could be written as a `while let` loop
+  --> tests/ui/while_let_loop.rs:258:5
+   |
+LL | /     loop {
+LL | |
+LL | |         let Some(x) = std::hint::black_box(None::<i32>) else {
+LL | |             println!("fail");
+...  |
+LL | |         println!("x = {x}");
+LL | |     }
+   | |_____^
+   |
+help: try
+   |
+LL ~     while let Some(x) = std::hint::black_box(None::<i32>) { .. }
+LL +     println!("fail");
+   |
+
+error: this loop could be written as a `while let` loop
+  --> tests/ui/while_let_loop.rs:270:5
+   |
+LL | /     loop {
+LL | |
+LL | |         let Some(x) = y else {
+LL | |             let a = 1;
+...  |
+LL | |         println!("x = {x}");
+LL | |     }
+   | |_____^
+   |
+help: try
+   |
+LL ~     while let Some(x) = y { .. }
+LL +     let a = 1;
+LL +     let b = 2;
+LL +     let _c = a + b;
+LL +     println!("sum: {}", a + b);
+LL +     eprintln!("failed");
+   |
+
+error: this loop could be written as a `while let` loop
+  --> tests/ui/while_let_loop.rs:286:5
+   |
+LL | /     loop {
+LL | |
+LL | |         let Some(x) = y else {
+LL | |             if std::hint::black_box(true) {
+...  |
+LL | |         println!("x = {x}");
+LL | |     }
+   | |_____^
+   |
+help: try
+   |
+LL ~     while let Some(x) = y { .. }
+LL +     if std::hint::black_box(true) {
+LL +                 println!("pass");
+LL +             }
+LL +     match 42 {
+LL +                 0 => println!("zero"),
+LL +                 _ => println!("non-zero"),
+LL +             }
+   |
+
+error: aborting due to 16 previous errors
 
