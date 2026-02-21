@@ -103,7 +103,6 @@ pub struct RenamedLint<'cx> {
 
 impl<'cx> ParseCxImpl<'cx> {
     /// Finds all lint declarations (`declare_clippy_lint!`)
-    #[must_use]
     pub fn find_lint_decls(&mut self) -> Vec<Lint<'cx>> {
         let mut lints = Vec::with_capacity(1000);
         let mut contents = String::new();
@@ -181,7 +180,6 @@ impl<'cx> ParseCxImpl<'cx> {
         }
     }
 
-    #[must_use]
     pub fn read_deprecated_lints(&mut self) -> (Vec<DeprecatedLint<'cx>>, Vec<RenamedLint<'cx>>) {
         #[allow(clippy::enum_glob_use)]
         use cursor::Pat::*;

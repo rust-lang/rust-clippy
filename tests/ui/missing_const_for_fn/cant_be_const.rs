@@ -55,7 +55,7 @@ mod with_test_fn {
     }
 
     impl Foo {
-        #[must_use]
+        #[must_use = "the constructed `Foo` should be used"]
         pub const fn new(n: u32) -> Foo {
             Foo { n }
         }

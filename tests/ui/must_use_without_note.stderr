@@ -1,0 +1,28 @@
+error: `#[must_use]` attribute without a note
+  --> tests/ui/must_use_without_note.rs:10:1
+   |
+LL | #[must_use]
+   | ^^^^^^^^^^^
+   |
+   = help: add a note why it must be used `#[must_use = "..."]`
+   = note: `-D clippy::must-use-without-note` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::must_use_without_note)]`
+
+error: `#[must_use]` attribute without a note
+  --> tests/ui/must_use_without_note.rs:26:5
+   |
+LL |     #[must_use]
+   |     ^^^^^^^^^^^
+   |
+   = help: add a note why it must be used `#[must_use = "..."]`
+
+error: `#[must_use]` attribute without a note
+  --> tests/ui/must_use_without_note.rs:41:5
+   |
+LL |     #[must_use]
+   |     ^^^^^^^^^^^
+   |
+   = help: add a note why it must be used `#[must_use = "..."]`
+
+error: aborting due to 3 previous errors
+
