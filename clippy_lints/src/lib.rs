@@ -130,6 +130,7 @@ mod excessive_bools;
 mod excessive_nesting;
 mod exhaustive_items;
 mod exit;
+mod explicit_default_arguments;
 mod explicit_write;
 mod extra_unused_type_parameters;
 mod fallible_impl_from;
@@ -864,6 +865,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(move |tcx| Box::new(duration_suboptimal_units::DurationSuboptimalUnits::new(tcx, conf))),
         Box::new(move |_| Box::new(manual_take::ManualTake::new(conf))),
         Box::new(|_| Box::new(manual_checked_ops::ManualCheckedOps)),
+        Box::new(|_| Box::new(explicit_default_arguments::ExplicitDefaultArguments)),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);
