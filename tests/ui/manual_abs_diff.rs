@@ -85,7 +85,7 @@ fn fixme() {
         }
     }
 
-    #[allow(clippy::implicit_saturating_sub)]
+    #[allow(clippy::manual_saturating_sub)]
     let _ = if a > b {
         a - b
     } else if a < b {

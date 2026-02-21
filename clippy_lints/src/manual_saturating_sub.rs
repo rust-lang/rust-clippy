@@ -44,7 +44,7 @@ declare_clippy_lint! {
     /// i = i.saturating_sub(1);
     /// ```
     #[clippy::version = "1.44.0"]
-    pub IMPLICIT_SATURATING_SUB,
+    pub MANUAL_SATURATING_SUB,
     style,
     "Perform saturating subtraction instead of implicitly checking lower bound of data type"
 }
@@ -74,24 +74,24 @@ declare_clippy_lint! {
     /// let result = a.saturating_sub(b);
     /// ```
     #[clippy::version = "1.83.0"]
-    pub INVERTED_SATURATING_SUB,
+    pub ALMOST_SATURATING_SUB,
     correctness,
     "Check if a variable is smaller than another one and still subtract from it even if smaller"
 }
 
-pub struct ImplicitSaturatingSub {
+pub struct ManualSaturatingSub {
     msrv: Msrv,
 }
 
-impl_lint_pass!(ImplicitSaturatingSub => [IMPLICIT_SATURATING_SUB, INVERTED_SATURATING_SUB]);
+impl_lint_pass!(ManualSaturatingSub => [MANUAL_SATURATING_SUB, ALMOST_SATURATING_SUB]);
 
-impl ImplicitSaturatingSub {
+impl ManualSaturatingSub {
     pub fn new(conf: &'static Conf) -> Self {
         Self { msrv: conf.msrv }
     }
 }
 
-impl<'tcx> LateLintPass<'tcx> for ImplicitSaturatingSub {
+impl<'tcx> LateLintPass<'tcx> for ManualSaturatingSub {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         if expr.span.from_expansion() {
             return;
@@ -264,7 +264,7 @@ fn check_subtraction(
                 );
                 span_lint_and_sugg(
                     cx,
-                    IMPLICIT_SATURATING_SUB,
+                    MANUAL_SATURATING_SUB,
                     expr_span,
                     "manual arithmetic check found",
                     "replace it with",
@@ -280,7 +280,7 @@ fn check_subtraction(
             let sugg = make_binop(BinOpKind::Sub, &big_expr_sugg, &little_expr_sugg);
             span_lint_and_then(
                 cx,
-                INVERTED_SATURATING_SUB,
+                ALMOST_SATURATING_SUB,
                 condition_span,
                 "inverted arithmetic check before subtraction",
                 |diag| {
@@ -399,9 +399,9 @@ fn subtracts_one<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<&'a Exp
 fn print_lint_and_sugg(cx: &LateContext<'_>, var_name: Symbol, expr: &Expr<'_>) {
     span_lint_and_sugg(
         cx,
-        IMPLICIT_SATURATING_SUB,
+        MANUAL_SATURATING_SUB,
         expr.span,
-        "implicitly performing saturating subtraction",
+        "manually performing saturating subtraction",
         "try",
         format!("{var_name} = {var_name}.saturating_sub({});", '1'),
         Applicability::MachineApplicable,

@@ -6323,6 +6323,7 @@ Released 2018-09-13
 [`allow_attributes_without_reason`]: https://rust-lang.github.io/rust-clippy/master/index.html#allow_attributes_without_reason
 [`almost_complete_letter_range`]: https://rust-lang.github.io/rust-clippy/master/index.html#almost_complete_letter_range
 [`almost_complete_range`]: https://rust-lang.github.io/rust-clippy/master/index.html#almost_complete_range
+[`almost_saturating_sub`]: https://rust-lang.github.io/rust-clippy/master/index.html#almost_saturating_sub
 [`almost_swapped`]: https://rust-lang.github.io/rust-clippy/master/index.html#almost_swapped
 [`approx_constant`]: https://rust-lang.github.io/rust-clippy/master/index.html#approx_constant
 [`arbitrary_source_item_ordering`]: https://rust-lang.github.io/rust-clippy/master/index.html#arbitrary_source_item_ordering
@@ -6706,7 +6707,9 @@ Released 2018-09-13
 [`manual_repeat_n`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_repeat_n
 [`manual_retain`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_retain
 [`manual_rotate`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_rotate
+[`manual_saturating_add`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_saturating_add
 [`manual_saturating_arithmetic`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_saturating_arithmetic
+[`manual_saturating_sub`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_saturating_sub
 [`manual_slice_fill`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_slice_fill
 [`manual_slice_size_calculation`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_slice_size_calculation
 [`manual_split_once`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_split_once

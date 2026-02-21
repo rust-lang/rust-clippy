@@ -1,5 +1,5 @@
 #![allow(unused_assignments, unused_mut, clippy::assign_op_pattern)]
-#![warn(clippy::implicit_saturating_sub)]
+#![warn(clippy::manual_saturating_sub)]
 
 use std::cmp::PartialEq;
 use std::ops::SubAssign;
@@ -24,12 +24,18 @@ fn main() {
     let mut u_8: u8 = end_8 - start_8;
 
     // Lint
-    u_8 = u_8.saturating_sub(1);
+    if u_8 > 0 {
+        //~^ manual_saturating_sub
+        u_8 = u_8 - 1;
+    }
 
     match end_8 {
         10 => {
             // Lint
-            u_8 = u_8.saturating_sub(1);
+            if u_8 > 0 {
+                //~^ manual_saturating_sub
+                u_8 -= 1;
+            }
         },
         11 => u_8 += 1,
         _ => u_8 = 0,
@@ -41,7 +47,10 @@ fn main() {
     let mut u_16: u16 = end_16 - start_16;
 
     // Lint
-    u_16 = u_16.saturating_sub(1);
+    if u_16 > 0 {
+        //~^ manual_saturating_sub
+        u_16 -= 1;
+    }
 
     let mut end_32: u32 = 7010;
     let mut start_32: u32 = 7000;
@@ -49,7 +58,10 @@ fn main() {
     let mut u_32: u32 = end_32 - start_32;
 
     // Lint
-    u_32 = u_32.saturating_sub(1);
+    if u_32 != 0 {
+        //~^ manual_saturating_sub
+        u_32 -= 1;
+    }
 
     // No Lint
     if u_32 > 0 {
@@ -68,13 +80,22 @@ fn main() {
     let mut u_64: u64 = end_64 - start_64;
 
     // Lint
-    u_64 = u_64.saturating_sub(1);
+    if u_64 > 0 {
+        //~^ manual_saturating_sub
+        u_64 -= 1;
+    }
 
     // Lint
-    u_64 = u_64.saturating_sub(1);
+    if 0 < u_64 {
+        //~^ manual_saturating_sub
+        u_64 -= 1;
+    }
 
     // Lint
-    u_64 = u_64.saturating_sub(1);
+    if 0 != u_64 {
+        //~^ manual_saturating_sub
+        u_64 -= 1;
+    }
 
     // No Lint
     if u_64 >= 1 {
@@ -93,7 +114,10 @@ fn main() {
     let mut u_usize: usize = end_usize - start_usize;
 
     // Lint
-    u_usize = u_usize.saturating_sub(1);
+    if u_usize > 0 {
+        //~^ manual_saturating_sub
+        u_usize -= 1;
+    }
 
     // Tests for signed integers
 
@@ -103,16 +127,28 @@ fn main() {
     let mut i_8: i8 = endi_8 - starti_8;
 
     // Lint
-    i_8 = i_8.saturating_sub(1);
+    if i_8 > i8::MIN {
+        //~^ manual_saturating_sub
+        i_8 -= 1;
+    }
 
     // Lint
-    i_8 = i_8.saturating_sub(1);
+    if i_8 > i8::MIN {
+        //~^ manual_saturating_sub
+        i_8 -= 1;
+    }
 
     // Lint
-    i_8 = i_8.saturating_sub(1);
+    if i_8 != i8::MIN {
+        //~^ manual_saturating_sub
+        i_8 -= 1;
+    }
 
     // Lint
-    i_8 = i_8.saturating_sub(1);
+    if i_8 != i8::MIN {
+        //~^ manual_saturating_sub
+        i_8 -= 1;
+    }
 
     let endi_16: i16 = 45;
     let starti_16: i16 = 44;
@@ -120,16 +156,28 @@ fn main() {
     let mut i_16: i16 = endi_16 - starti_16;
 
     // Lint
-    i_16 = i_16.saturating_sub(1);
+    if i_16 > i16::MIN {
+        //~^ manual_saturating_sub
+        i_16 -= 1;
+    }
 
     // Lint
-    i_16 = i_16.saturating_sub(1);
+    if i_16 > i16::MIN {
+        //~^ manual_saturating_sub
+        i_16 -= 1;
+    }
 
     // Lint
-    i_16 = i_16.saturating_sub(1);
+    if i_16 != i16::MIN {
+        //~^ manual_saturating_sub
+        i_16 -= 1;
+    }
 
     // Lint
-    i_16 = i_16.saturating_sub(1);
+    if i_16 != i16::MIN {
+        //~^ manual_saturating_sub
+        i_16 -= 1;
+    }
 
     let endi_32: i32 = 45;
     let starti_32: i32 = 44;
@@ -137,16 +185,28 @@ fn main() {
     let mut i_32: i32 = endi_32 - starti_32;
 
     // Lint
-    i_32 = i_32.saturating_sub(1);
+    if i_32 > i32::MIN {
+        //~^ manual_saturating_sub
+        i_32 -= 1;
+    }
 
     // Lint
-    i_32 = i_32.saturating_sub(1);
+    if i_32 > i32::MIN {
+        //~^ manual_saturating_sub
+        i_32 -= 1;
+    }
 
     // Lint
-    i_32 = i_32.saturating_sub(1);
+    if i_32 != i32::MIN {
+        //~^ manual_saturating_sub
+        i_32 -= 1;
+    }
 
     // Lint
-    i_32 = i_32.saturating_sub(1);
+    if i_32 != i32::MIN {
+        //~^ manual_saturating_sub
+        i_32 -= 1;
+    }
 
     let endi_64: i64 = 45;
     let starti_64: i64 = 44;
@@ -154,13 +214,22 @@ fn main() {
     let mut i_64: i64 = endi_64 - starti_64;
 
     // Lint
-    i_64 = i_64.saturating_sub(1);
+    if i64::MIN < i_64 {
+        //~^ manual_saturating_sub
+        i_64 -= 1;
+    }
 
     // Lint
-    i_64 = i_64.saturating_sub(1);
+    if i64::MIN != i_64 {
+        //~^ manual_saturating_sub
+        i_64 -= 1;
+    }
 
     // Lint
-    i_64 = i_64.saturating_sub(1);
+    if i64::MIN < i_64 {
+        //~^ manual_saturating_sub
+        i_64 -= 1;
+    }
 
     // No Lint
     if i_64 > 0 {
@@ -226,7 +295,12 @@ fn main() {
 fn regression_13524(a: usize, b: usize, c: bool) -> usize {
     if c {
         123
-    } else { b.saturating_sub(a) }
+    } else if a >= b {
+        //~^ manual_saturating_sub
+        0
+    } else {
+        b - a
+    }
 }
 
 fn with_side_effect(a: u64) -> u64 {
@@ -237,14 +311,14 @@ fn with_side_effect(a: u64) -> u64 {
 fn arbitrary_expression() {
     let (a, b) = (15u64, 20u64);
 
-    let _ = (a * 2).saturating_sub(b);
-    //~^ implicit_saturating_sub
+    let _ = if a * 2 > b { a * 2 - b } else { 0 };
+    //~^ manual_saturating_sub
 
-    let _ = a.saturating_sub(b * 2);
-    //~^ implicit_saturating_sub
+    let _ = if a > b * 2 { a - b * 2 } else { 0 };
+    //~^ manual_saturating_sub
 
-    let _ = a.saturating_sub(b * 2);
-    //~^ implicit_saturating_sub
+    let _ = if a < b * 2 { 0 } else { a - b * 2 };
+    //~^ manual_saturating_sub
 
     let _ = if with_side_effect(a) > a {
         with_side_effect(a) - a
@@ -255,8 +329,8 @@ fn arbitrary_expression() {
 
 fn issue16307() {
     let x: u8 = 100;
-    let y = 100_u8.saturating_sub(x);
-    //~^ implicit_saturating_sub
+    let y = if x >= 100 { 0 } else { 100 - x };
+    //~^ manual_saturating_sub
 
     println!("{y}");
 }

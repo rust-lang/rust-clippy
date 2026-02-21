@@ -155,8 +155,6 @@ mod ignored_unit_patterns;
 mod impl_hash_with_borrow_str_and_bytes;
 mod implicit_hasher;
 mod implicit_return;
-mod implicit_saturating_add;
-mod implicit_saturating_sub;
 mod implied_bounds_in_impls;
 mod incompatible_msrv;
 mod inconsistent_struct_constructor;
@@ -215,6 +213,8 @@ mod manual_range_patterns;
 mod manual_rem_euclid;
 mod manual_retain;
 mod manual_rotate;
+mod manual_saturating_add;
+mod manual_saturating_sub;
 mod manual_slice_size_calculation;
 mod manual_string_new;
 mod manual_strip;
@@ -552,7 +552,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::new(unit_return_expecting_ord::UnitReturnExpectingOrd)),
         Box::new(|_| Box::new(strings::StringAdd)),
         Box::new(|_| Box::new(implicit_return::ImplicitReturn)),
-        Box::new(move |_| Box::new(implicit_saturating_sub::ImplicitSaturatingSub::new(conf))),
+        Box::new(move |_| Box::new(manual_saturating_sub::ManualSaturatingSub::new(conf))),
         Box::new(|_| Box::new(default_numeric_fallback::DefaultNumericFallback)),
         Box::new(|_| Box::new(non_octal_unix_permissions::NonOctalUnixPermissions)),
         Box::new(move |_| Box::new(approx_const::ApproxConstant::new(conf))),
@@ -767,7 +767,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::new(unused_peekable::UnusedPeekable)),
         Box::new(|_| Box::new(bool_to_int_with_if::BoolToIntWithIf)),
         Box::new(|_| Box::new(box_default::BoxDefault)),
-        Box::new(|_| Box::new(implicit_saturating_add::ImplicitSaturatingAdd)),
+        Box::new(|_| Box::new(manual_saturating_add::ManualSaturatingAdd)),
         Box::new(|_| Box::new(missing_trait_methods::MissingTraitMethods)),
         Box::new(|_| Box::new(from_raw_with_void_ptr::FromRawWithVoidPtr)),
         Box::new(|_| Box::new(suspicious_xor_used_as_pow::ConfusingXorAndPow)),

@@ -113,6 +113,10 @@ declare_with_version! { RENAMED(RENAMED_VERSION) = [
     ("clippy::if_let_redundant_pattern_matching", "clippy::redundant_pattern_matching"),
     #[clippy::version = ""]
     ("clippy::if_let_some_result", "clippy::match_result_ok"),
+    #[clippy::version = "1.95.0"]
+    ("clippy::implicit_saturating_add", "clippy::manual_saturating_add"),
+    #[clippy::version = "1.95.0"]
+    ("clippy::implicit_saturating_sub", "clippy::manual_saturating_sub"),
     #[clippy::version = ""]
     ("clippy::incorrect_clone_impl_on_copy_type", "clippy::non_canonical_clone_impl"),
     #[clippy::version = ""]
@@ -129,6 +133,8 @@ declare_with_version! { RENAMED(RENAMED_VERSION) = [
     ("clippy::invalid_ref", "invalid_value"),
     #[clippy::version = ""]
     ("clippy::invalid_utf8_in_unchecked", "invalid_from_utf8_unchecked"),
+    #[clippy::version = "1.95.0"]
+    ("clippy::inverted_saturating_sub", "clippy::almost_saturating_sub"),
     #[clippy::version = ""]
     ("clippy::let_underscore_drop", "let_underscore_drop"),
     #[clippy::version = ""]
