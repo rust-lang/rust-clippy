@@ -147,6 +147,7 @@ mod from_raw_with_void_ptr;
 mod from_str_radix_10;
 mod functions;
 mod future_not_send;
+mod getter_prefixes;
 mod if_let_mutex;
 mod if_not_else;
 mod if_then_some_else_none;
@@ -517,6 +518,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|| Box::new(byte_char_slices::ByteCharSlice)),
         Box::new(|| Box::new(cfg_not_test::CfgNotTest)),
         Box::new(|| Box::new(empty_line_after::EmptyLineAfter::new())),
+        Box::new(|| Box::new(getter_prefixes::GetterPrefixes)),
         // add early passes here, used by `cargo dev new_lint`
     ];
     store.early_passes.extend(early_lints);
