@@ -43,7 +43,7 @@ fn long_span() {
             }
         })
         .flatten();
-        
+
     let _: Vec<_> = vec![5_i8; 6]
         .into_iter()
         .map(|some_value| {
@@ -71,6 +71,4 @@ fn no_suggestion_if_comments_present() {
         .flatten();
 }
 
-fn main() {
-    long_span();
-}
+fn main() {}
