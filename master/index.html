@@ -3735,7 +3735,14 @@ result?;
 <p><code>allow-expect-in-tests</code>:  Whether <code>expect</code> should be allowed in test functions or <code>#[cfg(test)]</code></p>
 <p>(default: <code>false</code>)</p>
 </li>
+<li>
+<p><code>allow-unwrap-types</code>:  List of types to allow <code>unwrap()</code> and <code>expect()</code> on.</p>
+</li>
 </ul>
+<h4>Example</h4>
+<pre><code class="language-toml">allow-unwrap-types = [ "std::sync::LockResult" ]
+</code></pre>
+<p>(default: <code>[]</code>)</p>
 </div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.45.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+expect_used">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/methods/mod.rs#L349">View Source</a></div></div></div></article><article id="expl_impl_clone_on_copy"><input id="label-expl_impl_clone_on_copy" type="checkbox"><label for="label-expl_impl_clone_on_copy"><h2 class="lint-title"><div class="panel-title-name" id="lint-expl_impl_clone_on_copy">expl_impl_clone_on_copy
 <a href="#expl_impl_clone_on_copy" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for explicit <code>Clone</code> implementations for <code>Copy</code>
@@ -17216,7 +17223,14 @@ result?;
 <p><code>allow-unwrap-in-tests</code>:  Whether <code>unwrap</code> should be allowed in test functions or <code>#[cfg(test)]</code></p>
 <p>(default: <code>false</code>)</p>
 </li>
+<li>
+<p><code>allow-unwrap-types</code>:  List of types to allow <code>unwrap()</code> and <code>expect()</code> on.</p>
+</li>
 </ul>
+<h4>Example</h4>
+<pre><code class="language-toml">allow-unwrap-types = [ "std::sync::LockResult" ]
+</code></pre>
+<p>(default: <code>[]</code>)</p>
 </div><div class="lint-additional-info"><div>Applicability: <span class="label label-default applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-default label-version">1.45.0</span></div><div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+unwrap_used">Related Issues</a></div><div><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/methods/mod.rs#L273">View Source</a></div></div></div></article><article id="upper_case_acronyms"><input id="label-upper_case_acronyms" type="checkbox"><label for="label-upper_case_acronyms"><h2 class="lint-title"><div class="panel-title-name" id="lint-upper_case_acronyms">upper_case_acronyms
 <a href="#upper_case_acronyms" class="anchor label label-default">&para;</a> <a href="" class="copy-to-clipboard anchor label label-default">&#128203;</a></div><span class="label label-default lint-group group-style">style</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for fully capitalized names and optionally names containing a capitalized acronym.</p>
