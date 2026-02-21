@@ -174,6 +174,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::format_args::TO_STRING_IN_FORMAT_ARGS_INFO,
     crate::format_args::UNINLINED_FORMAT_ARGS_INFO,
     crate::format_args::UNNECESSARY_DEBUG_FORMATTING_INFO,
+    crate::format_args::UNNECESSARY_TRAILING_COMMA_INFO,
     crate::format_args::UNUSED_FORMAT_SPECS_INFO,
     crate::format_impl::PRINT_IN_FORMAT_IMPL_INFO,
     crate::format_impl::RECURSIVE_FORMAT_IMPL_INFO,

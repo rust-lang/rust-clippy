@@ -8,6 +8,11 @@ document.
 
 [92b4b68...master](https://github.com/rust-lang/rust-clippy/compare/92b4b68...master)
 
+### New Lints
+
+* Added [`unnecessary_trailing_comma`] to `style` (single-line format-like macros only)
+  [#13965](https://github.com/rust-lang/rust-clippy/issues/13965)
+
 ## Rust 1.93
 
 Current stable, released 2026-01-22
@@ -7137,6 +7142,7 @@ Released 2018-09-13
 [`unnecessary_sort_by`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_sort_by
 [`unnecessary_struct_initialization`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_struct_initialization
 [`unnecessary_to_owned`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_to_owned
+[`unnecessary_trailing_comma`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_trailing_comma
 [`unnecessary_unwrap`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_unwrap
 [`unnecessary_wraps`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_wraps
 [`unneeded_field_pattern`]: https://rust-lang.github.io/rust-clippy/master/index.html#unneeded_field_pattern
