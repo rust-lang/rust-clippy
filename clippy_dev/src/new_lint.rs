@@ -502,7 +502,7 @@ fn setup_mod_file(path: &Path, lint: &LintData<'_>) -> io::Result<&'static str> 
     file_contents.replace_range(arr_start + 1..arr_end, &new_arr_content);
 
     // Just add the mod declaration at the top, it'll be fixed by rustfmt
-    file_contents.insert_str(0, &format!("mod {};\n", &lint.name));
+    file_contents.insert_str(0, &format!("mod {};\n", lint.name));
 
     let mut file = OpenOptions::new()
         .write(true)
