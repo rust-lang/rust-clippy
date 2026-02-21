@@ -367,6 +367,7 @@ mod uninit_vec;
 mod unit_return_expecting_ord;
 mod unit_types;
 mod unnecessary_box_returns;
+mod unnecessary_collect;
 mod unnecessary_literal_bound;
 mod unnecessary_map_on_constructor;
 mod unnecessary_mut_passed;
@@ -857,6 +858,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::new(coerce_container_to_any::CoerceContainerToAny)),
         Box::new(|_| Box::new(toplevel_ref_arg::ToplevelRefArg)),
         Box::new(|_| Box::new(volatile_composites::VolatileComposites)),
+        Box::new(move |_| Box::new(unnecessary_collect::UnnecessaryCollect::new(conf))),
         Box::new(|_| Box::<replace_box::ReplaceBox>::default()),
         Box::new(move |tcx| Box::new(disallowed_fields::DisallowedFields::new(tcx, conf))),
         Box::new(move |_| Box::new(manual_ilog2::ManualIlog2::new(conf))),
