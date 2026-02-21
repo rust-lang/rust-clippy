@@ -87,7 +87,7 @@ fn same_functions_modulo_safety<'tcx>(
                     false
                 }
             })
-        }
+        },
         // For non-local functions, parameter names are not accessible. Oh well, we'll let it slip
         (None, None) => true,
         // If only one of the versions is non-local, then something weird happened. Bail just in case
@@ -106,23 +106,22 @@ fn same_functions_modulo_safety<'tcx>(
             safety: Safety::Unsafe,
             abi: unchecked_abi,
         } = fn_sig(unchecked_def_id)
-        && checked_c_variadic == unchecked_c_variadic
-        && checked_abi == unchecked_abi
-        // NOTE: the reason we use `same_type_modulo_regions` all over the place here is that
-        // the regions of different functions will be distinct, even if they are called the same
-        && over(checked_fn_sig.inputs(), unchecked_fn_sig.inputs(), |ty1, ty2| {
-            same_type_modulo_regions(*ty1, *ty2)
-        })
-        // The checked version should return `Option<T>` or `Result<T, E>`,
-        // and the unchecked version should return just `T`
-        && same_type_modulo_regions(unchecked_fn_sig.output(), unwrapped_ret_ty)
-        && wrapper_arg_ty(cx, checked_fn_sig.output())
-            .is_some_and(|wrapped_ty| same_type_modulo_regions(wrapped_ty, unwrapped_ret_ty))
-        // Check that the visibilities are the same (for the purposes of replacing, it would be enough to have
-        // the former _at least as_ visible as the latter, but we don't bother)
-        && cx.tcx.visibility(unchecked_def_id) == cx.tcx.visibility(checked_def_id)
     {
-        true
+        checked_c_variadic == unchecked_c_variadic
+            && checked_abi == unchecked_abi
+            // NOTE: the reason we use `same_type_modulo_regions` all over the place here is that
+            // the regions of different functions will be distinct, even if they are called the same
+            && over(checked_fn_sig.inputs(), unchecked_fn_sig.inputs(), |ty1, ty2| {
+                same_type_modulo_regions(*ty1, *ty2)
+            })
+            // The checked version should return `Option<T>` or `Result<T, E>`,
+            // and the unchecked version should return just `T`
+            && same_type_modulo_regions(unchecked_fn_sig.output(), unwrapped_ret_ty)
+            && wrapper_arg_ty(cx, checked_fn_sig.output())
+                .is_some_and(|wrapped_ty| same_type_modulo_regions(wrapped_ty, unwrapped_ret_ty))
+            // Check that the visibilities are the same (for the purposes of replacing, it would be enough to have
+            // the former _at least as_ visible as the latter, but we don't bother)
+            && cx.tcx.visibility(unchecked_def_id) == cx.tcx.visibility(checked_def_id)
     } else {
         false
     }
@@ -144,6 +143,10 @@ impl AssocKind {
     }
 }
 
+/// Find a function called the same as `checked`, but with added `_unchecked`.
+///
+/// This doesn't check if the methods are actually "similar" -- for that, see
+/// [`same_functions_modulo_safety`]
 fn find_unchecked_sibling_fn(
     cx: &LateContext<'_>,
     checked_def_id: DefId,
@@ -178,6 +181,10 @@ fn find_unchecked_sibling_fn(
     }
 }
 
+/// Find a method called the same as `checked`, but with added `_unchecked`.
+///
+/// This doesn't check if the methods are actually "similar" -- for that, see
+/// [`same_functions_modulo_safety`]
 fn find_unchecked_sibling_method<'tcx>(
     cx: &LateContext<'tcx>,
     checked_def_id: DefId,
@@ -187,8 +194,7 @@ fn find_unchecked_sibling_method<'tcx>(
     let parent = cx.tcx.parent(checked_def_id);
     if matches!(cx.tcx.def_kind(parent), DefKind::Impl { .. })
         && let Some(unchecked_ident) = unchecked_ident(checked_ident)
-        // XXX: look into methods from other impls as well?
-        // would need to make sure that the impl generics etc. match
+        // Only look in the same impl (to avoid dealing with generics etc.)
         && let Some(unchecked) = cx.tcx.associated_items(parent).find_by_ident_and_namespace(
             cx.tcx,
             unchecked_ident,

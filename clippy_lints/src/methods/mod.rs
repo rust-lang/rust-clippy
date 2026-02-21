@@ -4756,9 +4756,14 @@ declare_clippy_lint! {
     /// Checks for calls to `unwrap_unchecked` when an `_unchecked` variant of the function exists.
     ///
     /// ### Why is this bad?
-    /// Calling the non-unchecked variant most likely results in some checking, which is entirely
-    /// redundant if `unwrap_unchecked` is called directly afterwards, whereas the unchecked
+    /// Calling the non-unchecked variant may result in checking that is then discarded
+    /// if `unwrap_unchecked` is called directly afterwards, whereas the unchecked
     /// variant most likely avoids performing the check completely.
+    ///
+    /// ### Known problems
+    ///
+    /// The unchecked variant is only suggested if it's defined in the same `impl` block
+    /// as the non-unchecked one
     ///
     /// ### Example
     /// ```rust
@@ -4770,7 +4775,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.94.0"]
     pub UNNECESSARY_UNWRAP_UNCHECKED,
-    perf,
+    complexity,
     "calling `unwrap_unchecked` on a function which has an `_unchecked` variant"
 }
 
