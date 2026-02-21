@@ -105,4 +105,18 @@ fn main() {
     let xx = "xx";
     let _ = format!("{xx}");
     //~^ useless_format
+
+    // Issue #3361: `&format!("literal")` should suggest the literal directly
+    let _: &str = &format!("hello"); //~ useless_format
+    let _: &str = &format!("{{}}"); //~ useless_format
+    // Only immutable borrows: `&mut format!` is not handled
+    let _: &mut String = &mut format!("hello"); //~ useless_format
+
+    fn literal(lit: &str) {}
+    literal(&format!("hello")); //~ useless_format
+    literal(&&format!("hello")); //~ useless_format
+
+    let lit = "hello";
+    literal(&format!("{}", lit)); //~ useless_format
+    literal(&format!("{lit}")); //~ useless_format
 }
