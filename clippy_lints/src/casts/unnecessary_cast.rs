@@ -39,10 +39,8 @@ pub(super) fn check<'tcx>(
             // Ignore casts to pointers that are aliases or cfg dependant, e.g.
             // - p as *const std::ffi::c_char (alias)
             // - p as *const std::os::raw::c_char (cfg dependant)
-            TyKind::Path(qpath) => {
-                if is_ty_alias(&qpath) || is_hir_ty_cfg_dependant(cx, to_pointee.ty) {
-                    return false;
-                }
+            TyKind::Path(qpath) if is_ty_alias(&qpath) || is_hir_ty_cfg_dependant(cx, to_pointee.ty) => {
+                return false;
             },
             // Ignore `p as *const _`
             TyKind::Infer(()) => return false,

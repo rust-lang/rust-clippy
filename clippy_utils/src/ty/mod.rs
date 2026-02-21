@@ -114,16 +114,15 @@ pub fn contains_ty_adt_constructor_opaque<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'
                         match predicate.kind().skip_binder() {
                             // For `impl Trait<U>`, it will register a predicate of `T: Trait<U>`, so we go through
                             // and check substitutions to find `U`.
-                            ty::ClauseKind::Trait(trait_predicate) => {
+                            ty::ClauseKind::Trait(trait_predicate)
                                 if trait_predicate
                                     .trait_ref
                                     .args
                                     .types()
                                     .skip(1) // Skip the implicit `Self` generic parameter
-                                    .any(|ty| contains_ty_adt_constructor_opaque_inner(cx, ty, needle, seen))
-                                {
-                                    return true;
-                                }
+                                    .any(|ty| contains_ty_adt_constructor_opaque_inner(cx, ty, needle, seen)) =>
+                            {
+                                return true;
                             },
                             // For `impl Trait<Assoc=U>`, it will register a predicate of `<T as Trait>::Assoc = U`,
                             // so we check the term for `U`.
