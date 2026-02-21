@@ -1,0 +1,169 @@
+error: method `add` has no relationship to `Self`
+  --> tests/ui/method_without_self_relation.rs:14:5
+   |
+LL | /     fn add(a: i32, b: i32) -> i32 {
+LL | |
+LL | |         a + b
+LL | |     }
+   | |_____^
+   |
+   = help: consider making this a standalone function instead of a method
+   = note: `-D clippy::method-without-self-relation` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::method_without_self_relation)]`
+
+error: method `multiply` has no relationship to `Self`
+  --> tests/ui/method_without_self_relation.rs:20:5
+   |
+LL | /     fn multiply(x: i32, y: i32) -> i32 {
+LL | |
+LL | |         x * y
+LL | |     }
+   | |_____^
+   |
+   = help: consider making this a standalone function instead of a method
+
+error: method `helper` has no relationship to `Self`
+  --> tests/ui/method_without_self_relation.rs:109:5
+   |
+LL | /     fn helper(x: i32, y: i32, z: i32) -> i32 {
+LL | |
+LL | |         x + y + z
+LL | |     }
+   | |_____^
+   |
+   = help: consider making this a standalone function instead of a method
+
+error: method `format_string` has no relationship to `Self`
+  --> tests/ui/method_without_self_relation.rs:115:5
+   |
+LL | /     fn format_string(s: &str) -> String {
+LL | |
+LL | |         format!("Formatted: {}", s)
+LL | |     }
+   | |_____^
+   |
+   = help: consider making this a standalone function instead of a method
+
+error: method `static_helper` has no relationship to `Self`
+  --> tests/ui/method_without_self_relation.rs:155:5
+   |
+LL | /     fn static_helper(x: i32, y: i32) -> i32 {
+LL | |
+LL | |         x * y
+LL | |     }
+   | |_____^
+   |
+   = help: consider making this a standalone function instead of a method
+
+error: method `process` has no relationship to `Self`
+  --> tests/ui/method_without_self_relation.rs:181:5
+   |
+LL | /     fn process(data: &str) -> String {
+LL | |
+LL | |         data.to_uppercase()
+LL | |     }
+   | |_____^
+   |
+   = help: consider making this a standalone function instead of a method
+
+error: method `distance_formula` has no relationship to `Self`
+  --> tests/ui/method_without_self_relation.rs:197:5
+   |
+LL | /     fn distance_formula(x1: i32, y1: i32, x2: i32, y2: i32) -> f64 {
+LL | |
+LL | |         (((x2 - x1).pow(2) + (y2 - y1).pow(2)) as f64).sqrt()
+LL | |     }
+   | |_____^
+   |
+   = help: consider making this a standalone function instead of a method
+
+error: method `numbers` has no relationship to `Self`
+  --> tests/ui/method_without_self_relation.rs:223:5
+   |
+LL | /     fn numbers() -> [i32; 3] {
+LL | |
+LL | |         [1, 2, 3]
+LL | |     }
+   | |_____^
+   |
+   = help: consider making this a standalone function instead of a method
+
+error: method `get_adder` has no relationship to `Self`
+  --> tests/ui/method_without_self_relation.rs:239:5
+   |
+LL | /     fn get_adder() -> fn(i32, i32) -> i32 {
+LL | |
+LL | |         |a, b| a + b
+LL | |     }
+   | |_____^
+   |
+   = help: consider making this a standalone function instead of a method
+
+error: method `async_no_self` has no relationship to `Self`
+  --> tests/ui/method_without_self_relation.rs:250:5
+   |
+LL | /     async fn async_no_self(x: i32) -> i32 {
+LL | |
+LL | |         x + 1
+LL | |     }
+   | |_____^
+   |
+   = help: consider making this a standalone function instead of a method
+
+error: method `iter_no_self` has no relationship to `Self`
+  --> tests/ui/method_without_self_relation.rs:271:5
+   |
+LL | /     fn iter_no_self() -> impl Iterator<Item = i32> {
+LL | |
+LL | |         std::iter::once(42)
+LL | |     }
+   | |_____^
+   |
+   = help: consider making this a standalone function instead of a method
+
+error: method `boxed_int` has no relationship to `Self`
+  --> tests/ui/method_without_self_relation.rs:327:5
+   |
+LL | /     fn boxed_int() -> Box<i32> {
+LL | |
+LL | |         Box::new(42)
+LL | |     }
+   | |_____^
+   |
+   = help: consider making this a standalone function instead of a method
+
+error: method `phantom_other` has no relationship to `Self`
+  --> tests/ui/method_without_self_relation.rs:343:5
+   |
+LL | /     fn phantom_other() -> PhantomData<i32> {
+LL | |
+LL | |         PhantomData
+LL | |     }
+   | |_____^
+   |
+   = help: consider making this a standalone function instead of a method
+
+error: method `array_of_int` has no relationship to `Self`
+  --> tests/ui/method_without_self_relation.rs:360:5
+   |
+LL | /     fn array_of_int<const N: usize>() -> [i32; N] {
+LL | |
+LL | |         [0; N]
+LL | |     }
+   | |_____^
+   |
+   = help: consider making this a standalone function instead of a method
+
+error: method `callback_no_self` has no relationship to `Self`
+  --> tests/ui/method_without_self_relation.rs:376:5
+   |
+LL | /     fn callback_no_self() -> Box<dyn Fn(i32) -> i32> {
+LL | |
+LL | |         Box::new(|x| x + 1)
+LL | |     }
+   | |_____^
+   |
+   = help: consider making this a standalone function instead of a method
+
+error: aborting due to 15 previous errors
+
