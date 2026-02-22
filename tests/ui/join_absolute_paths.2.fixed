@@ -5,27 +5,27 @@ use std::path::{Path, PathBuf};
 
 fn main() {
     let path = Path::new("/bin");
-    path.join("/sh");
+    PathBuf::from("/sh");
     //~^ join_absolute_paths
 
     let path = PathBuf::from("/bin");
-    path.join("/sh");
+    PathBuf::from("/sh");
     //~^ join_absolute_paths
 
     let path = PathBuf::from("/bin");
-    path.join(r#"/sh"#);
+    PathBuf::from(r#"/sh"#);
     //~^ join_absolute_paths
 
     let path = Path::new("C:\\Users");
-    path.join("\\user");
+    PathBuf::from("\\user");
     //~^ join_absolute_paths
 
     let path = PathBuf::from("C:\\Users");
-    path.join("\\user");
+    PathBuf::from("\\user");
     //~^ join_absolute_paths
 
     let path = PathBuf::from("C:\\Users");
-    path.join(r#"\user"#);
+    PathBuf::from(r#"\user"#);
     //~^ join_absolute_paths
 
     let path: &[&str] = &["/bin"];
