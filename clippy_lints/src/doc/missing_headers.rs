@@ -1,5 +1,5 @@
 use super::{DocHeaders, MISSING_ERRORS_DOC, MISSING_PANICS_DOC, MISSING_SAFETY_DOC, UNNECESSARY_SAFETY_DOC};
-use clippy_utils::diagnostics::{span_lint, span_lint_and_note};
+use clippy_utils::diagnostics::span_lint;
 use clippy_utils::macros::{is_panic, root_macro_call_first_node};
 use clippy_utils::res::MaybeDef;
 use clippy_utils::ty::implements_trait_with_env;
@@ -15,7 +15,7 @@ pub fn check(
     cx: &LateContext<'_>,
     owner_id: OwnerId,
     sig: FnSig<'_>,
-    headers: DocHeaders,
+    headers: &DocHeaders,
     body_id: Option<BodyId>,
     check_private_items: bool,
 ) {
@@ -34,14 +34,14 @@ pub fn check(
     }
 
     let span = cx.tcx.def_span(owner_id);
-    match (headers.safety, sig.header.safety()) {
-        (false, Safety::Unsafe) => span_lint(
+    match (headers.safety.is_missing(), sig.header.safety()) {
+        (true, Safety::Unsafe) => headers.safety.lint(
             cx,
             MISSING_SAFETY_DOC,
             span,
             "unsafe function's docs are missing a `# Safety` section",
         ),
-        (true, Safety::Safe) => span_lint(
+        (false, Safety::Safe) => span_lint(
             cx,
             UNNECESSARY_SAFETY_DOC,
             span,
@@ -49,22 +49,23 @@ pub fn check(
         ),
         _ => (),
     }
-    if !headers.panics
+    if headers.panics.is_missing()
         && let Some(body_id) = body_id
         && let Some(panic_span) = find_panic(cx, body_id)
     {
-        span_lint_and_note(
+        headers.panics.lint_and_then(
             cx,
             MISSING_PANICS_DOC,
             span,
             "docs for function which may panic missing `# Panics` section",
-            Some(panic_span),
-            "first possible panic found here",
+            |diag| {
+                diag.span_note(panic_span, "first possible panic found here");
+            },
         );
     }
-    if !headers.errors {
+    if headers.errors.is_missing() {
         if return_ty(cx, owner_id).is_diag_item(cx, sym::Result) {
-            span_lint(
+            headers.errors.lint(
                 cx,
                 MISSING_ERRORS_DOC,
                 span,
@@ -86,7 +87,7 @@ pub fn check(
             && let ty::Coroutine(_, subs) = ret_ty.kind()
             && subs.as_coroutine().return_ty().is_diag_item(cx, sym::Result)
         {
-            span_lint(
+            headers.errors.lint(
                 cx,
                 MISSING_ERRORS_DOC,
                 span,

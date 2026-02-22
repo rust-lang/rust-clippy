@@ -7,14 +7,6 @@ use std::ops::Range;
 
 use super::{DOC_LAZY_CONTINUATION, DOC_OVERINDENTED_LIST_ITEMS, Fragments};
 
-fn map_container_to_text(c: &super::Container) -> &'static str {
-    match c {
-        super::Container::Blockquote => "> ",
-        // numbered list can have up to nine digits, plus the dot, plus four spaces on either side
-        super::Container::List(indent) => &"                  "[0..*indent],
-    }
-}
-
 pub(super) fn check(
     cx: &LateContext<'_>,
     doc: &str,
@@ -41,7 +33,7 @@ pub(super) fn check(
                 let mut doc_start_range = &doc[cooked_range];
                 let mut suggested = String::new();
                 for c in containers {
-                    let text = map_container_to_text(c);
+                    let text = c.map_to_text();
                     if doc_start_range.starts_with(text) {
                         doc_start_range = &doc_start_range[text.len()..];
                         span = span.with_lo(

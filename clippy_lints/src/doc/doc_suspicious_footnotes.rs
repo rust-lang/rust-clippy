@@ -1,14 +1,12 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use rustc_ast::attr::AttributeExt as _;
 use rustc_ast::token::{CommentKind, DocFragmentKind};
 use rustc_errors::Applicability;
-use rustc_hir::attrs::AttributeKind;
 use rustc_hir::{AttrStyle, Attribute};
 use rustc_lint::{LateContext, LintContext};
 
 use std::ops::Range;
 
-use super::{DOC_SUSPICIOUS_FOOTNOTES, Fragments};
+use super::{DOC_SUSPICIOUS_FOOTNOTES, Fragments, find_doc_attr_by_span};
 
 pub fn check(cx: &LateContext<'_>, doc: &str, range: Range<usize>, fragments: &Fragments<'_>, attrs: &[Attribute]) {
     for i in doc[range.clone()]
@@ -44,25 +42,8 @@ pub fn check(cx: &LateContext<'_>, doc: &str, range: Range<usize>, fragments: &F
                 "looks like a footnote ref, but has no matching footnote",
                 |diag| {
                     if let DocFragmentKind::Sugared(_) = this_fragment.kind {
-                        let (doc_attr, doc_attr_comment_kind, attr_style) = attrs
-                            .iter()
-                            .filter(|attr| {
-                                matches!(
-                                    attr,
-                                    Attribute::Parsed(AttributeKind::DocComment { span, .. })
-                                    if span.overlaps(this_fragment.span),
-                                )
-                            })
-                            .rev()
-                            .find_map(|attr| {
-                                let (_, fragment) = attr.doc_str_and_fragment_kind()?;
-                                let fragment = match fragment {
-                                    DocFragmentKind::Sugared(kind) => kind,
-                                    DocFragmentKind::Raw(_) => CommentKind::Line,
-                                };
-                                Some((attr, fragment, attr.doc_resolution_scope()?))
-                            })
-                            .unwrap();
+                        let (doc_attr, doc_attr_comment_kind, attr_style) =
+                            find_doc_attr_by_span(attrs, this_fragment.span).unwrap();
                         let (to_add, terminator) = match (doc_attr_comment_kind, attr_style) {
                             (CommentKind::Line, AttrStyle::Outer) => ("\n///\n/// ", ""),
                             (CommentKind::Line, AttrStyle::Inner) => ("\n//!\n//! ", ""),
