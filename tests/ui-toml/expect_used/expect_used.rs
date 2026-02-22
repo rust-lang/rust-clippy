@@ -1,5 +1,4 @@
 //@compile-flags: --test
-//@no-rustfix
 #![warn(clippy::expect_used)]
 #![allow(clippy::unnecessary_literal_unwrap)]
 
