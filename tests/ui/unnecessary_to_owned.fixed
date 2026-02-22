@@ -690,3 +690,18 @@ fn issue16351() {
     take(&format!("ouch{dot}"));
     //~^ unnecessary_to_owned
 }
+
+// https://github.com/rust-lang/rust-clippy/issues/15252
+fn issue15252() {
+    fn with_static(_: impl AsRef<[u8]> + 'static) {}
+    fn without_static(_: impl AsRef<[u8]>) {}
+
+    let v = vec![1u8];
+    let bytes = &v;
+    with_static(bytes.to_vec());
+
+    let v = vec![1u8];
+    let bytes = &v;
+    without_static(bytes);
+    //~^ unnecessary_to_owned
+}

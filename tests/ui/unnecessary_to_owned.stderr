@@ -556,5 +556,11 @@ error: unnecessary use of `to_string`
 LL |     take(format!("ouch{dot}").to_string());
    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `&format!("ouch{dot}")`
 
-error: aborting due to 83 previous errors
+error: unnecessary use of `to_vec`
+  --> tests/ui/unnecessary_to_owned.rs:705:20
+   |
+LL |     without_static(bytes.to_vec());
+   |                    ^^^^^^^^^^^^^^ help: use: `bytes`
+
+error: aborting due to 84 previous errors
 
