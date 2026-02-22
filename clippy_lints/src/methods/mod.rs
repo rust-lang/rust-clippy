@@ -58,6 +58,7 @@ mod join_absolute_paths;
 mod lib;
 mod lines_filter_map_ok;
 mod manual_c_str_literals;
+mod manual_clear;
 mod manual_contains;
 mod manual_inspect;
 mod manual_is_variant_and;
@@ -3419,6 +3420,31 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for `.truncate(0)` calls on standard library types where it can be replaced with `.clear()`.
+    ///
+    /// Currently this includes `Vec`, `VecDeque`, `String`, and `OsString`.
+    ///
+    /// ### Why is this bad?
+    /// `clear()` expresses the intent better and is likely to be more efficient than `truncate(0)`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let mut v = vec![1, 2, 3];
+    /// v.truncate(0);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let mut v = vec![1, 2, 3];
+    /// v.clear();
+    /// ```
+    #[clippy::version = "1.96.0"]
+    pub MANUAL_CLEAR,
+    perf,
+    "using `truncate(0)` instead of `clear()`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for `.rev().next()` on a `DoubleEndedIterator`
     ///
     /// ### Why is this bad?
@@ -4894,6 +4920,7 @@ impl_lint_pass!(Methods => [
     MANUAL_NEXT_BACK,
     UNNECESSARY_LITERAL_UNWRAP,
     DRAIN_COLLECT,
+    MANUAL_CLEAR,
     MANUAL_TRY_FOLD,
     FORMAT_COLLECT,
     STRING_LIT_CHARS_ANY,
@@ -5755,6 +5782,9 @@ impl Methods {
                 },
                 (sym::to_string, []) => {
                     inefficient_to_string::check(cx, expr, recv, self.msrv);
+                },
+                (sym::truncate, [arg]) => {
+                    manual_clear::check(cx, expr, recv, arg, method_span);
                 },
                 (sym::unwrap, []) => {
                     unwrap_expect_used::check(

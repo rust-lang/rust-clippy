@@ -6670,6 +6670,7 @@ Released 2018-09-13
 [`manual_c_str_literals`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_c_str_literals
 [`manual_checked_ops`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_checked_ops
 [`manual_clamp`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_clamp
+[`manual_clear`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_clear
 [`manual_contains`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_contains
 [`manual_dangling_ptr`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_dangling_ptr
 [`manual_div_ceil`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_div_ceil
