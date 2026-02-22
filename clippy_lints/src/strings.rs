@@ -155,36 +155,32 @@ impl<'tcx> LateLintPass<'tcx> for StringAdd {
                 },
                 left,
                 _,
-            ) => {
-                if is_string(cx, left) {
-                    if !is_lint_allowed(cx, STRING_ADD_ASSIGN, e.hir_id) {
-                        let parent = get_parent_expr(cx, e);
-                        if let Some(p) = parent
+            ) if is_string(cx, left) => {
+                if !is_lint_allowed(cx, STRING_ADD_ASSIGN, e.hir_id) {
+                    let parent = get_parent_expr(cx, e);
+                    if let Some(p) = parent
                             && let ExprKind::Assign(target, _, _) = p.kind
                                 // avoid duplicate matches
                                 && SpanlessEq::new(cx).eq_expr(target, left)
-                        {
-                            return;
-                        }
+                    {
+                        return;
                     }
-                    span_lint(
-                        cx,
-                        STRING_ADD,
-                        e.span,
-                        "you added something to a string. Consider using `String::push_str()` instead",
-                    );
                 }
+                span_lint(
+                    cx,
+                    STRING_ADD,
+                    e.span,
+                    "you added something to a string. Consider using `String::push_str()` instead",
+                );
             },
-            ExprKind::Assign(target, src, _) => {
-                if is_string(cx, target) && is_add(cx, src, target) {
-                    span_lint(
-                        cx,
-                        STRING_ADD_ASSIGN,
-                        e.span,
-                        "you assigned the result of adding something to this string. Consider using \
+            ExprKind::Assign(target, src, _) if is_string(cx, target) && is_add(cx, src, target) => {
+                span_lint(
+                    cx,
+                    STRING_ADD_ASSIGN,
+                    e.span,
+                    "you assigned the result of adding something to this string. Consider using \
                          `String::push_str()` instead",
-                    );
-                }
+                );
             },
             ExprKind::Index(target, _idx, _) => {
                 let e_ty = cx.typeck_results().expr_ty_adjusted(target).peel_refs();
