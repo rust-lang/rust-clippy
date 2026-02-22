@@ -3,10 +3,11 @@ use clippy_utils::res::{MaybeDef, MaybeQPath, MaybeResPath, MaybeTypeckRes};
 use clippy_utils::source::{snippet, snippet_with_context};
 use clippy_utils::sugg::{DiagExt as _, Sugg};
 use clippy_utils::ty::{is_copy, same_type_modulo_regions};
-use clippy_utils::{get_parent_expr, is_ty_alias, sym};
+use clippy_utils::{get_parent_expr, is_ty_alias, peel_blocks, sym};
 use rustc_errors::Applicability;
+use rustc_hir::def::Res;
 use rustc_hir::def_id::DefId;
-use rustc_hir::{BindingMode, Expr, ExprKind, HirId, MatchSource, Mutability, Node, PatKind};
+use rustc_hir::{BindingMode, Expr, ExprKind, HirId, LangItem, MatchSource, Mutability, Node, PatKind};
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_infer::traits::Obligation;
 use rustc_lint::{LateContext, LateLintPass};
@@ -63,6 +64,46 @@ impl MethodOrFunction {
             MethodOrFunction::Function => pos,
         }
     }
+}
+
+fn map_err_from_conversion<'tcx>(cx: &LateContext<'tcx>, arg: &'tcx Expr<'_>) -> bool {
+    let arg = peel_blocks(arg);
+    if matches!(arg.res(cx).assoc_parent(cx).opt_diag_name(cx), Some(sym::From)) {
+        return true;
+    }
+
+    if let ExprKind::Path(qpath) = arg.kind {
+        match qpath {
+            rustc_hir::QPath::Resolved(_, path)
+                if path.segments.last().is_some_and(|seg| seg.ident.name == sym::from) && path.segments.len() > 1 =>
+            {
+                return true;
+            },
+            rustc_hir::QPath::TypeRelative(_, segment) if segment.ident.name == sym::from => return true,
+            _ => {},
+        }
+    }
+
+    if let ty::FnDef(def_id, _) = cx.typeck_results().expr_ty(arg).kind()
+        && cx.tcx.item_name(*def_id) == sym::from
+    {
+        return true;
+    }
+
+    if let ExprKind::Closure(closure) = arg.kind {
+        let body = cx.tcx.hir_body(closure.body);
+        if let [param] = body.params
+            && let PatKind::Binding(_, local_id, ..) = param.pat.kind
+            && let ExprKind::Call(func, [from_arg]) = peel_blocks(body.value).kind
+            && matches!(func.res(cx).assoc_parent(cx).opt_diag_name(cx), Some(sym::From))
+            && let ExprKind::Path(rustc_hir::QPath::Resolved(_, path)) = peel_blocks(from_arg).kind
+            && path.res == Res::Local(local_id)
+        {
+            return true;
+        }
+    }
+
+    false
 }
 
 /// Returns the span of the `IntoIterator` trait bound in the function pointed to by `fn_did`,
@@ -168,7 +209,42 @@ impl<'tcx> LateLintPass<'tcx> for UselessConversion {
         }
 
         match e.kind {
-            ExprKind::Match(_, arms, MatchSource::TryDesugar(_)) => {
+            ExprKind::Match(scrutinee, arms, MatchSource::TryDesugar(_)) => {
+                let branch_expr = if let ExprKind::DropTemps(branch_expr) = scrutinee.kind {
+                    branch_expr
+                } else {
+                    scrutinee
+                };
+
+                let try_expr = if let ExprKind::Call(called, [try_expr]) = branch_expr.kind
+                    && let ExprKind::Path(qpath) = called.kind
+                    && cx.tcx.qpath_is_lang_item(qpath, LangItem::TryTraitBranch)
+                {
+                    try_expr
+                } else {
+                    branch_expr
+                };
+
+                if let ExprKind::MethodCall(path, recv, [arg], _) = try_expr.kind
+                    && path.ident.name == sym::map_err
+                    && map_err_from_conversion(cx, arg)
+                {
+                    span_lint_and_then(
+                        cx,
+                        USELESS_CONVERSION,
+                        try_expr.span.with_lo(recv.span.hi()),
+                        "useless conversion to the same error type done via `?`",
+                        |diag| {
+                            diag.suggest_remove_item(
+                                cx,
+                                try_expr.span.with_lo(recv.span.hi()),
+                                "consider removing",
+                                Applicability::MachineApplicable,
+                            );
+                        },
+                    );
+                }
+
                 let (ExprKind::Ret(Some(e)) | ExprKind::Break(_, Some(e))) = arms[0].body.kind else {
                     return;
                 };

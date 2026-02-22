@@ -1,0 +1,20 @@
+error: useless conversion to the same error type done via `?`
+  --> tests/ui/useless_conversion_map_err_qmark.rs:16:8
+   |
+LL |     err.map_err(MyErr::from)?;
+   |        ^^^^^^^^^^^^^^^^^^^^^ help: consider removing
+   |
+note: the lint level is defined here
+  --> tests/ui/useless_conversion_map_err_qmark.rs:1:9
+   |
+LL | #![deny(clippy::useless_conversion)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: useless conversion to the same error type done via `?`
+  --> tests/ui/useless_conversion_map_err_qmark.rs:22:8
+   |
+LL |     err.map_err(|e| MyErr::from(e))?;
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider removing
+
+error: aborting due to 2 previous errors
+
