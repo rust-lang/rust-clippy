@@ -10,7 +10,7 @@ pub fn list_data(cache: &Cache, key: usize) {
     for reference in vec![1, 2, 3] {
         if
         /* let */
-        Some(reference) = cache.data.get(key) {
+        let Some(reference) = cache.data.get(key) {
             //~^ ERROR: mismatched types
             //~| ERROR: mismatched types
             unimplemented!()

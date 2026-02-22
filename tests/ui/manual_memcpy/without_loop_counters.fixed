@@ -11,39 +11,19 @@ const LOOP_OFFSET: usize = 5000;
 
 pub fn manual_copy(src: &[i32], dst: &mut [i32], dst2: &mut [i32]) {
     // plain manual memcpy
-    for i in 0..src.len() {
-        //~^ manual_memcpy
-
-        dst[i] = src[i];
-    }
+    dst[..src.len()].copy_from_slice(&src[..]);
 
     // dst offset memcpy
-    for i in 0..src.len() {
-        //~^ manual_memcpy
-
-        dst[i + 10] = src[i];
-    }
+    dst[10..(src.len() + 10)].copy_from_slice(&src[..]);
 
     // src offset memcpy
-    for i in 0..src.len() {
-        //~^ manual_memcpy
-
-        dst[i] = src[i + 10];
-    }
+    dst[..src.len()].copy_from_slice(&src[10..(src.len() + 10)]);
 
     // src offset memcpy
-    for i in 11..src.len() {
-        //~^ manual_memcpy
-
-        dst[i] = src[i - 10];
-    }
+    dst[11..src.len()].copy_from_slice(&src[(11 - 10)..(src.len() - 10)]);
 
     // overwrite entire dst
-    for i in 0..dst.len() {
-        //~^ manual_memcpy
-
-        dst[i] = src[i];
-    }
+    dst.copy_from_slice(&src[..dst.len()]);
 
     // manual copy with branch - can't easily convert to memcpy!
     for i in 0..src.len() {
@@ -54,12 +34,8 @@ pub fn manual_copy(src: &[i32], dst: &mut [i32], dst2: &mut [i32]) {
     }
 
     // multiple copies - suggest two memcpy statements
-    for i in 10..256 {
-        //~^ manual_memcpy
-
-        dst[i] = src[i - 5];
-        dst2[i + 500] = src[i]
-    }
+    dst[10..256].copy_from_slice(&src[(10 - 5)..(256 - 5)]);
+    dst2[(10 + 500)..(256 + 500)].copy_from_slice(&src[10..256]);
 
     // this is a reversal - the copy lint shouldn't be triggered
     for i in 10..LOOP_OFFSET {
@@ -68,11 +44,7 @@ pub fn manual_copy(src: &[i32], dst: &mut [i32], dst2: &mut [i32]) {
 
     let some_var = 5;
     // Offset in variable
-    for i in 10..LOOP_OFFSET {
-        //~^ manual_memcpy
-
-        dst[i + LOOP_OFFSET] = src[i - some_var];
-    }
+    dst[(10 + LOOP_OFFSET)..(LOOP_OFFSET + LOOP_OFFSET)].copy_from_slice(&src[(10 - some_var)..(LOOP_OFFSET - some_var)]);
 
     // Non continuous copy - don't trigger lint
     for i in 0..10 {
@@ -83,11 +55,7 @@ pub fn manual_copy(src: &[i32], dst: &mut [i32], dst2: &mut [i32]) {
     let mut dst_vec = vec![0, 0, 0, 0, 0];
 
     // make sure vectors are supported
-    for i in 0..src_vec.len() {
-        //~^ manual_memcpy
-
-        dst_vec[i] = src_vec[i];
-    }
+    dst_vec[..src_vec.len()].copy_from_slice(&src_vec[..]);
 
     // lint should not trigger when either
     // source or destination type is not
@@ -114,31 +82,15 @@ pub fn manual_copy(src: &[i32], dst: &mut [i32], dst2: &mut [i32]) {
     let mut dst = [0, 0, 0, 0, 0, 0];
     let from = 1;
 
-    for i in from..from + src.len() {
-        //~^ manual_memcpy
+    dst[from..(from + src.len())].copy_from_slice(&src[..(from + src.len() - from)]);
 
-        dst[i] = src[i - from];
-    }
-
-    for i in from..from + 3 {
-        //~^ manual_memcpy
-
-        dst[i] = src[i - from];
-    }
+    dst[from..(from + 3)].copy_from_slice(&src[..(from + 3 - from)]);
 
     #[allow(clippy::identity_op)]
-    for i in 0..5 {
-        //~^ manual_memcpy
-
-        dst[i - 0] = src[i];
-    }
+    dst[..5].copy_from_slice(&src);
 
     #[allow(clippy::reversed_empty_ranges)]
-    for i in 0..0 {
-        //~^ manual_memcpy
-
-        dst[i] = src[i];
-    }
+    dst[..0].copy_from_slice(&src[..0]);
 
     // `RangeTo` `for` loop - don't trigger lint
     for i in 0.. {
@@ -159,25 +111,13 @@ pub fn manual_copy(src: &[i32], dst: &mut [i32], dst2: &mut [i32]) {
     // Range is equal to array length
     let src = [0, 1, 2, 3, 4];
     let mut dst = [0; 4];
-    for i in 0..4 {
-        //~^ manual_memcpy
-
-        dst[i] = src[i];
-    }
+    dst.copy_from_slice(&src[..4]);
 
     let mut dst = [0; 6];
-    for i in 0..5 {
-        //~^ manual_memcpy
-
-        dst[i] = src[i];
-    }
+    dst[..5].copy_from_slice(&src);
 
     let mut dst = [0; 5];
-    for i in 0..5 {
-        //~^ manual_memcpy
-
-        dst[i] = src[i];
-    }
+    dst.copy_from_slice(&src);
 
     // Don't trigger lint for following multi-dimensional arrays
     let src = [[0; 5]; 5];
@@ -221,27 +161,15 @@ pub fn manual_copy(src: &[i32], dst: &mut [i32], dst2: &mut [i32]) {
     // Trigger lint
     let src = [[0; 5]; 5];
     let mut dst = [0; 5];
-    for i in 0..5 {
-        //~^ manual_memcpy
-
-        dst[i] = src[0][i];
-    }
+    dst.copy_from_slice(&src[0]);
 
     let src = [[[0; 5]; 5]; 5];
-    for i in 0..5 {
-        //~^ manual_memcpy
-
-        dst[i] = src[0][1][i];
-    }
+    dst.copy_from_slice(&src[0][1]);
 }
 
 #[warn(clippy::needless_range_loop, clippy::manual_memcpy)]
 pub fn manual_clone(src: &[String], dst: &mut [String]) {
-    for i in 0..src.len() {
-        //~^ manual_memcpy
-
-        dst[i] = src[i].clone();
-    }
+    dst[..src.len()].clone_from_slice(&src[..]);
 }
 
 fn main() {}
