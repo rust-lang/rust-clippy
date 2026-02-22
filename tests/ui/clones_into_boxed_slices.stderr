@@ -1,0 +1,173 @@
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:58:23
+   |
+LL |     let _: Box<str> = s.to_string().into_boxed_str();
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(s)`
+   |
+   = note: `-D clippy::clones-into-boxed-slices` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::clones_into_boxed_slices)]`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:60:23
+   |
+LL |     let _: Box<str> = (&s).to_string().into_boxed_str();
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(s)`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:63:23
+   |
+LL |     let _: Box<str> = ref_s.to_string().into_boxed_str();
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(*ref_s)`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:66:23
+   |
+LL |     let _: Box<str> = (*boxed_s).to_owned().into_boxed_str();
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `boxed_s.clone()`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:69:23
+   |
+LL |     let _: Box<str> = (*rc_s).to_owned().into_boxed_str();
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(&*rc_s)`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:71:23
+   |
+LL |     let _: Box<str> = s.to_owned().into_boxed_str();
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(s)`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:73:23
+   |
+LL |     let _: Box<str> = s[..2].to_owned().into_boxed_str();
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(&s[..2])`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:75:23
+   |
+LL |     let _: Box<str> = String::from(s).into_boxed_str();
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(s)`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:78:23
+   |
+LL |     let _: Box<str> = String::from(&string).into_boxed_str();
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(string.as_str())`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:80:23
+   |
+LL |     let _: Box<str> = string.clone().into_boxed_str();
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(string.as_str())`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:82:23
+   |
+LL |     let _: Box<str> = string.to_owned().into_boxed_str();
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(string.as_str())`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:86:24
+   |
+LL |     let _: Box<CStr> = c_str.to_owned().into_boxed_c_str();
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(c_str)`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:89:24
+   |
+LL |     let _: Box<CStr> = c_string.clone().into_boxed_c_str();
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(c_string.as_c_str())`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:91:24
+   |
+LL |     let _: Box<CStr> = c_string.to_owned().into_boxed_c_str();
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(c_string.as_c_str())`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:93:24
+   |
+LL |     let _: Box<CStr> = CString::from(c_str).into_boxed_c_str();
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(c_str)`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:97:25
+   |
+LL |     let _: Box<OsStr> = os_str.to_owned().into_boxed_os_str();
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(os_str)`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:99:25
+   |
+LL |     let _: Box<OsStr> = os_str.to_os_string().into_boxed_os_str();
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(os_str)`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:102:25
+   |
+LL |     let _: Box<OsStr> = os_string.clone().into_boxed_os_str();
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(os_string.as_os_str())`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:106:24
+   |
+LL |     let _: Box<Path> = path.to_owned().into_boxed_path();
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(path)`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:108:24
+   |
+LL |     let _: Box<Path> = path.to_path_buf().into_boxed_path();
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(path)`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:111:24
+   |
+LL |     let _: Box<Path> = path_buf.clone().into_boxed_path();
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(path_buf.as_path())`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:113:24
+   |
+LL |     let _: Box<Path> = PathBuf::from("./").into_boxed_path();
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(Path::new("./"))`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:123:25
+   |
+LL |     let _: Box<[u32]> = test_vec.clone().into_boxed_slice();
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(&test_vec[..])`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:126:25
+   |
+LL |     let _: Box<[u32]> = Vec::from(slice).into_boxed_slice();
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(slice)`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:128:25
+   |
+LL |     let _: Box<[u32]> = slice.to_owned().into_boxed_slice();
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(slice)`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:130:25
+   |
+LL |     let _: Box<[u32]> = slice.to_vec().into_boxed_slice();
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from(slice)`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:144:23
+   |
+LL |     let _: Box<str> = String::from(&{ s.to_string() }).into_boxed_str();
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from({ s.to_string() }.as_str())`
+
+error: clone into boxed slice
+  --> tests/ui/clones_into_boxed_slices.rs:147:23
+   |
+LL |     let _: Box<str> = (&{ s }).to_string().into_boxed_str();
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Box::from({ s })`
+
+error: aborting due to 28 previous errors
+
