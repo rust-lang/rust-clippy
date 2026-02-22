@@ -16,5 +16,19 @@ fn main() {
         let _: Option<&i32> = std::mem::transmute(Some(&5i32));
         let _: Option<(&mut i32, &mut i32, &mut u32)> = std::mem::transmute(Some((&5i32, &10i32, &15u32)));
         //~^ mutable_adt_argument_transmute
+        // This one is not dangerous, as the function will not try
+        // to mutate its parameter anyway.
+        fn f(x: &i32) {}
+        let a: fn(&i32) = f;
+        let b: fn(&mut u32) = std::mem::transmute(a);
+
+        // This one should be linted because it would not be safe
+        // to assume that the return value can be mutated.
+        fn g() -> &'static i32 {
+            &0
+        }
+        let c: fn() -> &'static i32 = g;
+        let d: fn() -> &'static mut i32 = std::mem::transmute(c);
+        //~^ mutable_adt_argument_transmute
     }
 }

@@ -49,5 +49,13 @@ LL |         let _: Option<(&mut i32, &mut i32, &mut u32)> = std::mem::transmute
    = note: transmute of type argument &i32 to &mut i32
    = note: transmute of type argument &u32 to &mut u32
 
-error: aborting due to 6 previous errors
+error: transmuting references into their mutable version is unsound
+  --> tests/ui/mutable_adt_argument_transmute.rs:31:43
+   |
+LL |         let d: fn() -> &'static mut i32 = std::mem::transmute(c);
+   |                                           ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: transmute of type argument &i32 to &mut i32
+
+error: aborting due to 7 previous errors
 
