@@ -17,7 +17,7 @@ LL |     let _ = res.expect("");
    = note: if this value is an `Err`, it will panic
 
 error: used `expect()` on an `Option` value
-  --> tests/ui-toml/expect_used/expect_used.rs:22:28
+  --> tests/ui-toml/expect_used/expect_used.rs:19:28
    |
 LL |     const UNWRAPPED: i32 = SOME.expect("Not three?");
    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -25,7 +25,7 @@ LL |     const UNWRAPPED: i32 = SOME.expect("Not three?");
    = note: if this value is `None`, it will panic
 
 error: used `expect()` on an `Option` value
-  --> tests/ui-toml/expect_used/expect_used.rs:25:9
+  --> tests/ui-toml/expect_used/expect_used.rs:22:9
    |
 LL |         SOME.expect("Still not three?");
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

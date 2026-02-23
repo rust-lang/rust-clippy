@@ -71,6 +71,4 @@ fn no_suggestion_if_comments_present() {
         .flatten();
 }
 
-fn main() {
-    long_span();
-}
+fn main() {}

@@ -15,9 +15,6 @@ fn expect_result() {
 }
 
 fn main() {
-    expect_option();
-    expect_result();
-
     const SOME: Option<i32> = Some(3);
     const UNWRAPPED: i32 = SOME.expect("Not three?");
     //~^ expect_used
