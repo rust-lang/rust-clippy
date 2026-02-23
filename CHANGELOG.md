@@ -7674,6 +7674,7 @@ Released 2018-09-13
 [`slow_vector_initialization`]: https://clippy.rust-lang.org/main/index.html#slow_vector_initialization
 [`some_filter`]: https://clippy.rust-lang.org/main/index.html#some_filter
 [`stable_sort_primitive`]: https://clippy.rust-lang.org/main/index.html#stable_sort_primitive
+[`static_mut_vars`]: https://clippy.rust-lang.org/main/index.html#static_mut_vars
 [`std_instead_of_alloc`]: https://clippy.rust-lang.org/main/index.html#std_instead_of_alloc
 [`std_instead_of_core`]: https://clippy.rust-lang.org/main/index.html#std_instead_of_core
 [`str_split_at_newline`]: https://clippy.rust-lang.org/main/index.html#str_split_at_newline
