@@ -1,6 +1,6 @@
 #![deny(clippy::useless_conversion)]
 #![allow(clippy::into_iter_on_ref)]
-#![allow(clippy::needless_ifs, clippy::unnecessary_wraps, unused)]
+#![allow(clippy::needless_ifs, clippy::unnecessary_wraps, unused, clippy::static_mut_vars)]
 // FIXME(static_mut_refs): Do not allow `static_mut_refs` lint
 #![allow(static_mut_refs)]
 
