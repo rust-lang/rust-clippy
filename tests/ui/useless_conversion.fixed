@@ -1,6 +1,6 @@
 #![warn(clippy::useless_conversion)]
 // FIXME(static_mut_refs): use raw pointers instead of references
-#![expect(static_mut_refs)]
+#![expect(static_mut_refs, clippy::static_mut_vars)]
 #![allow(clippy::into_iter_on_ref)]
 
 use std::ops::ControlFlow;
