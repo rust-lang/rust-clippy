@@ -4,7 +4,8 @@
     overflowing_literals,
     unused_variables,
     clippy::print_literal,
-    clippy::useless_vec
+    clippy::useless_vec,
+    clippy::static_mut_vars
 )]
 
 fn main() {

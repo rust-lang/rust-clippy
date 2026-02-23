@@ -3,7 +3,7 @@
 //@no-rustfix
 
 #![warn(clippy::non_std_lazy_statics)]
-#![allow(static_mut_refs)]
+#![allow(static_mut_refs, clippy::static_mut_vars)]
 
 mod once_cell_lazy {
     use once_cell::sync::Lazy;
