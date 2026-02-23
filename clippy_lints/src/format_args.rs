@@ -176,6 +176,11 @@ declare_clippy_lint! {
     /// Detects [formatting parameters] that have no effect on the output of
     /// `format!()`, `println!()` or similar macros.
     ///
+    /// This includes:
+    /// - Format specifiers on `format_args!()` (width, precision have no effect)
+    /// - Format width too small for the format trait (e.g. `{:#02x}` outputs "0x1"
+    ///   so width 2 has no effect; minimum is 4 for alternate hex/octal/binary)
+    ///
     /// ### Why is this bad?
     /// Shorter format specifiers are easier to read, it may also indicate that
     /// an expected formatting operation such as adding padding isn't happening.
@@ -185,6 +190,9 @@ declare_clippy_lint! {
     /// println!("{:.}", 1.0);
     ///
     /// println!("not padded: {:5}", format_args!("..."));
+    ///
+    /// // width 2 has no effect for alternate hex (outputs "0x1")
+    /// format!("{:#02x}", 1_u8);
     /// ```
     /// Use instead:
     /// ```no_run
@@ -193,6 +201,8 @@ declare_clippy_lint! {
     /// println!("not padded: {}", format_args!("..."));
     /// // OR
     /// println!("padded: {:5}", format!("..."));
+    ///
+    /// format!("{:#04x}", 1_u8);  // width 4 for two-digit zero-padded hex
     /// ```
     ///
     /// [formatting parameters]: https://doc.rust-lang.org/std/fmt/index.html#formatting-parameters
@@ -200,31 +210,6 @@ declare_clippy_lint! {
     pub UNUSED_FORMAT_SPECS,
     complexity,
     "use of a format specifier that has no effect"
-}
-
-declare_clippy_lint! {
-    /// ### What it does
-    /// Detects format width parameters that have no effect on the output for
-    /// certain format traits.
-    ///
-    /// ### Why is this bad?
-    /// When the width is smaller than the minimum output size, it is ignored.
-    /// For example, `{:#02x}` outputs "0x1" (3 chars) — the width 2 has no effect.
-    /// The likely intent was `{:#04x}` for two-digit zero-padded hex.
-    ///
-    /// ### Example
-    /// ```no_run
-    /// // width 2 in all examples has no effect on the output
-    /// format!("{0:#2x} {0:#2o} {0:#2b}", 1_u8); // outputs "0x1" and similar
-    /// format!("{:#2e}", 1_u8); // outputs "1e0"
-    /// format!("{:#2p}", 1 as *const usize); // outputs "0x1"
-    /// ```
-    /// Use a width larger than the minimum output size for the format to have effect
-    /// (e.g. `{:#04x}` for two-digit zero-padded hex).
-    #[clippy::version = "1.95.0"]
-    pub USELESS_FORMAT_WIDTH,
-    correctness,
-    "format width has no effect on the output for this format trait"
 }
 
 declare_clippy_lint! {
@@ -290,7 +275,6 @@ impl_lint_pass!(FormatArgs<'_> => [
     UNINLINED_FORMAT_ARGS,
     UNNECESSARY_DEBUG_FORMATTING,
     UNUSED_FORMAT_SPECS,
-    USELESS_FORMAT_WIDTH,
     POINTER_FORMAT,
     UNNECESSARY_TRAILING_COMMA,
 ]);
@@ -486,7 +470,7 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
         {
             span_lint_and_help(
                 self.cx,
-                USELESS_FORMAT_WIDTH,
+                UNUSED_FORMAT_SPECS,
                 placeholder_span,
                 "format width has no effect on the output for this format trait",
                 None,

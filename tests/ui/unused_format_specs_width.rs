@@ -1,11 +1,11 @@
-// Test for useless_format_width lint (issue #15039)
-// Format width has no effect on output for certain traits when it's too small.
+//@no-rustfix
+// Format width has no effect for certain traits (issue #15039)
 
-#![warn(clippy::useless_format_width)]
+#![warn(clippy::unused_format_specs)]
 #![allow(clippy::zero_ptr, clippy::manual_dangling_ptr)]
 
 fn main() {
-    // Integer formats with # (alternate): 0x/0o/0b prefix makes min width 3
+    // Integer formats with # (alternate): 0x/0o/0b prefix makes min width 4
     println!("{:#02X}", 1u8); //~ ERROR: format width has no effect on the output
     println!("{:#2X}", 1u8); //~ ERROR: format width has no effect on the output
     println!("{:#02x}", 1u8); //~ ERROR: format width has no effect on the output
@@ -20,17 +20,17 @@ fn main() {
     println!("{:2e}", 0.1); //~ ERROR: format width has no effect on the output
     println!("{:2E}", 0.1); //~ ERROR: format width has no effect on the output
 
-    // Pointer: min width 3 (0x0)
+    // Pointer: min width 4 (0x1)
     println!("{:2p}", 0 as *const usize); //~ ERROR: format width has no effect on the output
     println!("{:02p}", 1 as *const usize); //~ ERROR: format width has no effect on the output
 
-    // Width 2 still too small for exponent (min 3); precision+width
+    // Width 2 still too small for exponent; precision+width
     println!("{:2.2e}", 1.0); //~ ERROR: format width has no effect on the output
     println!("{:2.2E}", 1.0); //~ ERROR: format width has no effect on the output
     println!("{:2.2e}", 0.1); //~ ERROR: format width has no effect on the output
     println!("{:2.2E}", 0.1); //~ ERROR: format width has no effect on the output
 
-    // Width 3 is exactly the minimum for exponent, still warn as it is unlikely to be intentional
+    // Width 3 is exactly the minimum for alternate hex, still warn
     println!("{:#03X}", 1u8); //~ ERROR: format width has no effect on the output
 
     // Not linted: width more than 3, or no # for x/o/b
