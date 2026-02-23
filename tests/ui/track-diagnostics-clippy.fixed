@@ -10,13 +10,13 @@
 fn main() {
     // Check the provenance of a lint sent through `LintContext::span_lint()`
     let a = 3u32;
-    let b = a as u32;
+    let b = a;
     //~^ unnecessary_cast
 
     // Check the provenance of a lint sent through `TyCtxt::node_span_lint()`
     let c = {
-        let d = 42;
-        d
+        
+        42
         //~^ let_and_return
     };
 }

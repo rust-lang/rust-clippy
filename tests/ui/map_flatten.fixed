@@ -5,7 +5,7 @@
 #[rustfmt::skip]
 fn long_span() {
     let _: Option<i32> = Some(1)
-        .map(|x| {
+        .and_then(|x| {
         //~^ map_flatten
 
 
@@ -14,11 +14,10 @@ fn long_span() {
             } else {
                 None
             }
-        })
-        .flatten();
+        });
 
     let _: Result<i32, i32> = Ok(1)
-        .map(|x| {
+        .and_then(|x| {
         //~^ map_flatten
 
             if x == 1 {
@@ -26,13 +25,12 @@ fn long_span() {
             } else {
                 Err(0)
             }
-        })
-        .flatten();
+        });
 
     let result: Result<i32, i32> = Ok(2);
     fn do_something() { }
     let _: Result<i32, i32> = result
-        .map(|res| {
+        .and_then(|res| {
         //~^ map_flatten
 
             if res > 0 {
@@ -41,12 +39,11 @@ fn long_span() {
             } else {
                 Err(0)
             }
-        })
-        .flatten();
+        });
 
     let _: Vec<_> = vec![5_i8; 6]
         .into_iter()
-        .map(|some_value| {
+        .filter_map(|some_value| {
         //~^ map_flatten
 
             if some_value > 3 {
@@ -55,7 +52,6 @@ fn long_span() {
                 None
             }
         })
-        .flatten()
         .collect();
 }
 
@@ -65,10 +61,7 @@ fn no_suggestion_if_comments_present() {
     let _ = vec
         .iter()
         // a lovely comment explaining the code in very detail
-        .map(|x| x.iter())
-        //~^ map_flatten
-        // the answer to life, the universe and everything could be here
-        .flatten();
+        .flat_map(|x| x.iter());
 }
 
 fn main() {
