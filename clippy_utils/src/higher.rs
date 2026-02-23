@@ -92,11 +92,13 @@ pub struct IfLet<'hir> {
     /// `if let PAT = EXPR`
     ///     ^^^^^^^^^^^^^^
     pub let_span: Span,
+    /// The full condition of the `if` expression
+    pub if_condition: &'hir Expr<'hir>,
 }
 
 impl<'hir> IfLet<'hir> {
     /// Parses an `if let` expression
-    pub fn hir(cx: &LateContext<'_>, expr: &Expr<'hir>) -> Option<Self> {
+    pub fn hir(cx: &LateContext<'_>, expr: &'hir Expr<'hir>) -> Option<Self> {
         if let ExprKind::If(
             &Expr {
                 kind:
@@ -131,7 +133,78 @@ impl<'hir> IfLet<'hir> {
                 if_then,
                 if_else,
                 let_span,
+                if_condition: expr,
             });
+        }
+        None
+    }
+
+    /// Parses an `if let` expression, but returns an iterator of all let chains in the condition.
+    /// E.g., `if let Some(x) = y && let Some(z) = w` will return an iterator of both let
+    /// expressions.
+    pub fn hir_all(cx: &LateContext<'_>, expr: &Expr<'hir>) -> Option<Vec<Self>> {
+        if let ExprKind::If(cond, if_then, if_else) = expr.kind {
+            let mut iter = cx.tcx.hir_parent_iter(expr.hir_id);
+            if let Some((_, Node::Block(Block { stmts: [], .. }))) = iter.next()
+                && let Some((
+                    _,
+                    Node::Expr(Expr {
+                        kind: ExprKind::Loop(_, _, LoopSource::While, _),
+                        ..
+                    }),
+                )) = iter.next()
+            {
+                // while loop desugar
+                return None;
+            }
+
+            let mut lets = Vec::new();
+            let mut current = cond;
+            while let ExprKind::Binary(op, lhs, rhs) = current.kind
+                && op.node == hir::BinOpKind::And
+            {
+                if let ExprKind::Let(&hir::LetExpr {
+                    pat: let_pat,
+                    init: let_expr,
+                    span: let_span,
+                    ..
+                }) = rhs.kind
+                {
+                    lets.push(Self {
+                        let_pat,
+                        let_expr,
+                        if_then,
+                        if_else,
+                        let_span,
+                        if_condition: cond,
+                    });
+                }
+                current = lhs;
+            }
+
+            if let ExprKind::Let(&hir::LetExpr {
+                pat: let_pat,
+                init: let_expr,
+                span: let_span,
+                ..
+            }) = current.kind
+            {
+                lets.push(Self {
+                    let_pat,
+                    let_expr,
+                    if_then,
+                    if_else,
+                    let_span,
+                    if_condition: cond,
+                });
+            }
+
+            if lets.is_empty() {
+                return None;
+            }
+
+            lets.reverse();
+            return Some(lets);
         }
         None
     }
@@ -156,7 +229,7 @@ pub enum IfLetOrMatch<'hir> {
 
 impl<'hir> IfLetOrMatch<'hir> {
     /// Parses an `if let` or `match` expression
-    pub fn parse(cx: &LateContext<'_>, expr: &Expr<'hir>) -> Option<Self> {
+    pub fn parse(cx: &LateContext<'_>, expr: &'hir Expr<'hir>) -> Option<Self> {
         match expr.kind {
             ExprKind::Match(expr, arms, source) => Some(Self::Match(expr, arms, source)),
             _ => IfLet::hir(cx, expr).map(
@@ -166,6 +239,7 @@ impl<'hir> IfLetOrMatch<'hir> {
                      if_then,
                      if_else,
                      let_span,
+                     if_condition: _,
                  }| { Self::IfLet(let_expr, let_pat, if_then, if_else, let_span) },
             ),
         }

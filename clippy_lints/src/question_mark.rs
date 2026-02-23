@@ -466,7 +466,7 @@ fn check_if_try_match<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
     }
 }
 
-fn check_if_let_some_or_err_and_early_return<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
+fn check_if_let_some_or_err_and_early_return<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
     if let Some(higher::IfLet {
         let_pat,
         let_expr,
