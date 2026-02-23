@@ -1,0 +1,17 @@
+error: the receiver implements the required traits
+  --> tests/ui-toml/needless_conversion_for_trait_tempfile/needless_conversion_for_trait_tempfile.rs:11:28
+   |
+LL |     let _ = std::fs::write(tempdir.path(), "");
+   |                            ^^^^^^^^^^^^^^ help: use: `&tempdir`
+   |
+   = note: `-D clippy::needless-conversion-for-trait` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::needless_conversion_for_trait)]`
+
+error: the receiver implements the required traits
+  --> tests/ui-toml/needless_conversion_for_trait_tempfile/needless_conversion_for_trait_tempfile.rs:12:28
+   |
+LL |     let _ = std::fs::write(tempfile.path(), "");
+   |                            ^^^^^^^^^^^^^^^ help: use: `&tempfile`
+
+error: aborting due to 2 previous errors
+

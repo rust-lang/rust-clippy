@@ -29,10 +29,10 @@ pub fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, method_span: Span) -> b
                 diag.span_suggestion(
                     method_span,
                     "depending on intent, either make the `Cow` an `Owned` variant",
-                    "into_owned".to_string(),
+                    "into_owned",
                     app,
                 );
-                diag.span_suggestion(method_span, "or clone the `Cow` itself", "clone".to_string(), app);
+                diag.span_suggestion(method_span, "or clone the `Cow` itself", "clone", app);
             },
         );
         return true;

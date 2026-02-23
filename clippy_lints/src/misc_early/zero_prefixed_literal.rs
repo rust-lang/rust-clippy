@@ -16,7 +16,7 @@ pub(super) fn check(cx: &EarlyContext<'_>, lit_span: Span, lit_snip: &str) {
             diag.span_suggestion(
                 lit_span,
                 "if you mean to use a decimal constant, remove the `0` to avoid confusion",
-                trimmed_lit_snip.to_string(),
+                trimmed_lit_snip,
                 Applicability::MaybeIncorrect,
             );
             // do not advise to use octal form if the literal cannot be expressed in base 8.

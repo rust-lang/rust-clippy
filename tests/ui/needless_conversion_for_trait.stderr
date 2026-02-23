@@ -1,0 +1,257 @@
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:22:60
+   |
+LL |     let _ = std::fs::write("x", (Box::new([]) as Box<[u8]>).into_vec());
+   |                                                            ^^^^^^^^^^^ help: remove this
+   |
+   = note: `-D clippy::needless-conversion-for-trait` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::needless_conversion_for_trait)]`
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:23:47
+   |
+LL |     let _ = std::fs::write("x", (&[] as &[u8]).to_vec());
+   |                                               ^^^^^^^^^ help: remove this
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:25:31
+   |
+LL |     let _ = is_empty(s.clone().into_boxed_str().into_boxed_bytes());
+   |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove this
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:26:31
+   |
+LL |     let _ = is_empty(s.clone().into_boxed_str().into_string());
+   |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove this
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:28:33
+   |
+LL |     let _ = std::fs::write("x", s.as_bytes());
+   |                                 ^^^^^^^^^^^^ help: use: `&s`
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:29:33
+   |
+LL |     let _ = std::fs::write("x", s.as_mut_str());
+   |                                 ^^^^^^^^^^^^^^ help: use: `&mut s`
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:30:33
+   |
+LL |     let _ = std::fs::write("x", s.as_str());
+   |                                 ^^^^^^^^^^ help: use: `&s`
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:31:31
+   |
+LL |     let _ = is_empty(s.clone().into_boxed_str());
+   |                               ^^^^^^^^^^^^^^^^^ help: remove this
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:32:42
+   |
+LL |     let _ = std::fs::write("x", s.clone().into_bytes());
+   |                                          ^^^^^^^^^^^^^ help: remove this
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:34:33
+   |
+LL |     let _ = std::fs::write("x", vec.as_mut_slice());
+   |                                 ^^^^^^^^^^^^^^^^^^ help: use: `&mut vec`
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:35:33
+   |
+LL |     let _ = std::fs::write("x", vec.as_slice());
+   |                                 ^^^^^^^^^^^^^^ help: use: `&vec`
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:36:36
+   |
+LL |     let _ = std::fs::write("x", vec.into_boxed_slice());
+   |                                    ^^^^^^^^^^^^^^^^^^^ help: remove this
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:38:49
+   |
+LL |     let _ = Command::new("ls").args(["-a", "-l"].iter());
+   |                                                 ^^^^^^^ help: remove this
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:39:49
+   |
+LL |     let _ = Command::new("ls").args(["-a", "-l"].iter_mut());
+   |                                                 ^^^^^^^^^^^ help: remove this
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:41:35
+   |
+LL |     let _ = std::fs::write("x", "".as_bytes());
+   |                                   ^^^^^^^^^^^ help: remove this
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:42:35
+   |
+LL |     let _ = std::fs::write("x", "".as_str());
+   |                                   ^^^^^^^^^ help: remove this
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:44:34
+   |
+LL |     let _ = os_str_or_bytes(osstr.as_encoded_bytes());
+   |                                  ^^^^^^^^^^^^^^^^^^^ help: remove this
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:45:41
+   |
+LL |     let _ = is_empty_os(osstring.clone().into_boxed_os_str().into_os_string());
+   |                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove this
+
+error: the inner argument implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:46:28
+   |
+LL |     let _ = std::fs::write(OsStr::new("x"), "");
+   |                            ^^^^^^^^^^^^^^^ help: use: `"x"`
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:47:33
+   |
+LL |     let _ = std::fs::write(osstr.to_os_string(), "");
+   |                                 ^^^^^^^^^^^^^^^ help: remove this
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:49:28
+   |
+LL |     let _ = std::fs::write(osstring.as_os_str(), "");
+   |                            ^^^^^^^^^^^^^^^^^^^^ help: use: `&osstring`
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:50:41
+   |
+LL |     let _ = is_empty_os(osstring.clone().into_boxed_os_str());
+   |                                         ^^^^^^^^^^^^^^^^^^^^ help: remove this
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:51:48
+   |
+LL |     let _ = os_string_or_bytes(osstring.clone().into_encoded_bytes());
+   |                                                ^^^^^^^^^^^^^^^^^^^^^ help: remove this
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:53:46
+   |
+LL |     let _ = std::fs::write(PathBuf::from("x").as_mut_os_str(), "");
+   |                                              ^^^^^^^^^^^^^^^^ help: remove this
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:54:32
+   |
+LL |     let _ = std::fs::write(path.as_os_str(), "");
+   |                                ^^^^^^^^^^^^ help: remove this
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:55:46
+   |
+LL |     let _ = std::fs::write(PathBuf::from("x").into_boxed_path().into_path_buf(), "");
+   |                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove this
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:56:41
+   |
+LL |     let _ = Command::new("ls").args(path.iter());
+   |                                         ^^^^^^^ help: remove this
+
+error: the inner argument implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:57:28
+   |
+LL |     let _ = std::fs::write(Path::new("x"), "");
+   |                            ^^^^^^^^^^^^^^ help: use: `"x"`
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:58:32
+   |
+LL |     let _ = std::fs::write(path.to_path_buf(), "");
+   |                                ^^^^^^^^^^^^^^ help: remove this
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:60:28
+   |
+LL |     let _ = std::fs::write(path_buf.as_mut_os_string(), "");
+   |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `&mut path_buf`
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:61:28
+   |
+LL |     let _ = std::fs::write(path_buf.as_path(), "");
+   |                            ^^^^^^^^^^^^^^^^^^ help: use: `&path_buf`
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:62:44
+   |
+LL |     let _ = std::fs::write(path_buf.clone().into_os_string(), "");
+   |                                            ^^^^^^^^^^^^^^^^^ help: remove this
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:66:35
+   |
+LL |     let _ = std::fs::write("x", "".to_owned());
+   |                                   ^^^^^^^^^^^ help: remove this
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:68:35
+   |
+LL |     let _ = std::fs::write("x", "".to_string());
+   |                                   ^^^^^^^^^^^^ help: remove this
+
+error: the inner argument implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:70:33
+   |
+LL |     let _ = std::fs::write("x", <_ as Borrow<str>>::borrow(&s));
+   |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `&s`
+
+error: the inner argument implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:72:10
+   |
+LL |     read(<_ as BorrowMut<&[u8]>>::borrow_mut(&mut readable));
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `&mut readable`
+
+error: the inner argument implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:73:10
+   |
+LL |     read(<_ as BorrowMut<Box<_>>>::borrow_mut(&mut readable));
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `&mut readable`
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:75:10
+   |
+LL |     read(readable.as_mut());
+   |          ^^^^^^^^^^^^^^^^^ help: use: `&mut readable`
+
+error: the inner argument implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:77:33
+   |
+LL |     let _ = std::fs::write("x", <_ as AsRef<[u8]>>::as_ref(""));
+   |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `""`
+
+error: the inner argument implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:78:33
+   |
+LL |     let _ = std::fs::write("x", <_ as AsRef<str>>::as_ref(""));
+   |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `""`
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:80:33
+   |
+LL |     let _ = std::fs::write("x", s.deref());
+   |                                 ^^^^^^^^^ help: use: `&s`
+
+error: the receiver implements the required traits
+  --> tests/ui/needless_conversion_for_trait.rs:82:10
+   |
+LL |     read(readable.deref_mut());
+   |          ^^^^^^^^^^^^^^^^^^^^ help: use: `&mut readable`
+
+error: aborting due to 42 previous errors
+
