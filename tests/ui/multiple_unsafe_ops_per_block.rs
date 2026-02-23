@@ -3,6 +3,7 @@
 #![warn(clippy::multiple_unsafe_ops_per_block)]
 #![expect(
     dropping_copy_types,
+    clippy::static_mut_vars,
     clippy::unnecessary_literal_unwrap,
     clippy::unnecessary_operation
 )]
