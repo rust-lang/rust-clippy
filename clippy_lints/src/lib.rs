@@ -350,6 +350,7 @@ mod single_range_in_vec_init;
 mod size_of_in_element_count;
 mod size_of_ref;
 mod slow_vector_initialization;
+mod static_mut_vars;
 mod std_instead_of_core;
 mod string_patterns;
 mod strings;
@@ -872,6 +873,7 @@ rustc_lint::late_lint_methods!(
         RestWhenDestructuringStruct: rest_when_destructuring_struct::RestWhenDestructuringStruct = rest_when_destructuring_struct::RestWhenDestructuringStruct,
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
+        StaticMutVars: static_mut_vars::StaticMutVars = static_mut_vars::StaticMutVars,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
