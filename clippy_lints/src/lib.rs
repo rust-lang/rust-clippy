@@ -344,6 +344,7 @@ mod single_range_in_vec_init;
 mod size_of_in_element_count;
 mod size_of_ref;
 mod slow_vector_initialization;
+mod static_mut_vars;
 mod std_instead_of_core;
 mod string_patterns;
 mod strings;
@@ -862,6 +863,7 @@ rustc_lint::late_lint_methods!(
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
         WithCapacityZero: with_capacity_zero::WithCapacityZero = with_capacity_zero::WithCapacityZero,
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
+        StaticMutVars: static_mut_vars::StaticMutVars = static_mut_vars::StaticMutVars,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );

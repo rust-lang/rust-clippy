@@ -1,6 +1,6 @@
 #![allow(unused)]
 // FIXME(static_mut_refs): Do not allow `static_mut_refs` lint
-#![allow(static_mut_refs)]
+#![allow(static_mut_refs, clippy::static_mut_vars)]
 
 #[derive(Debug)]
 struct Foo;
