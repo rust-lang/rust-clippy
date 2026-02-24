@@ -10,10 +10,11 @@ use rustc_hir as hir;
 use rustc_hir::attrs::AttributeKind;
 use rustc_hir::def::{CtorKind, CtorOf, DefKind, Res};
 use rustc_hir::def_id::DefId;
-use rustc_hir::{Expr, FnDecl, LangItem, find_attr};
+use rustc_hir::{Expr, ExprKind, FnDecl, HirId, LangItem};
 use rustc_hir_analysis::lower_ty;
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_lint::LateContext;
+use rustc_lint::unused::must_use::{IsTyMustUse, is_ty_must_use};
 use rustc_middle::mir::ConstValue;
 use rustc_middle::mir::interpret::Scalar;
 use rustc_middle::traits::EvaluationResult;
@@ -310,49 +311,13 @@ pub fn has_drop<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
 // Returns whether the `ty` has `#[must_use]` attribute. If `ty` is a `Result`/`ControlFlow`
 // whose `Err`/`Break` payload is an uninhabited type, the `Ok`/`Continue` payload type
 // will be used instead. See <https://github.com/rust-lang/rust/pull/148214>.
-pub fn is_must_use_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
-    match ty.kind() {
-        ty::Adt(adt, args) => match cx.tcx.get_diagnostic_name(adt.did()) {
-            Some(sym::Result) if args.type_at(1).is_privately_uninhabited(cx.tcx, cx.typing_env()) => {
-                is_must_use_ty(cx, args.type_at(0))
-            },
-            Some(sym::ControlFlow) if args.type_at(0).is_privately_uninhabited(cx.tcx, cx.typing_env()) => {
-                is_must_use_ty(cx, args.type_at(1))
-            },
-            _ => find_attr!(cx.tcx.get_all_attrs(adt.did()), AttributeKind::MustUse { .. }),
-        },
-        ty::Foreign(did) => find_attr!(cx.tcx.get_all_attrs(*did), AttributeKind::MustUse { .. }),
-        ty::Slice(ty) | ty::Array(ty, _) | ty::RawPtr(ty, _) | ty::Ref(_, ty, _) => {
-            // for the Array case we don't need to care for the len == 0 case
-            // because we don't want to lint functions returning empty arrays
-            is_must_use_ty(cx, *ty)
-        },
-        ty::Tuple(args) => args.iter().any(|ty| is_must_use_ty(cx, ty)),
-        ty::Alias(ty::Opaque, AliasTy { def_id, .. }) => {
-            for (predicate, _) in cx.tcx.explicit_item_self_bounds(def_id).skip_binder() {
-                if let ty::ClauseKind::Trait(trait_predicate) = predicate.kind().skip_binder()
-                    && find_attr!(
-                        cx.tcx.get_all_attrs(trait_predicate.trait_ref.def_id),
-                        AttributeKind::MustUse { .. }
-                    )
-                {
-                    return true;
-                }
-            }
-            false
-        },
-        ty::Dynamic(binder, _) => {
-            for predicate in *binder {
-                if let ty::ExistentialPredicate::Trait(ref trait_ref) = predicate.skip_binder()
-                    && find_attr!(cx.tcx.get_all_attrs(trait_ref.def_id), AttributeKind::MustUse { .. })
-                {
-                    return true;
-                }
-            }
-            false
-        },
-        _ => false,
-    }
+pub fn is_must_use_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>, hir_id: HirId) -> bool {
+    let dummy_expr = Expr {
+        hir_id,
+        span: DUMMY_SP,
+        kind: ExprKind::Ret(None),
+    };
+    matches!(is_ty_must_use(cx, ty, &dummy_expr, true), IsTyMustUse::Yes(_))
 }
 
 /// Returns `true` if the given type is a non aggregate primitive (a `bool` or `char`, any

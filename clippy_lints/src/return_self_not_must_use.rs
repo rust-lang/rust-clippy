@@ -88,7 +88,7 @@ fn check_method(cx: &LateContext<'_>, decl: &FnDecl<'_>, fn_def: LocalDefId, spa
         // there is one, we shouldn't emit a warning!
         && self_arg.peel_refs() == ret_ty
         // If `Self` is already marked as `#[must_use]`, no need for the attribute here.
-        && !is_must_use_ty(cx, ret_ty)
+        && !is_must_use_ty(cx, ret_ty, cx.tcx.local_def_id_to_hir_id(fn_def))
     {
         span_lint_and_help(
             cx,
