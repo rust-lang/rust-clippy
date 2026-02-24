@@ -14,12 +14,14 @@ use rustc_infer::infer::TyCtxtInferExt as _;
 use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
 use rustc_middle::mir::{Rvalue, StatementKind};
 use rustc_middle::ty::{
-    self, ClauseKind, EarlyBinder, FnSig, GenericArg, GenericArgKind, ParamTy, ProjectionClause, Ty, Unnormalized,
+    self, ClauseKind, EarlyBinder, FnSig, GenericArg, GenericArgKind, ParamTy, ProjectionClause, Ty, TyCtxt,
+    TypeSuperVisitable as _, TypeVisitable as _, TypeVisitor, Unnormalized,
 };
 use rustc_span::SyntaxContext;
 use rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt as _;
-use rustc_trait_selection::traits::{Obligation, ObligationCause};
+use rustc_trait_selection::traits::{self, Obligation, ObligationCause};
 use std::collections::VecDeque;
+use std::ops::ControlFlow;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -232,6 +234,16 @@ fn needless_borrow_count<'tcx>(
         return 0;
     }
 
+    let trait_with_mutating_self_input = traits::elaborate(cx.tcx, clauses.iter().copied()).any(|clause| {
+        if let ClauseKind::Trait(trait_predicate) = clause.kind().skip_binder()
+            && trait_predicate.trait_ref.self_ty() == param_ty.to_ty(cx.tcx)
+        {
+            has_mutating_self_input(cx, trait_predicate.trait_ref.def_id)
+        } else {
+            false
+        }
+    });
+
     // See:
     // - https://github.com/rust-lang/rust-clippy/pull/9674#issuecomment-1289294201
     // - https://github.com/rust-lang/rust-clippy/pull/9674#issuecomment-1292225232
@@ -246,7 +258,7 @@ fn needless_borrow_count<'tcx>(
     // elements are modified each time `check_referent` is called.
     let mut args_with_referent_ty = callee_args.to_vec();
 
-    let mut check_reference_and_referent = |reference: &Expr<'tcx>, referent: &Expr<'tcx>| {
+    let mut check_reference_and_referent = |reference: &Expr<'tcx>, referent: &Expr<'tcx>, is_mut: bool| {
         if let ExprKind::Field(base, _) = &referent.kind
             && let base_ty = cx.typeck_results().expr_ty(base)
             && drop_trait_def_id.is_some_and(|id| implements_trait(cx, base_ty, id, &[]))
@@ -264,7 +276,9 @@ fn needless_borrow_count<'tcx>(
         }
 
         // https://github.com/rust-lang/rust-clippy/pull/9136#pullrequestreview-1037379321
-        if trait_with_ref_mut_self_method && !matches!(referent_ty.kind(), ty::Ref(_, _, Mutability::Mut)) {
+        if (trait_with_ref_mut_self_method || is_mut && trait_with_mutating_self_input)
+            && !matches!(referent_ty.kind(), ty::Ref(_, _, Mutability::Mut))
+        {
             return false;
         }
 
@@ -303,8 +317,8 @@ fn needless_borrow_count<'tcx>(
     };
 
     let mut count = 0;
-    while let ExprKind::AddrOf(_, _, referent) = expr.kind {
-        if !check_reference_and_referent(expr, referent) {
+    while let ExprKind::AddrOf(_, mutability, referent) = expr.kind {
+        if !check_reference_and_referent(expr, referent, mutability == Mutability::Mut) {
             break;
         }
         expr = referent;
@@ -330,6 +344,39 @@ fn has_ref_mut_self_method(cx: &LateContext<'_>, trait_def_id: DefId) -> bool {
             } else {
                 false
             }
+        })
+}
+
+fn has_mutating_self_input(cx: &LateContext<'_>, trait_def_id: DefId) -> bool {
+    struct Visitor;
+
+    impl<'tcx> TypeVisitor<TyCtxt<'tcx>> for Visitor {
+        type Result = ControlFlow<()>;
+
+        fn visit_ty(&mut self, ty: Ty<'tcx>) -> Self::Result {
+            match ty.kind() {
+                ty::Param(param) if param.index == 0 => ControlFlow::Break(()),
+                // A shared reference blocks mutable access to `Self`.
+                ty::Ref(_, _, Mutability::Not) => ControlFlow::Continue(()),
+                _ => ty.super_visit_with(self),
+            }
+        }
+    }
+
+    cx.tcx
+        .associated_items(trait_def_id)
+        .in_definition_order()
+        .any(|assoc_item| {
+            assoc_item.is_fn()
+                && cx
+                    .tcx
+                    .fn_sig(assoc_item.def_id)
+                    .instantiate_identity()
+                    .skip_norm_wip()
+                    .skip_binder()
+                    .inputs()
+                    .iter()
+                    .any(|&input| input.visit_with(&mut Visitor).is_break())
         })
 }
 
