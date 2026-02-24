@@ -203,15 +203,11 @@ Otherwise, have a great day =^.^=
                             <span class="label label-default label-version">{{lint.version}}</span> {# #}
                         </div>
                         {# Open related issues #}
-                        <div> {# #}
-                            <a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+{{lint.id}}">Related Issues</a> {# #}
-                        </div>
+                        <a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+{{lint.id}}">Related Issues</a>
 
                         {# Jump to source #}
                         {% if let Some(id_location) = lint.id_location %}
-                            <div> {# #}
-                                <a href="https://github.com/rust-lang/rust-clippy/blob/master/{{id_location}}">View Source</a> {# #}
-                            </div>
+                            <a href="https://github.com/rust-lang/rust-clippy/blob/master/{{id_location}}">View Source</a>
                         {% endif %}
                     </div> {# #}
                 </div> {# #}
