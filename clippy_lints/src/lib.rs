@@ -70,6 +70,7 @@ mod arc_with_non_send_sync;
 mod as_conversions;
 mod asm_syntax;
 mod assert_is_empty;
+mod assert_multiple;
 mod assertions_on_constants;
 mod assertions_on_result_states;
 mod assigning_clones;
