@@ -1,17 +1,118 @@
+error: use of `option::Iter::any`
+  --> tests/ui/manual_is_variant_and.rs:62:13
+   |
+LL |     let _ = res.into_iter().any(|x| x != 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::manual-is-variant-and` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_is_variant_and)]`
+help: use `is_ok_and` instead
+   |
+LL -     let _ = res.into_iter().any(|x| x != 0);
+LL +     let _ = res.is_ok_and(|x| x != 0);
+   |
+
 error: called `map(<f>).unwrap_or_default()` on an `Option` value
-  --> tests/ui/manual_is_variant_and.rs:52:17
+  --> tests/ui/manual_is_variant_and.rs:64:17
+   |
+LL |     let _ = opt.map(|x| x != 0).unwrap_or_default();
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `is_some_and(|x| x != 0)`
+
+error: use of `option::Iter::any`
+  --> tests/ui/manual_is_variant_and.rs:67:13
+   |
+LL |     let _ = opt.iter().any(|&x| x != 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `is_some_and` instead
+   |
+LL -     let _ = opt.iter().any(|&x| x != 0);
+LL +     let _ = opt.is_some_and(|x| x != 0);
+   |
+
+error: use of `option::Iter::any`
+  --> tests/ui/manual_is_variant_and.rs:73:13
+   |
+LL |     let _ = res.into_iter().any(|x| x != 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `is_ok_and` instead
+   |
+LL -     let _ = res.into_iter().any(|x| x != 0);
+LL +     let _ = res.is_ok_and(|x| x != 0);
+   |
+
+error: called `map(<f>).unwrap_or_default()` on an `Option` value
+  --> tests/ui/manual_is_variant_and.rs:75:17
+   |
+LL |     let _ = opt.map(|x| x != 0).unwrap_or_default();
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `is_some_and(|x| x != 0)`
+
+error: use of `option::Iter::any`
+  --> tests/ui/manual_is_variant_and.rs:78:13
+   |
+LL |     let _ = opt.iter().any(|&x| x != 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `is_some_and` instead
+   |
+LL -     let _ = opt.iter().any(|&x| x != 0);
+LL +     let _ = opt.is_some_and(|x| x != 0);
+   |
+
+error: use of `option::Iter::any`
+  --> tests/ui/manual_is_variant_and.rs:84:13
+   |
+LL |     let _ = res.into_iter().any(|x| x != 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `is_ok_and` instead
+   |
+LL -     let _ = res.into_iter().any(|x| x != 0);
+LL +     let _ = res.is_ok_and(|x| x != 0);
+   |
+
+error: called `map(<f>).unwrap_or_default()` on an `Option` value
+  --> tests/ui/manual_is_variant_and.rs:86:17
+   |
+LL |     let _ = opt.map(|x| x != 0).unwrap_or_default();
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `is_some_and(|x| x != 0)`
+
+error: use of `option::Iter::all`
+  --> tests/ui/manual_is_variant_and.rs:88:13
+   |
+LL |     let _ = opt.iter().all(|x| *x != 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `is_none_or` instead
+   |
+LL -     let _ = opt.iter().all(|x| *x != 0);
+LL +     let _ = opt.is_none_or(|x| x != 0);
+   |
+
+error: use of `option::Iter::any`
+  --> tests/ui/manual_is_variant_and.rs:90:13
+   |
+LL |     let _ = opt.iter().any(|&x| x != 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `is_some_and` instead
+   |
+LL -     let _ = opt.iter().any(|&x| x != 0);
+LL +     let _ = opt.is_some_and(|x| x != 0);
+   |
+
+error: called `map(<f>).unwrap_or_default()` on an `Option` value
+  --> tests/ui/manual_is_variant_and.rs:101:17
    |
 LL |       let _ = opt.map(|x| x > 1)
    |  _________________^
 ...  |
 LL | |         .unwrap_or_default();
    | |____________________________^ help: use: `is_some_and(|x| x > 1)`
-   |
-   = note: `-D clippy::manual-is-variant-and` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::manual_is_variant_and)]`
 
 error: called `map(<f>).unwrap_or_default()` on an `Option` value
-  --> tests/ui/manual_is_variant_and.rs:57:17
+  --> tests/ui/manual_is_variant_and.rs:106:17
    |
 LL |       let _ = opt.map(|x| {
    |  _________________^
@@ -30,13 +131,13 @@ LL ~     });
    |
 
 error: called `map(<f>).unwrap_or_default()` on an `Option` value
-  --> tests/ui/manual_is_variant_and.rs:62:17
+  --> tests/ui/manual_is_variant_and.rs:111:17
    |
 LL |     let _ = opt.map(|x| x > 1).unwrap_or_default();
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `is_some_and(|x| x > 1)`
 
 error: called `map(<f>).unwrap_or_default()` on an `Option` value
-  --> tests/ui/manual_is_variant_and.rs:65:10
+  --> tests/ui/manual_is_variant_and.rs:114:10
    |
 LL |           .map(|x| x > 1)
    |  __________^
@@ -45,37 +146,181 @@ LL | |         .unwrap_or_default();
    | |____________________________^ help: use: `is_some_and(|x| x > 1)`
 
 error: called `.map() == Some()`
-  --> tests/ui/manual_is_variant_and.rs:69:13
+  --> tests/ui/manual_is_variant_and.rs:118:13
    |
 LL |     let _ = Some(2).map(|x| x % 2 == 0) == Some(true);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Some(2).is_some_and(|x| x % 2 == 0)`
 
 error: called `.map() != Some()`
-  --> tests/ui/manual_is_variant_and.rs:71:13
+  --> tests/ui/manual_is_variant_and.rs:120:13
    |
 LL |     let _ = Some(2).map(|x| x % 2 == 0) != Some(true);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Some(2).is_none_or(|x| x % 2 != 0)`
 
 error: called `.map() == Some()`
-  --> tests/ui/manual_is_variant_and.rs:73:13
+  --> tests/ui/manual_is_variant_and.rs:122:13
    |
 LL |     let _ = Some(2).map(|x| x % 2 == 0) == some_true!();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Some(2).is_some_and(|x| x % 2 == 0)`
 
 error: called `.map() != Some()`
-  --> tests/ui/manual_is_variant_and.rs:75:13
+  --> tests/ui/manual_is_variant_and.rs:124:13
    |
 LL |     let _ = Some(2).map(|x| x % 2 == 0) != some_false!();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Some(2).is_none_or(|x| x % 2 == 0)`
 
+error: use of `option::Iter::all`
+  --> tests/ui/manual_is_variant_and.rs:126:13
+   |
+LL |     let _ = opt.into_iter().all(|x| x != 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `is_none_or` instead
+   |
+LL -     let _ = opt.into_iter().all(|x| x != 0);
+LL +     let _ = opt.is_none_or(|x| x != 0);
+   |
+
+error: use of `option::Iter::all`
+  --> tests/ui/manual_is_variant_and.rs:128:13
+   |
+LL |     let _ = (opt.into_iter()).all(|x| x != 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `is_none_or` instead
+   |
+LL -     let _ = (opt.into_iter()).all(|x| x != 0);
+LL +     let _ = (opt).is_none_or(|x| x != 0);
+   |
+
+error: use of `option::Iter::any`
+  --> tests/ui/manual_is_variant_and.rs:130:13
+   |
+LL |     let _ = opt.into_iter().any(i32::is_negative);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `is_some_and` instead
+   |
+LL -     let _ = opt.into_iter().any(i32::is_negative);
+LL +     let _ = opt.is_some_and(i32::is_negative);
+   |
+
+error: use of `option::Iter::any`
+  --> tests/ui/manual_is_variant_and.rs:132:13
+   |
+LL |     let _ = opt.into_iter().any(|x| x != 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `is_some_and` instead
+   |
+LL -     let _ = opt.into_iter().any(|x| x != 0);
+LL +     let _ = opt.is_some_and(|x| x != 0);
+   |
+
+error: use of `option::Iter::any`
+  --> tests/ui/manual_is_variant_and.rs:136:13
+   |
+LL |     let _ = (opt_non_copy.iter()).any(|x| x.is_empty());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `is_some_and` instead
+   |
+LL -     let _ = (opt_non_copy.iter()).any(|x| x.is_empty());
+LL +     let _ = (opt_non_copy).as_ref().is_some_and(|x| x.is_empty());
+   |
+
+error: use of `option::Iter::any`
+  --> tests/ui/manual_is_variant_and.rs:138:13
+   |
+LL |     let _ = opt_non_copy.iter().any(|x| x.is_empty());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `is_some_and` instead
+   |
+LL -     let _ = opt_non_copy.iter().any(|x| x.is_empty());
+LL +     let _ = opt_non_copy.as_ref().is_some_and(|x| x.is_empty());
+   |
+
+error: use of `option::Iter::any`
+  --> tests/ui/manual_is_variant_and.rs:140:13
+   |
+LL |     let _ = opt_non_copy.iter().any(|x| ".." == *x);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `is_some_and` instead
+   |
+LL -     let _ = opt_non_copy.iter().any(|x| ".." == *x);
+LL +     let _ = opt_non_copy.as_ref().is_some_and(|x| ".." == *x);
+   |
+
+error: use of `option::Iter::all`
+  --> tests/ui/manual_is_variant_and.rs:143:13
+   |
+LL |     let _ = opt.iter().all(|x| *x != 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `is_none_or` instead
+   |
+LL -     let _ = opt.iter().all(|x| *x != 0);
+LL +     let _ = opt.is_none_or(|x| x != 0);
+   |
+
+error: use of `option::Iter::all`
+  --> tests/ui/manual_is_variant_and.rs:145:13
+   |
+LL |     let _ = opt.iter().all(|_| false);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `is_none_or` instead
+   |
+LL -     let _ = opt.iter().all(|_| false);
+LL +     let _ = opt.as_ref().is_none_or(|_| false);
+   |
+
+error: use of `option::Iter::any`
+  --> tests/ui/manual_is_variant_and.rs:147:13
+   |
+LL |     let _ = opt.iter().any(|&x| x != 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `is_some_and` instead
+   |
+LL -     let _ = opt.iter().any(|&x| x != 0);
+LL +     let _ = opt.is_some_and(|x| x != 0);
+   |
+
+error: use of `option::Iter::all`
+  --> tests/ui/manual_is_variant_and.rs:149:13
+   |
+LL |     let _ = opt.iter().all(|&_| false);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `is_none_or` instead
+   |
+LL -     let _ = opt.iter().all(|&_| false);
+LL +     let _ = opt.is_none_or(|_| false);
+   |
+
+error: use of `option::Iter::all`
+  --> tests/ui/manual_is_variant_and.rs:154:13
+   |
+LL |     let _ = opt.iter().all(zerop);
+   |             ^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `is_none_or` instead
+   |
+LL -     let _ = opt.iter().all(zerop);
+LL +     let _ = opt.as_ref().is_none_or(zerop);
+   |
+
 error: called `map(<f>).unwrap_or_default()` on an `Option` value
-  --> tests/ui/manual_is_variant_and.rs:82:18
+  --> tests/ui/manual_is_variant_and.rs:161:18
    |
 LL |     let _ = opt2.map(char::is_alphanumeric).unwrap_or_default(); // should lint
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `is_some_and(char::is_alphanumeric)`
 
 error: called `map(<f>).unwrap_or_default()` on a `Result` value
-  --> tests/ui/manual_is_variant_and.rs:100:17
+  --> tests/ui/manual_is_variant_and.rs:182:17
    |
 LL |       let _ = res.map(|x| {
    |  _________________^
@@ -94,7 +339,7 @@ LL ~     });
    |
 
 error: called `map(<f>).unwrap_or_default()` on a `Result` value
-  --> tests/ui/manual_is_variant_and.rs:105:17
+  --> tests/ui/manual_is_variant_and.rs:187:17
    |
 LL |       let _ = res.map(|x| x > 1)
    |  _________________^
@@ -103,148 +348,184 @@ LL | |         .unwrap_or_default();
    | |____________________________^ help: use: `is_ok_and(|x| x > 1)`
 
 error: called `.map() == Ok()`
-  --> tests/ui/manual_is_variant_and.rs:109:13
+  --> tests/ui/manual_is_variant_and.rs:191:13
    |
 LL |     let _ = Ok::<usize, ()>(2).map(|x| x.is_multiple_of(2)) == Ok(true);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `Ok::<usize, ()>(2).is_ok_and(|x| x.is_multiple_of(2))`
 
 error: called `.map() != Ok()`
-  --> tests/ui/manual_is_variant_and.rs:111:13
+  --> tests/ui/manual_is_variant_and.rs:193:13
    |
 LL |     let _ = Ok::<usize, ()>(2).map(|x| x.is_multiple_of(2)) != Ok(true);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `!Ok::<usize, ()>(2).is_ok_and(|x| x.is_multiple_of(2))`
 
 error: called `.map() != Ok()`
-  --> tests/ui/manual_is_variant_and.rs:113:13
+  --> tests/ui/manual_is_variant_and.rs:195:13
    |
 LL |     let _ = Ok::<usize, ()>(2).map(|x| x.is_multiple_of(2)) != Ok(true);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `!Ok::<usize, ()>(2).is_ok_and(|x| x.is_multiple_of(2))`
 
+error: use of `option::Iter::any`
+  --> tests/ui/manual_is_variant_and.rs:197:13
+   |
+LL |     let _ = res.into_iter().any(i32::is_negative);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `is_ok_and` instead
+   |
+LL -     let _ = res.into_iter().any(i32::is_negative);
+LL +     let _ = res.is_ok_and(i32::is_negative);
+   |
+
+error: use of `option::Iter::any`
+  --> tests/ui/manual_is_variant_and.rs:199:13
+   |
+LL |     let _ = res_non_copy.iter().any(|x| *x != 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `is_ok_and` instead
+   |
+LL -     let _ = res_non_copy.iter().any(|x| *x != 0);
+LL +     let _ = res_non_copy.as_ref().is_ok_and(|x| *x != 0);
+   |
+
+error: use of `option::Iter::any`
+  --> tests/ui/manual_is_variant_and.rs:201:13
+   |
+LL |     let _ = res.iter().any(|x| *x != 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `is_ok_and` instead
+   |
+LL -     let _ = res.iter().any(|x| *x != 0);
+LL +     let _ = res.is_ok_and(|x| x != 0);
+   |
+
 error: called `map(<f>).unwrap_or_default()` on a `Result` value
-  --> tests/ui/manual_is_variant_and.rs:120:18
+  --> tests/ui/manual_is_variant_and.rs:208:18
    |
 LL |     let _ = res2.map(char::is_alphanumeric).unwrap_or_default(); // should lint
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `is_ok_and(char::is_alphanumeric)`
 
 error: called `.map() != Some()`
-  --> tests/ui/manual_is_variant_and.rs:130:18
+  --> tests/ui/manual_is_variant_and.rs:222:18
    |
 LL |         let a1 = x.map(|b| b.is_ascii_digit()) != Some(true);
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `x.is_none_or(|b| !b.is_ascii_digit())`
 
 error: called `.map() != Some()`
-  --> tests/ui/manual_is_variant_and.rs:137:18
+  --> tests/ui/manual_is_variant_and.rs:229:18
    |
 LL |         let a1 = x.map(|b| b.is_ascii_digit()) != Some(false);
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `x.is_none_or(|b| b.is_ascii_digit())`
 
 error: called `.map() == Some()`
-  --> tests/ui/manual_is_variant_and.rs:144:18
+  --> tests/ui/manual_is_variant_and.rs:236:18
    |
 LL |         let a1 = x.map(|b| b.is_ascii_digit()) == Some(true);
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `x.is_some_and(|b| b.is_ascii_digit())`
 
 error: called `.map() == Some()`
-  --> tests/ui/manual_is_variant_and.rs:151:18
+  --> tests/ui/manual_is_variant_and.rs:243:18
    |
 LL |         let a1 = x.map(|b| b.is_ascii_digit()) == Some(false);
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `x.is_some_and(|b| !b.is_ascii_digit())`
 
 error: called `.map() != Ok()`
-  --> tests/ui/manual_is_variant_and.rs:159:18
+  --> tests/ui/manual_is_variant_and.rs:251:18
    |
 LL |         let a1 = x.map(|b| b.is_ascii_digit()) != Ok(true);
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `!x.is_ok_and(|b| b.is_ascii_digit())`
 
 error: called `.map() != Ok()`
-  --> tests/ui/manual_is_variant_and.rs:166:18
+  --> tests/ui/manual_is_variant_and.rs:258:18
    |
 LL |         let a1 = x.map(|b| b.is_ascii_digit()) != Ok(false);
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `!x.is_ok_and(|b| !b.is_ascii_digit())`
 
 error: called `.map() == Ok()`
-  --> tests/ui/manual_is_variant_and.rs:173:18
+  --> tests/ui/manual_is_variant_and.rs:265:18
    |
 LL |         let a1 = x.map(|b| b.is_ascii_digit()) == Ok(true);
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `x.is_ok_and(|b| b.is_ascii_digit())`
 
 error: called `.map() == Ok()`
-  --> tests/ui/manual_is_variant_and.rs:180:18
+  --> tests/ui/manual_is_variant_and.rs:272:18
    |
 LL |         let a1 = x.map(|b| b.is_ascii_digit()) == Ok(false);
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `x.is_ok_and(|b| !b.is_ascii_digit())`
 
 error: called `.map() == Some()`
-  --> tests/ui/manual_is_variant_and.rs:193:18
+  --> tests/ui/manual_is_variant_and.rs:285:18
    |
 LL |         let a1 = b.map(iad) == Some(true);
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `b.is_some_and(iad)`
 
 error: called `.map() == Some()`
-  --> tests/ui/manual_is_variant_and.rs:198:18
+  --> tests/ui/manual_is_variant_and.rs:290:18
    |
 LL |         let a1 = b.map(iad) == Some(false);
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `b.is_some_and(|x| !iad(x))`
 
 error: called `.map() != Some()`
-  --> tests/ui/manual_is_variant_and.rs:203:18
+  --> tests/ui/manual_is_variant_and.rs:295:18
    |
 LL |         let a1 = b.map(iad) != Some(true);
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `b.is_none_or(|x| !iad(x))`
 
 error: called `.map() != Some()`
-  --> tests/ui/manual_is_variant_and.rs:208:18
+  --> tests/ui/manual_is_variant_and.rs:300:18
    |
 LL |         let a1 = b.map(iad) != Some(false);
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `b.is_none_or(iad)`
 
 error: called `.map() == Ok()`
-  --> tests/ui/manual_is_variant_and.rs:215:18
+  --> tests/ui/manual_is_variant_and.rs:307:18
    |
 LL |         let a1 = b.map(iad) == Ok(true);
    |                  ^^^^^^^^^^^^^^^^^^^^^^ help: use: `b.is_ok_and(iad)`
 
 error: called `.map() == Ok()`
-  --> tests/ui/manual_is_variant_and.rs:220:18
+  --> tests/ui/manual_is_variant_and.rs:312:18
    |
 LL |         let a1 = b.map(iad) == Ok(false);
    |                  ^^^^^^^^^^^^^^^^^^^^^^^ help: use: `b.is_ok_and(|x| !iad(x))`
 
 error: called `.map() != Ok()`
-  --> tests/ui/manual_is_variant_and.rs:225:18
+  --> tests/ui/manual_is_variant_and.rs:317:18
    |
 LL |         let a1 = b.map(iad) != Ok(true);
    |                  ^^^^^^^^^^^^^^^^^^^^^^ help: use: `!b.is_ok_and(iad)`
 
 error: called `.map() != Ok()`
-  --> tests/ui/manual_is_variant_and.rs:230:18
+  --> tests/ui/manual_is_variant_and.rs:322:18
    |
 LL |         let a1 = b.map(iad) != Ok(false);
    |                  ^^^^^^^^^^^^^^^^^^^^^^^ help: use: `!b.is_ok_and(|x| !iad(x))`
 
 error: manual implementation of `Option::is_none_or`
-  --> tests/ui/manual_is_variant_and.rs:240:13
+  --> tests/ui/manual_is_variant_and.rs:332:13
    |
 LL |     let _ = opt.is_none() || opt.is_some_and(then_fn);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `opt.is_none_or(then_fn)`
 
 error: manual implementation of `Option::is_none_or`
-  --> tests/ui/manual_is_variant_and.rs:243:13
+  --> tests/ui/manual_is_variant_and.rs:335:13
    |
 LL |     let _ = opt.is_some_and(then_fn) || opt.is_none();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `opt.is_none_or(then_fn)`
 
 error: manual implementation of `Option::is_some_and`
-  --> tests/ui/manual_is_variant_and.rs:259:5
+  --> tests/ui/manual_is_variant_and.rs:351:5
    |
 LL |     opt.filter(|x| condition(x)).is_some();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `opt.as_ref().is_some_and(|x| condition(x))`
 
 error: manual implementation of `Option::is_none_or`
-  --> tests/ui/manual_is_variant_and.rs:261:5
+  --> tests/ui/manual_is_variant_and.rs:353:5
    |
 LL |     opt.filter(|x| condition(x)).is_none();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `opt.as_ref().is_none_or(|x| !condition(x))`
 
-error: aborting due to 35 previous errors
+error: aborting due to 60 previous errors
 

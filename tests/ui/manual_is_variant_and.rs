@@ -28,6 +28,12 @@ macro_rules! some_false {
     };
 }
 
+macro_rules! into_iter {
+    ($x:expr) => {
+        $x.into_iter()
+    };
+}
+
 macro_rules! mac {
     (some $e:expr) => {
         Some($e)
@@ -43,8 +49,51 @@ macro_rules! mac {
     };
 }
 
+#[clippy::msrv = "1.69"]
+fn under_msrv_is_some_and(opt: Option<u32>, res: Result<u32, ()>) {
+    let _ = res.into_iter().any(|x| x != 0);
+    let _ = opt.map(|x| x != 0).unwrap_or_default();
+    let _ = opt.iter().all(|x| *x != 0);
+    let _ = opt.iter().any(|&x| x != 0);
+}
+
+#[clippy::msrv = "1.70"]
+fn meets_msrv_is_some_and(opt: Option<u32>, res: Result<u32, ()>) {
+    let _ = res.into_iter().any(|x| x != 0);
+    //~^ manual_is_variant_and
+    let _ = opt.map(|x| x != 0).unwrap_or_default();
+    //~^ manual_is_variant_and
+    let _ = opt.iter().all(|x| *x != 0);
+    let _ = opt.iter().any(|&x| x != 0);
+    //~^ manual_is_variant_and
+}
+
+#[clippy::msrv = "1.81"]
+fn under_msrv_is_none_or(opt: Option<u32>, res: Result<u32, ()>) {
+    let _ = res.into_iter().any(|x| x != 0);
+    //~^ manual_is_variant_and
+    let _ = opt.map(|x| x != 0).unwrap_or_default();
+    //~^ manual_is_variant_and
+    let _ = opt.iter().all(|x| *x != 0);
+    let _ = opt.iter().any(|&x| x != 0);
+    //~^ manual_is_variant_and
+}
+
+#[clippy::msrv = "1.82"]
+fn meets_msrv_is_none_or(opt: Option<u32>, res: Result<u32, ()>) {
+    let _ = res.into_iter().any(|x| x != 0);
+    //~^ manual_is_variant_and
+    let _ = opt.map(|x| x != 0).unwrap_or_default();
+    //~^ manual_is_variant_and
+    let _ = opt.iter().all(|x| *x != 0);
+    //~^ manual_is_variant_and
+    let _ = opt.iter().any(|&x| x != 0);
+    //~^ manual_is_variant_and
+}
+
 #[rustfmt::skip]
 fn option_methods() {
+    let opt_non_copy: Option<String> = None;
     let opt = Some(1);
 
     // Check for `option.map(_).unwrap_or_default()` use.
@@ -74,6 +123,36 @@ fn option_methods() {
     //~^ manual_is_variant_and
     let _ = Some(2).map(|x| x % 2 == 0) != some_false!();
     //~^ manual_is_variant_and
+    let _ = opt.into_iter().all(|x| x != 0);
+    //~^ manual_is_variant_and
+    let _ = (opt.into_iter()).all(|x| x != 0);
+    //~^ manual_is_variant_and
+    let _ = opt.into_iter().any(i32::is_negative);
+    //~^ manual_is_variant_and
+    let _ = opt.into_iter().any(|x| x != 0);
+    //~^ manual_is_variant_and
+
+    // The type does not copy.  The linter should suggest `as_ref`.
+    let _ = (opt_non_copy.iter()).any(|x| x.is_empty());
+    //~^ manual_is_variant_and
+    let _ = opt_non_copy.iter().any(|x| x.is_empty());
+    //~^ manual_is_variant_and
+    let _ = opt_non_copy.iter().any(|x| ".." == *x);
+    //~^ manual_is_variant_and
+    // The type copies.  The linter should not suggest `as_ref`.
+    let _ = opt.iter().all(|x| *x != 0);
+    //~^ manual_is_variant_and
+    let _ = opt.iter().all(|_| false);
+    //~^ manual_is_variant_and
+    let _ = opt.iter().any(|&x| x != 0);
+    //~^ manual_is_variant_and
+    let _ = opt.iter().all(|&_| false);
+    //~^ manual_is_variant_and
+    // The argument is defined elsewhere.  It cannot be changed to take the
+    // value.  The linter should suggest `as_ref`.
+    let zerop = |x: &i32| *x == 0;
+    let _ = opt.iter().all(zerop);
+    //~^ manual_is_variant_and
 
     // won't fix because the return type of the closure is not `bool`
     let _ = opt.map(|x| x + 1).unwrap_or_default();
@@ -90,10 +169,13 @@ fn option_methods() {
     let _ = mac!(some 2).map(|x| x % 2 == 0) == Some(true);
     let _ = mac!(some_map 2) == Some(true);
     let _ = mac!(map Some(2)) == Some(true);
+    // The first method call is elsewhere.  The linter cannot change it.
+    let _ = into_iter!(opt).any(|x| x != 0);
 }
 
 #[rustfmt::skip]
 fn result_methods() {
+    let res_non_copy: Result<i32, String> = Ok(1);
     let res: Result<i32, ()> = Ok(1);
 
     // multi line cases
@@ -112,6 +194,12 @@ fn result_methods() {
     //~^ manual_is_variant_and
     let _ = Ok::<usize, ()>(2).map(|x| x.is_multiple_of(2)) != Ok(true);
     //~^ manual_is_variant_and
+    let _ = res.into_iter().any(i32::is_negative);
+    //~^ manual_is_variant_and
+    let _ = res_non_copy.iter().any(|x| *x != 0);
+    //~^ manual_is_variant_and
+    let _ = res.iter().any(|x| *x != 0);
+    //~^ manual_is_variant_and
 
     // won't fix because the return type of the closure is not `bool`
     let _ = res.map(|x| x + 1).unwrap_or_default();
@@ -119,7 +207,11 @@ fn result_methods() {
     let res2: Result<char, ()> = Ok('a');
     let _ = res2.map(char::is_alphanumeric).unwrap_or_default(); // should lint
     //~^ manual_is_variant_and
-    let _ = opt_map!(res2, |x| x == 'a').unwrap_or_default(); // should not lint
+
+    // should not lint
+    let _ = opt_map!(res2, |x| x == 'a').unwrap_or_default();
+    // The result type comes with no shorthand for all.
+    let _ = res.into_iter().all(i32::is_negative);
 }
 
 fn main() {}

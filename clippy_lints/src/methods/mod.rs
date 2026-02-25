@@ -1883,6 +1883,10 @@ declare_clippy_lint! {
     /// result.map(|a| a > 10) == Ok(true);
     /// option.map(|a| a > 10) != Some(true);
     /// result.map(|a| a > 10) != Ok(true);
+    ///
+    /// option.into_iter().any(|a| a > 10);
+    /// result.into_iter().any(|a| a > 10);
+    /// option.into_iter().all(|a| a > 10);
     /// ```
     /// Use instead:
     /// ```no_run
@@ -1895,6 +1899,10 @@ declare_clippy_lint! {
     /// result.is_ok_and(|a| a > 10);
     /// option.is_none_or(|a| a > 10);
     /// !result.is_ok_and(|a| a > 10);
+    ///
+    /// option.is_some_and(|a| a > 10);
+    /// result.is_ok_and(|a| a > 10);
+    /// option.is_none_or(|a| a > 10);
     /// ```
     #[clippy::version = "1.77.0"]
     pub MANUAL_IS_VARIANT_AND,
@@ -5096,6 +5104,7 @@ impl Methods {
                     zst_offset::check(cx, expr, recv);
                 },
                 (sym::all, [arg]) => {
+                    manual_is_variant_and::check_iter_reduce(cx, expr, recv, arg, span, self.msrv, name);
                     needless_character_iteration::check(cx, expr, recv, arg, true);
                     match method_call(recv) {
                         Some((sym::cloned, recv2, [], _, _)) => {
@@ -5125,6 +5134,7 @@ impl Methods {
                     }
                 },
                 (sym::any, [arg]) => {
+                    manual_is_variant_and::check_iter_reduce(cx, expr, recv, arg, span, self.msrv, name);
                     needless_character_iteration::check(cx, expr, recv, arg, false);
                     match method_call(recv) {
                         Some((sym::cloned, recv2, [], _, _)) => iter_overeager_cloned::check(
