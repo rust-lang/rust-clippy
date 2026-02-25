@@ -202,7 +202,10 @@ fn emit_lint<'tcx>(
     );
 }
 
-pub(super) fn check_map(cx: &LateContext<'_>, expr: &Expr<'_>) {
+pub(super) fn check_map(cx: &LateContext<'_>, expr: &Expr<'_>, msrv: Msrv) {
+    if !msrv.meets(cx, msrvs::OPTION_RESULT_IS_VARIANT_AND) {
+        return;
+    }
     if let Some(parent_expr) = get_parent_expr(cx, expr)
         && let ExprKind::Binary(op, left, right) = parent_expr.kind
         && op.span.eq_ctxt(expr.span)
