@@ -66,6 +66,7 @@ mod arbitrary_source_item_ordering;
 mod arc_with_non_send_sync;
 mod as_conversions;
 mod asm_syntax;
+mod assert_multiple;
 mod assertions_on_constants;
 mod assertions_on_result_states;
 mod assigning_clones;
@@ -869,6 +870,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(move |_| Box::new(manual_noop_waker::ManualNoopWaker::new(conf))),
         Box::new(|_| Box::new(byte_char_slices::ByteCharSlice)),
         Box::new(|_| Box::new(manual_assert_eq::ManualAssertEq)),
+        Box::new(|_| Box::new(assert_multiple::AssertMultiple)),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);

@@ -450,7 +450,7 @@ pub fn has_enclosing_paren(sugg: impl AsRef<str>) -> bool {
 }
 
 /// Strip enclosing parentheses from a snippet if present.
-fn strip_enclosing_paren(snippet: Cow<'_, str>) -> Cow<'_, str> {
+pub fn strip_enclosing_paren(snippet: Cow<'_, str>) -> Cow<'_, str> {
     if has_enclosing_paren(&snippet) {
         match snippet {
             Cow::Borrowed(s) => Cow::Borrowed(&s[1..s.len() - 1]),
