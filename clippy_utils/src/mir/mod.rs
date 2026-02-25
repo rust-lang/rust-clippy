@@ -1,3 +1,4 @@
+use rustc_data_structures::either::Either;
 use rustc_hir::{Expr, HirId};
 use rustc_index::bit_set::DenseBitSet;
 use rustc_middle::mir::visit::{MutatingUseContext, NonMutatingUseContext, PlaceContext, Visitor};
@@ -175,18 +176,15 @@ pub fn local_assignments(mir: &Body<'_>, local: Local) -> Vec<Location> {
 // `is_local_assignment` is based on `is_place_assignment`:
 // https://github.com/rust-lang/rust/blob/b7413511dc85ec01ef4b91785f86614589ac6103/compiler/rustc_middle/src/mir/visit.rs#L1350
 fn is_local_assignment(mir: &Body<'_>, local: Local, location: Location) -> bool {
-    let Location { block, statement_index } = location;
-    let basic_block = &mir.basic_blocks[block];
-    if statement_index < basic_block.statements.len() {
-        let statement = &basic_block.statements[statement_index];
-        if let StatementKind::Assign(box (place, _)) = statement.kind {
-            place.as_local() == Some(local)
-        } else {
-            false
-        }
-    } else {
-        let terminator = basic_block.terminator();
-        match &terminator.kind {
+    match mir.stmt_at(location) {
+        Either::Left(statement) => {
+            if let StatementKind::Assign(box (place, _)) = statement.kind {
+                place.as_local() == Some(local)
+            } else {
+                false
+            }
+        },
+        Either::Right(terminator) => match &terminator.kind {
             TerminatorKind::Call { destination, .. } => destination.as_local() == Some(local),
             TerminatorKind::InlineAsm { operands, .. } => operands.iter().any(|operand| {
                 if let InlineAsmOperand::Out { place: Some(place), .. } = operand {
@@ -196,6 +194,6 @@ fn is_local_assignment(mir: &Body<'_>, local: Local, location: Location) -> bool
                 }
             }),
             _ => false,
-        }
+        },
     }
 }
