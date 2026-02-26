@@ -9,33 +9,33 @@ use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
-  /// ### What it does
-  /// The lint checks for parenthesis on literals in range statements that are
-  /// superfluous.
-  ///
-  /// ### Why is this bad?
-  /// Having superfluous parenthesis makes the code less readable
-  /// overhead when reading.
-  ///
-  /// ### Example
-  ///
-  /// ```no_run
-  /// for i in (0)..10 {
-  ///   println!("{i}");
-  /// }
-  /// ```
-  ///
-  /// Use instead:
-  ///
-  /// ```no_run
-  /// for i in 0..10 {
-  ///   println!("{i}");
-  /// }
-  /// ```
-  #[clippy::version = "1.63.0"]
-  pub NEEDLESS_PARENS_ON_RANGE_LITERALS,
-  style,
-  "needless parenthesis on range literals can be removed"
+    /// ### What it does
+    /// The lint checks for parenthesis on literals in range statements that are
+    /// superfluous.
+    ///
+    /// ### Why is this bad?
+    /// Having superfluous parenthesis makes the code less readable
+    /// overhead when reading.
+    ///
+    /// ### Example
+    ///
+    /// ```no_run
+    /// for i in (0)..10 {
+    ///   println!("{i}");
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    ///
+    /// ```no_run
+    /// for i in 0..10 {
+    ///   println!("{i}");
+    /// }
+    /// ```
+    #[clippy::version = "1.63.0"]
+    pub NEEDLESS_PARENS_ON_RANGE_LITERALS,
+    style,
+    "needless parenthesis on range literals can be removed"
 }
 
 declare_lint_pass!(NeedlessParensOnRangeLiterals => [
