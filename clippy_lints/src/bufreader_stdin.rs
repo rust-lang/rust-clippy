@@ -25,7 +25,6 @@ declare_clippy_lint! {
     /// let stdin = std::io::stdin();
     /// let reader = stdin.lock();
     /// ```
-
     #[clippy::version = "1.97.0"]
     pub BUFREADER_STDIN,
     pedantic,
