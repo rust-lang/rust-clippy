@@ -1,5 +1,7 @@
 use crate::parse::cursor::{self, Capture, Cursor};
-use crate::parse::{ActiveLint, DeprecatedLint, Lint, LintData, LintName, ParseCx, ParsedLints, RenamedLint};
+use crate::parse::{
+    ActiveLintData, DeprecatedLintData, Lint, LintData, LintName, ParseCx, ParsedLints, RenamedLintData,
+};
 use crate::utils::{
     ErrAction, FileUpdater, UpdateMode, UpdateStatus, Version, delete_dir_if_exists, delete_file_if_exists,
     expect_action, try_rename_dir, try_rename_file, walk_dir_no_dot_or_target,
@@ -31,10 +33,8 @@ pub fn deprecate<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, name
         lint.get_mut(),
         Lint {
             name_sp: Span::new(data.deprecated_file, 0..0),
-            data: LintData::Deprecated(DeprecatedLint {
-                reason,
-                version: cx.str_buf.alloc_display(cx.arena, clippy_version.rust_display()),
-            }),
+            version: cx.str_buf.alloc_display(cx.arena, clippy_version.rust_display()),
+            data: LintData::Deprecated(DeprecatedLintData { reason }),
         },
     );
     let LintData::Active(prev_lint_data) = prev_lint.data else {
@@ -65,9 +65,9 @@ pub fn uplift<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, old_nam
         lint.get_mut(),
         Lint {
             name_sp: Span::new(data.deprecated_file, 0..0),
-            data: LintData::Renamed(RenamedLint {
+            version: cx.str_buf.alloc_display(cx.arena, clippy_version.rust_display()),
+            data: LintData::Renamed(RenamedLintData {
                 new_name: LintName::new_rustc(new_name),
-                version: cx.str_buf.alloc_display(cx.arena, clippy_version.rust_display()),
             }),
         },
     );
@@ -117,9 +117,9 @@ pub fn rename<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, old_nam
         lint.get_mut(),
         Lint {
             name_sp: Span::new(data.deprecated_file, 0..0),
-            data: LintData::Renamed(RenamedLint {
+            version: cx.str_buf.alloc_display(cx.arena, clippy_version.rust_display()),
+            data: LintData::Renamed(RenamedLintData {
                 new_name: LintName::new_clippy(new_name),
-                version: cx.str_buf.alloc_display(cx.arena, clippy_version.rust_display()),
             }),
         },
     );
@@ -173,7 +173,7 @@ pub fn rename<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, old_nam
 fn remove_lint_declaration(
     name: &str,
     lint_file: &SourceFile<'_>,
-    lint_data: &ActiveLint<'_>,
+    lint_data: &ActiveLintData<'_>,
     data: &ParsedLints<'_>,
     updater: &mut FileUpdater,
 ) -> bool {

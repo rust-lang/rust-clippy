@@ -115,9 +115,9 @@ pub fn run(update_mode: UpdateMode) {
         let mut updater = FileUpdater::default();
 
         #[expect(clippy::mutable_key_type)]
-        let mut lints = lint_data.mk_file_to_lint_decl_map();
+        let mut lints = lint_data.lints.mk_by_file_map();
         let mut ranges = VecBuf::with_capacity(256);
-        for passes in lint_data.iter_passes_by_file_mut() {
+        for passes in lint_data.lint_passes.iter_by_file_mut() {
             let file = passes[0].decl_sp.file;
             let mut lints = lints.remove(file);
             let lints = lints.as_deref_mut().unwrap_or_default();

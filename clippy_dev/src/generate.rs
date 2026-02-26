@@ -1,5 +1,5 @@
 use crate::parse::cursor::Cursor;
-use crate::parse::{ConfDef, LintData, LintPass, ParsedLints};
+use crate::parse::{ActiveLint, ConfDef, LintData, LintPass, ParsedLints};
 use crate::utils::{FileUpdater, UpdateMode, UpdateStatus, VecBuf, slice_groups, update_text_region_fn};
 use core::range::Range;
 use itertools::Itertools;
@@ -41,8 +41,8 @@ impl ParsedLints<'_> {
         for &(name, lint) in &lints {
             match &lint.data {
                 LintData::Active(_) => active.push((name, lint.name_sp.file.path_as_krate_mod())),
-                LintData::Deprecated(lint) => deprecated.push((name, lint)),
-                LintData::Renamed(lint) => renamed.push((name, lint)),
+                LintData::Deprecated(data) => deprecated.push((name, lint.version, data.reason)),
+                LintData::Renamed(data) => renamed.push((name, lint.version, data.new_name)),
             }
         }
         active.sort_by_key(|&(_, path)| path);
@@ -78,11 +78,10 @@ impl ParsedLints<'_> {
                 );
                 dst.push_str(&src[..cursor.pos() as usize]);
                 dst.push_str("! { DEPRECATED(DEPRECATED_VERSION) = [\n");
-                for &(name, data) in &deprecated {
+                for &(name, version, reason) in &deprecated {
                     write!(
                         dst,
-                        "    #[clippy::version = \"{}\"]\n    (\"clippy::{name}\", \"{}\"),\n",
-                        data.version, data.reason,
+                        "    #[clippy::version = \"{version}\"]\n    (\"clippy::{name}\", \"{reason}\"),\n",
                     )
                     .unwrap();
                 }
@@ -92,11 +91,10 @@ impl ParsedLints<'_> {
                         declare_with_version! { RENAMED(RENAMED_VERSION) = [\n\
                     ",
                 );
-                for &(name, data) in &renamed {
+                for &(name, version, new_name) in &renamed {
                     write!(
                         dst,
-                        "    #[clippy::version = \"{}\"]\n    (\"clippy::{name}\", \"{}\"),\n",
-                        data.version, data.new_name,
+                        "    #[clippy::version = \"{version}\"]\n    (\"clippy::{name}\", \"{new_name}\"),\n",
                     )
                     .unwrap();
                 }
@@ -110,7 +108,7 @@ impl ParsedLints<'_> {
             "tests/ui/deprecated.rs",
             &mut |_, src, dst| {
                 dst.push_str(GENERATED_FILE_COMMENT);
-                for &(lint, _) in &deprecated {
+                for &(lint, _, _) in &deprecated {
                     writeln!(dst, "#![warn(clippy::{lint})] //~ ERROR: lint `clippy::{lint}`").unwrap();
                 }
                 dst.push_str("\nfn main() {}\n");
@@ -125,12 +123,12 @@ impl ParsedLints<'_> {
                 let mut seen_lints = HashSet::new();
                 dst.push_str(GENERATED_FILE_COMMENT);
                 dst.push_str("#![allow(clippy::duplicated_attributes)]\n");
-                for &(_, lint) in &renamed {
-                    if seen_lints.insert(lint.new_name) {
-                        writeln!(dst, "#![allow({})]", lint.new_name).unwrap();
+                for &(_, _, new_name) in &renamed {
+                    if seen_lints.insert(new_name) {
+                        writeln!(dst, "#![allow({new_name})]").unwrap();
                     }
                 }
-                for &(lint, _) in &renamed {
+                for &(lint, _, _) in &renamed {
                     writeln!(dst, "#![warn(clippy::{lint})] //~ ERROR: lint `clippy::{lint}`").unwrap();
                 }
                 dst.push_str("\nfn main() {}\n");
@@ -185,6 +183,27 @@ impl ParsedLints<'_> {
                 },
             );
         }
+    }
+}
+
+impl ActiveLint<'_, '_> {
+    pub fn gen_mac(&self, dst: &mut String) {
+        dst.push_str("declare_clippy_lint! {");
+        write_comment_lines(self.data.docs, "\n    ", dst);
+        dst.extend(["\n    #[clippy::version = \"", self.version, "\"]\n    pub "]);
+
+        // Lint names are stored in lower case, but the declaration needs to be upper case.
+        let name_pos = dst.len();
+        dst.push_str(self.name);
+        dst[name_pos..].make_ascii_uppercase();
+        dst.push(',');
+
+        write_comment_lines(self.data.group_comments, "\n    ", dst);
+        dst.extend(["\n    ", self.data.group, ",\n    ", self.data.desc]);
+        if !self.data.opts.is_empty() {
+            dst.extend([",\n    ", self.data.opts]);
+        }
+        dst.push_str("\n}");
     }
 }
 
@@ -288,23 +307,23 @@ fn write_list<'a>(
 pub fn gen_sorted_lints_file(
     src: &str,
     dst: &mut String,
-    lints: &mut [(&str, Range<u32>)],
+    lints: &mut [ActiveLint<'_, '_>],
     passes: &mut [LintPass<'_>],
     ranges: &mut VecBuf<Range<u32>>,
 ) {
     ranges.with(|ranges| {
-        ranges.extend(lints.iter().map(|&(_, x)| x));
+        ranges.extend(lints.iter().map(|x| x.data.decl_range));
         ranges.extend(passes.iter().map(|x| x.decl_sp.range));
         ranges.sort_unstable_by_key(|x| x.start);
 
-        lints.sort_unstable_by_key(|&(x, _)| x);
+        lints.sort_unstable_by_key(|x| x.name);
         passes.sort_by_key(|x| x.name);
 
         let mut ranges = ranges.iter();
         let pos = if let Some(range) = ranges.next() {
             dst.push_str(&src[..range.start as usize]);
-            for &(_, range) in &*lints {
-                dst.push_str(&src[range.start as usize..range.end as usize]);
+            for lint in &*lints {
+                lint.gen_mac(dst);
                 dst.push_str("\n\n");
             }
             for pass in passes {

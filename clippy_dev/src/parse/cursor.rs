@@ -17,6 +17,7 @@ pub enum Pat {
     CaptureDocLines,
     CaptureIdent,
     CaptureLifetime,
+    CaptureLineComments,
     CaptureLitStr,
     AnyIdent,
     At,
@@ -32,7 +33,6 @@ pub enum Pat {
     Ident(IdentPat),
     Lifetime,
     Lit,
-    LitStr,
     Lt,
     OpenBrace,
     OpenBracket,
@@ -45,6 +45,8 @@ impl Pat {
         match self {
             Self::AnyComments => "comments",
             Self::CaptureDocLines => "doc line comments",
+            Self::CaptureLineComments => "line comments",
+            Self::CaptureLitStr => "a string literal",
             Self::AnyIdent | Self::CaptureIdent => "an identifier",
             Self::At => "`@`",
             Self::Bang => "`!`",
@@ -59,7 +61,6 @@ impl Pat {
             Self::Ident(x) => x.desc(),
             Self::Lifetime | Self::CaptureLifetime => "a lifetime",
             Self::Lit => "a literal",
-            Self::LitStr | Self::CaptureLitStr => "a string literal",
             Self::Lt => "`<`",
             Self::OpenBrace => "`{`",
             Self::OpenBracket => "`[`",
@@ -225,14 +226,7 @@ impl<'txt> Cursor<'txt> {
                 | (Pat::OpenBracket, TokenKind::OpenBracket)
                 | (Pat::OpenParen, TokenKind::OpenParen)
                 | (Pat::Pound, TokenKind::Pound)
-                | (Pat::Semi, TokenKind::Semi)
-                | (
-                    Pat::LitStr,
-                    TokenKind::Literal {
-                        kind: LiteralKind::Str { terminated: true } | LiteralKind::RawStr { .. },
-                        ..
-                    },
-                ) => break,
+                | (Pat::Semi, TokenKind::Semi) => break,
 
                 (Pat::DoubleColon, TokenKind::Colon) if self.inner.as_str().starts_with(':') => {
                     self.step();
@@ -260,6 +254,15 @@ impl<'txt> Cursor<'txt> {
                     return true;
                 },
 
+                (Pat::CaptureLineComments, TokenKind::LineComment { doc_style: None }) => {
+                    let pos = self.pos;
+                    self.eat_line_comments();
+                    *captures.next().unwrap() = Capture {
+                        pos,
+                        len: self.pos - pos,
+                    };
+                    return true;
+                },
                 (
                     Pat::CaptureDocLines,
                     TokenKind::LineComment {
@@ -274,7 +277,7 @@ impl<'txt> Cursor<'txt> {
                     };
                     return true;
                 },
-                (Pat::CaptureDocLines, _) => {
+                (Pat::CaptureDocLines | Pat::CaptureLineComments, _) => {
                     *captures.next().unwrap() = Capture::EMPTY;
                     return true;
                 },
@@ -450,6 +453,16 @@ impl<'txt> Cursor<'txt> {
                 },
                 _ => return Capture { pos: self.pos, len: 0 },
             }
+        }
+    }
+
+    /// Consumes all line comments until another non-whitespace token is found.
+    pub fn eat_line_comments(&mut self) {
+        while matches!(
+            self.next_token.kind,
+            TokenKind::Whitespace | TokenKind::LineComment { doc_style: None }
+        ) {
+            self.step();
         }
     }
 
