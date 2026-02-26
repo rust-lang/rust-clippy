@@ -368,25 +368,25 @@ struct CloneUsage {
 }
 
 fn visit_clone_usage(cloned: mir::Local, clone: mir::Local, mir: &mir::Body<'_>, bb: mir::BasicBlock) -> CloneUsage {
-    if let Some((
-        LocalUsage {
-            local_use_locs: cloned_use_locs,
-            local_consume_or_mutate_locs: cloned_consume_or_mutate_locs,
-        },
-        LocalUsage {
-            local_use_locs: _,
-            local_consume_or_mutate_locs: clone_consume_or_mutate_locs,
-        },
-    )) = visit_local_usage(
-        &[cloned, clone],
+    if let Some(
+        [
+            LocalUsage {
+                local_use_locs: cloned_use_locs,
+                local_consume_or_mutate_locs: cloned_consume_or_mutate_locs,
+            },
+            LocalUsage {
+                local_use_locs: _,
+                local_consume_or_mutate_locs: clone_consume_or_mutate_locs,
+            },
+        ],
+    ) = visit_local_usage(
+        [cloned, clone],
         mir,
         mir::Location {
             block: bb,
             statement_index: mir.basic_blocks[bb].statements.len(),
         },
-    )
-    .map(|mut vec| (vec.remove(0), vec.remove(0)))
-    {
+    ) {
         CloneUsage {
             cloned_use_loc: cloned_use_locs.first().copied().into(),
             cloned_consume_or_mutate_loc: cloned_consume_or_mutate_locs.first().copied(),
