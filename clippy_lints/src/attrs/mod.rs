@@ -1,5 +1,6 @@
 mod allow_attributes;
 mod allow_attributes_without_reason;
+mod bare_must_use;
 mod blanket_clippy_restriction_lints;
 mod deprecated_cfg_attr;
 mod deprecated_semver;
@@ -558,9 +559,36 @@ impl PostExpansionEarlyAttributes {
     }
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `#[must_use]` attributes without a reason.
+    ///
+    /// ### Why is this bad?
+    /// Adding a reason to `#[must_use]` helps developers understand why
+    /// the return value matters. It's especially useful when the operation
+    /// is expensive or has side effects.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// #[must_use]
+    /// fn expensive_computation() -> u32 { 42 }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// #[must_use = "computing this is expensive and the result should not be ignored"]
+    /// fn expensive_computation() -> u32 { 42 }
+    /// ```
+    #[clippy::version = "1.95.0"]
+    pub BAREMUSTUSE,
+    pedantic,
+    "#[must_use] without a reason"
+}
+
 impl_lint_pass!(PostExpansionEarlyAttributes => [
     ALLOW_ATTRIBUTES,
     ALLOW_ATTRIBUTES_WITHOUT_REASON,
+    BAREMUSTUSE,
     DEPRECATED_SEMVER,
     IGNORE_WITHOUT_REASON,
     USELESS_ATTRIBUTE,
@@ -574,6 +602,11 @@ impl EarlyLintPass for PostExpansionEarlyAttributes {
     fn check_crate(&mut self, cx: &EarlyContext<'_>, krate: &ast::Crate) {
         blanket_clippy_restriction_lints::check_command_line(cx);
         duplicated_attributes::check(cx, &krate.attrs);
+        
+        // Check all must_use attributes for missing reasons
+        for attr in &krate.attrs {
+            bare_must_use::check(cx, attr);
+        }
     }
 
     fn check_attribute(&mut self, cx: &EarlyContext<'_>, attr: &Attribute) {
