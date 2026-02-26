@@ -11,7 +11,7 @@ declare_clippy_lint! {
     /// Enforce a single style throughout a codebase.
     /// Avoid uncertainty about whether a bound should be inline
     /// or out-of-line (i.e. a where bound).
-    /// Avoid complex inline bounds, making a function declaration more difficult to read.
+    /// Avoid complex inline bounds, which could make a function declaration more difficult to read.
     ///
     /// ### Example
     /// ```no_run
