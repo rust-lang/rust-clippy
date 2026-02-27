@@ -61,7 +61,7 @@ LL | pub fn arcd(_x: Arc<u32>) -> bool {
    |
 
 error: this function could have a `#[must_use]` attribute
-  --> tests/ui/must_use_candidates.rs:108:8
+  --> tests/ui/must_use_candidates.rs:109:8
    |
 LL | pub fn result_uninhabited() -> Result<i32, std::convert::Infallible> {
    |        ^^^^^^^^^^^^^^^^^^
@@ -74,7 +74,7 @@ LL | pub fn result_uninhabited() -> Result<i32, std::convert::Infallible> {
    |
 
 error: this function could have a `#[must_use]` attribute
-  --> tests/ui/must_use_candidates.rs:113:8
+  --> tests/ui/must_use_candidates.rs:114:8
    |
 LL | pub fn controlflow_uninhabited() -> std::ops::ControlFlow<std::convert::Infallible, i32> {
    |        ^^^^^^^^^^^^^^^^^^^^^^^
