@@ -1,4 +1,5 @@
 use clippy_utils::macros::{find_assert_args, root_macro_call_first_node};
+use clippy_utils::source::snippet;
 use rustc_hir::{BinOpKind, Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
@@ -31,20 +32,23 @@ impl<'tcx> AssertMultiple {
     fn visit_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>, suggest_asserts: &mut Vec<String>) {
         match e.kind {
             ExprKind::Binary(op, lhs, rhs) if matches!(op.node, BinOpKind::And | BinOpKind::Or) => {
-                eprintln!("{:?}", op.node);
                 let _ = self.visit_expr(cx, lhs, suggest_asserts);
                 let _ = self.visit_expr(cx, rhs, suggest_asserts);
             },
-            ExprKind::Binary(op, lhs, rhs) if matches!(op.node, BinOpKind::Eq) => {
-                eprintln!("found eq");
-                eprintln!("{}", assert_from_op(&op.node, lhs, rhs));
-                suggest_asserts.push(assert_from_op(&op.node, lhs, rhs))
+            ExprKind::Binary(op, lhs, rhs)
+                if matches!(
+                    op.node,
+                    BinOpKind::Eq | BinOpKind::Ne | BinOpKind::Gt | BinOpKind::Ge | BinOpKind::Lt | BinOpKind::Le
+                ) =>
+            {
+                suggest_asserts.push(assert_from_op(&op.node, lhs, rhs));
             },
 
-            ExprKind::Binary(op, lhs, rhs) if matches!(op.node, BinOpKind::Ne) => {
-                eprintln!("found ne");
-                eprintln!("{}", assert_from_op(&op.node, lhs, rhs));
-                suggest_asserts.push(assert_from_op(&op.node, &lhs, &rhs))
+            ExprKind::Call(call, args) => {
+                eprintln!("found call");
+                let tmptxt = assert_from_fncall(cx, call, args);
+                dbg!(&tmptxt);
+                suggest_asserts.push(tmptxt);
             },
 
             _ => {},
@@ -72,6 +76,7 @@ impl<'tcx> LateLintPass<'tcx> for AssertMultiple {
         //            _ => return,
         //        };
         let mut suggest_asserts: Vec<String> = Vec::new();
+        dbg!(condition);
         self.visit_expr(cx, condition, &mut suggest_asserts);
         dbg!(suggest_asserts);
     }
@@ -89,7 +94,6 @@ fn name_from_qpath(qpath: &QPath<'_>) -> String {
             retstr.push_str("::");
         };
     }
-
     retstr
 }
 
@@ -106,13 +110,40 @@ fn assert_from_op(node: &BinOpKind, lhs: &Expr<'_>, rhs: &Expr<'_>) -> String {
     };
     match node {
         BinOpKind::Eq => {
-            format!("assert_eq({}, {});", lhs_name, rhs_name)
+            format!("assert_eq!({}, {});", lhs_name, rhs_name)
         },
         BinOpKind::Ne => {
-            format!("assert_ne({},{});", lhs_name, rhs_name)
+            format!("assert_ne!({},{});", lhs_name, rhs_name)
+        },
+        BinOpKind::Ge | BinOpKind::Gt | BinOpKind::Le | BinOpKind::Lt => {
+            format!("assert!({} {} {})", lhs_name, node.as_str(), rhs_name)
         },
         _ => {
             panic!("not handled")
         },
     }
+}
+
+fn assert_from_fncall(cx: &LateContext<'_>, call: &Expr<'_>, args: &[Expr<'_>]) -> String {
+    let mut retstr = "assert!(".to_string();
+    if let ExprKind::Path(qpath) = call.kind {
+        let callname = name_from_qpath(&qpath);
+        retstr.push_str(callname.as_str());
+    }
+    retstr.push_str("(");
+
+    if args.len() > 0 {
+        let arglen = args.len() - 1;
+        for (idx, arg) in args.iter().enumerate() {
+            let lit_text = snippet(cx, arg.span, "..");
+            retstr.push_str(&*lit_text);
+            dbg!(&retstr);
+            if idx != arglen {
+                retstr.push_str(",");
+            }
+        }
+    }
+
+    retstr.push_str("));");
+    retstr
 }
