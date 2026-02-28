@@ -1,0 +1,64 @@
+error: variables can be used directly in the `format!` string
+  --> tests/ui-toml/allow_uninlined_literals/uninlined_format_args.rs:5:5
+   |
+LL |     format!("The answer is: {}", "42");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::uninlined-format-args` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::uninlined_format_args)]`
+help: change this to
+   |
+LL -     format!("The answer is: {}", "42");
+LL +     format!("The answer is: 42");
+   |
+
+error: variables can be used directly in the `format!` string
+  --> tests/ui-toml/allow_uninlined_literals/uninlined_format_args.rs:7:5
+   |
+LL |     format!("The answer is: {}", '4');
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: change this to
+   |
+LL -     format!("The answer is: {}", '4');
+LL +     format!("The answer is: 4");
+   |
+
+error: variables can be used directly in the `format!` string
+  --> tests/ui-toml/allow_uninlined_literals/uninlined_format_args.rs:11:5
+   |
+LL |     format!("The answer is: {} and x is {}", "42", x);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: change this to
+   |
+LL -     format!("The answer is: {} and x is {}", "42", x);
+LL +     format!("The answer is: 42 and x is {x}");
+   |
+
+error: variables can be used directly in the `format!` string
+  --> tests/ui-toml/allow_uninlined_literals/uninlined_format_args.rs:13:5
+   |
+LL |     format!("The answer is: {} and x is {}", '4', x);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: change this to
+   |
+LL -     format!("The answer is: {} and x is {}", '4', x);
+LL +     format!("The answer is: 4 and x is {x}");
+   |
+
+error: variables can be used directly in the `format!` string
+  --> tests/ui-toml/allow_uninlined_literals/uninlined_format_args.rs:22:5
+   |
+LL |     format!("{}", "{}");
+   |     ^^^^^^^^^^^^^^^^^^^
+   |
+help: change this to
+   |
+LL -     format!("{}", "{}");
+LL +     format!("{{}}");
+   |
+
+error: aborting due to 5 previous errors
+

@@ -1,3 +1,7 @@
+use rustc_ast::token;
+
+use crate::sym;
+
 /// Dealing with string indices can be hard, this struct ensures that both the
 /// character and byte index are provided for correct indexing.
 #[derive(Debug, Default, PartialEq, Eq)]
@@ -287,6 +291,148 @@ pub fn to_camel_case(item_name: &str) -> String {
         }
     }
     s
+}
+
+/// Removes the raw marker, `#`s and quotes from a str, and returns if the literal is raw
+///
+/// `r#"a"#` -> (`a`, true)
+///
+/// `"b"` -> (`b`, false)
+fn extract_str_literal(literal: &str) -> Option<(String, bool)> {
+    let (literal, raw) = match literal.strip_prefix('r') {
+        Some(stripped) => (stripped.trim_matches('#'), true),
+        None => (literal, false),
+    };
+
+    Some((literal.strip_prefix('"')?.strip_suffix('"')?.to_string(), raw))
+}
+
+pub enum InlineEscapeError {
+    /// The entire format arguments are unescapable due to the current format argument. The caller
+    /// should not suggest any fix.
+    FormatArgsUnescapable,
+    /// The current argument is unescapable, but others might be escapable. The caller can suggest
+    /// fixes for other arguments, and if the current one is fixable by the user, indicate so.
+    CurrentArgUnescapable { fixable_by_user: bool },
+}
+
+/// Unescape a normal string into a raw string
+fn conservative_unescape(literal: &str) -> Result<String, InlineEscapeError> {
+    let mut unescaped = String::with_capacity(literal.len());
+    let mut chars = literal.chars();
+    let mut err = false;
+
+    while let Some(ch) = chars.next() {
+        match ch {
+            '#' => err = true,
+            '\\' => match chars.next() {
+                Some('\\') => unescaped.push('\\'),
+                Some('"') => err = true,
+                _ => return Err(InlineEscapeError::FormatArgsUnescapable),
+            },
+            _ => unescaped.push(ch),
+        }
+    }
+
+    if err {
+        Err(InlineEscapeError::CurrentArgUnescapable { fixable_by_user: true })
+    } else {
+        Ok(unescaped)
+    }
+}
+
+/// Inlines a literal into a format string, escaping it as necessary.
+pub fn inline_literal_in_format_string(
+    lit: &token::Lit,
+    lit_snippet: &str,
+    format_string_is_raw: bool,
+) -> Result<String, InlineEscapeError> {
+    let (replacement, replace_raw) = match lit.kind {
+        token::LitKind::Str | token::LitKind::StrRaw(_) => {
+            extract_str_literal(lit_snippet).ok_or(InlineEscapeError::FormatArgsUnescapable)?
+        },
+        token::LitKind::Char => (
+            match lit.symbol {
+                sym::DOUBLE_QUOTE => "\\\"",
+                sym::BACKSLASH_SINGLE_QUOTE => "'",
+                _ => lit_snippet
+                    .strip_prefix('\'')
+                    .and_then(|s| s.strip_suffix('\''))
+                    .ok_or(InlineEscapeError::FormatArgsUnescapable)?,
+            }
+            .to_string(),
+            false,
+        ),
+        token::LitKind::Bool => (lit.symbol.to_string(), false),
+        _ => return Err(InlineEscapeError::CurrentArgUnescapable { fixable_by_user: false }),
+    };
+
+    let replacement = match (format_string_is_raw, replace_raw) {
+        (false, false) => Ok(replacement),
+        (false, true) => Ok(replacement.replace('\\', "\\\\").replace('"', "\\\"")),
+        (true, false) => match conservative_unescape(&replacement) {
+            Ok(unescaped) => Ok(unescaped),
+            Err(InlineEscapeError::FormatArgsUnescapable) => {
+                Err(InlineEscapeError::CurrentArgUnescapable { fixable_by_user: false })
+            },
+            Err(InlineEscapeError::CurrentArgUnescapable { fixable_by_user }) => {
+                Err(InlineEscapeError::CurrentArgUnescapable { fixable_by_user })
+            },
+        },
+        (true, true) => {
+            if replacement.contains(['#', '"']) {
+                Err(InlineEscapeError::CurrentArgUnescapable { fixable_by_user: true })
+            } else {
+                Ok(replacement)
+            }
+        },
+    }?;
+
+    Ok(escape_braces(&replacement, !format_string_is_raw && !replace_raw))
+}
+
+/// Replaces `{` with `{{` and `}` with `}}`. If `preserve_unicode_escapes` is `true` the braces
+/// in `\u{xxxx}` are left unmodified
+#[expect(clippy::match_same_arms)]
+pub fn escape_braces(literal: &str, preserve_unicode_escapes: bool) -> String {
+    #[derive(Clone, Copy)]
+    enum State {
+        Normal,
+        Backslash,
+        UnicodeEscape,
+    }
+
+    let mut escaped = String::with_capacity(literal.len());
+    let mut state = State::Normal;
+
+    for ch in literal.chars() {
+        state = match (ch, state) {
+            // Escape braces outside of unicode escapes by doubling them up
+            ('{' | '}', State::Normal) => {
+                escaped.push(ch);
+                State::Normal
+            },
+            // If `preserve_unicode_escapes` isn't enabled stay in `State::Normal`, otherwise:
+            //
+            // \u{aaaa} \\ \x01
+            // ^        ^  ^
+            ('\\', State::Normal) if preserve_unicode_escapes => State::Backslash,
+            // \u{aaaa}
+            //  ^
+            ('u', State::Backslash) => State::UnicodeEscape,
+            // \xAA \\
+            //  ^    ^
+            (_, State::Backslash) => State::Normal,
+            // \u{aaaa}
+            //        ^
+            ('}', State::UnicodeEscape) => State::Normal,
+            _ => state,
+        };
+
+        escaped.push(ch);
+    }
+
+    escaped
 }
 
 #[cfg(test)]

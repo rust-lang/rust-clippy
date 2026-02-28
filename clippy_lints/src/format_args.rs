@@ -1,4 +1,5 @@
 use std::collections::hash_map::Entry;
+use std::ops::ControlFlow;
 
 use arrayvec::ArrayVec;
 use clippy_config::Conf;
@@ -11,6 +12,7 @@ use clippy_utils::macros::{
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeDef;
 use clippy_utils::source::{SpanRangeExt, snippet};
+use clippy_utils::str_utils::{InlineEscapeError, inline_literal_in_format_string};
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{is_from_proc_macro, is_in_test, trait_ref_of_method};
 use itertools::Itertools;
@@ -273,6 +275,7 @@ pub struct FormatArgs<'tcx> {
     format_args: FormatArgsStorage,
     msrv: Msrv,
     ignore_mixed: bool,
+    allow_uninlined_literals: bool,
     ty_msrv_map: FxHashMap<Ty<'tcx>, Option<RustcVersion>>,
     has_derived_debug: FxHashMap<Ty<'tcx>, bool>,
     has_pointer_format: FxHashMap<Ty<'tcx>, bool>,
@@ -285,6 +288,7 @@ impl<'tcx> FormatArgs<'tcx> {
             format_args,
             msrv: conf.msrv,
             ignore_mixed: conf.allow_mixed_uninlined_format_args,
+            allow_uninlined_literals: conf.allow_uninlined_literals,
             ty_msrv_map,
             has_derived_debug: FxHashMap::default(),
             has_pointer_format: FxHashMap::default(),
@@ -304,6 +308,7 @@ impl<'tcx> LateLintPass<'tcx> for FormatArgs<'tcx> {
                 macro_call: &macro_call,
                 format_args,
                 ignore_mixed: self.ignore_mixed,
+                allow_uninlined_literals: self.allow_uninlined_literals,
                 msrv: &self.msrv,
                 ty_msrv_map: &self.ty_msrv_map,
                 has_derived_debug: &mut self.has_derived_debug,
@@ -326,6 +331,7 @@ struct FormatArgsExpr<'a, 'tcx> {
     macro_call: &'a MacroCall,
     format_args: &'a rustc_ast::FormatArgs,
     ignore_mixed: bool,
+    allow_uninlined_literals: bool,
     msrv: &'a Msrv,
     ty_msrv_map: &'a FxHashMap<Ty<'tcx>, Option<RustcVersion>>,
     has_derived_debug: &'a mut FxHashMap<Ty<'tcx>, bool>,
@@ -461,8 +467,8 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
         // we cannot remove any other arguments in the format string,
         // because the index numbers might be wrong after inlining.
         // Example of an un-inlinable format:  print!("{}{1}", foo, 2)
-        for (pos, usage) in self.format_arg_positions() {
-            if !self.check_one_arg(pos, usage, &mut fixes) {
+        for (placeholder, pos, usage) in self.format_arg_positions() {
+            if self.check_one_arg(placeholder, pos, usage, &mut fixes).is_break() {
                 return;
             }
         }
@@ -497,31 +503,81 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
         );
     }
 
-    fn check_one_arg(&self, pos: &FormatArgPosition, usage: FormatParamUsage, fixes: &mut Vec<(Span, String)>) -> bool {
+    fn check_one_arg(
+        &self,
+        placeholder: &FormatPlaceholder,
+        pos: &FormatArgPosition,
+        usage: FormatParamUsage,
+        fixes: &mut Vec<(Span, String)>,
+    ) -> ControlFlow<()> {
         let index = pos.index.unwrap();
         let arg = &self.format_args.arguments.all_args()[index];
 
-        if !matches!(arg.kind, FormatArgumentKind::Captured(_))
-            && let rustc_ast::ExprKind::Path(None, path) = &arg.expr.kind
-            && let [segment] = path.segments.as_slice()
-            && segment.args.is_none()
-            && let Some(arg_span) = format_arg_removal_span(self.format_args, index)
-            && let Some(pos_span) = pos.span
-        {
-            let replacement = match usage {
-                FormatParamUsage::Argument => segment.ident.name.to_string(),
-                FormatParamUsage::Width => format!("{}$", segment.ident.name),
-                FormatParamUsage::Precision => format!(".{}$", segment.ident.name),
-            };
-            fixes.push((pos_span, replacement));
-            fixes.push((arg_span, String::new()));
-            true // successful inlining, continue checking
-        } else {
+        if matches!(arg.kind, FormatArgumentKind::Captured(_)) {
             // Do not continue inlining (return false) in case
             // * if we can't inline a numbered argument, e.g. `print!("{0} ...", foo.bar, ...)`
             // * if allow_mixed_uninlined_format_args is false and this arg hasn't been inlined already
-            pos.kind != FormatArgPositionKind::Number
+            if pos.kind != FormatArgPositionKind::Number
                 && (!self.ignore_mixed || matches!(arg.kind, FormatArgumentKind::Captured(_)))
+            {
+                return ControlFlow::Continue(());
+            }
+
+            return ControlFlow::Break(());
+        }
+
+        match &arg.expr.kind {
+            rustc_ast::ExprKind::Path(None, path)
+                if let [segment] = path.segments.as_slice()
+                    && segment.args.is_none()
+                    && let Some(arg_span) = format_arg_removal_span(self.format_args, index)
+                    && let Some(pos_span) = pos.span =>
+            {
+                let replacement = match usage {
+                    FormatParamUsage::Argument => segment.ident.name.to_string(),
+                    FormatParamUsage::Width => format!("{}$", segment.ident.name),
+                    FormatParamUsage::Precision => format!(".{}$", segment.ident.name),
+                };
+                fixes.push((pos_span, replacement));
+                fixes.push((arg_span, String::new()));
+                ControlFlow::Continue(()) // successful inlining, continue checking
+            },
+            rustc_ast::ExprKind::Lit(lit)
+                if !self.allow_uninlined_literals
+                    && matches!(usage, FormatParamUsage::Argument)
+                    // Only inline string and char literals when there are no format options
+                    && placeholder.format_options == FormatOptions::default()
+                    && let Some(pos_span) = pos.span
+                    && let Some(arg_span) = format_arg_removal_span(self.format_args, index)
+                    && arg.expr.span.eq_ctxt(arg_span)
+                    && let Some(lit_snippet) = arg.expr.span.get_source_text(self.cx)
+                    && let Some(format_string_snippet) = self.format_args.span.get_source_text(self.cx) =>
+            {
+                let replacement =
+                    match inline_literal_in_format_string(lit, &lit_snippet, format_string_snippet.starts_with('r')) {
+                        Ok(replacement) => replacement,
+                        Err(err) => match err {
+                            InlineEscapeError::FormatArgsUnescapable => return ControlFlow::Break(()),
+                            InlineEscapeError::CurrentArgUnescapable { .. } => return ControlFlow::Continue(()),
+                        },
+                    };
+                // Skip the surrounding `{` and `}` when replacing
+                let pos_span = pos_span
+                    .with_lo(pos_span.lo() - rustc_span::BytePos(1))
+                    .with_hi(pos_span.hi() + rustc_span::BytePos(1));
+                fixes.push((pos_span, replacement));
+                fixes.push((arg_span, String::new()));
+                ControlFlow::Continue(())
+            },
+            _ => {
+                if pos.kind != FormatArgPositionKind::Number
+                    && (!self.ignore_mixed || matches!(arg.kind, FormatArgumentKind::Captured(_)))
+                {
+                    return ControlFlow::Continue(());
+                }
+
+                ControlFlow::Break(())
+            },
         }
     }
 
@@ -632,17 +688,17 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
         }
     }
 
-    fn format_arg_positions(&self) -> impl Iterator<Item = (&FormatArgPosition, FormatParamUsage)> {
+    fn format_arg_positions(&self) -> impl Iterator<Item = (&FormatPlaceholder, &FormatArgPosition, FormatParamUsage)> {
         self.format_args.template.iter().flat_map(|piece| match piece {
             FormatArgsPiece::Placeholder(placeholder) => {
                 let mut positions = ArrayVec::<_, 3>::new();
 
-                positions.push((&placeholder.argument, FormatParamUsage::Argument));
+                positions.push((placeholder, &placeholder.argument, FormatParamUsage::Argument));
                 if let Some(FormatCount::Argument(position)) = &placeholder.format_options.width {
-                    positions.push((position, FormatParamUsage::Width));
+                    positions.push((placeholder, position, FormatParamUsage::Width));
                 }
                 if let Some(FormatCount::Argument(position)) = &placeholder.format_options.precision {
-                    positions.push((position, FormatParamUsage::Precision));
+                    positions.push((placeholder, position, FormatParamUsage::Precision));
                 }
 
                 positions
@@ -654,7 +710,7 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
     /// Returns true if the format argument at `index` is referred to by multiple format params
     fn is_aliased(&self, index: usize) -> bool {
         self.format_arg_positions()
-            .filter(|(position, _)| position.index == Ok(index))
+            .filter(|(_, position, _)| position.index == Ok(index))
             .at_most_one()
             .is_err()
     }
