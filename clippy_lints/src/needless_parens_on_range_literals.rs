@@ -1,6 +1,6 @@
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::higher;
-use clippy_utils::source::{snippet, snippet_with_applicability};
+use clippy_utils::source::{SpanRangeExt, snippet_with_context};
 
 use rustc_ast::ast;
 use rustc_errors::Applicability;
@@ -40,34 +40,32 @@ declare_clippy_lint! {
 
 declare_lint_pass!(NeedlessParensOnRangeLiterals => [NEEDLESS_PARENS_ON_RANGE_LITERALS]);
 
-fn snippet_enclosed_in_parenthesis(snippet: &str) -> bool {
-    snippet.starts_with('(') && snippet.ends_with(')')
-}
-
 fn check_for_parens(cx: &LateContext<'_>, e: &Expr<'_>, is_start: bool) {
-    if is_start
+    if !e.span.from_expansion()
         && let ExprKind::Lit(literal) = e.kind
-        && let ast::LitKind::Float(_sym, ast::LitFloatType::Unsuffixed) = literal.node
-    {
-        // don't check floating point literals on the start expression of a range
-        return;
-    }
-    if let ExprKind::Lit(literal) = e.kind
         // the indicator that parenthesis surround the literal is that the span of the expression and the literal differ
-        && (literal.span.data().hi - literal.span.data().lo) != (e.span.data().hi - e.span.data().lo)
+        && literal.span != e.span
         // inspect the source code of the expression for parenthesis
-        && snippet_enclosed_in_parenthesis(&snippet(cx, e.span, ""))
+        && e.span.check_source_text(cx, |s| s.starts_with('(') && s.ends_with(')'))
     {
+        if is_start
+            && let ast::LitKind::Float(_, ast::LitFloatType::Unsuffixed) = literal.node
+            && literal.span.check_source_text(cx, |s| s.ends_with('.'))
+        {
+            // don't lint `(2.)..end`, since removing the parens would result in invalid syntax
+            return;
+        }
+
         let mut applicability = Applicability::MachineApplicable;
-        span_lint_and_then(
+        let suggestion = snippet_with_context(cx, literal.span, e.span.ctxt(), "_", &mut applicability).0;
+        span_lint_and_sugg(
             cx,
             NEEDLESS_PARENS_ON_RANGE_LITERALS,
             e.span,
             "needless parenthesis on range literals can be removed",
-            |diag| {
-                let suggestion = snippet_with_applicability(cx, literal.span, "_", &mut applicability);
-                diag.span_suggestion(e.span, "try", suggestion, applicability);
-            },
+            "try",
+            suggestion.to_string(),
+            applicability,
         );
     }
 }

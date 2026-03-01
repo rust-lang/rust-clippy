@@ -1,7 +1,5 @@
-//@edition:2018
-
 #![warn(clippy::needless_parens_on_range_literals)]
-#![allow(clippy::almost_complete_range)]
+#![expect(clippy::almost_complete_range)]
 
 fn main() {
     let _ = ('a')..=('z');
@@ -9,11 +7,62 @@ fn main() {
     //~| needless_parens_on_range_literals
     let _ = 'a'..('z');
     //~^ needless_parens_on_range_literals
+
     let _ = (1.)..2.;
     let _ = (1.)..(2.);
     //~^ needless_parens_on_range_literals
+    let _ = (1.0)..2.;
+    //~^ needless_parens_on_range_literals
+
     let _ = ('a')..;
     //~^ needless_parens_on_range_literals
     let _ = ..('z');
     //~^ needless_parens_on_range_literals
+
+    macro_rules! verbatim {
+        ($e:expr) => {
+            $e
+        };
+    }
+    macro_rules! add_paren {
+        ($e:expr) => {
+            ($e)
+        };
+    }
+
+    // lint: the paren was added by the user
+    let _ = verbatim!((0))..1;
+    //~^ needless_parens_on_range_literals
+    let _ = 0..verbatim!((1));
+    //~^ needless_parens_on_range_literals
+
+    // lint: the macro doesn't have anything to do with the paren
+    // NOTE: This doesn't actually work currently.
+    //
+    // If we have a case like this:
+    // ```
+    // macro_rules! zero {
+    //     () => {
+    //         0
+    //     };
+    // }
+    // let _ = (zero!())..1;
+    // ```
+    // then the lint doesn't trigger, because the span comes from expansion.
+    // "But surely the outer `()` don't come from an expansion!", I hear you say. But the thing is that
+    // those parens aren't present in the HIR in the first place, and so the expression we actually
+    // end up looking at is `zero!()`, which is in fact an expansion.
+    //
+    // And if we have a case like this:
+    // ```
+    // let _ = (verbatim!(0))..1;
+    // ```
+    // then the parens get ignored as described above, but in addition to that, the whole `verbatim!(0)`
+    // gets replaced with just `0`, which is something that we've written, so its span now gets
+    // doubly-incorrectly identified as not coming from an expansion, and so the lint fires.
+    // But the problem arises when we get to creating the suggestion -- as it _also_ doesn't see the
+    // `verbatim!`, our suggestion ends up being just `let _ = 0..1;`, which is of course incorrect.
+
+    // don't lint: the paren was added by the macro
+    let _ = add_paren!(0)..1;
 }
