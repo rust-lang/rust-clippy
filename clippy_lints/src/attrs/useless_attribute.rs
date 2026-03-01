@@ -1,10 +1,9 @@
 use super::USELESS_ATTRIBUTE;
 use super::utils::{is_lint_level, is_word, namespace_and_lint};
-use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::{SpanRangeExt, first_line_of_span};
+use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::source::{first_line_of_span, snippet_opt};
 use clippy_utils::sym;
 use rustc_ast::{Attribute, Item, ItemKind};
-use rustc_errors::Applicability;
 use rustc_lint::{EarlyContext, LintContext};
 
 pub(super) fn check(cx: &EarlyContext<'_>, item: &Item, attrs: &[Attribute]) {
@@ -74,18 +73,29 @@ pub(super) fn check(cx: &EarlyContext<'_>, item: &Item, attrs: &[Attribute]) {
             }
             let line_span = first_line_of_span(cx, attr.span);
 
-            if let Some(src) = line_span.get_source_text(cx)
-                && src.contains("#[")
+            if let Some(line_src) = snippet_opt(cx, line_span)
+                && line_src.contains("#[")
             {
-                #[expect(clippy::collapsible_span_lint_calls)]
-                span_lint_and_then(cx, USELESS_ATTRIBUTE, line_span, "useless lint attribute", |diag| {
-                    diag.span_suggestion(
-                        line_span,
-                        "if you just forgot a `!`, use",
-                        src.replacen("#[", "#![", 1),
-                        Applicability::MaybeIncorrect,
-                    );
-                });
+                let mut suggestion = line_src.replacen("#[", "#![", 1);
+
+                let open_parens = suggestion.matches('(').count();
+                let close_parens = suggestion.matches(')').count();
+                if open_parens > close_parens {
+                    suggestion.push_str(&")".repeat(open_parens - close_parens));
+                }
+
+                if !suggestion.trim_end().ends_with(']') {
+                    suggestion.push(']');
+                }
+
+                span_lint_and_help(
+                    cx,
+                    USELESS_ATTRIBUTE,
+                    line_span,
+                    "useless lint attribute",
+                    None,
+                    format!("if you just forgot a `!`, use: `{}`", suggestion),
+                );
             }
         }
     }
