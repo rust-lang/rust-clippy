@@ -16,7 +16,8 @@ use rustc_abi::ExternAbi;
 use rustc_ast as ast;
 use rustc_ast::AttrStyle;
 use rustc_ast::ast::{
-    AttrKind, Attribute, GenericArgs, IntTy, LitIntType, LitKind, StrStyle, TraitObjectSyntax, UintTy,
+    AttrKind, Attribute, GenericArgs, IntTy, LitIntType, LitKind, RangeLimits, StrStyle, StructExpr, TraitObjectSyntax,
+    UintTy,
 };
 use rustc_ast::token::CommentKind;
 use rustc_hir::intravisit::FnKind;
@@ -93,7 +94,7 @@ fn lit_search_pat(lit: &LitKind) -> (Pat, Pat) {
         LitKind::Str(_, StrStyle::Raw(_)) => (Pat::Str("r#"), Pat::Str("#")),
         LitKind::ByteStr(_, StrStyle::Cooked) => (Pat::Str("b\""), Pat::Str("\"")),
         LitKind::ByteStr(_, StrStyle::Raw(0)) => (Pat::Str("br\""), Pat::Str("\"")),
-        LitKind::ByteStr(_, StrStyle::Raw(_)) => (Pat::Str("br#\""), Pat::Str("#")),
+        LitKind::ByteStr(_, StrStyle::Raw(_)) => (Pat::Str("br#"), Pat::Str("#")),
         LitKind::Byte(_) => (Pat::Str("b'"), Pat::Str("'")),
         LitKind::Char(_) => (Pat::Str("'"), Pat::Str("'")),
         LitKind::Int(_, LitIntType::Signed(IntTy::Isize)) => (Pat::Num, Pat::Str("isize")),
@@ -424,6 +425,60 @@ fn ty_search_pat(ty: &Ty<'_>) -> (Pat, Pat) {
     }
 }
 
+// NOTE: can't `impl WithSearchPat for TraitRef`, because `TraitRef` doesn't have a `span` field
+// (nor a method)
+fn trait_ref_search_pat(trait_ref: &TraitRef<'_>) -> (Pat, Pat) {
+    path_search_pat(trait_ref.path)
+}
+
+fn poly_trait_ref_search_pat(poly_trait_ref: &PolyTraitRef<'_>) -> (Pat, Pat) {
+    // NOTE: unfortunately we can't use `bound_generic_params` to see whether the pattern starts with
+    // `for<..>`, because if it's empty, we could have either `for<>` (nothing bound), or
+    // no `for` at all
+    let PolyTraitRef {
+        modifiers: TraitBoundModifiers { constness, polarity },
+        trait_ref,
+        ..
+    } = poly_trait_ref;
+
+    let trait_ref_search_pat = trait_ref_search_pat(trait_ref);
+
+    #[expect(
+        clippy::unnecessary_lazy_evaluations,
+        reason = "the closure in `or_else` has `match polarity`, which isn't free"
+    )]
+    let start = match constness {
+        BoundConstness::Never => None,
+        BoundConstness::Maybe(_) => Some(Pat::Str("[const]")),
+        BoundConstness::Always(_) => Some(Pat::Str("const")),
+    }
+    .or_else(|| match polarity {
+        BoundPolarity::Negative(_) => Some(Pat::Str("!")),
+        BoundPolarity::Maybe(_) => Some(Pat::Str("?")),
+        BoundPolarity::Positive => None,
+    })
+    .unwrap_or(trait_ref_search_pat.0);
+    let end = trait_ref_search_pat.1;
+
+    (start, end)
+}
+
+fn ast_path_search_pat(path: &ast::Path) -> (Pat, Pat) {
+    let (head, tail) = match &*path.segments {
+        [] => return (Pat::Str(""), Pat::Str("")),
+        [p] => (Pat::Sym(p.ident.name), p),
+        [p, .., tail] => (Pat::Sym(p.ident.name), tail),
+    };
+    (
+        head,
+        if tail.args.is_some() {
+            Pat::Str(">")
+        } else {
+            Pat::Sym(tail.ident.name)
+        },
+    )
+}
+
 fn ast_ty_search_pat(ty: &ast::Ty) -> (Pat, Pat) {
     use ast::{Extern, FnRetTy, MutTy, Safety, TraitObjectSyntax, TyKind};
 
@@ -541,42 +596,165 @@ fn ast_ty_search_pat(ty: &ast::Ty) -> (Pat, Pat) {
     }
 }
 
-// NOTE: can't `impl WithSearchPat for TraitRef`, because `TraitRef` doesn't have a `span` field
-// (nor a method)
-fn trait_ref_search_pat(trait_ref: &TraitRef<'_>) -> (Pat, Pat) {
-    path_search_pat(trait_ref.path)
+/// Get the search patterns to use for the given literal
+fn token_lit_search_pat(lit: &ast::token::Lit) -> (Pat, Pat) {
+    use ast::token::LitKind;
+
+    match lit.kind {
+        LitKind::Bool => (Pat::MultiStr(&["true", "false"]), Pat::MultiStr(&["true", "false"])),
+        LitKind::Byte => (Pat::Str("b'"), Pat::Str("'")),
+        LitKind::ByteStr => (Pat::Str("b\""), Pat::Str("\"")),
+        LitKind::ByteStrRaw(0) => (Pat::Str("br\""), Pat::Str("\"")),
+        LitKind::ByteStrRaw(_) => (Pat::Str("br#"), Pat::Str("#")),
+        LitKind::CStr => (Pat::Str("c\""), Pat::Str("\"")),
+        LitKind::CStrRaw(0) => (Pat::Str("cr\""), Pat::Str("\"")),
+        LitKind::CStrRaw(_) => (Pat::Str("cr#"), Pat::Str("#")),
+        LitKind::Char => (Pat::Str("'"), Pat::Str("'")),
+        LitKind::Float | LitKind::Integer => (Pat::Sym(lit.symbol), Pat::Sym(lit.suffix.unwrap_or(lit.symbol))),
+        LitKind::Str => (Pat::Str("\""), Pat::Str("\"")),
+        LitKind::StrRaw(0) => (Pat::Str("r"), Pat::Str("\"")),
+        LitKind::StrRaw(_) => (Pat::Str("r#"), Pat::Str("#")),
+        LitKind::Err(_) => (Pat::Str(""), Pat::Str("")),
+    }
 }
 
-fn poly_trait_ref_search_pat(poly_trait_ref: &PolyTraitRef<'_>) -> (Pat, Pat) {
-    // NOTE: unfortunately we can't use `bound_generic_params` to see whether the pattern starts with
-    // `for<..>`, because if it's empty, we could have either `for<>` (nothing bound), or
-    // no `for` at all
-    let PolyTraitRef {
-        modifiers: TraitBoundModifiers { constness, polarity },
-        trait_ref,
-        ..
-    } = poly_trait_ref;
+/// Get the search patterns to use for the given expression
+#[expect(clippy::too_many_lines, reason = "just a big `match`")]
+fn ast_expr_search_pat(e: &ast::Expr) -> (Pat, Pat) {
+    #[expect(clippy::too_many_lines, reason = "just a big `match`")]
+    fn inner(e: &ast::Expr, outer_span: Span) -> (Pat, Pat) {
+        use ast::{
+            Block, BlockCheckMode, CaptureBy, Closure, ExprKind, GenBlockKind, MatchKind, MethodCall, UnsafeSource,
+            YieldKind,
+        };
 
-    let trait_ref_search_pat = trait_ref_search_pat(trait_ref);
+        // The expression can have subexpressions in different contexts, in which case
+        // building up a search pattern from the macro expansion would lead to false positives;
+        // e.g. `return format!(..)` would be considered to be from a proc macro
+        // if we build up a pattern for the macro expansion and compare it to the invocation `format!()`.
+        // So instead we return an empty pattern such that `span_matches_pat` always returns true.
+        if !e.span.eq_ctxt(outer_span) {
+            return (Pat::Str(""), Pat::Str(""));
+        }
 
-    #[expect(
-        clippy::unnecessary_lazy_evaluations,
-        reason = "the closure in `or_else` has `match polarity`, which isn't free"
-    )]
-    let start = match constness {
-        BoundConstness::Never => None,
-        BoundConstness::Maybe(_) => Some(Pat::Str("[const]")),
-        BoundConstness::Always(_) => Some(Pat::Str("const")),
+        match &e.kind {
+            ExprKind::Underscore => (Pat::Str("_"), Pat::Str("_")),
+            ExprKind::ConstBlock(_) => (Pat::Str("const"), Pat::Str("}")),
+            ExprKind::Unary(UnOp::Deref, e) => (Pat::Str("*"), inner(e, outer_span).1),
+            ExprKind::Unary(UnOp::Not, e) => (Pat::Str("!"), inner(e, outer_span).1),
+            ExprKind::Unary(UnOp::Neg, e) => (Pat::Str("-"), inner(e, outer_span).1),
+            ExprKind::Lit(lit) => token_lit_search_pat(lit),
+            // Parentheses are trimmed from the text before the search patterns are matched.
+            // See: `span_matches_pat`
+            ExprKind::Paren(e) => inner(e, outer_span),
+            ExprKind::Array(_) | ExprKind::Repeat(..) => (Pat::Str("["), Pat::Str("]")),
+            ExprKind::Range(None, None, lims) => range_limits_search_pat(*lims),
+            ExprKind::Range(None, Some(end), lims) => (range_limits_search_pat(*lims).0, inner(end, outer_span).1),
+            ExprKind::Range(Some(start), None, lims) => (inner(start, outer_span).0, range_limits_search_pat(*lims).1),
+            ExprKind::Call(e, args)
+            | ExprKind::MethodCall(box MethodCall {
+                seg: _,
+                receiver: e,
+                args,
+                span: _,
+            }) => (
+                inner(e, outer_span).0,
+                // Parenthesis are trimmed from the text before the search patterns are matched.
+                // See: `span_matches_pat`
+                match &**args {
+                    [] => Pat::Str("("),
+                    [.., last] => inner(last, outer_span).1,
+                },
+            ),
+            ExprKind::Binary(_, first, last)
+            | ExprKind::Assign(first, last, _)
+            | ExprKind::AssignOp(_, first, last)
+            | ExprKind::Range(Some(first), Some(last), _) => {
+                (inner(first, outer_span).0, inner(last, outer_span).1)
+            },
+            ExprKind::Tup(tup) => {
+                match &**tup {
+                    // Parentheses are trimmed from the text before the search patterns are matched.
+                    // See: `span_matches_pat`
+                    [] => (Pat::Str(")"), Pat::Str("(")),
+                    [e] => inner(e, outer_span),
+                    [first, .., last] => (inner(first, outer_span).0, inner(last, outer_span).1),
+                }
+            },
+            ExprKind::Cast(e, _) | ExprKind::Type(e, _) => (inner(e, outer_span).0, Pat::Str("")),
+            ExprKind::Let(_, init, _, _) => (Pat::Str("let"), inner(init, outer_span).1),
+            ExprKind::If(..) => (Pat::Str("if"), Pat::Str("}")),
+            ExprKind::Loop(_, Some(_), _)
+            | ExprKind::While(_, _, Some(_))
+            | ExprKind::ForLoop { label: Some(_), .. }
+            | ExprKind::Block(_, Some(_)) => (Pat::Str("'"), Pat::Str("}")),
+            ExprKind::Loop(_, None, _) => (Pat::Str("loop"), Pat::Str("}")),
+            ExprKind::While(_, _, None) => (Pat::Str("while"), Pat::Str("}")),
+            ExprKind::ForLoop { label: None, .. } => (Pat::Str("for"), Pat::Str("}")),
+            ExprKind::Match(_, _, MatchKind::Prefix) => (Pat::Str("match"), Pat::Str("}")),
+            ExprKind::Match(e, _, MatchKind::Postfix) => (inner(e, outer_span).0, Pat::Str("}")),
+            ExprKind::Try(e) => (inner(e, outer_span).0, Pat::Str("?")),
+            ExprKind::TryBlock(_, _) => (Pat::Str("try"), Pat::Str("}")),
+            ExprKind::Await(e, _) => (inner(e, outer_span).0, Pat::Str("await")),
+            ExprKind::Closure(box Closure {
+                capture_clause, body, ..
+            }) => {
+                let start = match capture_clause {
+                    CaptureBy::Value { .. } => "move",
+                    CaptureBy::Use { .. } => "use",
+                    CaptureBy::Ref => "|",
+                };
+                (Pat::Str(start), inner(body, outer_span).1)
+            },
+            ExprKind::Gen(_, _,GenBlockKind::Async | GenBlockKind::AsyncGen, _) => (Pat::Str("async"), Pat::Str("")),
+            ExprKind::Gen(_, _,GenBlockKind::Gen, _) => (Pat::Str("gen"), Pat::Str("")),
+            ExprKind::Block(
+                box Block {
+                    rules: BlockCheckMode::Unsafe(UnsafeSource::UserProvided),
+                    ..
+                },
+                None,
+            ) => (Pat::Str("unsafe"), Pat::Str("}")),
+            ExprKind::Block(_, None) => (Pat::Str("{"), Pat::Str("}")),
+            ExprKind::Field(e, name) => (inner(e, outer_span).0, Pat::Sym(name.name)),
+            ExprKind::Index(e, _, _) => (inner(e, outer_span).0, Pat::Str("]")),
+            ExprKind::Path(None, path) => ast_path_search_pat(path),
+            ExprKind::Path(Some(_), path) => (Pat::Str("<"), ast_path_search_pat(path).1),
+            ExprKind::AddrOf(_, _, e) => (Pat::Str("&"), inner(e, outer_span).1),
+            ExprKind::Break(None, None) => (Pat::Str("break"), Pat::Str("break")),
+            ExprKind::Break(Some(name), None) => (Pat::Str("break"), Pat::Sym(name.ident.name)),
+            ExprKind::Break(_, Some(e)) => (Pat::Str("break"), inner(e, outer_span).1),
+            ExprKind::Continue(None) => (Pat::Str("continue"), Pat::Str("continue")),
+            ExprKind::Continue(Some(name)) => (Pat::Str("continue"), Pat::Sym(name.ident.name)),
+            ExprKind::Ret(None) => (Pat::Str("return"), Pat::Str("return")),
+            ExprKind::Ret(Some(e)) => (Pat::Str("return"), inner(e, outer_span).1),
+            ExprKind::Become(e) => (Pat::Str("become"), inner(e, outer_span).1),
+            ExprKind::Struct(box StructExpr { path, .. }) => (ast_path_search_pat(path).0, Pat::Str("")),
+            ExprKind::Use(e, _) => (inner(e, outer_span).0, Pat::Str("use")),
+            ExprKind::Yield(YieldKind::Prefix(_)) => (Pat::Str("yield"), Pat::Str("")),
+            ExprKind::Yield(YieldKind::Postfix(_)) => (inner(e, outer_span).0, Pat::Str("")),
+            ExprKind::OffsetOf(..)
+            // Syntax unstable
+            | ExprKind::Yeet(_) | ExprKind::UnsafeBinderCast(..)
+            // Don't have a good `Pat` for `ByteSymbol`s
+            | ExprKind::IncludedBytes(_)
+            // We don't know how qualified the path to the macro was
+            | ExprKind::FormatArgs(_) | ExprKind::InlineAsm(..)
+            // Should've been expanded by now (?)
+            | ExprKind::MacCall(..)
+            // Dummy/placeholder
+            | ExprKind::Err(_) | ExprKind::Dummy => (Pat::Str(""), Pat::Str("")),
+        }
     }
-    .or_else(|| match polarity {
-        BoundPolarity::Negative(_) => Some(Pat::Str("!")),
-        BoundPolarity::Maybe(_) => Some(Pat::Str("?")),
-        BoundPolarity::Positive => None,
-    })
-    .unwrap_or(trait_ref_search_pat.0);
-    let end = trait_ref_search_pat.1;
 
-    (start, end)
+    inner(e, e.span)
+}
+
+fn range_limits_search_pat(lims: RangeLimits) -> (Pat, Pat) {
+    match lims {
+        RangeLimits::HalfOpen => (Pat::Str(".."), Pat::Str("..")),
+        RangeLimits::Closed => (Pat::Str("..="), Pat::Str("..=")),
+    }
 }
 
 fn ident_search_pat(ident: Ident) -> (Pat, Pat) {
@@ -615,6 +793,7 @@ impl_with_search_pat!((_cx: LateContext<'tcx>, self: PolyTraitRef<'_>) => poly_t
 
 impl_with_search_pat!((_cx: EarlyContext<'tcx>, self: Attribute) => attr_search_pat(self));
 impl_with_search_pat!((_cx: EarlyContext<'tcx>, self: ast::Ty) => ast_ty_search_pat(self));
+impl_with_search_pat!((_cx: EarlyContext<'tcx>, self: ast::Expr) => ast_expr_search_pat(self));
 
 impl<'cx> WithSearchPat<'cx> for (&FnKind<'cx>, &Body<'cx>, HirId, Span) {
     type Context = LateContext<'cx>;
