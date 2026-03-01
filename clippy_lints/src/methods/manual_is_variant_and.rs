@@ -2,7 +2,8 @@ use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeDef;
 use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
-use clippy_utils::sugg::Sugg;
+use clippy_utils::sugg::{DerefClosure, Sugg, deref_closure_args};
+use clippy_utils::ty::is_copy;
 use clippy_utils::{SpanlessEq, get_parent_expr, sym};
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
@@ -13,7 +14,7 @@ use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_span::{Span, Symbol};
 
-use super::MANUAL_IS_VARIANT_AND;
+use super::{MANUAL_IS_VARIANT_AND, method_call};
 
 #[derive(Clone, Copy, PartialEq)]
 enum Flavor {
@@ -201,7 +202,10 @@ fn emit_lint<'tcx>(
     );
 }
 
-pub(super) fn check_map(cx: &LateContext<'_>, expr: &Expr<'_>) {
+pub(super) fn check_map(cx: &LateContext<'_>, expr: &Expr<'_>, msrv: Msrv) {
+    if !msrv.meets(cx, msrvs::OPTION_RESULT_IS_VARIANT_AND) {
+        return;
+    }
     if let Some(parent_expr) = get_parent_expr(cx, expr)
         && let ExprKind::Binary(op, left, right) = parent_expr.kind
         && op.span.eq_ctxt(expr.span)
@@ -329,4 +333,81 @@ pub(super) fn check_is_some_is_none<'tcx>(
             },
         );
     }
+}
+
+/// Check for things like `.into_iter().all()`.
+pub(super) fn check_iter_reduce(
+    cx: &LateContext<'_>,
+    expr: &Expr<'_>,
+    recv: &Expr<'_>,
+    arg: &Expr<'_>,
+    second_call: Span,
+    msrv: Msrv,
+    method: Symbol,
+) {
+    // Find how the iterator is created.
+    let (mut referenced, first_recv, first_call) = match method_call(recv) {
+        Some((sym::into_iter, first_recv, [], _, first_call)) => (false, first_recv, first_call),
+        Some((sym::iter, first_recv, [], _, first_call)) => (true, first_recv, first_call),
+        _ => {
+            return;
+        },
+    };
+
+    // Find the method to suggest.
+    let recv_type = cx.typeck_results().expr_ty(first_recv);
+    let (replacement_method, since_version) = match recv_type.kind() {
+        ty::Adt(adt, _) if cx.tcx.is_diagnostic_item(sym::Result, adt.did()) && method == sym::any => {
+            (sym::is_ok_and, msrvs::OPTION_RESULT_IS_VARIANT_AND)
+        },
+        ty::Adt(adt, _) if cx.tcx.is_diagnostic_item(sym::Option, adt.did()) => match method {
+            sym::all => (sym::is_none_or, msrvs::IS_NONE_OR),
+            sym::any => (sym::is_some_and, msrvs::OPTION_RESULT_IS_VARIANT_AND),
+            _ => panic!("The method is checked in the caller."),
+        },
+        _ => return,
+    };
+    if !msrv.meets(cx, since_version) {
+        return;
+    }
+
+    // The replacement methods pass the value to the closure.  The original
+    // methods may pass the reference.  If possible, the program modifies the
+    // closure to take the value.
+    let (replacement_closure, applicability) = if referenced
+        && is_copy(cx, recv_type)
+        && let Some(DerefClosure {
+            suggestion,
+            applicability,
+        }) = deref_closure_args(cx, arg)
+    {
+        referenced = false;
+        (Some((arg.span, suggestion)), applicability)
+    } else {
+        (None, Applicability::MachineApplicable)
+    };
+    // If it is not possible to modify the closure, the program suggests the
+    // `as_ref` method.
+    let replacement_call = if referenced {
+        format!("as_ref().{replacement_method}")
+    } else {
+        replacement_method.to_string()
+    };
+
+    let mut suggestion = vec![
+        // Remove the call to get the iterator.
+        (first_call.with_lo(first_recv.span.hi()), String::new()),
+        // Replace the call to reduce it.
+        (second_call, replacement_call),
+    ];
+    suggestion.extend(replacement_closure);
+    span_lint_and_then(
+        cx,
+        MANUAL_IS_VARIANT_AND,
+        expr.span,
+        format!("use of `option::Iter::{method}`"),
+        |diag| {
+            diag.multipart_suggestion(format!("use `{replacement_method}` instead"), suggestion, applicability);
+        },
+    );
 }
