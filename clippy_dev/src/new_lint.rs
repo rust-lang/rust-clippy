@@ -1,5 +1,5 @@
 use crate::generate::gen_sorted_lints_file;
-use crate::ir::{ActiveLint, ActiveLintData, Lint, LintData, LintPass, LintPassKind, LintPassMac};
+use crate::ir::{ActiveLint, ActiveLintData, Lint, LintData, LintPass, LintPassCtor, LintPassKind, LintPassMac};
 use crate::parse::cursor::Cursor;
 use crate::utils::{FileUpdater, VecBuf, Version, create_new_dir};
 use crate::{SourceFile, Span, UpdateMode, new_parse_cx};
@@ -126,13 +126,10 @@ pub fn create(clippy_version: Version, pass: &str, name: &str, group: &str, has_
                         docs: "",
                         name: name_pascal,
                         lt: None,
-                        mac: if has_msrv {
-                            LintPassMac::Impl
-                        } else {
-                            LintPassMac::Declare
-                        },
+                        mac: LintPassMac::from_has_msrv(has_msrv),
                         decl_sp: Span::new(file, 0..0),
                         lints: cx.arena.alloc_slice(&[name_upper]),
+                        ctor: LintPassCtor::from_has_msrv(has_msrv),
                         is_early: matches!(new_pass, LintPassKind::Early),
                         is_late: matches!(new_pass, LintPassKind::Late),
                     },

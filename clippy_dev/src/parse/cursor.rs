@@ -1,5 +1,7 @@
 use crate::utils::{StrBuf, VecBuf};
 use crate::{DiagCx, SourceFile, Span};
+use core::panic::Location;
+use core::range::Range;
 use core::{ptr, slice};
 use rustc_arena::DroplessArena;
 use rustc_lexer::{self as lex, DocStyle, LiteralKind, Token, TokenKind};
@@ -122,6 +124,24 @@ impl Capture {
     }
 }
 
+#[derive(Clone, Copy)]
+pub struct UnexpectedErr<'a> {
+    loc: &'static Location<'static>,
+    expected: &'a str,
+    range: Range<u32>,
+    is_eof: bool,
+}
+impl UnexpectedErr<'_> {
+    pub fn emit<'a>(&self, dcx: &mut DiagCx, file: &'a SourceFile<'a>) {
+        let msg = if self.is_eof { "end of file" } else { "token" };
+        dcx.emit_spanned_err_loc(
+            Span::new(file, self.range),
+            format!("unexpected {msg}, expected {}", self.expected),
+            self.loc,
+        );
+    }
+}
+
 /// A unidirectional cursor over a token stream that is lexed on demand.
 pub struct Cursor<'txt> {
     next_token: Token,
@@ -182,15 +202,15 @@ impl<'txt> Cursor<'txt> {
         self.next_token = self.inner.advance_token();
     }
 
+    #[must_use]
     #[track_caller]
-    pub fn emit_unexpected<'cx>(&self, dcx: &mut DiagCx, file: &'cx SourceFile<'cx>, expected: &'static str) {
-        let sp = Span::new(file, self.pos..self.pos + self.next_token.len);
-        let msg = if matches!(self.next_token.kind, TokenKind::Eof) {
-            "end of file"
-        } else {
-            "token"
-        };
-        dcx.emit_spanned_err(sp, format!("unexpected {msg}, expected {expected}"));
+    pub fn mk_unexpected_err<'a>(&self, expected: &'a str) -> UnexpectedErr<'a> {
+        UnexpectedErr {
+            loc: Location::caller(),
+            expected,
+            range: self.pos..self.pos + self.next_token.len,
+            is_eof: matches!(self.next_token.kind, TokenKind::Eof),
+        }
     }
 
     /// Consumes tokens until the given pattern is either fully matched of fails to match.
@@ -392,7 +412,7 @@ impl<'txt> Cursor<'txt> {
         })
     }
 
-    pub fn eat_list(&mut self, mut f: impl FnMut(&mut Self) -> Result<bool, &'static str>) -> Result<(), &'static str> {
+    pub fn eat_list<Err>(&mut self, mut f: impl FnMut(&mut Self) -> Result<bool, Err>) -> Result<(), Err> {
         while f(self)? {
             if !self.eat_comma() {
                 break;
@@ -562,6 +582,34 @@ macro_rules! mk_tk_methods {
                 }
             }
 
+            #[doc = "Consumes all tokens at the current nesting level up to and including "]
+            #[doc = $desc]
+            #[doc = " and returns whether the token was found. Any tokens at a deeper nesting level"]
+            #[doc = "will be skipped without matching."]
+            #[doc = ""]
+            #[doc = "Only `()`, `[]`, and `{}` are considered for nesting, `<>` are never be considered."]
+            #[doc = "If the end of the current level is found the closing bracket will not be consumed."]
+            #[must_use]
+            pub fn ${concat(find_unnested_, $name)}(&mut $self $($params)*) -> bool {
+                let mut depth = 0u32;
+                loop {
+                    match $self.next_token.kind {
+                        TokenKind::Eof => return false,
+                        $pat if depth == 0 $(&& $guard)? => {
+                            $self.step();
+                            return true;
+                        },
+                        TokenKind::OpenBrace | TokenKind::OpenBracket | TokenKind::OpenParen => depth += 1,
+                        TokenKind::CloseBrace | TokenKind::CloseBracket | TokenKind::CloseParen if depth == 0 => {
+                            return false;
+                        },
+                        TokenKind::CloseBrace | TokenKind::CloseBracket | TokenKind::CloseParen => depth -= 1,
+                        _ => {},
+                    }
+                    $self.step();
+                }
+            }
+
             #[doc = "Consumes all tokens up to and including "]
             #[doc = $desc]
             #[doc = " and returns whether the token was found."]
@@ -582,12 +630,18 @@ macro_rules! mk_tk_methods {
     }
 }
 mk_tk_methods! {
+    ["`&`"]
+    and(&mut self) { TokenKind::And }
     ["`!`"]
     bang(&mut self) { TokenKind::Bang }
     ["`}`"]
     close_brace(&mut self) { TokenKind::CloseBrace }
     ["`]`"]
     close_bracket(&mut self) { TokenKind::CloseBracket }
+    ["`)`"]
+    close_paren(&mut self) { TokenKind::CloseParen }
+    ["`:`"]
+    colon(&mut self) { TokenKind::Colon }
     ["`,`"]
     comma(&mut self) { TokenKind::Comma }
     ["`::`"]
@@ -598,6 +652,8 @@ mk_tk_methods! {
     eq(&mut self) { TokenKind::Eq }
     ["the specified identifier"]
     ident(&mut self, s: &str) { TokenKind::Ident if self.peek_text() == s }
+    ["a lifetime"]
+    lifetime(&mut self) { TokenKind::Lifetime { .. } }
     ["`{`"]
     open_brace(&mut self) { TokenKind::OpenBrace }
     ["`[`"]
