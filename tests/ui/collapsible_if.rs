@@ -4,7 +4,8 @@
     clippy::needless_ifs,
     clippy::nonminimal_bool,
     clippy::eq_op,
-    clippy::redundant_pattern_matching
+    clippy::redundant_pattern_matching,
+    clippy::needless_else
 )]
 
 #[rustfmt::skip]
@@ -208,5 +209,66 @@ fn in_brackets() {
                 println!("In brackets, not linted");
             }
         }
+    }
+}
+
+fn issue16561() {
+    let opt = Some(1);
+    let _ = if let Some(s) = opt {
+        if s == 1 { s } else { 1 }
+    } else {
+        1
+    };
+    //~^^^^^ collapsible_if
+
+    if let Some(s) = opt {
+        if s == 1 {
+            s;
+        } else {
+        }
+    }
+    //~^^^^^^ collapsible_if
+
+    if let Some(s) = opt {
+        if s == 1 {
+            s
+        } else if true {
+            1
+        } else {
+            2
+        }
+    } else if true {
+        1
+    } else {
+        2
+    };
+    //~^^^^^^^^^^^^^ collapsible_if
+
+    if let Some(s) = opt {
+        if s == 1 {
+            s;
+        } else {
+            // Should not be collapsed because of this comment
+        }
+    }
+
+    if let Some(s) = opt {
+        if s == 1 {
+            s;
+        } else {
+            // Should not lint because lint-commented-code is not enabled
+        }
+    } else {
+        // Should not lint because lint-commented-code is not enabled
+    }
+
+    if let Some(s) = opt {
+        if s == 1 {
+            s;
+        } else {
+            // Should be collapsed because comments are the same
+        }
+    } else {
+        // Should not be collapsed because of this comment
     }
 }
