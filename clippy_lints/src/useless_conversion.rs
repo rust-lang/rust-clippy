@@ -3,11 +3,11 @@ use clippy_utils::res::{MaybeDef, MaybeQPath, MaybeResPath, MaybeTypeckRes};
 use clippy_utils::source::{snippet, snippet_with_context};
 use clippy_utils::sugg::{DiagExt as _, Sugg};
 use clippy_utils::ty::{is_copy, same_type_modulo_regions};
-use clippy_utils::{get_parent_expr, is_ty_alias, peel_blocks, sym};
+use clippy_utils::{get_parent_expr, higher, is_ty_alias, peel_blocks, sym};
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::def_id::DefId;
-use rustc_hir::{BindingMode, Expr, ExprKind, HirId, LangItem, MatchSource, Mutability, Node, PatKind};
+use rustc_hir::{BindingMode, Expr, ExprKind, HirId, Mutability, Node, PatKind};
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_infer::traits::Obligation;
 use rustc_lint::{LateContext, LateLintPass};
@@ -65,39 +65,62 @@ impl MethodOrFunction {
         }
     }
 }
+/// Returns `true` if `def_id` is an associated item of the `From` trait.
+fn is_from_trait_item(cx: &LateContext<'_>, def_id: DefId) -> bool {
+    cx.tcx
+        .trait_of_assoc(def_id)
+        .is_some_and(|trait_id| cx.tcx.is_diagnostic_item(sym::From, trait_id))
+}
 
-fn map_err_from_conversion<'tcx>(cx: &LateContext<'tcx>, arg: &'tcx Expr<'_>) -> bool {
+/// Returns `true` if `expr` resolves to the closure parameter bound to `local_id`.
+fn is_local_binding(expr: &Expr<'_>, local_id: HirId) -> bool {
+    matches!(
+        peel_blocks(expr).kind,
+        ExprKind::Path(rustc_hir::QPath::Resolved(_, path)) if path.res == Res::Local(local_id)
+    )
+}
+
+/// Checks if the argument to `map_err` is a `From::from` or `Into::into` conversion.
+///
+/// This detects three patterns:
+/// - Direct function paths: `From::from`, `MyError::from` (verified via `trait_of_assoc`)
+/// - Closures calling `From::from`: `|e| MyError::from(e)`
+/// - Closures calling `.into()`: `|e| e.into()`
+///
+/// Uses `trait_of_assoc` rather than name-based matching to avoid false positives
+/// from inherent `from()` methods that are not the `From` trait.
+fn is_from_or_into_conversion<'tcx>(cx: &LateContext<'tcx>, arg: &'tcx Expr<'_>) -> bool {
     let arg = peel_blocks(arg);
-    if matches!(arg.res(cx).assoc_parent(cx).opt_diag_name(cx), Some(sym::From)) {
-        return true;
-    }
 
-    if let ExprKind::Path(qpath) = arg.kind {
-        match qpath {
-            rustc_hir::QPath::Resolved(_, path)
-                if path.segments.last().is_some_and(|seg| seg.ident.name == sym::from) && path.segments.len() > 1 =>
-            {
-                return true;
-            },
-            rustc_hir::QPath::TypeRelative(_, segment) if segment.ident.name == sym::from => return true,
-            _ => {},
-        }
-    }
-
-    if let ty::FnDef(def_id, _) = cx.typeck_results().expr_ty(arg).kind()
-        && cx.tcx.item_name(*def_id) == sym::from
+    // Direct function path: `From::from` or `MyError::from`
+    if let Some(def_id) = arg.res(cx).opt_def_id()
+        && is_from_trait_item(cx, def_id)
     {
         return true;
     }
 
-    if let ExprKind::Closure(closure) = arg.kind {
-        let body = cx.tcx.hir_body(closure.body);
-        if let [param] = body.params
-            && let PatKind::Binding(_, local_id, ..) = param.pat.kind
-            && let ExprKind::Call(func, [from_arg]) = peel_blocks(body.value).kind
-            && matches!(func.res(cx).assoc_parent(cx).opt_diag_name(cx), Some(sym::From))
-            && let ExprKind::Path(rustc_hir::QPath::Resolved(_, path)) = peel_blocks(from_arg).kind
-            && path.res == Res::Local(local_id)
+    // Single-parameter closure whose body is a From/Into call on that parameter
+    if let ExprKind::Closure(closure) = arg.kind
+        && let body = cx.tcx.hir_body(closure.body)
+        && let [param] = body.params
+        && let PatKind::Binding(_, local_id, ..) = param.pat.kind
+    {
+        let value = peel_blocks(body.value);
+
+        // `|e| MyError::from(e)`
+        if let ExprKind::Call(func, [from_arg]) = value.kind
+            && let Some(def_id) = func.res(cx).opt_def_id()
+            && is_from_trait_item(cx, def_id)
+            && is_local_binding(from_arg, local_id)
+        {
+            return true;
+        }
+
+        // `|e| e.into()`
+        if let ExprKind::MethodCall(name, recv, [], _) = value.kind
+            && name.ident.name == sym::into
+            && cx.ty_based_def(value).opt_parent(cx).is_diag_item(cx, sym::Into)
+            && is_local_binding(recv, local_id)
         {
             return true;
         }
@@ -194,9 +217,100 @@ fn into_iter_deep_call<'hir>(cx: &LateContext<'_>, mut expr: &'hir Expr<'hir>) -
     (expr, depth)
 }
 
+/// Checks for `recv.map_err(From::from)?` where the `map_err` is redundant
+/// because `?` already performs the same `From` conversion.
+///
+/// Given `recv.map_err(f)?` in a function returning `Result<T, RetErr>`:
+///
+/// - `recv` has type `Result<T, E1>`
+/// - `map_err(f)` converts to `Result<T, E2>`
+/// - `?` then converts `E2` -> `RetErr` via `From`
+///
+/// If `E2 == RetErr`, the `From` conversion in `?` is the identity and the
+/// `map_err` could have been omitted. `?` alone would convert `E1` -> `RetErr`
+/// directly (since `From<E1> for E2` exists, and `E2 == RetErr`).
+///
+/// We skip the case where `E1 == E2` (same input/output error type) because
+/// that is already caught by the general same-type `map_err` arm.
+fn check_map_err_before_try<'tcx>(cx: &LateContext<'tcx>, try_desugar: &higher::TryDesugar<'tcx>) {
+    // Early return if the `try_desugar` doesn't match the expected `recv.map_err(arg)?` pattern.
+    let ExprKind::MethodCall(path, recv, [arg], _) = try_desugar.scrutinee.kind else {
+        return;
+    };
+
+    // Only look at `map_err` calls.
+    if path.ident.name != sym::map_err {
+        return;
+    }
+
+    // Don't lint inside macro expansions where the user can't easily change the code.
+    if recv.span.from_expansion() || try_desugar.scrutinee.span.from_expansion() {
+        return;
+    }
+
+    if !is_from_or_into_conversion(cx, arg) {
+        return;
+    }
+
+    let Some(map_err_target) = err_ty_of_result(cx, cx.typeck_results().expr_ty(try_desugar.scrutinee)) else {
+        return;
+    };
+    let Some(try_target) = try_err_target_ty(cx) else {
+        return;
+    };
+
+    // The `map_err` is only redundant when its output error type matches
+    // the type that `?` converts to.
+    if !same_type_modulo_regions(map_err_target, try_target) {
+        return;
+    }
+
+    // When input and output error types are identical, the general
+    // same-type `map_err` arm already handles it, don't double-lint.
+    let Some(recv_err) = err_ty_of_result(cx, cx.typeck_results().expr_ty(recv)) else {
+        return;
+    };
+    if same_type_modulo_regions(recv_err, map_err_target) {
+        return;
+    }
+
+    let removal_span = try_desugar.scrutinee.span.with_lo(recv.span.hi());
+    span_lint_and_then(
+        cx,
+        USELESS_CONVERSION,
+        removal_span,
+        "useless conversion to the same error type done via `?`",
+        |diag| {
+            diag.suggest_remove_item(cx, removal_span, "consider removing", Applicability::MachineApplicable);
+        },
+    );
+}
+
 #[expect(clippy::too_many_lines)]
 impl<'tcx> LateLintPass<'tcx> for UselessConversion {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
+        // Handle `?` desugaring before the `from_expansion()` early return.
+        //
+        // The `?` operator desugars into a `match` expression with
+        // `MatchSource::TryDesugar`, whose span has `from_expansion() == true`.
+        // We must check it here before we skip all expansions below.
+        //
+        // After handling the lint we fall through to the `from_expansion()`
+        // block so that `expn_depth` tracking stays balanced. This matters
+        // when `?` appears inside a macro, where `desugaring_kind()` is `None`
+        // and the expression contributes to `expn_depth`.
+        if let Some(try_desugar) = higher::TryDesugar::hir(e) {
+            check_map_err_before_try(cx, &try_desugar);
+
+            // Track the Ok/Continue arm so we don't lint its inner expressions
+            // (they are compiler-generated and not written by the user).
+            if let ExprKind::Ret(Some(ret)) | ExprKind::Break(_, Some(ret)) = try_desugar.arms[0].body.kind
+                && let ExprKind::Call(_, [arg, ..]) = ret.kind
+            {
+                self.try_desugar_arm.push(arg.hir_id);
+            }
+        }
+
         if e.span.from_expansion() {
             if e.span.desugaring_kind().is_none() {
                 self.expn_depth += 1;
@@ -209,50 +323,6 @@ impl<'tcx> LateLintPass<'tcx> for UselessConversion {
         }
 
         match e.kind {
-            ExprKind::Match(scrutinee, arms, MatchSource::TryDesugar(_)) => {
-                let branch_expr = if let ExprKind::DropTemps(branch_expr) = scrutinee.kind {
-                    branch_expr
-                } else {
-                    scrutinee
-                };
-
-                let try_expr = if let ExprKind::Call(called, [try_expr]) = branch_expr.kind
-                    && let ExprKind::Path(qpath) = called.kind
-                    && cx.tcx.qpath_is_lang_item(qpath, LangItem::TryTraitBranch)
-                {
-                    try_expr
-                } else {
-                    branch_expr
-                };
-
-                if let ExprKind::MethodCall(path, recv, [arg], _) = try_expr.kind
-                    && path.ident.name == sym::map_err
-                    && map_err_from_conversion(cx, arg)
-                {
-                    span_lint_and_then(
-                        cx,
-                        USELESS_CONVERSION,
-                        try_expr.span.with_lo(recv.span.hi()),
-                        "useless conversion to the same error type done via `?`",
-                        |diag| {
-                            diag.suggest_remove_item(
-                                cx,
-                                try_expr.span.with_lo(recv.span.hi()),
-                                "consider removing",
-                                Applicability::MachineApplicable,
-                            );
-                        },
-                    );
-                }
-
-                let (ExprKind::Ret(Some(e)) | ExprKind::Break(_, Some(e))) = arms[0].body.kind else {
-                    return;
-                };
-                if let ExprKind::Call(_, [arg, ..]) = e.kind {
-                    self.try_desugar_arm.push(arg.hir_id);
-                }
-            },
-
             ExprKind::MethodCall(path, recv, [arg], _) => {
                 if matches!(
                     path.ident.name,
@@ -519,6 +589,26 @@ impl<'tcx> LateLintPass<'tcx> for UselessConversion {
             self.expn_depth -= 1;
         }
     }
+}
+
+/// Extracts the error type `E` from `Result<T, E>`.
+fn err_ty_of_result<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<Ty<'tcx>> {
+    if let ty::Adt(def, args) = ty.kind()
+        && cx.tcx.is_diagnostic_item(sym::Result, def.did())
+    {
+        Some(args.type_at(1))
+    } else {
+        None
+    }
+}
+
+/// Gets the error type that `?` converts to. This is the error type of
+/// the enclosing function's return type (since `?` uses `From` to convert
+/// errors to the function's return error type).
+fn try_err_target_ty<'tcx>(cx: &LateContext<'tcx>) -> Option<Ty<'tcx>> {
+    let body_owner = cx.tcx.hir_enclosing_body_owner(cx.last_node_with_lint_attrs);
+    let ret_ty = cx.tcx.fn_sig(body_owner).instantiate_identity().output().skip_binder();
+    err_ty_of_result(cx, ret_ty)
 }
 
 fn has_eligible_receiver(cx: &LateContext<'_>, recv: &Expr<'_>, expr: &Expr<'_>) -> bool {
