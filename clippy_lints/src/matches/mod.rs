@@ -1136,16 +1136,23 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
                 }
                 match_ref_pats::check(cx, ex, arms.iter().map(|el| el.pat), expr);
             }
-        } else if let Some(if_let) = higher::IfLet::hir(cx, expr) {
-            collapsible_match::check_if_let(
-                cx,
-                if_let.let_pat,
-                if_let.if_then,
-                if_let.if_else,
-                if_let.let_expr,
-                self.msrv,
-            );
+        } else if let Some(if_lets) = higher::IfLet::hir_all(cx, expr) {
+            for if_let in if_lets {
+                collapsible_match::check_if_let(
+                    cx,
+                    if_let.let_pat,
+                    if_let.if_then,
+                    if_let.if_else,
+                    if_let.let_expr,
+                    Some(if_let.if_condition),
+                    self.msrv,
+                );
+            }
+        }
+
+        if let Some(if_let) = higher::IfLet::hir(cx, expr) {
             significant_drop_in_scrutinee::check_if_let(cx, expr, if_let.let_expr, if_let.if_then, if_let.if_else);
+
             if !from_expansion {
                 if let Some(else_expr) = if_let.if_else {
                     if self.msrv.meets(cx, msrvs::MATCHES_MACRO) {

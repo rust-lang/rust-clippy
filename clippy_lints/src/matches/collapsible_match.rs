@@ -31,9 +31,10 @@ pub(super) fn check_if_let<'tcx>(
     body: &'tcx Expr<'_>,
     else_expr: Option<&'tcx Expr<'_>>,
     let_expr: &'tcx Expr<'_>,
+    outer_guard: Option<&'tcx Expr<'tcx>>,
     msrv: Msrv,
 ) {
-    check_arm(cx, false, pat, let_expr, body, None, else_expr, msrv);
+    check_arm(cx, false, pat, let_expr, body, outer_guard, else_expr, msrv);
 }
 
 #[expect(clippy::too_many_arguments, clippy::too_many_lines)]
