@@ -1,0 +1,44 @@
+error: this expression will always evaluate as true
+  --> tests/ui/trivial_var_primitive_disjunction.rs:14:8
+   |
+LL |     if name != "Min" || name != "Max" {
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: the wrong variables or operators might have been used
+   = note: `-D clippy::trivial-var-primitive-disjunction` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::trivial_var_primitive_disjunction)]`
+
+error: this expression will always evaluate as true
+  --> tests/ui/trivial_var_primitive_disjunction.rs:65:8
+   |
+LL |     if 3 != b || 5 != b {
+   |        ^^^^^^^^^^^^^^^^
+   |
+   = help: the wrong variables or operators might have been used
+
+error: this expression will always evaluate as true
+  --> tests/ui/trivial_var_primitive_disjunction.rs:70:8
+   |
+LL |     if b != 3 || 5 != b {
+   |        ^^^^^^^^^^^^^^^^
+   |
+   = help: the wrong variables or operators might have been used
+
+error: this expression will always evaluate as true
+  --> tests/ui/trivial_var_primitive_disjunction.rs:77:19
+   |
+LL |     let x: bool = ("a" != input || "b" != input);
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: the wrong variables or operators might have been used
+
+error: this expression will always evaluate as true
+  --> tests/ui/trivial_var_primitive_disjunction.rs:79:19
+   |
+LL |     let z: bool = (input != "2" || input != "4");
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: the wrong variables or operators might have been used
+
+error: aborting due to 5 previous errors
+
