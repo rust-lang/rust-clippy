@@ -10,6 +10,7 @@ mod cast_possible_truncation;
 mod cast_possible_wrap;
 mod cast_precision_loss;
 mod cast_ptr_alignment;
+mod cast_ptr_sized_int;
 mod cast_sign_loss;
 mod cast_slice_different_sizes;
 mod cast_slice_from_raw_parts;
@@ -822,6 +823,42 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for casts between pointer-sized integer types (`usize`/`isize`)
+    /// and fixed-size integer types (like `u64`, `i32`, etc.).
+    ///
+    /// ### Why is this bad?
+    /// `usize` and `isize` have sizes that depend on the target architecture
+    /// (32-bit on 32-bit platforms, 64-bit on 64-bit platforms). Casting between
+    /// these and fixed-size integers can lead to subtle, platform-specific bugs:
+    ///
+    /// - `usize as u64`: On 64-bit platforms this is lossless, but on 32-bit
+    ///   platforms the upper 32 bits are always zero.
+    /// - `u64 as usize`: On 32-bit platforms this truncates, but on 64-bit
+    ///   platforms it's lossless.
+    ///
+    /// Using `TryFrom`/`TryInto` makes the potential for failure explicit.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// pub fn foo(x: usize) -> u64 {
+    ///     x as u64
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// pub fn foo(x: usize) -> u64 {
+    ///     u64::try_from(x).expect("usize should fit in u64")
+    /// }
+    /// ```
+    #[clippy::version = "1.95.0"]
+    pub CAST_PTR_SIZED_INT,
+    restriction,
+    "casts between pointer-sized and fixed-size integer types may behave differently across platforms"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for bindings (constants, statics, or let bindings) that are defined
     /// with one numeric type but are consistently cast to a different type in all usages.
     ///
@@ -884,6 +921,7 @@ impl_lint_pass!(Casts => [
     AS_POINTER_UNDERSCORE,
     MANUAL_DANGLING_PTR,
     CONFUSING_METHOD_TO_NUMERIC_CAST,
+    CAST_PTR_SIZED_INT,
     NEEDLESS_TYPE_CAST,
 ]);
 
@@ -929,6 +967,7 @@ impl<'tcx> LateLintPass<'tcx> for Casts {
                     cast_sign_loss::check(cx, expr, cast_from_expr, cast_from, cast_to, self.msrv);
                     cast_abs_to_unsigned::check(cx, expr, cast_from_expr, cast_from, cast_to, self.msrv);
                     cast_nan_to_int::check(cx, expr, cast_from_expr, cast_from, cast_to);
+                    cast_ptr_sized_int::check(cx, expr, cast_from, cast_to);
                 }
                 cast_lossless::check(cx, expr, cast_from_expr, cast_from, cast_to, cast_to_hir, self.msrv);
                 cast_enum_constructor::check(cx, expr, cast_from_expr, cast_from);
