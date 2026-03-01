@@ -3,7 +3,8 @@
     unused_mut,
     clippy::redundant_allocation,
     clippy::needless_pass_by_ref_mut,
-    static_mut_refs
+    static_mut_refs,
+    clippy::static_mut_vars
 )]
 #![warn(clippy::must_use_candidate)]
 use std::rc::Rc;

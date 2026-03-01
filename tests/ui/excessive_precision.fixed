@@ -5,7 +5,8 @@
     unused_variables,
     clippy::print_literal,
     clippy::useless_vec,
-    clippy::approx_constant
+    clippy::approx_constant,
+    clippy::static_mut_vars
 )]
 
 macro_rules! make_pi {

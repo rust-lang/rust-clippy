@@ -157,6 +157,7 @@ fn issue11371() {
     }
 
     // This should not lint and suggest `if let Some(..) = X {}`, as `X` is being mutated
+    #[expect(clippy::static_mut_vars)]
     static mut X: Option<i32> = Some(123);
     unsafe {
         #[expect(static_mut_refs)]
