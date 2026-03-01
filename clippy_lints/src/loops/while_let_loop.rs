@@ -31,71 +31,31 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, loop_blo
     };
     let has_trailing_exprs = loop_block.stmts.len() + usize::from(loop_block.expr.is_some()) > 1;
 
-    if let Some(if_let) = higher::IfLet::hir(cx, init)
+    let (let_pat, let_expr, inner_expr, hoistable_stmts) = if let Some(if_let) = higher::IfLet::hir(cx, init)
         && let Some(else_expr) = if_let.if_else
         && is_simple_break_expr(else_expr)
     {
-        could_be_while_let(
-            cx,
-            expr,
-            WhileLetInfo {
-                let_pat: if_let.let_pat,
-                let_expr: if_let.let_expr,
-                has_trailing_exprs,
-                let_info,
-                inner_expr: Some(if_let.if_then),
-                hoistable_stmts: None,
-            },
-        );
+        (if_let.let_pat, if_let.let_expr, Some(if_let.if_then), None)
     } else if els.is_some_and(is_simple_break_block)
         && let Some((pat, _)) = let_info
     {
-        could_be_while_let(
-            cx,
-            expr,
-            WhileLetInfo {
-                let_pat: pat,
-                let_expr: init,
-                has_trailing_exprs,
-                let_info,
-                inner_expr: None,
-                hoistable_stmts: None,
-            },
-        );
+        (pat, init, None, None)
     } else if let Some(els_block) = els
         && let Some((pat, _)) = let_info
         && let Some(hoistable) = extract_hoistable_stmts(els_block)
     {
-        could_be_while_let(
-            cx,
-            expr,
-            WhileLetInfo {
-                let_pat: pat,
-                let_expr: init,
-                has_trailing_exprs,
-                let_info,
-                inner_expr: None,
-                hoistable_stmts: Some(hoistable),
-            },
-        );
+        (pat, init, None, Some(hoistable))
     } else if let ExprKind::Match(scrutinee, [arm1, arm2], MatchSource::Normal) = init.kind
         && arm1.guard.is_none()
         && arm2.guard.is_none()
         && is_simple_break_expr(arm2.body)
     {
-        could_be_while_let(
-            cx,
-            expr,
-            WhileLetInfo {
-                let_pat: arm1.pat,
-                let_expr: scrutinee,
-                has_trailing_exprs,
-                let_info,
-                inner_expr: Some(arm1.body),
-                hoistable_stmts: None,
-            },
-        );
-    }
+        (arm1.pat, scrutinee, Some(arm1.body), None)
+    } else {
+        return;
+    };
+
+    could_be_while_let(cx, expr, has_trailing_exprs, let_info, let_pat, let_expr, inner_expr, hoistable_stmts);
 }
 
 /// Checks if `block` contains a single unlabeled `break` expression or statement, possibly embedded
@@ -118,26 +78,17 @@ fn is_simple_break_expr(expr: &Expr<'_>) -> bool {
     }
 }
 
-#[derive(Copy, Clone)]
-struct WhileLetInfo<'tcx> {
-    let_pat: &'tcx Pat<'tcx>,
-    let_expr: &'tcx Expr<'tcx>,
+#[expect(clippy::too_many_arguments)]
+fn could_be_while_let<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'_>,
     has_trailing_exprs: bool,
     let_info: Option<(&'tcx Pat<'tcx>, Option<&'tcx Ty<'tcx>>)>,
+    let_pat: &'tcx Pat<'tcx>,
+    let_expr: &'tcx Expr<'tcx>,
     inner_expr: Option<&'tcx Expr<'tcx>>,
     hoistable_stmts: Option<&'tcx [Stmt<'tcx>]>,
-}
-
-fn could_be_while_let<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, info: WhileLetInfo<'tcx>) {
-    let WhileLetInfo {
-        let_pat,
-        let_expr,
-        has_trailing_exprs,
-        let_info,
-        inner_expr,
-        hoistable_stmts,
-    } = info;
-
+) {
     if has_trailing_exprs
         && (needs_ordered_drop(cx, cx.typeck_results().expr_ty(let_expr))
             || any_temporaries_need_ordered_drop(cx, let_expr))
