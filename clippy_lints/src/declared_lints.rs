@@ -124,6 +124,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::doc::DOC_SUSPICIOUS_FOOTNOTES_INFO,
     crate::doc::EMPTY_DOCS_INFO,
     crate::doc::MISSING_ERRORS_DOC_INFO,
+    crate::doc::MISSING_EXAMPLES_DOC_INFO,
     crate::doc::MISSING_PANICS_DOC_INFO,
     crate::doc::MISSING_SAFETY_DOC_INFO,
     crate::doc::NEEDLESS_DOCTEST_MAIN_INFO,
