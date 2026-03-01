@@ -76,6 +76,7 @@ mod map_identity;
 mod map_unwrap_or;
 mod map_unwrap_or_else;
 mod map_with_unused_argument_over_ranges;
+mod method_without_self_relation;
 mod mut_mutex_lock;
 mod needless_as_bytes;
 mod needless_character_iteration;
@@ -1161,6 +1162,74 @@ declare_clippy_lint! {
     pub NEW_RET_NO_SELF,
     style,
     "not returning type containing `Self` in a `new` method"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for methods in impl blocks that have no relationship to `Self`.
+    ///
+    /// ### Why is this bad?
+    /// Methods that don't use `Self` in their signature (parameters or return type)
+    /// are not actually methods but rather associated functions. They would be
+    /// better expressed as standalone functions, making the code more modular
+    /// and easier to discover.
+    ///
+    /// ### Known issues
+    /// This lint is intentionally set to `restriction` category because there are
+    /// valid reasons to keep functions within an impl block:
+    /// - Helper functions that logically belong to the type
+    /// - Functions meant to be used through the type's namespace
+    /// - Private implementation details that should be grouped with the type
+    ///
+    /// ### Example
+    /// ```no_run
+    /// struct Calculator;
+    ///
+    /// impl Calculator {
+    ///     // Bad: No relationship to Self
+    ///     fn add(a: i32, b: i32) -> i32 {
+    ///         a + b
+    ///     }
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// struct Calculator;
+    ///
+    /// // Good: Standalone function
+    /// fn add(a: i32, b: i32) -> i32 {
+    ///     a + b
+    /// }
+    /// ```
+    ///
+    /// Methods with Self references are fine:
+    /// ```no_run
+    /// #[derive(Default)]
+    /// struct Calculator {
+    ///     precision: u32,
+    /// }
+    ///
+    /// impl Calculator {
+    ///     // Good: Uses &self
+    ///     fn add(&self, a: i32, b: i32) -> i32 {
+    ///         a + b
+    ///     }
+    ///
+    ///     // Good: Returns Self
+    ///     fn new(precision: u32) -> Self {
+    ///         Self { precision }
+    ///     }
+    ///
+    ///     // Good: Takes Self in generic parameter
+    ///     fn from_option(opt: Option<Self>) -> Self {
+    ///         opt.unwrap_or_default()
+    ///     }
+    /// }
+    /// ```
+    #[clippy::version = "1.92.0"]
+    pub METHOD_WITHOUT_SELF_RELATION,
+    restriction,
+    "methods in impl blocks that have no relationship to `Self`"
 }
 
 declare_clippy_lint! {
@@ -4807,6 +4876,7 @@ impl_lint_pass!(Methods => [
     FLAT_MAP_OPTION,
     INEFFICIENT_TO_STRING,
     NEW_RET_NO_SELF,
+    METHOD_WITHOUT_SELF_RELATION,
     SINGLE_CHAR_ADD_STR,
     SEARCH_IS_SOME,
     FILTER_NEXT,
@@ -5032,6 +5102,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
             }
 
             new_ret_no_self::check_impl_item(cx, impl_item, self_ty, implements_trait);
+            method_without_self_relation::check(cx, impl_item, self_ty, implements_trait);
         }
     }
 
