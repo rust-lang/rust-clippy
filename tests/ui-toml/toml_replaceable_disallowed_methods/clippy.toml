@@ -1,4 +1,9 @@
 disallowed-methods = [
     { path = "replaceable_disallowed_methods::bad", replacement = "good" },
     { path = "replaceable_disallowed_methods::questionable", replacement = "good", reason = "a better function exists" },
+    { path = "f64::round", replacement = "f64::round_ties_even", reason = "https://github.com/rust-lang/rust-clippy/issues/15067" },
+    { path = "replaceable_disallowed_methods::WithMethod::evil", replacement = "crate::free", reason = "replace method with free function" },
+    { path = "replaceable_disallowed_methods::WithMethod::mean", replacement = "nice", reason = "replace method with other method" },
+    { path = "replaceable_disallowed_methods::WithMethod::ugly", replacement = "WithMethod::nice", reason = "replace method with qualified method" },
+    { path = "replaceable_disallowed_methods::WithMethod::cruel", replacement = "WithMethod::kind", reason = "replace method with qualified method with param" },
 ]
