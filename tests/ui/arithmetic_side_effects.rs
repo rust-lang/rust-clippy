@@ -165,11 +165,9 @@ pub fn association_with_structures_should_not_trigger_the_lint() {
 
 pub fn hard_coded_allowed() {
     let _ = 1f16 + 1f16;
-    //~^ arithmetic_side_effects
     let _ = 1f32 + 1f32;
     let _ = 1f64 + 1f64;
     let _ = 1f128 + 1f128;
-    //~^ arithmetic_side_effects
 
     let _ = Saturating(0u32) + Saturating(0u32);
     let _ = String::new() + "";
