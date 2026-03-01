@@ -101,5 +101,71 @@ error: useless use of `format!`
 LL |     let _ = format!("{xx}");
    |             ^^^^^^^^^^^^^^^ help: consider using `.to_string()`: `xx.to_string()`
 
-error: aborting due to 15 previous errors
+error: useless use of `format!`
+  --> tests/ui/format.rs:110:19
+   |
+LL |     let _: &str = &format!("hello");
+   |                   ^^^^^^^^^^^^^^^^^ help: consider using the string literal directly: `"hello"`
+
+error: useless use of `format!`
+  --> tests/ui/format.rs:111:19
+   |
+LL |     let _: &str = &format!("{{}}");
+   |                   ^^^^^^^^^^^^^^^^ help: consider using the string literal directly: `"{}"`
+
+error: useless use of `format!`
+  --> tests/ui/format.rs:112:19
+   |
+LL |     let _: &str = &format!(r"hello");
+   |                   ^^^^^^^^^^^^^^^^^^ help: consider using the string literal directly: `r"hello"`
+
+error: useless use of `format!`
+  --> tests/ui/format.rs:113:19
+   |
+LL |     let _: &str = &format!(r#"world"#);
+   |                   ^^^^^^^^^^^^^^^^^^^^ help: consider using the string literal directly: `r#"world"#`
+
+error: useless use of `format!`
+  --> tests/ui/format.rs:114:19
+   |
+LL |     let _: &str = &format!(r##"foo"##);
+   |                   ^^^^^^^^^^^^^^^^^^^^ help: consider using the string literal directly: `r##"foo"##`
+
+error: useless use of `format!`
+  --> tests/ui/format.rs:115:19
+   |
+LL |     let _: &str = &format!(r##"hello "\u{{007B}}""##);
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using the string literal directly: `r##"hello "\u{007B}""##`
+
+error: useless use of `format!`
+  --> tests/ui/format.rs:117:31
+   |
+LL |     let _: &mut String = &mut format!("hello");
+   |                               ^^^^^^^^^^^^^^^^ help: consider using `.to_string()`: `"hello".to_string()`
+
+error: useless use of `format!`
+  --> tests/ui/format.rs:120:13
+   |
+LL |     literal(&format!("hello"));
+   |             ^^^^^^^^^^^^^^^^^ help: consider using the string literal directly: `"hello"`
+
+error: useless use of `format!`
+  --> tests/ui/format.rs:121:14
+   |
+LL |     literal(&&format!("hello"));
+   |              ^^^^^^^^^^^^^^^^^ help: consider using the string literal directly: `"hello"`
+
+error: useless use of `format!`
+  --> tests/ui/format.rs:124:13
+   |
+LL |     literal(&format!("{}", lit));
+   |             ^^^^^^^^^^^^^^^^^^^ help: consider using the argument directly: `lit`
+
+error: useless use of `format!`
+  --> tests/ui/format.rs:125:13
+   |
+LL |     literal(&format!("{lit}"));
+   |             ^^^^^^^^^^^^^^^^^ help: consider using the argument directly: `lit`
+
+error: aborting due to 26 previous errors
 
