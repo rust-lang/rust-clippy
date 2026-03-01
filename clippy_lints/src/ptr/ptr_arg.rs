@@ -254,7 +254,7 @@ fn check_fn_args<'cx, 'tcx: 'cx>(
                                         | ty::ReErased
                                         | ty::ReError(_) => None,
                                     })
-                                    .any(|def_id| def_id.as_local().is_some_and(|def_id| def_id == param_def_id))
+                                    .any(|def_id| def_id.as_local() == Some(param_def_id))
                             {
                                 // `&Cow<'a, T>` when the return type uses 'a is okay
                                 return None;
