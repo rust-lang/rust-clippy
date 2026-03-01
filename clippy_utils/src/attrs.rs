@@ -32,6 +32,8 @@ pub fn get_builtin_attr<'a, A: AttributeExt + 'a>(
                 | sym::version
                 | sym::cognitive_complexity
                 | sym::dump
+                | sym::disallowed_profile
+                | sym::disallowed_profiles
                 | sym::msrv
                 // The following attributes are for the 3rd party crate authors.
                 // See book/src/attribs.md

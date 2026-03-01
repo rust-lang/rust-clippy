@@ -137,6 +137,8 @@ generate! {
     de,
     deprecated_in_future,
     diagnostics,
+    disallowed_profile,
+    disallowed_profiles,
     disallowed_types,
     drain,
     dump,
