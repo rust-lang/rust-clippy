@@ -135,6 +135,20 @@ impl Msrv {
         self.current(cx).is_none_or(|msrv| msrv >= required)
     }
 
+    /// Reads the MSRV from Cargo.toml and merges it with the existing configuration
+    ///
+    /// This method checks the `CARGO_PACKAGE_RUST_VERSION` environment variable set by Cargo
+    /// and integrates it with the MSRV from `clippy.toml` according to these rules:
+    ///
+    /// - If only Cargo.toml specifies an MSRV, it will be used
+    /// - If both Cargo.toml and clippy.toml specify an MSRV and they differ, a warning is emitted
+    ///   and the value from `clippy.toml` takes precedence
+    /// - If neither specifies an MSRV, no change occurs
+    ///
+    /// # Note
+    ///
+    /// This should be called during lint pass initialization to ensure the MSRV from Cargo.toml
+    /// is properly considered alongside the clippy.toml configuration
     pub fn read_cargo(&mut self, sess: &Session) {
         let cargo_msrv = std::env::var("CARGO_PKG_RUST_VERSION")
             .ok()
@@ -160,20 +174,33 @@ pub struct MsrvStack {
 }
 
 impl MsrvStack {
+    /// Creates a new `MsrvStack` with the initial MSRV value from configuration
     pub fn new(initial: Msrv) -> Self {
         Self {
             stack: SmallVec::from_iter(initial.0),
         }
     }
 
+    /// Returns the MSRV at the current stack level
+    ///
+    /// This represents the effective MSRV after applying any `#[clippy::msrv]` attributes
+    /// encountered during traversal
     pub fn current(&self) -> Option<RustcVersion> {
         self.stack.last().copied()
     }
 
+    /// Checks if the current MSRV meets or exceeds the required version
+    ///
+    /// Returns `true` if no MSRV is configured or if the current MSRV is greater than
+    /// or equal to the required version
     pub fn meets(&self, required: RustcVersion) -> bool {
         self.current().is_none_or(|msrv| msrv >= required)
     }
 
+    /// Processes attributes to update the MSRV stack when entering a new scope
+    ///
+    /// If a `#[clippy::msrv]` attribute is found, parses the version and pushes it
+    /// onto the stack. Also marks that MSRV attributes have been seen globally.
     pub fn check_attributes(&mut self, sess: &Session, attrs: &[Attribute]) {
         if let Some(version) = parse_attrs(sess, attrs) {
             SEEN_MSRV_ATTR.store(true, Ordering::Relaxed);
@@ -181,6 +208,10 @@ impl MsrvStack {
         }
     }
 
+    /// Processes attributes to update the MSRV stack when leaving a scope
+    ///
+    /// If a `#[clippy::msrv]` attribute is found, pops the most recently pushed
+    /// MSRV from the stack, effectively restoring the previous MSRV level
     pub fn check_attributes_post(&mut self, sess: &Session, attrs: &[Attribute]) {
         if parse_attrs(sess, attrs).is_some() {
             self.stack.pop();
@@ -188,6 +219,10 @@ impl MsrvStack {
     }
 }
 
+/// Parses attributes to extract MSRV versions from `#[clippy::msrv]` attributes
+///
+/// Returns the parsed Rust version if found, or `None` if no valid MSRV attribute is present.
+/// Emits diagnostic errors for invalid versions or duplicate attributes.
 fn parse_attrs(sess: &Session, attrs: &[impl AttributeExt]) -> Option<RustcVersion> {
     let mut msrv_attrs = attrs.iter().filter(|attr| attr.path_matches(&[sym::clippy, sym::msrv]));
 
