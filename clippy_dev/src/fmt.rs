@@ -1,5 +1,7 @@
+use crate::generate::gen_sorted_lints_file;
+use crate::new_parse_cx;
 use crate::utils::{
-    ErrAction, FileUpdater, UpdateMode, UpdateStatus, expect_action, run_with_output, split_args_for_threads,
+    ErrAction, FileUpdater, UpdateMode, UpdateStatus, VecBuf, expect_action, run_with_output, split_args_for_threads,
     walk_dir_no_dot_or_target,
 };
 use itertools::Itertools;
@@ -326,10 +328,37 @@ fn run_rustfmt(update_mode: UpdateMode) {
 
 // the "main" function of cargo dev fmt
 pub fn run(update_mode: UpdateMode) {
-    run_rustfmt(update_mode);
     fmt_syms(update_mode);
     if let Err(e) = fmt_conf(update_mode.is_check()) {
         e.display();
         process::exit(1);
     }
+
+    new_parse_cx(|cx| {
+        let mut data = cx.parse_lint_decls();
+        cx.dcx.exit_on_err();
+
+        let mut updater = FileUpdater::default();
+
+        #[expect(clippy::mutable_key_type)]
+        let mut lints = data.mk_file_to_lint_decl_map();
+        let mut ranges = VecBuf::with_capacity(256);
+        for passes in data.iter_passes_by_file_mut() {
+            let file = passes[0].decl_sp.file;
+            let mut lints = lints.remove(file);
+            let lints = lints.as_deref_mut().unwrap_or_default();
+            updater.update_loaded_file_checked("cargo dev fmt", update_mode, file, &mut |_, src, dst| {
+                gen_sorted_lints_file(src, dst, lints, passes, &mut ranges);
+                UpdateStatus::from_changed(src != dst)
+            });
+        }
+        for (&file, lints) in &mut lints {
+            updater.update_loaded_file_checked("cargo dev fmt", update_mode, file, &mut |_, src, dst| {
+                gen_sorted_lints_file(src, dst, lints, &mut [], &mut ranges);
+                UpdateStatus::from_changed(src != dst)
+            });
+        }
+    });
+
+    run_rustfmt(update_mode);
 }
