@@ -3,6 +3,8 @@ use hir::{Node, PatKind};
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::mir::Mutability;
+use rustc_middle::ty::{self, Ty};
 use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
@@ -39,7 +41,9 @@ impl<'tcx> LateLintPass<'tcx> for IgnoredUnitPatterns {
     fn check_pat(&mut self, cx: &LateContext<'tcx>, pat: &'tcx hir::Pat<'tcx>) {
         if matches!(pat.kind, PatKind::Wild)
             && !pat.span.from_expansion()
-            && cx.typeck_results().pat_ty(pat).peel_refs().is_unit()
+            && let pat_ty = cx.typeck_results().pat_ty(pat)
+            && let (pat_ty, refs) = peel_refs_with_mutabilities(pat_ty)
+            && pat_ty.is_unit()
         {
             match cx.tcx.parent_hir_node(pat.hir_id) {
                 Node::Param(param) if matches!(cx.tcx.parent_hir_node(param.hir_id), Node::Item(_)) => {
@@ -52,15 +56,29 @@ impl<'tcx> LateLintPass<'tcx> for IgnoredUnitPatterns {
                 },
                 _ => {},
             }
+
+            let sugg = refs.into_iter().map(Mutability::ref_prefix_str).chain(["()"]).collect();
             span_lint_and_sugg(
                 cx,
                 IGNORED_UNIT_PATTERNS,
                 pat.span,
                 "matching over `()` is more explicit",
                 "use `()` instead of `_`",
-                String::from("()"),
+                sugg,
                 Applicability::MachineApplicable,
             );
         }
     }
+}
+
+/// Like [`rustc_middle::ty::Ty::peel_refs`], but returns the mutability of each peeled ref
+///
+/// `&&mut &mut &mut T` returns `(T, [Not, Mut, Mut, Mut])`
+fn peel_refs_with_mutabilities(ty: Ty<'_>) -> (Ty<'_>, Vec<Mutability>) {
+    let (mut ty, mut refs) = (ty, vec![]);
+    while let ty::Ref(_, dest_ty, mutbl) = ty.kind() {
+        ty = *dest_ty;
+        refs.push(*mutbl);
+    }
+    (ty, refs)
 }
