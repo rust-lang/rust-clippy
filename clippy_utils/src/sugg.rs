@@ -775,20 +775,32 @@ impl<T: LintContext> DiagExt<T> for rustc_errors::Diag<'_, ()> {
     }
 
     fn suggest_remove_item(&mut self, cx: &T, item: Span, msg: &str, applicability: Applicability) {
-        let mut remove_span = item;
-        let fmpos = cx.sess().source_map().lookup_byte_offset(remove_span.hi());
-
-        if let Some(ref src) = fmpos.sf.src {
-            let non_whitespace_offset = src[fmpos.pos.to_usize()..].find(|c| c != ' ' && c != '\t' && c != '\n');
-
-            if let Some(non_whitespace_offset) = non_whitespace_offset {
-                remove_span = remove_span
-                    .with_hi(remove_span.hi() + BytePos(non_whitespace_offset.try_into().expect("offset too large")));
-            }
-        }
+        let remove_span = remove_item_span(cx, item);
 
         self.span_suggestion(remove_span, msg.to_string(), "", applicability);
     }
+}
+
+/// Extends the given span of an item so that it can be used in a suggestion like:
+///
+/// ```ignore
+/// diag.span_suggestion(new_span, .., "", ..);
+/// ```
+///
+/// to remove the item.
+pub fn remove_item_span<T: LintContext>(cx: &T, item: Span) -> Span {
+    let mut remove_span = item;
+    let fmpos = cx.sess().source_map().lookup_byte_offset(remove_span.hi());
+
+    if let Some(ref src) = fmpos.sf.src {
+        let non_whitespace_offset = src[fmpos.pos.to_usize()..].find(|c| c != ' ' && c != '\t' && c != '\n');
+
+        if let Some(non_whitespace_offset) = non_whitespace_offset {
+            remove_span = remove_span
+                .with_hi(remove_span.hi() + BytePos(non_whitespace_offset.try_into().expect("offset too large")));
+        }
+    }
+    remove_span
 }
 
 /// Suggestion results for handling closure
