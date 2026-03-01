@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_from_proc_macro;
-use clippy_utils::source::{IntoSpan, SpanRangeExt};
+use clippy_utils::source::{FileRangeExt, SpanExt};
 use rustc_ast::{Local, TyKind};
 use rustc_errors::Applicability;
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
@@ -34,12 +34,12 @@ impl EarlyLintPass for UnderscoreTyped {
             && let sm = cx.sess().source_map()
             && !local.span.in_external_macro(sm)
             && !is_from_proc_macro(cx, &**ty)
+            && let Some(span_to_remove) = ty.span.map_range(cx, |scx, range| {
+                range.with_leading_whitespace(scx)?
+                    .with_leading_match(scx, ':')?
+                    .with_leading_whitespace(scx)
+            })
         {
-            let span_to_remove = sm
-                .span_extend_to_prev_char_before(ty.span, ':', true)
-                .with_leading_whitespace(cx)
-                .into_span();
-
             span_lint_and_then(
                 cx,
                 LET_WITH_TYPE_UNDERSCORE,

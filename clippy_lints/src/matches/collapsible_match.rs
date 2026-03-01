@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::higher::{If, IfLetOrMatch};
 use clippy_utils::msrvs::Msrv;
 use clippy_utils::res::{MaybeDef, MaybeResPath};
-use clippy_utils::source::{IntoSpan, SpanRangeExt, snippet};
+use clippy_utils::source::{FileRangeExt, SpanExt, StrExt, snippet};
 use clippy_utils::visitors::is_local_used;
 use clippy_utils::{SpanlessEq, get_ref_operators, is_unit_expr, peel_blocks_with_stmt, peel_ref_operators};
 use rustc_ast::BorrowKind;
@@ -11,34 +11,45 @@ use rustc_hir::LangItem::OptionNone;
 use rustc_hir::{Arm, Expr, ExprKind, HirId, Pat, PatExpr, PatExprKind, PatKind};
 use rustc_lint::LateContext;
 use rustc_span::symbol::Ident;
-use rustc_span::{BytePos, Span};
-
-use crate::collapsible_if::{parens_around, peel_parens};
+use rustc_span::{Span, SyntaxContext};
 
 use super::{COLLAPSIBLE_MATCH, pat_contains_disallowed_or};
+use crate::collapsible_if::{parens_around, peel_parens};
 
 pub(super) fn check_match<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, arms: &'tcx [Arm<'_>], msrv: Msrv) {
     if let Some(els_arm) = arms.iter().rfind(|arm| arm_is_wild_like(cx, arm)) {
         for arm in arms {
-            check_arm(cx, true, arm.pat, expr, arm.body, arm.guard, Some(els_arm.body), msrv);
+            check_arm(
+                cx,
+                arm.span.ctxt(),
+                true,
+                arm.pat,
+                expr,
+                arm.body,
+                arm.guard,
+                Some(els_arm.body),
+                msrv,
+            );
         }
     }
 }
 
 pub(super) fn check_if_let<'tcx>(
     cx: &LateContext<'tcx>,
+    ctxt: SyntaxContext,
     pat: &'tcx Pat<'_>,
     body: &'tcx Expr<'_>,
     else_expr: Option<&'tcx Expr<'_>>,
     let_expr: &'tcx Expr<'_>,
     msrv: Msrv,
 ) {
-    check_arm(cx, false, pat, let_expr, body, None, else_expr, msrv);
+    check_arm(cx, ctxt, false, pat, let_expr, body, None, else_expr, msrv);
 }
 
 #[expect(clippy::too_many_arguments, clippy::too_many_lines)]
 fn check_arm<'tcx>(
     cx: &LateContext<'tcx>,
+    ctxt: SyntaxContext,
     outer_is_match: bool,
     outer_pat: &'tcx Pat<'tcx>,
     outer_cond: &'tcx Expr<'tcx>,
@@ -77,7 +88,7 @@ fn check_arm<'tcx>(
         && match (outer_else_body, inner_else_body) {
             (None, None) => true,
             (None, Some(e)) | (Some(e), None) => is_unit_expr(e),
-            (Some(a), Some(b)) => SpanlessEq::new(cx).eq_expr(a, b),
+            (Some(a), Some(b)) => SpanlessEq::new(cx).eq_expr(ctxt, a, b),
         }
         // the binding must not be used in the if guard
         && outer_guard.is_none_or(|e| !is_local_used(cx, e, binding_id))
@@ -127,8 +138,18 @@ fn check_arm<'tcx>(
         && match (outer_else_body, inner.r#else) {
             (None, None) => true,
             (None, Some(e)) | (Some(e), None) => is_unit_expr(e),
-            (Some(a), Some(b)) => SpanlessEq::new(cx).eq_expr(a, b),
+            (Some(a), Some(b)) => SpanlessEq::new(cx).eq_expr(ctxt, a, b),
         }
+        && let Some([outer_then_start, outer_then_end]) = outer_then_body.span.map_split_range(cx, |scx, range| {
+                let [outer_then_start, outer_then_end] = range.map_split_range_text(scx, |s| {
+                    s.get_prefix_suffix('{', '}')
+                })?;
+                let outer_arrow_sp = outer_guard.map_or(outer_pat.span, |g| g.span);
+                Some([
+                    outer_then_start.extend_start_to(scx, outer_arrow_sp.hi_ctxt())?,
+                    outer_then_end.with_leading_whitespace(scx)?,
+                ])
+            })
     {
         span_lint_hir_and_then(
             cx,
@@ -137,29 +158,12 @@ fn check_arm<'tcx>(
             inner_expr.span,
             "this `if` can be collapsed into the outer `match`",
             |diag| {
-                let outer_then_open_bracket = outer_then_body
-                    .span
-                    .split_at(1)
-                    .0
-                    .with_leading_whitespace(cx)
-                    .into_span();
-                let outer_then_closing_bracket = {
-                    let end = outer_then_body.span.shrink_to_hi();
-                    end.with_lo(end.lo() - BytePos(1))
-                        .with_leading_whitespace(cx)
-                        .into_span()
-                };
-                let outer_arrow_end = if let Some(outer_guard) = outer_guard {
-                    outer_guard.span.shrink_to_hi()
-                } else {
-                    outer_pat.span.shrink_to_hi()
-                };
                 let (paren_start, inner_if_span, paren_end) = peel_parens(cx.tcx.sess.source_map(), inner_expr.span);
                 let inner_if = inner_if_span.split_at(2).0;
                 let mut sugg = vec![
                     (inner.then.span.shrink_to_lo(), "=> ".to_string()),
-                    (outer_arrow_end.to(outer_then_open_bracket), String::new()),
-                    (outer_then_closing_bracket, String::new()),
+                    (outer_then_start, String::new()),
+                    (outer_then_end, String::new()),
                 ];
 
                 if let Some(outer_guard) = outer_guard {
