@@ -1,0 +1,86 @@
+error: `new()` may produce different values than the auto-derived `Default` for `DeriveIntDefault`
+  --> tests/ui/default_mismatches_new.rs:112:22
+   |
+LL |        fn new() -> Self {
+   |  _______________________^
+LL | |/
+LL | ||         Self { value: 0 }
+   | ||_________________________- help: use: `Self::default()`
+LL | |      }
+   | |______^
+   |
+   = help: when a type derives `Default`, users expect `new()` and `default()` to be equivalent. Consider delegating to `Self::default()` for consistency, or rename `new` if the behavior is intentionally different
+   = note: `-D clippy::default-mismatches-new` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::default_mismatches_new)]`
+
+error: `new()` may produce different values than the auto-derived `Default` for `DeriveTupleDefault`
+  --> tests/ui/default_mismatches_new.rs:121:22
+   |
+LL |        fn new() -> Self {
+   |  _______________________^
+LL | |/
+LL | ||         Self(0)
+   | ||_______________- help: use: `Self::default()`
+LL | |      }
+   | |______^
+   |
+   = help: when a type derives `Default`, users expect `new()` and `default()` to be equivalent. Consider delegating to `Self::default()` for consistency, or rename `new` if the behavior is intentionally different
+
+error: `new()` may produce different values than the auto-derived `Default` for `NonZeroDeriveDefault`
+  --> tests/ui/default_mismatches_new.rs:130:22
+   |
+LL |        fn new() -> Self {
+   |  _______________________^
+LL | |/
+LL | ||         Self(42)
+   | ||________________- help: use: `Self::default()`
+LL | |      }
+   | |______^
+   |
+   = help: when a type derives `Default`, users expect `new()` and `default()` to be equivalent. Consider delegating to `Self::default()` for consistency, or rename `new` if the behavior is intentionally different
+
+error: `new()` may produce different values than the auto-derived `Default` for `ExtraBlockDefault`
+  --> tests/ui/default_mismatches_new.rs:139:22
+   |
+LL |        fn new() -> Self {
+   |  _______________________^
+LL | |/
+LL | ||         { Self::default() }
+   | ||___________________________- help: use: `Self::default()`
+LL | |      }
+   | |______^
+   |
+   = help: when a type derives `Default`, users expect `new()` and `default()` to be equivalent. Consider delegating to `Self::default()` for consistency, or rename `new` if the behavior is intentionally different
+
+error: `new()` may produce different values than the auto-derived `Default` for `ExtraBlockRetDefault`
+  --> tests/ui/default_mismatches_new.rs:148:22
+   |
+LL |        fn new() -> Self {
+   |  _______________________^
+LL | |/
+LL | ||         return {
+...  ||
+LL | ||         };
+   | ||__________- help: use: `Self::default()`
+LL | |      }
+   | |______^
+   |
+   = help: when a type derives `Default`, users expect `new()` and `default()` to be equivalent. Consider delegating to `Self::default()` for consistency, or rename `new` if the behavior is intentionally different
+
+error: `new()` may produce different values than the auto-derived `Default` for `MultiStatements`
+  --> tests/ui/default_mismatches_new.rs:163:22
+   |
+LL |        fn new() -> Self {
+   |  _______________________^
+LL | |/
+LL | ||         println!("Hello, world!");
+LL | ||         let i = 42;
+LL | ||         Self(i)
+   | ||_______________- help: use: `Self::default()`
+LL | |      }
+   | |______^
+   |
+   = help: when a type derives `Default`, users expect `new()` and `default()` to be equivalent. Consider delegating to `Self::default()` for consistency, or rename `new` if the behavior is intentionally different
+
+error: aborting due to 6 previous errors
+
