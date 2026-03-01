@@ -774,6 +774,8 @@ be filtering for common types.
 
 **Default Value:** `"WellKnownTypes"`
 
+**Possible Values:** `"AllTypes"`, `"Never"`, `"WellKnownTypes"`
+
 ---
 **Affected lints:**
 * [`manual_let_else`](https://rust-lang.github.io/rust-clippy/master/index.html#manual_let_else)
@@ -988,6 +990,8 @@ Lint "public" fields in a struct that are prefixed with an underscore based on t
 exported visibility, or whether they are marked as "pub".
 
 **Default Value:** `"PubliclyExported"`
+
+**Possible Values:** `"AllPubFields"`, `"PubliclyExported"`
 
 ---
 **Affected lints:**

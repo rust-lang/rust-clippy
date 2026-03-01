@@ -5,6 +5,7 @@ use std::fmt;
 pub struct ClippyConfiguration {
     pub name: String,
     pub default: String,
+    pub possible_values: &'static [&'static str],
     pub lints: &'static [&'static str],
     pub doc: &'static str,
     pub deprecation_reason: Option<&'static str>,
@@ -23,10 +24,15 @@ impl fmt::Display for ClippyConfiguration {
 impl ClippyConfiguration {
     pub fn to_markdown_paragraph(&self) -> String {
         format!(
-            "## `{}`\n{}\n\n**Default Value:** `{}`\n\n---\n**Affected lints:**\n{}\n\n",
+            "## `{}`\n{}\n\n**Default Value:** `{}`{}\n\n---\n**Affected lints:**\n{}\n\n",
             self.name,
             self.doc.lines().map(|x| x.strip_prefix(' ').unwrap_or(x)).join("\n"),
             self.default,
+            if self.possible_values.is_empty() {
+                String::new()
+            } else {
+                format!("\n\n**Possible Values:** `{}`", self.possible_values.join("`, `"))
+            },
             self.lints.iter().format_with("\n", |name, f| f(&format_args!(
                 "* [`{name}`](https://rust-lang.github.io/rust-clippy/master/index.html#{name})"
             ))),
