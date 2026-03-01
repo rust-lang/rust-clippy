@@ -479,3 +479,101 @@ fn after_question_mark() -> Result<(), ()> {
     //~^ useless_conversion
     Ok(())
 }
+
+mod issue16613 {
+    // Test map_err(From::from) before ? where the conversion is redundant.
+    // The ? operator already calls From::from, so an explicit map_err is unnecessary.
+
+    #[derive(Debug)]
+    enum MyError {
+        Io,
+        Msg(String),
+    }
+
+    impl From<std::io::Error> for MyError {
+        fn from(_: std::io::Error) -> Self {
+            MyError::Io
+        }
+    }
+
+    fn io_result() -> Result<(), std::io::Error> {
+        Ok(())
+    }
+
+    // Should lint: map_err(MyError::from)? is redundant, ? does the From conversion
+    fn with_type_from() -> Result<(), MyError> {
+        io_result().map_err(MyError::from)?;
+        //~^ useless_conversion
+        Ok(())
+    }
+
+    // Should lint: map_err(|e| MyError::from(e))? is redundant
+    #[allow(clippy::redundant_closure)]
+    fn with_closure_from() -> Result<(), MyError> {
+        io_result().map_err(|e| MyError::from(e))?;
+        //~^ useless_conversion
+        Ok(())
+    }
+
+    // Should lint: same error type, map_err(From::from)? is identity + From
+    fn with_same_type_from() -> Result<(), std::io::Error> {
+        io_result().map_err(std::io::Error::from)?;
+        //~^ useless_conversion
+        Ok(())
+    }
+
+    // --- Should NOT lint ---
+
+    // map_err converts io::Error -> String (not the return error type).
+    // Then ? converts String -> MyError. Two different conversions, not redundant.
+    impl From<String> for MyError {
+        fn from(s: String) -> Self {
+            MyError::Msg(s)
+        }
+    }
+
+    fn with_intermediate_type() -> Result<(), MyError> {
+        io_result().map_err(|e| e.to_string())?;
+        Ok(())
+    }
+
+    // Inherent from() method, not the From trait — should not lint
+    struct NotFromTrait;
+    impl NotFromTrait {
+        fn from(_: std::io::Error) -> MyError {
+            MyError::Io
+        }
+    }
+
+    fn with_inherent_from() -> Result<(), MyError> {
+        io_result().map_err(NotFromTrait::from)?;
+        Ok(())
+    }
+
+    // Closure that does extra work besides the conversion — should not lint
+    fn with_extra_work() -> Result<(), MyError> {
+        io_result().map_err(|e| {
+            eprintln!("error: {e}");
+            MyError::from(e)
+        })?;
+        Ok(())
+    }
+
+    // map_err not before ? — not covered by this check (handled by the map_err same-type arm)
+    fn no_question_mark() -> Result<(), MyError> {
+        let _ = io_result().map_err(MyError::from);
+        Ok(())
+    }
+
+    // In a macro context — should not lint (from_expansion check)
+    macro_rules! try_io {
+        ($e:expr) => {
+            $e.map_err(MyError::from)?
+        };
+    }
+
+    fn with_macro() -> Result<(), MyError> {
+        try_io!(io_result());
+        Ok(())
+    }
+}
