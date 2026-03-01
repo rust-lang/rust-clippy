@@ -726,6 +726,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::transmute::CROSSPOINTER_TRANSMUTE_INFO,
     crate::transmute::EAGER_TRANSMUTE_INFO,
     crate::transmute::MISSING_TRANSMUTE_ANNOTATIONS_INFO,
+    crate::transmute::MUTABLE_ADT_ARGUMENT_TRANSMUTE_INFO,
     crate::transmute::TRANSMUTE_BYTES_TO_STR_INFO,
     crate::transmute::TRANSMUTE_INT_TO_BOOL_INFO,
     crate::transmute::TRANSMUTE_INT_TO_NON_ZERO_INFO,

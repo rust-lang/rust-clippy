@@ -1,0 +1,61 @@
+error: transmuting references into their mutable version is unsound
+  --> tests/ui/mutable_adt_argument_transmute.rs:5:35
+   |
+LL |         let _: Option<&mut i32> = std::mem::transmute(Some(&5i32));
+   |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: transmute of type argument &i32 to &mut i32
+   = note: `-D clippy::mutable-adt-argument-transmute` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::mutable_adt_argument_transmute)]`
+
+error: transmuting references into their mutable version is unsound
+  --> tests/ui/mutable_adt_argument_transmute.rs:7:39
+   |
+LL |         let _: Result<&mut i32, ()> = std::mem::transmute(Result::<&i32, ()>::Ok(&5i32));
+   |                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: transmute of type argument &i32 to &mut i32
+
+error: transmuting references into their mutable version is unsound
+  --> tests/ui/mutable_adt_argument_transmute.rs:10:13
+   |
+LL |             std::mem::transmute(Result::<Option<&String>, ()>::Ok(Some(&"foo".to_string())));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: transmute of type argument &std::string::String to &mut std::string::String
+
+error: transmuting references into their mutable version is unsound
+  --> tests/ui/mutable_adt_argument_transmute.rs:12:43
+   |
+LL |         let _: Result<&mut f32, &usize> = std::mem::transmute(Result::<&f32, &usize>::Ok(&2f32));
+   |                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: transmute of type argument &f32 to &mut f32
+
+error: transmuting references into their mutable version is unsound
+  --> tests/ui/mutable_adt_argument_transmute.rs:14:41
+   |
+LL |         let _: Result<(), &mut usize> = std::mem::transmute(Result::<(), &usize>::Ok(()));
+   |                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: transmute of type argument &usize to &mut usize
+
+error: transmuting references into their mutable version is unsound
+  --> tests/ui/mutable_adt_argument_transmute.rs:17:57
+   |
+LL |         let _: Option<(&mut i32, &mut i32, &mut u32)> = std::mem::transmute(Some((&5i32, &10i32, &15u32)));
+   |                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: transmute of type argument &i32 to &mut i32
+   = note: transmute of type argument &u32 to &mut u32
+
+error: transmuting references into their mutable version is unsound
+  --> tests/ui/mutable_adt_argument_transmute.rs:31:43
+   |
+LL |         let d: fn() -> &'static mut i32 = std::mem::transmute(c);
+   |                                           ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: transmute of type argument &i32 to &mut i32
+
+error: aborting due to 7 previous errors
+
