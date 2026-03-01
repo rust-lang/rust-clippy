@@ -68,18 +68,18 @@ fn get_lint_and_message(is_local: bool, is_comparing_arrays: bool) -> (&'static 
         (
             FLOAT_CMP,
             if is_comparing_arrays {
-                "strict comparison of `f32` or `f64` arrays"
+                "strict comparison of floating point arrays"
             } else {
-                "strict comparison of `f32` or `f64`"
+                "strict comparison of floating point values"
             },
         )
     } else {
         (
             FLOAT_CMP_CONST,
             if is_comparing_arrays {
-                "strict comparison of `f32` or `f64` constant arrays"
+                "strict comparison of floating point constant arrays"
             } else {
-                "strict comparison of `f32` or `f64` constant"
+                "strict comparison of floating point constant"
             },
         )
     }
@@ -87,12 +87,15 @@ fn get_lint_and_message(is_local: bool, is_comparing_arrays: bool) -> (&'static 
 
 fn is_allowed(val: &Constant) -> bool {
     match val {
-        // FIXME(f16_f128): add when equality check is available on all platforms
+        &Constant::F16(f) => f == 0.0 || f.is_infinite(),
         &Constant::F32(f) => f == 0.0 || f.is_infinite(),
         &Constant::F64(f) => f == 0.0 || f.is_infinite(),
+        &Constant::F128(f) => f == 0.0 || f.is_infinite(),
         Constant::Vec(vec) => vec.iter().all(|f| match f {
+            Constant::F16(f) => *f == 0.0 || (*f).is_infinite(),
             Constant::F32(f) => *f == 0.0 || (*f).is_infinite(),
             Constant::F64(f) => *f == 0.0 || (*f).is_infinite(),
+            Constant::F128(f) => *f == 0.0 || (*f).is_infinite(),
             _ => false,
         }),
         _ => false,
