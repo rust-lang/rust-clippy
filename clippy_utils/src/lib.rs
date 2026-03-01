@@ -452,10 +452,9 @@ pub fn trait_ref_of_method<'tcx>(cx: &LateContext<'tcx>, owner: OwnerId) -> Opti
 /// This method will return tuple of projection stack and root of the expression,
 /// used in `can_mut_borrow_both`.
 ///
-/// For example, if `e` represents the `v[0].a.b[x]`
-/// this method will return a tuple, composed of a `Vec`
-/// containing the `Expr`s for `v[0], v[0].a, v[0].a.b, v[0].a.b[x]`
-/// and an `Expr` for root of them, `v`
+/// For example, if `e` represents the `v[0].a.b[x]` this method will return a tuple, composed of:
+/// - a `Vec` containing the `Expr`s for `v[0], v[0].a, v[0].a.b, v[0].a.b[x]`
+/// - and an `Expr` for root of them, `v`
 fn projection_stack<'a, 'hir>(mut e: &'a Expr<'hir>) -> (Vec<&'a Expr<'hir>>, &'a Expr<'hir>) {
     let mut result = vec![];
     let root = loop {
@@ -481,7 +480,8 @@ pub fn expr_custom_deref_adjustment(cx: &LateContext<'_>, e: &Expr<'_>) -> Optio
             Adjust::Deref(DerefAdjustKind::Builtin) => None,
             _ => Some(None),
         })
-        .and_then(|x| x)
+        // if there were no adjustments to begin with, trivially none of them are of the custom-deref kind
+        .unwrap_or(None)
 }
 
 /// Checks if two expressions can be mutably borrowed simultaneously

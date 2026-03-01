@@ -5384,7 +5384,7 @@ impl Methods {
                     }
                 },
                 (sym::lock, []) => {
-                    mut_mutex_lock::check(cx, expr, recv, span);
+                    mut_mutex_lock::check(cx, recv, span);
                 },
                 (name @ (sym::map | sym::map_err), [m_arg]) => {
                     if name == sym::map {
