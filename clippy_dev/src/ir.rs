@@ -3,6 +3,7 @@ use crate::{SourceFile, Span};
 use core::fmt::{self, Display};
 use core::ops::{Deref, DerefMut};
 use core::range::Range;
+use core::slice;
 use rustc_data_structures::fx::FxHashMap;
 
 /// The tool a lint comes from.
@@ -125,6 +126,120 @@ impl LintPassMac {
             Self::Impl => "impl_lint_pass",
         }
     }
+
+    #[must_use]
+    pub fn from_has_msrv(has_msrv: bool) -> Self {
+        if has_msrv { Self::Impl } else { Self::Declare }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub enum LintPassCtorArg {
+    TyCtxt,
+    Conf,
+    FmtArgs,
+    Attrs,
+}
+impl LintPassCtorArg {
+    #[must_use]
+    #[expect(clippy::should_implement_trait)]
+    pub fn from_str(s: &str) -> Option<Self> {
+        match s {
+            "TyCtxt" => Some(Self::TyCtxt),
+            "Conf" => Some(Self::Conf),
+            "FormatArgsStorage" => Some(Self::FmtArgs),
+            "AttrStorage" => Some(Self::Attrs),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct LintPassCtorArgs {
+    args: [LintPassCtorArg; 4],
+    len: u8,
+}
+#[expect(clippy::trivially_copy_pass_by_ref)]
+impl LintPassCtorArgs {
+    #[must_use]
+    pub fn new_conf() -> Self {
+        Self {
+            args: [LintPassCtorArg::Conf; 4],
+            len: 1,
+        }
+    }
+
+    #[expect(clippy::result_unit_err, clippy::missing_errors_doc)]
+    pub fn try_push(&mut self, arg: LintPassCtorArg) -> Result<(), ()> {
+        *self.args.get_mut(self.len as usize).ok_or(())? = arg;
+        self.len += 1;
+        Ok(())
+    }
+
+    #[must_use]
+    pub fn has_tcx(&self) -> bool {
+        self.iter().any(|&x| matches!(x, LintPassCtorArg::TyCtxt))
+    }
+
+    #[must_use]
+    pub fn has_conf(&self) -> bool {
+        self.iter().any(|&x| matches!(x, LintPassCtorArg::Conf))
+    }
+
+    #[must_use]
+    pub fn has_fmt_args(&self) -> bool {
+        self.iter().any(|&x| matches!(x, LintPassCtorArg::FmtArgs))
+    }
+
+    #[must_use]
+    pub fn has_attrs(&self) -> bool {
+        self.iter().any(|&x| matches!(x, LintPassCtorArg::Attrs))
+    }
+
+    pub fn iter(&self) -> slice::Iter<'_, LintPassCtorArg> {
+        self.args[..self.len as usize].iter()
+    }
+}
+impl Default for LintPassCtorArgs {
+    fn default() -> Self {
+        Self {
+            args: [LintPassCtorArg::TyCtxt; 4],
+            len: 0,
+        }
+    }
+}
+impl<'a> IntoIterator for &'a LintPassCtorArgs {
+    type Item = &'a LintPassCtorArg;
+    type IntoIter = slice::Iter<'a, LintPassCtorArg>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+/// What constructor to use for a lint pass.
+#[derive(Clone, Copy)]
+pub enum LintPassCtor {
+    Unit,
+    Default,
+    New(LintPassCtorArgs),
+}
+impl LintPassCtor {
+    #[must_use]
+    pub fn from_has_msrv(has_msrv: bool) -> Self {
+        if has_msrv {
+            Self::New(LintPassCtorArgs::new_conf())
+        } else {
+            Self::Unit
+        }
+    }
+
+    pub fn add_default(&mut self) {
+        match self {
+            Self::Unit => *self = Self::Default,
+            Self::Default | Self::New(_) => {},
+        }
+    }
 }
 
 pub struct LintPass<'cx> {
@@ -136,6 +251,7 @@ pub struct LintPass<'cx> {
     pub mac: LintPassMac,
     pub decl_sp: Span<'cx>,
     pub lints: &'cx mut [&'cx str],
+    pub ctor: LintPassCtor,
     pub is_early: bool,
     pub is_late: bool,
 }
