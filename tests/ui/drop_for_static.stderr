@@ -1,0 +1,131 @@
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:11:8
+   |
+LL | static A1: FooWithDrop = FooWithDrop;
+   |        ^^
+   |
+   = note: `-D clippy::drop-for-static` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::drop_for_static)]`
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:15:8
+   |
+LL | static A3: (FooWithoutDrop, FooWithDrop) = (FooWithoutDrop, FooWithDrop);
+   |        ^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:19:8
+   |
+LL | static A5: [FooWithDrop; 1] = [FooWithDrop];
+   |        ^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:28:8
+   |
+LL | static B1: Generic<FooWithDrop> = Generic(FooWithDrop, ());
+   |        ^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:32:8
+   |
+LL | static B3: Generic<FooWithoutDrop, Generic<FooWithDrop>> = Generic(FooWithoutDrop, Generic(FooWithDrop, ()));
+   |        ^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:36:8
+   |
+LL | static B5: Generic<(FooWithoutDrop, FooWithDrop)> = Generic((FooWithoutDrop, FooWithDrop), ());
+   |        ^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:40:8
+   |
+LL | static B7: Generic<[FooWithDrop; 1]> = Generic([FooWithDrop], ());
+   |        ^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:51:8
+   |
+LL | static C1: BarWithDrop = FooWithDrop;
+   |        ^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:55:8
+   |
+LL | static C3: (BarWithoutDrop, BarWithDrop) = (FooWithoutDrop, FooWithDrop);
+   |        ^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:59:8
+   |
+LL | static C5: [BarWithDrop; 1] = [FooWithDrop];
+   |        ^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:67:8
+   |
+LL | static D1: Generic<BarWithDrop> = Generic(FooWithDrop, ());
+   |        ^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:71:8
+   |
+LL | static D3: Generic<BarWithoutDrop, Generic<BarWithDrop>> = Generic(FooWithoutDrop, Generic(FooWithDrop, ()));
+   |        ^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:75:8
+   |
+LL | static D5: Generic<(BarWithoutDrop, BarWithDrop)> = Generic((FooWithoutDrop, FooWithDrop), ());
+   |        ^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:79:8
+   |
+LL | static D7: Generic<[BarWithDrop; 1]> = Generic([FooWithDrop], ());
+   |        ^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:100:8
+   |
+LL | static F1: <FooImplWithDrop as FooTrait>::FooAssoc = FooWithDrop;
+   |        ^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:104:8
+   |
+LL | static F3: (
+   |        ^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:114:8
+   |
+LL | static F5: [<FooImplWithDrop as FooTrait>::FooAssoc; 1] = [FooWithDrop];
+   |        ^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:122:8
+   |
+LL | static E1: Generic<<FooImplWithDrop as FooTrait>::FooAssoc> = Generic(FooWithDrop, ());
+   |        ^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:126:8
+   |
+LL | static E3: Generic<<FooImplWithoutDrop as FooTrait>::FooAssoc, Generic<<FooImplWithDrop as FooTrait>::FooAssoc>> =
+   |        ^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:132:8
+   |
+LL | static E5: Generic<(
+   |        ^^
+
+error: static items with drop implementation
+  --> tests/ui/drop_for_static.rs:142:8
+   |
+LL | static E7: Generic<[<FooImplWithDrop as FooTrait>::FooAssoc; 1]> = Generic([FooWithDrop], ());
+   |        ^^
+
+error: aborting due to 21 previous errors
+
