@@ -1,4 +1,4 @@
-use rustc_hir::{BinOpKind, Expr, ExprKind};
+use rustc_hir::{BinOpKind, Expr, ExprKind, QPath};
 use rustc_lint::LateContext;
 use rustc_middle::ty;
 
@@ -7,7 +7,7 @@ use clippy_utils::consts::{ConstEvalCtxt, Constant};
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::source::snippet;
 use clippy_utils::ty::is_isize_or_usize;
-use clippy_utils::{clip, int_bits, unsext};
+use clippy_utils::{clip, int_bits, sym, unsext};
 
 use super::ABSURD_EXTREME_COMPARISONS;
 
@@ -120,6 +120,78 @@ fn detect_absurd_comparison<'tcx>(
 
 fn detect_extreme_expr<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<ExtremeExpr<'tcx>> {
     let ty = cx.typeck_results().expr_ty(expr);
+
+    // Detect Duration zero values
+    if let ty::Adt(adt_def, _) = *ty.kind()
+        && cx.tcx.is_diagnostic_item(sym::Duration, adt_def.did())
+    {
+        if let ExprKind::Call(func, args) = &expr.kind {
+            if let ExprKind::Path(qpath) = &func.kind {
+                let method_name = match qpath {
+                    QPath::Resolved(_, path) => path.segments.last().map(|seg| seg.ident.name.as_str()),
+                    QPath::TypeRelative(_, seg) => Some(seg.ident.name.as_str()),
+                    _ => None,
+                };
+
+                // Handle constructors like from_secs(0), from_millis(0), etc.
+                if args.len() == 1 {
+                    let int_methods = ["from_secs", "from_millis", "from_micros", "from_nanos"];
+                    if int_methods.iter().any(|&m| Some(m) == method_name) {
+                        if let Some(Constant::Int(0)) = ConstEvalCtxt::new(cx).eval(&args[0]) {
+                            return Some(ExtremeExpr {
+                                which: ExtremeType::Minimum,
+                                expr,
+                            });
+                        }
+                    }
+
+                    // Handle float constructors
+                    let float_methods = ["from_secs_f32", "from_secs_f64"];
+                    if float_methods.iter().any(|&m| Some(m) == method_name) {
+                        if let ExprKind::Lit(lit) = &args[0].kind {
+                            let lit_str = snippet(cx, lit.span, "");
+                            if lit_str == "0.0" || lit_str == "0" {
+                                return Some(ExtremeExpr {
+                                    which: ExtremeType::Minimum,
+                                    expr,
+                                });
+                            }
+                        }
+                    }
+                }
+                // Handle new(0, 0)
+                else if args.len() == 2 && method_name == Some("new") {
+                    let first_arg_const = ConstEvalCtxt::new(cx).eval(&args[0]);
+                    let second_arg_const = ConstEvalCtxt::new(cx).eval(&args[1]);
+
+                    if let (Some(Constant::Int(0)), Some(Constant::Int(0))) = (first_arg_const, second_arg_const) {
+                        return Some(ExtremeExpr {
+                            which: ExtremeType::Minimum,
+                            expr,
+                        });
+                    }
+
+                    if let (ExprKind::Path(_), ExprKind::Path(_)) = (&args[0].kind, &args[1].kind) {
+                        if snippet(cx, args[0].span, "").contains("zero")
+                            && snippet(cx, args[1].span, "").contains("zero")
+                        {
+                            return Some(ExtremeExpr {
+                                which: ExtremeType::Minimum,
+                                expr,
+                            });
+                        }
+                    }
+                }
+                // Handle constructor default()
+                else if args.is_empty() && method_name == Some("default") {
+                    return Some(ExtremeExpr {
+                        which: ExtremeType::Minimum,
+                        expr,
+                    });
+                }
+            }
+        }
+    }
 
     let cv = ConstEvalCtxt::new(cx).eval(expr)?;
 
