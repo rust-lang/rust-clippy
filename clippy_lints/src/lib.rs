@@ -151,6 +151,7 @@ mod if_let_mutex;
 mod if_not_else;
 mod if_then_some_else_none;
 mod ifs;
+mod ifs_as_logical_ops;
 mod ignored_unit_patterns;
 mod impl_hash_with_borrow_str_and_bytes;
 mod implicit_hasher;
@@ -864,6 +865,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(move |tcx| Box::new(duration_suboptimal_units::DurationSuboptimalUnits::new(tcx, conf))),
         Box::new(move |_| Box::new(manual_take::ManualTake::new(conf))),
         Box::new(|_| Box::new(manual_checked_ops::ManualCheckedOps)),
+        Box::new(|_| Box::new(ifs_as_logical_ops::IfsAsLogicalOps)),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);
