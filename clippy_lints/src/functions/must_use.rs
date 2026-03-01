@@ -41,6 +41,7 @@ pub(super) fn check_item<'tcx>(cx: &LateContext<'tcx>, item: &'tcx hir::Item<'_>
                 cx,
                 sig.decl,
                 item.owner_id,
+                item.hir_id(),
                 item.span,
                 fn_header_span,
                 *attr_span,
@@ -74,6 +75,7 @@ pub(super) fn check_impl_item<'tcx>(cx: &LateContext<'tcx>, item: &'tcx hir::Imp
                 cx,
                 sig.decl,
                 item.owner_id,
+                item.hir_id(),
                 item.span,
                 fn_header_span,
                 *attr_span,
@@ -108,6 +110,7 @@ pub(super) fn check_trait_item<'tcx>(cx: &LateContext<'tcx>, item: &'tcx hir::Tr
                 cx,
                 sig.decl,
                 item.owner_id,
+                item.hir_id(),
                 item.span,
                 fn_header_span,
                 *attr_span,
@@ -138,6 +141,7 @@ fn check_needless_must_use(
     cx: &LateContext<'_>,
     decl: &hir::FnDecl<'_>,
     item_id: hir::OwnerId,
+    item_hir_id: hir::HirId,
     item_span: Span,
     fn_header_span: Span,
     attr_span: Span,
@@ -174,12 +178,12 @@ fn check_needless_must_use(
                 "remove `must_use`",
             );
         }
-    } else if reason.is_none() && is_must_use_ty(cx, return_ty(cx, item_id)) {
+    } else if reason.is_none() && is_must_use_ty(cx, return_ty(cx, item_id), item_hir_id) {
         // Ignore async functions unless Future::Output type is a must_use type
         if sig.header.is_async() {
             let infcx = cx.tcx.infer_ctxt().build(cx.typing_mode());
             if let Some(future_ty) = infcx.err_ctxt().get_impl_future_output_ty(return_ty(cx, item_id))
-                && !is_must_use_ty(cx, future_ty)
+                && !is_must_use_ty(cx, future_ty, item_hir_id)
             {
                 return;
             }
@@ -210,7 +214,7 @@ fn check_must_use_candidate<'tcx>(
         || item_span.in_external_macro(cx.sess().source_map())
         || returns_unit(decl)
         || !cx.effective_visibilities.is_exported(item_id.def_id)
-        || is_must_use_ty(cx, return_ty(cx, item_id))
+        || is_must_use_ty(cx, return_ty(cx, item_id), body.value.hir_id)
         || item_span.from_expansion()
         || is_entrypoint_fn(cx, item_id.def_id.to_def_id())
     {

@@ -102,7 +102,7 @@ impl<'tcx> LateLintPass<'tcx> for DropForgetRef {
                 sym::mem_drop
                     if !(arg_ty.needs_drop(cx.tcx, cx.typing_env())
                         || is_must_use_func_call(cx, arg)
-                        || is_must_use_ty(cx, arg_ty)
+                        || is_must_use_ty(cx, arg_ty, expr.hir_id)
                         || drop_is_single_call_in_arm) =>
                 {
                     (DROP_NON_DROP, DROP_NON_DROP_SUMMARY.into(), Some(arg.span))
