@@ -3,14 +3,15 @@
 #![allow(unused_variables, unused_must_use)]
 #![allow(
     clippy::borrow_deref_ref,
-    suspicious_double_ref_op,
-    noop_method_call,
+    clippy::deref_addrof,
     clippy::explicit_auto_deref,
     clippy::needless_borrow,
     clippy::no_effect,
+    clippy::redundant_ref_in_format_args,
     clippy::uninlined_format_args,
     clippy::unnecessary_literal_unwrap,
-    clippy::deref_addrof
+    noop_method_call,
+    suspicious_double_ref_op
 )]
 
 use std::ops::{Deref, DerefMut};

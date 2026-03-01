@@ -10,13 +10,13 @@ use clippy_utils::macros::{
 };
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeDef;
-use clippy_utils::source::{SpanRangeExt, snippet};
+use clippy_utils::source::{SpanRangeExt, snippet, snippet_opt};
 use clippy_utils::ty::implements_trait;
-use clippy_utils::{is_from_proc_macro, is_in_test, trait_ref_of_method};
+use clippy_utils::{is_from_proc_macro, is_in_test, peel_hir_expr_while, trait_ref_of_method};
 use itertools::Itertools;
 use rustc_ast::{
-    FormatArgPosition, FormatArgPositionKind, FormatArgsPiece, FormatArgumentKind, FormatCount, FormatOptions,
-    FormatPlaceholder, FormatTrait,
+    BorrowKind, FormatArgPosition, FormatArgPositionKind, FormatArgsPiece, FormatArgumentKind, FormatCount,
+    FormatOptions, FormatPlaceholder, FormatTrait,
 };
 use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
@@ -231,6 +231,34 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Detects format!-style macros (e.g. `format!`, `println!`, `write!`) where an argument
+    /// is passed with an explicit `&` but the value is already a reference, resulting in a
+    /// double reference (e.g. `&&T`).
+    ///
+    /// ### Why is this bad?
+    /// The extra `&` is redundant and can make the code less clear. Format macros take
+    /// references to the arguments internally, so passing `&x` when `x` is already a
+    /// reference produces a double reference. The compiler is currently unable to
+    /// optimize double references, which results in about 6% degradation per call.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let s: &str = "hello";
+    /// println!("{}", &s);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let s: &str = "hello";
+    /// println!("{}", s);
+    /// ```
+    #[clippy::version = "1.95.0"]
+    pub REDUNDANT_REF_IN_FORMAT_ARGS,
+    perf,
+    "redundant reference in format args causes double reference"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Suggests removing an unnecessary trailing comma before the closing parenthesis in
     /// single-line macro invocations.
     ///
@@ -260,12 +288,13 @@ declare_clippy_lint! {
 
 impl_lint_pass!(FormatArgs<'_> => [
     FORMAT_IN_FORMAT_ARGS,
+    POINTER_FORMAT,
+    REDUNDANT_REF_IN_FORMAT_ARGS,
     TO_STRING_IN_FORMAT_ARGS,
     UNINLINED_FORMAT_ARGS,
     UNNECESSARY_DEBUG_FORMATTING,
-    UNUSED_FORMAT_SPECS,
-    POINTER_FORMAT,
     UNNECESSARY_TRAILING_COMMA,
+    UNUSED_FORMAT_SPECS,
 ]);
 
 #[expect(clippy::struct_field_names)]
@@ -364,6 +393,18 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                 && let Some(arg_expr) = find_format_arg_expr(self.expr, arg)
             {
                 self.check_unused_format_specifier(placeholder, arg_expr);
+                self.check_redundant_ref_in_format_args(placeholder, arg_expr);
+
+                // Check width and precision arguments the same way as the value
+                for opt in [&placeholder.format_options.width, &placeholder.format_options.precision] {
+                    if let Some(FormatCount::Argument(position)) = opt.as_ref()
+                        && let Ok(pos_index) = position.index
+                        && let Some(pos_arg) = self.format_args.arguments.all_args().get(pos_index)
+                        && let Some(pos_arg_expr) = find_format_arg_expr(self.expr, pos_arg)
+                    {
+                        self.check_redundant_ref_in_format_args(placeholder, pos_arg_expr);
+                    }
+                }
 
                 if placeholder.format_trait == FormatTrait::Display
                     && placeholder.format_options == FormatOptions::default()
@@ -390,6 +431,43 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                     span_lint(self.cx, POINTER_FORMAT, span, "pointer formatting detected");
                 }
             }
+        }
+    }
+
+    fn check_redundant_ref_in_format_args(&self, placeholder: &FormatPlaceholder, arg_expr: &Expr<'tcx>) {
+        if !arg_expr.span.from_expansion()
+            && !is_from_proc_macro(self.cx, arg_expr)
+            && let Some(fmt_trait) = match placeholder.format_trait {
+                FormatTrait::Display => self.cx.tcx.get_diagnostic_item(sym::Display),
+                FormatTrait::Debug => self.cx.tcx.get_diagnostic_item(sym::Debug),
+                _ => None,
+            }
+            && let Some(sized_trait) = self.cx.tcx.lang_items().sized_trait()
+            && let peeled_expr = peel_hir_expr_while(arg_expr, |e| {
+                // Need to handle `&&&T` to `&T` when a single ref is still required
+                if let ExprKind::AddrOf(BorrowKind::Ref, _, e) = e.kind
+                    && let ty = self.cx.typeck_results().expr_ty(e)
+                    && implements_trait(self.cx, ty, sized_trait, &[])
+                    && implements_trait(self.cx, ty, fmt_trait, &[])
+                {
+                    Some(e)
+                } else {
+                    None
+                }
+            })
+            && !std::ptr::eq(arg_expr, peeled_expr)
+            && let Some(peeled_snippet) = snippet_opt(self.cx, peeled_expr.span)
+        {
+            let name = self.cx.tcx.item_name(self.macro_call.def_id);
+            span_lint_and_sugg(
+                self.cx,
+                REDUNDANT_REF_IN_FORMAT_ARGS,
+                arg_expr.span,
+                format!("redundant reference in `{name}!` argument"),
+                "remove the redundant `&`",
+                peeled_snippet,
+                Applicability::MachineApplicable,
+            );
         }
     }
 
