@@ -1,5 +1,5 @@
 error: casting from `*const u8` to a more-strictly-aligned pointer (`*const u16`) (1 < 2 bytes)
-  --> tests/ui/cast_alignment.rs:16:5
+  --> tests/ui/cast_ptr_alignment.rs:10:5
    |
 LL |     (&1u8 as *const u8) as *const u16;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -8,22 +8,38 @@ LL |     (&1u8 as *const u8) as *const u16;
    = help: to override `-D warnings` add `#[allow(clippy::cast_ptr_alignment)]`
 
 error: casting from `*mut u8` to a more-strictly-aligned pointer (`*mut u16`) (1 < 2 bytes)
-  --> tests/ui/cast_alignment.rs:19:5
+  --> tests/ui/cast_ptr_alignment.rs:13:5
    |
 LL |     (&mut 1u8 as *mut u8) as *mut u16;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: casting from `*const u8` to a more-strictly-aligned pointer (`*const u16`) (1 < 2 bytes)
-  --> tests/ui/cast_alignment.rs:23:5
+  --> tests/ui/cast_ptr_alignment.rs:17:5
    |
 LL |     (&1u8 as *const u8).cast::<u16>();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: casting from `*mut u8` to a more-strictly-aligned pointer (`*mut u16`) (1 < 2 bytes)
-  --> tests/ui/cast_alignment.rs:26:5
+  --> tests/ui/cast_ptr_alignment.rs:20:5
    |
 LL |     (&mut 1u8 as *mut u8).cast::<u16>();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 4 previous errors
+error: casting from `*const u8` to a possibly more-strictly-aligned pointer (`*const [Self; 2]`)
+  --> tests/ui/cast_ptr_alignment.rs:64:21
+   |
+LL |             let _ = bytes as *const [Self; 2];
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: the alignment of the target pointer isn't known because the alignment of `Self` can vary
+
+error: casting from `*const u8` to a possibly more-strictly-aligned pointer (`*const Self`)
+  --> tests/ui/cast_ptr_alignment.rs:68:13
+   |
+LL |             bytes as *const Self
+   |             ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: the alignment of `Self` can vary
+
+error: aborting due to 6 previous errors
 
