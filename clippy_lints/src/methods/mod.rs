@@ -139,6 +139,7 @@ mod unnecessary_option_map_or_else;
 mod unnecessary_result_map_or_else;
 mod unnecessary_sort_by;
 mod unnecessary_to_owned;
+mod unnecessary_unwrap_unchecked;
 mod unwrap_expect_used;
 mod useless_asref;
 mod useless_nonzero_new_unchecked;
@@ -4750,6 +4751,34 @@ declare_clippy_lint! {
     "filtering `std::io::Lines` with `filter_map()`, `flat_map()`, or `flatten()` might cause an infinite loop"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for calls to `unwrap_unchecked` when an `_unchecked` variant of the function exists.
+    ///
+    /// ### Why is this bad?
+    /// Calling the non-unchecked variant may result in checking that is then discarded
+    /// if `unwrap_unchecked` is called directly afterwards, whereas the unchecked
+    /// variant most likely avoids performing the check completely.
+    ///
+    /// ### Known problems
+    ///
+    /// The unchecked variant is only suggested if it's defined in the same `impl` block
+    /// as the non-unchecked one
+    ///
+    /// ### Example
+    /// ```rust
+    /// let s = unsafe { std::str::from_utf8(&[]).unwrap_unchecked() };
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// let s = unsafe { std::str::from_utf8_unchecked(&[]) };
+    /// ```
+    #[clippy::version = "1.94.0"]
+    pub UNNECESSARY_UNWRAP_UNCHECKED,
+    complexity,
+    "calling `unwrap_unchecked` on a function which has an `_unchecked` variant"
+}
+
 #[expect(clippy::struct_excessive_bools)]
 pub struct Methods {
     avoid_breaking_exported_api: bool,
@@ -4936,6 +4965,7 @@ impl_lint_pass!(Methods => [
     REDUNDANT_ITER_CLONED,
     UNNECESSARY_OPTION_MAP_OR_ELSE,
     LINES_FILTER_MAP_OK,
+    UNNECESSARY_UNWRAP_UNCHECKED,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -5229,7 +5259,11 @@ impl Methods {
                     }
                     unnecessary_literal_unwrap::check(cx, expr, recv, name, args);
                 },
-                (sym::expect_err, [_]) | (sym::unwrap_err | sym::unwrap_unchecked | sym::unwrap_err_unchecked, []) => {
+                (sym::unwrap_unchecked, []) => {
+                    unnecessary_unwrap_unchecked::check(cx, expr, recv, call_span);
+                    unnecessary_literal_unwrap::check(cx, expr, recv, name, args);
+                },
+                (sym::expect_err, [_]) | (sym::unwrap_err | sym::unwrap_err_unchecked, []) => {
                     unnecessary_literal_unwrap::check(cx, expr, recv, name, args);
                 },
                 (sym::extend, [arg]) => {
