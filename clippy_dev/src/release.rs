@@ -1,5 +1,10 @@
+use crate::sync::PUSH_PR_DESCRIPTION;
 use crate::utils::{FileUpdater, UpdateStatus, Version, parse_cargo_package};
-use std::fmt::Write;
+
+use std::fmt::{Display, Write};
+
+use clap::ValueEnum;
+use xshell::{Shell, cmd};
 
 static CARGO_TOML_FILES: &[&str] = &[
     "clippy_config/Cargo.toml",
@@ -27,4 +32,48 @@ pub fn bump_version(mut version: Version) {
             }
         });
     }
+}
+
+#[derive(ValueEnum, Copy, Clone)]
+pub enum Branch {
+    Stable,
+    Beta,
+    Master,
+}
+
+impl Display for Branch {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Branch::Stable => write!(f, "stable"),
+            Branch::Beta => write!(f, "beta"),
+            Branch::Master => write!(f, "master"),
+        }
+    }
+}
+
+pub fn rustc_clippy_commit(rustc_path: String, branch: Branch) {
+    let sh = Shell::new().expect("failed to create shell");
+    sh.change_dir(rustc_path);
+
+    let base = branch.to_string();
+    cmd!(sh, "git fetch https://github.com/rust-lang/rust {base}")
+        .run()
+        .expect("failed to fetch base commit");
+    let last_rustup_commit = cmd!(
+        sh,
+        "git log -1 --merges --grep=\"{PUSH_PR_DESCRIPTION}\" FETCH_HEAD -- src/tools/clippy"
+    )
+    .read()
+    .expect("failed to run git log");
+
+    let commit = last_rustup_commit
+        .lines()
+        .find(|c| c.contains("Sync from Clippy commit:"))
+        .expect("no commit found")
+        .trim()
+        .rsplit_once('@')
+        .expect("no commit hash found")
+        .1;
+
+    println!("{commit}");
 }

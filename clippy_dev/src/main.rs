@@ -84,10 +84,17 @@ fn main() {
             new_parse_cx(|cx| edit_lints::deprecate(cx, clippy.version, &name, &reason));
         },
         DevCommand::Sync(SyncCommand { subcommand }) => match subcommand {
-            SyncSubcommand::UpdateNightly => sync::update_nightly(),
+            SyncSubcommand::Pull => sync::rustc_pull(),
+            SyncSubcommand::Push {
+                repo_path,
+                user,
+                branch,
+                force,
+            } => sync::rustc_push(repo_path, &user, &branch, force),
         },
         DevCommand::Release(ReleaseCommand { subcommand }) => match subcommand {
             ReleaseSubcommand::BumpVersion => release::bump_version(clippy.version),
+            ReleaseSubcommand::Commit { repo_path, branch } => release::rustc_clippy_commit(repo_path, branch),
         },
     }
 }
@@ -348,9 +355,24 @@ struct SyncCommand {
 
 #[derive(Subcommand)]
 enum SyncSubcommand {
-    #[command(name = "update_nightly")]
-    /// Update nightly version in `rust-toolchain.toml` and `clippy_utils`
-    UpdateNightly,
+    /// Pull changes from rustc and update the toolchain
+    Pull,
+    /// Push changes to rustc
+    Push {
+        /// The path to a rustc repo that will be used for pushing changes
+        repo_path: String,
+        #[arg(long)]
+        /// The GitHub username to use for pushing changes
+        user: String,
+        #[arg(long, short, default_value = "clippy-subtree-update")]
+        /// The branch to push to
+        ///
+        /// This is mostly for experimentation and usually the default should be used.
+        branch: String,
+        #[arg(long, short)]
+        /// Force push changes
+        force: bool,
+    },
 }
 
 #[derive(Args)]
@@ -364,4 +386,11 @@ enum ReleaseSubcommand {
     #[command(name = "bump_version")]
     /// Bump the version in the Cargo.toml files
     BumpVersion,
+    /// Print the Clippy commit in the rustc repo for the specified branch
+    Commit {
+        /// The path to a rustc repo to look for the commit
+        repo_path: String,
+        /// For which branch to print the commit
+        branch: release::Branch,
+    },
 }
