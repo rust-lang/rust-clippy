@@ -194,6 +194,16 @@ default configuration of Clippy. By default, any configuration will replace the 
 * [`renamed_function_params`](https://rust-lang.github.io/rust-clippy/master/index.html#renamed_function_params)
 
 
+## `allow-unreachable-in-tests`
+Whether `unreachable` should be allowed in test functions or `#[cfg(test)]`
+
+**Default Value:** `false`
+
+---
+**Affected lints:**
+* [`unreachable`](https://rust-lang.github.io/rust-clippy/master/index.html#unreachable)
+
+
 ## `allow-unwrap-in-consts`
 Whether `unwrap` should be allowed in code always evaluated at compile time
 
