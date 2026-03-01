@@ -182,15 +182,23 @@ pub fn lookup_path_str(tcx: TyCtxt<'_>, ns: PathNS, path: &str) -> Vec<DefId> {
 /// [2]: https://doc.rust-lang.org/std/boxed/struct.Box.html#method.downcast-1
 /// [3]: https://doc.rust-lang.org/std/boxed/struct.Box.html#method.downcast-2
 pub fn lookup_path(tcx: TyCtxt<'_>, ns: PathNS, path: &[Symbol]) -> Vec<DefId> {
-    let (root, rest) = match *path {
-        [] | [_] => return Vec::new(),
-        [root, ref rest @ ..] => (root, rest),
-    };
-
     let mut out = Vec::new();
-    for &base in find_crates(tcx, root).iter().chain(find_primitive_impls(tcx, root)) {
-        lookup_with_base(tcx, base, ns, rest, &mut out);
+
+    match *path {
+        [] => {},
+        // Single segment: search from current crate root
+        // This allows resolving local type names like "Foo" from clippy.toml
+        [_name] => {
+            lookup_with_base(tcx, LOCAL_CRATE.as_def_id(), ns, path, &mut out);
+        },
+        // Multi-segment paths: existing behavior
+        [root, ref rest @ ..] => {
+            for &base in find_crates(tcx, root).iter().chain(find_primitive_impls(tcx, root)) {
+                lookup_with_base(tcx, base, ns, rest, &mut out);
+            }
+        },
     }
+
     out
 }
 

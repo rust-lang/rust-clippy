@@ -65,7 +65,18 @@ impl ArithmeticSideEffects {
 
     /// Checks if the lhs and the rhs types of a binary operation like "addition" or
     /// "multiplication" are present in the inner set of allowed types.
-    fn has_allowed_binary(&self, lhs_ty: Ty<'_>, rhs_ty: Ty<'_>) -> bool {
+    fn has_allowed_binary(&self, cx: &LateContext<'_>, lhs_ty: Ty<'_>, rhs_ty: Ty<'_>) -> bool {
+        if let (ty::Float(lhs_float), ty::Float(rhs_float)) = (lhs_ty.kind(), rhs_ty.kind())
+            && lhs_float == rhs_float
+            && matches!(lhs_float, ty::FloatTy::F32 | ty::FloatTy::F64)
+        {
+            return true;
+        }
+
+        if lhs_ty.is_diag_item(cx, sym::String) && (rhs_ty.is_str() || rhs_ty.is_diag_item(cx, sym::String)) {
+            return true;
+        }
+
         let lhs_ty_string = lhs_ty.to_string();
         let lhs_ty_string_elem = lhs_ty_string.split('<').next().unwrap_or_default();
         let rhs_ty_string = rhs_ty.to_string();
@@ -86,7 +97,17 @@ impl ArithmeticSideEffects {
 
     /// Checks if the type of an unary operation like "negation" is present in the inner set of
     /// allowed types.
-    fn has_allowed_unary(&self, ty: Ty<'_>) -> bool {
+    fn has_allowed_unary(&self, cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
+        if let ty::Float(float_ty) = ty.kind()
+            && matches!(float_ty, ty::FloatTy::F32 | ty::FloatTy::F64)
+        {
+            return true;
+        }
+
+        if matches!(ty.opt_diag_name(cx), Some(sym::Saturating | sym::Wrapping)) {
+            return true;
+        }
+
         let ty_string = ty.to_string();
         let ty_string_elem = ty_string.split('<').next().unwrap_or_default();
         self.allowed_unary.contains(ty_string_elem)
@@ -167,7 +188,7 @@ impl ArithmeticSideEffects {
 
         let lhs_ty = cx.typeck_results().expr_ty(actual_lhs).peel_refs();
         let rhs_ty = cx.typeck_results().expr_ty_adjusted(actual_rhs).peel_refs();
-        if self.has_allowed_binary(lhs_ty, rhs_ty)
+        if self.has_allowed_binary(cx, lhs_ty, rhs_ty)
             | has_specific_allowed_type_and_operation(cx, lhs_ty, op, rhs_ty)
             | is_safe_due_to_smaller_source_type(cx, op, (actual_lhs, lhs_ty), actual_rhs)
             | is_safe_due_to_smaller_source_type(cx, op, (actual_rhs, rhs_ty), actual_lhs)
@@ -253,7 +274,7 @@ impl ArithmeticSideEffects {
             return;
         }
         let ty = cx.typeck_results().expr_ty_adjusted(expr).peel_refs();
-        if self.has_allowed_unary(ty) {
+        if self.has_allowed_unary(cx, ty) {
             return;
         }
         let actual_un_expr = peel_hir_expr_refs(un_expr).0;
