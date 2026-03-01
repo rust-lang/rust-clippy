@@ -10,35 +10,45 @@ use rustc_errors::{Applicability, MultiSpan};
 use rustc_hir::LangItem::OptionNone;
 use rustc_hir::{Arm, Expr, ExprKind, HirId, Pat, PatExpr, PatExprKind, PatKind};
 use rustc_lint::LateContext;
-use rustc_span::symbol::Ident;
-use rustc_span::{BytePos, Span};
-
-use crate::collapsible_if::{parens_around, peel_parens};
+use rustc_span::{BytePos, Ident, Span, SyntaxContext};
 
 use super::{COLLAPSIBLE_MATCH, pat_contains_disallowed_or};
+use crate::collapsible_if::{parens_around, peel_parens};
 
 pub(super) fn check_match<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, arms: &'tcx [Arm<'_>], msrv: Msrv) {
     if let Some(els_arm) = arms.iter().rfind(|arm| arm_is_wild_like(cx, arm)) {
         for arm in arms {
-            check_arm(cx, true, arm.pat, expr, arm.body, arm.guard, Some(els_arm.body), msrv);
+            check_arm(
+                cx,
+                arm.span.ctxt(),
+                true,
+                arm.pat,
+                expr,
+                arm.body,
+                arm.guard,
+                Some(els_arm.body),
+                msrv,
+            );
         }
     }
 }
 
 pub(super) fn check_if_let<'tcx>(
     cx: &LateContext<'tcx>,
+    ctxt: SyntaxContext,
     pat: &'tcx Pat<'_>,
     body: &'tcx Expr<'_>,
     else_expr: Option<&'tcx Expr<'_>>,
     let_expr: &'tcx Expr<'_>,
     msrv: Msrv,
 ) {
-    check_arm(cx, false, pat, let_expr, body, None, else_expr, msrv);
+    check_arm(cx, ctxt, false, pat, let_expr, body, None, else_expr, msrv);
 }
 
 #[expect(clippy::too_many_arguments, clippy::too_many_lines)]
 fn check_arm<'tcx>(
     cx: &LateContext<'tcx>,
+    ctxt: SyntaxContext,
     outer_is_match: bool,
     outer_pat: &'tcx Pat<'tcx>,
     outer_cond: &'tcx Expr<'tcx>,
@@ -77,7 +87,7 @@ fn check_arm<'tcx>(
         && match (outer_else_body, inner_else_body) {
             (None, None) => true,
             (None, Some(e)) | (Some(e), None) => is_unit_expr(e),
-            (Some(a), Some(b)) => SpanlessEq::new(cx).eq_expr(a, b),
+            (Some(a), Some(b)) => SpanlessEq::new(cx).eq_expr(ctxt, a, b),
         }
         // the binding must not be used in the if guard
         && outer_guard.is_none_or(|e| !is_local_used(cx, e, binding_id))
@@ -127,7 +137,7 @@ fn check_arm<'tcx>(
         && match (outer_else_body, inner.r#else) {
             (None, None) => true,
             (None, Some(e)) | (Some(e), None) => is_unit_expr(e),
-            (Some(a), Some(b)) => SpanlessEq::new(cx).eq_expr(a, b),
+            (Some(a), Some(b)) => SpanlessEq::new(cx).eq_expr(ctxt, a, b),
         }
     {
         span_lint_hir_and_then(
