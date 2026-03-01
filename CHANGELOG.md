@@ -1800,8 +1800,6 @@ Released 2023-03-09
 
 * [`permissions_set_readonly_false`]
   [#10063](https://github.com/rust-lang/rust-clippy/pull/10063)
-* [`almost_complete_range`]
-  [#10043](https://github.com/rust-lang/rust-clippy/pull/10043)
 * [`size_of_ref`]
   [#10098](https://github.com/rust-lang/rust-clippy/pull/10098)
 * [`semicolon_outside_block`]
@@ -1821,6 +1819,8 @@ Released 2023-03-09
   [#10115](https://github.com/rust-lang/rust-clippy/pull/10115)
 * Renamed `derive_hash_xor_eq` to [`derived_hash_with_manual_eq`]
   [#10184](https://github.com/rust-lang/rust-clippy/pull/10184)
+* Renamed `almost_complete_letter_range` to [`almost_complete_range`] and extended it to check digits
+  [#10043](https://github.com/rust-lang/rust-clippy/pull/10043)
 
 ### Enhancements
 
