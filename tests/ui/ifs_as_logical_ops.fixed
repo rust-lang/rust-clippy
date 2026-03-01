@@ -1,5 +1,9 @@
+//@aux-build:proc_macros.rs
 #![warn(clippy::ifs_as_logical_ops)]
 #![expect(clippy::needless_bool)]
+
+extern crate proc_macros;
+use proc_macros::{external, with_span};
 
 fn main() {
     // test code goes here
@@ -8,6 +12,10 @@ fn main() {
 fn basic_lint_test(b1: bool, b2: bool) -> bool {
     b1 && b2
     //~^ ifs_as_logical_ops
+}
+
+fn lint_test_with_cfg_as_second_argument(b1: bool, b2: bool) -> bool {
+    if b1 { b2 } else { cfg!(false) }
 }
 
 fn nested_expressions_produces_lint(b1: bool, b2: bool) -> bool {
@@ -31,7 +39,7 @@ fn complex_expressions_do_not_produce_lint(b1: bool, b2: bool) -> bool {
     }
 }
 
-fn example_with_if_comment_does_not_lint(chars: Vec<char>) -> bool {
+fn example_with_if_comment_before_expr_does_not_lint(chars: Vec<char>) -> bool {
     if !chars.is_empty() {
         // SAFETY: Always starts with ^[ and ends with m.
         chars.len() > 5
@@ -40,12 +48,30 @@ fn example_with_if_comment_does_not_lint(chars: Vec<char>) -> bool {
     }
 }
 
-fn example_with_else_comment_does_not_lint(chars: Vec<char>) -> bool {
+fn example_with_if_comment_after_expr_does_not_lint(chars: Vec<char>) -> bool {
+    if !chars.is_empty() {
+        chars.len() > 5
+        // SAFETY: Always starts with ^[ and ends with m.
+    } else {
+        false
+    }
+}
+
+fn example_with_else_comment_before_expr_does_not_lint(chars: Vec<char>) -> bool {
     if !chars.is_empty() {
         chars.len() > 5
     } else {
         // Watch out! Comment!
         false
+    }
+}
+
+fn example_with_else_comment_after_expr_does_not_lint(chars: Vec<char>) -> bool {
+    if !chars.is_empty() {
+        chars.len() > 5
+    } else {
+        false
+        // Watch out! Comment!
     }
 }
 
@@ -140,4 +166,18 @@ fn macro_without_comment_does_lint(b1: bool, num: i32) -> bool {
     }
     b1 && b2!()
     //~^ ifs_as_logical_ops
+}
+
+fn proc_macro_tests() {
+    proc_macros::external! {
+        fn would_lint_usually(b1: bool, num: i32) -> bool {
+            if b1 { num > 30 } else { false }
+        }
+    }
+    proc_macros::with_span! {
+        span
+        fn would_lint_usually_2(b1: bool, num: i32) -> bool {
+            if b1 { num > 30 } else { false }
+        }
+    }
 }
