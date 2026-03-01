@@ -31,6 +31,8 @@
 #![allow(clippy::useless_conversion)]
 #![allow(clippy::redundant_pattern_matching)]
 #![allow(clippy::match_result_ok)]
+#![allow(clippy::manual_saturating_add)]
+#![allow(clippy::manual_saturating_sub)]
 #![allow(clippy::non_canonical_clone_impl)]
 #![allow(clippy::non_canonical_partial_ord_impl)]
 #![allow(clippy::arithmetic_side_effects)]
@@ -39,6 +41,7 @@
 #![allow(invalid_null_arguments)]
 #![allow(invalid_value)]
 #![allow(invalid_from_utf8_unchecked)]
+#![allow(clippy::almost_saturating_sub)]
 #![allow(let_underscore_drop)]
 #![allow(clippy::overly_complex_bool_expr)]
 #![allow(unexpected_cfgs)]
@@ -99,6 +102,8 @@
 #![warn(clippy::identity_conversion)] //~ ERROR: lint `clippy::identity_conversion`
 #![warn(clippy::if_let_redundant_pattern_matching)] //~ ERROR: lint `clippy::if_let_redundant_pattern_matching`
 #![warn(clippy::if_let_some_result)] //~ ERROR: lint `clippy::if_let_some_result`
+#![warn(clippy::implicit_saturating_add)] //~ ERROR: lint `clippy::implicit_saturating_add`
+#![warn(clippy::implicit_saturating_sub)] //~ ERROR: lint `clippy::implicit_saturating_sub`
 #![warn(clippy::incorrect_clone_impl_on_copy_type)] //~ ERROR: lint `clippy::incorrect_clone_impl_on_copy_type`
 #![warn(clippy::incorrect_partial_ord_impl_on_ord_type)] //~ ERROR: lint `clippy::incorrect_partial_ord_impl_on_ord_type`
 #![warn(clippy::integer_arithmetic)] //~ ERROR: lint `clippy::integer_arithmetic`
@@ -107,6 +112,7 @@
 #![warn(clippy::invalid_null_ptr_usage)] //~ ERROR: lint `clippy::invalid_null_ptr_usage`
 #![warn(clippy::invalid_ref)] //~ ERROR: lint `clippy::invalid_ref`
 #![warn(clippy::invalid_utf8_in_unchecked)] //~ ERROR: lint `clippy::invalid_utf8_in_unchecked`
+#![warn(clippy::inverted_saturating_sub)] //~ ERROR: lint `clippy::inverted_saturating_sub`
 #![warn(clippy::let_underscore_drop)] //~ ERROR: lint `clippy::let_underscore_drop`
 #![warn(clippy::logic_bug)] //~ ERROR: lint `clippy::logic_bug`
 #![warn(clippy::maybe_misused_cfg)] //~ ERROR: lint `clippy::maybe_misused_cfg`

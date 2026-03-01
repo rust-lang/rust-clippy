@@ -32,13 +32,13 @@ declare_clippy_lint! {
     /// u = u.saturating_add(1);
     /// ```
     #[clippy::version = "1.66.0"]
-    pub IMPLICIT_SATURATING_ADD,
+    pub MANUAL_SATURATING_ADD,
     style,
     "Perform saturating addition instead of implicitly checking max bound of data type"
 }
-declare_lint_pass!(ImplicitSaturatingAdd => [IMPLICIT_SATURATING_ADD]);
+declare_lint_pass!(ManualSaturatingAdd => [MANUAL_SATURATING_ADD]);
 
-impl<'tcx> LateLintPass<'tcx> for ImplicitSaturatingAdd {
+impl<'tcx> LateLintPass<'tcx> for ManualSaturatingAdd {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         if let ExprKind::If(cond, then, None) = expr.kind
             && let Some((c, op_node, l)) = get_const(cx, cond)
@@ -84,7 +84,7 @@ impl<'tcx> LateLintPass<'tcx> for ImplicitSaturatingAdd {
             };
             span_lint_and_sugg(
                 cx,
-                IMPLICIT_SATURATING_ADD,
+                MANUAL_SATURATING_ADD,
                 expr.span,
                 "manual saturating add detected",
                 "use instead",
