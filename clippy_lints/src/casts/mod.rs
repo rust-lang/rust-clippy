@@ -953,6 +953,7 @@ impl<'tcx> LateLintPass<'tcx> for Casts {
         cast_ptr_alignment::check_cast_method(cx, expr);
         cast_slice_different_sizes::check(cx, expr, self.msrv);
         ptr_cast_constness::check_null_ptr_cast_method(cx, expr);
+        ptr_cast_constness::check_implicit_cast_from_mut(cx, expr, self.msrv);
     }
 
     fn check_body(&mut self, cx: &LateContext<'tcx>, body: &rustc_hir::Body<'tcx>) {
