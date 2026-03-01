@@ -1,0 +1,41 @@
+error: expression can be simplified using `Option::unwrap_or()`
+  --> tests/ui/map_or_identity.rs:6:9
+   |
+LL |         opt.map_or(default, |o| o)
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `unwrap_or`: `opt.unwrap_or(default)`
+   |
+   = note: `-D clippy::map-or-identity` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::map_or_identity)]`
+
+error: expression can be simplified using `Result::unwrap_or()`
+  --> tests/ui/map_or_identity.rs:11:9
+   |
+LL |         res.map_or(default, |o| o)
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `unwrap_or`: `res.unwrap_or(default)`
+
+error: expression can be simplified using `Option::unwrap_or()`
+  --> tests/ui/map_or_identity.rs:22:9
+   |
+LL |         opt.map_or(mac!(42), |x| x)
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `unwrap_or`: `opt.unwrap_or(mac!(42))`
+
+error: expression can be simplified using `Result::unwrap_or()`
+  --> tests/ui/map_or_identity.rs:27:9
+   |
+LL |         res.map_or(mac!(42), |x| x)
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `unwrap_or`: `res.unwrap_or(mac!(42))`
+
+error: expression can be simplified using `Option::unwrap_or()`
+  --> tests/ui/map_or_identity.rs:32:9
+   |
+LL |         mac!(opt).map_or(42, |x| x)
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `unwrap_or`: `mac!(opt).unwrap_or(42)`
+
+error: expression can be simplified using `Result::unwrap_or()`
+  --> tests/ui/map_or_identity.rs:37:9
+   |
+LL |         mac!(res).map_or(42, |x| x)
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `unwrap_or`: `mac!(res).unwrap_or(42)`
+
+error: aborting due to 6 previous errors
+
