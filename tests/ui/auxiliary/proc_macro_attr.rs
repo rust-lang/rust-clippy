@@ -1,5 +1,9 @@
 #![feature(proc_macro_hygiene, proc_macro_quote, box_patterns)]
-#![allow(clippy::useless_conversion, clippy::uninlined_format_args)]
+#![allow(
+    clippy::clear_instead_of_new,
+    clippy::useless_conversion,
+    clippy::uninlined_format_args
+)]
 
 extern crate proc_macro;
 extern crate quote;
