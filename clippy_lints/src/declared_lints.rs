@@ -410,6 +410,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::methods::JOIN_ABSOLUTE_PATHS_INFO,
     crate::methods::LINES_FILTER_MAP_OK_INFO,
     crate::methods::MANUAL_C_STR_LITERALS_INFO,
+    crate::methods::MANUAL_CLEAR_INFO,
     crate::methods::MANUAL_CONTAINS_INFO,
     crate::methods::MANUAL_FILTER_MAP_INFO,
     crate::methods::MANUAL_FIND_MAP_INFO,
