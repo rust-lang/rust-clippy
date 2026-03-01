@@ -757,6 +757,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::unicode::UNICODE_NOT_NFC_INFO,
     crate::uninhabited_references::UNINHABITED_REFERENCES_INFO,
     crate::uninit_vec::UNINIT_VEC_INFO,
+    crate::unit_as_impl_trait::UNIT_AS_IMPL_TRAIT_INFO,
     crate::unit_return_expecting_ord::UNIT_RETURN_EXPECTING_ORD_INFO,
     crate::unit_types::LET_UNIT_VALUE_INFO,
     crate::unit_types::UNIT_ARG_INFO,
