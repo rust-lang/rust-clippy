@@ -1,0 +1,20 @@
+error: using inferred pointer cast to unsuggestable type: `*const fn(usize) {issue_15281::bar}`
+  --> tests/ui/as_pointer_underscore_unfixable.rs:8:21
+   |
+LL |     let _ = &bar as *const _;
+   |                     ^^^^^^^^
+   |
+   = help: use explicit type
+   = note: `-D clippy::as-pointer-underscore` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::as_pointer_underscore)]`
+
+error: using inferred pointer cast to unsuggestable type: `*const &{closure@tests/ui/as_pointer_underscore_unfixable.rs:11:20: 11:22}`
+  --> tests/ui/as_pointer_underscore_unfixable.rs:12:25
+   |
+LL |     let _ = &closure as *const _;
+   |                         ^^^^^^^^
+   |
+   = help: use explicit type
+
+error: aborting due to 2 previous errors
+
