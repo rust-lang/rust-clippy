@@ -1,12 +1,13 @@
 pub mod cursor;
 
-use self::cursor::{Capture, Cursor, IdentPat};
+use self::cursor::{Capture, Cursor, IdentPat, UnexpectedErr};
 use crate::ir::{
-    ActiveLintData, ConfDef, ConfOpt, DeprecatedLintData, Lint, LintData, LintMap, LintName, LintPass, LintPassMac,
-    LintPasses, LintTool, ParsedLints, RenamedLintData,
+    ActiveLintData, ConfDef, ConfOpt, DeprecatedLintData, Lint, LintData, LintMap, LintName, LintPass, LintPassCtor,
+    LintPassCtorArg, LintPassCtorArgs, LintPassMac, LintPasses, LintTool, ParsedLints, RenamedLintData,
 };
 use crate::utils::{ErrAction, Scoped, StrBuf, VecBuf, expect_action, walk_dir_no_dot_or_target};
 use crate::{DiagCx, SourceFile, Span};
+use core::panic::Location;
 use rustc_arena::{DroplessArena, TypedArena};
 use rustc_data_structures::fx::FxHashMap;
 use std::collections::hash_map::{Entry, VacantEntry};
@@ -35,25 +36,35 @@ pub fn new_parse_cx<'env, T>(f: impl for<'cx> FnOnce(&'cx mut Scoped<'cx, 'env, 
 }
 
 #[derive(Clone, Copy)]
-enum ImplTrait {
+enum PassTrait {
     EarlyLintPass,
     LateLintPass,
+    Default,
 }
-impl ImplTrait {
+impl PassTrait {
     fn from_str(s: &str) -> Option<Self> {
         match s {
             "EarlyLintPass" => Some(Self::EarlyLintPass),
             "LateLintPass" => Some(Self::LateLintPass),
+            "Default" => Some(Self::Default),
             _ => None,
         }
     }
+}
 
-    fn add_to_pass(self, pass: &mut LintPass<'_>) {
-        match self {
-            Self::EarlyLintPass => pass.is_early = true,
-            Self::LateLintPass => pass.is_late = true,
-        }
-    }
+/// Parsed impl block of a lint pass.
+#[derive(Clone, Copy)]
+enum PassImplKind {
+    Trait(PassTrait),
+    New(LintPassCtorArgs),
+    UnexpectedErr(UnexpectedErr<'static>),
+    SpannedErr(Capture, &'static str, &'static Location<'static>),
+}
+
+#[derive(Clone, Copy)]
+struct PassImpl<'cx> {
+    ty: &'cx str,
+    kind: PassImplKind,
 }
 
 impl<'cx> ParseCxImpl<'cx> {
@@ -69,6 +80,19 @@ impl<'cx> ParseCxImpl<'cx> {
             Entry::Occupied(e) => {
                 self.dcx.emit_duplicate_lint(name_sp, e.get().name_sp);
                 None
+            },
+        }
+    }
+
+    fn add_impl_to_pass(&mut self, file: &'cx SourceFile<'cx>, impl_: &PassImplKind, pass: &mut LintPass<'_>) {
+        match impl_ {
+            PassImplKind::Trait(PassTrait::EarlyLintPass) => pass.is_early = true,
+            PassImplKind::Trait(PassTrait::LateLintPass) => pass.is_late = true,
+            PassImplKind::Trait(PassTrait::Default) => pass.ctor.add_default(),
+            &PassImplKind::New(args) => pass.ctor = LintPassCtor::New(args),
+            PassImplKind::UnexpectedErr(e) => e.emit(&mut self.dcx, file),
+            &PassImplKind::SpannedErr(capture, msg, loc) => {
+                self.dcx.emit_spanned_err_loc(capture.mk_sp(file), msg, loc);
             },
         }
     }
@@ -147,7 +171,7 @@ impl<'cx> ParseCxImpl<'cx> {
             })
             .and_then(|()| cursor.eat_close_brace().ok_or("`}`"))
         {
-            cursor.emit_unexpected(&mut self.dcx, file, expected);
+            cursor.mk_unexpected_err(expected).emit(&mut self.dcx, file);
         }
 
         data.decl_sp.range.end = cursor.pos();
@@ -214,7 +238,8 @@ impl<'cx> ParseCxImpl<'cx> {
 
         let mut cursor = Cursor::new(&file.contents);
         let mut captures = [Capture::EMPTY; 6];
-        let mut trait_impls = Vec::new();
+        let mut pass_impls = Vec::new();
+        let mut has_derive_default = false;
         let first_lint_pass = data.lint_passes.len();
 
         while let Some(mac_name) = cursor.find_capture_ident() {
@@ -250,7 +275,7 @@ impl<'cx> ParseCxImpl<'cx> {
                         })
                         .and_then(|()| cursor.eat_close_brace().ok_or("`}`"))
                     {
-                        cursor.emit_unexpected(&mut self.dcx, file, expected);
+                        cursor.mk_unexpected_err(expected).emit(&mut self.dcx, file);
                     } else if let [docs, version, name, group_comments, group, desc] = captures
                         && let name_sp = name.mk_sp(file)
                         && let name = self.str_buf.alloc_ascii_lower(self.arena, cursor.get_text(name))
@@ -293,7 +318,7 @@ impl<'cx> ParseCxImpl<'cx> {
                             cursor.match_all(&[CloseBracket, CloseParen, Semi], &mut [])
                         })
                     {
-                        cursor.emit_unexpected(&mut self.dcx, file, expected);
+                        cursor.mk_unexpected_err(expected).emit(&mut self.dcx, file);
                     } else {
                         data.lint_passes.push(LintPass {
                             docs: cursor.get_text(captures[0]),
@@ -306,41 +331,142 @@ impl<'cx> ParseCxImpl<'cx> {
                             },
                             decl_sp: Span::new(file, mac_name.pos..cursor.pos()),
                             lints,
+                            ctor: LintPassCtor::Unit,
                             is_early: false,
                             is_late: false,
                         });
                     }
                 },
-                "impl"
-                    if cursor.opt_match_all(&[Lt, Lifetime, Gt], &mut []).is_ok()
-                        && let Some(trait_) = cursor.capture_ident()
-                        && let Some(trait_) = ImplTrait::from_str(cursor.get_text(trait_))
-                        && cursor.opt_match_all(&[Lt, Lifetime, Gt], &mut []).is_ok()
-                        && cursor
-                            .match_all(&[Ident(IdentPat::r#for), CaptureIdent], &mut captures)
-                            .is_ok() =>
-                {
-                    let impl_ty = cursor.get_text(captures[0]);
-                    if let Some(pass) = data.lint_passes[first_lint_pass..]
+                "impl" if let Some(impl_) = self.parse_lint_impl(file, &mut cursor) => {
+                    match data.lint_passes[first_lint_pass..]
                         .iter_mut()
-                        .find(|pass| pass.name == impl_ty)
+                        .find(|pass| pass.name == impl_.ty)
                     {
-                        trait_.add_to_pass(pass);
-                    } else {
-                        trait_impls.push((impl_ty, trait_));
+                        Some(pass) => self.add_impl_to_pass(file, &impl_.kind, pass),
+                        None => pass_impls.push(impl_),
                     }
                 },
+                "derive" if cursor.eat_open_paren() => {
+                    while let Some(name) = cursor.capture_ident() {
+                        if cursor.get_text(name) == "Default" {
+                            has_derive_default = true;
+                            break;
+                        }
+                        if !cursor.eat_comma() {
+                            break;
+                        }
+                    }
+                    let _ = cursor.find_unnested_close_paren();
+                },
+                "struct" if has_derive_default => {
+                    has_derive_default = false;
+                    if let Some(ty) = cursor.capture_ident() {
+                        let ty = cursor.get_text(ty);
+                        if let Some(pass) = data.lint_passes[first_lint_pass..]
+                            .iter_mut()
+                            .find(|pass| pass.name == ty)
+                        {
+                            pass.ctor.add_default();
+                        } else {
+                            pass_impls.push(PassImpl {
+                                ty,
+                                kind: PassImplKind::Trait(PassTrait::Default),
+                            });
+                        }
+                    }
+                },
+                "enum" => has_derive_default = false,
                 _ => {},
             }
         }
 
-        for &(impl_ty, trait_) in &trait_impls {
+        for impl_ in &pass_impls {
             if let Some(pass) = data.lint_passes[first_lint_pass..]
                 .iter_mut()
-                .find(|pass| pass.name == impl_ty)
+                .find(|pass| pass.name == impl_.ty)
             {
-                trait_.add_to_pass(pass);
+                self.add_impl_to_pass(file, &impl_.kind, pass);
             }
+        }
+    }
+
+    fn parse_lint_impl(&mut self, file: &'cx SourceFile<'cx>, cursor: &mut Cursor<'cx>) -> Option<PassImpl<'cx>> {
+        #[allow(clippy::enum_glob_use)]
+        use cursor::Pat::*;
+
+        cursor.opt_match_all(&[Lt, Lifetime, Gt], &mut []).ok()?;
+        let name = cursor.capture_ident().map(|c| cursor.get_text(c))?;
+        match PassTrait::from_str(name) {
+            Some(trait_) => {
+                let pats: &[_] = match trait_ {
+                    PassTrait::LateLintPass => &[Lt, Lifetime, Gt, Ident(IdentPat::r#for)],
+                    PassTrait::EarlyLintPass | PassTrait::Default => &[Ident(IdentPat::r#for)],
+                };
+                if let Err(expected) = cursor.match_all(pats, &mut []) {
+                    cursor.mk_unexpected_err(expected).emit(&mut self.dcx, file);
+                    None
+                } else {
+                    cursor
+                        .capture_ident()
+                        .filter(|_| {
+                            cursor.opt_match_all(&[Lt, Lifetime, Gt], &mut []).is_ok() && cursor.eat_open_brace()
+                        })
+                        .map(|name| PassImpl {
+                            ty: cursor.get_text(name),
+                            kind: PassImplKind::Trait(trait_),
+                        })
+                }
+            },
+            None if cursor.opt_match_all(&[Lt, Lifetime, Gt], &mut []).is_ok() && cursor.eat_open_brace() => {
+                while cursor.find_unnested_ident("fn") {
+                    if !cursor.eat_ident("new") {
+                        continue;
+                    }
+                    if !cursor.eat_open_paren() {
+                        return Some(PassImpl {
+                            ty: name,
+                            kind: PassImplKind::UnexpectedErr(cursor.mk_unexpected_err("`(`")),
+                        });
+                    }
+                    let mut args = LintPassCtorArgs::default();
+                    let res = cursor.eat_list(|cursor| {
+                        if !cursor.find_unnested_colon() {
+                            return Ok(false);
+                        }
+                        let _ = cursor.eat_and() && cursor.eat_lifetime();
+                        let Some(ty) = cursor.capture_ident() else {
+                            return Err(PassImplKind::UnexpectedErr(cursor.mk_unexpected_err("an identifier")));
+                        };
+                        let Some(arg) = LintPassCtorArg::from_str(cursor.get_text(ty)) else {
+                            return Err(PassImplKind::SpannedErr(ty, "unexpected parameter type, expected `TyCtxt`, `Conf`, `FormatArgsStorage` or `AttrStorage`", Location::caller()));
+                        };
+                        if args.try_push(arg).is_err() {
+                            return Err(PassImplKind::SpannedErr(ty, "duplicate parameter type", Location::caller()));
+                        }
+                        cursor.eat_list_item();
+                        Ok(true)
+                    });
+                    let kind = match res {
+                        Ok(()) => {
+                            match cursor
+                                .eat_close_paren()
+                                .ok_or("`(`")
+                                .and_then(|()| cursor.find_unnested_close_brace().ok_or("`}`"))
+                            {
+                                Ok(()) => PassImplKind::New(args),
+                                Err(expected) => PassImplKind::UnexpectedErr(cursor.mk_unexpected_err(expected)),
+                            }
+                        },
+                        Err(kind) => {
+                            let _ = cursor.find_unnested_close_paren() && cursor.find_unnested_close_brace();
+                            kind
+                        },
+                    };
+                    return Some(PassImpl { ty: name, kind });
+                }
+                None
+            },
+            None => None,
         }
     }
 
@@ -431,7 +557,7 @@ impl<'cx> ParseCxImpl<'cx> {
                 })
             })
         {
-            cursor.emit_unexpected(&mut self.dcx, file, expected);
+            cursor.mk_unexpected_err(expected).emit(&mut self.dcx, file);
         }
     }
 

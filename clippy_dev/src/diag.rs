@@ -52,7 +52,7 @@ impl DiagCx {
                         .with_name("internal error")
                         .primary_title("errors were expected, but is was assumed one would occur"),
                 ),
-                mk_loc_group(),
+                mk_loc_group(Location::caller()),
             ]);
         }
         process::exit(1);
@@ -92,9 +92,7 @@ fn mk_spanned_secondary<'a>(level: Level<'a>, sp: Span<'a>, msg: impl Into<Cow<'
         .element(sp_to_snip(AnnotationKind::Context, sp))
 }
 
-#[track_caller]
-fn mk_loc_group() -> Group<'static> {
-    let loc = Location::caller();
+fn mk_loc_group<'a>(loc: &Location<'a>) -> Group<'a> {
     Level::INFO.secondary_title("error created here").element(
         Origin::path(loc.file())
             .line(loc.line() as usize)
@@ -112,14 +110,21 @@ impl DiagCx {
 
     #[track_caller]
     pub fn emit_spanned_err<'a>(&mut self, sp: Span<'a>, msg: impl Into<Cow<'a, str>>) {
-        self.render(&[mk_spanned_primary(Level::ERROR, sp, msg.into()), mk_loc_group()]);
+        self.render(&[
+            mk_spanned_primary(Level::ERROR, sp, msg.into()),
+            mk_loc_group(Location::caller()),
+        ]);
+    }
+
+    pub fn emit_spanned_err_loc<'a>(&mut self, sp: Span<'a>, msg: impl Into<Cow<'a, str>>, loc: &Location<'_>) {
+        self.render(&[mk_spanned_primary(Level::ERROR, sp, msg.into()), mk_loc_group(loc)]);
     }
 
     #[track_caller]
     pub fn emit_spanless_err<'a>(&mut self, msg: impl Into<Cow<'a, str>>) {
         self.render(&[
             Group::with_title(Level::ERROR.primary_title(msg.into())),
-            mk_loc_group(),
+            mk_loc_group(Location::caller()),
         ]);
     }
 
@@ -133,7 +138,7 @@ impl DiagCx {
         self.render(&[
             mk_spanned_primary(Level::ERROR, sp, "duplicate lint name declared"),
             mk_spanned_secondary(Level::NOTE, first_sp, "previous declaration here"),
-            mk_loc_group(),
+            mk_loc_group(Location::caller()),
         ]);
     }
 
@@ -142,7 +147,7 @@ impl DiagCx {
         self.render(&[
             mk_spanned_primary(Level::ERROR, sp, "not a clippy lint name"),
             Group::with_title(Level::HELP.secondary_title("add the `clippy::` tool prefix")),
-            mk_loc_group(),
+            mk_loc_group(Location::caller()),
         ]);
     }
 
