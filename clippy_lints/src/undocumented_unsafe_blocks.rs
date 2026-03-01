@@ -798,18 +798,11 @@ fn text_has_safety_comment(
     start_pos: BytePos,
     accept_comment_above_attributes: bool,
 ) -> HasSafetyComment {
-    let mut lines = line_starts
-        .array_windows::<2>()
-        .rev()
-        .map_while(|[start, end]| {
-            let start = start.to_usize();
-            let end = end.to_usize();
-            let text = src.get(start..end)?;
-            let trimmed = text.trim_start();
-            Some((start + (text.len() - trimmed.len()), trimmed))
-        })
-        .filter(|(_, text)| !(text.is_empty() || (accept_comment_above_attributes && is_attribute(text))));
-
+    let mut lines: Box<dyn Iterator<Item = (usize, &str)>> = if accept_comment_above_attributes {
+        Box::new(reversed_lines_skipping_attributes(src, line_starts))
+    } else {
+        Box::new(reversed_lines(src, line_starts))
+    };
     let Some((line_start, line)) = lines.next() else {
         return HasSafetyComment::No;
     };
@@ -884,8 +877,55 @@ fn text_has_safety_comment(
     }
 }
 
-fn is_attribute(text: &str) -> bool {
-    (text.starts_with("#[") || text.starts_with("#![")) && text.trim_end().ends_with(']')
+fn reversed_lines_skipping_attributes<'a>(
+    src: &'a str,
+    line_starts: &'a [RelativeBytePos],
+) -> impl Iterator<Item = (usize, &'a str)> + 'a {
+    let lines = line_starts
+        .array_windows::<2>()
+        .filter_map(|[start, end]| process_line(src, *start, *end));
+
+    let mut buffer = vec![];
+    let mut in_attribute = false;
+    for (start, text) in lines {
+        if in_attribute {
+            in_attribute = !is_attribute_end(text);
+        } else if is_attribute_start(text) {
+            if !is_attribute_end(text) {
+                in_attribute = true;
+            }
+        } else {
+            buffer.push((start, text));
+        }
+    }
+    buffer.into_iter().rev()
+}
+
+fn is_attribute_start(text: &str) -> bool {
+    text.starts_with("#[") || text.starts_with("#![")
+}
+
+fn is_attribute_end(text: &str) -> bool {
+    text.trim_end().ends_with(']')
+}
+
+fn reversed_lines<'a>(src: &'a str, line_starts: &'a [RelativeBytePos]) -> impl Iterator<Item = (usize, &'a str)> + 'a {
+    line_starts
+        .array_windows::<2>()
+        .rev()
+        .filter_map(|[start, end]| process_line(src, *start, *end))
+}
+
+fn process_line(src: &str, start: RelativeBytePos, end: RelativeBytePos) -> Option<(usize, &str)> {
+    let start_idx = start.to_usize();
+    let end_idx = end.to_usize();
+    let text = src.get(start_idx..end_idx)?;
+    let trimmed = text.trim_start();
+    if trimmed.is_empty() {
+        None
+    } else {
+        Some((start_idx + (text.len() - trimmed.len()), trimmed))
+    }
 }
 
 fn span_and_hid_of_item_alike_node(node: &Node<'_>) -> Option<(Span, HirId)> {
