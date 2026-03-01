@@ -112,6 +112,8 @@ generate! {
     checked_pow,
     checked_rem_euclid,
     checked_sub,
+    chunks_exact,
+    chunks_exact_mut,
     clamp,
     clippy_utils,
     clone_into,
