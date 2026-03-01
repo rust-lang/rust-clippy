@@ -473,6 +473,30 @@ declare_clippy_lint! {
     "function signature uses `&Option<T>` instead of `Option<&T>`"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `#[must_use]` attributes without a note.
+    ///
+    /// ### Why is this bad?
+    /// A note explains why the return value must be used. Without it,
+    /// users only see a generic "unused must-use value" message which is less helpful.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// #[must_use]
+    /// fn compute() -> i32 { 42 }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// #[must_use = "computation is expensive"]
+    /// fn compute() -> i32 { 42 }
+    /// ```
+    #[clippy::version = "1.95.0"]
+    pub MUST_USE_WITHOUT_NOTE,
+    style,
+    "`#[must_use]` attribute without a note"
+}
+
 declare_lint_pass!(EarlyFunctions => [DUPLICATE_UNDERSCORE_ARGUMENT]);
 
 impl EarlyLintPass for EarlyFunctions {
@@ -528,6 +552,7 @@ impl_lint_pass!(Functions => [
     IMPL_TRAIT_IN_PARAMS,
     RENAMED_FUNCTION_PARAMS,
     REF_OPTION,
+    MUST_USE_WITHOUT_NOTE,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Functions {

@@ -146,7 +146,7 @@ fn issue15892() {
         pub const fn into_bits(self) -> u32 {
             self.0
         }
-        #[must_use]
+        #[must_use = "returns a new mask that should be used"]
         pub const fn union(self, rhs: Self) -> Self {
             InterruptMask(self.0 | rhs.0)
         }
