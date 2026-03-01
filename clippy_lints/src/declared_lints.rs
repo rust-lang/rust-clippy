@@ -762,6 +762,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::unit_types::UNIT_ARG_INFO,
     crate::unit_types::UNIT_CMP_INFO,
     crate::unnecessary_box_returns::UNNECESSARY_BOX_RETURNS_INFO,
+    crate::unnecessary_collect::UNNECESSARY_COLLECT_INFO,
     crate::unnecessary_literal_bound::UNNECESSARY_LITERAL_BOUND_INFO,
     crate::unnecessary_map_on_constructor::UNNECESSARY_MAP_ON_CONSTRUCTOR_INFO,
     crate::unnecessary_mut_passed::UNNECESSARY_MUT_PASSED_INFO,

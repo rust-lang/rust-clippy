@@ -422,8 +422,8 @@ impl SourceItemOrderingModuleItemGroupings {
         self.back_lut.get(item)
     }
 
-    pub fn grouping_names(&self) -> Vec<String> {
-        self.groups.iter().map(|(name, _)| name.clone()).collect()
+    pub fn grouping_names(&self) -> impl Iterator<Item = &str> + Clone {
+        self.groups.iter().map(|(name, _)| &**name)
     }
 
     pub fn is_grouping(&self, grouping: &str) -> bool {

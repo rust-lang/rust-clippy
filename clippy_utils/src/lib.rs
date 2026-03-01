@@ -2798,12 +2798,13 @@ pub fn span_extract_comment(sm: &SourceMap, span: Span) -> String {
 /// Returns all the comments a given span contains.
 ///
 /// Comments are returned wrapped with their relevant delimiters.
+#[allow(clippy::unnecessary_collect)]
 pub fn span_extract_comments(sm: &SourceMap, span: Span) -> Vec<String> {
     let snippet = sm.span_to_snippet(span).unwrap_or_default();
     tokenize_with_text(&snippet)
         .filter(|(t, ..)| matches!(t, TokenKind::BlockComment { .. } | TokenKind::LineComment { .. }))
         .map(|(_, s, _)| s.to_string())
-        .collect::<Vec<_>>()
+        .collect()
 }
 
 pub fn span_find_starting_semi(sm: &SourceMap, span: Span) -> Span {

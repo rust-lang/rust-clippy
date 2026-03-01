@@ -1,0 +1,21 @@
+error: this collection may not be necessary. return the iterator itself
+  --> tests/ui/unnecessary_collect.rs:5:12
+   |
+LL | fn bad() -> Vec<u32> {
+   |             -------- help: consider: `impl Iterator<Item = u32>`
+LL |     (0..5).collect()
+   |            ^^^^^^^^^ remove this collect
+   |
+   = note: `-D clippy::unnecessary-collect` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_collect)]`
+
+error: this collection may not be necessary. return the iterator itself
+  --> tests/ui/unnecessary_collect.rs:9:54
+   |
+LL | unsafe fn bad2() -> Vec<(u8, u8)> {
+   |                     ------------- help: consider: `impl Iterator<Item = (u8, u8)>`
+LL |     (0..8).flat_map(|x| (0..8).map(move |y| (x, y))).collect()
+   |                                                      ^^^^^^^^^ remove this collect
+
+error: aborting due to 2 previous errors
+
