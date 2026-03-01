@@ -23,6 +23,7 @@ mod modulo_one;
 mod needless_bitwise_bool;
 mod numeric_arithmetic;
 mod op_ref;
+mod raw_assign_to_drop;
 mod self_assignment;
 mod verbose_bit_mask;
 
@@ -813,6 +814,67 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    ///
+    /// Checks for assignments via raw pointers that involve types with destructors.
+    ///
+    /// ### Why restrict this?
+    ///
+    /// Assignments of the form `*ptr = new_value;` assume that `*ptr` contains an initialized
+    /// value, and unconditionally execute the `std::ops::Drop`-implementation if such
+    /// implementation is defined on the type of `*ptr`. If the old value is in fact
+    /// uninitialized or otherwise invalid, the execution of `std::ops::Drop::drop(&mut self)`
+    /// is always Undefined Behavior.
+    ///
+    /// The unsafe-block required to assign via the raw-pointer should include a SAFETY-comment
+    /// that explains why it is always safe to execute the destructor.
+    ///
+    /// If the code can not guarantee that the old value can be safely dropped, use
+    /// `std::ptr::write()` to overwrite the (possibly nonexisting) value without executing
+    /// the destructor; this may leak resources if the old value did in fact exist.
+    ///
+    /// Use `std::ptr::drop_in_place()` to (selectively) execute the destructor, having
+    /// established that it is safe to do so.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// unsafe fn foo(oldvalue: *mut String) {
+    ///     // Direct assignment always executes `String`'s destructor on `oldvalue`.
+    ///     // However, we can't guarantee that executing the destructor is safe.
+    ///     unsafe { *oldvalue = "New Value".to_owned(); }
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// #[allow(clippy::raw_assign_to_drop)]
+    /// unsafe fn foo(oldvalue: *mut String, oldvalue_is_initialized: bool) {
+    ///     let newvalue = "New Value".to_owned();
+    ///
+    ///     // In this example, `oldvalue_is_initialized` is an oracle for what
+    ///     // the programmer might be able to establish statically.
+    ///     if oldvalue_is_initialized {
+    ///         // Having established that `oldvalue` points to a valid value, it is safe to
+    ///         // execute the destructor and assign a new value.
+    ///
+    ///         // SAFETY: oldvalue is properly aligned, valid for writes, and initialized
+    ///         unsafe {
+    ///             *oldvalue = newvalue;
+    ///         }
+    ///     } else {
+    ///         // Overwrite the old value without running the destructor.
+    ///
+    ///         // SAFETY: oldvalue is properly aligned and valid for writes
+    ///         unsafe { oldvalue.write(newvalue); }
+    ///     }
+    /// }
+    /// ```
+    #[clippy::version = "1.91.0"]
+    pub RAW_ASSIGN_TO_DROP,
+    restriction,
+    "assignment via raw pointer that involves destructors"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for manual implementation of `midpoint`.
     ///
     /// ### Why is this bad?
@@ -1003,6 +1065,7 @@ impl_lint_pass!(Operators => [
     MODULO_ARITHMETIC,
     NEEDLESS_BITWISE_BOOL,
     SELF_ASSIGNMENT,
+    RAW_ASSIGN_TO_DROP,
     MANUAL_MIDPOINT,
     MANUAL_IS_MULTIPLE_OF,
     MANUAL_DIV_CEIL,
@@ -1063,6 +1126,7 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
             ExprKind::Assign(lhs, rhs, _) => {
                 assign_op_pattern::check(cx, e, lhs, rhs, self.msrv);
                 self_assignment::check(cx, e, lhs, rhs);
+                raw_assign_to_drop::check(cx, lhs);
             },
             ExprKind::Unary(op, arg) =>
             {
