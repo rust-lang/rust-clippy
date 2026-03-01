@@ -1,0 +1,1779 @@
+#![warn(clippy::unnecessary_intermediate_cast)]
+#![allow(clippy::char_lit_as_u8, clippy::eq_op, clippy::no_effect, clippy::unnecessary_cast)]
+
+fn main() {
+    int_int_int();
+    float_float_float();
+
+    bool_int_int();
+
+    int_int_float();
+    int_float_int();
+    int_float_float();
+
+    float_int_int();
+    float_int_float();
+    float_float_int();
+
+    // u32 as char is not allowed.
+    u32::MAX as u8 as char;
+}
+
+fn int_int_int() {
+    1_i8 as i8 as i8; // unnecessary_cast
+    1_i8 as i16; //~ unnecessary_intermediate_cast
+    1_i8 as i32; //~ unnecessary_intermediate_cast
+    1_i8 as i64; //~ unnecessary_intermediate_cast
+    1_i8 as i128; //~ unnecessary_intermediate_cast
+    1_i8 as u8; //~ unnecessary_intermediate_cast
+    1_i8 as u16; //~ unnecessary_intermediate_cast
+    1_i8 as u32; //~ unnecessary_intermediate_cast
+    1_i8 as u64; //~ unnecessary_intermediate_cast
+    1_i8 as u128; //~ unnecessary_intermediate_cast
+    1_i8 as i8; //~ unnecessary_intermediate_cast
+    1_i8 as i16 as i16; // unnecessary_cast
+    1_i8 as i32; //~ unnecessary_intermediate_cast
+    1_i8 as i64; //~ unnecessary_intermediate_cast
+    1_i8 as i128; //~ unnecessary_intermediate_cast
+    1_i8 as u8; //~ unnecessary_intermediate_cast
+    1_i8 as u16; //~ unnecessary_intermediate_cast
+    1_i8 as u32; //~ unnecessary_intermediate_cast
+    1_i8 as u64; //~ unnecessary_intermediate_cast
+    1_i8 as u128; //~ unnecessary_intermediate_cast
+    1_i8 as i8; //~ unnecessary_intermediate_cast
+    1_i8 as i16; //~ unnecessary_intermediate_cast
+    1_i8 as i32 as i32; // unnecessary_cast
+    1_i8 as i64; //~ unnecessary_intermediate_cast
+    1_i8 as i128; //~ unnecessary_intermediate_cast
+    1_i8 as u8; //~ unnecessary_intermediate_cast
+    1_i8 as u16; //~ unnecessary_intermediate_cast
+    1_i8 as u32; //~ unnecessary_intermediate_cast
+    1_i8 as u64; //~ unnecessary_intermediate_cast
+    1_i8 as u128; //~ unnecessary_intermediate_cast
+    1_i8 as i8; //~ unnecessary_intermediate_cast
+    1_i8 as i16; //~ unnecessary_intermediate_cast
+    1_i8 as i32; //~ unnecessary_intermediate_cast
+    1_i8 as i64 as i64; // unnecessary_cast
+    1_i8 as i128; //~ unnecessary_intermediate_cast
+    1_i8 as u8; //~ unnecessary_intermediate_cast
+    1_i8 as u16; //~ unnecessary_intermediate_cast
+    1_i8 as u32; //~ unnecessary_intermediate_cast
+    1_i8 as u64; //~ unnecessary_intermediate_cast
+    1_i8 as u128; //~ unnecessary_intermediate_cast
+    1_i8 as i8; //~ unnecessary_intermediate_cast
+    1_i8 as i16; //~ unnecessary_intermediate_cast
+    1_i8 as i32; //~ unnecessary_intermediate_cast
+    1_i8 as i64; //~ unnecessary_intermediate_cast
+    1_i8 as i128 as i128; // unnecessary_cast
+    1_i8 as u8; //~ unnecessary_intermediate_cast
+    1_i8 as u16; //~ unnecessary_intermediate_cast
+    1_i8 as u32; //~ unnecessary_intermediate_cast
+    1_i8 as u64; //~ unnecessary_intermediate_cast
+    1_i8 as u128; //~ unnecessary_intermediate_cast
+    1_i8 as i8; //~ unnecessary_intermediate_cast
+    1_i8 as u8 as i16;
+    1_i8 as u8 as i32;
+    1_i8 as u8 as i64;
+    1_i8 as u8 as i128;
+    1_i8 as u8 as u8; // unnecessary_cast
+    1_i8 as u8 as u16;
+    1_i8 as u8 as u32;
+    1_i8 as u8 as u64;
+    1_i8 as u8 as u128;
+    1_i8 as i8; //~ unnecessary_intermediate_cast
+    1_i8 as i16; //~ unnecessary_intermediate_cast
+    1_i8 as u16 as i32;
+    1_i8 as u16 as i64;
+    1_i8 as u16 as i128;
+    1_i8 as u8; //~ unnecessary_intermediate_cast
+    1_i8 as u16 as u16; // unnecessary_cast
+    1_i8 as u16 as u32;
+    1_i8 as u16 as u64;
+    1_i8 as u16 as u128;
+    1_i8 as i8; //~ unnecessary_intermediate_cast
+    1_i8 as i16; //~ unnecessary_intermediate_cast
+    1_i8 as i32; //~ unnecessary_intermediate_cast
+    1_i8 as u32 as i64;
+    1_i8 as u32 as i128;
+    1_i8 as u8; //~ unnecessary_intermediate_cast
+    1_i8 as u16; //~ unnecessary_intermediate_cast
+    1_i8 as u32 as u32; // unnecessary_cast
+    1_i8 as u32 as u64;
+    1_i8 as u32 as u128;
+    1_i8 as i8; //~ unnecessary_intermediate_cast
+    1_i8 as i16; //~ unnecessary_intermediate_cast
+    1_i8 as i32; //~ unnecessary_intermediate_cast
+    1_i8 as i64; //~ unnecessary_intermediate_cast
+    1_i8 as u64 as i128;
+    1_i8 as u8; //~ unnecessary_intermediate_cast
+    1_i8 as u16; //~ unnecessary_intermediate_cast
+    1_i8 as u32; //~ unnecessary_intermediate_cast
+    1_i8 as u64 as u64; // unnecessary_cast
+    1_i8 as u64 as u128;
+    1_i8 as i8; //~ unnecessary_intermediate_cast
+    1_i8 as i16; //~ unnecessary_intermediate_cast
+    1_i8 as i32; //~ unnecessary_intermediate_cast
+    1_i8 as i64; //~ unnecessary_intermediate_cast
+    1_i8 as i128; //~ unnecessary_intermediate_cast
+    1_i8 as u8; //~ unnecessary_intermediate_cast
+    1_i8 as u16; //~ unnecessary_intermediate_cast
+    1_i8 as u32; //~ unnecessary_intermediate_cast
+    1_i8 as u64; //~ unnecessary_intermediate_cast
+    1_i8 as u128 as u128; // unnecessary_cast
+    1_i16 as i8 as i8; // unnecessary_cast
+    1_i16 as i8 as i16;
+    1_i16 as i8 as i32;
+    1_i16 as i8 as i64;
+    1_i16 as i8 as i128;
+    1_i16 as u8; //~ unnecessary_intermediate_cast
+    1_i16 as i8 as u16;
+    1_i16 as i8 as u32;
+    1_i16 as i8 as u64;
+    1_i16 as i8 as u128;
+    1_i16 as i8; //~ unnecessary_intermediate_cast
+    1_i16 as i16 as i16; // unnecessary_cast
+    1_i16 as i32; //~ unnecessary_intermediate_cast
+    1_i16 as i64; //~ unnecessary_intermediate_cast
+    1_i16 as i128; //~ unnecessary_intermediate_cast
+    1_i16 as u8; //~ unnecessary_intermediate_cast
+    1_i16 as u16; //~ unnecessary_intermediate_cast
+    1_i16 as u32; //~ unnecessary_intermediate_cast
+    1_i16 as u64; //~ unnecessary_intermediate_cast
+    1_i16 as u128; //~ unnecessary_intermediate_cast
+    1_i16 as i8; //~ unnecessary_intermediate_cast
+    1_i16 as i16; //~ unnecessary_intermediate_cast
+    1_i16 as i32 as i32; // unnecessary_cast
+    1_i16 as i64; //~ unnecessary_intermediate_cast
+    1_i16 as i128; //~ unnecessary_intermediate_cast
+    1_i16 as u8; //~ unnecessary_intermediate_cast
+    1_i16 as u16; //~ unnecessary_intermediate_cast
+    1_i16 as u32; //~ unnecessary_intermediate_cast
+    1_i16 as u64; //~ unnecessary_intermediate_cast
+    1_i16 as u128; //~ unnecessary_intermediate_cast
+    1_i16 as i8; //~ unnecessary_intermediate_cast
+    1_i16 as i16; //~ unnecessary_intermediate_cast
+    1_i16 as i32; //~ unnecessary_intermediate_cast
+    1_i16 as i64 as i64; // unnecessary_cast
+    1_i16 as i128; //~ unnecessary_intermediate_cast
+    1_i16 as u8; //~ unnecessary_intermediate_cast
+    1_i16 as u16; //~ unnecessary_intermediate_cast
+    1_i16 as u32; //~ unnecessary_intermediate_cast
+    1_i16 as u64; //~ unnecessary_intermediate_cast
+    1_i16 as u128; //~ unnecessary_intermediate_cast
+    1_i16 as i8; //~ unnecessary_intermediate_cast
+    1_i16 as i16; //~ unnecessary_intermediate_cast
+    1_i16 as i32; //~ unnecessary_intermediate_cast
+    1_i16 as i64; //~ unnecessary_intermediate_cast
+    1_i16 as i128 as i128; // unnecessary_cast
+    1_i16 as u8; //~ unnecessary_intermediate_cast
+    1_i16 as u16; //~ unnecessary_intermediate_cast
+    1_i16 as u32; //~ unnecessary_intermediate_cast
+    1_i16 as u64; //~ unnecessary_intermediate_cast
+    1_i16 as u128; //~ unnecessary_intermediate_cast
+    1_i16 as i8; //~ unnecessary_intermediate_cast
+    1_i16 as u8 as i16;
+    1_i16 as u8 as i32;
+    1_i16 as u8 as i64;
+    1_i16 as u8 as i128;
+    1_i16 as u8 as u8; // unnecessary_cast
+    1_i16 as u8 as u16;
+    1_i16 as u8 as u32;
+    1_i16 as u8 as u64;
+    1_i16 as u8 as u128;
+    1_i16 as i8; //~ unnecessary_intermediate_cast
+    1_i16 as i16; //~ unnecessary_intermediate_cast
+    1_i16 as u16 as i32;
+    1_i16 as u16 as i64;
+    1_i16 as u16 as i128;
+    1_i16 as u8; //~ unnecessary_intermediate_cast
+    1_i16 as u16 as u16; // unnecessary_cast
+    1_i16 as u16 as u32;
+    1_i16 as u16 as u64;
+    1_i16 as u16 as u128;
+    1_i16 as i8; //~ unnecessary_intermediate_cast
+    1_i16 as i16; //~ unnecessary_intermediate_cast
+    1_i16 as i32; //~ unnecessary_intermediate_cast
+    1_i16 as u32 as i64;
+    1_i16 as u32 as i128;
+    1_i16 as u8; //~ unnecessary_intermediate_cast
+    1_i16 as u16; //~ unnecessary_intermediate_cast
+    1_i16 as u32 as u32; // unnecessary_cast
+    1_i16 as u32 as u64;
+    1_i16 as u32 as u128;
+    1_i16 as i8; //~ unnecessary_intermediate_cast
+    1_i16 as i16; //~ unnecessary_intermediate_cast
+    1_i16 as i32; //~ unnecessary_intermediate_cast
+    1_i16 as i64; //~ unnecessary_intermediate_cast
+    1_i16 as u64 as i128;
+    1_i16 as u8; //~ unnecessary_intermediate_cast
+    1_i16 as u16; //~ unnecessary_intermediate_cast
+    1_i16 as u32; //~ unnecessary_intermediate_cast
+    1_i16 as u64 as u64; // unnecessary_cast
+    1_i16 as u64 as u128;
+    1_i16 as i8; //~ unnecessary_intermediate_cast
+    1_i16 as i16; //~ unnecessary_intermediate_cast
+    1_i16 as i32; //~ unnecessary_intermediate_cast
+    1_i16 as i64; //~ unnecessary_intermediate_cast
+    1_i16 as i128; //~ unnecessary_intermediate_cast
+    1_i16 as u8; //~ unnecessary_intermediate_cast
+    1_i16 as u16; //~ unnecessary_intermediate_cast
+    1_i16 as u32; //~ unnecessary_intermediate_cast
+    1_i16 as u64; //~ unnecessary_intermediate_cast
+    1_i16 as u128 as u128; // unnecessary_cast
+    1_i32 as i8 as i8; // unnecessary_cast
+    1_i32 as i8 as i16;
+    1_i32 as i8 as i32;
+    1_i32 as i8 as i64;
+    1_i32 as i8 as i128;
+    1_i32 as u8; //~ unnecessary_intermediate_cast
+    1_i32 as i8 as u16;
+    1_i32 as i8 as u32;
+    1_i32 as i8 as u64;
+    1_i32 as i8 as u128;
+    1_i32 as i8; //~ unnecessary_intermediate_cast
+    1_i32 as i16 as i16; // unnecessary_cast
+    1_i32 as i16 as i32;
+    1_i32 as i16 as i64;
+    1_i32 as i16 as i128;
+    1_i32 as u8; //~ unnecessary_intermediate_cast
+    1_i32 as u16; //~ unnecessary_intermediate_cast
+    1_i32 as i16 as u32;
+    1_i32 as i16 as u64;
+    1_i32 as i16 as u128;
+    1_i32 as i8; //~ unnecessary_intermediate_cast
+    1_i32 as i16; //~ unnecessary_intermediate_cast
+    1_i32 as i32 as i32; // unnecessary_cast
+    1_i32 as i64; //~ unnecessary_intermediate_cast
+    1_i32 as i128; //~ unnecessary_intermediate_cast
+    1_i32 as u8; //~ unnecessary_intermediate_cast
+    1_i32 as u16; //~ unnecessary_intermediate_cast
+    1_i32 as u32; //~ unnecessary_intermediate_cast
+    1_i32 as u64; //~ unnecessary_intermediate_cast
+    1_i32 as u128; //~ unnecessary_intermediate_cast
+    1_i32 as i8; //~ unnecessary_intermediate_cast
+    1_i32 as i16; //~ unnecessary_intermediate_cast
+    1_i32 as i32; //~ unnecessary_intermediate_cast
+    1_i32 as i64 as i64; // unnecessary_cast
+    1_i32 as i128; //~ unnecessary_intermediate_cast
+    1_i32 as u8; //~ unnecessary_intermediate_cast
+    1_i32 as u16; //~ unnecessary_intermediate_cast
+    1_i32 as u32; //~ unnecessary_intermediate_cast
+    1_i32 as u64; //~ unnecessary_intermediate_cast
+    1_i32 as u128; //~ unnecessary_intermediate_cast
+    1_i32 as i8; //~ unnecessary_intermediate_cast
+    1_i32 as i16; //~ unnecessary_intermediate_cast
+    1_i32 as i32; //~ unnecessary_intermediate_cast
+    1_i32 as i64; //~ unnecessary_intermediate_cast
+    1_i32 as i128 as i128; // unnecessary_cast
+    1_i32 as u8; //~ unnecessary_intermediate_cast
+    1_i32 as u16; //~ unnecessary_intermediate_cast
+    1_i32 as u32; //~ unnecessary_intermediate_cast
+    1_i32 as u64; //~ unnecessary_intermediate_cast
+    1_i32 as u128; //~ unnecessary_intermediate_cast
+    1_i32 as i8; //~ unnecessary_intermediate_cast
+    1_i32 as u8 as i16;
+    1_i32 as u8 as i32;
+    1_i32 as u8 as i64;
+    1_i32 as u8 as i128;
+    1_i32 as u8 as u8; // unnecessary_cast
+    1_i32 as u8 as u16;
+    1_i32 as u8 as u32;
+    1_i32 as u8 as u64;
+    1_i32 as u8 as u128;
+    1_i32 as i8; //~ unnecessary_intermediate_cast
+    1_i32 as i16; //~ unnecessary_intermediate_cast
+    1_i32 as u16 as i32;
+    1_i32 as u16 as i64;
+    1_i32 as u16 as i128;
+    1_i32 as u8; //~ unnecessary_intermediate_cast
+    1_i32 as u16 as u16; // unnecessary_cast
+    1_i32 as u16 as u32;
+    1_i32 as u16 as u64;
+    1_i32 as u16 as u128;
+    1_i32 as i8; //~ unnecessary_intermediate_cast
+    1_i32 as i16; //~ unnecessary_intermediate_cast
+    1_i32 as i32; //~ unnecessary_intermediate_cast
+    1_i32 as u32 as i64;
+    1_i32 as u32 as i128;
+    1_i32 as u8; //~ unnecessary_intermediate_cast
+    1_i32 as u16; //~ unnecessary_intermediate_cast
+    1_i32 as u32 as u32; // unnecessary_cast
+    1_i32 as u32 as u64;
+    1_i32 as u32 as u128;
+    1_i32 as i8; //~ unnecessary_intermediate_cast
+    1_i32 as i16; //~ unnecessary_intermediate_cast
+    1_i32 as i32; //~ unnecessary_intermediate_cast
+    1_i32 as i64; //~ unnecessary_intermediate_cast
+    1_i32 as u64 as i128;
+    1_i32 as u8; //~ unnecessary_intermediate_cast
+    1_i32 as u16; //~ unnecessary_intermediate_cast
+    1_i32 as u32; //~ unnecessary_intermediate_cast
+    1_i32 as u64 as u64; // unnecessary_cast
+    1_i32 as u64 as u128;
+    1_i32 as i8; //~ unnecessary_intermediate_cast
+    1_i32 as i16; //~ unnecessary_intermediate_cast
+    1_i32 as i32; //~ unnecessary_intermediate_cast
+    1_i32 as i64; //~ unnecessary_intermediate_cast
+    1_i32 as i128; //~ unnecessary_intermediate_cast
+    1_i32 as u8; //~ unnecessary_intermediate_cast
+    1_i32 as u16; //~ unnecessary_intermediate_cast
+    1_i32 as u32; //~ unnecessary_intermediate_cast
+    1_i32 as u64; //~ unnecessary_intermediate_cast
+    1_i32 as u128 as u128; // unnecessary_cast
+    1_i64 as i8 as i8; // unnecessary_cast
+    1_i64 as i8 as i16;
+    1_i64 as i8 as i32;
+    1_i64 as i8 as i64;
+    1_i64 as i8 as i128;
+    1_i64 as u8; //~ unnecessary_intermediate_cast
+    1_i64 as i8 as u16;
+    1_i64 as i8 as u32;
+    1_i64 as i8 as u64;
+    1_i64 as i8 as u128;
+    1_i64 as i8; //~ unnecessary_intermediate_cast
+    1_i64 as i16 as i16; // unnecessary_cast
+    1_i64 as i16 as i32;
+    1_i64 as i16 as i64;
+    1_i64 as i16 as i128;
+    1_i64 as u8; //~ unnecessary_intermediate_cast
+    1_i64 as u16; //~ unnecessary_intermediate_cast
+    1_i64 as i16 as u32;
+    1_i64 as i16 as u64;
+    1_i64 as i16 as u128;
+    1_i64 as i8; //~ unnecessary_intermediate_cast
+    1_i64 as i16; //~ unnecessary_intermediate_cast
+    1_i64 as i32 as i32; // unnecessary_cast
+    1_i64 as i32 as i64;
+    1_i64 as i32 as i128;
+    1_i64 as u8; //~ unnecessary_intermediate_cast
+    1_i64 as u16; //~ unnecessary_intermediate_cast
+    1_i64 as u32; //~ unnecessary_intermediate_cast
+    1_i64 as i32 as u64;
+    1_i64 as i32 as u128;
+    1_i64 as i8; //~ unnecessary_intermediate_cast
+    1_i64 as i16; //~ unnecessary_intermediate_cast
+    1_i64 as i32; //~ unnecessary_intermediate_cast
+    1_i64 as i64 as i64; // unnecessary_cast
+    1_i64 as i128; //~ unnecessary_intermediate_cast
+    1_i64 as u8; //~ unnecessary_intermediate_cast
+    1_i64 as u16; //~ unnecessary_intermediate_cast
+    1_i64 as u32; //~ unnecessary_intermediate_cast
+    1_i64 as u64; //~ unnecessary_intermediate_cast
+    1_i64 as u128; //~ unnecessary_intermediate_cast
+    1_i64 as i8; //~ unnecessary_intermediate_cast
+    1_i64 as i16; //~ unnecessary_intermediate_cast
+    1_i64 as i32; //~ unnecessary_intermediate_cast
+    1_i64 as i64; //~ unnecessary_intermediate_cast
+    1_i64 as i128 as i128; // unnecessary_cast
+    1_i64 as u8; //~ unnecessary_intermediate_cast
+    1_i64 as u16; //~ unnecessary_intermediate_cast
+    1_i64 as u32; //~ unnecessary_intermediate_cast
+    1_i64 as u64; //~ unnecessary_intermediate_cast
+    1_i64 as u128; //~ unnecessary_intermediate_cast
+    1_i64 as i8; //~ unnecessary_intermediate_cast
+    1_i64 as u8 as i16;
+    1_i64 as u8 as i32;
+    1_i64 as u8 as i64;
+    1_i64 as u8 as i128;
+    1_i64 as u8 as u8; // unnecessary_cast
+    1_i64 as u8 as u16;
+    1_i64 as u8 as u32;
+    1_i64 as u8 as u64;
+    1_i64 as u8 as u128;
+    1_i64 as i8; //~ unnecessary_intermediate_cast
+    1_i64 as i16; //~ unnecessary_intermediate_cast
+    1_i64 as u16 as i32;
+    1_i64 as u16 as i64;
+    1_i64 as u16 as i128;
+    1_i64 as u8; //~ unnecessary_intermediate_cast
+    1_i64 as u16 as u16; // unnecessary_cast
+    1_i64 as u16 as u32;
+    1_i64 as u16 as u64;
+    1_i64 as u16 as u128;
+    1_i64 as i8; //~ unnecessary_intermediate_cast
+    1_i64 as i16; //~ unnecessary_intermediate_cast
+    1_i64 as i32; //~ unnecessary_intermediate_cast
+    1_i64 as u32 as i64;
+    1_i64 as u32 as i128;
+    1_i64 as u8; //~ unnecessary_intermediate_cast
+    1_i64 as u16; //~ unnecessary_intermediate_cast
+    1_i64 as u32 as u32; // unnecessary_cast
+    1_i64 as u32 as u64;
+    1_i64 as u32 as u128;
+    1_i64 as i8; //~ unnecessary_intermediate_cast
+    1_i64 as i16; //~ unnecessary_intermediate_cast
+    1_i64 as i32; //~ unnecessary_intermediate_cast
+    1_i64 as i64; //~ unnecessary_intermediate_cast
+    1_i64 as u64 as i128;
+    1_i64 as u8; //~ unnecessary_intermediate_cast
+    1_i64 as u16; //~ unnecessary_intermediate_cast
+    1_i64 as u32; //~ unnecessary_intermediate_cast
+    1_i64 as u64 as u64; // unnecessary_cast
+    1_i64 as u64 as u128;
+    1_i64 as i8; //~ unnecessary_intermediate_cast
+    1_i64 as i16; //~ unnecessary_intermediate_cast
+    1_i64 as i32; //~ unnecessary_intermediate_cast
+    1_i64 as i64; //~ unnecessary_intermediate_cast
+    1_i64 as i128; //~ unnecessary_intermediate_cast
+    1_i64 as u8; //~ unnecessary_intermediate_cast
+    1_i64 as u16; //~ unnecessary_intermediate_cast
+    1_i64 as u32; //~ unnecessary_intermediate_cast
+    1_i64 as u64; //~ unnecessary_intermediate_cast
+    1_i64 as u128 as u128; // unnecessary_cast
+    1_i128 as i8 as i8; // unnecessary_cast
+    1_i128 as i8 as i16;
+    1_i128 as i8 as i32;
+    1_i128 as i8 as i64;
+    1_i128 as i8 as i128;
+    1_i128 as u8; //~ unnecessary_intermediate_cast
+    1_i128 as i8 as u16;
+    1_i128 as i8 as u32;
+    1_i128 as i8 as u64;
+    1_i128 as i8 as u128;
+    1_i128 as i8; //~ unnecessary_intermediate_cast
+    1_i128 as i16 as i16; // unnecessary_cast
+    1_i128 as i16 as i32;
+    1_i128 as i16 as i64;
+    1_i128 as i16 as i128;
+    1_i128 as u8; //~ unnecessary_intermediate_cast
+    1_i128 as u16; //~ unnecessary_intermediate_cast
+    1_i128 as i16 as u32;
+    1_i128 as i16 as u64;
+    1_i128 as i16 as u128;
+    1_i128 as i8; //~ unnecessary_intermediate_cast
+    1_i128 as i16; //~ unnecessary_intermediate_cast
+    1_i128 as i32 as i32; // unnecessary_cast
+    1_i128 as i32 as i64;
+    1_i128 as i32 as i128;
+    1_i128 as u8; //~ unnecessary_intermediate_cast
+    1_i128 as u16; //~ unnecessary_intermediate_cast
+    1_i128 as u32; //~ unnecessary_intermediate_cast
+    1_i128 as i32 as u64;
+    1_i128 as i32 as u128;
+    1_i128 as i8; //~ unnecessary_intermediate_cast
+    1_i128 as i16; //~ unnecessary_intermediate_cast
+    1_i128 as i32; //~ unnecessary_intermediate_cast
+    1_i128 as i64 as i64; // unnecessary_cast
+    1_i128 as i64 as i128;
+    1_i128 as u8; //~ unnecessary_intermediate_cast
+    1_i128 as u16; //~ unnecessary_intermediate_cast
+    1_i128 as u32; //~ unnecessary_intermediate_cast
+    1_i128 as u64; //~ unnecessary_intermediate_cast
+    1_i128 as i64 as u128;
+    1_i128 as i8; //~ unnecessary_intermediate_cast
+    1_i128 as i16; //~ unnecessary_intermediate_cast
+    1_i128 as i32; //~ unnecessary_intermediate_cast
+    1_i128 as i64; //~ unnecessary_intermediate_cast
+    1_i128 as i128 as i128; // unnecessary_cast
+    1_i128 as u8; //~ unnecessary_intermediate_cast
+    1_i128 as u16; //~ unnecessary_intermediate_cast
+    1_i128 as u32; //~ unnecessary_intermediate_cast
+    1_i128 as u64; //~ unnecessary_intermediate_cast
+    1_i128 as u128; //~ unnecessary_intermediate_cast
+    1_i128 as i8; //~ unnecessary_intermediate_cast
+    1_i128 as u8 as i16;
+    1_i128 as u8 as i32;
+    1_i128 as u8 as i64;
+    1_i128 as u8 as i128;
+    1_i128 as u8 as u8; // unnecessary_cast
+    1_i128 as u8 as u16;
+    1_i128 as u8 as u32;
+    1_i128 as u8 as u64;
+    1_i128 as u8 as u128;
+    1_i128 as i8; //~ unnecessary_intermediate_cast
+    1_i128 as i16; //~ unnecessary_intermediate_cast
+    1_i128 as u16 as i32;
+    1_i128 as u16 as i64;
+    1_i128 as u16 as i128;
+    1_i128 as u8; //~ unnecessary_intermediate_cast
+    1_i128 as u16 as u16; // unnecessary_cast
+    1_i128 as u16 as u32;
+    1_i128 as u16 as u64;
+    1_i128 as u16 as u128;
+    1_i128 as i8; //~ unnecessary_intermediate_cast
+    1_i128 as i16; //~ unnecessary_intermediate_cast
+    1_i128 as i32; //~ unnecessary_intermediate_cast
+    1_i128 as u32 as i64;
+    1_i128 as u32 as i128;
+    1_i128 as u8; //~ unnecessary_intermediate_cast
+    1_i128 as u16; //~ unnecessary_intermediate_cast
+    1_i128 as u32 as u32; // unnecessary_cast
+    1_i128 as u32 as u64;
+    1_i128 as u32 as u128;
+    1_i128 as i8; //~ unnecessary_intermediate_cast
+    1_i128 as i16; //~ unnecessary_intermediate_cast
+    1_i128 as i32; //~ unnecessary_intermediate_cast
+    1_i128 as i64; //~ unnecessary_intermediate_cast
+    1_i128 as u64 as i128;
+    1_i128 as u8; //~ unnecessary_intermediate_cast
+    1_i128 as u16; //~ unnecessary_intermediate_cast
+    1_i128 as u32; //~ unnecessary_intermediate_cast
+    1_i128 as u64 as u64; // unnecessary_cast
+    1_i128 as u64 as u128;
+    1_i128 as i8; //~ unnecessary_intermediate_cast
+    1_i128 as i16; //~ unnecessary_intermediate_cast
+    1_i128 as i32; //~ unnecessary_intermediate_cast
+    1_i128 as i64; //~ unnecessary_intermediate_cast
+    1_i128 as i128; //~ unnecessary_intermediate_cast
+    1_i128 as u8; //~ unnecessary_intermediate_cast
+    1_i128 as u16; //~ unnecessary_intermediate_cast
+    1_i128 as u32; //~ unnecessary_intermediate_cast
+    1_i128 as u64; //~ unnecessary_intermediate_cast
+    1_i128 as u128 as u128; // unnecessary_cast
+    1_u8 as i8 as i8; // unnecessary_cast
+    1_u8 as i8 as i16;
+    1_u8 as i8 as i32;
+    1_u8 as i8 as i64;
+    1_u8 as i8 as i128;
+    1_u8 as u8; //~ unnecessary_intermediate_cast
+    1_u8 as i8 as u16;
+    1_u8 as i8 as u32;
+    1_u8 as i8 as u64;
+    1_u8 as i8 as u128;
+    1_u8 as i8; //~ unnecessary_intermediate_cast
+    1_u8 as i16 as i16; // unnecessary_cast
+    1_u8 as i32; //~ unnecessary_intermediate_cast
+    1_u8 as i64; //~ unnecessary_intermediate_cast
+    1_u8 as i128; //~ unnecessary_intermediate_cast
+    1_u8 as u8; //~ unnecessary_intermediate_cast
+    1_u8 as u16; //~ unnecessary_intermediate_cast
+    1_u8 as u32; //~ unnecessary_intermediate_cast
+    1_u8 as u64; //~ unnecessary_intermediate_cast
+    1_u8 as u128; //~ unnecessary_intermediate_cast
+    1_u8 as i8; //~ unnecessary_intermediate_cast
+    1_u8 as i16; //~ unnecessary_intermediate_cast
+    1_u8 as i32 as i32; // unnecessary_cast
+    1_u8 as i64; //~ unnecessary_intermediate_cast
+    1_u8 as i128; //~ unnecessary_intermediate_cast
+    1_u8 as u8; //~ unnecessary_intermediate_cast
+    1_u8 as u16; //~ unnecessary_intermediate_cast
+    1_u8 as u32; //~ unnecessary_intermediate_cast
+    1_u8 as u64; //~ unnecessary_intermediate_cast
+    1_u8 as u128; //~ unnecessary_intermediate_cast
+    1_u8 as i8; //~ unnecessary_intermediate_cast
+    1_u8 as i16; //~ unnecessary_intermediate_cast
+    1_u8 as i32; //~ unnecessary_intermediate_cast
+    1_u8 as i64 as i64; // unnecessary_cast
+    1_u8 as i128; //~ unnecessary_intermediate_cast
+    1_u8 as u8; //~ unnecessary_intermediate_cast
+    1_u8 as u16; //~ unnecessary_intermediate_cast
+    1_u8 as u32; //~ unnecessary_intermediate_cast
+    1_u8 as u64; //~ unnecessary_intermediate_cast
+    1_u8 as u128; //~ unnecessary_intermediate_cast
+    1_u8 as i8; //~ unnecessary_intermediate_cast
+    1_u8 as i16; //~ unnecessary_intermediate_cast
+    1_u8 as i32; //~ unnecessary_intermediate_cast
+    1_u8 as i64; //~ unnecessary_intermediate_cast
+    1_u8 as i128 as i128; // unnecessary_cast
+    1_u8 as u8; //~ unnecessary_intermediate_cast
+    1_u8 as u16; //~ unnecessary_intermediate_cast
+    1_u8 as u32; //~ unnecessary_intermediate_cast
+    1_u8 as u64; //~ unnecessary_intermediate_cast
+    1_u8 as u128; //~ unnecessary_intermediate_cast
+    1_u8 as i8; //~ unnecessary_intermediate_cast
+    1_u8 as i16; //~ unnecessary_intermediate_cast
+    1_u8 as i32; //~ unnecessary_intermediate_cast
+    1_u8 as i64; //~ unnecessary_intermediate_cast
+    1_u8 as i128; //~ unnecessary_intermediate_cast
+    1_u8 as u8 as u8; // unnecessary_cast
+    1_u8 as u16; //~ unnecessary_intermediate_cast
+    1_u8 as u32; //~ unnecessary_intermediate_cast
+    1_u8 as u64; //~ unnecessary_intermediate_cast
+    1_u8 as u128; //~ unnecessary_intermediate_cast
+    1_u8 as i8; //~ unnecessary_intermediate_cast
+    1_u8 as i16; //~ unnecessary_intermediate_cast
+    1_u8 as i32; //~ unnecessary_intermediate_cast
+    1_u8 as i64; //~ unnecessary_intermediate_cast
+    1_u8 as i128; //~ unnecessary_intermediate_cast
+    1_u8 as u8; //~ unnecessary_intermediate_cast
+    1_u8 as u16 as u16; // unnecessary_cast
+    1_u8 as u32; //~ unnecessary_intermediate_cast
+    1_u8 as u64; //~ unnecessary_intermediate_cast
+    1_u8 as u128; //~ unnecessary_intermediate_cast
+    1_u8 as i8; //~ unnecessary_intermediate_cast
+    1_u8 as i16; //~ unnecessary_intermediate_cast
+    1_u8 as i32; //~ unnecessary_intermediate_cast
+    1_u8 as i64; //~ unnecessary_intermediate_cast
+    1_u8 as i128; //~ unnecessary_intermediate_cast
+    1_u8 as u8; //~ unnecessary_intermediate_cast
+    1_u8 as u16; //~ unnecessary_intermediate_cast
+    1_u8 as u32 as u32; // unnecessary_cast
+    1_u8 as u64; //~ unnecessary_intermediate_cast
+    1_u8 as u128; //~ unnecessary_intermediate_cast
+    1_u8 as i8; //~ unnecessary_intermediate_cast
+    1_u8 as i16; //~ unnecessary_intermediate_cast
+    1_u8 as i32; //~ unnecessary_intermediate_cast
+    1_u8 as i64; //~ unnecessary_intermediate_cast
+    1_u8 as i128; //~ unnecessary_intermediate_cast
+    1_u8 as u8; //~ unnecessary_intermediate_cast
+    1_u8 as u16; //~ unnecessary_intermediate_cast
+    1_u8 as u32; //~ unnecessary_intermediate_cast
+    1_u8 as u64 as u64; // unnecessary_cast
+    1_u8 as u128; //~ unnecessary_intermediate_cast
+    1_u8 as i8; //~ unnecessary_intermediate_cast
+    1_u8 as i16; //~ unnecessary_intermediate_cast
+    1_u8 as i32; //~ unnecessary_intermediate_cast
+    1_u8 as i64; //~ unnecessary_intermediate_cast
+    1_u8 as i128; //~ unnecessary_intermediate_cast
+    1_u8 as u8; //~ unnecessary_intermediate_cast
+    1_u8 as u16; //~ unnecessary_intermediate_cast
+    1_u8 as u32; //~ unnecessary_intermediate_cast
+    1_u8 as u64; //~ unnecessary_intermediate_cast
+    1_u8 as u128 as u128; // unnecessary_cast
+    1_u16 as i8 as i8; // unnecessary_cast
+    1_u16 as i8 as i16;
+    1_u16 as i8 as i32;
+    1_u16 as i8 as i64;
+    1_u16 as i8 as i128;
+    1_u16 as u8; //~ unnecessary_intermediate_cast
+    1_u16 as i8 as u16;
+    1_u16 as i8 as u32;
+    1_u16 as i8 as u64;
+    1_u16 as i8 as u128;
+    1_u16 as i8; //~ unnecessary_intermediate_cast
+    1_u16 as i16 as i16; // unnecessary_cast
+    1_u16 as i16 as i32;
+    1_u16 as i16 as i64;
+    1_u16 as i16 as i128;
+    1_u16 as u8; //~ unnecessary_intermediate_cast
+    1_u16 as u16; //~ unnecessary_intermediate_cast
+    1_u16 as i16 as u32;
+    1_u16 as i16 as u64;
+    1_u16 as i16 as u128;
+    1_u16 as i8; //~ unnecessary_intermediate_cast
+    1_u16 as i16; //~ unnecessary_intermediate_cast
+    1_u16 as i32 as i32; // unnecessary_cast
+    1_u16 as i64; //~ unnecessary_intermediate_cast
+    1_u16 as i128; //~ unnecessary_intermediate_cast
+    1_u16 as u8; //~ unnecessary_intermediate_cast
+    1_u16 as u16; //~ unnecessary_intermediate_cast
+    1_u16 as u32; //~ unnecessary_intermediate_cast
+    1_u16 as u64; //~ unnecessary_intermediate_cast
+    1_u16 as u128; //~ unnecessary_intermediate_cast
+    1_u16 as i8; //~ unnecessary_intermediate_cast
+    1_u16 as i16; //~ unnecessary_intermediate_cast
+    1_u16 as i32; //~ unnecessary_intermediate_cast
+    1_u16 as i64 as i64; // unnecessary_cast
+    1_u16 as i128; //~ unnecessary_intermediate_cast
+    1_u16 as u8; //~ unnecessary_intermediate_cast
+    1_u16 as u16; //~ unnecessary_intermediate_cast
+    1_u16 as u32; //~ unnecessary_intermediate_cast
+    1_u16 as u64; //~ unnecessary_intermediate_cast
+    1_u16 as u128; //~ unnecessary_intermediate_cast
+    1_u16 as i8; //~ unnecessary_intermediate_cast
+    1_u16 as i16; //~ unnecessary_intermediate_cast
+    1_u16 as i32; //~ unnecessary_intermediate_cast
+    1_u16 as i64; //~ unnecessary_intermediate_cast
+    1_u16 as i128 as i128; // unnecessary_cast
+    1_u16 as u8; //~ unnecessary_intermediate_cast
+    1_u16 as u16; //~ unnecessary_intermediate_cast
+    1_u16 as u32; //~ unnecessary_intermediate_cast
+    1_u16 as u64; //~ unnecessary_intermediate_cast
+    1_u16 as u128; //~ unnecessary_intermediate_cast
+    1_u16 as i8; //~ unnecessary_intermediate_cast
+    1_u16 as u8 as i16;
+    1_u16 as u8 as i32;
+    1_u16 as u8 as i64;
+    1_u16 as u8 as i128;
+    1_u16 as u8 as u8; // unnecessary_cast
+    1_u16 as u8 as u16;
+    1_u16 as u8 as u32;
+    1_u16 as u8 as u64;
+    1_u16 as u8 as u128;
+    1_u16 as i8; //~ unnecessary_intermediate_cast
+    1_u16 as i16; //~ unnecessary_intermediate_cast
+    1_u16 as i32; //~ unnecessary_intermediate_cast
+    1_u16 as i64; //~ unnecessary_intermediate_cast
+    1_u16 as i128; //~ unnecessary_intermediate_cast
+    1_u16 as u8; //~ unnecessary_intermediate_cast
+    1_u16 as u16 as u16; // unnecessary_cast
+    1_u16 as u32; //~ unnecessary_intermediate_cast
+    1_u16 as u64; //~ unnecessary_intermediate_cast
+    1_u16 as u128; //~ unnecessary_intermediate_cast
+    1_u16 as i8; //~ unnecessary_intermediate_cast
+    1_u16 as i16; //~ unnecessary_intermediate_cast
+    1_u16 as i32; //~ unnecessary_intermediate_cast
+    1_u16 as i64; //~ unnecessary_intermediate_cast
+    1_u16 as i128; //~ unnecessary_intermediate_cast
+    1_u16 as u8; //~ unnecessary_intermediate_cast
+    1_u16 as u16; //~ unnecessary_intermediate_cast
+    1_u16 as u32 as u32; // unnecessary_cast
+    1_u16 as u64; //~ unnecessary_intermediate_cast
+    1_u16 as u128; //~ unnecessary_intermediate_cast
+    1_u16 as i8; //~ unnecessary_intermediate_cast
+    1_u16 as i16; //~ unnecessary_intermediate_cast
+    1_u16 as i32; //~ unnecessary_intermediate_cast
+    1_u16 as i64; //~ unnecessary_intermediate_cast
+    1_u16 as i128; //~ unnecessary_intermediate_cast
+    1_u16 as u8; //~ unnecessary_intermediate_cast
+    1_u16 as u16; //~ unnecessary_intermediate_cast
+    1_u16 as u32; //~ unnecessary_intermediate_cast
+    1_u16 as u64 as u64; // unnecessary_cast
+    1_u16 as u128; //~ unnecessary_intermediate_cast
+    1_u16 as i8; //~ unnecessary_intermediate_cast
+    1_u16 as i16; //~ unnecessary_intermediate_cast
+    1_u16 as i32; //~ unnecessary_intermediate_cast
+    1_u16 as i64; //~ unnecessary_intermediate_cast
+    1_u16 as i128; //~ unnecessary_intermediate_cast
+    1_u16 as u8; //~ unnecessary_intermediate_cast
+    1_u16 as u16; //~ unnecessary_intermediate_cast
+    1_u16 as u32; //~ unnecessary_intermediate_cast
+    1_u16 as u64; //~ unnecessary_intermediate_cast
+    1_u16 as u128 as u128; // unnecessary_cast
+    1_u32 as i8 as i8; // unnecessary_cast
+    1_u32 as i8 as i16;
+    1_u32 as i8 as i32;
+    1_u32 as i8 as i64;
+    1_u32 as i8 as i128;
+    1_u32 as u8; //~ unnecessary_intermediate_cast
+    1_u32 as i8 as u16;
+    1_u32 as i8 as u32;
+    1_u32 as i8 as u64;
+    1_u32 as i8 as u128;
+    1_u32 as i8; //~ unnecessary_intermediate_cast
+    1_u32 as i16 as i16; // unnecessary_cast
+    1_u32 as i16 as i32;
+    1_u32 as i16 as i64;
+    1_u32 as i16 as i128;
+    1_u32 as u8; //~ unnecessary_intermediate_cast
+    1_u32 as u16; //~ unnecessary_intermediate_cast
+    1_u32 as i16 as u32;
+    1_u32 as i16 as u64;
+    1_u32 as i16 as u128;
+    1_u32 as i8; //~ unnecessary_intermediate_cast
+    1_u32 as i16; //~ unnecessary_intermediate_cast
+    1_u32 as i32 as i32; // unnecessary_cast
+    1_u32 as i32 as i64;
+    1_u32 as i32 as i128;
+    1_u32 as u8; //~ unnecessary_intermediate_cast
+    1_u32 as u16; //~ unnecessary_intermediate_cast
+    1_u32 as u32; //~ unnecessary_intermediate_cast
+    1_u32 as i32 as u64;
+    1_u32 as i32 as u128;
+    1_u32 as i8; //~ unnecessary_intermediate_cast
+    1_u32 as i16; //~ unnecessary_intermediate_cast
+    1_u32 as i32; //~ unnecessary_intermediate_cast
+    1_u32 as i64 as i64; // unnecessary_cast
+    1_u32 as i128; //~ unnecessary_intermediate_cast
+    1_u32 as u8; //~ unnecessary_intermediate_cast
+    1_u32 as u16; //~ unnecessary_intermediate_cast
+    1_u32 as u32; //~ unnecessary_intermediate_cast
+    1_u32 as u64; //~ unnecessary_intermediate_cast
+    1_u32 as u128; //~ unnecessary_intermediate_cast
+    1_u32 as i8; //~ unnecessary_intermediate_cast
+    1_u32 as i16; //~ unnecessary_intermediate_cast
+    1_u32 as i32; //~ unnecessary_intermediate_cast
+    1_u32 as i64; //~ unnecessary_intermediate_cast
+    1_u32 as i128 as i128; // unnecessary_cast
+    1_u32 as u8; //~ unnecessary_intermediate_cast
+    1_u32 as u16; //~ unnecessary_intermediate_cast
+    1_u32 as u32; //~ unnecessary_intermediate_cast
+    1_u32 as u64; //~ unnecessary_intermediate_cast
+    1_u32 as u128; //~ unnecessary_intermediate_cast
+    1_u32 as i8; //~ unnecessary_intermediate_cast
+    1_u32 as u8 as i16;
+    1_u32 as u8 as i32;
+    1_u32 as u8 as i64;
+    1_u32 as u8 as i128;
+    1_u32 as u8 as u8; // unnecessary_cast
+    1_u32 as u8 as u16;
+    1_u32 as u8 as u32;
+    1_u32 as u8 as u64;
+    1_u32 as u8 as u128;
+    1_u32 as i8; //~ unnecessary_intermediate_cast
+    1_u32 as i16; //~ unnecessary_intermediate_cast
+    1_u32 as u16 as i32;
+    1_u32 as u16 as i64;
+    1_u32 as u16 as i128;
+    1_u32 as u8; //~ unnecessary_intermediate_cast
+    1_u32 as u16 as u16; // unnecessary_cast
+    1_u32 as u16 as u32;
+    1_u32 as u16 as u64;
+    1_u32 as u16 as u128;
+    1_u32 as i8; //~ unnecessary_intermediate_cast
+    1_u32 as i16; //~ unnecessary_intermediate_cast
+    1_u32 as i32; //~ unnecessary_intermediate_cast
+    1_u32 as i64; //~ unnecessary_intermediate_cast
+    1_u32 as i128; //~ unnecessary_intermediate_cast
+    1_u32 as u8; //~ unnecessary_intermediate_cast
+    1_u32 as u16; //~ unnecessary_intermediate_cast
+    1_u32 as u32 as u32; // unnecessary_cast
+    1_u32 as u64; //~ unnecessary_intermediate_cast
+    1_u32 as u128; //~ unnecessary_intermediate_cast
+    1_u32 as i8; //~ unnecessary_intermediate_cast
+    1_u32 as i16; //~ unnecessary_intermediate_cast
+    1_u32 as i32; //~ unnecessary_intermediate_cast
+    1_u32 as i64; //~ unnecessary_intermediate_cast
+    1_u32 as i128; //~ unnecessary_intermediate_cast
+    1_u32 as u8; //~ unnecessary_intermediate_cast
+    1_u32 as u16; //~ unnecessary_intermediate_cast
+    1_u32 as u32; //~ unnecessary_intermediate_cast
+    1_u32 as u64 as u64; // unnecessary_cast
+    1_u32 as u128; //~ unnecessary_intermediate_cast
+    1_u32 as i8; //~ unnecessary_intermediate_cast
+    1_u32 as i16; //~ unnecessary_intermediate_cast
+    1_u32 as i32; //~ unnecessary_intermediate_cast
+    1_u32 as i64; //~ unnecessary_intermediate_cast
+    1_u32 as i128; //~ unnecessary_intermediate_cast
+    1_u32 as u8; //~ unnecessary_intermediate_cast
+    1_u32 as u16; //~ unnecessary_intermediate_cast
+    1_u32 as u32; //~ unnecessary_intermediate_cast
+    1_u32 as u64; //~ unnecessary_intermediate_cast
+    1_u32 as u128 as u128; // unnecessary_cast
+    1_u64 as i8 as i8; // unnecessary_cast
+    1_u64 as i8 as i16;
+    1_u64 as i8 as i32;
+    1_u64 as i8 as i64;
+    1_u64 as i8 as i128;
+    1_u64 as u8; //~ unnecessary_intermediate_cast
+    1_u64 as i8 as u16;
+    1_u64 as i8 as u32;
+    1_u64 as i8 as u64;
+    1_u64 as i8 as u128;
+    1_u64 as i8; //~ unnecessary_intermediate_cast
+    1_u64 as i16 as i16; // unnecessary_cast
+    1_u64 as i16 as i32;
+    1_u64 as i16 as i64;
+    1_u64 as i16 as i128;
+    1_u64 as u8; //~ unnecessary_intermediate_cast
+    1_u64 as u16; //~ unnecessary_intermediate_cast
+    1_u64 as i16 as u32;
+    1_u64 as i16 as u64;
+    1_u64 as i16 as u128;
+    1_u64 as i8; //~ unnecessary_intermediate_cast
+    1_u64 as i16; //~ unnecessary_intermediate_cast
+    1_u64 as i32 as i32; // unnecessary_cast
+    1_u64 as i32 as i64;
+    1_u64 as i32 as i128;
+    1_u64 as u8; //~ unnecessary_intermediate_cast
+    1_u64 as u16; //~ unnecessary_intermediate_cast
+    1_u64 as u32; //~ unnecessary_intermediate_cast
+    1_u64 as i32 as u64;
+    1_u64 as i32 as u128;
+    1_u64 as i8; //~ unnecessary_intermediate_cast
+    1_u64 as i16; //~ unnecessary_intermediate_cast
+    1_u64 as i32; //~ unnecessary_intermediate_cast
+    1_u64 as i64 as i64; // unnecessary_cast
+    1_u64 as i64 as i128;
+    1_u64 as u8; //~ unnecessary_intermediate_cast
+    1_u64 as u16; //~ unnecessary_intermediate_cast
+    1_u64 as u32; //~ unnecessary_intermediate_cast
+    1_u64 as u64; //~ unnecessary_intermediate_cast
+    1_u64 as i64 as u128;
+    1_u64 as i8; //~ unnecessary_intermediate_cast
+    1_u64 as i16; //~ unnecessary_intermediate_cast
+    1_u64 as i32; //~ unnecessary_intermediate_cast
+    1_u64 as i64; //~ unnecessary_intermediate_cast
+    1_u64 as i128 as i128; // unnecessary_cast
+    1_u64 as u8; //~ unnecessary_intermediate_cast
+    1_u64 as u16; //~ unnecessary_intermediate_cast
+    1_u64 as u32; //~ unnecessary_intermediate_cast
+    1_u64 as u64; //~ unnecessary_intermediate_cast
+    1_u64 as u128; //~ unnecessary_intermediate_cast
+    1_u64 as i8; //~ unnecessary_intermediate_cast
+    1_u64 as u8 as i16;
+    1_u64 as u8 as i32;
+    1_u64 as u8 as i64;
+    1_u64 as u8 as i128;
+    1_u64 as u8 as u8; // unnecessary_cast
+    1_u64 as u8 as u16;
+    1_u64 as u8 as u32;
+    1_u64 as u8 as u64;
+    1_u64 as u8 as u128;
+    1_u64 as i8; //~ unnecessary_intermediate_cast
+    1_u64 as i16; //~ unnecessary_intermediate_cast
+    1_u64 as u16 as i32;
+    1_u64 as u16 as i64;
+    1_u64 as u16 as i128;
+    1_u64 as u8; //~ unnecessary_intermediate_cast
+    1_u64 as u16 as u16; // unnecessary_cast
+    1_u64 as u16 as u32;
+    1_u64 as u16 as u64;
+    1_u64 as u16 as u128;
+    1_u64 as i8; //~ unnecessary_intermediate_cast
+    1_u64 as i16; //~ unnecessary_intermediate_cast
+    1_u64 as i32; //~ unnecessary_intermediate_cast
+    1_u64 as u32 as i64;
+    1_u64 as u32 as i128;
+    1_u64 as u8; //~ unnecessary_intermediate_cast
+    1_u64 as u16; //~ unnecessary_intermediate_cast
+    1_u64 as u32 as u32; // unnecessary_cast
+    1_u64 as u32 as u64;
+    1_u64 as u32 as u128;
+    1_u64 as i8; //~ unnecessary_intermediate_cast
+    1_u64 as i16; //~ unnecessary_intermediate_cast
+    1_u64 as i32; //~ unnecessary_intermediate_cast
+    1_u64 as i64; //~ unnecessary_intermediate_cast
+    1_u64 as i128; //~ unnecessary_intermediate_cast
+    1_u64 as u8; //~ unnecessary_intermediate_cast
+    1_u64 as u16; //~ unnecessary_intermediate_cast
+    1_u64 as u32; //~ unnecessary_intermediate_cast
+    1_u64 as u64 as u64; // unnecessary_cast
+    1_u64 as u128; //~ unnecessary_intermediate_cast
+    1_u64 as i8; //~ unnecessary_intermediate_cast
+    1_u64 as i16; //~ unnecessary_intermediate_cast
+    1_u64 as i32; //~ unnecessary_intermediate_cast
+    1_u64 as i64; //~ unnecessary_intermediate_cast
+    1_u64 as i128; //~ unnecessary_intermediate_cast
+    1_u64 as u8; //~ unnecessary_intermediate_cast
+    1_u64 as u16; //~ unnecessary_intermediate_cast
+    1_u64 as u32; //~ unnecessary_intermediate_cast
+    1_u64 as u64; //~ unnecessary_intermediate_cast
+    1_u64 as u128 as u128; // unnecessary_cast
+    1_u128 as i8 as i8; // unnecessary_cast
+    1_u128 as i8 as i16;
+    1_u128 as i8 as i32;
+    1_u128 as i8 as i64;
+    1_u128 as i8 as i128;
+    1_u128 as u8; //~ unnecessary_intermediate_cast
+    1_u128 as i8 as u16;
+    1_u128 as i8 as u32;
+    1_u128 as i8 as u64;
+    1_u128 as i8 as u128;
+    1_u128 as i8; //~ unnecessary_intermediate_cast
+    1_u128 as i16 as i16; // unnecessary_cast
+    1_u128 as i16 as i32;
+    1_u128 as i16 as i64;
+    1_u128 as i16 as i128;
+    1_u128 as u8; //~ unnecessary_intermediate_cast
+    1_u128 as u16; //~ unnecessary_intermediate_cast
+    1_u128 as i16 as u32;
+    1_u128 as i16 as u64;
+    1_u128 as i16 as u128;
+    1_u128 as i8; //~ unnecessary_intermediate_cast
+    1_u128 as i16; //~ unnecessary_intermediate_cast
+    1_u128 as i32 as i32; // unnecessary_cast
+    1_u128 as i32 as i64;
+    1_u128 as i32 as i128;
+    1_u128 as u8; //~ unnecessary_intermediate_cast
+    1_u128 as u16; //~ unnecessary_intermediate_cast
+    1_u128 as u32; //~ unnecessary_intermediate_cast
+    1_u128 as i32 as u64;
+    1_u128 as i32 as u128;
+    1_u128 as i8; //~ unnecessary_intermediate_cast
+    1_u128 as i16; //~ unnecessary_intermediate_cast
+    1_u128 as i32; //~ unnecessary_intermediate_cast
+    1_u128 as i64 as i64; // unnecessary_cast
+    1_u128 as i64 as i128;
+    1_u128 as u8; //~ unnecessary_intermediate_cast
+    1_u128 as u16; //~ unnecessary_intermediate_cast
+    1_u128 as u32; //~ unnecessary_intermediate_cast
+    1_u128 as u64; //~ unnecessary_intermediate_cast
+    1_u128 as i64 as u128;
+    1_u128 as i8; //~ unnecessary_intermediate_cast
+    1_u128 as i16; //~ unnecessary_intermediate_cast
+    1_u128 as i32; //~ unnecessary_intermediate_cast
+    1_u128 as i64; //~ unnecessary_intermediate_cast
+    1_u128 as i128 as i128; // unnecessary_cast
+    1_u128 as u8; //~ unnecessary_intermediate_cast
+    1_u128 as u16; //~ unnecessary_intermediate_cast
+    1_u128 as u32; //~ unnecessary_intermediate_cast
+    1_u128 as u64; //~ unnecessary_intermediate_cast
+    1_u128 as u128; //~ unnecessary_intermediate_cast
+    1_u128 as i8; //~ unnecessary_intermediate_cast
+    1_u128 as u8 as i16;
+    1_u128 as u8 as i32;
+    1_u128 as u8 as i64;
+    1_u128 as u8 as i128;
+    1_u128 as u8 as u8; // unnecessary_cast
+    1_u128 as u8 as u16;
+    1_u128 as u8 as u32;
+    1_u128 as u8 as u64;
+    1_u128 as u8 as u128;
+    1_u128 as i8; //~ unnecessary_intermediate_cast
+    1_u128 as i16; //~ unnecessary_intermediate_cast
+    1_u128 as u16 as i32;
+    1_u128 as u16 as i64;
+    1_u128 as u16 as i128;
+    1_u128 as u8; //~ unnecessary_intermediate_cast
+    1_u128 as u16 as u16; // unnecessary_cast
+    1_u128 as u16 as u32;
+    1_u128 as u16 as u64;
+    1_u128 as u16 as u128;
+    1_u128 as i8; //~ unnecessary_intermediate_cast
+    1_u128 as i16; //~ unnecessary_intermediate_cast
+    1_u128 as i32; //~ unnecessary_intermediate_cast
+    1_u128 as u32 as i64;
+    1_u128 as u32 as i128;
+    1_u128 as u8; //~ unnecessary_intermediate_cast
+    1_u128 as u16; //~ unnecessary_intermediate_cast
+    1_u128 as u32 as u32; // unnecessary_cast
+    1_u128 as u32 as u64;
+    1_u128 as u32 as u128;
+    1_u128 as i8; //~ unnecessary_intermediate_cast
+    1_u128 as i16; //~ unnecessary_intermediate_cast
+    1_u128 as i32; //~ unnecessary_intermediate_cast
+    1_u128 as i64; //~ unnecessary_intermediate_cast
+    1_u128 as u64 as i128;
+    1_u128 as u8; //~ unnecessary_intermediate_cast
+    1_u128 as u16; //~ unnecessary_intermediate_cast
+    1_u128 as u32; //~ unnecessary_intermediate_cast
+    1_u128 as u64 as u64; // unnecessary_cast
+    1_u128 as u64 as u128;
+    1_u128 as i8; //~ unnecessary_intermediate_cast
+    1_u128 as i16; //~ unnecessary_intermediate_cast
+    1_u128 as i32; //~ unnecessary_intermediate_cast
+    1_u128 as i64; //~ unnecessary_intermediate_cast
+    1_u128 as i128; //~ unnecessary_intermediate_cast
+    1_u128 as u8; //~ unnecessary_intermediate_cast
+    1_u128 as u16; //~ unnecessary_intermediate_cast
+    1_u128 as u32; //~ unnecessary_intermediate_cast
+    1_u128 as u64; //~ unnecessary_intermediate_cast
+    1_u128 as u128 as u128; // unnecessary_cast
+}
+
+fn float_float_float() {
+    1.0_f32 as f32 as f32; // unnecessary_cast
+    1.0_f32 as f64; //~ unnecessary_intermediate_cast
+    1.0_f32 as f32; //~ unnecessary_intermediate_cast
+    1.0_f32 as f64 as f64; // unnecessary_cast
+    1.0_f64 as f32 as f32; // unnecessary_cast
+    1.0_f64 as f32 as f64;
+    1.0_f64 as f32; //~ unnecessary_intermediate_cast
+    1.0_f64 as f64 as f64; // unnecessary_cast
+}
+
+fn float_float_int() {
+    1.0_f32 as i8; //~ unnecessary_intermediate_cast
+    1.0_f32 as i16; //~ unnecessary_intermediate_cast
+    1.0_f32 as i32; //~ unnecessary_intermediate_cast
+    1.0_f32 as i64; //~ unnecessary_intermediate_cast
+    1.0_f32 as i128; //~ unnecessary_intermediate_cast
+    1.0_f32 as u8; //~ unnecessary_intermediate_cast
+    1.0_f32 as u16; //~ unnecessary_intermediate_cast
+    1.0_f32 as u32; //~ unnecessary_intermediate_cast
+    1.0_f32 as u64; //~ unnecessary_intermediate_cast
+    1.0_f32 as u128; //~ unnecessary_intermediate_cast
+    1.0_f32 as i8; //~ unnecessary_intermediate_cast
+    1.0_f32 as i16; //~ unnecessary_intermediate_cast
+    1.0_f32 as i32; //~ unnecessary_intermediate_cast
+    1.0_f32 as i64; //~ unnecessary_intermediate_cast
+    1.0_f32 as i128; //~ unnecessary_intermediate_cast
+    1.0_f32 as u8; //~ unnecessary_intermediate_cast
+    1.0_f32 as u16; //~ unnecessary_intermediate_cast
+    1.0_f32 as u32; //~ unnecessary_intermediate_cast
+    1.0_f32 as u64; //~ unnecessary_intermediate_cast
+    1.0_f32 as u128; //~ unnecessary_intermediate_cast
+    1.0_f64 as i8; //~ unnecessary_intermediate_cast
+    1.0_f64 as i16; //~ unnecessary_intermediate_cast
+    1.0_f64 as f32 as i32;
+    1.0_f64 as f32 as i64;
+    1.0_f64 as f32 as i128;
+    1.0_f64 as u8; //~ unnecessary_intermediate_cast
+    1.0_f64 as u16; //~ unnecessary_intermediate_cast
+    1.0_f64 as f32 as u32;
+    1.0_f64 as f32 as u64;
+    1.0_f64 as f32 as u128;
+    1.0_f64 as i8; //~ unnecessary_intermediate_cast
+    1.0_f64 as i16; //~ unnecessary_intermediate_cast
+    1.0_f64 as i32; //~ unnecessary_intermediate_cast
+    1.0_f64 as i64; //~ unnecessary_intermediate_cast
+    1.0_f64 as i128; //~ unnecessary_intermediate_cast
+    1.0_f64 as u8; //~ unnecessary_intermediate_cast
+    1.0_f64 as u16; //~ unnecessary_intermediate_cast
+    1.0_f64 as u32; //~ unnecessary_intermediate_cast
+    1.0_f64 as u64; //~ unnecessary_intermediate_cast
+    1.0_f64 as u128; //~ unnecessary_intermediate_cast
+}
+
+fn int_float_float() {
+    1_i128 as f32 as f32; // unnecessary_cast
+    1_i128 as f32 as f64;
+    1_i128 as f32; //~ unnecessary_intermediate_cast
+    1_i128 as f64 as f64; // unnecessary_cast
+    1_i16 as f32 as f32; // unnecessary_cast
+    1_i16 as f64; //~ unnecessary_intermediate_cast
+    1_i16 as f32; //~ unnecessary_intermediate_cast
+    1_i16 as f64 as f64; // unnecessary_cast
+    1_i32 as f32 as f32; // unnecessary_cast
+    1_i32 as f32 as f64;
+    1_i32 as f32; //~ unnecessary_intermediate_cast
+    1_i32 as f64 as f64; // unnecessary_cast
+    1_i64 as f32 as f32; // unnecessary_cast
+    1_i64 as f32 as f64;
+    1_i64 as f32; //~ unnecessary_intermediate_cast
+    1_i64 as f64 as f64; // unnecessary_cast
+    1_i8 as f32 as f32; // unnecessary_cast
+    1_i8 as f64; //~ unnecessary_intermediate_cast
+    1_i8 as f32; //~ unnecessary_intermediate_cast
+    1_i8 as f64 as f64; // unnecessary_cast
+    1_u8 as f32 as f32; // unnecessary_cast
+    1_u8 as f64; //~ unnecessary_intermediate_cast
+    1_u8 as f32; //~ unnecessary_intermediate_cast
+    1_u8 as f64 as f64; // unnecessary_cast
+    1_u16 as f32 as f32; // unnecessary_cast
+    1_u16 as f64; //~ unnecessary_intermediate_cast
+    1_u16 as f32; //~ unnecessary_intermediate_cast
+    1_u16 as f64 as f64; // unnecessary_cast
+    1_u32 as f32 as f32; // unnecessary_cast
+    1_u32 as f32 as f64;
+    1_u32 as f32; //~ unnecessary_intermediate_cast
+    1_u32 as f64 as f64; // unnecessary_cast
+    1_u64 as f32 as f32; // unnecessary_cast
+    1_u64 as f32 as f64;
+    1_u64 as f32; //~ unnecessary_intermediate_cast
+    1_u64 as f64 as f64; // unnecessary_cast
+    1_u128 as f32 as f32; // unnecessary_cast
+    1_u128 as f32 as f64;
+    1_u128 as f32; //~ unnecessary_intermediate_cast
+    1_u128 as f64 as f64; // unnecessary_cast
+}
+
+fn int_int_float() {
+    1_i8 as f32; //~ unnecessary_intermediate_cast
+    1_i8 as f64; //~ unnecessary_intermediate_cast
+    1_i8 as f32; //~ unnecessary_intermediate_cast
+    1_i8 as f64; //~ unnecessary_intermediate_cast
+    1_i8 as f32; //~ unnecessary_intermediate_cast
+    1_i8 as f64; //~ unnecessary_intermediate_cast
+    1_i8 as f32; //~ unnecessary_intermediate_cast
+    1_i8 as f64; //~ unnecessary_intermediate_cast
+    1_i8 as f32; //~ unnecessary_intermediate_cast
+    1_i8 as f64; //~ unnecessary_intermediate_cast
+    1_i8 as u8 as f32;
+    1_i8 as u8 as f64;
+    1_i8 as u16 as f32;
+    1_i8 as u16 as f64;
+    1_i8 as u32 as f32;
+    1_i8 as u32 as f64;
+    1_i8 as u64 as f32;
+    1_i8 as u64 as f64;
+    1_i8 as u128 as f32;
+    1_i8 as u128 as f64;
+    1_i16 as i8 as f32;
+    1_i16 as i8 as f64;
+    1_i16 as f32; //~ unnecessary_intermediate_cast
+    1_i16 as f64; //~ unnecessary_intermediate_cast
+    1_i16 as f32; //~ unnecessary_intermediate_cast
+    1_i16 as f64; //~ unnecessary_intermediate_cast
+    1_i16 as f32; //~ unnecessary_intermediate_cast
+    1_i16 as f64; //~ unnecessary_intermediate_cast
+    1_i16 as f32; //~ unnecessary_intermediate_cast
+    1_i16 as f64; //~ unnecessary_intermediate_cast
+    1_i16 as u8 as f32;
+    1_i16 as u8 as f64;
+    1_i16 as u16 as f32;
+    1_i16 as u16 as f64;
+    1_i16 as u32 as f32;
+    1_i16 as u32 as f64;
+    1_i16 as u64 as f32;
+    1_i16 as u64 as f64;
+    1_i16 as u128 as f32;
+    1_i16 as u128 as f64;
+    1_i32 as i8 as f32;
+    1_i32 as i8 as f64;
+    1_i32 as i16 as f32;
+    1_i32 as i16 as f64;
+    1_i32 as f32; //~ unnecessary_intermediate_cast
+    1_i32 as f64; //~ unnecessary_intermediate_cast
+    1_i32 as f32; //~ unnecessary_intermediate_cast
+    1_i32 as f64; //~ unnecessary_intermediate_cast
+    1_i32 as f32; //~ unnecessary_intermediate_cast
+    1_i32 as f64; //~ unnecessary_intermediate_cast
+    1_i32 as u8 as f32;
+    1_i32 as u8 as f64;
+    1_i32 as u16 as f32;
+    1_i32 as u16 as f64;
+    1_i32 as u32 as f32;
+    1_i32 as u32 as f64;
+    1_i32 as u64 as f32;
+    1_i32 as u64 as f64;
+    1_i32 as u128 as f32;
+    1_i32 as u128 as f64;
+    1_i64 as i8 as f32;
+    1_i64 as i8 as f64;
+    1_i64 as i16 as f32;
+    1_i64 as i16 as f64;
+    1_i64 as i32 as f32;
+    1_i64 as i32 as f64;
+    1_i64 as f32; //~ unnecessary_intermediate_cast
+    1_i64 as f64; //~ unnecessary_intermediate_cast
+    1_i64 as f32; //~ unnecessary_intermediate_cast
+    1_i64 as f64; //~ unnecessary_intermediate_cast
+    1_i64 as u8 as f32;
+    1_i64 as u8 as f64;
+    1_i64 as u16 as f32;
+    1_i64 as u16 as f64;
+    1_i64 as u32 as f32;
+    1_i64 as u32 as f64;
+    1_i64 as u64 as f32;
+    1_i64 as u64 as f64;
+    1_i64 as u128 as f32;
+    1_i64 as u128 as f64;
+    1_i128 as i8 as f32;
+    1_i128 as i8 as f64;
+    1_i128 as i16 as f32;
+    1_i128 as i16 as f64;
+    1_i128 as i32 as f32;
+    1_i128 as i32 as f64;
+    1_i128 as i64 as f32;
+    1_i128 as i64 as f64;
+    1_i128 as f32; //~ unnecessary_intermediate_cast
+    1_i128 as f64; //~ unnecessary_intermediate_cast
+    1_i128 as u8 as f32;
+    1_i128 as u8 as f64;
+    1_i128 as u16 as f32;
+    1_i128 as u16 as f64;
+    1_i128 as u32 as f32;
+    1_i128 as u32 as f64;
+    1_i128 as u64 as f32;
+    1_i128 as u64 as f64;
+    1_i128 as u128 as f32;
+    1_i128 as u128 as f64;
+    1_u8 as i8 as f32;
+    1_u8 as i8 as f64;
+    1_u8 as f32; //~ unnecessary_intermediate_cast
+    1_u8 as f64; //~ unnecessary_intermediate_cast
+    1_u8 as f32; //~ unnecessary_intermediate_cast
+    1_u8 as f64; //~ unnecessary_intermediate_cast
+    1_u8 as f32; //~ unnecessary_intermediate_cast
+    1_u8 as f64; //~ unnecessary_intermediate_cast
+    1_u8 as f32; //~ unnecessary_intermediate_cast
+    1_u8 as f64; //~ unnecessary_intermediate_cast
+    1_u8 as f32; //~ unnecessary_intermediate_cast
+    1_u8 as f64; //~ unnecessary_intermediate_cast
+    1_u8 as f32; //~ unnecessary_intermediate_cast
+    1_u8 as f64; //~ unnecessary_intermediate_cast
+    1_u8 as f32; //~ unnecessary_intermediate_cast
+    1_u8 as f64; //~ unnecessary_intermediate_cast
+    1_u8 as f32; //~ unnecessary_intermediate_cast
+    1_u8 as f64; //~ unnecessary_intermediate_cast
+    1_u8 as f32; //~ unnecessary_intermediate_cast
+    1_u8 as f64; //~ unnecessary_intermediate_cast
+    1_u16 as i8 as f32;
+    1_u16 as i8 as f64;
+    1_u16 as i16 as f32;
+    1_u16 as i16 as f64;
+    1_u16 as f32; //~ unnecessary_intermediate_cast
+    1_u16 as f64; //~ unnecessary_intermediate_cast
+    1_u16 as f32; //~ unnecessary_intermediate_cast
+    1_u16 as f64; //~ unnecessary_intermediate_cast
+    1_u16 as f32; //~ unnecessary_intermediate_cast
+    1_u16 as f64; //~ unnecessary_intermediate_cast
+    1_u16 as u8 as f32;
+    1_u16 as u8 as f64;
+    1_u16 as f32; //~ unnecessary_intermediate_cast
+    1_u16 as f64; //~ unnecessary_intermediate_cast
+    1_u16 as f32; //~ unnecessary_intermediate_cast
+    1_u16 as f64; //~ unnecessary_intermediate_cast
+    1_u16 as f32; //~ unnecessary_intermediate_cast
+    1_u16 as f64; //~ unnecessary_intermediate_cast
+    1_u16 as f32; //~ unnecessary_intermediate_cast
+    1_u16 as f64; //~ unnecessary_intermediate_cast
+    1_u32 as i8 as f32;
+    1_u32 as i8 as f64;
+    1_u32 as i16 as f32;
+    1_u32 as i16 as f64;
+    1_u32 as i32 as f32;
+    1_u32 as i32 as f64;
+    1_u32 as f32; //~ unnecessary_intermediate_cast
+    1_u32 as f64; //~ unnecessary_intermediate_cast
+    1_u32 as f32; //~ unnecessary_intermediate_cast
+    1_u32 as f64; //~ unnecessary_intermediate_cast
+    1_u32 as u8 as f32;
+    1_u32 as u8 as f64;
+    1_u32 as u16 as f32;
+    1_u32 as u16 as f64;
+    1_u32 as f32; //~ unnecessary_intermediate_cast
+    1_u32 as f64; //~ unnecessary_intermediate_cast
+    1_u32 as f32; //~ unnecessary_intermediate_cast
+    1_u32 as f64; //~ unnecessary_intermediate_cast
+    1_u32 as f32; //~ unnecessary_intermediate_cast
+    1_u32 as f64; //~ unnecessary_intermediate_cast
+    1_u64 as i8 as f32;
+    1_u64 as i8 as f64;
+    1_u64 as i16 as f32;
+    1_u64 as i16 as f64;
+    1_u64 as i32 as f32;
+    1_u64 as i32 as f64;
+    1_u64 as i64 as f32;
+    1_u64 as i64 as f64;
+    1_u64 as f32; //~ unnecessary_intermediate_cast
+    1_u64 as f64; //~ unnecessary_intermediate_cast
+    1_u64 as u8 as f32;
+    1_u64 as u8 as f64;
+    1_u64 as u16 as f32;
+    1_u64 as u16 as f64;
+    1_u64 as u32 as f32;
+    1_u64 as u32 as f64;
+    1_u64 as f32; //~ unnecessary_intermediate_cast
+    1_u64 as f64; //~ unnecessary_intermediate_cast
+    1_u64 as f32; //~ unnecessary_intermediate_cast
+    1_u64 as f64; //~ unnecessary_intermediate_cast
+    1_u128 as i8 as f32;
+    1_u128 as i8 as f64;
+    1_u128 as i16 as f32;
+    1_u128 as i16 as f64;
+    1_u128 as i32 as f32;
+    1_u128 as i32 as f64;
+    1_u128 as i64 as f32;
+    1_u128 as i64 as f64;
+    1_u128 as i128 as f32;
+    1_u128 as i128 as f64;
+    1_u128 as u8 as f32;
+    1_u128 as u8 as f64;
+    1_u128 as u16 as f32;
+    1_u128 as u16 as f64;
+    1_u128 as u32 as f32;
+    1_u128 as u32 as f64;
+    1_u128 as u64 as f32;
+    1_u128 as u64 as f64;
+    1_u128 as f32; //~ unnecessary_intermediate_cast
+    1_u128 as f64; //~ unnecessary_intermediate_cast
+}
+
+fn int_float_int() {
+    1_i8 as i8; //~ unnecessary_intermediate_cast
+    1_i8 as i16; //~ unnecessary_intermediate_cast
+    1_i8 as i32; //~ unnecessary_intermediate_cast
+    1_i8 as i64; //~ unnecessary_intermediate_cast
+    1_i8 as i128; //~ unnecessary_intermediate_cast
+    1_i8 as f32 as u8;
+    1_i8 as f32 as u16;
+    1_i8 as f32 as u32;
+    1_i8 as f32 as u64;
+    1_i8 as f32 as u128;
+    1_i8 as i8; //~ unnecessary_intermediate_cast
+    1_i8 as i16; //~ unnecessary_intermediate_cast
+    1_i8 as i32; //~ unnecessary_intermediate_cast
+    1_i8 as i64; //~ unnecessary_intermediate_cast
+    1_i8 as i128; //~ unnecessary_intermediate_cast
+    1_i8 as f64 as u8;
+    1_i8 as f64 as u16;
+    1_i8 as f64 as u32;
+    1_i8 as f64 as u64;
+    1_i8 as f64 as u128;
+    1_i16 as f32 as i8;
+    1_i16 as i16; //~ unnecessary_intermediate_cast
+    1_i16 as i32; //~ unnecessary_intermediate_cast
+    1_i16 as i64; //~ unnecessary_intermediate_cast
+    1_i16 as i128; //~ unnecessary_intermediate_cast
+    1_i16 as f32 as u8;
+    1_i16 as f32 as u16;
+    1_i16 as f32 as u32;
+    1_i16 as f32 as u64;
+    1_i16 as f32 as u128;
+    1_i16 as f64 as i8;
+    1_i16 as i16; //~ unnecessary_intermediate_cast
+    1_i16 as i32; //~ unnecessary_intermediate_cast
+    1_i16 as i64; //~ unnecessary_intermediate_cast
+    1_i16 as i128; //~ unnecessary_intermediate_cast
+    1_i16 as f64 as u8;
+    1_i16 as f64 as u16;
+    1_i16 as f64 as u32;
+    1_i16 as f64 as u64;
+    1_i16 as f64 as u128;
+    1_i32 as f32 as i8;
+    1_i32 as f32 as i16;
+    1_i32 as f32 as i32;
+    1_i32 as f32 as i64;
+    1_i32 as f32 as i128;
+    1_i32 as f32 as u8;
+    1_i32 as f32 as u16;
+    1_i32 as f32 as u32;
+    1_i32 as f32 as u64;
+    1_i32 as f32 as u128;
+    1_i32 as f64 as i8;
+    1_i32 as f64 as i16;
+    1_i32 as i32; //~ unnecessary_intermediate_cast
+    1_i32 as i64; //~ unnecessary_intermediate_cast
+    1_i32 as i128; //~ unnecessary_intermediate_cast
+    1_i32 as f64 as u8;
+    1_i32 as f64 as u16;
+    1_i32 as f64 as u32;
+    1_i32 as f64 as u64;
+    1_i32 as f64 as u128;
+    1_i64 as f32 as i8;
+    1_i64 as f32 as i16;
+    1_i64 as f32 as i32;
+    1_i64 as f32 as i64;
+    1_i64 as f32 as i128;
+    1_i64 as f32 as u8;
+    1_i64 as f32 as u16;
+    1_i64 as f32 as u32;
+    1_i64 as f32 as u64;
+    1_i64 as f32 as u128;
+    1_i64 as f64 as i8;
+    1_i64 as f64 as i16;
+    1_i64 as f64 as i32;
+    1_i64 as f64 as i64;
+    1_i64 as f64 as i128;
+    1_i64 as f64 as u8;
+    1_i64 as f64 as u16;
+    1_i64 as f64 as u32;
+    1_i64 as f64 as u64;
+    1_i64 as f64 as u128;
+    1_i128 as f32 as i8;
+    1_i128 as f32 as i16;
+    1_i128 as f32 as i32;
+    1_i128 as f32 as i64;
+    1_i128 as f32 as i128;
+    1_i128 as f32 as u8;
+    1_i128 as f32 as u16;
+    1_i128 as f32 as u32;
+    1_i128 as f32 as u64;
+    1_i128 as f32 as u128;
+    1_i128 as f64 as i8;
+    1_i128 as f64 as i16;
+    1_i128 as f64 as i32;
+    1_i128 as f64 as i64;
+    1_i128 as f64 as i128;
+    1_i128 as f64 as u8;
+    1_i128 as f64 as u16;
+    1_i128 as f64 as u32;
+    1_i128 as f64 as u64;
+    1_i128 as f64 as u128;
+    1_u8 as f32 as i8;
+    1_u8 as i16; //~ unnecessary_intermediate_cast
+    1_u8 as i32; //~ unnecessary_intermediate_cast
+    1_u8 as i64; //~ unnecessary_intermediate_cast
+    1_u8 as i128; //~ unnecessary_intermediate_cast
+    1_u8 as u8; //~ unnecessary_intermediate_cast
+    1_u8 as u16; //~ unnecessary_intermediate_cast
+    1_u8 as u32; //~ unnecessary_intermediate_cast
+    1_u8 as u64; //~ unnecessary_intermediate_cast
+    1_u8 as u128; //~ unnecessary_intermediate_cast
+    1_u8 as f64 as i8;
+    1_u8 as i16; //~ unnecessary_intermediate_cast
+    1_u8 as i32; //~ unnecessary_intermediate_cast
+    1_u8 as i64; //~ unnecessary_intermediate_cast
+    1_u8 as i128; //~ unnecessary_intermediate_cast
+    1_u8 as u8; //~ unnecessary_intermediate_cast
+    1_u8 as u16; //~ unnecessary_intermediate_cast
+    1_u8 as u32; //~ unnecessary_intermediate_cast
+    1_u8 as u64; //~ unnecessary_intermediate_cast
+    1_u8 as u128; //~ unnecessary_intermediate_cast
+    1_u16 as f32 as i8;
+    1_u16 as f32 as i16;
+    1_u16 as i32; //~ unnecessary_intermediate_cast
+    1_u16 as i64; //~ unnecessary_intermediate_cast
+    1_u16 as i128; //~ unnecessary_intermediate_cast
+    1_u16 as f32 as u8;
+    1_u16 as u16; //~ unnecessary_intermediate_cast
+    1_u16 as u32; //~ unnecessary_intermediate_cast
+    1_u16 as u64; //~ unnecessary_intermediate_cast
+    1_u16 as u128; //~ unnecessary_intermediate_cast
+    1_u16 as f64 as i8;
+    1_u16 as f64 as i16;
+    1_u16 as i32; //~ unnecessary_intermediate_cast
+    1_u16 as i64; //~ unnecessary_intermediate_cast
+    1_u16 as i128; //~ unnecessary_intermediate_cast
+    1_u16 as f64 as u8;
+    1_u16 as u16; //~ unnecessary_intermediate_cast
+    1_u16 as u32; //~ unnecessary_intermediate_cast
+    1_u16 as u64; //~ unnecessary_intermediate_cast
+    1_u16 as u128; //~ unnecessary_intermediate_cast
+    1_u32 as f32 as i8;
+    1_u32 as f32 as i16;
+    1_u32 as f32 as i32;
+    1_u32 as f32 as i64;
+    1_u32 as f32 as i128;
+    1_u32 as f32 as u8;
+    1_u32 as f32 as u16;
+    1_u32 as f32 as u32;
+    1_u32 as f32 as u64;
+    1_u32 as f32 as u128;
+    1_u32 as f64 as i8;
+    1_u32 as f64 as i16;
+    1_u32 as f64 as i32;
+    1_u32 as i64; //~ unnecessary_intermediate_cast
+    1_u32 as i128; //~ unnecessary_intermediate_cast
+    1_u32 as f64 as u8;
+    1_u32 as f64 as u16;
+    1_u32 as u32; //~ unnecessary_intermediate_cast
+    1_u32 as u64; //~ unnecessary_intermediate_cast
+    1_u32 as u128; //~ unnecessary_intermediate_cast
+    1_u64 as f32 as i8;
+    1_u64 as f32 as i16;
+    1_u64 as f32 as i32;
+    1_u64 as f32 as i64;
+    1_u64 as f32 as i128;
+    1_u64 as f32 as u8;
+    1_u64 as f32 as u16;
+    1_u64 as f32 as u32;
+    1_u64 as f32 as u64;
+    1_u64 as f32 as u128;
+    1_u64 as f64 as i8;
+    1_u64 as f64 as i16;
+    1_u64 as f64 as i32;
+    1_u64 as f64 as i64;
+    1_u64 as f64 as i128;
+    1_u64 as f64 as u8;
+    1_u64 as f64 as u16;
+    1_u64 as f64 as u32;
+    1_u64 as f64 as u64;
+    1_u64 as f64 as u128;
+    1_u128 as f32 as i8;
+    1_u128 as f32 as i16;
+    1_u128 as f32 as i32;
+    1_u128 as f32 as i64;
+    1_u128 as f32 as i128;
+    1_u128 as f32 as u8;
+    1_u128 as f32 as u16;
+    1_u128 as f32 as u32;
+    1_u128 as f32 as u64;
+    1_u128 as f32 as u128;
+    1_u128 as f64 as i8;
+    1_u128 as f64 as i16;
+    1_u128 as f64 as i32;
+    1_u128 as f64 as i64;
+    1_u128 as f64 as i128;
+    1_u128 as f64 as u8;
+    1_u128 as f64 as u16;
+    1_u128 as f64 as u32;
+    1_u128 as f64 as u64;
+    1_u128 as f64 as u128;
+}
+
+fn float_int_int() {
+    1.0_f32 as i8 as i8; // unnecessary_cast
+    1.0_f32 as i8 as i16;
+    1.0_f32 as i8 as i32;
+    1.0_f32 as i8 as i64;
+    1.0_f32 as i8 as i128;
+    1.0_f32 as i8 as u8;
+    1.0_f32 as i8 as u16;
+    1.0_f32 as i8 as u32;
+    1.0_f32 as i8 as u64;
+    1.0_f32 as i8 as u128;
+    1.0_f32 as i16 as i8;
+    1.0_f32 as i16 as i16; // unnecessary_cast
+    1.0_f32 as i16 as i32;
+    1.0_f32 as i16 as i64;
+    1.0_f32 as i16 as i128;
+    1.0_f32 as i16 as u8;
+    1.0_f32 as i16 as u16;
+    1.0_f32 as i16 as u32;
+    1.0_f32 as i16 as u64;
+    1.0_f32 as i16 as u128;
+    1.0_f32 as i32 as i8;
+    1.0_f32 as i32 as i16;
+    1.0_f32 as i32 as i32; // unnecessary_cast
+    1.0_f32 as i32 as i64;
+    1.0_f32 as i32 as u8;
+    1.0_f32 as i32 as u16;
+    1.0_f32 as i32 as u32;
+    1.0_f32 as i32 as u64;
+    1.0_f32 as i32 as u128;
+    1.0_f32 as i64 as i8;
+    1.0_f32 as i64 as i16;
+    1.0_f32 as i64 as i64; // unnecessary_cast
+    1.0_f32 as i64 as u8;
+    1.0_f32 as i64 as u16;
+    1.0_f32 as i64 as u32;
+    1.0_f32 as i64 as u64;
+    1.0_f32 as i64 as u128;
+    1.0_f32 as i128 as i8;
+    1.0_f32 as i128 as i16;
+    1.0_f32 as i128 as i64;
+    1.0_f32 as i128 as i128; // unnecessary_cast
+    1.0_f32 as i128 as u8;
+    1.0_f32 as i128 as u16;
+    1.0_f32 as i128 as u32;
+    1.0_f32 as i128 as u64;
+    1.0_f32 as i128 as u128;
+    1.0_f32 as u8 as i8;
+    1.0_f32 as u8 as i16;
+    1.0_f32 as u8 as i32;
+    1.0_f32 as u8 as i64;
+    1.0_f32 as u8 as i128;
+    1.0_f32 as u8 as u8; // unnecessary_cast
+    1.0_f32 as u8 as u16;
+    1.0_f32 as u8 as u32;
+    1.0_f32 as u8 as u64;
+    1.0_f32 as u8 as u128;
+    1.0_f32 as u16 as i8;
+    1.0_f32 as u16 as i16;
+    1.0_f32 as u16 as i32;
+    1.0_f32 as u16 as i64;
+    1.0_f32 as u16 as i128;
+    1.0_f32 as u16 as u8;
+    1.0_f32 as u16 as u16; // unnecessary_cast
+    1.0_f32 as u16 as u32;
+    1.0_f32 as u16 as u64;
+    1.0_f32 as u16 as u128;
+    1.0_f32 as u32 as i8;
+    1.0_f32 as u32 as i16;
+    1.0_f32 as u32 as i32;
+    1.0_f32 as u32 as i64;
+    1.0_f32 as u32 as i128;
+    1.0_f32 as u32 as u8;
+    1.0_f32 as u32 as u16;
+    1.0_f32 as u32 as u32; // unnecessary_cast
+    1.0_f32 as u32 as u64;
+    1.0_f32 as u32 as u128;
+    1.0_f32 as u64 as i8;
+    1.0_f32 as u64 as i16;
+    1.0_f32 as u64 as i32;
+    1.0_f32 as u64 as i64;
+    1.0_f32 as u64 as i128;
+    1.0_f32 as u64 as u8;
+    1.0_f32 as u64 as u16;
+    1.0_f32 as u64 as u32;
+    1.0_f32 as u64 as u64; // unnecessary_cast
+    1.0_f32 as u64 as u128;
+    1.0_f32 as u128 as i8;
+    1.0_f32 as u128 as i16;
+    1.0_f32 as u128 as i32;
+    1.0_f32 as u128 as i64;
+    1.0_f32 as u128 as i128;
+    1.0_f32 as u128 as u8;
+    1.0_f32 as u128 as u16;
+    1.0_f32 as u128 as u32;
+    1.0_f32 as u128 as u64;
+    1.0_f32 as u128 as u128; // unnecessary_cast
+    1.0_f64 as i8 as i8; // unnecessary_cast
+    1.0_f64 as i8 as i16;
+    1.0_f64 as i8 as i32;
+    1.0_f64 as i8 as i64;
+    1.0_f64 as i8 as i128;
+    1.0_f64 as i8 as u8;
+    1.0_f64 as i8 as u16;
+    1.0_f64 as i8 as u32;
+    1.0_f64 as i8 as u64;
+    1.0_f64 as i8 as u128;
+    1.0_f64 as i16 as i8;
+    1.0_f64 as i16 as i16; // unnecessary_cast
+    1.0_f64 as i16 as i32;
+    1.0_f64 as i16 as i64;
+    1.0_f64 as i16 as i128;
+    1.0_f64 as i16 as u8;
+    1.0_f64 as i16 as u16;
+    1.0_f64 as i16 as u32;
+    1.0_f64 as i16 as u64;
+    1.0_f64 as i16 as u128;
+    1.0_f64 as i32 as i8;
+    1.0_f64 as i32 as i16;
+    1.0_f64 as i32 as i32; // unnecessary_cast
+    1.0_f64 as i32 as i64;
+    1.0_f64 as i32 as i128;
+    1.0_f64 as i32 as u8;
+    1.0_f64 as i32 as u16;
+    1.0_f64 as i32 as u32;
+    1.0_f64 as i32 as u64;
+    1.0_f64 as i32 as u128;
+    1.0_f64 as i64 as i8;
+    1.0_f64 as i64 as i16;
+    1.0_f64 as i64 as i32;
+    1.0_f64 as i64 as i64; // unnecessary_cast
+    1.0_f64 as i64 as u8;
+    1.0_f64 as i64 as u16;
+    1.0_f64 as i64 as u32;
+    1.0_f64 as i64 as u64;
+    1.0_f64 as i64 as u128;
+    1.0_f64 as i128 as i8;
+    1.0_f64 as i128 as i16;
+    1.0_f64 as i128 as i32;
+    1.0_f64 as i128 as i64;
+    1.0_f64 as i128 as i128; // unnecessary_cast
+    1.0_f64 as i128 as u8;
+    1.0_f64 as i128 as u16;
+    1.0_f64 as i128 as u32;
+    1.0_f64 as i128 as u64;
+    1.0_f64 as i128 as u128;
+    1.0_f64 as u8 as i8;
+    1.0_f64 as u8 as i16;
+    1.0_f64 as u8 as i32;
+    1.0_f64 as u8 as i64;
+    1.0_f64 as u8 as i128;
+    1.0_f64 as u8 as u8; // unnecessary_cast
+    1.0_f64 as u8 as u16;
+    1.0_f64 as u8 as u32;
+    1.0_f64 as u8 as u64;
+    1.0_f64 as u8 as u128;
+    1.0_f64 as u16 as i8;
+    1.0_f64 as u16 as i16;
+    1.0_f64 as u16 as i32;
+    1.0_f64 as u16 as i64;
+    1.0_f64 as u16 as i128;
+    1.0_f64 as u16 as u8;
+    1.0_f64 as u16 as u16; // unnecessary_cast
+    1.0_f64 as u16 as u32;
+    1.0_f64 as u16 as u64;
+    1.0_f64 as u16 as u128;
+    1.0_f64 as u32 as i8;
+    1.0_f64 as u32 as i16;
+    1.0_f64 as u32 as i32;
+    1.0_f64 as u32 as i64;
+    1.0_f64 as u32 as i128;
+    1.0_f64 as u32 as u8;
+    1.0_f64 as u32 as u16;
+    1.0_f64 as u32 as u32; // unnecessary_cast
+    1.0_f64 as u32 as u64;
+    1.0_f64 as u32 as u128;
+    1.0_f64 as u64 as i8;
+    1.0_f64 as u64 as i16;
+    1.0_f64 as u64 as i32;
+    1.0_f64 as u64 as i64;
+    1.0_f64 as u64 as i128;
+    1.0_f64 as u64 as u8;
+    1.0_f64 as u64 as u16;
+    1.0_f64 as u64 as u32;
+    1.0_f64 as u64 as u64; // unnecessary_cast
+    1.0_f64 as u64 as u128;
+    1.0_f64 as u128 as i8;
+    1.0_f64 as u128 as i16;
+    1.0_f64 as u128 as i32;
+    1.0_f64 as u128 as i64;
+    1.0_f64 as u128 as i128;
+    1.0_f64 as u128 as u8;
+    1.0_f64 as u128 as u16;
+    1.0_f64 as u128 as u32;
+    1.0_f64 as u128 as u64;
+    1.0_f64 as u128 as u128; // unnecessary_cast
+}
+
+fn float_int_float() {
+    1.0_f32 as i8 as f32;
+    1.0_f32 as i8 as f64;
+    1.0_f32 as i16 as f32;
+    1.0_f32 as i16 as f64;
+    1.0_f32 as i32 as f32;
+    1.0_f32 as i32 as f64;
+    1.0_f32 as i64 as f32;
+    1.0_f32 as i64 as f64;
+    1.0_f32 as i128 as f32;
+    1.0_f32 as i128 as f64;
+    1.0_f32 as u8 as f32;
+    1.0_f32 as u8 as f64;
+    1.0_f32 as u16 as f32;
+    1.0_f32 as u16 as f64;
+    1.0_f32 as u32 as f32;
+    1.0_f32 as u32 as f64;
+    1.0_f32 as u64 as f32;
+    1.0_f32 as u64 as f64;
+    1.0_f32 as u128 as f32;
+    1.0_f32 as u128 as f64;
+    1.0_f64 as i8 as f32;
+    1.0_f64 as i8 as f64;
+    1.0_f64 as i16 as f32;
+    1.0_f64 as i16 as f64;
+    1.0_f64 as i32 as f32;
+    1.0_f64 as i32 as f64;
+    1.0_f64 as i64 as f32;
+    1.0_f64 as i64 as f64;
+    1.0_f64 as i128 as f32;
+    1.0_f64 as i128 as f64;
+    1.0_f64 as u8 as f32;
+    1.0_f64 as u8 as f64;
+    1.0_f64 as u16 as f32;
+    1.0_f64 as u16 as f64;
+    1.0_f64 as u32 as f32;
+    1.0_f64 as u32 as f64;
+    1.0_f64 as u64 as f32;
+    1.0_f64 as u64 as f64;
+    1.0_f64 as u128 as f32;
+    1.0_f64 as u128 as f64;
+}
+
+fn bool_int_int() {
+    true as u8; //~ unnecessary_intermediate_cast
+    true as i8; //~ unnecessary_intermediate_cast
+    true as u8; //~ unnecessary_intermediate_cast
+    true as i8; //~ unnecessary_intermediate_cast
+
+    true as u32; //~ unnecessary_intermediate_cast
+    true as i32; //~ unnecessary_intermediate_cast
+    true as u32; //~ unnecessary_intermediate_cast
+    true as i32; //~ unnecessary_intermediate_cast
+}
