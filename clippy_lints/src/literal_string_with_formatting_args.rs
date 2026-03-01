@@ -89,7 +89,7 @@ impl<'tcx> LateLintPass<'tcx> for LiteralStringWithFormattingArg {
                 LitKind::Str(symbol, style) => {
                     let add = match style {
                         StrStyle::Cooked => 1,
-                        StrStyle::Raw(nb) => nb as usize + 2,
+                        StrStyle::Raw(nb) => usize::from(nb) + 2,
                     };
                     (add, symbol)
                 },
