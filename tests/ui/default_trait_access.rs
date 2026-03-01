@@ -67,6 +67,15 @@ fn main() {
         "[{}] [{}] [{}] [{}] [{}] [{}] [{}] [{}] [{}] [{:?}] [{:?}] [{:?}] [{:?}] [{:?}] [{:?}] [{:?}] [{:?}] [{:?}] [{:?}] [{:?}]",
         s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16, s17, s18, s19, s20,
     );
+
+    let _s22: nested_module::DerivedDefault = Default::default();
+    //~^ default_trait_access
+
+    let _s23: (usize, String) = Default::default();
+    //~^ default_trait_access
+
+    let _s24: [usize; 3] = Default::default();
+    //~^ default_trait_access
 }
 
 struct DefaultFactory;
@@ -74,6 +83,7 @@ struct DefaultFactory;
 impl DefaultFactory {
     pub fn make_t_badly<T: Default>() -> T {
         Default::default()
+        //~^ default_trait_access
     }
 
     pub fn make_t_nicely<T: Default>() -> T {
@@ -108,4 +118,11 @@ struct TupleStructDerivedDefault(String);
 struct UpdateSyntax {
     pub s: &'static str,
     pub u: u64,
+}
+
+mod nested_module {
+    #[derive(Default)]
+    pub struct DerivedDefault {
+        pub s: [String; 10],
+    }
 }
