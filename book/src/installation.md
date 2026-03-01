@@ -15,6 +15,22 @@ If Clippy was not installed for a toolchain, it can be installed with
 $ rustup component add clippy [--toolchain=<name>]
 ```
 
+### Use a specific version of Clippy
+
+Clippy may introduce new warnings and errors between associated Rust versions.
+This may be desirable if you want to learn about newly detectable issues in your
+codebase over time, but it can cause [continuous integration](./continuous_integration/index.md)
+to fail even if you haven't touched your Rust code. If you'd like to keep Clippy's
+behaviour stable for your project, use
+[`rust-toolchain.toml`](https://rust-lang.github.io/rustup/overrides.html#the-toolchain-file)
+to pin your entire Rust toolchain. For example:
+
+```toml
+[toolchain]
+channel = "1.83.0"
+components = ["clippy"]
+```
+
 ## From Source
 
 Take a look at the [Basics] chapter in the Clippy developer guide to find step-by-step
