@@ -455,19 +455,19 @@ LL | fn takes_into_iter_usize_result(_: impl IntoIterator<Item = usize>) -> Resu
    |                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: useless conversion to the same error type done via `?`
-  --> tests/ui/useless_conversion.rs:520:20
+  --> tests/ui/useless_conversion.rs:505:20
    |
 LL |         io_result().map_err(MyError::from)?;
    |                    ^^^^^^^^^^^^^^^^^^^^^^^ help: consider removing
 
 error: useless conversion to the same error type done via `?`
-  --> tests/ui/useless_conversion.rs:528:20
+  --> tests/ui/useless_conversion.rs:513:20
    |
 LL |         io_result().map_err(|e| MyError::from(e))?;
    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider removing
 
 error: useless conversion to the same type: `std::io::Error`
-  --> tests/ui/useless_conversion.rs:535:20
+  --> tests/ui/useless_conversion.rs:520:20
    |
 LL |         io_result().map_err(std::io::Error::from)?;
    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider removing
