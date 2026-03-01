@@ -231,7 +231,7 @@ fn needless_borrow_count<'tcx>(
     // elements are modified each time `check_referent` is called.
     let mut args_with_referent_ty = callee_args.to_vec();
 
-    let mut check_reference_and_referent = |reference: &Expr<'tcx>, referent: &Expr<'tcx>| {
+    let mut check_reference_and_referent = |reference: &Expr<'tcx>, referent: &Expr<'tcx>, is_mut: bool| {
         if let ExprKind::Field(base, _) = &referent.kind
             && let base_ty = cx.typeck_results().expr_ty(base)
             && drop_trait_def_id.is_some_and(|id| implements_trait(cx, base_ty, id, &[]))
@@ -273,7 +273,7 @@ fn needless_borrow_count<'tcx>(
                 && let ty::Param(param_ty) = trait_predicate.self_ty().kind()
                 && let GenericArgKind::Type(ty) = args_with_referent_ty[param_ty.index as usize].kind()
                 && ty.is_array()
-                && !msrv.meets(cx, msrvs::ARRAY_INTO_ITERATOR)
+                && (is_mut || !msrv.meets(cx, msrvs::ARRAY_INTO_ITERATOR))
             {
                 return false;
             }
@@ -286,8 +286,8 @@ fn needless_borrow_count<'tcx>(
     };
 
     let mut count = 0;
-    while let ExprKind::AddrOf(_, _, referent) = expr.kind {
-        if !check_reference_and_referent(expr, referent) {
+    while let ExprKind::AddrOf(_, mutability, referent) = expr.kind {
+        if !check_reference_and_referent(expr, referent, mutability == Mutability::Mut) {
             break;
         }
         expr = referent;
