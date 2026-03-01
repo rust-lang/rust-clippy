@@ -1,0 +1,100 @@
+error: mutable borrow of a value which was just copied
+  --> tests/ui/mutable_borrow_of_copy.rs:6:13
+   |
+LL |     let _ = &mut { a };
+   |             ^^^^^^^^^^
+   |
+   = note: `-D clippy::mutable-borrow-of-copy` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::mutable_borrow_of_copy)]`
+help: try building the reference inside the block
+   |
+LL -     let _ = &mut { a };
+LL +     let _ = { &mut a };
+   |
+
+error: mutable borrow of a value which was just copied
+  --> tests/ui/mutable_borrow_of_copy.rs:59:13
+   |
+LL |       let _ = &mut {
+   |  _____________^
+LL | |
+LL | |         s.a = 32;
+LL | |         s.a
+LL | |     };
+   | |_____^
+   |
+help: try building the reference inside the block
+   |
+LL ~     let _ = {
+LL |
+LL |         s.a = 32;
+LL ~         &mut s.a
+   |
+
+error: mutable borrow of a value which was just copied
+  --> tests/ui/mutable_borrow_of_copy.rs:72:13
+   |
+LL |       let _ = &mut {
+   |  _____________^
+LL | |
+LL | |         c.0
+LL | |     };
+   | |_____^
+   |
+help: try building the reference inside the block
+   |
+LL ~     let _ = {
+LL |
+LL ~         &mut c.0
+   |
+
+error: mutable borrow of a value which was just copied
+  --> tests/ui/mutable_borrow_of_copy.rs:84:13
+   |
+LL |       let _ = &mut {
+   |  _____________^
+LL | |
+LL | |         t[0]
+LL | |     };
+   | |_____^
+   |
+help: try building the reference inside the block
+   |
+LL ~     let _ = {
+LL |
+LL ~         &mut t[0]
+   |
+
+error: mutable borrow of a value which was just copied
+  --> tests/ui/mutable_borrow_of_copy.rs:98:24
+   |
+LL |       let double_a_ref = &mut unsafe {
+   |  ________________________^
+LL | |
+LL | |         unsafe_func(&mut a);
+LL | |         a
+LL | |     };
+   | |_____^
+   |
+help: try building the reference inside the block
+   |
+LL ~     let double_a_ref = unsafe {
+LL |
+LL |         unsafe_func(&mut a);
+LL ~         &mut a
+   |
+
+error: mutable borrow of a value which was just copied
+  --> tests/ui/mutable_borrow_of_copy.rs:108:13
+   |
+LL |     let _ = &mut { a };
+   |             ^^^^^^^^^^
+   |
+help: try building the reference inside the block
+   |
+LL -     let _ = &mut { a };
+LL +     let _ = { &mut a };
+   |
+
+error: aborting due to 6 previous errors
+
