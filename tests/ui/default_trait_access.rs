@@ -69,6 +69,28 @@ fn main() {
     );
 }
 
+fn issue16325() {
+    use std::borrow::Cow;
+    use std::collections::HashMap;
+    use std::rc::Rc;
+    use std::sync::{Arc, RwLock};
+
+    #[derive(Default, Clone)]
+    struct Foo;
+
+    let _: Arc<Foo> = Default::default();
+    //~^ default_trait_access
+
+    let _: Rc<Foo> = Default::default();
+    //~^ default_trait_access
+
+    let _: Cow<'_, Foo> = Default::default();
+    //~^ default_trait_access
+
+    let _: Arc<RwLock<HashMap<String, Foo>>> = Default::default();
+    //~^ default_trait_access
+}
+
 struct DefaultFactory;
 
 impl DefaultFactory {
