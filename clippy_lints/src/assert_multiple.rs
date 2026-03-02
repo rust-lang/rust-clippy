@@ -1,9 +1,12 @@
+use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::macros::{find_assert_args, root_macro_call_first_node};
 use clippy_utils::source::snippet;
+use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::sym;
+use std::borrow::Borrow;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -45,10 +48,22 @@ impl<'tcx> AssertMultiple {
             },
 
             ExprKind::Call(call, args) => {
-                eprintln!("found call");
                 let tmptxt = assert_from_fncall(cx, call, args);
-                dbg!(&tmptxt);
                 suggest_asserts.push(tmptxt);
+            },
+            ExprKind::MethodCall(_path, expr, _args, span) => {
+                let calltext = snippet(cx, span, "..");
+                let mut tmptxt = "assert!(".to_string();
+
+                if let ExprKind::Path(qpath) = expr.kind {
+                    tmptxt += &name_from_qpath(&qpath);
+                    tmptxt += ".";
+                    tmptxt += &*calltext;
+                    tmptxt += ");";
+                    suggest_asserts.push(tmptxt);
+                } else {
+                    return;
+                }
             },
 
             _ => {},
@@ -58,34 +73,42 @@ impl<'tcx> AssertMultiple {
 
 impl<'tcx> LateLintPass<'tcx> for AssertMultiple {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
-        let Some(macro_call) = root_macro_call_first_node(cx, e) else {
-            return;
-        };
-        let _ = match cx.tcx.get_diagnostic_name(macro_call.def_id) {
-            Some(sym::debug_assert_macro) => return,
-            Some(sym::assert_macro) => false,
-            _ => return,
-        };
-        let condition = match find_assert_args(cx, e, macro_call.expn) {
-            Some((cn, _)) => cn,
-            _ => return,
-        };
-        //          dbg!(condition);
-        //        let (lhs,rhs) = match condition.kind {
-        //            ExprKind::Binary(op, lhs, rhs) if matches!(op.node, BinOpKind::And) => (lhs,rhs),
-        //            _ => return,
-        //        };
-        let mut suggest_asserts: Vec<String> = Vec::new();
-        dbg!(condition);
-        self.visit_expr(cx, condition, &mut suggest_asserts);
-        dbg!(suggest_asserts);
+        if let Some(macro_call) = root_macro_call_first_node(cx, e)
+            && match cx.tcx.get_diagnostic_name(macro_call.def_id) {
+                Some(sym::debug_assert_macro) => false,
+                Some(sym::assert_macro) => true,
+                _ => false,
+            }
+            && let Some((condition, _)) = find_assert_args(cx, e, macro_call.expn)
+            && match condition.kind {
+                ExprKind::Binary(binop, _lhs, _rhs) if matches!(binop.node, BinOpKind::And | BinOpKind::Or) => true,
+                _ => false,
+            }
+        {
+            let mut suggest_asserts: Vec<String> = Vec::new();
+            self.visit_expr(cx, condition, &mut suggest_asserts);
+            if suggest_asserts.len() != 0 {
+                dbg!(&e);
+                let applicability = Applicability::MaybeIncorrect;
+                span_lint_and_then(
+                    cx,
+                    ASSERT_MULTIPLE,
+                    e.span,
+                    "Multiple asserts combined into one",
+                    |diag| {
+                        let text = suggest_asserts.join("\n");
+                        dbg!(&text);
+                        diag.span_suggestion(e.span, "consider writing", "my text", applicability);
+                    },
+                );
+            }
+        }
     }
 }
 
 fn name_from_qpath(qpath: &QPath<'_>) -> String {
     let mut retstr: String = "".to_string();
     let QPath::Resolved(_, path) = qpath else { return retstr };
-
     let seg_cnt = path.segments.len() - 1;
     let segiter = path.segments.iter().enumerate();
     for (idex, segment) in segiter {
@@ -126,9 +149,10 @@ fn assert_from_op(node: &BinOpKind, lhs: &Expr<'_>, rhs: &Expr<'_>) -> String {
 
 fn assert_from_fncall(cx: &LateContext<'_>, call: &Expr<'_>, args: &[Expr<'_>]) -> String {
     let mut retstr = "assert!(".to_string();
+
     if let ExprKind::Path(qpath) = call.kind {
-        let callname = name_from_qpath(&qpath);
-        retstr.push_str(callname.as_str());
+        let snip = snippet(cx, qpath.span(), "..");
+        retstr.push_str(snip.borrow());
     }
     retstr.push_str("(");
 
@@ -137,7 +161,6 @@ fn assert_from_fncall(cx: &LateContext<'_>, call: &Expr<'_>, args: &[Expr<'_>]) 
         for (idx, arg) in args.iter().enumerate() {
             let lit_text = snippet(cx, arg.span, "..");
             retstr.push_str(&*lit_text);
-            dbg!(&retstr);
             if idx != arglen {
                 retstr.push_str(",");
             }
