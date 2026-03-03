@@ -129,6 +129,7 @@ mod endian_bytes;
 mod entry;
 mod enum_clike;
 mod equatable_if_let;
+mod error_format_without_sources;
 mod error_impl_error;
 mod escape;
 mod eta_reduction;
@@ -808,6 +809,7 @@ rustc_lint::late_lint_methods!(
         ManualFloatMethods: manual_float_methods::ManualFloatMethods = manual_float_methods::ManualFloatMethods::new(conf),
         FourForwardSlashes: four_forward_slashes::FourForwardSlashes = four_forward_slashes::FourForwardSlashes,
         ErrorImplError: error_impl_error::ErrorImplError = error_impl_error::ErrorImplError,
+        ErrorFormatWithoutSources: error_format_without_sources::ErrorFormatWithoutSources = error_format_without_sources::ErrorFormatWithoutSources::new(conf),
         AbsolutePaths: absolute_paths::AbsolutePaths = absolute_paths::AbsolutePaths::new(conf),
         RedundantLocals: redundant_locals::RedundantLocals = redundant_locals::RedundantLocals,
         IgnoredUnitPatterns: ignored_unit_patterns::IgnoredUnitPatterns = ignored_unit_patterns::IgnoredUnitPatterns,
