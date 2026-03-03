@@ -8,7 +8,7 @@ use rustc_span::edition::Edition::{self, Edition2015, Edition2021};
 use rustc_span::{Symbol, kw};
 
 use super::SHOULD_IMPLEMENT_TRAIT;
-use super::lib::SelfKind;
+use super::utils::SelfKind;
 
 pub(super) fn check_impl_item<'tcx>(
     cx: &LateContext<'tcx>,

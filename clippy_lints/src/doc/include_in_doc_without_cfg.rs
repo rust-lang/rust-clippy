@@ -6,7 +6,7 @@ use rustc_lint::EarlyContext;
 
 use super::DOC_INCLUDE_WITHOUT_CFG;
 
-pub fn check(cx: &EarlyContext<'_>, attrs: &[Attribute]) {
+pub(super) fn check(cx: &EarlyContext<'_>, attrs: &[Attribute]) {
     for attr in attrs {
         if !attr.span.from_expansion()
             && let AttrKind::Normal(ref item) = attr.kind

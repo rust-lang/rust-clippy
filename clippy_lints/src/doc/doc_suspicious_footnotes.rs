@@ -10,7 +10,13 @@ use std::ops::Range;
 
 use super::{DOC_SUSPICIOUS_FOOTNOTES, Fragments};
 
-pub fn check(cx: &LateContext<'_>, doc: &str, range: Range<usize>, fragments: &Fragments<'_>, attrs: &[Attribute]) {
+pub(super) fn check(
+    cx: &LateContext<'_>,
+    doc: &str,
+    range: Range<usize>,
+    fragments: &Fragments<'_>,
+    attrs: &[Attribute],
+) {
     for i in doc[range.clone()]
         .bytes()
         .enumerate()

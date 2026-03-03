@@ -9,7 +9,7 @@ use rustc_span::Span;
 
 use super::SUSPICIOUS_DOC_COMMENTS;
 
-pub fn check(cx: &LateContext<'_>, attrs: &[Attribute]) -> bool {
+pub(super) fn check(cx: &LateContext<'_>, attrs: &[Attribute]) -> bool {
     let replacements: Vec<_> = collect_doc_replacements(attrs);
 
     if let Some((&(lo_span, _), &(hi_span, _))) = replacements.first().zip(replacements.last()) {
