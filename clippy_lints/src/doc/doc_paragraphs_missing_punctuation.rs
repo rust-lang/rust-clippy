@@ -9,7 +9,7 @@ use super::{DOC_PARAGRAPHS_MISSING_PUNCTUATION, Fragments};
 const MSG: &str = "doc paragraphs should end with a terminal punctuation mark";
 const PUNCTUATION_SUGGESTION: char = '.';
 
-pub fn check(cx: &LateContext<'_>, doc: &str, fragments: Fragments<'_>) {
+pub(super) fn check(cx: &LateContext<'_>, doc: &str, fragments: Fragments<'_>) {
     for missing_punctuation in is_missing_punctuation(doc) {
         match missing_punctuation {
             MissingPunctuation::Fixable(offset) => {

@@ -1,13 +1,13 @@
+pub mod let_and_return;
+pub mod needless_return;
+pub mod needless_return_with_question_mark;
+
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Block, Body, FnDecl, Stmt};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::Span;
 use rustc_span::def_id::LocalDefId;
-
-mod let_and_return;
-mod needless_return;
-mod needless_return_with_question_mark;
 
 declare_clippy_lint! {
     /// ### What it does

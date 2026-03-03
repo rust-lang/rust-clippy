@@ -143,25 +143,6 @@ impl ParsedLints<'_> {
             updater.update_file_checked(
                 "cargo dev update_lints",
                 update_mode,
-                Path::new(krate).join("src/lib.rs"),
-                &mut update_text_region_fn(
-                    "// begin lints modules, do not remove this comment, it's used in `update_lints`\n",
-                    "// end lints modules, do not remove this comment, it's used in `update_lints`",
-                    |dst| {
-                        let mut prev = "";
-                        for &(_, (_, mod_path)) in lints {
-                            let module = mod_path.split_once(path::MAIN_SEPARATOR).map_or(mod_path, |(x, _)| x);
-                            if module != prev {
-                                writeln!(dst, "mod {module};").unwrap();
-                                prev = module;
-                            }
-                        }
-                    },
-                ),
-            );
-            updater.update_file_checked(
-                "cargo dev update_lints",
-                update_mode,
                 Path::new(krate).join("src/declared_lints.rs"),
                 &mut |_, src, dst| {
                     dst.push_str(GENERATED_FILE_COMMENT);

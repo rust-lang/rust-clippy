@@ -83,7 +83,7 @@ pub fn create(clippy_version: Version, pass: &str, name: &str, group: &str, has_
                 data: LintData::Active(lint_data),
             });
 
-            let add_mod = if let Some((path, "mod.rs")) = file.path.get().rsplit_once(path::MAIN_SEPARATOR) {
+            let add_mod = if let Some((path, "mod.rs" | "lib.rs")) = file.path.get().rsplit_once(path::MAIN_SEPARATOR) {
                 updater.write_new_file(String::from_iter([path, PATH_SEP, name_snake, ".rs"]), |dst| {
                     write_lint_check_file(dst, name_upper, is_late_pass, has_msrv);
                 });
@@ -387,11 +387,11 @@ fn mk_sorted_lints_copy_fn(mut add_mod: bool, mod_name: &str) -> impl FnMut(&str
             match pos {
                 ModPos::Name(pos) => {
                     let (pre, post) = src.split_at(pos as usize);
-                    dst.extend([pre, mod_name, ";\nmod ", post]);
+                    dst.extend([pre, mod_name, ";\npub mod ", post]);
                 },
                 ModPos::End(pos) => {
                     let (pre, post) = src.split_at(pos as usize);
-                    dst.extend([pre, "mod ", mod_name, ";\n", post]);
+                    dst.extend([pre, "pub mod ", mod_name, ";\n", post]);
                 },
             }
             add_mod = false;
@@ -404,7 +404,7 @@ fn mk_sorted_lints_copy_fn(mut add_mod: bool, mod_name: &str) -> impl FnMut(&str
 /// Gets the position to insert a pub module with the specified name. Returns
 /// `None` if a module list could not be found.
 fn find_mod_decl_after(cursor: &mut Cursor<'_>, mod_name: &str) -> Option<ModPos> {
-    if !cursor.find_ident("mod") {
+    if !(cursor.find_ident("pub") && cursor.eat_ident("mod")) {
         return None;
     }
     let mut end = None;
@@ -416,7 +416,7 @@ fn find_mod_decl_after(cursor: &mut Cursor<'_>, mod_name: &str) -> Option<ModPos
             return Some(ModPos::Name(name.pos));
         }
         end = Some(cursor.pos());
-        if !cursor.eat_ident("mod") {
+        if !(cursor.eat_ident("pub") && cursor.eat_ident("mod")) {
             break;
         }
     }

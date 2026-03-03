@@ -37,12 +37,12 @@ declare_clippy_lint! {
 
 impl_lint_pass!(ToDigitIsSome => [TO_DIGIT_IS_SOME]);
 
-pub(crate) struct ToDigitIsSome {
+pub struct ToDigitIsSome {
     msrv: Msrv,
 }
 
 impl ToDigitIsSome {
-    pub(crate) fn new(conf: &'static Conf) -> Self {
+    pub fn new(conf: &'static Conf) -> Self {
         Self { msrv: conf.msrv }
     }
 }

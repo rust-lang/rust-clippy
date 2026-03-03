@@ -14,7 +14,7 @@ use super::DOC_BROKEN_LINK;
 // - When a link url is broken across multiple lines in the URL path part
 // - When a link tag is missing the close parenthesis character at the end.
 // - When a link has whitespace within the url link.
-pub fn check(cx: &LateContext<'_>, bl: &PullDownBrokenLink<'_>, doc: &str, fragments: &[DocFragment]) {
+pub(super) fn check(cx: &LateContext<'_>, bl: &PullDownBrokenLink<'_>, doc: &str, fragments: &[DocFragment]) {
     warn_if_broken_link(cx, bl, doc, fragments);
 }
 

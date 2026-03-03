@@ -1,6 +1,7 @@
-mod let_unit_value;
-mod unit_arg;
-mod unit_cmp;
+pub mod let_unit_value;
+pub mod unit_arg;
+pub mod unit_cmp;
+
 mod utils;
 
 use clippy_utils::macros::FormatArgsStorage;

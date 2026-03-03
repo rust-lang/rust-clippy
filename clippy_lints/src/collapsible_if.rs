@@ -335,7 +335,7 @@ fn span_extract_keyword(sm: &SourceMap, span: Span, keyword: &str) -> Option<Spa
 
 /// Peel the parentheses from an `if` expression, e.g. `((if true {} else {}))`.
 pub(super) fn peel_parens(sm: &SourceMap, mut span: Span) -> (Span, Span, Span) {
-    use crate::rustc_span::Pos;
+    use rustc_span::Pos;
 
     let start = span.shrink_to_lo();
     let end = span.shrink_to_hi();

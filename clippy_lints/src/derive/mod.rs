@@ -1,14 +1,14 @@
+pub mod derive_ord_xor_partial_ord;
+pub mod derive_partial_eq_without_eq;
+pub mod derived_hash_with_manual_eq;
+pub mod expl_impl_clone_on_copy;
+pub mod unsafe_derive_deserialize;
+
 use clippy_utils::res::MaybeResPath;
 use rustc_hir::def::Res;
 use rustc_hir::{Impl, Item, ItemKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
-
-mod derive_ord_xor_partial_ord;
-mod derive_partial_eq_without_eq;
-mod derived_hash_with_manual_eq;
-mod expl_impl_clone_on_copy;
-mod unsafe_derive_deserialize;
 
 declare_clippy_lint! {
     /// ### What it does
