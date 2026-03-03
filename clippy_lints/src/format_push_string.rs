@@ -44,7 +44,7 @@ declare_clippy_lint! {
 
 impl_lint_pass!(FormatPushString => [FORMAT_PUSH_STRING]);
 
-pub(crate) struct FormatPushString {
+pub struct FormatPushString {
     format_args: FormatArgsStorage,
 }
 
@@ -69,7 +69,7 @@ enum FormatSearchResults {
 }
 
 impl FormatPushString {
-    pub(crate) fn new(format_args: FormatArgsStorage) -> Self {
+    pub fn new(format_args: FormatArgsStorage) -> Self {
         Self { format_args }
     }
 
