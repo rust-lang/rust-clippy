@@ -960,6 +960,7 @@ The minimum rust version that the project supports. Defaults to the `rust-versio
 * [`deprecated_cfg_attr`](https://clippy.rust-lang.org/main/index.html#deprecated_cfg_attr)
 * [`derivable_impls`](https://clippy.rust-lang.org/main/index.html#derivable_impls)
 * [`err_expect`](https://clippy.rust-lang.org/main/index.html#err_expect)
+* [`error_format_without_sources`](https://clippy.rust-lang.org/main/index.html#error_format_without_sources)
 * [`filter_map_next`](https://clippy.rust-lang.org/main/index.html#filter_map_next)
 * [`from_over_into`](https://clippy.rust-lang.org/main/index.html#from_over_into)
 * [`if_then_some_else_none`](https://clippy.rust-lang.org/main/index.html#if_then_some_else_none)
