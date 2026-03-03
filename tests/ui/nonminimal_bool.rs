@@ -1,12 +1,13 @@
 //@no-rustfix: overlapping suggestions
+#![warn(clippy::nonminimal_bool)]
 #![allow(
     unused,
+    clippy::bool_comparison,
     clippy::diverging_sub_expression,
     clippy::needless_ifs,
-    clippy::redundant_pattern_matching
+    clippy::redundant_pattern_matching,
+    clippy::useless_vec
 )]
-#![warn(clippy::nonminimal_bool)]
-#![allow(clippy::useless_vec)]
 
 fn main() {
     let a: bool = unimplemented!();
@@ -181,16 +182,12 @@ fn issue_5794() {
     let c = false;
     if !b == true {}
     //~^ nonminimal_bool
-    //~| bool_comparison
     if !b != true {}
     //~^ nonminimal_bool
-    //~| bool_comparison
     if true == !b {}
     //~^ nonminimal_bool
-    //~| bool_comparison
     if true != !b {}
     //~^ nonminimal_bool
-    //~| bool_comparison
     if !b == !c {}
     //~^ nonminimal_bool
     if !b != !c {}
@@ -246,9 +243,6 @@ fn dont_simplify_double_not_if_types_differ() {
     }
 
     // The lint must propose `if !!S`, not `if S`.
-    // FIXME: `bool_comparison` will propose to use `S == true`
-    // which is invalid.
     if !S != true {}
     //~^ nonminimal_bool
-    //~| bool_comparison
 }

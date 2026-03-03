@@ -1,6 +1,8 @@
-use crate::ir::{ActiveLint, ConfDef, LintData, LintPass, ParsedLints};
+use crate::ir::{ActiveLint, ConfDef, LintData, LintPass, LintPassCtor, LintPassCtorArg, LintPassKind, ParsedLints};
 use crate::parse::cursor::Cursor;
-use crate::utils::{FileUpdater, UpdateMode, UpdateStatus, VecBuf, slice_groups, update_text_region_fn};
+use crate::utils::{
+    FileUpdater, UpdateMode, UpdateStatus, VecBuf, path_as_crate_mod, slice_groups, update_text_region_fn,
+};
 use core::range::Range;
 use itertools::Itertools;
 use std::collections::HashSet;
@@ -40,7 +42,7 @@ impl ParsedLints<'_> {
         let mut renamed = Vec::with_capacity(lints.len() / 8);
         for &(name, lint) in &lints {
             match &lint.data {
-                LintData::Active(_) => active.push((name, lint.name_sp.file.path_as_krate_mod())),
+                LintData::Active(_) => active.push((name, path_as_crate_mod(lint.name_sp.file.path.get()))),
                 LintData::Deprecated(data) => deprecated.push((name, lint.version, data.reason)),
                 LintData::Renamed(data) => renamed.push((name, lint.version, data.new_name)),
             }
@@ -135,7 +137,6 @@ impl ParsedLints<'_> {
                 UpdateStatus::from_changed(src != dst)
             },
         );
-
         for lints in slice_groups(&active, |(_, (head, _)), tail| {
             tail.iter().take_while(|(_, (x, _))| head == x).count()
         }) {
@@ -164,6 +165,76 @@ impl ParsedLints<'_> {
                 },
             );
         }
+        updater.update_file_checked(
+            "cargo dev update_lints",
+            update_mode,
+            "src/register_passes.rs",
+            &mut |_, src, dst| {
+                let mut early_passes = Vec::with_capacity(100);
+                let mut late_passes = Vec::with_capacity(self.lint_passes.len());
+
+                for pass in self.lint_passes.iter() {
+                    // HACK: This is a pre-expansion pass, but we detect it as an early pass.
+                    if pass.name == "EarlyAttributes" {
+                        continue;
+                    }
+                    if pass.is_early {
+                        early_passes.push(pass);
+                    }
+                    if pass.is_late {
+                        late_passes.push(pass);
+                    }
+                }
+
+                early_passes.sort_unstable_by_key(|x| x.name);
+                late_passes.sort_unstable_by_key(|x| x.name);
+
+                dst.push_str(GENERATED_FILE_COMMENT);
+                dst.push_str(
+                    "\
+#[rustfmt::skip]
+#[allow(elided_lifetimes_in_paths)]
+pub fn register_lint_passes(store: &mut ::rustc_lint::LintStore, conf: &'static ::clippy_config::Conf) {
+    use rustc_data_structures::marker::{DynSend, DynSync};
+    use rustc_lint::{EarlyLintPass, LateLintPass};
+    use rustc_middle::ty::TyCtxt;
+
+    type BoxEarlyLintPass = Box<dyn EarlyLintPass + 'static>;
+    type BoxLateLintPass<'tcx> = Box<dyn LateLintPass<'tcx> + 'tcx>;
+
+    let fmt_args = ::clippy_utils::macros::FormatArgsStorage::default();
+    let attrs = ::clippy_lints::utils::attr_collector::AttrStorage::default();
+
+    let early_lints: [Box<dyn Fn() -> BoxEarlyLintPass + DynSend + DynSync>; _] = [",
+                );
+
+                for pass in early_passes {
+                    dst.push_str("\n        ");
+                    pass.gen_boxed_ctor(dst, LintPassKind::Early, "        ");
+                }
+
+                dst.push_str(
+                    "
+    ];
+    store.early_passes.extend(early_lints);
+
+    let late_lints: [Box<dyn for<'tcx> Fn(TyCtxt<'tcx>) -> BoxLateLintPass<'tcx> + DynSend + DynSync>; _] = [",
+                );
+
+                for pass in late_passes {
+                    dst.push_str("\n        ");
+                    pass.gen_boxed_ctor(dst, LintPassKind::Late, "        ");
+                }
+
+                dst.push_str(
+                    "
+    ];
+    store.late_passes.extend(late_lints);
+}\n",
+                );
+                UpdateStatus::from_changed(src != dst)
+            },
+        );
     }
 }
 
@@ -215,6 +286,63 @@ impl LintPass<'_> {
             dst.push_str(list_multi_end);
         }
         dst.push_str(end);
+    }
+
+    pub fn gen_boxed_ctor(&self, dst: &mut String, kind: LintPassKind, indent: &str) {
+        let ctor_fn_arg = match kind {
+            LintPassKind::Early => "",
+            LintPassKind::Late => "_",
+        };
+        match self.ctor {
+            LintPassCtor::Unit => {
+                dst.extend(["Box::new(|", ctor_fn_arg, "| Box::new("]);
+                self.decl_sp.file.write_path_as_rust_path(dst);
+                dst.extend(["::", self.name, ")),"]);
+            },
+            LintPassCtor::Default => {
+                dst.extend(["Box::new(|", ctor_fn_arg, "| Box::<"]);
+                self.decl_sp.file.write_path_as_rust_path(dst);
+                dst.extend(["::", self.name, ">::default()),"]);
+            },
+            LintPassCtor::New(args) => {
+                let ctor_fn_arg = if args.has_tcx() { "tcx" } else { ctor_fn_arg };
+                let has_fmt_args = args.has_fmt_args();
+                let has_attrs = args.has_attrs();
+                let has_block = has_fmt_args || has_attrs;
+
+                if has_block {
+                    dst.extend(["{\n", indent, "    "]);
+                    if has_fmt_args {
+                        dst.extend(["let fmt_args = fmt_args.clone();\n", indent, "    "]);
+                    }
+                    if has_attrs {
+                        dst.extend(["let attrs = attrs.clone();\n", indent, "    "]);
+                    }
+                }
+                dst.extend(["Box::new(move |", ctor_fn_arg, "| Box::new("]);
+                self.decl_sp.file.write_path_as_rust_path(dst);
+                dst.extend(["::", self.name, "::new("]);
+                let mut first = true;
+                for &arg in &args {
+                    if !first {
+                        dst.push_str(", ");
+                    }
+                    first = false;
+                    dst.push_str(match arg {
+                        LintPassCtorArg::TyCtxt => "tcx",
+                        LintPassCtorArg::Conf => "conf",
+                        LintPassCtorArg::FmtArgs => "fmt_args.clone()",
+                        LintPassCtorArg::Attrs => "attrs.clone()",
+                    });
+                }
+                dst.push_str(")))");
+                if has_block {
+                    dst.extend(["\n", indent, "},"]);
+                } else {
+                    dst.push(',');
+                }
+            },
+        }
     }
 }
 
