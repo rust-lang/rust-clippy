@@ -86,9 +86,9 @@ impl<'tcx> LateLintPass<'tcx> for AssertMultiple {
             }
         {
             let mut suggest_asserts: Vec<String> = Vec::new();
+            // first node of assert is BinOpKind::Not, skip it);
             self.visit_expr(cx, condition, &mut suggest_asserts);
             if suggest_asserts.len() != 0 {
-                dbg!(&e);
                 let applicability = Applicability::MaybeIncorrect;
                 span_lint_and_then(
                     cx,
