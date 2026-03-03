@@ -6,8 +6,11 @@
 
 // FIXME: switch to something more ergonomic here, once available.
 // (Currently there is no way to opt into sysroot crates without `extern crate`.)
+extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_interface;
+extern crate rustc_lint;
+extern crate rustc_middle;
 extern crate rustc_session;
 extern crate rustc_span;
 
@@ -19,6 +22,8 @@ extern crate rustc_span;
 /// <https://github.com/rust-lang/cc-rs/issues/1613>.
 #[cfg(feature = "jemalloc")]
 extern crate tikv_jemalloc_sys as _;
+
+mod register_passes;
 
 use clippy_utils::sym;
 use declare_clippy_lint::LintListBuilder;
@@ -157,11 +162,22 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
             }
 
             let mut list_builder = LintListBuilder::default();
-            list_builder.insert(clippy_lints::declared_lints::LINTS);
+            list_builder.insert(::clippy_lints::declared_lints::LINTS);
             list_builder.register(lint_store);
+            for (old_name, new_name) in ::clippy_lints::deprecated_lints::RENAMED {
+                lint_store.register_renamed(old_name, new_name);
+            }
+            for (name, reason) in ::clippy_lints::deprecated_lints::DEPRECATED {
+                lint_store.register_removed(name, reason);
+            }
 
             let conf = clippy_config::Conf::read(sess, &conf_path);
-            clippy_lints::register_lint_passes(lint_store, conf);
+
+            // NOTE: Do not add any more pre-expansion passes. These should be removed eventually.
+            // Due to the architecture of the compiler, currently `cfg_attr` attributes on crate
+            // level (i.e `#![cfg_attr(...)]`) will still be expanded even when using a pre-expansion pass.
+            lint_store.register_pre_expansion_pass(move || Box::new(::clippy_lints::attrs::EarlyAttributes::new(conf)));
+            register_passes::register_lint_passes(lint_store, conf);
 
             #[cfg(feature = "internal")]
             clippy_lints_internal::register_lints(lint_store);

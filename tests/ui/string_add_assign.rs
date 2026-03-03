@@ -1,5 +1,6 @@
-#[allow(clippy::string_add, unused)]
-#[warn(clippy::string_add_assign)]
+#![warn(clippy::string_add_assign)]
+#![allow(unused, clippy::assign_op_pattern, clippy::string_add)]
+
 fn main() {
     // ignores assignment distinction
     let mut x = String::new();
@@ -7,7 +8,6 @@ fn main() {
     for _ in 1..3 {
         x = x + ".";
         //~^ string_add_assign
-        //~| assign_op_pattern
     }
 
     let y = String::new();
@@ -17,6 +17,5 @@ fn main() {
 
     let mut x = 1;
     x = x + 1;
-    //~^ assign_op_pattern
     assert_eq!(2, x);
 }
