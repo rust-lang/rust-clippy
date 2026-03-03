@@ -1,11 +1,12 @@
 pub mod cursor;
 
 use self::cursor::{Capture, Cursor, IdentPat};
-use crate::utils::{ErrAction, Scoped, StrBuf, VecBuf, expect_action, slice_groups_mut, walk_dir_no_dot_or_target};
+use crate::ir::{
+    ActiveLintData, ConfDef, ConfOpt, DeprecatedLintData, Lint, LintData, LintMap, LintName, LintPass, LintPassMac,
+    LintPasses, LintTool, ParsedLints, RenamedLintData,
+};
+use crate::utils::{ErrAction, Scoped, StrBuf, VecBuf, expect_action, walk_dir_no_dot_or_target};
 use crate::{DiagCx, SourceFile, Span};
-use core::fmt::{self, Display};
-use core::ops::{Deref, DerefMut};
-use core::range::Range;
 use rustc_arena::{DroplessArena, TypedArena};
 use rustc_data_structures::fx::FxHashMap;
 use std::collections::hash_map::{Entry, VacantEntry};
@@ -33,114 +34,6 @@ pub fn new_parse_cx<'env, T>(f: impl for<'cx> FnOnce(&'cx mut Scoped<'cx, 'env, 
     }))
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
-pub enum LintTool {
-    Rustc,
-    Clippy,
-}
-impl LintTool {
-    /// Gets the namespace prefix to use when naming a lint including the `::`.
-    pub fn prefix(self) -> &'static str {
-        match self {
-            Self::Rustc => "",
-            Self::Clippy => "clippy::",
-        }
-    }
-
-    pub fn from_prefix(s: &str) -> Option<Self> {
-        (s == "clippy").then_some(Self::Clippy)
-    }
-}
-
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
-pub struct LintName<'cx> {
-    pub tool: LintTool,
-    pub name: &'cx str,
-}
-impl<'cx> LintName<'cx> {
-    pub fn new_rustc(name: &'cx str) -> Self {
-        Self {
-            tool: LintTool::Rustc,
-            name,
-        }
-    }
-
-    pub fn new_clippy(name: &'cx str) -> Self {
-        Self {
-            tool: LintTool::Clippy,
-            name,
-        }
-    }
-}
-impl Display for LintName<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(self.tool.prefix())?;
-        f.write_str(self.name)
-    }
-}
-
-#[derive(Clone, Copy)]
-pub struct ActiveLintData<'cx> {
-    pub decl_range: Range<u32>,
-    /// The raw text of the documentation comments. May include leading/trailing
-    /// whitespace and empty lines.
-    pub docs: &'cx str,
-    /// The raw text of the line comments. May include leading/trailing whitespace
-    /// and empty lines.
-    pub group_comments: &'cx str,
-    pub group: &'cx str,
-    /// The raw text of the string literal including the quotation marks.
-    pub desc: &'cx str,
-    /// The raw text of any additional `@option` values. Starts at the comma after
-    /// the description and may include trailing whitespace.
-    pub opts: &'cx str,
-}
-
-#[derive(Clone, Copy)]
-pub struct DeprecatedLintData<'cx> {
-    pub reason: &'cx str,
-}
-
-#[derive(Clone, Copy)]
-pub struct RenamedLintData<'cx> {
-    pub new_name: LintName<'cx>,
-}
-
-#[derive(Clone, Copy)]
-pub enum LintData<'cx> {
-    Active(ActiveLintData<'cx>),
-    Deprecated(DeprecatedLintData<'cx>),
-    Renamed(RenamedLintData<'cx>),
-}
-
-#[derive(Clone, Copy)]
-pub struct ActiveLint<'a, 'cx> {
-    pub name: &'cx str,
-    pub version: &'cx str,
-    pub data: &'a ActiveLintData<'cx>,
-}
-
-#[derive(Clone, Copy)]
-pub struct Lint<'cx> {
-    pub name_sp: Span<'cx>,
-    pub version: &'cx str,
-    pub data: LintData<'cx>,
-}
-
-#[derive(Clone, Copy)]
-pub enum LintPassMac {
-    Declare,
-    Impl,
-}
-impl LintPassMac {
-    pub fn name(self) -> &'static str {
-        match self {
-            Self::Declare => "declare_lint_pass",
-            Self::Impl => "impl_lint_pass",
-        }
-    }
-}
-
 #[derive(Clone, Copy)]
 enum ImplTrait {
     EarlyLintPass,
@@ -154,140 +47,32 @@ impl ImplTrait {
             _ => None,
         }
     }
-}
 
-pub struct LintPass<'cx> {
-    /// The raw text of the documentation comments. May include leading/trailing
-    /// whitespace and empty lines.
-    pub docs: &'cx str,
-    pub name: &'cx str,
-    pub lt: Option<&'cx str>,
-    pub mac: LintPassMac,
-    pub decl_sp: Span<'cx>,
-    pub lints: &'cx mut [&'cx str],
-    pub is_early: bool,
-    pub is_late: bool,
-}
-impl LintPass<'_> {
-    fn add_trait_impl(&mut self, kind: ImplTrait) {
-        match kind {
-            ImplTrait::EarlyLintPass => self.is_early = true,
-            ImplTrait::LateLintPass => self.is_late = true,
+    fn add_to_pass(self, pass: &mut LintPass<'_>) {
+        match self {
+            Self::EarlyLintPass => pass.is_early = true,
+            Self::LateLintPass => pass.is_late = true,
         }
     }
 }
 
-pub struct LintMap<'cx>(FxHashMap<&'cx str, Lint<'cx>>);
-impl<'cx> LintMap<'cx> {
-    #[expect(clippy::mutable_key_type)]
-    pub fn mk_by_file_map<'s>(&'s self) -> FxHashMap<&'cx SourceFile<'cx>, Vec<ActiveLint<'s, 'cx>>> {
-        #[expect(clippy::default_trait_access)]
-        let mut lints = FxHashMap::with_capacity_and_hasher(500, Default::default());
-        for (&name, lint) in &self.0 {
-            if let LintData::Active(lint_data) = &lint.data {
-                lints
-                    .entry(lint.name_sp.file)
-                    .or_insert_with(|| Vec::with_capacity(8))
-                    .push(ActiveLint {
-                        name,
-                        version: lint.version,
-                        data: lint_data,
-                    });
-            }
-        }
-        lints
-    }
-
-    pub fn lints_in_file<'s>(&'s self, file: &SourceFile<'_>) -> impl Iterator<Item = ActiveLint<'s, 'cx>> {
-        self.iter().filter_map(move |(&name, lint)| {
-            if let LintData::Active(data) = &lint.data
-                && lint.name_sp.file == file
-            {
-                Some(ActiveLint {
-                    name,
-                    version: lint.version,
-                    data,
-                })
-            } else {
-                None
-            }
-        })
-    }
-
+impl<'cx> ParseCxImpl<'cx> {
     #[track_caller]
-    fn get_vacant_lint<'s>(
-        &'s mut self,
-        dcx: &mut DiagCx,
+    fn get_vacant_lint<'map>(
+        &mut self,
+        map: &'map mut LintMap<'cx>,
         name: &'cx str,
         name_sp: Span<'cx>,
-    ) -> Option<VacantEntry<'s, &'cx str, Lint<'cx>>> {
-        match self.0.entry(name) {
+    ) -> Option<VacantEntry<'map, &'cx str, Lint<'cx>>> {
+        match map.entry(name) {
             Entry::Vacant(e) => Some(e),
             Entry::Occupied(e) => {
-                dcx.emit_duplicate_lint(name_sp, e.get().name_sp);
+                self.dcx.emit_duplicate_lint(name_sp, e.get().name_sp);
                 None
             },
         }
     }
-}
-impl<'cx> Deref for LintMap<'cx> {
-    type Target = FxHashMap<&'cx str, Lint<'cx>>;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-impl DerefMut for LintMap<'_> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
 
-pub struct LintPasses<'cx>(Vec<LintPass<'cx>>);
-impl<'cx> LintPasses<'cx> {
-    pub fn iter_by_file_mut<'s>(&'s mut self) -> impl Iterator<Item = &'s mut [LintPass<'cx>]> {
-        slice_groups_mut(&mut self.0, |head, tail| {
-            tail.iter().take_while(|&x| x.decl_sp.file == head.decl_sp.file).count()
-        })
-    }
-
-    pub fn in_same_file_as_mut<'s>(&'s mut self, i: usize) -> &'s mut [LintPass<'cx>] {
-        let file = self[i].decl_sp.file;
-        let pre = self[..i].iter().rev().take_while(|&x| x.decl_sp.file == file).count();
-        let post = self[i + 1..].iter().take_while(|&x| x.decl_sp.file == file).count();
-        &mut self[i - pre..i + 1 + post]
-    }
-}
-impl<'cx> Deref for LintPasses<'cx> {
-    type Target = Vec<LintPass<'cx>>;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-impl DerefMut for LintPasses<'_> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
-
-pub struct ParsedLints<'cx> {
-    pub lints: LintMap<'cx>,
-    pub lint_passes: LintPasses<'cx>,
-    pub deprecated_file: &'cx SourceFile<'cx>,
-}
-
-pub struct ConfOpt<'cx> {
-    pub name: &'cx str,
-    pub decl_range: Range<u32>,
-    pub lints: &'cx mut [&'cx str],
-    pub lints_range: Range<u32>,
-}
-
-pub struct ConfDef<'cx> {
-    pub decl_sp: Span<'cx>,
-    pub opts: Vec<ConfOpt<'cx>>,
-}
-
-impl<'cx> ParseCxImpl<'cx> {
     pub fn parse_conf_mac(&mut self) -> ConfDef<'cx> {
         #[allow(clippy::enum_glob_use)]
         use cursor::Pat::*;
@@ -470,7 +255,7 @@ impl<'cx> ParseCxImpl<'cx> {
                         && let name_sp = name.mk_sp(file)
                         && let name = self.str_buf.alloc_ascii_lower(self.arena, cursor.get_text(name))
                         && let (Some(e), Some(version)) = (
-                            data.lints.get_vacant_lint(&mut self.dcx, name, name_sp),
+                            self.get_vacant_lint(&mut data.lints, name, name_sp),
                             self.parse_version(cursor.get_text(version), version.mk_sp(file)),
                         )
                     {
@@ -540,7 +325,7 @@ impl<'cx> ParseCxImpl<'cx> {
                         .iter_mut()
                         .find(|pass| pass.name == impl_ty)
                     {
-                        pass.add_trait_impl(trait_);
+                        trait_.add_to_pass(pass);
                     } else {
                         trait_impls.push((impl_ty, trait_));
                     }
@@ -554,7 +339,7 @@ impl<'cx> ParseCxImpl<'cx> {
                 .iter_mut()
                 .find(|pass| pass.name == impl_ty)
             {
-                pass.add_trait_impl(trait_);
+                trait_.add_to_pass(pass);
             }
         }
     }
@@ -608,7 +393,7 @@ impl<'cx> ParseCxImpl<'cx> {
                             self.parse_clippy_lint_name(cursor.get_text(name), name_sp),
                             self.parse_str_lit(cursor.get_text(reason), reason.mk_sp(file)),
                         )
-                        && let Some(e) = data.lints.get_vacant_lint(&mut self.dcx, name, name_sp)
+                        && let Some(e) = self.get_vacant_lint(&mut data.lints, name, name_sp)
                     {
                         e.insert(Lint {
                             name_sp,
@@ -636,7 +421,7 @@ impl<'cx> ParseCxImpl<'cx> {
                             self.parse_clippy_lint_name(cursor.get_text(name), name_sp),
                             self.parse_lint_name(cursor.get_text(new_name), new_name.mk_sp(file)),
                         )
-                        && let Some(e) = data.lints.get_vacant_lint(&mut self.dcx, name, name_sp)
+                        && let Some(e) = self.get_vacant_lint(&mut data.lints, name, name_sp)
                     {
                         e.insert(Lint {
                             name_sp,

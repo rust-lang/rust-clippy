@@ -1,17 +1,11 @@
 use crate::generate::gen_sorted_lints_file;
+use crate::ir::{ActiveLint, ActiveLintData, Lint, LintData, LintPass, LintPassKind, LintPassMac};
 use crate::parse::cursor::Cursor;
-use crate::parse::{ActiveLint, ActiveLintData, Lint, LintData, LintPass, LintPassMac};
 use crate::utils::{FileUpdater, VecBuf, Version, create_new_dir};
 use crate::{SourceFile, Span, UpdateMode, new_parse_cx};
 use std::collections::hash_map::Entry;
 use std::fmt::Write as _;
 use std::path::{self, MAIN_SEPARATOR_STR as PATH_SEP, PathBuf};
-
-#[derive(Clone, Copy)]
-enum LintPassKind {
-    Early,
-    Late,
-}
 
 /// Creates the files required to implement and test a new lint and runs `update_lints`.
 ///
@@ -99,7 +93,7 @@ pub fn create(clippy_version: Version, pass: &str, name: &str, group: &str, has_
             };
             updater.change_loaded_file(file, |src, dst| {
                 let mut lints: Vec<_> = data.lints.lints_in_file(file).collect();
-                let passes = data.lint_passes.in_same_file_as_mut(pass_idx);
+                let passes = data.lint_passes.all_in_same_file_as_mut(pass_idx);
                 let mut ranges = VecBuf::with_capacity(lints.len() + passes.len());
                 let mut copy = mk_sorted_lints_copy_fn(add_mod, name_snake);
                 gen_sorted_lints_file(src, dst, &mut lints, passes, &mut ranges, &mut copy);

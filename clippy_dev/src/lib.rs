@@ -28,6 +28,7 @@ extern crate termize;
 pub mod dogfood;
 pub mod edit_lints;
 pub mod fmt;
+pub mod ir;
 pub mod lint;
 pub mod new_lint;
 pub mod release;
