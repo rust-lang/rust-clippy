@@ -767,6 +767,7 @@ define_Conf! {
         deprecated_cfg_attr,
         derivable_impls,
         err_expect,
+        error_format_without_sources,
         filter_map_next,
         from_over_into,
         if_then_some_else_none,

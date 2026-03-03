@@ -1,6 +1,7 @@
 #![warn(clippy::cognitive_complexity)]
 #![allow(
     clippy::eq_op,
+    clippy::error_format_without_sources,
     clippy::needless_borrows_for_generic_args,
     clippy::needless_return,
     clippy::nonminimal_bool,

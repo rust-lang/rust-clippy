@@ -122,6 +122,7 @@ mod endian_bytes;
 mod entry;
 mod enum_clike;
 mod equatable_if_let;
+mod error_format_without_sources;
 mod error_impl_error;
 mod escape;
 mod eta_reduction;
@@ -807,6 +808,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(move |_| Box::new(manual_float_methods::ManualFloatMethods::new(conf))),
         Box::new(|_| Box::new(four_forward_slashes::FourForwardSlashes)),
         Box::new(|_| Box::new(error_impl_error::ErrorImplError)),
+        Box::new(move |_| Box::new(error_format_without_sources::ErrorFormatWithoutSources::new(conf))),
         Box::new(move |_| Box::new(absolute_paths::AbsolutePaths::new(conf))),
         Box::new(|_| Box::new(redundant_locals::RedundantLocals)),
         Box::new(|_| Box::new(ignored_unit_patterns::IgnoredUnitPatterns)),
