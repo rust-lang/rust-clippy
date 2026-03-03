@@ -1,12 +1,10 @@
+use crate::ir::{ActiveLintData, DeprecatedLintData, Lint, LintData, LintName, ParsedLints, RenamedLintData};
 use crate::parse::cursor::{self, Capture, Cursor};
-use crate::parse::{
-    ActiveLintData, DeprecatedLintData, Lint, LintData, LintName, ParseCx, ParsedLints, RenamedLintData,
-};
 use crate::utils::{
     ErrAction, FileUpdater, UpdateMode, UpdateStatus, Version, delete_dir_if_exists, delete_file_if_exists,
     expect_action, try_rename_dir, try_rename_file, walk_dir_no_dot_or_target,
 };
-use crate::{SourceFile, Span};
+use crate::{ParseCx, SourceFile, Span};
 use core::mem;
 use rustc_lexer::TokenKind;
 use std::collections::hash_map::Entry;
