@@ -1,0 +1,130 @@
+error: use of `Display` formatting on an error type (`ConfigReadError`)
+  --> tests/ui/error_format_without_sources.rs:51:69
+   |
+LL |                         write!(f, "Failed to read config file: {}", source_error)
+   |                                                                     ^^^^^^^^^^^^
+...
+LL | my_error_macro!(MacroTestError);
+   | ------------------------------- in this macro invocation
+   |
+   = help: The 'ConfigReadError' type supports providing cause information. Directly invoking a string formatting operation on it will discard any information provided by source errors. Instead, use an error reporter that will recursively call `Error::source()` and include available information from source errors in the formatted output.
+   = note: `-D clippy::error-format-without-sources` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::error_format_without_sources)]`
+   = note: this error originates in the macro `$crate::format_args` which comes from the expansion of the macro `my_error_macro` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: use of `Display` formatting on an error type (`ConfigReadError`)
+  --> tests/ui/error_format_without_sources.rs:74:5
+   |
+LL | /     proc_macros::external! {
+LL | |         if let Err(err) = open_config() {
+LL | |             err.to_string();
+LL | |         }
+LL | |     }
+   | |_____^
+   |
+   = help: The 'ConfigReadError' type supports providing cause information. Directly invoking a string formatting operation on it will discard any information provided by source errors. Instead, use an error reporter that will recursively call `Error::source()` and include available information from source errors in the formatted output.
+   = note: this error originates in the macro `proc_macros::external` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: use of `Display` formatting on an error type (`ConfigReadError`)
+  --> tests/ui/error_format_without_sources.rs:80:5
+   |
+LL | /     proc_macros::external! {
+LL | |         if let Err(err) = open_config() {
+LL | |             println!("Failed to read config: {}", err);
+LL | |         }
+LL | |     }
+   | |_____^
+   |
+   = help: The 'ConfigReadError' type supports providing cause information. Directly invoking a string formatting operation on it will discard any information provided by source errors. Instead, use an error reporter that will recursively call `Error::source()` and include available information from source errors in the formatted output.
+   = note: this error originates in the macro `$crate::format_args_nl` which comes from the expansion of the macro `proc_macros::external` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: use of `Display` formatting on an error type (`ConfigReadError`)
+  --> tests/ui/error_format_without_sources.rs:130:47
+   |
+LL |         println!("Failed to read config: {}", err);
+   |                                               ^^^
+   |
+   = help: The 'ConfigReadError' type supports providing cause information. Directly invoking a string formatting operation on it will discard any information provided by source errors. Instead, use an error reporter that will recursively call `Error::source()` and include available information from source errors in the formatted output.
+
+error: use of `Display` formatting on an error type (`ConfigReadError`)
+  --> tests/ui/error_format_without_sources.rs:132:48
+   |
+LL |         println!("Failed to read config: {:}", err);
+   |                                                ^^^
+   |
+   = help: The 'ConfigReadError' type supports providing cause information. Directly invoking a string formatting operation on it will discard any information provided by source errors. Instead, use an error reporter that will recursively call `Error::source()` and include available information from source errors in the formatted output.
+
+error: use of `Display` formatting on an error type (`ConfigReadError`)
+  --> tests/ui/error_format_without_sources.rs:134:49
+   |
+LL |         println!("Failed to read config: {:#}", err);
+   |                                                 ^^^
+   |
+   = help: The 'ConfigReadError' type supports providing cause information. Directly invoking a string formatting operation on it will discard any information provided by source errors. Instead, use an error reporter that will recursively call `Error::source()` and include available information from source errors in the formatted output.
+
+error: use of `Debug` formatting on an error type (`ConfigReadError`)
+  --> tests/ui/error_format_without_sources.rs:136:49
+   |
+LL |         println!("Failed to read config: {:?}", err);
+   |                                                 ^^^
+   |
+   = help: The 'ConfigReadError' type supports providing cause information. Directly invoking a string formatting operation on it will discard any information provided by source errors. Instead, use an error reporter that will recursively call `Error::source()` and include available information from source errors in the formatted output.
+
+error: use of `Debug` formatting on an error type (`ConfigReadError`)
+  --> tests/ui/error_format_without_sources.rs:138:50
+   |
+LL |         println!("Failed to read config: {:#?}", err);
+   |                                                  ^^^
+   |
+   = help: The 'ConfigReadError' type supports providing cause information. Directly invoking a string formatting operation on it will discard any information provided by source errors. Instead, use an error reporter that will recursively call `Error::source()` and include available information from source errors in the formatted output.
+
+error: use of `Display` formatting on an error type (`ConfigReadError`)
+  --> tests/ui/error_format_without_sources.rs:140:42
+   |
+LL |         println!("Failed to read config: {err}");
+   |                                          ^^^^^
+   |
+   = help: The 'ConfigReadError' type supports providing cause information. Directly invoking a string formatting operation on it will discard any information provided by source errors. Instead, use an error reporter that will recursively call `Error::source()` and include available information from source errors in the formatted output.
+
+error: use of `Display` formatting on an error type (`ConfigReadError`)
+  --> tests/ui/error_format_without_sources.rs:142:48
+   |
+LL |         eprintln!("Failed to read config: {}", err);
+   |                                                ^^^
+   |
+   = help: The 'ConfigReadError' type supports providing cause information. Directly invoking a string formatting operation on it will discard any information provided by source errors. Instead, use an error reporter that will recursively call `Error::source()` and include available information from source errors in the formatted output.
+
+error: use of `Display` formatting on an error type (`ConfigReadError`)
+  --> tests/ui/error_format_without_sources.rs:144:43
+   |
+LL |         eprintln!("Failed to read config: {err}");
+   |                                           ^^^^^
+   |
+   = help: The 'ConfigReadError' type supports providing cause information. Directly invoking a string formatting operation on it will discard any information provided by source errors. Instead, use an error reporter that will recursively call `Error::source()` and include available information from source errors in the formatted output.
+
+error: use of `Display` formatting on an error type (`ConfigReadError`)
+  --> tests/ui/error_format_without_sources.rs:147:51
+   |
+LL |         let err_description_without_sources = err.to_string();
+   |                                                   ^^^^^^^^^^^
+   |
+   = help: The 'ConfigReadError' type supports providing cause information. Directly invoking a string formatting operation on it will discard any information provided by source errors. Instead, use an error reporter that will recursively call `Error::source()` and include available information from source errors in the formatted output.
+
+error: use of `Display` formatting on an error type (`MacroTestError`)
+  --> tests/ui/error_format_without_sources.rs:161:13
+   |
+LL |         err.to_string();
+   |             ^^^^^^^^^^^
+   |
+   = help: The 'MacroTestError' type supports providing cause information. Directly invoking a string formatting operation on it will discard any information provided by source errors. Instead, use an error reporter that will recursively call `Error::source()` and include available information from source errors in the formatted output.
+
+error: use of `Display` formatting on an error type (`MacroTestError`)
+  --> tests/ui/error_format_without_sources.rs:163:25
+   |
+LL |         eprintln!("{}", err);
+   |                         ^^^
+   |
+   = help: The 'MacroTestError' type supports providing cause information. Directly invoking a string formatting operation on it will discard any information provided by source errors. Instead, use an error reporter that will recursively call `Error::source()` and include available information from source errors in the formatted output.
+
+error: aborting due to 14 previous errors
+
