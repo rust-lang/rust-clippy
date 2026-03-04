@@ -74,10 +74,7 @@ fn is_from_trait_item(cx: &LateContext<'_>, def_id: DefId) -> bool {
 
 /// Returns `true` if `expr` resolves to the closure parameter bound to `local_id`.
 fn is_local_binding(expr: &Expr<'_>, local_id: HirId) -> bool {
-    matches!(
-        peel_blocks(expr).kind,
-        ExprKind::Path(rustc_hir::QPath::Resolved(_, path)) if path.res == Res::Local(local_id)
-    )
+    peel_blocks(expr).res_local_id() == Some(local_id)
 }
 
 /// Checks if the argument to `map_err` is a `From::from` or `Into::into` conversion.
