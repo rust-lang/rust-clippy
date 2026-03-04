@@ -98,7 +98,7 @@ impl<'tcx> LateLintPass<'tcx> for AssertMultiple {
                     |diag| {
                         let text = suggest_asserts.join("\n");
                         dbg!(&text);
-                        diag.span_suggestion(e.span, "consider writing", "my text", applicability);
+                        diag.span_suggestion(e.span, "consider writing", text, applicability);
                     },
                 );
             }
