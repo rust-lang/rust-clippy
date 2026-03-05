@@ -570,6 +570,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::non_canonical_impls::NON_CANONICAL_PARTIAL_ORD_IMPL_INFO,
     crate::non_copy_const::BORROW_INTERIOR_MUTABLE_CONST_INFO,
     crate::non_copy_const::DECLARE_INTERIOR_MUTABLE_CONST_INFO,
+    crate::non_copy_const::GLOBAL_VARIABLES_INFO,
     crate::non_expressive_names::JUST_UNDERSCORES_AND_DIGITS_INFO,
     crate::non_expressive_names::MANY_SINGLE_CHAR_NAMES_INFO,
     crate::non_expressive_names::SIMILAR_NAMES_INFO,
