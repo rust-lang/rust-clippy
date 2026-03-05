@@ -1,8 +1,7 @@
 use crate::generate::gen_sorted_lints_file;
 use crate::new_parse_cx;
-use crate::parse::VecBuf;
 use crate::utils::{
-    ErrAction, FileUpdater, UpdateMode, UpdateStatus, expect_action, run_with_output, split_args_for_threads,
+    ErrAction, FileUpdater, UpdateMode, UpdateStatus, VecBuf, expect_action, run_with_output, split_args_for_threads,
     walk_dir_no_dot_or_target,
 };
 use itertools::Itertools;
@@ -337,22 +336,24 @@ pub fn run(update_mode: UpdateMode) {
 
     new_parse_cx(|cx| {
         let mut data = cx.parse_lint_decls();
-        let (mut lints, passes) = data.split_by_lint_file();
-        let mut updater = FileUpdater::default();
-        let mut ranges = VecBuf::with_capacity(256);
+        cx.dcx.exit_on_err();
 
-        for passes in passes {
-            let path = passes[0].path.clone();
-            let mut lints = lints.remove(&*path);
+        let mut updater = FileUpdater::default();
+
+        #[expect(clippy::mutable_key_type)]
+        let mut lints = data.mk_file_to_lint_decl_map();
+        let mut ranges = VecBuf::with_capacity(256);
+        for passes in data.iter_passes_by_file_mut() {
+            let file = passes[0].decl_sp.file;
+            let mut lints = lints.remove(file);
             let lints = lints.as_deref_mut().unwrap_or_default();
-            updater.update_file_checked("cargo dev fmt", update_mode, &path, &mut |_, src, dst| {
+            updater.update_loaded_file_checked("cargo dev fmt", update_mode, file, &mut |_, src, dst| {
                 gen_sorted_lints_file(src, dst, lints, passes, &mut ranges);
                 UpdateStatus::from_changed(src != dst)
             });
         }
-
-        for (&path, lints) in &mut lints {
-            updater.update_file_checked("cargo dev fmt", update_mode, path, &mut |_, src, dst| {
+        for (&file, lints) in &mut lints {
+            updater.update_loaded_file_checked("cargo dev fmt", update_mode, file, &mut |_, src, dst| {
                 gen_sorted_lints_file(src, dst, lints, &mut [], &mut ranges);
                 UpdateStatus::from_changed(src != dst)
             });
