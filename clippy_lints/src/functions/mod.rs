@@ -105,7 +105,6 @@ declare_clippy_lint! {
     /// It is most likely that such a method is a bug caused by a typo or by copy-pasting.
     ///
     /// ### Example
-
     /// ```no_run
     /// struct A {
     ///     a: String,
@@ -117,7 +116,6 @@ declare_clippy_lint! {
     ///         &self.b
     ///     }
     /// }
-
     /// ```
     /// Use instead:
     /// ```no_run

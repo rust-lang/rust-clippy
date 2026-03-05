@@ -72,10 +72,10 @@ declare_clippy_lint! {
     ///     y*y
     /// }, |foo| foo);
     /// ```
-    // FIXME: Before moving this lint out of nursery, the lint name needs to be updated. It now also
-    // covers matches and `Result`.
     #[clippy::version = "1.47.0"]
     pub OPTION_IF_LET_ELSE,
+    // FIXME: Before moving this lint out of nursery, the lint name needs to be updated. It now also
+    // covers matches and `Result`.
     nursery,
     "reimplementation of Option::map_or"
 }
