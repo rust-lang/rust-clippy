@@ -1,0 +1,53 @@
+error: using a mutable reference to temporary array
+  --> tests/ui/suspicious_slice_copies.rs:17:38
+   |
+LL |     let mut_arr_ref: &mut [i32; K] = &mut slice.try_into().unwrap();
+   |                                      ----------^^^^^^^^^^^^^^^^^^^^
+   |                                      |
+   |                                      help: try: `slice`
+   |
+   = note: `-D clippy::suspicious-slice-copies` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::suspicious_slice_copies)]`
+
+error: using a mutable reference to temporary array
+  --> tests/ui/suspicious_slice_copies.rs:20:38
+   |
+LL |     let mut_arr_ref: &mut [i32; K] = &mut arr[..K].try_into().unwrap();
+   |                                      -------------^^^^^^^^^^^^^^^^^^^^
+   |                                      |
+   |                                      help: try: `(&mut arr[..K])`
+
+error: using a mutable reference to temporary array
+  --> tests/ui/suspicious_slice_copies.rs:23:14
+   |
+LL |     arr_incr(&mut arr[..K].try_into().expect("never happen"));
+   |              -------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |              |
+   |              help: try: `(&mut arr[..K])`
+
+error: using a mutable reference to temporary array
+  --> tests/ui/suspicious_slice_copies.rs:32:38
+   |
+LL |     let mut_arr_ref: &mut [i32; K] = &mut slice.try_into().unwrap();
+   |                                      ---------------------^^^^^^^^^
+   |                                      |
+   |                                      help: try: `slice.as_mut_array()`
+
+error: using a mutable reference to temporary array
+  --> tests/ui/suspicious_slice_copies.rs:35:38
+   |
+LL |     let mut_arr_ref: &mut [i32; K] = &mut arr[..K].try_into().unwrap();
+   |                                      ------------------------^^^^^^^^^
+   |                                      |
+   |                                      help: try: `arr[..K].as_mut_array()`
+
+error: using a mutable reference to temporary array
+  --> tests/ui/suspicious_slice_copies.rs:38:14
+   |
+LL |     arr_incr(&mut arr[..K].try_into().expect("never happen"));
+   |              ------------------------^^^^^^^^^^^^^^^^^^^^^^^
+   |              |
+   |              help: try: `arr[..K].as_mut_array()`
+
+error: aborting due to 6 previous errors
+
