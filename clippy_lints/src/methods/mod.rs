@@ -118,6 +118,7 @@ mod string_extend_chars;
 mod string_lit_chars_any;
 mod suspicious_command_arg_space;
 mod suspicious_map;
+mod suspicious_slice_copies;
 mod suspicious_splitn;
 mod suspicious_to_owned;
 mod swap_with_temporary;
@@ -3784,6 +3785,42 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for taking a mutable reference to a temporary array created by `arr[N..M].try_into()`
+    /// instead of borrowing the original slice data.
+    ///
+    /// ### Why is this bad?
+    /// Slices have two relevant implementations of the `TryInto` trait:
+    /// 1. `TryInto<[T; N]>`, which creates a new array by copying elements from the slice
+    /// 2. `TryInto<&'a mut [T; N]>`, which creates a mutable array reference from slice
+    ///
+    /// When writing `&mut arr[N..M].try_into().unwrap()`, the compiler selects the first implementation
+    /// and creates a new array. As a result, any mutations are applied to this temporary array, while
+    /// the original data remains unchanged. This is usually unintended.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let mut arr: [i32; 5] = [0; 5];
+    /// let arr_mut_ref: &mut [i32; 3] = &mut arr[..3].try_into().unwrap(); //copied
+    /// arr_mut_ref[0] = 1;
+    ///
+    /// assert_eq!(arr[0], 0);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let mut arr: [i32; 5] = [0; 5];
+    /// let arr_mut_ref: &mut [i32; 3] = (&mut arr[..3]).try_into().unwrap(); //borrowed
+    /// arr_mut_ref[0] = 1;
+    ///
+    /// assert_eq!(arr[0], 1);
+    /// ```
+    #[clippy::version = "1.96.0"]
+    pub SUSPICIOUS_SLICE_COPIES,
+    suspicious,
+    "detects taking a `&mut` to a temporary array created from a slice"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for calls to [`splitn`]
     /// (https://doc.rust-lang.org/std/primitive.str.html#method.splitn) and
     /// related functions with either zero or one splits.
@@ -4903,6 +4940,7 @@ impl_lint_pass!(Methods => [
     SUSPICIOUS_COMMAND_ARG_SPACE,
     SUSPICIOUS_MAP,
     SUSPICIOUS_OPEN_OPTIONS,
+    SUSPICIOUS_SLICE_COPIES,
     SUSPICIOUS_SPLITN,
     SUSPICIOUS_TO_OWNED,
     SWAP_WITH_TEMPORARY,
@@ -5648,6 +5686,7 @@ impl Methods {
                 },
                 (sym::try_into, []) if cx.ty_based_def(expr).opt_parent(cx).is_diag_item(cx, sym::TryInto) => {
                     unnecessary_fallible_conversions::check_method(cx, expr);
+                    suspicious_slice_copies::check(cx, expr, self.msrv);
                 },
                 (sym::to_owned, []) =>
                 {
