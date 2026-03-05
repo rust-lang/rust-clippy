@@ -1,5 +1,5 @@
 use clippy_config::Conf;
-use clippy_config::types::{DisallowedPath, create_disallowed_map};
+use clippy_config::types::{ConfPath, create_conf_path_map};
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::paths::PathNS;
 use clippy_utils::ty::get_field_def_id_by_name;
@@ -57,12 +57,12 @@ declare_clippy_lint! {
 }
 
 pub struct DisallowedFields {
-    disallowed: DefIdMap<(&'static str, &'static DisallowedPath)>,
+    disallowed: DefIdMap<(&'static str, &'static ConfPath)>,
 }
 
 impl DisallowedFields {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {
-        let (disallowed, _) = create_disallowed_map(
+        let (disallowed, _) = create_conf_path_map(
             tcx,
             &conf.disallowed_fields,
             PathNS::Field,

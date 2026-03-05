@@ -94,6 +94,7 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            verbose-bit-mask-threshold
            warn-on-all-wildcard-imports
            warn-unsafe-macro-metavars-in-private-macros
+           watched-functions
   --> $DIR/tests/ui-toml/toml_unknown_key/clippy.toml:2:1
    |
 LL | foobar = 42
@@ -195,6 +196,7 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            verbose-bit-mask-threshold
            warn-on-all-wildcard-imports
            warn-unsafe-macro-metavars-in-private-macros
+           watched-functions
   --> $DIR/tests/ui-toml/toml_unknown_key/clippy.toml:4:1
    |
 LL | barfoo = 53
@@ -296,6 +298,7 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            verbose-bit-mask-threshold
            warn-on-all-wildcard-imports
            warn-unsafe-macro-metavars-in-private-macros
+           watched-functions
   --> $DIR/tests/ui-toml/toml_unknown_key/clippy.toml:7:1
    |
 LL | allow_mixed_uninlined_format_args = true
