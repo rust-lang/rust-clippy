@@ -24,6 +24,7 @@ mod ptr_as_ptr;
 mod ptr_cast_constness;
 mod ref_as_ptr;
 mod unnecessary_cast;
+mod unnecessary_intermediate_cast;
 mod utils;
 mod zero_ptr;
 
@@ -846,6 +847,29 @@ declare_clippy_lint! {
     "binding defined with one type but always cast to another"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for two casts in a row, that could be replaced with a single cast to the last type.
+    ///
+    /// ### Why is this bad?
+    /// It's just unnecessary.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let _ = 1u32 as u64 as u128;
+    /// let _ = 1i32 as i16 as i8;
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let _ = 1u32 as u128;
+    /// let _ = 1i32 as i8;
+    /// ```
+    #[clippy::version = "1.95.0"]
+    pub UNNECESSARY_INTERMEDIATE_CAST,
+    complexity,
+    "two casts in a row, where the second cast alone would have the same effect, e.g., `x as u16 as u32` where `x: u8`"
+}
+
 pub struct Casts {
     msrv: Msrv,
 }
@@ -885,6 +909,7 @@ impl_lint_pass!(Casts => [
     MANUAL_DANGLING_PTR,
     CONFUSING_METHOD_TO_NUMERIC_CAST,
     NEEDLESS_TYPE_CAST,
+    UNNECESSARY_INTERMEDIATE_CAST,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Casts {
@@ -904,6 +929,11 @@ impl<'tcx> LateLintPass<'tcx> for Casts {
 
             if !expr.span.from_expansion() && unnecessary_cast::check(cx, expr, cast_from_expr, cast_from, cast_to) {
                 return;
+            }
+            if let ExprKind::Cast(cast_from_expr, _cast_to_hir) = cast_from_expr.kind {
+                let cast_intermediate = cast_from;
+                let cast_from = cx.typeck_results().expr_ty(cast_from_expr);
+                unnecessary_intermediate_cast::check(cx, expr, cast_from_expr, cast_from, cast_intermediate, cast_to);
             }
             char_lit_as_u8::check(cx, expr, cast_from_expr, cast_to);
             cast_slice_from_raw_parts::check(cx, expr, cast_from_expr, cast_to, self.msrv);

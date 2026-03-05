@@ -1,0 +1,4787 @@
+error: intermediate cast is unnecessary (`i8` -> `i8` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:24:5
+   |
+LL |     1_i8 as i8 as i16;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i16`
+   |
+   = note: `-D clippy::unnecessary-intermediate-cast` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_intermediate_cast)]`
+
+error: intermediate cast is unnecessary (`i8` -> `i8` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:25:5
+   |
+LL |     1_i8 as i8 as i32;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i32`
+
+error: intermediate cast is unnecessary (`i8` -> `i8` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:26:5
+   |
+LL |     1_i8 as i8 as i64;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i64`
+
+error: intermediate cast is unnecessary (`i8` -> `i8` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:27:5
+   |
+LL |     1_i8 as i8 as i128;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i128`
+
+error: intermediate cast is unnecessary (`i8` -> `i8` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:28:5
+   |
+LL |     1_i8 as i8 as u8;
+   |     ^^^^^^^^^^^^^^^^ help: try: `1_i8 as u8`
+
+error: intermediate cast is unnecessary (`i8` -> `i8` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:29:5
+   |
+LL |     1_i8 as i8 as u16;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u16`
+
+error: intermediate cast is unnecessary (`i8` -> `i8` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:30:5
+   |
+LL |     1_i8 as i8 as u32;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u32`
+
+error: intermediate cast is unnecessary (`i8` -> `i8` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:31:5
+   |
+LL |     1_i8 as i8 as u64;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u64`
+
+error: intermediate cast is unnecessary (`i8` -> `i8` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:32:5
+   |
+LL |     1_i8 as i8 as u128;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u128`
+
+error: intermediate cast is unnecessary (`i8` -> `i16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:33:5
+   |
+LL |     1_i8 as i16 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i8`
+
+error: intermediate cast is unnecessary (`i8` -> `i16` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:35:5
+   |
+LL |     1_i8 as i16 as i32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i32`
+
+error: intermediate cast is unnecessary (`i8` -> `i16` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:36:5
+   |
+LL |     1_i8 as i16 as i64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i64`
+
+error: intermediate cast is unnecessary (`i8` -> `i16` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:37:5
+   |
+LL |     1_i8 as i16 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i128`
+
+error: intermediate cast is unnecessary (`i8` -> `i16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:38:5
+   |
+LL |     1_i8 as i16 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u8`
+
+error: intermediate cast is unnecessary (`i8` -> `i16` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:39:5
+   |
+LL |     1_i8 as i16 as u16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u16`
+
+error: intermediate cast is unnecessary (`i8` -> `i16` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:40:5
+   |
+LL |     1_i8 as i16 as u32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u32`
+
+error: intermediate cast is unnecessary (`i8` -> `i16` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:41:5
+   |
+LL |     1_i8 as i16 as u64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u64`
+
+error: intermediate cast is unnecessary (`i8` -> `i16` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:42:5
+   |
+LL |     1_i8 as i16 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u128`
+
+error: intermediate cast is unnecessary (`i8` -> `i32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:43:5
+   |
+LL |     1_i8 as i32 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i8`
+
+error: intermediate cast is unnecessary (`i8` -> `i32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:44:5
+   |
+LL |     1_i8 as i32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i16`
+
+error: intermediate cast is unnecessary (`i8` -> `i32` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:46:5
+   |
+LL |     1_i8 as i32 as i64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i64`
+
+error: intermediate cast is unnecessary (`i8` -> `i32` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:47:5
+   |
+LL |     1_i8 as i32 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i128`
+
+error: intermediate cast is unnecessary (`i8` -> `i32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:48:5
+   |
+LL |     1_i8 as i32 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u8`
+
+error: intermediate cast is unnecessary (`i8` -> `i32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:49:5
+   |
+LL |     1_i8 as i32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u16`
+
+error: intermediate cast is unnecessary (`i8` -> `i32` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:50:5
+   |
+LL |     1_i8 as i32 as u32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u32`
+
+error: intermediate cast is unnecessary (`i8` -> `i32` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:51:5
+   |
+LL |     1_i8 as i32 as u64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u64`
+
+error: intermediate cast is unnecessary (`i8` -> `i32` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:52:5
+   |
+LL |     1_i8 as i32 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u128`
+
+error: intermediate cast is unnecessary (`i8` -> `i64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:53:5
+   |
+LL |     1_i8 as i64 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i8`
+
+error: intermediate cast is unnecessary (`i8` -> `i64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:54:5
+   |
+LL |     1_i8 as i64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i16`
+
+error: intermediate cast is unnecessary (`i8` -> `i64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:55:5
+   |
+LL |     1_i8 as i64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i32`
+
+error: intermediate cast is unnecessary (`i8` -> `i64` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:57:5
+   |
+LL |     1_i8 as i64 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i128`
+
+error: intermediate cast is unnecessary (`i8` -> `i64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:58:5
+   |
+LL |     1_i8 as i64 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u8`
+
+error: intermediate cast is unnecessary (`i8` -> `i64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:59:5
+   |
+LL |     1_i8 as i64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u16`
+
+error: intermediate cast is unnecessary (`i8` -> `i64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:60:5
+   |
+LL |     1_i8 as i64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u32`
+
+error: intermediate cast is unnecessary (`i8` -> `i64` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:61:5
+   |
+LL |     1_i8 as i64 as u64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u64`
+
+error: intermediate cast is unnecessary (`i8` -> `i64` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:62:5
+   |
+LL |     1_i8 as i64 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u128`
+
+error: intermediate cast is unnecessary (`i8` -> `i128` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:63:5
+   |
+LL |     1_i8 as i128 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i8`
+
+error: intermediate cast is unnecessary (`i8` -> `i128` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:64:5
+   |
+LL |     1_i8 as i128 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i16`
+
+error: intermediate cast is unnecessary (`i8` -> `i128` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:65:5
+   |
+LL |     1_i8 as i128 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i32`
+
+error: intermediate cast is unnecessary (`i8` -> `i128` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:66:5
+   |
+LL |     1_i8 as i128 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i64`
+
+error: intermediate cast is unnecessary (`i8` -> `i128` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:68:5
+   |
+LL |     1_i8 as i128 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u8`
+
+error: intermediate cast is unnecessary (`i8` -> `i128` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:69:5
+   |
+LL |     1_i8 as i128 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u16`
+
+error: intermediate cast is unnecessary (`i8` -> `i128` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:70:5
+   |
+LL |     1_i8 as i128 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u32`
+
+error: intermediate cast is unnecessary (`i8` -> `i128` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:71:5
+   |
+LL |     1_i8 as i128 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u64`
+
+error: intermediate cast is unnecessary (`i8` -> `i128` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:72:5
+   |
+LL |     1_i8 as i128 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u128`
+
+error: intermediate cast is unnecessary (`i8` -> `u8` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:73:5
+   |
+LL |     1_i8 as u8 as i8;
+   |     ^^^^^^^^^^^^^^^^ help: try: `1_i8 as i8`
+
+error: intermediate cast is unnecessary (`i8` -> `u16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:83:5
+   |
+LL |     1_i8 as u16 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i8`
+
+error: intermediate cast is unnecessary (`i8` -> `u16` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:84:5
+   |
+LL |     1_i8 as u16 as i16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i16`
+
+error: intermediate cast is unnecessary (`i8` -> `u16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:88:5
+   |
+LL |     1_i8 as u16 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u8`
+
+error: intermediate cast is unnecessary (`i8` -> `u32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:93:5
+   |
+LL |     1_i8 as u32 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i8`
+
+error: intermediate cast is unnecessary (`i8` -> `u32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:94:5
+   |
+LL |     1_i8 as u32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i16`
+
+error: intermediate cast is unnecessary (`i8` -> `u32` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:95:5
+   |
+LL |     1_i8 as u32 as i32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i32`
+
+error: intermediate cast is unnecessary (`i8` -> `u32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:98:5
+   |
+LL |     1_i8 as u32 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u8`
+
+error: intermediate cast is unnecessary (`i8` -> `u32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:99:5
+   |
+LL |     1_i8 as u32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u16`
+
+error: intermediate cast is unnecessary (`i8` -> `u64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:103:5
+   |
+LL |     1_i8 as u64 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i8`
+
+error: intermediate cast is unnecessary (`i8` -> `u64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:104:5
+   |
+LL |     1_i8 as u64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i16`
+
+error: intermediate cast is unnecessary (`i8` -> `u64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:105:5
+   |
+LL |     1_i8 as u64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i32`
+
+error: intermediate cast is unnecessary (`i8` -> `u64` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:106:5
+   |
+LL |     1_i8 as u64 as i64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i64`
+
+error: intermediate cast is unnecessary (`i8` -> `u64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:108:5
+   |
+LL |     1_i8 as u64 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u8`
+
+error: intermediate cast is unnecessary (`i8` -> `u64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:109:5
+   |
+LL |     1_i8 as u64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u16`
+
+error: intermediate cast is unnecessary (`i8` -> `u64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:110:5
+   |
+LL |     1_i8 as u64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u32`
+
+error: intermediate cast is unnecessary (`i8` -> `u128` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:113:5
+   |
+LL |     1_i8 as u128 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i8`
+
+error: intermediate cast is unnecessary (`i8` -> `u128` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:114:5
+   |
+LL |     1_i8 as u128 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i16`
+
+error: intermediate cast is unnecessary (`i8` -> `u128` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:115:5
+   |
+LL |     1_i8 as u128 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i32`
+
+error: intermediate cast is unnecessary (`i8` -> `u128` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:116:5
+   |
+LL |     1_i8 as u128 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i64`
+
+error: intermediate cast is unnecessary (`i8` -> `u128` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:117:5
+   |
+LL |     1_i8 as u128 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i128`
+
+error: intermediate cast is unnecessary (`i8` -> `u128` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:118:5
+   |
+LL |     1_i8 as u128 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u8`
+
+error: intermediate cast is unnecessary (`i8` -> `u128` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:119:5
+   |
+LL |     1_i8 as u128 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u16`
+
+error: intermediate cast is unnecessary (`i8` -> `u128` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:120:5
+   |
+LL |     1_i8 as u128 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u32`
+
+error: intermediate cast is unnecessary (`i8` -> `u128` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:121:5
+   |
+LL |     1_i8 as u128 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as u64`
+
+error: intermediate cast is unnecessary (`i16` -> `i8` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:128:5
+   |
+LL |     1_i16 as i8 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u8`
+
+error: intermediate cast is unnecessary (`i16` -> `i16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:133:5
+   |
+LL |     1_i16 as i16 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i8`
+
+error: intermediate cast is unnecessary (`i16` -> `i16` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:135:5
+   |
+LL |     1_i16 as i16 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i32`
+
+error: intermediate cast is unnecessary (`i16` -> `i16` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:136:5
+   |
+LL |     1_i16 as i16 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i64`
+
+error: intermediate cast is unnecessary (`i16` -> `i16` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:137:5
+   |
+LL |     1_i16 as i16 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i128`
+
+error: intermediate cast is unnecessary (`i16` -> `i16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:138:5
+   |
+LL |     1_i16 as i16 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u8`
+
+error: intermediate cast is unnecessary (`i16` -> `i16` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:139:5
+   |
+LL |     1_i16 as i16 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u16`
+
+error: intermediate cast is unnecessary (`i16` -> `i16` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:140:5
+   |
+LL |     1_i16 as i16 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u32`
+
+error: intermediate cast is unnecessary (`i16` -> `i16` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:141:5
+   |
+LL |     1_i16 as i16 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u64`
+
+error: intermediate cast is unnecessary (`i16` -> `i16` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:142:5
+   |
+LL |     1_i16 as i16 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u128`
+
+error: intermediate cast is unnecessary (`i16` -> `i32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:143:5
+   |
+LL |     1_i16 as i32 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i8`
+
+error: intermediate cast is unnecessary (`i16` -> `i32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:144:5
+   |
+LL |     1_i16 as i32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i16`
+
+error: intermediate cast is unnecessary (`i16` -> `i32` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:146:5
+   |
+LL |     1_i16 as i32 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i64`
+
+error: intermediate cast is unnecessary (`i16` -> `i32` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:147:5
+   |
+LL |     1_i16 as i32 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i128`
+
+error: intermediate cast is unnecessary (`i16` -> `i32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:148:5
+   |
+LL |     1_i16 as i32 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u8`
+
+error: intermediate cast is unnecessary (`i16` -> `i32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:149:5
+   |
+LL |     1_i16 as i32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u16`
+
+error: intermediate cast is unnecessary (`i16` -> `i32` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:150:5
+   |
+LL |     1_i16 as i32 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u32`
+
+error: intermediate cast is unnecessary (`i16` -> `i32` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:151:5
+   |
+LL |     1_i16 as i32 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u64`
+
+error: intermediate cast is unnecessary (`i16` -> `i32` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:152:5
+   |
+LL |     1_i16 as i32 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u128`
+
+error: intermediate cast is unnecessary (`i16` -> `i64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:153:5
+   |
+LL |     1_i16 as i64 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i8`
+
+error: intermediate cast is unnecessary (`i16` -> `i64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:154:5
+   |
+LL |     1_i16 as i64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i16`
+
+error: intermediate cast is unnecessary (`i16` -> `i64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:155:5
+   |
+LL |     1_i16 as i64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i32`
+
+error: intermediate cast is unnecessary (`i16` -> `i64` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:157:5
+   |
+LL |     1_i16 as i64 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i128`
+
+error: intermediate cast is unnecessary (`i16` -> `i64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:158:5
+   |
+LL |     1_i16 as i64 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u8`
+
+error: intermediate cast is unnecessary (`i16` -> `i64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:159:5
+   |
+LL |     1_i16 as i64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u16`
+
+error: intermediate cast is unnecessary (`i16` -> `i64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:160:5
+   |
+LL |     1_i16 as i64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u32`
+
+error: intermediate cast is unnecessary (`i16` -> `i64` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:161:5
+   |
+LL |     1_i16 as i64 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u64`
+
+error: intermediate cast is unnecessary (`i16` -> `i64` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:162:5
+   |
+LL |     1_i16 as i64 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u128`
+
+error: intermediate cast is unnecessary (`i16` -> `i128` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:163:5
+   |
+LL |     1_i16 as i128 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i8`
+
+error: intermediate cast is unnecessary (`i16` -> `i128` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:164:5
+   |
+LL |     1_i16 as i128 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i16`
+
+error: intermediate cast is unnecessary (`i16` -> `i128` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:165:5
+   |
+LL |     1_i16 as i128 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i32`
+
+error: intermediate cast is unnecessary (`i16` -> `i128` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:166:5
+   |
+LL |     1_i16 as i128 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i64`
+
+error: intermediate cast is unnecessary (`i16` -> `i128` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:168:5
+   |
+LL |     1_i16 as i128 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u8`
+
+error: intermediate cast is unnecessary (`i16` -> `i128` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:169:5
+   |
+LL |     1_i16 as i128 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u16`
+
+error: intermediate cast is unnecessary (`i16` -> `i128` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:170:5
+   |
+LL |     1_i16 as i128 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u32`
+
+error: intermediate cast is unnecessary (`i16` -> `i128` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:171:5
+   |
+LL |     1_i16 as i128 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u64`
+
+error: intermediate cast is unnecessary (`i16` -> `i128` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:172:5
+   |
+LL |     1_i16 as i128 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u128`
+
+error: intermediate cast is unnecessary (`i16` -> `u8` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:173:5
+   |
+LL |     1_i16 as u8 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i8`
+
+error: intermediate cast is unnecessary (`i16` -> `u16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:183:5
+   |
+LL |     1_i16 as u16 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i8`
+
+error: intermediate cast is unnecessary (`i16` -> `u16` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:184:5
+   |
+LL |     1_i16 as u16 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i16`
+
+error: intermediate cast is unnecessary (`i16` -> `u16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:188:5
+   |
+LL |     1_i16 as u16 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u8`
+
+error: intermediate cast is unnecessary (`i16` -> `u32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:193:5
+   |
+LL |     1_i16 as u32 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i8`
+
+error: intermediate cast is unnecessary (`i16` -> `u32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:194:5
+   |
+LL |     1_i16 as u32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i16`
+
+error: intermediate cast is unnecessary (`i16` -> `u32` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:195:5
+   |
+LL |     1_i16 as u32 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i32`
+
+error: intermediate cast is unnecessary (`i16` -> `u32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:198:5
+   |
+LL |     1_i16 as u32 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u8`
+
+error: intermediate cast is unnecessary (`i16` -> `u32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:199:5
+   |
+LL |     1_i16 as u32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u16`
+
+error: intermediate cast is unnecessary (`i16` -> `u64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:203:5
+   |
+LL |     1_i16 as u64 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i8`
+
+error: intermediate cast is unnecessary (`i16` -> `u64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:204:5
+   |
+LL |     1_i16 as u64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i16`
+
+error: intermediate cast is unnecessary (`i16` -> `u64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:205:5
+   |
+LL |     1_i16 as u64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i32`
+
+error: intermediate cast is unnecessary (`i16` -> `u64` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:206:5
+   |
+LL |     1_i16 as u64 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i64`
+
+error: intermediate cast is unnecessary (`i16` -> `u64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:208:5
+   |
+LL |     1_i16 as u64 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u8`
+
+error: intermediate cast is unnecessary (`i16` -> `u64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:209:5
+   |
+LL |     1_i16 as u64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u16`
+
+error: intermediate cast is unnecessary (`i16` -> `u64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:210:5
+   |
+LL |     1_i16 as u64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u32`
+
+error: intermediate cast is unnecessary (`i16` -> `u128` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:213:5
+   |
+LL |     1_i16 as u128 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i8`
+
+error: intermediate cast is unnecessary (`i16` -> `u128` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:214:5
+   |
+LL |     1_i16 as u128 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i16`
+
+error: intermediate cast is unnecessary (`i16` -> `u128` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:215:5
+   |
+LL |     1_i16 as u128 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i32`
+
+error: intermediate cast is unnecessary (`i16` -> `u128` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:216:5
+   |
+LL |     1_i16 as u128 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i64`
+
+error: intermediate cast is unnecessary (`i16` -> `u128` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:217:5
+   |
+LL |     1_i16 as u128 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i128`
+
+error: intermediate cast is unnecessary (`i16` -> `u128` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:218:5
+   |
+LL |     1_i16 as u128 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u8`
+
+error: intermediate cast is unnecessary (`i16` -> `u128` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:219:5
+   |
+LL |     1_i16 as u128 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u16`
+
+error: intermediate cast is unnecessary (`i16` -> `u128` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:220:5
+   |
+LL |     1_i16 as u128 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u32`
+
+error: intermediate cast is unnecessary (`i16` -> `u128` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:221:5
+   |
+LL |     1_i16 as u128 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as u64`
+
+error: intermediate cast is unnecessary (`i32` -> `i8` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:228:5
+   |
+LL |     1_i32 as i8 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u8`
+
+error: intermediate cast is unnecessary (`i32` -> `i16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:233:5
+   |
+LL |     1_i32 as i16 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i8`
+
+error: intermediate cast is unnecessary (`i32` -> `i16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:238:5
+   |
+LL |     1_i32 as i16 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u8`
+
+error: intermediate cast is unnecessary (`i32` -> `i16` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:239:5
+   |
+LL |     1_i32 as i16 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u16`
+
+error: intermediate cast is unnecessary (`i32` -> `i32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:243:5
+   |
+LL |     1_i32 as i32 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i8`
+
+error: intermediate cast is unnecessary (`i32` -> `i32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:244:5
+   |
+LL |     1_i32 as i32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i16`
+
+error: intermediate cast is unnecessary (`i32` -> `i32` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:246:5
+   |
+LL |     1_i32 as i32 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i64`
+
+error: intermediate cast is unnecessary (`i32` -> `i32` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:247:5
+   |
+LL |     1_i32 as i32 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i128`
+
+error: intermediate cast is unnecessary (`i32` -> `i32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:248:5
+   |
+LL |     1_i32 as i32 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u8`
+
+error: intermediate cast is unnecessary (`i32` -> `i32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:249:5
+   |
+LL |     1_i32 as i32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u16`
+
+error: intermediate cast is unnecessary (`i32` -> `i32` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:250:5
+   |
+LL |     1_i32 as i32 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u32`
+
+error: intermediate cast is unnecessary (`i32` -> `i32` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:251:5
+   |
+LL |     1_i32 as i32 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u64`
+
+error: intermediate cast is unnecessary (`i32` -> `i32` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:252:5
+   |
+LL |     1_i32 as i32 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u128`
+
+error: intermediate cast is unnecessary (`i32` -> `i64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:253:5
+   |
+LL |     1_i32 as i64 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i8`
+
+error: intermediate cast is unnecessary (`i32` -> `i64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:254:5
+   |
+LL |     1_i32 as i64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i16`
+
+error: intermediate cast is unnecessary (`i32` -> `i64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:255:5
+   |
+LL |     1_i32 as i64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i32`
+
+error: intermediate cast is unnecessary (`i32` -> `i64` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:257:5
+   |
+LL |     1_i32 as i64 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i128`
+
+error: intermediate cast is unnecessary (`i32` -> `i64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:258:5
+   |
+LL |     1_i32 as i64 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u8`
+
+error: intermediate cast is unnecessary (`i32` -> `i64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:259:5
+   |
+LL |     1_i32 as i64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u16`
+
+error: intermediate cast is unnecessary (`i32` -> `i64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:260:5
+   |
+LL |     1_i32 as i64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u32`
+
+error: intermediate cast is unnecessary (`i32` -> `i64` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:261:5
+   |
+LL |     1_i32 as i64 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u64`
+
+error: intermediate cast is unnecessary (`i32` -> `i64` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:262:5
+   |
+LL |     1_i32 as i64 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u128`
+
+error: intermediate cast is unnecessary (`i32` -> `i128` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:263:5
+   |
+LL |     1_i32 as i128 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i8`
+
+error: intermediate cast is unnecessary (`i32` -> `i128` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:264:5
+   |
+LL |     1_i32 as i128 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i16`
+
+error: intermediate cast is unnecessary (`i32` -> `i128` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:265:5
+   |
+LL |     1_i32 as i128 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i32`
+
+error: intermediate cast is unnecessary (`i32` -> `i128` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:266:5
+   |
+LL |     1_i32 as i128 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i64`
+
+error: intermediate cast is unnecessary (`i32` -> `i128` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:268:5
+   |
+LL |     1_i32 as i128 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u8`
+
+error: intermediate cast is unnecessary (`i32` -> `i128` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:269:5
+   |
+LL |     1_i32 as i128 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u16`
+
+error: intermediate cast is unnecessary (`i32` -> `i128` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:270:5
+   |
+LL |     1_i32 as i128 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u32`
+
+error: intermediate cast is unnecessary (`i32` -> `i128` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:271:5
+   |
+LL |     1_i32 as i128 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u64`
+
+error: intermediate cast is unnecessary (`i32` -> `i128` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:272:5
+   |
+LL |     1_i32 as i128 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u128`
+
+error: intermediate cast is unnecessary (`i32` -> `u8` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:273:5
+   |
+LL |     1_i32 as u8 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i8`
+
+error: intermediate cast is unnecessary (`i32` -> `u16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:283:5
+   |
+LL |     1_i32 as u16 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i8`
+
+error: intermediate cast is unnecessary (`i32` -> `u16` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:284:5
+   |
+LL |     1_i32 as u16 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i16`
+
+error: intermediate cast is unnecessary (`i32` -> `u16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:288:5
+   |
+LL |     1_i32 as u16 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u8`
+
+error: intermediate cast is unnecessary (`i32` -> `u32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:293:5
+   |
+LL |     1_i32 as u32 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i8`
+
+error: intermediate cast is unnecessary (`i32` -> `u32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:294:5
+   |
+LL |     1_i32 as u32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i16`
+
+error: intermediate cast is unnecessary (`i32` -> `u32` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:295:5
+   |
+LL |     1_i32 as u32 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i32`
+
+error: intermediate cast is unnecessary (`i32` -> `u32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:298:5
+   |
+LL |     1_i32 as u32 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u8`
+
+error: intermediate cast is unnecessary (`i32` -> `u32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:299:5
+   |
+LL |     1_i32 as u32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u16`
+
+error: intermediate cast is unnecessary (`i32` -> `u64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:303:5
+   |
+LL |     1_i32 as u64 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i8`
+
+error: intermediate cast is unnecessary (`i32` -> `u64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:304:5
+   |
+LL |     1_i32 as u64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i16`
+
+error: intermediate cast is unnecessary (`i32` -> `u64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:305:5
+   |
+LL |     1_i32 as u64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i32`
+
+error: intermediate cast is unnecessary (`i32` -> `u64` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:306:5
+   |
+LL |     1_i32 as u64 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i64`
+
+error: intermediate cast is unnecessary (`i32` -> `u64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:308:5
+   |
+LL |     1_i32 as u64 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u8`
+
+error: intermediate cast is unnecessary (`i32` -> `u64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:309:5
+   |
+LL |     1_i32 as u64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u16`
+
+error: intermediate cast is unnecessary (`i32` -> `u64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:310:5
+   |
+LL |     1_i32 as u64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u32`
+
+error: intermediate cast is unnecessary (`i32` -> `u128` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:313:5
+   |
+LL |     1_i32 as u128 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i8`
+
+error: intermediate cast is unnecessary (`i32` -> `u128` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:314:5
+   |
+LL |     1_i32 as u128 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i16`
+
+error: intermediate cast is unnecessary (`i32` -> `u128` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:315:5
+   |
+LL |     1_i32 as u128 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i32`
+
+error: intermediate cast is unnecessary (`i32` -> `u128` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:316:5
+   |
+LL |     1_i32 as u128 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i64`
+
+error: intermediate cast is unnecessary (`i32` -> `u128` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:317:5
+   |
+LL |     1_i32 as u128 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i128`
+
+error: intermediate cast is unnecessary (`i32` -> `u128` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:318:5
+   |
+LL |     1_i32 as u128 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u8`
+
+error: intermediate cast is unnecessary (`i32` -> `u128` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:319:5
+   |
+LL |     1_i32 as u128 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u16`
+
+error: intermediate cast is unnecessary (`i32` -> `u128` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:320:5
+   |
+LL |     1_i32 as u128 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u32`
+
+error: intermediate cast is unnecessary (`i32` -> `u128` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:321:5
+   |
+LL |     1_i32 as u128 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as u64`
+
+error: intermediate cast is unnecessary (`i64` -> `i8` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:328:5
+   |
+LL |     1_i64 as i8 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u8`
+
+error: intermediate cast is unnecessary (`i64` -> `i16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:333:5
+   |
+LL |     1_i64 as i16 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i8`
+
+error: intermediate cast is unnecessary (`i64` -> `i16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:338:5
+   |
+LL |     1_i64 as i16 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u8`
+
+error: intermediate cast is unnecessary (`i64` -> `i16` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:339:5
+   |
+LL |     1_i64 as i16 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u16`
+
+error: intermediate cast is unnecessary (`i64` -> `i32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:343:5
+   |
+LL |     1_i64 as i32 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i8`
+
+error: intermediate cast is unnecessary (`i64` -> `i32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:344:5
+   |
+LL |     1_i64 as i32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i16`
+
+error: intermediate cast is unnecessary (`i64` -> `i32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:348:5
+   |
+LL |     1_i64 as i32 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u8`
+
+error: intermediate cast is unnecessary (`i64` -> `i32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:349:5
+   |
+LL |     1_i64 as i32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u16`
+
+error: intermediate cast is unnecessary (`i64` -> `i32` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:350:5
+   |
+LL |     1_i64 as i32 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u32`
+
+error: intermediate cast is unnecessary (`i64` -> `i64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:353:5
+   |
+LL |     1_i64 as i64 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i8`
+
+error: intermediate cast is unnecessary (`i64` -> `i64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:354:5
+   |
+LL |     1_i64 as i64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i16`
+
+error: intermediate cast is unnecessary (`i64` -> `i64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:355:5
+   |
+LL |     1_i64 as i64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i32`
+
+error: intermediate cast is unnecessary (`i64` -> `i64` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:357:5
+   |
+LL |     1_i64 as i64 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i128`
+
+error: intermediate cast is unnecessary (`i64` -> `i64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:358:5
+   |
+LL |     1_i64 as i64 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u8`
+
+error: intermediate cast is unnecessary (`i64` -> `i64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:359:5
+   |
+LL |     1_i64 as i64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u16`
+
+error: intermediate cast is unnecessary (`i64` -> `i64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:360:5
+   |
+LL |     1_i64 as i64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u32`
+
+error: intermediate cast is unnecessary (`i64` -> `i64` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:361:5
+   |
+LL |     1_i64 as i64 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u64`
+
+error: intermediate cast is unnecessary (`i64` -> `i64` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:362:5
+   |
+LL |     1_i64 as i64 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u128`
+
+error: intermediate cast is unnecessary (`i64` -> `i128` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:363:5
+   |
+LL |     1_i64 as i128 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i8`
+
+error: intermediate cast is unnecessary (`i64` -> `i128` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:364:5
+   |
+LL |     1_i64 as i128 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i16`
+
+error: intermediate cast is unnecessary (`i64` -> `i128` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:365:5
+   |
+LL |     1_i64 as i128 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i32`
+
+error: intermediate cast is unnecessary (`i64` -> `i128` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:366:5
+   |
+LL |     1_i64 as i128 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i64`
+
+error: intermediate cast is unnecessary (`i64` -> `i128` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:368:5
+   |
+LL |     1_i64 as i128 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u8`
+
+error: intermediate cast is unnecessary (`i64` -> `i128` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:369:5
+   |
+LL |     1_i64 as i128 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u16`
+
+error: intermediate cast is unnecessary (`i64` -> `i128` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:370:5
+   |
+LL |     1_i64 as i128 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u32`
+
+error: intermediate cast is unnecessary (`i64` -> `i128` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:371:5
+   |
+LL |     1_i64 as i128 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u64`
+
+error: intermediate cast is unnecessary (`i64` -> `i128` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:372:5
+   |
+LL |     1_i64 as i128 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u128`
+
+error: intermediate cast is unnecessary (`i64` -> `u8` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:373:5
+   |
+LL |     1_i64 as u8 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i8`
+
+error: intermediate cast is unnecessary (`i64` -> `u16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:383:5
+   |
+LL |     1_i64 as u16 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i8`
+
+error: intermediate cast is unnecessary (`i64` -> `u16` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:384:5
+   |
+LL |     1_i64 as u16 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i16`
+
+error: intermediate cast is unnecessary (`i64` -> `u16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:388:5
+   |
+LL |     1_i64 as u16 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u8`
+
+error: intermediate cast is unnecessary (`i64` -> `u32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:393:5
+   |
+LL |     1_i64 as u32 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i8`
+
+error: intermediate cast is unnecessary (`i64` -> `u32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:394:5
+   |
+LL |     1_i64 as u32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i16`
+
+error: intermediate cast is unnecessary (`i64` -> `u32` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:395:5
+   |
+LL |     1_i64 as u32 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i32`
+
+error: intermediate cast is unnecessary (`i64` -> `u32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:398:5
+   |
+LL |     1_i64 as u32 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u8`
+
+error: intermediate cast is unnecessary (`i64` -> `u32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:399:5
+   |
+LL |     1_i64 as u32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u16`
+
+error: intermediate cast is unnecessary (`i64` -> `u64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:403:5
+   |
+LL |     1_i64 as u64 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i8`
+
+error: intermediate cast is unnecessary (`i64` -> `u64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:404:5
+   |
+LL |     1_i64 as u64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i16`
+
+error: intermediate cast is unnecessary (`i64` -> `u64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:405:5
+   |
+LL |     1_i64 as u64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i32`
+
+error: intermediate cast is unnecessary (`i64` -> `u64` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:406:5
+   |
+LL |     1_i64 as u64 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i64`
+
+error: intermediate cast is unnecessary (`i64` -> `u64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:408:5
+   |
+LL |     1_i64 as u64 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u8`
+
+error: intermediate cast is unnecessary (`i64` -> `u64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:409:5
+   |
+LL |     1_i64 as u64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u16`
+
+error: intermediate cast is unnecessary (`i64` -> `u64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:410:5
+   |
+LL |     1_i64 as u64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u32`
+
+error: intermediate cast is unnecessary (`i64` -> `u128` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:413:5
+   |
+LL |     1_i64 as u128 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i8`
+
+error: intermediate cast is unnecessary (`i64` -> `u128` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:414:5
+   |
+LL |     1_i64 as u128 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i16`
+
+error: intermediate cast is unnecessary (`i64` -> `u128` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:415:5
+   |
+LL |     1_i64 as u128 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i32`
+
+error: intermediate cast is unnecessary (`i64` -> `u128` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:416:5
+   |
+LL |     1_i64 as u128 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i64`
+
+error: intermediate cast is unnecessary (`i64` -> `u128` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:417:5
+   |
+LL |     1_i64 as u128 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as i128`
+
+error: intermediate cast is unnecessary (`i64` -> `u128` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:418:5
+   |
+LL |     1_i64 as u128 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u8`
+
+error: intermediate cast is unnecessary (`i64` -> `u128` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:419:5
+   |
+LL |     1_i64 as u128 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u16`
+
+error: intermediate cast is unnecessary (`i64` -> `u128` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:420:5
+   |
+LL |     1_i64 as u128 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u32`
+
+error: intermediate cast is unnecessary (`i64` -> `u128` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:421:5
+   |
+LL |     1_i64 as u128 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as u64`
+
+error: intermediate cast is unnecessary (`i128` -> `i8` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:428:5
+   |
+LL |     1_i128 as i8 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u8`
+
+error: intermediate cast is unnecessary (`i128` -> `i16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:433:5
+   |
+LL |     1_i128 as i16 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i8`
+
+error: intermediate cast is unnecessary (`i128` -> `i16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:438:5
+   |
+LL |     1_i128 as i16 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u8`
+
+error: intermediate cast is unnecessary (`i128` -> `i16` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:439:5
+   |
+LL |     1_i128 as i16 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u16`
+
+error: intermediate cast is unnecessary (`i128` -> `i32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:443:5
+   |
+LL |     1_i128 as i32 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i8`
+
+error: intermediate cast is unnecessary (`i128` -> `i32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:444:5
+   |
+LL |     1_i128 as i32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i16`
+
+error: intermediate cast is unnecessary (`i128` -> `i32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:448:5
+   |
+LL |     1_i128 as i32 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u8`
+
+error: intermediate cast is unnecessary (`i128` -> `i32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:449:5
+   |
+LL |     1_i128 as i32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u16`
+
+error: intermediate cast is unnecessary (`i128` -> `i32` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:450:5
+   |
+LL |     1_i128 as i32 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u32`
+
+error: intermediate cast is unnecessary (`i128` -> `i64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:453:5
+   |
+LL |     1_i128 as i64 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i8`
+
+error: intermediate cast is unnecessary (`i128` -> `i64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:454:5
+   |
+LL |     1_i128 as i64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i16`
+
+error: intermediate cast is unnecessary (`i128` -> `i64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:455:5
+   |
+LL |     1_i128 as i64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i32`
+
+error: intermediate cast is unnecessary (`i128` -> `i64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:458:5
+   |
+LL |     1_i128 as i64 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u8`
+
+error: intermediate cast is unnecessary (`i128` -> `i64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:459:5
+   |
+LL |     1_i128 as i64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u16`
+
+error: intermediate cast is unnecessary (`i128` -> `i64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:460:5
+   |
+LL |     1_i128 as i64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u32`
+
+error: intermediate cast is unnecessary (`i128` -> `i64` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:461:5
+   |
+LL |     1_i128 as i64 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u64`
+
+error: intermediate cast is unnecessary (`i128` -> `i128` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:463:5
+   |
+LL |     1_i128 as i128 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i8`
+
+error: intermediate cast is unnecessary (`i128` -> `i128` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:464:5
+   |
+LL |     1_i128 as i128 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i16`
+
+error: intermediate cast is unnecessary (`i128` -> `i128` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:465:5
+   |
+LL |     1_i128 as i128 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i32`
+
+error: intermediate cast is unnecessary (`i128` -> `i128` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:466:5
+   |
+LL |     1_i128 as i128 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i64`
+
+error: intermediate cast is unnecessary (`i128` -> `i128` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:468:5
+   |
+LL |     1_i128 as i128 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u8`
+
+error: intermediate cast is unnecessary (`i128` -> `i128` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:469:5
+   |
+LL |     1_i128 as i128 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u16`
+
+error: intermediate cast is unnecessary (`i128` -> `i128` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:470:5
+   |
+LL |     1_i128 as i128 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u32`
+
+error: intermediate cast is unnecessary (`i128` -> `i128` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:471:5
+   |
+LL |     1_i128 as i128 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u64`
+
+error: intermediate cast is unnecessary (`i128` -> `i128` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:472:5
+   |
+LL |     1_i128 as i128 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u128`
+
+error: intermediate cast is unnecessary (`i128` -> `u8` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:473:5
+   |
+LL |     1_i128 as u8 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i8`
+
+error: intermediate cast is unnecessary (`i128` -> `u16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:483:5
+   |
+LL |     1_i128 as u16 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i8`
+
+error: intermediate cast is unnecessary (`i128` -> `u16` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:484:5
+   |
+LL |     1_i128 as u16 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i16`
+
+error: intermediate cast is unnecessary (`i128` -> `u16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:488:5
+   |
+LL |     1_i128 as u16 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u8`
+
+error: intermediate cast is unnecessary (`i128` -> `u32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:493:5
+   |
+LL |     1_i128 as u32 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i8`
+
+error: intermediate cast is unnecessary (`i128` -> `u32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:494:5
+   |
+LL |     1_i128 as u32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i16`
+
+error: intermediate cast is unnecessary (`i128` -> `u32` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:495:5
+   |
+LL |     1_i128 as u32 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i32`
+
+error: intermediate cast is unnecessary (`i128` -> `u32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:498:5
+   |
+LL |     1_i128 as u32 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u8`
+
+error: intermediate cast is unnecessary (`i128` -> `u32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:499:5
+   |
+LL |     1_i128 as u32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u16`
+
+error: intermediate cast is unnecessary (`i128` -> `u64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:503:5
+   |
+LL |     1_i128 as u64 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i8`
+
+error: intermediate cast is unnecessary (`i128` -> `u64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:504:5
+   |
+LL |     1_i128 as u64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i16`
+
+error: intermediate cast is unnecessary (`i128` -> `u64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:505:5
+   |
+LL |     1_i128 as u64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i32`
+
+error: intermediate cast is unnecessary (`i128` -> `u64` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:506:5
+   |
+LL |     1_i128 as u64 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i64`
+
+error: intermediate cast is unnecessary (`i128` -> `u64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:508:5
+   |
+LL |     1_i128 as u64 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u8`
+
+error: intermediate cast is unnecessary (`i128` -> `u64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:509:5
+   |
+LL |     1_i128 as u64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u16`
+
+error: intermediate cast is unnecessary (`i128` -> `u64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:510:5
+   |
+LL |     1_i128 as u64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u32`
+
+error: intermediate cast is unnecessary (`i128` -> `u128` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:513:5
+   |
+LL |     1_i128 as u128 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i8`
+
+error: intermediate cast is unnecessary (`i128` -> `u128` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:514:5
+   |
+LL |     1_i128 as u128 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i16`
+
+error: intermediate cast is unnecessary (`i128` -> `u128` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:515:5
+   |
+LL |     1_i128 as u128 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i32`
+
+error: intermediate cast is unnecessary (`i128` -> `u128` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:516:5
+   |
+LL |     1_i128 as u128 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i64`
+
+error: intermediate cast is unnecessary (`i128` -> `u128` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:517:5
+   |
+LL |     1_i128 as u128 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as i128`
+
+error: intermediate cast is unnecessary (`i128` -> `u128` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:518:5
+   |
+LL |     1_i128 as u128 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u8`
+
+error: intermediate cast is unnecessary (`i128` -> `u128` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:519:5
+   |
+LL |     1_i128 as u128 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u16`
+
+error: intermediate cast is unnecessary (`i128` -> `u128` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:520:5
+   |
+LL |     1_i128 as u128 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u32`
+
+error: intermediate cast is unnecessary (`i128` -> `u128` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:521:5
+   |
+LL |     1_i128 as u128 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as u64`
+
+error: intermediate cast is unnecessary (`u8` -> `i8` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:528:5
+   |
+LL |     1_u8 as i8 as u8;
+   |     ^^^^^^^^^^^^^^^^ help: try: `1_u8 as u8`
+
+error: intermediate cast is unnecessary (`u8` -> `i16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:533:5
+   |
+LL |     1_u8 as i16 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i8`
+
+error: intermediate cast is unnecessary (`u8` -> `i16` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:535:5
+   |
+LL |     1_u8 as i16 as i32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i32`
+
+error: intermediate cast is unnecessary (`u8` -> `i16` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:536:5
+   |
+LL |     1_u8 as i16 as i64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i64`
+
+error: intermediate cast is unnecessary (`u8` -> `i16` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:537:5
+   |
+LL |     1_u8 as i16 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i128`
+
+error: intermediate cast is unnecessary (`u8` -> `i16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:538:5
+   |
+LL |     1_u8 as i16 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u8`
+
+error: intermediate cast is unnecessary (`u8` -> `i16` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:539:5
+   |
+LL |     1_u8 as i16 as u16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u16`
+
+error: intermediate cast is unnecessary (`u8` -> `i16` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:540:5
+   |
+LL |     1_u8 as i16 as u32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u32`
+
+error: intermediate cast is unnecessary (`u8` -> `i16` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:541:5
+   |
+LL |     1_u8 as i16 as u64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u64`
+
+error: intermediate cast is unnecessary (`u8` -> `i16` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:542:5
+   |
+LL |     1_u8 as i16 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u128`
+
+error: intermediate cast is unnecessary (`u8` -> `i32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:543:5
+   |
+LL |     1_u8 as i32 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i8`
+
+error: intermediate cast is unnecessary (`u8` -> `i32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:544:5
+   |
+LL |     1_u8 as i32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i16`
+
+error: intermediate cast is unnecessary (`u8` -> `i32` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:546:5
+   |
+LL |     1_u8 as i32 as i64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i64`
+
+error: intermediate cast is unnecessary (`u8` -> `i32` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:547:5
+   |
+LL |     1_u8 as i32 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i128`
+
+error: intermediate cast is unnecessary (`u8` -> `i32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:548:5
+   |
+LL |     1_u8 as i32 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u8`
+
+error: intermediate cast is unnecessary (`u8` -> `i32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:549:5
+   |
+LL |     1_u8 as i32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u16`
+
+error: intermediate cast is unnecessary (`u8` -> `i32` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:550:5
+   |
+LL |     1_u8 as i32 as u32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u32`
+
+error: intermediate cast is unnecessary (`u8` -> `i32` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:551:5
+   |
+LL |     1_u8 as i32 as u64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u64`
+
+error: intermediate cast is unnecessary (`u8` -> `i32` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:552:5
+   |
+LL |     1_u8 as i32 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u128`
+
+error: intermediate cast is unnecessary (`u8` -> `i64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:553:5
+   |
+LL |     1_u8 as i64 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i8`
+
+error: intermediate cast is unnecessary (`u8` -> `i64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:554:5
+   |
+LL |     1_u8 as i64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i16`
+
+error: intermediate cast is unnecessary (`u8` -> `i64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:555:5
+   |
+LL |     1_u8 as i64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i32`
+
+error: intermediate cast is unnecessary (`u8` -> `i64` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:557:5
+   |
+LL |     1_u8 as i64 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i128`
+
+error: intermediate cast is unnecessary (`u8` -> `i64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:558:5
+   |
+LL |     1_u8 as i64 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u8`
+
+error: intermediate cast is unnecessary (`u8` -> `i64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:559:5
+   |
+LL |     1_u8 as i64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u16`
+
+error: intermediate cast is unnecessary (`u8` -> `i64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:560:5
+   |
+LL |     1_u8 as i64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u32`
+
+error: intermediate cast is unnecessary (`u8` -> `i64` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:561:5
+   |
+LL |     1_u8 as i64 as u64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u64`
+
+error: intermediate cast is unnecessary (`u8` -> `i64` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:562:5
+   |
+LL |     1_u8 as i64 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u128`
+
+error: intermediate cast is unnecessary (`u8` -> `i128` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:563:5
+   |
+LL |     1_u8 as i128 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i8`
+
+error: intermediate cast is unnecessary (`u8` -> `i128` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:564:5
+   |
+LL |     1_u8 as i128 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i16`
+
+error: intermediate cast is unnecessary (`u8` -> `i128` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:565:5
+   |
+LL |     1_u8 as i128 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i32`
+
+error: intermediate cast is unnecessary (`u8` -> `i128` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:566:5
+   |
+LL |     1_u8 as i128 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i64`
+
+error: intermediate cast is unnecessary (`u8` -> `i128` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:568:5
+   |
+LL |     1_u8 as i128 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u8`
+
+error: intermediate cast is unnecessary (`u8` -> `i128` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:569:5
+   |
+LL |     1_u8 as i128 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u16`
+
+error: intermediate cast is unnecessary (`u8` -> `i128` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:570:5
+   |
+LL |     1_u8 as i128 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u32`
+
+error: intermediate cast is unnecessary (`u8` -> `i128` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:571:5
+   |
+LL |     1_u8 as i128 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u64`
+
+error: intermediate cast is unnecessary (`u8` -> `i128` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:572:5
+   |
+LL |     1_u8 as i128 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u128`
+
+error: intermediate cast is unnecessary (`u8` -> `u8` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:573:5
+   |
+LL |     1_u8 as u8 as i8;
+   |     ^^^^^^^^^^^^^^^^ help: try: `1_u8 as i8`
+
+error: intermediate cast is unnecessary (`u8` -> `u8` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:574:5
+   |
+LL |     1_u8 as u8 as i16;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i16`
+
+error: intermediate cast is unnecessary (`u8` -> `u8` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:575:5
+   |
+LL |     1_u8 as u8 as i32;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i32`
+
+error: intermediate cast is unnecessary (`u8` -> `u8` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:576:5
+   |
+LL |     1_u8 as u8 as i64;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i64`
+
+error: intermediate cast is unnecessary (`u8` -> `u8` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:577:5
+   |
+LL |     1_u8 as u8 as i128;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i128`
+
+error: intermediate cast is unnecessary (`u8` -> `u8` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:579:5
+   |
+LL |     1_u8 as u8 as u16;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u16`
+
+error: intermediate cast is unnecessary (`u8` -> `u8` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:580:5
+   |
+LL |     1_u8 as u8 as u32;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u32`
+
+error: intermediate cast is unnecessary (`u8` -> `u8` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:581:5
+   |
+LL |     1_u8 as u8 as u64;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u64`
+
+error: intermediate cast is unnecessary (`u8` -> `u8` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:582:5
+   |
+LL |     1_u8 as u8 as u128;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u128`
+
+error: intermediate cast is unnecessary (`u8` -> `u16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:583:5
+   |
+LL |     1_u8 as u16 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i8`
+
+error: intermediate cast is unnecessary (`u8` -> `u16` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:584:5
+   |
+LL |     1_u8 as u16 as i16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i16`
+
+error: intermediate cast is unnecessary (`u8` -> `u16` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:585:5
+   |
+LL |     1_u8 as u16 as i32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i32`
+
+error: intermediate cast is unnecessary (`u8` -> `u16` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:586:5
+   |
+LL |     1_u8 as u16 as i64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i64`
+
+error: intermediate cast is unnecessary (`u8` -> `u16` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:587:5
+   |
+LL |     1_u8 as u16 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i128`
+
+error: intermediate cast is unnecessary (`u8` -> `u16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:588:5
+   |
+LL |     1_u8 as u16 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u8`
+
+error: intermediate cast is unnecessary (`u8` -> `u16` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:590:5
+   |
+LL |     1_u8 as u16 as u32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u32`
+
+error: intermediate cast is unnecessary (`u8` -> `u16` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:591:5
+   |
+LL |     1_u8 as u16 as u64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u64`
+
+error: intermediate cast is unnecessary (`u8` -> `u16` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:592:5
+   |
+LL |     1_u8 as u16 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u128`
+
+error: intermediate cast is unnecessary (`u8` -> `u32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:593:5
+   |
+LL |     1_u8 as u32 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i8`
+
+error: intermediate cast is unnecessary (`u8` -> `u32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:594:5
+   |
+LL |     1_u8 as u32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i16`
+
+error: intermediate cast is unnecessary (`u8` -> `u32` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:595:5
+   |
+LL |     1_u8 as u32 as i32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i32`
+
+error: intermediate cast is unnecessary (`u8` -> `u32` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:596:5
+   |
+LL |     1_u8 as u32 as i64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i64`
+
+error: intermediate cast is unnecessary (`u8` -> `u32` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:597:5
+   |
+LL |     1_u8 as u32 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i128`
+
+error: intermediate cast is unnecessary (`u8` -> `u32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:598:5
+   |
+LL |     1_u8 as u32 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u8`
+
+error: intermediate cast is unnecessary (`u8` -> `u32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:599:5
+   |
+LL |     1_u8 as u32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u16`
+
+error: intermediate cast is unnecessary (`u8` -> `u32` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:601:5
+   |
+LL |     1_u8 as u32 as u64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u64`
+
+error: intermediate cast is unnecessary (`u8` -> `u32` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:602:5
+   |
+LL |     1_u8 as u32 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u128`
+
+error: intermediate cast is unnecessary (`u8` -> `u64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:603:5
+   |
+LL |     1_u8 as u64 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i8`
+
+error: intermediate cast is unnecessary (`u8` -> `u64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:604:5
+   |
+LL |     1_u8 as u64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i16`
+
+error: intermediate cast is unnecessary (`u8` -> `u64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:605:5
+   |
+LL |     1_u8 as u64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i32`
+
+error: intermediate cast is unnecessary (`u8` -> `u64` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:606:5
+   |
+LL |     1_u8 as u64 as i64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i64`
+
+error: intermediate cast is unnecessary (`u8` -> `u64` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:607:5
+   |
+LL |     1_u8 as u64 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i128`
+
+error: intermediate cast is unnecessary (`u8` -> `u64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:608:5
+   |
+LL |     1_u8 as u64 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u8`
+
+error: intermediate cast is unnecessary (`u8` -> `u64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:609:5
+   |
+LL |     1_u8 as u64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u16`
+
+error: intermediate cast is unnecessary (`u8` -> `u64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:610:5
+   |
+LL |     1_u8 as u64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u32`
+
+error: intermediate cast is unnecessary (`u8` -> `u64` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:612:5
+   |
+LL |     1_u8 as u64 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u128`
+
+error: intermediate cast is unnecessary (`u8` -> `u128` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:613:5
+   |
+LL |     1_u8 as u128 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i8`
+
+error: intermediate cast is unnecessary (`u8` -> `u128` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:614:5
+   |
+LL |     1_u8 as u128 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i16`
+
+error: intermediate cast is unnecessary (`u8` -> `u128` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:615:5
+   |
+LL |     1_u8 as u128 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i32`
+
+error: intermediate cast is unnecessary (`u8` -> `u128` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:616:5
+   |
+LL |     1_u8 as u128 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i64`
+
+error: intermediate cast is unnecessary (`u8` -> `u128` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:617:5
+   |
+LL |     1_u8 as u128 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i128`
+
+error: intermediate cast is unnecessary (`u8` -> `u128` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:618:5
+   |
+LL |     1_u8 as u128 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u8`
+
+error: intermediate cast is unnecessary (`u8` -> `u128` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:619:5
+   |
+LL |     1_u8 as u128 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u16`
+
+error: intermediate cast is unnecessary (`u8` -> `u128` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:620:5
+   |
+LL |     1_u8 as u128 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u32`
+
+error: intermediate cast is unnecessary (`u8` -> `u128` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:621:5
+   |
+LL |     1_u8 as u128 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u64`
+
+error: intermediate cast is unnecessary (`u16` -> `i8` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:628:5
+   |
+LL |     1_u16 as i8 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u8`
+
+error: intermediate cast is unnecessary (`u16` -> `i16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:633:5
+   |
+LL |     1_u16 as i16 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i8`
+
+error: intermediate cast is unnecessary (`u16` -> `i16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:638:5
+   |
+LL |     1_u16 as i16 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u8`
+
+error: intermediate cast is unnecessary (`u16` -> `i16` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:639:5
+   |
+LL |     1_u16 as i16 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u16`
+
+error: intermediate cast is unnecessary (`u16` -> `i32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:643:5
+   |
+LL |     1_u16 as i32 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i8`
+
+error: intermediate cast is unnecessary (`u16` -> `i32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:644:5
+   |
+LL |     1_u16 as i32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i16`
+
+error: intermediate cast is unnecessary (`u16` -> `i32` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:646:5
+   |
+LL |     1_u16 as i32 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i64`
+
+error: intermediate cast is unnecessary (`u16` -> `i32` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:647:5
+   |
+LL |     1_u16 as i32 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i128`
+
+error: intermediate cast is unnecessary (`u16` -> `i32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:648:5
+   |
+LL |     1_u16 as i32 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u8`
+
+error: intermediate cast is unnecessary (`u16` -> `i32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:649:5
+   |
+LL |     1_u16 as i32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u16`
+
+error: intermediate cast is unnecessary (`u16` -> `i32` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:650:5
+   |
+LL |     1_u16 as i32 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u32`
+
+error: intermediate cast is unnecessary (`u16` -> `i32` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:651:5
+   |
+LL |     1_u16 as i32 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u64`
+
+error: intermediate cast is unnecessary (`u16` -> `i32` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:652:5
+   |
+LL |     1_u16 as i32 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u128`
+
+error: intermediate cast is unnecessary (`u16` -> `i64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:653:5
+   |
+LL |     1_u16 as i64 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i8`
+
+error: intermediate cast is unnecessary (`u16` -> `i64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:654:5
+   |
+LL |     1_u16 as i64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i16`
+
+error: intermediate cast is unnecessary (`u16` -> `i64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:655:5
+   |
+LL |     1_u16 as i64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i32`
+
+error: intermediate cast is unnecessary (`u16` -> `i64` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:657:5
+   |
+LL |     1_u16 as i64 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i128`
+
+error: intermediate cast is unnecessary (`u16` -> `i64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:658:5
+   |
+LL |     1_u16 as i64 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u8`
+
+error: intermediate cast is unnecessary (`u16` -> `i64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:659:5
+   |
+LL |     1_u16 as i64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u16`
+
+error: intermediate cast is unnecessary (`u16` -> `i64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:660:5
+   |
+LL |     1_u16 as i64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u32`
+
+error: intermediate cast is unnecessary (`u16` -> `i64` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:661:5
+   |
+LL |     1_u16 as i64 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u64`
+
+error: intermediate cast is unnecessary (`u16` -> `i64` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:662:5
+   |
+LL |     1_u16 as i64 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u128`
+
+error: intermediate cast is unnecessary (`u16` -> `i128` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:663:5
+   |
+LL |     1_u16 as i128 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i8`
+
+error: intermediate cast is unnecessary (`u16` -> `i128` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:664:5
+   |
+LL |     1_u16 as i128 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i16`
+
+error: intermediate cast is unnecessary (`u16` -> `i128` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:665:5
+   |
+LL |     1_u16 as i128 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i32`
+
+error: intermediate cast is unnecessary (`u16` -> `i128` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:666:5
+   |
+LL |     1_u16 as i128 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i64`
+
+error: intermediate cast is unnecessary (`u16` -> `i128` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:668:5
+   |
+LL |     1_u16 as i128 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u8`
+
+error: intermediate cast is unnecessary (`u16` -> `i128` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:669:5
+   |
+LL |     1_u16 as i128 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u16`
+
+error: intermediate cast is unnecessary (`u16` -> `i128` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:670:5
+   |
+LL |     1_u16 as i128 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u32`
+
+error: intermediate cast is unnecessary (`u16` -> `i128` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:671:5
+   |
+LL |     1_u16 as i128 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u64`
+
+error: intermediate cast is unnecessary (`u16` -> `i128` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:672:5
+   |
+LL |     1_u16 as i128 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u128`
+
+error: intermediate cast is unnecessary (`u16` -> `u8` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:673:5
+   |
+LL |     1_u16 as u8 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i8`
+
+error: intermediate cast is unnecessary (`u16` -> `u16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:683:5
+   |
+LL |     1_u16 as u16 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i8`
+
+error: intermediate cast is unnecessary (`u16` -> `u16` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:684:5
+   |
+LL |     1_u16 as u16 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i16`
+
+error: intermediate cast is unnecessary (`u16` -> `u16` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:685:5
+   |
+LL |     1_u16 as u16 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i32`
+
+error: intermediate cast is unnecessary (`u16` -> `u16` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:686:5
+   |
+LL |     1_u16 as u16 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i64`
+
+error: intermediate cast is unnecessary (`u16` -> `u16` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:687:5
+   |
+LL |     1_u16 as u16 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i128`
+
+error: intermediate cast is unnecessary (`u16` -> `u16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:688:5
+   |
+LL |     1_u16 as u16 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u8`
+
+error: intermediate cast is unnecessary (`u16` -> `u16` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:690:5
+   |
+LL |     1_u16 as u16 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u32`
+
+error: intermediate cast is unnecessary (`u16` -> `u16` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:691:5
+   |
+LL |     1_u16 as u16 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u64`
+
+error: intermediate cast is unnecessary (`u16` -> `u16` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:692:5
+   |
+LL |     1_u16 as u16 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u128`
+
+error: intermediate cast is unnecessary (`u16` -> `u32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:693:5
+   |
+LL |     1_u16 as u32 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i8`
+
+error: intermediate cast is unnecessary (`u16` -> `u32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:694:5
+   |
+LL |     1_u16 as u32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i16`
+
+error: intermediate cast is unnecessary (`u16` -> `u32` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:695:5
+   |
+LL |     1_u16 as u32 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i32`
+
+error: intermediate cast is unnecessary (`u16` -> `u32` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:696:5
+   |
+LL |     1_u16 as u32 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i64`
+
+error: intermediate cast is unnecessary (`u16` -> `u32` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:697:5
+   |
+LL |     1_u16 as u32 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i128`
+
+error: intermediate cast is unnecessary (`u16` -> `u32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:698:5
+   |
+LL |     1_u16 as u32 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u8`
+
+error: intermediate cast is unnecessary (`u16` -> `u32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:699:5
+   |
+LL |     1_u16 as u32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u16`
+
+error: intermediate cast is unnecessary (`u16` -> `u32` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:701:5
+   |
+LL |     1_u16 as u32 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u64`
+
+error: intermediate cast is unnecessary (`u16` -> `u32` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:702:5
+   |
+LL |     1_u16 as u32 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u128`
+
+error: intermediate cast is unnecessary (`u16` -> `u64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:703:5
+   |
+LL |     1_u16 as u64 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i8`
+
+error: intermediate cast is unnecessary (`u16` -> `u64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:704:5
+   |
+LL |     1_u16 as u64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i16`
+
+error: intermediate cast is unnecessary (`u16` -> `u64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:705:5
+   |
+LL |     1_u16 as u64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i32`
+
+error: intermediate cast is unnecessary (`u16` -> `u64` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:706:5
+   |
+LL |     1_u16 as u64 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i64`
+
+error: intermediate cast is unnecessary (`u16` -> `u64` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:707:5
+   |
+LL |     1_u16 as u64 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i128`
+
+error: intermediate cast is unnecessary (`u16` -> `u64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:708:5
+   |
+LL |     1_u16 as u64 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u8`
+
+error: intermediate cast is unnecessary (`u16` -> `u64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:709:5
+   |
+LL |     1_u16 as u64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u16`
+
+error: intermediate cast is unnecessary (`u16` -> `u64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:710:5
+   |
+LL |     1_u16 as u64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u32`
+
+error: intermediate cast is unnecessary (`u16` -> `u64` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:712:5
+   |
+LL |     1_u16 as u64 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u128`
+
+error: intermediate cast is unnecessary (`u16` -> `u128` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:713:5
+   |
+LL |     1_u16 as u128 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i8`
+
+error: intermediate cast is unnecessary (`u16` -> `u128` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:714:5
+   |
+LL |     1_u16 as u128 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i16`
+
+error: intermediate cast is unnecessary (`u16` -> `u128` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:715:5
+   |
+LL |     1_u16 as u128 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i32`
+
+error: intermediate cast is unnecessary (`u16` -> `u128` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:716:5
+   |
+LL |     1_u16 as u128 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i64`
+
+error: intermediate cast is unnecessary (`u16` -> `u128` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:717:5
+   |
+LL |     1_u16 as u128 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i128`
+
+error: intermediate cast is unnecessary (`u16` -> `u128` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:718:5
+   |
+LL |     1_u16 as u128 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u8`
+
+error: intermediate cast is unnecessary (`u16` -> `u128` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:719:5
+   |
+LL |     1_u16 as u128 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u16`
+
+error: intermediate cast is unnecessary (`u16` -> `u128` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:720:5
+   |
+LL |     1_u16 as u128 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u32`
+
+error: intermediate cast is unnecessary (`u16` -> `u128` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:721:5
+   |
+LL |     1_u16 as u128 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u64`
+
+error: intermediate cast is unnecessary (`u32` -> `i8` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:728:5
+   |
+LL |     1_u32 as i8 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u8`
+
+error: intermediate cast is unnecessary (`u32` -> `i16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:733:5
+   |
+LL |     1_u32 as i16 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i8`
+
+error: intermediate cast is unnecessary (`u32` -> `i16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:738:5
+   |
+LL |     1_u32 as i16 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u8`
+
+error: intermediate cast is unnecessary (`u32` -> `i16` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:739:5
+   |
+LL |     1_u32 as i16 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u16`
+
+error: intermediate cast is unnecessary (`u32` -> `i32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:743:5
+   |
+LL |     1_u32 as i32 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i8`
+
+error: intermediate cast is unnecessary (`u32` -> `i32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:744:5
+   |
+LL |     1_u32 as i32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i16`
+
+error: intermediate cast is unnecessary (`u32` -> `i32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:748:5
+   |
+LL |     1_u32 as i32 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u8`
+
+error: intermediate cast is unnecessary (`u32` -> `i32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:749:5
+   |
+LL |     1_u32 as i32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u16`
+
+error: intermediate cast is unnecessary (`u32` -> `i32` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:750:5
+   |
+LL |     1_u32 as i32 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u32`
+
+error: intermediate cast is unnecessary (`u32` -> `i64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:753:5
+   |
+LL |     1_u32 as i64 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i8`
+
+error: intermediate cast is unnecessary (`u32` -> `i64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:754:5
+   |
+LL |     1_u32 as i64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i16`
+
+error: intermediate cast is unnecessary (`u32` -> `i64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:755:5
+   |
+LL |     1_u32 as i64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i32`
+
+error: intermediate cast is unnecessary (`u32` -> `i64` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:757:5
+   |
+LL |     1_u32 as i64 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i128`
+
+error: intermediate cast is unnecessary (`u32` -> `i64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:758:5
+   |
+LL |     1_u32 as i64 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u8`
+
+error: intermediate cast is unnecessary (`u32` -> `i64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:759:5
+   |
+LL |     1_u32 as i64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u16`
+
+error: intermediate cast is unnecessary (`u32` -> `i64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:760:5
+   |
+LL |     1_u32 as i64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u32`
+
+error: intermediate cast is unnecessary (`u32` -> `i64` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:761:5
+   |
+LL |     1_u32 as i64 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u64`
+
+error: intermediate cast is unnecessary (`u32` -> `i64` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:762:5
+   |
+LL |     1_u32 as i64 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u128`
+
+error: intermediate cast is unnecessary (`u32` -> `i128` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:763:5
+   |
+LL |     1_u32 as i128 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i8`
+
+error: intermediate cast is unnecessary (`u32` -> `i128` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:764:5
+   |
+LL |     1_u32 as i128 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i16`
+
+error: intermediate cast is unnecessary (`u32` -> `i128` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:765:5
+   |
+LL |     1_u32 as i128 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i32`
+
+error: intermediate cast is unnecessary (`u32` -> `i128` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:766:5
+   |
+LL |     1_u32 as i128 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i64`
+
+error: intermediate cast is unnecessary (`u32` -> `i128` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:768:5
+   |
+LL |     1_u32 as i128 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u8`
+
+error: intermediate cast is unnecessary (`u32` -> `i128` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:769:5
+   |
+LL |     1_u32 as i128 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u16`
+
+error: intermediate cast is unnecessary (`u32` -> `i128` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:770:5
+   |
+LL |     1_u32 as i128 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u32`
+
+error: intermediate cast is unnecessary (`u32` -> `i128` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:771:5
+   |
+LL |     1_u32 as i128 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u64`
+
+error: intermediate cast is unnecessary (`u32` -> `i128` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:772:5
+   |
+LL |     1_u32 as i128 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u128`
+
+error: intermediate cast is unnecessary (`u32` -> `u8` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:773:5
+   |
+LL |     1_u32 as u8 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i8`
+
+error: intermediate cast is unnecessary (`u32` -> `u16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:783:5
+   |
+LL |     1_u32 as u16 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i8`
+
+error: intermediate cast is unnecessary (`u32` -> `u16` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:784:5
+   |
+LL |     1_u32 as u16 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i16`
+
+error: intermediate cast is unnecessary (`u32` -> `u16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:788:5
+   |
+LL |     1_u32 as u16 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u8`
+
+error: intermediate cast is unnecessary (`u32` -> `u32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:793:5
+   |
+LL |     1_u32 as u32 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i8`
+
+error: intermediate cast is unnecessary (`u32` -> `u32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:794:5
+   |
+LL |     1_u32 as u32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i16`
+
+error: intermediate cast is unnecessary (`u32` -> `u32` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:795:5
+   |
+LL |     1_u32 as u32 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i32`
+
+error: intermediate cast is unnecessary (`u32` -> `u32` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:796:5
+   |
+LL |     1_u32 as u32 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i64`
+
+error: intermediate cast is unnecessary (`u32` -> `u32` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:797:5
+   |
+LL |     1_u32 as u32 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i128`
+
+error: intermediate cast is unnecessary (`u32` -> `u32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:798:5
+   |
+LL |     1_u32 as u32 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u8`
+
+error: intermediate cast is unnecessary (`u32` -> `u32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:799:5
+   |
+LL |     1_u32 as u32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u16`
+
+error: intermediate cast is unnecessary (`u32` -> `u32` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:801:5
+   |
+LL |     1_u32 as u32 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u64`
+
+error: intermediate cast is unnecessary (`u32` -> `u32` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:802:5
+   |
+LL |     1_u32 as u32 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u128`
+
+error: intermediate cast is unnecessary (`u32` -> `u64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:803:5
+   |
+LL |     1_u32 as u64 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i8`
+
+error: intermediate cast is unnecessary (`u32` -> `u64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:804:5
+   |
+LL |     1_u32 as u64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i16`
+
+error: intermediate cast is unnecessary (`u32` -> `u64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:805:5
+   |
+LL |     1_u32 as u64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i32`
+
+error: intermediate cast is unnecessary (`u32` -> `u64` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:806:5
+   |
+LL |     1_u32 as u64 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i64`
+
+error: intermediate cast is unnecessary (`u32` -> `u64` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:807:5
+   |
+LL |     1_u32 as u64 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i128`
+
+error: intermediate cast is unnecessary (`u32` -> `u64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:808:5
+   |
+LL |     1_u32 as u64 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u8`
+
+error: intermediate cast is unnecessary (`u32` -> `u64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:809:5
+   |
+LL |     1_u32 as u64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u16`
+
+error: intermediate cast is unnecessary (`u32` -> `u64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:810:5
+   |
+LL |     1_u32 as u64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u32`
+
+error: intermediate cast is unnecessary (`u32` -> `u64` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:812:5
+   |
+LL |     1_u32 as u64 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u128`
+
+error: intermediate cast is unnecessary (`u32` -> `u128` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:813:5
+   |
+LL |     1_u32 as u128 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i8`
+
+error: intermediate cast is unnecessary (`u32` -> `u128` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:814:5
+   |
+LL |     1_u32 as u128 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i16`
+
+error: intermediate cast is unnecessary (`u32` -> `u128` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:815:5
+   |
+LL |     1_u32 as u128 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i32`
+
+error: intermediate cast is unnecessary (`u32` -> `u128` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:816:5
+   |
+LL |     1_u32 as u128 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i64`
+
+error: intermediate cast is unnecessary (`u32` -> `u128` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:817:5
+   |
+LL |     1_u32 as u128 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i128`
+
+error: intermediate cast is unnecessary (`u32` -> `u128` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:818:5
+   |
+LL |     1_u32 as u128 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u8`
+
+error: intermediate cast is unnecessary (`u32` -> `u128` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:819:5
+   |
+LL |     1_u32 as u128 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u16`
+
+error: intermediate cast is unnecessary (`u32` -> `u128` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:820:5
+   |
+LL |     1_u32 as u128 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u32`
+
+error: intermediate cast is unnecessary (`u32` -> `u128` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:821:5
+   |
+LL |     1_u32 as u128 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u64`
+
+error: intermediate cast is unnecessary (`u64` -> `i8` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:828:5
+   |
+LL |     1_u64 as i8 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u8`
+
+error: intermediate cast is unnecessary (`u64` -> `i16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:833:5
+   |
+LL |     1_u64 as i16 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i8`
+
+error: intermediate cast is unnecessary (`u64` -> `i16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:838:5
+   |
+LL |     1_u64 as i16 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u8`
+
+error: intermediate cast is unnecessary (`u64` -> `i16` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:839:5
+   |
+LL |     1_u64 as i16 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u16`
+
+error: intermediate cast is unnecessary (`u64` -> `i32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:843:5
+   |
+LL |     1_u64 as i32 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i8`
+
+error: intermediate cast is unnecessary (`u64` -> `i32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:844:5
+   |
+LL |     1_u64 as i32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i16`
+
+error: intermediate cast is unnecessary (`u64` -> `i32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:848:5
+   |
+LL |     1_u64 as i32 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u8`
+
+error: intermediate cast is unnecessary (`u64` -> `i32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:849:5
+   |
+LL |     1_u64 as i32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u16`
+
+error: intermediate cast is unnecessary (`u64` -> `i32` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:850:5
+   |
+LL |     1_u64 as i32 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u32`
+
+error: intermediate cast is unnecessary (`u64` -> `i64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:853:5
+   |
+LL |     1_u64 as i64 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i8`
+
+error: intermediate cast is unnecessary (`u64` -> `i64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:854:5
+   |
+LL |     1_u64 as i64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i16`
+
+error: intermediate cast is unnecessary (`u64` -> `i64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:855:5
+   |
+LL |     1_u64 as i64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i32`
+
+error: intermediate cast is unnecessary (`u64` -> `i64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:858:5
+   |
+LL |     1_u64 as i64 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u8`
+
+error: intermediate cast is unnecessary (`u64` -> `i64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:859:5
+   |
+LL |     1_u64 as i64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u16`
+
+error: intermediate cast is unnecessary (`u64` -> `i64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:860:5
+   |
+LL |     1_u64 as i64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u32`
+
+error: intermediate cast is unnecessary (`u64` -> `i64` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:861:5
+   |
+LL |     1_u64 as i64 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u64`
+
+error: intermediate cast is unnecessary (`u64` -> `i128` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:863:5
+   |
+LL |     1_u64 as i128 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i8`
+
+error: intermediate cast is unnecessary (`u64` -> `i128` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:864:5
+   |
+LL |     1_u64 as i128 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i16`
+
+error: intermediate cast is unnecessary (`u64` -> `i128` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:865:5
+   |
+LL |     1_u64 as i128 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i32`
+
+error: intermediate cast is unnecessary (`u64` -> `i128` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:866:5
+   |
+LL |     1_u64 as i128 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i64`
+
+error: intermediate cast is unnecessary (`u64` -> `i128` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:868:5
+   |
+LL |     1_u64 as i128 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u8`
+
+error: intermediate cast is unnecessary (`u64` -> `i128` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:869:5
+   |
+LL |     1_u64 as i128 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u16`
+
+error: intermediate cast is unnecessary (`u64` -> `i128` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:870:5
+   |
+LL |     1_u64 as i128 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u32`
+
+error: intermediate cast is unnecessary (`u64` -> `i128` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:871:5
+   |
+LL |     1_u64 as i128 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u64`
+
+error: intermediate cast is unnecessary (`u64` -> `i128` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:872:5
+   |
+LL |     1_u64 as i128 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u128`
+
+error: intermediate cast is unnecessary (`u64` -> `u8` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:873:5
+   |
+LL |     1_u64 as u8 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i8`
+
+error: intermediate cast is unnecessary (`u64` -> `u16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:883:5
+   |
+LL |     1_u64 as u16 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i8`
+
+error: intermediate cast is unnecessary (`u64` -> `u16` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:884:5
+   |
+LL |     1_u64 as u16 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i16`
+
+error: intermediate cast is unnecessary (`u64` -> `u16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:888:5
+   |
+LL |     1_u64 as u16 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u8`
+
+error: intermediate cast is unnecessary (`u64` -> `u32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:893:5
+   |
+LL |     1_u64 as u32 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i8`
+
+error: intermediate cast is unnecessary (`u64` -> `u32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:894:5
+   |
+LL |     1_u64 as u32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i16`
+
+error: intermediate cast is unnecessary (`u64` -> `u32` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:895:5
+   |
+LL |     1_u64 as u32 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i32`
+
+error: intermediate cast is unnecessary (`u64` -> `u32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:898:5
+   |
+LL |     1_u64 as u32 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u8`
+
+error: intermediate cast is unnecessary (`u64` -> `u32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:899:5
+   |
+LL |     1_u64 as u32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u16`
+
+error: intermediate cast is unnecessary (`u64` -> `u64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:903:5
+   |
+LL |     1_u64 as u64 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i8`
+
+error: intermediate cast is unnecessary (`u64` -> `u64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:904:5
+   |
+LL |     1_u64 as u64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i16`
+
+error: intermediate cast is unnecessary (`u64` -> `u64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:905:5
+   |
+LL |     1_u64 as u64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i32`
+
+error: intermediate cast is unnecessary (`u64` -> `u64` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:906:5
+   |
+LL |     1_u64 as u64 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i64`
+
+error: intermediate cast is unnecessary (`u64` -> `u64` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:907:5
+   |
+LL |     1_u64 as u64 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i128`
+
+error: intermediate cast is unnecessary (`u64` -> `u64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:908:5
+   |
+LL |     1_u64 as u64 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u8`
+
+error: intermediate cast is unnecessary (`u64` -> `u64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:909:5
+   |
+LL |     1_u64 as u64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u16`
+
+error: intermediate cast is unnecessary (`u64` -> `u64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:910:5
+   |
+LL |     1_u64 as u64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u32`
+
+error: intermediate cast is unnecessary (`u64` -> `u64` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:912:5
+   |
+LL |     1_u64 as u64 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u128`
+
+error: intermediate cast is unnecessary (`u64` -> `u128` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:913:5
+   |
+LL |     1_u64 as u128 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i8`
+
+error: intermediate cast is unnecessary (`u64` -> `u128` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:914:5
+   |
+LL |     1_u64 as u128 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i16`
+
+error: intermediate cast is unnecessary (`u64` -> `u128` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:915:5
+   |
+LL |     1_u64 as u128 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i32`
+
+error: intermediate cast is unnecessary (`u64` -> `u128` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:916:5
+   |
+LL |     1_u64 as u128 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i64`
+
+error: intermediate cast is unnecessary (`u64` -> `u128` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:917:5
+   |
+LL |     1_u64 as u128 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as i128`
+
+error: intermediate cast is unnecessary (`u64` -> `u128` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:918:5
+   |
+LL |     1_u64 as u128 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u8`
+
+error: intermediate cast is unnecessary (`u64` -> `u128` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:919:5
+   |
+LL |     1_u64 as u128 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u16`
+
+error: intermediate cast is unnecessary (`u64` -> `u128` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:920:5
+   |
+LL |     1_u64 as u128 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u32`
+
+error: intermediate cast is unnecessary (`u64` -> `u128` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:921:5
+   |
+LL |     1_u64 as u128 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as u64`
+
+error: intermediate cast is unnecessary (`u128` -> `i8` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:928:5
+   |
+LL |     1_u128 as i8 as u8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u8`
+
+error: intermediate cast is unnecessary (`u128` -> `i16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:933:5
+   |
+LL |     1_u128 as i16 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i8`
+
+error: intermediate cast is unnecessary (`u128` -> `i16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:938:5
+   |
+LL |     1_u128 as i16 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u8`
+
+error: intermediate cast is unnecessary (`u128` -> `i16` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:939:5
+   |
+LL |     1_u128 as i16 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u16`
+
+error: intermediate cast is unnecessary (`u128` -> `i32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:943:5
+   |
+LL |     1_u128 as i32 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i8`
+
+error: intermediate cast is unnecessary (`u128` -> `i32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:944:5
+   |
+LL |     1_u128 as i32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i16`
+
+error: intermediate cast is unnecessary (`u128` -> `i32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:948:5
+   |
+LL |     1_u128 as i32 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u8`
+
+error: intermediate cast is unnecessary (`u128` -> `i32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:949:5
+   |
+LL |     1_u128 as i32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u16`
+
+error: intermediate cast is unnecessary (`u128` -> `i32` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:950:5
+   |
+LL |     1_u128 as i32 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u32`
+
+error: intermediate cast is unnecessary (`u128` -> `i64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:953:5
+   |
+LL |     1_u128 as i64 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i8`
+
+error: intermediate cast is unnecessary (`u128` -> `i64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:954:5
+   |
+LL |     1_u128 as i64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i16`
+
+error: intermediate cast is unnecessary (`u128` -> `i64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:955:5
+   |
+LL |     1_u128 as i64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i32`
+
+error: intermediate cast is unnecessary (`u128` -> `i64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:958:5
+   |
+LL |     1_u128 as i64 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u8`
+
+error: intermediate cast is unnecessary (`u128` -> `i64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:959:5
+   |
+LL |     1_u128 as i64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u16`
+
+error: intermediate cast is unnecessary (`u128` -> `i64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:960:5
+   |
+LL |     1_u128 as i64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u32`
+
+error: intermediate cast is unnecessary (`u128` -> `i64` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:961:5
+   |
+LL |     1_u128 as i64 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u64`
+
+error: intermediate cast is unnecessary (`u128` -> `i128` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:963:5
+   |
+LL |     1_u128 as i128 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i8`
+
+error: intermediate cast is unnecessary (`u128` -> `i128` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:964:5
+   |
+LL |     1_u128 as i128 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i16`
+
+error: intermediate cast is unnecessary (`u128` -> `i128` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:965:5
+   |
+LL |     1_u128 as i128 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i32`
+
+error: intermediate cast is unnecessary (`u128` -> `i128` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:966:5
+   |
+LL |     1_u128 as i128 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i64`
+
+error: intermediate cast is unnecessary (`u128` -> `i128` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:968:5
+   |
+LL |     1_u128 as i128 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u8`
+
+error: intermediate cast is unnecessary (`u128` -> `i128` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:969:5
+   |
+LL |     1_u128 as i128 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u16`
+
+error: intermediate cast is unnecessary (`u128` -> `i128` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:970:5
+   |
+LL |     1_u128 as i128 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u32`
+
+error: intermediate cast is unnecessary (`u128` -> `i128` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:971:5
+   |
+LL |     1_u128 as i128 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u64`
+
+error: intermediate cast is unnecessary (`u128` -> `i128` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:972:5
+   |
+LL |     1_u128 as i128 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u128`
+
+error: intermediate cast is unnecessary (`u128` -> `u8` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:973:5
+   |
+LL |     1_u128 as u8 as i8;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i8`
+
+error: intermediate cast is unnecessary (`u128` -> `u16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:983:5
+   |
+LL |     1_u128 as u16 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i8`
+
+error: intermediate cast is unnecessary (`u128` -> `u16` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:984:5
+   |
+LL |     1_u128 as u16 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i16`
+
+error: intermediate cast is unnecessary (`u128` -> `u16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:988:5
+   |
+LL |     1_u128 as u16 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u8`
+
+error: intermediate cast is unnecessary (`u128` -> `u32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:993:5
+   |
+LL |     1_u128 as u32 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i8`
+
+error: intermediate cast is unnecessary (`u128` -> `u32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:994:5
+   |
+LL |     1_u128 as u32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i16`
+
+error: intermediate cast is unnecessary (`u128` -> `u32` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:995:5
+   |
+LL |     1_u128 as u32 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i32`
+
+error: intermediate cast is unnecessary (`u128` -> `u32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:998:5
+   |
+LL |     1_u128 as u32 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u8`
+
+error: intermediate cast is unnecessary (`u128` -> `u32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:999:5
+   |
+LL |     1_u128 as u32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u16`
+
+error: intermediate cast is unnecessary (`u128` -> `u64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1003:5
+   |
+LL |     1_u128 as u64 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i8`
+
+error: intermediate cast is unnecessary (`u128` -> `u64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1004:5
+   |
+LL |     1_u128 as u64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i16`
+
+error: intermediate cast is unnecessary (`u128` -> `u64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1005:5
+   |
+LL |     1_u128 as u64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i32`
+
+error: intermediate cast is unnecessary (`u128` -> `u64` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1006:5
+   |
+LL |     1_u128 as u64 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i64`
+
+error: intermediate cast is unnecessary (`u128` -> `u64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1008:5
+   |
+LL |     1_u128 as u64 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u8`
+
+error: intermediate cast is unnecessary (`u128` -> `u64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1009:5
+   |
+LL |     1_u128 as u64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u16`
+
+error: intermediate cast is unnecessary (`u128` -> `u64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1010:5
+   |
+LL |     1_u128 as u64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u32`
+
+error: intermediate cast is unnecessary (`u128` -> `u128` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1013:5
+   |
+LL |     1_u128 as u128 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i8`
+
+error: intermediate cast is unnecessary (`u128` -> `u128` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1014:5
+   |
+LL |     1_u128 as u128 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i16`
+
+error: intermediate cast is unnecessary (`u128` -> `u128` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1015:5
+   |
+LL |     1_u128 as u128 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i32`
+
+error: intermediate cast is unnecessary (`u128` -> `u128` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1016:5
+   |
+LL |     1_u128 as u128 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i64`
+
+error: intermediate cast is unnecessary (`u128` -> `u128` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1017:5
+   |
+LL |     1_u128 as u128 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as i128`
+
+error: intermediate cast is unnecessary (`u128` -> `u128` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1018:5
+   |
+LL |     1_u128 as u128 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u8`
+
+error: intermediate cast is unnecessary (`u128` -> `u128` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1019:5
+   |
+LL |     1_u128 as u128 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u16`
+
+error: intermediate cast is unnecessary (`u128` -> `u128` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1020:5
+   |
+LL |     1_u128 as u128 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u32`
+
+error: intermediate cast is unnecessary (`u128` -> `u128` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1021:5
+   |
+LL |     1_u128 as u128 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as u64`
+
+error: intermediate cast is unnecessary (`f32` -> `f32` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1027:5
+   |
+LL |     1.0_f32 as f32 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as f64`
+
+error: intermediate cast is unnecessary (`f32` -> `f64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1028:5
+   |
+LL |     1.0_f32 as f64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as f32`
+
+error: intermediate cast is unnecessary (`f64` -> `f64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1032:5
+   |
+LL |     1.0_f64 as f64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f64 as f32`
+
+error: intermediate cast is unnecessary (`f32` -> `f32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1037:5
+   |
+LL |     1.0_f32 as f32 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as i8`
+
+error: intermediate cast is unnecessary (`f32` -> `f32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1038:5
+   |
+LL |     1.0_f32 as f32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as i16`
+
+error: intermediate cast is unnecessary (`f32` -> `f32` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1039:5
+   |
+LL |     1.0_f32 as f32 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as i32`
+
+error: intermediate cast is unnecessary (`f32` -> `f32` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1040:5
+   |
+LL |     1.0_f32 as f32 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as i64`
+
+error: intermediate cast is unnecessary (`f32` -> `f32` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1041:5
+   |
+LL |     1.0_f32 as f32 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as i128`
+
+error: intermediate cast is unnecessary (`f32` -> `f32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1042:5
+   |
+LL |     1.0_f32 as f32 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as u8`
+
+error: intermediate cast is unnecessary (`f32` -> `f32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1043:5
+   |
+LL |     1.0_f32 as f32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as u16`
+
+error: intermediate cast is unnecessary (`f32` -> `f32` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1044:5
+   |
+LL |     1.0_f32 as f32 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as u32`
+
+error: intermediate cast is unnecessary (`f32` -> `f32` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1045:5
+   |
+LL |     1.0_f32 as f32 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as u64`
+
+error: intermediate cast is unnecessary (`f32` -> `f32` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1046:5
+   |
+LL |     1.0_f32 as f32 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as u128`
+
+error: intermediate cast is unnecessary (`f32` -> `f64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1047:5
+   |
+LL |     1.0_f32 as f64 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as i8`
+
+error: intermediate cast is unnecessary (`f32` -> `f64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1048:5
+   |
+LL |     1.0_f32 as f64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as i16`
+
+error: intermediate cast is unnecessary (`f32` -> `f64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1049:5
+   |
+LL |     1.0_f32 as f64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as i32`
+
+error: intermediate cast is unnecessary (`f32` -> `f64` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1050:5
+   |
+LL |     1.0_f32 as f64 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as i64`
+
+error: intermediate cast is unnecessary (`f32` -> `f64` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1051:5
+   |
+LL |     1.0_f32 as f64 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as i128`
+
+error: intermediate cast is unnecessary (`f32` -> `f64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1052:5
+   |
+LL |     1.0_f32 as f64 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as u8`
+
+error: intermediate cast is unnecessary (`f32` -> `f64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1053:5
+   |
+LL |     1.0_f32 as f64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as u16`
+
+error: intermediate cast is unnecessary (`f32` -> `f64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1054:5
+   |
+LL |     1.0_f32 as f64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as u32`
+
+error: intermediate cast is unnecessary (`f32` -> `f64` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1055:5
+   |
+LL |     1.0_f32 as f64 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as u64`
+
+error: intermediate cast is unnecessary (`f32` -> `f64` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1056:5
+   |
+LL |     1.0_f32 as f64 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f32 as u128`
+
+error: intermediate cast is unnecessary (`f64` -> `f32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1057:5
+   |
+LL |     1.0_f64 as f32 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f64 as i8`
+
+error: intermediate cast is unnecessary (`f64` -> `f32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1058:5
+   |
+LL |     1.0_f64 as f32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f64 as i16`
+
+error: intermediate cast is unnecessary (`f64` -> `f32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1062:5
+   |
+LL |     1.0_f64 as f32 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f64 as u8`
+
+error: intermediate cast is unnecessary (`f64` -> `f32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1063:5
+   |
+LL |     1.0_f64 as f32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f64 as u16`
+
+error: intermediate cast is unnecessary (`f64` -> `f64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1067:5
+   |
+LL |     1.0_f64 as f64 as i8;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f64 as i8`
+
+error: intermediate cast is unnecessary (`f64` -> `f64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1068:5
+   |
+LL |     1.0_f64 as f64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f64 as i16`
+
+error: intermediate cast is unnecessary (`f64` -> `f64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1069:5
+   |
+LL |     1.0_f64 as f64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f64 as i32`
+
+error: intermediate cast is unnecessary (`f64` -> `f64` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1070:5
+   |
+LL |     1.0_f64 as f64 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f64 as i64`
+
+error: intermediate cast is unnecessary (`f64` -> `f64` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1071:5
+   |
+LL |     1.0_f64 as f64 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f64 as i128`
+
+error: intermediate cast is unnecessary (`f64` -> `f64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1072:5
+   |
+LL |     1.0_f64 as f64 as u8;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f64 as u8`
+
+error: intermediate cast is unnecessary (`f64` -> `f64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1073:5
+   |
+LL |     1.0_f64 as f64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f64 as u16`
+
+error: intermediate cast is unnecessary (`f64` -> `f64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1074:5
+   |
+LL |     1.0_f64 as f64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f64 as u32`
+
+error: intermediate cast is unnecessary (`f64` -> `f64` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1075:5
+   |
+LL |     1.0_f64 as f64 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f64 as u64`
+
+error: intermediate cast is unnecessary (`f64` -> `f64` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1076:5
+   |
+LL |     1.0_f64 as f64 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^^^ help: try: `1.0_f64 as u128`
+
+error: intermediate cast is unnecessary (`i128` -> `f64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1082:5
+   |
+LL |     1_i128 as f64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as f32`
+
+error: intermediate cast is unnecessary (`i16` -> `f32` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1085:5
+   |
+LL |     1_i16 as f32 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as f64`
+
+error: intermediate cast is unnecessary (`i16` -> `f64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1086:5
+   |
+LL |     1_i16 as f64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as f32`
+
+error: intermediate cast is unnecessary (`i32` -> `f64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1090:5
+   |
+LL |     1_i32 as f64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as f32`
+
+error: intermediate cast is unnecessary (`i64` -> `f64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1094:5
+   |
+LL |     1_i64 as f64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as f32`
+
+error: intermediate cast is unnecessary (`i8` -> `f32` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1097:5
+   |
+LL |     1_i8 as f32 as f64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as f64`
+
+error: intermediate cast is unnecessary (`i8` -> `f64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1098:5
+   |
+LL |     1_i8 as f64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as f32`
+
+error: intermediate cast is unnecessary (`u8` -> `f32` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1101:5
+   |
+LL |     1_u8 as f32 as f64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as f64`
+
+error: intermediate cast is unnecessary (`u8` -> `f64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1102:5
+   |
+LL |     1_u8 as f64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as f32`
+
+error: intermediate cast is unnecessary (`u16` -> `f32` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1105:5
+   |
+LL |     1_u16 as f32 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as f64`
+
+error: intermediate cast is unnecessary (`u16` -> `f64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1106:5
+   |
+LL |     1_u16 as f64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as f32`
+
+error: intermediate cast is unnecessary (`u32` -> `f64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1110:5
+   |
+LL |     1_u32 as f64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as f32`
+
+error: intermediate cast is unnecessary (`u64` -> `f64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1114:5
+   |
+LL |     1_u64 as f64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as f32`
+
+error: intermediate cast is unnecessary (`u128` -> `f64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1118:5
+   |
+LL |     1_u128 as f64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as f32`
+
+error: intermediate cast is unnecessary (`i8` -> `i8` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1123:5
+   |
+LL |     1_i8 as i8 as f32;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as f32`
+
+error: intermediate cast is unnecessary (`i8` -> `i8` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1124:5
+   |
+LL |     1_i8 as i8 as f64;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as f64`
+
+error: intermediate cast is unnecessary (`i8` -> `i16` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1125:5
+   |
+LL |     1_i8 as i16 as f32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as f32`
+
+error: intermediate cast is unnecessary (`i8` -> `i16` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1126:5
+   |
+LL |     1_i8 as i16 as f64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as f64`
+
+error: intermediate cast is unnecessary (`i8` -> `i32` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1127:5
+   |
+LL |     1_i8 as i32 as f32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as f32`
+
+error: intermediate cast is unnecessary (`i8` -> `i32` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1128:5
+   |
+LL |     1_i8 as i32 as f64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as f64`
+
+error: intermediate cast is unnecessary (`i8` -> `i64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1129:5
+   |
+LL |     1_i8 as i64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as f32`
+
+error: intermediate cast is unnecessary (`i8` -> `i64` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1130:5
+   |
+LL |     1_i8 as i64 as f64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as f64`
+
+error: intermediate cast is unnecessary (`i8` -> `i128` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1131:5
+   |
+LL |     1_i8 as i128 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as f32`
+
+error: intermediate cast is unnecessary (`i8` -> `i128` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1132:5
+   |
+LL |     1_i8 as i128 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as f64`
+
+error: intermediate cast is unnecessary (`i16` -> `i16` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1145:5
+   |
+LL |     1_i16 as i16 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as f32`
+
+error: intermediate cast is unnecessary (`i16` -> `i16` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1146:5
+   |
+LL |     1_i16 as i16 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as f64`
+
+error: intermediate cast is unnecessary (`i16` -> `i32` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1147:5
+   |
+LL |     1_i16 as i32 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as f32`
+
+error: intermediate cast is unnecessary (`i16` -> `i32` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1148:5
+   |
+LL |     1_i16 as i32 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as f64`
+
+error: intermediate cast is unnecessary (`i16` -> `i64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1149:5
+   |
+LL |     1_i16 as i64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as f32`
+
+error: intermediate cast is unnecessary (`i16` -> `i64` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1150:5
+   |
+LL |     1_i16 as i64 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as f64`
+
+error: intermediate cast is unnecessary (`i16` -> `i128` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1151:5
+   |
+LL |     1_i16 as i128 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as f32`
+
+error: intermediate cast is unnecessary (`i16` -> `i128` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1152:5
+   |
+LL |     1_i16 as i128 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as f64`
+
+error: intermediate cast is unnecessary (`i32` -> `i32` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1167:5
+   |
+LL |     1_i32 as i32 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as f32`
+
+error: intermediate cast is unnecessary (`i32` -> `i32` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1168:5
+   |
+LL |     1_i32 as i32 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as f64`
+
+error: intermediate cast is unnecessary (`i32` -> `i64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1169:5
+   |
+LL |     1_i32 as i64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as f32`
+
+error: intermediate cast is unnecessary (`i32` -> `i64` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1170:5
+   |
+LL |     1_i32 as i64 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as f64`
+
+error: intermediate cast is unnecessary (`i32` -> `i128` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1171:5
+   |
+LL |     1_i32 as i128 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as f32`
+
+error: intermediate cast is unnecessary (`i32` -> `i128` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1172:5
+   |
+LL |     1_i32 as i128 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as f64`
+
+error: intermediate cast is unnecessary (`i64` -> `i64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1189:5
+   |
+LL |     1_i64 as i64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as f32`
+
+error: intermediate cast is unnecessary (`i64` -> `i64` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1190:5
+   |
+LL |     1_i64 as i64 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as f64`
+
+error: intermediate cast is unnecessary (`i64` -> `i128` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1191:5
+   |
+LL |     1_i64 as i128 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as f32`
+
+error: intermediate cast is unnecessary (`i64` -> `i128` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1192:5
+   |
+LL |     1_i64 as i128 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i64 as f64`
+
+error: intermediate cast is unnecessary (`i128` -> `i128` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1211:5
+   |
+LL |     1_i128 as i128 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as f32`
+
+error: intermediate cast is unnecessary (`i128` -> `i128` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1212:5
+   |
+LL |     1_i128 as i128 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_i128 as f64`
+
+error: intermediate cast is unnecessary (`u8` -> `i16` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1225:5
+   |
+LL |     1_u8 as i16 as f32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as f32`
+
+error: intermediate cast is unnecessary (`u8` -> `i16` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1226:5
+   |
+LL |     1_u8 as i16 as f64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as f64`
+
+error: intermediate cast is unnecessary (`u8` -> `i32` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1227:5
+   |
+LL |     1_u8 as i32 as f32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as f32`
+
+error: intermediate cast is unnecessary (`u8` -> `i32` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1228:5
+   |
+LL |     1_u8 as i32 as f64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as f64`
+
+error: intermediate cast is unnecessary (`u8` -> `i64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1229:5
+   |
+LL |     1_u8 as i64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as f32`
+
+error: intermediate cast is unnecessary (`u8` -> `i64` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1230:5
+   |
+LL |     1_u8 as i64 as f64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as f64`
+
+error: intermediate cast is unnecessary (`u8` -> `i128` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1231:5
+   |
+LL |     1_u8 as i128 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as f32`
+
+error: intermediate cast is unnecessary (`u8` -> `i128` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1232:5
+   |
+LL |     1_u8 as i128 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as f64`
+
+error: intermediate cast is unnecessary (`u8` -> `u8` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1233:5
+   |
+LL |     1_u8 as u8 as f32;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as f32`
+
+error: intermediate cast is unnecessary (`u8` -> `u8` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1234:5
+   |
+LL |     1_u8 as u8 as f64;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as f64`
+
+error: intermediate cast is unnecessary (`u8` -> `u16` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1235:5
+   |
+LL |     1_u8 as u16 as f32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as f32`
+
+error: intermediate cast is unnecessary (`u8` -> `u16` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1236:5
+   |
+LL |     1_u8 as u16 as f64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as f64`
+
+error: intermediate cast is unnecessary (`u8` -> `u32` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1237:5
+   |
+LL |     1_u8 as u32 as f32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as f32`
+
+error: intermediate cast is unnecessary (`u8` -> `u32` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1238:5
+   |
+LL |     1_u8 as u32 as f64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as f64`
+
+error: intermediate cast is unnecessary (`u8` -> `u64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1239:5
+   |
+LL |     1_u8 as u64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as f32`
+
+error: intermediate cast is unnecessary (`u8` -> `u64` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1240:5
+   |
+LL |     1_u8 as u64 as f64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as f64`
+
+error: intermediate cast is unnecessary (`u8` -> `u128` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1241:5
+   |
+LL |     1_u8 as u128 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as f32`
+
+error: intermediate cast is unnecessary (`u8` -> `u128` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1242:5
+   |
+LL |     1_u8 as u128 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as f64`
+
+error: intermediate cast is unnecessary (`u16` -> `i32` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1247:5
+   |
+LL |     1_u16 as i32 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as f32`
+
+error: intermediate cast is unnecessary (`u16` -> `i32` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1248:5
+   |
+LL |     1_u16 as i32 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as f64`
+
+error: intermediate cast is unnecessary (`u16` -> `i64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1249:5
+   |
+LL |     1_u16 as i64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as f32`
+
+error: intermediate cast is unnecessary (`u16` -> `i64` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1250:5
+   |
+LL |     1_u16 as i64 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as f64`
+
+error: intermediate cast is unnecessary (`u16` -> `i128` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1251:5
+   |
+LL |     1_u16 as i128 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as f32`
+
+error: intermediate cast is unnecessary (`u16` -> `i128` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1252:5
+   |
+LL |     1_u16 as i128 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as f64`
+
+error: intermediate cast is unnecessary (`u16` -> `u16` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1255:5
+   |
+LL |     1_u16 as u16 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as f32`
+
+error: intermediate cast is unnecessary (`u16` -> `u16` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1256:5
+   |
+LL |     1_u16 as u16 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as f64`
+
+error: intermediate cast is unnecessary (`u16` -> `u32` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1257:5
+   |
+LL |     1_u16 as u32 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as f32`
+
+error: intermediate cast is unnecessary (`u16` -> `u32` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1258:5
+   |
+LL |     1_u16 as u32 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as f64`
+
+error: intermediate cast is unnecessary (`u16` -> `u64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1259:5
+   |
+LL |     1_u16 as u64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as f32`
+
+error: intermediate cast is unnecessary (`u16` -> `u64` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1260:5
+   |
+LL |     1_u16 as u64 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as f64`
+
+error: intermediate cast is unnecessary (`u16` -> `u128` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1261:5
+   |
+LL |     1_u16 as u128 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as f32`
+
+error: intermediate cast is unnecessary (`u16` -> `u128` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1262:5
+   |
+LL |     1_u16 as u128 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as f64`
+
+error: intermediate cast is unnecessary (`u32` -> `i64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1269:5
+   |
+LL |     1_u32 as i64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as f32`
+
+error: intermediate cast is unnecessary (`u32` -> `i64` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1270:5
+   |
+LL |     1_u32 as i64 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as f64`
+
+error: intermediate cast is unnecessary (`u32` -> `i128` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1271:5
+   |
+LL |     1_u32 as i128 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as f32`
+
+error: intermediate cast is unnecessary (`u32` -> `i128` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1272:5
+   |
+LL |     1_u32 as i128 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as f64`
+
+error: intermediate cast is unnecessary (`u32` -> `u32` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1277:5
+   |
+LL |     1_u32 as u32 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as f32`
+
+error: intermediate cast is unnecessary (`u32` -> `u32` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1278:5
+   |
+LL |     1_u32 as u32 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as f64`
+
+error: intermediate cast is unnecessary (`u32` -> `u64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1279:5
+   |
+LL |     1_u32 as u64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as f32`
+
+error: intermediate cast is unnecessary (`u32` -> `u64` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1280:5
+   |
+LL |     1_u32 as u64 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as f64`
+
+error: intermediate cast is unnecessary (`u32` -> `u128` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1281:5
+   |
+LL |     1_u32 as u128 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as f32`
+
+error: intermediate cast is unnecessary (`u32` -> `u128` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1282:5
+   |
+LL |     1_u32 as u128 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as f64`
+
+error: intermediate cast is unnecessary (`u64` -> `i128` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1291:5
+   |
+LL |     1_u64 as i128 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as f32`
+
+error: intermediate cast is unnecessary (`u64` -> `i128` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1292:5
+   |
+LL |     1_u64 as i128 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as f64`
+
+error: intermediate cast is unnecessary (`u64` -> `u64` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1299:5
+   |
+LL |     1_u64 as u64 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as f32`
+
+error: intermediate cast is unnecessary (`u64` -> `u64` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1300:5
+   |
+LL |     1_u64 as u64 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as f64`
+
+error: intermediate cast is unnecessary (`u64` -> `u128` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1301:5
+   |
+LL |     1_u64 as u128 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as f32`
+
+error: intermediate cast is unnecessary (`u64` -> `u128` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1302:5
+   |
+LL |     1_u64 as u128 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u64 as f64`
+
+error: intermediate cast is unnecessary (`u128` -> `u128` -> `f32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1321:5
+   |
+LL |     1_u128 as u128 as f32;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as f32`
+
+error: intermediate cast is unnecessary (`u128` -> `u128` -> `f64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1322:5
+   |
+LL |     1_u128 as u128 as f64;
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `1_u128 as f64`
+
+error: intermediate cast is unnecessary (`i8` -> `f32` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1326:5
+   |
+LL |     1_i8 as f32 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i8`
+
+error: intermediate cast is unnecessary (`i8` -> `f32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1327:5
+   |
+LL |     1_i8 as f32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i16`
+
+error: intermediate cast is unnecessary (`i8` -> `f32` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1328:5
+   |
+LL |     1_i8 as f32 as i32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i32`
+
+error: intermediate cast is unnecessary (`i8` -> `f32` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1329:5
+   |
+LL |     1_i8 as f32 as i64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i64`
+
+error: intermediate cast is unnecessary (`i8` -> `f32` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1330:5
+   |
+LL |     1_i8 as f32 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i128`
+
+error: intermediate cast is unnecessary (`i8` -> `f64` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1336:5
+   |
+LL |     1_i8 as f64 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i8`
+
+error: intermediate cast is unnecessary (`i8` -> `f64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1337:5
+   |
+LL |     1_i8 as f64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i16`
+
+error: intermediate cast is unnecessary (`i8` -> `f64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1338:5
+   |
+LL |     1_i8 as f64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i32`
+
+error: intermediate cast is unnecessary (`i8` -> `f64` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1339:5
+   |
+LL |     1_i8 as f64 as i64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i64`
+
+error: intermediate cast is unnecessary (`i8` -> `f64` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1340:5
+   |
+LL |     1_i8 as f64 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i8 as i128`
+
+error: intermediate cast is unnecessary (`i16` -> `f32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1347:5
+   |
+LL |     1_i16 as f32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i16`
+
+error: intermediate cast is unnecessary (`i16` -> `f32` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1348:5
+   |
+LL |     1_i16 as f32 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i32`
+
+error: intermediate cast is unnecessary (`i16` -> `f32` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1349:5
+   |
+LL |     1_i16 as f32 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i64`
+
+error: intermediate cast is unnecessary (`i16` -> `f32` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1350:5
+   |
+LL |     1_i16 as f32 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i128`
+
+error: intermediate cast is unnecessary (`i16` -> `f64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1357:5
+   |
+LL |     1_i16 as f64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i16`
+
+error: intermediate cast is unnecessary (`i16` -> `f64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1358:5
+   |
+LL |     1_i16 as f64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i32`
+
+error: intermediate cast is unnecessary (`i16` -> `f64` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1359:5
+   |
+LL |     1_i16 as f64 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i64`
+
+error: intermediate cast is unnecessary (`i16` -> `f64` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1360:5
+   |
+LL |     1_i16 as f64 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i16 as i128`
+
+error: intermediate cast is unnecessary (`i32` -> `f64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1378:5
+   |
+LL |     1_i32 as f64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i32`
+
+error: intermediate cast is unnecessary (`i32` -> `f64` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1379:5
+   |
+LL |     1_i32 as f64 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i64`
+
+error: intermediate cast is unnecessary (`i32` -> `f64` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1380:5
+   |
+LL |     1_i32 as f64 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_i32 as i128`
+
+error: intermediate cast is unnecessary (`u8` -> `f32` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1427:5
+   |
+LL |     1_u8 as f32 as i16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i16`
+
+error: intermediate cast is unnecessary (`u8` -> `f32` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1428:5
+   |
+LL |     1_u8 as f32 as i32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i32`
+
+error: intermediate cast is unnecessary (`u8` -> `f32` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1429:5
+   |
+LL |     1_u8 as f32 as i64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i64`
+
+error: intermediate cast is unnecessary (`u8` -> `f32` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1430:5
+   |
+LL |     1_u8 as f32 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i128`
+
+error: intermediate cast is unnecessary (`u8` -> `f32` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1431:5
+   |
+LL |     1_u8 as f32 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u8`
+
+error: intermediate cast is unnecessary (`u8` -> `f32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1432:5
+   |
+LL |     1_u8 as f32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u16`
+
+error: intermediate cast is unnecessary (`u8` -> `f32` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1433:5
+   |
+LL |     1_u8 as f32 as u32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u32`
+
+error: intermediate cast is unnecessary (`u8` -> `f32` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1434:5
+   |
+LL |     1_u8 as f32 as u64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u64`
+
+error: intermediate cast is unnecessary (`u8` -> `f32` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1435:5
+   |
+LL |     1_u8 as f32 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u128`
+
+error: intermediate cast is unnecessary (`u8` -> `f64` -> `i16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1437:5
+   |
+LL |     1_u8 as f64 as i16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i16`
+
+error: intermediate cast is unnecessary (`u8` -> `f64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1438:5
+   |
+LL |     1_u8 as f64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i32`
+
+error: intermediate cast is unnecessary (`u8` -> `f64` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1439:5
+   |
+LL |     1_u8 as f64 as i64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i64`
+
+error: intermediate cast is unnecessary (`u8` -> `f64` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1440:5
+   |
+LL |     1_u8 as f64 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as i128`
+
+error: intermediate cast is unnecessary (`u8` -> `f64` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1441:5
+   |
+LL |     1_u8 as f64 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u8`
+
+error: intermediate cast is unnecessary (`u8` -> `f64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1442:5
+   |
+LL |     1_u8 as f64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u16`
+
+error: intermediate cast is unnecessary (`u8` -> `f64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1443:5
+   |
+LL |     1_u8 as f64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u32`
+
+error: intermediate cast is unnecessary (`u8` -> `f64` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1444:5
+   |
+LL |     1_u8 as f64 as u64;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u64`
+
+error: intermediate cast is unnecessary (`u8` -> `f64` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1445:5
+   |
+LL |     1_u8 as f64 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u8 as u128`
+
+error: intermediate cast is unnecessary (`u16` -> `f32` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1448:5
+   |
+LL |     1_u16 as f32 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i32`
+
+error: intermediate cast is unnecessary (`u16` -> `f32` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1449:5
+   |
+LL |     1_u16 as f32 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i64`
+
+error: intermediate cast is unnecessary (`u16` -> `f32` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1450:5
+   |
+LL |     1_u16 as f32 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i128`
+
+error: intermediate cast is unnecessary (`u16` -> `f32` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1452:5
+   |
+LL |     1_u16 as f32 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u16`
+
+error: intermediate cast is unnecessary (`u16` -> `f32` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1453:5
+   |
+LL |     1_u16 as f32 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u32`
+
+error: intermediate cast is unnecessary (`u16` -> `f32` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1454:5
+   |
+LL |     1_u16 as f32 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u64`
+
+error: intermediate cast is unnecessary (`u16` -> `f32` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1455:5
+   |
+LL |     1_u16 as f32 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u128`
+
+error: intermediate cast is unnecessary (`u16` -> `f64` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1458:5
+   |
+LL |     1_u16 as f64 as i32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i32`
+
+error: intermediate cast is unnecessary (`u16` -> `f64` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1459:5
+   |
+LL |     1_u16 as f64 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i64`
+
+error: intermediate cast is unnecessary (`u16` -> `f64` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1460:5
+   |
+LL |     1_u16 as f64 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as i128`
+
+error: intermediate cast is unnecessary (`u16` -> `f64` -> `u16`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1462:5
+   |
+LL |     1_u16 as f64 as u16;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u16`
+
+error: intermediate cast is unnecessary (`u16` -> `f64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1463:5
+   |
+LL |     1_u16 as f64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u32`
+
+error: intermediate cast is unnecessary (`u16` -> `f64` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1464:5
+   |
+LL |     1_u16 as f64 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u64`
+
+error: intermediate cast is unnecessary (`u16` -> `f64` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1465:5
+   |
+LL |     1_u16 as f64 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u16 as u128`
+
+error: intermediate cast is unnecessary (`u32` -> `f64` -> `i64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1479:5
+   |
+LL |     1_u32 as f64 as i64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i64`
+
+error: intermediate cast is unnecessary (`u32` -> `f64` -> `i128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1480:5
+   |
+LL |     1_u32 as f64 as i128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as i128`
+
+error: intermediate cast is unnecessary (`u32` -> `f64` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1483:5
+   |
+LL |     1_u32 as f64 as u32;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u32`
+
+error: intermediate cast is unnecessary (`u32` -> `f64` -> `u64`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1484:5
+   |
+LL |     1_u32 as f64 as u64;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u64`
+
+error: intermediate cast is unnecessary (`u32` -> `f64` -> `u128`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1485:5
+   |
+LL |     1_u32 as f64 as u128;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `1_u32 as u128`
+
+error: intermediate cast is unnecessary (`bool` -> `u16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1770:5
+   |
+LL |     true as u16 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `true as u8`
+
+error: intermediate cast is unnecessary (`bool` -> `u16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1771:5
+   |
+LL |     true as u16 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `true as i8`
+
+error: intermediate cast is unnecessary (`bool` -> `i16` -> `u8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1772:5
+   |
+LL |     true as i16 as u8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `true as u8`
+
+error: intermediate cast is unnecessary (`bool` -> `i16` -> `i8`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1773:5
+   |
+LL |     true as i16 as i8;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `true as i8`
+
+error: intermediate cast is unnecessary (`bool` -> `u16` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1775:5
+   |
+LL |     true as u16 as u32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `true as u32`
+
+error: intermediate cast is unnecessary (`bool` -> `u16` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1776:5
+   |
+LL |     true as u16 as i32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `true as i32`
+
+error: intermediate cast is unnecessary (`bool` -> `i16` -> `u32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1777:5
+   |
+LL |     true as i16 as u32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `true as u32`
+
+error: intermediate cast is unnecessary (`bool` -> `i16` -> `i32`)
+  --> tests/ui/unnecessary_intermediate_cast.rs:1778:5
+   |
+LL |     true as i16 as i32;
+   |     ^^^^^^^^^^^^^^^^^^ help: try: `true as i32`
+
+error: aborting due to 797 previous errors
+
