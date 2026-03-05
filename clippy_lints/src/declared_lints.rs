@@ -171,6 +171,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::format::USELESS_FORMAT_INFO,
     crate::format_args::FORMAT_IN_FORMAT_ARGS_INFO,
     crate::format_args::POINTER_FORMAT_INFO,
+    crate::format_args::REDUNDANT_REF_IN_FORMAT_ARGS_INFO,
     crate::format_args::TO_STRING_IN_FORMAT_ARGS_INFO,
     crate::format_args::UNINLINED_FORMAT_ARGS_INFO,
     crate::format_args::UNNECESSARY_DEBUG_FORMATTING_INFO,

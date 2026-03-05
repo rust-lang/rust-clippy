@@ -176,11 +176,7 @@ fn build_suggestion(
     // suggestion message, we want to make a suggestion string before `div_ceil` like
     // `(-2048_{type_suffix})`.
     let suggestion_before_div_ceil = if has_enclosing_paren(&dividend_sugg_str) {
-        format!(
-            "{}{})",
-            &dividend_sugg_str[..dividend_sugg_str.len() - 1].to_string(),
-            type_suffix
-        )
+        format!("{}{type_suffix})", &dividend_sugg_str[..dividend_sugg_str.len() - 1])
     } else {
         format!("{dividend_sugg_str}{type_suffix}")
     };
