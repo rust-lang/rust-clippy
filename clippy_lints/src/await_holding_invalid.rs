@@ -2,6 +2,7 @@ use clippy_config::Conf;
 use clippy_config::types::{DisallowedPathWithoutReplacement, create_disallowed_map};
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::paths::{self, PathNS};
+use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_hir::def_id::{DefId, DefIdMap};
 use rustc_lint::{LateContext, LateLintPass};
@@ -271,7 +272,7 @@ fn emit_invalid_type(
         AWAIT_HOLDING_INVALID_TYPE,
         span,
         format!("holding a disallowed type across an await point `{path}`"),
-        disallowed_path.diag_amendment(span),
+        disallowed_path.diag_amendment(span, Applicability::MachineApplicable),
     );
 }
 
