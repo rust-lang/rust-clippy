@@ -43,7 +43,7 @@ declare_clippy_lint! {
 impl_lint_pass!(MutMut => [MUT_MUT]);
 
 #[derive(Default)]
-pub(crate) struct MutMut {
+pub struct MutMut {
     seen_tys: FxHashSet<HirId>,
 }
 

@@ -7,7 +7,7 @@ use rustc_span::{Span, Symbol};
 use std::fmt;
 
 use super::WRONG_SELF_CONVENTION;
-use super::lib::SelfKind;
+use super::utils::SelfKind;
 
 #[rustfmt::skip]
 const CONVENTIONS: [(&[Convention], &[SelfKind]); 9] = [

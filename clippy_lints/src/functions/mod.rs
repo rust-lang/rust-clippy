@@ -1,13 +1,13 @@
-mod duplicate_underscore_argument;
-mod impl_trait_in_params;
-mod misnamed_getters;
-mod must_use;
-mod not_unsafe_ptr_arg_deref;
-mod ref_option;
-mod renamed_function_params;
-mod result;
-mod too_many_arguments;
-mod too_many_lines;
+pub mod duplicate_underscore_argument;
+pub mod impl_trait_in_params;
+pub mod misnamed_getters;
+pub mod must_use;
+pub mod not_unsafe_ptr_arg_deref;
+pub mod ref_option;
+pub mod renamed_function_params;
+pub mod result;
+pub mod too_many_arguments;
+pub mod too_many_lines;
 
 use clippy_config::Conf;
 use clippy_utils::msrvs::Msrv;
@@ -105,7 +105,6 @@ declare_clippy_lint! {
     /// It is most likely that such a method is a bug caused by a typo or by copy-pasting.
     ///
     /// ### Example
-
     /// ```no_run
     /// struct A {
     ///     a: String,
@@ -117,7 +116,6 @@ declare_clippy_lint! {
     ///         &self.b
     ///     }
     /// }
-
     /// ```
     /// Use instead:
     /// ```no_run

@@ -120,7 +120,7 @@ impl_lint_pass!(NonCanonicalImpls => [
     reason = "`_trait` suffix is meaningful on its own, \
               and creating an inner `StoredTraits` struct would just add a level of indirection"
 )]
-pub(crate) struct NonCanonicalImpls {
+pub struct NonCanonicalImpls {
     partial_ord_trait: Option<DefId>,
     ord_trait: Option<DefId>,
     clone_trait: Option<DefId>,
@@ -128,7 +128,7 @@ pub(crate) struct NonCanonicalImpls {
 }
 
 impl NonCanonicalImpls {
-    pub(crate) fn new(tcx: TyCtxt<'_>) -> Self {
+    pub fn new(tcx: TyCtxt<'_>) -> Self {
         let lang_items = tcx.lang_items();
         Self {
             partial_ord_trait: lang_items.partial_ord_trait(),

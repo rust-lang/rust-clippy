@@ -1,8 +1,8 @@
-mod common_metadata;
-mod feature_name;
-mod lint_groups_priority;
-mod multiple_crate_versions;
-mod wildcard_dependencies;
+pub mod common_metadata;
+pub mod feature_name;
+pub mod lint_groups_priority;
+pub mod multiple_crate_versions;
+pub mod wildcard_dependencies;
 
 use cargo_metadata::MetadataCommand;
 use clippy_config::Conf;

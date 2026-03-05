@@ -1,5 +1,5 @@
-#![allow(unused)]
 #![warn(clippy::needless_bool_assign)]
+#![allow(unused, clippy::if_same_then_else)]
 
 fn random() -> bool {
     true
@@ -36,8 +36,7 @@ fn main() {
     } else {
         a.field = true;
     }
-    //~^^^^^ if_same_then_else
-    //~| needless_bool_assign
+    //~^^^^^ needless_bool_assign
     let mut b = false;
     if random() {
         a.field = false;

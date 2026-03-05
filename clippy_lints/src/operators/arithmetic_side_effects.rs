@@ -1,9 +1,8 @@
 use super::ARITHMETIC_SIDE_EFFECTS;
-use crate::clippy_utils::res::MaybeQPath as _;
 use clippy_config::Conf;
 use clippy_utils::consts::{ConstEvalCtxt, Constant};
 use clippy_utils::diagnostics::span_lint;
-use clippy_utils::res::MaybeDef;
+use clippy_utils::res::{MaybeDef, MaybeQPath};
 use clippy_utils::{expr_or_init, is_from_proc_macro, is_lint_allowed, peel_hir_expr_refs, peel_hir_expr_unary, sym};
 use rustc_data_structures::fx::{FxHashMap, FxHashSet};
 use rustc_lint::{LateContext, LateLintPass};
