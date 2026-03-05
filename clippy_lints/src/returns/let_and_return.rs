@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::res::MaybeResPath;
-use clippy_utils::source::SpanRangeExt;
+use clippy_utils::source::SpanExt;
 use clippy_utils::sugg::has_enclosing_paren;
 use clippy_utils::visitors::for_each_expr;
 use clippy_utils::{binary_expr_needs_parentheses, fn_def_id, span_contains_non_whitespace};
@@ -38,7 +38,7 @@ pub(super) fn check_block<'tcx>(cx: &LateContext<'tcx>, block: &'tcx Block<'_>) 
             |err| {
                 err.span_label(local.span, "unnecessary `let` binding");
 
-                if let Some(src) = initexpr.span.get_source_text(cx) {
+                if let Some(src) = initexpr.span.get_text(cx) {
                     let sugg = if binary_expr_needs_parentheses(initexpr) {
                         if has_enclosing_paren(&src) {
                             src.to_owned()

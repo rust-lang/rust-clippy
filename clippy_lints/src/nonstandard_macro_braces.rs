@@ -1,12 +1,12 @@
 use clippy_config::Conf;
 use clippy_config::types::MacroMatcher;
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::{SourceText, SpanRangeExt};
+use clippy_utils::source::{SourceText, SpanExt};
 use rustc_ast::ast;
 use rustc_data_structures::fx::{FxHashMap, FxHashSet};
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
-use rustc_lint::{EarlyContext, EarlyLintPass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
 use rustc_session::impl_lint_pass;
 use rustc_span::Span;
 use rustc_span::hygiene::{ExpnKind, MacroKind};
@@ -126,17 +126,19 @@ fn is_offending_macro(cx: &EarlyContext<'_>, span: Span, mac_braces: &MacroBrace
     let mut ctxt = span.ctxt();
     while !ctxt.is_root() {
         let expn_data = ctxt.outer_expn_data();
+        let call_site_ctxt = expn_data.call_site.ctxt();
         if let ExpnKind::Macro(MacroKind::Bang, mac_name) = expn_data.kind
-        && let name = mac_name.as_str()
-        && let Some(&braces) = mac_braces.macro_braces.get(name)
-        && let Some(snip) = expn_data.call_site.get_source_text(cx)
-        // we must check only invocation sites
-        // https://github.com/rust-lang/rust-clippy/issues/7422
-        && let Some(macro_args_str) = snip.strip_prefix(name).and_then(|snip| snip.strip_prefix('!'))
-        && let Some(old_open_brace @ ('{' | '(' | '[')) = macro_args_str.trim_start().chars().next()
-        && old_open_brace != braces.0
-        && unnested_or_local(expn_data.call_site)
-        && !mac_braces.done.contains(&expn_data.call_site)
+            && let name = mac_name.as_str()
+            && let Some(&braces) = mac_braces.macro_braces.get(name)
+            && !call_site_ctxt.in_external_macro(cx.sess().source_map())
+            && let Some(snip) = expn_data.call_site.get_text(cx)
+            // we must check only invocation sites
+            // https://github.com/rust-lang/rust-clippy/issues/7422
+            && let Some(macro_args_str) = snip.strip_prefix(name).and_then(|snip| snip.strip_prefix('!'))
+            && let Some(old_open_brace @ ('{' | '(' | '[')) = macro_args_str.trim_start().chars().next()
+            && old_open_brace != braces.0
+            && unnested_or_local(expn_data.call_site)
+            && !mac_braces.done.contains(&expn_data.call_site)
         {
             return Some(MacroInfo {
                 callsite_span: expn_data.call_site,
@@ -146,7 +148,7 @@ fn is_offending_macro(cx: &EarlyContext<'_>, span: Span, mac_braces: &MacroBrace
             });
         }
 
-        ctxt = expn_data.call_site.ctxt();
+        ctxt = call_site_ctxt;
     }
 
     None

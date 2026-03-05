@@ -2,7 +2,7 @@ use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_from_proc_macro;
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::source::SpanRangeExt;
+use clippy_utils::source::SpanExt;
 use hir::def_id::DefId;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
@@ -120,8 +120,9 @@ impl<'tcx> LateLintPass<'tcx> for LegacyNumericConstants {
             && let QPath::TypeRelative(ty, last_segment) = qpath
             && let Some(def_id) = cx.qpath_res(qpath, func.hir_id).opt_def_id()
             && is_integer_method(cx, def_id)
-            && let Some(mod_name) = ty.span.get_source_text(cx)
             && ty.span.eq_ctxt(last_segment.ident.span)
+            && !ty.span.in_external_macro(cx.tcx.sess.source_map())
+            && let Some(mod_name) = ty.span.get_text(cx)
         {
             let name = last_segment.ident.name.as_str()[..=2].to_ascii_uppercase();
             (format!("{mod_name}::{name}"), "usage of a legacy numeric method")

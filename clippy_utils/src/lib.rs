@@ -1,10 +1,14 @@
-#![feature(box_patterns)]
-#![feature(if_let_guard)]
-#![feature(macro_metavar_expr)]
-#![feature(never_type)]
-#![feature(rustc_private)]
+#![feature(
+    box_patterns,
+    if_let_guard,
+    macro_metavar_expr,
+    maybe_uninit_array_assume_init,
+    never_type,
+    pattern,
+    rustc_private,
+    unwrap_infallible
+)]
 #![cfg_attr(bootstrap, feature(assert_matches))]
-#![feature(unwrap_infallible)]
 #![recursion_limit = "512"]
 #![allow(clippy::missing_errors_doc, clippy::missing_panics_doc, clippy::must_use_candidate)]
 #![warn(
@@ -117,8 +121,8 @@ use rustc_middle::ty::{
 use rustc_span::hygiene::{ExpnKind, MacroKind};
 use rustc_span::source_map::SourceMap;
 use rustc_span::symbol::{Ident, Symbol, kw};
-use rustc_span::{InnerSpan, Span};
-use source::{SpanRangeExt, walk_span_to_context};
+use rustc_span::{InnerSpan, Span, SyntaxContext};
+use source::{SpanExt, walk_span_to_context};
 use visitors::{Visitable, for_each_unconsumed_temporary};
 
 use crate::ast_utils::unordered_over;
@@ -126,6 +130,7 @@ use crate::consts::{ConstEvalCtxt, Constant};
 use crate::higher::Range;
 use crate::msrvs::Msrv;
 use crate::res::{MaybeDef, MaybeQPath, MaybeResPath};
+use crate::source::HasSourceMap;
 use crate::ty::{adt_and_variant_of_res, can_partially_move_ty, expr_sig, is_copy, is_recursively_primitive_type};
 use crate::visitors::for_each_expr_without_closures;
 
@@ -456,19 +461,23 @@ pub fn trait_ref_of_method<'tcx>(cx: &LateContext<'tcx>, owner: OwnerId) -> Opti
 /// this method will return a tuple, composed of a `Vec`
 /// containing the `Expr`s for `v[0], v[0].a, v[0].a.b, v[0].a.b[x]`
 /// and an `Expr` for root of them, `v`
-fn projection_stack<'a, 'hir>(mut e: &'a Expr<'hir>) -> (Vec<&'a Expr<'hir>>, &'a Expr<'hir>) {
+fn projection_stack<'a, 'hir>(
+    mut e: &'a Expr<'hir>,
+    ctxt: SyntaxContext,
+) -> Option<(Vec<&'a Expr<'hir>>, &'a Expr<'hir>)> {
     let mut result = vec![];
     let root = loop {
         match e.kind {
-            ExprKind::Index(ep, _, _) | ExprKind::Field(ep, _) => {
+            ExprKind::Index(ep, _, _) | ExprKind::Field(ep, _) if e.span.ctxt() == ctxt => {
                 result.push(e);
                 e = ep;
             },
+            ExprKind::Index(..) | ExprKind::Field(..) => return None,
             _ => break e,
         }
     };
     result.reverse();
-    (result, root)
+    Some((result, root))
 }
 
 /// Gets the mutability of the custom deref adjustment, if any.
@@ -486,10 +495,14 @@ pub fn expr_custom_deref_adjustment(cx: &LateContext<'_>, e: &Expr<'_>) -> Optio
 
 /// Checks if two expressions can be mutably borrowed simultaneously
 /// and they aren't dependent on borrowing same thing twice
-pub fn can_mut_borrow_both(cx: &LateContext<'_>, e1: &Expr<'_>, e2: &Expr<'_>) -> bool {
-    let (s1, r1) = projection_stack(e1);
-    let (s2, r2) = projection_stack(e2);
-    if !eq_expr_value(cx, r1, r2) {
+pub fn can_mut_borrow_both(cx: &LateContext<'_>, ctxt: SyntaxContext, e1: &Expr<'_>, e2: &Expr<'_>) -> bool {
+    let Some((s1, r1)) = projection_stack(e1, ctxt) else {
+        return false;
+    };
+    let Some((s2, r2)) = projection_stack(e2, ctxt) else {
+        return false;
+    };
+    if !eq_expr_value(cx, ctxt, r1, r2) {
         return true;
     }
     if expr_custom_deref_adjustment(cx, r1).is_some() || expr_custom_deref_adjustment(cx, r2).is_some() {
@@ -505,11 +518,6 @@ pub fn can_mut_borrow_both(cx: &LateContext<'_>, e1: &Expr<'_>, e2: &Expr<'_>) -
             (ExprKind::Field(_, i1), ExprKind::Field(_, i2)) => {
                 if i1 != i2 {
                     return true;
-                }
-            },
-            (ExprKind::Index(_, i1, _), ExprKind::Index(_, i2, _)) => {
-                if !eq_expr_value(cx, i1, i2) {
-                    return false;
                 }
             },
             _ => return false,
@@ -2763,8 +2771,8 @@ pub fn tokenize_with_text(s: &str) -> impl Iterator<Item = (TokenKind, &str, Inn
 
 /// Checks whether a given span has any comment token
 /// This checks for all types of comment: line "//", block "/**", doc "///" "//!"
-pub fn span_contains_comment(sm: &SourceMap, span: Span) -> bool {
-    let Ok(snippet) = sm.span_to_snippet(span) else {
+pub fn span_contains_comment<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> bool {
+    let Ok(snippet) = sm.source_map().span_to_snippet(span) else {
         return false;
     };
     return tokenize(&snippet, FrontmatterAllowed::No).any(|token| {
@@ -2779,8 +2787,8 @@ pub fn span_contains_comment(sm: &SourceMap, span: Span) -> bool {
 /// token, including comments unless `skip_comments` is set.
 /// This is useful to determine if there are any actual code tokens in the span that are omitted in
 /// the late pass, such as platform-specific code.
-pub fn span_contains_non_whitespace(cx: &impl source::HasSession, span: Span, skip_comments: bool) -> bool {
-    matches!(span.get_source_text(cx), Some(snippet) if tokenize_with_text(&snippet).any(|(token, _, _)|
+pub fn span_contains_non_whitespace<'sm>(cx: impl HasSourceMap<'sm>, span: Span, skip_comments: bool) -> bool {
+    matches!(span.get_text(cx), Some(snippet) if tokenize_with_text(&snippet).any(|(token, _, _)|
         match token {
             TokenKind::Whitespace => false,
             TokenKind::BlockComment { .. } | TokenKind::LineComment { .. } => !skip_comments,
@@ -2788,6 +2796,7 @@ pub fn span_contains_non_whitespace(cx: &impl source::HasSession, span: Span, sk
         }
     ))
 }
+
 /// Returns all the comments a given span contains
 ///
 /// Comments are returned wrapped with their relevant delimiters
