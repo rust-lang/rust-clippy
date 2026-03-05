@@ -2,7 +2,7 @@ use std::collections::hash_map::Entry;
 
 use arrayvec::ArrayVec;
 use clippy_config::Conf;
-use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg, span_lint_and_then};
+use clippy_utils::diagnostics::{span_lint, span_lint_and_help, span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::macros::{
     FormatArgsStorage, FormatParamUsage, MacroCall, find_format_arg_expr, format_arg_removal_span,
     format_placeholder_format_span, is_assert_macro, is_format_macro, is_panic, matching_root_macro_call,
@@ -14,9 +14,10 @@ use clippy_utils::source::{SpanRangeExt, snippet};
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{is_from_proc_macro, is_in_test, trait_ref_of_method};
 use itertools::Itertools;
+use rustc_ast::FormatTrait::{Binary, Debug, Display, LowerExp, LowerHex, Octal, Pointer, UpperExp, UpperHex};
 use rustc_ast::{
     FormatArgPosition, FormatArgPositionKind, FormatArgsPiece, FormatArgumentKind, FormatCount, FormatOptions,
-    FormatPlaceholder, FormatTrait,
+    FormatPlaceholder,
 };
 use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
@@ -175,6 +176,11 @@ declare_clippy_lint! {
     /// Detects [formatting parameters] that have no effect on the output of
     /// `format!()`, `println!()` or similar macros.
     ///
+    /// This includes:
+    /// - Format specifiers on `format_args!()` (width, precision have no effect)
+    /// - Format width too small for the format trait (e.g. `{:#02x}` outputs "0x1"
+    ///   so width 2 has no effect; minimum is 4 for alternate hex/octal/binary)
+    ///
     /// ### Why is this bad?
     /// Shorter format specifiers are easier to read, it may also indicate that
     /// an expected formatting operation such as adding padding isn't happening.
@@ -184,6 +190,9 @@ declare_clippy_lint! {
     /// println!("{:.}", 1.0);
     ///
     /// println!("not padded: {:5}", format_args!("..."));
+    ///
+    /// // width 2 has no effect for alternate hex (outputs "0x1")
+    /// format!("{:#02x}", 1_u8);
     /// ```
     /// Use instead:
     /// ```no_run
@@ -192,6 +201,8 @@ declare_clippy_lint! {
     /// println!("not padded: {}", format_args!("..."));
     /// // OR
     /// println!("padded: {:5}", format!("..."));
+    ///
+    /// format!("{:#04x}", 1_u8);  // width 4 for two-digit zero-padded hex
     /// ```
     ///
     /// [formatting parameters]: https://doc.rust-lang.org/std/fmt/index.html#formatting-parameters
@@ -364,8 +375,9 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                 && let Some(arg_expr) = find_format_arg_expr(self.expr, arg)
             {
                 self.check_unused_format_specifier(placeholder, arg_expr);
+                self.check_useless_format_width(placeholder);
 
-                if placeholder.format_trait == FormatTrait::Display
+                if placeholder.format_trait == Display
                     && placeholder.format_options == FormatOptions::default()
                     && !self.is_aliased(index)
                 {
@@ -374,7 +386,7 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                     self.check_to_string_in_format_args(name, arg_expr);
                 }
 
-                if placeholder.format_trait == FormatTrait::Debug {
+                if placeholder.format_trait == Debug {
                     let name = self.cx.tcx.item_name(self.macro_call.def_id);
                     self.check_unnecessary_debug_formatting(name, arg_expr);
                     if let Some(span) = placeholder.span
@@ -384,7 +396,7 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                     }
                 }
 
-                if placeholder.format_trait == FormatTrait::Pointer
+                if placeholder.format_trait == Pointer
                     && let Some(span) = placeholder.span
                 {
                     span_lint(self.cx, POINTER_FORMAT, span, "pointer formatting detected");
@@ -439,6 +451,30 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                         );
                     }
                 },
+            );
+        }
+    }
+
+    /// Lint when format width has no effect on the output because the format trait's
+    /// minimum output is larger (e.g. `{:#02X}` outputs "0x1" so width 2 has no effect).
+    fn check_useless_format_width(&self, placeholder: &FormatPlaceholder) {
+        let min_width = match placeholder.format_trait {
+            // 0x prefix, e.g. 0x1, 0o1, 0b1
+            LowerHex | UpperHex | Octal | Binary if placeholder.format_options.alternate => 4,
+            LowerExp | UpperExp | Pointer => 4, // e.g. 1e0 with exponent, 0x1 for pointer
+            _ => return,
+        };
+        if let Some(FormatCount::Literal(width_value)) = placeholder.format_options.width
+            && width_value < min_width
+            && let Some(placeholder_span) = placeholder.span
+        {
+            span_lint_and_help(
+                self.cx,
+                UNUSED_FORMAT_SPECS,
+                placeholder_span,
+                "format width has no effect on the output for this format trait",
+                None,
+                format!("consider removing the width or increasing it to at least {min_width}"),
             );
         }
     }
