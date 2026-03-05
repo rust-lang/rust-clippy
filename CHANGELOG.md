@@ -6329,6 +6329,7 @@ Released 2018-09-13
 [`almost_complete_letter_range`]: https://rust-lang.github.io/rust-clippy/master/index.html#almost_complete_letter_range
 [`almost_complete_range`]: https://rust-lang.github.io/rust-clippy/master/index.html#almost_complete_range
 [`almost_swapped`]: https://rust-lang.github.io/rust-clippy/master/index.html#almost_swapped
+[`always_true_conditions`]: https://rust-lang.github.io/rust-clippy/master/index.html#always_true_conditions
 [`approx_constant`]: https://rust-lang.github.io/rust-clippy/master/index.html#approx_constant
 [`arbitrary_source_item_ordering`]: https://rust-lang.github.io/rust-clippy/master/index.html#arbitrary_source_item_ordering
 [`arc_with_non_send_sync`]: https://rust-lang.github.io/rust-clippy/master/index.html#arc_with_non_send_sync
@@ -7090,6 +7091,7 @@ Released 2018-09-13
 [`transmuting_null`]: https://rust-lang.github.io/rust-clippy/master/index.html#transmuting_null
 [`trim_split_whitespace`]: https://rust-lang.github.io/rust-clippy/master/index.html#trim_split_whitespace
 [`trivial_regex`]: https://rust-lang.github.io/rust-clippy/master/index.html#trivial_regex
+[`trivial_var_primitive_disjunction`]: https://rust-lang.github.io/rust-clippy/master/index.html#trivial_var_primitive_disjunction
 [`trivially_copy_pass_by_ref`]: https://rust-lang.github.io/rust-clippy/master/index.html#trivially_copy_pass_by_ref
 [`try_err`]: https://rust-lang.github.io/rust-clippy/master/index.html#try_err
 [`tuple_array_conversions`]: https://rust-lang.github.io/rust-clippy/master/index.html#tuple_array_conversions
