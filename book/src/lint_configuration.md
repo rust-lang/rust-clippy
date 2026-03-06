@@ -1114,6 +1114,16 @@ The maximum number of argument a function or method can have
 * [`too_many_arguments`](https://rust-lang.github.io/rust-clippy/master/index.html#too_many_arguments)
 
 
+## `too-many-lines-in-file-threshold`
+The maximum number of lines a source file can have
+
+**Default Value:** `1000`
+
+---
+**Affected lints:**
+* [`too_many_lines_in_file`](https://rust-lang.github.io/rust-clippy/master/index.html#too_many_lines_in_file)
+
+
 ## `too-many-lines-threshold`
 The maximum number of lines a function or method can have
 

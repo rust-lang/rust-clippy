@@ -125,6 +125,11 @@ Current stable, released 2026-04-16
 * [`suspicious_to_owned`] improve lint messages
   [#16376](https://github.com/rust-lang/rust-clippy/pull/16376)
 
+### New Lints
+
+* Added [`too_many_lines_in_file`] to `restriction`
+  [#16675](https://github.com/rust-lang/rust-clippy/pull/16675)
+
 ## Rust 1.94
 
 Current stable, released 2026-03-05
@@ -7285,6 +7290,7 @@ Released 2018-09-13
 [`too_long_first_doc_paragraph`]: https://rust-lang.github.io/rust-clippy/master/index.html#too_long_first_doc_paragraph
 [`too_many_arguments`]: https://rust-lang.github.io/rust-clippy/master/index.html#too_many_arguments
 [`too_many_lines`]: https://rust-lang.github.io/rust-clippy/master/index.html#too_many_lines
+[`too_many_lines_in_file`]: https://rust-lang.github.io/rust-clippy/master/index.html#too_many_lines_in_file
 [`toplevel_ref_arg`]: https://rust-lang.github.io/rust-clippy/master/index.html#toplevel_ref_arg
 [`trailing_empty_array`]: https://rust-lang.github.io/rust-clippy/master/index.html#trailing_empty_array
 [`trait_duplication_in_bounds`]: https://rust-lang.github.io/rust-clippy/master/index.html#trait_duplication_in_bounds
@@ -7518,6 +7524,7 @@ Released 2018-09-13
 [`suppress-restriction-lint-in-const`]: https://doc.rust-lang.org/clippy/lint_configuration.html#suppress-restriction-lint-in-const
 [`too-large-for-stack`]: https://doc.rust-lang.org/clippy/lint_configuration.html#too-large-for-stack
 [`too-many-arguments-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#too-many-arguments-threshold
+[`too-many-lines-in-file-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#too-many-lines-in-file-threshold
 [`too-many-lines-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#too-many-lines-threshold
 [`trait-assoc-item-kinds-order`]: https://doc.rust-lang.org/clippy/lint_configuration.html#trait-assoc-item-kinds-order
 [`trivial-copy-size-limit`]: https://doc.rust-lang.org/clippy/lint_configuration.html#trivial-copy-size-limit
