@@ -44,7 +44,7 @@ impl<'tcx> AssertMultiple {
                     BinOpKind::Eq | BinOpKind::Ne | BinOpKind::Gt | BinOpKind::Ge | BinOpKind::Lt | BinOpKind::Le
                 ) =>
             {
-                suggest_asserts.push(assert_from_op(&op.node, lhs, rhs));
+                suggest_asserts.push(assert_from_op(cx, op.node, *lhs, *rhs));
             },
 
             ExprKind::Call(call, args) => {
@@ -53,13 +53,9 @@ impl<'tcx> AssertMultiple {
             },
             ExprKind::MethodCall(_path, expr, _args, span) => {
                 let calltext = snippet(cx, span, "..");
-                let mut tmptxt = "assert!(".to_string();
 
                 if let ExprKind::Path(qpath) = expr.kind {
-                    tmptxt += &name_from_qpath(&qpath);
-                    tmptxt += ".";
-                    tmptxt += &*calltext;
-                    tmptxt += ");";
+                    let tmptxt = format!("{}.{});", snippet(cx, qpath.span(), ".."), &*calltext);
                     suggest_asserts.push(tmptxt);
                 } else {
                     return;
@@ -106,31 +102,9 @@ impl<'tcx> LateLintPass<'tcx> for AssertMultiple {
     }
 }
 
-fn name_from_qpath(qpath: &QPath<'_>) -> String {
-    let mut retstr: String = "".to_string();
-    let QPath::Resolved(_, path) = qpath else { return retstr };
-    let seg_cnt = path.segments.len() - 1;
-    let segiter = path.segments.iter().enumerate();
-    for (idex, segment) in segiter {
-        retstr.push_str(segment.ident.name.as_str());
-        if idex != seg_cnt {
-            retstr.push_str("::");
-        };
-    }
-    retstr
-}
-
-fn assert_from_op(node: &BinOpKind, lhs: &Expr<'_>, rhs: &Expr<'_>) -> String {
-    let mut lhs_name: String = "".to_string();
-    let mut rhs_name: String = "".to_string();
-
-    if let ExprKind::Path(qpath) = lhs.kind {
-        lhs_name = name_from_qpath(&qpath);
-    };
-
-    if let ExprKind::Path(qpath) = rhs.kind {
-        rhs_name = name_from_qpath(&qpath);
-    };
+fn assert_from_op(cx: &LateContext<'_>, node: BinOpKind, lhs: Expr<'_>, rhs: Expr<'_>) -> String {
+    let lhs_name = snippet(cx, lhs.span, "..").to_string();
+    let rhs_name = snippet(cx, rhs.span, "..").to_string();
     match node {
         BinOpKind::Eq => {
             format!("assert_eq!({}, {});", lhs_name, rhs_name)
