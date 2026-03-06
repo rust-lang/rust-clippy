@@ -86,5 +86,3 @@ struct InlineStruct<T: Clone>(T);
 enum InlineEnum<T: Clone> {
     A(T),
 }
-
-fn main() {}
