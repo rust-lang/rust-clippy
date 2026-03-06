@@ -18,6 +18,10 @@ declare_clippy_lint! {
     /// or out-of-line (i.e. a where bound).
     /// Avoid complex inline bounds, which could make a function declaration more difficult to read.
     ///
+    /// ### Known limitations
+    /// Only lints functions and method declararions. Bounds on structs, enums,
+    /// and impl blocks are not yet covered.
+    ///
     /// ### Example
     /// ```no_run
     /// fn foo<T: Clone>() {}
@@ -109,7 +113,11 @@ fn lint_fn(cx: &EarlyContext<'_>, f: &Fn) {
         generics.span,
         "inline trait bounds used",
         |diag| {
-            diag.multipart_suggestion("move bounds to a `where` clause", edits, Applicability::MaybeIncorrect);
+            diag.multipart_suggestion(
+                "move bounds to a `where` clause",
+                edits,
+                Applicability::MachineApplicable,
+            );
         },
     );
 }

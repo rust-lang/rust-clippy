@@ -87,4 +87,8 @@ enum InlineEnum<T: Clone> {
     A(T),
 }
 
-fn main() {}
+#[allow(invalid_type_param_default)]
+//~v inline_trait_bounds
+fn with_default_value<T = u32>(x: T) -> T where T: Clone {
+    x
+}

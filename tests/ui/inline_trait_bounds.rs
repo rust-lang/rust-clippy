@@ -86,3 +86,9 @@ struct InlineStruct<T: Clone>(T);
 enum InlineEnum<T: Clone> {
     A(T),
 }
+
+#[allow(invalid_type_param_default)]
+//~v inline_trait_bounds
+fn with_default_value<T: Clone = u32>(x: T) -> T {
+    x
+}
