@@ -2,7 +2,8 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::macros::{find_assert_args, root_macro_call_first_node};
 use clippy_utils::source::snippet;
 use rustc_errors::Applicability;
-use rustc_hir::{BinOpKind, Expr, ExprKind, QPath};
+use rustc_hir::intravisit::Visitor;
+use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::sym;
@@ -31,12 +32,24 @@ declare_clippy_lint! {
 }
 declare_lint_pass!(AssertMultiple => [ASSERT_MULTIPLE]);
 
-impl<'tcx> AssertMultiple {
-    fn visit_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>, suggest_asserts: &mut Vec<String>) {
+// the visitor needs a mutable reference to a vector that lives
+// only for the duration of a single `check_expr` invocation.  we
+// therefore introduce a separate lifetime `'v` for that borrow.
+
+struct AssertVisitor<'tcx, 'v> {
+    // the context reference only needs to live as long as the visitor,
+    // which is represented by `'v` (the HIR lifetime `'tcx` refers to the
+    // data inside the `LateContext`, not the borrow itself).
+    cx: &'v LateContext<'tcx>,
+    suggest_asserts: &'v mut Vec<String>,
+}
+
+impl<'tcx, 'v> Visitor<'tcx> for AssertVisitor<'tcx, 'v> {
+    fn visit_expr(&mut self, e: &'tcx Expr<'_>) {
         match e.kind {
             ExprKind::Binary(op, lhs, rhs) if matches!(op.node, BinOpKind::And | BinOpKind::Or) => {
-                let _ = self.visit_expr(cx, lhs, suggest_asserts);
-                let _ = self.visit_expr(cx, rhs, suggest_asserts);
+                rustc_hir::intravisit::walk_expr(self, lhs);
+                rustc_hir::intravisit::walk_expr(self, rhs);
             },
             ExprKind::Binary(op, lhs, rhs)
                 if matches!(
@@ -44,19 +57,22 @@ impl<'tcx> AssertMultiple {
                     BinOpKind::Eq | BinOpKind::Ne | BinOpKind::Gt | BinOpKind::Ge | BinOpKind::Lt | BinOpKind::Le
                 ) =>
             {
-                suggest_asserts.push(assert_from_op(cx, op.node, *lhs, *rhs));
+                match assert_from_op(self.cx, op.node, *lhs, *rhs) {
+                    Some(x) => self.suggest_asserts.push(x),
+                    None => {},
+                }
             },
 
             ExprKind::Call(call, args) => {
-                let tmptxt = assert_from_fncall(cx, call, args);
-                suggest_asserts.push(tmptxt);
+                let tmptxt = assert_from_fncall(self.cx, call, args);
+                self.suggest_asserts.push(tmptxt);
             },
             ExprKind::MethodCall(_path, expr, _args, span) => {
-                let calltext = snippet(cx, span, "..");
+                let calltext = snippet(self.cx, span, "..");
 
                 if let ExprKind::Path(qpath) = expr.kind {
-                    let tmptxt = format!("{}.{});", snippet(cx, qpath.span(), ".."), &*calltext);
-                    suggest_asserts.push(tmptxt);
+                    let tmptxt = format!("{}.{});", snippet(self.cx, qpath.span(), ".."), &*calltext);
+                    self.suggest_asserts.push(tmptxt);
                 } else {
                     return;
                 }
@@ -68,7 +84,7 @@ impl<'tcx> AssertMultiple {
 }
 
 impl<'tcx> LateLintPass<'tcx> for AssertMultiple {
-    fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) {
         if let Some(macro_call) = root_macro_call_first_node(cx, e)
             && match cx.tcx.get_diagnostic_name(macro_call.def_id) {
                 Some(sym::debug_assert_macro) => false,
@@ -81,20 +97,29 @@ impl<'tcx> LateLintPass<'tcx> for AssertMultiple {
                 _ => false,
             }
         {
-            let mut suggest_asserts: Vec<String> = Vec::new();
-            // first node of assert is BinOpKind::Not, skip it);
-            self.visit_expr(cx, condition, &mut suggest_asserts);
-            if suggest_asserts.len() != 0 {
+            // gather suggested assertions by walking the boolean expression
+            let mut suggests = Vec::new();
+            {
+                let mut am_visitor = AssertVisitor {
+                    cx,
+                    suggest_asserts: &mut suggests,
+                };
+                rustc_hir::intravisit::walk_expr(&mut am_visitor, condition);
+            }
+
+            if !suggests.is_empty() {
+                // build the suggestion string outside of the closure to avoid
+                // borrowing `suggests` while the diag closure runs
+                let text = suggests.join("\n");
                 let applicability = Applicability::MaybeIncorrect;
                 span_lint_and_then(
                     cx,
                     ASSERT_MULTIPLE,
                     e.span,
                     "Multiple asserts combined into one",
-                    |diag| {
-                        let text = suggest_asserts.join("\n");
+                    move |diag| {
                         dbg!(&text);
-                        diag.span_suggestion(e.span, "consider writing", text, applicability);
+                        diag.span_suggestion(e.span, "consider writing", text.clone(), applicability);
                     },
                 );
             }
@@ -102,22 +127,16 @@ impl<'tcx> LateLintPass<'tcx> for AssertMultiple {
     }
 }
 
-fn assert_from_op(cx: &LateContext<'_>, node: BinOpKind, lhs: Expr<'_>, rhs: Expr<'_>) -> String {
+fn assert_from_op(cx: &LateContext<'_>, node: BinOpKind, lhs: Expr<'_>, rhs: Expr<'_>) -> Option<String> {
     let lhs_name = snippet(cx, lhs.span, "..").to_string();
     let rhs_name = snippet(cx, rhs.span, "..").to_string();
     match node {
-        BinOpKind::Eq => {
-            format!("assert_eq!({}, {});", lhs_name, rhs_name)
-        },
-        BinOpKind::Ne => {
-            format!("assert_ne!({},{});", lhs_name, rhs_name)
-        },
+        BinOpKind::Eq => Some(format!("assert_eq!({}, {});", lhs_name, rhs_name)),
+        BinOpKind::Ne => Some(format!("assert_ne!({},{});", lhs_name, rhs_name)),
         BinOpKind::Ge | BinOpKind::Gt | BinOpKind::Le | BinOpKind::Lt => {
-            format!("assert!({} {} {})", lhs_name, node.as_str(), rhs_name)
+            Some(format!("assert!({} {} {})", lhs_name, node.as_str(), rhs_name))
         },
-        _ => {
-            panic!("not handled")
-        },
+        _ => None,
     }
 }
 
