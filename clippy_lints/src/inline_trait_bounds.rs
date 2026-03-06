@@ -27,7 +27,7 @@ declare_clippy_lint! {
     /// ```no_run
     /// fn foo<T>() where T: Clone {}
     /// ```
-    #[clippy::version = "1.95.0"]
+    #[clippy::version = "1.96.0"]
     pub INLINE_TRAIT_BOUNDS,
     restriction,
     "enforce that `where` bounds are used for all trait bounds"
