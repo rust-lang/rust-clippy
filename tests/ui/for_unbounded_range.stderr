@@ -1,5 +1,5 @@
 error: for loop on unbounded range (`0..`)
-  --> tests/ui/for_unbounded_range.rs:10:5
+  --> tests/ui/for_unbounded_range.rs:26:5
    |
 LL | /     for i in 0_u8.. {
 LL | |
@@ -9,13 +9,13 @@ LL | |     }
    |
    = note: `-D clippy::for-unbounded-range` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::for_unbounded_range)]`
-help: for loops over unbounded ranges will wrap around, consider using `start..=MAX` instead
+help: for loops over unbounded ranges will wrap around and may panic, consider using `start..=MAX` instead
    |
 LL |     for i in 0_u8..=u8::MAX {
    |                    ++++++++
 
 error: for loop on unbounded range (`0..`)
-  --> tests/ui/for_unbounded_range.rs:15:5
+  --> tests/ui/for_unbounded_range.rs:31:5
    |
 LL | /     for i in '\0'.. {
 LL | |
@@ -23,7 +23,7 @@ LL | |         do_something(i);
 LL | |     }
    | |_____^
    |
-help: for loops over unbounded ranges will wrap around, consider using `start..=MAX` instead
+help: for loops over unbounded ranges will wrap around and may panic, consider using `start..=MAX` instead
    |
 LL |     for i in '\0'..=char::MAX {
    |                    ++++++++++

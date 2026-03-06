@@ -260,9 +260,9 @@ declare_clippy_lint! {
     ///   println!("{i}");
     /// }
     /// ```
-    #[clippy::version = "1.94.0"]
+    #[clippy::version = "1.96.0"]
     pub FOR_UNBOUNDED_RANGE,
-    nursery,
+    suspicious,
     "using a for loop over unbounded range (`0..`)"
 }
 
@@ -982,7 +982,7 @@ impl Loops {
         manual_find::check(cx, pat, arg, body, span, expr);
         unused_enumerate_index::check(cx, arg, pat, None, body);
         char_indices_as_byte_indices::check(cx, pat, arg, body);
-        for_unbounded_range::check(cx, arg, span);
+        for_unbounded_range::check(cx, label, arg, span, body);
     }
 
     fn check_for_loop_arg(&self, cx: &LateContext<'_>, _: &Pat<'_>, arg: &Expr<'_>) {
