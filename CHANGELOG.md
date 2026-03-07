@@ -7199,6 +7199,7 @@ Released 2018-09-13
 [`unchecked_duration_subtraction`]: https://rust-lang.github.io/rust-clippy/master/index.html#unchecked_duration_subtraction
 [`unchecked_time_subtraction`]: https://rust-lang.github.io/rust-clippy/master/index.html#unchecked_time_subtraction
 [`unconditional_recursion`]: https://rust-lang.github.io/rust-clippy/master/index.html#unconditional_recursion
+[`undocumented_as_casts`]: https://rust-lang.github.io/rust-clippy/master/index.html#undocumented_as_casts
 [`undocumented_unsafe_blocks`]: https://rust-lang.github.io/rust-clippy/master/index.html#undocumented_unsafe_blocks
 [`undropped_manually_drops`]: https://rust-lang.github.io/rust-clippy/master/index.html#undropped_manually_drops
 [`unicode_not_nfc`]: https://rust-lang.github.io/rust-clippy/master/index.html#unicode_not_nfc
