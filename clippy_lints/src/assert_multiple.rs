@@ -16,7 +16,7 @@ declare_clippy_lint! {
     /// Clearer assert output
     /// ### Example
     /// ```no_run
-    /// assert!(a==b && c!=d && ...)
+    /// assert!(a==b && c!=d && /* ... */)
     /// ```
     /// Use instead:
     /// ```no_run
@@ -53,16 +53,9 @@ impl<'tcx, 'v> Visitor<'tcx> for AssertVisitor<'tcx, 'v> {
             ExprKind::Binary(op, _lhs, _rhs) if matches!(op.node, BinOpKind::Or) => {
                 todo!();
             },
-            ExprKind::Binary(op, lhs, rhs)
-                if matches!(
-                    op.node,
-                    BinOpKind::Eq | BinOpKind::Ne | BinOpKind::Gt | BinOpKind::Ge | BinOpKind::Lt | BinOpKind::Le
-                ) =>
-            {
-                match assert_from_op(self.cx, op.node, *lhs, *rhs) {
-                    Some(x) => self.suggest_asserts.push(x),
-                    None => {},
-                }
+            ExprKind::Binary(op, lhs, rhs) => match assert_from_op(self.cx, op.node, *lhs, *rhs) {
+                Some(x) => self.suggest_asserts.push(x),
+                None => {},
             },
 
             ExprKind::Call(_call, _args) => {
