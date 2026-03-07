@@ -7,35 +7,34 @@ use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::sym;
-use std::borrow::Borrow;
 
 declare_clippy_lint! {
     /// ### What it does
-    ///  Looks for cases of assert!(a==b && c==d) and suggests alternative
+    /// Looks for cases of assert!(a==b && c==d) and suggests alternative
     ///
     /// ### Why is this bad?
-    ///   Clearer assert output
+    /// Clearer assert output
     /// ### Example
     /// ```no_run
-    ///    assert!(a==b && c!=d || ...)
+    /// assert!(a==b && c!=d && ...)
     /// ```
     /// Use instead:
     /// ```no_run
-    ///   assert_eq!(a, b);
-    ///   assert_ne!(c,d);
-    ///   ...
+    /// assert_eq!(a, b);
+    /// assert_ne!(c,d);
+    /// ...
     /// ```
     #[clippy::version = "1.95.0"]
     pub ASSERT_MULTIPLE,
     nursery,
     "default lint description"
 }
+
 declare_lint_pass!(AssertMultiple => [ASSERT_MULTIPLE]);
 
 // the visitor needs a mutable reference to a vector that lives
 // only for the duration of a single `check_expr` invocation.  we
 // therefore introduce a separate lifetime `'v` for that borrow.
-
 struct AssertVisitor<'tcx, 'v> {
     // the context reference only needs to live as long as the visitor,
     // which is represented by `'v` (the HIR lifetime `'tcx` refers to the
@@ -47,9 +46,12 @@ struct AssertVisitor<'tcx, 'v> {
 impl<'tcx, 'v> Visitor<'tcx> for AssertVisitor<'tcx, 'v> {
     fn visit_expr(&mut self, e: &'tcx Expr<'_>) {
         match e.kind {
-            ExprKind::Binary(op, lhs, rhs) if matches!(op.node, BinOpKind::And | BinOpKind::Or) => {
+            ExprKind::Binary(op, lhs, rhs) if matches!(op.node, BinOpKind::And) => {
                 rustc_hir::intravisit::walk_expr(self, lhs);
                 rustc_hir::intravisit::walk_expr(self, rhs);
+            },
+            ExprKind::Binary(op, _lhs, _rhs) if matches!(op.node, BinOpKind::Or) => {
+                todo!();
             },
             ExprKind::Binary(op, lhs, rhs)
                 if matches!(
@@ -63,19 +65,17 @@ impl<'tcx, 'v> Visitor<'tcx> for AssertVisitor<'tcx, 'v> {
                 }
             },
 
-            ExprKind::Call(call, args) => {
-                let tmptxt = assert_from_fncall(self.cx, call, args);
-                self.suggest_asserts.push(tmptxt);
+            ExprKind::Call(_call, _args) => {
+                let tmptxt = snippet(self.cx, e.span, "..");
+                let tmpassrt = format!("assert!({});", tmptxt);
+                self.suggest_asserts.push(tmpassrt);
             },
-            ExprKind::MethodCall(_path, expr, _args, span) => {
-                let calltext = snippet(self.cx, span, "..");
 
-                if let ExprKind::Path(qpath) = expr.kind {
-                    let tmptxt = format!("{}.{});", snippet(self.cx, qpath.span(), ".."), &*calltext);
-                    self.suggest_asserts.push(tmptxt);
-                } else {
-                    return;
-                }
+            ExprKind::MethodCall(_path, expr, _args, span) => {
+                let calltext = snippet(self.cx, expr.span, "..");
+
+                let tmptxt = format!("{}.{});", &*calltext, snippet(self.cx, span, ".."));
+                self.suggest_asserts.push(tmptxt);
             },
 
             _ => {},
@@ -128,38 +128,14 @@ impl<'tcx> LateLintPass<'tcx> for AssertMultiple {
 }
 
 fn assert_from_op(cx: &LateContext<'_>, node: BinOpKind, lhs: Expr<'_>, rhs: Expr<'_>) -> Option<String> {
-    let lhs_name = snippet(cx, lhs.span, "..").to_string();
-    let rhs_name = snippet(cx, rhs.span, "..").to_string();
+    let lhs_name = snippet(cx, lhs.span, "..");
+    let rhs_name = snippet(cx, rhs.span, "..");
     match node {
         BinOpKind::Eq => Some(format!("assert_eq!({}, {});", lhs_name, rhs_name)),
-        BinOpKind::Ne => Some(format!("assert_ne!({},{});", lhs_name, rhs_name)),
+        BinOpKind::Ne => Some(format!("assert_ne!({}, {});", lhs_name, rhs_name)),
         BinOpKind::Ge | BinOpKind::Gt | BinOpKind::Le | BinOpKind::Lt => {
             Some(format!("assert!({} {} {})", lhs_name, node.as_str(), rhs_name))
         },
         _ => None,
     }
-}
-
-fn assert_from_fncall(cx: &LateContext<'_>, call: &Expr<'_>, args: &[Expr<'_>]) -> String {
-    let mut retstr = "assert!(".to_string();
-
-    if let ExprKind::Path(qpath) = call.kind {
-        let snip = snippet(cx, qpath.span(), "..");
-        retstr.push_str(snip.borrow());
-    }
-    retstr.push_str("(");
-
-    if args.len() > 0 {
-        let arglen = args.len() - 1;
-        for (idx, arg) in args.iter().enumerate() {
-            let lit_text = snippet(cx, arg.span, "..");
-            retstr.push_str(&*lit_text);
-            if idx != arglen {
-                retstr.push_str(",");
-            }
-        }
-    }
-
-    retstr.push_str("));");
-    retstr
 }
