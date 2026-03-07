@@ -40,35 +40,38 @@ struct AssertVisitor<'tcx, 'v> {
     // which is represented by `'v` (the HIR lifetime `'tcx` refers to the
     // data inside the `LateContext`, not the borrow itself).
     cx: &'v LateContext<'tcx>,
-    suggest_asserts: &'v mut Vec<String>,
+    suggests: Vec<String>,
 }
 
 impl<'tcx, 'v> Visitor<'tcx> for AssertVisitor<'tcx, 'v> {
     fn visit_expr(&mut self, e: &'tcx Expr<'_>) {
         match e.kind {
-            ExprKind::Binary(op, lhs, rhs) if matches!(op.node, BinOpKind::And) => {
-                rustc_hir::intravisit::walk_expr(self, lhs);
-                rustc_hir::intravisit::walk_expr(self, rhs);
+            ExprKind::Binary(op, lhs, rhs) => {
+                match op.node {
+                    BinOpKind::And => {
+                        eprintln!("are we here?");
+                        rustc_hir::intravisit::walk_expr(self, lhs);
+                        rustc_hir::intravisit::walk_expr(self, rhs);
+                    },
+                    _ => {
+                        match assert_from_op(self.cx, op.node, *lhs, *rhs) {
+                            Some(x) => self.suggests.push(x),
+                            None => {},
+                        };
+                    },
+                };
             },
-            ExprKind::Binary(op, _lhs, _rhs) if matches!(op.node, BinOpKind::Or) => {
-                todo!();
-            },
-            ExprKind::Binary(op, lhs, rhs) => match assert_from_op(self.cx, op.node, *lhs, *rhs) {
-                Some(x) => self.suggest_asserts.push(x),
-                None => {},
-            },
-
             ExprKind::Call(_call, _args) => {
                 let tmptxt = snippet(self.cx, e.span, "..");
                 let tmpassrt = format!("assert!({});", tmptxt);
-                self.suggest_asserts.push(tmpassrt);
+                self.suggests.push(tmpassrt);
             },
 
             ExprKind::MethodCall(_path, expr, _args, span) => {
                 let calltext = snippet(self.cx, expr.span, "..");
 
                 let tmptxt = format!("{}.{});", &*calltext, snippet(self.cx, span, ".."));
-                self.suggest_asserts.push(tmptxt);
+                self.suggests.push(tmptxt);
             },
 
             _ => {},
@@ -86,24 +89,20 @@ impl<'tcx> LateLintPass<'tcx> for AssertMultiple {
             }
             && let Some((condition, _)) = find_assert_args(cx, e, macro_call.expn)
             && match condition.kind {
-                ExprKind::Binary(binop, _lhs, _rhs) if matches!(binop.node, BinOpKind::And | BinOpKind::Or) => true,
+                ExprKind::Binary(binop, _lhs, _rhs) if matches!(binop.node, BinOpKind::And) => true,
                 _ => false,
             }
         {
-            // gather suggested assertions by walking the boolean expression
-            let mut suggests = Vec::new();
-            {
-                let mut am_visitor = AssertVisitor {
-                    cx,
-                    suggest_asserts: &mut suggests,
-                };
-                rustc_hir::intravisit::walk_expr(&mut am_visitor, condition);
-            }
+            let mut am_visitor = AssertVisitor {
+                cx,
+                suggests: Vec::new(),
+            };
+            rustc_hir::intravisit::walk_expr(&mut am_visitor, condition);
 
-            if !suggests.is_empty() {
+            if !am_visitor.suggests.is_empty() {
                 // build the suggestion string outside of the closure to avoid
                 // borrowing `suggests` while the diag closure runs
-                let text = suggests.join("\n");
+                let text = am_visitor.suggests.join("\n");
                 let applicability = Applicability::MaybeIncorrect;
                 span_lint_and_then(
                     cx,

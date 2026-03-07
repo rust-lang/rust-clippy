@@ -39,4 +39,7 @@ fn main() {
     let ms = MyStruct {};
     assert!(ms.myfunc(1, "foo".to_string()) && myfunc1(2, "bar".to_string()));
     //~^ assert_multiple
+    assert!(o == Vals::Owned || b == Vals::Other);
+    assert!(o == Vals::Owned && b == Vals::Other);
+    //~^ assert_multiple
 }
