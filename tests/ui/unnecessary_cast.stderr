@@ -283,5 +283,47 @@ error: casting raw pointers to the same type and constness is unnecessary (`*con
 LL |         *(&NONE as *const _ as *const _ as *const *const u8 as *const *const u8)
    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `(&NONE as *const _ as *const _ as *const *const u8)`
 
-error: aborting due to 47 previous errors
+error: casting raw pointers to the same type and constness is unnecessary (`*const u32` -> `*const u32`)
+  --> tests/ui/unnecessary_cast.rs:302:29
+   |
+LL |         let _: *const u32 = ptr_const.cast();
+   |                             ^^^^^^^^^^^^^^^^ help: try: `ptr_const`
+
+error: casting raw pointers to the same type and constness is unnecessary (`*const u32` -> `*const u32`)
+  --> tests/ui/unnecessary_cast.rs:305:17
+   |
+LL |         let _ = ptr_const.cast::<u32>();
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^ help: try: `ptr_const`
+
+error: casting raw pointers to the same type and constness is unnecessary (`*mut u32` -> `*mut u32`)
+  --> tests/ui/unnecessary_cast.rs:309:27
+   |
+LL |         let _: *mut u32 = ptr_mut.cast();
+   |                           ^^^^^^^^^^^^^^ help: try: `ptr_mut`
+
+error: casting raw pointers to the same type and constness is unnecessary (`*mut u32` -> `*mut u32`)
+  --> tests/ui/unnecessary_cast.rs:312:17
+   |
+LL |         let _ = ptr_mut.cast::<u32>();
+   |                 ^^^^^^^^^^^^^^^^^^^^^ help: try: `ptr_mut`
+
+error: casting raw pointers to the same type and constness is unnecessary (`*const u8` -> `*const u8`)
+  --> tests/ui/unnecessary_cast.rs:316:17
+   |
+LL |         let _ = slice.as_ptr().cast::<u8>();
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `slice.as_ptr()`
+
+error: casting raw pointers to the same type and constness is unnecessary (`*const u32` -> `*const u32`)
+  --> tests/ui/unnecessary_cast.rs:320:34
+   |
+LL |         let _: *const U32Alias = ptr_const.cast();
+   |                                  ^^^^^^^^^^^^^^^^ help: try: `ptr_const`
+
+error: casting raw pointers to the same type and constness is unnecessary (`*const T` -> `*const T`)
+  --> tests/ui/unnecessary_cast.rs:341:9
+   |
+LL |         ptr.cast()
+   |         ^^^^^^^^^^ help: try: `ptr`
+
+error: aborting due to 54 previous errors
 
