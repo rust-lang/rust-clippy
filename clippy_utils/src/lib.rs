@@ -2423,13 +2423,24 @@ pub fn is_test_function(tcx: TyCtxt<'_>, fn_def_id: LocalDefId) -> bool {
 /// use [`is_in_cfg_test`]
 pub fn is_cfg_test(tcx: TyCtxt<'_>, id: HirId) -> bool {
     if let Some(cfgs) = find_attr!(tcx.hir_attrs(id), CfgTrace(cfgs) => cfgs)
-        && cfgs
-            .iter()
-            .any(|(cfg, _)| matches!(cfg, CfgEntry::NameValue { name: sym::test, .. }))
+        && cfgs.iter().any(|(cfg, _)| cfg_entry_requires_test(cfg))
     {
         true
     } else {
         false
+    }
+}
+
+/// Checks whether a `CfgEntry` requires `test` to be true.
+///
+/// Returns `true` for `test`, `all(test, ...)`, and nested combinations
+/// where `test` must hold. Returns `false` for `any(test, ...)` (since
+/// the condition can be satisfied without `test`) and `not(test)`.
+fn cfg_entry_requires_test(cfg: &CfgEntry) -> bool {
+    match cfg {
+        CfgEntry::NameValue { name, .. } => *name == sym::test,
+        CfgEntry::All(entries, _) => entries.iter().any(cfg_entry_requires_test),
+        _ => false,
     }
 }
 
