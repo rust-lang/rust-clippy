@@ -361,6 +361,7 @@ mod transmute;
 mod tuple_array_conversions;
 mod types;
 mod unconditional_recursion;
+mod undocumented_as_casts;
 mod undocumented_unsafe_blocks;
 mod unicode;
 mod uninhabited_references;
@@ -866,6 +867,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(move |_| Box::new(manual_take::ManualTake::new(conf))),
         Box::new(|_| Box::new(manual_checked_ops::ManualCheckedOps)),
         Box::new(move |_| Box::new(manual_pop_if::ManualPopIf::new(conf))),
+        Box::new(|_| Box::new(undocumented_as_casts::UndocumentedAsCasts)),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);
