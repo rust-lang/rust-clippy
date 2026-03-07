@@ -14,16 +14,16 @@ declare_clippy_lint! {
     /// ensures the developer has considered the safety and necessity of the conversion.
     ///
     /// ### Example
-    /// ```no_run
-    /// let x = y as u32;
+    /// ```rust,ignore
+    /// let x = 0u32 as usize;
     /// ```
     /// Use instead:
-    /// ```no_run
+    /// ```rust,ignore
     /// // CAST: reason for the cast
-    /// let x = y as u32;
+    /// let x = 0u32 as usize;
     ///
     /// /* CAST: reason for the cast */
-    /// let x = y as u32;
+    /// let y = 1u32 as usize;
     /// ```
     #[clippy::version = "1.96.0"]
     pub UNDOCUMENTED_AS_CASTS,
