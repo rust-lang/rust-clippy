@@ -49,7 +49,6 @@ impl<'tcx, 'v> Visitor<'tcx> for AssertVisitor<'tcx, 'v> {
             ExprKind::Binary(op, lhs, rhs) => {
                 match op.node {
                     BinOpKind::And => {
-                        eprintln!("are we here?");
                         rustc_hir::intravisit::walk_expr(self, lhs);
                         rustc_hir::intravisit::walk_expr(self, rhs);
                     },
@@ -110,7 +109,6 @@ impl<'tcx> LateLintPass<'tcx> for AssertMultiple {
                     e.span,
                     "Multiple asserts combined into one",
                     move |diag| {
-                        dbg!(&text);
                         diag.span_suggestion(e.span, "consider writing", text.clone(), applicability);
                     },
                 );

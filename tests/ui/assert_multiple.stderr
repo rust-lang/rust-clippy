@@ -1,4 +1,3 @@
-[clippy_lints/src/assert_multiple.rs:115:25] &text = "assert!(myfunc1(1, \"foo\".to_string()));\nassert_eq!(b, Vals::Borrowed);"
 error: Multiple asserts combined into one
   --> tests/ui/assert_multiple.rs:37:5
    |
@@ -8,14 +7,12 @@ LL |     assert!(myfunc1(1, "foo".to_string()) && b == Vals::Borrowed);
    = note: `-D clippy::assert-multiple` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::assert_multiple)]`
 
-[clippy_lints/src/assert_multiple.rs:115:25] &text = "ms.myfunc(1, \"foo\".to_string()));\nassert!(myfunc1(2, \"bar\".to_string()));"
 error: Multiple asserts combined into one
   --> tests/ui/assert_multiple.rs:40:5
    |
 LL |     assert!(ms.myfunc(1, "foo".to_string()) && myfunc1(2, "bar".to_string()));
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-[clippy_lints/src/assert_multiple.rs:115:25] &text = "assert_eq!(o, Vals::Owned);\nassert_eq!(b, Vals::Other);"
 error: Multiple asserts combined into one
   --> tests/ui/assert_multiple.rs:43:5
    |
