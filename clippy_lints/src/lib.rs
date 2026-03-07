@@ -372,6 +372,7 @@ mod transmute;
 mod tuple_array_conversions;
 mod types;
 mod unconditional_recursion;
+mod undocumented_as_casts;
 mod undocumented_unsafe_blocks;
 mod unicode;
 mod uninhabited_references;
@@ -872,6 +873,7 @@ rustc_lint::late_lint_methods!(
         RestWhenDestructuringStruct: rest_when_destructuring_struct::RestWhenDestructuringStruct = rest_when_destructuring_struct::RestWhenDestructuringStruct,
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
+        UndocumentedAsCasts: undocumented_as_casts::UndocumentedAsCasts = undocumented_as_casts::UndocumentedAsCasts,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
