@@ -1,0 +1,29 @@
+error: manual conversion from `offset_from` to `usize`
+  --> tests/ui/manual_offset_from_unsigned.rs:12:17
+   |
+LL |         let _ = ptr2.offset_from(ptr1) as usize;
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `ptr2.offset_from_unsigned(ptr1)`
+   |
+   = note: `-D clippy::manual-offset-from-unsigned` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_offset_from_unsigned)]`
+
+error: manual conversion from `byte_offset_from` to `usize`
+  --> tests/ui/manual_offset_from_unsigned.rs:15:17
+   |
+LL |         let _ = ptr2.byte_offset_from(ptr1) as usize;
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `ptr2.byte_offset_from_unsigned(ptr1)`
+
+error: manual conversion from `offset_from` to `usize`
+  --> tests/ui/manual_offset_from_unsigned.rs:18:17
+   |
+LL |         let _ = { ptr2.offset_from(ptr1) } as usize;
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `ptr2.offset_from_unsigned(ptr1)`
+
+error: manual conversion from `offset_from` to `usize`
+  --> tests/ui/manual_offset_from_unsigned.rs:23:17
+   |
+LL |         let _ = nn2.offset_from(nn1) as usize;
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `nn2.offset_from_unsigned(nn1)`
+
+error: aborting due to 4 previous errors
+
