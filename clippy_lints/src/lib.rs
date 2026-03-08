@@ -210,6 +210,7 @@ mod manual_let_else;
 mod manual_main_separator_str;
 mod manual_non_exhaustive;
 mod manual_noop_waker;
+mod manual_offset_from_unsigned;
 mod manual_option_as_slice;
 mod manual_pop_if;
 mod manual_range_patterns;
@@ -867,6 +868,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(move |tcx| Box::new(manual_pop_if::ManualPopIf::new(tcx, conf))),
         Box::new(move |_| Box::new(manual_noop_waker::ManualNoopWaker::new(conf))),
         Box::new(|_| Box::new(byte_char_slices::ByteCharSlice)),
+        Box::new(|_| Box::new(manual_offset_from_unsigned::ManualOffsetFromUnsigned::default())),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);
