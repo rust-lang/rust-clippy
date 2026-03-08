@@ -13,7 +13,7 @@ declare_clippy_lint! {
     /// Looks for cases of assert!(a==b && c==d) and suggests alternative
     ///
     /// ### Why is this bad?
-    /// Clearer assert output
+    /// It's hard to identify which test is failing
     /// ### Example
     /// ```no_run
     /// assert!(a==b && c!=d && /* ... */)
@@ -27,7 +27,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.95.0"]
     pub ASSERT_MULTIPLE,
     nursery,
-    "default lint description"
+    "Splitting an assert using && into separate asserts makes it clearer which is failing."
 }
 
 declare_lint_pass!(AssertMultiple => [ASSERT_MULTIPLE]);
@@ -35,15 +35,15 @@ declare_lint_pass!(AssertMultiple => [ASSERT_MULTIPLE]);
 // the visitor needs a mutable reference to a vector that lives
 // only for the duration of a single `check_expr` invocation.  we
 // therefore introduce a separate lifetime `'v` for that borrow.
-struct AssertVisitor<'tcx, 'v> {
+struct AssertVisitor<'tcx> {
     // the context reference only needs to live as long as the visitor,
     // which is represented by `'v` (the HIR lifetime `'tcx` refers to the
     // data inside the `LateContext`, not the borrow itself).
-    cx: &'v LateContext<'tcx>,
+    cx: &'tcx LateContext<'tcx>,
     suggests: Vec<String>,
 }
 
-impl<'tcx, 'v> Visitor<'tcx> for AssertVisitor<'tcx, 'v> {
+impl<'tcx> Visitor<'tcx> for AssertVisitor<'tcx> {
     fn visit_expr(&mut self, e: &'tcx Expr<'_>) {
         match e.kind {
             ExprKind::Binary(op, lhs, rhs) => {
@@ -93,7 +93,7 @@ impl<'tcx> LateLintPass<'tcx> for AssertMultiple {
             }
         {
             let mut am_visitor = AssertVisitor {
-                cx,
+                cx: cx,
                 suggests: Vec::new(),
             };
             rustc_hir::intravisit::walk_expr(&mut am_visitor, condition);
