@@ -57,5 +57,13 @@ LL |         let d: fn() -> &'static mut i32 = std::mem::transmute(c);
    |
    = note: transmute of type argument `&i32` to `&mut i32`
 
-error: aborting due to 7 previous errors
+error: transmuting references into their mutable version is unsound
+  --> tests/ui/mutable_adt_argument_transmute.rs:33:42
+   |
+LL |         let _: Option<(i32, &mut i32)> = std::mem::transmute(Some((&5i32, &5i32)));
+   |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: transmute of type argument `&i32` to `&mut i32`
+
+error: aborting due to 8 previous errors
 

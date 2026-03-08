@@ -30,5 +30,7 @@ fn main() {
         let c: fn() -> &'static i32 = g;
         let d: fn() -> &'static mut i32 = std::mem::transmute(c);
         //~^ mutable_adt_argument_transmute
+        let _: Option<(i32, &mut i32)> = std::mem::transmute(Some((&5i32, &5i32)));
+        //~^ mutable_adt_argument_transmute
     }
 }
