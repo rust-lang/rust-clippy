@@ -1,3 +1,4 @@
+#![allow(clippy::unnecessary_collect)]
 use crate::ClippyConfiguration;
 use crate::types::{
     DisallowedPath, DisallowedPathWithoutReplacement, InherentImplLintScope, MacroMatcher, MatchLintBehaviour,
@@ -994,10 +995,10 @@ fn deserialize(file: &SourceFile) -> TryConf {
                         // info for the user instead.
 
                         let names = conf.conf.module_item_order_groupings.grouping_names();
-                        let suggestion = suggest_candidate(grouping, names.iter().map(String::as_str))
+                        let suggestion = suggest_candidate(grouping, names.clone())
                             .map(|s| format!(" perhaps you meant `{s}`?"))
                             .unwrap_or_default();
-                        let names = names.iter().map(|s| format!("`{s}`")).join(", ");
+                        let names = names.map(|s| format!("`{s}`")).join(", ");
                         let message = format!(
                             "unknown ordering group: `{grouping}` was not specified in `module-items-ordered-within-groupings`,{suggestion} expected one of: {names}"
                         );

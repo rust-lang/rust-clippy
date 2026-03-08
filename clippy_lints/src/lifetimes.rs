@@ -418,7 +418,7 @@ fn non_elidable_self_type<'tcx>(cx: &LateContext<'tcx>, func: &FnDecl<'tcx>, ide
         let mut visitor = RefVisitor::new(cx);
         visitor.visit_ty_unambig(self_ty);
 
-        !visitor.all_lts().is_empty()
+        visitor.all_lts().next().is_some()
     } else {
         false
     }
@@ -468,12 +468,8 @@ impl<'a, 'tcx> RefVisitor<'a, 'tcx> {
         }
     }
 
-    fn all_lts(&self) -> Vec<Lifetime> {
-        self.lts
-            .iter()
-            .chain(self.nested_elision_site_lts.iter())
-            .copied()
-            .collect::<Vec<_>>()
+    fn all_lts(&self) -> impl Iterator<Item = Lifetime> {
+        self.lts.iter().chain(&self.nested_elision_site_lts).copied()
     }
 
     fn abort(&self) -> bool {
@@ -496,7 +492,7 @@ impl<'tcx> Visitor<'tcx> for RefVisitor<'_, 'tcx> {
         {
             let mut sub_visitor = RefVisitor::new(self.cx);
             sub_visitor.visit_trait_ref(trait_ref);
-            self.nested_elision_site_lts.append(&mut sub_visitor.all_lts());
+            self.nested_elision_site_lts.extend(sub_visitor.all_lts());
         } else {
             walk_poly_trait_ref(self, poly_tref);
         }
@@ -507,7 +503,7 @@ impl<'tcx> Visitor<'tcx> for RefVisitor<'_, 'tcx> {
             TyKind::FnPtr(&FnPtrTy { decl, .. }) => {
                 let mut sub_visitor = RefVisitor::new(self.cx);
                 sub_visitor.visit_fn_decl(decl);
-                self.nested_elision_site_lts.append(&mut sub_visitor.all_lts());
+                self.nested_elision_site_lts.extend(sub_visitor.all_lts());
             },
             TyKind::TraitObject(bounds, lt) => {
                 if !lt.is_elided() {
@@ -533,7 +529,7 @@ fn has_where_lifetimes<'tcx>(cx: &LateContext<'tcx>, generics: &'tcx Generics<'_
                 let mut visitor = RefVisitor::new(cx);
                 // walk the type F, it may not contain LT refs
                 walk_unambig_ty(&mut visitor, pred.bounded_ty);
-                if !visitor.all_lts().is_empty() {
+                if visitor.all_lts().next().is_some() {
                     return true;
                 }
                 // if the bounds define new lifetimes, they are fine to occur
