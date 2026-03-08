@@ -36,14 +36,11 @@ declare_lint_pass!(AssertMultiple => [ASSERT_MULTIPLE]);
 // only for the duration of a single `check_expr` invocation.  we
 // therefore introduce a separate lifetime `'v` for that borrow.
 struct AssertVisitor<'tcx, 'v> {
-    // the context reference only needs to live as long as the visitor,
-    // which is represented by `'v` (the HIR lifetime `'tcx` refers to the
-    // data inside the `LateContext`, not the borrow itself).
     cx: &'v LateContext<'tcx>,
     suggests: Vec<String>,
 }
 
-impl<'tcx, 'v> Visitor<'tcx> for AssertVisitor<'tcx, 'v> {
+impl<'tcx> Visitor<'tcx> for AssertVisitor<'tcx, '_> {
     fn visit_expr(&mut self, e: &'tcx Expr<'_>) {
         match e.kind {
             ExprKind::Binary(op, lhs, rhs) => {
@@ -53,16 +50,15 @@ impl<'tcx, 'v> Visitor<'tcx> for AssertVisitor<'tcx, 'v> {
                         rustc_hir::intravisit::walk_expr(self, rhs);
                     },
                     _ => {
-                        match assert_from_op(self.cx, op.node, *lhs, *rhs) {
-                            Some(x) => self.suggests.push(x),
-                            None => {},
+                        if let Some(x) = assert_from_op(self.cx, op.node, *lhs, *rhs) {
+                            self.suggests.push(x);
                         };
                     },
                 };
             },
             ExprKind::Call(_call, _args) => {
                 let tmptxt = snippet(self.cx, e.span, "..");
-                let tmpassrt = format!("assert!({});", tmptxt);
+                let tmpassrt = format!("assert!({tmptxt});");
                 self.suggests.push(tmpassrt);
             },
 
@@ -121,10 +117,10 @@ fn assert_from_op(cx: &LateContext<'_>, node: BinOpKind, lhs: Expr<'_>, rhs: Exp
     let lhs_name = snippet(cx, lhs.span, "..");
     let rhs_name = snippet(cx, rhs.span, "..");
     match node {
-        BinOpKind::Eq => Some(format!("assert_eq!({}, {});", lhs_name, rhs_name)),
-        BinOpKind::Ne => Some(format!("assert_ne!({}, {});", lhs_name, rhs_name)),
+        BinOpKind::Eq => Some(format!("assert_eq!({lhs_name}, {rhs_name});")),
+        BinOpKind::Ne => Some(format!("assert_ne!({lhs_name}, {rhs_name});")),
         BinOpKind::Ge | BinOpKind::Gt | BinOpKind::Le | BinOpKind::Lt => {
-            Some(format!("assert!({} {} {})", lhs_name, node.as_str(), rhs_name))
+            Some(format!("assert!({lhs_name} {} {rhs_name})", node.as_str()))
         },
         _ => None,
     }
