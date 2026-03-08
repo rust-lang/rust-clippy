@@ -35,15 +35,15 @@ declare_lint_pass!(AssertMultiple => [ASSERT_MULTIPLE]);
 // the visitor needs a mutable reference to a vector that lives
 // only for the duration of a single `check_expr` invocation.  we
 // therefore introduce a separate lifetime `'v` for that borrow.
-struct AssertVisitor<'tcx> {
+struct AssertVisitor<'tcx, 'v> {
     // the context reference only needs to live as long as the visitor,
     // which is represented by `'v` (the HIR lifetime `'tcx` refers to the
     // data inside the `LateContext`, not the borrow itself).
-    cx: &'tcx LateContext<'tcx>,
+    cx: &'v LateContext<'tcx>,
     suggests: Vec<String>,
 }
 
-impl<'tcx> Visitor<'tcx> for AssertVisitor<'tcx> {
+impl<'tcx, 'v> Visitor<'tcx> for AssertVisitor<'tcx, 'v> {
     fn visit_expr(&mut self, e: &'tcx Expr<'_>) {
         match e.kind {
             ExprKind::Binary(op, lhs, rhs) => {
