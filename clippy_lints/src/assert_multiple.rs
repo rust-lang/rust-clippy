@@ -51,7 +51,7 @@ impl<'tcx> Visitor<'tcx> for AssertVisitor<'tcx, '_> {
                 _ => {
                     if let Some(x) = assert_from_op(self.cx, op.node, *lhs, *rhs) {
                         self.suggests.push(x);
-                    };
+                    }
                 },
             },
             ExprKind::Call(_call, _args) => {
@@ -75,10 +75,7 @@ impl<'tcx> Visitor<'tcx> for AssertVisitor<'tcx, '_> {
 impl<'tcx> LateLintPass<'tcx> for AssertMultiple {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) {
         if let Some(macro_call) = root_macro_call_first_node(cx, e)
-            && match cx.tcx.get_diagnostic_name(macro_call.def_id) {
-                Some(sym::assert_macro) => true,
-                _ => false,
-            }
+            && matches!(cx.tcx.get_diagnostic_name(macro_call.def_id), Some(sym::assert_macro))
             && let Some((condition, _)) = find_assert_args(cx, e, macro_call.expn)
             && matches!(condition.kind, ExprKind::Binary(binop,_lhs,_rhs) if binop.node == BinOpKind::And)
         {
