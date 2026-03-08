@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::macros::{find_assert_args, root_macro_call_first_node};
 use clippy_utils::source::snippet;
 use rustc_errors::Applicability;
@@ -43,18 +43,16 @@ struct AssertVisitor<'tcx, 'v> {
 impl<'tcx> Visitor<'tcx> for AssertVisitor<'tcx, '_> {
     fn visit_expr(&mut self, e: &'tcx Expr<'_>) {
         match e.kind {
-            ExprKind::Binary(op, lhs, rhs) => {
-                match op.node {
-                    BinOpKind::And => {
-                        rustc_hir::intravisit::walk_expr(self, lhs);
-                        rustc_hir::intravisit::walk_expr(self, rhs);
-                    },
-                    _ => {
-                        if let Some(x) = assert_from_op(self.cx, op.node, *lhs, *rhs) {
-                            self.suggests.push(x);
-                        };
-                    },
-                };
+            ExprKind::Binary(op, lhs, rhs) => match op.node {
+                BinOpKind::And => {
+                    rustc_hir::intravisit::walk_expr(self, lhs);
+                    rustc_hir::intravisit::walk_expr(self, rhs);
+                },
+                _ => {
+                    if let Some(x) = assert_from_op(self.cx, op.node, *lhs, *rhs) {
+                        self.suggests.push(x);
+                    };
+                },
             },
             ExprKind::Call(_call, _args) => {
                 let tmptxt = snippet(self.cx, e.span, "..");
@@ -70,7 +68,7 @@ impl<'tcx> Visitor<'tcx> for AssertVisitor<'tcx, '_> {
             },
 
             _ => {},
-        };
+        }
     }
 }
 
@@ -78,18 +76,14 @@ impl<'tcx> LateLintPass<'tcx> for AssertMultiple {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) {
         if let Some(macro_call) = root_macro_call_first_node(cx, e)
             && match cx.tcx.get_diagnostic_name(macro_call.def_id) {
-                Some(sym::debug_assert_macro) => false,
                 Some(sym::assert_macro) => true,
                 _ => false,
             }
             && let Some((condition, _)) = find_assert_args(cx, e, macro_call.expn)
-            && match condition.kind {
-                ExprKind::Binary(binop, _lhs, _rhs) if matches!(binop.node, BinOpKind::And) => true,
-                _ => false,
-            }
+            && matches!(condition.kind, ExprKind::Binary(binop,_lhs,_rhs) if binop.node == BinOpKind::And)
         {
             let mut am_visitor = AssertVisitor {
-                cx: cx,
+                cx,
                 suggests: Vec::new(),
             };
             rustc_hir::intravisit::walk_expr(&mut am_visitor, condition);
@@ -99,14 +93,14 @@ impl<'tcx> LateLintPass<'tcx> for AssertMultiple {
                 // borrowing `suggests` while the diag closure runs
                 let text = am_visitor.suggests.join("\n");
                 let applicability = Applicability::MaybeIncorrect;
-                span_lint_and_then(
+                span_lint_and_sugg(
                     cx,
                     ASSERT_MULTIPLE,
                     e.span,
                     "Multiple asserts combined into one",
-                    move |diag| {
-                        diag.span_suggestion(e.span, "consider writing", text.clone(), applicability);
-                    },
+                    "consider writing",
+                    text.clone(),
+                    applicability,
                 );
             }
         }
