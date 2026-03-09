@@ -21,11 +21,11 @@ use rustc_ast::ast::{
 use rustc_ast::token::CommentKind;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{
-    Block, BlockCheckMode, Body, BoundConstness, BoundPolarity, Closure, Destination,
-    Expr, ExprKind, FieldDef, FnHeader, FnRetTy, HirId, Impl, ImplItem, ImplItemImplKind, ImplItemKind, IsAuto, Item,
-    ItemKind, Lit, LoopSource, MatchSource, MutTy, Node, PatExprKind, PatExpr, PatKind, Path, PolyTraitRef, QPath, Safety,
-    TraitBoundModifiers, TraitImplHeader, TraitItem, TraitItemKind, TraitRef, Ty, TyKind, UnOp, UnsafeSource, Variant,
-    VariantData, YieldSource,
+    Block, BlockCheckMode, Body, BoundConstness, BoundPolarity, Closure, Destination, Expr, ExprKind, FieldDef,
+    FnHeader, FnRetTy, HirId, Impl, ImplItem, ImplItemImplKind, ImplItemKind, IsAuto, Item, ItemKind, Lit, LoopSource,
+    MatchSource, MutTy, Node, PatExpr, PatExprKind, PatKind, Path, PolyTraitRef, QPath, Safety, TraitBoundModifiers,
+    TraitImplHeader, TraitItem, TraitItemKind, TraitRef, Ty, TyKind, UnOp, UnsafeSource, Variant, VariantData,
+    YieldSource,
 };
 use rustc_lint::{EarlyContext, LateContext, LintContext};
 use rustc_middle::ty::TyCtxt;

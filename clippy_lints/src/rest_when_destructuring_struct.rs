@@ -42,7 +42,10 @@ declare_clippy_lint! {
     restriction,
     "rest (..) in destructuring expression"
 }
-declare_lint_pass!(RestWhenDestructuringStruct => [REST_WHEN_DESTRUCTURING_STRUCT]);
+
+declare_lint_pass!(RestWhenDestructuringStruct => [
+    REST_WHEN_DESTRUCTURING_STRUCT,
+]);
 
 impl<'tcx> LateLintPass<'tcx> for RestWhenDestructuringStruct {
     fn check_pat(&mut self, cx: &rustc_lint::LateContext<'tcx>, pat: &'tcx rustc_hir::Pat<'tcx>) {
