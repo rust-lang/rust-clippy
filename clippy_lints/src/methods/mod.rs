@@ -5686,7 +5686,7 @@ impl Methods {
                 },
                 (sym::try_into, []) if cx.ty_based_def(expr).opt_parent(cx).is_diag_item(cx, sym::TryInto) => {
                     unnecessary_fallible_conversions::check_method(cx, expr);
-                    suspicious_slice_copies::check(cx, expr, self.msrv);
+                    suspicious_slice_copies::check(cx, expr, recv, call_span, self.msrv);
                 },
                 (sym::to_owned, []) =>
                 {
