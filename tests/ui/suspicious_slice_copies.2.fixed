@@ -14,13 +14,16 @@ fn test_msrv_1_92() {
     let mut arr: [i32; N] = [0; 5];
     let slice: &mut [i32] = &mut arr[..K];
 
-    let mut_arr_ref: &mut [i32; K] = slice.try_into().unwrap();
+    let mut_arr_ref: &mut [i32; K] = &mut <[_; _]>::try_from(slice).unwrap();
     //~^ suspicious_slice_copies
 
-    let mut_arr_ref: &mut [i32; K] = (&mut arr[..K]).try_into().unwrap();
+    let mut_arr_ref: &mut [i32; K] = &mut <[_; _]>::try_from(&arr[..K]).unwrap();
     //~^ suspicious_slice_copies
 
-    arr_incr((&mut arr[..K]).try_into().expect("never happen"));
+    let mut_arr_ref: &mut [i32; K] = &mut <[_; _]>::try_from(&arr[..K]).unwrap();
+    //~^ suspicious_slice_copies
+
+    arr_incr(&mut <[_; _]>::try_from(&arr[..K]).expect("never happen"));
     //~^ suspicious_slice_copies
 }
 
@@ -29,13 +32,16 @@ fn test_msrv_1_93() {
     let mut arr: [i32; N] = [0; 5];
     let slice: &mut [i32] = &mut arr[..K];
 
-    let mut_arr_ref: &mut [i32; K] = slice.as_mut_array().unwrap();
+    let mut_arr_ref: &mut [i32; K] = &mut <[_; _]>::try_from(slice).unwrap();
     //~^ suspicious_slice_copies
 
-    let mut_arr_ref: &mut [i32; K] = arr[..K].as_mut_array().unwrap();
+    let mut_arr_ref: &mut [i32; K] = &mut <[_; _]>::try_from(&arr[..K]).unwrap();
     //~^ suspicious_slice_copies
 
-    arr_incr(arr[..K].as_mut_array().expect("never happen"));
+    let mut_arr_ref: &mut [i32; K] = &mut <[_; _]>::try_from(&arr[..K]).unwrap();
+    //~^ suspicious_slice_copies
+
+    arr_incr(&mut <[_; _]>::try_from(&arr[..K]).expect("never happen"));
     //~^ suspicious_slice_copies
 }
 
