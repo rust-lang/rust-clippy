@@ -97,10 +97,10 @@ pub(super) fn check(
                     },
                 };
 
-                diag.span_suggestion(span, "to borrow the slice as an array, try", borrow_sugg, applicability);
+                diag.span_suggestion(span, "borrow the slice as an array", borrow_sugg, applicability);
                 diag.span_suggestion(
                     span,
-                    "to create a new array from the slice, try",
+                    "explicitly create a new array using `TryFrom`",
                     copy_sugg,
                     applicability,
                 );
