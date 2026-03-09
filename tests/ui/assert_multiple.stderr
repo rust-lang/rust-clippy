@@ -1,4 +1,4 @@
-error: Multiple asserts combined into one
+error: multiple asserts combined into one
   --> tests/ui/assert_multiple.rs:37:5
    |
 LL |     assert!(myfunc1(1, "foo".to_string()) && b == Vals::Borrowed);
@@ -7,17 +7,29 @@ LL |     assert!(myfunc1(1, "foo".to_string()) && b == Vals::Borrowed);
    = note: `-D clippy::assert-multiple` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::assert_multiple)]`
 
-error: Multiple asserts combined into one
+error: multiple asserts combined into one
   --> tests/ui/assert_multiple.rs:40:5
    |
 LL |     assert!(ms.myfunc(1, "foo".to_string()) && myfunc1(2, "bar".to_string()));
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: Multiple asserts combined into one
+error: multiple asserts combined into one
   --> tests/ui/assert_multiple.rs:43:5
    |
 LL |     assert!(o == Vals::Owned && b == Vals::Other);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 3 previous errors
+error: multiple asserts combined into one
+  --> tests/ui/assert_multiple.rs:47:5
+   |
+LL |     debug_assert!(o == b && other == Vals::Other);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: multiple asserts combined into one
+  --> tests/ui/assert_multiple.rs:50:5
+   |
+LL |     assert!(o == b && (o == Vals::Owned || b == Vals::Other));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 5 previous errors
 

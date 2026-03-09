@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::macros::{find_assert_args, root_macro_call_first_node};
 use clippy_utils::source::snippet;
 use rustc_errors::Applicability;
@@ -22,22 +22,20 @@ declare_clippy_lint! {
     /// ```no_run
     /// assert_eq!(a, b);
     /// assert_ne!(c,d);
-    /// ...
+    /// /* ... */
     /// ```
     #[clippy::version = "1.95.0"]
     pub ASSERT_MULTIPLE,
     nursery,
-    "Splitting an assert using && into separate asserts makes it clearer which is failing."
+    "Splitting an assert using '&&' into separate asserts makes it clearer which is failing."
 }
 
 declare_lint_pass!(AssertMultiple => [ASSERT_MULTIPLE]);
 
-// the visitor needs a mutable reference to a vector that lives
-// only for the duration of a single `check_expr` invocation.  we
-// therefore introduce a separate lifetime `'v` for that borrow.
 struct AssertVisitor<'tcx, 'v> {
     cx: &'v LateContext<'tcx>,
     suggests: Vec<String>,
+    assert_string: String,
 }
 
 impl<'tcx> Visitor<'tcx> for AssertVisitor<'tcx, '_> {
@@ -48,15 +46,19 @@ impl<'tcx> Visitor<'tcx> for AssertVisitor<'tcx, '_> {
                     rustc_hir::intravisit::walk_expr(self, lhs);
                     rustc_hir::intravisit::walk_expr(self, rhs);
                 },
+                BinOpKind::Or => {
+                    let tmpstr = format!("{}!{};", self.assert_string, snippet(self.cx, e.span, ".."));
+                    self.suggests.push(tmpstr);
+                },
                 _ => {
-                    if let Some(x) = assert_from_op(self.cx, op.node, *lhs, *rhs) {
+                    if let Some(x) = assert_from_op(self, op.node, *lhs, *rhs) {
                         self.suggests.push(x);
                     }
                 },
             },
             ExprKind::Call(_call, _args) => {
                 let tmptxt = snippet(self.cx, e.span, "..");
-                let tmpassrt = format!("assert!({tmptxt});");
+                let tmpassrt = format!("{}!({tmptxt});", self.assert_string);
                 self.suggests.push(tmpassrt);
             },
 
@@ -75,44 +77,64 @@ impl<'tcx> Visitor<'tcx> for AssertVisitor<'tcx, '_> {
 impl<'tcx> LateLintPass<'tcx> for AssertMultiple {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) {
         if let Some(macro_call) = root_macro_call_first_node(cx, e)
-            && matches!(cx.tcx.get_diagnostic_name(macro_call.def_id), Some(sym::assert_macro))
+            && matches!(
+                cx.tcx.get_diagnostic_name(macro_call.def_id),
+                Some(sym::assert_macro | sym::debug_assert_macro)
+            )
             && let Some((condition, _)) = find_assert_args(cx, e, macro_call.expn)
             && matches!(condition.kind, ExprKind::Binary(binop,_lhs,_rhs) if binop.node == BinOpKind::And)
         {
             let mut am_visitor = AssertVisitor {
                 cx,
                 suggests: Vec::new(),
+                assert_string: if matches!(
+                    cx.tcx.get_diagnostic_name(macro_call.def_id),
+                    Some(sym::debug_assert_macro)
+                ) {
+                    "debug_assert".to_string()
+                } else {
+                    "assert".to_string()
+                },
             };
             rustc_hir::intravisit::walk_expr(&mut am_visitor, condition);
 
             if !am_visitor.suggests.is_empty() {
-                // build the suggestion string outside of the closure to avoid
-                // borrowing `suggests` while the diag closure runs
-                let text = am_visitor.suggests.join("\n");
-                let applicability = Applicability::MaybeIncorrect;
-                span_lint_and_sugg(
+                span_lint_and_then(
                     cx,
                     ASSERT_MULTIPLE,
                     e.span,
-                    "Multiple asserts combined into one",
-                    "consider writing",
-                    text.clone(),
-                    applicability,
+                    "multiple asserts combined into one",
+                    |diag| {
+                        diag.span_suggestion(
+                            e.span,
+                            "consider writing",
+                            am_visitor.suggests.join("\n"),
+                            Applicability::MaybeIncorrect,
+                        );
+                    },
                 );
             }
         }
     }
 }
 
-fn assert_from_op(cx: &LateContext<'_>, node: BinOpKind, lhs: Expr<'_>, rhs: Expr<'_>) -> Option<String> {
-    let lhs_name = snippet(cx, lhs.span, "..");
-    let rhs_name = snippet(cx, rhs.span, "..");
+fn assert_from_op(
+    visitor: &mut AssertVisitor<'_, '_>,
+    node: BinOpKind,
+    lhs: Expr<'_>,
+    rhs: Expr<'_>,
+) -> Option<String> {
+    let cx = visitor.cx;
+    let lhs_name = snippet(cx, lhs.span, "_");
+    let rhs_name = snippet(cx, rhs.span, "_");
     match node {
-        BinOpKind::Eq => Some(format!("assert_eq!({lhs_name}, {rhs_name});")),
-        BinOpKind::Ne => Some(format!("assert_ne!({lhs_name}, {rhs_name});")),
-        BinOpKind::Ge | BinOpKind::Gt | BinOpKind::Le | BinOpKind::Lt => {
-            Some(format!("assert!({lhs_name} {} {rhs_name})", node.as_str()))
-        },
+        BinOpKind::Eq => Some(format!("{}_eq!({lhs_name}, {rhs_name});", visitor.assert_string)),
+        BinOpKind::Ne => Some(format!("{}_ne!({lhs_name}, {rhs_name});", visitor.assert_string)),
+        BinOpKind::Ge | BinOpKind::Gt | BinOpKind::Le | BinOpKind::Lt => Some(format!(
+            "{}!({lhs_name} {} {rhs_name})",
+            visitor.assert_string,
+            node.as_str()
+        )),
         _ => None,
     }
 }

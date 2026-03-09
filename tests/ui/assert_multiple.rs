@@ -42,4 +42,13 @@ fn main() {
     assert!(o == Vals::Owned || b == Vals::Other);
     assert!(o == Vals::Owned && b == Vals::Other);
     //~^ assert_multiple
+
+    debug_assert!(o == b);
+    debug_assert!(o == b && other == Vals::Other);
+    //~^ assert_multiple
+
+    assert!(o == b && (o == Vals::Owned || b == Vals::Other));
+    //~^ assert_multiple
+    // Next one we cannot split because of Or.
+    assert!((o == b && o == Vals::Owned) || b == Vals::Other);
 }
