@@ -19,11 +19,15 @@ declare_clippy_lint! {
     /// let a = true;
     /// let b = true;
     /// let c = true;
-    /// let d = true
+    /// let d = true;
     /// assert!(a==b && c!=d /* &&  ... */)
     /// ```
     /// Use instead:
     /// ```no_run
+    /// let a = true;
+    /// let b = true;
+    /// let c = true;
+    /// let d = true;
     /// assert_eq!(a, b);
     /// assert_ne!(c,d);
     /// /* ... */
