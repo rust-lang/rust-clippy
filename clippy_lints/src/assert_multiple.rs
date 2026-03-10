@@ -16,7 +16,11 @@ declare_clippy_lint! {
     /// It's hard to identify which test is failing
     /// ### Example
     /// ```no_run
-    /// assert!(a==b && c!=d && /* ... */)
+    /// let a = true;
+    /// let b = true;
+    /// let c = true;
+    /// let d = true
+    /// assert!(a==b && c!=d /* &&  ... */)
     /// ```
     /// Use instead:
     /// ```no_run
