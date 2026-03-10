@@ -524,31 +524,31 @@ error: unnecessary use of `to_vec`
   --> tests/ui/unnecessary_to_owned.rs:623:18
    |
 LL |         s.remove(&a.to_vec());
-   |                  ^^^^^^^^^^^ help: replace it with: `a`
+   |                  ^^^^^^^^^^^ help: use: `a`
 
 error: unnecessary use of `to_owned`
   --> tests/ui/unnecessary_to_owned.rs:628:14
    |
 LL |     s.remove(&"b".to_owned());
-   |              ^^^^^^^^^^^^^^^ help: replace it with: `"b"`
+   |              ^^^^^^^^^^^^^^^ help: use: `"b"`
 
 error: unnecessary use of `to_string`
   --> tests/ui/unnecessary_to_owned.rs:630:14
    |
 LL |     s.remove(&"b".to_string());
-   |              ^^^^^^^^^^^^^^^^ help: replace it with: `"b"`
+   |              ^^^^^^^^^^^^^^^^ help: use: `"b"`
 
 error: unnecessary use of `to_vec`
   --> tests/ui/unnecessary_to_owned.rs:636:14
    |
 LL |     s.remove(&["b"].to_vec());
-   |              ^^^^^^^^^^^^^^^ help: replace it with: `["b"].as_slice()`
+   |              ^^^^^^^^^^^^^^^ help: use: `["b"].as_slice()`
 
 error: unnecessary use of `to_vec`
   --> tests/ui/unnecessary_to_owned.rs:638:14
    |
 LL |     s.remove(&(&["b"]).to_vec());
-   |              ^^^^^^^^^^^^^^^^^^ help: replace it with: `(&["b"]).as_slice()`
+   |              ^^^^^^^^^^^^^^^^^^ help: use: `(&["b"]).as_slice()`
 
 error: unnecessary use of `to_string`
   --> tests/ui/unnecessary_to_owned.rs:690:10
@@ -556,5 +556,23 @@ error: unnecessary use of `to_string`
 LL |     take(format!("ouch{dot}").to_string());
    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `&format!("ouch{dot}")`
 
-error: aborting due to 83 previous errors
+error: unnecessary use of `to_string`
+  --> tests/ui/unnecessary_to_owned.rs:718:39
+   |
+LL |     CustomSet::<String>::new().remove(&"foo".to_string());
+   |                                       ^^^^^^^^^^^^^^^^^^ help: use: `"foo"`
+
+error: unnecessary use of `to_vec`
+  --> tests/ui/unnecessary_to_owned.rs:720:43
+   |
+LL |     CustomSet::<Vec<usize>>::new().remove(&[1].to_vec());
+   |                                           ^^^^^^^^^^^^^ help: use: `[1].as_slice()`
+
+error: unnecessary use of `to_owned`
+  --> tests/ui/unnecessary_to_owned.rs:722:39
+   |
+LL |     CustomSet::<String>::new().remove(&"foo".to_owned());
+   |                                       ^^^^^^^^^^^^^^^^^ help: use: `"foo"`
+
+error: aborting due to 86 previous errors
 
