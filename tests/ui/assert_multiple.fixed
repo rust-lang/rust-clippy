@@ -35,21 +35,27 @@ fn main() {
     let elp = time.elapsed().unwrap();
     let is_bool = true;
 
-    assert!(myfunc1(1, "foo".to_string()) && b == Vals::Borrowed);
+    assert!(myfunc1(1, "foo".to_string()));
+    assert_eq!(b, Vals::Borrowed);
     //~^ assert_multiple
     let ms = MyStruct {};
-    assert!(ms.myfunc(1, "foo".to_string()) && myfunc1(2, "bar".to_string()));
+    ms.myfunc(1, "foo".to_string());
+    assert!(myfunc1(2, "bar".to_string()));
     //~^ assert_multiple
 
-    assert!(o == Vals::Owned && b == Vals::Other);
+    assert_eq!(o, Vals::Owned);
+    assert_eq!(b, Vals::Other);
     //~^ assert_multiple
 
-    debug_assert!(o == b && other == Vals::Other);
+    debug_assert_eq!(o, b);
+    debug_assert_eq!(other, Vals::Other);
     //~^ assert_multiple
 
-    assert!(o == b && (o == Vals::Owned || b == Vals::Other));
+    assert_eq!(o, b);
+    assert!(o == Vals::Owned || b == Vals::Other);
     //~^ assert_multiple
-    assert!(o == b && is_bool);
+    assert_eq!(o, b);
+    assert!(is_bool);
     //~^ assert_multiple
 
     // Next one we cannot split because of Or.

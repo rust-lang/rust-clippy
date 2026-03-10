@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::macros::{find_assert_args, root_macro_call_first_node};
 use clippy_utils::source::snippet;
 use rustc_errors::Applicability;
@@ -35,7 +35,7 @@ declare_lint_pass!(AssertMultiple => [ASSERT_MULTIPLE]);
 struct AssertVisitor<'tcx, 'v> {
     cx: &'v LateContext<'tcx>,
     suggests: Vec<String>,
-    assert_string: String,
+    assert_string: &'v str,
 }
 
 impl<'tcx> Visitor<'tcx> for AssertVisitor<'tcx, '_> {
@@ -58,14 +58,20 @@ impl<'tcx> Visitor<'tcx> for AssertVisitor<'tcx, '_> {
             },
             ExprKind::Call(_call, _args) => {
                 let tmptxt = snippet(self.cx, e.span, "..");
-                let tmpassrt = format!("{}!({tmptxt});", self.assert_string);
+                let tmpassrt = format!("{}!({});", self.assert_string, tmptxt.trim_end_matches(';'));
                 self.suggests.push(tmpassrt);
             },
 
             ExprKind::MethodCall(_path, expr, _args, span) => {
                 let calltext = snippet(self.cx, expr.span, "..");
 
-                let tmptxt = format!("{}.{});", &*calltext, snippet(self.cx, span, ".."));
+                let tmptxt = format!("{}.{};", &*calltext, snippet(self.cx, span, ".."));
+                self.suggests.push(tmptxt);
+            },
+            ExprKind::Path(qpath) => {
+                // this is a boolean variable
+                let name = snippet(self.cx, qpath.span(), "_");
+                let tmptxt = format!("{}!({name});", self.assert_string);
                 self.suggests.push(tmptxt);
             },
 
@@ -77,41 +83,31 @@ impl<'tcx> Visitor<'tcx> for AssertVisitor<'tcx, '_> {
 impl<'tcx> LateLintPass<'tcx> for AssertMultiple {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) {
         if let Some(macro_call) = root_macro_call_first_node(cx, e)
-            && matches!(
-                cx.tcx.get_diagnostic_name(macro_call.def_id),
-                Some(sym::assert_macro | sym::debug_assert_macro)
-            )
+            && let assert_string = match cx.tcx.get_diagnostic_name(macro_call.def_id) {
+                Some(sym::assert_macro) => "assert",
+                Some(sym::debug_assert_macro) => "debug_assert",
+                _ => return,
+            }
             && let Some((condition, _)) = find_assert_args(cx, e, macro_call.expn)
             && matches!(condition.kind, ExprKind::Binary(binop,_lhs,_rhs) if binop.node == BinOpKind::And)
         {
             let mut am_visitor = AssertVisitor {
                 cx,
                 suggests: Vec::new(),
-                assert_string: if matches!(
-                    cx.tcx.get_diagnostic_name(macro_call.def_id),
-                    Some(sym::debug_assert_macro)
-                ) {
-                    "debug_assert".to_string()
-                } else {
-                    "assert".to_string()
-                },
+                assert_string,
             };
             rustc_hir::intravisit::walk_expr(&mut am_visitor, condition);
 
             if !am_visitor.suggests.is_empty() {
-                span_lint_and_then(
+                let suggs = am_visitor.suggests.join("\n    ").trim_end_matches(';').to_string();
+                span_lint_and_sugg(
                     cx,
                     ASSERT_MULTIPLE,
-                    e.span,
+                    macro_call.span,
                     "multiple asserts combined into one",
-                    |diag| {
-                        diag.span_suggestion(
-                            e.span,
-                            "consider writing",
-                            am_visitor.suggests.join("\n"),
-                            Applicability::MaybeIncorrect,
-                        );
-                    },
+                    "consider writing",
+                    suggs,
+                    Applicability::MaybeIncorrect,
                 );
             }
         }
