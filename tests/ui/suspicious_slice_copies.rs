@@ -52,4 +52,7 @@ fn main() {
     let arr_mut_ref: &mut [i32; K] = (&mut arr[..K]).try_into().unwrap();
 
     let arr_copy: [i32; K] = arr[..K].try_into().unwrap();
+
+    let slice: &[i32] = &arr[..K];
+    let arr_mut_ref: &mut [i32; K] = &mut slice.try_into().unwrap();
 }
