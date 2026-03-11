@@ -78,5 +78,3 @@ fn unnecessary_dedup_by() {
     v7.dedup_by(|a, b| a == b);
     //~^ unnecessary_dedup_by
 }
-
-fn main() {}

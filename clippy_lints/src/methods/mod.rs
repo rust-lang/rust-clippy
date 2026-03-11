@@ -4054,6 +4054,36 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for usage of `Vec::dedup_by` passing in a closure
+    /// that is equivalent to a simple key extraction and could be
+    /// written more idiomatically using `Vec::dedup_by_key`.
+    ///
+    /// ### Why is this bad?
+    /// It is more clear to use `Vec::dedup_by_key` than to use
+    /// `Vec::dedup_by` and a more complicated closure.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// pub fn m1(mut v: Vec<(i64, i64)>) -> Vec<(i64, i64)> {
+    ///     v.dedup_by(|(sym1, _), (sym2, _)| sym1 == sym2);
+    ///     v
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// pub fn m2(mut v: Vec<(i64, i64)>) -> Vec<(i64, i64)> {
+    ///     v.dedup_by_key(|(sym, _)| *sym);
+    ///     v
+    /// }
+    /// ```
+    #[clippy::version = "1.95.0"]
+    pub UNNECESSARY_DEDUP_BY,
+    complexity,
+    "use of `Vec::dedup_by` when `Vec::dedup_by_key` would be clearer"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for calls to `TryInto::try_into` and `TryFrom::try_from` when their infallible counterparts
     /// could be used.
     ///
@@ -4780,36 +4810,6 @@ declare_clippy_lint! {
     pub ZST_OFFSET,
     correctness,
     "Check for offset calculations on raw pointers to zero-sized types"
-}
-
-declare_clippy_lint! {
-    /// ### What it does
-    /// Checks for usage of `Vec::dedup_by` passing in a closure
-    /// that is equivalent to a simple key extraction and could be
-    /// written more idiomatically using `Vec::dedup_by_key`.
-    ///
-    /// ### Why is this bad?
-    /// It is more clear to use `Vec::dedup_by_key` than to use
-    /// `Vec::dedup_by` and a more complicated closure.
-    ///
-    /// ### Example
-    /// ```no_run
-    /// pub fn m1(mut v: Vec<(i64, i64)>) -> Vec<(i64, i64)> {
-    ///     v.dedup_by(|(sym1, _), (sym2, _)| sym1 == sym2);
-    ///     v
-    /// }
-    /// ```
-    /// Use instead:
-    /// ```no_run
-    /// pub fn m2(mut v: Vec<(i64, i64)>) -> Vec<(i64, i64)> {
-    ///     v.dedup_by_key(|(sym, _)| *sym);
-    ///     v
-    /// }
-    /// ```
-    #[clippy::version = "1.95.0"]
-    pub UNNECESSARY_DEDUP_BY,
-    complexity,
-    "use of `Vec::dedup_by` when `Vec::dedup_by_key` would be clearer"
 }
 
 impl_lint_pass!(Methods => [
