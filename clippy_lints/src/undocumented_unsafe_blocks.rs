@@ -5,15 +5,14 @@ use clippy_config::Conf;
 use clippy_utils::consts::const_item_rhs_to_expr;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_lint_allowed;
-use clippy_utils::source::walk_span_to_context;
+use clippy_utils::source::{text_has_marked_comment, walk_span_to_context};
 use clippy_utils::visitors::{Descend, for_each_expr};
 use hir::HirId;
 use rustc_errors::Applicability;
 use rustc_hir::{self as hir, Block, BlockCheckMode, FnSig, Impl, ItemKind, Node, UnsafeSource};
-use rustc_lexer::{FrontmatterAllowed, TokenKind, tokenize};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::impl_lint_pass;
-use rustc_span::{BytePos, Pos, RelativeBytePos, Span, SyntaxContext};
+use rustc_span::{BytePos, Pos, Span, SyntaxContext};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -589,13 +588,17 @@ fn item_has_safety_comment(
         return if comment_start_line.line >= unsafe_line.line {
             HasSafetyComment::No
         } else {
-            text_has_safety_comment(
+            match text_has_marked_comment(
                 src,
                 &unsafe_line.sf.lines()
                     [(comment_start_line.line + usize::from(!include_first_line_of_file))..=unsafe_line.line],
                 unsafe_line.sf.start_pos,
+                "SAFETY:",
                 accept_comment_above_attributes,
-            )
+            ) {
+                Some((b, d)) => HasSafetyComment::Yes(b, d),
+                None => HasSafetyComment::No,
+            }
         };
     }
     HasSafetyComment::Maybe
@@ -632,12 +635,16 @@ fn stmt_has_safety_comment(
         return if comment_start_line.line >= unsafe_line.line {
             HasSafetyComment::No
         } else {
-            text_has_safety_comment(
+            match text_has_marked_comment(
                 src,
                 &unsafe_line.sf.lines()[comment_start_line.line + 1..=unsafe_line.line],
                 unsafe_line.sf.start_pos,
+                "SAFETY:",
                 accept_comment_above_attributes,
-            )
+            ) {
+                Some((b, d)) => HasSafetyComment::Yes(b, d),
+                None => HasSafetyComment::No,
+            }
         };
     }
     HasSafetyComment::Maybe
@@ -710,12 +717,16 @@ fn span_from_macro_expansion_has_safety_comment(
         && let Some(src) = unsafe_line.sf.src.as_deref()
     {
         if macro_line.line < unsafe_line.line {
-            text_has_safety_comment(
+            match text_has_marked_comment(
                 src,
                 &unsafe_line.sf.lines()[macro_line.line + 1..=unsafe_line.line],
                 unsafe_line.sf.start_pos,
+                "SAFETY:",
                 accept_comment_above_attributes,
-            )
+            ) {
+                Some((b, d)) => HasSafetyComment::Yes(b, d),
+                None => HasSafetyComment::No,
+            }
         } else {
             HasSafetyComment::No
         }
@@ -774,15 +785,14 @@ fn span_has_safety_comment(cx: &LateContext<'_>, span: Span, accept_comment_abov
             //     fn foo() { some_stuff; unsafe { stuff }; other_stuff; }
             //              ^-------------^
             body_line.line < unsafe_line.line
-                && matches!(
-                    text_has_safety_comment(
-                        src,
-                        &unsafe_line.sf.lines()[body_line.line + 1..=unsafe_line.line],
-                        unsafe_line.sf.start_pos,
-                        accept_comment_above_attributes,
-                    ),
-                    HasSafetyComment::Yes(..)
+                && text_has_marked_comment(
+                    src,
+                    &unsafe_line.sf.lines()[body_line.line + 1..=unsafe_line.line],
+                    unsafe_line.sf.start_pos,
+                    "SAFETY:",
+                    accept_comment_above_attributes,
                 )
+                .is_some()
         } else {
             // Problem getting source text. Pretend a comment was found.
             true
@@ -790,108 +800,6 @@ fn span_has_safety_comment(cx: &LateContext<'_>, span: Span, accept_comment_abov
     } else {
         false
     }
-}
-
-/// Checks if the given text has a safety comment for the immediately proceeding line.
-///
-/// If `accept_comment_above_attributes` is true, it will ignore attributes inbetween blocks of
-/// comments
-fn text_has_safety_comment(
-    src: &str,
-    line_starts: &[RelativeBytePos],
-    start_pos: BytePos,
-    accept_comment_above_attributes: bool,
-) -> HasSafetyComment {
-    let mut lines = line_starts
-        .array_windows::<2>()
-        .rev()
-        .map_while(|[start, end]| {
-            let start = start.to_usize();
-            let end = end.to_usize();
-            let text = src.get(start..end)?;
-            let trimmed = text.trim_start();
-            Some((start + (text.len() - trimmed.len()), trimmed))
-        })
-        .filter(|(_, text)| !(text.is_empty() || (accept_comment_above_attributes && is_attribute(text))));
-
-    let Some((line_start, line)) = lines.next() else {
-        return HasSafetyComment::No;
-    };
-
-    let mut in_codeblock = false;
-    // Check for a sequence of line comments.
-    if line.starts_with("//") {
-        let (mut line, mut line_start) = (line, line_start);
-        loop {
-            // Don't lint if the safety comment is part of a codeblock in a doc comment.
-            // It may or may not be required, and we can't very easily check it (and we shouldn't, since
-            // the safety comment isn't referring to the node we're currently checking)
-            if let Some(doc) = line.strip_prefix("///").or_else(|| line.strip_prefix("//!"))
-                && doc.trim_start().starts_with("```")
-            {
-                in_codeblock = !in_codeblock;
-            }
-
-            if !in_codeblock && let Some(safety_pos) = line.to_ascii_uppercase().find("SAFETY:") {
-                return HasSafetyComment::Yes(
-                    start_pos
-                        + BytePos(u32::try_from(line_start).unwrap())
-                        + BytePos(u32::try_from(safety_pos).unwrap()),
-                    line.starts_with("///"),
-                );
-            }
-            match lines.next() {
-                Some((s, x)) if x.starts_with("//") => (line, line_start) = (x, s),
-                _ => return HasSafetyComment::No,
-            }
-        }
-    }
-    // Check for a comment that appears after other code on the same line (e.g., `let x = // SAFETY:`)
-    // This handles cases in macros where the comment is on the same line as preceding code.
-    // We only check the first (immediate preceding) line for this pattern.
-    // Only whitespace is allowed between the comment marker and `SAFETY:`.
-    if let Some(comment_start) = [line.find("//"), line.find("/*")].into_iter().flatten().min()
-        && let after_marker = &line[comment_start + 2..] // skip marker
-        && let trimmed = after_marker.trim_start() // skip whitespace
-        && trimmed.get(..7).is_some_and(|s| s.eq_ignore_ascii_case("SAFETY:"))
-    {
-        let safety_offset = 2 + (after_marker.len() - trimmed.len());
-        return HasSafetyComment::Yes(
-            start_pos
-                + BytePos(u32::try_from(line_start).unwrap())
-                + BytePos(u32::try_from(comment_start + safety_offset).unwrap()),
-            false,
-        );
-    }
-    // No line comments; look for the start of a block comment.
-    // This will only find them if they are at the start of a line.
-    let (mut line_start, mut line) = (line_start, line);
-    loop {
-        if line.starts_with("/*") {
-            let src = &src[line_start..line_starts.last().unwrap().to_usize()];
-            let mut tokens = tokenize(src, FrontmatterAllowed::No);
-            let a = tokens.next();
-            if let Some(safety_pos) = src[..a.unwrap().len as usize].to_ascii_uppercase().find("SAFETY:")
-                && tokens.all(|t| t.kind == TokenKind::Whitespace)
-            {
-                return HasSafetyComment::Yes(
-                    start_pos
-                        + BytePos(u32::try_from(line_start).unwrap())
-                        + BytePos(u32::try_from(safety_pos).unwrap()),
-                    line.starts_with("/**"),
-                );
-            }
-            return HasSafetyComment::No;
-        }
-        match lines.next() {
-            Some(x) => (line_start, line) = x,
-            None => return HasSafetyComment::No,
-        }
-    }
-}
-
-fn is_attribute(text: &str) -> bool {
-    (text.starts_with("#[") || text.starts_with("#![")) && text.trim_end().ends_with(']')
 }
 
 fn span_and_hid_of_item_alike_node(node: &Node<'_>) -> Option<(Span, HirId)> {
