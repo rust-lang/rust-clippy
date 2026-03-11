@@ -72,5 +72,41 @@ LL ~     assert_eq!(o, b);
 LL ~     assert!(is_bool);
    |
 
-error: aborting due to 6 previous errors
+error: multiple asserts combined into one
+  --> tests/ui/assert_multiple.rs:54:5
+   |
+LL |     assert!(!is_bool && o == b);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider writing
+   |
+LL ~     assert!(!is_bool);
+LL ~     assert_eq!(o, b);
+   |
+
+error: multiple asserts combined into one
+  --> tests/ui/assert_multiple.rs:56:5
+   |
+LL |     assert!(o == b && !is_bool);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider writing
+   |
+LL ~     assert_eq!(o, b);
+LL ~     assert!(!is_bool);
+   |
+
+error: multiple asserts combined into one
+  --> tests/ui/assert_multiple.rs:58:5
+   |
+LL |     assert!(o == b && !(is_bool && o == Vals::Owned));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider writing
+   |
+LL ~     assert_eq!(o, b);
+LL ~     assert!(!(is_bool && o == Vals::Owned));
+   |
+
+error: aborting due to 9 previous errors
 

@@ -3,7 +3,7 @@ use clippy_utils::macros::{find_assert_args, root_macro_call_first_node};
 use clippy_utils::source::snippet;
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::Visitor;
-use rustc_hir::{BinOpKind, Expr, ExprKind};
+use rustc_hir::{BinOpKind, Expr, ExprKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::sym;
@@ -40,6 +40,9 @@ declare_clippy_lint! {
 
 declare_lint_pass!(AssertMultiple => [ASSERT_MULTIPLE]);
 
+// This visiior is a convenient place to hold the session context, as well as the collection of
+// replacement strings and the type of assert to use.
+
 struct AssertVisitor<'tcx, 'v> {
     cx: &'v LateContext<'tcx>,
     suggests: Vec<String>,
@@ -51,35 +54,45 @@ impl<'tcx> Visitor<'tcx> for AssertVisitor<'tcx, '_> {
         match e.kind {
             ExprKind::Binary(op, lhs, rhs) => match op.node {
                 BinOpKind::And => {
+                    // For And, turn each of the rhs and lhs expressions into their own assert.
                     rustc_hir::intravisit::walk_expr(self, lhs);
                     rustc_hir::intravisit::walk_expr(self, rhs);
                 },
                 BinOpKind::Or => {
+                    // For Or, we cannot break the expression up.
                     let tmpstr = format!("{}!{};", self.assert_string, snippet(self.cx, e.span, ".."));
                     self.suggests.push(tmpstr);
                 },
                 _ => {
                     if let Some(x) = assert_from_op(self, op.node, *lhs, *rhs) {
+                        // handle most of the binary operators here.
                         self.suggests.push(x);
                     }
                 },
             },
             ExprKind::Call(_call, _args) => {
+                // split function calls into their own assert.
                 let tmptxt = snippet(self.cx, e.span, "..");
-                let tmpassrt = format!("{}!({});", self.assert_string, tmptxt.trim_end_matches(';'));
+                let tmpassrt = format!("{}!({});", self.assert_string, tmptxt);
                 self.suggests.push(tmpassrt);
             },
 
             ExprKind::MethodCall(_path, expr, _args, span) => {
+                // split method calls into their own assert as well.
                 let calltext = snippet(self.cx, expr.span, "..");
-
                 let tmptxt = format!("{}.{};", &*calltext, snippet(self.cx, span, ".."));
                 self.suggests.push(tmptxt);
             },
             ExprKind::Path(qpath) => {
-                // this is a boolean variable
+                // this is a statndalone boolean variable, not an expression.
                 let name = snippet(self.cx, qpath.span(), "_");
                 let tmptxt = format!("{}!({name});", self.assert_string);
+                self.suggests.push(tmptxt);
+            },
+            ExprKind::Unary(UnOp::Not, expr) => {
+                // A Not operator, just output the
+                let exptext = snippet(self.cx, expr.span, "_");
+                let tmptxt = format!("{}!(!{exptext});", self.assert_string);
                 self.suggests.push(tmptxt);
             },
 
@@ -99,6 +112,8 @@ impl<'tcx> LateLintPass<'tcx> for AssertMultiple {
             && let Some((condition, _)) = find_assert_args(cx, e, macro_call.expn)
             && matches!(condition.kind, ExprKind::Binary(binop,_lhs,_rhs) if binop.node == BinOpKind::And)
         {
+            // We only get here on assert/debug_assert macro calls whose arguments have an And expression
+            // on the top of the tree.
             let mut am_visitor = AssertVisitor {
                 cx,
                 suggests: Vec::new(),
@@ -122,6 +137,8 @@ impl<'tcx> LateLintPass<'tcx> for AssertMultiple {
     }
 }
 
+// This function separates out a binary operation into a separate assert, using ..._eq or ..._ne if
+// applicable.
 fn assert_from_op(
     visitor: &mut AssertVisitor<'_, '_>,
     node: BinOpKind,
