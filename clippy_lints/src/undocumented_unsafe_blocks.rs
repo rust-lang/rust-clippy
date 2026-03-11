@@ -600,7 +600,7 @@ fn item_has_safety_comment(
                 "SAFETY:",
                 accept_comment_above_attributes,
             ) {
-                Some((b, d)) => HasSafetyComment::Yes(b, d),
+                Some((pos, is_doc)) => HasSafetyComment::Yes(pos, is_doc),
                 None => HasSafetyComment::No,
             }
         };
@@ -646,7 +646,7 @@ fn stmt_has_safety_comment(
                 "SAFETY:",
                 accept_comment_above_attributes,
             ) {
-                Some((b, d)) => HasSafetyComment::Yes(b, d),
+                Some((pos, is_doc)) => HasSafetyComment::Yes(pos, is_doc),
                 None => HasSafetyComment::No,
             }
         };
@@ -728,7 +728,7 @@ fn span_from_macro_expansion_has_safety_comment(
                 "SAFETY:",
                 accept_comment_above_attributes,
             ) {
-                Some((b, d)) => HasSafetyComment::Yes(b, d),
+                Some((pos, is_doc)) => HasSafetyComment::Yes(pos, is_doc),
                 None => HasSafetyComment::No,
             }
         } else {
