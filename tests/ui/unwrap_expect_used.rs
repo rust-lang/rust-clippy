@@ -95,3 +95,17 @@ fn issue16484() {
     Result::unwrap_err(res); //~ unwrap_used
     Result::expect_err(res, "error message"); //~ expect_used
 }
+
+#[derive(Clone, Debug)]
+struct S {
+    x: std::convert::Infallible,
+    y: u32,
+}
+
+fn f(s: Result<String, S>) {
+    // Check that the compiler sees the `S` type as uninhabited (because of its `x` field)
+    let Ok(_) = s.clone();
+    // Do not lint: `s` is necessarily `Ok` as shown above
+    _ = s.clone().unwrap();
+    _ = s.clone().expect("uninhabited struct is inhabited");
+}
