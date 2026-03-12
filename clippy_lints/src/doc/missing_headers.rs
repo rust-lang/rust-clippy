@@ -5,8 +5,7 @@ use clippy_utils::res::MaybeDef;
 use clippy_utils::ty::implements_trait_with_env;
 use clippy_utils::visitors::for_each_expr;
 use clippy_utils::{
-    fulfill_or_allowed, is_cfg_test, is_doc_hidden, is_in_cfg_test, is_inside_always_const_context,
-    is_test_function, method_chain_args, return_ty,
+    fulfill_or_allowed, is_doc_hidden, is_in_test, is_inside_always_const_context, method_chain_args, return_ty,
 };
 use rustc_hir::{BodyId, FnSig, OwnerId, Safety};
 use rustc_lint::LateContext;
@@ -26,7 +25,7 @@ pub fn check(
         return; // Private functions do not require doc comments
     }
 
-    // do not lint if any parent has `#[doc(hidden)]` attribute (#7347)
+    // Do not lint if any parent has `#[doc(hidden)]` attribute (#7347)
     if !check_private_items
         && cx
             .tcx
@@ -36,9 +35,10 @@ pub fn check(
         return;
     }
 
-    // do not lint test functions, functions inside test modules or with #[cfg(test)]
-    let hir_id = cx.tcx.local_def_id_to_hir_id(owner_id.def_id);
-    if is_test_function(cx.tcx, owner_id.def_id) || is_cfg_test(cx.tcx, hir_id) || is_in_cfg_test(cx.tcx, hir_id) {
+    // Do not lint if any parent has `#[test]` attribute or is in `#[cfg(test)]` (#12265)
+    if let Some(body_id) = body_id
+        && is_in_test(cx.tcx, body_id.hir_id)
+    {
         return;
     }
 
