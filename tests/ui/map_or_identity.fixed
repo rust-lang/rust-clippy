@@ -11,6 +11,11 @@ mod issue15801 {
         res.unwrap_or(default)
         //~^ map_or_identity
     }
+
+    fn with_deref(opt: &Option<i32>, default: i32) -> i32 {
+        opt.unwrap_or(default)
+        //~^ map_or_identity
+    }
 }
 
 mod macros {

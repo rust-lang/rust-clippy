@@ -14,7 +14,7 @@ use super::MAP_OR_IDENTITY;
 pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, recv: &Expr<'_>, def_arg: &Expr<'_>, map_arg: &Expr<'_>) {
     // lint if the caller of `map_or()` is a `Result` or an `Option`
     // and if the mapping function is the identity function
-    if let Some(symbol @ (sym::Result | sym::Option)) = cx.typeck_results().expr_ty(recv).opt_diag_name(cx)
+    if let Some(symbol @ (sym::Result | sym::Option)) = cx.typeck_results().expr_ty_adjusted(recv).opt_diag_name(cx)
         && is_expr_identity_function(cx, map_arg)
     {
         let msg = format!("expression can be simplified using `{symbol}::unwrap_or()`");
