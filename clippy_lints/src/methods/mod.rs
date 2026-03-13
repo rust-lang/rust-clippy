@@ -2339,7 +2339,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.95.0"]
     pub MAP_OR_IDENTITY,
-    suspicious,
+    complexity,
     "using an identity function when mapping with `.map_or(|err| ..., |x| x)`"
 }
 
