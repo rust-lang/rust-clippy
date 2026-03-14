@@ -686,8 +686,8 @@ fn is_slice_and_vec(cx: &LateContext<'_>, arg_ty: Ty<'_>, original_arg_ty: Ty<'_
 // This function will check the following:
 // 1. The argument is a non-mutable reference.
 // 2. It calls `to_owned()`, `to_string()` or `to_vec()`.
-// 3. That the method is called on `String` or on `Vec` (only types supported for the moment).
-fn check_if_applicable_to_argument<'tcx>(cx: &LateContext<'tcx>, arg: &Expr<'tcx>) {
+// 3. `key_ty` is either `String` or `Vec` (only types supported for the moment).
+fn check_if_applicable_to_map_getter<'tcx>(cx: &LateContext<'tcx>, arg: &Expr<'tcx>, key_ty: Ty<'tcx>) {
     if let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Not, expr) = arg.kind
         && let ExprKind::MethodCall(method_path, caller, &[], _) = expr.kind
         && let Some(method_def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)
@@ -702,13 +702,9 @@ fn check_if_applicable_to_argument<'tcx>(cx: &LateContext<'tcx>, arg: &Expr<'tcx
             _ => false,
         }
         && let original_arg_ty = cx.typeck_results().node_type(caller.hir_id).peel_refs()
-        && let arg_ty = cx.typeck_results().expr_ty(arg)
-        && let ty::Ref(_, arg_ty, Mutability::Not) = arg_ty.kind()
-        // FIXME: try to fix `can_change_type` to make it work in this case.
-        // && can_change_type(cx, caller, *arg_ty)
-        && let arg_ty = arg_ty.peel_refs()
+        && matches!(cx.typeck_results().expr_ty(arg).kind(), ty::Ref(_, _, Mutability::Not))
         // For now we limit this lint to `String` and `Vec`.
-        && (is_str_and_string(cx, arg_ty, original_arg_ty) || is_slice_and_vec(cx, arg_ty, original_arg_ty))
+        && (is_str_and_string(cx, key_ty, original_arg_ty) || is_slice_and_vec(cx, key_ty, original_arg_ty))
         && let Some(snippet) = caller.span.get_source_text(cx)
     {
         span_lint_and_sugg(
@@ -751,9 +747,7 @@ fn check_borrow_predicate<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
         && let caller_ty = cx.typeck_results().expr_ty(caller)
         // For now we limit it to "map types".
         && let Some(key_ty) = std_map_key(cx, caller_ty)
-        // We need to check that the key type is not a reference.
-        && !key_ty.is_ref()
     {
-        check_if_applicable_to_argument(cx, &arg);
+        check_if_applicable_to_map_getter(cx, &arg, key_ty);
     }
 }

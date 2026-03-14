@@ -690,3 +690,11 @@ fn issue16351() {
     take(&format!("ouch{dot}"));
     //~^ unnecessary_to_owned
 }
+
+fn issue16693() {
+    use std::collections::HashSet;
+    use std::rc::Rc;
+    use std::sync::Arc;
+    let _ = HashSet::<Rc<String>>::new().get(&"foo".to_string());
+    let _ = HashSet::<Arc<Vec<usize>>>::new().get(&[].to_vec());
+}
