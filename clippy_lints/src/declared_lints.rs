@@ -231,6 +231,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::inherent_to_string::INHERENT_TO_STRING_SHADOW_DISPLAY_INFO,
     crate::init_numbered_fields::INIT_NUMBERED_FIELDS_INFO,
     crate::inline_fn_without_body::INLINE_FN_WITHOUT_BODY_INFO,
+    crate::inline_trait_bounds::INLINE_TRAIT_BOUNDS_INFO,
     crate::int_plus_one::INT_PLUS_ONE_INFO,
     crate::item_name_repetitions::ENUM_VARIANT_NAMES_INFO,
     crate::item_name_repetitions::MODULE_INCEPTION_INFO,
