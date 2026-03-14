@@ -329,7 +329,7 @@ fn try_get_inner_pat_and_is_result<'tcx>(cx: &LateContext<'tcx>, pat: &Pat<'tcx>
 /// If this expression is the option if let/else construct we're detecting, then
 /// this function returns an `OptionOccurrence` struct with details if
 /// this construct is found, or None if this construct is not found.
-fn detect_option_if_let_else<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) -> Option<OptionOccurrence> {
+fn detect_option_if_let_else<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> Option<OptionOccurrence> {
     if let Some(higher::IfLet {
         let_pat,
         let_expr,
@@ -391,7 +391,7 @@ fn is_none_or_err_arm(cx: &LateContext<'_>, arm: &Arm<'_>) -> bool {
 }
 
 impl<'tcx> LateLintPass<'tcx> for OptionIfLetElse {
-    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         // Don't lint macros and constants
         if expr.span.from_expansion() || is_in_const_context(cx) {
             return;
