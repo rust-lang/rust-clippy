@@ -2,16 +2,25 @@ error: use of bitwise operator instead of lazy operator between booleans
   --> tests/ui/needless_bitwise_bool.rs:23:8
    |
 LL |     if y & !x {
-   |        ^^^^^^ help: try: `y && !x`
+   |        ^^^^^^
    |
    = note: `-D clippy::needless-bitwise-bool` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::needless_bitwise_bool)]`
+help: try
+   |
+LL |     if y && !x {
+   |           +
 
 error: use of bitwise operator instead of lazy operator between booleans
-  --> tests/ui/needless_bitwise_bool.rs:38:8
+  --> tests/ui/needless_bitwise_bool.rs:48:8
    |
 LL |     if y & (0 < 1) {
-   |        ^^^^^^^^^^^ help: try: `y && (0 < 1)`
+   |        ^^^^^^^^^^^
+   |
+help: try
+   |
+LL |     if y && (0 < 1) {
+   |           +
 
 error: aborting due to 2 previous errors
 
