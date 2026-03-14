@@ -57,7 +57,7 @@ fn dogfood() {
     );
 }
 
-#[must_use]
+#[must_use = "the test result must be checked to determine if clippy succeeded"]
 fn run_clippy_for_package(project: &str) -> bool {
     let root_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
 
