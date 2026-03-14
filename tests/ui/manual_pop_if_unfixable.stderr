@@ -1,0 +1,113 @@
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:8:12
+   |
+LL |       } else if vec.last().is_some_and(|x| *x > 2) {
+   |  ____________^
+LL | |
+LL | |         vec.pop().unwrap();
+LL | |     }
+   | |_____^
+   |
+   = help: try using `vec.pop_if(|x| *x > 2);`
+   = note: `-D clippy::manual-pop-if` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_pop_if)]`
+
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:13:5
+   |
+LL | /     if vec.last().is_some_and(|x| *x > 2) {
+LL | |
+LL | |         let val = vec.pop().unwrap();
+LL | |         println!("Popped: {}", val);
+LL | |     }
+   | |_____^
+   |
+   = help: try using `vec.pop_if(|x| *x > 2);`
+
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:19:5
+   |
+LL | /     if vec.last().is_some_and(|x| *x > 2) {
+LL | |
+LL | |         println!("Popped: {}", vec.pop().unwrap());
+LL | |     }
+   | |_____^
+   |
+   = help: try using `vec.pop_if(|x| *x > 2);`
+
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:26:5
+   |
+LL | /     if let Some(x) = vec.last() {
+LL | |
+LL | |         if *x > 2 {
+LL | |             let val = vec.pop().unwrap();
+...  |
+LL | |     }
+   | |_____^
+   |
+   = help: try using `vec.pop_if(|x| *x > 2);`
+
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:34:5
+   |
+LL | /     if let Some(x) = vec.last() {
+LL | |
+LL | |         if *x > 2 {
+LL | |             println!("Popped: {}", vec.pop().unwrap());
+LL | |         }
+LL | |     }
+   | |_____^
+   |
+   = help: try using `vec.pop_if(|x| *x > 2);`
+
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:43:5
+   |
+LL | /     if let Some(x) = vec.last()
+LL | |
+LL | |         && *x > 2
+...  |
+LL | |         println!("Popped: {}", val);
+LL | |     }
+   | |_____^
+   |
+   = help: try using `vec.pop_if(|x| *x > 2);`
+
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:51:5
+   |
+LL | /     if let Some(x) = vec.last()
+LL | |
+LL | |         && *x > 2
+...  |
+LL | |     }
+   | |_____^
+   |
+   = help: try using `vec.pop_if(|x| *x > 2);`
+
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:60:5
+   |
+LL | /     if vec.last().map(|x| *x > 2).unwrap_or(false) {
+LL | |
+LL | |         let val = vec.pop().unwrap();
+LL | |         println!("Popped: {}", val);
+LL | |     }
+   | |_____^
+   |
+   = help: try using `vec.pop_if(|x| *x > 2);`
+
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:66:5
+   |
+LL | /     if vec.last().map(|x| *x > 2).unwrap_or(false) {
+LL | |
+LL | |         println!("Popped: {}", vec.pop().unwrap());
+LL | |     }
+   | |_____^
+   |
+   = help: try using `vec.pop_if(|x| *x > 2);`
+
+error: aborting due to 9 previous errors
+

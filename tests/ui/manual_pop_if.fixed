@@ -40,24 +40,6 @@ fn is_some_and_pattern_negative(mut vec: Vec<i32>, mut deque: VecDeque<i32>) {
         fake_vec.pop().unwrap();
     }
 
-    // Do not lint, else-if branch
-    if false {
-        // something
-    } else if vec.last().is_some_and(|x| *x > 2) {
-        vec.pop().unwrap();
-    }
-
-    // Do not lint, value used in let binding
-    if vec.last().is_some_and(|x| *x > 2) {
-        let _value = vec.pop().unwrap();
-        println!("Popped: {}", _value);
-    }
-
-    // Do not lint, value used in expression
-    if vec.last().is_some_and(|x| *x > 2) {
-        println!("Popped: {}", vec.pop().unwrap());
-    }
-
     // Do not lint, else block
     let _result = if vec.last().is_some_and(|x| *x > 2) {
         vec.pop().unwrap()
@@ -100,13 +82,6 @@ fn if_let_pattern_negative(mut vec: Vec<i32>) {
         }
     }
 
-    // Do not lint, value used in let binding
-    if let Some(x) = vec.last() {
-        if *x > 2 {
-            let _val = vec.pop().unwrap();
-        }
-    }
-
     // Do not lint, else block
     let _result = if let Some(x) = vec.last() {
         if *x > 2 { vec.pop().unwrap() } else { 0 }
@@ -139,20 +114,6 @@ fn let_chain_pattern_negative(mut vec: Vec<i32>) {
         && vec.len() > 2
     {
         vec.pop().unwrap();
-    }
-
-    // Do not lint, value used in let binding
-    if let Some(x) = vec.last()
-        && *x > 2
-    {
-        let _val = vec.pop().unwrap();
-    }
-
-    // Do not lint, value used in expression
-    if let Some(x) = vec.last()
-        && *x > 2
-    {
-        println!("Popped: {}", vec.pop().unwrap());
     }
 
     // Do not lint, else block
@@ -196,11 +157,6 @@ fn map_unwrap_or_pattern_negative(mut vec: Vec<i32>) {
     // Do not lint, map returns non-boolean
     if vec.last().map(|x| x + 1).unwrap_or(0) > 2 {
         vec.pop().unwrap();
-    }
-
-    // Do not lint, value used in let binding
-    if vec.last().map(|x| *x > 2).unwrap_or(false) {
-        let _val = vec.pop().unwrap();
     }
 
     // Do not lint, else block
