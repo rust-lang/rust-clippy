@@ -124,3 +124,81 @@ fn issue_15824() {
         _ => {},
     }
 }
+
+// // Issue 16474
+use std::marker::PhantomData;
+
+#[derive(Default, Clone)]
+pub struct Generic<T> {
+    pub id: usize,
+    pub data: PhantomData<T>,
+}
+
+fn issue_16474() {
+    use std::sync::{Arc, Mutex};
+
+    #[derive(Default, Clone)]
+    struct Entry<T> {
+        id: usize,
+        data: Arc<Mutex<T>>,
+    }
+
+    fn test_let_statement() {
+        let mut entries = vec![Entry::default(); 0];
+        //~^ zero_repeat_side_effects
+
+        for (i, e) in entries.iter_mut().enumerate() {
+            e.id = i;
+            *e.data.lock().unwrap() = i;
+        }
+
+        let entry_0 = &entries[0];
+
+        assert_eq!(entry_0.id, *entry_0.data.lock().unwrap());
+    }
+
+    fn test_assign_expr_no_curly() {
+        let mut entries: Vec<Entry<usize>> = vec![];
+        entries = vec![Entry::default(); 0];
+        //~^ zero_repeat_side_effects
+
+        for (i, e) in entries.iter_mut().enumerate() {
+            e.id = i;
+            *e.data.lock().unwrap() = i;
+        }
+
+        let entry_0 = &entries[0];
+
+        assert_eq!(entry_0.id, *entry_0.data.lock().unwrap());
+    }
+
+    fn test_assign_expr_curly() {
+        let mut entries: Vec<Entry<usize>> = vec![];
+        match 0 {
+            0 => entries = vec![Entry::default(); 0], //~ zero_repeat_side_effects
+            _ => (),
+        }
+
+        for (i, e) in entries.iter_mut().enumerate() {
+            e.id = i;
+            *e.data.lock().unwrap() = i;
+        }
+
+        let entry_0 = &entries[0];
+
+        assert_eq!(entry_0.id, *entry_0.data.lock().unwrap());
+    }
+
+    fn some_fn(a: Vec<Generic<usize>>, b: usize) {
+        for i in a.iter() {
+            println!("i.id = {},b = {b}", i.id);
+        }
+    }
+
+    test_let_statement();
+    test_assign_expr_no_curly();
+    test_assign_expr_curly();
+
+    some_fn(vec![Generic::default(); 0], 42);
+    //~^ zero_repeat_side_effects
+}
