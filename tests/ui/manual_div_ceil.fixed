@@ -134,3 +134,16 @@ fn issue_16219() {
     let z = MyStruct(x);
     let _ = z.next_multiple_of(8) / 8;
 }
+
+fn wrongly_unmangled_macros() {
+    macro_rules! test_lhs {
+        ($val:expr) => {
+            ($val + 1)
+        };
+    }
+
+    let x = 7_u32;
+    let y = 4_u32;
+    let _ = test_lhs!(x).div_ceil(y);
+    //~^ manual_div_ceil
+}

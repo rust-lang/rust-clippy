@@ -148,7 +148,7 @@ fn build_suggestion(
     rhs: &Expr<'_>,
     applicability: &mut Applicability,
 ) {
-    let dividend_sugg = Sugg::hir_with_applicability(cx, lhs, "..", applicability).maybe_paren();
+    let dividend_sugg = Sugg::hir_with_context(cx, lhs, expr.span.ctxt(), "..", applicability).maybe_paren();
     let rhs_ty = cx.typeck_results().expr_ty(rhs);
     let type_suffix = if cx.typeck_results().expr_ty(lhs).is_numeric()
         && matches!(
