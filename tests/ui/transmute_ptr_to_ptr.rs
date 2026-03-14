@@ -1,5 +1,12 @@
 #![warn(clippy::transmute_ptr_to_ptr)]
-#![allow(clippy::borrow_as_ptr, clippy::missing_transmute_annotations)]
+#![allow(
+    clippy::borrow_as_ptr,
+    clippy::missing_transmute_annotations,
+    clippy::let_unit_value,
+    clippy::unnecessary_mut_passed,
+    mutable_transmutes,
+    invalid_reference_casting
+)]
 
 use std::mem::transmute;
 
@@ -136,6 +143,26 @@ fn msrv_1_65(ptr: *const u8, mut_ptr: *mut u8) {
         let _: *mut u8 = transmute(ptr);
         //~^ transmute_ptr_to_ptr
         let _: *const u8 = transmute(mut_ptr);
+        //~^ transmute_ptr_to_ptr
+    }
+}
+
+fn issue15003(bs: &[u8]) {
+    unsafe {
+        transmute::<&[u8], &mut [u8]>(bs)[4] = 42;
+        //~^ transmute_ptr_to_ptr
+        let _ = transmute::<&[u8], &mut [u8]>(bs).len();
+        //~^ transmute_ptr_to_ptr
+        // NOTE: need to transmute into something we can then index into
+        let _ = transmute::<&[u8], &mut (u8, [u8])>(bs).0;
+        //~^ transmute_ptr_to_ptr
+
+        // Don't add parens if the expression is not the receiver
+        struct S;
+        impl S {
+            fn foo(self, _: &mut [u8]) {}
+        }
+        let _ = S.foo(transmute::<&[u8], &mut [u8]>(bs));
         //~^ transmute_ptr_to_ptr
     }
 }
