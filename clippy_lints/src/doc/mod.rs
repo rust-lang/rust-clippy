@@ -3,7 +3,9 @@
 use clippy_config::Conf;
 use clippy_utils::attrs::is_doc_hidden;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_help, span_lint_and_then};
-use clippy_utils::{is_entrypoint_fn, is_trait_impl_item};
+use clippy_utils::macros::root_macro_call;
+use clippy_utils::{is_entrypoint_fn, is_trait_impl_item, sym};
+use rustc_ast::token::DocFragmentKind;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir::{Attribute, ImplItemKind, ItemKind, Node, Safety, TraitItemKind};
@@ -859,7 +861,17 @@ fn check_attrs(cx: &LateContext<'_>, valid_idents: &FxHashSet<String>, attrs: &[
 
     let (fragments, _) = attrs_to_doc_fragments(
         attrs.iter().filter_map(|attr| {
-            if attr.doc_str_and_fragment_kind().is_none() || attr.span().in_external_macro(cx.sess().source_map()) {
+            let (_, kind) = attr.doc_str_and_fragment_kind()?;
+            let (is_raw, doc_str_span) = match kind {
+                DocFragmentKind::Sugared(_) => (false, attr.span()),
+                DocFragmentKind::Raw(span) => (true, span),
+            };
+            if is_raw
+                && !attr.span().in_external_macro(cx.sess().source_map())
+                && originated_from_include_str_macro(cx, doc_str_span)
+            {
+                Some((attr, None))
+            } else if doc_str_span.in_external_macro(cx.sess().source_map()) {
                 None
             } else {
                 Some((attr, None))
@@ -936,6 +948,17 @@ fn check_attrs(cx: &LateContext<'_>, valid_idents: &FxHashSet<String>, attrs: &[
         },
         attrs,
     ))
+}
+
+fn originated_from_include_str_macro(cx: &LateContext<'_>, span: Span) -> bool {
+    if let Some(macro_call) = root_macro_call(span)
+        && let Some(macro_name) = cx.tcx.get_diagnostic_name(macro_call.def_id)
+        && matches!(macro_name, sym::include_str_macro)
+    {
+        true
+    } else {
+        false
+    }
 }
 
 enum Container {
