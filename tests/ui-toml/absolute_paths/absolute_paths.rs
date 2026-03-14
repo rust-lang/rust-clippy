@@ -1,9 +1,10 @@
 //@aux-build:../../ui/auxiliary/proc_macros.rs
-//@revisions: default allow_crates allow_long no_short
+//@revisions: default allow_crates allow_long no_short max_occurrences
 //@[default] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/absolute_paths/default
 //@[allow_crates] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/absolute_paths/allow_crates
 //@[allow_long] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/absolute_paths/allow_long
 //@[no_short] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/absolute_paths/no_short
+//@[max_occurrences] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/absolute_paths/max_occurrences
 #![deny(clippy::absolute_paths)]
 
 extern crate proc_macros;
@@ -22,7 +23,11 @@ fn main() {
     //~[allow_crates]| absolute_paths
     //~[no_short]| absolute_paths
 
-    let _ = std::collections::hash_map::HashMap::<i32, i32>::new(); //~ absolute_paths
+    let _ = std::collections::hash_map::HashMap::<i32, i32>::new();
+    //~[default]^ absolute_paths
+    //~[allow_crates]| absolute_paths
+    //~[allow_long]| absolute_paths
+    //~[no_short]| absolute_paths
 
     // Note `std::path::Path::new` is treated as having three parts
     let _: &std::path::Path = std::path::Path::new("");
@@ -98,6 +103,82 @@ fn main() {
     inline! {
         let _ = std::path::is_separator(' ');
     }
+
+    {
+        // Test with max_occurrences = 2
+
+        // Used exactly twice, should NOT trigger
+        let _ = std::io::ErrorKind::Other;
+        //~[default]^ absolute_paths
+        //~[allow_crates]| absolute_paths
+        //~[no_short]| absolute_paths
+        let _ = std::io::ErrorKind::Other;
+        //~[default]^ absolute_paths
+        //~[allow_crates]| absolute_paths
+        //~[no_short]| absolute_paths
+
+        // Used three times, should trigger on ALL occurrences
+        let _ = std::env::current_dir();
+        //~[default]^ absolute_paths
+        //~[allow_crates]| absolute_paths
+        //~[no_short]| absolute_paths
+        //~[max_occurrences]| absolute_paths
+        let _ = std::env::current_dir();
+        //~[default]^ absolute_paths
+        //~[allow_crates]| absolute_paths
+        //~[no_short]| absolute_paths
+        //~[max_occurrences]| absolute_paths
+        let _ = std::env::current_dir();
+        //~[default]^ absolute_paths
+        //~[allow_crates]| absolute_paths
+        //~[no_short]| absolute_paths
+        //~[max_occurrences]| absolute_paths
+
+        // Distinct paths to show it does the path distinction correctly
+        let _ = std::fs::read_dir(".");
+        //~[default]^ absolute_paths
+        //~[allow_crates]| absolute_paths
+        //~[no_short]| absolute_paths
+        let _ = std::fs::read_dir(".");
+        //~[default]^ absolute_paths
+        //~[allow_crates]| absolute_paths
+        //~[no_short]| absolute_paths
+        let _ = std::fs::metadata(".");
+        //~[default]^ absolute_paths
+        //~[allow_crates]| absolute_paths
+        //~[no_short]| absolute_paths
+        let _ = std::fs::metadata(".");
+        //~[default]^ absolute_paths
+        //~[allow_crates]| absolute_paths
+        //~[no_short]| absolute_paths
+
+        #[allow(clippy::absolute_paths)]
+        let _ = std::collections::btree_map::BTreeMap::from([("Mercury", 0.4)]);
+        let _ = std::collections::btree_map::BTreeMap::from([("Mercury", 0.4)]);
+        //~[default]^ absolute_paths
+        //~[allow_crates]| absolute_paths
+        //~[allow_long]| absolute_paths
+        //~[no_short]| absolute_paths
+        let _ = std::collections::btree_map::BTreeMap::from([("Mercury", 0.4)]);
+        //~[default]^ absolute_paths
+        //~[allow_crates]| absolute_paths
+        //~[allow_long]| absolute_paths
+        //~[no_short]| absolute_paths
+
+        // #[expect] works the same way.
+        #[expect(clippy::absolute_paths)]
+        let _ = std::collections::linked_list::LinkedList::from([1]);
+        let _ = std::collections::linked_list::LinkedList::from([1]);
+        //~[default]^ absolute_paths
+        //~[allow_crates]| absolute_paths
+        //~[allow_long]| absolute_paths
+        //~[no_short]| absolute_paths
+        let _ = std::collections::linked_list::LinkedList::from([1]);
+        //~[default]^ absolute_paths
+        //~[allow_crates]| absolute_paths
+        //~[allow_long]| absolute_paths
+        //~[no_short]| absolute_paths
+    }
 }
 
 pub use core::cmp::Ordering;
@@ -120,4 +201,28 @@ const _: crate::S = {
 
 pub fn f() {
     let _ = <crate::S as Clone>::clone(&m1::S); //~[no_short] absolute_paths
+}
+
+mod submodule {
+    pub fn f() {
+        let _ = std::env::current_dir();
+        //~[default]^ absolute_paths
+        //~[allow_crates]| absolute_paths
+        //~[no_short]| absolute_paths
+        //~[max_occurrences]| absolute_paths
+        let _ = std::env::current_dir();
+        //~[default]^ absolute_paths
+        //~[allow_crates]| absolute_paths
+        //~[no_short]| absolute_paths
+        //~[max_occurrences]| absolute_paths
+        let _ = std::env::current_dir();
+        //~[default]^ absolute_paths
+        //~[allow_crates]| absolute_paths
+        //~[no_short]| absolute_paths
+        //~[max_occurrences]| absolute_paths
+
+        let _ = ::core::clone::Clone::clone(&0i32);
+        //~[default]^ absolute_paths
+        //~[no_short]| absolute_paths
+    }
 }
