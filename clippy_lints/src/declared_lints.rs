@@ -477,6 +477,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::methods::SUSPICIOUS_COMMAND_ARG_SPACE_INFO,
     crate::methods::SUSPICIOUS_MAP_INFO,
     crate::methods::SUSPICIOUS_OPEN_OPTIONS_INFO,
+    crate::methods::SUSPICIOUS_SLICE_COPIES_INFO,
     crate::methods::SUSPICIOUS_SPLITN_INFO,
     crate::methods::SUSPICIOUS_TO_OWNED_INFO,
     crate::methods::SWAP_WITH_TEMPORARY_INFO,
