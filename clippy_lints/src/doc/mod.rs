@@ -265,7 +265,7 @@ declare_clippy_lint! {
     /// /// Consume the array and return the inner
     /// /// [`SmallVec<[T; INLINE_CAPACITY]>`][SmallVec].
     /// /// [SmallVec]: SmallVec
-    /// fn main() {}
+    /// fn foo() {}
     /// ```
     #[clippy::version = "pre 1.29.0"]
     pub DOC_MARKDOWN,
