@@ -8,6 +8,11 @@ document.
 
 [500e0ff...master](https://github.com/rust-lang/rust-clippy/compare/500e0ff...master)
 
+### New Lints
+
+* Added [`unnecessary_trailing_comma`] to `style` (single-line format-like macros only)
+  [#13965](https://github.com/rust-lang/rust-clippy/issues/13965)
+
 ## Rust 1.94
 
 Current stable, released 2026-03-05
@@ -103,11 +108,6 @@ Current stable, released 2026-03-05
 
 * [`needless_type_cast`] do not ICE on struct constructor
   [#16245](https://github.com/rust-lang/rust-clippy/pull/16245)
-
-### New Lints
-
-* Added [`unnecessary_trailing_comma`] to `style` (single-line format-like macros only)
-  [#13965](https://github.com/rust-lang/rust-clippy/issues/13965)
 
 ## Rust 1.93
 
