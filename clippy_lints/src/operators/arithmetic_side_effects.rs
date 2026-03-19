@@ -85,22 +85,17 @@ impl ArithmeticSideEffects {
         }
     }
 
-    fn init_if_needed(&mut self, cx: &LateContext<'_>) {
-        if self.inited {
-            return;
-        }
+    fn search_local_crate(cx: &LateContext<'_>, name: &str) -> Vec<GeneralTy> {
+        cx.tcx
+            .hir_crate_items(())
+            .definitions()
+            .map(def_id::LocalDefId::to_def_id)
+            .filter(|&id| cx.tcx.opt_item_name(id).is_some_and(|sym| sym.as_str() == name))
+            .map(GeneralTy::Path)
+            .collect()
+    }
 
-        let search_local_crate = |cx: &LateContext<'_>, name: &str| -> Vec<GeneralTy> {
-            cx.tcx
-                .hir_crate_items(())
-                .definitions()
-                .map(def_id::LocalDefId::to_def_id)
-                .filter(|&id| cx.tcx.opt_item_name(id).is_some_and(|sym| sym.as_str() == name))
-                .map(GeneralTy::Path)
-                .collect()
-        };
-
-        // Unary operations
+    fn init_unary_ops(&mut self, cx: &LateContext<'_>) {
         self.allowed_unary.insert(GeneralTy::Prim(PrimTy::Float(FloatTy::F32)));
         self.allowed_unary.insert(GeneralTy::Prim(PrimTy::Float(FloatTy::F64)));
 
@@ -116,7 +111,7 @@ impl ArithmeticSideEffects {
             if let Some(prim) = PrimTy::from_name(sym) {
                 self.allowed_unary.insert(GeneralTy::Prim(prim));
             } else {
-                let mut found = search_local_crate(cx, path_str);
+                let mut found = ArithmeticSideEffects::search_local_crate(cx, path_str);
 
                 if found.is_empty() {
                     found.extend(
@@ -129,8 +124,10 @@ impl ArithmeticSideEffects {
                 self.allowed_unary.extend(found);
             }
         }
+    }
 
-        // Binary operations
+
+    fn init_binary_ops(&mut self, cx: &LateContext<'_>) {
         let string_def_ids: Vec<_> = paths::lookup_path_str(cx.tcx, PathNS::Type, "std::string::String")
             .into_iter()
             .collect();
@@ -156,7 +153,7 @@ impl ArithmeticSideEffects {
             .insert(GeneralTy::Prim(PrimTy::Float(FloatTy::F64)));
 
         let resolve_ty = |path_str: &String| -> Vec<GeneralTy> {
-            let local_types = search_local_crate(cx, path_str);
+            let local_types = Self::search_local_crate(cx, path_str);
 
             if local_types.is_empty() {
                 let sym = Symbol::intern(path_str);
@@ -200,9 +197,11 @@ impl ArithmeticSideEffects {
                 }
             }
         }
+    }
 
+    fn init_allowed_types(&mut self, cx: &LateContext<'_>) {
         for path_str in &self.conf_allowed {
-            let mut found = search_local_crate(cx, path_str);
+            let mut found = ArithmeticSideEffects::search_local_crate(cx, path_str);
 
             if found.is_empty() {
                 let sym = Symbol::intern(path_str);
@@ -222,6 +221,16 @@ impl ArithmeticSideEffects {
                 self.allowed_binary_with_any.insert(ty);
             }
         }
+    }
+
+    fn init_if_needed(&mut self, cx: &LateContext<'_>) {
+        if self.inited {
+            return;
+        }
+
+        self.init_unary_ops(cx);
+        self.init_binary_ops(cx);
+        self.init_allowed_types(cx);
 
         self.inited = true;
     }
