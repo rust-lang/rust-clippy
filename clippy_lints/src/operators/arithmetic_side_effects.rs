@@ -16,7 +16,7 @@ use rustc_hir::def_id::DefId;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty, UintTy};
 use rustc_session::impl_lint_pass;
-use rustc_span::{Span, Symbol};
+use rustc_span::{Span, Symbol, def_id};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 enum GeneralTy {
@@ -45,9 +45,9 @@ pub struct ArithmeticSideEffects {
     allowed_binary: UnordMap<GeneralTy, UnordSet<GeneralTy>>,
     allowed_binary_with_any: UnordSet<GeneralTy>,
     allowed_unary: UnordSet<GeneralTy>,
-    arithmetic_side_effects_allowed_binary: Vec<(String, String)>,
-    arithmetic_side_effects_allowed_unary: Vec<String>,
-    arithmetic_side_effects_allowed: Vec<String>,
+    conf_allowed_binary: Vec<(String, String)>,
+    conf_allowed_unary: Vec<String>,
+    conf_allowed: Vec<String>,
     // Used to check whether expressions are constants, such as in enum discriminants and consts
     const_span: Option<Span>,
     disallowed_int_methods: FxHashSet<Symbol>,
@@ -62,20 +62,16 @@ impl ArithmeticSideEffects {
 
         Self {
             inited: false,
-            allowed_binary: Default::default(),
-            allowed_binary_with_any: Default::default(),
-            allowed_unary: Default::default(),
-            arithmetic_side_effects_allowed_binary: conf
+            allowed_binary: UnordMap::default(),
+            allowed_binary_with_any: UnordSet::default(),
+            allowed_unary: UnordSet::default(),
+            conf_allowed_binary: conf
                 .arithmetic_side_effects_allowed_binary
                 .iter()
                 .map(|(a, b)| (clean(a), clean(b)))
                 .collect(),
-            arithmetic_side_effects_allowed_unary: conf
-                .arithmetic_side_effects_allowed_unary
-                .iter()
-                .map(clean)
-                .collect(),
-            arithmetic_side_effects_allowed: conf.arithmetic_side_effects_allowed.iter().map(clean).collect(),
+            conf_allowed_unary: conf.arithmetic_side_effects_allowed_unary.iter().map(clean).collect(),
+            conf_allowed: conf.arithmetic_side_effects_allowed.iter().map(clean).collect(),
             const_span: None,
             disallowed_int_methods: [
                 sym::saturating_div,
@@ -98,7 +94,7 @@ impl ArithmeticSideEffects {
             cx.tcx
                 .hir_crate_items(())
                 .definitions()
-                .map(|id| id.to_def_id())
+                .map(def_id::LocalDefId::to_def_id)
                 .filter(|&id| cx.tcx.opt_item_name(id).is_some_and(|sym| sym.as_str() == name))
                 .map(GeneralTy::Path)
                 .collect()
@@ -114,7 +110,7 @@ impl ArithmeticSideEffects {
             }
         }
 
-        for path_str in &self.arithmetic_side_effects_allowed_unary {
+        for path_str in &self.conf_allowed_unary {
             let sym = Symbol::intern(path_str);
 
             if let Some(prim) = PrimTy::from_name(sym) {
@@ -162,9 +158,7 @@ impl ArithmeticSideEffects {
         let resolve_ty = |path_str: &String| -> Vec<GeneralTy> {
             let local_types = search_local_crate(cx, path_str);
 
-            if !local_types.is_empty() {
-                local_types
-            } else {
+            if local_types.is_empty() {
                 let sym = Symbol::intern(path_str);
                 if let Some(prim) = PrimTy::from_name(sym) {
                     vec![GeneralTy::Prim(prim)]
@@ -174,10 +168,12 @@ impl ArithmeticSideEffects {
                         .map(GeneralTy::Path)
                         .collect()
                 }
+            } else {
+                local_types
             }
         };
 
-        for (lhs_str, rhs_str) in &self.arithmetic_side_effects_allowed_binary {
+        for (lhs_str, rhs_str) in &self.conf_allowed_binary {
             if lhs_str == "*" && rhs_str == "*" {
                 continue;
             }
@@ -205,7 +201,7 @@ impl ArithmeticSideEffects {
             }
         }
 
-        for path_str in &self.arithmetic_side_effects_allowed {
+        for path_str in &self.conf_allowed {
             let mut found = search_local_crate(cx, path_str);
 
             if found.is_empty() {
@@ -233,14 +229,12 @@ impl ArithmeticSideEffects {
     /// Checks if the lhs and the rhs types of a binary operation like "addition" or
     /// "multiplication" are present in the inner set of allowed types.
     fn has_allowed_binary(&self, lhs_ty: Ty<'_>, rhs_ty: Ty<'_>) -> bool {
-        let lhs = match GeneralTy::from_ty(lhs_ty) {
-            Some(ty) => ty,
-            None => return false,
+        let Some(lhs) = GeneralTy::from_ty(lhs_ty) else {
+            return false;
         };
 
-        let rhs = match GeneralTy::from_ty(rhs_ty) {
-            Some(ty) => ty,
-            None => return false,
+        let Some(rhs) = GeneralTy::from_ty(rhs_ty) else {
+            return false;
         };
 
         if self.allowed_binary_with_any.contains(&lhs) || self.allowed_binary_with_any.contains(&rhs) {
