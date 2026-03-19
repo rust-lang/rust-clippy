@@ -126,7 +126,6 @@ impl ArithmeticSideEffects {
         }
     }
 
-
     fn init_binary_ops(&mut self, cx: &LateContext<'_>) {
         let string_def_ids: Vec<_> = paths::lookup_path_str(cx.tcx, PathNS::Type, "std::string::String")
             .into_iter()
