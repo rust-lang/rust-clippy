@@ -534,6 +534,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::missing_trait_methods::MISSING_TRAIT_METHODS_INFO,
     crate::mixed_read_write_in_expression::DIVERGING_SUB_EXPRESSION_INFO,
     crate::mixed_read_write_in_expression::MIXED_READ_WRITE_IN_EXPRESSION_INFO,
+    crate::module_style::INLINE_MODULE_INFO,
     crate::module_style::MOD_MODULE_FILES_INFO,
     crate::module_style::SELF_NAMED_MODULE_FILES_INFO,
     crate::multi_assignments::MULTI_ASSIGNMENTS_INFO,
