@@ -1,0 +1,24 @@
+#![warn(clippy::unnecessary_to_owned)]
+
+fn main() {
+    let slice: &[u8] = &[1, 2, 3];
+    let mut vec = vec![0u8];
+
+    // Should lint
+    vec.extend(slice.to_vec());
+    //~^ unnecessary_to_owned
+    vec.extend(slice.to_owned());
+    //~^ unnecessary_to_owned
+
+    let other_vec = vec![4, 5, 6];
+    let vec_ref: &Vec<u8> = &other_vec;
+    vec.extend(vec_ref.clone());
+    //~^ unnecessary_to_owned
+
+    // Should not lint
+    vec.extend(slice.iter());
+    vec.extend(other_vec);
+
+    // Should not lint: self-extend would cause borrow conflict
+    vec.extend(vec.to_vec());
+}
