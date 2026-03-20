@@ -1,0 +1,23 @@
+error: this `matches!` can be written as an `if let`
+  --> tests/ui/matches_if_let.rs:24:8
+   |
+LL |     if matches!(unit, Enum::A) {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `if let`: `let Enum::A = unit`
+   |
+   = note: `-D clippy::matches-if-let` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::matches_if_let)]`
+
+error: this `matches!` can be written as an `if let`
+  --> tests/ui/matches_if_let.rs:29:15
+   |
+LL |     } else if matches!(opt, Some(_)) {
+   |               ^^^^^^^^^^^^^^^^^^^^^^ help: consider using `if let`: `let Some(_) = opt`
+
+error: this `matches!` can be written as an `if let`
+  --> tests/ui/matches_if_let.rs:33:8
+   |
+LL |     if matches!(Some(1), Some(_)) {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `if let`: `let Some(_) = Some(1)`
+
+error: aborting due to 3 previous errors
+

@@ -1,0 +1,17 @@
+error: this `matches!` can be written as an `if let`
+  --> tests/ui/matches_if_let_guard.rs:21:8
+   |
+LL |     if matches!(guarded, Enum::A(n) if n == 1) {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `if let`: `let Enum::A(n) = guarded && (n == 1)`
+   |
+   = note: `-D clippy::matches-if-let` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::matches_if_let)]`
+
+error: this `matches!` can be written as an `if let`
+  --> tests/ui/matches_if_let_guard.rs:43:8
+   |
+LL |     if matches!(guarded, Enum::A(n) if n == 1) {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `if let`: `let Enum::A(n) = guarded && (n == 1)`
+
+error: aborting due to 2 previous errors
+
