@@ -1,0 +1,23 @@
+error: unnecessary allocation in argument to `extend`
+  --> tests/ui/extend_with_to_owned.rs:8:5
+   |
+LL |     vec.extend(slice.to_vec());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `vec.extend_from_slice(slice)`
+   |
+   = note: `-D clippy::unnecessary-to-owned` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_to_owned)]`
+
+error: unnecessary allocation in argument to `extend`
+  --> tests/ui/extend_with_to_owned.rs:10:5
+   |
+LL |     vec.extend(slice.to_owned());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `vec.extend_from_slice(slice)`
+
+error: unnecessary allocation in argument to `extend`
+  --> tests/ui/extend_with_to_owned.rs:15:5
+   |
+LL |     vec.extend(vec_ref.clone());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `vec.extend_from_slice(vec_ref)`
+
+error: aborting due to 3 previous errors
+
