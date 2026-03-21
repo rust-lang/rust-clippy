@@ -803,6 +803,112 @@ pub fn str_literal_to_char_literal(
     }
 }
 
+/// Checks if the given text contains a comment with the given marker (e.g., `SAFETY:`)
+/// that applies to the given position. If so, returns the position of the comment and
+/// whether it's a doc comment.
+///
+/// If `accept_comment_above_attributes` is true, it will ignore attributes inbetween
+/// blocks of comments
+pub fn text_has_marked_comment(
+    src: &str,
+    line_starts: &[RelativeBytePos],
+    start_pos: BytePos,
+    comment_marker: &str,
+    accept_comment_above_attributes: bool,
+) -> Option<(BytePos, bool)> {
+    let mut lines = line_starts
+        .array_windows::<2>()
+        .rev()
+        .map_while(|[start, end]| {
+            let start = start.to_usize();
+            let end = end.to_usize();
+            let text = src.get(start..end)?;
+            let trimmed = text.trim_start();
+            Some((start + (text.len() - trimmed.len()), trimmed))
+        })
+        .filter(|(_, text)| {
+            !(text.is_empty()
+                || (accept_comment_above_attributes
+                    // is the line an attribute
+                    && ((text.starts_with("#[") || text.starts_with("#![")) && text.trim_end().ends_with(']'))))
+        });
+
+    let (line_start, line) = lines.next()?;
+
+    let mut in_codeblock = false;
+    // Check for a sequence of line comments.
+    if line.starts_with("//") {
+        let (mut line, mut line_start) = (line, line_start);
+        loop {
+            // Check for the start or end of a code block in the documentation comment.
+            // We want to ignore marked comment that appear in code blocks, since the
+            // marked comment isn't referring to the node we're currently checking.
+            if let Some(doc) = line.strip_prefix("///").or_else(|| line.strip_prefix("//!"))
+                && doc.trim_start().starts_with("```")
+            {
+                in_codeblock = !in_codeblock;
+            }
+
+            if !in_codeblock && let Some(marker_pos) = line.to_ascii_uppercase().find(comment_marker) {
+                return Some((
+                    start_pos
+                        + BytePos(u32::try_from(line_start).unwrap())
+                        + BytePos(u32::try_from(marker_pos).unwrap()),
+                    line.starts_with("///"),
+                ));
+            }
+            match lines.next() {
+                Some((s, x)) if x.starts_with("//") => (line, line_start) = (x, s),
+                _ => return None,
+            }
+        }
+    }
+    // Check for a comment that appears after other code on the same line (e.g., `let x = // SAFETY:`)
+    // This handles cases in macros where the comment is on the same line as preceding code.
+    // We only check the first (immediate preceding) line for this pattern.
+    // Only whitespace is allowed between the comment marker and `SAFETY:`.
+    if let Some(comment_start) = [line.find("//"), line.find("/*")].into_iter().flatten().min()
+        && let after_marker = &line[comment_start + 2..] // skip marker
+        && let trimmed = after_marker.trim_start() // skip whitespace
+        && trimmed
+            .get(..comment_marker.len())
+            .is_some_and(|s| s.eq_ignore_ascii_case(comment_marker))
+    {
+        let marker_offset = 2 + (after_marker.len() - trimmed.len());
+        return Some((
+            start_pos
+                + BytePos(u32::try_from(line_start).unwrap())
+                + BytePos(u32::try_from(comment_start + marker_offset).unwrap()),
+            false,
+        ));
+    }
+    // No line comments; look for the start of a block comment.
+    // This will only find them if they are at the start of a line.
+    let (mut line_start, mut line) = (line_start, line);
+    loop {
+        if line.starts_with("/*") {
+            let src = &src[line_start..line_starts.last().unwrap().to_usize()];
+            let mut tokens = tokenize(src, FrontmatterAllowed::No);
+            let a = tokens.next();
+            if let Some(marker_pos) = src[..a.unwrap().len as usize].to_ascii_uppercase().find(comment_marker)
+                && tokens.all(|t| t.kind == TokenKind::Whitespace)
+            {
+                return Some((
+                    start_pos
+                        + BytePos(u32::try_from(line_start).unwrap())
+                        + BytePos(u32::try_from(marker_pos).unwrap()),
+                    line.starts_with("/**"),
+                ));
+            }
+            return None;
+        }
+        match lines.next() {
+            Some(x) => (line_start, line) = x,
+            None => return None,
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::reindent_multiline;
