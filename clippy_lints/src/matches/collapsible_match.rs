@@ -22,9 +22,18 @@ use crate::collapsible_if::{parens_around, peel_parens};
 use super::{COLLAPSIBLE_MATCH, pat_contains_disallowed_or};
 
 pub(super) fn check_match<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, arms: &'tcx [Arm<'_>], msrv: Msrv) {
-    if let Some(els_arm) = arms.iter().rfind(|arm| arm_is_wild_like(cx, arm)) {
-        for arm in arms {
-            check_arm(cx, true, arm.pat, expr, arm.body, arm.guard, Some(els_arm.body), msrv);
+    if let Some(els) = arms.iter().rposition(|arm| arm_is_wild_like(cx, arm)) {
+        for (i, arm) in arms.iter().enumerate() {
+            check_arm(
+                cx,
+                Some((i, els)),
+                arm.pat,
+                expr,
+                arm.body,
+                arm.guard,
+                Some(arms[els].body),
+                msrv,
+            );
         }
     }
 }
@@ -37,13 +46,13 @@ pub(super) fn check_if_let<'tcx>(
     let_expr: &'tcx Expr<'_>,
     msrv: Msrv,
 ) {
-    check_arm(cx, false, pat, let_expr, body, None, else_expr, msrv);
+    check_arm(cx, None, pat, let_expr, body, None, else_expr, msrv);
 }
 
 #[expect(clippy::too_many_arguments, clippy::too_many_lines)]
 fn check_arm<'tcx>(
     cx: &LateContext<'tcx>,
-    outer_is_match: bool,
+    outer_arm_and_else_index: Option<(usize, usize)>,
     outer_pat: &'tcx Pat<'tcx>,
     outer_cond: &'tcx Expr<'tcx>,
     outer_then_body: &'tcx Expr<'tcx>,
@@ -62,6 +71,7 @@ fn check_arm<'tcx>(
                     && let Some(wild_idx) = arms.iter().rposition(|a| arm_is_wild_like(cx, a))
                 {
                     let (then, els) = (&arms[1 - wild_idx], &arms[wild_idx]);
+
                     Some((scrutinee, then.pat, Some(els.body)))
                 } else {
                     None
@@ -103,7 +113,11 @@ fn check_arm<'tcx>(
             } else {
                 "if let"
             },
-            if outer_is_match { "match" } else { "if let" },
+            if outer_arm_and_else_index.is_some() {
+                "match"
+            } else {
+                "if let"
+            },
         );
         // collapsing patterns need an explicit field name in struct pattern matching
         // ex: Struct {x: Some(1)}
@@ -125,7 +139,8 @@ fn check_arm<'tcx>(
                 "the outer pattern can be modified to include the inner pattern",
             );
         });
-    } else if outer_is_match // Leave if-let to the `collapsible_if` lint
+    } else if let Some((arm_idx, els_idx)) = outer_arm_and_else_index // Leave if-let to the `collapsible_if` lint
+        && arm_idx + 1 == els_idx // The "else" arm should immediately follow the "then" arm, otherwise collapsing would be non-trivial
         && let Some(inner) = If::hir(inner_expr)
         && outer_pat.span.eq_ctxt(inner.cond.span)
         && match (outer_else_body, inner.r#else) {
