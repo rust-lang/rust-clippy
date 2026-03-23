@@ -7,8 +7,6 @@ use askama::filters::Safe;
 use cargo_metadata::Message;
 use cargo_metadata::diagnostic::{Applicability, Diagnostic};
 use clippy_config::ClippyConfiguration;
-use clippy_lints::declared_lints::LINTS;
-use clippy_lints::deprecated_lints::{DEPRECATED, DEPRECATED_VERSION, RENAMED};
 use declare_clippy_lint::LintInfo;
 use pulldown_cmark::{Options, Parser, html};
 use serde::Deserialize;
@@ -506,12 +504,12 @@ impl DiagnosticCollector {
             }
 
             let configs = clippy_config::get_configuration_metadata();
-            let mut metadata: Vec<LintMetadata> = LINTS
+            let mut metadata: Vec<LintMetadata> = ::clippy::LINTS
                 .iter()
-                .map(|lint| LintMetadata::new(lint, &applicabilities, &configs))
+                .map(|&lint| LintMetadata::new(lint, &applicabilities, &configs))
                 .chain(
-                    iter::zip(DEPRECATED, DEPRECATED_VERSION)
-                        .map(|((lint, reason), version)| LintMetadata::new_deprecated(lint, reason, version)),
+                    iter::zip(::clippy::DEPRECATED, ::clippy::DEPRECATED_VERSION)
+                        .map(|(&(lint, reason), &version)| LintMetadata::new_deprecated(lint, reason, version)),
                 )
                 .collect();
 
@@ -520,7 +518,7 @@ impl DiagnosticCollector {
             fs::write(
                 "util/gh-pages/index.html",
                 Renderer {
-                    count: LINTS.len(),
+                    count: ::clippy::LINTS.len(),
                     lints: &metadata,
                 }
                 .render()
@@ -583,10 +581,10 @@ impl LintMetadata {
             .get(&name)
             .cloned()
             .unwrap_or(Applicability::Unspecified);
-        let past_names = RENAMED
+        let past_names = ::clippy::RENAMED
             .iter()
-            .filter(|(_, new_name)| new_name.strip_prefix("clippy::") == Some(&name))
-            .map(|(old_name, _)| old_name.strip_prefix("clippy::").unwrap())
+            .filter(|&&(_, new_name)| new_name.strip_prefix("clippy::") == Some(&name))
+            .map(|&(old_name, _)| old_name.strip_prefix("clippy::").unwrap())
             .collect::<Vec<_>>();
         let mut docs = lint.explanation.to_string();
         if !past_names.is_empty() {

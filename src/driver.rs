@@ -162,12 +162,12 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
             }
 
             let mut list_builder = LintListBuilder::default();
-            list_builder.insert(::clippy_lints::declared_lints::LINTS);
+            list_builder.insert(::clippy::LINTS);
             list_builder.register(lint_store);
-            for (old_name, new_name) in ::clippy_lints::deprecated_lints::RENAMED {
+            for (old_name, new_name) in ::clippy::RENAMED {
                 lint_store.register_renamed(old_name, new_name);
             }
-            for (name, reason) in ::clippy_lints::deprecated_lints::DEPRECATED {
+            for (name, reason) in ::clippy::DEPRECATED {
                 lint_store.register_removed(name, reason);
             }
 

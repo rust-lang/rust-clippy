@@ -28,10 +28,7 @@ fn show_version() {
 fn explain(name: &str) -> i32 {
     let target = format!("clippy::{}", name.to_ascii_uppercase());
 
-    if let Some(info) = ::clippy_lints::declared_lints::LINTS
-        .iter()
-        .find(|info| info.lint.name == target)
-    {
+    if let Some(&info) = ::clippy::LINTS.iter().find(|&&info| info.lint.name == target) {
         println!("{}", sanitize_explanation(info.explanation));
         // Check if the lint has configuration
         let mut mdconf = get_configuration_metadata();

@@ -184,16 +184,10 @@ impl<'cx> ParseCxImpl<'cx> {
             #[expect(clippy::default_trait_access)]
             lints: LintMap(FxHashMap::with_capacity_and_hasher(1000, Default::default())),
             lint_passes: LintPasses(Vec::with_capacity(400)),
-            deprecated_file: self.source_files.alloc(SourceFile::load(self.str_buf.alloc_collect(
-                self.arena,
-                [
-                    "clippy_lints",
-                    path::MAIN_SEPARATOR_STR,
-                    "src",
-                    path::MAIN_SEPARATOR_STR,
-                    "deprecated_lints.rs",
-                ],
-            ))),
+            deprecated_file: self.source_files.alloc(SourceFile::load(
+                self.str_buf
+                    .alloc_collect(self.arena, ["src", path::MAIN_SEPARATOR_STR, "deprecated_lints.rs"]),
+            )),
         };
 
         for e in expect_action(fs::read_dir("."), ErrAction::Read, ".") {
