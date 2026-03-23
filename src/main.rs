@@ -7,7 +7,6 @@
 extern crate rustc_driver;
 
 use clippy_config::{Conf, sanitize_explanation};
-use clippy_lints::declared_lints;
 use std::env;
 use std::io::Write as _;
 use std::path::PathBuf;
@@ -28,7 +27,7 @@ fn show_version() {
 
 fn explain(name: &str) -> i32 {
     let target = format!("clippy::{}", name.to_ascii_uppercase());
-    if let Some(&info) = declared_lints::LINTS.iter().find(|info| info.lint.name == target) {
+    if let Some(&info) = ::clippy::LINTS.iter().find(|&&info| info.lint.name == target) {
         println!("{}", sanitize_explanation(info.explanation));
         // Check if the lint has configuration
         let mut mdconf = Conf::get_metadata();

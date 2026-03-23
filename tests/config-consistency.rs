@@ -14,7 +14,7 @@ fn config_consistency() {
         return;
     }
 
-    let lint_names: HashSet<String> = clippy_lints::declared_lints::LINTS
+    let lint_names: HashSet<String> = ::clippy::LINTS
         .iter()
         .map(|lint_info| lint_info.lint.name.strip_prefix("clippy::").unwrap().to_lowercase())
         .collect();

@@ -404,6 +404,3 @@ pub mod zero_div_zero;
 pub mod zero_repeat_side_effects;
 pub mod zero_sized_map_values;
 pub mod zombie_processes;
-
-pub mod declared_lints;
-pub mod deprecated_lints;
