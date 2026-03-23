@@ -85,7 +85,14 @@ impl UndocumentedMayPanicCall {
     // or is in the may-panic-functions configuration
     fn is_may_panic_function(&self, cx: &LateContext<'_>, def_id: DefId) -> bool {
         self.may_panic_def_ids.contains(&def_id)
-            || get_builtin_attr(cx.sess(), cx.tcx.get_all_attrs(def_id), sym::may_panic).count() > 0
+            || get_builtin_attr(
+                cx.sess(),
+                #[allow(deprecated)]
+                cx.tcx.get_all_attrs(def_id),
+                sym::may_panic,
+            )
+            .count()
+                > 0
     }
 }
 
