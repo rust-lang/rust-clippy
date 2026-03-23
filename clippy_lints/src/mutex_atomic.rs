@@ -1,11 +1,11 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::res::MaybeDef;
-use clippy_utils::source::{IntoSpan, SpanRangeExt};
+use clippy_utils::source::{FileRangeExt, SpanExt};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::ty_from_hir_ty;
 use rustc_errors::{Applicability, Diag};
 use rustc_hir::{self as hir, Expr, ExprKind, Item, ItemKind, LetStmt, QPath};
-use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::mir::Mutability;
 use rustc_middle::ty::{self, IntTy, Ty, UintTy};
 use rustc_session::declare_lint_pass;
@@ -150,13 +150,16 @@ fn check_expr<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>, ty_ascription: &T
                         suggs.push((ty_ascription.span, format!("std::sync::atomic::{atomic_name}")));
                     },
                     TypeAscriptionKind::Optional(Some(ty_ascription)) => {
-                        // See https://github.com/rust-lang/rust-clippy/pull/15386 for why this is
-                        // required
-                        let colon_ascription = (cx.sess().source_map())
-                            .span_extend_to_prev_char_before(ty_ascription.span, ':', true)
-                            .with_leading_whitespace(cx)
-                            .into_span();
-                        suggs.push((colon_ascription, String::new()));
+                        if let Some(sp) = ty_ascription.span.map_range(cx, |scx, range| {
+                            range
+                                .with_leading_whitespace(scx)?
+                                .with_leading_match(scx, ':')?
+                                .with_leading_whitespace(scx)
+                        }) {
+                            suggs.push((sp, String::new()));
+                        } else {
+                            return;
+                        }
                     },
                     TypeAscriptionKind::Optional(None) => {}, // nothing to remove/replace
                 }
