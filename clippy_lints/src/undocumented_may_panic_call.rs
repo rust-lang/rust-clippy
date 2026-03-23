@@ -64,11 +64,11 @@ declare_clippy_lint! {
     "missing `// Panic:` documentation on calls to functions that may panic"
 }
 
+impl_lint_pass!(UndocumentedMayPanicCall => [UNDOCUMENTED_MAY_PANIC_CALL]);
+
 pub struct UndocumentedMayPanicCall {
     may_panic_def_ids: FxHashSet<DefId>,
 }
-
-impl_lint_pass!(UndocumentedMayPanicCall => [UNDOCUMENTED_MAY_PANIC_CALL]);
 
 impl UndocumentedMayPanicCall {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {
