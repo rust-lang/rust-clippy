@@ -84,8 +84,8 @@ impl UndocumentedMayPanicCall {
     // A function is a may_panic_function if it has the may_panic attribute
     // or is in the may-panic-functions configuration
     fn is_may_panic_function(&self, cx: &LateContext<'_>, def_id: DefId) -> bool {
-        get_builtin_attr(cx.sess(), cx.tcx.get_all_attrs(def_id), sym::may_panic).count() > 0
-            || self.may_panic_def_ids.contains(&def_id)
+        self.may_panic_def_ids.contains(&def_id)
+            || get_builtin_attr(cx.sess(), cx.tcx.get_all_attrs(def_id), sym::may_panic).count() > 0
     }
 }
 
@@ -102,7 +102,7 @@ impl<'tcx> LateLintPass<'tcx> for UndocumentedMayPanicCall {
             hir::ExprKind::MethodCall(_path, _receiver, _args, _span) => {
                 cx.typeck_results().type_dependent_def_id(expr.hir_id)
             },
-            _ => None,
+            _ => return,
         };
 
         if let Some(def_id) = def_id
