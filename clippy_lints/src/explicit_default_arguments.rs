@@ -480,7 +480,7 @@ fn walk_ty_recursive<'tcx>(
             }),
         )
         | (ty::Alias(ty::Opaque, AliasTy { args: _, def_id, .. }), TyKind::TraitAscription(hir_bounds)) => {
-            let bounds = tcx.explicit_item_bounds(def_id).skip_binder();
+            let bounds = tcx.explicit_item_bounds(*def_id).skip_binder();
             // Assumes that the order of the traits are as written and the generic args as well
             let trait_bounds_args = bounds
                 .iter()
@@ -580,10 +580,9 @@ fn get_item_tys<'tcx>(tcx: TyCtxt<'tcx>, item: Item<'tcx>) -> impl IntoIterator<
                                 .into_iter()
                                 .chain(get_tys_from_generics(tcx, trait_item.generics, trait_item.owner_id)),
                         )),
-                        TraitItemKind::Const(ty, _) | TraitItemKind::Type(_, Some(ty)) => Some(Box::new(iter::once((
-                            tcx.type_of(trait_item.owner_id).skip_binder(),
-                            *ty,
-                        )))),
+                        TraitItemKind::Const(ty, _, _) | TraitItemKind::Type(_, Some(ty)) => Some(Box::new(
+                            iter::once((tcx.type_of(trait_item.owner_id).skip_binder(), *ty)),
+                        )),
                         TraitItemKind::Type(_, _) => None,
                     }
                 })
