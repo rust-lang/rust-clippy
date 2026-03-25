@@ -64,9 +64,7 @@ fn count_code_lines(src: &str) -> u64 {
     for (kind, text, _) in tokenize_with_text(src) {
         let is_code = !matches!(
             kind,
-            TokenKind::Whitespace
-                | TokenKind::LineComment { .. }
-                | TokenKind::BlockComment { .. }
+            TokenKind::Whitespace | TokenKind::LineComment { .. } | TokenKind::BlockComment { .. }
         );
 
         if is_code {
@@ -105,11 +103,7 @@ impl<'tcx> LateLintPass<'tcx> for ExcessiveFileLength {
             return;
         }
 
-        let code_lines = file
-            .src
-            .as_ref()
-            .map(|src| count_code_lines(src))
-            .unwrap_or(0);
+        let code_lines = file.src.as_ref().map(|src| count_code_lines(src)).unwrap_or(0);
 
         self.files.entry(name).or_insert(FileInfo {
             hir_id,
