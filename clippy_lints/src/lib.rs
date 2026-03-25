@@ -126,6 +126,7 @@ mod error_impl_error;
 mod escape;
 mod eta_reduction;
 mod excessive_bools;
+mod excessive_file_length;
 mod excessive_nesting;
 mod exhaustive_items;
 mod exit;
@@ -867,6 +868,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(move |tcx| Box::new(manual_pop_if::ManualPopIf::new(tcx, conf))),
         Box::new(move |_| Box::new(manual_noop_waker::ManualNoopWaker::new(conf))),
         Box::new(|_| Box::new(byte_char_slices::ByteCharSlice)),
+        Box::new(move |_| Box::new(excessive_file_length::ExcessiveFileLength::new(conf))),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);
