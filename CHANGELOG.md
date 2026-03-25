@@ -6702,6 +6702,7 @@ Released 2018-09-13
 [`err_expect`]: https://rust-lang.github.io/rust-clippy/master/index.html#err_expect
 [`error_impl_error`]: https://rust-lang.github.io/rust-clippy/master/index.html#error_impl_error
 [`eval_order_dependence`]: https://rust-lang.github.io/rust-clippy/master/index.html#eval_order_dependence
+[`excessive_file_length`]: https://rust-lang.github.io/rust-clippy/master/index.html#excessive_file_length
 [`excessive_nesting`]: https://rust-lang.github.io/rust-clippy/master/index.html#excessive_nesting
 [`excessive_precision`]: https://rust-lang.github.io/rust-clippy/master/index.html#excessive_precision
 [`exhaustive_enums`]: https://rust-lang.github.io/rust-clippy/master/index.html#exhaustive_enums
@@ -7485,6 +7486,7 @@ Released 2018-09-13
 [`enforced-import-renames`]: https://doc.rust-lang.org/clippy/lint_configuration.html#enforced-import-renames
 [`enum-variant-name-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#enum-variant-name-threshold
 [`enum-variant-size-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#enum-variant-size-threshold
+[`excessive-file-length-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#excessive-file-length-threshold
 [`excessive-nesting-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#excessive-nesting-threshold
 [`future-size-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#future-size-threshold
 [`ignore-interior-mutability`]: https://doc.rust-lang.org/clippy/lint_configuration.html#ignore-interior-mutability
