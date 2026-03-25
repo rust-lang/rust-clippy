@@ -1091,10 +1091,10 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
         let from_expansion = expr.span.from_expansion();
 
         if let ExprKind::Match(ex, arms, source) = expr.kind {
-            if is_direct_expn_of(expr.span, sym::matches).is_some()
+            if let Some(matches_span) = is_direct_expn_of(expr.span, sym::matches)
                 && let [arm, _] = arms
             {
-                if_matches::check(cx, expr, ex, arms, self.msrv);
+                if_matches::check(cx, expr, matches_span, ex, arm, self.msrv);
                 redundant_pattern_match::check_match(cx, expr, ex, arms);
                 redundant_pattern_match::check_matches_true(cx, expr, arm, ex);
             }

@@ -21,6 +21,10 @@ fn main() {
     if matches!(guarded, Enum::A(n) if n == 1) {}
     //~[edition2024]^ matches_if_let
 
+    let chained = Some(1);
+    if chained.is_some() && matches!(chained, Some(_)) {}
+    //~[edition2024]^ matches_if_let
+
     let outer = 5;
     let shadowed = Enum::A(1);
     if matches!(shadowed, Enum::A(outer) if outer == 1) {
@@ -35,11 +39,18 @@ fn main() {
 fn msrv_1_87() {
     let guarded = Enum::A(1);
     if matches!(guarded, Enum::A(n) if n == 1) {}
+
+    let chained = Some(1);
+    if chained.is_some() && matches!(chained, Some(_)) {}
 }
 
 #[clippy::msrv = "1.88.0"]
 fn msrv_1_88() {
     let guarded = Enum::A(1);
     if matches!(guarded, Enum::A(n) if n == 1) {}
+    //~[edition2024]^ matches_if_let
+
+    let chained = Some(1);
+    if chained.is_some() && matches!(chained, Some(_)) {}
     //~[edition2024]^ matches_if_let
 }

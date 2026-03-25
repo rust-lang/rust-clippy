@@ -41,6 +41,7 @@ fn main() {
 
     let mixed = Some(1);
     if matches!(mixed, Some(_)) && mixed.is_some() {}
+    //~^ matches_if_let
 
     wrap_if!(matches!(Some(1), Some(_)));
 
