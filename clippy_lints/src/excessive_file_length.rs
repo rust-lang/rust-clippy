@@ -103,7 +103,7 @@ impl<'tcx> LateLintPass<'tcx> for ExcessiveFileLength {
             return;
         }
 
-        let code_lines = file.src.as_ref().map(|src| count_code_lines(src)).unwrap_or(0);
+        let code_lines = file.src.as_ref().map_or(0, |src| count_code_lines(src));
 
         self.files.entry(name).or_insert(FileInfo {
             hir_id,
