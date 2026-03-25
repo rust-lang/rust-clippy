@@ -1,0 +1,18 @@
+error: file has 12 code lines (2 over the limit of 10)
+  --> tests/ui-toml/excessive_file_length/excessive_file_length.rs:1:1
+   |
+LL | / #![warn(clippy::excessive_file_length)]
+LL | | fn main() {}
+LL | | fn one() {}
+LL | | fn two() {}
+...  |
+LL | | fn nine() {}
+LL | | fn ten() {}
+   | |___________^
+   |
+   = help: consider splitting this file into smaller modules
+   = note: `-D clippy::excessive-file-length` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::excessive_file_length)]`
+
+error: aborting due to 1 previous error
+
