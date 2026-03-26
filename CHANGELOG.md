@@ -7240,6 +7240,7 @@ Released 2018-09-13
 [`sliced_string_as_bytes`]: https://rust-lang.github.io/rust-clippy/master/index.html#sliced_string_as_bytes
 [`slow_vector_initialization`]: https://rust-lang.github.io/rust-clippy/master/index.html#slow_vector_initialization
 [`some_filter`]: https://rust-lang.github.io/rust-clippy/master/index.html#some_filter
+[`split_filter_map_ok`]: https://rust-lang.github.io/rust-clippy/master/index.html#split_filter_map_ok
 [`stable_sort_primitive`]: https://rust-lang.github.io/rust-clippy/master/index.html#stable_sort_primitive
 [`std_instead_of_alloc`]: https://rust-lang.github.io/rust-clippy/master/index.html#std_instead_of_alloc
 [`std_instead_of_core`]: https://rust-lang.github.io/rust-clippy/master/index.html#std_instead_of_core
