@@ -9,6 +9,7 @@ mod chars_last_cmp;
 mod chars_last_cmp_with_unwrap;
 mod chars_next_cmp;
 mod chars_next_cmp_with_unwrap;
+mod clear_then_shrink;
 mod clear_with_drain;
 mod clone_on_copy;
 mod clone_on_ref_ptr;
@@ -156,7 +157,7 @@ use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
 use clippy_utils::{contains_return, iter_input_pats, peel_blocks, sym};
 pub use path_ends_with_ext::DEFAULT_ALLOWED_DOTFILES;
 use rustc_data_structures::fx::FxHashSet;
-use rustc_hir::{self as hir, Expr, ExprKind, Node, Stmt, StmtKind, TraitItem, TraitItemKind};
+use rustc_hir::{self as hir, Block, Expr, ExprKind, Node, Stmt, StmtKind, TraitItem, TraitItemKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty::TraitRef;
 use rustc_session::impl_lint_pass;
@@ -320,6 +321,32 @@ declare_clippy_lint! {
     pub CHARS_NEXT_CMP,
     style,
     "using `.chars().next()` to check if a string starts with a char"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `clear()` calls immediately followed by `shrink_to_fit()` on certain standard
+    /// library containers.
+    ///
+    /// ### Why is this bad?
+    /// `mem::take` replaces the container with a fresh empty value in one step and avoids the
+    /// extra work of clearing and then shrinking it.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let mut v = vec![1, 2, 3];
+    /// v.clear();
+    /// v.shrink_to_fit();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let mut v = vec![1, 2, 3];
+    /// std::mem::take(&mut v);
+    /// ```
+    #[clippy::version = "1.95.0"]
+    pub CLEAR_THEN_SHRINK,
+    perf,
+    "calling `clear` and then `shrink_to_fit` instead of using `mem::take`"
 }
 
 declare_clippy_lint! {
@@ -4757,6 +4784,7 @@ impl_lint_pass!(Methods => [
     CASE_SENSITIVE_FILE_EXTENSION_COMPARISONS,
     CHARS_LAST_CMP,
     CHARS_NEXT_CMP,
+    CLEAR_THEN_SHRINK,
     CLEAR_WITH_DRAIN,
     CLONED_INSTEAD_OF_COPIED,
     CLONE_ON_COPY,
@@ -4968,6 +4996,10 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                 }
             }
         }
+    }
+
+    fn check_block(&mut self, cx: &LateContext<'tcx>, block: &'tcx Block<'_>) {
+        clear_then_shrink::check(cx, block, self.msrv);
     }
 
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
