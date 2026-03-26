@@ -1,4 +1,5 @@
 //@compile-flags: --cfg test
+#![allow(clippy::unused_impl)]
 #![deny(clippy::multiple_inherent_impl)]
 
 // issue #13040
