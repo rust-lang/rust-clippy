@@ -116,6 +116,7 @@ mod duration_suboptimal_units;
 mod else_if_without_else;
 mod empty_drop;
 mod empty_enums;
+mod empty_expect;
 mod empty_line_after;
 mod empty_with_brackets;
 mod endian_bytes;
@@ -865,6 +866,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(move |_| Box::new(manual_take::ManualTake::new(conf))),
         Box::new(|_| Box::new(manual_checked_ops::ManualCheckedOps)),
         Box::new(move |tcx| Box::new(manual_pop_if::ManualPopIf::new(tcx, conf))),
+        Box::new(|_| Box::new(empty_expect::EmptyExpect)),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);

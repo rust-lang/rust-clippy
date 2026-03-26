@@ -1,0 +1,20 @@
+error: `.expect("")` with an empty string provides no useful panic message
+  --> tests/ui/empty_expect.rs:6:13
+   |
+LL |     let _ = x.expect(""); // should warn
+   |             ^^^^^^^^^^^^
+   |
+   = help: provide a meaningful expect message or use `.unwrap()` instead
+   = note: `-D clippy::empty-expect` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::empty_expect)]`
+
+error: `.expect("")` with an empty string provides no useful panic message
+  --> tests/ui/empty_expect.rs:11:13
+   |
+LL |     let _ = v.expect(""); // should warn
+   |             ^^^^^^^^^^^^
+   |
+   = help: provide a meaningful expect message or use `.unwrap()` instead
+
+error: aborting due to 2 previous errors
+
