@@ -139,7 +139,7 @@ macro_rules! declare_clippy_lint_inner {
             $(, @eval_always = $eval_always)?
         }
 
-        pub(crate) static ${concat($lint_name, _INFO)}: &'static $crate::LintInfo = &$crate::LintInfo {
+        pub static ${concat($lint_name, _INFO)}: $crate::LintInfo = $crate::LintInfo {
             lint: $lint_name,
             category: $crate::LintCategory::$category,
             explanation: concat!($($docs,"\n",)*),

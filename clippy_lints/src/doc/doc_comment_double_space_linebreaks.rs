@@ -5,7 +5,7 @@ use rustc_span::{BytePos, Span};
 
 use super::DOC_COMMENT_DOUBLE_SPACE_LINEBREAKS;
 
-pub fn check(cx: &LateContext<'_>, collected_breaks: &[Span]) {
+pub(super) fn check(cx: &LateContext<'_>, collected_breaks: &[Span]) {
     if collected_breaks.is_empty() {
         return;
     }

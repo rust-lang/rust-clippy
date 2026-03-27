@@ -23,7 +23,7 @@ fn returns_unit<'a>(mut tokens: impl Iterator<Item = (TokenKind, &'a str, InnerS
     }
 }
 
-pub fn check(cx: &LateContext<'_>, text: &str, offset: usize, fragments: Fragments<'_>) {
+pub(super) fn check(cx: &LateContext<'_>, text: &str, offset: usize, fragments: Fragments<'_>) {
     if !text.contains("main") {
         return;
     }

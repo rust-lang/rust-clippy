@@ -334,7 +334,7 @@ fn span_extract_keyword(cx: &impl HasSession, span: Span, keyword: &str) -> Opti
 
 /// Peel the parentheses from an `if` expression, e.g. `((if true {} else {}))`.
 pub(super) fn peel_parens(cx: &impl HasSession, mut span: Span) -> (Span, Span, Span) {
-    use crate::rustc_span::Pos;
+    use rustc_span::Pos;
 
     let start = span.shrink_to_lo();
     let end = span.shrink_to_hi();

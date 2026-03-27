@@ -109,7 +109,7 @@ declare_clippy_lint! {
 impl_lint_pass!(Shadow => [SHADOW_REUSE, SHADOW_SAME, SHADOW_UNRELATED]);
 
 #[derive(Default)]
-pub(crate) struct Shadow {
+pub struct Shadow {
     bindings: Vec<(FxHashMap<Symbol, Vec<ItemLocalId>>, LocalDefId)>,
 }
 

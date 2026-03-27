@@ -5,7 +5,7 @@ use rustc_lint::LateContext;
 
 use super::{DOC_LINK_WITH_QUOTES, Fragments};
 
-pub fn check(cx: &LateContext<'_>, trimmed_text: &str, range: Range<usize>, fragments: Fragments<'_>) {
+pub(super) fn check(cx: &LateContext<'_>, trimmed_text: &str, range: Range<usize>, fragments: Fragments<'_>) {
     if ((trimmed_text.starts_with('\'') && trimmed_text.ends_with('\''))
         || (trimmed_text.starts_with('"') && trimmed_text.ends_with('"')))
         && let Some(span) = fragments.span(cx, range)

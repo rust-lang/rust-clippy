@@ -9,7 +9,7 @@ use url::Url;
 use crate::doc::{DOC_MARKDOWN, Fragments};
 use std::ops::Range;
 
-pub fn check(
+pub(super) fn check(
     cx: &LateContext<'_>,
     valid_idents: &FxHashSet<String>,
     text: &str,

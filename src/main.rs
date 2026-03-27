@@ -6,6 +6,7 @@
 
 extern crate rustc_driver;
 
+use clippy_config::{get_configuration_metadata, sanitize_explanation};
 use std::env;
 use std::io::Write as _;
 use std::path::PathBuf;
@@ -24,6 +25,28 @@ fn show_version() {
     }
 }
 
+fn explain(name: &str) -> i32 {
+    let target = format!("clippy::{}", name.to_ascii_uppercase());
+
+    if let Some(&info) = ::clippy::LINTS.iter().find(|&&info| info.lint.name == target) {
+        println!("{}", sanitize_explanation(info.explanation));
+        // Check if the lint has configuration
+        let mut mdconf = get_configuration_metadata();
+        let name = name.to_ascii_lowercase();
+        mdconf.retain(|cconf| cconf.lints.contains(&&*name));
+        if !mdconf.is_empty() {
+            println!("### Configuration for {}:\n", info.lint.name_lower());
+            for conf in mdconf {
+                println!("{conf}");
+            }
+        }
+        0
+    } else {
+        println!("unknown lint: {name}");
+        1
+    }
+}
+
 pub fn main() {
     // Check for version and help flags even when invoked as 'cargo-clippy'
     if env::args().any(|a| a == "--help" || a == "-h") {
@@ -39,7 +62,7 @@ pub fn main() {
     if let Some(pos) = env::args().position(|a| a == "--explain") {
         if let Some(mut lint) = env::args().nth(pos + 1) {
             lint.make_ascii_lowercase();
-            process::exit(clippy_lints::explain(
+            process::exit(explain(
                 &lint.strip_prefix("clippy::").unwrap_or(&lint).replace('-', "_"),
             ));
         } else {
@@ -187,6 +210,7 @@ You can use tool lints to allow or deny lints from your code, e.g.:
     <cyan,bold>--offline</>               Run without accessing the network
 ")
 }
+
 #[cfg(test)]
 mod tests {
     use super::ClippyCmd;
