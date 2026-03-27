@@ -7,10 +7,10 @@ use clippy_utils::{get_parent_expr, is_hir_ty_cfg_dependant, is_ty_alias, sym};
 use rustc_ast::{LitFloatType, LitIntType, LitKind};
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
-use rustc_hir::{Expr, ExprKind, FnRetTy, Lit, Node, Path, QPath, TyKind, UnOp};
+use rustc_hir::{Expr, ExprKind, FnRetTy, GenericArg, Lit, Node, Path, QPath, TyKind, UnOp};
 use rustc_lint::{LateContext, LintContext};
 use rustc_middle::ty::adjustment::Adjust;
-use rustc_middle::ty::{self, FloatTy, InferTy, Ty};
+use rustc_middle::ty::{self, FloatTy, InferTy, Ty, TypeVisitableExt};
 use rustc_span::Symbol;
 use std::ops::ControlFlow;
 
@@ -240,6 +240,61 @@ fn lint_unnecessary_cast(
         sugg,
         Applicability::MachineApplicable,
     );
+}
+
+pub(super) fn check_ptr_cast<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) -> bool {
+    if let ExprKind::MethodCall(method_path, receiver, [], _) = expr.kind
+        && method_path.ident.name == sym::cast
+        && let recv_ty = cx.typeck_results().expr_ty(receiver)
+        && let result_ty = cx.typeck_results().expr_ty(expr)
+        && let ty::RawPtr(from_pointee_ty, from_mutbl) = recv_ty.kind()
+        && let ty::RawPtr(to_pointee_ty, to_mutbl) = result_ty.kind()
+        && from_mutbl == to_mutbl
+        && from_pointee_ty == to_pointee_ty
+        // Avoid linting intentional lifetime changes
+        && !from_pointee_ty.has_erased_regions()
+        && !expr.span.from_expansion()
+    {
+        // If explicit turbofish generic args are provided, check for type alias / cfg-dependent / infer
+        if let Some(generic_args) = method_path.args {
+            match generic_args.args {
+                // Skip `ptr.cast::<_>()`.
+                [GenericArg::Infer(_)] => return false,
+                [GenericArg::Type(cast_to_hir)] => {
+                    let cast_to_hir_ty = cast_to_hir.as_unambig_ty();
+                    match cast_to_hir_ty.kind {
+                        // Skip `ptr.cast::<_>()` (in case it's represented as Type(Infer))
+                        TyKind::Infer(()) => return false,
+                        // Skip casts to type aliases or cfg-dependent types.
+                        TyKind::Path(ref qpath)
+                            if is_ty_alias(qpath) || is_hir_ty_cfg_dependant(cx, cast_to_hir_ty) =>
+                        {
+                            return false;
+                        },
+                        _ => {},
+                    }
+                },
+                _ => {},
+            }
+        }
+
+        let recv_snip = snippet_opt(cx, receiver.span).unwrap_or_default();
+
+        span_lint_and_sugg(
+            cx,
+            UNNECESSARY_CAST,
+            expr.span,
+            format!(
+                "casting raw pointers to the same type and constness is unnecessary (`{recv_ty}` -> `{result_ty}`)"
+            ),
+            "try",
+            recv_snip,
+            Applicability::MaybeIncorrect,
+        );
+        return true;
+    }
+
+    false
 }
 
 fn get_numeric_literal<'e>(expr: &'e Expr<'e>) -> Option<Lit> {
