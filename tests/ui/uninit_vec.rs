@@ -87,7 +87,7 @@ fn main() {
     unsafe {
         // test the case where there are other statements in the following unsafe block
         vec.set_len(200);
-        assert!(vec.len() == 200);
+        assert_eq!(vec.len(), 200);
     }
 
     // handle vec stored in the field of a struct
