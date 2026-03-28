@@ -8,7 +8,7 @@ LL |     let _data = [panic!(); 0];
    = help: to override `-D warnings` add `#[allow(clippy::zero_repeat_side_effects)]`
 help: consider performing the side effect separately
    |
-LL ~     panic!();
+LL ~     let _: ! = panic!();
 LL +     let _data: [!; 0] = [];
    |
 
