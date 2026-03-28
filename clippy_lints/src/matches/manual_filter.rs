@@ -1,8 +1,10 @@
+use std::ops::Not;
+
 use clippy_utils::as_some_expr;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::res::{MaybeDef, MaybeQPath, MaybeResPath};
-use clippy_utils::visitors::contains_unsafe_block;
 
+use clippy_utils::sugg::Sugg;
 use rustc_hir::LangItem::OptionNone;
 use rustc_hir::{Arm, Expr, ExprKind, HirId, Pat, PatKind};
 use rustc_lint::LateContext;
@@ -15,27 +17,25 @@ use super::manual_utils::{SomeExpr, check_with};
 // Need to check if it's of the form `<expr>=if <cond> {<then_expr>} else {<else_expr>}`
 // AND that only one `then/else_expr` resolves to `Some(x)` while the other resolves to `None`
 // return the `cond` expression if so.
-fn get_cond_expr<'tcx>(
+fn get_cond_expr<'a, 'tcx>(
     cx: &LateContext<'tcx>,
     pat: &Pat<'_>,
     expr: &'tcx Expr<'_>,
     ctxt: SyntaxContext,
-) -> Option<SomeExpr<'tcx>> {
-    if let Some(block_expr) = peels_blocks_incl_unsafe_opt(expr)
-        && let ExprKind::If(cond, then_expr, Some(else_expr)) = block_expr.kind
+) -> Option<SomeExpr<'a, 'tcx>> {
+    if let ExprKind::If(cond, then_expr, Some(else_expr)) = expr.kind
         && let PatKind::Binding(_, target, ..) = pat.kind
-        && (is_some_expr(cx, target, ctxt, then_expr) && is_none_expr(cx, else_expr)
-            || is_none_expr(cx, then_expr) && is_some_expr(cx, target, ctxt, else_expr))
-    // check that one expr resolves to `Some(x)`, the other to `None`
+        // check that one expr resolves to `Some(x)`, the other to `None`
+        && let need_neg = (is_none_expr(cx, then_expr) && is_some_expr(cx, target, ctxt, else_expr))
+        && (need_neg || is_some_expr(cx, target, ctxt, then_expr) && is_none_expr(cx, else_expr))
     {
         return Some(SomeExpr {
-            expr: peels_blocks_incl_unsafe(cond.peel_drop_temps()),
-            needs_unsafe_block: contains_unsafe_block(cx, expr),
-            needs_negated: is_none_expr(cx, then_expr), /* if the `then_expr` resolves to `None`, need to negate the
-                                                         * cond */
-            enclosing_block: None,
+            expr: cond.peel_drop_temps(),
+            extra_fn: need_neg.then_some(&Sugg::not), /* need to negate the condition if the `then_expr` resolves to
+                                                       * `None` */
         });
     }
+
     None
 }
 
@@ -48,10 +48,6 @@ fn peels_blocks_incl_unsafe_opt<'a>(expr: &'a Expr<'a>) -> Option<&'a Expr<'a>> 
         return block.expr;
     }
     None
-}
-
-fn peels_blocks_incl_unsafe<'a>(expr: &'a Expr<'a>) -> &'a Expr<'a> {
-    peels_blocks_incl_unsafe_opt(expr).unwrap_or(expr)
 }
 
 /// Checks whether <expr> resolves to `Some(target)`
@@ -142,7 +138,7 @@ fn check<'tcx>(
         then_body,
         else_pat,
         else_body,
-        get_cond_expr,
+        &get_cond_expr,
     ) {
         let body_str = add_ampersand_if_copy(sugg_info.body_str, sugg_info.scrutinee_impl_copy);
         span_lint_and_sugg(
