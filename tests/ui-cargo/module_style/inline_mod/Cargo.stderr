@@ -1,0 +1,67 @@
+error: inline module is not allowed, found `mod foo {..}`
+ --> src/other.rs:1:1
+  |
+1 | mod foo {}
+  | ^^^^^^^
+  |
+  = help: move to `src/other/foo/mod.rs` or `src/other/foo.rs`
+  = note: `-D clippy::inline-module` implied by `-D warnings`
+  = help: to override `-D warnings` add `#[allow(clippy::inline_module)]`
+
+error: inline module is not allowed, found `mod foo {..}`
+ --> src/qux/mod.rs:1:1
+  |
+1 | mod foo {}
+  | ^^^^^^^
+  |
+  = help: move to `src/qux/foo/mod.rs` or `src/qux/foo.rs`
+
+error: inline module is not allowed, found `mod foo {..}`
+ --> src/foo.rs:1:1
+  |
+1 | mod foo {}
+  | ^^^^^^^
+  |
+  = help: move to `src/stuff/foo/mod.rs` or `src/stuff/foo.rs`
+
+error: inline module is not allowed, found `mod test_nested_inline_mods {..}`
+ --> src/lib.rs:9:1
+  |
+9 | pub mod test_nested_inline_mods {
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = help: move to `src/test_nested_inline_mods/mod.rs` or `src/test_nested_inline_mods.rs`
+
+error: inline module is not allowed, found `mod bar {..}`
+  --> src/lib.rs:10:5
+   |
+10 |     mod bar {
+   |     ^^^^^^^
+   |
+   = help: move to `src/test_nested_inline_mods/bar/mod.rs` or `src/test_nested_inline_mods/bar.rs`
+
+error: inline module is not allowed, found `mod baz {..}`
+  --> src/lib.rs:11:9
+   |
+11 |         mod baz {}
+   |         ^^^^^^^
+   |
+   = help: move to `src/test_nested_inline_mods/bar/baz/mod.rs` or `src/test_nested_inline_mods/bar/baz.rs`
+
+error: inline module is not allowed, found `mod partially_escaped_test_mod {..}`
+  --> src/lib.rs:20:1
+   |
+20 | mod partially_escaped_test_mod {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: move to `src/partially_escaped_test_mod/mod.rs` or `src/partially_escaped_test_mod.rs`
+
+error: inline module is not allowed, found `mod baz {..}`
+  --> src/lib.rs:25:5
+   |
+25 |     mod baz {}
+   |     ^^^^^^^
+   |
+   = help: move to `src/partially_escaped_test_mod/baz/mod.rs` or `src/partially_escaped_test_mod/baz.rs`
+
+error: could not compile `inline-mod` (lib) due to 8 previous errors
