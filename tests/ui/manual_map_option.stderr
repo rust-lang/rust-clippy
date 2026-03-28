@@ -216,5 +216,49 @@ LL | |         None
 LL | |     };
    | |_____^ help: try: `{ Some(0).map(|x| x + 1) }`
 
-error: aborting due to 21 previous errors
+error: manual implementation of `Option::map`
+  --> tests/ui/manual_map_option.rs:262:13
+   |
+LL |       let _ = match v {
+   |  _____________^
+LL | |
+LL | |         Some(n) => {
+LL | |             println!("{n}");
+...  |
+LL | |         None => None,
+LL | |     };
+   | |_____^
+   |
+help: try
+   |
+LL ~     let _ = v.map(|n| {
+LL +             println!("{n}");
+LL +             {
+LL +                 println!("{}", n + 1);
+LL +                 unsafe { 42 }
+LL +             }
+LL ~         });
+   |
+
+error: manual implementation of `Option::map`
+  --> tests/ui/manual_map_option.rs:274:5
+   |
+LL | /     match v {
+LL | |
+LL | |         Some(n) => {
+LL | |             println!("{n}");
+...  |
+LL | |         None => None,
+LL | |     }
+   | |_____^
+   |
+help: try
+   |
+LL ~     v.map(|n| {
+LL +             println!("{n}");
+LL +             42
+LL +         })
+   |
+
+error: aborting due to 23 previous errors
 
