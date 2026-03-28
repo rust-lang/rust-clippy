@@ -217,7 +217,7 @@ LL | |     };
    | |_____^ help: try: `{ Some(0).map(|x| x + 1) }`
 
 error: manual implementation of `Option::map`
-  --> tests/ui/manual_map_option.rs:262:13
+  --> tests/ui/manual_map_option.rs:254:13
    |
 LL |       let _ = match v {
    |  _____________^
@@ -241,7 +241,7 @@ LL ~         });
    |
 
 error: manual implementation of `Option::map`
-  --> tests/ui/manual_map_option.rs:274:5
+  --> tests/ui/manual_map_option.rs:266:5
    |
 LL | /     match v {
 LL | |
