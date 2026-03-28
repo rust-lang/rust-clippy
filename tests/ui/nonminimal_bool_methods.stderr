@@ -1,5 +1,5 @@
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:8:13
+  --> tests/ui/nonminimal_bool_methods.rs:12:13
    |
 LL |     let _ = !a.is_some();
    |             ^^^^^^^^^^^^ help: try: `a.is_none()`
@@ -8,247 +8,247 @@ LL |     let _ = !a.is_some();
    = help: to override `-D warnings` add `#[allow(clippy::nonminimal_bool)]`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:11:13
+  --> tests/ui/nonminimal_bool_methods.rs:15:13
    |
 LL |     let _ = !a.is_none();
    |             ^^^^^^^^^^^^ help: try: `a.is_some()`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:14:13
+  --> tests/ui/nonminimal_bool_methods.rs:18:13
    |
 LL |     let _ = !b.is_err();
    |             ^^^^^^^^^^^ help: try: `b.is_ok()`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:17:13
+  --> tests/ui/nonminimal_bool_methods.rs:21:13
    |
 LL |     let _ = !b.is_ok();
    |             ^^^^^^^^^^ help: try: `b.is_err()`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:20:13
+  --> tests/ui/nonminimal_bool_methods.rs:24:13
    |
 LL |     let _ = !(a.is_some() && !c);
    |             ^^^^^^^^^^^^^^^^^^^^ help: try: `a.is_none() || c`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:22:13
+  --> tests/ui/nonminimal_bool_methods.rs:26:13
    |
 LL |     let _ = !(a.is_some() || !c);
    |             ^^^^^^^^^^^^^^^^^^^^ help: try: `a.is_none() && c`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:24:26
+  --> tests/ui/nonminimal_bool_methods.rs:28:26
    |
 LL |     let _ = !(!c ^ c) || !a.is_some();
    |                          ^^^^^^^^^^^^ help: try: `a.is_none()`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:26:25
+  --> tests/ui/nonminimal_bool_methods.rs:30:25
    |
 LL |     let _ = (!c ^ c) || !a.is_some();
    |                         ^^^^^^^^^^^^ help: try: `a.is_none()`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:28:23
+  --> tests/ui/nonminimal_bool_methods.rs:32:23
    |
 LL |     let _ = !c ^ c || !a.is_some();
    |                       ^^^^^^^^^^^^ help: try: `a.is_none()`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:101:8
+  --> tests/ui/nonminimal_bool_methods.rs:105:8
    |
 LL |     if !res.is_ok() {}
    |        ^^^^^^^^^^^^ help: try: `res.is_err()`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:103:8
+  --> tests/ui/nonminimal_bool_methods.rs:107:8
    |
 LL |     if !res.is_err() {}
    |        ^^^^^^^^^^^^^ help: try: `res.is_ok()`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:107:8
+  --> tests/ui/nonminimal_bool_methods.rs:111:8
    |
 LL |     if !res.is_some() {}
    |        ^^^^^^^^^^^^^^ help: try: `res.is_none()`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:109:8
+  --> tests/ui/nonminimal_bool_methods.rs:113:8
    |
 LL |     if !res.is_none() {}
    |        ^^^^^^^^^^^^^^ help: try: `res.is_some()`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:126:8
+  --> tests/ui/nonminimal_bool_methods.rs:130:8
    |
 LL |     if !(a as u64 >= b) {}
    |        ^^^^^^^^^^^^^^^^ help: try: `((a as u64) < b)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:128:8
+  --> tests/ui/nonminimal_bool_methods.rs:132:8
    |
 LL |     if !((a as u64) >= b) {}
    |        ^^^^^^^^^^^^^^^^^^ help: try: `((a as u64) < b)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:130:8
+  --> tests/ui/nonminimal_bool_methods.rs:134:8
    |
 LL |     if !(a as u64 <= b) {}
    |        ^^^^^^^^^^^^^^^^ help: try: `(a as u64 > b)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:138:8
+  --> tests/ui/nonminimal_bool_methods.rs:142:8
    |
 LL |     if !(a >= b) as i32 == c {}
    |        ^^^^^^^^^ help: try: `(a < b)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:140:8
+  --> tests/ui/nonminimal_bool_methods.rs:144:8
    |
 LL |     if !(a >= b) | !(a <= c) {}
    |        ^^^^^^^^^ help: try: `(a < b)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:140:20
+  --> tests/ui/nonminimal_bool_methods.rs:144:20
    |
 LL |     if !(a >= b) | !(a <= c) {}
    |                    ^^^^^^^^^ help: try: `(a > c)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:145:8
+  --> tests/ui/nonminimal_bool_methods.rs:149:8
    |
 LL |     if !res.is_ok() as i32 == c {}
    |        ^^^^^^^^^^^^ help: try: `res.is_err()`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:147:8
+  --> tests/ui/nonminimal_bool_methods.rs:151:8
    |
 LL |     if !res.is_ok() | !opt.is_none() {}
    |        ^^^^^^^^^^^^ help: try: `res.is_err()`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:147:23
+  --> tests/ui/nonminimal_bool_methods.rs:151:23
    |
 LL |     if !res.is_ok() | !opt.is_none() {}
    |                       ^^^^^^^^^^^^^^ help: try: `opt.is_some()`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:152:9
+  --> tests/ui/nonminimal_bool_methods.rs:156:9
    |
 LL |         (!(4 > 3)).b()
    |         ^^^^^^^^^^ help: try: `(4 <= 3)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:178:9
+  --> tests/ui/nonminimal_bool_methods.rs:182:9
    |
 LL |     _ = !opt.is_some_and(|x| x < 1000);
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `opt.is_none_or(|x| x >= 1000)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:180:9
+  --> tests/ui/nonminimal_bool_methods.rs:184:9
    |
 LL |     _ = !opt.is_some_and(|x| x <= 1000);
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `opt.is_none_or(|x| x > 1000)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:182:9
+  --> tests/ui/nonminimal_bool_methods.rs:186:9
    |
 LL |     _ = !opt.is_some_and(|x| x > 1000);
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `opt.is_none_or(|x| x <= 1000)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:184:9
+  --> tests/ui/nonminimal_bool_methods.rs:188:9
    |
 LL |     _ = !opt.is_some_and(|x| x >= 1000);
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `opt.is_none_or(|x| x < 1000)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:186:9
+  --> tests/ui/nonminimal_bool_methods.rs:190:9
    |
 LL |     _ = !opt.is_some_and(|x| x == 1000);
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `opt.is_none_or(|x| x != 1000)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:188:9
+  --> tests/ui/nonminimal_bool_methods.rs:192:9
    |
 LL |     _ = !opt.is_some_and(|x| x != 1000);
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `opt.is_none_or(|x| x == 1000)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:198:9
+  --> tests/ui/nonminimal_bool_methods.rs:202:9
    |
 LL |     _ = !opt.is_none_or(|x| x < 1000);
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `opt.is_some_and(|x| x >= 1000)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:200:9
+  --> tests/ui/nonminimal_bool_methods.rs:204:9
    |
 LL |     _ = !opt.is_none_or(|x| x <= 1000);
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `opt.is_some_and(|x| x > 1000)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:202:9
+  --> tests/ui/nonminimal_bool_methods.rs:206:9
    |
 LL |     _ = !opt.is_none_or(|x| x > 1000);
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `opt.is_some_and(|x| x <= 1000)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:204:9
+  --> tests/ui/nonminimal_bool_methods.rs:208:9
    |
 LL |     _ = !opt.is_none_or(|x| x >= 1000);
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `opt.is_some_and(|x| x < 1000)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:206:9
+  --> tests/ui/nonminimal_bool_methods.rs:210:9
    |
 LL |     _ = !opt.is_none_or(|x| x == 1000);
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `opt.is_some_and(|x| x != 1000)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:208:9
+  --> tests/ui/nonminimal_bool_methods.rs:212:9
    |
 LL |     _ = !opt.is_none_or(|x| x != 1000);
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `opt.is_some_and(|x| x == 1000)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:216:9
+  --> tests/ui/nonminimal_bool_methods.rs:220:9
    |
 LL |     _ = !opt.is_some_and(|x| !x);
    |         ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `opt.is_none_or(|x| x)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:221:9
+  --> tests/ui/nonminimal_bool_methods.rs:225:9
    |
 LL |     _ = !opt.is_none_or(|x| !x);
    |         ^^^^^^^^^^^^^^^^^^^^^^^ help: try: `opt.is_some_and(|x| x)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:229:9
+  --> tests/ui/nonminimal_bool_methods.rs:233:9
    |
 LL |     _ = !opt.is_some_and(|x| x.is_ok());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `opt.is_none_or(|x| x.is_err())`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:231:9
+  --> tests/ui/nonminimal_bool_methods.rs:235:9
    |
 LL |     _ = !opt.is_some_and(|x| x.is_err());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `opt.is_none_or(|x| x.is_ok())`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:233:9
+  --> tests/ui/nonminimal_bool_methods.rs:237:9
    |
 LL |     _ = !opt.is_none_or(|x| x.is_ok());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `opt.is_some_and(|x| x.is_err())`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:235:9
+  --> tests/ui/nonminimal_bool_methods.rs:239:9
    |
 LL |     _ = !opt.is_none_or(|x| x.is_err());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `opt.is_some_and(|x| x.is_ok())`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool_methods.rs:246:5
+  --> tests/ui/nonminimal_bool_methods.rs:250:5
    |
 LL |     !(vec![1, 2, 3] <= vec![1, 2, 3, 3]);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `(vec![1, 2, 3] > vec![1, 2, 3, 3])`
