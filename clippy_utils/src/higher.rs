@@ -55,6 +55,48 @@ impl<'tcx> ForLoop<'tcx> {
     }
 }
 
+/// A desugared `?` (try) expression.
+///
+/// `expr?` desugars to roughly:
+/// ```ignore
+/// match DropTemps(Try::branch(expr)) {
+///     Ok(val) => val,
+///     Err(err) => return From::from(err),
+/// }
+/// ```
+/// This struct extracts the original operand (`expr`) and the match arms.
+pub struct TryDesugar<'hir> {
+    /// The operand of `?`, i.e. the expression being tried (after peeling
+    /// the `DropTemps` and `Try::branch` wrappers).
+    pub scrutinee: &'hir Expr<'hir>,
+    /// The match arms produced by the desugaring.
+    pub arms: &'hir [Arm<'hir>],
+}
+
+impl<'hir> TryDesugar<'hir> {
+    /// Parses a desugared `?` expression from a match.
+    pub fn hir(expr: &'hir Expr<'hir>) -> Option<Self> {
+        if let ExprKind::Match(scrutinee, arms, MatchSource::TryDesugar(_)) = expr.kind {
+            // The compiler wraps the scrutinee in `DropTemps`; peel it off.
+            let scrutinee = if let ExprKind::DropTemps(inner) = scrutinee.kind {
+                inner
+            } else {
+                scrutinee
+            };
+            // Inside `DropTemps` is a `Call` to `Try::branch(expr)`;
+            // peel that off to get the original user expression.
+            let scrutinee = if let ExprKind::Call(_, [arg]) = scrutinee.kind {
+                arg
+            } else {
+                scrutinee
+            };
+            Some(Self { scrutinee, arms })
+        } else {
+            None
+        }
+    }
+}
+
 /// An `if` expression without `let`
 pub struct If<'hir> {
     /// `if` condition
