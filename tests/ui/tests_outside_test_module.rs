@@ -18,3 +18,18 @@ mod tests {
     #[test]
     fn my_test() {}
 }
+
+#[allow(clippy::non_minimal_cfg)]
+#[cfg(all(test))]
+mod tests_all {
+    // Should not lint: `all(test)` implies `test`
+    #[test]
+    fn my_test() {}
+}
+
+#[cfg(all(test, not(target_pointer_width = "16")))]
+mod tests_all_compound {
+    // Should not lint: `all(test, ...)` implies `test`
+    #[test]
+    fn my_test() {}
+}
