@@ -160,3 +160,28 @@ fn main() {
         None => None,
     };
 }
+
+fn issue16751(v: Option<usize>) -> Option<usize> {
+    let _ = match v {
+        Some(n) => {
+            if n > 0 {
+                return None;
+            }
+            Some(42)
+        },
+        None => None,
+    };
+
+    let _ = v.map(|n| {
+            println!("{n}");
+            {
+                println!("{}", n + 1);
+                unsafe { 42 }
+            }
+        });
+
+    v.map(|n| {
+            println!("{n}");
+            42
+        })
+}

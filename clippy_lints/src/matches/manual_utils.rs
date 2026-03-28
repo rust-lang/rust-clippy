@@ -13,7 +13,7 @@ use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{BindingMode, Expr, ExprKind, HirId, Mutability, Pat, PatKind, Path, QPath};
 use rustc_lint::LateContext;
-use rustc_span::{SyntaxContext, sym};
+use rustc_span::{Span, SyntaxContext, sym};
 
 #[expect(clippy::too_many_arguments)]
 #[expect(clippy::too_many_lines)]
@@ -87,7 +87,13 @@ where
         None => "",
     };
 
-    let captures = can_move_expr_to_closure(cx, some_expr.expr)?;
+    let captures = can_move_expr_to_closure(
+        cx,
+        some_expr
+            .enclosing_block
+            .map(|(expr, _, _)| expr)
+            .unwrap_or(some_expr.expr),
+    )?;
     // Check if captures the closure will need conflict with borrows made in the scrutinee.
     // TODO: check all the references made in the scrutinee expression. This will require interacting
     // with the borrow checker. Currently only `<local>[.<field>]*` is checked for.
@@ -119,12 +125,7 @@ where
         scrutinee_str.into()
     };
 
-    let closure_expr_snip = some_expr.to_snippet_with_context(cx, expr_ctxt, &mut app);
-    let closure_body = if some_expr.needs_unsafe_block {
-        format!("unsafe {}", closure_expr_snip.blockify())
-    } else {
-        closure_expr_snip.to_string()
-    };
+    let closure_body = some_expr.to_snippet_with_context(cx, expr_ctxt, &mut app);
 
     let body_str = if let PatKind::Binding(annotation, id, some_binding, None) = some_pat.kind {
         if !some_expr.needs_unsafe_block
@@ -208,18 +209,30 @@ pub(super) enum OptionPat<'a> {
     },
 }
 
+#[derive(Debug)]
 pub(super) struct SomeExpr<'tcx> {
     pub expr: &'tcx Expr<'tcx>,
     pub needs_unsafe_block: bool,
     pub needs_negated: bool, // for `manual_filter` lint
+    /// If the target expression is from a block where there are statements preceding it, the
+    /// outer-most of such block, plus the span before and after the expression is used so that the
+    /// entire block can be included in the suggestion.
+    /// E.g. in `Some(x) => { println!("foo"); Some(x) }`, the expression `Some(x)` is from the
+    /// block `{ println!("foo"); Some(x) }`.
+    pub enclosing_block: Option<(&'tcx Expr<'tcx>, Span, Span)>,
 }
 
 impl<'tcx> SomeExpr<'tcx> {
-    pub fn new_no_negated(expr: &'tcx Expr<'tcx>, needs_unsafe_block: bool) -> Self {
+    pub fn new_no_negated(
+        expr: &'tcx Expr<'tcx>,
+        needs_unsafe_block: bool,
+        enclosing_block: Option<(&'tcx Expr<'tcx>, Span, Span)>,
+    ) -> Self {
         Self {
             expr,
             needs_unsafe_block,
             needs_negated: false,
+            enclosing_block,
         }
     }
 
@@ -228,9 +241,24 @@ impl<'tcx> SomeExpr<'tcx> {
         cx: &LateContext<'tcx>,
         ctxt: SyntaxContext,
         app: &mut Applicability,
-    ) -> Sugg<'tcx> {
-        let sugg = Sugg::hir_with_context(cx, self.expr, ctxt, "..", app);
-        if self.needs_negated { !sugg } else { sugg }
+    ) -> String {
+        let mut sugg = Sugg::hir_with_context(cx, self.expr, ctxt, "..", app);
+        if self.needs_negated {
+            sugg = !sugg
+        }
+
+        let sugg = if self.needs_unsafe_block {
+            format!("unsafe {}", sugg.blockify())
+        } else {
+            sugg.to_string()
+        };
+
+        let Some((_, span_before, span_after)) = self.enclosing_block else {
+            return sugg.to_string();
+        };
+        let (before, _) = snippet_with_context(cx, span_before, ctxt, "..", app);
+        let (after, _) = snippet_with_context(cx, span_after, ctxt, "..", app);
+        format!("{}{}{}", before, sugg, after)
     }
 }
 
