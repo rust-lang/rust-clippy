@@ -152,7 +152,7 @@ LL |         let _ = '0'..'9';
    = note: this error originates in the macro `__inline_mac_fn_main` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: almost complete ascii range
-  --> tests/ui/almost_complete_range.rs:91:9
+  --> tests/ui/almost_complete_range.rs:99:9
    |
 LL |         'a'..'z' => 1,
    |         ^^^--^^^
@@ -160,7 +160,7 @@ LL |         'a'..'z' => 1,
    |            help: use an inclusive range: `...`
 
 error: almost complete ascii range
-  --> tests/ui/almost_complete_range.rs:93:9
+  --> tests/ui/almost_complete_range.rs:101:9
    |
 LL |         'A'..'Z' => 2,
    |         ^^^--^^^
@@ -168,7 +168,7 @@ LL |         'A'..'Z' => 2,
    |            help: use an inclusive range: `...`
 
 error: almost complete ascii range
-  --> tests/ui/almost_complete_range.rs:95:9
+  --> tests/ui/almost_complete_range.rs:103:9
    |
 LL |         '0'..'9' => 3,
    |         ^^^--^^^
@@ -176,7 +176,7 @@ LL |         '0'..'9' => 3,
    |            help: use an inclusive range: `...`
 
 error: almost complete ascii range
-  --> tests/ui/almost_complete_range.rs:103:13
+  --> tests/ui/almost_complete_range.rs:111:13
    |
 LL |     let _ = 'a'..'z';
    |             ^^^--^^^
@@ -184,7 +184,7 @@ LL |     let _ = 'a'..'z';
    |                help: use an inclusive range: `..=`
 
 error: almost complete ascii range
-  --> tests/ui/almost_complete_range.rs:105:13
+  --> tests/ui/almost_complete_range.rs:113:13
    |
 LL |     let _ = 'A'..'Z';
    |             ^^^--^^^
@@ -192,7 +192,7 @@ LL |     let _ = 'A'..'Z';
    |                help: use an inclusive range: `..=`
 
 error: almost complete ascii range
-  --> tests/ui/almost_complete_range.rs:107:13
+  --> tests/ui/almost_complete_range.rs:115:13
    |
 LL |     let _ = '0'..'9';
    |             ^^^--^^^
@@ -200,7 +200,7 @@ LL |     let _ = '0'..'9';
    |                help: use an inclusive range: `..=`
 
 error: almost complete ascii range
-  --> tests/ui/almost_complete_range.rs:110:9
+  --> tests/ui/almost_complete_range.rs:118:9
    |
 LL |         'a'..'z' => 1,
    |         ^^^--^^^
@@ -208,7 +208,7 @@ LL |         'a'..'z' => 1,
    |            help: use an inclusive range: `..=`
 
 error: almost complete ascii range
-  --> tests/ui/almost_complete_range.rs:112:9
+  --> tests/ui/almost_complete_range.rs:120:9
    |
 LL |         'A'..'Z' => 1,
    |         ^^^--^^^
@@ -216,7 +216,7 @@ LL |         'A'..'Z' => 1,
    |            help: use an inclusive range: `..=`
 
 error: almost complete ascii range
-  --> tests/ui/almost_complete_range.rs:114:9
+  --> tests/ui/almost_complete_range.rs:122:9
    |
 LL |         '0'..'9' => 3,
    |         ^^^--^^^

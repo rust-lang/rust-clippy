@@ -1,5 +1,8 @@
+//@aux-build:proc_macros.rs
 #![warn(clippy::else_if_without_else)]
 #![allow(clippy::collapsible_else_if)]
+
+use proc_macros::{external, inline_macros, with_span};
 
 fn bla1() -> bool {
     unimplemented!()
@@ -17,6 +20,7 @@ fn bla5() -> bool {
     unimplemented!()
 }
 
+#[inline_macros]
 fn main() {
     if bla1() {
         println!("if");
@@ -123,4 +127,20 @@ fn main() {
             println!("else if 4");
         }
     }
+
+    inline!(if bla1() {
+        println!("if");
+    } else if bla2() {
+        //~^ else_if_without_else
+    });
+
+    external!(if bla1() {
+        println!("if");
+    } else if bla2() {
+    });
+
+    with_span!(span; if bla1() {
+        println!("if");
+    } else if bla2() {
+    });
 }
