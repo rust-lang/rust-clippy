@@ -283,5 +283,37 @@ LL +             unsafe { f(n) }
 LL +         })
    |
 
-error: aborting due to 23 previous errors
+error: manual implementation of `Option::and_then`
+  --> tests/ui/manual_filter.rs:365:13
+   |
+LL |       let _ = if let Some(n) = v {
+   |  _____________^
+LL | |
+LL | |         if n > 10 { Some(42) } else { None }
+LL | |     } else {
+LL | |         None
+LL | |     };
+   | |_____^ help: try: `v.and_then(|n| if n > 10 { Some(42) } else { None })`
+
+error: manual implementation of `Option::and_then`
+  --> tests/ui/manual_filter.rs:372:5
+   |
+LL | /     match v {
+LL | |
+LL | |         Some(n) => {
+LL | |             println!("n: {n}");
+...  |
+LL | |         None => None,
+LL | |     }
+   | |_____^
+   |
+help: try
+   |
+LL ~     v.and_then(|n| {
+LL +             println!("n: {n}");
+LL +             if n > 10 { Some(n + 1) } else { None }
+LL +         })
+   |
+
+error: aborting due to 25 previous errors
 

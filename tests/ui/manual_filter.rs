@@ -360,3 +360,21 @@ fn issue16751(v: Option<u32>) -> Option<u32> {
         None => None,
     }
 }
+
+fn issue16776(v: Option<usize>) -> Option<usize> {
+    let _ = if let Some(n) = v {
+        //~^ manual_filter
+        if n > 10 { Some(42) } else { None }
+    } else {
+        None
+    };
+
+    match v {
+        //~^ manual_filter
+        Some(n) => {
+            println!("n: {n}");
+            if n > 10 { Some(n + 1) } else { None }
+        },
+        None => None,
+    }
+}
