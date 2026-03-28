@@ -1,0 +1,92 @@
+error: assigning a new empty collection
+  --> tests/ui/new_instead_of_clear.rs:18:5
+   |
+LL |     v = Vec::new();
+   |     ^^^^^^^^^^^^^^ help: consider using `.clear()` instead: `v.clear()`
+   |
+   = note: `.clear()` retains the allocated memory for reuse
+   = note: `-D clippy::new-instead-of-clear` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::new_instead_of_clear)]`
+
+error: assigning a new empty collection
+  --> tests/ui/new_instead_of_clear.rs:24:5
+   |
+LL |     map = HashMap::new();
+   |     ^^^^^^^^^^^^^^^^^^^^ help: consider using `.clear()` instead: `map.clear()`
+   |
+   = note: `.clear()` retains the allocated memory for reuse
+
+error: assigning a new empty collection
+  --> tests/ui/new_instead_of_clear.rs:30:5
+   |
+LL |     set = HashSet::new();
+   |     ^^^^^^^^^^^^^^^^^^^^ help: consider using `.clear()` instead: `set.clear()`
+   |
+   = note: `.clear()` retains the allocated memory for reuse
+
+error: assigning a new empty collection
+  --> tests/ui/new_instead_of_clear.rs:36:5
+   |
+LL |     deque = VecDeque::new();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `.clear()` instead: `deque.clear()`
+   |
+   = note: `.clear()` retains the allocated memory for reuse
+
+error: assigning a new empty collection
+  --> tests/ui/new_instead_of_clear.rs:42:5
+   |
+LL |     btree_map = BTreeMap::new();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `.clear()` instead: `btree_map.clear()`
+   |
+   = note: `.clear()` retains the allocated memory for reuse
+
+error: assigning a new empty collection
+  --> tests/ui/new_instead_of_clear.rs:48:5
+   |
+LL |     btree_set = BTreeSet::new();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `.clear()` instead: `btree_set.clear()`
+   |
+   = note: `.clear()` retains the allocated memory for reuse
+
+error: assigning a new empty collection
+  --> tests/ui/new_instead_of_clear.rs:54:5
+   |
+LL |     heap = BinaryHeap::new();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `.clear()` instead: `heap.clear()`
+   |
+   = note: `.clear()` retains the allocated memory for reuse
+
+error: assigning a new empty collection
+  --> tests/ui/new_instead_of_clear.rs:60:5
+   |
+LL |     list = LinkedList::new();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `.clear()` instead: `list.clear()`
+   |
+   = note: `.clear()` retains the allocated memory for reuse
+
+error: assigning a new empty collection
+  --> tests/ui/new_instead_of_clear.rs:66:5
+   |
+LL |     v2 = vec![];
+   |     ^^^^^^^^^^^ help: consider using `.clear()` instead: `v2.clear()`
+   |
+   = note: `.clear()` retains the allocated memory for reuse
+
+error: assigning a new empty collection
+  --> tests/ui/new_instead_of_clear.rs:74:5
+   |
+LL |     *v = Vec::new();
+   |     ^^^^^^^^^^^^^^^ help: consider using `.clear()` instead: `v.clear()`
+   |
+   = note: `.clear()` retains the allocated memory for reuse
+
+error: assigning a new empty collection
+  --> tests/ui/new_instead_of_clear.rs:83:9
+   |
+LL |         v = Vec::new();
+   |         ^^^^^^^^^^^^^^ help: consider using `.clear()` instead: `v.clear()`
+   |
+   = note: `.clear()` retains the allocated memory for reuse
+
+error: aborting due to 11 previous errors
+
