@@ -26,19 +26,17 @@ fn main() {
             allow_no_vcs,
         } => dogfood::dogfood(fix, allow_dirty, allow_staged, allow_no_vcs),
         DevCommand::Fmt { check } => fmt::run(UpdateMode::from_check(check)),
-        DevCommand::UpdateLints { check } => {
-            new_parse_cx(|cx| cx.parse_lint_decls().gen_decls(UpdateMode::from_check(check)));
-        },
+        DevCommand::UpdateLints { check } => new_parse_cx(|cx| {
+            let data = cx.parse_lint_decls();
+            cx.dcx.exit_on_err();
+            data.gen_decls(UpdateMode::from_check(check));
+        }),
         DevCommand::NewLint {
             pass,
             name,
             category,
-            r#type,
             msrv,
-        } => match new_lint::create(clippy.version, pass, &name, &category, r#type.as_deref(), msrv) {
-            Ok(()) => new_parse_cx(|cx| cx.parse_lint_decls().gen_decls(UpdateMode::Change)),
-            Err(e) => eprintln!("Unable to create lint: {e}"),
-        },
+        } => new_lint::create(clippy.version, &pass, &name, &category, msrv),
         DevCommand::Setup(SetupCommand { subcommand }) => match subcommand {
             SetupSubcommand::Intellij { remove, repo_path } => {
                 if remove {
@@ -156,9 +154,9 @@ enum DevCommand {
     #[command(name = "new_lint")]
     /// Create a new lint and run `cargo dev update_lints`
     NewLint {
-        #[arg(short, long, conflicts_with = "type", default_value = "late")]
+        #[arg(short, long, default_value = "late")]
         /// Specify whether the lint runs during the early or late pass
-        pass: new_lint::Pass,
+        pass: String,
         #[arg(
             short,
             long,
@@ -184,9 +182,6 @@ enum DevCommand {
         )]
         /// What category the lint belongs to
         category: String,
-        #[arg(long)]
-        /// What directory the lint belongs in
-        r#type: Option<String>,
         #[arg(long)]
         /// Add MSRV config code to the lint
         msrv: bool,
