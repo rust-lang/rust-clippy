@@ -113,3 +113,9 @@ pub fn result_uninhabited() -> Result<i32, std::convert::Infallible> {
 pub fn controlflow_uninhabited() -> std::ops::ControlFlow<std::convert::Infallible, i32> {
     todo!()
 }
+
+// Do not lint: even though `Box` itself is not `#[must_use]`, if the content is, the
+// compiler will treat the box as a `#[must_use]` type already.
+pub fn with_box() -> Box<Result<u32, u32>> {
+    Box::new(Ok(0))
+}
