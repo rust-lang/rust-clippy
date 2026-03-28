@@ -28,7 +28,7 @@ fn main() {
     }
 
     loop {
-        // no error, else branch does something other than break
+        //~^ while_let_loop
         let Some(_x) = y else {
             let _z = 1;
             break;
@@ -71,7 +71,7 @@ fn main() {
     }
 
     loop {
-        // no error, else branch does something other than break
+        // no error, hoisting from match arms isn't supported
         match y {
             Some(_x) => true,
             _ => {
@@ -255,20 +255,167 @@ fn let_assign() {
 }
 
 fn issue16378() {
-    // This does not lint today because of the extra statement(s)
-    // before the `break`.
-    // TODO: When the `break` statement/expr in the `let`/`else` is the
-    // only way to leave the loop, the lint could trigger and move
-    // the statements preceeding the `break` after the loop, as in:
-    // ```rust
-    // while let Some(x) = std::hint::black_box(None::<i32>) {
-    //     println!("x = {x}");
-    // }
-    // println!("fail");
-    // ```
     loop {
+        //~^ while_let_loop
         let Some(x) = std::hint::black_box(None::<i32>) else {
             println!("fail");
+            break;
+        };
+        println!("x = {x}");
+    }
+}
+
+fn hoist_with_multiple_stmts() {
+    let y = Some(true);
+    loop {
+        //~^ while_let_loop
+        let Some(x) = y else {
+            let a = 1;
+            let b = 2;
+            let _c = a + b;
+            println!("sum: {}", a + b);
+            eprintln!("failed");
+            break;
+        };
+        println!("x = {x}");
+    }
+}
+
+fn hoist_with_semicolon_less_stmt() {
+    let y = Some(true);
+    loop {
+        //~^ while_let_loop
+        let Some(x) = y else {
+            if std::hint::black_box(true) {
+                println!("pass");
+            }
+            match 42 {
+                0 => println!("zero"),
+                _ => println!("non-zero"),
+            }
+            break;
+        };
+        println!("x = {x}");
+    }
+}
+
+fn hoist_with_return() -> Option<i32> {
+    loop {
+        //~^ while_let_loop
+        let Some(x) = std::hint::black_box(None::<i32>) else {
+            if true {
+                return None;
+            }
+            break;
+        };
+        println!("x = {x}");
+    }
+    Some(42)
+}
+
+fn hoist_with_labeled_break() {
+    'outer: loop {
+        loop {
+            //~^ while_let_loop
+            let Some(x) = std::hint::black_box(None::<i32>) else {
+                if true {
+                    break 'outer;
+                }
+                break;
+            };
+            println!("x = {x}");
+        }
+    }
+}
+
+fn hoist_with_labeled_continue() {
+    'outer: loop {
+        loop {
+            //~^ while_let_loop
+            let Some(x) = std::hint::black_box(None::<i32>) else {
+                if true {
+                    continue 'outer;
+                }
+                break;
+            };
+            println!("x = {x}");
+        }
+        break;
+    }
+}
+
+fn hoist_with_label_on_transformed_loop() {
+    let y = Some(true);
+    'my_loop: loop {
+        //~^ while_let_loop
+        let Some(x) = y else {
+            println!("done");
+            break;
+        };
+        println!("x = {x}");
+    }
+}
+
+fn no_hoist_break_targets_transformed_loop() {
+    // Should NOT lint: hoisted stmt contains a break targeting the loop being transformed
+    loop {
+        let Some(x) = std::hint::black_box(None::<i32>) else {
+            if true {
+                break;
+            }
+            println!("msg");
+            break;
+        };
+        println!("x = {x}");
+    }
+}
+
+fn no_hoist_continue_targets_transformed_loop() {
+    // no error, unlabeled continue targets the loop being transformed
+    loop {
+        let Some(x) = std::hint::black_box(None::<i32>) else {
+            if true {
+                continue;
+            }
+            break;
+        };
+        println!("x = {x}");
+    }
+}
+
+fn no_hoist_labeled_break_targets_transformed_loop() {
+    // no error, labeled break targets the loop being transformed
+    'my_loop: loop {
+        let Some(x) = std::hint::black_box(None::<i32>) else {
+            if true {
+                break 'my_loop;
+            }
+            break;
+        };
+        println!("x = {x}");
+    }
+}
+
+fn no_hoist_break_with_value() {
+    // no error, break with a value is not a simple break
+    let _result = loop {
+        let Some(x) = std::hint::black_box(None::<i32>) else {
+            break 42;
+        };
+        println!("x = {x}");
+    };
+}
+
+fn hoist_with_nested_inner_loop() {
+    loop {
+        //~^ while_let_loop
+        let Some(x) = std::hint::black_box(None::<i32>) else {
+            for i in 0..3 {
+                if i == 1 {
+                    break;
+                }
+                println!("{i}");
+            }
             break;
         };
         println!("x = {x}");
