@@ -36,6 +36,7 @@ fn get_cond_expr<'tcx>(
             needs_unsafe_block: contains_unsafe_block(cx, expr),
             needs_negated: is_none_expr(cx, then_expr), /* if the `then_expr` resolves to `None`, need to negate the
                                                          * cond */
+            enclosing_block: None,
         });
     }
     None
