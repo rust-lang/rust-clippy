@@ -318,4 +318,45 @@ fn issue14440(opt: Option<i32>) {
     //~^ manual_filter
     opt.and_then(|x| unsafe { if f(x as u32) { Some(x) } else { None } });
     //~^ manual_filter
+    opt.and_then(|x| {
+        //~^ manual_filter
+        println!("{x}");
+        unsafe { if f(x as u32) { Some(x) } else { None } }
+    });
+}
+
+fn issue16751(v: Option<u32>) -> Option<u32> {
+    let _ = match v {
+        Some(n) => {
+            if n > 0 {
+                return None;
+            }
+            if n == 0 { Some(n) } else { None }
+        },
+        None => None,
+    };
+
+    let _ = match v {
+        //~^ manual_filter
+        Some(n) => {
+            println!("{n}");
+            {
+                println!("{}", n + 1);
+                unsafe { if n > 0 { Some(n) } else { None } }
+            }
+        },
+        None => None,
+    };
+
+    unsafe fn f(x: u32) -> bool {
+        true
+    }
+    match v {
+        //~^ manual_filter
+        Some(n) => {
+            println!("{n}");
+            if unsafe { f(n) } { Some(n) } else { None }
+        },
+        None => None,
+    }
 }

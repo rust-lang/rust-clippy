@@ -219,5 +219,69 @@ error: manual implementation of `Option::filter`
 LL |     opt.and_then(|x| unsafe { if f(x as u32) { Some(x) } else { None } });
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `filter(|&x| unsafe { f(x as u32) })`
 
-error: aborting due to 20 previous errors
+error: manual implementation of `Option::filter`
+  --> tests/ui/manual_filter.rs:321:9
+   |
+LL |       opt.and_then(|x| {
+   |  _________^
+LL | |
+LL | |         println!("{x}");
+LL | |         unsafe { if f(x as u32) { Some(x) } else { None } }
+LL | |     });
+   | |______^
+   |
+help: try
+   |
+LL ~     opt.filter(|&x| {
+LL +
+LL +         println!("{x}");
+LL +         unsafe { f(x as u32) }
+LL ~     });
+   |
+
+error: manual implementation of `Option::filter`
+  --> tests/ui/manual_filter.rs:339:13
+   |
+LL |       let _ = match v {
+   |  _____________^
+LL | |
+LL | |         Some(n) => {
+LL | |             println!("{n}");
+...  |
+LL | |         None => None,
+LL | |     };
+   | |_____^
+   |
+help: try
+   |
+LL ~     let _ = v.filter(|&n| {
+LL +             println!("{n}");
+LL +             {
+LL +                 println!("{}", n + 1);
+LL +                 unsafe { n > 0 }
+LL +             }
+LL ~         });
+   |
+
+error: manual implementation of `Option::filter`
+  --> tests/ui/manual_filter.rs:354:5
+   |
+LL | /     match v {
+LL | |
+LL | |         Some(n) => {
+LL | |             println!("{n}");
+...  |
+LL | |         None => None,
+LL | |     }
+   | |_____^
+   |
+help: try
+   |
+LL ~     v.filter(|&n| {
+LL +             println!("{n}");
+LL +             unsafe { f(n) }
+LL +         })
+   |
+
+error: aborting due to 23 previous errors
 

@@ -11,13 +11,18 @@ use clippy_utils::{
 use rustc_ast::util::parser::ExprPrecedence;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
-use rustc_hir::{BindingMode, Expr, ExprKind, HirId, Mutability, Pat, PatKind, Path, QPath};
+use rustc_hir::{
+    BindingMode, Block, BlockCheckMode, Expr, ExprKind, HirId, Mutability, Pat, PatKind, Path, QPath, UnsafeSource,
+};
 use rustc_lint::LateContext;
 use rustc_span::{Span, SyntaxContext, sym};
 
+type GetSomeExprFn<'a, 'tcx> =
+    dyn Fn(&LateContext<'tcx>, &'tcx Pat<'_>, &'tcx Expr<'_>, SyntaxContext) -> Option<SomeExpr<'a, 'tcx>> + 'a;
+
 #[expect(clippy::too_many_arguments)]
 #[expect(clippy::too_many_lines)]
-pub(super) fn check_with<'tcx, F>(
+pub(super) fn check_with<'a, 'tcx>(
     cx: &LateContext<'tcx>,
     expr: &'tcx Expr<'_>,
     scrutinee: &'tcx Expr<'_>,
@@ -25,11 +30,8 @@ pub(super) fn check_with<'tcx, F>(
     then_body: &'tcx Expr<'_>,
     else_pat: Option<&'tcx Pat<'_>>,
     else_body: &'tcx Expr<'_>,
-    get_some_expr_fn: F,
-) -> Option<SuggInfo<'tcx>>
-where
-    F: Fn(&LateContext<'tcx>, &'tcx Pat<'_>, &'tcx Expr<'_>, SyntaxContext) -> Option<SomeExpr<'tcx>>,
-{
+    get_some_expr_fn: &'a GetSomeExprFn<'a, 'tcx>,
+) -> Option<SuggInfo<'tcx>> {
     let (scrutinee_ty, ty_ref_count, ty_mutability) = peel_and_count_ty_refs(cx.typeck_results().expr_ty(scrutinee));
     let ty_mutability = ty_mutability.unwrap_or(Mutability::Mut);
 
@@ -63,10 +65,10 @@ where
         return None;
     }
 
-    let some_expr = get_some_expr_fn(cx, some_pat, some_expr, expr_ctxt)?;
+    let some_expr_within_block = get_some_expr_with_block_info(cx, some_pat, some_expr, expr_ctxt, get_some_expr_fn)?;
 
     // These two lints will go back and forth with each other.
-    if cx.typeck_results().expr_ty(some_expr.expr) == cx.tcx.types.unit
+    if cx.typeck_results().expr_ty(some_expr_within_block.some_expr.expr) == cx.tcx.types.unit
         && !is_lint_allowed(cx, OPTION_MAP_UNIT_FN, expr.hir_id)
     {
         return None;
@@ -89,10 +91,9 @@ where
 
     let captures = can_move_expr_to_closure(
         cx,
-        some_expr
-            .enclosing_block
-            .map(|(expr, _, _)| expr)
-            .unwrap_or(some_expr.expr),
+        some_expr_within_block
+            .block_info
+            .map_or(some_expr_within_block.some_expr.expr, |b| b.outermost_block),
     )?;
     // Check if captures the closure will need conflict with borrows made in the scrutinee.
     // TODO: check all the references made in the scrutinee expression. This will require interacting
@@ -125,16 +126,16 @@ where
         scrutinee_str.into()
     };
 
-    let closure_body = some_expr.to_snippet_with_context(cx, expr_ctxt, &mut app);
+    let closure_body = some_expr_within_block.to_snippet_with_context(cx, expr_ctxt, &mut app);
 
     let body_str = if let PatKind::Binding(annotation, id, some_binding, None) = some_pat.kind {
-        if !some_expr.needs_unsafe_block
-            && let Some(func) = can_pass_as_func(cx, id, some_expr.expr)
-            && func.span.eq_ctxt(some_expr.expr.span)
+        if some_expr_within_block.block_info.is_none()
+            && let Some(func) = can_pass_as_func(cx, id, some_expr_within_block.some_expr.expr)
+            && func.span.eq_ctxt(some_expr_within_block.some_expr.expr.span)
         {
             snippet_with_applicability(cx, func.span, "..", &mut app).into_owned()
         } else {
-            if some_expr.expr.res_local_id() == Some(id)
+            if some_expr_within_block.some_expr.expr.res_local_id() == Some(id)
                 && !is_lint_allowed(cx, MATCH_AS_REF, expr.hir_id)
                 && binding_ref.is_some()
             {
@@ -209,56 +210,95 @@ pub(super) enum OptionPat<'a> {
     },
 }
 
-#[derive(Debug)]
-pub(super) struct SomeExpr<'tcx> {
+type SomeExprExtraFn<'a, 'tcx> = dyn Fn(Sugg<'tcx>) -> Sugg<'tcx> + 'a;
+
+#[derive(Clone, Copy)]
+pub(super) struct SomeExpr<'a, 'tcx> {
     pub expr: &'tcx Expr<'tcx>,
-    pub needs_unsafe_block: bool,
-    pub needs_negated: bool, // for `manual_filter` lint
-    /// If the target expression is from a block where there are statements preceding it, the
-    /// outer-most of such block, plus the span before and after the expression is used so that the
-    /// entire block can be included in the suggestion.
-    /// E.g. in `Some(x) => { println!("foo"); Some(x) }`, the expression `Some(x)` is from the
-    /// block `{ println!("foo"); Some(x) }`.
-    pub enclosing_block: Option<(&'tcx Expr<'tcx>, Span, Span)>,
+    pub extra_fn: Option<&'a SomeExprExtraFn<'a, 'tcx>>,
 }
 
-impl<'tcx> SomeExpr<'tcx> {
-    pub fn new_no_negated(
-        expr: &'tcx Expr<'tcx>,
-        needs_unsafe_block: bool,
-        enclosing_block: Option<(&'tcx Expr<'tcx>, Span, Span)>,
-    ) -> Self {
-        Self {
-            expr,
-            needs_unsafe_block,
-            needs_negated: false,
-            enclosing_block,
-        }
-    }
+#[derive(Clone, Copy)]
+pub(super) struct SomeExprWithinBlock<'a, 'tcx> {
+    some_expr: SomeExpr<'a, 'tcx>,
+    block_info: Option<BlockInfo<'tcx>>,
+}
 
-    pub fn to_snippet_with_context(
-        &self,
+/// If the target expression is from a block where there are statements preceding it, the
+/// outer-most of such block, plus the span before and after the expression is used so that the
+/// entire block can be included in the suggestion.
+///
+/// E.g. in `Some(x) => { println!("foo"); Some(x) }`, the expression `Some(x)` is from the
+/// block `{ println!("foo"); Some(x) }`.
+#[derive(Clone, Copy, Debug)]
+struct BlockInfo<'tcx> {
+    outermost_block: &'tcx Expr<'tcx>,
+    span_before: Span,
+    span_after: Span,
+}
+
+impl<'tcx> SomeExprWithinBlock<'_, 'tcx> {
+    pub(super) fn to_snippet_with_context(
+        self,
         cx: &LateContext<'tcx>,
         ctxt: SyntaxContext,
         app: &mut Applicability,
     ) -> String {
-        let mut sugg = Sugg::hir_with_context(cx, self.expr, ctxt, "..", app);
-        if self.needs_negated {
-            sugg = !sugg
+        let mut sugg = Sugg::hir_with_context(cx, self.some_expr.expr, ctxt, "..", app);
+        if let Some(extra_fn) = self.some_expr.extra_fn {
+            sugg = extra_fn(sugg);
         }
 
-        let sugg = if self.needs_unsafe_block {
-            format!("unsafe {}", sugg.blockify())
-        } else {
-            sugg.to_string()
-        };
-
-        let Some((_, span_before, span_after)) = self.enclosing_block else {
+        let Some(block_info) = &self.block_info else {
             return sugg.to_string();
         };
-        let (before, _) = snippet_with_context(cx, span_before, ctxt, "..", app);
-        let (after, _) = snippet_with_context(cx, span_after, ctxt, "..", app);
-        format!("{}{}{}", before, sugg, after)
+        let (before, _) = snippet_with_context(cx, block_info.span_before, ctxt, "..", app);
+        let (after, _) = snippet_with_context(cx, block_info.span_after, ctxt, "..", app);
+        format!("{before}{sugg}{after}")
+    }
+}
+
+pub(super) fn get_some_expr_with_block_info<'a, 'tcx>(
+    cx: &LateContext<'tcx>,
+    pat: &'tcx Pat<'_>,
+    expr: &'tcx Expr<'_>,
+    ctxt: SyntaxContext,
+    get_some_expr_fn: &'a GetSomeExprFn<'a, 'tcx>,
+) -> Option<SomeExprWithinBlock<'a, 'tcx>> {
+    match expr.kind {
+        ExprKind::Block(
+            Block {
+                stmts,
+                expr: Some(inner_expr),
+                rules,
+                ..
+            },
+            _,
+        ) if let Some(mut some_expr) = get_some_expr_with_block_info(cx, pat, inner_expr, ctxt, get_some_expr_fn) => {
+            if stmts.is_empty() && !matches!(rules, BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided)) {
+                return Some(some_expr);
+            }
+
+            if let Some(block_info) = &mut some_expr.block_info {
+                block_info.outermost_block = expr;
+                block_info.span_before = block_info.span_before.with_lo(expr.span.lo());
+                block_info.span_after = block_info.span_after.with_hi(expr.span.hi());
+            } else {
+                some_expr.block_info = Some(BlockInfo {
+                    outermost_block: expr,
+                    span_before: expr.span.until(inner_expr.span),
+                    span_after: inner_expr.span.between(expr.span.shrink_to_hi()),
+                });
+            }
+            Some(some_expr)
+        },
+        _ => {
+            let some_expr = get_some_expr_fn(cx, pat, expr, ctxt)?;
+            Some(SomeExprWithinBlock {
+                some_expr,
+                block_info: None,
+            })
+        },
     }
 }
 
