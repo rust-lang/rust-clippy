@@ -205,6 +205,7 @@ generate! {
     dbg_macro,
     de,
     debug_struct,
+    dedup_by,
     deprecated_in_future,
     deref_mut_method,
     diagnostics,
