@@ -84,7 +84,6 @@ fn get_some_expr<'tcx>(
     fn get_some_expr_internal<'tcx>(
         cx: &LateContext<'tcx>,
         expr: &'tcx Expr<'_>,
-        needs_unsafe_block: bool,
         ctxt: SyntaxContext,
     ) -> Option<SomeExpr<'tcx>> {
         // TODO: Allow more complex expressions.
@@ -92,24 +91,36 @@ fn get_some_expr<'tcx>(
             ExprKind::Call(callee, [arg])
                 if ctxt == expr.span.ctxt() && callee.res(cx).ctor_parent(cx).is_lang_item(cx, OptionSome) =>
             {
-                Some(SomeExpr::new_no_negated(arg, needs_unsafe_block))
+                Some(SomeExpr::new_no_negated(arg, false, None))
             },
             ExprKind::Block(
                 Block {
-                    stmts: [],
-                    expr: Some(expr),
+                    stmts,
+                    expr: Some(inner_expr),
                     rules,
                     ..
                 },
                 _,
-            ) => get_some_expr_internal(
-                cx,
-                expr,
-                needs_unsafe_block || *rules == BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided),
-                ctxt,
-            ),
+            ) if let Some(mut some_expr) = get_some_expr_internal(cx, inner_expr, ctxt) => {
+                if stmts.is_empty() && !matches!(rules, BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided)) {
+                    return Some(some_expr);
+                }
+
+                if let Some((inner_block, span_before, span_after)) = &mut some_expr.enclosing_block {
+                    *inner_block = expr;
+                    *span_before = span_before.with_lo(expr.span.lo());
+                    *span_after = span_after.with_hi(expr.span.hi());
+                } else {
+                    some_expr.enclosing_block = Some((
+                        expr,
+                        expr.span.until(inner_expr.span),
+                        inner_expr.span.between(expr.span.shrink_to_hi()),
+                    ));
+                }
+                Some(some_expr)
+            },
             _ => None,
         }
     }
-    get_some_expr_internal(cx, expr, false, ctxt)
+    get_some_expr_internal(cx, expr, ctxt)
 }
