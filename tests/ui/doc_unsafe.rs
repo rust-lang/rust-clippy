@@ -142,3 +142,33 @@ pub mod __macro {
 pub unsafe trait DocumentedUnsafeTraitWithImplementationHeader {
     fn method();
 }
+
+pub mod doc_with_original_span {
+    use super::external;
+    external! {
+        #[doc = $("# Safety")]
+        $(
+            pub unsafe fn foo() {}
+        )
+    }
+
+    external! {
+        #[doc = $("missing safety doc")]
+        $(
+            pub unsafe fn foo1() {}
+            //~^ missing_safety_doc
+        )
+    }
+
+    pub struct Bar;
+
+    impl Bar {
+        external! {
+            #[doc = $("missing safety doc")]
+            $(
+                pub unsafe fn foo() {}
+                //~^ missing_safety_doc
+            )
+        }
+    }
+}
