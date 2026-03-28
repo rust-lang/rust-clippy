@@ -1,0 +1,42 @@
+error: this `match` can be collapsed into the outer `if let`
+  --> tests/ui/issue_16570.rs:9:9
+   |
+LL | /         match inner {
+LL | |
+LL | |             Some(_) => 0,
+LL | |             _ => 1,
+LL | |         }
+   | |_________^
+   |
+help: the outer pattern can be modified to include the inner pattern
+  --> tests/ui/issue_16570.rs:8:33
+   |
+LL |     let _ = if true && let Some(inner) = opt {
+   |                                 ^^^^^ replace this binding
+...
+LL |             Some(_) => 0,
+   |             ^^^^^^^ with this pattern
+   = note: `-D clippy::collapsible-match` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::collapsible_match)]`
+
+error: this `match` can be collapsed into the outer `if let`
+  --> tests/ui/issue_16570.rs:22:9
+   |
+LL | /         match inner {
+LL | |
+LL | |             1 => 0,
+LL | |             _ => 1,
+LL | |         }
+   | |_________^
+   |
+help: the outer pattern can be modified to include the inner pattern
+  --> tests/ui/issue_16570.rs:20:21
+   |
+LL |         && let Some(inner) = inner_opt
+   |                     ^^^^^ replace this binding
+...
+LL |             1 => 0,
+   |             ^ with this pattern
+
+error: aborting due to 2 previous errors
+
