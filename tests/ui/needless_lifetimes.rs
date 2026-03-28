@@ -8,6 +8,7 @@
     clippy::needless_pass_by_value,
     clippy::redundant_allocation,
     clippy::unnecessary_wraps,
+    clippy::unused_impl,
     dyn_drop,
     clippy::get_first,
     mismatched_lifetime_syntaxes

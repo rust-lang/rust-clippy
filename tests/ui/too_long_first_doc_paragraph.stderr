@@ -1,5 +1,5 @@
 error: first doc comment paragraph is too long
-  --> tests/ui/too_long_first_doc_paragraph.rs:8:5
+  --> tests/ui/too_long_first_doc_paragraph.rs:9:5
    |
 LL | /     //! A very short summary.
 LL | |
@@ -21,7 +21,7 @@ LL ~     //! A much longer explanation that goes into a lot more detail about
    |
 
 error: first doc comment paragraph is too long
-  --> tests/ui/too_long_first_doc_paragraph.rs:16:1
+  --> tests/ui/too_long_first_doc_paragraph.rs:17:1
    |
 LL | / /// Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc turpis nunc, lacinia
 LL | |
@@ -30,7 +30,7 @@ LL | | /// gravida non lacinia at, rhoncus eu lacus.
    | |_^
 
 error: first doc comment paragraph is too long
-  --> tests/ui/too_long_first_doc_paragraph.rs:38:1
+  --> tests/ui/too_long_first_doc_paragraph.rs:39:1
    |
 LL | / /// Lorem
 LL | |
@@ -40,7 +40,7 @@ LL | | /// gravida non lacinia at, rhoncus eu lacus.
    | |_^
 
 error: first doc comment paragraph is too long
-  --> tests/ui/too_long_first_doc_paragraph.rs:65:1
+  --> tests/ui/too_long_first_doc_paragraph.rs:66:1
    |
 LL | / /// Some function. This doc-string paragraph is too long. Lorem Ipsum is simply dummy text of the printing and typesetting industr...
 LL | |
