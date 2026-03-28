@@ -4,7 +4,7 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 
 use clippy_utils::res::{MaybeDef, MaybeQPath};
 use rustc_hir::LangItem::OptionSome;
-use rustc_hir::{Arm, Block, BlockCheckMode, Expr, ExprKind, Pat, UnsafeSource};
+use rustc_hir::{Arm, Expr, ExprKind, Pat};
 use rustc_lint::LateContext;
 use rustc_span::SyntaxContext;
 
@@ -50,7 +50,7 @@ fn check<'tcx>(
         then_body,
         else_pat,
         else_body,
-        get_some_expr,
+        &get_some_expr,
     ) {
         span_lint_and_sugg(
             cx,
@@ -75,52 +75,21 @@ fn check<'tcx>(
 }
 
 // Checks for an expression wrapped by the `Some` constructor. Returns the contained expression.
-fn get_some_expr<'tcx>(
+fn get_some_expr<'a, 'tcx>(
     cx: &LateContext<'tcx>,
     _: &'tcx Pat<'_>,
     expr: &'tcx Expr<'_>,
     ctxt: SyntaxContext,
-) -> Option<SomeExpr<'tcx>> {
-    fn get_some_expr_internal<'tcx>(
-        cx: &LateContext<'tcx>,
-        expr: &'tcx Expr<'_>,
-        ctxt: SyntaxContext,
-    ) -> Option<SomeExpr<'tcx>> {
-        // TODO: Allow more complex expressions.
-        match expr.kind {
-            ExprKind::Call(callee, [arg])
-                if ctxt == expr.span.ctxt() && callee.res(cx).ctor_parent(cx).is_lang_item(cx, OptionSome) =>
-            {
-                Some(SomeExpr::new_no_negated(arg, false, None))
-            },
-            ExprKind::Block(
-                Block {
-                    stmts,
-                    expr: Some(inner_expr),
-                    rules,
-                    ..
-                },
-                _,
-            ) if let Some(mut some_expr) = get_some_expr_internal(cx, inner_expr, ctxt) => {
-                if stmts.is_empty() && !matches!(rules, BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided)) {
-                    return Some(some_expr);
-                }
-
-                if let Some((inner_block, span_before, span_after)) = &mut some_expr.enclosing_block {
-                    *inner_block = expr;
-                    *span_before = span_before.with_lo(expr.span.lo());
-                    *span_after = span_after.with_hi(expr.span.hi());
-                } else {
-                    some_expr.enclosing_block = Some((
-                        expr,
-                        expr.span.until(inner_expr.span),
-                        inner_expr.span.between(expr.span.shrink_to_hi()),
-                    ));
-                }
-                Some(some_expr)
-            },
-            _ => None,
-        }
+) -> Option<SomeExpr<'a, 'tcx>> {
+    if let ExprKind::Call(callee, [arg]) = expr.kind
+        && ctxt == expr.span.ctxt()
+        && callee.res(cx).ctor_parent(cx).is_lang_item(cx, OptionSome)
+    {
+        return Some(SomeExpr {
+            expr: arg,
+            extra_fn: None,
+        });
     }
-    get_some_expr_internal(cx, expr, ctxt)
+
+    None
 }
