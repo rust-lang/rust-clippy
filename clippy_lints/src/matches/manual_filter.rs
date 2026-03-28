@@ -1,5 +1,5 @@
 use clippy_utils::as_some_expr;
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::res::{MaybeDef, MaybeQPath, MaybeResPath};
 use clippy_utils::visitors::contains_unsafe_block;
 
@@ -9,7 +9,7 @@ use rustc_lint::LateContext;
 use rustc_span::{SyntaxContext, sym};
 
 use super::MANUAL_FILTER;
-use super::manual_utils::{SomeExpr, check_with};
+use super::manual_utils::{SomeExpr, SuggInfo, check_with};
 
 // Function called on the <expr> of `[&+]Some((ref | ref mut) x) => <expr>`
 // Need to check if it's of the form `<expr>=if <cond> {<then_expr>} else {<else_expr>}`
@@ -133,7 +133,15 @@ fn check<'tcx>(
     else_pat: Option<&'tcx Pat<'_>>,
     else_body: &'tcx Expr<'_>,
 ) {
-    if let Some(sugg_info) = check_with(
+    if let Some(SuggInfo {
+        needs_brackets,
+        scrutinee_impl_copy,
+        scrutinee_str,
+        as_ref_str,
+        body_str,
+        app,
+        requires_coercion,
+    }) = check_with(
         cx,
         expr,
         scrutinee,
@@ -143,22 +151,27 @@ fn check<'tcx>(
         else_body,
         get_cond_expr,
     ) {
-        let body_str = add_ampersand_if_copy(sugg_info.body_str, sugg_info.scrutinee_impl_copy);
-        span_lint_and_sugg(
+        let body_str = add_ampersand_if_copy(body_str, scrutinee_impl_copy);
+        span_lint_and_then(
             cx,
             MANUAL_FILTER,
             expr.span,
             "manual implementation of `Option::filter`",
-            "try",
-            if sugg_info.needs_brackets {
-                format!(
-                    "{{ {}{}.filter({body_str}) }}",
-                    sugg_info.scrutinee_str, sugg_info.as_ref_str
-                )
-            } else {
-                format!("{}{}.filter({body_str})", sugg_info.scrutinee_str, sugg_info.as_ref_str)
+            |diag| {
+                diag.span_suggestion(
+                    expr.span,
+                    "try",
+                    if needs_brackets {
+                        format!("{{ {scrutinee_str}{as_ref_str}.filter({body_str}) }}")
+                    } else {
+                        format!("{scrutinee_str}{as_ref_str}.filter({body_str})")
+                    },
+                    app,
+                );
+                if requires_coercion {
+                    diag.note("you may need to add explicit `as` casts/dereferences if this `match` is coerced to another type");
+                }
             },
-            sugg_info.app,
         );
     }
 }
