@@ -154,13 +154,15 @@ use clippy_utils::macros::FormatArgsStorage;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
 use clippy_utils::{contains_return, iter_input_pats, peel_blocks, sym};
-pub use path_ends_with_ext::DEFAULT_ALLOWED_DOTFILES;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::{self as hir, Expr, ExprKind, Node, Stmt, StmtKind, TraitItem, TraitItemKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty::TraitRef;
 use rustc_session::impl_lint_pass;
 use rustc_span::{Span, Symbol};
+
+pub use implicit_clone::is_clone_like;
+pub use path_ends_with_ext::DEFAULT_ALLOWED_DOTFILES;
 
 declare_clippy_lint! {
     /// ### What it does
