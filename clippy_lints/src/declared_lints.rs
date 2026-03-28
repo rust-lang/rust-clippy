@@ -194,6 +194,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::functions::MISNAMED_GETTERS_INFO,
     crate::functions::MUST_USE_CANDIDATE_INFO,
     crate::functions::MUST_USE_UNIT_INFO,
+    crate::functions::MUST_USE_WITHOUT_NOTE_INFO,
     crate::functions::NOT_UNSAFE_PTR_ARG_DEREF_INFO,
     crate::functions::REF_OPTION_INFO,
     crate::functions::RENAMED_FUNCTION_PARAMS_INFO,
