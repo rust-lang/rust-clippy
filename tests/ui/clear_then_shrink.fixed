@@ -1,0 +1,65 @@
+#![allow(unused)]
+#![warn(clippy::clear_then_shrink)]
+
+use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
+use std::ffi::OsString;
+use std::path::PathBuf;
+
+fn side_effect_vec() -> Vec<i32> {
+    vec![1, 2, 3]
+}
+
+fn main() {
+    let mut v = vec![1, 2, 3];
+    std::mem::take(&mut v);
+
+    let v = &mut vec![1, 2, 3];
+    std::mem::take(v);
+
+    let mut deque = VecDeque::from([1, 2, 3]);
+    std::mem::take(&mut deque);
+
+    let mut s = String::from("abc");
+    std::mem::take(&mut s);
+
+    let mut path = PathBuf::from("tmp");
+    std::mem::take(&mut path);
+
+    let mut os = OsString::from("tmp");
+    std::mem::take(&mut os);
+
+    let mut map = HashMap::from([(1, 2)]);
+    std::mem::take(&mut map);
+
+    let mut set = HashSet::from([1, 2, 3]);
+    std::mem::take(&mut set);
+
+    let mut heap = BinaryHeap::from([1, 2, 3]);
+    std::mem::take(&mut heap);
+
+    let mut no_lint = vec![1, 2, 3];
+    no_lint.clear();
+    println!("not consecutive");
+    no_lint.shrink_to_fit();
+
+    let mut lhs = vec![1, 2, 3];
+    let mut rhs = vec![1, 2, 3];
+    lhs.clear();
+    rhs.shrink_to_fit();
+
+    side_effect_vec().clear();
+    side_effect_vec().shrink_to_fit();
+}
+
+#[clippy::msrv = "1.39.0"]
+fn msrv_1_39() {
+    let mut v = vec![1, 2, 3];
+    v.clear();
+    v.shrink_to_fit();
+}
+
+#[clippy::msrv = "1.40.0"]
+fn msrv_1_40() {
+    let mut v = vec![1, 2, 3];
+    std::mem::take(&mut v);
+}
