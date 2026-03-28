@@ -1,0 +1,76 @@
+error: `filter_map()` will run forever if the iterator repeatedly produces an `Err`
+  --> tests/ui/split_filter_map_ok.rs:10:36
+   |
+LL |     BufReader::new(f).split(b'\n').filter_map(Result::ok).for_each(|_| ());
+   |                                    ^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `map_while(Result::ok)`
+   |
+note: this expression returning a `std::io::Split` may produce an infinite number of `Err` in case of a read error
+  --> tests/ui/split_filter_map_ok.rs:10:5
+   |
+LL |     BufReader::new(f).split(b'\n').filter_map(Result::ok).for_each(|_| ());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: `-D clippy::lines-filter-map-ok` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::lines_filter_map_ok)]`
+
+error: `flat_map()` will run forever if the iterator repeatedly produces an `Err`
+  --> tests/ui/split_filter_map_ok.rs:13:36
+   |
+LL |     BufReader::new(f).split(b'\n').flat_map(Result::ok).for_each(|_| ());
+   |                                    ^^^^^^^^^^^^^^^^^^^^ help: replace with: `map_while(Result::ok)`
+   |
+note: this expression returning a `std::io::Split` may produce an infinite number of `Err` in case of a read error
+  --> tests/ui/split_filter_map_ok.rs:13:5
+   |
+LL |     BufReader::new(f).split(b'\n').flat_map(Result::ok).for_each(|_| ());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: `flatten()` will run forever if the iterator repeatedly produces an `Err`
+  --> tests/ui/split_filter_map_ok.rs:16:36
+   |
+LL |     BufReader::new(f).split(b'\n').flatten().for_each(|_| ());
+   |                                    ^^^^^^^^^ help: replace with: `map_while(Result::ok)`
+   |
+note: this expression returning a `std::io::Split` may produce an infinite number of `Err` in case of a read error
+  --> tests/ui/split_filter_map_ok.rs:16:5
+   |
+LL |     BufReader::new(f).split(b'\n').flatten().for_each(|_| ());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: `filter_map()` will run forever if the iterator repeatedly produces an `Err`
+  --> tests/ui/split_filter_map_ok.rs:19:37
+   |
+LL |     io::stdin().lock().split(b'\n').filter_map(Result::ok).for_each(|_| ());
+   |                                     ^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `map_while(Result::ok)`
+   |
+note: this expression returning a `std::io::Split` may produce an infinite number of `Err` in case of a read error
+  --> tests/ui/split_filter_map_ok.rs:19:5
+   |
+LL |     io::stdin().lock().split(b'\n').filter_map(Result::ok).for_each(|_| ());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: `filter_map()` will run forever if the iterator repeatedly produces an `Err`
+  --> tests/ui/split_filter_map_ok.rs:21:37
+   |
+LL |     io::stdin().lock().split(b'\n').filter_map(|x| x.ok()).for_each(|_| ());
+   |                                     ^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `map_while(Result::ok)`
+   |
+note: this expression returning a `std::io::Split` may produce an infinite number of `Err` in case of a read error
+  --> tests/ui/split_filter_map_ok.rs:21:5
+   |
+LL |     io::stdin().lock().split(b'\n').filter_map(|x| x.ok()).for_each(|_| ());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: `flatten()` will run forever if the iterator repeatedly produces an `Err`
+  --> tests/ui/split_filter_map_ok.rs:23:37
+   |
+LL |     io::stdin().lock().split(b'\n').flatten().for_each(|_| ());
+   |                                     ^^^^^^^^^ help: replace with: `map_while(Result::ok)`
+   |
+note: this expression returning a `std::io::Split` may produce an infinite number of `Err` in case of a read error
+  --> tests/ui/split_filter_map_ok.rs:23:5
+   |
+LL |     io::stdin().lock().split(b'\n').flatten().for_each(|_| ());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 6 previous errors
+
