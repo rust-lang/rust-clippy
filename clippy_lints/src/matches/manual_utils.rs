@@ -3,7 +3,7 @@ use crate::matches::MATCH_AS_REF;
 use clippy_utils::res::{MaybeDef, MaybeResPath};
 use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
 use clippy_utils::sugg::Sugg;
-use clippy_utils::ty::{is_copy, is_unsafe_fn, peel_and_count_ty_refs};
+use clippy_utils::ty::{is_unsafe_fn, peel_and_count_ty_refs};
 use clippy_utils::{
     CaptureKind, as_some_pattern, can_move_expr_to_closure, expr_requires_coercion, is_else_clause, is_lint_allowed,
     is_none_expr, is_none_pattern, peel_blocks, peel_hir_expr_refs, peel_hir_expr_while,
@@ -17,12 +17,12 @@ use rustc_hir::{
 use rustc_lint::LateContext;
 use rustc_span::{Span, SyntaxContext, sym};
 
-type GetSomeExprFn<'a, 'tcx> =
-    dyn Fn(&LateContext<'tcx>, &'tcx Pat<'_>, &'tcx Expr<'_>, SyntaxContext) -> Option<SomeExpr<'a, 'tcx>> + 'a;
+type GetSomeExprFn<'a, 'tcx, T> =
+    dyn Fn(&LateContext<'tcx>, &'tcx Pat<'_>, &'tcx Expr<'_>, SyntaxContext) -> Option<SomeExpr<'a, 'tcx, T>> + 'a;
 
 #[expect(clippy::too_many_arguments)]
 #[expect(clippy::too_many_lines)]
-pub(super) fn check_with<'a, 'tcx>(
+pub(super) fn check_with<'a, 'tcx, T>(
     cx: &LateContext<'tcx>,
     expr: &'tcx Expr<'_>,
     scrutinee: &'tcx Expr<'_>,
@@ -30,8 +30,8 @@ pub(super) fn check_with<'a, 'tcx>(
     then_body: &'tcx Expr<'_>,
     else_pat: Option<&'tcx Pat<'_>>,
     else_body: &'tcx Expr<'_>,
-    get_some_expr_fn: &'a GetSomeExprFn<'a, 'tcx>,
-) -> Option<SuggInfo<'tcx>> {
+    get_some_expr_fn: &'a GetSomeExprFn<'a, 'tcx, T>,
+) -> Option<SuggInfo<'tcx, T>> {
     let (scrutinee_ty, ty_ref_count, ty_mutability) = peel_and_count_ty_refs(cx.typeck_results().expr_ty(scrutinee));
     let ty_mutability = ty_mutability.unwrap_or(Mutability::Mut);
 
@@ -160,26 +160,23 @@ pub(super) fn check_with<'a, 'tcx>(
         return None;
     };
 
-    // relies on the fact that Option<T>: Copy where T: copy
-    let scrutinee_impl_copy = is_copy(cx, scrutinee_ty);
-
     Some(SuggInfo {
         needs_brackets: else_pat.is_none() && is_else_clause(cx.tcx, expr),
-        scrutinee_impl_copy,
         scrutinee_str,
         as_ref_str,
         body_str,
         app,
+        extra_info: some_expr_within_block.some_expr.extra_info,
     })
 }
 
-pub struct SuggInfo<'a> {
+pub struct SuggInfo<'a, T> {
     pub needs_brackets: bool,
-    pub scrutinee_impl_copy: bool,
     pub scrutinee_str: String,
     pub as_ref_str: &'a str,
     pub body_str: String,
     pub app: Applicability,
+    pub extra_info: T,
 }
 
 // Checks whether the expression could be passed as a function, or whether a closure is needed.
@@ -212,15 +209,14 @@ pub(super) enum OptionPat<'a> {
 
 type SomeExprExtraFn<'a, 'tcx> = dyn Fn(Sugg<'tcx>) -> Sugg<'tcx> + 'a;
 
-#[derive(Clone, Copy)]
-pub(super) struct SomeExpr<'a, 'tcx> {
+pub(super) struct SomeExpr<'a, 'tcx, T = ()> {
     pub expr: &'tcx Expr<'tcx>,
     pub extra_fn: Option<&'a SomeExprExtraFn<'a, 'tcx>>,
+    pub extra_info: T,
 }
 
-#[derive(Clone, Copy)]
-struct SomeExprWithinBlock<'a, 'tcx> {
-    some_expr: SomeExpr<'a, 'tcx>,
+struct SomeExprWithinBlock<'a, 'tcx, T> {
+    some_expr: SomeExpr<'a, 'tcx, T>,
     block_info: Option<BlockInfo<'tcx>>,
 }
 
@@ -237,8 +233,8 @@ struct BlockInfo<'tcx> {
     span_after: Span,
 }
 
-impl<'tcx> SomeExprWithinBlock<'_, 'tcx> {
-    fn to_snippet_with_context(self, cx: &LateContext<'tcx>, ctxt: SyntaxContext, app: &mut Applicability) -> String {
+impl<'tcx, T> SomeExprWithinBlock<'_, 'tcx, T> {
+    fn to_snippet_with_context(&self, cx: &LateContext<'tcx>, ctxt: SyntaxContext, app: &mut Applicability) -> String {
         let mut sugg = Sugg::hir_with_context(cx, self.some_expr.expr, ctxt, "..", app);
         if let Some(extra_fn) = self.some_expr.extra_fn {
             sugg = extra_fn(sugg);
@@ -253,13 +249,13 @@ impl<'tcx> SomeExprWithinBlock<'_, 'tcx> {
     }
 }
 
-fn get_some_expr_with_block_info<'a, 'tcx>(
+fn get_some_expr_with_block_info<'a, 'tcx, T>(
     cx: &LateContext<'tcx>,
     pat: &'tcx Pat<'_>,
     expr: &'tcx Expr<'_>,
     ctxt: SyntaxContext,
-    get_some_expr_fn: &'a GetSomeExprFn<'a, 'tcx>,
-) -> Option<SomeExprWithinBlock<'a, 'tcx>> {
+    get_some_expr_fn: &'a GetSomeExprFn<'a, 'tcx, T>,
+) -> Option<SomeExprWithinBlock<'a, 'tcx, T>> {
     match expr.kind {
         ExprKind::Block(
             Block {

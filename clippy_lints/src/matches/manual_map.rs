@@ -88,6 +88,7 @@ fn get_some_expr<'a, 'tcx>(
         return Some(SomeExpr {
             expr: arg,
             extra_fn: None,
+            extra_info: (),
         });
     }
 
