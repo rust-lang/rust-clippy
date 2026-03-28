@@ -444,3 +444,32 @@ fn issue16705(x: Option<String>) {
         _ => false,
     };
 }
+
+mod issue16717 {
+    enum E {
+        A(&'static str, bool),
+        B(&'static str),
+        C,
+    }
+
+    impl E {
+        fn name(&self) -> Option<&'static str> {
+            match self {
+                Self::A(name, _) | Self::B(name) => Some(name),
+                Self::C => None,
+            }
+        }
+    }
+
+    fn f(e: E) {
+        match e {
+            E::A(_, update) => {
+                if update {
+                    println!("side effect: update");
+                }
+            },
+            _ if let Some(name) = e.name() => println!("other side effect: {name}"),
+            _ => (),
+        }
+    }
+}
