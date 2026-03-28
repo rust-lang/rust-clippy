@@ -88,5 +88,17 @@ error: these patterns are unneeded as the `..` pattern can match those elements
 LL |         if let S(0, .., _, _,) = s {};
    |                       ^^^^^^ help: remove them
 
-error: aborting due to 14 previous errors
+error: this pattern is unneeded as the `..` pattern can match that element
+  --> tests/ui/unneeded_wildcard_pattern.rs:82:42
+   |
+LL |         Struct4::FourVal { mut a, mut b, c: _, .. } => {
+   |                                          ^^^^^^ help: remove it
+
+error: these patterns are unneeded as the `..` pattern can match those elements
+  --> tests/ui/unneeded_wildcard_pattern.rs:91:35
+   |
+LL |         Struct4::FourVal { mut b, c: _, d: _, .. } => b = 6,
+   |                                   ^^^^^^^^^^^^ help: remove them
+
+error: aborting due to 16 previous errors
 
