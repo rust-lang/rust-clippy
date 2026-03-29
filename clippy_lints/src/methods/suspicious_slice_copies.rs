@@ -146,6 +146,7 @@ fn slice_can_be_borrowed_mutably(cx: &LateContext<'_>, recv_expr: &Expr<'_>) -> 
                 |ty, (target, deref)| match deref {
                     DerefAdjustKind::Builtin => (ty.ref_mutability() != Some(Mutability::Not)).then_some(target),
                     DerefAdjustKind::Overloaded(_) => impls_deref_mut_trait(ty).then_some(target),
+                    DerefAdjustKind::Pin => None,
                 },
             )
             .is_none()
