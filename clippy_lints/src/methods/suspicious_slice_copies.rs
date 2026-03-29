@@ -2,12 +2,15 @@ use super::SUSPICIOUS_SLICE_COPIES;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::msrvs::Msrv;
 use clippy_utils::source::{IntoSpan, SpanRangeExt, snippet_with_context};
+use clippy_utils::ty::implements_trait;
 use clippy_utils::{msrvs, sym};
-use rustc_ast::{BorrowKind, Mutability};
+use rustc_ast::{BindingMode, BorrowKind, Mutability, UnOp};
 use rustc_errors::Applicability;
-use rustc_hir::{Expr, ExprKind, Node};
+use rustc_hir::def::Res;
+use rustc_hir::{Expr, ExprKind, Node, Param, PatKind, Path, QPath};
 use rustc_lint::LateContext;
 use rustc_middle::ty;
+use rustc_middle::ty::adjustment::{Adjust, DerefAdjustKind};
 use rustc_middle::ty::{GenericArgKind, Ty};
 use rustc_span::Span;
 
@@ -52,6 +55,9 @@ pub(super) fn check(
         // use mut ref
         && let Some((_, Node::Expr(mut_ref_expr))) = parent_iter.next()
         && let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Mut, inner_expr) = mut_ref_expr.kind
+
+        // check mutable borrow is possible
+        && (matches!(receiver, TryIntoReceiver::SliceMutRef) || slice_can_be_borrowed_mutably(cx, recv_expr))
     {
         let span = mut_ref_expr.span.with_hi(inner_expr.span.hi());
 
@@ -106,5 +112,78 @@ pub(super) fn check(
                 );
             },
         );
+    }
+}
+
+fn slice_can_be_borrowed_mutably(cx: &LateContext<'_>, recv_expr: &Expr<'_>) -> bool {
+    let deref_mut_trait = cx.tcx.lang_items().deref_mut_trait();
+    let index_mut_trait = cx.tcx.lang_items().index_mut_trait();
+
+    let impls_deref_mut_trait = |ty| deref_mut_trait.is_some_and(|trait_id| implements_trait(cx, ty, trait_id, &[]));
+    let impls_index_mut = |ty, idx| index_mut_trait.is_some_and(|trait_id| implements_trait(cx, ty, trait_id, &[idx]));
+
+    let mut cur_expr = if let ExprKind::Index(base, idx, _) = recv_expr.kind
+        && let base_ty = cx.typeck_results().expr_ty(base)
+        && (impls_index_mut(base_ty, cx.typeck_results().expr_ty(idx).into())
+            || base_ty.ref_mutability() == Some(Mutability::Mut))
+    {
+        base
+    } else {
+        return false;
+    };
+
+    loop {
+        if cx
+            .typeck_results()
+            .expr_adjustments(cur_expr)
+            .iter()
+            .map_while(|adj| match adj.kind {
+                Adjust::Deref(k) => Some((adj.target, k)),
+                _ => None,
+            })
+            .try_fold(
+                cx.typeck_results().expr_ty(cur_expr),
+                |ty, (target, deref)| match deref {
+                    DerefAdjustKind::Builtin => (ty.ref_mutability() != Some(Mutability::Not)).then_some(target),
+                    DerefAdjustKind::Overloaded(_) => impls_deref_mut_trait(ty).then_some(target),
+                },
+            )
+            .is_none()
+        {
+            return false;
+        }
+
+        match cur_expr.kind {
+            ExprKind::Unary(UnOp::Deref, base) => {
+                if !impls_deref_mut_trait(cx.typeck_results().expr_ty_adjusted(base)) {
+                    return false;
+                }
+
+                cur_expr = base;
+            },
+
+            ExprKind::Path(QPath::Resolved(
+                _,
+                Path {
+                    res: Res::Local(local), ..
+                },
+            )) => {
+                let node = cx.tcx.hir_node(*local);
+
+                return match node {
+                    Node::Pat(pat) | Node::Param(&Param { pat, .. }) => {
+                        let local_ty = cx.typeck_results().node_type(*local);
+
+                        local_ty.ref_mutability() == Some(Mutability::Mut)
+                            || matches!(pat.kind, PatKind::Binding(BindingMode::MUT, _, _, _))
+                    },
+                    _ => false,
+                };
+            },
+
+            _ => {
+                return false;
+            },
+        }
     }
 }
