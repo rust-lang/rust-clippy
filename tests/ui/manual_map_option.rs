@@ -247,3 +247,36 @@ fn main() {
         None => None,
     };
 }
+
+fn issue16751(v: Option<usize>) -> Option<usize> {
+    let _ = match v {
+        Some(n) => {
+            if n > 0 {
+                return None;
+            }
+            Some(42)
+        },
+        None => None,
+    };
+
+    let _ = match v {
+        //~^ manual_map
+        Some(n) => {
+            println!("{n}");
+            {
+                println!("{}", n + 1);
+                unsafe { Some(42) }
+            }
+        },
+        None => None,
+    };
+
+    match v {
+        //~^ manual_map
+        Some(n) => {
+            println!("{n}");
+            Some(42)
+        },
+        None => None,
+    }
+}

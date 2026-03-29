@@ -1,7 +1,6 @@
 mod collapsible_match;
 mod infallible_destructuring_match;
-mod manual_filter;
-mod manual_map;
+mod manual_filter_map;
 mod manual_ok_err;
 mod manual_unwrap_or;
 mod manual_utils;
@@ -1122,8 +1121,7 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
 
                     if !is_in_const_context(cx) {
                         manual_unwrap_or::check_match(cx, expr, ex, arms);
-                        manual_map::check_match(cx, expr, ex, arms);
-                        manual_filter::check_match(cx, ex, arms, expr);
+                        manual_filter_map::check_match(cx, ex, arms, expr);
                         manual_ok_err::check_match(cx, expr, ex, arms);
                     }
 
@@ -1166,8 +1164,7 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
                             if_let.if_then,
                             else_expr,
                         );
-                        manual_map::check_if_let(cx, expr, if_let.let_pat, if_let.let_expr, if_let.if_then, else_expr);
-                        manual_filter::check_if_let(
+                        manual_filter_map::check_if_let(
                             cx,
                             expr,
                             if_let.let_pat,
