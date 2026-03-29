@@ -18,11 +18,17 @@ use rustc_lint::LateContext;
 use rustc_span::{Span, SyntaxContext, sym};
 
 type GetSomeExprFn<'a, 'tcx, T> =
-    dyn Fn(&LateContext<'tcx>, &'tcx Pat<'_>, &'tcx Expr<'_>, SyntaxContext) -> Option<SomeExpr<'a, 'tcx, T>> + 'a;
+    dyn Fn(&LateContext<'tcx>, &'tcx Pat<'_>, &'tcx Expr<'_>, SyntaxContext) -> Option<SomeExpr<'tcx, T>> + 'a;
+
+pub(super) type SomeExprExtraFn<'a, 'tcx> = dyn Fn(Sugg<'tcx>) -> Sugg<'tcx> + 'a;
+
+pub(super) trait SomeExprInfo<'tcx> {
+    fn apply_extra(&self, sugg: Sugg<'tcx>) -> Sugg<'tcx>;
+}
 
 #[expect(clippy::too_many_arguments)]
 #[expect(clippy::too_many_lines)]
-pub(super) fn check_with<'a, 'tcx, T>(
+pub(super) fn check_with<'a, 'tcx, T: SomeExprInfo<'tcx>>(
     cx: &LateContext<'tcx>,
     expr: &'tcx Expr<'_>,
     scrutinee: &'tcx Expr<'_>,
@@ -207,16 +213,13 @@ pub(super) enum OptionPat<'a> {
     },
 }
 
-type SomeExprExtraFn<'a, 'tcx> = dyn Fn(Sugg<'tcx>) -> Sugg<'tcx> + 'a;
-
-pub(super) struct SomeExpr<'a, 'tcx, T = ()> {
+pub(super) struct SomeExpr<'tcx, T> {
     pub expr: &'tcx Expr<'tcx>,
-    pub extra_fn: Option<&'a SomeExprExtraFn<'a, 'tcx>>,
     pub extra_info: T,
 }
 
-pub(super) struct SomeExprWithinBlock<'a, 'tcx, T> {
-    pub some_expr: SomeExpr<'a, 'tcx, T>,
+pub(super) struct SomeExprWithinBlock<'tcx, T> {
+    pub some_expr: SomeExpr<'tcx, T>,
     block_info: Option<BlockInfo<'tcx>>,
 }
 
@@ -233,17 +236,15 @@ struct BlockInfo<'tcx> {
     span_after: Span,
 }
 
-impl<'tcx, T> SomeExprWithinBlock<'_, 'tcx, T> {
+impl<'tcx, T: SomeExprInfo<'tcx>> SomeExprWithinBlock<'tcx, T> {
     pub(super) fn to_snippet_with_context(
         &self,
         cx: &LateContext<'tcx>,
         ctxt: SyntaxContext,
         app: &mut Applicability,
     ) -> String {
-        let mut sugg = Sugg::hir_with_context(cx, self.some_expr.expr, ctxt, "..", app);
-        if let Some(extra_fn) = self.some_expr.extra_fn {
-            sugg = extra_fn(sugg);
-        }
+        let sugg = Sugg::hir_with_context(cx, self.some_expr.expr, ctxt, "..", app);
+        let sugg = self.some_expr.extra_info.apply_extra(sugg);
 
         let Some(block_info) = &self.block_info else {
             return sugg.to_string();
@@ -260,7 +261,7 @@ pub(super) fn get_some_expr_with_block_info<'a, 'tcx, T>(
     expr: &'tcx Expr<'_>,
     ctxt: SyntaxContext,
     get_some_expr_fn: &'a GetSomeExprFn<'a, 'tcx, T>,
-) -> Option<SomeExprWithinBlock<'a, 'tcx, T>> {
+) -> Option<SomeExprWithinBlock<'tcx, T>> {
     match expr.kind {
         ExprKind::Block(
             Block {

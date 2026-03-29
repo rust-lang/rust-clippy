@@ -172,7 +172,7 @@ use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
 use rustc_middle::ty::TraitRef;
 use rustc_span::{Span, Symbol};
 
-use crate::matches::manual_filter;
+use crate::matches::manual_filter_map;
 
 pub use implicit_clone::is_clone_like;
 pub use path_ends_with_ext::DEFAULT_ALLOWED_DOTFILES;
@@ -5475,7 +5475,7 @@ impl Methods {
                         }
                     }
 
-                    manual_filter::check_and_then_method(cx, recv, arg, call_span, expr);
+                    manual_filter_map::check_and_then_method(cx, recv, arg, call_span, expr);
                 },
                 (sym::any, [arg]) => {
                     needless_character_iteration::check(cx, expr, recv, arg, false);
