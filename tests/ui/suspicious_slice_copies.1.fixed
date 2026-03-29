@@ -10,7 +10,32 @@ fn arr_incr(arr: &mut [i32; K]) {
 }
 
 #[clippy::msrv = "1.92.0"]
-fn test_msrv_1_92() {
+fn test_msrv_1_92(mut mut_arr: [i32; N], arr_mut_ref: &mut [i32; N]) {
+    let slice_mut_ref: &mut [i32; K] = (&mut mut_arr[..K]).try_into().unwrap();
+    //~^ suspicious_slice_copies
+
+    let slice_mut_ref: &mut [i32; K] = (&mut arr_mut_ref[..K]).try_into().unwrap();
+    //~^ suspicious_slice_copies
+
+    let arr_mut_ref = &mut [0; N];
+    let slice_mut_ref: &mut [i32; K] = (&mut arr_mut_ref[..K]).try_into().unwrap();
+    //~^ suspicious_slice_copies
+
+    let mut mut_arr: [i32; N] = [0; N];
+    let arr_mut_ref: &mut [i32; N] = &mut mut_arr;
+    let slice_mut_ref: &mut [i32; K] = (&mut arr_mut_ref[..K]).try_into().unwrap();
+    //~^ suspicious_slice_copies
+
+    let mut mut_arr: [i32; N] = [0; N];
+    let arr_mut_ref: &mut [i32; N] = &mut mut_arr;
+    let slice_mut_ref: &mut [i32; K] = (&mut (*arr_mut_ref)[..K]).try_into().unwrap();
+    //~^ suspicious_slice_copies
+
+    #[allow(clippy::useless_vec)]
+    let mut mut_vec = vec![1, 2, 3, 4, 5];
+    let slice_mut_ref: &mut [i32; K] = (&mut mut_vec[..K]).try_into().unwrap();
+    //~^ suspicious_slice_copies
+
     let mut arr: [i32; N] = [0; 5];
     let slice: &mut [i32] = &mut arr[..K];
 
@@ -28,7 +53,32 @@ fn test_msrv_1_92() {
 }
 
 #[clippy::msrv = "1.93.0"]
-fn test_msrv_1_93() {
+fn test_msrv_1_93(mut mut_arr: [i32; N], arr_mut_ref: &mut [i32; N]) {
+    let slice_mut_ref: &mut [i32; K] = mut_arr[..K].as_mut_array().unwrap();
+    //~^ suspicious_slice_copies
+
+    let slice_mut_ref: &mut [i32; K] = arr_mut_ref[..K].as_mut_array().unwrap();
+    //~^ suspicious_slice_copies
+
+    let arr_mut_ref = &mut [0; N];
+    let slice_mut_ref: &mut [i32; K] = arr_mut_ref[..K].as_mut_array().unwrap();
+    //~^ suspicious_slice_copies
+
+    let mut mut_arr: [i32; N] = [0; N];
+    let arr_mut_ref: &mut [i32; N] = &mut mut_arr;
+    let slice_mut_ref: &mut [i32; K] = arr_mut_ref[..K].as_mut_array().unwrap();
+    //~^ suspicious_slice_copies
+
+    let mut mut_arr: [i32; N] = [0; N];
+    let arr_mut_ref: &mut [i32; N] = &mut mut_arr;
+    let slice_mut_ref: &mut [i32; K] = (*arr_mut_ref)[..K].as_mut_array().unwrap();
+    //~^ suspicious_slice_copies
+
+    #[allow(clippy::useless_vec)]
+    let mut mut_vec = vec![1, 2, 3, 4, 5];
+    let slice_mut_ref: &mut [i32; K] = mut_vec[..K].as_mut_array().unwrap();
+    //~^ suspicious_slice_copies
+
     let mut arr: [i32; N] = [0; 5];
     let slice: &mut [i32] = &mut arr[..K];
 
@@ -45,14 +95,37 @@ fn test_msrv_1_93() {
     //~^ suspicious_slice_copies
 }
 
+fn test_params(arr: [i32; N], arr_ref: &[i32; K]) {
+    let slice_mut_ref: &mut [i32; K] = &mut arr[..K].try_into().unwrap();
+    let slice_mut_ref: &mut [i32; K] = &mut arr_ref[..K].try_into().unwrap();
+}
+
 fn main() {
-    let mut arr: [i32; N] = [0; 5];
+    let arr_ref = &[0; N];
+    let slice_mut_ref: &mut [i32; K] = &mut arr_ref[..K].try_into().unwrap();
 
-    let arr_ref: &[i32; K] = &arr[..K].try_into().unwrap();
-    let arr_mut_ref: &mut [i32; K] = (&mut arr[..K]).try_into().unwrap();
+    let arr: [i32; N] = [0; N];
+    let slice_mut_ref: &mut [i32; K] = &mut arr[..K].try_into().unwrap();
 
-    let arr_copy: [i32; K] = arr[..K].try_into().unwrap();
+    let mut mut_arr: [i32; N] = [0; N];
+    let arr_ref: &[i32; N] = &arr;
+    let slice_mut_ref: &mut [i32; K] = &mut arr_ref[..K].try_into().unwrap();
 
-    let slice: &[i32] = &arr[..K];
+    let mut mut_arr: [i32; N] = [0; N];
+    let arr_ref: &[i32; N] = &arr;
+    let slice_mut_ref: &mut [i32; K] = &mut (*arr_ref)[..K].try_into().unwrap();
+
+    #[allow(clippy::useless_vec)]
+    let vec = vec![1, 2, 3, 4, 5];
+    let slice_mut_ref: &mut [i32; K] = &mut vec[..K].try_into().unwrap();
+
+    let mut mut_arr: [i32; N] = [0; 5];
+
+    let slice_ref: &[i32; K] = &mut_arr[..K].try_into().unwrap();
+    let slice_mut_ref: &mut [i32; K] = (&mut mut_arr[..K]).try_into().unwrap();
+
+    let arr_copy: [i32; K] = mut_arr[..K].try_into().unwrap();
+
+    let slice: &[i32] = &mut_arr[..K];
     let arr_mut_ref: &mut [i32; K] = &mut slice.try_into().unwrap();
 }

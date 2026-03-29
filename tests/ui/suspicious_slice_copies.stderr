@@ -1,11 +1,113 @@
 error: using a mutable reference to temporary array
-  --> tests/ui/suspicious_slice_copies.rs:17:38
+  --> tests/ui/suspicious_slice_copies.rs:14:40
+   |
+LL |     let slice_mut_ref: &mut [i32; K] = &mut mut_arr[..K].try_into().unwrap();
+   |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::suspicious-slice-copies` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::suspicious_slice_copies)]`
+help: borrow the slice as an array
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut mut_arr[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = (&mut mut_arr[..K]).try_into().unwrap();
+   |
+help: explicitly create a new array using `TryFrom`
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut mut_arr[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = &mut <[_; _]>::try_from(&mut_arr[..K]).unwrap();
+   |
+
+error: using a mutable reference to temporary array
+  --> tests/ui/suspicious_slice_copies.rs:17:40
+   |
+LL |     let slice_mut_ref: &mut [i32; K] = &mut arr_mut_ref[..K].try_into().unwrap();
+   |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: borrow the slice as an array
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut arr_mut_ref[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = (&mut arr_mut_ref[..K]).try_into().unwrap();
+   |
+help: explicitly create a new array using `TryFrom`
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut arr_mut_ref[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = &mut <[_; _]>::try_from(&arr_mut_ref[..K]).unwrap();
+   |
+
+error: using a mutable reference to temporary array
+  --> tests/ui/suspicious_slice_copies.rs:21:40
+   |
+LL |     let slice_mut_ref: &mut [i32; K] = &mut arr_mut_ref[..K].try_into().unwrap();
+   |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: borrow the slice as an array
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut arr_mut_ref[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = (&mut arr_mut_ref[..K]).try_into().unwrap();
+   |
+help: explicitly create a new array using `TryFrom`
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut arr_mut_ref[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = &mut <[_; _]>::try_from(&arr_mut_ref[..K]).unwrap();
+   |
+
+error: using a mutable reference to temporary array
+  --> tests/ui/suspicious_slice_copies.rs:26:40
+   |
+LL |     let slice_mut_ref: &mut [i32; K] = &mut arr_mut_ref[..K].try_into().unwrap();
+   |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: borrow the slice as an array
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut arr_mut_ref[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = (&mut arr_mut_ref[..K]).try_into().unwrap();
+   |
+help: explicitly create a new array using `TryFrom`
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut arr_mut_ref[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = &mut <[_; _]>::try_from(&arr_mut_ref[..K]).unwrap();
+   |
+
+error: using a mutable reference to temporary array
+  --> tests/ui/suspicious_slice_copies.rs:31:40
+   |
+LL |     let slice_mut_ref: &mut [i32; K] = &mut (*arr_mut_ref)[..K].try_into().unwrap();
+   |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: borrow the slice as an array
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut (*arr_mut_ref)[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = (&mut (*arr_mut_ref)[..K]).try_into().unwrap();
+   |
+help: explicitly create a new array using `TryFrom`
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut (*arr_mut_ref)[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = &mut <[_; _]>::try_from(&(*arr_mut_ref)[..K]).unwrap();
+   |
+
+error: using a mutable reference to temporary array
+  --> tests/ui/suspicious_slice_copies.rs:36:40
+   |
+LL |     let slice_mut_ref: &mut [i32; K] = &mut mut_vec[..K].try_into().unwrap();
+   |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: borrow the slice as an array
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut mut_vec[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = (&mut mut_vec[..K]).try_into().unwrap();
+   |
+help: explicitly create a new array using `TryFrom`
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut mut_vec[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = &mut <[_; _]>::try_from(&mut_vec[..K]).unwrap();
+   |
+
+error: using a mutable reference to temporary array
+  --> tests/ui/suspicious_slice_copies.rs:42:38
    |
 LL |     let mut_arr_ref: &mut [i32; K] = &mut slice.try_into().unwrap();
    |                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: `-D clippy::suspicious-slice-copies` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::suspicious_slice_copies)]`
 help: borrow the slice as an array
    |
 LL -     let mut_arr_ref: &mut [i32; K] = &mut slice.try_into().unwrap();
@@ -18,7 +120,7 @@ LL +     let mut_arr_ref: &mut [i32; K] = &mut <[_; _]>::try_from(slice).unwrap(
    |
 
 error: using a mutable reference to temporary array
-  --> tests/ui/suspicious_slice_copies.rs:20:38
+  --> tests/ui/suspicious_slice_copies.rs:45:38
    |
 LL |     let mut_arr_ref: &mut [i32; K] = &mut arr[..K].try_into().unwrap();
    |                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -35,7 +137,7 @@ LL +     let mut_arr_ref: &mut [i32; K] = &mut <[_; _]>::try_from(&arr[..K]).unw
    |
 
 error: using a mutable reference to temporary array
-  --> tests/ui/suspicious_slice_copies.rs:23:38
+  --> tests/ui/suspicious_slice_copies.rs:48:38
    |
 LL |     let mut_arr_ref: &mut [i32; K] = &mut (arr[..K].try_into().unwrap());
    |                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -52,7 +154,7 @@ LL +     let mut_arr_ref: &mut [i32; K] = &mut <[_; _]>::try_from(&arr[..K]).unw
    |
 
 error: using a mutable reference to temporary array
-  --> tests/ui/suspicious_slice_copies.rs:26:14
+  --> tests/ui/suspicious_slice_copies.rs:51:14
    |
 LL |     arr_incr(&mut arr[..K].try_into().expect("never happen"));
    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -69,7 +171,109 @@ LL +     arr_incr(&mut <[_; _]>::try_from(&arr[..K]).expect("never happen"));
    |
 
 error: using a mutable reference to temporary array
-  --> tests/ui/suspicious_slice_copies.rs:35:38
+  --> tests/ui/suspicious_slice_copies.rs:57:40
+   |
+LL |     let slice_mut_ref: &mut [i32; K] = &mut mut_arr[..K].try_into().unwrap();
+   |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: borrow the slice as an array
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut mut_arr[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = mut_arr[..K].as_mut_array().unwrap();
+   |
+help: explicitly create a new array using `TryFrom`
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut mut_arr[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = &mut <[_; _]>::try_from(&mut_arr[..K]).unwrap();
+   |
+
+error: using a mutable reference to temporary array
+  --> tests/ui/suspicious_slice_copies.rs:60:40
+   |
+LL |     let slice_mut_ref: &mut [i32; K] = &mut arr_mut_ref[..K].try_into().unwrap();
+   |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: borrow the slice as an array
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut arr_mut_ref[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = arr_mut_ref[..K].as_mut_array().unwrap();
+   |
+help: explicitly create a new array using `TryFrom`
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut arr_mut_ref[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = &mut <[_; _]>::try_from(&arr_mut_ref[..K]).unwrap();
+   |
+
+error: using a mutable reference to temporary array
+  --> tests/ui/suspicious_slice_copies.rs:64:40
+   |
+LL |     let slice_mut_ref: &mut [i32; K] = &mut arr_mut_ref[..K].try_into().unwrap();
+   |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: borrow the slice as an array
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut arr_mut_ref[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = arr_mut_ref[..K].as_mut_array().unwrap();
+   |
+help: explicitly create a new array using `TryFrom`
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut arr_mut_ref[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = &mut <[_; _]>::try_from(&arr_mut_ref[..K]).unwrap();
+   |
+
+error: using a mutable reference to temporary array
+  --> tests/ui/suspicious_slice_copies.rs:69:40
+   |
+LL |     let slice_mut_ref: &mut [i32; K] = &mut arr_mut_ref[..K].try_into().unwrap();
+   |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: borrow the slice as an array
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut arr_mut_ref[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = arr_mut_ref[..K].as_mut_array().unwrap();
+   |
+help: explicitly create a new array using `TryFrom`
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut arr_mut_ref[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = &mut <[_; _]>::try_from(&arr_mut_ref[..K]).unwrap();
+   |
+
+error: using a mutable reference to temporary array
+  --> tests/ui/suspicious_slice_copies.rs:74:40
+   |
+LL |     let slice_mut_ref: &mut [i32; K] = &mut (*arr_mut_ref)[..K].try_into().unwrap();
+   |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: borrow the slice as an array
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut (*arr_mut_ref)[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = (*arr_mut_ref)[..K].as_mut_array().unwrap();
+   |
+help: explicitly create a new array using `TryFrom`
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut (*arr_mut_ref)[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = &mut <[_; _]>::try_from(&(*arr_mut_ref)[..K]).unwrap();
+   |
+
+error: using a mutable reference to temporary array
+  --> tests/ui/suspicious_slice_copies.rs:79:40
+   |
+LL |     let slice_mut_ref: &mut [i32; K] = &mut mut_vec[..K].try_into().unwrap();
+   |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: borrow the slice as an array
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut mut_vec[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = mut_vec[..K].as_mut_array().unwrap();
+   |
+help: explicitly create a new array using `TryFrom`
+   |
+LL -     let slice_mut_ref: &mut [i32; K] = &mut mut_vec[..K].try_into().unwrap();
+LL +     let slice_mut_ref: &mut [i32; K] = &mut <[_; _]>::try_from(&mut_vec[..K]).unwrap();
+   |
+
+error: using a mutable reference to temporary array
+  --> tests/ui/suspicious_slice_copies.rs:85:38
    |
 LL |     let mut_arr_ref: &mut [i32; K] = &mut slice.try_into().unwrap();
    |                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -86,7 +290,7 @@ LL +     let mut_arr_ref: &mut [i32; K] = &mut <[_; _]>::try_from(slice).unwrap(
    |
 
 error: using a mutable reference to temporary array
-  --> tests/ui/suspicious_slice_copies.rs:38:38
+  --> tests/ui/suspicious_slice_copies.rs:88:38
    |
 LL |     let mut_arr_ref: &mut [i32; K] = &mut arr[..K].try_into().unwrap();
    |                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -103,7 +307,7 @@ LL +     let mut_arr_ref: &mut [i32; K] = &mut <[_; _]>::try_from(&arr[..K]).unw
    |
 
 error: using a mutable reference to temporary array
-  --> tests/ui/suspicious_slice_copies.rs:41:38
+  --> tests/ui/suspicious_slice_copies.rs:91:38
    |
 LL |     let mut_arr_ref: &mut [i32; K] = &mut (arr[..K].try_into().unwrap());
    |                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -120,7 +324,7 @@ LL +     let mut_arr_ref: &mut [i32; K] = &mut <[_; _]>::try_from(&arr[..K]).unw
    |
 
 error: using a mutable reference to temporary array
-  --> tests/ui/suspicious_slice_copies.rs:44:14
+  --> tests/ui/suspicious_slice_copies.rs:94:14
    |
 LL |     arr_incr(&mut arr[..K].try_into().expect("never happen"));
    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -136,5 +340,5 @@ LL -     arr_incr(&mut arr[..K].try_into().expect("never happen"));
 LL +     arr_incr(&mut <[_; _]>::try_from(&arr[..K]).expect("never happen"));
    |
 
-error: aborting due to 8 previous errors
+error: aborting due to 20 previous errors
 
