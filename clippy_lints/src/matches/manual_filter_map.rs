@@ -8,14 +8,38 @@ use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::is_copy;
 use rustc_hir::LangItem::OptionNone;
 use rustc_hir::{Arm, Expr, ExprKind, Pat, PatKind};
-use rustc_lint::LateContext;
-use rustc_span::{SyntaxContext, sym};
+use rustc_lint::{LateContext, Lint};
+use rustc_span::SyntaxContext;
 
-use super::MANUAL_FILTER;
 use super::manual_utils::{SomeExpr, check_with};
+use super::{MANUAL_FILTER, MANUAL_MAP};
 
-struct SuggExtraInfo {
-    use_filter: bool,
+#[derive(Clone, Copy, Debug)]
+enum ManualFilterMap {
+    /// `Option::filter`, filter
+    Filter,
+    /// `Option::map`, map
+    Map,
+    /// `Option::and_then`, i.e. filter map
+    AndThen,
+}
+
+impl ManualFilterMap {
+    fn descr(self) -> &'static str {
+        match self {
+            ManualFilterMap::Filter => "filter",
+            ManualFilterMap::Map => "map",
+            ManualFilterMap::AndThen => "and_then",
+        }
+    }
+
+    fn lint(self) -> &'static Lint {
+        match self {
+            ManualFilterMap::Filter | ManualFilterMap::AndThen => MANUAL_FILTER, /* May create a separate lint for */
+            // this in the future.
+            ManualFilterMap::Map => MANUAL_MAP,
+        }
+    }
 }
 
 // Function called on the <expr> of `[&+]Some((ref | ref mut) x) => <expr>`
@@ -27,29 +51,40 @@ fn get_cond_expr<'a, 'tcx>(
     pat: &Pat<'_>,
     expr: &'tcx Expr<'_>,
     ctxt: SyntaxContext,
-) -> Option<SomeExpr<'a, 'tcx, SuggExtraInfo>> {
+) -> Option<SomeExpr<'a, 'tcx, ManualFilterMap>> {
+    if let Some(arg) = is_some_expr(cx, ctxt, expr) {
+        return Some(SomeExpr {
+            expr: arg,
+            extra_fn: None,
+            extra_info: ManualFilterMap::Map,
+        });
+    }
+
     if let ExprKind::If(cond, then_expr, Some(else_expr)) = expr.kind
         && let PatKind::Binding(_, target, ..) = pat.kind
         // check that one expr resolves to `Some(x)`, the other to `None`
+        && let Some(then_expr_inner) = peels_blocks_incl_unsafe_opt(then_expr)
+        && let Some(else_expr_inner) = peels_blocks_incl_unsafe_opt(else_expr)
         && let Some((need_neg, inner)) =
-            is_none_expr(cx, then_expr)
-            .then(
-                || is_some_expr(cx, ctxt, else_expr).map(|e| (true, e))).flatten()
-            .or_else(
-                || is_none_expr(cx, else_expr).then(|| is_some_expr(cx, ctxt, then_expr).map(|e| (false, e))).flatten())
+            is_none_expr(cx, then_expr_inner)
+            .then(|| is_some_expr(cx, ctxt, else_expr_inner)
+                        .map(|e| (true, e))).flatten()
+            .or_else(|| is_none_expr(cx, else_expr_inner)
+                            .then(|| is_some_expr(cx, ctxt, then_expr_inner)
+                                        .map(|e| (false, e))).flatten())
     {
         return Some(if inner.res_local_id() == Some(target) {
             SomeExpr {
                 expr: cond.peel_drop_temps(),
                 extra_fn: need_neg.then_some(&Sugg::not), /* need to negate the condition if the `then_expr` resolves
                                                            * to `None` */
-                extra_info: SuggExtraInfo { use_filter: true },
+                extra_info: ManualFilterMap::Filter,
             }
         } else {
             SomeExpr {
                 expr,
                 extra_fn: None,
-                extra_info: SuggExtraInfo { use_filter: false },
+                extra_info: ManualFilterMap::AndThen,
             }
         });
     }
@@ -76,9 +111,8 @@ fn peels_blocks_incl_unsafe_opt<'a>(expr: &'a Expr<'a>) -> Option<&'a Expr<'a>> 
 //    <expr>
 // }
 fn is_some_expr<'tcx>(cx: &LateContext<'tcx>, ctxt: SyntaxContext, expr: &'tcx Expr<'tcx>) -> Option<&'tcx Expr<'tcx>> {
-    if let Some(inner_expr) = peels_blocks_incl_unsafe_opt(expr)
-        // there can be not statements in the block as they would be removed when switching to `.filter`
-        && let Some(arg) = as_some_expr(cx, inner_expr)
+    // there can be not statements in the block as they would be removed when switching to `.filter`
+    if let Some(arg) = as_some_expr(cx, expr)
         && ctxt == expr.span.ctxt()
     {
         return Some(arg);
@@ -87,10 +121,7 @@ fn is_some_expr<'tcx>(cx: &LateContext<'tcx>, ctxt: SyntaxContext, expr: &'tcx E
 }
 
 fn is_none_expr(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
-    if let Some(inner_expr) = peels_blocks_incl_unsafe_opt(expr) {
-        return inner_expr.res(cx).ctor_parent(cx).is_lang_item(cx, OptionNone);
-    }
-    false
+    expr.res(cx).ctor_parent(cx).is_lang_item(cx, OptionNone)
 }
 
 // given the closure: `|<pattern>| <expr>`
@@ -108,9 +139,7 @@ pub(super) fn check_match<'tcx>(
     arms: &'tcx [Arm<'_>],
     expr: &'tcx Expr<'_>,
 ) {
-    let ty = cx.typeck_results().expr_ty(expr);
-    if ty.is_diag_item(cx, sym::Option)
-        && let [first_arm, second_arm] = arms
+    if let [first_arm, second_arm] = arms
         && first_arm.guard.is_none()
         && second_arm.guard.is_none()
     {
@@ -156,19 +185,15 @@ fn check<'tcx>(
         else_body,
         &get_cond_expr,
     ) {
-        let method = if sugg_info.extra_info.use_filter {
-            "filter"
-        } else {
-            "and_then"
-        };
+        let descr = sugg_info.extra_info.descr();
         span_lint_and_then(
             cx,
-            MANUAL_FILTER,
+            sugg_info.extra_info.lint(),
             expr.span,
-            format!("manual implementation of `Option::{method}`"),
+            format!("manual implementation of `Option::{descr}`"),
             |diag| {
                 let mut body_str = sugg_info.body_str;
-                if sugg_info.extra_info.use_filter {
+                if matches!(sugg_info.extra_info, ManualFilterMap::Filter) {
                     let scrutinee_ty = cx.typeck_results().expr_ty(scrutinee);
                     body_str = add_ampersand_if_copy(body_str, is_copy(cx, scrutinee_ty)); // relies on the fact that Option<T>: Copy where T: copy
                 }
@@ -178,12 +203,12 @@ fn check<'tcx>(
                     "try",
                     if sugg_info.needs_brackets {
                         format!(
-                            "{{ {}{}.{method}({body_str}) }}",
+                            "{{ {}{}.{descr}({body_str}) }}",
                             sugg_info.scrutinee_str, sugg_info.as_ref_str
                         )
                     } else {
                         format!(
-                            "{}{}.{method}({body_str})",
+                            "{}{}.{descr}({body_str})",
                             sugg_info.scrutinee_str, sugg_info.as_ref_str
                         )
                     },
