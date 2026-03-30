@@ -38,7 +38,7 @@ declare_lint_pass!(TrailingEmptyArray => [TRAILING_EMPTY_ARRAY]);
 
 impl<'tcx> LateLintPass<'tcx> for TrailingEmptyArray {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {
-        if  !item.span.from_expansion()
+        if !item.span.from_expansion()
             && is_struct_with_trailing_zero_sized_array(cx, item)
             && !has_repr_attr(cx, item.hir_id())
             && !is_in_test(cx.tcx, item.hir_id())

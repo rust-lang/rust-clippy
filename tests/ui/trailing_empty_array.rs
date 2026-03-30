@@ -188,13 +188,11 @@ struct TwoGenericParams<T, const N: usize> {
 }
 
 macro_rules! trailing_zero_macro {
-    () => {
-        {
-            struct MacroTrailingZero{
-                tz: [usize; 0],
-            }
+    () => {{
+        struct MacroTrailingZero {
+            tz: [usize; 0],
         }
-    };
+    }};
 }
 
 type A = ConstParamZeroDefault;
@@ -203,7 +201,6 @@ type C = ConstParamNoDefault<0>;
 type D = ConstParamNonZeroDefault<0>;
 
 fn main() {
-
     //Don't lint
     trailing_zero_macro!();
 }

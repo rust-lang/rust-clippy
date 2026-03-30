@@ -79,7 +79,7 @@ const FORGET_NON_DROP_SUMMARY: &str = "call to `std::mem::forget` with a value t
 
 impl<'tcx> LateLintPass<'tcx> for DropForgetRef {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        if  !expr.span.from_expansion()
+        if !expr.span.from_expansion()
             && let ExprKind::Call(path, [arg]) = expr.kind
             && let ExprKind::Path(ref qpath) = path.kind
             && let Some(def_id) = cx.qpath_res(qpath, path.hir_id).opt_def_id()

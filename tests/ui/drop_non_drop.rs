@@ -21,13 +21,11 @@ fn drop_generic<T>(t: T) {
     drop(t)
 }
 
-macro_rules! drop_macro{
-    () => {
-        {
-            struct T;
-            drop(T)
-        }
-    };
+macro_rules! drop_macro {
+    () => {{
+        struct T;
+        drop(T)
+    }};
 }
 
 fn main() {
