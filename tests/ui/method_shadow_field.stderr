@@ -1,0 +1,54 @@
+error: method shadows a field
+  --> tests/ui/method_shadow_field.rs:15:8
+   |
+LL |     fn radius(self) {}
+   |        ^^^^^^
+   |
+help: consider renaming the method or field
+  --> tests/ui/method_shadow_field.rs:4:5
+   |
+LL |     radius: f32,
+   |     ^^^^^^
+   = note: `-D clippy::method-shadow-field` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::method_shadow_field)]`
+
+error: method shadows a public field
+  --> tests/ui/method_shadow_field.rs:17:8
+   |
+LL |     fn diameter(self) {}
+   |        ^^^^^^^^
+   |
+help: consider making the field private or use a distinct name
+  --> tests/ui/method_shadow_field.rs:5:9
+   |
+LL |     pub diameter: f32,
+   |         ^^^^^^^^
+   = note: `-D clippy::method-shadow-public-field` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::method_shadow_public_field)]`
+
+error: method shadows a field
+  --> tests/ui/method_shadow_field.rs:35:8
+   |
+LL |     fn small(self) {}
+   |        ^^^^^
+   |
+help: consider renaming the method or field
+  --> tests/ui/method_shadow_field.rs:29:5
+   |
+LL |     small: i8,
+   |     ^^^^^
+
+error: method shadows a public field
+  --> tests/ui/method_shadow_field.rs:37:8
+   |
+LL |     fn large(self) {}
+   |        ^^^^^
+   |
+help: consider making the field private or use a distinct name
+  --> tests/ui/method_shadow_field.rs:30:9
+   |
+LL |     pub large: i64,
+   |         ^^^^^
+
+error: aborting due to 4 previous errors
+

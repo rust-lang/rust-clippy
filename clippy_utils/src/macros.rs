@@ -554,6 +554,7 @@ impl HirNode for hir::Item<'_> {
         self.hir_id()
     }
 
+    #[allow(clippy::method_shadow_public_field)]
     fn span(&self) -> Span {
         self.span
     }
