@@ -5,8 +5,11 @@
 #![allow(clippy::wildcard_imports, clippy::enum_glob_use)]
 
 use crate::{both, over};
+use rustc_ast::attr::data_structures::CfgEntry;
 use rustc_ast::{self as ast, *};
+use rustc_data_structures::fx::{FxHashSet, FxHasher};
 use rustc_span::symbol::Ident;
+use std::hash::{Hash, Hasher};
 use std::mem;
 
 pub mod ident_iter;
@@ -1020,7 +1023,11 @@ pub fn eq_attr(l: &Attribute, r: &Attribute) -> bool {
 pub fn eq_attr_item_kind(l: &AttrItemKind, r: &AttrItemKind) -> bool {
     match (l, r) {
         (AttrItemKind::Unparsed(l), AttrItemKind::Unparsed(r)) => eq_attr_args(l, r),
-        (AttrItemKind::Parsed(_l), AttrItemKind::Parsed(_r)) => todo!(),
+        (AttrItemKind::Parsed(l), AttrItemKind::Parsed(r)) => match (l, r) {
+            (EarlyParsedAttribute::CfgTrace(l), EarlyParsedAttribute::CfgTrace(r)) => eq_cfg_trace(l, r),
+            (EarlyParsedAttribute::CfgAttrTrace, EarlyParsedAttribute::CfgAttrTrace) => true,
+            _ => false,
+        },
         _ => false,
     }
 }
@@ -1039,4 +1046,85 @@ pub fn eq_delim_args(l: &DelimArgs, r: &DelimArgs) -> bool {
     l.delim == r.delim
         && l.tokens.len() == r.tokens.len()
         && l.tokens.iter().zip(r.tokens.iter()).all(|(a, b)| a.eq_unspanned(b))
+}
+
+#[derive(Eq)]
+struct CfgEntryRef<'a>(&'a CfgEntry);
+
+// we need to hash the entries in an order-independent way so
+// that `all(a, b)` and `all(b, a)` hash to the same value.
+// We do this by XORing the hashes of all elements.
+fn hash_entries(entries: &[CfgEntry]) -> u64 {
+    let mut result = 0;
+    for entry in entries {
+        let mut hasher = FxHasher::default();
+        entry.hash(&mut hasher);
+        result ^= hasher.finish();
+    }
+    result
+}
+
+impl Hash for CfgEntryRef<'_> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        use CfgEntry::*;
+        match self.0 {
+            All(cs, _) => {
+                [0, cs.len()].hash(state);
+                state.write_u64(hash_entries(cs));
+            },
+            Any(cs, _) => {
+                [1, cs.len()].hash(state);
+                state.write_u64(hash_entries(cs));
+            },
+            Not(n, _) => {
+                state.write_usize(2);
+                n.hash(state);
+            },
+            Bool(b, _) => state.write_usize(3 + usize::from(*b)),
+            NameValue { name, value, .. } => {
+                state.write_usize(5);
+                name.hash(state);
+                value.hash(state);
+            },
+            Version(v, _) => {
+                state.write_usize(6);
+                v.hash(state);
+            },
+        }
+    }
+}
+
+impl PartialEq for CfgEntryRef<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        use CfgEntry::*;
+        match (self.0, other.0) {
+            (All(ls, _), All(rs, _)) | (Any(ls, _), Any(rs, _)) => {
+                if ls.len() != rs.len() {
+                    return false;
+                }
+                let rset: FxHashSet<CfgEntryRef<'_>> = rs.iter().map(CfgEntryRef).collect();
+                ls.iter().all(|l| rset.contains(&CfgEntryRef(l)))
+            },
+            (Not(l, _), Not(r, _)) => l == r,
+            (Bool(l, _), Bool(r, _)) => l == r,
+            (
+                NameValue {
+                    name: lname,
+                    value: lvalue,
+                    ..
+                },
+                NameValue {
+                    name: rname,
+                    value: rvalue,
+                    ..
+                },
+            ) => lname == rname && lvalue == rvalue,
+            (Version(l, _), Version(r, _)) => l == r,
+            _ => false,
+        }
+    }
+}
+
+pub fn eq_cfg_trace(l: &CfgEntry, r: &CfgEntry) -> bool {
+    CfgEntryRef(l) == CfgEntryRef(r)
 }
