@@ -5292,6 +5292,24 @@ impl Methods {
                     string_extend_chars::check(cx, expr, recv, arg);
                     extend_with_drain::check(cx, expr, recv, arg);
                 },
+                (bad_method_name @ (sym::fetch_update | sym::try_update), [_, _, arg])
+                    if self.msrv.meets(cx, msrvs::ATOMIC_TRY_UPDATE) =>
+                {
+                    bind_instead_of_map::check_fetch_update(
+                        match bad_method_name {
+                            sym::fetch_update => "fetch_update",
+                            sym::try_update => "try_update",
+                            _ => unreachable!(),
+                        },
+                        bind_instead_of_map::CheckSite {
+                            cx,
+                            expr: expr.span,
+                            recv,
+                            method_name: span,
+                            arg,
+                        },
+                    );
+                },
                 (sym::filter, [arg]) => {
                     if let Some((sym::cloned, recv2, [], _span2, _)) = method_call(recv) {
                         // if `arg` has side-effect, the semantic will change

@@ -1,8 +1,9 @@
 use super::{BIND_INSTEAD_OF_MAP, contains_return};
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
-use clippy_utils::peel_blocks;
+use clippy_utils::res::MaybeDef;
 use clippy_utils::source::{snippet, snippet_with_context};
 use clippy_utils::visitors::find_all_ret_expressions;
+use clippy_utils::{peel_blocks, sym};
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_hir::def::{CtorKind, CtorOf, DefKind, Res};
@@ -31,6 +32,32 @@ pub(super) fn check_and_then_ok(site: CheckSite<'_, '_>) -> bool {
 
 pub(super) fn check_or_else_err(site: CheckSite<'_, '_>) -> bool {
     check(site, "or_else", LangItem::ResultErr, "map_err")
+}
+
+pub(super) fn check_fetch_update(
+    bad_method_name: &'static str,
+    CheckSite {
+        cx,
+        expr,
+        recv,
+        method_name,
+        arg,
+    }: CheckSite<'_, '_>,
+) -> bool {
+    let rec_t = cx.typeck_results().expr_ty_adjusted(recv).peel_refs();
+    if dbg!(dbg!(rec_t).is_diag_item(cx, sym::Atomic))
+        && let Some(wrapper_variant) = cx.tcx.lang_items().get(LangItem::OptionSome)
+    {
+        BindInsteadOfMap {
+            receiver_ty: rec_t.ty_adt_def().unwrap().did(),
+            bad_method_name,
+            wrapper_variant,
+            good_method_name: "update",
+        }
+        .check(cx, expr, recv, method_name, arg)
+    } else {
+        false
+    }
 }
 
 fn check(
