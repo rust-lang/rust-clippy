@@ -14,6 +14,7 @@ mod clone_on_copy;
 mod clone_on_ref_ptr;
 mod cloned_instead_of_copied;
 mod collapsible_str_replace;
+mod concealed_obvious_default;
 mod double_ended_iterator_last;
 mod drain_collect;
 mod err_expect;
@@ -444,6 +445,48 @@ declare_clippy_lint! {
     pub COLLAPSIBLE_STR_REPLACE,
     perf,
     "collapse consecutive calls to str::replace (2 or more) into a single call"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for usages of methods like `Option::unwrap_or_default`,
+    /// for types where the `Default` implementation is obvious and can be written literally
+    ///
+    /// ### Why is this bad?
+    ///
+    /// You have to know what the underlying type is, instead of it being obvious from a glance
+    ///
+    /// ### Example
+    /// ```no_run
+    /// fn f(
+    ///     a: Option<&str>,
+    ///     b: Option<usize>,
+    ///     c: Option<Option<bool>>
+    /// ) {
+    ///     let a = a.unwrap_or_default();
+    ///     let b = b.unwrap_or_default();
+    ///     let c = c.unwrap_or_default();
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    ///
+    /// ```no_run
+    /// fn f(
+    ///     a: Option<&str>,
+    ///     b: Option<usize>,
+    ///     c: Option<Option<bool>>
+    /// ) {
+    ///     let a = a.unwrap_or("");
+    ///     let b = b.unwrap_or(0);
+    ///     let c = c.unwrap_or(None);
+    /// }
+    /// ```
+    #[clippy::version = "1.96.0"]
+    pub CONCEALED_OBVIOUS_DEFAULT,
+    complexity,
+    ".*or_default() obscures the underlying type"
 }
 
 declare_clippy_lint! {

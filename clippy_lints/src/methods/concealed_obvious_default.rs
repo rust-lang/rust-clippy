@@ -4,7 +4,7 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::sym;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
-use rustc_lint::LateContext;
+use rustc_lint::{LateContext, LintContext};
 use rustc_middle::ty::{self, Ty};
 use rustc_span::Span;
 
@@ -23,7 +23,7 @@ pub(super) fn check(
     // Option::<bool>::unwrap_or_default()
     //                 ^^^^^^^^^^^^^^^^^^^
     // if the call comes from expansion, bail
-    if call_span.from_expansion() {
+    if call_span.in_external_macro(cx.sess().source_map()) {
         return;
     }
 
