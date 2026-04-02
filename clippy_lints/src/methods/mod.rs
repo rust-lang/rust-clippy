@@ -4791,6 +4791,7 @@ impl_lint_pass!(Methods => [
     CLONE_ON_COPY,
     CLONE_ON_REF_PTR,
     COLLAPSIBLE_STR_REPLACE,
+    CONCEALED_OBVIOUS_DEFAULT,
     CONST_IS_EMPTY,
     DOUBLE_ENDED_ITERATOR_LAST,
     DRAIN_COLLECT,
@@ -5758,7 +5759,7 @@ impl Methods {
             }
         }
         // Handle method calls whose receiver and arguments may come from expansion
-        if let ExprKind::MethodCall(path, recv, args, _call_span) = expr.kind {
+        if let ExprKind::MethodCall(path, recv, args, call_span) = expr.kind {
             let method_span = path.ident.span;
 
             // Those methods do their own method name checking as they deal with multiple methods.
@@ -5818,6 +5819,9 @@ impl Methods {
                         &self.unwrap_allowed_aliases,
                         unwrap_expect_used::Variant::Unwrap,
                     );
+                },
+                (sym::map_or_default | sym::or_default | sym::unwrap_or_default, args) => {
+                    concealed_obvious_default::check(cx, recv, path.ident.name, call_span, args);
                 },
                 (sym::unwrap_err, []) => {
                     unwrap_expect_used::check(
