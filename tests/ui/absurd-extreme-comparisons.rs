@@ -4,6 +4,7 @@
     clippy::eq_op,
     clippy::no_effect,
     clippy::unnecessary_operation,
+    clippy::bitwise_not_zero,
     clippy::needless_pass_by_value
 )]
 

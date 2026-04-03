@@ -1,8 +1,7 @@
 //@aux-build:external_consts.rs
 
-#![allow(unused)]
 #![warn(clippy::unnecessary_min_or_max)]
-#![allow(clippy::identity_op)]
+#![allow(clippy::bitwise_not_zero, clippy::identity_op)]
 
 extern crate external_consts;
 
