@@ -50,6 +50,7 @@ impl Context {
         }
     }
 
+    /// Checks for usage of the `-` operator on `arg`.
     pub fn check_negate<'tcx>(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>, arg: &'tcx hir::Expr<'_>) {
         if self.skip_expr(expr) {
             return;
@@ -59,6 +60,15 @@ impl Context {
             span_lint(cx, FLOAT_ARITHMETIC, expr.span, "floating-point arithmetic detected");
             self.expr_id = Some(expr.hir_id);
         }
+    }
+
+    /// Checks for usage of the `!` operator on `arg`.
+    pub fn check_not<'tcx>(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>, arg: &'tcx hir::Expr<'_>) {
+        if self.skip_expr(expr) {
+            return;
+        }
+        let ty = cx.typeck_results().expr_ty(arg);
+        super::bitwise_not_zero::check(cx, ty, *expr, *arg);
     }
 
     pub fn expr_post(&mut self, id: hir::HirId) {

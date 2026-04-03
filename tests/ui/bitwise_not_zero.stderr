@@ -1,0 +1,53 @@
+error: usage of the bitwise not `!` on zero
+  --> tests/ui/bitwise_not_zero.rs:14:16
+   |
+LL |     assert_eq!(!0, i32::MAX);
+   |                ^^ help: this is clearer written as the maximum value: `i32::MAX`
+   |
+   = note: `-D clippy::bitwise-not-zero` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::bitwise_not_zero)]`
+
+error: usage of the bitwise not `!` on zero
+  --> tests/ui/bitwise_not_zero.rs:25:16
+   |
+LL |     assert_eq!(!0i64, i64::MAX);
+   |                ^^^^^ help: this is clearer written as the maximum value: `i64::MAX`
+
+error: usage of the bitwise not `!` on zero
+  --> tests/ui/bitwise_not_zero.rs:28:16
+   |
+LL |     assert_eq!(!0_u8, u8::MAX);
+   |                ^^^^^ help: this is clearer written as the maximum value: `u8::MAX`
+
+error: usage of the bitwise not `!` on zero
+  --> tests/ui/bitwise_not_zero.rs:31:16
+   |
+LL |     assert_eq!(!0isize, isize::MAX);
+   |                ^^^^^^^ help: this is clearer written as the maximum value: `isize::MAX`
+
+error: usage of the bitwise not `!` on zero
+  --> tests/ui/bitwise_not_zero.rs:36:29
+   |
+LL |     local_macro!(assert_eq!(!0usize, usize::MAX));
+   |                             ^^^^^^^ help: this is clearer written as the maximum value: `usize::MAX`
+
+error: usage of the bitwise not `!` on zero
+  --> tests/ui/bitwise_not_zero.rs:40:29
+   |
+LL |     assert_eq!(local_macro!(!0u16), u16::MAX);
+   |                             ^^^^^ help: this is clearer written as the maximum value: `u16::MAX`
+
+error: usage of the bitwise not `!` on zero
+  --> tests/ui/bitwise_not_zero.rs:43:16
+   |
+LL |     assert_eq!(!0u64, proc_macros::external!(u64::MAX));
+   |                ^^^^^ help: this is clearer written as the maximum value: `u64::MAX`
+
+error: usage of the bitwise not `!` on zero
+  --> tests/ui/bitwise_not_zero.rs:46:16
+   |
+LL |     assert_eq!(!local_macro!(0u32), proc_macros::external!(u32::MAX));
+   |                ^^^^^^^^^^^^^^^^^^^ help: this is clearer written as the maximum value: `u32::MAX`
+
+error: aborting due to 8 previous errors
+

@@ -1,5 +1,6 @@
 //@aux-build:external_consts.rs
 
+#![allow(clippy::bitwise_not_zero)]
 #![allow(unused)]
 #![warn(clippy::unnecessary_min_or_max)]
 #![allow(clippy::identity_op)]
