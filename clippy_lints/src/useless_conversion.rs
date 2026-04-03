@@ -5,6 +5,7 @@ use clippy_utils::sugg::{DiagExt as _, Sugg};
 use clippy_utils::ty::{is_copy, same_type_modulo_regions};
 use clippy_utils::{get_parent_expr, is_ty_alias, sym};
 use rustc_errors::Applicability;
+use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefId;
 use rustc_hir::{BindingMode, Expr, ExprKind, HirId, MatchSource, Mutability, Node, PatKind};
 use rustc_infer::infer::TyCtxtInferExt;
@@ -329,10 +330,17 @@ impl<'tcx> LateLintPass<'tcx> for UselessConversion {
                     // implements Copy, in which case .into_iter() returns a copy of the receiver and
                     // cannot be safely omitted.
                     if same_type_modulo_regions(a, b) && !is_copy(cx, b) {
-                        // Below we check if the parent method call meets the following conditions:
-                        // 1. First parameter is `&mut self` (requires mutable reference)
-                        // 2. Second parameter implements the `FnMut` trait (e.g., Iterator::any)
-                        // For methods satisfying these conditions (like any), .into_iter() must be preserved.
+                        // Suppress the lint when the direct receiver of `.into_iter()` is a `const`
+                        // (or `AssocConst`) item AND the parent method takes `&mut self` + `FnMut`.
+                        //
+                        // Background: removing `.into_iter()` from `CONST.method(|x| ...)` where
+                        // `method` takes `&mut self` causes the compiler to take a mutable reference
+                        // to a *temporary copy* of the const, triggering a `const_item_mutation`
+                        // warning. For any other receiver expression this is safe to remove.
+                        //
+                        // See <https://github.com/rust-lang/rust-clippy/issues/14656> for the
+                        // original false positive and <https://github.com/rust-lang/rust-clippy/issues/16794>
+                        // for the regression caused by applying this guard too broadly.
                         if let Some(parent) = get_parent_expr(cx, e)
                             && let ExprKind::MethodCall(_, recv, _, _) = parent.kind
                             && recv.hir_id == e.hir_id
@@ -352,6 +360,9 @@ impl<'tcx> LateLintPass<'tcx> for UselessConversion {
                                     false
                                 }
                             })
+                            // Only suppress when the `.into_iter()` receiver is a const item.
+                            // For any other expression the removal is safe.
+                            && is_const_item(cx, into_iter_recv)
                         {
                             return;
                         }
@@ -479,4 +490,21 @@ fn adjustments(cx: &LateContext<'_>, expr: &Expr<'_>) -> String {
         }
     }
     prefix
+}
+
+/// Returns `true` when `expr` is a direct reference to a `const` or `AssocConst` item.
+///
+/// This is used to guard the `.into_iter()` suppression: only const items cause
+/// `const_item_mutation` warnings when a `&mut self` method is called directly on
+/// them (the compiler takes a mutable reference to a *temporary copy*). For any other
+/// expression it is safe to remove the `.into_iter()` call.
+fn is_const_item(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    if let ExprKind::Path(qpath) = &expr.kind {
+        matches!(
+            cx.qpath_res(qpath, expr.hir_id),
+            Res::Def(DefKind::Const { .. } | DefKind::AssocConst { .. }, _)
+        )
+    } else {
+        false
+    }
 }
