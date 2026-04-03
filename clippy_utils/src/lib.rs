@@ -2502,11 +2502,11 @@ pub fn is_in_cfg_test(tcx: TyCtxt<'_>, id: HirId) -> bool {
 
 /// Checks if the node is in a `#[test]` function or has any parent node marked `#[cfg(test)]`
 pub fn is_in_test(tcx: TyCtxt<'_>, hir_id: HirId) -> bool {
-    is_in_test_function(tcx, hir_id) || is_in_cfg_test(tcx, hir_id) || is_in_integration_test(tcx)
+    is_in_test_function(tcx, hir_id) || is_in_cfg_test(tcx, hir_id) || is_in_integration_test_file(tcx)
 }
 
 /// Check if the node is in an integration test file (i.e. under `tests/`).
-pub fn is_in_integration_test(tcx: TyCtxt<'_>) -> bool {
+fn is_in_integration_test_file(tcx: TyCtxt<'_>) -> bool {
     if let Input::File(ref path) = tcx.sess.io.input
         && !tcx.sess.opts.unstable_opts.ui_testing
     {
