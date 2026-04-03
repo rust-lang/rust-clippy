@@ -2505,9 +2505,11 @@ pub fn is_in_test(tcx: TyCtxt<'_>, hir_id: HirId) -> bool {
     is_in_test_function(tcx, hir_id) || is_in_cfg_test(tcx, hir_id) || is_in_integration_test(tcx)
 }
 
-/// Check if the node is in a integration test file.
+/// Check if the node is in an integration test file (i.e. under `tests/`).
 pub fn is_in_integration_test(tcx: TyCtxt<'_>) -> bool {
-    if let Input::File(ref path) = tcx.sess.io.input {
+    if let Input::File(ref path) = tcx.sess.io.input
+        && !tcx.sess.opts.unstable_opts.ui_testing
+    {
         path.components()
             .next()
             .is_some_and(|component| component.as_os_str() == "tests")
