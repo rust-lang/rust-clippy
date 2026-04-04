@@ -6540,6 +6540,7 @@ Released 2018-09-13
 [`disallowed_methods`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_methods
 [`disallowed_names`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_names
 [`disallowed_script_idents`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_script_idents
+[`disallowed_trait_usage`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_trait_usage
 [`disallowed_type`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_type
 [`disallowed_types`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_types
 [`diverging_sub_expression`]: https://rust-lang.github.io/rust-clippy/master/index.html#diverging_sub_expression
