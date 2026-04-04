@@ -73,7 +73,7 @@ LL |     let _ = format!("{:?}", std::io::Error::new(std::io::ErrorKind::Other, 
    = note: Use Display for errors
 
 error: use of implementor of `disallowed_trait_usage::MyTrait` via trait `std::fmt::Debug` is disallowed
-  --> tests/ui-toml/toml_disallowed_trait_usage/disallowed_trait_usage.rs:98:15
+  --> tests/ui-toml/toml_disallowed_trait_usage/disallowed_trait_usage.rs:99:15
    |
 LL |     println!("{my:?}");
    |               ^^^^^^
