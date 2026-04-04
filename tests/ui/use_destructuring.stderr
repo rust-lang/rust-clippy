@@ -1,0 +1,60 @@
+error: all 3 fields of `Vec3` are accessed individually; consider destructuring
+  --> tests/ui/use_destructuring.rs:16:9
+   |
+LL |         self.x + self.y + self.z
+   |         ^^^^^^
+   |
+   = help: consider using `let Vec3 { x, y, z } = self;`
+   = note: `-D clippy::use-destructuring` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::use_destructuring)]`
+
+error: all 3 fields of `Vec3` are accessed individually; consider destructuring
+  --> tests/ui/use_destructuring.rs:21:9
+   |
+LL |         self.x + self.y + self.z
+   |         ^^^^^^
+   |
+   = help: consider using `let Vec3 { x, y, z } = self;`
+
+error: all 3 fields of `Vec3` are accessed individually; consider destructuring
+  --> tests/ui/use_destructuring.rs:29:35
+   |
+LL |         write!(f, "({}, {}, {})", self.x, self.y, self.z)
+   |                                   ^^^^^^
+   |
+   = help: consider using `let Vec3 { x, y, z } = self;`
+
+error: all 2 fields of `Pair` are accessed individually; consider destructuring
+  --> tests/ui/use_destructuring.rs:41:31
+   |
+LL |         write!(f, "({}, {})", self.a, self.b)
+   |                               ^^^^^^
+   |
+   = help: consider using `let Pair { a, b } = self;`
+
+error: all 2 fields of `Pair` are accessed individually; consider destructuring
+  --> tests/ui/use_destructuring.rs:48:5
+   |
+LL |     p.a + p.b
+   |     ^^^
+   |
+   = help: consider using `let Pair { a, b } = p;`
+
+error: all 2 fields of `Pair` are accessed individually; consider destructuring
+  --> tests/ui/use_destructuring.rs:55:5
+   |
+LL |     p.a + p.b
+   |     ^^^
+   |
+   = help: consider using `let Pair { a, b } = p;`
+
+error: all 2 fields of `TupleStruct` are accessed individually; consider destructuring
+  --> tests/ui/use_destructuring.rs:64:9
+   |
+LL |         self.0 + self.1
+   |         ^^^^^^
+   |
+   = help: consider using `let TupleStruct(field_0, field_1) = self;`
+
+error: aborting due to 7 previous errors
+
