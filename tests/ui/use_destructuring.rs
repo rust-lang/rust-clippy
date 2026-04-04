@@ -158,3 +158,9 @@ impl Triple {
         self.a + self.a
     }
 }
+
+// --- Field name would collide with an existing local binding ---
+fn name_collision(v: Vec3) -> f32 {
+    let x = 42.0_f32;
+    x + v.x + v.y + v.z
+}
