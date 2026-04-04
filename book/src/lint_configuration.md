@@ -1196,10 +1196,10 @@ The minimum number of struct fields for the `use_destructuring` lint to trigger.
 
 ## `use-destructuring-scope`
 Which struct types the `use_destructuring` lint applies to:
-`"self"` (only `Self`), `"crate"` (types from the current crate),
-`"workspace"` (types from the current workspace), or `"*"` (all types).
+`"self"` (only the `self` parameter), `"Self"` (any variable whose type
+is `Self`), `"crate"` (types from the current crate), or `"*"` (all types).
 
-**Default Value:** `"crate"`
+**Default Value:** `"self"`
 
 ---
 **Affected lints:**

@@ -31,17 +31,15 @@ impl fmt::Display for Vec3 {
     }
 }
 
-// All fields accessed on a function parameter
+// --- Function parameter (not self, so not linted with default scope="self") ---
 fn sum_vec3(v: Vec3) -> f32 {
     v.x + v.y + v.z
-    //~^ use_destructuring
 }
 
-// All fields accessed on a local variable
+// --- Local variable (not self, so not linted with default scope="self") ---
 fn use_local() -> f32 {
     let v = Vec3 { x: 1.0, y: 2.0, z: 3.0 };
     v.x + v.y + v.z
-    //~^ use_destructuring
 }
 
 // Tuple struct with 3 fields

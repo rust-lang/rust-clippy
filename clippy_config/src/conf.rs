@@ -909,10 +909,10 @@ define_Conf! {
     #[lints(use_destructuring)]
     use_destructuring_min_fields: u64 = 3,
     /// Which struct types the `use_destructuring` lint applies to:
-    /// `"self"` (only `Self`), `"crate"` (types from the current crate),
-    /// `"workspace"` (types from the current workspace), or `"*"` (all types).
+    /// `"self"` (only the `self` parameter), `"Self"` (any variable whose type
+    /// is `Self`), `"crate"` (types from the current crate), or `"*"` (all types).
     #[lints(use_destructuring)]
-    use_destructuring_scope: DestructuringScope = DestructuringScope::Crate,
+    use_destructuring_scope: DestructuringScope = DestructuringScope::SelfBinding,
     /// The size of the boxed type in bytes, where boxing in a `Vec` is allowed
     #[lints(vec_box)]
     vec_box_size_threshold: u64 = 4096,
