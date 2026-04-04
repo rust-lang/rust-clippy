@@ -3,6 +3,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::macros::{FormatArgsStorage, find_format_arg_expr, is_format_macro, root_macro_call_first_node};
 use clippy_utils::paths::{PathNS, find_crates, lookup_path};
 use clippy_utils::sym;
+use clippy_utils::ty::implements_trait;
 use rustc_ast::{FormatArgsPiece, FormatTrait};
 use rustc_hir::def::DefKind;
 use rustc_hir::def_id::DefId;
@@ -29,7 +30,10 @@ declare_clippy_lint! {
     /// ```toml
     /// # clippy.toml
     /// disallowed-trait-usage = [
+    ///     # Forbid Debug formatting of a specific type:
     ///     { type = "std::path::PathBuf", trait = "std::fmt::Debug", reason = "Use path.display() instead" },
+    ///     # Forbid Debug formatting of any type implementing a trait:
+    ///     { implements = "std::error::Error", trait = "std::fmt::Debug", reason = "Use Display instead" },
     /// ]
     /// ```
     ///
@@ -52,9 +56,9 @@ declare_clippy_lint! {
 
 impl_lint_pass!(DisallowedTraitUsage => [DISALLOWED_TRAIT_USAGE]);
 
-/// Identifies a type that may be either an ADT or a primitive.
+/// Identifies a type: either a concrete type (ADT/primitive) or "any type implementing a trait".
 #[derive(Clone, Copy)]
-enum TypeId {
+enum TypeMatcher {
     Def(DefId),
     Bool,
     Char,
@@ -62,13 +66,17 @@ enum TypeId {
     Int(ty::IntTy),
     Uint(ty::UintTy),
     Float(ty::FloatTy),
+    /// Matches any type that implements the given trait.
+    ImplementsTrait(DefId),
 }
 
 /// A resolved disallowed (type, trait) pair.
 struct ResolvedEntry {
-    type_id: TypeId,
+    type_matcher: TypeMatcher,
     trait_def_id: DefId,
-    type_path: &'static str,
+    /// Description of the type constraint, used in diagnostics
+    /// (e.g. `"std::path::PathBuf"` or `"implementors of `std::error::Error`"`).
+    type_description: &'static str,
     trait_path: &'static str,
     reason: Option<&'static str>,
 }
@@ -100,16 +108,16 @@ fn emit_invalid_path_warning(tcx: TyCtxt<'_>, sym_path: &[Symbol], path: &str, e
     tcx.sess.dcx().warn(message);
 }
 
-fn resolve_type_id(tcx: TyCtxt<'_>, path: &str) -> Option<TypeId> {
+fn resolve_type_matcher(tcx: TyCtxt<'_>, path: &str) -> Option<TypeMatcher> {
     let sym_name = Symbol::intern(path);
     if let Some(prim) = rustc_hir::PrimTy::from_name(sym_name) {
         return Some(match prim {
-            rustc_hir::PrimTy::Int(i) => TypeId::Int(i),
-            rustc_hir::PrimTy::Uint(u) => TypeId::Uint(u),
-            rustc_hir::PrimTy::Float(f) => TypeId::Float(f),
-            rustc_hir::PrimTy::Str => TypeId::Str,
-            rustc_hir::PrimTy::Bool => TypeId::Bool,
-            rustc_hir::PrimTy::Char => TypeId::Char,
+            rustc_hir::PrimTy::Int(i) => TypeMatcher::Int(i),
+            rustc_hir::PrimTy::Uint(u) => TypeMatcher::Uint(u),
+            rustc_hir::PrimTy::Float(f) => TypeMatcher::Float(f),
+            rustc_hir::PrimTy::Str => TypeMatcher::Str,
+            rustc_hir::PrimTy::Bool => TypeMatcher::Bool,
+            rustc_hir::PrimTy::Char => TypeMatcher::Char,
         });
     }
 
@@ -123,7 +131,7 @@ fn resolve_type_id(tcx: TyCtxt<'_>, path: &str) -> Option<TypeId> {
     });
 
     if let Some(&def_id) = result {
-        Some(TypeId::Def(def_id))
+        Some(TypeMatcher::Def(def_id))
     } else {
         emit_invalid_path_warning(tcx, &sym_path, path, "type");
         None
@@ -149,13 +157,35 @@ impl DisallowedTraitUsage {
             .disallowed_trait_usage
             .iter()
             .filter_map(|entry| {
-                let type_id = resolve_type_id(tcx, &entry.type_path);
                 let trait_def_id = resolve_trait_def_id(tcx, &entry.trait_path);
 
+                let (type_matcher, type_description) = match (&entry.type_path, &entry.implements) {
+                    (Some(type_path), None) => {
+                        let matcher = resolve_type_matcher(tcx, type_path);
+                        (matcher, type_path.as_str())
+                    },
+                    (None, Some(impl_path)) => {
+                        let impl_trait_id = resolve_trait_def_id(tcx, impl_path);
+                        (impl_trait_id.map(TypeMatcher::ImplementsTrait), impl_path.as_str())
+                    },
+                    (Some(_), Some(_)) => {
+                        tcx.sess
+                            .dcx()
+                            .warn("`type` and `implements` are mutually exclusive (in `disallowed-trait-usage`)");
+                        return None;
+                    },
+                    (None, None) => {
+                        tcx.sess
+                            .dcx()
+                            .warn("either `type` or `implements` must be specified (in `disallowed-trait-usage`)");
+                        return None;
+                    },
+                };
+
                 Some(ResolvedEntry {
-                    type_id: type_id?,
+                    type_matcher: type_matcher?,
                     trait_def_id: trait_def_id?,
-                    type_path: &entry.type_path,
+                    type_description,
                     trait_path: &entry.trait_path,
                     reason: entry.reason.as_deref(),
                 })
@@ -179,34 +209,37 @@ impl DisallowedTraitUsage {
                 continue;
             }
 
-            let matches = match entry.type_id {
-                TypeId::Def(def_id) => match ty.kind() {
+            let type_matches = match entry.type_matcher {
+                TypeMatcher::Def(def_id) => match ty.kind() {
                     ty::Adt(adt_def, _) => adt_def.did() == def_id,
                     _ => false,
                 },
-                TypeId::Bool => ty.is_bool(),
-                TypeId::Char => ty.is_char(),
-                TypeId::Str => ty.is_str(),
-                TypeId::Int(int_ty) => matches!(ty.kind(), ty::Int(i) if *i == int_ty),
-                TypeId::Uint(uint_ty) => matches!(ty.kind(), ty::Uint(u) if *u == uint_ty),
-                TypeId::Float(float_ty) => matches!(ty.kind(), ty::Float(f) if *f == float_ty),
+                TypeMatcher::Bool => ty.is_bool(),
+                TypeMatcher::Char => ty.is_char(),
+                TypeMatcher::Str => ty.is_str(),
+                TypeMatcher::Int(int_ty) => matches!(ty.kind(), ty::Int(i) if *i == int_ty),
+                TypeMatcher::Uint(uint_ty) => matches!(ty.kind(), ty::Uint(u) if *u == uint_ty),
+                TypeMatcher::Float(float_ty) => matches!(ty.kind(), ty::Float(f) if *f == float_ty),
+                TypeMatcher::ImplementsTrait(impl_trait_id) => implements_trait(cx, ty, impl_trait_id, &[]),
             };
 
-            if matches {
-                span_lint_and_then(
-                    cx,
-                    DISALLOWED_TRAIT_USAGE,
-                    report_span,
-                    format!(
-                        "use of `{}` via trait `{}` is disallowed",
-                        entry.type_path, entry.trait_path,
+            if type_matches {
+                let message = match entry.type_matcher {
+                    TypeMatcher::ImplementsTrait(_) => format!(
+                        "use of implementor of `{}` via trait `{}` is disallowed",
+                        entry.type_description, entry.trait_path,
                     ),
-                    |diag| {
-                        if let Some(reason) = entry.reason {
-                            diag.note(reason.to_owned());
-                        }
-                    },
-                );
+                    _ => format!(
+                        "use of `{}` via trait `{}` is disallowed",
+                        entry.type_description, entry.trait_path,
+                    ),
+                };
+
+                span_lint_and_then(cx, DISALLOWED_TRAIT_USAGE, report_span, message, |diag| {
+                    if let Some(reason) = entry.reason {
+                        diag.note(reason.to_owned());
+                    }
+                });
             }
         }
     }
