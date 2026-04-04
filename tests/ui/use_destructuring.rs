@@ -3,7 +3,7 @@
 
 use std::fmt;
 
-// ============ SHOULD LINT ============
+// ============ SHOULD LINT (3+ fields, default threshold) ============
 
 struct Vec3 {
     x: f32,
@@ -31,44 +31,50 @@ impl fmt::Display for Vec3 {
     }
 }
 
-struct Pair {
-    a: i32,
-    b: i32,
-}
-
-impl fmt::Display for Pair {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({}, {})", self.a, self.b)
-        //~^ use_destructuring
-    }
-}
-
 // All fields accessed on a function parameter
-fn add_pair(p: Pair) -> i32 {
-    p.a + p.b
+fn sum_vec3(v: Vec3) -> f32 {
+    v.x + v.y + v.z
     //~^ use_destructuring
 }
 
 // All fields accessed on a local variable
-fn use_local() -> i32 {
-    let p = Pair { a: 1, b: 2 };
-    p.a + p.b
+fn use_local() -> f32 {
+    let v = Vec3 { x: 1.0, y: 2.0, z: 3.0 };
+    v.x + v.y + v.z
     //~^ use_destructuring
 }
 
-// Tuple struct
-struct TupleStruct(i32, i32);
+// Tuple struct with 3 fields
+struct TupleStruct3(i32, i32, i32);
 
-impl TupleStruct {
+impl TupleStruct3 {
     fn sum(self) -> i32 {
-        self.0 + self.1
+        self.0 + self.1 + self.2
         //~^ use_destructuring
     }
 }
 
 // ============ SHOULD NOT LINT ============
 
-// --- Only one field (fewer than 2) ---
+// --- Only 2 fields (below default threshold of 3) ---
+struct Pair {
+    a: i32,
+    b: i32,
+}
+
+fn add_pair(p: Pair) -> i32 {
+    p.a + p.b
+}
+
+struct TupleStruct2(i32, i32);
+
+impl TupleStruct2 {
+    fn sum(self) -> i32 {
+        self.0 + self.1
+    }
+}
+
+// --- Only one field ---
 struct Single {
     x: f32,
 }
@@ -109,18 +115,17 @@ impl Pair {
     }
 }
 
-// --- Tuple struct (should still lint) ---
-
 // --- Non-exhaustive struct ---
 #[non_exhaustive]
 struct NonExhaustive {
     x: i32,
     y: i32,
+    z: i32,
 }
 
 impl NonExhaustive {
     fn sum(self) -> i32 {
-        self.x + self.y
+        self.x + self.y + self.z
     }
 }
 

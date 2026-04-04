@@ -1,5 +1,6 @@
 use std::ops::ControlFlow;
 
+use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::visitors::for_each_expr_without_closures;
 use rustc_data_structures::fx::{FxHashMap, FxHashSet};
@@ -8,7 +9,7 @@ use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Body, ExprKind, FnDecl, HirId, Node, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
-use rustc_session::declare_lint_pass;
+use rustc_session::impl_lint_pass;
 use rustc_span::def_id::LocalDefId;
 use rustc_span::{Span, Symbol};
 
@@ -22,6 +23,12 @@ declare_clippy_lint! {
     /// errors when new fields are added to the struct, helping keep code
     /// in sync with struct definitions.
     ///
+    /// ### Configuration
+    /// This lint has the following configuration variables:
+    ///
+    /// - `use-destructuring-min-fields`: The minimum number of struct fields
+    ///   required for the lint to trigger (default: `3`).
+    ///
     /// ### Example
     /// ```no_run
     /// use std::fmt;
@@ -29,11 +36,12 @@ declare_clippy_lint! {
     /// struct Point {
     ///     x: f32,
     ///     y: f32,
+    ///     z: f32,
     /// }
     ///
     /// impl fmt::Display for Point {
     ///     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    ///         write!(f, "({}, {})", self.x, self.y)
+    ///         write!(f, "({}, {}, {})", self.x, self.y, self.z)
     ///     }
     /// }
     /// ```
@@ -44,12 +52,13 @@ declare_clippy_lint! {
     /// struct Point {
     ///     x: f32,
     ///     y: f32,
+    ///     z: f32,
     /// }
     ///
     /// impl fmt::Display for Point {
     ///     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    ///         let Self { x, y } = self;
-    ///         write!(f, "({x}, {y})")
+    ///         let Self { x, y, z } = self;
+    ///         write!(f, "({x}, {y}, {z})")
     ///     }
     /// }
     /// ```
@@ -59,7 +68,19 @@ declare_clippy_lint! {
     "accessing all fields of a struct individually instead of destructuring"
 }
 
-declare_lint_pass!(UseDestructuring => [USE_DESTRUCTURING]);
+impl_lint_pass!(UseDestructuring => [USE_DESTRUCTURING]);
+
+pub struct UseDestructuring {
+    min_fields: u64,
+}
+
+impl UseDestructuring {
+    pub fn new(conf: &'static Conf) -> Self {
+        Self {
+            min_fields: conf.use_destructuring_min_fields,
+        }
+    }
+}
 
 /// Tracks field accesses on a single local variable within a function body.
 struct LocalInfo<'tcx> {
@@ -148,75 +169,77 @@ impl<'tcx> LateLintPass<'tcx> for UseDestructuring {
             if non_field_uses.contains(local_hir_id) || mutated_locals.contains(local_hir_id) {
                 continue;
             }
-            check_local(cx, *local_hir_id, info);
+            self.lint_local(cx, *local_hir_id, info);
         }
     }
 }
 
-fn check_local<'tcx>(cx: &LateContext<'tcx>, local_hir_id: HirId, info: &LocalInfo<'tcx>) {
-    let ty::Adt(adt_def, _) = info.ty.kind() else {
-        return;
-    };
+impl UseDestructuring {
+    fn lint_local<'tcx>(&self, cx: &LateContext<'tcx>, local_hir_id: HirId, info: &LocalInfo<'tcx>) {
+        let ty::Adt(adt_def, _) = info.ty.kind() else {
+            return;
+        };
 
-    if !adt_def.is_struct() {
-        return;
+        if !adt_def.is_struct() {
+            return;
+        }
+
+        let variant = adt_def.non_enum_variant();
+
+        if variant.is_field_list_non_exhaustive() {
+            return;
+        }
+
+        let struct_fields = &variant.fields;
+
+        if (struct_fields.len() as u64) < self.min_fields {
+            return;
+        }
+
+        // Check that ALL fields are accessed
+        // TODO(emilk): future improvement is to emit this lint if the _majority_
+        // of fields are accessed. This could catch bugs, where the writer forgot about a field!
+        // But the cutoff for this needs to be configurable in `clippy.toml`
+        if info.accessed_fields.len() != struct_fields.len() {
+            return;
+        }
+
+        if !struct_fields.iter().all(|f| info.accessed_fields.contains(&f.name)) {
+            return;
+        }
+
+        // Build the suggestion string
+        let type_name = cx.tcx.item_name(adt_def.did());
+
+        let var_name = if let Node::Pat(pat) = cx.tcx.hir_node(local_hir_id)
+            && let Some(ident) = pat.simple_ident()
+        {
+            ident.name.to_string()
+        } else {
+            "..".to_string()
+        };
+
+        let is_tuple_struct = variant.ctor.is_some();
+        let help_msg = if is_tuple_struct {
+            let binding_names: Vec<String> = (0..struct_fields.len()).map(|i| format!("field_{i}")).collect();
+            let bindings_str = binding_names.join(", ");
+            format!("consider using `let {type_name}({bindings_str}) = {var_name};`")
+        } else {
+            let field_names: Vec<&str> = struct_fields.iter().map(|f| f.name.as_str()).collect();
+            let fields_str = field_names.join(", ");
+            format!("consider using `let {type_name} {{ {fields_str} }} = {var_name};`")
+        };
+
+        span_lint_and_help(
+            cx,
+            USE_DESTRUCTURING,
+            info.first_field_access_span,
+            format!(
+                "all {} fields of `{type_name}` are accessed individually; consider destructuring",
+                struct_fields.len()
+            ),
+            None,
+            help_msg,
+        );
     }
-
-    let variant = adt_def.non_enum_variant();
-
-    if variant.is_field_list_non_exhaustive() {
-        return;
-    }
-
-    let struct_fields = &variant.fields;
-
-    if struct_fields.len() < 2 {
-        return;
-    }
-
-    // Check that ALL fields are accessed
-    // TODO(emilk): future improvement is to emit this lint if the _majority_
-    // of fields are accessed. This could catch bugs, where the writer forgot about a field!
-    // But the cutoff for this needs to be configurable in `clippy.toml`
-    if info.accessed_fields.len() != struct_fields.len() {
-        return;
-    }
-
-    if !struct_fields.iter().all(|f| info.accessed_fields.contains(&f.name)) {
-        return;
-    }
-
-    // Build the suggestion string
-    let type_name = cx.tcx.item_name(adt_def.did());
-
-    let var_name = if let Node::Pat(pat) = cx.tcx.hir_node(local_hir_id)
-        && let Some(ident) = pat.simple_ident()
-    {
-        ident.name.to_string()
-    } else {
-        "..".to_string()
-    };
-
-    let is_tuple_struct = variant.ctor.is_some();
-    let help_msg = if is_tuple_struct {
-        let binding_names: Vec<String> = (0..struct_fields.len()).map(|i| format!("field_{i}")).collect();
-        let bindings_str = binding_names.join(", ");
-        format!("consider using `let {type_name}({bindings_str}) = {var_name};`")
-    } else {
-        let field_names: Vec<&str> = struct_fields.iter().map(|f| f.name.as_str()).collect();
-        let fields_str = field_names.join(", ");
-        format!("consider using `let {type_name} {{ {fields_str} }} = {var_name};`")
-    };
-
-    span_lint_and_help(
-        cx,
-        USE_DESTRUCTURING,
-        info.first_field_access_span,
-        format!(
-            "all {} fields of `{type_name}` are accessed individually; consider destructuring",
-            struct_fields.len()
-        ),
-        None,
-        help_msg,
-    );
 }
