@@ -71,8 +71,7 @@ enum TypeMatcher {
 struct ResolvedEntry {
     type_matcher: TypeMatcher,
     trait_def_id: DefId,
-    /// Description of the type constraint, used in diagnostics
-    /// (e.g. `"std::path::PathBuf"` or `"implementors of `std::error::Error`"`).
+    /// Description of the type constraint, used in diagnostics.
     type_description: &'static str,
     trait_path: &'static str,
     reason: Option<&'static str>,
