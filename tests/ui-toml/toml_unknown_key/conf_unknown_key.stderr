@@ -49,6 +49,7 @@ LL | foobar = 42
            disallowed-macros
            disallowed-methods
            disallowed-names
+           disallowed-trait-usage
            disallowed-types
            doc-valid-idents
            enable-raw-pointer-heuristic-for-send
