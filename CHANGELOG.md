@@ -10,6 +10,8 @@ document.
 
 ### New Lints
 
+* Added [`new_instead_of_clear`] to `perf`
+  [#16549](https://github.com/rust-lang/rust-clippy/pull/16549)
 * Added [`unnecessary_trailing_comma`] to `style` (single-line format-like macros only)
   [#13965](https://github.com/rust-lang/rust-clippy/issues/13965)
 
@@ -6838,6 +6840,7 @@ Released 2018-09-13
 [`neg_multiply`]: https://rust-lang.github.io/rust-clippy/master/index.html#neg_multiply
 [`negative_feature_names`]: https://rust-lang.github.io/rust-clippy/master/index.html#negative_feature_names
 [`never_loop`]: https://rust-lang.github.io/rust-clippy/master/index.html#never_loop
+[`new_instead_of_clear`]: https://rust-lang.github.io/rust-clippy/master/index.html#new_instead_of_clear
 [`new_ret_no_self`]: https://rust-lang.github.io/rust-clippy/master/index.html#new_ret_no_self
 [`new_without_default`]: https://rust-lang.github.io/rust-clippy/master/index.html#new_without_default
 [`new_without_default_derive`]: https://rust-lang.github.io/rust-clippy/master/index.html#new_without_default_derive
