@@ -586,18 +586,22 @@ default configuration of Clippy. By default, any configuration will replace the 
 
 
 ## `disallowed-trait-usage`
-The list of disallowed trait usages. Each entry forbids using a specific type via a specific
+The list of disallowed trait usages. Each entry forbids using a type via a specific
 trait interface.
 
 **Fields:**
-- `type` (required): the fully qualified path to the type (e.g. `"i32"`, `"std::path::PathBuf"`)
-- `trait` (required): the fully qualified path to the trait (e.g. `"std::fmt::Debug"`)
+- `type` (optional): the fully qualified path to a concrete type (e.g. `"i32"`, `"std::path::PathBuf"`)
+- `implements` (optional): the fully qualified path to a trait; matches any type implementing it
+- `trait` (required): the fully qualified path to the disallowed trait (e.g. `"std::fmt::Debug"`)
 - `reason` (optional): explanation why this trait usage is disallowed
+
+Exactly one of `type` or `implements` must be specified.
 
 ### Example
 ```toml
 disallowed-trait-usage = [
     { type = "std::path::PathBuf", trait = "std::fmt::Debug", reason = "Use path.display() instead" },
+    { implements = "std::error::Error", trait = "std::fmt::Debug", reason = "Use Display instead" },
 ]
 ```
 

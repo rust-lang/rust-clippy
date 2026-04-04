@@ -6,5 +6,9 @@ warning: expected a type, found a function: `std::mem::swap` (in `disallowed-tra
 
 warning: expected a trait, found a struct: `std::string::String` (in `disallowed-trait-usage`)
 
-warning: 4 warnings emitted
+warning: `type` and `implements` are mutually exclusive (in `disallowed-trait-usage`)
+
+warning: either `type` or `implements` must be specified (in `disallowed-trait-usage`)
+
+warning: 6 warnings emitted
 
