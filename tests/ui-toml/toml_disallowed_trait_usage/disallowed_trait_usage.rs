@@ -15,6 +15,12 @@ impl MyTrait for MyStruct {
     }
 }
 
+impl std::fmt::Debug for MyStruct {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("MyStruct")
+    }
+}
+
 struct OtherStruct;
 
 impl MyTrait for OtherStruct {
@@ -24,6 +30,8 @@ impl MyTrait for OtherStruct {
 }
 
 fn main() {
+    // === Concrete `type` matching ===
+
     // Should trigger: Debug formatting of i32
     println!("{:?}", 42_i32);
     //~^ disallowed_trait_usage
@@ -33,17 +41,10 @@ fn main() {
     println!("{path:?}");
     //~^ disallowed_trait_usage
 
-    // Should trigger: Debug formatting of &Path
+    // Should trigger: Debug formatting of &Path (references are peeled)
     let path_ref: &Path = path.as_path();
     println!("{path_ref:?}");
     //~^ disallowed_trait_usage
-
-    // Should NOT trigger: Display formatting of i32
-    println!("{}", 42_i32);
-
-    // Should NOT trigger: Debug formatting of String (not in config)
-    let s = String::from("hello");
-    println!("{s:?}");
 
     // Should trigger: Debug formatting of i32 via format!
     let _ = format!("{:?}", 0_i32);
@@ -65,11 +66,20 @@ fn main() {
     my_ref.do_thing();
     //~^ disallowed_trait_usage
 
-    // Should NOT trigger: same custom trait on a different type
+    // Should NOT trigger: Display formatting of i32 (only Debug is disallowed)
+    println!("{}", 42_i32);
+
+    // Should NOT trigger: Debug formatting of String (not in config)
+    let s = String::from("hello");
+    println!("{s:?}");
+
+    // Should NOT trigger: same custom trait on a different type (OtherStruct not in config)
     let other = OtherStruct;
     other.do_thing();
 
-    // Should trigger: Debug formatting of any type implementing std::error::Error
+    // === `implements` matching ===
+
+    // Should trigger: Debug formatting of std::io::Error (implements std::error::Error)
     let err = std::io::Error::new(std::io::ErrorKind::NotFound, "gone");
     println!("{err:?}");
     //~^ disallowed_trait_usage
@@ -83,4 +93,20 @@ fn main() {
 
     // Should NOT trigger: Debug formatting of String (doesn't implement Error)
     println!("{s:?}");
+
+    // Should trigger: Debug formatting of MyStruct (implements MyTrait, which is in `implements` config)
+    println!("{my:?}");
+    //~^ disallowed_trait_usage
+
+    // Should NOT trigger: OtherStruct implements MyTrait but doesn't impl Debug,
+    // so Debug formatting can't even be used on it (won't compile without this guard).
+    // Instead, test that Display of MyStruct doesn't trigger (only Debug is disallowed via `implements`).
+    // (MyStruct has no Display impl, so we test via the method call path instead.)
+
+    // Should trigger: method call on a type matching `implements` —
+    // OtherStruct implements MyTrait, and MyTrait::do_thing is disallowed on MyStruct (via concrete `type`),
+    // but OtherStruct is NOT matched by the concrete `type` entry. However, it IS matched by the
+    // `implements = MyTrait` + `trait = Debug` entry — but that only covers Debug, not MyTrait methods.
+    // So this should NOT trigger.
+    other.do_thing();
 }
