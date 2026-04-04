@@ -115,6 +115,14 @@ impl<'tcx> LateLintPass<'tcx> for UseDestructuring {
         // Locals that have field mutations (e.g. self.x = 5)
         let mut mutated_locals: FxHashSet<HirId> = FxHashSet::default();
 
+        // All local binding names in the function (for collision detection)
+        let mut local_names: FxHashMap<HirId, Symbol> = FxHashMap::default();
+        for param in body.params {
+            if let Some(ident) = param.pat.simple_ident() {
+                local_names.insert(param.pat.hir_id, ident.name);
+            }
+        }
+
         for_each_expr_without_closures(body.value, |expr| {
             match expr.kind {
                 ExprKind::Field(base, ident) => {
@@ -148,8 +156,14 @@ impl<'tcx> LateLintPass<'tcx> for UseDestructuring {
                 ExprKind::Path(QPath::Resolved(_, path)) => {
                     // A direct use of a local variable (not as part of field access)
                     if let Res::Local(local_hir_id) = path.res {
-                        // Check if the parent expression is a field access on this local.
-                        // If so, this is already handled above — not a "non-field use".
+                        // Record the local's binding name for collision detection
+                        if let Node::Pat(pat) = cx.tcx.hir_node(local_hir_id)
+                            && let Some(ident) = pat.simple_ident()
+                        {
+                            local_names.insert(local_hir_id, ident.name);
+                        }
+
+                        // Check if parent is a field access — if not, it's a non-field use
                         let is_field_base = matches!(
                             cx.tcx.parent_hir_node(expr.hir_id),
                             Node::Expr(parent_expr) if matches!(parent_expr.kind, ExprKind::Field(_, _))
@@ -164,18 +178,31 @@ impl<'tcx> LateLintPass<'tcx> for UseDestructuring {
             ControlFlow::<!, _>::Continue(())
         });
 
+        // Collect all local names except the ones we're considering for destructuring
         #[expect(rustc::potential_query_instability)] // order-independent
         for (local_hir_id, info) in &locals {
             if non_field_uses.contains(local_hir_id) || mutated_locals.contains(local_hir_id) {
                 continue;
             }
-            self.lint_local(cx, *local_hir_id, info);
+            // Names of OTHER locals (not the one being destructured)
+            let other_names: FxHashSet<Symbol> = local_names
+                .iter()
+                .filter(|(id, _)| *id != local_hir_id)
+                .map(|(_, name)| *name)
+                .collect();
+            self.lint_local(cx, *local_hir_id, info, &other_names);
         }
     }
 }
 
 impl UseDestructuring {
-    fn lint_local<'tcx>(&self, cx: &LateContext<'tcx>, local_hir_id: HirId, info: &LocalInfo<'tcx>) {
+    fn lint_local<'tcx>(
+        &self,
+        cx: &LateContext<'tcx>,
+        local_hir_id: HirId,
+        info: &LocalInfo<'tcx>,
+        local_names: &FxHashSet<Symbol>,
+    ) {
         let ty::Adt(adt_def, _) = info.ty.kind() else {
             return;
         };
@@ -205,6 +232,11 @@ impl UseDestructuring {
         }
 
         if !struct_fields.iter().all(|f| info.accessed_fields.contains(&f.name)) {
+            return;
+        }
+
+        // Skip if any field name would collide with an existing local binding
+        if struct_fields.iter().any(|f| local_names.contains(&f.name)) {
             return;
         }
 
