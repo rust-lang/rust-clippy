@@ -585,6 +585,29 @@ default configuration of Clippy. By default, any configuration will replace the 
 * [`disallowed_names`](https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_names)
 
 
+## `disallowed-trait-usage`
+The list of disallowed trait usages. Each entry forbids using a specific type via a specific
+trait interface.
+
+**Fields:**
+- `type` (required): the fully qualified path to the type (e.g. `"i32"`, `"std::path::PathBuf"`)
+- `trait` (required): the fully qualified path to the trait (e.g. `"std::fmt::Debug"`)
+- `reason` (optional): explanation why this trait usage is disallowed
+
+### Example
+```toml
+disallowed-trait-usage = [
+    { type = "std::path::PathBuf", trait = "std::fmt::Debug", reason = "Use path.display() instead" },
+]
+```
+
+**Default Value:** `[]`
+
+---
+**Affected lints:**
+* [`disallowed_trait_usage`](https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_trait_usage)
+
+
 ## `disallowed-types`
 The list of disallowed types, written as fully qualified paths.
 

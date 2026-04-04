@@ -7363,6 +7363,7 @@ Released 2018-09-13
 [`disallowed-macros`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-macros
 [`disallowed-methods`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-methods
 [`disallowed-names`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-names
+[`disallowed-trait-usage`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-trait-usage
 [`disallowed-types`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-types
 [`doc-valid-idents`]: https://doc.rust-lang.org/clippy/lint_configuration.html#doc-valid-idents
 [`enable-raw-pointer-heuristic-for-send`]: https://doc.rust-lang.org/clippy/lint_configuration.html#enable-raw-pointer-heuristic-for-send
