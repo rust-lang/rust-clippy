@@ -701,6 +701,19 @@ pub enum PubUnderscoreFieldsBehaviour {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
+pub enum DestructuringScope {
+    /// Only suggest destructuring for `Self` (i.e. inside an impl block for the type).
+    #[serde(rename = "self")]
+    SelfOnly,
+    /// Only suggest destructuring for types defined in the current crate.
+    Crate,
+    /// Suggest destructuring for all types, including external ones.
+    #[serde(rename = "*")]
+    All,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum InherentImplLintScope {
     Crate,
     File,

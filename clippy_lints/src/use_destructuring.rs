@@ -1,6 +1,7 @@
 use std::ops::ControlFlow;
 
 use clippy_config::Conf;
+use clippy_config::types::DestructuringScope;
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::visitors::for_each_expr_without_closures;
 use rustc_data_structures::fx::{FxHashMap, FxHashSet};
@@ -28,6 +29,9 @@ declare_clippy_lint! {
     ///
     /// - `use-destructuring-min-fields`: The minimum number of struct fields
     ///   required for the lint to trigger (default: `3`).
+    /// - `use-destructuring-scope`: Which types to lint — `"self"` (only `Self`
+    ///   in impl blocks), `"crate"` (types from the current crate, the default),
+    ///   `"workspace"`, or `"*"` (all types including external).
     ///
     /// ### Example
     /// ```no_run
@@ -72,12 +76,14 @@ impl_lint_pass!(UseDestructuring => [USE_DESTRUCTURING]);
 
 pub struct UseDestructuring {
     min_fields: u64,
+    scope: DestructuringScope,
 }
 
 impl UseDestructuring {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
             min_fields: conf.use_destructuring_min_fields,
+            scope: conf.use_destructuring_scope,
         }
     }
 }
@@ -102,7 +108,7 @@ impl<'tcx> LateLintPass<'tcx> for UseDestructuring {
         _decl: &'tcx FnDecl<'_>,
         body: &'tcx Body<'_>,
         _span: Span,
-        _def_id: LocalDefId,
+        fn_def_id: LocalDefId,
     ) {
         let typeck_results = cx.typeck_results();
 
@@ -190,24 +196,56 @@ impl<'tcx> LateLintPass<'tcx> for UseDestructuring {
                 .filter(|(id, _)| *id != local_hir_id)
                 .map(|(_, name)| *name)
                 .collect();
-            self.lint_local(cx, *local_hir_id, info, &other_names);
+            self.lint_local(cx, *local_hir_id, info, &other_names, fn_def_id);
         }
     }
 }
 
 impl UseDestructuring {
+    /// Check if the struct type is within the configured scope.
+    fn is_in_scope(&self, cx: &LateContext<'_>, struct_did: rustc_span::def_id::DefId, fn_def_id: LocalDefId) -> bool {
+        match self.scope {
+            DestructuringScope::All => true,
+            DestructuringScope::Crate => struct_did.is_local(),
+            DestructuringScope::SelfOnly => {
+                // Check if the struct is the Self type of the enclosing impl block.
+                // Walk up from the function to find the parent impl.
+                let parent_did = cx.tcx.local_parent(fn_def_id);
+                if let Node::Item(item) = cx.tcx.hir_node_by_def_id(parent_did)
+                    && let rustc_hir::ItemKind::Impl(_) = item.kind
+                {
+                    let self_ty = cx.tcx.type_of(parent_did).skip_binder();
+                    if let ty::Adt(self_adt, _) = self_ty.kind() {
+                        return self_adt.did() == struct_did;
+                    }
+                }
+                false
+            },
+        }
+    }
+
     fn lint_local<'tcx>(
         &self,
         cx: &LateContext<'tcx>,
         local_hir_id: HirId,
         info: &LocalInfo<'tcx>,
         local_names: &FxHashSet<Symbol>,
+        fn_def_id: LocalDefId,
     ) {
-        let ty::Adt(adt_def, _) = info.ty.kind() else {
+        let LocalInfo {
+            ty,
+            accessed_fields,
+            first_field_access_span,
+        } = info;
+        let ty::Adt(adt_def, _) = ty.kind() else {
             return;
         };
 
         if !adt_def.is_struct() {
+            return;
+        }
+
+        if !self.is_in_scope(cx, adt_def.did(), fn_def_id) {
             return;
         }
 
@@ -227,11 +265,11 @@ impl UseDestructuring {
         // TODO(emilk): future improvement is to emit this lint if the _majority_
         // of fields are accessed. This could catch bugs, where the writer forgot about a field!
         // But the cutoff for this needs to be configurable in `clippy.toml`
-        if info.accessed_fields.len() != struct_fields.len() {
+        if accessed_fields.len() != struct_fields.len() {
             return;
         }
 
-        if !struct_fields.iter().all(|f| info.accessed_fields.contains(&f.name)) {
+        if !struct_fields.iter().all(|f| accessed_fields.contains(&f.name)) {
             return;
         }
 
@@ -265,7 +303,7 @@ impl UseDestructuring {
         span_lint_and_help(
             cx,
             USE_DESTRUCTURING,
-            info.first_field_access_span,
+            *first_field_access_span,
             format!(
                 "all {} fields of `{type_name}` are accessed individually; consider destructuring",
                 struct_fields.len()
