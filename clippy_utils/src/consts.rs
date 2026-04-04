@@ -745,17 +745,24 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
     /// Lookup a possibly constant expression from an `ExprKind::Path` and apply a function on it.
     #[expect(clippy::too_many_lines)]
     fn fetch_path(&self, qpath: &QPath<'_>, id: HirId) -> Option<ConstValue> {
+        let Self {
+            tcx,
+            typing_env,
+            typeck,
+            source,
+            ctxt,
+        } = self;
         // Resolve the path to a constant and check if that constant is known to
         // not change based on the target.
         //
         // This should be replaced with an attribute at some point.
         let did = match *qpath {
             QPath::Resolved(None, path)
-                if path.span.ctxt() == self.ctxt.get()
-                    && path.segments.iter().all(|s| self.ctxt.get() == s.ident.span.ctxt())
+                if path.span.ctxt() == ctxt.get()
+                    && path.segments.iter().all(|s| ctxt.get() == s.ident.span.ctxt())
                     && let Res::Def(DefKind::Const { .. }, did) = path.res
                     && (matches!(
-                        self.tcx.get_diagnostic_name(did),
+                        tcx.get_diagnostic_name(did),
                         Some(
                             sym::f32_legacy_const_digits
                                 | sym::f32_legacy_const_epsilon
@@ -807,9 +814,9 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
                                 | sym::i64_legacy_const_max
                                 | sym::i128_legacy_const_max
                         )
-                    ) || self.tcx.opt_parent(did).is_some_and(|parent| {
+                    ) || tcx.opt_parent(did).is_some_and(|parent| {
                         matches!(
-                            parent.opt_diag_name(&self.tcx),
+                            parent.opt_diag_name(tcx),
                             Some(
                                 sym::f16_consts_mod | sym::f32_consts_mod | sym::f64_consts_mod | sym::f128_consts_mod
                             )
@@ -837,12 +844,12 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
                             | sym::f64
                             | sym::char
                     ) || (ty_name.ident.name == sym::usize && const_name.ident.name == sym::MIN))
-                    && const_name.ident.span.ctxt() == self.ctxt.get()
-                    && ty.span.ctxt() == self.ctxt.get()
-                    && ty_name.ident.span.ctxt() == self.ctxt.get()
+                    && const_name.ident.span.ctxt() == ctxt.get()
+                    && ty.span.ctxt() == ctxt.get()
+                    && ty_name.ident.span.ctxt() == ctxt.get()
                     && matches!(ty_path.res, Res::PrimTy(_))
-                    && let Some((DefKind::AssocConst { .. }, did)) = self.typeck.type_dependent_def(id)
-                    && self.tcx.inherent_impl_of_assoc(did).is_some() =>
+                    && let Some((DefKind::AssocConst { .. }, did)) = typeck.type_dependent_def(id)
+                    && tcx.inherent_impl_of_assoc(did).is_some() =>
             {
                 did
             },
@@ -852,21 +859,20 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
             _ if let Res::Def(
                 DefKind::Const { is_type_const: false } | DefKind::AssocConst { is_type_const: false },
                 did,
-            ) = self.typeck.qpath_res(qpath, id) =>
+            ) = typeck.qpath_res(qpath, id) =>
             {
-                self.source.set(ConstantSource::NonLocal);
+                source.set(ConstantSource::NonLocal);
                 did
             },
             _ => return None,
         };
 
-        self.tcx
-            .const_eval_resolve(
-                self.typing_env,
-                mir::UnevaluatedConst::new(did, self.typeck.node_args(id)),
-                qpath.span(),
-            )
-            .ok()
+        tcx.const_eval_resolve(
+            *typing_env,
+            mir::UnevaluatedConst::new(did, typeck.node_args(id)),
+            qpath.span(),
+        )
+        .ok()
     }
 
     fn index(&self, lhs: &'_ Expr<'_>, index: &'_ Expr<'_>) -> Option<Constant> {

@@ -126,7 +126,12 @@ impl PassByRefOrValue {
     }
 
     fn check_poly_fn(&self, cx: &LateContext<'_>, def_id: LocalDefId, decl: &FnDecl<'_>, span: Option<Span>) {
-        if self.avoid_breaking_exported_api && cx.effective_visibilities.is_exported(def_id) {
+        let Self {
+            ref_min_size,
+            value_max_size,
+            avoid_breaking_exported_api,
+        } = *self;
+        if avoid_breaking_exported_api && cx.effective_visibilities.is_exported(def_id) {
             return;
         }
 
@@ -170,7 +175,7 @@ impl PassByRefOrValue {
                     let ty = cx.tcx.instantiate_bound_regions_with_erased(fn_sig.rebind(ty));
                     if is_copy(cx, ty)
                         && let Some(size) = cx.layout_of(ty).ok().map(|l| l.size.bytes())
-                        && size <= self.ref_min_size
+                        && size <= ref_min_size
                         && let hir::TyKind::Ref(_, MutTy { ty: decl_ty, .. }) = input.kind
                     {
                         if let Some(typeck) = cx.maybe_typeck_results()
@@ -196,8 +201,7 @@ impl PassByRefOrValue {
                             TRIVIALLY_COPY_PASS_BY_REF,
                             input.span,
                             format!(
-                                "this argument ({size} byte) is passed by reference, but would be more efficient if passed by value (limit: {} byte)",
-                                self.ref_min_size
+                                "this argument ({size} byte) is passed by reference, but would be more efficient if passed by value (limit: {ref_min_size} byte)",
                             ),
                             "consider passing by value instead",
                             value_type,
@@ -219,15 +223,14 @@ impl PassByRefOrValue {
                     if is_copy(cx, ty)
                         && !is_self_ty(input)
                         && let Some(size) = cx.layout_of(ty).ok().map(|l| l.size.bytes())
-                        && size > self.value_max_size
+                        && size > value_max_size
                     {
                         span_lint_and_sugg(
                             cx,
                             LARGE_TYPES_PASSED_BY_VALUE,
                             input.span,
                             format!(
-                                "this argument ({size} byte) is passed by value, but might be more efficient if passed by reference (limit: {} byte)",
-                                self.value_max_size
+                                "this argument ({size} byte) is passed by value, but might be more efficient if passed by reference (limit: {value_max_size} byte)",
                             ),
                             "consider passing by reference instead",
                             format!("&{}", snippet(cx, input.span, "_")),

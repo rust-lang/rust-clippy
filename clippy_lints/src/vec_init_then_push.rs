@@ -63,16 +63,26 @@ struct VecPushSearcher {
 }
 impl VecPushSearcher {
     fn display_err(&self, cx: &LateContext<'_>) {
-        let required_pushes_before_extension = match self.init {
-            _ if self.found == 0 => return,
-            VecInitKind::WithConstCapacity(x) if x > self.found => return,
+        let Self {
+            local_id,
+            init,
+            lhs_is_let,
+            let_ty_span,
+            name,
+            err_span,
+            found,
+            last_push_expr,
+        } = *self;
+        let required_pushes_before_extension = match init {
+            _ if found == 0 => return,
+            VecInitKind::WithConstCapacity(x) if x > found => return,
             VecInitKind::WithConstCapacity(x) => x,
             VecInitKind::WithExprCapacity(_) => return,
             _ => 3,
         };
 
         let mut needs_mut = false;
-        let res = for_each_local_use_after_expr(cx, self.local_id, self.last_push_expr, |e| {
+        let res = for_each_local_use_after_expr(cx, local_id, last_push_expr, |e| {
             let Some(parent) = get_parent_expr(cx, e) else {
                 return ControlFlow::Continue(());
             };
@@ -119,11 +129,11 @@ impl VecPushSearcher {
         });
 
         // Avoid allocating small `Vec`s when they'll be extended right after.
-        if res == ControlFlow::Break(true) && self.found <= required_pushes_before_extension {
+        if res == ControlFlow::Break(true) && found <= required_pushes_before_extension {
             return;
         }
 
-        let mut s = if self.lhs_is_let {
+        let mut s = if lhs_is_let {
             String::from("let ")
         } else {
             String::new()
@@ -131,8 +141,8 @@ impl VecPushSearcher {
         if needs_mut {
             s.push_str("mut ");
         }
-        s.push_str(self.name.as_str());
-        if let Some(span) = self.let_ty_span {
+        s.push_str(name.as_str());
+        if let Some(span) = let_ty_span {
             s.push_str(": ");
             s.push_str(&snippet(cx, span, "_"));
         }
@@ -141,7 +151,7 @@ impl VecPushSearcher {
         span_lint_and_sugg(
             cx,
             VEC_INIT_THEN_PUSH,
-            self.err_span,
+            err_span,
             "calls to `push` immediately after creation",
             "consider using the `vec![]` macro",
             s,
