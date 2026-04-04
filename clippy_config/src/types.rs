@@ -920,9 +920,12 @@ impl DeserializeOrDefault<()> for TraitImplItemOrder {
 conf_enum! {
     #[derive(Debug, PartialEq, Eq, Hash)]
     pub DestructuringScope {
-        /// Only suggest destructuring for `Self` (i.e. inside an impl block for the type).
-        SelfOnly("self"),
-        /// Only suggest destructuring for types defined in the current crate.
+        /// Only suggest destructuring for the `self` parameter binding.
+        SelfBinding("self"),
+        /// Suggest destructuring for any variable whose type is the `Self` type
+        /// of the enclosing impl block.
+        SelfType("Self"),
+        /// Suggest destructuring for types defined in the current crate.
         Crate("crate"),
         /// Suggest destructuring for all types, including external ones.
         All("*"),
