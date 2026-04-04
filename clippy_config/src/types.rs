@@ -916,3 +916,15 @@ impl DeserializeOrDefault<()> for TraitImplItemOrder {
         Self::deserialize(dcx, value).unwrap_or_else(|| Self::from_default(default))
     }
 }
+
+conf_enum! {
+    #[derive(Debug, PartialEq, Eq, Hash)]
+    pub DestructuringScope {
+        /// Only suggest destructuring for `Self` (i.e. inside an impl block for the type).
+        SelfOnly("self"),
+        /// Only suggest destructuring for types defined in the current crate.
+        Crate("crate"),
+        /// Suggest destructuring for all types, including external ones.
+        All("*"),
+    }
+}

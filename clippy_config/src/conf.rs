@@ -1,9 +1,10 @@
 use crate::ConfMetadata;
 use crate::de::{DeserializeOrDefault, DiagCtxt, FromDefault, create_value_list_msg, find_closest_match};
 use crate::types::{
-    DisallowedPath, DisallowedPathWithoutReplacement, InherentImplLintScope, MacroMatcher, MatchLintBehaviour,
-    PubUnderscoreFieldsBehaviour, Rename, SourceItemOrdering, SourceItemOrderingModuleItemGroupings,
-    SourceItemOrderingTraitAssocItemKinds, SourceItemOrderingWithinModuleItemGroupings, TraitImplItemOrder,
+    DestructuringScope, DisallowedPath, DisallowedPathWithoutReplacement, InherentImplLintScope, MacroMatcher,
+    MatchLintBehaviour, PubUnderscoreFieldsBehaviour, Rename, SourceItemOrdering,
+    SourceItemOrderingModuleItemGroupings, SourceItemOrderingTraitAssocItemKinds,
+    SourceItemOrderingWithinModuleItemGroupings, TraitImplItemOrder,
 };
 use rustc_attr_parsing::parse_version;
 use rustc_data_structures::fx::FxHashSet;
@@ -817,6 +818,11 @@ define_Conf! {
     /// The minimum number of struct fields for the `use_destructuring` lint to trigger.
     #[lints(use_destructuring)]
     use_destructuring_min_fields("use-destructuring-min-fields"): u64 = 3,
+    /// Which struct types the `use_destructuring` lint applies to:
+    /// `"self"` (only `Self`), `"crate"` (types from the current crate),
+    /// `"workspace"` (types from the current workspace), or `"*"` (all types).
+    #[lints(use_destructuring)]
+    use_destructuring_scope("use-destructuring-scope"): DestructuringScope = DestructuringScope::Crate,
     /// The size of the boxed type in bytes, where boxing in a `Vec` is allowed
     #[lints(vec_box)]
     vec_box_size_threshold("vec-box-size-threshold"): u64 = 4096,
