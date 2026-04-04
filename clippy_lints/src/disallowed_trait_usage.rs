@@ -59,7 +59,7 @@ impl_lint_pass!(DisallowedTraitUsage => [DISALLOWED_TRAIT_USAGE]);
 /// Identifies a type: either a concrete type (ADT/primitive) or "any type implementing a trait".
 #[derive(Clone, Copy)]
 enum TypeMatcher {
-    /// Matches a specific ADT (struct, enum, union, etc.) by DefId.
+    /// Matches a specific ADT (struct, enum, union, etc.) by `DefId`.
     Def(DefId),
     /// Matches a primitive type.
     Prim(rustc_hir::PrimTy),
