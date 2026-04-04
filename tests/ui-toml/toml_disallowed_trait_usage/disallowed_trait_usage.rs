@@ -94,19 +94,20 @@ fn main() {
     // Should NOT trigger: Debug formatting of String (doesn't implement Error)
     println!("{s:?}");
 
-    // Should trigger: Debug formatting of MyStruct (implements MyTrait, which is in `implements` config)
+    // Should trigger: Debug formatting of MyStruct (implements MyTrait, which is in `implements`
+    // config)
     println!("{my:?}");
     //~^ disallowed_trait_usage
 
     // Should NOT trigger: OtherStruct implements MyTrait but doesn't impl Debug,
     // so Debug formatting can't even be used on it (won't compile without this guard).
-    // Instead, test that Display of MyStruct doesn't trigger (only Debug is disallowed via `implements`).
-    // (MyStruct has no Display impl, so we test via the method call path instead.)
+    // Instead, test that Display of MyStruct doesn't trigger (only Debug is disallowed via
+    // `implements`). (MyStruct has no Display impl, so we test via the method call path instead.)
 
     // Should trigger: method call on a type matching `implements` —
-    // OtherStruct implements MyTrait, and MyTrait::do_thing is disallowed on MyStruct (via concrete `type`),
-    // but OtherStruct is NOT matched by the concrete `type` entry. However, it IS matched by the
-    // `implements = MyTrait` + `trait = Debug` entry — but that only covers Debug, not MyTrait methods.
-    // So this should NOT trigger.
+    // OtherStruct implements MyTrait, and MyTrait::do_thing is disallowed on MyStruct (via concrete
+    // `type`), but OtherStruct is NOT matched by the concrete `type` entry. However, it IS matched
+    // by the `implements = MyTrait` + `trait = Debug` entry — but that only covers Debug, not
+    // MyTrait methods. So this should NOT trigger.
     other.do_thing();
 }
