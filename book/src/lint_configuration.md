@@ -1195,6 +1195,18 @@ The minimum number of struct fields for the `use_destructuring` lint to trigger.
 * [`use_destructuring`](https://rust-lang.github.io/rust-clippy/master/index.html#use_destructuring)
 
 
+## `use-destructuring-scope`
+Which struct types the `use_destructuring` lint applies to:
+`"self"` (only `Self`), `"crate"` (types from the current crate),
+`"workspace"` (types from the current workspace), or `"*"` (all types).
+
+**Default Value:** `"crate"`
+
+---
+**Affected lints:**
+* [`use_destructuring`](https://rust-lang.github.io/rust-clippy/master/index.html#use_destructuring)
+
+
 ## `vec-box-size-threshold`
 The size of the boxed type in bytes, where boxing in a `Vec` is allowed
 
