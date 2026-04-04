@@ -90,6 +90,7 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            unnecessary-box-size
            unreadable-literal-lint-fractions
            upper-case-acronyms-aggressive
+           use-destructuring-min-fields
            vec-box-size-threshold
            verbose-bit-mask-threshold
            warn-on-all-wildcard-imports
@@ -191,6 +192,7 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            unnecessary-box-size
            unreadable-literal-lint-fractions
            upper-case-acronyms-aggressive
+           use-destructuring-min-fields
            vec-box-size-threshold
            verbose-bit-mask-threshold
            warn-on-all-wildcard-imports
@@ -292,6 +294,7 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            unnecessary-box-size
            unreadable-literal-lint-fractions
            upper-case-acronyms-aggressive
+           use-destructuring-min-fields
            vec-box-size-threshold
            verbose-bit-mask-threshold
            warn-on-all-wildcard-imports

@@ -1185,6 +1185,16 @@ Enables verbose mode. Triggers if there is more than one uppercase char next to 
 * [`upper_case_acronyms`](https://rust-lang.github.io/rust-clippy/master/index.html#upper_case_acronyms)
 
 
+## `use-destructuring-min-fields`
+The minimum number of struct fields for the `use_destructuring` lint to trigger.
+
+**Default Value:** `3`
+
+---
+**Affected lints:**
+* [`use_destructuring`](https://rust-lang.github.io/rust-clippy/master/index.html#use_destructuring)
+
+
 ## `vec-box-size-threshold`
 The size of the boxed type in bytes, where boxing in a `Vec` is allowed
 
