@@ -211,22 +211,24 @@ struct PatRange {
 }
 impl PatRange {
     fn contains(&self, x: u128) -> bool {
-        x >= self.start
-            && match self.bounds {
-                RangeEnd::Included => x <= self.end,
-                RangeEnd::Excluded => x < self.end,
+        let Self { start, end, bounds } = self;
+        x >= *start
+            && match bounds {
+                RangeEnd::Included => x <= *end,
+                RangeEnd::Excluded => x < *end,
             }
     }
 
     fn overlaps(&self, other: &Self) -> bool {
         // Note: Empty ranges are impossible, so this is correct even though it would return true if an
         // empty exclusive range were to reside within an inclusive range.
-        (match self.bounds {
-            RangeEnd::Included => self.end >= other.start,
-            RangeEnd::Excluded => self.end > other.start,
+        let Self { start, end, bounds } = *self;
+        (match bounds {
+            RangeEnd::Included => end >= other.start,
+            RangeEnd::Excluded => end > other.start,
         } && match other.bounds {
-            RangeEnd::Included => self.start <= other.end,
-            RangeEnd::Excluded => self.start < other.end,
+            RangeEnd::Included => start <= other.end,
+            RangeEnd::Excluded => start < other.end,
         })
     }
 }

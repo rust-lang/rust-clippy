@@ -85,18 +85,26 @@ impl std::fmt::Display for VersionInfo {
 
 impl std::fmt::Debug for VersionInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let Self {
+            major,
+            minor,
+            patch,
+            host_compiler,
+            commit_hash,
+            commit_date,
+            crate_name,
+        } = self;
         write!(
             f,
-            "VersionInfo {{ crate_name: \"{}\", major: {}, minor: {}, patch: {}",
-            self.crate_name, self.major, self.minor, self.patch,
+            "VersionInfo {{ crate_name: \"{crate_name}\", major: {major}, minor: {minor}, patch: {patch}",
         )?;
-        if let Some(ref commit_hash) = self.commit_hash {
+        if let Some(commit_hash) = commit_hash {
             write!(f, ", commit_hash: \"{}\"", commit_hash.trim())?;
         }
-        if let Some(ref commit_date) = self.commit_date {
+        if let Some(commit_date) = commit_date {
             write!(f, ", commit_date: \"{}\"", commit_date.trim())?;
         }
-        if let Some(ref host_compiler) = self.host_compiler {
+        if let Some(host_compiler) = host_compiler {
             write!(f, ", host_compiler: \"{}\"", host_compiler.trim())?;
         }
 
