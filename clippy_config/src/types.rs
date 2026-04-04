@@ -671,6 +671,22 @@ impl Serialize for SourceItemOrderingWithinModuleItemGroupings {
     }
 }
 
+/// An entry in the `disallowed-trait-usage` configuration.
+///
+/// Forbids using a specific type via a specific trait interface.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DisallowedTraitUsage {
+    /// The fully qualified path to the type (e.g. `"i32"`, `"std::path::PathBuf"`).
+    #[serde(rename = "type")]
+    pub type_path: String,
+    /// The fully qualified path to the trait (e.g. `"std::fmt::Debug"`).
+    #[serde(rename = "trait")]
+    pub trait_path: String,
+    /// Optional reason explaining why this usage is disallowed.
+    pub reason: Option<String>,
+}
+
 // these impls are never actually called but are used by the various config options that default to
 // empty lists
 macro_rules! unimplemented_serialize {
@@ -689,6 +705,7 @@ macro_rules! unimplemented_serialize {
 }
 
 unimplemented_serialize! {
+    DisallowedTraitUsage,
     Rename,
     MacroMatcher,
 }
