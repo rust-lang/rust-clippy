@@ -7411,6 +7411,7 @@ Released 2018-09-13
 [`unnecessary-box-size`]: https://doc.rust-lang.org/clippy/lint_configuration.html#unnecessary-box-size
 [`unreadable-literal-lint-fractions`]: https://doc.rust-lang.org/clippy/lint_configuration.html#unreadable-literal-lint-fractions
 [`upper-case-acronyms-aggressive`]: https://doc.rust-lang.org/clippy/lint_configuration.html#upper-case-acronyms-aggressive
+[`use-destructuring-min-fields`]: https://doc.rust-lang.org/clippy/lint_configuration.html#use-destructuring-min-fields
 [`vec-box-size-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#vec-box-size-threshold
 [`verbose-bit-mask-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#verbose-bit-mask-threshold
 [`warn-on-all-wildcard-imports`]: https://doc.rust-lang.org/clippy/lint_configuration.html#warn-on-all-wildcard-imports
