@@ -96,11 +96,17 @@ macro_rules! conf_enum {
 }
 /// An entry in the `disallowed-trait-usage` configuration.
 ///
-/// Forbids using a specific type via a specific trait interface.
+/// Forbids using a type via a specific trait interface. The type can be specified
+/// either as a concrete type (`type`) or as a trait bound (`implements`), but not both.
 pub struct DisallowedTraitUsage {
-    /// The fully qualified path to the type (e.g. `"i32"`, `"std::path::PathBuf"`).
-    pub type_path: String,
-    /// The fully qualified path to the trait (e.g. `"std::fmt::Debug"`).
+    /// The fully qualified path to a concrete type (e.g. `"i32"`, `"std::path::PathBuf"`).
+    /// Mutually exclusive with `implements`.
+    pub type_path: Option<String>,
+    /// The fully qualified path to a trait (e.g. `"std::error::Error"`).
+    /// When set, the rule applies to any type that implements this trait.
+    /// Mutually exclusive with `type`.
+    pub implements: Option<String>,
+    /// The fully qualified path to the trait being disallowed (e.g. `"std::fmt::Debug"`).
     pub trait_path: String,
     /// Optional reason explaining why this usage is disallowed.
     pub reason: Option<String>,
@@ -111,19 +117,17 @@ impl Deserialize for DisallowedTraitUsage {
         if let Some(table) = value.as_ref().as_table() {
             deserialize_table!(dcx, table,
                 type_path("type"): String,
+                implements("implements"): String,
                 trait_path("trait"): String,
                 reason("reason"): String,
             );
-            let Some(type_path) = type_path else {
-                dcx.span_err(value.span(), "missing required field `type`");
-                return None;
-            };
             let Some(trait_path) = trait_path else {
                 dcx.span_err(value.span(), "missing required field `trait`");
                 return None;
             };
             Some(DisallowedTraitUsage {
                 type_path,
+                implements,
                 trait_path,
                 reason,
             })

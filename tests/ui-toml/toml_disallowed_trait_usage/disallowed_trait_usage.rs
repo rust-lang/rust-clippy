@@ -1,4 +1,5 @@
 #![warn(clippy::disallowed_trait_usage)]
+#![allow(clippy::io_other_error)]
 
 use std::path::{Path, PathBuf};
 
@@ -67,4 +68,19 @@ fn main() {
     // Should NOT trigger: same custom trait on a different type
     let other = OtherStruct;
     other.do_thing();
+
+    // Should trigger: Debug formatting of any type implementing std::error::Error
+    let err = std::io::Error::new(std::io::ErrorKind::NotFound, "gone");
+    println!("{err:?}");
+    //~^ disallowed_trait_usage
+
+    // Should trigger: Debug formatting of Error via format!
+    let _ = format!("{:?}", std::io::Error::new(std::io::ErrorKind::Other, "oops"));
+    //~^ disallowed_trait_usage
+
+    // Should NOT trigger: Display formatting of Error (only Debug is disallowed)
+    println!("{err}");
+
+    // Should NOT trigger: Debug formatting of String (doesn't implement Error)
+    println!("{s:?}");
 }
