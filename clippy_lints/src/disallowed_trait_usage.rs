@@ -59,13 +59,10 @@ impl_lint_pass!(DisallowedTraitUsage => [DISALLOWED_TRAIT_USAGE]);
 /// Identifies a type: either a concrete type (ADT/primitive) or "any type implementing a trait".
 #[derive(Clone, Copy)]
 enum TypeMatcher {
+    /// Matches a specific ADT (struct, enum, union, etc.) by DefId.
     Def(DefId),
-    Bool,
-    Char,
-    Str,
-    Int(ty::IntTy),
-    Uint(ty::UintTy),
-    Float(ty::FloatTy),
+    /// Matches a primitive type.
+    Prim(rustc_hir::PrimTy),
     /// Matches any type that implements the given trait.
     ImplementsTrait(DefId),
 }
@@ -111,14 +108,7 @@ fn emit_invalid_path_warning(tcx: TyCtxt<'_>, sym_path: &[Symbol], path: &str, e
 fn resolve_type_matcher(tcx: TyCtxt<'_>, path: &str) -> Option<TypeMatcher> {
     let sym_name = Symbol::intern(path);
     if let Some(prim) = rustc_hir::PrimTy::from_name(sym_name) {
-        return Some(match prim {
-            rustc_hir::PrimTy::Int(i) => TypeMatcher::Int(i),
-            rustc_hir::PrimTy::Uint(u) => TypeMatcher::Uint(u),
-            rustc_hir::PrimTy::Float(f) => TypeMatcher::Float(f),
-            rustc_hir::PrimTy::Str => TypeMatcher::Str,
-            rustc_hir::PrimTy::Bool => TypeMatcher::Bool,
-            rustc_hir::PrimTy::Char => TypeMatcher::Char,
-        });
+        return Some(TypeMatcher::Prim(prim));
     }
 
     let sym_path: Vec<Symbol> = path.split("::").map(Symbol::intern).collect();
@@ -210,16 +200,8 @@ impl DisallowedTraitUsage {
             }
 
             let type_matches = match entry.type_matcher {
-                TypeMatcher::Def(def_id) => match ty.kind() {
-                    ty::Adt(adt_def, _) => adt_def.did() == def_id,
-                    _ => false,
-                },
-                TypeMatcher::Bool => ty.is_bool(),
-                TypeMatcher::Char => ty.is_char(),
-                TypeMatcher::Str => ty.is_str(),
-                TypeMatcher::Int(int_ty) => matches!(ty.kind(), ty::Int(i) if *i == int_ty),
-                TypeMatcher::Uint(uint_ty) => matches!(ty.kind(), ty::Uint(u) if *u == uint_ty),
-                TypeMatcher::Float(float_ty) => matches!(ty.kind(), ty::Float(f) if *f == float_ty),
+                TypeMatcher::Def(def_id) => matches!(ty.kind(), ty::Adt(adt_def, _) if adt_def.did() == def_id),
+                TypeMatcher::Prim(prim) => ty_matches_prim(ty, prim),
                 TypeMatcher::ImplementsTrait(impl_trait_id) => implements_trait(cx, ty, impl_trait_id, &[]),
             };
 
@@ -242,6 +224,17 @@ impl DisallowedTraitUsage {
                 });
             }
         }
+    }
+}
+
+fn ty_matches_prim(ty: Ty<'_>, prim: rustc_hir::PrimTy) -> bool {
+    match prim {
+        rustc_hir::PrimTy::Bool => ty.is_bool(),
+        rustc_hir::PrimTy::Char => ty.is_char(),
+        rustc_hir::PrimTy::Str => ty.is_str(),
+        rustc_hir::PrimTy::Int(i) => matches!(ty.kind(), ty::Int(ti) if *ti == i),
+        rustc_hir::PrimTy::Uint(u) => matches!(ty.kind(), ty::Uint(tu) if *tu == u),
+        rustc_hir::PrimTy::Float(f) => matches!(ty.kind(), ty::Float(tf) if *tf == f),
     }
 }
 
