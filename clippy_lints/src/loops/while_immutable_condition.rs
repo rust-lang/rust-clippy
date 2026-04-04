@@ -83,16 +83,17 @@ struct VarCollectorVisitor<'a, 'tcx> {
 
 impl<'tcx> VarCollectorVisitor<'_, 'tcx> {
     fn insert_def_id(&mut self, ex: &'tcx Expr<'_>) {
+        let Self { cx, ids, def_ids } = self;
         if let ExprKind::Path(ref qpath) = ex.kind
             && let QPath::Resolved(None, _) = *qpath
         {
-            match self.cx.qpath_res(qpath, ex.hir_id) {
+            match cx.qpath_res(qpath, ex.hir_id) {
                 Res::Local(hir_id) => {
-                    self.ids.insert(hir_id);
+                    ids.insert(hir_id);
                 },
                 Res::Def(DefKind::Static { .. }, def_id) => {
-                    let mutable = self.cx.tcx.is_mutable_static(def_id);
-                    self.def_ids.insert(def_id, mutable);
+                    let mutable = cx.tcx.is_mutable_static(def_id);
+                    def_ids.insert(def_id, mutable);
                 },
                 _ => {},
             }

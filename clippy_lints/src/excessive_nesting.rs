@@ -125,10 +125,9 @@ struct NestingVisitor<'conf, 'cx> {
 
 impl NestingVisitor<'_, '_> {
     fn check_indent(&mut self, span: Span, id: NodeId) -> bool {
-        if self.nest_level > self.conf.excessive_nesting_threshold
-            && !span.in_external_macro(self.cx.sess().source_map())
-        {
-            self.conf.nodes.insert(id);
+        let Self { nest_level, conf, cx } = self;
+        if *nest_level > conf.excessive_nesting_threshold && !span.in_external_macro(cx.sess().source_map()) {
+            conf.nodes.insert(id);
 
             return true;
         }

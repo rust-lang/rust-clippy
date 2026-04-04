@@ -227,10 +227,11 @@ struct Params {
 }
 impl Params {
     fn insert(&mut self, param: Param, id: HirId) {
-        let idx = self.params.len();
-        self.by_id.insert(id, idx);
-        self.by_fn.insert((param.fn_id, param.idx), idx);
-        self.params.push(param);
+        let Self { params, by_id, by_fn } = self;
+        let idx = params.len();
+        by_id.insert(id, idx);
+        by_fn.insert((param.fn_id, param.idx), idx);
+        params.push(param);
     }
 
     fn remove_by_id(&mut self, id: HirId) {
@@ -252,9 +253,10 @@ impl Params {
     }
 
     fn clear(&mut self) {
-        self.params.clear();
-        self.by_id.clear();
-        self.by_fn.clear();
+        let Self { params, by_id, by_fn } = self;
+        params.clear();
+        by_id.clear();
+        by_fn.clear();
     }
 
     /// Sets the `apply_lint` flag on each parameter.
