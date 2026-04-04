@@ -29,9 +29,10 @@ declare_clippy_lint! {
     ///
     /// - `use-destructuring-min-fields`: The minimum number of struct fields
     ///   required for the lint to trigger (default: `3`).
-    /// - `use-destructuring-scope`: Which types to lint — `"self"` (only `Self`
-    ///   in impl blocks), `"crate"` (types from the current crate, the default),
-    ///   `"workspace"`, or `"*"` (all types including external).
+    /// - `use-destructuring-scope`: Which types to lint — `"self"` (only the
+    ///   `self` parameter), `"Self"` (any variable whose type is `Self` in
+    ///   an impl block), `"crate"` (types from the current crate, the default),
+    ///   or `"*"` (all types including external). Default: `"self"`.
     ///
     /// ### Example
     /// ```no_run
@@ -112,7 +113,14 @@ impl<'tcx> LateLintPass<'tcx> for UseDestructuring {
     ) {
         let typeck_results = cx.typeck_results();
 
-        // Map from local HirId -> info about field accesses on that local
+        // HirId of the `self` parameter, if this is a method
+        let self_hir_id = body
+            .params
+            .first()
+            .and_then(|p| p.pat.simple_ident())
+            .filter(|ident| ident.name == rustc_span::symbol::kw::SelfLower)
+            .map(|_| body.params[0].pat.hir_id);
+
         let mut locals: FxHashMap<HirId, LocalInfo<'tcx>> = FxHashMap::default();
 
         // Locals that are used in non-field-access contexts (e.g. passed to a function)
@@ -196,20 +204,27 @@ impl<'tcx> LateLintPass<'tcx> for UseDestructuring {
                 .filter(|(id, _)| *id != local_hir_id)
                 .map(|(_, name)| *name)
                 .collect();
-            self.lint_local(cx, *local_hir_id, info, &other_names, fn_def_id);
+            let is_self = self_hir_id == Some(*local_hir_id);
+            self.lint_local(cx, *local_hir_id, info, &other_names, fn_def_id, is_self);
         }
     }
 }
 
 impl UseDestructuring {
     /// Check if the struct type is within the configured scope.
-    fn is_in_scope(&self, cx: &LateContext<'_>, struct_did: rustc_span::def_id::DefId, fn_def_id: LocalDefId) -> bool {
+    fn is_in_scope(
+        &self,
+        cx: &LateContext<'_>,
+        struct_did: rustc_span::def_id::DefId,
+        fn_def_id: LocalDefId,
+        is_self: bool,
+    ) -> bool {
         match self.scope {
             DestructuringScope::All => true,
             DestructuringScope::Crate => struct_did.is_local(),
-            DestructuringScope::SelfOnly => {
+            DestructuringScope::SelfBinding => is_self,
+            DestructuringScope::SelfType => {
                 // Check if the struct is the Self type of the enclosing impl block.
-                // Walk up from the function to find the parent impl.
                 let parent_did = cx.tcx.local_parent(fn_def_id);
                 if let Node::Item(item) = cx.tcx.hir_node_by_def_id(parent_did)
                     && let rustc_hir::ItemKind::Impl(_) = item.kind
@@ -231,6 +246,7 @@ impl UseDestructuring {
         info: &LocalInfo<'tcx>,
         local_names: &FxHashSet<Symbol>,
         fn_def_id: LocalDefId,
+        is_self: bool,
     ) {
         let LocalInfo {
             ty,
@@ -245,7 +261,7 @@ impl UseDestructuring {
             return;
         }
 
-        if !self.is_in_scope(cx, adt_def.did(), fn_def_id) {
+        if !self.is_in_scope(cx, adt_def.did(), fn_def_id, is_self) {
             return;
         }
 
