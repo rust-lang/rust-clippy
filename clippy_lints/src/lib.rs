@@ -860,7 +860,7 @@ rustc_lint::late_lint_methods!(
         DurationSuboptimalUnits: duration_suboptimal_units::DurationSuboptimalUnits = duration_suboptimal_units::DurationSuboptimalUnits::new(tcx, conf),
         ManualTake: manual_take::ManualTake = manual_take::ManualTake::new(conf),
         ManualCheckedOps: manual_checked_ops::ManualCheckedOps = manual_checked_ops::ManualCheckedOps,
-        UseDestructuring: use_destructuring::UseDestructuring = use_destructuring::UseDestructuring,
+        UseDestructuring: use_destructuring::UseDestructuring = use_destructuring::UseDestructuring::new(conf),
         ManualPopIf: manual_pop_if::ManualPopIf = manual_pop_if::ManualPopIf::new(tcx, conf),
         ManualNoopWaker: manual_noop_waker::ManualNoopWaker = manual_noop_waker::ManualNoopWaker::new(conf),
         ByteCharSlice: byte_char_slices::ByteCharSlice = byte_char_slices::ByteCharSlice,
