@@ -94,6 +94,46 @@ macro_rules! conf_enum {
         }
     };
 }
+/// An entry in the `disallowed-trait-usage` configuration.
+///
+/// Forbids using a specific type via a specific trait interface.
+pub struct DisallowedTraitUsage {
+    /// The fully qualified path to the type (e.g. `"i32"`, `"std::path::PathBuf"`).
+    pub type_path: String,
+    /// The fully qualified path to the trait (e.g. `"std::fmt::Debug"`).
+    pub trait_path: String,
+    /// Optional reason explaining why this usage is disallowed.
+    pub reason: Option<String>,
+}
+
+impl Deserialize for DisallowedTraitUsage {
+    fn deserialize(dcx: &DiagCtxt<'_>, value: &TomlValue<'_>) -> Option<Self> {
+        if let Some(table) = value.as_ref().as_table() {
+            deserialize_table!(dcx, table,
+                type_path("type"): String,
+                trait_path("trait"): String,
+                reason("reason"): String,
+            );
+            let Some(type_path) = type_path else {
+                dcx.span_err(value.span(), "missing required field `type`");
+                return None;
+            };
+            let Some(trait_path) = trait_path else {
+                dcx.span_err(value.span(), "missing required field `trait`");
+                return None;
+            };
+            Some(DisallowedTraitUsage {
+                type_path,
+                trait_path,
+                reason,
+            })
+        } else {
+            dcx.span_err(value.span(), "expected a table");
+            None
+        }
+    }
+}
+
 pub struct Rename {
     pub path: String,
     pub rename: String,

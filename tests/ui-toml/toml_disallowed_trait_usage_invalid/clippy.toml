@@ -1,0 +1,10 @@
+disallowed-trait-usage = [
+    # Non-existent type
+    { type = "std::nonexistent::FakeType", trait = "std::fmt::Debug", reason = "testing" },
+    # Non-existent trait
+    { type = "i32", trait = "std::nonexistent::FakeTrait", reason = "testing" },
+    # Path exists but is a function, not a type
+    { type = "std::mem::swap", trait = "std::fmt::Debug", reason = "testing" },
+    # Path exists but is a struct, not a trait
+    { type = "i32", trait = "std::string::String", reason = "testing" },
+]

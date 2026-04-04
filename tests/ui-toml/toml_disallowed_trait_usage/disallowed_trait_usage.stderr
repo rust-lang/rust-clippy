@@ -1,0 +1,60 @@
+error: use of `i32` via trait `std::fmt::Debug` is disallowed
+  --> tests/ui-toml/toml_disallowed_trait_usage/disallowed_trait_usage.rs:27:15
+   |
+LL |     println!("{:?}", 42_i32);
+   |               ^^^^
+   |
+   = note: Use Display formatting instead
+   = note: `-D clippy::disallowed-trait-usage` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::disallowed_trait_usage)]`
+
+error: use of `std::path::PathBuf` via trait `std::fmt::Debug` is disallowed
+  --> tests/ui-toml/toml_disallowed_trait_usage/disallowed_trait_usage.rs:32:15
+   |
+LL |     println!("{path:?}");
+   |               ^^^^^^^^
+   |
+   = note: Use path.display() instead
+
+error: use of `std::path::Path` via trait `std::fmt::Debug` is disallowed
+  --> tests/ui-toml/toml_disallowed_trait_usage/disallowed_trait_usage.rs:37:15
+   |
+LL |     println!("{path_ref:?}");
+   |               ^^^^^^^^^^^^
+   |
+   = note: Use path.display() instead
+
+error: use of `i32` via trait `std::fmt::Debug` is disallowed
+  --> tests/ui-toml/toml_disallowed_trait_usage/disallowed_trait_usage.rs:48:22
+   |
+LL |     let _ = format!("{:?}", 0_i32);
+   |                      ^^^^
+   |
+   = note: Use Display formatting instead
+
+error: use of `std::path::PathBuf` via trait `std::fmt::Debug` is disallowed
+  --> tests/ui-toml/toml_disallowed_trait_usage/disallowed_trait_usage.rs:54:18
+   |
+LL |     write!(buf, "{path:?}").ok();
+   |                  ^^^^^^^^
+   |
+   = note: Use path.display() instead
+
+error: use of `disallowed_trait_usage::MyStruct` via trait `disallowed_trait_usage::MyTrait` is disallowed
+  --> tests/ui-toml/toml_disallowed_trait_usage/disallowed_trait_usage.rs:59:8
+   |
+LL |     my.do_thing();
+   |        ^^^^^^^^
+   |
+   = note: Use a different approach
+
+error: use of `disallowed_trait_usage::MyStruct` via trait `disallowed_trait_usage::MyTrait` is disallowed
+  --> tests/ui-toml/toml_disallowed_trait_usage/disallowed_trait_usage.rs:64:12
+   |
+LL |     my_ref.do_thing();
+   |            ^^^^^^^^
+   |
+   = note: Use a different approach
+
+error: aborting due to 7 previous errors
+
