@@ -4,4 +4,6 @@ disallowed-trait-usage = [
     { type = "std::path::Path", trait = "std::fmt::Debug", reason = "Use path.display() instead" },
     { type = "disallowed_trait_usage::MyStruct", trait = "disallowed_trait_usage::MyTrait", reason = "Use a different approach" },
     { implements = "std::error::Error", trait = "std::fmt::Debug", reason = "Use Display for errors" },
+    # implements with a custom local trait, no reason
+    { implements = "disallowed_trait_usage::MyTrait", trait = "std::fmt::Debug" },
 ]
