@@ -293,3 +293,62 @@ fn issue16475() -> *const u8 {
         //~^ unnecessary_cast
     }
 }
+
+mod issue_15624 {
+    type U32Alias = u32;
+
+    fn ptr_cast_same_type() {
+        let ptr_const: *const u32 = std::ptr::null();
+        let _: *const u32 = ptr_const.cast();
+        //~^ unnecessary_cast
+
+        let _ = ptr_const.cast::<u32>();
+        //~^ unnecessary_cast
+
+        let ptr_mut: *mut u32 = std::ptr::null_mut();
+        let _: *mut u32 = ptr_mut.cast();
+        //~^ unnecessary_cast
+
+        let _ = ptr_mut.cast::<u32>();
+        //~^ unnecessary_cast
+
+        let slice: &[u8] = &[1, 2, 3];
+        let _ = slice.as_ptr().cast::<u8>();
+        //~^ unnecessary_cast
+
+        // `.cast()` where the let binding's type annotation uses a type alias pointee
+        let _: *const U32Alias = ptr_const.cast();
+        //~^ unnecessary_cast
+
+        // `.cast()` to a different type
+        let _: *const u8 = ptr_const.cast();
+
+        // `.cast::<T>()` with different type
+        let _ = ptr_const.cast::<u8>();
+
+        // `.cast::<_>()` with explicit wildcard inference
+        let _: *const u32 = ptr_const.cast::<_>();
+
+        // `.cast::<T>()` to a type alias
+        let _ = ptr_const.cast::<U32Alias>();
+
+        // `.cast_mut()` and `.cast_const()` are different operations
+        let _ = ptr_const.cast_mut();
+        let _ = ptr_mut.cast_const();
+    }
+
+    fn generic_ptr_cast_same_type<T>(ptr: *const T) -> *const T {
+        ptr.cast()
+        //~^ unnecessary_cast
+    }
+
+    fn generic_ptr_cast_different_type<T, U>(ptr: *const T) -> *const U {
+        ptr.cast()
+    }
+
+    // `.cast()` that changes a lifetime parameter.
+    struct Wrapper<'a>(&'a u32);
+    fn lifetime_cast<'a>(ptr: *const Wrapper<'static>) -> *const Wrapper<'a> {
+        ptr.cast()
+    }
+}
