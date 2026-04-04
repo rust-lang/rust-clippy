@@ -111,6 +111,7 @@ mod disallowed_macros;
 mod disallowed_methods;
 mod disallowed_names;
 mod disallowed_script_idents;
+mod disallowed_trait_usage;
 mod disallowed_types;
 mod doc;
 mod double_parens;
@@ -724,6 +725,7 @@ rustc_lint::late_lint_methods!(
         BoolAssertComparison: bool_assert_comparison::BoolAssertComparison = bool_assert_comparison::BoolAssertComparison,
         UnusedAsync: unused_async::UnusedAsync = <unused_async::UnusedAsync>::default(),
         DisallowedTypes: disallowed_types::DisallowedTypes = disallowed_types::DisallowedTypes::new(tcx, conf),
+        DisallowedTraitUsage: disallowed_trait_usage::DisallowedTraitUsage = disallowed_trait_usage::DisallowedTraitUsage::new(tcx, conf, format_args.clone()),
         ImportRename: missing_enforced_import_rename::ImportRename = missing_enforced_import_rename::ImportRename::new(tcx, conf),
         StrlenOnCStrings: strlen_on_c_strings::StrlenOnCStrings = strlen_on_c_strings::StrlenOnCStrings::new(conf),
         SelfNamedConstructors: self_named_constructors::SelfNamedConstructors = self_named_constructors::SelfNamedConstructors,

@@ -1,0 +1,10 @@
+warning: `std::nonexistent::FakeType` does not refer to a reachable type (in `disallowed-trait-usage`)
+
+warning: `std::nonexistent::FakeTrait` does not refer to a reachable trait (in `disallowed-trait-usage`)
+
+warning: expected a type, found a function: `std::mem::swap` (in `disallowed-trait-usage`)
+
+warning: expected a trait, found a struct: `std::string::String` (in `disallowed-trait-usage`)
+
+warning: 4 warnings emitted
+
