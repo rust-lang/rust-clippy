@@ -1,5 +1,6 @@
 error: error reading Clippy's configuration file: unknown field `foobar`, expected one of
            absolute-paths-allowed-crates
+           absolute-paths-max-occurrences
            absolute-paths-max-segments
            accept-comment-above-attributes
            accept-comment-above-statement
@@ -101,6 +102,7 @@ LL | foobar = 42
 
 error: error reading Clippy's configuration file: unknown field `barfoo`, expected one of
            absolute-paths-allowed-crates
+           absolute-paths-max-occurrences
            absolute-paths-max-segments
            accept-comment-above-attributes
            accept-comment-above-statement
@@ -202,6 +204,7 @@ LL | barfoo = 53
 
 error: error reading Clippy's configuration file: unknown field `allow_mixed_uninlined_format_args`, expected one of
            absolute-paths-allowed-crates
+           absolute-paths-max-occurrences
            absolute-paths-max-segments
            accept-comment-above-attributes
            accept-comment-above-statement
