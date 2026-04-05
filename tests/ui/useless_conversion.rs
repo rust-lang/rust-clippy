@@ -479,3 +479,19 @@ fn after_question_mark() -> Result<(), ()> {
     //~^ useless_conversion
     Ok(())
 }
+
+fn issue16794() {
+    // Non-const receiver: removing .into_iter() is safe, should lint.
+    // `s.chars()` returns a `Chars<'_>` which is already an Iterator.
+    let s = "hello";
+    s.chars()
+        .into_iter()
+        //~^^ useless_conversion
+        .any(|c| c == 'a');
+
+    // Const Range with .any(): still no lint (original false-positive from #14656 must stay fixed).
+    use std::ops::Range;
+    const R: Range<u32> = 2..7;
+    R.into_iter().any(|_x| true); // no lint
+    R.into_iter().all(|_x| true); // no lint
+}

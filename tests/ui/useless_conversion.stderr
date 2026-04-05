@@ -490,5 +490,12 @@ LL -     takes_into_iter_usize_result(b.clone().into_iter())?;
 LL +     takes_into_iter_usize_result(b.clone())?;
    |
 
-error: aborting due to 48 previous errors
+error: useless conversion to the same type: `std::str::Chars<'_>`
+  --> tests/ui/useless_conversion.rs:487:5
+   |
+LL | /     s.chars()
+LL | |         .into_iter()
+   | |____________________^ help: consider removing `.into_iter()`: `s.chars()`
+
+error: aborting due to 49 previous errors
 
