@@ -132,6 +132,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::doc::TOO_LONG_FIRST_DOC_PARAGRAPH_INFO,
     crate::doc::UNNECESSARY_SAFETY_DOC_INFO,
     crate::double_parens::DOUBLE_PARENS_INFO,
+    crate::drop_for_static::DROP_FOR_STATIC_INFO,
     crate::drop_forget_ref::DROP_NON_DROP_INFO,
     crate::drop_forget_ref::FORGET_NON_DROP_INFO,
     crate::drop_forget_ref::MEM_FORGET_INFO,
