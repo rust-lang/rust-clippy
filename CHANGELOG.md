@@ -7151,6 +7151,7 @@ Released 2018-09-13
 [`suspicious_op_assign_impl`]: https://rust-lang.github.io/rust-clippy/master/index.html#suspicious_op_assign_impl
 [`suspicious_open_options`]: https://rust-lang.github.io/rust-clippy/master/index.html#suspicious_open_options
 [`suspicious_operation_groupings`]: https://rust-lang.github.io/rust-clippy/master/index.html#suspicious_operation_groupings
+[`suspicious_slice_copies`]: https://rust-lang.github.io/rust-clippy/master/index.html#suspicious_slice_copies
 [`suspicious_splitn`]: https://rust-lang.github.io/rust-clippy/master/index.html#suspicious_splitn
 [`suspicious_to_owned`]: https://rust-lang.github.io/rust-clippy/master/index.html#suspicious_to_owned
 [`suspicious_unary_op_formatting`]: https://rust-lang.github.io/rust-clippy/master/index.html#suspicious_unary_op_formatting
