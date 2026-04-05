@@ -11029,7 +11029,7 @@ fn example(x: u64, y: NonZeroU32) {
 }
 </code></pre>
 </div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.83.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+non_zero_suggestions">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/non_zero_suggestions.rs#L11">View Source</a></div></div></article><article id="nonminimal_bool"><input id="label-nonminimal_bool" type="checkbox"><label for="label-nonminimal_bool"><h2 class="lint-title"><div class="panel-title-name" id="lint-nonminimal_bool">nonminimal_bool
-<a href="#nonminimal_bool" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-complexity">complexity</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
+<a href="#nonminimal_bool" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for boolean expressions that can be written more
 concisely.</p>
 <h3>Why is this bad?</h3>
@@ -11038,6 +11038,7 @@ unnecessary duplication.</p>
 <h3>Known problems</h3>
 <p>Ignores short circuiting behavior of <code>||</code> and
 <code>&amp;&amp;</code>. Ignores <code>|</code>, <code>&amp;</code> and <code>^</code>.</p>
+<p>Creates a big toll on performance, <strong>only enable sporadically</strong></p>
 <h3>Example</h3>
 <pre><code class="language-rust">if a &amp;&amp; true {}
 if !(a == b) {}
@@ -11485,13 +11486,14 @@ x[0];
 x[3];
 </code></pre>
 </div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+out_of_bounds_indexing">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/indexing_slicing.rs#L65">View Source</a></div></div></article><article id="overly_complex_bool_expr"><input id="label-overly_complex_bool_expr" type="checkbox"><label for="label-overly_complex_bool_expr"><h2 class="lint-title"><div class="panel-title-name" id="lint-overly_complex_bool_expr">overly_complex_bool_expr
-<a href="#overly_complex_bool_expr" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-correctness">correctness</span> <span class="label lint-level level-deny">deny</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
+<a href="#overly_complex_bool_expr" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for boolean expressions that contain terminals that
 can be eliminated.</p>
 <h3>Why is this bad?</h3>
 <p>This is most likely a logic bug.</p>
 <h3>Known problems</h3>
-<p>Ignores short circuiting behavior.</p>
+<p>Ignores short circuiting behavior.
+Creates a big toll on performance, <strong>only enable sporadically</strong></p>
 <h3>Example</h3>
 <pre><code class="language-rust">// The `b` is unnecessary, the expression is equivalent to `if a`.
 if a &amp;&amp; b || a { ... }
@@ -11503,7 +11505,7 @@ if a &amp;&amp; b || a { ... }
 <ul>
 <li>logic_bug</li>
 </ul>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+overly_complex_bool_expr">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/booleans.rs#L50">View Source</a></div></div></article><article id="owned_cow"><input id="label-owned_cow" type="checkbox"><label for="label-owned_cow"><h2 class="lint-title"><div class="panel-title-name" id="lint-owned_cow">owned_cow
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+overly_complex_bool_expr">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/booleans.rs#L52">View Source</a></div></div></article><article id="owned_cow"><input id="label-owned_cow" type="checkbox"><label for="label-owned_cow"><h2 class="lint-title"><div class="panel-title-name" id="lint-owned_cow">owned_cow
 <a href="#owned_cow" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-style">style</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Detects needlessly owned <code>Cow</code> types.</p>
 <h3>Why is this bad?</h3>
