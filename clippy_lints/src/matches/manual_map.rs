@@ -1,6 +1,6 @@
 use super::MANUAL_MAP;
-use super::manual_utils::{SomeExpr, check_with};
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use super::manual_utils::{SomeExpr, SuggInfo, check_with};
+use clippy_utils::diagnostics::span_lint_and_then;
 
 use clippy_utils::res::{MaybeDef, MaybeQPath};
 use rustc_hir::LangItem::OptionSome;
@@ -42,7 +42,15 @@ fn check<'tcx>(
     else_pat: Option<&'tcx Pat<'_>>,
     else_body: &'tcx Expr<'_>,
 ) {
-    if let Some(sugg_info) = check_with(
+    if let Some(SuggInfo {
+        needs_brackets,
+        scrutinee_impl_copy: _,
+        scrutinee_str,
+        as_ref_str,
+        body_str,
+        app,
+        requires_coercion,
+    }) = check_with(
         cx,
         expr,
         scrutinee,
@@ -52,24 +60,26 @@ fn check<'tcx>(
         else_body,
         get_some_expr,
     ) {
-        span_lint_and_sugg(
+        span_lint_and_then(
             cx,
             MANUAL_MAP,
             expr.span,
             "manual implementation of `Option::map`",
-            "try",
-            if sugg_info.needs_brackets {
-                format!(
-                    "{{ {}{}.map({}) }}",
-                    sugg_info.scrutinee_str, sugg_info.as_ref_str, sugg_info.body_str
-                )
-            } else {
-                format!(
-                    "{}{}.map({})",
-                    sugg_info.scrutinee_str, sugg_info.as_ref_str, sugg_info.body_str
-                )
+            |diag| {
+                diag.span_suggestion(
+                    expr.span,
+                    "try",
+                    if needs_brackets {
+                        format!("{{ {scrutinee_str}{as_ref_str}.map({body_str}) }}")
+                    } else {
+                        format!("{scrutinee_str}{as_ref_str}.map({body_str})")
+                    },
+                    app,
+                );
+                if requires_coercion {
+                    diag.note("you may need to add explicit `as` casts/dereferences if this `match` is coerced to another type");
+                }
             },
-            sugg_info.app,
         );
     }
 }
