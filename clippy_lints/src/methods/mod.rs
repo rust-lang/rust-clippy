@@ -19,6 +19,7 @@ mod drain_collect;
 mod err_expect;
 mod expect_fun_call;
 mod extend_with_drain;
+mod extend_with_to_owned;
 mod filetype_is_file;
 mod filter_map;
 mod filter_map_bool_then;
@@ -5284,6 +5285,7 @@ impl Methods {
                 (sym::extend, [arg]) => {
                     string_extend_chars::check(cx, expr, recv, arg);
                     extend_with_drain::check(cx, expr, recv, arg);
+                    extend_with_to_owned::check(cx, expr, recv, arg);
                 },
                 (sym::filter, [arg]) => {
                     if let Some((sym::cloned, recv2, [], _span2, _)) = method_call(recv) {
