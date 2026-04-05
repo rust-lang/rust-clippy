@@ -513,8 +513,9 @@ fn can_change_type<'a>(cx: &LateContext<'a>, mut expr: &'a Expr<'a>, mut ty: Ty<
                     let mut count = 0;
                     return find_all_ret_expressions(cx, body_expr, |_| {
                         count += 1;
-                        count <= 1
-                    });
+                        if count <= 1 { Ok(()) } else { Err(()) }
+                    })
+                    .is_ok();
                 }
             },
             Node::Expr(parent_expr) => {
