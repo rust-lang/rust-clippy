@@ -42,6 +42,7 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            disallowed-macros
            disallowed-methods
            disallowed-names
+           disallowed-trait-usage
            disallowed-types
            doc-valid-idents
            enable-raw-pointer-heuristic-for-send
@@ -143,6 +144,7 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            disallowed-macros
            disallowed-methods
            disallowed-names
+           disallowed-trait-usage
            disallowed-types
            doc-valid-idents
            enable-raw-pointer-heuristic-for-send
@@ -244,6 +246,7 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            disallowed-macros
            disallowed-methods
            disallowed-names
+           disallowed-trait-usage
            disallowed-types
            doc-valid-idents
            enable-raw-pointer-heuristic-for-send
