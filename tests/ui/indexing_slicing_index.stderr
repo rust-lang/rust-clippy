@@ -108,5 +108,21 @@ error: index is out of bounds
 LL |     let _ = x[4];
    |             ^^^^
 
-error: aborting due to 14 previous errors
+error: slicing may panic
+  --> tests/ui/indexing_slicing_index.rs:163:17
+   |
+LL |         let _ = v[0..1];
+   |                 ^^^^^^^
+   |
+   = help: consider using `.get(n..m)` or `.get_mut(n..m)` instead
+
+error: slicing may panic
+  --> tests/ui/indexing_slicing_index.rs:173:18
+   |
+LL |         let _ = &arr[r];
+   |                  ^^^^^^
+   |
+   = help: consider using `.get(n..m)` or `.get_mut(n..m)` instead
+
+error: aborting due to 16 previous errors
 
