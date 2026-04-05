@@ -56,8 +56,6 @@ pub fn check<'tcx>(
             }
             check_other_call_arg(cx, expr, method_name, receiver);
         }
-    } else {
-        check_borrow_predicate(cx, expr);
     }
 }
 
@@ -387,26 +385,36 @@ fn check_other_call_arg<'tcx>(
         && let Some(input) = fn_sig.inputs().get(i)
         && let (input, n_refs, _) = peel_and_count_ty_refs(*input)
         && let (trait_predicates, _) = get_input_traits_and_projections(cx, callee_def_id, input)
-        && let Some(sized_def_id) = cx.tcx.lang_items().sized_trait()
-        && let Some(meta_sized_def_id) = cx.tcx.lang_items().meta_sized_trait()
-        && let [trait_predicate] = trait_predicates
-            .iter()
-            .filter(|trait_predicate| trait_predicate.def_id() != sized_def_id)
-            .filter(|trait_predicate| trait_predicate.def_id() != meta_sized_def_id)
-            .collect::<Vec<_>>()[..]
         && let Some(deref_trait_id) = cx.tcx.get_diagnostic_item(sym::Deref)
         && let Some(as_ref_trait_id) = cx.tcx.get_diagnostic_item(sym::AsRef)
-        && (trait_predicate.def_id() == deref_trait_id || trait_predicate.def_id() == as_ref_trait_id)
+        && let Some(borrow_trait_id) = cx.tcx.get_diagnostic_item(sym::Borrow)
+        && let [trait_predicate] = trait_predicates
+            .iter()
+            .filter(|trait_predicate|
+                [deref_trait_id, as_ref_trait_id, borrow_trait_id].contains(&trait_predicate.def_id())
+            )
+            .collect::<Vec<_>>()[..]
         && let receiver_ty = cx.typeck_results().expr_ty(receiver)
         // We can't add an `&` when the trait is `Deref` because `Target = &T` won't match
         // `Target = T`.
-        && let Some((n_refs, receiver_ty)) = if n_refs > 0 || is_copy(cx, receiver_ty) {
-            Some((n_refs, receiver_ty))
+        && let Some((n_refs, receiver_ty, adjust_op)) = if trait_predicate.def_id() == borrow_trait_id
+            && let (receiver_ty, receiver_ty_n_refs, _) = peel_and_count_ty_refs(receiver_ty)
+            && n_refs != 0
+            && n_refs >= receiver_ty_n_refs
+        {
+            if let ty::Array(elem_ty, _) = receiver_ty.kind() {
+               Some((n_refs - 1, Ty::new_slice(cx.tcx, *elem_ty), ".as_slice()"))
+            } else {
+               Some((n_refs - receiver_ty_n_refs, receiver_ty, ""))
+            }
+        } else if n_refs > 0 || is_copy(cx, receiver_ty) {
+            Some((n_refs, receiver_ty, ""))
         } else if trait_predicate.def_id() != deref_trait_id {
-            Some((1, Ty::new_imm_ref(cx.tcx,
-                cx.tcx.lifetimes.re_erased,
-                receiver_ty,
-            )))
+            Some((
+                1,
+                Ty::new_imm_ref(cx.tcx, cx.tcx.lifetimes.re_erased, receiver_ty),
+                "",
+            ))
         } else {
             None
         }
@@ -421,7 +429,7 @@ fn check_other_call_arg<'tcx>(
             maybe_arg.span,
             format!("unnecessary use of `{method_name}`"),
             "use",
-            format!("{:&>n_refs$}{receiver_snippet}", ""),
+            format!("{:&>n_refs$}{receiver_snippet}{adjust_op}", ""),
             applicability,
         );
         return true;
@@ -482,7 +490,7 @@ fn get_input_traits_and_projections<'tcx>(
     let mut projection_predicates = Vec::new();
     for predicate in cx.tcx.param_env(callee_def_id).caller_bounds() {
         match predicate.kind().skip_binder() {
-            ClauseKind::Trait(trait_predicate) if trait_predicate.trait_ref.self_ty() == input => {
+            ClauseKind::Trait(trait_predicate) if trait_predicate_involves_ty(trait_predicate, input) => {
                 trait_predicates.push(trait_predicate);
             },
             ClauseKind::Projection(projection_predicate) if projection_predicate.projection_term.self_ty() == input => {
@@ -527,7 +535,7 @@ fn can_change_type<'a>(cx: &LateContext<'a>, mut expr: &'a Expr<'a>, mut ty: Ty<
                         .into_iter()
                         .chain(call_args)
                         .position(|arg| arg.hir_id == expr.hir_id)
-                        && let param_ty = fn_sig.input(arg_index).skip_binder()
+                        && let param_ty = fn_sig.input(arg_index).skip_binder().peel_refs()
                         && let ty::Param(ParamTy { index: param_index , ..}) = *param_ty.kind()
                         // https://github.com/rust-lang/rust-clippy/issues/9504 and https://github.com/rust-lang/rust-clippy/issues/10021
                         && (param_index as usize) < call_generic_args.len()
@@ -550,7 +558,7 @@ fn can_change_type<'a>(cx: &LateContext<'a>, mut expr: &'a Expr<'a>, mut ty: Ty<
                                 .iter()
                                 .filter(|predicate| {
                                     if let ClauseKind::Trait(trait_predicate) = predicate.kind().skip_binder()
-                                        && trait_predicate.trait_ref.self_ty() == param_ty
+                                        && trait_predicate_involves_ty(trait_predicate, param_ty)
                                     {
                                         true
                                     } else {
@@ -607,6 +615,14 @@ fn can_change_type<'a>(cx: &LateContext<'a>, mut expr: &'a Expr<'a>, mut ty: Ty<
     false
 }
 
+fn trait_predicate_involves_ty<'tcx>(predicate: TraitPredicate<'tcx>, query: Ty<'tcx>) -> bool {
+    predicate
+        .trait_ref
+        .args
+        .iter()
+        .any(|arg| arg.as_type().is_some_and(|ty| ty == query.peel_refs()))
+}
+
 fn has_lifetime(ty: Ty<'_>) -> bool {
     ty.walk().any(|t| matches!(t.kind(), GenericArgKind::Lifetime(_)))
 }
@@ -657,103 +673,5 @@ fn is_to_string_on_string_like<'a>(
         true
     } else {
         false
-    }
-}
-
-fn std_map_key<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<Ty<'tcx>> {
-    match ty.kind() {
-        ty::Adt(adt, args)
-            if matches!(
-                cx.tcx.get_diagnostic_name(adt.did()),
-                Some(sym::BTreeMap | sym::BTreeSet | sym::HashMap | sym::HashSet)
-            ) =>
-        {
-            Some(args.type_at(0))
-        },
-        _ => None,
-    }
-}
-
-fn is_str_and_string(cx: &LateContext<'_>, arg_ty: Ty<'_>, original_arg_ty: Ty<'_>) -> bool {
-    original_arg_ty.is_str() && arg_ty.is_lang_item(cx, LangItem::String)
-}
-
-fn is_slice_and_vec(cx: &LateContext<'_>, arg_ty: Ty<'_>, original_arg_ty: Ty<'_>) -> bool {
-    (original_arg_ty.is_slice() || original_arg_ty.is_array() || original_arg_ty.is_array_slice())
-        && arg_ty.is_diag_item(cx, sym::Vec)
-}
-
-// This function will check the following:
-// 1. The argument is a non-mutable reference.
-// 2. It calls `to_owned()`, `to_string()` or `to_vec()`.
-// 3. That the method is called on `String` or on `Vec` (only types supported for the moment).
-fn check_if_applicable_to_argument<'tcx>(cx: &LateContext<'tcx>, arg: &Expr<'tcx>) {
-    if let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Not, expr) = arg.kind
-        && let ExprKind::MethodCall(method_path, caller, &[], _) = expr.kind
-        && let Some(method_def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)
-        && let method_name = method_path.ident.name
-        && match method_name {
-            sym::to_owned => cx.tcx.is_diagnostic_item(sym::to_owned_method, method_def_id),
-            sym::to_string => cx.tcx.is_diagnostic_item(sym::to_string_method, method_def_id),
-            sym::to_vec => cx
-                .tcx
-                .impl_of_assoc(method_def_id)
-                .is_some_and(|impl_did| cx.tcx.type_of(impl_did).instantiate_identity().is_slice()),
-            _ => false,
-        }
-        && let original_arg_ty = cx.typeck_results().node_type(caller.hir_id).peel_refs()
-        && let arg_ty = cx.typeck_results().expr_ty(arg)
-        && let ty::Ref(_, arg_ty, Mutability::Not) = arg_ty.kind()
-        // FIXME: try to fix `can_change_type` to make it work in this case.
-        // && can_change_type(cx, caller, *arg_ty)
-        && let arg_ty = arg_ty.peel_refs()
-        // For now we limit this lint to `String` and `Vec`.
-        && (is_str_and_string(cx, arg_ty, original_arg_ty) || is_slice_and_vec(cx, arg_ty, original_arg_ty))
-        && let Some(snippet) = caller.span.get_source_text(cx)
-    {
-        span_lint_and_sugg(
-            cx,
-            UNNECESSARY_TO_OWNED,
-            arg.span,
-            format!("unnecessary use of `{method_name}`"),
-            "replace it with",
-            if original_arg_ty.is_array() {
-                format!("{snippet}.as_slice()")
-            } else {
-                snippet.to_owned()
-            },
-            Applicability::MaybeIncorrect,
-        );
-    }
-}
-
-// In std "map types", the getters all expect a `Borrow<Key>` generic argument. So in here, we
-// check that:
-// 1. This is a method with only one argument that doesn't come from a trait.
-// 2. That it has `Borrow` in its generic predicates.
-// 3. `Self` is a std "map type" (ie `HashSet`, `HashMap`, `BTreeSet`, `BTreeMap`).
-// 4. The key to the "map type" is not a reference.
-fn check_borrow_predicate<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
-    if let ExprKind::MethodCall(_, caller, &[arg], _) = expr.kind
-        && let Some(method_def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)
-        && cx.tcx.trait_of_assoc(method_def_id).is_none()
-        && let Some(borrow_id) = cx.tcx.get_diagnostic_item(sym::Borrow)
-        && cx.tcx.predicates_of(method_def_id).predicates.iter().any(|(pred, _)| {
-            if let ClauseKind::Trait(trait_pred) = pred.kind().skip_binder()
-                && trait_pred.polarity == ty::PredicatePolarity::Positive
-                && trait_pred.trait_ref.def_id == borrow_id
-            {
-                true
-            } else {
-                false
-            }
-        })
-        && let caller_ty = cx.typeck_results().expr_ty(caller)
-        // For now we limit it to "map types".
-        && let Some(key_ty) = std_map_key(cx, caller_ty)
-        // We need to check that the key type is not a reference.
-        && !key_ty.is_ref()
-    {
-        check_if_applicable_to_argument(cx, &arg);
     }
 }
