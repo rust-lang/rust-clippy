@@ -831,6 +831,16 @@ The maximum number of bounds a trait can have to be linted
 * [`type_repetition_in_bounds`](https://rust-lang.github.io/rust-clippy/master/index.html#type_repetition_in_bounds)
 
 
+## `min-ident-chars-check-trait-impl`
+Whether to lint short method parameters in trait implementations even if they match that of the trait definition.
+
+**Default Value:** `false`
+
+---
+**Affected lints:**
+* [`min_ident_chars`](https://rust-lang.github.io/rust-clippy/master/index.html#min_ident_chars)
+
+
 ## `min-ident-chars-threshold`
 Minimum chars an ident can have, anything below or equal to this will be linted.
 

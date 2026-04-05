@@ -49,5 +49,47 @@ error: this ident is too short (1 <= 3)
 LL |     for i in 0..1000 {}
    |         ^
 
-error: aborting due to 8 previous errors
+error: this ident is too short (1 <= 3)
+  --> tests/ui-toml/min_ident_chars/min_ident_chars.rs:33:10
+   |
+LL |     fn f(g: i32);
+   |          ^
+
+error: this ident is too short (1 <= 3)
+  --> tests/ui-toml/min_ident_chars/min_ident_chars.rs:33:8
+   |
+LL |     fn f(g: i32);
+   |        ^
+
+error: this ident is too short (1 <= 3)
+  --> tests/ui-toml/min_ident_chars/min_ident_chars.rs:42:8
+   |
+LL |     fn f(g: i32) {}
+   |        ^
+
+error: this ident is too short (1 <= 3)
+  --> tests/ui-toml/min_ident_chars/min_ident_chars.rs:42:10
+   |
+LL |     fn f(g: i32) {}
+   |          ^
+
+error: this ident is too short (3 <= 3)
+  --> tests/ui-toml/min_ident_chars/min_ident_chars.rs:49:8
+   |
+LL |     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+   |        ^^^
+
+error: this ident is too short (2 <= 3)
+  --> tests/ui-toml/min_ident_chars/min_ident_chars.rs:49:48
+   |
+LL |     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+   |                                                ^^
+
+error: this ident is too short (1 <= 3)
+  --> tests/ui-toml/min_ident_chars/min_ident_chars.rs:49:19
+   |
+LL |     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+   |                   ^
+
+error: aborting due to 15 previous errors
 
