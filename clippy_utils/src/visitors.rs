@@ -204,13 +204,19 @@ fn contains_try(expr: &Expr<'_>) -> bool {
     .is_some()
 }
 
-pub fn find_all_ret_expressions<'hir, F>(_cx: &LateContext<'_>, expr: &'hir Expr<'hir>, callback: F) -> bool
-where
-    F: FnMut(&'hir Expr<'hir>) -> bool,
-{
+pub enum FindAllRetError {
+    ContainsTry,
+    CallbackFailed,
+}
+
+pub fn find_all_ret_expressions<'hir>(
+    _cx: &LateContext<'_>,
+    expr: &'hir Expr<'hir>,
+    callback: impl FnMut(&'hir Expr<'hir>) -> Result<(), ()>,
+) -> Result<(), FindAllRetError> {
     struct RetFinder<F> {
         in_stmt: bool,
-        failed: bool,
+        status: Result<(), ()>,
         cb: F,
     }
 
@@ -249,22 +255,19 @@ where
         }
     }
 
-    impl<'hir, F: FnMut(&'hir Expr<'hir>) -> bool> Visitor<'hir> for RetFinder<F> {
+    impl<'hir, F: FnMut(&'hir Expr<'hir>) -> Result<(), ()>> Visitor<'hir> for RetFinder<F> {
         fn visit_stmt(&mut self, stmt: &'hir Stmt<'_>) {
             intravisit::walk_stmt(&mut *self.inside_stmt(true), stmt);
         }
 
         fn visit_expr(&mut self, expr: &'hir Expr<'_>) {
-            if self.failed {
-                return;
-            }
-            if self.in_stmt {
-                match expr.kind {
+            match self.status {
+                Err(()) => {},
+                Ok(()) if self.in_stmt => match expr.kind {
                     ExprKind::Ret(Some(expr)) => self.inside_stmt(false).visit_expr(expr),
                     _ => walk_expr(self, expr),
-                }
-            } else {
-                match expr.kind {
+                },
+                Ok(()) => match expr.kind {
                     ExprKind::If(cond, then, else_opt) => {
                         self.inside_stmt(true).visit_expr(cond);
                         self.visit_expr(then);
@@ -280,20 +283,22 @@ where
                     },
                     ExprKind::Block(..) => walk_expr(self, expr),
                     ExprKind::Ret(Some(expr)) => self.visit_expr(expr),
-                    _ => self.failed |= !(self.cb)(expr),
-                }
+                    _ => self.status = (self.cb)(expr),
+                },
             }
         }
     }
 
-    !contains_try(expr) && {
+    if contains_try(expr) {
+        Err(FindAllRetError::ContainsTry)
+    } else {
         let mut ret_finder = RetFinder {
             in_stmt: false,
-            failed: false,
+            status: Ok(()),
             cb: callback,
         };
         ret_finder.visit_expr(expr);
-        !ret_finder.failed
+        ret_finder.status.map_err(|()| FindAllRetError::CallbackFailed)
     }
 }
 
