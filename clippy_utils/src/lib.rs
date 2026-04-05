@@ -2880,7 +2880,7 @@ pub fn tokenize_with_text(s: &str) -> impl Iterator<Item = (TokenKind, &str, Inn
         let range = pos as usize..end as usize;
         let inner = InnerSpan::new(range.start, range.end);
         pos = end;
-        (t.kind, s.get(range).unwrap_or_default(), inner)
+        (t.kind, s.get(range).unwrap_or(""), inner)
     })
 }
 
@@ -2927,7 +2927,7 @@ pub fn span_extract_comments(cx: &impl source::HasSession, span: Span) -> Vec<St
             .map(|(_, s, _)| s.to_string())
             .collect::<Vec<_>>()
     })
-    .unwrap_or_default()
+    .unwrap_or(vec![])
 }
 
 pub fn span_find_starting_semi(sm: &SourceMap, span: Span) -> Span {
