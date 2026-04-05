@@ -91,5 +91,11 @@ error: you are explicitly cloning with `.map()`
 LL |     let y = x.map(|x| Clone::clone(x));
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider calling the dedicated `copied` method: `x.copied()`
 
-error: aborting due to 15 previous errors
+error: you are explicitly cloning with `.map()`
+  --> tests/ui/map_clone.rs:165:18
+   |
+LL |         let _r = r.as_ref().map(Clone::clone);
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider calling the dedicated `copied` method: `r.as_ref().copied()`
+
+error: aborting due to 16 previous errors
 
