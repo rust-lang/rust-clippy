@@ -6853,6 +6853,8 @@ Released 2018-09-13
 [`mem_replace_option_with_some`]: https://rust-lang.github.io/rust-clippy/master/index.html#mem_replace_option_with_some
 [`mem_replace_with_default`]: https://rust-lang.github.io/rust-clippy/master/index.html#mem_replace_with_default
 [`mem_replace_with_uninit`]: https://rust-lang.github.io/rust-clippy/master/index.html#mem_replace_with_uninit
+[`method_shadow_field`]: https://rust-lang.github.io/rust-clippy/master/index.html#method_shadow_field
+[`method_shadow_public_field`]: https://rust-lang.github.io/rust-clippy/master/index.html#method_shadow_public_field
 [`min_ident_chars`]: https://rust-lang.github.io/rust-clippy/master/index.html#min_ident_chars
 [`min_max`]: https://rust-lang.github.io/rust-clippy/master/index.html#min_max
 [`misaligned_transmute`]: https://rust-lang.github.io/rust-clippy/master/index.html#misaligned_transmute
