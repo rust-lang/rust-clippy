@@ -1012,6 +1012,12 @@ impl Operators {
 
 impl<'tcx> LateLintPass<'tcx> for Operators {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
+        let Self {
+            arithmetic_context,
+            verbose_bit_mask_threshold,
+            modulo_arithmetic_allow_comparison_to_zero,
+            msrv,
+        } = self;
         eq_op::check_assert(cx, e);
         match e.kind {
             ExprKind::Binary(op, lhs, rhs) => {
@@ -1025,13 +1031,13 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                     identity_op::check(cx, e, op.node, lhs, rhs);
                     invalid_upcast_comparisons::check(cx, op.node, lhs, rhs, e.span);
                     needless_bitwise_bool::check(cx, e, op.node, lhs, rhs);
-                    manual_midpoint::check(cx, e, op.node, lhs, rhs, self.msrv);
-                    manual_is_multiple_of::check(cx, e, op.node, lhs, rhs, self.msrv);
+                    manual_midpoint::check(cx, e, op.node, lhs, rhs, *msrv);
+                    manual_is_multiple_of::check(cx, e, op.node, lhs, rhs, *msrv);
                     decimal_bitwise_operands::check(cx, op.node, lhs, rhs);
                 }
-                self.arithmetic_context.check_binary(cx, e, op.node, lhs, rhs);
+                arithmetic_context.check_binary(cx, e, op.node, lhs, rhs);
                 bit_mask::check(cx, e, op.node, lhs, rhs);
-                verbose_bit_mask::check(cx, e, op.node, lhs, rhs, self.verbose_bit_mask_threshold);
+                verbose_bit_mask::check(cx, e, op.node, lhs, rhs, *verbose_bit_mask_threshold);
                 double_comparison::check(cx, op.node, lhs, rhs, e.span);
                 const_comparisons::check(cx, op, lhs, rhs, e.span);
                 duration_subsec::check(cx, e, op.node, lhs, rhs);
@@ -1041,34 +1047,27 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                 cmp_owned::check(cx, e, op.node, lhs, rhs);
                 float_cmp::check(cx, e, op.node, lhs, rhs);
                 modulo_one::check(cx, e, op.node, rhs);
-                modulo_arithmetic::check(
-                    cx,
-                    e,
-                    op.node,
-                    lhs,
-                    rhs,
-                    self.modulo_arithmetic_allow_comparison_to_zero,
-                );
-                manual_div_ceil::check(cx, e, op.node, lhs, rhs, self.msrv);
+                modulo_arithmetic::check(cx, e, op.node, lhs, rhs, *modulo_arithmetic_allow_comparison_to_zero);
+                manual_div_ceil::check(cx, e, op.node, lhs, rhs, *msrv);
             },
             ExprKind::AssignOp(op, lhs, rhs) => {
                 let bin_op = op.node.into();
                 if !e.span.from_expansion() {
                     decimal_bitwise_operands::check(cx, bin_op, lhs, rhs);
                 }
-                self.arithmetic_context.check_binary(cx, e, bin_op, lhs, rhs);
+                arithmetic_context.check_binary(cx, e, bin_op, lhs, rhs);
                 misrefactored_assign_op::check(cx, e, bin_op, lhs, rhs);
                 modulo_arithmetic::check(cx, e, bin_op, lhs, rhs, false);
             },
             ExprKind::Assign(lhs, rhs, _) => {
-                assign_op_pattern::check(cx, e, lhs, rhs, self.msrv);
+                assign_op_pattern::check(cx, e, lhs, rhs, *msrv);
                 self_assignment::check(cx, e, lhs, rhs);
             },
             ExprKind::Unary(op, arg) =>
             {
                 #[expect(clippy::collapsible_match)]
                 if op == UnOp::Neg {
-                    self.arithmetic_context.check_negate(cx, e, arg);
+                    arithmetic_context.check_negate(cx, e, arg);
                 }
             },
             _ => (),

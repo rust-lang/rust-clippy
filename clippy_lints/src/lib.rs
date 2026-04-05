@@ -390,6 +390,7 @@ mod unused_unit;
 mod unwrap;
 mod unwrap_in_result;
 mod upper_case_acronyms;
+mod use_destructuring;
 mod use_self;
 mod useless_concat;
 mod useless_conversion;
@@ -867,6 +868,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::new(manual_checked_ops::ManualCheckedOps)),
         Box::new(move |tcx| Box::new(manual_pop_if::ManualPopIf::new(tcx, conf))),
         Box::new(|_| Box::new(manual_noop_waker::ManualNoopWaker)),
+        Box::new(move |_| Box::new(use_destructuring::UseDestructuring::new(conf))),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);

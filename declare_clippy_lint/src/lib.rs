@@ -47,27 +47,30 @@ impl LintListBuilder {
     }
 
     pub fn register(self, store: &mut LintStore) {
-        store.register_lints(&self.lints);
-        store.register_group(true, "clippy::all", Some("clippy_all"), self.all);
-        store.register_group(true, "clippy::cargo", Some("clippy_cargo"), self.cargo);
-        store.register_group(true, "clippy::complexity", Some("clippy_complexity"), self.complexity);
-        store.register_group(
-            true,
-            "clippy::correctness",
-            Some("clippy_correctness"),
-            self.correctness,
-        );
-        store.register_group(true, "clippy::nursery", Some("clippy_nursery"), self.nursery);
-        store.register_group(true, "clippy::pedantic", Some("clippy_pedantic"), self.pedantic);
-        store.register_group(true, "clippy::perf", Some("clippy_perf"), self.perf);
-        store.register_group(
-            true,
-            "clippy::restriction",
-            Some("clippy_restriction"),
-            self.restriction,
-        );
-        store.register_group(true, "clippy::style", Some("clippy_style"), self.style);
-        store.register_group(true, "clippy::suspicious", Some("clippy_suspicious"), self.suspicious);
+        let Self {
+            lints,
+            all,
+            cargo,
+            complexity,
+            correctness,
+            nursery,
+            pedantic,
+            perf,
+            restriction,
+            style,
+            suspicious,
+        } = self;
+        store.register_lints(&lints);
+        store.register_group(true, "clippy::all", Some("clippy_all"), all);
+        store.register_group(true, "clippy::cargo", Some("clippy_cargo"), cargo);
+        store.register_group(true, "clippy::complexity", Some("clippy_complexity"), complexity);
+        store.register_group(true, "clippy::correctness", Some("clippy_correctness"), correctness);
+        store.register_group(true, "clippy::nursery", Some("clippy_nursery"), nursery);
+        store.register_group(true, "clippy::pedantic", Some("clippy_pedantic"), pedantic);
+        store.register_group(true, "clippy::perf", Some("clippy_perf"), perf);
+        store.register_group(true, "clippy::restriction", Some("clippy_restriction"), restriction);
+        store.register_group(true, "clippy::style", Some("clippy_style"), style);
+        store.register_group(true, "clippy::suspicious", Some("clippy_suspicious"), suspicious);
     }
 }
 

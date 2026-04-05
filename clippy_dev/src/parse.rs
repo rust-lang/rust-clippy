@@ -294,6 +294,11 @@ impl<'cx> ParseCxImpl<'cx> {
             Bang, OpenParen, CaptureDocLines, CaptureIdent, CaptureOptLifetimeArg, FatArrow, OpenBracket,
         ];
 
+        let Self {
+            str_buf,
+            arena,
+            str_list_buf,
+        } = self;
         let mut cursor = Cursor::new(contents);
         let mut captures = [Capture::EMPTY; 3];
         while let Some(mac_name) = cursor.find_any_ident() {
@@ -304,9 +309,9 @@ impl<'cx> ParseCxImpl<'cx> {
                     assert!(
                         data.lints
                             .insert(
-                                self.str_buf.alloc_ascii_lower(self.arena, cursor.get_text(captures[0])),
+                                str_buf.alloc_ascii_lower(arena, cursor.get_text(captures[0])),
                                 Lint::Active(ActiveLint {
-                                    group: self.arena.alloc_str(cursor.get_text(captures[1])),
+                                    group: arena.alloc_str(cursor.get_text(captures[1])),
                                     module,
                                     path: path.into(),
                                     declaration_range: mac_name.pos..cursor.pos(),
@@ -323,21 +328,17 @@ impl<'cx> ParseCxImpl<'cx> {
                     };
                     let docs = match cursor.get_text(captures[0]) {
                         "" => "",
-                        x => self.arena.alloc_str(x),
+                        x => arena.alloc_str(x),
                     };
-                    let name = self.arena.alloc_str(cursor.get_text(captures[1]));
+                    let name = arena.alloc_str(cursor.get_text(captures[1]));
                     let lt = cursor.get_text(captures[2]);
-                    let lt = if lt.is_empty() {
-                        None
-                    } else {
-                        Some(self.arena.alloc_str(lt))
-                    };
+                    let lt = if lt.is_empty() { None } else { Some(arena.alloc_str(lt)) };
 
-                    let lints = self.str_list_buf.with(|buf| {
+                    let lints = str_list_buf.with(|buf| {
                         // Parses a comma separated list of paths and converts each path
                         // to a string with whitespace removed.
                         while !cursor.match_pat(CloseBracket) {
-                            buf.push(self.str_buf.with(|buf| {
+                            buf.push(str_buf.with(|buf| {
                                 if cursor.match_pat(DoubleColon) {
                                     buf.push_str("::");
                                 }
@@ -348,7 +349,7 @@ impl<'cx> ParseCxImpl<'cx> {
                                     let capture = cursor.capture_ident()?;
                                     buf.push_str(cursor.get_text(capture));
                                 }
-                                Some(self.arena.alloc_str(buf))
+                                Some(arena.alloc_str(buf))
                             })?);
 
                             if !cursor.match_pat(Comma) {
@@ -364,7 +365,7 @@ impl<'cx> ParseCxImpl<'cx> {
                             &[]
                         } else {
                             buf.sort_unstable();
-                            &*self.arena.alloc_slice(buf)
+                            &*arena.alloc_slice(buf)
                         })
                     });
 

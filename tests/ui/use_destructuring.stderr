@@ -1,0 +1,36 @@
+error: all 3 fields of `Vec3` are accessed individually; consider destructuring
+  --> tests/ui/use_destructuring.rs:16:9
+   |
+LL |         self.x + self.y + self.z
+   |         ^^^^^^
+   |
+   = help: consider using `let Vec3 { x, y, z } = self;`
+   = note: `-D clippy::use-destructuring` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::use_destructuring)]`
+
+error: all 3 fields of `Vec3` are accessed individually; consider destructuring
+  --> tests/ui/use_destructuring.rs:21:9
+   |
+LL |         self.x + self.y + self.z
+   |         ^^^^^^
+   |
+   = help: consider using `let Vec3 { x, y, z } = self;`
+
+error: all 3 fields of `Vec3` are accessed individually; consider destructuring
+  --> tests/ui/use_destructuring.rs:29:35
+   |
+LL |         write!(f, "({}, {}, {})", self.x, self.y, self.z)
+   |                                   ^^^^^^
+   |
+   = help: consider using `let Vec3 { x, y, z } = self;`
+
+error: all 3 fields of `TupleStruct3` are accessed individually; consider destructuring
+  --> tests/ui/use_destructuring.rs:50:9
+   |
+LL |         self.0 + self.1 + self.2
+   |         ^^^^^^
+   |
+   = help: consider using `let TupleStruct3(field_0, field_1, field_2) = self;`
+
+error: aborting due to 4 previous errors
+
