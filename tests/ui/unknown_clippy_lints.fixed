@@ -16,7 +16,7 @@
 #[warn(dead_code)]
 //~^ ERROR: unknown lint
 // Shouldn't suggest removed/deprecated clippy lint name(`unused_collect`)
-#[warn(clippy::unused_self)]
+#[warn(clippy::unused_impl)]
 //~^ ERROR: unknown lint
 // Shouldn't suggest renamed clippy lint name(`const_static_lifetime`)
 #[warn(clippy::redundant_static_lifetimes)]

@@ -1,6 +1,6 @@
 //@aux-build:proc_macros.rs
 
-#![allow(unused, clippy::multiple_bound_locations)]
+#![allow(unused, clippy::multiple_bound_locations, clippy::unused_impl)]
 #![warn(clippy::needless_maybe_sized)]
 
 extern crate proc_macros;

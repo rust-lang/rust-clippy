@@ -47,7 +47,7 @@ error: unknown lint: `clippy::unused_colle`
   --> tests/ui/unknown_clippy_lints.rs:19:8
    |
 LL | #[warn(clippy::unused_colle)]
-   |        ^^^^^^^^^^^^^^^^^^^^ help: did you mean: `clippy::unused_self`
+   |        ^^^^^^^^^^^^^^^^^^^^ help: did you mean: `clippy::unused_impl`
 
 error: unknown lint: `clippy::const_static_lifetim`
   --> tests/ui/unknown_clippy_lints.rs:22:8

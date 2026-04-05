@@ -1,0 +1,40 @@
+#![warn(clippy::unused_impl)]
+
+trait MyTrait {}
+
+struct Foo;
+impl Foo {}
+//~^ unused_impl
+impl MyTrait for Foo {}
+
+// Should work inside modules
+mod bar {
+    use crate::MyTrait;
+
+    struct Bar<'a>(&'a str);
+    // Attributes, including comments, should be removed
+    #[doc(hidden)]
+    /// Hello world
+    impl<'a> Bar<'a> {}
+    //~^ unused_impl
+    impl MyTrait for Bar<'_> {}
+}
+
+struct Baz;
+impl Baz {
+    fn baz() {}
+}
+// Trait implementation should not lint
+impl MyTrait for Baz {}
+
+macro_rules! generate_impl {
+    ($struct:ident) => {
+        impl $struct {}
+    };
+}
+
+struct Qux;
+// Macro expansions should not lint
+generate_impl!(Qux);
+
+fn main() {}

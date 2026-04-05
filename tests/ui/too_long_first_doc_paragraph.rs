@@ -1,5 +1,6 @@
 //@no-rustfix
 
+#![allow(clippy::unused_impl)]
 #![warn(clippy::too_long_first_doc_paragraph)]
 
 pub mod foo {

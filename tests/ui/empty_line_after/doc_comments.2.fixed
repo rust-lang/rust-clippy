@@ -1,3 +1,4 @@
+#![allow(clippy::unused_impl)]
 #![warn(clippy::empty_line_after_outer_attr, clippy::empty_line_after_doc_comments)]
 
 //~vvv empty_line_after_doc_comments
