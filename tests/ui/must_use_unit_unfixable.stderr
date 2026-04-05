@@ -7,8 +7,8 @@ LL | fn issue_12320() {}
 help: remove `must_use`
   --> tests/ui/must_use_unit_unfixable.rs:1:19
    |
-LL | #[cfg_attr(all(), must_use, deprecated)]
-   |                   ^^^^^^^^
+LL | #[cfg_attr(all(), must_use = "note", deprecated)]
+   |                   ^^^^^^^^^^^^^^^^^
    = note: `-D clippy::must-use-unit` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::must_use_unit)]`
 
@@ -21,8 +21,8 @@ LL | fn issue_12320_2() {}
 help: remove `must_use`
   --> tests/ui/must_use_unit_unfixable.rs:5:44
    |
-LL | #[cfg_attr(all(), deprecated, doc = "foo", must_use)]
-   |                                            ^^^^^^^^
+LL | #[cfg_attr(all(), deprecated, doc = "foo", must_use = "note")]
+   |                                            ^^^^^^^^^^^^^^^^^
 
 error: aborting due to 2 previous errors
 
