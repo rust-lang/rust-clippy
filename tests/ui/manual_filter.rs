@@ -293,3 +293,57 @@ fn main() {
 fn maybe_some() -> Option<u32> {
     Some(0)
 }
+
+fn issue16751(v: Option<u32>) -> Option<u32> {
+    let _ = match v {
+        Some(n) => {
+            if n > 0 {
+                return None;
+            }
+            if n == 0 { Some(n) } else { None }
+        },
+        None => None,
+    };
+
+    let _ = match v {
+        //~^ manual_filter
+        Some(n) => {
+            println!("{n}");
+            {
+                println!("{}", n + 1);
+                unsafe { if n > 0 { Some(n) } else { None } }
+            }
+        },
+        None => None,
+    };
+
+    unsafe fn f(x: u32) -> bool {
+        true
+    }
+    match v {
+        //~^ manual_filter
+        Some(n) => {
+            println!("{n}");
+            if unsafe { f(n) } { Some(n) } else { None }
+        },
+        None => None,
+    }
+}
+
+fn issue16776(v: Option<usize>) -> Option<usize> {
+    let _ = if let Some(n) = v {
+        //~^ manual_filter
+        if n > 10 { Some(42) } else { None }
+    } else {
+        None
+    };
+
+    match v {
+        //~^ manual_filter
+        Some(n) => {
+            println!("n: {n}");
+            if n > 10 { Some(n + 1) } else { None }
+        },
+        None => None,
+    }
+}
