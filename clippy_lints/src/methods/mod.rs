@@ -969,7 +969,7 @@ declare_clippy_lint! {
     /// `x.last()`.  Indexing into the array will panic on out-of-bounds
     /// accesses, while `x.get()` and `x.last()` will return `None`.
     ///
-    /// There is another lint (get_unwrap) that covers the case of using
+    /// There is another lint (`clippy::get_unwrap`) that covers the case of using
     /// `x.get(index).unwrap()` instead of `x[index]`.
     ///
     /// ### Example
@@ -2813,7 +2813,7 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for usage of `_.as_ref().map(Deref::deref)` or its aliases (such as String::as_str).
+    /// Checks for usage of `_.as_ref().map(Deref::deref)` or its aliases (such as `String::as_str`).
     ///
     /// ### Why is this bad?
     /// Readability, this can be written more concisely as
@@ -3784,8 +3784,7 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for calls to [`splitn`]
-    /// (https://doc.rust-lang.org/std/primitive.str.html#method.splitn) and
+    /// Checks for calls to [`splitn`](https://doc.rust-lang.org/std/primitive.str.html#method.splitn) and
     /// related functions with either zero or one splits.
     ///
     /// ### Why is this bad?
@@ -4353,7 +4352,7 @@ declare_clippy_lint! {
     /// ### What it does
     /// Checks for unnecessary calls to `min()` or `max()` in the following cases
     /// - Either both side is constant
-    /// - One side is clearly larger than the other, like i32::MIN and an i32 variable
+    /// - One side is clearly larger than the other, like `i32::MIN` and an `i32` variable
     ///
     /// ### Why is this bad?
     ///
@@ -4654,7 +4653,7 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for usage of File::read_to_end and File::read_to_string.
+    /// Checks for usage of `File::read_to_end` and `File::read_to_string`.
     ///
     /// ### Why restrict this?
     /// `fs::{read, read_to_string}` provide the same functionality when `buf` is empty with fewer imports and no intermediate values.
@@ -4727,7 +4726,7 @@ declare_clippy_lint! {
     /// Clippy allows `Pin<&Self>` and `Pin<&mut Self>` if `&self` and `&mut self` is required.
     ///
     /// Please find more info here:
-    /// https://rust-lang.github.io/api-guidelines/naming.html#ad-hoc-conversions-follow-as_-to_-into_-conventions-c-conv
+    /// <https://rust-lang.github.io/api-guidelines/naming.html#ad-hoc-conversions-follow-as_-to_-into_-conventions-c-conv>
     ///
     /// ### Why is this bad?
     /// Consistency breeds readability. If you follow the
