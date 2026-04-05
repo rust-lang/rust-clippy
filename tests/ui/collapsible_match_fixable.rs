@@ -29,3 +29,19 @@ fn issue16558() {
         _ => 1,
     };
 }
+
+#[rustfmt::skip]
+fn issue16716(n: u32) {
+    match n {
+        0 | 1 => if false { println!("hello world"); },
+        //~^ collapsible_match
+        _ => (),
+    }
+
+    let opt = Some(1);
+    let _ = match opt {
+        Some(s) => if s == 1 { s } else { 1 }
+        //~^ collapsible_match
+        _ => 1,
+    };
+}
