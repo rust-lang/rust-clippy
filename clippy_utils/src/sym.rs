@@ -109,6 +109,7 @@ generate! {
     Saturating,
     SeekFrom,
     SliceIter,
+    Split,
     Start,
     Stdin,
     Symbol,
