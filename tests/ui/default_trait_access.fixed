@@ -33,7 +33,7 @@ fn main() {
 
     let s10 = DerivedDefault::default();
 
-    let s11: GenericDerivedDefault<String> = GenericDerivedDefault::default();
+    let s11: GenericDerivedDefault<String> = <GenericDerivedDefault<String>>::default();
     //~^ default_trait_access
 
     let s12 = GenericDerivedDefault::<String>::default();
@@ -67,6 +67,28 @@ fn main() {
         "[{}] [{}] [{}] [{}] [{}] [{}] [{}] [{}] [{}] [{:?}] [{:?}] [{:?}] [{:?}] [{:?}] [{:?}] [{:?}] [{:?}] [{:?}] [{:?}] [{:?}]",
         s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16, s17, s18, s19, s20,
     );
+}
+
+fn issue16325() {
+    use std::borrow::Cow;
+    use std::collections::HashMap;
+    use std::rc::Rc;
+    use std::sync::{Arc, RwLock};
+
+    #[derive(Default, Clone)]
+    struct Foo;
+
+    let _: Arc<Foo> = <Arc<Foo>>::default();
+    //~^ default_trait_access
+
+    let _: Rc<Foo> = <Rc<Foo>>::default();
+    //~^ default_trait_access
+
+    let _: Cow<'_, Foo> = <Cow<'_, Foo>>::default();
+    //~^ default_trait_access
+
+    let _: Arc<RwLock<HashMap<String, Foo>>> = <Arc<RwLock<HashMap<String, Foo>>>>::default();
+    //~^ default_trait_access
 }
 
 struct DefaultFactory;
