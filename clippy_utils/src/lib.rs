@@ -1,4 +1,6 @@
 #![feature(box_patterns)]
+#![feature(f128)]
+#![feature(f16)]
 #![feature(macro_metavar_expr)]
 #![feature(rustc_private)]
 #![feature(unwrap_infallible)]
