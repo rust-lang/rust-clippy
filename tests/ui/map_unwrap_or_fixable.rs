@@ -4,7 +4,7 @@
 #![allow(
     clippy::unnecessary_lazy_evaluations,
     clippy::manual_is_variant_and,
-    clippy::unnecessary_map_or
+    clippy::needless_is_variant_and
 )]
 
 #[macro_use]
