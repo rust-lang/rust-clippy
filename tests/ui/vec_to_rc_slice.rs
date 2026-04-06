@@ -4,9 +4,39 @@ use std::rc::Rc;
 use std::sync::Arc;
 
 fn main() {
+    // Should lint: Vec<T>.into() -> Arc<[T]>
+    let v: Vec<u8> = vec![1, 2, 3];
+    let _a: Arc<[u8]> = v.into();
+    //~^ vec_to_rc_slice
+
+    // Should lint: Arc::from(vec)
+    let v: Vec<u8> = vec![1, 2, 3];
+    let _a: Arc<[u8]> = Arc::from(v);
+    //~^ vec_to_rc_slice
+
+    // Should lint: From::from(vec) when target is Arc<[T]>
+    let v: Vec<u8> = vec![1, 2, 3];
+    let _a: Arc<[u8]> = From::from(v);
+    //~^ vec_to_rc_slice
+
     // Should lint: fully qualified Arc from
     let v: Vec<u8> = vec![1, 2, 3];
     let _a = <Arc<[u8]> as From<Vec<u8>>>::from(v);
+    //~^ vec_to_rc_slice
+
+    // Should lint: Vec<T>.into() -> Rc<[T]>
+    let v: Vec<u8> = vec![1, 2, 3];
+    let _a: Rc<[u8]> = v.into();
+    //~^ vec_to_rc_slice
+
+    // Should lint: Rc::from(vec)
+    let v: Vec<u8> = vec![1, 2, 3];
+    let _a: Rc<[u8]> = Rc::from(v);
+    //~^ vec_to_rc_slice
+
+    // Should lint: From::from(vec) when target is Rc<[T]>
+    let v: Vec<u8> = vec![1, 2, 3];
+    let _a: Rc<[u8]> = From::from(v);
     //~^ vec_to_rc_slice
 
     // Should lint: fully qualified Rc from

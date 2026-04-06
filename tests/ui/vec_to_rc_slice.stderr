@@ -1,20 +1,92 @@
 error: converting a `Vec<T>` to `Arc<[T]>` copies all elements to a new allocation
-  --> tests/ui/vec_to_rc_slice.rs:9:14
+  --> tests/ui/vec_to_rc_slice.rs:9:25
+   |
+LL |     let _a: Arc<[u8]> = v.into();
+   |                         ^^^^^^^^
+   |
+   = note: `-D clippy::vec-to-rc-slice` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::vec_to_rc_slice)]`
+help: use `into_boxed_slice()` to avoid the copy
+   |
+LL -     let _a: Arc<[u8]> = v.into();
+LL +     let _a: Arc<Box<[u8]>> = Arc::new(v.into_boxed_slice());
+   |
+
+error: converting a `Vec<T>` to `Arc<[T]>` copies all elements to a new allocation
+  --> tests/ui/vec_to_rc_slice.rs:14:25
+   |
+LL |     let _a: Arc<[u8]> = Arc::from(v);
+   |                         ^^^^^^^^^^^^
+   |
+help: use `into_boxed_slice()` to avoid the copy
+   |
+LL -     let _a: Arc<[u8]> = Arc::from(v);
+LL +     let _a: Arc<Box<[u8]>> = Arc::new(v.into_boxed_slice());
+   |
+
+error: converting a `Vec<T>` to `Arc<[T]>` copies all elements to a new allocation
+  --> tests/ui/vec_to_rc_slice.rs:19:25
+   |
+LL |     let _a: Arc<[u8]> = From::from(v);
+   |                         ^^^^^^^^^^^^^
+   |
+help: use `into_boxed_slice()` to avoid the copy
+   |
+LL -     let _a: Arc<[u8]> = From::from(v);
+LL +     let _a: Arc<Box<[u8]>> = Arc::new(v.into_boxed_slice());
+   |
+
+error: converting a `Vec<T>` to `Arc<[T]>` copies all elements to a new allocation
+  --> tests/ui/vec_to_rc_slice.rs:24:14
    |
 LL |     let _a = <Arc<[u8]> as From<Vec<u8>>>::from(v);
    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `into_boxed_slice()` to avoid the copy: `Arc::new(v.into_boxed_slice())`
    |
    = note: this gives `Arc<Box<[T]>>` and avoids the copy
-   = note: `-D clippy::vec-to-rc-slice` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::vec_to_rc_slice)]`
 
 error: converting a `Vec<T>` to `Rc<[T]>` copies all elements to a new allocation
-  --> tests/ui/vec_to_rc_slice.rs:14:14
+  --> tests/ui/vec_to_rc_slice.rs:29:24
+   |
+LL |     let _a: Rc<[u8]> = v.into();
+   |                        ^^^^^^^^
+   |
+help: use `into_boxed_slice()` to avoid the copy
+   |
+LL -     let _a: Rc<[u8]> = v.into();
+LL +     let _a: Rc<Box<[u8]>> = Rc::new(v.into_boxed_slice());
+   |
+
+error: converting a `Vec<T>` to `Rc<[T]>` copies all elements to a new allocation
+  --> tests/ui/vec_to_rc_slice.rs:34:24
+   |
+LL |     let _a: Rc<[u8]> = Rc::from(v);
+   |                        ^^^^^^^^^^^
+   |
+help: use `into_boxed_slice()` to avoid the copy
+   |
+LL -     let _a: Rc<[u8]> = Rc::from(v);
+LL +     let _a: Rc<Box<[u8]>> = Rc::new(v.into_boxed_slice());
+   |
+
+error: converting a `Vec<T>` to `Rc<[T]>` copies all elements to a new allocation
+  --> tests/ui/vec_to_rc_slice.rs:39:24
+   |
+LL |     let _a: Rc<[u8]> = From::from(v);
+   |                        ^^^^^^^^^^^^^
+   |
+help: use `into_boxed_slice()` to avoid the copy
+   |
+LL -     let _a: Rc<[u8]> = From::from(v);
+LL +     let _a: Rc<Box<[u8]>> = Rc::new(v.into_boxed_slice());
+   |
+
+error: converting a `Vec<T>` to `Rc<[T]>` copies all elements to a new allocation
+  --> tests/ui/vec_to_rc_slice.rs:44:14
    |
 LL |     let _a = <Rc<[u8]> as From<Vec<u8>>>::from(v);
    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `into_boxed_slice()` to avoid the copy: `Rc::new(v.into_boxed_slice())`
    |
    = note: this gives `Rc<Box<[T]>>` and avoids the copy
 
-error: aborting due to 2 previous errors
+error: aborting due to 8 previous errors
 
