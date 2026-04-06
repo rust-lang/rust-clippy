@@ -138,8 +138,8 @@ fn emit_lint(cx: &LateContext<'_>, expr: &Expr<'_>, vec_expr: &Expr<'_>, wrapper
             let expr_sugg = format!("{wrapper}::new({vec_snippet}.into_boxed_slice())");
 
             if let Some(ty_span) = inner_slice_span {
-                let mut ty_app = Applicability::MachineApplicable;
-                let slice_snippet = snippet_with_context(cx, ty_span, ty_span.ctxt(), "_", &mut ty_app).0;
+                let mut applicability = Applicability::MachineApplicable;
+                let slice_snippet = snippet_with_context(cx, ty_span, ty_span.ctxt(), "_", &mut applicability).0;
                 diag.multipart_suggestion(
                     "use `into_boxed_slice()` to avoid the copy",
                     vec![(expr.span, expr_sugg), (ty_span, format!("Box<{slice_snippet}>"))],
