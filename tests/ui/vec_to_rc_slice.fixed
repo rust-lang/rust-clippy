@@ -6,12 +6,12 @@ use std::sync::Arc;
 fn main() {
     // Should lint: fully qualified Arc from
     let v: Vec<u8> = vec![1, 2, 3];
-    let _a = <Arc<[u8]> as From<Vec<u8>>>::from(v);
+    let _a = Arc::new(v.into_boxed_slice());
     //~^ vec_to_rc_slice
 
     // Should lint: fully qualified Rc from
     let v: Vec<u8> = vec![1, 2, 3];
-    let _a = <Rc<[u8]> as From<Vec<u8>>>::from(v);
+    let _a = Rc::new(v.into_boxed_slice());
     //~^ vec_to_rc_slice
 
     // Should NOT lint: Vec<T>.into() -> something else
