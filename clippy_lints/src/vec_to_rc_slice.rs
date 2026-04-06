@@ -1,6 +1,8 @@
-use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
+use clippy_utils::source::snippet_with_context;
 use clippy_utils::sym;
+use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
@@ -83,7 +85,7 @@ impl<'tcx> LateLintPass<'tcx> for VecToRcSlice {
                     && is_vec(cx, cx.typeck_results().expr_ty(recv))
                     && let Some(wrapper) = rc_slice_wrapper(cx, cx.typeck_results().expr_ty(e))
                 {
-                    emit_lint(cx, e, wrapper);
+                    emit_lint(cx, e, recv, wrapper);
                 }
             },
 
@@ -95,7 +97,7 @@ impl<'tcx> LateLintPass<'tcx> for VecToRcSlice {
                     && is_vec(cx, cx.typeck_results().expr_ty(arg))
                     && let Some(wrapper) = rc_slice_wrapper(cx, cx.typeck_results().expr_ty(e))
                 {
-                    emit_lint(cx, e, wrapper);
+                    emit_lint(cx, e, arg, wrapper);
                 }
             },
 
@@ -104,16 +106,22 @@ impl<'tcx> LateLintPass<'tcx> for VecToRcSlice {
     }
 }
 
-fn emit_lint(cx: &LateContext<'_>, expr: &Expr<'_>, wrapper: &str) {
-    span_lint_and_help(
+fn emit_lint(cx: &LateContext<'_>, expr: &Expr<'_>, vec_expr: &Expr<'_>, wrapper: &str) {
+    let mut app = Applicability::MaybeIncorrect;
+    let vec_snippet = snippet_with_context(cx, vec_expr.span, expr.span.ctxt(), "<vec>", &mut app).0;
+    span_lint_and_then(
         cx,
         VEC_TO_RC_SLICE,
         expr.span,
-        format!("converting a `Vec` to `{wrapper}<[T]>` copies all elements to a new allocation"),
-        None,
-        format!(
-            "consider using `{wrapper}::new(vec.into_boxed_slice())` which gives \
-             `{wrapper}<Box<[T]>>` and avoids the copy",
-        ),
+        format!("converting a `Vec<T>` to `{wrapper}<[T]>` copies all elements to a new allocation"),
+        |diag| {
+            diag.span_suggestion(
+                expr.span,
+                "use `into_boxed_slice()` to avoid the copy",
+                format!("{wrapper}::new({vec_snippet}.into_boxed_slice())"),
+                app,
+            );
+            diag.note(format!("this gives `{wrapper}<Box<[T]>>` and avoids the copy"));
+        },
     );
 }
