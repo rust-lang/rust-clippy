@@ -2,19 +2,27 @@ error: converting a `Vec<T>` to `Arc<[T]>` copies all elements to a new allocati
   --> tests/ui/vec_to_rc_slice_unfixable.rs:13:22
    |
 LL |     accept_arc_slice(v.into());
-   |                      ^^^^^^^^ help: use `into_boxed_slice()` to avoid the copy: `Arc::new(v.into_boxed_slice())`
+   |                      ^^^^^^^^
    |
-   = note: this gives `Arc<Box<[T]>>` and avoids the copy
    = note: `-D clippy::vec-to-rc-slice` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::vec_to_rc_slice)]`
+help: convert target type to `Arc<Box<[T]>>` and use `into_boxed_slice()` to avoid the copy
+   |
+LL -     accept_arc_slice(v.into());
+LL +     accept_arc_slice(Arc::new(v.into_boxed_slice()));
+   |
 
 error: converting a `Vec<T>` to `Rc<[T]>` copies all elements to a new allocation
   --> tests/ui/vec_to_rc_slice_unfixable.rs:18:21
    |
 LL |     accept_rc_slice(Rc::from(v));
-   |                     ^^^^^^^^^^^ help: use `into_boxed_slice()` to avoid the copy: `Rc::new(v.into_boxed_slice())`
+   |                     ^^^^^^^^^^^
    |
-   = note: this gives `Rc<Box<[T]>>` and avoids the copy
+help: convert target type to `Rc<Box<[T]>>` and use `into_boxed_slice()` to avoid the copy
+   |
+LL -     accept_rc_slice(Rc::from(v));
+LL +     accept_rc_slice(Rc::new(v.into_boxed_slice()));
+   |
 
 error: aborting due to 2 previous errors
 

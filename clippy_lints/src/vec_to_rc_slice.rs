@@ -39,7 +39,7 @@ declare_clippy_lint! {
     /// let v: Vec<u8> = vec![1, 2, 3];
     /// let a: Arc<Box<[u8]>> = Arc::new(v.into_boxed_slice());
     /// ```
-    #[clippy::version = "1.86.0"]
+    #[clippy::version = "1.97.0"]
     pub VEC_TO_RC_SLICE,
     perf,
     "converting `Vec<T>` to `Arc<[T]>` or `Rc<[T]>` copies all elements to a new allocation"
@@ -111,7 +111,7 @@ impl<'tcx> LateLintPass<'tcx> for VecToRcSlice {
             ExprKind::Call(path, [arg]) => {
                 if let ExprKind::Path(ref qpath) = path.kind
                     && let Some(def_id) = cx.qpath_res(qpath, path.hir_id).opt_def_id()
-                    && cx.tcx.get_diagnostic_name(def_id) == Some(sym::from_fn)
+                    && cx.tcx.is_diagnostic_item(sym::from_fn, def_id)
                     && is_vec(cx, cx.typeck_results().expr_ty(arg))
                     && let Some(wrapper) = rc_slice_wrapper(cx, cx.typeck_results().expr_ty(e))
                 {
@@ -141,13 +141,21 @@ fn emit_lint(cx: &LateContext<'_>, expr: &Expr<'_>, vec_expr: &Expr<'_>, wrapper
                 let mut applicability = Applicability::MachineApplicable;
                 let slice_snippet = snippet_with_context(cx, ty_span, ty_span.ctxt(), "_", &mut applicability).0;
                 diag.multipart_suggestion(
-                    "use `into_boxed_slice()` to avoid the copy",
+                    format!(
+                        "convert target type to `{wrapper}<Box<[T]>>` and use `into_boxed_slice()` to avoid the copy"
+                    ),
                     vec![(expr.span, expr_sugg), (ty_span, format!("Box<{slice_snippet}>"))],
                     app,
                 );
             } else {
-                diag.span_suggestion(expr.span, "use `into_boxed_slice()` to avoid the copy", expr_sugg, app);
-                diag.note(format!("this gives `{wrapper}<Box<[T]>>` and avoids the copy"));
+                diag.span_suggestion_verbose(
+                    expr.span,
+                    format!(
+                        "convert target type to `{wrapper}<Box<[T]>>` and use `into_boxed_slice()` to avoid the copy"
+                    ),
+                    expr_sugg,
+                    app,
+                );
             }
         },
     );
