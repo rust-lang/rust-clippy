@@ -111,6 +111,7 @@ mod should_implement_trait;
 mod single_char_add_str;
 mod skip_while_next;
 mod sliced_string_as_bytes;
+mod some_filter;
 mod stable_sort_primitive;
 mod str_split;
 mod str_splitn;
@@ -3577,6 +3578,29 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for usage of `Some(x).filter(|_| predicate)`.
+    ///
+    /// ### Why is this bad?
+    /// Readability, this can be written more concisely as `predicate.then_some(x)`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let x = false;
+    /// Some(0).filter(|_| x);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let x = false;
+    /// x.then_some(0);
+    /// ```
+    #[clippy::version = "1.96.0"]
+    pub SOME_FILTER,
+    complexity,
+    "using `Some(x).filter(|_| predicate)`, which is more succinctly expressed as `predicate.then(x)`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// When sorting primitive values (integers, bools, chars, as well
     /// as arrays, slices, and tuples of such items), it is typically better to
     /// use an unstable sort than a stable sort.
@@ -4898,6 +4922,7 @@ impl_lint_pass!(Methods => [
     SINGLE_CHAR_ADD_STR,
     SKIP_WHILE_NEXT,
     SLICED_STRING_AS_BYTES,
+    SOME_FILTER,
     STABLE_SORT_PRIMITIVE,
     STRING_EXTEND_CHARS,
     STRING_LIT_CHARS_ANY,
@@ -5305,6 +5330,7 @@ impl Methods {
                         // use the sourcemap to get the span of the closure
                         iter_filter::check(cx, expr, arg, span);
                     }
+                    some_filter::check(cx, expr, recv, arg, self.msrv);
                 },
                 (sym::find, [arg]) => {
                     if let Some((sym::cloned, recv2, [], _span2, _)) = method_call(recv) {
