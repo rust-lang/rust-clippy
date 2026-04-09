@@ -2,10 +2,12 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::{
     SpanRangeExt, expr_block, snippet, snippet_block_with_context, snippet_with_applicability, snippet_with_context,
 };
+use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::{implements_trait, peel_and_count_ty_refs};
 use clippy_utils::{is_lint_allowed, is_unit_expr, peel_blocks, peel_hir_pat_refs, peel_n_hir_expr_refs, sym};
 use core::ops::ControlFlow;
 use rustc_arena::DroplessArena;
+use rustc_ast::ast::LitKind;
 use rustc_errors::{Applicability, Diag};
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::intravisit::{Visitor, walk_pat};
@@ -13,6 +15,7 @@ use rustc_hir::{Arm, Expr, ExprKind, HirId, Node, Pat, PatExpr, PatExprKind, Pat
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, AdtDef, TyCtxt, TypeckResults, VariantDef};
 use rustc_span::Span;
+use std::borrow::Cow;
 
 use super::{MATCH_BOOL, SINGLE_MATCH, SINGLE_MATCH_ELSE};
 
@@ -129,7 +132,7 @@ fn report_single_pattern(
     }
 
     let (pat, pat_ref_count) = peel_hir_pat_refs(arm.pat);
-    let (msg, sugg) = if let PatKind::Expr(_) = pat.kind
+    let (msg, sugg) = if let PatKind::Expr(pat_expr) = pat.kind
         && let (ty, ty_ref_count, _) = peel_and_count_ty_refs(cx.typeck_results().expr_ty(ex))
         && let Some(spe_trait_id) = cx.tcx.lang_items().structural_peq_trait()
         && let Some(pe_trait_id) = cx.tcx.lang_items().eq_trait()
@@ -161,14 +164,25 @@ fn report_single_pattern(
             (ex, "*".repeat(pat_ref_count - ty_ref_count))
         };
 
+        let compared_snip = snippet_with_context(cx, ex.span, ctxt, "..", &mut app).0;
+        let comparison = if let PatExprKind::Lit { lit, .. } = pat_expr.kind
+            && let LitKind::Bool(val) = lit.node
+        {
+            make_bool_comparison_suggestion(cx, ex, val, ty_ref_count - pat_ref_count, &compared_snip)
+        } else {
+            format!(
+                "{compared_snip} == {}{}",
+                // PartialEq for different reference counts may not exist
+                ref_or_deref_adjust,
+                snippet_with_applicability(cx, arm.pat.span, "..", &mut app)
+            )
+        };
+
         let msg = "you seem to be trying to use `match` for an equality check. Consider using `if`";
         let sugg = format!(
-            "if {} == {}{} {}{els_str}",
-            snippet_with_context(cx, ex.span, ctxt, "..", &mut app).0,
-            // PartialEq for different reference counts may not exist.
-            ref_or_deref_adjust,
-            snippet_with_applicability(cx, arm.pat.span, "..", &mut app),
-            expr_block(cx, arm.body, ctxt, "..", Some(expr.span), &mut app),
+            "if {} {}{els_str}",
+            comparison,
+            expr_block(cx, arm.body, ctxt, "..", Some(expr.span), &mut app)
         );
         (msg, sugg)
     } else {
@@ -186,6 +200,24 @@ fn report_single_pattern(
         diag.span_suggestion(expr.span, "try", sugg, app);
         note(diag);
     });
+}
+
+fn make_bool_comparison_suggestion(
+    cx: &LateContext<'_>,
+    ex: &Expr<'_>,
+    val: bool,
+    extra_ty_refs: usize,
+    compared_snip: &str,
+) -> String {
+    let mut sugg = Sugg::hir_opt(cx, ex).unwrap_or(Sugg::MaybeParen(Cow::Borrowed(compared_snip)));
+    for _ in 0..extra_ty_refs {
+        sugg = sugg.deref();
+    }
+    if val {
+        sugg.to_string()
+    } else {
+        format!("!{}", sugg.maybe_paren())
+    }
 }
 
 struct PatVisitor<'tcx> {

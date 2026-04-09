@@ -504,3 +504,46 @@ fn issue14493() {
         _ => println!("neq"),
     }
 }
+
+fn issue16826() {
+    let a = 1;
+    let b = 2;
+    #[allow(clippy::unnecessary_cast)]
+    match a >= 2 && b <= 3 || ((a + b) != 0) as bool {
+        true => println!("{a}"),
+        _ => (),
+    };
+    //~^^^^ single_match
+
+    match a >= 2 && b <= 3 || ((a + b) != 0) {
+        false => println!("{a}"),
+        _ => (),
+    };
+    //~^^^^ single_match
+
+    let a = false;
+    let c = &a;
+    let b = &Box::new(&c);
+    match &**b {
+        &false => {
+            println!("{b}")
+        },
+        _ => (),
+    };
+    //~^^^^^^ single_match
+
+    match &&**b {
+        &&false => {
+            println!("{b}")
+        },
+        _ => (),
+    }
+    //~^^^^^^ single_match
+
+    let a = true;
+    match a {
+        false => println!("{a}"),
+        _ => (),
+    }
+    //~^^^^ single_match
+}
