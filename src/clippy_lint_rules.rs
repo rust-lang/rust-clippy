@@ -33,6 +33,7 @@ fn read_clippy_toml_overrides() -> Vec<(String, String, i64)> {
     Vec::new()
 }
 
+#[cfg(test)]
 fn find_conf_file_from(start_dir: &std::path::Path) -> Option<std::path::PathBuf> {
     const CONFIG_FILE_NAMES: [&str; 2] = [".clippy.toml", "clippy.toml"];
     let mut current = start_dir.canonicalize().ok()?;
@@ -51,6 +52,7 @@ fn find_conf_file_from(start_dir: &std::path::Path) -> Option<std::path::PathBuf
     }
 }
 
+#[cfg(test)]
 fn read_clippy_toml_overrides_from(start_dir: &std::path::Path) -> Vec<(String, String, i64)> {
     if let Some(conf) = find_conf_file_from(start_dir) {
         if let Some(lints) = clippy_config::read_lints_from_conf_path(&Ok((Some(conf), vec![]))) {
@@ -168,6 +170,7 @@ pub fn apply_merged_clippy_lints(args: Vec<String>) -> Vec<String> {
     out
 }
 
+#[cfg(test)]
 pub fn apply_merged_clippy_lints_from_path(args: Vec<String>, start_dir: &std::path::Path) -> Vec<String> {
     let overrides = read_clippy_toml_overrides_from(start_dir);
     let merged = build_merged_clippy_lint_args(&args, &overrides);
