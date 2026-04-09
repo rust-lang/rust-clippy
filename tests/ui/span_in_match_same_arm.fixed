@@ -1,12 +1,12 @@
 #![warn(clippy::match_same_arms)]
 
-fn main() {
-    let x = 2;
+fn multiple_duplicate_groups() {
+    let y = 5;
 
-    match x {
-        2 => println!("different"),
+    match y {
         //~ ERROR: these match arms have identical bodies
-        1 | 3 | 4 => println!("same"),
+        3 => println!("different"),
+        1 | 2 | 4 | 5 => println!("same"),
         _ => println!("other"),
     }
 }
