@@ -211,7 +211,9 @@ fn async_fn_contains_todo_unimplemented_macro(cx: &LateContext<'_>, body: &Body<
         && let ClosureKind::Coroutine(CoroutineKind::Desugared(CoroutineDesugaring::Async, _)) = closure.kind
         && let body = cx.tcx.hir_body(closure.body)
         && let ExprKind::Block(block, _) = body.value.kind
-        && block.stmts.is_empty()
+        // Don't require stmts.is_empty() — rustc desugars async fn arguments
+        // into `let` bindings inside the async block body, so a function like
+        // `async fn f(_arg: i32) { todo!() }` will have non-empty stmts.
         && let Some(expr) = block.expr
         && let ExprKind::DropTemps(inner) = expr.kind
     {

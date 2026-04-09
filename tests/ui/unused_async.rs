@@ -134,3 +134,16 @@ mod issue15305 {
         unimplemented!("Implement task");
     }
 }
+
+// Regression test for https://github.com/rust-lang/rust-clippy/issues/16825
+// `unused_async` should not fire when the body is `todo!()` or `unimplemented!()`,
+// even if the function has arguments (rustc desugars them into let bindings).
+mod issue16825 {
+    async fn todo_with_arg(_arg: i32) {
+        todo!()
+    }
+
+    async fn unimplemented_with_arg(_a: String, _b: bool) {
+        unimplemented!()
+    }
+}
