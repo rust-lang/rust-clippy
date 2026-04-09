@@ -3,6 +3,8 @@ error: these match arms have identical bodies
    |
 LL |         3 => println!("same"),
    |         ^^^^^^^^^^^^^^^^^^^^^
+LL |         4 => println!("same"),
+   |         ^^^^^^^^^^^^^^^^^^^^^
    |
    = help: if this is unintentional make the arms return different values
    = note: `-D clippy::match-same-arms` implied by `-D warnings`
@@ -10,7 +12,8 @@ LL |         3 => println!("same"),
 help: otherwise merge the patterns into a single arm
    |
 LL ~         2 => println!("different"),
-LL ~         1 | 3 => println!("same"),
+LL ~
+LL ~         1 | 3 | 4 => println!("same"),
    |
 
 error: aborting due to 1 previous error

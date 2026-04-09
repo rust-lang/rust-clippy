@@ -5,7 +5,8 @@ fn main() {
 
     match x {
         2 => println!("different"),
-        1 | 3 => println!("same"),//~ ERROR: these match arms have identical bodies
+        //~ ERROR: these match arms have identical bodies
+        1 | 3 | 4 => println!("same"),
         _ => println!("other"),
     }
 }
