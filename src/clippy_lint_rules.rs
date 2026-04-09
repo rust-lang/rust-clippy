@@ -210,7 +210,7 @@ pub fn apply_merged_clippy_lints_from_path(args: Vec<String>, start_dir: &std::p
 #[cfg(test)]
 mod tests {
     use super::{
-        apply_merged_clippy_lints, apply_merged_clippy_lints_from_path, build_merged_clippy_lint_args,
+        apply_merged_clippy_lints_from_path, build_merged_clippy_lint_args,
         parse_existing_lint_args,
     };
     use std::fs;
