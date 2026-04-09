@@ -80,6 +80,7 @@ impl<'tcx> LateLintPass<'tcx> for FromOverInto {
             && cx.tcx.is_diagnostic_item(sym::Into, middle_trait_ref.def_id)
             && !matches!(middle_trait_ref.args.type_at(1).kind(), ty::Alias(ty::Opaque, _))
             && self.msrv.meets(cx, msrvs::RE_REBALANCING_COHERENCE)
+            && !has_blanket_from_impl(cx, middle_trait_ref.self_ty())
         {
             span_lint_and_then(
                 cx,
@@ -235,4 +236,33 @@ fn convert_to_from(
     }
 
     Some(suggestions)
+}
+
+/// Checks if a type has a `From` impl with generic type parameters in the source position.
+///
+/// For example, `impl<T> From<T> for Foo where String: From<T>` has a generic `T` in the
+/// source (`From<T>`). When such an impl exists, converting `impl Into<Target> for Foo` to
+/// `impl From<Foo> for Target` could create a coherence conflict with the blanket
+/// `impl<T> From<T> for T` in core.
+fn has_blanket_from_impl<'tcx>(cx: &LateContext<'tcx>, self_ty: ty::Ty<'tcx>) -> bool {
+    let Some(from_def_id) = cx.tcx.get_diagnostic_item(sym::From) else {
+        return false;
+    };
+
+    // Check non-blanket From impls for self_ty. Look for impls where the source type
+    // (the `T` in `From<T>`) is a generic parameter. For example:
+    //   `impl<T> From<T> for Foo where String: From<T>`
+    // When such an impl exists, adding `impl From<Foo> for String` could satisfy the
+    // where clause and create a coherence conflict with `impl<T> From<T> for T` in core.
+    for impl_def_id in cx.tcx.non_blanket_impls_for_ty(from_def_id, self_ty) {
+        let impl_trait_ref = cx.tcx.impl_trait_ref(impl_def_id).instantiate_identity();
+        // The source type is the first generic arg of `From<Source>`
+        let source_ty = impl_trait_ref.args.type_at(1);
+        // If the source type is a type parameter, this is a blanket-like From impl
+        if matches!(source_ty.kind(), ty::Param(_)) {
+            return true;
+        }
+    }
+
+    false
 }

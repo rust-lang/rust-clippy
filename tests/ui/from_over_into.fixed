@@ -116,4 +116,27 @@ fn issue_112502() {
     }
 }
 
+// Blanket From impl should suppress the lint to avoid coherence conflicts (issue #16823)
+mod issue_16823 {
+    pub struct Foo(pub String);
+
+    impl<T> From<T> for Foo
+    where
+        String: From<T>,
+    {
+        fn from(label: T) -> Self {
+            Self(String::from(label))
+        }
+    }
+
+    // This should NOT trigger from_over_into because converting to
+    // `impl From<Foo> for String` would conflict with the blanket impl above
+    // (via `impl<T> From<T> for T` in core).
+    impl Into<String> for Foo {
+        fn into(self) -> String {
+            self.0
+        }
+    }
+}
+
 fn main() {}
