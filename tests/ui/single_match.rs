@@ -504,3 +504,23 @@ fn issue14493() {
         _ => println!("neq"),
     }
 }
+
+// Regression test for https://github.com/rust-lang/rust-clippy/issues/16826
+// Matching on `true`/`false` from a comparison should emit `if <expr>`, not `if <expr> == true`.
+fn issue_16826() {
+    let i = 2;
+    match i == 1 {
+        //~^ single_match
+        true => {
+            println!("{i}");
+        },
+        false => (),
+    }
+    match i == 1 {
+        //~^ single_match
+        false => {
+            println!("{i}");
+        },
+        true => (),
+    }
+}

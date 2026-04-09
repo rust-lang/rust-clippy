@@ -129,7 +129,7 @@ fn report_single_pattern(
     }
 
     let (pat, pat_ref_count) = peel_hir_pat_refs(arm.pat);
-    let (msg, sugg) = if let PatKind::Expr(_) = pat.kind
+    let (msg, sugg) = if let PatKind::Expr(pat_expr) = pat.kind
         && let (ty, ty_ref_count, _) = peel_and_count_ty_refs(cx.typeck_results().expr_ty(ex))
         && let Some(spe_trait_id) = cx.tcx.lang_items().structural_peq_trait()
         && let Some(pe_trait_id) = cx.tcx.lang_items().eq_trait()
@@ -138,6 +138,34 @@ fn report_single_pattern(
             || ty.is_str()
             || (implements_trait(cx, ty, spe_trait_id, &[]) && implements_trait(cx, ty, pe_trait_id, &[ty.into()])))
     {
+        // When matching on `true` or `false` from an expression result,
+        // emit `if <expr>` or `if !(<expr>)` instead of `if <expr> == true`
+        // to avoid chained comparisons like `if i == 1 == true`.
+        if ty.is_bool()
+            && let PatExprKind::Lit { lit, negated: false } = pat_expr.kind
+            && let rustc_ast::LitKind::Bool(pat_bool) = lit.node
+        {
+            let cond = snippet_with_context(cx, ex.span, ctxt, "..", &mut app).0;
+            let msg = "you seem to be trying to use `match` for an equality check. Consider using `if`";
+            let sugg = if pat_bool {
+                format!(
+                    "if {} {}{els_str}",
+                    cond,
+                    expr_block(cx, arm.body, ctxt, "..", Some(expr.span), &mut app),
+                )
+            } else {
+                format!(
+                    "if !({}) {}{els_str}",
+                    cond,
+                    expr_block(cx, arm.body, ctxt, "..", Some(expr.span), &mut app),
+                )
+            };
+            return span_lint_and_then(cx, lint, expr.span, msg, |diag| {
+                diag.span_suggestion(expr.span, "try", sugg, app);
+                note(diag);
+            });
+        }
+
         // scrutinee derives PartialEq and the pattern is a constant.
         let pat_ref_count = match pat.kind {
             // string literals are already a reference.
