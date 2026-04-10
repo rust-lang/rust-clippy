@@ -1,0 +1,20 @@
+#![warn(clippy::match_same_arms)]
+#![allow(clippy::manual_range_patterns)]
+
+fn main() {
+    let x = 1;
+
+    // Basic vertical tab case
+    match x {
+        //~ ERROR: these match arms have identical bodies
+        1 | 2 => println!("same"),
+        _ => {}
+    }
+
+    // Multiple duplicate arms
+    match x {
+        //~ ERROR: these match arms have identical bodies
+        1 | 2 | 3 => println!("same"),
+        _ => {}
+    }
+}

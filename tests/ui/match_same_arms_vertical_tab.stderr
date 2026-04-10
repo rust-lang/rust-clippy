@@ -1,0 +1,36 @@
+error: these match arms have identical bodies
+  --> tests/ui/match_same_arms_vertical_tab.rs:9:9
+   |
+LL |         1 => println!("same"),␋
+   |         ^^^^^^^^^^^^^^^^^^^^^
+LL |         2 => println!("same"),
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this is unintentional make the arms return different values
+   = note: `-D clippy::match-same-arms` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::match_same_arms)]`
+help: otherwise merge the patterns into a single arm
+   |
+LL ~
+LL ~         1 | 2 => println!("same"),
+   |
+
+error: these match arms have identical bodies
+  --> tests/ui/match_same_arms_vertical_tab.rs:16:9
+   |
+LL |         1 => println!("same"),␋
+   |         ^^^^^^^^^^^^^^^^^^^^^
+LL |         2 => println!("same"),
+   |         ^^^^^^^^^^^^^^^^^^^^^
+LL |         3 => println!("same"),
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this is unintentional make the arms return different values
+help: otherwise merge the patterns into a single arm
+   |
+LL ~
+LL ~         1 | 2 | 3 => println!("same"),
+   |
+
+error: aborting due to 2 previous errors
+

@@ -174,10 +174,13 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, arms: &'tcx [Arm<'_>]) {
 }
 
 /// Extend arm's span to include the comma and whitespaces after it.
+// Rust allows more whitespace characters than ASCII (like vertical tab `\x0B`).
+// Using `is_ascii_whitespace` misses these, so spans may stop early.
+// This ensures we include all valid Rust whitespace when extending spans.
 fn adjusted_arm_span(cx: &LateContext<'_>, span: Span) -> Span {
     let source_map = cx.sess().source_map();
     source_map
-        .span_extend_while(span, |c| c == ',' || c.is_ascii_whitespace())
+        .span_extend_while(span, |c| c == ',' || c.is_whitespace())
         .unwrap_or(span)
 }
 
