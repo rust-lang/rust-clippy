@@ -10,14 +10,14 @@ fn main() {
     match x {
         //~ ERROR: these match arms have identical bodies
         1 | 2 => println!("same"),
-        _ => {}
+        _ => {},
     }
 
     // Horizontal tab \t
     match x {
         //~ ERROR: these match arms have identical bodies
         1 | 2 => println!("same"),
-        _ => {}
+        _ => {},
     }
 
     // ================= IMPORTANT BUG TARGET =================
@@ -26,7 +26,7 @@ fn main() {
     match x {
         //~ ERROR: these match arms have identical bodies
         1 | 2 => println!("same"),
-        _ => {}
+        _ => {},
     }
 
     // ================= OTHER NON-ASCII WHITESPACE =================
@@ -35,14 +35,14 @@ fn main() {
     match x {
         //~ ERROR: these match arms have identical bodies
         1 | 2 => println!("same"),
-        _ => {}
+        _ => {},
     }
 
     // Next line (U+0085)
     match x {
         //~ ERROR: these match arms have identical bodies
         1 | 2 => println!("same"),
-        _ => {}
+        _ => {},
     }
 
     // ================= UNICODE WHITESPACE =================
@@ -65,14 +65,14 @@ fn main() {
     match x {
         //~ ERROR: these match arms have identical bodies
         1 | 2 => println!("same"),
-        _ => {}
+        _ => {},
     }
 
     // Paragraph separator (U+2029)
     match x {
         //~ ERROR: these match arms have identical bodies
         1 | 2 => println!("same"),
-        _ => {}
+        _ => {},
     }
 
     // ================= MULTIPLE DUPLICATE ARMS =================
@@ -80,6 +80,6 @@ fn main() {
     match x {
         //~ ERROR: these match arms have identical bodies
         1 | 2 | 3 => println!("same"),
-        _ => {}
+        _ => {},
     }
 }

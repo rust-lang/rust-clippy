@@ -33,7 +33,7 @@ LL ~         1 | 2 => println!("same"),
 error: these match arms have identical bodies
   --> tests/ui/match_same_arms_vertical_tab.rs:27:9
    |
-LL |         1 => println!("same"),␋
+LL |         1 => println!("same"),
    |         ^^^^^^^^^^^^^^^^^^^^^
 LL |         2 => println!("same"),
    |         ^^^^^^^^^^^^^^^^^^^^^
@@ -48,7 +48,7 @@ LL ~         1 | 2 => println!("same"),
 error: these match arms have identical bodies
   --> tests/ui/match_same_arms_vertical_tab.rs:36:9
    |
-LL |         1 => println!("same"),␌
+LL |         1 => println!("same"),
    |         ^^^^^^^^^^^^^^^^^^^^^
 LL |         2 => println!("same"),
    |         ^^^^^^^^^^^^^^^^^^^^^
@@ -63,7 +63,7 @@ LL ~         1 | 2 => println!("same"),
 error: these match arms have identical bodies
   --> tests/ui/match_same_arms_vertical_tab.rs:43:9
    |
-LL |         1 => println!("same"),
+LL |         1 => println!("same"),
    |         ^^^^^^^^^^^^^^^^^^^^^
 LL |         2 => println!("same"),
    |         ^^^^^^^^^^^^^^^^^^^^^
@@ -108,7 +108,7 @@ LL ~         1 | 2 => println!("same"),
 error: these match arms have identical bodies
   --> tests/ui/match_same_arms_vertical_tab.rs:66:9
    |
-LL |         1 => println!("same"), 
+LL |         1 => println!("same"),
    |         ^^^^^^^^^^^^^^^^^^^^^
 LL |         2 => println!("same"),
    |         ^^^^^^^^^^^^^^^^^^^^^
@@ -123,7 +123,7 @@ LL ~         1 | 2 => println!("same"),
 error: these match arms have identical bodies
   --> tests/ui/match_same_arms_vertical_tab.rs:73:9
    |
-LL |         1 => println!("same"), 
+LL |         1 => println!("same"),
    |         ^^^^^^^^^^^^^^^^^^^^^
 LL |         2 => println!("same"),
    |         ^^^^^^^^^^^^^^^^^^^^^
