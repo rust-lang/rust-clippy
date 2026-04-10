@@ -18,7 +18,7 @@ pub fn check(
     code_level: isize,
     blockquote_level: isize,
 ) {
-    for orig_word in text.split(|c: char| c.is_whitespace() || c == '\'') {
+    for orig_word in text.split(|c: char| c.is_whitespace() || c == '\'' || c == '{' || c == '}') {
         // Trim punctuation as in `some comment (see foo::bar).`
         //                                                   ^^
         // Or even as in `_foo bar_` which is emphasized. Also preserve `::` as a prefix/suffix.

@@ -1,0 +1,13 @@
+#![deny(clippy::doc_markdown)]
+
+// Regression test for https://github.com/rust-lang/rust-clippy/issues/16819
+// Adjacent brace-delimited items separated by `.` should be detected as
+// independent words instead of being merged into a single span.
+
+/// We have {SymbolA} and {symbol_b}.
+//~^ ERROR: item in documentation is missing backticks
+//~| ERROR: item in documentation is missing backticks
+/// We have {SymbolA}.{symbol_b}.
+//~^ ERROR: item in documentation is missing backticks
+//~| ERROR: item in documentation is missing backticks
+pub fn issue_16819() {}
