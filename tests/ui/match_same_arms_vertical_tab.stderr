@@ -1,7 +1,7 @@
 error: these match arms have identical bodies
-  --> tests/ui/match_same_arms_vertical_tab.rs:9:9
+  --> tests/ui/match_same_arms_vertical_tab.rs:11:9
    |
-LL |         1 => println!("same"),␋
+LL |         1 => println!("same"),
    |         ^^^^^^^^^^^^^^^^^^^^^
 LL |         2 => println!("same"),
    |         ^^^^^^^^^^^^^^^^^^^^^
@@ -16,9 +16,129 @@ LL ~         1 | 2 => println!("same"),
    |
 
 error: these match arms have identical bodies
-  --> tests/ui/match_same_arms_vertical_tab.rs:16:9
+  --> tests/ui/match_same_arms_vertical_tab.rs:18:9
+   |
+LL |         1 => println!("same"),
+   |         ^^^^^^^^^^^^^^^^^^^^^
+LL |         2 => println!("same"),
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this is unintentional make the arms return different values
+help: otherwise merge the patterns into a single arm
+   |
+LL ~
+LL ~         1 | 2 => println!("same"),
+   |
+
+error: these match arms have identical bodies
+  --> tests/ui/match_same_arms_vertical_tab.rs:27:9
    |
 LL |         1 => println!("same"),␋
+   |         ^^^^^^^^^^^^^^^^^^^^^
+LL |         2 => println!("same"),
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this is unintentional make the arms return different values
+help: otherwise merge the patterns into a single arm
+   |
+LL ~
+LL ~         1 | 2 => println!("same"),
+   |
+
+error: these match arms have identical bodies
+  --> tests/ui/match_same_arms_vertical_tab.rs:36:9
+   |
+LL |         1 => println!("same"),␌
+   |         ^^^^^^^^^^^^^^^^^^^^^
+LL |         2 => println!("same"),
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this is unintentional make the arms return different values
+help: otherwise merge the patterns into a single arm
+   |
+LL ~
+LL ~         1 | 2 => println!("same"),
+   |
+
+error: these match arms have identical bodies
+  --> tests/ui/match_same_arms_vertical_tab.rs:43:9
+   |
+LL |         1 => println!("same"),
+   |         ^^^^^^^^^^^^^^^^^^^^^
+LL |         2 => println!("same"),
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this is unintentional make the arms return different values
+help: otherwise merge the patterns into a single arm
+   |
+LL ~
+LL ~         1 | 2 => println!("same"),
+   |
+
+error: these match arms have identical bodies
+  --> tests/ui/match_same_arms_vertical_tab.rs:52:9
+   |
+LL |         1 => println!("same"),‎
+   |         ^^^^^^^^^^^^^^^^^^^^^
+LL |         2 => println!("same"),
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this is unintentional make the arms return different values
+help: otherwise merge the patterns into a single arm
+   |
+LL ~         ‎
+LL ~         1 | 2 => println!("same"),
+   |
+
+error: these match arms have identical bodies
+  --> tests/ui/match_same_arms_vertical_tab.rs:59:9
+   |
+LL |         1 => println!("same"),‏
+   |         ^^^^^^^^^^^^^^^^^^^^^
+LL |         2 => println!("same"),
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this is unintentional make the arms return different values
+help: otherwise merge the patterns into a single arm
+   |
+LL ~         ‏
+LL ~         1 | 2 => println!("same"),
+   |
+
+error: these match arms have identical bodies
+  --> tests/ui/match_same_arms_vertical_tab.rs:66:9
+   |
+LL |         1 => println!("same"), 
+   |         ^^^^^^^^^^^^^^^^^^^^^
+LL |         2 => println!("same"),
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this is unintentional make the arms return different values
+help: otherwise merge the patterns into a single arm
+   |
+LL ~
+LL ~         1 | 2 => println!("same"),
+   |
+
+error: these match arms have identical bodies
+  --> tests/ui/match_same_arms_vertical_tab.rs:73:9
+   |
+LL |         1 => println!("same"), 
+   |         ^^^^^^^^^^^^^^^^^^^^^
+LL |         2 => println!("same"),
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this is unintentional make the arms return different values
+help: otherwise merge the patterns into a single arm
+   |
+LL ~
+LL ~         1 | 2 => println!("same"),
+   |
+
+error: these match arms have identical bodies
+  --> tests/ui/match_same_arms_vertical_tab.rs:81:9
+   |
+LL |         1 => println!("same"),
    |         ^^^^^^^^^^^^^^^^^^^^^
 LL |         2 => println!("same"),
    |         ^^^^^^^^^^^^^^^^^^^^^
@@ -32,5 +152,5 @@ LL ~
 LL ~         1 | 2 | 3 => println!("same"),
    |
 
-error: aborting due to 2 previous errors
+error: aborting due to 10 previous errors
 
