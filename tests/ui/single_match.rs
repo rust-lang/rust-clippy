@@ -6,7 +6,8 @@
     clippy::needless_ifs,
     clippy::redundant_guards,
     clippy::redundant_pattern_matching,
-    clippy::manual_unwrap_or_default
+    clippy::manual_unwrap_or_default,
+    clippy::bool_comparison
 )]
 fn dummy() {}
 
@@ -506,7 +507,7 @@ fn issue14493() {
 }
 
 // Regression test for https://github.com/rust-lang/rust-clippy/issues/16826
-// Matching on `true`/`false` from a comparison should emit `if <expr>`, not `if <expr> == true`.
+// Matching on `true`/`false` from a comparison should emit compilable code.
 fn issue_16826() {
     let i = 2;
     match i == 1 {

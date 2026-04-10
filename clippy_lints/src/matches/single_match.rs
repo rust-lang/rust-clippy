@@ -2,6 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::{
     SpanRangeExt, expr_block, snippet, snippet_block_with_context, snippet_with_applicability, snippet_with_context,
 };
+use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::{implements_trait, peel_and_count_ty_refs};
 use clippy_utils::{is_lint_allowed, is_unit_expr, peel_blocks, peel_hir_pat_refs, peel_n_hir_expr_refs, sym};
 use core::ops::ControlFlow;
@@ -129,7 +130,7 @@ fn report_single_pattern(
     }
 
     let (pat, pat_ref_count) = peel_hir_pat_refs(arm.pat);
-    let (msg, sugg) = if let PatKind::Expr(pat_expr) = pat.kind
+    let (msg, sugg) = if let PatKind::Expr(_) = pat.kind
         && let (ty, ty_ref_count, _) = peel_and_count_ty_refs(cx.typeck_results().expr_ty(ex))
         && let Some(spe_trait_id) = cx.tcx.lang_items().structural_peq_trait()
         && let Some(pe_trait_id) = cx.tcx.lang_items().eq_trait()
@@ -138,34 +139,6 @@ fn report_single_pattern(
             || ty.is_str()
             || (implements_trait(cx, ty, spe_trait_id, &[]) && implements_trait(cx, ty, pe_trait_id, &[ty.into()])))
     {
-        // When matching on `true` or `false` from an expression result,
-        // emit `if <expr>` or `if !(<expr>)` instead of `if <expr> == true`
-        // to avoid chained comparisons like `if i == 1 == true`.
-        if ty.is_bool()
-            && let PatExprKind::Lit { lit, negated: false } = pat_expr.kind
-            && let rustc_ast::LitKind::Bool(pat_bool) = lit.node
-        {
-            let cond = snippet_with_context(cx, ex.span, ctxt, "..", &mut app).0;
-            let msg = "you seem to be trying to use `match` for an equality check. Consider using `if`";
-            let sugg = if pat_bool {
-                format!(
-                    "if {} {}{els_str}",
-                    cond,
-                    expr_block(cx, arm.body, ctxt, "..", Some(expr.span), &mut app),
-                )
-            } else {
-                format!(
-                    "if !({}) {}{els_str}",
-                    cond,
-                    expr_block(cx, arm.body, ctxt, "..", Some(expr.span), &mut app),
-                )
-            };
-            return span_lint_and_then(cx, lint, expr.span, msg, |diag| {
-                diag.span_suggestion(expr.span, "try", sugg, app);
-                note(diag);
-            });
-        }
-
         // scrutinee derives PartialEq and the pattern is a constant.
         let pat_ref_count = match pat.kind {
             // string literals are already a reference.
@@ -190,9 +163,20 @@ fn report_single_pattern(
         };
 
         let msg = "you seem to be trying to use `match` for an equality check. Consider using `if`";
+        // Use `Sugg` to wrap the scrutinee so that operator precedence is
+        // handled automatically (e.g. `i == 1` becomes `(i == 1) == true`
+        // instead of the non-compiling `i == 1 == true`).
+        let scrutinee = Sugg::hir_with_context(cx, ex, ctxt, "..", &mut app);
+        // Parenthesize binary operator scrutinees to avoid non-compiling
+        // chained comparisons like `i == 1 == true`.
+        let scrutinee = if matches!(scrutinee, Sugg::BinOp(..)) {
+            scrutinee.maybe_paren()
+        } else {
+            scrutinee
+        };
         let sugg = format!(
             "if {} == {}{} {}{els_str}",
-            snippet_with_context(cx, ex.span, ctxt, "..", &mut app).0,
+            scrutinee,
             // PartialEq for different reference counts may not exist.
             ref_or_deref_adjust,
             snippet_with_applicability(cx, arm.pat.span, "..", &mut app),
