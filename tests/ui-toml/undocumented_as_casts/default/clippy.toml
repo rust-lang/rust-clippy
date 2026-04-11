@@ -1,0 +1,4 @@
+# default configuration has
+# `check-undocumented-as-any-cast` = true
+# `check-undocumented-as-const-ptr-cast` = true
+# `check-undocumented-as-mut-ptr-cast` = true
