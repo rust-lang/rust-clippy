@@ -868,7 +868,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::new(manual_checked_ops::ManualCheckedOps)),
         Box::new(move |tcx| Box::new(manual_pop_if::ManualPopIf::new(tcx, conf))),
         Box::new(move |_| Box::new(manual_noop_waker::ManualNoopWaker::new(conf))),
-        Box::new(|_| Box::new(method_shadow_field::MethodShadowField)),
+        Box::new(move |_| Box::new(method_shadow_field::MethodShadowField::new(conf))),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);

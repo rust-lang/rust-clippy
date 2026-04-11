@@ -1,8 +1,12 @@
+use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_help;
+use rustc_data_structures::fx::FxHashMap;
+use rustc_hir::def_id::DefId;
 use rustc_hir::{ImplItem, ImplItemKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
-use rustc_session::declare_lint_pass;
+use rustc_session::impl_lint_pass;
+use rustc_span::symbol::Symbol;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -72,10 +76,24 @@ declare_clippy_lint! {
     "method shadows the name of a public field"
 }
 
-declare_lint_pass!(MethodShadowField => [
+impl_lint_pass!(MethodShadowField => [
     METHOD_SHADOW_FIELD,
     METHOD_SHADOW_PUBLIC_FIELD,
 ]);
+
+pub struct MethodShadowField {
+    avoid_breaking_exported_api: bool,
+    field_cache: FxHashMap<DefId, FxHashMap<Symbol, (bool, DefId)>>,
+}
+
+impl MethodShadowField {
+    pub fn new(conf: &'static Conf) -> Self {
+        Self {
+            avoid_breaking_exported_api: conf.avoid_breaking_exported_api,
+            field_cache: FxHashMap::default(),
+        }
+    }
+}
 
 impl<'tcx> LateLintPass<'tcx> for MethodShadowField {
     fn check_impl_item(&mut self, cx: &LateContext<'tcx>, impl_item: &'tcx ImplItem<'tcx>) {
@@ -95,30 +113,47 @@ impl<'tcx> LateLintPass<'tcx> for MethodShadowField {
             return;
         }
 
-        let method_name = &impl_item.ident.name;
+        if self.avoid_breaking_exported_api && cx.effective_visibilities.is_exported(impl_item.owner_id.def_id) {
+            // the api is exported
+            return;
+        }
 
         // get the ty of the parent
         let impl_def_id = cx.tcx.local_parent(impl_item.owner_id.def_id);
         let ty = cx.tcx.type_of(impl_def_id).instantiate_identity();
 
+        if cx.tcx.impl_opt_trait_ref(impl_def_id).is_some() {
+            // it's a trait impl
+            return;
+        }
+
         // we filter out enums
         if let ty::Adt(adt_def, _) = ty.kind()
             && (adt_def.is_struct() || adt_def.is_union())
         {
-            let variant = adt_def.non_enum_variant();
-            // query fields and checks name collision, public/private
-            for field in &variant.fields {
-                if field.name != *method_name {
-                    continue;
-                }
+            let adt_did = adt_def.did();
 
-                if cx.tcx.visibility(field.did).is_public() {
+            // per impl caching for fast lookup
+            let field_map = self.field_cache.entry(adt_did).or_insert_with(|| {
+                let mut map = FxHashMap::default();
+                let variant = adt_def.non_enum_variant();
+                for field in &variant.fields {
+                    let is_pub = cx.tcx.visibility(field.did).is_public();
+                    map.insert(field.name, (is_pub, field.did));
+                }
+                map
+            });
+
+            let method_name = impl_item.ident.name;
+
+            if let Some(&(is_public, field_did)) = field_map.get(&method_name) {
+                if is_public {
                     span_lint_and_help(
                         cx,
                         METHOD_SHADOW_PUBLIC_FIELD,
                         impl_item.ident.span,
                         "method shadows a public field",
-                        cx.tcx.def_ident_span(field.did),
+                        cx.tcx.def_ident_span(field_did),
                         "consider making the field private or use a distinct name",
                     );
                 } else {
@@ -127,11 +162,10 @@ impl<'tcx> LateLintPass<'tcx> for MethodShadowField {
                         METHOD_SHADOW_FIELD,
                         impl_item.ident.span,
                         "method shadows a field",
-                        cx.tcx.def_ident_span(field.did),
+                        cx.tcx.def_ident_span(field_did),
                         "consider renaming the method or field",
                     );
                 }
-                return;
             }
         }
     }
