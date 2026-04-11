@@ -1,0 +1,4 @@
+# test with `check-undocumented-as-const-ptr-cast` disabled_mut_ptr
+check-undocumented-as-any-cast = false
+check-undocumented-as-const-ptr-cast = true
+check-undocumented-as-mut-ptr-cast = false

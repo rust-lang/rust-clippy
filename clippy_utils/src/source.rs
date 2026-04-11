@@ -902,10 +902,9 @@ pub fn text_has_marked_comment(
             }
             return None;
         }
-        match lines.next() {
-            Some(x) => (line_start, line) = x,
-            None => return None,
-        }
+
+        let x = lines.next()?;
+        (line_start, line) = x;
     }
 }
 

@@ -1,0 +1,12 @@
+error: `as *const` casts without a `// CAST:` explanation
+  --> tests/ui-toml/undocumented_as_casts/undocumented_as_casts.rs:18:13
+   |
+LL |     let _ = p as *const i32;
+   |             ^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a cast comment on the preceding line
+   = note: `-D clippy::undocumented-as-casts` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::undocumented_as_casts)]`
+
+error: aborting due to 1 previous error
+

@@ -1,4 +1,6 @@
-//@aux-build:proc_macros.rs
+//@aux-build:../../ui/auxiliary/proc_macros.rs
+//@revisions: default
+//@[default] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/undocumented_as_casts/default
 
 #![warn(clippy::undocumented_as_casts)]
 
@@ -6,7 +8,7 @@ extern crate proc_macros;
 use proc_macros::{external, with_span};
 
 fn ignore_external() {
-    external!(0u32 as u64); // Should not lint
+    external!(&0i32 as *const i32);
 }
 
 fn ignore_proc_macro() {
@@ -14,310 +16,327 @@ fn ignore_proc_macro() {
         span
 
         fn converting() {
-            let x = 0u32 as u64; // Should not lint
+            let p: *const u32 = &42_u32;
+            let _ = p as *mut i32;
         }
     );
 }
 
 fn declared_macro() {
-    macro_rules! cast {
-        ($x:expr, $t:ty) => {
-            // CAST: reason for the cast
-            $x as $t
-        };
-    }
+    let p: *const u32 = &42_u32;
 
-    cast!(0u32, u64);
-
-    // CAST: reason for the cast
-    cast!(0u32 as u64, u32);
-
-    macro_rules! cast_no_comment {
+    macro_rules! mut_cast_no_comment {
         ($x:expr, $t:ty) => {
             $x as $t
             //~^ undocumented_as_casts
         };
     }
 
-    cast_no_comment!(0u32, u64);
+    mut_cast_no_comment!(p, *mut i32);
 
-    macro_rules! cast_with_comment_after {
+    macro_rules! const_cast_no_comment {
         ($x:expr, $t:ty) => {
-            $x as $t // CAST: reason for the cast
-            //
-            //~^^ undocumented_as_casts
+            $x as $t
+            //~^ undocumented_as_casts
         };
     }
 
-    cast_with_comment_after!(0u32, u64);
-
-    macro_rules! add_one {
-        ($x:expr) => {
-            $x + 1
-        };
-    }
-
-    // CAST: reason for the cast
-    add_one!(0u32 as u64);
+    const_cast_no_comment!(p, *const i32);
 }
 
 // Valid Comments
 
 fn line_comment() {
+    let p: *const u32 = &42_u32;
     // CAST: reason
-    let _ = 0u32 as u64;
+    let _ = p as *const i32;
 }
 
 fn line_comment_lowercase() {
+    let p: *const u32 = &42_u32;
     // cast: reason
-    let _ = 0u32 as u64;
+    let _ = p as *const i32;
 }
 
 fn line_comment_mixed_case() {
+    let p: *const u32 = &42_u32;
     // CaSt: reason
-    let _ = 0u32 as u64;
+    let _ = p as *const i32;
 }
 
 fn line_comment_newlines() {
+    let p: *const u32 = &42_u32;
     // CAST: reason
 
-    let _ = 0u32 as u64;
+    let _ = p as *const i32;
 }
 
 fn line_comment_empty() {
+    let p: *const u32 = &42_u32;
     // CAST: reason
     //
     //
     //
-    let _ = 0u32 as u64;
+    let _ = p as *const i32;
 }
 
 fn line_comment_with_extras() {
+    let p: *const u32 = &42_u32;
     // This is a description
     // CAST: reason
-    let _ = 0u32 as u64;
+    let _ = p as *const i32;
 }
 
 fn line_comment_multiple_casts_same_line() {
+    let p: *const u32 = &42_u32;
     // CAST: reason for both casts
-    let _ = 0u32 as u64 + 1u16 as u64;
+    let _ = (p as *const i32, p as *mut i32);
 }
 
 fn line_comment_multiple_casts() {
+    let p: *const u32 = &42_u32;
     // CAST: reason for first cast
-    let x = 0u32 as u64;
+    let x = p as *const i32;
     // CAST: reason for second cast
-    let y = 0u8 as u64;
+    let y = p as *mut i32;
 }
 
-fn line_comment_function_return() -> u64 {
+fn line_comment_function_return() -> *const i32 {
+    let p: *const u32 = &42_u32;
     // CAST: reason
-    0u32 as u64
+    p as *const i32
 }
 
 fn line_comment_match_block_multiple_arms() {
-    let x = 0u32;
-    match x {
-        0 => {
+    let p: *const u32 = &42_u32;
+    let cond = true;
+    match cond {
+        true => {
             // CAST: reason for first cast
-            let _ = x as u64;
+            let _ = p as *const i32;
         },
         _ => {
             // CAST: reason for second cast
-            let _ = x as u64;
+            let _ = p as *mut i32;
         },
     }
 }
 
 fn line_comment_let_match_block_multiple_arms() {
-    let x = 0u32;
-    let y = match x {
-        0 => {
+    let p: *const u32 = &42_u32;
+    let cond = true;
+    let y = match cond {
+        true => {
             // CAST: reason for first cast
-            x as u64
+            p as *const i32
         },
         _ => {
             // CAST: reason for second cast
-            x as u64
+            p as *const i32
         },
     };
 }
 
 fn newline_between_cast_line_comment_and_line_comment() {
+    let p: *const u32 = &42_u32;
     // CAST: reason
 
     // This is a description
-    let _ = 0u32 as u64;
+    let _ = p as *const i32;
 }
 
 fn line_comment_let_match_then_cast() {
-    let x = 0u32;
+    let p: *const u32 = &42_u32;
+    let cond = true;
     // CAST: reason for match block cast
-    let y = match x {
-        0 => {
+    let y = match cond {
+        true => {
             // CAST: reason for first cast
-            x as u64
+            p as *const i32
         },
         _ => {
             // CAST: reason for second cast
-            x as u64
+            p as *const i32
         },
-    } as usize;
+    } as *mut i32;
 }
 
 fn block_comment() {
+    let p: *const u32 = &42_u32;
     /* CAST: reason */
-    let _ = 0u32 as u64;
+    let _ = p as *const i32;
 }
 
 fn block_comment_newlines() {
+    let p: *const u32 = &42_u32;
     /* CAST: reason */
 
-    let _ = 0u32 as u64;
+    let _ = p as *const i32;
 }
 
 fn block_comment_multiple_line() {
+    let p: *const u32 = &42_u32;
     /* This is a description
      * CAST: reason
      */
-    let _ = 0u32 as u64;
+    let _ = p as *const i32;
 }
 
 fn block_comment_multiple_casts_same_line() {
+    let p: *const u32 = &42_u32;
     /* CAST: reason for both casts */
-    let _ = 0u32 as u64 + 1u16 as u64;
+    let _ = (p as *const i32, p as *mut i32);
 }
 
 fn block_comment_multiple_casts() {
+    let p: *const u32 = &42_u32;
     /* CAST: reason for first cast */
-    let x = 0u32 as u64;
+    let x = p as *const i32;
     /* CAST: reason for second cast */
-    let y = 0u8 as u64;
+    let y = p as *mut i32;
 }
 
-fn block_comment_function_return() -> u64 {
+fn block_comment_function_return() -> *const i32 {
+    let p: *const u32 = &42_u32;
     /* CAST: reason */
-    0u32 as u64
+    p as *const i32
 }
 
 fn block_comment_let_match_then_cast() {
-    let x = 0u32;
+    let p: *const u32 = &42_u32;
+    let cond = true;
     /* CAST: reason for match block cast */
-    let y = match x {
-        0 => {
+    let y = match cond {
+        true => {
             /* CAST: reason for first cast */
-            x as u64
+            p as *const i32
         },
         _ => {
             /* CAST: reason for second cast */
-            x as u64
+            p as *const i32
         },
-    } as usize;
+    } as *mut i32;
 }
 
 // Invalid Comment
 
 fn no_comment() {
-    let _ = 0u32 as u64;
+    let p: *const u32 = &42_u32;
+    let _ = p as *const i32;
     //~^ undocumented_as_casts
 }
 
 fn trailing_cast_comment() {
-    let _ = 0u32 as u64; // CAST: reason
+    let p: *const u32 = &42_u32;
+    let _ = p as *const i32; // CAST: reason
     //
     //~^^ undocumented_as_casts
 }
 
 fn non_cast_comment() {
+    let p: *const u32 = &42_u32;
     // This is a description
-    let _ = 0u32 as u64;
+    let _ = p as *const i32;
     //~^ undocumented_as_casts
 }
 
 fn non_cast_comment_newlines() {
+    let p: *const u32 = &42_u32;
     // This is a description
 
-    let _ = 0u32 as u64;
+    let _ = p as *const i32;
     //~^ undocumented_as_casts
 }
 
 fn non_cast_comment_with_extras() {
+    let p: *const u32 = &42_u32;
     // This is a description
     // This is more description
-    let _ = 0u32 as u64;
+    let _ = p as *const i32;
     //~^ undocumented_as_casts
 }
 
 fn non_cast_block_comment() {
+    let p: *const u32 = &42_u32;
     /* This is a description */
-    let _ = 0u32 as u64;
+    let _ = p as *const i32;
     //~^ undocumented_as_casts
 }
 
 fn non_cast_block_comment_newlines() {
+    let p: *const u32 = &42_u32;
     /* This is a description */
 
-    let _ = 0u32 as u64;
+    let _ = p as *const i32;
     //~^ undocumented_as_casts
 }
 
 fn non_cast_block_comment_with_extras() {
+    let p: *const u32 = &42_u32;
     /* This is a description
      * This is more description */
-    let _ = 0u32 as u64;
+    let _ = p as *const i32;
     //~^ undocumented_as_casts
 }
 
 fn no_comment_first_cast() {
-    let x = 0u32 as u64;
+    let p: *const u32 = &42_u32;
+    let x = p as *const i32;
     //~^ undocumented_as_casts
 
     // CAST: reason
-    let y = 1u32 as u64;
+    let y = p as *mut i32;
 }
 
 fn no_comment_following_cast() {
+    let p: *const u32 = &42_u32;
     // CAST: reason
-    let x = 0u32 as u64;
+    let x = p as *const i32;
 
-    let y = 1u32 as u64;
+    let y = p as *mut i32;
     //~^ undocumented_as_casts
 }
 
 fn line_cast_comment_before_block_comment() {
+    let p: *const u32 = &42_u32;
     // CAST: reason
     /* This is a description */
-    let _ = 0u32 as u64;
+    let _ = p as *const i32;
     //~^ undocumented_as_casts
 }
 
 fn line_comment_let_match_then_cast_invalid() {
-    let x = 0u32;
+    let p: *const u32 = &42_u32;
+    let cond = true;
 
-    let y = match x {
+    let y = match cond {
         //~^ undocumented_as_casts
-        0 => {
+        true => {
             // CAST: reason for first cast
-            x as u64
+            p as *const i32
         },
         _ => {
             // CAST: reason for second cast
-            x as u64
+            p as *const i32
         },
         // CAST: reason for match block cast
-    } as usize;
+    } as *mut i32;
 }
 
 fn block_cast_comment_before_line_comment() {
+    let p: *const u32 = &42_u32;
     /* CAST: reason */
     // This is a description
-    let _ = 0u32 as u64;
+    let _ = p as *const i32;
     //~^ undocumented_as_casts
 }
 
 fn block_cast_comment_before_block_comment() {
+    let p: *const u32 = &42_u32;
     /* CAST: reason */
     /* This is a description */
-    let _ = 0u32 as u64;
+    let _ = p as *const i32;
     //~^ undocumented_as_casts
 }
+
+fn main() {}

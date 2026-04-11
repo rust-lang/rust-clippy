@@ -7358,6 +7358,9 @@ Released 2018-09-13
 [`check-incompatible-msrv-in-tests`]: https://doc.rust-lang.org/clippy/lint_configuration.html#check-incompatible-msrv-in-tests
 [`check-inconsistent-struct-field-initializers`]: https://doc.rust-lang.org/clippy/lint_configuration.html#check-inconsistent-struct-field-initializers
 [`check-private-items`]: https://doc.rust-lang.org/clippy/lint_configuration.html#check-private-items
+[`check-undocumented-as-any-cast`]: https://doc.rust-lang.org/clippy/lint_configuration.html#check-undocumented-as-any-cast
+[`check-undocumented-as-const-ptr-cast`]: https://doc.rust-lang.org/clippy/lint_configuration.html#check-undocumented-as-const-ptr-cast
+[`check-undocumented-as-mut-ptr-cast`]: https://doc.rust-lang.org/clippy/lint_configuration.html#check-undocumented-as-mut-ptr-cast
 [`cognitive-complexity-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#cognitive-complexity-threshold
 [`const-literal-digits-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#const-literal-digits-threshold
 [`disallowed-fields`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-fields
