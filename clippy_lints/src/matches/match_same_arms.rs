@@ -120,7 +120,17 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, arms: &'tcx [Arm<'_>]) {
         span_lint_and_then(
             cx,
             MATCH_SAME_ARMS,
-            group.iter().map(|(_, arm)| arm.span).collect_vec(),
+            group
+                .iter()
+                .enumerate()
+                .map(|(i, (_, arm))| {
+                    if i == 0 {
+                        adjusted_arm_span(cx, arm.span)
+                    } else {
+                        arm.span
+                    }
+                })
+                .collect_vec(),
             "these match arms have identical bodies",
             |diag| {
                 diag.help("if this is unintentional make the arms return different values");
@@ -174,9 +184,6 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, arms: &'tcx [Arm<'_>]) {
 }
 
 /// Extend arm's span to include the comma and whitespaces after it.
-// Rust allows more whitespace characters than is_ascii_whitespace() (like vertical tab `\x0B`).
-// Using `is_ascii_whitespace` misses these, so spans may stop early.
-// This ensures we include all valid Rust whitespace when extending spans.
 fn adjusted_arm_span(cx: &LateContext<'_>, span: Span) -> Span {
     let source_map = cx.sess().source_map();
     source_map

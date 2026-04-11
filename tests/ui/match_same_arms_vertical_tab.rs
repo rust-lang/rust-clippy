@@ -1,6 +1,7 @@
 #![warn(clippy::match_same_arms)]
 #![allow(clippy::manual_range_patterns)]
 
+#[rustfmt::skip]
 fn main() {
     let x = 1;
 
@@ -15,16 +16,16 @@ fn main() {
 
     // Horizontal tab \t
     match x {
-        1 => println!("same"), //~ ERROR: these match arms have identical bodies
+        1 => println!("same"),	 //~ ERROR: these match arms have identical bodies
         2 => println!("same"),
         _ => {},
     }
 
     // ================= IMPORTANT BUG TARGET =================
 
-    // Vertical tab (U+000B) ← MAIN BUG YOU FIXED
+    // Vertical tab (U+000B)
     match x {
-        1 => println!("same"), //~ ERROR: these match arms have identical bodies
+        1 => println!("same"), //~ ERROR: these match arms have identical bodies
         2 => println!("same"),
         _ => {},
     }
@@ -33,14 +34,14 @@ fn main() {
 
     // Form feed (U+000C)
     match x {
-        1 => println!("same"), //~ ERROR: these match arms have identical bodies
+        1 => println!("same"), //~ ERROR: these match arms have identical bodies
         2 => println!("same"),
         _ => {},
     }
 
     // Next line (U+0085)
     match x {
-        1 => println!("same"), //~ ERROR: these match arms have identical bodies
+        1 => println!("same"), //~ ERROR: these match arms have identical bodies
         2 => println!("same"),
         _ => {},
     }
@@ -63,14 +64,14 @@ fn main() {
 
     // Line separator (U+2028)
     match x {
-        1 => println!("same"), //~ ERROR: these match arms have identical bodies
+        1 => println!("same"),  //~ ERROR: these match arms have identical bodies
         2 => println!("same"),
         _ => {},
     }
 
     // Paragraph separator (U+2029)
     match x {
-        1 => println!("same"), //~ ERROR: these match arms have identical bodies
+        1 => println!("same"),  //~ ERROR: these match arms have identical bodies
         2 => println!("same"),
         _ => {},
     }

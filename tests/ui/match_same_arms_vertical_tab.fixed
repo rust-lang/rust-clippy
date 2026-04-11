@@ -1,6 +1,7 @@
 #![warn(clippy::match_same_arms)]
 #![allow(clippy::manual_range_patterns)]
 
+#[rustfmt::skip]
 fn main() {
     let x = 1;
 
@@ -22,7 +23,7 @@ fn main() {
 
     // ================= IMPORTANT BUG TARGET =================
 
-    // Vertical tab (U+000B) ← MAIN BUG YOU FIXED
+    // Vertical tab (U+000B)
     match x {
         //~ ERROR: these match arms have identical bodies
         1 | 2 => println!("same"),
