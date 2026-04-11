@@ -1,0 +1,89 @@
+#![warn(clippy::match_same_arms)]
+#![allow(clippy::manual_range_patterns)]
+
+// This test ensures `match_same_arms` correctly handles all Rust whitespace.
+//@no-rustfix
+#[rustfmt::skip]
+fn main() {
+    let x = 1;
+
+    // ================= ASCII WHITESPACE =================
+
+    // Space
+    match x {
+        1 => println!("same"), //~ ERROR: these match arms have identical bodies
+        2 => println!("same"),
+        _ => {},
+    }
+
+    // Horizontal tab \t
+    match x {
+        1 => println!("same"), /* TAB */ //~ ERROR: these match arms have identical bodies
+        2 => println!("same"),
+        _ => {},
+    }
+
+    // ================= IMPORTANT BUG TARGET =================
+
+    // Vertical tab (U+000B)
+    match x {
+        1 => println!("same"), /* VT (U+000B) */ //~ ERROR: these match arms have identical bodies
+        2 => println!("same"),
+        _ => {},
+    }
+
+    // ================= OTHER NON-ASCII WHITESPACE =================
+
+    // Form feed (U+000C)
+    match x {
+        1 => println!("same"), /* FF (U+000C) */ //~ ERROR: these match arms have identical bodies
+        2 => println!("same"),
+        _ => {},
+    }
+
+    // Next line (U+0085)
+    match x {
+        1 => println!("same"), /* NEL (U+0085) */ //~ ERROR: these match arms have identical bodies
+        2 => println!("same"),
+        _ => {},
+    }
+
+    // ================= UNICODE WHITESPACE =================
+
+    // Left-to-right mark (U+200E)
+    match x {
+        1 => println!("same"), /* LRM (U+200E) */ //~ ERROR: these match arms have identical bodies
+        2 => println!("same"),
+        _ => {}
+    }
+
+    // Right-to-left mark (U+200F)
+    match x {
+        1 => println!("same"), /* RLM (U+200F) */ //~ ERROR: these match arms have identical bodies
+        2 => println!("same"),
+        _ => {}
+    }
+
+    // Line separator (U+2028)
+    match x {
+        1 => println!("same"), /* LS (U+2028) */ //~ ERROR: these match arms have identical bodies
+        2 => println!("same"),
+        _ => {},
+    }
+
+    // Paragraph separator (U+2029)
+    match x {
+        1 => println!("same"), /* PS (U+2029) */ //~ ERROR: these match arms have identical bodies
+        2 => println!("same"),
+        _ => {},
+    }
+
+    // ================= MULTIPLE DUPLICATE ARMS =================
+
+    match x {
+        1 => println!("same"), //~ ERROR: these match arms have identical bodies
+        2 => println!("same"),
+        3 => println!("same"),
+        _ => {},
+    }
+}
