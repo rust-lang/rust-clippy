@@ -1,5 +1,5 @@
 error: these match arms have identical bodies
-  --> tests/ui/match_same_arms_vertical_tab.rs:11:9
+  --> tests/ui/match_same_arms_vertical_tab.rs:14:9
    |
 LL |         1 => println!("same"),
    |         ^^^^^^^^^^^^^^^^^^^^^^^
@@ -16,7 +16,7 @@ LL ~         1 | 2 => println!("same"),
    |
 
 error: these match arms have identical bodies
-  --> tests/ui/match_same_arms_vertical_tab.rs:18:9
+  --> tests/ui/match_same_arms_vertical_tab.rs:21:9
    |
 LL |         1 => println!("same"), /* TAB */
    |         ^^^^^^^^^^^^^^^^^^^^^^^
@@ -31,7 +31,7 @@ LL ~         1 | 2 => println!("same"),
    |
 
 error: these match arms have identical bodies
-  --> tests/ui/match_same_arms_vertical_tab.rs:27:9
+  --> tests/ui/match_same_arms_vertical_tab.rs:30:9
    |
 LL |         1 => println!("same"), /* VT (U+000B) */
    |         ^^^^^^^^^^^^^^^^^^^^^^^
@@ -46,7 +46,7 @@ LL ~         1 | 2 => println!("same"),
    |
 
 error: these match arms have identical bodies
-  --> tests/ui/match_same_arms_vertical_tab.rs:36:9
+  --> tests/ui/match_same_arms_vertical_tab.rs:39:9
    |
 LL |         1 => println!("same"), /* FF (U+000C) */
    |         ^^^^^^^^^^^^^^^^^^^^^^^
@@ -61,7 +61,7 @@ LL ~         1 | 2 => println!("same"),
    |
 
 error: these match arms have identical bodies
-  --> tests/ui/match_same_arms_vertical_tab.rs:43:9
+  --> tests/ui/match_same_arms_vertical_tab.rs:46:9
    |
 LL |         1 => println!("same"), /* NEL (U+0085) */
    |         ^^^^^^^^^^^^^^^^^^^^^^^
@@ -76,7 +76,7 @@ LL ~         1 | 2 => println!("same"),
    |
 
 error: these match arms have identical bodies
-  --> tests/ui/match_same_arms_vertical_tab.rs:52:9
+  --> tests/ui/match_same_arms_vertical_tab.rs:55:9
    |
 LL |         1 => println!("same"), /* LRM (U+200E) */
    |         ^^^^^^^^^^^^^^^^^^^^^^^
@@ -91,7 +91,7 @@ LL ~         1 | 2 => println!("same"),
    |
 
 error: these match arms have identical bodies
-  --> tests/ui/match_same_arms_vertical_tab.rs:59:9
+  --> tests/ui/match_same_arms_vertical_tab.rs:62:9
    |
 LL |         1 => println!("same"), /* RLM (U+200F) */
    |         ^^^^^^^^^^^^^^^^^^^^^^^
@@ -106,7 +106,7 @@ LL ~         1 | 2 => println!("same"),
    |
 
 error: these match arms have identical bodies
-  --> tests/ui/match_same_arms_vertical_tab.rs:66:9
+  --> tests/ui/match_same_arms_vertical_tab.rs:69:9
    |
 LL |         1 => println!("same"), /* LS (U+2028) */
    |         ^^^^^^^^^^^^^^^^^^^^^^^
@@ -121,7 +121,7 @@ LL ~         1 | 2 => println!("same"),
    |
 
 error: these match arms have identical bodies
-  --> tests/ui/match_same_arms_vertical_tab.rs:73:9
+  --> tests/ui/match_same_arms_vertical_tab.rs:76:9
    |
 LL |         1 => println!("same"), /* PS (U+2029) */
    |         ^^^^^^^^^^^^^^^^^^^^^^^
@@ -136,7 +136,7 @@ LL ~         1 | 2 => println!("same"),
    |
 
 error: these match arms have identical bodies
-  --> tests/ui/match_same_arms_vertical_tab.rs:81:9
+  --> tests/ui/match_same_arms_vertical_tab.rs:84:9
    |
 LL |         1 => println!("same"),
    |         ^^^^^^^^^^^^^^^^^^^^^^^

@@ -1,6 +1,9 @@
 #![warn(clippy::match_same_arms)]
 #![allow(clippy::manual_range_patterns)]
 
+// This test ensures `match_same_arms` correctly handles all Rust whitespace.
+//@no-rustfix
+#[rustfmt::skip]
 fn main() {
     let x = 1;
 
