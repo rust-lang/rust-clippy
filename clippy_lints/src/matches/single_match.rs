@@ -14,7 +14,7 @@ use rustc_hir::intravisit::{Visitor, walk_pat};
 use rustc_hir::{Arm, Expr, ExprKind, HirId, Node, Pat, PatExpr, PatExprKind, PatKind, QPath, StmtKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, AdtDef, TyCtxt, TypeckResults, VariantDef};
-use rustc_span::Span;
+use rustc_span::{Span, SyntaxContext};
 
 use super::{MATCH_BOOL, SINGLE_MATCH, SINGLE_MATCH_ELSE};
 
@@ -82,9 +82,9 @@ pub(crate) fn check<'tcx>(
     }
 }
 
-fn report_single_pattern(
-    cx: &LateContext<'_>,
-    ex: &Expr<'_>,
+fn report_single_pattern<'tcx>(
+    cx: &LateContext<'tcx>,
+    ex: &'tcx Expr<'_>,
     arm: &Arm<'_>,
     expr: &Expr<'_>,
     els: Option<&Expr<'_>>,
@@ -165,21 +165,11 @@ fn report_single_pattern(
 
         let msg = "you seem to be trying to use `match` for an equality check. Consider using `if`";
         let body = expr_block(cx, arm.body, ctxt, "..", Some(expr.span), &mut app);
-        // When matching a `bool` scrutinee against a literal `true`/`false` pattern,
-        // emit `if <scrutinee>` / `if !<scrutinee>` directly instead of the awkward
-        // `if <scrutinee> == true`. The `Sugg::not` impl rewrites `==`/`!=`/etc. into
-        // their inverses (e.g. `i == 1` -> `i != 1`) and adds parentheses where needed.
-        let sugg = if let PatKind::Expr(PatExpr {
-            kind: PatExprKind::Lit { lit, negated: false },
-            ..
-        }) = pat.kind
-            && let LitKind::Bool(pat_is_true) = lit.node
-            && ty.is_bool()
+        let sugg = if ty.is_bool()
             && ref_or_deref_adjust.is_empty()
+            && let Some(sugg) = bool_literal_if_sugg(cx, ex, pat, ctxt, &body, &els_str, &mut app)
         {
-            let scrutinee = Sugg::hir_with_context(cx, ex, ctxt, "..", &mut app);
-            let cond = if pat_is_true { scrutinee } else { !scrutinee };
-            format!("if {cond} {body}{els_str}")
+            sugg
         } else {
             // For non-bool patterns the scrutinee may need parentheses to avoid
             // non-compiling chained comparisons like `i == 1 == 1`.
@@ -212,6 +202,34 @@ fn report_single_pattern(
         diag.span_suggestion(expr.span, "try", sugg, app);
         note(diag);
     });
+}
+
+/// When matching a literal `true`/`false` pattern, returns the suggested
+/// `if <expr>` / `if !<expr>` form. The caller is expected to ensure the
+/// scrutinee is a `bool` with no ref/deref adjustment. `Sugg::not` rewrites
+/// comparison operators into their inverses (e.g. `i == 1` -> `i != 1`) and
+/// adds parentheses where needed.
+fn bool_literal_if_sugg<'tcx>(
+    cx: &LateContext<'tcx>,
+    ex: &'tcx Expr<'_>,
+    pat: &Pat<'_>,
+    ctxt: SyntaxContext,
+    body: &str,
+    els_str: &str,
+    app: &mut Applicability,
+) -> Option<String> {
+    if let PatKind::Expr(PatExpr {
+        kind: PatExprKind::Lit { lit, negated: false },
+        ..
+    }) = pat.kind
+        && let LitKind::Bool(pat_is_true) = lit.node
+    {
+        let scrutinee = Sugg::hir_with_context(cx, ex, ctxt, "..", app);
+        let cond = if pat_is_true { scrutinee } else { !scrutinee };
+        Some(format!("if {cond} {body}{els_str}"))
+    } else {
+        None
+    }
 }
 
 struct PatVisitor<'tcx> {
