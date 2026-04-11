@@ -7,6 +7,7 @@ use clippy_utils::ty::{implements_trait, peel_and_count_ty_refs};
 use clippy_utils::{is_lint_allowed, is_unit_expr, peel_blocks, peel_hir_pat_refs, peel_n_hir_expr_refs, sym};
 use core::ops::ControlFlow;
 use rustc_arena::DroplessArena;
+use rustc_ast::LitKind;
 use rustc_errors::{Applicability, Diag};
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::intravisit::{Visitor, walk_pat};
@@ -163,25 +164,38 @@ fn report_single_pattern(
         };
 
         let msg = "you seem to be trying to use `match` for an equality check. Consider using `if`";
-        // Use `Sugg` to wrap the scrutinee so that operator precedence is
-        // handled automatically (e.g. `i == 1` becomes `(i == 1) == true`
-        // instead of the non-compiling `i == 1 == true`).
-        let scrutinee = Sugg::hir_with_context(cx, ex, ctxt, "..", &mut app);
-        // Parenthesize binary operator scrutinees to avoid non-compiling
-        // chained comparisons like `i == 1 == true`.
-        let scrutinee = if matches!(scrutinee, Sugg::BinOp(..)) {
-            scrutinee.maybe_paren()
+        let body = expr_block(cx, arm.body, ctxt, "..", Some(expr.span), &mut app);
+        // When matching a `bool` scrutinee against a literal `true`/`false` pattern,
+        // emit `if <scrutinee>` / `if !<scrutinee>` directly instead of the awkward
+        // `if <scrutinee> == true`. The `Sugg::not` impl rewrites `==`/`!=`/etc. into
+        // their inverses (e.g. `i == 1` -> `i != 1`) and adds parentheses where needed.
+        let sugg = if let PatKind::Expr(PatExpr {
+            kind: PatExprKind::Lit { lit, negated: false },
+            ..
+        }) = pat.kind
+            && let LitKind::Bool(pat_is_true) = lit.node
+            && ty.is_bool()
+            && ref_or_deref_adjust.is_empty()
+        {
+            let scrutinee = Sugg::hir_with_context(cx, ex, ctxt, "..", &mut app);
+            let cond = if pat_is_true { scrutinee } else { !scrutinee };
+            format!("if {cond} {body}{els_str}")
         } else {
-            scrutinee
+            // For non-bool patterns the scrutinee may need parentheses to avoid
+            // non-compiling chained comparisons like `i == 1 == 1`.
+            let scrutinee = Sugg::hir_with_context(cx, ex, ctxt, "..", &mut app);
+            let scrutinee = if matches!(scrutinee, Sugg::BinOp(..)) {
+                scrutinee.maybe_paren()
+            } else {
+                scrutinee
+            };
+            format!(
+                "if {scrutinee} == {}{} {body}{els_str}",
+                // PartialEq for different reference counts may not exist.
+                ref_or_deref_adjust,
+                snippet_with_applicability(cx, arm.pat.span, "..", &mut app),
+            )
         };
-        let sugg = format!(
-            "if {} == {}{} {}{els_str}",
-            scrutinee,
-            // PartialEq for different reference counts may not exist.
-            ref_or_deref_adjust,
-            snippet_with_applicability(cx, arm.pat.span, "..", &mut app),
-            expr_block(cx, arm.body, ctxt, "..", Some(expr.span), &mut app),
-        );
         (msg, sugg)
     } else {
         let msg = "you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`";

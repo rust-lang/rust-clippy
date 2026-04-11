@@ -6,8 +6,7 @@
     clippy::needless_ifs,
     clippy::redundant_guards,
     clippy::redundant_pattern_matching,
-    clippy::manual_unwrap_or_default,
-    clippy::bool_comparison
+    clippy::manual_unwrap_or_default
 )]
 fn dummy() {}
 
