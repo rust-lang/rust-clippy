@@ -502,6 +502,36 @@ Whether to also run the listed lints on private items.
 * [`unnecessary_safety_doc`](https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_safety_doc)
 
 
+## `check-undocumented-as-any-cast`
+Whether to require a `CAST:` comment for any `as` cast.
+
+**Default Value:** `true`
+
+---
+**Affected lints:**
+* [`undocumented_as_casts`](https://rust-lang.github.io/rust-clippy/master/index.html#undocumented_as_casts)
+
+
+## `check-undocumented-as-const-ptr-cast`
+Whether to require a `CAST:` comment for casts to `*const T`.
+
+**Default Value:** `true`
+
+---
+**Affected lints:**
+* [`undocumented_as_casts`](https://rust-lang.github.io/rust-clippy/master/index.html#undocumented_as_casts)
+
+
+## `check-undocumented-as-mut-ptr-cast`
+Whether to require a `CAST:` comment for casts to `*mut T`.
+
+**Default Value:** `true`
+
+---
+**Affected lints:**
+* [`undocumented_as_casts`](https://rust-lang.github.io/rust-clippy/master/index.html#undocumented_as_casts)
+
+
 ## `cognitive-complexity-threshold`
 The maximum cognitive complexity a function can have
 

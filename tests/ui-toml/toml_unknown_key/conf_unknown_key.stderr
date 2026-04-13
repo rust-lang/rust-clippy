@@ -36,6 +36,9 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            check-incompatible-msrv-in-tests
            check-inconsistent-struct-field-initializers
            check-private-items
+           check-undocumented-as-any-cast
+           check-undocumented-as-const-ptr-cast
+           check-undocumented-as-mut-ptr-cast
            cognitive-complexity-threshold
            const-literal-digits-threshold
            disallowed-fields
@@ -137,6 +140,9 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            check-incompatible-msrv-in-tests
            check-inconsistent-struct-field-initializers
            check-private-items
+           check-undocumented-as-any-cast
+           check-undocumented-as-const-ptr-cast
+           check-undocumented-as-mut-ptr-cast
            cognitive-complexity-threshold
            const-literal-digits-threshold
            disallowed-fields
@@ -238,6 +244,9 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            check-incompatible-msrv-in-tests
            check-inconsistent-struct-field-initializers
            check-private-items
+           check-undocumented-as-any-cast
+           check-undocumented-as-const-ptr-cast
+           check-undocumented-as-mut-ptr-cast
            cognitive-complexity-threshold
            const-literal-digits-threshold
            disallowed-fields

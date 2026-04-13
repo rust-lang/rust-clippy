@@ -7199,6 +7199,7 @@ Released 2018-09-13
 [`unchecked_duration_subtraction`]: https://rust-lang.github.io/rust-clippy/master/index.html#unchecked_duration_subtraction
 [`unchecked_time_subtraction`]: https://rust-lang.github.io/rust-clippy/master/index.html#unchecked_time_subtraction
 [`unconditional_recursion`]: https://rust-lang.github.io/rust-clippy/master/index.html#unconditional_recursion
+[`undocumented_as_casts`]: https://rust-lang.github.io/rust-clippy/master/index.html#undocumented_as_casts
 [`undocumented_unsafe_blocks`]: https://rust-lang.github.io/rust-clippy/master/index.html#undocumented_unsafe_blocks
 [`undropped_manually_drops`]: https://rust-lang.github.io/rust-clippy/master/index.html#undropped_manually_drops
 [`unicode_not_nfc`]: https://rust-lang.github.io/rust-clippy/master/index.html#unicode_not_nfc
@@ -7357,6 +7358,9 @@ Released 2018-09-13
 [`check-incompatible-msrv-in-tests`]: https://doc.rust-lang.org/clippy/lint_configuration.html#check-incompatible-msrv-in-tests
 [`check-inconsistent-struct-field-initializers`]: https://doc.rust-lang.org/clippy/lint_configuration.html#check-inconsistent-struct-field-initializers
 [`check-private-items`]: https://doc.rust-lang.org/clippy/lint_configuration.html#check-private-items
+[`check-undocumented-as-any-cast`]: https://doc.rust-lang.org/clippy/lint_configuration.html#check-undocumented-as-any-cast
+[`check-undocumented-as-const-ptr-cast`]: https://doc.rust-lang.org/clippy/lint_configuration.html#check-undocumented-as-const-ptr-cast
+[`check-undocumented-as-mut-ptr-cast`]: https://doc.rust-lang.org/clippy/lint_configuration.html#check-undocumented-as-mut-ptr-cast
 [`cognitive-complexity-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#cognitive-complexity-threshold
 [`const-literal-digits-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#const-literal-digits-threshold
 [`disallowed-fields`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-fields

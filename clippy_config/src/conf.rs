@@ -579,6 +579,15 @@ define_Conf! {
     /// Whether to also run the listed lints on private items.
     #[lints(missing_errors_doc, missing_panics_doc, missing_safety_doc, unnecessary_safety_doc)]
     check_private_items: bool = false,
+    /// Whether to require a `CAST:` comment for any `as` cast.
+    #[lints(undocumented_as_casts)]
+    check_undocumented_as_any_cast: bool = true,
+    /// Whether to require a `CAST:` comment for casts to `*const T`.
+    #[lints(undocumented_as_casts)]
+    check_undocumented_as_const_ptr_cast: bool = true,
+    /// Whether to require a `CAST:` comment for casts to `*mut T`.
+    #[lints(undocumented_as_casts)]
+    check_undocumented_as_mut_ptr_cast: bool = true,
     /// The maximum cognitive complexity a function can have
     #[lints(cognitive_complexity)]
     cognitive_complexity_threshold: u64 = 25,
