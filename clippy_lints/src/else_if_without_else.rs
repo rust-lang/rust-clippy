@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::is_from_proc_macro;
 use rustc_ast::ast::{Expr, ExprKind};
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
 use rustc_session::declare_lint_pass;
@@ -50,6 +51,7 @@ impl EarlyLintPass for ElseIfWithoutElse {
         if let ExprKind::If(_, _, Some(ref els)) = item.kind
             && let ExprKind::If(_, _, None) = els.kind
             && !item.span.in_external_macro(cx.sess().source_map())
+            && !is_from_proc_macro(cx, item)
         {
             #[expect(clippy::collapsible_span_lint_calls, reason = "rust-clippy#7797")]
             span_lint_and_then(
