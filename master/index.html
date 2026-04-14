@@ -7526,7 +7526,14 @@ impl Wake for MyWaker {
 <pre><code class="language-rust">use std::task::Waker;
 let waker = Waker::noop();
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.96.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+manual_noop_waker">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/manual_noop_waker.rs#L7">View Source</a></div></div></article><article id="manual_ok_err"><input id="label-manual_ok_err" type="checkbox"><label for="label-manual_ok_err"><h2 class="lint-title"><div class="panel-title-name" id="lint-manual_ok_err">manual_ok_err
+<h3>Configuration</h3>
+<ul>
+<li>
+<p><code>msrv</code>:  The minimum rust version that the project supports. Defaults to the <code>rust-version</code> field in <code>Cargo.toml</code></p>
+<p>(default: <code>current version</code>)</p>
+</li>
+</ul>
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.96.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+manual_noop_waker">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/manual_noop_waker.rs#L9">View Source</a></div></div></article><article id="manual_ok_err"><input id="label-manual_ok_err" type="checkbox"><label for="label-manual_ok_err"><h2 class="lint-title"><div class="panel-title-name" id="lint-manual_ok_err">manual_ok_err
 <a href="#manual_ok_err" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-complexity">complexity</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for manual implementation of <code>.ok()</code> or <code>.err()</code>
 on <code>Result</code> values.</p>
