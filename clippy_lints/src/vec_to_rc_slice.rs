@@ -141,18 +141,14 @@ fn emit_lint(cx: &LateContext<'_>, expr: &Expr<'_>, vec_expr: &Expr<'_>, wrapper
                 let mut applicability = Applicability::MachineApplicable;
                 let slice_snippet = snippet_with_context(cx, ty_span, ty_span.ctxt(), "_", &mut applicability).0;
                 diag.multipart_suggestion(
-                    format!(
-                        "convert target type to `{wrapper}<Box<[T]>>` and use `into_boxed_slice()` to avoid the copy"
-                    ),
+                    format!("convert target type to `{wrapper}<Box<[T]>>`"),
                     vec![(expr.span, expr_sugg), (ty_span, format!("Box<{slice_snippet}>"))],
                     app,
                 );
             } else {
                 diag.span_suggestion_verbose(
                     expr.span,
-                    format!(
-                        "convert target type to `{wrapper}<Box<[T]>>` and use `into_boxed_slice()` to avoid the copy"
-                    ),
+                    format!("convert target type to `{wrapper}<Box<[T]>>`"),
                     expr_sugg,
                     app,
                 );

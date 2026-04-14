@@ -6,7 +6,7 @@ LL |     accept_arc_slice(v.into());
    |
    = note: `-D clippy::vec-to-rc-slice` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::vec_to_rc_slice)]`
-help: convert target type to `Arc<Box<[T]>>` and use `into_boxed_slice()` to avoid the copy
+help: convert target type to `Arc<Box<[T]>>`
    |
 LL -     accept_arc_slice(v.into());
 LL +     accept_arc_slice(Arc::new(v.into_boxed_slice()));
@@ -18,7 +18,7 @@ error: converting a `Vec<T>` to `Rc<[T]>` copies all elements to a new allocatio
 LL |     accept_rc_slice(Rc::from(v));
    |                     ^^^^^^^^^^^
    |
-help: convert target type to `Rc<Box<[T]>>` and use `into_boxed_slice()` to avoid the copy
+help: convert target type to `Rc<Box<[T]>>`
    |
 LL -     accept_rc_slice(Rc::from(v));
 LL +     accept_rc_slice(Rc::new(v.into_boxed_slice()));
