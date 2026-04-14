@@ -224,6 +224,7 @@ mod map_unit_fn;
 mod match_result_ok;
 mod matches;
 mod mem_replace;
+mod method_shadow_field;
 mod methods;
 mod min_ident_chars;
 mod minmax;
@@ -867,6 +868,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::new(manual_checked_ops::ManualCheckedOps)),
         Box::new(move |tcx| Box::new(manual_pop_if::ManualPopIf::new(tcx, conf))),
         Box::new(move |_| Box::new(manual_noop_waker::ManualNoopWaker::new(conf))),
+        Box::new(move |_| Box::new(method_shadow_field::MethodShadowField::new(conf))),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);
