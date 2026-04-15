@@ -72,6 +72,7 @@ mod assigning_clones;
 mod async_yields_async;
 mod attrs;
 mod await_holding_invalid;
+mod block_scrutinee;
 mod blocks_in_conditions;
 mod bool_assert_comparison;
 mod bool_comparison;
@@ -867,6 +868,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(move |tcx| Box::new(manual_pop_if::ManualPopIf::new(tcx, conf))),
         Box::new(move |_| Box::new(manual_noop_waker::ManualNoopWaker::new(conf))),
         Box::new(|_| Box::new(byte_char_slices::ByteCharSlice)),
+        Box::new(|_| Box::new(block_scrutinee::BlockScrutinee)),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);
