@@ -1,0 +1,87 @@
+error: temporary values in this block-wrapped scrutinee will be dropped after the body of the `if let` statement
+  --> tests/ui/block_scrutinee.rs:11:22
+   |
+LL |     if let Some(x) = { my_function() } {
+   |                      ^^^^^^^^^^^^^^^^^
+   |
+   = note: in Rust 2024, temporaries are dropped earlier
+   = help: to drop temporaries early, update your `Cargo.toml` to the 2024 edition
+   = note: `-D clippy::block-scrutinee` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::block_scrutinee)]`
+help: if you intend to drop temporaries after the surrounding `if let`, remove the block
+   |
+LL -     if let Some(x) = { my_function() } {
+LL +     if let Some(x) = my_function() {
+   |
+help: if you intend to drop temporaries early, move them to a separate local binding
+   |
+LL ~     let res = my_function();
+LL ~     if let Some(x) = res {
+   |
+
+error: temporary values in this block-wrapped scrutinee will be dropped after the body of the `match` statement
+  --> tests/ui/block_scrutinee.rs:16:11
+   |
+LL |     match { my_function() } {
+   |           ^^^^^^^^^^^^^^^^^
+   |
+   = note: in Rust 2024, temporaries are dropped earlier
+   = help: to drop temporaries early, update your `Cargo.toml` to the 2024 edition
+help: if you intend to drop temporaries after the surrounding `match`, remove the block
+   |
+LL -     match { my_function() } {
+LL +     match my_function() {
+   |
+help: if you intend to drop temporaries early, move them to a separate local binding
+   |
+LL ~     let res = my_function();
+LL ~     match res {
+   |
+
+error: temporary values in this block-wrapped scrutinee will be dropped after the body of the `while let` statement
+  --> tests/ui/block_scrutinee.rs:24:25
+   |
+LL |     while let Some(x) = { v.pop() } {
+   |                         ^^^^^^^^^^^
+   |
+   = note: in Rust 2024, temporaries are dropped earlier
+   = help: to drop temporaries early, update your `Cargo.toml` to the 2024 edition
+help: if you intend to drop temporaries after the surrounding `while let`, remove the block
+   |
+LL -     while let Some(x) = { v.pop() } {
+LL +     while let Some(x) = v.pop() {
+   |
+help: if you intend to drop temporaries early, move them to a separate local binding
+   |
+LL ~     let res = v.pop();
+LL ~     while let Some(x) = res {
+   |
+
+error: temporary values in this block-wrapped scrutinee will be dropped after the body of the `if let` statement
+  --> tests/ui/block_scrutinee.rs:40:22
+   |
+LL |       if let Some(x) = {
+   |  ______________________^
+LL | |         // We are popping a value
+LL | |         v.pop()
+LL | |     } {
+   | |_____^
+   |
+   = note: in Rust 2024, temporaries are dropped earlier
+   = help: to drop temporaries early, update your `Cargo.toml` to the 2024 edition
+help: if you intend to drop temporaries after the surrounding `if let`, remove the block
+   |
+LL -     if let Some(x) = {
+LL -         // We are popping a value
+LL -         v.pop()
+LL -     } {
+LL +     if let Some(x) = v.pop() {
+   |
+help: if you intend to drop temporaries early, move them to a separate local binding
+   |
+LL ~     let res = v.pop();
+LL ~     if let Some(x) = res {
+   |
+
+error: aborting due to 4 previous errors
+
