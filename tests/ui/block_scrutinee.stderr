@@ -1,0 +1,64 @@
+error: temporary values in this block-wrapped scrutinee will not be dropped until the end of the statement
+  --> tests/ui/block_scrutinee.rs:11:22
+   |
+LL |     if let Some(x) = { my_function() } {
+   |                      ^^^^^^^^^^^^^^^^^
+   |
+   = note: this behavior is specific to Rust editions prior to 2024
+   = note: in Rust 2024, temporaries in a block scrutinee drop immediately before the match arm or block body
+   = help: if you want the temporaries to be dropped early, you can update your `Cargo.toml` to the 2024 edition
+   = note: `-D clippy::block-scrutinee` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::block_scrutinee)]`
+help: remove the block to yield the same behavior but with cleaner code
+   |
+LL -     if let Some(x) = { my_function() } {
+LL +     if let Some(x) = my_function() {
+   |
+help: if you intended to drop temporaries early, move the expression to a separate local binding
+   |
+LL -     if let Some(x) = { my_function() } {
+LL +     if let Some(x) = { let res = my_function(); res } {
+   |
+
+error: temporary values in this block-wrapped scrutinee will not be dropped until the end of the statement
+  --> tests/ui/block_scrutinee.rs:16:11
+   |
+LL |     match { my_function() } {
+   |           ^^^^^^^^^^^^^^^^^
+   |
+   = note: this behavior is specific to Rust editions prior to 2024
+   = note: in Rust 2024, temporaries in a block scrutinee drop immediately before the match arm or block body
+   = help: if you want the temporaries to be dropped early, you can update your `Cargo.toml` to the 2024 edition
+help: remove the block to yield the same behavior but with cleaner code
+   |
+LL -     match { my_function() } {
+LL +     match my_function() {
+   |
+help: if you intended to drop temporaries early, move the expression to a separate local binding
+   |
+LL -     match { my_function() } {
+LL +     match { let res = my_function(); res } {
+   |
+
+error: temporary values in this block-wrapped scrutinee will not be dropped until the end of the statement
+  --> tests/ui/block_scrutinee.rs:24:25
+   |
+LL |     while let Some(x) = { v.pop() } {
+   |                         ^^^^^^^^^^^
+   |
+   = note: this behavior is specific to Rust editions prior to 2024
+   = note: in Rust 2024, temporaries in a block scrutinee drop immediately before the match arm or block body
+   = help: if you want the temporaries to be dropped early, you can update your `Cargo.toml` to the 2024 edition
+help: remove the block to yield the same behavior but with cleaner code
+   |
+LL -     while let Some(x) = { v.pop() } {
+LL +     while let Some(x) = v.pop() {
+   |
+help: if you intended to drop temporaries early, move the expression to a separate local binding
+   |
+LL -     while let Some(x) = { v.pop() } {
+LL +     while let Some(x) = { let res = v.pop(); res } {
+   |
+
+error: aborting due to 3 previous errors
+

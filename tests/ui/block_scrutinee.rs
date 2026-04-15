@@ -1,0 +1,39 @@
+//@ edition: 2021
+#![warn(clippy::block_scrutinee)]
+#![allow(clippy::blocks_in_conditions)]
+#![allow(clippy::let_and_return)]
+
+fn my_function() -> Option<i32> {
+    Some(1)
+}
+
+fn main() {
+    if let Some(x) = { my_function() } {
+        //~^ ERROR: temporary values in this block-wrapped scrutinee will not be dropped until the end of the statement
+        let _ = x;
+    }
+
+    match { my_function() } {
+        //~^ ERROR: temporary values in this block-wrapped scrutinee will not be dropped until the end of the statement
+        Some(1) => println!("one"),
+        Some(_) => println!("other"),
+        None => println!("none"),
+    }
+
+    let mut v = vec![1, 2, 3];
+    while let Some(x) = { v.pop() } {
+        //~^ ERROR: temporary values in this block-wrapped scrutinee will not be dropped until the end of the statement
+        let _ = x;
+    }
+
+    if let Some(x) = my_function() {
+        let _ = x;
+    }
+
+    if let Some(x) = {
+        let _y = 2;
+        my_function()
+    } {
+        let _ = x;
+    }
+}
