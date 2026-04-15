@@ -21,6 +21,7 @@ mod misrefactored_assign_op;
 mod modulo_arithmetic;
 mod modulo_one;
 mod needless_bitwise_bool;
+mod new_instead_of_clear;
 mod numeric_arithmetic;
 mod op_ref;
 mod self_assignment;
@@ -850,6 +851,38 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for assignments of `Collection::new()` or `vec![]` to a collection
+    /// variable that was already initialized.
+    ///
+    /// ### Why is this bad?
+    /// The existing allocation is thrown away. `.clear()` empties the collection
+    /// without freeing the memory, so the next push/insert won't need to allocate.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # fn f(v: &Vec<i32>) {}
+    /// let mut v = Vec::new();
+    /// v.push(1);
+    /// f(&v);
+    /// v = Vec::new();
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # fn f(v: &Vec<i32>) {}
+    /// let mut v = Vec::new();
+    /// v.push(1);
+    /// f(&v);
+    /// v.clear();
+    /// ```
+    #[clippy::version = "1.96.0"]
+    pub NEW_INSTEAD_OF_CLEAR,
+    perf,
+    "assigning `Collection::new()` or `vec![]` instead of calling `.clear()`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for arguments to `==` which have their address
     /// taken to satisfy a bound
     /// and suggests to dereference the other argument instead
@@ -986,6 +1019,7 @@ impl_lint_pass!(Operators => [
     MODULO_ARITHMETIC,
     MODULO_ONE,
     NEEDLESS_BITWISE_BOOL,
+    NEW_INSTEAD_OF_CLEAR,
     OP_REF,
     REDUNDANT_COMPARISONS,
     SELF_ASSIGNMENT,
@@ -1063,6 +1097,7 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
             ExprKind::Assign(lhs, rhs, _) => {
                 assign_op_pattern::check(cx, e, lhs, rhs, self.msrv);
                 self_assignment::check(cx, e, lhs, rhs);
+                new_instead_of_clear::check(cx, e);
             },
             ExprKind::Unary(op, arg) =>
             {
