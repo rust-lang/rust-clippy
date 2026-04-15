@@ -4056,13 +4056,26 @@ declare_clippy_lint! {
     /// ### What it does
     /// Checks for usage of `Vec::dedup_by` passing in a closure
     /// that is equivalent to a simple key extraction and could be
-    /// written more idiomatically using `Vec::dedup_by_key`.
+    /// written more idiomatically using `Vec::dedup_by_key` or
+    /// `Vec::dedup`
     ///
     /// ### Why is this bad?
-    /// It is more clear to use `Vec::dedup_by_key` than to use
+    /// It is more clear to use `Vec::dedup_by_key` or `Vec::dedup`
+    /// (when comparing whole elements) than to use
     /// `Vec::dedup_by` and a more complicated closure.
     ///
-    /// ### Example
+    /// ### Examples
+    /// ```no_run
+    /// let mut v = vec![1, 1, 2, 3];
+    /// v.dedup_by(|a, b| a == b);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let mut v = vec![1, 1, 2, 3];
+    /// v.dedup();
+    /// ```
+    ///
+    /// Or when comparing by a key:
     /// ```no_run
     /// pub fn m1(mut v: Vec<(i64, i64)>) -> Vec<(i64, i64)> {
     ///     v.dedup_by(|(sym1, _), (sym2, _)| sym1 == sym2);
@@ -4079,7 +4092,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.95.0"]
     pub UNNECESSARY_DEDUP_BY,
     complexity,
-    "use of `Vec::dedup_by` when `Vec::dedup_by_key` would be clearer"
+    "use of `Vec::dedup_by` when `Vec::dedup_by_key` or `Vec::dedup` would be clearer"
 }
 
 declare_clippy_lint! {

@@ -45,7 +45,7 @@ fn unnecessary_dedup_by() {
 
     let mut v7 = vec![&1, &1, &2];
 
-    v1.dedup_by_key(|a| *a);
+    v1.dedup();
     //~^ unnecessary_dedup_by
 
     v2.dedup_by_key(|a| a.0);
@@ -61,7 +61,8 @@ fn unnecessary_dedup_by() {
     v2.dedup_by_key(|b| b.0 * 2);
     //~^ unnecessary_dedup_by
 
-    v3.dedup_by(|a, b| a == b);
+    v3.dedup();
+    //~^ unnecessary_dedup_by
 
     v4.dedup_by_key(|a| a.inner.x);
     //~^ unnecessary_dedup_by
@@ -75,6 +76,6 @@ fn unnecessary_dedup_by() {
 
     v6.dedup_by(|a, b| a.name() == b.name());
 
-    v7.dedup_by_key(|a| *a);
+    v7.dedup();
     //~^ unnecessary_dedup_by
 }

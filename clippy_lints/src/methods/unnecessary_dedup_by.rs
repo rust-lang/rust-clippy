@@ -51,6 +51,16 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, call_spa
                 })
                 .map_or(0, |value| value.n_refs);
 
+            // check the whole element is the key → suggest dedup()
+            if let rustc_hir::PatKind::Binding(_, _, param_ident, _) = key_pat.kind
+                && param_ident == *key_name
+            {
+                span_lint_and_then(cx, UNNECESSARY_DEDUP_BY, expr.span, "consider using `dedup`", |diag| {
+                    diag.span_suggestion_verbose(call_span, "try", "dedup()", Applicability::MachineApplicable);
+                });
+                return;
+            }
+
             let mut key_expr_ty = cx.typeck_results().expr_ty(key_expr);
             if key_name_n_refs == 0 {
                 (key_expr_ty, _) = peel_n_ty_refs(key_expr_ty, 1);

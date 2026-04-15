@@ -62,6 +62,7 @@ fn unnecessary_dedup_by() {
     //~^ unnecessary_dedup_by
 
     v3.dedup_by(|a, b| a == b);
+    //~^ unnecessary_dedup_by
 
     v4.dedup_by(|a, b| a.inner.x == b.inner.x);
     //~^ unnecessary_dedup_by

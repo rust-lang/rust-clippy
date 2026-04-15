@@ -1,4 +1,4 @@
-error: consider using `dedup_by_key`
+error: consider using `dedup`
   --> tests/ui/unnecessary_dedup_by.rs:48:5
    |
 LL |     v1.dedup_by(|a, b| a == b);
@@ -9,7 +9,7 @@ LL |     v1.dedup_by(|a, b| a == b);
 help: try
    |
 LL -     v1.dedup_by(|a, b| a == b);
-LL +     v1.dedup_by_key(|a| *a);
+LL +     v1.dedup();
    |
 
 error: consider using `dedup_by_key`
@@ -48,8 +48,20 @@ LL -     v2.dedup_by(|a, b| b.0 * 2 == a.0 * 2);
 LL +     v2.dedup_by_key(|b| b.0 * 2);
    |
 
+error: consider using `dedup`
+  --> tests/ui/unnecessary_dedup_by.rs:64:5
+   |
+LL |     v3.dedup_by(|a, b| a == b);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try
+   |
+LL -     v3.dedup_by(|a, b| a == b);
+LL +     v3.dedup();
+   |
+
 error: consider using `dedup_by_key`
-  --> tests/ui/unnecessary_dedup_by.rs:66:5
+  --> tests/ui/unnecessary_dedup_by.rs:67:5
    |
 LL |     v4.dedup_by(|a, b| a.inner.x == b.inner.x);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -61,7 +73,7 @@ LL +     v4.dedup_by_key(|a| a.inner.x);
    |
 
 error: consider using `dedup_by_key`
-  --> tests/ui/unnecessary_dedup_by.rs:70:5
+  --> tests/ui/unnecessary_dedup_by.rs:71:5
    |
 LL |     v4.dedup_by(|Outer { inner: _, y: y1 }, Outer { inner: _, y: y2 }| y1 == y2);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -73,7 +85,7 @@ LL +     v4.dedup_by_key(|Outer { inner: _, y: y1 }| *y1);
    |
 
 error: consider using `dedup_by_key`
-  --> tests/ui/unnecessary_dedup_by.rs:73:5
+  --> tests/ui/unnecessary_dedup_by.rs:74:5
    |
 LL |     v5.dedup_by(|a, b| a.key() == b.key());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -84,8 +96,8 @@ LL -     v5.dedup_by(|a, b| a.key() == b.key());
 LL +     v5.dedup_by_key(|a| a.key());
    |
 
-error: consider using `dedup_by_key`
-  --> tests/ui/unnecessary_dedup_by.rs:78:5
+error: consider using `dedup`
+  --> tests/ui/unnecessary_dedup_by.rs:79:5
    |
 LL |     v7.dedup_by(|a, b| a == b);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -93,8 +105,8 @@ LL |     v7.dedup_by(|a, b| a == b);
 help: try
    |
 LL -     v7.dedup_by(|a, b| a == b);
-LL +     v7.dedup_by_key(|a| *a);
+LL +     v7.dedup();
    |
 
-error: aborting due to 8 previous errors
+error: aborting due to 9 previous errors
 
