@@ -6,13 +6,13 @@
 fn issue16860() -> Option<i32> {
     let x: Option<i32> = Some(1);
     match x {
-        None => {}
+        None => {},
         Some(v) => {
             if v > 0 {
                 //~^ collapsible_match
                 return Some(v);
             }
-        }
+        },
     }
     None
 }
