@@ -114,7 +114,7 @@ impl BindInsteadOfMap {
 
     fn lint_closure(&self, cx: &LateContext<'_>, expr: &hir::Expr<'_>, closure_expr: &hir::Expr<'_>) -> bool {
         let mut suggs = Vec::new();
-        let can_sugg: bool = find_all_ret_expressions(cx, closure_expr, |ret_expr| {
+        let (span, msg) = if let Ok(()) = find_all_ret_expressions(cx, closure_expr, |ret_expr| {
             if !ret_expr.span.from_expansion()
                 && let hir::ExprKind::Call(func_path, [arg]) = ret_expr.kind
                 && let hir::ExprKind::Path(QPath::Resolved(_, path)) = func_path.kind
@@ -122,13 +122,11 @@ impl BindInsteadOfMap {
                 && !contains_return(arg)
             {
                 suggs.push((ret_expr.span, arg.span.source_callsite()));
-                true
+                Ok(())
             } else {
-                false
+                Err(())
             }
-        });
-        let (span, msg) = if can_sugg
-            && let hir::ExprKind::MethodCall(segment, ..) = expr.kind
+        }) && let hir::ExprKind::MethodCall(segment, ..) = expr.kind
             && let Some(msg) = self.lint_msg(cx)
         {
             (segment.ident.span, msg)
