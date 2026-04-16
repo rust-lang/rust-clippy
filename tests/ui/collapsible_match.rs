@@ -444,3 +444,28 @@ fn issue16705(x: Option<String>) {
         _ => false,
     };
 }
+
+// issue #16864: don't suggest guard when condition mutates pattern binding
+fn issue16864() -> Option<u32> {
+    struct Foo(u32);
+
+    impl Foo {
+        fn mutates(&mut self) -> bool {
+            self.0 += 1;
+            self.0.is_multiple_of(2)
+        }
+    }
+
+    let mut value: Option<Foo> = Some(Foo(42));
+    // Should NOT lint: inner.mutates() requires &mut self,
+    // but variables are immutable in match guards.
+    match &mut value {
+        Some(inner) => {
+            if inner.mutates() {
+                return Some(inner.0);
+            }
+        },
+        _ => {},
+    }
+    None
+}
