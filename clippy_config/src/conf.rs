@@ -758,6 +758,7 @@ define_Conf! {
         almost_complete_range,
         approx_constant,
         assigning_clones,
+        bind_instead_of_map,
         borrow_as_ptr,
         cast_abs_to_unsigned,
         checked_conversions,

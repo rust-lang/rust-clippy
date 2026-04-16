@@ -5148,8 +5148,15 @@ impl Methods {
                 },
                 (sym::and_then, [arg]) => {
                     manual_option_zip::check(cx, expr, recv, arg, self.msrv);
-                    let biom_option_linted = bind_instead_of_map::check_and_then_some(cx, expr, recv, arg);
-                    let biom_result_linted = bind_instead_of_map::check_and_then_ok(cx, expr, recv, arg);
+                    let site = bind_instead_of_map::CheckSite {
+                        cx,
+                        expr: expr.span,
+                        recv,
+                        method_name: span,
+                        arg,
+                    };
+                    let biom_option_linted = bind_instead_of_map::check_and_then_some(site);
+                    let biom_result_linted = bind_instead_of_map::check_and_then_ok(site);
                     if !biom_option_linted && !biom_result_linted {
                         let ule_and_linted = unnecessary_lazy_eval::check(cx, expr, recv, arg, "and");
                         if !ule_and_linted {
@@ -5288,6 +5295,24 @@ impl Methods {
                 (sym::extend, [arg]) => {
                     string_extend_chars::check(cx, expr, recv, arg);
                     extend_with_drain::check(cx, expr, recv, arg);
+                },
+                (bad_method_name @ (sym::fetch_update | sym::try_update), [_, _, arg])
+                    if self.msrv.meets(cx, msrvs::ATOMIC_TRY_UPDATE) =>
+                {
+                    bind_instead_of_map::check_fetch_update(
+                        match bad_method_name {
+                            sym::fetch_update => "fetch_update",
+                            sym::try_update => "try_update",
+                            _ => unreachable!(),
+                        },
+                        bind_instead_of_map::CheckSite {
+                            cx,
+                            expr: expr.span,
+                            recv,
+                            method_name: span,
+                            arg,
+                        },
+                    );
                 },
                 (sym::filter, [arg]) => {
                     if let Some((sym::cloned, recv2, [], _span2, _)) = method_call(recv) {
@@ -5546,10 +5571,15 @@ impl Methods {
                 (sym::open, [_]) => {
                     open_options::check(cx, expr, recv);
                 },
-                (sym::or_else, [arg]) =>
-                {
+                (sym::or_else, [arg]) => {
                     #[expect(clippy::collapsible_match)]
-                    if !bind_instead_of_map::check_or_else_err(cx, expr, recv, arg) {
+                    if !bind_instead_of_map::check_or_else_err(bind_instead_of_map::CheckSite {
+                        cx,
+                        expr: expr.span,
+                        recv,
+                        method_name: span,
+                        arg,
+                    }) {
                         unnecessary_lazy_eval::check(cx, expr, recv, arg, "or");
                     }
                 },

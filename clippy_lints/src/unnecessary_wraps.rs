@@ -135,13 +135,13 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryWraps {
                         snippet(cx, arg.span.source_callsite(), "..").to_string()
                     },
                 ));
-                true
+                Ok(())
             } else {
-                false
+                Err(())
             }
         });
 
-        if can_sugg && !suggs.is_empty() {
+        if can_sugg.is_ok() && !suggs.is_empty() {
             let (lint_msg, return_type_sugg_msg, return_type_sugg, body_sugg_msg) = if inner_type.is_unit() {
                 (
                     "this function's return value is unnecessary".to_string(),
