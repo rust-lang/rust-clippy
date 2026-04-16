@@ -260,6 +260,7 @@ mod needless_ifs;
 mod needless_late_init;
 mod needless_maybe_sized;
 mod needless_parens_on_range_literals;
+mod needless_partial_cmp;
 mod needless_pass_by_ref_mut;
 mod needless_pass_by_value;
 mod needless_question_mark;
@@ -869,6 +870,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(move |_| Box::new(manual_noop_waker::ManualNoopWaker::new(conf))),
         Box::new(|_| Box::new(byte_char_slices::ByteCharSlice)),
         Box::new(|_| Box::new(manual_assert_eq::ManualAssertEq)),
+        Box::new(|_| Box::new(needless_partial_cmp::NeedlessPartialCmp)),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);

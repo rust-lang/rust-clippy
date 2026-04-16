@@ -1,0 +1,17 @@
+error: partial_cmp called when cmp is implemented
+  --> tests/ui/needless_partial_cmp.rs:17:15
+   |
+LL |     let _ = a.partial_cmp(&b);
+   |               ^^^^^^^^^^^^^^^ help: consider writing (note the change in return type): `cmp(&b)`
+   |
+   = note: `-D clippy::needless-partial-cmp` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::needless_partial_cmp)]`
+
+error: partial_cmp called when cmp is implemented
+  --> tests/ui/needless_partial_cmp.rs:20:10
+   |
+LL |     if a.partial_cmp(&b).is_some() {}
+   |          ^^^^^^^^^^^^^^^ help: consider writing (note the change in return type): `cmp(&b)`
+
+error: aborting due to 2 previous errors
+
