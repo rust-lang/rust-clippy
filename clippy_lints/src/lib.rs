@@ -184,6 +184,7 @@ mod large_stack_frames;
 mod legacy_numeric_constants;
 mod len_without_is_empty;
 mod len_zero;
+mod collapsible_tuple_let;
 mod let_if_seq;
 mod let_underscore;
 mod let_with_type_underscore;
@@ -729,6 +730,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
             Box::new(move |tcx| Box::new(format_args::FormatArgs::new(tcx, conf, format_args.clone())))
         },
         Box::new(|_| Box::new(trailing_empty_array::TrailingEmptyArray)),
+        Box::new(|_| Box::new(collapsible_tuple_let::CollapsibleTupleLet)),
         Box::new(|_| Box::new(needless_late_init::NeedlessLateInit)),
         Box::new(|_| Box::new(return_self_not_must_use::ReturnSelfNotMustUse)),
         Box::new(|_| Box::new(init_numbered_fields::NumberedFields)),
