@@ -268,6 +268,7 @@ mod needless_ifs;
 mod needless_late_init;
 mod needless_maybe_sized;
 mod needless_parens_on_range_literals;
+mod needless_partial_cmp;
 mod needless_pass_by_ref_mut;
 mod needless_pass_by_value;
 mod needless_question_mark;
@@ -871,6 +872,7 @@ rustc_lint::late_lint_methods!(
         RestWhenDestructuringStruct: rest_when_destructuring_struct::RestWhenDestructuringStruct = rest_when_destructuring_struct::RestWhenDestructuringStruct,
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
+	NeedlessPartialCmp: needless_partial_cmp::NeedlessPartialCmp = needless_partial_cmp::NeedlessPartialCmp,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
