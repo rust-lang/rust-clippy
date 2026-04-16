@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::snippet;
+use clippy_utils::source::{snippet, snippet_indent};
 use clippy_utils::visitors::is_local_used;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
@@ -191,6 +191,10 @@ fn check<'tcx>(cx: &LateContext<'tcx>, local: &'tcx LetStmt<'tcx>) {
         return;
     };
 
+    // Determine the indentation of the original statement so that continuation
+    // lines in the multi-line suggestion are aligned with the first line.
+    let indent = snippet_indent(cx, parent_stmt.span).unwrap_or_default();
+
     // Build the multi-line replacement: one `let pi = rhs;` per outer binding
     let mut parts: Vec<String> = Vec::with_capacity(outer_pats.len());
     for (pat, elem) in outer_pats.iter().zip(tup_elems.iter()) {
@@ -210,7 +214,9 @@ fn check<'tcx>(cx: &LateContext<'tcx>, local: &'tcx LetStmt<'tcx>) {
         parts.push(format!("let {pat_snip} = {rhs_snip};"));
     }
 
-    let replacement = parts.join("\n");
+    // Join with newlines, prepending indentation to all lines after the first
+    // (the first line's indentation is provided by the surrounding source).
+    let replacement = parts.join(&format!("\n{indent}"));
 
     span_lint_and_then(
         cx,
