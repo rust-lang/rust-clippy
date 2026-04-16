@@ -8,6 +8,11 @@ document.
 
 [df995e...master](https://github.com/rust-lang/rust-clippy/compare/df995e...master)
 
+### New Lints
+
+* Added [`collapsible_tuple_let`] to `style`
+  [#16750](https://github.com/rust-lang/rust-clippy/pull/16750)
+
 ## Rust 1.95
 
 Current stable, released 2026-04-16
