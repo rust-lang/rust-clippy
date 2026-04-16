@@ -1,5 +1,11 @@
 //@aux-build:proc_macros.rs
-#![allow(clippy::no_effect, unused, clippy::single_match, invalid_nan_comparisons, clippy::matches_with_unrelated_if)]
+#![allow(
+    clippy::no_effect,
+    unused,
+    clippy::single_match,
+    invalid_nan_comparisons,
+    clippy::matches_with_unrelated_if
+)]
 #![warn(clippy::redundant_guards)]
 
 #[macro_use]

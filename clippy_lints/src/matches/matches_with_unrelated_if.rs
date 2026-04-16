@@ -9,7 +9,12 @@ use super::MATCHES_WITH_UNRELATED_IF;
 
 /// Checks for `matches!(expr, Pattern if guard)` where `guard` does not use any
 /// variable bound by `Pattern`.
-pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, ex: &'tcx Expr<'tcx>, arms: &'tcx [Arm<'tcx>]) {
+pub(super) fn check<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'tcx>,
+    ex: &'tcx Expr<'tcx>,
+    arms: &'tcx [Arm<'tcx>],
+) {
     // Only fire inside a `matches!` macro call
     if is_direct_expn_of(expr.span, sym::matches).is_none() {
         return;
