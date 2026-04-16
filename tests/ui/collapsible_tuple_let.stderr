@@ -34,10 +34,8 @@ LL +     let b = other();
 error: this block can be collapsed into individual `let` statements
   --> tests/ui/collapsible_tuple_let.rs:39:5
    |
-LL | /     let (a, b) = {
-LL | |         (side_effect(), other())
-LL | |     };
-   | |______^
+LL |     let (a, b) = { (side_effect(), other()) };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 help: collapse into separate `let` bindings
    |
@@ -46,7 +44,7 @@ LL +     let b = other();
    |
 
 error: this block can be collapsed into individual `let` statements
-  --> tests/ui/collapsible_tuple_let.rs:46:5
+  --> tests/ui/collapsible_tuple_let.rs:44:5
    |
 LL | /     let (a, b, c) = {
 LL | |         let x = 1i32;
@@ -63,7 +61,7 @@ LL +     let c = 3i32;
    |
 
 error: this block can be collapsed into individual `let` statements
-  --> tests/ui/collapsible_tuple_let.rs:56:5
+  --> tests/ui/collapsible_tuple_let.rs:54:5
    |
 LL | /     let (_, b) = {
 LL | |         let x = side_effect();

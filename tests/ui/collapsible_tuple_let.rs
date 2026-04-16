@@ -36,10 +36,8 @@ fn lint_one_block_local_one_inline() {
 
 fn lint_only_inline() {
     // No block-locals at all — block is still unnecessary
-    let (a, b) = {
-        (side_effect(), other())
-    };
-    //~^^^ collapsible_tuple_let
+    let (a, b) = { (side_effect(), other()) };
+    //~^ collapsible_tuple_let
 }
 
 fn lint_three_elements() {

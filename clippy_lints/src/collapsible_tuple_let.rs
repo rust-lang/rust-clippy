@@ -56,8 +56,8 @@ fn check<'tcx>(cx: &LateContext<'tcx>, local: &'tcx LetStmt<'tcx>) {
         return;
     }
 
-    // 3. Each outer tuple element must be a simple irrefutable pattern
-    //    (plain binding or wildcard) to avoid generating refutable patterns
+    // 3. Each outer tuple element must be a simple irrefutable pattern (plain binding or wildcard) to
+    //    avoid generating refutable patterns
     if !outer_pats
         .iter()
         .all(|p| matches!(p.kind, PatKind::Binding(_, _, _, None) | PatKind::Wild))
@@ -115,13 +115,12 @@ fn check<'tcx>(cx: &LateContext<'tcx>, local: &'tcx LetStmt<'tcx>) {
     // 8. Collect block-local HirIds for fast lookup
     let block_local_ids: Vec<HirId> = block_locals.iter().map(|(id, _)| *id).collect();
 
-    // 9. Walk the tuple elements to verify:
-    //    a) Each block-local referenced in the tuple appears exactly once
-    //    b) Block-local references appear in declaration order (to preserve evaluation order)
-    //    c) Inline expressions (non-block-local) do not reference any block-local
-    //    d) All block-local references precede any inline expressions in the tuple
-    //       (so that moving block-local inits to their tuple positions doesn't reorder
-    //       side effects relative to inline expressions that come after them)
+    // 9. Walk the tuple elements to verify: a) Each block-local referenced in the tuple appears exactly
+    //    once b) Block-local references appear in declaration order (to preserve evaluation order) c)
+    //    Inline expressions (non-block-local) do not reference any block-local d) All block-local
+    //    references precede any inline expressions in the tuple (so that moving block-local inits to
+    //    their tuple positions doesn't reorder side effects relative to inline expressions that come
+    //    after them)
     let mut block_local_used = vec![false; block_locals.len()];
     let mut next_expected_idx: usize = 0;
     let mut seen_inline = false;
@@ -167,8 +166,8 @@ fn check<'tcx>(cx: &LateContext<'tcx>, local: &'tcx LetStmt<'tcx>) {
         return;
     }
 
-    // 11. No block-local may be referenced in any other block statement's initializer.
-    //     (This ensures each block-local is used only in the trailing tuple.)
+    // 11. No block-local may be referenced in any other block statement's initializer. (This ensures
+    //     each block-local is used only in the trailing tuple.)
     for (id, _) in &block_locals {
         for stmt in block.stmts {
             if let StmtKind::Let(inner) = stmt.kind
