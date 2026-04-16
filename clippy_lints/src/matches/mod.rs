@@ -14,6 +14,7 @@ mod match_single_binding;
 mod match_str_case_mismatch;
 mod match_wild_enum;
 mod match_wild_err_arm;
+mod matches_with_unrelated_if;
 mod needless_match;
 mod overlapping_arms;
 mod redundant_guards;
@@ -552,6 +553,44 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for `matches!(expr, Pattern if guard)` where `guard` does not use any
+    /// variable bound by `Pattern`.
+    ///
+    /// ### Why is this bad?
+    /// The `if` guard creates an illusory connection between the pattern and the
+    /// condition. The guard is really an independent check and belongs outside the
+    /// `matches!` call. If the intent was to use a binding from the pattern inside
+    /// the guard, this lint also hints at a potential oversight.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// struct Foo;
+    /// impl Foo {
+    ///     fn foo(&self) -> Option<i32> { todo!() }
+    ///     fn is_bar(&self) -> bool { todo!() }
+    /// }
+    ///
+    /// let f = Foo;
+    /// let _ = matches!(f.foo(), Some(_) if f.is_bar());
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # struct Foo;
+    /// # impl Foo {
+    /// #     fn foo(&self) -> Option<i32> { todo!() }
+    /// #     fn is_bar(&self) -> bool { todo!() }
+    /// # }
+    /// # let f = Foo;
+    /// let _ = matches!(f.foo(), Some(_)) && f.is_bar();
+    /// ```
+    #[clippy::version = "1.88.0"]
+    pub MATCHES_WITH_UNRELATED_IF,
+    style,
+    "`if` guard in `matches!` that does not use any variable from the pattern"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for wildcard enum matches for a single variant.
     ///
     /// ### Why is this bad?
@@ -1024,6 +1063,7 @@ impl_lint_pass!(Matches => [
     MATCH_STR_CASE_MISMATCH,
     MATCH_WILDCARD_FOR_SINGLE_VARIANTS,
     MATCH_WILD_ERR_ARM,
+    MATCHES_WITH_UNRELATED_IF,
     NEEDLESS_MATCH,
     REDUNDANT_GUARDS,
     REDUNDANT_PATTERN_MATCHING,
@@ -1064,6 +1104,7 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
             {
                 redundant_pattern_match::check_match(cx, expr, ex, arms);
                 redundant_pattern_match::check_matches_true(cx, expr, arm, ex);
+                matches_with_unrelated_if::check(cx, expr, ex, arms);
             }
 
             if source == MatchSource::Normal && !is_span_match(cx, expr.span) {

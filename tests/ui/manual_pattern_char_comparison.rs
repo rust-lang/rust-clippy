@@ -1,4 +1,5 @@
 #![warn(clippy::manual_pattern_char_comparison)]
+#![allow(clippy::matches_with_unrelated_if)]
 
 struct NotStr;
 
