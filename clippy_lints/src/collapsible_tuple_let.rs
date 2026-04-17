@@ -42,6 +42,7 @@ impl<'tcx> LateLintPass<'tcx> for CollapsibleTupleLet {
     }
 }
 
+#[allow(clippy::too_many_lines)]
 fn check<'tcx>(cx: &LateContext<'tcx>, local: &'tcx LetStmt<'tcx>) {
     // 1. Outer pattern must be a tuple with no rest pattern (`..`)
     let PatKind::Tuple(outer_pats, rest) = local.pat.kind else {
@@ -125,7 +126,7 @@ fn check<'tcx>(cx: &LateContext<'tcx>, local: &'tcx LetStmt<'tcx>) {
     let mut next_expected_idx: usize = 0;
     let mut seen_inline = false;
 
-    for elem in tup_elems.iter() {
+    for elem in tup_elems {
         // Try to resolve the element as a direct path to a block-local
         let resolved_idx = if let ExprKind::Path(QPath::Resolved(None, path)) = elem.kind
             && let Res::Local(hir_id) = path.res
