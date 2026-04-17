@@ -387,3 +387,41 @@ fn nested_format_args_user() {
     nested_format_args!("val='{}'", local_i32);
     nested_format_args!("{:.1}", local_f64);
 }
+
+// issue #16833: #[clippy::format_args] macros that adapt arguments before forwarding
+use std::fmt;
+struct Adapter<T>(T);
+impl<T: fmt::Display> fmt::Display for Adapter<&T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+#[clippy::format_args]
+macro_rules! adapted_format_args {
+    // format-capture variant (e.g. `adapted_format_args!("{x}")`) — supports the inline fix
+    ($fmt:literal) => {
+        format_args!($fmt)
+    };
+    ($fmt:literal, $arg:expr) => {
+        format_args!($fmt, Adapter(&($arg)))
+    };
+}
+
+#[clippy::format_args]
+macro_rules! forwarding_adapted_format_args {
+    ($($args:tt)*) => {
+        adapted_format_args!($($args)*)
+    };
+}
+
+fn adapted_format_args_test() {
+    let x = 1_i32;
+    let _ = adapted_format_args!("{}", x);
+    //~^ uninlined_format_args
+    let _ = forwarding_adapted_format_args!("{}", x);
+    //~^ uninlined_format_args
+
+    // these should NOT lint (argument is not a simple variable)
+    let _ = adapted_format_args!("{}", x + 1);
+}
