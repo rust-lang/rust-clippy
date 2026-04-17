@@ -1,0 +1,11 @@
+error: called `Result::and` when the inner type also has an `and` method
+  --> tests/ui/result_and_inner_method.rs:18:13
+   |
+LL |     let _ = flags(0b0001).and(flags(0b1111));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use fully-qualified syntax to make the intent explicit: `Result::and(flags(0b0001), flags(0b1111))`
+   |
+   = note: `-D clippy::result-and-inner-method` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::result_and_inner_method)]`
+
+error: aborting due to 1 previous error
+
