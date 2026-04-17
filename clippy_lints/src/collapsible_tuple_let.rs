@@ -17,16 +17,16 @@ declare_clippy_lint! {
     /// each variable is cleaner and more idiomatic.
     ///
     /// ### Example
-    /// ```no_run
+    /// ```rust
     /// let (a, b) = {
-    ///     let x = some_call();
-    ///     (x, other_call())
+    ///     let x = 1_i32;
+    ///     (x, 2_i32)
     /// };
     /// ```
     /// Use instead:
-    /// ```no_run
-    /// let a = some_call();
-    /// let b = other_call();
+    /// ```rust
+    /// let a = 1_i32;
+    /// let b = 2_i32;
     /// ```
     #[clippy::version = "1.89.0"]
     pub COLLAPSIBLE_TUPLE_LET,
