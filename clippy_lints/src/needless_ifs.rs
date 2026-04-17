@@ -55,7 +55,7 @@ impl LateLintPass<'_> for NeedlessIfs {
                 // - comments
                 // - #[cfg]'d out code
                 src.bytes()
-                    .all(|ch| matches!(ch, b'{' | b'}') || ch.is_ascii_whitespace())
+                    .all(|ch| matches!(ch, b'{' | b'}') || ch.is_ascii_whitespace() || ch == b'\x0b')
             })
             && let Some(cond_span) = walk_span_to_context(cond.span, expr.span.ctxt())
             && let Some(cond_snippet) = cond_span.get_source_text(cx)

@@ -5,7 +5,8 @@
 #![allow(clippy::wildcard_imports, clippy::enum_glob_use)]
 
 use crate::{both, over};
-use rustc_ast::{self as ast, *};
+use rustc_ast::{self as ast, HasAttrs, *};
+use rustc_span::sym;
 use rustc_span::symbol::Ident;
 use std::mem;
 
@@ -339,6 +340,7 @@ pub fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
                 expr: le,
                 safety: ls,
                 define_opaque: _,
+                eii_impls: _,
             }),
             Static(box StaticItem {
                 ident: ri,
@@ -347,6 +349,7 @@ pub fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
                 expr: re,
                 safety: rs,
                 define_opaque: _,
+                eii_impls: _,
             }),
         ) => eq_id(*li, *ri) && lm == rm && ls == rs && eq_ty(lt, rt) && eq_expr_opt(le.as_deref(), re.as_deref()),
         (
@@ -540,6 +543,7 @@ pub fn eq_foreign_item_kind(l: &ForeignItemKind, r: &ForeignItemKind) -> bool {
                 expr: le,
                 safety: ls,
                 define_opaque: _,
+                eii_impls: _,
             }),
             Static(box StaticItem {
                 ident: ri,
@@ -548,6 +552,7 @@ pub fn eq_foreign_item_kind(l: &ForeignItemKind, r: &ForeignItemKind) -> bool {
                 expr: re,
                 safety: rs,
                 define_opaque: _,
+                eii_impls: _,
             }),
         ) => eq_id(*li, *ri) && eq_ty(lt, rt) && lm == rm && eq_expr_opt(le.as_deref(), re.as_deref()) && ls == rs,
         (
@@ -812,7 +817,7 @@ pub fn eq_const_item_rhs(l: &ConstItemRhsKind, r: &ConstItemRhsKind) -> bool {
 pub fn eq_use_tree_kind(l: &UseTreeKind, r: &UseTreeKind) -> bool {
     use UseTreeKind::*;
     match (l, r) {
-        (Glob, Glob) => true,
+        (Glob(_), Glob(_)) => true,
         (Simple(l), Simple(r)) => both(l.as_ref(), r.as_ref(), |l, r| eq_id(*l, *r)),
         (Nested { items: l, .. }, Nested { items: r, .. }) => over(l, r, |(l, _), (r, _)| eq_use_tree(l, r)),
         _ => false,
@@ -1039,4 +1044,18 @@ pub fn eq_delim_args(l: &DelimArgs, r: &DelimArgs) -> bool {
     l.delim == r.delim
         && l.tokens.len() == r.tokens.len()
         && l.tokens.iter().zip(r.tokens.iter()).all(|(a, b)| a.eq_unspanned(b))
+}
+
+/// Checks whether `#[cfg(test)]` is directly applied to `item`.
+pub fn is_cfg_test(item: &impl HasAttrs) -> bool {
+    item.attrs().iter().any(|attr| {
+        if attr.has_name(sym::cfg)
+            && let Some(item_list) = attr.meta_item_list()
+            && item_list.iter().any(|item| item.has_name(sym::test))
+        {
+            true
+        } else {
+            false
+        }
+    })
 }
