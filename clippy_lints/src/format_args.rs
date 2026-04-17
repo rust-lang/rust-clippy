@@ -580,8 +580,8 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
             let arg_span = var_span.with_lo(prev_hi);
             let replacement = match usage {
                 FormatParamUsage::Argument => var_name.to_string(),
-                FormatParamUsage::Width => format!("{}$", var_name),
-                FormatParamUsage::Precision => format!(".{}$", var_name),
+                FormatParamUsage::Width => format!("{var_name}$"),
+                FormatParamUsage::Precision => format!(".{var_name}$"),
             };
             fixes.push((pos_span, replacement));
             fixes.push((arg_span, String::new()));
