@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet;
 use clippy_utils::{is_direct_expn_of, sym};
 use rustc_errors::Applicability;
@@ -54,18 +54,13 @@ pub(super) fn check<'tcx>(
     let pat_snip = snippet(cx, arm.pat.span, "..");
     let guard_snip = snippet(cx, guard.span, "..");
 
-    span_lint_and_then(
+    span_lint_and_sugg(
         cx,
         MATCHES_WITH_UNRELATED_IF,
         call_site,
         "the `if` guard in `matches!` does not use any variable bound by the pattern",
-        |diag| {
-            diag.span_suggestion(
-                call_site,
-                "move the guard outside of `matches!`",
-                format!("matches!({scrutinee_snip}, {pat_snip}) && {guard_snip}"),
-                Applicability::MachineApplicable,
-            );
-        },
+        "move the guard outside of `matches!`",
+        format!("matches!({scrutinee_snip}, {pat_snip}) && {guard_snip}"),
+        Applicability::MachineApplicable,
     );
 }

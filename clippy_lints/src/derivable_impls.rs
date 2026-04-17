@@ -124,8 +124,7 @@ fn check_struct<'tcx>(
     let is_default_without_adjusts = |expr| {
         is_default_equivalent(cx, expr)
             && typeck_results.expr_adjustments(expr).iter().all(|adj| {
-                !matches!(adj.kind, Adjust::Pointer(PointerCoercion::Unsize)
-                    if contains_trait_object(adj.target))
+                !(matches!(adj.kind, Adjust::Pointer(PointerCoercion::Unsize)) && contains_trait_object(adj.target))
             })
     };
 
