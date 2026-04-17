@@ -251,6 +251,15 @@ fn main() {
     999999u64.clamp(0, 256) as u8;
     //~^ cast_possible_truncation
 
+    // usize masked to u32 range should not lint (issue #16854)
+    let y: usize = 100_000;
+    let _ = (y & u32::MAX as usize) as u32;
+    let _ = (y & 0xFFFF_FFFF_usize) as u32;
+    let _ = (y.saturating_sub(1) & u32::MAX as usize) as u32;
+    // unmasked usize should still lint
+    let _ = y as u32;
+    //~^ cast_possible_truncation
+
     #[derive(Clone, Copy)]
     enum E1 {
         A,

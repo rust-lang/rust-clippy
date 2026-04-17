@@ -23,7 +23,19 @@ fn constant_int(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<u128> {
 }
 
 fn get_constant_bits(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<u64> {
-    constant_int(cx, expr).map(|c| u64::from(128 - c.leading_zeros()))
+    // `ConstEvalCtxt` does not evaluate `ExprKind::Cast`, so peel through cast
+    // expressions to reach the underlying constant (e.g. `u32::MAX as usize`).
+    let mut cur = expr;
+    loop {
+        if let Some(c) = constant_int(cx, cur) {
+            return Some(u64::from(128 - c.leading_zeros()));
+        }
+        if let ExprKind::Cast(inner, _) = cur.kind {
+            cur = inner;
+        } else {
+            return None;
+        }
+    }
 }
 
 fn apply_reductions(cx: &LateContext<'_>, nbits: u64, expr: &Expr<'_>, signed: bool) -> u64 {
@@ -103,7 +115,7 @@ pub(super) fn check(
             let (should_lint, suffix) = match (is_isize_or_usize(cast_from), is_isize_or_usize(cast_to)) {
                 (true, true) | (false, false) => (to_nbits < from_nbits, ""),
                 (true, false) => (
-                    to_nbits <= 32,
+                    to_nbits <= 32 && from_nbits > to_nbits,
                     if to_nbits == 32 {
                         " on targets with 64-bit wide pointers"
                     } else {
