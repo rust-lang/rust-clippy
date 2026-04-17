@@ -78,8 +78,17 @@ fn has_span_from_proc_macro(cx: &EarlyContext<'_>, args: &FormatArgs) -> bool {
     !once(args.span)
         .chain(argument_span)
         .tuple_windows()
-        .map(|(start, end)| start.between(end))
-        .all(|sp| {
+        .map(|(start, end)| (start, start.between(end)))
+        .all(|(start, sp)| {
+            // When a `#[clippy::format_args]` macro adapts its arguments (e.g. wraps `x` in
+            // `Adapter(&x)`), `walk_chain` of the adapted arg's span may return the outer macro
+            // call span, which starts *before* `start`.  This produces an inverted/invalid
+            // between-span — not a proc-macro span issue, so treat it as valid.
+            // Only skip this for call-site format strings (!args.span.from_expansion()), so that
+            // macros like `concat!` which generate format strings from expansion are still caught.
+            if sp.lo() < start.hi() && !args.span.from_expansion() {
+                return true;
+            }
             sp.check_source_text(cx, |src| {
                 // text should be either `, name` or `, name =`
                 let mut iter = tokenize(src, FrontmatterAllowed::No).filter(|t| {
