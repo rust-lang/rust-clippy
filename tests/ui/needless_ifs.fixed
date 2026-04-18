@@ -21,7 +21,6 @@ fn maybe_side_effect() -> bool {
 }
 
 fn main() {
-    // Lint
     
     //~^ needless_ifs
     // Do not remove the condition
