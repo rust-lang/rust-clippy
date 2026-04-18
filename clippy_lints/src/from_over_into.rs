@@ -10,11 +10,11 @@ use rustc_errors::Applicability;
 use rustc_hir::intravisit::{Visitor, walk_path};
 use rustc_hir::{
     FnRetTy, GenericArg, GenericArgs, HirId, Impl, ImplItemId, ImplItemKind, Item, ItemKind, PatKind, Path,
-    PathSegment, Ty, TyKind,
+    PathSegment, Ty as HirTy, TyKind,
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter::OnlyBodies;
-use rustc_middle::ty;
+use rustc_middle::ty::{self, Ty};
 use rustc_session::impl_lint_pass;
 use rustc_span::symbol::{kw, sym};
 use rustc_span::{Span, Symbol};
@@ -165,7 +165,7 @@ impl<'tcx> Visitor<'tcx> for SelfFinder<'_, 'tcx> {
     }
 }
 
-fn has_blanket_from_impl<'tcx>(cx: &LateContext<'tcx>, self_ty: ty::Ty<'tcx>) -> bool {
+fn has_blanket_from_impl<'tcx>(cx: &LateContext<'tcx>, self_ty: Ty<'tcx>) -> bool {
     let Some(from_def_id) = cx.tcx.get_diagnostic_item(sym::From) else {
         return false;
     };
@@ -178,8 +178,8 @@ fn has_blanket_from_impl<'tcx>(cx: &LateContext<'tcx>, self_ty: ty::Ty<'tcx>) ->
 fn convert_to_from(
     cx: &LateContext<'_>,
     into_trait_seg: &PathSegment<'_>,
-    target_ty: &Ty<'_>,
-    self_ty: &Ty<'_>,
+    target_ty: &HirTy<'_>,
+    self_ty: &HirTy<'_>,
     impl_item_ref: ImplItemId,
 ) -> Option<Vec<(Span, String)>> {
     if !target_ty.find_self_aliases().is_empty() {
