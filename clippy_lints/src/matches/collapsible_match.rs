@@ -23,8 +23,9 @@ use super::{COLLAPSIBLE_MATCH, pat_contains_disallowed_or};
 
 pub(super) fn check_match<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, arms: &'tcx [Arm<'_>], msrv: Msrv) {
     if let Some(els_arm) = arms.iter().rfind(|arm| arm_is_wild_like(cx, arm)) {
+        let last_non_wildcard = arms.iter().rposition(|arm| !arm_is_wild_like(cx, arm));
         for (idx, arm) in arms.iter().enumerate() {
-            let only_wildcards_after = arms[idx + 1..].iter().all(|a| arm_is_wild_like(cx, a));
+            let only_wildcards_after = last_non_wildcard.is_none_or(|lnw| idx >= lnw);
             check_arm(
                 cx,
                 true,
