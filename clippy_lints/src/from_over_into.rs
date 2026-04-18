@@ -80,6 +80,8 @@ impl<'tcx> LateLintPass<'tcx> for FromOverInto {
             && cx.tcx.is_diagnostic_item(sym::Into, middle_trait_ref.def_id)
             && !matches!(middle_trait_ref.args.type_at(1).kind(), ty::Alias(ty::Opaque, _))
             && self.msrv.meets(cx, msrvs::RE_REBALANCING_COHERENCE)
+            // skip if there's a blanket From impl, the suggested impl would conflict
+            && !has_blanket_from_impl(cx, middle_trait_ref.self_ty())
         {
             span_lint_and_then(
                 cx,
@@ -161,6 +163,16 @@ impl<'tcx> Visitor<'tcx> for SelfFinder<'_, 'tcx> {
             ControlFlow::Continue(())
         }
     }
+}
+
+fn has_blanket_from_impl<'tcx>(cx: &LateContext<'tcx>, self_ty: ty::Ty<'tcx>) -> bool {
+    let Some(from_def_id) = cx.tcx.get_diagnostic_item(sym::From) else {
+        return false;
+    };
+    cx.tcx.all_impls(from_def_id).any(|impl_id| {
+        let impl_trait_ref = cx.tcx.impl_trait_ref(impl_id).instantiate_identity();
+        impl_trait_ref.self_ty() == self_ty && matches!(impl_trait_ref.args.type_at(1).kind(), ty::Param(_))
+    })
 }
 
 fn convert_to_from(
