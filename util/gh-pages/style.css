@@ -530,7 +530,6 @@ summary {
     }
 }
 
-html:not(.js) #settings-dropdown,
 html:not(.js) #menu-filters {
     display: none;
 }
