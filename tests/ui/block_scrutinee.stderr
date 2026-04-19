@@ -1,0 +1,23 @@
+error: scrutinee is wrapped in a block which will not drop temporaries until the end of the statement in this edition
+  --> tests/ui/block_scrutinee.rs:10:22
+   |
+LL |     if let Some(x) = { my_function() } {
+   |                      ^^^^^^^^^^^^^^^^^ help: remove the block: `my_function()`
+   |
+   = note: `-D clippy::block-scrutinee` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::block_scrutinee)]`
+
+error: scrutinee is wrapped in a block which will not drop temporaries until the end of the statement in this edition
+  --> tests/ui/block_scrutinee.rs:15:11
+   |
+LL |     match { my_function() } {
+   |           ^^^^^^^^^^^^^^^^^ help: remove the block: `my_function()`
+
+error: scrutinee is wrapped in a block which will not drop temporaries until the end of the statement in this edition
+  --> tests/ui/block_scrutinee.rs:23:25
+   |
+LL |     while let Some(x) = { v.pop() } {
+   |                         ^^^^^^^^^^^ help: remove the block: `v.pop()`
+
+error: aborting due to 3 previous errors
+
