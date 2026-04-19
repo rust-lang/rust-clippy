@@ -1,5 +1,5 @@
 error: multiple implementations of this structure
-  --> tests/ui/impl.rs:10:1
+  --> tests/ui/impl.rs:11:1
    |
 LL | / impl MyStruct {
 LL | |
@@ -9,7 +9,7 @@ LL | | }
    | |_^
    |
 note: first implementation here
-  --> tests/ui/impl.rs:6:1
+  --> tests/ui/impl.rs:7:1
    |
 LL | / impl MyStruct {
 LL | |     fn first() {}
@@ -19,7 +19,7 @@ LL | | }
    = help: to override `-D warnings` add `#[allow(clippy::multiple_inherent_impl)]`
 
 error: multiple implementations of this structure
-  --> tests/ui/impl.rs:16:1
+  --> tests/ui/impl.rs:17:1
    |
 LL | / impl<'a> MyStruct {
 LL | |
@@ -28,7 +28,7 @@ LL | | }
    | |_^
    |
 note: first implementation here
-  --> tests/ui/impl.rs:6:1
+  --> tests/ui/impl.rs:7:1
    |
 LL | / impl MyStruct {
 LL | |     fn first() {}
@@ -36,7 +36,7 @@ LL | | }
    | |_^
 
 error: multiple implementations of this structure
-  --> tests/ui/impl.rs:27:5
+  --> tests/ui/impl.rs:28:5
    |
 LL | /     impl super::MyStruct {
 LL | |
@@ -46,7 +46,7 @@ LL | |     }
    | |_____^
    |
 note: first implementation here
-  --> tests/ui/impl.rs:6:1
+  --> tests/ui/impl.rs:7:1
    |
 LL | / impl MyStruct {
 LL | |     fn first() {}
@@ -54,7 +54,7 @@ LL | | }
    | |_^
 
 error: multiple implementations of this structure
-  --> tests/ui/impl.rs:49:1
+  --> tests/ui/impl.rs:50:1
    |
 LL | / impl WithArgs<u64> {
 LL | |
@@ -64,7 +64,7 @@ LL | | }
    | |_^
    |
 note: first implementation here
-  --> tests/ui/impl.rs:46:1
+  --> tests/ui/impl.rs:47:1
    |
 LL | / impl WithArgs<u64> {
 LL | |     fn f2() {}
@@ -72,67 +72,67 @@ LL | | }
    | |_^
 
 error: multiple implementations of this structure
-  --> tests/ui/impl.rs:72:1
+  --> tests/ui/impl.rs:73:1
    |
 LL | impl OneAllowedImpl {}
    | ^^^^^^^^^^^^^^^^^^^^^^
    |
 note: first implementation here
-  --> tests/ui/impl.rs:69:1
+  --> tests/ui/impl.rs:70:1
    |
 LL | impl OneAllowedImpl {}
    | ^^^^^^^^^^^^^^^^^^^^^^
 
 error: multiple implementations of this structure
-  --> tests/ui/impl.rs:85:1
+  --> tests/ui/impl.rs:86:1
    |
 LL | impl OneExpected {}
    | ^^^^^^^^^^^^^^^^^^^
    |
 note: first implementation here
-  --> tests/ui/impl.rs:82:1
+  --> tests/ui/impl.rs:83:1
    |
 LL | impl OneExpected {}
    | ^^^^^^^^^^^^^^^^^^^
 
 error: multiple implementations of this structure
+  --> tests/ui/impl.rs:95:1
+   |
+LL | impl Lifetime<'_> {}
+   | ^^^^^^^^^^^^^^^^^^^^
+   |
+note: first implementation here
   --> tests/ui/impl.rs:94:1
    |
 LL | impl Lifetime<'_> {}
    | ^^^^^^^^^^^^^^^^^^^^
-   |
-note: first implementation here
-  --> tests/ui/impl.rs:93:1
-   |
-LL | impl Lifetime<'_> {}
-   | ^^^^^^^^^^^^^^^^^^^^
 
 error: multiple implementations of this structure
+  --> tests/ui/impl.rs:99:1
+   |
+LL | impl<'a> Lifetime<'a> {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: first implementation here
   --> tests/ui/impl.rs:98:1
    |
 LL | impl<'a> Lifetime<'a> {}
    | ^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-note: first implementation here
-  --> tests/ui/impl.rs:97:1
-   |
-LL | impl<'a> Lifetime<'a> {}
-   | ^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: multiple implementations of this structure
+  --> tests/ui/impl.rs:111:1
+   |
+LL | impl<G> Generic<G> {}
+   | ^^^^^^^^^^^^^^^^^^^^^
+   |
+note: first implementation here
   --> tests/ui/impl.rs:110:1
    |
 LL | impl<G> Generic<G> {}
    | ^^^^^^^^^^^^^^^^^^^^^
-   |
-note: first implementation here
-  --> tests/ui/impl.rs:109:1
-   |
-LL | impl<G> Generic<G> {}
-   | ^^^^^^^^^^^^^^^^^^^^^
 
 error: multiple implementations of this structure
-  --> tests/ui/impl.rs:124:1
+  --> tests/ui/impl.rs:125:1
    |
 LL | / impl<T: Debug> GenericWithBounds<T> {
 LL | |
@@ -143,7 +143,7 @@ LL | | }
    | |_^
    |
 note: first implementation here
-  --> tests/ui/impl.rs:118:1
+  --> tests/ui/impl.rs:119:1
    |
 LL | / impl<T: Debug> GenericWithBounds<T> {
 LL | |     fn make_one(_one: T) -> Self {
