@@ -1,5 +1,5 @@
 #![warn(clippy::manual_unwrap_or_default)]
-#![allow(clippy::unnecessary_literal_unwrap)]
+#![allow(clippy::unnecessary_literal_unwrap, clippy::concealed_obvious_default)]
 
 fn main() {
     let x: Option<Vec<String>> = None;

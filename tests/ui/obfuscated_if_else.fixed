@@ -3,7 +3,8 @@
     clippy::unnecessary_lazy_evaluations,
     clippy::unit_arg,
     clippy::unused_unit,
-    clippy::unwrap_or_default
+    clippy::unwrap_or_default,
+    clippy::concealed_obvious_default
 )]
 
 fn main() {

@@ -1,5 +1,6 @@
 //@aux-build:option_helpers.rs
 #![warn(clippy::manual_is_variant_and)]
+#![allow(clippy::concealed_obvious_default)]
 #![allow(clippy::redundant_closure)]
 
 #[macro_use]

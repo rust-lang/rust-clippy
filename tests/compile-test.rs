@@ -135,7 +135,7 @@ impl TestContext {
                         .map(str::to_string)
                         .collect()
                 })
-                .unwrap_or_default(),
+                .unwrap_or(vec![]),
             target: None,
             bless_command: Some(if IS_RUSTC_TEST_SUITE {
                 "./x test src/tools/clippy --bless".into()

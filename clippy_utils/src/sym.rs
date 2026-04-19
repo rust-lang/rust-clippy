@@ -408,6 +408,7 @@ generate! {
     map_break,
     map_continue,
     map_or,
+    map_or_default,
     map_or_else,
     map_while,
     match_indices,
