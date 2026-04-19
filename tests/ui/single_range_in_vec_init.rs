@@ -42,11 +42,46 @@ fn main() {
     //~^ single_range_in_vec_init
     vec![0..200isize];
     //~^ single_range_in_vec_init
+    [0..=200];
+    //~^ single_range_in_vec_init
+    vec![0..=200];
+    //~^ single_range_in_vec_init
+    [0u8..=200];
+    //~^ single_range_in_vec_init
+    vec![0u8..=200];
+    //~^ single_range_in_vec_init
+    [0usize..=200];
+    //~^ single_range_in_vec_init
+    vec![0usize..=200];
+    //~^ single_range_in_vec_init
+    [0..=200usize];
+    //~^ single_range_in_vec_init
+    vec![0..=200usize];
+    //~^ single_range_in_vec_init
+    [0..=200isize];
+    //~^ single_range_in_vec_init
+    vec![0..=200isize];
+    //~^ single_range_in_vec_init
+    [..200usize];
+    //~^ single_range_in_vec_init
+    vec![..200usize];
+    //~^ single_range_in_vec_init
+    [..=200usize];
+    //~^ single_range_in_vec_init
+    vec![..=200usize];
+    //~^ single_range_in_vec_init
+
     // Do not lint
     [0..200, 0..100];
     vec![0..200, 0..100];
     [0.0..200.0];
     vec![0.0..200.0];
+    // RangeFrom is infinite
+    [0usize..];
+    vec![0usize..];
+    // Non-range values
+    [200];
+    vec![200];
     // `Copy` is not implemented for `Range`, so this doesn't matter
     // FIXME: [0..200; 2];
     // FIXME: [vec!0..200; 2];
