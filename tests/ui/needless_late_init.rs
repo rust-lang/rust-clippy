@@ -188,6 +188,7 @@ fn does_not_lint() {
     let x;
     let y;
     if true {
+        //~^ needless_late_init
         x = 1;
         y = 2;
     } else {
@@ -195,8 +196,8 @@ fn does_not_lint() {
         y = 4;
     }
 
-    // could match with a smarter heuristic to avoid multiple assignments
     let x;
+    //~^ needless_late_init
     if true {
         let mut y = 5;
         y = 6;
@@ -298,4 +299,77 @@ fn issue9895() {
     let r;
     //~^ needless_late_init
     (r = 5);
+}
+
+fn if_or_match_in_block_expr() {
+    let z;
+    //~^ needless_late_init
+    if true {
+        z = 1;
+    } else {
+        z = 2;
+    }
+}
+
+fn issue16330() {
+    let a;
+    let b;
+    if true {
+        //~^ needless_late_init
+        a = 1;
+        b = 2;
+    } else {
+        a = 3;
+        b = 4;
+    }
+
+    let a;
+    let mut b = 1;
+    let c;
+    if true {
+        b = 1;
+        a = 2;
+        c = 3;
+    } else {
+        b = 6;
+        a = 4;
+        c = 5;
+    }
+
+    let b;
+    {
+        let a;
+        let c;
+        if true {
+            b = 1;
+            a = 2;
+            c = 3;
+        } else {
+            b = 6;
+            a = 4;
+            c = 5;
+        }
+    }
+
+    let a;
+    let b;
+    let c;
+    match 1 {
+        //~^ needless_late_init
+        1 => {
+            a = 1;
+            b = 2;
+            c = 3;
+        },
+        _ if false => {
+            a = 4;
+            b = 5;
+            c = 6;
+        },
+        _ => {
+            a = 7;
+            b = 8;
+            c = 9;
+        },
+    }
 }

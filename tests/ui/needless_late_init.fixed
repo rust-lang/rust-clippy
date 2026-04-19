@@ -185,25 +185,24 @@ fn does_not_lint() {
     };
 
     // using tuples would be possible, but not always preferable
-    let x;
-    let y;
-    if true {
-        x = 1;
-        y = 2;
+    
+    
+    let (x, y) = if true {
+        //~^ needless_late_init
+        (1, 2)
     } else {
-        x = 3;
-        y = 4;
-    }
+        (3, 4)
+    };
 
-    // could match with a smarter heuristic to avoid multiple assignments
-    let x;
-    if true {
+    
+    //~^ needless_late_init
+    let x = if true {
         let mut y = 5;
         y = 6;
-        x = y;
+        y
     } else {
-        x = 2;
-    }
+        2
+    };
 
     let (x, y);
     if true {
@@ -298,4 +297,69 @@ fn issue9895() {
     
     //~^ needless_late_init
     let r = 5;
+}
+
+fn if_or_match_in_block_expr() {
+    
+    //~^ needless_late_init
+    let z = if true {
+        1
+    } else {
+        2
+    };
+}
+
+fn issue16330() {
+    
+    
+    let (a, b) = if true {
+        //~^ needless_late_init
+        (1, 2)
+    } else {
+        (3, 4)
+    };
+
+    let a;
+    let mut b = 1;
+    let c;
+    if true {
+        b = 1;
+        a = 2;
+        c = 3;
+    } else {
+        b = 6;
+        a = 4;
+        c = 5;
+    }
+
+    let b;
+    {
+        let a;
+        let c;
+        if true {
+            b = 1;
+            a = 2;
+            c = 3;
+        } else {
+            b = 6;
+            a = 4;
+            c = 5;
+        }
+    }
+
+    
+    
+    
+    let (a, b, c) = match 1 {
+        //~^ needless_late_init
+        1 => {
+            (1, 2, 3)
+        },
+        _ if false => {
+            (4, 5, 6)
+        },
+        _ => {
+            (7, 8, 9)
+        },
+    };
 }
