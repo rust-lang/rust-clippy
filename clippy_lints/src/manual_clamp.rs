@@ -595,16 +595,17 @@ impl<'tcx> BinaryOp<'tcx> {
     }
 
     fn flip(&self) -> Self {
+        let Self { op, left, right } = self;
         Self {
-            op: match self.op {
+            op: match *op {
                 BinOpKind::Le => BinOpKind::Ge,
                 BinOpKind::Lt => BinOpKind::Gt,
                 BinOpKind::Ge => BinOpKind::Le,
                 BinOpKind::Gt => BinOpKind::Lt,
                 other => other,
             },
-            left: self.right,
-            right: self.left,
+            left: *right,
+            right: *left,
         }
     }
 }

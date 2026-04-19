@@ -1,7 +1,7 @@
 use crate::ClippyConfiguration;
 use crate::types::{
-    DisallowedPath, DisallowedPathWithoutReplacement, InherentImplLintScope, MacroMatcher, MatchLintBehaviour,
-    PubUnderscoreFieldsBehaviour, Rename, SourceItemOrdering, SourceItemOrderingCategory,
+    DestructuringScope, DisallowedPath, DisallowedPathWithoutReplacement, InherentImplLintScope, MacroMatcher,
+    MatchLintBehaviour, PubUnderscoreFieldsBehaviour, Rename, SourceItemOrdering, SourceItemOrderingCategory,
     SourceItemOrderingModuleItemGroupings, SourceItemOrderingModuleItemKind, SourceItemOrderingTraitAssocItemKind,
     SourceItemOrderingTraitAssocItemKinds, SourceItemOrderingWithinModuleItemGroupings,
 };
@@ -906,6 +906,14 @@ define_Conf! {
     /// Enables verbose mode. Triggers if there is more than one uppercase char next to each other
     #[lints(upper_case_acronyms)]
     upper_case_acronyms_aggressive: bool = false,
+    /// The minimum number of struct fields for the `use_destructuring` lint to trigger.
+    #[lints(use_destructuring)]
+    use_destructuring_min_fields: u64 = 3,
+    /// Which struct types the `use_destructuring` lint applies to:
+    /// `"self"` (only the `self` parameter), `"Self"` (any variable whose type
+    /// is `Self`), `"crate"` (types from the current crate), or `"*"` (all types).
+    #[lints(use_destructuring)]
+    use_destructuring_scope: DestructuringScope = DestructuringScope::SelfBinding,
     /// The size of the boxed type in bytes, where boxing in a `Vec` is allowed
     #[lints(vec_box)]
     vec_box_size_threshold: u64 = 4096,

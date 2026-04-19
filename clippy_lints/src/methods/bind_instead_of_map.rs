@@ -71,14 +71,19 @@ impl BindInsteadOfMap {
     }
 
     fn lint_msg(&self, cx: &LateContext<'_>) -> Option<String> {
-        let variant_id = cx.tcx.lang_items().get(self.variant_lang_item)?;
+        let Self {
+            variant_lang_item,
+            bad_method_name,
+            good_method_name,
+        } = self;
+        let variant_id = cx.tcx.lang_items().get(*variant_lang_item)?;
         let item_id = cx.tcx.parent(variant_id);
         Some(format!(
             "using `{}.{}(|x| {}(y))`, which is more succinctly expressed as `{}(|x| y)`",
             cx.tcx.item_name(item_id),
-            self.bad_method_name,
+            bad_method_name,
             cx.tcx.item_name(variant_id),
-            self.good_method_name,
+            good_method_name,
         ))
     }
 
