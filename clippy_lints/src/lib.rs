@@ -107,6 +107,7 @@ mod disallowed_macros;
 mod disallowed_methods;
 mod disallowed_names;
 mod disallowed_script_idents;
+mod disallowed_trait_usage;
 mod disallowed_types;
 mod doc;
 mod double_parens;
@@ -717,6 +718,16 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::new(bool_assert_comparison::BoolAssertComparison)),
         Box::new(|_| Box::<unused_async::UnusedAsync>::default()),
         Box::new(move |tcx| Box::new(disallowed_types::DisallowedTypes::new(tcx, conf))),
+        {
+            let format_args = format_args_storage.clone();
+            Box::new(move |tcx| {
+                Box::new(disallowed_trait_usage::DisallowedTraitUsage::new(
+                    tcx,
+                    conf,
+                    format_args.clone(),
+                ))
+            })
+        },
         Box::new(move |tcx| Box::new(missing_enforced_import_rename::ImportRename::new(tcx, conf))),
         Box::new(move |_| Box::new(strlen_on_c_strings::StrlenOnCStrings::new(conf))),
         Box::new(move |_| Box::new(self_named_constructors::SelfNamedConstructors)),
