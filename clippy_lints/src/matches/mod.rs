@@ -1,4 +1,5 @@
 mod collapsible_match;
+mod if_matches;
 mod infallible_destructuring_match;
 pub(crate) mod manual_filter;
 mod manual_map;
@@ -590,6 +591,36 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for `if matches!(..)` conditions that can be written using `if let`.
+    ///
+    /// ### Why restrict this?
+    /// Some codebases prefer `if let` for direct pattern matching in conditionals because it keeps
+    /// the pattern in the conditional form instead of wrapping it in `matches!`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # enum E { A, B }
+    /// # let value = E::A;
+    /// if matches!(value, E::A) {
+    ///     println!("A");
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # enum E { A, B }
+    /// # let value = E::A;
+    /// if let E::A = value {
+    ///     println!("A");
+    /// }
+    /// ```
+    #[clippy::version = "1.95.0"]
+    pub MATCHES_IF_LET,
+    restriction,
+    "`if matches!(..)` that can be written as `if let`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for unnecessary `match` or match-like `if let` returns for `Option` and `Result`
     /// when function signatures are the same.
     ///
@@ -1014,6 +1045,7 @@ impl_lint_pass!(Matches => [
     MANUAL_OK_ERR,
     MANUAL_UNWRAP_OR,
     MANUAL_UNWRAP_OR_DEFAULT,
+    MATCHES_IF_LET,
     MATCH_AS_REF,
     MATCH_BOOL,
     MATCH_LIKE_MATCHES_MACRO,
@@ -1059,9 +1091,10 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
         let from_expansion = expr.span.from_expansion();
 
         if let ExprKind::Match(ex, arms, source) = expr.kind {
-            if is_direct_expn_of(expr.span, sym::matches).is_some()
+            if let Some(matches_span) = is_direct_expn_of(expr.span, sym::matches)
                 && let [arm, _] = arms
             {
+                if_matches::check(cx, expr, matches_span, ex, arm, self.msrv);
                 redundant_pattern_match::check_match(cx, expr, ex, arms);
                 redundant_pattern_match::check_matches_true(cx, expr, arm, ex);
             }
