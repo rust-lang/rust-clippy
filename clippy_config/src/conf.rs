@@ -975,7 +975,9 @@ pub fn lookup_conf_file() -> io::Result<(Option<PathBuf>, Vec<String>)> {
 }
 
 fn deserialize(file: &SourceFile) -> TryConf {
-    match toml::de::Deserializer::new(file.src.as_ref().unwrap()).deserialize_map(ConfVisitor(file)) {
+    match toml::de::Deserializer::parse(file.src.as_ref().unwrap())
+        .and_then(|deserializer| deserializer.deserialize_map(ConfVisitor(file)))
+    {
         Ok(mut conf) => {
             extend_vec_if_indicator_present(&mut conf.conf.disallowed_names, DEFAULT_DISALLOWED_NAMES);
             extend_vec_if_indicator_present(&mut conf.conf.allowed_prefixes, DEFAULT_ALLOWED_PREFIXES);
