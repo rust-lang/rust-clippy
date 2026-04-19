@@ -5,7 +5,8 @@
     clippy::unnecessary_operation,
     clippy::no_effect,
     clippy::if_same_then_else,
-    clippy::needless_match
+    clippy::needless_match,
+    clippy::manual_min_max
 )]
 
 use std::cmp::{max as cmp_max, min as cmp_min};
