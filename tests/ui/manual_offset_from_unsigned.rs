@@ -1,0 +1,29 @@
+#![warn(clippy::manual_offset_from_unsigned)]
+#![allow(unused_unsafe, clippy::unnecessary_cast)]
+
+use std::ptr::NonNull;
+
+fn main() {
+    let s = "hello world";
+    let ptr1 = s.as_ptr();
+    let ptr2 = unsafe { ptr1.add(1) };
+
+    unsafe {
+        let _ = ptr2.offset_from(ptr1) as usize;
+        //~^ ERROR: manual conversion from `offset_from` to `usize`
+
+        let _ = ptr2.byte_offset_from(ptr1) as usize;
+        //~^ ERROR: manual conversion from `byte_offset_from` to `usize`
+
+        let _ = { ptr2.offset_from(ptr1) } as usize;
+        //~^ ERROR: manual conversion from `offset_from` to `usize`
+
+        let nn1 = NonNull::new_unchecked(ptr1 as *mut u8);
+        let nn2 = NonNull::new_unchecked(ptr2 as *mut u8);
+        let _ = nn2.offset_from(nn1) as usize;
+        //~^ ERROR: manual conversion from `offset_from` to `usize`
+    }
+
+    let _ = unsafe { ptr2.offset_from(ptr1) };
+    let _ = unsafe { ptr2.offset_from(ptr1) } as isize;
+}
