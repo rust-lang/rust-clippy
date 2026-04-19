@@ -636,10 +636,12 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for occurrences where one vector gets extended instead of append
+    /// Checks for use of `extend()` and `drain()` methods to transfer items from one `Vec`,
+    /// `VecDeque`, or `BinaryHeap` to another.
     ///
     /// ### Why is this bad?
-    /// Using `append` instead of `extend` is more concise and faster
+    /// Using `append()` instead of `extend()` is more concise, and faster because the
+    /// `append()` method can take advantage of knowledge of the collection’s structure.
     ///
     /// ### Example
     /// ```no_run
@@ -659,7 +661,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.55.0"]
     pub EXTEND_WITH_DRAIN,
     perf,
-    "using vec.append(&mut vec) to move the full range of a vector to another"
+    "use of `extend(other.drain())` to move the contents of a collection is inefficient"
 }
 
 declare_clippy_lint! {
