@@ -83,6 +83,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::cognitive_complexity::COGNITIVE_COMPLEXITY_INFO,
     crate::collapsible_if::COLLAPSIBLE_ELSE_IF_INFO,
     crate::collapsible_if::COLLAPSIBLE_IF_INFO,
+    crate::collapsible_tuple_let::COLLAPSIBLE_TUPLE_LET_INFO,
     crate::collection_is_never_read::COLLECTION_IS_NEVER_READ_INFO,
     crate::comparison_chain::COMPARISON_CHAIN_INFO,
     crate::copy_iterator::COPY_ITERATOR_INFO,
