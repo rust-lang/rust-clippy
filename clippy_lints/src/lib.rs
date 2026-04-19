@@ -208,6 +208,7 @@ mod manual_is_ascii_check;
 mod manual_is_power_of_two;
 mod manual_let_else;
 mod manual_main_separator_str;
+mod manual_min_max;
 mod manual_non_exhaustive;
 mod manual_noop_waker;
 mod manual_option_as_slice;
@@ -757,6 +758,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(move |_| Box::new(manual_rem_euclid::ManualRemEuclid::new(conf))),
         Box::new(move |_| Box::new(manual_retain::ManualRetain::new(conf))),
         Box::new(move |_| Box::new(manual_rotate::ManualRotate)),
+        Box::new(|_| Box::new(manual_min_max::ManualMinMax)),
         Box::new(move |_| Box::new(operators::Operators::new(conf))),
         Box::new(move |_| Box::new(std_instead_of_core::StdReexports::new(conf))),
         Box::new(move |_| Box::new(time_subtraction::UncheckedTimeSubtraction::new(conf))),
