@@ -85,6 +85,7 @@ mod needless_option_as_deref;
 mod needless_option_take;
 mod new_ret_no_self;
 mod no_effect_replace;
+mod non_canonical_float_cmp;
 mod obfuscated_if_else;
 mod ok_expect;
 mod open_options;
@@ -2712,6 +2713,67 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    ///
+    /// Checks for manual attempts to force a total ordering on floating-point numbers by
+    /// using `.partial_cmp(..).unwrap_or(Ordering)`.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// Floating-point numbers do not have a total order by default because of [`NaN`] values
+    /// and the existence of both `-0.0` and `0.0`.
+    ///
+    /// When developers use `.unwrap_or(..)` with [`partial_cmp`], they are usually trying to
+    /// implement a total order manually, likely because they do not know about the existence
+    /// of [`total_cmp`].
+    ///
+    /// However, such an attempt can never produce a correct total order.
+    ///
+    /// For example, if a comparison function is given `(1.0, NaN)` to compare, then,
+    /// regardless of which [`Ordering`] it returns (other than `Equal`), it must return
+    /// the opposite ordering for `(NaN, 1.0)`, which use of `unwrap_or()` cannot do.
+    ///
+    /// In contexts like sorting or searching (e.g., `BTreeMap`), such
+    /// an inconsistent ordering function can lead to non-deterministic results,
+    /// infinite loops, or panics.
+    ///
+    /// While sorting is the most common place this pattern appears, it also affects
+    /// any logic relying on a stable comparison, such as finding a minimum/maximum
+    /// value in a collection.
+    ///
+    /// ### Known problems
+    ///
+    /// - Performance: On some architectures (like x86), `total_cmp` *may* be
+    ///   slightly slower than hardware-accelerated float comparisons if the values
+    ///   are already in floating-point registers.
+    ///
+    /// - Semantic Change: `total_cmp` considers `-0.0` to be strictly less than `0.0`.
+    ///   If your logic relies on them being equal (the default behavior of `==`),
+    ///   this lint's suggestion will change your program's behavior.
+    ///
+    /// ### Example
+    ///
+    /// ```ignore
+    /// vec.sort_by(|a, b| a.partial_cmp(b).unwrap_or(cmp::Ordering::Equal));
+    /// ```
+    ///
+    /// Use instead:
+    ///
+    /// ```ignore
+    /// vec.sort_by(|a, b| a.total_cmp(b));
+    /// ```
+    ///
+    /// [`Ordering`]: https://doc.rust-lang.org/std/cmp/enum.Ordering.html
+    /// [`NaN`]: https://en.wikipedia.org/wiki/NaN
+    /// [`partial_cmp`]: https://doc.rust-lang.org/std/cmp/trait.PartialOrd.html#tymethod.partial_cmp
+    /// [`total_cmp`]: https://doc.rust-lang.org/std/primitive.f64.html#method.total_cmp
+    #[clippy::version = "1.97.0"]
+    pub NON_CANONICAL_TOTAL_FLOAT_CMP,
+    suspicious,
+    "non-canonical total float comparison which is likely a mistake"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for duplicate open options as well as combinations
     /// that make no sense.
     ///
@@ -4869,6 +4931,7 @@ impl_lint_pass!(Methods => [
     NEEDLESS_SPLITN,
     NEW_RET_NO_SELF,
     NONSENSICAL_OPEN_OPTIONS,
+    NON_CANONICAL_TOTAL_FLOAT_CMP,
     NO_EFFECT_REPLACE,
     OBFUSCATED_IF_ELSE,
     OK_EXPECT,
@@ -5688,6 +5751,9 @@ impl Methods {
                         },
                         Some((sym::map, m_recv, [m_arg], span, _)) => {
                             map_unwrap_or::check(cx, expr, m_recv, m_arg, recv, u_arg, span, self.msrv);
+                        },
+                        Some((sym::partial_cmp, m_recv, [m_arg], _, _)) => {
+                            non_canonical_float_cmp::check(cx, expr, m_recv, m_arg, u_arg);
                         },
                         Some((then_method @ (sym::then | sym::then_some), t_recv, [t_arg], _, _)) => {
                             obfuscated_if_else::check(
