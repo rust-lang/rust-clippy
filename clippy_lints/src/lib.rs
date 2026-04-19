@@ -354,6 +354,7 @@ mod tests_outside_test_module;
 mod time_subtraction;
 mod to_digit_is_some;
 mod to_string_trait_impl;
+mod too_many_lines_in_file;
 mod toplevel_ref_arg;
 mod trailing_empty_array;
 mod trait_bounds;
@@ -517,6 +518,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|| Box::new(field_scoped_visibility_modifiers::FieldScopedVisibilityModifiers)),
         Box::new(|| Box::new(cfg_not_test::CfgNotTest)),
         Box::new(|| Box::new(empty_line_after::EmptyLineAfter::new())),
+        Box::new(move || Box::new(too_many_lines_in_file::TooManyLinesInFile::new(conf))),
         // add early passes here, used by `cargo dev new_lint`
     ];
     store.early_passes.extend(early_lints);

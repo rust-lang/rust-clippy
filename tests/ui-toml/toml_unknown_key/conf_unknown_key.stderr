@@ -83,6 +83,7 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            third-party
            too-large-for-stack
            too-many-arguments-threshold
+           too-many-lines-in-file-threshold
            too-many-lines-threshold
            trait-assoc-item-kinds-order
            trivial-copy-size-limit
@@ -184,6 +185,7 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            third-party
            too-large-for-stack
            too-many-arguments-threshold
+           too-many-lines-in-file-threshold
            too-many-lines-threshold
            trait-assoc-item-kinds-order
            trivial-copy-size-limit
@@ -285,6 +287,7 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            third-party
            too-large-for-stack
            too-many-arguments-threshold
+           too-many-lines-in-file-threshold
            too-many-lines-threshold
            trait-assoc-item-kinds-order
            trivial-copy-size-limit
