@@ -203,6 +203,7 @@ generate! {
     cyclomatic_complexity,
     de,
     debug_struct,
+    dedup_by,
     deprecated_in_future,
     deref_mut_method,
     diagnostics,
