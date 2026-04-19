@@ -1,0 +1,85 @@
+error: calling `clear` and then `shrink_to_fit`
+  --> tests/ui/clear_then_shrink.rs:14:5
+   |
+LL | /     v.clear();
+LL | |
+LL | |     v.shrink_to_fit();
+   | |______________________^ help: consider using: `std::mem::take(&mut v);`
+   |
+   = note: `-D clippy::clear-then-shrink` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::clear_then_shrink)]`
+
+error: calling `clear` and then `shrink_to_fit`
+  --> tests/ui/clear_then_shrink.rs:19:5
+   |
+LL | /     v.clear();
+LL | |
+LL | |     v.shrink_to_fit();
+   | |______________________^ help: consider using: `std::mem::take(v);`
+
+error: calling `clear` and then `shrink_to_fit`
+  --> tests/ui/clear_then_shrink.rs:24:5
+   |
+LL | /     deque.clear();
+LL | |
+LL | |     deque.shrink_to_fit();
+   | |__________________________^ help: consider using: `std::mem::take(&mut deque);`
+
+error: calling `clear` and then `shrink_to_fit`
+  --> tests/ui/clear_then_shrink.rs:29:5
+   |
+LL | /     s.clear();
+LL | |
+LL | |     s.shrink_to_fit();
+   | |______________________^ help: consider using: `std::mem::take(&mut s);`
+
+error: calling `clear` and then `shrink_to_fit`
+  --> tests/ui/clear_then_shrink.rs:34:5
+   |
+LL | /     path.clear();
+LL | |
+LL | |     path.shrink_to_fit();
+   | |_________________________^ help: consider using: `std::mem::take(&mut path);`
+
+error: calling `clear` and then `shrink_to_fit`
+  --> tests/ui/clear_then_shrink.rs:39:5
+   |
+LL | /     os.clear();
+LL | |
+LL | |     os.shrink_to_fit();
+   | |_______________________^ help: consider using: `std::mem::take(&mut os);`
+
+error: calling `clear` and then `shrink_to_fit`
+  --> tests/ui/clear_then_shrink.rs:44:5
+   |
+LL | /     map.clear();
+LL | |
+LL | |     map.shrink_to_fit();
+   | |________________________^ help: consider using: `std::mem::take(&mut map);`
+
+error: calling `clear` and then `shrink_to_fit`
+  --> tests/ui/clear_then_shrink.rs:49:5
+   |
+LL | /     set.clear();
+LL | |
+LL | |     set.shrink_to_fit();
+   | |________________________^ help: consider using: `std::mem::take(&mut set);`
+
+error: calling `clear` and then `shrink_to_fit`
+  --> tests/ui/clear_then_shrink.rs:54:5
+   |
+LL | /     heap.clear();
+LL | |
+LL | |     heap.shrink_to_fit();
+   | |_________________________^ help: consider using: `std::mem::take(&mut heap);`
+
+error: calling `clear` and then `shrink_to_fit`
+  --> tests/ui/clear_then_shrink.rs:82:5
+   |
+LL | /     v.clear();
+LL | |
+LL | |     v.shrink_to_fit();
+   | |______________________^ help: consider using: `std::mem::take(&mut v);`
+
+error: aborting due to 10 previous errors
+
