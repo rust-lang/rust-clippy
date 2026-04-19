@@ -202,6 +202,16 @@ fn main() {
     let _ = slice.iter().copied();
     //~^ unnecessary_to_owned
 
+    
+    require_slice(slice);
+    //~^ unnecessary_to_owned
+
+    
+    require_slice(slice);
+    //~^ unnecessary_to_owned
+
+    let _ = takes_slice_tail_expr(slice);
+
     let _ = check_files(&[FileType::Account]);
 
     // negative tests
@@ -213,6 +223,30 @@ fn main() {
     // `X` isn't copy.
     require_slice(&x.to_owned());
     require_deref_slice(x.to_owned());
+
+    let copy = x.to_owned();
+    require_slice(&copy);
+
+    let copy = slice.to_vec();
+    let _ = 1;
+    require_slice(&copy);
+
+    let mut copy = slice.to_vec();
+    require_slice(&copy);
+
+    let copy = slice.to_vec();
+    require_slice(&copy);
+    require_slice(&copy);
+
+    let copy = slice.to_vec();
+    for _ in 0..2 {
+        require_slice(&copy);
+    }
+
+    let copy = slice.to_vec();
+    let f = || require_slice(&copy);
+    f();
+    f();
 
     // The following should be flagged by `redundant_clone`, but not by this lint.
     require_c_str(&CString::from_vec_with_nul(vec![0]).unwrap());
@@ -254,6 +288,16 @@ fn require_os_str(_: &OsStr) {}
 fn require_path(_: &std::path::Path) {}
 fn require_str(_: &str) {}
 fn require_slice<T>(_: &[T]) {}
+fn takes_slice<T>(values: &[T]) -> usize {
+    values.len()
+}
+
+fn takes_slice_tail_expr(values: &[&str]) -> usize {
+    
+    takes_slice(values)
+    //~^ unnecessary_to_owned
+}
+
 fn require_x(_: &X) {}
 
 fn require_deref_c_str<T: Deref<Target = CStr>>(_: T) {}
@@ -413,6 +457,31 @@ mod issue_8759_variant {
     fn main() {
         let mut rw = RenderWindow::default();
         rw.set_view(&rw.default_view().to_owned());
+    }
+}
+
+mod issue_8759_local_binding {
+    #![allow(dead_code)]
+
+    #[derive(Clone, Default)]
+    struct View {}
+
+    #[derive(Default)]
+    struct RenderWindow {
+        default_view: View,
+    }
+
+    impl RenderWindow {
+        fn default_view(&self) -> &View {
+            &self.default_view
+        }
+        fn set_view(&mut self, _view: &View) {}
+    }
+
+    fn main() {
+        let mut rw = RenderWindow::default();
+        let view = rw.default_view().to_owned();
+        rw.set_view(&view);
     }
 }
 
