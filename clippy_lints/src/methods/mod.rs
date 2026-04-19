@@ -102,6 +102,7 @@ mod read_line_without_trim;
 mod readonly_write_lock;
 mod redundant_as_str;
 mod repeat_once;
+mod result_and_inner_method;
 mod result_map_or_else_none;
 mod return_and_then;
 mod search_is_some;
@@ -3275,6 +3276,45 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for calls to `Result::and` when the `Ok` inner type has an
+    /// inherent method also named `and`.
+    ///
+    /// ### Why is this bad?
+    /// `Result::and` discards the first `Ok` value and returns the second
+    /// `Result`. When the inner type also has `and`, the call is likely a
+    /// mistake: the programmer probably intended to call the inner type's
+    /// `and` method but forgot to unwrap with `?`.
+    ///
+    /// ### Example
+    /// ```rust
+    /// #[derive(Clone, Copy)]
+    /// struct Flags(u8);
+    /// impl Flags {
+    ///     fn and(self, other: Self) -> Self { Self(self.0 & other.0) }
+    /// }
+    /// fn flags(x: u8) -> Result<Flags, ()> { Ok(Flags(x)) }
+    /// // Calls Result::and — discards the first Ok value entirely
+    /// let _ = flags(0b0001).and(flags(0b1111));
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// #[derive(Clone, Copy)]
+    /// struct Flags(u8);
+    /// impl Flags {
+    ///     fn and(self, other: Self) -> Self { Self(self.0 & other.0) }
+    /// }
+    /// fn flags(x: u8) -> Result<Flags, ()> { Ok(Flags(x)) }
+    /// // Explicit: calls Result::and
+    /// let _ = Result::and(flags(0b0001), flags(0b1111));
+    /// ```
+    #[clippy::version = "1.89.0"]
+    pub RESULT_AND_INNER_METHOD,
+    suspicious,
+    "calling `Result::and` when the inner type has an inherent `and` method"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for iterators of `Result`s using `.filter(Result::is_ok).map(Result::unwrap)` that may
     /// be replaced with a `.flatten()` call.
     ///
@@ -4888,6 +4928,7 @@ impl_lint_pass!(Methods => [
     REDUNDANT_AS_STR,
     REDUNDANT_ITER_CLONED,
     REPEAT_ONCE,
+    RESULT_AND_INNER_METHOD,
     RESULT_FILTER_MAP,
     RESULT_MAP_OR_INTO_OPTION,
     RETURN_AND_THEN,
@@ -5145,6 +5186,9 @@ impl Methods {
                         },
                         _ => {},
                     }
+                },
+                (sym::and, [arg]) => {
+                    result_and_inner_method::check(cx, expr, recv, arg);
                 },
                 (sym::and_then, [arg]) => {
                     manual_option_zip::check(cx, expr, recv, arg, self.msrv);
