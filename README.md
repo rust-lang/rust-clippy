@@ -229,7 +229,17 @@ disallowed-names = ["bar", ".."] # -> ["bar", "foo", "baz", "quux"]
 
 > **Note**
 >
-> `clippy.toml` or `.clippy.toml` cannot be used to allow/deny lints.
+> To configure lint levels in `clippy.toml`, use the `[lints.clippy]` table,
+> which supports the same format as `Cargo.toml`. For example:
+>
+> ```toml
+> [lints.clippy]
+> needless_return = "allow"
+> single_match = { level = "warn", priority = 5 }
+>
+> [lints.rust]
+> dead_code = "allow"
+> ```
 
 To deactivate the “for further information visit *lint-link*” message you can
 define the `CLIPPY_DISABLE_DOCS_LINKS` environment variable.
