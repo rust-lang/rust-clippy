@@ -1,0 +1,329 @@
+error: precision has no effect for type `u8`
+  --> tests/ui/unused_format_precision.rs:6:15
+   |
+LL |     println!("{:.1}", 42_u8);
+   |               ^^^^^
+   |
+   = note: `-D clippy::unused-format-precision` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unused_format_precision)]`
+
+error: precision has no effect for type `u8`
+  --> tests/ui/unused_format_precision.rs:7:15
+   |
+LL |     println!("{:.1?}", 42_u8);
+   |               ^^^^^^
+
+error: precision has no effect for type `u8`
+  --> tests/ui/unused_format_precision.rs:8:15
+   |
+LL |     println!("{v:.1}");
+   |               ^^^^^^
+
+error: precision has no effect for type `u8`
+  --> tests/ui/unused_format_precision.rs:9:15
+   |
+LL |     println!("{:.1}", &v);
+   |               ^^^^^
+
+error: precision has no effect for type `u8`
+  --> tests/ui/unused_format_precision.rs:12:15
+   |
+LL |     println!("{:.prec$}", 42_u8);
+   |               ^^^^^^^^^
+
+error: precision has no effect for type `u8`
+  --> tests/ui/unused_format_precision.rs:13:15
+   |
+LL |     println!("{0:.1$}", 42_u8, prec);
+   |               ^^^^^^^
+
+error: precision has no effect for type `u8`
+  --> tests/ui/unused_format_precision.rs:14:15
+   |
+LL |     println!("{:.*}", prec, 42_u8);
+   |               ^^^^^
+
+error: precision has no effect for type `u8`
+  --> tests/ui/unused_format_precision.rs:15:15
+   |
+LL |     println!("{:.prec$?}", 42_u8);
+   |               ^^^^^^^^^^
+
+error: precision has no effect for type `u8`
+  --> tests/ui/unused_format_precision.rs:16:15
+   |
+LL |     println!("{v:.prec$}");
+   |               ^^^^^^^^^^
+
+error: precision has no effect for type `u8`
+  --> tests/ui/unused_format_precision.rs:17:15
+   |
+LL |     println!("{:.prec$}", &v);
+   |               ^^^^^^^^^
+
+error: precision has no effect for type `i8`
+  --> tests/ui/unused_format_precision.rs:20:15
+   |
+LL |     println!("{:.1}", 42_i8);
+   |               ^^^^^
+
+error: precision has no effect for type `i8`
+  --> tests/ui/unused_format_precision.rs:21:15
+   |
+LL |     println!("{:.1?}", 42_i8);
+   |               ^^^^^^
+
+error: precision has no effect for type `i8`
+  --> tests/ui/unused_format_precision.rs:22:15
+   |
+LL |     println!("{v:.1}");
+   |               ^^^^^^
+
+error: precision has no effect for type `i8`
+  --> tests/ui/unused_format_precision.rs:23:15
+   |
+LL |     println!("{:.1}", &v);
+   |               ^^^^^
+
+error: precision has no effect for type `u16`
+  --> tests/ui/unused_format_precision.rs:26:15
+   |
+LL |     println!("{:.1}", 42_u16);
+   |               ^^^^^
+
+error: precision has no effect for type `u16`
+  --> tests/ui/unused_format_precision.rs:27:15
+   |
+LL |     println!("{:.1?}", 42_u16);
+   |               ^^^^^^
+
+error: precision has no effect for type `u16`
+  --> tests/ui/unused_format_precision.rs:28:15
+   |
+LL |     println!("{v:.1}");
+   |               ^^^^^^
+
+error: precision has no effect for type `u16`
+  --> tests/ui/unused_format_precision.rs:29:15
+   |
+LL |     println!("{:.1}", &v);
+   |               ^^^^^
+
+error: precision has no effect for type `i16`
+  --> tests/ui/unused_format_precision.rs:32:15
+   |
+LL |     println!("{:.1}", 42_i16);
+   |               ^^^^^
+
+error: precision has no effect for type `i16`
+  --> tests/ui/unused_format_precision.rs:33:15
+   |
+LL |     println!("{:.1?}", 42_i16);
+   |               ^^^^^^
+
+error: precision has no effect for type `i16`
+  --> tests/ui/unused_format_precision.rs:34:15
+   |
+LL |     println!("{v:.1}");
+   |               ^^^^^^
+
+error: precision has no effect for type `i16`
+  --> tests/ui/unused_format_precision.rs:35:15
+   |
+LL |     println!("{:.1}", &v);
+   |               ^^^^^
+
+error: precision has no effect for type `u32`
+  --> tests/ui/unused_format_precision.rs:38:15
+   |
+LL |     println!("{:.1}", 42_u32);
+   |               ^^^^^
+
+error: precision has no effect for type `u32`
+  --> tests/ui/unused_format_precision.rs:39:15
+   |
+LL |     println!("{:.1?}", 42_u32);
+   |               ^^^^^^
+
+error: precision has no effect for type `u32`
+  --> tests/ui/unused_format_precision.rs:40:15
+   |
+LL |     println!("{v:.1}");
+   |               ^^^^^^
+
+error: precision has no effect for type `u32`
+  --> tests/ui/unused_format_precision.rs:41:15
+   |
+LL |     println!("{:.1}", &v);
+   |               ^^^^^
+
+error: precision has no effect for type `i32`
+  --> tests/ui/unused_format_precision.rs:44:15
+   |
+LL |     println!("{:.1}", 42_i32);
+   |               ^^^^^
+
+error: precision has no effect for type `i32`
+  --> tests/ui/unused_format_precision.rs:45:15
+   |
+LL |     println!("{:.1?}", 42_i32);
+   |               ^^^^^^
+
+error: precision has no effect for type `i32`
+  --> tests/ui/unused_format_precision.rs:46:15
+   |
+LL |     println!("{v:.1}");
+   |               ^^^^^^
+
+error: precision has no effect for type `i32`
+  --> tests/ui/unused_format_precision.rs:47:15
+   |
+LL |     println!("{:.1}", &v);
+   |               ^^^^^
+
+error: precision has no effect for type `u64`
+  --> tests/ui/unused_format_precision.rs:50:15
+   |
+LL |     println!("{:.1}", 42_u64);
+   |               ^^^^^
+
+error: precision has no effect for type `u64`
+  --> tests/ui/unused_format_precision.rs:51:15
+   |
+LL |     println!("{:.1?}", 42_u64);
+   |               ^^^^^^
+
+error: precision has no effect for type `u64`
+  --> tests/ui/unused_format_precision.rs:52:15
+   |
+LL |     println!("{v:.1}");
+   |               ^^^^^^
+
+error: precision has no effect for type `u64`
+  --> tests/ui/unused_format_precision.rs:53:15
+   |
+LL |     println!("{:.1}", &v);
+   |               ^^^^^
+
+error: precision has no effect for type `i64`
+  --> tests/ui/unused_format_precision.rs:56:15
+   |
+LL |     println!("{:.1}", 42_i64);
+   |               ^^^^^
+
+error: precision has no effect for type `i64`
+  --> tests/ui/unused_format_precision.rs:57:15
+   |
+LL |     println!("{:.1?}", 42_i64);
+   |               ^^^^^^
+
+error: precision has no effect for type `i64`
+  --> tests/ui/unused_format_precision.rs:58:15
+   |
+LL |     println!("{v:.1}");
+   |               ^^^^^^
+
+error: precision has no effect for type `i64`
+  --> tests/ui/unused_format_precision.rs:59:15
+   |
+LL |     println!("{:.1}", &v);
+   |               ^^^^^
+
+error: precision has no effect for type `usize`
+  --> tests/ui/unused_format_precision.rs:62:15
+   |
+LL |     println!("{:.1}", 42_usize);
+   |               ^^^^^
+
+error: precision has no effect for type `usize`
+  --> tests/ui/unused_format_precision.rs:63:15
+   |
+LL |     println!("{:.1?}", 42_usize);
+   |               ^^^^^^
+
+error: precision has no effect for type `usize`
+  --> tests/ui/unused_format_precision.rs:64:15
+   |
+LL |     println!("{v:.1}");
+   |               ^^^^^^
+
+error: precision has no effect for type `usize`
+  --> tests/ui/unused_format_precision.rs:65:15
+   |
+LL |     println!("{:.1}", &v);
+   |               ^^^^^
+
+error: precision has no effect for type `isize`
+  --> tests/ui/unused_format_precision.rs:68:15
+   |
+LL |     println!("{:.1}", 42_isize);
+   |               ^^^^^
+
+error: precision has no effect for type `isize`
+  --> tests/ui/unused_format_precision.rs:69:15
+   |
+LL |     println!("{:.1?}", 42_isize);
+   |               ^^^^^^
+
+error: precision has no effect for type `isize`
+  --> tests/ui/unused_format_precision.rs:70:15
+   |
+LL |     println!("{v:.1}");
+   |               ^^^^^^
+
+error: precision has no effect for type `isize`
+  --> tests/ui/unused_format_precision.rs:71:15
+   |
+LL |     println!("{:.1}", &v);
+   |               ^^^^^
+
+error: precision has no effect for type `char`
+  --> tests/ui/unused_format_precision.rs:74:15
+   |
+LL |     println!("{:.1}", 'x');
+   |               ^^^^^
+
+error: precision has no effect for type `char`
+  --> tests/ui/unused_format_precision.rs:75:15
+   |
+LL |     println!("{:.1?}", 'x');
+   |               ^^^^^^
+
+error: precision has no effect for type `char`
+  --> tests/ui/unused_format_precision.rs:76:15
+   |
+LL |     println!("{v:.1}");
+   |               ^^^^^^
+
+error: precision has no effect for type `char`
+  --> tests/ui/unused_format_precision.rs:77:15
+   |
+LL |     println!("{:.1}", &v);
+   |               ^^^^^
+
+error: precision has no effect for type `*const u8`
+  --> tests/ui/unused_format_precision.rs:80:15
+   |
+LL |     println!("{:.1p}", 0x123456789 as *const u8);
+   |               ^^^^^^
+
+error: precision has no effect for type `*const usize`
+  --> tests/ui/unused_format_precision.rs:81:15
+   |
+LL |     println!("{v:.1p}");
+   |               ^^^^^^^
+
+error: precision has no effect for type `fn()`
+  --> tests/ui/unused_format_precision.rs:85:15
+   |
+LL |     println!("{:.1p}", dummy as fn());
+   |               ^^^^^^
+
+error: precision has no effect for type `fn()`
+  --> tests/ui/unused_format_precision.rs:86:15
+   |
+LL |     println!("{v:.1p}");
+   |               ^^^^^^^
+
+error: aborting due to 54 previous errors
+

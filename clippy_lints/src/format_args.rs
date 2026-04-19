@@ -228,6 +228,26 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for format precision for standard non-float types where it has no effect
+    /// (integers, bool, char, pointers). Precision is meaningful for floats, `str` (truncation), or user types.
+    ///
+    /// ### Why is this bad?
+    /// Specifying precision for these types is misleading and may indicate a bug. The value is ignored by the formatter.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// println!("{:.5}", 42);   // precision ignored for integers
+    /// println!("{:.3}", true); // precision ignored for bool
+    /// println!("{:.2}", 'x');  // precision ignored for char
+    /// ```
+    #[clippy::version = "1.95.0"]
+    pub UNUSED_FORMAT_PRECISION,
+    correctness,
+    "precision has no effect for this type"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Detects [formatting parameters] that have no effect on the output of
     /// `format!()`, `println!()` or similar macros.
     ///
@@ -292,6 +312,7 @@ impl_lint_pass!(FormatArgs<'_> => [
     UNINLINED_FORMAT_ARGS,
     UNNECESSARY_DEBUG_FORMATTING,
     UNNECESSARY_TRAILING_COMMA,
+    UNUSED_FORMAT_PRECISION,
     UNUSED_FORMAT_SPECS,
     USELESS_BORROWS_IN_FORMATTING,
 ]);
@@ -392,6 +413,7 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                 && let Some(arg_expr) = find_format_arg_expr(self.expr, arg)
             {
                 self.check_unused_format_specifier(placeholder, arg_expr);
+                self.check_unused_format_precision(placeholder, arg_expr);
                 self.check_useless_borrows_in_formatting(placeholder, arg_expr);
 
                 // Check width and precision arguments the same way as the value
@@ -516,6 +538,26 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                         );
                     }
                 },
+            );
+        }
+    }
+
+    /// Lint when precision is specified but the argument type is a standard non-float type
+    /// (integer, bool, char, pointer) where precision has no effect.
+    fn check_unused_format_precision(&self, placeholder: &FormatPlaceholder, arg_expr: &Expr<'_>) {
+        if placeholder.format_options.precision.is_some()
+            && let Some(placeholder_span) = placeholder.span
+            && let ty = self.cx.typeck_results().expr_ty(arg_expr).peel_refs()
+            && matches!(
+                ty.kind(),
+                ty::Int(..) | ty::Uint(..) | ty::Char | ty::RawPtr(..) | ty::FnPtr(..)
+            )
+        {
+            span_lint(
+                self.cx,
+                UNUSED_FORMAT_PRECISION,
+                placeholder_span,
+                format!("precision has no effect for type `{ty}`"),
             );
         }
     }
