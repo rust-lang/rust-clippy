@@ -1,11 +1,30 @@
 error: this `if` can be collapsed into the outer `match`
-  --> tests/ui/collapsible_match_fixable.rs:8:13
+  --> tests/ui/collapsible_match_fixable.rs:11:13
+   |
+LL | /             if v > 0 {
+LL | |
+LL | |                 return Some(v);
+LL | |             }
+   | |_____________^
+   |
+   = note: `-D clippy::collapsible-match` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::collapsible_match)]`
+help: collapse nested if block
+   |
+LL ~         _ => {}
+LL ~         Some(v)
+LL ~             if v > 0 => {
+LL |
+LL |                 return Some(v);
+LL ~             }
+   |
+
+error: this `if` can be collapsed into the outer `match`
+  --> tests/ui/collapsible_match_fixable.rs:24:13
    |
 LL |             if s == 1 { s } else { 1 }
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: `-D clippy::collapsible-match` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::collapsible_match)]`
 help: collapse nested if block
    |
 LL ~         Some(s)
@@ -15,7 +34,7 @@ LL ~         ,
    |
 
 error: this `if` can be collapsed into the outer `match`
-  --> tests/ui/collapsible_match_fixable.rs:16:13
+  --> tests/ui/collapsible_match_fixable.rs:32:13
    |
 LL | /             (if s == 1 {
 LL | |
@@ -33,7 +52,7 @@ LL ~             },
    |
 
 error: this `if` can be collapsed into the outer `match`
-  --> tests/ui/collapsible_match_fixable.rs:26:13
+  --> tests/ui/collapsible_match_fixable.rs:42:13
    |
 LL |             if s == 1 { s } else { 1 }
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -46,5 +65,5 @@ LL |
 LL ~         ,
    |
 
-error: aborting due to 3 previous errors
+error: aborting due to 4 previous errors
 
