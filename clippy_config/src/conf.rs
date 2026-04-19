@@ -730,6 +730,9 @@ define_Conf! {
     /// The maximum number of bounds a trait can have to be linted
     #[lints(type_repetition_in_bounds)]
     max_trait_bounds: u64 = 3,
+    /// Whether to lint short method parameters in trait implementations even if they match that of the trait definition.
+    #[lints(min_ident_chars)]
+    min_ident_chars_check_trait_impl: bool = false,
     /// Minimum chars an ident can have, anything below or equal to this will be linted.
     #[lints(min_ident_chars)]
     min_ident_chars_threshold: u64 = 1,
