@@ -1,0 +1,59 @@
+error: manual implementation of `Ord::min`
+  --> tests/ui/manual_min_max.rs:9:13
+   |
+LL |     let _ = if a < b { a } else { b };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `min` instead: `a.min(b)`
+   |
+   = note: `-D clippy::manual-min-max` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_min_max)]`
+
+error: manual implementation of `Ord::min`
+  --> tests/ui/manual_min_max.rs:12:13
+   |
+LL |     let _ = if a <= b { a } else { b };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `min` instead: `a.min(b)`
+
+error: manual implementation of `Ord::min`
+  --> tests/ui/manual_min_max.rs:15:13
+   |
+LL |     let _ = if a > b { b } else { a };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `min` instead: `a.min(b)`
+
+error: manual implementation of `Ord::min`
+  --> tests/ui/manual_min_max.rs:18:13
+   |
+LL |     let _ = if a >= b { b } else { a };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `min` instead: `a.min(b)`
+
+error: manual implementation of `Ord::max`
+  --> tests/ui/manual_min_max.rs:22:13
+   |
+LL |     let _ = if a > b { a } else { b };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `max` instead: `a.max(b)`
+
+error: manual implementation of `Ord::max`
+  --> tests/ui/manual_min_max.rs:25:13
+   |
+LL |     let _ = if a >= b { a } else { b };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `max` instead: `a.max(b)`
+
+error: manual implementation of `Ord::max`
+  --> tests/ui/manual_min_max.rs:28:13
+   |
+LL |     let _ = if a < b { b } else { a };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `max` instead: `a.max(b)`
+
+error: manual implementation of `Ord::max`
+  --> tests/ui/manual_min_max.rs:31:13
+   |
+LL |     let _ = if a <= b { b } else { a };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `max` instead: `a.max(b)`
+
+error: manual implementation of `Ord::min`
+  --> tests/ui/manual_min_max.rs:35:13
+   |
+LL |     let _ = if a + 1 < b { a + 1 } else { b };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `min` instead: `(a + 1).min(b)`
+
+error: aborting due to 9 previous errors
+
