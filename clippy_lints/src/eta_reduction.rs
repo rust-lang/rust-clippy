@@ -6,6 +6,7 @@ use clippy_utils::usage::{local_used_after_expr, local_used_in};
 use clippy_utils::{get_path_from_caller_to_method_type, is_adjusted, is_no_std_crate};
 use rustc_abi::ExternAbi;
 use rustc_errors::Applicability;
+use rustc_hir::def_id::DefId;
 use rustc_hir::{BindingMode, Expr, ExprKind, FnRetTy, GenericArgs, Param, PatKind, QPath, Safety, TyKind, find_attr};
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_lint::{LateContext, LateLintPass};
@@ -266,6 +267,12 @@ fn check_closure<'tcx>(cx: &LateContext<'tcx>, outer_receiver: Option<&Expr<'tcx
             if let Some(method_def_id) = typeck.type_dependent_def_id(body.value.hir_id)
                 && !find_attr!(cx.tcx, method_def_id, TrackCaller(..))
                 && check_sig(closure_sig, cx.tcx.fn_sig(method_def_id).skip_binder().skip_binder())
+                // Do not lint when the method's crate has a duplicate name among the loaded
+                // external crates ("diamond dependency" / multiple crate versions). In that
+                // situation the path Clippy would generate (e.g. `ipnetwork::IpNetwork::ip`)
+                // resolves to the *wrong* version at the call site, producing a breaking
+                // suggestion. See <https://github.com/rust-lang/rust-clippy/issues/16788>.
+                && !is_method_from_ambiguous_crate(cx, method_def_id)
             {
                 let mut app = Applicability::MachineApplicable;
                 let generic_args = match path.args.and_then(GenericArgs::span_ext) {
@@ -384,4 +391,29 @@ fn has_late_bound_to_non_late_bound_regions(from_sig: FnSig<'_>, to_sig: FnSig<'
 fn ty_has_static(ty: Ty<'_>) -> bool {
     ty.walk()
         .any(|arg| matches!(arg.kind(), GenericArgKind::Lifetime(re) if re.is_static()))
+}
+
+/// Returns `true` when more than one external crate is loaded under the same name as
+/// `method_def_id`'s defining crate.
+///
+/// This detects the "diamond dependency" / multiple-crate-version scenario where two
+/// packages depend on different versions of the same library (e.g. `ipnetwork 0.20` and
+/// `ipnetwork 0.21`).  In that case the textual path Clippy would generate for the
+/// suggested replacement — such as `ipnetwork::IpNetwork::ip` — has no way to select
+/// the correct version: it will resolve to whichever version is *directly* depended on
+/// by the user's crate, which may differ from the version the method actually belongs to.
+/// Suppressing the lint avoids producing a suggestion that breaks the build.
+///
+/// For local methods this is never ambiguous, so we return `false` immediately.
+fn is_method_from_ambiguous_crate(cx: &LateContext<'_>, method_def_id: DefId) -> bool {
+    if method_def_id.is_local() {
+        return false;
+    }
+    let method_crate_name = cx.tcx.crate_name(method_def_id.krate);
+    cx.tcx
+        .crates(())
+        .iter()
+        .filter(|&&krate| cx.tcx.crate_name(krate) == method_crate_name)
+        .count()
+        > 1
 }
