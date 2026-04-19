@@ -275,9 +275,10 @@ fn pat_bindings_moved_or_mutated<'tcx>(cx: &LateContext<'tcx>, pat: &Pat<'tcx>, 
     }
 
     let mut candidates = delegate.moved;
-    if let Some(mutated) = mutated_variables(expr, cx) {
-        candidates.extend(mutated);
-    }
+    let Some(mutated) = mutated_variables(expr, cx) else {
+        return true;
+    };
+    candidates.extend(mutated);
 
     !pat.walk_short(|pat| {
         if let PatKind::Binding(_, hir_id, ..) = pat.kind
