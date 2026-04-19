@@ -1,6 +1,7 @@
 mod absurd_extreme_comparisons;
 mod assign_op_pattern;
 mod bit_mask;
+mod bitwise_not_zero;
 mod cmp_owned;
 mod const_comparisons;
 mod decimal_bitwise_operands;
@@ -174,6 +175,32 @@ declare_clippy_lint! {
     pub BAD_BIT_MASK,
     correctness,
     "expressions of the form `_ & mask == select` that will only ever return `true` or `false`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for `!0`.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// `!0` performs a bitwise NOT, which is equivalent to `{uint}::MAX`, which is clearer.
+    ///
+    /// ### Example
+    ///
+    /// ```no_run
+    /// !0_u32;
+    /// ```
+    ///
+    /// Can be equivalently written as:
+    ///
+    /// ```no_run
+    /// u32::MAX;
+    /// ```
+    #[clippy::version = "1.97.0"]
+    pub BITWISE_NOT_ZERO,
+    complexity,
+    "bitwise not on zero"
 }
 
 declare_clippy_lint! {
@@ -963,6 +990,7 @@ impl_lint_pass!(Operators => [
     ARITHMETIC_SIDE_EFFECTS,
     ASSIGN_OP_PATTERN,
     BAD_BIT_MASK,
+    BITWISE_NOT_ZERO,
     CMP_OWNED,
     DECIMAL_BITWISE_OPERANDS,
     DOUBLE_COMPARISONS,
@@ -1064,11 +1092,11 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                 assign_op_pattern::check(cx, e, lhs, rhs, self.msrv);
                 self_assignment::check(cx, e, lhs, rhs);
             },
-            ExprKind::Unary(op, arg) =>
-            {
-                #[expect(clippy::collapsible_match)]
+            ExprKind::Unary(op, arg) => {
                 if op == UnOp::Neg {
                     self.arithmetic_context.check_negate(cx, e, arg);
+                } else if op == UnOp::Not {
+                    self.arithmetic_context.check_not(cx, e, arg);
                 }
             },
             _ => (),

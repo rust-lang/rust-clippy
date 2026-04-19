@@ -172,7 +172,7 @@ fn is_min_or_max(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<MinMax> {
         }
         (minval, maxval)
     } else {
-        (0, if bits == 128 { !0 } else { (1 << bits) - 1 })
+        (0, if bits == 128 { u128::MAX } else { (1 << bits) - 1 })
     };
 
     let check_lit = |expr: &Expr<'_>, check_min: bool| {
