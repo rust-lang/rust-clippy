@@ -1,5 +1,5 @@
-// FIXME(f16_f128): const casting is not yet supported for these types. Add when available.
-
+#![feature(f128)]
+#![feature(f16)]
 #![warn(clippy::float_cmp)]
 #![allow(
     unused,
@@ -70,6 +70,10 @@ fn main() {
     ONE != 0.0; // no error, comparison with zero is ok
     twice(ONE) != ONE;
     ONE as f64 != 2.0;
+    //~^ float_cmp
+    ONE as f16 != 2.0;
+    //~^ float_cmp
+    ONE as f128 != 2.0;
     //~^ float_cmp
 
     ONE as f64 != 0.0; // no error, comparison with zero is ok
