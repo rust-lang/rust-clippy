@@ -1,0 +1,42 @@
+#![warn(clippy::matches_with_unrelated_if)]
+#![allow(unused, clippy::redundant_pattern_matching)]
+
+struct Foo;
+
+impl Foo {
+    fn foo(&self) -> Option<i32> {
+        todo!()
+    }
+    fn is_bar(&self) -> bool {
+        todo!()
+    }
+}
+
+fn main() {
+    let f = Foo;
+
+    // Should lint: guard uses `f`, not any variable from `Some(_)`
+    let _ = matches!(f.foo(), Some(_) if f.is_bar());
+    //~^ matches_with_unrelated_if
+
+    // Should lint: guard references `f`, not `x` from `Some(x)`
+    let _ = matches!(f.foo(), Some(x) if f.is_bar());
+    //~^ matches_with_unrelated_if
+
+    // Should lint: no bindings in pattern at all, guard uses outer var
+    let cond = true;
+    let _ = matches!(f.foo(), None if cond);
+    //~^ matches_with_unrelated_if
+
+    // Should NOT lint: guard uses `x` which is bound by the pattern
+    let _ = matches!(f.foo(), Some(x) if x > 0);
+
+    // Should NOT lint: guard uses `x` (by-ref binding)
+    let _ = matches!(f.foo(), Some(ref x) if x == &42);
+
+    // Should NOT lint: no guard
+    let _ = matches!(f.foo(), Some(_));
+
+    // Should NOT lint: guard uses both a binding and an outer var
+    let _ = matches!(f.foo(), Some(x) if x > 0 && f.is_bar());
+}

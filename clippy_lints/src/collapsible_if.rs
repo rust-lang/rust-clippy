@@ -320,7 +320,7 @@ pub(super) fn parens_around(expr: &Expr<'_>) -> Vec<(Span, String)> {
 fn span_extract_keyword(cx: &impl HasSession, span: Span, keyword: &str) -> Option<Span> {
     span.with_source_text(cx, |snippet| {
         tokenize_with_text(snippet)
-            .filter(|(t, s, _)| matches!(t, TokenKind::Ident if *s == keyword))
+            .filter(|(t, s, _)| matches!(t, TokenKind::Ident) && *s == keyword)
             .map(|(_, _, inner)| {
                 span.split_at(u32::try_from(inner.start).unwrap())
                     .1

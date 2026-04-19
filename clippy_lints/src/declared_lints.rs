@@ -343,6 +343,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::matches::MATCH_STR_CASE_MISMATCH_INFO,
     crate::matches::MATCH_WILD_ERR_ARM_INFO,
     crate::matches::MATCH_WILDCARD_FOR_SINGLE_VARIANTS_INFO,
+    crate::matches::MATCHES_WITH_UNRELATED_IF_INFO,
     crate::matches::NEEDLESS_MATCH_INFO,
     crate::matches::REDUNDANT_GUARDS_INFO,
     crate::matches::REDUNDANT_PATTERN_MATCHING_INFO,
