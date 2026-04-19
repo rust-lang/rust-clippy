@@ -1,0 +1,1 @@
+check-mutable-borrow-of-copy-in-tests = false
