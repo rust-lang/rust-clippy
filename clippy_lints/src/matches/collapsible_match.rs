@@ -24,7 +24,17 @@ use super::{COLLAPSIBLE_MATCH, pat_contains_disallowed_or};
 pub(super) fn check_match<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, arms: &'tcx [Arm<'_>], msrv: Msrv) {
     if let Some(els_arm) = arms.iter().rfind(|arm| arm_is_wild_like(cx, arm)) {
         for arm in arms {
-            check_arm(cx, true, arm.pat, expr, arm.body, arm.guard, Some(els_arm.body), msrv);
+            check_arm(
+                cx,
+                true,
+                arm.pat,
+                expr,
+                arm.body,
+                arm.guard,
+                Some(els_arm.body),
+                Some(els_arm.pat),
+                msrv,
+            );
         }
     }
 }
@@ -37,7 +47,7 @@ pub(super) fn check_if_let<'tcx>(
     let_expr: &'tcx Expr<'_>,
     msrv: Msrv,
 ) {
-    check_arm(cx, false, pat, let_expr, body, None, else_expr, msrv);
+    check_arm(cx, false, pat, let_expr, body, None, else_expr, None, msrv);
 }
 
 #[expect(clippy::too_many_arguments, clippy::too_many_lines)]
@@ -49,6 +59,7 @@ fn check_arm<'tcx>(
     outer_then_body: &'tcx Expr<'tcx>,
     outer_guard: Option<&'tcx Expr<'tcx>>,
     outer_else_body: Option<&'tcx Expr<'tcx>>,
+    outer_else_pat: Option<&'tcx Pat<'tcx>>,
     msrv: Msrv,
 ) {
     let inner_expr = peel_blocks_with_stmt(outer_then_body);
@@ -185,6 +196,15 @@ fn check_arm<'tcx>(
                 if let Some(else_inner) = inner.r#else {
                     let else_inner_span = inner.then.span.shrink_to_hi().to(else_inner.span);
                     sugg.push((else_inner_span, String::new()));
+                }
+
+                // When collapsing into a match guard, the guard doesn't count toward
+                // exhaustiveness. If the else arm's pattern is not a true wildcard
+                // (e.g. `None`), we must replace it with `_` to maintain exhaustiveness.
+                if let Some(els_pat) = outer_else_pat
+                    && !matches!(els_pat.kind, PatKind::Wild | PatKind::Binding(..))
+                {
+                    sugg.push((els_pat.span, "_".to_string()));
                 }
 
                 diag.multipart_suggestion("collapse nested if block", sugg, Applicability::MachineApplicable);
