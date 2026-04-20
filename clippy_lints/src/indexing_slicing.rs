@@ -245,15 +245,16 @@ fn check_range<'tcx>(
         return true;
     }
 
-    if let Some(help_msg) =
-        slice_range_kind(cx, cx.typeck_results().expr_ty(index).peel_refs()).and_then(|kind| match kind {
-            LangItem::Range | LangItem::RangeInclusiveStruct => Some(RANGE_HELP_MSG_BOUNDED),
-            LangItem::RangeFrom => Some(RANGE_HELP_MSG_FROM),
-            LangItem::RangeTo | LangItem::RangeToInclusive => Some(RANGE_HELP_MSG_TO),
-            _ => None,
-        })
+    if let Some(kind) = slice_range_kind(cx, cx.typeck_results().expr_ty(index).peel_refs())
+        && let help_msg = match kind {
+            LangItem::Range | LangItem::RangeInclusiveStruct => RANGE_HELP_MSG_BOUNDED,
+            LangItem::RangeFrom => RANGE_HELP_MSG_FROM,
+            LangItem::RangeTo | LangItem::RangeToInclusive => RANGE_HELP_MSG_TO,
+            _ => return,
+        }
     {
         // Range variable (not a literal), e.g., `let r = 0..5; slice[r]`
+        
         if allowed_in_tests {
             return true;
         }
