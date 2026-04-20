@@ -133,14 +133,19 @@ fn emit_lint(cx: &LateContext<'_>, expr: &Expr<'_>, vec_expr: &Expr<'_>, wrapper
         |diag| {
             let mut app = Applicability::MaybeIncorrect;
             let ctxt = expr.span.ctxt();
+
+            // Common case: we have a `Vec` that we can call `into_boxed_slice()` on. Generate the snippet
+            // which does so with the appropriate span to identify the Vec and constructs the target (wrapper)
+            // type from it too.
+            //
+            // e.g. `Rc::from(vec)` -> `Rc::new(vec.into_boxed_slice())`
             let vec_snippet = snippet_with_context(cx, vec_expr.span, ctxt, "<vec>", &mut app).0;
-            let inner_slice_span = let_ty_inner_slice_span(cx, expr);
-
             let expr_sugg = format!("{wrapper}::new({vec_snippet}.into_boxed_slice())");
-
             let mut sugg = vec![(expr.span, expr_sugg)];
-            // if `expr` is part of a let stmt with a type ascription,
-            // also fix the latter as part of the suggestion.
+
+            // if `expr` is part of a let stmt with a type ascription, also fix the latter as part of the
+            // suggestion.
+            let inner_slice_span = let_ty_inner_slice_span(cx, expr);
             if let Some(ty_span) = inner_slice_span {
                 let slice_snippet = snippet_with_context(cx, ty_span, ctxt, "_", &mut app).0;
                 sugg.push((ty_span, format!("Box<{slice_snippet}>")));
