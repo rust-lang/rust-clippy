@@ -125,34 +125,28 @@ impl<'tcx> LateLintPass<'tcx> for VecToRcSlice {
 }
 
 fn emit_lint(cx: &LateContext<'_>, expr: &Expr<'_>, vec_expr: &Expr<'_>, wrapper: &str) {
-    let mut app = Applicability::MaybeIncorrect;
-    let vec_snippet = snippet_with_context(cx, vec_expr.span, expr.span.ctxt(), "<vec>", &mut app).0;
-    let inner_slice_span = let_ty_inner_slice_span(cx, expr);
-
     span_lint_and_then(
         cx,
         VEC_TO_RC_SLICE,
         expr.span,
         format!("converting a `Vec<T>` to `{wrapper}<[T]>` copies all elements to a new allocation"),
         |diag| {
+            let mut app = Applicability::MaybeIncorrect;
+            let ctxt = expr.span.ctxt();
+            let vec_snippet = snippet_with_context(cx, vec_expr.span, ctxt, "<vec>", &mut app).0;
+            let inner_slice_span = let_ty_inner_slice_span(cx, expr);
+
             let expr_sugg = format!("{wrapper}::new({vec_snippet}.into_boxed_slice())");
 
+            let mut sugg = vec![(expr.span, expr_sugg)];
+            // if `expr` is part of a let stmt with a type ascription,
+            // also fix the latter as part of the suggestion.
             if let Some(ty_span) = inner_slice_span {
-                let mut applicability = Applicability::MachineApplicable;
-                let slice_snippet = snippet_with_context(cx, ty_span, ty_span.ctxt(), "_", &mut applicability).0;
-                diag.multipart_suggestion(
-                    format!("convert target type to `{wrapper}<Box<[T]>>`"),
-                    vec![(expr.span, expr_sugg), (ty_span, format!("Box<{slice_snippet}>"))],
-                    app,
-                );
-            } else {
-                diag.span_suggestion_verbose(
-                    expr.span,
-                    format!("convert target type to `{wrapper}<Box<[T]>>`"),
-                    expr_sugg,
-                    app,
-                );
+                let slice_snippet = snippet_with_context(cx, ty_span, ctxt, "_", &mut app).0;
+                sugg.push((ty_span, format!("Box<{slice_snippet}>")));
             }
+
+            diag.multipart_suggestion(format!("convert target type to `{wrapper}<Box<[T]>>`"), sugg, app);
         },
     );
 }
