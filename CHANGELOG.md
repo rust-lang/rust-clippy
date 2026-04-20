@@ -7404,6 +7404,7 @@ Released 2018-09-13
 [`vec_box`]: https://rust-lang.github.io/rust-clippy/master/index.html#vec_box
 [`vec_init_then_push`]: https://rust-lang.github.io/rust-clippy/master/index.html#vec_init_then_push
 [`vec_resize_to_zero`]: https://rust-lang.github.io/rust-clippy/master/index.html#vec_resize_to_zero
+[`vec_to_rc_slice`]: https://rust-lang.github.io/rust-clippy/master/index.html#vec_to_rc_slice
 [`verbose_bit_mask`]: https://rust-lang.github.io/rust-clippy/master/index.html#verbose_bit_mask
 [`verbose_file_reads`]: https://rust-lang.github.io/rust-clippy/master/index.html#verbose_file_reads
 [`volatile_composites`]: https://rust-lang.github.io/rust-clippy/master/index.html#volatile_composites
