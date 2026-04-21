@@ -419,7 +419,7 @@ impl ItemNameRepetitions {
             && name.chars().nth(item_name_chars + 1).is_some_and(|c| !c.is_numeric())
             && !check_enum_tuple_path_match(name, variant.data)
             // Equal name only check if config allows
-            && !(self.allow_exact_repetitions || name != item_name)
+            && !(self.allow_exact_repetitions && name == item_name)
         {
             span_lint_hir(
                 cx,
@@ -437,7 +437,7 @@ impl ItemNameRepetitions {
 
         if count_match_end(item_name, name).char_count == item_name_chars
             && !check_enum_tuple_path_match(name, variant.data)
-            && !(self.allow_exact_repetitions || name != item_name)
+            && !(self.allow_exact_repetitions && name == item_name)
         {
             span_lint_hir(
                 cx,
