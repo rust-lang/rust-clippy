@@ -17540,7 +17540,7 @@ println!("{}", s);
 </code></pre>
 </div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.89.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+useless_concat">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/useless_concat.rs#L12">View Source</a></div></div></article><article id="useless_conversion"><input id="label-useless_conversion" type="checkbox"><label for="label-useless_conversion"><h2 class="lint-title"><div class="panel-title-name" id="lint-useless_conversion">useless_conversion
 <a href="#useless_conversion" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-complexity">complexity</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
-<p>Checks for <code>Into</code>, <code>TryInto</code>, <code>From</code>, <code>TryFrom</code>, or <code>IntoIter</code> calls
+<p>Checks for <code>Into</code>, <code>TryInto</code>, <code>From</code>, <code>TryFrom</code>, or <code>IntoIterator</code> calls
 which uselessly convert to the same type.</p>
 <h3>Why is this bad?</h3>
 <p>Redundant code.</p>
