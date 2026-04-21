@@ -61,28 +61,53 @@ impl<'tcx> LateLintPass<'tcx> for ManualMinMax {
         let then_val = peel_blocks(then);
         let else_val = peel_blocks(else_expr);
 
-        // Determine which method to suggest; receiver is always lhs, arg is rhs.
+        // Determine which method to suggest and which expression is the receiver.
+        //
+        // The receiver must be the value returned in the equality/tie case, because
+        // `x.min(y)` and `x.max(y)` both return `x` when the two values are equal.
         //
         // Pattern table (A = lhs of comparison, B = rhs of comparison):
-        //   then=A, else=B, op=< or <=  → A.min(B)
-        //   then=B, else=A, op=> or >=  → A.min(B)
-        //   then=A, else=B, op=> or >=  → A.max(B)
-        //   then=B, else=A, op=< or <=  → A.max(B)
-        let method = match op.node {
-            BinOpKind::Lt | BinOpKind::Le => {
+        //   then=A, else=B, op=<  → B.min(A)  (else=B returned when a==b)
+        //   then=A, else=B, op=<= → A.min(B)  (then=A returned when a==b)
+        //   then=B, else=A, op=>  → A.min(B)  (else=A returned when a==b)
+        //   then=B, else=A, op=>= → B.min(A)  (then=B returned when a==b)
+        //   then=A, else=B, op=>  → B.max(A)  (else=B returned when a==b)
+        //   then=A, else=B, op=>= → A.max(B)  (then=A returned when a==b)
+        //   then=B, else=A, op=<  → A.max(B)  (else=A returned when a==b)
+        //   then=B, else=A, op=<= → B.max(A)  (then=B returned when a==b)
+        let (method, receiver_expr, arg_expr) = match op.node {
+            BinOpKind::Lt => {
                 if eq_expr_value(cx, lhs, then_val) && eq_expr_value(cx, rhs, else_val) {
-                    "min"
+                    ("min", rhs, lhs)
                 } else if eq_expr_value(cx, rhs, then_val) && eq_expr_value(cx, lhs, else_val) {
-                    "max"
+                    ("max", lhs, rhs)
                 } else {
                     return;
                 }
             },
-            BinOpKind::Gt | BinOpKind::Ge => {
+            BinOpKind::Le => {
+                if eq_expr_value(cx, lhs, then_val) && eq_expr_value(cx, rhs, else_val) {
+                    ("min", lhs, rhs)
+                } else if eq_expr_value(cx, rhs, then_val) && eq_expr_value(cx, lhs, else_val) {
+                    ("max", rhs, lhs)
+                } else {
+                    return;
+                }
+            },
+            BinOpKind::Gt => {
                 if eq_expr_value(cx, rhs, then_val) && eq_expr_value(cx, lhs, else_val) {
-                    "min"
+                    ("min", lhs, rhs)
                 } else if eq_expr_value(cx, lhs, then_val) && eq_expr_value(cx, rhs, else_val) {
-                    "max"
+                    ("max", rhs, lhs)
+                } else {
+                    return;
+                }
+            },
+            BinOpKind::Ge => {
+                if eq_expr_value(cx, rhs, then_val) && eq_expr_value(cx, lhs, else_val) {
+                    ("min", rhs, lhs)
+                } else if eq_expr_value(cx, lhs, then_val) && eq_expr_value(cx, rhs, else_val) {
+                    ("max", lhs, rhs)
                 } else {
                     return;
                 }
@@ -91,7 +116,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualMinMax {
         };
 
         // Only Ord types; floats implement PartialOrd but not Ord.
-        let ty = cx.typeck_results().expr_ty(lhs);
+        let ty = cx.typeck_results().expr_ty(receiver_expr);
         let is_ord = cx
             .tcx
             .get_diagnostic_item(sym::Ord)
@@ -100,8 +125,8 @@ impl<'tcx> LateLintPass<'tcx> for ManualMinMax {
             return;
         }
 
-        let receiver = Sugg::hir(cx, lhs, "..").maybe_paren();
-        let arg = Sugg::hir(cx, rhs, "..");
+        let receiver = Sugg::hir(cx, receiver_expr, "..").maybe_paren();
+        let arg = Sugg::hir(cx, arg_expr, "..");
         span_lint_and_sugg(
             cx,
             MANUAL_MIN_MAX,

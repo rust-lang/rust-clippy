@@ -6,7 +6,7 @@ fn main() {
     let b: i32 = 7;
 
     // op=< → min
-    let _ = a.min(b);
+    let _ = b.min(a);
     //~^ manual_min_max
     // op=<= → min
     let _ = a.min(b);
@@ -15,11 +15,11 @@ fn main() {
     let _ = a.min(b);
     //~^ manual_min_max
     // op=>= (then=rhs) → min
-    let _ = a.min(b);
+    let _ = b.min(a);
     //~^ manual_min_max
 
     // op=> (then=lhs) → max
-    let _ = a.max(b);
+    let _ = b.max(a);
     //~^ manual_min_max
     // op=>= (then=lhs) → max
     let _ = a.max(b);
@@ -28,11 +28,11 @@ fn main() {
     let _ = a.max(b);
     //~^ manual_min_max
     // op=<= (then=rhs) → max
-    let _ = a.max(b);
+    let _ = b.max(a);
     //~^ manual_min_max
 
     // compound expression: receiver needs parenthesization
-    let _ = (a + 1).min(b);
+    let _ = b.min(a + 1);
     //~^ manual_min_max
 
     // Non-triggering: floats implement PartialOrd but not Ord
@@ -53,6 +53,32 @@ fn main() {
     if a < b {
         let _ = a;
     }
+}
+
+// Tie-breaking semantics test: S compares by `key` only; `payload` is ignored
+// by Ord. When keys are equal, the two S values differ, so the choice of
+// which is returned on a tie is observable.
+#[derive(Eq, PartialEq)]
+struct S {
+    key: i32,
+    payload: i32,
+}
+impl Ord for S {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.key.cmp(&other.key)
+    }
+}
+impl PartialOrd for S {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+fn tie_breaking(a: S, b: S) {
+    // When a.key == b.key, `if a < b { a } else { b }` returns b (else branch).
+    // Correct suggestion must also return b on a tie: b.min(a).
+    let _ = b.min(a);
+    //~^ manual_min_max
 }
 
 // Non-triggering: const context (Ord::min/max not const-stable)

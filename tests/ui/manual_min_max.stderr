@@ -2,7 +2,7 @@ error: manual implementation of `Ord::min`
   --> tests/ui/manual_min_max.rs:9:13
    |
 LL |     let _ = if a < b { a } else { b };
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `min` instead: `a.min(b)`
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `min` instead: `b.min(a)`
    |
    = note: `-D clippy::manual-min-max` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::manual_min_max)]`
@@ -23,13 +23,13 @@ error: manual implementation of `Ord::min`
   --> tests/ui/manual_min_max.rs:18:13
    |
 LL |     let _ = if a >= b { b } else { a };
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `min` instead: `a.min(b)`
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `min` instead: `b.min(a)`
 
 error: manual implementation of `Ord::max`
   --> tests/ui/manual_min_max.rs:22:13
    |
 LL |     let _ = if a > b { a } else { b };
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `max` instead: `a.max(b)`
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `max` instead: `b.max(a)`
 
 error: manual implementation of `Ord::max`
   --> tests/ui/manual_min_max.rs:25:13
@@ -47,13 +47,19 @@ error: manual implementation of `Ord::max`
   --> tests/ui/manual_min_max.rs:31:13
    |
 LL |     let _ = if a <= b { b } else { a };
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `max` instead: `a.max(b)`
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `max` instead: `b.max(a)`
 
 error: manual implementation of `Ord::min`
   --> tests/ui/manual_min_max.rs:35:13
    |
 LL |     let _ = if a + 1 < b { a + 1 } else { b };
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `min` instead: `(a + 1).min(b)`
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `min` instead: `b.min(a + 1)`
 
-error: aborting due to 9 previous errors
+error: manual implementation of `Ord::min`
+  --> tests/ui/manual_min_max.rs:80:13
+   |
+LL |     let _ = if a < b { a } else { b };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `min` instead: `b.min(a)`
+
+error: aborting due to 10 previous errors
 

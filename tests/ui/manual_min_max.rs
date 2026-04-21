@@ -55,6 +55,32 @@ fn main() {
     }
 }
 
+// Tie-breaking semantics test: S compares by `key` only; `payload` is ignored
+// by Ord. When keys are equal, the two S values differ, so the choice of
+// which is returned on a tie is observable.
+#[derive(Eq, PartialEq)]
+struct S {
+    key: i32,
+    payload: i32,
+}
+impl Ord for S {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.key.cmp(&other.key)
+    }
+}
+impl PartialOrd for S {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+fn tie_breaking(a: S, b: S) {
+    // When a.key == b.key, `if a < b { a } else { b }` returns b (else branch).
+    // Correct suggestion must also return b on a tie: b.min(a).
+    let _ = if a < b { a } else { b };
+    //~^ manual_min_max
+}
+
 // Non-triggering: const context (Ord::min/max not const-stable)
 const fn const_context(a: i32, b: i32) -> i32 {
     if a < b { a } else { b }
