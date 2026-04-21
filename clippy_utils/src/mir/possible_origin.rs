@@ -1,7 +1,7 @@
 use super::transitive_relation::TransitiveRelation;
 use crate::ty::is_copy;
+use rustc_ast::Mutability;
 use rustc_data_structures::fx::FxHashMap;
-use rustc_index::bit_set::DenseBitSet;
 use rustc_lint::LateContext;
 use rustc_middle::mir;
 
@@ -22,17 +22,17 @@ impl<'a, 'tcx> PossibleOriginVisitor<'a, 'tcx> {
     }
 
     /// Returns a map of each non-`Copy` local to all locals that it can borrow or move from (excluding `_0`).
-    pub fn into_map(self, cx: &LateContext<'tcx>) -> FxHashMap<mir::Local, DenseBitSet<mir::Local>> {
+    pub fn into_map(self, cx: &LateContext<'tcx>) -> FxHashMap<mir::Local, FxHashMap<mir::Local, Mutability>> {
         let mut map = FxHashMap::default();
         for row in (1..self.body.local_decls.len()).map(mir::Local::from_usize) {
             if is_copy(cx, self.body.local_decls[row].ty) {
                 continue;
             }
 
-            let mut origins = self.possible_origin.reachable_from(row, self.body.local_decls.len());
-            origins.remove(mir::Local::from_usize(0));
-            if !origins.is_empty() {
-                map.insert(row, origins);
+            let mut borrowers = self.possible_origin.reachable_from(row, self.body.local_decls.len());
+            borrowers.remove(&mir::Local::from_usize(0));
+            if !borrowers.is_empty() {
+                map.insert(row, borrowers);
             }
         }
         map
@@ -51,7 +51,7 @@ impl<'tcx> mir::visit::Visitor<'tcx> for PossibleOriginVisitor<'_, 'tcx> {
             // _3 = move _2 as &mut _;
             mir::Rvalue::Cast(_, mir::Operand::Move(borrowed), _)
                 => {
-                self.possible_origin.add(lhs, borrowed.local);
+                self.possible_origin.add(lhs, borrowed.local, Mutability::Mut);
             },
             _ => {},
         }
