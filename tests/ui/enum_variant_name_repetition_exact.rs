@@ -1,10 +1,10 @@
-#![warn(clippy::enum_variant_names)]
+//@check-pass
 // https://github.com/rust-lang/rust-clippy/issues/16895
+#![warn(clippy::enum_variant_names)]
 
 #[allow(unused)]
 enum Type {
     Type,
-    //~^ enum_variant_names
     Builtin(PrimitiveType),
     Func,
 }
