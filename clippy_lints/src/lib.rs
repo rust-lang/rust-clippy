@@ -197,6 +197,7 @@ mod main_recursion;
 mod manual_abs_diff;
 mod manual_assert;
 mod manual_async_fn;
+mod manual_bit_width;
 mod manual_bits;
 mod manual_checked_ops;
 mod manual_clamp;
@@ -732,6 +733,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::new(needless_late_init::NeedlessLateInit)),
         Box::new(|_| Box::new(return_self_not_must_use::ReturnSelfNotMustUse)),
         Box::new(|_| Box::new(init_numbered_fields::NumberedFields)),
+        Box::new(move |_| Box::new(manual_bit_width::ManualBitWidth::new(conf))),
         Box::new(move |_| Box::new(manual_bits::ManualBits::new(conf))),
         Box::new(|_| Box::new(default_union_representation::DefaultUnionRepresentation)),
         Box::new(|_| Box::<only_used_in_recursion::OnlyUsedInRecursion>::default()),
