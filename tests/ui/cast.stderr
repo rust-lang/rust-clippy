@@ -132,6 +132,11 @@ help: ... or use `try_from` and handle the error accordingly
 LL -     1f32 as u32 as u16;
 LL +     u16::try_from(1f32 as u32);
    |
+help: ... or explicitly mask the bits if truncation is intended
+   |
+LL -     1f32 as u32 as u16;
+LL +     (1f32 as u32 & u16::MAX as u32) as u16;
+   |
 
 error: casting `f32` to `u32` may truncate the value
   --> tests/ui/cast.rs:68:5
@@ -384,6 +389,11 @@ help: ... or use `try_from` and handle the error accordingly
 LL -     999999u64.clamp(0, 256) as u8;
 LL +     u8::try_from(999999u64.clamp(0, 256));
    |
+help: ... or explicitly mask the bits if truncation is intended
+   |
+LL -     999999u64.clamp(0, 256) as u8;
+LL +     (999999u64.clamp(0, 256) & u8::MAX as u64) as u8;
+   |
 
 error: casting `usize` to `u32` may truncate the value on targets with 64-bit wide pointers
   --> tests/ui/cast.rs:260:13
@@ -396,6 +406,11 @@ help: ... or use `try_from` and handle the error accordingly
    |
 LL -     let _ = y as u32;
 LL +     let _ = u32::try_from(y);
+   |
+help: ... or explicitly mask the bits if truncation is intended
+   |
+LL -     let _ = y as u32;
+LL +     let _ = (y & u32::MAX as usize) as u32;
    |
 
 error: casting `main::E2` to `u8` may truncate the value
@@ -490,6 +505,10 @@ help: ... or use `try_from` and handle the error accordingly
 LL -     let c = (q >> 16) as u8;
 LL +     let c = u8::try_from(q >> 16);
    |
+help: ... or explicitly mask the bits if truncation is intended
+   |
+LL |     let c = (q >> 16 & u8::MAX as u32) as u8;
+   |                      ++++++++++++++++
 
 error: casting `u32` to `u8` may truncate the value
   --> tests/ui/cast.rs:434:13
@@ -503,6 +522,10 @@ help: ... or use `try_from` and handle the error accordingly
 LL -     let c = (q / 1000) as u8;
 LL +     let c = u8::try_from(q / 1000);
    |
+help: ... or explicitly mask the bits if truncation is intended
+   |
+LL |     let c = (q / 1000 & u8::MAX as u32) as u8;
+   |                       ++++++++++++++++
 
 error: casting `i32` to `u32` may lose the sign of the value
   --> tests/ui/cast.rs:447:9
@@ -707,6 +730,11 @@ help: ... or use `try_from` and handle the error accordingly
 LL -             let _ = u32::MAX as u8; // cast_possible_truncation
 LL +             let _ = u8::try_from(u32::MAX); // cast_possible_truncation
    |
+help: ... or explicitly mask the bits if truncation is intended
+   |
+LL -             let _ = u32::MAX as u8; // cast_possible_truncation
+LL +             let _ = (u32::MAX & u8::MAX as u32) as u8; // cast_possible_truncation
+   |
 
 error: casting `f64` to `f32` may truncate the value
   --> tests/ui/cast.rs:547:21
@@ -751,6 +779,10 @@ help: ... or use `try_from` and handle the error accordingly
 LL -     (256 & 999999u64) as u8;
 LL +     u8::try_from(256 & 999999u64);
    |
+help: ... or explicitly mask the bits if truncation is intended
+   |
+LL |     (256 & 999999u64 & u8::MAX as u64) as u8;
+   |                      ++++++++++++++++
 
 error: casting `u64` to `u8` may truncate the value
   --> tests/ui/cast.rs:578:5
@@ -764,6 +796,10 @@ help: ... or use `try_from` and handle the error accordingly
 LL -     (255 % 999999u64) as u8;
 LL +     u8::try_from(255 % 999999u64);
    |
+help: ... or explicitly mask the bits if truncation is intended
+   |
+LL |     (255 % 999999u64 & u8::MAX as u64) as u8;
+   |                      ++++++++++++++++
 
 error: casting `u8` to `i8` may wrap around the value
   --> tests/ui/cast.rs:585:13

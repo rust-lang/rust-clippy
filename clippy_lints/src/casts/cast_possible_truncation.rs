@@ -183,7 +183,7 @@ pub(super) fn check(
         // TODO: Remove the condition for const contexts when `try_from` and other commonly used methods
         // become const fn.
         if !is_in_const_context(cx) && !cast_from.is_floating_point() {
-            offer_suggestion(cx, expr, cast_expr, cast_to_span, diag);
+            offer_suggestion(cx, expr, cast_expr, cast_from, cast_to, cast_to_span, diag);
         }
     });
 }
@@ -192,11 +192,13 @@ fn offer_suggestion(
     cx: &LateContext<'_>,
     expr: &Expr<'_>,
     cast_expr: &Expr<'_>,
+    cast_from: Ty<'_>,
+    cast_to: Ty<'_>,
     cast_to_span: Span,
     diag: &mut Diag<'_, ()>,
 ) {
     let cast_to_snip = snippet(cx, cast_to_span, "..");
-    let suggestion = if cast_to_snip == "_" {
+    let try_from_suggestion = if cast_to_snip == "_" {
         format!("{}.try_into()", Sugg::hir(cx, cast_expr, "..").maybe_paren())
     } else {
         format!("{cast_to_snip}::try_from({})", Sugg::hir(cx, cast_expr, ".."))
@@ -205,7 +207,20 @@ fn offer_suggestion(
     diag.span_suggestion_verbose(
         expr.span,
         "... or use `try_from` and handle the error accordingly",
-        suggestion,
+        try_from_suggestion,
         Applicability::Unspecified,
     );
+
+    if matches!(cast_from.kind(), ty::Uint(_)) && matches!(cast_to.kind(), ty::Uint(_)) && cast_to_snip != "_" {
+        let mask_suggestion = format!(
+            "({} & {cast_to_snip}::MAX as {cast_from}) as {cast_to_snip}",
+            Sugg::hir(cx, cast_expr, ".."),
+        );
+        diag.span_suggestion_verbose(
+            expr.span,
+            "... or explicitly mask the bits if truncation is intended",
+            mask_suggestion,
+            Applicability::Unspecified,
+        );
+    }
 }

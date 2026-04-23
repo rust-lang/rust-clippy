@@ -78,6 +78,11 @@ help: ... or use `try_from` and handle the error accordingly
 LL -     1usize as u32;
 LL +     u32::try_from(1usize);
    |
+help: ... or explicitly mask the bits if truncation is intended
+   |
+LL -     1usize as u32;
+LL +     (1usize & u32::MAX as usize) as u32;
+   |
 
 error: casting `usize` to `i32` may truncate the value on targets with 64-bit wide pointers
   --> tests/ui/cast_size.rs:41:5
@@ -157,6 +162,11 @@ help: ... or use `try_from` and handle the error accordingly
    |
 LL -     1u64 as usize;
 LL +     usize::try_from(1u64);
+   |
+help: ... or explicitly mask the bits if truncation is intended
+   |
+LL -     1u64 as usize;
+LL +     (1u64 & usize::MAX as u64) as usize;
    |
 
 error: casting `u32` to `isize` may wrap around the value on targets with 32-bit wide pointers
