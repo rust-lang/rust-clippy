@@ -498,5 +498,44 @@ LL +         if n > 10 { Some(42) } else { None }
 LL +     }
    |
 
-error: aborting due to 46 previous errors
+error: this block may be rewritten with the `?` operator
+  --> tests/ui/question_mark.rs:715:5
+   |
+LL | /     if let Some(x) = v {
+LL | |
+LL | |         std::hint::black_box(x);
+LL | |     } else {
+LL | |         return None;
+LL | |     }
+   | |_____^
+   |
+help: replace it with
+   |
+LL ~     let x = v?;
+LL +     std::hint::black_box(x);
+   |
+
+error: this block may be rewritten with the `?` operator
+  --> tests/ui/question_mark.rs:728:5
+   |
+LL | /     if let Some(x) = x {
+LL | |
+LL | |         let x = x + 1;
+LL | |         std::hint::black_box(x);
+LL | |     } else {
+LL | |         return None;
+LL | |     }
+   | |_____^
+   |
+help: replace it with
+   |
+LL ~     {
+LL +         let x = x?;
+LL +
+LL +         let x = x + 1;
+LL +         std::hint::black_box(x);
+LL +     }
+   |
+
+error: aborting due to 48 previous errors
 

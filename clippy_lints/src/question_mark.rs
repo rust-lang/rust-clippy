@@ -18,8 +18,8 @@ use rustc_errors::Applicability;
 use rustc_hir::LangItem::{self, OptionNone, OptionSome, ResultErr, ResultOk};
 use rustc_hir::def::Res;
 use rustc_hir::{
-    Arm, BindingMode, Block, Body, ByRef, Expr, ExprKind, FnRetTy, HirId, LetStmt, MatchSource, Mutability, Node, Pat,
-    PatKind, PathSegment, QPath, Stmt, StmtKind,
+    Arm, BindingMode, Block, BlockCheckMode, Body, ByRef, Expr, ExprKind, FnRetTy, HirId, LetStmt, MatchSource,
+    Mutability, Node, Pat, PatKind, PathSegment, QPath, Stmt, StmtKind,
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
@@ -514,6 +514,28 @@ fn check_if_try_match<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
     }
 }
 
+/// Returns the span covering the statements of a block (no tail expression),
+/// excluding the surrounding braces. Returns `None` if the block is empty,
+/// contains a tail expression, any statement comes from a macro expansion, or
+/// any statement is a `let` binding (dropping the braces would extend those
+/// bindings into the enclosing scope and can change which binding later code
+/// resolves to).
+fn block_stmts_span(block: &Block<'_>) -> Option<Span> {
+    if block.expr.is_some() || block.stmts.is_empty() {
+        return None;
+    }
+    if block
+        .stmts
+        .iter()
+        .any(|s| s.span.from_expansion() || matches!(s.kind, StmtKind::Let(_)))
+    {
+        return None;
+    }
+    let first = block.stmts.first()?.span;
+    let last = block.stmts.last()?.span;
+    Some(first.to(last))
+}
+
 fn check_if_let_some_or_err_and_early_return<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
     if let Some(higher::IfLet {
         let_pat,
@@ -585,9 +607,37 @@ fn check_if_let_some_or_err_and_early_return<'tcx>(cx: &LateContext<'tcx>, expr:
                     return;
                 }
 
-                let mut sugg = snippet_with_applicability(cx, if_then.span, "..", &mut applicability).into_owned();
                 let binding_snippet = snippet_with_applicability(cx, field.span, "..", &mut applicability);
                 let indent = indent_of(cx, expr.span).unwrap_or_default();
+                let parent = cx.tcx.parent_hir_node(expr.hir_id);
+                // When the `if let ... else { return ... }` is itself a statement, the
+                // replacement statements live at the same block level as the original, so
+                // wrapping them in a fresh `{ ... }` only introduces a redundant scope.
+                // In that case emit the body statements directly next to a new `let` binding.
+                if matches!(parent, Node::Stmt(_))
+                    && let ExprKind::Block(body_block, _) = if_then.kind
+                    && !body_block.targeted_by_break
+                    && body_block.rules == BlockCheckMode::DefaultBlock
+                    && let Some(body_inner_span) = block_stmts_span(body_block)
+                {
+                    // The braces of the original `if let` constrain the lifetime of the new
+                    // `let` binding and anything else defined in the body. Dropping them
+                    // extends those lifetimes to the enclosing scope, which can change drop
+                    // order for non-Copy types, so downgrade the suggestion.
+                    applicability = Applicability::MaybeIncorrect;
+                    let body_snippet =
+                        snippet_with_applicability(cx, body_inner_span, "..", &mut applicability).into_owned();
+                    let reindented = reindent_multiline(&body_snippet, true, Some(indent));
+                    let sugg = format!(
+                        "let {binding_snippet} = {receiver_str}?;\n{}{}",
+                        " ".repeat(indent),
+                        reindented,
+                    );
+                    diag.span_suggestion(expr.span, "replace it with", sugg, applicability);
+                    return;
+                }
+
+                let mut sugg = snippet_with_applicability(cx, if_then.span, "..", &mut applicability).into_owned();
                 sugg.insert_str(
                     1,
                     &format!("\n{}let {binding_snippet} = {receiver_str}?;", " ".repeat(indent + 4)),

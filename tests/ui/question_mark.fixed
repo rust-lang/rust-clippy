@@ -564,3 +564,22 @@ fn issue16751(mut v: Option<usize>) -> Option<usize> {
         if n > 10 { Some(42) } else { None }
     }
 }
+
+fn issue_16892(v: Option<i32>) -> Option<()> {
+    let x = v?;
+    std::hint::black_box(x);
+    Some(())
+}
+
+fn issue_16892_shadow(x: Option<u32>) -> Option<u32> {
+    // Body introduces a shadowing `let x`; dropping the outer braces would extend
+    // the shadow into the enclosing scope and change which `x` the trailing
+    // expression resolves to, so the suggestion must keep the braces.
+    {
+        let x = x?;
+        //~^ question_mark
+        let x = x + 1;
+        std::hint::black_box(x);
+    }
+    x
+}
