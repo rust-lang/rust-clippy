@@ -66,7 +66,25 @@ impl LateLintPass<'_> for ManualBitWidth {
                     && let node_ty = cx.typeck_results().node_type(hir_ty.hir_id)
                     && recv_ty == node_ty
                     && let Some(_) = match node_ty.kind() {
+                        // uint::BITS
                         ty::Uint(uint_ty) => uint_ty.bit_width(),
+                        // NonZero::<uint>::BITS
+                        ty::Adt(adt, args) => {
+                            if cx.tcx.is_diagnostic_item(sym::NonZero, adt.did())
+                                && let Some(generic_arg) = args.types().next()
+                            {
+                                match *generic_arg.kind() {
+                                    ty::Uint(uint_ty) => match uint_ty {
+                                        // usize.bit_width() returns none as the bit size is not static
+                                        ty::UintTy::Usize => Some(cx.tcx.data_layout.pointer_size().bits()),
+                                        _ => uint_ty.bit_width(),
+                                    },
+                                    _ => return,
+                                }
+                            } else {
+                                return;
+                            }
+                        },
                         ty::Int(_) => {
                             // There is no implementation of `bit_width` for signed integers,
                             // so don't suggest anything.
@@ -79,6 +97,22 @@ impl LateLintPass<'_> for ManualBitWidth {
             {
                 emit(cx, recv, expr);
             },
+
+            // `n.checked_ilog2().map_or(0, |n| n + 1)`
+            // ExprKind::MethodCall(map_or, checked_ilog2_expr, [zero, closure_expr], _)
+            // if map_or.ident.name == sym::map_or
+            //     && let ExprKind::MethodCall(checked_ilog2, recv, [], _) = checked_ilog2_expr.kind
+            //     && checked_ilog2.ident.name == rustc_span::Symbol::intern("checked_ilog2")
+            //     && let Some(clippy_utils::consts::Constant::Int(0)) = constant(cx, cx.typeck_results(), zero)
+            //     && let ExprKind::Closure(closure) = closure_expr.kind
+            //     && let body = cx.tcx.hir().body(closure.body)
+            //     && body.params.len() == 1
+            //     && let param_id = body.params[0].pat.hir_id
+            //     && is_add_one(cx, body.value, param_id)
+            //     && !is_from_proc_macro(cx, expr) =>
+            // {
+            //     emit(cx, recv, expr);
+            // },
             _ => {},
         }
     }
