@@ -495,7 +495,7 @@ fn check_if_try_match<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
                         let mut sugg = reindent_multiline(&arm_body_snippet, true, Some(indent));
                         let binding_snippet = snippet_with_applicability(cx, binding_span, "..", &mut applicability);
                         let inner_indent = " ".repeat(indent + 4);
-                        if matches!(arm_body.kind, ExprKind::Block(..)) {
+                        if matches!(arm_body.kind, ExprKind::Block(..)) && sugg.starts_with('{') {
                             sugg.insert_str(
                                 1,
                                 &format!("\n{inner_indent}let {binding_snippet} = {scrutinee_snippet}?;"),
