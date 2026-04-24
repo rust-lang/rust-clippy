@@ -35,7 +35,7 @@ declare_clippy_lint! {
     /// // in `src/foo.rs` (or `src/foo/mod.rs`)
     /// /* module contents */
     /// ```
-    #[clippy::version = "1.96.0"]
+    #[clippy::version = "1.97.0"]
     pub INLINE_MODULES,
     restriction,
     "checks that module layout does not use inline modules"
