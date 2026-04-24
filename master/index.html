@@ -4423,7 +4423,7 @@ inlining the <code>format!</code> call.</p>
 <p>Use instead:</p>
 <pre><code class="language-rust">println!("error: something failed at {}", Location::caller());
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.58.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+format_in_format_args">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/format_args.rs#L34">View Source</a></div></div></article><article id="format_push_string"><input id="label-format_push_string" type="checkbox"><label for="label-format_push_string"><h2 class="lint-title"><div class="panel-title-name" id="lint-format_push_string">format_push_string
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.58.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+format_in_format_args">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/format_args.rs#L35">View Source</a></div></div></article><article id="format_push_string"><input id="label-format_push_string" type="checkbox"><label for="label-format_push_string"><h2 class="lint-title"><div class="panel-title-name" id="lint-format_push_string">format_push_string
 <a href="#format_push_string" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Detects cases where the result of a <code>format!</code> call is
 appended to an existing <code>String</code>.</p>
@@ -11836,7 +11836,7 @@ fn bar() {}
 println!("{:p}", foo);
 let _ = format!("{:?}", &amp;(bar as fn()));
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.89.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+pointer_format">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/format_args.rs#L59">View Source</a></div></div></article><article id="pointers_in_nomem_asm_block"><input id="label-pointers_in_nomem_asm_block" type="checkbox"><label for="label-pointers_in_nomem_asm_block"><h2 class="lint-title"><div class="panel-title-name" id="lint-pointers_in_nomem_asm_block">pointers_in_nomem_asm_block
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.89.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+pointer_format">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/format_args.rs#L60">View Source</a></div></div></article><article id="pointers_in_nomem_asm_block"><input id="label-pointers_in_nomem_asm_block" type="checkbox"><label for="label-pointers_in_nomem_asm_block"><h2 class="lint-title"><div class="panel-title-name" id="lint-pointers_in_nomem_asm_block">pointers_in_nomem_asm_block
 <a href="#pointers_in_nomem_asm_block" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-suspicious">suspicious</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks if any pointer is being passed to an asm! block with <code>nomem</code> option.</p>
 <h3>Why is this bad?</h3>
@@ -15250,7 +15250,7 @@ unnecessary.</p>
 <p>Use instead:</p>
 <pre><code class="language-rust">println!("error: something failed at {}", Location::caller());
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.58.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+to_string_in_format_args">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/format_args.rs#L87">View Source</a></div></div></article><article id="to_string_trait_impl"><input id="label-to_string_trait_impl" type="checkbox"><label for="label-to_string_trait_impl"><h2 class="lint-title"><div class="panel-title-name" id="lint-to_string_trait_impl">to_string_trait_impl
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.58.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+to_string_in_format_args">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/format_args.rs#L88">View Source</a></div></div></article><article id="to_string_trait_impl"><input id="label-to_string_trait_impl" type="checkbox"><label for="label-to_string_trait_impl"><h2 class="lint-title"><div class="panel-title-name" id="lint-to_string_trait_impl">to_string_trait_impl
 <a href="#to_string_trait_impl" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-style">style</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for direct implementations of <code>ToString</code>.</p>
 <h3>Why is this bad?</h3>
@@ -16090,7 +16090,7 @@ nothing will be suggested, e.g. <code>println!("{0}={1}", var, 1+2)</code>.</p>
 <p>(default: <code>current version</code>)</p>
 </li>
 </ul>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.66.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+uninlined_format_args">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/format_args.rs#L113">View Source</a></div></div></article><article id="unit_arg"><input id="label-unit_arg" type="checkbox"><label for="label-unit_arg"><h2 class="lint-title"><div class="panel-title-name" id="lint-unit_arg">unit_arg
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.66.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+uninlined_format_args">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/format_args.rs#L114">View Source</a></div></div></article><article id="unit_arg"><input id="label-unit_arg" type="checkbox"><label for="label-unit_arg"><h2 class="lint-title"><div class="panel-title-name" id="lint-unit_arg">unit_arg
 <a href="#unit_arg" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-complexity">complexity</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for passing a unit value as an argument to a function without using a
 unit literal (<code>()</code>).</p>
@@ -16232,6 +16232,12 @@ run by anything else than clippy.</p>
 </div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.78.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+unnecessary_clippy_cfg">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/attrs/mod.rs#L404">View Source</a></div></div></article><article id="unnecessary_debug_formatting"><input id="label-unnecessary_debug_formatting" type="checkbox"><label for="label-unnecessary_debug_formatting"><h2 class="lint-title"><div class="panel-title-name" id="lint-unnecessary_debug_formatting">unnecessary_debug_formatting
 <a href="#unnecessary_debug_formatting" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for <code>Debug</code> formatting (<code>{:?}</code>) applied to an <code>OsStr</code> or <code>Path</code>.</p>
+<p>This includes:</p>
+<ul>
+<li>Format specifiers on <code>format_args!()</code> (width, precision have no effect)</li>
+<li>Format width too small for the format trait (e.g. <code>{:#02x}</code> outputs “0x1”
+so width 2 has no effect; minimum is 4 for alternate hex/octal/binary)</li>
+</ul>
 <h3>Why is this bad?</h3>
 <p>Rust doesn’t guarantee what <code>Debug</code> formatting looks like, and it could
 change in the future. <code>OsStr</code>s and <code>Path</code>s can be <code>Display</code> formatted
@@ -16246,7 +16252,7 @@ println!("The path is {:?}", path);
 <pre><code class="language-rust">let path = Path::new("…");
 println!("The path is {}", path.display());
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.87.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+unnecessary_debug_formatting">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/format_args.rs#L170">View Source</a></div></div></article><article id="unnecessary_fallible_conversions"><input id="label-unnecessary_fallible_conversions" type="checkbox"><label for="label-unnecessary_fallible_conversions"><h2 class="lint-title"><div class="panel-title-name" id="lint-unnecessary_fallible_conversions">unnecessary_fallible_conversions
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.87.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+unnecessary_debug_formatting">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/format_args.rs#L171">View Source</a></div></div></article><article id="unnecessary_fallible_conversions"><input id="label-unnecessary_fallible_conversions" type="checkbox"><label for="label-unnecessary_fallible_conversions"><h2 class="lint-title"><div class="panel-title-name" id="lint-unnecessary_fallible_conversions">unnecessary_fallible_conversions
 <a href="#unnecessary_fallible_conversions" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-style">style</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for calls to <code>TryInto::try_into</code> and <code>TryFrom::try_from</code> when their infallible counterparts
 could be used.</p>
@@ -16724,7 +16730,7 @@ macros in the future. Only single-line macro invocations are linted.</p>
 <p>Use instead:</p>
 <pre><code class="language-rust">println!("Foo={}", 1);
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.95.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+unnecessary_trailing_comma">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/format_args.rs#L200">View Source</a></div></div></article><article id="unnecessary_unwrap"><input id="label-unnecessary_unwrap" type="checkbox"><label for="label-unnecessary_unwrap"><h2 class="lint-title"><div class="panel-title-name" id="lint-unnecessary_unwrap">unnecessary_unwrap
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.95.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+unnecessary_trailing_comma">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/format_args.rs#L206">View Source</a></div></div></article><article id="unnecessary_unwrap"><input id="label-unnecessary_unwrap" type="checkbox"><label for="label-unnecessary_unwrap"><h2 class="lint-title"><div class="panel-title-name" id="lint-unnecessary_unwrap">unnecessary_unwrap
 <a href="#unnecessary_unwrap" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-complexity">complexity</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for calls of <code>unwrap[_err]()</code> that cannot fail.</p>
 <h3>Why is this bad?</h3>
@@ -17035,6 +17041,12 @@ for x in v.iter() {
 <a href="#unused_format_specs" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-complexity">complexity</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Detects <a href="https://doc.rust-lang.org/std/fmt/index.html#formatting-parameters">formatting parameters</a> that have no effect on the output of
 <code>format!()</code>, <code>println!()</code> or similar macros.</p>
+<p>This includes:</p>
+<ul>
+<li>Format specifiers on <code>format_args!()</code> (width, precision have no effect)</li>
+<li>Format width too small for the format trait (e.g. <code>{:#02x}</code> outputs “0x1”
+so width 2 has no effect; minimum is 4 for alternate hex/octal/binary)</li>
+</ul>
 <h3>Why is this bad?</h3>
 <p>Shorter format specifiers are easier to read, it may also indicate that
 an expected formatting operation such as adding padding isn’t happening.</p>
@@ -17042,6 +17054,9 @@ an expected formatting operation such as adding padding isn’t happening.</p>
 <pre><code class="language-rust">println!("{:.}", 1.0);
 
 println!("not padded: {:5}", format_args!("..."));
+
+// width 2 has no effect for alternate hex (outputs "0x1")
+format!("{:#02x}", 1_u8);
 </code></pre>
 <p>Use instead:</p>
 <pre><code class="language-rust">println!("{}", 1.0);
@@ -17049,8 +17064,10 @@ println!("not padded: {:5}", format_args!("..."));
 println!("not padded: {}", format_args!("..."));
 // OR
 println!("padded: {:5}", format!("..."));
+
+format!("{:#04x}", 1_u8);  // width 4 for two-digit zero-padded hex
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.66.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+unused_format_specs">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/format_args.rs#L229">View Source</a></div></div></article><article id="unused_io_amount"><input id="label-unused_io_amount" type="checkbox"><label for="label-unused_io_amount"><h2 class="lint-title"><div class="panel-title-name" id="lint-unused_io_amount">unused_io_amount
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.66.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+unused_format_specs">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/format_args.rs#L235">View Source</a></div></div></article><article id="unused_io_amount"><input id="label-unused_io_amount" type="checkbox"><label for="label-unused_io_amount"><h2 class="lint-title"><div class="panel-title-name" id="lint-unused_io_amount">unused_io_amount
 <a href="#unused_io_amount" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-correctness">correctness</span> <span class="label lint-level level-deny">deny</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for unused written/read amount.</p>
 <h3>Why is this bad?</h3>
@@ -17527,7 +17544,7 @@ println!("{}", &amp;s);
 <pre><code class="language-rust">let s: &amp;str = "hello";
 println!("{}", s);
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.97.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+useless_borrows_in_formatting">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/format_args.rs#L260">View Source</a></div></div></article><article id="useless_concat"><input id="label-useless_concat" type="checkbox"><label for="label-useless_concat"><h2 class="lint-title"><div class="panel-title-name" id="lint-useless_concat">useless_concat
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.97.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+useless_borrows_in_formatting">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/format_args.rs#L276">View Source</a></div></div></article><article id="useless_concat"><input id="label-useless_concat" type="checkbox"><label for="label-useless_concat"><h2 class="lint-title"><div class="panel-title-name" id="lint-useless_concat">useless_concat
 <a href="#useless_concat" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-complexity">complexity</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks that the <code>concat!</code> macro has at least two arguments.</p>
 <h3>Why is this bad?</h3>
