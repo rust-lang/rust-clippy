@@ -395,6 +395,7 @@ mod useless_concat;
 mod useless_conversion;
 mod useless_vec;
 mod vec_init_then_push;
+mod vec_to_rc_slice;
 mod visibility;
 mod volatile_composites;
 mod wildcard_imports;
@@ -867,6 +868,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(move |tcx| Box::new(manual_pop_if::ManualPopIf::new(tcx, conf))),
         Box::new(move |_| Box::new(manual_noop_waker::ManualNoopWaker::new(conf))),
         Box::new(|_| Box::new(byte_char_slices::ByteCharSlice)),
+        Box::new(|_| Box::new(vec_to_rc_slice::VecToRcSlice)),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);
