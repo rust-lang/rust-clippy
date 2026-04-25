@@ -23,9 +23,18 @@ use super::{COLLAPSIBLE_MATCH, pat_contains_disallowed_or};
 
 pub(super) fn check_match<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, arms: &'tcx [Arm<'_>], msrv: Msrv) {
     if let Some(els_arm) = arms.iter().rfind(|arm| arm_is_wild_like(cx, arm)) {
-        let last_non_wildcard = arms.iter().rposition(|arm| !arm_is_wild_like(cx, arm));
         for (idx, arm) in arms.iter().enumerate() {
-            let only_wildcards_after = last_non_wildcard.is_none_or(|lnw| idx >= lnw);
+            // For the path-B if-guard collapse to be sound, when the new guard fails the
+            // value must reliably fall through to a truly wild catch-all arm. That requires
+            // every arm after the current one to be unconditional with a `_` or binding
+            // pattern, and there must be at least one such arm. A `None` arm is wild-LIKE
+            // but only matches `None`, so it cannot catch a `Some(_)` value falling
+            // through (issue #16910). A guarded `_ if cond` arm could intercept some
+            // values and change semantics (issue #16875).
+            let has_truly_wild_arm_after = !arms[idx + 1..].is_empty()
+                && arms[idx + 1..]
+                    .iter()
+                    .all(|a| a.guard.is_none() && matches!(a.pat.kind, PatKind::Wild | PatKind::Binding(..)));
             check_arm(
                 cx,
                 true,
@@ -35,7 +44,7 @@ pub(super) fn check_match<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, ar
                 arm.guard,
                 Some(els_arm.body),
                 msrv,
-                only_wildcards_after,
+                has_truly_wild_arm_after,
             );
         }
     }
@@ -62,7 +71,7 @@ fn check_arm<'tcx>(
     outer_guard: Option<&'tcx Expr<'tcx>>,
     outer_else_body: Option<&'tcx Expr<'tcx>>,
     msrv: Msrv,
-    only_wildcards_after: bool,
+    has_truly_wild_arm_after: bool,
 ) {
     let inner_expr = peel_blocks_with_stmt(outer_then_body);
     if let Some(inner) = IfLetOrMatch::parse(cx, inner_expr)
@@ -139,7 +148,7 @@ fn check_arm<'tcx>(
             );
         });
     } else if outer_is_match // Leave if-let to the `collapsible_if` lint
-        && only_wildcards_after // adding a guard allows fall-through; unsafe if other arms follow
+        && has_truly_wild_arm_after // guard failure must fall through to a real catch-all
         && let Some(inner) = If::hir(inner_expr)
         && outer_pat.span.eq_ctxt(inner.cond.span)
         && match (outer_else_body, inner.r#else) {
