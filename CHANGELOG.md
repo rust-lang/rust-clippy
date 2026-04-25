@@ -8,6 +8,12 @@ document.
 
 [df995e...master](https://github.com/rust-lang/rust-clippy/compare/df995e...master)
 
+### False Positive Fixes
+
+* [`collapsible_match`]: no longer suggests an if-into-guard collapse when the inner
+  condition would conflict with a mutable borrow held by the match scrutinee
+  [#16903](https://github.com/rust-lang/rust-clippy/issues/16903)
+
 ## Rust 1.95
 
 Current stable, released 2026-04-16
