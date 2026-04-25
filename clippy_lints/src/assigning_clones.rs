@@ -11,7 +11,9 @@ use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::mir;
 use rustc_middle::ty::{self, Instance, Mutability};
 use rustc_session::impl_lint_pass;
-use rustc_span::{Span, SyntaxContext};
+use rustc_span::{Span, SyntaxContext, kw};
+
+use crate::methods::is_to_owned_like;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -86,15 +88,32 @@ impl<'tcx> LateLintPass<'tcx> for AssigningClones {
             && ctxt.is_root()
             && let which_trait = match fn_name {
                 sym::clone if fn_def.assoc_fn_parent(cx).is_diag_item(cx, sym::Clone) => CloneTrait::Clone,
-                sym::to_owned
-                    if fn_def.assoc_fn_parent(cx).is_diag_item(cx, sym::ToOwned)
-                        && self.msrv.meets(cx, msrvs::CLONE_INTO) =>
+                _ if self.msrv.meets(cx, msrvs::CLONE_INTO)
+                    && let Some(parent_def) = fn_def.opt_parent(cx)
+                    && is_to_owned_like(cx, rhs, fn_name, parent_def)
+                    =>
                 {
                     CloneTrait::ToOwned
                 },
                 _ => return,
             }
-            && let Ok(Some(resolved_fn)) = Instance::try_resolve(cx.tcx, cx.typing_env(), fn_def.1, fn_gen_args)
+            && let fn_arg_ty = typeck.expr_ty_adjusted(fn_arg)
+            && let Some((resolved_def, resolved_args)) =
+                matches!(fn_name, sym::clone | sym::to_owned).then_some((fn_def.1, fn_gen_args))
+                .or_else(|| cx.tcx.get_diagnostic_item(sym::to_owned_method).map(|def| {
+                    // Borrowed from `clippy_utils::is_default_equivalent_call`.
+                    let args = ty::GenericArgs::for_item(cx.tcx, def, |param, _| {
+                        if let ty::GenericParamDefKind::Lifetime = param.kind {
+                            cx.tcx.lifetimes.re_erased.into()
+                        } else if param.index == 0 && param.name == kw::SelfUpper {
+                            fn_arg_ty.into()
+                        } else {
+                            param.to_error(cx.tcx)
+                        }
+                    });
+                    (def, args)
+                }))
+            && let Ok(Some(resolved_fn)) = Instance::try_resolve(cx.tcx, cx.typing_env(), resolved_def, resolved_args)
             // TODO: This check currently bails if the local variable has no initializer.
             // That is overly conservative - the lint should fire even if there was no initializer,
             // but the variable has been initialized before `lhs` was evaluated.
@@ -123,8 +142,17 @@ impl<'tcx> LateLintPass<'tcx> for AssigningClones {
                 ASSIGNING_CLONES,
                 e.span,
                 match which_trait {
-                    CloneTrait::Clone => "assigning the result of `Clone::clone()` may be inefficient",
-                    CloneTrait::ToOwned => "assigning the result of `ToOwned::to_owned()` may be inefficient",
+                    CloneTrait::Clone => "assigning the result of `Clone::clone()` may be inefficient".to_string(),
+                    CloneTrait::ToOwned => {
+                        if matches!(fn_name, sym::to_owned) {
+                            "assigning the result of `ToOwned::to_owned()` may be inefficient".to_string()
+                        } else {
+                            format!(
+                                "assigning the result of `{}()` may be inefficient",
+                                cx.tcx.def_path_str(fn_def.1)
+                            )
+                        }
+                    },
                 },
                 |diag| {
                     let mut app = Applicability::Unspecified;

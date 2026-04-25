@@ -166,6 +166,7 @@ use crate::matches::manual_filter;
 
 pub use implicit_clone::is_clone_like;
 pub use path_ends_with_ext::DEFAULT_ALLOWED_DOTFILES;
+pub use unnecessary_to_owned::is_to_owned_like;
 
 declare_clippy_lint! {
     /// ### What it does
