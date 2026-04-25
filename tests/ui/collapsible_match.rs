@@ -410,6 +410,35 @@ fn issue16875(a: Option<&str>, b: i32) -> i32 {
     res
 }
 
+// https://github.com/rust-lang/rust-clippy/issues/16910
+// The outer `None` arm is wild-LIKE but only matches `None`. Collapsing the inner
+// `if`/`else` into a guarded `Some(t)` arm would drop the `else` body and leave the
+// resulting match non-exhaustive for `Some(_)` when the guard fails.
+fn issue16910(opt: Option<u32>, dest_exists: bool) {
+    match opt {
+        None => {},
+        Some(t) => {
+            if dest_exists {
+                let _ = t;
+            } else {
+                // body equal to the `None` arm body but still unsound to drop
+            }
+        },
+    }
+
+    // Same shape with non-unit equal else bodies on both sides.
+    let _ = match opt {
+        None => 0,
+        Some(t) => {
+            if t == 1 {
+                t
+            } else {
+                0
+            }
+        },
+    };
+}
+
 fn issue16705(x: Option<String>) {
     fn takes_ownership(s: String) -> bool {
         true
