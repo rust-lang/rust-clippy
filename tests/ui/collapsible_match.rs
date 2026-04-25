@@ -464,3 +464,43 @@ fn issue16705(x: Option<String>) {
         _ => false,
     };
 }
+
+// https://github.com/rust-lang/rust-clippy/issues/16903
+// Should NOT lint: collapsing the inner `if` into a guard would read a place that the
+// match scrutinee mutably borrows, producing a borrow checker error in the rewrite.
+fn issue16903() {
+    #[derive(Clone, Copy)]
+    enum Mode {
+        A,
+        B,
+    }
+
+    struct Ui {
+        modes: Vec<Mode>,
+    }
+
+    impl Ui {
+        fn handle(&mut self, key: u8) {
+            let Some(mode) = self.modes.last_mut() else { return };
+            match (mode, key) {
+                (&mut Mode::A, 0) => {},
+                (_, 1) => {
+                    if self.modes.len() >= 2 {
+                        self.modes.pop();
+                    }
+                },
+                _ => {},
+            }
+        }
+    }
+
+    let mut v: Vec<u32> = vec![1, 2, 3];
+    match v.iter_mut().next() {
+        Some(_) => {
+            if v.is_empty() {
+                let _ = ();
+            }
+        },
+        _ => {},
+    }
+}

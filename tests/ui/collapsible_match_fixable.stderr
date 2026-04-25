@@ -64,5 +64,23 @@ LL |                 res = 1;
 LL ~             },
    |
 
-error: aborting due to 4 previous errors
+error: this `if` can be collapsed into the outer `match`
+  --> tests/ui/collapsible_match_fixable.rs:55:13
+   |
+LL | /             if local_flag {
+LL | |
+LL | |                 let _ = ();
+LL | |             }
+   | |_____________^
+   |
+help: collapse nested if block
+   |
+LL ~         Some(_)
+LL ~             if local_flag => {
+LL |
+LL |                 let _ = ();
+LL ~             },
+   |
+
+error: aborting due to 5 previous errors
 
