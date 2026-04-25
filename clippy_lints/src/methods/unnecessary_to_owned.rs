@@ -618,7 +618,7 @@ fn is_cloned_or_copied(cx: &LateContext<'_>, method_name: Symbol, method_parent_
 
 /// Returns true if the named method can be used to convert the receiver to its "owned"
 /// representation.
-fn is_to_owned_like<'a>(
+pub fn is_to_owned_like<'a>(
     cx: &LateContext<'a>,
     call_expr: &Expr<'a>,
     method_name: Symbol,

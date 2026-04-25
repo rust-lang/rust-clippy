@@ -427,6 +427,47 @@ impl<T: Clone> Clone for DerefWrapperWithClone<T> {
     }
 }
 
+fn issue16517(a: &str, g: &[i32]) {
+    use std::ffi::{OsStr, OsString};
+    use std::ops::Deref;
+    use std::path::{Path, PathBuf};
+
+    let mut b = String::new();
+    a.clone_into(&mut b);
+    //~^ assigning_clones
+
+    let c = OsStr::new("hello");
+    let mut d = OsString::new();
+    c.clone_into(&mut d);
+    //~^ assigning_clones
+
+    let e = Path::new("hello");
+    let mut f = PathBuf::new();
+    e.clone_into(&mut f);
+    //~^ assigning_clones
+
+    let mut h = Vec::new();
+    g.clone_into(&mut h);
+    //~^ assigning_clones
+
+    struct Foo {
+        x: String,
+    }
+
+    impl Deref for Foo {
+        type Target = str;
+
+        fn deref(&self) -> &str {
+            &self.x
+        }
+    }
+
+    let i = Foo { x: "hello".to_string() };
+    let mut j = String::new();
+    i.clone_into(&mut j);
+    //~^ assigning_clones
+}
+
 #[cfg(test)]
 mod test {
     #[derive(Default)]
