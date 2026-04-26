@@ -169,9 +169,9 @@ fn has_blanket_from_impl<'tcx>(cx: &LateContext<'tcx>, self_ty: Ty<'tcx>) -> boo
     let Some(from_def_id) = cx.tcx.get_diagnostic_item(sym::From) else {
         return false;
     };
-    cx.tcx.all_impls(from_def_id).any(|impl_id| {
+    cx.tcx.non_blanket_impls_for_ty(from_def_id, self_ty).any(|impl_id| {
         let impl_trait_ref = cx.tcx.impl_trait_ref(impl_id).instantiate_identity();
-        impl_trait_ref.self_ty() == self_ty && matches!(impl_trait_ref.args.type_at(1).kind(), ty::Param(_))
+        matches!(impl_trait_ref.args.type_at(1).kind(), ty::Param(_))
     })
 }
 
