@@ -2369,7 +2369,7 @@ declare_clippy_lint! {
     /// let opt = Some(1);
     /// opt.unwrap_or(42);
     /// ```
-    #[clippy::version = "1.95.0"]
+    #[clippy::version = "1.97.0"]
     pub MAP_OR_IDENTITY,
     complexity,
     "using an identity function when mapping with `.map_or(|err| ..., |x| x)`"
@@ -5784,7 +5784,7 @@ impl Methods {
             }
         }
         // Handle method calls whose receiver and arguments may come from expansion
-        if let ExprKind::MethodCall(path, recv, args, _call_span) = expr.kind {
+        if let ExprKind::MethodCall(path, recv, args, call_span) = expr.kind {
             let method_span = path.ident.span;
 
             // Those methods do their own method name checking as they deal with multiple methods.
@@ -5830,7 +5830,7 @@ impl Methods {
                     into_iter_on_ref::check(cx, expr, method_span, recv);
                 },
                 (sym::map_or, [def, map]) => {
-                    map_or_identity::check(cx, expr, recv, def, map);
+                    map_or_identity::check(cx, expr, recv, call_span, def, map);
                 },
 
                 (sym::to_string, []) => {
