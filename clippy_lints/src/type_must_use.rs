@@ -1,0 +1,66 @@
+use clippy_utils::diagnostics::span_lint;
+
+use rustc_hir::{Item, ItemKind, find_attr};
+use rustc_lint::{LateContext, LateLintPass};
+use rustc_session::impl_lint_pass;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// It finds types that are not marked with `#[must_use]`.
+    ///
+    /// ### Why restrict this?
+    /// Marking a type with `#[must_use]` ensures that any value of that type cannot be
+    /// silently discarded — the compiler will warn if the value is unused. This is especially
+    /// important for types that represent resources, handles, or results where ignoring the
+    /// value is almost certainly a bug.
+    ///
+    /// Enabling this lint enforces that every type definition is explicitly considered for
+    /// `#[must_use]` annotation, rather than relying on authors to remember to add it.
+    /// Types that genuinely do not need the attribute can be `#[allow]`ed individually with
+    /// a justifying comment.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// struct S(u8);   // missing `#[must_use]` and it will trigger the suggestion to add `#[must_use]`.
+    /// ```
+    #[clippy::version = "1.97.0"]
+    pub TYPE_MUST_USE,
+    restriction,
+    "finding types that are not marked with `#[must_use]`"
+}
+
+impl_lint_pass!(TypeMustUse => [TYPE_MUST_USE]);
+
+#[derive(Default)]
+pub struct TypeMustUse;
+
+impl LateLintPass<'_> for TypeMustUse {
+    fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
+        let attrs = cx.tcx.hir_attrs(item.hir_id());
+        match item.kind {
+            ItemKind::Struct(..) | ItemKind::Enum(..) | ItemKind::Union(..) => {
+                if !find_attr!(attrs, MustUse { .. }) {
+                    span_lint(
+                        cx,
+                        TYPE_MUST_USE,
+                        item.span,
+                        "the `#[must_use]` attribute is missing for this type",
+                    );
+                }
+            },
+            ItemKind::Const(..)
+            | ItemKind::Static(..)
+            | ItemKind::Fn { .. }
+            | ItemKind::Mod(..)
+            | ItemKind::Use(..)
+            | ItemKind::ForeignMod { .. }
+            | ItemKind::GlobalAsm { .. }
+            | ItemKind::TyAlias(..)
+            | ItemKind::Trait(.., _)
+            | ItemKind::Impl { .. }
+            | ItemKind::TraitAlias(..)
+            | ItemKind::Macro(..)
+            | ItemKind::ExternCrate(..) => {},
+        }
+    }
+}

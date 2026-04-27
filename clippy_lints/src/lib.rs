@@ -360,6 +360,7 @@ mod trailing_empty_array;
 mod trait_bounds;
 mod transmute;
 mod tuple_array_conversions;
+mod type_must_use;
 mod types;
 mod unconditional_recursion;
 mod undocumented_unsafe_blocks;
