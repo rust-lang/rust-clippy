@@ -243,6 +243,7 @@ mod missing_doc;
 mod missing_enforced_import_rename;
 mod missing_fields_in_debug;
 mod missing_inline;
+mod missing_must_use;
 mod missing_trait_methods;
 mod mixed_read_write_in_expression;
 mod module_style;
@@ -862,6 +863,7 @@ rustc_lint::late_lint_methods!(
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
         WithCapacityZero: with_capacity_zero::WithCapacityZero = with_capacity_zero::WithCapacityZero,
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
+        MissingMustUse: missing_must_use::MissingMustUse = missing_must_use::MissingMustUse,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
