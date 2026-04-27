@@ -1,0 +1,208 @@
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:4:1
+   |
+LL | pub struct PubStructUnitNoMustUse;
+   | ^
+   |
+   = note: `-D clippy::missing-must-use` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::missing_must_use)]`
+help: add #[must_use] to this type definition
+   |
+LL + #[must_use]
+LL | pub struct PubStructUnitNoMustUse;
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:6:1
+   |
+LL | struct PrivStructUnitNoMustUse;
+   | ^
+   |
+help: add #[must_use] to this type definition
+   |
+LL + #[must_use]
+LL | struct PrivStructUnitNoMustUse;
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:9:1
+   |
+LL | pub struct PubTupleStructNoMustUse(u8);
+   | ^
+   |
+help: add #[must_use] to this type definition
+   |
+LL + #[must_use]
+LL | pub struct PubTupleStructNoMustUse(u8);
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:11:1
+   |
+LL | struct PrivTupleStructNoMustUse(u8);
+   | ^
+   |
+help: add #[must_use] to this type definition
+   |
+LL + #[must_use]
+LL | struct PrivTupleStructNoMustUse(u8);
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:14:1
+   |
+LL | pub struct PubStructNoMustUse {
+   | ^
+   |
+help: add #[must_use] to this type definition
+   |
+LL + #[must_use]
+LL | pub struct PubStructNoMustUse {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:18:1
+   |
+LL | struct PrivStructNoMustUse {
+   | ^
+   |
+help: add #[must_use] to this type definition
+   |
+LL + #[must_use]
+LL | struct PrivStructNoMustUse {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:23:1
+   |
+LL | pub enum PubEnumNoMustUse {
+   | ^
+   |
+help: add #[must_use] to this type definition
+   |
+LL + #[must_use]
+LL | pub enum PubEnumNoMustUse {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:29:1
+   |
+LL | enum PrivEnumNoMustUse {
+   | ^
+   |
+help: add #[must_use] to this type definition
+   |
+LL + #[must_use]
+LL | enum PrivEnumNoMustUse {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:36:1
+   |
+LL | pub union PubUnionNoMustUse {
+   | ^
+   |
+help: add #[must_use] to this type definition
+   |
+LL + #[must_use]
+LL | pub union PubUnionNoMustUse {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:41:1
+   |
+LL | union PrivUnionNoMustUse {
+   | ^
+   |
+help: add #[must_use] to this type definition
+   |
+LL + #[must_use]
+LL | union PrivUnionNoMustUse {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:114:1
+   |
+LL | pub fn pub_fn_no_must_use(_: PubStructUnitMustUse) -> u8 {
+   | ^
+   |
+help: add #[must_use] to this type definition
+   |
+LL + #[must_use]
+LL | pub fn pub_fn_no_must_use(_: PubStructUnitMustUse) -> u8 {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:118:1
+   |
+LL | fn priv_fn_no_must_use(_: PubEnumMustUse) -> u8 {
+   | ^
+   |
+help: add #[must_use] to this type definition
+   |
+LL + #[must_use]
+LL | fn priv_fn_no_must_use(_: PubEnumMustUse) -> u8 {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:136:5
+   |
+LL |     fn pub_trait_fn_no_must_use(_: PubStructUnitMustUse) -> u8;
+   |     ^
+   |
+help: add #[must_use] to this type definition
+   |
+LL ~     #[must_use]
+LL ~     fn pub_trait_fn_no_must_use(_: PubStructUnitMustUse) -> u8;
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:143:5
+   |
+LL |     fn priv_trait_fn_no_must_use(_: PubEnumMustUse) -> u8;
+   |     ^
+   |
+help: add #[must_use] to this type definition
+   |
+LL ~     #[must_use]
+LL ~     fn priv_trait_fn_no_must_use(_: PubEnumMustUse) -> u8;
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:157:5
+   |
+LL |     pub fn pub_impl_fn_no_must_use(_: PubStructUnitMustUse) -> u8 {
+   |     ^
+   |
+help: add #[must_use] to this type definition
+   |
+LL ~     #[must_use]
+LL ~     pub fn pub_impl_fn_no_must_use(_: PubStructUnitMustUse) -> u8 {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:162:5
+   |
+LL |     fn priv_impl_fn_no_must_use(_: PubEnumMustUse) -> u8 {
+   |     ^
+   |
+help: add #[must_use] to this type definition
+   |
+LL ~     #[must_use]
+LL ~     fn priv_impl_fn_no_must_use(_: PubEnumMustUse) -> u8 {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:184:5
+   |
+LL |     fn implemented_fn(_: PubStructUnitMustUse) -> u8 {
+   |     ^
+   |
+help: add #[must_use] to this type definition
+   |
+LL ~     #[must_use]
+LL ~     fn implemented_fn(_: PubStructUnitMustUse) -> u8 {
+   |
+
+error: aborting due to 17 previous errors
+
