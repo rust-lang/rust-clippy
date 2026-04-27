@@ -528,6 +528,7 @@ Whether to also run the listed lints on private items.
 ---
 **Affected lints:**
 * [`missing_errors_doc`](https://clippy.rust-lang.org/main/index.html#missing_errors_doc)
+* [`missing_must_use`](https://clippy.rust-lang.org/main/index.html#missing_must_use)
 * [`missing_panics_doc`](https://clippy.rust-lang.org/main/index.html#missing_panics_doc)
 * [`missing_safety_doc`](https://clippy.rust-lang.org/main/index.html#missing_safety_doc)
 * [`too_long_first_doc_paragraph`](https://clippy.rust-lang.org/main/index.html#too_long_first_doc_paragraph)
@@ -903,6 +904,17 @@ crate. For example, `pub(crate)` items.
 ---
 **Affected lints:**
 * [`missing_docs_in_private_items`](https://clippy.rust-lang.org/main/index.html#missing_docs_in_private_items)
+
+
+## `missing-must-use-on-empty`
+Whether to also require `#[must_use]` on structs with no fields and enums with exactly
+one variant and no fields. Enums with no variants are always ignored.
+
+**Default Value:** `false`
+
+---
+**Affected lints:**
+* [`missing_must_use`](https://clippy.rust-lang.org/main/index.html#missing_must_use)
 
 
 ## `module-item-order-groupings`
