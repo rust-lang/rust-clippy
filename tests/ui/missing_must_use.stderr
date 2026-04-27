@@ -1,4 +1,4 @@
-error: The #[must_use] attribute is missing for this type
+error: missing `#[must_use]` attribute on this type
   --> tests/ui/missing_must_use.rs:3:1
    |
 LL | pub struct PubStructUnitNoMustUse;
@@ -8,7 +8,7 @@ LL | pub struct PubStructUnitNoMustUse;
    = note: `-D clippy::missing-must-use` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::missing_must_use)]`
 
-error: The #[must_use] attribute is missing for this type
+error: missing `#[must_use]` attribute on this type
   --> tests/ui/missing_must_use.rs:5:1
    |
 LL | struct PrivStructUnitNoMustUse;
@@ -16,7 +16,7 @@ LL | struct PrivStructUnitNoMustUse;
    |
    = help: add #[must_use] to this type definition
 
-error: The #[must_use] attribute is missing for this type
+error: missing `#[must_use]` attribute on this type
   --> tests/ui/missing_must_use.rs:8:1
    |
 LL | pub struct PubTupleStructNoMustUse(u8);
@@ -24,7 +24,7 @@ LL | pub struct PubTupleStructNoMustUse(u8);
    |
    = help: add #[must_use] to this type definition
 
-error: The #[must_use] attribute is missing for this type
+error: missing `#[must_use]` attribute on this type
   --> tests/ui/missing_must_use.rs:10:1
    |
 LL | struct PrivTupleStructNoMustUse(u8);
@@ -32,7 +32,7 @@ LL | struct PrivTupleStructNoMustUse(u8);
    |
    = help: add #[must_use] to this type definition
 
-error: The #[must_use] attribute is missing for this type
+error: missing `#[must_use]` attribute on this type
   --> tests/ui/missing_must_use.rs:13:1
    |
 LL | / pub struct PubStructNoMustUse {
@@ -43,7 +43,7 @@ LL | | }
    |
    = help: add #[must_use] to this type definition
 
-error: The #[must_use] attribute is missing for this type
+error: missing `#[must_use]` attribute on this type
   --> tests/ui/missing_must_use.rs:17:1
    |
 LL | / struct PrivStructNoMustUse {
@@ -54,7 +54,7 @@ LL | | }
    |
    = help: add #[must_use] to this type definition
 
-error: The #[must_use] attribute is missing for this type
+error: missing `#[must_use]` attribute on this type
   --> tests/ui/missing_must_use.rs:22:1
    |
 LL | / pub enum PubEnumNoMustUse {
@@ -67,7 +67,7 @@ LL | | }
    |
    = help: add #[must_use] to this type definition
 
-error: The #[must_use] attribute is missing for this type
+error: missing `#[must_use]` attribute on this type
   --> tests/ui/missing_must_use.rs:28:1
    |
 LL | / enum PrivEnumNoMustUse {
@@ -80,7 +80,7 @@ LL | | }
    |
    = help: add #[must_use] to this type definition
 
-error: The #[must_use] attribute is missing for this type
+error: missing `#[must_use]` attribute on this type
   --> tests/ui/missing_must_use.rs:35:1
    |
 LL | / pub union PubUnionNoMustUse {
@@ -92,7 +92,7 @@ LL | | }
    |
    = help: add #[must_use] to this type definition
 
-error: The #[must_use] attribute is missing for this type
+error: missing `#[must_use]` attribute on this type
   --> tests/ui/missing_must_use.rs:40:1
    |
 LL | / union PrivUnionNoMustUse {
@@ -104,7 +104,7 @@ LL | | }
    |
    = help: add #[must_use] to this type definition
 
-error: The #[must_use] attribute is missing for this type
+error: missing `#[must_use]` attribute on this type
   --> tests/ui/missing_must_use.rs:90:5
    |
 LL |     pub struct InnerPubStructUnitNoMustUse;
@@ -112,7 +112,7 @@ LL |     pub struct InnerPubStructUnitNoMustUse;
    |
    = help: add #[must_use] to this type definition
 
-error: The #[must_use] attribute is missing for this type
+error: missing `#[must_use]` attribute on this type
   --> tests/ui/missing_must_use.rs:92:5
    |
 LL |     struct InnerPrivStructUnitNoMustUse;
@@ -120,7 +120,7 @@ LL |     struct InnerPrivStructUnitNoMustUse;
    |
    = help: add #[must_use] to this type definition
 
-error: The #[must_use] attribute is missing for this type
+error: missing `#[must_use]` attribute on this type
   --> tests/ui/missing_must_use.rs:95:5
    |
 LL |     pub struct InnerPubStructTupleNoMustUse(u8);
@@ -128,7 +128,7 @@ LL |     pub struct InnerPubStructTupleNoMustUse(u8);
    |
    = help: add #[must_use] to this type definition
 
-error: The #[must_use] attribute is missing for this type
+error: missing `#[must_use]` attribute on this type
   --> tests/ui/missing_must_use.rs:97:5
    |
 LL |     struct InnerPrivStructTupleNoMustUse(u8);
@@ -136,7 +136,7 @@ LL |     struct InnerPrivStructTupleNoMustUse(u8);
    |
    = help: add #[must_use] to this type definition
 
-error: The #[must_use] attribute is missing for this type
+error: missing `#[must_use]` attribute on this type
   --> tests/ui/missing_must_use.rs:100:5
    |
 LL | /     pub struct InnerPubStructNoMustUse {
@@ -147,7 +147,7 @@ LL | |     }
    |
    = help: add #[must_use] to this type definition
 
-error: The #[must_use] attribute is missing for this type
+error: missing `#[must_use]` attribute on this type
   --> tests/ui/missing_must_use.rs:104:5
    |
 LL | /     struct InnerPrivStructNoMustUse {
@@ -158,7 +158,7 @@ LL | |     }
    |
    = help: add #[must_use] to this type definition
 
-error: The #[must_use] attribute is missing for this type
+error: missing `#[must_use]` attribute on this type
   --> tests/ui/missing_must_use.rs:109:5
    |
 LL | /     pub enum InnerPubEnumNoMustUse {
@@ -171,7 +171,7 @@ LL | |     }
    |
    = help: add #[must_use] to this type definition
 
-error: The #[must_use] attribute is missing for this type
+error: missing `#[must_use]` attribute on this type
   --> tests/ui/missing_must_use.rs:115:5
    |
 LL | /     enum InnerPrivEnumNoMustUse {
@@ -184,7 +184,7 @@ LL | |     }
    |
    = help: add #[must_use] to this type definition
 
-error: The #[must_use] attribute is missing for this type
+error: missing `#[must_use]` attribute on this type
   --> tests/ui/missing_must_use.rs:122:5
    |
 LL | /     pub union InnerPubUnionNoMustUse {
@@ -196,7 +196,7 @@ LL | |     }
    |
    = help: add #[must_use] to this type definition
 
-error: The #[must_use] attribute is missing for this type
+error: missing `#[must_use]` attribute on this type
   --> tests/ui/missing_must_use.rs:127:5
    |
 LL | /     union InnerPrivUnionNoMustUse {

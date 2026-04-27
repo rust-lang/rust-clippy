@@ -43,7 +43,7 @@ impl LateLintPass<'_> for MissingMustUse {
                         cx,
                         MISSING_MUST_USE,
                         item.span,
-                        "The #[must_use] attribute is missing for this type",
+                        "missing `#[must_use]` attribute on this type",
                         None,
                         "add #[must_use] to this type definition",
                     );
