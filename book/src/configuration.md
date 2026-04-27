@@ -79,7 +79,7 @@ This also works with lint groups. For example, you can run Clippy with warnings 
 cargo clippy -- -W clippy::pedantic
 ```
 
-If you care only about a certain lints, you can allow all others and then explicitly warn on the lints you are
+If you care only about certain lints, you can allow all others and then explicitly warn on the lints you are
 interested in:
 
 ```terminal
