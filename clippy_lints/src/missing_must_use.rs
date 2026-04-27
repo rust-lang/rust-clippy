@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_hir::{Item, ItemKind, find_attr};
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
@@ -31,6 +31,9 @@ declare_lint_pass!(MissingMustUse => [MISSING_MUST_USE]);
 
 impl LateLintPass<'_> for MissingMustUse {
     fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
+        if item.span.in_external_macro(cx.sess().source_map()) {
+            return;
+        }
         let attrs = cx.tcx.hir_attrs(item.hir_id());
         match item.kind {
             ItemKind::Struct(..) | ItemKind::Enum(..) | ItemKind::Union(..) => {
