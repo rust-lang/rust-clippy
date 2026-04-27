@@ -192,7 +192,8 @@ pub fn has_iter_method(cx: &LateContext<'_>, probably_ref_ty: Ty<'_>) -> Option<
         sym::HashMap,
         sym::PathBuf,
         sym::Path,
-        sym::Receiver,
+        sym::MpscReceiver,
+        sym::MpmcReceiver,
     ];
 
     let ty_to_check = match probably_ref_ty.kind() {
