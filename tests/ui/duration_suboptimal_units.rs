@@ -23,17 +23,29 @@ fn main() {
     let dur = Duration::from_secs(42);
     let dur = Duration::from_hours(3);
 
-    let dur = Duration::from_secs(60);
     let dur = Duration::from_secs(59 + 1);
     //~^ duration_suboptimal_units
+
+    // Literals with small promoted values should not lint (issue #16532)
+    let dur = Duration::from_secs(60);
     let dur = Duration::from_secs(180);
+    let dur = Duration::from_secs(180);
+    let dur = Duration::from_millis(5_000);
+    let dur = Duration::from_millis(1_000);
+    let dur = Duration::from_secs(3_600);
+
+    // Literals with larger promoted values should lint
+    let dur = Duration::from_millis(20_000);
+    //~^ duration_suboptimal_units
+    let dur = Duration::from_mins(720);
+    //~^ duration_suboptimal_units
+
     let dur = Duration::from_secs(60 * 3);
     //~^ duration_suboptimal_units
     let dur = Duration::from_secs(10 * 60);
     //~^ duration_suboptimal_units
     let dur = Duration::from_mins(24 * 60);
     //~^ duration_suboptimal_units
-    let dur = Duration::from_millis(5_000);
     let dur = Duration::from_millis(5 * 1000);
     //~^ duration_suboptimal_units
     let dur = Duration::from_nanos(13 * 60 * 60 * 1_000 * 1_000 * 1_000);
