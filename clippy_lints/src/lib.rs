@@ -360,7 +360,7 @@ mod trailing_empty_array;
 mod trait_bounds;
 mod transmute;
 mod tuple_array_conversions;
-mod type_must_use;
+mod missing_must_use;
 mod types;
 mod unconditional_recursion;
 mod undocumented_unsafe_blocks;
@@ -626,6 +626,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::new(mixed_read_write_in_expression::EvalOrderDependence)),
         Box::new(move |_| Box::new(missing_doc::MissingDoc::new(conf))),
         Box::new(|_| Box::new(missing_inline::MissingInline)),
+        Box::new(|_| Box::new(missing_must_use::MissingMustUse)),
         Box::new(move |_| Box::new(exhaustive_items::ExhaustiveItems)),
         Box::new(|_| Box::new(unused_result_ok::UnusedResultOk)),
         Box::new(|_| Box::new(match_result_ok::MatchResultOk)),

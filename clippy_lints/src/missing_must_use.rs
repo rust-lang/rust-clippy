@@ -24,17 +24,17 @@ declare_clippy_lint! {
     /// struct S(u8);   // missing `#[must_use]` and it will trigger the suggestion to add `#[must_use]`.
     /// ```
     #[clippy::version = "1.97.0"]
-    pub TYPE_MUST_USE,
+    pub MISSING_MUST_USE,
     restriction,
     "finding types that are not marked with `#[must_use]`"
 }
 
-impl_lint_pass!(TypeMustUse => [TYPE_MUST_USE]);
+impl_lint_pass!(MissingMustUse => [MISSING_MUST_USE]);
 
 #[derive(Default)]
-pub struct TypeMustUse;
+pub struct MissingMustUse;
 
-impl LateLintPass<'_> for TypeMustUse {
+impl LateLintPass<'_> for MissingMustUse {
     fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
         let attrs = cx.tcx.hir_attrs(item.hir_id());
         match item.kind {
@@ -42,7 +42,7 @@ impl LateLintPass<'_> for TypeMustUse {
                 if !find_attr!(attrs, MustUse { .. }) {
                     span_lint(
                         cx,
-                        TYPE_MUST_USE,
+                        MISSING_MUST_USE,
                         item.span,
                         "the `#[must_use]` attribute is missing for this type",
                     );
@@ -56,7 +56,7 @@ impl LateLintPass<'_> for TypeMustUse {
             | ItemKind::ForeignMod { .. }
             | ItemKind::GlobalAsm { .. }
             | ItemKind::TyAlias(..)
-            | ItemKind::Trait(.., _)
+            | ItemKind::Trait(..)
             | ItemKind::Impl { .. }
             | ItemKind::TraitAlias(..)
             | ItemKind::Macro(..)
