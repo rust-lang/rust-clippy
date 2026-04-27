@@ -167,3 +167,12 @@ mod issue15035 {
         result.map_err(|err| -> () { handle(err) }).ok()
     }
 }
+
+mod issue16918 {
+    pub fn foo(x: usize) -> () {
+        //~^ unused_unit
+        let _ = x;
+        ()
+        //~^ unused_unit
+    }
+}
