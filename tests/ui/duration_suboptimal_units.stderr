@@ -13,7 +13,7 @@ LL +     let dur = Duration::from_mins(1);
    |
 
 error: constructing a `Duration` using a smaller unit when a larger unit would be more readable
-  --> tests/ui/duration_suboptimal_units.rs:38:15
+  --> tests/ui/duration_suboptimal_units.rs:39:15
    |
 LL |     let dur = Duration::from_millis(20_000);
    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -25,7 +25,7 @@ LL +     let dur = Duration::from_secs(20);
    |
 
 error: constructing a `Duration` using a smaller unit when a larger unit would be more readable
-  --> tests/ui/duration_suboptimal_units.rs:40:15
+  --> tests/ui/duration_suboptimal_units.rs:41:15
    |
 LL |     let dur = Duration::from_mins(720);
    |               ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -39,6 +39,18 @@ LL +     let dur = Duration::from_hours(12);
 error: constructing a `Duration` using a smaller unit when a larger unit would be more readable
   --> tests/ui/duration_suboptimal_units.rs:43:15
    |
+LL |     let dur = Duration::from_secs(660);
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try using from_mins
+   |
+LL -     let dur = Duration::from_secs(660);
+LL +     let dur = Duration::from_mins(11);
+   |
+
+error: constructing a `Duration` using a smaller unit when a larger unit would be more readable
+  --> tests/ui/duration_suboptimal_units.rs:46:15
+   |
 LL |     let dur = Duration::from_secs(60 * 3);
    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
@@ -49,7 +61,7 @@ LL +     let dur = Duration::from_mins(3);
    |
 
 error: constructing a `Duration` using a smaller unit when a larger unit would be more readable
-  --> tests/ui/duration_suboptimal_units.rs:45:15
+  --> tests/ui/duration_suboptimal_units.rs:48:15
    |
 LL |     let dur = Duration::from_secs(10 * 60);
    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -61,7 +73,7 @@ LL +     let dur = Duration::from_mins(10);
    |
 
 error: constructing a `Duration` using a smaller unit when a larger unit would be more readable
-  --> tests/ui/duration_suboptimal_units.rs:47:15
+  --> tests/ui/duration_suboptimal_units.rs:50:15
    |
 LL |     let dur = Duration::from_mins(24 * 60);
    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -73,7 +85,7 @@ LL +     let dur = Duration::from_hours(24);
    |
 
 error: constructing a `Duration` using a smaller unit when a larger unit would be more readable
-  --> tests/ui/duration_suboptimal_units.rs:49:15
+  --> tests/ui/duration_suboptimal_units.rs:52:15
    |
 LL |     let dur = Duration::from_millis(5 * 1000);
    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -85,7 +97,7 @@ LL +     let dur = Duration::from_secs(5);
    |
 
 error: constructing a `Duration` using a smaller unit when a larger unit would be more readable
-  --> tests/ui/duration_suboptimal_units.rs:51:15
+  --> tests/ui/duration_suboptimal_units.rs:54:15
    |
 LL |     let dur = Duration::from_nanos(13 * 60 * 60 * 1_000 * 1_000 * 1_000);
    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -97,7 +109,7 @@ LL +     let dur = Duration::from_hours(13);
    |
 
 error: constructing a `Duration` using a smaller unit when a larger unit would be more readable
-  --> tests/ui/duration_suboptimal_units.rs:63:19
+  --> tests/ui/duration_suboptimal_units.rs:66:19
    |
 LL |         let dur = Duration::from_millis(1000 * 5);
    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -109,7 +121,7 @@ LL +         let dur = Duration::from_secs(5);
    |
 
 error: constructing a `Duration` using a smaller unit when a larger unit would be more readable
-  --> tests/ui/duration_suboptimal_units.rs:65:19
+  --> tests/ui/duration_suboptimal_units.rs:68:19
    |
 LL |         let dur = Duration::from_millis(11000);
    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -121,7 +133,7 @@ LL +         let dur = Duration::from_secs(11);
    |
 
 error: constructing a `Duration` using a smaller unit when a larger unit would be more readable
-  --> tests/ui/duration_suboptimal_units.rs:70:19
+  --> tests/ui/duration_suboptimal_units.rs:73:19
    |
 LL |         let dur = Duration::from_secs(39600);
    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -133,7 +145,7 @@ LL +         let dur = Duration::from_hours(11);
    |
 
 error: constructing a `Duration` using a smaller unit when a larger unit would be more readable
-  --> tests/ui/duration_suboptimal_units.rs:72:19
+  --> tests/ui/duration_suboptimal_units.rs:75:19
    |
 LL |         let dur = Duration::from_secs(3 * 60);
    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -145,7 +157,7 @@ LL +         let dur = Duration::from_mins(3);
    |
 
 error: constructing a `Duration` using a smaller unit when a larger unit would be more readable
-  --> tests/ui/duration_suboptimal_units.rs:74:19
+  --> tests/ui/duration_suboptimal_units.rs:77:19
    |
 LL |         let dur = Duration::from_mins(24 * 60);
    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -157,7 +169,19 @@ LL +         let dur = Duration::from_hours(24);
    |
 
 error: constructing a `Duration` using a smaller unit when a larger unit would be more readable
-  --> tests/ui/duration_suboptimal_units.rs:82:16
+  --> tests/ui/duration_suboptimal_units.rs:84:5
+   |
+LL |     std::time::Duration::from_secs(12 * 60);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try using from_mins
+   |
+LL -     std::time::Duration::from_secs(12 * 60);
+LL +     std::time::Duration::from_mins(12);
+   |
+
+error: constructing a `Duration` using a smaller unit when a larger unit would be more readable
+  --> tests/ui/duration_suboptimal_units.rs:89:16
    |
 LL |     assert_eq!(Duration::from_secs(60 * 60), Duration::from_mins(6));
    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -185,7 +209,7 @@ LL +         Duration::from_mins(5)
    |
 
 error: constructing a `Duration` using a smaller unit when a larger unit would be more readable
-  --> tests/ui/duration_suboptimal_units.rs:125:9
+  --> tests/ui/duration_suboptimal_units.rs:132:9
    |
 LL |     _ = Duration::from_secs(67_768_040_922_076_800);
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -196,5 +220,5 @@ LL -     _ = Duration::from_secs(67_768_040_922_076_800);
 LL +     _ = Duration::from_hours(18824455811688);
    |
 
-error: aborting due to 16 previous errors
+error: aborting due to 18 previous errors
 

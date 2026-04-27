@@ -33,11 +33,14 @@ fn main() {
     let dur = Duration::from_millis(5_000);
     let dur = Duration::from_millis(1_000);
     let dur = Duration::from_secs(3_600);
+    let dur = Duration::from_secs(600);
 
     // Literals with larger promoted values should lint
     let dur = Duration::from_millis(20_000);
     //~^ duration_suboptimal_units
     let dur = Duration::from_mins(720);
+    //~^ duration_suboptimal_units
+    let dur = Duration::from_secs(660);
     //~^ duration_suboptimal_units
 
     let dur = Duration::from_secs(60 * 3);
@@ -66,7 +69,7 @@ fn main() {
         //~^ duration_suboptimal_units
 
         let dur = Duration::from_secs(180);
-        // 39600 secs = 3 hours
+        // 39600 secs = 11 hours
         let dur = Duration::from_secs(39600);
         //~^ duration_suboptimal_units
         let dur = Duration::from_secs(3 * 60);
@@ -76,6 +79,10 @@ fn main() {
 
         let dur = Duration::from_secs(SIXTY);
     }
+
+    // Qualified Durations must be kept
+    std::time::Duration::from_secs(12 * 60);
+    //~^ duration_suboptimal_units
 
     // We lint in normal macros
     assert_eq!(Duration::from_secs(3_600), Duration::from_mins(6));

@@ -18,7 +18,7 @@ declare_clippy_lint! {
     ///
     /// Checks for instances where a `std::time::Duration` is constructed using a smaller time unit
     /// when the value could be expressed more clearly using a larger unit.
-    /// For values that would convert to 10 or fewer of the larger unit,
+    /// For literal values that would convert to 10 or fewer of the larger unit,
     /// this lint does not apply.
     ///
     /// ### Why is this bad?
