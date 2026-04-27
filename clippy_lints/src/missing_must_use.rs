@@ -8,19 +8,19 @@ declare_clippy_lint! {
     /// It finds types that are not marked with `#[must_use]`.
     ///
     /// ### Why restrict this?
-    /// Marking a type with `#[must_use]` ensures that any value of that type cannot be
-    /// silently discarded — the compiler will warn if the value is unused. This is especially
-    /// important for types that represent resources, handles, or results where ignoring the
-    /// value is almost certainly a bug.
+    /// Marking a type with `#[must_use]` ensures that the type cannot be silently discarded.
+    /// This is especially important for types that represent resources, handles, or results,
+    /// where ignoring the value is almost certainly a bug.
     ///
     /// Enabling this lint enforces that every type definition is explicitly considered for
     /// `#[must_use]` annotation, rather than relying on authors to remember to add it.
+    ///
     /// Types that genuinely do not need the attribute can be `#[allow]`ed individually with
     /// a justifying comment.
     ///
     /// ### Example
     /// ```no_run
-    /// struct S(u8);   // missing `#[must_use]` and it will trigger the suggestion to add `#[must_use]`.
+    /// struct S(u8);   // missing `#[must_use]` and the suggestion to add `#[must_use]` will be triggered.
     /// ```
     #[clippy::version = "1.97.0"]
     pub MISSING_MUST_USE,
