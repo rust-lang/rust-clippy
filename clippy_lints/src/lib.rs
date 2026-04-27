@@ -626,7 +626,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::new(mixed_read_write_in_expression::EvalOrderDependence)),
         Box::new(move |_| Box::new(missing_doc::MissingDoc::new(conf))),
         Box::new(|_| Box::new(missing_inline::MissingInline)),
-        Box::new(|_| Box::new(missing_must_use::MissingMustUse)),
         Box::new(move |_| Box::new(exhaustive_items::ExhaustiveItems)),
         Box::new(|_| Box::new(unused_result_ok::UnusedResultOk)),
         Box::new(|_| Box::new(match_result_ok::MatchResultOk)),
@@ -871,6 +870,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(move |_| Box::new(manual_noop_waker::ManualNoopWaker::new(conf))),
         Box::new(|_| Box::new(byte_char_slices::ByteCharSlice)),
         Box::new(|_| Box::new(manual_assert_eq::ManualAssertEq)),
+        Box::new(|_| Box::new(missing_must_use::MissingMustUse)),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);

@@ -27,6 +27,7 @@ declare_clippy_lint! {
     restriction,
     "finding types that are not marked with `#[must_use]`"
 }
+
 declare_lint_pass!(MissingMustUse => [MISSING_MUST_USE]);
 
 impl LateLintPass<'_> for MissingMustUse {
