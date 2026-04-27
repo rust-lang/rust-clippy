@@ -1,4 +1,6 @@
-use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::source::snippet_indent;
+use rustc_errors::Applicability;
 use rustc_hir::{Item, ItemKind, find_attr};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::declare_lint_pass;
@@ -39,13 +41,15 @@ impl LateLintPass<'_> for MissingMustUse {
         match item.kind {
             ItemKind::Struct(..) | ItemKind::Enum(..) | ItemKind::Union(..) => {
                 if !find_attr!(attrs, MustUse { .. }) {
-                    span_lint_and_help(
+                    let indent = snippet_indent(cx, item.span).unwrap_or_default();
+                    span_lint_and_sugg(
                         cx,
                         MISSING_MUST_USE,
-                        item.span,
+                        item.span.shrink_to_lo(),
                         "missing `#[must_use]` attribute on this type",
-                        None,
                         "add #[must_use] to this type definition",
+                        format!("#[must_use]\n{indent}"),
+                        Applicability::MachineApplicable,
                     );
                 }
             },
