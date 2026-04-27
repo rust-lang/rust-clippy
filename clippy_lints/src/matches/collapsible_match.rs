@@ -4,14 +4,13 @@ use clippy_utils::msrvs::Msrv;
 use clippy_utils::res::{MaybeDef, MaybeResPath};
 use clippy_utils::source::{IntoSpan, SpanRangeExt, snippet};
 use clippy_utils::usage::mutated_variables;
-use clippy_utils::visitors::{for_each_expr_without_closures, is_local_used};
+use clippy_utils::visitors::is_local_used;
 use clippy_utils::{SpanlessEq, get_ref_operators, is_unit_expr, peel_blocks_with_stmt, peel_ref_operators};
-use core::ops::ControlFlow;
 use rustc_ast::BorrowKind;
 use rustc_errors::{Applicability, MultiSpan};
 use rustc_hir::LangItem::OptionNone;
-use rustc_hir::{Arm, Expr, ExprKind, HirId, HirIdSet, Node, Pat, PatExpr, PatExprKind, PatKind};
-use rustc_hir_typeck::expr_use_visitor::{Delegate, ExprUseVisitor, Place, PlaceBase, PlaceWithHirId};
+use rustc_hir::{Arm, Expr, ExprKind, HirId, HirIdSet, Pat, PatExpr, PatExprKind, PatKind};
+use rustc_hir_typeck::expr_use_visitor::{Delegate, ExprUseVisitor, PlaceBase, PlaceWithHirId};
 use rustc_lint::LateContext;
 use rustc_middle::mir::FakeReadCause;
 use rustc_middle::ty;
@@ -149,7 +148,6 @@ fn check_arm<'tcx>(
             (Some(a), Some(b)) => SpanlessEq::new(cx).eq_expr(a, b),
         }
         && !pat_bindings_moved_or_mutated(cx, outer_pat, inner.cond)
-        && !inner_cond_conflicts_with_scrutinee_borrows(cx, outer_cond, inner.cond)
     {
         span_lint_hir_and_then(
             cx,
@@ -203,7 +201,13 @@ fn check_arm<'tcx>(
                     sugg.push((else_inner_span, String::new()));
                 }
 
-                diag.multipart_suggestion("collapse nested if block", sugg, Applicability::MachineApplicable);
+                // The rewrite turns an arm body into a match guard. Guards run during pattern
+                // matching while the scrutinee borrow is still live, so when the inner condition
+                // reads from a place the scrutinee mutably borrows, the rewrite fails to compile
+                // (E0502). Static analysis to detect this precisely is hard (multi-level
+                // reborrows, function-parameter borrow origins), so the suggestion is marked
+                // `MaybeIncorrect` to keep `cargo clippy --fix` from auto-applying it.
+                diag.multipart_suggestion("collapse nested if block", sugg, Applicability::MaybeIncorrect);
             },
         );
     }
@@ -320,128 +324,4 @@ impl<'tcx> Delegate<'tcx> for MovedVarDelegate {
     fn borrow(&mut self, _: &PlaceWithHirId<'tcx>, _: HirId, _: ty::BorrowKind) {}
     fn mutate(&mut self, _: &PlaceWithHirId<'tcx>, _: HirId) {}
     fn fake_read(&mut self, _: &PlaceWithHirId<'tcx>, _: FakeReadCause, _: HirId) {}
-}
-
-/// Returns true when collapsing the inner `if cond` of a match arm body into a guard would
-/// introduce a borrow conflict: the scrutinee leaves a mutable borrow live on a place that
-/// `inner_cond` reads. Guards run while the scrutinee borrow is still active, whereas an arm
-/// body may be entered after NLL has already ended the borrow.
-fn inner_cond_conflicts_with_scrutinee_borrows<'tcx>(
-    cx: &LateContext<'tcx>,
-    scrutinee: &'tcx Expr<'tcx>,
-    inner_cond: &'tcx Expr<'tcx>,
-) -> bool {
-    let mut mut_borrows = MutBorrowDelegate::default();
-    if ExprUseVisitor::for_clippy(cx, scrutinee.hir_id.owner.def_id, &mut mut_borrows)
-        .walk_expr(scrutinee)
-        .is_err()
-    {
-        return false;
-    }
-
-    // Expand one level: if the scrutinee references a local of type `&mut T`, follow the
-    // borrow back through the binding's let-init. This catches the common let-else pattern
-    // `let Some(x) = receiver.method_mut() else { ... };` where `x` carries the borrow into
-    // the scrutinee transparently.
-    let mut visited = HirIdSet::default();
-    let _ = for_each_expr_without_closures(scrutinee, |e| {
-        if let Some(local_id) = e.res_local_id()
-            && visited.insert(local_id)
-            && let ty::Ref(_, _, mutbl) = cx.typeck_results().node_type(local_id).kind()
-            && mutbl.is_mut()
-            && let Some(init) = let_init_for_binding(cx, local_id)
-        {
-            let _ = ExprUseVisitor::for_clippy(cx, init.hir_id.owner.def_id, &mut mut_borrows).walk_expr(init);
-        }
-        ControlFlow::<()>::Continue(())
-    });
-
-    if mut_borrows.places.is_empty() {
-        return false;
-    }
-
-    let mut reads = ReadDelegate::default();
-    if ExprUseVisitor::for_clippy(cx, inner_cond.hir_id.owner.def_id, &mut reads)
-        .walk_expr(inner_cond)
-        .is_err()
-    {
-        return false;
-    }
-
-    mut_borrows
-        .places
-        .iter()
-        .any(|m| reads.places.iter().any(|r| places_alias(m, r)))
-}
-
-/// Walks up from a binding `HirId` through enclosing `Pat` nodes to its `LetStmt` and returns
-/// the initializer expression, if any. Returns `None` for function parameters or other binding
-/// forms.
-fn let_init_for_binding<'tcx>(cx: &LateContext<'tcx>, binding_id: HirId) -> Option<&'tcx Expr<'tcx>> {
-    let mut id = binding_id;
-    loop {
-        match cx.tcx.parent_hir_node(id) {
-            Node::LetStmt(local) => return local.init,
-            Node::Pat(p) => id = p.hir_id,
-            _ => return None,
-        }
-    }
-}
-
-/// Returns true if the two places may refer to overlapping memory: same base and one's
-/// projection list is a prefix of the other's. `Upvar` bases are treated conservatively.
-fn places_alias(a: &Place<'_>, b: &Place<'_>) -> bool {
-    match (a.base, b.base) {
-        (PlaceBase::Upvar(_), _) | (_, PlaceBase::Upvar(_)) => true,
-        (PlaceBase::Local(la), PlaceBase::Local(lb)) if la == lb => {
-            let len = a.projections.len().min(b.projections.len());
-            a.projections[..len]
-                .iter()
-                .zip(b.projections[..len].iter())
-                .all(|(pa, pb)| pa.kind == pb.kind)
-        },
-        _ => false,
-    }
-}
-
-#[derive(Default)]
-struct MutBorrowDelegate<'tcx> {
-    places: Vec<Place<'tcx>>,
-}
-
-impl<'tcx> Delegate<'tcx> for MutBorrowDelegate<'tcx> {
-    fn consume(&mut self, _: &PlaceWithHirId<'tcx>, _: HirId) {}
-    fn use_cloned(&mut self, _: &PlaceWithHirId<'tcx>, _: HirId) {}
-    fn borrow(&mut self, cmt: &PlaceWithHirId<'tcx>, _: HirId, bk: ty::BorrowKind) {
-        if matches!(bk, ty::BorrowKind::Mutable) {
-            self.places.push(cmt.place.clone());
-        }
-    }
-    fn mutate(&mut self, cmt: &PlaceWithHirId<'tcx>, _: HirId) {
-        self.places.push(cmt.place.clone());
-    }
-    fn fake_read(&mut self, _: &PlaceWithHirId<'tcx>, _: FakeReadCause, _: HirId) {}
-}
-
-#[derive(Default)]
-struct ReadDelegate<'tcx> {
-    places: Vec<Place<'tcx>>,
-}
-
-impl<'tcx> Delegate<'tcx> for ReadDelegate<'tcx> {
-    fn consume(&mut self, cmt: &PlaceWithHirId<'tcx>, _: HirId) {
-        self.places.push(cmt.place.clone());
-    }
-    fn use_cloned(&mut self, cmt: &PlaceWithHirId<'tcx>, _: HirId) {
-        self.places.push(cmt.place.clone());
-    }
-    fn borrow(&mut self, cmt: &PlaceWithHirId<'tcx>, _: HirId, _: ty::BorrowKind) {
-        self.places.push(cmt.place.clone());
-    }
-    fn mutate(&mut self, cmt: &PlaceWithHirId<'tcx>, _: HirId) {
-        self.places.push(cmt.place.clone());
-    }
-    fn fake_read(&mut self, cmt: &PlaceWithHirId<'tcx>, _: FakeReadCause, _: HirId) {
-        self.places.push(cmt.place.clone());
-    }
 }
