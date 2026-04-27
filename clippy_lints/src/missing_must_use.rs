@@ -1,8 +1,7 @@
-use clippy_utils::diagnostics::span_lint;
-
+use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_hir::{Item, ItemKind, find_attr};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::impl_lint_pass;
+use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -28,11 +27,7 @@ declare_clippy_lint! {
     restriction,
     "finding types that are not marked with `#[must_use]`"
 }
-
-impl_lint_pass!(MissingMustUse => [MISSING_MUST_USE]);
-
-#[derive(Default)]
-pub struct MissingMustUse;
+declare_lint_pass!(MissingMustUse => [MISSING_MUST_USE]);
 
 impl LateLintPass<'_> for MissingMustUse {
     fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
@@ -40,11 +35,13 @@ impl LateLintPass<'_> for MissingMustUse {
         match item.kind {
             ItemKind::Struct(..) | ItemKind::Enum(..) | ItemKind::Union(..) => {
                 if !find_attr!(attrs, MustUse { .. }) {
-                    span_lint(
+                    span_lint_and_help(
                         cx,
                         MISSING_MUST_USE,
                         item.span,
-                        "the `#[must_use]` attribute is missing for this type",
+                        "The #[must_use] attribute is missing for this type",
+                        None,
+                        "add #[must_use] to this type definition",
                     );
                 }
             },
