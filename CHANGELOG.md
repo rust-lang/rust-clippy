@@ -8,10 +8,11 @@ document.
 
 [df995e...master](https://github.com/rust-lang/rust-clippy/compare/df995e...master)
 
-### False Positive Fixes
+### Suggestion Fixes/Improvements
 
-* [`collapsible_match`]: no longer suggests an if-into-guard collapse when the inner
-  condition would conflict with a mutable borrow held by the match scrutinee
+* [`collapsible_match`]: the if-into-guard collapse suggestion is now marked
+  `MaybeIncorrect` so `cargo clippy --fix` no longer auto-applies it, since the
+  rewrite can produce code that fails the borrow checker
   [#16903](https://github.com/rust-lang/rust-clippy/issues/16903)
 
 ## Rust 1.95
