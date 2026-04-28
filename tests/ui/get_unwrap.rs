@@ -1,10 +1,4 @@
-#![allow(
-    unused_mut,
-    clippy::from_iter_instead_of_collect,
-    clippy::get_first,
-    clippy::useless_vec,
-    clippy::out_of_bounds_indexing
-)]
+#![allow(unused_mut, clippy::get_first, clippy::useless_vec, clippy::out_of_bounds_indexing)]
 #![warn(clippy::unwrap_used)]
 #![deny(clippy::get_unwrap)]
 
