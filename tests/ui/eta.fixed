@@ -662,3 +662,43 @@ fn issue16641() {
     (0..10).flat_map(|x| (0..10).map(&*closure)).count();
     //~^ redundant_closure
 }
+
+mod issue16731 {
+    pub mod outer {
+        mod private_inner {
+            pub struct Item;
+            impl Item {
+                pub fn method(self) -> bool {
+                    true
+                }
+            }
+        }
+        pub use private_inner::Item;
+    }
+
+    fn at_root() {
+        let item = outer::Item;
+        let _ = Some(item).map(crate::issue16731::outer::Item::method);
+        //~^ redundant_closure_for_method_calls
+    }
+
+    pub mod outer_trait {
+        mod hidden {
+            pub trait Greet {
+                fn say(self) -> String;
+            }
+            impl Greet for u32 {
+                fn say(self) -> String {
+                    self.to_string()
+                }
+            }
+        }
+        pub use hidden::Greet;
+    }
+
+    fn trait_at_root() {
+        use outer_trait::Greet;
+        let _ = Some(1u32).map(crate::issue16731::outer_trait::Greet::say);
+        //~^ redundant_closure_for_method_calls
+    }
+}
