@@ -572,6 +572,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::no_effect::NO_EFFECT_UNDERSCORE_BINDING_INFO,
     crate::no_effect::UNNECESSARY_OPERATION_INFO,
     crate::no_mangle_with_rust_abi::NO_MANGLE_WITH_RUST_ABI_INFO,
+    crate::non_binding_let_patterns::NON_BINDING_LET_PATTERNS_INFO,
     crate::non_canonical_impls::NON_CANONICAL_CLONE_IMPL_INFO,
     crate::non_canonical_impls::NON_CANONICAL_PARTIAL_ORD_IMPL_INFO,
     crate::non_copy_const::BORROW_INTERIOR_MUTABLE_CONST_INFO,
