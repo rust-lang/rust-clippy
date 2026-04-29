@@ -30,7 +30,9 @@ pub(super) fn check<'tcx>(
             return;
         }
 
-        if expr_use_ctxt(cx, expr).is_ty_unified {
+        let use_ctxt = get_expr_use_site(cx.tcx, cx.typeck_results(), expr.span.ctxt(), expr);
+
+        if use_ctxt.is_ty_unified {
             return;
         }
 
@@ -51,8 +53,6 @@ pub(super) fn check<'tcx>(
             call_span,
             format!("using `{method_name}` with a constant chunk size"),
             |diag| {
-                let use_ctxt = get_expr_use_site(cx.tcx, cx.typeck_results(), expr.span.ctxt(), expr);
-
                 if let Node::Expr(use_expr) = use_ctxt.node {
                     match use_expr.kind {
                         ExprKind::Call(_, [recv]) | ExprKind::MethodCall(_, recv, [], _)
