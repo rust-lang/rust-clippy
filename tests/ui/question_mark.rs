@@ -722,3 +722,37 @@ fn issue_destructuring_assignment() -> Option<(i32, i32)> {
     }
     Some((a, b))
 }
+
+#[rustfmt::skip]
+fn issue16892() -> Option<()> {
+    if let Some(w) = Some(1) { todo!() } else {
+        //~^ question_mark
+        return None;
+    }
+
+    if let Some(x) = Some(1) {
+        //~^ question_mark
+        todo!()
+    } else {
+        return None;
+    }
+
+    _ = if let Some(y) = Some(1) {
+        //~^ question_mark
+        println!("{y}");
+        todo!()
+    } else {
+        return None;
+    };
+
+    let mut x = 1;
+    if let Some(x) = Some(1) {
+        //~^ question_mark
+        todo!()
+    } else {
+        return None;
+    };
+    x += 1;
+
+    Some(())
+}
