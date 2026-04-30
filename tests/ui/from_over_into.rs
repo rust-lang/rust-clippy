@@ -116,4 +116,24 @@ fn issue_112502() {
     }
 }
 
+fn issue_16823() {
+    pub struct Foo(pub String);
+
+    impl<T> From<T> for Foo
+    where
+        String: From<T>,
+    {
+        fn from(val: T) -> Self {
+            Self(String::from(val))
+        }
+    }
+
+    // no lint, From<Foo> for String would conflict with the blanket impl above
+    impl Into<String> for Foo {
+        fn into(self) -> String {
+            self.0
+        }
+    }
+}
+
 fn main() {}

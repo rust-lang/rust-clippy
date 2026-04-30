@@ -5,7 +5,8 @@
 #![allow(clippy::wildcard_imports, clippy::enum_glob_use)]
 
 use crate::{both, over};
-use rustc_ast::{self as ast, *};
+use rustc_ast::{self as ast, HasAttrs, *};
+use rustc_span::sym;
 use rustc_span::symbol::Ident;
 use std::mem;
 
@@ -1043,4 +1044,18 @@ pub fn eq_delim_args(l: &DelimArgs, r: &DelimArgs) -> bool {
     l.delim == r.delim
         && l.tokens.len() == r.tokens.len()
         && l.tokens.iter().zip(r.tokens.iter()).all(|(a, b)| a.eq_unspanned(b))
+}
+
+/// Checks whether `#[cfg(test)]` is directly applied to `item`.
+pub fn is_cfg_test(item: &impl HasAttrs) -> bool {
+    item.attrs().iter().any(|attr| {
+        if attr.has_name(sym::cfg)
+            && let Some(item_list) = attr.meta_item_list()
+            && item_list.iter().any(|item| item.has_name(sym::test))
+        {
+            true
+        } else {
+            false
+        }
+    })
 }

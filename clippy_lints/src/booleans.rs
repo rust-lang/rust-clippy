@@ -360,7 +360,7 @@ impl SuggestContext<'_, '_, '_> {
                         if app != Applicability::MachineApplicable {
                             return None;
                         }
-                        let _cannot_fail = write!(&mut self.output, "{}", &(!snip));
+                        let _cannot_fail = write!(&mut self.output, "{}", !snip);
                     }
                 },
                 True | False | Not(_) => {

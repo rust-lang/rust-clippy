@@ -548,7 +548,12 @@ fn is_default_equivalent_ctor(cx: &LateContext<'_>, def_id: DefId, path: &QPath<
     if let QPath::TypeRelative(_, method) = path
         && method.ident.name == sym::new
         && let Some(impl_did) = cx.tcx.impl_of_assoc(def_id)
-        && let Some(adt) = cx.tcx.type_of(impl_did).instantiate_identity().skip_norm_wip().ty_adt_def()
+        && let Some(adt) = cx
+            .tcx
+            .type_of(impl_did)
+            .instantiate_identity()
+            .skip_norm_wip()
+            .ty_adt_def()
     {
         return Some(adt.did()) == cx.tcx.lang_items().string()
             || (cx.tcx.get_diagnostic_name(adt.did())).is_some_and(|adt_name| std_types_symbols.contains(&adt_name));
@@ -1489,7 +1494,12 @@ pub fn return_ty<'tcx>(cx: &LateContext<'tcx>, fn_def_id: OwnerId) -> Ty<'tcx> {
 
 /// Convenience function to get the nth argument type of a function.
 pub fn nth_arg<'tcx>(cx: &LateContext<'tcx>, fn_def_id: OwnerId, nth: usize) -> Ty<'tcx> {
-    let arg = cx.tcx.fn_sig(fn_def_id).instantiate_identity().skip_norm_wip().input(nth);
+    let arg = cx
+        .tcx
+        .fn_sig(fn_def_id)
+        .instantiate_identity()
+        .skip_norm_wip()
+        .input(nth);
     cx.tcx.instantiate_bound_regions_with_erased(arg)
 }
 

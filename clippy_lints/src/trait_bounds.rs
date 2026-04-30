@@ -136,7 +136,9 @@ impl<'tcx> LateLintPass<'tcx> for TraitBounds {
                     ..
                 }) = segments.first()
                 && let Some(Node::Item(Item {
-                    kind: ItemKind::Trait {bounds: self_bounds,..},
+                    kind: ItemKind::Trait {
+                        bounds: self_bounds, ..
+                    },
                     ..
                 })) = cx.tcx.hir_get_if_local(*def_id)
             {

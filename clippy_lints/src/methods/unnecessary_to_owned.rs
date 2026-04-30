@@ -569,7 +569,10 @@ fn can_change_type<'a>(cx: &LateContext<'a>, mut expr: &'a Expr<'a>, mut ty: Ty<
                             }));
 
                         if trait_predicates.any(|predicate| {
-                            let predicate = bound_fn_sig.rebind(predicate).instantiate(cx.tcx, new_subst).skip_norm_wip();
+                            let predicate = bound_fn_sig
+                                .rebind(predicate)
+                                .instantiate(cx.tcx, new_subst)
+                                .skip_norm_wip();
                             let obligation = Obligation::new(cx.tcx, ObligationCause::dummy(), cx.param_env, predicate);
                             !cx.tcx
                                 .infer_ctxt()

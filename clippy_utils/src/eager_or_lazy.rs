@@ -71,7 +71,12 @@ fn fn_eagerness(cx: &LateContext<'_>, fn_id: DefId, name: Symbol, have_one_arg: 
         // Due to the limited operations on these types functions should be fairly cheap.
         if def.variants().iter().flat_map(|v| v.fields.iter()).any(|x| {
             matches!(
-                cx.tcx.type_of(x.did).instantiate_identity().skip_norm_wip().peel_refs().kind(),
+                cx.tcx
+                    .type_of(x.did)
+                    .instantiate_identity()
+                    .skip_norm_wip()
+                    .peel_refs()
+                    .kind(),
                 ty::Param(_)
             )
         }) && all_predicates_of(cx.tcx, fn_id).all(|(pred, _)| match pred.kind().skip_binder() {
@@ -82,7 +87,9 @@ fn fn_eagerness(cx: &LateContext<'_>, fn_id: DefId, name: Symbol, have_one_arg: 
             // Limit the function to either `(self) -> bool` or `(&self) -> bool`
             match &**cx
                 .tcx
-                .fn_sig(fn_id).instantiate_identity().skip_norm_wip()
+                .fn_sig(fn_id)
+                .instantiate_identity()
+                .skip_norm_wip()
                 .skip_binder()
                 .inputs_and_output
             {

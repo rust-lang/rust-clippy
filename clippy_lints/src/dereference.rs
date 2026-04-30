@@ -6,7 +6,6 @@ use clippy_utils::ty::{adjust_derefs_manually_drop, implements_trait, is_manuall
 use clippy_utils::{
     DefinedTy, ExprUseNode, get_expr_use_site, get_parent_expr, is_block_like, is_from_proc_macro, is_lint_allowed, sym,
 };
-use rustc_middle::ty::Unnormalized;
 use rustc_ast::util::parser::ExprPrecedence;
 use rustc_data_structures::fx::FxIndexMap;
 use rustc_errors::Applicability;
@@ -18,7 +17,7 @@ use rustc_hir::{
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, AutoBorrowMutability};
-use rustc_middle::ty::{self, Ty, TyCtxt, TypeVisitableExt, TypeckResults};
+use rustc_middle::ty::{self, Ty, TyCtxt, TypeVisitableExt, TypeckResults, Unnormalized};
 use rustc_session::impl_lint_pass;
 use rustc_span::{Span, Symbol, SyntaxContext};
 use std::borrow::Cow;
@@ -381,16 +380,21 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                                     && let ty::Ref(_, sub_ty, _) = *arg_ty.kind()
                                     && let args =
                                         typeck.node_args_opt(hir_id).map(|args| &args[1..]).unwrap_or_default()
-                                    && let impl_ty =
-                                        if cx.tcx.fn_sig(fn_id).instantiate_identity().skip_norm_wip().skip_binder().inputs()[0]
-                                            .is_ref()
-                                        {
-                                            // Trait methods taking `&self`
-                                            sub_ty
-                                        } else {
-                                            // Trait methods taking `self`
-                                            arg_ty
-                                        }
+                                    && let impl_ty = if cx
+                                        .tcx
+                                        .fn_sig(fn_id)
+                                        .instantiate_identity()
+                                        .skip_norm_wip()
+                                        .skip_binder()
+                                        .inputs()[0]
+                                        .is_ref()
+                                    {
+                                        // Trait methods taking `&self`
+                                        sub_ty
+                                    } else {
+                                        // Trait methods taking `self`
+                                        arg_ty
+                                    }
                                     && impl_ty.is_ref()
                                     && implements_trait(
                                         cx,
@@ -877,7 +881,9 @@ impl TyCoercionStability {
 
         if let Some(def_id) = def_site_def_id {
             let typing_env = ty::TypingEnv::non_body_analysis(tcx, def_id);
-            ty = tcx.try_normalize_erasing_regions(typing_env, Unnormalized::new_wip(ty)).unwrap_or(ty);
+            ty = tcx
+                .try_normalize_erasing_regions(typing_env, Unnormalized::new_wip(ty))
+                .unwrap_or(ty);
         }
         loop {
             break match *ty.kind() {
