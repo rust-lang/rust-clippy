@@ -16,6 +16,18 @@ use super::MANUAL_DIV_CEIL;
 pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, op: BinOpKind, lhs: &Expr<'_>, rhs: &Expr<'_>, msrv: Msrv) {
     let mut applicability = Applicability::MachineApplicable;
 
+    if op == BinOpKind::Add && msrv.meets(cx, msrvs::DIV_CEIL) {
+        // (x - 1) / y + 1
+        if check_alternate_form(cx, expr, lhs, rhs, &mut applicability) {
+            return;
+        }
+
+        // 1 + (x - 1) / y
+        if check_alternate_form(cx, expr, rhs, lhs, &mut applicability) {
+            return;
+        }
+    }
+
     if op == BinOpKind::Div
         && check_int_ty_and_feature(cx, cx.typeck_results().expr_ty(lhs))
         && check_int_ty_and_feature(cx, cx.typeck_results().expr_ty(rhs))
@@ -116,6 +128,10 @@ fn differ_by_one(small_expr: &Expr<'_>, large_expr: &Expr<'_>) -> bool {
     }
 }
 
+fn check_uint_ty(expr_ty: Ty<'_>) -> bool {
+    matches!(expr_ty.peel_refs().kind(), ty::Uint(_))
+}
+
 fn check_int_ty(expr_ty: Ty<'_>) -> bool {
     matches!(expr_ty.peel_refs().kind(), ty::Int(_) | ty::Uint(_))
 }
@@ -139,6 +155,29 @@ fn check_literal(expr: &Expr<'_>) -> bool {
 
 fn check_eq_expr(cx: &LateContext<'_>, lhs: &Expr<'_>, rhs: &Expr<'_>) -> bool {
     SpanlessEq::new(cx).eq_expr(lhs, rhs)
+}
+
+fn check_alternate_form(
+    cx: &LateContext<'_>,
+    expr: &Expr<'_>,
+    div_expr: &Expr<'_>,
+    add_one_expr: &Expr<'_>,
+    applicability: &mut Applicability,
+) -> bool {
+    if check_literal(add_one_expr)
+        && let ExprKind::Binary(div_op, div_lhs, div_rhs) = div_expr.kind
+        && div_op.node == BinOpKind::Div
+        && let ExprKind::Binary(sub_op, dividend, sub_rhs) = div_lhs.kind
+        && sub_op.node == BinOpKind::Sub
+        && check_literal(sub_rhs)
+        && check_uint_ty(cx.typeck_results().expr_ty(dividend))
+        && check_uint_ty(cx.typeck_results().expr_ty(div_rhs))
+    {
+        build_suggestion(cx, expr, dividend, div_rhs, applicability);
+        true
+    } else {
+        false
+    }
 }
 
 fn build_suggestion(
