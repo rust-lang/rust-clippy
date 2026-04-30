@@ -5,7 +5,10 @@ use clippy_utils::res::{MaybeDef, MaybeResPath};
 use clippy_utils::source::{IntoSpan, SpanRangeExt, snippet};
 use clippy_utils::usage::mutated_variables;
 use clippy_utils::visitors::is_local_used;
-use clippy_utils::{SpanlessEq, get_ref_operators, is_unit_expr, peel_blocks_with_stmt, peel_ref_operators};
+use clippy_utils::{
+    SpanlessEq, fulfill_or_allowed, get_ref_operators, is_unit_expr, peel_blocks_with_stmt, peel_ref_operators,
+    span_contains_non_whitespace,
+};
 use rustc_ast::BorrowKind;
 use rustc_errors::{Applicability, MultiSpan};
 use rustc_hir::LangItem::OptionNone;
@@ -149,6 +152,26 @@ fn check_arm<'tcx>(
         }
         && !pat_bindings_moved_or_mutated(cx, outer_pat, inner.cond)
     {
+        let outer_then_open_bracket = outer_then_body
+            .span
+            .split_at(1)
+            .0
+            .with_leading_whitespace(cx)
+            .into_span();
+        let mut inner_expr_with_attrs_span = inner_expr.span;
+        let inner_expr_attrs = cx.tcx.hir_attrs(inner_expr.hir_id);
+        for attr in inner_expr_attrs {
+            inner_expr_with_attrs_span = inner_expr_with_attrs_span.to(attr.span());
+        }
+        if span_contains_non_whitespace(cx, outer_then_open_bracket.between(inner_expr_with_attrs_span), false) {
+            return;
+        }
+        // Don't suggest collapsing if there are attributes on the inner expression. However, if any of
+        // those attributes are `allow` or `expect` for this lint, then we should still proceed.
+        if !inner_expr_attrs.is_empty() && !fulfill_or_allowed(cx, COLLAPSIBLE_MATCH, [inner_expr.hir_id]) {
+            return;
+        }
+
         span_lint_hir_and_then(
             cx,
             COLLAPSIBLE_MATCH,
@@ -156,12 +179,6 @@ fn check_arm<'tcx>(
             inner_expr.span,
             "this `if` can be collapsed into the outer `match`",
             |diag| {
-                let outer_then_open_bracket = outer_then_body
-                    .span
-                    .split_at(1)
-                    .0
-                    .with_leading_whitespace(cx)
-                    .into_span();
                 let outer_then_closing_bracket = {
                     let end = outer_then_body.span.shrink_to_hi();
                     end.with_lo(end.lo() - BytePos(1))

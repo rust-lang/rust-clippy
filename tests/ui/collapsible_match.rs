@@ -464,3 +464,32 @@ fn issue16705(x: Option<String>) {
         _ => false,
     };
 }
+
+fn issue16916() {
+    use std::env;
+    match env::args().len() {
+        2 => {
+            println!("Not enough many");
+        },
+        3 => {
+            #[cfg(target_os = "freebsd")]
+            todo!();
+            if env::args().len() > 5 {
+                println!("So many");
+            }
+        },
+        _ => {},
+    }
+
+    match env::args().len() {
+        2 => {},
+        3 =>
+        {
+            #[expect(clippy::collapsible_match)]
+            if env::args().len() > 5 {
+                println!("So many");
+            }
+        },
+        _ => {},
+    }
+}
