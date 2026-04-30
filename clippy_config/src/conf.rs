@@ -577,7 +577,12 @@ define_Conf! {
     #[lints(inconsistent_struct_constructor)]
     check_inconsistent_struct_field_initializers: bool = false,
     /// Whether to also run the listed lints on private items.
-    #[lints(missing_errors_doc, missing_panics_doc, missing_safety_doc, unnecessary_safety_doc)]
+    #[lints(
+        missing_errors_doc,
+        missing_panics_doc,
+        missing_safety_doc,
+        unnecessary_safety_doc,
+    )]
     check_private_items: bool = false,
     /// The maximum cognitive complexity a function can have
     #[lints(cognitive_complexity)]
@@ -684,7 +689,12 @@ define_Conf! {
     #[lints(large_futures)]
     future_size_threshold: u64 = 16 * 1024,
     /// A list of paths to types that should be treated as if they do not contain interior mutability
-    #[lints(borrow_interior_mutable_const, declare_interior_mutable_const, ifs_same_cond, mutable_key_type)]
+    #[lints(
+        borrow_interior_mutable_const,
+        declare_interior_mutable_const,
+        ifs_same_cond,
+        mutable_key_type,
+    )]
     ignore_interior_mutability: Vec<String> = Vec::from(["bytes::Bytes".into()]),
     /// Sets the scope ("crate", "file", or "module") in which duplicate inherent `impl` blocks for the same type are linted.
     #[lints(multiple_inherent_impl)]
