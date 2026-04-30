@@ -13,6 +13,7 @@ pub(super) fn check(cx: &LateContext<'_>, e: &Expr<'_>, arg: &Expr<'_>) {
             .tcx
             .type_of(impl_id)
             .instantiate_identity()
+            .skip_norm_wip()
             .is_diag_item(cx, sym::Result)
         && let ExprKind::Closure(&Closure {
             capture_clause: CaptureBy::Ref,

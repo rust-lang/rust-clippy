@@ -9,7 +9,7 @@ use rustc_hir::def::{DefKind, Res};
 use rustc_hir::intravisit::{Visitor, walk_expr};
 use rustc_hir::{self as hir, HirId};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
-use rustc_middle::ty::{GenericArgKind, Ty};
+use rustc_middle::ty::{GenericArgKind, Ty, Unnormalized};
 use rustc_session::impl_lint_pass;
 use rustc_span::symbol::Ident;
 use rustc_span::{DUMMY_SP, Span};
@@ -154,7 +154,7 @@ impl<'cx, 'others, 'tcx> AttrChecker<'cx, 'others, 'tcx> {
         let ty = self
             .cx
             .tcx
-            .try_normalize_erasing_regions(self.cx.typing_env(), ty)
+            .try_normalize_erasing_regions(self.cx.typing_env(), Unnormalized::new_wip(ty))
             .unwrap_or(ty);
         match self.type_cache.entry(ty) {
             Entry::Occupied(e) => return *e.get(),

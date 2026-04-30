@@ -130,7 +130,7 @@ impl PassByRefOrValue {
             return;
         }
 
-        let fn_sig = cx.tcx.fn_sig(def_id).instantiate_identity();
+        let fn_sig = cx.tcx.fn_sig(def_id).instantiate_identity().skip_norm_wip();
         let fn_body = cx.enclosing_body.map(|id| cx.tcx.hir_body(id));
 
         // Gather all the lifetimes found in the output type which may affect whether
@@ -292,7 +292,7 @@ impl<'tcx> LateLintPass<'tcx> for PassByRefOrValue {
         if let Node::Item(item) = cx.tcx.parent_hir_node(hir_id)
             && matches!(
                 item.kind,
-                ItemKind::Impl(Impl { of_trait: Some(_), .. }) | ItemKind::Trait(..)
+                ItemKind::Impl(Impl { of_trait: Some(_), .. }) | ItemKind::Trait { .. }
             )
         {
             return;

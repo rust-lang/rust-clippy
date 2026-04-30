@@ -22,6 +22,7 @@ pub(super) fn check<'tcx>(
             .tcx
             .type_of(impl_id)
             .instantiate_identity()
+            .skip_norm_wip()
             .is_diag_item(cx, sym::Option)
         && let ExprKind::Call(err_path, [err_arg]) = or_expr.kind
         && err_path.res(cx).ctor_parent(cx).is_lang_item(cx, ResultErr)

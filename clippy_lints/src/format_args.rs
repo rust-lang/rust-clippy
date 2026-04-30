@@ -25,7 +25,7 @@ use rustc_errors::SuggestionStyle::{CompletelyHidden, ShowCode};
 use rustc_hir::{Expr, ExprKind, LangItem, RustcVersion, find_attr};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, DerefAdjustKind};
-use rustc_middle::ty::{self, GenericArg, List, TraitRef, Ty, TyCtxt, Upcast};
+use rustc_middle::ty::{self, GenericArg, List, TraitRef, Ty, TyCtxt, Unnormalized, Upcast};
 use rustc_session::impl_lint_pass;
 use rustc_span::edition::Edition::Edition2021;
 use rustc_span::{BytePos, Pos, Span, Symbol};
@@ -808,7 +808,7 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
         }
         let depth = depth + 1;
         let typing_env = cx.typing_env();
-        let ty = tcx.normalize_erasing_regions(typing_env, ty);
+        let ty = tcx.normalize_erasing_regions(typing_env, Unnormalized::new_wip(ty));
         match ty.kind() {
             ty::RawPtr(..) | ty::FnPtr(..) | ty::FnDef(..) => true,
             ty::Ref(_, t, _) | ty::Slice(t) | ty::Array(t, _) => self.has_pointer_debug(*t, depth),
@@ -843,7 +843,10 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                 };
                 let pointer_debug = derived_debug
                     && adt.all_fields().any(|f| {
-                        self.has_pointer_debug(tcx.normalize_erasing_regions(typing_env, f.ty(tcx, args)), depth)
+                        self.has_pointer_debug(
+                            tcx.normalize_erasing_regions(typing_env, Unnormalized::new_wip(f.ty(tcx, args))),
+                            depth,
+                        )
                     });
                 self.has_pointer_format.insert(ty, pointer_debug);
                 pointer_debug

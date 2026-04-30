@@ -76,7 +76,7 @@ impl<'tcx> LateLintPass<'tcx> for FromOverInto {
             // `impl Into<target_ty> for self_ty`
             && let Some(GenericArgs { args: [GenericArg::Type(target_ty)], .. }) = into_trait_seg.args
             && span_is_local(item.span)
-            && let middle_trait_ref = cx.tcx.impl_trait_ref(item.owner_id).instantiate_identity()
+            && let middle_trait_ref = cx.tcx.impl_trait_ref(item.owner_id).instantiate_identity().skip_norm_wip()
             && cx.tcx.is_diagnostic_item(sym::Into, middle_trait_ref.def_id)
             && !matches!(middle_trait_ref.args.type_at(1).kind(), ty::Alias(ty::AliasTy { kind: ty::Opaque{..} , .. }))
             && self.msrv.meets(cx, msrvs::RE_REBALANCING_COHERENCE)
@@ -170,7 +170,7 @@ fn has_blanket_from_impl<'tcx>(cx: &LateContext<'tcx>, self_ty: Ty<'tcx>) -> boo
         return false;
     };
     cx.tcx.non_blanket_impls_for_ty(from_def_id, self_ty).any(|impl_id| {
-        let impl_trait_ref = cx.tcx.impl_trait_ref(impl_id).instantiate_identity();
+        let impl_trait_ref = cx.tcx.impl_trait_ref(impl_id).instantiate_identity().skip_norm_wip();
         matches!(impl_trait_ref.args.type_at(1).kind(), ty::Param(_))
     })
 }

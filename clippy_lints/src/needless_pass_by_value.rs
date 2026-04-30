@@ -103,7 +103,7 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPassByValue {
         if let Node::Item(item) = cx.tcx.parent_hir_node(hir_id)
             && matches!(
                 item.kind,
-                ItemKind::Impl(Impl { of_trait: Some(_), .. }) | ItemKind::Trait(..)
+                ItemKind::Impl(Impl { of_trait: Some(_), .. }) | ItemKind::Trait { .. }
             )
         {
             return;
@@ -145,7 +145,7 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPassByValue {
             ctx
         };
 
-        let fn_sig = cx.tcx.fn_sig(fn_def_id).instantiate_identity();
+        let fn_sig = cx.tcx.fn_sig(fn_def_id).instantiate_identity().skip_norm_wip();
         let fn_sig = cx.tcx.liberate_late_bound_regions(fn_def_id.to_def_id(), fn_sig);
 
         for (idx, ((input, &ty), arg)) in decl.inputs.iter().zip(fn_sig.inputs()).zip(body.params).enumerate() {
