@@ -245,20 +245,101 @@ struct Hir2Qmm<'a, 'tcx, 'v> {
 }
 
 impl<'v> Hir2Qmm<'_, '_, 'v> {
-    fn extract(&mut self, op: BinOpKind, a: &[&'v Expr<'_>], mut v: Vec<Bool>) -> Result<Vec<Bool>, String> {
+    fn run(&mut self, e: &'v Expr<'_>) -> Result<Bool, String> {
+        let mut terminals = vec![];
+        let mut value = self.unmerged_value(e, &mut terminals)?;
+
+        self.merge_singular_terminals(&mut value, &mut terminals);
+        self.terminals.extend(terminals.into_iter().map(|(e, _)| e));
+
+        Ok(value)
+    }
+
+    fn merge_singular_terminals(&self, value: &mut Bool, terminals: &mut Vec<(&'v Expr<'v>, usize)>) {
+        fn compact<'v>(value: &mut Bool, terminals: &mut Vec<(&'v Expr<'v>, usize)>) -> Option<u8> {
+            match value {
+                Bool::True | Bool::False => None,
+                Bool::Term(that) => (terminals[*that as usize].1 == 1).then_some(*that),
+                Bool::Not(bool) => compact(bool, terminals),
+                Bool::And(bools) | Bool::Or(bools) => {
+                    let mut first_singular = None;
+                    for (bool_idx, bool) in bools.iter_mut().enumerate() {
+                        let Some(singular) = compact(bool, terminals) else {
+                            continue;
+                        };
+                        first_singular = Some((singular, bool_idx));
+                        break;
+                    }
+                    let Some((first_singular, index)) = first_singular else {
+                        return None;
+                    };
+                    let mut merged = vec![];
+                    bools
+                        .extract_if((index + 1).., |b| {
+                            let Some(singular) = compact(b, terminals) else {
+                                return false;
+                            };
+                            let (expr, count) = &mut terminals[singular as usize];
+                            merged.push(*expr);
+                            *count = 0;
+                            true
+                        })
+                        .for_each(|_| {});
+
+                    if bools.len() == 1 {
+                        *value = bools.remove(0);
+                        Some(first_singular)
+                    } else {
+                        None
+                    }
+                },
+            }
+        }
+        fn update_ids<'v>(value: &mut Bool, terminals: &[(&'v Expr<'v>, usize)]) {
+            match value {
+                Bool::True | Bool::False => {},
+                Bool::Term(that) => *that = terminals[*that as usize].1 as u8,
+                Bool::Not(bool) => update_ids(bool, terminals),
+                Bool::And(bools) | Bool::Or(bools) => {
+                    for bool in bools {
+                        update_ids(bool, terminals)
+                    }
+                },
+            }
+        }
+        compact(value, terminals);
+        // Determine a mapping to compacted IDs.
+        let mut id = 0usize;
+        for (_, count) in terminals.iter_mut() {
+            if *count > 0 {
+                *count = id;
+                id += 1;
+            }
+        }
+        update_ids(value, terminals);
+        terminals.retain(|(_, count)| *count > 0);
+    }
+
+    fn extract(
+        &self,
+        op: BinOpKind,
+        a: &[&'v Expr<'_>],
+        mut v: Vec<Bool>,
+        terminals: &mut Vec<(&'v Expr<'v>, usize)>,
+    ) -> Result<Vec<Bool>, String> {
         for a in a {
             if let ExprKind::Binary(binop, lhs, rhs) = &a.kind
                 && binop.node == op
             {
-                v = self.extract(op, &[lhs, rhs], v)?;
+                v = self.extract(op, &[lhs, rhs], v, terminals)?;
                 continue;
             }
-            v.push(self.run(a)?);
+            v.push(self.unmerged_value(a, terminals)?);
         }
         Ok(v)
     }
 
-    fn run(&mut self, e: &'v Expr<'_>) -> Result<Bool, String> {
+    fn unmerged_value(&self, e: &'v Expr<'_>, terminals: &mut Vec<(&'v Expr<'v>, usize)>) -> Result<Bool, String> {
         fn negate(bin_op_kind: BinOpKind) -> Option<BinOpKind> {
             match bin_op_kind {
                 BinOpKind::Eq => Some(BinOpKind::Ne),
@@ -274,13 +355,25 @@ impl<'v> Hir2Qmm<'_, '_, 'v> {
         // prevent folding of `cfg!` macros and the like
         if !e.span.from_expansion() {
             match &e.kind {
-                ExprKind::Unary(UnOp::Not, inner) => return Ok(Bool::Not(Box::new(self.run(inner)?))),
+                ExprKind::Unary(UnOp::Not, inner) => {
+                    return Ok(Bool::Not(Box::new(self.unmerged_value(inner, terminals)?)));
+                },
                 ExprKind::Binary(binop, lhs, rhs) => match &binop.node {
                     BinOpKind::Or => {
-                        return Ok(Bool::Or(self.extract(BinOpKind::Or, &[lhs, rhs], Vec::new())?));
+                        return Ok(Bool::Or(self.extract(
+                            BinOpKind::Or,
+                            &[lhs, rhs],
+                            Vec::new(),
+                            terminals,
+                        )?));
                     },
                     BinOpKind::And => {
-                        return Ok(Bool::And(self.extract(BinOpKind::And, &[lhs, rhs], Vec::new())?));
+                        return Ok(Bool::And(self.extract(
+                            BinOpKind::And,
+                            &[lhs, rhs],
+                            Vec::new(),
+                            terminals,
+                        )?));
                     },
                     _ => (),
                 },
@@ -297,8 +390,9 @@ impl<'v> Hir2Qmm<'_, '_, 'v> {
             return Err("contains never type".to_owned());
         }
 
-        for (n, expr) in self.terminals.iter().enumerate() {
+        for (n, (expr, expr_count)) in terminals.iter_mut().enumerate() {
             if eq_expr_value(self.cx, e, expr) {
+                *expr_count += 1;
                 #[expect(clippy::cast_possible_truncation)]
                 return Ok(Bool::Term(n as u8));
             }
@@ -310,12 +404,13 @@ impl<'v> Hir2Qmm<'_, '_, 'v> {
                 && eq_expr_value(self.cx, e_lhs, expr_lhs)
                 && eq_expr_value(self.cx, e_rhs, expr_rhs)
             {
+                *expr_count += 1;
                 #[expect(clippy::cast_possible_truncation)]
                 return Ok(Bool::Not(Box::new(Bool::Term(n as u8))));
             }
         }
         let n = self.terminals.len();
-        self.terminals.push(e);
+        terminals.push((e, 1));
         if n < 32 {
             #[expect(clippy::cast_possible_truncation)]
             Ok(Bool::Term(n as u8))
