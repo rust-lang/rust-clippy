@@ -143,3 +143,10 @@ fn issue_16219() {
     let z = MyStruct(x);
     let _ = z.next_multiple_of(8) / 8;
 }
+
+fn issue_16940(a: u32, b: u32) {
+    let _ = a.div_ceil(b);
+    //~^ manual_div_ceil
+    let _ = a.div_ceil(b);
+    //~^ manual_div_ceil
+}
