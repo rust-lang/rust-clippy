@@ -1,6 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint;
-use clippy_utils::{is_doc_hidden, is_from_proc_macro, is_in_test};
+use clippy_utils::{is_cfg_test, is_doc_hidden, is_from_proc_macro, is_in_test, is_test_function};
 use rustc_hir::attrs::AttributeKind;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{
@@ -71,7 +71,7 @@ impl MissingDoc {
 
     fn is_missing_docs(&self, cx: &LateContext<'_>, def_id: LocalDefId, hir_id: HirId) -> bool {
         // Ignore every item in a test module or a #[test] annotated function
-        if is_in_test(cx.tcx, hir_id) {
+        if is_in_test(cx.tcx, hir_id) || is_cfg_test(cx.tcx, hir_id) || is_test_function(cx.tcx, def_id) {
             return false;
         }
 
