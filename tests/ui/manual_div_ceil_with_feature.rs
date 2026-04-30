@@ -113,3 +113,14 @@ fn issue_16219() {
     let z = MyStruct(x);
     let _ = z.next_multiple_of(8) / 8;
 }
+
+fn issue_16940(a: u32, b: u32, c: i32, d: i32) {
+    let _ = (a - 1) / b + 1;
+    //~^ manual_div_ceil
+    let _ = 1 + (a - 1) / b;
+    //~^ manual_div_ceil
+
+    // No lint for signed integers: this form is not equivalent when values can be negative.
+    let _ = (c - 1) / d + 1;
+    let _ = 1 + (c - 1) / d;
+}
