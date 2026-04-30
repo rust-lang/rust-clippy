@@ -66,13 +66,18 @@ struct V<'a, const N: usize> {
 
 impl<'tcx, const N: usize> Visitor<'tcx> for V<'_, N> {
     fn visit_place(&mut self, place: &Place<'tcx>, ctx: PlaceContext, loc: Location) {
-        if loc.block == self.location.block && loc.statement_index <= self.location.statement_index {
+        let Self {
+            locals,
+            location,
+            results,
+        } = self;
+        if loc.block == location.block && loc.statement_index <= location.statement_index {
             return;
         }
 
         let local = place.local;
 
-        for (self_local, result) in iter::zip(self.locals, &mut self.results) {
+        for (self_local, result) in iter::zip(*locals, &mut *results) {
             if local == *self_local {
                 if !matches!(
                     ctx,
