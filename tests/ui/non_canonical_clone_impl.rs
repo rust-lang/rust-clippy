@@ -159,3 +159,44 @@ mod issue12788 {
         }
     );
 }
+
+// Don't lint `{ *self }`, which is also equivalent to `*self`
+struct N(u32);
+
+impl Clone for N {
+    fn clone(&self) -> Self {
+        { *self }
+    }
+}
+
+impl Copy for N {}
+
+/// Test for corner cases with `implicit_return` enabled
+mod with_implicit_return {
+    #![warn(clippy::implicit_return)]
+    #![allow(clippy::needless_return)]
+
+    // Don't lint `return *self`, which is equivalent to `*self`
+    struct G(u32);
+
+    impl Clone for G {
+        fn clone(&self) -> Self {
+            return *self;
+        }
+    }
+
+    impl Copy for G {}
+
+    // Don't lint `{ return *self; }`, which is also equivalent to `*self`
+    struct H(u32);
+
+    impl Clone for H {
+        fn clone(&self) -> Self {
+            {
+                return *self;
+            }
+        }
+    }
+
+    impl Copy for H {}
+}
