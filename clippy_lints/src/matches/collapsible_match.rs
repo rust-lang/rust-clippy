@@ -4,8 +4,9 @@ use clippy_utils::msrvs::Msrv;
 use clippy_utils::res::{MaybeDef, MaybeResPath};
 use clippy_utils::source::{IntoSpan, SpanRangeExt, snippet};
 use clippy_utils::usage::mutated_variables;
-use clippy_utils::visitors::is_local_used;
+use clippy_utils::visitors::{for_each_expr_without_closures, is_local_used};
 use clippy_utils::{SpanlessEq, get_ref_operators, is_unit_expr, peel_blocks_with_stmt, peel_ref_operators};
+use core::ops::ControlFlow;
 use rustc_ast::BorrowKind;
 use rustc_errors::{Applicability, MultiSpan};
 use rustc_hir::LangItem::OptionNone;
@@ -147,7 +148,7 @@ fn check_arm<'tcx>(
             (None, Some(e)) | (Some(e), None) => is_unit_expr(e),
             (Some(a), Some(b)) => SpanlessEq::new(cx).eq_expr(a, b),
         }
-        && !pat_bindings_moved_or_mutated(cx, outer_pat, inner.cond)
+        && !pat_bindings_and_guard_moved_or_mutated(cx, outer_pat, inner.cond)
     {
         span_lint_hir_and_then(
             cx,
@@ -275,9 +276,19 @@ fn build_ref_method_chain(expr: Vec<&Expr<'_>>) -> Option<String> {
     Some(req_method_calls)
 }
 
-/// Checks if any of the bindings in the `pat` are moved or mutated in the `expr`. It is invalid to
-/// move or mutate bindings in `if` guards.
-fn pat_bindings_moved_or_mutated<'tcx>(cx: &LateContext<'tcx>, pat: &Pat<'tcx>, expr: &'tcx Expr<'tcx>) -> bool {
+fn is_defined_in(cx: &LateContext<'_>, binding_id: HirId, container_id: HirId) -> bool {
+    cx.tcx
+        .hir_parent_id_iter(binding_id)
+        .any(|parent_id| parent_id == container_id)
+}
+
+/// Checks if any of the bindings in the `pat` and variable in the guard are moved or mutated in the
+/// `expr`. It is invalid to move or mutate bindings in `if` guards.
+fn pat_bindings_and_guard_moved_or_mutated<'tcx>(
+    cx: &LateContext<'tcx>,
+    pat: &Pat<'tcx>,
+    expr: &'tcx Expr<'tcx>,
+) -> bool {
     let mut delegate = MovedVarDelegate {
         moved: HirIdSet::default(),
     };
@@ -293,6 +304,7 @@ fn pat_bindings_moved_or_mutated<'tcx>(cx: &LateContext<'tcx>, pat: &Pat<'tcx>, 
         candidates.extend(mutated);
     }
 
+    // Check the pat
     !pat.walk_short(|pat| {
         if let PatKind::Binding(_, hir_id, ..) = pat.kind
             && candidates.contains(&hir_id)
@@ -301,6 +313,20 @@ fn pat_bindings_moved_or_mutated<'tcx>(cx: &LateContext<'tcx>, pat: &Pat<'tcx>, 
         }
         true
     })
+    // Check the guard
+    || for_each_expr_without_closures(expr, |e| {
+        if let Some(local_id) = e.res_local_id()
+            // defined outside of the `if` condition
+            && !is_defined_in(cx, local_id, expr.hir_id)
+            // moved/mutated
+            && candidates.contains(&local_id)
+        {
+            ControlFlow::Break(())
+        } else {
+            ControlFlow::Continue(())
+        }
+    })
+    .is_some()
 }
 
 struct MovedVarDelegate {
