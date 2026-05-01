@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::res::{MaybeDef, MaybeQPath};
 use clippy_utils::ty::implements_trait;
-use clippy_utils::{is_from_proc_macro, last_path_segment, std_or_core};
+use clippy_utils::{is_from_proc_macro, last_path_segment, peel_blocks_with_stmt, std_or_core};
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{Block, Body, Expr, ExprKind, ImplItem, ImplItemKind, Item, ItemKind, LangItem, UnOp};
@@ -208,6 +208,21 @@ impl LateLintPass<'_> for NonCanonicalImpls {
     }
 }
 
+fn is_deref_self(expr: &Expr<'_>) -> bool {
+    let inner_expr = if let ExprKind::Ret(Some(inner)) = expr.kind {
+        inner
+    } else {
+        expr
+    };
+    if let ExprKind::Unary(UnOp::Deref, deref) = inner_expr.kind
+        && let ExprKind::Path(qpath) = deref.kind
+        && last_path_segment(&qpath).ident.name == kw::SelfLower
+    {
+        return true;
+    }
+    false
+}
+
 fn check_clone_on_copy(cx: &LateContext<'_>, impl_item: &ImplItem<'_>, block: &Block<'_>) {
     if impl_item.ident.name == sym::clone {
         if block.stmts.is_empty()
@@ -218,6 +233,15 @@ fn check_clone_on_copy(cx: &LateContext<'_>, impl_item: &ImplItem<'_>, block: &B
         {
             // this is the canonical implementation, `fn clone(&self) -> Self { *self }`
             return;
+        }
+
+        // Else we peel the block first and try to find the return statement inside.
+        if let Some(expr) = block.expr {
+            let inner = peel_blocks_with_stmt(expr);
+            if is_deref_self(inner) {
+                // this is the canonical implementation, `fn clone(&self) -> Self { { { return *self; } } }`
+                return;
+            }
         }
 
         if is_from_proc_macro(cx, impl_item) {
