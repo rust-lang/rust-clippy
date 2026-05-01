@@ -4,7 +4,7 @@ use clippy_utils::ty::implements_trait;
 use clippy_utils::{is_from_proc_macro, last_path_segment, peel_blocks_with_stmt, std_or_core};
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
-use rustc_hir::{Block, Body, Expr, ExprKind, ImplItem, ImplItemKind, Item, ItemKind, LangItem, UnOp};
+use rustc_hir::{Block, Body, Expr, ExprKind, ImplItem, ImplItemKind, Item, ItemKind, LangItem, Stmt, StmtKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty::{TyCtxt, TypeckResults};
 use rustc_session::impl_lint_pass;
@@ -225,21 +225,25 @@ fn is_deref_self(expr: &Expr<'_>) -> bool {
 
 fn check_clone_on_copy(cx: &LateContext<'_>, impl_item: &ImplItem<'_>, block: &Block<'_>) {
     if impl_item.ident.name == sym::clone {
-        if block.stmts.is_empty()
-            && let Some(expr) = block.expr
-            && let ExprKind::Unary(UnOp::Deref, deref) = expr.kind
-            && let ExprKind::Path(qpath) = deref.kind
-            && last_path_segment(&qpath).ident.name == kw::SelfLower
-        {
-            // this is the canonical implementation, `fn clone(&self) -> Self { *self }`
-            return;
-        }
+        // Extract the single expression from the block (trailing expr or single stmt)
+        let single_expr = match (block.stmts, block.expr) {
+            ([], Some(expr)) => Some(expr),
+            (
+                [
+                    Stmt {
+                        kind: StmtKind::Expr(expr) | StmtKind::Semi(expr),
+                        ..
+                    },
+                ],
+                None,
+            ) => Some(*expr),
+            _ => None,
+        };
 
-        // Else we peel the block first and try to find the return statement inside.
-        if let Some(expr) = block.expr {
+        if let Some(expr) = single_expr {
             let inner = peel_blocks_with_stmt(expr);
             if is_deref_self(inner) {
-                // this is the canonical implementation, `fn clone(&self) -> Self { { { return *self; } } }`
+                // canonical: `{ *self }`, `{ return *self; }`, `{ { return *self; } }`, etc.
                 return;
             }
         }
@@ -293,7 +297,7 @@ fn check_partial_ord_on_ord<'tcx>(
     // Fix #12683, allow [`needless_return`] here
     else if block.expr.is_none()
         && let Some(stmt) = block.stmts.first()
-        && let rustc_hir::StmtKind::Semi(Expr {
+        && let StmtKind::Semi(Expr {
             kind: ExprKind::Ret(Some(ret)),
             ..
         }) = stmt.kind
