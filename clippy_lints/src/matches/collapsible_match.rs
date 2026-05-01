@@ -148,7 +148,7 @@ fn check_arm<'tcx>(
             (None, Some(e)) | (Some(e), None) => is_unit_expr(e),
             (Some(a), Some(b)) => SpanlessEq::new(cx).eq_expr(a, b),
         }
-        && !pat_bindings_and_guard_moved_or_mutated(cx, outer_pat, inner.cond)
+        && !pat_bindings_and_inner_cond_moved_or_mutated(cx, outer_pat, inner.cond)
     {
         span_lint_hir_and_then(
             cx,
@@ -282,9 +282,9 @@ fn is_defined_in(cx: &LateContext<'_>, binding_id: HirId, container_id: HirId) -
         .any(|parent_id| parent_id == container_id)
 }
 
-/// Checks if any of the bindings in the `pat` and variable in the guard are moved or mutated in the
-/// `expr`. It is invalid to move or mutate bindings in `if` guards.
-fn pat_bindings_and_guard_moved_or_mutated<'tcx>(
+/// Checks if any of the bindings in the `pat` and variable in the inner condition are moved or
+/// mutated in the `expr`. It is invalid to move or mutate bindings in `if` condition.
+fn pat_bindings_and_inner_cond_moved_or_mutated<'tcx>(
     cx: &LateContext<'tcx>,
     pat: &Pat<'tcx>,
     expr: &'tcx Expr<'tcx>,
@@ -313,7 +313,7 @@ fn pat_bindings_and_guard_moved_or_mutated<'tcx>(
         }
         true
     })
-    // Check the guard
+    // Check the inner condition
     || for_each_expr_without_closures(expr, |e| {
         if let Some(local_id) = e.res_local_id()
             // defined outside of the `if` condition
