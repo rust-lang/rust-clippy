@@ -5,6 +5,7 @@
     clippy::needless_lifetimes
 )]
 #![warn(clippy::new_without_default)]
+#![expect(clippy::unnecessary_as_slice)]
 
 pub struct Foo;
 
