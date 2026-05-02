@@ -45,6 +45,7 @@ fn custom_trait_method(mut vals: Vec<u32>) {
 }
 
 fn no_lint_cases(vals: &mut Vec<u32>) {
+    // Don't lint as_slice() received by a value
     let s = vals.as_slice();
     let _ = s.len();
 

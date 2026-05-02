@@ -2,7 +2,8 @@
     clippy::missing_safety_doc,
     clippy::extra_unused_lifetimes,
     clippy::extra_unused_type_parameters,
-    clippy::needless_lifetimes
+    clippy::needless_lifetimes,
+    clippy::unnecessary_as_slice
 )]
 #![warn(clippy::new_without_default)]
 

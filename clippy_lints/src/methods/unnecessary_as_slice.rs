@@ -12,17 +12,16 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, recv: &Expr<'_>) {
         .peel_refs()
         .ty_adt_def()
         .is_some_and(|adt| cx.tcx.is_diagnostic_item(sym::Vec, adt.did()))
+        && let Some(as_slice_span) = expr.span.trim_start(recv.span)
     {
-        if let Some(as_slice_span) = expr.span.trim_start(recv.span) {
-            span_lint_and_sugg(
-                cx,
-                UNNECESSARY_AS_SLICE,
-                as_slice_span,
-                "this `as_slice` is unnecessary and can be removed as the method immediately following exists on `Vec` too",
-                "remove `as_slice`",
-                String::new(),
-                Applicability::MachineApplicable,
-            );
-        }
+        span_lint_and_sugg(
+            cx,
+            UNNECESSARY_AS_SLICE,
+            as_slice_span,
+            "this `as_slice` is unnecessary and can be removed as the method immediately following exists on `Vec` too",
+            "remove `as_slice`",
+            String::new(),
+            Applicability::MachineApplicable,
+        );
     }
 }
