@@ -3579,6 +3579,55 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for usage of `split.filter_map(Result::ok)` or `split.flat_map(Result::ok)`
+    /// when `split` has type `std::io::Split`.
+    ///
+    /// ### Why is this bad?
+    /// `Split` instances might produce a never-ending stream of `Err`, in which case
+    /// `filter_map(Result::ok)` will enter an infinite loop while waiting for an
+    /// `Ok` variant. Calling `next()` once is sufficient to enter the infinite loop,
+    /// even in the absence of explicit loops in the user code.
+    ///
+    /// This situation can arise when working with user-provided paths. On some platforms,
+    /// `std::fs::File::open(path)` might return `Ok(fs)` even when `path` is a directory,
+    /// but any later attempt to read from `fs` will return an error.
+    ///
+    /// ### Known problems
+    /// This lint suggests replacing `filter_map()` or `flat_map()` applied to a `Split`
+    /// instance in all cases. There are two cases where the suggestion might not be
+    /// appropriate or necessary:
+    ///
+    /// - If the `Split` instance can never produce any error, or if an error is produced
+    ///   only once just before terminating the iterator, using `map_while()` is not
+    ///   necessary but will not do any harm.
+    /// - If the `Split` instance can produce intermittent errors then recover and produce
+    ///   successful results, using `map_while()` would stop at the first error.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # use std::{fs::File, io::{self, BufRead, BufReader}};
+    /// # let _ = || -> io::Result<()> {
+    /// let mut parts = BufReader::new(File::open("some-path")?).split(0).filter_map(Result::ok);
+    /// // If "some-path" points to a directory, the next statement never terminates:
+    /// let first_part: Option<Vec<_>> = parts.next();
+    /// # Ok(()) };
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # use std::{fs::File, io::{self, BufRead, BufReader}};
+    /// # let _ = || -> io::Result<()> {
+    /// let mut parts = BufReader::new(File::open("some-path")?).split(0).map_while(Result::ok);
+    /// let first_part: Option<Vec<_>> = parts.next();
+    /// # Ok(()) };
+    /// ```
+    #[clippy::version = "1.96.0"]
+    pub SPLIT_FILTER_MAP_OK,
+    suspicious,
+    "filtering `std::io::Split` with `filter_map()`, `flat_map()`, or `flatten()` might cause an infinite loop"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// When sorting primitive values (integers, bools, chars, as well
     /// as arrays, slices, and tuples of such items), it is typically better to
     /// use an unstable sort than a stable sort.
@@ -4900,6 +4949,7 @@ impl_lint_pass!(Methods => [
     SINGLE_CHAR_ADD_STR,
     SKIP_WHILE_NEXT,
     SLICED_STRING_AS_BYTES,
+    SPLIT_FILTER_MAP_OK,
     STABLE_SORT_PRIMITIVE,
     STRING_EXTEND_CHARS,
     STRING_LIT_CHARS_ANY,
