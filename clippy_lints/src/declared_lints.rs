@@ -435,6 +435,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::methods::MAP_IDENTITY_INFO,
     crate::methods::MAP_UNWRAP_OR_INFO,
     crate::methods::MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES_INFO,
+    crate::methods::MAYBE_UNINIT_DROP_IN_PLACE_INFO,
     crate::methods::MUT_MUTEX_LOCK_INFO,
     crate::methods::NAIVE_BYTECOUNT_INFO,
     crate::methods::NEEDLESS_AS_BYTES_INFO,

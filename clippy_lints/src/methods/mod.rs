@@ -77,6 +77,7 @@ mod map_identity;
 mod map_unwrap_or;
 mod map_unwrap_or_else;
 mod map_with_unused_argument_over_ranges;
+mod maybe_uninit_drop_in_place;
 mod mut_mutex_lock;
 mod needless_as_bytes;
 mod needless_character_iteration;
@@ -2420,6 +2421,43 @@ declare_clippy_lint! {
     pub MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
     restriction,
     "map of a trivial closure (not dependent on parameter) over a range"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for calls to `std::ptr::drop_in_place` whose argument points to a
+    /// `MaybeUninit<T>` (i.e. has type `*mut MaybeUninit<T>` or
+    /// `&mut MaybeUninit<T>`).
+    ///
+    /// ### Why is this bad?
+    ///
+    /// `MaybeUninit<T>` does not implement `Drop`, so the call is a no-op
+    /// rather than dropping the wrapped `T`. This is almost always a bug:
+    /// the author meant to drop the value inside the `MaybeUninit`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// use std::mem::MaybeUninit;
+    ///
+    /// let mut x = MaybeUninit::new(String::from("hi"));
+    /// unsafe {
+    ///     std::ptr::drop_in_place(&mut x); // no-op — does NOT drop the String
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// use std::mem::MaybeUninit;
+    ///
+    /// let mut x = MaybeUninit::new(String::from("hi"));
+    /// unsafe {
+    ///     x.assume_init_drop();
+    /// }
+    /// ```
+    #[clippy::version = "1.97.0"]
+    pub MAYBE_UNINIT_DROP_IN_PLACE,
+    suspicious,
+    "calling `std::ptr::drop_in_place` on a `MaybeUninit` is a no-op"
 }
 
 declare_clippy_lint! {
@@ -4861,6 +4899,7 @@ impl_lint_pass!(Methods => [
     MAP_IDENTITY,
     MAP_UNWRAP_OR,
     MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
+    MAYBE_UNINIT_DROP_IN_PLACE,
     MUT_MUTEX_LOCK,
     NAIVE_BYTECOUNT,
     NEEDLESS_AS_BYTES,
@@ -5018,6 +5057,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                 io_other_error::check(cx, expr, func, args, self.msrv);
                 swap_with_temporary::check(cx, expr, func, args);
                 ip_constant::check(cx, expr, func, args);
+                maybe_uninit_drop_in_place::check(cx, expr, func, args);
                 unwrap_expect_used::check_call(
                     cx,
                     expr,
