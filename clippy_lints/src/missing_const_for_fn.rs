@@ -141,9 +141,16 @@ impl<'tcx> LateLintPass<'tcx> for MissingConstForFn {
             let parent = cx.tcx.hir_get_parent_item(hir_id).def_id;
             if parent != CRATE_DEF_ID
                 && let hir::Node::Item(item) = cx.tcx.hir_node_by_def_id(parent)
-                && let hir::ItemKind::Trait { .. } = &item.kind
             {
-                return;
+                match item.kind {
+                    hir::ItemKind::Impl(impl_item) => {
+                        if impl_item.constness == Constness::Const {
+                            return;
+                        }
+                    },
+                    hir::ItemKind::Trait { .. } => return,
+                    _ => {},
+                }
             }
         }
 
