@@ -224,8 +224,8 @@ impl ItemNameRepetitions {
         };
         let item_name = ident.name.as_str();
         for var in def.variants {
-            check_enum_start(cx, item_name, var);
-            check_enum_end(cx, item_name, var);
+            self.check_enum_start(cx, item_name, var);
+            self.check_enum_end(cx, item_name, var);
         }
 
         Self::check_enum_common_affix(cx, item, def);
@@ -409,41 +409,44 @@ impl ItemNameRepetitions {
             }
         }
     }
-}
 
-fn check_enum_start(cx: &LateContext<'_>, item_name: &str, variant: &Variant<'_>) {
-    let name = variant.ident.name.as_str();
-    let item_name_chars = item_name.chars().count();
+    fn check_enum_start(&self, cx: &LateContext<'_>, item_name: &str, variant: &Variant<'_>) {
+        let name = variant.ident.name.as_str();
+        let item_name_chars = item_name.chars().count();
 
-    if count_match_start(item_name, name).char_count == item_name_chars
-        && name.chars().nth(item_name_chars).is_some_and(|c| !c.is_lowercase())
-        && name.chars().nth(item_name_chars + 1).is_some_and(|c| !c.is_numeric())
-        && !check_enum_tuple_path_match(name, variant.data)
-    {
-        span_lint_hir(
-            cx,
-            ENUM_VARIANT_NAMES,
-            variant.hir_id,
-            variant.span,
-            "variant name starts with the enum's name",
-        );
+        if count_match_start(item_name, name).char_count == item_name_chars
+            && name.chars().nth(item_name_chars).is_some_and(|c| !c.is_lowercase())
+            && name.chars().nth(item_name_chars + 1).is_some_and(|c| !c.is_numeric())
+            && !check_enum_tuple_path_match(name, variant.data)
+            // Equal name only check if config allows
+            && !(self.allow_exact_repetitions && name == item_name)
+        {
+            span_lint_hir(
+                cx,
+                ENUM_VARIANT_NAMES,
+                variant.hir_id,
+                variant.span,
+                "variant name starts with the enum's name",
+            );
+        }
     }
-}
 
-fn check_enum_end(cx: &LateContext<'_>, item_name: &str, variant: &Variant<'_>) {
-    let name = variant.ident.name.as_str();
-    let item_name_chars = item_name.chars().count();
+    fn check_enum_end(&self, cx: &LateContext<'_>, item_name: &str, variant: &Variant<'_>) {
+        let name = variant.ident.name.as_str();
+        let item_name_chars = item_name.chars().count();
 
-    if count_match_end(item_name, name).char_count == item_name_chars
-        && !check_enum_tuple_path_match(name, variant.data)
-    {
-        span_lint_hir(
-            cx,
-            ENUM_VARIANT_NAMES,
-            variant.hir_id,
-            variant.span,
-            "variant name ends with the enum's name",
-        );
+        if count_match_end(item_name, name).char_count == item_name_chars
+            && !check_enum_tuple_path_match(name, variant.data)
+            && !(self.allow_exact_repetitions && name == item_name)
+        {
+            span_lint_hir(
+                cx,
+                ENUM_VARIANT_NAMES,
+                variant.hir_id,
+                variant.span,
+                "variant name ends with the enum's name",
+            );
+        }
     }
 }
 
