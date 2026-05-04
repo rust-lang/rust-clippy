@@ -5,12 +5,15 @@ use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeDef;
 use clippy_utils::source::{SpanRangeExt, snippet, snippet_with_context};
 use clippy_utils::ty::{get_iterator_item_ty, implements_trait, is_copy, peel_and_count_ty_refs};
-use clippy_utils::visitors::find_all_ret_expressions;
-use clippy_utils::{fn_def_id, get_parent_expr, is_expr_temporary_value, return_ty, sym};
+use clippy_utils::visitors::{find_all_ret_expressions, for_each_local_use_after_expr};
+use clippy_utils::{
+    find_binding_init, fn_def_id, get_enclosing_loop_or_multi_call_closure, get_parent_expr, is_expr_temporary_value,
+    path_to_local_with_projections, return_ty, sym,
+};
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefId;
-use rustc_hir::{BorrowKind, Expr, ExprKind, ItemKind, LangItem, Node};
+use rustc_hir::{Block, BorrowKind, Expr, ExprKind, HirId, ItemKind, LangItem, Node, PatKind, Stmt, StmtKind};
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_lint::LateContext;
 use rustc_middle::mir::Mutability;
@@ -21,6 +24,7 @@ use rustc_middle::ty::{
 use rustc_span::Symbol;
 use rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt as _;
 use rustc_trait_selection::traits::{Obligation, ObligationCause};
+use std::ops::ControlFlow;
 
 use super::UNNECESSARY_TO_OWNED;
 
@@ -45,6 +49,9 @@ pub fn check<'tcx>(
             // `check_addr_of_expr` and `check_into_iter_call_arg` determine whether the call is unnecessary
             // based on its context, that is, whether it is a referent in an `AddrOf` expression, an
             // argument in a `into_iter` call, or an argument in the call of some other function.
+            if check_local_binding(cx, expr, method_name, method_parent_id, receiver) {
+                return;
+            }
             if check_addr_of_expr(cx, expr, method_name, method_parent_id, receiver) {
                 return;
             }
@@ -58,6 +65,120 @@ pub fn check<'tcx>(
         }
     } else {
         check_borrow_predicate(cx, expr);
+    }
+}
+
+/// check if `expr` assigned to a local and is only borrowed once later
+/// if so determines whether the intermediate owned value is unnecessary
+fn check_local_binding<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'tcx>,
+    method_name: Symbol,
+    method_parent_id: DefId,
+    receiver: &'tcx Expr<'tcx>,
+) -> bool {
+    if let Some(local_id) = expr_to_immutable_binding(cx, expr)
+        && let Some(init) = find_binding_init(cx, local_id)
+        && init.hir_id == expr.hir_id
+        && cx.typeck_results().expr_ty(receiver).is_ref()
+        && path_to_local_with_projections(receiver.peel_borrows()).is_some()
+        && let Some(let_stmt) = stmt_containing_hir(cx, local_id)
+        && let Some(adjacent_use) = next_block_use(cx, let_stmt)
+    {
+        let mut local_use = None;
+        let uses = for_each_local_use_after_expr(cx, local_id, expr.hir_id, |use_expr| {
+            if local_use.replace(use_expr).is_some() {
+                ControlFlow::Break(())
+            } else {
+                ControlFlow::Continue(())
+            }
+        });
+
+        if uses.is_continue()
+            && let Some(use_expr) = local_use
+            && adjacent_use.contains(cx, use_expr)
+            && get_enclosing_loop_or_multi_call_closure(cx, use_expr).is_none()
+            && let Some(parent) = get_parent_expr(cx, use_expr)
+            && let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Not, borrowed) = parent.kind
+            && borrowed.hir_id == use_expr.hir_id
+            && let Some((sugg, applicability)) =
+                local_addr_of_expr_replacement(cx, parent, method_name, method_parent_id, receiver)
+        {
+            span_lint_and_then(
+                cx,
+                UNNECESSARY_TO_OWNED,
+                parent.span,
+                format!("unnecessary use of `{method_name}`"),
+                |diag| {
+                    diag.multipart_suggestion(
+                        "use the original borrowed value directly",
+                        vec![(let_stmt.span, String::new()), (parent.span, sugg)],
+                        applicability,
+                    );
+                },
+            );
+            return true;
+        }
+    }
+
+    false
+}
+
+fn expr_to_immutable_binding(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<HirId> {
+    if let Node::LetStmt(let_stmt) = cx.tcx.parent_hir_node(expr.hir_id)
+        && let Some(init) = let_stmt.init
+        && init.hir_id == expr.hir_id
+        && let PatKind::Binding(_, local_id, ..) = let_stmt.pat.kind
+    {
+        return Some(local_id);
+    }
+
+    None
+}
+
+fn stmt_containing_hir<'tcx>(cx: &LateContext<'tcx>, hir_id: HirId) -> Option<&'tcx Stmt<'tcx>> {
+    cx.tcx.hir_parent_iter(hir_id).find_map(|(_, node)| match node {
+        Node::Stmt(stmt) => Some(stmt),
+        _ => None,
+    })
+}
+
+enum AdjacentUse<'tcx> {
+    Stmt(&'tcx Stmt<'tcx>),
+    TailExpr(HirId),
+}
+
+impl AdjacentUse<'_> {
+    fn contains(&self, cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+        match self {
+            Self::Stmt(stmt) => stmt_containing_hir(cx, expr.hir_id).is_some_and(|parent| parent.hir_id == stmt.hir_id),
+            Self::TailExpr(hir_id) => cx
+                .tcx
+                .hir_parent_iter(expr.hir_id)
+                .any(|(parent_id, _)| parent_id == *hir_id),
+        }
+    }
+}
+
+fn next_block_use<'tcx>(cx: &LateContext<'tcx>, stmt: &Stmt<'tcx>) -> Option<AdjacentUse<'tcx>> {
+    let block = cx.tcx.hir_parent_iter(stmt.hir_id).find_map(|(_, node)| match node {
+        Node::Block(block) => Some(block),
+        _ => None,
+    })?;
+    next_use_in_block(block, stmt)
+}
+
+fn next_use_in_block<'tcx>(block: &'tcx Block<'tcx>, stmt: &Stmt<'tcx>) -> Option<AdjacentUse<'tcx>> {
+    if let Some(next) = block.stmts.windows(2).find_map(|stmts| match stmts {
+        [current, next] if current.hir_id == stmt.hir_id => Some(next),
+        _ => None,
+    }) && matches!(next.kind, StmtKind::Expr(_) | StmtKind::Semi(_))
+    {
+        Some(AdjacentUse::Stmt(next))
+    } else if block.stmts.last().is_some_and(|last| last.hir_id == stmt.hir_id) {
+        block.expr.map(|expr| AdjacentUse::TailExpr(expr.hir_id))
+    } else {
+        None
     }
 }
 
@@ -75,7 +196,7 @@ fn check_addr_of_expr(
         && let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Not, _) = parent.kind
         && let adjustments = cx.typeck_results().expr_adjustments(parent).iter().collect::<Vec<_>>()
         && let
-            // For matching uses of `Cow::from`
+            // for matching uses of `Cow::from`
             [
                 Adjustment {
                     kind: Adjust::Deref(DerefAdjustKind::Builtin),
@@ -86,7 +207,7 @@ fn check_addr_of_expr(
                     target: target_ty,
                 },
             ]
-            // For matching uses of arrays
+            // for matching uses of arrays
             | [
                 Adjustment {
                     kind: Adjust::Deref(DerefAdjustKind::Builtin),
@@ -101,7 +222,7 @@ fn check_addr_of_expr(
                     target: target_ty,
                 },
             ]
-            // For matching everything else
+            // for matching everything else
             | [
                 Adjustment {
                     kind: Adjust::Deref(DerefAdjustKind::Builtin),
@@ -199,6 +320,108 @@ fn check_addr_of_expr(
         }
     }
     false
+}
+
+fn local_addr_of_expr_replacement(
+    cx: &LateContext<'_>,
+    addr_of_expr: &Expr<'_>,
+    method_name: Symbol,
+    method_parent_id: DefId,
+    receiver: &Expr<'_>,
+) -> Option<(String, Applicability)> {
+    if let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Not, _) = addr_of_expr.kind {
+        let adjustments = cx
+            .typeck_results()
+            .expr_adjustments(addr_of_expr)
+            .iter()
+            .collect::<Vec<_>>();
+        if let
+            // For matching uses of `Cow::from`
+            [
+                Adjustment {
+                    kind: Adjust::Deref(DerefAdjustKind::Builtin),
+                    target: referent_ty,
+                },
+                Adjustment {
+                    kind: Adjust::Borrow(_),
+                    target: target_ty,
+                },
+            ]
+            // For matching uses of arrays
+            | [
+                Adjustment {
+                    kind: Adjust::Deref(DerefAdjustKind::Builtin),
+                    target: referent_ty,
+                },
+                Adjustment {
+                    kind: Adjust::Borrow(_),
+                    ..
+                },
+                Adjustment {
+                    kind: Adjust::Pointer(_),
+                    target: target_ty,
+                },
+            ]
+            // For matching everything else
+            | [
+                Adjustment {
+                    kind: Adjust::Deref(DerefAdjustKind::Builtin),
+                    target: referent_ty,
+                },
+                Adjustment {
+                    kind: Adjust::Deref(DerefAdjustKind::Overloaded(OverloadedDeref { .. })),
+                    ..
+                },
+                Adjustment {
+                    kind: Adjust::Borrow(_),
+                    target: target_ty,
+                },
+            ] = adjustments[..]
+        {
+            let receiver_ty = cx.typeck_results().expr_ty(receiver);
+            let (target_ty, n_target_refs, _) = peel_and_count_ty_refs(*target_ty);
+            let (receiver_ty, n_receiver_refs, _) = peel_and_count_ty_refs(receiver_ty);
+
+            if *referent_ty != receiver_ty
+                || (matches!(referent_ty.kind(), ty::Array(..)) && is_copy(cx, *referent_ty))
+                || is_cow_into_owned(cx, method_name, method_parent_id)
+            {
+                let mut applicability = Applicability::MachineApplicable;
+                let (receiver_snippet, _) = snippet_with_context(
+                    cx,
+                    receiver.span,
+                    addr_of_expr.span.ctxt(),
+                    "..",
+                    &mut applicability,
+                );
+
+                if receiver_ty == target_ty && n_target_refs >= n_receiver_refs {
+                    return Some((
+                        format!(
+                            "{:&>width$}{receiver_snippet}",
+                            "",
+                            width = n_target_refs - n_receiver_refs
+                        ),
+                        applicability,
+                    ));
+                }
+                if let Some(deref_trait_id) = cx.tcx.get_diagnostic_item(sym::Deref)
+                    && implements_trait(cx, receiver_ty, deref_trait_id, &[])
+                    && cx.get_associated_type(receiver_ty, deref_trait_id, sym::Target) == Some(target_ty)
+                    && cx.typeck_results().expr_ty_adjusted(receiver).peel_refs() == target_ty
+                {
+                    return Some((receiver_snippet.to_string(), applicability));
+                }
+                if let Some(as_ref_trait_id) = cx.tcx.get_diagnostic_item(sym::AsRef)
+                    && implements_trait(cx, receiver_ty, as_ref_trait_id, &[GenericArg::from(target_ty)])
+                {
+                    return Some((format!("{receiver_snippet}.as_ref()"), applicability));
+                }
+            }
+        }
+    }
+
+    None
 }
 
 /// Checks whether `expr` is an argument in an `into_iter` call and, if so, determines whether its
