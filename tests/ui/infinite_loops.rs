@@ -589,4 +589,27 @@ mod issue16155 {
     }
 }
 
+#[rustfmt::skip]
+mod issue16134 {
+    fn issue() {
+        'outer: loop {
+            let _: i32 = loop { loop { break 'outer } };
+        }
+    }
+    
+    fn expr() {
+        'outer: loop { loop { loop { break 'outer } } }
+    }
+    
+    fn stmt() {
+        'outer: loop { loop { loop { break 'outer; } } }
+    }
+
+    fn more_loops() {
+        'outer: loop {
+            let _: i32 = loop { loop { loop { loop { loop { break 'outer } } } } };
+        }
+    }
+}
+
 fn main() {}
