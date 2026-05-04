@@ -4,7 +4,7 @@ use clippy_utils::ty::implements_trait;
 use clippy_utils::{is_from_proc_macro, last_path_segment, peel_blocks_with_stmt, std_or_core};
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
-use rustc_hir::{Block, Body, Expr, ExprKind, ImplItem, ImplItemKind, Item, ItemKind, LangItem, Stmt, StmtKind, UnOp};
+use rustc_hir::{Block, Body, Expr, ExprKind, ImplItem, ImplItemKind, Item, ItemKind, LangItem, StmtKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty::{TyCtxt, TypeckResults};
 use rustc_session::impl_lint_pass;
@@ -185,8 +185,8 @@ impl LateLintPass<'_> for NonCanonicalImpls {
                     if let Some(copy_trait) = self.copy_trait
                         && implements_trait(cx, trait_impl.self_ty(), copy_trait, &[])
                     {
-                        for (assoc, _, block) in assoc_fns {
-                            check_clone_on_copy(cx, assoc, block);
+                        for (assoc, body, _) in assoc_fns {
+                            check_clone_on_copy(cx, assoc, body.value);
                         }
                     }
                 },
@@ -223,29 +223,12 @@ fn is_deref_self(expr: &Expr<'_>) -> bool {
     false
 }
 
-fn check_clone_on_copy(cx: &LateContext<'_>, impl_item: &ImplItem<'_>, block: &Block<'_>) {
+fn check_clone_on_copy(cx: &LateContext<'_>, impl_item: &ImplItem<'_>, body_expr: &Expr<'_>) {
     if impl_item.ident.name == sym::clone {
-        // Extract the single expression from the block (trailing expr or single stmt)
-        let single_expr = match (block.stmts, block.expr) {
-            ([], Some(expr)) => Some(expr),
-            (
-                [
-                    Stmt {
-                        kind: StmtKind::Expr(expr) | StmtKind::Semi(expr),
-                        ..
-                    },
-                ],
-                None,
-            ) => Some(*expr),
-            _ => None,
-        };
-
-        if let Some(expr) = single_expr {
-            let inner = peel_blocks_with_stmt(expr);
-            if is_deref_self(inner) {
-                // canonical: `{ *self }`, `{ return *self; }`, `{ { return *self; } }`, etc.
-                return;
-            }
+        let inner = peel_blocks_with_stmt(body_expr);
+        if is_deref_self(inner) {
+            // canonical: `{ *self }`, `{ return *self; }`, `{ { return *self; } }`, etc.
+            return;
         }
 
         if is_from_proc_macro(cx, impl_item) {
@@ -255,7 +238,7 @@ fn check_clone_on_copy(cx: &LateContext<'_>, impl_item: &ImplItem<'_>, block: &B
         span_lint_and_sugg(
             cx,
             NON_CANONICAL_CLONE_IMPL,
-            block.span,
+            body_expr.span,
             "non-canonical implementation of `clone` on a `Copy` type",
             "change this to",
             "{ *self }".to_owned(),
