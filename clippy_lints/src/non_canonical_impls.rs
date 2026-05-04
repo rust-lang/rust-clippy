@@ -1,10 +1,10 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::res::{MaybeDef, MaybeQPath};
 use clippy_utils::ty::implements_trait;
-use clippy_utils::{is_from_proc_macro, last_path_segment, std_or_core};
+use clippy_utils::{is_from_proc_macro, last_path_segment, peel_blocks_with_stmt, std_or_core};
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
-use rustc_hir::{Block, Body, Expr, ExprKind, ImplItem, ImplItemKind, Item, ItemKind, LangItem, UnOp};
+use rustc_hir::{Block, Body, Expr, ExprKind, ImplItem, ImplItemKind, Item, ItemKind, LangItem, StmtKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty::{TyCtxt, TypeckResults};
 use rustc_session::impl_lint_pass;
@@ -185,8 +185,8 @@ impl LateLintPass<'_> for NonCanonicalImpls {
                     if let Some(copy_trait) = self.copy_trait
                         && implements_trait(cx, trait_impl.self_ty(), copy_trait, &[])
                     {
-                        for (assoc, _, block) in assoc_fns {
-                            check_clone_on_copy(cx, assoc, block);
+                        for (assoc, body, _) in assoc_fns {
+                            check_clone_on_copy(cx, assoc, body.value);
                         }
                     }
                 },
@@ -208,15 +208,26 @@ impl LateLintPass<'_> for NonCanonicalImpls {
     }
 }
 
-fn check_clone_on_copy(cx: &LateContext<'_>, impl_item: &ImplItem<'_>, block: &Block<'_>) {
+fn is_deref_self(expr: &Expr<'_>) -> bool {
+    let inner_expr = if let ExprKind::Ret(Some(inner)) = expr.kind {
+        inner
+    } else {
+        expr
+    };
+    if let ExprKind::Unary(UnOp::Deref, deref) = inner_expr.kind
+        && let ExprKind::Path(qpath) = deref.kind
+        && last_path_segment(&qpath).ident.name == kw::SelfLower
+    {
+        return true;
+    }
+    false
+}
+
+fn check_clone_on_copy(cx: &LateContext<'_>, impl_item: &ImplItem<'_>, body_expr: &Expr<'_>) {
     if impl_item.ident.name == sym::clone {
-        if block.stmts.is_empty()
-            && let Some(expr) = block.expr
-            && let ExprKind::Unary(UnOp::Deref, deref) = expr.kind
-            && let ExprKind::Path(qpath) = deref.kind
-            && last_path_segment(&qpath).ident.name == kw::SelfLower
-        {
-            // this is the canonical implementation, `fn clone(&self) -> Self { *self }`
+        let inner = peel_blocks_with_stmt(body_expr);
+        if is_deref_self(inner) {
+            // canonical: `{ *self }`, `{ return *self; }`, `{ { return *self; } }`, etc.
             return;
         }
 
@@ -227,7 +238,7 @@ fn check_clone_on_copy(cx: &LateContext<'_>, impl_item: &ImplItem<'_>, block: &B
         span_lint_and_sugg(
             cx,
             NON_CANONICAL_CLONE_IMPL,
-            block.span,
+            body_expr.span,
             "non-canonical implementation of `clone` on a `Copy` type",
             "change this to",
             "{ *self }".to_owned(),
@@ -269,7 +280,7 @@ fn check_partial_ord_on_ord<'tcx>(
     // Fix #12683, allow [`needless_return`] here
     else if block.expr.is_none()
         && let Some(stmt) = block.stmts.first()
-        && let rustc_hir::StmtKind::Semi(Expr {
+        && let StmtKind::Semi(Expr {
             kind: ExprKind::Ret(Some(ret)),
             ..
         }) = stmt.kind
