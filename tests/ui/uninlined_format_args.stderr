@@ -895,5 +895,29 @@ LL -     usr_println!(true, "{:.1}", local_f64);
 LL +     usr_println!(true, "{local_f64:.1}");
    |
 
-error: aborting due to 75 previous errors
+error: variables can be used directly in the `format!` string
+  --> tests/ui/uninlined_format_args.rs:420:13
+   |
+LL |     let _ = adapted_format_args!("{}", x);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: change this to
+   |
+LL -     let _ = adapted_format_args!("{}", x);
+LL +     let _ = adapted_format_args!("{x}");
+   |
+
+error: variables can be used directly in the `format!` string
+  --> tests/ui/uninlined_format_args.rs:422:13
+   |
+LL |     let _ = forwarding_adapted_format_args!("{}", x);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: change this to
+   |
+LL -     let _ = forwarding_adapted_format_args!("{}", x);
+LL +     let _ = forwarding_adapted_format_args!("{x}");
+   |
+
+error: aborting due to 77 previous errors
 
