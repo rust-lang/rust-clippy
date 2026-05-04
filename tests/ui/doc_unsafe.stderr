@@ -42,5 +42,17 @@ LL | very_unsafe!();
    |
    = note: this error originates in the macro `very_unsafe` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: aborting due to 6 previous errors
+error: unsafe function's docs are missing a `# Safety` section
+  --> tests/ui/doc_unsafe.rs:158:13
+   |
+LL |             pub unsafe fn foo1() {}
+   |             ^^^^^^^^^^^^^^^^^^^^
+
+error: unsafe function's docs are missing a `# Safety` section
+  --> tests/ui/doc_unsafe.rs:169:17
+   |
+LL |                 pub unsafe fn foo() {}
+   |                 ^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 8 previous errors
 
