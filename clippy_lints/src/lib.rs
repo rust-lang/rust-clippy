@@ -269,6 +269,7 @@ mod neg_multiply;
 mod new_without_default;
 mod no_effect;
 mod no_mangle_with_rust_abi;
+mod non_binding_let_patterns;
 mod non_canonical_impls;
 mod non_copy_const;
 mod non_expressive_names;
@@ -869,6 +870,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(move |_| Box::new(manual_noop_waker::ManualNoopWaker::new(conf))),
         Box::new(|_| Box::new(byte_char_slices::ByteCharSlice)),
         Box::new(|_| Box::new(manual_assert_eq::ManualAssertEq)),
+        Box::new(|_| Box::new(non_binding_let_patterns::NonBindingLetPatterns)),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);

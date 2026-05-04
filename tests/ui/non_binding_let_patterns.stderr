@@ -1,0 +1,65 @@
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_patterns.rs:31:5
+   |
+LL |     let 0 = 1 else { return };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider equivalence check: `if 1 != 0 { return }`
+   |
+   = note: `-D clippy::non-binding-let-patterns` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::non_binding_let_patterns)]`
+
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_patterns.rs:34:5
+   |
+LL |     let Some(42) = opt else { return };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider equivalence check: `if opt != Some(42) { return }`
+
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_patterns.rs:37:5
+   |
+LL |     let None = opt else { return };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider equivalence check: `if opt != None { return }`
+
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_patterns.rs:40:5
+   |
+LL |     let Status::Err(_) = status else { return };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `matches!`: `if !matches!(status, Status::Err(_)) { return }`
+
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_patterns.rs:45:8
+   |
+LL |     if let 42 = 42 {}
+   |        ^^^^^^^^^^^ help: consider equivalence check: `42 == 42`
+
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_patterns.rs:48:8
+   |
+LL |     if let (6, 7) = tuple {}
+   |        ^^^^^^^^^^^^^^^^^^ help: consider equivalence check: `tuple == (6, 7)`
+
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_patterns.rs:51:8
+   |
+LL |     if let Point { x: 1, y: 2 } = pt {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider equivalence check: `pt == (Point { x: 1, y: 2 })`
+
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_patterns.rs:54:8
+   |
+LL |     if let Status::Ok = status {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `matches!`: `matches!(status, Status::Ok)`
+
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_patterns.rs:60:11
+   |
+LL |     while let 0 = x {
+   |           ^^^^^^^^^ help: consider equivalence check: `x == 0`
+
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_patterns.rs:65:11
+   |
+LL |     while let None = opt {
+   |           ^^^^^^^^^^^^^^ help: consider equivalence check: `opt == None`
+
+error: aborting due to 10 previous errors
+
