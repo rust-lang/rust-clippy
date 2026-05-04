@@ -8,6 +8,12 @@ document.
 
 [df995e...master](https://github.com/rust-lang/rust-clippy/compare/df995e...master)
 
+### False Positive Fixes
+
+* [`collapsible_match`]: no longer suggests collapsing into a guarded arm when the
+  fall-through arm is wild-LIKE (e.g. `None`) but not a true catch-all; the
+  resulting suggestion would have produced a non-exhaustive match.
+
 ## Rust 1.95
 
 Current stable, released 2026-04-16
