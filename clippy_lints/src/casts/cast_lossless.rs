@@ -1,13 +1,12 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_in_const_context;
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::source::SpanRangeExt;
+use clippy_utils::source::{SpanRangeExt, walk_span_to_context};
 use clippy_utils::sugg::Sugg;
-use clippy_utils::ty::is_isize_or_usize;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, QPath, TyKind};
 use rustc_lint::LateContext;
-use rustc_middle::ty::{self, FloatTy, Ty};
+use rustc_middle::ty::{self, FloatTy, IntTy, Ty, UintTy};
 use rustc_span::hygiene;
 
 use super::{CAST_LOSSLESS, utils};
@@ -28,6 +27,10 @@ pub(super) fn check(
     // If the `as` is from a macro and the casting type is from macro input, whether it is lossless is
     // dependent on the input
     if expr.span.from_expansion() && !cast_to_hir.span.eq_ctxt(expr.span) {
+        return;
+    }
+
+    if walk_span_to_context(cast_from_expr.span, expr.span.ctxt()).is_none() {
         return;
     }
 
@@ -82,28 +85,26 @@ fn should_lint(cx: &LateContext<'_>, cast_from: Ty<'_>, cast_to: Ty<'_>, msrv: M
         return false;
     }
 
-    match (
-        utils::int_ty_to_nbits(cx.tcx, cast_from),
-        utils::int_ty_to_nbits(cx.tcx, cast_to),
-    ) {
-        (Some(from_nbits), Some(to_nbits)) => {
-            let cast_signed_to_unsigned = cast_from.is_signed() && !cast_to.is_signed();
-            !is_isize_or_usize(cast_from)
-                && !is_isize_or_usize(cast_to)
-                && from_nbits < to_nbits
-                && !cast_signed_to_unsigned
+    match (cast_from.kind(), cast_to.kind()) {
+        (ty::Bool, ty::Uint(_) | ty::Int(_)) => msrv.meets(cx, msrvs::FROM_BOOL),
+        (ty::Uint(_), ty::Uint(UintTy::Usize)) | (ty::Uint(UintTy::U8) | ty::Int(_), ty::Int(IntTy::Isize)) => {
+            matches!(utils::int_ty_to_nbits(cx.tcx, cast_from), Some(n) if n <= 16)
         },
-
-        (Some(from_nbits), None) => {
-            // FIXME: handle `f16` and `f128`
-            let to_nbits = if let ty::Float(FloatTy::F32) = cast_to.kind() {
-                32
-            } else {
-                64
-            };
-            !is_isize_or_usize(cast_from) && from_nbits < to_nbits
+        // No `f16` to `f32`: https://github.com/rust-lang/rust/issues/123831
+        (ty::Float(FloatTy::F16), ty::Float(FloatTy::F32))
+        | (ty::Uint(UintTy::Usize) | ty::Int(IntTy::Isize), _)
+        | (_, ty::Uint(UintTy::Usize) | ty::Int(IntTy::Isize)) => false,
+        (ty::Uint(_) | ty::Int(_), ty::Int(_)) | (ty::Uint(_), ty::Uint(_)) => {
+            matches!(
+                (utils::int_ty_to_nbits(cx.tcx, cast_from), utils::int_ty_to_nbits(cx.tcx, cast_to)),
+                (Some(from_bits), Some(to_bits)) if from_bits < to_bits
+            )
         },
-        (None, Some(_)) if cast_from.is_bool() && msrv.meets(cx, msrvs::FROM_BOOL) => true,
-        _ => matches!(cast_from.kind(), ty::Float(FloatTy::F32)) && matches!(cast_to.kind(), ty::Float(FloatTy::F64)),
+        (ty::Uint(_) | ty::Int(_), ty::Float(fl)) => {
+            matches!(utils::int_ty_to_nbits(cx.tcx, cast_from), Some(from_bits) if from_bits < fl.bit_width())
+        },
+        (ty::Char, ty::Uint(_)) => matches!(utils::int_ty_to_nbits(cx.tcx, cast_to), Some(to_bits) if to_bits >= 32),
+        (ty::Float(fl_from), ty::Float(fl_to)) => fl_from.bit_width() < fl_to.bit_width(),
+        _ => false,
     }
 }
