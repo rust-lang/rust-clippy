@@ -207,7 +207,7 @@ pub mod issue12964 {
     impl<T> MyContainer<T> {}
 
     impl<T> MyContainer<T> {
-        #[must_use]
+        #[must_use = "iterators are lazy and do nothing unless consumed"]
         pub fn iter(&self) -> MyIter<'_, T> {
             <&Self as IntoIterator>::into_iter(self)
         }
