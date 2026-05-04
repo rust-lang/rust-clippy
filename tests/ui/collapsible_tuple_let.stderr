@@ -1,0 +1,79 @@
+error: this block can be collapsed into individual `let` statements
+  --> tests/ui/collapsible_tuple_let.rs:20:5
+   |
+LL | /     let (a, b) = {
+LL | |         let x = side_effect();
+LL | |         let y = other();
+LL | |         (x, y)
+LL | |     };
+   | |______^
+   |
+   = note: `-D clippy::collapsible-tuple-let` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::collapsible_tuple_let)]`
+help: collapse into separate `let` bindings
+   |
+LL ~     let a = side_effect();
+LL +     let b = other();
+   |
+
+error: this block can be collapsed into individual `let` statements
+  --> tests/ui/collapsible_tuple_let.rs:30:5
+   |
+LL | /     let (a, b) = {
+LL | |         let x = side_effect();
+LL | |         (x, other())
+LL | |     };
+   | |______^
+   |
+help: collapse into separate `let` bindings
+   |
+LL ~     let a = side_effect();
+LL +     let b = other();
+   |
+
+error: this block can be collapsed into individual `let` statements
+  --> tests/ui/collapsible_tuple_let.rs:39:5
+   |
+LL |     let (a, b) = { (side_effect(), other()) };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: collapse into separate `let` bindings
+   |
+LL ~     let a = side_effect();
+LL +     let b = other();
+   |
+
+error: this block can be collapsed into individual `let` statements
+  --> tests/ui/collapsible_tuple_let.rs:44:5
+   |
+LL | /     let (a, b, c) = {
+LL | |         let x = 1i32;
+LL | |         let y = 2i32;
+LL | |         (x, y, 3i32)
+LL | |     };
+   | |______^
+   |
+help: collapse into separate `let` bindings
+   |
+LL ~     let a = 1i32;
+LL +     let b = 2i32;
+LL +     let c = 3i32;
+   |
+
+error: this block can be collapsed into individual `let` statements
+  --> tests/ui/collapsible_tuple_let.rs:54:5
+   |
+LL | /     let (_, b) = {
+LL | |         let x = side_effect();
+LL | |         (x, other())
+LL | |     };
+   | |______^
+   |
+help: collapse into separate `let` bindings
+   |
+LL ~     let _ = side_effect();
+LL +     let b = other();
+   |
+
+error: aborting due to 5 previous errors
+
