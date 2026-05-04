@@ -73,22 +73,25 @@ pub use self::hir_utils::{
 
 use core::mem;
 use core::ops::ControlFlow;
+use std::collections::VecDeque;
 use std::collections::hash_map::Entry;
-use std::iter::{once, repeat_n, zip};
+use std::iter::{once, repeat_n, successors, zip};
 use std::sync::{Mutex, MutexGuard, OnceLock};
 
 use itertools::Itertools;
 use rustc_abi::Integer;
 use rustc_ast::ast::{self, LitKind, RangeLimits};
 use rustc_ast::{LitIntType, join_path_syms};
-use rustc_data_structures::fx::FxHashMap;
+use rustc_data_structures::fx::{FxHashMap, FxHashSet};
 use rustc_data_structures::indexmap;
 use rustc_data_structures::packed::Pu128;
+use rustc_data_structures::smallvec::SmallVec;
 use rustc_data_structures::unhash::UnindexMap;
+use rustc_errors::Applicability;
 use rustc_hir::LangItem::{OptionNone, OptionSome, ResultErr, ResultOk};
 use rustc_hir::attrs::CfgEntry;
 use rustc_hir::def::{DefKind, Res};
-use rustc_hir::def_id::{DefId, LocalDefId, LocalModDefId};
+use rustc_hir::def_id::{CRATE_DEF_ID, DefId, LocalDefId, LocalModDefId};
 use rustc_hir::definitions::{DefPath, DefPathData};
 use rustc_hir::hir_id::{HirIdMap, HirIdSet};
 use rustc_hir::intravisit::{Visitor, walk_expr};
@@ -3282,14 +3285,15 @@ pub fn is_never_expr<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> Option<
 /// Produces a path from a local caller to the type of the called method. Suitable for user
 /// output/suggestions.
 ///
-/// Returned path can be either absolute (for methods defined non-locally), or relative (for local
-/// methods).
+/// Returns the path together with an [`Applicability`]: `MachineApplicable` when the path is
+/// guaranteed to compile at the call site, and `MaybeIncorrect` when no nameable path could
+/// be found and the canonical (potentially-broken) path was used as a last resort.
 pub fn get_path_from_caller_to_method_type<'tcx>(
     tcx: TyCtxt<'tcx>,
     from: LocalDefId,
     method: DefId,
     args: GenericArgsRef<'tcx>,
-) -> String {
+) -> (String, Applicability) {
     let assoc_item = tcx.associated_item(method);
     let def_id = assoc_item.container_id(tcx);
     match assoc_item.container {
@@ -3301,7 +3305,12 @@ pub fn get_path_from_caller_to_method_type<'tcx>(
     }
 }
 
-fn get_path_to_ty<'tcx>(tcx: TyCtxt<'tcx>, from: LocalDefId, ty: Ty<'tcx>, args: GenericArgsRef<'tcx>) -> String {
+fn get_path_to_ty<'tcx>(
+    tcx: TyCtxt<'tcx>,
+    from: LocalDefId,
+    ty: Ty<'tcx>,
+    args: GenericArgsRef<'tcx>,
+) -> (String, Applicability) {
     match ty.kind() {
         rustc_ty::Adt(adt, _) => get_path_to_callee(tcx, from, adt.did()),
         // TODO these types need to be recursively resolved as well
@@ -3311,21 +3320,92 @@ fn get_path_to_ty<'tcx>(tcx: TyCtxt<'tcx>, from: LocalDefId, ty: Ty<'tcx>, args:
         | rustc_ty::RawPtr(_, _)
         | rustc_ty::Ref(..)
         | rustc_ty::Slice(_)
-        | rustc_ty::Tuple(_) => format!("<{}>", EarlyBinder::bind(ty).instantiate(tcx, args).skip_norm_wip()),
-        _ => ty.to_string(),
+        | rustc_ty::Tuple(_) => (
+            format!("<{}>", EarlyBinder::bind(ty).instantiate(tcx, args).skip_norm_wip()),
+            Applicability::MachineApplicable,
+        ),
+        _ => (ty.to_string(), Applicability::MachineApplicable),
     }
 }
 
 /// Produce a path from some local caller to the callee. Suitable for user output/suggestions.
-fn get_path_to_callee(tcx: TyCtxt<'_>, from: LocalDefId, callee: DefId) -> String {
-    // only search for a relative path if the call is fully local
+fn get_path_to_callee(tcx: TyCtxt<'_>, from: LocalDefId, callee: DefId) -> (String, Applicability) {
     if callee.is_local() {
-        let callee_path = tcx.def_path(callee);
-        let caller_path = tcx.def_path(from.to_def_id());
-        maybe_get_relative_path(&caller_path, &callee_path, 2)
-    } else {
-        tcx.def_path_str(callee)
+        let from_module = tcx.parent_module_from_def_id(from).to_def_id();
+        // Use the short relative path only if every segment is visible from the caller;
+        // otherwise the suggestion would traverse a private module and not compile.
+        if path_is_accessible_from(tcx, callee, from_module) {
+            let callee_path = tcx.def_path(callee);
+            let caller_path = tcx.def_path(from.to_def_id());
+            return (
+                maybe_get_relative_path(&caller_path, &callee_path, 2),
+                Applicability::MachineApplicable,
+            );
+        }
+        if let Some(segments) = find_visible_path_to(tcx, callee, from_module) {
+            return (
+                join_path_syms(once(kw::Crate).chain(segments)),
+                Applicability::MachineApplicable,
+            );
+        }
+        // No reachable public path: emit the canonical name but downgrade applicability so
+        // `clippy --fix` does not auto-apply the (potentially broken) suggestion.
+        return (tcx.def_path_str(callee), Applicability::MaybeIncorrect);
     }
+    (tcx.def_path_str(callee), Applicability::MachineApplicable)
+}
+
+/// Returns `true` iff `def_id` and every ancestor up to the crate root are accessible from
+/// `from_module`.
+fn path_is_accessible_from(tcx: TyCtxt<'_>, def_id: DefId, from_module: DefId) -> bool {
+    successors(Some(def_id), |&id| tcx.opt_parent(id)).all(|id| tcx.visibility(id).is_accessible_from(from_module, tcx))
+}
+
+/// Searches for the shortest path of children of the local crate root that resolves to
+/// `target` and is accessible from `from_module`. Segments do not include a leading
+/// `crate::`. The search is BFS from the crate root; `from_module` is used only to filter
+/// each segment's visibility.
+fn find_visible_path_to(tcx: TyCtxt<'_>, target: DefId, from_module: DefId) -> Option<SmallVec<[Symbol; 4]>> {
+    let mut queue: VecDeque<(DefId, SmallVec<[Symbol; 4]>)> = VecDeque::new();
+    let mut visited: FxHashSet<DefId> = FxHashSet::default();
+    let crate_root = CRATE_DEF_ID.to_def_id();
+    queue.push_back((crate_root, SmallVec::new()));
+    visited.insert(crate_root);
+
+    while let Some((mod_id, path)) = queue.pop_front() {
+        let children: &[_] = if let Some(local_id) = mod_id.as_local() {
+            tcx.module_children_local(local_id)
+        } else {
+            tcx.module_children(mod_id)
+        };
+        for child in children {
+            if !child.vis.is_accessible_from(from_module, tcx) || child.ident.name == kw::Underscore {
+                continue;
+            }
+            let Some(child_def_id) = child.res.opt_def_id() else {
+                continue;
+            };
+            if tcx.is_doc_hidden(child_def_id) {
+                continue;
+            }
+
+            let mut new_path = path.clone();
+            new_path.push(child.ident.name);
+
+            if child_def_id == target {
+                return Some(new_path);
+            }
+
+            // `Mod`, `Enum` and `Trait` all expose `module_children`; descend into any
+            // of them to reach nested items and associated items.
+            if matches!(child.res, Res::Def(DefKind::Mod | DefKind::Enum | DefKind::Trait, _))
+                && visited.insert(child_def_id)
+            {
+                queue.push_back((child_def_id, new_path));
+            }
+        }
+    }
+    None
 }
 
 /// Tries to produce a relative path from `from` to `to`; if such a path would contain more than

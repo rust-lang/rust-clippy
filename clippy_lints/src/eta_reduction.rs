@@ -280,7 +280,13 @@ fn check_closure<'tcx>(cx: &LateContext<'tcx>, outer_receiver: Option<&Expr<'tcx
                     |diag| {
                         let args = typeck.node_args(body.value.hir_id);
                         let caller = self_.hir_id.owner.def_id;
-                        let type_name = get_path_from_caller_to_method_type(cx.tcx, caller, method_def_id, args);
+                        let (type_name, path_app) =
+                            get_path_from_caller_to_method_type(cx.tcx, caller, method_def_id, args);
+                        let app = if matches!(path_app, Applicability::MaybeIncorrect) {
+                            path_app
+                        } else {
+                            app
+                        };
                         diag.span_suggestion(
                             expr.span,
                             "replace the closure with the method itself",
