@@ -464,6 +464,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::methods::REDUNDANT_AS_STR_INFO,
     crate::methods::REDUNDANT_ITER_CLONED_INFO,
     crate::methods::REPEAT_ONCE_INFO,
+    crate::methods::RESULT_AND_INNER_METHOD_INFO,
     crate::methods::RESULT_FILTER_MAP_INFO,
     crate::methods::RESULT_MAP_OR_INTO_OPTION_INFO,
     crate::methods::RETURN_AND_THEN_INFO,
