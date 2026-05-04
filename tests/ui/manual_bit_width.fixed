@@ -1,0 +1,25 @@
+#![warn(clippy::manual_bit_width)]
+
+use core::num::NonZero;
+use std::num;
+
+fn main() {
+    let x: u32 = 5;
+
+    // `T::BITS - x.leading_zeros()`
+    let _ = x.bit_width(); //~ manual_bit_width
+    let _ = x.bit_width(); //~ manual_bit_width
+    let _ = x.bit_width(); //~ manual_bit_width
+    let _ = x.bit_width(); //~ manual_bit_width
+    let _ = x.bit_width(); //~ manual_bit_width
+
+    // `NonZero::<T>::BITS - x.leading_zeros()`
+    let _ = x.bit_width(); //~ manual_bit_width
+    let _ = x.bit_width(); //~ manual_bit_width
+    let _ = x.bit_width(); //~ manual_bit_width
+    let _ = x.bit_width(); //~ manual_bit_width
+    let _ = x.bit_width(); //~ manual_bit_width
+    let _ = x.bit_width(); //~ manual_bit_width
+
+    let _ = 128 - x.leading_zeros();
+}
