@@ -12,6 +12,7 @@
     clippy::get_first,
     mismatched_lifetime_syntaxes
 )]
+#![expect(clippy::unused_impl)]
 
 extern crate proc_macros;
 use proc_macros::inline_macros;

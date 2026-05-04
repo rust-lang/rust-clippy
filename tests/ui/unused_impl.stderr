@@ -1,0 +1,30 @@
+error: empty impl body
+  --> tests/ui/unused_impl.rs:10:5
+   |
+LL |       impl Foo1 {}
+   |  _____-^^^^^^^^^^^
+LL | |
+   | |____- help: remove this
+   |
+   = note: `-D clippy::unused-impl` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unused_impl)]`
+
+error: empty impl body
+  --> tests/ui/unused_impl.rs:15:5
+   |
+LL |       impl<'a> Foo2<'a> {}
+   |  _____-^^^^^^^^^^^^^^^^^^^
+LL | |
+   | |____- help: remove this
+
+error: empty impl body
+  --> tests/ui/unused_impl.rs:40:1
+   |
+LL | / #[doc(hidden)]
+LL | | impl Bar4 {}
+   | | ^^^^^^^^^^^^
+LL | |
+   | |_- help: remove this
+
+error: aborting due to 3 previous errors
+
