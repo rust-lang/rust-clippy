@@ -589,7 +589,79 @@ LL +     b.eq_ignore_ascii_case(a);
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:178:5
+  --> tests/ui/manual_ignore_case_cmp.rs:165:5
+   |
+LL | /     a.chars()
+LL | |         .map(|c| c.to_ascii_lowercase())
+LL | |         .cmp(b.chars().map(|c| c.to_ascii_lowercase()))
+LL | |         .is_eq();
+   | |________________^
+   |
+help: consider using `.eq_ignore_ascii_case()` instead
+   |
+LL -     a.chars()
+LL -         .map(|c| c.to_ascii_lowercase())
+LL -         .cmp(b.chars().map(|c| c.to_ascii_lowercase()))
+LL -         .is_eq();
+LL +     a.eq_ignore_ascii_case(b);
+   |
+
+error: manual case-insensitive ASCII comparison
+  --> tests/ui/manual_ignore_case_cmp.rs:171:5
+   |
+LL | /     a.chars()
+LL | |         .map(|c| c.to_ascii_uppercase())
+LL | |         .cmp(b.chars().map(|c| c.to_ascii_uppercase()))
+LL | |         .is_ne();
+   | |________________^
+   |
+help: consider using `.eq_ignore_ascii_case()` instead
+   |
+LL -     a.chars()
+LL -         .map(|c| c.to_ascii_uppercase())
+LL -         .cmp(b.chars().map(|c| c.to_ascii_uppercase()))
+LL -         .is_ne();
+LL +     !a.eq_ignore_ascii_case(b);
+   |
+
+error: manual case-insensitive ASCII comparison
+  --> tests/ui/manual_ignore_case_cmp.rs:177:5
+   |
+LL | /     s.chars()
+LL | |         .map(|c| c.to_ascii_lowercase())
+LL | |         .cmp(".xyz".chars().map(|c| c.to_ascii_lowercase()))
+LL | |         .is_eq();
+   | |________________^
+   |
+help: consider using `.eq_ignore_ascii_case()` instead
+   |
+LL -     s.chars()
+LL -         .map(|c| c.to_ascii_lowercase())
+LL -         .cmp(".xyz".chars().map(|c| c.to_ascii_lowercase()))
+LL -         .is_eq();
+LL +     s.eq_ignore_ascii_case(".xyz");
+   |
+
+error: manual case-insensitive ASCII comparison
+  --> tests/ui/manual_ignore_case_cmp.rs:191:9
+   |
+LL | /         dir.chars()
+LL | |             .map(|c| c.to_ascii_lowercase())
+LL | |             .cmp(".xyz".chars().map(|c| c.to_ascii_lowercase()))
+LL | |             .is_eq()
+   | |____________________^
+   |
+help: consider using `.eq_ignore_ascii_case()` instead
+   |
+LL -         dir.chars()
+LL -             .map(|c| c.to_ascii_lowercase())
+LL -             .cmp(".xyz".chars().map(|c| c.to_ascii_lowercase()))
+LL -             .is_eq()
+LL +         dir.eq_ignore_ascii_case(".xyz")
+   |
+
+error: manual case-insensitive ASCII comparison
+  --> tests/ui/manual_ignore_case_cmp.rs:213:5
    |
 LL |     dot_inner!(a).to_ascii_lowercase() == dot_inner!(b).to_ascii_lowercase()
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -601,7 +673,7 @@ LL +     dot_inner!(a).eq_ignore_ascii_case(dot_inner!(b))
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:180:12
+  --> tests/ui/manual_ignore_case_cmp.rs:215:12
    |
 LL |         || dot_inner!(a).to_ascii_lowercase() == "abc"
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -612,5 +684,5 @@ LL -         || dot_inner!(a).to_ascii_lowercase() == "abc"
 LL +         || dot_inner!(a).eq_ignore_ascii_case("abc")
    |
 
-error: aborting due to 51 previous errors
+error: aborting due to 55 previous errors
 
