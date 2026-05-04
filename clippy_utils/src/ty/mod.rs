@@ -361,6 +361,22 @@ pub fn is_must_use_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
     }
 }
 
+/// Returns `true` if the given type is a unit struct (a struct with no fields).
+pub fn is_unit_struct(ty: Ty<'_>) -> bool {
+    if let ty::Adt(def, _) = ty.kind()
+        && def.is_struct()
+        && let var @ VariantDef {
+            ctor: Some((CtorKind::Const, _)),
+            ..
+        } = def.non_enum_variant()
+        && !var.is_field_list_non_exhaustive()
+    {
+        true
+    } else {
+        false
+    }
+}
+
 /// Returns `true` if the given type is a non aggregate primitive (a `bool` or `char`, any
 /// integer or floating-point number type).
 ///

@@ -266,7 +266,7 @@ mod needless_question_mark;
 mod needless_update;
 mod neg_cmp_op_on_partial_ord;
 mod neg_multiply;
-mod new_without_default;
+mod new_vs_default;
 mod no_effect;
 mod no_mangle_with_rust_abi;
 mod non_canonical_impls;
@@ -616,7 +616,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         },
         Box::new(|_| Box::new(swap::Swap)),
         Box::new(|_| Box::new(panicking_overflow_checks::PanickingOverflowChecks)),
-        Box::new(|_| Box::<new_without_default::NewWithoutDefault>::default()),
+        Box::new(|_| Box::<new_vs_default::NewVsDefault>::default()),
         Box::new(move |_| Box::new(disallowed_names::DisallowedNames::new(conf))),
         Box::new(move |tcx| Box::new(functions::Functions::new(tcx, conf))),
         Box::new(move |_| Box::new(doc::Documentation::new(conf))),
