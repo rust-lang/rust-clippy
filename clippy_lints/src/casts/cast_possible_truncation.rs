@@ -23,7 +23,19 @@ fn constant_int(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<u128> {
 }
 
 fn get_constant_bits(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<u64> {
-    constant_int(cx, expr).map(|c| u64::from(128 - c.leading_zeros()))
+    // `ConstEvalCtxt` does not evaluate `ExprKind::Cast`, so peel through cast
+    // expressions to reach the underlying constant (e.g. `u32::MAX as usize`).
+    let mut cur = expr;
+    loop {
+        if let Some(c) = constant_int(cx, cur) {
+            return Some(u64::from(128 - c.leading_zeros()));
+        }
+        if let ExprKind::Cast(inner, _) = cur.kind {
+            cur = inner;
+        } else {
+            return None;
+        }
+    }
 }
 
 fn apply_reductions(cx: &LateContext<'_>, nbits: u64, expr: &Expr<'_>, signed: bool) -> u64 {
@@ -103,7 +115,7 @@ pub(super) fn check(
             let (should_lint, suffix) = match (is_isize_or_usize(cast_from), is_isize_or_usize(cast_to)) {
                 (true, true) | (false, false) => (to_nbits < from_nbits, ""),
                 (true, false) => (
-                    to_nbits <= 32,
+                    to_nbits <= 32 && from_nbits > to_nbits,
                     if to_nbits == 32 {
                         " on targets with 64-bit wide pointers"
                     } else {
@@ -171,7 +183,7 @@ pub(super) fn check(
         // TODO: Remove the condition for const contexts when `try_from` and other commonly used methods
         // become const fn.
         if !is_in_const_context(cx) && !cast_from.is_floating_point() {
-            offer_suggestion(cx, expr, cast_expr, cast_to_span, diag);
+            offer_suggestion(cx, expr, cast_expr, cast_from, cast_to, cast_to_span, diag);
         }
     });
 }
@@ -180,11 +192,13 @@ fn offer_suggestion(
     cx: &LateContext<'_>,
     expr: &Expr<'_>,
     cast_expr: &Expr<'_>,
+    cast_from: Ty<'_>,
+    cast_to: Ty<'_>,
     cast_to_span: Span,
     diag: &mut Diag<'_, ()>,
 ) {
     let cast_to_snip = snippet(cx, cast_to_span, "..");
-    let suggestion = if cast_to_snip == "_" {
+    let try_from_suggestion = if cast_to_snip == "_" {
         format!("{}.try_into()", Sugg::hir(cx, cast_expr, "..").maybe_paren())
     } else {
         format!("{cast_to_snip}::try_from({})", Sugg::hir(cx, cast_expr, ".."))
@@ -193,7 +207,20 @@ fn offer_suggestion(
     diag.span_suggestion_verbose(
         expr.span,
         "... or use `try_from` and handle the error accordingly",
-        suggestion,
+        try_from_suggestion,
         Applicability::Unspecified,
     );
+
+    if matches!(cast_from.kind(), ty::Uint(_)) && matches!(cast_to.kind(), ty::Uint(_)) && cast_to_snip != "_" {
+        let mask_suggestion = format!(
+            "({} & {cast_to_snip}::MAX as {cast_from}) as {cast_to_snip}",
+            Sugg::hir(cx, cast_expr, ".."),
+        );
+        diag.span_suggestion_verbose(
+            expr.span,
+            "... or explicitly mask the bits if truncation is intended",
+            mask_suggestion,
+            Applicability::Unspecified,
+        );
+    }
 }
