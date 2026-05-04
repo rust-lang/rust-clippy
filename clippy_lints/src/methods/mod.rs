@@ -126,6 +126,7 @@ mod type_id_on_box;
 mod unbuffered_bytes;
 mod uninit_assumed_init;
 mod unit_hash;
+mod unnecessary_dedup_by;
 mod unnecessary_fallible_conversions;
 mod unnecessary_filter_map;
 mod unnecessary_first_then_check;
@@ -4079,6 +4080,49 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for usage of `Vec::dedup_by` passing in a closure
+    /// that is equivalent to a simple key extraction and could be
+    /// written more idiomatically using `Vec::dedup_by_key` or
+    /// `Vec::dedup`
+    ///
+    /// ### Why is this bad?
+    /// It is more clear to use `Vec::dedup_by_key` or `Vec::dedup`
+    /// (when comparing whole elements) than to use
+    /// `Vec::dedup_by` and a more complicated closure.
+    ///
+    /// ### Examples
+    /// ```no_run
+    /// let mut v = vec![1, 1, 2, 3];
+    /// v.dedup_by(|a, b| a == b);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let mut v = vec![1, 1, 2, 3];
+    /// v.dedup();
+    /// ```
+    ///
+    /// Or when comparing by a key:
+    /// ```no_run
+    /// pub fn m1(mut v: Vec<(i64, i64)>) -> Vec<(i64, i64)> {
+    ///     v.dedup_by(|(sym1, _), (sym2, _)| sym1 == sym2);
+    ///     v
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// pub fn m2(mut v: Vec<(i64, i64)>) -> Vec<(i64, i64)> {
+    ///     v.dedup_by_key(|(sym, _)| *sym);
+    ///     v
+    /// }
+    /// ```
+    #[clippy::version = "1.95.0"]
+    pub UNNECESSARY_DEDUP_BY,
+    complexity,
+    "use of `Vec::dedup_by` when `Vec::dedup_by_key` or `Vec::dedup` would be clearer"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for calls to `TryInto::try_into` and `TryFrom::try_from` when their infallible counterparts
     /// could be used.
     ///
@@ -4939,6 +4983,7 @@ impl_lint_pass!(Methods => [
     UNBUFFERED_BYTES,
     UNINIT_ASSUMED_INIT,
     UNIT_HASH,
+    UNNECESSARY_DEDUP_BY,
     UNNECESSARY_FALLIBLE_CONVERSIONS,
     UNNECESSARY_FILTER_MAP,
     UNNECESSARY_FIND_MAP,
@@ -5282,6 +5327,9 @@ impl Methods {
                 },
                 (sym::min | sym::max, [arg]) => {
                     unnecessary_min_or_max::check(cx, expr, name, recv, arg);
+                },
+                (sym::dedup_by, [arg]) => {
+                    unnecessary_dedup_by::check(cx, expr, call_span, arg);
                 },
                 (sym::drain, ..) => {
                     if let Node::Stmt(Stmt { hir_id: _, kind, .. }) = cx.tcx.parent_hir_node(expr.hir_id)
