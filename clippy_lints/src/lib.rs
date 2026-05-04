@@ -239,6 +239,7 @@ mod missing_doc;
 mod missing_enforced_import_rename;
 mod missing_fields_in_debug;
 mod missing_inline;
+mod missing_must_use;
 mod missing_trait_methods;
 mod mixed_read_write_in_expression;
 mod module_style;
@@ -869,6 +870,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(move |_| Box::new(manual_noop_waker::ManualNoopWaker::new(conf))),
         Box::new(|_| Box::new(byte_char_slices::ByteCharSlice)),
         Box::new(|_| Box::new(manual_assert_eq::ManualAssertEq)),
+        Box::new(|_| Box::new(missing_must_use::MissingMustUse)),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);
