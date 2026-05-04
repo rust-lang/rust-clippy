@@ -6961,6 +6961,7 @@ Released 2018-09-13
 [`match_wildcard_for_single_variants`]: https://rust-lang.github.io/rust-clippy/master/index.html#match_wildcard_for_single_variants
 [`maybe_infinite_iter`]: https://rust-lang.github.io/rust-clippy/master/index.html#maybe_infinite_iter
 [`maybe_misused_cfg`]: https://rust-lang.github.io/rust-clippy/master/index.html#maybe_misused_cfg
+[`maybe_uninit_drop_in_place`]: https://rust-lang.github.io/rust-clippy/master/index.html#maybe_uninit_drop_in_place
 [`mem_discriminant_non_enum`]: https://rust-lang.github.io/rust-clippy/master/index.html#mem_discriminant_non_enum
 [`mem_forget`]: https://rust-lang.github.io/rust-clippy/master/index.html#mem_forget
 [`mem_replace_option_with_none`]: https://rust-lang.github.io/rust-clippy/master/index.html#mem_replace_option_with_none
