@@ -10,14 +10,12 @@ use clippy_utils::{fn_def_id, get_parent_expr, is_expr_temporary_value, return_t
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefId;
-use rustc_hir::{BorrowKind, Expr, ExprKind, ItemKind, LangItem, Node};
+use rustc_hir::{BorrowKind, Expr, ExprKind, ItemKind, LangItem, Node, QPath};
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_lint::LateContext;
 use rustc_middle::mir::Mutability;
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, DerefAdjustKind, OverloadedDeref};
-use rustc_middle::ty::{
-    self, ClauseKind, GenericArg, GenericArgKind, GenericArgsRef, ParamTy, ProjectionPredicate, TraitPredicate, Ty,
-};
+use rustc_middle::ty::{self, ClauseKind, GenericArg, GenericArgKind, GenericArgsRef, ParamTy, TraitPredicate, Ty};
 use rustc_span::Symbol;
 use rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt as _;
 use rustc_trait_selection::traits::{Obligation, ObligationCause};
@@ -386,7 +384,11 @@ fn check_other_call_arg<'tcx>(
         && let Some(i) = recv.into_iter().chain(call_args).position(|arg| arg.hir_id == maybe_arg.hir_id)
         && let Some(input) = fn_sig.inputs().get(i)
         && let (input, n_refs, _) = peel_and_count_ty_refs(*input)
-        && let (trait_predicates, _) = get_input_traits_and_projections(cx, callee_def_id, input)
+        && let (trait_predicates, has_static_bound) = get_input_predicates(cx, callee_def_id, input)
+        // If the parameter has a `'static` bound and the receiver is a non-static reference,
+        // we can't remove the `.to_owned()` call because the reference may not live long enough.
+        // See: https://github.com/rust-lang/rust-clippy/issues/15252
+        && !(has_static_bound && receiver_is_non_static_ref(cx, receiver))
         && let Some(sized_def_id) = cx.tcx.lang_items().sized_trait()
         && let Some(meta_sized_def_id) = cx.tcx.lang_items().meta_sized_trait()
         && let [trait_predicate] = trait_predicates
@@ -472,26 +474,70 @@ fn get_callee_generic_args_and_args<'tcx>(
     None
 }
 
-/// Returns the `TraitPredicate`s and `ProjectionPredicate`s for a function's input type.
-fn get_input_traits_and_projections<'tcx>(
+/// Returns the `TraitPredicate`s and whether there's a `'static` bound for a function's input type.
+fn get_input_predicates<'tcx>(
     cx: &LateContext<'tcx>,
     callee_def_id: DefId,
     input: Ty<'tcx>,
-) -> (Vec<TraitPredicate<'tcx>>, Vec<ProjectionPredicate<'tcx>>) {
+) -> (Vec<TraitPredicate<'tcx>>, bool) {
     let mut trait_predicates = Vec::new();
-    let mut projection_predicates = Vec::new();
+    let mut has_static_bound = false;
     for predicate in cx.tcx.param_env(callee_def_id).caller_bounds() {
         match predicate.kind().skip_binder() {
             ClauseKind::Trait(trait_predicate) if trait_predicate.trait_ref.self_ty() == input => {
                 trait_predicates.push(trait_predicate);
             },
-            ClauseKind::Projection(projection_predicate) if projection_predicate.projection_term.self_ty() == input => {
-                projection_predicates.push(projection_predicate);
+            ClauseKind::TypeOutlives(type_outlives)
+                // Check if this is a `T: 'static` bound for our input type
+                if type_outlives.0 == input && type_outlives.1.is_static() => {
+                    has_static_bound = true;
             },
             _ => {},
         }
     }
-    (trait_predicates, projection_predicates)
+    (trait_predicates, has_static_bound)
+}
+
+/// Returns true if the receiver expression is a reference that is likely non-static.
+fn receiver_is_non_static_ref(cx: &LateContext<'_>, receiver: &Expr<'_>) -> bool {
+    let receiver_ty = cx.typeck_results().expr_ty(receiver);
+    if !receiver_ty.is_ref() {
+        return false;
+    }
+
+    // Literals (like b"hello") are always 'static
+    if matches!(receiver.kind, ExprKind::Lit(_)) {
+        return false;
+    }
+
+    if let ExprKind::Path(QPath::Resolved(_, path)) = &receiver.kind {
+        match path.res {
+            // Static/const items are always 'static
+            Res::Def(DefKind::Static { .. } | DefKind::Const { .. }, _) => return false,
+            // Check if the local variable has an explicit 'static type annotation
+            Res::Local(hir_id) => {
+                if let Node::LetStmt(local) = cx.tcx.parent_hir_node(hir_id)
+                    && let Some(ty) = local.ty
+                    && has_static_lifetime_annotation(ty)
+                {
+                    return false;
+                }
+            },
+            _ => {},
+        }
+    }
+
+    // Otherwise, assume it's a non-static reference
+    true
+}
+
+/// Check if an HIR type has a 'static lifetime on its outermost reference.
+fn has_static_lifetime_annotation(ty: &rustc_hir::Ty<'_>) -> bool {
+    if let rustc_hir::TyKind::Ref(lifetime, _) = &ty.kind {
+        lifetime.kind == rustc_hir::LifetimeKind::Static
+    } else {
+        false
+    }
 }
 
 #[expect(clippy::too_many_lines)]
