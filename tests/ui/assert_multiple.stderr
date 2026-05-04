@@ -1,0 +1,124 @@
+error: multiple asserts combined into one
+  --> tests/ui/assert_multiple.rs:30:5
+   |
+LL |     assert!(myfunc1(1, "foo".to_string()) && b == Vals::Borrowed);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::assert-multiple` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::assert_multiple)]`
+help: consider writing
+   |
+LL ~     assert!(myfunc1(1, "foo".to_string()));
+LL ~     assert_eq!(b, Vals::Borrowed);
+   |
+
+error: multiple asserts combined into one
+  --> tests/ui/assert_multiple.rs:33:5
+   |
+LL |     assert!(ms.myfunc(1, "foo".to_string()) && myfunc1(2, "bar".to_string()));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider writing
+   |
+LL ~     assert!(ms.myfunc(1, "foo".to_string()));
+LL ~     assert!(myfunc1(2, "bar".to_string()));
+   |
+
+error: multiple asserts combined into one
+  --> tests/ui/assert_multiple.rs:36:5
+   |
+LL |     assert!(o == Vals::Owned && b == Vals::Other);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider writing
+   |
+LL ~     assert_eq!(o, Vals::Owned);
+LL ~     assert_eq!(b, Vals::Other);
+   |
+
+error: multiple asserts combined into one
+  --> tests/ui/assert_multiple.rs:39:5
+   |
+LL |     debug_assert!(o == b && other == Vals::Other);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider writing
+   |
+LL ~     debug_assert_eq!(o, b);
+LL ~     debug_assert_eq!(other, Vals::Other);
+   |
+
+error: multiple asserts combined into one
+  --> tests/ui/assert_multiple.rs:42:5
+   |
+LL |     assert!(o == b && (o == Vals::Owned || b == Vals::Other));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider writing
+   |
+LL ~     assert_eq!(o, b);
+LL ~     assert!(o == Vals::Owned || b == Vals::Other);
+   |
+
+error: multiple asserts combined into one
+  --> tests/ui/assert_multiple.rs:44:5
+   |
+LL |     assert!(o == b && is_bool);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider writing
+   |
+LL ~     assert_eq!(o, b);
+LL ~     assert!(is_bool);
+   |
+
+error: multiple asserts combined into one
+  --> tests/ui/assert_multiple.rs:46:5
+   |
+LL |     assert!(!is_bool && o == b);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider writing
+   |
+LL ~     assert!(!is_bool);
+LL ~     assert_eq!(o, b);
+   |
+
+error: multiple asserts combined into one
+  --> tests/ui/assert_multiple.rs:48:5
+   |
+LL |     assert!(o == b && !is_bool);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider writing
+   |
+LL ~     assert_eq!(o, b);
+LL ~     assert!(!is_bool);
+   |
+
+error: multiple asserts combined into one
+  --> tests/ui/assert_multiple.rs:50:5
+   |
+LL |     assert!(o == b && !(is_bool && o == Vals::Owned));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider writing
+   |
+LL ~     assert_eq!(o, b);
+LL ~     assert!(!(is_bool && o == Vals::Owned));
+   |
+
+error: multiple asserts combined into one
+  --> tests/ui/assert_multiple.rs:53:5
+   |
+LL |     assert!(v == vec![] && is_bool);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider writing
+   |
+LL ~     assert_eq!(v, vec![]);
+LL ~     assert!(is_bool);
+   |
+
+error: aborting due to 10 previous errors
+
