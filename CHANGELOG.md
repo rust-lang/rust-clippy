@@ -8,6 +8,13 @@ document.
 
 [df995e...master](https://github.com/rust-lang/rust-clippy/compare/df995e...master)
 
+### Suggestion Fixes/Improvements
+
+* [`collapsible_match`]: the if-into-guard collapse suggestion is now marked
+  `MaybeIncorrect` so `cargo clippy --fix` no longer auto-applies it, since the
+  rewrite can produce code that fails the borrow checker
+  [#16903](https://github.com/rust-lang/rust-clippy/issues/16903)
+
 ## Rust 1.95
 
 Current stable, released 2026-04-16

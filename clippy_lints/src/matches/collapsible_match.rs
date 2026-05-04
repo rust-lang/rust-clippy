@@ -202,7 +202,13 @@ fn check_arm<'tcx>(
                     sugg.push((else_inner_span, String::new()));
                 }
 
-                diag.multipart_suggestion("collapse nested if block", sugg, Applicability::MachineApplicable);
+                // The rewrite turns an arm body into a match guard. Guards run during pattern
+                // matching while the scrutinee borrow is still live, so when the inner condition
+                // reads from a place the scrutinee mutably borrows, the rewrite fails to compile
+                // (E0502). Static analysis to detect this precisely is hard (multi-level
+                // reborrows, function-parameter borrow origins), so the suggestion is marked
+                // `MaybeIncorrect` to keep `cargo clippy --fix` from auto-applying it.
+                diag.multipart_suggestion("collapse nested if block", sugg, Applicability::MaybeIncorrect);
             },
         );
     }

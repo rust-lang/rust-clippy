@@ -43,3 +43,17 @@ fn issue16875(a: Option<&str>, b: i32) -> i32 {
     }
     res
 }
+
+// https://github.com/rust-lang/rust-clippy/issues/16903
+// lint still fires when scrutinee mutably borrows but the if-cond is unrelated
+fn issue16903_no_conflict(local_flag: bool) {
+    let mut v: Vec<u32> = vec![1, 2, 3];
+    match v.iter_mut().next() {
+        Some(_)
+            if local_flag => {
+                //~^ collapsible_match
+                let _ = ();
+            },
+        _ => {},
+    }
+}

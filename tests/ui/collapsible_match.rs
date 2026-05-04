@@ -1,3 +1,4 @@
+//@no-rustfix
 #![warn(clippy::collapsible_match)]
 #![allow(
     clippy::collapsible_if,
@@ -463,4 +464,48 @@ fn issue16705(x: Option<String>) {
         },
         _ => false,
     };
+}
+
+// https://github.com/rust-lang/rust-clippy/issues/16903
+// The if-into-guard collapse is unsound when the inner condition reads a place that the
+// match scrutinee mutably borrows: the guard runs while the scrutinee borrow is live, so
+// the rewrite fails the borrow checker (E0502). The lint still fires here, but the
+// suggestion is `MaybeIncorrect`, so `cargo clippy --fix` will not auto-apply it.
+fn issue16903() {
+    #[derive(Clone, Copy)]
+    enum Mode {
+        A,
+        B,
+    }
+
+    struct Ui {
+        modes: Vec<Mode>,
+    }
+
+    impl Ui {
+        fn handle(&mut self, key: u8) {
+            let Some(mode) = self.modes.last_mut() else { return };
+            match (mode, key) {
+                (&mut Mode::A, 0) => {},
+                (_, 1) => {
+                    if self.modes.len() >= 2 {
+                        //~^ collapsible_match
+                        self.modes.pop();
+                    }
+                },
+                _ => {},
+            }
+        }
+    }
+
+    let mut v: Vec<u32> = vec![1, 2, 3];
+    match v.iter_mut().next() {
+        Some(_) => {
+            if v.is_empty() {
+                //~^ collapsible_match
+                let _ = ();
+            }
+        },
+        _ => {},
+    }
 }
