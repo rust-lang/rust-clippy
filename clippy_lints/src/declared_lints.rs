@@ -726,6 +726,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::time_subtraction::UNCHECKED_TIME_SUBTRACTION_INFO,
     crate::to_digit_is_some::TO_DIGIT_IS_SOME_INFO,
     crate::to_string_trait_impl::TO_STRING_TRAIT_IMPL_INFO,
+    crate::too_many_lines_in_file::TOO_MANY_LINES_IN_FILE_INFO,
     crate::toplevel_ref_arg::TOPLEVEL_REF_ARG_INFO,
     crate::trailing_empty_array::TRAILING_EMPTY_ARRAY_INFO,
     crate::trait_bounds::TRAIT_DUPLICATION_IN_BOUNDS_INFO,
