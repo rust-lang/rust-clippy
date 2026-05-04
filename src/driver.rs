@@ -241,7 +241,7 @@ fn main() -> ExitCode {
         // uses
         if let Some(pos) = orig_args.iter().position(|arg| arg == "--rustc") {
             orig_args.remove(pos);
-            orig_args[0] = "rustc".to_string();
+            "rustc".clone_into(&mut orig_args[0]);
 
             let mut args: Vec<String> = orig_args.clone();
             pass_sysroot_env_if_given(&mut args, sys_root_env);

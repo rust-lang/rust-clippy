@@ -181,5 +181,35 @@ error: assigning the result of `ToOwned::to_owned()` may be inefficient
 LL |     s = ToOwned::to_owned(&format!("{} {}", "hello", "world"));
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `clone_into()`: `ToOwned::clone_into(&format!("{} {}", "hello", "world"), &mut s)`
 
-error: aborting due to 30 previous errors
+error: assigning the result of `std::string::ToString::to_string()` may be inefficient
+  --> tests/ui/assigning_clones.rs:436:5
+   |
+LL |     b = a.to_string();
+   |     ^^^^^^^^^^^^^^^^^ help: use `clone_into()`: `a.clone_into(&mut b)`
+
+error: assigning the result of `std::ffi::OsStr::to_os_string()` may be inefficient
+  --> tests/ui/assigning_clones.rs:441:5
+   |
+LL |     d = c.to_os_string();
+   |     ^^^^^^^^^^^^^^^^^^^^ help: use `clone_into()`: `c.clone_into(&mut d)`
+
+error: assigning the result of `std::path::Path::to_path_buf()` may be inefficient
+  --> tests/ui/assigning_clones.rs:446:5
+   |
+LL |     f = e.to_path_buf();
+   |     ^^^^^^^^^^^^^^^^^^^ help: use `clone_into()`: `e.clone_into(&mut f)`
+
+error: assigning the result of `std::slice::<impl [T]>::to_vec()` may be inefficient
+  --> tests/ui/assigning_clones.rs:450:5
+   |
+LL |     h = g.to_vec();
+   |     ^^^^^^^^^^^^^^ help: use `clone_into()`: `g.clone_into(&mut h)`
+
+error: assigning the result of `std::string::ToString::to_string()` may be inefficient
+  --> tests/ui/assigning_clones.rs:467:5
+   |
+LL |     j = i.to_string();
+   |     ^^^^^^^^^^^^^^^^^ help: use `clone_into()`: `i.clone_into(&mut j)`
+
+error: aborting due to 35 previous errors
 
