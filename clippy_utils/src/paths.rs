@@ -203,7 +203,7 @@ pub fn find_crates(tcx: TyCtxt<'_>, name: Symbol) -> &'static [DefId] {
         let mut map = FxHashMap::default();
         map.insert(tcx.crate_name(LOCAL_CRATE), vec![LOCAL_CRATE.as_def_id()]);
         for &num in tcx.crates(()) {
-            map.entry(tcx.crate_name(num)).or_default().push(num.as_def_id());
+            map.entry(tcx.crate_name(num)).or_insert(vec![]).push(num.as_def_id());
         }
         map
     });
