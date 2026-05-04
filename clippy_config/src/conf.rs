@@ -345,6 +345,8 @@ define_Conf! {
     /// Which crates to allow absolute paths from
     #[lints(absolute_paths)]
     absolute_paths_allowed_crates: Vec<String> = Vec::new(),
+    /// The maximum number of times an absolute path can appear in a module before being linted.
+    absolute_paths_max_occurrences: u64 = 0,
     /// The maximum number of segments a path can have before being linted, anything above this will
     /// be linted.
     #[lints(absolute_paths)]

@@ -1,14 +1,14 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint;
-use clippy_utils::is_from_proc_macro;
+use clippy_utils::{fulfill_or_allowed, is_from_proc_macro};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::{CRATE_DEF_INDEX, DefId};
-use rustc_hir::{HirId, ItemKind, Node, Path};
+use rustc_hir::{HirId, ItemKind, Node, OwnerNode, Path};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::impl_lint_pass;
-use rustc_span::Symbol;
 use rustc_span::symbol::kw;
+use rustc_span::{Span, Symbol};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -56,19 +56,23 @@ declare_clippy_lint! {
 impl_lint_pass!(AbsolutePaths => [ABSOLUTE_PATHS]);
 
 pub struct AbsolutePaths {
-    pub absolute_paths_max_segments: u64,
-    pub absolute_paths_allowed_crates: FxHashSet<Symbol>,
+    pub max_segments: u64,
+    pub allowed_crates: FxHashSet<Symbol>,
+    pub max_occurrences: u64,
+    occurrences: Vec<((DefId, DefId), Span)>, // To track count of occurences
 }
 
 impl AbsolutePaths {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
-            absolute_paths_max_segments: conf.absolute_paths_max_segments,
-            absolute_paths_allowed_crates: conf
+            max_segments: conf.absolute_paths_max_segments,
+            allowed_crates: conf
                 .absolute_paths_allowed_crates
                 .iter()
                 .map(|x| Symbol::intern(x))
                 .collect(),
+            max_occurrences: conf.absolute_paths_max_occurrences,
+            occurrences: Vec::new(),
         }
     }
 }
@@ -93,7 +97,7 @@ impl<'tcx> LateLintPass<'tcx> for AbsolutePaths {
             && let has_root = s1.ident.name == kw::PathRoot
             && let first = if has_root { s2 } else { s1 }
             && let len = segments.len() - usize::from(has_root)
-            && len as u64 > self.absolute_paths_max_segments
+            && len as u64 > self.max_segments
             && let crate_name = if let Res::Def(DefKind::Mod, DefId { index, .. }) = first.res
                 && index == CRATE_DEF_INDEX
             {
@@ -108,15 +112,56 @@ impl<'tcx> LateLintPass<'tcx> for AbsolutePaths {
             && !path.span.from_expansion()
             && let node = cx.tcx.hir_node(hir_id)
             && !matches!(node, Node::Item(item) if matches!(item.kind, ItemKind::Use(..)))
-            && !self.absolute_paths_allowed_crates.contains(&crate_name)
+            && !self.allowed_crates.contains(&crate_name)
             && !is_from_proc_macro(cx, path)
         {
-            span_lint(
-                cx,
-                ABSOLUTE_PATHS,
-                path.span,
-                "consider bringing this path into scope with the `use` keyword",
-            );
+            if self.max_occurrences == 0 {
+                // Default behaviour : emit lint directly, no need for occurence tracking
+                span_lint(
+                    cx,
+                    ABSOLUTE_PATHS,
+                    path.span,
+                    "consider bringing this path into scope with the `use` keyword",
+                );
+            } else if let Res::Def(_, def_id) = path.res
+                && !fulfill_or_allowed(cx, ABSOLUTE_PATHS, [hir_id])
+            {
+                // Occurence based behaviour : accumulate spans and emit lint in check_crate_post
+                // if the occurence count is exceeded
+                let module = cx
+                    .tcx
+                    .hir_parent_owner_iter(hir_id)
+                    .find(|(_, node)| {
+                        if let OwnerNode::Item(item) = node {
+                            matches!(item.kind, ItemKind::Mod(..))
+                        } else {
+                            matches!(node, OwnerNode::Crate(..))
+                        }
+                    })
+                    .map(|(id, _)| id);
+                if let Some(module) = module {
+                    self.occurrences.push(((def_id, module.to_def_id()), path.span));
+                }
+            }
+        }
+    }
+
+    fn check_crate_post(&mut self, cx: &LateContext<'tcx>) {
+        // Only runs when absolute_paths_max_occurrences > 0.
+        // Emit lints for any path that exceeded the per-file occurrence threshold.
+        self.occurrences
+            .sort_by_key(|((item_did, mod_did), span)| (item_did.index.as_u32(), mod_did.index.as_u32(), span.lo()));
+        for chunk in self.occurrences.chunk_by(|(key1, _), (key2, _)| key1 == key2) {
+            if chunk.len() as u64 > self.max_occurrences {
+                for (_, span) in chunk {
+                    span_lint(
+                        cx,
+                        ABSOLUTE_PATHS,
+                        *span,
+                        "this absolute path is used too many times, consider bringing it into scope with the `use` keyword",
+                    );
+                }
+            }
         }
     }
 }
