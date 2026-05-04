@@ -120,7 +120,19 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, arms: &'tcx [Arm<'_>]) {
         span_lint_and_then(
             cx,
             MATCH_SAME_ARMS,
-            group.iter().map(|(_, arm)| arm.span).collect_vec(),
+            group
+                .iter()
+                .enumerate() // gives index
+                .map(|(i, (_, arm))| {
+                    // i gives postion of the arm
+                    if i == 0 {
+                        //target only primary arm
+                        adjusted_arm_span(cx, arm.span) //fixes the span to include the comma and whitespaces
+                    } else {
+                        arm.span // other arms keep the original span 
+                    }
+                })
+                .collect_vec(),
             "these match arms have identical bodies",
             |diag| {
                 diag.help("if this is unintentional make the arms return different values");
@@ -177,7 +189,7 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, arms: &'tcx [Arm<'_>]) {
 fn adjusted_arm_span(cx: &LateContext<'_>, span: Span) -> Span {
     let source_map = cx.sess().source_map();
     source_map
-        .span_extend_while(span, |c| c == ',' || c.is_ascii_whitespace())
+        .span_extend_while(span, |c| c == ',' || c.is_whitespace())
         .unwrap_or(span)
 }
 
