@@ -1,0 +1,12 @@
+#![warn(clippy::match_same_arms)]
+
+fn multiple_duplicate_groups() {
+    let y = 5;
+
+    match y {
+        //~ ERROR: these match arms have identical bodies
+        3 => println!("different"),
+        1 | 2 | 4 | 5 => println!("same"),
+        _ => println!("other"),
+    }
+}

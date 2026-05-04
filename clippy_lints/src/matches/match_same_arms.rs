@@ -117,10 +117,14 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, arms: &'tcx [Arm<'_>]) {
             continue;
         }
 
+        // Skip the first (original) arm and only highlight duplicates.
+        // This avoids pointing at the non-redundant arm and keeps the lint clear.
+        let spans = group.iter().skip(1).map(|(_, arm)| arm.span).collect_vec();
+
         span_lint_and_then(
             cx,
             MATCH_SAME_ARMS,
-            group.iter().map(|(_, arm)| arm.span).collect_vec(),
+            spans,
             "these match arms have identical bodies",
             |diag| {
                 diag.help("if this is unintentional make the arms return different values");

@@ -1,0 +1,23 @@
+error: these match arms have identical bodies
+  --> tests/ui/span_in_match_same_arm.rs:8:9
+   |
+LL |         2 => println!("same"),
+   |         ^^^^^^^^^^^^^^^^^^^^^
+LL |         3 => println!("different"),
+LL |         4 => println!("same"),
+   |         ^^^^^^^^^^^^^^^^^^^^^
+LL |         5 => println!("same"),
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this is unintentional make the arms return different values
+   = note: `-D clippy::match-same-arms` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::match_same_arms)]`
+help: otherwise merge the patterns into a single arm
+   |
+LL ~
+LL |         3 => println!("different"),
+LL ~         1 | 2 | 4 | 5 => println!("same"),
+   |
+
+error: aborting due to 1 previous error
+
