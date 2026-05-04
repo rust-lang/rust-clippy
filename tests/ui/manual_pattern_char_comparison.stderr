@@ -1,5 +1,5 @@
 error: this manual char comparison can be written more succinctly
-  --> tests/ui/manual_pattern_char_comparison.rs:11:31
+  --> tests/ui/manual_pattern_char_comparison.rs:12:31
    |
 LL |     sentence.trim_end_matches(|c: char| c == '.' || c == ',' || c == '!' || c == '?');
    |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using an array of `char`: `['.', ',', '!', '?']`
@@ -8,55 +8,55 @@ LL |     sentence.trim_end_matches(|c: char| c == '.' || c == ',' || c == '!' ||
    = help: to override `-D warnings` add `#[allow(clippy::manual_pattern_char_comparison)]`
 
 error: this manual char comparison can be written more succinctly
-  --> tests/ui/manual_pattern_char_comparison.rs:13:20
+  --> tests/ui/manual_pattern_char_comparison.rs:14:20
    |
 LL |     sentence.split(|c: char| c == '\n' || c == 'X');
    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using an array of `char`: `['\n', 'X']`
 
 error: this manual char comparison can be written more succinctly
-  --> tests/ui/manual_pattern_char_comparison.rs:15:20
+  --> tests/ui/manual_pattern_char_comparison.rs:16:20
    |
 LL |     sentence.split(|c| c == '\n' || c == 'X');
    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using an array of `char`: `['\n', 'X']`
 
 error: this manual char comparison can be written more succinctly
-  --> tests/ui/manual_pattern_char_comparison.rs:17:24
+  --> tests/ui/manual_pattern_char_comparison.rs:18:24
    |
 LL |     sentence.splitn(3, |c: char| c == 'X');
    |                        ^^^^^^^^^^^^^^^^^^ help: consider using a `char`: `'X'`
 
 error: this manual char comparison can be written more succinctly
-  --> tests/ui/manual_pattern_char_comparison.rs:21:24
+  --> tests/ui/manual_pattern_char_comparison.rs:22:24
    |
 LL |     sentence.splitn(3, |c: char| c == char_compare);
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using a `char`: `char_compare`
 
 error: this manual char comparison can be written more succinctly
-  --> tests/ui/manual_pattern_char_comparison.rs:23:20
+  --> tests/ui/manual_pattern_char_comparison.rs:24:20
    |
 LL |     sentence.split(|c: char| matches!(c, '\n' | 'X' | 'Y'));
    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using an array of `char`: `['\n', 'X', 'Y']`
 
 error: this manual char comparison can be written more succinctly
-  --> tests/ui/manual_pattern_char_comparison.rs:25:24
+  --> tests/ui/manual_pattern_char_comparison.rs:26:24
    |
 LL |     sentence.splitn(3, |c: char| matches!(c, 'X'));
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using a `char`: `'X'`
 
 error: this manual char comparison can be written more succinctly
-  --> tests/ui/manual_pattern_char_comparison.rs:27:24
+  --> tests/ui/manual_pattern_char_comparison.rs:28:24
    |
 LL |     sentence.splitn(3, |c: char| matches!(c, 'X' | 'W'));
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using an array of `char`: `['X', 'W']`
 
 error: this manual char comparison can be written more succinctly
-  --> tests/ui/manual_pattern_char_comparison.rs:29:19
+  --> tests/ui/manual_pattern_char_comparison.rs:30:19
    |
 LL |     sentence.find(|c| c == '🎈');
    |                   ^^^^^^^^^^^^^ help: consider using a `char`: `'🎈'`
 
 error: this manual char comparison can be written more succinctly
-  --> tests/ui/manual_pattern_char_comparison.rs:69:31
+  --> tests/ui/manual_pattern_char_comparison.rs:70:31
    |
 LL |     sentence.trim_end_matches(|c: char| c == '.' || c == ',' || c == '!' || c == '?');
    |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using an array of `char`: `['.', ',', '!', '?']`
