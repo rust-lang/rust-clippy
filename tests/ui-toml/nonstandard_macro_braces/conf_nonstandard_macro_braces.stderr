@@ -1,11 +1,17 @@
 error: use of irregular braces for `vec!` macro
+  --> tests/ui-toml/nonstandard_macro_braces/conf_nonstandard_macro_braces.rs:19:9
+   |
+LL |         vec!{0, 0, 0}
+   |         ^^^^^^^^^^^^^ help: consider writing: `vec![0, 0, 0]`
+   |
+   = note: `-D clippy::nonstandard-macro-braces` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::nonstandard_macro_braces)]`
+
+error: use of irregular braces for `vec!` macro
   --> tests/ui-toml/nonstandard_macro_braces/conf_nonstandard_macro_braces.rs:45:13
    |
 LL |     let _ = vec! {1, 2, 3};
    |             ^^^^^^^^^^^^^^ help: consider writing: `vec![1, 2, 3]`
-   |
-   = note: `-D clippy::nonstandard-macro-braces` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::nonstandard_macro_braces)]`
 
 error: use of irregular braces for `format!` macro
   --> tests/ui-toml/nonstandard_macro_braces/conf_nonstandard_macro_braces.rs:47:13
@@ -30,17 +36,6 @@ error: use of irregular braces for `quote::quote!` macro
    |
 LL |     let _ = quote::quote!(match match match);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider writing: `quote::quote!{match match match}`
-
-error: use of irregular braces for `vec!` macro
-  --> tests/ui-toml/nonstandard_macro_braces/conf_nonstandard_macro_braces.rs:19:9
-   |
-LL |         vec!{0, 0, 0}
-   |         ^^^^^^^^^^^^^ help: consider writing: `vec![0, 0, 0]`
-...
-LL |     let _ = test!(); // trigger when macro def is inside our own crate
-   |             ------- in this macro invocation
-   |
-   = note: this error originates in the macro `test` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: use of irregular braces for `type_pos!` macro
   --> tests/ui-toml/nonstandard_macro_braces/conf_nonstandard_macro_braces.rs:63:12

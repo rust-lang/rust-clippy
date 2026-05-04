@@ -452,6 +452,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
     // Due to the architecture of the compiler, currently `cfg_attr` attributes on crate
     // level (i.e `#![cfg_attr(...)]`) will still be expanded even when using a pre-expansion pass.
     store.register_pre_expansion_pass(move || Box::new(attrs::EarlyAttributes::new(conf)));
+    store.register_pre_expansion_pass(move || Box::new(nonstandard_macro_braces::MacroBraces::new(conf)));
 
     let format_args_storage = FormatArgsStorage::default();
     let attr_storage = AttrStorage::default();
@@ -493,7 +494,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|| Box::<single_component_path_imports::SingleComponentPathImports>::default()),
         Box::new(|| Box::new(option_env_unwrap::OptionEnvUnwrap)),
         Box::new(move || Box::new(non_expressive_names::NonExpressiveNames::new(conf))),
-        Box::new(move || Box::new(nonstandard_macro_braces::MacroBraces::new(conf))),
         Box::new(|| Box::new(asm_syntax::InlineAsmX86AttSyntax)),
         Box::new(|| Box::new(asm_syntax::InlineAsmX86IntelSyntax)),
         Box::new(move || Box::new(module_style::ModStyle::default())),
