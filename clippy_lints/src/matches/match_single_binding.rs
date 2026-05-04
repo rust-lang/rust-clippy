@@ -1,16 +1,12 @@
-use std::ops::ControlFlow;
-
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::macros::HirNode;
 use clippy_utils::source::{indent_of, reindent_multiline, snippet, snippet_block_with_context, snippet_with_context};
+use clippy_utils::usage::{variable_names_of_pat, variable_names_used_after_expr};
 use clippy_utils::{is_expr_identity_of_pat, is_refutable, peel_blocks};
-use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
-use rustc_hir::def::Res;
-use rustc_hir::intravisit::{Visitor, walk_block, walk_expr, walk_path, walk_stmt};
-use rustc_hir::{Arm, Block, Expr, ExprKind, HirId, Item, ItemKind, Node, PatKind, Path, Stmt, StmtKind};
+use rustc_hir::{Arm, Expr, ExprKind, Item, ItemKind, Node, PatKind, StmtKind};
 use rustc_lint::LateContext;
-use rustc_span::{Span, Symbol};
+use rustc_span::Span;
 
 use super::MATCH_SINGLE_BINDING;
 
@@ -57,7 +53,7 @@ pub(crate) fn check<'a>(cx: &LateContext<'a>, ex: &Expr<'a>, arms: &[Arm<'_>], e
                         &mut app,
                         Some(span),
                         true,
-                        is_var_binding_used_later(cx, expr, &arms[0]),
+                        variable_names_from_match_used_after_expr(cx, expr, &arms[0]),
                     );
 
                     span_lint_and_sugg(
@@ -103,7 +99,7 @@ pub(crate) fn check<'a>(cx: &LateContext<'a>, ex: &Expr<'a>, arms: &[Arm<'_>], e
                         &mut app,
                         None,
                         true,
-                        is_var_binding_used_later(cx, expr, &arms[0]),
+                        variable_names_from_match_used_after_expr(cx, expr, &arms[0]),
                     );
                     (expr.span, sugg)
                 },
@@ -157,123 +153,9 @@ pub(crate) fn check<'a>(cx: &LateContext<'a>, ex: &Expr<'a>, arms: &[Arm<'_>], e
     }
 }
 
-struct VarBindingVisitor<'a, 'tcx> {
-    cx: &'a LateContext<'tcx>,
-    identifiers: FxHashSet<Symbol>,
-}
-
-impl<'tcx> Visitor<'tcx> for VarBindingVisitor<'_, 'tcx> {
-    type Result = ControlFlow<()>;
-
-    fn visit_path(&mut self, path: &Path<'tcx>, _: HirId) -> Self::Result {
-        if let Res::Local(_) = path.res
-            && let [segment] = path.segments
-            && self.identifiers.contains(&segment.ident.name)
-        {
-            return ControlFlow::Break(());
-        }
-
-        walk_path(self, path)
-    }
-
-    fn visit_block(&mut self, block: &'tcx Block<'tcx>) -> Self::Result {
-        let before = self.identifiers.clone();
-        walk_block(self, block)?;
-        self.identifiers = before;
-        ControlFlow::Continue(())
-    }
-
-    fn visit_stmt(&mut self, stmt: &'tcx Stmt<'tcx>) -> Self::Result {
-        if let StmtKind::Let(let_stmt) = stmt.kind {
-            if let Some(init) = let_stmt.init {
-                self.visit_expr(init)?;
-            }
-
-            let_stmt.pat.each_binding(|_, _, _, ident| {
-                self.identifiers.remove(&ident.name);
-            });
-        }
-        walk_stmt(self, stmt)
-    }
-
-    fn visit_expr(&mut self, expr: &'tcx Expr<'tcx>) -> Self::Result {
-        match expr.kind {
-            ExprKind::If(
-                Expr {
-                    kind: ExprKind::Let(let_expr),
-                    ..
-                },
-                then,
-                else_,
-            ) => {
-                self.visit_expr(let_expr.init)?;
-                let before = self.identifiers.clone();
-                let_expr.pat.each_binding(|_, _, _, ident| {
-                    self.identifiers.remove(&ident.name);
-                });
-
-                self.visit_expr(then)?;
-                self.identifiers = before;
-                if let Some(else_) = else_ {
-                    self.visit_expr(else_)?;
-                }
-                ControlFlow::Continue(())
-            },
-            ExprKind::Closure(closure) => {
-                let body = self.cx.tcx.hir_body(closure.body);
-                let before = self.identifiers.clone();
-                for param in body.params {
-                    param.pat.each_binding(|_, _, _, ident| {
-                        self.identifiers.remove(&ident.name);
-                    });
-                }
-                self.visit_expr(body.value)?;
-                self.identifiers = before;
-                ControlFlow::Continue(())
-            },
-            ExprKind::Match(expr, arms, _) => {
-                self.visit_expr(expr)?;
-                for arm in arms {
-                    let before = self.identifiers.clone();
-                    arm.pat.each_binding(|_, _, _, ident| {
-                        self.identifiers.remove(&ident.name);
-                    });
-                    if let Some(guard) = arm.guard {
-                        self.visit_expr(guard)?;
-                    }
-                    self.visit_expr(arm.body)?;
-                    self.identifiers = before;
-                }
-                ControlFlow::Continue(())
-            },
-            _ => walk_expr(self, expr),
-        }
-    }
-}
-
-fn is_var_binding_used_later(cx: &LateContext<'_>, expr: &Expr<'_>, arm: &Arm<'_>) -> bool {
-    let Node::Stmt(stmt) = cx.tcx.parent_hir_node(expr.hir_id) else {
-        return false;
-    };
-    let Node::Block(block) = cx.tcx.parent_hir_node(stmt.hir_id) else {
-        return false;
-    };
-
-    let mut identifiers = FxHashSet::default();
-    arm.pat.each_binding(|_, _, _, ident| {
-        identifiers.insert(ident.name);
-    });
-
-    let mut visitor = VarBindingVisitor { cx, identifiers };
-    block
-        .stmts
-        .iter()
-        .skip_while(|s| s.hir_id != stmt.hir_id)
-        .skip(1)
-        .any(|stmt| matches!(visitor.visit_stmt(stmt), ControlFlow::Break(())))
-        || block
-            .expr
-            .is_some_and(|expr| matches!(visitor.visit_expr(expr), ControlFlow::Break(())))
+fn variable_names_from_match_used_after_expr(cx: &LateContext<'_>, expr: &Expr<'_>, arm: &Arm<'_>) -> bool {
+    let names = variable_names_of_pat(arm.pat);
+    variable_names_used_after_expr(cx, names, expr)
 }
 
 /// Returns true if the `ex` match expression is in a local (`let`) or assign expression
