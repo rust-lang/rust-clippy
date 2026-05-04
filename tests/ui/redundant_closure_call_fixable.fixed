@@ -1,7 +1,7 @@
 #![warn(clippy::redundant_closure_call)]
 #![allow(clippy::redundant_async_block)]
 #![allow(clippy::type_complexity)]
-#![allow(unused)]
+#![allow(unused, clippy::manual_min_max)]
 
 async fn something() -> u32 {
     21
