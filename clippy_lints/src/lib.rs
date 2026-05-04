@@ -135,6 +135,7 @@ mod fallible_impl_from;
 mod field_scoped_visibility_modifiers;
 mod float_literal;
 mod floating_point_arithmetic;
+mod fn_arg_mut_rebindings;
 mod format;
 mod format_args;
 mod format_impl;
@@ -869,6 +870,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(move |_| Box::new(manual_noop_waker::ManualNoopWaker::new(conf))),
         Box::new(|_| Box::new(byte_char_slices::ByteCharSlice)),
         Box::new(|_| Box::new(manual_assert_eq::ManualAssertEq)),
+        Box::new(|_| Box::new(fn_arg_mut_rebindings::FnArgMutRebindings)),
         // add late passes here, used by `cargo dev new_lint`
     ];
     store.late_passes.extend(late_lints);
