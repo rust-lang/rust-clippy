@@ -5315,6 +5315,7 @@ impl Methods {
                 (sym::extend, [arg]) => {
                     string_extend_chars::check(cx, expr, recv, arg);
                     extend_with_drain::check(cx, expr, recv, arg);
+                    unnecessary_to_owned::extend_with_to_owned::check(cx, expr, recv, arg);
                 },
                 (sym::filter, [arg]) => {
                     if let Some((sym::cloned, recv2, [], _span2, _)) = method_call(recv) {
