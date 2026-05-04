@@ -62,23 +62,10 @@ impl LateLintPass<'_> for ManualBitWidth {
                     && segment.ident.name == sym::BITS
                     && let ty = cx.typeck_results().node_type(hir_ty.hir_id)
                     && let Some(_) = match ty.kind() {
-                        // uint::BITS
+                        // usize::BITS
                         ty::Uint(ty::UintTy::Usize) => Some(cx.tcx.data_layout.pointer_size().bits()),
+                        // uint::BITS
                         ty::Uint(uint_ty) => uint_ty.bit_width(),
-                        // NonZero::<uint>::BITS
-                        ty::Adt(adt, args) => {
-                            if cx.tcx.is_diagnostic_item(sym::NonZero, adt.did())
-                                && let Some(generic_arg) = args.types().next()
-                            {
-                                match *generic_arg.kind() {
-                                    ty::Uint(ty::UintTy::Usize) => Some(cx.tcx.data_layout.pointer_size().bits()),
-                                    ty::Uint(uint_ty) => uint_ty.bit_width(),
-                                    _ => return,
-                                }
-                            } else {
-                                return;
-                            }
-                        },
                         ty::Int(_) => {
                             // There is no implementation of `bit_width` for signed integers,
                             // so don't suggest anything.
