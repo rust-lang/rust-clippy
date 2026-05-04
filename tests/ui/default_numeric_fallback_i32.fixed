@@ -208,6 +208,38 @@ fn check_expect_suppression() {
     let x = 21;
 }
 
+mod issue16745 {
+    fn test() {
+        // Should NOT lint these literals because their type is constrained by
+        // the typed neighbor in the binary expression.
+        let a = 92i32;
+        let _ = a + 3;
+        let _ = a - 3;
+        let _ = a * 3;
+        let _ = 3 + a;
+        let _ = a & 3;
+        let _ = a | 3;
+        let _ = a ^ 3;
+
+        // Shifts should still lint the LHS literal because the RHS type does not
+        // constrain the LHS in `a << b` or `a >> b`.
+        let _ = 3_i32 << a;
+        //~^ default_numeric_fallback
+        let _ = 3_i32 >> a;
+        //~^ default_numeric_fallback
+
+        // Transitive constraint: nested binary ops where one leaf has a typed
+        // source should also not lint.
+        let _ = a + 1 + 2;
+        let _ = (1 + 2) + a;
+
+        // No typed neighbor: still warn (both sides are unsuffixed literals).
+        let _ = 1_i32 + 2_i32;
+        //~^ default_numeric_fallback
+        //~| default_numeric_fallback
+    }
+}
+
 mod type_already_inferred {
     // Should NOT lint if bound to return type
     fn ret_i32() -> i32 {
