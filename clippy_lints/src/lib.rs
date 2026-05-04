@@ -730,7 +730,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
             Box::new(move |tcx| Box::new(format_args::FormatArgs::new(tcx, conf, format_args.clone())))
         },
         Box::new(|_| Box::new(trailing_empty_array::TrailingEmptyArray)),
-        Box::new(|_| Box::new(needless_late_init::NeedlessLateInit)),
+        Box::new(move |_| Box::new(needless_late_init::NeedlessLateInit::new(conf))),
         Box::new(|_| Box::new(return_self_not_must_use::ReturnSelfNotMustUse)),
         Box::new(|_| Box::new(init_numbered_fields::NumberedFields)),
         Box::new(move |_| Box::new(manual_bits::ManualBits::new(conf))),
