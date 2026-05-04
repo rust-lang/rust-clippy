@@ -1,6 +1,5 @@
 use super::possible_origin::PossibleOriginVisitor;
 use super::transitive_relation::TransitiveRelation;
-use crate::ty::is_copy;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_index::bit_set::DenseBitSet;
 use rustc_lint::LateContext;
@@ -19,14 +18,14 @@ struct PossibleBorrowerVisitor<'a, 'b, 'tcx> {
     possible_borrower: TransitiveRelation,
     body: &'b mir::Body<'tcx>,
     cx: &'a LateContext<'tcx>,
-    possible_origin: FxHashMap<mir::Local, DenseBitSet<mir::Local>>,
+    possible_origin: FxHashMap<mir::Local, FxHashMap<mir::Local, Mutability>>,
 }
 
 impl<'a, 'b, 'tcx> PossibleBorrowerVisitor<'a, 'b, 'tcx> {
     fn new(
         cx: &'a LateContext<'tcx>,
         body: &'b mir::Body<'tcx>,
-        possible_origin: FxHashMap<mir::Local, DenseBitSet<mir::Local>>,
+        possible_origin: FxHashMap<mir::Local, FxHashMap<mir::Local, Mutability>>,
     ) -> Self {
         Self {
             possible_borrower: TransitiveRelation::default(),
@@ -36,19 +35,11 @@ impl<'a, 'b, 'tcx> PossibleBorrowerVisitor<'a, 'b, 'tcx> {
         }
     }
 
-    fn into_map(
-        self,
-        cx: &'a LateContext<'tcx>,
-        maybe_live: ResultsCursor<'b, 'tcx, MaybeStorageLive<'tcx>>,
-    ) -> PossibleBorrowerMap<'b, 'tcx> {
+    fn into_map(self, maybe_live: ResultsCursor<'b, 'tcx, MaybeStorageLive<'tcx>>) -> PossibleBorrowerMap<'b, 'tcx> {
         let mut map = FxHashMap::default();
         for row in (1..self.body.local_decls.len()).map(mir::Local::from_usize) {
-            if is_copy(cx, self.body.local_decls[row].ty) {
-                continue;
-            }
-
             let mut borrowers = self.possible_borrower.reachable_from(row, self.body.local_decls.len());
-            borrowers.remove(mir::Local::from_usize(0));
+            borrowers.remove(&mir::Local::from_usize(0));
             if !borrowers.is_empty() {
                 map.insert(row, borrowers);
             }
@@ -67,8 +58,18 @@ impl<'tcx> mir::visit::Visitor<'tcx> for PossibleBorrowerVisitor<'_, '_, 'tcx> {
     fn visit_assign(&mut self, place: &mir::Place<'tcx>, rvalue: &mir::Rvalue<'_>, _location: mir::Location) {
         let lhs = place.local;
         match rvalue {
-            mir::Rvalue::Ref(_, _, borrowed) | mir::Rvalue::CopyForDeref(borrowed) => {
-                self.possible_borrower.add(borrowed.local, lhs);
+            mir::Rvalue::Ref(_, kind, borrowed) => {
+                self.possible_borrower.add(
+                    borrowed.local,
+                    lhs,
+                    match kind {
+                        mir::BorrowKind::Mut { .. } => Mutability::Mut,
+                        _ => Mutability::Not,
+                    },
+                );
+            },
+            mir::Rvalue::CopyForDeref(borrowed) => {
+                self.possible_borrower.add(borrowed.local, lhs, Mutability::Not);
             },
             other => {
                 if ContainsRegion
@@ -79,7 +80,7 @@ impl<'tcx> mir::visit::Visitor<'tcx> for PossibleBorrowerVisitor<'_, '_, 'tcx> {
                 }
                 rvalue_locals(other, |rhs| {
                     if lhs != rhs {
-                        self.possible_borrower.add(rhs, lhs);
+                        self.possible_borrower.add(rhs, lhs, Mutability::Not);
                     }
                 });
             },
@@ -114,10 +115,14 @@ impl<'tcx> mir::visit::Visitor<'tcx> for PossibleBorrowerVisitor<'_, '_, 'tcx> {
                 }
             }
 
+            #[expect(
+                rustc::potential_query_instability,
+                reason = "iterating mutable variables is not sensitive to ordering"
+            )]
             let mut mutable_variables: Vec<mir::Local> = mutable_borrowers
                 .iter()
                 .filter_map(|r| self.possible_origin.get(r))
-                .flat_map(DenseBitSet::iter)
+                .flat_map(|v| v.keys().copied())
                 .collect();
 
             if ContainsRegion.visit_ty(self.body.local_decls[*dest].ty).is_break() {
@@ -126,10 +131,10 @@ impl<'tcx> mir::visit::Visitor<'tcx> for PossibleBorrowerVisitor<'_, '_, 'tcx> {
 
             for y in mutable_variables {
                 for x in &immutable_borrowers {
-                    self.possible_borrower.add(*x, y);
+                    self.possible_borrower.add(*x, y, Mutability::Not);
                 }
                 for x in &mutable_borrowers {
-                    self.possible_borrower.add(*x, y);
+                    self.possible_borrower.add(*x, y, Mutability::Mut);
                 }
             }
         }
@@ -168,7 +173,7 @@ fn rvalue_locals(rvalue: &mir::Rvalue<'_>, mut visit: impl FnMut(mir::Local)) {
 /// Result of `PossibleBorrowerVisitor`.
 pub struct PossibleBorrowerMap<'b, 'tcx> {
     /// Mapping `Local -> its possible borrowers`
-    pub map: FxHashMap<mir::Local, DenseBitSet<mir::Local>>,
+    pub map: FxHashMap<mir::Local, FxHashMap<mir::Local, Mutability>>,
     maybe_live: ResultsCursor<'b, 'tcx, MaybeStorageLive<'tcx>>,
     // Caches to avoid allocation of `DenseBitSet` on every query
     pub bitset: (DenseBitSet<mir::Local>, DenseBitSet<mir::Local>),
@@ -187,7 +192,7 @@ impl<'b, 'tcx> PossibleBorrowerMap<'b, 'tcx> {
                 .into_results_cursor(mir);
         let mut vis = PossibleBorrowerVisitor::new(cx, mir, possible_origin);
         vis.visit_body(mir);
-        vis.into_map(cx, maybe_storage_live_result)
+        vis.into_map(maybe_storage_live_result)
     }
 
     /// Returns true if the set of borrowers of `borrowed` living at `at` matches with `borrowers`.
@@ -209,8 +214,12 @@ impl<'b, 'tcx> PossibleBorrowerMap<'b, 'tcx> {
         self.bitset.0.clear();
         let maybe_live = &mut self.maybe_live;
         if let Some(bitset) = self.map.get(&borrowed) {
-            for b in bitset.iter().filter(move |b| maybe_live.get().contains(*b)) {
-                self.bitset.0.insert(b);
+            #[expect(
+                rustc::potential_query_instability,
+                reason = "iterating over possible borrowers is not sensitive to ordering"
+            )]
+            for b in bitset.keys().filter(move |b| maybe_live.get().contains(**b)) {
+                self.bitset.0.insert(*b);
             }
         } else {
             return false;

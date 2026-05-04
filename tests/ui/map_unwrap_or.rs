@@ -161,3 +161,29 @@ fn issue15752() {
     x.map(|y| y.0).unwrap_or(&[]);
     //~^ map_unwrap_or
 }
+
+fn issue11244() {
+    let mut v = [1, 2, 3];
+    let w: Vec<_> = v.iter_mut().collect();
+    let _ = w
+        .into_iter()
+        .next()
+        .map(|x| *x)
+        .unwrap_or_else(|| *v.iter().max().unwrap());
+
+    fn borrow_mut(_: &mut i32) -> i32 {
+        0
+    }
+
+    let mut v = [1, 2, 3];
+    let w: Vec<_> = v.iter_mut().collect();
+    let mut c = 0;
+    let _ = w
+        .into_iter()
+        .next()
+        .map(|x| {
+            borrow_mut(&mut c);
+            *x
+        })
+        .unwrap_or_else(|| borrow_mut(&mut c));
+}
