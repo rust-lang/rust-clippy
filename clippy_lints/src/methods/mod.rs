@@ -126,6 +126,7 @@ mod type_id_on_box;
 mod unbuffered_bytes;
 mod uninit_assumed_init;
 mod unit_hash;
+mod unnecessary_as_slice;
 mod unnecessary_fallible_conversions;
 mod unnecessary_filter_map;
 mod unnecessary_first_then_check;
@@ -155,7 +156,7 @@ use clippy_utils::consts::{ConstEvalCtxt, Constant};
 use clippy_utils::macros::FormatArgsStorage;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
-use clippy_utils::{contains_return, iter_input_pats, peel_blocks, sym};
+use clippy_utils::{contains_return, get_parent_expr, iter_input_pats, peel_blocks, sym};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::{self as hir, Expr, ExprKind, Node, Stmt, StmtKind, TraitItem, TraitItemKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
@@ -4079,6 +4080,29 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Looks for unnecessary calls to `as_slice()` on `Vec`.
+    ///
+    /// ### Why is this bad?
+    /// Calling `as_slice()` on a `Vec` is unnecessary since many methods that work on slices also work on `Vec` directly.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let v = vec![1, 2, 3];
+    /// let v_len = v.as_slice().len();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let v = vec![1, 2, 3];
+    /// let v_len = v.len();
+    /// ```
+    #[clippy::version = "1.97.0"]
+    pub UNNECESSARY_AS_SLICE,
+    complexity,
+    "using `as_slice()` on a `Vec` when it is not necessary"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for calls to `TryInto::try_into` and `TryFrom::try_from` when their infallible counterparts
     /// could be used.
     ///
@@ -4939,6 +4963,7 @@ impl_lint_pass!(Methods => [
     UNBUFFERED_BYTES,
     UNINIT_ASSUMED_INIT,
     UNIT_HASH,
+    UNNECESSARY_AS_SLICE,
     UNNECESSARY_FALLIBLE_CONVERSIONS,
     UNNECESSARY_FILTER_MAP,
     UNNECESSARY_FIND_MAP,
@@ -5225,6 +5250,14 @@ impl Methods {
                         redundant_as_str::check(cx, expr, recv, as_str_span, span);
                     }
                     sliced_string_as_bytes::check(cx, expr, recv);
+                },
+                (sym::as_slice | sym::as_mut_slice, []) => {
+                    // If the parent is also a method call, then the lint will be triggered.
+                    if let Some(parent_expr) = get_parent_expr(cx, expr)
+                        && matches!(parent_expr.kind, ExprKind::MethodCall(..))
+                    {
+                        unnecessary_as_slice::check(cx, expr, recv);
+                    }
                 },
                 (sym::as_mut | sym::as_ref, []) => useless_asref::check(cx, expr, name, recv),
                 (sym::as_ptr, []) => manual_c_str_literals::check_as_ptr(cx, expr, recv, self.msrv),

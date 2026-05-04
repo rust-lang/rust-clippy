@@ -7327,6 +7327,7 @@ Released 2018-09-13
 [`unit_hash`]: https://rust-lang.github.io/rust-clippy/master/index.html#unit_hash
 [`unit_return_expecting_ord`]: https://rust-lang.github.io/rust-clippy/master/index.html#unit_return_expecting_ord
 [`unknown_clippy_lints`]: https://rust-lang.github.io/rust-clippy/master/index.html#unknown_clippy_lints
+[`unnecessary_as_slice`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_as_slice
 [`unnecessary_box_returns`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_box_returns
 [`unnecessary_cast`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_cast
 [`unnecessary_clippy_cfg`]: https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_clippy_cfg
