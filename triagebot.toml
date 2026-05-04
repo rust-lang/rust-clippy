@@ -73,6 +73,7 @@ This lint has been nominated for inclusion.
 message_on_add = [
     """\
 PR rust-clippy#{number} "{title}" has been nominated for lint inclusion.
+Cc: {recipients}
 """,
     """\
 /poll Approve lint inclusion of rust-clippy#{number}?
