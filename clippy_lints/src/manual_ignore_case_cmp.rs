@@ -1,12 +1,12 @@
 use crate::manual_ignore_case_cmp::MatchType::{Literal, ToAscii};
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::res::MaybeDef;
+use clippy_utils::res::{MaybeDef, MaybeResPath};
 use clippy_utils::source::snippet_with_context;
-use clippy_utils::sym;
+use clippy_utils::{method_chain_args, sym};
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
-use rustc_hir::ExprKind::{Binary, Lit, MethodCall};
-use rustc_hir::{BinOpKind, Expr, LangItem};
+use rustc_hir::ExprKind::{Binary, Closure, Lit, MethodCall};
+use rustc_hir::{BinOpKind, Expr, LangItem, PatKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_middle::ty::{Ty, UintTy};
@@ -68,6 +68,110 @@ fn get_ascii_type<'a>(cx: &LateContext<'a>, kind: rustc_hir::ExprKind<'_>) -> Op
     None
 }
 
+struct CharsMap<'tcx> {
+    expr: &'tcx Expr<'tcx>,
+    is_lower: bool,
+}
+
+fn ascii_case_map_closure(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<bool> {
+    if let Closure(closure) = expr.kind
+        && let body = cx.tcx.hir_body(closure.body)
+        && body.params.len() == 1
+        && let PatKind::Binding(_, binding, ..) = body.params[0].pat.kind
+        && let MethodCall(path, receiver, [], _) = body.value.kind
+        && receiver.res_local_id() == Some(binding)
+    {
+        match path.ident.name {
+            sym::to_ascii_lowercase => Some(true),
+            sym::to_ascii_uppercase => Some(false),
+            _ => None,
+        }
+    } else {
+        None
+    }
+}
+
+fn ascii_case_mapped_chars<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> Option<CharsMap<'tcx>> {
+    if let Some(args) = method_chain_args(expr, &[sym::chars, sym::map])
+        && args[0].1.is_empty()
+        && let [map_arg] = args[1].1
+        && let Some(is_lower) = ascii_case_map_closure(cx, map_arg)
+        && cx.typeck_results().expr_ty_adjusted(args[0].0).peel_refs().is_str()
+    {
+        Some(CharsMap {
+            expr: args[0].0,
+            is_lower,
+        })
+    } else {
+        None
+    }
+}
+
+fn get_chars_cmp<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'tcx>,
+) -> Option<(bool, &'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
+    if let MethodCall(path, cmp_expr, [], _) = expr.kind {
+        let is_eq = if path.ident.name == sym::is_eq {
+            true
+        } else if path.ident.name == sym::is_ne {
+            false
+        } else {
+            return None;
+        };
+
+        if let MethodCall(path, left_iter, [right_iter], _) = cmp_expr.kind
+            && path.ident.name == sym::cmp
+            && let Some(left) = ascii_case_mapped_chars(cx, left_iter)
+            && let Some(right) = ascii_case_mapped_chars(cx, right_iter)
+            && left.is_lower == right.is_lower
+        {
+            return Some((is_eq, left.expr, right.expr));
+        }
+    }
+
+    None
+}
+
+fn emit_lint(
+    cx: &LateContext<'_>,
+    expr: &Expr<'_>,
+    left_span: Span,
+    right_span: Span,
+    right_val: &MatchType<'_>,
+    neg: &str,
+) {
+    let deref = match right_val {
+        ToAscii(_, ty) if needs_ref_to_cmp(cx, *ty) => "&",
+        Literal(LitKind::Char(_) | LitKind::Byte(_)) => "&",
+        ToAscii(..) | Literal(_) => "",
+    };
+    span_lint_and_then(
+        cx,
+        MANUAL_IGNORE_CASE_CMP,
+        expr.span,
+        "manual case-insensitive ASCII comparison",
+        |diag| {
+            let mut app = Applicability::MachineApplicable;
+            let (left_snip, _) = snippet_with_context(cx, left_span, expr.span.ctxt(), "..", &mut app);
+            let (right_snip, _) = snippet_with_context(cx, right_span, expr.span.ctxt(), "..", &mut app);
+            diag.span_suggestion_verbose(
+                expr.span,
+                "consider using `.eq_ignore_ascii_case()` instead",
+                format!("{neg}{left_snip}.eq_ignore_ascii_case({deref}{right_snip})"),
+                app,
+            );
+        },
+    );
+}
+
+fn emit_chars_cmp_lint(cx: &LateContext<'_>, expr: &Expr<'_>, is_eq: bool, left: &Expr<'_>, right: &Expr<'_>) {
+    let ty = cx.typeck_results().expr_ty(right);
+    let right_val = ToAscii(true, ty);
+    let neg = if is_eq { "" } else { "!" };
+    emit_lint(cx, expr, left.span, right.span, &right_val, neg);
+}
+
 /// Returns true if the type needs to be dereferenced to be compared
 fn needs_ref_to_cmp(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
     ty.is_char()
@@ -76,8 +180,8 @@ fn needs_ref_to_cmp(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
         || ty.is_lang_item(cx, LangItem::String)
 }
 
-impl LateLintPass<'_> for ManualIgnoreCaseCmp {
-    fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ Expr<'_>) {
+impl<'tcx> LateLintPass<'tcx> for ManualIgnoreCaseCmp {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         // check if expression represents a comparison of two strings
         // using .to_ascii_lowercase() or .to_ascii_uppercase() methods,
         // or one of the sides is a literal
@@ -92,35 +196,10 @@ impl LateLintPass<'_> for ManualIgnoreCaseCmp {
                 _ => false,
             }
         {
-            let deref = match right_val {
-                ToAscii(_, ty) if needs_ref_to_cmp(cx, ty) => "&",
-                ToAscii(..) => "",
-                Literal(ty) => {
-                    if let LitKind::Char(_) | LitKind::Byte(_) = ty {
-                        "&"
-                    } else {
-                        ""
-                    }
-                },
-            };
             let neg = if op.node == BinOpKind::Ne { "!" } else { "" };
-            span_lint_and_then(
-                cx,
-                MANUAL_IGNORE_CASE_CMP,
-                expr.span,
-                "manual case-insensitive ASCII comparison",
-                |diag| {
-                    let mut app = Applicability::MachineApplicable;
-                    let (left_snip, _) = snippet_with_context(cx, left_span, expr.span.ctxt(), "..", &mut app);
-                    let (right_snip, _) = snippet_with_context(cx, right_span, expr.span.ctxt(), "..", &mut app);
-                    diag.span_suggestion_verbose(
-                        expr.span,
-                        "consider using `.eq_ignore_ascii_case()` instead",
-                        format!("{neg}{left_snip}.eq_ignore_ascii_case({deref}{right_snip})"),
-                        app,
-                    );
-                },
-            );
+            emit_lint(cx, expr, left_span, right_span, &right_val, neg);
+        } else if let Some((is_eq, left, right)) = get_chars_cmp(cx, expr) {
+            emit_chars_cmp_lint(cx, expr, is_eq, left, right);
         }
     }
 }
