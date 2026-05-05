@@ -2475,15 +2475,50 @@ pub fn is_test_function(tcx: TyCtxt<'_>, fn_def_id: LocalDefId) -> bool {
     }
 }
 
-/// Checks if `id` has a `#[cfg(test)]` attribute applied
+/// Checks if the provided `CfgEntry` evaluation to `true` implies something one the value of the
+/// `test` attribute.
 ///
-/// This only checks directly applied attributes, to see if a node is inside a `#[cfg(test)]` parent
-/// use [`is_in_cfg_test`]
+/// When the predicate can be determined statically, returns `Some(true)` or `Some(false)`,
+/// depending on whether the entry implies `test` or `not(test)` respectively.
+/// If nothing can be said regarding the value of `test`, returns `None`.
+fn cfg_implies_test(cfg: &CfgEntry) -> Option<bool> {
+    match cfg {
+        CfgEntry::NameValue { name: sym::test, .. } => Some(true),
+        CfgEntry::All(subs, _) => subs
+            .iter()
+            .map(|item| cfg_implies_test(item))
+            .reduce(|a, b| match (a, b) {
+                (Some(true), Some(true)) => Some(true),
+                (Some(false), Some(false)) => Some(false),
+                (None, Some(a)) | (Some(a), None) => Some(a),
+                _ => None,
+            })
+            .unwrap_or(None),
+        CfgEntry::Any(subs, _) => subs
+            .iter()
+            .map(|item| cfg_implies_test(item))
+            .reduce(|a, b| match (a, b) {
+                (Some(true), Some(true)) => Some(true),
+                (Some(false), Some(false)) => Some(false),
+                _ => None,
+            })
+            .unwrap_or(None),
+        _ => None,
+    }
+}
+
+/// Checks if `id` has a `ConfigurationPredicate` attribute applied that evaluates to true only if
+/// the `test` attribute is enabled.
+///
+/// This only checks directly applied attributes, to see if a node is inside a parent with such
+/// property, use [`is_in_cfg_test`]
 pub fn is_cfg_test(tcx: TyCtxt<'_>, id: HirId) -> bool {
     if let Some(cfgs) = find_attr!(tcx, id, CfgTrace(cfgs) => cfgs)
         && cfgs
             .iter()
-            .any(|(cfg, _)| matches!(cfg, CfgEntry::NameValue { name: sym::test, .. }))
+            // If the dependency cannot be determined statically, we conservatively assume that it does compile even
+            // without `test` enabled.
+            .any(|(cfg, _)| matches!(cfg_implies_test(cfg), Some(true)))
     {
         true
     } else {
