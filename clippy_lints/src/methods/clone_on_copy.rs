@@ -10,6 +10,13 @@ use rustc_middle::ty::print::with_forced_trimmed_paths;
 
 use super::CLONE_ON_COPY;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum MatchResult {
+    ParentIsSuffixExpr,
+    IsAddrOf,
+    None,
+}
+
 /// Checks for the `CLONE_ON_COPY` lint.
 pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, receiver: &Expr<'_>) {
     if cx
@@ -34,10 +41,10 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, receiver: &Expr<'_>) 
     }
 
     if is_copy(cx, ty) {
-        let parent_is_suffix_expr = match cx.tcx.parent_hir_node(expr.hir_id) {
+        let match_res = match cx.tcx.parent_hir_node(expr.hir_id) {
             Node::Expr(parent) => match parent.kind {
                 // &*x is a nop, &x.clone() is not
-                ExprKind::AddrOf(..) => return,
+                ExprKind::AddrOf(..) => MatchResult::IsAddrOf,
                 // (*x).func() is useless, x.clone().func() can work in case func borrows self
                 ExprKind::MethodCall(_, self_arg, ..)
                     if expr.hir_id == self_arg.hir_id && ty != cx.typeck_results().expr_ty_adjusted(expr) =>
@@ -45,22 +52,30 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, receiver: &Expr<'_>) 
                     return;
                 },
                 // ? is a Call, makes sure not to rec *x?, but rather (*x)?
-                ExprKind::Call(hir_callee, [_]) => matches!(
-                    hir_callee.kind,
-                    ExprKind::Path(qpath)
-                    if cx.tcx.qpath_is_lang_item(qpath, rustc_hir::LangItem::TryTraitBranch)
-                ),
-                ExprKind::MethodCall(_, self_arg, ..) if expr.hir_id == self_arg.hir_id => true,
+                ExprKind::Call(hir_callee, [_]) => {
+                    if matches!(
+                        hir_callee.kind,
+                        ExprKind::Path(qpath)
+                        if cx.tcx.qpath_is_lang_item(qpath, rustc_hir::LangItem::TryTraitBranch)
+                    ) {
+                        MatchResult::ParentIsSuffixExpr
+                    } else {
+                        MatchResult::None
+                    }
+                },
+                ExprKind::MethodCall(_, self_arg, ..) if expr.hir_id == self_arg.hir_id => {
+                    MatchResult::ParentIsSuffixExpr
+                },
                 ExprKind::Match(_, _, MatchSource::TryDesugar(_) | MatchSource::AwaitDesugar)
                 | ExprKind::Field(..)
-                | ExprKind::Index(..) => true,
-                _ => false,
+                | ExprKind::Index(..) => MatchResult::ParentIsSuffixExpr,
+                _ => MatchResult::None,
             },
             // local binding capturing a reference
             Node::LetStmt(l) if matches!(l.pat.kind, PatKind::Binding(BindingMode(ByRef::Yes(..), _), ..)) => {
                 return;
             },
-            _ => false,
+            _ => MatchResult::None,
         };
 
         let mut app = Applicability::MachineApplicable;
@@ -70,9 +85,14 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, receiver: &Expr<'_>) 
             .iter()
             .take_while(|adj| matches!(adj.kind, Adjust::Deref(_)))
             .count();
-        let (help, sugg) = if deref_count == 0 {
+        let (help, sugg) = if match_res == MatchResult::IsAddrOf {
+            (
+                "try to use block to avoid `clone` call",
+                format!("{{ {} }}", format!("{}{snip}", "*".repeat(deref_count))),
+            )
+        } else if deref_count == 0 {
             ("try removing the `clone` call", snip.into())
-        } else if parent_is_suffix_expr {
+        } else if match_res == MatchResult::ParentIsSuffixExpr {
             ("try dereferencing it", format!("({}{snip})", "*".repeat(deref_count)))
         } else {
             ("try dereferencing it", format!("{}{snip}", "*".repeat(deref_count)))
