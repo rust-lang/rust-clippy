@@ -44,22 +44,46 @@ LL |         let _: E = a.clone();
    |                    ^^^^^^^^^ help: try dereferencing it: `*****a`
 
 error: using `clone` on type `char` which implements the `Copy` trait
-  --> tests/ui/clone_on_copy.rs:107:14
+  --> tests/ui/clone_on_copy.rs:105:14
    |
 LL |     is_ascii('z'.clone());
    |              ^^^^^^^^^^^ help: try removing the `clone` call: `'z'`
 
 error: using `clone` on type `i32` which implements the `Copy` trait
-  --> tests/ui/clone_on_copy.rs:114:14
+  --> tests/ui/clone_on_copy.rs:111:14
+   |
+LL |     let _ = &x.clone();
+   |              ^^^^^^^^^ help: try to use block to avoid `clone` call: `{ x }`
+
+error: using `clone` on type `i32` which implements the `Copy` trait
+  --> tests/ui/clone_on_copy.rs:114:18
+   |
+LL |     let _ = &mut x.clone();
+   |                  ^^^^^^^^^ help: try to use block to avoid `clone` call: `{ x }`
+
+error: using `clone` on type `i32` which implements the `Copy` trait
+  --> tests/ui/clone_on_copy.rs:118:14
+   |
+LL |     let _ = &y.clone();
+   |              ^^^^^^^^^ help: try to use block to avoid `clone` call: `{ *y }`
+
+error: using `clone` on type `i32` which implements the `Copy` trait
+  --> tests/ui/clone_on_copy.rs:121:18
+   |
+LL |     let _ = &mut y.clone();
+   |                  ^^^^^^^^^ help: try to use block to avoid `clone` call: `{ *y }`
+
+error: using `clone` on type `i32` which implements the `Copy` trait
+  --> tests/ui/clone_on_copy.rs:128:14
    |
 LL |     vec.push(42.clone());
    |              ^^^^^^^^^^ help: try removing the `clone` call: `42`
 
 error: using `clone` on type `Option<i32>` which implements the `Copy` trait
-  --> tests/ui/clone_on_copy.rs:120:17
+  --> tests/ui/clone_on_copy.rs:134:17
    |
 LL |     let value = opt.clone()?; // operator precedence needed (*opt)?
    |                 ^^^^^^^^^^^ help: try dereferencing it: `(*opt)`
 
-error: aborting due to 10 previous errors
+error: aborting due to 14 previous errors
 

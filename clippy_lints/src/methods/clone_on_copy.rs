@@ -88,7 +88,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, receiver: &Expr<'_>) 
         let (help, sugg) = if match_res == MatchResult::IsAddrOf {
             (
                 "try to use block to avoid `clone` call",
-                format!("{{ {} }}", format!("{}{snip}", "*".repeat(deref_count))),
+                format!("{{ {}{snip} }}", "*".repeat(deref_count)),
             )
         } else if deref_count == 0 {
             ("try removing the `clone` call", snip.into())

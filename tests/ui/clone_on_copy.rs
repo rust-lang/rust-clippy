@@ -101,10 +101,24 @@ fn issue4348() {
         ch.is_ascii()
     }
 
-    let mut x = 43;
-    let _ = &x.clone(); // ok, getting a ref
     'a'.clone().make_ascii_uppercase(); // ok, clone and then mutate
     is_ascii('z'.clone());
+    //~^ clone_on_copy
+}
+
+fn issue16969() {
+    let mut x = 43;
+    let _ = &x.clone();
+    //~^ clone_on_copy
+
+    let _ = &mut x.clone();
+    //~^ clone_on_copy
+
+    let mut y = &42;
+    let _ = &y.clone();
+    //~^ clone_on_copy
+
+    let _ = &mut y.clone();
     //~^ clone_on_copy
 }
 
