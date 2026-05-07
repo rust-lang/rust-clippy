@@ -1,0 +1,18 @@
+error: 'cfg_attr' for `no_std` is not recommended as it changes the implicit prelude across the crate
+  --> tests/ui/conditional_no_std_attribute.rs:2:1
+   |
+LL | #![cfg_attr(false, no_std, warn(clippy::conditional_no_std_attribute))]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::conditional-no-std-attribute` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::conditional_no_std_attribute)]`
+help: use
+   |
+LL + #![cfg_attr(false, warn(clippy::conditional_no_std_attribute))]
+LL + #![no_std]
+LL + #[cfg(not(false))]
+LL ~ extern crate std;
+   |
+
+error: aborting due to 1 previous error
+

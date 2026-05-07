@@ -1,0 +1,7 @@
+#![warn(clippy::conditional_no_std_attribute)]
+#![cfg_attr(false, warn(clippy::conditional_no_std_attribute))]
+#![no_std]
+#[cfg(not(false))]
+extern crate std; //~ conditional_no_std_attribute
+
+fn main() {}

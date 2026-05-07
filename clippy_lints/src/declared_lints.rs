@@ -18,6 +18,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::attrs::ALLOW_ATTRIBUTES_INFO,
     crate::attrs::ALLOW_ATTRIBUTES_WITHOUT_REASON_INFO,
     crate::attrs::BLANKET_CLIPPY_RESTRICTION_LINTS_INFO,
+    crate::attrs::CONDITIONAL_NO_STD_ATTRIBUTE_INFO,
     crate::attrs::DEPRECATED_CFG_ATTR_INFO,
     crate::attrs::DEPRECATED_CLIPPY_CFG_ATTR_INFO,
     crate::attrs::DEPRECATED_SEMVER_INFO,

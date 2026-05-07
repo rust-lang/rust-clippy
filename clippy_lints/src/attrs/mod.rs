@@ -1,6 +1,7 @@
 mod allow_attributes;
 mod allow_attributes_without_reason;
 mod blanket_clippy_restriction_lints;
+mod conditional_no_std_attribute;
 mod deprecated_cfg_attr;
 mod deprecated_semver;
 mod duplicated_attributes;
@@ -102,6 +103,34 @@ declare_clippy_lint! {
     pub BLANKET_CLIPPY_RESTRICTION_LINTS,
     suspicious,
     "enabling the complete restriction group"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `#![cfg_attr(..., no_std)]`.
+    ///
+    /// ### Why is this bad?
+    /// Conditional inclusion of `#![no_std]` causes a change in the implicit
+    /// prelude across the entire crate. When in `no_std` mode, modules must
+    /// _explicitly_ import items that are implicit in `std` mode (e.g., `Box`).
+    /// Whereas, in `std` mode, that same explicit import can lead to redundancy
+    /// warnings.
+    ///
+    /// ### Example
+    /// ```rust,ignore
+    /// #![cfg_attr(not(feature = "std"), no_std)]
+    /// ```
+    ///
+    /// Use instead:
+    /// ```rust,ignore
+    /// #![no_std]
+    /// #[cfg(feature = "std")]
+    /// extern crate std;
+    /// ```
+    #[clippy::version = "1.97.0"]
+    pub CONDITIONAL_NO_STD_ATTRIBUTE,
+    restriction,
+    "usage of `#![cfg_attr(..., no_std)]`"
 }
 
 declare_clippy_lint! {
@@ -481,6 +510,7 @@ declare_clippy_lint! {
 impl_lint_pass!(Attributes => [INLINE_ALWAYS, REPR_PACKED_WITHOUT_ABI]);
 
 impl_lint_pass!(EarlyAttributes => [
+    CONDITIONAL_NO_STD_ATTRIBUTE,
     DEPRECATED_CFG_ATTR,
     DEPRECATED_CLIPPY_CFG_ATTR,
     NON_MINIMAL_CFG,
@@ -550,6 +580,7 @@ impl EarlyLintPass for EarlyAttributes {
         deprecated_cfg_attr::check(cx, attr, &self.msrv);
         deprecated_cfg_attr::check_clippy(cx, attr);
         non_minimal_cfg::check(cx, attr);
+        conditional_no_std_attribute::check(cx, attr, &self.msrv);
     }
 
     extract_msrv_attr!();
