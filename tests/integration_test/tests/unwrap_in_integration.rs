@@ -5,8 +5,7 @@ fn foo() -> Option<u32> {
 }
 
 fn helper_function() {
-    // should not lint in integration test file
-    // see https://github.com/rust-lang/rust-clippy/issues/13981
+    // Should not lint in integration test file, see https://github.com/rust-lang/rust-clippy/issues/13981
     let baz = foo().unwrap();
     println!("baz: {baz}");
 }
@@ -15,8 +14,7 @@ fn helper_function() {
 fn integration_test() {
     helper_function();
 
-    // should not lint in integration test file
-    // see https://github.com/rust-lang/rust-clippy/issues/13981
+    // Should not lint in integration test file, see https://github.com/rust-lang/rust-clippy/issues/13981
     let bar = foo().unwrap();
     println!("bar: {bar}");
 }

@@ -2507,9 +2507,7 @@ fn is_in_integration_test_file(tcx: TyCtxt<'_>) -> bool {
     if let Input::File(ref path) = tcx.sess.io.input
         && !tcx.sess.opts.unstable_opts.ui_testing
     {
-        path.components()
-            .next()
-            .is_some_and(|component| component.as_os_str() == "tests")
+        path.starts_with("tests")
     } else {
         false
     }
