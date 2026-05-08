@@ -156,6 +156,8 @@ impl Foo for LineComment {
 // /// Docs for this item.
 // fn some_item() {}
 
-impl LineComment {} // or any other nameless item kind
+impl LineComment {
+    fn bar() {}
+} // or any other nameless item kind
 
 fn main() {}

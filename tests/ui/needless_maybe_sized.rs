@@ -2,6 +2,7 @@
 
 #![allow(unused, clippy::multiple_bound_locations)]
 #![warn(clippy::needless_maybe_sized)]
+#![expect(clippy::unused_impl)]
 
 extern crate proc_macros;
 use proc_macros::external;

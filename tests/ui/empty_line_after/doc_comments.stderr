@@ -195,7 +195,7 @@ LL | / /// Docs for this item.
 LL | | // fn some_item() {}
 LL | |
    | |_^
-LL |   impl LineComment {} // or any other nameless item kind
+LL |   impl LineComment {
    |   - the comment documents this implementation
    |
    = help: if the empty line is unintentional, remove it
