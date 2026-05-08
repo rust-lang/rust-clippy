@@ -1,0 +1,16 @@
+error: missing `#![no_std]` attribute
+  --> tests/ui/missing_no_std_attribute.rs:3:1
+   |
+LL | pub const FOO: Foo = Foo;
+   | ^
+   |
+   = note: `-D clippy::missing-no-std-attribute` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::missing_no_std_attribute)]`
+help: use
+   |
+LL + #![no_std]
+LL + extern crate std;
+   |
+
+error: aborting due to 1 previous error
+

@@ -5,6 +5,7 @@ mod deprecated_cfg_attr;
 mod deprecated_semver;
 mod duplicated_attributes;
 mod inline_always;
+mod missing_no_std_attribute;
 mod mixed_attributes_style;
 mod non_minimal_cfg;
 mod repr_attributes;
@@ -269,6 +270,39 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks if a crate does not have a `#![no_std]` attribute.
+    ///
+    /// ### Why is this bad?
+    /// Adding `#![no_std]` changes the implicit prelude to `core::prelude`, making
+    /// usage of `std` more explicit, and thus easier to migrate to `no_std`-compatible
+    /// alternatives.
+    ///
+    /// ### Known Issues
+    /// If the crate is currently relying on implicit imports exclusive to `std::prelude`
+    ///
+    /// ### Example
+    /// ```rust,ignore
+    /// ///! My awesome library!
+    ///
+    /// pub struct Foo;
+    /// ```
+    /// Use instead:
+    /// ```rust,ignore
+    /// ///! My awesome library!
+    ///
+    /// #![no_std]
+    /// extern crate std;
+    ///
+    /// pub struct Foo;
+    /// ```
+    #[clippy::version = "1.97.0"]
+    pub MISSING_NO_STD_ATTRIBUTE,
+    nursery,
+    "missing `#![no_std]` attribute"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for items that have the same kind of attributes with mixed styles (inner/outer).
     ///
     /// ### Why is this bad?
@@ -483,6 +517,7 @@ impl_lint_pass!(Attributes => [INLINE_ALWAYS, REPR_PACKED_WITHOUT_ABI]);
 impl_lint_pass!(EarlyAttributes => [
     DEPRECATED_CFG_ATTR,
     DEPRECATED_CLIPPY_CFG_ATTR,
+    MISSING_NO_STD_ATTRIBUTE,
     NON_MINIMAL_CFG,
     UNNECESSARY_CLIPPY_CFG,
 ]);
@@ -553,6 +588,10 @@ impl EarlyLintPass for EarlyAttributes {
     }
 
     extract_msrv_attr!();
+
+    fn check_crate(&mut self, cx: &EarlyContext<'_>, krate: &ast::Crate) {
+        missing_no_std_attribute::check(cx, krate);
+    }
 }
 
 pub struct PostExpansionEarlyAttributes {

@@ -24,6 +24,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::attrs::DUPLICATED_ATTRIBUTES_INFO,
     crate::attrs::IGNORE_WITHOUT_REASON_INFO,
     crate::attrs::INLINE_ALWAYS_INFO,
+    crate::attrs::MISSING_NO_STD_ATTRIBUTE_INFO,
     crate::attrs::MIXED_ATTRIBUTES_STYLE_INFO,
     crate::attrs::NON_MINIMAL_CFG_INFO,
     crate::attrs::REPR_PACKED_WITHOUT_ABI_INFO,
