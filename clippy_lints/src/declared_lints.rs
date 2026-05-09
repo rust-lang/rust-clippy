@@ -780,6 +780,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::unnecessary_wraps::UNNECESSARY_WRAPS_INFO,
     crate::unneeded_struct_pattern::UNNEEDED_STRUCT_PATTERN_INFO,
     crate::unnested_or_patterns::UNNESTED_OR_PATTERNS_INFO,
+    crate::unordered_methods::UNORDERED_METHODS_INFO,
     crate::unsafe_removed_from_name::UNSAFE_REMOVED_FROM_NAME_INFO,
     crate::unused_async::UNUSED_ASYNC_INFO,
     crate::unused_io_amount::UNUSED_IO_AMOUNT_INFO,

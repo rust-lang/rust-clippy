@@ -1142,6 +1142,12 @@ impl<'tcx> InteriorMut<'tcx> {
         self.interior_mut_ty_chain_inner(cx, ty, 0)
     }
 
+    /// Check if given type has interior mutability such as [`std::cell::Cell`] or
+    /// [`std::cell::RefCell`] etc.
+    pub fn is_interior_mut_ty(&mut self, cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
+        self.interior_mut_ty_chain(cx, ty).is_some()
+    }
+
     fn interior_mut_ty_chain_inner(
         &mut self,
         cx: &LateContext<'tcx>,
@@ -1214,12 +1220,6 @@ impl<'tcx> InteriorMut<'tcx> {
             self.tys.insert(ty, Some(list));
             list
         })
-    }
-
-    /// Check if given type has interior mutability such as [`std::cell::Cell`] or
-    /// [`std::cell::RefCell`] etc.
-    pub fn is_interior_mut_ty(&mut self, cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
-        self.interior_mut_ty_chain(cx, ty).is_some()
     }
 }
 

@@ -792,26 +792,6 @@ enum TyCoercionStability {
     None,
 }
 impl TyCoercionStability {
-    fn is_deref_stable(self) -> bool {
-        matches!(self, Self::Deref)
-    }
-
-    fn is_reborrow_stable(self) -> bool {
-        matches!(self, Self::Deref | Self::Reborrow)
-    }
-
-    fn for_defined_ty<'tcx>(cx: &LateContext<'tcx>, ty: DefinedTy<'tcx>, for_return: bool) -> Self {
-        match ty {
-            DefinedTy::Hir(ty) => Self::for_hir_ty(ty),
-            DefinedTy::Mir { def_site_def_id, ty } => Self::for_mir_ty(
-                cx.tcx,
-                def_site_def_id,
-                cx.tcx.instantiate_bound_regions_with_erased(ty),
-                for_return,
-            ),
-        }
-    }
-
     // Checks the stability of type coercions when assigned to a binding with the given explicit type.
     //
     // e.g.
@@ -944,6 +924,24 @@ impl TyCoercionStability {
                 | ty::UnsafeBinder(_) => Self::Deref,
             };
         }
+    }
+    fn for_defined_ty<'tcx>(cx: &LateContext<'tcx>, ty: DefinedTy<'tcx>, for_return: bool) -> Self {
+        match ty {
+            DefinedTy::Hir(ty) => Self::for_hir_ty(ty),
+            DefinedTy::Mir { def_site_def_id, ty } => Self::for_mir_ty(
+                cx.tcx,
+                def_site_def_id,
+                cx.tcx.instantiate_bound_regions_with_erased(ty),
+                for_return,
+            ),
+        }
+    }
+    fn is_deref_stable(self) -> bool {
+        matches!(self, Self::Deref)
+    }
+
+    fn is_reborrow_stable(self) -> bool {
+        matches!(self, Self::Deref | Self::Reborrow)
     }
 }
 

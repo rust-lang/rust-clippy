@@ -110,6 +110,122 @@ impl<'txt> Cursor<'txt> {
         self.next_token = self.inner.advance_token();
     }
 
+    /// Consumes all tokens until the specified identifier is found and returns its
+    /// position. Returns `None` if the identifier could not be found.
+    ///
+    /// The cursor will be positioned immediately after the identifier, or at the end if
+    /// it is not.
+    pub fn find_ident(&mut self, ident: &str) -> Option<u32> {
+        loop {
+            match self.next_token.kind {
+                TokenKind::Ident if self.peek_text() == ident => {
+                    let pos = self.pos;
+                    self.step();
+                    return Some(pos);
+                },
+                TokenKind::Eof => return None,
+                _ => self.step(),
+            }
+        }
+    }
+
+    /// Consumes all tokens until the next identifier is found and captures it. Returns
+    /// `None` if no identifier could be found.
+    ///
+    /// The cursor will be positioned immediately after the identifier, or at the end if
+    /// it is not.
+    pub fn find_any_ident(&mut self) -> Option<Capture> {
+        loop {
+            match self.next_token.kind {
+                TokenKind::Ident => {
+                    let res = Capture {
+                        pos: self.pos,
+                        len: self.next_token.len,
+                    };
+                    self.step();
+                    return Some(res);
+                },
+                TokenKind::Eof => return None,
+                _ => self.step(),
+            }
+        }
+    }
+
+    /// Consume the returns the position of the next non-whitespace token if it's the
+    /// specified identifier. Returns `None` otherwise.
+    pub fn match_ident(&mut self, s: &str) -> Option<u32> {
+        loop {
+            match self.next_token.kind {
+                TokenKind::Ident if s == self.peek_text() => {
+                    let pos = self.pos;
+                    self.step();
+                    return Some(pos);
+                },
+                TokenKind::Whitespace => self.step(),
+                _ => return None,
+            }
+        }
+    }
+
+    /// Consumes and captures the next non-whitespace token if it's an identifier. Returns
+    /// `None` otherwise.
+    pub fn capture_ident(&mut self) -> Option<Capture> {
+        loop {
+            match self.next_token.kind {
+                TokenKind::Ident => {
+                    let pos = self.pos;
+                    let len = self.next_token.len;
+                    self.step();
+                    return Some(Capture { pos, len });
+                },
+                TokenKind::Whitespace => self.step(),
+                _ => return None,
+            }
+        }
+    }
+
+    /// Continually attempt to match the pattern on subsequent tokens until a match is
+    /// found. Returns whether the pattern was successfully matched.
+    ///
+    /// Not generally suitable for multi-token patterns or patterns that can match
+    /// nothing.
+    #[must_use]
+    pub fn find_pat(&mut self, pat: Pat<'_>) -> bool {
+        let mut capture = [].iter_mut();
+        while !self.match_impl(pat, &mut capture) {
+            self.step();
+            if self.at_end() {
+                return false;
+            }
+        }
+        true
+    }
+
+    /// Attempts to match a sequence of patterns at the current position. Returns whether
+    /// all patterns were successfully matched.
+    ///
+    /// Captures will be written to the given slice in the order they're matched. If a
+    /// capture is matched, but there are no more capture slots this will panic. If the
+    /// match is completed without filling all the capture slots they will be left
+    /// unmodified.
+    ///
+    /// If the match fails the cursor will be positioned at the first failing token.
+    #[must_use]
+    pub fn match_all(&mut self, pats: &[Pat<'_>], captures: &mut [Capture]) -> bool {
+        let mut captures = captures.iter_mut();
+        pats.iter().all(|&p| self.match_impl(p, &mut captures))
+    }
+
+    /// Attempts to match a single pattern at the current position. Returns whether the
+    /// pattern was successfully matched.
+    ///
+    /// If the pattern attempts to capture anything this will panic. If the match fails
+    /// the cursor will be positioned at the first failing token.
+    #[must_use]
+    pub fn match_pat(&mut self, pat: Pat<'_>) -> bool {
+        self.match_impl(pat, &mut [].iter_mut())
+    }
+
     /// Consumes tokens until the given pattern is either fully matched of fails to match.
     /// Returns whether the pattern was fully matched.
     ///
@@ -237,121 +353,5 @@ impl<'txt> Cursor<'txt> {
                 _ => return false,
             }
         }
-    }
-
-    /// Consumes all tokens until the specified identifier is found and returns its
-    /// position. Returns `None` if the identifier could not be found.
-    ///
-    /// The cursor will be positioned immediately after the identifier, or at the end if
-    /// it is not.
-    pub fn find_ident(&mut self, ident: &str) -> Option<u32> {
-        loop {
-            match self.next_token.kind {
-                TokenKind::Ident if self.peek_text() == ident => {
-                    let pos = self.pos;
-                    self.step();
-                    return Some(pos);
-                },
-                TokenKind::Eof => return None,
-                _ => self.step(),
-            }
-        }
-    }
-
-    /// Consumes all tokens until the next identifier is found and captures it. Returns
-    /// `None` if no identifier could be found.
-    ///
-    /// The cursor will be positioned immediately after the identifier, or at the end if
-    /// it is not.
-    pub fn find_any_ident(&mut self) -> Option<Capture> {
-        loop {
-            match self.next_token.kind {
-                TokenKind::Ident => {
-                    let res = Capture {
-                        pos: self.pos,
-                        len: self.next_token.len,
-                    };
-                    self.step();
-                    return Some(res);
-                },
-                TokenKind::Eof => return None,
-                _ => self.step(),
-            }
-        }
-    }
-
-    /// Consume the returns the position of the next non-whitespace token if it's the
-    /// specified identifier. Returns `None` otherwise.
-    pub fn match_ident(&mut self, s: &str) -> Option<u32> {
-        loop {
-            match self.next_token.kind {
-                TokenKind::Ident if s == self.peek_text() => {
-                    let pos = self.pos;
-                    self.step();
-                    return Some(pos);
-                },
-                TokenKind::Whitespace => self.step(),
-                _ => return None,
-            }
-        }
-    }
-
-    /// Consumes and captures the next non-whitespace token if it's an identifier. Returns
-    /// `None` otherwise.
-    pub fn capture_ident(&mut self) -> Option<Capture> {
-        loop {
-            match self.next_token.kind {
-                TokenKind::Ident => {
-                    let pos = self.pos;
-                    let len = self.next_token.len;
-                    self.step();
-                    return Some(Capture { pos, len });
-                },
-                TokenKind::Whitespace => self.step(),
-                _ => return None,
-            }
-        }
-    }
-
-    /// Continually attempt to match the pattern on subsequent tokens until a match is
-    /// found. Returns whether the pattern was successfully matched.
-    ///
-    /// Not generally suitable for multi-token patterns or patterns that can match
-    /// nothing.
-    #[must_use]
-    pub fn find_pat(&mut self, pat: Pat<'_>) -> bool {
-        let mut capture = [].iter_mut();
-        while !self.match_impl(pat, &mut capture) {
-            self.step();
-            if self.at_end() {
-                return false;
-            }
-        }
-        true
-    }
-
-    /// Attempts to match a sequence of patterns at the current position. Returns whether
-    /// all patterns were successfully matched.
-    ///
-    /// Captures will be written to the given slice in the order they're matched. If a
-    /// capture is matched, but there are no more capture slots this will panic. If the
-    /// match is completed without filling all the capture slots they will be left
-    /// unmodified.
-    ///
-    /// If the match fails the cursor will be positioned at the first failing token.
-    #[must_use]
-    pub fn match_all(&mut self, pats: &[Pat<'_>], captures: &mut [Capture]) -> bool {
-        let mut captures = captures.iter_mut();
-        pats.iter().all(|&p| self.match_impl(p, &mut captures))
-    }
-
-    /// Attempts to match a single pattern at the current position. Returns whether the
-    /// pattern was successfully matched.
-    ///
-    /// If the pattern attempts to capture anything this will panic. If the match fails
-    /// the cursor will be positioned at the first failing token.
-    #[must_use]
-    pub fn match_pat(&mut self, pat: Pat<'_>) -> bool {
-        self.match_impl(pat, &mut [].iter_mut())
     }
 }

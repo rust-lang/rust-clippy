@@ -1,0 +1,34 @@
+error: methods are not ordered correctly: `Public(foo)` declared after `Private(fo)`
+  --> tests/ui/unordered_methods.rs:11:5
+   |
+LL |     pub fn foo(&self) {}
+   |     ^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: reorder functions to be constructors, public, private
+   = note: `-D clippy::unordered-methods` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unordered_methods)]`
+
+error: methods are not ordered correctly: `Constructor(my_constructor)` declared after `Public(foo)`
+  --> tests/ui/unordered_methods.rs:14:5
+   |
+LL | /     pub fn my_constructor() -> Self {
+LL | |
+LL | |         A
+LL | |     }
+   | |_____^
+   |
+   = help: reorder functions to be constructors, public, private
+
+error: methods are not ordered correctly: `Constructor(maybe_constructor)` declared after `Public(foo)`
+  --> tests/ui/unordered_methods.rs:35:5
+   |
+LL | /     pub fn maybe_constructor() -> Option<Self> {
+LL | |
+LL | |         Option::Some(C)
+LL | |     }
+   | |_____^
+   |
+   = help: reorder functions to be constructors, public, private
+
+error: aborting due to 3 previous errors
+

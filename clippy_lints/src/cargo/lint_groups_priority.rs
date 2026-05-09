@@ -24,14 +24,6 @@ struct LintConfig<'a> {
     priority: Option<i64>,
 }
 impl<'a> LintConfig<'a> {
-    fn priority(&self) -> i64 {
-        self.priority.unwrap_or(0)
-    }
-
-    fn is_implicit(&self) -> bool {
-        self.priority.is_none()
-    }
-
     fn parse(value: &'a Spanned<DeValue<'a>>) -> Option<Self> {
         let sp = value.span();
         let (level, priority) = match value.get_ref() {
@@ -49,6 +41,13 @@ impl<'a> LintConfig<'a> {
             _ => return None,
         };
         Some(Self { sp, level, priority })
+    }
+    fn priority(&self) -> i64 {
+        self.priority.unwrap_or(0)
+    }
+
+    fn is_implicit(&self) -> bool {
+        self.priority.is_none()
     }
 }
 

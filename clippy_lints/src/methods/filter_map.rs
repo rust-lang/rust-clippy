@@ -106,6 +106,43 @@ enum CheckResult<'tcx> {
 }
 
 impl<'tcx> OffendingFilterExpr<'tcx> {
+    fn hir(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, filter_param_id: HirId) -> Option<Self> {
+        if let ExprKind::MethodCall(path, receiver, [], _) = expr.kind
+            && let Some(recv_ty) = cx.typeck_results().expr_ty(receiver).peel_refs().ty_adt_def()
+        {
+            // we still want to lint if the expression possibly contains side effects,
+            // *but* it can't be machine-applicable then, because that can change the behavior of the program:
+            // .filter(|x| effect(x).is_some()).map(|x| effect(x).unwrap())
+            // vs.
+            // .filter_map(|x| effect(x))
+            //
+            // the latter only calls `effect` once
+            let side_effect_expr_span = receiver.can_have_side_effects().then_some(receiver.span);
+
+            match (cx.tcx.get_diagnostic_name(recv_ty.did()), path.ident.name) {
+                (Some(sym::Option), sym::is_some) => Some(Self::IsSome {
+                    receiver,
+                    side_effect_expr_span,
+                }),
+                (Some(sym::Result), sym::is_ok) => Some(Self::IsOk {
+                    receiver,
+                    side_effect_expr_span,
+                }),
+                _ => None,
+            }
+        } else if let ExprKind::Match(scrutinee, [arm, _], _) = expr.kind
+            // we know for a fact that the wildcard pattern is the second arm
+            && scrutinee.res_local_id() == Some(filter_param_id)
+            && let PatKind::TupleStruct(QPath::Resolved(_, path), ..) = arm.pat.kind
+            && matching_root_macro_call(cx, expr.span, sym::matches_macro).is_some()
+            && let Some(variant_def_id) = path.res.opt_def_id()
+        {
+            Some(OffendingFilterExpr::Matches { variant_def_id })
+        } else {
+            None
+        }
+    }
+
     pub fn check_map_call(
         &self,
         cx: &LateContext<'tcx>,
@@ -221,43 +258,6 @@ impl<'tcx> OffendingFilterExpr<'tcx> {
                     None
                 }
             },
-        }
-    }
-
-    fn hir(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, filter_param_id: HirId) -> Option<Self> {
-        if let ExprKind::MethodCall(path, receiver, [], _) = expr.kind
-            && let Some(recv_ty) = cx.typeck_results().expr_ty(receiver).peel_refs().ty_adt_def()
-        {
-            // we still want to lint if the expression possibly contains side effects,
-            // *but* it can't be machine-applicable then, because that can change the behavior of the program:
-            // .filter(|x| effect(x).is_some()).map(|x| effect(x).unwrap())
-            // vs.
-            // .filter_map(|x| effect(x))
-            //
-            // the latter only calls `effect` once
-            let side_effect_expr_span = receiver.can_have_side_effects().then_some(receiver.span);
-
-            match (cx.tcx.get_diagnostic_name(recv_ty.did()), path.ident.name) {
-                (Some(sym::Option), sym::is_some) => Some(Self::IsSome {
-                    receiver,
-                    side_effect_expr_span,
-                }),
-                (Some(sym::Result), sym::is_ok) => Some(Self::IsOk {
-                    receiver,
-                    side_effect_expr_span,
-                }),
-                _ => None,
-            }
-        } else if let ExprKind::Match(scrutinee, [arm, _], _) = expr.kind
-            // we know for a fact that the wildcard pattern is the second arm
-            && scrutinee.res_local_id() == Some(filter_param_id)
-            && let PatKind::TupleStruct(QPath::Resolved(_, path), ..) = arm.pat.kind
-            && matching_root_macro_call(cx, expr.span, sym::matches_macro).is_some()
-            && let Some(variant_def_id) = path.res.opt_def_id()
-        {
-            Some(OffendingFilterExpr::Matches { variant_def_id })
-        } else {
-            None
         }
     }
 }

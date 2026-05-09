@@ -341,6 +341,26 @@ pub struct FileUpdater {
 }
 impl FileUpdater {
     #[track_caller]
+    pub fn update_file_checked(
+        &mut self,
+        tool: &str,
+        mode: UpdateMode,
+        path: impl AsRef<Path>,
+        update: &mut dyn FnMut(&Path, &str, &mut String) -> UpdateStatus,
+    ) {
+        self.update_file_checked_inner(tool, mode, path.as_ref(), update);
+    }
+
+    #[track_caller]
+    pub fn update_file(
+        &mut self,
+        path: impl AsRef<Path>,
+        update: &mut dyn FnMut(&Path, &str, &mut String) -> UpdateStatus,
+    ) {
+        self.update_file_inner(path.as_ref(), update);
+    }
+
+    #[track_caller]
     fn update_file_checked_inner(
         &mut self,
         tool: &str,
@@ -372,26 +392,6 @@ impl FileUpdater {
         if update(path, &self.src_buf, &mut self.dst_buf).is_changed() {
             file.replace_contents(self.dst_buf.as_bytes());
         }
-    }
-
-    #[track_caller]
-    pub fn update_file_checked(
-        &mut self,
-        tool: &str,
-        mode: UpdateMode,
-        path: impl AsRef<Path>,
-        update: &mut dyn FnMut(&Path, &str, &mut String) -> UpdateStatus,
-    ) {
-        self.update_file_checked_inner(tool, mode, path.as_ref(), update);
-    }
-
-    #[track_caller]
-    pub fn update_file(
-        &mut self,
-        path: impl AsRef<Path>,
-        update: &mut dyn FnMut(&Path, &str, &mut String) -> UpdateStatus,
-    ) {
-        self.update_file_inner(path.as_ref(), update);
     }
 }
 

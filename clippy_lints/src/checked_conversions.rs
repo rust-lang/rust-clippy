@@ -126,6 +126,24 @@ fn read_le_ge<'tcx>(
 }
 
 impl<'a> Conversion<'a> {
+    /// Construct a new conversion without type constraint
+    fn new_any(expr_to_cast: &'a Expr<'_>) -> Conversion<'a> {
+        Conversion {
+            cvt: ConversionType::SignedToUnsigned,
+            expr_to_cast,
+            to_type: None,
+        }
+    }
+
+    /// Try to construct a new conversion if the conversion type is valid
+    fn try_new(expr_to_cast: &'a Expr<'_>, from_type: Symbol, to_type: Symbol) -> Option<Conversion<'a>> {
+        ConversionType::try_new(from_type, to_type).map(|cvt| Conversion {
+            cvt,
+            expr_to_cast,
+            to_type: Some(to_type),
+        })
+    }
+
     /// Combine multiple conversions if the are compatible
     pub fn combine(self, other: Self, cx: &LateContext<'_>, ctxt: SyntaxContext) -> Option<Conversion<'a>> {
         if self.is_compatible(&other, cx, ctxt) {
@@ -149,24 +167,6 @@ impl<'a> Conversion<'a> {
         match (self.to_type, other.to_type) {
             (Some(l), Some(r)) => l == r,
             _ => true,
-        }
-    }
-
-    /// Try to construct a new conversion if the conversion type is valid
-    fn try_new(expr_to_cast: &'a Expr<'_>, from_type: Symbol, to_type: Symbol) -> Option<Conversion<'a>> {
-        ConversionType::try_new(from_type, to_type).map(|cvt| Conversion {
-            cvt,
-            expr_to_cast,
-            to_type: Some(to_type),
-        })
-    }
-
-    /// Construct a new conversion without type constraint
-    fn new_any(expr_to_cast: &'a Expr<'_>) -> Conversion<'a> {
-        Conversion {
-            cvt: ConversionType::SignedToUnsigned,
-            expr_to_cast,
-            to_type: None,
         }
     }
 }

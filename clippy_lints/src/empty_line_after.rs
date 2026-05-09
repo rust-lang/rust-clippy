@@ -133,6 +133,22 @@ struct Stop {
 }
 
 impl Stop {
+    fn from_attr(cx: &EarlyContext<'_>, attr: &Attribute) -> Option<Self> {
+        let SpanData { lo, hi, .. } = attr.span.data();
+        let file = cx.sess().source_map().lookup_source_file(lo);
+
+        Some(Self {
+            span: attr.span,
+            kind: match attr.kind {
+                AttrKind::Normal(_) => StopKind::Attr,
+                AttrKind::DocComment(comment_kind, _) => StopKind::Doc(comment_kind),
+            },
+            first: file.lookup_line(file.relative_position(lo))?,
+            last: file.lookup_line(file.relative_position(hi))?,
+            name: attr.name(),
+        })
+    }
+
     fn is_outer_attr_only(&self) -> bool {
         let Some(name) = self.name else {
             return false;
@@ -208,22 +224,6 @@ impl Stop {
                 suggestions.push((asterisk, String::new()));
             },
         }
-    }
-
-    fn from_attr(cx: &EarlyContext<'_>, attr: &Attribute) -> Option<Self> {
-        let SpanData { lo, hi, .. } = attr.span.data();
-        let file = cx.sess().source_map().lookup_source_file(lo);
-
-        Some(Self {
-            span: attr.span,
-            kind: match attr.kind {
-                AttrKind::Normal(_) => StopKind::Attr,
-                AttrKind::DocComment(comment_kind, _) => StopKind::Doc(comment_kind),
-            },
-            first: file.lookup_line(file.relative_position(lo))?,
-            last: file.lookup_line(file.relative_position(hi))?,
-            name: attr.name(),
-        })
     }
 }
 

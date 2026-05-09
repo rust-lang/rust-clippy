@@ -264,6 +264,277 @@ impl HirEqInterExpr<'_, '_, '_> {
         eq
     }
 
+    pub fn eq_body(&mut self, left: BodyId, right: BodyId) -> bool {
+        // swap out TypeckResults when hashing a body
+        let old_maybe_typeck_results = self.inner.maybe_typeck_results.replace((
+            self.inner.cx.tcx.typeck_body(left),
+            self.inner.cx.tcx.typeck_body(right),
+        ));
+        let res = self.eq_expr(
+            self.inner.cx.tcx.hir_body(left).value,
+            self.inner.cx.tcx.hir_body(right).value,
+        );
+        self.inner.maybe_typeck_results = old_maybe_typeck_results;
+        res
+    }
+
+    #[expect(clippy::too_many_lines)]
+    pub fn eq_expr(&mut self, left: &Expr<'_>, right: &Expr<'_>) -> bool {
+        match self.check_ctxt(left.span.ctxt(), right.span.ctxt()) {
+            None => {
+                if let Some((typeck_lhs, typeck_rhs)) = self.inner.maybe_typeck_results
+                    && typeck_lhs.expr_ty(left) == typeck_rhs.expr_ty(right)
+                    && let (Some(l), Some(r)) = (
+                        ConstEvalCtxt::with_env(self.inner.cx.tcx, self.inner.cx.typing_env(), typeck_lhs)
+                            .eval_local(left, self.eval_ctxt),
+                        ConstEvalCtxt::with_env(self.inner.cx.tcx, self.inner.cx.typing_env(), typeck_rhs)
+                            .eval_local(right, self.eval_ctxt),
+                    )
+                    && l == r
+                {
+                    return true;
+                }
+            },
+            Some(false) => return false,
+            Some(true) => {},
+        }
+
+        let is_eq = match (
+            reduce_exprkind(self.inner.cx, self.eval_ctxt, &left.kind),
+            reduce_exprkind(self.inner.cx, self.eval_ctxt, &right.kind),
+        ) {
+            (ExprKind::AddrOf(lb, l_mut, le), ExprKind::AddrOf(rb, r_mut, re)) => {
+                lb == rb && l_mut == r_mut && self.eq_expr(le, re)
+            },
+            (ExprKind::Array(l), ExprKind::Array(r)) => self.eq_exprs(l, r),
+            (ExprKind::Assign(ll, lr, _), ExprKind::Assign(rl, rr, _)) => {
+                self.inner.allow_side_effects && self.eq_expr(ll, rl) && self.eq_expr(lr, rr)
+            },
+            (ExprKind::AssignOp(lo, ll, lr), ExprKind::AssignOp(ro, rl, rr)) => {
+                self.inner.allow_side_effects && lo.node == ro.node && self.eq_expr(ll, rl) && self.eq_expr(lr, rr)
+            },
+            (ExprKind::Block(l, _), ExprKind::Block(r, _)) => self.eq_block(l, r),
+            (ExprKind::Binary(l_op, ll, lr), ExprKind::Binary(r_op, rl, rr)) => {
+                l_op.node == r_op.node && self.eq_expr(ll, rl) && self.eq_expr(lr, rr)
+                    || self.swap_binop(l_op.node, ll, lr).is_some_and(|(l_op, ll, lr)| {
+                        l_op == r_op.node && self.eq_expr(ll, rl) && self.eq_expr(lr, rr)
+                    })
+            },
+            (ExprKind::Break(li, le), ExprKind::Break(ri, re)) => {
+                both(li.label.as_ref(), ri.label.as_ref(), |l, r| l.ident.name == r.ident.name)
+                    && both(le.as_ref(), re.as_ref(), |l, r| self.eq_expr(l, r))
+            },
+            (ExprKind::Call(l_fun, l_args), ExprKind::Call(r_fun, r_args)) => {
+                self.inner.allow_side_effects && self.eq_expr(l_fun, r_fun) && self.eq_exprs(l_args, r_args)
+            },
+            (ExprKind::Cast(lx, lt), ExprKind::Cast(rx, rt)) => {
+                self.eq_expr(lx, rx) && self.eq_ty(lt, rt)
+            },
+            (ExprKind::Closure(_l), ExprKind::Closure(_r)) => false,
+            (ExprKind::ConstBlock(lb), ExprKind::ConstBlock(rb)) => self.eq_body(lb.body, rb.body),
+            (ExprKind::Continue(li), ExprKind::Continue(ri)) => {
+                both(li.label.as_ref(), ri.label.as_ref(), |l, r| l.ident.name == r.ident.name)
+            },
+            (ExprKind::DropTemps(le), ExprKind::DropTemps(re)) => self.eq_expr(le, re),
+            (ExprKind::Field(l_f_exp, l_f_ident), ExprKind::Field(r_f_exp, r_f_ident)) => {
+                l_f_ident.name == r_f_ident.name && self.eq_expr(l_f_exp, r_f_exp)
+            },
+            (ExprKind::Index(la, li, _), ExprKind::Index(ra, ri, _)) => self.eq_expr(la, ra) && self.eq_expr(li, ri),
+            (ExprKind::If(lc, lt, le), ExprKind::If(rc, rt, re)) => {
+                self.eq_expr(lc, rc) && self.eq_expr(lt, rt)
+                    && both(le.as_ref(), re.as_ref(), |l, r| self.eq_expr(l, r))
+            },
+            (ExprKind::Let(l), ExprKind::Let(r)) => {
+                self.eq_pat(l.pat, r.pat)
+                    && both(l.ty.as_ref(), r.ty.as_ref(), |l, r| self.eq_ty(l, r))
+                    && self.eq_expr(l.init, r.init)
+            },
+            (ExprKind::Lit(l), ExprKind::Lit(r)) => {
+                if self.check_ctxt(l.span.ctxt(), r.span.ctxt()) == Some(false) {
+                    return false;
+                }
+                l.node == r.node
+            },
+            (ExprKind::Loop(lb, ll, lls, _), ExprKind::Loop(rb, rl, rls, _)) => {
+                lls == rls && self.eq_block(lb, rb)
+                    && both(ll.as_ref(), rl.as_ref(), |l, r| l.ident.name == r.ident.name)
+            },
+            (ExprKind::Match(le, la, ls), ExprKind::Match(re, ra, rs)) => {
+                (ls == rs || (matches!((ls, rs), (TryDesugar(_), TryDesugar(_)))))
+                    && self.eq_expr(le, re)
+                    && over(la, ra, |l, r| {
+                        self.eq_pat(l.pat, r.pat)
+                            && both(l.guard.as_ref(), r.guard.as_ref(), |l, r| self.eq_expr(l, r))
+                            && self.eq_expr(l.body, r.body)
+                    })
+            },
+            (
+                ExprKind::MethodCall(l_path, l_receiver, l_args, _),
+                ExprKind::MethodCall(r_path, r_receiver, r_args, _),
+            ) => {
+                self.inner.allow_side_effects
+                    && self.eq_path_segment(l_path, r_path)
+                    && self.eq_expr(l_receiver, r_receiver)
+                    && self.eq_exprs(l_args, r_args)
+            },
+            (ExprKind::UnsafeBinderCast(lkind, le, None), ExprKind::UnsafeBinderCast(rkind, re, None)) =>
+                lkind == rkind && self.eq_expr(le, re),
+            (ExprKind::UnsafeBinderCast(lkind, le, Some(lt)), ExprKind::UnsafeBinderCast(rkind, re, Some(rt))) =>
+                lkind == rkind && self.eq_expr(le, re) && self.eq_ty(lt, rt),
+            (ExprKind::OffsetOf(l_container, l_fields), ExprKind::OffsetOf(r_container, r_fields)) => {
+                self.eq_ty(l_container, r_container) && over(l_fields, r_fields, |l, r| l.name == r.name)
+            },
+            (ExprKind::Path(l), ExprKind::Path(r)) => self.eq_qpath(l, r),
+            (ExprKind::Repeat(le, ll), ExprKind::Repeat(re, rl)) => {
+                self.eq_expr(le, re) && self.eq_const_arg(ll, rl)
+            },
+            (ExprKind::Ret(l), ExprKind::Ret(r)) => both(l.as_ref(), r.as_ref(), |l, r| self.eq_expr(l, r)),
+            (ExprKind::Struct(l_path, lf, lo), ExprKind::Struct(r_path, rf, ro)) => {
+                self.eq_qpath(l_path, r_path)
+                    && match (lo, ro) {
+                        (StructTailExpr::Base(l),StructTailExpr::Base(r)) => self.eq_expr(l, r),
+                        (StructTailExpr::None, StructTailExpr::None) |
+                        (StructTailExpr::DefaultFields(_), StructTailExpr::DefaultFields(_)) => true,
+                        _ => false,
+                    }
+                    && over(lf, rf, |l, r| self.eq_expr_field(l, r))
+            },
+            (ExprKind::Tup(l_tup), ExprKind::Tup(r_tup)) => self.eq_exprs(l_tup, r_tup),
+            (ExprKind::Use(l_expr, _), ExprKind::Use(r_expr, _)) => self.eq_expr(l_expr, r_expr),
+            (ExprKind::Type(le, lt), ExprKind::Type(re, rt)) => self.eq_expr(le, re) && self.eq_ty(lt, rt),
+            (ExprKind::Unary(l_op, le), ExprKind::Unary(r_op, re)) => l_op == r_op && self.eq_expr(le, re),
+            (ExprKind::Yield(le, _), ExprKind::Yield(re, _)) => return self.eq_expr(le, re),
+            (
+                // Else branches for branches above, grouped as per `match_same_arms`.
+                | ExprKind::AddrOf(..)
+                | ExprKind::Array(..)
+                | ExprKind::Assign(..)
+                | ExprKind::AssignOp(..)
+                | ExprKind::Binary(..)
+                | ExprKind::Become(..)
+                | ExprKind::Block(..)
+                | ExprKind::Break(..)
+                | ExprKind::Call(..)
+                | ExprKind::Cast(..)
+                | ExprKind::ConstBlock(..)
+                | ExprKind::Continue(..)
+                | ExprKind::DropTemps(..)
+                | ExprKind::Field(..)
+                | ExprKind::Index(..)
+                | ExprKind::If(..)
+                | ExprKind::Let(..)
+                | ExprKind::Lit(..)
+                | ExprKind::Loop(..)
+                | ExprKind::Match(..)
+                | ExprKind::MethodCall(..)
+                | ExprKind::OffsetOf(..)
+                | ExprKind::Path(..)
+                | ExprKind::Repeat(..)
+                | ExprKind::Ret(..)
+                | ExprKind::Struct(..)
+                | ExprKind::Tup(..)
+                | ExprKind::Use(..)
+                | ExprKind::Type(..)
+                | ExprKind::Unary(..)
+                | ExprKind::Yield(..)
+                | ExprKind::UnsafeBinderCast(..)
+
+                // --- Special cases that do not have a positive branch.
+
+                // `Err` represents an invalid expression, so let's never assume that
+                // an invalid expressions is equal to anything.
+                | ExprKind::Err(..)
+
+                // For the time being, we always consider that two closures are unequal.
+                // This behavior may change in the future.
+                | ExprKind::Closure(..)
+                // For the time being, we always consider that two instances of InlineAsm are different.
+                // This behavior may change in the future.
+                | ExprKind::InlineAsm(_)
+                , _
+            ) => false,
+        };
+        (is_eq && (!self.should_ignore(left) || !self.should_ignore(right)))
+            || self
+                .inner
+                .maybe_typeck_results
+                .is_some_and(|(left_typeck_results, right_typeck_results)| {
+                    self.inner
+                        .expr_fallback
+                        .as_mut()
+                        .is_some_and(|f| f(left_typeck_results, left, right_typeck_results, right))
+                })
+    }
+
+    pub fn eq_path(&mut self, left: &Path<'_>, right: &Path<'_>) -> bool {
+        match (left.res, right.res) {
+            (Res::Local(l), Res::Local(r)) => l == r || self.locals.get(&l) == Some(&r),
+            (Res::Local(_), _) | (_, Res::Local(_)) => false,
+            (Res::Def(l_kind, l), Res::Def(r_kind, r))
+                if l_kind == r_kind
+                    && let DefKind::Const { .. }
+                    | DefKind::Static { .. }
+                    | DefKind::Fn
+                    | DefKind::TyAlias
+                    | DefKind::Use
+                    | DefKind::Mod = l_kind =>
+            {
+                (l == r || self.local_items.get(&l) == Some(&r)) && self.eq_path_segments(left.segments, right.segments)
+            },
+            _ => self.eq_path_segments(left.segments, right.segments),
+        }
+    }
+
+    pub fn eq_path_segments<'tcx>(
+        &mut self,
+        mut left: &'tcx [PathSegment<'tcx>],
+        mut right: &'tcx [PathSegment<'tcx>],
+    ) -> bool {
+        if let PathCheck::Resolution = self.inner.path_check
+            && let Some(left_seg) = generic_path_segments(left)
+            && let Some(right_seg) = generic_path_segments(right)
+        {
+            // If we compare by resolution, then only check the last segments that could possibly have generic
+            // arguments
+            left = left_seg;
+            right = right_seg;
+        }
+
+        over(left, right, |l, r| self.eq_path_segment(l, r))
+    }
+
+    pub fn eq_path_segment(&mut self, left: &PathSegment<'_>, right: &PathSegment<'_>) -> bool {
+        if !self.eq_path_parameters(left.args(), right.args()) {
+            return false;
+        }
+
+        if let PathCheck::Resolution = self.inner.path_check
+            && left.res != Res::Err
+            && right.res != Res::Err
+        {
+            left.res == right.res
+        } else {
+            // The == of idents doesn't work with different contexts,
+            // we have to be explicit about hygiene
+            left.ident.name == right.ident.name
+        }
+    }
+
+    pub fn eq_ty(&mut self, left: &Ty<'_>, right: &Ty<'_>) -> bool {
+        match (&left.kind, &right.kind) {
+            (TyKind::Slice(l_vec), TyKind::Slice(r_vec)) => self.eq_ty(l_vec, r_vec),
+            (TyKind::Array(lt, ll), TyKind::Array(rt, rl)) => self.eq_ty(lt, rt) && self.eq_const_arg(ll, rl),
+            (TyKind::Ptr(l_mut), TyKind::Ptr(r_mut)) => l_mut.mutbl == r_mut.mutbl && self.eq_ty(l_mut.ty, r_mut.ty),
+            (TyKind::Ref(_, l_rmut), TyKind::Ref(_, r_rmut)) => {
+                l_rmut.mutbl == r_rmut.mutbl && self.eq_ty(l_rmut.ty, r_rmut.ty)
+            },
+            (TyKind::Path(l), TyKind::Path(r)) => self.eq_qpath(l, r),
+            (TyKind::Tup(l), TyKind::Tup(r)) => over(l, r, |l, r| self.eq_ty(l, r)),
+            (TyKind::Infer(()), TyKind::Infer(())) => true,
+            _ => false,
+        }
+    }
+
     fn eq_fn_sig(&mut self, left: &FnSig<'_>, right: &FnSig<'_>) -> bool {
         left.header.safety == right.header.safety
             && left.header.constness == right.header.constness
@@ -482,208 +753,6 @@ impl HirEqInterExpr<'_, '_, '_> {
         })
     }
 
-    pub fn eq_body(&mut self, left: BodyId, right: BodyId) -> bool {
-        // swap out TypeckResults when hashing a body
-        let old_maybe_typeck_results = self.inner.maybe_typeck_results.replace((
-            self.inner.cx.tcx.typeck_body(left),
-            self.inner.cx.tcx.typeck_body(right),
-        ));
-        let res = self.eq_expr(
-            self.inner.cx.tcx.hir_body(left).value,
-            self.inner.cx.tcx.hir_body(right).value,
-        );
-        self.inner.maybe_typeck_results = old_maybe_typeck_results;
-        res
-    }
-
-    #[expect(clippy::too_many_lines)]
-    pub fn eq_expr(&mut self, left: &Expr<'_>, right: &Expr<'_>) -> bool {
-        match self.check_ctxt(left.span.ctxt(), right.span.ctxt()) {
-            None => {
-                if let Some((typeck_lhs, typeck_rhs)) = self.inner.maybe_typeck_results
-                    && typeck_lhs.expr_ty(left) == typeck_rhs.expr_ty(right)
-                    && let (Some(l), Some(r)) = (
-                        ConstEvalCtxt::with_env(self.inner.cx.tcx, self.inner.cx.typing_env(), typeck_lhs)
-                            .eval_local(left, self.eval_ctxt),
-                        ConstEvalCtxt::with_env(self.inner.cx.tcx, self.inner.cx.typing_env(), typeck_rhs)
-                            .eval_local(right, self.eval_ctxt),
-                    )
-                    && l == r
-                {
-                    return true;
-                }
-            },
-            Some(false) => return false,
-            Some(true) => {},
-        }
-
-        let is_eq = match (
-            reduce_exprkind(self.inner.cx, self.eval_ctxt, &left.kind),
-            reduce_exprkind(self.inner.cx, self.eval_ctxt, &right.kind),
-        ) {
-            (ExprKind::AddrOf(lb, l_mut, le), ExprKind::AddrOf(rb, r_mut, re)) => {
-                lb == rb && l_mut == r_mut && self.eq_expr(le, re)
-            },
-            (ExprKind::Array(l), ExprKind::Array(r)) => self.eq_exprs(l, r),
-            (ExprKind::Assign(ll, lr, _), ExprKind::Assign(rl, rr, _)) => {
-                self.inner.allow_side_effects && self.eq_expr(ll, rl) && self.eq_expr(lr, rr)
-            },
-            (ExprKind::AssignOp(lo, ll, lr), ExprKind::AssignOp(ro, rl, rr)) => {
-                self.inner.allow_side_effects && lo.node == ro.node && self.eq_expr(ll, rl) && self.eq_expr(lr, rr)
-            },
-            (ExprKind::Block(l, _), ExprKind::Block(r, _)) => self.eq_block(l, r),
-            (ExprKind::Binary(l_op, ll, lr), ExprKind::Binary(r_op, rl, rr)) => {
-                l_op.node == r_op.node && self.eq_expr(ll, rl) && self.eq_expr(lr, rr)
-                    || self.swap_binop(l_op.node, ll, lr).is_some_and(|(l_op, ll, lr)| {
-                        l_op == r_op.node && self.eq_expr(ll, rl) && self.eq_expr(lr, rr)
-                    })
-            },
-            (ExprKind::Break(li, le), ExprKind::Break(ri, re)) => {
-                both(li.label.as_ref(), ri.label.as_ref(), |l, r| l.ident.name == r.ident.name)
-                    && both(le.as_ref(), re.as_ref(), |l, r| self.eq_expr(l, r))
-            },
-            (ExprKind::Call(l_fun, l_args), ExprKind::Call(r_fun, r_args)) => {
-                self.inner.allow_side_effects && self.eq_expr(l_fun, r_fun) && self.eq_exprs(l_args, r_args)
-            },
-            (ExprKind::Cast(lx, lt), ExprKind::Cast(rx, rt)) => {
-                self.eq_expr(lx, rx) && self.eq_ty(lt, rt)
-            },
-            (ExprKind::Closure(_l), ExprKind::Closure(_r)) => false,
-            (ExprKind::ConstBlock(lb), ExprKind::ConstBlock(rb)) => self.eq_body(lb.body, rb.body),
-            (ExprKind::Continue(li), ExprKind::Continue(ri)) => {
-                both(li.label.as_ref(), ri.label.as_ref(), |l, r| l.ident.name == r.ident.name)
-            },
-            (ExprKind::DropTemps(le), ExprKind::DropTemps(re)) => self.eq_expr(le, re),
-            (ExprKind::Field(l_f_exp, l_f_ident), ExprKind::Field(r_f_exp, r_f_ident)) => {
-                l_f_ident.name == r_f_ident.name && self.eq_expr(l_f_exp, r_f_exp)
-            },
-            (ExprKind::Index(la, li, _), ExprKind::Index(ra, ri, _)) => self.eq_expr(la, ra) && self.eq_expr(li, ri),
-            (ExprKind::If(lc, lt, le), ExprKind::If(rc, rt, re)) => {
-                self.eq_expr(lc, rc) && self.eq_expr(lt, rt)
-                    && both(le.as_ref(), re.as_ref(), |l, r| self.eq_expr(l, r))
-            },
-            (ExprKind::Let(l), ExprKind::Let(r)) => {
-                self.eq_pat(l.pat, r.pat)
-                    && both(l.ty.as_ref(), r.ty.as_ref(), |l, r| self.eq_ty(l, r))
-                    && self.eq_expr(l.init, r.init)
-            },
-            (ExprKind::Lit(l), ExprKind::Lit(r)) => {
-                if self.check_ctxt(l.span.ctxt(), r.span.ctxt()) == Some(false) {
-                    return false;
-                }
-                l.node == r.node
-            },
-            (ExprKind::Loop(lb, ll, lls, _), ExprKind::Loop(rb, rl, rls, _)) => {
-                lls == rls && self.eq_block(lb, rb)
-                    && both(ll.as_ref(), rl.as_ref(), |l, r| l.ident.name == r.ident.name)
-            },
-            (ExprKind::Match(le, la, ls), ExprKind::Match(re, ra, rs)) => {
-                (ls == rs || (matches!((ls, rs), (TryDesugar(_), TryDesugar(_)))))
-                    && self.eq_expr(le, re)
-                    && over(la, ra, |l, r| {
-                        self.eq_pat(l.pat, r.pat)
-                            && both(l.guard.as_ref(), r.guard.as_ref(), |l, r| self.eq_expr(l, r))
-                            && self.eq_expr(l.body, r.body)
-                    })
-            },
-            (
-                ExprKind::MethodCall(l_path, l_receiver, l_args, _),
-                ExprKind::MethodCall(r_path, r_receiver, r_args, _),
-            ) => {
-                self.inner.allow_side_effects
-                    && self.eq_path_segment(l_path, r_path)
-                    && self.eq_expr(l_receiver, r_receiver)
-                    && self.eq_exprs(l_args, r_args)
-            },
-            (ExprKind::UnsafeBinderCast(lkind, le, None), ExprKind::UnsafeBinderCast(rkind, re, None)) =>
-                lkind == rkind && self.eq_expr(le, re),
-            (ExprKind::UnsafeBinderCast(lkind, le, Some(lt)), ExprKind::UnsafeBinderCast(rkind, re, Some(rt))) =>
-                lkind == rkind && self.eq_expr(le, re) && self.eq_ty(lt, rt),
-            (ExprKind::OffsetOf(l_container, l_fields), ExprKind::OffsetOf(r_container, r_fields)) => {
-                self.eq_ty(l_container, r_container) && over(l_fields, r_fields, |l, r| l.name == r.name)
-            },
-            (ExprKind::Path(l), ExprKind::Path(r)) => self.eq_qpath(l, r),
-            (ExprKind::Repeat(le, ll), ExprKind::Repeat(re, rl)) => {
-                self.eq_expr(le, re) && self.eq_const_arg(ll, rl)
-            },
-            (ExprKind::Ret(l), ExprKind::Ret(r)) => both(l.as_ref(), r.as_ref(), |l, r| self.eq_expr(l, r)),
-            (ExprKind::Struct(l_path, lf, lo), ExprKind::Struct(r_path, rf, ro)) => {
-                self.eq_qpath(l_path, r_path)
-                    && match (lo, ro) {
-                        (StructTailExpr::Base(l),StructTailExpr::Base(r)) => self.eq_expr(l, r),
-                        (StructTailExpr::None, StructTailExpr::None) |
-                        (StructTailExpr::DefaultFields(_), StructTailExpr::DefaultFields(_)) => true,
-                        _ => false,
-                    }
-                    && over(lf, rf, |l, r| self.eq_expr_field(l, r))
-            },
-            (ExprKind::Tup(l_tup), ExprKind::Tup(r_tup)) => self.eq_exprs(l_tup, r_tup),
-            (ExprKind::Use(l_expr, _), ExprKind::Use(r_expr, _)) => self.eq_expr(l_expr, r_expr),
-            (ExprKind::Type(le, lt), ExprKind::Type(re, rt)) => self.eq_expr(le, re) && self.eq_ty(lt, rt),
-            (ExprKind::Unary(l_op, le), ExprKind::Unary(r_op, re)) => l_op == r_op && self.eq_expr(le, re),
-            (ExprKind::Yield(le, _), ExprKind::Yield(re, _)) => return self.eq_expr(le, re),
-            (
-                // Else branches for branches above, grouped as per `match_same_arms`.
-                | ExprKind::AddrOf(..)
-                | ExprKind::Array(..)
-                | ExprKind::Assign(..)
-                | ExprKind::AssignOp(..)
-                | ExprKind::Binary(..)
-                | ExprKind::Become(..)
-                | ExprKind::Block(..)
-                | ExprKind::Break(..)
-                | ExprKind::Call(..)
-                | ExprKind::Cast(..)
-                | ExprKind::ConstBlock(..)
-                | ExprKind::Continue(..)
-                | ExprKind::DropTemps(..)
-                | ExprKind::Field(..)
-                | ExprKind::Index(..)
-                | ExprKind::If(..)
-                | ExprKind::Let(..)
-                | ExprKind::Lit(..)
-                | ExprKind::Loop(..)
-                | ExprKind::Match(..)
-                | ExprKind::MethodCall(..)
-                | ExprKind::OffsetOf(..)
-                | ExprKind::Path(..)
-                | ExprKind::Repeat(..)
-                | ExprKind::Ret(..)
-                | ExprKind::Struct(..)
-                | ExprKind::Tup(..)
-                | ExprKind::Use(..)
-                | ExprKind::Type(..)
-                | ExprKind::Unary(..)
-                | ExprKind::Yield(..)
-                | ExprKind::UnsafeBinderCast(..)
-
-                // --- Special cases that do not have a positive branch.
-
-                // `Err` represents an invalid expression, so let's never assume that
-                // an invalid expressions is equal to anything.
-                | ExprKind::Err(..)
-
-                // For the time being, we always consider that two closures are unequal.
-                // This behavior may change in the future.
-                | ExprKind::Closure(..)
-                // For the time being, we always consider that two instances of InlineAsm are different.
-                // This behavior may change in the future.
-                | ExprKind::InlineAsm(_)
-                , _
-            ) => false,
-        };
-        (is_eq && (!self.should_ignore(left) || !self.should_ignore(right)))
-            || self
-                .inner
-                .maybe_typeck_results
-                .is_some_and(|(left_typeck_results, right_typeck_results)| {
-                    self.inner
-                        .expr_fallback
-                        .as_mut()
-                        .is_some_and(|f| f(left_typeck_results, left, right_typeck_results, right))
-                })
-    }
-
     fn eq_exprs(&mut self, left: &[Expr<'_>], right: &[Expr<'_>]) -> bool {
         over(left, right, |l, r| self.eq_expr(l, r))
     }
@@ -835,81 +904,12 @@ impl HirEqInterExpr<'_, '_, '_> {
         }
     }
 
-    pub fn eq_path(&mut self, left: &Path<'_>, right: &Path<'_>) -> bool {
-        match (left.res, right.res) {
-            (Res::Local(l), Res::Local(r)) => l == r || self.locals.get(&l) == Some(&r),
-            (Res::Local(_), _) | (_, Res::Local(_)) => false,
-            (Res::Def(l_kind, l), Res::Def(r_kind, r))
-                if l_kind == r_kind
-                    && let DefKind::Const { .. }
-                    | DefKind::Static { .. }
-                    | DefKind::Fn
-                    | DefKind::TyAlias
-                    | DefKind::Use
-                    | DefKind::Mod = l_kind =>
-            {
-                (l == r || self.local_items.get(&l) == Some(&r)) && self.eq_path_segments(left.segments, right.segments)
-            },
-            _ => self.eq_path_segments(left.segments, right.segments),
-        }
-    }
-
     fn eq_path_parameters(&mut self, left: &GenericArgs<'_>, right: &GenericArgs<'_>) -> bool {
         if left.parenthesized == right.parenthesized {
             over(left.args, right.args, |l, r| self.eq_generic_arg(l, r)) // FIXME(flip1995): may not work
                 && over(left.constraints, right.constraints, |l, r| self.eq_assoc_eq_constraint(l, r))
         } else {
             false
-        }
-    }
-
-    pub fn eq_path_segments<'tcx>(
-        &mut self,
-        mut left: &'tcx [PathSegment<'tcx>],
-        mut right: &'tcx [PathSegment<'tcx>],
-    ) -> bool {
-        if let PathCheck::Resolution = self.inner.path_check
-            && let Some(left_seg) = generic_path_segments(left)
-            && let Some(right_seg) = generic_path_segments(right)
-        {
-            // If we compare by resolution, then only check the last segments that could possibly have generic
-            // arguments
-            left = left_seg;
-            right = right_seg;
-        }
-
-        over(left, right, |l, r| self.eq_path_segment(l, r))
-    }
-
-    pub fn eq_path_segment(&mut self, left: &PathSegment<'_>, right: &PathSegment<'_>) -> bool {
-        if !self.eq_path_parameters(left.args(), right.args()) {
-            return false;
-        }
-
-        if let PathCheck::Resolution = self.inner.path_check
-            && left.res != Res::Err
-            && right.res != Res::Err
-        {
-            left.res == right.res
-        } else {
-            // The == of idents doesn't work with different contexts,
-            // we have to be explicit about hygiene
-            left.ident.name == right.ident.name
-        }
-    }
-
-    pub fn eq_ty(&mut self, left: &Ty<'_>, right: &Ty<'_>) -> bool {
-        match (&left.kind, &right.kind) {
-            (TyKind::Slice(l_vec), TyKind::Slice(r_vec)) => self.eq_ty(l_vec, r_vec),
-            (TyKind::Array(lt, ll), TyKind::Array(rt, rl)) => self.eq_ty(lt, rt) && self.eq_const_arg(ll, rl),
-            (TyKind::Ptr(l_mut), TyKind::Ptr(r_mut)) => l_mut.mutbl == r_mut.mutbl && self.eq_ty(l_mut.ty, r_mut.ty),
-            (TyKind::Ref(_, l_rmut), TyKind::Ref(_, r_rmut)) => {
-                l_rmut.mutbl == r_rmut.mutbl && self.eq_ty(l_rmut.ty, r_rmut.ty)
-            },
-            (TyKind::Path(l), TyKind::Path(r)) => self.eq_qpath(l, r),
-            (TyKind::Tup(l), TyKind::Tup(r)) => over(l, r, |l, r| self.eq_ty(l, r)),
-            (TyKind::Infer(()), TyKind::Infer(())) => true,
-            _ => false,
         }
     }
 

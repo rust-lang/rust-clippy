@@ -13,10 +13,6 @@ pub struct Context {
     const_span: Option<Span>,
 }
 impl Context {
-    fn skip_expr(&self, e: &hir::Expr<'_>) -> bool {
-        self.expr_id.is_some() || self.const_span.is_some_and(|span| span.contains(e.span))
-    }
-
     pub fn check_binary<'tcx>(
         &mut self,
         cx: &LateContext<'tcx>,
@@ -96,5 +92,9 @@ impl Context {
             return;
         }
         self.const_span = None;
+    }
+
+    fn skip_expr(&self, e: &hir::Expr<'_>) -> bool {
+        self.expr_id.is_some() || self.const_span.is_some_and(|span| span.contains(e.span))
     }
 }

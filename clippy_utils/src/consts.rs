@@ -206,6 +206,65 @@ impl Hash for Constant {
 }
 
 impl Constant {
+    pub fn new_numeric_max<'tcx>(tcx: TyCtxt<'tcx>, ty: Ty<'tcx>) -> Option<Self> {
+        match *ty.kind() {
+            ty::Uint(ty) => Some(Self::Int(match ty.normalize(tcx.sess.target.pointer_width) {
+                UintTy::U8 => u128::from(u8::MAX),
+                UintTy::U16 => u128::from(u16::MAX),
+                UintTy::U32 => u128::from(u32::MAX),
+                UintTy::U64 => u128::from(u64::MAX),
+                UintTy::U128 => u128::MAX,
+                UintTy::Usize => return None,
+            })),
+            ty::Int(ty) => {
+                let val = match ty.normalize(tcx.sess.target.pointer_width) {
+                    IntTy::I8 => i128::from(i8::MAX),
+                    IntTy::I16 => i128::from(i16::MAX),
+                    IntTy::I32 => i128::from(i32::MAX),
+                    IntTy::I64 => i128::from(i64::MAX),
+                    IntTy::I128 => i128::MAX,
+                    IntTy::Isize => return None,
+                };
+                Some(Self::Int(val.cast_unsigned()))
+            },
+            ty::Char => Some(Self::Char(char::MAX)),
+            ty::Float(FloatTy::F32) => Some(Self::F32(f32::INFINITY)),
+            ty::Float(FloatTy::F64) => Some(Self::F64(f64::INFINITY)),
+            _ => None,
+        }
+    }
+
+    fn parse_f16(s: &str) -> Self {
+        let f: Half = s.parse().unwrap();
+        Self::F16(f.to_bits().try_into().unwrap())
+    }
+
+    fn parse_f128(s: &str) -> Self {
+        let f: Quad = s.parse().unwrap();
+        Self::F128(f.to_bits())
+    }
+
+    pub fn new_numeric_min<'tcx>(tcx: TyCtxt<'tcx>, ty: Ty<'tcx>) -> Option<Self> {
+        match *ty.kind() {
+            ty::Uint(_) => Some(Self::Int(0)),
+            ty::Int(ty) => {
+                let val = match ty.normalize(tcx.sess.target.pointer_width) {
+                    IntTy::I8 => i128::from(i8::MIN),
+                    IntTy::I16 => i128::from(i16::MIN),
+                    IntTy::I32 => i128::from(i32::MIN),
+                    IntTy::I64 => i128::from(i64::MIN),
+                    IntTy::I128 => i128::MIN,
+                    IntTy::Isize => return None,
+                };
+                Some(Self::Int(val.cast_unsigned()))
+            },
+            ty::Char => Some(Self::Char(char::MIN)),
+            ty::Float(FloatTy::F32) => Some(Self::F32(f32::NEG_INFINITY)),
+            ty::Float(FloatTy::F64) => Some(Self::F64(f64::NEG_INFINITY)),
+            _ => None,
+        }
+    }
+
     pub fn partial_cmp(tcx: TyCtxt<'_>, cmp_type: Ty<'_>, left: &Self, right: &Self) -> Option<Ordering> {
         match (left, right) {
             (Self::Str(ls), Self::Str(rs)) => Some(ls.cmp(rs)),
@@ -282,65 +341,6 @@ impl Constant {
             self = *r;
         }
         self
-    }
-
-    fn parse_f16(s: &str) -> Self {
-        let f: Half = s.parse().unwrap();
-        Self::F16(f.to_bits().try_into().unwrap())
-    }
-
-    fn parse_f128(s: &str) -> Self {
-        let f: Quad = s.parse().unwrap();
-        Self::F128(f.to_bits())
-    }
-
-    pub fn new_numeric_min<'tcx>(tcx: TyCtxt<'tcx>, ty: Ty<'tcx>) -> Option<Self> {
-        match *ty.kind() {
-            ty::Uint(_) => Some(Self::Int(0)),
-            ty::Int(ty) => {
-                let val = match ty.normalize(tcx.sess.target.pointer_width) {
-                    IntTy::I8 => i128::from(i8::MIN),
-                    IntTy::I16 => i128::from(i16::MIN),
-                    IntTy::I32 => i128::from(i32::MIN),
-                    IntTy::I64 => i128::from(i64::MIN),
-                    IntTy::I128 => i128::MIN,
-                    IntTy::Isize => return None,
-                };
-                Some(Self::Int(val.cast_unsigned()))
-            },
-            ty::Char => Some(Self::Char(char::MIN)),
-            ty::Float(FloatTy::F32) => Some(Self::F32(f32::NEG_INFINITY)),
-            ty::Float(FloatTy::F64) => Some(Self::F64(f64::NEG_INFINITY)),
-            _ => None,
-        }
-    }
-
-    pub fn new_numeric_max<'tcx>(tcx: TyCtxt<'tcx>, ty: Ty<'tcx>) -> Option<Self> {
-        match *ty.kind() {
-            ty::Uint(ty) => Some(Self::Int(match ty.normalize(tcx.sess.target.pointer_width) {
-                UintTy::U8 => u128::from(u8::MAX),
-                UintTy::U16 => u128::from(u16::MAX),
-                UintTy::U32 => u128::from(u32::MAX),
-                UintTy::U64 => u128::from(u64::MAX),
-                UintTy::U128 => u128::MAX,
-                UintTy::Usize => return None,
-            })),
-            ty::Int(ty) => {
-                let val = match ty.normalize(tcx.sess.target.pointer_width) {
-                    IntTy::I8 => i128::from(i8::MAX),
-                    IntTy::I16 => i128::from(i16::MAX),
-                    IntTy::I32 => i128::from(i32::MAX),
-                    IntTy::I64 => i128::from(i64::MAX),
-                    IntTy::I128 => i128::MAX,
-                    IntTy::Isize => return None,
-                };
-                Some(Self::Int(val.cast_unsigned()))
-            },
-            ty::Char => Some(Self::Char(char::MAX)),
-            ty::Float(FloatTy::F32) => Some(Self::F32(f32::INFINITY)),
-            ty::Float(FloatTy::F64) => Some(Self::F64(f64::INFINITY)),
-            _ => None,
-        }
     }
 
     pub fn is_numeric_min<'tcx>(&self, tcx: TyCtxt<'tcx>, ty: Ty<'tcx>) -> bool {
@@ -582,6 +582,36 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
         }
     }
 
+    /// Simple constant folding to determine if an expression is an empty slice, str, array, …
+    /// `None` will be returned if the constness cannot be determined, or if the resolution
+    /// leaves the local crate.
+    pub fn eval_is_empty(&self, e: &Expr<'_>) -> Option<bool> {
+        match e.kind {
+            ExprKind::ConstBlock(ConstBlock { body, .. }) => self.eval_is_empty(self.tcx.hir_body(body).value),
+            ExprKind::DropTemps(e) => self.eval_is_empty(e),
+            ExprKind::Lit(lit) => {
+                if is_direct_expn_of(e.span, sym::cfg).is_some() {
+                    None
+                } else {
+                    match &lit.node {
+                        LitKind::Str(is, _) => Some(is.is_empty()),
+                        LitKind::ByteStr(s, _) | LitKind::CStr(s, _) => Some(s.as_byte_str().is_empty()),
+                        _ => None,
+                    }
+                }
+            },
+            ExprKind::Array(vec) => self.multi(vec).map(|v| v.is_empty()),
+            ExprKind::Repeat(..) => {
+                if let ty::Array(_, n) = self.typeck.expr_ty(e).kind() {
+                    Some(n.try_to_target_usize(self.tcx)? == 0)
+                } else {
+                    span_bug!(e.span, "typeck error");
+                }
+            },
+            _ => None,
+        }
+    }
+
     fn check_ctxt(&self, ctxt: SyntaxContext) {
         if self.ctxt.get() != ctxt {
             self.source.set(ConstantSource::NonLocal);
@@ -660,36 +690,6 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
             {
                 self.check_ctxt(field.span.ctxt());
                 mir_to_const(self.tcx, desired_field, ty)
-            },
-            _ => None,
-        }
-    }
-
-    /// Simple constant folding to determine if an expression is an empty slice, str, array, …
-    /// `None` will be returned if the constness cannot be determined, or if the resolution
-    /// leaves the local crate.
-    pub fn eval_is_empty(&self, e: &Expr<'_>) -> Option<bool> {
-        match e.kind {
-            ExprKind::ConstBlock(ConstBlock { body, .. }) => self.eval_is_empty(self.tcx.hir_body(body).value),
-            ExprKind::DropTemps(e) => self.eval_is_empty(e),
-            ExprKind::Lit(lit) => {
-                if is_direct_expn_of(e.span, sym::cfg).is_some() {
-                    None
-                } else {
-                    match &lit.node {
-                        LitKind::Str(is, _) => Some(is.is_empty()),
-                        LitKind::ByteStr(s, _) | LitKind::CStr(s, _) => Some(s.as_byte_str().is_empty()),
-                        _ => None,
-                    }
-                }
-            },
-            ExprKind::Array(vec) => self.multi(vec).map(|v| v.is_empty()),
-            ExprKind::Repeat(..) => {
-                if let ty::Array(_, n) = self.typeck.expr_ty(e).kind() {
-                    Some(n.try_to_target_usize(self.tcx)? == 0)
-                } else {
-                    span_bug!(e.span, "typeck error");
-                }
             },
             _ => None,
         }
