@@ -23,6 +23,7 @@ mod modulo_one;
 mod needless_bitwise_bool;
 mod numeric_arithmetic;
 mod op_ref;
+mod redundant_modulo_divisor;
 mod self_assignment;
 mod verbose_bit_mask;
 
@@ -894,6 +895,24 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for modulo expressions where the left-hand side adds the divisor.
+    ///
+    /// ### Why is this bad?
+    /// Adding the divisor before taking the remainder is redundant modulo arithmetic.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let (x, y, n) = (1u32, 2u32, 3u32);
+    /// let rem = (x + n + y) % n;
+    /// ```
+    #[clippy::version = "1.94.0"]
+    pub REDUNDANT_MODULO_DIVISOR,
+    complexity,
+    "left-hand side of modulo contains an addition of the divisor"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for explicit self-assignments.
     ///
     /// ### Why is this bad?
@@ -987,6 +1006,7 @@ impl_lint_pass!(Operators => [
     MODULO_ONE,
     NEEDLESS_BITWISE_BOOL,
     OP_REF,
+    REDUNDANT_MODULO_DIVISOR,
     REDUNDANT_COMPARISONS,
     SELF_ASSIGNMENT,
     VERBOSE_BIT_MASK,
@@ -1049,6 +1069,7 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                     rhs,
                     self.modulo_arithmetic_allow_comparison_to_zero,
                 );
+                redundant_modulo_divisor::check(cx, e, op.node, lhs, rhs);
                 manual_div_ceil::check(cx, e, op.node, lhs, rhs, self.msrv);
             },
             ExprKind::AssignOp(op, lhs, rhs) => {
