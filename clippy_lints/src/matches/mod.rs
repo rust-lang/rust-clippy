@@ -360,7 +360,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.47.0"]
     pub MATCH_LIKE_MATCHES_MACRO,
     style,
-    "a match that could be written with the matches! macro"
+    "a match that could be written with the matches! macro",
+    @msrv_behavior = "This lint only suggests `matches!` when the configured MSRV is at least 1.42, and avoids or-pattern suggestions before 1.53."
 }
 
 declare_clippy_lint! {
@@ -722,7 +723,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.31.0"]
     pub REDUNDANT_PATTERN_MATCHING,
     style,
-    "use the proper utility function avoiding an `if let`"
+    "use the proper utility function avoiding an `if let`",
+    @msrv_behavior = "This lint only suggests `matches!` when the configured MSRV is at least 1.42."
 }
 
 declare_clippy_lint! {

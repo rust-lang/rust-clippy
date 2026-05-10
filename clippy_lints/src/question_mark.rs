@@ -49,7 +49,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub QUESTION_MARK,
     style,
-    "checks for expressions that could be replaced by the `?` operator"
+    "checks for expressions that could be replaced by the `?` operator",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.13, because it suggests the `?` operator."
 }
 
 impl_lint_pass!(QuestionMark => [MANUAL_LET_ELSE, QUESTION_MARK]);

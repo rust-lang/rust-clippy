@@ -274,7 +274,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.51.0"]
     pub CASE_SENSITIVE_FILE_EXTENSION_COMPARISONS,
     pedantic,
-    "Checks for calls to ends_with with case-sensitive file extensions"
+    "Checks for calls to ends_with with case-sensitive file extensions",
+    @msrv_behavior = "When the configured MSRV is at least 1.70, this lint suggests `Option::is_some_and`; otherwise it suggests `map_or(false, ...)`."
 }
 
 declare_clippy_lint! {
@@ -423,7 +424,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.53.0"]
     pub CLONED_INSTEAD_OF_COPIED,
     pedantic,
-    "used `cloned` where `copied` could be used instead"
+    "used `cloned` where `copied` could be used instead",
+    @msrv_behavior = "`Option::cloned` is linted when the configured MSRV is at least 1.35. Iterator `cloned` calls are linted when the configured MSRV is at least 1.36, because `Iterator::copied` is available from that version."
 }
 
 declare_clippy_lint! {
@@ -449,7 +451,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.65.0"]
     pub COLLAPSIBLE_STR_REPLACE,
     perf,
-    "collapse consecutive calls to str::replace (2 or more) into a single call"
+    "collapse consecutive calls to str::replace (2 or more) into a single call",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.58, because it suggests pattern arrays in `str::replace`."
 }
 
 declare_clippy_lint! {
@@ -560,7 +563,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.62.0"]
     pub ERR_EXPECT,
     style,
-    r#"using `.err().expect("")` when `.expect_err("")` can be used"#
+    r#"using `.err().expect("")` when `.expect_err("")` can be used"#,
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.17, because it suggests `Result::expect_err`."
 }
 
 declare_clippy_lint! {
@@ -782,7 +786,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.36.0"]
     pub FILTER_MAP_NEXT,
     pedantic,
-    "using combination of `filter_map` and `next` which can usually be written as a single method call"
+    "using combination of `filter_map` and `next` which can usually be written as a single method call",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.30, because it suggests `Iterator::find_map`."
 }
 
 declare_clippy_lint! {
@@ -1079,7 +1084,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.40.0"]
     pub INEFFICIENT_TO_STRING,
     pedantic,
-    "using `to_string` on `&&T` where `T: ToString`"
+    "using `to_string` on `&&T` where `T: ToString`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is below 1.82, because Rust 1.82 specializes `ToString` for references."
 }
 
 declare_clippy_lint! {
@@ -1158,7 +1164,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.87.0"]
     pub IO_OTHER_ERROR,
     style,
-    "calling `std::io::Error::new(std::io::ErrorKind::Other, _)`"
+    "calling `std::io::Error::new(std::io::ErrorKind::Other, _)`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.74, because it suggests `std::io::Error::other`."
 }
 
 declare_clippy_lint! {
@@ -1221,7 +1228,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.62.0"]
     pub IS_DIGIT_ASCII_RADIX,
     style,
-    "use of `char::is_digit(..)` with literal radix of 10 or 16"
+    "use of `char::is_digit(..)` with literal radix of 10 or 16",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.24, because it suggests ASCII digit methods."
 }
 
 declare_clippy_lint! {
@@ -1298,7 +1306,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.77.0"]
     pub ITER_FILTER_IS_OK,
     pedantic,
-    "filtering an iterator over `Result`s for `Ok` can be achieved with `flatten`"
+    "filtering an iterator over `Result`s for `Ok` can be achieved with `flatten`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.29, because it suggests `Iterator::flatten`."
 }
 
 declare_clippy_lint! {
@@ -1322,7 +1331,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.77.0"]
     pub ITER_FILTER_IS_SOME,
     pedantic,
-    "filtering an iterator over `Option`s for `Some` can be achieved with `flatten`"
+    "filtering an iterator over `Option`s for `Some` can be achieved with `flatten`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.29, because it suggests `Iterator::flatten`."
 }
 
 declare_clippy_lint! {
@@ -1353,7 +1363,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.66.0"]
     pub ITER_KV_MAP,
     complexity,
-    "iterating on map using `iter` when `keys` or `values` would do"
+    "iterating on map using `iter` when `keys` or `values` would do",
+    @msrv_behavior = "`iter().map(...)` is linted for all MSRVs. `into_iter().map(...)` is only linted when the configured MSRV is at least 1.54, because it suggests `into_keys` or `into_values`."
 }
 
 declare_clippy_lint! {
@@ -1734,7 +1745,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.70.0"]
     pub LINES_FILTER_MAP_OK,
     suspicious,
-    "filtering `std::io::Lines` with `filter_map()`, `flat_map()`, or `flatten()` might cause an infinite loop"
+    "filtering `std::io::Lines` with `filter_map()`, `flat_map()`, or `flatten()` might cause an infinite loop",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.57, because it suggests `Iterator::map_while`."
 }
 
 declare_clippy_lint! {
@@ -1768,7 +1780,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.78.0"]
     pub MANUAL_C_STR_LITERALS,
     complexity,
-    r#"creating a `CStr` through functions when `c""` literals can be used"#
+    r#"creating a `CStr` through functions when `c""` literals can be used"#,
+    @msrv_behavior = r#"This lint is only emitted when the configured MSRV is at least 1.77, because it suggests `c"..."` C string literals."#
 }
 
 declare_clippy_lint! {
@@ -1891,7 +1904,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.81.0"]
     pub MANUAL_INSPECT,
     complexity,
-    "use of `map` returning the original item"
+    "use of `map` returning the original item",
+    @msrv_behavior = "Iterator cases are not MSRV-gated. Option and Result cases are only linted when the configured MSRV is at least 1.76, because they suggest `inspect`."
 }
 
 declare_clippy_lint! {
@@ -1930,7 +1944,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.77.0"]
     pub MANUAL_IS_VARIANT_AND,
     pedantic,
-    "using `.map(f).unwrap_or_default()` or `.map(f) == Some/Ok(true)`, which are more succinctly expressed as `is_some_and(f)` or `is_ok_and(f)`"
+    "using `.map(f).unwrap_or_default()` or `.map(f) == Some/Ok(true)`, which are more succinctly expressed as `is_some_and(f)` or `is_ok_and(f)`",
+    @msrv_behavior = "Some checks are MSRV-gated. `map(<f>).unwrap_or_default()` suggestions require at least 1.70, and `is_none_or` suggestions require at least 1.82. Other `is_some_and` and `is_ok_and` suggestions are not currently MSRV-gated."
 }
 
 declare_clippy_lint! {
@@ -2007,7 +2022,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.95.0"]
     pub MANUAL_OPTION_ZIP,
     complexity,
-    "manual reimplementation of `Option::zip`"
+    "manual reimplementation of `Option::zip`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.46, because it suggests `Option::zip`."
 }
 
 declare_clippy_lint! {
@@ -2030,7 +2046,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.86.0"]
     pub MANUAL_REPEAT_N,
     style,
-    "detect `repeat().take()` that can be replaced with `repeat_n()`"
+    "detect `repeat().take()` that can be replaced with `repeat_n()`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.82, because it suggests `std::iter::repeat_n`."
 }
 
 declare_clippy_lint! {
@@ -2095,7 +2112,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.57.0"]
     pub MANUAL_SPLIT_ONCE,
     complexity,
-    "replace `.splitn(2, pat)` with `.split_once(pat)`"
+    "replace `.splitn(2, pat)` with `.split_once(pat)`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.52, because it suggests `str::split_once`."
 }
 
 declare_clippy_lint! {
@@ -2117,7 +2135,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.54.0"]
     pub MANUAL_STR_REPEAT,
     perf,
-    "manual implementation of `str::repeat`"
+    "manual implementation of `str::repeat`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.16, because it suggests `str::repeat`."
 }
 
 declare_clippy_lint! {
@@ -2146,7 +2165,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.72.0"]
     pub MANUAL_TRY_FOLD,
     perf,
-    "checks for usage of `Iterator::fold` with a type that implements `Try`"
+    "checks for usage of `Iterator::fold` with a type that implements `Try`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.27, because it suggests `Iterator::try_fold`."
 }
 
 declare_clippy_lint! {
@@ -2200,7 +2220,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub MAP_CLONE,
     style,
-    "using `iterator.map(|x| x.clone())`, or dereferencing closures for `Copy` types"
+    "using `iterator.map(|x| x.clone())`, or dereferencing closures for `Copy` types",
+    @msrv_behavior = "When an explicit closure copies iterator elements, this lint suggests `copied()` if the configured MSRV is at least 1.36. Otherwise, it suggests `cloned()`.\n\nThe MSRV does not affect suggestions for explicit `Clone::clone` function paths; those still use `copied()` for `Copy` types and `cloned()` otherwise."
 }
 
 declare_clippy_lint! {
@@ -2412,7 +2433,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.45.0"]
     pub MAP_UNWRAP_OR,
     pedantic,
-    "using `.map(f).unwrap_or(a)` or `.map(f).unwrap_or_else(func)`, which are more succinctly expressed as `map_or(a, f)` or `map_or_else(a, f)`"
+    "using `.map(f).unwrap_or(a)` or `.map(f).unwrap_or_else(func)`, which are more succinctly expressed as `map_or(a, f)` or `map_or_else(a, f)`",
+    @msrv_behavior = "`Option` cases can be linted on all configured MSRVs. `Result` cases are only linted when the configured MSRV is at least 1.41, because they suggest `Result::map_or`. When the configured MSRV is at least 1.70, boolean `unwrap_or(false)` cases suggest `is_some_and()` or `is_ok_and()` instead of `map_or()`."
 }
 
 declare_clippy_lint! {
@@ -2446,7 +2468,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.84.0"]
     pub MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
     restriction,
-    "map of a trivial closure (not dependent on parameter) over a range"
+    "map of a trivial closure (not dependent on parameter) over a range",
+    @msrv_behavior = "When eager evaluation is suitable, this lint suggests `repeat_n` if the configured MSRV is at least 1.82, otherwise it suggests `repeat().take(...)`. For lazy closures, it only emits when the configured MSRV is at least 1.28, because it suggests `repeat_with().take(...)`."
 }
 
 declare_clippy_lint! {
@@ -2865,7 +2888,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.42.0"]
     pub OPTION_AS_REF_DEREF,
     complexity,
-    "using `as_ref().map(Deref::deref)`, which is more succinctly expressed as `as_deref()`"
+    "using `as_ref().map(Deref::deref)`, which is more succinctly expressed as `as_deref()`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.40, because it suggests `Option::as_deref` or `Option::as_deref_mut`."
 }
 
 declare_clippy_lint! {
@@ -2951,7 +2975,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub OR_FUN_CALL,
     nursery,
-    "using any `*or` method with a function call, which suggests `*or_else`"
+    "using any `*or` method with a function call, which suggests `*or_else`",
+    @msrv_behavior = "Result `unwrap_or_default` suggestions are only emitted when the configured MSRV is at least 1.16. Other `Option` suggestions are not MSRV-gated."
 }
 
 declare_clippy_lint! {
@@ -3058,7 +3083,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.74.0"]
     pub PATH_ENDS_WITH_EXT,
     suspicious,
-    "attempting to compare file extensions using `Path::ends_with`"
+    "attempting to compare file extensions using `Path::ends_with`",
+    @msrv_behavior = "When the configured MSRV is at least 1.70, this lint suggests `Option::is_some_and`; otherwise it suggests `map_or(false, ...)`."
 }
 
 declare_clippy_lint! {
@@ -3092,7 +3118,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.94.0"]
     pub PTR_OFFSET_BY_LITERAL,
     pedantic,
-    "unneeded pointer offset"
+    "unneeded pointer offset",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.26, because it suggests pointer `add` or `sub` methods."
 }
 
 declare_clippy_lint! {
@@ -3129,7 +3156,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.30.0"]
     pub PTR_OFFSET_WITH_CAST,
     complexity,
-    "unneeded pointer offset cast"
+    "unneeded pointer offset cast",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.26, because it suggests pointer `add` or `sub` methods."
 }
 
 declare_clippy_lint! {
@@ -3460,7 +3488,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.67.0"]
     pub SEEK_FROM_CURRENT,
     complexity,
-    "use dedicated method for seek from current position"
+    "use dedicated method for seek from current position",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.51, because it suggests `stream_position`."
 }
 
 declare_clippy_lint! {
@@ -3491,7 +3520,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.67.0"]
     pub SEEK_TO_START_INSTEAD_OF_REWIND,
     complexity,
-    "jumping to the start of stream using `seek` method"
+    "jumping to the start of stream using `seek` method",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.55, because it suggests `rewind`."
 }
 
 declare_clippy_lint! {
@@ -3624,7 +3654,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.97.0"]
     pub SOME_FILTER,
     complexity,
-    "using `Some(x).filter(|_| predicate)`, which is more succinctly expressed as `predicate.then(x)`"
+    "using `Some(x).filter(|_| predicate)`, which is more succinctly expressed as `predicate.then(x)`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.62, because it suggests `bool::then_some`."
 }
 
 declare_clippy_lint! {
@@ -4400,7 +4431,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.84.0"]
     pub UNNECESSARY_MAP_OR,
     style,
-    "reduce unnecessary calls to `.map_or(bool, …)`"
+    "reduce unnecessary calls to `.map_or(bool, …)`",
+    @msrv_behavior = "This lint can suggest direct comparisons on all configured MSRVs. It only suggests `is_some_and` or `is_ok_and` when the configured MSRV is at least 1.70, and only suggests `is_none_or` when the configured MSRV is at least 1.82."
 }
 
 declare_clippy_lint! {
@@ -4540,7 +4572,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.59.0"]
     pub UNNECESSARY_TO_OWNED,
     perf,
-    "unnecessary calls to `to_owned`-like functions"
+    "unnecessary calls to `to_owned`-like functions",
+    @msrv_behavior = "When this lint suggests iterator adapters for `Copy` items, it uses `copied()` only when the configured MSRV is at least 1.36; otherwise it uses `cloned()`."
 }
 
 declare_clippy_lint! {
@@ -4681,7 +4714,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.86.0"]
     pub USELESS_NONZERO_NEW_UNCHECKED,
     complexity,
-    "using `NonZero::new_unchecked()` in a `const` context"
+    "using `NonZero::new_unchecked()` in a `const` context",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.83, because it suggests `Option::unwrap` in const contexts."
 }
 
 declare_clippy_lint! {

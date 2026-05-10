@@ -32,7 +32,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.41.0"]
     pub TO_DIGIT_IS_SOME,
     style,
-    "`char.is_digit()` is clearer"
+    "`char.is_digit()` is clearer",
+    @msrv_behavior = "This lint is emitted for all MSRVs outside const contexts. In const contexts, it is only emitted when the configured MSRV is at least 1.87."
 }
 
 impl_lint_pass!(ToDigitIsSome => [TO_DIGIT_IS_SOME]);

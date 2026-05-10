@@ -60,7 +60,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.64.0"]
     pub STD_INSTEAD_OF_ALLOC,
     restriction,
-    "type is imported from std when available in alloc"
+    "type is imported from std when available in alloc",
+    @msrv_behavior = "This lint only suggests moving an item from `std` to `alloc` when that item and its re-export path are stable for the configured MSRV."
 }
 
 declare_clippy_lint! {
@@ -83,7 +84,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.64.0"]
     pub STD_INSTEAD_OF_CORE,
     restriction,
-    "type is imported from std when available in core"
+    "type is imported from std when available in core",
+    @msrv_behavior = "This lint only suggests moving an item from `std` to `core` when that item and its re-export path are stable for the configured MSRV."
 }
 
 impl_lint_pass!(StdReexports => [

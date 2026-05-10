@@ -32,7 +32,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.79.0"]
     pub LEGACY_NUMERIC_CONSTANTS,
     style,
-    "checks for usage of legacy std numeric constants and methods"
+    "checks for usage of legacy std numeric constants and methods",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.43, because it suggests primitive numeric associated constants such as `i32::MAX`."
 }
 
 impl_lint_pass!(LegacyNumericConstants => [LEGACY_NUMERIC_CONSTANTS]);

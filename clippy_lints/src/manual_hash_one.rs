@@ -44,7 +44,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.75.0"]
     pub MANUAL_HASH_ONE,
     complexity,
-    "manual implementations of `BuildHasher::hash_one`"
+    "manual implementations of `BuildHasher::hash_one`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.71, because it suggests `BuildHasher::hash_one`."
 }
 
 impl_lint_pass!(ManualHashOne => [MANUAL_HASH_ONE]);
