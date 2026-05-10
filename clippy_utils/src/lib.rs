@@ -2486,7 +2486,7 @@ fn cfg_implies_test(cfg: &CfgEntry) -> Option<bool> {
         CfgEntry::NameValue { name: sym::test, .. } => Some(true),
         CfgEntry::All(subs, _) => subs
             .iter()
-            .map(|item| cfg_implies_test(item))
+            .map(cfg_implies_test)
             .reduce(|a, b| match (a, b) {
                 (Some(true), Some(true)) => Some(true),
                 (Some(false), Some(false)) => Some(false),
@@ -2496,7 +2496,7 @@ fn cfg_implies_test(cfg: &CfgEntry) -> Option<bool> {
             .unwrap_or(None),
         CfgEntry::Any(subs, _) => subs
             .iter()
-            .map(|item| cfg_implies_test(item))
+            .map(cfg_implies_test)
             .reduce(|a, b| match (a, b) {
                 (Some(true), Some(true)) => Some(true),
                 (Some(false), Some(false)) => Some(false),
