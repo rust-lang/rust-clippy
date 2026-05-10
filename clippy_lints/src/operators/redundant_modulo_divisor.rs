@@ -23,8 +23,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, op: BinOpKind, lhs: &
         &mut term_count,
         &mut found_divisor,
         true,
-    )
-        || term_count < 3
+    ) || term_count < 3
         || !found_divisor
     {
         return;
