@@ -172,6 +172,9 @@ fn lint_explicit_closure(cx: &LateContext<'_>, replace: Span, root: Span, is_cop
 
     let (message, sugg_method) = if is_copy && msrv.meets(cx, msrvs::ITERATOR_COPIED) {
         ("you are using an explicit closure for copying elements", "copied")
+    } else if is_copy {
+        // `copied()` was stabilized in 1.36, so for lower MSRV use `cloned` instead
+        ("you are using an explicit closure for cloning elements", "cloned")
     } else {
         ("you are using an explicit closure for cloning elements", "cloned")
     };
