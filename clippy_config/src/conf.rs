@@ -628,6 +628,17 @@ define_Conf! {
     /// default configuration of Clippy. By default, any configuration will replace the default value.
     #[lints(disallowed_names)]
     disallowed_names: Vec<String> = DEFAULT_DISALLOWED_NAMES.iter().map(ToString::to_string).collect(),
+    /// The list of disallowed types in public APIs, written as fully qualified paths.
+    ///
+    /// **Fields:**
+    /// - `path` (required): the fully qualified path to the type that should be disallowed
+    /// - `reason` (optional): explanation why this type is disallowed
+    /// - `replacement` (optional): suggested alternative type
+    /// - `allow-invalid` (optional, `false` by default): when set to `true`, it will ignore this entry
+    ///   if the path doesn't exist, instead of emitting an error
+    #[disallowed_paths_allow_replacements = true]
+    #[lints(disallowed_pub_api_types)]
+    disallowed_pub_api_types: Vec<DisallowedPath> = Vec::new(),
     /// The list of disallowed types, written as fully qualified paths.
     ///
     /// **Fields:**
