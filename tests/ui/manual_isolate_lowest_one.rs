@@ -1,0 +1,34 @@
+//@aux-build:proc_macros.rs
+#![warn(clippy::manual_isolate_lowest_one)]
+#![allow(clippy::unnecessary_operation, clippy::no_effect, dead_code)]
+
+use proc_macros::{external, with_span};
+
+fn unsigned(a: u32, b: u64) {
+    let _ = a & a.wrapping_neg(); //~ manual_isolate_lowest_one
+    let _ = a.wrapping_neg() & a; //~ manual_isolate_lowest_one
+    let _ = b & b.wrapping_neg(); //~ manual_isolate_lowest_one
+}
+
+fn signed(a: i32) {
+    let _ = a & -a; //~ manual_isolate_lowest_one
+    let _ = -a & a; //~ manual_isolate_lowest_one
+    let _ = a & a.wrapping_neg(); //~ manual_isolate_lowest_one
+}
+
+fn no_lint_different_operand(a: i32, c: i32) {
+    // Different operands — must not lint.
+    let _ = a & c.wrapping_neg();
+    let _ = a & -c;
+}
+
+fn no_lint_macros(a: u32) {
+    macro_rules! same {
+        ($x:expr) => {
+            $x & $x.wrapping_neg()
+        };
+    }
+    same!(a);
+    external!($a & $a.wrapping_neg());
+    with_span!(span; a & a.wrapping_neg());
+}
