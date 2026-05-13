@@ -2,7 +2,7 @@ use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::sugg::Sugg;
-use clippy_utils::{SpanlessEq, sym};
+use clippy_utils::{SpanlessEq, is_from_proc_macro, sym};
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
@@ -69,6 +69,10 @@ impl<'tcx> LateLintPass<'tcx> for ManualIsolateLowestOne {
         }
 
         if !self.msrv.meets(cx, msrvs::ISOLATE_LOWEST_ONE) {
+            return;
+        }
+
+        if is_from_proc_macro(cx, expr) {
             return;
         }
 

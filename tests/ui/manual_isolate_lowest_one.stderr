@@ -1,0 +1,41 @@
+error: manually reimplementing `isolate_lowest_one`
+  --> tests/ui/manual_isolate_lowest_one.rs:8:13
+   |
+LL |     let _ = a & a.wrapping_neg();
+   |             ^^^^^^^^^^^^^^^^^^^^ help: consider using `.isolate_lowest_one()`: `a.isolate_lowest_one()`
+   |
+   = note: `-D clippy::manual-isolate-lowest-one` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_isolate_lowest_one)]`
+
+error: manually reimplementing `isolate_lowest_one`
+  --> tests/ui/manual_isolate_lowest_one.rs:9:13
+   |
+LL |     let _ = a.wrapping_neg() & a;
+   |             ^^^^^^^^^^^^^^^^^^^^ help: consider using `.isolate_lowest_one()`: `a.isolate_lowest_one()`
+
+error: manually reimplementing `isolate_lowest_one`
+  --> tests/ui/manual_isolate_lowest_one.rs:10:13
+   |
+LL |     let _ = b & b.wrapping_neg();
+   |             ^^^^^^^^^^^^^^^^^^^^ help: consider using `.isolate_lowest_one()`: `b.isolate_lowest_one()`
+
+error: manually reimplementing `isolate_lowest_one`
+  --> tests/ui/manual_isolate_lowest_one.rs:14:13
+   |
+LL |     let _ = a & -a;
+   |             ^^^^^^ help: consider using `.isolate_lowest_one()`: `a.isolate_lowest_one()`
+
+error: manually reimplementing `isolate_lowest_one`
+  --> tests/ui/manual_isolate_lowest_one.rs:15:13
+   |
+LL |     let _ = -a & a;
+   |             ^^^^^^ help: consider using `.isolate_lowest_one()`: `a.isolate_lowest_one()`
+
+error: manually reimplementing `isolate_lowest_one`
+  --> tests/ui/manual_isolate_lowest_one.rs:16:13
+   |
+LL |     let _ = a & a.wrapping_neg();
+   |             ^^^^^^^^^^^^^^^^^^^^ help: consider using `.isolate_lowest_one()`: `a.isolate_lowest_one()`
+
+error: aborting due to 6 previous errors
+
