@@ -47,7 +47,7 @@ LL |     for i in x..x + 4 {
 help: consider using an iterator
    |
 LL -     for i in x..x + 4 {
-LL +     for <item> in vec[..x + 4].iter_mut().take(4) {
+LL +     for <item> in vec[..x + 4].iter_mut().skip(x) {
    |
 
 error: the loop variable `i` is only used to index `vec`
@@ -60,7 +60,7 @@ LL |     for i in x..=x + 4 {
 help: consider using an iterator
    |
 LL -     for i in x..=x + 4 {
-LL +     for <item> in vec[..x + 4].iter_mut().take(4 + 1) {
+LL +     for <item> in vec[..=x + 4].iter_mut().skip(x) {
    |
 
 error: the loop variable `i` is only used to index `arr`

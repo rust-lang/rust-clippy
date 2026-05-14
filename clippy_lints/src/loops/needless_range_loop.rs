@@ -93,6 +93,9 @@ pub(super) fn check<'tcx>(
                 format!(".skip({})", snippet(cx, start.span, ".."))
             };
 
+            // Preserve original lower bound for slice-based suggestions
+            let slice_skip = skip.clone();
+
             let mut end_is_start_plus_val = false;
 
             let take = if let Some(end) = *end {
@@ -169,13 +172,15 @@ pub(super) fn check<'tcx>(
                 let (repl, note) = if starts_at_zero && take_is_empty {
                     (format!("&{ref_mut}{indexed}"), None)
                 } else if !take_is_empty {
-                    // Adding condition for when 'take' is not empty Fixing `.take(n)` with slicing to preserve panic
-                    // semantics
+                    // Use a slice bound to preserve panic behaviour
+                    let end_snippet = snippet_with_applicability(cx, end.unwrap().span, "..", &mut applicability);
+                    let range = match limits {
+                        ast::RangeLimits::Closed => format!("..={end_snippet}"),
+                        ast::RangeLimits::HalfOpen => format!("..{end_snippet}"),
+                    };
+
                     (
-                        format!(
-                            "{indexed}[..{}].{method}(){method_2}",
-                            snippet_with_applicability(cx, end.unwrap().span, "..", &mut applicability)
-                        ),
+                        format!("{indexed}[{range}].{method}(){slice_skip}"),
                         Some(
                             "this suggestion preserves panic behavior, but the panic will occur \
                             before iteration if the upper bound exceeds the collection length",
