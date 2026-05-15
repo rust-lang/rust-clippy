@@ -2485,7 +2485,7 @@ pub fn is_test_function(tcx: TyCtxt<'_>, fn_def_id: LocalDefId) -> bool {
 ///
 /// # Note
 /// This function is not a generic implication check and might return `None` even if the implication
-/// could be proven. But itshould be sufficient for most real world configuration predicates.
+/// could be proven. But it should be sufficient for most real world configuration predicates.
 fn cfg_implies_test_is(value: bool, cfg: &CfgEntry) -> Option<bool> {
     /// Evaluates the Shannon cofactor of `cfg` with respect to `test = value`.
     ///
