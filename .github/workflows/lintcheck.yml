@@ -17,6 +17,9 @@ concurrency:
   group: "${{ github.workflow }}-${{ github.event.pull_request.number}}"
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   # Runs lintcheck on the PR's target branch and stores the results as an artifact
   base:

@@ -16,6 +16,9 @@ concurrency:
   group: "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   base:
     # NOTE: If you modify this job, make sure you copy the changes to clippy_mq.yml
