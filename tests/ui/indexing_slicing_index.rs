@@ -102,3 +102,99 @@ fn main() {
     let _ = x[4];
     //~^ out_of_bounds_indexing
 }
+
+mod issue_16384 {
+    use std::ops::{Deref, Index};
+
+    enum Key {
+        A,
+        B,
+    }
+
+    struct MyMap {
+        data: [&'static str; 2],
+    }
+
+    impl Index<Key> for MyMap {
+        type Output = &'static str;
+        fn index(&self, key: Key) -> &Self::Output {
+            match key {
+                Key::A => &self.data[0],
+                Key::B => &self.data[1],
+            }
+        }
+    }
+
+    impl Deref for MyMap {
+        type Target = [&'static str];
+        fn deref(&self) -> &Self::Target {
+            &self.data
+        }
+    }
+
+    fn test() {
+        let map = MyMap { data: ["a", "b"] };
+        // Should NOT lint: `get()` takes `usize`, not `Key`
+        let _ = map[Key::A];
+    }
+}
+
+mod custom_range_index {
+    use std::ops::{Index, Range};
+
+    struct MyVec<T>(T);
+
+    impl<T> Index<Range<u32>> for MyVec<T> {
+        type Output = T;
+        fn index(&self, _index: Range<u32>) -> &Self::Output {
+            &self.0
+        }
+    }
+
+    impl<T> MyVec<T> {
+        fn get(&self, _index: Range<u32>) -> Option<&T> {
+            Some(&self.0)
+        }
+    }
+
+    fn test() {
+        let v = MyVec(1);
+        // Should lint: `get(Range<u32>)` matches index type
+        let _ = v[0..1];
+        //~^ indexing_slicing
+    }
+}
+
+mod issue_16384_get_shadowing {
+    use std::ops::Deref;
+
+    enum Key {
+        A,
+        B,
+    }
+
+    struct Map<V> {
+        values: [V; 2],
+    }
+
+    impl<V> Map<V> {
+        fn get(&self, _key: &Key) -> Option<&V> {
+            todo!()
+        }
+    }
+
+    impl<V> Deref for Map<V> {
+        type Target = [V];
+
+        fn deref(&self) -> &Self::Target {
+            &self.values
+        }
+    }
+
+    fn test() {
+        let map = Map { values: ["a", "b"] };
+
+        // Don't lint: the input type of `Map::get` doesn't match the index type.
+        let _ = map[0];
+    }
+}
