@@ -3072,6 +3072,8 @@ fn foo() {}
 <a href="#duration_suboptimal_units" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for instances where a <code>std::time::Duration</code> is constructed using a smaller time unit
 when the value could be expressed more clearly using a larger unit.</p>
+<p>For literal values that would convert to 10 or fewer of the larger unit,
+this lint does not apply.</p>
 <h3>Why is this bad?</h3>
 <p>Using a smaller unit for a duration that is evenly divisible by a larger unit reduces
 readability. Readers have to mentally convert values, which can be error-prone and makes
@@ -3079,15 +3081,15 @@ the code less clear.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">use std::time::Duration;
 
-let dur = Duration::from_millis(5_000);
-let dur = Duration::from_secs(180);
+let dur = Duration::from_millis(50_000);
+let dur = Duration::from_secs(1800);
 let dur = Duration::from_mins(10 * 60);
 </code></pre>
 <p>Use instead:</p>
 <pre><code class="language-rust">use std::time::Duration;
 
-let dur = Duration::from_secs(5);
-let dur = Duration::from_mins(3);
+let dur = Duration::from_secs(50);
+let dur = Duration::from_mins(30);
 let dur = Duration::from_hours(10);
 </code></pre>
 </div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.95.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+duration_suboptimal_units">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/duration_suboptimal_units.rs#L16">View Source</a></div></div></article><article id="duration_subsec"><input id="label-duration_subsec" type="checkbox"><label for="label-duration_subsec"><h2 class="lint-title"><div class="panel-title-name" id="lint-duration_subsec">duration_subsec
