@@ -2,6 +2,7 @@
 #![feature(macro_metavar_expr)]
 #![feature(rustc_private)]
 #![feature(unwrap_infallible)]
+#![feature(control_flow_into_value)]
 #![recursion_limit = "512"]
 #![allow(clippy::missing_errors_doc, clippy::missing_panics_doc, clippy::must_use_candidate)]
 #![warn(
@@ -2475,36 +2476,51 @@ pub fn is_test_function(tcx: TyCtxt<'_>, fn_def_id: LocalDefId) -> bool {
     }
 }
 
-/// Checks if the provided `CfgEntry` evaluation to `true` implies something one the value of the
-/// `test` attribute.
+/// Checks if the provided `CfgEntry` evaluation to `true` implies the `test` attribute is equal to
+/// `value`.
 ///
-/// When the predicate can be determined statically, returns `Some(true)` or `Some(false)`,
-/// depending on whether the entry implies `test` or `not(test)` respectively.
-/// If nothing can be said regarding the value of `test`, returns `None`.
-fn cfg_implies_test(cfg: &CfgEntry) -> Option<bool> {
-    match cfg {
-        CfgEntry::NameValue { name: sym::test, .. } => Some(true),
-        CfgEntry::All(subs, _) => subs
-            .iter()
-            .map(cfg_implies_test)
-            .reduce(|a, b| match (a, b) {
-                (Some(true), Some(true)) => Some(true),
-                (Some(false), Some(false)) => Some(false),
-                (None, Some(a)) | (Some(a), None) => Some(a),
-                _ => None,
-            })
-            .unwrap_or(None),
-        CfgEntry::Any(subs, _) => subs
-            .iter()
-            .map(cfg_implies_test)
-            .reduce(|a, b| match (a, b) {
-                (Some(true), Some(true)) => Some(true),
-                (Some(false), Some(false)) => Some(false),
-                _ => None,
-            })
-            .unwrap_or(None),
-        _ => None,
+/// Returns `Some(true)` if $$cfg \implies test = value$$ is a tautology.
+/// Returns `Some(false)` if $$cfg \implies test = value$$ is a contradiction.
+/// If the algorithm cannot determine the implication, returns `None`.
+///
+/// # Note
+/// This function is not a generic implication check and might return `None` even if the implication
+/// could be proven. But itshould be sufficient for most real world configuration predicates.
+fn cfg_implies_test_is(value: bool, cfg: &CfgEntry) -> Option<bool> {
+    /// Evaluates the Shannon cofactor of `cfg` with respect to `test = value`.
+    ///
+    /// Returns `Some(true)` if the cofactor is a tautology, `Some(false)` if it's a contradiction,
+    /// and `None` if the algorithm cannot determine the cofactor's value.
+    fn evaluate_shannon_cofactor(cfg: &CfgEntry, value: bool) -> Option<bool> {
+        match cfg {
+            CfgEntry::NameValue { name: sym::test, .. } => Some(value),
+            CfgEntry::All(subs, _) => subs
+                .iter()
+                .try_fold(Some(true), |a, c| match evaluate_shannon_cofactor(c, value) {
+                    Some(false) => ControlFlow::Break(Some(false)),
+                    Some(true) => ControlFlow::Continue(a),
+                    None => ControlFlow::Continue(None),
+                })
+                .into_value(),
+            CfgEntry::Any(subs, _) => subs
+                .iter()
+                .try_fold(Some(false), |a, c| match evaluate_shannon_cofactor(c, value) {
+                    Some(true) => ControlFlow::Break(Some(true)),
+                    Some(false) => ControlFlow::Continue(a),
+                    None => ControlFlow::Continue(None),
+                })
+                .into_value(),
+            CfgEntry::Not(sub, _) => evaluate_shannon_cofactor(sub, value).map(|x| !x),
+            CfgEntry::Bool(val, _) => Some(*val),
+            CfgEntry::NameValue { .. } | CfgEntry::Version { .. } => None,
+        }
     }
+
+    // According to Boole's expansion theorem, $$cfg = (test \land cfg_{test}) \lor (\lnot test
+    // \land cfg_{\lnot test})$$
+    // Therefore, $$cfg \implies test = value$$ is equivalent to $$cfg_{test=\lnot value}$$ being a
+    // contradiction.
+    evaluate_shannon_cofactor(cfg, !value).map(|x| !x)
 }
 
 /// Checks if `id` has a `ConfigurationPredicate` attribute applied that evaluates to true only if
@@ -2518,7 +2534,7 @@ pub fn is_cfg_test(tcx: TyCtxt<'_>, id: HirId) -> bool {
             .iter()
             // If the dependency cannot be determined statically, we conservatively assume that it does compile even
             // without `test` enabled.
-            .any(|(cfg, _)| matches!(cfg_implies_test(cfg), Some(true)))
+            .any(|(cfg, _)| matches!(cfg_implies_test_is(true, cfg), Some(true)))
     {
         true
     } else {

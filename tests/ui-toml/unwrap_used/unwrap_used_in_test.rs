@@ -22,7 +22,7 @@ mod issue16369 {
 
     #[cfg(any(test, true))]
     mod any {
-        // should lint modules that can can be compiled without the `test` attribute
+        // should lint modules that can be compiled without the `test` attribute
         fn test_fn() {
             let _a: u8 = Some(2).unwrap(); //~ unwrap_used
             let _a: u8 = Some(3).expect(""); //~ expect_used
