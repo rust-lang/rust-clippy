@@ -42,8 +42,7 @@ pub(crate) fn check_assert<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
 fn is_float_const(ecx: &ConstEvalCtxt<'_>, expr: &Expr<'_>, ctxt: SyntaxContext) -> bool {
     match ecx.eval_with_source(expr, ctxt) {
         Some((c, s)) if !is_allowed(&c) => !s.is_local(),
-        Some(_) => false,
-        None => false,
+        _ => false,
     }
 }
 
