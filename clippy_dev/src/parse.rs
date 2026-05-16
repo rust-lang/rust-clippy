@@ -316,7 +316,7 @@ impl<'cx> ParseCxImpl<'cx> {
                     );
                 },
                 mac @ ("declare_lint_pass" | "impl_lint_pass") if cursor.match_all(PASS_DECL_TOKENS, &mut captures) => {
-                    let mac = if matches!(mac, "declare_lint_pass") {
+                    let mac = if mac == "declare_lint_pass" {
                         LintPassMac::Declare
                     } else {
                         LintPassMac::Impl

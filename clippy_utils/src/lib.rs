@@ -271,7 +271,7 @@ pub fn is_diagnostic_item_or_ctor(cx: &LateContext<'_>, did: DefId, item: Symbol
         DefKind::Ctor(..) => cx.tcx.parent(did),
         // Constructors for types in external crates seem to have `DefKind::Variant`
         DefKind::Variant => match cx.tcx.opt_parent(did) {
-            Some(did) if matches!(cx.tcx.def_kind(did), DefKind::Variant) => did,
+            Some(did) if cx.tcx.def_kind(did) == DefKind::Variant => did,
             _ => did,
         },
         _ => did,
@@ -286,7 +286,7 @@ pub fn is_lang_item_or_ctor(cx: &LateContext<'_>, did: DefId, item: LangItem) ->
         DefKind::Ctor(..) => cx.tcx.parent(did),
         // Constructors for types in external crates seem to have `DefKind::Variant`
         DefKind::Variant => match cx.tcx.opt_parent(did) {
-            Some(did) if matches!(cx.tcx.def_kind(did), DefKind::Variant) => did,
+            Some(did) if cx.tcx.def_kind(did) == DefKind::Variant => did,
             _ => did,
         },
         _ => did,

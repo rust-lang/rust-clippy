@@ -229,7 +229,7 @@ impl TypeClampability {
     }
 
     fn is_float(self) -> bool {
-        matches!(self, TypeClampability::Float)
+        self == TypeClampability::Float
     }
 }
 

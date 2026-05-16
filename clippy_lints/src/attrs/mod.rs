@@ -577,7 +577,7 @@ impl EarlyLintPass for PostExpansionEarlyAttributes {
         if let Some(items) = &attr.meta_item_list()
             && let Some(name) = attr.name()
         {
-            if matches!(name, sym::allow) && self.msrv.meets(msrvs::LINT_REASONS_STABILIZATION) {
+            if name == sym::allow && self.msrv.meets(msrvs::LINT_REASONS_STABILIZATION) {
                 allow_attributes::check(cx, attr);
             }
             if matches!(name, sym::allow | sym::expect) && self.msrv.meets(msrvs::LINT_REASONS_STABILIZATION) {

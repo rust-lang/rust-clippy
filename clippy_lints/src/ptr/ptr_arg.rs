@@ -30,7 +30,7 @@ pub(super) fn check_body<'tcx>(
     sig: &FnSig<'tcx>,
     is_trait_item: bool,
 ) {
-    if !matches!(sig.header.abi, ExternAbi::Rust) {
+    if sig.header.abi != ExternAbi::Rust {
         // Ignore `extern` functions with non-Rust calling conventions
         return;
     }
@@ -66,7 +66,7 @@ pub(super) fn check_body<'tcx>(
 }
 
 pub(super) fn check_trait_item<'tcx>(cx: &LateContext<'tcx>, item_id: OwnerId, sig: &FnSig<'tcx>) {
-    if !matches!(sig.header.abi, ExternAbi::Rust) {
+    if sig.header.abi != ExternAbi::Rust {
         // Ignore `extern` functions with non-Rust calling conventions
         return;
     }

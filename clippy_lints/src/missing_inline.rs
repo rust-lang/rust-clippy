@@ -89,12 +89,7 @@ impl<'tcx> LateLintPass<'tcx> for MissingInline {
             return;
         }
 
-        if cx
-            .tcx
-            .crate_types()
-            .iter()
-            .any(|t: &CrateType| matches!(t, CrateType::ProcMacro))
-        {
+        if cx.tcx.crate_types().contains(&CrateType::ProcMacro) {
             return;
         }
 
@@ -150,11 +145,7 @@ impl<'tcx> LateLintPass<'tcx> for MissingInline {
 
     fn check_impl_item(&mut self, cx: &LateContext<'tcx>, impl_item: &'tcx hir::ImplItem<'_>) {
         if impl_item.span.in_external_macro(cx.sess().source_map())
-            || cx
-                .tcx
-                .crate_types()
-                .iter()
-                .any(|t: &CrateType| matches!(t, CrateType::ProcMacro))
+            || cx.tcx.crate_types().contains(&CrateType::ProcMacro)
         {
             return;
         }

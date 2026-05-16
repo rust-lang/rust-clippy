@@ -109,7 +109,7 @@ pub fn span_contains_cfg(cx: &LateContext<'_>, s: Span) -> bool {
         let mut iter = tokenize_with_text(src);
 
         // Search for the token sequence [`#`, `[`, `cfg`]
-        while iter.any(|(t, ..)| matches!(t, TokenKind::Pound)) {
+        while iter.any(|(t, ..)| t == TokenKind::Pound) {
             let mut iter = iter.by_ref().skip_while(|(t, ..)| {
                 matches!(
                     t,

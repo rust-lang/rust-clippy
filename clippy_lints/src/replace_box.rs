@@ -167,7 +167,7 @@ impl<'tcx> Delegate<'tcx> for MovedVariablesCtxt<'_> {
                 .place
                 .projections
                 .iter()
-                .filter(|x| matches!(x.kind, ProjectionKind::Deref))
+                .filter(|x| x.kind == ProjectionKind::Deref)
             // Either no deref or multiple derefs
             && (projections.next().is_none() || projections.next().is_some())
         {

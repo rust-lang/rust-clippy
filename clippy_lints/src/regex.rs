@@ -232,7 +232,7 @@ fn is_trivial_regex(s: &regex_syntax::hir::Hir) -> Option<&'static str> {
         Empty | Look(_) => Some("the regex is unlikely to be useful as it is"),
         Literal(_) => Some("consider using `str::contains`"),
         Alternation(ref exprs) => {
-            if exprs.iter().all(|e| matches!(e.kind(), Empty)) {
+            if exprs.iter().all(|e| *e.kind() == Empty) {
                 Some("the regex is unlikely to be useful as it is")
             } else {
                 None

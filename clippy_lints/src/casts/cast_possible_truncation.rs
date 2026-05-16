@@ -159,7 +159,7 @@ pub(super) fn check(
             format!("casting `{cast_from}` to `{cast_to}` may truncate the value")
         },
 
-        (ty::Float(FloatTy::F64), None) if matches!(cast_to.kind(), &ty::Float(FloatTy::F32)) => {
+        (ty::Float(FloatTy::F64), None) if cast_to.kind() == &ty::Float(FloatTy::F32) => {
             "casting `f64` to `f32` may truncate the value".to_string()
         },
 

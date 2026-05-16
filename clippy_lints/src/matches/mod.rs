@@ -591,7 +591,7 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for the use of `matches!` with types that implement `PartialEq`.
+    /// Checks for the use of `matches!` with types that implement `PartialEq` (not manually).
     ///
     /// ### Why is this bad?
     ///
@@ -600,6 +600,7 @@ declare_clippy_lint! {
     /// ### Example
     ///
     /// ```no_run
+    /// # enum Foo { Bar }
     /// let x = Foo::Bar;
     /// if matches!(x, Foo::Bar) {
     ///     // ...

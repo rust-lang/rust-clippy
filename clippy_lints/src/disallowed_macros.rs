@@ -108,7 +108,7 @@ impl DisallowedMacros {
             if let Some(&(path, disallowed_path)) = self.disallowed.get(&mac.def_id) {
                 let msg = format!("use of a disallowed macro `{path}`");
                 let add_note = disallowed_path.diag_amendment(mac.span);
-                if matches!(mac.kind, MacroKind::Derive)
+                if mac.kind == MacroKind::Derive
                     && let Some(derive_src) = derive_src
                 {
                     span_lint_hir_and_then(
@@ -164,7 +164,7 @@ impl LateLintPass<'_> for DisallowedMacros {
         if matches!(
             item.kind,
             ItemKind::Struct(..) | ItemKind::Enum(..) | ItemKind::Union(..)
-        ) && macro_backtrace(item.span).all(|m| !matches!(m.kind, MacroKind::Derive))
+        ) && macro_backtrace(item.span).all(|m| m.kind != MacroKind::Derive)
         {
             self.derive_src = Some(item.owner_id);
         }

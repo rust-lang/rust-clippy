@@ -314,8 +314,7 @@ fn with_leading_whitespace_inner(lines: &[RelativeBytePos], src: &str, range: Ra
         && ends_with_line_comment_or_broken(&start[prev_start..])
         && let next_line = lines.partition_point(|&pos| pos.to_usize() < range.end)
         && let next_start = lines.get(next_line).map_or(src.len(), |&x| x.to_usize())
-        && tokenize(src.get(range.end..next_start)?, FrontmatterAllowed::No)
-            .any(|t| !matches!(t.kind, TokenKind::Whitespace))
+        && tokenize(src.get(range.end..next_start)?, FrontmatterAllowed::No).any(|t| t.kind != TokenKind::Whitespace)
     {
         Some(range.start)
     } else {

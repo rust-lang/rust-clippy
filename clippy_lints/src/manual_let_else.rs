@@ -180,7 +180,7 @@ fn emit_manual_let_else(
             let (sn_else, else_is_mac_call) = snippet_with_context(cx, else_body.span, span.ctxt(), "", &mut app);
 
             let else_bl = if let ExprKind::Block(block, None) = else_body.kind
-                && matches!(block.rules, BlockCheckMode::DefaultBlock)
+                && block.rules == BlockCheckMode::DefaultBlock
                 && !else_is_mac_call
             {
                 sn_else.into_owned()
