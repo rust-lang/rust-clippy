@@ -234,6 +234,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::inline_fn_without_body::INLINE_FN_WITHOUT_BODY_INFO,
     crate::inline_trait_bounds::INLINE_TRAIT_BOUNDS_INFO,
     crate::int_plus_one::INT_PLUS_ONE_INFO,
+    crate::interchangeable_params::INTERCHANGEABLE_PARAMS_INFO,
     crate::item_name_repetitions::ENUM_VARIANT_NAMES_INFO,
     crate::item_name_repetitions::MODULE_INCEPTION_INFO,
     crate::item_name_repetitions::MODULE_NAME_REPETITIONS_INFO,
