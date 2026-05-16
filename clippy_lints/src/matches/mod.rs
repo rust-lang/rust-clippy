@@ -14,6 +14,7 @@ mod match_single_binding;
 mod match_str_case_mismatch;
 mod match_wild_enum;
 mod match_wild_err_arm;
+mod matches_instead_of_eq;
 mod needless_match;
 mod overlapping_arms;
 mod redundant_guards;
@@ -591,6 +592,39 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for the use of `matches!` with types that automatically derive `PartialEq`.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// Using `matches!` instead of `==` or `!=` makes the code more verbose.
+    ///
+    /// ### Example
+    ///
+    /// ```no_run
+    /// let x = Foo::Bar;
+    /// if matches!(x, Foo::Bar) {
+    ///     // ...
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    ///
+    /// ```no_run
+    /// # #[derive(PartialEq)]
+    /// # enum Foo { Bar }
+    /// let x = Foo::Bar;
+    /// if x == Foo::Bar {
+    ///     // ...
+    /// }
+    /// ```
+    #[clippy::version = "1.97.0"]
+    pub MATCHES_INSTEAD_OF_EQ,
+    pedantic,
+    "usage of `matches!` when `==` could be used"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for unnecessary `match` or match-like `if let` returns for `Option` and `Result`
     /// when function signatures are the same.
     ///
@@ -1015,6 +1049,7 @@ impl_lint_pass!(Matches => [
     MANUAL_OK_ERR,
     MANUAL_UNWRAP_OR,
     MANUAL_UNWRAP_OR_DEFAULT,
+    MATCHES_INSTEAD_OF_EQ,
     MATCH_AS_REF,
     MATCH_BOOL,
     MATCH_LIKE_MATCHES_MACRO,
@@ -1065,6 +1100,7 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
             {
                 redundant_pattern_match::check_match(cx, expr, ex, arms);
                 redundant_pattern_match::check_matches_true(cx, expr, arm, ex);
+                matches_instead_of_eq::check(cx, expr, ex, arms);
             }
 
             if source == MatchSource::Normal && !is_span_match(cx, expr.span) {
