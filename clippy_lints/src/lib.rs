@@ -177,6 +177,7 @@ mod init_numbered_fields;
 mod inline_fn_without_body;
 mod inline_trait_bounds;
 mod int_plus_one;
+mod interchangeable_params;
 mod item_name_repetitions;
 mod items_after_statements;
 mod items_after_test_module;
@@ -871,6 +872,7 @@ rustc_lint::late_lint_methods!(
         RestWhenDestructuringStruct: rest_when_destructuring_struct::RestWhenDestructuringStruct = rest_when_destructuring_struct::RestWhenDestructuringStruct,
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
+	InterchangeableParams: interchangeable_params::InterchangeableParams = interchangeable_params::InterchangeableParams,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
