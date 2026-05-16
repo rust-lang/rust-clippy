@@ -1,0 +1,186 @@
+error: multiple parameters with the same type may be confusing
+  --> tests/ui/interchangeable_params.rs:9:1
+   |
+LL | fn transfer(from: String, to: String) {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::interchangeable-params` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::interchangeable_params)]`
+help: consider using newtypes:
+   |
+LL + struct From(String);
+LL + struct To(String);
+LL + /* .. */
+LL ~ fn transfer(from: From, to: To) {
+   |
+
+error: multiple parameters with the same type may be confusing
+  --> tests/ui/interchangeable_params.rs:13:1
+   |
+LL | fn samename(string: String, mystring: String) {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using newtypes:
+   |
+LL + struct Mystring(String);
+LL + /* .. */
+LL ~ fn samename(string: String, mystring: Mystring) {}
+   |
+
+error: multiple parameters with the same type may be confusing
+  --> tests/ui/interchangeable_params.rs:17:1
+   |
+LL | fn fn2(a: u32, b: u64, c: &mut u32, d: i64) {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using newtypes:
+   |
+LL + struct A(u32);
+LL + struct C(u32);
+LL + /* .. */
+LL ~ fn fn2(a: A, b: u64, c: &mut C, d: i64) {}
+   |
+
+error: multiple parameters with the same type may be confusing
+  --> tests/ui/interchangeable_params.rs:24:1
+   |
+LL | fn fn4(first: LocalType, second: LocalType, third: String) {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using newtypes:
+   |
+LL + struct First(LocalType);
+LL + struct Second(LocalType);
+LL + /* .. */
+LL ~ fn fn4(first: First, second: Second, third: String) {}
+   |
+
+error: multiple parameters with the same type may be confusing
+  --> tests/ui/interchangeable_params.rs:27:1
+   |
+LL | fn fn5<'a, 'b>(dogfood: &'a u32, catfood: u32, fishfood: &'b mut u32) {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using newtypes:
+   |
+LL + struct Dogfood(u32);
+LL + struct Catfood(u32);
+LL + struct Fishfood(u32);
+LL + /* .. */
+LL ~ fn fn5<'a, 'b>(dogfood: &'a Dogfood, catfood: Catfood, fishfood: &'b mut Fishfood) {}
+   |
+
+error: multiple parameters with the same type may be confusing
+  --> tests/ui/interchangeable_params.rs:79:1
+   |
+LL | fn unpack_alu(word: usize, second_word: usize, dst: *mut usize) {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using newtypes:
+   |
+LL + struct Word(usize);
+LL + struct SecondWord(usize);
+LL + struct Dst(usize);
+LL + /* .. */
+LL ~ fn unpack_alu(word: Word, second_word: SecondWord, dst: *mut Dst) {}
+   |
+
+error: multiple parameters with the same type may be confusing
+  --> tests/ui/interchangeable_params.rs:82:1
+   |
+LL | / fn data_range(
+LL | |
+LL | |     // another comment
+LL | |     data: &[u8], // test comment
+...  |
+LL | |     size: u64,
+LL | | ) -> Option<&[u8]> {
+   | |___________________^
+   |
+help: consider using newtypes:
+   |
+LL + struct DataAddress(u64);
+LL + struct RangeAddress(u64);
+LL + struct Size(u64);
+LL + /* .. */
+LL + fn data_range(
+LL +
+LL +     // another comment
+LL +     data: &[u8], // test comment
+LL +     data_address: DataAddress,
+LL +     range_address: RangeAddress,
+LL +     size: Size,
+LL ~ ) -> Option<&[u8]> {
+   |
+
+error: multiple parameters with the same type may be confusing
+  --> tests/ui/interchangeable_params.rs:92:1
+   |
+LL | / unsafe fn shallow_clone_vec(
+LL | |
+LL | |     atom: &AtomicPtr<()>,
+LL | |     ptr: *const (),
+...  |
+LL | |     len: usize,
+LL | | ) -> usize {
+   | |___________^
+   |
+help: consider using newtypes:
+   |
+LL + struct Buf(u8);
+LL + struct Offset(u8);
+LL + /* .. */
+LL + unsafe fn shallow_clone_vec(
+LL +
+LL +     atom: &AtomicPtr<()>,
+LL +     ptr: *const (),
+LL +     buf: *mut Buf,
+LL +     offset: *const Offset,
+LL +     len: usize,
+LL ~ ) -> usize {
+   |
+
+error: multiple parameters with the same type may be confusing
+  --> tests/ui/interchangeable_params.rs:103:1
+   |
+LL | / fn verify_affine_point_is_on_the_curve_scaled(
+LL | |
+LL | |     ops: &String,
+LL | |     (x, y): (&u32, &u32),
+LL | |     a_scaled: &u32,
+LL | |     b_scaled: &u32,
+LL | | ) -> Result<(), std::fmt::Error> {
+   | |_________________________________^
+   |
+help: consider using newtypes:
+   |
+LL + struct X(u32);
+LL + struct Y(u32);
+LL + struct AScaled(u32);
+LL + struct BScaled(u32);
+LL + /* .. */
+LL + fn verify_affine_point_is_on_the_curve_scaled(
+LL +
+LL +     ops: &String,
+LL +     (x, y): (&X, &Y),
+LL +     a_scaled: &AScaled,
+LL +     b_scaled: &BScaled,
+LL ~ ) -> Result<(), std::fmt::Error> {
+   |
+
+error: multiple parameters with the same type may be confusing
+  --> tests/ui/interchangeable_params.rs:123:1
+   |
+LL | const fn compute_bitmask(bit: u32, otherbit: u32) -> u32 {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using newtypes:
+   |
+LL + struct Bit(u32);
+LL + struct Otherbit(u32);
+LL + /* .. */
+LL ~ const fn compute_bitmask(bit: Bit, otherbit: Otherbit) -> u32 {
+   |
+
+error: aborting due to 10 previous errors
+

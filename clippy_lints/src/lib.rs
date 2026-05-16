@@ -173,6 +173,7 @@ mod init_numbered_fields;
 mod inline_fn_without_body;
 mod inline_trait_bounds;
 mod int_plus_one;
+mod interchangeable_params;
 mod item_name_repetitions;
 mod items_after_statements;
 mod items_after_test_module;
@@ -862,6 +863,7 @@ rustc_lint::late_lint_methods!(
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
         WithCapacityZero: with_capacity_zero::WithCapacityZero = with_capacity_zero::WithCapacityZero,
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
+	InterchangeableParams: interchangeable_params::InterchangeableParams = interchangeable_params::InterchangeableParams,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
