@@ -49,10 +49,7 @@ pub fn check_fn(cx: &LateContext<'_>, kind: FnKind<'_>, decl: &FnDecl<'_>, body:
     {
         if let ExprKind::Block(unsafe_block, _) = block_expr.kind
             && unsafe_block.stmts.is_empty()
-            && matches!(
-                unsafe_block.rules,
-                BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided)
-            )
+            && unsafe_block.rules == BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided)
             && let Some(unsafe_block_expr) = unsafe_block.expr
         {
             unsafe_block_expr

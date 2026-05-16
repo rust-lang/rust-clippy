@@ -103,10 +103,10 @@ fn find_innermost_closure<'tcx>(
         let mut capture_clause = closure.capture_clause;
 
         if let ExprKind::Closure(inner_closure) = body.value.kind {
-            if matches!(inner_closure.kind, DESUGARED_ASYNC_CLOSURE_KIND) {
+            if inner_closure.kind == DESUGARED_ASYNC_CLOSURE_KIND {
                 asyncness = ty::Asyncness::Yes;
                 unwrapped_body_value = cx.tcx.hir_body(inner_closure.body).value;
-            } else if matches!(inner_closure.kind, DESUGARED_ASYNC_BLOCK_CLOSURE_KIND) {
+            } else if inner_closure.kind == DESUGARED_ASYNC_BLOCK_CLOSURE_KIND {
                 asyncness = ty::Asyncness::Yes;
                 capture_clause = inner_closure.capture_clause;
                 unwrapped_body_value = cx.tcx.hir_body(inner_closure.body).value;

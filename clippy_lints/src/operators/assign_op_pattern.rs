@@ -157,7 +157,7 @@ fn mut_borrows_in_expr(cx: &LateContext<'_>, e: &hir::Expr<'_>) -> HirIdSet {
     struct S(HirIdSet);
     impl Delegate<'_> for S {
         fn borrow(&mut self, place: &PlaceWithHirId<'_>, _: HirId, kind: BorrowKind) {
-            if matches!(kind, BorrowKind::Mutable) {
+            if kind == BorrowKind::Mutable {
                 self.0.insert(match place.place.base {
                     PlaceBase::Local(id) => id,
                     PlaceBase::Upvar(id) => id.var_path.hir_id,

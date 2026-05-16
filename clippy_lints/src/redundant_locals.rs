@@ -103,7 +103,7 @@ fn is_by_value_closure_capture(cx: &LateContext<'_>, redefinition: HirId, root_v
 
     cx.tcx.is_closure_like(closure_def_id.to_def_id())
         && cx.tcx.closure_captures(closure_def_id).iter().any(|c| {
-            matches!(c.info.capture_kind, UpvarCapture::ByValue)
+            c.info.capture_kind == UpvarCapture::ByValue
                 && matches!(c.place.base, PlaceBase::Upvar(upvar) if upvar.var_path.hir_id == root_variable)
         })
 }

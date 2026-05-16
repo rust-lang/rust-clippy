@@ -44,7 +44,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, receiver: &Expr<'_>, 
                     // Negate expr if original code has subtraction and expr is on the right side
                     let maybe_neg_sugg = |expr, hir_id, app: &mut _| {
                         let sugg = Sugg::hir_with_applicability(cx, expr, "_", app);
-                        if matches!(op, BinOpKind::Sub) && hir_id == rhs.hir_id {
+                        if op == BinOpKind::Sub && hir_id == rhs.hir_id {
                             -sugg
                         } else {
                             sugg

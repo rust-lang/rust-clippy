@@ -601,6 +601,7 @@ declare_clippy_lint! {
     /// ### Example
     ///
     /// ```no_run
+    /// # enum Foo { Bar }
     /// let x = Foo::Bar;
     /// if matches!(x, Foo::Bar) {
     ///     // ...
@@ -1134,7 +1135,7 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
                         _ => true,
                     });
                     while let Some((t, ..)) = iter.next() {
-                        if matches!(t, TokenKind::Pound)
+                        if t == TokenKind::Pound
                             && matches!(iter.next(), Some((TokenKind::OpenBracket, ..)))
                             && matches!(iter.next(), Some((TokenKind::Ident, "cfg", _)))
                         {

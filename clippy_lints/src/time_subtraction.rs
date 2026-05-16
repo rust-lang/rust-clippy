@@ -91,7 +91,7 @@ impl UncheckedTimeSubtraction {
 impl LateLintPass<'_> for UncheckedTimeSubtraction {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ Expr<'_>) {
         let (lhs, rhs) = match expr.kind {
-            ExprKind::Binary(op, lhs, rhs) if matches!(op.node, BinOpKind::Sub,) => (lhs, rhs),
+            ExprKind::Binary(op, lhs, rhs) if op.node == BinOpKind::Sub => (lhs, rhs),
             ExprKind::MethodCall(_, lhs, [rhs], _) if cx.ty_based_def(expr).is_diag_item(cx, sym::sub) => (lhs, rhs),
             _ => return,
         };
@@ -157,7 +157,7 @@ fn is_instant_now_call(cx: &LateContext<'_>, expr_block: &'_ Expr<'_>) -> bool {
 /// Returns true if this subtraction is part of a chain like `(a - b) - c`
 fn is_chained_time_subtraction(cx: &LateContext<'_>, lhs: &Expr<'_>) -> bool {
     if let ExprKind::Binary(op, inner_lhs, inner_rhs) = &lhs.kind
-        && matches!(op.node, BinOpKind::Sub)
+        && op.node == BinOpKind::Sub
     {
         let typeck = cx.typeck_results();
         let left_ty = typeck.expr_ty(inner_lhs);

@@ -729,7 +729,7 @@ fn get_captured_ids(cx: &LateContext<'_>, ty: Ty<'_>) -> HirIdSet {
                         .unwrap()
                         .into_iter()
                         .for_each(|(hir_id, capture_kind)| {
-                            if matches!(capture_kind, CaptureKind::Ref(Mutability::Mut)) {
+                            if capture_kind == CaptureKind::Ref(Mutability::Mut) {
                                 set.insert(hir_id);
                             }
                         });
