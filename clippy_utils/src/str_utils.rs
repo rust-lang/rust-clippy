@@ -1,12 +1,18 @@
-/// Dealing with string indices can be hard, this struct ensures that both the
-/// character and byte index are provided for correct indexing.
+/// Pairs a character index with the corresponding UTF-8 byte index in a string.
+///
+/// Rust string slicing uses byte offsets, while many string algorithms reason
+/// about character positions. Keeping both indices avoids accidental panics or
+/// misaligned splits when working with non-ASCII text.
 #[derive(Debug, Default, PartialEq, Eq)]
 pub struct StrIndex {
+    /// Index counted in Unicode scalar values (`.chars()`).
     pub char_index: usize,
+    /// Index counted in UTF-8 bytes (for `&str` slicing).
     pub byte_index: usize,
 }
 
 impl StrIndex {
+    /// Creates an index pairing a UTF-8 byte offset with a character offset.
     pub fn new(char_index: usize, byte_index: usize) -> Self {
         Self { char_index, byte_index }
     }
