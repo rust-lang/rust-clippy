@@ -22,6 +22,14 @@ enum Foo2 {
 #[derive(PartialEq)]
 struct Empty;
 
+struct Manual;
+
+impl PartialEq for Manual {
+    fn eq(&self, _other: &Self) -> bool {
+        true
+    }
+}
+
 fn main() {
     let x = Empty;
     let _val = matches!(x, Empty);
@@ -67,4 +75,8 @@ fn main() {
 
     // Should not emit the lint.
     let _val = matches!(x, Foo2::Bar(..) | Foo2::Baz { .. });
+
+    let x = Manual;
+    // Should not emit the lint since `Manual` implements `PartialEq` manually.
+    let _val = matches!(x, Manual);
 }

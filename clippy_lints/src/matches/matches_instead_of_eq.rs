@@ -93,15 +93,25 @@ pub(super) fn check(
                 }
             }
 
-            span_lint_and_sugg(
-                cx,
-                MATCHES_INSTEAD_OF_EQ,
-                span,
-                format!("this expression can be replaced with a `{comparison}` comparison"),
-                "replace with",
-                format!("{derefs1}{snippet1} {comparison} {derefs2}{snippet2}"),
-                Applicability::MaybeIncorrect,
-            );
+            cx.tcx.for_each_relevant_impl(partial_eq_def_id, expr_ty, |impl_id| {
+                if !cx.tcx.is_automatically_derived(impl_id) {
+                    return;
+                }
+
+                let trait_ref = cx.tcx.impl_trait_ref(impl_id);
+                if trait_ref.instantiate_identity().skip_norm_wip().args.type_at(1) != ty2 {
+                    return;
+                }
+                span_lint_and_sugg(
+                    cx,
+                    MATCHES_INSTEAD_OF_EQ,
+                    span,
+                    format!("this expression can be replaced with a `{comparison}` comparison"),
+                    "replace with",
+                    format!("{derefs1}{snippet1} {comparison} {derefs2}{snippet2}"),
+                    Applicability::MaybeIncorrect,
+                );
+            });
         } else {
             // If for unknown reasons, `snippet_opt` failed...
             span_lint_and_help(
