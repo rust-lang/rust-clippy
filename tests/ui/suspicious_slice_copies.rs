@@ -9,6 +9,10 @@ fn arr_incr(arr: &mut [i32; K]) {
     }
 }
 
+struct ArrFieldStruct {
+    arr: [i32; N],
+}
+
 #[clippy::msrv = "1.92.0"]
 fn test_msrv_1_92(mut mut_arr: [i32; N], arr_mut_ref: &mut [i32; N]) {
     let slice_mut_ref: &mut [i32; K] = &mut mut_arr[..K].try_into().unwrap();
@@ -36,7 +40,7 @@ fn test_msrv_1_92(mut mut_arr: [i32; N], arr_mut_ref: &mut [i32; N]) {
     let slice_mut_ref: &mut [i32; K] = &mut mut_vec[..K].try_into().unwrap();
     //~^ suspicious_slice_copies
 
-    let mut arr: [i32; N] = [0; 5];
+    let mut arr: [i32; N] = [0; N];
     let slice: &mut [i32] = &mut arr[..K];
 
     let mut_arr_ref: &mut [i32; K] = &mut slice.try_into().unwrap();
@@ -49,6 +53,14 @@ fn test_msrv_1_92(mut mut_arr: [i32; N], arr_mut_ref: &mut [i32; N]) {
     //~^ suspicious_slice_copies
 
     arr_incr(&mut arr[..K].try_into().expect("never happen"));
+    //~^ suspicious_slice_copies
+
+    let mut arr_field_struct = ArrFieldStruct { arr: [0; N] };
+    let mut_field_arr: &mut [i32; K] = &mut arr_field_struct.arr[..K].try_into().unwrap();
+    //~^ suspicious_slice_copies
+
+    let mut arr_2d: [[i32; N]; N] = [[0; N]; N];
+    let slice_mut_ref: &mut [i32; K] = &mut arr_2d[0][..K].try_into().unwrap();
     //~^ suspicious_slice_copies
 }
 
@@ -79,7 +91,7 @@ fn test_msrv_1_93(mut mut_arr: [i32; N], arr_mut_ref: &mut [i32; N]) {
     let slice_mut_ref: &mut [i32; K] = &mut mut_vec[..K].try_into().unwrap();
     //~^ suspicious_slice_copies
 
-    let mut arr: [i32; N] = [0; 5];
+    let mut arr: [i32; N] = [0; N];
     let slice: &mut [i32] = &mut arr[..K];
 
     let mut_arr_ref: &mut [i32; K] = &mut slice.try_into().unwrap();
@@ -92,6 +104,14 @@ fn test_msrv_1_93(mut mut_arr: [i32; N], arr_mut_ref: &mut [i32; N]) {
     //~^ suspicious_slice_copies
 
     arr_incr(&mut arr[..K].try_into().expect("never happen"));
+    //~^ suspicious_slice_copies
+
+    let mut arr_field_struct = ArrFieldStruct { arr: [0; N] };
+    let mut_field_arr: &mut [i32; K] = &mut arr_field_struct.arr[..K].try_into().unwrap();
+    //~^ suspicious_slice_copies
+
+    let mut arr_2d: [[i32; N]; N] = [[0; N]; N];
+    let slice_mut_ref: &mut [i32; K] = &mut arr_2d[0][..K].try_into().unwrap();
     //~^ suspicious_slice_copies
 }
 
@@ -128,4 +148,10 @@ fn main() {
 
     let slice: &[i32] = &mut_arr[..K];
     let arr_mut_ref: &mut [i32; K] = &mut slice.try_into().unwrap();
+
+    let arr_field_struct = ArrFieldStruct { arr: [0; N] };
+    let mut_field_arr: &mut [i32; K] = &mut arr_field_struct.arr[..K].try_into().unwrap();
+
+    let arr_2d: [[i32; N]; N] = [[0; N]; N];
+    let slice_mut_ref: &mut [i32; K] = &mut arr_2d[0][..K].try_into().unwrap();
 }

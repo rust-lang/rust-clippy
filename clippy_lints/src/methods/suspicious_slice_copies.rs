@@ -122,15 +122,7 @@ fn slice_can_be_borrowed_mutably(cx: &LateContext<'_>, recv_expr: &Expr<'_>) -> 
     let impls_deref_mut_trait = |ty| deref_mut_trait.is_some_and(|trait_id| implements_trait(cx, ty, trait_id, &[]));
     let impls_index_mut = |ty, idx| index_mut_trait.is_some_and(|trait_id| implements_trait(cx, ty, trait_id, &[idx]));
 
-    let mut cur_expr = if let ExprKind::Index(base, idx, _) = recv_expr.kind
-        && let base_ty = cx.typeck_results().expr_ty(base)
-        && (impls_index_mut(base_ty, cx.typeck_results().expr_ty(idx).into())
-            || base_ty.ref_mutability() == Some(Mutability::Mut))
-    {
-        base
-    } else {
-        return false;
-    };
+    let mut cur_expr = recv_expr;
 
     loop {
         if cx
@@ -162,6 +154,20 @@ fn slice_can_be_borrowed_mutably(cx: &LateContext<'_>, recv_expr: &Expr<'_>) -> 
 
                 cur_expr = base;
             },
+
+            ExprKind::Index(base, idx, _) => {
+                let base_ty = cx.typeck_results().expr_ty(base);
+
+                cur_expr = if impls_index_mut(base_ty, cx.typeck_results().expr_ty(idx).into())
+                    || base_ty.ref_mutability() == Some(Mutability::Mut)
+                {
+                    base
+                } else {
+                    return false;
+                }
+            },
+
+            ExprKind::Field(base, _) => cur_expr = base,
 
             ExprKind::Path(QPath::Resolved(
                 _,
