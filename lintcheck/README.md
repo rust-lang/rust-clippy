@@ -78,7 +78,8 @@ You can run `cargo lintcheck --fix` which will run Clippy with `--fix` and
 print a warning if Clippy's suggestions fail to apply (if the resulting code does not build). 
 This lets us spot bad suggestions or false positives automatically in some cases.  
 
-> Note: Fix mode implies `--all-targets`, so it can fix as much code as it can.
+> Note: Fix mode uses the same target selection as other Cargo commands; pass
+> `--all-targets` explicitly to fix every target in the workspace.
 
 Please note that the target dir should be cleaned afterwards since Clippy will modify
 the downloaded sources which can lead to unexpected results when running lintcheck again afterwards.
