@@ -84,6 +84,7 @@ mod bool_to_int_with_if;
 mod booleans;
 mod borrow_deref_ref;
 mod box_default;
+mod bufreader_stdin;
 mod byte_char_slices;
 mod cargo;
 mod casts;
