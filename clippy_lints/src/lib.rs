@@ -79,6 +79,7 @@ mod bool_to_int_with_if;
 mod booleans;
 mod borrow_deref_ref;
 mod box_default;
+mod bufreader_stdin;
 mod byte_char_slices;
 mod cargo;
 mod casts;
@@ -770,6 +771,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::new(unused_peekable::UnusedPeekable)),
         Box::new(|_| Box::new(bool_to_int_with_if::BoolToIntWithIf)),
         Box::new(|_| Box::new(box_default::BoxDefault)),
+        Box::new(move |_| Box::new(bufreader_stdin::BufreaderStdin::new())),
         Box::new(|_| Box::new(implicit_saturating_add::ImplicitSaturatingAdd)),
         Box::new(|_| Box::new(missing_trait_methods::MissingTraitMethods)),
         Box::new(|_| Box::new(from_raw_with_void_ptr::FromRawWithVoidPtr)),
