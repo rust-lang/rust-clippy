@@ -54,9 +54,10 @@ declare_clippy_lint! {
     /// Check the [Box documentation](https://doc.rust-lang.org/std/boxed/index.html) for more information.
     ///
     /// ### Why is this bad?
-    /// Collections already keeps their contents in a separate area on
-    /// the heap. So if you `Box` them, you just add another level of indirection
-    /// without any benefit whatsoever.
+    /// Collections already keep their contents in a separate area on the heap,
+    /// so boxing them usually adds another level of indirection without improving
+    /// performance. The main exception is when you need a smaller type (for example
+    /// `Box<Vec<T>>` is one pointer instead of three), such as in error enums.
     ///
     /// ### Example
     /// ```rust,ignore
