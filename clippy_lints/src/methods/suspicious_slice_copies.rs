@@ -173,10 +173,8 @@ fn slice_can_be_borrowed_mutably(cx: &LateContext<'_>, recv_expr: &Expr<'_>) -> 
 
                 return match node {
                     Node::Pat(pat) | Node::Param(&Param { pat, .. }) => {
-                        let local_ty = cx.typeck_results().node_type(*local);
-
-                        local_ty.ref_mutability() == Some(Mutability::Mut)
-                            || matches!(pat.kind, PatKind::Binding(BindingMode::MUT, _, _, _))
+                        matches!(pat.kind, PatKind::Binding(BindingMode::MUT, _, _, _))
+                            || cx.typeck_results().node_type(*local).ref_mutability() == Some(Mutability::Mut)
                     },
                     _ => false,
                 };
