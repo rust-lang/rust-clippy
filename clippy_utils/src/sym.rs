@@ -64,6 +64,7 @@ generate! {
     Error,
     File,
     FileType,
+    FromStr,
     FsOpenOptions,
     FsPermissions,
     HashMapEntry,
