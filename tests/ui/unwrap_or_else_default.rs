@@ -72,6 +72,13 @@ fn unwrap_or_else_default() {
     with_default_type.unwrap_or_else(Vec::new);
     //~^ unwrap_or_default
 
+    let with_nonempty_vec_macro: Option<Vec<u64>> = None;
+    with_nonempty_vec_macro.unwrap_or(vec![1]);
+
+    let with_empty_vec_macro: Option<Vec<u64>> = None;
+    with_empty_vec_macro.unwrap_or(vec![]);
+    //~^ unwrap_or_default
+
     let empty_string = None::<String>;
     empty_string.unwrap_or_else(|| "".to_string());
     //~^ unwrap_or_default
