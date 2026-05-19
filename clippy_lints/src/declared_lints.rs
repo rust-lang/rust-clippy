@@ -604,6 +604,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::operators::FLOAT_CMP_INFO,
     crate::operators::FLOAT_CMP_CONST_INFO,
     crate::operators::FLOAT_EQUALITY_WITHOUT_ABS_INFO,
+    crate::operators::IDENTITY_ASSIGN_OP_INFO,
     crate::operators::IDENTITY_OP_INFO,
     crate::operators::IMPOSSIBLE_COMPARISONS_INFO,
     crate::operators::INEFFECTIVE_BIT_MASK_INFO,
