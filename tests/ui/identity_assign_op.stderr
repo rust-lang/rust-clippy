@@ -1,0 +1,65 @@
+error: this assignment operation has no effect
+  --> tests/ui/identity_assign_op.rs:11:5
+   |
+LL |     x += 0;
+   |     ^^^^^^ help: consider replacing it with: `x`
+   |
+   = note: `-D clippy::identity-assign-op` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::identity_assign_op)]`
+
+error: this assignment operation has no effect
+  --> tests/ui/identity_assign_op.rs:14:5
+   |
+LL |     x -= 0;
+   |     ^^^^^^ help: consider replacing it with: `x`
+
+error: this assignment operation has no effect
+  --> tests/ui/identity_assign_op.rs:17:5
+   |
+LL |     x |= 0;
+   |     ^^^^^^ help: consider replacing it with: `x`
+
+error: this assignment operation has no effect
+  --> tests/ui/identity_assign_op.rs:20:5
+   |
+LL |     x ^= 0;
+   |     ^^^^^^ help: consider replacing it with: `x`
+
+error: this assignment operation has no effect
+  --> tests/ui/identity_assign_op.rs:23:5
+   |
+LL |     x <<= 0;
+   |     ^^^^^^^ help: consider replacing it with: `x`
+
+error: this assignment operation has no effect
+  --> tests/ui/identity_assign_op.rs:26:5
+   |
+LL |     x >>= 0;
+   |     ^^^^^^^ help: consider replacing it with: `x`
+
+error: this assignment operation has no effect
+  --> tests/ui/identity_assign_op.rs:29:5
+   |
+LL |     x *= 1;
+   |     ^^^^^^ help: consider replacing it with: `x`
+
+error: this assignment operation has no effect
+  --> tests/ui/identity_assign_op.rs:32:5
+   |
+LL |     x /= 1;
+   |     ^^^^^^ help: consider replacing it with: `x`
+
+error: this assignment operation has no effect
+  --> tests/ui/identity_assign_op.rs:35:5
+   |
+LL |     x += ZERO;
+   |     ^^^^^^^^^ help: consider replacing it with: `x`
+
+error: this assignment operation has no effect
+  --> tests/ui/identity_assign_op.rs:38:5
+   |
+LL |     x *= ONE;
+   |     ^^^^^^^^ help: consider replacing it with: `x`
+
+error: aborting due to 10 previous errors
+
