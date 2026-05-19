@@ -252,5 +252,29 @@ LL -     for i in 0..=3 {
 LL +     for <item> in arr[..=3].iter() {
    |
 
-error: aborting due to 20 previous errors
+error: the loop variable `i` is only used to index `arr`
+  --> tests/ui/needless_range_loop.rs:272:14
+   |
+LL |     for i in start..start {
+   |              ^^^^^^^^^^^^
+   |
+help: consider using an iterator
+   |
+LL -     for i in start..start {
+LL +     for <item> in arr.iter().take(start).skip(start) {
+   |
+
+error: the loop variable `i` is used to index `deque`
+  --> tests/ui/needless_range_loop.rs:278:14
+   |
+LL |     for i in 0..2 {
+   |              ^^^^
+   |
+help: consider using an iterator and enumerate()
+   |
+LL -     for i in 0..2 {
+LL +     for (i, <item>) in deque.iter().enumerate().take(2) {
+   |
+
+error: aborting due to 22 previous errors
 

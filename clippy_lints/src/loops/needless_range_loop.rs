@@ -1,7 +1,7 @@
 use super::NEEDLESS_RANGE_LOOP;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::{snippet, snippet_with_applicability};
-use clippy_utils::ty::has_iter_method;
+use clippy_utils::ty::{has_iter_method, is_slice_like};
 use clippy_utils::visitors::is_local_used;
 use clippy_utils::{SpanlessEq, contains_name, higher, is_integer_const, peel_hir_expr_while, sugg};
 use rustc_ast::ast;
@@ -144,6 +144,10 @@ pub(super) fn check<'tcx>(
             };
 
             let take_is_empty = take.is_empty();
+
+            // Prevent slice suggestions for types that support usize (like VecDeque)
+            let use_slice_bound = !take_is_empty && is_slice_like(cx, indexed_ty.peel_refs()) && (*end).is_some_and(|end| !range_is_provably_empty(cx, start, end, limits));
+
             let mut method_1 = take;
             let mut method_2 = skip;
 
@@ -156,7 +160,7 @@ pub(super) fn check<'tcx>(
 
             if visitor.nonindex {
                 let mut applicability = Applicability::HasPlaceholders;
-                let (repl, note) = if !take_is_empty {
+                let (repl, note) = if use_slice_bound {
                     // Use a slice bound to preserve panic behavior.
                     let end_snippet = snippet_with_applicability(cx, end.unwrap().span, "..", &mut applicability);
                     let range = match limits {
@@ -192,7 +196,7 @@ pub(super) fn check<'tcx>(
                 let mut applicability = Applicability::HasPlaceholders;
                 let (repl, note) = if starts_at_zero && take_is_empty {
                     (format!("&{ref_mut}{indexed}"), None)
-                } else if !take_is_empty {
+                } else if use_slice_bound {
                     // Use a slice bound to preserve panic behavior
                     let end_snippet = snippet_with_applicability(cx, end.unwrap().span, "..", &mut applicability);
                     let range = match limits {
@@ -240,6 +244,12 @@ fn is_len_call(expr: &Expr<'_>, var: Symbol) -> bool {
     }
 
     false
+}
+
+fn range_is_provably_empty(cx: &LateContext<'_>, start: &Expr<'_>, end: &Expr<'_>, limits: ast::RangeLimits) -> bool {
+    // true for cases like start..start
+    let ctxt = start.span.ctxt();
+    matches!(limits, ast::RangeLimits::HalfOpen) && SpanlessEq::new(cx).eq_expr(ctxt, start, end)
 }
 
 fn is_end_eq_array_len<'tcx>(
