@@ -146,7 +146,9 @@ pub(super) fn check<'tcx>(
             let take_is_empty = take.is_empty();
 
             // Prevent slice suggestions for types that support usize (like VecDeque)
-            let use_slice_bound = !take_is_empty && is_slice_like(cx, indexed_ty.peel_refs()) && (*end).is_some_and(|end| !range_is_provably_empty(cx, start, end, limits));
+            let use_slice_bound = !take_is_empty
+                && is_slice_like(cx, indexed_ty.peel_refs())
+                && (*end).is_some_and(|end| !range_is_provably_empty(cx, start, end, limits));
 
             let mut method_1 = take;
             let mut method_2 = skip;
