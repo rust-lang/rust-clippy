@@ -10,6 +10,7 @@ mod eq_op;
 mod erasing_op;
 mod float_cmp;
 mod float_equality_without_abs;
+mod identity_assign_op;
 mod identity_op;
 mod integer_division;
 mod integer_division_remainder_used;
@@ -520,6 +521,25 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    ///
+    /// ### Why is this bad?
+    ///
+    /// ### Example
+    /// ```no_run
+    /// // example code where clippy issues a warning
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// // example code which does not raise clippy warning
+    /// ```
+    #[clippy::version = "1.97.0"]
+    pub IDENTITY_ASSIGN_OP,
+    pedantic,
+    "default lint description"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for identity operations, e.g., `x + 0`.
     ///
     /// ### Why is this bad?
@@ -1007,6 +1027,7 @@ impl_lint_pass!(Operators => [
     FLOAT_CMP,
     FLOAT_CMP_CONST,
     FLOAT_EQUALITY_WITHOUT_ABS,
+    IDENTITY_ASSIGN_OP,
     IDENTITY_OP,
     IMPOSSIBLE_COMPARISONS,
     INEFFECTIVE_BIT_MASK,
@@ -1095,6 +1116,7 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                 self.arithmetic_context.check_binary(cx, e, bin_op, lhs, rhs);
                 misrefactored_assign_op::check(cx, e, bin_op, lhs, rhs);
                 modulo_arithmetic::check(cx, e, bin_op, lhs, rhs, false);
+                identity_assign_op::check(cx, e, bin_op, lhs, rhs);
             },
             ExprKind::Assign(lhs, rhs, _) => {
                 assign_op_pattern::check(cx, e, lhs, rhs, self.msrv);
