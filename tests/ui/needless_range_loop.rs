@@ -242,3 +242,29 @@ fn issue_15068() {
         let _ = a[0][i];
     }
 }
+
+fn issue_16003() {
+    let vec = vec![1, 2, 3];
+
+    for i in 0..=vec.len() {
+        //~^ needless_range_loop
+        let _ = vec[i];
+    }
+
+    for i in 0..=vec.len() {
+        //~^ needless_range_loop
+        let _ = (i, vec[i]);
+    }
+
+    let arr = [1, 2, 3];
+
+    for i in 0..4 {
+        //~^ needless_range_loop
+        let _ = arr[i];
+    }
+
+    for i in 0..=3 {
+        //~^ needless_range_loop
+        let _ = arr[i];
+    }
+}

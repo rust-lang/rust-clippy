@@ -117,7 +117,8 @@ pub(super) fn check<'tcx>(
                     end_is_start_plus_val = start_equal_left | start_equal_right;
                 }
 
-                if is_len_call(end, indexed) || is_end_eq_array_len(cx, end, limits, indexed_ty) {
+                let end_is_indexed_len = matches!(limits, ast::RangeLimits::HalfOpen) && is_len_call(end, indexed);
+                if end_is_indexed_len || is_end_eq_array_len(cx, end, limits, indexed_ty) {
                     String::new()
                 } else if visitor.indexed_mut.contains(&indexed) && contains_name(indexed, take_expr, cx) {
                     return;
@@ -150,7 +151,27 @@ pub(super) fn check<'tcx>(
                 mem::swap(&mut method_1, &mut method_2);
             }
 
+            let panic_behavior_note = "this suggestion preserves panic behavior, but the panic will occur \
+                before iteration if the range end is out of bounds";
+
             if visitor.nonindex {
+                let mut applicability = Applicability::HasPlaceholders;
+                let (repl, note) = if !take_is_empty {
+                    // Use a slice bound to preserve panic behavior.
+                    let end_snippet = snippet_with_applicability(cx, end.unwrap().span, "..", &mut applicability);
+                    let range = match limits {
+                        ast::RangeLimits::Closed => format!("..={end_snippet}"),
+                        ast::RangeLimits::HalfOpen => format!("..{end_snippet}"),
+                    };
+
+                    (
+                        format!("{indexed}[{range}].{method}().enumerate(){slice_skip}"),
+                        Some(panic_behavior_note),
+                    )
+                } else {
+                    (format!("{indexed}.{method}().enumerate(){method_1}{method_2}"), None)
+                };
+
                 span_lint_and_then(
                     cx,
                     NEEDLESS_RANGE_LOOP,
@@ -159,12 +180,12 @@ pub(super) fn check<'tcx>(
                     |diag| {
                         diag.multipart_suggestion(
                             "consider using an iterator and enumerate()",
-                            vec![
-                                (pat.span, format!("({}, <item>)", ident.name)),
-                                (span, format!("{indexed}.{method}().enumerate(){method_1}{method_2}")),
-                            ],
-                            Applicability::HasPlaceholders,
+                            vec![(pat.span, format!("({}, <item>)", ident.name)), (span, repl)],
+                            applicability,
                         );
+                        if let Some(note) = note {
+                            diag.note(note);
+                        }
                     },
                 );
             } else {
@@ -172,7 +193,7 @@ pub(super) fn check<'tcx>(
                 let (repl, note) = if starts_at_zero && take_is_empty {
                     (format!("&{ref_mut}{indexed}"), None)
                 } else if !take_is_empty {
-                    // Use a slice bound to preserve panic behaviour
+                    // Use a slice bound to preserve panic behavior
                     let end_snippet = snippet_with_applicability(cx, end.unwrap().span, "..", &mut applicability);
                     let range = match limits {
                         ast::RangeLimits::Closed => format!("..={end_snippet}"),
@@ -181,10 +202,7 @@ pub(super) fn check<'tcx>(
 
                     (
                         format!("{indexed}[{range}].{method}(){slice_skip}"),
-                        Some(
-                            "this suggestion preserves panic behavior, but the panic will occur \
-                            before iteration if the upper bound exceeds the collection length",
-                        ),
+                        Some(panic_behavior_note),
                     )
                 } else {
                     (format!("{indexed}.{method}(){method_1}{method_2}"), None)
@@ -236,8 +254,8 @@ fn is_end_eq_array_len<'tcx>(
         && let Some(arr_len) = arr_len_const.try_to_target_usize(cx.tcx)
     {
         return match limits {
-            ast::RangeLimits::Closed => end_int.get() + 1 >= arr_len.into(),
-            ast::RangeLimits::HalfOpen => end_int.get() >= arr_len.into(),
+            ast::RangeLimits::Closed => end_int.get().checked_add(1) == Some(arr_len.into()),
+            ast::RangeLimits::HalfOpen => end_int.get() == arr_len.into(),
         };
     }
 

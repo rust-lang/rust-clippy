@@ -4,7 +4,7 @@ error: the loop variable `i` is only used to index `ns`
 LL |     for i in 3..10 {
    |              ^^^^^
    |
-   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the range end is out of bounds
    = note: `-D clippy::needless-range-loop` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::needless_range_loop)]`
 help: consider using an iterator
@@ -43,7 +43,7 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in x..x + 4 {
    |              ^^^^^^^^
    |
-   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the range end is out of bounds
 help: consider using an iterator
    |
 LL -     for i in x..x + 4 {
@@ -56,7 +56,7 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in x..=x + 4 {
    |              ^^^^^^^^^
    |
-   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the range end is out of bounds
 help: consider using an iterator
    |
 LL -     for i in x..=x + 4 {
@@ -81,7 +81,7 @@ error: the loop variable `i` is only used to index `arr`
 LL |     for i in 0..2 {
    |              ^^^^
    |
-   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the range end is out of bounds
 help: consider using an iterator
    |
 LL -     for i in 0..2 {
