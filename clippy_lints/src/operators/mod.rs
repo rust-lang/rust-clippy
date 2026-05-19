@@ -521,21 +521,25 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for assignment operations with identity operands.
     ///
     /// ### Why is this bad?
+    /// These operations have no effect and can be removed for clarity.
     ///
     /// ### Example
     /// ```no_run
-    /// // example code where clippy issues a warning
+    /// let mut x = 1;
+    /// x += 0;
     /// ```
     /// Use instead:
     /// ```no_run
-    /// // example code which does not raise clippy warning
+    /// let mut x = 1;
+    /// x;
     /// ```
     #[clippy::version = "1.97.0"]
     pub IDENTITY_ASSIGN_OP,
     pedantic,
-    "default lint description"
+    "assignment operation with an identity operand"
 }
 
 declare_clippy_lint! {
