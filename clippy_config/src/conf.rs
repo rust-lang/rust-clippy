@@ -49,6 +49,10 @@ const DEFAULT_DOC_VALID_IDENTS: &[&str] = &[
     "TeX", "LaTeX", "BibTeX", "BibLaTeX",
     "MinGW",
     "CamelCase",
+    "CommonMark",
+    "IntelliJ",
+    "x86_64",
+    "global_asm", "foreign_mod", "ty_alias", "opaque_ty", "trait_alias"
 ];
 const DEFAULT_DISALLOWED_NAMES: &[&str] = &["foo", "baz", "quux"];
 const DEFAULT_ALLOWED_IDENTS_BELOW_MIN_CHARS: &[&str] = &["i", "j", "x", "y", "z", "w", "n"];

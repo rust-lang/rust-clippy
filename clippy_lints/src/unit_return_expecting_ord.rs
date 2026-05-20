@@ -17,11 +17,11 @@ declare_clippy_lint! {
     /// Likely, returning the unit type is unintentional, and
     /// could simply be caused by an extra semi-colon. Since () implements Ord
     /// it doesn't cause a compilation error.
-    /// This is the same reasoning behind the unit_cmp lint.
+    /// This is the same reasoning behind the `unit_cmp` lint.
     ///
     /// ### Known problems
     /// If returning unit is intentional, then there is no
-    /// way of specifying this without triggering needless_return lint
+    /// way of specifying this without triggering `needless_return` lint
     ///
     /// ### Example
     /// ```no_run

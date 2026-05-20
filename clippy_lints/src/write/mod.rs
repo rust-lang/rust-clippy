@@ -17,7 +17,7 @@ declare_clippy_lint! {
     ///
     /// ### Why is this bad?
     /// Using literals as `println!` args is inefficient
-    /// (c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary
+    /// (c.f., <https://github.com/matthiaskrgr/rust-str-bench>) and unnecessary
     /// (i.e., just put the literal in the format string)
     ///
     /// ### Example
@@ -155,7 +155,7 @@ declare_clippy_lint! {
     ///
     /// ### Why is this bad?
     /// Using literals as `writeln!` args is inefficient
-    /// (c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary
+    /// (c.f., <https://github.com/matthiaskrgr/rust-str-bench>) and unnecessary
     /// (i.e., just put the literal in the format string)
     ///
     /// ### Example
