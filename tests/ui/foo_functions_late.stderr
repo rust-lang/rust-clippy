@@ -1,0 +1,20 @@
+error: function gets a parameter by reference, but you clone it
+  --> tests/ui/foo_functions_late.rs:11:22
+   |
+LL |         let x = item.clone();
+   |                      ^^^^^^^
+   |
+   = help: consider passing by value instead
+   = note: `-D clippy::foo-functions-late` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::foo_functions_late)]`
+
+error: function gets a parameter by reference, but you clone it
+  --> tests/ui/foo_functions_late.rs:18:18
+   |
+LL |     let y = item.clone();
+   |                  ^^^^^^^
+   |
+   = help: consider passing by value instead
+
+error: aborting due to 2 previous errors
+
