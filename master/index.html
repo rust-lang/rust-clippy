@@ -7509,13 +7509,22 @@ slices that could be optimized by having a memcpy.</p>
 <a href="#manual_midpoint" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for manual implementation of <code>midpoint</code>.</p>
 <h3>Why is this bad?</h3>
-<p>Using <code>(x + y) / 2</code> might cause an overflow on the intermediate
-addition result.</p>
+<p>Using <code>(x + y) / 2</code> or <code>(x + y) &gt;&gt; 1</code> on integer types might cause an overflow on the
+intermediate addition result. The latter will only warn for unsigned integer types.
+Similar for floating-point <code>(x + y) / 2.0</code> and <code>(x + y) * 0.5</code>.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">let c = (a + 10) / 2;
+let d = (a + 10) &gt;&gt; 1;
+let b: f32 = 0.0;
+let e = (b + 10.0) / 2.0;
+let f = (b + 10.0) * 0.5;
 </code></pre>
 <p>Use instead:</p>
 <pre><code class="language-rust">let c = u32::midpoint(a, 10);
+let d = u32::midpoint(a, 10);
+let b: f32 = 0.0;
+let e = f32::midpoint(b, 10.0);
+let f = f32::midpoint(b, 10.0);
 </code></pre>
 <h3>Configuration</h3>
 <ul>
@@ -8878,7 +8887,7 @@ let b = 2;
 // ...
 a += a + b;
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+misrefactored_assign_op">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/operators/mod.rs#L749">View Source</a></div></div></article><article id="missing_assert_message"><input id="label-missing_assert_message" type="checkbox"><label for="label-missing_assert_message"><h2 class="lint-title"><div class="panel-title-name" id="lint-missing_assert_message">missing_assert_message
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+misrefactored_assign_op">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/operators/mod.rs#L758">View Source</a></div></div></article><article id="missing_assert_message"><input id="label-missing_assert_message" type="checkbox"><label for="label-missing_assert_message"><h2 class="lint-title"><div class="panel-title-name" id="lint-missing_assert_message">missing_assert_message
 <a href="#missing_assert_message" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-restriction">restriction</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks assertions without a custom panic message.</p>
 <h3>Why restrict this?</h3>
@@ -9541,7 +9550,7 @@ to double check all places that use modulo arithmetic.</p>
 <p>(default: <code>true</code>)</p>
 </li>
 </ul>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.42.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+modulo_arithmetic">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/operators/mod.rs#L776">View Source</a></div></div></article><article id="modulo_one"><input id="label-modulo_one" type="checkbox"><label for="label-modulo_one"><h2 class="lint-title"><div class="panel-title-name" id="lint-modulo_one">modulo_one
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.42.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+modulo_arithmetic">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/operators/mod.rs#L785">View Source</a></div></div></article><article id="modulo_one"><input id="label-modulo_one" type="checkbox"><label for="label-modulo_one"><h2 class="lint-title"><div class="panel-title-name" id="lint-modulo_one">modulo_one
 <a href="#modulo_one" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-correctness">correctness</span> <span class="label lint-level level-deny">deny</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for getting the remainder of integer division by one or minus
 one.</p>
@@ -9555,7 +9564,7 @@ contest, it’s probably a bad idea. Use something more underhanded.</p>
 <pre><code class="language-rust">let a = x % 1;
 let a = x % -1;
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+modulo_one">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/operators/mod.rs#L798">View Source</a></div></div></article><article id="multi_assignments"><input id="label-multi_assignments" type="checkbox"><label for="label-multi_assignments"><h2 class="lint-title"><div class="panel-title-name" id="lint-multi_assignments">multi_assignments
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+modulo_one">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/operators/mod.rs#L807">View Source</a></div></div></article><article id="multi_assignments"><input id="label-multi_assignments" type="checkbox"><label for="label-multi_assignments"><h2 class="lint-title"><div class="panel-title-name" id="lint-multi_assignments">multi_assignments
 <a href="#multi_assignments" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-suspicious">suspicious</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for nested assignments.</p>
 <h3>Why is this bad?</h3>
@@ -10006,7 +10015,7 @@ if x &amp; !y {} // where both x and y are booleans
 <pre><code class="language-rust">let (x,y) = (true, false);
 if x &amp;&amp; !y {}
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.54.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+needless_bitwise_bool">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/operators/mod.rs#L822">View Source</a></div></div></article><article id="needless_bool"><input id="label-needless_bool" type="checkbox"><label for="label-needless_bool"><h2 class="lint-title"><div class="panel-title-name" id="lint-needless_bool">needless_bool
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.54.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+needless_bitwise_bool">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/operators/mod.rs#L831">View Source</a></div></div></article><article id="needless_bool"><input id="label-needless_bool" type="checkbox"><label for="label-needless_bool"><h2 class="lint-title"><div class="panel-title-name" id="lint-needless_bool">needless_bool
 <a href="#needless_bool" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-complexity">complexity</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for expressions of the form <code>if c { true } else { false }</code> (or vice versa) and suggests using the condition directly.</p>
 <h3>Why is this bad?</h3>
@@ -11325,7 +11334,7 @@ and suggests to dereference the other argument instead</p>
 <p>Use instead:</p>
 <pre><code class="language-rust">x == *y
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+op_ref">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/operators/mod.rs#L851">View Source</a></div></div></article><article id="option_as_ref_cloned"><input id="label-option_as_ref_cloned" type="checkbox"><label for="label-option_as_ref_cloned"><h2 class="lint-title"><div class="panel-title-name" id="lint-option_as_ref_cloned">option_as_ref_cloned
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+op_ref">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/operators/mod.rs#L860">View Source</a></div></div></article><article id="option_as_ref_cloned"><input id="label-option_as_ref_cloned" type="checkbox"><label for="label-option_as_ref_cloned"><h2 class="lint-title"><div class="panel-title-name" id="lint-option_as_ref_cloned">option_as_ref_cloned
 <a href="#option_as_ref_cloned" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for usage of <code>.as_ref().cloned()</code> and <code>.as_mut().cloned()</code> on <code>Option</code>s</p>
 <h3>Why is this bad?</h3>
@@ -12728,7 +12737,7 @@ different value entirely.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">if status_code &lt;= 400 &amp;&amp; status_code &lt; 500 {}
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.73.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+redundant_comparisons">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/operators/mod.rs#L875">View Source</a></div></div></article><article id="redundant_else"><input id="label-redundant_else" type="checkbox"><label for="label-redundant_else"><h2 class="lint-title"><div class="panel-title-name" id="lint-redundant_else">redundant_else
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.73.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+redundant_comparisons">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/operators/mod.rs#L884">View Source</a></div></div></article><article id="redundant_else"><input id="label-redundant_else" type="checkbox"><label for="label-redundant_else"><h2 class="lint-title"><div class="panel-title-name" id="lint-redundant_else">redundant_else
 <a href="#redundant_else" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for <code>else</code> blocks that can be removed without changing semantics.</p>
 <h3>Why is this bad?</h3>
@@ -13806,7 +13815,7 @@ fn copy_position(a: &amp;mut Event, b: &amp;Event) {
     a.x = b.x;
 }
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.48.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+self_assignment">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/operators/mod.rs#L895">View Source</a></div></div></article><article id="self_named_constructors"><input id="label-self_named_constructors" type="checkbox"><label for="label-self_named_constructors"><h2 class="lint-title"><div class="panel-title-name" id="lint-self_named_constructors">self_named_constructors
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.48.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+self_assignment">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/operators/mod.rs#L904">View Source</a></div></div></article><article id="self_named_constructors"><input id="label-self_named_constructors" type="checkbox"><label for="label-self_named_constructors"><h2 class="lint-title"><div class="panel-title-name" id="lint-self_named_constructors">self_named_constructors
 <a href="#self_named_constructors" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-style">style</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Warns when constructors have the same name as their types.</p>
 <h3>Why is this bad?</h3>
@@ -17835,7 +17844,7 @@ to <code>trailing_zeros</code></p>
 <p>(default: <code>1</code>)</p>
 </li>
 </ul>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+verbose_bit_mask">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/operators/mod.rs#L934">View Source</a></div></div></article><article id="verbose_file_reads"><input id="label-verbose_file_reads" type="checkbox"><label for="label-verbose_file_reads"><h2 class="lint-title"><div class="panel-title-name" id="lint-verbose_file_reads">verbose_file_reads
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+verbose_bit_mask">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/operators/mod.rs#L943">View Source</a></div></div></article><article id="verbose_file_reads"><input id="label-verbose_file_reads" type="checkbox"><label for="label-verbose_file_reads"><h2 class="lint-title"><div class="panel-title-name" id="lint-verbose_file_reads">verbose_file_reads
 <a href="#verbose_file_reads" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-restriction">restriction</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for usage of File::read_to_end and File::read_to_string.</p>
 <h3>Why restrict this?</h3>
