@@ -1,13 +1,7 @@
 //@aux-build: proc_macros.rs
 #![warn(clippy::unnecessary_lazy_evaluations)]
-#![allow(clippy::redundant_closure)]
-#![allow(clippy::bind_instead_of_map)]
-#![allow(clippy::map_identity)]
-#![allow(clippy::needless_borrow)]
-#![allow(clippy::unnecessary_literal_unwrap)]
-#![allow(clippy::unit_arg)]
-#![allow(arithmetic_overflow)]
-#![allow(unconditional_panic)]
+#![expect(clippy::bind_instead_of_map, clippy::needless_borrow, clippy::redundant_closure)]
+#![allow(clippy::unit_arg, clippy::unnecessary_literal_unwrap)]
 
 use std::ops::Deref;
 
@@ -240,7 +234,6 @@ fn main() {
     let _: Result<usize, usize> = res.or_else(|err| Ok(err));
 }
 
-#[allow(unused)]
 fn issue9485() {
     // should not lint, is in proc macro
     with_span!(span Some(42).unwrap_or_else(|| 2););
@@ -252,7 +245,7 @@ fn issue9422(x: usize) -> Option<usize> {
 }
 
 fn panicky_arithmetic_ops(x: usize, y: isize) {
-    #![allow(clippy::identity_op, clippy::eq_op)]
+    #![allow(clippy::eq_op, clippy::identity_op)]
 
     // See comments in `eager_or_lazy.rs` for the rules that this is meant to follow
 
