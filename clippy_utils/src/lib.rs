@@ -121,7 +121,7 @@ use visitors::{Visitable, for_each_unconsumed_temporary};
 
 use crate::ast_utils::unordered_over;
 use crate::consts::{ConstEvalCtxt, Constant};
-use crate::higher::Range;
+use crate::higher::{Range, VecArgs};
 use crate::msrvs::Msrv;
 use crate::res::{MaybeDef, MaybeQPath, MaybeResPath};
 use crate::ty::{adt_and_variant_of_res, can_partially_move_ty, expr_sig, is_copy, is_recursively_primitive_type};
@@ -661,6 +661,18 @@ pub fn is_default_equivalent_call(
 ///
 /// It doesn't cover all cases, like struct literals, but it is a close approximation.
 pub fn is_default_equivalent(cx: &LateContext<'_>, e: &Expr<'_>) -> bool {
+    if let Some(vec_args) = VecArgs::hir(cx, e) {
+        match vec_args {
+            VecArgs::Vec(exprs) => {
+                return exprs.is_empty();
+            },
+            VecArgs::Repeat(expr, len) => {
+                // TODO: check `vec![x (impl Copy); 0]`
+                return false;
+            },
+        }
+    }
+
     match &e.kind {
         ExprKind::Lit(lit) => match lit.node {
             LitKind::Bool(false) | LitKind::Int(Pu128(0), _) => true,

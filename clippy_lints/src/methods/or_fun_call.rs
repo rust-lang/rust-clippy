@@ -182,11 +182,10 @@ fn check_unwrap_or_default(
 
     // needs to target Default::default in particular or be *::new and have a Default impl
     // available
-    if (is_new(fun) && output_type_implements_default(fun))
-        || match call_expr {
-            Some(call_expr) => is_default_equivalent(cx, call_expr),
-            None => is_default_equivalent_call(cx, fun, None) || closure_body_returns_empty_to_string(cx, fun),
-        }
+    if match call_expr {
+        Some(call_expr) => is_default_equivalent(cx, call_expr),
+        None => is_default_equivalent_call(cx, fun, None) || closure_body_returns_empty_to_string(cx, fun),
+    } || (is_new(fun) && output_type_implements_default(fun))
     {
         span_lint_and_sugg(
             cx,
