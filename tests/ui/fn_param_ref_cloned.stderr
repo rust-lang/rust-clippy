@@ -1,0 +1,69 @@
+error: function gets a parameter by reference, but you later unconditionally clone it
+  --> tests/ui/fn_param_ref_cloned.rs:31:18
+   |
+LL |     let a = cell.clone();
+   |                  ^^^^^^^
+   |
+note: consider passing the reference by value instead
+  --> tests/ui/fn_param_ref_cloned.rs:29:19
+   |
+LL | fn set_cell(cell: &std::cell::Cell<u32>) {
+   |                   ^^^^^^^^^^^^^^^^^^^^^
+   = note: `-D clippy::fn-param-ref-cloned` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::fn_param_ref_cloned)]`
+
+error: function gets a parameter by reference, but you later unconditionally clone it
+  --> tests/ui/fn_param_ref_cloned.rs:50:41
+   |
+LL |         let cloned_ref_param = is_clone.clone();
+   |                                         ^^^^^^^
+   |
+note: consider passing the reference by value instead
+  --> tests/ui/fn_param_ref_cloned.rs:49:41
+   |
+LL |     pub fn cloning_ref(&self, is_clone: &IsClone) {
+   |                                         ^^^^^^^^
+
+error: function gets a parameter by reference, but you later unconditionally clone it
+  --> tests/ui/fn_param_ref_cloned.rs:62:18
+   |
+LL |     is_clone_ref.clone();
+   |                  ^^^^^^^
+   |
+note: consider passing the reference by value instead
+  --> tests/ui/fn_param_ref_cloned.rs:60:50
+   |
+LL | pub fn test_gen_function<T: Clone>(is_clone_ref: &T, is_clone_owned: T) {
+   |                                                  ^^
+
+error: function gets a parameter by reference, but you later unconditionally clone it
+  --> tests/ui/fn_param_ref_cloned.rs:71:18
+   |
+LL |     is_clone_ref.clone();
+   |                  ^^^^^^^
+   |
+note: consider passing the reference by value instead
+  --> tests/ui/fn_param_ref_cloned.rs:69:74
+   |
+LL | pub fn basic_clone_function(is_not_clone_ref: &IsNotClone, is_clone_ref: &IsClone, is_clone_owned: IsClone) {
+   |                                                                          ^^^^^^^^
+
+error: function gets a parameter by reference, but you later rebind and unconditionally clone it
+  --> tests/ui/fn_param_ref_cloned.rs:92:13
+   |
+LL |     rebound.clone();
+   |             ^^^^^^^
+   |
+note: you bind the parameter into a new binding here
+  --> tests/ui/fn_param_ref_cloned.rs:91:5
+   |
+LL |     let rebound = is_clone_ref;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the parameter is passed by reference...
+  --> tests/ui/fn_param_ref_cloned.rs:69:74
+   |
+LL | pub fn basic_clone_function(is_not_clone_ref: &IsNotClone, is_clone_ref: &IsClone, is_clone_owned: IsClone) {
+   |                                                                          ^^^^^^^^
+
+error: aborting due to 5 previous errors
+
