@@ -35,6 +35,20 @@ fn or_fun_call() {
         }
     }
 
+    struct NewWithDefault;
+
+    impl NewWithDefault {
+        fn new() -> Self {
+            NewWithDefault
+        }
+    }
+
+    impl Default for NewWithDefault {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+
     enum Enum {
         A(i32),
     }
@@ -99,6 +113,14 @@ fn or_fun_call() {
 
     let real_default = None::<FakeDefault>;
     real_default.unwrap_or_default();
+    //~^ unwrap_or_default
+
+    let self_new = None::<NewWithDefault>;
+    self_new.unwrap_or_default();
+    //~^ unwrap_or_default
+
+    let self_else_new = None::<NewWithDefault>;
+    self_else_new.unwrap_or_default();
     //~^ unwrap_or_default
 
     let with_vec: Option<Vec<i32>> = Some(vec![1]);
