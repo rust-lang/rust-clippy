@@ -1,8 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::higher::VecArgs;
+use clippy_utils::is_integer_literal;
 use clippy_utils::source::{snippet, snippet_indent};
-use rustc_ast::LitKind;
-use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;
 use rustc_hir::{ConstArgKind, Expr, ExprKind, LetStmt, LocalSource, Node};
 use rustc_lint::{LateContext, LateLintPass};
@@ -48,8 +47,7 @@ impl LateLintPass<'_> for ZeroRepeatSideEffects {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {
         if let Some(args) = VecArgs::hir(cx, expr)
             && let VecArgs::Repeat(inner_expr, len) = args
-            && let ExprKind::Lit(l) = len.kind
-            && let LitKind::Int(Pu128(0), _) = l.node
+            && is_integer_literal(len, 0)
         {
             inner_check(cx, expr, inner_expr, true);
         }
@@ -62,8 +60,7 @@ impl LateLintPass<'_> for ZeroRepeatSideEffects {
             && let ConstArgKind::Anon(anon_const) = const_arg.kind
             && let length_expr = cx.tcx.hir_body(anon_const.body).value
             && !length_expr.span.from_expansion()
-            && let ExprKind::Lit(literal) = length_expr.kind
-            && let LitKind::Int(Pu128(0), _) = literal.node
+            && is_integer_literal(length_expr, 0)
         {
             inner_check(cx, expr, inner_expr, false);
         }
