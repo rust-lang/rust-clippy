@@ -1,15 +1,7 @@
-#![allow(
-    unused,
-    clippy::needless_ifs,
-    clippy::suspicious_map,
-    clippy::iter_count,
-    clippy::manual_contains
-)]
-
+#![warn(clippy::needless_collect)]
 use std::collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, LinkedList};
 
-#[warn(clippy::needless_collect)]
-#[allow(unused_variables, clippy::iter_cloned_collect, clippy::iter_next_slice)]
+#[allow(clippy::iter_cloned_collect, clippy::iter_next_slice)]
 fn main() {
     let sample = [1; 5];
     let len = sample.iter().collect::<Vec<_>>().len();
@@ -192,6 +184,7 @@ pub fn issue8055(v: impl IntoIterator<Item = i32>) -> Result<impl Iterator<Item 
     Ok(res.into_iter())
 }
 
+#[allow(clippy::needless_collect)]
 mod issue8055_regression {
     struct Foo<T> {
         inner: T,
@@ -220,7 +213,6 @@ fn issue16270() {
     _ = &(1..3).collect::<Vec<i32>>()[..];
 }
 
-#[warn(clippy::needless_collect)]
 mod collect_push_then_iter {
     use std::collections::{BinaryHeap, LinkedList, VecDeque};
 
