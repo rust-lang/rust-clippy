@@ -79,6 +79,17 @@ fn unwrap_or_else_default() {
     with_empty_vec_macro.unwrap_or_default();
     //~^ unwrap_or_default
 
+    let with_zero_repeat_copy_vec_macro: Option<Vec<u64>> = None;
+    with_zero_repeat_copy_vec_macro.unwrap_or_default();
+    //~^ unwrap_or_default
+
+    let with_zero_repeat_clone_vec_macro: Option<Vec<Box<u64>>> = None;
+    with_zero_repeat_clone_vec_macro.unwrap_or({
+        Box::new(123);
+        vec![] as std::vec::Vec<std::boxed::Box<u64>>
+    });
+    //~^ zero_repeat_side_effects
+
     let empty_string = None::<String>;
     empty_string.unwrap_or_default();
     //~^ unwrap_or_default

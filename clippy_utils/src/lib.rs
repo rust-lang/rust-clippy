@@ -124,7 +124,9 @@ use crate::consts::{ConstEvalCtxt, Constant};
 use crate::higher::{Range, VecArgs};
 use crate::msrvs::Msrv;
 use crate::res::{MaybeDef, MaybeQPath, MaybeResPath};
-use crate::ty::{adt_and_variant_of_res, can_partially_move_ty, expr_sig, is_copy, is_recursively_primitive_type};
+use crate::ty::{
+    adt_and_variant_of_res, can_partially_move_ty, expr_sig, implements_trait, is_copy, is_recursively_primitive_type,
+};
 use crate::visitors::for_each_expr_without_closures;
 
 /// Methods on `Vec` that also exists on slices.
@@ -667,8 +669,13 @@ pub fn is_default_equivalent(cx: &LateContext<'_>, e: &Expr<'_>) -> bool {
                 return exprs.is_empty();
             },
             VecArgs::Repeat(expr, len) => {
-                // TODO: check `vec![x (impl Copy); 0]`
-                return false;
+                let implements_clone = cx.tcx.get_diagnostic_item(sym::Copy).is_some_and(|copy_trait_id| {
+                    let expr_ty = cx.typeck_results().expr_ty(expr);
+                    implements_trait(cx, expr_ty, copy_trait_id, &[])
+                });
+                if implements_clone {
+                    return is_integer_literal(len, 0);
+                }
             },
         }
     }

@@ -46,8 +46,8 @@ pub(super) fn check<'tcx>(
                     } else {
                         Some(fun.span)
                     };
-                    (!inner_fun_has_args
-                        && !is_nested_expr
+
+                    (!is_nested_expr
                         && check_unwrap_or_default(cx, name, receiver, fun, Some(ex), expr.span, method_span, msrv))
                         || check_or_fn_call(cx, name, method_span, receiver, arg, None, expr.span, fun_span)
                 },

@@ -79,6 +79,14 @@ fn unwrap_or_else_default() {
     with_empty_vec_macro.unwrap_or(vec![]);
     //~^ unwrap_or_default
 
+    let with_zero_repeat_copy_vec_macro: Option<Vec<u64>> = None;
+    with_zero_repeat_copy_vec_macro.unwrap_or(vec![123; 0]);
+    //~^ unwrap_or_default
+
+    let with_zero_repeat_clone_vec_macro: Option<Vec<Box<u64>>> = None;
+    with_zero_repeat_clone_vec_macro.unwrap_or(vec![Box::new(123); 0]);
+    //~^ zero_repeat_side_effects
+
     let empty_string = None::<String>;
     empty_string.unwrap_or_else(|| "".to_string());
     //~^ unwrap_or_default
