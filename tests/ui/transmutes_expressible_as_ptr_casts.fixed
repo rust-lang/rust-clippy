@@ -1,9 +1,11 @@
-#![warn(clippy::transmutes_expressible_as_ptr_casts)]
-// These two warnings currently cover the cases transmutes_expressible_as_ptr_casts
+// The last two warnings currently cover the cases transmutes_expressible_as_ptr_casts
 // would otherwise be responsible for
-#![warn(clippy::useless_transmute)]
-#![warn(clippy::transmute_ptr_to_ptr)]
-#![allow(unused, clippy::borrow_as_ptr, clippy::missing_transmute_annotations)]
+#![warn(
+    clippy::transmute_ptr_to_ptr,
+    clippy::transmutes_expressible_as_ptr_casts,
+    clippy::useless_transmute
+)]
+#![expect(clippy::missing_transmute_annotations)]
 #![allow(function_casts_as_integer)]
 
 use std::mem::{size_of, transmute};
