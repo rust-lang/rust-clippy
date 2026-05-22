@@ -3,7 +3,6 @@
 use clippy_config::Conf;
 use clippy_utils::attrs::is_doc_hidden;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_help, span_lint_and_then};
-use clippy_utils::msrvs::Msrv;
 use clippy_utils::{is_entrypoint_fn, is_trait_impl_item};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
@@ -523,6 +522,11 @@ declare_clippy_lint! {
     ///     unimplemented!();
     /// }
     /// ```
+    ///
+    /// ### Notes
+    ///
+    /// - This lint doesn't trigger for functions attributed with `#[target_feature(enable = "...")]`,
+    ///   even if your MSRV is lower than 1.86, where these functions would be unconditionally unsafe.
     #[clippy::version = "1.39.0"]
     pub MISSING_SAFETY_DOC,
     style,
@@ -731,7 +735,6 @@ impl_lint_pass!(Documentation => [
 pub struct Documentation {
     valid_idents: FxHashSet<String>,
     check_private_items: bool,
-    msrv: Msrv,
 }
 
 impl Documentation {
@@ -739,7 +742,6 @@ impl Documentation {
         Self {
             valid_idents: conf.doc_valid_idents.iter().cloned().collect(),
             check_private_items: conf.check_private_items,
-            msrv: conf.msrv,
         }
     }
 }
@@ -787,15 +789,7 @@ impl<'tcx> LateLintPass<'tcx> for Documentation {
                         if !(is_entrypoint_fn(cx, item.owner_id.to_def_id())
                             || item.span.in_external_macro(cx.tcx.sess.source_map())) =>
                     {
-                        missing_headers::check(
-                            cx,
-                            item.owner_id,
-                            sig,
-                            headers,
-                            Some(body),
-                            self.check_private_items,
-                            self.msrv,
-                        );
+                        missing_headers::check(cx, item.owner_id, sig, headers, Some(body), self.check_private_items);
                     },
                     ItemKind::Trait { safety, .. } => match (headers.safety, safety) {
                         (false, Safety::Unsafe) => span_lint(
@@ -819,15 +813,7 @@ impl<'tcx> LateLintPass<'tcx> for Documentation {
                 if let TraitItemKind::Fn(sig, ..) = trait_item.kind
                     && !trait_item.span.in_external_macro(cx.tcx.sess.source_map())
                 {
-                    missing_headers::check(
-                        cx,
-                        trait_item.owner_id,
-                        sig,
-                        headers,
-                        None,
-                        self.check_private_items,
-                        self.msrv,
-                    );
+                    missing_headers::check(cx, trait_item.owner_id, sig, headers, None, self.check_private_items);
                 }
             },
             Node::ImplItem(impl_item) => {
@@ -842,7 +828,6 @@ impl<'tcx> LateLintPass<'tcx> for Documentation {
                         headers,
                         Some(body_id),
                         self.check_private_items,
-                        self.msrv,
                     );
                 }
             },

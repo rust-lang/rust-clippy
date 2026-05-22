@@ -1,7 +1,6 @@
 use super::{DocHeaders, MISSING_ERRORS_DOC, MISSING_PANICS_DOC, MISSING_SAFETY_DOC, UNNECESSARY_SAFETY_DOC};
 use clippy_utils::diagnostics::{span_lint, span_lint_and_note};
 use clippy_utils::macros::{is_panic, root_macro_call_first_node};
-use clippy_utils::msrvs::{Msrv, TARGET_FEATURES_1_1};
 use clippy_utils::res::MaybeDef;
 use clippy_utils::ty::implements_trait_with_env;
 use clippy_utils::visitors::for_each_expr;
@@ -19,7 +18,6 @@ pub fn check(
     headers: DocHeaders,
     body_id: Option<BodyId>,
     check_private_items: bool,
-    msrv: Msrv,
 ) {
     if !check_private_items && !cx.effective_visibilities.is_exported(owner_id.def_id) {
         return; // Private functions do not require doc comments
@@ -36,25 +34,14 @@ pub fn check(
     }
 
     let span = cx.tcx.def_span(owner_id);
-    let safety = match sig.header.safety {
-        HeaderSafety::SafeTargetFeatures => {
-            if msrv.meets(cx, TARGET_FEATURES_1_1) {
-                Safety::Safe
-            } else {
-                Safety::Unsafe
-            }
-        },
-        HeaderSafety::Normal(safety) => safety,
-    };
-
-    match (headers.safety, safety) {
-        (false, Safety::Unsafe) => span_lint(
+    match (headers.safety, sig.header.safety) {
+        (false, HeaderSafety::Normal(Safety::Unsafe)) => span_lint(
             cx,
             MISSING_SAFETY_DOC,
             span,
             "unsafe function's docs are missing a `# Safety` section",
         ),
-        (true, Safety::Safe) => span_lint(
+        (true, HeaderSafety::Normal(Safety::Safe) | HeaderSafety::SafeTargetFeatures) => span_lint(
             cx,
             UNNECESSARY_SAFETY_DOC,
             span,

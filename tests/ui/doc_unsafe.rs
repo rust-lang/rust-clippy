@@ -24,6 +24,7 @@ pub unsafe fn apocalypse(universe: &mut ()) {
 }
 
 /// This one is attributed with a target_feature, so doesn't need a safety comment
+// We don't test UNNECESSARY_SAFETY_DOC here as it triggering would be platform specific...
 #[cfg(target_arch = "x86")]
 #[target_feature(enable = "sse4_2")]
 pub fn target_feature_x86(universe: &mut ()) {
