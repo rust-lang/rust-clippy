@@ -65,7 +65,7 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, arms: &'tcx [Arm<'tcx>], msrv:
         // `Some(x) if x == Some(2)`
         // `Some(x) if Some(2) == x`
         else if let ExprKind::Binary(bin_op, local, pat) = guard.kind
-            && matches!(bin_op.node, BinOpKind::Eq)
+            && bin_op.node == BinOpKind::Eq
             // Ensure they have the same type. If they don't, we'd need deref coercion which isn't
             // possible (currently) in a pattern. In some cases, you can use something like
             // `as_deref` or similar but in general, we shouldn't lint this as it'd create an

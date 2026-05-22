@@ -88,7 +88,7 @@ fn has_span_from_proc_macro(cx: &EarlyContext<'_>, args: &FormatArgs) -> bool {
                         TokenKind::LineComment { .. } | TokenKind::BlockComment { .. } | TokenKind::Whitespace
                     )
                 });
-                iter.next().is_some_and(|t| matches!(t.kind, TokenKind::Comma))
+                iter.next().is_some_and(|t| t.kind == TokenKind::Comma)
                     && iter.all(|t| matches!(t.kind, TokenKind::Ident | TokenKind::Eq))
             })
         })

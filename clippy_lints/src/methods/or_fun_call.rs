@@ -126,7 +126,7 @@ fn check_unwrap_or_default(
     let is_new = |fun: &hir::Expr<'_>| {
         if let hir::ExprKind::Path(ref qpath) = fun.kind {
             let path = last_path_segment(qpath).ident.name;
-            matches!(path, sym::new)
+            path == sym::new
         } else {
             false
         }

@@ -87,7 +87,7 @@ fn desugar_async_block<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Op
                 m.values().all(|places| {
                     places
                         .iter()
-                        .all(|place| matches!(place.info.capture_kind, UpvarCapture::ByValue))
+                        .all(|place| place.info.capture_kind == UpvarCapture::ByValue)
                 })
             })
             .then_some(body.value)

@@ -110,7 +110,7 @@ fn check_trait_items(cx: &LateContext<'_>, visited_trait: &Item<'_>, ident: Iden
                 [Some(Ident {
                     name: kw::SelfLower,
                     ..
-                })],
+                })]
             )
     }
 

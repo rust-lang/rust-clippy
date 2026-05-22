@@ -141,11 +141,7 @@ where
             }
 
             // `ref` and `ref mut` annotations were handled earlier.
-            let annotation = if matches!(annotation, BindingMode::MUT) {
-                "mut "
-            } else {
-                ""
-            };
+            let annotation = if annotation == BindingMode::MUT { "mut " } else { "" };
 
             format!("|{annotation}{some_binding}| {closure_body}")
         }

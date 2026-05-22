@@ -101,7 +101,7 @@ fn fmt_conf(check: bool) -> Result<(), Error> {
             pos += x.len;
             (start as usize, x)
         })
-        .filter(|(_, t)| !matches!(t.kind, TokenKind::Whitespace))
+        .filter(|(_, t)| t.kind != TokenKind::Whitespace)
     {
         match (state, t.kind) {
             (State::Start, TokenKind::LineComment { doc_style: Some(_) }) => {

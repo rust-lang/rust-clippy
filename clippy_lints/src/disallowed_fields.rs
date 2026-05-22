@@ -68,7 +68,7 @@ impl DisallowedFields {
             tcx,
             &conf.disallowed_fields,
             PathNS::Field,
-            |def_kind| matches!(def_kind, DefKind::Field),
+            |def_kind| def_kind == DefKind::Field,
             "field",
             false,
         );

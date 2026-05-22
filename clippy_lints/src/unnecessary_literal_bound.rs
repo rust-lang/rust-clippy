@@ -60,7 +60,7 @@ fn extract_anonymous_ref<'tcx>(hir_ty: &Ty<'tcx>) -> Option<&'tcx Ty<'tcx>> {
         return None;
     };
 
-    if !lifetime.is_anonymous() || !matches!(mutbl, Mutability::Not) {
+    if !lifetime.is_anonymous() || mutbl != Mutability::Not {
         return None;
     }
 
