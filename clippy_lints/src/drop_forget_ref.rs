@@ -89,8 +89,8 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.97.0"]
     pub MEM_FORGET_FUTURE,
-    nursery,
-    "default lint description"
+    suspicious,
+    "`mem::forget` usage on `Future` types, likely to cause problems with cancelation"
 }
 
 declare_lint_pass!(DropForgetRef => [
@@ -104,8 +104,7 @@ const DROP_NON_DROP_SUMMARY: &str = "call to `std::mem::drop` with a value that 
                                  Dropping such a type only extends its contained lifetimes";
 const FORGET_NON_DROP_SUMMARY: &str = "call to `std::mem::forget` with a value that does not implement `Drop`. \
                                    Forgetting such a type is the same as dropping it";
-const MEM_FORGET_FUTURE_SUMMARY: &str = "call to `std::mem::forget` with a value that does implement `Future`. \
-                                   Forgetting such a type might cause problems with cancelation";
+const MEM_FORGET_FUTURE_SUMMARY: &str = "forgetting a Future might cause problems with cancelation";
 
 impl<'tcx> LateLintPass<'tcx> for DropForgetRef {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
