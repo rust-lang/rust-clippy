@@ -7299,6 +7299,7 @@ Released 2018-09-13
 [`maybe_misused_cfg`]: https://rust-lang.github.io/rust-clippy/main/index.html#maybe_misused_cfg
 [`mem_discriminant_non_enum`]: https://rust-lang.github.io/rust-clippy/main/index.html#mem_discriminant_non_enum
 [`mem_forget`]: https://rust-lang.github.io/rust-clippy/main/index.html#mem_forget
+[`mem_forget_future`]: https://rust-lang.github.io/rust-clippy/main/index.html#mem_forget_future
 [`mem_replace_option_with_none`]: https://rust-lang.github.io/rust-clippy/main/index.html#mem_replace_option_with_none
 [`mem_replace_option_with_some`]: https://rust-lang.github.io/rust-clippy/main/index.html#mem_replace_option_with_some
 [`mem_replace_with_default`]: https://rust-lang.github.io/rust-clippy/main/index.html#mem_replace_with_default

@@ -1,0 +1,40 @@
+error: call to `std::mem::forget` with a value that does implement `Future`. Forgetting such a type might cause problems with cancelation
+  --> tests/ui/mem_forget_future.rs:9:5
+   |
+LL |     mem::forget(fut);
+   |     ^^^^^^^^^^^^^^^^
+   |
+note: argument has type `impl std::future::Future<Output = ()>`
+  --> tests/ui/mem_forget_future.rs:9:17
+   |
+LL |     mem::forget(fut);
+   |                 ^^^
+   = note: `-D clippy::mem-forget-future` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::mem_forget_future)]`
+
+error: call to `std::mem::forget` with a value that does implement `Future`. Forgetting such a type might cause problems with cancelation
+  --> tests/ui/mem_forget_future.rs:12:5
+   |
+LL |     mem::forget(async {});
+   |     ^^^^^^^^^^^^^^^^^^^^^
+   |
+note: argument has type `{async block@tests/ui/mem_forget_future.rs:12:17: 12:22}`
+  --> tests/ui/mem_forget_future.rs:12:17
+   |
+LL |     mem::forget(async {});
+   |                 ^^^^^^^^
+
+error: call to `std::mem::forget` with a value that does implement `Future`. Forgetting such a type might cause problems with cancelation
+  --> tests/ui/mem_forget_future.rs:16:5
+   |
+LL |     mem::forget(fut);
+   |     ^^^^^^^^^^^^^^^^
+   |
+note: argument has type `MyFuture`
+  --> tests/ui/mem_forget_future.rs:16:17
+   |
+LL |     mem::forget(fut);
+   |                 ^^^
+
+error: aborting due to 3 previous errors
+
