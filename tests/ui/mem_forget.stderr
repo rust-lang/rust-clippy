@@ -32,5 +32,13 @@ LL |     std::mem::forget(string);
    |
    = note: argument has type `std::string::String`
 
-error: aborting due to 4 previous errors
+error: usage of `mem::forget` on type with `Drop` fields
+  --> tests/ui/mem_forget.rs:30:5
+   |
+LL |     std::mem::forget(fut);
+   |     ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: argument has type `{async block@tests/ui/mem_forget.rs:29:15: 29:20}`
+
+error: aborting due to 5 previous errors
 
