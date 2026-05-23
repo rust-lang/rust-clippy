@@ -133,15 +133,15 @@ impl<'tcx> LateLintPass<'tcx> for DropForgetRef {
                     (DROP_NON_DROP, DROP_NON_DROP_SUMMARY.into(), Some(arg.span))
                 },
                 sym::mem_forget => {
-                    if let Some(future_trait) = cx.tcx.lang_items().future_trait()
-                        && implements_trait(cx, arg_ty, future_trait, &[])
-                    {
-                        span_lint_and_then(cx, FORGET_FUTURE, expr.span, FORGET_FUTURE_SUMMARY, |diag| {
-                            diag.span_note(arg.span, format!("argument has type `{arg_ty}`"));
-                        });
-                    }
-
                     if arg_ty.needs_drop(cx.tcx, cx.typing_env()) {
+                        if let Some(future_trait) = cx.tcx.lang_items().future_trait()
+                            && implements_trait(cx, arg_ty, future_trait, &[])
+                        {
+                            span_lint_and_then(cx, FORGET_FUTURE, expr.span, FORGET_FUTURE_SUMMARY, |diag| {
+                                diag.span_note(arg.span, format!("argument has type `{arg_ty}`"));
+                            });
+                        }
+
                         (
                             MEM_FORGET,
                             Cow::Owned(format!(
