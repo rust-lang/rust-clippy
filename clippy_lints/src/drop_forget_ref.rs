@@ -30,6 +30,29 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    ///
+    /// Checks for not executing `Drop` on a `Future`.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// Futures use drop to be signalled that they were cancelled and should clean up their resources.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// std::mem::forget(async {});
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// std::mem::drop(async {});
+    /// ```
+    #[clippy::version = "1.97.0"]
+    pub FORGET_FUTURE,
+    suspicious,
+    "`mem::forget` usage on `Future` types, likely to cause problems with cancelation"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for calls to `std::mem::forget` with a value that does not implement `Drop`.
     ///
     /// ### Why is this bad?
@@ -70,41 +93,18 @@ declare_clippy_lint! {
     "`mem::forget` usage on `Drop` types, likely to cause memory leaks"
 }
 
-declare_clippy_lint! {
-    /// ### What it does
-    ///
-    /// Checks for not executing `Drop` on a `Future`.
-    ///
-    /// ### Why is this bad?
-    ///
-    /// Futures use drop to be signalled that they were cancelled and should clean up their resources.
-    ///
-    /// ### Example
-    /// ```no_run
-    /// std::mem::forget(async {});
-    /// ```
-    /// Use instead:
-    /// ```no_run
-    /// std::mem::drop(async {});
-    /// ```
-    #[clippy::version = "1.97.0"]
-    pub MEM_FORGET_FUTURE,
-    suspicious,
-    "`mem::forget` usage on `Future` types, likely to cause problems with cancelation"
-}
-
 declare_lint_pass!(DropForgetRef => [
     DROP_NON_DROP,
+    FORGET_FUTURE,
     FORGET_NON_DROP,
     MEM_FORGET,
-    MEM_FORGET_FUTURE,
 ]);
 
 const DROP_NON_DROP_SUMMARY: &str = "call to `std::mem::drop` with a value that does not implement `Drop`. \
                                  Dropping such a type only extends its contained lifetimes";
 const FORGET_NON_DROP_SUMMARY: &str = "call to `std::mem::forget` with a value that does not implement `Drop`. \
                                    Forgetting such a type is the same as dropping it";
-const MEM_FORGET_FUTURE_SUMMARY: &str = "forgetting a Future might cause problems with cancelation";
+const FORGET_FUTURE_SUMMARY: &str = "forgetting a Future might cause problems with cancelation";
 
 impl<'tcx> LateLintPass<'tcx> for DropForgetRef {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
@@ -136,7 +136,7 @@ impl<'tcx> LateLintPass<'tcx> for DropForgetRef {
                     if let Some(future_trait) = cx.tcx.lang_items().future_trait()
                         && implements_trait(cx, arg_ty, future_trait, &[])
                     {
-                        span_lint_and_then(cx, MEM_FORGET_FUTURE, expr.span, MEM_FORGET_FUTURE_SUMMARY, |diag| {
+                        span_lint_and_then(cx, FORGET_FUTURE, expr.span, FORGET_FUTURE_SUMMARY, |diag| {
                             diag.span_note(arg.span, format!("argument has type `{arg_ty}`"));
                         });
                     }

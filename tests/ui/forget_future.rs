@@ -1,4 +1,4 @@
-#![warn(clippy::mem_forget_future)]
+#![warn(clippy::forget_future)]
 
 use core::mem;
 use std::pin::Pin;
@@ -7,14 +7,14 @@ use std::task::{Context, Poll};
 fn main() {
     let fut = foo();
     mem::forget(fut);
-    //~^ mem_forget_future
+    //~^ forget_future
 
     mem::forget(async {});
-    //~^ mem_forget_future
+    //~^ forget_future
 
     let fut = MyFuture;
     mem::forget(fut);
-    //~^ mem_forget_future
+    //~^ forget_future
 }
 
 async fn foo() {}
