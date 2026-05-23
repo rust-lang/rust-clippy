@@ -5,7 +5,7 @@ use std::mem as memstuff;
 use std::mem::forget as forgetSomething;
 
 #[warn(clippy::mem_forget)]
-#[allow(forgetting_copy_types, clippy::mem_forget_future)]
+#[allow(forgetting_copy_types, clippy::forget_future)]
 fn main() {
     let five: i32 = 5;
     forgetSomething(five);
