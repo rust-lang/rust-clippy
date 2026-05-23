@@ -75,6 +75,12 @@ fn single_match_know_enum() {
     };
     //~^^^^ single_match
 
+    match y {
+        Ok(_) => (),
+        Err(..) => dummy(),
+    }
+    //~^^^^ single_match
+
     let c = Cow::Borrowed("");
 
     match c {
