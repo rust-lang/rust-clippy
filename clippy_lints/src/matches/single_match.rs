@@ -105,7 +105,7 @@ pub(crate) fn check<'tcx>(
             // Prevent false positives by excluding bindings, wildcards and empty arms
             && !matches!(arm2.pat.kind, PatKind::Binding(..))
             && !is_wild(arm2.pat)
-            && !arm_has_code(cx, arm2)
+            && (!arm_has_code(cx, arm1) || !arm_has_code(cx, arm2))
         {
             check_single_match(cx, ex, expr, contains_comments, arm2, arm1);
         }

@@ -75,6 +75,24 @@ fn single_match_know_enum() {
     };
     //~^^^^ single_match
 
+    #[rustfmt::skip]
+    match y {
+        Ok(y) => {
+            dummy()
+        }
+        Err(..) => (),
+    };
+    //~^^^^^^ single_match
+
+    #[rustfmt::skip]
+    match y {
+        Err(..) => (),
+        Ok(y) => {
+            dummy()
+        }
+    };
+    //~^^^^^^ single_match
+
     match y {
         Ok(_) => (),
         Err(..) => dummy(),
