@@ -156,7 +156,7 @@ impl SingleComponentPathImports {
             if !imports_reused_with_self.contains(&usage.name)
                 && !import_usage_visitor.imports_referenced_with_self.contains(&usage.name)
             {
-                self.found.entry(usage.item_id).or_default().push(usage);
+                self.found.entry(usage.item_id).or_insert(vec![]).push(usage);
             }
         }
     }

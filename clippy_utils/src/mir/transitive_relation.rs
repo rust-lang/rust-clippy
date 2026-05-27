@@ -9,7 +9,7 @@ pub(super) struct TransitiveRelation {
 
 impl TransitiveRelation {
     pub fn add(&mut self, a: mir::Local, b: mir::Local) {
-        self.relations.entry(a).or_default().push(b);
+        self.relations.entry(a).or_insert(vec![]).push(b);
     }
 
     pub fn reachable_from(&self, a: mir::Local, domain_size: usize) -> DenseBitSet<mir::Local> {

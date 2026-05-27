@@ -141,7 +141,7 @@ impl<'tcx> LateLintPass<'tcx> for Shadow {
         let HirId { owner, local_id } = id;
         // get (or insert) the list of items for this owner and symbol
         let (ref mut data, scope_owner) = *self.bindings.last_mut().unwrap();
-        let items_with_name = data.entry(ident.name).or_default();
+        let items_with_name = data.entry(ident.name).or_insert(vec![]);
 
         // check other bindings with the same name, most recently seen first
         for &prev in items_with_name.iter().rev() {

@@ -456,7 +456,7 @@ impl EmptyLineAfter {
             .filter(|attr| attr.style == AttrStyle::Outer && !attr.span.from_expansion())
             .map(|attr| Stop::from_attr(cx, attr))
             .collect::<Option<Vec<_>>>()
-            .unwrap_or_default();
+            .unwrap_or(vec![]);
 
         if outer.is_empty() {
             return;

@@ -286,7 +286,7 @@ impl SuggestedType {
         assert!(len_span.is_none_or(|s| !s.from_expansion()));
 
         let maybe_args = args_span.map(|sp| sp.get_source_text(cx).expect("spans are always crate-local"));
-        let maybe_args = maybe_args.as_deref().unwrap_or_default();
+        let maybe_args = maybe_args.as_deref().unwrap_or("");
         let maybe_len = len_span
             .map(|sp| sp.get_source_text(cx).expect("spans are always crate-local"))
             .map(|st| format!("; {st}"))
