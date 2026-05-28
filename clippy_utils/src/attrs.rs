@@ -36,6 +36,7 @@ pub fn get_builtin_attr<'a, A: AttributeExt + 'a>(
                 // See book/src/attribs.md
                 | sym::has_significant_drop
                 | sym::avoid_eager_arguments
+                | sym::optional_lazy_eval
                 | sym::format_args => None,
                 _ => {
                     sess.dcx().span_err(path_span, "usage of unknown attribute");

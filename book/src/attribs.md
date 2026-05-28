@@ -77,3 +77,36 @@ where
     /// Perform some logic and evaluate `argument` on the fly, only if it is needed.
 }
 ```
+
+## `#[clippy::optional_lazy_eval]`
+
+_Available since Clippy v1.XX_
+
+Complementary to `clippy::avoid_eager_arguments`, the `clippy::optional_lazy_eval` can be added to functions to inform
+users that are passing in a simple closure that doing so is unnecessary.
+
+Library authors should provide a hint as part of the attribute, to inform users of the recommended solution.
+
+### Example
+
+Together with `clippy::avoid_eager_arguments`:
+
+```rust
+#[clippy::avoid_eager_arguments = "Prefer using `lazy_foo` instead of eagerly evaluating `argument`."]
+fn foo(argument: String) {
+    // Perform some logic that only rarely involves the use of `argument`
+}
+
+#[clippy::optional_lazy_eval = "If `argument` does not require evaluation, prefer using `foo` instead."]
+fn lazy_foo<F>(argument: F)
+where
+    F: FnOnce() -> String
+{
+    /// Perform some logic and evaluate `argument` on the fly, only if it is needed.
+}
+
+fn main() {
+    let s = String::from("bar");
+    lazy_foo(move || s); // <- This will be linted against.
+}
+```

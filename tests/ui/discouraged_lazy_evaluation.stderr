@@ -1,0 +1,16 @@
+error: prefer using `foo` if `argument` does not need to be computed
+  --> tests/ui/discouraged_lazy_evaluation.rs:19:5
+   |
+LL |     lazy_foo(move || s);
+   |     ^^^^^^^^^^^^^^^^^^^
+   |
+note: unnecessary closure used to produce a function argument
+  --> tests/ui/discouraged_lazy_evaluation.rs:19:5
+   |
+LL |     lazy_foo(move || s);
+   |     ^^^^^^^^^^^^^^^^^^^
+   = note: `-D clippy::discouraged-lazy-evaluation` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::discouraged_lazy_evaluation)]`
+
+error: aborting due to 1 previous error
+

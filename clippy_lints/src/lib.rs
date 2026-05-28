@@ -111,6 +111,7 @@ mod disallowed_methods;
 mod disallowed_names;
 mod disallowed_script_idents;
 mod disallowed_types;
+mod discouraged_lazy_evaluation;
 mod doc;
 mod double_parens;
 mod drop_forget_ref;
@@ -862,6 +863,7 @@ rustc_lint::late_lint_methods!(
         ByteCharSlice: byte_char_slices::ByteCharSlice = byte_char_slices::ByteCharSlice,
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
         EagerFunCall: eager_fun_call::EagerFunCall = eager_fun_call::EagerFunCall,
+        DiscouragedLazyEvaluation: discouraged_lazy_evaluation::DiscouragedLazyEvaluation = discouraged_lazy_evaluation::DiscouragedLazyEvaluation,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );

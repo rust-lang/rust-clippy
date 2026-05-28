@@ -450,6 +450,7 @@ generate! {
     open_options_new,
     option_expect,
     option_unwrap,
+    optional_lazy_eval,
     or_default,
     or_else,
     or_insert,
