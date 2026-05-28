@@ -6775,6 +6775,7 @@ Released 2018-09-13
 [`duplicated_attributes`]: https://rust-lang.github.io/rust-clippy/master/index.html#duplicated_attributes
 [`duration_suboptimal_units`]: https://rust-lang.github.io/rust-clippy/master/index.html#duration_suboptimal_units
 [`duration_subsec`]: https://rust-lang.github.io/rust-clippy/master/index.html#duration_subsec
+[`eager_fun_call`]: https://rust-lang.github.io/rust-clippy/master/index.html#eager_fun_call
 [`eager_transmute`]: https://rust-lang.github.io/rust-clippy/master/index.html#eager_transmute
 [`elidable_lifetime_names`]: https://rust-lang.github.io/rust-clippy/master/index.html#elidable_lifetime_names
 [`else_if_without_else`]: https://rust-lang.github.io/rust-clippy/master/index.html#else_if_without_else

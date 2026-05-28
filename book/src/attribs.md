@@ -51,3 +51,29 @@ impl<'a> Drop for CounterWrapper<'a> {
     }
 }
 ```
+
+## `#[clippy::avoid_eager_arguments]`
+
+_Available since Clippy v1.XX_
+
+The `clippy::avoid_eager_arguments` attribute can be added to functions to discourage users from passing in arguments
+that are evaluated eagerly (via a function call or closure). This is useful in cases where a function may exist in
+different "variants" that accept either eager or lazy arguments, like `Option`'s `.unwrap_or` vs `.unwrap_or_else`.
+
+Library authors should provide a hint as part of the attribute, to inform users of the recommended solution.
+
+### Example
+
+```rust
+#[clippy::avoid_eager_arguments = "Prefer using `lazy_foo` instead of eagerly evaluating `argument`."]
+fn foo(argument: String) {
+    // Perform some logic that only rarely involves the use of `argument`
+}
+
+fn lazy_foo<F>(argument: F)
+where
+    F: FnOnce() -> String
+{
+    /// Perform some logic and evaluate `argument` on the fly, only if it is needed.
+}
+```

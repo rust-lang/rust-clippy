@@ -141,6 +141,7 @@ generate! {
     as_str,
     assert_failed,
     author,
+    avoid_eager_arguments,
     back,
     binary_heap_pop_if,
     binaryheap_iter,

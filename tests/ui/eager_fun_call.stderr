@@ -1,0 +1,16 @@
+error: the value of `argument` may not always be used, prefer using `lazy_foo` instead
+  --> tests/ui/eager_fun_call.rs:17:5
+   |
+LL |     foo(String::from("bar"));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: function call with eagerly evaluated arguments
+  --> tests/ui/eager_fun_call.rs:17:5
+   |
+LL |     foo(String::from("bar"));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: `-D clippy::eager-fun-call` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::eager_fun_call)]`
+
+error: aborting due to 1 previous error
+
