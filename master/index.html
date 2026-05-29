@@ -4258,35 +4258,50 @@ with an allow.</p>
 </code></pre>
 </div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.48.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+float_equality_without_abs">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/operators/mod.rs#L487">View Source</a></div></div></article><article id="fn_params_excessive_bools"><input id="label-fn_params_excessive_bools" type="checkbox"><label for="label-fn_params_excessive_bools"><h2 class="lint-title"><div class="panel-title-name" id="lint-fn_params_excessive_bools">fn_params_excessive_bools
 <a href="#fn_params_excessive_bools" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
-<p>Checks for excessive use of
-bools in function definitions.</p>
+<p>Checks for excessive use of bools in function declarations.</p>
 <h3>Why is this bad?</h3>
-<p>Calls to such functions
-are confusing and error prone, because it’s
-hard to remember argument order and you have
-no type system support to back you up. Using
-two-variant enums instead of bools often makes
-API easier to use.</p>
+<p>Boolean parameters obscure meaning at the call site. The reader has to
+remember what each <code>true</code> or <code>false</code> means and which position each flag
+belongs in, with no help from the type system.</p>
+<p>The best replacement depends on what role the bool plays:</p>
+<ul>
+<li>Use a two-variant enum when one parameter selects a mode.</li>
+<li>Split one function into two named operations when the choices are
+distinct actions.</li>
+<li>Group multiple related flags into a struct or options type when they
+travel together.</li>
+<li>Move the setting onto <code>self</code> or an existing config/context parameter
+when it is really part of the surrounding state.</li>
+</ul>
+<p>This optimizes for readability of the calling code, which future readers
+encounter more often than the function declaration.</p>
+<p>The <code>max-fn-params-bools</code> configuration accepts <code>0</code>, which lints on any
+function with a bool parameter.</p>
 <h3>Example</h3>
-<pre><code class="language-rust">fn f(is_round: bool, is_hot: bool) { ... }
+<pre><code class="language-rust">fn render_document(show_hidden: bool, is_draft: bool) { ... }
 </code></pre>
 <p>Use instead:</p>
-<pre><code class="language-rust">enum Shape {
-    Round,
-    Spiky,
+<pre><code class="language-rust">enum Visibility {
+    ShowHidden,
+    HideHidden,
 }
 
-enum Temperature {
-    Hot,
-    IceCold,
+enum DocumentKind {
+    Draft,
+    Final,
 }
 
-fn f(shape: Shape, temperature: Temperature) { ... }
+fn render_document(visibility: Visibility, kind: DocumentKind) { ... }
+
+// or split the operation when the choices are distinct
+fn render_draft() { ... }
+fn render_final() { ... }
 </code></pre>
 <h3>Configuration</h3>
 <ul>
 <li>
-<p><code>max-fn-params-bools</code>:  The maximum number of bool parameters a function can have</p>
+<p><code>max-fn-params-bools</code>:  The maximum number of bool parameters a function can have.
+Use <code>0</code> to lint on any function with a bool parameter.</p>
 <p>(default: <code>3</code>)</p>
 </li>
 </ul>
@@ -14859,7 +14874,7 @@ into multi variant enums for better readability and API.</p>
 <p>(default: <code>3</code>)</p>
 </li>
 </ul>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.43.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+struct_excessive_bools">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/excessive_bools.rs#L50">View Source</a></div></div></article><article id="struct_field_names"><input id="label-struct_field_names" type="checkbox"><label for="label-struct_field_names"><h2 class="lint-title"><div class="panel-title-name" id="lint-struct_field_names">struct_field_names
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.43.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+struct_excessive_bools">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/excessive_bools.rs#L66">View Source</a></div></div></article><article id="struct_field_names"><input id="label-struct_field_names" type="checkbox"><label for="label-struct_field_names"><h2 class="lint-title"><div class="panel-title-name" id="lint-struct_field_names">struct_field_names
 <a href="#struct_field_names" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Detects struct fields that are prefixed or suffixed
 by the same characters or the name of the struct itself.</p>
