@@ -1,0 +1,23 @@
+error: the `if` guard in `matches!` does not use any variable bound by the pattern
+  --> tests/ui/matches_with_unrelated_if.rs:19:13
+   |
+LL |     let _ = matches!(f.foo(), Some(_) if f.is_bar());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: move the guard outside of `matches!`: `matches!(f.foo(), Some(_)) && f.is_bar()`
+   |
+   = note: `-D clippy::matches-with-unrelated-if` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::matches_with_unrelated_if)]`
+
+error: the `if` guard in `matches!` does not use any variable bound by the pattern
+  --> tests/ui/matches_with_unrelated_if.rs:23:13
+   |
+LL |     let _ = matches!(f.foo(), Some(x) if f.is_bar());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: move the guard outside of `matches!`: `matches!(f.foo(), Some(x)) && f.is_bar()`
+
+error: the `if` guard in `matches!` does not use any variable bound by the pattern
+  --> tests/ui/matches_with_unrelated_if.rs:28:13
+   |
+LL |     let _ = matches!(f.foo(), None if cond);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: move the guard outside of `matches!`: `matches!(f.foo(), None) && cond`
+
+error: aborting due to 3 previous errors
+

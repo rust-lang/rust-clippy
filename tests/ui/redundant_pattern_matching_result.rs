@@ -3,6 +3,7 @@
 #![allow(
     clippy::if_same_then_else,
     clippy::match_like_matches_macro,
+    clippy::matches_with_unrelated_if,
     clippy::needless_bool,
     clippy::needless_ifs,
     clippy::uninlined_format_args,

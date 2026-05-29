@@ -4,7 +4,8 @@
     clippy::needless_ifs,
     clippy::match_like_matches_macro,
     clippy::equatable_if_let,
-    clippy::if_same_then_else
+    clippy::if_same_then_else,
+    clippy::matches_with_unrelated_if
 )]
 
 fn issue_11174<T>(boolean: bool, maybe_some: Option<T>) -> bool {
