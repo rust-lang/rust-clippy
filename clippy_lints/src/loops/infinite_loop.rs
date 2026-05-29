@@ -45,6 +45,8 @@ pub(super) fn check<'tcx>(
         inner_labels: label.into_iter().collect(),
         loop_depth: 0,
         is_finite: false,
+        ex: expr,
+        potential_breaks: Vec::new(),
     };
     loop_visitor.visit_block(loop_block);
 
@@ -152,6 +154,8 @@ struct LoopVisitor<'hir, 'tcx> {
     inner_labels: Vec<Label>,
     loop_depth: usize,
     is_finite: bool,
+    ex: &'hir Expr<'hir>,
+    potential_breaks: Vec<&'hir Expr<'hir>>,
 }
 
 impl<'hir> Visitor<'hir> for LoopVisitor<'hir, '_> {
@@ -163,6 +167,63 @@ impl<'hir> Visitor<'hir> for LoopVisitor<'hir, '_> {
                 // Or, the depth is not zero but the label is matched.
                 if self.loop_depth == 0 || (label.is_some() && *label == self.label) {
                     self.is_finite = true;
+                // Or the label is not matched.
+                } else {
+                    let mut ex_id = ex.hir_id;
+                    loop {
+                        match self.cx.tcx.parent_hir_node(ex_id) {
+                            Node::Expr(parent_ex) => {
+                                if self.ex.hir_id == parent_ex.hir_id {
+                                    break;
+                                }
+                                if let ExprKind::Loop(..) = parent_ex.kind
+                                    && self.potential_breaks.iter().any(
+                                        |Expr {
+                                             hir_id: _,
+                                             kind,
+                                             span: _,
+                                         }| {
+                                            if let ExprKind::Break(hir::Destination { label: _, target_id }, ..) = kind
+                                                && let Ok(t_id) = target_id
+                                                && t_id.local_id < self.ex.hir_id.local_id
+                                            {
+                                                return true;
+                                            }
+                                            false
+                                        },
+                                    )
+                                {
+                                    self.is_finite = true;
+                                    break;
+                                }
+                            },
+                            Node::Block(bl) => {
+                                if let Some(e) = bl.expr
+                                    && let ExprKind::Break(hir::Destination { .. }, ..) = e.kind
+                                    && self
+                                        .potential_breaks
+                                        .iter()
+                                        .all(|br| br.hir_id.local_id > e.hir_id.local_id)
+                                {
+                                    self.potential_breaks.push(e);
+                                } else {
+                                    for stmt in bl.stmts {
+                                        if let hir::StmtKind::Semi(e) | hir::StmtKind::Expr(e) = stmt.kind
+                                            && let ExprKind::Break(hir::Destination { .. }, ..) = e.kind
+                                            && self
+                                                .potential_breaks
+                                                .iter()
+                                                .all(|br| br.hir_id.local_id > e.hir_id.local_id)
+                                        {
+                                            self.potential_breaks.push(e);
+                                        }
+                                    }
+                                }
+                            },
+                            _ => (),
+                        }
+                        ex_id = self.cx.tcx.parent_hir_id(ex_id);
+                    }
                 }
             },
             ExprKind::Continue(hir::Destination { label, .. }) => {
