@@ -2,6 +2,7 @@
     clippy::erasing_op,
     clippy::no_effect,
     clippy::unnecessary_operation,
+    clippy::bitwise_not_zero,
     clippy::unnecessary_cast,
     clippy::op_ref
 )]
