@@ -150,49 +150,49 @@ impl<'tcx> LateLintPass<'tcx> for HashMapPass {
                     entry = map_ty.entry_path(),
                 ))
             }
-        } else {
-            if then_search.edits.is_empty() {
-                // no insertions
-                return;
-            }
-
+        } else if then_search.edits.is_empty() {
+            // no insertions
+            return;
+        } else if then_search.is_key_used_and_no_copy {
+            // If there are other uses of the key, and the key is not copy,
+            // we cannot perform a fix automatically, but continue to emit a lint.
+            None
+        } else if !then_search.allow_insert_closure {
             // if .. { insert }
-            if !then_search.allow_insert_closure {
-                let (body_str, entry_kind) = if contains_expr.negated {
-                    then_search.snippet_vacant(cx, then_expr.span, &mut app)
+            let (body_str, entry_kind) = if contains_expr.negated {
+                then_search.snippet_vacant(cx, then_expr.span, &mut app)
+            } else {
+                then_search.snippet_occupied(cx, then_expr.span, &mut app)
+            };
+            Some(format!(
+                "if let {}::{entry_kind} = {map_str}.entry({key_str}) {body_str}",
+                map_ty.entry_path(),
+            ))
+        } else if let Some(insertion) = then_search.as_single_insertion()
+            && let span_in_between = then_expr.span.shrink_to_lo().between(insertion.call.span)
+            && let span_in_between = span_in_between.split_at(1).1
+            && !span_contains_non_whitespace(cx, span_in_between, true)
+        {
+            let value_str = snippet_with_context(cx, insertion.value.span, then_expr.span.ctxt(), "..", &mut app).0;
+            if contains_expr.negated {
+                if insertion.value.can_have_side_effects() {
+                    Some(format!("{map_str}.entry({key_str}).or_insert_with(|| {value_str});"))
                 } else {
-                    then_search.snippet_occupied(cx, then_expr.span, &mut app)
-                };
-                Some(format!(
-                    "if let {}::{entry_kind} = {map_str}.entry({key_str}) {body_str}",
-                    map_ty.entry_path(),
-                ))
-            } else if let Some(insertion) = then_search.as_single_insertion()
-                && let span_in_between = then_expr.span.shrink_to_lo().between(insertion.call.span)
-                && let span_in_between = span_in_between.split_at(1).1
-                && !span_contains_non_whitespace(cx, span_in_between, true)
-            {
-                let value_str = snippet_with_context(cx, insertion.value.span, then_expr.span.ctxt(), "..", &mut app).0;
-                if contains_expr.negated {
-                    if insertion.value.can_have_side_effects() {
-                        Some(format!("{map_str}.entry({key_str}).or_insert_with(|| {value_str});"))
-                    } else {
-                        Some(format!("{map_str}.entry({key_str}).or_insert({value_str});"))
-                    }
-                } else {
-                    // TODO: suggest using `if let Some(v) = map.get_mut(k) { .. }` here.
-                    // This would need to be a different lint.
-                    return;
+                    Some(format!("{map_str}.entry({key_str}).or_insert({value_str});"))
                 }
             } else {
-                let block_str = then_search.snippet_closure(cx, then_expr.span, &mut app);
-                if contains_expr.negated {
-                    Some(format!("{map_str}.entry({key_str}).or_insert_with(|| {block_str});"))
-                } else {
-                    // TODO: suggest using `if let Some(v) = map.get_mut(k) { .. }` here.
-                    // This would need to be a different lint.
-                    return;
-                }
+                // TODO: suggest using `if let Some(v) = map.get_mut(k) { .. }` here.
+                // This would need to be a different lint.
+                return;
+            }
+        } else {
+            let block_str = then_search.snippet_closure(cx, then_expr.span, &mut app);
+            if contains_expr.negated {
+                Some(format!("{map_str}.entry({key_str}).or_insert_with(|| {block_str});"))
+            } else {
+                // TODO: suggest using `if let Some(v) = map.get_mut(k) { .. }` here.
+                // This would need to be a different lint.
+                return;
             }
         };
 
@@ -419,7 +419,9 @@ impl<'tcx> InsertSearcher<'_, 'tcx> {
         let in_tail_pos = self.in_tail_pos;
         let allow_insert_closure = self.allow_insert_closure;
         let is_single_insert = self.is_single_insert;
-        walk_expr(self, e.key);
+        if !self.spanless_eq.eq_expr(self.ctxt, self.key, e.key) {
+            walk_expr(self, e.key);
+        }
         walk_expr(self, e.value);
         self.in_tail_pos = in_tail_pos;
         self.allow_insert_closure = allow_insert_closure;

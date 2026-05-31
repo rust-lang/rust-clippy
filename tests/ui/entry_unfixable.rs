@@ -48,6 +48,14 @@ fn issue9925(mut hm: HashMap<String, bool>) {
     }
 }
 
+fn issue17081(mut hm: HashMap<String, bool>, key: String) {
+    if !hm.contains_key(&key) {
+        //~^ map_entry
+        let _ = key.clone();
+        hm.insert(key, true);
+    }
+}
+
 mod issue9470 {
     use std::collections::HashMap;
     use std::sync::Mutex;
