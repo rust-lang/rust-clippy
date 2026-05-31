@@ -70,12 +70,10 @@ fn fn_eagerness(cx: &LateContext<'_>, fn_id: DefId, name: Symbol, have_one_arg: 
         && !have_one_arg
         && matches!(cx.tcx.crate_name(fn_id.krate), sym::std | sym::alloc)
         && let Some(adt) = ty.ty_adt_def()
-        && (adt.is_diag_item(cx, sym::Vec)
-            || adt.is_diag_item(cx, sym::String)
-            || adt.is_diag_item(cx, sym::BTreeMap)
-            || adt.is_diag_item(cx, sym::BTreeSet)
-            || adt.is_diag_item(cx, sym::VecDeque)
-            || adt.is_diag_item(cx, sym::BinaryHeap))
+        && matches!(
+            adt.opt_diag_name(cx),
+            Some(sym::Vec | sym::String | sym::BTreeMap | sym::BTreeSet | sym::VecDeque | sym::BinaryHeap)
+        )
     {
         Eager
     } else if let ty::Adt(def, subs) = ty.kind() {
