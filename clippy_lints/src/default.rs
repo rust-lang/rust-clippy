@@ -91,10 +91,13 @@ impl<'tcx> LateLintPass<'tcx> for Default {
             // Detect and ignore <Foo as Default>::default() because these calls do explicitly name the type.
             && let QPath::Resolved(None, _path) = qpath
             && let expr_ty = cx.typeck_results().expr_ty(expr)
-            && let ty::Adt(def, ..) = expr_ty.kind()
+            && let ty::Adt(_, args) = expr_ty.kind()
             && !is_from_proc_macro(cx, expr)
         {
-            let replacement = with_forced_trimmed_paths!(format!("{}::default()", cx.tcx.def_path_str(def.did())));
+            let mut replacement = with_forced_trimmed_paths!(format!("{}::default()", expr_ty));
+            if !args.is_empty() {
+                replacement = with_forced_trimmed_paths!(format!("<{}>::default()", expr_ty));
+            }
             span_lint_and_sugg(
                 cx,
                 DEFAULT_TRAIT_ACCESS,

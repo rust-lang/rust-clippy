@@ -28,11 +28,11 @@ error: calling `String::default()` is more clear than this expression
 LL |     let s6: String = default::Default::default();
    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `String::default()`
 
-error: calling `GenericDerivedDefault::default()` is more clear than this expression
+error: calling `<GenericDerivedDefault<String>>::default()` is more clear than this expression
   --> tests/ui/default_trait_access.rs:36:46
    |
 LL |     let s11: GenericDerivedDefault<String> = Default::default();
-   |                                              ^^^^^^^^^^^^^^^^^^ help: try: `GenericDerivedDefault::default()`
+   |                                              ^^^^^^^^^^^^^^^^^^ help: try: `<GenericDerivedDefault<String>>::default()`
 
 error: calling `TupleDerivedDefault::default()` is more clear than this expression
   --> tests/ui/default_trait_access.rs:43:36
@@ -52,5 +52,29 @@ error: calling `TupleStructDerivedDefault::default()` is more clear than this ex
 LL |     let s17: TupleStructDerivedDefault = Default::default();
    |                                          ^^^^^^^^^^^^^^^^^^ help: try: `TupleStructDerivedDefault::default()`
 
-error: aborting due to 8 previous errors
+error: calling `<Arc<Foo>>::default()` is more clear than this expression
+  --> tests/ui/default_trait_access.rs:81:23
+   |
+LL |     let _: Arc<Foo> = Default::default();
+   |                       ^^^^^^^^^^^^^^^^^^ help: try: `<Arc<Foo>>::default()`
+
+error: calling `<Rc<Foo>>::default()` is more clear than this expression
+  --> tests/ui/default_trait_access.rs:84:22
+   |
+LL |     let _: Rc<Foo> = Default::default();
+   |                      ^^^^^^^^^^^^^^^^^^ help: try: `<Rc<Foo>>::default()`
+
+error: calling `<Cow<'_, Foo>>::default()` is more clear than this expression
+  --> tests/ui/default_trait_access.rs:87:27
+   |
+LL |     let _: Cow<'_, Foo> = Default::default();
+   |                           ^^^^^^^^^^^^^^^^^^ help: try: `<Cow<'_, Foo>>::default()`
+
+error: calling `<Arc<RwLock<HashMap<String, Foo>>>>::default()` is more clear than this expression
+  --> tests/ui/default_trait_access.rs:90:48
+   |
+LL |     let _: Arc<RwLock<HashMap<String, Foo>>> = Default::default();
+   |                                                ^^^^^^^^^^^^^^^^^^ help: try: `<Arc<RwLock<HashMap<String, Foo>>>>::default()`
+
+error: aborting due to 12 previous errors
 
