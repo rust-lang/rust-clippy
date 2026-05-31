@@ -5,8 +5,8 @@ use rustc_ast::ast::{LitFloatType, LitIntType, LitKind};
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::{Visitor, walk_expr, walk_pat, walk_stmt};
 use rustc_hir::{
-    Block, Body, ConstContext, Expr, ExprKind, FnRetTy, HirId, Lit, Pat, PatExpr, PatExprKind, PatKind, Stmt, StmtKind,
-    StructTailExpr,
+    BinOpKind, Block, Body, ConstContext, Expr, ExprKind, FnRetTy, HirId, Lit, Pat, PatExpr, PatExprKind, PatKind,
+    Stmt, StmtKind, StructTailExpr,
 };
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty::{self, FloatTy, IntTy, PolyFnSig, Ty};
@@ -214,6 +214,30 @@ impl<'tcx> Visitor<'tcx> for NumericFallbackVisitor<'_, 'tcx> {
                 }
             },
 
+            ExprKind::Binary(op, lhs, rhs) => {
+                // For binary operators that require both operands to have the same type
+                // (everything except shifts, where each side is independently typed),
+                // a concretely-typed neighbor constrains the other side, so an unsuffixed
+                // literal there cannot fall back. Shifts are skipped because `a << b` and
+                // `a >> b` allow `a` and `b` to have different integer types.
+                if !matches!(op.node, BinOpKind::Shl | BinOpKind::Shr) {
+                    // Inherit any outer bound: if the surrounding context already pins the
+                    // type, that constraint propagates through the binary op to both sides.
+                    let outer = matches!(self.ty_bounds.last(), Some(ExplicitTyBound(true)));
+                    let lhs_bound = ExplicitTyBound(outer || sibling_bound(self.cx, lhs).0);
+                    let rhs_bound = ExplicitTyBound(outer || sibling_bound(self.cx, rhs).0);
+
+                    self.ty_bounds.push(rhs_bound);
+                    self.visit_expr(lhs);
+                    self.ty_bounds.pop();
+
+                    self.ty_bounds.push(lhs_bound);
+                    self.visit_expr(rhs);
+                    self.ty_bounds.pop();
+                    return;
+                }
+            },
+
             ExprKind::Lit(lit) => {
                 let ty = self.cx.typeck_results().expr_ty(expr);
                 self.check_lit(*lit, ty, expr.hir_id);
@@ -251,6 +275,64 @@ impl<'tcx> Visitor<'tcx> for NumericFallbackVisitor<'_, 'tcx> {
         walk_stmt(self, stmt);
         self.ty_bounds.pop();
     }
+}
+
+/// Returns an [`ExplicitTyBound`] derived from `expr` to constrain its sibling in a binary
+/// operation whose operands must share the same type. The bound is "explicit" only when
+/// `expr` itself has a concrete numeric type that did not come from fallback, i.e. it
+/// contains some non-(unsuffixed-literal) source of type information.
+fn sibling_bound<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> ExplicitTyBound {
+    let ty = cx.typeck_results().expr_ty_opt(expr);
+    if !ty.is_some_and(Ty::is_numeric) {
+        return ExplicitTyBound(false);
+    }
+    ExplicitTyBound(has_explicit_type_source(cx, expr))
+}
+
+/// Walks `expr` looking for any sub-expression whose type is concretely numeric and that
+/// did not get its type from fallback. An unsuffixed integer/float literal does not count;
+/// any other numeric expression (typed paths, casts, suffixed literals, calls returning a
+/// concrete numeric type, ...) does.
+fn has_explicit_type_source<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> bool {
+    struct Finder<'a, 'tcx> {
+        cx: &'a LateContext<'tcx>,
+        found: bool,
+    }
+    impl<'tcx> Visitor<'tcx> for Finder<'_, 'tcx> {
+        fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
+            if self.found {
+                return;
+            }
+            // An unsuffixed numeric literal carries no inherent type info.
+            if let ExprKind::Lit(lit) = &expr.kind
+                && matches!(
+                    lit.node,
+                    LitKind::Int(_, LitIntType::Unsuffixed) | LitKind::Float(_, LitFloatType::Unsuffixed)
+                )
+            {
+                return;
+            }
+            // Recurse into compound expressions; only count leaves that have a concrete
+            // numeric type (e.g. paths to typed locals, suffixed literals, casts).
+            match &expr.kind {
+                ExprKind::Binary(_, lhs, rhs) => {
+                    self.visit_expr(lhs);
+                    self.visit_expr(rhs);
+                },
+                ExprKind::Unary(_, inner) | ExprKind::AddrOf(_, _, inner) => {
+                    self.visit_expr(inner);
+                },
+                _ => {
+                    if self.cx.typeck_results().expr_ty_opt(expr).is_some_and(Ty::is_numeric) {
+                        self.found = true;
+                    }
+                },
+            }
+        }
+    }
+    let mut finder = Finder { cx, found: false };
+    finder.visit_expr(expr);
+    finder.found
 }
 
 fn fn_sig_opt<'tcx>(cx: &LateContext<'tcx>, hir_id: HirId) -> Option<PolyFnSig<'tcx>> {

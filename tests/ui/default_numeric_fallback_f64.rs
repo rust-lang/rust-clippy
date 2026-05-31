@@ -201,4 +201,18 @@ mod in_macro {
     }
 }
 
+mod issue16745 {
+    fn test() {
+        // Should NOT lint these literals because their type is constrained by
+        // the typed neighbor in the binary expression.
+        let b = 92f64;
+        let _ = b + 3.0;
+        let _ = b - 3.0;
+        let _ = b * 3.0;
+        let _ = b / 3.0;
+        let _ = 3.0 + b;
+        let _ = 3.0 - b;
+    }
+}
+
 fn main() {}

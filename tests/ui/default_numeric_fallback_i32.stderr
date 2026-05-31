@@ -154,22 +154,46 @@ LL |         inline!(let x = 22;);
    = note: this error originates in the macro `__inline_mac_fn_internal` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: default numeric fallback might occur
-  --> tests/ui/default_numeric_fallback_i32.rs:239:29
+  --> tests/ui/default_numeric_fallback_i32.rs:226:17
+   |
+LL |         let _ = 3 << a;
+   |                 ^ help: consider adding suffix: `3_i32`
+
+error: default numeric fallback might occur
+  --> tests/ui/default_numeric_fallback_i32.rs:228:17
+   |
+LL |         let _ = 3 >> a;
+   |                 ^ help: consider adding suffix: `3_i32`
+
+error: default numeric fallback might occur
+  --> tests/ui/default_numeric_fallback_i32.rs:237:17
+   |
+LL |         let _ = 1 + 2;
+   |                 ^ help: consider adding suffix: `1_i32`
+
+error: default numeric fallback might occur
+  --> tests/ui/default_numeric_fallback_i32.rs:237:21
+   |
+LL |         let _ = 1 + 2;
+   |                     ^ help: consider adding suffix: `2_i32`
+
+error: default numeric fallback might occur
+  --> tests/ui/default_numeric_fallback_i32.rs:271:29
    |
 LL |         let data_i32 = vec![1, 2, 3];
    |                             ^ help: consider adding suffix: `1_i32`
 
 error: default numeric fallback might occur
-  --> tests/ui/default_numeric_fallback_i32.rs:239:32
+  --> tests/ui/default_numeric_fallback_i32.rs:271:32
    |
 LL |         let data_i32 = vec![1, 2, 3];
    |                                ^ help: consider adding suffix: `2_i32`
 
 error: default numeric fallback might occur
-  --> tests/ui/default_numeric_fallback_i32.rs:239:35
+  --> tests/ui/default_numeric_fallback_i32.rs:271:35
    |
 LL |         let data_i32 = vec![1, 2, 3];
    |                                   ^ help: consider adding suffix: `3_i32`
 
-error: aborting due to 28 previous errors
+error: aborting due to 32 previous errors
 
