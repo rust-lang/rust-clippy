@@ -884,6 +884,10 @@ define_Conf! {
     /// The maximum number of argument a function or method can have
     #[lints(too_many_arguments)]
     too_many_arguments_threshold: u64 = 7,
+    /// The maximum number of fields a struct can have.
+    /// Use `0` to lint on any non-unit struct.
+    #[lints(too_many_fields)]
+    too_many_fields_threshold: u64 = 10,
     /// The maximum number of lines a function or method can have
     #[lints(too_many_lines)]
     too_many_lines_threshold: u64 = 100,

@@ -359,6 +359,7 @@ struct Insertion<'tcx> {
 /// * Determine if there's any sub-expression that can't be placed in a closure.
 /// * Determine if there's only a single insert statement. `or_insert` can be used in this case.
 #[expect(clippy::struct_excessive_bools)]
+#[expect(clippy::too_many_fields)]
 struct InsertSearcher<'cx, 'tcx> {
     cx: &'cx LateContext<'tcx>,
     /// The map expression used in the contains call.

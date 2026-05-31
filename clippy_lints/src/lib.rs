@@ -358,6 +358,7 @@ mod tests_outside_test_module;
 mod time_subtraction;
 mod to_digit_is_some;
 mod to_string_trait_impl;
+mod too_many_fields;
 mod toplevel_ref_arg;
 mod trailing_empty_array;
 mod trait_bounds;
@@ -857,6 +858,7 @@ rustc_lint::late_lint_methods!(
         ManualNoopWaker: manual_noop_waker::ManualNoopWaker = manual_noop_waker::ManualNoopWaker::new(conf),
         ByteCharSlice: byte_char_slices::ByteCharSlice = byte_char_slices::ByteCharSlice,
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
+        TooManyFields: too_many_fields::TooManyFields = too_many_fields::TooManyFields::new(conf),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );

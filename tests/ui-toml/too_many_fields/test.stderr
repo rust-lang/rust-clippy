@@ -1,0 +1,26 @@
+error: this struct has too many fields (1/0)
+  --> tests/ui-toml/too_many_fields/test.rs:3:1
+   |
+LL | / struct S {
+LL | |
+LL | |     a: u8,
+LL | | }
+   | |_^
+   |
+   = help: only fieldless structs are allowed
+   = note: `-D clippy::too-many-fields` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::too_many_fields)]`
+
+error: this struct has too many fields (1/0)
+  --> tests/ui-toml/too_many_fields/test.rs:8:1
+   |
+LL | / struct Tuple(
+LL | |
+LL | |     u8,
+LL | | );
+   | |__^
+   |
+   = help: only fieldless structs are allowed
+
+error: aborting due to 2 previous errors
+
