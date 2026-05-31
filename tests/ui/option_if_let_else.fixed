@@ -264,9 +264,9 @@ fn issue11429() {
 
     let opt: Option<HashMap<u8, u8>> = None;
 
-    let mut _hashmap = opt.as_ref().map_or(HashMap::new, |hm| hm.clone());
+    let mut _hashmap = opt.as_ref().map_or_else(HashMap::new, |hm| hm.clone());
 
-    let mut _hm = opt.as_ref().map_or(new_map!(), |hm| hm.clone());
+    let mut _hm = opt.as_ref().map_or_else(|| new_map!(), |hm| hm.clone());
     //~^ option_if_let_else
 }
 

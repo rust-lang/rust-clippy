@@ -344,13 +344,13 @@ LL | |         hm.clone()
 LL | |     } else {
 LL | |         HashMap::new()
 LL | |     };
-   | |_____^ help: try: `opt.as_ref().map_or(HashMap::new, |hm| hm.clone())`
+   | |_____^ help: try: `opt.as_ref().map_or_else(HashMap::new, |hm| hm.clone())`
 
-error: use Option::map_or instead of an if let/else
+error: use Option::map_or_else instead of an if let/else
   --> tests/ui/option_if_let_else.rs:338:19
    |
 LL |     let mut _hm = if let Some(hm) = &opt { hm.clone() } else { new_map!() };
-   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `opt.as_ref().map_or(new_map!(), |hm| hm.clone())`
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `opt.as_ref().map_or_else(|| new_map!(), |hm| hm.clone())`
 
 error: use Option::map_or instead of an if let/else
   --> tests/ui/option_if_let_else.rs:389:22

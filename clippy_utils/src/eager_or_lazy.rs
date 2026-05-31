@@ -10,6 +10,7 @@
 //!  - option-if-let-else
 
 use crate::consts::{ConstEvalCtxt, FullInt};
+use crate::res::MaybeDef;
 use crate::sym;
 use crate::ty::{all_predicates_of, is_copy};
 use crate::visitors::is_const_evaluatable;
@@ -65,6 +66,18 @@ fn fn_eagerness(cx: &LateContext<'_>, fn_id: DefId, name: Symbol, have_one_arg: 
         } else {
             NoChange
         }
+    } else if name == sym::new
+        && !have_one_arg
+        && matches!(cx.tcx.crate_name(fn_id.krate), sym::std | sym::alloc)
+        && let Some(adt) = ty.ty_adt_def()
+        && (adt.is_diag_item(cx, sym::Vec)
+            || adt.is_diag_item(cx, sym::String)
+            || adt.is_diag_item(cx, sym::BTreeMap)
+            || adt.is_diag_item(cx, sym::BTreeSet)
+            || adt.is_diag_item(cx, sym::VecDeque)
+            || adt.is_diag_item(cx, sym::BinaryHeap))
+    {
+        Eager
     } else if let ty::Adt(def, subs) = ty.kind() {
         // Types where the only fields are generic types (or references to) with no trait bounds other
         // than marker traits.
