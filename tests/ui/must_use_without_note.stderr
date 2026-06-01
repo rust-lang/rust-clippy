@@ -1,0 +1,37 @@
+error: `#[must_use]` attribute without a note. Add a note why it must be used.
+  --> tests/ui/must_use_without_note.rs:10:1
+   |
+LL | #[must_use]
+   | ^^^^^^^^^^^
+   |
+   = note: `-D clippy::must-use-without-note` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::must_use_without_note)]`
+help: `#[must_use]` attribute without a note. Add a note why it must be used.
+   |
+LL | #[must_use = "/* reason */"]
+   |            ++++++++++++++++
+
+error: `#[must_use]` attribute without a note. Add a note why it must be used.
+  --> tests/ui/must_use_without_note.rs:26:5
+   |
+LL |     #[must_use]
+   |     ^^^^^^^^^^^
+   |
+help: `#[must_use]` attribute without a note. Add a note why it must be used.
+   |
+LL |     #[must_use = "/* reason */"]
+   |                ++++++++++++++++
+
+error: `#[must_use]` attribute without a note. Add a note why it must be used.
+  --> tests/ui/must_use_without_note.rs:41:5
+   |
+LL |     #[must_use]
+   |     ^^^^^^^^^^^
+   |
+help: `#[must_use]` attribute without a note. Add a note why it must be used.
+   |
+LL |     #[must_use = "/* reason */"]
+   |                ++++++++++++++++
+
+error: aborting due to 3 previous errors
+

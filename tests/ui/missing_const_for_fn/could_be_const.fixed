@@ -165,13 +165,13 @@ mod issue12677 {
     }
 
     impl Wrapper {
-        #[must_use]
+        #[must_use = "newly created Wrapper should be used"]
         pub const fn new(strings: Vec<String>) -> Self {
             //~^ missing_const_for_fn
             Self { strings }
         }
 
-        #[must_use]
+        #[must_use = "newly created Wrapper should be used"]
         pub const fn empty() -> Self {
             //~^ missing_const_for_fn
             Self { strings: Vec::new() }
