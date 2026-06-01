@@ -6,7 +6,7 @@ use rustc_ast::ast;
 use rustc_data_structures::fx::{FxHashMap, FxHashSet};
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
-use rustc_lint::{EarlyContext, EarlyLintPass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
 use rustc_session::impl_lint_pass;
 use rustc_span::Span;
 use rustc_span::hygiene::{ExpnKind, MacroKind};
@@ -115,6 +115,19 @@ impl EarlyLintPass for MacroBraces {
 }
 
 fn is_offending_macro(cx: &EarlyContext<'_>, span: Span, mac_braces: &MacroBraces) -> Option<MacroInfo> {
+    let mut ctxt = span.ctxt();
+    // Most nodes in a crate aren't produced by a macro and never match below; bail before the
+    // lint-level lookup so the common (non-macro) case stays as cheap as it was originally.
+    if ctxt.is_root() {
+        return None;
+    }
+    // `NONSTANDARD_MACRO_BRACES` is allow-by-default. Now that we know this span came from a macro,
+    // a per-node lint-level lookup is worth it: when the lint isn't enabled here we can skip the
+    // macro-backtrace walk and brace-map lookups entirely, since nothing could be emitted anyway.
+    if cx.get_lint_level_spec(NONSTANDARD_MACRO_BRACES).is_allow() {
+        return None;
+    }
+
     let unnested_or_local = |span: Span| {
         !span.from_expansion()
             || span
@@ -123,7 +136,6 @@ fn is_offending_macro(cx: &EarlyContext<'_>, span: Span, mac_braces: &MacroBrace
                 .is_some_and(|e| e.macro_def_id.is_some_and(DefId::is_local))
     };
 
-    let mut ctxt = span.ctxt();
     while !ctxt.is_root() {
         let expn_data = ctxt.outer_expn_data();
         if let ExpnKind::Macro(MacroKind::Bang, mac_name) = expn_data.kind
