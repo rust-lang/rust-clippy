@@ -272,6 +272,7 @@ mod neg_multiply;
 mod new_without_default;
 mod no_effect;
 mod no_mangle_with_rust_abi;
+mod non_binding_let_else;
 mod non_canonical_impls;
 mod non_copy_const;
 mod non_expressive_names;
@@ -857,6 +858,7 @@ rustc_lint::late_lint_methods!(
         ManualNoopWaker: manual_noop_waker::ManualNoopWaker = manual_noop_waker::ManualNoopWaker::new(conf),
         ByteCharSlice: byte_char_slices::ByteCharSlice = byte_char_slices::ByteCharSlice,
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
+        NonBindingLetElse: non_binding_let_else::NonBindingLetElse = non_binding_let_else::NonBindingLetElse,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
