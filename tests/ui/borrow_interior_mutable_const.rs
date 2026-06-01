@@ -83,6 +83,7 @@ fn main() {
 
         let _ = CELL;
         let _ = &CELL; //~ borrow_interior_mutable_const
+        #[expect(clippy::non_binding_let_else)]
         let E::Cell(_) = CELL else {
             return;
         };

@@ -270,6 +270,7 @@ async fn async_test_return_in_macro() {
 }
 
 fn let_else() {
+    #[expect(clippy::non_binding_let_else)]
     let Some(1) = Some(1) else { return };
 }
 

@@ -247,9 +247,9 @@ impl ArithmeticSideEffects {
         un_expr: &'tcx hir::Expr<'_>,
         un_op: hir::UnOp,
     ) {
-        let hir::UnOp::Neg = un_op else {
+        if un_op != hir::UnOp::Neg {
             return;
-        };
+        }
         if ConstEvalCtxt::new(cx).eval(un_expr).is_some() {
             return;
         }

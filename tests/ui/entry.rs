@@ -192,6 +192,7 @@ pub fn issue_11935() {
 fn issue12489(map: &mut HashMap<u64, u64>) -> Option<()> {
     if !map.contains_key(&1) {
         //~^ map_entry
+        #[expect(clippy::non_binding_let_else)]
         let Some(1) = Some(2) else {
             return None;
         };

@@ -9,6 +9,8 @@
 extern crate non_exhaustive_enum;
 use non_exhaustive_enum::*;
 
+use core::assert_matches;
+
 fn noop() {}
 
 fn main() {
@@ -37,19 +39,24 @@ fn main() {
         //~^ unneeded_struct_pattern
     };
 
-    if let None {} = Some(0) {}
+    assert_matches!(Some(0), None {});
     //~^ unneeded_struct_pattern
-    if let None { .. } = Some(0) {}
+    assert_matches!(Some(0), None { .. });
     //~^ unneeded_struct_pattern
-    if let Some(None {}) = Some(Some(0)) {}
-    //~^ unneeded_struct_pattern
-    let None {} = Some(0) else { panic!() };
-    //~^ unneeded_struct_pattern
-    let None { .. } = Some(0) else { panic!() };
-    //~^ unneeded_struct_pattern
-    let Some(None {}) = Some(Some(0)) else { panic!() };
+    assert_matches!(Some(Some(0)), Some(None {}));
     //~^ unneeded_struct_pattern
 
+    #[expect(clippy::non_binding_let_else)]
+    {
+        let None {} = Some(0) else { panic!() };
+        //~^ unneeded_struct_pattern
+        let None { .. } = Some(0) else { panic!() };
+        //~^ unneeded_struct_pattern
+        let Some(None {}) = Some(Some(0)) else { panic!() };
+        //~^ unneeded_struct_pattern
+    }
+
+    #[derive(Debug)]
     enum Custom {
         HasFields {
             field: i32,
@@ -120,31 +127,18 @@ fn main() {
         noop();
     }
 
-    let Custom::HasFields { field: value } = Custom::Init else {
-        panic!()
-    };
+    assert_matches!(Custom::Init, Custom::HasFields { field: value });
+    assert_matches!(Custom::Init, Custom::HasBracketsNoFields {});
+    assert_matches!(Custom::Init, Custom::HasBracketsNoFields { .. });
 
-    let Custom::HasBracketsNoFields {} = Custom::Init else {
-        panic!()
-    };
-
-    let Custom::HasBracketsNoFields { .. } = Custom::Init else {
-        panic!()
-    };
-    let Custom::NoBrackets {} = Custom::Init else { panic!() }; //~ unneeded_struct_pattern
-
-    let Custom::NoBrackets { .. } = Custom::Init else {
-        //~^ unneeded_struct_pattern
-        panic!()
-    };
-    let Custom::NoBracketsNonExhaustive {} = Custom::Init else {
-        //~^ unneeded_struct_pattern
-        panic!()
-    };
-    let Custom::NoBracketsNonExhaustive { .. } = Custom::Init else {
-        //~^ unneeded_struct_pattern
-        panic!()
-    };
+    assert_matches!(Custom::Init, Custom::NoBrackets {});
+    //~^ unneeded_struct_pattern
+    assert_matches!(Custom::Init, Custom::NoBrackets { .. });
+    //~^ unneeded_struct_pattern
+    assert_matches!(Custom::Init, Custom::NoBracketsNonExhaustive {});
+    //~^ unneeded_struct_pattern
+    assert_matches!(Custom::Init, Custom::NoBracketsNonExhaustive { .. });
+    //~^ unneeded_struct_pattern
 
     enum Refutable {
         Variant,

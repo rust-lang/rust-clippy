@@ -53,6 +53,7 @@ fn main() -> Result<(), ()> {
         return Err(())?;
     };
 
+    #[expect(clippy::non_binding_let_else)]
     let Some(_): Option<()> = ({
         return Err(())?;
     }) else {

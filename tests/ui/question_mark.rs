@@ -420,6 +420,7 @@ const fn issue9175(option: Option<()>) -> Option<()> {
 
 fn issue12337() -> Option<i32> {
     let _: Option<i32> = try {
+        #[expect(clippy::non_binding_let_else)]
         let Some(_) = Some(42) else {
             return None;
         };
