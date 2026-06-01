@@ -8,6 +8,7 @@ use rustc_lint::LateContext;
 use rustc_session::Session;
 use rustc_span::Symbol;
 use serde::Deserialize;
+use std::cell::Cell;
 use std::iter::once;
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -177,17 +178,45 @@ impl MsrvStack {
     }
 
     pub fn check_attributes(&mut self, sess: &Session, attrs: &[Attribute]) {
-        if let Some(version) = parse_attrs(sess, attrs) {
+        if let Some(version) = parse_attrs_memo(sess, attrs) {
             SEEN_MSRV_ATTR.store(true, Ordering::Relaxed);
             self.stack.push(version);
         }
     }
 
     pub fn check_attributes_post(&mut self, sess: &Session, attrs: &[Attribute]) {
-        if parse_attrs(sess, attrs).is_some() {
+        if parse_attrs_memo(sess, attrs).is_some() {
             self.stack.pop();
         }
     }
+}
+
+thread_local! {
+    /// Remembers the result of the most recent [`parse_attrs_memo`] call. The early `MsrvStack`
+    /// passes are registered separately, so each node's attribute slice is scanned once per pass on
+    /// both enter and exit; those calls arrive back to back with the same slice, so caching the last
+    /// one collapses them to a single scan.
+    static LAST_PARSED_ATTRS: Cell<Option<(*const Attribute, usize, Option<RustcVersion>)>> = const { Cell::new(None) };
+}
+
+/// [`parse_attrs`] wrapper used by the early `MsrvStack` passes that caches the most recent result,
+/// keyed on the attribute slice's pointer and length. Only the early AST path goes through here, so
+/// the cache never mixes `ast` and `hir` attributes.
+fn parse_attrs_memo(sess: &Session, attrs: &[Attribute]) -> Option<RustcVersion> {
+    if attrs.is_empty() {
+        return None;
+    }
+
+    let key = (attrs.as_ptr(), attrs.len());
+    if let Some((ptr, len, version)) = LAST_PARSED_ATTRS.get()
+        && (ptr, len) == key
+    {
+        return version;
+    }
+
+    let version = parse_attrs(sess, attrs);
+    LAST_PARSED_ATTRS.set(Some((key.0, key.1, version)));
+    version
 }
 
 fn parse_attrs(sess: &Session, attrs: &[impl AttributeExt]) -> Option<RustcVersion> {
