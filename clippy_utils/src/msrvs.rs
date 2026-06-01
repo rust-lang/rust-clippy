@@ -191,6 +191,12 @@ impl MsrvStack {
 }
 
 fn parse_attrs(sess: &Session, attrs: &[impl AttributeExt]) -> Option<RustcVersion> {
+    // The early `MsrvStack` passes call this for every node's attributes on both enter and exit, and
+    // most nodes carry none, so skip building the filter iterator in that common case.
+    if attrs.is_empty() {
+        return None;
+    }
+
     let mut msrv_attrs = attrs.iter().filter(|attr| attr.path_matches(&[sym::clippy, sym::msrv]));
 
     let msrv_attr = msrv_attrs.next()?;
