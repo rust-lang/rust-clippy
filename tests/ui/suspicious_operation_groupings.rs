@@ -233,4 +233,28 @@ fn unary_minus_and_an_if_expression(s1: &S, s2: &S) -> i32 {
     //~^ suspicious_operation_groupings
 }
 
+mod issue7086 {
+    #[allow(dead_code)]
+    struct First {
+        other_unit: (),
+        regular: &'static (),
+    }
+
+    #[allow(dead_code)]
+    struct Second {
+        unit: (),
+        regular: &'static (),
+    }
+
+    #[allow(dead_code)]
+    fn do_not_lint_the_if_expr_here(left: First, right: &Second) -> bool {
+        #[allow(clippy::unit_cmp)]
+        if left.other_unit != right.unit || left.regular != right.regular {
+            return false;
+        }
+
+        true
+    }
+}
+
 fn main() {}
