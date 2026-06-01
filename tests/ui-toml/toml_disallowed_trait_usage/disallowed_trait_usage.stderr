@@ -1,0 +1,82 @@
+error: use of `i32` via trait `std::fmt::Debug` is disallowed
+  --> tests/ui-toml/toml_disallowed_trait_usage/disallowed_trait_usage.rs:36:15
+   |
+LL |     println!("{:?}", 42_i32);
+   |               ^^^^
+   |
+   = note: Use Display formatting instead
+   = note: `-D clippy::disallowed-trait-usage` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::disallowed_trait_usage)]`
+
+error: use of `std::path::PathBuf` via trait `std::fmt::Debug` is disallowed
+  --> tests/ui-toml/toml_disallowed_trait_usage/disallowed_trait_usage.rs:41:15
+   |
+LL |     println!("{path:?}");
+   |               ^^^^^^^^
+   |
+   = note: Use path.display() instead
+
+error: use of `std::path::Path` via trait `std::fmt::Debug` is disallowed
+  --> tests/ui-toml/toml_disallowed_trait_usage/disallowed_trait_usage.rs:46:15
+   |
+LL |     println!("{path_ref:?}");
+   |               ^^^^^^^^^^^^
+   |
+   = note: Use path.display() instead
+
+error: use of `i32` via trait `std::fmt::Debug` is disallowed
+  --> tests/ui-toml/toml_disallowed_trait_usage/disallowed_trait_usage.rs:50:22
+   |
+LL |     let _ = format!("{:?}", 0_i32);
+   |                      ^^^^
+   |
+   = note: Use Display formatting instead
+
+error: use of `std::path::PathBuf` via trait `std::fmt::Debug` is disallowed
+  --> tests/ui-toml/toml_disallowed_trait_usage/disallowed_trait_usage.rs:56:18
+   |
+LL |     write!(buf, "{path:?}").ok();
+   |                  ^^^^^^^^
+   |
+   = note: Use path.display() instead
+
+error: use of `disallowed_trait_usage::MyStruct` via trait `disallowed_trait_usage::MyTrait` is disallowed
+  --> tests/ui-toml/toml_disallowed_trait_usage/disallowed_trait_usage.rs:61:8
+   |
+LL |     my.do_thing();
+   |        ^^^^^^^^
+   |
+   = note: Use a different approach
+
+error: use of `disallowed_trait_usage::MyStruct` via trait `disallowed_trait_usage::MyTrait` is disallowed
+  --> tests/ui-toml/toml_disallowed_trait_usage/disallowed_trait_usage.rs:66:12
+   |
+LL |     my_ref.do_thing();
+   |            ^^^^^^^^
+   |
+   = note: Use a different approach
+
+error: use of implementor of `std::error::Error` via trait `std::fmt::Debug` is disallowed
+  --> tests/ui-toml/toml_disallowed_trait_usage/disallowed_trait_usage.rs:84:15
+   |
+LL |     println!("{err:?}");
+   |               ^^^^^^^
+   |
+   = note: Use Display for errors
+
+error: use of implementor of `std::error::Error` via trait `std::fmt::Debug` is disallowed
+  --> tests/ui-toml/toml_disallowed_trait_usage/disallowed_trait_usage.rs:88:22
+   |
+LL |     let _ = format!("{:?}", std::io::Error::new(std::io::ErrorKind::Other, "oops"));
+   |                      ^^^^
+   |
+   = note: Use Display for errors
+
+error: use of implementor of `disallowed_trait_usage::MyTrait` via trait `std::fmt::Debug` is disallowed
+  --> tests/ui-toml/toml_disallowed_trait_usage/disallowed_trait_usage.rs:99:15
+   |
+LL |     println!("{my:?}");
+   |               ^^^^^^
+
+error: aborting due to 10 previous errors
+

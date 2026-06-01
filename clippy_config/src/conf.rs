@@ -628,6 +628,26 @@ define_Conf! {
     /// default configuration of Clippy. By default, any configuration will replace the default value.
     #[lints(disallowed_names)]
     disallowed_names: Vec<String> = DEFAULT_DISALLOWED_NAMES.iter().map(ToString::to_string).collect(),
+    /// The list of disallowed trait usages. Each entry forbids using a type via a specific
+    /// trait interface.
+    ///
+    /// **Fields:**
+    /// - `type` (optional): the fully qualified path to a concrete type (e.g. `"i32"`, `"std::path::PathBuf"`)
+    /// - `implements` (optional): the fully qualified path to a trait; matches any type implementing it
+    /// - `trait` (required): the fully qualified path to the disallowed trait (e.g. `"std::fmt::Debug"`)
+    /// - `reason` (optional): explanation why this trait usage is disallowed
+    ///
+    /// Exactly one of `type` or `implements` must be specified.
+    ///
+    /// ### Example
+    /// ```toml
+    /// disallowed-trait-usage = [
+    ///     { type = "std::path::PathBuf", trait = "std::fmt::Debug", reason = "Use path.display() instead" },
+    ///     { implements = "std::error::Error", trait = "std::fmt::Debug", reason = "Use Display instead" },
+    /// ]
+    /// ```
+    #[lints(disallowed_trait_usage)]
+    disallowed_trait_usage: Vec<crate::types::DisallowedTraitUsage> = Vec::new(),
     /// The list of disallowed types, written as fully qualified paths.
     ///
     /// **Fields:**
