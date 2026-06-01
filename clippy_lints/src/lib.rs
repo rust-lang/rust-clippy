@@ -208,6 +208,7 @@ mod manual_ignore_case_cmp;
 mod manual_ilog2;
 mod manual_is_ascii_check;
 mod manual_is_power_of_two;
+mod manual_isolate_lowest_one;
 mod manual_let_else;
 mod manual_main_separator_str;
 mod manual_non_exhaustive;
@@ -863,6 +864,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::<replace_box::ReplaceBox>::default()),
         Box::new(move |tcx| Box::new(disallowed_fields::DisallowedFields::new(tcx, conf))),
         Box::new(move |_| Box::new(manual_ilog2::ManualIlog2::new(conf))),
+        Box::new(move |_| Box::new(manual_isolate_lowest_one::ManualIsolateLowestOne::new(conf))),
         Box::new(|_| Box::new(same_length_and_capacity::SameLengthAndCapacity)),
         Box::new(move |tcx| Box::new(duration_suboptimal_units::DurationSuboptimalUnits::new(tcx, conf))),
         Box::new(move |_| Box::new(manual_take::ManualTake::new(conf))),
