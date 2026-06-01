@@ -677,6 +677,9 @@ define_Conf! {
     /// The maximum size of an enum's variant to avoid box suggestion
     #[lints(large_enum_variant)]
     enum_variant_size_threshold: u64 = 200,
+    /// The maximum number of code lines (excluding comments and blanks) a file can have
+    #[lints(excessive_file_length)]
+    excessive_file_length_threshold: u64 = 500,
     /// The maximum amount of nesting a block can reside in
     #[lints(excessive_nesting)]
     excessive_nesting_threshold: u64 = 0,

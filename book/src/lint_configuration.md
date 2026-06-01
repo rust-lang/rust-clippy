@@ -682,6 +682,16 @@ The maximum size of an enum's variant to avoid box suggestion
 * [`large_enum_variant`](https://rust-lang.github.io/rust-clippy/master/index.html#large_enum_variant)
 
 
+## `excessive-file-length-threshold`
+The maximum number of code lines (excluding comments and blanks) a file can have
+
+**Default Value:** `500`
+
+---
+**Affected lints:**
+* [`excessive_file_length`](https://rust-lang.github.io/rust-clippy/master/index.html#excessive_file_length)
+
+
 ## `excessive-nesting-threshold`
 The maximum amount of nesting a block can reside in
 
