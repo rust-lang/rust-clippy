@@ -150,6 +150,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::entry::MAP_ENTRY_INFO,
     crate::enum_clike::ENUM_CLIKE_UNPORTABLE_VARIANT_INFO,
     crate::equatable_if_let::EQUATABLE_IF_LET_INFO,
+    crate::error_format_without_sources::ERROR_FORMAT_WITHOUT_SOURCES_INFO,
     crate::error_impl_error::ERROR_IMPL_ERROR_INFO,
     crate::escape::BOXED_LOCAL_INFO,
     crate::eta_reduction::REDUNDANT_CLOSURE_INFO,
