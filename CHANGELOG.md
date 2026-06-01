@@ -102,6 +102,11 @@ Current stable, released 2026-05-28
 * [`manual_is_ascii_check`] optimized by 97.125% (822M -> 23M instructions)
   [#16755](https://github.com/rust-lang/rust-clippy/pull/16755)
 
+### New Lints
+
+* Added [`manual_min_max`] to `complexity`
+  [#NNNNN](https://github.com/rust-lang/rust-clippy/pull/NNNNN)
+
 ## Rust 1.95
 
 Current stable, released 2026-04-16
@@ -7006,6 +7011,7 @@ Released 2018-09-13
 [`manual_map`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_map
 [`manual_memcpy`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_memcpy
 [`manual_midpoint`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_midpoint
+[`manual_min_max`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_min_max
 [`manual_next_back`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_next_back
 [`manual_non_exhaustive`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_non_exhaustive
 [`manual_noop_waker`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_noop_waker
