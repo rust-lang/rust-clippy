@@ -1,13 +1,7 @@
-//! Test casts for alignment issues
-
+//@require-annotations-for-level: ERROR
 #![feature(core_intrinsics)]
 #![warn(clippy::cast_ptr_alignment)]
-#![allow(
-    clippy::no_effect,
-    clippy::unnecessary_operation,
-    clippy::cast_lossless,
-    clippy::borrow_as_ptr
-)]
+#![expect(clippy::no_effect, clippy::cast_lossless, clippy::borrow_as_ptr)]
 
 fn main() {
     /* These should be warned against */
@@ -33,13 +27,20 @@ fn main() {
     // cast to less-strictly-aligned type
     (&1u16 as *const u16) as *const u8;
     (&mut 1u16 as *mut u16) as *mut u8;
-    // For c_void, we should trust the user. See #2677
+}
+
+// For c_void, we should trust the user
+fn issue_2677() {
     (&1u32 as *const u32 as *const std::os::raw::c_void) as *const u32;
     (&1u32 as *const u32 as *const libc::c_void) as *const u32;
-    // For ZST, we should trust the user. See #4256
-    (&1u32 as *const u32 as *const ()) as *const u32;
+}
 
-    // Issue #2881
+// For ZST, we should trust the user
+fn issue_4256() {
+    (&1u32 as *const u32 as *const ()) as *const u32;
+}
+
+fn issue_2881() {
     let mut data = [0u8, 0u8];
     unsafe {
         let ptr = &data as *const [u8; 2] as *const u8;
@@ -50,5 +51,23 @@ fn main() {
         (ptr as *mut u16).write_unaligned(0);
         core::ptr::write_unaligned(ptr as *mut u16, 0);
         core::intrinsics::unaligned_volatile_store(ptr as *mut u16, 0);
+    }
+}
+
+fn issue_3440() {
+    #[rustfmt::skip] // the error message comment gets split in 2 lines...
+    trait Trait {
+        unsafe fn frob(bytes: *const u8) -> *const Self
+        where
+            Self: Sized,
+        {
+            let _ = bytes as *const [Self; 2];
+            //~^ ERROR: casting from `*const u8` to a possibly more-strictly-aligned pointer (`*const [Self; 2]`)
+            //~| NOTE: the alignment of the target pointer isn't known because the alignment of `Self` can vary
+
+            bytes as *const Self
+            //~^ ERROR: casting from `*const u8` to a possibly more-strictly-aligned pointer (`*const Self`)
+            //~| NOTE: the alignment of `Self` can vary
+        }
     }
 }
