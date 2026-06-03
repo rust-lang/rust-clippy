@@ -237,6 +237,9 @@ fn emit_help(cx: &EarlyContext<'_>, snip: &str, (open, close): (char, char), spa
 fn macro_braces(conf: &[MacroMatcher]) -> (FxHashMap<String, (char, char)>, usize) {
     let mut braces = FxHashMap::from_iter(
         [
+            ("assert_matches", ('(', ')')),
+            ("cfg_select", ('{', '}')),
+            ("debug_assert_matches", ('(', ')')),
             ("format", ('(', ')')),
             ("format_args", ('(', ')')),
             ("eprint", ('(', ')')),
