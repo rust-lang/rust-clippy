@@ -3,12 +3,6 @@
     unconditional_panic,
     clippy::needless_lifetimes,
     clippy::no_effect,
-    // This lint should be enabled again after issue
-    // <https://github.com/rust-lang/rust-clippy/issues/17117> is fixed and `clippy::out_of_bounds_indexing`
-    // and `unconditional_panic` don't overlap anymore.
-    // We want to check for `clippy::out_of_bounds_indexing` because it lints similar things and
-    // we want to avoid false positives.
-    clippy::out_of_bounds_indexing,
     clippy::unnecessary_operation,
     clippy::useless_vec
 )]

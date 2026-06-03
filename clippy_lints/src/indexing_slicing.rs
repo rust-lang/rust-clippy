@@ -64,8 +64,8 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for out of bounds array indexing with a constant
-    /// index.
+    /// Checks for out of bounds array slicing with a constant
+    /// range.
     ///
     /// ### Why is this bad?
     /// This will always panic at runtime.
@@ -74,7 +74,6 @@ declare_clippy_lint! {
     /// ```rust,no_run
     /// let x = [1, 2, 3, 4];
     ///
-    /// x[9];
     /// &x[2..9];
     /// ```
     ///
@@ -83,8 +82,7 @@ declare_clippy_lint! {
     /// # let x = [1, 2, 3, 4];
     /// // Index within bounds
     ///
-    /// x[0];
-    /// x[3];
+    /// &x[2..3];
     /// ```
     #[clippy::version = "pre 1.29.0"]
     pub OUT_OF_BOUNDS_INDEXING,
@@ -191,26 +189,8 @@ impl<'tcx> LateLintPass<'tcx> for IndexingSlicing {
                     if let ExprKind::ConstBlock(..) = index.kind {
                         return;
                     }
-                    // Index is a constant uint.
-                    if let Some(constant) = ConstEvalCtxt::new(cx).eval(index) {
-                        // only `usize` index is legal in rust array index
-                        // leave other type to rustc
-                        if let Constant::Int(off) = constant
-                            && off <= usize::MAX as u128
-                            && let ty::Uint(utype) = cx.typeck_results().expr_ty(index).kind()
-                            && *utype == ty::UintTy::Usize
-                            && let ty::Array(_, s) = ty.kind()
-                            && let Some(size) = s.try_to_target_usize(cx.tcx)
-                        {
-                            // get constant offset and check whether it is in bounds
-                            let off = usize::try_from(off).unwrap();
-                            let size = usize::try_from(size).unwrap();
-
-                            if off >= size {
-                                span_lint(cx, OUT_OF_BOUNDS_INDEXING, expr.span, "index is out of bounds");
-                            }
-                        }
-                        // Let rustc's `const_err` lint handle constant `usize` indexing on arrays.
+                    // Let rustc's `unconditional_panic` lint handle constant `usize` indexing on arrays.
+                    if ConstEvalCtxt::new(cx).eval(index).is_some() {
                         return;
                     }
                 }
