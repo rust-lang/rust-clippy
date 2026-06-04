@@ -869,6 +869,7 @@ rustc_lint::late_lint_methods!(
         RedundantElse: redundant_else::RedundantElse = redundant_else::RedundantElse,
         RestWhenDestructuringStruct: rest_when_destructuring_struct::RestWhenDestructuringStruct = rest_when_destructuring_struct::RestWhenDestructuringStruct,
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
+        DropForStatic: drop_for_static::DropForStatic = drop_for_static::DropForStatic,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
