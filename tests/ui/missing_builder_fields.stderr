@@ -1,0 +1,20 @@
+error: builder is missing required fields: required_a, required_b
+  --> tests/ui/missing_builder_fields.rs:15:13
+   |
+LL |     let _ = FooBuilder::default().build();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: call the setter for each required field before `.build()`
+   = note: `-D clippy::missing-builder-fields` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::missing_builder_fields)]`
+
+error: builder is missing required field: required_b
+  --> tests/ui/missing_builder_fields.rs:19:13
+   |
+LL |     let _ = FooBuilder::default().required_a(1).build();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: call the setter for each required field before `.build()`
+
+error: aborting due to 2 previous errors
+

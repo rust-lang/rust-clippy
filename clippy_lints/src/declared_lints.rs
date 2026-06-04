@@ -533,6 +533,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::mismatching_type_param_order::MISMATCHING_TYPE_PARAM_ORDER_INFO,
     crate::missing_assert_message::MISSING_ASSERT_MESSAGE_INFO,
     crate::missing_asserts_for_indexing::MISSING_ASSERTS_FOR_INDEXING_INFO,
+    crate::missing_builder_fields::MISSING_BUILDER_FIELDS_INFO,
     crate::missing_const_for_fn::MISSING_CONST_FOR_FN_INFO,
     crate::missing_const_for_thread_local::MISSING_CONST_FOR_THREAD_LOCAL_INFO,
     crate::missing_doc::MISSING_DOCS_IN_PRIVATE_ITEMS_INFO,

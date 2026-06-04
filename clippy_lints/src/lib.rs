@@ -234,6 +234,7 @@ mod misc_early;
 mod mismatching_type_param_order;
 mod missing_assert_message;
 mod missing_asserts_for_indexing;
+mod missing_builder_fields;
 mod missing_const_for_fn;
 mod missing_const_for_thread_local;
 mod missing_doc;
@@ -815,6 +816,7 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
         Box::new(|_| Box::<reserve_after_initialization::ReserveAfterInitialization>::default()),
         Box::new(|_| Box::new(implied_bounds_in_impls::ImpliedBoundsInImpls)),
         Box::new(|_| Box::new(missing_asserts_for_indexing::MissingAssertsForIndexing)),
+        Box::new(|_| Box::new(missing_builder_fields::MissingBuilderFields)),
         Box::new(|_| Box::new(unnecessary_map_on_constructor::UnnecessaryMapOnConstructor)),
         Box::new(move |_| {
             Box::new(needless_borrows_for_generic_args::NeedlessBorrowsForGenericArgs::new(
