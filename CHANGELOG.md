@@ -7613,6 +7613,7 @@ Released 2018-09-13
 [`semicolon-outside-block-ignore-multiline`]: https://doc.rust-lang.org/clippy/lint_configuration.html#semicolon-outside-block-ignore-multiline
 [`single-char-binding-names-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#single-char-binding-names-threshold
 [`source-item-ordering`]: https://doc.rust-lang.org/clippy/lint_configuration.html#source-item-ordering
+[`stack-array-size-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#stack-array-size-threshold
 [`stack-size-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#stack-size-threshold
 [`standard-macro-braces`]: https://doc.rust-lang.org/clippy/lint_configuration.html#standard-macro-braces
 [`struct-field-name-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#struct-field-name-threshold
