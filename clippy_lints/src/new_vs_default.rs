@@ -1,5 +1,7 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
-use clippy_utils::source::{indent_of, reindent_multiline, snippet, snippet_with_applicability, trim_span};
+use clippy_utils::source::{
+    indent_of, reindent_multiline, snippet, snippet_opt, snippet_with_applicability, trim_span,
+};
 use clippy_utils::sugg::DiagExt;
 use clippy_utils::ty::is_unit_struct;
 use clippy_utils::{is_default_equivalent_call, return_ty};
@@ -182,8 +184,7 @@ impl<'tcx> LateLintPass<'tcx> for NewVsDefault {
                 // Check if a Default implementation exists for the Self type, regardless of
                 // generics
                 let default_type = if let Some(ref impling_types) = self.impling_types
-                    && let self_def = cx.tcx.type_of(item.owner_id).instantiate_identity().skip_norm_wip()
-                    && let Some(self_def) = self_def.ty_adt_def()
+                    && let Some(self_def) = self_ty.ty_adt_def()
                     && let Some(self_local_did) = self_def.did().as_local()
                 {
                     impling_types
@@ -251,12 +252,12 @@ impl<'tcx> LateLintPass<'tcx> for NewVsDefault {
 
                                 let additional_where_preds =
                                     snippet_with_applicability(cx, impl_item.generics.where_clause_span, "", &mut app);
-                                let ident = indent_of(cx, generics.where_clause_span).unwrap_or(0);
+                                let indent = indent_of(cx, generics.where_clause_span).unwrap_or(0);
                                 // Remove the leading `where ` keyword
                                 let additional_where_preds =
                                     additional_where_preds.trim_start_matches("where").trim_start();
                                 where_clause_sugg.push('\n');
-                                where_clause_sugg.extend(std::iter::repeat_n(' ', ident));
+                                where_clause_sugg.extend(std::iter::repeat_n(' ', indent));
                                 where_clause_sugg.push_str(additional_where_preds);
                             }
                             format!("\n{where_clause_sugg}\n")
@@ -268,8 +269,7 @@ impl<'tcx> LateLintPass<'tcx> for NewVsDefault {
                         } else {
                             String::new()
                         };
-                        let self_ty_fmt = self_ty.to_string();
-                        let self_type_snip = snippet_with_applicability(cx, impl_self_ty.span, &self_ty_fmt, &mut app);
+                        let self_type_snip = snippet_opt(cx, impl_self_ty.span).unwrap_or_else(|| self_ty.to_string());
                         span_lint_hir_and_then(
                             cx,
                             NEW_WITHOUT_DEFAULT,
@@ -324,8 +324,8 @@ fn block_span_unless_only_default(cx: &LateContext<'_>, block: &hir::Block<'_>) 
         // Block only has a trailing expression, e.g. `Self::default()`
         return None;
     }
-    if let [hir::Stmt { kind, .. }] = block.stmts
-        && let StmtKind::Expr(expr) | StmtKind::Semi(expr) = kind
+    if let [stmt] = block.stmts
+        && let StmtKind::Expr(expr) | StmtKind::Semi(expr) = stmt.kind
         && let ExprKind::Ret(Some(ret_expr)) = expr.kind
         && expr_calls_default(cx, ret_expr)
     {
