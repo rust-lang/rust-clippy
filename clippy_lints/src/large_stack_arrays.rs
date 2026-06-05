@@ -40,7 +40,7 @@ pub struct LargeStackArrays {
 impl LargeStackArrays {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
-            maximum_allowed_size: conf.array_size_threshold,
+            maximum_allowed_size: conf.stack_array_size_threshold,
             prev_vec_macro_callsite: None,
             const_item_counter: Saturating(0),
         }
