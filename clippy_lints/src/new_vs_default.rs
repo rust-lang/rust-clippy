@@ -217,58 +217,6 @@ impl<'tcx> LateLintPass<'tcx> for NewVsDefault {
                             return;
                         }
 
-                        let mut app = Applicability::MachineApplicable;
-                        let attrs_sugg = {
-                            let mut sugg = String::new();
-                            for attr in cx.tcx.hir_attrs(assoc_item_hir_id) {
-                                let Attribute::Parsed(AttributeKind::CfgTrace(attrs)) = attr else {
-                                    // This might be some other attribute that the `impl Default` ought to inherit.
-                                    // But it could also be one of the many attributes that:
-                                    // - can't be put on an impl block -- like `#[inline]`
-                                    // - we can't even build a suggestion for, since `Attribute::span` may panic.
-                                    //
-                                    // Because of all that, remain on the safer side -- don't inherit this attr, and
-                                    // just reduce the applicability
-                                    app = Applicability::MaybeIncorrect;
-                                    continue;
-                                };
-
-                                for (_, attr_span) in attrs {
-                                    sugg.push_str(&snippet_with_applicability(cx.sess(), *attr_span, "_", &mut app));
-                                    sugg.push('\n');
-                                }
-                            }
-                            sugg
-                        };
-                        let generics_sugg = snippet_with_applicability(cx, generics.span, "", &mut app);
-                        let where_clause_sugg = if generics.has_where_clause_predicates {
-                            let where_clause_sugg =
-                                snippet_with_applicability(cx, generics.where_clause_span, "", &mut app).to_string();
-                            let mut where_clause_sugg = reindent_multiline(&where_clause_sugg, true, Some(4));
-                            if impl_item.generics.has_where_clause_predicates {
-                                if !where_clause_sugg.ends_with(',') {
-                                    where_clause_sugg.push(',');
-                                }
-
-                                let additional_where_preds =
-                                    snippet_with_applicability(cx, impl_item.generics.where_clause_span, "", &mut app);
-                                let indent = indent_of(cx, generics.where_clause_span).unwrap_or(0);
-                                // Remove the leading `where ` keyword
-                                let additional_where_preds =
-                                    additional_where_preds.trim_start_matches("where").trim_start();
-                                where_clause_sugg.push('\n');
-                                where_clause_sugg.extend(std::iter::repeat_n(' ', indent));
-                                where_clause_sugg.push_str(additional_where_preds);
-                            }
-                            format!("\n{where_clause_sugg}\n")
-                        } else if impl_item.generics.has_where_clause_predicates {
-                            let where_clause_sugg =
-                                snippet_with_applicability(cx, impl_item.generics.where_clause_span, "", &mut app);
-                            let where_clause_sugg = reindent_multiline(&where_clause_sugg, true, Some(4));
-                            format!("\n{}\n", where_clause_sugg.trim_start())
-                        } else {
-                            String::new()
-                        };
                         let self_type_snip = snippet_opt(cx, impl_self_ty.span).unwrap_or_else(|| self_ty.to_string());
                         span_lint_hir_and_then(
                             cx,
@@ -277,6 +225,75 @@ impl<'tcx> LateLintPass<'tcx> for NewVsDefault {
                             impl_item.span,
                             format!("you should consider adding a `Default` implementation for `{self_type_snip}`"),
                             |diag| {
+                                let mut app = Applicability::MachineApplicable;
+                                let attrs_sugg = {
+                                    let mut sugg = String::new();
+                                    for attr in cx.tcx.hir_attrs(assoc_item_hir_id) {
+                                        let Attribute::Parsed(AttributeKind::CfgTrace(attrs)) = attr else {
+                                            // This might be some other attribute that the `impl Default` ought to
+                                            // inherit. But it could also be
+                                            // one of the many attributes that:
+                                            // - can't be put on an impl block -- like `#[inline]`
+                                            // - we can't even build a suggestion for, since `Attribute::span` may
+                                            //   panic.
+                                            //
+                                            // Because of all that, remain on the safer side -- don't inherit this attr,
+                                            // and just reduce the
+                                            // applicability
+                                            app = Applicability::MaybeIncorrect;
+                                            continue;
+                                        };
+
+                                        for (_, attr_span) in attrs {
+                                            sugg.push_str(&snippet_with_applicability(
+                                                cx.sess(),
+                                                *attr_span,
+                                                "_",
+                                                &mut app,
+                                            ));
+                                            sugg.push('\n');
+                                        }
+                                    }
+                                    sugg
+                                };
+                                let generics_sugg = snippet_with_applicability(cx, generics.span, "", &mut app);
+                                let where_clause_sugg = if generics.has_where_clause_predicates {
+                                    let where_clause_sugg =
+                                        snippet_with_applicability(cx, generics.where_clause_span, "", &mut app)
+                                            .to_string();
+                                    let mut where_clause_sugg = reindent_multiline(&where_clause_sugg, true, Some(4));
+                                    if impl_item.generics.has_where_clause_predicates {
+                                        if !where_clause_sugg.ends_with(',') {
+                                            where_clause_sugg.push(',');
+                                        }
+
+                                        let additional_where_preds = snippet_with_applicability(
+                                            cx,
+                                            impl_item.generics.where_clause_span,
+                                            "",
+                                            &mut app,
+                                        );
+                                        let indent = indent_of(cx, generics.where_clause_span).unwrap_or(0);
+                                        // Remove the leading `where ` keyword
+                                        let additional_where_preds =
+                                            additional_where_preds.trim_start_matches("where").trim_start();
+                                        where_clause_sugg.push('\n');
+                                        where_clause_sugg.extend(std::iter::repeat_n(' ', indent));
+                                        where_clause_sugg.push_str(additional_where_preds);
+                                    }
+                                    format!("\n{where_clause_sugg}\n")
+                                } else if impl_item.generics.has_where_clause_predicates {
+                                    let where_clause_sugg = snippet_with_applicability(
+                                        cx,
+                                        impl_item.generics.where_clause_span,
+                                        "",
+                                        &mut app,
+                                    );
+                                    let where_clause_sugg = reindent_multiline(&where_clause_sugg, true, Some(4));
+                                    format!("\n{}\n", where_clause_sugg.trim_start())
+                                } else {
+                                    String::new()
+                                };
                                 diag.suggest_prepend_item(
                                     cx,
                                     item.span,
