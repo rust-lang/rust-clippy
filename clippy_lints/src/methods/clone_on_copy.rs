@@ -4,11 +4,31 @@ use clippy_utils::ty::is_copy;
 use rustc_errors::Applicability;
 use rustc_hir::{BindingMode, ByRef, Expr, ExprKind, MatchSource, Node, PatKind};
 use rustc_lint::LateContext;
-use rustc_middle::ty;
 use rustc_middle::ty::adjustment::Adjust;
 use rustc_middle::ty::print::with_forced_trimmed_paths;
+use rustc_middle::ty::{self, GenericArgKind, Ty, TypeVisitableExt};
 
 use super::CLONE_ON_COPY;
+
+fn copy_impl_self_ty_has_static_region<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
+    let Some(copy_trait) = cx.tcx.lang_items().copy_trait() else {
+        return false;
+    };
+
+    cx.tcx.non_blanket_impls_for_ty(copy_trait, ty).any(|impl_id| {
+        cx.tcx
+            .impl_trait_ref(impl_id)
+            .instantiate_identity()
+            .skip_norm_wip()
+            .self_ty()
+            .walk()
+            .any(|arg| matches!(arg.kind(), GenericArgKind::Lifetime(region) if region.is_static()))
+    })
+}
+
+fn copy_suggestion_may_require_static_region<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
+    ty.has_erased_regions() && copy_impl_self_ty_has_static_region(cx, ty)
+}
 
 /// Checks for the `CLONE_ON_COPY` lint.
 pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, receiver: &Expr<'_>) {
@@ -33,7 +53,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, receiver: &Expr<'_>) 
         return; // don't report clone_on_copy
     }
 
-    if is_copy(cx, ty) {
+    if is_copy(cx, ty) && !copy_suggestion_may_require_static_region(cx, ty) {
         let parent_is_suffix_expr = match cx.tcx.parent_hir_node(expr.hir_id) {
             Node::Expr(parent) => match parent.kind {
                 // &*x is a nop, &x.clone() is not

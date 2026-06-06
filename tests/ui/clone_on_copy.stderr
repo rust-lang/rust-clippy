@@ -61,5 +61,11 @@ error: using `clone` on type `Option<i32>` which implements the `Copy` trait
 LL |     let value = opt.clone()?; // operator precedence needed (*opt)?
    |                 ^^^^^^^^^^^ help: try dereferencing it: `(*opt)`
 
-error: aborting due to 10 previous errors
+error: using `clone` on type `AlwaysCopy<'_>` which implements the `Copy` trait
+  --> tests/ui/clone_on_copy.rs:150:13
+   |
+LL |             self.clone()
+   |             ^^^^^^^^^^^^ help: try dereferencing it: `*self`
+
+error: aborting due to 11 previous errors
 

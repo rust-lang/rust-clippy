@@ -121,3 +121,34 @@ fn issue9277() -> Option<i32> {
     //~^^ clone_on_copy
     None
 }
+
+#[allow(clippy::non_canonical_clone_impl)]
+mod issue15610 {
+    struct Weird<'a>(&'a i32);
+
+    impl Clone for Weird<'_> {
+        fn clone(&self) -> Self {
+            Weird(self.0)
+        }
+    }
+
+    impl Copy for Weird<'static> {}
+
+    impl Weird<'_> {
+        fn foo(&self) -> Self {
+            self.clone()
+        }
+    }
+}
+
+mod lifetime_generic_copy_still_lints {
+    #[derive(Clone, Copy)]
+    struct AlwaysCopy<'a>(&'a i32);
+
+    impl AlwaysCopy<'_> {
+        fn foo(&self) -> Self {
+            *self
+            //~^ clone_on_copy
+        }
+    }
+}
