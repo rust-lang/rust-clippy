@@ -227,6 +227,18 @@ fn maximum_unary_minus_right_tree(s1: &S, s2: &S) -> i32 {
     //~^ suspicious_operation_groupings
 }
 
+fn f(_: char) -> bool {
+    true
+}
+fn g(_: char) -> bool {
+    true
+}
+fn h() {
+    let x = 'b';
+    let y = 'r';
+    if f(x) && g(y) && x != y {}
+}
+
 fn unary_minus_and_an_if_expression(s1: &S, s2: &S) -> i32 {
     // There's no `s1.b`
     -(if -s1.a < -s2.a && -s1.a < -s2.b { s1.c } else { s2.a })
