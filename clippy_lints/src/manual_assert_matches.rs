@@ -153,7 +153,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualAssertMatches {
             }
 
             let msg = format!("manual `core::{assert_macro_name}_matches` implementation");
-            let sugg = format!("core::{assert_macro_name}_matches!({match_arg}, {match_pat}{guard}{format_args});");
+            let sugg = format!("core::{assert_macro_name}_matches!({match_arg}, {match_pat}{guard}{format_args})");
             span_lint_and_sugg(
                 cx,
                 MANUAL_ASSERT_MATCHES,
