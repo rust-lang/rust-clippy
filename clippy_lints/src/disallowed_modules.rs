@@ -51,7 +51,7 @@ declare_clippy_lint! {
     /// // A similar module that is allowed by the config
     /// use crate::sync::Mutex;
     /// ```
-    #[clippy::version = "1.70.0"]
+    #[clippy::version = "1.98.0"]
     pub DISALLOWED_MODULES,
     style,
     "use of disallowed modules"
