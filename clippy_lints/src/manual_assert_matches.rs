@@ -134,7 +134,10 @@ impl<'tcx> LateLintPass<'tcx> for ManualAssertMatches {
                     let source = source.as_str();
                     format!(" if {source}")
                 },
-                _ => String::new(),
+                None => String::new(),
+                _ => {
+                    return;
+                },
             };
 
             let format_args = match panic_call {
