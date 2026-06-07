@@ -146,13 +146,13 @@ impl<'tcx> LateLintPass<'tcx> for DisallowedModules {
 
     fn check_ty(&mut self, cx: &LateContext<'tcx>, ty: &'tcx rustc_hir::Ty<'tcx, rustc_hir::AmbigArg>) {
         match ty.kind {
-            TyKind::Path(qpath) if let (_, Some(path)) = qpath.opt_res_path() => {
-                if self
-                    .check_path_segments(cx, path.segments.iter(), qpath.span())
-                    .is_some()
-                {
-                    self.check_res_emit(cx, &path.res, qpath.span());
-                }
+            TyKind::Path(qpath)
+                if let (_, Some(path)) = qpath.opt_res_path()
+                    && self
+                        .check_path_segments(cx, path.segments.iter(), qpath.span())
+                        .is_some() =>
+            {
+                self.check_res_emit(cx, &path.res, qpath.span());
             },
             _ => {},
         }
@@ -180,13 +180,13 @@ impl<'tcx> LateLintPass<'tcx> for DisallowedModules {
                     }
                 });
             },
-            ExprKind::Path(qpath) if let (_, Some(path)) = qpath.opt_res_path() => {
-                if self
-                    .check_path_segments(cx, path.segments.iter(), qpath.span())
-                    .is_some()
-                {
-                    self.check_res_emit(cx, &path.res, qpath.span());
-                }
+            ExprKind::Path(qpath)
+                if let (_, Some(path)) = qpath.opt_res_path()
+                    && self
+                        .check_path_segments(cx, path.segments.iter(), qpath.span())
+                        .is_some() =>
+            {
+                self.check_res_emit(cx, &path.res, qpath.span());
             },
             _ => {},
         }
