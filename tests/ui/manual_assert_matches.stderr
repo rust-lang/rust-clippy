@@ -1,0 +1,104 @@
+error: manual `core::assert_matches` implementation
+  --> tests/ui/manual_assert_matches.rs:16:5
+   |
+LL |     assert!(matches!(1, 1));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^ help: use: `core::assert_matches!(1, 1);`
+   |
+   = note: `-D clippy::manual-assert-matches` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_assert_matches)]`
+
+error: manual `core::assert_matches` implementation
+  --> tests/ui/manual_assert_matches.rs:21:5
+   |
+LL |     assert!(matches!(1, 1));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^ help: use: `core::assert_matches!(1, 1);`
+
+error: manual `core::assert_matches` implementation
+  --> tests/ui/manual_assert_matches.rs:23:5
+   |
+LL |     std::assert!(matches!(1, 1));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `core::assert_matches!(1, 1);`
+
+error: manual `core::assert_matches` implementation
+  --> tests/ui/manual_assert_matches.rs:25:5
+   |
+LL |     assert!(std::matches!(1, 1));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `core::assert_matches!(1, 1);`
+
+error: manual `core::assert_matches` implementation
+  --> tests/ui/manual_assert_matches.rs:27:5
+   |
+LL |     std::assert!(std::matches!(1, 1));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `core::assert_matches!(1, 1);`
+
+error: manual `core::debug_assert_matches` implementation
+  --> tests/ui/manual_assert_matches.rs:30:5
+   |
+LL |     debug_assert!(matches!(1, 1));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `core::debug_assert_matches!(1, 1);`
+
+error: manual `core::debug_assert_matches` implementation
+  --> tests/ui/manual_assert_matches.rs:32:5
+   |
+LL |     std::debug_assert!(matches!(1, 1));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `core::debug_assert_matches!(1, 1);`
+
+error: manual `core::debug_assert_matches` implementation
+  --> tests/ui/manual_assert_matches.rs:34:5
+   |
+LL |     debug_assert!(std::matches!(1, 1));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `core::debug_assert_matches!(1, 1);`
+
+error: manual `core::debug_assert_matches` implementation
+  --> tests/ui/manual_assert_matches.rs:36:5
+   |
+LL |     std::debug_assert!(std::matches!(1, 1));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `core::debug_assert_matches!(1, 1);`
+
+error: manual `core::assert_matches` implementation
+  --> tests/ui/manual_assert_matches.rs:39:5
+   |
+LL |     assert!(matches!(1, 1), "hello");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `core::assert_matches!(1, 1, "hello");`
+
+error: manual `core::assert_matches` implementation
+  --> tests/ui/manual_assert_matches.rs:42:5
+   |
+LL | /     assert!(
+LL | |         matches!(Some(1 + 2), Some(3 | 4) if true),
+LL | |         "{} {} {} {}",
+LL | |         "this",
+...  |
+LL | |         "test"
+LL | |     );
+   | |_____^
+   |
+help: use
+   |
+LL ~     core::assert_matches!(Some(1 + 2), Some(3 | 4) if true, "{} {} {} {}",
+LL +         "this",
+LL +         "is",
+LL +         "a",
+LL ~         "test");;
+   |
+
+error: manual `core::assert_matches` implementation
+  --> tests/ui/manual_assert_matches.rs:51:5
+   |
+LL | /     assert!(
+LL | |         matches!(
+LL | |             (vec![1, 2, 3].as_slice(), Some("hello".to_string())),
+LL | |             ([1, ..], Some(ref s)) if s.starts_with('h')
+...  |
+LL | |         (vec![1, 2, 3], Some("hello")),
+LL | |     );
+   | |_____^
+   |
+help: use
+   |
+LL ~     core::assert_matches!((vec![1, 2, 3].as_slice(), Some("hello".to_string())), ([1, ..], Some(ref s)) if s.starts_with('h'), "expected {:?} to match",
+LL ~         (vec![1, 2, 3], Some("hello")));;
+   |
+
+error: aborting due to 12 previous errors
+

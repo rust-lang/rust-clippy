@@ -202,6 +202,7 @@ mod main_recursion;
 mod manual_abs_diff;
 mod manual_assert;
 mod manual_assert_eq;
+mod manual_assert_matches;
 mod manual_async_fn;
 mod manual_bits;
 mod manual_checked_ops;
@@ -861,6 +862,7 @@ rustc_lint::late_lint_methods!(
         ManualNoopWaker: manual_noop_waker::ManualNoopWaker = manual_noop_waker::ManualNoopWaker::new(conf),
         ByteCharSlice: byte_char_slices::ByteCharSlice = byte_char_slices::ByteCharSlice,
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
+        ManualAssertMatches: manual_assert_matches::ManualAssertMatches = manual_assert_matches::ManualAssertMatches,
         WithCapacityZero: with_capacity_zero::WithCapacityZero = with_capacity_zero::WithCapacityZero,
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
         RedundantElse: redundant_else::RedundantElse = redundant_else::RedundantElse,
