@@ -6745,6 +6745,7 @@ Released 2018-09-13
 [`disallowed_macros`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_macros
 [`disallowed_method`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_method
 [`disallowed_methods`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_methods
+[`disallowed_modules`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_modules
 [`disallowed_names`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_names
 [`disallowed_script_idents`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_script_idents
 [`disallowed_type`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_type
