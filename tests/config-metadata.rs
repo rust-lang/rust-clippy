@@ -63,8 +63,9 @@ fn changelog() {
     .unwrap();
     let expected = re.replace(&current, format!("$1\n{configs}\n$2"));
 
-    assert!(
-        matches!(expected, Cow::Owned(_)),
+    core::assert_matches!(
+        expected,
+        Cow::Owned(_),
         "failed to find configuration section in `{path}`"
     );
 

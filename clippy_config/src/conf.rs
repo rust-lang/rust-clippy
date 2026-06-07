@@ -968,6 +968,7 @@ define_Conf! {
         len_zero,
         lines_filter_map_ok,
         manual_abs_diff,
+        manual_assert_matches,
         manual_bits,
         manual_c_str_literals,
         manual_clamp,

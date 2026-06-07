@@ -918,6 +918,7 @@ The minimum rust version that the project supports. Defaults to the `rust-versio
 * [`len_zero`](https://rust-lang.github.io/rust-clippy/master/index.html#len_zero)
 * [`lines_filter_map_ok`](https://rust-lang.github.io/rust-clippy/master/index.html#lines_filter_map_ok)
 * [`manual_abs_diff`](https://rust-lang.github.io/rust-clippy/master/index.html#manual_abs_diff)
+* [`manual_assert_matches`](https://rust-lang.github.io/rust-clippy/master/index.html#manual_assert_matches)
 * [`manual_bits`](https://rust-lang.github.io/rust-clippy/master/index.html#manual_bits)
 * [`manual_c_str_literals`](https://rust-lang.github.io/rust-clippy/master/index.html#manual_c_str_literals)
 * [`manual_clamp`](https://rust-lang.github.io/rust-clippy/master/index.html#manual_clamp)

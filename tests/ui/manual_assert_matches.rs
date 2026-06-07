@@ -1,0 +1,87 @@
+//@aux-build:proc_macros.rs
+#![warn(clippy::manual_assert_matches)]
+#![allow(clippy::eq_op)]
+#![allow(clippy::match_single_binding)]
+#![allow(clippy::assertions_on_constants)]
+
+extern crate proc_macros;
+
+#[clippy::msrv = "1.95"]
+fn msrv_1_95() {
+    assert!(matches!(1, 1));
+}
+
+#[clippy::msrv = "1.96"]
+fn msrv_1_96() {
+    assert!(matches!(1, 1));
+    //~^ manual_assert_matches
+}
+
+fn main() {
+    assert!(matches!(1, 1));
+    //~^ manual_assert_matches
+    std::assert!(matches!(1, 1));
+    //~^ manual_assert_matches
+    assert!(std::matches!(1, 1));
+    //~^ manual_assert_matches
+    std::assert!(std::matches!(1, 1));
+    //~^ manual_assert_matches
+
+    debug_assert!(matches!(1, 1));
+    //~^ manual_assert_matches
+    std::debug_assert!(matches!(1, 1));
+    //~^ manual_assert_matches
+    debug_assert!(std::matches!(1, 1));
+    //~^ manual_assert_matches
+    std::debug_assert!(std::matches!(1, 1));
+    //~^ manual_assert_matches
+
+    assert!(matches!(1, 1), "hello");
+    //~^ manual_assert_matches
+    #[rustfmt::skip]
+    assert!(//~ manual_assert_matches
+        matches!(Some(1 + 2), Some(3 | 4) if true),
+        "{} {} {} {}",
+        "this",
+        "is",
+        "a",
+        "test"
+    );
+    #[rustfmt::skip]
+    assert!(//~ manual_assert_matches
+        matches!(
+            (vec![1, 2, 3].as_slice(), Some("hello".to_string())),
+            ([1, ..], Some(ref s)) if s.starts_with('h')
+        ),
+        "expected {:?} to match",
+        (vec![1, 2, 3], Some("hello")),
+    );
+
+    // Don't lint: argument to `assert!` is not exactly `matches!(...)`.
+    assert!(matches!(1, 1) || (1 + 1 == 2), "hello");
+
+    // Don't lint: the value being matched on is not `Debug`.
+    enum NotDebug {
+        Foo,
+        Bar,
+    };
+    assert!(matches!(NotDebug::Foo, NotDebug::Bar));
+    assert!(matches!(
+        {
+            match 0 {
+                _ => (),
+            };
+            NotDebug::Foo
+        },
+        NotDebug::Bar
+    ));
+
+    // Don't lint: in const context.
+    const {
+        assert!(matches!(1, 1));
+    }
+
+    // Don't lint: in external/proc macro.
+    proc_macros::external! { assert!(matches!(1, 1)) };
+    proc_macros::with_span! { span assert!(matches!(1, 1)) };
+}
