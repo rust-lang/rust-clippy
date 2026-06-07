@@ -111,11 +111,13 @@ mod disallowed_methods;
 mod disallowed_names;
 mod disallowed_script_idents;
 mod disallowed_types;
+mod discouraged_lazy_evaluation;
 mod doc;
 mod double_parens;
 mod drop_forget_ref;
 mod duplicate_mod;
 mod duration_suboptimal_units;
+mod eager_fun_call;
 mod else_if_without_else;
 mod empty_drop;
 mod empty_enums;
@@ -860,6 +862,8 @@ rustc_lint::late_lint_methods!(
         ManualNoopWaker: manual_noop_waker::ManualNoopWaker = manual_noop_waker::ManualNoopWaker::new(conf),
         ByteCharSlice: byte_char_slices::ByteCharSlice = byte_char_slices::ByteCharSlice,
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
+        EagerFunCall: eager_fun_call::EagerFunCall = eager_fun_call::EagerFunCall,
+        DiscouragedLazyEvaluation: discouraged_lazy_evaluation::DiscouragedLazyEvaluation = discouraged_lazy_evaluation::DiscouragedLazyEvaluation,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );

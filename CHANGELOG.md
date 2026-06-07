@@ -6748,6 +6748,7 @@ Released 2018-09-13
 [`disallowed_script_idents`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_script_idents
 [`disallowed_type`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_type
 [`disallowed_types`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_types
+[`discouraged_lazy_evaluation`]: https://rust-lang.github.io/rust-clippy/master/index.html#discouraged_lazy_evaluation
 [`diverging_sub_expression`]: https://rust-lang.github.io/rust-clippy/master/index.html#diverging_sub_expression
 [`doc_broken_link`]: https://rust-lang.github.io/rust-clippy/master/index.html#doc_broken_link
 [`doc_comment_double_space_linebreaks`]: https://rust-lang.github.io/rust-clippy/master/index.html#doc_comment_double_space_linebreaks
@@ -6775,6 +6776,7 @@ Released 2018-09-13
 [`duplicated_attributes`]: https://rust-lang.github.io/rust-clippy/master/index.html#duplicated_attributes
 [`duration_suboptimal_units`]: https://rust-lang.github.io/rust-clippy/master/index.html#duration_suboptimal_units
 [`duration_subsec`]: https://rust-lang.github.io/rust-clippy/master/index.html#duration_subsec
+[`eager_fun_call`]: https://rust-lang.github.io/rust-clippy/master/index.html#eager_fun_call
 [`eager_transmute`]: https://rust-lang.github.io/rust-clippy/master/index.html#eager_transmute
 [`elidable_lifetime_names`]: https://rust-lang.github.io/rust-clippy/master/index.html#elidable_lifetime_names
 [`else_if_without_else`]: https://rust-lang.github.io/rust-clippy/master/index.html#else_if_without_else
