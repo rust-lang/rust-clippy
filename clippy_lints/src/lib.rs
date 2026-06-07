@@ -109,6 +109,7 @@ mod derivable_impls;
 mod derive;
 mod disallowed_items;
 mod disallowed_macros;
+mod disallowed_modules;
 mod disallowed_names;
 mod disallowed_script_idents;
 mod doc;
@@ -871,6 +872,7 @@ rustc_lint::late_lint_methods!(
         UnnecessaryBoxPin: unnecessary_box_pin::UnnecessaryBoxPin = unnecessary_box_pin::UnnecessaryBoxPin::new(conf),
         BufreaderStdin: bufreader_stdin::BufreaderStdin = bufreader_stdin::BufreaderStdin::new(),
         IfsAsLogicalOps: ifs_as_logical_ops::IfsAsLogicalOps = ifs_as_logical_ops::IfsAsLogicalOps,
+        DisallowedModules: disallowed_modules::DisallowedModules = disallowed_modules::DisallowedModules::new(tcx, conf),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
