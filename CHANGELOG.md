@@ -7581,6 +7581,7 @@ Released 2018-09-13
 [`disallowed-fields`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-fields
 [`disallowed-macros`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-macros
 [`disallowed-methods`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-methods
+[`disallowed-modules`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-modules
 [`disallowed-names`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-names
 [`disallowed-types`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-types
 [`doc-valid-idents`]: https://doc.rust-lang.org/clippy/lint_configuration.html#doc-valid-idents

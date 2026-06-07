@@ -573,10 +573,24 @@ The list of disallowed methods, written as fully qualified paths.
 * [`disallowed_methods`](https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_methods)
 
 
-## `disallowed-names`
+## `disallowed-modules`
 The list of disallowed names to lint about. NB: `bar` is not here since it has legitimate uses. The value
 `".."` can be used as part of the list to indicate that the configured values should be appended to the
 default configuration of Clippy. By default, any configuration will replace the default value.
+
+**Default Value:** `[]`
+
+---
+**Affected lints:**
+* [`disallowed_modules`](https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_modules)
+
+
+## `disallowed-names`
+The list of words this lint should not consider as identifiers needing ticks. The value
+`".."` can be used as part of the list to indicate that the configured values should be appended to the
+default configuration of Clippy. By default, any configuration will replace the default value. For example:
+* `doc-valid-idents = ["ClipPy"]` would replace the default list with `["ClipPy"]`.
+* `doc-valid-idents = ["ClipPy", ".."]` would append `ClipPy` to the default list.
 
 **Default Value:** `["foo", "baz", "quux"]`
 
