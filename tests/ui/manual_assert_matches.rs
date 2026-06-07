@@ -38,6 +38,8 @@ fn main() {
 
     assert!(matches!(1, 1), "hello");
     //~^ manual_assert_matches
+    assert!(matches!(1, 1), "{}", 1);
+    //~^ manual_assert_matches
     #[rustfmt::skip]
     assert!(//~ manual_assert_matches
         matches!(Some(1 + 2), Some(3 | 4) if true),

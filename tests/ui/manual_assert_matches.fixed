@@ -38,6 +38,8 @@ fn main() {
 
     core::assert_matches!(1, 1, "hello");
     //~^ manual_assert_matches
+    core::assert_matches!(1, 1, "{}", 1);
+    //~^ manual_assert_matches
     #[rustfmt::skip]
     core::assert_matches!(Some(1 + 2), Some(3 | 4) if true, "{} {} {} {}",
         "this",

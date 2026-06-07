@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::macros::{
@@ -131,26 +129,31 @@ impl<'tcx> LateLintPass<'tcx> for ManualAssertMatches {
             };
             let match_pat = match_pat.as_str();
 
-            let mut guard: Cow<'static, str> = Cow::Borrowed("");
-            if let Some(match_guard) = match_guard {
-                let Some(source) = match_guard.span.get_source_text(cx) else {
-                    return;
-                };
-                let source = source.as_str();
-                guard = Cow::Owned(format!(" if {source}"));
-            }
+            let guard = match match_guard {
+                Some(match_guard) if let Some(source) = match_guard.span.get_source_text(cx) => {
+                    let source = source.as_str();
+                    format!(" if {source}")
+                },
+                _ => String::new(),
+            };
 
-            let mut format_args: Cow<'static, str> = Cow::Borrowed("");
-            if let PanicCall::Format(format_expr) = panic_call
-                && let Some(args) = self.format_args.get(cx, format_expr, root_mac_call.expn)
-            {
-                let span = format_args_inputs_span(args);
-                let Some(source) = span.get_source_text(cx) else {
+            let format_args = match panic_call {
+                PanicCall::Display(display) if let Some(source) = display.span.get_source_text(cx) => {
+                    format!(", \"{{}}\", {source}")
+                },
+                PanicCall::Format(format_expr)
+                    if let Some(args) = self.format_args.get(cx, format_expr, root_mac_call.expn)
+                        && let span = format_args_inputs_span(args)
+                        && let Some(source) = span.get_source_text(cx) =>
+                {
+                    let source = source.as_str();
+                    format!(", {source}")
+                },
+                PanicCall::DefaultMessage => String::new(),
+                _ => {
                     return;
-                };
-                let source = source.as_str();
-                format_args = Cow::Owned(format!(", {source}"));
-            }
+                },
+            };
 
             let msg = format!("manual `core::{assert_macro_name}_matches` implementation");
             let sugg = format!("core::{assert_macro_name}_matches!({match_arg}, {match_pat}{guard}{format_args})");
