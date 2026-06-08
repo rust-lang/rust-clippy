@@ -574,9 +574,14 @@ The list of disallowed methods, written as fully qualified paths.
 
 
 ## `disallowed-modules`
-The list of disallowed names to lint about. NB: `bar` is not here since it has legitimate uses. The value
-`".."` can be used as part of the list to indicate that the configured values should be appended to the
-default configuration of Clippy. By default, any configuration will replace the default value.
+The list of disallowed modules, written as fully qualified paths.
+
+**Fields:**
+- `path` (required): the fully qualified path to the module that should be disallowed
+- `reason` (optional): explanation why this module is disallowed
+- `replacement` (optional): suggested alternative module
+- `allow-invalid` (optional, `false` by default): when set to `true`, it will ignore this entry
+  if the path doesn't exist, instead of emitting an error
 
 **Default Value:** `[]`
 
@@ -586,11 +591,9 @@ default configuration of Clippy. By default, any configuration will replace the 
 
 
 ## `disallowed-names`
-The list of words this lint should not consider as identifiers needing ticks. The value
+The list of disallowed names to lint about. NB: `bar` is not here since it has legitimate uses. The value
 `".."` can be used as part of the list to indicate that the configured values should be appended to the
-default configuration of Clippy. By default, any configuration will replace the default value. For example:
-* `doc-valid-idents = ["ClipPy"]` would replace the default list with `["ClipPy"]`.
-* `doc-valid-idents = ["ClipPy", ".."]` would append `ClipPy` to the default list.
+default configuration of Clippy. By default, any configuration will replace the default value.
 
 **Default Value:** `["foo", "baz", "quux"]`
 
