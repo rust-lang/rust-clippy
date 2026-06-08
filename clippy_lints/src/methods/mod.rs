@@ -3298,7 +3298,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.97.0"]
     pub REDUNDANT_IDEMPOTENT_CALLS,
     nursery,
-    "default lint description"
+    "redundant call to an idempotent method"
 }
 
 declare_clippy_lint! {

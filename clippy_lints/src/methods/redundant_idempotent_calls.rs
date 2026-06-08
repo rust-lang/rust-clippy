@@ -33,7 +33,7 @@ fn walk_block<'tcx>(
             StmtKind::Semi(expr) | StmtKind::Expr(expr) => {
                 check_expr(cx, expr, map);
             },
-            _ => {},
+            StmtKind::Item(_) => {},
         }
     }
     // Covers the final expression the block evaluates to
@@ -43,7 +43,6 @@ fn walk_block<'tcx>(
     None
 }
 // Checking functions for language elements
-
 // Checks any expression
 fn check_expr<'tcx>(
     cx: &LateContext<'tcx>,
@@ -52,20 +51,21 @@ fn check_expr<'tcx>(
 ) -> Option<(Symbol, &'tcx [rustc_hir::Expr<'tcx>])> {
     match &expr.kind {
         ExprKind::MethodCall(method, receiver, args, _) => check_method_call(cx, expr, method, receiver, args, map),
-        ExprKind::Assign(left_value, right_value, _) => check_assign(cx, left_value, right_value, map),
-        ExprKind::AssignOp(_, left_value, right_value) => check_assign(cx, left_value, right_value, map),
+        ExprKind::Assign(left_value, right_value, _) | ExprKind::AssignOp(_, left_value, right_value) => {
+            check_assign(cx, left_value, right_value, map)
+        },
         ExprKind::Loop(block, _, _, _) => check_loop(cx, block, map),
         ExprKind::Match(_, arms, _) => check_match(cx, arms, map),
         ExprKind::Call(_, args) => check_func_args(cx, args, map),
         ExprKind::Closure(closure) => check_closure(cx, closure, map),
         ExprKind::Block(block, _) => walk_block(cx, block, map),
-        ExprKind::Ret(Some(expr)) => check_expr(cx, expr, map),
-        ExprKind::Cast(expr, _) => check_expr(cx, expr, map),
+        ExprKind::Ret(Some(expr))
+        | ExprKind::Cast(expr, _)
+        | ExprKind::Unary(_, expr)
+        | ExprKind::Repeat(expr, _)
+        | ExprKind::AddrOf(_, _, expr) => check_expr(cx, expr, map),
         ExprKind::DropTemps(inner) => check_expr(cx, inner, map),
-        ExprKind::Unary(_, expr) => check_expr(cx, expr, map),
-        ExprKind::Repeat(expr, _) => check_expr(cx, expr, map),
         ExprKind::Let(let_expr) => check_expr(cx, let_expr.init, map),
-        ExprKind::AddrOf(_, _, expr) => check_expr(cx, expr, map),
         ExprKind::Index(arr, idx, _) => {
             check_expr(cx, arr, map);
             check_expr(cx, idx, map);
@@ -73,14 +73,14 @@ fn check_expr<'tcx>(
         },
         ExprKind::If(cond, then_block, else_block) => {
             check_expr(cx, cond, map);
-            check_if(cx, then_block, else_block, map)
+            check_if(cx, then_block, *else_block, map)
         },
         ExprKind::Binary(_, left, right) => {
             check_expr(cx, left, map);
             check_expr(cx, right, map);
             None
         },
-        ExprKind::Tup(exprs) => {
+        ExprKind::Tup(exprs) | ExprKind::Array(exprs) => {
             for expr in *exprs {
                 check_expr(cx, expr, map);
             }
@@ -92,12 +92,6 @@ fn check_expr<'tcx>(
             }
             if let rustc_hir::StructTailExpr::Base(base_expr) = base {
                 check_expr(cx, base_expr, map);
-            }
-            None
-        },
-        ExprKind::Array(exprs) => {
-            for expr in *exprs {
-                check_expr(cx, expr, map);
             }
             None
         },
@@ -123,17 +117,15 @@ fn check_let<'tcx>(
             if let PatKind::Binding(_, hir_id, _, _) = local.pat.kind {
                 map.insert(hir_id, (method.ident.name, args));
             }
-        } else {
-            if let PatKind::Binding(_, hir_id, _, _) = local.pat.kind {
-                // try to inherit the alias symbol otherwise we check the expr
-                if !try_inherit_alias(expr, hir_id, map) {
-                    if let Some((symbol, args)) = check_expr(cx, expr, map) {
-                        map.insert(hir_id, (symbol, args));
-                    }
-                }
-            } else {
-                check_expr(cx, expr, map);
+        } else if let PatKind::Binding(_, hir_id, _, _) = local.pat.kind {
+            // try to inherit the alias symbol otherwise we check the expr
+            if !try_inherit_alias(expr, hir_id, map)
+                && let Some((symbol, args)) = check_expr(cx, expr, map)
+            {
+                map.insert(hir_id, (symbol, args));
             }
+        } else {
+            check_expr(cx, expr, map);
         }
     }
 
@@ -165,11 +157,10 @@ fn check_method_call<'tcx>(
     // if the receiver is borrowed with a "&mut self"
     if let Some(def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id) {
         let fn_sig = cx.tcx.fn_sig(def_id).skip_binder();
-        if let Some(first_ty) = fn_sig.inputs().skip_binder().get(0) {
-            // to get the self
-            if let rustc_middle::ty::Ref(_, _, Mutability::Mut) = first_ty.kind() {
-                invalidate_left_value(peeled_receiver, map);
-            }
+        if let Some(first_ty) = fn_sig.inputs().skip_binder().first()
+            && let rustc_middle::ty::Ref(_, _, Mutability::Mut) = first_ty.kind()
+        {
+            invalidate_left_value(peeled_receiver, map);
         }
     }
 
@@ -212,7 +203,7 @@ fn check_method_call<'tcx>(
 fn check_if<'tcx>(
     cx: &LateContext<'tcx>,
     then_block: &'tcx rustc_hir::Expr<'tcx>,
-    else_block: &Option<&'tcx rustc_hir::Expr<'tcx>>,
+    else_block: Option<&'tcx rustc_hir::Expr<'tcx>>,
     map: &mut FxIndexMap<HirId, (Symbol, &'tcx [rustc_hir::Expr<'tcx>])>,
 ) -> Option<(Symbol, &'tcx [rustc_hir::Expr<'tcx>])> {
     // each branch gets its own clone to avoid cross contamination
