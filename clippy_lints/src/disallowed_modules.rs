@@ -34,7 +34,7 @@ declare_clippy_lint! {
     ///     # is disallowed.
     ///     { path = "std::sync", reason = "no std sync allowed" },
     ///     # Can also add a `replacement` that will be offered as a suggestion.
-    ///     { path = "std::sync", reason = "prefer no_std guarded sync types", replacement = "crate::sync" },
+    ///     { path = "std::sync", reason = "prefer crate internal sync types", replacement = "crate::sync" },
     ///     # This would normally error if the path is incorrect, but with `allow-invalid` = `true`,
     ///     # it will be silently ignored
     ///     { path = "std::invalid::module", reason = "use alternative instead", allow-invalid = true }
