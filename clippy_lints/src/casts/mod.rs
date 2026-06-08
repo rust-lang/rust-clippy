@@ -19,6 +19,7 @@ mod fn_to_numeric_cast;
 mod fn_to_numeric_cast_any;
 mod fn_to_numeric_cast_with_truncation;
 mod manual_dangling_ptr;
+mod needless_bitmask_on_cast;
 mod needless_type_cast;
 mod ptr_as_ptr;
 mod ptr_cast_constness;
@@ -673,6 +674,25 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Warns against using unnecessary masks before a cast to an int
+    /// ### Why is this bad?
+    /// Creates more confusing code, with unnecessary clutter
+    /// ### Example
+    /// ```no_run
+    /// (1234_u32 & 0xFF) as u8;
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// 1234_u32 as u8;
+    /// ```
+    #[clippy::version = "1.97.0"]
+    pub NEEDLESS_BITMASK_ON_CAST,
+    nursery,
+    "unnecessary bitwise and on cast"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for bindings (constants, statics, or let bindings) that are defined
     /// with one numeric type but are consistently cast to a different type in all usages.
     ///
@@ -869,6 +889,7 @@ impl_lint_pass!(Casts => [
     FN_TO_NUMERIC_CAST_ANY,
     FN_TO_NUMERIC_CAST_WITH_TRUNCATION,
     MANUAL_DANGLING_PTR,
+    NEEDLESS_BITMASK_ON_CAST,
     NEEDLESS_TYPE_CAST,
     PTR_AS_PTR,
     PTR_CAST_CONSTNESS,
@@ -926,6 +947,7 @@ impl<'tcx> LateLintPass<'tcx> for Casts {
                     cast_sign_loss::check(cx, expr, cast_from_expr, cast_from, cast_to, self.msrv);
                     cast_abs_to_unsigned::check(cx, expr, cast_from_expr, cast_from, cast_to, self.msrv);
                     cast_nan_to_int::check(cx, expr, cast_from_expr, cast_from, cast_to);
+                    needless_bitmask_on_cast::check(cx, expr, cast_from_expr, cast_from, cast_to);
                 }
                 cast_lossless::check(cx, expr, cast_from_expr, cast_from, cast_to, cast_to_hir, self.msrv);
                 cast_enum_constructor::check(cx, expr, cast_from_expr, cast_from);
