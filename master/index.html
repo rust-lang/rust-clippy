@@ -2533,6 +2533,15 @@ let _box = Box::new(3); // Box::new is disallowed in the config.
 <pre><code class="language-rust">let mut xs = Vec::new(); // Vec::new is _not_ disallowed in the config.
 xs.push(123); // Vec::push is _not_ disallowed in the config.
 </code></pre>
+<p>Disallowed profiles allow scoping different disallow lists:</p>
+<pre><code class="language-toml">[profiles.forward_pass]
+disallowed-methods = [{ path = "crate::devices::Buffer::copy_to_host", reason = "Forward code must not touch host buffers" }]
+</code></pre>
+<pre><code class="language-rust">#[clippy::disallowed_profile("forward_pass")]
+fn evaluate() {
+    // Method calls in this function use the `forward_pass` profile.
+}
+</code></pre>
 <h3>Past names</h3>
 <ul>
 <li>disallowed_method</li>
@@ -2557,8 +2566,20 @@ xs.push(123); // Vec::push is _not_ disallowed in the config.
 if the path doesn’t exist, instead of emitting an error</p>
 <p>(default: <code>[]</code>)</p>
 </li>
+<li>
+<p><code>profiles</code>:  Named profiles of disallowed items (unrelated to Cargo build profiles).</p>
+</li>
 </ul>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.49.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+disallowed_methods">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/disallowed_methods.rs#L12">View Source</a></div></div></article><article id="disallowed_names"><input id="label-disallowed_names" type="checkbox"><label for="label-disallowed_names"><h2 class="lint-title"><div class="panel-title-name" id="lint-disallowed_names">disallowed_names
+<h4>Example</h4>
+<pre><code class="language-toml">[profiles.persistent]
+disallowed-methods = [{ path = "std::env::temp_dir" }]
+disallowed-types = [{ path = "std::time::Instant", reason = "use our custom time API" }]
+
+[profiles.single_threaded]
+disallowed-methods = [{ path = "std::thread::spawn" }]
+</code></pre>
+<p>(default: <code>{}</code>)</p>
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.49.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+disallowed_methods">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/disallowed_methods.rs#L17">View Source</a></div></div></article><article id="disallowed_names"><input id="label-disallowed_names" type="checkbox"><label for="label-disallowed_names"><h2 class="lint-title"><div class="panel-title-name" id="lint-disallowed_names">disallowed_names
 <a href="#disallowed_names" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-style">style</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for usage of disallowed names for variables, such
 as <code>foo</code>.</p>
@@ -2642,6 +2663,13 @@ let x = std::collections::BTreeMap::new();
 <pre><code class="language-rust">// A similar type that is allowed by the config
 use std::collections::HashMap;
 </code></pre>
+<p>Disallowed profiles can scope lists to specific modules:</p>
+<pre><code class="language-toml">[profiles.forward_pass]
+disallowed-types = [{ path = "crate::buffers::HostBuffer", reason = "Prefer device buffers in forward computations" }]
+</code></pre>
+<pre><code class="language-rust">#[clippy::disallowed_profile("forward_pass")]
+fn forward_step(buffer: crate::buffers::DeviceBuffer) { /* ... */ }
+</code></pre>
 <h3>Past names</h3>
 <ul>
 <li>disallowed_type</li>
@@ -2666,8 +2694,20 @@ use std::collections::HashMap;
 if the path doesn’t exist, instead of emitting an error</p>
 <p>(default: <code>[]</code>)</p>
 </li>
+<li>
+<p><code>profiles</code>:  Named profiles of disallowed items (unrelated to Cargo build profiles).</p>
+</li>
 </ul>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.55.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+disallowed_types">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/disallowed_types.rs#L14">View Source</a></div></div></article><article id="diverging_sub_expression"><input id="label-diverging_sub_expression" type="checkbox"><label for="label-diverging_sub_expression"><h2 class="lint-title"><div class="panel-title-name" id="lint-diverging_sub_expression">diverging_sub_expression
+<h4>Example</h4>
+<pre><code class="language-toml">[profiles.persistent]
+disallowed-methods = [{ path = "std::env::temp_dir" }]
+disallowed-types = [{ path = "std::time::Instant", reason = "use our custom time API" }]
+
+[profiles.single_threaded]
+disallowed-methods = [{ path = "std::thread::spawn" }]
+</code></pre>
+<p>(default: <code>{}</code>)</p>
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.55.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+disallowed_types">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/disallowed_types.rs#L17">View Source</a></div></div></article><article id="diverging_sub_expression"><input id="label-diverging_sub_expression" type="checkbox"><label for="label-diverging_sub_expression"><h2 class="lint-title"><div class="panel-title-name" id="lint-diverging_sub_expression">diverging_sub_expression
 <a href="#diverging_sub_expression" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-complexity">complexity</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for diverging calls that are not match arms or
 statements.</p>
