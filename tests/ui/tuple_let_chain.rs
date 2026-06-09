@@ -10,7 +10,9 @@ fn main() {
     // Should fail
     if let (Some(x), Ok(y)) = (x, y) {}
     if let [Some(_), None] = [a, b] {}
-    if let (Some(x), Ok(y)) = (x, y) && let [Some(_), None] = [a, b] {}
+    if let (Some(x), Ok(y)) = (x, y)
+        && let [Some(_), None] = [a, b]
+    {}
 
     // Should NOT fail
     let c = Some(1);

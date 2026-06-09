@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet;
 use rustc_errors::Applicability;
-use rustc_hir::{Expr, ExprKind, PatKind, QPath};
+use rustc_hir::{Expr, ExprKind, Node, PatKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 
@@ -16,13 +16,13 @@ declare_clippy_lint! {
     /// ### Example
     /// ```no_run
     /// if let (Some(x), Ok(y)) = (x, y) {
-    /// 
+    ///     // ...
     /// }
     /// ```
     /// Use instead:
     /// ```no_run
     /// if let Some(x) = x && let Ok(y) = y {
-    ///
+    ///     // ...
     /// }
     /// ```
     #[clippy::version = "1.98.0"]
@@ -35,6 +35,27 @@ declare_lint_pass!(TupleLetChain => [TUPLE_LET_CHAIN]);
 
 impl<'tcx> LateLintPass<'tcx> for TupleLetChain {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
+        if expr.span.from_expansion() {
+            return;
+        }
+
+        let mut parent = cx.tcx.parent_hir_node(expr.hir_id);
+        let mut in_if_cond = false;
+
+        while let Node::Expr(parent_expr) = parent {
+            if let ExprKind::If(cond, ..) = parent_expr.kind {
+                if cond.hir_id == expr.hir_id {
+                    in_if_cond = true;
+                    break;
+                }
+            }
+            parent = cx.tcx.parent_hir_node(parent_expr.hir_id);
+        }
+
+        if !in_if_cond {
+            return;
+        }
+
         let ExprKind::Let(let_expr) = expr.kind else { return };
 
         let (pat_elements, expr_elements) = match (&let_expr.pat.kind, &let_expr.init.kind) {
@@ -47,8 +68,6 @@ impl<'tcx> LateLintPass<'tcx> for TupleLetChain {
             return;
         }
 
-        // Check if any binding in the pattern is used in subsequent init expressions.
-        // This prevents incorrect refactoring where a later init depends on a binding from the pattern.
         let mut is_shadowed = false;
         for (i, pat) in pat_elements.iter().enumerate() {
             pat.each_binding(|_, _, _, bound_ident| {
@@ -67,7 +86,7 @@ impl<'tcx> LateLintPass<'tcx> for TupleLetChain {
             for (i, (pat, init)) in pat_elements.iter().zip(expr_elements.iter()).enumerate() {
                 let pat_snip = snippet(cx, pat.span, "..");
                 let init_snip = snippet(cx, init.span, "..");
-                
+
                 if i > 0 {
                     sugg.push_str(" && let ");
                 } else {

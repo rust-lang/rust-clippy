@@ -7406,6 +7406,7 @@ Released 2018-09-13
 [`trivially_copy_pass_by_ref`]: https://rust-lang.github.io/rust-clippy/master/index.html#trivially_copy_pass_by_ref
 [`try_err`]: https://rust-lang.github.io/rust-clippy/master/index.html#try_err
 [`tuple_array_conversions`]: https://rust-lang.github.io/rust-clippy/master/index.html#tuple_array_conversions
+[`tuple_let_chain`]: https://rust-lang.github.io/rust-clippy/master/index.html#tuple_let_chain
 [`type_complexity`]: https://rust-lang.github.io/rust-clippy/master/index.html#type_complexity
 [`type_id_on_box`]: https://rust-lang.github.io/rust-clippy/master/index.html#type_id_on_box
 [`type_repetition_in_bounds`]: https://rust-lang.github.io/rust-clippy/master/index.html#type_repetition_in_bounds
