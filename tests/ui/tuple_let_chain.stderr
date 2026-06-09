@@ -1,0 +1,35 @@
+error: this tuple or array is constructed and immediately destructured
+  --> tests/ui/tuple_let_chain.rs:11:8
+   |
+LL |     if let (Some(x), Ok(y)) = (x, y) {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using a `let` chain instead: `let Some(x) = x && let Ok(y) = y`
+   |
+   = note: `-D clippy::tuple-let-chain` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::tuple_let_chain)]`
+
+error: this tuple or array is constructed and immediately destructured
+  --> tests/ui/tuple_let_chain.rs:12:8
+   |
+LL |     if let [Some(_), None] = [a, b] {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using a `let` chain instead: `let Some(_) = a && let None = b`
+
+error: this tuple or array is constructed and immediately destructured
+  --> tests/ui/tuple_let_chain.rs:13:8
+   |
+LL |     if let (Some(x), Ok(y)) = (x, y) && let [Some(_), None] = [a, b] {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using a `let` chain instead: `let Some(x) = x && let Ok(y) = y`
+
+error: this tuple or array is constructed and immediately destructured
+  --> tests/ui/tuple_let_chain.rs:13:41
+   |
+LL |     if let (Some(x), Ok(y)) = (x, y) && let [Some(_), None] = [a, b] {}
+   |                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using a `let` chain instead: `let Some(_) = a && let None = b`
+
+error: this tuple or array is constructed and immediately destructured
+  --> tests/ui/tuple_let_chain.rs:24:8
+   |
+LL |     if let (Some(c), Some(d)) = (c, e) {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using a `let` chain instead: `let Some(c) = c && let Some(d) = e`
+
+error: aborting due to 5 previous errors
+

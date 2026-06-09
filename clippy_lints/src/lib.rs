@@ -364,6 +364,7 @@ mod trailing_empty_array;
 mod trait_bounds;
 mod transmute;
 mod tuple_array_conversions;
+mod tuple_let_chain;
 mod types;
 mod unconditional_recursion;
 mod undocumented_unsafe_blocks;
@@ -860,6 +861,7 @@ rustc_lint::late_lint_methods!(
         ManualNoopWaker: manual_noop_waker::ManualNoopWaker = manual_noop_waker::ManualNoopWaker::new(conf),
         ByteCharSlice: byte_char_slices::ByteCharSlice = byte_char_slices::ByteCharSlice,
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
+        TupleLetChain: tuple_let_chain::TupleLetChain = tuple_let_chain::TupleLetChain,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
