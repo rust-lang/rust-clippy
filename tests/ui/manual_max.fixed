@@ -1,0 +1,89 @@
+#![warn(clippy::manual_max)]
+#![allow(clippy::manual_min, clippy::needless_late_init, unused_assignments)]
+
+// Ordered solely by the first field, so two `Eq`-equal values can still be distinguished by
+// the second. Exercises the tie-breaking note in the lint docs.
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct ByKey(u32, &'static str);
+
+impl PartialOrd for ByKey {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for ByKey {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.0.cmp(&other.0)
+    }
+}
+
+// Const context: `Ord::max` is not const-callable, so this must not lint.
+const fn in_const(a: i32, b: i32) -> i32 {
+    if a < b { b } else { a }
+}
+
+fn main() {
+    let (a, b) = (1, 2);
+
+    // Value-returning `if`/`else`, both comparison directions.
+    let _ = a.max(b);
+    //~^ manual_max
+    let _ = a.max(b);
+    //~^ manual_max
+    let _ = a.max(b);
+    //~^ manual_max
+    let _ = a.max(b);
+    //~^ manual_max
+
+    // Operand needing parentheses in the receiver position.
+    let _ = (a + 1).max(b);
+    //~^ manual_max
+
+    // Guarding `if` that raises a value to a floor.
+    let mut cores = a;
+    cores = cores.max(b);
+    //~^^^ manual_max
+
+    let mut limit = a;
+    limit = limit.max(b);
+    //~^^^ manual_max
+
+    // The `nproc` idiom from uutils/coreutils#12753 (floor of an expression).
+    let ignore = 1;
+    let mut n = 8;
+    n = n.max(ignore);
+    //~^^^ manual_max
+
+    // Tie-sensitive `Ord` type: still lints, but the rewrite changes which operand is
+    // returned when the keys are equal (hence `MaybeIncorrect`).
+    let (k1, k2) = (ByKey(1, "a"), ByKey(2, "b"));
+    let _ = k1.max(k2);
+    //~^ manual_max
+
+    // Negatives: not a manual max.
+    let _ = if a < b { a } else { b }; // this is a min
+    let _ = if a < b { b } else { 0 }; // else is not an operand
+    let f = 1.0_f64;
+    let g = 2.0_f64;
+    let _ = if f < g { g } else { f }; // float: NaN semantics differ, no lint
+    let mut x = a;
+    if x < b {
+        x = b;
+        println!("changed");
+    } // extra statement, not a pure guard
+}
+
+// `Ord::max` was stabilized in 1.21, so an older MSRV must suppress the lint.
+#[clippy::msrv = "1.20"]
+fn below_msrv() {
+    let (a, b) = (1, 2);
+    let _ = if a < b { b } else { a };
+}
+
+#[clippy::msrv = "1.21"]
+fn meets_msrv() {
+    let (a, b) = (1, 2);
+    let _ = a.max(b);
+    //~^ manual_max
+}

@@ -1,4 +1,5 @@
 #![warn(clippy::manual_clamp)]
+#![allow(clippy::manual_max, clippy::manual_min)]
 #![expect(clippy::if_same_then_else, clippy::needless_match)]
 
 use std::cmp::{max as cmp_max, min as cmp_min};
