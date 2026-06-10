@@ -403,6 +403,7 @@ mod vec_init_then_push;
 mod visibility;
 mod volatile_composites;
 mod wildcard_imports;
+mod with_capacity_zero;
 mod write;
 mod zero_div_zero;
 mod zero_repeat_side_effects;
@@ -533,7 +534,6 @@ rustc_lint::early_lint_methods!(
         PartialPubFields: partial_pub_fields::PartialPubFields = partial_pub_fields::PartialPubFields,
         UnderscoreTyped: let_with_type_underscore::UnderscoreTyped = let_with_type_underscore::UnderscoreTyped,
         ExcessiveNesting: excessive_nesting::ExcessiveNesting = excessive_nesting::ExcessiveNesting::new(conf),
-        RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
         NeedlessElse: needless_else::NeedlessElse = needless_else::NeedlessElse,
         RawStrings: raw_strings::RawStrings = raw_strings::RawStrings::new(conf),
         Visibility: visibility::Visibility = visibility::Visibility,
@@ -731,7 +731,7 @@ rustc_lint::late_lint_methods!(
         UndocumentedUnsafeBlocks: undocumented_unsafe_blocks::UndocumentedUnsafeBlocks = undocumented_unsafe_blocks::UndocumentedUnsafeBlocks::new(conf),
         FormatArgs: format_args::FormatArgs<'tcx> = format_args::FormatArgs::new(tcx, conf, format_args.clone()),
         TrailingEmptyArray: trailing_empty_array::TrailingEmptyArray = trailing_empty_array::TrailingEmptyArray,
-        NeedlessLateInit: needless_late_init::NeedlessLateInit = needless_late_init::NeedlessLateInit,
+        NeedlessLateInit: needless_late_init::NeedlessLateInit<'tcx> = needless_late_init::NeedlessLateInit::new(conf),
         ReturnSelfNotMustUse: return_self_not_must_use::ReturnSelfNotMustUse = return_self_not_must_use::ReturnSelfNotMustUse,
         NumberedFields: init_numbered_fields::NumberedFields = init_numbered_fields::NumberedFields,
         ManualBits: manual_bits::ManualBits = manual_bits::ManualBits::new(conf),
@@ -860,6 +860,8 @@ rustc_lint::late_lint_methods!(
         ManualNoopWaker: manual_noop_waker::ManualNoopWaker = manual_noop_waker::ManualNoopWaker::new(conf),
         ByteCharSlice: byte_char_slices::ByteCharSlice = byte_char_slices::ByteCharSlice,
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
+        WithCapacityZero: with_capacity_zero::WithCapacityZero = with_capacity_zero::WithCapacityZero,
+        RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );

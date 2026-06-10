@@ -1,5 +1,4 @@
 //@require-annotations-for-level: WARN
-#![allow(unused)]
 
 #[cfg(all())]
 //~^ ERROR: unneeded sub `cfg` when there is no condition
