@@ -213,6 +213,7 @@ mod manual_is_ascii_check;
 mod manual_is_power_of_two;
 mod manual_let_else;
 mod manual_main_separator_str;
+mod manual_max;
 mod manual_non_exhaustive;
 mod manual_noop_waker;
 mod manual_option_as_slice;
@@ -758,6 +759,7 @@ rustc_lint::late_lint_methods!(
         PartialeqToNone: partialeq_to_none::PartialeqToNone = partialeq_to_none::PartialeqToNone,
         ManualAbsDiff: manual_abs_diff::ManualAbsDiff = manual_abs_diff::ManualAbsDiff::new(conf),
         ManualClamp: manual_clamp::ManualClamp = manual_clamp::ManualClamp::new(conf),
+        ManualMax: manual_max::ManualMax = manual_max::ManualMax::new(conf),
         ManualStringNew: manual_string_new::ManualStringNew = manual_string_new::ManualStringNew,
         UnusedPeekable: unused_peekable::UnusedPeekable = unused_peekable::UnusedPeekable,
         BoolToIntWithIf: bool_to_int_with_if::BoolToIntWithIf = bool_to_int_with_if::BoolToIntWithIf,
