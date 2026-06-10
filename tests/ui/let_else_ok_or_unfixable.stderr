@@ -1,0 +1,21 @@
+error: this `let...else` may be rewritten with `Option::ok_or` and `?`
+  --> tests/ui/let_else_ok_or_unfixable.rs:12:5
+   |
+LL | /     let Some(value) = opt else {
+LL | |         return Err(b"abc");
+LL | |     };
+   | |______^ help: replace it with: `let value = opt.ok_or(b"abc")?;`
+   |
+   = note: `-D clippy::let-else-ok-or` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::let_else_ok_or)]`
+
+error: this `let...else` may be rewritten with `Option::ok_or` and `?`
+  --> tests/ui/let_else_ok_or_unfixable.rs:24:5
+   |
+LL | /     let Some(value) = opt else {
+LL | |         return Err(msg);
+LL | |     };
+   | |______^ help: replace it with: `let value = opt.ok_or(msg)?;`
+
+error: aborting due to 2 previous errors
+

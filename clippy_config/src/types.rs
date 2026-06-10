@@ -477,9 +477,9 @@ impl<'de> Deserialize<'de> for SourceItemOrderingModuleItemGroupings {
 
         let all_items = SourceItemOrderingModuleItemKind::all_variants();
         if expected_items.is_empty() && items_total == all_items.len() {
-            let Some(use_group_index) = lut.get(&SourceItemOrderingModuleItemKind::Use) else {
-                return Err(de::Error::custom("Error in internal LUT."));
-            };
+            let use_group_index = lut
+                .get(&SourceItemOrderingModuleItemKind::Use)
+                .ok_or_else(|| de::Error::custom("Error in internal LUT."))?;
             let Some((_, use_group_items)) = groups.get(*use_group_index) else {
                 return Err(de::Error::custom("Error in internal LUT."));
             };
