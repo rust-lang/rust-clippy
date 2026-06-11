@@ -27,15 +27,15 @@ use syn::token::Token;
 
 mod inner {
     // allow import via this module
-    pub mod sync {
-        #![allow(clippy::disallowed_modules)]
-        pub use std::sync::*;
-    }
+    #![allow(clippy::disallowed_modules)]
+    pub use std::sync::{Mutex, Weak};
 }
 
-// Does not get flagged because DefID parent is alloc::sync, not std::sync, and path is inner::Weak,
-// not std::sync::Weak.
-use inner::sync::Weak;
+// Weak does not get flagged because it is defined in alloc::sync, which is not banned, not
+// std::sync and its path is inner::Weak, which is also not banned, not std::sync::Weak.
+// Note that importing Mutex still fails, since it is defined in std::sync, which is banned.
+use inner::{Mutex as StdMutex, Weak as InnerWeak};
+//~^ disallowed_modules
 
 type DisallowedAlias = std::collections::BTreeMap<u32, u32>;
 //~^ disallowed_modules
