@@ -228,9 +228,9 @@ error: usage of `contains_key` followed by `insert` on a `HashMap`
    |
 LL | /     if !map.contains_key(&1) {
 LL | |
+LL | |         #[expect(clippy::non_binding_let_else)]
 LL | |         let Some(1) = Some(2) else {
-LL | |             return None;
-LL | |         };
+...  |
 LL | |         map.insert(1, 42);
 LL | |     }
    | |_____^
@@ -239,6 +239,7 @@ help: try
    |
 LL ~     if let std::collections::hash_map::Entry::Vacant(e) = map.entry(1) {
 LL +
+LL +         #[expect(clippy::non_binding_let_else)]
 LL +         let Some(1) = Some(2) else {
 LL +             return None;
 LL +         };
@@ -247,7 +248,7 @@ LL +     }
    |
 
 error: usage of `contains_key` followed by `insert` on a `HashMap`
-  --> tests/ui/entry.rs:284:5
+  --> tests/ui/entry.rs:285:5
    |
 LL | /     if !m.contains_key(&k) {
 LL | |

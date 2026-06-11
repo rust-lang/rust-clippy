@@ -1,0 +1,118 @@
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_else.rs:26:5
+   |
+LL |     let 0 = 1 else { return };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::non-binding-let-else` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::non_binding_let_else)]`
+help: you may instead check for equivalence, but it may not behave as pattern matching
+   |
+LL -     let 0 = 1 else { return };
+LL +     if 1 != 0 { return }
+   |
+
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_else.rs:29:5
+   |
+LL |     let Some(42) = opt else { return };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: you may instead check for equivalence, but it may not behave as pattern matching
+   |
+LL -     let Some(42) = opt else { return };
+LL +     if opt != Some(42) { return }
+   |
+
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_else.rs:32:5
+   |
+LL |     let None = opt else { return };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: you may instead check for equivalence, but it may not behave as pattern matching
+   |
+LL -     let None = opt else { return };
+LL +     if opt != None { return }
+   |
+
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_else.rs:35:5
+   |
+LL |     let Status::Ok { .. } = status else { return };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `matches!`: `if !matches!(status, Status::Ok { .. }) { return }`
+
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_else.rs:38:5
+   |
+LL |     let Status::Err(_) = status else { panic!() };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `matches!`: `if !matches!(status, Status::Err(_)) { panic!() }`
+
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_else.rs:41:5
+   |
+LL |     let Point { x: 1, y: 3 } = pt else { unreachable!() };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: you may instead check for equivalence, but it may not behave as pattern matching
+   |
+LL -     let Point { x: 1, y: 3 } = pt else { unreachable!() };
+LL +     if pt != (Point { x: 1, y: 3 }) { unreachable!() }
+   |
+
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_else.rs:67:5
+   |
+LL |     let_else_return!(None, opt);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: you may instead check for equivalence, but it may not behave as pattern matching
+   |
+LL -     let_else_return!(None, opt);
+LL +     if opt != None { return };
+   |
+
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_else.rs:70:5
+   |
+LL |     let_else_return!(Some(0), opt);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: you may instead check for equivalence, but it may not behave as pattern matching
+   |
+LL -     let_else_return!(Some(0), opt);
+LL +     if opt != Some(0) { return };
+   |
+
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_else.rs:73:5
+   |
+LL |     let_else_return!(Status::Ok { .. }, status);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `matches!`: `if !matches!(status, Status::Ok { .. }) { return }`
+
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_else.rs:76:5
+   |
+LL |     let_else_return!(Status::Ok { a: 1, .. }, status);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `matches!`: `if !matches!(status, Status::Ok { a: 1, .. }) { return }`
+
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_else.rs:79:5
+   |
+LL |     let (11, 12) = tuple_with_12!(11) else { return };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: you may instead check for equivalence, but it may not behave as pattern matching
+   |
+LL -     let (11, 12) = tuple_with_12!(11) else { return };
+LL +     if tuple_with_12!(11) != (11, 12) { return }
+   |
+
+error: let pattern doesn't have bindings
+  --> tests/ui/non_binding_let_else.rs:82:5
+   |
+LL |     let tuple_with_12!(Some(_)) = (opt, 12) else { return };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `matches!`: `if !matches!((opt, 12), tuple_with_12!(Some(_))) { return }`
+
+error: aborting due to 12 previous errors
+

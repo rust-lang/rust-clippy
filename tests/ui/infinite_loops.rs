@@ -542,6 +542,7 @@ mod issue16155 {
     use super::do_something;
 
     fn let_then_else(cond: bool) {
+        #[expect(clippy::non_binding_let_else)]
         let true = cond else { loop {} };
         //~^ infinite_loop
     }
