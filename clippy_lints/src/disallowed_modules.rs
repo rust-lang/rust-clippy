@@ -20,7 +20,8 @@ declare_clippy_lint! {
     ///
     /// ### Why is this bad?
     /// Some modules are undesirable in certain contexts.
-    ///
+    /// ### Known limitations
+    /// Items that are not defined in the banned module and not imported via the banned module are not flagged.
     /// ### Example:
     /// An example clippy.toml configuration:
     /// ```toml
@@ -132,12 +133,11 @@ pub fn def_kind_predicate(def_kind: DefKind) -> bool {
 impl<'tcx> LateLintPass<'tcx> for DisallowedModules {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx rustc_hir::Item<'tcx>) {
         match item.kind {
-            ItemKind::Use(path, UseKind::Single(_) | UseKind::Glob) => {
+            ItemKind::Use(path, UseKind::Single(_) | UseKind::Glob)
                 if self.check_path_segments(cx, path.segments.iter(), path.span).is_some()
-                    && let Some(res) = path.res.type_ns
-                {
-                    self.check_res_emit(cx, &res, path.span);
-                }
+                    && let Some(res) = path.res.type_ns =>
+            {
+                self.check_res_emit(cx, &res, path.span);
             },
             ItemKind::Impl(impl_trait)
                 if let Some(trait_ref) = impl_trait.of_trait
