@@ -1,5 +1,5 @@
-error: manually reimplementing `bit_width`
-  --> tests/ui/manual_bit_width.rs:10:13
+error: manual implementation of `bit_width`
+  --> tests/ui/manual_bit_width.rs:7:13
    |
 LL |     let _ = u8::BITS - x.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x.bit_width()`
@@ -7,26 +7,26 @@ LL |     let _ = u8::BITS - x.leading_zeros();
    = note: `-D clippy::manual-bit-width` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::manual_bit_width)]`
 
-error: manually reimplementing `bit_width`
-  --> tests/ui/manual_bit_width.rs:11:13
+error: manual implementation of `bit_width`
+  --> tests/ui/manual_bit_width.rs:8:13
    |
 LL |     let _ = u16::BITS - x.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x.bit_width()`
 
-error: manually reimplementing `bit_width`
-  --> tests/ui/manual_bit_width.rs:12:13
+error: manual implementation of `bit_width`
+  --> tests/ui/manual_bit_width.rs:9:13
    |
 LL |     let _ = u32::BITS - x.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x.bit_width()`
 
-error: manually reimplementing `bit_width`
-  --> tests/ui/manual_bit_width.rs:13:13
+error: manual implementation of `bit_width`
+  --> tests/ui/manual_bit_width.rs:10:13
    |
 LL |     let _ = u64::BITS - x.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x.bit_width()`
 
-error: manually reimplementing `bit_width`
-  --> tests/ui/manual_bit_width.rs:14:13
+error: manual implementation of `bit_width`
+  --> tests/ui/manual_bit_width.rs:11:13
    |
 LL |     let _ = usize::BITS - x.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x.bit_width()`

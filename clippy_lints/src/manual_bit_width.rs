@@ -54,8 +54,7 @@ impl LateLintPass<'_> for ManualBitWidth {
         match expr.kind {
             // `T::BITS - n.leading_zeros()`
             ExprKind::Binary(op, left, right)
-                if left.span.eq_ctxt(right.span)
-                    && op.node == BinOpKind::Sub
+                if op.node == BinOpKind::Sub
                     && let ExprKind::MethodCall(leading_zeros, recv, [], _) = right.kind
                     && leading_zeros.ident.name == sym::leading_zeros
                     && let ExprKind::Path(QPath::TypeRelative(hir_ty, segment)) = left.kind
@@ -74,6 +73,7 @@ impl LateLintPass<'_> for ManualBitWidth {
                         _ => return,
                     }
                     && self.msrv.meets(cx, msrvs::BIT_WIDTH)
+                    && left.span.eq_ctxt(right.span)
                     && !is_from_proc_macro(cx, expr) =>
             {
                 emit(cx, recv, expr);
@@ -90,7 +90,7 @@ fn emit(cx: &LateContext<'_>, recv: &Expr<'_>, full_expr: &Expr<'_>) {
         cx,
         MANUAL_BIT_WIDTH,
         full_expr.span,
-        "manually reimplementing `bit_width`",
+        "manual implementation of `bit_width`",
         "try",
         format!("{recv_snip}.bit_width()"),
         app,

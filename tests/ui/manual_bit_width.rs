@@ -1,8 +1,5 @@
 #![warn(clippy::manual_bit_width)]
 
-use core::num::NonZero;
-use std::num;
-
 fn main() {
     let x: u32 = 5;
 
@@ -13,5 +10,12 @@ fn main() {
     let _ = u64::BITS - x.leading_zeros(); //~ manual_bit_width
     let _ = usize::BITS - x.leading_zeros(); //~ manual_bit_width
 
+    // negative cases.
     let _ = 128 - x.leading_zeros();
+
+    // signed integers do not implement `bit_width()`
+    let _ = i8::BITS - x.leading_zeros();
+    let _ = i16::BITS - x.leading_zeros();
+    let _ = i32::BITS - x.leading_zeros();
+    let _ = i64::BITS - x.leading_zeros();
 }
