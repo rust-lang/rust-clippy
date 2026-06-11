@@ -69,6 +69,12 @@ error: use of a disallowed module `syn::token`
 LL | use syn::token::Token;
    |     ^^^^^^^^^^^^^^^^^
 
+error: use of a disallowed module `std::sync`
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:37:13
+   |
+LL | use inner::{Mutex as StdMutex, Weak as InnerWeak};
+   |             ^^^^^
+
 error: use of a disallowed module `std::collections`
   --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:40:24
    |
@@ -315,5 +321,5 @@ LL |         && let Some(std::net::Shutdown::Both) = None
    |
    = note: no net allowed
 
-error: aborting due to 50 previous errors
+error: aborting due to 51 previous errors
 
