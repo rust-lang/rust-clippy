@@ -3,7 +3,6 @@ disallowed-modules = [
     "std::sync",
     "std::time",
     "std::io",
-    "core::sync",
     "syn::token",
     # can give path and reason with an inline table
     { path = "std::net", reason = "no net allowed" },

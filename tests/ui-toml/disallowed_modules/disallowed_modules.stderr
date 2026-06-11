@@ -1,26 +1,62 @@
 error: use of a disallowed module `std::sync`
   --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:5:5
    |
-LL | use std::sync as foo;
-   |     ^^^^^^^^^
+LL | use std::sync::Arc;
+   |     ^^^^^^^^^^^^^^
    |
    = note: `-D clippy::disallowed-modules` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::disallowed_modules)]`
 
 error: use of a disallowed module `std::sync`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:7:5
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:9:18
+   |
+LL | use std::{sync::{self, mpsc}, io::Error as IoError};
+   |                  ^^^^
+
+error: use of a disallowed module `std::sync`
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:9:24
+   |
+LL | use std::{sync::{self, mpsc}, io::Error as IoError};
+   |                        ^^^^
+
+error: use of a disallowed module `std::io`
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:9:31
+   |
+LL | use std::{sync::{self, mpsc}, io::Error as IoError};
+   |                               ^^^^^^^^^
+
+error: use of a disallowed module `std::sync`
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:14:17
+   |
+LL | use std::sync::{self as sync_alias, Mutex as MutexAlias};
+   |                 ^^^^
+
+error: use of a disallowed module `std::sync`
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:14:37
+   |
+LL | use std::sync::{self as sync_alias, Mutex as MutexAlias};
+   |                                     ^^^^^
+
+error: use of a disallowed module `std::sync`
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:17:5
+   |
+LL | use std::sync as foo;
+   |     ^^^^^^^^^
+
+error: use of a disallowed module `std::sync`
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:19:5
    |
 LL | use std::sync::Mutex;
    |     ^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::sync`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:9:5
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:21:5
    |
 LL | use std::sync::Mutex as Sneaky;
    |     ^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::net`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:11:5
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:23:5
    |
 LL | use std::net::*;
    |     ^^^^^^^^
@@ -28,19 +64,19 @@ LL | use std::net::*;
    = note: no net allowed
 
 error: use of a disallowed module `syn::token`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:13:5
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:25:5
    |
 LL | use syn::token::Token;
    |     ^^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::collections`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:16:24
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:40:24
    |
 LL | type DisallowedAlias = std::collections::BTreeMap<u32, u32>;
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::net`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:19:17
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:43:17
    |
 LL | struct MyStruct(std::net::Ipv4Addr);
    |                 ^^^^^^^^^^^^^^^^^^
@@ -48,95 +84,91 @@ LL | struct MyStruct(std::net::Ipv4Addr);
    = note: no net allowed
 
 error: use of a disallowed module `std::sync`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:23:9
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:47:9
    |
 LL |     v1: Sneaky<usize>,
    |         ^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::collections`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:29:8
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:53:8
    |
 LL |     V2(std::collections::HashSet<i32>),
    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::io`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:33:1
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:57:6
    |
-LL | / impl std::io::Write for MyStruct {
-LL | |
-LL | |     fn write(&mut self, _buf: &[u8]) -> std::io::Result<usize> {
-...  |
-LL | | }
-   | |_^
+LL | impl std::io::Write for MyStruct {
+   |      ^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::io`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:35:41
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:59:41
    |
 LL |     fn write(&mut self, _buf: &[u8]) -> std::io::Result<usize> {
    |                                         ^^^^^^^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::io`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:39:28
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:63:28
    |
 LL |     fn flush(&mut self) -> std::io::Result<()> {
    |                            ^^^^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::io`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:47:8
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:71:8
    |
 LL |     T: std::io::Read,
    |        ^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::io`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:52:32
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:76:32
    |
 LL | fn return_impl_trait() -> impl std::io::Read {
    |                                ^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::io`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:54:5
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:78:5
    |
 LL |     std::io::empty()
    |     ^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::sync`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:58:36
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:82:36
    |
 LL | fn bad_return_type<T>() -> fn() -> Sneaky<T> {
    |                                    ^^^^^^^^^
 
 error: use of a disallowed module `std::sync`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:63:31
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:87:31
    |
 LL | fn bad_arg_type<T>(_: impl Fn(Sneaky<T>) -> foo::atomic::AtomicU32) {}
    |                               ^^^^^^^^^
 
 error: use of a disallowed module `std::sync`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:63:45
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:87:45
    |
 LL | fn bad_arg_type<T>(_: impl Fn(Sneaky<T>) -> foo::atomic::AtomicU32) {}
    |                                             ^^^^^^^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::io`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:67:22
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:91:22
    |
 LL | fn trait_obj(_: &dyn std::io::Read) {}
    |                      ^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::sync`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:70:13
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:94:13
    |
 LL | static BAD: foo::atomic::AtomicPtr<()> = foo::atomic::AtomicPtr::new(std::ptr::null_mut());
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::sync`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:70:42
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:94:42
    |
 LL | static BAD: foo::atomic::AtomicPtr<()> = foo::atomic::AtomicPtr::new(std::ptr::null_mut());
    |                                          ^^^^^^^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::net`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:74:10
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:98:10
    |
 LL | fn ip(_: std::net::Ipv4Addr) {}
    |          ^^^^^^^^^^^^^^^^^^
@@ -144,93 +176,87 @@ LL | fn ip(_: std::net::Ipv4Addr) {}
    = note: no net allowed
 
 error: use of a disallowed module `std::collections`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:80:48
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:104:48
    |
 LL |     let _: std::collections::HashMap<(), ()> = std::collections::HashMap::new();
    |                                                ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::collections`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:80:12
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:104:12
    |
 LL |     let _: std::collections::HashMap<(), ()> = std::collections::HashMap::new();
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::sync`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:83:13
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:107:13
    |
 LL |     let _ = Sneaky::new(0);
    |             ^^^^^^
 
 error: use of a disallowed module `std::sync`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:85:13
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:109:13
    |
 LL |     let _ = foo::atomic::AtomicU32::new(0);
    |             ^^^^^^^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::sync`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:87:17
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:111:17
    |
 LL |     static FOO: std::sync::atomic::AtomicU32 = foo::atomic::AtomicU32::new(1);
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::sync`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:87:48
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:111:48
    |
 LL |     static FOO: std::sync::atomic::AtomicU32 = foo::atomic::AtomicU32::new(1);
    |                                                ^^^^^^^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::collections`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:90:12
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:114:12
    |
 LL |     let _: std::collections::BTreeMap<(), usize> = Default::default();
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::collections`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:93:14
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:117:14
    |
 LL |     let _ = <std::collections::HashMap<(), ()>>::with_capacity(0);
    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::net`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:96:13
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:120:13
    |
 LL |     let _ = std::net::Shutdown::Both;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: no net allowed
 
-error: use of a disallowed module `std::net`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:102:14
+error: use of a disallowed module `std::sync`
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:126:14
    |
-LL |         Some(std::net::Shutdown::Read) | Some(std::net::Shutdown::Write) => {},
-   |              ^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: no net allowed
-
-error: use of a disallowed module `std::net`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:102:47
-   |
-LL |         Some(std::net::Shutdown::Read) | Some(std::net::Shutdown::Write) => {},
-   |                                               ^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: no net allowed
-
-error: use of a disallowed module `std::net`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:100:16
-   |
-LL |     match Some(std::net::Shutdown::Both) {
-   |                ^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: no net allowed
+LL |         Some(std::sync::atomic::Ordering::Relaxed) | Some(std::sync::atomic::Ordering::Release) => {},
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::sync`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:108:46
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:126:59
+   |
+LL |         Some(std::sync::atomic::Ordering::Relaxed) | Some(std::sync::atomic::Ordering::Release) => {},
+   |                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: use of a disallowed module `std::sync`
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:124:16
+   |
+LL |     match Some(std::sync::atomic::Ordering::Relaxed) {
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: use of a disallowed module `std::sync`
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:132:46
    |
 LL |     let _ = std::ptr::null::<()>() as *const std::sync::Mutex<()>;
    |                                              ^^^^^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::net`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:111:17
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:135:17
    |
 LL |     let _ = |_: std::net::Ipv4Addr| {};
    |                 ^^^^^^^^^^^^^^^^^^
@@ -238,25 +264,25 @@ LL |     let _ = |_: std::net::Ipv4Addr| {};
    = note: no net allowed
 
 error: use of a disallowed module `std::sync`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:114:12
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:138:12
    |
 LL |     let v: foo::Mutex<i32>;
    |            ^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::sync`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:117:33
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:141:33
    |
 LL |     let _ = std::mem::size_of::<std::sync::Mutex<u32>>();
    |                                 ^^^^^^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::io`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:120:13
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:144:13
    |
 LL |     let _ = <MyStruct as std::io::Write>::write;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::net`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:123:40
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:147:40
    |
 LL |     let _arr: [u8; std::mem::size_of::<std::net::Ipv4Addr>()] = [0; 4];
    |                                        ^^^^^^^^^^^^^^^^^^
@@ -264,32 +290,30 @@ LL |     let _arr: [u8; std::mem::size_of::<std::net::Ipv4Addr>()] = [0; 4];
    = note: no net allowed
 
 error: use of a disallowed module `std::sync`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:126:19
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:150:19
    |
 LL |     let _ = || -> Sneaky<()> {
    |                   ^^^^^^^^^^
 
 error: use of a disallowed module `std::io`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:131:27
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:155:27
    |
 LL |     let _: Box<dyn Send + std::io::Read>;
    |                           ^^^^^^^^^^^^^
 
-error: use of a disallowed module `std::net`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:134:17
+error: use of a disallowed module `std::sync`
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:158:17
    |
-LL |     if let Some(std::net::Shutdown::Read) = None
-   |                 ^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: no net allowed
+LL |     if let Some(std::sync::atomic::Ordering::Relaxed) = None
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: use of a disallowed module `std::net`
-  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:136:21
+  --> tests/ui-toml/disallowed_modules/disallowed_modules.rs:160:21
    |
 LL |         && let Some(std::net::Shutdown::Both) = None
    |                     ^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: no net allowed
 
-error: aborting due to 44 previous errors
+error: aborting due to 50 previous errors
 
