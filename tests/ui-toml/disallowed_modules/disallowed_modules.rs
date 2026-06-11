@@ -2,6 +2,18 @@
 
 extern crate syn;
 
+use std::sync::Arc;
+//~^ disallowed_modules
+
+#[rustfmt::skip]
+use std::{sync::{self, mpsc}, io::Error as IoError};
+//~^ disallowed_modules
+//~| disallowed_modules
+//~| disallowed_modules
+#[rustfmt::skip]
+use std::sync::{self as sync_alias, Mutex as MutexAlias};
+//~^ disallowed_modules
+//~| disallowed_modules
 use std::sync as foo;
 //~^ disallowed_modules
 use std::sync::Mutex;
@@ -12,6 +24,18 @@ use std::net::*;
 //~^ disallowed_modules
 use syn::token::Token;
 //~^ disallowed_modules
+
+mod inner {
+    // allow import via this module
+    pub mod sync {
+        #![allow(clippy::disallowed_modules)]
+        pub use std::sync::*;
+    }
+}
+
+// Does not get flagged because DefID parent is alloc::sync, not std::sync, and path is inner::Weak,
+// not std::sync::Weak.
+use inner::sync::Weak;
 
 type DisallowedAlias = std::collections::BTreeMap<u32, u32>;
 //~^ disallowed_modules
@@ -97,9 +121,9 @@ fn main() {
     //~^ disallowed_modules
 
     #[allow(clippy::single_match)]
-    match Some(std::net::Shutdown::Both) {
+    match Some(std::sync::atomic::Ordering::Relaxed) {
         //~^ disallowed_modules
-        Some(std::net::Shutdown::Read) | Some(std::net::Shutdown::Write) => {},
+        Some(std::sync::atomic::Ordering::Relaxed) | Some(std::sync::atomic::Ordering::Release) => {},
         //~^ disallowed_modules
         //~| disallowed_modules
         _ => {},
@@ -131,7 +155,7 @@ fn main() {
     let _: Box<dyn Send + std::io::Read>;
     //~^ disallowed_modules
 
-    if let Some(std::net::Shutdown::Read) = None
+    if let Some(std::sync::atomic::Ordering::Relaxed) = None
     //~^ disallowed_modules
         && let Some(std::net::Shutdown::Both) = None
     //~^ disallowed_modules
