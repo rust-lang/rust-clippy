@@ -1138,6 +1138,17 @@ The maximum number of argument a function or method can have
 * [`too_many_arguments`](https://rust-lang.github.io/rust-clippy/master/index.html#too_many_arguments)
 
 
+## `too-many-fields-threshold`
+The maximum number of fields a struct can have.
+Use `0` to lint on any non-unit struct.
+
+**Default Value:** `10`
+
+---
+**Affected lints:**
+* [`too_many_fields`](https://rust-lang.github.io/rust-clippy/master/index.html#too_many_fields)
+
+
 ## `too-many-lines-threshold`
 The maximum number of lines a function or method can have
 

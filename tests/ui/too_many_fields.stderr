@@ -1,0 +1,46 @@
+error: this struct has too many fields (11/10)
+  --> tests/ui/too_many_fields.rs:36:1
+   |
+LL | / struct ElevenFields {
+LL | |
+LL | |     a: u8,
+LL | |     b: u8,
+...  |
+LL | |     k: u8,
+LL | | }
+   | |_^
+   |
+   = help: consider grouping related fields into a separate struct
+   = note: `-D clippy::too-many-fields` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::too_many_fields)]`
+
+error: this struct has too many fields (11/10)
+  --> tests/ui/too_many_fields.rs:51:1
+   |
+LL | / struct TupleFields(
+LL | |
+LL | |     u8,
+LL | |     u8,
+...  |
+LL | |     u8,
+LL | | );
+   | |__^
+   |
+   = help: consider grouping related fields into a separate struct
+
+error: this struct has too many fields (11/10)
+  --> tests/ui/too_many_fields.rs:82:5
+   |
+LL | /     struct LocalFields {
+LL | |
+LL | |         a: u8,
+LL | |         b: u8,
+...  |
+LL | |         k: u8,
+LL | |     }
+   | |_____^
+   |
+   = help: consider grouping related fields into a separate struct
+
+error: aborting due to 3 previous errors
+

@@ -5034,6 +5034,7 @@ impl_lint_pass!(Methods => [
 ]);
 
 #[expect(clippy::struct_excessive_bools)]
+#[expect(clippy::too_many_fields)]
 pub struct Methods {
     avoid_breaking_exported_api: bool,
     msrv: Msrv,

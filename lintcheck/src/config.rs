@@ -3,6 +3,7 @@ use std::num::NonZero;
 use std::path::PathBuf;
 
 #[expect(clippy::struct_excessive_bools)]
+#[expect(clippy::too_many_fields)]
 #[derive(Parser, Clone, Debug)]
 #[command(args_conflicts_with_subcommands = true)]
 pub(crate) struct LintcheckConfig {

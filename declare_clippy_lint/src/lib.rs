@@ -8,6 +8,7 @@ use rustc_lint::{Lint, LintId, LintStore};
 pub extern crate rustc_session;
 
 #[derive(Default)]
+#[allow(clippy::too_many_fields)]
 pub struct LintListBuilder {
     lints: Vec<&'static Lint>,
     all: Vec<LintId>,
