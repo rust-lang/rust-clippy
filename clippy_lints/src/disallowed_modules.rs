@@ -91,10 +91,10 @@ impl DisallowedModules {
         }
     }
 
-    fn check_path_segments<'a>(
+    fn check_path_segments<'a, 'b>(
         &self,
         cx: &LateContext<'a>,
-        segments: impl Iterator<Item = &'a PathSegment<'a>>,
+        segments: impl Iterator<Item = &'b PathSegment<'b>>,
         span: Span,
     ) -> Option<()> {
         for segment in segments {
@@ -133,12 +133,23 @@ impl<'tcx> LateLintPass<'tcx> for DisallowedModules {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx rustc_hir::Item<'tcx>) {
         match item.kind {
             ItemKind::Use(path, UseKind::Single(_) | UseKind::Glob) => {
-                if let Some(res) = path.res.type_ns {
+                if self.check_path_segments(cx, path.segments.iter(), path.span).is_some()
+                    && let Some(res) = path.res.type_ns
+                {
                     self.check_res_emit(cx, &res, path.span);
                 }
             },
-            ItemKind::Impl(impl_trait) if let Some(trait_ref) = impl_trait.of_trait => {
-                self.check_res_emit(cx, &trait_ref.trait_ref.path.res, item.span);
+            ItemKind::Impl(impl_trait)
+                if let Some(trait_ref) = impl_trait.of_trait
+                    && self
+                        .check_path_segments(
+                            cx,
+                            trait_ref.trait_ref.path.segments.iter(),
+                            trait_ref.trait_ref.path.span,
+                        )
+                        .is_some() =>
+            {
+                self.check_res_emit(cx, &trait_ref.trait_ref.path.res, trait_ref.trait_ref.path.span);
             },
             _ => {},
         }
@@ -159,7 +170,12 @@ impl<'tcx> LateLintPass<'tcx> for DisallowedModules {
     }
 
     fn check_poly_trait_ref(&mut self, cx: &LateContext<'tcx>, poly: &'tcx rustc_hir::PolyTraitRef<'tcx>) {
-        self.check_res_emit(cx, &poly.trait_ref.path.res, poly.trait_ref.path.span);
+        if self
+            .check_path_segments(cx, poly.trait_ref.path.segments.iter(), poly.trait_ref.path.span)
+            .is_some()
+        {
+            self.check_res_emit(cx, &poly.trait_ref.path.res, poly.trait_ref.path.span);
+        }
     }
 
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
@@ -167,16 +183,20 @@ impl<'tcx> LateLintPass<'tcx> for DisallowedModules {
             ExprKind::Match(_, arms, _) => {
                 for arm in arms {
                     arm.pat.walk_always(|pat| {
-                        if let (_, Some(path)) = pat.opt_res_path() {
-                            self.check_res_emit(cx, &path.res, pat.span);
+                        if let (_, Some(path)) = pat.opt_res_path()
+                            && self.check_path_segments(cx, path.segments.iter(), path.span).is_some()
+                        {
+                            self.check_res_emit(cx, &path.res, path.span);
                         }
                     });
                 }
             },
             ExprKind::Let(let_expr) => {
                 let_expr.pat.walk_always(|pat| {
-                    if let (_, Some(path)) = pat.opt_res_path() {
-                        self.check_res_emit(cx, &path.res, pat.span);
+                    if let (_, Some(path)) = pat.opt_res_path()
+                        && self.check_path_segments(cx, path.segments.iter(), path.span).is_some()
+                    {
+                        self.check_res_emit(cx, &path.res, path.span);
                     }
                 });
             },
