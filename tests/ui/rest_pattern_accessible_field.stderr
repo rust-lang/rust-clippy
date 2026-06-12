@@ -1,5 +1,5 @@
 error: struct destructuring with rest (`..`)
-  --> tests/ui/rest_when_destructuring_struct.rs:33:9
+  --> tests/ui/rest_pattern_accessible_field.rs:32:9
    |
 LL |     let S { a, b, .. } = s;
    |         ^^^^^^^^^^^^^^
@@ -12,22 +12,8 @@ LL -     let S { a, b, .. } = s;
 LL +     let S { a, b, c: _ } = s;
    |
 
-error: unnecessary rest pattern (`..`)
-  --> tests/ui/rest_when_destructuring_struct.rs:36:9
-   |
-LL |     let S { a, b, c, .. } = s;
-   |         ^^^^^^^^^^^^^^^^^
-   |
-   = note: `-D clippy::unnecessary-rest-pattern` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_rest_pattern)]`
-help: consider removing the unnecessary rest pattern (`..`)
-   |
-LL -     let S { a, b, c, .. } = s;
-LL +     let S { a, b, c,  } = s;
-   |
-
 error: struct destructuring with rest (`..`)
-  --> tests/ui/rest_when_destructuring_struct.rs:39:5
+  --> tests/ui/rest_pattern_accessible_field.rs:37:5
    |
 LL |     S { a: _, b: _, .. } = S { a: 1, b: 2, c: 3 };
    |     ^^^^^^^^^^^^^^^^^^^^
@@ -39,7 +25,7 @@ LL +     S { a: _, b: _, c: _ } = S { a: 1, b: 2, c: 3 };
    |
 
 error: struct destructuring with rest (`..`)
-  --> tests/ui/rest_when_destructuring_struct.rs:46:9
+  --> tests/ui/rest_pattern_accessible_field.rs:44:9
    |
 LL |         E::B { .. } => (),
    |         ^^^^^^^^^^^
@@ -50,20 +36,8 @@ LL -         E::B { .. } => (),
 LL +         E::B { b1: _, b2: _ } => (),
    |
 
-error: unnecessary rest pattern (`..`)
-  --> tests/ui/rest_when_destructuring_struct.rs:48:9
-   |
-LL |         E::C { .. } => (),
-   |         ^^^^^^^^^^^
-   |
-help: consider removing the unnecessary rest pattern (`..`)
-   |
-LL -         E::C { .. } => (),
-LL +         E::C {  } => (),
-   |
-
 error: struct destructuring with rest (`..`)
-  --> tests/ui/rest_when_destructuring_struct.rs:54:9
+  --> tests/ui/rest_pattern_accessible_field.rs:51:9
    |
 LL |         E::B { b1: _, .. } => (),
    |         ^^^^^^^^^^^^^^^^^^
@@ -75,7 +49,7 @@ LL +         E::B { b1: _, b2: _ } => (),
    |
 
 error: struct destructuring with rest (`..`)
-  --> tests/ui/rest_when_destructuring_struct.rs:71:9
+  --> tests/ui/rest_pattern_accessible_field.rs:68:9
    |
 LL |     let NonExhaustiveStruct { field1: _, .. } = ne;
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -86,7 +60,7 @@ LL |     let NonExhaustiveStruct { field1: _, field2: _, .. } = ne;
    |                                          ++++++++++
 
 error: struct destructuring with rest (`..`)
-  --> tests/ui/rest_when_destructuring_struct.rs:81:9
+  --> tests/ui/rest_pattern_accessible_field.rs:78:9
    |
 LL |     let Sm { .. } = Sm::default();
    |         ^^^^^^^^^
@@ -96,5 +70,5 @@ help: consider explicitly ignoring fields with wildcard patterns (`x: _`)
 LL |     let Sm { a: _, b: _, .. } = Sm::default();
    |              +++++++++++
 
-error: aborting due to 8 previous errors
+error: aborting due to 6 previous errors
 
