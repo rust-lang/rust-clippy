@@ -1,6 +1,7 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_sugg};
 use clippy_utils::is_from_proc_macro;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::msrvs::Msrv;
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
@@ -126,7 +127,7 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
         if let Res::Def(def_kind, def_id) = path.res
             && let Some(first_segment) = get_first_segment(path)
             && is_stable(cx, def_id, self.msrv)
-            && !path.span.in_external_macro(cx.sess().source_map())
+            && !is_in_external_macro(cx.sess(), path.span)
             && !is_from_proc_macro(cx, &first_segment.ident)
             && !matches!(def_kind, DefKind::Macro(_))
             && let Some(last_segment) = path.segments.last()

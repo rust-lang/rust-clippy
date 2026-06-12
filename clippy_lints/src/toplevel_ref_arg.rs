@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::{span_lint_hir, span_lint_hir_and_then};
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::source::{snippet, snippet_with_context};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::{is_lint_allowed, iter_input_pats};
@@ -63,7 +64,7 @@ impl<'tcx> LateLintPass<'tcx> for ToplevelRefArg {
             for arg in iter_input_pats(decl, body) {
                 if let PatKind::Binding(BindingMode(ByRef::Yes(..), _), ..) = arg.pat.kind
                     && is_lint_allowed(cx, REF_PATTERNS, arg.pat.hir_id)
-                    && !arg.span.in_external_macro(cx.tcx.sess.source_map())
+                    && !is_in_external_macro(cx.tcx.sess, arg.span)
                 {
                     span_lint_hir(
                         cx,
@@ -84,7 +85,7 @@ impl<'tcx> LateLintPass<'tcx> for ToplevelRefArg {
             && let Some(init) = local.init
             // Do not emit if clippy::ref_patterns is not allowed to avoid having two lints for the same issue.
             && is_lint_allowed(cx, REF_PATTERNS, local.pat.hir_id)
-            && !stmt.span.in_external_macro(cx.tcx.sess.source_map())
+            && !is_in_external_macro(cx.tcx.sess, stmt.span)
         {
             let ctxt = local.span.ctxt();
             let mut app = Applicability::MachineApplicable;

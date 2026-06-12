@@ -25,6 +25,7 @@ mod try_err;
 mod wild_in_or_pats;
 
 use clippy_config::Conf;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::SpanExt;
 use clippy_utils::{higher, is_direct_expn_of, is_in_const_context, is_span_match, sym, tokenize_with_text};
@@ -1052,7 +1053,7 @@ impl Matches {
 impl<'tcx> LateLintPass<'tcx> for Matches {
     #[expect(clippy::too_many_lines)]
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        if is_direct_expn_of(expr.span, sym::matches).is_none() && expr.span.in_external_macro(cx.sess().source_map()) {
+        if is_direct_expn_of(expr.span, sym::matches).is_none() && is_in_external_macro(cx.sess(), expr.span) {
             return;
         }
         let from_expansion = expr.span.from_expansion();

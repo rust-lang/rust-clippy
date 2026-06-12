@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::source::SpanExt;
 use rustc_ast::LitKind;
 use rustc_data_structures::fx::FxHashSet;
@@ -80,7 +81,7 @@ impl LateLintPass<'_> for ManualRangePatterns {
         // like described https://github.com/rust-lang/rust-clippy/issues/11825)
         if let PatKind::Or(pats) = pat.kind
             && (pats.len() >= 3 || (pats.len() > 1 && pats.iter().any(|p| matches!(p.kind, PatKind::Range(..)))))
-            && !pat.span.in_external_macro(cx.sess().source_map())
+            && !is_in_external_macro(cx.sess(), pat.span)
         {
             let mut min = Num::dummy(i128::MAX);
             let mut max = Num::dummy(i128::MIN);

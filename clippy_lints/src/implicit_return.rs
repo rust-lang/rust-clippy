@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::source::{snippet_with_applicability, snippet_with_context, walk_span_to_context};
 use clippy_utils::visitors::for_each_expr_without_closures;
 use clippy_utils::{desugar_await, get_async_closure_expr, get_async_fn_body, is_from_proc_macro};
@@ -230,7 +231,7 @@ impl<'tcx> LateLintPass<'tcx> for ImplicitReturn {
     ) {
         if (!matches!(kind, FnKind::Closure) && matches!(decl.output, FnRetTy::DefaultReturn(_)))
             || !span.eq_ctxt(body.value.span)
-            || span.in_external_macro(cx.sess().source_map())
+            || is_in_external_macro(cx.sess(), span)
         {
             return;
         }

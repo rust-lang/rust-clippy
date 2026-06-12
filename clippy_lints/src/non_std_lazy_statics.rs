@@ -1,5 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint, span_lint_hir_and_then};
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::paths::{self, PathNS, find_crates, lookup_path_str};
 use clippy_utils::res::MaybeResPath;
@@ -120,7 +121,7 @@ impl<'hir> LateLintPass<'hir> for NonStdLazyStatic {
             return;
         }
 
-        if item.span.in_external_macro(cx.sess().source_map()) {
+        if is_in_external_macro(cx.sess(), item.span) {
             return;
         }
 

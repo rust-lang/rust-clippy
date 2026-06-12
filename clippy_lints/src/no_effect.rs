@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::{span_lint_hir, span_lint_hir_and_then};
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::res::MaybeResPath;
 use clippy_utils::source::SpanExt;
 use clippy_utils::ty::{expr_type_is_certain, has_drop};
@@ -276,7 +277,7 @@ fn has_no_effect(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
 
 fn check_unnecessary_operation(cx: &LateContext<'_>, stmt: &Stmt<'_>) {
     if let StmtKind::Semi(expr) = stmt.kind
-        && !stmt.span.in_external_macro(cx.sess().source_map())
+        && !is_in_external_macro(cx.sess(), stmt.span)
         && let ctxt = stmt.span.ctxt()
         && expr.range_span().unwrap_or(expr.span).ctxt() == ctxt
         && let Some(reduced) = reduce_expression(cx, expr)

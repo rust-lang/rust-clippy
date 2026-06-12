@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::{span_lint, span_lint_hir};
+use clippy_utils::macros::is_in_external_macro;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{self as hir, Attribute, find_attr};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
@@ -85,7 +86,7 @@ fn check_missing_inline_attrs(
 
 impl<'tcx> LateLintPass<'tcx> for MissingInline {
     fn check_item(&mut self, cx: &LateContext<'tcx>, it: &'tcx hir::Item<'_>) {
-        if it.span.in_external_macro(cx.sess().source_map()) {
+        if is_in_external_macro(cx.sess(), it.span) {
             return;
         }
 
@@ -149,7 +150,7 @@ impl<'tcx> LateLintPass<'tcx> for MissingInline {
     }
 
     fn check_impl_item(&mut self, cx: &LateContext<'tcx>, impl_item: &'tcx hir::ImplItem<'_>) {
-        if impl_item.span.in_external_macro(cx.sess().source_map())
+        if is_in_external_macro(cx.sess(), impl_item.span)
             || cx
                 .tcx
                 .crate_types()

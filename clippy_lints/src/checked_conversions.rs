@@ -1,5 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::macros::is_ctxt_in_external_macro;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::{SpanlessEq, is_in_const_context, is_integer_literal, sym};
@@ -63,7 +64,7 @@ impl LateLintPass<'_> for CheckedConversions {
                 _ => return,
             }
             && let ctxt = item.span.ctxt()
-            && !ctxt.in_external_macro(cx.sess().source_map())
+            && !is_ctxt_in_external_macro(cx.sess(), ctxt)
             && !is_in_const_context(cx)
             && let Some(cv) = match op2 {
                 // todo: check for case signed -> larger unsigned == only x >= 0

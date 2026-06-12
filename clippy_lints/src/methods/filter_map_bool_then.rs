@@ -1,5 +1,6 @@
 use super::FILTER_MAP_BOOL_THEN;
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
 use clippy_utils::source::{SpanExt, snippet_with_context};
 use clippy_utils::ty::is_copy;
@@ -14,7 +15,7 @@ use rustc_middle::ty::adjustment::Adjust;
 use rustc_span::Span;
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, arg: &Expr<'_>, call_span: Span) {
-    if !expr.span.in_external_macro(cx.sess().source_map())
+    if !is_in_external_macro(cx.sess(), expr.span)
         && cx.ty_based_def(expr).opt_parent(cx).is_diag_item(cx, sym::Iterator)
         && let ExprKind::Closure(closure) = arg.kind
         && let body = cx.tcx.hir_body(closure.body)

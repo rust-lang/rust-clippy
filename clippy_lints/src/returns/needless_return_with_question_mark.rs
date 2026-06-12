@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::res::{MaybeDef, MaybeQPath};
 use clippy_utils::{is_from_proc_macro, is_inside_let_else};
 use rustc_errors::Applicability;
@@ -10,7 +11,7 @@ use rustc_middle::ty::adjustment::Adjust;
 use super::NEEDLESS_RETURN_WITH_QUESTION_MARK;
 
 pub(super) fn check_stmt<'tcx>(cx: &LateContext<'tcx>, stmt: &'tcx Stmt<'_>) {
-    if !stmt.span.in_external_macro(cx.sess().source_map())
+    if !is_in_external_macro(cx.sess(), stmt.span)
         && let StmtKind::Semi(expr) = stmt.kind
         && let ExprKind::Ret(Some(ret)) = expr.kind
         // return Err(...)? desugars to a match

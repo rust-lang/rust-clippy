@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::is_from_proc_macro;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
 use clippy_utils::source::SpanExt;
@@ -20,7 +21,7 @@ pub(super) fn check<'tcx>(
     fold_span: Span,
     msrv: Msrv,
 ) {
-    if !fold_span.in_external_macro(cx.sess().source_map())
+    if !is_in_external_macro(cx.sess(), fold_span)
         && cx.ty_based_def(expr).opt_parent(cx).is_diag_item(cx, sym::Iterator)
         && let init_ty = cx.typeck_results().expr_ty(init)
         && let Some(try_trait) = cx.tcx.lang_items().try_trait()

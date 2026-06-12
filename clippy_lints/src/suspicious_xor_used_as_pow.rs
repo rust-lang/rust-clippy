@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::numeric_literal::NumericLiteral;
 use clippy_utils::source::snippet;
 use rustc_ast::LitKind;
@@ -32,7 +33,7 @@ declare_lint_pass!(ConfusingXorAndPow => [SUSPICIOUS_XOR_USED_AS_POW]);
 
 impl LateLintPass<'_> for ConfusingXorAndPow {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {
-        if !expr.span.in_external_macro(cx.sess().source_map())
+        if !is_in_external_macro(cx.sess(), expr.span)
             && let ExprKind::Binary(op, left, right) = &expr.kind
             && op.node == BinOpKind::BitXor
             && left.span.eq_ctxt(right.span)

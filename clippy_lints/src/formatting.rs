@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_note};
 use clippy_utils::is_span_if;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::source::snippet_opt;
 use rustc_ast::ast::{BinOpKind, Block, Expr, ExprKind, StmtKind};
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
@@ -228,7 +229,7 @@ fn check_else(cx: &EarlyContext<'_>, expr: &Expr) {
     if let ExprKind::If(_, then, Some(else_)) = &expr.kind
         && (is_block(else_) || is_if(else_))
         && !then.span.from_expansion() && !else_.span.from_expansion()
-        && !expr.span.in_external_macro(cx.sess().source_map())
+        && !is_in_external_macro(cx.sess(), expr.span)
 
         // workaround for rust-lang/rust#43081
         && expr.span.lo().0 != 0 && expr.span.hi().0 != 0

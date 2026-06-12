@@ -20,7 +20,7 @@
 use clippy_config::Conf;
 use clippy_utils::consts::{ConstEvalCtxt, Constant, const_item_rhs_to_expr};
 use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
-use clippy_utils::macros::macro_backtrace;
+use clippy_utils::macros::{is_in_external_macro, macro_backtrace};
 use clippy_utils::paths::{PathNS, lookup_path_str};
 use clippy_utils::ty::{get_field_idx_by_name, implements_trait};
 use clippy_utils::{is_in_const_context, sym};
@@ -733,7 +733,7 @@ impl<'tcx> LateLintPass<'tcx> for NonCopyConst<'tcx> {
                     )),
                 },
             }
-            && !item.span.in_external_macro(cx.sess().source_map())
+            && !is_in_external_macro(cx.sess(), item.span)
             // Only needed when compiling `std`
             && !is_thread_local(cx, item)
         {
@@ -780,7 +780,7 @@ impl<'tcx> LateLintPass<'tcx> for NonCopyConst<'tcx> {
                 },
                 IsFreeze::Yes | IsFreeze::Maybe => false,
             }
-            && !item.span.in_external_macro(cx.sess().source_map())
+            && !is_in_external_macro(cx.sess(), item.span)
         {
             span_lint(
                 cx,
@@ -839,7 +839,7 @@ impl<'tcx> LateLintPass<'tcx> for NonCopyConst<'tcx> {
                     }),
                 },
             }
-            && !item.span.in_external_macro(cx.sess().source_map())
+            && !is_in_external_macro(cx.sess(), item.span)
         {
             span_lint(
                 cx,
@@ -874,7 +874,7 @@ impl<'tcx> LateLintPass<'tcx> for NonCopyConst<'tcx> {
                     self.is_non_freeze_expr_borrowed(cx.tcx, cx.typing_env(), typeck, e)
                 }
             }
-            && !borrow_src.expr.span.in_external_macro(cx.sess().source_map())
+            && !is_in_external_macro(cx.sess(), borrow_src.expr.span)
         {
             span_lint_and_then(
                 cx,

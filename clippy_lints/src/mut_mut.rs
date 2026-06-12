@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_hir_and_then};
 use clippy_utils::higher;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::sugg::Sugg;
 use rustc_data_structures::fx::FxHashSet;
@@ -57,7 +58,7 @@ impl<'tcx> LateLintPass<'tcx> for MutMut {
             && mty.mutbl == Mutability::Mut
             && let TyKind::Ref(_, mty2) = mty.ty.kind
             && mty2.mutbl == Mutability::Mut
-            && !ty.span.in_external_macro(cx.sess().source_map())
+            && !is_in_external_macro(cx.sess(), ty.span)
         {
             if self.seen_tys.contains(&ty.hir_id) {
                 // we have 2+ `&mut`s, e.g., `&mut &mut &mut x`
@@ -106,7 +107,7 @@ pub struct MutVisitor<'a, 'tcx> {
 
 impl<'tcx> intravisit::Visitor<'tcx> for MutVisitor<'_, 'tcx> {
     fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
-        if expr.span.in_external_macro(self.cx.sess().source_map()) {
+        if is_in_external_macro(self.cx.sess(), expr.span) {
             return;
         }
 

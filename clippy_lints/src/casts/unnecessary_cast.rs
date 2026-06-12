@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::numeric_literal::NumericLiteral;
 use clippy_utils::res::MaybeResPath as _;
 use clippy_utils::source::{SpanExt, snippet, snippet_with_applicability};
@@ -151,7 +152,7 @@ pub(super) fn check<'tcx>(
         }
     }
 
-    if cast_from.kind() == cast_to.kind() && !expr.span.in_external_macro(cx.sess().source_map()) {
+    if cast_from.kind() == cast_to.kind() && !is_in_external_macro(cx.sess(), expr.span) {
         fn is_borrow_expr(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
             matches!(expr.kind, ExprKind::AddrOf(..))
                 || cx

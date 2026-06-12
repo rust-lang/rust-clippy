@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::return_ty;
 use clippy_utils::source::{indent_of, reindent_multiline, snippet_with_applicability};
 use clippy_utils::sugg::DiagExt;
@@ -78,7 +79,7 @@ impl<'tcx> LateLintPass<'tcx> for NewWithoutDefault {
             if let AssocKind::Fn { has_self: false, .. } = assoc_item.kind
                 && let assoc_item_hir_id = cx.tcx.local_def_id_to_hir_id(assoc_item.def_id.expect_local())
                 && let impl_item = cx.tcx.hir_node(assoc_item_hir_id).expect_impl_item()
-                && !impl_item.span.in_external_macro(cx.sess().source_map())
+                && !is_in_external_macro(cx.sess(), impl_item.span)
                 && let hir::ImplItemKind::Fn(ref sig, _) = impl_item.kind
                 && let id = impl_item.owner_id
                 // can't be implemented for unsafe new

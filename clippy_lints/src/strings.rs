@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg, span_lint_and_then};
+use clippy_utils::macros::{is_ctxt_in_external_macro, is_in_external_macro};
 use clippy_utils::res::{MaybeDef, MaybeQPath};
 use clippy_utils::source::{snippet, snippet_with_applicability, snippet_with_context};
 use clippy_utils::{
@@ -221,7 +222,7 @@ declare_lint_pass!(TrimSplitWhitespace => [TRIM_SPLIT_WHITESPACE]);
 impl<'tcx> LateLintPass<'tcx> for StringAdd {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
         let ctxt = e.span.ctxt();
-        if ctxt.in_external_macro(cx.sess().source_map()) {
+        if is_ctxt_in_external_macro(cx.sess(), ctxt) {
             return;
         }
         match e.kind {
@@ -335,7 +336,7 @@ impl<'tcx> LateLintPass<'tcx> for StringLitAsBytes {
             );
         }
 
-        if !e.span.in_external_macro(cx.sess().source_map())
+        if !is_in_external_macro(cx.sess(), e.span)
             && let ExprKind::MethodCall(path, receiver, ..) = &e.kind
             && path.ident.name == sym::as_bytes
             && let ExprKind::Lit(lit) = &receiver.kind

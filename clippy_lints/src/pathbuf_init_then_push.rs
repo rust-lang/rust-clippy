@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::res::{MaybeDef, MaybeResPath};
 use clippy_utils::source::{SpanExt, snippet};
 use clippy_utils::sym;
@@ -135,7 +136,7 @@ impl<'tcx> LateLintPass<'tcx> for PathbufThenPush<'tcx> {
     fn check_local(&mut self, cx: &LateContext<'tcx>, local: &'tcx LetStmt<'tcx>) {
         if let Some(init_expr) = local.init
             && let PatKind::Binding(BindingMode::MUT, id, name, None) = local.pat.kind
-            && !local.span.in_external_macro(cx.sess().source_map())
+            && !is_in_external_macro(cx.sess(), local.span)
             && let ty = cx.typeck_results().pat_ty(local.pat)
             && ty.is_diag_item(cx, sym::PathBuf)
         {
@@ -156,7 +157,7 @@ impl<'tcx> LateLintPass<'tcx> for PathbufThenPush<'tcx> {
             && let ExprKind::Path(QPath::Resolved(None, path)) = left.kind
             && let [name] = &path.segments
             && let Res::Local(id) = path.res
-            && !expr.span.in_external_macro(cx.sess().source_map())
+            && !is_in_external_macro(cx.sess(), expr.span)
             && let ty = cx.typeck_results().expr_ty(left)
             && ty.is_diag_item(cx, sym::PathBuf)
         {

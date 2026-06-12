@@ -3,6 +3,7 @@
 use clippy_config::Conf;
 use clippy_utils::attrs::is_doc_hidden;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_help, span_lint_and_then};
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::{is_entrypoint_fn, is_trait_impl_item};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
@@ -782,7 +783,7 @@ impl<'tcx> LateLintPass<'tcx> for Documentation {
                 match item.kind {
                     ItemKind::Fn { sig, body, .. }
                         if !(is_entrypoint_fn(cx, item.owner_id.to_def_id())
-                            || item.span.in_external_macro(cx.tcx.sess.source_map())) =>
+                            || is_in_external_macro(cx.tcx.sess, item.span)) =>
                     {
                         missing_headers::check(cx, item.owner_id, sig, headers, Some(body), self.check_private_items);
                     },
@@ -806,14 +807,14 @@ impl<'tcx> LateLintPass<'tcx> for Documentation {
             },
             Node::TraitItem(trait_item) => {
                 if let TraitItemKind::Fn(sig, ..) = trait_item.kind
-                    && !trait_item.span.in_external_macro(cx.tcx.sess.source_map())
+                    && !is_in_external_macro(cx.tcx.sess, trait_item.span)
                 {
                     missing_headers::check(cx, trait_item.owner_id, sig, headers, None, self.check_private_items);
                 }
             },
             Node::ImplItem(impl_item) => {
                 if let ImplItemKind::Fn(sig, body_id) = impl_item.kind
-                    && !impl_item.span.in_external_macro(cx.tcx.sess.source_map())
+                    && !is_in_external_macro(cx.tcx.sess, impl_item.span)
                     && !is_trait_impl_item(cx, impl_item.hir_id())
                 {
                     missing_headers::check(
@@ -876,7 +877,7 @@ fn check_attrs(cx: &LateContext<'_>, valid_idents: &FxHashSet<String>, attrs: &[
 
     let (fragments, _) = attrs_to_doc_fragments(
         attrs.iter().filter_map(|attr| {
-            if attr.doc_str_and_fragment_kind().is_none() || attr.span().in_external_macro(cx.sess().source_map()) {
+            if attr.doc_str_and_fragment_kind().is_none() || is_in_external_macro(cx.sess(), attr.span()) {
                 None
             } else {
                 Some((attr, None))

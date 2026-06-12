@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::ty::{implements_trait, is_must_use_ty};
 use clippy_utils::{is_from_proc_macro, is_must_use_func_call, paths};
 use rustc_hir::{LetStmt, LocalSource, PatKind};
@@ -139,7 +140,7 @@ impl<'tcx> LateLintPass<'tcx> for LetUnderscore {
         if matches!(local.source, LocalSource::Normal)
             && let PatKind::Wild = local.pat.kind
             && let Some(init) = local.init
-            && !local.span.in_external_macro(cx.tcx.sess.source_map())
+            && !is_in_external_macro(cx.tcx.sess, local.span)
         {
             let init_ty = cx.typeck_results().expr_ty(init);
             let contains_sync_guard = init_ty.walk().any(|inner| match inner.kind() {

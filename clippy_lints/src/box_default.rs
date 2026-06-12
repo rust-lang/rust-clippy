@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::macros::macro_backtrace;
+use clippy_utils::macros::{is_in_external_macro, macro_backtrace};
 use clippy_utils::res::{MaybeDef, MaybeResPath};
 use clippy_utils::ty::expr_sig;
 use clippy_utils::{is_default_equivalent, sym};
@@ -50,7 +50,7 @@ impl LateLintPass<'_> for BoxDefault {
             // This is the `T::default()` (or default equivalent) of `Box::new(T::default())`
             && let ExprKind::Call(arg_path, _) = arg.kind
             // And we are not in a foreign crate's macro
-            && !expr.span.in_external_macro(cx.sess().source_map())
+            && !is_in_external_macro(cx.sess(), expr.span)
             // And the argument expression has the same context as the outer call expression
             // or that we are inside a `vec!` macro expansion
             && (expr.span.eq_ctxt(arg.span) || is_local_vec_expn(cx, arg, expr))
