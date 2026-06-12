@@ -3,7 +3,9 @@ use clippy_utils::source::{
     SpanRangeExt, expr_block, snippet, snippet_block_with_context, snippet_with_applicability, snippet_with_context,
 };
 use clippy_utils::ty::{implements_trait, peel_and_count_ty_refs};
-use clippy_utils::{is_lint_allowed, is_unit_expr, peel_blocks, peel_hir_pat_refs, peel_n_hir_expr_refs, sym};
+use clippy_utils::{
+    is_lint_allowed, is_unit_expr, peel_blocks, peel_hir_pat_refs, peel_n_hir_expr_refs, span_extract_comments, sym,
+};
 use core::ops::ControlFlow;
 use rustc_arena::DroplessArena;
 use rustc_errors::{Applicability, Diag};
@@ -25,13 +27,24 @@ fn empty_arm_has_comment(cx: &LateContext<'_>, span: Span) -> bool {
     span.check_source_text(cx, |text| text.as_bytes().windows(2).any(|w| w == b"//" || w == b"/*"))
 }
 
-pub(crate) fn check<'tcx>(
-    cx: &LateContext<'tcx>,
-    ex: &'tcx Expr<'_>,
-    arms: &'tcx [Arm<'_>],
-    expr: &'tcx Expr<'_>,
-    contains_comments: bool,
-) {
+/// Checks if the `match` has comments outside the arm bodies that the suggestion would lose.
+fn contains_comments_outside_arm_bodies(cx: &LateContext<'_>, expr: &Expr<'_>, arms: &[Arm<'_>]) -> bool {
+    let mut match_comments = span_extract_comments(cx, expr.span);
+    // We remove comments from inside arms block.
+    if !match_comments.is_empty() {
+        for arm in arms {
+            for comment in span_extract_comments(cx, arm.body.span) {
+                if let Some(index) = match_comments.iter().position(|cm| *cm == comment) {
+                    match_comments.remove(index);
+                }
+            }
+        }
+    }
+    // If there are still comments, it means they are outside of the arms.
+    !match_comments.is_empty()
+}
+
+pub(crate) fn check<'tcx>(cx: &LateContext<'tcx>, ex: &'tcx Expr<'_>, arms: &'tcx [Arm<'_>], expr: &'tcx Expr<'_>) {
     if let [arm1, arm2] = arms
         && !arms.iter().any(|arm| arm.guard.is_some() || arm.pat.span.from_expansion())
         && !expr.span.from_expansion()
@@ -75,6 +88,8 @@ pub(crate) fn check<'tcx>(
                 }
             }
 
+            // Extracting comments tokenizes the whole `match`, so only do it once a lint fires.
+            let contains_comments = contains_comments_outside_arm_bodies(cx, expr, arms);
             report_single_pattern(cx, ex, arm1, expr, els, contains_comments);
         }
     }
