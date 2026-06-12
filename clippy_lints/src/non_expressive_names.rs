@@ -1,5 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
+use clippy_utils::macros::is_in_external_macro;
 use rustc_ast::ast::{
     self, Arm, AssocItem, AssocItemKind, Attribute, Block, FnDecl, Item, ItemKind, Local, Pat, PatKind,
 };
@@ -400,7 +401,7 @@ impl<'tcx> Visitor<'tcx> for SimilarNamesLocalVisitor<'_, 'tcx> {
 
 impl EarlyLintPass for NonExpressiveNames {
     fn check_item(&mut self, cx: &EarlyContext<'_>, item: &Item) {
-        if item.span.in_external_macro(cx.sess().source_map()) {
+        if is_in_external_macro(cx.sess(), item.span) {
             return;
         }
 
@@ -415,7 +416,7 @@ impl EarlyLintPass for NonExpressiveNames {
     }
 
     fn check_impl_item(&mut self, cx: &EarlyContext<'_>, item: &AssocItem) {
-        if item.span.in_external_macro(cx.sess().source_map()) {
+        if is_in_external_macro(cx.sess(), item.span) {
             return;
         }
 

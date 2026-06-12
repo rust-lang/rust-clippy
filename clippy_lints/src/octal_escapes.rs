@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::source::SpanExt;
 use rustc_ast::token::LitKind;
 use rustc_ast::{Expr, ExprKind};
@@ -58,7 +59,7 @@ impl EarlyLintPass for OctalEscapes {
                 LitKind::ByteStr | LitKind::CStr => 2,
                 _ => return,
             })
-            && !expr.span.in_external_macro(cx.sess().source_map())
+            && !is_in_external_macro(cx.sess(), expr.span)
         {
             let s = lit.symbol.as_str();
             let mut iter = s.as_bytes().iter();

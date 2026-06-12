@@ -1,8 +1,9 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::macros::is_ctxt_in_external_macro;
 use clippy_utils::source::walk_span_to_context;
 use rustc_errors::Applicability;
 use rustc_hir::{self as hir, AmbigArg, BorrowKind, Expr, ExprKind, HirId, Mutability, TyKind};
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty;
 use rustc_session::impl_lint_pass;
 use rustc_span::ExpnKind;
@@ -61,7 +62,7 @@ impl<'tcx> LateLintPass<'tcx> for MutMut {
                 {
                     base2 = next;
                 }
-                if !ctxt.in_external_macro(cx.tcx.sess.source_map())
+                if !is_ctxt_in_external_macro(cx.sess(), ctxt)
                     && let Some(sp) = walk_span_to_context(base2.span, ctxt)
                 {
                     span_lint_and_then(
@@ -81,7 +82,7 @@ impl<'tcx> LateLintPass<'tcx> for MutMut {
                 }
             } else if let ty::Ref(_, ty, Mutability::Mut) = *cx.typeck_results().expr_ty(base).kind()
                 && ty.peel_refs().is_sized(cx.tcx, cx.typing_env())
-                && !ctxt.in_external_macro(cx.tcx.sess.source_map())
+                && !is_ctxt_in_external_macro(cx.sess(), ctxt)
                 // Don't lint on the explicit borrow in for-loop desugarings.
                 && !matches!(ctxt.outer_expn_data().kind, ExpnKind::Desugaring(_))
                 && let Some(sp) = walk_span_to_context(base.span, ctxt)
@@ -117,7 +118,7 @@ impl<'tcx> LateLintPass<'tcx> for MutMut {
                 {
                     base2 = next;
                 }
-                if !ctxt.in_external_macro(cx.tcx.sess.source_map())
+                if !is_ctxt_in_external_macro(cx.sess(), ctxt)
                     && let Some(sp) = walk_span_to_context(base2.ty.span, ctxt)
                 {
                     span_lint_and_then(

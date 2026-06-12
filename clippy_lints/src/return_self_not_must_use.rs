@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::ty::is_must_use_ty;
 use clippy_utils::{nth_arg, return_ty};
 use rustc_hir::def_id::LocalDefId;
@@ -68,7 +69,7 @@ declare_clippy_lint! {
 declare_lint_pass!(ReturnSelfNotMustUse => [RETURN_SELF_NOT_MUST_USE]);
 
 fn check_method(cx: &LateContext<'_>, decl: &FnDecl<'_>, fn_def: LocalDefId, span: Span, owner_id: OwnerId) {
-    if !span.in_external_macro(cx.sess().source_map())
+    if !is_in_external_macro(cx.sess(), span)
         // If it comes from an external macro, better ignore it.
         && decl.implicit_self().has_implicit_self()
         // We only show this warning for public exported methods.

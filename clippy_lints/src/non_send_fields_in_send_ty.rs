@@ -1,6 +1,7 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_lint_allowed;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::source::snippet;
 use clippy_utils::ty::{implements_trait, is_copy};
 use rustc_ast::ImplPolarity;
@@ -80,7 +81,7 @@ impl<'tcx> LateLintPass<'tcx> for NonSendFieldInSendTy {
         // We start from `Send` impl instead of `check_field_def()` because
         // single `AdtDef` may have multiple `Send` impls due to generic
         // parameters, and the lint is much easier to implement in this way.
-        if !item.span.in_external_macro(cx.tcx.sess.source_map())
+        if !is_in_external_macro(cx.tcx.sess, item.span)
             && let Some(send_trait) = cx.tcx.get_diagnostic_item(sym::Send)
             && let ItemKind::Impl(hir_impl) = &item.kind
             && let Some(of_trait) = &hir_impl.of_trait

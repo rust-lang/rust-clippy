@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::source::snippet_block_with_applicability;
 use clippy_utils::{contains_return, higher, is_from_proc_macro};
 use rustc_errors::Applicability;
@@ -53,7 +54,7 @@ const BRACED_EXPR_MESSAGE: &str = "omit braces around single expression conditio
 
 impl<'tcx> LateLintPass<'tcx> for BlocksInConditions {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        if expr.span.in_external_macro(cx.sess().source_map()) {
+        if is_in_external_macro(cx.sess(), expr.span) {
             return;
         }
 

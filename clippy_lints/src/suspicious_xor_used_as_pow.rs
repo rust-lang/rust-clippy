@@ -1,10 +1,11 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::source::SpanExt;
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lexer::is_whitespace;
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
@@ -42,7 +43,7 @@ impl LateLintPass<'_> for ConfusingXorAndPow {
             && ctxt == left.span.ctxt()
             && ctxt == right.span.ctxt()
             && ctxt == op.span.ctxt()
-            && !expr.span.in_external_macro(cx.tcx.sess.source_map())
+            && !is_in_external_macro(cx.sess(), expr.span)
             && let Some(lit_right_src) = lit_right.span.get_text(cx)
             && lit_right_src
                 .trim_start_matches(|c| is_whitespace(c) || c == '(')

@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::span_lint;
+use clippy_utils::macros::is_in_external_macro;
 use rustc_hir::{ImplItem, ImplItemKind, Item, ItemKind, OwnerId, TraitFn, TraitItem, TraitItemKind, find_attr};
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::config::CrateType;
 use rustc_session::declare_lint_pass;
 use rustc_span::Span;
@@ -70,7 +71,7 @@ fn check(cx: &LateContext<'_>, item: OwnerId, sp: Span) {
         // Rust `inline` doesn't mean anything with external linkage.
         && !cx.tcx.codegen_fn_attrs(item.def_id).contains_extern_indicator()
         && !cx.tcx.crate_types().iter().any(|&t| matches!(t, CrateType::ProcMacro))
-        && !sp.in_external_macro(cx.tcx.sess.source_map())
+        && !is_in_external_macro(cx.sess(), sp)
     {
         span_lint(
             cx,

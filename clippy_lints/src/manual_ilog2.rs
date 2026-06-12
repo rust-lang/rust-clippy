@@ -1,5 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::{is_from_proc_macro, sym};
@@ -51,7 +52,7 @@ impl ManualIlog2 {
 
 impl LateLintPass<'_> for ManualIlog2 {
     fn check_expr<'tcx>(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
-        if expr.span.in_external_macro(cx.sess().source_map()) {
+        if is_in_external_macro(cx.sess(), expr.span) {
             return;
         }
 

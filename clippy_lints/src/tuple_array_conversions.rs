@@ -1,5 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeResPath;
 use clippy_utils::visitors::local_used_once;
@@ -54,7 +55,7 @@ impl TupleArrayConversions {
 
 impl LateLintPass<'_> for TupleArrayConversions {
     fn check_expr<'tcx>(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
-        if expr.span.in_external_macro(cx.sess().source_map()) || !self.msrv.meets(cx, msrvs::TUPLE_ARRAY_CONVERSIONS) {
+        if is_in_external_macro(cx.sess(), expr.span) || !self.msrv.meets(cx, msrvs::TUPLE_ARRAY_CONVERSIONS) {
             return;
         }
 

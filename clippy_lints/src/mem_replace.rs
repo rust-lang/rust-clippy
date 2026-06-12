@@ -1,5 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_sugg, span_lint_and_then};
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeDef;
 use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
@@ -258,7 +259,7 @@ fn check_replace_with_default(
         && let expr_type = cx.typeck_results().expr_ty_adjusted(src)
         && !is_non_aggregate_primitive_type(expr_type)
         && is_default_equivalent(cx, src)
-        && !expr.span.in_external_macro(cx.tcx.sess.source_map())
+        && !is_in_external_macro(cx.tcx.sess, expr.span)
         && let Some(top_crate) = std_or_core(cx)
         && msrv.meets(cx, msrvs::MEM_TAKE)
     {

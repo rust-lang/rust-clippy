@@ -1,5 +1,6 @@
 use crate::Lint;
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::{is_lint_allowed, sym};
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
@@ -123,7 +124,7 @@ impl LateLintPass<'_> for EndianBytes {
             },
             _ => return,
         };
-        if !expr.span.in_external_macro(cx.sess().source_map())
+        if !is_in_external_macro(cx.sess(), expr.span)
             && let ty = cx.typeck_results().expr_ty(ty_expr)
             && ty.is_primitive_ty()
         {

@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::{span_lint_and_then, span_lint_hir_and_then};
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::{SpanlessEq, fulfill_or_allowed, get_parent_expr, in_automatically_derived, last_path_segment};
 use rustc_errors::Applicability;
@@ -125,7 +126,7 @@ impl<'tcx> LateLintPass<'tcx> for LintPass {
     }
 
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        if expr.span.in_external_macro(cx.sess().source_map())
+        if is_in_external_macro(cx.sess(), expr.span)
             || expr.span.desugaring_kind().is_some()
             || in_automatically_derived(cx.tcx, expr.hir_id)
         {

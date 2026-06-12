@@ -1,5 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_hir_and_then;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::{is_from_proc_macro, is_in_test_function};
 use rustc_data_structures::fx::{FxIndexMap, IndexEntry};
 use rustc_hir::def::DefKind;
@@ -88,7 +89,7 @@ impl SingleCallFn {
         fn_span: Span,
     ) -> bool {
         (self.avoid_breaking_exported_api && cx.effective_visibilities.is_exported(fn_def_id))
-            || fn_span.in_external_macro(cx.sess().source_map())
+            || is_in_external_macro(cx.sess(), fn_span)
             || cx
                 .tcx
                 .hir_maybe_body_owned_by(fn_def_id)

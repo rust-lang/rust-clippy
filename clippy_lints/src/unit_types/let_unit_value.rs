@@ -1,5 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::macros::{FormatArgsStorage, find_format_arg_expr, is_format_macro, root_macro_call_first_node};
+use clippy_utils::macros::{
+    FormatArgsStorage, find_format_arg_expr, is_format_macro, is_in_external_macro, root_macro_call_first_node,
+};
 use clippy_utils::source::{snippet_indent, walk_span_to_context};
 use clippy_utils::visitors::{for_each_local_assignment, for_each_value_source};
 use core::ops::ControlFlow;
@@ -24,7 +26,7 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, format_args: &FormatArgsStorag
 
     if let Some(init) = local.init
         && !local.pat.span.from_expansion()
-        && !local.span.in_external_macro(cx.sess().source_map())
+        && !is_in_external_macro(cx.sess(), local.span)
         && !local.span.is_from_async_await()
         && cx.typeck_results().pat_ty(local.pat).is_unit()
     {

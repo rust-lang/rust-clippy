@@ -1,5 +1,6 @@
 use crate::functions::REF_OPTION;
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::source::snippet;
 use clippy_utils::ty::option_arg_ty;
 use clippy_utils::{is_from_proc_macro, is_trait_impl_item};
@@ -12,7 +13,7 @@ use rustc_span::Span;
 use rustc_span::def_id::LocalDefId;
 
 fn check_ty<'a>(cx: &LateContext<'a>, param: &hir::Ty<'a>, param_ty: Ty<'a>, fixes: &mut Vec<(Span, String)>) {
-    if !param.span.in_external_macro(cx.sess().source_map())
+    if !is_in_external_macro(cx.sess(), param.span)
         && let ty::Ref(_, opt_ty, Mutability::Not) = param_ty.kind()
         && let Some(gen_ty) = option_arg_ty(cx, *opt_ty)
         && !gen_ty.is_ref()
@@ -76,7 +77,7 @@ pub(crate) fn check_fn<'a>(
     if avoid_breaking_exported_api && cx.effective_visibilities.is_exported(def_id) {
         return;
     }
-    if span.in_external_macro(cx.sess().source_map()) {
+    if is_in_external_macro(cx.sess(), span) {
         return;
     }
 
@@ -127,7 +128,7 @@ pub(super) fn check_trait_item<'a>(
     trait_item: &hir::TraitItem<'a>,
     avoid_breaking_exported_api: bool,
 ) {
-    if !trait_item.span.in_external_macro(cx.sess().source_map())
+    if !is_in_external_macro(cx.sess(), trait_item.span)
         && let hir::TraitItemKind::Fn(ref sig, _) = trait_item.kind
         && !(avoid_breaking_exported_api && cx.effective_visibilities.is_exported(trait_item.owner_id.def_id))
         && !is_from_proc_macro(cx, trait_item)

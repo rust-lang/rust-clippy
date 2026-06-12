@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::is_from_proc_macro;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::ty::needs_ordered_drop;
 use rustc_ast::Mutability;
 use rustc_hir::def::Res;
@@ -69,7 +70,7 @@ impl<'tcx> LateLintPass<'tcx> for RedundantLocals {
             // the local does not affect the code's drop behavior
             && !needs_ordered_drop(cx, cx.typeck_results().expr_ty(expr))
             // the local is user-controlled
-            && !local.span.in_external_macro(cx.sess().source_map())
+            && !is_in_external_macro(cx.sess(), local.span)
             && !is_from_proc_macro(cx, expr)
             && !is_by_value_closure_capture(cx, local.hir_id, binding_id)
         {
