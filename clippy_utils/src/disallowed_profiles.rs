@@ -46,10 +46,18 @@ impl ProfileSelection {
 #[derive(Default)]
 pub struct ProfileResolver {
     cache: FxHashMap<HirId, Option<ProfileSelection>>,
+    /// Whether the crate has any `#[clippy::disallowed_profile(s)]` attribute, computed lazily on
+    /// first use.
+    has_profile_attrs: Option<bool>,
 }
 
 impl ProfileResolver {
     pub fn active_profiles(&mut self, cx: &LateContext<'_>, hir_id: HirId) -> Option<&ProfileSelection> {
+        // Common case: no profile attributes anywhere, so skip the HIR parent walk and the cache entirely.
+        if !self.crate_has_profile_attrs(cx) {
+            return None;
+        }
+
         // NOTE: The `contains_key`+`get` dance is intentional: using only `get` here triggers borrowck
         // errors because we need to mutate `self.cache` on cache misses.
         if self.cache.contains_key(&hir_id) {
@@ -64,6 +72,18 @@ impl ProfileResolver {
         self.cache.insert(hir_id, resolved);
 
         self.cache.get(&hir_id).and_then(|selection| selection.as_ref())
+    }
+
+    fn crate_has_profile_attrs(&mut self, cx: &LateContext<'_>) -> bool {
+        *self.has_profile_attrs.get_or_insert_with(|| {
+            cx.tcx.hir_crate_items(()).owners().any(|owner| {
+                cx.tcx
+                    .hir_attr_map(owner)
+                    .map
+                    .values()
+                    .any(|attrs| attrs.iter().any(|attr| profile_attr_name(attr).is_some()))
+            })
+        })
     }
 
     fn resolve(&self, cx: &LateContext<'_>, start: HirId) -> (Option<ProfileSelection>, SmallVec<[HirId; 8]>) {
@@ -92,19 +112,27 @@ impl ProfileResolver {
     }
 }
 
+/// Returns `disallowed_profile` or `disallowed_profiles` if `attr` is the corresponding
+/// `clippy::` attribute, and `None` for every other attribute.
+fn profile_attr_name(attr: &Attribute) -> Option<Symbol> {
+    let path = attr.path();
+    if path.len() == 2
+        && path[0] == sym::clippy
+        && (path[1] == sym::disallowed_profile || path[1] == sym::disallowed_profiles)
+    {
+        Some(path[1])
+    } else {
+        None
+    }
+}
+
 fn profiles_from_attrs(cx: &LateContext<'_>, attrs: &[Attribute]) -> Option<ProfileSelection> {
     let mut entries = SmallVec::<[ProfileEntry; 2]>::new();
 
     for attr in attrs {
-        let path = attr.path();
-        if path.len() != 2 || path[0] != sym::clippy {
+        let Some(name) = profile_attr_name(attr) else {
             continue;
-        }
-
-        let name = path[1];
-        if name != sym::disallowed_profile && name != sym::disallowed_profiles {
-            continue;
-        }
+        };
 
         let attr_label = if name == sym::disallowed_profiles {
             "`clippy::disallowed_profiles`"
