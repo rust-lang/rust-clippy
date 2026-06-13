@@ -1,5 +1,5 @@
 error: manual implementation of `bit_width`
-  --> tests/ui/manual_bit_width.rs:7:13
+  --> tests/ui/manual_bit_width.rs:9:13
    |
 LL |     let _ = u8::BITS - x.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x.bit_width()`
@@ -8,28 +8,58 @@ LL |     let _ = u8::BITS - x.leading_zeros();
    = help: to override `-D warnings` add `#[allow(clippy::manual_bit_width)]`
 
 error: manual implementation of `bit_width`
-  --> tests/ui/manual_bit_width.rs:8:13
+  --> tests/ui/manual_bit_width.rs:10:13
    |
 LL |     let _ = u16::BITS - x.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x.bit_width()`
 
 error: manual implementation of `bit_width`
-  --> tests/ui/manual_bit_width.rs:9:13
+  --> tests/ui/manual_bit_width.rs:11:13
    |
 LL |     let _ = u32::BITS - x.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x.bit_width()`
 
 error: manual implementation of `bit_width`
-  --> tests/ui/manual_bit_width.rs:10:13
+  --> tests/ui/manual_bit_width.rs:12:13
    |
 LL |     let _ = u64::BITS - x.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x.bit_width()`
 
 error: manual implementation of `bit_width`
-  --> tests/ui/manual_bit_width.rs:11:13
+  --> tests/ui/manual_bit_width.rs:13:13
    |
 LL |     let _ = usize::BITS - x.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x.bit_width()`
 
-error: aborting due to 5 previous errors
+error: manual implementation of `bit_width`
+  --> tests/ui/manual_bit_width.rs:17:13
+   |
+LL |     let _ = NonZero::<u8>::BITS - y.leading_zeros();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `y.bit_width().get()`
+
+error: manual implementation of `bit_width`
+  --> tests/ui/manual_bit_width.rs:18:13
+   |
+LL |     let _ = NonZero::<u16>::BITS - y.leading_zeros();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `y.bit_width().get()`
+
+error: manual implementation of `bit_width`
+  --> tests/ui/manual_bit_width.rs:19:13
+   |
+LL |     let _ = NonZeroU32::BITS - y.leading_zeros();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `y.bit_width().get()`
+
+error: manual implementation of `bit_width`
+  --> tests/ui/manual_bit_width.rs:20:13
+   |
+LL |     let _ = NonZero::<u64>::BITS - y.leading_zeros();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `y.bit_width().get()`
+
+error: manual implementation of `bit_width`
+  --> tests/ui/manual_bit_width.rs:21:13
+   |
+LL |     let _ = num::NonZero::<usize>::BITS - y.leading_zeros();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `y.bit_width().get()`
+
+error: aborting due to 10 previous errors
 

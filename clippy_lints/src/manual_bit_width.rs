@@ -60,11 +60,22 @@ impl LateLintPass<'_> for ManualBitWidth {
                     && let ExprKind::Path(QPath::TypeRelative(hir_ty, segment)) = left.kind
                     && segment.ident.name == sym::BITS
                     && let ty = cx.typeck_results().node_type(hir_ty.hir_id)
-                    && let Some(_) = match ty.kind() {
-                        // usize::BITS
-                        ty::Uint(ty::UintTy::Usize) => Some(cx.tcx.data_layout.pointer_size().bits()),
-                        // uint::BITS
-                        ty::Uint(uint_ty) => uint_ty.bit_width(),
+                    && let is_nonzero = match ty.kind() {
+                        // usize::BITS or uint::BITS
+                        ty::Uint(_) => false,
+                        // NonZero::<uint>::BITS
+                        ty::Adt(adt, args) => {
+                            if cx.tcx.is_diagnostic_item(sym::NonZero, adt.did())
+                                && let Some(generic_arg) = args.types().next()
+                            {
+                                match *generic_arg.kind() {
+                                    ty::Uint(_) => true,
+                                    _ => return,
+                                }
+                            } else {
+                                return;
+                            }
+                        },
                         ty::Int(_) => {
                             // There is no implementation of `bit_width` for signed integers,
                             // so don't suggest anything.
@@ -76,23 +87,30 @@ impl LateLintPass<'_> for ManualBitWidth {
                     && left.span.eq_ctxt(right.span)
                     && !is_from_proc_macro(cx, expr) =>
             {
-                emit(cx, recv, expr);
+                emit(cx, recv, expr, is_nonzero);
             },
             _ => {},
         }
     }
 }
 
-fn emit(cx: &LateContext<'_>, recv: &Expr<'_>, full_expr: &Expr<'_>) {
+fn emit(cx: &LateContext<'_>, recv: &Expr<'_>, full_expr: &Expr<'_>, is_nonzero: bool) {
     let mut app = Applicability::MachineApplicable;
     let (recv_snip, _) = snippet_with_context(cx, recv.span, full_expr.span.ctxt(), "_", &mut app);
+
+    let suggestion = if is_nonzero {
+        format!("{recv_snip}.bit_width().get()")
+    } else {
+        format!("{recv_snip}.bit_width()")
+    };
+
     span_lint_and_sugg(
         cx,
         MANUAL_BIT_WIDTH,
         full_expr.span,
         "manual implementation of `bit_width`",
         "try",
-        format!("{recv_snip}.bit_width()"),
+        suggestion,
         app,
     );
 }
