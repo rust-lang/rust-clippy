@@ -8,6 +8,14 @@ LL |         static BUF_1: RefCell<String> = RefCell::new(String::new());
    = help: to override `-D warnings` add `#[allow(clippy::missing_const_for_thread_local)]`
 
 error: initializer for `thread_local` value can be made `const`
+  --> tests/ui/missing_const_for_thread_local.rs:13:5
+   |
+LL | /     thread_local! {
+LL | |         static BUF_2: RefCell<String> = const { RefCell::new(String::new()) };
+LL | |     }
+   | |_____^
+
+error: initializer for `thread_local` value can be made `const`
   --> tests/ui/missing_const_for_thread_local.rs:18:29
    |
 LL |         static SIMPLE:i32 = 1;
@@ -18,6 +26,17 @@ error: initializer for `thread_local` value can be made `const`
    |
 LL |         static BUF_3_CAN_BE_MADE_CONST: RefCell<String> = RefCell::new(String::new());
    |                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `const { RefCell::new(String::new()) }`
+
+error: initializer for `thread_local` value can be made `const`
+  --> tests/ui/missing_const_for_thread_local.rs:23:5
+   |
+LL | /     thread_local! {
+LL | |         static BUF_3_CAN_BE_MADE_CONST: RefCell<String> = RefCell::new(String::new());
+LL | |
+LL | |         static CONST_MIXED_WITH:i32 = const { 1 };
+...  |
+LL | |     }
+   | |_____^
 
 error: initializer for `thread_local` value can be made `const`
   --> tests/ui/missing_const_for_thread_local.rs:27:59
@@ -37,5 +56,5 @@ error: initializer for `thread_local` value can be made `const`
 LL |         static PEEL_ME_MANY: i32 = { let x = 1; x * x };
    |                                    ^^^^^^^^^^^^^^^^^^^^ help: replace with: `const { { let x = 1; x * x } }`
 
-error: aborting due to 6 previous errors
+error: aborting due to 8 previous errors
 

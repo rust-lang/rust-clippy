@@ -24,7 +24,9 @@ fn single_match() {
     //~| NOTE: you might want to preserve the comments from inside the `match`
 
     let z = (1u8, 1u8);
-    if let (2..=3, 7..=9) = z { dummy() };
+    if let (2..=3, 7..=9) = z {
+        dummy();
+    };
     //~^^^^ single_match
 
     // Not linted (pattern guards used)
@@ -51,15 +53,21 @@ fn single_match_know_enum() {
     let x = Some(1u8);
     let y: Result<_, i8> = Ok(1i8);
 
-    if let Some(y) = x { dummy() };
+    if let Some(y) = x {
+        dummy();
+    };
     //~^^^^ single_match
 
-    if let Ok(y) = y { dummy() };
+    if let Ok(y) = y {
+        dummy();
+    };
     //~^^^^ single_match
 
     let c = Cow::Borrowed("");
 
-    if let Cow::Borrowed(..) = c { dummy() };
+    if let Cow::Borrowed(..) = c {
+        dummy();
+    };
     //~^^^^ single_match
 
     let z = Foo::Bar;
