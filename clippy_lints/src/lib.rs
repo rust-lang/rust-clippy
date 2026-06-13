@@ -270,7 +270,7 @@ mod needless_question_mark;
 mod needless_update;
 mod neg_cmp_op_on_partial_ord;
 mod neg_multiply;
-mod new_without_default;
+mod new_vs_default;
 mod no_effect;
 mod no_mangle_with_rust_abi;
 mod non_canonical_impls;
@@ -630,7 +630,7 @@ rustc_lint::late_lint_methods!(
         UselessFormat: format::UselessFormat = format::UselessFormat::new(format_args.clone()),
         Swap: swap::Swap = swap::Swap,
         PanickingOverflowChecks: panicking_overflow_checks::PanickingOverflowChecks = panicking_overflow_checks::PanickingOverflowChecks,
-        NewWithoutDefault: new_without_default::NewWithoutDefault = <new_without_default::NewWithoutDefault>::default(),
+        NewVsDefault: new_vs_default::NewVsDefault = <new_vs_default::NewVsDefault>::default(),
         DisallowedNames: disallowed_names::DisallowedNames = disallowed_names::DisallowedNames::new(conf),
         Functions: functions::Functions = functions::Functions::new(tcx, conf),
         Documentation: doc::Documentation = doc::Documentation::new(conf),
