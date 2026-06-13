@@ -32,6 +32,9 @@ fn main() {
     let S { a, b, .. } = s;
     //~^ rest_pattern_accessible_field
 
+    let S { c, .. } = s;
+    //~^ rest_pattern_accessible_field
+
     let S { a, b, c, .. } = s;
 
     S { a: _, b: _, .. } = S { a: 1, b: 2, c: 3 };

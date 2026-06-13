@@ -13,7 +13,19 @@ LL +     let S { a, b, c: _ } = s;
    |
 
 error: struct destructuring with rest (`..`)
-  --> tests/ui/rest_pattern_accessible_field.rs:37:5
+  --> tests/ui/rest_pattern_accessible_field.rs:35:9
+   |
+LL |     let S { c, .. } = s;
+   |         ^^^^^^^^^^^
+   |
+help: consider explicitly ignoring remaining fields with wildcard patterns (`x: _`)
+   |
+LL -     let S { c, .. } = s;
+LL +     let S { c, a: _, b: _ } = s;
+   |
+
+error: struct destructuring with rest (`..`)
+  --> tests/ui/rest_pattern_accessible_field.rs:40:5
    |
 LL |     S { a: _, b: _, .. } = S { a: 1, b: 2, c: 3 };
    |     ^^^^^^^^^^^^^^^^^^^^
@@ -25,7 +37,7 @@ LL +     S { a: _, b: _, c: _ } = S { a: 1, b: 2, c: 3 };
    |
 
 error: struct destructuring with rest (`..`)
-  --> tests/ui/rest_pattern_accessible_field.rs:44:9
+  --> tests/ui/rest_pattern_accessible_field.rs:47:9
    |
 LL |         E::B { .. } => (),
    |         ^^^^^^^^^^^
@@ -37,7 +49,7 @@ LL +         E::B { b1: _, b2: _ } => (),
    |
 
 error: struct destructuring with rest (`..`)
-  --> tests/ui/rest_pattern_accessible_field.rs:51:9
+  --> tests/ui/rest_pattern_accessible_field.rs:54:9
    |
 LL |         E::B { b1: _, .. } => (),
    |         ^^^^^^^^^^^^^^^^^^
@@ -49,7 +61,7 @@ LL +         E::B { b1: _, b2: _ } => (),
    |
 
 error: struct destructuring with rest (`..`)
-  --> tests/ui/rest_pattern_accessible_field.rs:68:9
+  --> tests/ui/rest_pattern_accessible_field.rs:71:9
    |
 LL |     let NonExhaustiveStruct { field1: _, .. } = ne;
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -60,7 +72,7 @@ LL |     let NonExhaustiveStruct { field1: _, field2: _, .. } = ne;
    |                                          ++++++++++
 
 error: struct destructuring with rest (`..`)
-  --> tests/ui/rest_pattern_accessible_field.rs:78:9
+  --> tests/ui/rest_pattern_accessible_field.rs:81:9
    |
 LL |     let Sm { .. } = Sm::default();
    |         ^^^^^^^^^
@@ -70,5 +82,5 @@ help: consider explicitly ignoring fields with wildcard patterns (`x: _`)
 LL |     let Sm { a: _, b: _, .. } = Sm::default();
    |              +++++++++++
 
-error: aborting due to 6 previous errors
+error: aborting due to 7 previous errors
 

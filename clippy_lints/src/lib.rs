@@ -863,8 +863,7 @@ rustc_lint::late_lint_methods!(
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
         WithCapacityZero: with_capacity_zero::WithCapacityZero = with_capacity_zero::WithCapacityZero,
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
-        UnnecessaryRestPattern: rest_when_destructuring_struct::UnnecessaryRestPattern = rest_when_destructuring_struct::UnnecessaryRestPattern,
-        RestPatternAccessibleField: rest_when_destructuring_struct::RestPatternAccessibleField = rest_when_destructuring_struct::RestPatternAccessibleField,
+        RestWhenDestructuringStruct: rest_when_destructuring_struct::RestWhenDestructuringStruct = rest_when_destructuring_struct::RestWhenDestructuringStruct,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
