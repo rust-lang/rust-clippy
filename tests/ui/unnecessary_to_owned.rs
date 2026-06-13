@@ -690,3 +690,35 @@ fn issue16351() {
     take(format!("ouch{dot}").to_string());
     //~^ unnecessary_to_owned
 }
+
+fn issue16693() {
+    use std::collections::HashSet;
+    use std::rc::Rc;
+    use std::sync::Arc;
+    let _ = HashSet::<Rc<String>>::new().get(&"foo".to_string());
+    let _ = HashSet::<Arc<Vec<usize>>>::new().get(&[].to_vec());
+}
+
+fn non_std_collection() {
+    use std::borrow::{Borrow, Cow};
+    use std::marker::PhantomData;
+    struct CustomSet<K>(PhantomData<K>);
+    impl<K> CustomSet<K> {
+        fn new() -> Self {
+            Self(PhantomData)
+        }
+        fn remove<Q>(&mut self, q: &Q)
+        where
+            K: Borrow<Q>,
+            Q: ?Sized,
+        {
+        }
+    }
+
+    CustomSet::<String>::new().remove(&"foo".to_string());
+    //~^ unnecessary_to_owned
+    CustomSet::<Vec<usize>>::new().remove(&[1].to_vec());
+    //~^ unnecessary_to_owned
+    CustomSet::<String>::new().remove(&"foo".to_owned());
+    //~^ unnecessary_to_owned
+}
