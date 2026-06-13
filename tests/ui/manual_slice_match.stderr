@@ -1,0 +1,113 @@
+error: `if` chain checking only the length can be rewritten with a `match` on a slice pattern
+  --> tests/ui/manual_slice_match.rs:15:5
+   |
+LL | /     if v.is_empty() {
+LL | |         println!("empty");
+LL | |     } else if v.len() == 1 {
+LL | |         println!("{}", v[0]);
+LL | |     } else {
+LL | |         println!("many");
+LL | |     }
+   | |_____^
+   |
+   = note: `-D clippy::manual-slice-match` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_slice_match)]`
+help: consider rewriting the `if` chain with a `match`
+   |
+LL ~     match v.as_slice() {
+LL +         [] => {
+LL +         println!("empty");
+LL +     }
+LL +         [_] => {
+LL +         println!("{}", v[0]);
+LL +     }
+LL +         _ => {
+LL +         println!("many");
+LL +     }
+LL +     }
+   |
+
+error: `if` chain checking only the length can be rewritten with a `match` on a slice pattern
+  --> tests/ui/manual_slice_match.rs:26:5
+   |
+LL | /     if s.len() == 0 {
+LL | |         println!("empty");
+LL | |     } else if s.len() > 1 {
+LL | |         println!("{} {}", s[0], s[1]);
+LL | |     } else {
+LL | |         println!("one");
+LL | |     }
+   | |_____^
+   |
+help: consider rewriting the `if` chain with a `match`
+   |
+LL ~     match s {
+LL +         [] => {
+LL +         println!("empty");
+LL +     }
+LL +         [_, _, ..] => {
+LL +         println!("{} {}", s[0], s[1]);
+LL +     }
+LL +         _ => {
+LL +         println!("one");
+LL +     }
+LL +     }
+   |
+
+error: `if` chain checking only the length can be rewritten with a `match` on a slice pattern
+  --> tests/ui/manual_slice_match.rs:155:5
+   |
+LL | /     if w.items.is_empty() {
+LL | |         println!("empty");
+LL | |     } else if w.items.len() == 1 {
+LL | |         println!("one");
+LL | |     } else {
+LL | |         println!("many");
+LL | |     }
+   | |_____^
+   |
+help: consider rewriting the `if` chain with a `match`
+   |
+LL ~     match w.items.as_slice() {
+LL +         [] => {
+LL +         println!("empty");
+LL +     }
+LL +         [_] => {
+LL +         println!("one");
+LL +     }
+LL +         _ => {
+LL +         println!("many");
+LL +     }
+LL +     }
+   |
+
+error: `if` chain checking only the length can be rewritten with a `match` on a slice pattern
+  --> tests/ui/manual_slice_match.rs:209:5
+   |
+LL | /     if v.is_empty() {
+LL | |         "first
+LL | | second"
+LL | |     } else if v.len() == 1 {
+...  |
+LL | |         "many"
+LL | |     }
+   | |_____^
+   |
+help: consider rewriting the `if` chain with a `match`
+   |
+LL ~     match v {
+LL +         [] => {
+LL +         "first
+LL + second"
+LL +     }
+LL +         [_] => {
+LL +         "one"
+LL +     }
+LL +         _ => {
+LL +         "many"
+LL +     }
+LL +     }
+   |
+
+error: aborting due to 4 previous errors
+
