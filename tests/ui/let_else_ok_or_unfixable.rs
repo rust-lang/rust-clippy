@@ -16,9 +16,9 @@ fn coerced_array_to_slice(opt: Option<i32>) -> Result<i32, &'static [u8]> {
 }
 
 // The error value *moves* a non-`Copy` local that the `Some` path still uses. `ok_or`/`ok_or_else`
-// move the error value unconditionally, so `opt.ok_or(msg)?` would leave the later `msg` referencing
-// a moved value and fail to compile. The lint still fires, but the suggestion is downgraded to
-// non-machine-applicable so `--fix` leaves it untouched.
+// move the error value unconditionally, so `opt.ok_or(msg)?` would leave the later `msg`
+// referencing a moved value and fail to compile. The lint still fires, but the suggestion is
+// downgraded to non-machine-applicable so `--fix` leaves it untouched.
 fn moves_value_used_later(opt: Option<i32>, msg: String) -> Result<i32, String> {
     //~v let_else_ok_or
     let Some(value) = opt else {
