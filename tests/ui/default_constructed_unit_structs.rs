@@ -1,3 +1,4 @@
+#![allow(clippy::default_mismatches_new)]
 #![warn(clippy::default_constructed_unit_structs)]
 use std::marker::PhantomData;
 

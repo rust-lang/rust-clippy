@@ -1,12 +1,12 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_ty_alias;
 use clippy_utils::source::SpanRangeExt as _;
+use clippy_utils::ty::is_unit_struct;
 use hir::ExprKind;
 use hir::def::Res;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty;
 use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 
@@ -50,14 +50,6 @@ declare_lint_pass!(DefaultConstructedUnitStructs => [
     DEFAULT_CONSTRUCTED_UNIT_STRUCTS,
 ]);
 
-fn is_alias(ty: hir::Ty<'_>) -> bool {
-    if let hir::TyKind::Path(ref qpath) = ty.kind {
-        is_ty_alias(qpath)
-    } else {
-        false
-    }
-}
-
 impl LateLintPass<'_> for DefaultConstructedUnitStructs {
     fn check_expr<'tcx>(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'tcx>) {
         if let ExprKind::Call(fn_expr, &[]) = expr.kind
@@ -65,15 +57,13 @@ impl LateLintPass<'_> for DefaultConstructedUnitStructs {
             && let ExprKind::Path(ref qpath @ hir::QPath::TypeRelative(base, _)) = fn_expr.kind
             // make sure this isn't a type alias:
             // `<Foo as Bar>::Assoc` cannot be used as a constructor
-            && !is_alias(*base)
+            && !matches!(base.kind, hir::TyKind::Path(ref qpath) if is_ty_alias(qpath))
             && let Res::Def(_, def_id) = cx.qpath_res(qpath, fn_expr.hir_id)
             && cx.tcx.is_diagnostic_item(sym::default_fn, def_id)
             // make sure we have a struct with no fields (unit struct)
-            && let ty::Adt(def, ..) = cx.typeck_results().expr_ty(expr).kind()
-            && def.is_struct()
-            && let var @ ty::VariantDef { ctor: Some((hir::def::CtorKind::Const, _)), .. } = def.non_enum_variant()
-            && !var.is_field_list_non_exhaustive()
-            && !expr.span.from_expansion() && !qpath.span().from_expansion()
+            && is_unit_struct(cx.typeck_results().expr_ty(expr))
+            && !expr.span.from_expansion()
+            && !qpath.span().from_expansion()
             // do not suggest replacing an expression by a type name with placeholders
             && !base.is_suggestable_infer_ty()
         {
