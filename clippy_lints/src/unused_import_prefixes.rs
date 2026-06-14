@@ -19,7 +19,7 @@ declare_clippy_lint! {
     /// ### Example
     /// ```no_run
     /// // src/foo.rs
-    /// pub mod bar {}
+    /// pub mod bar {
     ///     pub struct Baz;
     /// }
     ///
@@ -28,7 +28,7 @@ declare_clippy_lint! {
     /// Use instead:
     /// ```no_run
     /// // src/foo.rs
-    /// pub mod bar {}
+    /// pub mod bar {
     ///     pub struct Baz;
     /// }
     ///
