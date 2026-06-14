@@ -64,17 +64,11 @@ impl LateLintPass<'_> for ManualBitWidth {
                         // usize::BITS or uint::BITS
                         ty::Uint(_) => false,
                         // NonZero::<uint>::BITS
-                        ty::Adt(adt, args) => {
+                        ty::Adt(adt, args)
                             if cx.tcx.is_diagnostic_item(sym::NonZero, adt.did())
-                                && let Some(generic_arg) = args.types().next()
-                            {
-                                match *generic_arg.kind() {
-                                    ty::Uint(_) => true,
-                                    _ => return,
-                                }
-                            } else {
-                                return;
-                            }
+                                && let ty::Uint(_) = args.type_at(0).kind() =>
+                        {
+                            true
                         },
                         ty::Int(_) => {
                             // There is no implementation of `bit_width` for signed integers,
