@@ -18,21 +18,25 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```no_run
-    /// // src/foo.rs
     /// pub mod bar {
-    ///     pub struct Baz;
-    /// }
+    ///     mod baz {
+    ///         pub struct Baz;
+    ///     }
     ///
-    /// use crate::foo::bar::Baz;
+    ///     use crate::bar::baz::Baz;
+    /// }
+    /// # fn main() {}
     /// ```
     /// Use instead:
     /// ```no_run
-    /// // src/foo.rs
     /// pub mod bar {
-    ///     pub struct Baz;
-    /// }
+    ///     mod baz {
+    ///         pub struct Baz;
+    ///     }
     ///
-    /// use self::bar::Baz;
+    ///     use self::baz::Baz;
+    /// }
+    /// # fn main() {}
     /// ```
     #[clippy::version = "1.98.0"]
     pub UNUSED_IMPORT_PREFIXES,
