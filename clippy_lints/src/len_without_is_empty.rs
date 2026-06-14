@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
 use clippy_utils::res::MaybeDef;
 use clippy_utils::{fulfill_or_allowed, get_parent_as_impl, sym};
+use rustc_data_structures::unord::UnordItems;
 use rustc_hir::def::Res;
 use rustc_hir::def_id::{DefId, DefIdSet};
 use rustc_hir::{
@@ -44,7 +45,11 @@ declare_lint_pass!(LenWithoutIsEmpty => [LEN_WITHOUT_IS_EMPTY]);
 
 impl<'tcx> LateLintPass<'tcx> for LenWithoutIsEmpty {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'_>) {
-        if let ItemKind::Trait(_, _, _, _, ident, _, _, trait_items) = item.kind
+        if let ItemKind::Trait {
+            ident,
+            items: trait_items,
+            ..
+        } = item.kind
             && !item.span.from_expansion()
         {
             check_trait_items(cx, item, ident, trait_items);
@@ -54,7 +59,7 @@ impl<'tcx> LateLintPass<'tcx> for LenWithoutIsEmpty {
     fn check_impl_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx ImplItem<'_>) {
         if item.ident.name == sym::len
             && let ImplItemKind::Fn(sig, _) = &item.kind
-            && sig.decl.implicit_self.has_implicit_self()
+            && sig.decl.implicit_self().has_implicit_self()
             && sig.decl.inputs.len() == 1
             && cx.effective_visibilities.is_exported(item.owner_id.def_id)
             && matches!(sig.decl.output, FnRetTy::Return(_))
@@ -64,7 +69,14 @@ impl<'tcx> LateLintPass<'tcx> for LenWithoutIsEmpty {
             && let Some(ty_id) = cx.qpath_res(ty_path, imp.self_ty.hir_id).opt_def_id()
             && let Some(local_id) = ty_id.as_local()
             && let ty_hir_id = cx.tcx.local_def_id_to_hir_id(local_id)
-            && let Some(output) = LenOutput::new(cx, cx.tcx.fn_sig(item.owner_id).instantiate_identity().skip_binder())
+            && let Some(output) = LenOutput::new(
+                cx,
+                cx.tcx
+                    .fn_sig(item.owner_id)
+                    .instantiate_identity()
+                    .skip_norm_wip()
+                    .skip_binder(),
+            )
         {
             let (name, kind) = match cx.tcx.hir_node(ty_hir_id) {
                 Node::ForeignItem(x) => (x.ident.name, "extern type"),
@@ -79,7 +91,7 @@ impl<'tcx> LateLintPass<'tcx> for LenWithoutIsEmpty {
             check_for_is_empty(
                 cx,
                 sig.span,
-                sig.decl.implicit_self,
+                sig.decl.implicit_self(),
                 output,
                 ty_id,
                 name,
@@ -119,7 +131,7 @@ fn check_trait_items(cx: &LateContext<'_>, visited_trait: &Item<'_>, ident: Iden
         fill_trait_set(visited_trait.owner_id.to_def_id(), &mut current_and_super_traits, cx);
         let is_empty_method_found = current_and_super_traits
             .items()
-            .flat_map(|&i| cx.tcx.associated_items(i).filter_by_name_unhygienic(sym::is_empty))
+            .flat_map(|&i| UnordItems::new(cx.tcx.associated_items(i).filter_by_name_unhygienic(sym::is_empty)))
             .any(|i| i.is_method() && cx.tcx.fn_sig(i.def_id).skip_binder().inputs().skip_binder().len() == 1);
 
         if !is_empty_method_found {
@@ -313,7 +325,11 @@ fn check_for_is_empty(
             if !(is_empty.is_method()
                 && check_is_empty_sig(
                     cx,
-                    cx.tcx.fn_sig(is_empty.def_id).instantiate_identity().skip_binder(),
+                    cx.tcx
+                        .fn_sig(is_empty.def_id)
+                        .instantiate_identity()
+                        .skip_norm_wip()
+                        .skip_binder(),
                     len_self_kind,
                     len_output,
                 )) =>

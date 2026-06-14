@@ -14,7 +14,7 @@ use rustc_infer::traits::Obligation;
 use rustc_lint::LateContext;
 use rustc_middle::mir::{
     Body, CastKind, NonDivergingIntrinsic, Operand, Place, ProjectionElem, Rvalue, Statement, StatementKind,
-    Terminator, TerminatorKind,
+    Terminator, TerminatorKind, UnOp,
 };
 use rustc_middle::traits::{BuiltinImplSource, ImplSource, ObligationCause};
 use rustc_middle::ty::adjustment::PointerCoercion;
@@ -50,7 +50,12 @@ pub fn is_min_const_fn<'tcx>(cx: &LateContext<'tcx>, body: &Body<'tcx>, msrv: Ms
     // impl trait is gone in MIR, so check the return type manually
     check_ty(
         cx,
-        cx.tcx.fn_sig(def_id).instantiate_identity().output().skip_binder(),
+        cx.tcx
+            .fn_sig(def_id)
+            .instantiate_identity()
+            .skip_norm_wip()
+            .output()
+            .skip_binder(),
         body.local_decls.iter().next().unwrap().source_info.span,
         msrv,
     )?;
@@ -129,13 +134,15 @@ fn check_rvalue<'tcx>(
 ) -> McfResult {
     match rvalue {
         Rvalue::ThreadLocalRef(_) => Err((span, "cannot access thread local storage in const fn".into())),
-        Rvalue::Discriminant(place) | Rvalue::Ref(_, _, place) | Rvalue::RawPtr(_, place) => {
-            check_place(cx, *place, span, body, msrv)
-        },
-        Rvalue::CopyForDeref(place) => check_place(cx, *place, span, body, msrv),
+        Rvalue::Discriminant(place)
+        | Rvalue::Ref(_, _, place)
+        | Rvalue::Reborrow(_, _, place)
+        | Rvalue::RawPtr(_, place)
+        | Rvalue::CopyForDeref(place) => check_place(cx, *place, span, body, msrv),
         Rvalue::Repeat(operand, _)
-        | Rvalue::Use(operand)
+        | Rvalue::Use(operand, _)
         | Rvalue::WrapUnsafeBinder(operand, _)
+        | Rvalue::UnaryOp(UnOp::PtrMetadata, operand)
         | Rvalue::Cast(
             CastKind::PointerWithExposedProvenance
             | CastKind::IntToInt
@@ -199,10 +206,13 @@ fn check_rvalue<'tcx>(
         },
         Rvalue::UnaryOp(_, operand) => {
             let ty = operand.ty(body, cx.tcx);
-            if ty.is_integral() || ty.is_bool() {
+            if ty.is_integral() | ty.is_bool() {
                 check_operand(cx, operand, span, body, msrv)
             } else {
-                Err((span, "only int and `bool` operations are stable in const fn".into()))
+                Err((
+                    span,
+                    "only int, `bool`, and pointer metadata operations are stable in const fn".into(),
+                ))
             }
         },
         Rvalue::Aggregate(_, operands) => {
@@ -244,7 +254,6 @@ fn check_statement<'tcx>(
         // These are all NOPs
         StatementKind::StorageLive(_)
         | StatementKind::StorageDead(_)
-        | StatementKind::Retag { .. }
         | StatementKind::AscribeUserType(..)
         | StatementKind::PlaceMention(..)
         | StatementKind::Coverage(..)

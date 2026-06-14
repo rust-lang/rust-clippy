@@ -88,7 +88,7 @@ impl<'tcx> LateLintPass<'tcx> for NonSendFieldInSendTy {
             && send_trait == trait_id
             && of_trait.polarity == ImplPolarity::Positive
             && let ty_trait_ref = cx.tcx.impl_trait_ref(item.owner_id)
-            && let self_ty = ty_trait_ref.instantiate_identity().self_ty()
+            && let self_ty = ty_trait_ref.instantiate_identity().skip_norm_wip().self_ty()
             && let ty::Adt(adt_def, impl_trait_args) = self_ty.kind()
         {
             let mut non_send_fields = Vec::new();
@@ -100,7 +100,7 @@ impl<'tcx> LateLintPass<'tcx> for NonSendFieldInSendTy {
                         .as_local()
                         .map(|local_def_id| cx.tcx.local_def_id_to_hir_id(local_def_id))
                         && !is_lint_allowed(cx, NON_SEND_FIELDS_IN_SEND_TY, field_hir_id)
-                        && let field_ty = field.ty(cx.tcx, impl_trait_args)
+                        && let field_ty = field.ty(cx.tcx, impl_trait_args).skip_norm_wip()
                         && !ty_allowed_in_send(cx, field_ty, send_trait)
                         && let Node::Field(field_def) = cx.tcx.hir_node(field_hir_id)
                     {

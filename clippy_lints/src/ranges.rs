@@ -3,10 +3,12 @@ use clippy_utils::consts::{ConstEvalCtxt, Constant};
 use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeResPath;
-use clippy_utils::source::{SpanRangeExt, snippet, snippet_with_applicability};
+use clippy_utils::source::{SpanExt, snippet, snippet_with_applicability};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::implements_trait;
-use clippy_utils::{fn_def_id, get_expr_use_site, get_parent_expr, higher, is_in_const_context, is_integer_const, sym};
+use clippy_utils::{
+    fn_def_id, get_expr_use_site, get_parent_expr, higher, is_in_const_context, is_integer_literal, sym,
+};
 use rustc_ast::Mutability;
 use rustc_ast::ast::RangeLimits;
 use rustc_errors::Applicability;
@@ -20,7 +22,7 @@ use std::cmp::Ordering;
 declare_clippy_lint! {
     /// ### What it does
     /// Checks for expressions like `x >= 3 && x < 8` that could
-    /// be more readably expressed as `(3..8).contains(x)`.
+    /// be more readably expressed as `(3..8).contains(&x)`.
     ///
     /// ### Why is this bad?
     /// `contains` expresses the intent better and has less
@@ -38,6 +40,12 @@ declare_clippy_lint! {
     ///# let x = 6;
     /// assert!((3..8).contains(&x));
     /// ```
+    ///
+    /// ### Limitations
+    /// Out-of-range checks on floating-point types, such as `q < 0.0 || q > 1.0`,
+    /// are not linted. For `NaN`, that expression is `false`, but
+    /// `!(0.0..=1.0).contains(&q)` is `true`, so the suggested rewrite would
+    /// change control flow.
     #[clippy::version = "1.49.0"]
     pub MANUAL_RANGE_CONTAINS,
     style,
@@ -250,6 +258,11 @@ fn check_possible_range_contains(
                 applicability,
             );
         } else if !combine_and && ord == Some(l.ord) {
+            // For floating-point types, `q < lo || q > hi` evaluates to `false` for NaN,
+            // but `!(lo..=hi).contains(&q)` evaluates to `true` for NaN, so not linting.
+            if matches!(cx.typeck_results().expr_ty(l.expr).kind(), ty::Float(_)) {
+                return;
+            }
             // `!_.contains(_)`
             // order lower bound and upper bound
             let (l_span, u_span, l_inc, u_inc) = if l.ord == Ordering::Less {
@@ -287,7 +300,7 @@ fn check_possible_range_contains(
     if let ExprKind::Binary(ref lhs_op, _left, new_lhs) = left.kind
         && op == lhs_op.node
         && let new_span = Span::new(new_lhs.span.lo(), right.span.hi(), expr.span.ctxt(), expr.span.parent())
-        && new_span.check_source_text(cx, |src| {
+        && new_span.check_text(cx, |src| {
             // Do not continue if we have mismatched number of parens, otherwise the suggestion is wrong
             src.matches('(').count() == src.matches(')').count()
         })
@@ -402,7 +415,7 @@ fn can_switch_ranges<'tcx>(
         };
         let inputs = cx
             .tcx
-            .liberate_late_bound_regions(id, cx.tcx.fn_sig(id).instantiate_identity())
+            .liberate_late_bound_regions(id, cx.tcx.fn_sig(id).instantiate_identity().skip_norm_wip())
             .inputs();
         let expr_ty = inputs[input_idx];
         // Check that the `expr` type is present only once, otherwise modifying just one of them might be
@@ -448,6 +461,7 @@ fn can_switch_ranges<'tcx>(
             .tcx
             .type_of(switched_range_def_id)
             .instantiate(cx.tcx, &[inner_ty.into()])
+            .skip_norm_wip()
         // Check that the switched range type can be used for indexing the original expression
         // through the `Index` or `IndexMut` trait.
         && let ty::Ref(_, outer_ty, mutability) = cx.typeck_results().expr_ty_adjusted(outer_expr).kind()
@@ -498,7 +512,7 @@ fn check_range_switch<'tcx>(
     cx: &LateContext<'tcx>,
     expr: &'tcx Expr<'_>,
     kind: RangeLimits,
-    predicate: impl for<'hir> FnOnce(&LateContext<'_>, &Expr<'hir>) -> Option<&'hir Expr<'hir>>,
+    predicate: impl for<'hir> FnOnce(&Expr<'hir>) -> Option<&'hir Expr<'hir>>,
     lint: &'static Lint,
     msg: &'static str,
     operator: &str,
@@ -512,7 +526,7 @@ fn check_range_switch<'tcx>(
         } = range
         && span.can_be_used_for_suggestions()
         && limits == kind
-        && let Some(y) = predicate(cx, end)
+        && let Some(y) = predicate(end)
         && can_switch_ranges(cx, span.ctxt(), expr, kind, cx.typeck_results().expr_ty(y))
     {
         span_lint_and_then(cx, lint, span, msg, |diag| {
@@ -620,7 +634,7 @@ fn check_reversed_empty_range(cx: &LateContext<'_>, expr: &Expr<'_>) {
     }
 }
 
-fn y_plus_one<'tcx>(cx: &LateContext<'_>, expr: &Expr<'tcx>) -> Option<&'tcx Expr<'tcx>> {
+fn y_plus_one<'tcx>(expr: &Expr<'tcx>) -> Option<&'tcx Expr<'tcx>> {
     match expr.kind {
         ExprKind::Binary(
             Spanned {
@@ -629,9 +643,9 @@ fn y_plus_one<'tcx>(cx: &LateContext<'_>, expr: &Expr<'tcx>) -> Option<&'tcx Exp
             lhs,
             rhs,
         ) => {
-            if is_integer_const(cx, lhs, 1) {
+            if is_integer_literal(lhs, 1) {
                 Some(rhs)
-            } else if is_integer_const(cx, rhs, 1) {
+            } else if is_integer_literal(rhs, 1) {
                 Some(lhs)
             } else {
                 None
@@ -641,7 +655,7 @@ fn y_plus_one<'tcx>(cx: &LateContext<'_>, expr: &Expr<'tcx>) -> Option<&'tcx Exp
     }
 }
 
-fn y_minus_one<'tcx>(cx: &LateContext<'_>, expr: &Expr<'tcx>) -> Option<&'tcx Expr<'tcx>> {
+fn y_minus_one<'tcx>(expr: &Expr<'tcx>) -> Option<&'tcx Expr<'tcx>> {
     match expr.kind {
         ExprKind::Binary(
             Spanned {
@@ -649,7 +663,7 @@ fn y_minus_one<'tcx>(cx: &LateContext<'_>, expr: &Expr<'tcx>) -> Option<&'tcx Ex
             },
             lhs,
             rhs,
-        ) if is_integer_const(cx, rhs, 1) => Some(lhs),
+        ) if is_integer_literal(rhs, 1) => Some(lhs),
         _ => None,
     }
 }

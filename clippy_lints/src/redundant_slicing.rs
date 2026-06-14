@@ -8,7 +8,7 @@ use rustc_errors::Applicability;
 use rustc_hir::{BorrowKind, Expr, ExprKind, LangItem, Mutability};
 use rustc_lint::{LateContext, LateLintPass, Lint};
 use rustc_middle::ty::adjustment::{Adjust, AutoBorrow, AutoBorrowMutability};
-use rustc_middle::ty::{GenericArg, Ty};
+use rustc_middle::ty::{GenericArg, Ty, Unnormalized};
 use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
@@ -142,7 +142,11 @@ impl<'tcx> LateLintPass<'tcx> for RedundantSlicing {
             } else if let Some(target_id) = cx.tcx.lang_items().deref_target()
                 && let Ok(deref_ty) = cx.tcx.try_normalize_erasing_regions(
                     cx.typing_env(),
-                    Ty::new_projection_from_args(cx.tcx, target_id, cx.tcx.mk_args(&[GenericArg::from(indexed_ty)])),
+                    Unnormalized::new_wip(Ty::new_projection_from_args(
+                        cx.tcx,
+                        target_id,
+                        cx.tcx.mk_args(&[GenericArg::from(indexed_ty)]),
+                    )),
                 )
                 && deref_ty == expr_ty
             {

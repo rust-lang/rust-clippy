@@ -46,6 +46,7 @@ mod check_proc_macro;
 pub mod comparisons;
 pub mod consts;
 pub mod diagnostics;
+pub mod disallowed_profiles;
 pub mod eager_or_lazy;
 pub mod higher;
 mod hir_utils;
@@ -104,7 +105,6 @@ use rustc_lexer::{FrontmatterAllowed, TokenKind, tokenize};
 use rustc_lint::{LateContext, Level, Lint, LintContext};
 use rustc_middle::hir::nested_filter;
 use rustc_middle::hir::place::PlaceBase;
-use rustc_middle::lint::LevelAndSource;
 use rustc_middle::mir::{AggregateKind, Operand, RETURN_PLACE, Rvalue, StatementKind, TerminatorKind};
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, DerefAdjustKind, PointerCoercion};
 use rustc_middle::ty::layout::IntegerExt;
@@ -116,14 +116,15 @@ use rustc_span::hygiene::{ExpnKind, MacroKind};
 use rustc_span::source_map::SourceMap;
 use rustc_span::symbol::{Ident, Symbol, kw};
 use rustc_span::{InnerSpan, Span, SyntaxContext};
-use source::{SpanRangeExt, walk_span_to_context};
+use source::{SpanExt, walk_span_to_context};
 use visitors::{Visitable, for_each_unconsumed_temporary};
 
 use crate::ast_utils::unordered_over;
-use crate::consts::{ConstEvalCtxt, Constant};
+use crate::consts::ConstEvalCtxt;
 use crate::higher::Range;
 use crate::msrvs::Msrv;
 use crate::res::{MaybeDef, MaybeQPath, MaybeResPath};
+use crate::source::HasSourceMap;
 use crate::ty::{adt_and_variant_of_res, can_partially_move_ty, expr_sig, is_copy, is_recursively_primitive_type};
 use crate::visitors::for_each_expr_without_closures;
 
@@ -243,7 +244,10 @@ pub fn is_inside_always_const_context(tcx: TyCtxt<'_>, hir_id: HirId) -> bool {
     };
     match ctx {
         ConstFn => false,
-        Static(_) | Const { inline: _ } => true,
+        Static(_)
+        | Const {
+            allow_const_fn_promotion: _,
+        } => true,
     }
 }
 
@@ -469,19 +473,23 @@ pub fn trait_ref_of_method<'tcx>(cx: &LateContext<'tcx>, owner: OwnerId) -> Opti
 /// this method will return a tuple, composed of a `Vec`
 /// containing the `Expr`s for `v[0], v[0].a, v[0].a.b, v[0].a.b[x]`
 /// and an `Expr` for root of them, `v`
-fn projection_stack<'a, 'hir>(mut e: &'a Expr<'hir>) -> (Vec<&'a Expr<'hir>>, &'a Expr<'hir>) {
+fn projection_stack<'a, 'hir>(
+    mut e: &'a Expr<'hir>,
+    ctxt: SyntaxContext,
+) -> Option<(Vec<&'a Expr<'hir>>, &'a Expr<'hir>)> {
     let mut result = vec![];
     let root = loop {
         match e.kind {
-            ExprKind::Index(ep, _, _) | ExprKind::Field(ep, _) => {
+            ExprKind::Index(ep, _, _) | ExprKind::Field(ep, _) if e.span.ctxt() == ctxt => {
                 result.push(e);
                 e = ep;
             },
+            ExprKind::Index(..) | ExprKind::Field(..) => return None,
             _ => break e,
         }
     };
     result.reverse();
-    (result, root)
+    Some((result, root))
 }
 
 /// Gets the mutability of the custom deref adjustment, if any.
@@ -499,10 +507,14 @@ pub fn expr_custom_deref_adjustment(cx: &LateContext<'_>, e: &Expr<'_>) -> Optio
 
 /// Checks if two expressions can be mutably borrowed simultaneously
 /// and they aren't dependent on borrowing same thing twice
-pub fn can_mut_borrow_both(cx: &LateContext<'_>, e1: &Expr<'_>, e2: &Expr<'_>) -> bool {
-    let (s1, r1) = projection_stack(e1);
-    let (s2, r2) = projection_stack(e2);
-    if !eq_expr_value(cx, r1, r2) {
+pub fn can_mut_borrow_both(cx: &LateContext<'_>, ctxt: SyntaxContext, e1: &Expr<'_>, e2: &Expr<'_>) -> bool {
+    let Some((s1, r1)) = projection_stack(e1, ctxt) else {
+        return false;
+    };
+    let Some((s2, r2)) = projection_stack(e2, ctxt) else {
+        return false;
+    };
+    if !eq_expr_value(cx, ctxt, r1, r2) {
         return true;
     }
     if expr_custom_deref_adjustment(cx, r1).is_some() || expr_custom_deref_adjustment(cx, r2).is_some() {
@@ -518,11 +530,6 @@ pub fn can_mut_borrow_both(cx: &LateContext<'_>, e1: &Expr<'_>, e2: &Expr<'_>) -
             (ExprKind::Field(_, i1), ExprKind::Field(_, i2)) => {
                 if i1 != i2 {
                     return true;
-                }
-            },
-            (ExprKind::Index(_, i1, _), ExprKind::Index(_, i2, _)) => {
-                if !eq_expr_value(cx, i1, i2) {
-                    return false;
                 }
             },
             _ => return false,
@@ -548,7 +555,12 @@ fn is_default_equivalent_ctor(cx: &LateContext<'_>, def_id: DefId, path: &QPath<
     if let QPath::TypeRelative(_, method) = path
         && method.ident.name == sym::new
         && let Some(impl_did) = cx.tcx.impl_of_assoc(def_id)
-        && let Some(adt) = cx.tcx.type_of(impl_did).instantiate_identity().ty_adt_def()
+        && let Some(adt) = cx
+            .tcx
+            .type_of(impl_did)
+            .instantiate_identity()
+            .skip_norm_wip()
+            .ty_adt_def()
     {
         return Some(adt.did()) == cx.tcx.lang_items().string()
             || (cx.tcx.get_diagnostic_name(adt.did())).is_some_and(|adt_name| std_types_symbols.contains(&adt_name));
@@ -1023,7 +1035,7 @@ pub fn method_calls<'tcx>(expr: &'tcx Expr<'tcx>, max_depth: usize) -> (Vec<Symb
 /// Matches an `Expr` against a chain of methods, and return the matched `Expr`s.
 ///
 /// For example, if `expr` represents the `.baz()` in `foo.bar().baz()`,
-/// `method_chain_args(expr, &["bar", "baz"])` will return a `Vec`
+/// `method_chain_args(expr, &[sym::bar, sym::baz])` will return a `Vec`
 /// containing the `Expr`s for
 /// `.bar()` and `.baz()`
 pub fn method_chain_args<'a>(expr: &'a Expr<'_>, methods: &[Symbol]) -> Option<Vec<(&'a Expr<'a>, &'a [Expr<'a>])>> {
@@ -1373,24 +1385,8 @@ pub fn is_range_full(cx: &LateContext<'_>, expr: &Expr<'_>, container_path: Opti
     false
 }
 
-/// Checks whether the given expression is a constant integer of the given value.
-/// unlike `is_integer_literal`, this version does const folding
-pub fn is_integer_const(cx: &LateContext<'_>, e: &Expr<'_>, value: u128) -> bool {
-    if is_integer_literal(e, value) {
-        return true;
-    }
-    let enclosing_body = cx.tcx.hir_enclosing_body_owner(e.hir_id);
-    if let Some(Constant::Int(v)) =
-        ConstEvalCtxt::with_env(cx.tcx, cx.typing_env(), cx.tcx.typeck(enclosing_body)).eval(e)
-    {
-        return value == v;
-    }
-    false
-}
-
 /// Checks whether the given expression is a constant literal of the given value.
 pub fn is_integer_literal(expr: &Expr<'_>, value: u128) -> bool {
-    // FIXME: use constant folding
     if let ExprKind::Lit(spanned) = expr.kind
         && let LitKind::Int(v, _) = spanned.node
     {
@@ -1483,13 +1479,18 @@ pub fn is_direct_expn_of(span: Span, name: Symbol) -> Option<Span> {
 
 /// Convenience function to get the return type of a function.
 pub fn return_ty<'tcx>(cx: &LateContext<'tcx>, fn_def_id: OwnerId) -> Ty<'tcx> {
-    let ret_ty = cx.tcx.fn_sig(fn_def_id).instantiate_identity().output();
+    let ret_ty = cx.tcx.fn_sig(fn_def_id).instantiate_identity().skip_norm_wip().output();
     cx.tcx.instantiate_bound_regions_with_erased(ret_ty)
 }
 
 /// Convenience function to get the nth argument type of a function.
 pub fn nth_arg<'tcx>(cx: &LateContext<'tcx>, fn_def_id: OwnerId, nth: usize) -> Ty<'tcx> {
-    let arg = cx.tcx.fn_sig(fn_def_id).instantiate_identity().input(nth);
+    let arg = cx
+        .tcx
+        .fn_sig(fn_def_id)
+        .instantiate_identity()
+        .skip_norm_wip()
+        .input(nth);
     cx.tcx.instantiate_bound_regions_with_erased(arg)
 }
 
@@ -1650,12 +1651,12 @@ pub fn fulfill_or_allowed(cx: &LateContext<'_>, lint: &'static Lint, ids: impl I
     let mut suppress_lint = false;
 
     for id in ids {
-        let LevelAndSource { level, lint_id, .. } = cx.tcx.lint_level_at_node(lint, id);
-        if let Some(expectation) = lint_id {
+        let level_spec = cx.tcx.lint_level_spec_at_node(lint, id);
+        if let Some(expectation) = level_spec.lint_id() {
             cx.fulfill_expectation(expectation);
         }
 
-        match level {
+        match level_spec.level() {
             Level::Allow | Level::Expect => suppress_lint = true,
             Level::Warn | Level::ForceWarn | Level::Deny | Level::Forbid => {},
         }
@@ -1672,7 +1673,7 @@ pub fn fulfill_or_allowed(cx: &LateContext<'_>, lint: &'static Lint, ids: impl I
 /// make sure to use `span_lint_hir` functions to emit the lint. This ensures that
 /// expectations at the checked nodes will be fulfilled.
 pub fn is_lint_allowed(cx: &LateContext<'_>, lint: &'static Lint, id: HirId) -> bool {
-    cx.tcx.lint_level_at_node(lint, id).level == Level::Allow
+    cx.tcx.lint_level_spec_at_node(lint, id).is_allow()
 }
 
 pub fn strip_pat_refs<'hir>(mut pat: &'hir Pat<'hir>) -> &'hir Pat<'hir> {
@@ -1734,12 +1735,7 @@ pub fn any_parent_has_attr(tcx: TyCtxt<'_>, node: HirId, symbol: Symbol) -> bool
 pub fn in_automatically_derived(tcx: TyCtxt<'_>, id: HirId) -> bool {
     tcx.hir_parent_owner_iter(id)
         .filter(|(_, node)| matches!(node, OwnerNode::Item(item) if matches!(item.kind, ItemKind::Impl(_))))
-        .any(|(id, _)| {
-            find_attr!(
-                tcx.hir_attrs(tcx.local_def_id_to_hir_id(id.def_id)),
-                AutomaticallyDerived(..)
-            )
-        })
+        .any(|(id, _)| find_attr!(tcx, id.def_id, AutomaticallyDerived))
 }
 
 /// Checks if the given `DefId` matches the `libc` item.
@@ -2101,11 +2097,11 @@ pub fn std_or_core(cx: &LateContext<'_>) -> Option<&'static str> {
 }
 
 pub fn is_no_std_crate(cx: &LateContext<'_>) -> bool {
-    find_attr!(cx.tcx, crate, NoStd(..))
+    find_attr!(cx.tcx, crate, NoStd)
 }
 
 pub fn is_no_core_crate(cx: &LateContext<'_>) -> bool {
-    find_attr!(cx.tcx, crate, NoCore(..))
+    find_attr!(cx.tcx, crate, NoCore)
 }
 
 /// Check if parent of a hir node is a trait implementation block.
@@ -2634,7 +2630,7 @@ impl<'tcx> ExprUseNode<'tcx> {
             Self::LetStmt(LetStmt { ty: Some(ty), .. }) => Some(DefinedTy::Hir(ty)),
             Self::ConstStatic(id) => Some(DefinedTy::Mir {
                 def_site_def_id: Some(id.def_id.to_def_id()),
-                ty: Binder::dummy(cx.tcx.type_of(id).instantiate_identity()),
+                ty: Binder::dummy(cx.tcx.type_of(id).instantiate_identity().skip_norm_wip()),
             }),
             Self::Return(id) => {
                 if let Node::Expr(Expr {
@@ -2647,7 +2643,7 @@ impl<'tcx> ExprUseNode<'tcx> {
                         FnRetTy::Return(ty) => Some(DefinedTy::Hir(ty)),
                     }
                 } else {
-                    let ty = cx.tcx.fn_sig(id).instantiate_identity().output();
+                    let ty = cx.tcx.fn_sig(id).instantiate_identity().skip_norm_wip().output();
                     Some(DefinedTy::Mir {
                         def_site_def_id: Some(id.def_id.to_def_id()),
                         ty,
@@ -2669,7 +2665,7 @@ impl<'tcx> ExprUseNode<'tcx> {
                     })
                     .map(|(adt, field_def)| DefinedTy::Mir {
                         def_site_def_id: Some(adt.did()),
-                        ty: Binder::dummy(cx.tcx.type_of(field_def.did).instantiate_identity()),
+                        ty: Binder::dummy(cx.tcx.type_of(field_def.did).instantiate_identity().skip_norm_wip()),
                     }),
                 _ => None,
             },
@@ -2885,8 +2881,8 @@ pub fn tokenize_with_text(s: &str) -> impl Iterator<Item = (TokenKind, &str, Inn
 
 /// Checks whether a given span has any comment token
 /// This checks for all types of comment: line "//", block "/**", doc "///" "//!"
-pub fn span_contains_comment(cx: &impl source::HasSession, span: Span) -> bool {
-    span.check_source_text(cx, |snippet| {
+pub fn span_contains_comment<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> bool {
+    span.check_text(sm, |snippet| {
         tokenize(snippet, FrontmatterAllowed::No).any(|token| {
             matches!(
                 token.kind,
@@ -2900,8 +2896,8 @@ pub fn span_contains_comment(cx: &impl source::HasSession, span: Span) -> bool {
 /// token, including comments unless `skip_comments` is set.
 /// This is useful to determine if there are any actual code tokens in the span that are omitted in
 /// the late pass, such as platform-specific code.
-pub fn span_contains_non_whitespace(cx: &impl source::HasSession, span: Span, skip_comments: bool) -> bool {
-    span.check_source_text(cx, |snippet| {
+pub fn span_contains_non_whitespace<'sm>(sm: impl HasSourceMap<'sm>, span: Span, skip_comments: bool) -> bool {
+    span.check_text(sm, |snippet| {
         tokenize_with_text(snippet).any(|(token, _, _)| match token {
             TokenKind::Whitespace => false,
             TokenKind::BlockComment { .. } | TokenKind::LineComment { .. } => !skip_comments,
@@ -2909,18 +2905,19 @@ pub fn span_contains_non_whitespace(cx: &impl source::HasSession, span: Span, sk
         })
     })
 }
+
 /// Returns all the comments a given span contains
 ///
 /// Comments are returned wrapped with their relevant delimiters
-pub fn span_extract_comment(cx: &impl source::HasSession, span: Span) -> String {
-    span_extract_comments(cx, span).join("\n")
+pub fn span_extract_comment<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> String {
+    span_extract_comments(sm, span).join("\n")
 }
 
 /// Returns all the comments a given span contains.
 ///
 /// Comments are returned wrapped with their relevant delimiters.
-pub fn span_extract_comments(cx: &impl source::HasSession, span: Span) -> Vec<String> {
-    span.with_source_text(cx, |snippet| {
+pub fn span_extract_comments<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> Vec<String> {
+    span.with_source_text(sm, |snippet| {
         tokenize_with_text(snippet)
             .filter(|(t, ..)| matches!(t, TokenKind::BlockComment { .. } | TokenKind::LineComment { .. }))
             .map(|(_, s, _)| s.to_string())
@@ -3282,7 +3279,7 @@ pub fn get_path_from_caller_to_method_type<'tcx>(
     match assoc_item.container {
         rustc_ty::AssocContainer::Trait => get_path_to_callee(tcx, from, def_id),
         rustc_ty::AssocContainer::InherentImpl | rustc_ty::AssocContainer::TraitImpl(_) => {
-            let ty = tcx.type_of(def_id).instantiate_identity();
+            let ty = tcx.type_of(def_id).instantiate_identity().skip_norm_wip();
             get_path_to_ty(tcx, from, ty, args)
         },
     }
@@ -3298,7 +3295,7 @@ fn get_path_to_ty<'tcx>(tcx: TyCtxt<'tcx>, from: LocalDefId, ty: Ty<'tcx>, args:
         | rustc_ty::RawPtr(_, _)
         | rustc_ty::Ref(..)
         | rustc_ty::Slice(_)
-        | rustc_ty::Tuple(_) => format!("<{}>", EarlyBinder::bind(ty).instantiate(tcx, args)),
+        | rustc_ty::Tuple(_) => format!("<{}>", EarlyBinder::bind(ty).instantiate(tcx, args).skip_norm_wip()),
         _ => ty.to_string(),
     }
 }
@@ -3478,7 +3475,7 @@ pub fn expr_requires_coercion<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) -
     // actually have type adjustments.
     match expr.kind {
         ExprKind::Call(_, args) | ExprKind::MethodCall(_, _, args, _) if let Some(def_id) = fn_def_id(cx, expr) => {
-            let fn_sig = cx.tcx.fn_sig(def_id).instantiate_identity();
+            let fn_sig = cx.tcx.fn_sig(def_id).instantiate_identity().skip_norm_wip();
 
             if !fn_sig.output().skip_binder().has_type_flags(TypeFlags::HAS_TY_PARAM) {
                 return false;

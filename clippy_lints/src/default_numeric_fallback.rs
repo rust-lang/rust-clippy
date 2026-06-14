@@ -56,7 +56,11 @@ impl<'tcx> LateLintPass<'tcx> for DefaultNumericFallback {
         // Inline const supports type inference.
         let is_parent_const = matches!(
             cx.tcx.hir_body_const_context(cx.tcx.hir_body_owner_def_id(body.id())),
-            Some(ConstContext::Const { inline: false } | ConstContext::Static(_))
+            Some(
+                ConstContext::Const {
+                    allow_const_fn_promotion: true
+                } | ConstContext::Static(_)
+            )
         );
         let mut visitor = NumericFallbackVisitor::new(cx, is_parent_const);
         visitor.visit_body(body);
@@ -133,7 +137,7 @@ impl<'tcx> Visitor<'tcx> for NumericFallbackVisitor<'_, 'tcx> {
                 if let Some(fn_sig) = self.cx.tcx.parent_hir_node(expr.hir_id).fn_sig()
                     && let FnRetTy::Return(_ty) = fn_sig.decl.output
                 {
-                    // We cannot check the exact type since it's a `hir::Ty`` which does not implement `is_numeric`
+                    // We cannot check the exact type since it's a `hir::Ty` which does not implement `is_numeric`
                     self.ty_bounds.push(ExplicitTyBound(true));
                     for stmt in *stmts {
                         self.visit_stmt(stmt);
@@ -166,7 +170,13 @@ impl<'tcx> Visitor<'tcx> for NumericFallbackVisitor<'_, 'tcx> {
 
             ExprKind::MethodCall(_, receiver, args, _) => {
                 if let Some(def_id) = self.cx.typeck_results().type_dependent_def_id(expr.hir_id) {
-                    let fn_sig = self.cx.tcx.fn_sig(def_id).instantiate_identity().skip_binder();
+                    let fn_sig = self
+                        .cx
+                        .tcx
+                        .fn_sig(def_id)
+                        .instantiate_identity()
+                        .skip_norm_wip()
+                        .skip_binder();
                     for (expr, bound) in iter::zip(iter::once(*receiver).chain(args.iter()), fn_sig.inputs()) {
                         self.ty_bounds.push((*bound).into());
                         self.visit_expr(expr);
@@ -188,7 +198,7 @@ impl<'tcx> Visitor<'tcx> for NumericFallbackVisitor<'_, 'tcx> {
                     for field in *fields {
                         let bound = fields_def.iter().find_map(|f_def| {
                             if f_def.ident(self.cx.tcx) == field.ident {
-                                Some(self.cx.tcx.type_of(f_def.did).instantiate_identity())
+                                Some(self.cx.tcx.type_of(f_def.did).instantiate_identity().skip_norm_wip())
                             } else {
                                 None
                             }
@@ -251,7 +261,7 @@ fn fn_sig_opt<'tcx>(cx: &LateContext<'tcx>, hir_id: HirId) -> Option<PolyFnSig<'
     let node_ty = cx.typeck_results().node_type_opt(hir_id)?;
     // We can't use `Ty::fn_sig` because it automatically performs args, this may result in FNs.
     match node_ty.kind() {
-        ty::FnDef(def_id, _) => Some(cx.tcx.fn_sig(*def_id).instantiate_identity()),
+        ty::FnDef(def_id, _) => Some(cx.tcx.fn_sig(*def_id).instantiate_identity().skip_norm_wip()),
         ty::FnPtr(sig_tys, hdr) => Some(sig_tys.with(*hdr)),
         _ => None,
     }
