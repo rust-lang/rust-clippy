@@ -1,0 +1,12 @@
+error: redundant `crate::...` prefix in a use statement
+  --> tests/ui/unused_import_prefixes_no_fix.rs:8:13
+   |
+LL |         use crate::parent::{child::deep::ItemA, child::deep::ItemB};
+   |             ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider removing the redundant prefix manually
+   = note: `-D clippy::unused-import-prefixes` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unused_import_prefixes)]`
+
+error: aborting due to 1 previous error
+

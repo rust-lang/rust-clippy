@@ -14,16 +14,10 @@ LL |         use crate::parent::child::deep::{ItemA, ItemB};
    |             ^^^^^^^^^^^^^^^^^^^^ help: remove redundant use path prefix: `self`
 
 error: redundant `crate::...` prefix in an use statement
-  --> tests/ui/unused_import_prefixes.rs:18:13
-   |
-LL |         use crate::parent::child::{deep::ItemC, deep::StructTwo};
-   |             ^^^^^^^^^^^^^^^^^^^^ help: remove redundant use path prefix: `self`
-
-error: redundant `crate::...` prefix in an use statement
-  --> tests/ui/unused_import_prefixes.rs:22:13
+  --> tests/ui/unused_import_prefixes.rs:19:13
    |
 LL |         use crate::parent::child::deep::*;
    |             ^^^^^^^^^^^^^^^^^^^^ help: remove redundant use path prefix: `self`
 
-error: aborting due to 4 previous errors
+error: aborting due to 3 previous errors
 

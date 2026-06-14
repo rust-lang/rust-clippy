@@ -15,9 +15,6 @@ mod parent {
         use crate::parent::child::deep::{ItemA, ItemB};
         //~^ unused_import_prefixes
 
-        use crate::parent::child::deep::{ItemC, StructTwo};
-        //~^ unused_import_prefixes
-
         // glob imports
         use crate::parent::child::deep::*;
         //~^ unused_import_prefixes
@@ -26,8 +23,6 @@ mod parent {
             pub struct DeepStruct;
             pub struct ItemA;
             pub struct ItemB;
-            pub struct ItemC;
-            pub struct StructTwo;
         }
     }
 }
