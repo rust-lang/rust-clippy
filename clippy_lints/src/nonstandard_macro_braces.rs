@@ -183,20 +183,15 @@ fn macro_braces(conf: &[MacroMatcher]) -> (FxHashMap<String, (char, char)>, usiz
         braces.insert(it.name.clone(), it.braces);
     }
 
-    // `debug_assert_matches` is the current longest.
-    let max_len = if conf.is_empty() {
-        "debug_assert_matches".len()
-    } else {
-        #[expect(
-            rustc::potential_query_instability,
-            reason = "iteration order does not matter for `.max()`"
-        )]
-        braces
-            .iter()
-            .map(|(macro_name, _)| macro_name.len())
-            .max()
-            .unwrap_or("debug_assert_matches".len())
-    };
+    #[expect(
+        rustc::potential_query_instability,
+        reason = "iteration order does not matter for `.max()`"
+    )]
+    let max_len = braces
+        .keys()
+        .map(|macro_name| macro_name.len())
+        .max()
+        .expect("`braces` is non-empty");
 
     (braces, max_len)
 }
