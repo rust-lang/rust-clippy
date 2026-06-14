@@ -1,7 +1,6 @@
 use clippy_config::Conf;
 use clippy_config::types::MacroMatcher;
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::{SourceText, SpanExt};
 use rustc_ast::ast;
 use rustc_ast::token::{Delimiter, Token, TokenKind};
 use rustc_ast::tokenstream::{TokenStream, TokenTree};
@@ -63,83 +62,11 @@ impl EarlyLintPass for MacroBraces {
             && let Some(old_open_brace @ ('{' | '(' | '[')) = macro_args_str.trim_start().chars().next()
             && old_open_brace != braces.0
         {
-            emit_help(cx, &callsite_snippet, braces, callsite_span, false);
-            self.done.insert(callsite_span);
-        }
-    }
-
-    fn check_stmt(&mut self, cx: &EarlyContext<'_>, stmt: &ast::Stmt) {
-        if let Some(MacroInfo {
-            callsite_span,
-            callsite_snippet,
-            braces,
-            old_open_brace,
-        }) = is_offending_macro(cx, stmt.span, self)
-        {
-            // if we turn `macro!{}` into `macro!()`/`macro![]`, we'll no longer get the implicit
-            // trailing semicolon, see #9913
-            // NOTE: `stmt.kind != StmtKind::MacCall` because `EarlyLintPass` happens after macro expansion
-            let add_semi = matches!(stmt.kind, ast::StmtKind::Expr(..)) && old_open_brace == '{';
-            emit_help(cx, &callsite_snippet, braces, callsite_span, add_semi);
-            self.done.insert(callsite_span);
-        }
-    }
-
-    fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &ast::Expr) {
-        if let Some(MacroInfo {
-            callsite_span,
-            callsite_snippet,
-            braces,
-            ..
-        }) = is_offending_macro(cx, expr.span, self)
-        {
-            emit_help(cx, &callsite_snippet, braces, callsite_span, false);
-            self.done.insert(callsite_span);
-        }
-    }
-
-    fn check_ty(&mut self, cx: &EarlyContext<'_>, ty: &ast::Ty) {
-        if let Some(MacroInfo {
-            callsite_span,
-            braces,
-            callsite_snippet,
-            ..
-        }) = is_offending_macro(cx, ty.span, self)
-        {
-            emit_help(cx, &callsite_snippet, braces, callsite_span, false);
-            self.done.insert(callsite_span);
-        }
-    }
-}
-
-fn is_offending_macro(cx: &EarlyContext<'_>, span: Span, mac_braces: &MacroBraces) -> Option<MacroInfo> {
-    let unnested_or_local = |span: Span| {
-        !span.from_expansion()
-            || span
-                .macro_backtrace()
-                .last()
-                .is_some_and(|e| e.macro_def_id.is_some_and(DefId::is_local))
-    };
-
-    let mut ctxt = span.ctxt();
-    while !ctxt.is_root() {
-        let expn_data = ctxt.outer_expn_data();
-        if let ExpnKind::Macro(MacroKind::Bang, mac_name) = expn_data.kind
-        && let name = mac_name.as_str()
-        && let Some(&braces) = mac_braces.macro_braces.get(name)
-        && let Some(snip) = expn_data.call_site.get_text(cx)
-        // we must check only invocation sites
-        // https://github.com/rust-lang/rust-clippy/issues/7422
-        && let Some(macro_args_str) = snip.strip_prefix(name).and_then(|snip| snip.strip_prefix('!'))
-        && let Some(old_open_brace @ ('{' | '(' | '[')) = macro_args_str.trim_start().chars().next()
-        && old_open_brace != braces.0
-        && unnested_or_local(expn_data.call_site)
-        && !mac_braces.done.contains(&expn_data.call_site)
-        {
-            return Some(MacroInfo {
-                callsite_span: expn_data.call_site,
-                callsite_snippet: snip,
-                old_open_brace,
+            // Semicolons added for statements that previously ended in braces, see issue #9913
+            let add_semi = self.mac_stmt_spans.iter().any(|s| *s == mac.span());
+            emit_help(
+                cx,
+                &snippet_opt(cx.sess(), mac.span()).unwrap(),
                 braces,
                 mac.span(),
                 add_semi,
@@ -187,7 +114,8 @@ fn is_offending_macro(cx: &EarlyContext<'_>, span: Span, mac_braces: &MacroBrace
                         _,
                     ) = *peekable
                     && let Some(TokenTree::Delimited(_, _, delim, _)) = ts.get(i + 2)
-                    && let Some(snip) = snippet_opt(cx.sess(), span.with_hi(ts.get(i + 2).unwrap().span().hi()))
+                    && let snip_span = span.with_hi(ts.get(i + 2).unwrap().span().hi())
+                    && let Some(snip) = snippet_opt(cx, snip_span)
                     && let Some(&braces) = macro_braces.get(tident.as_str())
                     && let Some(old_open_brace) = match delim {
                         Delimiter::Brace => Some('{'),
@@ -198,12 +126,8 @@ fn is_offending_macro(cx: &EarlyContext<'_>, span: Span, mac_braces: &MacroBrace
                     && old_open_brace != braces.0
                 {
                     emit_help(
-                        cx,
-                        &snip,
-                        braces,
-                        // Span from tident to delimited (so, the full macro call)
-                        span.with_hi(ts.get(i + 2).unwrap().span().hi()),
-                        false,
+                        cx, &snip, braces, // Span from tident to delimited (so, the full macro call)
+                        snip_span, false,
                     );
                 }
             }
@@ -263,13 +187,11 @@ fn macro_braces(conf: &[MacroMatcher]) -> (FxHashMap<String, (char, char)>, usiz
     let max_len = if conf.is_empty() {
         "format_args".len()
     } else {
-        braces.iter().fold("format_ags".len(), |max_len, macro_name| {
-            if macro_name.0.len() > max_len {
-                macro_name.0.len()
-            } else {
-                max_len
-            }
-        })
+        braces
+            .iter()
+            .map(|(macro_name, _)| macro_name.len())
+            .max()
+            .unwrap_or("format_args".len())
     };
 
     (braces, max_len)
