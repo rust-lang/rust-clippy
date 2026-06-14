@@ -7312,6 +7312,7 @@ Released 2018-09-13
 [`type_complexity`]: https://rust-lang.github.io/rust-clippy/master/index.html#type_complexity
 [`type_id_on_box`]: https://rust-lang.github.io/rust-clippy/master/index.html#type_id_on_box
 [`type_repetition_in_bounds`]: https://rust-lang.github.io/rust-clippy/master/index.html#type_repetition_in_bounds
+[`unbounded_iter`]: https://rust-lang.github.io/rust-clippy/master/index.html#unbounded_iter
 [`unbuffered_bytes`]: https://rust-lang.github.io/rust-clippy/master/index.html#unbuffered_bytes
 [`unchecked_duration_subtraction`]: https://rust-lang.github.io/rust-clippy/master/index.html#unchecked_duration_subtraction
 [`unchecked_time_subtraction`]: https://rust-lang.github.io/rust-clippy/master/index.html#unchecked_time_subtraction
