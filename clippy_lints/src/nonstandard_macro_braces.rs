@@ -31,7 +31,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.55.0"]
     pub NONSTANDARD_MACRO_BRACES,
-    correctness,
+    style,
     "check consistent use of braces in macro"
 }
 
@@ -159,6 +159,7 @@ fn emit_help(cx: &EarlyContext<'_>, snip: &str, (open, close): (char, char), spa
 }
 
 fn macro_braces(conf: &[MacroMatcher]) -> (FxHashMap<String, (char, char)>, usize) {
+    // TODO: Use `Symbol`s here, instead of strings.
     let mut braces = FxHashMap::from_iter(
         [
             ("assert_matches", ('(', ')')),
@@ -183,7 +184,10 @@ fn macro_braces(conf: &[MacroMatcher]) -> (FxHashMap<String, (char, char)>, usiz
     }
 
     // format_args is the current
-    #[expect(rustc::potential_query_instability)]
+    #[expect(
+        rustc::potential_query_instability,
+        reason = "iteration order does not matter for `.max()`"
+    )]
     let max_len = if conf.is_empty() {
         "format_args".len()
     } else {
