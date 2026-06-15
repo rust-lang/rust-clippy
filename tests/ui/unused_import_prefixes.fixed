@@ -12,6 +12,9 @@ mod parent {
         // the `crate::` prefix is needed
         use crate::mod_one::StructOne;
 
+        // don't lint public exports
+        pub use crate::parent::child::deep::ItemC;
+
         use self::deep::{ItemA, ItemB};
         //~^ unused_import_prefixes
 
@@ -23,6 +26,7 @@ mod parent {
             pub struct DeepStruct;
             pub struct ItemA;
             pub struct ItemB;
+            pub struct ItemC;
         }
     }
 }

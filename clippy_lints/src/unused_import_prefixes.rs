@@ -66,6 +66,11 @@ impl LateLintPass<'_> for UnusedImportPrefixes {
             return;
         }
 
+        // Do not lint public exports
+        if cx.tcx.visibility(item.owner_id.def_id).is_public() {
+            return;
+        }
+
         // Only check imports starting with the `crate` keyword
         if use_path.segments.is_empty() || use_path.segments[0].ident.name != kw::Crate {
             return;

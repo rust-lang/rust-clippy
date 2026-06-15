@@ -8,13 +8,13 @@ LL |         use crate::parent::child::deep::DeepStruct;
    = help: to override `-D warnings` add `#[allow(clippy::unused_import_prefixes)]`
 
 error: redundant `crate::...` prefix in an use statement
-  --> tests/ui/unused_import_prefixes.rs:15:13
+  --> tests/ui/unused_import_prefixes.rs:18:13
    |
 LL |         use crate::parent::child::deep::{ItemA, ItemB};
    |             ^^^^^^^^^^^^^^^^^^^^ help: remove redundant use path prefix: `self`
 
 error: redundant `crate::...` prefix in an use statement
-  --> tests/ui/unused_import_prefixes.rs:19:13
+  --> tests/ui/unused_import_prefixes.rs:22:13
    |
 LL |         use crate::parent::child::deep::*;
    |             ^^^^^^^^^^^^^^^^^^^^ help: remove redundant use path prefix: `self`
