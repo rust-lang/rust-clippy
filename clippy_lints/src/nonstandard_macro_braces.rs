@@ -187,6 +187,7 @@ fn macro_braces(conf: &[MacroMatcher]) -> (FxHashMap<String, (char, char)>, usiz
         rustc::potential_query_instability,
         reason = "iteration order does not matter for `.max()`"
     )]
+    #[expect(clippy::redundant_closure_for_method_calls, reason = "Clarity")]
     let max_len = braces
         .keys()
         .map(|macro_name| macro_name.len())
