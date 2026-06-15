@@ -20,7 +20,9 @@ fn main() {
         () = returns_unit();
         () = ();
         let _a: () = ();
+        //~^ let_unit_value
         let _a: () = returns_unit();
+        //~^ let_unit_value
     }
 
     consume_units_with_for_loop(); // should be fine as well
@@ -176,6 +178,7 @@ fn attributes() {
 
 async fn issue10433() {
     let _pending: () = std::future::pending().await;
+    //~^ let_unit_value
 }
 
 pub async fn issue11502(a: ()) {}
@@ -231,4 +234,20 @@ fn issue15789() {
     //~^ let_unit_value
 
     Foo { value };
+}
+
+fn issue15957() {
+    fn f() {}
+
+    // Should have the new annotation
+    let _x: () = f();
+    //~^ let_unit_value
+    let _some_name: () = f();
+    //~^ let_unit_value
+    let _foo: () = ();
+    //~^ let_unit_value
+    let _a: () = println!();
+    //~^ let_unit_value
+    let _x: () = { f() };
+    //~^ let_unit_value
 }

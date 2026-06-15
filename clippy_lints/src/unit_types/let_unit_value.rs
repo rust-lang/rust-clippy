@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::macros::{FormatArgsStorage, find_format_arg_expr, is_format_macro, root_macro_call_first_node};
 use clippy_utils::source::{snippet_indent, walk_span_to_context};
 use clippy_utils::visitors::{for_each_local_assignment, for_each_value_source};
@@ -28,15 +28,16 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, format_args: &FormatArgsStorag
         && !local.span.is_from_async_await()
         && cx.typeck_results().pat_ty(local.pat).is_unit()
     {
-        // skip `let awa = ()`
-        if let ExprKind::Tup([]) = init.kind {
-            return;
-        }
-
         // skip `let _: () = { ... }`
         if let Some(ty) = local.ty
             && let TyKind::Tup([]) = ty.kind
         {
+            check_underscore_unit_binding(cx, local);
+            return;
+        }
+
+        // skip `let awa = ()`
+        if let ExprKind::Tup([]) = init.kind {
             return;
         }
 
@@ -330,4 +331,30 @@ fn needs_inferred_result_ty(
     } else {
         false
     }
+}
+
+fn check_underscore_unit_binding(cx: &LateContext<'_>, local: &LetStmt<'_>) {
+    let PatKind::Binding(_, _, ident, _) = local.pat.kind else {
+        return;
+    };
+
+    if !(ident.name.as_str().starts_with('_') || ident.name.as_str() == "_") {
+        return;
+    }
+
+    let lint_span = if let Some(ty) = local.ty {
+        local.pat.span.with_hi(ty.span.hi())
+    } else {
+        local.pat.span
+    };
+
+    span_lint_and_sugg(
+        cx,
+        LET_UNIT_VALUE,
+        lint_span,
+        "named binding with unit type can be replaced with `()`",
+        "replace with",
+        "()".to_string(),
+        Applicability::MaybeIncorrect,
+    );
 }
