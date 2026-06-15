@@ -66,7 +66,8 @@ pub(super) fn check<'tcx>(
         _ => return,
     };
     if let ExprKind::Block(block, _) = body.kind
-        && !block.stmts.is_empty()
+        // The block must have a statement or a trailing expression, i.e. not be empty.
+        && !(block.stmts.is_empty() && block.expr.is_none())
         && !contains_break_or_continue(body)
     {
         let mut applicability = Applicability::MachineApplicable;
@@ -78,7 +79,12 @@ pub(super) fn check<'tcx>(
         let mut block_str = snippet_with_applicability(cx, block.span, "..", &mut applicability).into_owned();
         block_str.remove(0);
         block_str.pop();
-        let indent = " ".repeat(indent_of(cx, block.stmts[0].span).unwrap_or(0));
+        let inner_span = block
+            .stmts
+            .first()
+            .map(|stmt| stmt.span)
+            .or_else(|| block.expr.map(|expr| expr.span));
+        let indent = " ".repeat(inner_span.and_then(|span| indent_of(cx, span)).unwrap_or(0));
 
         // Reference iterator from `&(mut) []` or `[].iter(_mut)()`.
         if !prefix.is_empty()

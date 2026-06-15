@@ -69,4 +69,20 @@ fn main() {
         //~^ single_element_loop
         let ptr: *const bool = std::ptr::null();
     }
+
+    // should lint (issue #16510): the loop body is a trailing expression, not a statement
+    for item in [42] {
+        //~^ single_element_loop
+        if item > 0 {
+            dbg!(item);
+        }
+    }
+
+    // should lint (issue #16510): trailing `if` over a single range element
+    for _ in [0..5] {
+        //~^ single_element_loop
+        if std::hint::black_box(true) {
+            dbg!("once");
+        }
+    }
 }
