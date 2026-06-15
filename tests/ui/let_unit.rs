@@ -250,4 +250,7 @@ fn issue15957() {
     //~^ let_unit_value
     let _x: () = { f() };
     //~^ let_unit_value
+
+    // Should not be linted
+    let _: () = f();
 }

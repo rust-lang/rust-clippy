@@ -28,7 +28,7 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, format_args: &FormatArgsStorag
         && !local.span.is_from_async_await()
         && cx.typeck_results().pat_ty(local.pat).is_unit()
     {
-        // skip `let _: () = { ... }`
+        // Annotate `let _name: () =`, should be replaced with `let () =`
         if let Some(ty) = local.ty
             && let TyKind::Tup([]) = ty.kind
         {
@@ -338,7 +338,7 @@ fn check_underscore_unit_binding(cx: &LateContext<'_>, local: &LetStmt<'_>) {
         return;
     };
 
-    if !(ident.name.as_str().starts_with('_') || ident.name.as_str() == "_") {
+    if !ident.name.as_str().starts_with('_') {
         return;
     }
 
@@ -355,6 +355,6 @@ fn check_underscore_unit_binding(cx: &LateContext<'_>, local: &LetStmt<'_>) {
         "named binding with unit type can be replaced with `()`",
         "replace with",
         "()".to_string(),
-        Applicability::MaybeIncorrect,
+        Applicability::MachineApplicable,
     );
 }
