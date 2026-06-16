@@ -102,6 +102,11 @@ Current stable, released 2026-05-28
 * [`manual_is_ascii_check`] optimized by 97.125% (822M -> 23M instructions)
   [#16755](https://github.com/rust-lang/rust-clippy/pull/16755)
 
+### New Lints
+
+* Added [`result_and_inner_method`] to `suspicious`
+  [#16847](https://github.com/rust-lang/rust-clippy/pull/16847)
+
 ## Rust 1.95
 
 Current stable, released 2026-04-16
@@ -7283,6 +7288,7 @@ Released 2018-09-13
 [`repr_packed_without_abi`]: https://rust-lang.github.io/rust-clippy/master/index.html#repr_packed_without_abi
 [`reserve_after_initialization`]: https://rust-lang.github.io/rust-clippy/master/index.html#reserve_after_initialization
 [`rest_pat_in_fully_bound_structs`]: https://rust-lang.github.io/rust-clippy/master/index.html#rest_pat_in_fully_bound_structs
+[`result_and_inner_method`]: https://rust-lang.github.io/rust-clippy/master/index.html#result_and_inner_method
 [`result_expect_used`]: https://rust-lang.github.io/rust-clippy/master/index.html#result_expect_used
 [`result_filter_map`]: https://rust-lang.github.io/rust-clippy/master/index.html#result_filter_map
 [`result_large_err`]: https://rust-lang.github.io/rust-clippy/master/index.html#result_large_err
