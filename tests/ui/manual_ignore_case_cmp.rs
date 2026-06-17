@@ -196,6 +196,27 @@ fn chars_cmp_in_closure(file_name: OsString) -> bool {
     })
 }
 
+fn chars_cmp_deref_to_str(s: S) -> bool {
+    s.chars()
+        .map(|c| c.to_ascii_lowercase())
+        .cmp(s.chars().map(|c| c.to_ascii_lowercase()))
+        .is_eq()
+}
+
+struct S;
+
+impl S {
+    fn eq_ignore_ascii_case(self) {}
+}
+
+impl std::ops::Deref for S {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        ""
+    }
+}
+
 fn wrongly_unmangled_macros(a: &str, b: &str) -> bool {
     struct S<'a> {
         inner: &'a str,

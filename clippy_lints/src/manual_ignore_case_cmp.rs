@@ -91,12 +91,17 @@ fn ascii_case_map_closure(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<bool>
     }
 }
 
+fn is_str_like_chars_receiver(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    let ty = cx.typeck_results().expr_ty(expr).peel_refs();
+    ty.is_str() || ty.is_lang_item(cx, LangItem::String)
+}
+
 fn ascii_case_mapped_chars<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> Option<CharsMap<'tcx>> {
     if let Some(args) = method_chain_args(expr, &[sym::chars, sym::map])
         && args[0].1.is_empty()
         && let [map_arg] = args[1].1
         && let Some(is_lower) = ascii_case_map_closure(cx, map_arg)
-        && cx.typeck_results().expr_ty_adjusted(args[0].0).peel_refs().is_str()
+        && is_str_like_chars_receiver(cx, args[0].0)
     {
         Some(CharsMap {
             expr: args[0].0,
