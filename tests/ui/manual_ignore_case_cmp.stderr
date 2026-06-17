@@ -661,7 +661,7 @@ LL +         dir.eq_ignore_ascii_case(".xyz")
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:213:5
+  --> tests/ui/manual_ignore_case_cmp.rs:234:5
    |
 LL |     dot_inner!(a).to_ascii_lowercase() == dot_inner!(b).to_ascii_lowercase()
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -673,7 +673,7 @@ LL +     dot_inner!(a).eq_ignore_ascii_case(dot_inner!(b))
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:215:12
+  --> tests/ui/manual_ignore_case_cmp.rs:236:12
    |
 LL |         || dot_inner!(a).to_ascii_lowercase() == "abc"
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
