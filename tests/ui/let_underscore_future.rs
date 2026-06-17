@@ -21,4 +21,8 @@ fn main() {
     do_something_to_future(&mut future);
     let _ = future;
     //~^ let_underscore_future
+
+    // An explicitly typed `let _: T` shows intent, so the lint should not fire.
+    // See https://github.com/rust-lang/rust-clippy/issues/16991
+    let _: std::pin::Pin<Box<dyn Future<Output = ()>>> = Box::pin(some_async_fn());
 }
