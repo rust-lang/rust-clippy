@@ -137,7 +137,6 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
                 .any(|adj| matches!(adj.kind, Adjust::Deref(DerefAdjustKind::Overloaded(_))))
             {
                 self.eagerness |= NoChange;
-                return;
             }
 
             match e.kind {
