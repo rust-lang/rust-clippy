@@ -412,6 +412,13 @@ impl Constant {
             _ => false,
         }
     }
+
+    pub fn to_int(&self, tcx: TyCtxt<'_>, ty: IntTy) -> Option<i128> {
+        match *self {
+            Self::Int(x) => Some(sext(tcx, x, ty)),
+            _ => None,
+        }
+    }
 }
 
 /// Parses a `LitKind` to a `Constant`.
