@@ -13,6 +13,7 @@ use crate::consts::ConstEvalCtxt;
 use crate::sym;
 use crate::ty::all_predicates_of;
 use crate::visitors::is_const_evaluatable;
+use core::ops::ControlFlow::{self, Break};
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefId;
 use rustc_hir::intravisit::{Visitor, walk_expr};
@@ -121,11 +122,9 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
     }
 
     impl<'tcx> Visitor<'tcx> for V<'tcx> {
-        fn visit_expr(&mut self, e: &'tcx Expr<'_>) {
+        type Result = ControlFlow<()>;
+        fn visit_expr(&mut self, e: &'tcx Expr<'_>) -> Self::Result {
             use EagernessSuggestion::{ForceNoChange, Lazy, NoChange};
-            if self.eagerness == ForceNoChange {
-                return;
-            }
 
             // Autoderef through a user-defined `Deref` impl can have side-effects,
             // so don't suggest changing it.
@@ -151,14 +150,14 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
                     res @ (Res::Def(DefKind::Ctor(..) | DefKind::Variant, _) | Res::SelfCtor(_)) => {
                         if res_has_significant_drop(res, &self.ecx, e) {
                             self.eagerness = ForceNoChange;
-                            return;
+                            return Break(());
                         }
                     },
                     Res::Def(_, id) if self.ecx.tcx.is_promotable_const_fn(id) => (),
                     // No need to walk the arguments here, `is_const_evaluatable` already did
                     Res::Def(..) if is_const_evaluatable(self.ecx.tcx, self.ecx.typeck, e) => {
                         self.eagerness |= NoChange;
-                        return;
+                        return Break(());
                     },
                     Res::Def(_, id) => match path {
                         QPath::Resolved(_, p) => {
@@ -178,19 +177,19 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
                 // No need to walk the arguments here, `is_const_evaluatable` already did
                 ExprKind::MethodCall(..) if is_const_evaluatable(self.ecx.tcx, self.ecx.typeck, e) => {
                     self.eagerness |= NoChange;
-                    return;
+                    return Break(());
                 },
                 #[expect(clippy::match_same_arms)] // arm pattern can't be merged due to `ref`, see rust#105778
                 ExprKind::Struct(path, ..) => {
                     if res_has_significant_drop(self.ecx.typeck.qpath_res(path, e.hir_id), &self.ecx, e) {
                         self.eagerness = ForceNoChange;
-                        return;
+                        return Break(());
                     }
                 },
                 ExprKind::Path(ref path) => {
                     if res_has_significant_drop(self.ecx.typeck.qpath_res(path, e.hir_id), &self.ecx, e) {
                         self.eagerness = ForceNoChange;
-                        return;
+                        return Break(());
                     }
                 },
                 ExprKind::MethodCall(name, ..) => {
@@ -295,7 +294,7 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
                 | ExprKind::Yield(..)
                 | ExprKind::Err(_) => {
                     self.eagerness = ForceNoChange;
-                    return;
+                    return Break(());
                 },
 
                 ExprKind::Loop(..) | ExprKind::Call(..) => {
@@ -326,7 +325,7 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
                 // TODO: Actually check if either of these are true here.
                 ExprKind::Assign(..) | ExprKind::AssignOp(..) | ExprKind::Block(..) => self.eagerness |= NoChange,
             }
-            walk_expr(self, e);
+            walk_expr(self, e)
         }
     }
 
@@ -334,7 +333,7 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
         ecx: ConstEvalCtxt::new(cx),
         eagerness: EagernessSuggestion::Eager,
     };
-    v.visit_expr(e);
+    let _ = v.visit_expr(e);
     v.eagerness
 }
 
