@@ -9,7 +9,7 @@
 //!  - or-fun-call
 //!  - option-if-let-else
 
-use crate::consts::{ConstEvalCtxt, FullInt};
+use crate::consts::ConstEvalCtxt;
 use crate::sym;
 use crate::ty::all_predicates_of;
 use crate::visitors::is_const_evaluatable;
@@ -210,62 +210,82 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
                     }
                 },
 
-                // `-i32::MIN` panics with overflow checks
-                ExprKind::Unary(UnOp::Neg, right) if self.ecx.eval(right).is_none() => {
-                    self.eagerness |= NoChange;
+                // Both binary and unary operations have cases which panic for integer types.
+                // For such cases we will only suggest eager evaluation if the overflow would be
+                // caught by rustc's `arithmetic_overflow` or `unconditional_panic` lints.
+                ExprKind::Unary(op, e) => {
+                    let ty = self.ecx.typeck.expr_ty(e).kind();
+                    match op {
+                        UnOp::Neg => match *ty {
+                            ty::Int(_) if self.ecx.eval(e).is_none() => self.eagerness |= NoChange,
+                            ty::Int(_) | ty::Float(_) => {},
+                            _ => self.eagerness = Lazy,
+                        },
+                        UnOp::Deref => match *ty {
+                            ty::Adt(def, _) if def.is_box() => {},
+                            ty::Ref(..) => {},
+                            // Raw pointer dereferences have validity invariants which may not be
+                            // met if moved earlier. Everything else is a custom deref which should be
+                            // cheap, but we don't know for sure.
+                            _ => self.eagerness |= NoChange,
+                        },
+                        UnOp::Not => match *ty {
+                            ty::Int(_) | ty::Uint(_) | ty::Bool => {},
+                            _ => self.eagerness |= NoChange,
+                        },
+                    }
                 },
-
-                // Custom `Deref` impl might have side effects
-                ExprKind::Unary(UnOp::Deref, e) if self.ecx.typeck.expr_ty(e).builtin_deref(true).is_none() => {
-                    self.eagerness |= NoChange;
+                ExprKind::Binary(op, lhs, rhs) => {
+                    let lhs_ty = self.ecx.typeck.expr_ty(lhs);
+                    let rhs_ty = self.ecx.typeck.expr_ty(rhs);
+                    let same_ty = lhs_ty == rhs_ty;
+                    match op.node {
+                        BinOpKind::Shl | BinOpKind::Shr => match (lhs_ty.kind(), rhs_ty.kind()) {
+                            (ty::Int(_) | ty::Uint(_), ty::Int(_) | ty::Uint(_)) if self.ecx.eval(rhs).is_none() => {
+                                self.eagerness |= NoChange;
+                            },
+                            (ty::Int(_) | ty::Uint(_), ty::Int(_) | ty::Uint(_)) => {},
+                            _ => self.eagerness = Lazy,
+                        },
+                        BinOpKind::Div | BinOpKind::Rem => match *lhs_ty.kind() {
+                            ty::Uint(_) if same_ty && self.ecx.eval(rhs).is_none() => self.eagerness |= NoChange,
+                            ty::Int(ty)
+                                if same_ty
+                                    && self.ecx.eval(rhs).is_none_or(|rhs| {
+                                        rhs.to_int(self.ecx.tcx, ty) == Some(-1) && self.ecx.eval(lhs).is_none()
+                                    }) =>
+                            {
+                                self.eagerness |= NoChange;
+                            },
+                            ty::Uint(_) | ty::Int(_) | ty::Float(_) if same_ty => {},
+                            _ => self.eagerness = Lazy,
+                        },
+                        BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul => match *lhs_ty.kind() {
+                            ty::Int(_) | ty::Uint(_)
+                                if same_ty && (self.ecx.eval(lhs).is_none() || self.ecx.eval(rhs).is_none()) =>
+                            {
+                                self.eagerness |= NoChange;
+                            },
+                            ty::Int(_) | ty::Uint(_) | ty::Float(_) if same_ty => {},
+                            _ => self.eagerness = Lazy,
+                        },
+                        BinOpKind::BitAnd
+                        | BinOpKind::BitOr
+                        | BinOpKind::BitXor
+                        | BinOpKind::Eq
+                        | BinOpKind::Ne
+                        | BinOpKind::Lt
+                        | BinOpKind::Le
+                        | BinOpKind::Gt
+                        | BinOpKind::Ge
+                        | BinOpKind::Or
+                        | BinOpKind::And => match *lhs_ty.kind() {
+                            ty::Bool | ty::Char | ty::Int(_) | ty::Uint(_) | ty::Float(_) if same_ty => {},
+                            ty::RawPtr(..) if rhs_ty.is_raw_ptr() => {},
+                            _ => self.eagerness = Lazy,
+                        },
+                    }
                 },
-                // Dereferences should be cheap, but dereferencing a raw pointer earlier may not be safe.
-                ExprKind::Unary(UnOp::Deref, e) if !self.ecx.typeck.expr_ty(e).is_raw_ptr() => (),
-                ExprKind::Unary(UnOp::Deref, _) => self.eagerness |= NoChange,
-                ExprKind::Unary(_, e)
-                    if matches!(self.ecx.typeck.expr_ty(e).kind(), ty::Bool | ty::Int(_) | ty::Uint(_),) => {},
-
-                // `>>` and `<<` panic when the right-hand side is greater than or equal to the number of bits in the
-                // type of the left-hand side, or is negative.
-                // We intentionally only check if the right-hand isn't a constant, because even if the suggestion would
-                // overflow with constants, the compiler emits an error for it and the programmer will have to fix it.
-                // Thus, we would realistically only delay the lint.
-                ExprKind::Binary(op, _, right)
-                    if matches!(op.node, BinOpKind::Shl | BinOpKind::Shr) && self.ecx.eval(right).is_none() =>
-                {
-                    self.eagerness |= NoChange;
-                },
-
-                ExprKind::Binary(op, left, right)
-                    if matches!(op.node, BinOpKind::Div | BinOpKind::Rem)
-                        && let right_ty = self.ecx.typeck.expr_ty(right)
-                        && let left = self.ecx.eval(left)
-                        && let right = self.ecx.eval(right).and_then(|c| c.int_value(self.ecx.tcx, right_ty))
-                        && matches!(
-                            (left, right),
-                            // `1 / x`: x might be zero
-                            (_, None)
-                            // `x / -1`: x might be T::MIN
-                            | (None, Some(FullInt::S(-1)))
-                        ) =>
-                {
-                    self.eagerness |= NoChange;
-                },
-
-                // Similar to `>>` and `<<`, we only want to avoid linting entirely if either side is unknown and the
-                // compiler can't emit an error for an overflowing expression.
-                // Suggesting eagerness for `true.then(|| i32::MAX + 1)` is okay because the compiler will emit an
-                // error and it's good to have the eagerness warning up front when the user fixes the logic error.
-                ExprKind::Binary(op, left, right)
-                    if matches!(op.node, BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul)
-                        && !self.ecx.typeck.expr_ty(e).is_floating_point()
-                        && (self.ecx.eval(left).is_none() || self.ecx.eval(right).is_none()) =>
-                {
-                    self.eagerness |= NoChange;
-                },
-
-                ExprKind::Binary(_, lhs, rhs)
-                    if self.ecx.typeck.expr_ty(lhs).is_primitive() && self.ecx.typeck.expr_ty(rhs).is_primitive() => {},
 
                 // Can't be moved into a closure
                 ExprKind::Break(..)
@@ -279,8 +299,7 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
                     return;
                 },
 
-                // Memory allocation, custom operator, loop, or call to an unknown function
-                ExprKind::Unary(..) | ExprKind::Binary(..) | ExprKind::Loop(..) | ExprKind::Call(..) => {
+                ExprKind::Loop(..) | ExprKind::Call(..) => {
                     self.eagerness = Lazy;
                 },
 
