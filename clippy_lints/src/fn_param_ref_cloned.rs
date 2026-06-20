@@ -28,7 +28,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.98.0"]
     pub FN_PARAM_REF_CLONED,
-    style,
+    pedantic,
     "you should pass by value instead of cloning a passed reference"
 }
 
