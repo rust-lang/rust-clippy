@@ -45,10 +45,11 @@ pub struct FnParamRefCloned {
 }
 
 pub fn is_candidate_ty<'a>(cx: &LateContext<'a>, ty: Ty<'a>, must_impl_trait: &[DefId]) -> bool {
-    if let Ref(_, ty_ref, _) = ty.kind() {
+    if let Ref(_, ty_ref, mutability) = ty.kind() {
         must_impl_trait
             .iter()
             .any(|def_id| implements_trait(cx, *ty_ref, *def_id, &[]))
+            && mutability.is_not()
     } else {
         false
     }
