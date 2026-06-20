@@ -573,6 +573,15 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
         self.expr(e)
     }
 
+    /// Attempts to evaluate the expression and optionally dereference the result.
+    pub fn eval_deref(&self, e: &Expr<'_>, deref: bool) -> Option<Constant> {
+        match (self.eval(e), deref) {
+            (Some(c), false) => Some(c),
+            (Some(Constant::Ref(c)), true) => Some(*c),
+            _ => None,
+        }
+    }
+
     /// Attempts to evaluate the expression without accessing other items.
     ///
     /// The context argument is the context used to view the evaluated expression. e.g. when
