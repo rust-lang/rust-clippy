@@ -67,15 +67,20 @@ pub fn get_param_id_span(param: &rustc_hir::Param<'_>) -> Option<(rustc_hir::Hir
 }
 
 impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
-    fn check_body(&mut self, cx: &LateContext<'tcx>, fn_body: &Body<'tcx>) {
+    fn check_fn(
+        &mut self,
+        cx: &LateContext<'tcx>,
+        _: rustc_hir::intravisit::FnKind<'tcx>,
+        _: &'tcx rustc_hir::FnDecl<'tcx>,
+        fn_body: &'tcx rustc_hir::Body<'tcx>,
+        _: Span,
+        def_id: rustc_span::def_id::LocalDefId,
+    ) {
         // Define which traits must be implemented for the lint to work
         let must_impl_trait = [
             cx.tcx.lang_items().clone_trait().unwrap(),
             cx.tcx.lang_items().drop_trait().unwrap(),
         ];
-
-        // Get the function ID
-        let def_id = cx.tcx.hir_body_owner_def_id(fn_body.id());
 
         // Get all candidates of params that implement said traits and zip them with function signature
         // params
