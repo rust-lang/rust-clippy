@@ -865,10 +865,6 @@ rustc_lint::late_lint_methods!(
         WithCapacityZero: with_capacity_zero::WithCapacityZero = with_capacity_zero::WithCapacityZero,
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
         FnParamRefCloned: fn_param_ref_cloned::FnParamRefCloned = fn_param_ref_cloned::FnParamRefCloned::default(),
-        RedundantElse: redundant_else::RedundantElse = redundant_else::RedundantElse,
-        RestWhenDestructuringStruct: rest_when_destructuring_struct::RestWhenDestructuringStruct = rest_when_destructuring_struct::RestWhenDestructuringStruct,
-        BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
-        NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
