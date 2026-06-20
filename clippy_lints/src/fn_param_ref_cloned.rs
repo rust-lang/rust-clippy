@@ -1,7 +1,7 @@
 use clippy_utils::res::MaybeResPath;
 use clippy_utils::ty::implements_trait;
 use clippy_utils::visitors::for_each_expr;
-use rustc_hir::{Body, PatKind};
+use rustc_hir::PatKind;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{Ref, Ty};
 use rustc_session::impl_lint_pass;
@@ -71,12 +71,16 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
     fn check_fn(
         &mut self,
         cx: &LateContext<'tcx>,
-        _: rustc_hir::intravisit::FnKind<'tcx>,
+        fn_kind: rustc_hir::intravisit::FnKind<'tcx>,
         _: &'tcx rustc_hir::FnDecl<'tcx>,
         fn_body: &'tcx rustc_hir::Body<'tcx>,
         _: Span,
         def_id: rustc_span::def_id::LocalDefId,
     ) {
+        if let rustc_hir::intravisit::FnKind::Closure = fn_kind {
+            return;
+        }
+
         // Define which traits must be implemented for the lint to work
         let must_impl_trait = [
             cx.tcx.lang_items().clone_trait().unwrap(),
@@ -91,7 +95,7 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
             .instantiate_identity()
             .skip_binder()
             .inputs()
-            .into_iter()
+            .iter()
             .zip(fn_body.params)
             .filter_map(|(ty, param)| {
                 if let Some((id, span)) = get_param_id_span(param)
@@ -106,7 +110,7 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
 
         // Find all rebinds of param values in the function and add them to the original candidates (tuple)
         if let rustc_hir::ExprKind::Block(block, _) = fn_body.value.kind {
-            for statement in block.stmts.iter() {
+            for statement in block.stmts {
                 if let rustc_hir::StmtKind::Let(let_stmt) = statement.kind
                     && let Some(expr) = let_stmt.init
                     && let rustc_hir::ExprKind::Path(qpath) = expr.kind
@@ -160,9 +164,9 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
                     });
                 },
                 _ => (),
-            };
+            }
 
             ControlFlow::Continue(())
-        })
+        });
     }
 }
