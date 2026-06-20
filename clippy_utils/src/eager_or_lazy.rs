@@ -213,10 +213,20 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
                 // caught by rustc's `arithmetic_overflow` or `unconditional_panic` lints.
                 ExprKind::Unary(op, e) => {
                     let ty = self.ecx.typeck.expr_ty(e).kind();
+                    let (deref_ty, deref) = match ty {
+                        &ty::Ref(_, ty, _) => {
+                            // TODO(@Jarcho): Allow eager evaluation starting with 1.99.
+                            if op != UnOp::Deref {
+                                self.eagerness |= NoChange;
+                            }
+                            (ty.kind(), true)
+                        },
+                        ty => (ty, false),
+                    };
                     match op {
-                        UnOp::Neg => match *ty {
+                        UnOp::Neg => match *deref_ty {
                             ty::Int(_) => {
-                                if self.ecx.eval(e).is_some() {
+                                if self.ecx.eval_deref(e, deref).is_some() {
                                     return Continue(());
                                 }
                                 self.eagerness |= NoChange;
@@ -232,7 +242,7 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
                             // cheap, but we don't know for sure.
                             _ => self.eagerness |= NoChange,
                         },
-                        UnOp::Not => match *ty {
+                        UnOp::Not => match *deref_ty {
                             ty::Int(_) | ty::Uint(_) | ty::Bool => {},
                             _ => self.eagerness |= NoChange,
                         },
@@ -240,12 +250,28 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
                 },
                 ExprKind::Binary(op, lhs, rhs) => {
                     let lhs_ty = self.ecx.typeck.expr_ty(lhs);
+                    let (lhs_ty, lhs_deref) = match *lhs_ty.kind() {
+                        ty::Ref(_, lhs_ty, _) => {
+                            // TODO(@Jarcho): Allow eager evaluation starting with 1.99.
+                            self.eagerness |= NoChange;
+                            (lhs_ty, true)
+                        },
+                        _ => (lhs_ty, false),
+                    };
                     let rhs_ty = self.ecx.typeck.expr_ty(rhs);
+                    let (rhs_ty, rhs_deref) = match *rhs_ty.kind() {
+                        ty::Ref(_, rhs_ty, _) => {
+                            // TODO(@Jarcho): Allow eager evaluation starting with 1.99.
+                            self.eagerness |= NoChange;
+                            (rhs_ty, true)
+                        },
+                        _ => (rhs_ty, false),
+                    };
                     let same_ty = lhs_ty == rhs_ty;
                     match op.node {
                         BinOpKind::Shl | BinOpKind::Shr => match (lhs_ty.kind(), rhs_ty.kind()) {
                             (ty::Int(_) | ty::Uint(_), ty::Int(_) | ty::Uint(_)) => {
-                                if self.ecx.eval(rhs).is_some() {
+                                if self.ecx.eval_deref(rhs, rhs_deref).is_some() {
                                     return self.visit_expr(lhs);
                                 }
                                 // Possible over shift or negative shift.
@@ -255,16 +281,16 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
                         },
                         BinOpKind::Div | BinOpKind::Rem => match *lhs_ty.kind() {
                             ty::Uint(_) if same_ty => {
-                                if self.ecx.eval(rhs).is_some() {
+                                if self.ecx.eval_deref(rhs, rhs_deref).is_some() {
                                     return self.visit_expr(lhs);
                                 }
                                 // Possible division-by-zero.
                                 self.eagerness |= NoChange;
                             },
                             ty::Int(ty) if same_ty => {
-                                if let Some(rhs) = self.ecx.eval(rhs) {
+                                if let Some(rhs) = self.ecx.eval_deref(rhs, rhs_deref) {
                                     if rhs.to_int(self.ecx.tcx, ty) == Some(-1) {
-                                        if self.ecx.eval(lhs).is_some() {
+                                        if self.ecx.eval_deref(lhs, lhs_deref).is_some() {
                                             return Continue(());
                                         }
                                         // Possible overflow.
@@ -280,8 +306,8 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
                         },
                         BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul => match *lhs_ty.kind() {
                             ty::Int(_) | ty::Uint(_) if same_ty => {
-                                if self.ecx.eval(lhs).is_some() {
-                                    return if self.ecx.eval(rhs).is_some() {
+                                if self.ecx.eval_deref(lhs, lhs_deref).is_some() {
+                                    return if self.ecx.eval_deref(rhs, rhs_deref).is_some() {
                                         Continue(())
                                     } else {
                                         // Possible overflow.
@@ -295,20 +321,36 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
                             ty::Float(_) if same_ty => {},
                             _ => self.eagerness = Lazy,
                         },
-                        BinOpKind::BitAnd
-                        | BinOpKind::BitOr
-                        | BinOpKind::BitXor
-                        | BinOpKind::Eq
+                        BinOpKind::Or | BinOpKind::And | BinOpKind::BitAnd | BinOpKind::BitOr | BinOpKind::BitXor => {
+                            match *lhs_ty.kind() {
+                                ty::Bool | ty::Int(_) | ty::Uint(_) if same_ty => {},
+                                _ => self.eagerness = Lazy,
+                            }
+                        },
+                        BinOpKind::Eq
                         | BinOpKind::Ne
                         | BinOpKind::Lt
                         | BinOpKind::Le
                         | BinOpKind::Gt
-                        | BinOpKind::Ge
-                        | BinOpKind::Or
-                        | BinOpKind::And => match *lhs_ty.kind() {
-                            ty::Bool | ty::Char | ty::Int(_) | ty::Uint(_) | ty::Float(_) if same_ty => {},
-                            ty::RawPtr(..) if rhs_ty.is_raw_ptr() => {},
-                            _ => self.eagerness = Lazy,
+                        | BinOpKind::Ge => {
+                            if lhs_deref == rhs_deref {
+                                let mut lhs_ty = lhs_ty;
+                                let mut rhs_ty = rhs_ty;
+                                while let ty::Ref(_, lhs, _) = *lhs_ty.kind()
+                                    && let ty::Ref(_, rhs, _) = *rhs_ty.kind()
+                                {
+                                    lhs_ty = lhs;
+                                    rhs_ty = rhs;
+                                }
+                                match *lhs_ty.kind() {
+                                    ty::Bool | ty::Char | ty::Int(_) | ty::Uint(_) | ty::Float(_)
+                                        if lhs_ty == rhs_ty => {},
+                                    ty::RawPtr(..) if rhs_ty.is_raw_ptr() => {},
+                                    _ => self.eagerness = Lazy,
+                                }
+                            } else {
+                                self.eagerness = Lazy;
+                            }
                         },
                     }
                 },
