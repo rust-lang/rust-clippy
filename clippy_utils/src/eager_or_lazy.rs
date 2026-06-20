@@ -13,7 +13,7 @@ use crate::consts::ConstEvalCtxt;
 use crate::sym;
 use crate::ty::all_predicates_of;
 use crate::visitors::is_const_evaluatable;
-use core::ops::ControlFlow::{self, Break};
+use core::ops::ControlFlow::{self, Break, Continue};
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefId;
 use rustc_hir::intravisit::{Visitor, walk_expr};
@@ -215,8 +215,13 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
                     let ty = self.ecx.typeck.expr_ty(e).kind();
                     match op {
                         UnOp::Neg => match *ty {
-                            ty::Int(_) if self.ecx.eval(e).is_none() => self.eagerness |= NoChange,
-                            ty::Int(_) | ty::Float(_) => {},
+                            ty::Int(_) => {
+                                if self.ecx.eval(e).is_some() {
+                                    return Continue(());
+                                }
+                                self.eagerness |= NoChange;
+                            },
+                            ty::Float(_) => {},
                             _ => self.eagerness = Lazy,
                         },
                         UnOp::Deref => match *ty {
@@ -239,32 +244,55 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
                     let same_ty = lhs_ty == rhs_ty;
                     match op.node {
                         BinOpKind::Shl | BinOpKind::Shr => match (lhs_ty.kind(), rhs_ty.kind()) {
-                            (ty::Int(_) | ty::Uint(_), ty::Int(_) | ty::Uint(_)) if self.ecx.eval(rhs).is_none() => {
+                            (ty::Int(_) | ty::Uint(_), ty::Int(_) | ty::Uint(_)) => {
+                                if self.ecx.eval(rhs).is_some() {
+                                    return self.visit_expr(lhs);
+                                }
+                                // Possible over shift or negative shift.
                                 self.eagerness |= NoChange;
                             },
-                            (ty::Int(_) | ty::Uint(_), ty::Int(_) | ty::Uint(_)) => {},
                             _ => self.eagerness = Lazy,
                         },
                         BinOpKind::Div | BinOpKind::Rem => match *lhs_ty.kind() {
-                            ty::Uint(_) if same_ty && self.ecx.eval(rhs).is_none() => self.eagerness |= NoChange,
-                            ty::Int(ty)
-                                if same_ty
-                                    && self.ecx.eval(rhs).is_none_or(|rhs| {
-                                        rhs.to_int(self.ecx.tcx, ty) == Some(-1) && self.ecx.eval(lhs).is_none()
-                                    }) =>
-                            {
+                            ty::Uint(_) if same_ty => {
+                                if self.ecx.eval(rhs).is_some() {
+                                    return self.visit_expr(lhs);
+                                }
+                                // Possible division-by-zero.
                                 self.eagerness |= NoChange;
                             },
-                            ty::Uint(_) | ty::Int(_) | ty::Float(_) if same_ty => {},
+                            ty::Int(ty) if same_ty => {
+                                if let Some(rhs) = self.ecx.eval(rhs) {
+                                    if rhs.to_int(self.ecx.tcx, ty) == Some(-1) {
+                                        if self.ecx.eval(lhs).is_some() {
+                                            return Continue(());
+                                        }
+                                        // Possible overflow.
+                                        self.eagerness |= NoChange;
+                                    }
+                                    return self.visit_expr(lhs);
+                                }
+                                // Possible division-by-zero.
+                                self.eagerness |= NoChange;
+                            },
+                            ty::Float(_) if same_ty => {},
                             _ => self.eagerness = Lazy,
                         },
                         BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul => match *lhs_ty.kind() {
-                            ty::Int(_) | ty::Uint(_)
-                                if same_ty && (self.ecx.eval(lhs).is_none() || self.ecx.eval(rhs).is_none()) =>
-                            {
+                            ty::Int(_) | ty::Uint(_) if same_ty => {
+                                if self.ecx.eval(lhs).is_some() {
+                                    return if self.ecx.eval(rhs).is_some() {
+                                        Continue(())
+                                    } else {
+                                        // Possible overflow.
+                                        self.eagerness |= NoChange;
+                                        self.visit_expr(rhs)
+                                    };
+                                }
+                                // Possible overflow.
                                 self.eagerness |= NoChange;
                             },
-                            ty::Int(_) | ty::Uint(_) | ty::Float(_) if same_ty => {},
+                            ty::Float(_) if same_ty => {},
                             _ => self.eagerness = Lazy,
                         },
                         BinOpKind::BitAnd
