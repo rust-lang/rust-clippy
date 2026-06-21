@@ -1,6 +1,6 @@
 use clippy_utils::res::MaybeResPath;
 use clippy_utils::ty::implements_trait;
-use clippy_utils::visitors::for_each_expr;
+use clippy_utils::visitors::{Descend, for_each_expr};
 use rustc_hir::PatKind;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{Ref, Ty};
@@ -126,15 +126,17 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
         }
 
         // Look whether the candidates call the `.clone()` method anywhere
-        _ = for_each_expr::<(), ()>(cx, fn_body.value, move |x| {
-            match x.kind {
-                rustc_hir::ExprKind::MethodCall(method_name, receiver, args, span)
-                    if method_name.ident.as_str() == "clone"
-                        && args.is_empty()
-                        && let rustc_hir::ExprKind::Path(qpath) = receiver.kind
-                        && let Some(hir_id) = qpath.res_local_id() =>
-                {
-                    self.candidates.iter().for_each(|(original_candidate, rebinds)| {
+        _ = for_each_expr(cx, fn_body.value, move |x| match x.kind {
+            rustc_hir::ExprKind::If(_, _, _) | rustc_hir::ExprKind::Match(_, _, _) => {
+                ControlFlow::<(), Descend>::Continue(Descend::No)
+            },
+            rustc_hir::ExprKind::MethodCall(method_name, receiver, args, span)
+                if method_name.ident.as_str() == "clone"
+                    && args.is_empty()
+                    && let rustc_hir::ExprKind::Path(qpath) = receiver.kind
+                    && let Some(hir_id) = qpath.res_local_id() =>
+            {
+                self.candidates.iter().for_each(|(original_candidate, rebinds)| {
                         if original_candidate.0 == hir_id {
                             clippy_utils::diagnostics::span_lint_and_note(
                                 cx,
@@ -162,11 +164,10 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
                             }
                         }
                     });
-                },
-                _ => (),
-            }
+                ControlFlow::<(), Descend>::Continue(Descend::Yes)
+            },
 
-            ControlFlow::Continue(())
+            _ => ControlFlow::<(), Descend>::Continue(Descend::Yes),
         });
     }
 }
