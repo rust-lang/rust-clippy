@@ -113,6 +113,16 @@ fn partial_clone(
     let cloned = partial_clone_ref.clone_field.clone();
 }
 
+fn dont_check_if_stmts(clone_ref: &IsClone, if_arg: usize) {
+    // #[clippy::dump]
+    if if_arg == 0usize {
+        let should_allow_clone = clone_ref.clone();
+    }
+
+    let should_not_allow_clone = clone_ref.clone();
+    //~^ fn_param_ref_cloned
+}
+
 fn main() {
     let a = IsClone;
     let b = IsClone;
@@ -128,4 +138,5 @@ fn main() {
     let h = std::cell::Cell::new(0);
     set_cell(&h);
     create_cell();
+    dont_check_if_stmts(&a, 0usize);
 }

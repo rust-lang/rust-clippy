@@ -65,5 +65,17 @@ note: the parameter is passed by reference...
 LL | pub fn basic_clone_function(is_not_clone_ref: &IsNotClone, is_clone_ref: &IsClone, is_clone_owned: IsClone) {
    |                                                                          ^^^^^^^^
 
-error: aborting due to 5 previous errors
+error: function gets a parameter by reference, but you later unconditionally clone it
+  --> tests/ui/fn_param_ref_cloned.rs:122:44
+   |
+LL |     let should_not_allow_clone = clone_ref.clone();
+   |                                            ^^^^^^^
+   |
+note: consider passing the reference by value instead
+  --> tests/ui/fn_param_ref_cloned.rs:116:35
+   |
+LL | fn dont_check_if_stmts(clone_ref: &IsClone, if_arg: usize) {
+   |                                   ^^^^^^^^
+
+error: aborting due to 6 previous errors
 
