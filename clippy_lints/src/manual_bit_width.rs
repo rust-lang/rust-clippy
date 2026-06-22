@@ -11,7 +11,7 @@ use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for usage of `T::BITS - x.leading_zeros()`
+    /// Checks for usage of `T::BITS - x.leading_zeros()` where T matches UINT or NonZero<UINT>
     /// when `x.bit_width()` is available.
     ///
     /// ### Why is this bad?

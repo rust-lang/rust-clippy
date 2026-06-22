@@ -1,6 +1,6 @@
 #![warn(clippy::manual_bit_width)]
 
-use core::num::{self, NonZero, NonZeroU32};
+use core::num::{self, NonZero, NonZeroI32, NonZeroU32};
 
 fn main() {
     // `T::BITS - x.leading_zeros()`
@@ -41,4 +41,5 @@ fn main() {
     let _ = i16::BITS - x.leading_zeros();
     let _ = i32::BITS - x.leading_zeros();
     let _ = i64::BITS - x.leading_zeros();
+    let _ = NonZeroI32::BITS - x.leading_zeros();
 }
