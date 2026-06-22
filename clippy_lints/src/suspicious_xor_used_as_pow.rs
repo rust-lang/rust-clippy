@@ -32,16 +32,16 @@ declare_lint_pass!(ConfusingXorAndPow => [SUSPICIOUS_XOR_USED_AS_POW]);
 
 impl LateLintPass<'_> for ConfusingXorAndPow {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {
-        if !expr.span.in_external_macro(cx.sess().source_map())
-            && let ExprKind::Binary(op, left, right) = &expr.kind
+        if let ExprKind::Binary(op, left, right) = &expr.kind
             && op.node == BinOpKind::BitXor
-            && left.span.eq_ctxt(right.span)
             && let ExprKind::Lit(lit_left) = &left.kind
             && let ExprKind::Lit(lit_right) = &right.kind
             && matches!(lit_right.node, LitKind::Int(..) | LitKind::Float(..))
             && matches!(lit_left.node, LitKind::Int(..) | LitKind::Float(..))
+            && left.span.eq_ctxt(right.span)
             && NumericLiteral::from_lit_kind(&snippet(cx, lit_right.span, ".."), &lit_right.node)
                 .is_some_and(|x| x.is_decimal())
+            && !expr.span.in_external_macro(cx.sess().source_map())
         {
             span_lint_and_then(
                 cx,
