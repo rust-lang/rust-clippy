@@ -1,3 +1,4 @@
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::res::MaybeDef as _;
 use hir::FnSig;
 use rustc_errors::Applicability;
@@ -141,7 +142,7 @@ fn check_needless_must_use(
     attrs: &[Attribute],
     sig: &FnSig<'_>,
 ) {
-    if item_span.in_external_macro(cx.sess().source_map()) {
+    if is_in_external_macro(cx.sess(), item_span) {
         return;
     }
     if returns_unit(decl) {
@@ -207,7 +208,7 @@ fn check_must_use_candidate<'tcx>(
 ) {
     if has_mutable_arg(cx, body)
         || mutates_static(cx, body)
-        || item_span.in_external_macro(cx.sess().source_map())
+        || is_in_external_macro(cx.sess(), item_span)
         || returns_unit(decl)
         || !cx.effective_visibilities.is_exported(item_id.def_id)
         || is_must_use_ty(cx, return_ty(cx, item_id))

@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
+use clippy_utils::macros::is_ctxt_in_external_macro;
 use clippy_utils::res::{MaybeDef, MaybeResPath};
 use clippy_utils::source::{snippet_indent, snippet_with_context};
 use clippy_utils::sugg::Sugg;
@@ -212,7 +213,7 @@ fn check_suspicious_swap(cx: &LateContext<'_>, block: &Block<'_>) {
             && let Some((lhs1, rhs1)) = parse(second)
             && let ctxt = first.span.ctxt()
             && ctxt == second.span.ctxt()
-			&& !ctxt.in_external_macro(cx.sess().source_map())
+			&& !is_ctxt_in_external_macro(cx.sess(), ctxt)
             && is_same(cx, ctxt, lhs0, rhs1)
             && is_same(cx, ctxt, lhs1, rhs0)
 			&& !is_same(cx, ctxt, lhs1, rhs1) // Ignore a = b; a = a (#10421)

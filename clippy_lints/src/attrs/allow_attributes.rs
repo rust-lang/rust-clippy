@@ -1,6 +1,7 @@
 use super::ALLOW_ATTRIBUTES;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_from_proc_macro;
+use clippy_utils::macros::is_in_external_macro;
 use rustc_ast::attr::AttributeExt;
 use rustc_ast::{AttrStyle, Attribute};
 use rustc_errors::Applicability;
@@ -8,7 +9,7 @@ use rustc_lint::{EarlyContext, LintContext};
 
 // Separate each crate's features.
 pub fn check<'cx>(cx: &EarlyContext<'cx>, attr: &'cx Attribute) {
-    if !attr.span.in_external_macro(cx.sess().source_map())
+    if !is_in_external_macro(cx.sess(), attr.span)
         && let AttrStyle::Outer = attr.style
         && let Some(path_span) = attr.path_span()
         && !is_from_proc_macro(cx, attr)

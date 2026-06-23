@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint;
+use clippy_utils::macros::is_in_external_macro;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Body, Expr, ExprKind, FnDecl, FnRetTy, TyKind, UnOp};
 use rustc_hir_analysis::lower_ty;
@@ -39,7 +40,7 @@ declare_lint_pass!(UninhabitedReferences => [UNINHABITED_REFERENCES]);
 
 impl LateLintPass<'_> for UninhabitedReferences {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ Expr<'_>) {
-        if expr.span.in_external_macro(cx.tcx.sess.source_map()) {
+        if is_in_external_macro(cx.tcx.sess, expr.span) {
             return;
         }
 
@@ -65,7 +66,7 @@ impl LateLintPass<'_> for UninhabitedReferences {
         span: Span,
         _: LocalDefId,
     ) {
-        if span.in_external_macro(cx.tcx.sess.source_map()) || matches!(kind, FnKind::Closure) {
+        if is_in_external_macro(cx.tcx.sess, span) || matches!(kind, FnKind::Closure) {
             return;
         }
         if let FnRetTy::Return(hir_ty) = fndecl.output

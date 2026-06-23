@@ -156,7 +156,7 @@ mod zst_offset;
 
 use clippy_config::Conf;
 use clippy_utils::consts::{ConstEvalCtxt, Constant};
-use clippy_utils::macros::FormatArgsStorage;
+use clippy_utils::macros::{FormatArgsStorage, is_in_external_macro};
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
 use clippy_utils::{contains_return, iter_input_pats, peel_blocks, sym};
@@ -5193,7 +5193,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
     }
 
     fn check_impl_item(&mut self, cx: &LateContext<'tcx>, impl_item: &'tcx hir::ImplItem<'_>) {
-        if impl_item.span.in_external_macro(cx.sess().source_map()) {
+        if is_in_external_macro(cx.sess(), impl_item.span) {
             return;
         }
 
@@ -5230,7 +5230,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
     }
 
     fn check_trait_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx TraitItem<'_>) {
-        if item.span.in_external_macro(cx.tcx.sess.source_map()) {
+        if is_in_external_macro(cx.tcx.sess, item.span) {
             return;
         }
 

@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::numeric_literal;
 use clippy_utils::source::snippet_opt;
 use rustc_ast::ast::{LitFloatType, LitIntType, LitKind};
@@ -88,7 +89,7 @@ impl<'a, 'tcx> NumericFallbackVisitor<'a, 'tcx> {
 
     /// Check whether a passed literal has potential to cause fallback or not.
     fn check_lit(&self, lit: Lit, lit_ty: Ty<'tcx>, emit_hir_id: HirId) {
-        if !lit.span.in_external_macro(self.cx.sess().source_map())
+        if !is_in_external_macro(self.cx.sess(), lit.span)
             && matches!(self.ty_bounds.last(), Some(ExplicitTyBound(false)))
             && matches!(
                 lit.node,

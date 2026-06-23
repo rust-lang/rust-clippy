@@ -1,5 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::numeric_literal::{NumericLiteral, Radix};
 use clippy_utils::source::SpanExt;
 use rustc_ast::ast::{Expr, ExprKind, LitKind};
@@ -210,7 +211,7 @@ impl EarlyLintPass for LiteralDigitGrouping {
         // `NumericLiteral::from_lit_kind` only accepts integer and float literals.
         if let ExprKind::Lit(lit) = expr.kind
             && matches!(lit.kind, token::LitKind::Integer | token::LitKind::Float)
-            && !expr.span.in_external_macro(cx.sess().source_map())
+            && !is_in_external_macro(cx.sess(), expr.span)
         {
             self.check_lit(cx, lit, expr.span);
         }
@@ -423,7 +424,7 @@ impl EarlyLintPass for DecimalLiteralRepresentation {
         // Only integer tokens can produce `LitKind::Int`.
         if let ExprKind::Lit(lit) = expr.kind
             && lit.kind == token::LitKind::Integer
-            && !expr.span.in_external_macro(cx.sess().source_map())
+            && !is_in_external_macro(cx.sess(), expr.span)
         {
             self.check_lit(cx, lit, expr.span);
         }

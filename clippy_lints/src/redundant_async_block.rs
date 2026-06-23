@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::source::{snippet, walk_span_to_context};
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{desugar_await, peel_blocks};
@@ -42,7 +43,7 @@ declare_lint_pass!(RedundantAsyncBlock => [REDUNDANT_ASYNC_BLOCK]);
 impl<'tcx> LateLintPass<'tcx> for RedundantAsyncBlock {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         let span = expr.span;
-        if !span.in_external_macro(cx.tcx.sess.source_map()) &&
+        if !is_in_external_macro(cx.tcx.sess, span) &&
             let Some(body_expr) = desugar_async_block(cx, expr) &&
             let Some(expr) = desugar_await(peel_blocks(body_expr)) &&
             // The await prefix must not come from a macro as its content could change in the future.

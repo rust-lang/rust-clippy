@@ -6,6 +6,7 @@ use clippy_config::types::{
 };
 use clippy_utils::diagnostics::span_lint_and_note;
 use clippy_utils::is_cfg_test;
+use clippy_utils::macros::is_in_external_macro;
 use rustc_hir::attrs::AttributeKind;
 use rustc_hir::{
     Attribute, FieldDef, HirId, ImplItemId, IsAuto, Item, ItemKind, Mod, OwnerId, QPath, TraitItemId, TyKind, Variant,
@@ -277,7 +278,7 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
             ItemKind::Enum(_, _generics, enum_def) if self.enable_ordering_for_enum => {
                 let mut cur_v: Option<&Variant<'_>> = None;
                 for variant in enum_def.variants {
-                    if variant.span.in_external_macro(cx.sess().source_map()) {
+                    if is_in_external_macro(cx.sess(), variant.span) {
                         continue;
                     }
 
@@ -293,7 +294,7 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
             ItemKind::Struct(_, _generics, VariantData::Struct { fields, .. }) if self.enable_ordering_for_struct => {
                 let mut cur_f: Option<&FieldDef<'_>> = None;
                 for field in *fields {
-                    if field.span.in_external_macro(cx.sess().source_map()) {
+                    if is_in_external_macro(cx.sess(), field.span) {
                         continue;
                     }
 
@@ -321,7 +322,7 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
                 for &item in *item_ref {
                     let span = cx.tcx.def_span(item.owner_id);
                     let ident = cx.tcx.item_ident(item.owner_id);
-                    if span.in_external_macro(cx.sess().source_map()) {
+                    if is_in_external_macro(cx.sess(), span) {
                         continue;
                     }
 
@@ -346,7 +347,7 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
                 for &item in trait_impl.items {
                     let span = cx.tcx.def_span(item.owner_id);
                     let ident = cx.tcx.item_ident(item.owner_id);
-                    if span.in_external_macro(cx.sess().source_map()) {
+                    if is_in_external_macro(cx.sess(), span) {
                         continue;
                     }
 
@@ -394,7 +395,7 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
                 continue;
             }
 
-            if item.span.in_external_macro(cx.sess().source_map()) {
+            if is_in_external_macro(cx.sess(), item.span) {
                 continue;
             }
 

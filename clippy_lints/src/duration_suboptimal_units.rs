@@ -1,3 +1,4 @@
+use clippy_utils::macros::is_in_external_macro;
 use std::ops::ControlFlow;
 
 use clippy_config::Conf;
@@ -71,7 +72,7 @@ impl DurationSuboptimalUnits {
 
 impl LateLintPass<'_> for DurationSuboptimalUnits {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ Expr<'_>) {
-        if !expr.span.in_external_macro(cx.sess().source_map())
+        if !is_in_external_macro(cx.sess(), expr.span)
             // Check if a function on std::time::Duration is called
             && let ExprKind::Call(func, [arg]) = expr.kind
             && let ExprKind::Path(QPath::TypeRelative(func_ty, func_name)) = func.kind

@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::higher::{VecInitKind, get_vec_init_kind};
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::res::MaybeResPath;
 use clippy_utils::source::snippet;
 use clippy_utils::visitors::for_each_local_use_after_expr;
@@ -158,7 +159,7 @@ impl<'tcx> LateLintPass<'tcx> for VecInitThenPush {
     fn check_local(&mut self, cx: &LateContext<'tcx>, local: &'tcx LetStmt<'tcx>) {
         if let Some(init_expr) = local.init
             && let PatKind::Binding(BindingMode::MUT, id, name, None) = local.pat.kind
-            && !local.span.in_external_macro(cx.sess().source_map())
+            && !is_in_external_macro(cx.sess(), local.span)
             && let Some(init) = get_vec_init_kind(cx, init_expr)
             && !matches!(init, VecInitKind::WithExprCapacity(_))
         {
@@ -181,7 +182,7 @@ impl<'tcx> LateLintPass<'tcx> for VecInitThenPush {
             && let ExprKind::Path(QPath::Resolved(None, path)) = left.kind
             && let [name] = &path.segments
             && let Res::Local(id) = path.res
-            && !expr.span.in_external_macro(cx.sess().source_map())
+            && !is_in_external_macro(cx.sess(), expr.span)
             && let Some(init) = get_vec_init_kind(cx, right)
             && !matches!(init, VecInitKind::WithExprCapacity(_))
         {

@@ -2,6 +2,7 @@ use clippy_config::Conf;
 use clippy_utils::consts::ConstEvalCtxt;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_from_proc_macro;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeResPath;
 use clippy_utils::source::SpanExt;
@@ -142,7 +143,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualFloatMethods {
             // 16 possible alignments of constants/operands. For now, let's use `partition`.
             && let mut exprs = [lhs_lhs, lhs_rhs, rhs_lhs, rhs_rhs]
             && exprs.iter_mut().partition_in_place(|i| i.res_local_id().is_some()) == 2
-            && !expr.span.in_external_macro(cx.sess().source_map())
+            && !is_in_external_macro(cx.sess(), expr.span)
             && (
                 is_not_const(cx.tcx, cx.tcx.hir_enclosing_body_owner(expr.hir_id).into())
                     || self.msrv.meets(cx, msrvs::CONST_FLOAT_CLASSIFY)

@@ -1,3 +1,4 @@
+use clippy_utils::macros::is_in_external_macro;
 use std::{fmt, ops};
 
 use clippy_config::Conf;
@@ -9,7 +10,7 @@ use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Body, FnDecl};
 use rustc_lexer::is_ident;
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::impl_lint_pass;
 use rustc_span::{Span, SyntaxContext};
 
@@ -232,7 +233,7 @@ impl<'tcx> LateLintPass<'tcx> for LargeStackFrames {
                     return;
                 }
 
-                let is_from_external_macro = fn_span.in_external_macro(cx.tcx.sess.source_map());
+                let is_from_external_macro = is_in_external_macro(cx.sess(), fn_span);
                 span_lint_and_then(
                     cx,
                     LARGE_STACK_FRAMES,

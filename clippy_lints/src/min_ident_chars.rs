@@ -1,6 +1,7 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::is_from_proc_macro;
+use clippy_utils::macros::is_in_external_macro;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::intravisit::{Visitor, walk_item, walk_trait_item};
@@ -63,7 +64,7 @@ impl MinIdentChars {
 
     #[expect(clippy::cast_possible_truncation)]
     fn is_ident_too_short(&self, cx: &LateContext<'_>, str: &str, span: Span) -> bool {
-        !span.in_external_macro(cx.sess().source_map())
+        !is_in_external_macro(cx.sess(), span)
             && str.len() <= self.min_ident_chars_threshold as usize
             && !str.starts_with('_')
             && !str.is_empty()
