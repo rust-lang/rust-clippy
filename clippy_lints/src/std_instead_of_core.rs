@@ -3,10 +3,12 @@ use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_sugg};
 use clippy_utils::is_from_proc_macro;
 use clippy_utils::msrvs::Msrv;
 use clippy_utils::paths::{PathNS, lookup_path};
+use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::{Applicability, MultiSpan};
+use rustc_hir::attrs::AttributeKind;
 use rustc_hir::def::{DefKind, Namespace, Res};
 use rustc_hir::def_id::DefId;
-use rustc_hir::{Block, Body, HirId, Path, PathSegment, StabilityLevel, StableSince};
+use rustc_hir::{Attribute, Block, Body, HirId, Item, ItemKind, Node, Path, PathSegment, StabilityLevel, StableSince};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::impl_lint_pass;
 use rustc_span::symbol::kw;
@@ -255,7 +257,18 @@ fn emit_lints(cx: &LateContext<'_>, lint_points: Option<(Span, Vec<LintPoint>)>)
         }
     }
 
+    let extern_prelude = extern_prelude(cx);
+
     for (lint, used_mod, replace_with) in suggestions {
+        // If the target crate isn't in the extern crate prelude,
+        // the suggestion is likely to fail.
+        // It's possible it could still work (e.g., extern crate in a local scope),
+        // but we'll be cautious and downgrade from a suggestion to a help.
+        if !extern_prelude.contains(replace_with) {
+            helps.push((lint, used_mod, replace_with, krate_span.into()));
+            continue;
+        }
+
         span_lint_and_sugg(
             cx,
             lint,
@@ -323,4 +336,44 @@ fn is_stable(cx: &LateContext<'_>, mut def_id: DefId, msrv: Msrv) -> bool {
             None => return true,
         }
     }
+}
+
+fn extern_prelude(cx: &LateContext<'_>) -> FxHashSet<Symbol> {
+    let mut extern_prelude = cx
+        .tcx
+        .hir_root_module()
+        .item_ids
+        .iter()
+        .filter_map(|item| match cx.tcx.hir_node(item.hir_id()) {
+            Node::Item(Item {
+                kind: ItemKind::ExternCrate(original_name, ident),
+                ..
+            }) => Some(original_name.unwrap_or(ident.name)),
+            _ => None,
+        })
+        .collect::<FxHashSet<_>>();
+
+    let implicit_core = !cx.tcx.hir_krate_attrs().iter().any(|attr| {
+        matches!(
+            attr,
+            Attribute::Parsed(AttributeKind::NoCore | AttributeKind::NoImplicitPrelude)
+        )
+    });
+
+    if implicit_core {
+        extern_prelude.insert(sym::core);
+    }
+
+    let implicit_std = !cx.tcx.hir_krate_attrs().iter().any(|attr| {
+        matches!(
+            attr,
+            Attribute::Parsed(AttributeKind::NoStd | AttributeKind::NoImplicitPrelude)
+        )
+    });
+
+    if implicit_std {
+        extern_prelude.insert(sym::std);
+    }
+
+    extern_prelude
 }
