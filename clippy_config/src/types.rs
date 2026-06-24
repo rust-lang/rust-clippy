@@ -13,6 +13,7 @@ use rustc_middle::ty::TyCtxt;
 use rustc_session::Session;
 use rustc_span::{Span, Spanned, Symbol};
 use std::collections::HashMap;
+use std::hash::BuildHasher;
 
 macro_rules! concat_expr {
     ($($e:expr)*) => {
@@ -225,6 +226,48 @@ impl Deserialize for DisallowedPath<true> {
             dcx.span_err(value.span(), "expected either a string or an inline table");
             None
         }
+    }
+}
+
+/// A named group of disallowed items, selected per item with
+/// `#[clippy::disallowed_profile(s)]`.
+#[derive(Default)]
+pub struct DisallowedProfile {
+    pub disallowed_methods: Vec<DisallowedPath>,
+    pub disallowed_types: Vec<DisallowedPath>,
+}
+
+impl Deserialize for DisallowedProfile {
+    fn deserialize(dcx: &DiagCtxt<'_>, value: &TomlValue<'_>) -> Option<Self> {
+        let Some(table) = value.as_ref().as_table() else {
+            dcx.span_err(value.span(), "expected a table");
+            return None;
+        };
+        deserialize_table!(dcx, table,
+            disallowed_methods("disallowed-methods"): Vec<DisallowedPath>,
+            disallowed_types("disallowed-types"): Vec<DisallowedPath>,
+        );
+        Some(DisallowedProfile {
+            disallowed_methods: disallowed_methods.unwrap_or_default(),
+            disallowed_types: disallowed_types.unwrap_or_default(),
+        })
+    }
+}
+
+impl<S: Default + BuildHasher> Deserialize for HashMap<String, DisallowedProfile, S> {
+    fn deserialize(dcx: &DiagCtxt<'_>, value: &TomlValue<'_>) -> Option<Self> {
+        let Some(table) = value.as_ref().as_table() else {
+            dcx.span_err(value.span(), "expected a table of named profiles");
+            return None;
+        };
+        Some(
+            table
+                .iter()
+                .filter_map(|(name, profile)| {
+                    DisallowedProfile::deserialize(dcx, profile).map(|p| (name.get_ref().to_string(), p))
+                })
+                .collect(),
+        )
     }
 }
 

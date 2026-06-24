@@ -234,6 +234,15 @@ impl<T, S: Default> FromDefault<()> for HashSet<T, S> {
     }
 }
 
+impl<K, V, S: Default> FromDefault<()> for HashMap<K, V, S> {
+    fn from_default((): ()) -> Self {
+        HashMap::default()
+    }
+    fn display_default((): ()) -> impl Display {
+        "{}"
+    }
+}
+
 struct DisplaySlice<T: 'static, U>(&'static [T], PhantomData<U>);
 impl<T, U> Display for DisplaySlice<T, U>
 where
