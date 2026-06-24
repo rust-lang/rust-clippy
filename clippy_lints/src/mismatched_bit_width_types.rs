@@ -5,7 +5,7 @@ use clippy_utils::{is_from_proc_macro, sym};
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
-use rustc_middle::ty::Ty;
+use rustc_middle::ty::{self, Ty};
 use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
@@ -60,6 +60,18 @@ impl LateLintPass<'_> for MismatchedBitWidthType {
                     && segment.ident.name == sym::BITS
                     && let ty = cx.typeck_results().expr_ty(recv)
                     && cx.typeck_results().node_type(hir_ty.hir_id) != ty
+                    && match ty.kind() {
+                        // usize::BITS or uint::BITS
+                        ty::Uint(_) => true,
+                        // NonZero::<uint>::BITS
+                        ty::Adt(adt, args)
+                            if cx.tcx.is_diagnostic_item(sym::NonZero, adt.did())
+                                && let ty::Uint(_) = args.type_at(0).kind() =>
+                        {
+                            true
+                        },
+                        _ => return,
+                    }
                     && self.msrv.meets(cx, msrvs::BIT_WIDTH)
                     && left.span.eq_ctxt(right.span)
                     && !is_from_proc_macro(cx, expr) =>

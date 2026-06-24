@@ -20,8 +20,15 @@ fn main() {
     let _ = NonZeroI32::BITS - x.leading_zeros(); //~ mismatched_bit_width_type
 
     // negative cases
+    // where types matches
     let _ = i32::BITS - 5i32.leading_zeros();
     let _ = u32::BITS - 5u32.leading_zeros();
     let _ = usize::BITS - 5usize.leading_zeros();
     let _ = NonZeroU32::BITS - x.leading_zeros();
+
+    // where type mismatches but x is signed
+    let _ = i32::BITS - 5i32.leading_zeros();
+    let _ = u32::BITS - 5i32.leading_zeros();
+    let _ = usize::BITS - 5isize.leading_zeros();
+    let _ = NonZeroU32::BITS - NonZeroI32::new(5).unwrap().leading_zeros();
 }
