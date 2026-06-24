@@ -10,7 +10,7 @@ use rustc_hir::{Block, Body, HirId, Path, PathSegment, StabilityLevel, StableSin
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::impl_lint_pass;
 use rustc_span::symbol::kw;
-use rustc_span::{Span, Symbol, sym};
+use rustc_span::{DUMMY_SP, Ident, Span, Symbol, sym};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -134,7 +134,6 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
             && !matches!(def_kind, DefKind::Macro(_))
             && let Some(last_segment) = path.segments.last()
             && let Res::Def(DefKind::Mod, crate_def_id) = first_segment.res
-            && crate_def_id.is_crate_root()
         {
             let namespace = match def_kind.ns() {
                 Some(Namespace::TypeNS) => PathNS::Type,
@@ -150,6 +149,16 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
                 .skip_while(|&segment| segment == kw::PathRoot)
                 .collect::<Vec<_>>();
 
+            let used_from = if crate_def_id.is_crate_root() {
+                first_segment.ident
+            } else {
+                let mut base_path = cx.get_def_path(crate_def_id);
+                base_path.pop();
+                base_path.extend_from_slice(&path_new);
+                path_new = base_path;
+                Ident::new(path_new[0], DUMMY_SP)
+            };
+
             path_new[0] = sym::core;
             let available_from_core = lookup_path(cx.tcx, namespace, &path_new).contains(&def_id);
 
@@ -158,10 +167,10 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
 
             self.lint_if_finish(
                 cx,
-                first_segment.ident.span,
+                used_from.span,
                 LintPoint {
                     span: last_segment.ident.span,
-                    used_from: first_segment.ident.name,
+                    used_from: used_from.name,
                     is_stable: is_stable(cx, def_id, self.msrv),
                     available_from_core,
                     available_from_alloc,
@@ -211,8 +220,8 @@ fn emit_lints(cx: &LateContext<'_>, lint_points: Option<(Span, Vec<LintPoint>)>)
     let mut alloc_span = MultiSpan::new();
     let mut all_from_std = true;
     let mut all_from_alloc = true;
-    let mut all_core = true;
-    let mut all_alloc = true;
+    let mut all_core = !krate_span.is_dummy();
+    let mut all_alloc = !krate_span.is_dummy();
 
     for lint_point in lint_points {
         all_from_std &= lint_point.used_from == sym::std;
