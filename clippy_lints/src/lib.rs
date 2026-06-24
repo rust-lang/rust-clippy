@@ -235,6 +235,7 @@ mod min_ident_chars;
 mod minmax;
 mod misc;
 mod misc_early;
+mod mismatched_bit_width_types;
 mod mismatching_type_param_order;
 mod missing_assert_message;
 mod missing_asserts_for_indexing;
@@ -737,6 +738,7 @@ rustc_lint::late_lint_methods!(
         ReturnSelfNotMustUse: return_self_not_must_use::ReturnSelfNotMustUse = return_self_not_must_use::ReturnSelfNotMustUse,
         NumberedFields: init_numbered_fields::NumberedFields = init_numbered_fields::NumberedFields,
         ManualBitWidth: manual_bit_width::ManualBitWidth = manual_bit_width::ManualBitWidth::new(conf),
+        MismatchedBitWidthType: mismatched_bit_width_types::MismatchedBitWidthType = mismatched_bit_width_types::MismatchedBitWidthType::new(conf),
         ManualBits: manual_bits::ManualBits = manual_bits::ManualBits::new(conf),
         DefaultUnionRepresentation: default_union_representation::DefaultUnionRepresentation = default_union_representation::DefaultUnionRepresentation,
         OnlyUsedInRecursion: only_used_in_recursion::OnlyUsedInRecursion = <only_used_in_recursion::OnlyUsedInRecursion>::default(),

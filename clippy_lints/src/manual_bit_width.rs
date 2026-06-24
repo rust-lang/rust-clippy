@@ -60,8 +60,6 @@ impl LateLintPass<'_> for ManualBitWidth {
                     && let ExprKind::Path(QPath::TypeRelative(hir_ty, segment)) = left.kind
                     && segment.ident.name == sym::BITS
                     && let ty = cx.typeck_results().node_type(hir_ty.hir_id)
-                    // TODO: If the types don't match, then this might be a buggy implementation of bit_width. Consider adding a separate, suspicious lint for that.
-                    // See: https://github.com/rust-lang/rust-clippy/pull/16902#discussion_r3412814226
                     && cx.typeck_results().expr_ty(recv) == ty
                     && let is_nonzero = match ty.kind() {
                         // usize::BITS or uint::BITS

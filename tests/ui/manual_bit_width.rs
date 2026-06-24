@@ -30,16 +30,12 @@ fn main() {
     // negative cases.
 
     // left expression is a literal
-    let z: u32 = 1_000_000 - x.leading_zeros();
-
-    // left expression and right expression have different calling types
-    // this should be handled by another lint
-    let _ = u64::BITS - z.leading_zeros();
+    let _: u32 = 1_000_000 - x.leading_zeros();
 
     // signed integers do not implement `bit_width()`
-    let _ = i8::BITS - x.leading_zeros();
-    let _ = i16::BITS - x.leading_zeros();
-    let _ = i32::BITS - x.leading_zeros();
-    let _ = i64::BITS - x.leading_zeros();
-    let _ = NonZeroI32::BITS - x.leading_zeros();
+    let _ = i8::BITS - 5i8.leading_zeros();
+    let _ = i16::BITS - 5i16.leading_zeros();
+    let _ = i32::BITS - 5i32.leading_zeros();
+    let _ = i64::BITS - 5i64.leading_zeros();
+    let _ = NonZeroI32::BITS - NonZeroI32::new(5).unwrap().leading_zeros();
 }

@@ -1,0 +1,27 @@
+#![warn(clippy::mismatched_bit_width_type)]
+
+use core::num::{self, NonZero, NonZeroI32, NonZeroU32};
+
+fn main() {
+    let x: u32 = 5;
+
+    let _ = u32::BITS - x.leading_zeros(); //~ mismatched_bit_width_type
+    let _ = u32::BITS - x.leading_zeros(); //~ mismatched_bit_width_type
+    let _ = u32::BITS - x.leading_zeros(); //~ mismatched_bit_width_type
+    let _ = u32::BITS - x.leading_zeros(); //~ mismatched_bit_width_type
+
+    let _ = u32::BITS - x.leading_zeros(); //~ mismatched_bit_width_type
+    let _ = u32::BITS - x.leading_zeros(); //~ mismatched_bit_width_type
+    let _ = u32::BITS - x.leading_zeros(); //~ mismatched_bit_width_type
+    let _ = u32::BITS - x.leading_zeros(); //~ mismatched_bit_width_type
+
+    let x = NonZeroU32::new(5).unwrap();
+    let _ = std::num::NonZero::<u32>::BITS - x.leading_zeros(); //~ mismatched_bit_width_type
+    let _ = std::num::NonZero::<u32>::BITS - x.leading_zeros(); //~ mismatched_bit_width_type
+
+    // negative cases
+    let _ = i32::BITS - 5i32.leading_zeros();
+    let _ = u32::BITS - 5u32.leading_zeros();
+    let _ = usize::BITS - 5usize.leading_zeros();
+    let _ = NonZeroU32::BITS - x.leading_zeros();
+}
