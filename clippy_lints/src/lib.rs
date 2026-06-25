@@ -382,6 +382,7 @@ mod unnecessary_mut_passed;
 mod unnecessary_owned_empty_strings;
 mod unnecessary_self_imports;
 mod unnecessary_semicolon;
+mod unnecessary_std_linkage;
 mod unnecessary_struct_initialization;
 mod unnecessary_wraps;
 mod unneeded_struct_pattern;
@@ -866,6 +867,7 @@ rustc_lint::late_lint_methods!(
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
         RedundantElse: redundant_else::RedundantElse = redundant_else::RedundantElse,
         RestWhenDestructuringStruct: rest_when_destructuring_struct::RestWhenDestructuringStruct = rest_when_destructuring_struct::RestWhenDestructuringStruct,
+        UnnecessaryStdLinkage: unnecessary_std_linkage::UnnecessaryStdLinkage = unnecessary_std_linkage::UnnecessaryStdLinkage::new(conf),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
