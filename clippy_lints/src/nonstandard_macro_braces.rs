@@ -3,13 +3,16 @@ use clippy_config::types::MacroMatcher;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::{SourceText, SpanExt};
 use rustc_ast::ast;
-use rustc_data_structures::fx::{FxHashMap, FxHashSet};
+use rustc_ast::token::{Delimiter, Token, TokenKind};
+use rustc_ast::tokenstream::{TokenStream, TokenTree};
+use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
-use rustc_hir::def_id::DefId;
 use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_session::impl_lint_pass;
 use rustc_span::Span;
-use rustc_span::hygiene::{ExpnKind, MacroKind};
+
+use crate::rustc_lint::LintContext;
+use clippy_utils::source::snippet_opt;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -29,41 +32,36 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.55.0"]
     pub NONSTANDARD_MACRO_BRACES,
-    nursery,
+    correctness,
     "check consistent use of braces in macro"
 }
 
 impl_lint_pass!(MacroBraces => [NONSTANDARD_MACRO_BRACES]);
 
-struct MacroInfo {
-    callsite_span: Span,
-    callsite_snippet: SourceText,
-    old_open_brace: char,
-    braces: (char, char),
-}
-
 pub struct MacroBraces {
-    macro_braces: FxHashMap<String, (char, char)>,
-    done: FxHashSet<Span>,
+    macro_braces: (FxHashMap<String, (char, char)>, usize),
+    /// Spans for statement macro calls, they have special behaviour with semicolons
+    mac_stmt_spans: Vec<Span>,
 }
 
 impl MacroBraces {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
             macro_braces: macro_braces(&conf.standard_macro_braces),
-            done: FxHashSet::default(),
+            mac_stmt_spans: Vec::new(),
         }
     }
 }
 
 impl EarlyLintPass for MacroBraces {
-    fn check_item(&mut self, cx: &EarlyContext<'_>, item: &ast::Item) {
-        if let Some(MacroInfo {
-            callsite_span,
-            callsite_snippet,
-            braces,
-            ..
-        }) = is_offending_macro(cx, item.span, self)
+    fn check_mac(&mut self, cx: &EarlyContext<'_>, mac: &ast::MacCall) {
+        if let Some(last_segment) = mac.path.segments.last()
+            && let name = last_segment.ident.as_str()
+            && let Some(&braces) = self.macro_braces.0.get(name)
+            && let Some(snip) = snippet_opt(cx.sess(), mac.span().with_lo(last_segment.span().lo()))
+            && let Some(macro_args_str) = &snip.strip_prefix(name).and_then(|snip| snip.strip_prefix('!'))
+            && let Some(old_open_brace @ ('{' | '(' | '[')) = macro_args_str.trim_start().chars().next()
+            && old_open_brace != braces.0
         {
             emit_help(cx, &callsite_snippet, braces, callsite_span, false);
             self.done.insert(callsite_span);
@@ -143,13 +141,78 @@ fn is_offending_macro(cx: &EarlyContext<'_>, span: Span, mac_braces: &MacroBrace
                 callsite_snippet: snip,
                 old_open_brace,
                 braces,
-            });
+                mac.span(),
+                add_semi,
+            );
         }
-
-        ctxt = expn_data.call_site.ctxt();
     }
 
-    None
+    // See issue #9913
+    fn check_stmt(&mut self, _: &EarlyContext<'_>, stmt: &ast::Stmt) {
+        if let ast::StmtKind::MacCall(mac_callstmt) = &stmt.kind
+            && let ast::MacCallStmt {
+                style: ast::MacStmtStyle::Braces,
+                ..
+            } = **mac_callstmt
+        {
+            self.mac_stmt_spans.push(mac_callstmt.mac.span());
+        }
+    }
+
+    fn check_mac_def(&mut self, cx: &EarlyContext<'_>, mac: &ast::MacroDef) {
+        fn check_ts(cx: &EarlyContext<'_>, ts: &TokenStream, macro_braces: &FxHashMap<String, (char, char)>) {
+            let ts = ts.iter().collect::<Vec<_>>();
+            for (i, x) in ts.iter().enumerate() {
+                if let TokenTree::Delimited(_, _, _, token_stream) = x {
+                    // Peel extra braces and parenthesis in macros!
+                    check_ts(cx, token_stream, macro_braces);
+                } else
+                //        |-TokenKind::Bang
+                //        v
+                // println! { "Hi" }
+                // ^^^^^^^ tident
+                //          ^^^^^^^^ Delimited always comes 1 token after TokenKind::Bang
+                if let TokenTree::Token(
+                    Token {
+                        kind: TokenKind::Ident(tident, _),
+                        span,
+                    },
+                    _,
+                ) = x
+                    && let Some(peekable) = ts.get(i + 1)
+                    && let TokenTree::Token(
+                        Token {
+                            kind: TokenKind::Bang, ..
+                        },
+                        _,
+                    ) = *peekable
+                    && let Some(TokenTree::Delimited(_, _, delim, _)) = ts.get(i + 2)
+                    && let Some(snip) = snippet_opt(cx.sess(), span.with_hi(ts.get(i + 2).unwrap().span().hi()))
+                    && let Some(&braces) = macro_braces.get(tident.as_str())
+                    && let Some(old_open_brace) = match delim {
+                        Delimiter::Brace => Some('{'),
+                        Delimiter::Parenthesis => Some('('),
+                        Delimiter::Bracket => Some('['),
+                        Delimiter::Invisible(_) => None,
+                    }
+                    && old_open_brace != braces.0
+                {
+                    emit_help(
+                        cx,
+                        &snip,
+                        braces,
+                        // Span from tident to delimited (so, the full macro call)
+                        span.with_hi(ts.get(i + 2).unwrap().span().hi()),
+                        false,
+                    );
+                }
+            }
+        }
+
+        if mac.macro_rules {
+            check_ts(cx, &mac.body.tokens, &self.macro_braces.0);
+        }
+    }
 }
 
 fn emit_help(cx: &EarlyContext<'_>, snip: &str, (open, close): (char, char), span: Span, add_semi: bool) {
@@ -171,17 +234,17 @@ fn emit_help(cx: &EarlyContext<'_>, snip: &str, (open, close): (char, char), spa
     }
 }
 
-fn macro_braces(conf: &[MacroMatcher]) -> FxHashMap<String, (char, char)> {
+fn macro_braces(conf: &[MacroMatcher]) -> (FxHashMap<String, (char, char)>, usize) {
     let mut braces = FxHashMap::from_iter(
         [
-            ("print", ('(', ')')),
-            ("println", ('(', ')')),
-            ("eprint", ('(', ')')),
-            ("eprintln", ('(', ')')),
-            ("write", ('(', ')')),
-            ("writeln", ('(', ')')),
             ("format", ('(', ')')),
             ("format_args", ('(', ')')),
+            ("eprint", ('(', ')')),
+            ("eprintln", ('(', ')')),
+            ("print", ('(', ')')),
+            ("println", ('(', ')')),
+            ("write", ('(', ')')),
+            ("writeln", ('(', ')')),
             ("vec", ('[', ']')),
             ("matches", ('(', ')')),
         ]
@@ -191,5 +254,20 @@ fn macro_braces(conf: &[MacroMatcher]) -> FxHashMap<String, (char, char)> {
     for it in conf {
         braces.insert(it.name.clone(), it.braces);
     }
-    braces
+
+    // format_args is the current
+    #[expect(rustc::potential_query_instability)]
+    let max_len = if conf.is_empty() {
+        "format_args".len()
+    } else {
+        braces.iter().fold("format_ags".len(), |max_len, macro_name| {
+            if macro_name.0.len() > max_len {
+                macro_name.0.len()
+            } else {
+                max_len
+            }
+        })
+    };
+
+    (braces, max_len)
 }

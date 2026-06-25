@@ -1,4 +1,8 @@
-#![allow(clippy::match_single_binding, clippy::unnecessary_trailing_comma)]
+#![allow(
+    clippy::match_single_binding,
+    clippy::unnecessary_trailing_comma,
+    clippy::nonstandard_macro_braces
+)]
 
 fn main() {
     println!();
