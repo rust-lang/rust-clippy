@@ -1,5 +1,5 @@
 error: unnecessary rest pattern (`..`)
-  --> tests/ui/unnecessary_rest_pattern.rs:32:9
+  --> tests/ui/unnecessary_rest_pattern.rs:38:9
    |
 LL |     let S { a, b, c, .. } = s;
    |         ^^^^^^^^^^^^^^^^^
@@ -13,7 +13,7 @@ LL +     let S { a, b, c,  } = s;
    |
 
 error: unnecessary rest pattern (`..`)
-  --> tests/ui/unnecessary_rest_pattern.rs:39:9
+  --> tests/ui/unnecessary_rest_pattern.rs:45:9
    |
 LL |         E::B { b1, b2, .. } => (),
    |         ^^^^^^^^^^^^^^^^^^^
@@ -25,7 +25,7 @@ LL +         E::B { b1, b2,  } => (),
    |
 
 error: unnecessary rest pattern (`..`)
-  --> tests/ui/unnecessary_rest_pattern.rs:41:9
+  --> tests/ui/unnecessary_rest_pattern.rs:47:9
    |
 LL |         E::C { .. } => (),
    |         ^^^^^^^^^^^
@@ -36,5 +36,17 @@ LL -         E::C { .. } => (),
 LL +         E::C {  } => (),
    |
 
-error: aborting due to 3 previous errors
+error: unnecessary rest pattern (`..`)
+  --> tests/ui/unnecessary_rest_pattern.rs:80:9
+   |
+LL |     let LocalNonExhaustive { field: _, .. } = ne;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the unnecessary rest pattern (`..`)
+   |
+LL -     let LocalNonExhaustive { field: _, .. } = ne;
+LL +     let LocalNonExhaustive { field: _,  } = ne;
+   |
+
+error: aborting due to 4 previous errors
 

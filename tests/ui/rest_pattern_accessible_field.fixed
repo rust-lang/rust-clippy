@@ -3,12 +3,18 @@
 #![warn(clippy::rest_pattern_accessible_field)]
 #![allow(clippy::unneeded_wildcard_pattern)]
 
-use non_exhaustive_struct::NonExhaustiveStruct;
+use non_exhaustive_struct::{NonExhaustiveStruct, NonExhaustiveStructNoPrivateFields};
 
 struct S {
     a: u8,
     b: u8,
     c: u8,
+}
+
+#[derive(Default)]
+#[non_exhaustive]
+struct LocalNonExhaustive {
+    field: i32,
 }
 
 enum E {
@@ -75,6 +81,23 @@ fn main() {
     let NonExhaustiveStruct {
         field1: _, field2: _, ..
     } = ne;
+
+    let ne = NonExhaustiveStructNoPrivateFields::default();
+    let NonExhaustiveStructNoPrivateFields { field: _, .. } = ne;
+    //~^ rest_pattern_accessible_field
+
+    let ne = NonExhaustiveStructNoPrivateFields::default();
+    let NonExhaustiveStructNoPrivateFields { field: _, .. } = ne;
+
+    let ne = LocalNonExhaustive::default();
+    let LocalNonExhaustive { field: _ } = ne;
+
+    let ne = LocalNonExhaustive::default();
+    let LocalNonExhaustive { field: _, .. } = ne;
+
+    let ne = LocalNonExhaustive::default();
+    let LocalNonExhaustive { field: _ } = ne;
+    //~^ rest_pattern_accessible_field
 
     use m::Sm;
 
