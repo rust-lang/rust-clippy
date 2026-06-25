@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_from_proc_macro;
+use rustc_errors::Applicability;
 use rustc_lint::LateLintPass;
 use rustc_middle::ty;
 use rustc_session::declare_lint_pass;
@@ -10,7 +11,7 @@ declare_clippy_lint! {
     /// ### What it does
     /// Disallow the use of rest patterns for accesible fields
     ///
-    /// ### Why is this bad?
+    /// ### Why restrict this?
     /// It might lead to unhandled fields when the struct changes.
     ///
     /// ### Example
@@ -37,17 +38,17 @@ declare_clippy_lint! {
     ///
     /// let S { a, b, c: _ } = s;
     /// ```
-    #[clippy::version = "1.94.0"]
+    #[clippy::version = "1.98.0"]
     pub REST_PATTERN_ACCESSIBLE_FIELD,
     restriction,
-    "rest (..) used for accessible field"
+    "rest pattern (`..`) used for accessible field"
 }
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Disallow the use of rest patterns that are unnecessary.
+    /// Disallow the use of rest patterns that don't capture any fields.
     ///
-    /// ### Why is this bad?
+    /// ### Why restrict this?
     /// It might lead to unhandled fields when the struct changes.
     ///
     /// ### Example
@@ -74,10 +75,10 @@ declare_clippy_lint! {
     ///
     /// let S { a, b, c } = s;
     /// ```
-    #[clippy::version = "1.94.0"]
+    #[clippy::version = "1.98.0"]
     pub UNNECESSARY_REST_PATTERN,
     restriction,
-    "unnecessary rest (..) in destructuring expression"
+    "unnecessary rest pattern (`..`) in destructuring expression"
 }
 
 declare_lint_pass!(RestWhenDestructuringStruct => [
@@ -116,7 +117,7 @@ impl<'tcx> LateLintPass<'tcx> for RestWhenDestructuringStruct {
             }
 
             // Filter out results from macros
-            if ((missing_suggestions.is_empty() && !needs_dotdot) || !missing_suggestions.is_empty())
+            if (!needs_dotdot || !missing_suggestions.is_empty())
                 && pat.span.in_external_macro(cx.tcx.sess.source_map())
                 || is_from_proc_macro(cx, pat)
             {
@@ -147,7 +148,7 @@ impl<'tcx> LateLintPass<'tcx> for RestWhenDestructuringStruct {
                             suggestion_span,
                             message,
                             &missing_suggestions,
-                            rustc_errors::Applicability::MachineApplicable,
+                            Applicability::MachineApplicable,
                         );
                     },
                 );
@@ -161,12 +162,7 @@ impl<'tcx> LateLintPass<'tcx> for RestWhenDestructuringStruct {
                     pat.span,
                     "unnecessary rest pattern (`..`)",
                     |diag| {
-                        diag.span_suggestion_verbose(
-                            dotdot,
-                            message,
-                            "",
-                            rustc_errors::Applicability::MachineApplicable,
-                        );
+                        diag.span_suggestion_verbose(dotdot, message, "", Applicability::MachineApplicable);
                     },
                 );
             }

@@ -591,7 +591,8 @@ fn ident_search_pat(ident: Ident) -> (Pat, Pat) {
 
 fn pat_search_pat(tcx: TyCtxt<'_>, pat: &rustc_hir::Pat<'_>) -> (Pat, Pat) {
     match pat.kind {
-        PatKind::Missing | PatKind::Err(_) => (Pat::Str(""), Pat::Str("")),
+        // Tuple patterns cannot show up in proc-macro checks
+        PatKind::Missing | PatKind::Err(_) | PatKind::Tuple(_, _) => (Pat::Str(""), Pat::Str("")),
         PatKind::Wild => (Pat::Sym(kw::Underscore), Pat::Sym(kw::Underscore)),
         PatKind::Binding(binding_mode, _, ident, Some(end_pat)) => {
             let start = if binding_mode == BindingMode::NONE {
@@ -619,7 +620,8 @@ fn pat_search_pat(tcx: TyCtxt<'_>, pat: &rustc_hir::Pat<'_>) -> (Pat, Pat) {
         },
         PatKind::TupleStruct(path, _, _) => {
             let (start, _) = qpath_search_pat(&path);
-            (start, Pat::Str(")"))
+            // This pattern cannot show up in proc-macro checks
+            (start, Pat::Str(""))
         },
         PatKind::Or(plist) => {
             // documented invariant
@@ -629,7 +631,6 @@ fn pat_search_pat(tcx: TyCtxt<'_>, pat: &rustc_hir::Pat<'_>) -> (Pat, Pat) {
             (start, end)
         },
         PatKind::Never => (Pat::Str("!"), Pat::Str("")),
-        PatKind::Tuple(_, _) => (Pat::Str("("), Pat::Str(")")),
         PatKind::Box(p) => {
             let (_, end) = pat_search_pat(tcx, p);
             (Pat::Str("box"), end)
