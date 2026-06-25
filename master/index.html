@@ -10463,7 +10463,30 @@ let c = if true {
     -1
 };
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.59.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+needless_late_init">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/needless_late_init.rs#L15">View Source</a></div></div></article><article id="needless_lifetimes"><input id="label-needless_lifetimes" type="checkbox"><label for="label-needless_lifetimes"><h2 class="lint-title"><div class="panel-title-name" id="lint-needless_lifetimes">needless_lifetimes
+<h3>Configuration</h3>
+<ul>
+<li><code>check-grouped-late-init</code>:  Whether to check for grouped late initializations from multiple <code>let</code> statements.</li>
+</ul>
+<h4>Example</h4>
+<pre><code class="language-rust">let a;
+let b;
+if true {
+    a = 1;
+    b = 2;
+} else {
+    a = 3;
+    b = 4;
+}
+</code></pre>
+<p>Use instead:</p>
+<pre><code class="language-rust">let (a, b) = if true {
+    (1, 2)
+} else {
+    (3, 4)
+};
+</code></pre>
+<p>(default: <code>true</code>)</p>
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.59.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+needless_late_init">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/needless_late_init.rs#L18">View Source</a></div></div></article><article id="needless_lifetimes"><input id="label-needless_lifetimes" type="checkbox"><label for="label-needless_lifetimes"><h2 class="lint-title"><div class="panel-title-name" id="lint-needless_lifetimes">needless_lifetimes
 <a href="#needless_lifetimes" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-complexity">complexity</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for lifetime annotations which can be removed by
 relying on lifetime elision.</p>
