@@ -1,0 +1,20 @@
+error: missing trait method provided by default: `max`
+  --> tests/ui/missing_trait_methods_msrv.rs:21:5
+   |
+LL |     impl Ord for S {
+   |     ^^^^^^^^^^^^^^
+   |
+   = help: implement the missing `max` method of the `Ord` trait
+   = note: `-D clippy::missing-trait-methods` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::missing_trait_methods)]`
+
+error: missing trait method provided by default: `min`
+  --> tests/ui/missing_trait_methods_msrv.rs:21:5
+   |
+LL |     impl Ord for S {
+   |     ^^^^^^^^^^^^^^
+   |
+   = help: implement the missing `min` method of the `Ord` trait
+
+error: aborting due to 2 previous errors
+
