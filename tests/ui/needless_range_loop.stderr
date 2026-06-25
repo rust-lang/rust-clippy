@@ -66,10 +66,11 @@ error: the loop variable `i` is only used to index `vec2`
 LL |     for i in 0..vec.len() {
    |              ^^^^^^^^^^^^
    |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the range end is out of bounds
 help: consider using an iterator
    |
 LL -     for i in 0..vec.len() {
-LL +     for <item> in vec2.iter().take(vec.len()) {
+LL +     for <item> in vec2[..vec.len()].iter() {
    |
 
 error: the loop variable `i` is only used to index `vec`
@@ -90,10 +91,11 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in 0..MAX_LEN {
    |              ^^^^^^^^^^
    |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the range end is out of bounds
 help: consider using an iterator
    |
 LL -     for i in 0..MAX_LEN {
-LL +     for <item> in vec.iter().take(MAX_LEN) {
+LL +     for <item> in vec[..MAX_LEN].iter() {
    |
 
 error: the loop variable `i` is only used to index `vec`
@@ -102,10 +104,11 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in 0..=MAX_LEN {
    |              ^^^^^^^^^^^
    |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the range end is out of bounds
 help: consider using an iterator
    |
 LL -     for i in 0..=MAX_LEN {
-LL +     for <item> in vec.iter().take(MAX_LEN + 1) {
+LL +     for <item> in vec[..=MAX_LEN].iter() {
    |
 
 error: the loop variable `i` is only used to index `vec`
@@ -114,10 +117,11 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in 5..10 {
    |              ^^^^^
    |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the range end is out of bounds
 help: consider using an iterator
    |
 LL -     for i in 5..10 {
-LL +     for <item> in vec.iter().take(10).skip(5) {
+LL +     for <item> in vec[..10].iter().skip(5) {
    |
 
 error: the loop variable `i` is only used to index `vec`
@@ -126,10 +130,11 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in 5..=10 {
    |              ^^^^^^
    |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the range end is out of bounds
 help: consider using an iterator
    |
 LL -     for i in 5..=10 {
-LL +     for <item> in vec.iter().take(10 + 1).skip(5) {
+LL +     for <item> in vec[..=10].iter().skip(5) {
    |
 
 error: the loop variable `i` is used to index `vec`
@@ -150,10 +155,11 @@ error: the loop variable `i` is used to index `vec`
 LL |     for i in 5..10 {
    |              ^^^^^
    |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the range end is out of bounds
 help: consider using an iterator and enumerate()
    |
 LL -     for i in 5..10 {
-LL +     for (i, <item>) in vec.iter().enumerate().take(10).skip(5) {
+LL +     for (i, <item>) in vec[..10].iter().enumerate().skip(5) {
    |
 
 error: the loop variable `i` is used to index `vec`
@@ -174,10 +180,11 @@ error: the loop variable `i` is used to index `a`
 LL |     for i in 0..MAX_LEN {
    |              ^^^^^^^^^^
    |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the range end is out of bounds
 help: consider using an iterator and enumerate()
    |
 LL -     for i in 0..MAX_LEN {
-LL +     for (i, <item>) in a.iter().enumerate().take(MAX_LEN) {
+LL +     for (i, <item>) in a[..MAX_LEN].iter().enumerate() {
    |
 
 error: the loop variable `i` is only used to index `a`
@@ -186,11 +193,88 @@ error: the loop variable `i` is only used to index `a`
 LL |     for i in 0..MAX_LEN {
    |              ^^^^^^^^^^
    |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the range end is out of bounds
 help: consider using an iterator
    |
 LL -     for i in 0..MAX_LEN {
-LL +     for <item> in a.iter().take(MAX_LEN) {
+LL +     for <item> in a[..MAX_LEN].iter() {
    |
 
-error: aborting due to 16 previous errors
+error: the loop variable `i` is only used to index `vec`
+  --> tests/ui/needless_range_loop.rs:249:14
+   |
+LL |     for i in 0..=vec.len() {
+   |              ^^^^^^^^^^^^^
+   |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the range end is out of bounds
+help: consider using an iterator
+   |
+LL -     for i in 0..=vec.len() {
+LL +     for <item> in vec[..=vec.len()].iter() {
+   |
+
+error: the loop variable `i` is used to index `vec`
+  --> tests/ui/needless_range_loop.rs:254:14
+   |
+LL |     for i in 0..=vec.len() {
+   |              ^^^^^^^^^^^^^
+   |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the range end is out of bounds
+help: consider using an iterator and enumerate()
+   |
+LL -     for i in 0..=vec.len() {
+LL +     for (i, <item>) in vec[..=vec.len()].iter().enumerate() {
+   |
+
+error: the loop variable `i` is only used to index `arr`
+  --> tests/ui/needless_range_loop.rs:261:14
+   |
+LL |     for i in 0..4 {
+   |              ^^^^
+   |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the range end is out of bounds
+help: consider using an iterator
+   |
+LL -     for i in 0..4 {
+LL +     for <item> in arr[..4].iter() {
+   |
+
+error: the loop variable `i` is only used to index `arr`
+  --> tests/ui/needless_range_loop.rs:266:14
+   |
+LL |     for i in 0..=3 {
+   |              ^^^^^
+   |
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the range end is out of bounds
+help: consider using an iterator
+   |
+LL -     for i in 0..=3 {
+LL +     for <item> in arr[..=3].iter() {
+   |
+
+error: the loop variable `i` is only used to index `arr`
+  --> tests/ui/needless_range_loop.rs:272:14
+   |
+LL |     for i in start..start {
+   |              ^^^^^^^^^^^^
+   |
+help: consider using an iterator
+   |
+LL -     for i in start..start {
+LL +     for <item> in arr.iter().take(start).skip(start) {
+   |
+
+error: the loop variable `i` is used to index `deque`
+  --> tests/ui/needless_range_loop.rs:278:14
+   |
+LL |     for i in 0..2 {
+   |              ^^^^
+   |
+help: consider using an iterator and enumerate()
+   |
+LL -     for i in 0..2 {
+LL +     for (i, <item>) in deque.iter().enumerate().take(2) {
+   |
+
+error: aborting due to 22 previous errors
 
