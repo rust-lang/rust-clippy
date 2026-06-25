@@ -371,6 +371,9 @@ define_Conf! {
     /// Whether `expect` should be allowed in test functions or `#[cfg(test)]`
     #[lints(expect_used)]
     allow_expect_in_tests: bool = false,
+    /// Whether `ignored_result_err` should be allowed in test functions or `#[cfg(test)]`
+    #[lints(ignored_result_err)]
+    allow_ignored_result_err_in_tests: bool = false,
     /// Whether `indexing_slicing` should be allowed in test functions or `#[cfg(test)]`
     #[lints(indexing_slicing)]
     allow_indexing_slicing_in_tests: bool = false,
