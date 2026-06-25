@@ -116,7 +116,7 @@ LL |     println!{"Foo[,", };
    |                     ^^ help: remove the trailing comma
 
 error: unnecessary trailing comma
-  --> tests/ui/unnecessary_trailing_comma.rs:29:42
+  --> tests/ui/unnecessary_trailing_comma.rs:30:42
    |
 LL |     println!(concat!("Foo", "=", "{}"), 1,);
    |                                          ^ help: remove the trailing comma
