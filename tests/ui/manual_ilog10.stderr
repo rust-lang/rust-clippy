@@ -1,0 +1,11 @@
+error: manually reimplementing `ilog10`
+  --> tests/ui/manual_ilog10.rs:10:7
+   |
+LL |     a.ilog(10);
+   |       ^^^^^^^^ help: try: `ilog10()`
+   |
+   = note: `-D clippy::manual-ilog10` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_ilog10)]`
+
+error: aborting due to 1 previous error
+
