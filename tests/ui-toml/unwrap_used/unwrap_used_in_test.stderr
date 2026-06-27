@@ -1,0 +1,22 @@
+error: used `unwrap()` on an `Option` value
+  --> tests/ui-toml/unwrap_used/unwrap_used_in_test.rs:27:26
+   |
+LL |             let _a: u8 = Some(2).unwrap();
+   |                          ^^^^^^^^^^^^^^^^
+   |
+   = note: if this value is `None`, it will panic
+   = note: `-D clippy::unwrap-used` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unwrap_used)]`
+
+error: used `expect()` on an `Option` value
+  --> tests/ui-toml/unwrap_used/unwrap_used_in_test.rs:28:26
+   |
+LL |             let _a: u8 = Some(3).expect("");
+   |                          ^^^^^^^^^^^^^^^^^^
+   |
+   = note: if this value is `None`, it will panic
+   = note: `-D clippy::expect-used` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::expect_used)]`
+
+error: aborting due to 2 previous errors
+
