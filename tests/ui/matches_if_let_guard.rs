@@ -1,0 +1,56 @@
+//@revisions: edition2021 edition2024
+//@[edition2021] edition:2021
+//@[edition2024] edition:2024
+//@[edition2021] check-pass
+
+#![warn(clippy::matches_if_let)]
+#![allow(
+    clippy::needless_ifs,
+    clippy::redundant_pattern_matching,
+    dead_code,
+    unused_variables
+)]
+
+enum Enum {
+    A(u32),
+    B,
+}
+
+fn main() {
+    let guarded = Enum::A(1);
+    if matches!(guarded, Enum::A(n) if n == 1) {}
+    //~[edition2024]^ matches_if_let
+
+    let chained = Some(1);
+    if chained.is_some() && matches!(chained, Some(_)) {}
+    //~[edition2024]^ matches_if_let
+
+    let outer = 5;
+    let shadowed = Enum::A(1);
+    if matches!(shadowed, Enum::A(outer) if outer == 1) {
+        let _ = outer;
+    }
+
+    msrv_1_87();
+    msrv_1_88();
+}
+
+#[clippy::msrv = "1.87.0"]
+fn msrv_1_87() {
+    let guarded = Enum::A(1);
+    if matches!(guarded, Enum::A(n) if n == 1) {}
+
+    let chained = Some(1);
+    if chained.is_some() && matches!(chained, Some(_)) {}
+}
+
+#[clippy::msrv = "1.88.0"]
+fn msrv_1_88() {
+    let guarded = Enum::A(1);
+    if matches!(guarded, Enum::A(n) if n == 1) {}
+    //~[edition2024]^ matches_if_let
+
+    let chained = Some(1);
+    if chained.is_some() && matches!(chained, Some(_)) {}
+    //~[edition2024]^ matches_if_let
+}
