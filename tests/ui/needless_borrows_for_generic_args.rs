@@ -355,3 +355,16 @@ fn main() {
         }
     }
 }
+
+#[clippy::msrv = "1.53.0"]
+fn issue16538() {
+    fn use_mut<I>(data: I)
+    where
+        I: IntoIterator<Item: AsMut<[i32]>>,
+    {
+        data.into_iter().for_each(|mut s| s.as_mut()[0] *= 10);
+    }
+
+    let mut data = [[10, 20, 30], [40, 50, 60]];
+    use_mut(&mut data);
+}
