@@ -1,11 +1,11 @@
 error: empty string literal in `println!`
-  --> tests/ui/println_empty_string_unfixable.rs:7:5
+  --> tests/ui/println_empty_string_unfixable.rs:6:5
    |
 LL |     println!("" /* comment */);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: remove the empty string
-  --> tests/ui/println_empty_string_unfixable.rs:7:14
+  --> tests/ui/println_empty_string_unfixable.rs:6:14
    |
 LL |     println!("" /* comment */);
    |              ^^
@@ -13,57 +13,57 @@ LL |     println!("" /* comment */);
    = help: to override `-D warnings` add `#[allow(clippy::println_empty_string)]`
 
 error: empty string literal in `eprintln!`
-  --> tests/ui/println_empty_string_unfixable.rs:9:5
+  --> tests/ui/println_empty_string_unfixable.rs:8:5
    |
 LL |     eprintln!("" /* comment */);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: remove the empty string
-  --> tests/ui/println_empty_string_unfixable.rs:9:15
+  --> tests/ui/println_empty_string_unfixable.rs:8:15
    |
 LL |     eprintln!("" /* comment */);
    |               ^^
 
 error: empty string literal in `println!`
-  --> tests/ui/println_empty_string_unfixable.rs:12:5
+  --> tests/ui/println_empty_string_unfixable.rs:11:5
    |
 LL | /     println!( // comment
 LL | |                 "");
    | |___________________^
    |
 note: remove the empty string
-  --> tests/ui/println_empty_string_unfixable.rs:13:17
+  --> tests/ui/println_empty_string_unfixable.rs:12:17
    |
 LL |                 "");
    |                 ^^
 
 error: empty string literal in `eprintln!`
-  --> tests/ui/println_empty_string_unfixable.rs:15:5
+  --> tests/ui/println_empty_string_unfixable.rs:14:5
    |
 LL | /     eprintln!( // comment
 LL | |                 "");
    | |___________________^
    |
 note: remove the empty string
-  --> tests/ui/println_empty_string_unfixable.rs:16:17
+  --> tests/ui/println_empty_string_unfixable.rs:15:17
    |
 LL |                 "");
    |                 ^^
 
 error: empty string literal in `println!`
-  --> tests/ui/println_empty_string_unfixable.rs:19:5
+  --> tests/ui/println_empty_string_unfixable.rs:18:5
    |
 LL |     println!("", /* comment */);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: remove the empty string
-  --> tests/ui/println_empty_string_unfixable.rs:19:14
+  --> tests/ui/println_empty_string_unfixable.rs:18:14
    |
 LL |     println!("", /* comment */);
    |              ^^
 
 error: empty string literal in `println!`
-  --> tests/ui/println_empty_string_unfixable.rs:22:5
+  --> tests/ui/println_empty_string_unfixable.rs:21:5
    |
 LL | /     println!(
 LL | |         "\
@@ -74,7 +74,7 @@ LL | |     );
    | |_____^
    |
 note: remove the empty string
-  --> tests/ui/println_empty_string_unfixable.rs:23:9
+  --> tests/ui/println_empty_string_unfixable.rs:22:9
    |
 LL | /         "\
 LL | |             \
