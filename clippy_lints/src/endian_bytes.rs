@@ -123,10 +123,8 @@ impl LateLintPass<'_> for EndianBytes {
             },
             _ => return,
         };
-        if !expr.span.in_external_macro(cx.sess().source_map())
-            && let ty = cx.typeck_results().expr_ty(ty_expr)
-            && ty.is_primitive_ty()
-        {
+        let ty = cx.typeck_results().expr_ty(ty_expr);
+        if ty.is_primitive_ty() && !expr.span.in_external_macro(cx.sess().source_map()) {
             maybe_lint_endian_bytes(cx, expr, prefix, name, ty);
         }
     }
