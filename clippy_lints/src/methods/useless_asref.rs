@@ -5,6 +5,7 @@ use clippy_utils::ty::{implements_trait, peel_and_count_ty_refs, should_call_clo
 use clippy_utils::{get_parent_expr, peel_blocks, strip_pat_refs};
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
+use rustc_hir::def_id::DefId;
 use rustc_hir::{self as hir, LangItem, Node};
 use rustc_lint::LateContext;
 use rustc_middle::ty::adjustment::{Adjust, DerefAdjustKind};
@@ -128,10 +129,24 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, call_name: Symbo
             // https://github.com/rust-lang/rust-clippy/issues/12357
             && let Some(clone_trait) = cx.tcx.lang_items().clone_trait()
             && implements_trait(cx, cx.typeck_results().expr_ty(recvr), clone_trait, &[])
+            // https://github.com/rust-lang/rust-clippy/issues/16529
+            && should_prefer_map_clone(def, cx, expr)
         {
             lint_as_ref_clone(cx, expr.span.with_hi(parent.span.hi()), recvr, call_name);
         }
     }
+}
+
+fn should_prefer_map_clone(def: DefId, cx: &LateContext<'_>, expr: &hir::Expr<'_>) -> bool {
+    if let Some(parent) = get_parent_expr(cx, expr)
+        && let hir::ExprKind::MethodCall(_, _, [arg], _) = parent.kind
+        && let hir::ExprKind::Path(path) = arg.kind
+        && matches!(def.opt_parent(cx).opt_impl_ty(cx).opt_diag_name(cx), Some(sym::Result))
+    {
+        return cx.tcx.lang_items().get(LangItem::CloneFn) != cx.qpath_res(&path, expr.hir_id).opt_def_id();
+    }
+
+    true
 }
 
 fn check_qpath(cx: &LateContext<'_>, qpath: hir::QPath<'_>, hir_id: hir::HirId) -> bool {
