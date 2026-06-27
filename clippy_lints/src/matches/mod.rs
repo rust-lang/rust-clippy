@@ -1144,6 +1144,7 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
             collapsible_match::check_if_let(
                 cx,
                 if_let.let_span.ctxt(),
+                expr,
                 if_let.let_pat,
                 if_let.if_then,
                 if_let.if_else,
