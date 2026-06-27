@@ -113,6 +113,7 @@ mod disallowed_script_idents;
 mod disallowed_types;
 mod doc;
 mod double_parens;
+mod drop_for_static;
 mod drop_forget_ref;
 mod duplicate_mod;
 mod duration_suboptimal_units;
@@ -466,7 +467,6 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
             Box::new(CombinedEarlyLintPass::new(conf, format_args.clone(), attrs.clone()))
         }));
     }
-
     store.late_passes.push(Box::new(move |tcx: TyCtxt<'_>| {
         let dont_need = tcx.lints_that_dont_need_to_run(());
         let is_active = |lints: &rustc_lint::LintVec| {
@@ -862,6 +862,7 @@ rustc_lint::late_lint_methods!(
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
         WithCapacityZero: with_capacity_zero::WithCapacityZero = with_capacity_zero::WithCapacityZero,
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
+        DropForStatic: drop_for_static::DropForStatic = drop_for_static::DropForStatic,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
