@@ -100,6 +100,25 @@ enum_glob_use = "deny"
 
 For more details and options, refer to the Cargo documentation.
 
+#### Lints Section in `clippy.toml`
+
+Lint levels can also be configured directly in `clippy.toml` using a `[lints]`
+table with the same format as `Cargo.toml`. This allows you to keep lint
+configuration separate from dependency management.
+
+```toml
+[lints.clippy]
+needless_return = "allow"
+single_match = { level = "warn", priority = 5 }
+
+[lints.rust]
+dead_code = "allow"
+```
+
+The supported lint level values are `"allow"`, `"warn"`, `"deny"`, and
+`"forbid"`. Each entry can either be a plain string (the level) or a table
+with `level` and an optional `priority` field (an integer, defaulting to 0).
+
 ### Specifying the minimum supported Rust version
 
 Projects that intend to support old versions of Rust can disable lints pertaining to newer features by specifying the
