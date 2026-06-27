@@ -104,6 +104,7 @@ mod range_zip_with_len;
 mod read_line_without_trim;
 mod readonly_write_lock;
 mod redundant_as_str;
+mod redundant_idempotent_calls;
 mod repeat_once;
 mod result_map_or_else_none;
 mod return_and_then;
@@ -3307,6 +3308,30 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for redundant calls to idempotent methods, where calling the
+    /// same method with the same arguments on a value that has already had
+    /// that method applied produces no change.
+    ///
+    /// ### Why is this bad?
+    /// Redundant method calls add uncessary computation to the code
+    /// without any effect, making it harder to read and understand.
+    ///
+    /// ### Example
+    /// ```no_run
+    ///     let _ = "Ba-dum!".to_lowercase().to_lowercase();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    ///     let _ = "Ba-dum!".to_lowercase();
+    /// ```
+    #[clippy::version = "1.97.0"]
+    pub REDUNDANT_IDEMPOTENT_CALLS,
+    nursery,
+    "redundant call to an idempotent method"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for calls to `Iterator::cloned` where the original value could be used
     /// instead.
     ///
@@ -5029,6 +5054,7 @@ impl_lint_pass!(Methods => [
     READONLY_WRITE_LOCK,
     READ_LINE_WITHOUT_TRIM,
     REDUNDANT_AS_STR,
+    REDUNDANT_IDEMPOTENT_CALLS,
     REDUNDANT_ITER_CLONED,
     REPEAT_ONCE,
     RESULT_FILTER_MAP,
@@ -5260,6 +5286,18 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
 
             new_ret_no_self::check_trait_item(cx, item);
         }
+    }
+
+    fn check_fn(
+        &mut self,
+        cx: &LateContext<'tcx>,
+        _kind: rustc_hir::intravisit::FnKind<'tcx>,
+        _decl: &'tcx rustc_hir::FnDecl<'tcx>,
+        body: &'tcx rustc_hir::Body<'tcx>,
+        _span: Span,
+        _id: rustc_span::def_id::LocalDefId,
+    ) {
+        redundant_idempotent_calls::check(cx, body);
     }
 }
 
