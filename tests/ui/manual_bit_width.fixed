@@ -1,0 +1,41 @@
+#![warn(clippy::manual_bit_width)]
+
+use core::num::{self, NonZero, NonZeroI32, NonZeroU32};
+
+fn main() {
+    // `T::BITS - x.leading_zeros()`
+    let x: u8 = 5;
+    let _ = x.bit_width(); //~ manual_bit_width
+    let x: u16 = 5;
+    let _ = x.bit_width(); //~ manual_bit_width
+    let x: u32 = 5;
+    let _ = x.bit_width(); //~ manual_bit_width
+    let x: u64 = 5;
+    let _ = x.bit_width(); //~ manual_bit_width
+    let x: usize = 5;
+    let _ = x.bit_width(); //~ manual_bit_width
+
+    // `NonZero::<T>::BITS - x.leading_zeros()`
+    let y = NonZero::<u8>::new(5).unwrap();
+    let _ = y.bit_width().get(); //~ manual_bit_width
+    let y = NonZero::<u16>::new(5).unwrap();
+    let _ = y.bit_width().get(); //~ manual_bit_width
+    let y = NonZero::<u32>::new(5).unwrap();
+    let _ = y.bit_width().get(); //~ manual_bit_width
+    let y = NonZero::<u64>::new(5).unwrap();
+    let _ = y.bit_width().get(); //~ manual_bit_width
+    let y = NonZero::<usize>::new(5).unwrap();
+    let _ = y.bit_width().get(); //~ manual_bit_width
+
+    // negative cases.
+
+    // left expression is a literal
+    let _: u32 = 1_000_000 - x.leading_zeros();
+
+    // signed integers do not implement `bit_width()`
+    let _ = i8::BITS - 5i8.leading_zeros();
+    let _ = i16::BITS - 5i16.leading_zeros();
+    let _ = i32::BITS - 5i32.leading_zeros();
+    let _ = i64::BITS - 5i64.leading_zeros();
+    let _ = NonZeroI32::BITS - NonZeroI32::new(5).unwrap().leading_zeros();
+}
