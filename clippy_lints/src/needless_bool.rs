@@ -7,7 +7,9 @@ use clippy_utils::{
 };
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
-use rustc_hir::{Expr, ExprKind};
+use rustc_hir::def::{DefKind, Res};
+use rustc_hir::def_id::DefId;
+use rustc_hir::{Block, Expr, ExprKind, StmtKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::SyntaxContext;
@@ -16,6 +18,12 @@ declare_clippy_lint! {
     /// ### What it does
     /// Checks for expressions of the form `if c { true } else {
     /// false }` (or vice versa) and suggests using the condition directly.
+    ///
+    /// This also covers the early-return guard form, where a condition returns
+    /// one bool literal and the trailing expression is the other, optionally
+    /// with both wrapped in the same tuple-like constructor (`Ok`/`Some`/a
+    /// user-defined enum or tuple-struct constructor), e.g.
+    /// `if c { return Ok(true); } Ok(false)`.
     ///
     /// ### Why is this bad?
     /// Redundant code.
@@ -42,6 +50,23 @@ declare_clippy_lint! {
     /// # let x = true;
     /// !x
     /// # ;
+    /// ```
+    ///
+    /// Or, for the early-return guard form:
+    /// ```no_run
+    /// # fn f(c: bool) -> Result<bool, ()> {
+    /// if c {
+    ///     return Ok(true);
+    /// }
+    /// Ok(false)
+    /// # }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # fn f(c: bool) -> Result<bool, ()> {
+    /// Ok(c)
+    /// # }
     /// ```
     #[clippy::version = "pre 1.29.0"]
     pub NEEDLESS_BOOL,
@@ -196,6 +221,94 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessBool {
                 );
             }
         }
+    }
+
+    fn check_block(&mut self, cx: &LateContext<'tcx>, block: &'tcx Block<'tcx>) {
+        // Detect the early-return form:
+        //     if c {
+        //         return Ok(true);
+        //     }
+        //     Ok(false)
+        // and reduce it to `Ok(c)`. The optional `Ok(..)` wrapper can be any tuple-like
+        // constructor (or absent), as long as the guard and the trailing expression use the
+        // same one. Constructors are pure, so folding the condition in keeps the behavior.
+        if let Some(tail) = block.expr
+            && let [.., last_stmt] = block.stmts
+            && let StmtKind::Semi(if_expr) | StmtKind::Expr(if_expr) = last_stmt.kind
+            && let Some(higher::If {
+                cond,
+                then,
+                r#else: None,
+            }) = higher::If::hir(if_expr)
+            && let ExprKind::Ret(Some(ret)) = peel_blocks_with_stmt(then).kind
+            && !if_expr.span.from_expansion()
+            && !tail.span.from_expansion()
+            && let Some((then_ctor, then_val)) = fetch_wrapped_bool(cx, ret)
+            && let Some((tail_ctor, tail_val)) = fetch_wrapped_bool(cx, tail)
+            // `if c { return Ok(true) } Ok(true)` is always the same value; the condition might
+            // have side effects, so don't touch it.
+            && then_val != tail_val
+            && wrappers_match(then_ctor, tail_ctor)
+        {
+            let span = if_expr.span.to(tail.span);
+            if span_contains_comment(cx, span) {
+                return;
+            }
+
+            let mut applicability = Applicability::MachineApplicable;
+            let mut snip = Sugg::hir_with_context(cx, cond, span.ctxt(), "<predicate>", &mut applicability);
+            // `then_val` is the value returned when the condition holds, so a `false` there means
+            // the result is the negation of the condition.
+            if !then_val {
+                snip = !snip;
+            }
+            let sugg = match tail_ctor {
+                Some((func, _)) => {
+                    let func_snip = snippet_with_context(cx, func.span, span.ctxt(), "..", &mut applicability).0;
+                    format!("{func_snip}({snip})")
+                },
+                None => snip.to_string(),
+            };
+
+            span_lint_and_sugg(
+                cx,
+                NEEDLESS_BOOL,
+                span,
+                "this `if` guard returns a bool literal and is followed by another",
+                "you can reduce it to",
+                sugg,
+                applicability,
+            );
+        }
+    }
+}
+
+/// Returns the optional constructor wrapping a bool literal (e.g. the `Ok` in `Ok(true)`) along
+/// with the bool value. The constructor is returned as the callee expression plus its `DefId` so
+/// callers can both compare two wrappers and rebuild the call. A bare bool literal yields `None`.
+fn fetch_wrapped_bool<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'tcx>,
+) -> Option<(Option<(&'tcx Expr<'tcx>, DefId)>, bool)> {
+    let expr = peel_blocks(expr);
+    if let Some(value) = fetch_bool_expr(expr) {
+        return Some((None, value));
+    }
+    if let ExprKind::Call(func, [arg]) = expr.kind
+        && let Some(value) = fetch_bool_expr(arg)
+        && let ExprKind::Path(qpath) = &func.kind
+        && let Res::Def(DefKind::Ctor(..), did) = cx.qpath_res(qpath, func.hir_id)
+    {
+        return Some((Some((func, did)), value));
+    }
+    None
+}
+
+fn wrappers_match(a: Option<(&Expr<'_>, DefId)>, b: Option<(&Expr<'_>, DefId)>) -> bool {
+    match (a, b) {
+        (None, None) => true,
+        (Some((_, a)), Some((_, b))) => a == b,
+        _ => false,
     }
 }
 
