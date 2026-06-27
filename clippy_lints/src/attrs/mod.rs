@@ -1,5 +1,6 @@
 mod allow_attributes;
 mod allow_attributes_without_reason;
+mod blanket_allow_warnings;
 mod blanket_clippy_restriction_lints;
 mod deprecated_cfg_attr;
 mod deprecated_semver;
@@ -80,6 +81,28 @@ declare_clippy_lint! {
     pub ALLOW_ATTRIBUTES_WITHOUT_REASON,
     restriction,
     "ensures that all `allow` and `expect` attributes have a reason"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `allow`/`expect` attributes targeting the `warnings` group.
+    ///
+    /// ### Why is this bad?
+    /// The `warnings` group includes all current and future warnings.
+    /// This is usually too broad of a category to ignore.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// #![allow(warnings)]
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// #![allow(non_snake_case)]
+    /// ```
+    #[clippy::version = "1.98.0"]
+    pub BLANKET_ALLOW_WARNINGS,
+    nursery,
+    "`#[allow]` or `#[expect]` with the entire `warnings` groups"
 }
 
 declare_clippy_lint! {
@@ -491,6 +514,7 @@ impl_lint_pass!(EarlyAttributes => [
 impl_lint_pass!(PostExpansionEarlyAttributes => [
     ALLOW_ATTRIBUTES,
     ALLOW_ATTRIBUTES_WITHOUT_REASON,
+    BLANKET_ALLOW_WARNINGS,
     BLANKET_CLIPPY_RESTRICTION_LINTS,
     DEPRECATED_SEMVER,
     DUPLICATED_ATTRIBUTES,
@@ -592,6 +616,7 @@ impl EarlyLintPass for PostExpansionEarlyAttributes {
             }
             if matches!(name, sym::allow | sym::expect) && self.msrv.meets(msrvs::LINT_REASONS_STABILIZATION) {
                 allow_attributes_without_reason::check(cx, name, items, attr);
+                blanket_allow_warnings::check(cx, name, items, attr);
             }
             if is_lint_level(name) {
                 blanket_clippy_restriction_lints::check(cx, name, items);
