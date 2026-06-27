@@ -3,7 +3,7 @@ use clippy_utils::diagnostics::span_lint;
 use clippy_utils::is_from_proc_macro;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::def::{DefKind, Res};
-use rustc_hir::intravisit::{Visitor, walk_item, walk_trait_item};
+use rustc_hir::intravisit::{Visitor, walk_impl_item, walk_item, walk_trait_item};
 use rustc_hir::{
     GenericParamKind, HirId, Impl, ImplItem, ImplItemImplKind, ImplItemKind, Item, ItemKind, ItemLocalId, Node, Pat,
     PatKind, TraitItem, UsePath,
@@ -36,10 +36,6 @@ declare_clippy_lint! {
     ///     let title = movie.title;
     /// }
     /// ```
-    ///
-    /// ### Limitations
-    /// Trait implementations which use the same function or parameter name as the trait declaration will
-    /// not be warned about, even if the name is below the configured limit.
     #[clippy::version = "1.72.0"]
     pub MIN_IDENT_CHARS,
     restriction,
@@ -50,21 +46,23 @@ impl_lint_pass!(MinIdentChars => [MIN_IDENT_CHARS]);
 
 pub struct MinIdentChars {
     allowed_idents_below_min_chars: FxHashSet<String>,
-    min_ident_chars_threshold: u64,
+    threshold: u64,
+    check_trait_impl: bool,
 }
 
 impl MinIdentChars {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
             allowed_idents_below_min_chars: conf.allowed_idents_below_min_chars.iter().cloned().collect(),
-            min_ident_chars_threshold: conf.min_ident_chars_threshold,
+            threshold: conf.min_ident_chars_threshold,
+            check_trait_impl: conf.min_ident_chars_check_trait_impl,
         }
     }
 
     #[expect(clippy::cast_possible_truncation)]
     fn is_ident_too_short(&self, cx: &LateContext<'_>, str: &str, span: Span) -> bool {
         !span.in_external_macro(cx.sess().source_map())
-            && str.len() <= self.min_ident_chars_threshold as usize
+            && str.len() <= self.threshold as usize
             && !str.starts_with('_')
             && !str.is_empty()
             && !self.allowed_idents_below_min_chars.contains(str)
@@ -73,15 +71,23 @@ impl MinIdentChars {
 
 impl LateLintPass<'_> for MinIdentChars {
     fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
-        if self.min_ident_chars_threshold == 0 {
+        if self.threshold == 0 {
             return;
         }
 
         walk_item(&mut IdentVisitor { conf: self, cx }, item);
     }
 
+    fn check_impl_item(&mut self, cx: &LateContext<'_>, item: &ImplItem<'_>) {
+        if self.threshold == 0 {
+            return;
+        }
+
+        walk_impl_item(&mut IdentVisitor { conf: self, cx }, item);
+    }
+
     fn check_trait_item(&mut self, cx: &LateContext<'_>, item: &TraitItem<'_>) {
-        if self.min_ident_chars_threshold == 0 {
+        if self.threshold == 0 {
             return;
         }
 
@@ -105,7 +111,7 @@ impl LateLintPass<'_> for MinIdentChars {
         if let PatKind::Binding(_, _, ident, ..) = pat.kind
             && let str = ident.as_str()
             && self.is_ident_too_short(cx, str, ident.span)
-            && is_not_in_trait_impl(cx, pat, ident)
+            && (self.check_trait_impl || is_not_in_trait_impl(cx, pat, ident))
         {
             emit_min_ident_chars(self, cx, str, ident.span);
         }
@@ -142,6 +148,15 @@ impl Visitor<'_> for IdentVisitor<'_, '_> {
         if conf.is_ident_too_short(cx, str, ident.span) {
             // Check whether the node is part of a `impl` for a trait.
             if matches!(cx.tcx.parent_hir_node(hir_id), Node::TraitRef(_)) {
+                return;
+            }
+
+            if let Node::ImplItem(_) = node
+                && !conf.check_trait_impl
+                && let Node::Item(item) = cx.tcx.parent_hir_node(hir_id)
+                && let ItemKind::Impl(impl_) = &item.kind
+                && impl_.of_trait.is_some()
+            {
                 return;
             }
 
@@ -204,13 +219,13 @@ impl Visitor<'_> for IdentVisitor<'_, '_> {
 }
 
 fn emit_min_ident_chars(conf: &MinIdentChars, cx: &impl LintContext, ident: &str, span: Span) {
-    let help = if conf.min_ident_chars_threshold == 1 {
+    let help = if conf.threshold == 1 {
         Cow::Borrowed("this ident consists of a single char")
     } else {
         Cow::Owned(format!(
             "this ident is too short ({} <= {})",
             ident.len(),
-            conf.min_ident_chars_threshold,
+            conf.threshold,
         ))
     };
     span_lint(cx, MIN_IDENT_CHARS, span, help);
