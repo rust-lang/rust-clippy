@@ -1,0 +1,18 @@
+error: manual implementation of `Option::filter`
+  --> tests/ui/manual_filter_unfixable.rs:6:5
+   |
+LL | /     match Some(&&0) {
+LL | |
+LL | |         None => None,
+LL | |         Some(x) => {
+...  |
+LL | |         },
+LL | |     }
+   | |_____^ help: try: `Some(&&0).filter(|&x| **x <= 0)`
+   |
+   = note: you may need to add explicit `as` casts/dereferences if this `match` is coerced to another type
+   = note: `-D clippy::manual-filter` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_filter)]`
+
+error: aborting due to 1 previous error
+
