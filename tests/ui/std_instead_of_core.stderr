@@ -98,16 +98,56 @@ LL | fn msrv_1_77(_: std::net::IpAddr) {}
    |                 ^^^ help: consider importing the item from `core`: `core`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:110:33
+  --> tests/ui/std_instead_of_core.rs:103:33
    |
 LL | fn issue13158_msrv_1_41(_: &dyn std::panic::UnwindSafe) {}
    |                                 ^^^ help: consider importing the item from `core`: `core`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:117:33
+  --> tests/ui/std_instead_of_core.rs:110:33
    |
 LL | fn issue13158_msrv_1_81(_: &dyn std::error::Error) {}
    |                                 ^^^ help: consider importing the item from `core`: `core`
 
-error: aborting due to 17 previous errors
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core.rs:115:9
+   |
+LL |     use std::result::{self, Iter, Result};
+   |         ^^^ help: consider importing the item from `core`: `core`
+
+error: used import from `std` instead of `alloc`
+  --> tests/ui/std_instead_of_core.rs:118:9
+   |
+LL |     use std::str::{self as _};
+   |         ^^^ help: consider importing the item from `alloc`: `alloc`
+
+error: used import from `std` instead of `alloc`
+  --> tests/ui/std_instead_of_core.rs:121:9
+   |
+LL |     use std::str::{self as _, FromStr as _};
+   |         ^^^ help: consider importing the item from `alloc`: `alloc`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core.rs:121:31
+   |
+LL |     use std::str::{self as _, FromStr as _};
+   |                               ^^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `alloc`
+  --> tests/ui/std_instead_of_core.rs:125:9
+   |
+LL |     use std::fmt::{self, Write};
+   |         ^^^ help: consider importing the item from `alloc`: `alloc`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core.rs:125:26
+   |
+LL |     use std::fmt::{self, Write};
+   |                          ^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: aborting due to 23 previous errors
 
