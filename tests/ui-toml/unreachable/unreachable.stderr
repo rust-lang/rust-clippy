@@ -1,0 +1,11 @@
+error: usage of the `unreachable!` macro
+  --> tests/ui-toml/unreachable/unreachable.rs:5:5
+   |
+LL |     unreachable!();
+   |     ^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::unreachable` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unreachable)]`
+
+error: aborting due to 1 previous error
+
