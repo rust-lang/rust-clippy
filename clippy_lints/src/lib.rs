@@ -188,6 +188,7 @@ mod large_stack_frames;
 mod legacy_numeric_constants;
 mod len_without_is_empty;
 mod len_zero;
+mod let_else_ok_or;
 mod let_if_seq;
 mod let_underscore;
 mod let_with_type_underscore;
@@ -862,6 +863,7 @@ rustc_lint::late_lint_methods!(
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
         WithCapacityZero: with_capacity_zero::WithCapacityZero = with_capacity_zero::WithCapacityZero,
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
+        LetElseOkOr: let_else_ok_or::LetElseOkOr = let_else_ok_or::LetElseOkOr::new(tcx, conf),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );

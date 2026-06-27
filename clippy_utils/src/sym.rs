@@ -188,6 +188,7 @@ generate! {
     collapsible_else_if,
     collapsible_if,
     collect,
+    const_option_ops,
     const_ptr,
     contains,
     convert_identity,

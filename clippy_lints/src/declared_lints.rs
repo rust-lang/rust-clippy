@@ -254,6 +254,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::len_without_is_empty::LEN_WITHOUT_IS_EMPTY_INFO,
     crate::len_zero::COMPARISON_TO_EMPTY_INFO,
     crate::len_zero::LEN_ZERO_INFO,
+    crate::let_else_ok_or::LET_ELSE_OK_OR_INFO,
     crate::let_if_seq::USELESS_LET_IF_SEQ_INFO,
     crate::let_underscore::LET_UNDERSCORE_FUTURE_INFO,
     crate::let_underscore::LET_UNDERSCORE_LOCK_INFO,
