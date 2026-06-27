@@ -1,11 +1,11 @@
 use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg};
 use clippy_utils::source::snippet_with_context;
-use clippy_utils::sugg::Sugg;
+use clippy_utils::sugg::{Sugg, make_binop};
 use clippy_utils::{
     SpanlessEq, get_parent_expr, higher, is_block_like, is_else_clause, is_parent_stmt, is_receiver_of_method_call,
     peel_blocks, peel_blocks_with_stmt, span_contains_comment,
 };
-use rustc_ast::ast::LitKind;
+use rustc_ast::ast::{BinOpKind, LitKind};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
@@ -141,10 +141,43 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessBool {
                     applicability,
                 );
             };
-            if let Some(a) = fetch_bool_block(then)
-                && let Some(b) = fetch_bool_block(else_expr)
-            {
-                match (a, b) {
+            let reduce_mixed = |other: &Expr<'_>, negate_cond: bool, is_or: bool| {
+                let mut applicability = Applicability::MachineApplicable;
+                let cond_snip = Sugg::hir_with_context(cx, cond, e.span.ctxt(), "<predicate>", &mut applicability);
+                let cond_snip = if negate_cond { !cond_snip } else { cond_snip };
+                let other_snip =
+                    Sugg::hir_with_context(cx, other, e.span.ctxt(), "<other>", &mut applicability);
+                let mut snip = if is_or {
+                    make_binop(BinOpKind::Or, &cond_snip, &other_snip)
+                } else {
+                    make_binop(BinOpKind::And, &cond_snip, &other_snip)
+                };
+
+                if is_else_clause(cx.tcx, e) {
+                    snip = snip.blockify();
+                }
+
+                if (condition_needs_parentheses(cond) && is_parent_stmt(cx, e.hir_id))
+                    || is_receiver_of_method_call(cx, e)
+                    || is_as_argument(cx, e)
+                {
+                    snip = snip.maybe_paren();
+                }
+
+                span_lint_and_sugg(
+                    cx,
+                    NEEDLESS_BOOL,
+                    e.span,
+                    "this if-then-else expression returns a bool literal",
+                    "you can reduce it to",
+                    snip.to_string(),
+                    applicability,
+                );
+            };
+            let then_bool = fetch_bool_block(then);
+            let else_bool = fetch_bool_block(else_expr);
+            match (then_bool, else_bool) {
+                (Some(a), Some(b)) => match (a, b) {
                     (RetBool(true), RetBool(true)) | (Bool(true), Bool(true)) => {
                         span_lint(
                             cx,
@@ -166,7 +199,20 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessBool {
                     (RetBool(false), RetBool(true)) => reduce(true, true),
                     (Bool(false), Bool(true)) => reduce(false, true),
                     _ => (),
-                }
+                },
+                (Some(Bool(lit)), None) if cx.typeck_results().expr_ty(else_expr).is_bool() => {
+                    let other = peel_blocks_with_stmt(else_expr);
+                    // `if c { true }  else { e }` -> `c || e`
+                    // `if c { false } else { e }` -> `!c && e`
+                    reduce_mixed(other, !lit, lit);
+                },
+                (None, Some(Bool(lit))) if cx.typeck_results().expr_ty(then).is_bool() => {
+                    let other = peel_blocks_with_stmt(then);
+                    // `if c { e } else { true }`  -> `!c || e`
+                    // `if c { e } else { false }` -> `c && e`
+                    reduce_mixed(other, lit, lit);
+                },
+                _ => (),
             }
             if let Some((lhs_a, a)) = fetch_assign(then)
                 && let Some((lhs_b, b)) = fetch_assign(else_expr)
