@@ -316,11 +316,8 @@ pub fn read_file(input_path: &str) -> String {
 
     let mut bytes = Vec::new();
 
-    match file.read_to_end(&mut bytes) {
-        Ok(..) => {},
-        Err(_) => {
-            panic!("Can't read {}", input_path);
-        },
+    if file.read_to_end(&mut bytes).is_err() {
+        panic!("Can't read {}", input_path);
     };
 
     match String::from_utf8(bytes) {

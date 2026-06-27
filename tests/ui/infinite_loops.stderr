@@ -343,7 +343,7 @@ LL | |         }
    = help: if this is not intended, try adding a `break` or `return` to the loop
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:545:32
+  --> tests/ui/infinite_loops.rs:547:32
    |
 LL |         let true = cond else { loop {} };
    |                                ^^^^^^^
@@ -351,7 +351,7 @@ LL |         let true = cond else { loop {} };
    = help: if this is not intended, try adding a `break` or `return` to the loop
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:551:13
+  --> tests/ui/infinite_loops.rs:553:13
    |
 LL |             loop {}
    |             ^^^^^^^
@@ -359,7 +359,7 @@ LL |             loop {}
    = help: if this is not intended, try adding a `break` or `return` to the loop
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:559:21
+  --> tests/ui/infinite_loops.rs:561:21
    |
 LL |             None => loop {},
    |                     ^^^^^^^
@@ -367,7 +367,7 @@ LL |             None => loop {},
    = help: if this is not intended, try adding a `break` or `return` to the loop
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:568:13
+  --> tests/ui/infinite_loops.rs:570:13
    |
 LL |             loop {}
    |             ^^^^^^^
@@ -375,19 +375,7 @@ LL |             loop {}
    = help: if this is not intended, try adding a `break` or `return` to the loop
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:576:13
-   |
-LL |             loop {}
-   |             ^^^^^^^
-   |
-   = help: if this is not intended, try adding a `break` or `return` to the loop
-help: if this is intentional, consider specifying `!` as function return
-   |
-LL |     fn all_branches_diverge_if(cond: bool) -> ! {
-   |                                            ++++
-
-error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:579:13
+  --> tests/ui/infinite_loops.rs:578:13
    |
 LL |             loop {}
    |             ^^^^^^^
@@ -399,7 +387,19 @@ LL |     fn all_branches_diverge_if(cond: bool) -> ! {
    |                                            ++++
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:586:24
+  --> tests/ui/infinite_loops.rs:581:13
+   |
+LL |             loop {}
+   |             ^^^^^^^
+   |
+   = help: if this is not intended, try adding a `break` or `return` to the loop
+help: if this is intentional, consider specifying `!` as function return
+   |
+LL |     fn all_branches_diverge_if(cond: bool) -> ! {
+   |                                            ++++
+
+error: infinite loop detected
+  --> tests/ui/infinite_loops.rs:588:24
    |
 LL |             Some(_) => loop {},
    |                        ^^^^^^^
@@ -411,7 +411,7 @@ LL |     fn all_branches_diverge_match(x: Option<i32>) -> ! {
    |                                                   ++++
 
 error: infinite loop detected
-  --> tests/ui/infinite_loops.rs:587:21
+  --> tests/ui/infinite_loops.rs:589:21
    |
 LL |             None => loop {},
    |                     ^^^^^^^

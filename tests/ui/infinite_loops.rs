@@ -541,6 +541,8 @@ mod issue16155 {
 
     use super::do_something;
 
+    fn dummy() {}
+
     fn let_then_else(cond: bool) {
         let true = cond else { loop {} };
         //~^ infinite_loop
@@ -555,7 +557,7 @@ mod issue16155 {
 
     fn loop_in_one_match_arm(x: Option<i32>) {
         match x {
-            Some(_) => {},
+            Some(_) => dummy(),
             None => loop {},
             //~^ infinite_loop
         }

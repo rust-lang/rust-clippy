@@ -113,7 +113,7 @@ LL | pub fn read_file(input_path: &str) -> String {
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of (2/1)
-  --> tests/ui/cognitive_complexity.rs:337:4
+  --> tests/ui/cognitive_complexity.rs:334:4
    |
 LL | fn void(void: Void) {
    |    ^^^^
@@ -121,7 +121,7 @@ LL | fn void(void: Void) {
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of (8/1)
-  --> tests/ui/cognitive_complexity.rs:390:4
+  --> tests/ui/cognitive_complexity.rs:387:4
    |
 LL | fn early_ret() -> i32 {
    |    ^^^^^^^^^
@@ -129,7 +129,7 @@ LL | fn early_ret() -> i32 {
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of (2/1)
-  --> tests/ui/cognitive_complexity.rs:413:13
+  --> tests/ui/cognitive_complexity.rs:410:13
    |
 LL |     let x = |a: i32, b: i32| -> i32 {
    |             ^^^^^^^^^^^^^^^^
@@ -137,7 +137,7 @@ LL |     let x = |a: i32, b: i32| -> i32 {
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of (2/1)
-  --> tests/ui/cognitive_complexity.rs:428:8
+  --> tests/ui/cognitive_complexity.rs:425:8
    |
 LL |     fn moo(&self) {
    |        ^^^
@@ -145,7 +145,7 @@ LL |     fn moo(&self) {
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of (2/1)
-  --> tests/ui/cognitive_complexity.rs:439:14
+  --> tests/ui/cognitive_complexity.rs:436:14
    |
 LL |     async fn a() {
    |              ^
@@ -153,7 +153,7 @@ LL |     async fn a() {
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of (2/1)
-  --> tests/ui/cognitive_complexity.rs:448:22
+  --> tests/ui/cognitive_complexity.rs:445:22
    |
 LL |         pub async fn async_method() {
    |                      ^^^^^^^^^^^^
@@ -161,7 +161,7 @@ LL |         pub async fn async_method() {
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of (2/1)
-  --> tests/ui/cognitive_complexity.rs:459:8
+  --> tests/ui/cognitive_complexity.rs:456:8
    |
 LL |     fn foo() {
    |        ^^^
@@ -169,7 +169,7 @@ LL |     fn foo() {
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of (2/1)
-  --> tests/ui/cognitive_complexity.rs:466:8
+  --> tests/ui/cognitive_complexity.rs:463:8
    |
 LL |     fn bar() {
    |        ^^^
@@ -177,7 +177,7 @@ LL |     fn bar() {
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of (2/1)
-  --> tests/ui/cognitive_complexity.rs:478:8
+  --> tests/ui/cognitive_complexity.rs:475:8
    |
 LL |     fn bad() {
    |        ^^^
@@ -185,7 +185,7 @@ LL |     fn bad() {
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of (2/1)
-  --> tests/ui/cognitive_complexity.rs:493:8
+  --> tests/ui/cognitive_complexity.rs:490:8
    |
 LL |     fn bad_again() {
    |        ^^^^^^^^^

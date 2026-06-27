@@ -3,7 +3,7 @@ use clippy_utils::source::{
     SpanExt, expr_block, snippet, snippet_block_with_context, snippet_with_applicability, snippet_with_context,
 };
 use clippy_utils::ty::{implements_trait, peel_and_count_ty_refs};
-use clippy_utils::{is_lint_allowed, is_unit_expr, peel_blocks, peel_hir_pat_refs, peel_n_hir_expr_refs, sym};
+use clippy_utils::{is_lint_allowed, is_unit_expr, is_wild, peel_blocks, peel_hir_pat_refs, peel_n_hir_expr_refs, sym};
 use core::ops::ControlFlow;
 use rustc_arena::DroplessArena;
 use rustc_errors::{Applicability, Diag};
@@ -25,6 +25,65 @@ fn empty_arm_has_comment(cx: &LateContext<'_>, span: Span) -> bool {
     span.check_text(cx, |text| text.as_bytes().windows(2).any(|w| w == b"//" || w == b"/*"))
 }
 
+/// Checks if an arm contains expressions or statements.
+/// This is a very naive check, as it just checks if the arm is a block or contains comments, but it
+/// satisfies our current test cases.
+fn arm_has_code(cx: &LateContext<'_>, arm: &Arm<'_>) -> bool {
+    if is_unit_expr(peel_blocks(arm.body)) && !empty_arm_has_comment(cx, arm.body.span) {
+        false
+    } else {
+        matches!(arm.body.kind, ExprKind::Block(_block, _))
+    }
+}
+
+fn check_single_match<'tcx>(
+    cx: &LateContext<'tcx>,
+    ex: &'tcx Expr<'_>,
+    expr: &'tcx Expr<'_>,
+    contains_comments: bool,
+    arm1: &'tcx Arm<'_>,
+    arm2: &'tcx Arm<'_>,
+) {
+    let els = if is_unit_expr(peel_blocks(arm2.body)) && !empty_arm_has_comment(cx, arm2.body.span) {
+        None
+    } else if let ExprKind::Block(block, _) = arm2.body.kind {
+        if matches!((block.stmts, block.expr), ([], Some(_)) | ([_], None)) {
+            // single statement/expr "else" block, don't lint
+            return;
+        }
+        // block with 2+ statements or 1 expr and 1+ statement
+        Some(arm2.body)
+    } else {
+        // not a block or an empty block w/ comments, don't lint
+        return;
+    };
+
+    let typeck = cx.typeck_results();
+    if *typeck.expr_ty(ex).peel_refs().kind() != ty::Bool || is_lint_allowed(cx, MATCH_BOOL, ex.hir_id) {
+        let mut v = PatVisitor {
+            typeck,
+            has_enum: false,
+        };
+        if v.visit_pat(arm2.pat).is_break() {
+            return;
+        }
+        if v.has_enum {
+            let cx = PatCtxt {
+                tcx: cx.tcx,
+                typeck,
+                arena: DroplessArena::default(),
+            };
+            let mut state = PatState::Other;
+            if !(state.add_pat(&cx, arm2.pat) || state.add_pat(&cx, arm1.pat)) {
+                // Don't lint if the pattern contains an enum which doesn't have a wild match.
+                return;
+            }
+        }
+
+        report_single_pattern(cx, ex, arm1, expr, els, contains_comments);
+    }
+}
+
 pub(crate) fn check<'tcx>(
     cx: &LateContext<'tcx>,
     ex: &'tcx Expr<'_>,
@@ -39,43 +98,16 @@ pub(crate) fn check<'tcx>(
         // the lint noisy in unnecessary situations
         && !matches!(arm1.pat.kind, PatKind::Or(..))
     {
-        let els = if is_unit_expr(peel_blocks(arm2.body)) && !empty_arm_has_comment(cx, arm2.body.span) {
-            None
-        } else if let ExprKind::Block(block, _) = arm2.body.kind {
-            if matches!((block.stmts, block.expr), ([], Some(_)) | ([_], None)) {
-                // single statement/expr "else" block, don't lint
-                return;
-            }
-            // block with 2+ statements or 1 expr and 1+ statement
-            Some(arm2.body)
-        } else {
-            // not a block or an empty block w/ comments, don't lint
-            return;
-        };
+        check_single_match(cx, ex, expr, contains_comments, arm1, arm2);
 
-        let typeck = cx.typeck_results();
-        if *typeck.expr_ty(ex).peel_refs().kind() != ty::Bool || is_lint_allowed(cx, MATCH_BOOL, ex.hir_id) {
-            let mut v = PatVisitor {
-                typeck,
-                has_enum: false,
-            };
-            if v.visit_pat(arm2.pat).is_break() {
-                return;
-            }
-            if v.has_enum {
-                let cx = PatCtxt {
-                    tcx: cx.tcx,
-                    typeck,
-                    arena: DroplessArena::default(),
-                };
-                let mut state = PatState::Other;
-                if !(state.add_pat(&cx, arm2.pat) || state.add_pat(&cx, arm1.pat)) {
-                    // Don't lint if the pattern contains an enum which doesn't have a wild match.
-                    return;
-                }
-            }
-
-            report_single_pattern(cx, ex, arm1, expr, els, contains_comments);
+        // Make sure we match symmetrically on enums, regardless of the order of the match
+        if cx.typeck_results().expr_ty(ex).peel_refs().is_enum()
+            // Prevent false positives by excluding bindings, wildcards and empty arms
+            && !matches!(arm2.pat.kind, PatKind::Binding(..))
+            && !is_wild(arm2.pat)
+            && (!arm_has_code(cx, arm1) || !arm_has_code(cx, arm2))
+        {
+            check_single_match(cx, ex, expr, contains_comments, arm2, arm1);
         }
     }
 }
