@@ -1,5 +1,6 @@
 #![warn(clippy::return_and_then)]
 #![allow(clippy::manual_filter)]
+#![expect(clippy::unnecessary_as_slice)]
 
 fn main() {
     fn test_opt_block(opt: Option<i32>) -> Option<i32> {

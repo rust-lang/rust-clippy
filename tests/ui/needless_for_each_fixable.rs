@@ -6,6 +6,7 @@
     clippy::needless_return,
     clippy::uninlined_format_args
 )]
+#![expect(clippy::unnecessary_as_slice)]
 
 use std::collections::HashMap;
 
