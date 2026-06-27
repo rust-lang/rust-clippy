@@ -7,7 +7,7 @@ use clippy_utils::{binary_expr_needs_parentheses, fn_def_id, span_contains_non_w
 use core::ops::ControlFlow;
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, PatKind, StmtKind};
-use rustc_lint::{LateContext, LintContext};
+use rustc_lint::{LateContext, Level, LintContext};
 use rustc_middle::ty::GenericArgKind;
 use rustc_span::edition::Edition;
 
@@ -28,7 +28,16 @@ pub(super) fn check_block<'tcx>(cx: &LateContext<'tcx>, block: &'tcx Block<'_>) 
         && !initexpr.span.in_external_macro(cx.sess().source_map())
         && !retexpr.span.in_external_macro(cx.sess().source_map())
         && !local.span.from_expansion()
-        && !span_contains_non_whitespace(cx, stmt.span.between(retexpr.span), false)
+        // If the return expression has lint-level attributes,
+        // skip the non whitespace check.
+        // Non-lint attrs like `#[cfg]` should still block.
+        && {
+            let retexpr_attrs = cx.tcx.hir_attrs(retexpr.hir_id);
+            retexpr_attrs
+            .iter()
+            .any(|a| a.name().is_some_and(|name| Level::from_symbol(name).is_some()))
+                || !span_contains_non_whitespace(cx, stmt.span.between(retexpr.span), false)
+        }
     {
         span_lint_hir_and_then(
             cx,
