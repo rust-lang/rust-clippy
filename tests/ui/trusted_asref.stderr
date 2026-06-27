@@ -1,0 +1,66 @@
+error: unsafe block calls `as_ref` multiple times on the same receiver
+  --> tests/ui/trusted_asref.rs:9:19
+   |
+LL |         use_slice(s.as_ref().as_ptr(), s.as_ref().len());
+   |                   ^^^^^^^^^^           ^^^^^^^^^^
+   |
+   = help: consider calling `as_ref()` once and reusing the result to avoid potential unsoundness
+   = note: `-D clippy::trusted-asref` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::trusted_asref)]`
+
+error: unsafe block calls `as_ref` multiple times on the same receiver
+  --> tests/ui/trusted_asref.rs:16:19
+   |
+LL |         use_slice(s.as_ref().as_ptr(), s.as_ref().len());
+   |                   ^^^^^^^^^^           ^^^^^^^^^^
+   |
+   = help: consider calling `as_ref()` once and reusing the result to avoid potential unsoundness
+
+error: unsafe block calls `as_ref` multiple times on the same receiver
+  --> tests/ui/trusted_asref.rs:26:19
+   |
+LL |         use_slice(s.as_ref().as_ptr(), s.as_ref().len());
+   |                   ^^^^^^^^^^           ^^^^^^^^^^
+   |
+   = help: consider calling `as_ref()` once and reusing the result to avoid potential unsoundness
+
+error: unsafe block calls `as_ref` multiple times on the same receiver
+  --> tests/ui/trusted_asref.rs:33:19
+   |
+LL |         use_slice(s.as_ref().as_ptr(), s.as_ref().len());
+   |                   ^^^^^^^^^^           ^^^^^^^^^^
+   |
+   = help: consider calling `as_ref()` once and reusing the result to avoid potential unsoundness
+
+error: unsafe block calls `as_ref` multiple times on the same receiver
+  --> tests/ui/trusted_asref.rs:36:23
+   |
+LL |             use_slice(s.as_ref().as_ptr(), s.as_ref().len());
+   |                       ^^^^^^^^^^           ^^^^^^^^^^
+   |
+   = help: consider calling `as_ref()` once and reusing the result to avoid potential unsoundness
+
+error: unsafe block calls `as_ref` multiple times on the same receiver
+  --> tests/ui/trusted_asref.rs:44:17
+   |
+LL |         let p = s.as_ref().as_ptr();
+   |                 ^^^^^^^^^^
+LL |
+LL |         let len = s.as_ref().len();
+   |                   ^^^^^^^^^^
+   |
+   = help: consider calling `as_ref()` once and reusing the result to avoid potential unsoundness
+
+error: unsafe block calls `as_ref` multiple times on the same receiver
+  --> tests/ui/trusted_asref.rs:53:19
+   |
+LL |         use_slice(s.as_ref().as_ptr(), s.as_ref().len());
+   |                   ^^^^^^^^^^           ^^^^^^^^^^
+LL |
+LL |         use_slice(s.as_ref().as_ptr(), s.as_ref().len());
+   |                   ^^^^^^^^^^           ^^^^^^^^^^
+   |
+   = help: consider calling `as_ref()` once and reusing the result to avoid potential unsoundness
+
+error: aborting due to 7 previous errors
+
