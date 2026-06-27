@@ -138,6 +138,7 @@ mod fallible_impl_from;
 mod field_scoped_visibility_modifiers;
 mod float_literal;
 mod floating_point_arithmetic;
+mod fn_param_ref_cloned;
 mod format;
 mod format_args;
 mod format_impl;
@@ -862,6 +863,7 @@ rustc_lint::late_lint_methods!(
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
         WithCapacityZero: with_capacity_zero::WithCapacityZero = with_capacity_zero::WithCapacityZero,
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
+        FnParamRefCloned: fn_param_ref_cloned::FnParamRefCloned = <fn_param_ref_cloned::FnParamRefCloned>::default(),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
