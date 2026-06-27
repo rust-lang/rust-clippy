@@ -42,5 +42,47 @@ LL |         collections::BTreeSet,
    |
    = help: consider importing the item from `alloc`
 
-error: aborting due to 5 previous errors
+error: used import from `alloc` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:34:33
+   |
+LL |     use alloc::str::{self as _, FromStr as _};
+   |                                 ^^^^^^^
+   |
+   = help: consider importing the item from `core`
+   = note: `-D clippy::alloc-instead-of-core` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::alloc_instead_of_core)]`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:42:13
+   |
+LL |             AtomicPtr,
+   |             ^^^^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:43:13
+   |
+LL |             Ordering,
+   |             ^^^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `alloc`
+  --> tests/ui/std_instead_of_core_unfixable.rs:38:9
+   |
+LL |         Arc,
+   |         ^^^
+   |
+   = help: consider importing the item from `alloc`
+
+error: used import from `std` instead of `alloc`
+  --> tests/ui/std_instead_of_core_unfixable.rs:40:9
+   |
+LL |         Weak,
+   |         ^^^^
+   |
+   = help: consider importing the item from `alloc`
+
+error: aborting due to 10 previous errors
 
