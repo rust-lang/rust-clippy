@@ -108,6 +108,11 @@ fn check_str(cx: &LateContext<'_>, span: Span, id: HirId) {
     }
 
     let string = snippet(cx, span, "");
+    // An all-ASCII snippet has no invisible char, non-ASCII char, or non-NFC sequence,
+    // so none of the lints below can fire: skip the expensive NFC scan in that common case.
+    if string.is_ascii() {
+        return;
+    }
     if string.chars().any(|c| ['\u{200B}', '\u{ad}', '\u{2060}'].contains(&c)) {
         #[expect(clippy::collapsible_span_lint_calls, reason = "rust-clippy#7797")]
         span_lint_and_then(cx, INVISIBLE_CHARACTERS, span, "invisible character detected", |diag| {
