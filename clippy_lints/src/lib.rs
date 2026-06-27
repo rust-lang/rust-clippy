@@ -301,6 +301,7 @@ mod precedence;
 mod ptr;
 mod pub_underscore_fields;
 mod pub_use;
+mod public_types_missing_drop;
 mod question_mark;
 mod question_mark_used;
 mod ranges;
@@ -862,6 +863,7 @@ rustc_lint::late_lint_methods!(
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
         WithCapacityZero: with_capacity_zero::WithCapacityZero = with_capacity_zero::WithCapacityZero,
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
+        PublicTypesMissingDrop: public_types_missing_drop::PublicTypesMissingDrop = public_types_missing_drop::PublicTypesMissingDrop,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
