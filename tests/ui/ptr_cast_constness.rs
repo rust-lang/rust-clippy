@@ -112,3 +112,16 @@ fn issue11317() {
     let _ptr: *mut u32 = r as *const _ as *mut _;
     //~^ ptr_cast_constness
 }
+
+/// Checks for implicit mut pointer to const pointer coercion
+fn issue13667() {
+    fn expect_const_ptr<T>(_: *const T) {}
+
+    let p = &mut 0 as *mut i32;
+    let _: *const i32 = p;
+    //~^ ptr_cast_constness
+    expect_const_ptr(p);
+    //~^ ptr_cast_constness
+    let _: *const u8 = p as *mut u8;
+    //~^ ptr_cast_constness
+}
