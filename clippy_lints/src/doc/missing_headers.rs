@@ -4,7 +4,9 @@ use clippy_utils::macros::{is_panic, root_macro_call_first_node};
 use clippy_utils::res::MaybeDef;
 use clippy_utils::ty::implements_trait_with_env;
 use clippy_utils::visitors::for_each_expr;
-use clippy_utils::{fulfill_or_allowed, is_doc_hidden, is_inside_always_const_context, method_chain_args, return_ty};
+use clippy_utils::{
+    fulfill_or_allowed, is_doc_hidden, is_in_test, is_inside_always_const_context, method_chain_args, return_ty,
+};
 use rustc_hir::{BodyId, FnSig, OwnerId, Safety};
 use rustc_lint::LateContext;
 use rustc_middle::ty;
@@ -23,12 +25,19 @@ pub fn check(
         return; // Private functions do not require doc comments
     }
 
-    // do not lint if any parent has `#[doc(hidden)]` attribute (#7347)
+    // Do not lint if any parent has `#[doc(hidden)]` attribute (#7347)
     if !check_private_items
         && cx
             .tcx
             .hir_parent_iter(owner_id.into())
             .any(|(id, _node)| is_doc_hidden(cx.tcx.hir_attrs(id)))
+    {
+        return;
+    }
+
+    // Do not lint if any parent has `#[test]` attribute or is in `#[cfg(test)]` (#12265)
+    if let Some(body_id) = body_id
+        && is_in_test(cx.tcx, body_id.hir_id)
     {
         return;
     }
