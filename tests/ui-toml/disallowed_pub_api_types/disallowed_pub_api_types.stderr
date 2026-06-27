@@ -1,0 +1,53 @@
+error: using a disallowed type `std::result::Result` in a public API
+  --> tests/ui-toml/disallowed_pub_api_types/disallowed_pub_api_types.rs:4:24
+   |
+LL | pub fn bad_pub_fn() -> Result<(), ()> {
+   |                        ^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::disallowed-pub-api-types` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::disallowed_pub_api_types)]`
+
+error: using a disallowed type `std::result::Result` in a public API
+  --> tests/ui-toml/disallowed_pub_api_types/disallowed_pub_api_types.rs:9:29
+   |
+LL | pub fn bad_pub_fn_arg(_arg: Result<(), ()>) {
+   |                             ^^^^^^^^^^^^^^
+
+error: using a disallowed type `std::option::Option` in a public API
+  --> tests/ui-toml/disallowed_pub_api_types/disallowed_pub_api_types.rs:25:33
+   |
+LL |     pub fn bad_method(&self) -> Option<i32> {
+   |                                 ^^^^^^^^^^^
+
+error: using a disallowed type `std::option::Option` in a public API
+  --> tests/ui-toml/disallowed_pub_api_types/disallowed_pub_api_types.rs:30:40
+   |
+LL |     pub fn bad_method_arg(&self, _arg: Option<i32>) {
+   |                                        ^^^^^^^^^^^
+
+error: using a disallowed type `std::result::Result` in a public API
+  --> tests/ui-toml/disallowed_pub_api_types/disallowed_pub_api_types.rs:42:30
+   |
+LL |     fn bad_trait_method() -> Result<(), ()>;
+   |                              ^^^^^^^^^^^^^^
+
+error: using a disallowed type `std::result::Result` in a public API
+  --> tests/ui-toml/disallowed_pub_api_types/disallowed_pub_api_types.rs:45:35
+   |
+LL |     fn bad_trait_method_arg(_arg: Result<(), ()>);
+   |                                   ^^^^^^^^^^^^^^
+
+error: using a disallowed type `crate::InputOnly` in a public API
+  --> tests/ui-toml/disallowed_pub_api_types/disallowed_pub_api_types.rs:65:28
+   |
+LL | pub fn get_input_type() -> crate::InputOnly {
+   |                            ^^^^^^^^^^^^^^^^
+
+error: using a disallowed type `crate::InputOnly` in a public API
+  --> tests/ui-toml/disallowed_pub_api_types/disallowed_pub_api_types.rs:70:40
+   |
+LL | pub fn bad_pub_fn_input_only_arg(_arg: crate::InputOnly) {
+   |                                        ^^^^^^^^^^^^^^^^
+
+error: aborting due to 8 previous errors
+
