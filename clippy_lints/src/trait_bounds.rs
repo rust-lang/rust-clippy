@@ -83,7 +83,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.38.0"]
     pub TYPE_REPETITION_IN_BOUNDS,
     nursery,
-    "types are repeated unnecessarily in trait bounds, use `+` instead of using `T: _, T: _`"
+    "types are repeated unnecessarily in trait bounds, use `+` instead of using `T: _, T: _`",
+    @msrv_behavior = "This lint avoids suggestions that would combine `?Sized` in a `where` clause before Rust 1.15, where that form was not accepted."
 }
 
 impl_lint_pass!(TraitBounds => [

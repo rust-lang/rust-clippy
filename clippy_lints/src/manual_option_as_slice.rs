@@ -37,7 +37,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.86.0"]
     pub MANUAL_OPTION_AS_SLICE,
     complexity,
-    "manual `Option::as_slice`"
+    "manual `Option::as_slice`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.75, because it suggests `Option::as_slice`. In const contexts, it requires at least 1.84."
 }
 
 impl_lint_pass!(ManualOptionAsSlice => [MANUAL_OPTION_AS_SLICE]);

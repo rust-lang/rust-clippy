@@ -57,7 +57,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.76.0"]
     pub REPEAT_VEC_WITH_CAPACITY,
     suspicious,
-    "repeating a `Vec::with_capacity` expression which does not retain capacity"
+    "repeating a `Vec::with_capacity` expression which does not retain capacity",
+    @msrv_behavior = "`vec![Vec::with_capacity(_); n]` is linted for all MSRVs. `iter::repeat(Vec::with_capacity(_))` is only linted when the configured MSRV is at least 1.28, because the suggestion uses `iter::repeat_with`."
 }
 
 impl_lint_pass!(RepeatVecWithCapacity => [REPEAT_VEC_WITH_CAPACITY]);

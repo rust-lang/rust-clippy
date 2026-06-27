@@ -205,7 +205,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub EXPLICIT_ITER_LOOP,
     pedantic,
-    "for-looping over `_.iter()` or `_.iter_mut()` when `&_` or `&mut _` would do"
+    "for-looping over `_.iter()` or `_.iter_mut()` when `&_` or `&mut _` would do",
+    @msrv_behavior = "This lint does not fire for iterating over arrays by value when the configured MSRV is below 1.53, or over `Box` types when below 1.80, as those types did not implement `IntoIterator` in those versions."
 }
 
 declare_clippy_lint! {
@@ -392,7 +393,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.52.0"]
     pub MANUAL_FLATTEN,
     complexity,
-    "for loops over `Option`s or `Result`s with a single expression can be simplified"
+    "for loops over `Option`s or `Result`s with a single expression can be simplified",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.29, because it suggests `Iterator::flatten`."
 }
 
 declare_clippy_lint! {
@@ -446,7 +448,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.86.0"]
     pub MANUAL_SLICE_FILL,
     style,
-    "manually filling a slice with a value"
+    "manually filling a slice with a value",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.50, because it suggests `slice::fill`."
 }
 
 declare_clippy_lint! {
@@ -637,7 +640,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.47.0"]
     pub SAME_ITEM_PUSH,
     style,
-    "the same item is pushed inside of a for loop"
+    "the same item is pushed inside of a for loop",
+    @msrv_behavior = "When the configured MSRV is at least 1.82, this lint can suggest `std::iter::repeat_n`; otherwise it suggests older alternatives."
 }
 
 declare_clippy_lint! {

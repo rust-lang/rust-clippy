@@ -46,7 +46,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.44.0"]
     pub IMPLICIT_SATURATING_SUB,
     style,
-    "Perform saturating subtraction instead of implicitly checking lower bound of data type"
+    "Perform saturating subtraction instead of implicitly checking lower bound of data type",
+    @msrv_behavior = "This lint is emitted for all MSRVs outside const contexts. In const contexts, it is only emitted when the configured MSRV is at least 1.47."
 }
 
 declare_clippy_lint! {

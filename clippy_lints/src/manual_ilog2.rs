@@ -34,7 +34,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.94.0"]
     pub MANUAL_ILOG2,
     pedantic,
-    "manually reimplementing `ilog2`"
+    "manually reimplementing `ilog2`",
+    @msrv_behavior = "For `N - x.leading_zeros()` patterns, this lint is only emitted when the configured MSRV is at least 1.67. For `x.ilog(2)` patterns, the configured MSRV does not affect lint behavior, since `ilog` and `ilog2` were stabilized simultaneously."
 }
 
 impl_lint_pass!(ManualIlog2 => [MANUAL_ILOG2]);
