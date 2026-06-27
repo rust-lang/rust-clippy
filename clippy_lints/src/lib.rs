@@ -149,6 +149,7 @@ mod from_raw_with_void_ptr;
 mod from_str_radix_10;
 mod functions;
 mod future_not_send;
+mod getter_prefixes;
 mod if_let_mutex;
 mod if_not_else;
 mod if_then_some_else_none;
@@ -542,6 +543,7 @@ rustc_lint::early_lint_methods!(
         CfgNotTest: cfg_not_test::CfgNotTest = cfg_not_test::CfgNotTest,
         EmptyLineAfter: empty_line_after::EmptyLineAfter = empty_line_after::EmptyLineAfter::new(),
         InlineTraitBounds: inline_trait_bounds::InlineTraitBounds = inline_trait_bounds::InlineTraitBounds::default(),
+        GetterPrefixes: getter_prefixes::GetterPrefixes = getter_prefixes::GetterPrefixes,
         // add early passes here, used by `cargo dev new_lint`
     ]]
 );
