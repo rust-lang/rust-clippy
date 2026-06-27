@@ -6978,6 +6978,7 @@ Released 2018-09-13
 [`manual_abs_diff`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_abs_diff
 [`manual_assert`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_assert
 [`manual_assert_eq`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_assert_eq
+[`manual_assert_matches`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_assert_matches
 [`manual_async_fn`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_async_fn
 [`manual_bits`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_bits
 [`manual_c_str_literals`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_c_str_literals

@@ -65,7 +65,7 @@ pub mod usage;
 pub mod visitors;
 
 pub use self::attrs::*;
-pub use self::check_proc_macro::{is_from_proc_macro, is_span_if, is_span_match};
+pub use self::check_proc_macro::{is_from_proc_macro, is_span_assert, is_span_if, is_span_match};
 pub use self::hir_utils::{
     HirEqInterExpr, SpanlessEq, SpanlessHash, both, count_eq, eq_expr_value, has_ambiguous_literal_in_expr, hash_expr,
     hash_stmt, is_bool, over,
@@ -845,10 +845,10 @@ pub fn capture_local_usage(cx: &LateContext<'_>, e: &Expr<'_>) -> CaptureKind {
         capture
     }
 
-    debug_assert!(matches!(
+    core::debug_assert_matches!(
         e.kind,
         ExprKind::Path(QPath::Resolved(None, Path { res: Res::Local(_), .. }))
-    ));
+    );
 
     let mut capture = CaptureKind::Value;
     let mut capture_expr_ty = e;
