@@ -264,6 +264,7 @@ mod needless_ifs;
 mod needless_late_init;
 mod needless_maybe_sized;
 mod needless_parens_on_range_literals;
+mod needless_partial_cmp;
 mod needless_pass_by_ref_mut;
 mod needless_pass_by_value;
 mod needless_question_mark;
@@ -862,6 +863,7 @@ rustc_lint::late_lint_methods!(
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
         WithCapacityZero: with_capacity_zero::WithCapacityZero = with_capacity_zero::WithCapacityZero,
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
+	NeedlessPartialCmp: needless_partial_cmp::NeedlessPartialCmp = needless_partial_cmp::NeedlessPartialCmp,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
