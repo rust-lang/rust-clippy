@@ -385,6 +385,7 @@ mod unneeded_struct_pattern;
 mod unnested_or_patterns;
 mod unsafe_removed_from_name;
 mod unused_async;
+mod unused_import_prefixes;
 mod unused_io_amount;
 mod unused_peekable;
 mod unused_result_ok;
@@ -862,6 +863,7 @@ rustc_lint::late_lint_methods!(
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
         WithCapacityZero: with_capacity_zero::WithCapacityZero = with_capacity_zero::WithCapacityZero,
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
+        UnusedImportPrefixes: unused_import_prefixes::UnusedImportPrefixes = unused_import_prefixes::UnusedImportPrefixes::default(),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
