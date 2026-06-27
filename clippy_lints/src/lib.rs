@@ -359,6 +359,7 @@ mod tests_outside_test_module;
 mod time_subtraction;
 mod to_digit_is_some;
 mod to_string_trait_impl;
+mod too_many_lines_in_file;
 mod toplevel_ref_arg;
 mod trailing_empty_array;
 mod trait_bounds;
@@ -542,6 +543,7 @@ rustc_lint::early_lint_methods!(
         CfgNotTest: cfg_not_test::CfgNotTest = cfg_not_test::CfgNotTest,
         EmptyLineAfter: empty_line_after::EmptyLineAfter = empty_line_after::EmptyLineAfter::new(),
         InlineTraitBounds: inline_trait_bounds::InlineTraitBounds = inline_trait_bounds::InlineTraitBounds::default(),
+        TooManyLinesInFile: too_many_lines_in_file::TooManyLinesInFile = too_many_lines_in_file::TooManyLinesInFile::new(conf),
         // add early passes here, used by `cargo dev new_lint`
     ]]
 );
