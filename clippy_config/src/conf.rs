@@ -751,7 +751,7 @@ define_Conf! {
     /// When Clippy suggests using a slice pattern, this is the maximum number of elements allowed in
     /// the slice pattern that is suggested. If more elements are necessary, the lint is suppressed.
     /// For example, `[_, _, _, e, ..]` is a slice pattern with 4 elements.
-    #[lints(index_refutable_slice)]
+    #[lints(index_refutable_slice, manual_slice_match)]
     max_suggested_slice_pattern_length: u64 = 3,
     /// The maximum number of bounds a trait can have to be linted
     #[lints(type_repetition_in_bounds)]
