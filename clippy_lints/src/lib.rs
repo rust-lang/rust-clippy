@@ -1,3 +1,4 @@
+#![feature(array_try_map)]
 #![feature(box_patterns)]
 #![feature(control_flow_into_value)]
 #![feature(exact_div)]
