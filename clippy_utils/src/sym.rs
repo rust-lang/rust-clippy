@@ -72,6 +72,7 @@ generate! {
     IoLines,
     IoRead,
     IoSeek,
+    IoSplit,
     IoWrite,
     IpAddr,
     Ipv4Addr,
