@@ -108,6 +108,7 @@ mod derive;
 mod disallowed_fields;
 mod disallowed_macros;
 mod disallowed_methods;
+mod disallowed_modules;
 mod disallowed_names;
 mod disallowed_script_idents;
 mod disallowed_types;
@@ -862,6 +863,7 @@ rustc_lint::late_lint_methods!(
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
         WithCapacityZero: with_capacity_zero::WithCapacityZero = with_capacity_zero::WithCapacityZero,
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
+        DisallowedModules: disallowed_modules::DisallowedModules = disallowed_modules::DisallowedModules::new(tcx, conf),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
