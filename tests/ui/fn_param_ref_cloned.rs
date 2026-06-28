@@ -114,7 +114,6 @@ fn partial_clone(
 }
 
 fn dont_check_if_stmts(clone_ref: &IsClone, if_arg: usize) {
-    // #[clippy::dump]
     if if_arg == 0usize {
         let should_allow_clone = clone_ref.clone();
     }
