@@ -64,7 +64,7 @@ pub(super) fn check<'tcx>(
             }
         } else if !found_mapping && !mutates_arg && (!clone_or_copy_needed || is_copy(cx, in_ty)) {
             let ty = cx.typeck_results().expr_ty(body.value);
-            if option_arg_ty(cx, ty).is_some_and(|t| t == in_ty) {
+            if option_arg_ty(cx, ty) == Some(in_ty) {
                 match kind {
                     Kind::FilterMap => "filter(..)",
                     Kind::FindMap => "find(..)",

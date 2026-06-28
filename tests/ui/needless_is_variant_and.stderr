@@ -1,0 +1,145 @@
+error: this `is_some_and` can be simplified
+  --> tests/ui/needless_is_variant_and.rs:13:13
+   |
+LL |     let _ = Some(5).is_some_and(|n| n == 5);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::needless-is-variant-and` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::needless_is_variant_and)]`
+help: use a standard comparison instead
+   |
+LL -     let _ = Some(5).is_some_and(|n| n == 5);
+LL +     let _ = Some(5) == Some(5);
+   |
+
+error: this `is_none_or` can be simplified
+  --> tests/ui/needless_is_variant_and.rs:15:13
+   |
+LL |     let _ = Some(5).is_none_or(|n| n != 5);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use a standard comparison instead
+   |
+LL -     let _ = Some(5).is_none_or(|n| n != 5);
+LL +     let _ = Some(5) != Some(5);
+   |
+
+error: this `is_some_and` can be simplified
+  --> tests/ui/needless_is_variant_and.rs:17:13
+   |
+LL |       let _ = Some(5).is_some_and(|n| {
+   |  _____________^
+LL | |
+LL | |         let _ = 1;
+LL | |         n == 5
+LL | |     });
+   | |______^
+   |
+help: use a standard comparison instead
+   |
+LL -     let _ = Some(5).is_some_and(|n| {
+LL -
+LL -         let _ = 1;
+LL -         n == 5
+LL -     });
+LL +     let _ = Some(5) == Some(5);
+   |
+
+error: this `is_ok_and` can be simplified
+  --> tests/ui/needless_is_variant_and.rs:22:13
+   |
+LL |     let _ = Ok::<i32, i32>(5).is_ok_and(|n| n == 5);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use a standard comparison instead
+   |
+LL -     let _ = Ok::<i32, i32>(5).is_ok_and(|n| n == 5);
+LL +     let _ = Ok::<i32, i32>(5) == Ok(5);
+   |
+
+error: this `is_some_and` can be simplified
+  --> tests/ui/needless_is_variant_and.rs:24:13
+   |
+LL |     let _ = Some(5).is_some_and(|n| n == 5).then(|| 1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use a standard comparison instead
+   |
+LL -     let _ = Some(5).is_some_and(|n| n == 5).then(|| 1);
+LL +     let _ = (Some(5) == Some(5)).then(|| 1);
+   |
+
+error: this `is_some_and` can be simplified
+  --> tests/ui/needless_is_variant_and.rs:26:14
+   |
+LL |     let _ = !Some(5).is_some_and(|n| n == 5);
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use a standard comparison instead
+   |
+LL -     let _ = !Some(5).is_some_and(|n| n == 5);
+LL +     let _ = !(Some(5) == Some(5));
+   |
+
+error: this `is_some_and` can be simplified
+  --> tests/ui/needless_is_variant_and.rs:28:13
+   |
+LL |     let _ = Some(5).is_some_and(|n| n == 5) || false;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use a standard comparison instead
+   |
+LL -     let _ = Some(5).is_some_and(|n| n == 5) || false;
+LL +     let _ = (Some(5) == Some(5)) || false;
+   |
+
+error: this `is_some_and` can be simplified
+  --> tests/ui/needless_is_variant_and.rs:30:13
+   |
+LL |     let _ = Some(5).is_some_and(|n| n == 5) as usize;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use a standard comparison instead
+   |
+LL -     let _ = Some(5).is_some_and(|n| n == 5) as usize;
+LL +     let _ = (Some(5) == Some(5)) as usize;
+   |
+
+error: this `is_ok_and` can be simplified
+  --> tests/ui/needless_is_variant_and.rs:58:13
+   |
+LL |     let _ = r.is_ok_and(|x| x == 8);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use a standard comparison instead
+   |
+LL -     let _ = r.is_ok_and(|x| x == 8);
+LL +     let _ = r == Ok(8);
+   |
+
+error: this `is_some_and` can be simplified
+  --> tests/ui/needless_is_variant_and.rs:70:13
+   |
+LL |     assert!(Some("test").is_some_and(|x| x == "test"));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use a standard comparison instead
+   |
+LL -     assert!(Some("test").is_some_and(|x| x == "test"));
+LL +     assert!(Some("test") == Some("test"));
+   |
+
+error: this `is_some_and` can be simplified
+  --> tests/ui/needless_is_variant_and.rs:74:13
+   |
+LL |     assert!(Some("test").is_some_and(|x| x == "test").then(|| 1).is_some());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use a standard comparison instead
+   |
+LL -     assert!(Some("test").is_some_and(|x| x == "test").then(|| 1).is_some());
+LL +     assert!((Some("test") == Some("test")).then(|| 1).is_some());
+   |
+
+error: aborting due to 11 previous errors
+

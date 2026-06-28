@@ -3,7 +3,7 @@ use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
 use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
 use clippy_utils::sugg::Sugg;
-use clippy_utils::{SpanlessEq, get_parent_expr, sym};
+use clippy_utils::{SpanlessEq, get_parent_expr, is_from_proc_macro, sym};
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::def::{CtorKind, CtorOf, DefKind, Res};
@@ -291,6 +291,66 @@ pub(super) fn check_or<'tcx>(
     );
 }
 
+pub(super) fn check_map_or<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &Expr<'tcx>,
+    recv: &Expr<'_>,
+    method_span: Span,
+    def: &Expr<'_>,
+    map: &Expr<'_>,
+    msrv: Msrv,
+) {
+    let ExprKind::Lit(def_kind) = def.kind else {
+        return;
+    };
+    let LitKind::Bool(def_bool) = def_kind.node else {
+        return;
+    };
+
+    let recv_ty = cx.typeck_results().expr_ty_adjusted(recv);
+
+    let flavor = match recv_ty.opt_diag_name(cx) {
+        Some(sym::Option) => Flavor::Option,
+        Some(sym::Result) => Flavor::Result,
+        Some(_) | None => return,
+    };
+
+    let ext_def_span = def.span.until(map.span);
+
+    let suggested_method = if !def_bool && msrv.meets(cx, msrvs::OPTION_RESULT_IS_VARIANT_AND) {
+        match flavor {
+            Flavor::Option => "is_some_and",
+            Flavor::Result => "is_ok_and",
+        }
+    } else if def_bool && matches!(flavor, Flavor::Option) && msrv.meets(cx, msrvs::IS_NONE_OR) {
+        "is_none_or"
+    } else {
+        return;
+    };
+
+    if is_from_proc_macro(cx, expr) {
+        return;
+    }
+
+    span_lint_and_then(
+        cx,
+        MANUAL_IS_VARIANT_AND,
+        expr.span,
+        "this `map_or` can be simplified",
+        |diag| {
+            let sugg = vec![
+                (method_span, suggested_method.to_owned()),
+                (ext_def_span, String::new()),
+            ];
+            diag.multipart_suggestion(
+                format!("use `{suggested_method}` instead"),
+                sugg,
+                Applicability::MachineApplicable,
+            );
+        },
+    );
+}
+
 pub(super) fn check_is_some_is_none<'tcx>(
     cx: &LateContext<'tcx>,
     call_span: Span,
@@ -337,7 +397,9 @@ pub(super) fn check_ok_is_some_and<'tcx>(
     expr: &'tcx Expr<'tcx>,
     is_some_and_recv: &'tcx Expr<'tcx>,
     arg: &'tcx Expr<'tcx>,
-) {
+) -> bool {
+    let mut fired = false;
+
     // `is_some_and` and `is_ok_and` were both stabilized in the same release, so if the receiver
     // already calls `is_some_and` then `is_ok_and` is necessarily available too: no MSRV check.
     if !expr.span.from_expansion()
@@ -346,17 +408,26 @@ pub(super) fn check_ok_is_some_and<'tcx>(
             .ty_based_def(is_some_and_recv)
             .is_diag_item(cx, sym::result_ok_method)
     {
-        let mut app = Applicability::MachineApplicable;
-        let recv_snip = snippet_with_context(cx, result_recv.span, expr.span.ctxt(), "_", &mut app).0;
-        let arg_snip = snippet_with_context(cx, arg.span, expr.span.ctxt(), "_", &mut app).0;
-        span_lint_and_sugg(
+        span_lint_and_then(
             cx,
             MANUAL_IS_VARIANT_AND,
             expr.span,
             "called `.ok().is_some_and(..)` on a `Result` value",
-            "use `is_ok_and` instead",
-            format!("{recv_snip}.is_ok_and({arg_snip})"),
-            app,
+            |diag| {
+                let mut app = Applicability::MachineApplicable;
+                let ctxt = expr.span.ctxt();
+                let recv_snip = snippet_with_context(cx, result_recv.span, ctxt, "_", &mut app).0;
+                let arg_snip = snippet_with_context(cx, arg.span, ctxt, "_", &mut app).0;
+                diag.span_suggestion(
+                    expr.span,
+                    "use `is_ok_and` instead",
+                    format!("{recv_snip}.is_ok_and({arg_snip})"),
+                    app,
+                );
+                fired = true;
+            },
         );
     }
+
+    fired
 }
