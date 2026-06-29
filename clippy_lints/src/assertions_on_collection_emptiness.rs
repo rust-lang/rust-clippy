@@ -37,7 +37,9 @@ declare_clippy_lint! {
     "asserting on `.is_empty()` without showing the collection contents"
 }
 
-declare_lint_pass!(AssertionsOnCollectionEmptiness => [ASSERTIONS_ON_COLLECTION_EMPTINESS]);
+declare_lint_pass!(AssertionsOnCollectionEmptiness => [
+    ASSERTIONS_ON_COLLECTION_EMPTINESS,
+]);
 
 impl<'tcx> LateLintPass<'tcx> for AssertionsOnCollectionEmptiness {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
