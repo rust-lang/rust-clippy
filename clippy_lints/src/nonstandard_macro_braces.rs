@@ -88,9 +88,8 @@ impl EarlyLintPass for MacroBraces {
 
     fn check_mac_def(&mut self, cx: &EarlyContext<'_>, mac: &ast::MacroDef) {
         fn check_ts(cx: &EarlyContext<'_>, ts: &TokenStream, macro_braces: &FxHashMap<String, (char, char)>) {
-            let ts = ts.iter().collect::<Vec<_>>();
-            for (i, x) in ts.iter().enumerate() {
-                if let TokenTree::Delimited(_, _, _, token_stream) = x {
+            for (i, current_token) in ts.iter().enumerate() {
+                if let TokenTree::Delimited(_, _, _, token_stream) = current_token {
                     // Peel extra braces and parenthesis in macros!
                     check_ts(cx, token_stream, macro_braces);
                 } else
@@ -105,16 +104,17 @@ impl EarlyLintPass for MacroBraces {
                         span,
                     },
                     _,
-                ) = x
-                    && let Some(peekable) = ts.get(i + 1)
+                ) = current_token
+                    && let Some(next_token) = ts.iter().nth(i + 1)
+                    && let Some(overnext_token) = ts.iter().nth(i + 2)
                     && let TokenTree::Token(
                         Token {
                             kind: TokenKind::Bang, ..
                         },
                         _,
-                    ) = *peekable
-                    && let Some(TokenTree::Delimited(_, _, delim, _)) = ts.get(i + 2)
-                    && let snip_span = span.with_hi(ts.get(i + 2).unwrap().span().hi())
+                    ) = *next_token
+                    && let TokenTree::Delimited(_, _, delim, _) = overnext_token
+                    && let snip_span = span.with_hi(overnext_token.span().hi())
                     && let Some(snip) = snippet_opt(cx, snip_span)
                     && let Some(&braces) = macro_braces.get(tident.as_str())
                     && let Some(old_open_brace) = match delim {

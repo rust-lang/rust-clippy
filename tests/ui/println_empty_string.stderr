@@ -1,42 +1,3 @@
-error: use of irregular braces for `println!` macro
-  --> tests/ui/println_empty_string.rs:50:5
-   |
-LL |     println!{""};
-   |     ^^^^^^^^^^^^ help: consider writing: `println!("")`
-   |
-   = note: `-D clippy::nonstandard-macro-braces` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::nonstandard_macro_braces)]`
-
-error: use of irregular braces for `println!` macro
-  --> tests/ui/println_empty_string.rs:53:5
-   |
-LL |     println![""];
-   |     ^^^^^^^^^^^^ help: consider writing: `println!("")`
-
-error: use of irregular braces for `eprintln!` macro
-  --> tests/ui/println_empty_string.rs:56:5
-   |
-LL |     eprintln!{""};
-   |     ^^^^^^^^^^^^^ help: consider writing: `eprintln!("")`
-
-error: use of irregular braces for `eprintln!` macro
-  --> tests/ui/println_empty_string.rs:59:5
-   |
-LL |     eprintln![""];
-   |     ^^^^^^^^^^^^^ help: consider writing: `eprintln!("")`
-
-error: use of irregular braces for `println!` macro
-  --> tests/ui/println_empty_string.rs:63:14
-   |
-LL |         _ => println!{""},
-   |              ^^^^^^^^^^^^ help: consider writing: `println!("")`
-
-error: use of irregular braces for `println!` macro
-  --> tests/ui/println_empty_string.rs:68:14
-   |
-LL |         _ => println![""],
-   |              ^^^^^^^^^^^^ help: consider writing: `println!("")`
-
 error: empty string literal in `println!`
   --> tests/ui/println_empty_string.rs:6:5
    |
@@ -157,5 +118,5 @@ LL |         _ => println![""],
    |                       |
    |                       help: remove the empty string
 
-error: aborting due to 20 previous errors
+error: aborting due to 14 previous errors
 
