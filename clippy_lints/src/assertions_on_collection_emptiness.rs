@@ -51,9 +51,7 @@ impl<'tcx> LateLintPass<'tcx> for AssertionsOnCollectionEmptiness {
         {
             let (method_name, recv, is_negated) = match condition.kind {
                 ExprKind::MethodCall(ms, r, [], _) => (ms.ident.name, r, false),
-                ExprKind::Unary(UnOp::Not, inner)
-                    if let ExprKind::MethodCall(ms, r, [], _) = inner.kind =>
-                {
+                ExprKind::Unary(UnOp::Not, inner) if let ExprKind::MethodCall(ms, r, [], _) = inner.kind => {
                     (ms.ident.name, r, true)
                 },
                 _ => return,
@@ -72,18 +70,23 @@ impl<'tcx> LateLintPass<'tcx> for AssertionsOnCollectionEmptiness {
             let recv_ty = cx.typeck_results().expr_ty(recv);
             let empty_literal = empty_literal_for_type(cx, recv_ty);
 
-            span_lint_and_then(cx, ASSERTIONS_ON_COLLECTION_EMPTINESS, macro_call.span, message, |diag| {
-                let mut app = Applicability::MachineApplicable;
-                let recv_snippet =
-                    snippet_with_context(cx, recv.span, condition.span.ctxt(), "..", &mut app).0;
+            span_lint_and_then(
+                cx,
+                ASSERTIONS_ON_COLLECTION_EMPTINESS,
+                macro_call.span,
+                message,
+                |diag| {
+                    let mut app = Applicability::MachineApplicable;
+                    let recv_snippet = snippet_with_context(cx, recv.span, condition.span.ctxt(), "..", &mut app).0;
 
-                let sugg = if is_negated {
-                    format!("assert_ne!({recv_snippet}, {empty_literal})")
-                } else {
-                    format!("assert_eq!({recv_snippet}, {empty_literal})")
-                };
-                diag.span_suggestion(macro_call.span, "replace with", sugg, app);
-            });
+                    let sugg = if is_negated {
+                        format!("assert_ne!({recv_snippet}, {empty_literal})")
+                    } else {
+                        format!("assert_eq!({recv_snippet}, {empty_literal})")
+                    };
+                    diag.span_suggestion(macro_call.span, "replace with", sugg, app);
+                },
+            );
         }
     }
 }
