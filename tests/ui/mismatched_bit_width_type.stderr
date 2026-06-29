@@ -1,0 +1,36 @@
+error: `T::BITS` should match the type of the value calling `.leading_zeros()`
+  --> tests/ui/mismatched_bit_width_type.rs:8:13
+   |
+LL |     let _ = u64::BITS - w.leading_zeros();
+   |             ^^^^^^^^^
+   |
+   = help: consider using `u32::BITS`
+   = note: `-D clippy::mismatched-bit-width-type` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::mismatched_bit_width_type)]`
+
+error: `T::BITS` should match the type of the value calling `.leading_zeros()`
+  --> tests/ui/mismatched_bit_width_type.rs:10:13
+   |
+LL |     let _ = u16::BITS - x.leading_zeros();
+   |             ^^^^^^^^^
+   |
+   = help: consider using `i64::BITS`
+
+error: `T::BITS` should match the type of the value calling `.leading_zeros()`
+  --> tests/ui/mismatched_bit_width_type.rs:12:13
+   |
+LL |     let _ = i32::BITS - y.leading_zeros();
+   |             ^^^^^^^^^
+   |
+   = help: consider using `std::num::NonZero<u64>::BITS`
+
+error: `T::BITS` should match the type of the value calling `.leading_zeros()`
+  --> tests/ui/mismatched_bit_width_type.rs:14:13
+   |
+LL |     let _ = NonZeroU32::BITS - z.leading_zeros();
+   |             ^^^^^^^^^^^^^^^^
+   |
+   = help: consider using `std::num::NonZero<isize>::BITS`
+
+error: aborting due to 4 previous errors
+
