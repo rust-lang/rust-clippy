@@ -35,6 +35,24 @@ declare_clippy_lint! {
 
 impl_lint_pass!(ManualBitWidth => [MANUAL_BIT_WIDTH]);
 
+enum IntTypeVariant {
+    UnsignedInt,
+    SignedInt,
+    NonZeroUnsigned,
+    NonZeroSigned,
+}
+
+impl IntTypeVariant {
+    fn suggestion(self) -> &'static str {
+        match self {
+            Self::UnsignedInt => ".bit_width()",
+            Self::SignedInt => ".cast_unsigned().bit_width()",
+            Self::NonZeroUnsigned => ".bit_width().get()",
+            Self::NonZeroSigned => ".cast_unsigned().bit_width().get()",
+        }
+    }
+}
+
 pub struct ManualBitWidth {
     msrv: Msrv,
 }
@@ -63,20 +81,17 @@ impl LateLintPass<'_> for ManualBitWidth {
                     // TODO: If the types don't match, then this might be a buggy implementation of bit_width. Consider adding a separate, suspicious lint for that.
                     // See: https://github.com/rust-lang/rust-clippy/pull/16902#discussion_r3412814226
                     && cx.typeck_results().expr_ty(recv) == ty
-                    && let is_nonzero = match ty.kind() {
+                    && let int_type_invariant = match ty.kind() {
                         // usize::BITS or uint::BITS
-                        ty::Uint(_) => false,
+                        ty::Uint(_) => IntTypeVariant::UnsignedInt,
+                        ty::Int(_) => IntTypeVariant::SignedInt,
                         // NonZero::<uint>::BITS
-                        ty::Adt(adt, args)
-                            if cx.tcx.is_diagnostic_item(sym::NonZero, adt.did())
-                                && let ty::Uint(_) = args.type_at(0).kind() =>
-                        {
-                            true
-                        },
-                        ty::Int(_) => {
-                            // There is no implementation of `bit_width` for signed integers,
-                            // so don't suggest anything.
-                            return;
+                        ty::Adt(adt, args) if cx.tcx.is_diagnostic_item(sym::NonZero, adt.did()) => {
+                            match args.type_at(0).kind() {
+                                ty::Uint(_) => IntTypeVariant::NonZeroUnsigned,
+                                ty::Int(_) => IntTypeVariant::NonZeroSigned,
+                                _ => return,
+                            }
                         },
                         _ => return,
                     }
@@ -84,22 +99,18 @@ impl LateLintPass<'_> for ManualBitWidth {
                     && left.span.eq_ctxt(right.span)
                     && !is_from_proc_macro(cx, expr) =>
             {
-                emit(cx, recv, expr, is_nonzero);
+                emit(cx, recv, expr, int_type_invariant);
             },
             _ => {},
         }
     }
 }
 
-fn emit(cx: &LateContext<'_>, recv: &Expr<'_>, full_expr: &Expr<'_>, is_nonzero: bool) {
+fn emit(cx: &LateContext<'_>, recv: &Expr<'_>, full_expr: &Expr<'_>, int_type_invariant: IntTypeVariant) {
     let mut app = Applicability::MachineApplicable;
     let (recv_snip, _) = snippet_with_context(cx, recv.span, full_expr.span.ctxt(), "_", &mut app);
 
-    let suggestion = if is_nonzero {
-        format!("{recv_snip}.bit_width().get()")
-    } else {
-        format!("{recv_snip}.bit_width()")
-    };
+    let suggestion = int_type_invariant.suggestion();
 
     span_lint_and_sugg(
         cx,
@@ -107,7 +118,7 @@ fn emit(cx: &LateContext<'_>, recv: &Expr<'_>, full_expr: &Expr<'_>, is_nonzero:
         full_expr.span,
         "manual implementation of `bit_width`",
         "try",
-        suggestion,
+        format!("{recv_snip}{suggestion}"),
         app,
     );
 }
