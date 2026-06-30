@@ -167,6 +167,47 @@ fn check_binops(cx: &EarlyContext<'_>, binops: &[&BinaryOp<'_>]) {
                         // looking for.
                         return;
                     };
+                    // getting the idents of the double difference binop for example f(x) and g(y) we have x and y that we wanna search for later in the full expr
+                    let left_ident = if let Some(ident) = get_ident(binop.left, ident_loc2) {
+                        ident
+                    } else {
+                        return;
+                    };
+
+                    let right_ident = if let Some(ident) = get_ident(binop.right, ident_loc2) {
+                        ident
+                    } else {
+                        return;
+                    };
+                    //create iter of all binops vec and skip the first one of the cards.
+                    for (i, b) in binops.iter().enumerate() {
+                        if i == double_difference_index {
+                            continue;
+                        }
+                        // there is probably a better way to do this, but this is what i could come up with rn.
+                        let contains_left = IdentIter::from(b.left)
+                            .chain(IdentIter::from(b.right))
+                            .any(|id| eq_id(id, left_ident));
+
+                        let contains_right = IdentIter::from(b.left)
+                            .chain(IdentIter::from(b.right))
+                            .any(|id| eq_id(id, right_ident));
+                        // check if the idents match those of the double difference binop and if the operator is a comparison if yes we dont need to lint and return
+                        if contains_left
+                            && contains_right
+                            && matches!(
+                                b.op,
+                                BinOpKind::Ne
+                                    | BinOpKind::Eq
+                                    | BinOpKind::Lt
+                                    | BinOpKind::Gt
+                                    | BinOpKind::Le
+                                    | BinOpKind::Ge
+                            )
+                        {
+                            return;
+                        }
+                    }
 
                     if let Some(sugg) = ident_swap_sugg(cx, &paired_identifiers, binop, changed_loc, &mut applicability)
                     {
