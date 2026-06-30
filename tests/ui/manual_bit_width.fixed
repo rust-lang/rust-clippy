@@ -7,48 +7,68 @@ fn main() {
     // unsigned
     let w: u8 = 5;
     let _ = w.bit_width(); //~ manual_bit_width
+    let _ = w.bit_width(); //~ manual_bit_width
     let w: u16 = 5;
+    let _ = w.bit_width(); //~ manual_bit_width
     let _ = w.bit_width(); //~ manual_bit_width
     let w: u32 = 5;
     let _ = w.bit_width(); //~ manual_bit_width
+    let _ = w.bit_width(); //~ manual_bit_width
     let w: u64 = 5;
     let _ = w.bit_width(); //~ manual_bit_width
+    let _ = w.bit_width(); //~ manual_bit_width
     let w: usize = 5;
+    let _ = w.bit_width(); //~ manual_bit_width
     let _ = w.bit_width(); //~ manual_bit_width
     // signed
     let x: i8 = -5;
     let _ = x.cast_unsigned().bit_width(); //~ manual_bit_width
+    let _ = x.cast_unsigned().bit_width(); //~ manual_bit_width
     let x: i16 = -5;
+    let _ = x.cast_unsigned().bit_width(); //~ manual_bit_width
     let _ = x.cast_unsigned().bit_width(); //~ manual_bit_width
     let x: i32 = -5;
     let _ = x.cast_unsigned().bit_width(); //~ manual_bit_width
+    let _ = x.cast_unsigned().bit_width(); //~ manual_bit_width
     let x: i64 = -5;
     let _ = x.cast_unsigned().bit_width(); //~ manual_bit_width
+    let _ = x.cast_unsigned().bit_width(); //~ manual_bit_width
     let x: isize = -5;
+    let _ = x.cast_unsigned().bit_width(); //~ manual_bit_width
     let _ = x.cast_unsigned().bit_width(); //~ manual_bit_width
 
     // `NonZero::<T>::BITS - x.leading_zeros()`
     // unsigned
     let y = NonZero::<u8>::new(5).unwrap();
     let _ = y.bit_width().get(); //~ manual_bit_width
+    let _ = y.bit_width().get(); //~ manual_bit_width
     let y = NonZero::<u16>::new(5).unwrap();
+    let _ = y.bit_width().get(); //~ manual_bit_width
     let _ = y.bit_width().get(); //~ manual_bit_width
     let y = NonZero::<u32>::new(5).unwrap();
     let _ = y.bit_width().get(); //~ manual_bit_width
+    let _ = y.bit_width().get(); //~ manual_bit_width
     let y = NonZero::<u64>::new(5).unwrap();
     let _ = y.bit_width().get(); //~ manual_bit_width
+    let _ = y.bit_width().get(); //~ manual_bit_width
     let y = NonZero::<usize>::new(5).unwrap();
+    let _ = y.bit_width().get(); //~ manual_bit_width
     let _ = y.bit_width().get(); //~ manual_bit_width
     // signed
     let z = NonZero::<i8>::new(-5).unwrap();
     let _ = z.cast_unsigned().bit_width().get(); //~ manual_bit_width
+    let _ = z.cast_unsigned().bit_width().get(); //~ manual_bit_width
     let z = NonZero::<i16>::new(-5).unwrap();
+    let _ = z.cast_unsigned().bit_width().get(); //~ manual_bit_width
     let _ = z.cast_unsigned().bit_width().get(); //~ manual_bit_width
     let z = NonZero::<i32>::new(-5).unwrap();
     let _ = z.cast_unsigned().bit_width().get(); //~ manual_bit_width
+    let _ = z.cast_unsigned().bit_width().get(); //~ manual_bit_width
     let z = NonZero::<i64>::new(-5).unwrap();
     let _ = z.cast_unsigned().bit_width().get(); //~ manual_bit_width
+    let _ = z.cast_unsigned().bit_width().get(); //~ manual_bit_width
     let z = NonZero::<isize>::new(-5).unwrap();
+    let _ = z.cast_unsigned().bit_width().get(); //~ manual_bit_width
     let _ = z.cast_unsigned().bit_width().get(); //~ manual_bit_width
 
     // negative cases.
