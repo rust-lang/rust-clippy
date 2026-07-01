@@ -57,6 +57,21 @@ fn single_match_know_enum() {
     if let Ok(y) = y { dummy() };
     //~^^^^ single_match
 
+    #[rustfmt::skip]
+    if let Ok(y) = y {
+        dummy()
+    };
+    //~^^^^^^ single_match
+
+    #[rustfmt::skip]
+    if let Ok(y) = y {
+        dummy()
+    };
+    //~^^^^^^ single_match
+
+    if let Err(..) = y { dummy() }
+    //~^^^^ single_match
+
     let c = Cow::Borrowed("");
 
     if let Cow::Borrowed(..) = c { dummy() };
