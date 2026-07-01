@@ -624,6 +624,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::operators::NEEDLESS_BITWISE_BOOL_INFO,
     crate::operators::OP_REF_INFO,
     crate::operators::REDUNDANT_COMPARISONS_INFO,
+    crate::operators::REDUNDANT_MODULO_DIVISOR_INFO,
     crate::operators::SELF_ASSIGNMENT_INFO,
     crate::operators::VERBOSE_BIT_MASK_INFO,
     crate::option_env_unwrap::OPTION_ENV_UNWRAP_INFO,
