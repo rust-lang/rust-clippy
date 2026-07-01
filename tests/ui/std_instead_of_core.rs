@@ -90,13 +90,6 @@ fn msrv_1_76(_: std::net::IpAddr) {}
 fn msrv_1_77(_: std::net::IpAddr) {}
 //~^ std_instead_of_core
 
-#[warn(clippy::alloc_instead_of_core)]
-fn issue15579() {
-    use std::alloc;
-
-    let layout = alloc::Layout::new::<u8>();
-}
-
 #[warn(clippy::std_instead_of_core)]
 fn issue13158_core_io() {
     // items moved from std::io into core::io are stable in an unstable module.
@@ -116,3 +109,23 @@ fn issue13158_msrv_1_80(_: &dyn std::error::Error) {}
 #[clippy::msrv = "1.81"]
 fn issue13158_msrv_1_81(_: &dyn std::error::Error) {}
 //~^ std_instead_of_core
+
+#[warn(clippy::std_instead_of_alloc)]
+fn pr17252() {
+    use std::result::{self, Iter, Result};
+    //~^ std_instead_of_core
+
+    use std::str::{self as _};
+    //~^ std_instead_of_alloc
+
+    use std::str::{self as _, FromStr as _};
+    //~^ std_instead_of_alloc
+    //~| std_instead_of_core
+
+    use std::fmt::{self, Write};
+    //~^ std_instead_of_alloc
+    //~| std_instead_of_core
+
+    // Macros aren't currently linted.
+    use std::writeln;
+}
