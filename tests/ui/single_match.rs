@@ -504,3 +504,30 @@ fn issue14493() {
         _ => println!("neq"),
     }
 }
+
+fn issue16826() {
+    let i = 2;
+    match i == 1 {
+        true => {
+            println!("{i}")
+        },
+        false => (),
+    }
+    //~^^^^^^ single_match
+
+    match i == 1 {
+        false => {
+            println!("{i}")
+        },
+        true => (),
+    }
+    //~^^^^^^ single_match
+
+    match i {
+        1 => {
+            println!("{i}")
+        },
+        _ => (),
+    }
+    //~^^^^^^ single_match
+}
