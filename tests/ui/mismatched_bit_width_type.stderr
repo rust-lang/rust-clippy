@@ -1,0 +1,56 @@
+error: possible buggy implementation of `bit_width`
+  --> tests/ui/mismatched_bit_width_type.rs:9:13
+   |
+LL |     let _ = u8::BITS - x.leading_zeros();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: in order to calculate the bit width, `T::BITS` should match the type of the value calling `.leading_zeros()`
+   = note: `-D clippy::mismatched-bit-width-type` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::mismatched_bit_width_type)]`
+help: if you meant to use `u32::BITS`, use
+   |
+LL -     let _ = u8::BITS - x.leading_zeros();
+LL +     let _ = x.bit_width();
+   |
+
+error: possible buggy implementation of `bit_width`
+  --> tests/ui/mismatched_bit_width_type.rs:10:13
+   |
+LL |     let _ = i16::BITS - x.leading_zeros();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: in order to calculate the bit width, `T::BITS` should match the type of the value calling `.leading_zeros()`
+help: if you meant to use `u32::BITS`, use
+   |
+LL -     let _ = i16::BITS - x.leading_zeros();
+LL +     let _ = x.bit_width();
+   |
+
+error: possible buggy implementation of `bit_width`
+  --> tests/ui/mismatched_bit_width_type.rs:11:13
+   |
+LL |     let _ = NonZero::<u64>::BITS - x.leading_zeros();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: in order to calculate the bit width, `T::BITS` should match the type of the value calling `.leading_zeros()`
+help: if you meant to use `u32::BITS`, use
+   |
+LL -     let _ = NonZero::<u64>::BITS - x.leading_zeros();
+LL +     let _ = x.bit_width();
+   |
+
+error: possible buggy implementation of `bit_width`
+  --> tests/ui/mismatched_bit_width_type.rs:12:13
+   |
+LL |     let _ = NonZero::<isize>::BITS - x.leading_zeros();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: in order to calculate the bit width, `T::BITS` should match the type of the value calling `.leading_zeros()`
+help: if you meant to use `u32::BITS`, use
+   |
+LL -     let _ = NonZero::<isize>::BITS - x.leading_zeros();
+LL +     let _ = x.bit_width();
+   |
+
+error: aborting due to 4 previous errors
+
