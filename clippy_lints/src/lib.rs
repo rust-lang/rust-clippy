@@ -208,6 +208,7 @@ mod manual_clamp;
 mod manual_float_methods;
 mod manual_hash_one;
 mod manual_ignore_case_cmp;
+mod manual_ilog10;
 mod manual_ilog2;
 mod manual_is_ascii_check;
 mod manual_is_power_of_two;
@@ -862,6 +863,7 @@ rustc_lint::late_lint_methods!(
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
         WithCapacityZero: with_capacity_zero::WithCapacityZero = with_capacity_zero::WithCapacityZero,
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
+        ManualIlog10: manual_ilog10::ManualIlog10 = manual_ilog10::ManualIlog10,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
