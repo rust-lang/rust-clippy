@@ -9,12 +9,14 @@ use rustc_session::impl_lint_pass;
 
 pub struct PanicUnimplemented {
     allow_panic_in_tests: bool,
+    allow_unreachable_in_tests: bool,
 }
 
 impl PanicUnimplemented {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
             allow_panic_in_tests: conf.allow_panic_in_tests,
+            allow_unreachable_in_tests: conf.allow_unreachable_in_tests,
         }
     }
 }
@@ -130,6 +132,10 @@ impl<'tcx> LateLintPass<'tcx> for PanicUnimplemented {
                     );
                 },
                 Some(sym::unreachable_macro) => {
+                    if self.allow_unreachable_in_tests && is_in_test(cx.tcx, expr.hir_id) {
+                        return;
+                    }
+
                     span_lint(cx, UNREACHABLE, macro_call.span, "usage of the `unreachable!` macro");
                 },
                 _ => {},
