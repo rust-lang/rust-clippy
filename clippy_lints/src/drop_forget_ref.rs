@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_must_use_func_call;
 use clippy_utils::res::MaybeDef;
-use clippy_utils::ty::{is_copy, is_must_use_ty};
+use clippy_utils::ty::{implements_trait, is_copy, is_must_use_ty};
 use rustc_hir::{Arm, Expr, ExprKind, LangItem, Node};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
@@ -26,6 +26,29 @@ declare_clippy_lint! {
     pub DROP_NON_DROP,
     suspicious,
     "call to `std::mem::drop` with a value which does not implement `Drop`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for not executing `Drop` on a `Future`.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// Futures use drop to be signalled that they were cancelled and should clean up their resources.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// std::mem::forget(async {});
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// std::mem::drop(async {});
+    /// ```
+    #[clippy::version = "1.97.0"]
+    pub FORGET_FUTURE,
+    suspicious,
+    "`mem::forget` usage on `Future` types, likely to cause problems with cancelation"
 }
 
 declare_clippy_lint! {
@@ -70,12 +93,18 @@ declare_clippy_lint! {
     "`mem::forget` usage on `Drop` types, likely to cause memory leaks"
 }
 
-declare_lint_pass!(DropForgetRef => [DROP_NON_DROP, FORGET_NON_DROP, MEM_FORGET]);
+declare_lint_pass!(DropForgetRef => [
+    DROP_NON_DROP,
+    FORGET_FUTURE,
+    FORGET_NON_DROP,
+    MEM_FORGET,
+]);
 
 const DROP_NON_DROP_SUMMARY: &str = "call to `std::mem::drop` with a value that does not implement `Drop`. \
                                  Dropping such a type only extends its contained lifetimes";
 const FORGET_NON_DROP_SUMMARY: &str = "call to `std::mem::forget` with a value that does not implement `Drop`. \
                                    Forgetting such a type is the same as dropping it";
+const FORGET_FUTURE_SUMMARY: &str = "forgetting a Future might cause problems with cancelation";
 
 impl<'tcx> LateLintPass<'tcx> for DropForgetRef {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
@@ -105,6 +134,14 @@ impl<'tcx> LateLintPass<'tcx> for DropForgetRef {
                 },
                 sym::mem_forget => {
                     if arg_ty.needs_drop(cx.tcx, cx.typing_env()) {
+                        if let Some(future_trait) = cx.tcx.lang_items().future_trait()
+                            && implements_trait(cx, arg_ty, future_trait, &[])
+                        {
+                            span_lint_and_then(cx, FORGET_FUTURE, expr.span, FORGET_FUTURE_SUMMARY, |diag| {
+                                diag.span_note(arg.span, format!("argument has type `{arg_ty}`"));
+                            });
+                        }
+
                         (
                             MEM_FORGET,
                             Cow::Owned(format!(
