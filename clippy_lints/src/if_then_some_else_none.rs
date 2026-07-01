@@ -47,7 +47,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.53.0"]
     pub IF_THEN_SOME_ELSE_NONE,
     restriction,
-    "Finds if-else that could be written using either `bool::then` or `bool::then_some`"
+    "Finds if-else that could be written using either `bool::then` or `bool::then_some`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.50, because it suggests `bool::then`. When the configured MSRV is at least 1.62 and eager evaluation is suitable, it suggests `bool::then_some` instead."
 }
 
 impl_lint_pass!(IfThenSomeElseNone => [IF_THEN_SOME_ELSE_NONE]);

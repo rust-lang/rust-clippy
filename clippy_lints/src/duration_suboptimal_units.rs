@@ -48,7 +48,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.95.0"]
     pub DURATION_SUBOPTIMAL_UNITS,
     pedantic,
-    "constructing a `Duration` using a smaller unit when a larger unit would be more readable"
+    "constructing a `Duration` using a smaller unit when a larger unit would be more readable",
+    @msrv_behavior = "This lint only suggests larger `Duration` constructors that are available for the configured MSRV. It can suggest nanos/micros from 1.27, millis/secs from 1.3, and mins/hours from 1.91."
 }
 
 impl_lint_pass!(DurationSuboptimalUnits => [DURATION_SUBOPTIMAL_UNITS]);

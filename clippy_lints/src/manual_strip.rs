@@ -46,7 +46,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.48.0"]
     pub MANUAL_STRIP,
     complexity,
-    "suggests using `strip_{prefix,suffix}` over `str::{starts,ends}_with` and slicing"
+    "suggests using `strip_{prefix,suffix}` over `str::{starts,ends}_with` and slicing",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.45, because it suggests `strip_prefix` or `strip_suffix`."
 }
 
 impl_lint_pass!(ManualStrip => [MANUAL_STRIP]);

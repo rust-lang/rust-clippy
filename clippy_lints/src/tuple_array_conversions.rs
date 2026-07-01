@@ -38,7 +38,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.72.0"]
     pub TUPLE_ARRAY_CONVERSIONS,
     nursery,
-    "checks for tuple<=>array conversions that are not done with `.into()`"
+    "checks for tuple<=>array conversions that are not done with `.into()`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.71, because it suggests tuple/array conversions using `.into()`."
 }
 
 impl_lint_pass!(TupleArrayConversions => [TUPLE_ARRAY_CONVERSIONS]);

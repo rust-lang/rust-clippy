@@ -45,7 +45,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.46.0"]
     pub UNNESTED_OR_PATTERNS,
     pedantic,
-    "unnested or-patterns, e.g., `Foo(Bar) | Foo(Baz) instead of `Foo(Bar | Baz)`"
+    "unnested or-patterns, e.g., `Foo(Bar) | Foo(Baz) instead of `Foo(Bar | Baz)`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.53, because it suggests nested or-patterns."
 }
 
 impl_lint_pass!(UnnestedOrPatterns => [UNNESTED_OR_PATTERNS]);
