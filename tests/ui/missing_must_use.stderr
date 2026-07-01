@@ -1,0 +1,52 @@
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:10:1
+   |
+LL | pub struct PubTupleStructNoMustUse(u8);
+   | ^
+   |
+   = note: `-D clippy::missing-must-use` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::missing_must_use)]`
+help: add #[must_use] to this type definition
+   |
+LL + #[must_use]
+LL | pub struct PubTupleStructNoMustUse(u8);
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:14:1
+   |
+LL | pub struct PubStructNoMustUse {
+   | ^
+   |
+help: add #[must_use] to this type definition
+   |
+LL + #[must_use]
+LL | pub struct PubStructNoMustUse {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:24:1
+   |
+LL | pub enum PubEnumNoMustUse {
+   | ^
+   |
+help: add #[must_use] to this type definition
+   |
+LL + #[must_use]
+LL | pub enum PubEnumNoMustUse {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:36:1
+   |
+LL | pub union PubUnionNoMustUse {
+   | ^
+   |
+help: add #[must_use] to this type definition
+   |
+LL + #[must_use]
+LL | pub union PubUnionNoMustUse {
+   |
+
+error: aborting due to 4 previous errors
+
