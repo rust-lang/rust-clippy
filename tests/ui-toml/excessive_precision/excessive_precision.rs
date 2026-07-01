@@ -1,5 +1,10 @@
 #![warn(clippy::excessive_precision)]
-#![allow(overflowing_literals, clippy::print_literal, clippy::useless_vec)]
+#![allow(
+    overflowing_literals,
+    clippy::print_literal,
+    clippy::useless_vec,
+    clippy::static_mut_vars
+)]
 
 fn main() {
     // Overly specified constants
