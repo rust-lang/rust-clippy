@@ -3,7 +3,7 @@ use clippy_utils::consts::{ConstEvalCtxt, Constant};
 use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeResPath;
-use clippy_utils::source::{SpanExt, snippet, snippet_with_applicability};
+use clippy_utils::source::{FileRangeExt, SpanExt, snippet, snippet_with_applicability};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{
@@ -197,8 +197,12 @@ impl<'tcx> LateLintPass<'tcx> for Ranges {
             )
             && self.msrv.meets(cx, msrvs::RANGE_CONTAINS)
             && !is_in_const_context(cx)
+            && let ctxt = expr.span.ctxt()
+            && l.span.ctxt() == ctxt
+            && r.span.ctxt() == ctxt
+            && !ctxt.in_external_macro(cx.tcx.sess.source_map())
         {
-            check_possible_range_contains(cx, op.node, l, r, expr, expr.span);
+            check_possible_range_contains(cx, op.node, l, r, expr.span, expr.span.ctxt());
         }
 
         if let Some(range) = higher::Range::hir(cx, expr) {
@@ -214,8 +218,8 @@ fn check_possible_range_contains(
     op: BinOpKind,
     left: &Expr<'_>,
     right: &Expr<'_>,
-    expr: &Expr<'_>,
     span: Span,
+    ctxt: SyntaxContext,
 ) {
     let combine_and = match op {
         BinOpKind::And | BinOpKind::BitAnd => true,
@@ -302,13 +306,16 @@ fn check_possible_range_contains(
     // the same operator precedence
     if let ExprKind::Binary(ref lhs_op, _left, new_lhs) = left.kind
         && op == lhs_op.node
-        && let new_span = Span::new(new_lhs.span.lo(), right.span.hi(), expr.span.ctxt(), expr.span.parent())
-        && new_span.check_text(cx, |src| {
-            // Do not continue if we have mismatched number of parens, otherwise the suggestion is wrong
-            src.matches('(').count() == src.matches(')').count()
+        && let new_lhs_data = new_lhs.span.data()
+        && new_lhs_data.ctxt == ctxt
+        && let Some(new_sp) = new_lhs_data.map_range(cx, |scx, range| {
+            range.extend_end_to(scx, right.span.hi_ctxt()).filter(|range| {
+                scx.get_text(range.clone())
+                    .is_some_and(|src| src.matches('(').count() == src.matches(')').count())
+            })
         })
     {
-        check_possible_range_contains(cx, op, new_lhs, right, expr, new_span);
+        check_possible_range_contains(cx, op, new_lhs, right, new_sp, ctxt);
     }
 }
 
@@ -544,7 +551,7 @@ fn check_range_switch<'tcx>(
                     .to_string()
             });
             let end = Sugg::hir_with_context(cx, y, span.ctxt(), "<y>", &mut app).maybe_paren();
-            match span.with_source_text(cx, |src| src.starts_with('(') && src.ends_with(')')) {
+            match span.get_text(cx).map(|src| src.starts_with('(') && src.ends_with(')')) {
                 Some(true) => {
                     diag.span_suggestion(span, "use", format!("({start}{operator}{end})"), app);
                 },
