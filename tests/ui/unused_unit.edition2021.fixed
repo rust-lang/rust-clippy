@@ -34,7 +34,6 @@ impl Into<()> for Unitter {
     #[rustfmt::skip]
     fn into(self) {
     //~^ unused_unit
-        
         //~^ unused_unit
     }
 }
@@ -165,5 +164,13 @@ mod issue15035 {
         let result: Result<bool, u64> = Err(42);
         // the `-> ()` is required for the inference of `handle`'s return type
         result.map_err(|err| -> () { handle(err) }).ok()
+    }
+}
+
+mod issue16918 {
+    pub fn foo(x: usize) {
+        //~^ unused_unit
+        let _ = x;
+        //~^ unused_unit
     }
 }
