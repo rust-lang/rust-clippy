@@ -651,3 +651,24 @@ pub fn is_span_match(cx: &impl LintContext, span: Span) -> bool {
 pub fn is_span_if(cx: &impl LintContext, span: Span) -> bool {
     span_matches_pat(cx.sess(), span, Pat::Str("if"), Pat::Str("}"))
 }
+
+/// Checks if the span actually refers to an `assert`/`debug_assert` macro call
+pub fn is_span_assert(cx: &impl LintContext, span: Span) -> bool {
+    span_matches_pat(
+        cx.sess(),
+        span,
+        Pat::MultiStr(&[
+            "assert",
+            "core::assert",
+            "std::assert",
+            "::core::assert",
+            "::std::assert",
+            "debug_assert",
+            "core::debug_assert",
+            "std::debug_assert",
+            "::core::debug_assert",
+            "::std::debug_assert",
+        ]),
+        Pat::Str(""),
+    )
+}
