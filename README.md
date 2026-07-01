@@ -152,6 +152,24 @@ That includes warnings found by rustc (e.g. `dead_code`, etc.). If you want to a
 an error for Clippy warnings, use `#![deny(clippy::all)]` in your code or `-D clippy::all` on the command
 line. (You can swap `clippy::all` with the specific lint category you are targeting.)
 
+Alternatively, since Cargo 1.97, you can use the [`build.warnings`] config option:
+
+```toml
+# .cargo/config.toml
+[build]
+warnings = "deny"
+```
+
+Or via environment variable:
+
+```bash
+CARGO_BUILD_WARNINGS=deny cargo clippy
+```
+
+Unlike `-Dwarnings`, this does not invalidate build caches and only affects lint warnings.
+
+[`build.warnings`]: https://doc.rust-lang.org/cargo/reference/config.html#buildwarnings
+
 ## Configuration
 
 ### Allowing/denying lints

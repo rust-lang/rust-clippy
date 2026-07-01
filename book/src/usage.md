@@ -47,6 +47,24 @@ cargo clippy -- -Dwarnings
 > are found in your code. That includes warnings found by rustc (e.g.
 > `dead_code`, etc.).
 
+Alternatively, since Cargo 1.97, you can use the [`build.warnings`] config option:
+
+```toml
+# .cargo/config.toml
+[build]
+warnings = "deny"
+```
+
+Or via environment variable:
+
+```bash
+CARGO_BUILD_WARNINGS=deny cargo clippy
+```
+
+Unlike `-Dwarnings`, this does not invalidate build caches and only affects lint warnings.
+
+[`build.warnings`]: https://doc.rust-lang.org/cargo/reference/config.html#buildwarnings
+
 For more information on configuring lint levels, see the [rustc documentation].
 
 [rustc documentation]: https://doc.rust-lang.org/rustc/lints/levels.html#configuring-warning-levels
