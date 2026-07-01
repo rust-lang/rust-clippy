@@ -146,10 +146,10 @@ fn emit_lint(cx: &LateContext<'_>, exists_span: Span, fs_call_span: Span) {
 fn extract_exists_receiver<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> Option<(&'tcx Expr<'tcx>, Span)> {
     match expr.kind {
         ExprKind::MethodCall(seg, recv, [], _)
-            if seg.ident.name.as_str() == "exists" && !expr.span.from_expansion() =>
+            if seg.ident.name == sym::exists && !expr.span.from_expansion() =>
         {
             let ty = cx.typeck_results().expr_ty(recv).peel_refs();
-            if ty.is_diag_item(cx, sym::Path) || ty.is_diag_item(cx, sym::PathBuf) {
+            if matches!(ty.opt_diag_name(cx), Some(sym::Path | sym::PathBuf)) {
                 Some((recv, expr.span))
             } else {
                 None
@@ -208,7 +208,7 @@ fn find_fs_call_in_expr<'tcx>(
         ExprKind::MethodCall(method_seg, recv, _, _) => {
             if FS_METHODS.contains(&method_seg.ident.name.as_str()) {
                 let recv_ty = cx.typeck_results().expr_ty(recv).peel_refs();
-                if (recv_ty.is_diag_item(cx, sym::Path) || recv_ty.is_diag_item(cx, sym::PathBuf))
+                if matches!(recv_ty.opt_diag_name(cx), Some(sym::Path | sym::PathBuf))
                     && SpanlessEq::new(cx).eq_expr(ctxt, recv, path_recv)
                 {
                     return Some(expr.span);

@@ -223,6 +223,7 @@ generate! {
     eprint_macro,
     eprintln_macro,
     err,
+    exists,
     exp,
     expect_err,
     expn_data,
