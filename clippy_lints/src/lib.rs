@@ -363,6 +363,7 @@ mod toplevel_ref_arg;
 mod trailing_empty_array;
 mod trait_bounds;
 mod transmute;
+mod trusted_asref;
 mod tuple_array_conversions;
 mod types;
 mod unconditional_recursion;
@@ -862,6 +863,7 @@ rustc_lint::late_lint_methods!(
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
         WithCapacityZero: with_capacity_zero::WithCapacityZero = with_capacity_zero::WithCapacityZero,
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
+        TrustedAsref: trusted_asref::TrustedAsref = trusted_asref::TrustedAsref,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
