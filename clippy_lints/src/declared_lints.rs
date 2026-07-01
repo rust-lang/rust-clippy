@@ -11,6 +11,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::as_conversions::AS_CONVERSIONS_INFO,
     crate::asm_syntax::INLINE_ASM_X86_ATT_SYNTAX_INFO,
     crate::asm_syntax::INLINE_ASM_X86_INTEL_SYNTAX_INFO,
+    crate::assertions_on_collection_emptiness::ASSERTIONS_ON_COLLECTION_EMPTINESS_INFO,
     crate::assertions_on_constants::ASSERTIONS_ON_CONSTANTS_INFO,
     crate::assertions_on_result_states::ASSERTIONS_ON_RESULT_STATES_INFO,
     crate::assigning_clones::ASSIGNING_CLONES_INFO,
