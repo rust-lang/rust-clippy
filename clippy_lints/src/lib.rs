@@ -363,6 +363,7 @@ mod toplevel_ref_arg;
 mod trailing_empty_array;
 mod trait_bounds;
 mod transmute;
+mod try_from_instead_of_from_str;
 mod tuple_array_conversions;
 mod types;
 mod unconditional_recursion;
@@ -859,6 +860,7 @@ rustc_lint::late_lint_methods!(
         ManualPopIf: manual_pop_if::ManualPopIf = manual_pop_if::ManualPopIf::new(tcx, conf),
         ManualNoopWaker: manual_noop_waker::ManualNoopWaker = manual_noop_waker::ManualNoopWaker::new(conf),
         ByteCharSlice: byte_char_slices::ByteCharSlice = byte_char_slices::ByteCharSlice,
+        TryFromInsteadOfFromStr: try_from_instead_of_from_str::TryFromInsteadOfFromStr = try_from_instead_of_from_str::TryFromInsteadOfFromStr,
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
         WithCapacityZero: with_capacity_zero::WithCapacityZero = with_capacity_zero::WithCapacityZero,
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
