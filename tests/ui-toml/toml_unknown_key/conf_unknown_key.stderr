@@ -8,6 +8,7 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            allow-exact-repetitions
            allow-expect-in-consts
            allow-expect-in-tests
+           allow-ignored-result-err-in-tests
            allow-indexing-slicing-in-tests
            allow-large-stack-frames-in-tests
            allow-mixed-uninlined-format-args
@@ -110,6 +111,7 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            allow-exact-repetitions
            allow-expect-in-consts
            allow-expect-in-tests
+           allow-ignored-result-err-in-tests
            allow-indexing-slicing-in-tests
            allow-large-stack-frames-in-tests
            allow-mixed-uninlined-format-args
@@ -212,6 +214,7 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            allow-exact-repetitions
            allow-expect-in-consts
            allow-expect-in-tests
+           allow-ignored-result-err-in-tests
            allow-indexing-slicing-in-tests
            allow-large-stack-frames-in-tests
            allow-mixed-uninlined-format-args

@@ -153,6 +153,7 @@ mod if_let_mutex;
 mod if_not_else;
 mod if_then_some_else_none;
 mod ifs;
+mod ignored_result_err;
 mod ignored_unit_patterns;
 mod impl_hash_with_borrow_str_and_bytes;
 mod implicit_hasher;
@@ -862,6 +863,7 @@ rustc_lint::late_lint_methods!(
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
         WithCapacityZero: with_capacity_zero::WithCapacityZero = with_capacity_zero::WithCapacityZero,
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
+        IgnoredResultErr: ignored_result_err::IgnoredResultErr = ignored_result_err::IgnoredResultErr::new(conf),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
