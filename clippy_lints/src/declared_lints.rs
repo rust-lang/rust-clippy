@@ -322,6 +322,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::manual_rem_euclid::MANUAL_REM_EUCLID_INFO,
     crate::manual_retain::MANUAL_RETAIN_INFO,
     crate::manual_rotate::MANUAL_ROTATE_INFO,
+    crate::manual_slice_match::MANUAL_SLICE_MATCH_INFO,
     crate::manual_slice_size_calculation::MANUAL_SLICE_SIZE_CALCULATION_INFO,
     crate::manual_string_new::MANUAL_STRING_NEW_INFO,
     crate::manual_strip::MANUAL_STRIP_INFO,
