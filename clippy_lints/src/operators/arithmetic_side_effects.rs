@@ -3,19 +3,51 @@ use crate::clippy_utils::res::MaybeQPath as _;
 use clippy_config::Conf;
 use clippy_utils::consts::{ConstEvalCtxt, Constant};
 use clippy_utils::diagnostics::span_lint;
+use clippy_utils::paths::{self, PathNS};
 use clippy_utils::res::MaybeDef;
 use clippy_utils::{expr_or_init, is_from_proc_macro, is_lint_allowed, peel_hir_expr_refs, peel_hir_expr_unary, sym};
 use rustc_ast as ast;
-use rustc_data_structures::fx::{FxHashMap, FxHashSet};
+use rustc_ast::FloatTy;
+use rustc_data_structures::fx::FxHashSet;
+use rustc_data_structures::unord::{UnordMap, UnordSet};
 use rustc_hir as hir;
+use rustc_hir::PrimTy;
+use rustc_hir::def_id::DefId;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty, UintTy};
 use rustc_session::impl_lint_pass;
-use rustc_span::{Span, Symbol};
+use rustc_span::{Span, Symbol, def_id};
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+enum GeneralTy {
+    Prim(PrimTy),
+    Path(DefId),
+}
+
+impl GeneralTy {
+    fn from_ty(ty: Ty<'_>) -> Option<GeneralTy> {
+        let ty = ty.peel_refs();
+
+        if let Some(prim) = ty.primitive_symbol().and_then(PrimTy::from_name) {
+            Some(GeneralTy::Prim(prim))
+        } else if let ty::Adt(adt, _) = ty.kind() {
+            Some(GeneralTy::Path(adt.did()))
+        } else if let ty::Alias(_, alias_ty) = ty.kind() {
+            Some(GeneralTy::Path(alias_ty.def_id))
+        } else {
+            None
+        }
+    }
+}
 
 pub struct ArithmeticSideEffects {
-    allowed_binary: FxHashMap<&'static str, FxHashSet<&'static str>>,
-    allowed_unary: FxHashSet<&'static str>,
+    inited: bool,
+    allowed_binary: UnordMap<GeneralTy, UnordSet<GeneralTy>>,
+    allowed_binary_with_any: UnordSet<GeneralTy>,
+    allowed_unary: UnordSet<GeneralTy>,
+    conf_allowed_binary: Vec<(String, String)>,
+    conf_allowed_unary: Vec<String>,
+    conf_allowed: Vec<String>,
     // Used to check whether expressions are constants, such as in enum discriminants and consts
     const_span: Option<Span>,
     disallowed_int_methods: FxHashSet<Symbol>,
@@ -26,31 +58,20 @@ impl_lint_pass!(ArithmeticSideEffects => [ARITHMETIC_SIDE_EFFECTS]);
 
 impl ArithmeticSideEffects {
     pub fn new(conf: &'static Conf) -> Self {
-        let mut allowed_binary = FxHashMap::<&'static str, FxHashSet<&'static str>>::default();
-        let mut allowed_unary = FxHashSet::<&'static str>::default();
-
-        allowed_unary.extend(["f32", "f64", "std::num::Saturating", "std::num::Wrapping"]);
-        allowed_unary.extend(conf.arithmetic_side_effects_allowed_unary.iter().map(|x| &**x));
-        allowed_binary.extend([
-            ("f32", FxHashSet::from_iter(["f32"])),
-            ("f64", FxHashSet::from_iter(["f64"])),
-            (
-                "std::string::String",
-                FxHashSet::from_iter(["str", "std::string::String"]),
-            ),
-        ]);
-        for (lhs, rhs) in &conf.arithmetic_side_effects_allowed_binary {
-            allowed_binary.entry(lhs).or_default().insert(rhs);
-        }
-        for s in &conf.arithmetic_side_effects_allowed {
-            allowed_binary.entry(s).or_default().insert("*");
-            allowed_binary.entry("*").or_default().insert(s);
-            allowed_unary.insert(s);
-        }
+        let clean = |s: &String| s.trim_start_matches('&').trim().to_string();
 
         Self {
-            allowed_binary,
-            allowed_unary,
+            inited: false,
+            allowed_binary: UnordMap::default(),
+            allowed_binary_with_any: UnordSet::default(),
+            allowed_unary: UnordSet::default(),
+            conf_allowed_binary: conf
+                .arithmetic_side_effects_allowed_binary
+                .iter()
+                .map(|(a, b)| (clean(a), clean(b)))
+                .collect(),
+            conf_allowed_unary: conf.arithmetic_side_effects_allowed_unary.iter().map(clean).collect(),
+            conf_allowed: conf.arithmetic_side_effects_allowed.iter().map(clean).collect(),
             const_span: None,
             disallowed_int_methods: [
                 sym::saturating_div,
@@ -64,33 +85,177 @@ impl ArithmeticSideEffects {
         }
     }
 
+    fn search_local_crate(cx: &LateContext<'_>, name: &str) -> Vec<GeneralTy> {
+        cx.tcx
+            .hir_crate_items(())
+            .definitions()
+            .map(def_id::LocalDefId::to_def_id)
+            .filter(|&id| cx.tcx.opt_item_name(id).is_some_and(|sym| sym.as_str() == name))
+            .map(GeneralTy::Path)
+            .collect()
+    }
+
+    fn init_unary_ops(&mut self, cx: &LateContext<'_>) {
+        self.allowed_unary.insert(GeneralTy::Prim(PrimTy::Float(FloatTy::F32)));
+        self.allowed_unary.insert(GeneralTy::Prim(PrimTy::Float(FloatTy::F64)));
+
+        for symbol in [sym::Saturating, sym::Wrapping] {
+            if let Some(def_id) = cx.tcx.get_diagnostic_item(symbol) {
+                self.allowed_unary.insert(GeneralTy::Path(def_id));
+            }
+        }
+
+        for path_str in &self.conf_allowed_unary {
+            let sym = Symbol::intern(path_str);
+
+            if let Some(prim) = PrimTy::from_name(sym) {
+                self.allowed_unary.insert(GeneralTy::Prim(prim));
+            } else {
+                let mut found = ArithmeticSideEffects::search_local_crate(cx, path_str);
+
+                if found.is_empty() {
+                    found.extend(
+                        paths::lookup_path_str(cx.tcx, PathNS::Type, path_str)
+                            .into_iter()
+                            .map(GeneralTy::Path),
+                    );
+                }
+
+                self.allowed_unary.extend(found);
+            }
+        }
+    }
+
+    fn init_binary_ops(&mut self, cx: &LateContext<'_>) {
+        let string_def_ids: Vec<_> = paths::lookup_path_str(cx.tcx, PathNS::Type, "std::string::String")
+            .into_iter()
+            .collect();
+
+        let str_prim = GeneralTy::Prim(PrimTy::Str);
+
+        for &string_def_id in &string_def_ids {
+            let entry = self.allowed_binary.entry(GeneralTy::Path(string_def_id)).or_default();
+
+            entry.extend(string_def_ids.iter().map(|&id| GeneralTy::Path(id)));
+
+            entry.insert(str_prim);
+        }
+
+        self.allowed_binary
+            .entry(GeneralTy::Prim(PrimTy::Float(FloatTy::F32)))
+            .or_default()
+            .insert(GeneralTy::Prim(PrimTy::Float(FloatTy::F32)));
+
+        self.allowed_binary
+            .entry(GeneralTy::Prim(PrimTy::Float(FloatTy::F64)))
+            .or_default()
+            .insert(GeneralTy::Prim(PrimTy::Float(FloatTy::F64)));
+
+        let resolve_ty = |path_str: &String| -> Vec<GeneralTy> {
+            let local_types = Self::search_local_crate(cx, path_str);
+
+            if local_types.is_empty() {
+                let sym = Symbol::intern(path_str);
+                if let Some(prim) = PrimTy::from_name(sym) {
+                    vec![GeneralTy::Prim(prim)]
+                } else {
+                    paths::lookup_path_str(cx.tcx, PathNS::Type, path_str)
+                        .into_iter()
+                        .map(GeneralTy::Path)
+                        .collect()
+                }
+            } else {
+                local_types
+            }
+        };
+
+        for (lhs_str, rhs_str) in &self.conf_allowed_binary {
+            if lhs_str == "*" && rhs_str == "*" {
+                continue;
+            }
+
+            if lhs_str == "*" {
+                let rhs_types = resolve_ty(rhs_str);
+                for rhs in rhs_types {
+                    self.allowed_binary_with_any.insert(rhs);
+                }
+            } else if rhs_str == "*" {
+                let lhs_types = resolve_ty(lhs_str);
+                for lhs in lhs_types {
+                    self.allowed_binary_with_any.insert(lhs);
+                }
+            } else {
+                let lhs_types = resolve_ty(lhs_str);
+                let rhs_types = resolve_ty(rhs_str);
+
+                for lhs in lhs_types {
+                    let entry = self.allowed_binary.entry(lhs).or_default();
+                    for rhs in &rhs_types {
+                        entry.insert(*rhs);
+                    }
+                }
+            }
+        }
+    }
+
+    fn init_allowed_types(&mut self, cx: &LateContext<'_>) {
+        for path_str in &self.conf_allowed {
+            let mut found = ArithmeticSideEffects::search_local_crate(cx, path_str);
+
+            if found.is_empty() {
+                let sym = Symbol::intern(path_str);
+                if let Some(prim) = PrimTy::from_name(sym) {
+                    found.push(GeneralTy::Prim(prim));
+                } else {
+                    found.extend(
+                        paths::lookup_path_str(cx.tcx, PathNS::Type, path_str)
+                            .into_iter()
+                            .map(GeneralTy::Path),
+                    );
+                }
+            }
+
+            for ty in found {
+                self.allowed_unary.insert(ty);
+                self.allowed_binary_with_any.insert(ty);
+            }
+        }
+    }
+
+    fn init_if_needed(&mut self, cx: &LateContext<'_>) {
+        if self.inited {
+            return;
+        }
+
+        self.init_unary_ops(cx);
+        self.init_binary_ops(cx);
+        self.init_allowed_types(cx);
+
+        self.inited = true;
+    }
+
     /// Checks if the lhs and the rhs types of a binary operation like "addition" or
     /// "multiplication" are present in the inner set of allowed types.
     fn has_allowed_binary(&self, lhs_ty: Ty<'_>, rhs_ty: Ty<'_>) -> bool {
-        let lhs_ty_string = lhs_ty.to_string();
-        let lhs_ty_string_elem = lhs_ty_string.split('<').next().unwrap_or_default();
-        let rhs_ty_string = rhs_ty.to_string();
-        let rhs_ty_string_elem = rhs_ty_string.split('<').next().unwrap_or_default();
-        if let Some(rhs_from_specific) = self.allowed_binary.get(lhs_ty_string_elem)
-            && {
-                let rhs_has_allowed_ty = rhs_from_specific.contains(rhs_ty_string_elem);
-                rhs_has_allowed_ty || rhs_from_specific.contains("*")
-            }
-        {
-            true
-        } else if let Some(rhs_from_glob) = self.allowed_binary.get("*") {
-            rhs_from_glob.contains(rhs_ty_string_elem)
-        } else {
-            false
+        let Some(lhs) = GeneralTy::from_ty(lhs_ty) else {
+            return false;
+        };
+
+        let Some(rhs) = GeneralTy::from_ty(rhs_ty) else {
+            return false;
+        };
+
+        if self.allowed_binary_with_any.contains(&lhs) || self.allowed_binary_with_any.contains(&rhs) {
+            return true;
         }
+
+        self.allowed_binary.get(&lhs).is_some_and(|set| set.contains(&rhs))
     }
 
     /// Checks if the type of an unary operation like "negation" is present in the inner set of
     /// allowed types.
     fn has_allowed_unary(&self, ty: Ty<'_>) -> bool {
-        let ty_string = ty.to_string();
-        let ty_string_elem = ty_string.split('<').next().unwrap_or_default();
-        self.allowed_unary.contains(ty_string_elem)
+        GeneralTy::from_ty(ty).is_some_and(|gen_ty| self.allowed_unary.contains(&gen_ty))
     }
 
     // Common entry-point to avoid code duplication.
@@ -273,6 +438,7 @@ impl ArithmeticSideEffects {
 
 impl<'tcx> LateLintPass<'tcx> for ArithmeticSideEffects {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'tcx>) {
+        self.init_if_needed(cx);
         if self.should_skip_expr(cx, expr) {
             return;
         }
