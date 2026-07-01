@@ -1,7 +1,6 @@
-#![allow(unused)]
-#![allow(clippy::nonminimal_bool)]
-#![allow(clippy::needless_borrow)]
 #![warn(clippy::set_contains_or_insert)]
+#![expect(clippy::nonminimal_bool)]
+#![allow(clippy::needless_borrow)]
 
 use std::collections::{BTreeSet, HashSet};
 
