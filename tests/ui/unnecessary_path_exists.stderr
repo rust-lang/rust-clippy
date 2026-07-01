@@ -1,0 +1,238 @@
+error: unnecessary `Path::exists` before a filesystem operation on the same path
+  --> tests/ui/unnecessary_path_exists.rs:7:8
+   |
+LL |     if path.exists() {
+   |        ^^^^^^^^^^^^^
+   |
+note: the filesystem operation is here
+  --> tests/ui/unnecessary_path_exists.rs:9:17
+   |
+LL |         let _ = path.metadata().unwrap();
+   |                 ^^^^^^^^^^^^^^^
+   = help: the `exists()` check is redundant and creates a TOCTOU race condition; consider removing it and handling the error from the filesystem operation directly
+   = note: `-D clippy::unnecessary-path-exists` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_path_exists)]`
+
+error: unnecessary `Path::exists` before a filesystem operation on the same path
+  --> tests/ui/unnecessary_path_exists.rs:12:8
+   |
+LL |     if path.exists() {
+   |        ^^^^^^^^^^^^^
+   |
+note: the filesystem operation is here
+  --> tests/ui/unnecessary_path_exists.rs:14:17
+   |
+LL |         let _ = path.is_file();
+   |                 ^^^^^^^^^^^^^^
+   = help: the `exists()` check is redundant and creates a TOCTOU race condition; consider removing it and handling the error from the filesystem operation directly
+
+error: unnecessary `Path::exists` before a filesystem operation on the same path
+  --> tests/ui/unnecessary_path_exists.rs:17:8
+   |
+LL |     if path.exists() {
+   |        ^^^^^^^^^^^^^
+   |
+note: the filesystem operation is here
+  --> tests/ui/unnecessary_path_exists.rs:19:17
+   |
+LL |         let _ = path.is_dir();
+   |                 ^^^^^^^^^^^^^
+   = help: the `exists()` check is redundant and creates a TOCTOU race condition; consider removing it and handling the error from the filesystem operation directly
+
+error: unnecessary `Path::exists` before a filesystem operation on the same path
+  --> tests/ui/unnecessary_path_exists.rs:22:8
+   |
+LL |     if path.exists() {
+   |        ^^^^^^^^^^^^^
+   |
+note: the filesystem operation is here
+  --> tests/ui/unnecessary_path_exists.rs:24:17
+   |
+LL |         let _ = path.is_symlink();
+   |                 ^^^^^^^^^^^^^^^^^
+   = help: the `exists()` check is redundant and creates a TOCTOU race condition; consider removing it and handling the error from the filesystem operation directly
+
+error: unnecessary `Path::exists` before a filesystem operation on the same path
+  --> tests/ui/unnecessary_path_exists.rs:27:8
+   |
+LL |     if path.exists() {
+   |        ^^^^^^^^^^^^^
+   |
+note: the filesystem operation is here
+  --> tests/ui/unnecessary_path_exists.rs:29:17
+   |
+LL |         let _ = path.canonicalize().unwrap();
+   |                 ^^^^^^^^^^^^^^^^^^^
+   = help: the `exists()` check is redundant and creates a TOCTOU race condition; consider removing it and handling the error from the filesystem operation directly
+
+error: unnecessary `Path::exists` before a filesystem operation on the same path
+  --> tests/ui/unnecessary_path_exists.rs:32:8
+   |
+LL |     if path.exists() {
+   |        ^^^^^^^^^^^^^
+   |
+note: the filesystem operation is here
+  --> tests/ui/unnecessary_path_exists.rs:34:17
+   |
+LL |         let _ = path.read_dir().unwrap();
+   |                 ^^^^^^^^^^^^^^^
+   = help: the `exists()` check is redundant and creates a TOCTOU race condition; consider removing it and handling the error from the filesystem operation directly
+
+error: unnecessary `Path::exists` before a filesystem operation on the same path
+  --> tests/ui/unnecessary_path_exists.rs:37:8
+   |
+LL |     if path.exists() {
+   |        ^^^^^^^^^^^^^
+   |
+note: the filesystem operation is here
+  --> tests/ui/unnecessary_path_exists.rs:39:17
+   |
+LL |         let _ = path.symlink_metadata().unwrap();
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^
+   = help: the `exists()` check is redundant and creates a TOCTOU race condition; consider removing it and handling the error from the filesystem operation directly
+
+error: unnecessary `Path::exists` before a filesystem operation on the same path
+  --> tests/ui/unnecessary_path_exists.rs:43:8
+   |
+LL |     if path.exists() {
+   |        ^^^^^^^^^^^^^
+   |
+note: the filesystem operation is here
+  --> tests/ui/unnecessary_path_exists.rs:45:17
+   |
+LL |         let _ = path.metadata().unwrap();
+   |                 ^^^^^^^^^^^^^^^
+   = help: the `exists()` check is redundant and creates a TOCTOU race condition; consider removing it and handling the error from the filesystem operation directly
+
+error: unnecessary `Path::exists` before a filesystem operation on the same path
+  --> tests/ui/unnecessary_path_exists.rs:57:8
+   |
+LL |     if path.exists() {
+   |        ^^^^^^^^^^^^^
+   |
+note: the filesystem operation is here
+  --> tests/ui/unnecessary_path_exists.rs:59:17
+   |
+LL |         let _ = path.metadata().unwrap();
+   |                 ^^^^^^^^^^^^^^^
+   = help: the `exists()` check is redundant and creates a TOCTOU race condition; consider removing it and handling the error from the filesystem operation directly
+
+error: unnecessary `Path::exists` before a filesystem operation on the same path
+  --> tests/ui/unnecessary_path_exists.rs:72:8
+   |
+LL |     if path.exists() {
+   |        ^^^^^^^^^^^^^
+   |
+note: the filesystem operation is here
+  --> tests/ui/unnecessary_path_exists.rs:74:17
+   |
+LL |         let _ = path.metadata()?;
+   |                 ^^^^^^^^^^^^^^^
+   = help: the `exists()` check is redundant and creates a TOCTOU race condition; consider removing it and handling the error from the filesystem operation directly
+
+error: unnecessary `Path::exists` before a filesystem operation on the same path
+  --> tests/ui/unnecessary_path_exists.rs:81:8
+   |
+LL |     if path.exists() {
+   |        ^^^^^^^^^^^^^
+   |
+note: the filesystem operation is here
+  --> tests/ui/unnecessary_path_exists.rs:83:9
+   |
+LL |         path.metadata().ok();
+   |         ^^^^^^^^^^^^^^^
+   = help: the `exists()` check is redundant and creates a TOCTOU race condition; consider removing it and handling the error from the filesystem operation directly
+
+error: unnecessary `Path::exists` before a filesystem operation on the same path
+  --> tests/ui/unnecessary_path_exists.rs:87:8
+   |
+LL |     if path.exists() {
+   |        ^^^^^^^^^^^^^
+   |
+note: the filesystem operation is here
+  --> tests/ui/unnecessary_path_exists.rs:90:17
+   |
+LL |         let _ = path.metadata().unwrap();
+   |                 ^^^^^^^^^^^^^^^
+   = help: the `exists()` check is redundant and creates a TOCTOU race condition; consider removing it and handling the error from the filesystem operation directly
+
+error: unnecessary `Path::exists` before a filesystem operation on the same path
+  --> tests/ui/unnecessary_path_exists.rs:94:8
+   |
+LL |     if path.exists() {
+   |        ^^^^^^^^^^^^^
+   |
+note: the filesystem operation is here
+  --> tests/ui/unnecessary_path_exists.rs:96:17
+   |
+LL |         let _ = path.metadata().ok().is_some();
+   |                 ^^^^^^^^^^^^^^^
+   = help: the `exists()` check is redundant and creates a TOCTOU race condition; consider removing it and handling the error from the filesystem operation directly
+
+error: unnecessary `Path::exists` before a filesystem operation on the same path
+  --> tests/ui/unnecessary_path_exists.rs:104:8
+   |
+LL |     if path.exists() && condition {
+   |        ^^^^^^^^^^^^^
+   |
+note: the filesystem operation is here
+  --> tests/ui/unnecessary_path_exists.rs:106:17
+   |
+LL |         let _ = path.metadata().unwrap();
+   |                 ^^^^^^^^^^^^^^^
+   = help: the `exists()` check is redundant and creates a TOCTOU race condition; consider removing it and handling the error from the filesystem operation directly
+
+error: unnecessary `Path::exists` before a filesystem operation on the same path
+  --> tests/ui/unnecessary_path_exists.rs:110:21
+   |
+LL |     if condition && path.exists() {
+   |                     ^^^^^^^^^^^^^
+   |
+note: the filesystem operation is here
+  --> tests/ui/unnecessary_path_exists.rs:112:17
+   |
+LL |         let _ = path.metadata().unwrap();
+   |                 ^^^^^^^^^^^^^^^
+   = help: the `exists()` check is redundant and creates a TOCTOU race condition; consider removing it and handling the error from the filesystem operation directly
+
+error: unnecessary `Path::exists` before a filesystem operation on the same path
+  --> tests/ui/unnecessary_path_exists.rs:118:18
+   |
+LL |     let exists = path.exists();
+   |                  ^^^^^^^^^^^^^
+   |
+note: the filesystem operation is here
+  --> tests/ui/unnecessary_path_exists.rs:121:17
+   |
+LL |         let _ = path.metadata().unwrap();
+   |                 ^^^^^^^^^^^^^^^
+   = help: the `exists()` check is redundant and creates a TOCTOU race condition; consider removing it and handling the error from the filesystem operation directly
+
+error: unnecessary `Path::exists` before a filesystem operation on the same path
+  --> tests/ui/unnecessary_path_exists.rs:126:19
+   |
+LL |     let exists2 = path2.exists();
+   |                   ^^^^^^^^^^^^^^
+   |
+note: the filesystem operation is here
+  --> tests/ui/unnecessary_path_exists.rs:129:17
+   |
+LL |         let _ = path2.metadata().unwrap();
+   |                 ^^^^^^^^^^^^^^^^
+   = help: the `exists()` check is redundant and creates a TOCTOU race condition; consider removing it and handling the error from the filesystem operation directly
+
+error: unnecessary `Path::exists` before a filesystem operation on the same path
+  --> tests/ui/unnecessary_path_exists.rs:133:19
+   |
+LL |     let exists3 = path.exists();
+   |                   ^^^^^^^^^^^^^
+   |
+note: the filesystem operation is here
+  --> tests/ui/unnecessary_path_exists.rs:136:17
+   |
+LL |         let _ = path.metadata().unwrap();
+   |                 ^^^^^^^^^^^^^^^
+   = help: the `exists()` check is redundant and creates a TOCTOU race condition; consider removing it and handling the error from the filesystem operation directly
+
+error: aborting due to 18 previous errors
+
