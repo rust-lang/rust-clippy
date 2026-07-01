@@ -1,0 +1,29 @@
+error: `matches!` used as an `if` condition
+  --> tests/ui/matches_if_let_guard.rs:21:8
+   |
+LL |     if matches!(guarded, Enum::A(n) if n == 1) {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `if let`: `let Enum::A(n) = guarded && (n == 1)`
+   |
+   = note: `-D clippy::matches-if-let` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::matches_if_let)]`
+
+error: `matches!` used as an `if` condition
+  --> tests/ui/matches_if_let_guard.rs:25:29
+   |
+LL |     if chained.is_some() && matches!(chained, Some(_)) {}
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `if let`: `let Some(_) = chained`
+
+error: `matches!` used as an `if` condition
+  --> tests/ui/matches_if_let_guard.rs:50:8
+   |
+LL |     if matches!(guarded, Enum::A(n) if n == 1) {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `if let`: `let Enum::A(n) = guarded && (n == 1)`
+
+error: `matches!` used as an `if` condition
+  --> tests/ui/matches_if_let_guard.rs:54:29
+   |
+LL |     if chained.is_some() && matches!(chained, Some(_)) {}
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `if let`: `let Some(_) = chained`
+
+error: aborting due to 4 previous errors
+
