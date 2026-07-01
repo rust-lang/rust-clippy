@@ -604,6 +604,23 @@ The list of disallowed methods, written as fully qualified paths.
 * [`disallowed_methods`](https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_methods)
 
 
+## `disallowed-modules`
+The list of disallowed modules, written as fully qualified paths.
+
+**Fields:**
+- `path` (required): the fully qualified path to the module that should be disallowed
+- `reason` (optional): explanation why this module is disallowed
+- `replacement` (optional): suggested alternative module
+- `allow-invalid` (optional, `false` by default): when set to `true`, it will ignore this entry
+  if the path doesn't exist, instead of emitting an error
+
+**Default Value:** `[]`
+
+---
+**Affected lints:**
+* [`disallowed_modules`](https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_modules)
+
+
 ## `disallowed-names`
 The list of disallowed names to lint about. NB: `bar` is not here since it has legitimate uses. The value
 `".."` can be used as part of the list to indicate that the configured values should be appended to the
