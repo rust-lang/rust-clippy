@@ -168,6 +168,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::float_literal::LOSSY_FLOAT_LITERAL_INFO,
     crate::floating_point_arithmetic::IMPRECISE_FLOPS_INFO,
     crate::floating_point_arithmetic::SUBOPTIMAL_FLOPS_INFO,
+    crate::fn_param_ref_cloned::FN_PARAM_REF_CLONED_INFO,
     crate::format::USELESS_FORMAT_INFO,
     crate::format_args::FORMAT_IN_FORMAT_ARGS_INFO,
     crate::format_args::POINTER_FORMAT_INFO,

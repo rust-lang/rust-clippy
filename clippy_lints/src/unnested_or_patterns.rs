@@ -65,7 +65,7 @@ impl UnnestedOrPatterns {
 impl EarlyLintPass for UnnestedOrPatterns {
     fn check_arm(&mut self, cx: &EarlyContext<'_>, a: &ast::Arm) {
         if self.msrv.meets(msrvs::OR_PATTERNS) {
-            lint_unnested_or_patterns(cx, &a.pat);
+            lint_unnested_or_patterns(cx, *a.pat.clone());
         }
     }
 
@@ -73,32 +73,32 @@ impl EarlyLintPass for UnnestedOrPatterns {
         if self.msrv.meets(msrvs::OR_PATTERNS)
             && let ast::ExprKind::Let(pat, _, _, _) = &e.kind
         {
-            lint_unnested_or_patterns(cx, pat);
+            lint_unnested_or_patterns(cx, *pat.clone());
         }
     }
 
     fn check_param(&mut self, cx: &EarlyContext<'_>, p: &ast::Param) {
         if self.msrv.meets(msrvs::OR_PATTERNS) {
-            lint_unnested_or_patterns(cx, &p.pat);
+            lint_unnested_or_patterns(cx, *p.pat.clone());
         }
     }
 
     fn check_local(&mut self, cx: &EarlyContext<'_>, l: &ast::Local) {
         if self.msrv.meets(msrvs::OR_PATTERNS) {
-            lint_unnested_or_patterns(cx, &l.pat);
+            lint_unnested_or_patterns(cx, *l.pat.clone());
         }
     }
 
     extract_msrv_attr!();
 }
 
-fn lint_unnested_or_patterns(cx: &EarlyContext<'_>, pat: &Pat) {
+fn lint_unnested_or_patterns(cx: &EarlyContext<'_>, pat: Pat) {
     if let Ident(.., None) | Expr(_) | Wild | Path(..) | Range(..) | Rest | MacCall(_) = pat.kind {
         // This is a leaf pattern, so cloning is unprofitable.
         return;
     }
 
-    let mut pat = pat.clone();
+    let mut pat = pat;
 
     // Nix all the paren patterns everywhere so that they aren't in our way.
     remove_all_parens(&mut pat);
