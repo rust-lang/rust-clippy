@@ -80,10 +80,16 @@ declare_lint_pass!(Unicode => [
 
 impl LateLintPass<'_> for Unicode {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ Expr<'_>) {
-        if let ExprKind::Lit(lit) = expr.kind
-            && let LitKind::Str(_, _) | LitKind::Char(_) = lit.node
-        {
-            check_str(cx, lit.span, expr.hir_id);
+        if let ExprKind::Lit(lit) = expr.kind {
+            // If the literal's value is all ASCII, so is its source: skip the snippet lookup.
+            let has_non_ascii = match lit.node {
+                LitKind::Str(sym, _) => !sym.as_str().is_ascii(),
+                LitKind::Char(c) => !c.is_ascii(),
+                _ => false,
+            };
+            if has_non_ascii {
+                check_str(cx, lit.span, expr.hir_id);
+            }
         }
     }
 }
