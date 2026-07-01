@@ -8,7 +8,9 @@ use clippy_utils::res::{MaybeDef, MaybeQPath, MaybeResPath};
 use clippy_utils::source::{indent_of, reindent_multiline, snippet_with_applicability, snippet_with_context};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::{implements_trait, is_copy};
-use clippy_utils::usage::local_used_after_expr;
+use clippy_utils::usage::{
+    local_used_after_expr, variable_names_of_block, variable_names_of_pat, variable_names_used_after_expr,
+};
 use clippy_utils::{
     eq_expr_value, fn_def_id_with_node_args, higher, is_else_clause, is_in_const_context, is_lint_allowed,
     pat_and_expr_can_be_question_mark, peel_blocks, peel_blocks_with_stmt, span_contains_cfg, span_contains_comment,
@@ -24,7 +26,6 @@ use rustc_hir::{
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
 use rustc_session::impl_lint_pass;
-use rustc_span::Span;
 use rustc_span::symbol::Symbol;
 
 declare_clippy_lint! {
@@ -386,7 +387,7 @@ fn check_arm_is_some_or_ok<'tcx>(
         return Some(if peel_blocks(arm.body).res_local_id() == Some(binding) {
             IfLetOrMatchThen::DirectReturn
         } else {
-            IfLetOrMatchThen::ManualUnwrap(val_binding.span, arm.body)
+            IfLetOrMatchThen::ManualUnwrap(val_binding, arm.body)
         });
     }
 
@@ -461,7 +462,7 @@ enum IfLetOrMatchThen<'tcx> {
     /// Return the binding from an if let or match arm as is.
     DirectReturn,
     /// Working on the binding from an if let or match arm as if it comes from a `?`.
-    ManualUnwrap(Span, &'tcx Expr<'tcx>),
+    ManualUnwrap(&'tcx Pat<'tcx>, &'tcx Expr<'tcx>),
 }
 
 fn check_if_try_match<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
@@ -489,23 +490,16 @@ fn check_if_try_match<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
                             applicability,
                         );
                     },
-                    IfLetOrMatchThen::ManualUnwrap(binding_span, arm_body) => {
-                        let indent = indent_of(cx, expr.span).unwrap_or_default();
-                        let arm_body_snippet = snippet_with_applicability(cx, arm_body.span, "..", &mut applicability);
-                        let mut sugg = reindent_multiline(&arm_body_snippet, true, Some(indent));
-                        let binding_snippet = snippet_with_applicability(cx, binding_span, "..", &mut applicability);
-                        let inner_indent = " ".repeat(indent + 4);
-                        if matches!(arm_body.kind, ExprKind::Block(..)) && sugg.starts_with('{') {
-                            sugg.insert_str(
-                                1,
-                                &format!("\n{inner_indent}let {binding_snippet} = {scrutinee_snippet}?;"),
-                            );
-                        } else {
-                            let outer_indent = " ".repeat(indent);
-                            sugg = format!(
-                                "{{\n{inner_indent}let {binding_snippet} = {scrutinee_snippet}?;\n{inner_indent}{sugg}\n{outer_indent}}}"
-                            );
-                        }
+                    IfLetOrMatchThen::ManualUnwrap(binding, arm_body) => {
+                        let sugg = build_suggestion_for_if_let_or_match(
+                            cx,
+                            expr,
+                            binding,
+                            arm_body,
+                            &scrutinee_snippet,
+                            &mut applicability,
+                            false,
+                        );
                         diag.span_suggestion(expr.span, "try instead", sugg, applicability);
                     },
                 }
@@ -562,9 +556,9 @@ fn check_if_let_some_or_err_and_early_return<'tcx>(cx: &LateContext<'tcx>, expr:
             |diag| {
                 let mut applicability = Applicability::MachineApplicable;
                 let receiver_str = snippet_with_applicability(cx, let_expr.span, "..", &mut applicability);
+                let parent = cx.tcx.parent_hir_node(expr.hir_id);
+                let requires_semi = matches!(parent, Node::Stmt(_)) || cx.typeck_results().expr_ty(expr).is_unit();
                 if !is_option_early_return || peel_blocks(if_then).res_local_id() == Some(bind_id) {
-                    let parent = cx.tcx.parent_hir_node(expr.hir_id);
-                    let requires_semi = matches!(parent, Node::Stmt(_)) || cx.typeck_results().expr_ty(expr).is_unit();
                     let method_call_str = match by_ref {
                         ByRef::Yes(_, Mutability::Mut) => ".as_mut()",
                         ByRef::Yes(_, Mutability::Not) => ".as_ref()",
@@ -585,16 +579,70 @@ fn check_if_let_some_or_err_and_early_return<'tcx>(cx: &LateContext<'tcx>, expr:
                     return;
                 }
 
-                let mut sugg = snippet_with_applicability(cx, if_then.span, "..", &mut applicability).into_owned();
-                let binding_snippet = snippet_with_applicability(cx, field.span, "..", &mut applicability);
-                let indent = indent_of(cx, expr.span).unwrap_or_default();
-                sugg.insert_str(
-                    1,
-                    &format!("\n{}let {binding_snippet} = {receiver_str}?;", " ".repeat(indent + 4)),
+                let sugg = build_suggestion_for_if_let_or_match(
+                    cx,
+                    expr,
+                    field,
+                    if_then,
+                    &receiver_str,
+                    &mut applicability,
+                    requires_semi,
                 );
                 diag.span_suggestion(expr.span, "replace it with", sugg, applicability);
             },
         );
+    }
+}
+
+fn build_suggestion_for_if_let_or_match<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &Expr<'tcx>,
+    pat: &Pat<'_>,
+    then: &Expr<'_>,
+    scrutinee_snippet: &str,
+    applicability: &mut Applicability,
+    mut requires_semi: bool,
+) -> String {
+    let then_snippet = snippet_with_applicability(cx, then.span, "..", applicability);
+    let pat_snippet = snippet_with_applicability(cx, pat.span, "..", applicability);
+
+    let then_is_block = matches!(then.kind, ExprKind::Block(..));
+    let sugg = if then_is_block && then_snippet.starts_with('{') {
+        then_snippet.trim_start_matches('{').trim_end_matches('}').trim()
+    } else {
+        // Add a semicolon if `then` is a block without braces, which indicates it is an assignment
+        // desugaring, e.g. `(a, b) = (c, d)`.
+        if then_is_block {
+            requires_semi = true;
+        }
+        &then_snippet
+    };
+
+    let indent = indent_of(cx, expr.span).unwrap_or_default();
+    let parent = cx.tcx.parent_hir_node(expr.hir_id);
+    let outer_indent = " ".repeat(indent);
+    if !matches!(parent, Node::Stmt(_) | Node::Block(_)) || {
+        let mut names = variable_names_of_pat(pat);
+        if let ExprKind::Block(block, _) = then.kind {
+            #[expect(
+                rustc::potential_query_instability,
+                reason = "checking if variable names are used is not sensitive to order"
+            )]
+            names.extend(variable_names_of_block(block));
+        }
+        variable_names_used_after_expr(cx, names, expr)
+    } {
+        let inner_indent = " ".repeat(indent + 4);
+        format!(
+            "{{\n{inner_indent}let {pat_snippet} = {scrutinee_snippet}?;\n{inner_indent}{}\n{outer_indent}}}",
+            reindent_multiline(sugg, true, Some(indent + 4))
+        )
+    } else {
+        format!(
+            "let {pat_snippet} = {scrutinee_snippet}?;\n{outer_indent}{}{}",
+            reindent_multiline(sugg, true, Some(indent)),
+            if requires_semi { ";" } else { "" }
+        )
     }
 }
 
