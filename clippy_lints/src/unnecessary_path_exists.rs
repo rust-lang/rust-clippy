@@ -4,6 +4,7 @@ use clippy_utils::{SpanlessEq, higher, path_to_local_with_projections, sym};
 use rustc_hir::{BinOpKind, Block, Expr, ExprKind, MatchSource, PatKind, Stmt, StmtKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
+use rustc_span::symbol::Symbol;
 use rustc_span::{Span, SyntaxContext};
 
 declare_clippy_lint! {
@@ -56,18 +57,6 @@ declare_clippy_lint! {
 
 declare_lint_pass!(UnnecessaryPathExists => [UNNECESSARY_PATH_EXISTS]);
 
-/// `Path`/`PathBuf` methods that each initiate a fresh syscall.
-const FS_METHODS: &[&str] = &[
-    "canonicalize",
-    "is_dir",
-    "is_file",
-    "is_symlink",
-    "metadata",
-    "read_dir",
-    "read_link",
-    "symlink_metadata",
-];
-
 impl<'tcx> LateLintPass<'tcx> for UnnecessaryPathExists {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         if expr.span.from_expansion() {
@@ -87,40 +76,36 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryPathExists {
             return;
         }
 
-        let stmts = block.stmts;
-        for (idx, stmt) in stmts.iter().enumerate() {
-            // Match `let b = path.exists()`
-            let StmtKind::Let(local) = stmt.kind else {
-                continue;
-            };
-            let Some(init) = local.init else { continue };
-            let Some((path_recv, exists_span)) = extract_exists_receiver(cx, init) else {
-                continue;
-            };
-            // Simple binding pattern: `let b = ...` (not destructuring)
-            let PatKind::Binding(_, binding_id, _, _) = local.pat.kind else {
-                continue;
-            };
-
-            // Find the immediately following expression
-            let next_expr = if idx + 1 < stmts.len() {
-                match stmts[idx + 1].kind {
-                    StmtKind::Expr(e) | StmtKind::Semi(e) => e,
-                    _ => continue,
-                }
-            } else if let Some(e) = block.expr {
-                e
-            } else {
-                continue;
-            };
-
-            if let Some(higher::If { cond, then, .. }) = higher::If::hir(next_expr)
-                && path_to_local_with_projections(cond) == Some(binding_id)
-                && let Some(fs_call_span) = find_fs_call(cx, then, path_recv, next_expr.span.ctxt())
-            {
-                emit_lint(cx, exists_span, fs_call_span);
+        for (stmt, next_stmt) in block.stmts.iter().zip(block.stmts.iter().skip(1)) {
+            if let StmtKind::Expr(next_expr) | StmtKind::Semi(next_expr) = next_stmt.kind {
+                check_stored_bool_pair(cx, stmt, next_expr);
             }
         }
+        if let Some(last_stmt) = block.stmts.last()
+            && let Some(next_expr) = block.expr
+        {
+            check_stored_bool_pair(cx, last_stmt, next_expr);
+        }
+    }
+}
+
+fn check_stored_bool_pair<'tcx>(cx: &LateContext<'tcx>, let_stmt: &'tcx Stmt<'tcx>, next_expr: &'tcx Expr<'tcx>) {
+    let StmtKind::Let(local) = let_stmt.kind else {
+        return;
+    };
+    let Some(init) = local.init else { return };
+    let Some((path_recv, exists_span)) = extract_exists_receiver(cx, init) else {
+        return;
+    };
+    let PatKind::Binding(_, binding_id, _, _) = local.pat.kind else {
+        return;
+    };
+
+    if let Some(higher::If { cond, then, .. }) = higher::If::hir(next_expr)
+        && path_to_local_with_projections(cond) == Some(binding_id)
+        && let Some(fs_call_span) = find_fs_call(cx, then, path_recv, next_expr.span.ctxt())
+    {
+        emit_lint(cx, exists_span, fs_call_span);
     }
 }
 
@@ -140,20 +125,44 @@ fn emit_lint(cx: &LateContext<'_>, exists_span: Span, fs_call_span: Span) {
     );
 }
 
-/// Walks a condition expression to find a `.exists()` call on a `Path`/`PathBuf`
-/// receiver. Returns the receiver expression and the span of the `.exists()` call.
+/// Returns `true` if `expr` is a method call that resolves to a method defined
+/// on `std::path::Path` (handles any type that derefs to `Path`, e.g. `PathBuf`).
+fn is_path_method_call(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    cx.typeck_results()
+        .type_dependent_def_id(expr.hir_id)
+        .is_some_and(|def_id| {
+            let parent = cx.tcx.parent(def_id);
+            cx.tcx
+                .type_of(parent)
+                .instantiate_identity()
+                .skip_norm_wip()
+                .is_diag_item(cx, sym::Path)
+        })
+}
+
+fn is_fs_method_name(name: Symbol) -> bool {
+    matches!(
+        name,
+        sym::canonicalize
+            | sym::is_dir
+            | sym::is_file
+            | sym::is_symlink
+            | sym::metadata
+            | sym::read_dir
+            | sym::read_link
+            | sym::symlink_metadata
+    )
+}
+
+/// Walks a condition expression to find a `Path::exists` call.
+/// Returns the receiver expression and the span of the `.exists()` call.
 /// Recurses through `&&` chains so compound conditions are handled.
 fn extract_exists_receiver<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> Option<(&'tcx Expr<'tcx>, Span)> {
     match expr.kind {
         ExprKind::MethodCall(seg, recv, [], _)
-            if seg.ident.name == sym::exists && !expr.span.from_expansion() =>
+            if seg.ident.name == sym::exists && !expr.span.from_expansion() && is_path_method_call(cx, expr) =>
         {
-            let ty = cx.typeck_results().expr_ty(recv).peel_refs();
-            if matches!(ty.opt_diag_name(cx), Some(sym::Path | sym::PathBuf)) {
-                Some((recv, expr.span))
-            } else {
-                None
-            }
+            Some((recv, expr.span))
         },
         ExprKind::Binary(op, lhs, rhs) if op.node == BinOpKind::And => {
             extract_exists_receiver(cx, lhs).or_else(|| extract_exists_receiver(cx, rhs))
@@ -206,13 +215,11 @@ fn find_fs_call_in_expr<'tcx>(
 ) -> Option<Span> {
     match expr.kind {
         ExprKind::MethodCall(method_seg, recv, _, _) => {
-            if FS_METHODS.contains(&method_seg.ident.name.as_str()) {
-                let recv_ty = cx.typeck_results().expr_ty(recv).peel_refs();
-                if matches!(recv_ty.opt_diag_name(cx), Some(sym::Path | sym::PathBuf))
-                    && SpanlessEq::new(cx).eq_expr(ctxt, recv, path_recv)
-                {
-                    return Some(expr.span);
-                }
+            if is_fs_method_name(method_seg.ident.name)
+                && is_path_method_call(cx, expr)
+                && SpanlessEq::new(cx).eq_expr(ctxt, recv, path_recv)
+            {
+                return Some(expr.span);
             }
             // Peel through chains like `.metadata().unwrap()` or `.metadata().ok()`
             find_fs_call_in_expr(cx, recv, path_recv, ctxt)
