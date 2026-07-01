@@ -1,6 +1,4 @@
-#![allow(dead_code)]
-
-#[warn(clippy::invisible_characters)]
+#![warn(clippy::invisible_characters, clippy::unicode_not_nfc)]
 fn zero() {
     print!("Here >​< is a ZWS, and ​another");
     //~^ invisible_characters
@@ -13,7 +11,6 @@ fn zero() {
     print!("This\u{2060}is\u{2060}fine");
 }
 
-#[warn(clippy::unicode_not_nfc)]
 fn canon() {
     print!("̀àh?");
     //~^ unicode_not_nfc
