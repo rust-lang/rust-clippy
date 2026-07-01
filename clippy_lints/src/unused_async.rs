@@ -285,6 +285,15 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsync {
                 && let ExprKind::Block(block, _) = inner.kind
                 && let Some(tail_expr) = block.expr
             {
+                if sig.decl.implicit_self().has_implicit_self() {
+                    let parent = cx.tcx.hir_get_parent_item(impl_item.hir_id()).def_id;
+                    let item = cx.tcx.hir_expect_item(parent);
+                    let self_ty = cx.tcx.type_of(item.owner_id).instantiate_identity().skip_norm_wip();
+                    let def_id = impl_item.owner_id.def_id.to_def_id();
+                    if !self_ty.is_inhabited_from(cx.tcx, def_id, cx.typing_env()) {
+                        return;
+                    }
+                }
                 span_lint_and_then(
                     cx,
                     UNUSED_ASYNC_TRAIT_IMPL,
