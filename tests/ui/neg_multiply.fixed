@@ -1,3 +1,5 @@
+#![feature(f128)]
+#![feature(f16)]
 #![warn(clippy::neg_multiply)]
 #![allow(clippy::no_effect, clippy::unnecessary_operation, clippy::precedence)]
 #![allow(unused)]
@@ -78,6 +80,12 @@ fn float() {
     -(3.0_f32 as f64);
     //~^ neg_multiply
     -(3.0_f32 as f64);
+    //~^ neg_multiply
+
+    -3.0_f16;
+    //~^ neg_multiply
+
+    -3.0_f128;
     //~^ neg_multiply
 
     -1.0 * -1.0; // should be ok
