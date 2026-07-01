@@ -180,9 +180,9 @@ fn used_underscore_items<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
             cx,
             USED_UNDERSCORE_ITEMS,
             expr.span,
-            "used underscore-prefixed item".to_string(),
+            "used underscore-prefixed item",
             |diag| {
-                diag.span_note(definition_span, "item is defined here".to_string());
+                diag.span_note(definition_span, "item is defined here");
             },
         );
     }
@@ -225,9 +225,9 @@ fn used_underscore_binding<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
             cx,
             USED_UNDERSCORE_BINDING,
             expr.span,
-            "used underscore-prefixed binding".to_string(),
+            "used underscore-prefixed binding",
             |diag| {
-                diag.span_note(definition_span, "binding is defined here".to_string());
+                diag.span_note(definition_span, "binding is defined here");
             },
         );
     }
