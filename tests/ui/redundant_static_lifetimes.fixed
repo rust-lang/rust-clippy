@@ -1,7 +1,6 @@
-#![allow(unused)]
 // FIXME(static_mut_refs): Do not allow `static_mut_refs` lint
-#![allow(static_mut_refs)]
 
+#![warn(clippy::redundant_static_lifetimes)]
 #[derive(Debug)]
 struct Foo;
 
