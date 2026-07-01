@@ -587,8 +587,13 @@ fn snippet_with_applicability_sm<'a>(
 }
 
 /// Converts a span to a code snippet. Returns `None` if not available.
+#[expect(clippy::unnecessary_wraps)]
 pub fn snippet_opt<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> Option<String> {
-    sm.source_map().span_to_snippet(span).ok()
+    // Experiment: fail loudly if the snippet cannot be obtained
+    match sm.source_map().span_to_snippet(span) {
+        Ok(v) => Some(v),
+        Err(e) => panic!("Error when getting snippet for {span:?}: {e:?}"),
+    }
 }
 
 /// Converts a span (from a block) to a code snippet if available, otherwise use default.
