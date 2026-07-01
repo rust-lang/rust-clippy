@@ -50,18 +50,48 @@ declare_clippy_lint! {
     "possible infinite iteration"
 }
 
-declare_lint_pass!(InfiniteIter => [INFINITE_ITER, MAYBE_INFINITE_ITER]);
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// ### Why restrict this?
+    ///
+    /// ### Example
+    /// ```no_run
+    /// // example code where clippy issues a warning
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// // example code which does not raise clippy warning
+    /// ```
+    #[clippy::version = "1.97.0"]
+    pub UNBOUNDED_ITER,
+    restriction,
+    "default lint description"
+}
+
+declare_lint_pass!(InfiniteIter => [
+    INFINITE_ITER,
+    MAYBE_INFINITE_ITER,
+    UNBOUNDED_ITER,
+]);
 
 impl<'tcx> LateLintPass<'tcx> for InfiniteIter {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        let (lint, msg) = match complete_infinite_iter(cx, expr) {
-            Infinite => (INFINITE_ITER, "infinite iteration detected"),
-            MaybeInfinite => (MAYBE_INFINITE_ITER, "possible infinite iteration detected"),
-            Finite => {
-                return;
-            },
+        let lint_msg = match complete_infinite_iter(cx, expr) {
+            Infinite => Some((INFINITE_ITER, "infinite iteration detected")),
+            MaybeInfinite => Some((MAYBE_INFINITE_ITER, "possible infinite iteration detected")),
+            Finite => None,
         };
-        span_lint(cx, lint, expr.span, msg);
+        if let Some((lint, msg)) = lint_msg {
+            span_lint(cx, lint, expr.span, msg);
+        }
+        let lint_msg = match is_unbounded(cx, expr) {
+            Unbounded => Some((UNBOUNDED_ITER, "unbounded iteration detected")),
+            Bounded => None,
+        };
+        if let Some((lint, msg)) = lint_msg {
+            span_lint(cx, lint, expr.span, msg);
+        }
     }
 }
 
@@ -258,4 +288,55 @@ fn complete_infinite_iter(cx: &LateContext<'_>, expr: &Expr<'_>) -> Finiteness {
         _ => (),
     }
     Finite
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+enum Boundedness {
+    Unbounded,
+    Bounded,
+}
+
+use self::Boundedness::{Bounded, Unbounded};
+
+impl From<bool> for Boundedness {
+    fn from(b: bool) -> Self {
+        if b { Bounded } else { Unbounded }
+    }
+}
+
+impl Boundedness {
+    #[must_use]
+    fn and(self, b: Self) -> Boundedness {
+        match (self, b) {
+            (Unbounded, Unbounded) => Unbounded,
+            (_, _) => Bounded,
+        }
+    }
+
+    #[must_use]
+    fn or(self, b: Self) -> Boundedness {
+        match (self, b) {
+            (Unbounded, _) => Unbounded,
+            (_, Unbounded) => Unbounded,
+            (_, _) => Bounded,
+        }
+    }
+}
+
+fn is_unbounded(cx: &LateContext<'_>, expr: &Expr<'_>) -> Boundedness {
+    match expr.kind {
+        ExprKind::MethodCall(method, receiver, args, _) => {
+            if method.ident.name == sym::zip {
+                is_unbounded(cx, receiver).and(is_unbounded(cx, &args[0]))
+            } else if method.ident.name == sym::chain {
+                is_unbounded(cx, receiver).or(is_unbounded(cx, &args[0]))
+            } else {
+                is_unbounded(cx, receiver)
+            }
+        },
+        ExprKind::Block(block, _) => block.expr.as_ref().map_or(Bounded, |e| is_unbounded(cx, e)),
+        ExprKind::AddrOf(BorrowKind::Ref, _, e) => is_unbounded(cx, e),
+        ExprKind::Struct(..) => higher::Range::hir(cx, expr).is_some_and(|r| r.end.is_some()).into(),
+        _ => Bounded,
+    }
 }
