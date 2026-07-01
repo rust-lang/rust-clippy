@@ -1,7 +1,7 @@
 use rustc_ast::visit::FnKind;
 use rustc_ast::{Fn, NodeId, WherePredicateKind};
 use rustc_data_structures::fx::FxHashMap;
-use rustc_lint::{EarlyContext, EarlyLintPass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
 use rustc_session::declare_lint_pass;
 use rustc_span::Span;
 
@@ -38,15 +38,17 @@ declare_clippy_lint! {
 declare_lint_pass!(MultipleBoundLocations => [MULTIPLE_BOUND_LOCATIONS]);
 
 impl EarlyLintPass for MultipleBoundLocations {
-    fn check_fn(&mut self, cx: &EarlyContext<'_>, kind: FnKind<'_>, _: Span, _: NodeId) {
+    fn check_fn(&mut self, cx: &EarlyContext<'_>, kind: FnKind<'_>, sp: Span, _: NodeId) {
         if let FnKind::Fn(_, _, Fn { generics, .. }) = kind
             && !generics.params.is_empty()
             && !generics.where_clause.predicates.is_empty()
+            && let ctxt = sp.ctxt()
+            && !ctxt.in_external_macro(cx.sess().source_map())
         {
             let mut generic_params_with_bounds = FxHashMap::default();
 
             for param in &generics.params {
-                if !param.bounds.is_empty() {
+                if !param.bounds.is_empty() && param.ident.span.ctxt() == ctxt {
                     generic_params_with_bounds.insert(param.ident.as_str(), param.ident.span);
                 }
             }
@@ -54,10 +56,8 @@ impl EarlyLintPass for MultipleBoundLocations {
                 match &clause.kind {
                     WherePredicateKind::BoundPredicate(pred) => {
                         if (!pred.bound_generic_params.is_empty() || !pred.bounds.is_empty())
-                            && let Some(Some(bound_span)) = pred
-                                .bounded_ty
-                                .span
-                                .with_source_text(cx, |src| generic_params_with_bounds.get(src))
+                            && let Some(src) = pred.bounded_ty.span.get_text(cx)
+                            && let Some(bound_span) = generic_params_with_bounds.get(&*src)
                         {
                             emit_lint(cx, *bound_span, pred.bounded_ty.span);
                         }
