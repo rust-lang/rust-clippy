@@ -106,5 +106,33 @@ LL +         let ptr: *const bool = std::ptr::null();
 LL +     }
    |
 
-error: aborting due to 8 previous errors
+error: for loop over a single element
+  --> tests/ui/single_element_loop.rs:74:5
+   |
+LL | /     for item in [42] {
+LL | |
+LL | |         if item > 0 {
+LL | |             dbg!(item);
+LL | |         }
+LL | |     }
+   | |_____^
+   |
+help: try
+   |
+LL ~     {
+LL +         let item = 42;
+LL +
+LL +         if item > 0 {
+LL +             dbg!(item);
+LL +         }
+LL +     }
+   |
+
+error: this loops only once with `_` being `0..5`
+  --> tests/ui/single_element_loop.rs:82:14
+   |
+LL |     for _ in [0..5] {
+   |              ^^^^^^ help: did you mean to iterate over the range instead?: `0..5`
+
+error: aborting due to 10 previous errors
 
