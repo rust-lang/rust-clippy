@@ -1,0 +1,20 @@
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_no_implicit_prelude.rs:11:9
+   |
+LL |     use std::result::Result;
+   |         ^^^ help: consider importing the item from `core`: `core`
+   |
+   = note: `-D clippy::std-instead-of-core` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::std_instead_of_core)]`
+
+error: used import from `std` instead of `alloc`
+  --> tests/ui/std_instead_of_core_no_implicit_prelude.rs:14:9
+   |
+LL |     use std::vec::Vec;
+   |         ^^^ help: consider importing the item from `alloc`: `alloc`
+   |
+   = note: `-D clippy::std-instead-of-alloc` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::std_instead_of_alloc)]`
+
+error: aborting due to 2 previous errors
+

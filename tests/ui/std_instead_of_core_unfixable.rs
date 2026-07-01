@@ -25,3 +25,26 @@ fn pr16964() {
         ffi::OsString,
     };
 }
+
+#[warn(clippy::alloc_instead_of_core)]
+#[rustfmt::skip]
+fn pr17252() {
+    extern crate alloc;
+
+    use alloc::str::{self as _, FromStr as _};
+    //~^ alloc_instead_of_core
+
+    use std::sync::{
+        Arc,
+        Mutex,
+        Weak,
+        atomic::{
+            AtomicPtr,
+            Ordering,
+        },
+    };
+    //~^^^^^^^^ std_instead_of_alloc
+    //~^^^^^^^ std_instead_of_alloc
+    //~^^^^^^ std_instead_of_core
+    //~^^^^^^ std_instead_of_core
+}
