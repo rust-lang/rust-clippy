@@ -1,5 +1,8 @@
+//@aux-build:proc_macros.rs
 #![warn(clippy::byte_char_slices)]
 #![expect(clippy::useless_vec)]
+
+use proc_macros::with_span;
 
 fn main() {
     let bad = &[b'a', b'b', b'c'];
@@ -13,6 +16,12 @@ fn main() {
 
     let good = &[b'a', 0x42];
     let good = vec![b'a', b'a'];
+
+    // Don't lint, in proc macro
+    let good = with_span! {
+        span
+        &[b'a', b'b', b'c']
+    };
 }
 
 fn takes_array_ref(_: &[u8; 2]) {}
