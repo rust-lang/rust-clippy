@@ -35,7 +35,6 @@ extern crate rustc_hir;
 extern crate rustc_hir_analysis;
 extern crate rustc_hir_pretty;
 extern crate rustc_hir_typeck;
-extern crate rustc_index;
 extern crate rustc_infer;
 extern crate rustc_lexer;
 extern crate rustc_lint;
@@ -258,6 +257,7 @@ mod needless_bool;
 mod needless_borrowed_ref;
 mod needless_borrows_for_generic_args;
 mod needless_continue;
+mod needless_conversion_for_trait;
 mod needless_else;
 mod needless_for_each;
 mod needless_ifs;
@@ -856,6 +856,7 @@ rustc_lint::late_lint_methods!(
         DurationSuboptimalUnits: duration_suboptimal_units::DurationSuboptimalUnits = duration_suboptimal_units::DurationSuboptimalUnits::new(tcx, conf),
         ManualTake: manual_take::ManualTake = manual_take::ManualTake::new(conf),
         ManualCheckedOps: manual_checked_ops::ManualCheckedOps = manual_checked_ops::ManualCheckedOps,
+        NeedlessConversionForTrait: needless_conversion_for_trait::NeedlessConversionForTrait = needless_conversion_for_trait::NeedlessConversionForTrait::new(tcx, conf),
         ManualPopIf: manual_pop_if::ManualPopIf = manual_pop_if::ManualPopIf::new(tcx, conf),
         ManualNoopWaker: manual_noop_waker::ManualNoopWaker = manual_noop_waker::ManualNoopWaker::new(conf),
         ByteCharSlice: byte_char_slices::ByteCharSlice = byte_char_slices::ByteCharSlice,

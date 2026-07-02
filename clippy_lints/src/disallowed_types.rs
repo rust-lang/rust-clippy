@@ -1,5 +1,5 @@
 use clippy_config::Conf;
-use clippy_config::types::{DisallowedPath, create_disallowed_map};
+use clippy_config::types::{ConfPath, create_conf_path_map};
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::paths::PathNS;
 use rustc_data_structures::fx::FxHashMap;
@@ -60,13 +60,13 @@ declare_clippy_lint! {
 impl_lint_pass!(DisallowedTypes => [DISALLOWED_TYPES]);
 
 pub struct DisallowedTypes {
-    def_ids: DefIdMap<(&'static str, &'static DisallowedPath)>,
-    prim_tys: FxHashMap<PrimTy, (&'static str, &'static DisallowedPath)>,
+    def_ids: DefIdMap<(&'static str, &'static ConfPath)>,
+    prim_tys: FxHashMap<PrimTy, (&'static str, &'static ConfPath)>,
 }
 
 impl DisallowedTypes {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {
-        let (def_ids, prim_tys) = create_disallowed_map(
+        let (def_ids, prim_tys) = create_conf_path_map(
             tcx,
             &conf.disallowed_types,
             PathNS::Type,
@@ -78,7 +78,7 @@ impl DisallowedTypes {
     }
 
     fn check_res_emit(&self, cx: &LateContext<'_>, res: &Res, span: Span) {
-        let (path, disallowed_path) = match res {
+        let (path, conf_path) = match res {
             Res::Def(_, did) if let Some(&x) = self.def_ids.get(did) => x,
             Res::PrimTy(prim) if let Some(&x) = self.prim_tys.get(prim) => x,
             _ => return,
@@ -88,7 +88,7 @@ impl DisallowedTypes {
             DISALLOWED_TYPES,
             span,
             format!("use of a disallowed type `{path}`"),
-            disallowed_path.diag_amendment(span),
+            conf_path.diag_amendment(span),
         );
     }
 }
