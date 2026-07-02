@@ -1,5 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_then};
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::{is_from_proc_macro, trait_ref_of_method};
 use rustc_data_structures::fx::{FxHashMap, FxHashSet};
 use rustc_errors::Applicability;
@@ -265,7 +266,7 @@ impl<'tcx> LateLintPass<'tcx> for ExtraUnusedTypeParameters {
             && !generics.params.is_empty()
             && !is_empty_body(cx, body_id)
             && (!self.avoid_breaking_exported_api || !cx.effective_visibilities.is_exported(item.owner_id.def_id))
-            && !item.span.in_external_macro(cx.sess().source_map())
+            && !is_in_external_macro(cx.sess(), item.span)
             && !is_from_proc_macro(cx, item)
         {
             let mut walker = TypeWalker::new(cx, generics);
@@ -281,7 +282,7 @@ impl<'tcx> LateLintPass<'tcx> for ExtraUnusedTypeParameters {
             && trait_ref_of_method(cx, item.owner_id).is_none()
             && !is_empty_body(cx, body_id)
             && (!self.avoid_breaking_exported_api || !cx.effective_visibilities.is_exported(item.owner_id.def_id))
-            && !item.span.in_external_macro(cx.sess().source_map())
+            && !is_in_external_macro(cx.sess(), item.span)
             && !is_from_proc_macro(cx, item)
         {
             let mut walker = TypeWalker::new(cx, item.generics);

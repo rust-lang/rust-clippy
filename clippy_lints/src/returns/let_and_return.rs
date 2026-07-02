@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::res::MaybeResPath;
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::sugg::has_enclosing_paren;
@@ -25,8 +26,8 @@ pub(super) fn check_block<'tcx>(cx: &LateContext<'tcx>, block: &'tcx Block<'_>) 
         && let PatKind::Binding(_, local_id, _, _) = local.pat.kind
         && retexpr.res_local_id() == Some(local_id)
         && (cx.sess().edition() >= Edition::Edition2024 || !last_statement_borrows(cx, initexpr))
-        && !initexpr.span.in_external_macro(cx.sess().source_map())
-        && !retexpr.span.in_external_macro(cx.sess().source_map())
+        && !is_in_external_macro(cx.sess(), initexpr.span)
+        && !is_in_external_macro(cx.sess(), retexpr.span)
         && !local.span.from_expansion()
         && !span_contains_non_whitespace(cx, stmt.span.between(retexpr.span), false)
     {

@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::source::{indent_of, reindent_multiline, snippet};
 use rustc_ast::ast::{Block, Expr, ExprKind, Stmt, StmtKind};
 use rustc_ast::visit::{Visitor, walk_expr};
@@ -48,7 +49,7 @@ declare_lint_pass!(RedundantElse => [REDUNDANT_ELSE]);
 
 impl EarlyLintPass for RedundantElse {
     fn check_stmt(&mut self, cx: &EarlyContext<'_>, stmt: &Stmt) {
-        if stmt.span.in_external_macro(cx.sess().source_map()) {
+        if is_in_external_macro(cx.sess(), stmt.span) {
             return;
         }
         // Only look at expressions that are a whole statement

@@ -1,7 +1,8 @@
 use clippy_utils::diagnostics::span_lint;
+use clippy_utils::macros::is_in_external_macro;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Body, Expr, ExprKind, FnDecl, FnRetTy, TyKind, UnOp};
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty;
 use rustc_session::declare_lint_pass;
 use rustc_span::Span;
@@ -44,7 +45,7 @@ impl LateLintPass<'_> for UninhabitedReferences {
                 .typeck_results()
                 .expr_ty_adjusted(expr)
                 .is_privately_uninhabited(cx.tcx, cx.typing_env())
-            && !expr.span.in_external_macro(cx.tcx.sess.source_map())
+            && !is_in_external_macro(cx.sess(), expr.span)
         {
             span_lint(
                 cx,
@@ -72,7 +73,7 @@ impl LateLintPass<'_> for UninhabitedReferences {
             && let Ok(ty) = cx.tcx.try_normalize_erasing_regions(cx.typing_env(), ty)
             && let ty::Ref(_, ty, _) = *ty.kind()
             && ty.is_privately_uninhabited(cx.tcx, cx.typing_env())
-            && !span.in_external_macro(cx.tcx.sess.source_map())
+            && !is_in_external_macro(cx.sess(), span)
         {
             span_lint(
                 cx,

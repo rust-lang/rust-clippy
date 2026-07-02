@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::res::MaybeDef;
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::sym;
@@ -39,7 +40,7 @@ impl LateLintPass<'_> for UnusedResultOk {
             && let ExprKind::MethodCall(ok_path, recv, [], ..) = expr.kind //check is expr.ok() has type Result<T,E>.ok(, _)
             && ok_path.ident.name == sym::ok
             && cx.typeck_results().expr_ty(recv).is_diag_item(cx, sym::Result)
-            && !stmt.span.in_external_macro(cx.sess().source_map())
+            && !is_in_external_macro(cx.sess(), stmt.span)
         {
             let ctxt = expr.span.ctxt();
             let mut applicability = Applicability::MaybeIncorrect;

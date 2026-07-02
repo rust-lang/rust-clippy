@@ -1,5 +1,6 @@
 use super::implicit_return::IMPLICIT_RETURN;
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::res::{MaybeDef, MaybeQPath};
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{is_from_proc_macro, is_lint_allowed, last_path_segment, std_or_core};
@@ -171,7 +172,7 @@ impl LateLintPass<'_> for NonCanonicalImpls {
                     if let ImplItemKind::Fn(_, body_id) = assoc.kind
                         && let body = cx.tcx.hir_body(body_id)
                         && let ExprKind::Block(block, ..) = body.value.kind
-                        && !block.span.in_external_macro(cx.sess().source_map())
+                        && !is_in_external_macro(cx.sess(), block.span)
                     {
                         Some((assoc, body, block))
                     } else {

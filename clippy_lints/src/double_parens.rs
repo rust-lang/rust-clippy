@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::source::{SpanExt, snippet_with_applicability, snippet_with_context};
 use rustc_ast::ast::{Expr, ExprKind, MethodCall};
 use rustc_errors::Applicability;
@@ -49,7 +50,7 @@ impl EarlyLintPass for DoubleParens {
             ExprKind::Paren(inner)
                 if matches!(inner.kind, ExprKind::Paren(_) | ExprKind::Tup(_))
                     && expr.span.eq_ctxt(inner.span)
-                    && !expr.span.in_external_macro(cx.sess().source_map())
+                    && !is_in_external_macro(cx.sess(), expr.span)
                     && check_source(cx, inner) =>
             {
                 // suggest removing the outer parens
@@ -78,7 +79,7 @@ impl EarlyLintPass for DoubleParens {
                 if let [arg] = &**args
                     && let ExprKind::Paren(inner) = &arg.kind
                     && expr.span.eq_ctxt(arg.span)
-                    && !arg.span.in_external_macro(cx.sess().source_map())
+                    && !is_in_external_macro(cx.sess(), arg.span)
                     && check_source(cx, arg) =>
             {
                 // suggest removing the inner parens

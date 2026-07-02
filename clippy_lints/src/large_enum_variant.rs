@@ -1,6 +1,7 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_no_std_crate;
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::ty::{AdtVariantInfo, approx_ty_size, is_copy};
 use rustc_errors::Applicability;
@@ -78,7 +79,7 @@ impl<'tcx> LateLintPass<'tcx> for LargeEnumVariant {
             && let ty = cx.tcx.type_of(item.owner_id).instantiate_identity().skip_norm_wip()
             && let ty::Adt(adt, subst) = ty.kind()
             && adt.variants().len() > 1
-            && !item.span.in_external_macro(cx.tcx.sess.source_map())
+            && !is_in_external_macro(cx.tcx.sess, item.span)
         {
             let variants_size = AdtVariantInfo::new(cx, *adt, subst);
 

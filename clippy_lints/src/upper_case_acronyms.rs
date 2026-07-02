@@ -1,5 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_hir_and_then;
+use clippy_utils::macros::is_in_external_macro;
 use core::mem::replace;
 use rustc_errors::Applicability;
 use rustc_hir::{HirId, Item, ItemKind};
@@ -125,7 +126,7 @@ fn check_ident(cx: &LateContext<'_>, ident: &Ident, hir_id: HirId, be_aggressive
 impl LateLintPass<'_> for UpperCaseAcronyms {
     fn check_item(&mut self, cx: &LateContext<'_>, it: &Item<'_>) {
         // do not lint public items or in macros
-        if it.span.in_external_macro(cx.sess().source_map())
+        if is_in_external_macro(cx.sess(), it.span)
             || (self.avoid_breaking_exported_api && cx.effective_visibilities.is_exported(it.owner_id.def_id))
         {
             return;

@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::{span_lint, span_lint_and_help};
 use clippy_utils::higher::{VecInitKind, get_vec_init_kind};
+use clippy_utils::macros::is_ctxt_in_external_macro;
 use clippy_utils::res::{MaybeDef, MaybeResPath};
 use clippy_utils::ty::is_uninit_value_valid_for_ty;
 use clippy_utils::{SpanlessEq, is_integer_literal, is_lint_allowed, peel_hir_expr_while, sym};
@@ -65,7 +66,7 @@ declare_lint_pass!(UninitVec => [UNINIT_VEC]);
 impl<'tcx> LateLintPass<'tcx> for UninitVec {
     fn check_block(&mut self, cx: &LateContext<'tcx>, block: &'tcx Block<'_>) {
         let ctxt = block.span.ctxt();
-        if !ctxt.in_external_macro(cx.tcx.sess.source_map()) {
+        if !is_ctxt_in_external_macro(cx.tcx.sess, ctxt) {
             for [stmt1, stmt2] in block.stmts.array_windows::<2>() {
                 if let StmtKind::Expr(expr) | StmtKind::Semi(expr) = stmt2.kind
                     && stmt1.span.ctxt() == ctxt

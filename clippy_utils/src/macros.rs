@@ -11,6 +11,7 @@ use rustc_ast::{FormatArgs, FormatArgument, FormatPlaceholder};
 use rustc_data_structures::fx::FxHashMap;
 use rustc_hir::{self as hir, Expr, ExprKind, HirId, Node, QPath};
 use rustc_lint::{LateContext, LintContext};
+use rustc_session::Session;
 use rustc_span::def_id::DefId;
 use rustc_span::hygiene::{self, MacroKind, SyntaxContext};
 use rustc_span::{BytePos, ExpnData, ExpnId, ExpnKind, Span, SpanData, Symbol};
@@ -108,6 +109,35 @@ pub fn expn_is_local(expn: ExpnId) -> bool {
         .chain(backtrace)
         .find_map(|(_, data)| data.macro_def_id)
         .is_none_or(DefId::is_local)
+}
+
+/// Checks if the given span is in an external macro.
+///
+/// Like [`Span::in_external_macro`], but with a single-slot cache. Lints gate on this for the
+/// node being visited, and the combined pass runs their `check_*` callbacks on that node back to
+/// back, so the queries repeat consecutively. The result depends only on the `SyntaxContext`
+/// (the `SourceMap` is fixed during a lint run), so a cache hit is always correct.
+pub fn is_in_external_macro(sess: &Session, span: Span) -> bool {
+    is_ctxt_in_external_macro(sess, span.ctxt())
+}
+
+/// Like [`is_in_external_macro`], but takes the span's [`SyntaxContext`] directly.
+pub fn is_ctxt_in_external_macro(sess: &Session, ctxt: SyntaxContext) -> bool {
+    if ctxt.is_root() {
+        return false;
+    }
+    if let Some((cached_ctxt, cached)) = LAST_IN_EXTERNAL_MACRO.get()
+        && cached_ctxt == ctxt
+    {
+        return cached;
+    }
+    let result = ctxt.in_external_macro(sess.source_map());
+    LAST_IN_EXTERNAL_MACRO.set(Some((ctxt, result)));
+    result
+}
+
+thread_local! {
+    static LAST_IN_EXTERNAL_MACRO: Cell<Option<(SyntaxContext, bool)>> = const { Cell::new(None) };
 }
 
 /// Returns an iterator of macro expansions that created the given span.

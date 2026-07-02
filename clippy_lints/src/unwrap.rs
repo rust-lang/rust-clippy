@@ -1,3 +1,4 @@
+use clippy_utils::macros::is_in_external_macro;
 use std::borrow::Cow;
 use std::iter;
 
@@ -429,7 +430,7 @@ impl<'tcx> Visitor<'tcx> for UnwrappableVariablesVisitor<'_, 'tcx> {
 
     fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
         // Shouldn't lint when `expr` is in macro.
-        if expr.span.in_external_macro(self.cx.tcx.sess.source_map()) {
+        if is_in_external_macro(self.cx.tcx.sess, expr.span) {
             walk_expr(self, expr);
             return;
         }

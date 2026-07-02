@@ -1,5 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_help, span_lint_hir};
+use clippy_utils::macros::is_in_external_macro;
 use clippy_utils::str_utils::{camel_case_split, count_match_end, count_match_start, to_camel_case, to_snake_case};
 use clippy_utils::{is_bool, is_from_proc_macro};
 use rustc_data_structures::fx::FxHashSet;
@@ -509,14 +510,14 @@ impl LateLintPass<'_> for ItemNameRepetitions {
             },
 
             ItemKind::Enum(ident, _, def) => {
-                if !ident.span.in_external_macro(cx.tcx.sess.source_map()) {
+                if !is_in_external_macro(cx.tcx.sess, ident.span) {
                     self.check_variants(cx, item, &def);
                 }
                 ident
             },
             ItemKind::Struct(ident, _, data) => {
                 if let VariantData::Struct { fields, .. } = data
-                    && !ident.span.in_external_macro(cx.tcx.sess.source_map())
+                    && !is_in_external_macro(cx.tcx.sess, ident.span)
                 {
                     self.check_fields(cx, item, fields);
                 }
