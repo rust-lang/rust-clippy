@@ -7280,6 +7280,7 @@ Released 2018-09-13
 [`non_std_lazy_statics`]: https://rust-lang.github.io/rust-clippy/master/index.html#non_std_lazy_statics
 [`non_zero_suggestions`]: https://rust-lang.github.io/rust-clippy/master/index.html#non_zero_suggestions
 [`nonminimal_bool`]: https://rust-lang.github.io/rust-clippy/master/index.html#nonminimal_bool
+[`nonnull_unchecked_on_box_ptr`]: https://rust-lang.github.io/rust-clippy/master/index.html#nonnull_unchecked_on_box_ptr
 [`nonsensical_open_options`]: https://rust-lang.github.io/rust-clippy/master/index.html#nonsensical_open_options
 [`nonstandard_macro_braces`]: https://rust-lang.github.io/rust-clippy/master/index.html#nonstandard_macro_braces
 [`not_unsafe_ptr_arg_deref`]: https://rust-lang.github.io/rust-clippy/master/index.html#not_unsafe_ptr_arg_deref

@@ -986,6 +986,7 @@ The minimum rust version that the project supports. Defaults to the `rust-versio
 * [`missing_const_for_fn`](https://rust-lang.github.io/rust-clippy/master/index.html#missing_const_for_fn)
 * [`needless_borrow`](https://rust-lang.github.io/rust-clippy/master/index.html#needless_borrow)
 * [`non_std_lazy_statics`](https://rust-lang.github.io/rust-clippy/master/index.html#non_std_lazy_statics)
+* [`nonnull_unchecked_on_box_ptr`](https://rust-lang.github.io/rust-clippy/master/index.html#nonnull_unchecked_on_box_ptr)
 * [`option_as_ref_deref`](https://rust-lang.github.io/rust-clippy/master/index.html#option_as_ref_deref)
 * [`or_fun_call`](https://rust-lang.github.io/rust-clippy/master/index.html#or_fun_call)
 * [`ptr_as_ptr`](https://rust-lang.github.io/rust-clippy/master/index.html#ptr_as_ptr)
