@@ -89,7 +89,8 @@ fn main() {
         x
     } else {
         false
-    }; // would also be questionable, but we don't catch this yet
+    };
+    //~^^^^^ needless_bool
     bool_ret3(x);
     bool_ret4(x);
     bool_ret5(x, x);
@@ -216,6 +217,18 @@ fn issue12846() {
     // parentheses are not needed here
     let _x = if a { true } else { false }.then(|| todo!());
     //~^ needless_bool
+}
+
+fn issue17170(x: bool, y: bool) -> [bool; 4] {
+    let a = if x { true } else { y };
+    //~^ needless_bool
+    let b = if x { y } else { false };
+    //~^ needless_bool
+    let c = if x { false } else { y };
+    //~^ needless_bool
+    let d = if x { y } else { true };
+    //~^ needless_bool
+    [a, b, c, d]
 }
 
 fn wrongly_unmangled_macros() {
