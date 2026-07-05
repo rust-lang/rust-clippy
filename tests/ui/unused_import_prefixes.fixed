@@ -1,0 +1,43 @@
+#![warn(clippy::unused_import_prefixes)]
+
+mod mod_one {
+    pub struct StructOne;
+}
+
+mod parent {
+    mod child {
+        use self::deep::DeepStruct;
+        //~^ unused_import_prefixes
+
+        // the `crate::` prefix is needed
+        use crate::mod_one::StructOne;
+
+        // don't lint public exports
+        pub use crate::parent::child::deep::ItemC;
+
+        use self::deep::{ItemA, ItemB};
+        //~^ unused_import_prefixes
+
+        // glob imports
+        use self::deep::*;
+        //~^ unused_import_prefixes
+
+        pub mod deep {
+            pub struct DeepStruct;
+            pub struct ItemA;
+            pub struct ItemB;
+            pub struct ItemC;
+        }
+    }
+}
+
+// do not lint imports inside macro declarations
+macro_rules! generate_import {
+    () => {
+        use crate::mod_one::StructOne;
+    };
+}
+
+fn main() {
+    generate_import!();
+}
