@@ -69,6 +69,7 @@ mod arbitrary_source_item_ordering;
 mod arc_with_non_send_sync;
 mod as_conversions;
 mod asm_syntax;
+mod assert_multiple;
 mod assertions_on_constants;
 mod assertions_on_result_states;
 mod assigning_clones;
@@ -862,6 +863,7 @@ rustc_lint::late_lint_methods!(
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
         WithCapacityZero: with_capacity_zero::WithCapacityZero = with_capacity_zero::WithCapacityZero,
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
+	AssertMultiple: assert_multiple::AssertMultiple = assert_multiple::AssertMultiple,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
