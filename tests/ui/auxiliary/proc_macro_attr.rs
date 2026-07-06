@@ -175,6 +175,20 @@ pub fn with_empty_docs(_attr: TokenStream, input: TokenStream) -> TokenStream {
     .into()
 }
 
+// Mimics an outer attribute macro that, like PyO3's `#[pymethods]`, may only be applied to an
+// inherent impl block and rejects a trait impl. Used to reproduce rust-lang/rust-clippy#17361:
+// `new_without_default`'s suggestion must not be `MachineApplicable` here, since applying it
+// verbatim would move this attribute onto the newly suggested `impl Default` block, which then
+// fails to compile.
+#[proc_macro_attribute]
+pub fn fake_pymethods(_args: TokenStream, input: TokenStream) -> TokenStream {
+    let item = parse_macro_input!(input as ItemImpl);
+    if item.trait_.is_some() {
+        return quote!(compile_error!("fake_pymethods cannot be used on trait impl blocks");).into();
+    }
+    quote!(#item).into()
+}
+
 #[proc_macro_attribute]
 pub fn duplicated_attr(_attr: TokenStream, input: TokenStream) -> TokenStream {
     let item = parse_macro_input!(input as syn::Item);

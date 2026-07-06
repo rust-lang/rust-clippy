@@ -1,0 +1,202 @@
+error: you should consider adding a `Default` implementation for `Foo`
+  --> tests/ui/new_without_default_outer_attr_macro.rs:17:5
+   |
+LL | /     pub fn new() -> Self {
+LL | |
+LL | |         Foo
+LL | |     }
+   | |_____^
+   |
+   = note: `-D clippy::new-without-default` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::new_without_default)]`
+help: try adding this
+   |
+LL + impl Default for Foo {
+LL +     fn default() -> Self {
+LL +         Self::new()
+LL +     }
+LL + }
+   |
+
+error: you should consider adding a `Default` implementation for `Baz`
+  --> tests/ui/new_without_default_outer_attr_macro.rs:32:5
+   |
+LL | /     pub fn new() -> Self {
+LL | |
+LL | |         Baz
+LL | |     }
+   | |_____^
+   |
+help: try adding this
+   |
+LL + impl Default for Baz {
+LL +     fn default() -> Self {
+LL +         Self::new()
+LL +     }
+LL + }
+   |
+
+error: you should consider adding a `Default` implementation for `Qux`
+  --> tests/ui/new_without_default_outer_attr_macro.rs:47:5
+   |
+LL | /     pub fn new() -> Self {
+LL | |
+LL | |         Qux
+LL | |     }
+   | |_____^
+   |
+help: try adding this
+   |
+LL + impl Default for Qux {
+LL +     fn default() -> Self {
+LL +         Self::new()
+LL +     }
+LL + }
+   |
+
+error: you should consider adding a `Default` implementation for `Quux`
+  --> tests/ui/new_without_default_outer_attr_macro.rs:60:5
+   |
+LL | /     pub fn new() -> Self {
+LL | |
+LL | |         Quux
+LL | |     }
+   | |_____^
+   |
+help: try adding this
+   |
+LL + impl Default for Quux {
+LL +     fn default() -> Self {
+LL +         Self::new()
+LL +     }
+LL + }
+   |
+
+error: you should consider adding a `Default` implementation for `Corge`
+  --> tests/ui/new_without_default_outer_attr_macro.rs:75:5
+   |
+LL | /     pub fn new() -> Self {
+LL | |
+LL | |         Corge
+LL | |     }
+   | |_____^
+   |
+help: try adding this
+   |
+LL + impl Default for Corge {
+LL +     fn default() -> Self {
+LL +         Self::new()
+LL +     }
+LL + }
+   |
+
+error: you should consider adding a `Default` implementation for `Grault`
+  --> tests/ui/new_without_default_outer_attr_macro.rs:91:5
+   |
+LL | /     pub fn new() -> Self {
+LL | |
+LL | |         Grault
+LL | |     }
+   | |_____^
+   |
+help: try adding this
+   |
+LL + impl Default for Grault {
+LL +     fn default() -> Self {
+LL +         Self::new()
+LL +     }
+LL + }
+   |
+
+error: you should consider adding a `Default` implementation for `Garply`
+  --> tests/ui/new_without_default_outer_attr_macro.rs:105:5
+   |
+LL | /     pub fn new() -> Self {
+LL | |
+LL | |         Garply
+LL | |     }
+   | |_____^
+   |
+help: try adding this
+   |
+LL + impl Default for Garply {
+LL +     fn default() -> Self {
+LL +         Self::new()
+LL +     }
+LL + }
+   |
+
+error: you should consider adding a `Default` implementation for `Waldo`
+  --> tests/ui/new_without_default_outer_attr_macro.rs:119:5
+   |
+LL | /     pub fn new() -> Self {
+LL | |
+LL | |         Waldo
+LL | |     }
+   | |_____^
+   |
+help: try adding this
+   |
+LL + impl Default for Waldo {
+LL +     fn default() -> Self {
+LL +         Self::new()
+LL +     }
+LL + }
+   |
+
+error: you should consider adding a `Default` implementation for `Fred`
+  --> tests/ui/new_without_default_outer_attr_macro.rs:134:5
+   |
+LL | /     pub fn new() -> Self {
+LL | |
+LL | |         Fred
+LL | |     }
+   | |_____^
+   |
+help: try adding this
+   |
+LL + impl Default for Fred {
+LL +     fn default() -> Self {
+LL +         Self::new()
+LL +     }
+LL + }
+   |
+
+error: you should consider adding a `Default` implementation for `Plugh`
+  --> tests/ui/new_without_default_outer_attr_macro.rs:147:5
+   |
+LL | /     pub fn new() -> Self {
+LL | |
+LL | |         Plugh
+LL | |     }
+   | |_____^
+   |
+help: try adding this
+   |
+LL + impl Default for Plugh {
+LL +     fn default() -> Self {
+LL +         Self::new()
+LL +     }
+LL + }
+   |
+
+error: you should consider adding a `Default` implementation for `Xyzzy`
+  --> tests/ui/new_without_default_outer_attr_macro.rs:163:5
+   |
+LL | /     pub fn new() -> Self {
+LL | |
+LL | |         Xyzzy
+LL | |     }
+   | |_____^
+   |
+help: try adding this
+   |
+LL + impl Default for Xyzzy {
+LL +     fn default() -> Self {
+LL +         Self::new()
+LL +     }
+LL + }
+   |
+
+error: aborting due to 11 previous errors
+

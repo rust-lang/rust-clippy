@@ -1,0 +1,76 @@
+error: you should consider adding a `Default` implementation for `Foo`
+  --> tests/ui/new_without_default_derive_same_line.rs:14:5
+   |
+LL | /     pub fn new() -> Self {
+LL | |
+LL | |         Foo
+LL | |     }
+   | |_____^
+   |
+   = note: `-D clippy::new-without-default` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::new_without_default)]`
+help: try adding this
+   |
+LL + impl Default for Foo {
+LL +     fn default() -> Self {
+LL +         Self::new()
+LL +     }
+LL + }
+   |
+
+error: you should consider adding a `Default` implementation for `Bar`
+  --> tests/ui/new_without_default_derive_same_line.rs:26:5
+   |
+LL | /     pub fn new() -> Self {
+LL | |
+LL | |         Bar
+LL | |     }
+   | |_____^
+   |
+help: try adding this
+   |
+LL + impl Default for Bar {
+LL +     fn default() -> Self {
+LL +         Self::new()
+LL +     }
+LL + }
+   |
+
+error: you should consider adding a `Default` implementation for `Baz`
+  --> tests/ui/new_without_default_derive_same_line.rs:40:5
+   |
+LL | /     pub fn new() -> Self {
+LL | |
+LL | |         Baz
+LL | |     }
+   | |_____^
+   |
+help: try adding this
+   |
+LL + impl Default for Baz {
+LL +     fn default() -> Self {
+LL +         Self::new()
+LL +     }
+LL + }
+   |
+
+error: you should consider adding a `Default` implementation for `Qux`
+  --> tests/ui/new_without_default_derive_same_line.rs:55:5
+   |
+LL | /     pub fn new() -> Self {
+LL | |
+LL | |         Qux
+LL | |     }
+   | |_____^
+   |
+help: try adding this
+   |
+LL + impl Default for Qux {
+LL +     fn default() -> Self {
+LL +         Self::new()
+LL +     }
+LL + }
+   |
+
+error: aborting due to 4 previous errors
+
