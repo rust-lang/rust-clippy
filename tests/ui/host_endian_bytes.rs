@@ -1,6 +1,12 @@
+//@ aux-build:proc_macros.rs
+
 #![warn(clippy::host_endian_bytes)]
 #![feature(f16, f128)]
 
+extern crate proc_macros;
+use proc_macros::{external, inline_macros};
+
+#[inline_macros]
 fn main() {
     {
         let _ = 0u8.to_ne_bytes(); //~ host_endian_bytes
@@ -42,6 +48,11 @@ fn main() {
         let _ = f128::from_ne_bytes([0; _]); //~ host_endian_bytes
     };
 
+    {
+        let _ = u8::from_ne_bytes; //~ host_endian_bytes
+        let _ = u8::to_ne_bytes; //~ host_endian_bytes
+    }
+
     #[warn(clippy::big_endian_bytes)]
     {
         let _ = 0u8.to_ne_bytes(); //~ host_endian_bytes
@@ -57,4 +68,20 @@ fn main() {
         let _ = u8::from_ne_bytes([0; _]); //~ host_endian_bytes
         let _ = i8::from_ne_bytes([0; _]); //~ host_endian_bytes
     };
+
+    {
+        inline! {{
+            let _ = 0u8.to_ne_bytes(); //~ host_endian_bytes
+            let _ = u8::from_ne_bytes([0; _]); //~ host_endian_bytes
+            let _ = 0u8.$to_ne_bytes(); //~ host_endian_bytes
+            let _ = u8::$from_ne_bytes([0; _]); //~ host_endian_bytes
+        }}
+
+        external! {
+            let _ = 0u8.to_ne_bytes();
+            let _ = u8::from_ne_bytes([0; _]);
+            let _ = 0u8.$to_ne_bytes(); //~ host_endian_bytes
+            let _ = u8::$from_ne_bytes([0; _]); //~ host_endian_bytes
+        }
+    }
 }
