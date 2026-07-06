@@ -1,0 +1,324 @@
+error: usage of the `u8::to_be_bytes` method
+  --> tests/ui/big_endian_bytes.rs:6:17
+   |
+LL |         let _ = 0u8.to_be_bytes();
+   |                 ^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+   = note: `-D clippy::big-endian-bytes` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::big_endian_bytes)]`
+
+error: usage of the `u16::to_be_bytes` method
+  --> tests/ui/big_endian_bytes.rs:7:17
+   |
+LL |         let _ = 0u16.to_be_bytes();
+   |                 ^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the `u32::to_be_bytes` method
+  --> tests/ui/big_endian_bytes.rs:8:17
+   |
+LL |         let _ = 0u32.to_be_bytes();
+   |                 ^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the `u64::to_be_bytes` method
+  --> tests/ui/big_endian_bytes.rs:9:17
+   |
+LL |         let _ = 0u64.to_be_bytes();
+   |                 ^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the `u128::to_be_bytes` method
+  --> tests/ui/big_endian_bytes.rs:10:17
+   |
+LL |         let _ = 0u128.to_be_bytes();
+   |                 ^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the `usize::to_be_bytes` method
+  --> tests/ui/big_endian_bytes.rs:11:17
+   |
+LL |         let _ = 0usize.to_be_bytes();
+   |                 ^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the `i8::to_be_bytes` method
+  --> tests/ui/big_endian_bytes.rs:13:17
+   |
+LL |         let _ = 0i8.to_be_bytes();
+   |                 ^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the `i16::to_be_bytes` method
+  --> tests/ui/big_endian_bytes.rs:14:17
+   |
+LL |         let _ = 0i16.to_be_bytes();
+   |                 ^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the `i32::to_be_bytes` method
+  --> tests/ui/big_endian_bytes.rs:15:17
+   |
+LL |         let _ = 0i32.to_be_bytes();
+   |                 ^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the `i64::to_be_bytes` method
+  --> tests/ui/big_endian_bytes.rs:16:17
+   |
+LL |         let _ = 0i64.to_be_bytes();
+   |                 ^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the `i128::to_be_bytes` method
+  --> tests/ui/big_endian_bytes.rs:17:17
+   |
+LL |         let _ = 0i128.to_be_bytes();
+   |                 ^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the `isize::to_be_bytes` method
+  --> tests/ui/big_endian_bytes.rs:18:17
+   |
+LL |         let _ = 0isize.to_be_bytes();
+   |                 ^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the `f16::to_be_bytes` method
+  --> tests/ui/big_endian_bytes.rs:20:17
+   |
+LL |         let _ = 0f16.to_be_bytes();
+   |                 ^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the `f32::to_be_bytes` method
+  --> tests/ui/big_endian_bytes.rs:21:17
+   |
+LL |         let _ = 0f32.to_be_bytes();
+   |                 ^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the `f64::to_be_bytes` method
+  --> tests/ui/big_endian_bytes.rs:22:17
+   |
+LL |         let _ = 0f64.to_be_bytes();
+   |                 ^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the `f128::to_be_bytes` method
+  --> tests/ui/big_endian_bytes.rs:23:17
+   |
+LL |         let _ = 0f128.to_be_bytes();
+   |                 ^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the function `u8::from_be_bytes`
+  --> tests/ui/big_endian_bytes.rs:25:17
+   |
+LL |         let _ = u8::from_be_bytes([0; _]);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the function `u16::from_be_bytes`
+  --> tests/ui/big_endian_bytes.rs:26:17
+   |
+LL |         let _ = u16::from_be_bytes([0; _]);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the function `u32::from_be_bytes`
+  --> tests/ui/big_endian_bytes.rs:27:17
+   |
+LL |         let _ = u32::from_be_bytes([0; _]);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the function `u64::from_be_bytes`
+  --> tests/ui/big_endian_bytes.rs:28:17
+   |
+LL |         let _ = u64::from_be_bytes([0; _]);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the function `u128::from_be_bytes`
+  --> tests/ui/big_endian_bytes.rs:29:17
+   |
+LL |         let _ = u128::from_be_bytes([0; _]);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the function `usize::from_be_bytes`
+  --> tests/ui/big_endian_bytes.rs:30:17
+   |
+LL |         let _ = usize::from_be_bytes([0; _]);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the function `i8::from_be_bytes`
+  --> tests/ui/big_endian_bytes.rs:32:17
+   |
+LL |         let _ = i8::from_be_bytes([0; _]);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the function `i16::from_be_bytes`
+  --> tests/ui/big_endian_bytes.rs:33:17
+   |
+LL |         let _ = i16::from_be_bytes([0; _]);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the function `i32::from_be_bytes`
+  --> tests/ui/big_endian_bytes.rs:34:17
+   |
+LL |         let _ = i32::from_be_bytes([0; _]);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the function `i64::from_be_bytes`
+  --> tests/ui/big_endian_bytes.rs:35:17
+   |
+LL |         let _ = i64::from_be_bytes([0; _]);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the function `i128::from_be_bytes`
+  --> tests/ui/big_endian_bytes.rs:36:17
+   |
+LL |         let _ = i128::from_be_bytes([0; _]);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the function `isize::from_be_bytes`
+  --> tests/ui/big_endian_bytes.rs:37:17
+   |
+LL |         let _ = isize::from_be_bytes([0; _]);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the function `f16::from_be_bytes`
+  --> tests/ui/big_endian_bytes.rs:39:17
+   |
+LL |         let _ = f16::from_be_bytes([0; _]);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the function `f32::from_be_bytes`
+  --> tests/ui/big_endian_bytes.rs:40:17
+   |
+LL |         let _ = f32::from_be_bytes([0; _]);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the function `f64::from_be_bytes`
+  --> tests/ui/big_endian_bytes.rs:41:17
+   |
+LL |         let _ = f64::from_be_bytes([0; _]);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the function `f128::from_be_bytes`
+  --> tests/ui/big_endian_bytes.rs:42:17
+   |
+LL |         let _ = f128::from_be_bytes([0; _]);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the `u8::to_be_bytes` method
+  --> tests/ui/big_endian_bytes.rs:47:17
+   |
+LL |         let _ = 0u8.to_be_bytes();
+   |                 ^^^^^^^^^^^^^^^^^
+   |
+   = help: use `u8::to_le_bytes` instead
+
+error: usage of the `i8::to_be_bytes` method
+  --> tests/ui/big_endian_bytes.rs:48:17
+   |
+LL |         let _ = 0i8.to_be_bytes();
+   |                 ^^^^^^^^^^^^^^^^^
+   |
+   = help: use `i8::to_le_bytes` instead
+
+error: usage of the function `u8::from_be_bytes`
+  --> tests/ui/big_endian_bytes.rs:49:17
+   |
+LL |         let _ = u8::from_be_bytes([0; _]);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use `u8::from_le_bytes` instead
+
+error: usage of the function `i8::from_be_bytes`
+  --> tests/ui/big_endian_bytes.rs:50:17
+   |
+LL |         let _ = i8::from_be_bytes([0; _]);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use `i8::from_le_bytes` instead
+
+error: usage of the `u8::to_be_bytes` method
+  --> tests/ui/big_endian_bytes.rs:55:17
+   |
+LL |         let _ = 0u8.to_be_bytes();
+   |                 ^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the `i8::to_be_bytes` method
+  --> tests/ui/big_endian_bytes.rs:56:17
+   |
+LL |         let _ = 0i8.to_be_bytes();
+   |                 ^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the function `u8::from_be_bytes`
+  --> tests/ui/big_endian_bytes.rs:57:17
+   |
+LL |         let _ = u8::from_be_bytes([0; _]);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: usage of the function `i8::from_be_bytes`
+  --> tests/ui/big_endian_bytes.rs:58:17
+   |
+LL |         let _ = i8::from_be_bytes([0; _]);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use the native endianness instead
+
+error: aborting due to 40 previous errors
+
