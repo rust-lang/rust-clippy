@@ -30,6 +30,9 @@ impl PartialEq for Manual {
     }
 }
 
+#[derive(PartialEq)]
+struct ContainsManual(Manual);
+
 fn main() {
     let x = Empty;
     let _val = x == Empty;
@@ -79,4 +82,9 @@ fn main() {
     let x = Manual;
     // Should not emit the lint since `Manual` implements `PartialEq` manually.
     let _val = matches!(x, Manual);
+
+    let x = ContainsManual(x);
+    // Should not emit the lint since `ContainsManual` contains `Manual` which implements
+    // `PartialEq` manually.
+    let _val = matches!(x, ContainsManual(Manual));
 }

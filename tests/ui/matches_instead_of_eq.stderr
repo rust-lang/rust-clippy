@@ -1,5 +1,5 @@
 error: this expression can be replaced with a `==` comparison
-  --> tests/ui/matches_instead_of_eq.rs:35:16
+  --> tests/ui/matches_instead_of_eq.rs:38:16
    |
 LL |     let _val = matches!(x, Empty);
    |                ^^^^^^^^^^^^^^^^^^ help: replace with: `x == Empty`
@@ -8,19 +8,19 @@ LL |     let _val = matches!(x, Empty);
    = help: to override `-D warnings` add `#[allow(clippy::matches_instead_of_eq)]`
 
 error: this expression can be replaced with a `==` comparison
-  --> tests/ui/matches_instead_of_eq.rs:39:16
+  --> tests/ui/matches_instead_of_eq.rs:42:16
    |
 LL |     let _val = matches!(x, EvenOdd::Odd);
    |                ^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `x == EvenOdd::Odd`
 
 error: this expression can be replaced with a `!=` comparison
-  --> tests/ui/matches_instead_of_eq.rs:44:16
+  --> tests/ui/matches_instead_of_eq.rs:47:16
    |
 LL |     let _val = !matches!(x, EvenOdd::Odd);
    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `x != EvenOdd::Odd`
 
 error: this expression can be replaced with a `==` comparison
-  --> tests/ui/matches_instead_of_eq.rs:49:16
+  --> tests/ui/matches_instead_of_eq.rs:52:16
    |
 LL |     let _val = matches!(x, EvenOdd::Odd);
    |                ^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `*x == EvenOdd::Odd`
