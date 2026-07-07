@@ -115,3 +115,9 @@ fn issue13158_msrv_1_80(_: &dyn std::error::Error) {}
 #[clippy::msrv = "1.81"]
 fn issue13158_msrv_1_81(_: &dyn core::error::Error) {}
 //~^ std_instead_of_core
+
+#[warn(clippy::std_instead_of_core)]
+fn issue17260() {
+    use core::concat;
+    //~^ std_instead_of_core
+}

@@ -347,11 +347,6 @@ impl LintPoint {
             return false;
         }
 
-        // FIXME(#17260): Delete this.
-        if self.last.res.value_ns.is_none() && self.last.res.type_ns.is_none() && self.last.res.macro_ns.is_some() {
-            return false;
-        }
-
         // NOTE:
         // Consider using `self.first.span.can_be_used_for_suggestions()`
 
