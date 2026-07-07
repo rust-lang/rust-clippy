@@ -23,3 +23,11 @@ fn pr16964() {
         ffi::OsString,
     };
 }
+
+#[warn(clippy::alloc_instead_of_core)]
+fn issue15579() {
+    use std::alloc;
+
+    let layout = alloc::Layout::new::<u8>();
+    //~^ std_instead_of_core
+}

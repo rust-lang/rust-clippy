@@ -342,11 +342,6 @@ impl LintPoint {
 
     /// Indicates this [`LintPoint`] should be emitted to the user.
     fn should_emit(&self, cx: &LateContext<'_>, msrv: Msrv) -> bool {
-        // FIXME(#11159): Delete this.
-        if !self.first.res.is_crate_root() {
-            return false;
-        }
-
         // NOTE:
         // Consider using `self.first.span.can_be_used_for_suggestions()`
 

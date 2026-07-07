@@ -42,5 +42,13 @@ LL |         collections::BTreeSet,
    |
    = help: consider importing the item from `alloc`
 
-error: aborting due to 5 previous errors
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:31:18
+   |
+LL |     let layout = alloc::Layout::new::<u8>();
+   |                  ^^^^^^^^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: aborting due to 6 previous errors
 
