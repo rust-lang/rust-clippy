@@ -141,6 +141,7 @@ mod unnecessary_literal_unwrap;
 mod unnecessary_map_or;
 mod unnecessary_map_or_else;
 mod unnecessary_min_or_max;
+mod unnecessary_path_exists;
 mod unnecessary_sort_by;
 mod unnecessary_to_owned;
 mod unnecessary_unwrap_unchecked;
@@ -4515,6 +4516,54 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for calls to `Path::exists` immediately before a filesystem
+    /// operation on the same path.
+    ///
+    /// ### Why is this bad?
+    /// Calling `exists()` and then performing a filesystem operation on the same
+    /// path is a classic Time-Of-Check to Time-Of-Use (TOCTOU) race condition.
+    /// Between the two calls another process can add, remove, or replace the
+    /// file, making the result of `exists()` stale. The filesystem operation
+    /// itself will indicate whether the path exists via its return value, making
+    /// the prior `exists()` check both redundant and dangerous.
+    ///
+    /// ### Example
+    /// ```rust,no_run
+    /// # use std::path::Path;
+    /// # fn example(path: &Path) {
+    /// if path.exists() {
+    ///     let metadata = path.metadata().unwrap();
+    ///     // use metadata ...
+    /// }
+    /// # }
+    /// ```
+    /// Use instead:
+    /// ```rust,no_run
+    /// # use std::path::Path;
+    /// # fn example(path: &Path) {
+    /// if let Ok(metadata) = path.metadata() {
+    ///     // use metadata ...
+    /// }
+    /// # }
+    /// ```
+    ///
+    /// ### Known problems
+    /// - Does not detect `std::fs` free functions used inside the block
+    ///   (e.g. `fs::read(path)`, `fs::File::open(path)`), only method calls on
+    ///   the path receiver itself.
+    /// - `Path::try_exists()` (stabilized in Rust 1.63) is only detected when
+    ///   used with the `?` operator (e.g. `if path.try_exists()? { ... }`);
+    ///   `.unwrap()`/`.unwrap_or(..)` and similar are not recognized.
+    /// - For the stored-bool variant (`let b = path.exists(); /* other stmts */;
+    ///   if b { ... }`), only detects when the `if` immediately follows the `let`.
+    #[clippy::version = "1.98.0"]
+    pub UNNECESSARY_PATH_EXISTS,
+    suspicious,
+    "calling `Path::exists` before a filesystem operation creates a TOCTOU race"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for usage of `.map_or_else()` "map closure" for `Result` type.
     ///
     /// ### Why is this bad?
@@ -5068,6 +5117,7 @@ impl_lint_pass!(Methods => [
     UNNECESSARY_MAP_OR,
     UNNECESSARY_MIN_OR_MAX,
     UNNECESSARY_OPTION_MAP_OR_ELSE,
+    UNNECESSARY_PATH_EXISTS,
     UNNECESSARY_RESULT_MAP_OR_ELSE,
     UNNECESSARY_SORT_BY,
     UNNECESSARY_TO_OWNED,
@@ -5420,6 +5470,9 @@ impl Methods {
                         case_sensitive_file_extension_comparisons::check(cx, expr, span, recv, arg, self.msrv);
                     }
                     path_ends_with_ext::check(cx, recv, arg, expr, self.msrv, &self.allowed_dotfiles);
+                },
+                (sym::exists | sym::try_exists, []) => {
+                    unnecessary_path_exists::check(cx, expr, recv);
                 },
                 (sym::expect, [_]) => {
                     match method_call(recv) {

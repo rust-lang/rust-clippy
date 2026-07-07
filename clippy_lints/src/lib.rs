@@ -377,7 +377,6 @@ mod unnecessary_literal_bound;
 mod unnecessary_map_on_constructor;
 mod unnecessary_mut_passed;
 mod unnecessary_owned_empty_strings;
-mod unnecessary_path_exists;
 mod unnecessary_self_imports;
 mod unnecessary_semicolon;
 mod unnecessary_struct_initialization;
@@ -863,7 +862,6 @@ rustc_lint::late_lint_methods!(
         ManualAssertEq: manual_assert_eq::ManualAssertEq = manual_assert_eq::ManualAssertEq,
         WithCapacityZero: with_capacity_zero::WithCapacityZero = with_capacity_zero::WithCapacityZero,
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
-        UnnecessaryPathExists: unnecessary_path_exists::UnnecessaryPathExists = unnecessary_path_exists::UnnecessaryPathExists,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );

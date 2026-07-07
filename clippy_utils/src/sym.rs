@@ -626,6 +626,7 @@ generate! {
     trim_start,
     trim_start_matches,
     truncate,
+    try_exists,
     try_fold,
     try_for_each,
     try_from_fn,
