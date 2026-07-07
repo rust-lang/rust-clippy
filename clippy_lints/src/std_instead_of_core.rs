@@ -4,12 +4,14 @@ use clippy_utils::msrvs::Msrv;
 use itertools::Itertools as _;
 use rustc_errors::{Applicability, Diag};
 use rustc_hir::def::{DefKind, PerNS, Res};
-use rustc_hir::def_id::{CrateNum, DefId};
-use rustc_hir::{HirId, Item, ItemKind, Path, PathSegment, StabilityLevel, StableSince, UseKind};
+use rustc_hir::def_id::{CrateNum, DefId, LocalDefId};
+use rustc_hir::{
+    Block, HirId, Item, ItemKind, Mod, Path, PathSegment, StabilityLevel, StableSince, UseKind, find_attr,
+};
 use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_session::impl_lint_pass;
 use rustc_span::symbol::kw;
-use rustc_span::{Span, sym};
+use rustc_span::{Ident, Span, Symbol, sym};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -97,6 +99,8 @@ pub struct StdReexports {
     lint_points: Vec<LintPoint>,
     /// Tracks nesting when linting a multi-import `use` statement.
     item_context: Vec<ItemContext>,
+    /// Tracks the availability of `core` and `alloc`, including possible renames.
+    crate_context: Vec<CrateContext>,
     /// Current Minimum Supported Rust Version.
     msrv: Msrv,
 }
@@ -106,6 +110,7 @@ impl StdReexports {
         Self {
             lint_points: Vec::new(),
             item_context: Vec::new(),
+            crate_context: Vec::new(),
             msrv: conf.msrv,
         }
     }
@@ -173,20 +178,73 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {
         self.lint_if_finish(cx, item.span);
 
-        if let ItemKind::Use(_path, UseKind::ListStem) = item.kind {
-            self.item_context.push(ItemContext {
-                span: item.span,
-                lint_points: 0,
-            });
+        match item.kind {
+            ItemKind::ExternCrate(Some(original), used)
+            | ItemKind::ExternCrate(None, used @ Ident { name: original, .. }) => {
+                let index = if cx
+                    .tcx
+                    .opt_local_parent(item.owner_id.def_id)
+                    .is_some_and(LocalDefId::is_top_level_module)
+                {
+                    0
+                } else {
+                    self.crate_context.len() - 1
+                };
+
+                match original {
+                    sym::core => self.crate_context[index].core = Some(used.name),
+                    sym::alloc => self.crate_context[index].alloc = Some(used.name),
+                    _ => {},
+                }
+            },
+            ItemKind::Use(_path, UseKind::ListStem) => {
+                self.item_context.push(ItemContext {
+                    span: item.span,
+                    lint_points: 0,
+                });
+            },
+            _ => {},
         }
     }
 
     fn check_item_post(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {
         self.lint_if_finish(cx, item.span);
     }
+
+    fn check_crate(&mut self, cx: &LateContext<'tcx>) {
+        self.crate_context.push(CrateContext {
+            core: (!no_implicit_core(cx)).then_some(sym::core),
+            ..CrateContext::default()
+        });
+    }
+
+    fn check_crate_post(&mut self, _: &LateContext<'tcx>) {
+        self.crate_context.pop();
+    }
+
+    fn check_block(&mut self, _: &LateContext<'tcx>, _: &'tcx Block<'tcx>) {
+        self.crate_context
+            .push(self.crate_context.last().copied().unwrap_or_default());
+    }
+
+    fn check_block_post(&mut self, cx: &LateContext<'tcx>, block: &'tcx Block<'tcx>) {
+        self.lint_if_finish(cx, block.span);
+        self.crate_context.pop();
+    }
+
+    fn check_mod(&mut self, _: &LateContext<'tcx>, _: &'tcx Mod<'tcx>, _: HirId) {
+        let first = self.crate_context[0];
+        self.crate_context.pop();
+        self.crate_context.push(first);
+    }
 }
 
 fn emit_lints(cx: &LateContext<'_>, this: &mut StdReexports) {
+    let crate_context = this
+        .crate_context
+        .last()
+        .expect("crate_context must always contain at least one entry while linting a crate");
+
     this.lint_points
         .sort_by_key(|path| (path.first.span, path.first.res.krate, path.defined_in()));
 
@@ -207,19 +265,19 @@ fn emit_lints(cx: &LateContext<'_>, this: &mut StdReexports) {
 
         let (suggestion, lint, message, help) = match (used_from, defined_in) {
             (sym::std, sym::core) => (
-                Some(sym::core),
+                crate_context.core,
                 STD_INSTEAD_OF_CORE,
                 "used import from `std` instead of `core`",
                 "consider importing the item from `core`",
             ),
             (sym::std, sym::alloc) => (
-                Some(sym::alloc),
+                crate_context.alloc,
                 STD_INSTEAD_OF_ALLOC,
                 "used import from `std` instead of `alloc`",
                 "consider importing the item from `alloc`",
             ),
             (sym::alloc, sym::core) => (
-                Some(sym::core),
+                crate_context.core,
                 ALLOC_INSTEAD_OF_CORE,
                 "used import from `alloc` instead of `core`",
                 "consider importing the item from `core`",
@@ -387,4 +445,16 @@ impl LintPoint {
 struct ItemContext {
     span: Span,
     lint_points: usize,
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+struct CrateContext {
+    core: Option<Symbol>,
+    alloc: Option<Symbol>,
+}
+
+/// Indicates a crate is marked as `#![no_core]` or `#![no_implicit_prelude]`,
+/// both of which cause `core` to not be implicitly available.
+pub fn no_implicit_core(cx: &LateContext<'_>) -> bool {
+    find_attr!(cx.tcx, crate, NoCore | NoImplicitPrelude)
 }
