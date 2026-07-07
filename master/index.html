@@ -2740,22 +2740,22 @@ pub fn do_something() {}
 </code></pre>
 </div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.90.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+doc_broken_link">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/doc/mod.rs#L42">View Source</a></div></div></article><article id="doc_comment_double_space_linebreaks"><input id="label-doc_comment_double_space_linebreaks" type="checkbox"><label for="label-doc_comment_double_space_linebreaks"><h2 class="lint-title"><div class="panel-title-name" id="lint-doc_comment_double_space_linebreaks">doc_comment_double_space_linebreaks
 <a href="#doc_comment_double_space_linebreaks" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
-<p>Detects doc comment linebreaks that use double spaces to separate lines, instead of back-slash (<code>\</code>).</p>
+<p>Detects doc comments that use double spaces as hard line break, instead of backslash (<code>\</code>).</p>
 <h3>Why is this bad?</h3>
-<p>Double spaces, when used as doc comment linebreaks, can be difficult to see, and may
-accidentally be removed during automatic formatting or manual refactoring. The use of a back-slash (<code>\</code>)
+<p>Double spaces, when used as hard line break in doc comments, can be difficult to see, and may
+accidentally be removed during automatic formatting or manual refactoring. The use of a backslash (<code>\</code>)
 is clearer in this regard.</p>
 <h3>Example</h3>
-<p>The two replacement dots in this example represent a double space.</p>
-<pre><code class="language-rust">/// This command takes two numbers as inputs and··
-/// adds them together, and then returns the result.
+<p>The two replacement dots (<code>··</code>) in this example represent a double space.</p>
+<pre><code class="language-rust">/// This function adds two numbers and returns the result··
+/// Overflow can occur when the max value is exceeded.
 fn add(l: i32, r: i32) -&gt; i32 {
     l + r
 }
 </code></pre>
 <p>Use instead:</p>
-<pre><code class="language-rust">/// This command takes two numbers as inputs and\
-/// adds them together, and then returns the result.
+<pre><code class="language-rust">/// This function adds two numbers and returns the result\
+/// Overflow can occur when the max value is exceeded.
 fn add(l: i32, r: i32) -&gt; i32 {
     l + r
 }
