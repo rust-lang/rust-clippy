@@ -5,11 +5,11 @@ use clippy_utils::macros::{
     root_macro_call_first_node,
 };
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::source::{HasSession, SpanRangeExt};
+use clippy_utils::source::SpanExt;
 use clippy_utils::ty::has_debug_impl;
 use clippy_utils::{is_in_const_context, is_span_assert, sym};
 use rustc_errors::Applicability;
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
@@ -119,18 +119,18 @@ impl<'tcx> LateLintPass<'tcx> for ManualAssertMatches {
                 },
             };
 
-            let Some(match_arg) = match_arg.span.get_source_text(cx) else {
+            let Some(match_arg) = match_arg.span.get_text(cx) else {
                 return;
             };
             let match_arg = match_arg.as_str();
 
-            let Some(match_pat) = match_pat.span.get_source_text(cx) else {
+            let Some(match_pat) = match_pat.span.get_text(cx) else {
                 return;
             };
             let match_pat = match_pat.as_str();
 
             let guard = match match_guard {
-                Some(match_guard) if let Some(source) = match_guard.span.get_source_text(cx) => {
+                Some(match_guard) if let Some(source) = match_guard.span.get_text(cx) => {
                     let source = source.as_str();
                     format!(" if {source}")
                 },
@@ -141,13 +141,13 @@ impl<'tcx> LateLintPass<'tcx> for ManualAssertMatches {
             };
 
             let format_args = match panic_call {
-                PanicCall::Display(display) if let Some(source) = display.span.get_source_text(cx) => {
+                PanicCall::Display(display) if let Some(source) = display.span.get_text(cx) => {
                     format!(", \"{{}}\", {source}")
                 },
                 PanicCall::Format(format_expr)
                     if let Some(args) = self.format_args.get(cx, format_expr, root_mac_call.expn)
                         && let span = format_args_inputs_span(args)
-                        && let Some(source) = span.get_source_text(cx) =>
+                        && let Some(source) = span.get_text(cx) =>
                 {
                     let source = source.as_str();
                     format!(", {source}")
