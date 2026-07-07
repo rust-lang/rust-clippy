@@ -1,5 +1,4 @@
 #![warn(clippy::unnecessary_path_exists)]
-#![allow(unused)]
 
 use std::path::{Path, PathBuf};
 
@@ -73,6 +72,34 @@ fn check_with_result(path: &Path) -> std::io::Result<()> {
         //~^ unnecessary_path_exists
         let _ = path.metadata()?;
     }
+    Ok(())
+}
+
+fn check_try_exists(path: &Path) -> std::io::Result<()> {
+    // `try_exists()?` as a direct condition
+    if path.try_exists()? {
+        //~^ unnecessary_path_exists
+        let _ = path.metadata()?;
+    }
+
+    // `try_exists()?` in a compound condition
+    if path.try_exists()? && true {
+        //~^ unnecessary_path_exists
+        let _ = path.metadata()?;
+    }
+
+    // `try_exists()?` stored in a bool, immediately followed by if
+    let exists = path.try_exists()?;
+    //~^ unnecessary_path_exists
+    if exists {
+        let _ = path.metadata()?;
+    }
+
+    // `.unwrap_or(false)` instead of `?` — not detected (known limitation)
+    if path.try_exists().unwrap_or(false) {
+        let _ = path.metadata()?;
+    }
+
     Ok(())
 }
 
@@ -163,6 +190,25 @@ fn check_false_positives(path: &Path) {
     // free function call, not a method on the receiver — no lint
     if path.exists() {
         let _ = std::fs::read(path);
+    }
+}
+
+struct Custom;
+
+impl Custom {
+    fn exists(&self) -> bool {
+        true
+    }
+
+    fn metadata(&self) -> u32 {
+        0
+    }
+}
+
+fn check_unrelated_exists_method(c: Custom) {
+    // `exists`/`metadata` here are unrelated to `Path` — no lint
+    if c.exists() {
+        let _ = c.metadata();
     }
 }
 
