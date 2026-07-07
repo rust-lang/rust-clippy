@@ -56,20 +56,10 @@ impl<'tcx> LateLintPass<'tcx> for AssertIsEmpty {
         ) && let Some((condition, panic_expn)) = find_assert_args(cx, e, macro_call.expn)
             && panic_expn.is_default_message()
         {
-            let method_name;
-            let recv;
-            let is_negated;
-
-            match condition.kind {
-                ExprKind::MethodCall(ms, r, [], _) => {
-                    method_name = ms.ident.name;
-                    recv = r;
-                    is_negated = false;
-                },
+            let (method_name, recv, is_negated) = match condition.kind {
+                ExprKind::MethodCall(ms, r, [], _) => (ms.ident.name, r, false),
                 ExprKind::Unary(UnOp::Not, inner) if let ExprKind::MethodCall(ms, r, [], _) = inner.kind => {
-                    method_name = ms.ident.name;
-                    recv = r;
-                    is_negated = true;
+                    (ms.ident.name, r, true)
                 },
                 _ => return,
             };
