@@ -1,26 +1,26 @@
 error: used `assert!` with an empty collection check
-  --> tests/ui/assertions_on_collection_emptiness.rs:7:5
+  --> tests/ui/assert_is_empty.rs:7:5
    |
 LL |     assert!(v.is_empty());
    |     ^^^^^^^^^^^^^^^^^^^^^ help: replace with: `assert_eq!(v, [])`
    |
-   = note: `-D clippy::assertions-on-collection-emptiness` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::assertions_on_collection_emptiness)]`
+   = note: `-D clippy::assert-is-empty` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::assert_is_empty)]`
 
 error: used `assert!` with a non-empty collection check
-  --> tests/ui/assertions_on_collection_emptiness.rs:9:5
+  --> tests/ui/assert_is_empty.rs:9:5
    |
 LL |     assert!(!v.is_empty());
    |     ^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `assert_ne!(v, [])`
 
 error: used `assert!` with an empty collection check
-  --> tests/ui/assertions_on_collection_emptiness.rs:14:5
+  --> tests/ui/assert_is_empty.rs:14:5
    |
 LL |     assert!(s.is_empty());
    |     ^^^^^^^^^^^^^^^^^^^^^ help: replace with: `assert_eq!(s, "")`
 
 error: used `assert!` with a non-empty collection check
-  --> tests/ui/assertions_on_collection_emptiness.rs:16:5
+  --> tests/ui/assert_is_empty.rs:16:5
    |
 LL |     assert!(!s.is_empty());
    |     ^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `assert_ne!(s, "")`

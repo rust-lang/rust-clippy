@@ -1,20 +1,20 @@
-#![warn(clippy::assertions_on_collection_emptiness)]
+#![warn(clippy::assert_is_empty)]
 #![allow(clippy::len_zero, clippy::comparison_to_empty)]
 
 fn main() {
     // Test with Vec
     let v: Vec<i32> = vec![];
-    assert_eq!(v, []);
-    //~^ assertions_on_collection_emptiness
-    assert_ne!(v, []);
-    //~^ assertions_on_collection_emptiness
+    assert!(v.is_empty());
+    //~^ assert_is_empty
+    assert!(!v.is_empty());
+    //~^ assert_is_empty
 
     // Test with String
     let s = String::new();
-    assert_eq!(s, "");
-    //~^ assertions_on_collection_emptiness
-    assert_ne!(s, "");
-    //~^ assertions_on_collection_emptiness
+    assert!(s.is_empty());
+    //~^ assert_is_empty
+    assert!(!s.is_empty());
+    //~^ assert_is_empty
 
     // Should not lint: custom message
     assert!(v.is_empty(), "vec is not empty");

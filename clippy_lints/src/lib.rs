@@ -69,7 +69,7 @@ mod arbitrary_source_item_ordering;
 mod arc_with_non_send_sync;
 mod as_conversions;
 mod asm_syntax;
-mod assertions_on_collection_emptiness;
+mod assert_is_empty;
 mod assertions_on_constants;
 mod assertions_on_result_states;
 mod assigning_clones;
@@ -666,7 +666,7 @@ rustc_lint::late_lint_methods!(
         RedundantClone: redundant_clone::RedundantClone = redundant_clone::RedundantClone,
         SlowVectorInit: slow_vector_initialization::SlowVectorInit = slow_vector_initialization::SlowVectorInit,
         UnnecessaryWraps: unnecessary_wraps::UnnecessaryWraps = unnecessary_wraps::UnnecessaryWraps::new(conf),
-        AssertionsOnCollectionEmptiness: assertions_on_collection_emptiness::AssertionsOnCollectionEmptiness = assertions_on_collection_emptiness::AssertionsOnCollectionEmptiness,
+        AssertIsEmpty: assert_is_empty::AssertIsEmpty = assert_is_empty::AssertIsEmpty,
         AssertionsOnConstants: assertions_on_constants::AssertionsOnConstants = assertions_on_constants::AssertionsOnConstants::new(conf),
         AssertionsOnResultStates: assertions_on_result_states::AssertionsOnResultStates = assertions_on_result_states::AssertionsOnResultStates,
         InherentToString: inherent_to_string::InherentToString = inherent_to_string::InherentToString,
