@@ -115,5 +115,29 @@ error: used import from `std` instead of `core`
 LL |     use std::concat;
    |         ^^^ help: consider importing the item from `core`: `core`
 
-error: aborting due to 18 previous errors
+error: used import from `std` instead of `alloc`
+  --> tests/ui/std_instead_of_core.rs:120:16
+   |
+LL |     type Foo = std::sync::Arc<std::sync::Mutex<bool>>;
+   |                ^^^ help: consider importing the item from `alloc`: `alloc`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core.rs:123:14
+   |
+LL |     let _x = std::iter::repeat(u8::default());
+   |              ^^^ help: consider importing the item from `core`: `core`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core.rs:126:27
+   |
+LL |     fn impl_trait(_: impl std::fmt::Display) {}
+   |                           ^^^ help: consider importing the item from `core`: `core`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core.rs:130:17
+   |
+LL |         layout: std::alloc::Layout,
+   |                 ^^^ help: consider importing the item from `core`: `core`
+
+error: aborting due to 22 previous errors
 

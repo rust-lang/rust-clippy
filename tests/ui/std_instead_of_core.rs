@@ -114,3 +114,20 @@ fn issue17260() {
     use std::concat;
     //~^ std_instead_of_core
 }
+
+#[warn(clippy::std_instead_of_alloc)]
+fn non_use_paths() {
+    type Foo = std::sync::Arc<std::sync::Mutex<bool>>;
+    //~^ std_instead_of_alloc
+
+    let _x = std::iter::repeat(u8::default());
+    //~^ std_instead_of_core
+
+    fn impl_trait(_: impl std::fmt::Display) {}
+    //~^ std_instead_of_core
+
+    struct Bar {
+        layout: std::alloc::Layout,
+        //~^ std_instead_of_core
+    }
+}
