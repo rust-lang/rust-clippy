@@ -2,10 +2,9 @@ use clippy_config::Conf;
 use clippy_config::types::{DisallowedPath, create_disallowed_map};
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::paths::PathNS;
-use clippy_utils::res::MaybeResPath;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::{DefId, DefIdMap};
-use rustc_hir::{Expr, ExprKind, ItemKind, PathSegment, TyKind, UseKind};
+use rustc_hir::{ItemKind, Node, PathSegment};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::TyCtxt;
 use rustc_session::impl_lint_pass;
@@ -20,8 +19,7 @@ declare_clippy_lint! {
     ///
     /// ### Why is this bad?
     /// Some modules are undesirable in certain contexts.
-    /// ### Known limitations
-    /// Items that are not defined in the banned module and not imported via the banned module are not flagged.
+    ///
     /// ### Example:
     /// An example clippy.toml configuration:
     /// ```toml
@@ -108,19 +106,9 @@ impl DisallowedModules {
         Some(())
     }
 
-    fn check_did_all(&self, cx: &LateContext<'_>, did: DefId, span: Span) -> Option<()> {
-        let mut current_id = Some(did);
-        while let Some(did) = current_id {
-            self.check_did(cx, did, span)?;
-            current_id = cx.tcx.opt_parent(did);
-        }
-
-        Some(())
-    }
-
     fn check_res_emit(&self, cx: &LateContext<'_>, res: &Res, span: Span) -> Option<()> {
         if let Some(did) = res.opt_def_id() {
-            self.check_did_all(cx, did, span)?;
+            self.check_did(cx, did, span)?;
         }
         Some(())
     }
@@ -132,83 +120,22 @@ pub fn def_kind_predicate(def_kind: DefKind) -> bool {
 
 impl<'tcx> LateLintPass<'tcx> for DisallowedModules {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx rustc_hir::Item<'tcx>) {
-        match item.kind {
-            ItemKind::Use(path, UseKind::Single(_) | UseKind::Glob)
-                if self.check_path_segments(cx, path.segments.iter(), path.span).is_some()
-                    && let Some(res) = path.res.type_ns =>
-            {
-                self.check_res_emit(cx, &res, path.span);
-            },
-            ItemKind::Impl(impl_trait)
-                if let Some(trait_ref) = impl_trait.of_trait
-                    && self
-                        .check_path_segments(
-                            cx,
-                            trait_ref.trait_ref.path.segments.iter(),
-                            trait_ref.trait_ref.path.span,
-                        )
-                        .is_some() =>
-            {
-                self.check_res_emit(cx, &trait_ref.trait_ref.path.res, trait_ref.trait_ref.path.span);
-            },
-            _ => {},
-        }
-    }
-
-    fn check_ty(&mut self, cx: &LateContext<'tcx>, ty: &'tcx rustc_hir::Ty<'tcx, rustc_hir::AmbigArg>) {
-        match ty.kind {
-            TyKind::Path(qpath)
-                if let (_, Some(path)) = qpath.opt_res_path()
-                    && self
-                        .check_path_segments(cx, path.segments.iter(), qpath.span())
-                        .is_some() =>
-            {
-                self.check_res_emit(cx, &path.res, qpath.span());
-            },
-            _ => {},
-        }
-    }
-
-    fn check_poly_trait_ref(&mut self, cx: &LateContext<'tcx>, poly: &'tcx rustc_hir::PolyTraitRef<'tcx>) {
-        if self
-            .check_path_segments(cx, poly.trait_ref.path.segments.iter(), poly.trait_ref.path.span)
-            .is_some()
+        if let ItemKind::Use(path, ..) = item.kind
+            && self.check_path_segments(cx, path.segments.iter(), path.span).is_some()
+            && let Some(res) = path.res.type_ns
         {
-            self.check_res_emit(cx, &poly.trait_ref.path.res, poly.trait_ref.path.span);
+            self.check_res_emit(cx, &res, path.span);
         }
     }
 
-    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
-        match expr.kind {
-            ExprKind::Match(_, arms, _) => {
-                for arm in arms {
-                    arm.pat.walk_always(|pat| {
-                        if let (_, Some(path)) = pat.opt_res_path()
-                            && self.check_path_segments(cx, path.segments.iter(), path.span).is_some()
-                        {
-                            self.check_res_emit(cx, &path.res, path.span);
-                        }
-                    });
-                }
-            },
-            ExprKind::Let(let_expr) => {
-                let_expr.pat.walk_always(|pat| {
-                    if let (_, Some(path)) = pat.opt_res_path()
-                        && self.check_path_segments(cx, path.segments.iter(), path.span).is_some()
-                    {
-                        self.check_res_emit(cx, &path.res, path.span);
-                    }
-                });
-            },
-            ExprKind::Path(qpath)
-                if let (_, Some(path)) = qpath.opt_res_path()
-                    && self
-                        .check_path_segments(cx, path.segments.iter(), qpath.span())
-                        .is_some() =>
-            {
-                self.check_res_emit(cx, &path.res, qpath.span());
-            },
-            _ => {},
+    fn check_path(&mut self, cx: &LateContext<'tcx>, path: &rustc_hir::Path<'tcx>, hid: rustc_hir::HirId) {
+        // use items should be checked by check_item, because we have to check the final item res also
+        let hir_node = cx.tcx.hir_node(hid);
+        if let Node::Item(item) = hir_node
+            && let ItemKind::Use(..) = item.kind
+        {
+            return;
         }
+        self.check_path_segments(cx, path.segments.iter(), path.span);
     }
 }

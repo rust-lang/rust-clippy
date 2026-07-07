@@ -4,12 +4,21 @@ extern crate syn;
 
 use std::sync::Arc;
 //~^ disallowed_modules
+use std::sync;
+//~^ disallowed_modules
+
+mod _s {
+    #[rustfmt::skip]
+    use std::{sync::{self, mpsc}, io::Error as IoError};
+    //~^ disallowed_modules
+    //~| disallowed_modules
+    //~| disallowed_modules
+}
 
 #[rustfmt::skip]
-use std::{sync::{self, mpsc}, io::Error as IoError};
+use std::sync::{};
 //~^ disallowed_modules
-//~| disallowed_modules
-//~| disallowed_modules
+
 #[rustfmt::skip]
 use std::sync::{self as sync_alias, Mutex as MutexAlias};
 //~^ disallowed_modules
@@ -25,16 +34,7 @@ use std::net::*;
 use syn::token::Token;
 //~^ disallowed_modules
 
-mod inner {
-    // allow import via this module
-    #![allow(clippy::disallowed_modules)]
-    pub use std::sync::{Mutex, Weak};
-}
-
-// Weak does not get flagged because it is defined in alloc::sync, which is not banned, not
-// std::sync and its path is inner::Weak, which is also not banned, not std::sync::Weak.
-// Note that importing Mutex still fails, since it is defined in std::sync, which is banned.
-use inner::{Mutex as StdMutex, Weak as InnerWeak};
+use core::sync::atomic as core_atomic;
 //~^ disallowed_modules
 
 type DisallowedAlias = std::collections::BTreeMap<u32, u32>;
@@ -44,7 +44,7 @@ struct MyStruct(std::net::Ipv4Addr);
 //~^ disallowed_modules
 
 struct Foo {
-    v1: Sneaky<usize>,
+    v1: foo::Mutex<usize>,
     //~^ disallowed_modules
 }
 
@@ -53,6 +53,9 @@ enum Bar {
     V2(std::collections::HashSet<i32>),
     //~^ disallowed_modules
 }
+
+trait FooBar: std::io::Write {}
+//~^ disallowed_modules
 
 impl std::io::Write for MyStruct {
     //~^ disallowed_modules
@@ -79,12 +82,7 @@ fn return_impl_trait() -> impl std::io::Read {
     //~^ disallowed_modules
 }
 
-fn bad_return_type<T>() -> fn() -> Sneaky<T> {
-    //~^ disallowed_modules
-    todo!()
-}
-
-fn bad_arg_type<T>(_: impl Fn(Sneaky<T>) -> foo::atomic::AtomicU32) {}
+fn bad_arg_type<T>(_: impl Fn(foo::Mutex<T>) -> foo::atomic::AtomicU32) {}
 //~^ disallowed_modules
 //~| disallowed_modules
 
@@ -104,13 +102,14 @@ fn main() {
     let _: std::collections::HashMap<(), ()> = std::collections::HashMap::new();
     //~^ disallowed_modules
     //~| disallowed_modules
-    let _ = Sneaky::new(0);
-    //~^ disallowed_modules
+
     let _ = foo::atomic::AtomicU32::new(0);
     //~^ disallowed_modules
+
     static FOO: std::sync::atomic::AtomicU32 = foo::atomic::AtomicU32::new(1);
     //~^ disallowed_modules
     //~| disallowed_modules
+
     let _: std::collections::BTreeMap<(), usize> = Default::default();
     //~^ disallowed_modules
 
@@ -128,6 +127,9 @@ fn main() {
         //~| disallowed_modules
         _ => {},
     }
+
+    let _ = std::ops::Range { start: 0, end: 1 };
+    //~^ disallowed_modules
 
     let _ = std::ptr::null::<()>() as *const std::sync::Mutex<()>;
     //~^ disallowed_modules
@@ -147,10 +149,8 @@ fn main() {
     let _arr: [u8; std::mem::size_of::<std::net::Ipv4Addr>()] = [0; 4];
     //~^ disallowed_modules
 
-    let _ = || -> Sneaky<()> {
-        //~^ disallowed_modules
-        todo!()
-    };
+    let _ = || -> foo::Mutex<()> { todo!() };
+    //~^ disallowed_modules
 
     let _: Box<dyn Send + std::io::Read>;
     //~^ disallowed_modules
