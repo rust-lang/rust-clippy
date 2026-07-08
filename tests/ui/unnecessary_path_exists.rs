@@ -38,6 +38,11 @@ fn check_path(path: &Path) {
         let _ = path.symlink_metadata().unwrap();
     }
 
+    if path.exists() {
+        //~^ unnecessary_path_exists
+        let _ = path.read_link().unwrap();
+    }
+
     // has an else branch — TOCTOU race still present
     if path.exists() {
         //~^ unnecessary_path_exists
@@ -191,6 +196,33 @@ fn check_false_positives(path: &Path) {
     if path.exists() {
         let _ = std::fs::read(path);
     }
+
+    // negated condition — the `exists()` result being true isn't what guards the `then`
+    // branch, so no lint
+    if !path.exists() {
+        let _ = path.metadata();
+    }
+
+    // `||` instead of `&&` — `exists()` being true doesn't guarantee the `then` branch only
+    // runs when the path exists, so no lint
+    if path.exists() || true {
+        let _ = path.metadata();
+    }
+
+    // fs call only in the `else` branch — the `exists()` check guards the *other* branch,
+    // so no lint
+    if path.exists() {
+        println!("path exists");
+    } else {
+        let _ = path.metadata();
+    }
+
+    // `path` is shadowed between the `exists()` check and the filesystem call, so the
+    // filesystem call is on a different local — no lint
+    if path.exists() {
+        let path = Path::new("other");
+        let _ = path.metadata();
+    }
 }
 
 struct Custom;
@@ -209,6 +241,67 @@ fn check_unrelated_exists_method(c: Custom) {
     // `exists`/`metadata` here are unrelated to `Path` — no lint
     if c.exists() {
         let _ = c.metadata();
+    }
+}
+
+use std::ops::Deref;
+
+struct PathWrapper(PathBuf);
+
+impl Deref for PathWrapper {
+    type Target = Path;
+
+    fn deref(&self) -> &Path {
+        &self.0
+    }
+}
+
+fn check_deref_to_path(path: PathWrapper) {
+    // `exists`/`metadata` resolve through `Deref<Target = Path>` — still lints
+    if path.exists() {
+        //~^ unnecessary_path_exists
+        let _ = path.metadata().unwrap();
+    }
+}
+
+macro_rules! exists_then_metadata {
+    ($path:expr) => {
+        if $path.exists() {
+            let _ = $path.metadata().unwrap();
+        }
+    };
+}
+
+fn check_macro_generates_whole_pattern(path: &Path) {
+    // the entire `if`/`exists`/`metadata` pattern comes from a macro expansion — no lint
+    exists_then_metadata!(path);
+}
+
+macro_rules! path_exists {
+    ($path:expr) => {
+        $path.exists()
+    };
+}
+
+fn check_macro_generates_condition(path: &Path) {
+    // the `exists()` call itself comes from a macro expansion — no lint (the `Methods` lint
+    // pass skips any expression whose span originates from a macro)
+    if path_exists!(path) {
+        let _ = path.metadata().unwrap();
+    }
+}
+
+macro_rules! read_metadata {
+    ($path:expr) => {
+        let _ = $path.metadata().unwrap();
+    };
+}
+
+fn check_macro_generates_fs_call(path: &Path) {
+    // the filesystem call comes from a macro, but the `if`/`exists()` are written directly
+    if path.exists() {
+        //~^ unnecessary_path_exists
+        read_metadata!(path);
     }
 }
 
