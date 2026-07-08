@@ -6,6 +6,7 @@ use rustc_hir::def::Res;
 use rustc_hir::{BinOpKind, Expr, ExprKind, QPath, Stmt, StmtKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::declare_lint_pass;
+use rustc_span::Symbol;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -125,42 +126,52 @@ impl<'tcx> LateLintPass<'tcx> for LintPass {
     }
 
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        if expr.span.in_external_macro(cx.sess().source_map())
-            || expr.span.desugaring_kind().is_some()
-            || in_automatically_derived(cx.tcx, expr.hir_id)
-        {
-            return;
-        }
-
         used_underscore_binding(cx, expr);
         used_underscore_items(cx, expr);
     }
 }
 
+/// Contexts the underscore lints ignore. Expensive, so only checked once an
+/// underscore-prefixed name has been found.
+fn in_ignored_context(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    expr.span.in_external_macro(cx.sess().source_map())
+        || expr.span.desugaring_kind().is_some()
+        || in_automatically_derived(cx.tcx, expr.hir_id)
+}
+
+fn is_underscore_prefixed(name: Symbol) -> bool {
+    let name = name.as_str();
+    name.starts_with('_') && !name.starts_with("__")
+}
+
 fn used_underscore_items<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-    let (def_id, ident) = match expr.kind {
+    let def_id = match expr.kind {
         ExprKind::Call(func, ..) => {
             if let ExprKind::Path(QPath::Resolved(.., path)) = func.kind
                 && let Some(last_segment) = path.segments.last()
+                && is_underscore_prefixed(last_segment.ident.name)
                 && let Res::Def(_, def_id) = last_segment.res
             {
-                (def_id, last_segment.ident)
+                def_id
             } else {
                 return;
             }
         },
         ExprKind::MethodCall(path, ..) => {
-            if let Some(def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id) {
-                (def_id, path.ident)
+            if is_underscore_prefixed(path.ident.name)
+                && let Some(def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)
+            {
+                def_id
             } else {
                 return;
             }
         },
         ExprKind::Struct(QPath::Resolved(_, path), ..) => {
             if let Some(last_segment) = path.segments.last()
+                && is_underscore_prefixed(last_segment.ident.name)
                 && let Res::Def(_, def_id) = last_segment.res
             {
-                (def_id, last_segment.ident)
+                def_id
             } else {
                 return;
             }
@@ -168,10 +179,8 @@ fn used_underscore_items<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         _ => return,
     };
 
-    let name = ident.name.as_str();
-    let definition_span = cx.tcx.def_span(def_id);
-    if name.starts_with('_')
-        && !name.starts_with("__")
+    if !in_ignored_context(cx, expr)
+        && let definition_span = cx.tcx.def_span(def_id)
         && !definition_span.from_expansion()
         && def_id.is_local()
         && !cx.tcx.is_foreign_item(def_id)
@@ -189,24 +198,26 @@ fn used_underscore_items<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
 }
 
 fn used_underscore_binding<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-    let (definition_hir_id, ident) = match expr.kind {
+    let definition_hir_id = match expr.kind {
         ExprKind::Path(ref qpath) => {
             if let QPath::Resolved(None, path) = qpath
                 && let Res::Local(id) = path.res
+                && is_underscore_prefixed(last_path_segment(qpath).ident.name)
                 && is_used(cx, expr)
             {
-                (id, last_path_segment(qpath).ident)
+                id
             } else {
                 return;
             }
         },
         ExprKind::Field(recv, ident) => {
-            if let Some(adt_def) = cx.typeck_results().expr_ty_adjusted(recv).ty_adt_def()
+            if is_underscore_prefixed(ident.name)
+                && let Some(adt_def) = cx.typeck_results().expr_ty_adjusted(recv).ty_adt_def()
                 && let Some(field) = adt_def.all_fields().find(|field| field.name == ident.name)
                 && let Some(local_did) = field.did.as_local()
                 && !cx.tcx.type_of(field.did).skip_binder().is_phantom_data()
             {
-                (cx.tcx.local_def_id_to_hir_id(local_did), ident)
+                cx.tcx.local_def_id_to_hir_id(local_did)
             } else {
                 return;
             }
@@ -214,9 +225,7 @@ fn used_underscore_binding<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         _ => return,
     };
 
-    let name = ident.name.as_str();
-    if name.starts_with('_')
-        && !name.starts_with("__")
+    if !in_ignored_context(cx, expr)
         && let definition_span = cx.tcx.hir_span(definition_hir_id)
         && !definition_span.from_expansion()
         && !fulfill_or_allowed(cx, USED_UNDERSCORE_BINDING, [expr.hir_id, definition_hir_id])
