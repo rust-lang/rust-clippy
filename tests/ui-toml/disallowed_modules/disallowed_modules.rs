@@ -9,11 +9,22 @@ use std::sync;
 
 mod _s {
     #[rustfmt::skip]
-    use std::{sync::{self, mpsc}, io::Error as IoError};
+    use std::{sync::{self, mpsc}, sync::Mutex, io::Error as IoError};
     //~^ disallowed_modules
     //~| disallowed_modules
     //~| disallowed_modules
+    //~| disallowed_modules
+
+    #[rustfmt::skip]
+    pub(super) use std::{sync as inner_sync, sync::Mutex as AllowedMutex};
+    //~^ disallowed_modules
+    //~| disallowed_modules
 }
+
+use _s::inner_sync;
+//~^ disallowed_modules
+
+use _s::AllowedMutex;
 
 #[rustfmt::skip]
 use std::sync::{};
