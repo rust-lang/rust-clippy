@@ -23,10 +23,10 @@ fn main() {
     //~^^ mistyped_literal_suffixes
     let ok18 = 23_128;
 
-    let fail20 = 2_i8; //
+    let fail20 = 2__i8; //
     //
     //~^^ mistyped_literal_suffixes
-    let fail21 = 4_i16; //
+    let fail21 = 4___i16; //
     //
     //~^^ mistyped_literal_suffixes
 
@@ -37,7 +37,7 @@ fn main() {
     //~^ mistyped_literal_suffixes
     let fail27 = 243E17_f32;
     //~^ mistyped_literal_suffixes
-    let fail28 = 241_251_235E723_f64;
+    let fail28 = 241251235E723_f64;
     //~^ mistyped_literal_suffixes
     let ok29 = 42279.911_32;
 
@@ -51,10 +51,10 @@ fn main() {
     let ok32 = 360_8; // doesn't fit in either, should be ignored
     let fail33 = 0x1234_i16;
     //~^ mistyped_literal_suffixes
-    let fail34 = 0xABCD_u16;
+    let fail34 = 0xABCD_i16;
     //~^ mistyped_literal_suffixes
     let ok35 = 0x12345_16;
-    let fail36 = 0xFFFF_FFFF_FFFF_FFFF_u64; // u64
+    let fail36 = 0xFFFF_FFFF_FFFF_FFFF_i64; // u64
     //
     //~^^ mistyped_literal_suffixes
 
@@ -62,7 +62,7 @@ fn main() {
     let ok37 = 123_32.123;
     let ok38 = 124_64.0;
 
-    let _ = 1.123_45E1_f32;
+    let _ = 1.12345E1_f32;
     //~^ mistyped_literal_suffixes
 
     let _ = with_span!(1 2_u32);
