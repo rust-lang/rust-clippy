@@ -124,23 +124,9 @@ fn len_comparison<'hir>(
 }
 
 /// Checks if the index expression is inside a `match` on the slice's length
-/// whose arms make the indexing infallible, e.g.
-///
-/// ```no_run
-/// # let supported: &[u8] = &[];
-/// match supported.len() {
-///     0 => {},
-///     1 => println!("{}", supported[0]),
-///     _ => println!("{} or {}", supported[0], supported[1]),
-/// }
-/// ```
-///
-/// Here the `0` and `1` arms rule out all lengths below 2, so `supported[0]`
-/// and `supported[1]` in the wildcard arm cannot fail and the bounds checks
-/// are elided without an `assert!`. The lint should not fire in this case.
-///
+/// whose arms make the indexing infallible.
 /// This only applies when the non-wildcard arms are integer literals that
-/// contiguously cover `0..=max` (see [`match_arms_bound_len `]); otherwise the wildcard
+/// contiguously cover `0..=max` otherwise the wildcard
 /// arm gives no lower bound on the length and the lint fires as usual.
 fn is_index_covered_by_match(cx: &LateContext<'_>, index_expr: &Expr<'_>, slice: &Expr<'_>) -> bool {
     for (_, node) in cx.tcx.hir_parent_iter(index_expr.hir_id) {
