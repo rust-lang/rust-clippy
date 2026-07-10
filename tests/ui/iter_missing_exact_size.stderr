@@ -1,0 +1,72 @@
+error: iterator can implement `ExactSizeIterator`
+  --> tests/ui/iter_missing_exact_size.rs:13:1
+   |
+LL | / impl Iterator for StringRepeater1 {
+LL | |
+LL | |     type Item = String;
+LL | |     fn next(&mut self) -> Option<Self::Item> {
+...  |
+LL | | }
+   | |_^
+   |
+help: this `size_hint()` implementation delegates to to the `size_hint()` of an `ExactSizeIterator`, so the overall iterator is likely to have an exact size
+  --> tests/ui/iter_missing_exact_size.rs:20:9
+   |
+LL |         self.range.size_hint()
+   |         ^^^^^^^^^^^^^^^^^^^^^^
+   = note: `-D clippy::iter-missing-exact-size` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::iter_missing_exact_size)]`
+
+error: iterator can implement `ExactSizeIterator`
+  --> tests/ui/iter_missing_exact_size.rs:27:1
+   |
+LL | / impl Iterator for StringRepeater2 {
+LL | |
+LL | |     type Item = String;
+LL | |     fn next(&mut self) -> Option<Self::Item> {
+...  |
+LL | | }
+   | |_^
+   |
+help: this `size_hint()` implementation delegates to to the `size_hint()` of an `ExactSizeIterator`, so the overall iterator is likely to have an exact size
+  --> tests/ui/iter_missing_exact_size.rs:34:9
+   |
+LL |         self.1.size_hint()
+   |         ^^^^^^^^^^^^^^^^^^
+
+error: iterator can implement `ExactSizeIterator`
+  --> tests/ui/iter_missing_exact_size.rs:41:1
+   |
+LL | / impl Iterator for StringRepeater3 {
+LL | |
+LL | |     type Item = String;
+LL | |     fn next(&mut self) -> Option<Self::Item> {
+...  |
+LL | | }
+   | |_^
+   |
+help: this `size_hint()` implementation delegates to to the `size_hint()` of an `ExactSizeIterator`, so the overall iterator is likely to have an exact size
+  --> tests/ui/iter_missing_exact_size.rs:48:16
+   |
+LL |         return self.1.size_hint();
+   |                ^^^^^^^^^^^^^^^^^^
+
+error: iterator can implement `ExactSizeIterator`
+  --> tests/ui/iter_missing_exact_size.rs:55:1
+   |
+LL | / impl Iterator for StringRepeater4 {
+LL | |
+LL | |     type Item = String;
+LL | |     fn next(&mut self) -> Option<Self::Item> {
+...  |
+LL | | }
+   | |_^
+   |
+help: this `size_hint()` implementation delegates to to the `size_hint()` of an `ExactSizeIterator`, so the overall iterator is likely to have an exact size
+  --> tests/ui/iter_missing_exact_size.rs:62:16
+   |
+LL |         return self.1.size_hint();
+   |                ^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 4 previous errors
+
