@@ -138,6 +138,7 @@ generate! {
     as_deref,
     as_deref_mut,
     as_mut,
+    as_mut_ptr,
     as_path,
     as_ptr,
     as_str,
