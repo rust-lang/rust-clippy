@@ -121,5 +121,13 @@ LL |         _ => println!("{} {}", supported[2], supported[3]),
    |
    = help: consider asserting the length before indexing: `assert!(supported.len() > 3);`
 
-error: aborting due to 14 previous errors
+error: indexing into a slice multiple times without an `assert`
+  --> tests/ui/missing_asserts_for_indexing_unfixable.rs:131:32
+   |
+LL |         2 => println!("{} {}", supported[2], supported[3]),
+   |                                ^^^^^^^^^^^^  ^^^^^^^^^^^^
+   |
+   = help: consider asserting the length before indexing: `assert!(supported.len() > 3);`
+
+error: aborting due to 15 previous errors
 

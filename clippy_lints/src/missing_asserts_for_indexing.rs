@@ -129,17 +129,19 @@ fn len_comparison<'hir>(
 /// contiguously cover `0..=max` otherwise the wildcard
 /// arm gives no lower bound on the length and the lint fires as usual.
 fn is_index_covered_by_match(cx: &LateContext<'_>, index_expr: &Expr<'_>, slice: &Expr<'_>) -> bool {
+    let mut containing_arm = None;
     for (_, node) in cx.tcx.hir_parent_iter(index_expr.hir_id) {
         match node {
             Node::Expr(expr) => {
                 if let ExprKind::Match(scrutinee, arms, MatchSource::Normal) = expr.kind
                     && is_slice_len_expr(cx, scrutinee, slice)
-                    && match_arms_bound_len(cx, index_expr, arms)
+                    && match_arms_bound_len(cx, index_expr, arms, containing_arm)
                 {
                     return arms.iter().any(|arm| is_wild(arm.pat));
                 }
             },
-            Node::Block(_) | Node::Stmt(_) | Node::Arm(_) | Node::LetStmt(_) => {},
+            Node::Block(_) | Node::Stmt(_) | Node::LetStmt(_) => {},
+            Node::Arm(arm) => containing_arm = Some(arm),
             _ => return false,
         }
     }
@@ -149,13 +151,27 @@ fn is_index_covered_by_match(cx: &LateContext<'_>, index_expr: &Expr<'_>, slice:
 /// Checks if the non-wildcard arms are integer literals contiguously covering
 /// `0..=max`, so that the wildcard arm implies `len > max`. Returns `true`
 /// only if the index used is at most `max`, i.e. provably in bounds.
-fn match_arms_bound_len(cx: &LateContext<'_>, index_expr: &Expr<'_>, arms: &[Arm<'_>]) -> bool {
+fn match_arms_bound_len(
+    cx: &LateContext<'_>,
+    index_expr: &Expr<'_>,
+    arms: &[Arm<'_>],
+    containing_arm: Option<&Arm<'_>>,
+) -> bool {
     let ExprKind::Index(_, index_lit, _) = index_expr.kind else {
         return false;
     };
     let Some(index) = upper_index_expr(cx, index_lit) else {
         return false;
     };
+
+    // index inside a literal arm `n => ...`: len is exactly `n` there,
+    // so anything at or past `n` is out of bounds
+    if let Some(arm) = containing_arm
+        && let Some(n) = arm_len_literal(arm)
+        && index >= n
+    {
+        return false;
+    }
 
     let mut matched_lens = Vec::new();
     for arm in arms {
@@ -165,28 +181,31 @@ fn match_arms_bound_len(cx: &LateContext<'_>, index_expr: &Expr<'_>, arms: &[Arm
         if is_wild(arm.pat) {
             continue;
         }
-        let PatKind::Expr(pat_expr) = arm.pat.kind else {
+        let Some(n) = arm_len_literal(arm) else {
             return false;
         };
-        let PatExprKind::Lit { lit, .. } = pat_expr.kind else {
-            return false;
-        };
-        let LitKind::Int(Pu128(n), _) = lit.node else {
-            return false;
-        };
-        matched_lens.push(n as usize);
-    }
-
-    if matched_lens.is_empty() {
-        return false;
+        matched_lens.push(n);
     }
 
     matched_lens.sort_unstable();
     matched_lens.dedup();
 
     // literals must be exactly 0..=max, so `_` implies len > max
-    let max = *matched_lens.last().unwrap();
+    let Some(&max) = matched_lens.last() else {
+        return false;
+    };
     matched_lens.len() == max + 1 && index <= max
+}
+
+fn arm_len_literal(arm: &Arm<'_>) -> Option<usize> {
+    if let PatKind::Expr(pat_expr) = arm.pat.kind
+        && let PatExprKind::Lit { lit, .. } = pat_expr.kind
+        && let LitKind::Int(Pu128(n), _) = lit.node
+    {
+        Some(n as usize)
+    } else {
+        None
+    }
 }
 
 fn is_slice_len_expr(cx: &LateContext<'_>, expr: &Expr<'_>, slice: &Expr<'_>) -> bool {

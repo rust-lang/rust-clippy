@@ -123,4 +123,15 @@ fn index_too_high(supported: &[u8]) {
     }
 }
 
+// literal arm pins len to exactly 2, so indexing at 2 and 3 must lint
+fn literal_arm_out_of_bounds(supported: &[u8]) {
+    match supported.len() {
+        0 => {},
+        1 => {},
+        2 => println!("{} {}", supported[2], supported[3]),
+        //~^ missing_asserts_for_indexing
+        _ => {},
+    }
+}
+
 fn main() {}
