@@ -614,8 +614,10 @@ impl EarlyLintPass for PostExpansionEarlyAttributes {
             if matches!(name, sym::allow) && self.msrv.meets(msrvs::LINT_REASONS_STABILIZATION) {
                 allow_attributes::check(cx, attr);
             }
-            if matches!(name, sym::allow | sym::expect) && self.msrv.meets(msrvs::LINT_REASONS_STABILIZATION) {
-                allow_attributes_without_reason::check(cx, name, items, attr);
+            if matches!(name, sym::allow | sym::expect) {
+                if self.msrv.meets(msrvs::LINT_REASONS_STABILIZATION) {
+                    allow_attributes_without_reason::check(cx, name, items, attr);
+                }
                 blanket_allow_warnings::check(cx, name, items, attr);
             }
             if is_lint_level(name) {
