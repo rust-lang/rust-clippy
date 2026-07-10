@@ -176,6 +176,7 @@ mod int_plus_one;
 mod item_name_repetitions;
 mod items_after_statements;
 mod items_after_test_module;
+mod iter_missing_exact_size;
 mod iter_not_returning_iterator;
 mod iter_over_hash_type;
 mod iter_without_into_iter;
@@ -871,6 +872,7 @@ rustc_lint::late_lint_methods!(
         UnnecessaryBoxPin: unnecessary_box_pin::UnnecessaryBoxPin = unnecessary_box_pin::UnnecessaryBoxPin::new(conf),
         BufreaderStdin: bufreader_stdin::BufreaderStdin = bufreader_stdin::BufreaderStdin::new(),
         IfsAsLogicalOps: ifs_as_logical_ops::IfsAsLogicalOps = ifs_as_logical_ops::IfsAsLogicalOps,
+        IterMissingExactSize: iter_missing_exact_size::IterMissingExactSize = iter_missing_exact_size::IterMissingExactSize,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
