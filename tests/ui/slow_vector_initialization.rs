@@ -1,4 +1,4 @@
-#![allow(clippy::useless_vec, clippy::manual_repeat_n)]
+#![allow(clippy::useless_vec, clippy::manual_repeat_n, clippy::new_instead_of_clear)]
 
 use std::iter::repeat;
 
