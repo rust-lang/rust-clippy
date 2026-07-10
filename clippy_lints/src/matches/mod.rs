@@ -26,12 +26,12 @@ mod wild_in_or_pats;
 
 use clippy_config::Conf;
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::source::SpanExt;
+use clippy_utils::source::{FileRangeExt, SpanExt};
 use clippy_utils::{
     higher, is_direct_expn_of, is_in_const_context, is_lint_allowed, is_span_match, sym, tokenize_with_text,
 };
 use rustc_hir::{Arm, Expr, ExprKind, LetStmt, MatchSource, Pat, PatKind};
-use rustc_lexer::{TokenKind, is_whitespace};
+use rustc_lexer::TokenKind;
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::impl_lint_pass;
 use rustc_span::Span;
@@ -1242,23 +1242,19 @@ fn walk_intra_arm_text(
     arms: &[Arm<'_>],
     mut f: impl FnMut(&str),
 ) -> bool {
-    if let Some(src) = match_sp.get_source_range(cx)
-        && let scrutinee_sp = scrutinee_sp.source_callsite().data()
-        && let block_start = (scrutinee_sp.hi.0 - src.sf.start_pos.0) as usize
-        && let Some(src_text) = src.sf.src.as_ref().map(|x| &***x)
-        && let Some(block_text) = src_text.get(block_start..src.range.end)
-        && let Some(stripped_text) = block_text.trim_start_matches(is_whitespace).strip_prefix('{')
-        && let arms_start = block_start + (block_text.len() - stripped_text.len())
-        && let Some(arms_end) = stripped_text
-            .trim_end_matches(|c| is_whitespace(c) || c == ')')
-            .strip_suffix('}')
-            .map(|s| src.range.end - (stripped_text.len() - s.len()))
-        && let Some(range) = arms.iter().try_fold(arms_start..arms_end, |range, arm| {
-            let arm_sp: rustc_span::SpanData = arm.span.source_callsite().data();
-            let arm_range = (arm_sp.lo.0 - src.sf.start_pos.0) as usize..(arm_sp.hi.0 - src.sf.start_pos.0) as usize;
+    if let Some((scx, range)) = match_sp.mk_edit_cx(cx)
+        && let Some(range) = range.shrink_start_to(&scx, scrutinee_sp.walk_to_root().hi_ctxt())
+        && let Some(range) = range.map_range_text(&scx, |s| {
+            s.trim_start()
+                .strip_prefix('{')?
+                .trim_end_matches(|c: char| c.is_whitespace() || c == ')')
+                .strip_suffix('}')
+        })
+        && let Some(range) = arms.iter().try_fold(range, |range, arm| {
+            let arm_range = scx.span_to_file_range(arm.span.walk_to_root());
             if range.start <= arm_range.start
                 && arm_range.end <= range.end
-                && let Some(src) = src_text.get(range.start..arm_range.start)
+                && let Some(src) = scx.get_text(range.start..arm_range.start)
             {
                 f(src);
                 Some(arm_range.end..range.end)
@@ -1266,7 +1262,7 @@ fn walk_intra_arm_text(
                 None
             }
         })
-        && let Some(src) = src_text.get(range)
+        && let Some(src) = scx.get_text(range)
     {
         f(src);
         true
