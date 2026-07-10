@@ -89,5 +89,37 @@ LL |     let _ = v1[0] + v1[1] + v1[2];
    |
    = help: consider asserting the length before indexing: `assert!(v1.len() > 2);`
 
-error: aborting due to 10 previous errors
+error: indexing into a slice multiple times without an `assert`
+  --> tests/ui/missing_asserts_for_indexing_unfixable.rs:92:35
+   |
+LL |         _ => println!("{} or {}", supported[0], supported[1]),
+   |                                   ^^^^^^^^^^^^  ^^^^^^^^^^^^
+   |
+   = help: consider asserting the length before indexing: `assert!(supported.len() > 1);`
+
+error: indexing into a slice multiple times without an `assert`
+  --> tests/ui/missing_asserts_for_indexing_unfixable.rs:101:35
+   |
+LL |         _ => println!("{} or {}", supported[0], supported[1]),
+   |                                   ^^^^^^^^^^^^  ^^^^^^^^^^^^
+   |
+   = help: consider asserting the length before indexing: `assert!(supported.len() > 1);`
+
+error: indexing into a slice multiple times without an `assert`
+  --> tests/ui/missing_asserts_for_indexing_unfixable.rs:111:35
+   |
+LL |         _ => println!("{} or {}", supported[0], supported[1]),
+   |                                   ^^^^^^^^^^^^  ^^^^^^^^^^^^
+   |
+   = help: consider asserting the length before indexing: `assert!(supported.len() > 1);`
+
+error: indexing into a slice multiple times without an `assert`
+  --> tests/ui/missing_asserts_for_indexing_unfixable.rs:121:32
+   |
+LL |         _ => println!("{} {}", supported[2], supported[3]),
+   |                                ^^^^^^^^^^^^  ^^^^^^^^^^^^
+   |
+   = help: consider asserting the length before indexing: `assert!(supported.len() > 3);`
+
+error: aborting due to 14 previous errors
 

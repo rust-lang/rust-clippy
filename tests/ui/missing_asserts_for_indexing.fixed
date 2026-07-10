@@ -180,4 +180,24 @@ mod issue15988 {
     }
 }
 
+mod issue17398 {
+    // ok
+    fn fix_match_case(supported: &[u8]) {
+        match supported.len() {
+            0 => {},
+            1 => println!("{}", supported[0]),
+            _ => println!("{} or {}", supported[0], supported[1]),
+        }
+    }
+
+    // ok
+    fn one_index_too_high(supported: &[u8]) {
+        match supported.len() {
+            0 => {},
+            1 => {},
+            _ => println!("{} {} {}", supported[0], supported[1], supported[2]),
+        }
+    }
+}
+
 fn main() {}

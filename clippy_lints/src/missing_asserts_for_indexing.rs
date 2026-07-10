@@ -148,7 +148,7 @@ fn is_index_covered_by_match(cx: &LateContext<'_>, index_expr: &Expr<'_>, slice:
             Node::Expr(expr) => {
                 if let ExprKind::Match(scrutinee, arms, MatchSource::Normal) = expr.kind
                     && is_slice_len_expr(cx, scrutinee, slice)
-                    && match_arms_bound_len (cx, index_expr, arms)
+                    && match_arms_bound_len(cx, index_expr, arms)
                 {
                     return arms.iter().any(|arm| is_wild(arm.pat));
                 }
@@ -163,7 +163,7 @@ fn is_index_covered_by_match(cx: &LateContext<'_>, index_expr: &Expr<'_>, slice:
 /// Checks if the non-wildcard arms are integer literals contiguously covering
 /// `0..=max`, so that the wildcard arm implies `len > max`. Returns `true`
 /// only if the index used is at most `max`, i.e. provably in bounds.
-fn match_arms_bound_len (cx: &LateContext<'_>, index_expr: &Expr<'_>, arms: &[Arm<'_>]) -> bool {
+fn match_arms_bound_len(cx: &LateContext<'_>, index_expr: &Expr<'_>, arms: &[Arm<'_>]) -> bool {
     let ExprKind::Index(_, index_lit, _) = index_expr.kind else {
         return false;
     };
