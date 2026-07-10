@@ -157,7 +157,7 @@ fn match_arms_bound_len(cx: &LateContext<'_>, index_expr: &Expr<'_>, arms: &[Arm
         return false;
     };
 
-    let mut excluded = Vec::new();
+    let mut matched_lens = Vec::new();
     for arm in arms {
         if arm.guard.is_some() {
             return false;
@@ -174,19 +174,19 @@ fn match_arms_bound_len(cx: &LateContext<'_>, index_expr: &Expr<'_>, arms: &[Arm
         let LitKind::Int(Pu128(n), _) = lit.node else {
             return false;
         };
-        excluded.push(n as usize);
+        matched_lens.push(n as usize);
     }
 
-    if excluded.is_empty() {
+    if matched_lens.is_empty() {
         return false;
     }
 
-    excluded.sort_unstable();
-    excluded.dedup();
+    matched_lens.sort_unstable();
+    matched_lens.dedup();
 
     // literals must be exactly 0..=max, so `_` implies len > max
-    let max = *excluded.last().unwrap();
-    excluded.len() == max + 1 && index <= max
+    let max = *matched_lens.last().unwrap();
+    matched_lens.len() == max + 1 && index <= max
 }
 
 fn is_slice_len_expr(cx: &LateContext<'_>, expr: &Expr<'_>, slice: &Expr<'_>) -> bool {
