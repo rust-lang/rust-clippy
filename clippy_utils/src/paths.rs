@@ -134,6 +134,7 @@ path_macros! {
 }
 
 // Paths in the standard library missing a diagnostic item
+pub static EXACT_SIZE_ITERATOR: PathLookup = type_path!(core::iter::ExactSizeIterator);
 
 // Paths in external crates
 pub static FUTURES_IO_ASYNCREADEXT: PathLookup = type_path!(futures_util::AsyncReadExt);
