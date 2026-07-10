@@ -545,6 +545,7 @@ generate! {
     set_readonly,
     signum,
     single_component_path_imports,
+    size_hint,
     skip,
     skip_while,
     slice_from_ref,

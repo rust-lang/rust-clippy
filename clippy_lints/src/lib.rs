@@ -179,6 +179,7 @@ mod int_plus_one;
 mod item_name_repetitions;
 mod items_after_statements;
 mod items_after_test_module;
+mod iter_missing_exact_size;
 mod iter_not_returning_iterator;
 mod iter_over_hash_type;
 mod iter_without_into_iter;
@@ -868,6 +869,7 @@ rustc_lint::late_lint_methods!(
         RedundantElse: redundant_else::RedundantElse = redundant_else::RedundantElse,
         RestWhenDestructuringStruct: rest_when_destructuring_struct::RestWhenDestructuringStruct = rest_when_destructuring_struct::RestWhenDestructuringStruct,
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
+        IterMissingExactSize: iter_missing_exact_size::IterMissingExactSize = iter_missing_exact_size::IterMissingExactSize::new(),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
