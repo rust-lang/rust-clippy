@@ -332,7 +332,21 @@ the lint <code>items_after_test_module</code> can be used instead.</p>
 <p><code>trait-assoc-item-kinds-order</code>:  The order of associated items in traits.</p>
 <p>(default: <code>["const", "type", "fn"]</code>)</p>
 </li>
+<li>
+<p><code>trait-impl-item-order</code>:  The required ordering of associated items in trait impls: purely alphabetical,
+following the trait definition order, or accepting either.</p>
+</li>
 </ul>
+<p>Note that the trait definition order may change between versions of the
+crate defining the trait without being considered a breaking change.</p>
+<p>Examples:
+When using trait definition item ordering:</p>
+<pre><code class="language-toml">trait-impl-item-order = "trait_item_ordering"
+</code></pre>
+<p>When using trait definition item ordering and alphabetical for fallbacks:</p>
+<pre><code class="language-toml">trait-impl-item-order = "alphabetical_or_trait_item_ordering"
+</code></pre>
+<p>(default: <code>"alphabetical"</code>)</p>
 </div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.84.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+arbitrary_source_item_ordering">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/arbitrary_source_item_ordering.rs#L19">View Source</a></div></div></article><article id="arc_with_non_send_sync"><input id="label-arc_with_non_send_sync" type="checkbox"><label for="label-arc_with_non_send_sync"><h2 class="lint-title"><div class="panel-title-name" id="lint-arc_with_non_send_sync">arc_with_non_send_sync
 <a href="#arc_with_non_send_sync" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-suspicious">suspicious</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does.</h3>
 <p>This lint warns when you use <code>Arc</code> with a type that does not implement <code>Send</code> or <code>Sync</code>.</p>
