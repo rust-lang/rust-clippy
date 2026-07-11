@@ -1,4 +1,5 @@
 #![warn(clippy::needless_for_each)]
+#![allow(clippy::deref_method_call_chain)]
 #![expect(
     clippy::let_unit_value,
     clippy::match_single_binding,

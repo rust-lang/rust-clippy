@@ -1,4 +1,5 @@
 #![warn(clippy::new_without_default)]
+#![allow(clippy::deref_method_call_chain)]
 #![expect(clippy::extra_unused_lifetimes, clippy::missing_safety_doc)]
 
 pub struct Foo;
