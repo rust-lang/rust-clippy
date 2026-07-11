@@ -1,0 +1,53 @@
+error: this `let...else` may be rewritten with `Option::ok_or` and `?`
+  --> tests/ui/let_else_ok_or.rs:15:5
+   |
+LL | /     let Some(value) = opt else {
+LL | |         return Err("missing");
+LL | |     };
+   | |______^ help: replace it with: `let value = opt.ok_or("missing")?;`
+   |
+   = note: `-D clippy::let-else-ok-or` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::let_else_ok_or)]`
+
+error: this `let...else` may be rewritten with `Option::ok_or` and `?`
+  --> tests/ui/let_else_ok_or.rs:24:5
+   |
+LL | /     let Some(value) = opt else {
+LL | |         return Err("missing value".to_string());
+LL | |     };
+   | |______^ help: replace it with: `let value = opt.ok_or_else(|| "missing value".to_string())?;`
+
+error: this `let...else` may be rewritten with `Option::ok_or` and `?`
+  --> tests/ui/let_else_ok_or.rs:38:5
+   |
+LL | /     let Some(executable) = opts.next() else {
+LL | |         return Err("Usage: <exe> <from> <to>".to_string());
+LL | |     };
+   | |______^ help: replace it with: `let executable = opts.next().ok_or_else(|| "Usage: <exe> <from> <to>".to_string())?;`
+
+error: this `let...else` may be rewritten with `Option::ok_or` and `?`
+  --> tests/ui/let_else_ok_or.rs:47:5
+   |
+LL | /     let Some(mut value) = opt else {
+LL | |         return Err("empty");
+LL | |     };
+   | |______^ help: replace it with: `let mut value = opt.ok_or("empty")?;`
+
+error: this `let...else` may be rewritten with `Option::ok_or` and `?`
+  --> tests/ui/let_else_ok_or.rs:57:5
+   |
+LL | /     let Some(first) = s.chars().next() else {
+LL | |         return Err("empty string");
+LL | |     };
+   | |______^ help: replace it with: `let first = s.chars().next().ok_or("empty string")?;`
+
+error: this `let...else` may be rewritten with `Option::ok_or` and `?`
+  --> tests/ui/let_else_ok_or.rs:67:5
+   |
+LL | /     let Some(value) = opt else {
+LL | |         return Err(format!("missing: {msg}"));
+LL | |     };
+   | |______^ help: replace it with: `let value = opt.ok_or_else(|| format!("missing: {msg}"))?;`
+
+error: aborting due to 6 previous errors
+

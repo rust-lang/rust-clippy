@@ -7,6 +7,9 @@
     clippy::never_loop,
     clippy::unused_unit
 )]
+// The fixed output contains `let Some(_) = _ else { return Err(..) }` shapes that this lint would
+// in turn rewrite; that is out of scope for the `manual_let_else` tests.
+#![allow(clippy::let_else_ok_or)]
 #![warn(clippy::manual_let_else)]
 enum Variant {
     A(usize, usize),
