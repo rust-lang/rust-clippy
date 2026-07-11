@@ -1,0 +1,72 @@
+error: this `let...else` may be rewritten with `Option::ok_or` and `?`
+  --> tests/ui/let_else_ok_or_unfixable.rs:12:5
+   |
+LL | /     let Some(value) = opt else {
+LL | |         return Err(b"abc");
+LL | |     };
+   | |______^ help: replace it with: `let value = opt.ok_or(b"abc")?;`
+   |
+   = note: `-D clippy::let-else-ok-or` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::let_else_ok_or)]`
+
+error: this `let...else` may be rewritten with `Option::ok_or` and `?`
+  --> tests/ui/let_else_ok_or_unfixable.rs:22:5
+   |
+LL | /     let Some(n) = opt else {
+LL | |         return Err("missing".into());
+LL | |     };
+   | |______^ help: replace it with: `let n = opt.ok_or_else(|| "missing".into())?;`
+
+error: this `let...else` may be rewritten with `Option::ok_or` and `?`
+  --> tests/ui/let_else_ok_or_unfixable.rs:32:5
+   |
+LL | /     let Some(n) = slice.first_mut() else {
+LL | |         return Err(slice.len());
+LL | |     };
+   | |______^ help: replace it with: `let n = slice.first_mut().ok_or_else(|| slice.len())?;`
+
+error: this `let...else` may be rewritten with `Option::ok_or` and `?`
+  --> tests/ui/let_else_ok_or_unfixable.rs:44:5
+   |
+LL | /     let Some(n) = opt else {
+LL | |         return Err({
+LL | |             counter += 1;
+LL | |             counter
+LL | |         });
+LL | |     };
+   | |______^
+   |
+help: replace it with
+   |
+LL ~     let n = opt.ok_or_else(|| {
+LL +             counter += 1;
+LL +             counter
+LL +         })?;
+   |
+
+error: this `let...else` may be rewritten with `Option::ok_or` and `?`
+  --> tests/ui/let_else_ok_or_unfixable.rs:56:5
+   |
+LL | /     let Some(n) = opt else {
+LL | |         return Err(1);
+LL | |     };
+   | |______^ help: replace it with: `let n = opt.ok_or(1)?;`
+
+error: this `let...else` may be rewritten with `Option::ok_or` and `?`
+  --> tests/ui/let_else_ok_or_unfixable.rs:65:5
+   |
+LL | /     let Some(n) = opt else {
+LL | |         return Err(code);
+LL | |     };
+   | |______^ help: replace it with: `let n = opt.ok_or(code)?;`
+
+error: this `let...else` may be rewritten with `Option::ok_or` and `?`
+  --> tests/ui/let_else_ok_or_unfixable.rs:83:5
+   |
+LL | /     let Some(n) = opt else {
+LL | |         return Err(GUARD);
+LL | |     };
+   | |______^ help: replace it with: `let n = opt.ok_or_else(|| GUARD)?;`
+
+error: aborting due to 7 previous errors
+
