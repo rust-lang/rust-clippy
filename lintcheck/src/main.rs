@@ -472,13 +472,12 @@ fn get_perf_data_filename(source_path: &Path) -> String {
             .filter_map(Result::ok)
             .filter(|path| {
                 path.file_name()
-                    .as_os_str()
                     .to_string_lossy() // We don't care about data loss, as we're checking for equality
                     .starts_with("perf.data")
             })
             .for_each(|path| {
                 let file_name = path.file_name();
-                let file_name = file_name.as_os_str().to_str().unwrap().split('.').next_back().unwrap();
+                let file_name = file_name.to_str().unwrap().split('.').next_back().unwrap();
                 if let Ok(parsed_file_name) = file_name.parse::<usize>()
                     && parsed_file_name >= max_number
                 {
