@@ -16,6 +16,7 @@ mod clone_on_copy;
 mod clone_on_ref_ptr;
 mod cloned_instead_of_copied;
 mod collapsible_str_replace;
+mod deref_method_call_chain;
 mod double_ended_iterator_last;
 mod drain_collect;
 mod err_expect;
@@ -538,6 +539,39 @@ declare_clippy_lint! {
     pub CONST_IS_EMPTY,
     suspicious,
     "is_empty() called on strings known at compile time"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for method calls whose receiver is a redundant deref-like conversion call
+    /// such as `as_slice`, `as_str`, or `as_path`, when the method could be called on the
+    /// original value directly through deref coercion.
+    ///
+    /// ### Why is this bad?
+    /// The conversion call adds noise without changing behavior: method resolution
+    /// automatically dereferences the receiver, so the same method is called either way.
+    ///
+    /// ### Known problems
+    /// Receivers behind more than one level of deref (e.g. `Box<Vec<T>>`) are not detected.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let vec = vec![1, 2, 3];
+    /// let string = String::from("hello world");
+    /// let _ = vec.as_slice().first();
+    /// let _ = string.as_str().find('l');
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let vec = vec![1, 2, 3];
+    /// let string = String::from("hello world");
+    /// let _ = vec.first();
+    /// let _ = string.find('l');
+    /// ```
+    #[clippy::version = "1.99.0"]
+    pub DEREF_METHOD_CALL_CHAIN,
+    complexity,
+    "redundant deref-conversion call preceding a method call"
 }
 
 declare_clippy_lint! {
@@ -4936,6 +4970,7 @@ impl_lint_pass!(Methods => [
     CLONE_ON_REF_PTR,
     COLLAPSIBLE_STR_REPLACE,
     CONST_IS_EMPTY,
+    DEREF_METHOD_CALL_CHAIN,
     DOUBLE_ENDED_ITERATOR_LAST,
     DRAIN_COLLECT,
     ERR_EXPECT,
@@ -5268,6 +5303,7 @@ impl Methods {
     fn check_methods<'tcx>(&self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         // Handle method calls whose receiver and arguments may not come from expansion
         if let Some((name, recv, args, span, call_span)) = method_call(expr) {
+            deref_method_call_chain::check(cx, expr, name, span, recv);
             match (name, args) {
                 (sym::add | sym::sub | sym::wrapping_add | sym::wrapping_sub, [_arg]) => {
                     zst_offset::check(cx, expr, recv);

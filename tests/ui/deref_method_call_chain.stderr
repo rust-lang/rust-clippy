@@ -1,0 +1,83 @@
+error: this `as_slice` call is redundant as `first` can be called on the receiver directly
+  --> tests/ui/deref_method_call_chain.rs:66:21
+   |
+LL |         let _ = vec.as_slice().first();
+   |                     ^^^^^^^^^^^^^^^^ help: call the method directly: `first`
+   |
+   = note: `-D clippy::deref-method-call-chain` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::deref_method_call_chain)]`
+
+error: this `as_slice` call is redundant as `len` can be called on the receiver directly
+  --> tests/ui/deref_method_call_chain.rs:68:21
+   |
+LL |         let _ = vec.as_slice().len();
+   |                     ^^^^^^^^^^^^^^ help: call the method directly: `len`
+
+error: this `as_mut_slice` call is redundant as `sort_unstable` can be called on the receiver directly
+  --> tests/ui/deref_method_call_chain.rs:70:13
+   |
+LL |         vec.as_mut_slice().sort_unstable();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: call the method directly: `sort_unstable`
+
+error: this `as_str` call is redundant as `find` can be called on the receiver directly
+  --> tests/ui/deref_method_call_chain.rs:72:24
+   |
+LL |         let _ = string.as_str().find('l');
+   |                        ^^^^^^^^^^^^^ help: call the method directly: `find`
+
+error: this `as_str` call is redundant as `parse` can be called on the receiver directly
+  --> tests/ui/deref_method_call_chain.rs:74:24
+   |
+LL |         let _ = string.as_str().parse::<i32>();
+   |                        ^^^^^^^^^^^^^^ help: call the method directly: `parse`
+
+error: this `as_mut_str` call is redundant as `make_ascii_uppercase` can be called on the receiver directly
+  --> tests/ui/deref_method_call_chain.rs:76:16
+   |
+LL |         string.as_mut_str().make_ascii_uppercase();
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: call the method directly: `make_ascii_uppercase`
+
+error: this `as_path` call is redundant as `exists` can be called on the receiver directly
+  --> tests/ui/deref_method_call_chain.rs:78:25
+   |
+LL |         let _ = pathbuf.as_path().exists();
+   |                         ^^^^^^^^^^^^^^^^ help: call the method directly: `exists`
+
+error: this `as_os_str` call is redundant as `len` can be called on the receiver directly
+  --> tests/ui/deref_method_call_chain.rs:80:27
+   |
+LL |         let _ = os_string.as_os_str().len();
+   |                           ^^^^^^^^^^^^^^^ help: call the method directly: `len`
+
+error: this `as_c_str` call is redundant as `to_bytes` can be called on the receiver directly
+  --> tests/ui/deref_method_call_chain.rs:82:26
+   |
+LL |         let _ = c_string.as_c_str().to_bytes();
+   |                          ^^^^^^^^^^^^^^^^^^^ help: call the method directly: `to_bytes`
+
+error: this `as_slice` call is redundant as `first` can be called on the receiver directly
+  --> tests/ui/deref_method_call_chain.rs:84:24
+   |
+LL |         let _ = (&vec).as_slice().first();
+   |                        ^^^^^^^^^^^^^^^^ help: call the method directly: `first`
+
+error: this `as_slice` call is redundant as `first` can be called on the receiver directly
+  --> tests/ui/deref_method_call_chain.rs:87:25
+   |
+LL |         let _ = vec_ref.as_slice().first();
+   |                         ^^^^^^^^^^^^^^^^ help: call the method directly: `first`
+
+error: this `as_slice` call is redundant as `first` can be called on the receiver directly
+  --> tests/ui/deref_method_call_chain.rs:89:21
+   |
+LL |         let _ = vec.as_slice().first().copied();
+   |                     ^^^^^^^^^^^^^^^^ help: call the method directly: `first`
+
+error: this `as_slice` call is redundant as `first` can be called on the receiver directly
+  --> tests/ui/deref_method_call_chain.rs:94:25
+   |
+LL |         let _ = wrapper.as_slice().first();
+   |                         ^^^^^^^^^^^^^^^^ help: call the method directly: `first`
+
+error: aborting due to 13 previous errors
+
