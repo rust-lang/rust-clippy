@@ -48,6 +48,21 @@ mod issue2094 {
         }
     }
 
+    struct DerefOnly(Vec<u8>);
+
+    impl Deref for DerefOnly {
+        type Target = [u8];
+        fn deref(&self) -> &[u8] {
+            &self.0
+        }
+    }
+
+    impl DerefOnly {
+        fn as_mut_slice(&mut self) -> &mut [u8] {
+            &mut self.0
+        }
+    }
+
     macro_rules! in_macro {
         ($v:expr) => {
             $v.as_slice().first()
@@ -113,6 +128,10 @@ mod issue2094 {
         // Not a deref-equivalent conversion (receiver doesn't implement `Deref`)
         let not_deref = NotDeref(String::from("hi"));
         let _ = not_deref.as_str().len();
+
+        // `as_mut_slice` needs `DerefMut` to be removable, but this type only implements `Deref`
+        let mut deref_only = DerefOnly(vec![1, 2, 3]);
+        deref_only.as_mut_slice().sort_unstable();
 
         // The receiver type has its own `first`, which would shadow `<[u8]>::first`
         let shadowing = Shadowing(vec![1, 2, 3]);

@@ -61,7 +61,7 @@ pub(super) fn check<'tcx>(
     // The conversion must be deref-equivalent: it returns a reference to exactly
     // `<RecvTy as Deref>::Target`, so removing it lets auto-deref do the same work
     let recv_base_ty = cx.typeck_results().expr_ty(inner_recv).peel_refs();
-    let ty::Ref(_, target_ty, _) = *cx.typeck_results().expr_ty(recv).kind() else {
+    let ty::Ref(_, target_ty, mutability) = *cx.typeck_results().expr_ty(recv).kind() else {
         return;
     };
     let Some(deref_trait_id) = cx.tcx.get_diagnostic_item(sym::Deref) else {
@@ -69,6 +69,18 @@ pub(super) fn check<'tcx>(
     };
     if !implements_trait(cx, recv_base_ty, deref_trait_id, &[])
         || cx.get_associated_type(recv_base_ty, deref_trait_id, sym::Target) != Some(target_ty)
+    {
+        return;
+    }
+    // `as_mut_*`-style conversions return `&mut Target`, which means the outer method needs
+    // `&mut self`. Reaching that mutable reference via auto-deref also requires `DerefMut`,
+    // even though the redundant conversion itself only needed `Deref`
+    if mutability.is_mut()
+        && !cx
+            .tcx
+            .lang_items()
+            .deref_mut_trait()
+            .is_some_and(|deref_mut_trait_id| implements_trait(cx, recv_base_ty, deref_mut_trait_id, &[]))
     {
         return;
     }
