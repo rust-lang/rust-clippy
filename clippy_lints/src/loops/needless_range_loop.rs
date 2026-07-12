@@ -155,7 +155,7 @@ pub(super) fn check<'tcx>(
                     format!("the loop variable `{}` is used to index `{indexed}`", ident.name),
                     |diag| {
                         diag.multipart_suggestion(
-                            "consider using an iterator and enumerate()",
+                            "consider using an iterator and `.enumerate()`",
                             vec![
                                 (pat.span, format!("({}, <item>)", ident.name)),
                                 (span, format!("{indexed}.{method}().enumerate(){method_1}{method_2}")),
