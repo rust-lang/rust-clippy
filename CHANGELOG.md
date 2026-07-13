@@ -7599,6 +7599,7 @@ Released 2018-09-13
 [`unused_rounding`]: https://rust-lang.github.io/rust-clippy/master/index.html#unused_rounding
 [`unused_self`]: https://rust-lang.github.io/rust-clippy/master/index.html#unused_self
 [`unused_trait_names`]: https://rust-lang.github.io/rust-clippy/master/index.html#unused_trait_names
+[`unused_underscore_prefixed_argument`]: https://rust-lang.github.io/rust-clippy/master/index.html#unused_underscore_prefixed_argument
 [`unused_unit`]: https://rust-lang.github.io/rust-clippy/master/index.html#unused_unit
 [`unusual_byte_groupings`]: https://rust-lang.github.io/rust-clippy/master/index.html#unusual_byte_groupings
 [`unwrap_in_result`]: https://rust-lang.github.io/rust-clippy/master/index.html#unwrap_in_result

@@ -1,0 +1,12 @@
+error: argument with an underscore prefix which is unused
+  --> tests/ui/unused_underscore_prefixed_argument.rs:3:16
+   |
+LL | fn foo(a: i32, _b: i32) {
+   |                ^^^^^^^
+   |
+   = help: consider removing the parameter
+   = note: `-D clippy::unused-underscore-prefixed-argument` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unused_underscore_prefixed_argument)]`
+
+error: aborting due to 1 previous error
+
