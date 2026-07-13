@@ -1,10 +1,10 @@
-use clippy_utils::SpanlessEq;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet;
+use clippy_utils::{SpanlessEq, sym};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, Pat, Stmt, StmtKind, UnOp};
 use rustc_lint::LateContext;
-use rustc_span::{Span, Symbol, sym};
+use rustc_span::{Span, Symbol};
 use std::borrow::Cow;
 
 use super::MANUAL_WHILE_LET_SOME;
@@ -65,7 +65,7 @@ fn is_vec_pop_unwrap(cx: &LateContext<'_>, expr: &Expr<'_>, is_empty_recv: &Expr
         && let ExprKind::MethodCall(_, pop_recv, ..) = unwrap_recv.kind
     {
         // make sure they're the same `Vec`
-        SpanlessEq::new(cx).eq_expr(pop_recv, is_empty_recv)
+        SpanlessEq::new(cx).eq_expr(expr.span.ctxt(), pop_recv, is_empty_recv)
     } else {
         false
     }

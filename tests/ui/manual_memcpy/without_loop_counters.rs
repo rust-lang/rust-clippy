@@ -1,12 +1,7 @@
 #![warn(clippy::manual_memcpy)]
-#![allow(
-    clippy::assigning_clones,
-    clippy::useless_vec,
-    clippy::needless_range_loop,
-    clippy::manual_slice_fill
-)]
+#![allow(clippy::redundant_slicing)]
+#![expect(clippy::useless_vec)]
 
-//@no-rustfix
 const LOOP_OFFSET: usize = 5000;
 
 pub fn manual_copy(src: &[i32], dst: &mut [i32], dst2: &mut [i32]) {
@@ -141,6 +136,7 @@ pub fn manual_copy(src: &[i32], dst: &mut [i32], dst2: &mut [i32]) {
     }
 
     // `RangeTo` `for` loop - don't trigger lint
+    #[expect(clippy::for_unbounded_range)]
     for i in 0.. {
         dst[i] = src[i];
     }

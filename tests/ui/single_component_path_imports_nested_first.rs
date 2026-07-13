@@ -1,5 +1,4 @@
 #![warn(clippy::single_component_path_imports)]
-#![allow(unused_imports)]
 //@no-rustfix
 use regex;
 //~^ single_component_path_imports
@@ -13,10 +12,10 @@ fn main() {
 }
 
 mod root_nested_use_mod {
+    #[rustfmt::skip]
     use {regex, serde};
     //~^ single_component_path_imports
     //~| single_component_path_imports
 
-    #[allow(dead_code)]
     fn root_nested_use_mod() {}
 }

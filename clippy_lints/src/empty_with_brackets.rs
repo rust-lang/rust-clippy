@@ -1,6 +1,6 @@
 use clippy_utils::attrs::span_contains_cfg;
 use clippy_utils::diagnostics::{span_lint_and_then, span_lint_hir_and_then};
-use clippy_utils::source::SpanRangeExt;
+use clippy_utils::source::SpanExt;
 use clippy_utils::span_contains_non_whitespace;
 use rustc_data_structures::fx::{FxIndexMap, IndexEntry};
 use rustc_errors::Applicability;
@@ -13,34 +13,6 @@ use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, TyCtxt};
 use rustc_session::impl_lint_pass;
 use rustc_span::{BytePos, Span};
-
-declare_clippy_lint! {
-    /// ### What it does
-    /// Finds structs without fields (a so-called "empty struct") that are declared with brackets.
-    ///
-    /// ### Why restrict this?
-    /// Empty brackets after a struct declaration can be omitted,
-    /// and it may be desirable to do so consistently for style.
-    ///
-    /// However, removing the brackets also introduces a public constant named after the struct,
-    /// so this is not just a syntactic simplification but an API change, and adding them back
-    /// is a *breaking* API change.
-    ///
-    /// ### Example
-    /// ```no_run
-    /// struct Cookie {}
-    /// struct Biscuit();
-    /// ```
-    /// Use instead:
-    /// ```no_run
-    /// struct Cookie;
-    /// struct Biscuit;
-    /// ```
-    #[clippy::version = "1.62.0"]
-    pub EMPTY_STRUCTS_WITH_BRACKETS,
-    restriction,
-    "finds struct declarations with empty brackets"
-}
 
 declare_clippy_lint! {
     /// ### What it does
@@ -77,6 +49,39 @@ declare_clippy_lint! {
     "finds enum variants with empty brackets"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Finds structs without fields (a so-called "empty struct") that are declared with brackets.
+    ///
+    /// ### Why restrict this?
+    /// Empty brackets after a struct declaration can be omitted,
+    /// and it may be desirable to do so consistently for style.
+    ///
+    /// However, removing the brackets also introduces a public constant named after the struct,
+    /// so this is not just a syntactic simplification but an API change, and adding them back
+    /// is a *breaking* API change.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// struct Cookie {}
+    /// struct Biscuit();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// struct Cookie;
+    /// struct Biscuit;
+    /// ```
+    #[clippy::version = "1.62.0"]
+    pub EMPTY_STRUCTS_WITH_BRACKETS,
+    restriction,
+    "finds struct declarations with empty brackets"
+}
+
+impl_lint_pass!(EmptyWithBrackets => [
+    EMPTY_ENUM_VARIANTS_WITH_BRACKETS,
+    EMPTY_STRUCTS_WITH_BRACKETS,
+]);
+
 #[derive(Debug)]
 enum Usage {
     Unused { redundant_use_sites: Vec<Span> },
@@ -89,8 +94,6 @@ pub struct EmptyWithBrackets {
     // Value holds `Usage::Used` if the empty tuple variant was used as a function
     empty_tuple_enum_variants: FxIndexMap<LocalDefId, Usage>,
 }
-
-impl_lint_pass!(EmptyWithBrackets => [EMPTY_STRUCTS_WITH_BRACKETS, EMPTY_ENUM_VARIANTS_WITH_BRACKETS]);
 
 impl LateLintPass<'_> for EmptyWithBrackets {
     fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
@@ -189,7 +192,7 @@ impl LateLintPass<'_> for EmptyWithBrackets {
             // Span of the parentheses in variant definition
             let span = variant.span.with_lo(variant.ident.span.hi());
             let span_inner = span
-                .with_lo(SpanRangeExt::trim_start(span, cx).start + BytePos(1))
+                .with_lo(SpanExt::trim_start(span, cx).start + BytePos(1))
                 .with_hi(span.hi() - BytePos(1));
             if span_contains_non_whitespace(cx, span_inner, false) {
                 continue;
@@ -300,7 +303,7 @@ fn check_expr_for_enum_as_function(cx: &LateContext<'_>, expr: &Expr<'_>) -> Opt
         ExprKind::Struct(qpath, ..)
             if let Def(DefKind::Variant, mut def_id) = cx.typeck_results().qpath_res(qpath, expr.hir_id) =>
         {
-            let ty = cx.tcx.type_of(def_id).instantiate_identity();
+            let ty = cx.tcx.type_of(def_id).instantiate_identity().skip_norm_wip();
             if let ty::FnDef(ctor_def_id, _) = ty.kind() {
                 def_id = *ctor_def_id;
             }
@@ -321,7 +324,7 @@ fn check_pat_for_enum_as_function(cx: &LateContext<'_>, pat: &Pat<'_>) -> Option
         PatKind::Struct(qpath, ..)
             if let Def(DefKind::Variant, mut def_id) = cx.typeck_results().qpath_res(&qpath, pat.hir_id) =>
         {
-            let ty = cx.tcx.type_of(def_id).instantiate_identity();
+            let ty = cx.tcx.type_of(def_id).instantiate_identity().skip_norm_wip();
             if let ty::FnDef(ctor_def_id, _) = ty.kind() {
                 def_id = *ctor_def_id;
             }

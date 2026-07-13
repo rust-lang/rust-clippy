@@ -1,7 +1,7 @@
 //@aux-build:option_helpers.rs
 
 #![warn(clippy::skip_while_next)]
-#![allow(clippy::disallowed_names, clippy::useless_vec)]
+#![expect(clippy::disallowed_names, clippy::useless_vec)]
 
 extern crate option_helpers;
 use option_helpers::IteratorFalsePositives;
@@ -26,6 +26,4 @@ fn skip_while_next() {
     let _ = foo.skip_while().next();
 }
 
-fn main() {
-    skip_while_next();
-}
+fn main() {}

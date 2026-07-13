@@ -37,6 +37,8 @@ declare_clippy_lint! {
     "using `libc::strlen` on a `CString` or `CStr` value, while `count_bytes()` can be used instead"
 }
 
+impl_lint_pass!(StrlenOnCStrings => [STRLEN_ON_C_STRINGS]);
+
 pub struct StrlenOnCStrings {
     msrv: Msrv,
 }
@@ -46,8 +48,6 @@ impl StrlenOnCStrings {
         Self { msrv: conf.msrv }
     }
 }
-
-impl_lint_pass!(StrlenOnCStrings => [STRLEN_ON_C_STRINGS]);
 
 impl<'tcx> LateLintPass<'tcx> for StrlenOnCStrings {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
@@ -76,11 +76,13 @@ impl<'tcx> LateLintPass<'tcx> for StrlenOnCStrings {
 
             let ctxt = expr.span.ctxt();
             let span = match cx.tcx.parent_hir_node(expr.hir_id) {
-                Node::Block(&Block {
-                    rules: BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided),
-                    span,
-                    ..
-                }) if span.ctxt() == ctxt && !is_expr_unsafe(cx, self_arg) => span,
+                Node::Block(
+                    block @ &Block {
+                        rules: BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided),
+                        span,
+                        ..
+                    },
+                ) if span.ctxt() == ctxt && !is_expr_unsafe(cx, self_arg) && block.stmts.is_empty() => span,
                 _ => expr.span,
             };
 

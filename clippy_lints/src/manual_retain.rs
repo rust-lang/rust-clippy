@@ -1,9 +1,9 @@
 use clippy_config::Conf;
-use clippy_utils::SpanlessEq;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeDef;
 use clippy_utils::source::snippet;
+use clippy_utils::{SpanlessEq, sym};
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_hir::ExprKind::Assign;
@@ -11,7 +11,7 @@ use rustc_hir::def_id::DefId;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::impl_lint_pass;
 use rustc_span::Span;
-use rustc_span::symbol::{Symbol, sym};
+use rustc_span::symbol::Symbol;
 
 const ACCEPTABLE_METHODS: [Symbol; 5] = [
     sym::binaryheap_iter,
@@ -44,6 +44,8 @@ declare_clippy_lint! {
     "`retain()` is simpler and the same functionalities"
 }
 
+impl_lint_pass!(ManualRetain => [MANUAL_RETAIN]);
+
 pub struct ManualRetain {
     msrv: Msrv,
 }
@@ -53,8 +55,6 @@ impl ManualRetain {
         Self { msrv: conf.msrv }
     }
 }
-
-impl_lint_pass!(ManualRetain => [MANUAL_RETAIN]);
 
 impl<'tcx> LateLintPass<'tcx> for ManualRetain {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>) {
@@ -85,7 +85,7 @@ fn check_into_iter(
         && let Some(into_iter_def_id) = cx.typeck_results().type_dependent_def_id(into_iter_expr.hir_id)
         && Some(into_iter_def_id) == cx.tcx.lang_items().into_iter_fn()
         && match_acceptable_type(cx, left_expr, msrv)
-        && SpanlessEq::new(cx).eq_expr(left_expr, struct_expr)
+        && SpanlessEq::new(cx).eq_expr(parent_expr_span.ctxt(), left_expr, struct_expr)
         && let hir::ExprKind::MethodCall(_, _, [closure_expr], _) = target_expr.kind
         && let hir::ExprKind::Closure(closure) = closure_expr.kind
         && let filter_body = cx.tcx.hir_body(closure.body)
@@ -132,7 +132,7 @@ fn check_iter(
         && let Some(iter_expr_def_id) = cx.typeck_results().type_dependent_def_id(iter_expr.hir_id)
         && match_acceptable_sym(cx, iter_expr_def_id)
         && match_acceptable_type(cx, left_expr, msrv)
-        && SpanlessEq::new(cx).eq_expr(left_expr, struct_expr)
+        && SpanlessEq::new(cx).eq_expr(parent_expr_span.ctxt(), left_expr, struct_expr)
         && let hir::ExprKind::MethodCall(_, _, [closure_expr], _) = filter_expr.kind
         && let hir::ExprKind::Closure(closure) = closure_expr.kind
         && let filter_body = cx.tcx.hir_body(closure.body)
@@ -190,7 +190,7 @@ fn check_to_owned(
         && cx.tcx.is_diagnostic_item(sym::str_chars, chars_expr_def_id)
         && let ty = cx.typeck_results().expr_ty(str_expr).peel_refs()
         && ty.is_lang_item(cx, hir::LangItem::String)
-        && SpanlessEq::new(cx).eq_expr(left_expr, str_expr)
+        && SpanlessEq::new(cx).eq_expr(parent_expr_span.ctxt(), left_expr, str_expr)
         && let hir::ExprKind::MethodCall(_, _, [closure_expr], _) = filter_expr.kind
         && let hir::ExprKind::Closure(closure) = closure_expr.kind
         && let filter_body = cx.tcx.hir_body(closure.body)

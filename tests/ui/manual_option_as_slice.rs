@@ -1,5 +1,5 @@
 #![warn(clippy::manual_option_as_slice)]
-#![allow(clippy::redundant_closure, clippy::unwrap_or_default)]
+#![expect(clippy::redundant_closure)]
 
 fn check(x: Option<u32>) {
     _ = match x.as_ref() {
@@ -66,7 +66,4 @@ fn check_msrv(x: Option<u32>) {
     _ = x.as_ref().map_or(&[][..], std::slice::from_ref);
 }
 
-fn main() {
-    check(Some(1));
-    check_msrv(Some(175));
-}
+fn main() {}

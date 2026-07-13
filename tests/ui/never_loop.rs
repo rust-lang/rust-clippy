@@ -447,22 +447,7 @@ fn loop_label() {
     }
 }
 
-fn main() {
-    test1();
-    test2();
-    test3();
-    test4();
-    test5();
-    test6();
-    test7();
-    test8();
-    test9();
-    test10();
-    test11(|| 0);
-    test12(true, false);
-    test13();
-    test14();
-}
+fn main() {}
 
 fn issue15059() {
     'a: for _ in 0..1 {
@@ -554,5 +539,108 @@ fn issue16462() {
         println!("{n}");
         n -= 1;
         n >= 0 || break;
+    }
+}
+
+fn issue16056_basic() {
+    let x = || Some(panic!());
+
+    //~v never_loop
+    loop {
+        x().unwrap();
+    }
+}
+
+fn issue16056_nested_loops() {
+    let x = || Some(panic!());
+
+    //~v never_loop
+    loop {
+        //~v never_loop
+        loop {
+            x().unwrap();
+        }
+    }
+}
+
+fn issue16056_nested_block() {
+    let x = || Some(panic!());
+
+    //~v never_loop
+    loop {
+        {
+            x().unwrap();
+        }
+    }
+}
+
+fn issue16056_nested_blocks() {
+    let x = || Some(panic!());
+
+    //~v never_loop
+    loop {
+        {
+            {
+                x().unwrap();
+            }
+        }
+    }
+}
+
+fn issue16056_match() {
+    let x = || Some(panic!());
+
+    let mut y = 1;
+    //~v never_loop
+    loop {
+        y += 1;
+        match y {
+            5 => return,
+            _ => {
+                x().unwrap();
+            },
+        }
+    }
+}
+
+fn issue16056_if_no_trigger() {
+    let x = || Some(panic!());
+    let mut y = 0;
+    //~v never_loop
+    loop {
+        y += 1;
+        if y == 1 {
+            // No extra note for this
+            x().unwrap();
+        }
+        break;
+    }
+}
+
+fn issue16056_if_trigger() {
+    let x = || Some(panic!());
+
+    //~v never_loop
+    loop {
+        if true {
+            x().unwrap();
+        } else {
+            break;
+        }
+    }
+}
+
+macro_rules! test_macro {
+    ($e:expr) => {
+        $e
+    };
+}
+
+fn issue16056_macro() {
+    let x = || Some(panic!());
+
+    //~v never_loop
+    loop {
+        test_macro!(x().unwrap());
     }
 }

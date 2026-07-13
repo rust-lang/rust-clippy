@@ -1,11 +1,6 @@
 //@aux-build:option_helpers.rs
 
 #![warn(clippy::map_unwrap_or)]
-#![allow(
-    clippy::unnecessary_lazy_evaluations,
-    clippy::manual_is_variant_and,
-    clippy::unnecessary_map_or
-)]
 
 #[macro_use]
 extern crate option_helpers;
@@ -58,10 +53,7 @@ fn result_methods() {
     let _ = opt_map!(res, |x| x + 1).unwrap_or_else(|_e| 0); // should not lint
 }
 
-fn main() {
-    option_methods();
-    result_methods();
-}
+fn main() {}
 
 fn issue15714() {
     let o: Option<i32> = Some(3);

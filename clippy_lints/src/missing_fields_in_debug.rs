@@ -76,6 +76,7 @@ declare_clippy_lint! {
     pedantic,
     "missing fields in manual `Debug` implementation"
 }
+
 declare_lint_pass!(MissingFieldsInDebug => [MISSING_FIELDS_IN_DEBUG]);
 
 fn report_lints(cx: &LateContext<'_>, span: Span, span_notes: Vec<(Span, &'static str)>) {
@@ -108,7 +109,7 @@ fn should_lint<'tcx>(
     // Is there a call to `DebugStruct::debug_struct`? Do lint if there is.
     let mut has_debug_struct = false;
 
-    for_each_expr(cx, block, |expr| {
+    for_each_expr(cx.tcx, block, |expr| {
         if let ExprKind::MethodCall(path, recv, ..) = &expr.kind {
             let recv_ty = typeck_results.expr_ty(recv).peel_refs();
 
@@ -165,7 +166,7 @@ fn check_struct<'tcx>(
     let mut has_direct_field_access = false;
     let mut field_accesses = FxHashSet::default();
 
-    for_each_expr(cx, block, |expr| {
+    for_each_expr(cx.tcx, block, |expr| {
         if let ExprKind::Field(target, ident) = expr.kind
             && let target_ty = typeck_results.expr_ty_adjusted(target).peel_refs()
             && target_ty == self_ty
@@ -184,6 +185,7 @@ fn check_struct<'tcx>(
         .filter_map(|field| {
             if field_accesses.contains(&field.ident.name)
                 || field.ty.basic_res().is_lang_item(cx, LangItem::PhantomData)
+                || field.ty.basic_res().is_diag_item(cx, sym::PhantomPinned)
             {
                 None
             } else {

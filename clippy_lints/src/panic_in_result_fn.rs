@@ -40,7 +40,7 @@ declare_clippy_lint! {
     "functions of type `Result<..>` that contain `panic!()` or assertion"
 }
 
-declare_lint_pass!(PanicInResultFn  => [PANIC_IN_RESULT_FN]);
+declare_lint_pass!(PanicInResultFn => [PANIC_IN_RESULT_FN]);
 
 impl<'tcx> LateLintPass<'tcx> for PanicInResultFn {
     fn check_fn(
@@ -64,7 +64,7 @@ impl<'tcx> LateLintPass<'tcx> for PanicInResultFn {
 
 fn lint_impl_body<'tcx>(cx: &LateContext<'tcx>, impl_span: Span, body: &'tcx hir::Body<'tcx>) {
     let mut panics = Vec::new();
-    let _: Option<!> = for_each_expr(cx, body.value, |e| {
+    let _: Option<!> = for_each_expr(cx.tcx, body.value, |e| {
         let Some(macro_call) = root_macro_call_first_node(cx, e) else {
             return ControlFlow::Continue(Descend::Yes);
         };

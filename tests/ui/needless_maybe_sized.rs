@@ -1,7 +1,7 @@
 //@aux-build:proc_macros.rs
 
-#![allow(unused, clippy::multiple_bound_locations)]
 #![warn(clippy::needless_maybe_sized)]
+#![allow(clippy::multiple_bound_locations)]
 
 extern crate proc_macros;
 use proc_macros::external;
@@ -135,5 +135,14 @@ struct InDerive<T: ?Sized> {
 
 struct Refined<T: ?Sized>(T);
 impl<T: Sized> Refined<T> {}
+
+// in proc-macros
+fn issue13360() {
+    #[derive(serde::Serialize)]
+    #[serde(bound = "T: A")]
+    struct Foo<T: ?Sized> {
+        t: std::marker::PhantomData<T>,
+    }
+}
 
 fn main() {}

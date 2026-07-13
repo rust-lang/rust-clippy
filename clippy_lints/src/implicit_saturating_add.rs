@@ -36,6 +36,7 @@ declare_clippy_lint! {
     style,
     "Perform saturating addition instead of implicitly checking max bound of data type"
 }
+
 declare_lint_pass!(ImplicitSaturatingAdd => [IMPLICIT_SATURATING_ADD]);
 
 impl<'tcx> LateLintPass<'tcx> for ImplicitSaturatingAdd {
@@ -66,7 +67,7 @@ impl<'tcx> LateLintPass<'tcx> for ImplicitSaturatingAdd {
             && let ctxt = expr.span.ctxt()
             && ex.span.ctxt() == ctxt
             && cond.span.ctxt() == ctxt
-            && clippy_utils::SpanlessEq::new(cx).eq_expr(l, target)
+            && clippy_utils::SpanlessEq::new(cx).eq_expr(ctxt, l, target)
             && AssignOpKind::AddAssign == op1.node
             && let ExprKind::Lit(lit) = value.kind
             && let LitKind::Int(Pu128(1), LitIntType::Unsuffixed) = lit.node

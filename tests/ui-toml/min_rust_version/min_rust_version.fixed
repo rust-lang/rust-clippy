@@ -1,5 +1,5 @@
-#![allow(clippy::redundant_clone, clippy::unnecessary_operation, clippy::incompatible_msrv)]
-#![warn(clippy::manual_non_exhaustive, clippy::borrow_as_ptr, clippy::manual_bits)]
+#![allow(clippy::incompatible_msrv, clippy::redundant_clone, clippy::unnecessary_operation)]
+#![warn(clippy::borrow_as_ptr, clippy::manual_bits, clippy::manual_non_exhaustive)]
 
 use std::mem::{size_of, size_of_val};
 use std::ops::Deref;
@@ -88,12 +88,4 @@ fn manual_bits() {
     size_of_val(&0u32) * 8;
 }
 
-fn main() {
-    option_as_ref_deref();
-    match_like_matches();
-    match_same_arms();
-    match_same_arms2();
-    manual_strip_msrv();
-    check_index_refutable_slice();
-    borrow_as_ptr();
-}
+fn main() {}

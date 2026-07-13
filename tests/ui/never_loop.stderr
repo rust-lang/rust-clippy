@@ -248,7 +248,7 @@ LL | |         }
    | |_________^
 
 error: this loop never actually loops
-  --> tests/ui/never_loop.rs:468:5
+  --> tests/ui/never_loop.rs:453:5
    |
 LL | /     'a: for _ in 0..1 {
 LL | |
@@ -264,7 +264,7 @@ LL ~
    |
 
 error: this loop never actually loops
-  --> tests/ui/never_loop.rs:474:5
+  --> tests/ui/never_loop.rs:459:5
    |
 LL | /     'a: for i in 0..1 {
 LL | |
@@ -288,7 +288,7 @@ LL ~
    |
 
 error: this loop never actually loops
-  --> tests/ui/never_loop.rs:489:5
+  --> tests/ui/never_loop.rs:474:5
    |
 LL | /     for v in 0..10 {
 LL | |
@@ -311,7 +311,7 @@ LL ~
    |
 
 error: this loop never actually loops
-  --> tests/ui/never_loop.rs:500:5
+  --> tests/ui/never_loop.rs:485:5
    |
 LL | /     'bar: for _ in 0..100 {
 LL | |
@@ -321,7 +321,7 @@ LL | |     }
    | |_____^
    |
 help: this code is unreachable. Consider moving the reachable parts out
-  --> tests/ui/never_loop.rs:502:9
+  --> tests/ui/never_loop.rs:487:9
    |
 LL | /         loop {
 LL | |
@@ -336,7 +336,7 @@ LL +     if let Some(_) = (0..100).next() {
    |
 
 error: this loop never actually loops
-  --> tests/ui/never_loop.rs:502:9
+  --> tests/ui/never_loop.rs:487:9
    |
 LL | /         loop {
 LL | |
@@ -346,7 +346,7 @@ LL | |         }
    | |_________^
 
 error: this loop never actually loops
-  --> tests/ui/never_loop.rs:509:5
+  --> tests/ui/never_loop.rs:494:5
    |
 LL | /     'foo: for _ in 0..100 {
 LL | |
@@ -356,7 +356,7 @@ LL | |     }
    | |_____^
    |
 help: this code is unreachable. Consider moving the reachable parts out
-  --> tests/ui/never_loop.rs:511:9
+  --> tests/ui/never_loop.rs:496:9
    |
 LL | /         loop {
 LL | |
@@ -372,7 +372,7 @@ LL +     if let Some(_) = (0..100).next() {
    |
 
 error: this loop never actually loops
-  --> tests/ui/never_loop.rs:511:9
+  --> tests/ui/never_loop.rs:496:9
    |
 LL | /         loop {
 LL | |
@@ -383,7 +383,7 @@ LL | |         }
    | |_________^
 
 error: this loop never actually loops
-  --> tests/ui/never_loop.rs:514:13
+  --> tests/ui/never_loop.rs:499:13
    |
 LL | /             loop {
 LL | |
@@ -393,7 +393,7 @@ LL | |             }
    | |_____________^
 
 error: this loop never actually loops
-  --> tests/ui/never_loop.rs:537:5
+  --> tests/ui/never_loop.rs:522:5
    |
 LL | /     loop {
 LL | |         unsafe {
@@ -404,5 +404,142 @@ LL | |         return;
 LL | |     }
    | |_____^
 
-error: aborting due to 30 previous errors
+error: this loop never actually loops
+  --> tests/ui/never_loop.rs:549:5
+   |
+LL | /     loop {
+LL | |         x().unwrap();
+LL | |     }
+   | |_____^
+   |
+note: this expression never returns
+  --> tests/ui/never_loop.rs:550:9
+   |
+LL |         x().unwrap();
+   |         ^^^^^^^^^^^^
+
+error: this loop never actually loops
+  --> tests/ui/never_loop.rs:558:5
+   |
+LL | /     loop {
+LL | |
+LL | |         loop {
+LL | |             x().unwrap();
+LL | |         }
+LL | |     }
+   | |_____^
+   |
+note: this expression never returns
+  --> tests/ui/never_loop.rs:561:13
+   |
+LL |             x().unwrap();
+   |             ^^^^^^^^^^^^
+
+error: this loop never actually loops
+  --> tests/ui/never_loop.rs:560:9
+   |
+LL | /         loop {
+LL | |             x().unwrap();
+LL | |         }
+   | |_________^
+   |
+note: this expression never returns
+  --> tests/ui/never_loop.rs:561:13
+   |
+LL |             x().unwrap();
+   |             ^^^^^^^^^^^^
+
+error: this loop never actually loops
+  --> tests/ui/never_loop.rs:570:5
+   |
+LL | /     loop {
+LL | |         {
+LL | |             x().unwrap();
+LL | |         }
+LL | |     }
+   | |_____^
+   |
+note: this expression never returns
+  --> tests/ui/never_loop.rs:572:13
+   |
+LL |             x().unwrap();
+   |             ^^^^^^^^^^^^
+
+error: this loop never actually loops
+  --> tests/ui/never_loop.rs:581:5
+   |
+LL | /     loop {
+LL | |         {
+LL | |             {
+LL | |                 x().unwrap();
+...  |
+LL | |     }
+   | |_____^
+   |
+note: this expression never returns
+  --> tests/ui/never_loop.rs:584:17
+   |
+LL |                 x().unwrap();
+   |                 ^^^^^^^^^^^^
+
+error: this loop never actually loops
+  --> tests/ui/never_loop.rs:595:5
+   |
+LL | /     loop {
+LL | |         y += 1;
+LL | |         match y {
+LL | |             5 => return,
+...  |
+LL | |     }
+   | |_____^
+   |
+note: this expression never returns
+  --> tests/ui/never_loop.rs:600:17
+   |
+LL |                 x().unwrap();
+   |                 ^^^^^^^^^^^^
+
+error: this loop never actually loops
+  --> tests/ui/never_loop.rs:610:5
+   |
+LL | /     loop {
+LL | |         y += 1;
+LL | |         if y == 1 {
+...  |
+LL | |         break;
+LL | |     }
+   | |_____^
+
+error: this loop never actually loops
+  --> tests/ui/never_loop.rs:624:5
+   |
+LL | /     loop {
+LL | |         if true {
+LL | |             x().unwrap();
+LL | |         } else {
+...  |
+LL | |     }
+   | |_____^
+   |
+note: this expression never returns
+  --> tests/ui/never_loop.rs:626:13
+   |
+LL |             x().unwrap();
+   |             ^^^^^^^^^^^^
+
+error: this loop never actually loops
+  --> tests/ui/never_loop.rs:643:5
+   |
+LL | /     loop {
+LL | |         test_macro!(x().unwrap());
+LL | |     }
+   | |_____^
+   |
+note: this expression never returns
+  --> tests/ui/never_loop.rs:644:21
+   |
+LL |         test_macro!(x().unwrap());
+   |                     ^^^^^^^^^^^^
+
+error: aborting due to 39 previous errors
 

@@ -16,14 +16,15 @@ use rustc_abi::ExternAbi;
 use rustc_ast as ast;
 use rustc_ast::AttrStyle;
 use rustc_ast::ast::{
-    AttrKind, Attribute, GenericArgs, IntTy, LitIntType, LitKind, StrStyle, TraitObjectSyntax, UintTy,
+    AttrKind, Attribute, BindingMode, GenericArgs, IntTy, LitIntType, LitKind, StrStyle, TraitObjectSyntax, UintTy,
 };
 use rustc_ast::token::CommentKind;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{
-    Block, BlockCheckMode, Body, Closure, Destination, Expr, ExprKind, FieldDef, FnHeader, FnRetTy, HirId, Impl,
-    ImplItem, ImplItemImplKind, ImplItemKind, IsAuto, Item, ItemKind, Lit, LoopSource, MatchSource, MutTy, Node, Path,
-    QPath, Safety, TraitImplHeader, TraitItem, TraitItemKind, Ty, TyKind, UnOp, UnsafeSource, Variant, VariantData,
+    Block, BlockCheckMode, Body, BoundConstness, BoundPolarity, Closure, Destination, Expr, ExprKind, FieldDef,
+    FnHeader, FnRetTy, HirId, Impl, ImplItem, ImplItemImplKind, ImplItemKind, IsAuto, Item, ItemKind, Lit, LoopSource,
+    MatchSource, MutTy, Node, PatExpr, PatExprKind, PatKind, Path, PolyTraitRef, QPath, Safety, TraitBoundModifiers,
+    TraitImplHeader, TraitItem, TraitItemKind, TraitRef, Ty, TyKind, UnOp, UnsafeSource, Variant, VariantData,
     YieldSource,
 };
 use rustc_lint::{EarlyContext, LateContext, LintContext};
@@ -242,7 +243,7 @@ fn expr_search_pat(tcx: TyCtxt<'_>, e: &Expr<'_>) -> (Pat, Pat) {
 fn fn_header_search_pat(header: FnHeader) -> Pat {
     if header.is_async() {
         Pat::Str("async")
-    } else if header.is_const() {
+    } else if matches!(header.constness, rustc_hir::Constness::Const { always: false }) {
         Pat::Str("const")
     } else if header.is_unsafe() {
         Pat::Str("unsafe")
@@ -265,15 +266,19 @@ fn item_search_pat(item: &Item<'_>) -> (Pat, Pat) {
         ItemKind::Struct(_, _, VariantData::Struct { .. }) => (Pat::Str("struct"), Pat::Str("}")),
         ItemKind::Struct(..) => (Pat::Str("struct"), Pat::Str(";")),
         ItemKind::Union(..) => (Pat::Str("union"), Pat::Str("}")),
-        ItemKind::Trait(_, _, Safety::Unsafe, ..)
+        ItemKind::Trait {
+            safety: Safety::Unsafe, ..
+        }
         | ItemKind::Impl(Impl {
             of_trait: Some(TraitImplHeader {
                 safety: Safety::Unsafe, ..
             }),
             ..
         }) => (Pat::Str("unsafe"), Pat::Str("}")),
-        ItemKind::Trait(_, IsAuto::Yes, ..) => (Pat::Str("auto"), Pat::Str("}")),
-        ItemKind::Trait(..) => (Pat::Str("trait"), Pat::Str("}")),
+        ItemKind::Trait {
+            is_auto: IsAuto::Yes, ..
+        } => (Pat::Str("auto"), Pat::Str("}")),
+        ItemKind::Trait { .. } => (Pat::Str("trait"), Pat::Str("}")),
         ItemKind::Impl(_) => (Pat::Str("impl"), Pat::Str("}")),
         ItemKind::Mod(..) => (Pat::Str("mod"), Pat::Str("")),
         ItemKind::Macro(_, def, _) => (
@@ -531,6 +536,8 @@ fn ast_ty_search_pat(ty: &ast::Ty) -> (Pat, Pat) {
 
         // experimental
         | TyKind::Pat(..)
+        | TyKind::FieldOf(..)
+        | TyKind::View(..)
 
         // unused
         | TyKind::CVarArgs
@@ -541,8 +548,139 @@ fn ast_ty_search_pat(ty: &ast::Ty) -> (Pat, Pat) {
     }
 }
 
+// NOTE: can't `impl WithSearchPat for TraitRef`, because `TraitRef` doesn't have a `span` field
+// (nor a method)
+fn trait_ref_search_pat(trait_ref: &TraitRef<'_>) -> (Pat, Pat) {
+    path_search_pat(trait_ref.path)
+}
+
+fn poly_trait_ref_search_pat(poly_trait_ref: &PolyTraitRef<'_>) -> (Pat, Pat) {
+    // NOTE: unfortunately we can't use `bound_generic_params` to see whether the pattern starts with
+    // `for<..>`, because if it's empty, we could have either `for<>` (nothing bound), or
+    // no `for` at all
+    let PolyTraitRef {
+        modifiers: TraitBoundModifiers { constness, polarity },
+        trait_ref,
+        ..
+    } = poly_trait_ref;
+
+    let trait_ref_search_pat = trait_ref_search_pat(trait_ref);
+
+    #[expect(
+        clippy::unnecessary_lazy_evaluations,
+        reason = "the closure in `or_else` has `match polarity`, which isn't free"
+    )]
+    let start = match constness {
+        BoundConstness::Never => None,
+        BoundConstness::Maybe(_) => Some(Pat::Str("[const]")),
+        BoundConstness::Always(_) => Some(Pat::Str("const")),
+    }
+    .or_else(|| match polarity {
+        BoundPolarity::Negative(_) => Some(Pat::Str("!")),
+        BoundPolarity::Maybe(_) => Some(Pat::Str("?")),
+        BoundPolarity::Positive => None,
+    })
+    .unwrap_or(trait_ref_search_pat.0);
+    let end = trait_ref_search_pat.1;
+
+    (start, end)
+}
+
 fn ident_search_pat(ident: Ident) -> (Pat, Pat) {
     (Pat::Sym(ident.name), Pat::Sym(ident.name))
+}
+
+fn pat_search_pat(tcx: TyCtxt<'_>, pat: &rustc_hir::Pat<'_>) -> (Pat, Pat) {
+    match pat.kind {
+        // Tuple patterns cannot show up in proc-macro checks
+        PatKind::Missing | PatKind::Err(_) | PatKind::Tuple(_, _) => (Pat::Str(""), Pat::Str("")),
+        PatKind::Wild => (Pat::Sym(kw::Underscore), Pat::Sym(kw::Underscore)),
+        PatKind::Binding(binding_mode, _, ident, Some(end_pat)) => {
+            let start = if binding_mode == BindingMode::NONE {
+                ident_search_pat(ident).0
+            } else {
+                Pat::Str(binding_mode.prefix_str())
+            };
+
+            let (_, end) = pat_search_pat(tcx, end_pat);
+            (start, end)
+        },
+        PatKind::Binding(binding_mode, _, ident, None) => {
+            let (s, end) = ident_search_pat(ident);
+            let start = if binding_mode == BindingMode::NONE {
+                s
+            } else {
+                Pat::Str(binding_mode.prefix_str())
+            };
+
+            (start, end)
+        },
+        PatKind::Struct(path, _, _) => {
+            let (start, _) = qpath_search_pat(&path);
+            (start, Pat::Str("}"))
+        },
+        PatKind::TupleStruct(path, _, _) => {
+            let (start, _) = qpath_search_pat(&path);
+            // This pattern cannot show up in proc-macro checks
+            (start, Pat::Str(""))
+        },
+        PatKind::Or(plist) => {
+            // documented invariant
+            debug_assert!(plist.len() >= 2);
+            let (start, _) = pat_search_pat(tcx, plist.first().unwrap());
+            let (_, end) = pat_search_pat(tcx, plist.last().unwrap());
+            (start, end)
+        },
+        PatKind::Never => (Pat::Str("!"), Pat::Str("")),
+        PatKind::Box(p) => {
+            let (_, end) = pat_search_pat(tcx, p);
+            (Pat::Str("box"), end)
+        },
+        PatKind::Deref(_) => (Pat::Str("deref!"), Pat::Str("")),
+        PatKind::Ref(p, _, _) => {
+            let (_, end) = pat_search_pat(tcx, p);
+            (Pat::Str("&"), end)
+        },
+        PatKind::Expr(expr) => pat_expr_search_pat(expr),
+        PatKind::Guard(pat, guard) => {
+            let (start, _) = pat_search_pat(tcx, pat);
+            let (_, end) = expr_search_pat(tcx, guard);
+            (start, end)
+        },
+        PatKind::Range(None, None, range) => match range {
+            rustc_hir::RangeEnd::Included => (Pat::Str("..="), Pat::Str("")),
+            rustc_hir::RangeEnd::Excluded => (Pat::Str(".."), Pat::Str("")),
+        },
+        PatKind::Range(r_start, r_end, range) => {
+            let start = match r_start {
+                Some(e) => pat_expr_search_pat(e).0,
+                None => match range {
+                    rustc_hir::RangeEnd::Included => Pat::Str("..="),
+                    rustc_hir::RangeEnd::Excluded => Pat::Str(".."),
+                },
+            };
+
+            let end = match r_end {
+                Some(e) => pat_expr_search_pat(e).1,
+                None => match range {
+                    rustc_hir::RangeEnd::Included => Pat::Str("..="),
+                    rustc_hir::RangeEnd::Excluded => Pat::Str(".."),
+                },
+            };
+            (start, end)
+        },
+        PatKind::Slice(_, _, _) => (Pat::Str("["), Pat::Str("]")),
+    }
+}
+
+fn pat_expr_search_pat(expr: &PatExpr<'_>) -> (Pat, Pat) {
+    match expr.kind {
+        PatExprKind::Lit { lit, negated } => {
+            let (start, end) = lit_search_pat(&lit.node);
+            if negated { (Pat::Str("!"), end) } else { (start, end) }
+        },
+        PatExprKind::Path(path) => qpath_search_pat(&path),
+    }
 }
 
 pub trait WithSearchPat<'cx> {
@@ -573,6 +711,8 @@ impl_with_search_pat!((_cx: LateContext<'tcx>, self: Ty<'_>) => ty_search_pat(se
 impl_with_search_pat!((_cx: LateContext<'tcx>, self: Ident) => ident_search_pat(*self));
 impl_with_search_pat!((_cx: LateContext<'tcx>, self: Lit) => lit_search_pat(&self.node));
 impl_with_search_pat!((_cx: LateContext<'tcx>, self: Path<'_>) => path_search_pat(self));
+impl_with_search_pat!((_cx: LateContext<'tcx>, self: PolyTraitRef<'_>) => poly_trait_ref_search_pat(self));
+impl_with_search_pat!((cx: LateContext<'tcx>, self: rustc_hir::Pat<'_>) => pat_search_pat(cx.tcx, self));
 
 impl_with_search_pat!((_cx: EarlyContext<'tcx>, self: Attribute) => attr_search_pat(self));
 impl_with_search_pat!((_cx: EarlyContext<'tcx>, self: ast::Ty) => ast_ty_search_pat(self));

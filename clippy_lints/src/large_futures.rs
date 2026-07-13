@@ -40,6 +40,8 @@ declare_clippy_lint! {
     "large future may lead to unexpected stack overflows"
 }
 
+impl_lint_pass!(LargeFuture => [LARGE_FUTURES]);
+
 pub struct LargeFuture {
     future_size_threshold: u64,
 }
@@ -52,8 +54,6 @@ impl LargeFuture {
     }
 }
 
-impl_lint_pass!(LargeFuture => [LARGE_FUTURES]);
-
 impl<'tcx> LateLintPass<'tcx> for LargeFuture {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         if let ExprKind::Match(scrutinee, _, MatchSource::AwaitDesugar) = expr.kind
@@ -64,7 +64,9 @@ impl<'tcx> LateLintPass<'tcx> for LargeFuture {
             && let ty = cx.typeck_results().expr_ty(arg)
             && let Some(future_trait_def_id) = cx.tcx.lang_items().future_trait()
             && implements_trait(cx, ty, future_trait_def_id, &[])
-            && let Ok(layout) = cx.tcx.layout_of(cx.typing_env().as_query_input(ty))
+            && let Ok(layout) = cx
+                .tcx
+                .layout_of(cx.typing_env().with_codegen_normalized(cx.tcx).as_query_input(ty))
             && let size = layout.layout.size()
             && size >= Size::from_bytes(self.future_size_threshold)
         {

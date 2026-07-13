@@ -3,7 +3,6 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::msrvs::Msrv;
 use clippy_utils::{is_in_const_context, is_in_test, sym};
 use rustc_data_structures::fx::FxHashMap;
-use rustc_hir::attrs::AttributeKind;
 use rustc_hir::{self as hir, AmbigArg, Expr, ExprKind, HirId, RustcVersion, StabilityLevel, StableSince, find_attr};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, TyCtxt};
@@ -72,6 +71,8 @@ declare_clippy_lint! {
     "ensures that all items used in the crate are available for the current MSRV"
 }
 
+impl_lint_pass!(IncompatibleMsrv => [INCOMPATIBLE_MSRV]);
+
 #[derive(Clone, Copy)]
 enum Availability {
     FeatureEnabled,
@@ -113,8 +114,6 @@ pub struct IncompatibleMsrv {
     // been checked when visiting the call expression.
     called_path: Option<HirId>,
 }
-
-impl_lint_pass!(IncompatibleMsrv => [INCOMPATIBLE_MSRV]);
 
 impl IncompatibleMsrv {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {
@@ -194,10 +193,11 @@ impl IncompatibleMsrv {
             }
         }
 
-        if (self.check_in_tests || !is_in_test(cx.tcx, node))
-            && let Some(current) = self.msrv.current(cx)
+        // Check `is_in_test` last as it walks the HIR parent chain.
+        if let Some(current) = self.msrv.current(cx)
             && let Availability::Since(version) = self.get_def_id_availability(cx.tcx, def_id, needs_const)
             && version > current
+            && (self.check_in_tests || !is_in_test(cx.tcx, node))
         {
             span_lint_and_then(
                 cx,
@@ -268,10 +268,7 @@ impl<'tcx> LateLintPass<'tcx> for IncompatibleMsrv {
 /// Heuristic checking if the node `hir_id` is under a `#[cfg()]` or `#[cfg_attr()]`
 /// attribute.
 fn is_under_cfg_attribute(cx: &LateContext<'_>, hir_id: HirId) -> bool {
-    cx.tcx.hir_parent_id_iter(hir_id).any(|id| {
-        find_attr!(
-            cx.tcx.hir_attrs(id),
-            AttributeKind::CfgTrace(..) | AttributeKind::CfgAttrTrace
-        )
-    })
+    cx.tcx
+        .hir_parent_id_iter(hir_id)
+        .any(|id| find_attr!(cx.tcx, id, CfgTrace(..) | CfgAttrTrace))
 }

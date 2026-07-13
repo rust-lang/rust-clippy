@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::res::{MaybeDef, MaybeQPath, MaybeResPath, MaybeTypeckRes};
 use clippy_utils::source::snippet_with_context;
-use clippy_utils::{DefinedTy, ExprUseNode, expr_use_ctxt, peel_blocks, strip_pat_refs};
+use clippy_utils::{DefinedTy, ExprUseNode, get_expr_use_site, peel_blocks, strip_pat_refs};
 use rustc_ast::ast;
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::{Applicability, Diag};
@@ -17,10 +17,10 @@ use super::UNNECESSARY_FOLD;
 /// Do we need to suggest turbofish when suggesting a replacement method?
 /// Changing `fold` to `sum` needs it sometimes when the return type can't be
 /// inferred. This checks for some common cases where it can be safely omitted
-fn needs_turbofish<'tcx>(cx: &LateContext<'tcx>, expr: &hir::Expr<'tcx>) -> bool {
-    let use_cx = expr_use_ctxt(cx, expr);
-    if use_cx.same_ctxt
-        && let use_node = use_cx.use_node(cx)
+fn needs_turbofish<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'tcx>) -> bool {
+    let use_site = get_expr_use_site(cx.tcx, cx.typeck_results(), expr.span.ctxt(), expr);
+    if use_site.same_ctxt
+        && let use_node = use_site.use_node(cx)
         && let Some(ty) = use_node.defined_ty(cx)
     {
         // some common cases where turbofish isn't needed:
@@ -41,7 +41,7 @@ fn needs_turbofish<'tcx>(cx: &LateContext<'tcx>, expr: &hir::Expr<'tcx>) -> bool
                 if !fn_return_ty
                     .skip_binder()
                     .walk()
-                    .any(|generic| generic.as_type().is_some_and(Ty::is_impl_trait)) =>
+                    .any(|generic| generic.as_type().is_some_and(Ty::is_opaque)) =>
             {
                 return false;
             },
@@ -89,6 +89,28 @@ impl Replacement {
     }
 }
 
+fn get_triggered_expr_span(
+    left_expr: &hir::Expr<'_>,
+    right_expr: &hir::Expr<'_>,
+    first_arg_id: hir::HirId,
+    second_arg_id: hir::HirId,
+    replacement: Replacement,
+) -> Option<Span> {
+    if left_expr.res_local_id() == Some(first_arg_id)
+        && (replacement.has_args || right_expr.res_local_id() == Some(second_arg_id))
+    {
+        right_expr.span.into()
+    }
+    // https://github.com/rust-lang/rust-clippy/issues/16581
+    else if right_expr.res_local_id() == Some(first_arg_id)
+        && (replacement.has_args || left_expr.res_local_id() == Some(second_arg_id))
+    {
+        left_expr.span.into()
+    } else {
+        None
+    }
+}
+
 fn check_fold_with_op(
     cx: &LateContext<'_>,
     expr: &hir::Expr<'_>,
@@ -111,8 +133,13 @@ fn check_fold_with_op(
         && let PatKind::Binding(_, first_arg_id, ..) = strip_pat_refs(param_a.pat).kind
         && let PatKind::Binding(_, second_arg_id, second_arg_ident, _) = strip_pat_refs(param_b.pat).kind
 
-        && left_expr.res_local_id() == Some(first_arg_id)
-        && (replacement.has_args || right_expr.res_local_id() == Some(second_arg_id))
+        && let Some(triggered_expr_span) = get_triggered_expr_span(
+            left_expr,
+            right_expr,
+            first_arg_id,
+            second_arg_id,
+            replacement
+        )
     {
         let span = fold_span.with_hi(expr.span.hi());
         span_lint_and_then(
@@ -125,7 +152,7 @@ fn check_fold_with_op(
                 let turbofish =
                     replacement.maybe_turbofish(cx.typeck_results().expr_ty_adjusted(right_expr).peel_refs());
                 let (r_snippet, _) =
-                    snippet_with_context(cx, right_expr.span, expr.span.ctxt(), "EXPR", &mut applicability);
+                    snippet_with_context(cx, triggered_expr_span, expr.span.ctxt(), "EXPR", &mut applicability);
                 let sugg = if replacement.has_args {
                     format!(
                         "{method}{turbofish}(|{second_arg_ident}| {r_snippet})",
@@ -182,7 +209,7 @@ fn check_fold_with_method(
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,
-    expr: &hir::Expr<'tcx>,
+    expr: &'tcx hir::Expr<'tcx>,
     init: &hir::Expr<'_>,
     acc: &hir::Expr<'_>,
     fold_span: Span,

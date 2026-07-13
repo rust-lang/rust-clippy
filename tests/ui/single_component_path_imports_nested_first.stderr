@@ -1,5 +1,5 @@
 error: this import is redundant
-  --> tests/ui/single_component_path_imports_nested_first.rs:4:1
+  --> tests/ui/single_component_path_imports_nested_first.rs:3:1
    |
 LL | use regex;
    | ^^^^^^^^^^ help: remove it entirely

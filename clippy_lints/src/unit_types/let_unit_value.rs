@@ -118,7 +118,7 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, format_args: &FormatArgsStorag
                                 init_new_span.shrink_to_lo(),
                                 format!("();\n{}", snippet_indent(cx, local.span).as_deref().unwrap_or("")),
                             ));
-                            diag.multipart_suggestion_verbose("replace variable usages with `()`", suggestions, app);
+                            diag.multipart_suggestion("replace variable usages with `()`", suggestions, app);
                             return;
                         }
                     }
@@ -131,7 +131,7 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, format_args: &FormatArgsStorag
                     } else {
                         "omit the `let` binding and replace variable usages with `()`"
                     };
-                    diag.multipart_suggestion_verbose(message, suggestions, app);
+                    diag.multipart_suggestion(message, suggestions, app);
                 },
             );
         }
@@ -317,7 +317,7 @@ fn needs_inferred_result_ty(
         },
         _ => return false,
     };
-    let sig = cx.tcx.fn_sig(id).instantiate_identity().skip_binder();
+    let sig = cx.tcx.fn_sig(id).instantiate_identity().skip_norm_wip().skip_binder();
     if let ty::Param(output_ty) = *sig.output().kind() {
         let args: Vec<&Expr<'_>> = if let Some(receiver) = receiver {
             std::iter::once(receiver).chain(args.iter()).collect()

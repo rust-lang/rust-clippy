@@ -5,12 +5,13 @@ use clippy_utils::consts::{ConstEvalCtxt, Constant};
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::res::MaybeDef;
 use clippy_utils::{expr_or_init, is_from_proc_macro, is_lint_allowed, peel_hir_expr_refs, peel_hir_expr_unary, sym};
+use rustc_ast as ast;
 use rustc_data_structures::fx::{FxHashMap, FxHashSet};
+use rustc_hir as hir;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty, UintTy};
 use rustc_session::impl_lint_pass;
 use rustc_span::{Span, Symbol};
-use {rustc_ast as ast, rustc_hir as hir};
 
 pub struct ArithmeticSideEffects {
     allowed_binary: FxHashMap<&'static str, FxHashSet<&'static str>>,
@@ -329,12 +330,12 @@ impl<'tcx> LateLintPass<'tcx> for ArithmeticSideEffects {
 /// Detects a type-casting conversion and returns the type of the original expression. For
 /// example, `let foo = u64::from(bar)`.
 fn find_original_primitive_ty<'tcx>(cx: &LateContext<'tcx>, expr: &hir::Expr<'_>) -> Option<Ty<'tcx>> {
-    if let hir::ExprKind::Call(path, [arg]) = &expr.kind
-        && path.res(cx).opt_def_id().is_diag_item(&cx.tcx, sym::from_fn)
-    {
-        Some(cx.typeck_results().expr_ty(arg))
-    } else {
-        None
+    match &expr.kind {
+        hir::ExprKind::Call(path, [arg]) if path.res(cx).opt_def_id().is_diag_item(&cx.tcx, sym::from_fn) => {
+            Some(cx.typeck_results().expr_ty(arg))
+        },
+        hir::ExprKind::Cast(arg, _) => Some(cx.typeck_results().expr_ty(arg)),
+        _ => None,
     }
 }
 

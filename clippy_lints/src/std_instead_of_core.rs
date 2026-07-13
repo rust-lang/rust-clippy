@@ -13,25 +13,30 @@ use rustc_span::{Span, sym};
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Finds items imported through `std` when available through `core`.
+    /// Finds items imported through `alloc` when available through `core`.
     ///
     /// ### Why restrict this?
-    /// Crates which have `no_std` compatibility may wish to ensure types are imported from core to ensure
-    /// disabling `std` does not cause the crate to fail to compile. This lint is also useful for crates
-    /// migrating to become `no_std` compatible.
+    /// Crates which have `no_std` compatibility and may optionally require alloc may wish to ensure types are
+    /// imported from core to ensure disabling `alloc` does not cause the crate to fail to compile. This lint
+    /// is also useful for crates migrating to become `no_std` compatible.
+    ///
+    /// ### Known problems
+    /// The lint is only partially aware of the required MSRV for items that were originally in `std` but moved
+    /// to `core`.
     ///
     /// ### Example
     /// ```no_run
-    /// use std::hash::Hasher;
+    /// # extern crate alloc;
+    /// use alloc::slice::from_ref;
     /// ```
     /// Use instead:
     /// ```no_run
-    /// use core::hash::Hasher;
+    /// use core::slice::from_ref;
     /// ```
     #[clippy::version = "1.64.0"]
-    pub STD_INSTEAD_OF_CORE,
+    pub ALLOC_INSTEAD_OF_CORE,
     restriction,
-    "type is imported from std when available in core"
+    "type is imported from alloc when available in core"
 }
 
 declare_clippy_lint! {
@@ -60,31 +65,32 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Finds items imported through `alloc` when available through `core`.
+    /// Finds items imported through `std` when available through `core`.
     ///
     /// ### Why restrict this?
-    /// Crates which have `no_std` compatibility and may optionally require alloc may wish to ensure types are
-    /// imported from core to ensure disabling `alloc` does not cause the crate to fail to compile. This lint
-    /// is also useful for crates migrating to become `no_std` compatible.
-    ///
-    /// ### Known problems
-    /// The lint is only partially aware of the required MSRV for items that were originally in `std` but moved
-    /// to `core`.
+    /// Crates which have `no_std` compatibility may wish to ensure types are imported from core to ensure
+    /// disabling `std` does not cause the crate to fail to compile. This lint is also useful for crates
+    /// migrating to become `no_std` compatible.
     ///
     /// ### Example
     /// ```no_run
-    /// # extern crate alloc;
-    /// use alloc::slice::from_ref;
+    /// use std::hash::Hasher;
     /// ```
     /// Use instead:
     /// ```no_run
-    /// use core::slice::from_ref;
+    /// use core::hash::Hasher;
     /// ```
     #[clippy::version = "1.64.0"]
-    pub ALLOC_INSTEAD_OF_CORE,
+    pub STD_INSTEAD_OF_CORE,
     restriction,
-    "type is imported from alloc when available in core"
+    "type is imported from std when available in core"
 }
+
+impl_lint_pass!(StdReexports => [
+    ALLOC_INSTEAD_OF_CORE,
+    STD_INSTEAD_OF_ALLOC,
+    STD_INSTEAD_OF_CORE,
+]);
 
 pub struct StdReexports {
     lint_points: Option<(Span, Vec<LintPoint>)>,
@@ -108,8 +114,6 @@ impl StdReexports {
         }
     }
 }
-
-impl_lint_pass!(StdReexports => [STD_INSTEAD_OF_CORE, STD_INSTEAD_OF_ALLOC, ALLOC_INSTEAD_OF_CORE]);
 
 #[derive(Debug)]
 enum LintPoint {
@@ -138,14 +142,7 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
                         return;
                     },
                 },
-                sym::alloc => {
-                    if cx.tcx.crate_name(def_id.krate) == sym::core {
-                        (ALLOC_INSTEAD_OF_CORE, "alloc", "core")
-                    } else {
-                        self.lint_if_finish(cx, first_segment.ident.span, LintPoint::Conflict);
-                        return;
-                    }
-                },
+                sym::alloc if cx.tcx.crate_name(def_id.krate) == sym::core => (ALLOC_INSTEAD_OF_CORE, "alloc", "core"),
                 _ => {
                     self.lint_if_finish(cx, first_segment.ident.span, LintPoint::Conflict);
                     return;
@@ -241,20 +238,21 @@ fn get_first_segment<'tcx>(path: &Path<'tcx>) -> Option<&'tcx PathSegment<'tcx>>
 /// Does not catch individually moved items
 fn is_stable(cx: &LateContext<'_>, mut def_id: DefId, msrv: Msrv) -> bool {
     loop {
-        if let Some(stability) = cx.tcx.lookup_stability(def_id)
-            && let StabilityLevel::Stable {
-                since,
-                allowed_through_unstable_modules: None,
-            } = stability.level
-        {
-            let stable = match since {
-                StableSince::Version(v) => msrv.meets(cx, v),
-                StableSince::Current => msrv.current(cx).is_none(),
-                StableSince::Err(_) => false,
-            };
-
-            if !stable {
-                return false;
+        if let Some(stability) = cx.tcx.lookup_stability(def_id) {
+            match stability.level {
+                // Workaround for items from `core::intrinsics` with a stable export in a different module.
+                // Not that we ignore the `since` field as we are already accessing the item in question.
+                StabilityLevel::Stable {
+                    allowed_through_unstable_modules: Some(_),
+                    ..
+                } => return true,
+                StabilityLevel::Stable { since, .. } => match since {
+                    StableSince::Version(v) if !msrv.meets(cx, v) => return false,
+                    StableSince::Current if msrv.current(cx).is_none() => return false,
+                    StableSince::Err(_) => return false,
+                    StableSince::Version(_) | StableSince::Current => {},
+                },
+                StabilityLevel::Unstable { .. } => return false,
             }
         }
 

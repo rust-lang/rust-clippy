@@ -158,7 +158,7 @@ fn has_generic_return_type(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
         .is_some(),
         ExprKind::MethodCall(..) => {
             if let Some(def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id) {
-                let sig = cx.tcx.fn_sig(def_id).instantiate_identity();
+                let sig = cx.tcx.fn_sig(def_id).instantiate_identity().skip_norm_wip();
                 let ret_ty = sig.output().skip_binder();
                 return ret_ty.has_param();
             }
@@ -168,7 +168,7 @@ fn has_generic_return_type(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
             if let ExprKind::Path(qpath) = &callee.kind {
                 let res = cx.qpath_res(qpath, callee.hir_id);
                 if let Res::Def(DefKind::Fn | DefKind::AssocFn, def_id) = res {
-                    let sig = cx.tcx.fn_sig(def_id).instantiate_identity();
+                    let sig = cx.tcx.fn_sig(def_id).instantiate_identity().skip_norm_wip();
                     let ret_ty = sig.output().skip_binder();
                     return ret_ty.has_param();
                 }
@@ -249,7 +249,7 @@ fn can_coerce_to_target_type(expr: &Expr<'_>) -> bool {
 fn check_binding_usages<'a>(cx: &LateContext<'a>, body: &Body<'a>, hir_id: HirId, binding_info: &BindingInfo<'a>) {
     let mut usages = Vec::new();
 
-    for_each_expr(cx, body.value, |expr| {
+    for_each_expr(cx.tcx, body.value, |expr| {
         if let ExprKind::Path(ref qpath) = expr.kind
             && !expr.span.from_expansion()
             && let Res::Local(id) = cx.qpath_res(qpath, expr.hir_id)

@@ -9,6 +9,7 @@ use rustc_hir::{BinOpKind, Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_session::impl_lint_pass;
+use rustc_span::SyntaxContext;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -34,11 +35,11 @@ declare_clippy_lint! {
     "manually reimplementing `is_power_of_two`"
 }
 
+impl_lint_pass!(ManualIsPowerOfTwo => [MANUAL_IS_POWER_OF_TWO]);
+
 pub struct ManualIsPowerOfTwo {
     msrv: Msrv,
 }
-
-impl_lint_pass!(ManualIsPowerOfTwo => [MANUAL_IS_POWER_OF_TWO]);
 
 impl ManualIsPowerOfTwo {
     pub fn new(conf: &'static Conf) -> Self {
@@ -51,7 +52,7 @@ impl ManualIsPowerOfTwo {
         }
 
         let mut applicability = Applicability::MachineApplicable;
-        let snippet = Sugg::hir_with_applicability(cx, receiver, "_", &mut applicability);
+        let snippet = Sugg::hir_with_context(cx, receiver, expr.span.ctxt(), "_", &mut applicability);
 
         span_lint_and_sugg(
             cx,
@@ -109,11 +110,12 @@ fn count_ones_receiver<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) -> Optio
 /// Return `greater` if `smaller == greater - 1`
 fn is_one_less<'tcx>(
     cx: &LateContext<'tcx>,
+    ctxt: SyntaxContext,
     greater: &'tcx Expr<'tcx>,
     smaller: &Expr<'tcx>,
 ) -> Option<&'tcx Expr<'tcx>> {
     if let Some((lhs, rhs)) = unexpanded_binop_operands(smaller, BinOpKind::Sub)
-        && SpanlessEq::new(cx).eq_expr(greater, lhs)
+        && SpanlessEq::new(cx).eq_expr(ctxt, greater, lhs)
         && is_integer_literal(rhs, 1)
         && matches!(cx.typeck_results().expr_ty_adjusted(greater).kind(), ty::Uint(_))
     {
@@ -126,7 +128,7 @@ fn is_one_less<'tcx>(
 /// Return `v` if `expr` is `v & (v - 1)` or `(v - 1) & v`
 fn is_and_minus_one<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) -> Option<&'tcx Expr<'tcx>> {
     let (lhs, rhs) = unexpanded_binop_operands(expr, BinOpKind::BitAnd)?;
-    is_one_less(cx, lhs, rhs).or_else(|| is_one_less(cx, rhs, lhs))
+    is_one_less(cx, expr.span.ctxt(), lhs, rhs).or_else(|| is_one_less(cx, expr.span.ctxt(), rhs, lhs))
 }
 
 /// Return the operands of the `expr` binary operation if the operator is `op` and none of the

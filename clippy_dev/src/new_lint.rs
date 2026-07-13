@@ -157,20 +157,29 @@ fn add_lint(lint: &LintData<'_>, enable_msrv: bool) -> io::Result<()> {
     let path = "clippy_lints/src/lib.rs";
     let mut lib_rs = fs::read_to_string(path).context("reading")?;
 
-    let (comment, ctor_arg) = if lint.pass == Pass::Late {
-        ("// add late passes here", "_")
-    } else {
-        ("// add early passes here", "")
-    };
-    let comment_start = lib_rs.find(comment).expect("Couldn't find comment");
     let module_name = lint.name;
     let camel_name = to_camel_case(lint.name);
 
-    let new_lint = if enable_msrv {
-        format!("Box::new(move |{ctor_arg}| Box::new({module_name}::{camel_name}::new(conf))),\n        ")
+    let (comment, new_lint) = if lint.pass == Pass::Late {
+        // Late passes are folded into the statically-combined struct, so a new
+        // entry is just `Field: Type = constructor` (see `combined_late_pass`).
+        let new_lint = if enable_msrv {
+            format!("{camel_name}: {module_name}::{camel_name} = {module_name}::{camel_name}::new(conf),\n        ")
+        } else {
+            format!("{camel_name}: {module_name}::{camel_name} = {module_name}::{camel_name},\n        ")
+        };
+        ("// add late passes here", new_lint)
     } else {
-        format!("Box::new(|{ctor_arg}| Box::new({module_name}::{camel_name})),\n        ")
+        // Early passes are folded into the statically-combined struct, so a new
+        // entry is just `Field: Type = constructor` (see `combined_early_pass`).
+        let new_lint = if enable_msrv {
+            format!("{camel_name}: {module_name}::{camel_name} = {module_name}::{camel_name}::new(conf),\n        ")
+        } else {
+            format!("{camel_name}: {module_name}::{camel_name} = {module_name}::{camel_name},\n        ")
+        };
+        ("// add early passes here", new_lint)
     };
+    let comment_start = lib_rs.find(comment).expect("Couldn't find comment");
 
     lib_rs.insert_str(comment_start, &new_lint);
 
@@ -275,8 +284,8 @@ fn get_lint_file_contents(lint: &LintData<'_>, enable_msrv: bool) -> String {
         let _: fmt::Result = writedoc!(
             result,
             r"
-            use clippy_utils::msrvs::{{self, {msrv_ty}}};
             use clippy_config::Conf;
+            use clippy_utils::msrvs::{{self, {msrv_ty}}};
             {pass_import}
             use rustc_lint::{{{context_import}, {pass_type}}};
             use rustc_session::impl_lint_pass;
@@ -319,7 +328,7 @@ fn get_lint_file_contents(lint: &LintData<'_>, enable_msrv: bool) -> String {
 
             impl {pass_type}{pass_lifetimes} for {name_camel} {{{extract_msrv}}}
 
-            // TODO: Add MSRV level to `clippy_config/src/msrvs.rs` if needed.
+            // TODO: Add MSRV level to `clippy_utils/src/msrvs.rs` if needed.
             // TODO: Update msrv config comment in `clippy_config/src/conf.rs`
         "
         );
@@ -502,7 +511,7 @@ fn setup_mod_file(path: &Path, lint: &LintData<'_>) -> io::Result<&'static str> 
     file_contents.replace_range(arr_start + 1..arr_end, &new_arr_content);
 
     // Just add the mod declaration at the top, it'll be fixed by rustfmt
-    file_contents.insert_str(0, &format!("mod {};\n", &lint.name));
+    file_contents.insert_str(0, &format!("mod {};\n", lint.name));
 
     let mut file = OpenOptions::new()
         .write(true)
@@ -526,18 +535,14 @@ fn parse_mod_file(path: &Path, contents: &str) -> (&'static str, usize) {
     let mut captures = [Capture::EMPTY];
     while let Some(name) = cursor.find_any_ident() {
         match cursor.get_text(name) {
-            "declare_clippy_lint" => {
-                if cursor.match_all(&[Bang, OpenBrace], &mut []) && cursor.find_pat(CloseBrace) {
-                    decl_end = Some(cursor.pos());
-                }
+            "declare_clippy_lint" if cursor.match_all(&[Bang, OpenBrace], &mut []) && cursor.find_pat(CloseBrace) => {
+                decl_end = Some(cursor.pos());
             },
-            "impl" => {
-                if cursor.match_all(&[Lt, Lifetime, Gt, CaptureIdent], &mut captures) {
-                    match cursor.get_text(captures[0]) {
-                        "LateLintPass" => context = Some("LateContext"),
-                        "EarlyLintPass" => context = Some("EarlyContext"),
-                        _ => {},
-                    }
+            "impl" if cursor.match_all(&[Lt, Lifetime, Gt, CaptureIdent], &mut captures) => {
+                match cursor.get_text(captures[0]) {
+                    "LateLintPass" => context = Some("LateContext"),
+                    "EarlyLintPass" => context = Some("EarlyContext"),
+                    _ => {},
                 }
             },
             _ => {},

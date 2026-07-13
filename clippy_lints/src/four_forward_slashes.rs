@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::SpanRangeExt as _;
+use clippy_utils::source::SpanExt as _;
 use itertools::Itertools;
 use rustc_errors::Applicability;
 use rustc_hir::Item;
@@ -35,6 +35,7 @@ declare_clippy_lint! {
     suspicious,
     "comments with 4 forward slashes (`////`) likely intended to be doc comments (`///`)"
 }
+
 declare_lint_pass!(FourForwardSlashes => [FOUR_FORWARD_SLASHES]);
 
 impl<'tcx> LateLintPass<'tcx> for FourForwardSlashes {
@@ -85,7 +86,7 @@ impl<'tcx> LateLintPass<'tcx> for FourForwardSlashes {
 
                     // If the comment contains a bare CR (not followed by a LF), do not propose an auto-fix
                     // as bare CR are not allowed in doc comments.
-                    if span.check_source_text(cx, contains_bare_cr) {
+                    if span.check_text(cx, contains_bare_cr) {
                         diag.help(msg)
                             .note("bare CR characters are not allowed in doc comments");
                         return;

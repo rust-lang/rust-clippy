@@ -11,36 +11,6 @@ use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for out of bounds array indexing with a constant
-    /// index.
-    ///
-    /// ### Why is this bad?
-    /// This will always panic at runtime.
-    ///
-    /// ### Example
-    /// ```rust,no_run
-    /// let x = [1, 2, 3, 4];
-    ///
-    /// x[9];
-    /// &x[2..9];
-    /// ```
-    ///
-    /// Use instead:
-    /// ```no_run
-    /// # let x = [1, 2, 3, 4];
-    /// // Index within bounds
-    ///
-    /// x[0];
-    /// x[3];
-    /// ```
-    #[clippy::version = "pre 1.29.0"]
-    pub OUT_OF_BOUNDS_INDEXING,
-    correctness,
-    "out of bounds constant indexing"
-}
-
-declare_clippy_lint! {
-    /// ### What it does
     /// Checks for usage of indexing or slicing that may panic at runtime.
     ///
     /// This lint does not report on indexing or slicing operations
@@ -90,6 +60,36 @@ declare_clippy_lint! {
     pub INDEXING_SLICING,
     restriction,
     "indexing/slicing usage"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for out of bounds array indexing with a constant
+    /// index.
+    ///
+    /// ### Why is this bad?
+    /// This will always panic at runtime.
+    ///
+    /// ### Example
+    /// ```rust,no_run
+    /// let x = [1, 2, 3, 4];
+    ///
+    /// x[9];
+    /// &x[2..9];
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # let x = [1, 2, 3, 4];
+    /// // Index within bounds
+    ///
+    /// x[0];
+    /// x[3];
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub OUT_OF_BOUNDS_INDEXING,
+    correctness,
+    "out of bounds constant indexing"
 }
 
 impl_lint_pass!(IndexingSlicing => [INDEXING_SLICING, OUT_OF_BOUNDS_INDEXING]);
@@ -245,7 +245,7 @@ fn to_const_range(cx: &LateContext<'_>, range: higher::Range<'_>, array_size: u1
     let e = range.end.map(|expr| ecx.eval(expr));
     let end = match e {
         Some(Some(Constant::Int(x))) => {
-            if range.limits == RangeLimits::Closed {
+            if range.ty.limits() == RangeLimits::Closed {
                 Some(x + 1)
             } else {
                 Some(x)

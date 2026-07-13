@@ -12,7 +12,7 @@ use rustc_span::symbol::kw;
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for usage of items through absolute paths, like `std::env::current_dir`.
+    /// Checks for usage of items through absolute paths, like `std::f64::consts::PI`.
     ///
     /// ### Why restrict this?
     /// Many codebases have their own style when it comes to importing, but one that is seldom used
@@ -52,6 +52,7 @@ declare_clippy_lint! {
     restriction,
     "checks for usage of an item without a `use` statement"
 }
+
 impl_lint_pass!(AbsolutePaths => [ABSOLUTE_PATHS]);
 
 pub struct AbsolutePaths {

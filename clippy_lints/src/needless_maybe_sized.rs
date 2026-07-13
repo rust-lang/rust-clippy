@@ -1,9 +1,10 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::is_from_proc_macro;
 use rustc_errors::Applicability;
 use rustc_hir::def_id::{DefId, DefIdMap};
 use rustc_hir::{BoundPolarity, GenericBound, Generics, PolyTraitRef, TraitBoundModifiers, WherePredicateKind};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::{ClauseKind, PredicatePolarity};
+use rustc_middle::ty::{ClauseKind, PredicatePolarity, Unnormalized};
 use rustc_session::declare_lint_pass;
 use rustc_span::symbol::Ident;
 
@@ -31,9 +32,11 @@ declare_clippy_lint! {
     suspicious,
     "a `?Sized` bound that is unusable due to a `Sized` requirement"
 }
+
 declare_lint_pass!(NeedlessMaybeSized => [NEEDLESS_MAYBE_SIZED]);
 
 #[expect(clippy::struct_field_names)]
+#[derive(Debug)]
 struct Bound<'tcx> {
     /// The [`DefId`] of the type parameter the bound refers to
     param: DefId,
@@ -89,7 +92,12 @@ fn path_to_sized_bound(cx: &LateContext<'_>, trait_bound: &PolyTraitRef<'_>) -> 
             return true;
         }
 
-        for (predicate, _) in cx.tcx.explicit_super_predicates_of(trait_def_id).iter_identity_copied() {
+        for (predicate, _) in cx
+            .tcx
+            .explicit_super_predicates_of(trait_def_id)
+            .iter_identity_copied()
+            .map(Unnormalized::skip_norm_wip)
+        {
             if let ClauseKind::Trait(trait_predicate) = predicate.kind().skip_binder()
                 && trait_predicate.polarity == PredicatePolarity::Positive
                 && !path.contains(&trait_predicate.def_id())
@@ -127,6 +135,7 @@ impl LateLintPass<'_> for NeedlessMaybeSized {
             if bound.trait_bound.modifiers == TraitBoundModifiers::NONE
                 && let Some(sized_bound) = maybe_sized_params.get(&bound.param)
                 && let Some(path) = path_to_sized_bound(cx, bound.trait_bound)
+                && !is_from_proc_macro(cx, bound.trait_bound)
             {
                 span_lint_and_then(
                     cx,

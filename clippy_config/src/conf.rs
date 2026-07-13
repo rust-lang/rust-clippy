@@ -3,7 +3,7 @@ use crate::types::{
     DisallowedPath, DisallowedPathWithoutReplacement, InherentImplLintScope, MacroMatcher, MatchLintBehaviour,
     PubUnderscoreFieldsBehaviour, Rename, SourceItemOrdering, SourceItemOrderingCategory,
     SourceItemOrderingModuleItemGroupings, SourceItemOrderingModuleItemKind, SourceItemOrderingTraitAssocItemKind,
-    SourceItemOrderingTraitAssocItemKinds, SourceItemOrderingWithinModuleItemGroupings,
+    SourceItemOrderingTraitAssocItemKinds, SourceItemOrderingWithinModuleItemGroupings, TraitImplItemOrder,
 };
 use clippy_utils::msrvs::Msrv;
 use itertools::Itertools;
@@ -38,6 +38,7 @@ const DEFAULT_DOC_VALID_IDENTS: &[&str] = &[
     "PowerPC", "PowerShell", "WebAssembly",
     "NaN", "NaNs",
     "OAuth", "GraphQL",
+    "SQLite", "MySQL", "PostgreSQL", "MariaDB", "MongoDB",
     "OCaml",
     "OpenAL", "OpenDNS", "OpenGL", "OpenMP", "OpenSSH", "OpenSSL", "OpenStreetMap", "OpenTelemetry",
     "OpenType",
@@ -413,6 +414,15 @@ define_Conf! {
     /// Whether `unwrap` should be allowed in test functions or `#[cfg(test)]`
     #[lints(unwrap_used)]
     allow_unwrap_in_tests: bool = false,
+    /// List of types to allow `unwrap()` and `expect()` on.
+    ///
+    /// #### Example
+    ///
+    /// ```toml
+    /// allow-unwrap-types = [ "std::sync::LockResult" ]
+    /// ```
+    #[lints(expect_used, unwrap_used)]
+    allow_unwrap_types: Vec<String> = Vec::new(),
     /// Whether `useless_vec` should ignore test functions or `#[cfg(test)]`
     #[lints(useless_vec)]
     allow_useless_vec_in_tests: bool = false,
@@ -544,6 +554,30 @@ define_Conf! {
     /// For internal testing only, ignores the current `publish` settings in the Cargo manifest.
     #[lints(cargo_common_metadata)]
     cargo_ignore_publish: bool = false,
+    /// Whether to check for grouped late initializations from multiple `let` statements.
+    ///
+    /// #### Example
+    /// ```rust
+    /// let a;
+    /// let b;
+    /// if true {
+    ///     a = 1;
+    ///     b = 2;
+    /// } else {
+    ///     a = 3;
+    ///     b = 4;
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// let (a, b) = if true {
+    ///     (1, 2)
+    /// } else {
+    ///     (3, 4)
+    /// };
+    /// ```
+    #[lints(needless_late_init)]
+    check_grouped_late_init: bool = true,
     /// Whether to check MSRV compatibility in `#[test]` and `#[cfg(test)]` code.
     #[lints(incompatible_msrv)]
     check_incompatible_msrv_in_tests: bool = false,
@@ -581,6 +615,17 @@ define_Conf! {
     /// Use the Cognitive Complexity lint instead.
     #[conf_deprecated("Please use `cognitive-complexity-threshold` instead", cognitive_complexity_threshold)]
     cyclomatic_complexity_threshold: u64 = 25,
+    /// The list of disallowed fields, written as fully qualified paths.
+    ///
+    /// **Fields:**
+    /// - `path` (required): the fully qualified path to the field that should be disallowed
+    /// - `reason` (optional): explanation why this field is disallowed
+    /// - `replacement` (optional): suggested alternative method
+    /// - `allow-invalid` (optional, `false` by default): when set to `true`, it will ignore this entry
+    ///   if the path doesn't exist, instead of emitting an error
+    #[disallowed_paths_allow_replacements = true]
+    #[lints(disallowed_fields)]
+    disallowed_fields: Vec<DisallowedPath> = Vec::new(),
     /// The list of disallowed macros, written as fully qualified paths.
     ///
     /// **Fields:**
@@ -693,7 +738,8 @@ define_Conf! {
     /// be filtering for common types.
     #[lints(manual_let_else)]
     matches_for_let_else: MatchLintBehaviour = MatchLintBehaviour::WellKnownTypes,
-    /// The maximum number of bool parameters a function can have
+    /// The maximum number of bool parameters a function can have.
+    /// Use `0` to lint on any function with a bool parameter.
     #[lints(fn_params_excessive_bools)]
     max_fn_params_bools: u64 = 3,
     /// The maximum size of a file included via `include_bytes!()` or `include_str!()`, in bytes
@@ -750,6 +796,7 @@ define_Conf! {
         filter_map_next,
         from_over_into,
         if_then_some_else_none,
+        implicit_saturating_sub,
         index_refutable_slice,
         inefficient_to_string,
         io_other_error,
@@ -766,9 +813,12 @@ define_Conf! {
         manual_hash_one,
         manual_is_ascii_check,
         manual_is_power_of_two,
+        manual_is_variant_and,
+        manual_isolate_lowest_one,
         manual_let_else,
         manual_midpoint,
         manual_non_exhaustive,
+        manual_noop_waker,
         manual_option_as_slice,
         manual_pattern_char_comparison,
         manual_range_contains,
@@ -868,6 +918,23 @@ define_Conf! {
     /// The order of associated items in traits.
     #[lints(arbitrary_source_item_ordering)]
     trait_assoc_item_kinds_order: SourceItemOrderingTraitAssocItemKinds = DEFAULT_TRAIT_ASSOC_ITEM_KINDS_ORDER.into(),
+    /// The required ordering of associated items in trait impls: purely alphabetical,
+    /// following the trait definition order, or accepting either.
+    ///
+    /// Note that the trait definition order may change between versions of the
+    /// crate defining the trait without being considered a breaking change.
+    ///
+    /// Examples:
+    /// When using trait definition item ordering:
+    /// ```toml
+    /// trait-impl-item-order = "trait_item_ordering"
+    /// ```
+    /// When using trait definition item ordering and alphabetical for fallbacks:
+    /// ```toml
+    /// trait-impl-item-order = "alphabetical_or_trait_item_ordering"
+    /// ```
+    #[lints(arbitrary_source_item_ordering)]
+    trait_impl_item_order: TraitImplItemOrder = TraitImplItemOrder::Alphabetical,
     /// The maximum size (in bytes) to consider a `Copy` type for passing by value instead of by
     /// reference.
     #[default_text = "target_pointer_width"]

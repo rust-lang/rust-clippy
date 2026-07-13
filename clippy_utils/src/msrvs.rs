@@ -3,8 +3,10 @@ use rustc_ast::Attribute;
 use rustc_ast::attr::AttributeExt;
 use rustc_attr_parsing::parse_version;
 use rustc_data_structures::smallvec::SmallVec;
-use rustc_hir::RustcVersion;
+use rustc_hir::def_id::DefId;
+use rustc_hir::{HirId, RustcVersion, StabilityLevel, StableSince};
 use rustc_lint::LateContext;
+use rustc_middle::ty::TyCtxt;
 use rustc_session::Session;
 use rustc_span::Symbol;
 use serde::Deserialize;
@@ -23,10 +25,13 @@ macro_rules! msrv_aliases {
 
 // names may refer to stabilized feature flags or library items
 msrv_aliases! {
+    1,97,0 { ISOLATE_LOWEST_ONE, BIT_WIDTH }
+    1,93,0 { VEC_DEQUE_POP_BACK_IF, VEC_DEQUE_POP_FRONT_IF }
     1,91,0 { DURATION_FROM_MINUTES_HOURS }
-    1,88,0 { LET_CHAINS }
+    1,88,0 { LET_CHAINS, AS_CHUNKS }
     1,87,0 { OS_STR_DISPLAY, INT_MIDPOINT, CONST_CHAR_IS_DIGIT, UNSIGNED_IS_MULTIPLE_OF, INTEGER_SIGN_CAST }
-    1,85,0 { UINT_FLOAT_MIDPOINT, CONST_SIZE_OF_VAL }
+    1,86,0 { VEC_POP_IF }
+    1,85,0 { UINT_FLOAT_MIDPOINT, CONST_SIZE_OF_VAL, WAKER_NOOP }
     1,84,0 { CONST_OPTION_AS_SLICE, MANUAL_DANGLING_PTR }
     1,83,0 { CONST_EXTERN_FN, CONST_FLOAT_BITS_CONV, CONST_FLOAT_CLASSIFY, CONST_MUT_REFS, CONST_UNWRAP }
     1,82,0 { IS_NONE_OR, REPEAT_N, RAW_REF_OP, SPECIALIZED_TO_STRING_FOR_REFS }
@@ -58,7 +63,7 @@ msrv_aliases! {
     1,51,0 { BORROW_AS_PTR, SEEK_FROM_CURRENT, UNSIGNED_ABS }
     1,50,0 { BOOL_THEN, CLAMP, SLICE_FILL }
     1,47,0 { TAU, IS_ASCII_DIGIT_CONST, ARRAY_IMPL_ANY_LEN, SATURATING_SUB_CONST }
-    1,46,0 { CONST_IF_MATCH }
+    1,46,0 { CONST_IF_MATCH, OPTION_ZIP }
     1,45,0 { STR_STRIP_PREFIX }
     1,43,0 { LOG2_10, LOG10_2, NUMERIC_ASSOCIATED_CONSTANTS }
     1,42,0 { MATCHES_MACRO, SLICE_PATTERNS, PTR_SLICE_RAW_PARTS }
@@ -115,16 +120,29 @@ impl Msrv {
     /// nodes for that attribute, prefer to run this check after cheaper pattern matching operations
     pub fn current(self, cx: &LateContext<'_>) -> Option<RustcVersion> {
         if SEEN_MSRV_ATTR.load(Ordering::Relaxed) {
-            let start = cx.last_node_with_lint_attrs;
-            if let Some(msrv_attr) = once(start)
-                .chain(cx.tcx.hir_parent_id_iter(start))
-                .find_map(|id| parse_attrs(cx.tcx.sess, cx.tcx.hir_attrs(id)))
-            {
-                return Some(msrv_attr);
-            }
+            self.for_attrs(cx.tcx, cx.last_node_with_lint_attrs)
+        } else {
+            self.0
         }
+    }
 
-        self.0
+    /// Returns the MSRV at the specified node
+    ///
+    /// If the crate being linted uses an `#[clippy::msrv]` attribute this will search the parent
+    /// nodes for that attribute, prefer to run this check after cheaper pattern matching operations
+    pub fn at(self, tcx: TyCtxt<'_>, node: HirId) -> Option<RustcVersion> {
+        if SEEN_MSRV_ATTR.load(Ordering::Relaxed) {
+            self.for_attrs(tcx, node)
+        } else {
+            self.0
+        }
+    }
+
+    fn for_attrs(self, tcx: TyCtxt<'_>, node: HirId) -> Option<RustcVersion> {
+        once(node)
+            .chain(tcx.hir_parent_id_iter(node))
+            .find_map(|id| parse_attrs(tcx.sess, tcx.hir_attrs(id)))
+            .or(self.0)
     }
 
     /// Checks if a required version from [this module](self) is met at the current node
@@ -135,6 +153,14 @@ impl Msrv {
         self.current(cx).is_none_or(|msrv| msrv >= required)
     }
 
+    /// Checks if a required version from [this module](self) is met at the specified node
+    ///
+    /// If the crate being linted uses an `#[clippy::msrv]` attribute this will search the parent
+    /// nodes for that attribute, prefer to run this check after cheaper pattern matching operations
+    pub fn meets_at(self, tcx: TyCtxt<'_>, node: HirId, required: RustcVersion) -> bool {
+        self.at(tcx, node).is_none_or(|msrv| msrv >= required)
+    }
+
     pub fn read_cargo(&mut self, sess: &Session) {
         let cargo_msrv = std::env::var("CARGO_PKG_RUST_VERSION")
             .ok()
@@ -142,15 +168,32 @@ impl Msrv {
 
         match (self.0, cargo_msrv) {
             (None, Some(cargo_msrv)) => self.0 = Some(cargo_msrv),
-            (Some(clippy_msrv), Some(cargo_msrv)) => {
-                if clippy_msrv != cargo_msrv {
-                    sess.dcx().warn(format!(
-                        "the MSRV in `clippy.toml` and `Cargo.toml` differ; using `{clippy_msrv}` from `clippy.toml`"
-                    ));
-                }
+            (Some(clippy_msrv), Some(cargo_msrv)) if clippy_msrv != cargo_msrv => {
+                sess.dcx().warn(format!(
+                    "the MSRV in `clippy.toml` and `Cargo.toml` differ; using `{clippy_msrv}` from `clippy.toml`"
+                ));
             },
             _ => {},
         }
+    }
+
+    pub fn is_stable(self, cx: &LateContext<'_>, def_id: DefId) -> bool {
+        cx.tcx.lookup_stability(def_id).is_none_or(|stability| {
+            if let StabilityLevel::Stable { since, .. } = stability.level {
+                let version = match since {
+                    StableSince::Version(version) => version,
+                    StableSince::Current => RustcVersion::CURRENT,
+                    StableSince::Err(_) => return false,
+                };
+
+                self.meets(cx, version)
+            } else {
+                // Unstable fn.
+                // FIXME: can we check that the feature is enabled?
+                // Please see https://github.com/rust-lang/rust-clippy/pull/17309#discussion_r3486693263 for false-positive concerns.
+                false
+            }
+        })
     }
 }
 

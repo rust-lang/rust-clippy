@@ -1,7 +1,5 @@
 //@aux-build: proc_macros.rs
 
-#![allow(dead_code, unused_variables)]
-
 extern crate proc_macros;
 use proc_macros::with_span;
 
@@ -169,5 +167,29 @@ fn issue_14934() {
         #[expect(clippy::toplevel_ref_arg)]
         let ref mut x = { &*y };
         //~^ borrow_deref_ref
+    }
+}
+
+mod issue16556 {
+    use std::pin::Pin;
+
+    async fn async_main() {
+        for_each_city(|city| {
+            Box::pin(async {
+                // Do not lint, as it would not compile without reborrowing
+                let city = &*city;
+                println!("{city}")
+            })
+        })
+        .await;
+    }
+
+    async fn for_each_city<F>(mut f: F)
+    where
+        F: for<'c> FnMut(&'c str) -> Pin<Box<dyn Future<Output = ()> + Send + 'c>>,
+    {
+        for x in ["New York", "London", "Tokyo"] {
+            f(x).await;
+        }
     }
 }

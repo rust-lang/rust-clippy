@@ -1,5 +1,5 @@
 #![warn(clippy::expect_used)]
-#![allow(clippy::unnecessary_literal_unwrap)]
+#![expect(clippy::unnecessary_literal_unwrap)]
 
 fn expect_option() {
     let opt = Some(0);
@@ -34,8 +34,4 @@ fn issue_15247() {
     //~^ expect_used
 }
 
-fn main() {
-    expect_option();
-    expect_result();
-    issue_15247();
-}
+fn main() {}

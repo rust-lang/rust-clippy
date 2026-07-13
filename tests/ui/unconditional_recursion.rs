@@ -1,11 +1,9 @@
-//@no-rustfix
-
 #![warn(clippy::unconditional_recursion)]
-#![allow(
-    clippy::partialeq_ne_impl,
+#![expect(
     clippy::default_constructed_unit_structs,
+    clippy::needless_lifetimes,
     clippy::only_used_in_recursion,
-    clippy::needless_lifetimes
+    clippy::partialeq_ne_impl
 )]
 
 enum Foo {

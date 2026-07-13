@@ -1,18 +1,13 @@
 #![feature(try_blocks)]
-#![allow(unused_braces, unused_variables, dead_code)]
-#![allow(
-    clippy::collapsible_else_if,
-    clippy::unused_unit,
+#![expect(
+    clippy::diverging_sub_expression,
     clippy::let_unit_value,
     clippy::match_single_binding,
-    clippy::never_loop,
     clippy::needless_ifs,
-    clippy::diverging_sub_expression,
-    clippy::single_match,
-    clippy::manual_unwrap_or_default
+    clippy::never_loop,
+    clippy::unused_unit
 )]
 #![warn(clippy::manual_let_else)]
-//@no-rustfix
 enum Variant {
     A(usize, usize),
     B(usize),
@@ -87,62 +82,6 @@ fn fire() {
     } else {
         if true {}
         panic!();
-    };
-
-    // The final expression will need to be turned into a statement.
-    let v = if let Some(v_some) = g() {
-        //~^ manual_let_else
-
-        v_some
-    } else {
-        panic!();
-        ()
-    };
-
-    // Even if the result is buried multiple expressions deep.
-    let v = if let Some(v_some) = g() {
-        //~^ manual_let_else
-
-        v_some
-    } else {
-        panic!();
-        if true {
-            match 0 {
-                0 => (),
-                _ => (),
-            }
-        } else {
-            panic!()
-        }
-    };
-
-    // Or if a break gives the value.
-    let v = if let Some(v_some) = g() {
-        //~^ manual_let_else
-
-        v_some
-    } else {
-        loop {
-            panic!();
-            break ();
-        }
-    };
-
-    // Even if the break is in a weird position.
-    let v = if let Some(v_some) = g() {
-        //~^ manual_let_else
-
-        v_some
-    } else {
-        'a: loop {
-            panic!();
-            loop {
-                match 0 {
-                    0 if (return break 'a ()) => {},
-                    _ => {},
-                }
-            }
-        }
     };
 
     // A match diverges if all branches diverge:
@@ -570,4 +509,22 @@ mod issue15914 {
             return;
         };
     }
+}
+
+fn issue16602(i: Result<i32, i32>) {
+    //~v manual_let_else
+    _ = match i {
+        Ok(i) => i,
+        Err(_) => unsafe {
+            core::hint::unreachable_unchecked();
+        },
+    };
+
+    //~v manual_let_else
+    _ = match i {
+        Ok(i) => i,
+        Err(_) => 'useless_label: {
+            panic!();
+        },
+    };
 }

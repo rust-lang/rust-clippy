@@ -133,7 +133,7 @@ impl<'a> Sugg<'a> {
         mut get_snippet: impl FnMut(Span) -> Cow<'a, str>,
     ) -> Self {
         if let Some(range) = higher::Range::hir(cx, expr) {
-            let op = AssocOp::Range(range.limits);
+            let op = AssocOp::Range(range.ty.limits());
             let start = range.start.map_or("".into(), |expr| get_snippet(expr.span));
             let end = range.end.map_or("".into(), |expr| get_snippet(expr.span));
 
@@ -231,6 +231,7 @@ impl<'a> Sugg<'a> {
             | ast::ExprKind::Loop(..)
             | ast::ExprKind::MacCall(..)
             | ast::ExprKind::MethodCall(..)
+            | ast::ExprKind::Move(..)
             | ast::ExprKind::Paren(..)
             | ast::ExprKind::Underscore
             | ast::ExprKind::Path(..)
@@ -335,6 +336,11 @@ impl<'a> Sugg<'a> {
         Sugg::NonParen(Cow::Owned(format!("{{ {self} }}")))
     }
 
+    /// Convenience method to wrap the expression in an `unsafe` block.
+    pub fn unsafeify(self) -> Sugg<'static> {
+        Sugg::NonParen(Cow::Owned(format!("unsafe {{ {self} }}")))
+    }
+
     /// Convenience method to prefix the expression with the `async` keyword.
     /// Can be used after `blockify` to create an async block.
     pub fn asyncify(self) -> Sugg<'static> {
@@ -367,6 +373,20 @@ impl<'a> Sugg<'a> {
                 Sugg::NonParen(format!("({sugg})").into())
             },
             Sugg::UnOp(op, inner) => Sugg::NonParen(format!("({}{})", op.as_str(), inner.maybe_inner_paren()).into()),
+        }
+    }
+
+    /// Strip enclosing parentheses if present. This method must be called when
+    /// it is known that removing those will not change the meaning. For example,
+    /// if `self` is known to represent a reference and the suggestion will be
+    /// used as the argument of a function call, it is safe to remove the enclosing
+    /// parentheses. It would not be safe to do so for an expression that might
+    /// represent a tuple.
+    #[must_use]
+    pub fn strip_paren(self) -> Self {
+        match self {
+            Sugg::NonParen(s) | Sugg::MaybeParen(s) => Sugg::NonParen(strip_enclosing_paren(s)),
+            sugg => sugg,
         }
     }
 
@@ -427,6 +447,22 @@ pub fn has_enclosing_paren(sugg: impl AsRef<str>) -> bool {
         chars.next().is_none()
     } else {
         false
+    }
+}
+
+/// Strip enclosing parentheses from a snippet if present.
+fn strip_enclosing_paren(snippet: Cow<'_, str>) -> Cow<'_, str> {
+    if has_enclosing_paren(&snippet) {
+        match snippet {
+            Cow::Borrowed(s) => Cow::Borrowed(&s[1..s.len() - 1]),
+            Cow::Owned(mut s) => {
+                s.pop();
+                s.remove(0);
+                Cow::Owned(s)
+            },
+        }
+    } else {
+        snippet
     }
 }
 
@@ -679,19 +715,19 @@ pub trait DiagExt<T: LintContext> {
         applicability: Applicability,
     );
 
-    /// Suggest to add an item before another.
+    /// Suggest to add an item after another.
     ///
     /// The item should not be indented (except for inner indentation).
     ///
     /// # Example
     ///
     /// ```rust,ignore
-    /// diag.suggest_prepend_item(cx, item,
+    /// diag.suggest_append_item(cx, item,
     /// "fn foo() {
     ///     bar();
     /// }");
     /// ```
-    fn suggest_prepend_item(&mut self, cx: &T, item: Span, msg: &str, new_item: &str, applicability: Applicability);
+    fn suggest_append_item(&mut self, cx: &T, item: Span, msg: &str, new_item: &str, applicability: Applicability);
 
     /// Suggest to completely remove an item.
     ///
@@ -723,24 +759,19 @@ impl<T: LintContext> DiagExt<T> for rustc_errors::Diag<'_, ()> {
         }
     }
 
-    fn suggest_prepend_item(&mut self, cx: &T, item: Span, msg: &str, new_item: &str, applicability: Applicability) {
+    fn suggest_append_item(&mut self, cx: &T, item: Span, msg: &str, new_item: &str, applicability: Applicability) {
         if let Some(indent) = indentation(cx, item) {
-            let span = item.with_hi(item.lo());
-
-            let mut first = true;
-            let new_item = new_item
-                .lines()
-                .map(|l| {
-                    if first {
-                        first = false;
-                        format!("{l}\n")
-                    } else {
-                        format!("{indent}{l}\n")
-                    }
-                })
-                .collect::<String>();
-
-            self.span_suggestion(span, msg.to_string(), format!("{new_item}\n{indent}"), applicability);
+            let span = item.shrink_to_hi();
+            let mut new_item_code = String::new();
+            for l in new_item.lines() {
+                writeln!(new_item_code, "{indent}{l}").unwrap();
+            }
+            self.span_suggestion(
+                span,
+                msg.to_string(),
+                format!("\n\n{}", new_item_code.strip_suffix('\n').unwrap()),
+                applicability,
+            );
         }
     }
 
@@ -861,7 +892,14 @@ impl<'tcx> DerefDelegate<'_, 'tcx> {
                     .cx
                     .typeck_results()
                     .type_dependent_def_id(parent_expr.hir_id)
-                    .map(|did| self.cx.tcx.fn_sig(did).instantiate_identity().skip_binder())
+                    .map(|did| {
+                        self.cx
+                            .tcx
+                            .fn_sig(did)
+                            .instantiate_identity()
+                            .skip_norm_wip()
+                            .skip_binder()
+                    })
                 {
                     std::iter::once(receiver)
                         .chain(call_args.iter())

@@ -181,7 +181,7 @@ fn check_final_expr<'tcx>(
             match cx.tcx.hir_attrs(expr.hir_id) {
                 [] => {},
                 [attr] => {
-                    if matches!(Level::from_attr(attr), Some((Level::Expect, _)))
+                    if matches!(Level::from_opt_symbol(attr.name()), Some(Level::Expect))
                         && let metas = attr.meta_item_list()
                         && let Some(lst) = metas
                         && let [MetaItemInner::MetaItem(meta_item), ..] = lst.as_slice()
@@ -251,7 +251,7 @@ fn emit_return_lint(
                 .chain(semi_spans.into_iter().map(|span| (span, String::new())))
                 .collect();
 
-            diag.multipart_suggestion_verbose(replacement.sugg_help(), suggestions, replacement.applicability());
+            diag.multipart_suggestion(replacement.sugg_help(), suggestions, replacement.applicability());
         },
     );
 }
@@ -259,7 +259,7 @@ fn emit_return_lint(
 // Go backwards while encountering whitespace and extend the given Span to that point.
 fn extend_span_to_previous_non_ws(cx: &LateContext<'_>, sp: Span) -> Span {
     if let Ok(prev_source) = cx.sess().source_map().span_to_prev_source(sp) {
-        let ws = [b' ', b'\t', b'\n'];
+        let ws = *b" \t\n";
         if let Some(non_ws_pos) = prev_source.bytes().rposition(|c| !ws.contains(&c)) {
             let len = prev_source.len() - non_ws_pos - 1;
             return sp.with_lo(sp.lo() - BytePos::from_usize(len));

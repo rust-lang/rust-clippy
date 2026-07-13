@@ -8,8 +8,32 @@ use rustc_errors::Applicability;
 use rustc_hir::{BorrowKind, Expr, ExprKind, LangItem, Mutability};
 use rustc_lint::{LateContext, LateLintPass, Lint};
 use rustc_middle::ty::adjustment::{Adjust, AutoBorrow, AutoBorrowMutability};
-use rustc_middle::ty::{GenericArg, Ty};
+use rustc_middle::ty::{self, GenericArg, Ty, Unnormalized};
 use rustc_session::declare_lint_pass;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for slicing expressions which are equivalent to dereferencing the
+    /// value.
+    ///
+    /// ### Why restrict this?
+    /// Some people may prefer to dereference rather than slice.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let vec = vec![1, 2, 3];
+    /// let slice = &vec[..];
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let vec = vec![1, 2, 3];
+    /// let slice = &*vec;
+    /// ```
+    #[clippy::version = "1.61.0"]
+    pub DEREF_BY_SLICING,
+    restriction,
+    "slicing instead of dereferencing"
+}
 
 declare_clippy_lint! {
     /// ### What it does
@@ -42,31 +66,7 @@ declare_clippy_lint! {
     "redundant slicing of the whole range of a type"
 }
 
-declare_clippy_lint! {
-    /// ### What it does
-    /// Checks for slicing expressions which are equivalent to dereferencing the
-    /// value.
-    ///
-    /// ### Why restrict this?
-    /// Some people may prefer to dereference rather than slice.
-    ///
-    /// ### Example
-    /// ```no_run
-    /// let vec = vec![1, 2, 3];
-    /// let slice = &vec[..];
-    /// ```
-    /// Use instead:
-    /// ```no_run
-    /// let vec = vec![1, 2, 3];
-    /// let slice = &*vec;
-    /// ```
-    #[clippy::version = "1.61.0"]
-    pub DEREF_BY_SLICING,
-    restriction,
-    "slicing instead of dereferencing"
-}
-
-declare_lint_pass!(RedundantSlicing => [REDUNDANT_SLICING, DEREF_BY_SLICING]);
+declare_lint_pass!(RedundantSlicing => [DEREF_BY_SLICING, REDUNDANT_SLICING]);
 
 static REDUNDANT_SLICING_LINT: (&Lint, &str) = (REDUNDANT_SLICING, "redundant slicing of the whole range");
 static DEREF_BY_SLICING_LINT: (&Lint, &str) = (DEREF_BY_SLICING, "slicing when dereferencing would work");
@@ -142,7 +142,12 @@ impl<'tcx> LateLintPass<'tcx> for RedundantSlicing {
             } else if let Some(target_id) = cx.tcx.lang_items().deref_target()
                 && let Ok(deref_ty) = cx.tcx.try_normalize_erasing_regions(
                     cx.typing_env(),
-                    Ty::new_projection_from_args(cx.tcx, target_id, cx.tcx.mk_args(&[GenericArg::from(indexed_ty)])),
+                    Unnormalized::new_wip(Ty::new_projection_from_args(
+                        cx.tcx,
+                        ty::IsRigid::No,
+                        target_id,
+                        cx.tcx.mk_args(&[GenericArg::from(indexed_ty)]),
+                    )),
                 )
                 && deref_ty == expr_ty
             {

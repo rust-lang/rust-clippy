@@ -3,12 +3,11 @@ use clippy_utils::macros::{FormatArgsStorage, format_args_inputs_span, root_macr
 use clippy_utils::res::MaybeDef;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::visitors::for_each_expr;
-use clippy_utils::{contains_return, is_inside_always_const_context, peel_blocks};
+use clippy_utils::{contains_return, is_inside_always_const_context, peel_blocks, sym};
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
 use rustc_span::Span;
-use rustc_span::symbol::sym;
 use std::borrow::Cow;
 use std::ops::ControlFlow;
 
@@ -76,7 +75,13 @@ fn get_arg_root<'a>(cx: &LateContext<'_>, arg: &'a hir::Expr<'a>) -> &'a hir::Ex
     let mut arg_root = peel_blocks(arg);
     loop {
         arg_root = match &arg_root.kind {
-            hir::ExprKind::AddrOf(hir::BorrowKind::Ref, _, expr) => expr,
+            hir::ExprKind::AddrOf(hir::BorrowKind::Ref, _, expr) => {
+                let expr_ty = cx.typeck_results().expr_ty(expr);
+                if expr_ty.is_str() {
+                    break;
+                }
+                expr
+            },
             hir::ExprKind::MethodCall(method_name, receiver, [], ..) => {
                 if (method_name.ident.name == sym::as_str || method_name.ident.name == sym::as_ref) && {
                     let arg_type = cx.typeck_results().expr_ty(receiver);
@@ -95,7 +100,7 @@ fn get_arg_root<'a>(cx: &LateContext<'_>, arg: &'a hir::Expr<'a>) -> &'a hir::Ex
 }
 
 fn contains_call<'a>(cx: &LateContext<'a>, arg: &'a hir::Expr<'a>) -> bool {
-    for_each_expr(cx, arg, |expr| {
+    for_each_expr(cx.tcx, arg, |expr| {
         if matches!(expr.kind, hir::ExprKind::MethodCall { .. } | hir::ExprKind::Call { .. })
             && !is_inside_always_const_context(cx.tcx, expr.hir_id)
         {

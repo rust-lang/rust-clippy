@@ -1,10 +1,9 @@
 //! Utility functions for attributes, including Clippy's built-in ones
 
-use crate::source::SpanRangeExt;
+use crate::source::SpanExt;
 use crate::{sym, tokenize_with_text};
 use rustc_ast::attr::AttributeExt;
 use rustc_errors::Applicability;
-use rustc_hir::attrs::AttributeKind;
 use rustc_hir::find_attr;
 use rustc_lexer::TokenKind;
 use rustc_lint::LateContext;
@@ -13,51 +12,51 @@ use rustc_session::Session;
 use rustc_span::{Span, Symbol};
 use std::str::FromStr;
 
+/// Validates a single clippy attribute and emits errors for unknown or deprecated ones.
+pub fn check_clippy_attr<A: AttributeExt>(sess: &Session, attr: &A) {
+    if let [clippy, segment2] = &*attr.path()
+        && *clippy == sym::clippy
+    {
+        let path_span = attr
+            .path_span()
+            .expect("Clippy attributes are unparsed and have a span");
+
+        match *segment2 {
+            sym::cyclomatic_complexity => {
+                sess.dcx()
+                    .struct_span_err(path_span, "usage of deprecated attribute")
+                    .with_span_suggestion(
+                        path_span,
+                        "consider using",
+                        "clippy::cognitive_complexity",
+                        Applicability::MachineApplicable,
+                    )
+                    .emit();
+            },
+            sym::author
+            | sym::version
+            | sym::cognitive_complexity
+            | sym::dump
+            | sym::msrv
+            | sym::has_significant_drop
+            | sym::format_args => {},
+            _ => {
+                sess.dcx().span_err(path_span, "usage of unknown attribute");
+            },
+        }
+    }
+}
+
 /// Given `attrs`, extract all the instances of a built-in Clippy attribute called `name`
-pub fn get_builtin_attr<'a, A: AttributeExt + 'a>(
-    sess: &'a Session,
-    attrs: &'a [A],
-    name: Symbol,
-) -> impl Iterator<Item = &'a A> {
+pub fn get_builtin_attr<'a, A: AttributeExt + 'a>(attrs: &'a [A], name: Symbol) -> impl Iterator<Item = &'a A> {
     attrs.iter().filter(move |attr| {
         if let [clippy, segment2] = &*attr.path()
             && *clippy == sym::clippy
         {
-            let path_span = attr
-                .path_span()
-                .expect("Clippy attributes are unparsed and have a span");
-            let new_name = match *segment2 {
-                sym::cyclomatic_complexity => Some("cognitive_complexity"),
-                sym::author
-                | sym::version
-                | sym::cognitive_complexity
-                | sym::dump
-                | sym::msrv
-                // The following attributes are for the 3rd party crate authors.
-                // See book/src/attribs.md
-                | sym::has_significant_drop
-                | sym::format_args => None,
-                _ => {
-                    sess.dcx().span_err(path_span, "usage of unknown attribute");
-                    return false;
-                },
-            };
-
-            match new_name {
-                Some(new_name) => {
-                    sess.dcx()
-                        .struct_span_err(path_span, "usage of deprecated attribute")
-                        .with_span_suggestion(
-                            path_span,
-                            "consider using",
-                            format!("clippy::{new_name}"),
-                            Applicability::MachineApplicable,
-                        )
-                        .emit();
-                    false
-                },
-                None => *segment2 == name,
+            if *segment2 == sym::cyclomatic_complexity {
+                return false;
             }
+            *segment2 == name
         } else {
             false
         }
@@ -68,7 +67,7 @@ pub fn get_builtin_attr<'a, A: AttributeExt + 'a>(
 /// returns that attribute, and `None` otherwise
 pub fn get_unique_builtin_attr<'a, A: AttributeExt>(sess: &'a Session, attrs: &'a [A], name: Symbol) -> Option<&'a A> {
     let mut unique_attr: Option<&A> = None;
-    for attr in get_builtin_attr(sess, attrs, name) {
+    for attr in get_builtin_attr(attrs, name) {
         if let Some(duplicate) = unique_attr {
             sess.dcx()
                 .struct_span_err(attr.span(), format!("`{name}` is defined multiple times"))
@@ -95,19 +94,23 @@ pub fn is_doc_hidden(attrs: &[impl AttributeExt]) -> bool {
 /// Checks whether the given ADT, or any of its fields/variants, are marked as `#[non_exhaustive]`
 pub fn has_non_exhaustive_attr(tcx: TyCtxt<'_>, adt: AdtDef<'_>) -> bool {
     adt.is_variant_list_non_exhaustive()
-        || find_attr!(tcx.get_all_attrs(adt.did()), AttributeKind::NonExhaustive(..))
+        || find_attr!(tcx, adt.did(), NonExhaustive(..))
         || adt.variants().iter().any(|variant_def| {
-            variant_def.is_field_list_non_exhaustive()
-                || find_attr!(tcx.get_all_attrs(variant_def.def_id), AttributeKind::NonExhaustive(..))
+            variant_def.is_field_list_non_exhaustive() || find_attr!(tcx, variant_def.def_id, NonExhaustive(..))
         })
         || adt
             .all_fields()
-            .any(|field_def| find_attr!(tcx.get_all_attrs(field_def.did), AttributeKind::NonExhaustive(..)))
+            .any(|field_def| find_attr!(tcx, field_def.did, NonExhaustive(..)))
 }
 
 /// Checks whether the given span contains a `#[cfg(..)]` attribute
 pub fn span_contains_cfg(cx: &LateContext<'_>, s: Span) -> bool {
-    s.check_source_text(cx, |src| {
+    s.check_text(cx, |src| {
+        // PERF: A `#[cfg]` needs a literal `#`, so skip the lexer when the source has none.
+        if !src.contains('#') {
+            return false;
+        }
+
         let mut iter = tokenize_with_text(src);
 
         // Search for the token sequence [`#`, `[`, `cfg`]
@@ -167,7 +170,7 @@ impl LimitStack {
 }
 
 fn parse_attrs<F: FnMut(u64)>(sess: &Session, attrs: &[impl AttributeExt], name: Symbol, mut f: F) {
-    for attr in get_builtin_attr(sess, attrs, name) {
+    for attr in get_builtin_attr(attrs, name) {
         let Some(value) = attr.value_str() else {
             sess.dcx().span_err(attr.span(), "bad clippy attribute");
             continue;

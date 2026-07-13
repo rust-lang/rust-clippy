@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg};
+use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::{
@@ -10,6 +10,7 @@ use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
+use rustc_span::SyntaxContext;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -80,6 +81,7 @@ declare_clippy_lint! {
     complexity,
     "setting the same boolean variable in both branches of an if-statement"
 }
+
 declare_lint_pass!(NeedlessBool => [NEEDLESS_BOOL, NEEDLESS_BOOL_ASSIGN]);
 
 fn condition_needs_parentheses(e: &Expr<'_>) -> bool {
@@ -107,36 +109,37 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessBool {
                 then,
                 r#else: Some(else_expr),
             }) = higher::If::hir(e)
-            && !span_contains_comment(cx.tcx.sess.source_map(), e.span)
+            && !span_contains_comment(cx, e.span)
         {
             let reduce = |ret, not| {
-                let mut applicability = Applicability::MachineApplicable;
-                let snip = Sugg::hir_with_applicability(cx, cond, "<predicate>", &mut applicability);
-                let mut snip = if not { !snip } else { snip };
-
-                if ret {
-                    snip = snip.make_return();
-                }
-
-                if is_else_clause(cx.tcx, e) {
-                    snip = snip.blockify();
-                }
-
-                if (condition_needs_parentheses(cond) && is_parent_stmt(cx, e.hir_id))
-                    || is_receiver_of_method_call(cx, e)
-                    || is_as_argument(cx, e)
-                {
-                    snip = snip.maybe_paren();
-                }
-
-                span_lint_and_sugg(
+                span_lint_and_then(
                     cx,
                     NEEDLESS_BOOL,
                     e.span,
                     "this if-then-else expression returns a bool literal",
-                    "you can reduce it to",
-                    snip.to_string(),
-                    applicability,
+                    |diag| {
+                        let mut applicability = Applicability::MachineApplicable;
+                        let snip = Sugg::hir_with_context(cx, cond, e.span.ctxt(), "<predicate>", &mut applicability);
+                        let mut snip = if not { !snip } else { snip };
+
+                        if ret {
+                            snip = snip.make_return();
+                        }
+
+                        if is_else_clause(cx.tcx, e) {
+                            snip = snip.blockify();
+                        }
+
+                        if (condition_needs_parentheses(cond) && is_parent_stmt(cx, e.hir_id))
+                            || is_receiver_of_method_call(cx, e)
+                            || is_as_argument(cx, e)
+                            || is_operand_of_binary_or_unary(cx, e)
+                        {
+                            snip = snip.maybe_paren();
+                        }
+
+                        diag.span_suggestion(e.span, "you can reduce it to", snip.to_string(), applicability);
+                    },
                 );
             };
             if let Some(a) = fetch_bool_block(then)
@@ -168,7 +171,7 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessBool {
             }
             if let Some((lhs_a, a)) = fetch_assign(then)
                 && let Some((lhs_b, b)) = fetch_assign(else_expr)
-                && SpanlessEq::new(cx).eq_expr(lhs_a, lhs_b)
+                && SpanlessEq::new(cx).eq_expr(SyntaxContext::root(), lhs_a, lhs_b)
             {
                 let mut applicability = Applicability::MachineApplicable;
                 let cond = Sugg::hir_with_context(cx, cond, e.span.ctxt(), "..", &mut applicability);
@@ -228,4 +231,11 @@ fn fetch_assign<'tcx>(expr: &'tcx Expr<'tcx>) -> Option<(&'tcx Expr<'tcx>, bool)
 
 fn is_as_argument(cx: &LateContext<'_>, e: &Expr<'_>) -> bool {
     matches!(get_parent_expr(cx, e).map(|e| e.kind), Some(ExprKind::Cast(_, _)))
+}
+
+fn is_operand_of_binary_or_unary(cx: &LateContext<'_>, e: &Expr<'_>) -> bool {
+    matches!(
+        get_parent_expr(cx, e).map(|e| e.kind),
+        Some(ExprKind::Binary(..) | ExprKind::Unary(..))
+    )
 }

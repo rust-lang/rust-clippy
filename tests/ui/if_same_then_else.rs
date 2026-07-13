@@ -1,14 +1,10 @@
 #![warn(clippy::if_same_then_else)]
-#![allow(
-    clippy::disallowed_names,
+#![expect(
     clippy::eq_op,
     clippy::never_loop,
     clippy::no_effect,
     clippy::unused_unit,
-    clippy::zero_divided_by_zero,
-    clippy::branches_sharing_code,
-    dead_code,
-    unreachable_code
+    clippy::zero_divided_by_zero
 )]
 
 use std::ops::*;
@@ -304,4 +300,21 @@ fn issue16416_prim(x: bool, a: u32, b: u32) {
     _ = if x { a > b } else { b < a };
     //~v if_same_then_else
     _ = if x { a >= b } else { b <= a };
+}
+
+mod issue16505 {
+    macro_rules! foo {
+        (< $hi:literal : $lo:literal > | $N:tt bits) => {{
+            const NEW_N_: usize = $hi - $lo + 1;
+            NEW_N_
+        }};
+    }
+
+    fn bar(x: bool) {
+        _ = if x {
+            foo!(<2:0> | 3 bits) == foo!(<3:1> | 3 bits)
+        } else {
+            foo!(<3:1> | 3 bits) == foo!(<2:0> | 3 bits)
+        };
+    }
 }

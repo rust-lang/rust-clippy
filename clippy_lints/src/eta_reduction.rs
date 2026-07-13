@@ -4,9 +4,7 @@ use clippy_utils::res::{MaybeDef, MaybeResPath};
 use clippy_utils::source::{snippet_opt, snippet_with_applicability};
 use clippy_utils::usage::{local_used_after_expr, local_used_in};
 use clippy_utils::{get_path_from_caller_to_method_type, is_adjusted, is_no_std_crate};
-use rustc_abi::ExternAbi;
 use rustc_errors::Applicability;
-use rustc_hir::attrs::AttributeKind;
 use rustc_hir::{BindingMode, Expr, ExprKind, FnRetTy, GenericArgs, Param, PatKind, QPath, Safety, TyKind, find_attr};
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_lint::{LateContext, LateLintPass};
@@ -66,7 +64,10 @@ declare_clippy_lint! {
     "redundant closures for method calls"
 }
 
-declare_lint_pass!(EtaReduction => [REDUNDANT_CLOSURE, REDUNDANT_CLOSURE_FOR_METHOD_CALLS]);
+declare_lint_pass!(EtaReduction => [
+    REDUNDANT_CLOSURE,
+    REDUNDANT_CLOSURE_FOR_METHOD_CALLS,
+]);
 
 impl<'tcx> LateLintPass<'tcx> for EtaReduction {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
@@ -151,16 +152,16 @@ fn check_closure<'tcx>(cx: &LateContext<'tcx>, outer_receiver: Option<&Expr<'tcx
             let callee_ty_adjustments = typeck.expr_adjustments(callee);
             let callee_ty_adjusted = callee_ty_adjustments.last().map_or(callee_ty, |a| a.target);
 
-            let sig = match callee_ty_adjusted.kind() {
+            let sig = match *callee_ty_adjusted.kind() {
                 ty::FnDef(def, _) => {
                     // Rewriting `x(|| f())` to `x(f)` where f is marked `#[track_caller]` moves the `Location`
-                    if find_attr!(cx.tcx.get_all_attrs(*def), AttributeKind::TrackCaller(..)) {
+                    if find_attr!(cx.tcx, def, TrackCaller(..)) {
                         return;
                     }
 
                     cx.tcx.fn_sig(def).skip_binder().skip_binder()
                 },
-                ty::FnPtr(sig_tys, hdr) => sig_tys.with(*hdr).skip_binder(),
+                ty::FnPtr(sig_tys, hdr) => sig_tys.with(hdr).skip_binder(),
                 ty::Closure(_, subs) => cx
                     .tcx
                     .signature_unclosure(subs.as_closure().sig(), Safety::Safe)
@@ -171,7 +172,7 @@ fn check_closure<'tcx>(cx: &LateContext<'tcx>, outer_receiver: Option<&Expr<'tcx
                         && let output = typeck.expr_ty(body.value)
                         && let ty::Tuple(tys) = *subs.type_at(1).kind()
                     {
-                        cx.tcx.mk_fn_sig(tys, output, false, Safety::Safe, ExternAbi::Rust)
+                        cx.tcx.mk_fn_sig_safe_rust_abi(tys, output)
                     } else {
                         return;
                     }
@@ -216,6 +217,18 @@ fn check_closure<'tcx>(cx: &LateContext<'tcx>, outer_receiver: Option<&Expr<'tcx
                     "redundant closure",
                     |diag| {
                         if let Some(mut snippet) = snippet_opt(cx, callee.span) {
+                            let n_refs = callee_ty_adjustments
+                                .iter()
+                                .rev()
+                                .fold(0, |acc, adjustment| match adjustment.kind {
+                                    Adjust::Deref(DerefAdjustKind::Overloaded(_)) => acc + 1,
+                                    Adjust::Deref(_) if acc > 0 => acc + 1,
+                                    _ => acc,
+                                });
+                            if n_refs > 0 {
+                                snippet = format!("{}{snippet}", "*".repeat(n_refs));
+                            }
+
                             if callee.res_local_id().is_some_and(|l| {
                                 // FIXME: Do we really need this `local_used_in` check?
                                 // Isn't it checking something like... `callee(callee)`?
@@ -231,18 +244,6 @@ fn check_closure<'tcx>(cx: &LateContext<'tcx>, outer_receiver: Option<&Expr<'tcx
                                     },
                                     _ => (),
                                 }
-                            } else if let n_refs =
-                                callee_ty_adjustments
-                                    .iter()
-                                    .rev()
-                                    .fold(0, |acc, adjustment| match adjustment.kind {
-                                        Adjust::Deref(DerefAdjustKind::Overloaded(_)) => acc + 1,
-                                        Adjust::Deref(_) if acc > 0 => acc + 1,
-                                        _ => acc,
-                                    })
-                                && n_refs > 0
-                            {
-                                snippet = format!("{}{snippet}", "*".repeat(n_refs));
                             }
 
                             let replace_with = match callee_ty_adjusted.kind() {
@@ -262,7 +263,7 @@ fn check_closure<'tcx>(cx: &LateContext<'tcx>, outer_receiver: Option<&Expr<'tcx
         },
         ExprKind::MethodCall(path, self_, args, _) if check_inputs(typeck, body.params, Some(self_), args) => {
             if let Some(method_def_id) = typeck.type_dependent_def_id(body.value.hir_id)
-                && !find_attr!(cx.tcx.get_all_attrs(method_def_id), AttributeKind::TrackCaller(..))
+                && !find_attr!(cx.tcx, method_def_id, TrackCaller(..))
                 && check_sig(closure_sig, cx.tcx.fn_sig(method_def_id).skip_binder().skip_binder())
             {
                 let mut app = Applicability::MachineApplicable;
@@ -316,7 +317,7 @@ fn check_inputs(
 }
 
 fn check_sig<'tcx>(closure_sig: FnSig<'tcx>, call_sig: FnSig<'tcx>) -> bool {
-    call_sig.safety.is_safe() && !has_late_bound_to_non_late_bound_regions(closure_sig, call_sig)
+    call_sig.safety().is_safe() && !has_late_bound_to_non_late_bound_regions(closure_sig, call_sig)
 }
 
 /// This walks through both signatures and checks for any time a late-bound region is expected by an
@@ -371,7 +372,7 @@ fn has_late_bound_to_non_late_bound_regions(from_sig: FnSig<'_>, to_sig: FnSig<'
         }
     }
 
-    assert!(from_sig.inputs_and_output.len() == to_sig.inputs_and_output.len());
+    assert_eq!(from_sig.inputs_and_output.len(), to_sig.inputs_and_output.len());
     from_sig
         .inputs_and_output
         .iter()

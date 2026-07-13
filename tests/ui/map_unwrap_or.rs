@@ -1,7 +1,7 @@
 //@aux-build:option_helpers.rs
 //@no-rustfix
 #![warn(clippy::map_unwrap_or)]
-#![allow(clippy::uninlined_format_args, clippy::unnecessary_lazy_evaluations)]
+#![expect(clippy::uninlined_format_args, clippy::unnecessary_lazy_evaluations)]
 
 #[macro_use]
 extern crate option_helpers;
@@ -92,10 +92,7 @@ fn result_methods() {
     let _ = opt_map!(res, |x| x + 1).unwrap_or_else(|_e| 0); // should not lint
 }
 
-fn main() {
-    option_methods();
-    result_methods();
-}
+fn main() {}
 
 #[clippy::msrv = "1.40"]
 fn msrv_1_40() {
@@ -163,4 +160,11 @@ fn issue15752() {
     let x = Some(Foo(&[1, 2, 3]));
     x.map(|y| y.0).unwrap_or(&[]);
     //~^ map_unwrap_or
+}
+
+fn issue16901() {
+    let raw = String::from("scope:value");
+    let after_scope = raw.split_once(':').map(|(_, v)| v).unwrap_or(&raw);
+    //~^ map_unwrap_or
+    let _: &str = after_scope;
 }

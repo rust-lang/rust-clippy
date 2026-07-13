@@ -1,8 +1,6 @@
-// will emits unused mut warnings after fixing
-#![allow(unused_mut)]
-// will emits needless collect warnings after fixing
-#![allow(clippy::needless_collect, clippy::drain_collect)]
 #![warn(clippy::iter_with_drain)]
+#![expect(clippy::drain_collect)]
+
 use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 
 fn full() {
@@ -62,9 +60,4 @@ fn should_not_help_0(bomb: &mut Bomb) {
     let _: Vec<u8> = bomb.fire.drain(..).collect();
 }
 
-fn main() {
-    full();
-    closed();
-    should_not_help();
-    should_not_help_0(&mut Bomb::default());
-}
+fn main() {}

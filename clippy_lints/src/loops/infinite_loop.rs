@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::{fn_def_id, is_from_proc_macro, is_lint_allowed};
+use clippy_utils::{RequiresSemi, fn_def_id, is_from_proc_macro, is_lint_allowed, is_never_expr};
 use hir::intravisit::{Visitor, walk_expr};
 use rustc_ast::Label;
 use rustc_errors::Applicability;
@@ -39,29 +39,27 @@ pub(super) fn check<'tcx>(
         return;
     }
 
-    let mut loop_visitor = LoopVisitor {
-        cx,
-        label,
-        inner_labels: label.into_iter().collect(),
-        loop_depth: 0,
-        is_finite: false,
-    };
+    let mut loop_visitor = LoopVisitor::new(cx, label);
     loop_visitor.visit_block(loop_block);
 
     let is_finite_loop = loop_visitor.is_finite;
 
     if !is_finite_loop {
         span_lint_and_then(cx, INFINITE_LOOP, expr.span, "infinite loop detected", |diag| {
-            if let FnRetTy::DefaultReturn(ret_span) = parent_fn_ret {
+            if let FnRetTy::DefaultReturn(ret_span) = parent_fn_ret
+                && cx
+                    .enclosing_body
+                    .is_some_and(|id| matches!(is_never_expr(cx, cx.tcx.hir_body(id).value), Some(RequiresSemi::No)))
+            {
                 diag.span_suggestion(
                     ret_span,
                     "if this is intentional, consider specifying `!` as function return",
                     " -> !",
                     Applicability::MaybeIncorrect,
                 );
-            } else {
-                diag.help("if this is not intended, try adding a `break` or `return` condition in the loop");
             }
+
+            diag.help("if this is not intended, try adding a `break` or `return` to the loop");
         });
     }
 }
@@ -142,12 +140,24 @@ fn get_parent_fn_ret_ty<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>) -> Option
     None
 }
 
-struct LoopVisitor<'hir, 'tcx> {
-    cx: &'hir LateContext<'tcx>,
-    label: Option<Label>,
-    inner_labels: Vec<Label>,
-    loop_depth: usize,
-    is_finite: bool,
+pub(super) struct LoopVisitor<'hir, 'tcx> {
+    pub cx: &'hir LateContext<'tcx>,
+    pub label: Option<Label>,
+    pub inner_labels: Vec<Label>,
+    pub loop_depth: usize,
+    pub is_finite: bool,
+}
+
+impl<'hir, 'tcx> LoopVisitor<'hir, 'tcx> {
+    pub fn new(cx: &'hir LateContext<'tcx>, label: Option<Label>) -> Self {
+        LoopVisitor {
+            cx,
+            label,
+            inner_labels: label.into_iter().collect(),
+            loop_depth: 0,
+            is_finite: false,
+        }
+    }
 }
 
 impl<'hir> Visitor<'hir> for LoopVisitor<'hir, '_> {
@@ -168,7 +178,7 @@ impl<'hir> Visitor<'hir> for LoopVisitor<'hir, '_> {
                     self.is_finite = true;
                 }
             },
-            ExprKind::Ret(..) => self.is_finite = true,
+            ExprKind::Ret(..) | ExprKind::Yield(_, hir::YieldSource::Yield) => self.is_finite = true,
             ExprKind::Loop(_, label, _, _) => {
                 if let Some(label) = label {
                     self.inner_labels.push(*label);

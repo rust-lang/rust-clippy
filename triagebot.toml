@@ -60,6 +60,37 @@ labels = ["S-waiting-on-concerns"]
 [view-all-comments-link]
 threshold = 20
 
+# Allows `merge` and `delegate` commands for merging a PR
+# Documentation at: https://forge.rust-lang.org/triagebot/merge.html
+[merge]
+type = "merge-queue"
+
+[notify-zulip."lint-nominated"]
+zulip_stream = 577190 # #clippy/fcp
+topic = "FCP rust-clippy#{number}: {title}"
+github_comment = """\
+This lint has been nominated for inclusion.
+
+[A FCP topic has been created on Zulip]({zulip_topic_url}).
+"""
+# Zulip polls may not be preceded by any other text and pings & short links inside
+# the title of a poll don't get recognized. Therefore we need to send two messages.
+message_on_add = [
+    """\
+PR rust-clippy#{number} "{title}" has been nominated for lint inclusion.
+Cc: {recipients}
+""",
+    """\
+/poll Approve lint inclusion of rust-clippy#{number}?
+approve
+decline
+don't know
+""",
+]
+message_on_remove = "PR rust-clippy#{number} lint nomination has been removed."
+message_on_close = "PR rust-clippy#{number} has been closed. Thanks for participating!"
+message_on_reopen = "PR rust-clippy#{number} has been reopened."
+
 [assign]
 contributing_url = "https://github.com/rust-lang/rust-clippy/blob/master/CONTRIBUTING.md"
 users_on_vacation = [
@@ -68,12 +99,15 @@ users_on_vacation = [
     "Alexendoo",
     "y21",
     "blyxyas",
+    "ada4a",
+    "dswij",
+    "samueltardieu"
 ]
 
 [assign.owners]
 "/.github" = ["@flip1995"]
 "/triagebot.toml" = ["@flip1995"]
-"/book" = ["@flip1995"]
+"/book" = ["@ada4a", "@samueltardieu"]
 "*" = [
     "@Manishearth",
     "@llogiq",
@@ -82,4 +116,11 @@ users_on_vacation = [
     "@Jarcho",
     "@y21",
     "@samueltardieu",
+    "@ada4a",
 ]
+
+# Require community reviews before automatic assignment
+# Documentation at: https://forge.rust-lang.org/triagebot/pr-assignment.html#community-reviews
+[assign.community_reviews]
+minimum_approvals = 2
+label = "S-waiting-on-community-reviews"

@@ -26,6 +26,7 @@ pub enum PathNS {
     Type,
     Value,
     Macro,
+    Field,
 
     /// Resolves to the name in the first available namespace, e.g. for `std::vec` this would return
     /// either the macro or the module but **not** both
@@ -41,6 +42,7 @@ impl PathNS {
             PathNS::Type => TypeNS,
             PathNS::Value => ValueNS,
             PathNS::Macro => MacroNS,
+            PathNS::Field => return false,
             PathNS::Arbitrary => return true,
         };
 
@@ -130,6 +132,8 @@ path_macros! {
     value_path: PathNS::Value,
     macro_path: PathNS::Macro,
 }
+
+// Paths in the standard library missing a diagnostic item
 
 // Paths in external crates
 pub static FUTURES_IO_ASYNCREADEXT: PathLookup = type_path!(futures_util::AsyncReadExt);
@@ -286,6 +290,20 @@ fn local_item_child_by_name(tcx: TyCtxt<'_>, local_id: LocalDefId, ns: PathNS, n
             &root_mod
         },
         Node::Item(item) => &item.kind,
+        Node::Variant(variant) if ns == PathNS::Field => {
+            return if let rustc_hir::VariantData::Struct { fields, .. } = variant.data
+                && let Some(field_def_id) = fields.iter().find_map(|field| {
+                    if field.ident.name == name {
+                        Some(field.def_id.to_def_id())
+                    } else {
+                        None
+                    }
+                }) {
+                Some(field_def_id)
+            } else {
+                None
+            };
+        },
         _ => return None,
     };
 
@@ -299,6 +317,7 @@ fn local_item_child_by_name(tcx: TyCtxt<'_>, local_id: LocalDefId, ns: PathNS, n
                         PathNS::Type => opt_def_id(path.res.type_ns),
                         PathNS::Value => opt_def_id(path.res.value_ns),
                         PathNS::Macro => opt_def_id(path.res.macro_ns),
+                        PathNS::Field => None,
                         PathNS::Arbitrary => unreachable!(),
                     }
                 } else {
@@ -313,11 +332,29 @@ fn local_item_child_by_name(tcx: TyCtxt<'_>, local_id: LocalDefId, ns: PathNS, n
                 None
             }
         }),
-        ItemKind::Impl(..) | ItemKind::Trait(..) => tcx
+        ItemKind::Impl(..) | ItemKind::Trait { .. } => tcx
             .associated_items(local_id)
             .filter_by_name_unhygienic(name)
             .find(|assoc_item| ns.matches(Some(assoc_item.namespace())))
             .map(|assoc_item| assoc_item.def_id),
+        ItemKind::Struct(_, _, rustc_hir::VariantData::Struct { fields, .. }) if ns == PathNS::Field => {
+            fields.iter().find_map(|field| {
+                if field.ident.name == name {
+                    Some(field.def_id.to_def_id())
+                } else {
+                    None
+                }
+            })
+        },
+        ItemKind::Enum(_, _, rustc_hir::EnumDef { variants }) if ns == PathNS::Type => {
+            variants.iter().find_map(|variant| {
+                if variant.ident.name == name {
+                    Some(variant.def_id.to_def_id())
+                } else {
+                    None
+                }
+            })
+        },
         _ => None,
     }
 }
@@ -335,7 +372,12 @@ fn non_local_item_child_by_name(tcx: TyCtxt<'_>, def_id: DefId, ns: PathNS, name
             .associated_item_def_ids(def_id)
             .iter()
             .copied()
-            .find(|assoc_def_id| tcx.item_name(*assoc_def_id) == name && ns.matches(tcx.def_kind(assoc_def_id).ns())),
+            .find(|&assoc_def_id| tcx.item_name(assoc_def_id) == name && ns.matches(tcx.def_kind(assoc_def_id).ns())),
+        DefKind::Struct => tcx
+            .associated_item_def_ids(def_id)
+            .iter()
+            .copied()
+            .find(|&assoc_def_id| tcx.item_name(assoc_def_id) == name),
         _ => None,
     }
 }

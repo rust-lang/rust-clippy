@@ -63,6 +63,7 @@ declare_clippy_lint! {
     restriction,
     "creating an unsafe block without explaining why it is safe"
 }
+
 declare_clippy_lint! {
     /// ### What it does
     /// Checks for `// SAFETY: ` comments on safe code.
@@ -92,6 +93,11 @@ declare_clippy_lint! {
     "annotating safe code with a safety comment"
 }
 
+impl_lint_pass!(UndocumentedUnsafeBlocks => [
+    UNDOCUMENTED_UNSAFE_BLOCKS,
+    UNNECESSARY_SAFETY_COMMENT,
+]);
+
 pub struct UndocumentedUnsafeBlocks {
     accept_comment_above_statement: bool,
     accept_comment_above_attributes: bool,
@@ -105,8 +111,6 @@ impl UndocumentedUnsafeBlocks {
         }
     }
 }
-
-impl_lint_pass!(UndocumentedUnsafeBlocks => [UNDOCUMENTED_UNSAFE_BLOCKS, UNNECESSARY_SAFETY_COMMENT]);
 
 impl<'tcx> LateLintPass<'tcx> for UndocumentedUnsafeBlocks {
     fn check_block(&mut self, cx: &LateContext<'tcx>, block: &'tcx Block<'tcx>) {
@@ -389,7 +393,7 @@ fn expr_has_unnecessary_safety_comment<'tcx>(
     }
 
     // this should roughly be the reverse of `block_parents_have_safety_comment`
-    if for_each_expr(cx, expr, |expr| match expr.kind {
+    if for_each_expr(cx.tcx, expr, |expr| match expr.kind {
         hir::ExprKind::Block(
             Block {
                 rules: BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided),
@@ -822,7 +826,9 @@ fn text_has_safety_comment(
             // Don't lint if the safety comment is part of a codeblock in a doc comment.
             // It may or may not be required, and we can't very easily check it (and we shouldn't, since
             // the safety comment isn't referring to the node we're currently checking)
-            if line.trim_start_matches("///").trim_start().starts_with("```") {
+            if let Some(doc) = line.strip_prefix("///").or_else(|| line.strip_prefix("//!"))
+                && doc.trim_start().starts_with("```")
+            {
                 in_codeblock = !in_codeblock;
             }
 

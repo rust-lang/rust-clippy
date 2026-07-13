@@ -45,6 +45,8 @@ declare_clippy_lint! {
     "lazy static that could be replaced by `std::sync::LazyLock`"
 }
 
+impl_lint_pass!(NonStdLazyStatic => [NON_STD_LAZY_STATICS]);
+
 /// A list containing functions with corresponding replacements in `LazyLock`.
 ///
 /// Some functions could be replaced as well if we have replaced `Lazy` to `LazyLock`,
@@ -82,8 +84,6 @@ impl NonStdLazyStatic {
         }
     }
 }
-
-impl_lint_pass!(NonStdLazyStatic => [NON_STD_LAZY_STATICS]);
 
 fn can_use_lazy_cell(cx: &LateContext<'_>, msrv: Msrv) -> bool {
     msrv.meets(cx, msrvs::LAZY_CELL) && !is_no_std_crate(cx)
@@ -198,7 +198,7 @@ impl LazyInfo {
 
             // visit body to collect `Lazy::new` calls
             let mut new_fn_calls = FxIndexMap::default();
-            for_each_expr::<(), ()>(cx, body, |ex| {
+            for_each_expr::<(), ()>(cx.tcx, body, |ex| {
                 if let Some((fn_did, call_span)) = fn_def_id_and_span_from_body(cx, ex, body_id)
                     && paths::ONCE_CELL_SYNC_LAZY_NEW.matches(cx, fn_did)
                 {

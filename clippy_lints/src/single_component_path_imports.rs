@@ -37,6 +37,8 @@ declare_clippy_lint! {
     "imports with single component path are redundant"
 }
 
+impl_lint_pass!(SingleComponentPathImports => [SINGLE_COMPONENT_PATH_IMPORTS]);
+
 #[derive(Default)]
 pub struct SingleComponentPathImports {
     /// Buffer found usages to emit when visiting that item so that `#[allow]` works as expected
@@ -49,8 +51,6 @@ struct SingleUse {
     item_id: NodeId,
     can_suggest: bool,
 }
-
-impl_lint_pass!(SingleComponentPathImports => [SINGLE_COMPONENT_PATH_IMPORTS]);
 
 impl EarlyLintPass for SingleComponentPathImports {
     fn check_crate(&mut self, cx: &EarlyContext<'_>, krate: &Crate) {
@@ -146,16 +146,24 @@ impl SingleComponentPathImports {
         // ```
         let mut macros = Vec::new();
 
-        let mut import_usage_visitor = ImportUsageVisitor::default();
         for item in items {
             self.track_uses(item, &mut imports_reused_with_self, &mut single_use_usages, &mut macros);
+        }
+
+        // Only walk the module's AST in search of `self::xxx` paths when there are single
+        // component imports left to lint, as the visitor recurses into every nested item.
+        single_use_usages.retain(|usage| !imports_reused_with_self.contains(&usage.name));
+        if single_use_usages.is_empty() {
+            return;
+        }
+
+        let mut import_usage_visitor = ImportUsageVisitor::default();
+        for item in items {
             import_usage_visitor.visit_item(item);
         }
 
         for usage in single_use_usages {
-            if !imports_reused_with_self.contains(&usage.name)
-                && !import_usage_visitor.imports_referenced_with_self.contains(&usage.name)
-            {
+            if !import_usage_visitor.imports_referenced_with_self.contains(&usage.name) {
                 self.found.entry(usage.item_id).or_default().push(usage);
             }
         }
@@ -210,7 +218,7 @@ impl SingleComponentPathImports {
                                 if !macros.contains(&name) {
                                     single_use_usages.push(SingleUse {
                                         name,
-                                        span: tree.0.span,
+                                        span: tree.0.span(),
                                         item_id: item.id,
                                         can_suggest: false,
                                     });

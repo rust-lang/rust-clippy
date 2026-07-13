@@ -40,6 +40,8 @@ declare_clippy_lint! {
     "unused type parameters in function definitions"
 }
 
+impl_lint_pass!(ExtraUnusedTypeParameters => [EXTRA_UNUSED_TYPE_PARAMETERS]);
+
 pub struct ExtraUnusedTypeParameters {
     avoid_breaking_exported_api: bool,
 }
@@ -51,8 +53,6 @@ impl ExtraUnusedTypeParameters {
         }
     }
 }
-
-impl_lint_pass!(ExtraUnusedTypeParameters => [EXTRA_UNUSED_TYPE_PARAMETERS]);
 
 /// A visitor struct that walks a given function and gathers generic type parameters, plus any
 /// trait bounds those parameters have.
@@ -102,7 +102,7 @@ impl<'cx, 'tcx> TypeWalker<'cx, 'tcx> {
     fn emit_sugg(&self, spans: Vec<Span>, msg: String, help: &'static str) {
         let suggestions: Vec<(Span, String)> = spans.iter().copied().zip(std::iter::repeat(String::new())).collect();
         span_lint_and_then(self.cx, EXTRA_UNUSED_TYPE_PARAMETERS, spans, msg, |diag| {
-            diag.multipart_suggestion(help, suggestions, Applicability::MachineApplicable);
+            diag.multipart_suggestion(help, suggestions, Applicability::MaybeIncorrect);
         });
     }
 

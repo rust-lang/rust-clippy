@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::{span_lint, span_lint_and_help};
+use clippy_utils::diagnostics::span_lint_and_then;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{Closure, Expr, ExprKind, StmtKind};
 use rustc_lint::{LateContext, LateLintPass};
@@ -89,7 +89,7 @@ fn get_args_to_check<'tcx>(
 ) -> Vec<(usize, Symbol)> {
     let mut args_to_check = Vec::new();
     if let Some(def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id) {
-        let fn_sig = cx.tcx.fn_sig(def_id).instantiate_identity();
+        let fn_sig = cx.tcx.fn_sig(def_id).instantiate_identity().skip_norm_wip();
         let generics = cx.tcx.predicates_of(def_id);
         let [fn_mut_preds, ord_preds, partial_ord_preds] =
             get_trait_predicates_for_trait_ids(cx, generics, &[Some(fn_mut_trait), ord_trait, partial_ord_trait]);
@@ -180,32 +180,21 @@ impl<'tcx> LateLintPass<'tcx> for UnitReturnExpectingOrd {
             let args = std::iter::once(receiver).chain(args.iter()).collect::<Vec<_>>();
             let arg_indices = get_args_to_check(cx, expr, args.len(), fn_mut_trait, ord_trait, partial_ord_trait);
             for (i, trait_name) in arg_indices {
-                match check_arg(cx, args[i]) {
-                    Some((span, None)) => {
-                        span_lint(
-                            cx,
-                            UNIT_RETURN_EXPECTING_ORD,
-                            span,
-                            format!(
-                                "this closure returns \
+                if let Some((span, last_semi)) = check_arg(cx, args[i]) {
+                    span_lint_and_then(
+                        cx,
+                        UNIT_RETURN_EXPECTING_ORD,
+                        span,
+                        format!(
+                            "this closure returns \
                                    the unit type which also implements {trait_name}"
-                            ),
-                        );
-                    },
-                    Some((span, Some(last_semi))) => {
-                        span_lint_and_help(
-                            cx,
-                            UNIT_RETURN_EXPECTING_ORD,
-                            span,
-                            format!(
-                                "this closure returns \
-                                   the unit type which also implements {trait_name}"
-                            ),
-                            Some(last_semi),
-                            "probably caused by this trailing semicolon",
-                        );
-                    },
-                    None => {},
+                        ),
+                        |diag| {
+                            if let Some(last_semi) = last_semi {
+                                diag.span_help(last_semi, "probably caused by this trailing semicolon");
+                            }
+                        },
+                    );
                 }
             }
         }

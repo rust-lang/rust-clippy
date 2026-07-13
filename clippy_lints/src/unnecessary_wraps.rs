@@ -60,11 +60,11 @@ declare_clippy_lint! {
     "functions that only return `Ok` or `Some`"
 }
 
+impl_lint_pass!(UnnecessaryWraps => [UNNECESSARY_WRAPS]);
+
 pub struct UnnecessaryWraps {
     avoid_breaking_exported_api: bool,
 }
-
-impl_lint_pass!(UnnecessaryWraps => [UNNECESSARY_WRAPS]);
 
 impl UnnecessaryWraps {
     pub fn new(conf: &'static Conf) -> Self {
@@ -99,7 +99,7 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryWraps {
         if let Node::Item(item) = cx.tcx.parent_hir_node(hir_id)
             && matches!(
                 item.kind,
-                ItemKind::Impl(Impl { of_trait: Some(_), .. }) | ItemKind::Trait(..)
+                ItemKind::Impl(Impl { of_trait: Some(_), .. }) | ItemKind::Trait { .. }
             )
         {
             return;

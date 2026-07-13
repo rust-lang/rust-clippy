@@ -1,11 +1,7 @@
 //@aux-build:proc_macros.rs
 #![feature(try_blocks)]
-#![deny(clippy::try_err)]
-#![allow(
-    clippy::unnecessary_wraps,
-    clippy::needless_question_mark,
-    clippy::needless_return_with_question_mark
-)]
+#![warn(clippy::try_err)]
+#![allow(clippy::needless_return_with_question_mark)]
 
 extern crate proc_macros;
 use proc_macros::{external, inline_macros};
@@ -107,23 +103,16 @@ fn calling_macro() -> Result<i32, i32> {
     Ok(5)
 }
 
-fn main() {
-    basic_test().unwrap();
-    into_test().unwrap();
-    negative_test().unwrap();
-    closure_matches_test().unwrap();
-    closure_into_test().unwrap();
-    calling_macro().unwrap();
-
-    // We don't want to lint in external macros
-    external! {
-        pub fn try_err_fn() -> Result<i32, i32> {
-            let err: i32 = 1;
-            // To avoid warnings during rustfix
-            if true { Err(err)? } else { Ok(2) }
-        }
+// We don't want to lint in external macros
+external! {
+    pub fn try_err_fn() -> Result<i32, i32> {
+        let err: i32 = 1;
+        // To avoid warnings during rustfix
+        if true { Err(err)? } else { Ok(2) }
     }
 }
+
+fn main() {}
 
 #[inline_macros]
 pub fn macro_inside(fail: bool) -> Result<i32, String> {

@@ -15,8 +15,7 @@ use rustc_errors::{Applicability, Diag};
 use rustc_hir::{Block, Body, Expr, ExprKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
-use rustc_span::source_map::Spanned;
-use rustc_span::{Span, Symbol, sym};
+use rustc_span::{Span, Spanned, Symbol, sym};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -65,6 +64,7 @@ declare_clippy_lint! {
     restriction,
     "indexing into a slice multiple times without an `assert`"
 }
+
 declare_lint_pass!(MissingAssertsForIndexing => [MISSING_ASSERTS_FOR_INDEXING]);
 
 fn report_lint<F>(cx: &LateContext<'_>, index_spans: Vec<Span>, msg: &'static str, f: F)
@@ -221,13 +221,11 @@ fn upper_index_expr(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<usize> {
         && let LitKind::Int(Pu128(index), _) = lit.node
     {
         Some(index as usize)
-    } else if let Some(Range {
-        end: Some(end), limits, ..
-    }) = Range::hir(cx, expr)
+    } else if let Some(Range { end: Some(end), ty, .. }) = Range::hir(cx, expr)
         && let ExprKind::Lit(lit) = &end.kind
         && let LitKind::Int(Pu128(index @ 1..), _) = lit.node
     {
-        match limits {
+        match ty.limits() {
             RangeLimits::HalfOpen => Some(index as usize - 1),
             RangeLimits::Closed => Some(index as usize),
         }
@@ -245,7 +243,10 @@ fn check_index<'hir>(cx: &LateContext<'_>, expr: &'hir Expr<'hir>, map: &mut Uni
         let hash = hash_expr(cx, slice);
 
         let indexes = map.entry(hash).or_default();
-        let entry = indexes.iter_mut().find(|entry| eq_expr_value(cx, entry.slice(), slice));
+        let ctxt = expr.span.ctxt();
+        let entry = indexes
+            .iter_mut()
+            .find(|entry| eq_expr_value(cx, ctxt, entry.slice(), slice));
 
         if let Some(entry) = entry {
             match entry {
@@ -305,7 +306,10 @@ fn check_assert<'hir>(cx: &LateContext<'_>, expr: &'hir Expr<'hir>, map: &mut Un
         let hash = hash_expr(cx, slice);
         let indexes = map.entry(hash).or_default();
 
-        let entry = indexes.iter_mut().find(|entry| eq_expr_value(cx, entry.slice(), slice));
+        let ctxt = expr.span.ctxt();
+        let entry = indexes
+            .iter_mut()
+            .find(|entry| eq_expr_value(cx, ctxt, entry.slice(), slice));
 
         if let Some(entry) = entry {
             if let IndexEntry::IndexWithoutAssert {

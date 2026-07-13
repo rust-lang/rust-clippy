@@ -1,9 +1,6 @@
-#![allow(dead_code)]
 #![warn(clippy::transmuting_null)]
-#![allow(clippy::zero_ptr)]
+#![expect(clippy::manual_dangling_ptr, clippy::zero_ptr)]
 #![allow(clippy::transmute_ptr_to_ref)]
-#![allow(clippy::eq_op, clippy::missing_transmute_annotations)]
-#![allow(clippy::manual_dangling_ptr)]
 
 // Easy to lint because these only span one line.
 fn one_liners() {
@@ -57,10 +54,4 @@ fn transmute_pointer_creators() {
     }
 }
 
-fn main() {
-    one_liners();
-    transmute_const();
-    transmute_const_int();
-    transumute_single_expr_blocks();
-    transmute_pointer_creators();
-}
+fn main() {}

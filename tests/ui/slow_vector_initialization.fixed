@@ -1,12 +1,10 @@
-#![allow(clippy::useless_vec, clippy::manual_repeat_n)]
+#![warn(clippy::slow_vector_initialization)]
+#![allow(clippy::useless_vec)]
+#![expect(clippy::manual_repeat_n)]
 
 use std::iter::repeat;
-fn main() {
-    resize_vector();
-    extend_vector();
-    mixed_extend_resize_vector();
-    from_empty_vec();
-}
+
+fn main() {}
 
 fn extend_vector() {
     // Extend with constant expression

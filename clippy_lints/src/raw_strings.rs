@@ -1,6 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::{SpanRangeExt, snippet_opt};
+use clippy_utils::source::{SpanExt, snippet_opt};
 use rustc_ast::ast::{Expr, ExprKind};
 use rustc_ast::token::LitKind;
 use rustc_errors::Applicability;
@@ -9,6 +9,28 @@ use rustc_session::impl_lint_pass;
 use rustc_span::{BytePos, Pos, Span};
 use std::iter::once;
 use std::ops::ControlFlow;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for raw string literals with an unnecessary amount of hashes around them.
+    ///
+    /// ### Why is this bad?
+    /// It's just unnecessary, and makes it look like there's more escaping needed than is actually
+    /// necessary.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let r = r###"Hello, "world"!"###;
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let r = r#"Hello, "world"!"#;
+    /// ```
+    #[clippy::version = "1.72.0"]
+    pub NEEDLESS_RAW_STRING_HASHES,
+    pedantic,
+    "suggests reducing the number of hashes around a raw string literal"
+}
 
 declare_clippy_lint! {
     /// ### What it does
@@ -33,27 +55,7 @@ declare_clippy_lint! {
     restriction,
     "suggests using a string literal when a raw string literal is unnecessary"
 }
-declare_clippy_lint! {
-    /// ### What it does
-    /// Checks for raw string literals with an unnecessary amount of hashes around them.
-    ///
-    /// ### Why is this bad?
-    /// It's just unnecessary, and makes it look like there's more escaping needed than is actually
-    /// necessary.
-    ///
-    /// ### Example
-    /// ```no_run
-    /// let r = r###"Hello, "world"!"###;
-    /// ```
-    /// Use instead:
-    /// ```no_run
-    /// let r = r#"Hello, "world"!"#;
-    /// ```
-    #[clippy::version = "1.72.0"]
-    pub NEEDLESS_RAW_STRING_HASHES,
-    pedantic,
-    "suggests reducing the number of hashes around a raw string literal"
-}
+
 impl_lint_pass!(RawStrings => [NEEDLESS_RAW_STRINGS, NEEDLESS_RAW_STRING_HASHES]);
 
 pub struct RawStrings {
@@ -72,7 +74,7 @@ impl EarlyLintPass for RawStrings {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {
         if let ExprKind::FormatArgs(format_args) = &expr.kind
             && !format_args.span.in_external_macro(cx.sess().source_map())
-            && format_args.span.check_source_text(cx, |src| src.starts_with('r'))
+            && format_args.span.check_text(cx, |src| src.starts_with('r'))
             && let Some(str) = snippet_opt(cx.sess(), format_args.span)
             && let count_hash = str.bytes().skip(1).take_while(|b| *b == b'#').count()
             && let Some(str) = str.get(count_hash + 2..str.len() - count_hash - 1)
@@ -95,7 +97,7 @@ impl EarlyLintPass for RawStrings {
                 _ => return,
             }
             && !expr.span.in_external_macro(cx.sess().source_map())
-            && expr.span.check_source_text(cx, |src| src.starts_with(prefix))
+            && expr.span.check_text(cx, |src| src.starts_with(prefix))
         {
             self.check_raw_string(cx, lit.symbol.as_str(), expr.span, prefix, max, lit.kind.descr());
         }
@@ -123,14 +125,14 @@ impl RawStrings {
                         remove.push((end, String::new()));
                     }
 
-                    diag.multipart_suggestion_verbose(
+                    diag.multipart_suggestion(
                         format!("use a plain {descr} literal instead"),
                         remove,
                         Applicability::MachineApplicable,
                     );
                 },
             );
-            if !matches!(cx.get_lint_level(NEEDLESS_RAW_STRINGS).level, rustc_lint::Allow) {
+            if !cx.get_lint_level_spec(NEEDLESS_RAW_STRINGS).is_allow() {
                 return;
             }
         }
