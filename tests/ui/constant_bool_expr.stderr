@@ -1,0 +1,29 @@
+error: expression always evaluates to `true`
+  --> tests/ui/constant_bool_expr.rs:7:8
+   |
+LL |     if a != 100 || a != 101 {}
+   |        ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::constant-bool-expr` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::constant_bool_expr)]`
+
+error: expression always evaluates to `false`
+  --> tests/ui/constant_bool_expr.rs:9:8
+   |
+LL |     if a == 100 && a == 101 {}
+   |        ^^^^^^^^^^^^^^^^^^^^
+
+error: expression always evaluates to `true`
+  --> tests/ui/constant_bool_expr.rs:12:14
+   |
+LL |     let _b = a != 100 || a != 101;
+   |              ^^^^^^^^^^^^^^^^^^^^
+
+error: expression always evaluates to `false`
+  --> tests/ui/constant_bool_expr.rs:14:14
+   |
+LL |     let _b = a == 100 && a == 101;
+   |              ^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 4 previous errors
+

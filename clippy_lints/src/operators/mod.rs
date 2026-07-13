@@ -3,6 +3,7 @@ mod assign_op_pattern;
 mod bit_mask;
 mod cmp_owned;
 mod const_comparisons;
+mod constant_bool_expr;
 mod decimal_bitwise_operands;
 mod double_comparison;
 mod duration_subsec;
@@ -204,6 +205,33 @@ declare_clippy_lint! {
     pub CMP_OWNED,
     perf,
     "creating owned instances for comparing with others, e.g., `x == \"foo\".to_string()`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for boolean expressions that end up constant, always `true` or `false`.
+    ///
+    /// ### Why is this bad?
+    /// This is most likely a logic bug.
+    ///
+    /// ### Limitations
+    /// This lint only checks against literals.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let a = 99;
+    /// if a != 100 || a != 101 { println!("Hello {a}"); } // Always true
+    /// if a == 100 && a == 101 { println!("Hello {a}"); } // Always false
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let a = 99;
+    /// println!("Hello {a}");
+    /// ```
+    #[clippy::version = "1.99.0"]
+    pub CONSTANT_BOOL_EXPR,
+    correctness,
+    "checks for boolean expressions that end up constant"
 }
 
 declare_clippy_lint! {
@@ -998,6 +1026,7 @@ impl_lint_pass!(Operators => [
     ASSIGN_OP_PATTERN,
     BAD_BIT_MASK,
     CMP_OWNED,
+    CONSTANT_BOOL_EXPR,
     DECIMAL_BITWISE_OPERANDS,
     DOUBLE_COMPARISONS,
     DURATION_SUBSEC,
@@ -1054,6 +1083,7 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                     absurd_extreme_comparisons::check(cx, e, op.node, lhs, rhs);
                     if !(macro_with_not_op(lhs) || macro_with_not_op(rhs)) {
                         eq_op::check(cx, e, op.node, lhs, rhs);
+                        constant_bool_expr::check(cx, e, op.node, lhs, rhs);
                         op_ref::check(cx, e, op.node, lhs, rhs);
                     }
                     erasing_op::check(cx, e, op.node, lhs, rhs);
