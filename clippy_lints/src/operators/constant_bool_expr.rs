@@ -1,3 +1,4 @@
+use clippy_utils::consts::{ConstEvalCtxt, Constant};
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::eq_expr_value;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
@@ -68,11 +69,27 @@ fn detect_variants<'tcx>(
 ) -> bool {
     let ctxt = e.span.ctxt();
 
-    let detect_variant = |left_a, right_a, left_literal: &Expr<'_>, right_literal: &Expr<'_>| {
-        matches!(left_literal.kind, ExprKind::Lit(_))
-            && matches!(right_literal.kind, ExprKind::Lit(_))
-            && !eq_expr_value(cx, ctxt, left_literal, right_literal)
-            && eq_expr_value(cx, ctxt, left_a, right_a)
+    let detect_variant = |left_a, right_a, left_cmp: &Expr<'_>, right_cmp: &Expr<'_>| {
+        // If the `a` expression is not the same on both sides, there is no need to go further
+        if !eq_expr_value(cx, ctxt, left_a, right_a) {
+            return false;
+        }
+
+        let const_ctx = ConstEvalCtxt::new(cx);
+
+        // We try to look into constants and const blocks, but if that fails we fall back to handling
+        // literals only
+        if let Some(left_evaluated) = const_ctx.eval(left_cmp)
+            && let Some(right_evaluated) = const_ctx.eval(right_cmp)
+            && left_evaluated != Constant::Err
+            && right_evaluated != Constant::Err
+        {
+            left_evaluated != right_evaluated
+        } else {
+            matches!(left_cmp.kind, ExprKind::Lit(_))
+                && matches!(right_cmp.kind, ExprKind::Lit(_))
+                && !eq_expr_value(cx, ctxt, left_cmp, right_cmp)
+        }
     };
 
     // (a CMP_OP _) BIN_OP (a CMP_OP _)

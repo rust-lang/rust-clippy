@@ -215,7 +215,8 @@ declare_clippy_lint! {
     /// This is most likely a logic bug.
     ///
     /// ### Limitations
-    /// This lint only checks against literals.
+    /// This lint only checks against literals and constant expressions since it cannot determine
+    /// if `a == bar() && a == foo()` will actually be different or not at runtime.
     ///
     /// ### Example
     /// ```no_run
