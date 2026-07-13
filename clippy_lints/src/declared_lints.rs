@@ -800,6 +800,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::unused_rounding::UNUSED_ROUNDING_INFO,
     crate::unused_self::UNUSED_SELF_INFO,
     crate::unused_trait_names::UNUSED_TRAIT_NAMES_INFO,
+    crate::unused_underscore_prefixed_argument::UNUSED_UNDERSCORE_PREFIXED_ARGUMENT_INFO,
     crate::unused_unit::UNUSED_UNIT_INFO,
     crate::unwrap::PANICKING_UNWRAP_INFO,
     crate::unwrap::UNNECESSARY_UNWRAP_INFO,
