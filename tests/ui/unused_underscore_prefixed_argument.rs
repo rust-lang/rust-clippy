@@ -32,4 +32,14 @@ impl PrivStruct {
     // Will still raise lint because this is within a private struct
 }
 
+pub trait Abc {
+    fn abc(a: i32, _b: i32);
+}
+
+pub struct Def;
+
+impl Abc for Def {
+    fn abc(a: i32, _b: i32) {}
+}
+
 fn main() {}

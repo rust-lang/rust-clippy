@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::is_trait_impl_item;
 use clippy_utils::visitors::is_local_used;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::FnKind;
@@ -66,6 +67,10 @@ impl<'tcx> LateLintPass<'tcx> for UnusedUnderscorePrefixedArgument {
         match fn_kind {
             FnKind::ItemFn(..) | FnKind::Method(..) => {
                 if ctx.effective_visibilities.is_exported(def_id) {
+                    return;
+                }
+                let hir_id = ctx.tcx.local_def_id_to_hir_id(def_id);
+                if is_trait_impl_item(ctx, hir_id) {
                     return;
                 }
                 for param in body.params {
