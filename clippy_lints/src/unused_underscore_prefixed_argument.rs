@@ -4,19 +4,32 @@ use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::*;
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::middle::privacy::Level;
 use rustc_session::declare_lint_pass;
 use rustc_span::Span;
 
 declare_clippy_lint! {
     /// ### What it does
     ///
+    /// Checks for function parameters that are prefixed with an underscore but are never used.
+    ///
+    /// This only applies to functions that are not effectively exported (i.e. not reachable from
+    /// outside the crate), such as private functions, functions in a private struct's impl, or
+    /// private functions in a public struct's impl.
+    ///
     /// ### Why is this bad?
+    ///
+    /// An underscore prefix only silences the unused-variable warning. If the parameter is
+    /// genuinely never used, it is dead weight and can usually be removed entirely.
     ///
     /// ### Example
     /// ```no_run
     /// fn foo(a: i32, _b: i32) {
     ///     println!("{a}");
+    /// }
+    ///
+    /// struct S;
+    /// impl S {
+    ///     fn bar(&self, _unused: i32) {}
     /// }
     /// ```
     /// Use instead:
@@ -24,13 +37,21 @@ declare_clippy_lint! {
     /// fn foo(a: i32) {
     ///     println!("{a}");
     /// }
+    ///
+    /// struct S;
+    /// impl S {
+    ///     fn bar(&self) {}
+    /// }
     /// ```
     #[clippy::version = "1.99.0"]
     pub UNUSED_UNDERSCORE_PREFIXED_ARGUMENT,
     pedantic,
-    "default lint description"
+    "function parameter prefixed with `_` that is never used"
 }
-declare_lint_pass!(UnusedUnderscorePrefixedArgument => [UNUSED_UNDERSCORE_PREFIXED_ARGUMENT]);
+
+declare_lint_pass!(UnusedUnderscorePrefixedArgument => [
+    UNUSED_UNDERSCORE_PREFIXED_ARGUMENT,
+]);
 
 impl<'tcx> LateLintPass<'tcx> for UnusedUnderscorePrefixedArgument {
     fn check_fn(
@@ -63,7 +84,7 @@ impl<'tcx> LateLintPass<'tcx> for UnusedUnderscorePrefixedArgument {
                     }
                 }
             },
-            _ => {}
+            _ => {},
         }
     }
 }
