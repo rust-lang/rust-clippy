@@ -4,6 +4,7 @@ use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::*;
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::middle::privacy::Level;
 use rustc_session::declare_lint_pass;
 use rustc_span::Span;
 
@@ -41,8 +42,8 @@ impl<'tcx> LateLintPass<'tcx> for UnusedUnderscorePrefixedArgument {
         _span: Span,
         def_id: LocalDefId,
     ) {
-        if let FnKind::ItemFn(..) = fn_kind {
-            {
+        match fn_kind {
+            FnKind::ItemFn(..) | FnKind::Method(..) => {
                 if ctx.effective_visibilities.is_exported(def_id) {
                     return;
                 }
@@ -61,7 +62,8 @@ impl<'tcx> LateLintPass<'tcx> for UnusedUnderscorePrefixedArgument {
                         );
                     }
                 }
-            }
+            },
+            _ => {}
         }
     }
 }
