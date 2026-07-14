@@ -6,5 +6,6 @@ fn foo(a: i32, _b: i32) {
 }
 
 pub fn foo2(a: i32, _b: i32) {}
+// no warning
 
 fn main() {}
