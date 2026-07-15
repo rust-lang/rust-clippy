@@ -22,7 +22,8 @@ declare_clippy_lint! {
     ///
     /// ### Configuration
     /// The maximum number of lines is configured with `too-many-lines-in-file-threshold`
-    /// (default: `1000`).
+    /// (default: `1000`). Any `u64` value is valid, including `0` (which makes the lint
+    /// trigger on any file containing at least one line of code).
     #[clippy::version = "1.97.0"]
     pub TOO_MANY_LINES_IN_FILE,
     restriction,
