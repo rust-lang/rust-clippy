@@ -22,8 +22,8 @@ declare_clippy_lint! {
     ///
     /// ### Configuration
     /// The maximum number of lines is configured with `too-many-lines-in-file-threshold`
-    /// (default: `1000`). Any `u64` value is valid, including `0` (which makes the lint
-    /// trigger on any file containing at least one line of code). Set it to `u64::MAX`
+    /// (default: `1000`). Any `u32` value is valid, including `0` (which makes the lint
+    /// trigger on any file containing at least one line of code). Set it to `u32::MAX`
     /// to effectively disable the lint.
     #[clippy::version = "1.97.0"]
     pub TOO_MANY_LINES_IN_FILE,
@@ -34,7 +34,7 @@ declare_clippy_lint! {
 impl_lint_pass!(TooManyLinesInFile => [TOO_MANY_LINES_IN_FILE]);
 
 pub struct TooManyLinesInFile {
-    threshold: u64,
+    threshold: u32,
 }
 
 impl TooManyLinesInFile {
@@ -59,7 +59,7 @@ impl EarlyLintPass for TooManyLinesInFile {
                 continue;
             };
 
-            let mut line_count: u64 = 0;
+            let mut line_count: u32 = 0;
             let mut in_comment = false;
             let mut threshold_exceeded_offset: Option<u32> = None;
             let mut byte_offset: u32 = 0;
