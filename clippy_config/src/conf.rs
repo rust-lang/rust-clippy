@@ -776,7 +776,7 @@ define_Conf! {
     too_many_arguments_threshold("too-many-arguments-threshold"): u64 = 7,
     /// The maximum number of lines a source file can have
     #[lints(too_many_lines_in_file)]
-    too_many_lines_in_file_threshold("too-many-lines-in-file-threshold"): u64 = 1000,
+    too_many_lines_in_file_threshold("too-many-lines-in-file-threshold"): u32 = 1000,
     /// The maximum number of lines a function or method can have
     #[lints(too_many_lines)]
     too_many_lines_threshold("too-many-lines-threshold"): u64 = 100,
