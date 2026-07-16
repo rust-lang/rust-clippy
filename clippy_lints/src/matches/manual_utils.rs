@@ -72,9 +72,12 @@ where
         return None;
     }
 
+    let mut app = Applicability::MachineApplicable;
+
     // `map` won't perform any adjustments.
-    if expr_requires_coercion(cx, expr) {
-        return None;
+    let requires_coercion = expr_requires_coercion(cx, expr);
+    if requires_coercion {
+        app = Applicability::MaybeIncorrect;
     }
 
     // Determine which binding mode to use.
@@ -106,8 +109,6 @@ where
             }
         }
     }
-
-    let mut app = Applicability::MachineApplicable;
 
     // Remove address-of expressions from the scrutinee. Either `as_ref` will be called, or
     // it's being passed by value.
@@ -168,6 +169,7 @@ where
         as_ref_str,
         body_str,
         app,
+        requires_coercion,
     })
 }
 
@@ -178,6 +180,7 @@ pub struct SuggInfo<'a> {
     pub as_ref_str: &'a str,
     pub body_str: String,
     pub app: Applicability,
+    pub requires_coercion: bool,
 }
 
 // Checks whether the expression could be passed as a function, or whether a closure is needed.

@@ -183,7 +183,7 @@ LL | |     };
    | |_____^ help: try: `Some(0).map(|x| vec![x])`
 
 error: manual implementation of `Option::map`
-  --> tests/ui/manual_map_option.rs:189:5
+  --> tests/ui/manual_map_option.rs:183:5
    |
 LL | /     match option_env!("") {
 LL | |
@@ -193,7 +193,7 @@ LL | |     };
    | |_____^ help: try: `option_env!("").map(String::from)`
 
 error: manual implementation of `Option::map`
-  --> tests/ui/manual_map_option.rs:210:12
+  --> tests/ui/manual_map_option.rs:204:12
    |
 LL |       } else if let Some(x) = Some(0) {
    |  ____________^
@@ -205,7 +205,7 @@ LL | |     };
    | |_____^ help: try: `{ Some(0).map(|x| x + 1) }`
 
 error: manual implementation of `Option::map`
-  --> tests/ui/manual_map_option.rs:219:12
+  --> tests/ui/manual_map_option.rs:213:12
    |
 LL |       } else if let Some(x) = Some(0) {
    |  ____________^
