@@ -869,7 +869,7 @@ rustc_lint::late_lint_methods!(
         RedundantElse: redundant_else::RedundantElse = redundant_else::RedundantElse,
         RestWhenDestructuringStruct: rest_when_destructuring_struct::RestWhenDestructuringStruct = rest_when_destructuring_struct::RestWhenDestructuringStruct,
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
-        IterMissingExactSize: iter_missing_exact_size::IterMissingExactSize = iter_missing_exact_size::IterMissingExactSize::new(),
+        IterMissingExactSize: iter_missing_exact_size::IterMissingExactSize = iter_missing_exact_size::IterMissingExactSize,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );

@@ -1,11 +1,10 @@
 use clippy_utils::diagnostics::span_lint_and_help;
-use clippy_utils::paths::{PathNS, lookup_path_str};
+use clippy_utils::paths::EXACT_SIZE_ITERATOR;
 use clippy_utils::sym;
 use clippy_utils::ty::{get_field_by_name, implements_trait, ty_from_hir_ty};
 use rustc_hir::{Body, Expr, ExprKind, Impl, ImplItemKind, Item, ItemKind, OwnerId, OwnerNode, QPath, StmtKind};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::impl_lint_pass;
-use rustc_span::def_id::DefId;
+use rustc_session::declare_lint_pass;
 use rustc_span::symbol::kw;
 
 declare_clippy_lint! {
@@ -74,28 +73,7 @@ declare_clippy_lint! {
     "iterator delegates to an ExactSizeIterator for its size hint but does not itself implement ExactSizeIterator"
 }
 
-impl_lint_pass!(IterMissingExactSize => [ITER_MISSING_EXACT_SIZE]);
-
-pub struct IterMissingExactSize {
-    exact_size_lookup: Option<Vec<DefId>>,
-}
-impl IterMissingExactSize {
-    pub fn new() -> Self {
-        IterMissingExactSize {
-            exact_size_lookup: None,
-        }
-    }
-
-    fn get_exact_size_lookup_defs(&mut self, cx: &LateContext<'_>) -> &[DefId] {
-        // ExactSizeIterator doesn't have a diagnostic item, or even a symobl
-        // that we can use in paths.rs to add a static type path. Lookup up the
-        // paths for the DefId the first time needed
-        if self.exact_size_lookup.is_none() {
-            self.exact_size_lookup = Some(lookup_path_str(cx.tcx, PathNS::Type, "core::iter::ExactSizeIterator"));
-        }
-        self.exact_size_lookup.as_ref().unwrap()
-    }
-}
+declare_lint_pass!(IterMissingExactSize => [ITER_MISSING_EXACT_SIZE]);
 
 /// Given an `OwnerId` for an item that is `impl Iterator for {type}`, try to
 /// locate the `size_hint()` function being defined in that block.
@@ -189,24 +167,17 @@ impl<'tcx> LateLintPass<'tcx> for IterMissingExactSize {
                 return;
             };
             // Does that type implement ExactSizeIterator ?
-            let exact_traits = self.get_exact_size_lookup_defs(cx);
-            let mut found = false;
-            for exact_trait_def in exact_traits {
-                if implements_trait(cx, field, *exact_trait_def, &[]) {
-                    found = true;
-                    break;
-                }
-            }
-            if !found {
+            let Some(trait_def) = EXACT_SIZE_ITERATOR.only(cx) else {
+                // Type isn't know, no_std or no_core environment
+                return;
+            };
+            if !implements_trait(cx, field, trait_def, &[]) {
+                // Field type doesn't does not implement ExactSizeIterator
                 return;
             }
-            // Delegates size hint to a field that implements ExactSizeIterator
-            // so this iterator should do so too
-            for exact_trait_def in exact_traits {
-                if implements_trait(cx, current_middle_ty, *exact_trait_def, &[]) {
-                    // This iterator type already implements ExactSizeIterator
-                    return;
-                }
+            if implements_trait(cx, current_middle_ty, trait_def, &[]) {
+                // Overall type already implements ExactSizeIterator
+                return;
             }
             span_lint_and_help(
                 cx,

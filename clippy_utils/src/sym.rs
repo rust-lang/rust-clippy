@@ -62,6 +62,7 @@ generate! {
     EarlyLintPass,
     Enumerate,
     Error,
+    ExactSizeIterator,
     File,
     FileType,
     FsOpenOptions,
