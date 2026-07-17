@@ -14,19 +14,19 @@ LL |         return Err(())?;
    |         ^^^^^^^ help: remove it
 
 error: unneeded `return` statement with `?` operator
-  --> tests/ui/needless_return_with_question_mark.rs:133:9
+  --> tests/ui/needless_return_with_question_mark.rs:142:9
    |
 LL |         return Err(())?;
    |         ^^^^^^^ help: remove it
 
 error: unneeded `return` statement with `?` operator
-  --> tests/ui/needless_return_with_question_mark.rs:142:13
+  --> tests/ui/needless_return_with_question_mark.rs:151:13
    |
 LL |             return Err(())?;
    |             ^^^^^^^ help: remove it
 
 error: unneeded `return` statement with `?` operator
-  --> tests/ui/needless_return_with_question_mark.rs:162:5
+  --> tests/ui/needless_return_with_question_mark.rs:171:5
    |
 LL |     return Err(())?;
    |     ^^^^^^^ help: remove it

@@ -117,7 +117,16 @@ fn issue11982_no_conversion() {
         Ok(())
     }
 }
-
+#[allow(clippy::unnecessary_literal_unwrap)]
+fn issue17421_no_lint_partial_move_after_if_let() -> Result<(), String> {
+    let v: Result<String, String> = Err("".to_string());
+    if let Err(e) = v {
+        return Err(e)?;
+    }
+    let v = v.unwrap();
+    println!("{}", v);
+    Ok(())
+}
 fn general_return() {
     fn foo(ok: bool) -> Result<(), ()> {
         let bar = Result::Ok(Result::<(), ()>::Ok(()));
