@@ -1,0 +1,40 @@
+error: forgetting a Future might cause problems with cancelation
+  --> tests/ui/forget_future.rs:9:5
+   |
+LL |     mem::forget(fut);
+   |     ^^^^^^^^^^^^^^^^
+   |
+note: argument has type `impl std::future::Future<Output = ()>`
+  --> tests/ui/forget_future.rs:9:17
+   |
+LL |     mem::forget(fut);
+   |                 ^^^
+   = note: `-D clippy::forget-future` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::forget_future)]`
+
+error: forgetting a Future might cause problems with cancelation
+  --> tests/ui/forget_future.rs:12:5
+   |
+LL |     mem::forget(async {});
+   |     ^^^^^^^^^^^^^^^^^^^^^
+   |
+note: argument has type `{async block@tests/ui/forget_future.rs:12:17: 12:22}`
+  --> tests/ui/forget_future.rs:12:17
+   |
+LL |     mem::forget(async {});
+   |                 ^^^^^^^^
+
+error: forgetting a Future might cause problems with cancelation
+  --> tests/ui/forget_future.rs:16:5
+   |
+LL |     mem::forget(fut);
+   |     ^^^^^^^^^^^^^^^^
+   |
+note: argument has type `MyFuture`
+  --> tests/ui/forget_future.rs:16:17
+   |
+LL |     mem::forget(fut);
+   |                 ^^^
+
+error: aborting due to 3 previous errors
+

@@ -6953,6 +6953,7 @@ Released 2018-09-13
 [`for_loops_over_fallibles`]: https://rust-lang.github.io/rust-clippy/master/index.html#for_loops_over_fallibles
 [`for_unbounded_range`]: https://rust-lang.github.io/rust-clippy/master/index.html#for_unbounded_range
 [`forget_copy`]: https://rust-lang.github.io/rust-clippy/master/index.html#forget_copy
+[`forget_future`]: https://rust-lang.github.io/rust-clippy/master/index.html#forget_future
 [`forget_non_drop`]: https://rust-lang.github.io/rust-clippy/master/index.html#forget_non_drop
 [`forget_ref`]: https://rust-lang.github.io/rust-clippy/master/index.html#forget_ref
 [`format_collect`]: https://rust-lang.github.io/rust-clippy/master/index.html#format_collect
