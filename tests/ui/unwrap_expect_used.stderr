@@ -130,5 +130,21 @@ LL |     Result::expect_err(res, "error message");
    |
    = note: if this value is an `Ok`, it will panic
 
-error: aborting due to 16 previous errors
+error: used `unwrap()` on a `Result` value
+  --> tests/ui/unwrap_expect_used.rs:126:9
+   |
+LL |     _ = t.clone().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^
+   |
+   = note: if this value is an `Err`, it will panic
+
+error: used `expect()` on a `Result` value
+  --> tests/ui/unwrap_expect_used.rs:128:9
+   |
+LL |     _ = t.clone().expect("we do not know much about `T`'s `x` field");
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: if this value is an `Err`, it will panic
+
+error: aborting due to 18 previous errors
 

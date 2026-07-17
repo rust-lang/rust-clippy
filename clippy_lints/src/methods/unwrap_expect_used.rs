@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::res::MaybeDef;
-use clippy_utils::ty::is_never_like;
+use clippy_utils::ty::is_visibly_uninhabited;
 use clippy_utils::{is_in_test, is_inside_always_const_context, is_lint_allowed};
 use rustc_hir::Expr;
 use rustc_hir::def::DefKind;
@@ -56,7 +56,7 @@ pub(super) fn check(
             if let ty::Adt(_, substs) = ty.kind()
                 && let Some(t_or_e_ty) = substs[usize::from(!is_err)].as_type() =>
         {
-            if is_never_like(t_or_e_ty) {
+            if is_visibly_uninhabited(cx, t_or_e_ty) {
                 return;
             }
 
