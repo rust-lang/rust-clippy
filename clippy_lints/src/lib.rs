@@ -210,7 +210,7 @@ mod manual_clamp;
 mod manual_float_methods;
 mod manual_hash_one;
 mod manual_ignore_case_cmp;
-mod manual_ilog2;
+mod manual_ilog;
 mod manual_is_ascii_check;
 mod manual_is_power_of_two;
 mod manual_let_else;
@@ -853,7 +853,7 @@ rustc_lint::late_lint_methods!(
         VolatileComposites: volatile_composites::VolatileComposites = volatile_composites::VolatileComposites,
         ReplaceBox: replace_box::ReplaceBox = <replace_box::ReplaceBox>::default(),
         DisallowedFields: disallowed_fields::DisallowedFields = disallowed_fields::DisallowedFields::new(tcx, conf),
-        ManualIlog2: manual_ilog2::ManualIlog2 = manual_ilog2::ManualIlog2::new(conf),
+        ManualIlog: manual_ilog::ManualIlog = manual_ilog::ManualIlog::new(conf),
         SameLengthAndCapacity: same_length_and_capacity::SameLengthAndCapacity = same_length_and_capacity::SameLengthAndCapacity,
         DurationSuboptimalUnits: duration_suboptimal_units::DurationSuboptimalUnits = duration_suboptimal_units::DurationSuboptimalUnits::new(tcx, conf),
         ManualTake: manual_take::ManualTake = manual_take::ManualTake::new(conf),

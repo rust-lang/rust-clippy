@@ -13,6 +13,32 @@ use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for expressions like `x.ilog(10)`, which is a manual reimplementation of
+    /// `x.ilog10()`.
+    ///
+    /// ### Why is this bad?
+    /// `ilog10()` is more performant than `ilog(10)`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let x: u32 = 5;
+    /// let nb_digits = x.ilog(10);
+    /// ```
+    ///
+    /// Use instead:
+    ///
+    /// ```no_run
+    /// let x: u32 = 5;
+    /// let nb_digits = x.ilog10();
+    /// ```
+    #[clippy::version = "1.98.0"]
+    pub MANUAL_ILOG10,
+    perf,
+    "using `ilog(10)` instead of `ilog10()`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for expressions like `N - x.leading_zeros()` (where `N` is one less than bit width
     /// of `x`) or `x.ilog(2)`, which are manual reimplementations of `x.ilog2()`
     ///
@@ -37,19 +63,19 @@ declare_clippy_lint! {
     "manually reimplementing `ilog2`"
 }
 
-impl_lint_pass!(ManualIlog2 => [MANUAL_ILOG2]);
+impl_lint_pass!(ManualIlog => [MANUAL_ILOG10, MANUAL_ILOG2]);
 
-pub struct ManualIlog2 {
+pub struct ManualIlog {
     msrv: Msrv,
 }
 
-impl ManualIlog2 {
+impl ManualIlog {
     pub fn new(conf: &Conf) -> Self {
         Self { msrv: conf.msrv }
     }
 }
 
-impl LateLintPass<'_> for ManualIlog2 {
+impl LateLintPass<'_> for ManualIlog {
     fn check_expr<'tcx>(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
         if expr.span.in_external_macro(cx.sess().source_map()) {
             return;
@@ -83,16 +109,28 @@ impl LateLintPass<'_> for ManualIlog2 {
             },
 
             // `n.ilog(2)`
-            ExprKind::MethodCall(ilog, recv, [two], _)
-                if expr.span.eq_ctxt(two.span)
+            ExprKind::MethodCall(ilog, recv, [base], _)
+                if expr.span.eq_ctxt(base.span)
                     && ilog.ident.name == sym::ilog
-                    && let ExprKind::Lit(lit) = two.kind
-                    && let LitKind::Int(Pu128(2), _) = lit.node
+                    && let ExprKind::Lit(lit) = base.kind
+                    && let LitKind::Int(Pu128(nb @ (2 | 10)), _) = lit.node
                     && cx.typeck_results().expr_ty_adjusted(recv).is_integral()
                     /* no need to check MSRV here, as `ilog` and `ilog2` were introduced simultaneously */
                     && !is_from_proc_macro(cx, expr) =>
             {
-                emit(cx, recv, expr);
+                if nb == 2 {
+                    emit(cx, recv, expr);
+                } else {
+                    span_lint_and_sugg(
+                        cx,
+                        MANUAL_ILOG10,
+                        ilog.ident.span.with_hi(expr.span.hi()),
+                        "manually reimplementing `ilog10`",
+                        "try",
+                        "ilog10()".to_owned(),
+                        Applicability::MachineApplicable,
+                    );
+                }
             },
 
             _ => {},
