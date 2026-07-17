@@ -2519,6 +2519,10 @@ declare_clippy_lint! {
     /// guarantee that the mutex isn't locked, instead of just a runtime
     /// guarantee.
     ///
+    /// ### Known problems
+    ///
+    /// This lint doesn't take lifetimes into account.
+    ///
     /// ### Example
     /// ```no_run
     /// use std::sync::{Arc, Mutex};
@@ -5592,7 +5596,7 @@ impl Methods {
                     }
                 },
                 (sym::lock, []) => {
-                    mut_mutex_lock::check(cx, expr, recv, span);
+                    mut_mutex_lock::check(cx, recv, span);
                 },
                 (name @ (sym::map | sym::map_err), [m_arg]) => {
                     if name == sym::map {
