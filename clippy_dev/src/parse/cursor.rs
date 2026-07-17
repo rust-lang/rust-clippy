@@ -155,7 +155,7 @@ impl<'txt> Cursor<'txt> {
                 },
                 (Pat::DoubleColon, TokenKind::Colon) => {
                     self.step();
-                    if matches!(self.next_token.kind, TokenKind::Colon) {
+                    if self.next_token.kind == TokenKind::Colon {
                         self.step();
                         return true;
                     }
@@ -163,7 +163,7 @@ impl<'txt> Cursor<'txt> {
                 },
                 (Pat::FatArrow, TokenKind::Eq) => {
                     self.step();
-                    if matches!(self.next_token.kind, TokenKind::Gt) {
+                    if self.next_token.kind == TokenKind::Gt {
                         self.step();
                         return true;
                     }

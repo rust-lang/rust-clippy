@@ -202,7 +202,7 @@ impl ArithmeticSideEffects {
                 {
                     return;
                 },
-                (Some(_), Some(_)) if matches!((lhs_ref_counter, rhs_ref_counter), (0, 0)) => return,
+                (Some(_), Some(_)) if (lhs_ref_counter, rhs_ref_counter) == (0, 0) => return,
                 _ => {},
             }
         }

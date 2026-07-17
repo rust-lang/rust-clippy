@@ -1113,7 +1113,7 @@ pub fn mir_to_const<'tcx>(tcx: TyCtxt<'tcx>, val: ConstValue, ty: Ty<'tcx>) -> O
             ty::RawPtr(_, _) => Some(Constant::RawPtr(int.to_bits(int.size()))),
             _ => None,
         },
-        (_, ty::Ref(_, inner_ty, _)) if matches!(inner_ty.kind(), ty::Str) => {
+        (_, ty::Ref(_, inner_ty, _)) if *inner_ty.kind() == ty::Str => {
             let data = val.try_get_slice_bytes_for_diagnostics(tcx)?;
             String::from_utf8(data.to_owned()).ok().map(Constant::Str)
         },

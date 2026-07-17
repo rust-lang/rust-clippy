@@ -54,10 +54,8 @@ pub(super) fn check<'tcx>(
                     match use_expr.kind {
                         ExprKind::Call(_, [recv]) | ExprKind::MethodCall(_, recv, [], _)
                             if recv.hir_id == use_ctxt.child_id
-                                && matches!(
-                                    use_expr.span.ctxt().outer_expn_data().kind,
-                                    ExpnKind::Desugaring(DesugaringKind::ForLoop),
-                                ) =>
+                                && use_expr.span.ctxt().outer_expn_data().kind
+                                    == ExpnKind::Desugaring(DesugaringKind::ForLoop) =>
                         {
                             diag.span_suggestion(
                                 call_span,

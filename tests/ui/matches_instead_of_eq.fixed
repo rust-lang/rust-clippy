@@ -1,0 +1,90 @@
+#![warn(clippy::matches_instead_of_eq)]
+#![allow(dead_code)]
+
+enum Foo {
+    Bar,
+    Baz,
+}
+
+#[derive(PartialEq)]
+enum EvenOdd {
+    Even,
+    Odd,
+    Unknown,
+}
+
+#[derive(PartialEq)]
+enum Foo2 {
+    Bar(u8, u8),
+    Baz { x: u8, y: u8 },
+}
+
+#[derive(PartialEq)]
+struct Empty;
+
+struct Manual;
+
+impl PartialEq for Manual {
+    fn eq(&self, _other: &Self) -> bool {
+        true
+    }
+}
+
+#[derive(PartialEq)]
+struct ContainsManual(Manual);
+
+fn main() {
+    let x = Empty;
+    let _val = x == Empty;
+    //~^ matches_instead_of_eq
+
+    let x = EvenOdd::Even;
+    let _val = x == EvenOdd::Odd;
+    //~^ matches_instead_of_eq
+
+    let x = EvenOdd::Even;
+    // Should suggest `!=` and not `==`.
+    let _val = x != EvenOdd::Odd;
+    //~^ matches_instead_of_eq
+
+    let x = &EvenOdd::Even;
+    // Should suggest `*x` and not `x`.
+    let _val = *x == EvenOdd::Odd;
+    //~^ matches_instead_of_eq
+
+    let y = EvenOdd::Odd;
+    // Should not emit because of the guard.
+    let _val = matches!(x, EvenOdd::Even if y != EvenOdd::Odd);
+
+    let x = &[EvenOdd::Odd];
+    // Should not emit because of the `..`.
+    let _val = matches!(x, [..]);
+
+    let x = Foo::Bar;
+    // Should not emit the lint since `Foo` doesn't implement `PartialEq`
+    let _val = matches!(x, Foo::Bar);
+
+    let x = EvenOdd::Odd;
+    // Should not emit the lint because of the `|`.
+    let _val = matches!(x, EvenOdd::Even | EvenOdd::Odd);
+
+    let x = Foo2::Bar(1, 2);
+    // Should not emit the lint.
+    let _val = matches!(x, Foo2::Bar(_, _));
+
+    let x = Foo2::Baz { x: 1, y: 2 };
+    // Should not emit the lint.
+    let _val = matches!(x, Foo2::Baz { .. });
+
+    // Should not emit the lint.
+    let _val = matches!(x, Foo2::Bar(..) | Foo2::Baz { .. });
+
+    let x = Manual;
+    // Should not emit the lint since `Manual` implements `PartialEq` manually.
+    let _val = matches!(x, Manual);
+
+    let x = ContainsManual(x);
+    // Should not emit the lint since `ContainsManual` contains `Manual` which implements
+    // `PartialEq` manually.
+    let _val = matches!(x, ContainsManual(Manual));
+}

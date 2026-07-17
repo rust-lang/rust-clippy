@@ -17,7 +17,7 @@ use super::MANUAL_INSPECT;
 #[expect(clippy::too_many_lines)]
 pub(crate) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, arg: &Expr<'_>, name: Symbol, name_span: Span, msrv: Msrv) {
     if let ExprKind::Closure(c) = arg.kind
-        && matches!(c.kind, ClosureKind::Closure)
+        && c.kind == ClosureKind::Closure
         && let typeck = cx.typeck_results()
         && let Some(fn_def) = typeck.type_dependent_def(expr.hir_id)
         && (fn_def.opt_parent(cx).is_diag_item(cx, sym::Iterator)

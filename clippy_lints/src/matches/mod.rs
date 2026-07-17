@@ -14,6 +14,7 @@ mod match_single_binding;
 mod match_str_case_mismatch;
 mod match_wild_enum;
 mod match_wild_err_arm;
+mod matches_instead_of_eq;
 mod needless_match;
 mod overlapping_arms;
 mod redundant_guards;
@@ -30,9 +31,11 @@ use clippy_utils::source::SpanExt;
 use clippy_utils::{
     higher, is_direct_expn_of, is_in_const_context, is_lint_allowed, is_span_match, sym, tokenize_with_text,
 };
+use rustc_data_structures::fx::FxHashMap;
 use rustc_hir::{Arm, Expr, ExprKind, LetStmt, MatchSource, Pat, PatKind};
 use rustc_lexer::{TokenKind, is_whitespace};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_middle::ty::Ty;
 use rustc_session::impl_lint_pass;
 use rustc_span::Span;
 
@@ -591,6 +594,40 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for the use of `matches!` with types that automatically derive `PartialEq`.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// Using `matches!` instead of `==` or `!=` makes the code more verbose.
+    ///
+    /// ### Example
+    ///
+    /// ```no_run
+    /// # enum Foo { Bar }
+    /// let x = Foo::Bar;
+    /// if matches!(x, Foo::Bar) {
+    ///     // ...
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    ///
+    /// ```no_run
+    /// # #[derive(PartialEq)]
+    /// # enum Foo { Bar }
+    /// let x = Foo::Bar;
+    /// if x == Foo::Bar {
+    ///     // ...
+    /// }
+    /// ```
+    #[clippy::version = "1.97.0"]
+    pub MATCHES_INSTEAD_OF_EQ,
+    pedantic,
+    "usage of `matches!` when `==` could be used"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for unnecessary `match` or match-like `if let` returns for `Option` and `Result`
     /// when function signatures are the same.
     ///
@@ -1007,7 +1044,7 @@ declare_clippy_lint! {
     "a wildcard pattern used with others patterns in same match arm"
 }
 
-impl_lint_pass!(Matches => [
+impl_lint_pass!(Matches<'_> => [
     COLLAPSIBLE_MATCH,
     INFALLIBLE_DESTRUCTURING_MATCH,
     MANUAL_FILTER,
@@ -1015,6 +1052,7 @@ impl_lint_pass!(Matches => [
     MANUAL_OK_ERR,
     MANUAL_UNWRAP_OR,
     MANUAL_UNWRAP_OR_DEFAULT,
+    MATCHES_INSTEAD_OF_EQ,
     MATCH_AS_REF,
     MATCH_BOOL,
     MATCH_LIKE_MATCHES_MACRO,
@@ -1037,21 +1075,23 @@ impl_lint_pass!(Matches => [
     WILDCARD_IN_OR_PATTERNS,
 ]);
 
-pub struct Matches {
+pub struct Matches<'tcx> {
     msrv: Msrv,
     infallible_destructuring_match_linted: bool,
+    automatically_derived_partial_eq_map: FxHashMap<Ty<'tcx>, bool>,
 }
 
-impl Matches {
+impl Matches<'_> {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
             msrv: conf.msrv,
             infallible_destructuring_match_linted: false,
+            automatically_derived_partial_eq_map: FxHashMap::default(),
         }
     }
 }
 
-impl<'tcx> LateLintPass<'tcx> for Matches {
+impl<'tcx> LateLintPass<'tcx> for Matches<'tcx> {
     #[expect(clippy::too_many_lines)]
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         if is_direct_expn_of(expr.span, sym::matches).is_none() && expr.span.in_external_macro(cx.sess().source_map()) {
@@ -1065,6 +1105,7 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
             {
                 redundant_pattern_match::check_match(cx, expr, ex, arms);
                 redundant_pattern_match::check_matches_true(cx, expr, arm, ex);
+                matches_instead_of_eq::check(cx, expr, ex, arms, &mut self.automatically_derived_partial_eq_map);
             }
 
             if source == MatchSource::Normal && !is_span_match(cx, expr.span) {
@@ -1098,7 +1139,7 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
                         _ => true,
                     });
                     while let Some((t, ..)) = iter.next() {
-                        if matches!(t, TokenKind::Pound)
+                        if t == TokenKind::Pound
                             && matches!(iter.next(), Some((TokenKind::OpenBracket, ..)))
                             && matches!(iter.next(), Some((TokenKind::Ident, "cfg", _)))
                         {

@@ -471,9 +471,9 @@ fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
             }),
         ) => {
             eq_impl_restriction(liprt, riprt)
-                && matches!(lc, ast::Const::No) == matches!(rc, ast::Const::No)
+                && (*lc == ast::Const::No) == (*rc == ast::Const::No)
                 && la == ra
-                && matches!(lu, Safety::Default) == matches!(ru, Safety::Default)
+                && (*lu == Safety::Default) == (*ru == Safety::Default)
                 && eq_id(*li, *ri)
                 && eq_generics(lg, rg)
                 && over(lb, rb, eq_generic_bound)
@@ -493,7 +493,7 @@ fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
                 constness: rc,
             }),
         ) => {
-            matches!(lc, ast::Const::No) == matches!(rc, ast::Const::No)
+            (*lc == ast::Const::No) == (*rc == ast::Const::No)
                 && eq_id(*li, *ri)
                 && eq_generics(lg, rg)
                 && over(lb, rb, eq_generic_bound)
@@ -516,10 +516,10 @@ fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
         ) => {
             eq_generics(lg, rg)
                 && both(lot.as_deref(), rot.as_deref(), |l, r| {
-                    matches!(l.safety, Safety::Default) == matches!(r.safety, Safety::Default)
-                        && matches!(l.polarity, ImplPolarity::Positive) == matches!(r.polarity, ImplPolarity::Positive)
+                    (l.safety == Safety::Default) == (r.safety == Safety::Default)
+                        && (l.polarity == ImplPolarity::Positive) == (r.polarity == ImplPolarity::Positive)
                         && eq_defaultness(l.defaultness, r.defaultness)
-                        && matches!(lc, ast::Const::No) == matches!(rc, ast::Const::No)
+                        && (*lc == ast::Const::No) == (*rc == ast::Const::No)
                         && eq_path(&l.trait_ref.path, &r.trait_ref.path)
                 })
                 && eq_ty(lst, rst)
@@ -750,9 +750,9 @@ fn eq_opt_coroutine_kind(l: Option<CoroutineKind>, r: Option<CoroutineKind>) -> 
 }
 
 fn eq_fn_header(l: &FnHeader, r: &FnHeader) -> bool {
-    matches!(l.safety, Safety::Default) == matches!(r.safety, Safety::Default)
+    (l.safety == Safety::Default) == (r.safety == Safety::Default)
         && eq_opt_coroutine_kind(l.coroutine_kind, r.coroutine_kind)
-        && matches!(l.constness, Const::No) == matches!(r.constness, Const::No)
+        && (l.constness == Const::No) == (r.constness == Const::No)
         && eq_ext(&l.ext, &r.ext)
 }
 

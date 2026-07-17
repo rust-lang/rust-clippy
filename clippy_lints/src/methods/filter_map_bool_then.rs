@@ -112,6 +112,6 @@ fn can_filter_and_then_move_to_closure<'tcx>(
         param_bindings.contains(hir_id)
             || !then_captures
                 .get(hir_id)
-                .is_some_and(|then_cap| matches!(*filter_cap | *then_cap, CaptureKind::Ref(Mutability::Mut)))
+                .is_some_and(|then_cap| (*filter_cap | *then_cap) == CaptureKind::Ref(Mutability::Mut))
     })
 }

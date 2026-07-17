@@ -342,7 +342,7 @@ fn exprs_with_add_binop_peeled<'e>(expr: &'e Expr<'_>) -> Vec<&'e Expr<'e>> {
     for_each_expr_without_closures(expr, |sub_expr| -> ControlFlow<Infallible, Descend> {
         // We don't check for add methods here, but we could.
         if let ExprKind::Binary(op, _lhs, _rhs) = sub_expr.kind {
-            if matches!(op.node, BinOpKind::Add) {
+            if op.node == BinOpKind::Add {
                 // For binary operators where both sides contribute to the sign of the result,
                 // collect all their operands, recursively. This ignores overflow.
                 ControlFlow::Continue(Descend::Yes)

@@ -163,7 +163,7 @@ fn param_captured_by_move_block(cx: &LateContext<'_>, expr: &Expr<'_>, param: &P
             ..
         }) = e.kind
             && cx.tcx.closure_captures(*def_id).iter().any(|capture| {
-                matches!(capture.info.capture_kind, UpvarCapture::ByValue)
+                capture.info.capture_kind == UpvarCapture::ByValue
                     && matches!(capture.place.base, PlaceBase::Upvar(upvar) if param_hir_ids.contains(&upvar.var_path.hir_id))
             })
         {

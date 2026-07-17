@@ -140,7 +140,7 @@ pub(super) fn check<'tcx>(
             (expr.span.with_lo(unwrap_recv.span.hi()), String::new()),
         ];
 
-        if matches!(suggest_kind, SuggestedKind::Other) {
+        if suggest_kind == SuggestedKind::Other {
             suggestion.push((map_arg_span.with_hi(map_arg_span.lo()), format!("{unwrap_snippet}, ")));
         }
 

@@ -69,7 +69,7 @@ fn check(cx: &LateContext<'_>, item: OwnerId, sp: Span) {
         && !find_attr!(cx.tcx.hir_attrs(item.into()), Inline(..))
         // Rust `inline` doesn't mean anything with external linkage.
         && !cx.tcx.codegen_fn_attrs(item.def_id).contains_extern_indicator()
-        && !cx.tcx.crate_types().iter().any(|&t| matches!(t, CrateType::ProcMacro))
+        && !cx.tcx.crate_types().contains(&CrateType::ProcMacro)
         && !sp.in_external_macro(cx.tcx.sess.source_map())
     {
         span_lint(

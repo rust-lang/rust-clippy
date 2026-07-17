@@ -326,7 +326,7 @@ fn base_local_and_movability<'tcx>(
 
     for (base, elem) in place.as_ref().iter_projections() {
         let base_ty = base.ty(&mir.local_decls, cx.tcx).ty;
-        deref |= matches!(elem, mir::ProjectionElem::Deref);
+        deref |= elem == mir::ProjectionElem::Deref;
         field |= matches!(elem, mir::ProjectionElem::Field(..)) && has_drop(cx, base_ty);
         slice |= matches!(elem, mir::ProjectionElem::Index(..)) && !is_copy(cx, base_ty);
     }

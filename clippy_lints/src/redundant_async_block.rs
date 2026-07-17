@@ -72,13 +72,11 @@ impl<'tcx> LateLintPass<'tcx> for RedundantAsyncBlock {
 fn desugar_async_block<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<&'tcx Expr<'tcx>> {
     if let ExprKind::Closure(Closure { body, def_id, kind, .. }) = expr.kind
         && let body = cx.tcx.hir_body(*body)
-        && matches!(
-            kind,
-            ClosureKind::Coroutine(CoroutineKind::Desugared(
+        && *kind
+            == ClosureKind::Coroutine(CoroutineKind::Desugared(
                 CoroutineDesugaring::Async,
-                CoroutineSource::Block
+                CoroutineSource::Block,
             ))
-        )
     {
         cx.typeck_results()
             .closure_min_captures
@@ -87,7 +85,7 @@ fn desugar_async_block<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Op
                 m.values().all(|places| {
                     places
                         .iter()
-                        .all(|place| matches!(place.info.capture_kind, UpvarCapture::ByValue))
+                        .all(|place| place.info.capture_kind == UpvarCapture::ByValue)
                 })
             })
             .then_some(body.value)
