@@ -7,7 +7,6 @@ use rustc_lint::LateContext;
 
 use super::IDENTITY_ASSIGN_OP;
 
-// TODO: Adjust the parameters as necessary
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,
     expr: &'tcx Expr<'_>,
@@ -15,6 +14,7 @@ pub(super) fn check<'tcx>(
     left: &'tcx Expr<'_>,
     right: &'tcx Expr<'_>,
 ) {
+    
     if match op {
         BinOpKind::Add | BinOpKind::Sub | BinOpKind::BitOr | BinOpKind::BitXor | BinOpKind::Shl | BinOpKind::Shr => {
             matches!(ConstEvalCtxt::new(cx).eval(right), Some(Constant::Int(0)))
