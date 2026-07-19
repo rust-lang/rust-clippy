@@ -297,9 +297,10 @@ fn issue_14743<T>(slice: &[T]) {
     let _ = unsafe { (*slice).len() };
 }
 
-fn issue_17414(slice: &(i32, (i32, [usize])),
-               tuple_slice: *const (i32, [usize]),
-               nested_tuple: *const (i32, (i32, [usize]))
+fn issue_17414(
+    slice: &(i32, (i32, [usize])),
+    tuple_slice: *const (i32, [usize]),
+    nested_tuple: *const (i32, (i32, [usize])),
 ) {
     let _ = (&slice).1.1.len();
     //~^ needless_borrow
@@ -329,10 +330,13 @@ fn issue_17414(slice: &(i32, (i32, [usize])),
 
         let _ = (*nested_tuple).1.1.first(); // ok
         let _ = (&*nested_tuple).1.1.first(); // needless
+        //
         //~^ needless_borrow
         let _ = (&(*nested_tuple).1).1.first(); // needless
+        //
         //~^ needless_borrow
         let _ = (&(*nested_tuple).1.1).first(); // needless
+        //
         //~^ needless_borrow
 
         // 4. array

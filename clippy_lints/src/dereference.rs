@@ -5,14 +5,20 @@ use clippy_utils::sugg::has_enclosing_paren;
 use clippy_utils::ty::{
     adjust_derefs_manually_drop, get_adt_inherent_method, implements_trait, is_manually_drop, peel_and_count_ty_refs,
 };
-use clippy_utils::{expr_use_sites, get_expr_use_site, get_parent_expr, is_block_like, is_from_proc_macro, is_lint_allowed, sym, DefinedTy, ExprUseNode};
+use clippy_utils::{
+    DefinedTy, ExprUseNode, expr_use_sites, get_expr_use_site, get_parent_expr, is_block_like, is_from_proc_macro,
+    is_lint_allowed, sym,
+};
 use rustc_ast::util::parser::ExprPrecedence;
 use rustc_data_structures::fx::FxIndexMap;
 use rustc_errors::Applicability;
 use rustc_hir::attrs::{AttributeKind, HasAttrs as _};
 use rustc_hir::def_id::DefId;
-use rustc_hir::intravisit::{walk_ty, InferKind, Visitor, VisitorExt as _};
-use rustc_hir::{self as hir, AmbigArg, Attribute, BindingMode, Body, BodyId, BorrowKind, Expr, ExprKind, HirId, Item, MatchSource, Mutability, Node, OwnerId, Pat, PatKind, Path, QPath, TyKind, UnOp};
+use rustc_hir::intravisit::{InferKind, Visitor, VisitorExt as _, walk_ty};
+use rustc_hir::{
+    self as hir, AmbigArg, Attribute, BindingMode, Body, BodyId, BorrowKind, Expr, ExprKind, HirId, Item, MatchSource,
+    Mutability, Node, OwnerId, Pat, PatKind, Path, QPath, TyKind, UnOp,
+};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, AutoBorrowMutability};
 use rustc_middle::ty::{self, AssocTag, Ty, TyCtxt, TypeVisitableExt as _, TypeckResults, Unnormalized};
@@ -732,56 +738,50 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
     }
 }
 
-fn is_ref_from_no_implicit_raw_pointer<'tcx>(cx: &LateContext<'tcx>,
-                                             typeck: &'tcx TypeckResults<'tcx>,
-                                             expr: &'tcx Expr<'tcx>,
-                                             sub_expr: &Expr<'tcx>)
-    -> bool {
+fn is_ref_from_no_implicit_raw_pointer<'tcx>(
+    cx: &LateContext<'tcx>,
+    typeck: &'tcx TypeckResults<'tcx>,
+    expr: &'tcx Expr<'tcx>,
+    sub_expr: &Expr<'tcx>,
+) -> bool {
     let mut temp_e = sub_expr;
 
     typeck
         .expr_ty(loop {
             match temp_e.kind {
-                ExprKind::Index(e, _, _) |
-                ExprKind::Field(e, _) |
-                ExprKind::AddrOf(_, _, e) => temp_e = e,
+                ExprKind::Index(e, _, _) | ExprKind::Field(e, _) | ExprKind::AddrOf(_, _, e) => temp_e = e,
                 ExprKind::Unary(UnOp::Deref, e) => break e,
                 _ => break temp_e,
             }
         })
         .is_raw_ptr()
-        &&
-        find_no_auto_method(cx, typeck, expr)
-            .is_some_and(|fn_id| fn_id
+        && find_no_auto_method(cx, typeck, expr).is_some_and(|fn_id| {
+            fn_id
                 .get_attrs(&cx.tcx) // can not use private micro find_attr!()
                 .iter()
-                .any(|attr| matches!(attr, Attribute::Parsed(AttributeKind::RustcNoImplicitAutorefs))))
+                .any(|attr| matches!(attr, Attribute::Parsed(AttributeKind::RustcNoImplicitAutorefs)))
+        })
 }
 
-fn find_no_auto_method<'tcx>(cx: &LateContext<'tcx>,
-                             typeck: &'tcx TypeckResults<'tcx>,
-                             mut expr: &'tcx Expr<'tcx>)
-                             -> Option<DefId> {
-    while let Some(use_site) =
-        expr_use_sites(cx.tcx, typeck, SyntaxContext::root(), expr)
-            .next()
+fn find_no_auto_method<'tcx>(
+    cx: &LateContext<'tcx>,
+    typeck: &'tcx TypeckResults<'tcx>,
+    mut expr: &'tcx Expr<'tcx>,
+) -> Option<DefId> {
+    while let Some(use_site) = expr_use_sites(cx.tcx, typeck, SyntaxContext::root(), expr).next()
         && let node = use_site.node
     {
         match node {
-            Node::Expr(use_expr) => {
-                match use_expr.kind {
-                    ExprKind::Field(_, _) | ExprKind::Index(_, _, _) => {
-                        expr = use_expr;
-                    }
-                    ExprKind::MethodCall(_, _, _, _) => {
-                        return typeck.type_dependent_def_id(use_expr.hir_id)
-                    }
-                    _ => return None,
-                }
-            }
+            Node::Expr(use_expr) => match use_expr.kind {
+                ExprKind::Field(_, _) | ExprKind::Index(_, _, _) => {
+                    expr = use_expr;
+                },
+                ExprKind::MethodCall(_, _, _, _) => return typeck.type_dependent_def_id(use_expr.hir_id),
+                _ => return None,
+            },
             _ => return None,
         }
-    };
+    }
     None
 }
 
