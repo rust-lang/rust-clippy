@@ -28,3 +28,28 @@ fn main() {
     for i in 0..1000 {}
     //~^ min_ident_chars
 }
+
+trait ShortParams {
+    fn f(g: i32);
+    //~^ min_ident_chars
+    //~| min_ident_chars
+    fn long_name(long_param: i32);
+}
+
+struct MyStruct;
+
+impl ShortParams for MyStruct {
+    fn f(g: i32) {}
+    //~^ min_ident_chars
+    //~| min_ident_chars
+    fn long_name(long_param: i32) {}
+}
+
+impl core::fmt::Display for MyStruct {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        //~^ min_ident_chars
+        //~| min_ident_chars
+        //~| min_ident_chars
+        write!(f, "MyStruct")
+    }
+}
