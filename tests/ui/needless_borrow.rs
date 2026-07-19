@@ -329,14 +329,14 @@ fn issue_17414(
         let _ = (&(*nested_tuple).1.1).len(); // necessary
 
         let _ = (*nested_tuple).1.1.first(); // ok
-        let _ = (&*nested_tuple).1.1.first(); // needless
-        //
+
+        let _ = (&*nested_tuple).1.1.first();
         //~^ needless_borrow
-        let _ = (&(*nested_tuple).1).1.first(); // needless
-        //
+
+        let _ = (&(*nested_tuple).1).1.first();
         //~^ needless_borrow
-        let _ = (&(*nested_tuple).1.1).first(); // needless
-        //
+
+        let _ = (&(*nested_tuple).1.1).first();
         //~^ needless_borrow
 
         // 4. array

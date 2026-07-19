@@ -170,39 +170,39 @@ LL |     let _ = (&slice).len();
    |             ^^^^^^^^ help: change this to: `slice`
 
 error: this expression creates a reference which is immediately dereferenced by the compiler
-  --> tests/ui/needless_borrow.rs:304:13
+  --> tests/ui/needless_borrow.rs:305:13
    |
 LL |     let _ = (&slice).1.1.len();
    |             ^^^^^^^^ help: change this to: `slice`
 
 error: this expression borrows a value the compiler would automatically borrow
-  --> tests/ui/needless_borrow.rs:306:13
+  --> tests/ui/needless_borrow.rs:307:13
    |
 LL |     let _ = (&slice.1).1.len();
    |             ^^^^^^^^^^ help: change this to: `slice.1`
 
 error: this expression borrows a value the compiler would automatically borrow
-  --> tests/ui/needless_borrow.rs:308:13
+  --> tests/ui/needless_borrow.rs:309:13
    |
 LL |     let _ = (&slice.1.1).len();
    |             ^^^^^^^^^^^^ help: change this to: `slice.1.1`
 
 error: this expression borrows a value the compiler would automatically borrow
-  --> tests/ui/needless_borrow.rs:331:17
+  --> tests/ui/needless_borrow.rs:333:17
    |
-LL |         let _ = (&*nested_tuple).1.1.first(); // needless
+LL |         let _ = (&*nested_tuple).1.1.first();
    |                 ^^^^^^^^^^^^^^^^ help: change this to: `(*nested_tuple)`
 
 error: this expression borrows a value the compiler would automatically borrow
-  --> tests/ui/needless_borrow.rs:333:17
+  --> tests/ui/needless_borrow.rs:336:17
    |
-LL |         let _ = (&(*nested_tuple).1).1.first(); // needless
+LL |         let _ = (&(*nested_tuple).1).1.first();
    |                 ^^^^^^^^^^^^^^^^^^^^ help: change this to: `(*nested_tuple).1`
 
 error: this expression borrows a value the compiler would automatically borrow
-  --> tests/ui/needless_borrow.rs:335:17
+  --> tests/ui/needless_borrow.rs:339:17
    |
-LL |         let _ = (&(*nested_tuple).1.1).first(); // needless
+LL |         let _ = (&(*nested_tuple).1.1).first();
    |                 ^^^^^^^^^^^^^^^^^^^^^^ help: change this to: `(*nested_tuple).1.1`
 
 error: aborting due to 34 previous errors
