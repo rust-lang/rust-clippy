@@ -81,10 +81,8 @@ fn size_hint_body<'tcx>(cx: &LateContext<'tcx>, owner_id: OwnerId) -> Option<&'t
     let size_hint_fn = cx
         .tcx
         .associated_items(owner_id)
-        .in_definition_order()
-        .find(|assoc_item| {
-            assoc_item.expect_trait_impl().is_ok() && assoc_item.is_method() && assoc_item.name() == sym::size_hint
-        })?;
+        .filter_by_name_unhygienic(sym::size_hint)
+        .find(|assoc_item| assoc_item.expect_trait_impl().is_ok() && assoc_item.is_method())?;
 
     let node = cx.tcx.expect_hir_owner_node(size_hint_fn.def_id.expect_local());
     let OwnerNode::ImplItem(impl_item) = node else {
