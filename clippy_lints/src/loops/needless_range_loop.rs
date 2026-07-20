@@ -2,7 +2,7 @@ use super::NEEDLESS_RANGE_LOOP;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet;
 use clippy_utils::ty::has_iter_method;
-use clippy_utils::visitors::is_local_used;
+use clippy_utils::visitors::{is_const_evaluatable, is_local_used};
 use clippy_utils::{SpanlessEq, contains_name, higher, is_integer_literal, peel_hir_expr_while, sugg};
 use rustc_ast::ast;
 use rustc_data_structures::fx::{FxHashMap, FxHashSet, FxIndexMap};
@@ -43,6 +43,7 @@ pub(super) fn check<'tcx>(
             unnamed_indexed_indirectly: false,
             indexed_directly: FxIndexMap::default(),
             unnamed_indexed_directly: false,
+            has_dynamic_indexed_container: false,
             referenced: FxHashSet::default(),
             nonindex: false,
             prefer_mutable: false,
@@ -53,6 +54,7 @@ pub(super) fn check<'tcx>(
         if visitor.indexed_indirectly.is_empty()
             && !visitor.unnamed_indexed_indirectly
             && !visitor.unnamed_indexed_directly
+            && !visitor.has_dynamic_indexed_container
             && visitor.indexed_directly.len() == 1
         {
             let (indexed, (indexed_extent, indexed_ty)) = visitor
@@ -239,6 +241,9 @@ struct VarVisitor<'a, 'tcx> {
     indexed_directly: FxIndexMap<Symbol, (Option<region::Scope>, Ty<'tcx>)>,
     /// directly indexed literals, like `[1, 2, 3][i]`
     unnamed_indexed_directly: bool,
+    /// Whether the loop variable indexes a container selected by a non-constant expression.
+    /// For example, in `a[sum % 5][i]`, iterating over `a` would change the program's semantics.
+    has_dynamic_indexed_container: bool,
     /// Any names that are used outside an index operation.
     /// Used to detect things like `&mut vec` used together with `vec[i]`
     referenced: FxHashSet<Symbol>,
@@ -256,10 +261,17 @@ impl<'tcx> VarVisitor<'_, 'tcx> {
         // It is `true` if all indices are direct
         let mut index_used_directly = true;
 
+        // Track whether the loop variable has been found while walking from the outermost index
+        // towards the base expression. Any later non-constant index selects the container indexed
+        // by the loop variable, so it cannot be replaced by an iterator over the base expression.
+        let mut found_loop_index = false;
+        let mut indexed_container_is_stable = true;
+
         // Handle initial index
         if is_local_used(self.cx, idx, self.var) {
             used_cnt += 1;
             index_used_directly &= matches!(idx.kind, ExprKind::Path(_));
+            found_loop_index = true;
         }
         // Handle nested indices
         let seqexpr = peel_hir_expr_while(seqexpr, |e| {
@@ -267,12 +279,20 @@ impl<'tcx> VarVisitor<'_, 'tcx> {
                 if is_local_used(self.cx, idx, self.var) {
                     used_cnt += 1;
                     index_used_directly &= matches!(idx.kind, ExprKind::Path(_));
+                    found_loop_index = true;
+                } else if found_loop_index && !is_const_evaluatable(self.cx.tcx, self.cx.typeck_results(), idx) {
+                    indexed_container_is_stable = false;
                 }
                 Some(e)
             } else {
                 None
             }
         });
+
+        if !indexed_container_is_stable {
+            self.has_dynamic_indexed_container = true;
+            return false;
+        }
 
         match used_cnt {
             0 => return true,
