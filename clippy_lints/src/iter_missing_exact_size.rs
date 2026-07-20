@@ -168,11 +168,11 @@ impl<'tcx> LateLintPass<'tcx> for IterMissingExactSize {
             };
             // Does that type implement ExactSizeIterator ?
             let Some(trait_def) = EXACT_SIZE_ITERATOR.only(cx) else {
-                // Type isn't know, no_std or no_core environment
+                // Type isn't know, no_core environment
                 return;
             };
             if !implements_trait(cx, field, trait_def, &[]) {
-                // Field type doesn't does not implement ExactSizeIterator
+                // Field type does not implement ExactSizeIterator
                 return;
             }
             if implements_trait(cx, current_middle_ty, trait_def, &[]) {
