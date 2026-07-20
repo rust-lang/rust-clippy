@@ -112,5 +112,26 @@ LL -         11 => 0, 12 => if a == b { 1 } else { 0 }, _ => 0,
 LL +         11 => 0, 12 if a == b => { 1 }, _ => 0,
    |
 
-error: aborting due to 8 previous errors
+error: this `if` can be collapsed into the outer `match`
+  --> tests/ui/collapsible_match_fixable.rs:88:13
+   |
+LL | /             if true {
+LL | |
+LL | |                 let Some(_y) = Some(0) else {
+LL | |                     break 'label;
+LL | |                 };
+LL | |             }
+   | |_____________^
+   |
+help: collapse nested if block
+   |
+LL ~         Ok(Some(_c))
+LL ~             if true => 'label: {
+LL |
+...
+LL |                 };
+LL ~             },
+   |
+
+error: aborting due to 9 previous errors
 

@@ -77,3 +77,21 @@ fn issue16894() {
         //~^ collapsible_match
     };
 }
+
+// https://github.com/rust-lang/rust-clippy/issues/17427
+// `collapsible_match` suggested wrong spans when the outer arm's block has a
+// label, deleting the label's leading `'` instead of preserving it after `=>`.
+fn issue17427() {
+    let x: Result<Option<u8>, ()> = Ok(Some(1));
+    match x {
+        Ok(Some(_c)) => 'label: {
+            if true {
+                //~^ collapsible_match
+                let Some(_y) = Some(0) else {
+                    break 'label;
+                };
+            }
+        },
+        _ => (),
+    }
+}
