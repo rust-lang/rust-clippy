@@ -16,8 +16,8 @@ declare_clippy_lint! {
     /// ### Why is this bad?
     ///
     /// When the size of an iterator is based on some other iterator that is
-    /// known to have an exact size, the wrapping iterator also has an exact
-    /// size and should be marked as such.
+    /// known to have an exact size, the wrapping iterator may also have an
+    /// exact size and should be marked as such.
     ///
     /// ### Example
     /// ```no_run
