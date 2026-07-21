@@ -171,7 +171,9 @@ fn check_arm<'tcx>(
                     // The Block Span can start with a label so finding actual opening braces instead of assuming it's
                     // first Byte
                     let block_snippet = snippet(cx, block_span, "");
-                    let brace_offset = block_snippet.find('{').unwrap_or(0);
+                    let Some(brace_offset) = block_snippet.find('{') else {
+                        return;
+                    };
                     let brace_pos = block_span.lo() + BytePos(u32::try_from(brace_offset).unwrap());
 
                     let label_prefix = block_snippet[..brace_offset].trim();
