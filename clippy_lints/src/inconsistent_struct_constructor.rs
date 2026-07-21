@@ -155,11 +155,11 @@ fn suggestion<'tcx>(
     def_order_map: &FxHashMap<Symbol, usize>,
 ) -> String {
     let ws = fields
-        .windows(2)
-        .map(|w| {
-            let w0_span = field_with_attrs_span(cx.tcx, &w[0]);
-            let w1_span = field_with_attrs_span(cx.tcx, &w[1]);
-            let span = w0_span.between(w1_span);
+        .array_windows()
+        .map(|[left, right]| {
+            let left_span = field_with_attrs_span(cx.tcx, left);
+            let right_span = field_with_attrs_span(cx.tcx, right);
+            let span = left_span.between(right_span);
             snippet(cx, span, " ")
         })
         .collect::<Vec<_>>();
