@@ -1,5 +1,5 @@
-error: using `BufReader::new` with `Stdin`
-  --> tests/ui/bufreader_stdin.rs:7:18
+error: wrapping already buffered `Stdin` into a `BufReader`
+  --> tests/ui/bufreader_stdin.rs:13:18
    |
 LL |     let reader = BufReader::new(a);
    |                  ^^^^^^^^^^^^^^^^^
@@ -12,8 +12,8 @@ LL -     let reader = BufReader::new(a);
 LL +     let reader = a.lock();
    |
 
-error: using `BufReader::new` with `StdinLock`
-  --> tests/ui/bufreader_stdin.rs:10:18
+error: wrapping already buffered `StdinLock` into a `BufReader`
+  --> tests/ui/bufreader_stdin.rs:17:18
    |
 LL |     let reader = BufReader::new(b);
    |                  ^^^^^^^^^^^^^^^^^ help: instead of wrapping `StdinLock` in `BufReader`, use it directly: `b`

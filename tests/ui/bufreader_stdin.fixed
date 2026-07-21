@@ -2,10 +2,17 @@
 
 use std::io::{self, BufReader};
 
+macro_rules! stdin_macro {
+    () => {
+        io::stdin()
+    };
+}
+
 fn main() {
     let a = io::stdin();
     let reader = a.lock();
     //~^ bufreader_stdin
+
     let b = io::stdin().lock();
     let reader = b;
     //~^ bufreader_stdin
