@@ -769,9 +769,8 @@ fn find_no_auto_method<'tcx>(
     mut expr: &'tcx Expr<'tcx>,
 ) -> Option<DefId> {
     while let Some(use_site) = expr_use_sites(cx.tcx, typeck, SyntaxContext::root(), expr).next()
-        && let node = use_site.node
     {
-        match node {
+        match use_site.node {
             Node::Expr(use_expr) => match use_expr.kind {
                 ExprKind::Field(_, _) | ExprKind::Index(_, _, _) => {
                     expr = use_expr;
