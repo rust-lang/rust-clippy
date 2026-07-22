@@ -283,6 +283,7 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
 
         match (self.state.take(), kind) {
             (None, kind) => {
+                // dbg!(expr);
                 let expr_ty = typeck.expr_ty(expr);
                 let use_site = get_expr_use_site(cx.tcx, typeck, SyntaxContext::root(), expr);
                 let adjusted_ty = use_site.adjustments.last().map_or(expr_ty, |a| a.target);
@@ -451,6 +452,7 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                                     true
                                 }
                             },
+                            ExprUseNode::Index(base, _) if expr.hir_id == base.hir_id => true,
                             _ => false,
                         };
 
