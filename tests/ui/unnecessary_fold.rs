@@ -199,4 +199,50 @@ fn wrongly_unmangled_macros() {
     //~^ unnecessary_fold
 }
 
+/// Folding over an `Option`'s iterator is `map_or` in disguise (issue #1658)
+fn option_fold() {
+    let opt: Option<i32> = Some(2);
+    let init = 10;
+
+    // `.iter()`: suggest `opt.as_ref().map_or(...)`
+    let _ = opt.iter().fold(init, |acc, x| acc + x);
+    //~^ unnecessary_fold
+
+    // `.into_iter()`: `Option` is consumed, suggest plain `map_or`
+    let _ = opt.into_iter().fold(init, |acc, x| acc * x);
+    //~^ unnecessary_fold
+
+    // `.iter_mut()`: suggest `opt.as_mut().map_or(...)`
+    let mut opt_mut: Option<i32> = Some(3);
+    let _ = opt_mut.iter_mut().fold(init, |acc, x| acc + *x);
+    //~^ unnecessary_fold
+
+    // accumulator unused in the closure body
+    let _ = opt.iter().fold(init, |_, x| *x);
+    //~^ unnecessary_fold
+
+    // accumulator used more than once; literal init stays machine-applicable
+    let _ = opt.iter().fold(2, |acc, x| acc * acc + x);
+    //~^ unnecessary_fold
+
+    // non-trivial init expression: lint, but the suggestion must not duplicate
+    // the side effect (not machine-applicable)
+    fn compute() -> i32 {
+        42
+    }
+    let _ = opt.iter().fold(compute(), |acc, x| acc + x);
+    //~^ unnecessary_fold
+
+    // `Option` expression receiver (not a binding)
+    let _ = Some(1).into_iter().fold(init, |acc, x| acc - x);
+    //~^ unnecessary_fold
+
+    // should NOT lint: fold over a general iterator with non-literal init
+    let _ = (0..3).fold(init, |acc, x| acc + x);
+
+    // should NOT lint: `Result` iterators are out of scope here
+    let res: Result<i32, ()> = Ok(1);
+    let _ = res.iter().fold(init, |acc, x| acc + x);
+}
+
 fn main() {}
