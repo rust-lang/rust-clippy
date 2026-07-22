@@ -770,13 +770,12 @@ fn check_invoke_chain_danger<'tcx>(
             .get(expr.hir_id)
             .map(|adjs| peel_derefs_adjustments(adjs))
             .and_then(|adjs| if adjs.len() == 1 { adjs.first() } else { None })
-            .map(|adj| {
+            .is_some_and(|adj| {
                 matches!(
                     adj.kind,
                     Adjust::Deref(DerefAdjustKind::Overloaded(_)) | Adjust::Borrow(AutoBorrow::Ref(_))
                 )
-            })
-            .unwrap_or(false);
+            });
 
         match use_site.node {
             Node::Expr(use_expr) => match use_expr.kind {
