@@ -19,6 +19,11 @@ pub fn install_tasks(force_override: bool) {
     }
 }
 
+// `vs_dir_path.exists()` isn't redundant here: the `else` branch below relies on it to tell
+// "doesn't exist yet" apart from "exists but isn't a directory", which `is_dir()` alone can't do
+// (it returns `false` for both). A `fs::metadata()`-based rewrite could distinguish all three
+// states and close this for real, but that's a separate change from the lint this PR adds.
+#[expect(clippy::unnecessary_path_exists)]
 fn check_install_precondition(force_override: bool) -> bool {
     let vs_dir_path = Path::new(VSCODE_DIR);
     if vs_dir_path.exists() {

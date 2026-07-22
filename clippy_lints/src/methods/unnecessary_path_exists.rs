@@ -1,10 +1,12 @@
 use super::UNNECESSARY_PATH_EXISTS;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::res::MaybeDef;
+use clippy_utils::visitors::for_each_expr_without_closures;
 use clippy_utils::{SpanlessEq, get_enclosing_block, get_parent_expr, higher, path_to_local_with_projections, sym};
 use rustc_hir::{BinOpKind, Expr, ExprKind, MatchSource, Node, PatKind, StmtKind};
 use rustc_lint::LateContext;
-use rustc_span::{Span, SyntaxContext};
+use rustc_span::{Span, Symbol, SyntaxContext};
+use std::ops::ControlFlow;
 
 /// `expr` is a `.exists()` call on `recv`. Find out whether it's used either
 /// directly (or through a chain of `&&`) as an `if` condition, or stored in a
@@ -13,8 +15,21 @@ use rustc_span::{Span, SyntaxContext};
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, recv: &'tcx Expr<'tcx>) {
     if is_path_method_call(cx, expr)
         && let Some((then, ctxt)) = if_then_from_condition(cx, expr).or_else(|| if_then_from_stored_bool(cx, expr))
-        && let Some(fs_call_span) = find_fs_call(cx, then, recv, ctxt)
+        && let Some((fs_call_span, fs_method_name)) = find_fs_call(cx, then, recv, ctxt)
     {
+        // `is_dir`/`is_file` return `bool`, not `Result`, so there's no error to hand off to —
+        // point at `metadata()` instead, which folds the existence and type checks into one call.
+        let help = match fs_method_name {
+            sym::is_dir | sym::is_file => {
+                "the `exists()` check is redundant and creates a TOCTOU race condition; \
+                 consider using `metadata()` instead, which can check existence and type in a \
+                 single filesystem operation"
+            },
+            _ => {
+                "the `exists()` check is redundant and creates a TOCTOU race condition; \
+                 consider removing it and handling the error from the filesystem operation directly"
+            },
+        };
         span_lint_and_then(
             cx,
             UNNECESSARY_PATH_EXISTS,
@@ -22,10 +37,7 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, recv: 
             "unnecessary `Path::exists` before a filesystem operation on the same path",
             |diag| {
                 diag.span_note(fs_call_span, "the filesystem operation is here");
-                diag.help(
-                    "the `exists()` check is redundant and creates a TOCTOU race condition; \
-                     consider removing it and handling the error from the filesystem operation directly",
-                );
+                diag.help(help);
             },
         );
     }
@@ -124,13 +136,17 @@ fn if_then_from_stored_bool<'tcx>(
     (path_to_local_with_projections(cond) == Some(binding_id)).then(|| (then, next_expr.span.ctxt()))
 }
 
-fn is_fs_method_name(name: rustc_span::Symbol) -> bool {
+/// `is_symlink` is deliberately excluded: unlike the other methods here, it
+/// doesn't follow the symlink, so it doesn't check the same thing `exists()`
+/// does (which does follow it) — the two calls aren't actually redundant, and
+/// `is_symlink` doesn't even return a `Result` for the "handle the error
+/// directly" suggestion to apply to.
+fn is_fs_method_name(name: Symbol) -> bool {
     matches!(
         name,
         sym::canonicalize
             | sym::is_dir
             | sym::is_file
-            | sym::is_symlink
             | sym::metadata
             | sym::read_dir
             | sym::read_link
@@ -143,69 +159,54 @@ fn is_fs_method_name(name: rustc_span::Symbol) -> bool {
 fn is_path_method_call(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
     cx.typeck_results()
         .type_dependent_def_id(expr.hir_id)
-        .is_some_and(|def_id| {
-            let parent = cx.tcx.parent(def_id);
-            cx.tcx
-                .type_of(parent)
-                .instantiate_identity()
-                .skip_norm_wip()
-                .is_diag_item(cx, sym::Path)
-        })
+        .opt_parent(cx)
+        .opt_impl_ty(cx)
+        .is_diag_item(cx, sym::Path)
 }
 
 /// Searches the `then` block of the `if` for the first filesystem method call
 /// on the same receiver as the `exists()` check.
+///
+/// Bails out entirely if `path_recv` isn't a stable place (a local, optionally
+/// through field/index projections) — e.g. `dyn_path()` or `iter.next()?`
+/// aren't guaranteed to return the same thing twice, so a textually identical
+/// call proves nothing about the same path being checked twice. Also bails if
+/// that place is reassigned, or mutated through a `&mut self` method (e.g.
+/// `PathBuf::push`), before the matching call is found — either way the
+/// `exists()` result no longer describes the value being operated on.
+///
+/// Closures are not descended into: code inside a closure body doesn't run as
+/// part of this `if`, so a filesystem call written there isn't provably the
+/// redundant call this lint is looking for.
 fn find_fs_call<'tcx>(
     cx: &LateContext<'tcx>,
     then: &'tcx Expr<'tcx>,
     path_recv: &'tcx Expr<'tcx>,
     ctxt: SyntaxContext,
-) -> Option<Span> {
-    let ExprKind::Block(block, _) = then.kind else {
-        return None;
-    };
-    for stmt in block.stmts {
-        let candidate = match stmt.kind {
-            StmtKind::Expr(e) | StmtKind::Semi(e) => Some(e),
-            StmtKind::Let(local) => local.init,
-            StmtKind::Item(_) => None,
-        };
-        if let Some(span) = candidate.and_then(|e| find_fs_call_in_expr(cx, e, path_recv, ctxt)) {
-            return Some(span);
+) -> Option<(Span, Symbol)> {
+    let base_local = path_to_local_with_projections(path_recv)?;
+    for_each_expr_without_closures(then, |e| {
+        if let ExprKind::Assign(lhs, ..) = e.kind
+            && path_to_local_with_projections(lhs) == Some(base_local)
+        {
+            return ControlFlow::Break(None);
         }
-    }
-    block.expr.and_then(|e| find_fs_call_in_expr(cx, e, path_recv, ctxt))
-}
-
-/// Peels through method chains (e.g. `.metadata().unwrap()`) and the `?` operator
-/// desugaring to find a filesystem method call on `path_recv`.
-fn find_fs_call_in_expr<'tcx>(
-    cx: &LateContext<'tcx>,
-    expr: &'tcx Expr<'tcx>,
-    path_recv: &'tcx Expr<'tcx>,
-    ctxt: SyntaxContext,
-) -> Option<Span> {
-    match expr.kind {
-        ExprKind::MethodCall(method_seg, recv, _, _) => {
+        if let ExprKind::MethodCall(method_seg, recv, _, _) = e.kind
+            && path_to_local_with_projections(recv) == Some(base_local)
+        {
             if is_fs_method_name(method_seg.ident.name)
-                && is_path_method_call(cx, expr)
+                && is_path_method_call(cx, e)
                 && SpanlessEq::new(cx).eq_expr(ctxt, recv, path_recv)
             {
-                return Some(expr.span);
+                return ControlFlow::Break(Some((e.span, method_seg.ident.name)));
             }
-            // Peel through chains like `.metadata().unwrap()` or `.metadata().ok()`
-            find_fs_call_in_expr(cx, recv, path_recv, ctxt)
-        },
-        // The `?` operator desugars to:
-        //   Match(Call(TryTraitBranch, [inner_expr]), ..., TryDesugar)
-        // so we extract `inner_expr` and keep searching.
-        ExprKind::Match(scrutinee, _, MatchSource::TryDesugar(_)) => {
-            if let ExprKind::Call(_, [inner_expr]) = scrutinee.kind {
-                find_fs_call_in_expr(cx, inner_expr, path_recv, ctxt)
-            } else {
-                None
+            // None of the tracked fs methods take `&mut self`, so this can only trigger on an
+            // unrelated mutating call (e.g. `.push()`, `.pop()`, `.clear()` on a `PathBuf`).
+            if cx.typeck_results().expr_ty_adjusted(recv).is_mutable_ptr() {
+                return ControlFlow::Break(None);
             }
-        },
-        _ => None,
-    }
+        }
+        ControlFlow::Continue(())
+    })
+    .flatten()
 }
