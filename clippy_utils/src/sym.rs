@@ -388,7 +388,6 @@ generate! {
     is_some,
     is_some_and,
     is_sorted_by_key,
-    is_symlink,
     isize_legacy_const_max,
     isize_legacy_const_min,
     isize_legacy_fn_max_value,

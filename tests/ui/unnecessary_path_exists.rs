@@ -20,11 +20,6 @@ fn check_path(path: &Path) {
 
     if path.exists() {
         //~^ unnecessary_path_exists
-        let _ = path.is_symlink();
-    }
-
-    if path.exists() {
-        //~^ unnecessary_path_exists
         let _ = path.canonicalize().unwrap();
     }
 
@@ -222,6 +217,83 @@ fn check_false_positives(path: &Path) {
     if path.exists() {
         let path = Path::new("other");
         let _ = path.metadata();
+    }
+
+    // `is_symlink()` doesn't follow the symlink the way `exists()` does, so it isn't checking
+    // the same thing — no lint
+    if path.exists() {
+        let _ = path.is_symlink();
+    }
+}
+
+fn dyn_path() -> &'static Path {
+    Path::new("dyn")
+}
+
+fn check_call_receiver() {
+    // the receiver is a function call, not a stable place — nothing guarantees the two calls
+    // return the same path, so no lint
+    if dyn_path().exists() {
+        let _ = dyn_path().metadata();
+    }
+}
+
+fn check_reassigned_receiver(path: &Path) {
+    let mut path_clone = PathBuf::from(path);
+    // `path_clone` is reassigned before the filesystem call, so the `exists()` result no longer
+    // describes the value `metadata()` ends up seeing — no lint
+    if path_clone.exists() {
+        path_clone = PathBuf::new();
+        let _ = path_clone.metadata();
+    }
+}
+
+fn check_mutated_receiver(path: &Path) {
+    let mut path_clone = PathBuf::from(path);
+    // `path_clone` is mutated in place (not reassigned) before the filesystem call — same
+    // problem as `check_reassigned_receiver`, just via `PathBuf::push` instead of `=` — no lint
+    if path_clone.exists() {
+        path_clone.push("subdir");
+        let _ = path_clone.metadata();
+    }
+}
+
+fn check_mutated_receiver_after_fs_call(path: &Path) {
+    let mut path_clone = PathBuf::from(path);
+    // the mutation happens after the filesystem call, so it doesn't affect this lint — still
+    // lints
+    if path_clone.exists() {
+        //~^ unnecessary_path_exists
+        let _ = path_clone.metadata().unwrap();
+        path_clone.push("subdir");
+    }
+}
+
+fn check_iterator_receiver(mut iter: impl Iterator<Item = PathBuf>) -> Option<()> {
+    // `iter.next()` mutates the iterator and can return a different path each call — no lint
+    if iter.next()?.exists() {
+        let _ = iter.next()?.metadata();
+    }
+    Some(())
+}
+
+fn check_closure_deferred(path: &Path) {
+    // the filesystem call is inside a closure, which isn't necessarily ever called — no lint
+    if path.exists() {
+        let _ = || {
+            let _ = path.metadata();
+        };
+    }
+}
+
+fn check_nested_then_block(path: &Path) {
+    // the filesystem call is nested inside another `if`, but that doesn't defer execution the
+    // way a closure does — still lints
+    if path.exists() {
+        //~^ unnecessary_path_exists
+        if true {
+            let _ = path.metadata().unwrap();
+        }
     }
 }
 
