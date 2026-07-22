@@ -320,22 +320,23 @@ fn issue_17414(
         let a = [0, 1, 2];
         let b = &raw const a[0..2]; // same with raw const or raw mut
         let _ = (&*b).len(); // necessary
-        let _ = (*b)[0]; // ok
-        let _ = (&*b)[0]; // TODO needless, should lint
+        let _ = (&*b).index(0); // necessary
+        let _: i32 = (*b)[0]; // success
+
+        let _: i32 = (*b)[0];
+        //~^ needless_borrow
 
         // 3. nested tuple
         let _ = (&*nested_tuple).1.1.len(); // necessary
         let _ = (&(*nested_tuple).1).1.len(); // necessary
         let _ = (&(*nested_tuple).1.1).len(); // necessary
 
-        let _ = (*nested_tuple).1.1.first(); // ok
+        let _ = (*nested_tuple).1.1.first(); // success
 
         let _ = (*nested_tuple).1.1.first();
         //~^ needless_borrow
-
         let _ = (*nested_tuple).1.1.first();
         //~^ needless_borrow
-
         let _ = (*nested_tuple).1.1.first();
         //~^ needless_borrow
 
@@ -344,6 +345,10 @@ fn issue_17414(
         let b: *const [i32; 3] = &raw const a;
         // let _ = (*b).index(0); // fail
         let _ = (&*b).index(0); // necessary
+
+        let _ = (*b)[0]; // ok
+        let _ = (*b)[0];
+        //~^ needless_borrow
 
         // 5. trait
         trait T: Index<usize, Output = i32> {}

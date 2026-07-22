@@ -20,7 +20,7 @@ use rustc_hir::{
     Mutability, Node, OwnerId, Pat, PatKind, Path, QPath, TyKind, UnOp,
 };
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, AutoBorrowMutability};
+use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, AutoBorrowMutability, DerefAdjustKind};
 use rustc_middle::ty::{self, AssocTag, Ty, TyCtxt, TypeVisitableExt as _, TypeckResults, Unnormalized};
 use rustc_session::impl_lint_pass;
 use rustc_span::{Span, Symbol, SyntaxContext};
@@ -277,7 +277,7 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
             return;
         }
 
-        if is_ref_from_no_implicit_raw_pointer(cx, typeck, expr, sub_expr) {
+        if need_explicit_ref(cx, typeck, expr) {
             return;
         }
 
@@ -374,7 +374,11 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                                 // deref through `ManuallyDrop<_>` will not compile.
                                 !adjust_derefs_manually_drop(use_site.adjustments, expr_ty)
                             },
-                            ExprUseNode::Callee | ExprUseNode::FieldAccess(_) if !use_site.moved_before_use => true,
+                            ExprUseNode::Callee | ExprUseNode::FieldAccess(_) | ExprUseNode::Index
+                                if !use_site.moved_before_use =>
+                            {
+                                true
+                            },
                             ExprUseNode::MethodArg(hir_id, _, 0) if !use_site.moved_before_use => {
                                 // Check for calls to trait methods where auto-borrow will not resolve.
                                 // Three cases need to be handled:
@@ -738,49 +742,83 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
     }
 }
 
-fn is_ref_from_no_implicit_raw_pointer<'tcx>(
-    cx: &LateContext<'tcx>,
-    typeck: &'tcx TypeckResults<'tcx>,
-    expr: &'tcx Expr<'tcx>,
-    sub_expr: &Expr<'tcx>,
-) -> bool {
-    let mut temp_e = sub_expr;
-
-    typeck
-        .expr_ty(loop {
-            match temp_e.kind {
-                ExprKind::Index(e, _, _) | ExprKind::Field(e, _) | ExprKind::AddrOf(_, _, e) => temp_e = e,
-                ExprKind::Unary(UnOp::Deref, e) => break e,
-                _ => break temp_e,
-            }
-        })
-        .is_raw_ptr()
-        && find_no_auto_method(cx, typeck, expr).is_some_and(|fn_id| {
-            fn_id
-                .get_attrs(&cx.tcx) // can not use private micro find_attr!()
-                .iter()
-                .any(|attr| matches!(attr, Attribute::Parsed(AttributeKind::RustcNoImplicitAutorefs)))
-        })
+fn need_explicit_ref<'tcx>(cx: &LateContext<'tcx>, typeck: &'tcx TypeckResults<'tcx>, expr: &'tcx Expr<'tcx>) -> bool {
+    match expr.kind {
+        ExprKind::AddrOf(BorrowKind::Ref, _, mut sub_expr) => {
+            typeck
+                .expr_ty(loop {
+                    match sub_expr.kind {
+                        ExprKind::Index(e, _, _) | ExprKind::Field(e, _) => sub_expr = e,
+                        ExprKind::Unary(UnOp::Deref, e) => break e,
+                        _ => break sub_expr,
+                    }
+                })
+                .is_raw_ptr()
+                && check_invoke_chain_danger(cx, typeck, expr)
+        },
+        _ => false,
+    }
 }
 
-fn find_no_auto_method<'tcx>(
+fn check_invoke_chain_danger<'tcx>(
     cx: &LateContext<'tcx>,
     typeck: &'tcx TypeckResults<'tcx>,
     mut expr: &'tcx Expr<'tcx>,
-) -> Option<DefId> {
+) -> bool {
+    let adjs_table = typeck.adjustments();
+
     while let Some(use_site) = expr_use_sites(cx.tcx, typeck, SyntaxContext::root(), expr).next() {
+        let auto_ref = adjs_table
+            .get(expr.hir_id)
+            .map(|adjs| peel_derefs_adjustments(adjs))
+            .and_then(|adjs| if adjs.len() == 1 { adjs.first() } else { None })
+            .map(|adj| {
+                matches!(
+                    adj.kind,
+                    Adjust::Deref(DerefAdjustKind::Overloaded(_)) | Adjust::Borrow(AutoBorrow::Ref(_))
+                )
+            })
+            .unwrap_or(false);
+
         match use_site.node {
             Node::Expr(use_expr) => match use_expr.kind {
                 ExprKind::Field(_, _) | ExprKind::Index(_, _, _) => {
+                    if auto_ref {
+                        return true;
+                    }
                     expr = use_expr;
                 },
-                ExprKind::MethodCall(_, _, _, _) => return typeck.type_dependent_def_id(use_expr.hir_id),
-                _ => return None,
+                ExprKind::MethodCall(_, _, _, _) => {
+                    return auto_ref
+                        && typeck.type_dependent_def_id(use_expr.hir_id).is_some_and(|fn_id| {
+                            fn_id
+                                .get_attrs(&cx.tcx) // can not use private micro find_attr!()
+                                .iter()
+                                .any(|attr| matches!(attr, Attribute::Parsed(AttributeKind::RustcNoImplicitAutorefs)))
+                        });
+                },
+                _ => return false,
             },
-            _ => return None,
+            _ => return false,
         }
     }
-    None
+
+    false
+}
+
+// same code from rustc_lint:auto_ref.rs
+fn peel_derefs_adjustments<'a>(mut adjs: &'a [Adjustment<'a>]) -> &'a [Adjustment<'a>] {
+    while let [
+        Adjustment {
+            kind: Adjust::Deref(_), ..
+        },
+        end @ ..,
+    ] = adjs
+        && !end.is_empty()
+    {
+        adjs = end;
+    }
+    adjs
 }
 
 fn is_deref_or_derefmut_impl(cx: &LateContext<'_>, item: &Item<'_>) -> bool {

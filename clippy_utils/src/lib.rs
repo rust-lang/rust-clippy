@@ -2547,6 +2547,7 @@ impl<'tcx> ExprUseSite<'tcx> {
                 ),
                 ExprKind::Field(_, name) => ExprUseNode::FieldAccess(name),
                 ExprKind::AddrOf(kind, mutbl, _) => ExprUseNode::AddrOf(kind, mutbl),
+                ExprKind::Index(_, _, _) => ExprUseNode::Index,
                 _ => ExprUseNode::Other,
             },
             _ => ExprUseNode::Other,
@@ -2574,6 +2575,7 @@ pub enum ExprUseNode<'tcx> {
     FieldAccess(Ident),
     /// Borrow expression.
     AddrOf(ast::BorrowKind, Mutability),
+    Index,
     Other,
 }
 impl<'tcx> ExprUseNode<'tcx> {
@@ -2651,7 +2653,7 @@ impl<'tcx> ExprUseNode<'tcx> {
                     ty: sig.input(i),
                 })
             },
-            Self::LetStmt(_) | Self::FieldAccess(..) | Self::Callee | Self::Other | Self::AddrOf(..) => None,
+            Self::LetStmt(_) | Self::FieldAccess(..) | Self::Callee | Self::Other | Self::AddrOf(..) | _ => None,
         }
     }
 }

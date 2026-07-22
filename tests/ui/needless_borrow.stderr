@@ -188,22 +188,34 @@ LL |     let _ = (&slice.1.1).len();
    |             ^^^^^^^^^^^^ help: change this to: `slice.1.1`
 
 error: this expression borrows a value the compiler would automatically borrow
-  --> tests/ui/needless_borrow.rs:333:17
+  --> tests/ui/needless_borrow.rs:326:22
+   |
+LL |         let _: i32 = (&*b)[0];
+   |                      ^^^^^ help: change this to: `(*b)`
+
+error: this expression borrows a value the compiler would automatically borrow
+  --> tests/ui/needless_borrow.rs:336:17
    |
 LL |         let _ = (&*nested_tuple).1.1.first();
    |                 ^^^^^^^^^^^^^^^^ help: change this to: `(*nested_tuple)`
 
 error: this expression borrows a value the compiler would automatically borrow
-  --> tests/ui/needless_borrow.rs:336:17
+  --> tests/ui/needless_borrow.rs:338:17
    |
 LL |         let _ = (&(*nested_tuple).1).1.first();
    |                 ^^^^^^^^^^^^^^^^^^^^ help: change this to: `(*nested_tuple).1`
 
 error: this expression borrows a value the compiler would automatically borrow
-  --> tests/ui/needless_borrow.rs:339:17
+  --> tests/ui/needless_borrow.rs:340:17
    |
 LL |         let _ = (&(*nested_tuple).1.1).first();
    |                 ^^^^^^^^^^^^^^^^^^^^^^ help: change this to: `(*nested_tuple).1.1`
 
-error: aborting due to 34 previous errors
+error: this expression borrows a value the compiler would automatically borrow
+  --> tests/ui/needless_borrow.rs:350:17
+   |
+LL |         let _ = (&*b)[0];
+   |                 ^^^^^ help: change this to: `(*b)`
+
+error: aborting due to 36 previous errors
 
