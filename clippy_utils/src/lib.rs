@@ -2654,7 +2654,12 @@ impl<'tcx> ExprUseNode<'tcx> {
                     ty: sig.input(i),
                 })
             },
-            Self::LetStmt(_) | Self::FieldAccess(..) | Self::Callee | Self::Other | Self::AddrOf(..) | _ => None,
+            Self::LetStmt(_)
+            | Self::FieldAccess(..)
+            | Self::Callee
+            | Self::Other
+            | Self::AddrOf(..)
+            | Self::Index(_, _) => None,
         }
     }
 }
