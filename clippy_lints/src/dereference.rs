@@ -375,11 +375,7 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                                 // deref through `ManuallyDrop<_>` will not compile.
                                 !adjust_derefs_manually_drop(use_site.adjustments, expr_ty)
                             },
-                            ExprUseNode::Callee | ExprUseNode::FieldAccess(_) | ExprUseNode::Index
-                                if !use_site.moved_before_use =>
-                            {
-                                true
-                            },
+                            ExprUseNode::Callee | ExprUseNode::FieldAccess(_) if !use_site.moved_before_use => true,
                             ExprUseNode::MethodArg(hir_id, _, 0) if !use_site.moved_before_use => {
                                 // Check for calls to trait methods where auto-borrow will not resolve.
                                 // Three cases need to be handled:
