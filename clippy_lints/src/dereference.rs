@@ -283,7 +283,6 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
 
         match (self.state.take(), kind) {
             (None, kind) => {
-                // dbg!(expr);
                 let expr_ty = typeck.expr_ty(expr);
                 let use_site = get_expr_use_site(cx.tcx, typeck, SyntaxContext::root(), expr);
                 let adjusted_ty = use_site.adjustments.last().map_or(expr_ty, |a| a.target);
@@ -740,6 +739,14 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
     }
 }
 
+// Issue: https://github.com/rust-lang/rust-clippy/issues/17414
+// Related: https://doc.rust-lang.org/beta/nightly-rustc/rustc_lint/autorefs/static.DANGEROUS_IMPLICIT_AUTOREFS.html
+// A raw pointer need explicit ref to prevent from dangerous_implicit_autorefs.
+// Recognize whether the ref of expr must be explicit. Similar Logic to `rustc_lint::autorefs` .
+// 1. expr is a AddrOf Ref.
+// 2. Loop sub_expr of expr if sub_expr is index/field, and is a deref of a raw ptr at the end.
+// 3. Not all raw ptr need explicit ref. Only if it is in a danger invoke chain. Will check in
+//    method check_invoke_chain_danger.
 fn need_explicit_ref<'tcx>(cx: &LateContext<'tcx>, typeck: &'tcx TypeckResults<'tcx>, expr: &'tcx Expr<'tcx>) -> bool {
     match expr.kind {
         ExprKind::AddrOf(BorrowKind::Ref, _, mut sub_expr) => {
@@ -758,24 +765,26 @@ fn need_explicit_ref<'tcx>(cx: &LateContext<'tcx>, typeck: &'tcx TypeckResults<'
     }
 }
 
+// Check expr whether in a danger invoke chain.
+// 1. Loop use site of expr.
+// 2. Get adjustments.
+// 3. If adjs list pattern [N * Deref Adjust, 1 * AutoBorrow Adjust], means auto ref exist.
+// 3. Get use node.
+// 4. If node is field or index and auto ref exist, return true, else continue loop.
+// 5. If method call, check method has `RustcNoImplicitAutorefs` attr.
 fn check_invoke_chain_danger<'tcx>(
     cx: &LateContext<'tcx>,
     typeck: &'tcx TypeckResults<'tcx>,
     mut expr: &'tcx Expr<'tcx>,
 ) -> bool {
-    let adjs_table = typeck.adjustments();
-
     while let Some(use_site) = expr_use_sites(cx.tcx, typeck, SyntaxContext::root(), expr).next() {
-        let auto_ref = adjs_table
-            .get(expr.hir_id)
-            .map(|adjs| peel_derefs_adjustments(adjs))
-            .and_then(|adjs| if adjs.len() == 1 { adjs.first() } else { None })
-            .is_some_and(|adj| {
-                matches!(
-                    adj.kind,
-                    Adjust::Deref(DerefAdjustKind::Overloaded(_)) | Adjust::Borrow(AutoBorrow::Ref(_))
-                )
-            });
+        let adjs = peel_derefs_adjustments(use_site.adjustments);
+        let auto_ref = if adjs.len() == 1 { adjs.first() } else { None }.is_some_and(|adj| {
+            matches!(
+                adj.kind,
+                Adjust::Deref(DerefAdjustKind::Overloaded(_)) | Adjust::Borrow(AutoBorrow::Ref(_))
+            )
+        });
 
         match use_site.node {
             Node::Expr(use_expr) => match use_expr.kind {

@@ -2659,7 +2659,7 @@ impl<'tcx> ExprUseNode<'tcx> {
             | Self::Callee
             | Self::Other
             | Self::AddrOf(..)
-            | Self::Index(_, _) => None,
+            | Self::Index(..) => None,
         }
     }
 }
