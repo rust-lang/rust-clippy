@@ -63,20 +63,19 @@ impl<'tcx> LateLintPass<'tcx> for BufreaderStdin {
                 Applicability::MaybeIncorrect
             };
 
-            let (msg, help, sugg) = if cx.tcx.is_diagnostic_item(sym::Stdin, arg_did) {
-                (
+            let arg_did_name = cx.tcx.get_diagnostic_name(arg_did);
+            let (msg, help, sugg) = match arg_did_name {
+                Some(sym::Stdin) => (
                     "wrapping already buffered `Stdin` into a `BufReader`",
                     "instead of wrapping `Stdin` in `BufReader`, use the `lock` method directly",
                     format!("{snip}.lock()"),
-                )
-            } else if cx.tcx.is_diagnostic_item(sym::StdinLock, arg_did) {
-                (
+                ),
+                Some(sym::StdinLock) => (
                     "wrapping already buffered `StdinLock` into a `BufReader`",
                     "instead of wrapping `StdinLock` in `BufReader`, use it directly",
                     snip.to_string(),
-                )
-            } else {
-                return;
+                ),
+                _ => return,
             };
 
             if arg.span.from_expansion() {
