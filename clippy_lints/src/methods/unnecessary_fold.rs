@@ -3,7 +3,6 @@ use std::ops::ControlFlow;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::res::{MaybeDef as _, MaybeQPath as _, MaybeResPath as _, MaybeTypeckRes as _};
 use clippy_utils::source::snippet_with_context;
-use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::is_copy;
 use clippy_utils::visitors::for_each_expr;
 use clippy_utils::{DefinedTy, ExprUseNode, get_expr_use_site, peel_blocks, strip_pat_refs};
@@ -227,8 +226,23 @@ pub(super) fn check<'tcx>(
         return;
     }
 
+    if check_standard_fold(cx, expr, init, acc, fold_span) {
+        return;
+    }
+    check_option_fold(cx, expr, recv, init, acc, fold_span);
+}
+
+/// Checks for the `any`/`all`/`sum`/`product` replacements. Returns `true`
+/// when a lint was emitted.
+fn check_standard_fold<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx hir::Expr<'tcx>,
+    init: &hir::Expr<'_>,
+    acc: &hir::Expr<'_>,
+    fold_span: Span,
+) -> bool {
     // Check if the first argument to .fold is a suitable literal
-    let fired = if let hir::ExprKind::Lit(lit) = init.kind {
+    if let hir::ExprKind::Lit(lit) = init.kind {
         match lit.node {
             ast::LitKind::Bool(false) => {
                 let replacement = Replacement {
@@ -272,16 +286,18 @@ pub(super) fn check<'tcx>(
         }
     } else {
         false
-    };
-
-    if !fired {
-        check_option_fold(cx, expr, recv, init, acc, fold_span);
     }
 }
 
 /// Folding over an `Option`'s iterator visits zero or one items, which is
 /// `map_or` in disguise: `opt.iter().fold(init, |acc, x| f(acc, x))` is
 /// `opt.as_ref().map_or(init, |x| f(init, x))`.
+///
+/// The accumulator uses in the closure body are substituted with `init`, so
+/// this only lints when `init` is a literal or a binding of a `Copy` type:
+/// those can be duplicated without changing behavior, keeping the suggestion
+/// machine-applicable. Anything else (a call would be re-evaluated, a
+/// non-`Copy` binding would be moved twice) is not linted at all.
 fn check_option_fold<'tcx>(
     cx: &LateContext<'tcx>,
     expr: &'tcx hir::Expr<'tcx>,
@@ -291,6 +307,11 @@ fn check_option_fold<'tcx>(
     fold_span: Span,
 ) {
     let ctxt = expr.span.ctxt();
+    match init.kind {
+        hir::ExprKind::Lit(_) => {},
+        hir::ExprKind::Path(_) if is_copy(cx, cx.typeck_results().expr_ty(init)) => {},
+        _ => return,
+    }
     if let hir::ExprKind::MethodCall(iter_path, option_expr, [], _) = recv.kind
         && let adapter = match iter_path.ident.name {
             sym::iter => "as_ref().",
@@ -328,6 +349,26 @@ fn check_option_fold<'tcx>(
                 ControlFlow::<()>::Continue(())
             });
         }
+        if !splice_ok {
+            return;
+        }
+
+        let mut applicability = Applicability::MachineApplicable;
+        let (init_snippet, _) = snippet_with_context(cx, init.span, ctxt, "..", &mut applicability);
+        let body_span = closure_body.value.span;
+        let (body_snippet, _) = snippet_with_context(cx, body_span, ctxt, "..", &mut applicability);
+        let mut body = body_snippet.to_string();
+        let base = body_span.lo();
+        acc_uses.sort();
+        for use_span in acc_uses.iter().rev() {
+            let lo = (use_span.lo() - base).0 as usize;
+            let hi = (use_span.hi() - base).0 as usize;
+            if hi > body.len() || lo > hi {
+                return;
+            }
+            body.replace_range(lo..hi, &init_snippet);
+        }
+        let (item_snippet, _) = snippet_with_context(cx, param_item.pat.span, ctxt, "..", &mut applicability);
 
         let span = recv.span.with_lo(option_expr.span.hi()).with_hi(expr.span.hi());
         span_lint_and_then(
@@ -336,51 +377,6 @@ fn check_option_fold<'tcx>(
             fold_span.with_hi(expr.span.hi()),
             "this `.fold` can be written more succinctly using another method",
             |diag| {
-                if !splice_ok {
-                    return;
-                }
-                // Substituting `init` into the closure duplicates it:
-                // - a literal or a `Copy` binding stays machine-applicable,
-                // - a binding of a non-`Copy` type would be moved twice, so no compiling suggestion exists without
-                //   restructuring,
-                // - any other expression is re-evaluated only in the `Some` case, which changes behavior when it
-                //   has side effects.
-                let mut applicability = if acc_uses.is_empty() {
-                    Applicability::MachineApplicable
-                } else {
-                    match init.kind {
-                        hir::ExprKind::Lit(_) => Applicability::MachineApplicable,
-                        hir::ExprKind::Path(_) => {
-                            if is_copy(cx, cx.typeck_results().expr_ty(init)) {
-                                Applicability::MachineApplicable
-                            } else {
-                                return;
-                            }
-                        },
-                        _ => Applicability::MaybeIncorrect,
-                    }
-                };
-
-                let (init_snippet, _) = snippet_with_context(cx, init.span, ctxt, "..", &mut applicability);
-                let init_sub = Sugg::hir_with_context(cx, init, ctxt, "..", &mut applicability)
-                    .maybe_paren()
-                    .to_string();
-                let body_span = closure_body.value.span;
-                let (body_snippet, _) = snippet_with_context(cx, body_span, ctxt, "..", &mut applicability);
-                let mut body = body_snippet.to_string();
-                let base = body_span.lo();
-                let mut uses = acc_uses;
-                uses.sort();
-                for use_span in uses.iter().rev() {
-                    let lo = (use_span.lo() - base).0 as usize;
-                    let hi = (use_span.hi() - base).0 as usize;
-                    if hi > body.len() || lo > hi {
-                        return;
-                    }
-                    body.replace_range(lo..hi, &init_sub);
-                }
-                let (item_snippet, _) = snippet_with_context(cx, param_item.pat.span, ctxt, "..", &mut applicability);
-
                 diag.span_suggestion(
                     span,
                     "try",
