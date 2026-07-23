@@ -32,7 +32,7 @@ pub(crate) mod arithmetic_side_effects;
 
 use clippy_config::Conf;
 use clippy_utils::msrvs::Msrv;
-use rustc_hir::{Body, Expr, ExprKind, UnOp};
+use rustc_hir::{Body, Expr, ExprKind, Stmt, StmtKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::impl_lint_pass;
 
@@ -1120,7 +1120,6 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                 self.arithmetic_context.check_binary(cx, e, bin_op, lhs, rhs);
                 misrefactored_assign_op::check(cx, e, bin_op, lhs, rhs);
                 modulo_arithmetic::check(cx, e, bin_op, lhs, rhs, false);
-                identity_assign_op::check(cx, e, bin_op, lhs, rhs);
             },
             ExprKind::Assign(lhs, rhs, _) => {
                 assign_op_pattern::check(cx, e, lhs, rhs, self.msrv);
@@ -1132,6 +1131,19 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                 if op == UnOp::Neg {
                     self.arithmetic_context.check_negate(cx, e, arg);
                 }
+            },
+            _ => (),
+        }
+    }
+
+    fn check_stmt(&mut self, cx: &LateContext<'tcx>, stmt: &'tcx Stmt<'_>) {
+        match stmt.kind {
+            StmtKind::Semi(e) => match e.kind {
+                ExprKind::AssignOp(op, lhs, rhs) => {
+                    let bin_op = op.node.into();
+                    identity_assign_op::check(cx, stmt, e, bin_op, lhs, rhs);
+                },
+                _ => (),
             },
             _ => (),
         }
