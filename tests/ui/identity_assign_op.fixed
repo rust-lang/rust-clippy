@@ -8,34 +8,34 @@ const ZERO: i64 = 0;
 fn main() {
     let mut x = 1i64;
 
-    x;
+    
     //~^ identity_assign_op
 
-    x;
+    
     //~^ identity_assign_op
 
-    x;
+    
     //~^ identity_assign_op
 
-    x;
+    
     //~^ identity_assign_op
 
-    x;
+    
     //~^ identity_assign_op
 
-    x;
+    
     //~^ identity_assign_op
 
-    x;
+    
     //~^ identity_assign_op
 
-    x;
+    
     //~^ identity_assign_op
 
-    x;
+    
     //~^ identity_assign_op
 
-    x;
+    
     //~^ identity_assign_op
 
     x += 1; // no error
