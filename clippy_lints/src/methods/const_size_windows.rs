@@ -3,52 +3,53 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::msrvs::Msrv;
 use clippy_utils::res::{MaybeDef as _, MaybeTypeckRes as _};
 use clippy_utils::source::snippet_opt;
-use clippy_utils::ty::implements_trait;
+use clippy_utils::ty::{deref_chain, implements_trait};
 use clippy_utils::visitors::is_const_evaluatable;
 use clippy_utils::{contains_name, msrvs, sym};
 use rustc_ast::LitKind;
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
-use rustc_hir::{Expr, ExprKind, ImplItemKind, Item, ItemKind, Node, QPath, TraitFn, TraitItemKind};
+use rustc_hir::{Expr, ExprKind, ImplItemKind, Item, ItemKind, Node, QPath, TraitFn, TraitItemKind, UnOp};
 use rustc_lint::LateContext;
-use rustc_middle::ty;
-use rustc_middle::ty::adjustment::{Adjust, AutoBorrow, AutoBorrowMutability};
 use rustc_middle::ty::{AssocTag, EarlyBinder, Ty, Unnormalized};
 use rustc_span::{Span, Symbol};
-use std::fmt::Display;
 use std::ops::Not as _;
 
 const ARRAY_WINDOWS: Symbol = sym::array_windows;
 const WINDOWS: Symbol = sym::windows;
 const SLICE: Symbol = sym::slice;
 
-enum SpanLocation {
-    MethodCall,
-    EntireExpression,
-}
-
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct Suggestion {
     span_location: SpanLocation,
     code: String,
     destructuring_example: Option<String>,
 }
 
-enum DestructuringExtent {
-    Full,
-    Partial,
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+enum SpanLocation {
+    MethodCall,
+    EntireExpression,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct DestructuredArray {
     array_snippet: String,
     extent: DestructuringExtent,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+enum DestructuringExtent {
+    Full,
+    Partial,
+}
+
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,
-    expr: &Expr<'_>,
-    recv: &Expr<'_>,
-    size_arg: &'tcx Expr<'_>,
+    expr: &'tcx Expr<'tcx>,
+    recv: &'tcx Expr<'tcx>,
+    size_arg: &'tcx Expr<'tcx>,
     call_span: Span,
     msrv: Msrv,
 ) {
@@ -104,7 +105,11 @@ fn is_const_size_window<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>, size_arg:
     is_slice_method_call && is_const_evaluatable(cx.tcx, cx.typeck_results(), size_arg)
 }
 
-fn compute_suggestion(cx: &LateContext<'_>, recv: &Expr<'_>, size_arg: &Expr<'_>) -> Option<Suggestion> {
+fn compute_suggestion<'tcx>(
+    cx: &LateContext<'tcx>,
+    recv: &'tcx Expr<'tcx>,
+    size_arg: &'tcx Expr<'tcx>,
+) -> Option<Suggestion> {
     let (recv_snippet, size_arg_snippet) = Option::zip(
         snippet_opt(cx, recv.span.source_callsite()),
         snippet_opt(cx, size_arg.span.source_callsite()),
@@ -116,14 +121,14 @@ fn compute_suggestion(cx: &LateContext<'_>, recv: &Expr<'_>, size_arg: &Expr<'_>
         size_arg_snippet
     };
 
-    let is_ucfs_required = is_array_windows_shadowed(cx, cx.typeck_results().expr_ty(recv).peel_refs());
+    let is_ucfs_required = is_array_windows_method_call_ambiguous(cx, recv);
 
     let (span_location, code) = if is_ucfs_required {
         (
             SpanLocation::EntireExpression,
             format!(
                 "<[_]>::{ARRAY_WINDOWS}::<{size_generic_const_arg}>({})",
-                add_ref_prefix_for_ucfs_if_required(cx, recv, &recv_snippet)
+                normalize_expr_to_single_ref(cx, recv)?
             ),
         )
     } else {
@@ -134,21 +139,20 @@ fn compute_suggestion(cx: &LateContext<'_>, recv: &Expr<'_>, size_arg: &Expr<'_>
     };
 
     let destructuring_example =
-        build_destructured_array(cx, size_arg).map(|DestructuredArray { array_snippet, extent }| {
+        build_destructured_array(cx, size_arg).and_then(|DestructuredArray { array_snippet, extent }| {
             let iterator_expr_snippet = match extent {
-                DestructuringExtent::Full if is_ucfs_required => format!(
-                    "<[_]>::{ARRAY_WINDOWS}({})",
-                    add_ref_prefix_for_ucfs_if_required(cx, recv, &recv_snippet)
-                ),
+                DestructuringExtent::Full if is_ucfs_required => {
+                    format!("<[_]>::{ARRAY_WINDOWS}({})", normalize_expr_to_single_ref(cx, recv)?)
+                },
                 DestructuringExtent::Full => format!("{recv_snippet}.{ARRAY_WINDOWS}()"),
                 DestructuringExtent::Partial if is_ucfs_required => format!(
                     "<[_]>::{ARRAY_WINDOWS}::<{size_generic_const_arg}>({})",
-                    add_ref_prefix_for_ucfs_if_required(cx, recv, &recv_snippet)
+                    normalize_expr_to_single_ref(cx, recv)?
                 ),
                 DestructuringExtent::Partial => format!("{recv_snippet}.{ARRAY_WINDOWS}::<{size_generic_const_arg}>()"),
             };
 
-            format!("for {array_snippet} in {iterator_expr_snippet}")
+            Some(format!("for {array_snippet} in {iterator_expr_snippet}"))
         });
 
     Some(Suggestion {
@@ -212,11 +216,26 @@ fn expr_needs_braces_in_const_arg(expr: &Expr<'_>) -> bool {
         }
 }
 
-fn is_array_windows_shadowed<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
+/// We are overly careful with this check: we allow FP because our goal is never allowing FN.
+/// The worst-case scenario of being overly careful is that UCFS is suggested when it isn't strictly
+/// necessary.
+fn is_array_windows_method_call_ambiguous(cx: &LateContext<'_>, recv: &Expr<'_>) -> bool {
+    let typeck_results = cx.typeck_results();
+    let candidate_recv_types: Vec<_> = [typeck_results.expr_ty(recv), typeck_results.expr_ty_adjusted(recv)]
+        .into_iter()
+        .flat_map(|ty| deref_chain(cx, ty))
+        .collect();
+
+    let recv_may_implements_trait = |trait_def_id: DefId| {
+        candidate_recv_types
+            .iter()
+            .any(|&ty| implements_trait(cx, ty, trait_def_id, &[]))
+    };
+
     cx.tcx
-        .all_traits_including_private()
+        .visible_traits()
         .filter(|&trait_def_id| trait_declares_array_windows(cx, trait_def_id))
-        .any(|trait_def_id| implements_trait(cx, ty, trait_def_id, &[]))
+        .any(recv_may_implements_trait)
 }
 
 fn trait_declares_array_windows(cx: &LateContext<'_>, trait_def_id: DefId) -> bool {
@@ -224,23 +243,6 @@ fn trait_declares_array_windows(cx: &LateContext<'_>, trait_def_id: DefId) -> bo
         .associated_items(trait_def_id)
         .filter_by_name_unhygienic(ARRAY_WINDOWS)
         .any(|item| item.tag() == AssocTag::Fn)
-}
-
-fn is_ref_prefix_required_for_ucfs(cx: &LateContext<'_>, recv: &Expr<'_>) -> bool {
-    !matches!(cx.typeck_results().expr_ty(recv).kind(), ty::Ref(..))
-        && cx
-            .typeck_results()
-            .expr_adjustments(recv)
-            .iter()
-            .any(|adj| matches!(adj.kind, Adjust::Borrow(AutoBorrow::Ref(AutoBorrowMutability::Not))))
-}
-
-fn add_ref_prefix_for_ucfs_if_required(cx: &LateContext<'_>, recv: &Expr<'_>, recv_snippet: impl Display) -> String {
-    if is_ref_prefix_required_for_ucfs(cx, recv) {
-        format!("&{recv_snippet}")
-    } else {
-        recv_snippet.to_string()
-    }
 }
 
 fn get_containing_fn<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>) -> Option<&'tcx Expr<'tcx>> {
@@ -263,4 +265,31 @@ fn get_containing_fn<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>) -> Option<&'
     };
 
     Some(cx.tcx.hir_body(body_id?).value)
+}
+
+/// Attempt to produce a snippet of type &T by removing/adding `&` and `*` operators.
+/// If this is not possible, return `None`.
+/// Stops at macro expansion.
+///
+/// Examples:
+/// if `expr` is of type `T` -> `&expr`
+/// if `expr` is of type `&T` -> `expr`
+/// if `expr` is of type `&&T` -> `*expr`
+fn normalize_expr_to_single_ref(cx: &LateContext<'_>, recv: &Expr<'_>) -> Option<String> {
+    // Peel & and * until we reach macro expansion or core referent
+    let mut referent = recv;
+    while !referent.span.from_expansion()
+        && let ExprKind::AddrOf(_, _, inner) | ExprKind::Unary(UnOp::Deref, inner) = referent.kind
+    {
+        referent = inner;
+    }
+
+    let referent_snippet = snippet_opt(cx, referent.span.source_callsite())?;
+    let snippet = if cx.typeck_results().expr_ty(referent).is_ref() {
+        referent_snippet
+    } else {
+        format!("&{referent_snippet}")
+    };
+
+    Some(snippet)
 }
