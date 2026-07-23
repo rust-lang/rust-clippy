@@ -16,12 +16,10 @@ pub(super) fn check<'tcx>(
 ) {
     if match op {
         BinOpKind::Add | BinOpKind::Sub | BinOpKind::BitOr | BinOpKind::BitXor | BinOpKind::Shl | BinOpKind::Shr => {
-            matches!(ConstEvalCtxt::new(cx).eval(right), Some(Constant::Int(0)))
+            is_zero_or_one(cx, right, 0)
         },
 
-        BinOpKind::Mul | BinOpKind::Div => {
-            matches!(ConstEvalCtxt::new(cx).eval(right), Some(Constant::Int(1)))
-        },
+        BinOpKind::Mul | BinOpKind::Div => is_zero_or_one(cx, right, 1),
 
         _ => false,
     } {
@@ -34,5 +32,25 @@ pub(super) fn check<'tcx>(
             String::new(),
             Applicability::MachineApplicable,
         );
+    }
+}
+
+fn is_zero_or_one(cx: &LateContext<'_>, expr: &Expr<'_>, expected: u128) -> bool {
+    const F16_ZERO: u16 = 0.0_f16.to_bits();
+    const F16_ONE: u16 = 1.0_f16.to_bits();
+    const F128_ZERO: u128 = 0.0_f128.to_bits();
+    const F128_ONE: u128 = 1.0_f128.to_bits();
+
+    let Some(value) = ConstEvalCtxt::new(cx).eval(expr).map(Constant::peel_refs) else {
+        return false;
+    };
+
+    match value {
+        Constant::Int(value) => value == expected,
+        Constant::F16(value) => value == if expected == 0 { F16_ZERO } else { F16_ONE },
+        Constant::F32(value) => value == if expected == 0 { 0.0 } else { 1.0 },
+        Constant::F64(value) => value == if expected == 0 { 0.0 } else { 1.0 },
+        Constant::F128(value) => value == if expected == 0 { F128_ZERO } else { F128_ONE },
+        _ => false,
     }
 }

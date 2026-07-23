@@ -3,6 +3,12 @@
 
 const ONE: i64 = 1;
 const ZERO: i64 = 0;
+const ONE_U64: u64 = 1;
+const ZERO_U64: u64 = 0;
+const ONE_F32: f32 = 1.0;
+const ZERO_F32: f32 = 0.0;
+const ONE_F64: f64 = 1.0;
+const ZERO_F64: f64 = 0.0;
 
 #[rustfmt::skip]
 fn main() {
@@ -25,6 +31,48 @@ fn main() {
 
     
     //~^ identity_assign_op
+
+    
+    //~^ identity_assign_op
+
+    
+    //~^ identity_assign_op
+
+    
+    //~^ identity_assign_op
+
+    
+    //~^ identity_assign_op
+
+    let mut y = 1u64;
+
+    
+    //~^ identity_assign_op
+
+    
+    //~^ identity_assign_op
+
+    
+    //~^ identity_assign_op
+
+    
+    //~^ identity_assign_op
+
+    let mut z = 1.0f32;
+
+    
+    //~^ identity_assign_op
+
+    
+    //~^ identity_assign_op
+
+    
+    //~^ identity_assign_op
+
+    
+    //~^ identity_assign_op
+
+    let mut w = 1.0f64;
 
     
     //~^ identity_assign_op

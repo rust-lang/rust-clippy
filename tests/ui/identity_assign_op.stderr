@@ -1,5 +1,5 @@
 error: this operation has no effect
-  --> tests/ui/identity_assign_op.rs:11:5
+  --> tests/ui/identity_assign_op.rs:17:5
    |
 LL |     x += 0;
    |     ^^^^^^^ help: remove it
@@ -8,58 +8,130 @@ LL |     x += 0;
    = help: to override `-D warnings` add `#[allow(clippy::identity_assign_op)]`
 
 error: this operation has no effect
-  --> tests/ui/identity_assign_op.rs:14:5
+  --> tests/ui/identity_assign_op.rs:20:5
    |
 LL |     x -= 0;
    |     ^^^^^^^ help: remove it
 
 error: this operation has no effect
-  --> tests/ui/identity_assign_op.rs:17:5
+  --> tests/ui/identity_assign_op.rs:23:5
    |
 LL |     x |= 0;
    |     ^^^^^^^ help: remove it
 
 error: this operation has no effect
-  --> tests/ui/identity_assign_op.rs:20:5
+  --> tests/ui/identity_assign_op.rs:26:5
    |
 LL |     x ^= 0;
    |     ^^^^^^^ help: remove it
 
 error: this operation has no effect
-  --> tests/ui/identity_assign_op.rs:23:5
+  --> tests/ui/identity_assign_op.rs:29:5
    |
 LL |     x <<= 0;
    |     ^^^^^^^^ help: remove it
 
 error: this operation has no effect
-  --> tests/ui/identity_assign_op.rs:26:5
+  --> tests/ui/identity_assign_op.rs:32:5
    |
 LL |     x >>= 0;
    |     ^^^^^^^^ help: remove it
 
 error: this operation has no effect
-  --> tests/ui/identity_assign_op.rs:29:5
+  --> tests/ui/identity_assign_op.rs:35:5
    |
 LL |     x *= 1;
    |     ^^^^^^^ help: remove it
 
 error: this operation has no effect
-  --> tests/ui/identity_assign_op.rs:32:5
+  --> tests/ui/identity_assign_op.rs:38:5
    |
 LL |     x /= 1;
    |     ^^^^^^^ help: remove it
 
 error: this operation has no effect
-  --> tests/ui/identity_assign_op.rs:35:5
+  --> tests/ui/identity_assign_op.rs:41:5
    |
 LL |     x += ZERO;
    |     ^^^^^^^^^^ help: remove it
 
 error: this operation has no effect
-  --> tests/ui/identity_assign_op.rs:38:5
+  --> tests/ui/identity_assign_op.rs:44:5
    |
 LL |     x *= ONE;
    |     ^^^^^^^^^ help: remove it
 
-error: aborting due to 10 previous errors
+error: this operation has no effect
+  --> tests/ui/identity_assign_op.rs:49:5
+   |
+LL |     y += 0u64;
+   |     ^^^^^^^^^^ help: remove it
+
+error: this operation has no effect
+  --> tests/ui/identity_assign_op.rs:52:5
+   |
+LL |     y *= 1u64;
+   |     ^^^^^^^^^^ help: remove it
+
+error: this operation has no effect
+  --> tests/ui/identity_assign_op.rs:55:5
+   |
+LL |     y += ZERO_U64;
+   |     ^^^^^^^^^^^^^^ help: remove it
+
+error: this operation has no effect
+  --> tests/ui/identity_assign_op.rs:58:5
+   |
+LL |     y *= ONE_U64;
+   |     ^^^^^^^^^^^^^ help: remove it
+
+error: this operation has no effect
+  --> tests/ui/identity_assign_op.rs:63:5
+   |
+LL |     z += 0.0f32;
+   |     ^^^^^^^^^^^^ help: remove it
+
+error: this operation has no effect
+  --> tests/ui/identity_assign_op.rs:66:5
+   |
+LL |     z *= 1.0f32;
+   |     ^^^^^^^^^^^^ help: remove it
+
+error: this operation has no effect
+  --> tests/ui/identity_assign_op.rs:69:5
+   |
+LL |     z += ZERO_F32;
+   |     ^^^^^^^^^^^^^^ help: remove it
+
+error: this operation has no effect
+  --> tests/ui/identity_assign_op.rs:72:5
+   |
+LL |     z *= ONE_F32;
+   |     ^^^^^^^^^^^^^ help: remove it
+
+error: this operation has no effect
+  --> tests/ui/identity_assign_op.rs:77:5
+   |
+LL |     w += 0.0;
+   |     ^^^^^^^^^ help: remove it
+
+error: this operation has no effect
+  --> tests/ui/identity_assign_op.rs:80:5
+   |
+LL |     w *= 1.0;
+   |     ^^^^^^^^^ help: remove it
+
+error: this operation has no effect
+  --> tests/ui/identity_assign_op.rs:83:5
+   |
+LL |     w += ZERO_F64;
+   |     ^^^^^^^^^^^^^^ help: remove it
+
+error: this operation has no effect
+  --> tests/ui/identity_assign_op.rs:86:5
+   |
+LL |     w *= ONE_F64;
+   |     ^^^^^^^^^^^^^ help: remove it
+
+error: aborting due to 22 previous errors
 
