@@ -378,6 +378,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::methods::CLONED_INSTEAD_OF_COPIED_INFO,
     crate::methods::COLLAPSIBLE_STR_REPLACE_INFO,
     crate::methods::CONST_IS_EMPTY_INFO,
+    crate::methods::CONST_SIZE_WINDOWS_INFO,
     crate::methods::DOUBLE_ENDED_ITERATOR_LAST_INFO,
     crate::methods::DRAIN_COLLECT_INFO,
     crate::methods::ERR_EXPECT_INFO,

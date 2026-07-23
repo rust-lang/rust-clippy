@@ -1,0 +1,112 @@
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/with_array_windows_impl.rs:28:21
+   |
+LL |     for pair in vec.windows(2) {
+   |                 ----^^^^^^^^^^
+   |                 |
+   |                 help: use: `<[_]>::array_windows::<2>(&vec)`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in <[_]>::array_windows(&vec)`
+   = note: `-D clippy::const-size-windows` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::const_size_windows)]`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/with_array_windows_impl.rs:36:21
+   |
+LL |     for pair in vec.windows(2) {
+   |                 ----^^^^^^^^^^
+   |                 |
+   |                 help: use: `<[_]>::array_windows::<2>(&vec)`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in <[_]>::array_windows(&vec)`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/with_array_windows_impl.rs:56:21
+   |
+LL |     for pair in vec.windows(2) {
+   |                 ----^^^^^^^^^^
+   |                 |
+   |                 help: use: `<[_]>::array_windows::<2>(&vec)`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in <[_]>::array_windows(&vec)`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/with_array_windows_impl.rs:65:76
+   |
+LL |     for pair in vec![ArrayWindowsStub, ArrayWindowsStub, ArrayWindowsStub].windows(2) {
+   |                 -----------------------------------------------------------^^^^^^^^^^
+   |                 |
+   |                 help: use: `<[_]>::array_windows::<2>(&vec![ArrayWindowsStub, ArrayWindowsStub, ArrayWindowsStub])`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in <[_]>::array_windows(&vec![ArrayWindowsStub, ArrayWindowsStub, ArrayWindowsStub])`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/with_array_windows_impl.rs:73:21
+   |
+LL |     for pair in vec.windows(2) {
+   |                 ----^^^^^^^^^^
+   |                 |
+   |                 help: use: `<[_]>::array_windows::<2>(vec)`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in <[_]>::array_windows(vec)`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/with_array_windows_impl.rs:81:24
+   |
+LL |     for pair in (*vec).windows(2) {
+   |                 -------^^^^^^^^^^
+   |                 |
+   |                 help: use: `<[_]>::array_windows::<2>(vec)`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in <[_]>::array_windows(vec)`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/with_array_windows_impl.rs:95:24
+   |
+LL |     for pair in (&vec).windows(2) {
+   |                 -------^^^^^^^^^^
+   |                 |
+   |                 help: use: `<[_]>::array_windows::<2>(&vec)`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in <[_]>::array_windows(&vec)`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/with_array_windows_impl.rs:105:41
+   |
+LL |     for pair in (*derefs_into_vec_stub).windows(2) {
+   |                 ------------------------^^^^^^^^^^
+   |                 |
+   |                 help: use: `<[_]>::array_windows::<2>(&derefs_into_vec_stub)`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in <[_]>::array_windows(&derefs_into_vec_stub)`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/with_array_windows_impl.rs:115:38
+   |
+LL |     for pair in derefs_into_vec_stub.windows(2) {
+   |                 ---------------------^^^^^^^^^^
+   |                 |
+   |                 help: use: `<[_]>::array_windows::<2>(&derefs_into_vec_stub)`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in <[_]>::array_windows(&derefs_into_vec_stub)`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/with_array_windows_impl.rs:127:21
+   |
+LL |     for pair in vec.windows(2) {
+   |                     ^^^^^^^^^^ help: use: `array_windows::<2>()`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in vec.array_windows()`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/with_array_windows_impl.rs:151:56
+   |
+LL |     for pair in double_borrowed_vec![Stub, Stub, Stub].windows(2) {
+   |                 ---------------------------------------^^^^^^^^^^
+   |                 |
+   |                 help: use: `<[_]>::array_windows::<2>(double_borrowed_vec![Stub, Stub, Stub])`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in <[_]>::array_windows(double_borrowed_vec![Stub, Stub, Stub])`
+
+error: aborting due to 11 previous errors
+

@@ -1,0 +1,20 @@
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/with_windows_impl.rs:28:23
+   |
+LL |     for window in vec.windows(2) {
+   |                       ^^^^^^^^^^ help: use: `array_windows::<2>()`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in vec.array_windows()`
+   = note: `-D clippy::const-size-windows` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::const_size_windows)]`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/with_windows_impl.rs:36:23
+   |
+LL |     for window in vec.windows(2) {
+   |                       ^^^^^^^^^^ help: use: `array_windows::<2>()`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in vec.array_windows()`
+
+error: aborting due to 2 previous errors
+

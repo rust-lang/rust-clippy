@@ -147,8 +147,9 @@ declare_lint_pass!(Formatting => [
 
 impl EarlyLintPass for Formatting {
     fn check_block(&mut self, cx: &EarlyContext<'_>, block: &Block) {
-        for w in block.stmts.windows(2) {
-            if let (StmtKind::Expr(first), StmtKind::Expr(second) | StmtKind::Semi(second)) = (&w[0].kind, &w[1].kind) {
+        for [left, right] in block.stmts.array_windows() {
+            if let (StmtKind::Expr(first), StmtKind::Expr(second) | StmtKind::Semi(second)) = (&left.kind, &right.kind)
+            {
                 check_missing_else(cx, first, second);
             }
         }

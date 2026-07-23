@@ -1,0 +1,132 @@
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/true_positives.rs:14:23
+   |
+LL |     for pair in slice.windows(2) {
+   |                       ^^^^^^^^^^ help: use: `array_windows::<2>()`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in slice.array_windows()`
+   = note: `-D clippy::const-size-windows` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::const_size_windows)]`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/true_positives.rs:22:26
+   |
+LL |     for triplet in slice.windows(3) {
+   |                          ^^^^^^^^^^ help: use: `array_windows::<3>()`
+   |
+   = note: you may also consider array destructuring: `for [x, y, z] in slice.array_windows()`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/true_positives.rs:31:23
+   |
+LL |     for pair in slice.windows(TWO) {
+   |                       ^^^^^^^^^^^^ help: use: `array_windows::<TWO>()`
+   |
+   = note: you may also consider array destructuring: `for [item, ..] in slice.array_windows::<TWO>()`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/true_positives.rs:39:25
+   |
+LL |     for window in slice.windows(SIZE) {
+   |                         ^^^^^^^^^^^^^ help: use: `array_windows::<SIZE>()`
+   |
+   = note: you may also consider array destructuring: `for [item, ..] in slice.array_windows::<SIZE>()`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/true_positives.rs:47:23
+   |
+LL |     for pair in slice.windows(get_two()) {
+   |                       ^^^^^^^^^^^^^^^^^^ help: use: `array_windows::<{ get_two() }>()`
+   |
+   = note: you may also consider array destructuring: `for [item, ..] in slice.array_windows::<{ get_two() }>()`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/true_positives.rs:55:23
+   |
+LL |     for pair in slice.windows(two!()) {
+   |                       ^^^^^^^^^^^^^^^ help: use: `array_windows::<{ two!() }>()`
+   |
+   = note: you may also consider array destructuring: `for [item, ..] in slice.array_windows::<{ two!() }>()`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/true_positives.rs:63:24
+   |
+LL |     for pair in vector.windows(2) {
+   |                        ^^^^^^^^^^ help: use: `array_windows::<2>()`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in vector.array_windows()`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/true_positives.rs:71:23
+   |
+LL |     for pair in array.windows(2) {
+   |                       ^^^^^^^^^^ help: use: `array_windows::<2>()`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in array.array_windows()`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/true_positives.rs:79:23
+   |
+LL |     for pair in array.windows(2) {
+   |                       ^^^^^^^^^^ help: use: `array_windows::<2>()`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in array.array_windows()`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/true_positives.rs:88:31
+   |
+LL |     for pair in vec![1, 2, 3].windows(2) {
+   |                               ^^^^^^^^^^ help: use: `array_windows::<2>()`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in vec![1, 2, 3].array_windows()`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/true_positives.rs:96:27
+   |
+LL |     for pair in [1, 2, 3].windows(2) {
+   |                           ^^^^^^^^^^ help: use: `array_windows::<2>()`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in [1, 2, 3].array_windows()`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/true_positives.rs:104:39
+   |
+LL |     for pair in [1, 2, 3, 4, 5][..=2].windows(2) {
+   |                                       ^^^^^^^^^^ help: use: `array_windows::<2>()`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in [1, 2, 3, 4, 5][..=2].array_windows()`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/true_positives.rs:112:35
+   |
+LL |     for pair in into_slice.into().windows(2) {
+   |                                   ^^^^^^^^^^ help: use: `array_windows::<2>()`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in into_slice.into().array_windows()`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/true_positives.rs:120:32
+   |
+LL |     for pair in (*deref_slice).windows(2) {
+   |                                ^^^^^^^^^^ help: use: `array_windows::<2>()`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in (*deref_slice).array_windows()`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/true_positives.rs:128:29
+   |
+LL |     for pair in deref_slice.windows(2) {
+   |                             ^^^^^^^^^^ help: use: `array_windows::<2>()`
+   |
+   = note: you may also consider array destructuring: `for [left, right] in deref_slice.array_windows()`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/true_positives.rs:140:21
+   |
+LL |     for pair in vec.windows(2) {
+   |                     ^^^^^^^^^^ help: use: `array_windows::<2>()`
+   |
+   = note: you may also consider array destructuring: `for [item_1, item_2] in vec.array_windows()`
+
+error: aborting due to 16 previous errors
+

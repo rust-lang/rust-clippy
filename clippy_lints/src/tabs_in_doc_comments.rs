@@ -114,7 +114,7 @@ fn get_chunks_of_tabs(the_str: &str) -> Vec<(u32, u32)> {
         return vec![(0, 1)];
     }
 
-    for entry in char_indices.windows(2) {
+    for entry in char_indices.array_windows::<2>() {
         match entry {
             [(_, '\t'), (_, '\t')] => {
                 // either string starts with double tab, then we have to set it active,
