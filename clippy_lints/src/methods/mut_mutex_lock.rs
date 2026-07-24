@@ -10,8 +10,6 @@ use rustc_span::{Span, sym};
 use super::MUT_MUTEX_LOCK;
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, recv: &'tcx Expr<'tcx>, name_span: Span) {
-    let typeck = cx.typeck_results();
-
     // Make sure that we have a mutable access to `Mutex`:
     // 1. Check that the receiver is behind one or more `&mut`s -- we want to have mutable access, while
     //    not outright owning it -- if the latter were the case, then changing `.lock()` to
@@ -21,70 +19,21 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, recv: &'tcx Expr<'tcx>, name_s
     // references, so no need to check `n`
     // NOTE: the reason we don't use `expr_ty_adjusted` here is that a call
     // to `Mutex::lock` by itself adjusts the receiver to be `&Mutex`
-    if let (recv_ty, _, Some(Mutability::Mut)) = peel_and_count_ty_refs(typeck.expr_ty(recv))
+    if let (recv_ty, _, Some(Mutability::Mut)) = peel_and_count_ty_refs(cx.typeck_results().expr_ty(recv))
         && recv_ty.is_diag_item(cx, sym::Mutex)
-    {
-        let deref_mut_trait = cx.tcx.lang_items().deref_mut_trait();
-        let impls_deref_mut = |ty| deref_mut_trait.is_some_and(|trait_id| implements_trait(cx, ty, trait_id, &[]));
-
         // 2. The mutex was accessed either directly (`mutex.lock()`), or through a series of
         // deref/field/indexing projections. Since the final `.lock()` call only requires `&Mutex`,
         // those might be immutable, and so we need to manually check whether mutable projections
         // would've been possible. For that, we'll repeatedly peel off projections and check each
         // intermediary receiver.
-        let mut r = recv;
-        loop {
-            // Check that the (deref) adjustments could be made mutable
-            if (typeck.expr_adjustments(r))
-                .iter()
-                .map_while(|a| match a.kind {
-                    Adjust::Deref(x) => Some((a.target, x)),
-                    _ => None,
-                })
-                .try_fold(typeck.expr_ty(r), |ty, (target, deref)| match deref {
-                    // There has been an overloaded deref, most likely an immutable one, as `.lock()` didn't require a
-                    // mutable one -- we need to check if a mutable deref would've been possible, i.e. if
-                    // `ty: DerefMut<Target = target>` (we don't need to check the `Target` part, as `Deref` and
-                    // `DerefMut` impls necessarily have the same one)
-                    DerefAdjustKind::Overloaded(_) => impls_deref_mut(ty).then_some(target),
-                    // There has been a simple deref; if it happened on a `&T`, then we know it will can't be changed to
-                    // provide mutable access
-                    DerefAdjustKind::Builtin => (ty.ref_mutability() != Some(Mutability::Not)).then_some(target),
-                    DerefAdjustKind::Pin => Some(target),
-                })
-                .is_none()
-            {
-                return;
-            }
-
-            // Peel off one projection
-            match r.kind {
-                ExprKind::Unary(UnOp::Deref, base) => {
-                    if impls_deref_mut(typeck.expr_ty_adjusted(base)) {
-                        r = base;
-                    } else {
-                        return;
-                    }
-                },
-                ExprKind::Index(..) | ExprKind::Field(..) => {
-                    // We don't want to lint on indexing and field accesses, as both of those would take exclusive
-                    // access to only part of a value -- which would conflict with any immutable reborrow over
-                    // the whole value
-                    return;
-                },
-                _ => {
-                    // We arrived at the innermost receiver
-                    if let ExprKind::Path(ref p) = r.kind
-                        && let Some(did) = cx.qpath_res(p, r.hir_id).opt_def_id()
-                        && cx.tcx.is_static(did)
-                    {
-                        // Don't lint on statics
-                        return;
-                    }
-                    // No more projections to check
-                    break;
-                },
-            }
+        && let Some(recv) = check_projections(cx, recv)
+    {
+        if let ExprKind::Path(ref p) = recv.kind
+            && let Some(did) = cx.qpath_res(p, recv.hir_id).opt_def_id()
+            && cx.tcx.is_static(did)
+        {
+            // Don't lint on statics
+            return;
         }
 
         span_lint_and_sugg(
@@ -97,4 +46,61 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, recv: &'tcx Expr<'tcx>, name_s
             Applicability::MaybeIncorrect,
         );
     }
+}
+
+/// See the comment at the callsite.
+///
+/// Returns the innermost receiver if all the projections could be made mutable.
+fn check_projections<'tcx>(cx: &LateContext<'tcx>, mut recv: &'tcx Expr<'tcx>) -> Option<&'tcx Expr<'tcx>> {
+    let deref_mut_trait = cx.tcx.lang_items().deref_mut_trait();
+    let impls_deref_mut = |ty| deref_mut_trait.is_some_and(|trait_id| implements_trait(cx, ty, trait_id, &[]));
+    let typeck = cx.typeck_results();
+
+    loop {
+        // Check that the (deref) adjustments could be made mutable
+        #[expect(clippy::question_mark, reason = "the suggested form is confusing")]
+        if (typeck.expr_adjustments(recv))
+            .iter()
+            .map_while(|a| match a.kind {
+                Adjust::Deref(x) => Some((a.target, x)),
+                _ => None,
+            })
+            .try_fold(typeck.expr_ty(recv), |ty, (target, deref)| match deref {
+                // There has been an overloaded deref, most likely an immutable one, as `.lock()` didn't require a
+                // mutable one -- we need to check if a mutable deref would've been possible, i.e. if
+                // `ty: DerefMut<Target = target>` (we don't need to check the `Target` part, as `Deref` and
+                // `DerefMut` impls necessarily have the same one)
+                DerefAdjustKind::Overloaded(_) => impls_deref_mut(ty).then_some(target),
+                // There has been a simple deref; if it happened on a `&T`, then we know it will can't be changed to
+                // provide mutable access
+                DerefAdjustKind::Builtin => (ty.ref_mutability() != Some(Mutability::Not)).then_some(target),
+                DerefAdjustKind::Pin => Some(target),
+            })
+            .is_none()
+        {
+            return None;
+        }
+
+        // Peel off one projection
+        match recv.kind {
+            ExprKind::Unary(UnOp::Deref, base) => {
+                if impls_deref_mut(typeck.expr_ty_adjusted(base)) {
+                    recv = base;
+                } else {
+                    return None;
+                }
+            },
+            ExprKind::Index(..) | ExprKind::Field(..) => {
+                // We don't want to lint on indexing and field accesses, as both of those would take exclusive
+                // access to only part of a value -- which would conflict with any immutable reborrow over
+                // the whole value
+                return None;
+            },
+            _ => {
+                // No more projections to check
+                break;
+            },
+        }
+    }
+    Some(recv)
 }
