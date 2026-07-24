@@ -32,6 +32,7 @@ union U {
     u: u32,
 }
 
+#[allow(clippy::static_mut_vars)]
 static mut STATIC: i32 = 0;
 
 fn test1() {
