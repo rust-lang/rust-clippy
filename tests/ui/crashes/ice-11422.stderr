@@ -1,5 +1,5 @@
 error: this bound is already specified as the supertrait of `PartialOrd`
-  --> tests/ui/crashes/ice-11422.rs:6:33
+  --> tests/ui/crashes/ice-11422.rs:7:33
    |
 LL | fn r#gen() -> impl PartialOrd + PartialEq + Debug {}
    |                                 ^^^^^^^^^
