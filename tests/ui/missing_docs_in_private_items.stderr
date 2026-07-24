@@ -1,0 +1,17 @@
+error: missing documentation for a function
+  --> tests/ui/missing_docs_in_private_items.rs:30:4
+   |
+LL | fn not_in_test_mod() {}
+   |    ^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::missing-docs-in-private-items` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::missing_docs_in_private_items)]`
+
+error: missing documentation for a struct
+  --> tests/ui/missing_docs_in_private_items.rs:33:8
+   |
+LL | struct NotInTestModStruct;
+   |        ^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+
