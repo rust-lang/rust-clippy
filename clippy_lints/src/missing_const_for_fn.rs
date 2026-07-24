@@ -69,7 +69,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.34.0"]
     pub MISSING_CONST_FOR_FN,
     nursery,
-    "Lint functions definitions that could be made `const fn`"
+    "Lint functions definitions that could be made `const fn`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.46. It additionally requires at least 1.62 for `const extern \"C\" fn` and at least 1.83 for other const extern ABIs."
 }
 
 impl_lint_pass!(MissingConstForFn => [MISSING_CONST_FOR_FN]);

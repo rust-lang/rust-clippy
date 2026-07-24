@@ -46,7 +46,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub NONMINIMAL_BOOL,
     pedantic,
-    "boolean expressions that can be written more concisely"
+    "boolean expressions that can be written more concisely",
+    @msrv_behavior = "This lint only suggests `is_none_or` when the configured MSRV is at least 1.82. Other boolean simplifications are not MSRV-gated."
 }
 
 declare_clippy_lint! {

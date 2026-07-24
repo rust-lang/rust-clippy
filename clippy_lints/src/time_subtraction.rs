@@ -70,7 +70,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.67.0"]
     pub UNCHECKED_TIME_SUBTRACTION,
     pedantic,
-    "finds unchecked subtraction involving 'Duration' or 'Instant'"
+    "finds unchecked subtraction involving 'Duration' or 'Instant'",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.34 for unchecked `Instant - Duration` and `Duration - Duration` subtraction. `Instant::now() - instant` is handled by `manual_instant_elapsed` and is not MSRV-gated."
 }
 
 impl_lint_pass!(UncheckedTimeSubtraction => [

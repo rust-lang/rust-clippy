@@ -37,7 +37,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.95.0"]
     pub MANUAL_TAKE,
     complexity,
-    "manual `mem::take` implementation"
+    "manual `mem::take` implementation",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.40, because it suggests `mem::take`."
 }
 
 impl_lint_pass!(ManualTake => [MANUAL_TAKE]);

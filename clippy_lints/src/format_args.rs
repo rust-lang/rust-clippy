@@ -165,7 +165,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.66.0"]
     pub UNINLINED_FORMAT_ARGS,
     pedantic,
-    "using non-inlined variables in `format!` calls"
+    "using non-inlined variables in `format!` calls",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.58, because it suggests captured format arguments."
 }
 
 declare_clippy_lint! {
@@ -200,7 +201,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.87.0"]
     pub UNNECESSARY_DEBUG_FORMATTING,
     pedantic,
-    "`Debug` formatting applied to an `OsStr` or `Path` when `.display()` is available"
+    "`Debug` formatting applied to an `OsStr` or `Path` when `.display()` is available",
+    @msrv_behavior = "`Path` debug formatting is linted for all MSRVs. `OsStr` debug formatting is only linted when the configured MSRV is at least 1.87, because it suggests `OsStr::display`."
 }
 
 declare_clippy_lint! {

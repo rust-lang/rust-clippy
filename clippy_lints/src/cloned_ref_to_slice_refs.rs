@@ -48,7 +48,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.89.0"]
     pub CLONED_REF_TO_SLICE_REFS,
     perf,
-    "cloning a reference for slice references"
+    "cloning a reference for slice references",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV supports `slice::from_ref`: at least 1.28 outside const contexts, or at least 1.63 in const contexts."
 }
 
 impl_lint_pass!(ClonedRefToSliceRefs<'_> => [CLONED_REF_TO_SLICE_REFS]);

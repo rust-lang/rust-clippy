@@ -691,7 +691,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.83.0"]
     pub MANUAL_DIV_CEIL,
     complexity,
-    "manually reimplementing `div_ceil`"
+    "manually reimplementing `div_ceil`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.73, because it suggests `div_ceil`."
 }
 
 declare_clippy_lint! {
@@ -720,7 +721,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.90.0"]
     pub MANUAL_IS_MULTIPLE_OF,
     complexity,
-    "manual implementation of `.is_multiple_of()`"
+    "manual implementation of `.is_multiple_of()`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.87, because it suggests `is_multiple_of`."
 }
 
 declare_clippy_lint! {
@@ -777,7 +779,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.87.0"]
     pub MANUAL_MIDPOINT,
     pedantic,
-    "manual implementation of `midpoint` which can overflow"
+    "manual implementation of `midpoint` which can overflow",
+    @msrv_behavior = "This lint is only emitted for unsigned integer and float operands when the configured MSRV is at least 1.85, and for signed integer operands when the configured MSRV is at least 1.87, because those versions provide `midpoint`."
 }
 
 declare_clippy_lint! {

@@ -31,7 +31,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.37.0"]
     pub CHECKED_CONVERSIONS,
     pedantic,
-    "`try_from` could replace manual bounds checking when casting"
+    "`try_from` could replace manual bounds checking when casting",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.34, because it suggests `TryFrom`."
 }
 
 impl_lint_pass!(CheckedConversions => [CHECKED_CONVERSIONS]);

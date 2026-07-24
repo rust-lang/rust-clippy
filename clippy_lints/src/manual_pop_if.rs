@@ -54,7 +54,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.96.0"]
     pub MANUAL_POP_IF,
     complexity,
-    "manual implementation of `pop_if` methods"
+    "manual implementation of `pop_if` methods",
+    @msrv_behavior = "This lint is only emitted for `Vec` when the configured MSRV is at least 1.86, and for `VecDeque` when the configured MSRV is at least 1.93. `BinaryHeap` cases are only linted when the unstable `binary_heap_pop_if` feature is enabled."
 }
 
 impl_lint_pass!(ManualPopIf => [MANUAL_POP_IF]);

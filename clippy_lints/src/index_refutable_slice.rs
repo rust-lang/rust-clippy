@@ -50,7 +50,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.59.0"]
     pub INDEX_REFUTABLE_SLICE,
     pedantic,
-    "avoid indexing on slices which could be destructed"
+    "avoid indexing on slices which could be destructed",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.42, because it suggests subslice patterns."
 }
 
 impl_lint_pass!(IndexRefutableSlice => [INDEX_REFUTABLE_SLICE]);

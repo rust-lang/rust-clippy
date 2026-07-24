@@ -49,7 +49,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.51.0"]
     pub FROM_OVER_INTO,
     style,
-    "Warns on implementations of `Into<..>` to use `From<..>`"
+    "Warns on implementations of `Into<..>` to use `From<..>`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.41, because coherence changes in that version make the suggested `From` implementation broadly equivalent."
 }
 
 impl_lint_pass!(FromOverInto => [FROM_OVER_INTO]);

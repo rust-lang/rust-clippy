@@ -49,7 +49,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.49.0"]
     pub MANUAL_RANGE_CONTAINS,
     style,
-    "manually reimplementing {`Range`, `RangeInclusive`}`::contains`"
+    "manually reimplementing {`Range`, `RangeInclusive`}`::contains`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.35, because it suggests `Range::contains` or `RangeInclusive::contains`."
 }
 
 declare_clippy_lint! {

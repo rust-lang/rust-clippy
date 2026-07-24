@@ -630,6 +630,10 @@ impl LintMetadata {
                 writeln!(&mut docs, " * {past_name}").unwrap();
             }
         }
+        if let Some(msrv_behavior) = lint.msrv_behavior {
+            docs.push_str("\n### MSRV behavior\n\n");
+            docs.push_str(msrv_behavior);
+        }
         let configs: Vec<_> = configs
             .iter()
             .filter(|conf| conf.lints.contains(&name.as_str()))

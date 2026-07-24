@@ -36,7 +36,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub APPROX_CONSTANT,
     correctness,
-    "the approximate of a known float constant (in `std::fXX::consts`)"
+    "the approximate of a known float constant (in `std::fXX::consts`)",
+    @msrv_behavior = "Approximate constants whose standard-library constant stabilized later are only linted when the configured MSRV supports them: `LOG2_10` and `LOG10_2` require 1.43, and `TAU` requires 1.47."
 }
 
 impl_lint_pass!(ApproxConstant => [APPROX_CONSTANT]);

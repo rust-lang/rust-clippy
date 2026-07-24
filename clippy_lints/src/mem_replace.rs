@@ -64,7 +64,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.87.0"]
     pub MEM_REPLACE_OPTION_WITH_SOME,
     style,
-    "replacing an `Option` with `Some` instead of `replace()`"
+    "replacing an `Option` with `Some` instead of `replace()`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.31, because it suggests `Option::replace`."
 }
 
 declare_clippy_lint! {
@@ -89,7 +90,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.42.0"]
     pub MEM_REPLACE_WITH_DEFAULT,
     style,
-    "replacing a value of type `T` with `T::default()` instead of using `std::mem::take`"
+    "replacing a value of type `T` with `T::default()` instead of using `std::mem::take`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.40, because it suggests `std::mem::take`."
 }
 
 declare_clippy_lint! {

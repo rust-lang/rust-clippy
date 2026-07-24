@@ -36,7 +36,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.73.0"]
     pub MANUAL_IS_FINITE,
     style,
-    "use dedicated method to check if a float is finite"
+    "use dedicated method to check if a float is finite",
+    @msrv_behavior = "This lint is emitted for all MSRVs outside const contexts. In const contexts, it is only emitted when the configured MSRV is at least 1.83."
 }
 
 declare_clippy_lint! {
@@ -60,7 +61,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.73.0"]
     pub MANUAL_IS_INFINITE,
     style,
-    "use dedicated method to check if a float is infinite"
+    "use dedicated method to check if a float is infinite",
+    @msrv_behavior = "This lint is emitted for all MSRVs outside const contexts. In const contexts, it is only emitted when the configured MSRV is at least 1.83."
 }
 
 impl_lint_pass!(ManualFloatMethods => [MANUAL_IS_FINITE, MANUAL_IS_INFINITE]);
