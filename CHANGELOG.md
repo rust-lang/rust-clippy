@@ -7227,6 +7227,7 @@ Released 2018-09-13
 [`naive_bytecount`]: https://rust-lang.github.io/rust-clippy/master/index.html#naive_bytecount
 [`needless_arbitrary_self_type`]: https://rust-lang.github.io/rust-clippy/master/index.html#needless_arbitrary_self_type
 [`needless_as_bytes`]: https://rust-lang.github.io/rust-clippy/master/index.html#needless_as_bytes
+[`needless_bitmask_on_cast`]: https://rust-lang.github.io/rust-clippy/master/index.html#needless_bitmask_on_cast
 [`needless_bitwise_bool`]: https://rust-lang.github.io/rust-clippy/master/index.html#needless_bitwise_bool
 [`needless_bool`]: https://rust-lang.github.io/rust-clippy/master/index.html#needless_bool
 [`needless_bool_assign`]: https://rust-lang.github.io/rust-clippy/master/index.html#needless_bool_assign
