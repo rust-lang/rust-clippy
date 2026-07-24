@@ -91,22 +91,29 @@ fn inner_check(cx: &LateContext<'_>, expr: &'_ Expr<'_>, inner_expr: &'_ Expr<'_
             {
                 (
                     x.span,
-                    assign_expr_suggestion(cx, x, l.pat.span, &inner_expr, return_type, vec),
+                    assign_expr_suggestion(cx, x, l.pat.span, &inner_expr, inner_expr_ty, return_type, vec),
                 )
             },
-            Node::LetStmt(l) => (l.span, let_stmt_suggestion(cx, l, &inner_expr, return_type, vec)),
+            Node::LetStmt(l) => (
+                l.span,
+                let_stmt_suggestion(cx, l, &inner_expr, inner_expr_ty, return_type, vec),
+            ),
             Node::Expr(x) if let ExprKind::Assign(l, _, _) = x.kind => (
                 x.span,
-                assign_expr_suggestion(cx, x, l.span, &inner_expr, return_type, vec),
+                assign_expr_suggestion(cx, x, l.span, &inner_expr, inner_expr_ty, return_type, vec),
             ),
             // NOTE: don't use the stmt span to avoid touching the trailing semicolon
-            Node::Stmt(_) => (expr.span, format!("{inner_expr};\n{indent}{vec}[] as {return_type}")),
+            Node::Stmt(_) => (
+                // NOTE: No type annotation needed here, the original code would not compile if the type were ambiguous
+                expr.span,
+                format!("{inner_expr};\n{indent}{vec}[] as {return_type}"),
+            ),
             _ => (
                 expr.span,
                 format!(
                     "\
 {{
-{indent}    {inner_expr};
+{indent}    let _: {inner_expr_ty} = {inner_expr};
 {indent}    {vec}[] as {return_type}
 {indent}}}"
                 ),
@@ -121,6 +128,7 @@ fn inner_check(cx: &LateContext<'_>, expr: &'_ Expr<'_>, inner_expr: &'_ Expr<'_
             |diag| {
                 if (!inner_expr_ty.is_never() || cx.tcx.features().never_type())
                     && return_type.is_suggestable(cx.tcx, true)
+                    && inner_expr_ty.is_suggestable(cx.tcx, true)
                 {
                     diag.span_suggestion_verbose(
                         span,
@@ -140,12 +148,13 @@ fn let_stmt_suggestion(
     cx: &LateContext<'_>,
     let_stmt: &LetStmt<'_>,
     inner_expr: &str,
+    inner_expr_ty: Ty<'_>,
     return_type: Ty<'_>,
     vec_str: &str,
 ) -> String {
     let indent = snippet_indent(cx, let_stmt.span).unwrap_or_default();
     format!(
-        "{inner_expr};\n{}let {var_name}: {return_type} = {vec_str}[];",
+        "let _: {inner_expr_ty} = {inner_expr};\n{}let {var_name}: {return_type} = {vec_str}[];",
         indent,
         var_name = snippet(cx, let_stmt.pat.span.source_callsite(), "..")
     )
@@ -156,6 +165,7 @@ fn assign_expr_suggestion(
     outer_expr: &Expr<'_>,
     assign_expr_span: Span,
     inner_expr: &str,
+    inner_expr_ty: Ty<'_>,
     return_type: Ty<'_>,
     vec_str: &str,
 ) -> String {
@@ -168,8 +178,10 @@ fn assign_expr_suggestion(
     let indent = snippet_indent(cx, outer_expr.span).unwrap_or_default();
     let var_name = snippet(cx, assign_expr_span.source_callsite(), "..");
     if needs_curly {
-        format!("{{\n    {indent}{inner_expr};\n    {indent}{var_name} = {vec_str}[] as {return_type}\n{indent}}}")
+        format!(
+            "{{\n    {indent}let _: {inner_expr_ty} = {inner_expr};\n    {indent}{var_name} = {vec_str}[] as {return_type}\n{indent}}}"
+        )
     } else {
-        format!("{inner_expr};\n{indent}{var_name} = {vec_str}[] as {return_type}")
+        format!("let _: {inner_expr_ty} = {inner_expr};\n{indent}{var_name} = {vec_str}[] as {return_type}")
     }
 }
