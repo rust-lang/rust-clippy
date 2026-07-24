@@ -471,6 +471,21 @@ fn check_if_try_match<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
         && !span_contains_cfg(cx, expr.span)
         && let Some(if_let_or_match_then) = check_arms_are_try(cx, mode, arm1, arm2)
     {
+        // `Try` is not implemented for `&Option` / `&mut Option`, so when the
+        // scrutinee is a reference type we need `.as_ref()?` / `.as_mut()?`.
+        // Skip `&expr` / `&mut expr` scrutinees because `&expr?` already applies
+        // `?` to the inner `expr` via operator precedence.
+        let scrutinee_ty = cx.typeck_results().expr_ty_adjusted(scrutinee);
+        let ref_suffix = if matches!(scrutinee.kind, ExprKind::AddrOf(..)) {
+            ""
+        } else {
+            match scrutinee_ty.kind() {
+                ty::Ref(_, _, Mutability::Mut) => ".as_mut()",
+                ty::Ref(_, _, Mutability::Not) => ".as_ref()",
+                _ => "",
+            }
+        };
+
         span_lint_and_then(
             cx,
             QUESTION_MARK,
@@ -485,7 +500,7 @@ fn check_if_try_match<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
                         diag.span_suggestion(
                             expr.span,
                             "try instead",
-                            scrutinee_snippet.into_owned() + "?",
+                            format!("{scrutinee_snippet}{ref_suffix}?"),
                             applicability,
                         );
                     },
@@ -498,12 +513,12 @@ fn check_if_try_match<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
                         if matches!(arm_body.kind, ExprKind::Block(..)) && sugg.starts_with('{') {
                             sugg.insert_str(
                                 1,
-                                &format!("\n{inner_indent}let {binding_snippet} = {scrutinee_snippet}?;"),
+                                &format!("\n{inner_indent}let {binding_snippet} = {scrutinee_snippet}{ref_suffix}?;"),
                             );
                         } else {
                             let outer_indent = " ".repeat(indent);
                             sugg = format!(
-                                "{{\n{inner_indent}let {binding_snippet} = {scrutinee_snippet}?;\n{inner_indent}{sugg}\n{outer_indent}}}"
+                                "{{\n{inner_indent}let {binding_snippet} = {scrutinee_snippet}{ref_suffix}?;\n{inner_indent}{sugg}\n{outer_indent}}}"
                             );
                         }
                         diag.span_suggestion(expr.span, "try instead", sugg, applicability);
