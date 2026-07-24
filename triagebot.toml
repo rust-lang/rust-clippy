@@ -99,7 +99,9 @@ users_on_vacation = [
     "Alexendoo",
     "y21",
     "blyxyas",
-    "ada4a"
+    "ada4a",
+    "dswij",
+    "samueltardieu"
 ]
 
 [assign.owners]
@@ -116,3 +118,9 @@ users_on_vacation = [
     "@samueltardieu",
     "@ada4a",
 ]
+
+# Require community reviews before automatic assignment
+# Documentation at: https://forge.rust-lang.org/triagebot/pr-assignment.html#community-reviews
+[assign.community_reviews]
+minimum_approvals = 2
+label = "S-waiting-on-community-reviews"

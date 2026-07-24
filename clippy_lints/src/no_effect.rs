@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::{span_lint_hir, span_lint_hir_and_then};
-use clippy_utils::res::MaybeResPath;
-use clippy_utils::source::SpanExt;
+use clippy_utils::res::MaybeResPath as _;
+use clippy_utils::source::SpanExt as _;
 use clippy_utils::ty::{expr_type_is_certain, has_drop};
 use clippy_utils::{in_automatically_derived, is_inside_always_const_context, is_lint_allowed, peel_blocks};
 use rustc_errors::Applicability;
@@ -9,7 +9,7 @@ use rustc_hir::{
     BinOpKind, BlockCheckMode, Expr, ExprKind, HirId, HirIdMap, ItemKind, LocalSource, Node, PatKind, Stmt, StmtKind,
     StructTailExpr, UnsafeSource, is_range_literal,
 };
-use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_session::impl_lint_pass;
 use rustc_span::Span;
 use std::ops::Deref;
@@ -341,10 +341,15 @@ fn reduce_expression<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<Vec
         | ExprKind::Type(inner, _)
         | ExprKind::Unary(_, inner)
         | ExprKind::Field(inner, _)
-        | ExprKind::AddrOf(_, _, inner) => reduce_expression(cx, inner).or_else(|| Some(vec![inner])),
+        | ExprKind::AddrOf(_, _, inner)
+        // accessing a field of type `!` makes the statement unreachable in
+        // the eye of the type checker, so don't remove it
+        if !cx.typeck_results().expr_ty(expr).is_never() => {
+            reduce_expression(cx, inner).or_else(|| Some(vec![inner]))
+        }
         ExprKind::Cast(inner, _) if expr_type_is_certain(cx, inner) => {
             reduce_expression(cx, inner).or_else(|| Some(vec![inner]))
-        },
+        }
         ExprKind::Struct(_, fields, ref base) => {
             if has_drop(cx, cx.typeck_results().expr_ty(expr)) {
                 None

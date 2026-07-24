@@ -26,13 +26,13 @@ mod wild_in_or_pats;
 
 use clippy_config::Conf;
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::source::SpanExt;
+use clippy_utils::source::SpanExt as _;
 use clippy_utils::{
     higher, is_direct_expn_of, is_in_const_context, is_lint_allowed, is_span_match, sym, tokenize_with_text,
 };
 use rustc_hir::{Arm, Expr, ExprKind, LetStmt, MatchSource, Pat, PatKind};
 use rustc_lexer::{TokenKind, is_whitespace};
-use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_session::impl_lint_pass;
 use rustc_span::Span;
 
@@ -1111,7 +1111,13 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
                 if source == MatchSource::Normal {
                     let is_match_like_matches = self.msrv.meets(cx, msrvs::MATCHES_MACRO)
                         && match_like_matches::check_match(cx, expr, ex, arms);
-                    if !(is_match_like_matches || is_lint_allowed(cx, MATCH_SAME_ARMS, expr.hir_id)) {
+                    // Even when the lint is allowed on the match expression, an arm can carry its
+                    // own `#[expect]`/`#[warn]` attribute, which `match_same_arms::check` handles
+                    // at arm granularity. Only skip the check when no arm has attributes.
+                    if !(is_match_like_matches
+                        || (is_lint_allowed(cx, MATCH_SAME_ARMS, expr.hir_id)
+                            && arms.iter().all(|arm| cx.tcx.hir_attrs(arm.hir_id).is_empty())))
+                    {
                         match_same_arms::check(cx, arms);
                     }
 

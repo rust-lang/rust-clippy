@@ -159,11 +159,11 @@ use clippy_config::Conf;
 use clippy_utils::consts::{ConstEvalCtxt, Constant};
 use clippy_utils::macros::FormatArgsStorage;
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::res::{MaybeDef, MaybeTypeckRes};
+use clippy_utils::res::{MaybeDef as _, MaybeTypeckRes as _};
 use clippy_utils::{contains_return, iter_input_pats, peel_blocks, sym};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::{self as hir, Expr, ExprKind, Node, Stmt, StmtKind, TraitItem, TraitItemKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::ty::TraitRef;
 use rustc_session::impl_lint_pass;
 use rustc_span::{Span, Symbol};
@@ -3158,7 +3158,7 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for usage of the `offset` pointer method with a `usize` casted to an
+    /// Checks for usage of the `offset` pointer method with a `usize` cast to an
     /// `isize`.
     ///
     /// ### Why is this bad?
@@ -5651,7 +5651,7 @@ impl Methods {
                     if name == sym::map {
                         map_clone::check(cx, expr, recv, m_arg, self.msrv);
                         map_with_unused_argument_over_ranges::check(cx, expr, recv, m_arg, self.msrv, span);
-                        manual_is_variant_and::check_map(cx, expr);
+                        manual_is_variant_and::check_map(cx, expr, self.msrv);
                         match method_call(recv) {
                             Some((map_name @ (sym::iter | sym::into_iter), recv2, _, _, _)) => {
                                 iter_kv_map::check(cx, map_name, expr, recv2, m_arg, self.msrv, sym::map);

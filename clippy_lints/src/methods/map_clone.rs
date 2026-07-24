@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::peel_blocks;
-use clippy_utils::res::MaybeDef;
+use clippy_utils::res::MaybeDef as _;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::ty::{is_copy, should_call_clone_as_function};
 use rustc_errors::Applicability;
@@ -121,7 +121,7 @@ fn handle_path(
         && let Some(ty) = args.iter().find_map(|generic_arg| generic_arg.as_type())
         && let ty::Ref(_, ty, Mutability::Not) = ty.kind()
         && let ty::FnDef(_, lst) = cx.typeck_results().expr_ty(arg).kind()
-        && lst.iter().all(|l| l.as_type() == Some(*ty))
+        && lst.iter().all(|l| l.no_bound_vars().unwrap().as_type() == Some(*ty))
         && !should_call_clone_as_function(cx, *ty)
     {
         lint_path(cx, e.span, recv.span, is_copy(cx, ty.peel_refs()));

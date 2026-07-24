@@ -77,7 +77,7 @@ use std::collections::hash_map::Entry;
 use std::iter::{once, repeat_n, zip};
 use std::sync::{Mutex, OnceLock};
 
-use itertools::Itertools;
+use itertools::Itertools as _;
 use rustc_abi::Integer;
 use rustc_ast::ast::{self, LitKind, RangeLimits};
 use rustc_ast::{LitIntType, join_path_syms};
@@ -88,7 +88,7 @@ use rustc_data_structures::unhash::UnindexMap;
 use rustc_hir::LangItem::{OptionNone, OptionSome, ResultErr, ResultOk};
 use rustc_hir::attrs::CfgEntry;
 use rustc_hir::def::{DefKind, Res};
-use rustc_hir::def_id::{DefId, LocalDefId, LocalModDefId};
+use rustc_hir::def_id::{DefId, LocalDefId, LocalModId};
 use rustc_hir::definitions::{DefPath, DefPathData};
 use rustc_hir::hir_id::{HirIdMap, HirIdSet};
 use rustc_hir::intravisit::{Visitor, walk_expr};
@@ -101,27 +101,27 @@ use rustc_hir::{
     find_attr,
 };
 use rustc_lexer::{FrontmatterAllowed, TokenKind, tokenize};
-use rustc_lint::{LateContext, Level, Lint, LintContext};
+use rustc_lint::{LateContext, Level, Lint, LintContext as _};
 use rustc_middle::hir::nested_filter;
 use rustc_middle::hir::place::PlaceBase;
 use rustc_middle::mir::{AggregateKind, Operand, RETURN_PLACE, Rvalue, StatementKind, TerminatorKind};
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, DerefAdjustKind, PointerCoercion};
-use rustc_middle::ty::layout::IntegerExt;
+use rustc_middle::ty::layout::IntegerExt as _;
 use rustc_middle::ty::{
-    self as rustc_ty, Binder, BorrowKind, ClosureKind, EarlyBinder, GenericArgKind, GenericArgsRef, IntTy, Ty, TyCtxt,
-    TypeFlags, TypeVisitableExt, TypeckResults, UintTy, UpvarCapture,
+    self as rustc_ty, Binder, BorrowKind, ClosureKind, EarlyBinder, GenericArgKind, GenericArgsRef, IntTy,
+    RegionUtilitiesExt as _, Ty, TyCtxt, TypeFlags, TypeVisitableExt as _, TypeckResults, UintTy, UpvarCapture,
 };
 use rustc_span::hygiene::{ExpnKind, MacroKind};
 use rustc_span::source_map::SourceMap;
 use rustc_span::symbol::{Ident, Symbol, kw};
 use rustc_span::{InnerSpan, Span, SyntaxContext};
-use source::{SpanExt, walk_span_to_context};
+use source::{SpanExt as _, walk_span_to_context};
 use visitors::{Visitable, for_each_unconsumed_temporary};
 
 use crate::ast_utils::unordered_over;
 use crate::higher::Range;
 use crate::msrvs::Msrv;
-use crate::res::{MaybeDef, MaybeQPath, MaybeResPath};
+use crate::res::{MaybeDef as _, MaybeQPath as _, MaybeResPath as _};
 use crate::source::HasSourceMap;
 use crate::ty::{adt_and_variant_of_res, can_partially_move_ty, expr_sig, is_copy, is_recursively_primitive_type};
 use crate::visitors::for_each_expr_without_closures;
@@ -2348,11 +2348,11 @@ pub fn is_hir_ty_cfg_dependant(cx: &LateContext<'_>, ty: &hir::Ty<'_>) -> bool {
     false
 }
 
-static TEST_ITEM_NAMES_CACHE: OnceLock<Mutex<FxHashMap<LocalModDefId, Vec<Symbol>>>> = OnceLock::new();
+static TEST_ITEM_NAMES_CACHE: OnceLock<Mutex<FxHashMap<LocalModId, Vec<Symbol>>>> = OnceLock::new();
 
 /// Returns the names of the test items in the given module.
 /// The names are sorted using the default `Symbol` ordering.
-fn test_item_names(tcx: TyCtxt<'_>, module: LocalModDefId) -> Vec<Symbol> {
+fn test_item_names(tcx: TyCtxt<'_>, module: LocalModId) -> Vec<Symbol> {
     let cache = TEST_ITEM_NAMES_CACHE.get_or_init(|| Mutex::new(FxHashMap::default()));
     let mut map = cache.lock().unwrap();
     match map.entry(module) {
@@ -3258,7 +3258,10 @@ fn get_path_to_ty<'tcx>(tcx: TyCtxt<'tcx>, from: LocalDefId, ty: Ty<'tcx>, args:
         | rustc_ty::RawPtr(_, _)
         | rustc_ty::Ref(..)
         | rustc_ty::Slice(_)
-        | rustc_ty::Tuple(_) => format!("<{}>", EarlyBinder::bind(ty).instantiate(tcx, args).skip_norm_wip()),
+        | rustc_ty::Tuple(_) => format!(
+            "<{}>",
+            EarlyBinder::bind(tcx, ty).instantiate(tcx, args).skip_norm_wip()
+        ),
         _ => ty.to_string(),
     }
 }
