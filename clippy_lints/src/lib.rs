@@ -116,6 +116,7 @@ mod disallowed_script_idents;
 mod disallowed_types;
 mod doc;
 mod double_parens;
+mod drop_for_static;
 mod drop_forget_ref;
 mod duplicate_mod;
 mod duration_suboptimal_units;
@@ -868,6 +869,7 @@ rustc_lint::late_lint_methods!(
         RedundantElse: redundant_else::RedundantElse = redundant_else::RedundantElse,
         RestWhenDestructuringStruct: rest_when_destructuring_struct::RestWhenDestructuringStruct = rest_when_destructuring_struct::RestWhenDestructuringStruct,
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
+        DropForStatic: drop_for_static::DropForStatic = drop_for_static::DropForStatic,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
