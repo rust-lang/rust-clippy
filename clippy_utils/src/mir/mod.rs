@@ -10,7 +10,7 @@ use rustc_middle::mir::{
 use rustc_middle::ty::TyCtxt;
 
 mod possible_borrower;
-pub use possible_borrower::PossibleBorrowerMap;
+pub use possible_borrower::{BorrowedVariables, PossibleBorrowerMap};
 
 mod possible_origin;
 
