@@ -104,3 +104,9 @@ fn main() -> Result<(), ()> {
     //~^ unwrap_in_result
     Ok(())
 }
+
+fn unwrap_infallible_result(infallible: Result<usize, std::convert::Infallible>) -> Result<usize, ()> {
+    // allow unwrapping infallible result type
+    let v = infallible.unwrap();
+    Ok(v + 1)
+}
