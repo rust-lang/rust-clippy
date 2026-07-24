@@ -27,20 +27,122 @@ LL |     use std::{error::Error, vec::Vec, fs::File};
    = help: to override `-D warnings` add `#[allow(clippy::std_instead_of_alloc)]`
 
 error: used import from `std` instead of `alloc`
-  --> tests/ui/std_instead_of_core_unfixable.rs:19:17
+  --> tests/ui/std_instead_of_core_unfixable.rs:19:9
+   |
+LL |     use std::{
+   |         ^^^
+   |
+help: consider importing the item from `alloc`
+  --> tests/ui/std_instead_of_core_unfixable.rs:20:17
    |
 LL |         borrow::Cow,
+   |                 ^^^
+LL |         collections::BTreeSet,
+   |                      ^^^^^^^^
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:30:25
+   |
+LL |     let layout = alloc::Layout::new::<u8>();
+   |                         ^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:37:14
+   |
+LL |         fmt::Result,
+   |              ^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `alloc`
+  --> tests/ui/std_instead_of_core_unfixable.rs:42:9
+   |
+LL |         Arc,
+   |         ^^^
+   |
+   = help: consider importing the item from `alloc`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:57:13
+   |
+LL |             std::{
+   |             ^^^
+   |
+help: consider importing the item from `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:58:26
+   |
+LL |                 fmt::{*, Formatter},
+   |                          ^^^^^^^^^
+LL |                 fs,
+LL |                 sync::atomic,
+   |                       ^^^^^^
+LL |                 sync::atomic::{
+LL |                     AtomicUsize,
+   |                     ^^^^^^^^^^^
+LL |                     AtomicU8,
+   |                     ^^^^^^^^
+LL |                     Ordering,
+   |                     ^^^^^^^^
+
+error: used import from `std` instead of `alloc`
+  --> tests/ui/std_instead_of_core_unfixable.rs:58:17
+   |
+LL |                 fmt::{*, Formatter},
    |                 ^^^
    |
    = help: consider importing the item from `alloc`
 
-error: used import from `std` instead of `alloc`
-  --> tests/ui/std_instead_of_core_unfixable.rs:21:22
+error: used import from `alloc` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:71:18
    |
-LL |         collections::BTreeSet,
-   |                      ^^^^^^^^
+LL |             fmt::Result as FmtResult,
+   |                  ^^^^^^
    |
-   = help: consider importing the item from `alloc`
+   = help: consider importing the item from `core`
+   = note: `-D clippy::alloc-instead-of-core` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::alloc_instead_of_core)]`
 
-error: aborting due to 5 previous errors
+error: used import from `alloc` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:86:15
+   |
+LL |     impl fmt::Display for S {
+   |               ^^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `alloc` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:90:26
+   |
+LL |             _: &mut fmt::Formatter<'_>,
+   |                          ^^^^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `alloc` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:92:19
+   |
+LL |         ) -> fmt::Result {
+   |                   ^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:106:15
+   |
+LL |         iter::repeat_with,
+   |               ^^^^^^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `alloc` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:112:9
+   |
+LL |         Layout,
+   |         ^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: aborting due to 15 previous errors
 
