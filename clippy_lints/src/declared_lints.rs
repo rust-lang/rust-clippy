@@ -594,6 +594,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::non_send_fields_in_send_ty::NON_SEND_FIELDS_IN_SEND_TY_INFO,
     crate::non_std_lazy_statics::NON_STD_LAZY_STATICS_INFO,
     crate::non_zero_suggestions::NON_ZERO_SUGGESTIONS_INFO,
+    crate::nonnull_unchecked_on_box_ptr::NONNULL_UNCHECKED_ON_BOX_PTR_INFO,
     crate::nonstandard_macro_braces::NONSTANDARD_MACRO_BRACES_INFO,
     crate::octal_escapes::OCTAL_ESCAPES_INFO,
     crate::only_used_in_recursion::ONLY_USED_IN_RECURSION_INFO,

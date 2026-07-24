@@ -841,6 +841,7 @@ define_Conf! {
         missing_const_for_fn,
         needless_borrow,
         non_std_lazy_statics,
+        nonnull_unchecked_on_box_ptr,
         option_as_ref_deref,
         or_fun_call,
         ptr_as_ptr,
