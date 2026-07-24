@@ -2,7 +2,7 @@
 
 #![feature(never_type)]
 #![warn(clippy::redundant_else)]
-#![expect(clippy::unnecessary_operation)]
+#![expect(clippy::unnecessary_operation, clippy::collapsible_if)]
 
 extern crate proc_macros;
 use proc_macros::{external, inline_macros, with_span};
@@ -325,6 +325,12 @@ fn main() {
         if black_box(true) {
             if black_box(true) { return } else { black_box(0) }
             //~^ redundant_else
+        } else {
+            black_box(1)
+        };
+
+        if black_box(true) {
+            if black_box(true) { black_box(2) } else { black_box(0) }
         } else {
             black_box(0)
         };
