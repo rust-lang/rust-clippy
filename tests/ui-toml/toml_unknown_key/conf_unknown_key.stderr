@@ -77,6 +77,7 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            semicolon-outside-block-ignore-multiline
            single-char-binding-names-threshold
            source-item-ordering
+           stack-array-size-threshold
            stack-size-threshold
            standard-macro-braces
            struct-field-name-threshold
@@ -180,6 +181,7 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            semicolon-outside-block-ignore-multiline
            single-char-binding-names-threshold
            source-item-ordering
+           stack-array-size-threshold
            stack-size-threshold
            standard-macro-braces
            struct-field-name-threshold
@@ -283,6 +285,7 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            semicolon-outside-block-ignore-multiline
            single-char-binding-names-threshold
            source-item-ordering
+           stack-array-size-threshold
            stack-size-threshold
            standard-macro-braces
            struct-field-name-threshold
