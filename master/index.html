@@ -1093,8 +1093,8 @@ into something.</p>
 </ul>
 </div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+boxed_local">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/escape.rs#L28">View Source</a></div></div></article><article id="branches_sharing_code"><input id="label-branches_sharing_code" type="checkbox"><label for="label-branches_sharing_code"><h2 class="lint-title"><div class="panel-title-name" id="lint-branches_sharing_code">branches_sharing_code
 <a href="#branches_sharing_code" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-nursery">nursery</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
-<p>Checks if the <code>if</code> and <code>else</code> block contain shared code that can be
-moved out of the blocks.</p>
+<p>Checks if the blocks of an <code>if</code>/<code>else</code>, or the arms of a <code>match</code>, contain shared code that
+can be moved out of the branches.</p>
 <h3>Why is this bad?</h3>
 <p>Duplicate code is less maintainable.</p>
 <h3>Example</h3>
@@ -1113,6 +1113,20 @@ let foo = if … {
 } else {
     42
 };
+</code></pre>
+<p>For a <code>match</code>, when every arm ends with the same expression it can be moved after the
+<code>match</code>:</p>
+<pre><code class="language-rust">match mode {
+    Mode::A =&gt; { a(); Ok(()) }
+    Mode::B =&gt; { b(); Ok(()) }
+}
+</code></pre>
+<p>Use instead:</p>
+<pre><code class="language-rust">match mode {
+    Mode::A =&gt; { a(); }
+    Mode::B =&gt; { b(); }
+}
+Ok(())
 </code></pre>
 </div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.53.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+branches_sharing_code">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/ifs/mod.rs#L14">View Source</a></div></div></article><article id="builtin_type_shadow"><input id="label-builtin_type_shadow" type="checkbox"><label for="label-builtin_type_shadow"><h2 class="lint-title"><div class="panel-title-name" id="lint-builtin_type_shadow">builtin_type_shadow
 <a href="#builtin_type_shadow" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-style">style</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
@@ -4840,7 +4854,7 @@ and the <em>else</em> part.</p>
     42
 };
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+if_same_then_else">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/ifs/mod.rs#L48">View Source</a></div></div></article><article id="if_then_some_else_none"><input id="label-if_then_some_else_none" type="checkbox"><label for="label-if_then_some_else_none"><h2 class="lint-title"><div class="panel-title-name" id="lint-if_then_some_else_none">if_then_some_else_none
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+if_same_then_else">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/ifs/mod.rs#L66">View Source</a></div></div></article><article id="if_then_some_else_none"><input id="label-if_then_some_else_none" type="checkbox"><label for="label-if_then_some_else_none"><h2 class="lint-title"><div class="panel-title-name" id="lint-if_then_some_else_none">if_then_some_else_none
 <a href="#if_then_some_else_none" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-restriction">restriction</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for if-else that could be written using either <code>bool::then</code> or <code>bool::then_some</code>.</p>
 <h3>Why restrict this?</h3>
@@ -4895,7 +4909,7 @@ have side effects:</p>
 <p>(default: <code>["bytes::Bytes"]</code>)</p>
 </li>
 </ul>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+ifs_same_cond">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/ifs/mod.rs#L70">View Source</a></div></div></article><article id="ignore_without_reason"><input id="label-ignore_without_reason" type="checkbox"><label for="label-ignore_without_reason"><h2 class="lint-title"><div class="panel-title-name" id="lint-ignore_without_reason">ignore_without_reason
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+ifs_same_cond">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/ifs/mod.rs#L88">View Source</a></div></div></article><article id="ignore_without_reason"><input id="label-ignore_without_reason" type="checkbox"><label for="label-ignore_without_reason"><h2 class="lint-title"><div class="panel-title-name" id="lint-ignore_without_reason">ignore_without_reason
 <a href="#ignore_without_reason" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-pedantic">pedantic</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for ignored tests without messages.</p>
 <h3>Why is this bad?</h3>
@@ -13869,7 +13883,7 @@ if first == bar {
     }
 }
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.41.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+same_functions_in_if_condition">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/ifs/mod.rs#L102">View Source</a></div></div></article><article id="same_item_push"><input id="label-same_item_push" type="checkbox"><label for="label-same_item_push"><h2 class="lint-title"><div class="panel-title-name" id="lint-same_item_push">same_item_push
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.41.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+same_functions_in_if_condition">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/ifs/mod.rs#L120">View Source</a></div></div></article><article id="same_item_push"><input id="label-same_item_push" type="checkbox"><label for="label-same_item_push"><h2 class="lint-title"><div class="panel-title-name" id="lint-same_item_push">same_item_push
 <a href="#same_item_push" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-style">style</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks whether a for loop is being used to push a constant
 value into a Vec.</p>
