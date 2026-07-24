@@ -6,7 +6,7 @@ use std::sync::LazyLock;
 
 use regex::RegexSet;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct Message {
     path: PathBuf,
     bad_lines: Vec<String>,
@@ -113,5 +113,5 @@ fn lint_message_convention() {
     eprintln!("Check out the rustc-dev-guide for more information:");
     eprintln!("https://rustc-dev-guide.rust-lang.org/diagnostics.html#diagnostic-structure\n\n\n");
 
-    assert!(bad_tests.is_empty());
+    assert_eq!(bad_tests, []);
 }

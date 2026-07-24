@@ -1,0 +1,28 @@
+error: used `assert!` with an empty collection check
+  --> tests/ui/assert_is_empty_macro.rs:6:9
+   |
+LL |         assert!($expr.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+LL |     assert_empty!(v);
+   |     ---------------- in this macro invocation
+   |
+   = help: replace with: `assert_eq!(v, [])`
+   = note: `-D clippy::assert-is-empty` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::assert_is_empty)]`
+   = note: this error originates in the macro `assert_empty` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: used `assert!` with a non-empty collection check
+  --> tests/ui/assert_is_empty_macro.rs:13:9
+   |
+LL |         assert!(!$expr.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+LL |     assert_not_empty!(s);
+   |     -------------------- in this macro invocation
+   |
+   = help: replace with: `assert_ne!(s, "")`
+   = note: this error originates in the macro `assert_not_empty` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: aborting due to 2 previous errors
+
