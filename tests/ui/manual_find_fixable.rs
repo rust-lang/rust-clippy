@@ -1,5 +1,5 @@
 #![warn(clippy::manual_find)]
-#![allow(clippy::needless_return)]
+#![allow(clippy::needless_return, clippy::deref_method_call_chain)]
 
 use std::collections::HashMap;
 

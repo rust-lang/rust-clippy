@@ -1,4 +1,5 @@
 #![warn(clippy::return_and_then)]
+#![allow(clippy::deref_method_call_chain)]
 #![expect(clippy::manual_filter)]
 
 fn main() {
