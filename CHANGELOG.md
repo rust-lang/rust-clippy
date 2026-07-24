@@ -6857,6 +6857,7 @@ Released 2018-09-13
 [`disallowed_method`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_method
 [`disallowed_methods`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_methods
 [`disallowed_names`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_names
+[`disallowed_pub_api_types`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_pub_api_types
 [`disallowed_script_idents`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_script_idents
 [`disallowed_type`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_type
 [`disallowed_types`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_types
@@ -7698,6 +7699,7 @@ Released 2018-09-13
 [`disallowed-macros`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-macros
 [`disallowed-methods`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-methods
 [`disallowed-names`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-names
+[`disallowed-pub-api-types`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-pub-api-types
 [`disallowed-types`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-types
 [`doc-valid-idents`]: https://doc.rust-lang.org/clippy/lint_configuration.html#doc-valid-idents
 [`enable-raw-pointer-heuristic-for-send`]: https://doc.rust-lang.org/clippy/lint_configuration.html#enable-raw-pointer-heuristic-for-send
