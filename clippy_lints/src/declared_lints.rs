@@ -17,6 +17,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::async_yields_async::ASYNC_YIELDS_ASYNC_INFO,
     crate::attrs::ALLOW_ATTRIBUTES_INFO,
     crate::attrs::ALLOW_ATTRIBUTES_WITHOUT_REASON_INFO,
+    crate::attrs::BLANKET_ALLOW_WARNINGS_INFO,
     crate::attrs::BLANKET_CLIPPY_RESTRICTION_LINTS_INFO,
     crate::attrs::DEPRECATED_CFG_ATTR_INFO,
     crate::attrs::DEPRECATED_CLIPPY_CFG_ATTR_INFO,
