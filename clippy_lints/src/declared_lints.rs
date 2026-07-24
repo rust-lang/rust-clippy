@@ -231,6 +231,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::infallible_try_from::INFALLIBLE_TRY_FROM_INFO,
     crate::infinite_iter::INFINITE_ITER_INFO,
     crate::infinite_iter::MAYBE_INFINITE_ITER_INFO,
+    crate::infinite_iter::UNBOUNDED_ITER_INFO,
     crate::inherent_impl::MULTIPLE_INHERENT_IMPL_INFO,
     crate::inherent_to_string::INHERENT_TO_STRING_INFO,
     crate::inherent_to_string::INHERENT_TO_STRING_SHADOW_DISPLAY_INFO,
