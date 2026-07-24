@@ -5728,9 +5728,9 @@ impl Methods {
                     no_effect_replace::check(cx, expr, arg1, arg2);
 
                     // Check for repeated `str::replace` calls to perform `collapsible_str_replace` lint
-                    if self.msrv.meets(cx, msrvs::PATTERN_TRAIT_CHAR_ARRAY)
-                        && name == sym::replace
+                    if name == sym::replace
                         && let Some((sym::replace, ..)) = method_call(recv)
+                        && self.msrv.meets(cx, msrvs::PATTERN_TRAIT_CHAR_ARRAY)
                     {
                         collapsible_str_replace::check(cx, expr, arg1, arg2);
                     }
@@ -5801,10 +5801,9 @@ impl Methods {
                 },
                 (sym::take, []) => needless_option_take::check(cx, expr, recv),
                 (sym::then, [arg]) => {
-                    if !self.msrv.meets(cx, msrvs::BOOL_THEN_SOME) {
-                        return;
+                    if self.msrv.meets(cx, msrvs::BOOL_THEN_SOME) {
+                        unnecessary_lazy_eval::check(cx, expr, recv, arg, "then_some", true);
                     }
-                    unnecessary_lazy_eval::check(cx, expr, recv, arg, "then_some", true);
                 },
                 (sym::try_into, []) if cx.ty_based_def(expr).opt_parent(cx).is_diag_item(cx, sym::TryInto) => {
                     unnecessary_fallible_conversions::check_method(cx, expr);
