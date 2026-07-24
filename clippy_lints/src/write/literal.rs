@@ -240,45 +240,89 @@ fn conservative_unescape(literal: &str) -> Result<String, UnescapeErr> {
     if err { Err(UnescapeErr::Lint) } else { Ok(unescaped) }
 }
 
-/// Replaces `{` with `{{` and `}` with `}}`. If `preserve_unicode_escapes` is `true` the braces
-/// in `\u{xxxx}` are left unmodified
-#[expect(clippy::match_same_arms)]
+/// Doubles up every brace so that a string literal can be safely inlined into a (non-raw) format
+/// string. This covers literal braces (`{`, `}`) as well as braces produced by escape sequences
+/// (`\x7b`, `\u{7d}`), because the format string parser sees them only after unescaping. Escape
+/// sequences that do not evaluate to a brace (e.g. `\u{ab123}`) and the braces that are part of the
+/// `\u{…}` escape syntax are left untouched.
+///
+/// If `preserve_unicode_escapes` is `false` (the literal ends up in a raw format string) escape
+/// sequences do not exist, so only literal braces are doubled up.
 fn escape_braces(literal: &str, preserve_unicode_escapes: bool) -> String {
-    #[derive(Clone, Copy)]
-    enum State {
-        Normal,
-        Backslash,
-        UnicodeEscape,
-    }
-
     let mut escaped = String::with_capacity(literal.len());
-    let mut state = State::Normal;
+    let mut chars = literal.chars().peekable();
 
-    for ch in literal.chars() {
-        state = match (ch, state) {
-            // Escape braces outside of unicode escapes by doubling them up
-            ('{' | '}', State::Normal) => {
+    while let Some(ch) = chars.next() {
+        match ch {
+            // A brace in the value: double it up.
+            '{' | '}' => {
                 escaped.push(ch);
-                State::Normal
+                escaped.push(ch);
             },
-            // If `preserve_unicode_escapes` isn't enabled stay in `State::Normal`, otherwise:
-            //
-            // \u{aaaa} \\ \x01
-            // ^        ^  ^
-            ('\\', State::Normal) if preserve_unicode_escapes => State::Backslash,
-            // \u{aaaa}
-            //  ^
-            ('u', State::Backslash) => State::UnicodeEscape,
-            // \xAA \\
-            //  ^    ^
-            (_, State::Backslash) => State::Normal,
-            // \u{aaaa}
-            //        ^
-            ('}', State::UnicodeEscape) => State::Normal,
-            _ => state,
-        };
-
-        escaped.push(ch);
+            // An escape sequence may hide a brace (`\x7b`) or contain braces that belong to the
+            // escape syntax rather than the value (`\u{…}`), so it needs special handling.
+            '\\' if preserve_unicode_escapes => {
+                escaped.push('\\');
+                match chars.peek().copied() {
+                    // `\x7b` / `\x7d`: a brace written as a hex escape. Double up the whole escape so
+                    // that it decodes to `{{` / `}}`.
+                    Some('x') => {
+                        escaped.push('x');
+                        chars.next();
+                        let mut digits = String::new();
+                        while digits.len() < 2 {
+                            match chars.peek() {
+                                Some(&c) if c.is_ascii_hexdigit() => {
+                                    digits.push(c);
+                                    escaped.push(c);
+                                    chars.next();
+                                },
+                                _ => break,
+                            }
+                        }
+                        if matches!(u32::from_str_radix(&digits, 16), Ok(0x7B | 0x7D)) {
+                            escaped.push('\\');
+                            escaped.push('x');
+                            escaped.push_str(&digits);
+                        }
+                    },
+                    // `\u{7b}` / `\u{7d}`: a brace written as a unicode escape. Other unicode escapes
+                    // (`\u{ab123}`) are copied verbatim, braces and all.
+                    Some('u') => {
+                        escaped.push('u');
+                        chars.next();
+                        if chars.peek() == Some(&'{') {
+                            let mut sequence = String::from("\\u");
+                            let mut value = String::new();
+                            let mut closed = false;
+                            for c in chars.by_ref() {
+                                escaped.push(c);
+                                sequence.push(c);
+                                match c {
+                                    '}' => {
+                                        closed = true;
+                                        break;
+                                    },
+                                    '_' | '{' => {},
+                                    _ => value.push(c),
+                                }
+                            }
+                            if closed && matches!(u32::from_str_radix(&value, 16), Ok(0x7B | 0x7D)) {
+                                escaped.push_str(&sequence);
+                            }
+                        }
+                    },
+                    // Any other escape (`\\`, `\n`, `\"`, …): copy the escaped character verbatim so
+                    // that it is not mistaken for the start of another escape or for a brace.
+                    Some(c) => {
+                        escaped.push(c);
+                        chars.next();
+                    },
+                    None => {},
+                }
+            },
+            _ => escaped.push(ch),
+        }
     }
 
     escaped

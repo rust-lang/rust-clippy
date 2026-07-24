@@ -74,6 +74,14 @@ fn main() {
     //~^ print_literal
     println!("{}", "\\\\u{1234}");
     //~^ print_literal
+    // Escape sequences that evaluate to braces must be doubled up as well, otherwise the suggestion
+    // would inline a brace into the format string and fail to compile (see #16478)
+    println!("{}", "\x7Ba\x7D \x7Bb\x7D");
+    //~^ print_literal
+    println!("{}", "\u{7B}a\u{7D}");
+    //~^ print_literal
+    println!("{}", "\x7b\x7d");
+    //~^ print_literal
 
     println!("mixed: {} {world}", "{hello}");
     //~^ print_literal
