@@ -1,5 +1,4 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::expr_custom_deref_adjustment;
 use clippy_utils::res::MaybeDef as _;
 use clippy_utils::ty::{implements_trait, peel_and_count_ty_refs};
 use rustc_errors::Applicability;
@@ -14,26 +13,21 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, recv: &'tcx Expr<'tcx>, name_s
     let typeck = cx.typeck_results();
 
     // Make sure that we have a mutable access to `Mutex`:
+    // 1. Check that the receiver is behind one or more `&mut`s -- we want to have mutable access, while
+    //    not outright owning it -- if the latter were the case, then changing `.lock()` to
+    //    `.get_mut()`, could easily result in a conflict with other existing immutable borrows.
     //
-    // 1. Check that there are no custom deref adjustments turning the access immutable (e.g.
-    //    `Arc<Mutex>` derefs to `&Mutex`)
-    if matches!(expr_custom_deref_adjustment(cx, recv), None | Some(Mutability::Mut))
-        // 2. Check that the receiver is behind one or more `&mut`s -- we want to have mutable
-        //    access, while not outright owning it -- if the latter were the case, then changing
-        //    `.lock()` to `.get_mut()`, could easily result in a conflict with other existing
-        //    immutable borrows.
-        //
-        // NOTE: `mutbl` being `Some` is enough to determine that there was at least one layer of
-        // references, so no need to check `n`
-        // NOTE: the reason we don't use `expr_ty_adjusted` here is that a call
-        // to `Mutex::lock` by itself adjusts the receiver to be `&Mutex`
-        && let (recv_ty, _, Some(Mutability::Mut)) = peel_and_count_ty_refs(typeck.expr_ty(recv))
+    // NOTE: `mutbl` being `Some` is enough to determine that there was at least one layer of
+    // references, so no need to check `n`
+    // NOTE: the reason we don't use `expr_ty_adjusted` here is that a call
+    // to `Mutex::lock` by itself adjusts the receiver to be `&Mutex`
+    if let (recv_ty, _, Some(Mutability::Mut)) = peel_and_count_ty_refs(typeck.expr_ty(recv))
         && recv_ty.is_diag_item(cx, sym::Mutex)
     {
         let deref_mut_trait = cx.tcx.lang_items().deref_mut_trait();
         let impls_deref_mut = |ty| deref_mut_trait.is_some_and(|trait_id| implements_trait(cx, ty, trait_id, &[]));
 
-        // The mutex was accessed either directly (`mutex.lock()`), or through a series of
+        // 2. The mutex was accessed either directly (`mutex.lock()`), or through a series of
         // deref/field/indexing projections. Since the final `.lock()` call only requires `&Mutex`,
         // those might be immutable, and so we need to manually check whether mutable projections
         // would've been possible. For that, we'll repeatedly peel off projections and check each
@@ -81,14 +75,10 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, recv: &'tcx Expr<'tcx>, name_s
                 _ => {
                     // We arrived at the innermost receiver
                     if let ExprKind::Path(ref p) = r.kind
-                        && cx
-                            .qpath_res(p, r.hir_id)
-                            .opt_def_id()
-                            .and_then(|id| cx.tcx.static_mutability(id))
-                            == Some(Mutability::Not)
+                        && let Some(did) = cx.qpath_res(p, r.hir_id).opt_def_id()
+                        && cx.tcx.is_static(did)
                     {
-                        // The mutex is stored in a `static`, and we don't want to suggest making that
-                        // mutable
+                        // Don't lint on statics
                         return;
                     }
                     // No more projections to check
