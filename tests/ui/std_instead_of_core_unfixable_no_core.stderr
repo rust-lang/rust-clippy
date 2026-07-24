@@ -1,0 +1,31 @@
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable_no_core.rs:12:9
+   |
+LL |     use std::cmp::{self, Eq, Ordering, PartialEq, PartialOrd};
+   |         ^^^
+   |
+   = help: consider importing the item from `core`
+   = help: consider adding an `extern crate` statement at the crate root
+   = note: `-D clippy::std-instead-of-core` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::std_instead_of_core)]`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable_no_core.rs:14:9
+   |
+LL |     use std::option::Option::{self, Some};
+   |         ^^^
+   |
+   = help: consider importing the item from `core`
+   = help: consider adding an `extern crate` statement at the crate root
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable_no_core.rs:16:9
+   |
+LL |     use std::todo;
+   |         ^^^
+   |
+   = help: consider importing the item from `core`
+   = help: consider adding an `extern crate` statement at the crate root
+
+error: aborting due to 3 previous errors
+

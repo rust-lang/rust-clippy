@@ -42,5 +42,124 @@ LL |         collections::BTreeSet,
    |
    = help: consider importing the item from `alloc`
 
-error: aborting due to 5 previous errors
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:31:18
+   |
+LL |     let layout = alloc::Layout::new::<u8>();
+   |                  ^^^^^^^^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:38:14
+   |
+LL |         fmt::Result,
+   |              ^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `alloc`
+  --> tests/ui/std_instead_of_core_unfixable.rs:44:9
+   |
+LL |         Arc,
+   |         ^^^
+   |
+   = help: consider importing the item from `alloc`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:60:26
+   |
+LL |                 fmt::{*, Formatter},
+   |                          ^^^^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:65:23
+   |
+LL |                 sync::atomic,
+   |                       ^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:67:17
+   |
+LL | /                 sync::atomic::{
+LL | |                     AtomicUsize,
+LL | |                     AtomicU8,
+LL | |                     Ordering,
+LL | |                 },
+   | |_________________^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `alloc`
+  --> tests/ui/std_instead_of_core_unfixable.rs:60:17
+   |
+LL |                 fmt::{*, Formatter},
+   |                 ^^^
+   |
+   = help: consider importing the item from `alloc`
+
+error: used import from `alloc` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:77:18
+   |
+LL |             fmt::Result as FmtResult,
+   |                  ^^^^^^
+   |
+   = help: consider importing the item from `core`
+   = note: `-D clippy::alloc-instead-of-core` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::alloc_instead_of_core)]`
+
+error: used import from `std` instead of `alloc`
+  --> tests/ui/std_instead_of_core_unfixable.rs:87:9
+   |
+LL |     use std::fmt;
+   |         ^^^
+   |
+   = help: consider importing the item from `alloc`
+   = help: consider adding an `extern crate` statement at the crate root
+
+error: used import from `alloc` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:92:10
+   |
+LL |     impl fmt::Display for S {
+   |          ^^^^^^^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `alloc` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:96:21
+   |
+LL |             _: &mut fmt::Formatter<'_>,
+   |                     ^^^^^^^^^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `alloc` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:98:14
+   |
+LL |         ) -> fmt::Result {
+   |              ^^^^^^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:112:15
+   |
+LL |         iter::repeat_with,
+   |               ^^^^^^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `alloc` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:119:9
+   |
+LL |         Layout,
+   |         ^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: aborting due to 19 previous errors
 

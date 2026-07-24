@@ -1,0 +1,13 @@
+error: used import from `std` instead of `alloc`
+  --> tests/ui/std_instead_of_core_unfixable_no_alloc.rs:10:9
+   |
+LL |     use std::collections::VecDeque;
+   |         ^^^
+   |
+   = help: consider importing the item from `alloc`
+   = help: consider adding an `extern crate` statement at the crate root
+   = note: `-D clippy::std-instead-of-alloc` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::std_instead_of_alloc)]`
+
+error: aborting due to 1 previous error
+

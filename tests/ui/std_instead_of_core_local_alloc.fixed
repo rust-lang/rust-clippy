@@ -1,0 +1,37 @@
+#![warn(clippy::std_instead_of_alloc)]
+#![allow(unused_imports)]
+
+#[rustfmt::skip]
+fn issue16695() {
+    extern crate alloc;
+
+    use alloc::collections::VecDeque;
+    //~^ std_instead_of_alloc
+
+    {
+        use alloc::vec::Vec;
+        //~^ std_instead_of_alloc
+    }
+}
+
+mod a {
+    extern crate alloc as alloc_a;
+
+    fn b() {
+        mod c {
+            extern crate alloc as alloc_b;
+
+            fn d() {
+                fn e() {
+                    // This should suggest alloc_b
+                    use alloc_b::vec::Vec;
+                    //~^ std_instead_of_alloc
+                }
+            }
+        }
+    }
+
+    // This should suggest alloc_a
+    use alloc_a::vec::Vec;
+    //~^ std_instead_of_alloc
+}

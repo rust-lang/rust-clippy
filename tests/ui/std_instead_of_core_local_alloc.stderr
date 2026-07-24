@@ -1,0 +1,29 @@
+error: used import from `std` instead of `alloc`
+  --> tests/ui/std_instead_of_core_local_alloc.rs:8:9
+   |
+LL |     use std::collections::VecDeque;
+   |         ^^^ help: consider importing the item from `alloc`: `alloc`
+   |
+   = note: `-D clippy::std-instead-of-alloc` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::std_instead_of_alloc)]`
+
+error: used import from `std` instead of `alloc`
+  --> tests/ui/std_instead_of_core_local_alloc.rs:12:13
+   |
+LL |         use std::vec::Vec;
+   |             ^^^ help: consider importing the item from `alloc`: `alloc`
+
+error: used import from `std` instead of `alloc`
+  --> tests/ui/std_instead_of_core_local_alloc.rs:27:25
+   |
+LL |                     use std::vec::Vec;
+   |                         ^^^ help: consider importing the item from `alloc`: `alloc_b`
+
+error: used import from `std` instead of `alloc`
+  --> tests/ui/std_instead_of_core_local_alloc.rs:35:9
+   |
+LL |     use std::vec::Vec;
+   |         ^^^ help: consider importing the item from `alloc`: `alloc_a`
+
+error: aborting due to 4 previous errors
+

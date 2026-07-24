@@ -1,15 +1,17 @@
 use clippy_config::Conf;
-use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_sugg};
-use clippy_utils::is_from_proc_macro;
+use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::msrvs::Msrv;
-use rustc_errors::Applicability;
-use rustc_hir::def::{DefKind, Res};
-use rustc_hir::def_id::DefId;
-use rustc_hir::{Block, Body, HirId, Path, PathSegment, StabilityLevel, StableSince};
-use rustc_lint::{LateContext, LateLintPass, Lint, LintContext as _};
+use itertools::Itertools as _;
+use rustc_errors::{Applicability, Diag};
+use rustc_hir::def::{DefKind, PerNS, Res};
+use rustc_hir::def_id::{CrateNum, DefId, LocalDefId};
+use rustc_hir::{
+    Block, HirId, Item, ItemKind, Mod, Path, PathSegment, StabilityLevel, StableSince, UseKind, find_attr,
+};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_session::impl_lint_pass;
 use rustc_span::symbol::kw;
-use rustc_span::{Span, sym};
+use rustc_span::{Ident, Span, Symbol, sym};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -93,129 +95,224 @@ impl_lint_pass!(StdReexports => [
 ]);
 
 pub struct StdReexports {
-    lint_points: Option<(Span, Vec<LintPoint>)>,
+    /// Paths which could be candidates for linting.
+    lint_points: Vec<LintPoint>,
+    /// Tracks nesting when linting a multi-import `use` statement.
+    item_context: Vec<ItemContext>,
+    /// Tracks the availability of `core` and `alloc`, including possible renames.
+    crate_context: Vec<CrateContext>,
+    /// Current Minimum Supported Rust Version.
     msrv: Msrv,
 }
 
 impl StdReexports {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
-            lint_points: Option::default(),
+            lint_points: Vec::new(),
+            item_context: Vec::new(),
+            crate_context: Vec::new(),
             msrv: conf.msrv,
         }
     }
 
-    fn lint_if_finish(&mut self, cx: &LateContext<'_>, krate: Span, lint_point: LintPoint) {
-        match &mut self.lint_points {
-            Some((prev_krate, prev_lints)) if prev_krate.overlaps(krate) => {
-                prev_lints.push(lint_point);
-            },
-            _ => emit_lints(cx, self.lint_points.replace((krate, vec![lint_point]))),
+    fn lint_if_finish(&mut self, cx: &LateContext<'_>, item: Span) {
+        while let Some(top) = self.item_context.pop_if(|top| !top.span.contains(item)) {
+            let count = match LintPoint::merge_top(&self.lint_points, &top) {
+                Some(merged) => {
+                    self.lint_points.truncate(self.lint_points.len() - top.lint_points);
+                    self.lint_points.push(merged);
+                    1
+                },
+                None => top.lint_points,
+            };
+
+            if let Some(next_top) = self.item_context.last_mut() {
+                next_top.lint_points += count;
+            }
+        }
+
+        if self.item_context.is_empty() {
+            emit_lints(cx, self);
         }
     }
 }
 
-#[derive(Debug)]
-enum LintPoint {
-    Available(Span, &'static Lint, &'static str, &'static str),
-    Conflict,
+#[derive(Clone, Copy, Debug)]
+struct LintPoint {
+    first: Path<'static, DefId>,
+    last: Path<'static, PerNS<Option<DefId>>>,
 }
 
 impl<'tcx> LateLintPass<'tcx> for StdReexports {
     fn check_path(&mut self, cx: &LateContext<'tcx>, path: &Path<'tcx>, _: HirId) {
-        if let Res::Def(def_kind, def_id) = path.res
-            && let Some(first_segment) = get_first_segment(path)
-            && is_stable(cx, def_id, self.msrv)
-            && !path.span.in_external_macro(cx.sess().source_map())
-            && !is_from_proc_macro(cx, &first_segment.ident)
-            && !matches!(def_kind, DefKind::Macro(_))
-            && let Some(last_segment) = path.segments.last()
-            && let Res::Def(DefKind::Mod, crate_def_id) = first_segment.res
-            && crate_def_id.is_crate_root()
-        {
-            let (lint, used_mod, replace_with) = match first_segment.ident.name {
-                sym::std => match cx.tcx.crate_name(def_id.krate) {
-                    sym::core => (STD_INSTEAD_OF_CORE, "std", "core"),
-                    sym::alloc => (STD_INSTEAD_OF_ALLOC, "std", "alloc"),
-                    _ => {
-                        self.lint_if_finish(cx, first_segment.ident.span, LintPoint::Conflict);
-                        return;
-                    },
-                },
-                sym::alloc if cx.tcx.crate_name(def_id.krate) == sym::core => (ALLOC_INSTEAD_OF_CORE, "alloc", "core"),
-                _ => {
-                    self.lint_if_finish(cx, first_segment.ident.span, LintPoint::Conflict);
-                    return;
-                },
-            };
+        if let Some(lint_point) = LintPoint::try_from_path(path) {
+            if let Some(last) = self.lint_points.last_mut()
+                && last.last.span == lint_point.last.span
+            {
+                last.last.res = PerNS {
+                    value_ns: last.last.res.value_ns.or(lint_point.last.res.value_ns),
+                    type_ns: last.last.res.type_ns.or(lint_point.last.res.type_ns),
+                    macro_ns: last.last.res.macro_ns.or(lint_point.last.res.macro_ns),
+                };
+            } else {
+                if let Some(top) = self.item_context.last_mut()
+                    && top.span.contains(lint_point.last.span)
+                {
+                    top.lint_points += 1;
+                } else {
+                    let span = path
+                        .segments
+                        .iter()
+                        .map(|s| s.ident.span)
+                        .reduce(Span::to)
+                        .unwrap_or(path.span);
+                    self.lint_if_finish(cx, span);
+                    self.item_context.push(ItemContext { span, lint_points: 1 });
+                }
 
-            self.lint_if_finish(
-                cx,
-                first_segment.ident.span,
-                LintPoint::Available(last_segment.ident.span, lint, used_mod, replace_with),
-            );
+                self.lint_points.push(lint_point);
+            }
         }
     }
 
-    fn check_block_post(&mut self, cx: &LateContext<'tcx>, _: &Block<'tcx>) {
-        emit_lints(cx, self.lint_points.take());
+    fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {
+        self.lint_if_finish(cx, item.span);
+
+        match item.kind {
+            ItemKind::ExternCrate(Some(original), used)
+            | ItemKind::ExternCrate(None, used @ Ident { name: original, .. }) => {
+                let index = if cx
+                    .tcx
+                    .opt_local_parent(item.owner_id.def_id)
+                    .is_some_and(LocalDefId::is_top_level_module)
+                {
+                    0
+                } else {
+                    self.crate_context.len() - 1
+                };
+
+                match original {
+                    sym::core => self.crate_context[index].core = Some(used.name),
+                    sym::alloc => self.crate_context[index].alloc = Some(used.name),
+                    _ => {},
+                }
+            },
+            ItemKind::Use(_path, UseKind::ListStem) => {
+                self.item_context.push(ItemContext {
+                    span: item.span,
+                    lint_points: 0,
+                });
+            },
+            _ => {},
+        }
     }
 
-    fn check_body_post(&mut self, cx: &LateContext<'tcx>, _: &Body<'tcx>) {
-        emit_lints(cx, self.lint_points.take());
+    fn check_item_post(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {
+        self.lint_if_finish(cx, item.span);
     }
 
-    fn check_crate_post(&mut self, cx: &LateContext<'tcx>) {
-        emit_lints(cx, self.lint_points.take());
+    fn check_crate(&mut self, cx: &LateContext<'tcx>) {
+        self.crate_context.push(CrateContext {
+            core: (!no_implicit_core(cx)).then_some(sym::core),
+            ..CrateContext::default()
+        });
+    }
+
+    fn check_crate_post(&mut self, _: &LateContext<'tcx>) {
+        self.crate_context.pop();
+    }
+
+    fn check_block(&mut self, _: &LateContext<'tcx>, _: &'tcx Block<'tcx>) {
+        self.crate_context
+            .push(self.crate_context.last().copied().unwrap_or_default());
+    }
+
+    fn check_block_post(&mut self, cx: &LateContext<'tcx>, block: &'tcx Block<'tcx>) {
+        self.lint_if_finish(cx, block.span);
+        self.crate_context.pop();
+    }
+
+    fn check_mod(&mut self, _: &LateContext<'tcx>, _: &'tcx Mod<'tcx>, _: HirId) {
+        let first = self.crate_context[0];
+        self.crate_context.pop();
+        self.crate_context.push(first);
     }
 }
 
-fn emit_lints(cx: &LateContext<'_>, lint_points: Option<(Span, Vec<LintPoint>)>) {
-    let Some((krate_span, lint_points)) = lint_points else {
-        return;
-    };
+fn emit_lints(cx: &LateContext<'_>, this: &mut StdReexports) {
+    let crate_context = this
+        .crate_context
+        .last()
+        .expect("crate_context must always contain at least one entry while linting a crate");
 
-    let mut lint: Option<(&'static Lint, &'static str, &'static str)> = None;
-    let mut has_conflict = false;
-    for lint_point in &lint_points {
-        match lint_point {
-            LintPoint::Available(_, l, used_mod, replace_with)
-                if lint.is_none_or(|(prev_l, ..)| l.name == prev_l.name) =>
-            {
-                lint = Some((l, used_mod, replace_with));
-            },
-            _ => {
-                has_conflict = true;
-                break;
-            },
-        }
-    }
+    this.lint_points
+        .sort_by_key(|path| (path.first.span, path.first.res.krate, path.defined_in()));
 
-    if !has_conflict && let Some((lint, used_mod, replace_with)) = lint {
-        span_lint_and_sugg(
-            cx,
-            lint,
-            krate_span,
-            format!("used import from `{used_mod}` instead of `{replace_with}`"),
-            format!("consider importing the item from `{replace_with}`"),
-            (*replace_with).to_string(),
-            Applicability::MachineApplicable,
-        );
-        return;
-    }
+    let mut drain = this
+        .lint_points
+        .drain(..)
+        .filter(|p| p.should_emit(cx, this.msrv))
+        .peekable();
 
-    for lint_point in lint_points {
-        let LintPoint::Available(span, lint, used_mod, replace_with) = lint_point else {
-            continue;
+    while let Some(path) = drain.next() {
+        let mut spans = drain
+            .peeking_take_while(|other| path.compatible_with(other))
+            .map(|other| other.last.span)
+            .peekable();
+
+        let used_from = cx.tcx.crate_name(path.first.res.krate);
+        let defined_in = cx.tcx.crate_name(path.defined_in());
+
+        let (suggestion, lint, message, help) = match (used_from, defined_in) {
+            (sym::std, sym::core) => (
+                crate_context.core,
+                STD_INSTEAD_OF_CORE,
+                "used import from `std` instead of `core`",
+                "consider importing the item from `core`",
+            ),
+            (sym::std, sym::alloc) => (
+                crate_context.alloc,
+                STD_INSTEAD_OF_ALLOC,
+                "used import from `std` instead of `alloc`",
+                "consider importing the item from `alloc`",
+            ),
+            (sym::alloc, sym::core) => (
+                crate_context.core,
+                ALLOC_INSTEAD_OF_CORE,
+                "used import from `alloc` instead of `core`",
+                "consider importing the item from `core`",
+            ),
+            _ => continue,
         };
-        span_lint_and_help(
-            cx,
-            lint,
-            span,
-            format!("used import from `{used_mod}` instead of `{replace_with}`"),
-            None,
-            format!("consider importing the item from `{replace_with}`"),
-        );
+
+        let should_suggest = path.last.span.contains(path.first.span) && path.first.res.is_crate_root();
+
+        let then = |diag: &mut Diag<'_, ()>| {
+            if should_suggest {
+                if let Some(suggestion) = suggestion {
+                    diag.span_suggestion(path.first.span, help, suggestion, Applicability::MaybeIncorrect);
+                } else {
+                    diag.help(help);
+                    diag.help("consider adding an `extern crate` statement at the crate root");
+                }
+            } else {
+                diag.help(help);
+            }
+        };
+
+        if spans.peek().is_none() {
+            let span = if should_suggest {
+                path.first.span
+            } else {
+                path.last.span
+            };
+
+            span_lint_and_then(cx, lint, span, message, then);
+        } else {
+            for span in core::iter::once(path.last.span).chain(spans) {
+                span_lint_and_then(cx, lint, span, message, then);
+            }
+        }
     }
 }
 
@@ -261,4 +358,103 @@ fn is_stable(cx: &LateContext<'_>, mut def_id: DefId, msrv: Msrv) -> bool {
             None => return true,
         }
     }
+}
+
+impl LintPoint {
+    fn try_from_path(path: &Path<'_>) -> Option<Self> {
+        let first = get_first_segment(path)?;
+        let last = path.segments.last()?;
+
+        if !matches!(first.res, Res::Def(DefKind::Mod, _)) {
+            return None;
+        }
+
+        Some(LintPoint {
+            first: Path {
+                span: first.ident.span,
+                res: first.res.opt_def_id()?,
+                segments: &[],
+            },
+            last: Path {
+                span: last.ident.span,
+                res: {
+                    let mut res = PerNS::default();
+                    res[path.res.ns()?] = Some(path.res.opt_def_id()?);
+                    res
+                },
+                segments: &[],
+            },
+        })
+    }
+
+    /// Indicates that two [`LintPoint`]s could be merged.
+    fn compatible_with(&self, other: &Self) -> bool {
+        self.first.span == other.first.span
+            && self.first.res == other.first.res
+            && self
+                .last
+                .res
+                .present_items()
+                .all(|a| other.last.res.present_items().all(|b| a.krate == b.krate))
+    }
+
+    /// Indicates this [`LintPoint`] should be emitted to the user.
+    fn should_emit(&self, cx: &LateContext<'_>, msrv: Msrv) -> bool {
+        // NOTE:
+        // Consider using `self.first.span.can_be_used_for_suggestions()`
+
+        !self.first.span.in_external_macro(cx.sess().source_map())
+            && self
+                .last
+                .res
+                .present_items()
+                .all(|a| is_stable(cx, a, msrv) && self.first.res.krate != a.krate && self.defined_in() == a.krate)
+    }
+
+    fn defined_in(&self) -> CrateNum {
+        self.last
+            .res
+            .present_items()
+            .next()
+            .expect("LintPoint only created if at least one Namespace resolved")
+            .krate
+    }
+
+    fn merge_top(lint_points: &[Self], top: &ItemContext) -> Option<Self> {
+        lint_points
+            .iter()
+            .rev()
+            .take(top.lint_points)
+            .try_fold(Option::<&Self>::None, |a, b| match a {
+                Some(a) if a.compatible_with(b) => Some(Some(a)),
+                None => Some(Some(b)),
+                _ => None,
+            })
+            .flatten()
+            .map(|representative| Self {
+                last: Path {
+                    span: top.span,
+                    ..representative.last
+                },
+                ..*representative
+            })
+    }
+}
+
+#[derive(Debug)]
+struct ItemContext {
+    span: Span,
+    lint_points: usize,
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+struct CrateContext {
+    core: Option<Symbol>,
+    alloc: Option<Symbol>,
+}
+
+/// Indicates a crate is marked as `#![no_core]` or `#![no_implicit_prelude]`,
+/// both of which cause `core` to not be implicitly available.
+pub fn no_implicit_core(cx: &LateContext<'_>) -> bool {
+    find_attr!(cx.tcx, crate, NoCore | NoImplicitPrelude)
 }
