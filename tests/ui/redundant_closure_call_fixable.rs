@@ -1,6 +1,7 @@
 #![warn(clippy::redundant_closure_call)]
 #![expect(incomplete_features)]
 #![feature(ergonomic_clones)]
+#![allow(clippy::manual_max)]
 
 async fn something() -> u32 {
     21
