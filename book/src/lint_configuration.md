@@ -101,6 +101,16 @@ Whether `expect` should be allowed in test functions or `#[cfg(test)]`
 * [`expect_used`](https://rust-lang.github.io/rust-clippy/master/index.html#expect_used)
 
 
+## `allow-ignored-result-err-in-tests`
+Whether `ignored_result_err` should be allowed in test functions or `#[cfg(test)]`
+
+**Default Value:** `false`
+
+---
+**Affected lints:**
+* [`ignored_result_err`](https://rust-lang.github.io/rust-clippy/master/index.html#ignored_result_err)
+
+
 ## `allow-indexing-slicing-in-tests`
 Whether `indexing_slicing` should be allowed in test functions or `#[cfg(test)]`
 
