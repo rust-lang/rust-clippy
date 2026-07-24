@@ -5,6 +5,8 @@
     clippy::unnecessary_mut_passed
 )]
 
+use std::ops::Index;
+
 fn main() {
     let a = 5;
     let ref_a = &a;
@@ -293,4 +295,80 @@ fn issue_14743<T>(slice: &[T]) {
     // Check that rustc would actually warn if Clippy had suggested removing the reference
     #[expect(dangerous_implicit_autorefs)]
     let _ = unsafe { (*slice).len() };
+}
+
+fn issue_17414(
+    slice: &(i32, (i32, [usize])),
+    tuple_slice: *const (i32, [usize]),
+    nested_tuple: *const (i32, (i32, [usize])),
+) {
+    let _ = (&slice).1.1.len();
+    //~^ needless_borrow
+    let _ = (&slice.1).1.len();
+    //~^ needless_borrow
+    let _ = (&slice.1.1).len();
+    //~^ needless_borrow
+
+    unsafe {
+        // Rule: `rustc_lint:autoref.rs` require explicit ref to arg from a [inner] derefed raw pointer
+        // when calling a #[rustc_no_implicit_autorefs] method.
+
+        // 1. Issue 17414 case: deref tuple, get slice field, call [].len() method.
+        let _ = (&(*tuple_slice).1).len(); // necessary borrow, no lint
+
+        // 2. simple slice
+        let a = [0, 1, 2];
+        let b = &raw const a[0..2]; // same with raw const or raw mut
+        let _ = (&*b).len(); // necessary
+        let _ = (&*b).index(0); // necessary
+        let _: i32 = (*b)[0]; // success
+
+        let _: i32 = (&*b)[0];
+        //~^ needless_borrow
+
+        // 3. nested tuple
+        let _ = (&*nested_tuple).1.1.len(); // necessary
+        let _ = (&(*nested_tuple).1).1.len(); // necessary
+        let _ = (&(*nested_tuple).1.1).len(); // necessary
+
+        let _ = (*nested_tuple).1.1.first(); // success
+
+        let _ = (&*nested_tuple).1.1.first();
+        //~^ needless_borrow
+        let _ = (&(*nested_tuple).1).1.first();
+        //~^ needless_borrow
+        let _ = (&(*nested_tuple).1.1).first();
+        //~^ needless_borrow
+
+        // 4. array
+        let a = [1, 2, 3];
+        let b: *const [i32; 3] = &raw const a;
+        // let _ = (*b).index(0); // fail
+        let _ = (&*b).index(0); // necessary
+
+        let _ = (*b)[0]; // ok
+        let _ = (&*b)[0];
+        //~^ needless_borrow
+
+        // 5. trait
+        trait T: Index<usize, Output = i32> {}
+        struct S {}
+        impl Index<usize> for S {
+            type Output = i32;
+            // no attr, defined in super.index
+            fn index(&self, _: usize) -> &i32 {
+                &42
+            }
+        }
+        impl T for S {}
+
+        let s = S {};
+        let t: &dyn T = &s;
+        let ptr: *const dyn T = t;
+
+        // let _ = (*ptr)[0]; // fail
+        let _ = (&*ptr)[0]; // necessary
+        // let _ = (*ptr).index(0); // fail
+        let _ = (&*ptr).index(0); // necessary
+    }
 }

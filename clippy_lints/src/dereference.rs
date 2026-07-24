@@ -6,19 +6,21 @@ use clippy_utils::ty::{
     adjust_derefs_manually_drop, get_adt_inherent_method, implements_trait, is_manually_drop, peel_and_count_ty_refs,
 };
 use clippy_utils::{
-    DefinedTy, ExprUseNode, get_expr_use_site, get_parent_expr, is_block_like, is_from_proc_macro, is_lint_allowed, sym,
+    DefinedTy, ExprUseNode, expr_use_sites, get_expr_use_site, get_parent_expr, is_block_like, is_from_proc_macro,
+    is_lint_allowed, sym,
 };
 use rustc_ast::util::parser::ExprPrecedence;
 use rustc_data_structures::fx::FxIndexMap;
 use rustc_errors::Applicability;
+use rustc_hir::attrs::{AttributeKind, HasAttrs as _};
 use rustc_hir::def_id::DefId;
 use rustc_hir::intravisit::{InferKind, Visitor, VisitorExt as _, walk_ty};
 use rustc_hir::{
-    self as hir, AmbigArg, BindingMode, Body, BodyId, BorrowKind, Expr, ExprKind, HirId, Item, MatchSource, Mutability,
-    Node, OwnerId, Pat, PatKind, Path, QPath, TyKind, UnOp,
+    self as hir, AmbigArg, Attribute, BindingMode, Body, BodyId, BorrowKind, Expr, ExprKind, HirId, Item, MatchSource,
+    Mutability, Node, OwnerId, Pat, PatKind, Path, QPath, TyKind, UnOp,
 };
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, AutoBorrowMutability};
+use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, AutoBorrowMutability, DerefAdjustKind};
 use rustc_middle::ty::{self, AssocTag, Ty, TyCtxt, TypeVisitableExt as _, TypeckResults, Unnormalized};
 use rustc_session::impl_lint_pass;
 use rustc_span::{Span, Symbol, SyntaxContext};
@@ -275,6 +277,10 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
             return;
         }
 
+        if need_explicit_ref(cx, typeck, expr) {
+            return;
+        }
+
         match (self.state.take(), kind) {
             (None, kind) => {
                 let expr_ty = typeck.expr_ty(expr);
@@ -441,6 +447,7 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                                     true
                                 }
                             },
+                            ExprUseNode::Index(base, _) if expr.hir_id == base.hir_id => true,
                             _ => false,
                         };
 
@@ -730,6 +737,94 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
             self.outermost_deref_impl = None;
         }
     }
+}
+
+// Issue: https://github.com/rust-lang/rust-clippy/issues/17414
+// Related: https://doc.rust-lang.org/beta/nightly-rustc/rustc_lint/autorefs/static.DANGEROUS_IMPLICIT_AUTOREFS.html
+// A raw pointer need explicit ref to prevent from dangerous_implicit_autorefs.
+// Recognize whether the ref of expr must be explicit. Similar Logic to `rustc_lint::autorefs` .
+// 1. expr is a AddrOf Ref.
+// 2. Loop sub_expr of expr if sub_expr is index/field, and is a deref of a raw ptr at the end.
+// 3. Not all raw ptr need explicit ref. Only if it is in a danger invoke chain. Will check in
+//    method check_invoke_chain_danger.
+fn need_explicit_ref<'tcx>(cx: &LateContext<'tcx>, typeck: &'tcx TypeckResults<'tcx>, expr: &'tcx Expr<'tcx>) -> bool {
+    match expr.kind {
+        ExprKind::AddrOf(BorrowKind::Ref, _, mut sub_expr) => {
+            typeck
+                .expr_ty(loop {
+                    match sub_expr.kind {
+                        ExprKind::Index(e, _, _) | ExprKind::Field(e, _) => sub_expr = e,
+                        ExprKind::Unary(UnOp::Deref, e) => break e,
+                        _ => break sub_expr,
+                    }
+                })
+                .is_raw_ptr()
+                && check_invoke_chain_danger(cx, typeck, expr)
+        },
+        _ => false,
+    }
+}
+
+// Check expr whether in a danger invoke chain.
+// 1. Loop use site of expr.
+// 2. Get adjustments.
+// 3. If adjs list pattern [N * Deref Adjust, 1 * AutoBorrow Adjust], means auto ref exist.
+// 3. Get use node.
+// 4. If node is field or index and auto ref exist, return true, else continue loop.
+// 5. If method call, check method has `RustcNoImplicitAutorefs` attr.
+fn check_invoke_chain_danger<'tcx>(
+    cx: &LateContext<'tcx>,
+    typeck: &'tcx TypeckResults<'tcx>,
+    mut expr: &'tcx Expr<'tcx>,
+) -> bool {
+    while let Some(use_site) = expr_use_sites(cx.tcx, typeck, SyntaxContext::root(), expr).next() {
+        let adjs = peel_derefs_adjustments(use_site.adjustments);
+        let auto_ref = if adjs.len() == 1 { adjs.first() } else { None }.is_some_and(|adj| {
+            matches!(
+                adj.kind,
+                Adjust::Deref(DerefAdjustKind::Overloaded(_)) | Adjust::Borrow(AutoBorrow::Ref(_))
+            )
+        });
+
+        match use_site.node {
+            Node::Expr(use_expr) => match use_expr.kind {
+                ExprKind::Field(_, _) | ExprKind::Index(_, _, _) => {
+                    if auto_ref {
+                        return true;
+                    }
+                    expr = use_expr;
+                },
+                ExprKind::MethodCall(_, _, _, _) => {
+                    return auto_ref
+                        && typeck.type_dependent_def_id(use_expr.hir_id).is_some_and(|fn_id| {
+                            fn_id
+                                .get_attrs(&cx.tcx) // can not use private micro find_attr!()
+                                .iter()
+                                .any(|attr| matches!(attr, Attribute::Parsed(AttributeKind::RustcNoImplicitAutorefs)))
+                        });
+                },
+                _ => return false,
+            },
+            _ => return false,
+        }
+    }
+
+    false
+}
+
+// same code from rustc_lint:auto_ref.rs
+fn peel_derefs_adjustments<'a>(mut adjs: &'a [Adjustment<'a>]) -> &'a [Adjustment<'a>] {
+    while let [
+        Adjustment {
+            kind: Adjust::Deref(_), ..
+        },
+        end @ ..,
+    ] = adjs
+        && !end.is_empty()
+    {
+        adjs = end;
+    }
+    adjs
 }
 
 fn is_deref_or_derefmut_impl(cx: &LateContext<'_>, item: &Item<'_>) -> bool {
@@ -1157,15 +1252,6 @@ impl<'tcx> Dereferencing<'tcx> {
                 );
             },
             State::DerefedBorrow(state) => {
-                // Do not suggest removing a non-mandatory `&` in `&*rawptr` in an `unsafe` context,
-                // as this may make rustc trigger its `dangerous_implicit_autorefs` lint.
-                if let ExprKind::AddrOf(BorrowKind::Ref, _, subexpr) = data.first_expr.kind
-                    && let ExprKind::Unary(UnOp::Deref, subsubexpr) = subexpr.kind
-                    && cx.typeck_results().expr_ty_adjusted(subsubexpr).is_raw_ptr()
-                {
-                    return;
-                }
-
                 let mut app = Applicability::MachineApplicable;
                 let (snip, snip_is_macro) =
                     snippet_with_context(cx, expr.span, data.first_expr.span.ctxt(), "..", &mut app);

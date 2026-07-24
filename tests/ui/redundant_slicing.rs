@@ -1,5 +1,6 @@
 #![warn(clippy::redundant_slicing)]
 #![expect(clippy::deref_by_slicing)]
+#![allow(clippy::needless_borrow)]
 
 use std::io::Read;
 
