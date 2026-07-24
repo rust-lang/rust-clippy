@@ -85,4 +85,53 @@ fn issue14255(v1: &[u8]) {
     //~^ missing_asserts_for_indexing
 }
 
+// not contiguous from 0: `_` can still be 0
+fn non_contiguous(supported: &[u8]) {
+    match supported.len() {
+        5 => {},
+        _ => println!("{} or {}", supported[0], supported[1]),
+        //~^ missing_asserts_for_indexing
+    }
+}
+
+// wildcard only: no length information
+#[allow(clippy::match_single_binding)]
+fn wildcard_only(supported: &[u8]) {
+    match supported.len() {
+        _ => println!("{} or {}", supported[0], supported[1]),
+        //~^ missing_asserts_for_indexing
+    }
+}
+
+// guard defeats the exclusion
+fn with_guard(supported: &[u8], flag: bool) {
+    match supported.len() {
+        0 if flag => {},
+        1 => {},
+        _ => println!("{} or {}", supported[0], supported[1]),
+        //~^ missing_asserts_for_indexing
+    }
+}
+
+// arms only guarantee len > 1, but 2 and 3 are indexed
+fn index_too_high(supported: &[u8]) {
+    match supported.len() {
+        0 => {},
+        1 => {},
+        _ => println!("{} {}", supported[2], supported[3]),
+        //~^ missing_asserts_for_indexing
+    }
+}
+
+// literal arm pins len to exactly 2, so indexing at 2 and 3 must lint
+fn literal_arm_out_of_bounds(supported: &[u8]) {
+    match supported.len() {
+        0 => {},
+        1 => {},
+        2 => println!("{} {}", supported[2], supported[3]),
+        //~^ missing_asserts_for_indexing
+        _ => {},
+    }
+}
+
 fn main() {}

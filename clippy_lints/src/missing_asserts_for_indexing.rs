@@ -7,12 +7,12 @@ use clippy_utils::higher::{If, Range};
 use clippy_utils::macros::{find_assert_eq_args, first_node_macro_backtrace, root_macro_call};
 use clippy_utils::source::{snippet, snippet_with_applicability};
 use clippy_utils::visitors::for_each_expr_without_closures;
-use clippy_utils::{eq_expr_value, hash_expr};
+use clippy_utils::{eq_expr_value, hash_expr, is_wild};
 use rustc_ast::{BinOpKind, LitKind, RangeLimits};
 use rustc_data_structures::packed::Pu128;
 use rustc_data_structures::unhash::UnindexMap;
 use rustc_errors::{Applicability, Diag};
-use rustc_hir::{Block, Body, Expr, ExprKind, UnOp};
+use rustc_hir::{Arm, Block, Body, Expr, ExprKind, MatchSource, Node, PatExprKind, PatKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::{Span, Spanned, Symbol, sym};
@@ -120,6 +120,101 @@ fn len_comparison<'hir>(
         (Rel::Eq, int_lit_pat!(left), _) => Some((LengthComparison::LengthEqualInt, left as usize, right)),
         (Rel::Eq, _, int_lit_pat!(right)) => Some((LengthComparison::LengthEqualInt, right as usize, left)),
         _ => None,
+    }
+}
+
+/// Checks if the index expression is inside a `match` on the slice's length
+/// whose arms make the indexing infallible.
+/// This only applies when the non-wildcard arms are integer literals that
+/// contiguously cover `0..=max` otherwise the wildcard
+/// arm gives no lower bound on the length and the lint fires as usual.
+fn is_index_covered_by_match(cx: &LateContext<'_>, index_expr: &Expr<'_>, slice: &Expr<'_>) -> bool {
+    let mut containing_arm = None;
+    for (_, node) in cx.tcx.hir_parent_iter(index_expr.hir_id) {
+        match node {
+            Node::Expr(expr) => {
+                if let ExprKind::Match(scrutinee, arms, MatchSource::Normal) = expr.kind
+                    && is_slice_len_expr(cx, scrutinee, slice)
+                    && match_arms_bound_len(cx, index_expr, arms, containing_arm)
+                {
+                    return arms.iter().any(|arm| is_wild(arm.pat));
+                }
+            },
+            Node::Block(_) | Node::Stmt(_) | Node::LetStmt(_) => {},
+            Node::Arm(arm) => containing_arm = Some(arm),
+            _ => return false,
+        }
+    }
+    false
+}
+
+/// Checks if the non-wildcard arms are integer literals contiguously covering
+/// `0..=max`, so that the wildcard arm implies `len > max`. Returns `true`
+/// only if the index used is at most `max`, i.e. provably in bounds.
+fn match_arms_bound_len(
+    cx: &LateContext<'_>,
+    index_expr: &Expr<'_>,
+    arms: &[Arm<'_>],
+    containing_arm: Option<&Arm<'_>>,
+) -> bool {
+    let ExprKind::Index(_, index_lit, _) = index_expr.kind else {
+        return false;
+    };
+    let Some(index) = upper_index_expr(cx, index_lit) else {
+        return false;
+    };
+
+    // index inside a literal arm `n => ...`: len is exactly `n` there,
+    // so anything at or past `n` is out of bounds
+    if let Some(arm) = containing_arm
+        && let Some(n) = arm_len_literal(arm)
+        && index >= n
+    {
+        return false;
+    }
+
+    let mut matched_lens = Vec::new();
+    for arm in arms {
+        if arm.guard.is_some() {
+            return false;
+        }
+        if is_wild(arm.pat) {
+            continue;
+        }
+        let Some(n) = arm_len_literal(arm) else {
+            return false;
+        };
+        matched_lens.push(n);
+    }
+
+    matched_lens.sort_unstable();
+    matched_lens.dedup();
+
+    // literals must be exactly 0..=max, so `_` implies len > max
+    let Some(&max) = matched_lens.last() else {
+        return false;
+    };
+    matched_lens.len() == max + 1 && index <= max
+}
+
+fn arm_len_literal(arm: &Arm<'_>) -> Option<usize> {
+    if let PatKind::Expr(pat_expr) = arm.pat.kind
+        && let PatExprKind::Lit { lit, .. } = pat_expr.kind
+        && let LitKind::Int(Pu128(n), _) = lit.node
+    {
+        Some(n as usize)
+    } else {
+        None
+    }
+}
+
+fn is_slice_len_expr(cx: &LateContext<'_>, expr: &Expr<'_>, slice: &Expr<'_>) -> bool {
+    if let ExprKind::MethodCall(method, recv, [], _) = expr.kind
+        && method.ident.name == sym::len
+    {
+        eq_expr_value(cx, expr.span.ctxt(), recv, slice)
+    } else {
+        false
     }
 }
 
@@ -239,6 +334,7 @@ fn check_index<'hir>(cx: &LateContext<'_>, expr: &'hir Expr<'hir>, map: &mut Uni
     if let ExprKind::Index(slice, index_lit, _) = expr.kind
         && cx.typeck_results().expr_ty_adjusted(slice).peel_refs().is_slice()
         && let Some(index) = upper_index_expr(cx, index_lit)
+        && !is_index_covered_by_match(cx, expr, slice)
     {
         let hash = hash_expr(cx, slice);
 
