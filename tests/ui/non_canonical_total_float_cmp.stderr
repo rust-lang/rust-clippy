@@ -1,0 +1,59 @@
+error: non-canonical total float comparison
+  --> tests/ui/non_canonical_total_float_cmp.rs:12:5
+   |
+LL |     93f32.partial_cmp(&83f32).unwrap_or(Ordering::Less);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `93f32.total_cmp(&83f32)`
+   |
+   = note: `-D clippy::non-canonical-total-float-cmp` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::non_canonical_total_float_cmp)]`
+
+error: non-canonical total float comparison
+  --> tests/ui/non_canonical_total_float_cmp.rs:15:5
+   |
+LL |     93.0f16.partial_cmp(&83.0).unwrap_or(Ordering::Greater);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `93.0f16.total_cmp(&83.0)`
+
+error: non-canonical total float comparison
+  --> tests/ui/non_canonical_total_float_cmp.rs:18:5
+   |
+LL |     93.0f128.partial_cmp(&83.0).unwrap_or(Ordering::Equal);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `93.0f128.total_cmp(&83.0)`
+
+error: non-canonical total float comparison
+  --> tests/ui/non_canonical_total_float_cmp.rs:21:5
+   |
+LL |     93.0f64.partial_cmp(&83.0).unwrap_or(Less);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `93.0f64.total_cmp(&83.0)`
+
+error: non-canonical total float comparison
+  --> tests/ui/non_canonical_total_float_cmp.rs:24:5
+   |
+LL |     93.0_f32.partial_cmp(&83.0).unwrap_or(Greater);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `93.0_f32.total_cmp(&83.0)`
+
+error: non-canonical total float comparison
+  --> tests/ui/non_canonical_total_float_cmp.rs:27:5
+   |
+LL |     93f64.partial_cmp(&83f64).unwrap_or(Equal);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `93f64.total_cmp(&83f64)`
+
+error: non-canonical total float comparison
+  --> tests/ui/non_canonical_total_float_cmp.rs:31:5
+   |
+LL |     93f32.partial_cmp(&83f32).unwrap_or(x);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `93f32.total_cmp(&83f32)`
+
+error: non-canonical total float comparison
+  --> tests/ui/non_canonical_total_float_cmp.rs:35:5
+   |
+LL |     x.partial_cmp(&83f32).unwrap_or(core::cmp::Ordering::Greater);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x.total_cmp(&83f32)`
+
+error: non-canonical total float comparison
+  --> tests/ui/non_canonical_total_float_cmp.rs:39:5
+   |
+LL |     93f32.partial_cmp(&x).unwrap_or(std::cmp::Ordering::Equal);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `93f32.total_cmp(&x)`
+
+error: aborting due to 9 previous errors
+
