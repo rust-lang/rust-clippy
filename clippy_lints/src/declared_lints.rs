@@ -758,6 +758,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::transmute::UNSOUND_COLLECTION_TRANSMUTE_INFO,
     crate::transmute::USELESS_TRANSMUTE_INFO,
     crate::transmute::WRONG_TRANSMUTE_INFO,
+    crate::try_from_instead_of_from_str::TRY_FROM_INSTEAD_OF_FROM_STR_INFO,
     crate::tuple_array_conversions::TUPLE_ARRAY_CONVERSIONS_INFO,
     crate::types::BORROWED_BOX_INFO,
     crate::types::BOX_COLLECTION_INFO,
