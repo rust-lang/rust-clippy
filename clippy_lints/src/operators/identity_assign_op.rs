@@ -69,8 +69,18 @@ fn is_matching_assign_op(cx: &LateContext<'_>, stmt: &Stmt<'_>, op: BinOpKind, l
 fn is_zero_or_one(cx: &LateContext<'_>, expr: &Expr<'_>, expected: u128) -> bool {
     const F16_ZERO: u16 = 0.0_f16.to_bits();
     const F16_ONE: u16 = 1.0_f16.to_bits();
+    const F32_ZERO: u32 = 0.0_f32.to_bits();
+    const F32_ONE: u32 = 1.0_f32.to_bits();
+    const F64_ZERO: u64 = 0.0_f64.to_bits();
+    const F64_ONE: u64 = 1.0_f64.to_bits();
     const F128_ZERO: u128 = 0.0_f128.to_bits();
     const F128_ONE: u128 = 1.0_f128.to_bits();
+
+    let (expected_f16, expected_f32, expected_f64, expected_f128) = match expected {
+        0 => (F16_ZERO, F32_ZERO, F64_ZERO, F128_ZERO),
+        1 => (F16_ONE, F32_ONE, F64_ONE, F128_ONE),
+        _ => return false,
+    };
 
     let Some(value) = ConstEvalCtxt::new(cx).eval(expr).map(Constant::peel_refs) else {
         return false;
@@ -78,10 +88,10 @@ fn is_zero_or_one(cx: &LateContext<'_>, expr: &Expr<'_>, expected: u128) -> bool
 
     match value {
         Constant::Int(value) => value == expected,
-        Constant::F16(value) => value == if expected == 0 { F16_ZERO } else { F16_ONE },
-        Constant::F32(value) => value == if expected == 0 { 0.0 } else { 1.0 },
-        Constant::F64(value) => value == if expected == 0 { 0.0 } else { 1.0 },
-        Constant::F128(value) => value == if expected == 0 { F128_ZERO } else { F128_ONE },
+        Constant::F16(value) => value == expected_f16,
+        Constant::F32(value) => value.to_bits() == expected_f32,
+        Constant::F64(value) => value.to_bits() == expected_f64,
+        Constant::F128(value) => value == expected_f128,
         _ => false,
     }
 }
