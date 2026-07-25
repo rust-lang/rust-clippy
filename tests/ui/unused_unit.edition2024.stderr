@@ -19,13 +19,13 @@ LL | fn return_unit() -> () { () }
    |                          ^^ help: remove the final `()`
 
 error: unneeded unit expression
-  --> tests/ui/unused_unit.rs:175:9
+  --> tests/ui/unused_unit.rs:173:9
    |
 LL |         ()
    |         ^^
    |
 help: remove the final `()`
-  --> tests/ui/unused_unit.rs:175:9
+  --> tests/ui/unused_unit.rs:173:9
    |
 LL |         ()
    |         ^^
@@ -133,7 +133,7 @@ LL | fn test3()-> (){}
    |           ^^^^^ help: remove the `-> ()`
 
 error: unneeded unit return type
-  --> tests/ui/unused_unit.rs:172:25
+  --> tests/ui/unused_unit.rs:170:25
    |
 LL |     pub fn foo(x: usize) -> () {
    |                         ^^^^^^ help: remove the `-> ()`

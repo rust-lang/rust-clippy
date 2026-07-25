@@ -162,7 +162,10 @@ fn is_unit_ty(ty: &Ty<'_>) -> bool {
 fn unit_expr_suggestion_span(cx: &EarlyContext<'_>, span: Span) -> Span {
     span.map_range(cx, |sf, src, range| {
         let lines = sf.lines();
-        let line = sf.lookup_line(RelativeBytePos(range.start as u32)).unwrap_or(0);
+        let Ok(range_start) = u32::try_from(range.start) else {
+            return Some(range);
+        };
+        let line = sf.lookup_line(RelativeBytePos(range_start)).unwrap_or(0);
         let line_start = lines[line].0 as usize;
         let line_end = lines.get(line + 1).map_or(sf.end_position().0, |x| x.0) as usize;
 
