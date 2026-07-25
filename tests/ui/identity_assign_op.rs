@@ -102,4 +102,22 @@ fn main() {
 
     series *= 2;
     series *= 1; // no error: at the end of a series
+
+    let mut custom = Custom(1);
+    custom += 0; // no error: user-defined operator
+    custom *= 1; // no error: user-defined operator
+}
+
+struct Custom(i64);
+
+impl std::ops::AddAssign<i64> for Custom {
+    fn add_assign(&mut self, rhs: i64) {
+        self.0 += rhs + 1;
+    }
+}
+
+impl std::ops::MulAssign<i64> for Custom {
+    fn mul_assign(&mut self, rhs: i64) {
+        self.0 *= rhs + 1;
+    }
 }
