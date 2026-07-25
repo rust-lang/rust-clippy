@@ -217,7 +217,43 @@ LL +     println!("\x7b\x7b\x7d\x7d");
    |
 
 error: literal with an empty format string
-  --> tests/ui/print_literal.rs:86:35
+  --> tests/ui/print_literal.rs:88:21
+   |
+LL |     println!(r"{}", r"\x7b \u{7b}");
+   |                     ^^^^^^^^^^^^^^
+   |
+help: try
+   |
+LL -     println!(r"{}", r"\x7b \u{7b}");
+LL +     println!(r"\x7b \u{{7b}}");
+   |
+
+error: literal with an empty format string
+  --> tests/ui/print_literal.rs:90:21
+   |
+LL |     println!(r"{}", "\\x7b \\u{7b}");
+   |                     ^^^^^^^^^^^^^^^
+   |
+help: try
+   |
+LL -     println!(r"{}", "\\x7b \\u{7b}");
+LL +     println!(r"\x7b \u{{7b}}");
+   |
+
+error: literal with an empty format string
+  --> tests/ui/print_literal.rs:92:20
+   |
+LL |     println!("{}", r"\x7b \u{7b}");
+   |                    ^^^^^^^^^^^^^^
+   |
+help: try
+   |
+LL -     println!("{}", r"\x7b \u{7b}");
+LL +     println!("\\x7b \\u{{7b}}");
+   |
+
+error: literal with an empty format string
+  --> tests/ui/print_literal.rs:95:35
    |
 LL |     println!("mixed: {} {world}", "{hello}");
    |                                   ^^^^^^^^^
@@ -229,7 +265,7 @@ LL +     println!("mixed: {{hello}} {world}");
    |
 
 error: literal with an empty format string
-  --> tests/ui/print_literal.rs:91:20
+  --> tests/ui/print_literal.rs:100:20
    |
 LL |     println!("{}", r#"""#);
    |                    ^^^^^^
@@ -241,7 +277,7 @@ LL +     println!("\"");
    |
 
 error: literal with an empty format string
-  --> tests/ui/print_literal.rs:95:9
+  --> tests/ui/print_literal.rs:104:9
    |
 LL | /         r#"
 LL | |
@@ -266,7 +302,7 @@ LL ~ "
    |
 
 error: literal with an empty format string
-  --> tests/ui/print_literal.rs:108:52
+  --> tests/ui/print_literal.rs:117:52
    |
 LL |     println!("Hello {3} is {0:2$.1$}", 0.01, 2, 3, "x");
    |                                                    ^^^
@@ -278,7 +314,7 @@ LL +     println!("Hello x is {0:2$.1$}", 0.01, 2, 3);
    |
 
 error: literal with an empty format string
-  --> tests/ui/print_literal.rs:110:49
+  --> tests/ui/print_literal.rs:119:49
    |
 LL |     println!("Hello {2} is {0:3$.1$}", 0.01, 2, "x", 3);
    |                                                 ^^^
@@ -290,7 +326,7 @@ LL +     println!("Hello x is {0:2$.1$}", 0.01, 2, 3);
    |
 
 error: literal with an empty format string
-  --> tests/ui/print_literal.rs:112:46
+  --> tests/ui/print_literal.rs:121:46
    |
 LL |     println!("Hello {1} is {0:3$.2$}", 0.01, "x", 2, 3);
    |                                              ^^^
@@ -302,7 +338,7 @@ LL +     println!("Hello x is {0:2$.1$}", 0.01, 2, 3);
    |
 
 error: literal with an empty format string
-  --> tests/ui/print_literal.rs:114:40
+  --> tests/ui/print_literal.rs:123:40
    |
 LL |     println!("Hello {0} is {1:3$.2$}", "x", 0.01, 2, 3);
    |                                        ^^^
@@ -314,7 +350,7 @@ LL +     println!("Hello x is {0:2$.1$}", 0.01, 2, 3);
    |
 
 error: literal with an empty format string
-  --> tests/ui/print_literal.rs:119:36
+  --> tests/ui/print_literal.rs:128:36
    |
 LL |     println!("Hello {} is {2:.*}", "x", 5, 0.01);
    |                                    ^^^
@@ -326,7 +362,7 @@ LL +     println!("Hello x is {1:.*}", 5, 0.01);
    |
 
 error: literal with an empty format string
-  --> tests/ui/print_literal.rs:122:36
+  --> tests/ui/print_literal.rs:131:36
    |
 LL |     println!("Hello {} is {:.p$}", "x", 0.01, p = 5);
    |                                    ^^^
@@ -338,7 +374,7 @@ LL +     println!("Hello x is {:.p$}", 0.01, p = 5);
    |
 
 error: literal with an empty format string
-  --> tests/ui/print_literal.rs:127:9
+  --> tests/ui/print_literal.rs:136:9
    |
 LL |         "name", 5, "x", 0.01
    |         ^^^^^^^^^^^^^^
@@ -350,5 +386,5 @@ LL -         "name", 5, "x", 0.01
 LL +         "Hello name: x is {1:.*} (which {1} with {0} places)", 5, 0.01
    |
 
-error: aborting due to 28 previous errors
+error: aborting due to 31 previous errors
 

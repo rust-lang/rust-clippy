@@ -82,6 +82,15 @@ fn main() {
     //~^ print_literal
     println!("{}", "\x7b\x7d");
     //~^ print_literal
+    // When the literal ends up in a raw format string, or comes from a raw string literal, there
+    // are no escape sequences: `\x7b` and `\u{7b}` are literal text, so only the braces they
+    // contain are doubled up
+    println!(r"{}", r"\x7b \u{7b}");
+    //~^ print_literal
+    println!(r"{}", "\\x7b \\u{7b}");
+    //~^ print_literal
+    println!("{}", r"\x7b \u{7b}");
+    //~^ print_literal
 
     println!("mixed: {} {world}", "{hello}");
     //~^ print_literal
