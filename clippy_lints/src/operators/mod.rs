@@ -1137,16 +1137,13 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
     }
 
     fn check_stmt(&mut self, cx: &LateContext<'tcx>, stmt: &'tcx Stmt<'_>) {
-        match stmt.kind {
-            StmtKind::Semi(e) => match e.kind {
-                ExprKind::AssignOp(op, lhs, rhs) => {
-                    let bin_op = op.node.into();
-                    identity_assign_op::check(cx, stmt, e, bin_op, lhs, rhs);
-                },
-                _ => (),
-            },
-            _ => (),
-        }
+        let StmtKind::Semi(e) = stmt.kind else { return };
+        let ExprKind::AssignOp(op, lhs, rhs) = e.kind else {
+            return;
+        };
+
+        let bin_op = op.node.into();
+        identity_assign_op::check(cx, stmt, e, bin_op, lhs, rhs);
     }
 
     fn check_expr_post(&mut self, _: &LateContext<'_>, e: &Expr<'_>) {
