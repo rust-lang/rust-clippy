@@ -10,10 +10,15 @@ use super::IDENTITY_ASSIGN_OP;
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,
     stmt: &'tcx Stmt<'_>,
+    expr: &'tcx Expr<'_>,
     op: BinOpKind,
     left: &'tcx Expr<'_>,
     right: &'tcx Expr<'_>,
 ) {
+    if cx.typeck_results().type_dependent_def_id(expr.hir_id).is_some() {
+        return;
+    }
+
     let is_identity = match op {
         BinOpKind::Add | BinOpKind::Sub | BinOpKind::BitOr | BinOpKind::BitXor | BinOpKind::Shl | BinOpKind::Shr => {
             is_zero_or_one(cx, right, 0)
@@ -46,8 +51,7 @@ fn is_part_of_series(cx: &LateContext<'_>, stmt: &Stmt<'_>, op: BinOpKind, left:
     };
 
     (index > 0 && is_matching_assign_op(cx, &block.stmts[index - 1], op, left))
-    ||
-    (index < block.stmts.len() - 1 && is_matching_assign_op(cx, &block.stmts[index + 1], op, left))
+        || (index < block.stmts.len() - 1 && is_matching_assign_op(cx, &block.stmts[index + 1], op, left))
 }
 
 fn is_matching_assign_op(cx: &LateContext<'_>, stmt: &Stmt<'_>, op: BinOpKind, left: &Expr<'_>) -> bool {

@@ -1141,7 +1141,7 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
             StmtKind::Semi(e) => match e.kind {
                 ExprKind::AssignOp(op, lhs, rhs) => {
                     let bin_op = op.node.into();
-                    identity_assign_op::check(cx, stmt, bin_op, lhs, rhs);
+                    identity_assign_op::check(cx, stmt, e, bin_op, lhs, rhs);
                 },
                 _ => (),
             },
