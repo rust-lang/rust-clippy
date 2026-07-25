@@ -1,7 +1,8 @@
 use clippy_utils::consts::{ConstEvalCtxt, Constant};
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::eq_expr_value;
 use rustc_errors::Applicability;
-use rustc_hir::{BinOpKind, Expr, Stmt};
+use rustc_hir::{BinOpKind, Expr, ExprKind, Node, Stmt, StmtKind};
 use rustc_lint::LateContext;
 
 use super::IDENTITY_ASSIGN_OP;
@@ -9,12 +10,11 @@ use super::IDENTITY_ASSIGN_OP;
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,
     stmt: &'tcx Stmt<'_>,
-    _expr: &'tcx Expr<'_>,
     op: BinOpKind,
-    _left: &'tcx Expr<'_>,
+    left: &'tcx Expr<'_>,
     right: &'tcx Expr<'_>,
 ) {
-    if match op {
+    let is_identity = match op {
         BinOpKind::Add | BinOpKind::Sub | BinOpKind::BitOr | BinOpKind::BitXor | BinOpKind::Shl | BinOpKind::Shr => {
             is_zero_or_one(cx, right, 0)
         },
@@ -22,7 +22,9 @@ pub(super) fn check<'tcx>(
         BinOpKind::Mul | BinOpKind::Div => is_zero_or_one(cx, right, 1),
 
         _ => false,
-    } {
+    };
+
+    if is_identity && !is_part_of_series(cx, stmt, op, left) {
         span_lint_and_sugg(
             cx,
             IDENTITY_ASSIGN_OP,
@@ -33,6 +35,33 @@ pub(super) fn check<'tcx>(
             Applicability::MachineApplicable,
         );
     }
+}
+
+fn is_part_of_series(cx: &LateContext<'_>, stmt: &Stmt<'_>, op: BinOpKind, left: &Expr<'_>) -> bool {
+    let Node::Block(block) = cx.tcx.parent_hir_node(stmt.hir_id) else {
+        return false;
+    };
+    let Some(index) = block.stmts.iter().position(|other| other.hir_id == stmt.hir_id) else {
+        return false;
+    };
+
+    (index > 0 && is_matching_assign_op(cx, &block.stmts[index - 1], op, left))
+        || block
+            .stmts
+            .get(index + 1)
+            .is_some_and(|stmt| is_matching_assign_op(cx, stmt, op, left))
+}
+
+fn is_matching_assign_op(cx: &LateContext<'_>, stmt: &Stmt<'_>, op: BinOpKind, left: &Expr<'_>) -> bool {
+    let StmtKind::Semi(expr) = stmt.kind else {
+        return false;
+    };
+    let ExprKind::AssignOp(other_op, other_left, _) = expr.kind else {
+        return false;
+    };
+    let other_op: BinOpKind = other_op.node.into();
+
+    other_op == op && eq_expr_value(cx, left.span.ctxt(), left, other_left)
 }
 
 fn is_zero_or_one(cx: &LateContext<'_>, expr: &Expr<'_>, expected: u128) -> bool {
