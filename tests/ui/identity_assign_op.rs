@@ -90,4 +90,16 @@ fn main() {
     x *= 2; // no error
     x -= 1; // no error
     x <<= 1; // no error
+
+    let mut series = 1i64;
+
+    series += 0; // no error: part of a series
+    series += 1;
+    series += 2;
+
+    series <<= 0; // no error: part of a two-statement series
+    series <<= 1;
+
+    series *= 2;
+    series *= 1; // no error: at the end of a series
 }
