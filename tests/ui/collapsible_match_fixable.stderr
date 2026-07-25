@@ -133,5 +133,26 @@ LL |                 };
 LL ~             },
    |
 
-error: aborting due to 9 previous errors
+error: this `if` can be collapsed into the outer `match`
+  --> tests/ui/collapsible_match_fixable.rs:103:13
+   |
+LL | /             if true {
+LL | |
+LL | |                 let Some(_y) = Some(0) else {
+LL | |                     break 'label;
+LL | |                 };
+LL | |             }
+   | |_____________^
+   |
+help: collapse nested if block
+   |
+LL ~         Ok(Some(_c))
+LL ~             if true => 'label: /* { .... } */ {
+LL |
+...
+LL |                 };
+LL ~             },
+   |
+
+error: aborting due to 10 previous errors
 

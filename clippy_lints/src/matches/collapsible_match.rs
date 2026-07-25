@@ -171,12 +171,24 @@ fn check_arm<'tcx>(
                     // The Block Span can start with a label so finding actual opening braces instead of assuming it's
                     // first Byte
                     let block_snippet = snippet(cx, block_span, "");
-                    let Some(brace_offset) = block_snippet.find('{') else {
+                    let mut byte_pos: u32 = 0;
+                    let mut brace_offset = None;
+
+                    for token in rustc_lexer::tokenize(&block_snippet, rustc_lexer::FrontmatterAllowed::No) {
+                        if token.kind == rustc_lexer::TokenKind::OpenBrace {
+                            brace_offset = Some(byte_pos);
+                            break;
+                        }
+                        byte_pos += token.len;
+                    }
+
+                    let Some(brace_offset) = brace_offset else {
                         return;
                     };
-                    let brace_pos = block_span.lo() + BytePos(u32::try_from(brace_offset).unwrap());
+                    let brace_offset_usize = brace_offset as usize;
+                    let brace_pos = block_span.lo() + BytePos(brace_offset);
 
-                    let label_prefix = block_snippet[..brace_offset].trim();
+                    let label_prefix = block_snippet[..brace_offset_usize].trim();
                     let outer_then_open_bracket = block_span
                         .with_lo(brace_pos)
                         .with_hi(brace_pos + BytePos(1))

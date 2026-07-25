@@ -95,3 +95,18 @@ fn issue17427() {
         _ => (),
     }
 }
+
+fn issue17427_comment_before_brace() {
+    let x: Result<Option<u8>, ()> = Ok(Some(1));
+    match x {
+        Ok(Some(_c)) => 'label: /* { .... } */ {
+            if true {
+                //~^ collapsible_match
+                let Some(_y) = Some(0) else {
+                    break 'label;
+                };
+            }
+        },
+        _ => (),
+    }
+}
