@@ -106,6 +106,8 @@ fn main() {
     let mut custom = Custom(1);
     custom += 0; // no error: user-defined operator
     custom *= 1; // no error: user-defined operator
+    
+    custom -= 0; // no error: macro-generated user-defined operator
 }
 
 struct Custom(i64);
@@ -121,3 +123,15 @@ impl std::ops::MulAssign<i64> for Custom {
         self.0 *= rhs + 1;
     }
 }
+
+macro_rules! impl_sub_assign {
+    () => {
+        impl std::ops::SubAssign<i64> for Custom {
+            fn sub_assign(&mut self, rhs: i64) {
+                self.0 -= rhs + 1;
+            }
+        }
+    };
+}
+
+impl_sub_assign!();
