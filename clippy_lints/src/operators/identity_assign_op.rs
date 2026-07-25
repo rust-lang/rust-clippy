@@ -46,10 +46,8 @@ fn is_part_of_series(cx: &LateContext<'_>, stmt: &Stmt<'_>, op: BinOpKind, left:
     };
 
     (index > 0 && is_matching_assign_op(cx, &block.stmts[index - 1], op, left))
-        || block
-            .stmts
-            .get(index + 1)
-            .is_some_and(|stmt| is_matching_assign_op(cx, stmt, op, left))
+    ||
+    (index < block.stmts.len() - 1 && is_matching_assign_op(cx, &block.stmts[index + 1], op, left))
 }
 
 fn is_matching_assign_op(cx: &LateContext<'_>, stmt: &Stmt<'_>, op: BinOpKind, left: &Expr<'_>) -> bool {
