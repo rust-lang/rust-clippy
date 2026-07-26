@@ -248,7 +248,8 @@ struct VarVisitor<'a, 'tcx> {
     /// directly indexed literals, like `[1, 2, 3][i]`
     unnamed_indexed_directly: bool,
     /// Whether the loop variable indexes a container selected by a non-constant expression.
-    /// For example, in `a[sum % 5][i]`, iterating over `a` would change the program's semantics.
+    /// For example, in `a[sum % 5][i]`, evaluating `a[sum % 5]` once before the loop would change
+    /// the program's semantics.
     has_dynamic_indexed_container: bool,
     /// Any names that are used outside an index operation.
     /// Used to detect things like `&mut vec` used together with `vec[i]`
@@ -267,17 +268,10 @@ impl<'tcx> VarVisitor<'_, 'tcx> {
         // It is `true` if all indices are direct
         let mut index_used_directly = true;
 
-        // Track whether the loop variable has been found while walking from the outermost index
-        // towards the base expression. Any later non-constant index selects the container indexed
-        // by the loop variable, so it cannot be replaced by an iterator over the base expression.
-        let mut found_loop_index = false;
-        let mut indexed_container_is_stable = true;
-
         // Handle initial index
         if is_local_used(self.cx, idx, self.var) {
             used_cnt += 1;
             index_used_directly &= matches!(idx.kind, ExprKind::Path(_));
-            found_loop_index = true;
         }
         // Handle nested indices
         // For example, in `a.b[0][i][i]`, we will have `nested_seqexpr` be `a.b[0]`, with the corresponding
@@ -289,32 +283,25 @@ impl<'tcx> VarVisitor<'_, 'tcx> {
             {
                 used_cnt += 1;
                 index_used_directly &= matches!(idx.kind, ExprKind::Path(_));
-                found_loop_index = true;
                 nested_seqexpr_index_span = e.span;
                 Some(inner)
             } else {
                 None
             }
         });
-        let seqexpr = peel_hir_expr_while(nested_seqexpr, |e| {
-            match e.kind {
-                ExprKind::Index(inner, idx, _) => {
-                    if found_loop_index && !is_const_evaluatable(self.cx.tcx, self.cx.typeck_results(), idx) {
-                        indexed_container_is_stable = false;
-                    }
-                    Some(inner)
-                },
-                ExprKind::Field(inner, _) => Some(inner),
-                _ => None,
-            }
+        let seqexpr = peel_hir_expr_while(nested_seqexpr, |e| match e.kind {
+            ExprKind::Index(inner, idx, _) => {
+                if used_cnt != 0 && !is_const_evaluatable(self.cx.tcx, self.cx.typeck_results(), idx) {
+                    self.has_dynamic_indexed_container = true;
+                }
+                Some(inner)
+            },
+            ExprKind::Field(inner, _) => Some(inner),
+            _ => None,
         });
 
-        if !indexed_container_is_stable {
-            self.has_dynamic_indexed_container = true;
-            return false;
-        }
-
         match used_cnt {
+            _ if self.has_dynamic_indexed_container => return false,
             0 => return true,
             n if n > 1 => self.nonindex = true, // Optimize code like `a[i][i]`
             _ => {},
