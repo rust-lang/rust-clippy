@@ -1,0 +1,28 @@
+error: function named `foo`
+  --> tests/ui/foo_functions.rs:7:5
+   |
+LL |     pub fn foo(&self) {}
+   |     ^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using a more meaningful name
+   = note: `-D clippy::foo-functions` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::foo_functions)]`
+
+error: function named `foo`
+  --> tests/ui/foo_functions.rs:14:5
+   |
+LL |     fn foo(&self) {}
+   |     ^^^^^^^^^^^^^^^^
+   |
+   = help: consider using a more meaningful name
+
+error: function named `foo`
+  --> tests/ui/foo_functions.rs:20:1
+   |
+LL | fn foo() {}
+   | ^^^^^^^^^^^
+   |
+   = help: consider using a more meaningful name
+
+error: aborting due to 3 previous errors
+

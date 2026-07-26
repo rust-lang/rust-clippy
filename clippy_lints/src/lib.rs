@@ -141,6 +141,7 @@ mod fallible_impl_from;
 mod field_scoped_visibility_modifiers;
 mod float_literal;
 mod floating_point_arithmetic;
+mod foo_functions;
 mod format;
 mod format_args;
 mod format_impl;
@@ -545,6 +546,7 @@ rustc_lint::early_lint_methods!(
         EmptyLineAfter: empty_line_after::EmptyLineAfter = empty_line_after::EmptyLineAfter::new(),
         InlineTraitBounds: inline_trait_bounds::InlineTraitBounds = inline_trait_bounds::InlineTraitBounds::default(),
         DefinitionInModuleRoot: definition_in_module_root::DefinitionInModuleRoot = definition_in_module_root::DefinitionInModuleRoot::default(),
+        FooFunctions: foo_functions::FooFunctions = foo_functions::FooFunctions,
         // add early passes here, used by `cargo dev new_lint`
     ]]
 );
