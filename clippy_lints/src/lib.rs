@@ -325,6 +325,7 @@ mod ref_option_ref;
 mod ref_patterns;
 mod reference;
 mod regex;
+mod relative_paths;
 mod repeat_vec_with_capacity;
 mod replace_box;
 mod reserve_after_initialization;
@@ -806,6 +807,7 @@ rustc_lint::late_lint_methods!(
         FourForwardSlashes: four_forward_slashes::FourForwardSlashes = four_forward_slashes::FourForwardSlashes,
         ErrorImplError: error_impl_error::ErrorImplError = error_impl_error::ErrorImplError,
         AbsolutePaths: absolute_paths::AbsolutePaths = absolute_paths::AbsolutePaths::new(conf),
+        RelativePaths: relative_paths::RelativePaths = relative_paths::RelativePaths,
         RedundantLocals: redundant_locals::RedundantLocals = redundant_locals::RedundantLocals,
         IgnoredUnitPatterns: ignored_unit_patterns::IgnoredUnitPatterns = ignored_unit_patterns::IgnoredUnitPatterns,
         ReserveAfterInitialization: reserve_after_initialization::ReserveAfterInitialization = <reserve_after_initialization::ReserveAfterInitialization>::default(),
