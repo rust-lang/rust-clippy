@@ -1,97 +1,132 @@
 #![warn(clippy::identity_assign_op)]
 #![allow(unused)]
 
-const ONE: i64 = 1;
-const ZERO: i64 = 0;
-const ONE_U64: u64 = 1;
+const ZERO_I64: i64 = 0;
+const ONE_I64: i64 = 1;
 const ZERO_U64: u64 = 0;
-const ONE_F32: f32 = 1.0;
+const ONE_U64: u64 = 1;
 const ZERO_F32: f32 = 0.0;
-const ONE_F64: f64 = 1.0;
+const NEGATIVE_ZERO_F32: f32 = -0.0;
+const ONE_F32: f32 = 1.0;
 const ZERO_F64: f64 = 0.0;
+const NEGATIVE_ZERO_F64: f64 = -0.0;
+const ONE_F64: f64 = 1.0;
 
 #[rustfmt::skip]
-fn main() {
-    let mut x = 1i64;
+fn test_identity_values() {
+    // Literals
+    let mut signed = 1_i64;
 
-    x += 0;
+    signed += 0;
     //~^ identity_assign_op
 
-    x -= 0;
+    signed -= 0;
     //~^ identity_assign_op
 
-    x |= 0;
+    signed |= 0;
     //~^ identity_assign_op
 
-    x ^= 0;
+    signed ^= 0;
     //~^ identity_assign_op
 
-    x <<= 0;
+    signed <<= 0;
     //~^ identity_assign_op
 
-    x >>= 0;
+    signed >>= 0;
     //~^ identity_assign_op
 
-    x *= 1;
+    signed *= 1;
     //~^ identity_assign_op
 
-    x /= 1;
+    signed /= 1;
     //~^ identity_assign_op
 
-    x += ZERO;
+    let mut unsigned = 1_u64;
+
+    unsigned += 0;
     //~^ identity_assign_op
 
-    x *= ONE;
+    unsigned *= 1;
     //~^ identity_assign_op
 
-    let mut y = 1u64;
+    let mut float32 = 1.0_f32;
 
-    y += 0u64;
+    float32 += 0.0; // no error
+
+    float32 *= 1.0;
     //~^ identity_assign_op
 
-    y *= 1u64;
+    float32 += -0.0;
     //~^ identity_assign_op
 
-    y += ZERO_U64;
+    float32 -= 0.0;
     //~^ identity_assign_op
 
-    y *= ONE_U64;
+    let mut float64 = 1.0_f64;
+
+    float64 += 0.0; // no error
+
+    float64 *= 1.0;
     //~^ identity_assign_op
 
-    let mut z = 1.0f32;
-
-    z += 0.0f32;
+    float64 += -0.0;
     //~^ identity_assign_op
 
-    z *= 1.0f32;
+    float64 -= 0.0;
     //~^ identity_assign_op
 
-    z += ZERO_F32;
+    let mut subtraction = 1.0_f32;
+    subtraction -= -0.0; // no error
+
+    // Constants
+    let mut signed = 1_i64;
+
+    signed += ZERO_I64;
     //~^ identity_assign_op
 
-    z *= ONE_F32;
+    signed *= ONE_I64;
     //~^ identity_assign_op
 
-    let mut w = 1.0f64;
+    let mut unsigned = 1_u64;
 
-    w += 0.0;
+    unsigned += ZERO_U64;
     //~^ identity_assign_op
 
-    w *= 1.0;
+    unsigned *= ONE_U64;
     //~^ identity_assign_op
 
-    w += ZERO_F64;
+    let mut float32 = 1.0_f32;
+
+    float32 += ZERO_F32; // no error
+
+    float32 *= ONE_F32;
     //~^ identity_assign_op
 
-    w *= ONE_F64;
+    float32 += NEGATIVE_ZERO_F32;
     //~^ identity_assign_op
 
-    x += 1; // no error
-    x *= 2; // no error
-    x -= 1; // no error
-    x <<= 1; // no error
+    let mut float64 = 1.0_f64;
 
-    let mut series = 1i64;
+    float64 += ZERO_F64; // no error
+
+    float64 *= ONE_F64;
+    //~^ identity_assign_op
+
+    float64 += NEGATIVE_ZERO_F64;
+    //~^ identity_assign_op
+}
+
+fn test_non_identity_values() {
+    let mut value = 1_i64;
+
+    value += 1;
+    value *= 2;
+    value -= 1;
+    value <<= 1;
+}
+
+fn test_series() {
+    let mut series = 1_i64;
 
     series += 0; // no error: part of a series
     series += 1;
@@ -102,11 +137,16 @@ fn main() {
 
     series *= 2;
     series *= 1; // no error: at the end of a series
+}
 
+fn test_user_defined_operators() {
     let mut custom = Custom(1);
     custom += 0; // no error: user-defined operator
     custom *= 1; // no error: user-defined operator
-    
+}
+
+fn test_macros() {
+    let mut custom = Custom(1);
     custom -= 0; // no error: macro-generated user-defined operator
 }
 

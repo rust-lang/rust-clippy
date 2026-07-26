@@ -20,11 +20,13 @@ pub(super) fn check<'tcx>(
     }
 
     let is_identity = match op {
-        BinOpKind::Add | BinOpKind::Sub | BinOpKind::BitOr | BinOpKind::BitXor | BinOpKind::Shl | BinOpKind::Shr => {
-            is_zero_or_one(cx, right, 0)
+        BinOpKind::Add => is_zero_or_one(cx, right, 0, true),
+
+        BinOpKind::Sub | BinOpKind::BitOr | BinOpKind::BitXor | BinOpKind::Shl | BinOpKind::Shr => {
+            is_zero_or_one(cx, right, 0, false)
         },
 
-        BinOpKind::Mul | BinOpKind::Div => is_zero_or_one(cx, right, 1),
+        BinOpKind::Mul | BinOpKind::Div => is_zero_or_one(cx, right, 1, false),
 
         _ => false,
     };
@@ -66,17 +68,27 @@ fn is_matching_assign_op(cx: &LateContext<'_>, stmt: &Stmt<'_>, op: BinOpKind, l
     other_op == op && eq_expr_value(cx, left.span.ctxt(), left, other_left)
 }
 
-fn is_zero_or_one(cx: &LateContext<'_>, expr: &Expr<'_>, expected: u128) -> bool {
+fn is_zero_or_one(cx: &LateContext<'_>, expr: &Expr<'_>, expected: u128, negative_float_zero: bool) -> bool {
     const F16_ZERO: u16 = 0.0_f16.to_bits();
+    const F16_NEGATIVE_ZERO: u16 = (-0.0_f16).to_bits();
     const F16_ONE: u16 = 1.0_f16.to_bits();
     const F32_ZERO: u32 = 0.0_f32.to_bits();
+    const F32_NEGATIVE_ZERO: u32 = (-0.0_f32).to_bits();
     const F32_ONE: u32 = 1.0_f32.to_bits();
     const F64_ZERO: u64 = 0.0_f64.to_bits();
+    const F64_NEGATIVE_ZERO: u64 = (-0.0_f64).to_bits();
     const F64_ONE: u64 = 1.0_f64.to_bits();
     const F128_ZERO: u128 = 0.0_f128.to_bits();
+    const F128_NEGATIVE_ZERO: u128 = (-0.0_f128).to_bits();
     const F128_ONE: u128 = 1.0_f128.to_bits();
 
     let (expected_f16, expected_f32, expected_f64, expected_f128) = match expected {
+        0 if negative_float_zero => (
+            F16_NEGATIVE_ZERO,
+            F32_NEGATIVE_ZERO,
+            F64_NEGATIVE_ZERO,
+            F128_NEGATIVE_ZERO,
+        ),
         0 => (F16_ZERO, F32_ZERO, F64_ZERO, F128_ZERO),
         1 => (F16_ONE, F32_ONE, F64_ONE, F128_ONE),
         _ => return false,
