@@ -325,6 +325,7 @@ mod ref_option_ref;
 mod ref_patterns;
 mod reference;
 mod regex;
+mod relative_paths;
 mod repeat_vec_with_capacity;
 mod replace_box;
 mod reserve_after_initialization;
@@ -873,6 +874,7 @@ rustc_lint::late_lint_methods!(
         NeedlessNonzeroGet: needless_nonzero_get::NeedlessNonzeroGet = needless_nonzero_get::NeedlessNonzeroGet::new(conf),
         UnnecessaryBoxPin: unnecessary_box_pin::UnnecessaryBoxPin = unnecessary_box_pin::UnnecessaryBoxPin::new(conf),
         BufreaderStdin: bufreader_stdin::BufreaderStdin = bufreader_stdin::BufreaderStdin::new(),
+        RelativePaths: relative_paths::RelativePaths = relative_paths::RelativePaths,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
