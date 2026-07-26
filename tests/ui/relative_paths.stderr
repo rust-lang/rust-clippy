@@ -1,0 +1,23 @@
+error: relative paths are restricted
+  --> tests/ui/relative_paths.rs:9:17
+   |
+LL |         pub use super::baz::Baz;
+   |                 ^^^^^^^^^^^^^^^ help: use an absolute path: `crate::foo::baz::Baz`
+   |
+   = note: `-D clippy::relative-paths` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::relative_paths)]`
+
+error: relative paths are restricted
+  --> tests/ui/relative_paths.rs:13:13
+   |
+LL |     pub use self::bar::Bar;
+   |             ^^^^^^^^^^^^^^ help: use an absolute path: `crate::foo::bar::Bar`
+
+error: relative paths are restricted
+  --> tests/ui/relative_paths.rs:32:5
+   |
+LL | use foo::bar::Bar;
+   |     ^^^^^^^^^^^^^ help: use an absolute path: `crate::foo::bar::Bar`
+
+error: aborting due to 3 previous errors
+
