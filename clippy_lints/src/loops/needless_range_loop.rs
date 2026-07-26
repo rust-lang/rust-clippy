@@ -265,7 +265,6 @@ impl<'tcx> VarVisitor<'_, 'tcx> {
         // towards the base expression. Any later non-constant index selects the container indexed
         // by the loop variable, so it cannot be replaced by an iterator over the base expression.
         let mut found_loop_index = false;
-        let mut indexed_container_is_stable = true;
 
         // Handle initial index
         if is_local_used(self.cx, idx, self.var) {
@@ -281,7 +280,7 @@ impl<'tcx> VarVisitor<'_, 'tcx> {
                     index_used_directly &= matches!(idx.kind, ExprKind::Path(_));
                     found_loop_index = true;
                 } else if found_loop_index && !is_const_evaluatable(self.cx.tcx, self.cx.typeck_results(), idx) {
-                    indexed_container_is_stable = false;
+                    self.has_dynamic_indexed_container = true;
                 }
                 Some(e)
             } else {
@@ -289,8 +288,7 @@ impl<'tcx> VarVisitor<'_, 'tcx> {
             }
         });
 
-        if !indexed_container_is_stable {
-            self.has_dynamic_indexed_container = true;
+        if self.has_dynamic_indexed_container {
             return false;
         }
 
