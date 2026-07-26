@@ -87,3 +87,27 @@ struct D {
 }
 
 fn main() {}
+
+// Should not warn, because factoring `impl Trait` into a type alias is not stable (#17195).
+fn issue_17195<I, J>(
+    left: I,
+    right: J,
+) -> std::iter::Map<std::iter::Zip<I::IntoIter, J::IntoIter>, impl FnMut((I::Item, I::Item)) -> [I::Item; 2]>
+where
+    I: IntoIterator,
+    J: IntoIterator<Item = I::Item>,
+{
+    left.into_iter().zip(right).map(<[I::Item; 2]>::from)
+}
+
+// Complexity inside an opaque type cannot be factored into a type alias either.
+fn complex_opaque_bound() -> impl Fn(Vec<Vec<Box<(u32, u32, u32, u32)>>>) {
+    |_| {}
+}
+
+// The presence of an opaque type must not hide complexity in a sibling type that can be factored
+// out.
+#[expect(clippy::type_complexity)]
+fn complex_after_opaque() -> (impl Iterator<Item = u32>, Vec<Vec<Box<(u32, u32, u32, u32)>>>) {
+    (std::iter::empty(), vec![])
+}

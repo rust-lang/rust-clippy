@@ -42,6 +42,11 @@ impl<'tcx> Visitor<'tcx> for TypeComplexityVisitor {
     }
 
     fn visit_ty(&mut self, ty: &'tcx hir::Ty<'_, AmbigArg>) {
+        // Opaque types cannot be extracted into type aliases on stable. Ignore their
+        // bounds, but keep scoring surrounding type components that can be extracted.
+        if matches!(ty.kind, TyKind::OpaqueDef(..)) {
+            return;
+        }
         let (add_score, sub_nest) = match ty.kind {
             // &x and *x have only small overhead; don't mess with nesting level
             TyKind::Ptr(..) | TyKind::Ref(..) => (1, 0),
