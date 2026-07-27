@@ -60,7 +60,7 @@ declare_clippy_lint! {
     /// let path = PathBuf::from("/tmp");
     /// println!("{}", path.display()); // OK
     /// ```
-    #[clippy::version = "1.96.0"]
+    #[clippy::version = "1.99.0"]
     pub DISALLOWED_TRAIT_USAGE,
     style,
     "use of a type via a disallowed trait interface"
