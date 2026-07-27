@@ -681,17 +681,21 @@ pub struct DisallowedTraitUsage {
     /// The fully qualified path to the trait being disallowed (e.g. `"std::fmt::Debug"`).
     #[serde(rename = "trait")]
     pub trait_path: String,
+
     /// The concrete types the trait is disallowed for (e.g. `"i32"`, `"std::path::PathBuf"`).
     #[serde(default)]
     pub types: Vec<DisallowedPathWithoutReplacement>,
+
     /// Traits whose implementors the trait is disallowed for (e.g. `"std::error::Error"`).
     #[serde(default)]
     pub implements: Vec<DisallowedPathWithoutReplacement>,
+
     /// Disallows the trait for every type, with the given reason.
     ///
     /// Mutually exclusive with `types` and `implements`.
     #[serde(rename = "all-types")]
     pub all_types: Option<String>,
+
     /// The span of this entry.
     ///
     /// Used for diagnostics.
