@@ -98,15 +98,10 @@ where
     left.into_iter().zip(right).map(<[I::Item; 2]>::from)
 }
 
-// Complexity inside an opaque type cannot be factored into a type alias either.
-fn complex_opaque_bound() -> impl Fn(Vec<Vec<Box<(u32, u32, u32, u32)>>>) {
-    |_| {}
-}
-
 // The presence of an opaque type must not hide complexity in a sibling type that can be factored
 // out.
 fn complex_after_opaque() -> (impl Iterator<Item = u32>, Vec<Vec<Box<(u32, u32, u32, u32)>>>) {
-    //~^ ERROR: very complex type used. Consider factoring parts into `type` definitions
+    //~^ type_complexity
     (std::iter::empty(), vec![])
 }
 
