@@ -1,0 +1,11 @@
+error: very complex type used. Consider factoring parts into `type` definitions
+  --> tests/ui/type_complexity_type_alias_impl_trait.rs:4:30
+   |
+LL | fn complex_opaque_bound() -> impl Fn(Vec<Vec<Box<(u32, u32, u32, u32)>>>) {
+   |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::type-complexity` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::type_complexity)]`
+
+error: aborting due to 1 previous error
+

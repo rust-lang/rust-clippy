@@ -91,5 +91,11 @@ error: very complex type used. Consider factoring parts into `type` definitions
 LL |     let _y: Vec<Vec<Box<(u32, u32, u32, u32)>>> = vec![];
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 15 previous errors
+error: very complex type used. Consider factoring parts into `type` definitions
+  --> tests/ui/type_complexity.rs:108:30
+   |
+LL | fn complex_after_opaque() -> (impl Iterator<Item = u32>, Vec<Vec<Box<(u32, u32, u32, u32)>>>) {
+   |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 16 previous errors
 
