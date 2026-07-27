@@ -673,24 +673,40 @@ impl Serialize for SourceItemOrderingWithinModuleItemGroupings {
 
 /// An entry in the `disallowed-trait-usage` configuration.
 ///
-/// Forbids using a type via a specific trait interface. The type can be specified
-/// either as a concrete type (`type`) or as a trait bound (`implements`), but not both.
+/// Forbids using the trait named by `trait` on the types selected by `types`, `implements`
+/// and `all-types`.
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct DisallowedTraitUsage {
-    /// The fully qualified path to a concrete type (e.g. `"i32"`, `"std::path::PathBuf"`).
-    /// Mutually exclusive with `implements`.
-    #[serde(rename = "type")]
-    pub type_path: Option<String>,
-    /// The fully qualified path to a trait (e.g. `"std::error::Error"`).
-    /// When set, the rule applies to any type that implements this trait.
-    /// Mutually exclusive with `type`.
-    pub implements: Option<String>,
     /// The fully qualified path to the trait being disallowed (e.g. `"std::fmt::Debug"`).
     #[serde(rename = "trait")]
     pub trait_path: String,
-    /// Optional reason explaining why this usage is disallowed.
-    pub reason: Option<String>,
+    /// The concrete types the trait is disallowed for (e.g. `"i32"`, `"std::path::PathBuf"`).
+    #[serde(default)]
+    pub types: Vec<DisallowedPathWithoutReplacement>,
+    /// Traits whose implementors the trait is disallowed for (e.g. `"std::error::Error"`).
+    #[serde(default)]
+    pub implements: Vec<DisallowedPathWithoutReplacement>,
+    /// Disallows the trait for every type, with the given reason.
+    ///
+    /// Mutually exclusive with `types` and `implements`.
+    #[serde(rename = "all-types")]
+    pub all_types: Option<String>,
+    /// The span of this entry.
+    ///
+    /// Used for diagnostics.
+    #[serde(skip)]
+    pub span: Span,
+}
+
+impl DisallowedTraitUsage {
+    /// Sets the span of this entry, and of every path it contains.
+    pub fn set_span(&mut self, span: Span) {
+        self.span = span;
+        for disallowed_path in self.types.iter_mut().chain(&mut self.implements) {
+            disallowed_path.set_span(span);
+        }
+    }
 }
 
 // these impls are never actually called but are used by the various config options that default to

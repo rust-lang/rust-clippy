@@ -220,6 +220,36 @@ macro_rules! deserialize {
         }
         (disallowed_paths, disallowed_paths_span)
     }};
+
+    // Like the arm above, but for a list of `$entry_ty` entries that each contain `DisallowedPath`s
+    // of their own. Those nested paths get the span of the entry they belong to.
+    ($map:expr, $ty:ty, $errors:expr, $file:expr, @nested $entry_ty:ty) => {{
+        let array = $map.next_value::<Vec<toml::Spanned<toml::Value>>>()?;
+        let mut entries_span = Range {
+            start: usize::MAX,
+            end: usize::MIN,
+        };
+        let mut entries = Vec::new();
+        for raw_value in array {
+            let value_span = raw_value.span();
+            let mut entry = match <$entry_ty>::deserialize(raw_value.into_inner()) {
+                Err(e) => {
+                    $errors.push(ConfError::spanned(
+                        $file,
+                        e.to_string().replace('\n', " ").trim(),
+                        None,
+                        value_span,
+                    ));
+                    continue;
+                },
+                Ok(entry) => entry,
+            };
+            entries_span = union(&entries_span, &value_span);
+            entry.set_span(span_from_toml_range($file, value_span));
+            entries.push(entry);
+        }
+        (entries, entries_span)
+    }};
 }
 
 macro_rules! define_Conf {
@@ -228,6 +258,7 @@ macro_rules! define_Conf {
         $(#[conf_deprecated($dep:literal, $new_conf:ident)])?
         $(#[default_text = $default_text:expr])?
         $(#[disallowed_paths_allow_replacements = $replacements_allowed:expr])?
+        $(#[nested_disallowed_paths = $entry_ty:ty])?
         $(#[lints($($for_lints:ident),* $(,)?)])?
         $name:ident: $ty:ty = $default:expr,
     )*) => {
@@ -285,7 +316,11 @@ macro_rules! define_Conf {
                             // Is this a deprecated field, i.e., is `$dep` set? If so, push a warning.
                             $(warnings.push(ConfError::spanned(self.0, format!("deprecated field `{}`. {}", name.get_ref(), $dep), None, name.span()));)?
                             let (value, value_span) =
-                                deserialize!(map, $ty, errors, self.0 $(, $replacements_allowed)?);
+                                deserialize!(
+                                    map, $ty, errors, self.0
+                                    $(, $replacements_allowed)?
+                                    $(, @nested $entry_ty)?
+                                );
                             // Was this field set previously?
                             if $name.is_some() {
                                 errors.push(ConfError::spanned(self.0, format!("duplicate field `{}`", name.get_ref()), None, name.span()));
@@ -653,24 +688,41 @@ define_Conf! {
     /// default configuration of Clippy. By default, any configuration will replace the default value.
     #[lints(disallowed_names)]
     disallowed_names: Vec<String> = DEFAULT_DISALLOWED_NAMES.iter().map(ToString::to_string).collect(),
-    /// The list of disallowed trait usages. Each entry forbids using a type via a specific
-    /// trait interface.
+    /// The list of disallowed trait usages. Each entry names one trait and the types it may not
+    /// be used on.
     ///
     /// **Fields:**
-    /// - `type` (optional): the fully qualified path to a concrete type (e.g. `"i32"`, `"std::path::PathBuf"`)
-    /// - `implements` (optional): the fully qualified path to a trait; matches any type implementing it
     /// - `trait` (required): the fully qualified path to the disallowed trait (e.g. `"std::fmt::Debug"`)
-    /// - `reason` (optional): explanation why this trait usage is disallowed
+    /// - `types` (optional): concrete types the trait is disallowed for (e.g. `"i32"`, `"std::path::PathBuf"`)
+    /// - `implements` (optional): traits whose implementors the trait is disallowed for
+    /// - `all-types` (optional): disallows the trait for every type, with the given string as the reason
     ///
-    /// Exactly one of `type` or `implements` must be specified.
+    /// The entries of `types` and `implements` are either a plain path or a table with the same
+    /// fields as [`disallowed-types`](#disallowed-types), minus `replacement`.
+    ///
+    /// At least one of `types`, `implements` or `all-types` must be specified. `all-types` covers
+    /// everything the other two can, so combining it with them warns.
     ///
     /// ### Example
     /// ```toml
-    /// disallowed-trait-usage = [
-    ///     { type = "std::path::PathBuf", trait = "std::fmt::Debug", reason = "Use path.display() instead" },
-    ///     { implements = "std::error::Error", trait = "std::fmt::Debug", reason = "Use Display instead" },
+    /// [[disallowed-trait-usage]]
+    /// trait = "std::fmt::Debug"
+    /// # Forbid `Debug` formatting of specific types:
+    /// types = [
+    ///     { path = "std::path::PathBuf", reason = "Use path.display() instead" },
+    ///     "std::path::Path",
     /// ]
+    /// # Forbid `Debug` formatting of every type implementing these traits:
+    /// implements = [
+    ///     { path = "std::error::Error", reason = "Use Display for errors" },
+    /// ]
+    ///
+    /// # Forbid a trait outright:
+    /// [[disallowed-trait-usage]]
+    /// trait = "std::fmt::Pointer"
+    /// all-types = "Do not print addresses"
     /// ```
+    #[nested_disallowed_paths = crate::types::DisallowedTraitUsage]
     #[lints(disallowed_trait_usage)]
     disallowed_trait_usage: Vec<crate::types::DisallowedTraitUsage> = Vec::new(),
     /// The list of disallowed types, written as fully qualified paths.

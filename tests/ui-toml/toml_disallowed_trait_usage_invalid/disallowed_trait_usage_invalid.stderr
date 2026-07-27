@@ -1,14 +1,50 @@
-warning: `std::nonexistent::FakeType` does not refer to a reachable type (in `disallowed-trait-usage`)
+warning: `std::nonexistent::FakeType` does not refer to a reachable type
+  --> $DIR/tests/ui-toml/toml_disallowed_trait_usage_invalid/clippy.toml:3:5
+   |
+LL |     { trait = "std::fmt::Debug", types = ["std::nonexistent::FakeType"] },
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: add `allow-invalid = true` to the entry to suppress this warning
 
-warning: `std::nonexistent::FakeTrait` does not refer to a reachable trait (in `disallowed-trait-usage`)
+warning: `std::nonexistent::FakeTrait` does not refer to a reachable trait
+  --> $DIR/tests/ui-toml/toml_disallowed_trait_usage_invalid/clippy.toml:5:5
+   |
+LL |     { trait = "std::nonexistent::FakeTrait", types = ["i32"] },
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-warning: expected a type, found a function: `std::mem::swap` (in `disallowed-trait-usage`)
+warning: expected a type, found a function
+  --> $DIR/tests/ui-toml/toml_disallowed_trait_usage_invalid/clippy.toml:7:5
+   |
+LL |     { trait = "std::fmt::Debug", types = ["std::mem::swap"] },
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: add `allow-invalid = true` to the entry to suppress this warning
 
-warning: expected a trait, found a struct: `std::string::String` (in `disallowed-trait-usage`)
+warning: expected a trait, found a struct
+  --> $DIR/tests/ui-toml/toml_disallowed_trait_usage_invalid/clippy.toml:9:5
+   |
+LL |     { trait = "std::string::String", types = ["i32"] },
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-warning: `type` and `implements` are mutually exclusive (in `disallowed-trait-usage`)
+warning: expected a trait, found a struct
+  --> $DIR/tests/ui-toml/toml_disallowed_trait_usage_invalid/clippy.toml:11:5
+   |
+LL |     { trait = "std::fmt::Debug", implements = ["std::string::String"] },
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: add `allow-invalid = true` to the entry to suppress this warning
 
-warning: either `type` or `implements` must be specified (in `disallowed-trait-usage`)
+warning: `all-types` already covers `types` and `implements`, which are ignored
+  --> $DIR/tests/ui-toml/toml_disallowed_trait_usage_invalid/clippy.toml:13:5
+   |
+LL |     { trait = "std::fmt::Pointer", all-types = "testing", types = ["i32"] },
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-warning: 6 warnings emitted
+warning: at least one of `types`, `implements` or `all-types` must be specified
+  --> $DIR/tests/ui-toml/toml_disallowed_trait_usage_invalid/clippy.toml:15:5
+   |
+LL |     { trait = "std::fmt::Debug" },
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: 7 warnings emitted
 
