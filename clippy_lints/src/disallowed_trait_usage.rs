@@ -1,17 +1,19 @@
 use clippy_config::Conf;
+use clippy_config::types::{DisallowedPathWithoutReplacement, create_disallowed_map};
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::macros::{FormatArgsStorage, find_format_arg_expr, is_format_macro, root_macro_call_first_node};
 use clippy_utils::paths::{PathNS, find_crates, lookup_path};
 use clippy_utils::sym;
 use clippy_utils::ty::implements_trait;
 use rustc_ast::{FormatArgsPiece, FormatTrait};
+use rustc_data_structures::fx::FxHashMap;
 use rustc_hir::def::DefKind;
-use rustc_hir::def_id::DefId;
-use rustc_hir::{Expr, ExprKind};
+use rustc_hir::def_id::{DefId, DefIdMap};
+use rustc_hir::{Expr, ExprKind, PrimTy};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty, TyCtxt};
 use rustc_session::impl_lint_pass;
-use rustc_span::Symbol;
+use rustc_span::{Span, Symbol};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -29,12 +31,22 @@ declare_clippy_lint! {
     /// An example clippy.toml configuration:
     /// ```toml
     /// # clippy.toml
-    /// disallowed-trait-usage = [
-    ///     # Forbid Debug formatting of a specific type:
-    ///     { type = "std::path::PathBuf", trait = "std::fmt::Debug", reason = "Use path.display() instead" },
-    ///     # Forbid Debug formatting of any type implementing a trait:
-    ///     { implements = "std::error::Error", trait = "std::fmt::Debug", reason = "Use Display instead" },
+    /// [[disallowed-trait-usage]]
+    /// trait = "std::fmt::Debug"
+    /// # Forbid `Debug` formatting of specific types:
+    /// types = [
+    ///     { path = "std::path::PathBuf", reason = "Use path.display() instead" },
+    ///     "std::path::Path",
     /// ]
+    /// # Forbid `Debug` formatting of every type implementing these traits:
+    /// implements = [
+    ///     { path = "std::error::Error", reason = "Use Display for errors" },
+    /// ]
+    ///
+    /// # Forbid a trait outright:
+    /// [[disallowed-trait-usage]]
+    /// trait = "std::fmt::Pointer"
+    /// all-types = "Do not print addresses"
     /// ```
     ///
     /// ```rust,ignore
@@ -56,25 +68,57 @@ declare_clippy_lint! {
 
 impl_lint_pass!(DisallowedTraitUsage => [DISALLOWED_TRAIT_USAGE]);
 
-/// Identifies a type: either a concrete type (ADT/primitive) or "any type implementing a trait".
+/// A configured path, together with the entry it was written as.
 #[derive(Clone, Copy)]
-enum TypeMatcher {
-    /// Matches a specific ADT (struct, enum, union, etc.) by `DefId`.
-    Def(DefId),
-    /// Matches a primitive type.
-    Prim(rustc_hir::PrimTy),
-    /// Matches any type that implements the given trait.
-    ImplementsTrait(DefId),
+struct DisallowedPathEntry {
+    /// The path as written in the configuration.
+    path: &'static str,
+
+    /// The configuration entry the path came from, carrying its `reason`.
+    disallowed_path: &'static DisallowedPathWithoutReplacement,
 }
 
-/// A resolved disallowed (type, trait) pair.
+impl From<(&'static str, &'static DisallowedPathWithoutReplacement)> for DisallowedPathEntry {
+    fn from((path, disallowed_path): (&'static str, &'static DisallowedPathWithoutReplacement)) -> Self {
+        Self { path, disallowed_path }
+    }
+}
+
+/// The concrete types of a `types` list.
+struct DisallowedTypes {
+    def_ids: DefIdMap<DisallowedPathEntry>,
+    prim_tys: FxHashMap<PrimTy, DisallowedPathEntry>,
+}
+
+impl DisallowedTypes {
+    fn get(&self, ty: Ty<'_>) -> Option<DisallowedPathEntry> {
+        match ty.kind() {
+            ty::Adt(adt_def, _) => self.def_ids.get(&adt_def.did()).copied(),
+            _ => ty_as_prim(ty).and_then(|prim| self.prim_tys.get(&prim).copied()),
+        }
+    }
+}
+
+/// Which types a trait is forbidden for.
+enum Forbidden {
+    /// Every type, from `all-types`.
+    All { reason: &'static str },
+
+    /// Only the configured types, from `types` and `implements`.
+    Specific {
+        /// Concrete types, from `types`.
+        types: DisallowedTypes,
+
+        /// Traits whose implementors are disallowed, from `implements`.
+        implements: Vec<(DefId, DisallowedPathEntry)>,
+    },
+}
+
+/// One resolved `disallowed-trait-usage` entry: a trait plus the types it may not be used on.
 struct ResolvedEntry {
-    type_matcher: TypeMatcher,
     trait_def_id: DefId,
-    /// Description of the type constraint, used in diagnostics.
-    type_description: &'static str,
     trait_path: &'static str,
-    reason: Option<&'static str>,
+    forbidden: Forbidden,
 }
 
 pub struct DisallowedTraitUsage {
@@ -87,7 +131,7 @@ fn is_crate_loaded(tcx: TyCtxt<'_>, sym_path: &[Symbol]) -> bool {
     sym_path.len() < 2 || !find_crates(tcx, sym_path[0]).is_empty()
 }
 
-fn emit_invalid_path_warning(tcx: TyCtxt<'_>, sym_path: &[Symbol], path: &str, expected: &str) {
+fn emit_invalid_path_warning(tcx: TyCtxt<'_>, sym_path: &[Symbol], path: &str, expected: &str, span: Span) {
     if !is_crate_loaded(tcx, sym_path) {
         return;
     }
@@ -96,38 +140,59 @@ fn emit_invalid_path_warning(tcx: TyCtxt<'_>, sym_path: &[Symbol], path: &str, e
     let found = lookup_path(tcx, PathNS::Arbitrary, sym_path);
     let message = if let Some(&def_id) = found.first() {
         let (article, description) = tcx.article_and_description(def_id);
-        format!("expected a {expected}, found {article} {description}: `{path}` (in `disallowed-trait-usage`)")
+        format!("expected a {expected}, found {article} {description}")
     } else {
-        format!("`{path}` does not refer to a reachable {expected} (in `disallowed-trait-usage`)")
+        format!("`{path}` does not refer to a reachable {expected}")
     };
 
-    tcx.sess.dcx().warn(message);
+    tcx.sess.dcx().span_warn(span, message);
 }
 
-fn resolve_type_matcher(tcx: TyCtxt<'_>, path: &str) -> Option<TypeMatcher> {
-    let sym_name = Symbol::intern(path);
-    if let Some(prim) = rustc_hir::PrimTy::from_name(sym_name) {
-        return Some(TypeMatcher::Prim(prim));
-    }
+fn type_def_kind_predicate(def_kind: DefKind) -> bool {
+    matches!(
+        def_kind,
+        DefKind::Struct | DefKind::Union | DefKind::Enum | DefKind::TyAlias | DefKind::ForeignTy
+    )
+}
 
-    let sym_path: Vec<Symbol> = path.split("::").map(Symbol::intern).collect();
-    let def_ids = lookup_path(tcx, PathNS::Type, &sym_path);
-    let result = def_ids.iter().find(|&&did| {
-        matches!(
-            tcx.def_kind(did),
-            DefKind::Struct | DefKind::Union | DefKind::Enum | DefKind::TyAlias | DefKind::ForeignTy
-        )
-    });
+fn trait_def_kind_predicate(def_kind: DefKind) -> bool {
+    matches!(def_kind, DefKind::Trait)
+}
 
-    if let Some(&def_id) = result {
-        Some(TypeMatcher::Def(def_id))
-    } else {
-        emit_invalid_path_warning(tcx, &sym_path, path, "type");
-        None
+/// Resolves the `types` of a `disallowed-trait-usage` entry.
+#[expect(rustc::potential_query_instability, reason = "collected into another unordered map")]
+fn resolve_types(tcx: TyCtxt<'_>, types: &'static [DisallowedPathWithoutReplacement]) -> DisallowedTypes {
+    let (def_ids, prim_tys) = create_disallowed_map(tcx, types, PathNS::Type, type_def_kind_predicate, "type", true);
+
+    DisallowedTypes {
+        def_ids: def_ids
+            .into_items()
+            .map(|(def_id, entry)| (def_id, entry.into()))
+            .into(),
+        prim_tys: prim_tys
+            .into_iter()
+            .map(|(prim_ty, entry)| (prim_ty, entry.into()))
+            .collect(),
     }
 }
 
-fn resolve_trait_def_id(tcx: TyCtxt<'_>, path: &str) -> Option<DefId> {
+/// Resolves the `implements` of a `disallowed-trait-usage` entry.
+fn resolve_implements(
+    tcx: TyCtxt<'_>,
+    implements: &'static [DisallowedPathWithoutReplacement],
+) -> Vec<(DefId, DisallowedPathEntry)> {
+    let (def_ids, _) = create_disallowed_map(tcx, implements, PathNS::Type, trait_def_kind_predicate, "trait", false);
+
+    // Sorted so that diagnostics are emitted in a deterministic order.
+    def_ids
+        .into_items()
+        .into_sorted_stable_ord_by_key(|(_, (path, _))| path)
+        .into_iter()
+        .map(|(def_id, entry)| (def_id, entry.into()))
+        .collect()
+}
+
+fn resolve_trait_def_id(tcx: TyCtxt<'_>, path: &str, span: Span) -> Option<DefId> {
     let sym_path: Vec<Symbol> = path.split("::").map(Symbol::intern).collect();
     let def_ids = lookup_path(tcx, PathNS::Type, &sym_path);
     let result = def_ids.iter().find(|&&did| matches!(tcx.def_kind(did), DefKind::Trait));
@@ -135,7 +200,7 @@ fn resolve_trait_def_id(tcx: TyCtxt<'_>, path: &str) -> Option<DefId> {
     if let Some(&def_id) = result {
         Some(def_id)
     } else {
-        emit_invalid_path_warning(tcx, &sym_path, path, "trait");
+        emit_invalid_path_warning(tcx, &sym_path, path, "trait", span);
         None
     }
 }
@@ -146,37 +211,33 @@ impl DisallowedTraitUsage {
             .disallowed_trait_usage
             .iter()
             .filter_map(|entry| {
-                let trait_def_id = resolve_trait_def_id(tcx, &entry.trait_path);
+                let trait_def_id = resolve_trait_def_id(tcx, &entry.trait_path, entry.span);
 
-                let (type_matcher, type_description) = match (&entry.type_path, &entry.implements) {
-                    (Some(type_path), None) => {
-                        let matcher = resolve_type_matcher(tcx, type_path);
-                        (matcher, type_path.as_str())
-                    },
-                    (None, Some(impl_path)) => {
-                        let impl_trait_id = resolve_trait_def_id(tcx, impl_path);
-                        (impl_trait_id.map(TypeMatcher::ImplementsTrait), impl_path.as_str())
-                    },
-                    (Some(_), Some(_)) => {
-                        tcx.sess
-                            .dcx()
-                            .warn("`type` and `implements` are mutually exclusive (in `disallowed-trait-usage`)");
-                        return None;
-                    },
-                    (None, None) => {
-                        tcx.sess
-                            .dcx()
-                            .warn("either `type` or `implements` must be specified (in `disallowed-trait-usage`)");
-                        return None;
-                    },
+                let forbidden = if let Some(reason) = entry.all_types.as_deref() {
+                    if !entry.types.is_empty() || !entry.implements.is_empty() {
+                        tcx.sess.dcx().span_warn(
+                            entry.span,
+                            "`all-types` already covers `types` and `implements`, which are ignored",
+                        );
+                    }
+                    Forbidden::All { reason }
+                } else if entry.types.is_empty() && entry.implements.is_empty() {
+                    tcx.sess.dcx().span_warn(
+                        entry.span,
+                        "at least one of `types`, `implements` or `all-types` must be specified",
+                    );
+                    return None;
+                } else {
+                    Forbidden::Specific {
+                        types: resolve_types(tcx, &entry.types),
+                        implements: resolve_implements(tcx, &entry.implements),
+                    }
                 };
 
                 Some(ResolvedEntry {
-                    type_matcher: type_matcher?,
                     trait_def_id: trait_def_id?,
-                    type_description,
                     trait_path: &entry.trait_path,
-                    reason: entry.reason.as_deref(),
+                    forbidden,
                 })
             })
             .collect();
@@ -184,56 +245,69 @@ impl DisallowedTraitUsage {
         Self { format_args, entries }
     }
 
-    fn check_type_trait<'tcx>(
-        &self,
-        cx: &LateContext<'tcx>,
-        ty: Ty<'tcx>,
-        trait_def_id: DefId,
-        report_span: rustc_span::Span,
-    ) {
+    fn check_type_trait<'tcx>(&self, cx: &LateContext<'tcx>, ty: Ty<'tcx>, trait_def_id: DefId, span: Span) {
         let ty = ty.peel_refs();
 
         for entry in &self.entries {
-            if entry.trait_def_id != trait_def_id {
+            let ResolvedEntry {
+                trait_def_id: entry_trait_def_id,
+                trait_path,
+                forbidden,
+            } = entry;
+
+            if *entry_trait_def_id != trait_def_id {
                 continue;
             }
 
-            let type_matches = match entry.type_matcher {
-                TypeMatcher::Def(def_id) => matches!(ty.kind(), ty::Adt(adt_def, _) if adt_def.did() == def_id),
-                TypeMatcher::Prim(prim) => ty_matches_prim(ty, prim),
-                TypeMatcher::ImplementsTrait(impl_trait_id) => implements_trait(cx, ty, impl_trait_id, &[]),
-            };
-
-            if type_matches {
-                let message = match entry.type_matcher {
-                    TypeMatcher::ImplementsTrait(_) => format!(
-                        "use of implementor of `{}` via trait `{}` is disallowed",
-                        entry.type_description, entry.trait_path,
-                    ),
-                    _ => format!(
-                        "use of `{}` via trait `{}` is disallowed",
-                        entry.type_description, entry.trait_path,
-                    ),
-                };
-
-                span_lint_and_then(cx, DISALLOWED_TRAIT_USAGE, report_span, message, |diag| {
-                    if let Some(reason) = entry.reason {
-                        diag.note(reason.to_owned());
+            match forbidden {
+                Forbidden::All { reason } => span_lint_and_then(
+                    cx,
+                    DISALLOWED_TRAIT_USAGE,
+                    span,
+                    format!("use of trait `{trait_path}` is disallowed"),
+                    |diag| {
+                        if !reason.is_empty() {
+                            diag.note((*reason).to_owned());
+                        }
+                    },
+                ),
+                Forbidden::Specific { types, implements } => {
+                    if let Some(DisallowedPathEntry { path, disallowed_path }) = types.get(ty) {
+                        span_lint_and_then(
+                            cx,
+                            DISALLOWED_TRAIT_USAGE,
+                            span,
+                            format!("use of `{path}` via trait `{trait_path}` is disallowed"),
+                            disallowed_path.diag_amendment(span),
+                        );
                     }
-                });
+
+                    for &(impl_trait_id, DisallowedPathEntry { path, disallowed_path }) in implements {
+                        if implements_trait(cx, ty, impl_trait_id, &[]) {
+                            span_lint_and_then(
+                                cx,
+                                DISALLOWED_TRAIT_USAGE,
+                                span,
+                                format!("use of implementor of `{path}` via trait `{trait_path}` is disallowed"),
+                                disallowed_path.diag_amendment(span),
+                            );
+                        }
+                    }
+                },
             }
         }
     }
 }
 
-fn ty_matches_prim(ty: Ty<'_>, prim: rustc_hir::PrimTy) -> bool {
-    match prim {
-        rustc_hir::PrimTy::Bool => ty.is_bool(),
-        rustc_hir::PrimTy::Char => ty.is_char(),
-        rustc_hir::PrimTy::Str => ty.is_str(),
-        rustc_hir::PrimTy::Int(i) => matches!(ty.kind(), ty::Int(ti) if *ti == i),
-        rustc_hir::PrimTy::Uint(u) => matches!(ty.kind(), ty::Uint(tu) if *tu == u),
-        rustc_hir::PrimTy::Float(f) => matches!(ty.kind(), ty::Float(tf) if *tf == f),
+fn ty_as_prim(ty: Ty<'_>) -> Option<PrimTy> {
+    match *ty.kind() {
+        ty::Bool => Some(PrimTy::Bool),
+        ty::Char => Some(PrimTy::Char),
+        ty::Str => Some(PrimTy::Str),
+        ty::Int(int_ty) => Some(PrimTy::Int(int_ty)),
+        ty::Uint(uint_ty) => Some(PrimTy::Uint(uint_ty)),
+        ty::Float(float_ty) => Some(PrimTy::Float(float_ty)),
+        _ => None,
     }
 }
 

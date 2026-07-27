@@ -7,12 +7,20 @@ trait MyTrait {
     fn do_thing(&self) -> i32;
 }
 
+trait MyOtherTrait {
+    fn other_thing(&self);
+}
+
 struct MyStruct;
 
 impl MyTrait for MyStruct {
     fn do_thing(&self) -> i32 {
         42
     }
+}
+
+impl MyOtherTrait for MyStruct {
+    fn other_thing(&self) {}
 }
 
 impl std::fmt::Debug for MyStruct {
@@ -104,10 +112,18 @@ fn main() {
     // Instead, test that Display of MyStruct doesn't trigger (only Debug is disallowed via
     // `implements`). (MyStruct has no Display impl, so we test via the method call path instead.)
 
-    // Should trigger: method call on a type matching `implements` —
-    // OtherStruct implements MyTrait, and MyTrait::do_thing is disallowed on MyStruct (via concrete
-    // `type`), but OtherStruct is NOT matched by the concrete `type` entry. However, it IS matched
-    // by the `implements = MyTrait` + `trait = Debug` entry — but that only covers Debug, not
-    // MyTrait methods. So this should NOT trigger.
+    // Should NOT trigger: OtherStruct implements MyTrait, and MyTrait::do_thing is disallowed on
+    // MyStruct (via `types`), but OtherStruct is not listed there. It IS matched by the
+    // `implements = MyTrait` entry, but that entry only covers Debug, not MyTrait methods.
     other.do_thing();
+
+    // === `all-types` matching ===
+
+    // Should trigger: Pointer formatting is disallowed for every type
+    println!("{:p}", &42_i32);
+    //~^ disallowed_trait_usage
+
+    // Should trigger: MyOtherTrait is disallowed for every type, with no reason given
+    my.other_thing();
+    //~^ disallowed_trait_usage
 }

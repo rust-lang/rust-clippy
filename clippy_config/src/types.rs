@@ -96,40 +96,44 @@ macro_rules! conf_enum {
 }
 /// An entry in the `disallowed-trait-usage` configuration.
 ///
-/// Forbids using a type via a specific trait interface. The type can be specified
-/// either as a concrete type (`type`) or as a trait bound (`implements`), but not both.
+/// Forbids using the trait named by `trait` on the types selected by `types`, `implements`
+/// and `all-types`.
 pub struct DisallowedTraitUsage {
-    /// The fully qualified path to a concrete type (e.g. `"i32"`, `"std::path::PathBuf"`).
-    /// Mutually exclusive with `implements`.
-    pub type_path: Option<String>,
-    /// The fully qualified path to a trait (e.g. `"std::error::Error"`).
-    /// When set, the rule applies to any type that implements this trait.
-    /// Mutually exclusive with `type`.
-    pub implements: Option<String>,
     /// The fully qualified path to the trait being disallowed (e.g. `"std::fmt::Debug"`).
     pub trait_path: String,
-    /// Optional reason explaining why this usage is disallowed.
-    pub reason: Option<String>,
+    /// The concrete types the trait is disallowed for (e.g. `"i32"`, `"std::path::PathBuf"`).
+    pub types: Vec<DisallowedPathWithoutReplacement>,
+    /// Traits whose implementors the trait is disallowed for (e.g. `"std::error::Error"`).
+    pub implements: Vec<DisallowedPathWithoutReplacement>,
+    /// Disallows the trait for every type, with the given reason.
+    ///
+    /// Mutually exclusive with `types` and `implements`.
+    pub all_types: Option<String>,
+    /// The span of this entry.
+    ///
+    /// Used for diagnostics.
+    pub span: Span,
 }
 
 impl Deserialize for DisallowedTraitUsage {
     fn deserialize(dcx: &DiagCtxt<'_>, value: &TomlValue<'_>) -> Option<Self> {
         if let Some(table) = value.as_ref().as_table() {
             deserialize_table!(dcx, table,
-                type_path("type"): String,
-                implements("implements"): String,
                 trait_path("trait"): String,
-                reason("reason"): String,
+                types("types"): Vec<DisallowedPathWithoutReplacement>,
+                implements("implements"): Vec<DisallowedPathWithoutReplacement>,
+                all_types("all-types"): String,
             );
             let Some(trait_path) = trait_path else {
                 dcx.span_err(value.span(), "missing required field `trait`");
                 return None;
             };
             Some(DisallowedTraitUsage {
-                type_path,
-                implements,
                 trait_path,
-                reason,
+                types: types.unwrap_or_default(),
+                implements: implements.unwrap_or_default(),
+                all_types,
+                span: dcx.make_sp(value.span()),
             })
         } else {
             dcx.span_err(value.span(), "expected a table");

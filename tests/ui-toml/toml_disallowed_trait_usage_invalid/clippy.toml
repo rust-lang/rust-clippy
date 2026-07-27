@@ -1,14 +1,18 @@
 disallowed-trait-usage = [
     # Non-existent type
-    { type = "std::nonexistent::FakeType", trait = "std::fmt::Debug", reason = "testing" },
+    { trait = "std::fmt::Debug", types = ["std::nonexistent::FakeType"] },
     # Non-existent trait
-    { type = "i32", trait = "std::nonexistent::FakeTrait", reason = "testing" },
+    { trait = "std::nonexistent::FakeTrait", types = ["i32"] },
     # Path exists but is a function, not a type
-    { type = "std::mem::swap", trait = "std::fmt::Debug", reason = "testing" },
+    { trait = "std::fmt::Debug", types = ["std::mem::swap"] },
     # Path exists but is a struct, not a trait
-    { type = "i32", trait = "std::string::String", reason = "testing" },
-    # Both type and implements specified (mutually exclusive)
-    { type = "i32", implements = "std::error::Error", trait = "std::fmt::Debug", reason = "testing" },
-    # Neither type nor implements specified
-    { trait = "std::fmt::Debug", reason = "testing" },
+    { trait = "std::string::String", types = ["i32"] },
+    # `implements` entry exists but is a struct, not a trait
+    { trait = "std::fmt::Debug", implements = ["std::string::String"] },
+    # `all-types` is redundant when combined with `types` / `implements`
+    { trait = "std::fmt::Pointer", all-types = "testing", types = ["i32"] },
+    # None of `types`, `implements` or `all-types` specified
+    { trait = "std::fmt::Debug" },
+    # Invalid path, silenced by `allow-invalid`
+    { trait = "std::fmt::Debug", types = [{ path = "std::nonexistent::Silenced", allow-invalid = true }] },
 ]
