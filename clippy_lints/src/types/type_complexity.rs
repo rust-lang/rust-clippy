@@ -48,10 +48,6 @@ impl<'tcx> Visitor<'tcx> for TypeComplexityVisitor {
     }
 
     fn visit_ty(&mut self, ty: &'tcx hir::Ty<'_, AmbigArg>) {
-        // Opaque `impl Trait` types cannot be extracted into type aliases on stable. Skip
-        // their subtree only when `type_alias_impl_trait` is not enabled for this crate.
-        let skip_nested_type = matches!(ty.kind, TyKind::OpaqueDef(..)) && !self.type_alias_impl_trait_enabled;
-
         let (add_score, sub_nest) = match ty.kind {
             // &x and *x have only small overhead; don't mess with nesting level
             TyKind::Ptr(..) | TyKind::Ref(..) => (1, 0),
@@ -82,7 +78,9 @@ impl<'tcx> Visitor<'tcx> for TypeComplexityVisitor {
         };
         self.score += add_score;
         self.nest += sub_nest;
-        if !skip_nested_type {
+        // Opaque `impl Trait` types cannot be extracted into type aliases on stable. Skip
+        // their subtree only when `type_alias_impl_trait` is not enabled for this crate.
+        if self.type_alias_impl_trait_enabled || !matches!(ty.kind, TyKind::OpaqueDef(..)) {
             walk_ty(self, ty);
         }
         self.nest -= sub_nest;
