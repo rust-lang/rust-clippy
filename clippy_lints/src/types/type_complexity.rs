@@ -3,13 +3,17 @@ use rustc_abi::ExternAbi;
 use rustc_hir::intravisit::{InferKind, Visitor, VisitorExt as _, walk_ty};
 use rustc_hir::{self as hir, AmbigArg, GenericParamKind, TyKind};
 use rustc_lint::LateContext;
-use rustc_span::Span;
+use rustc_span::{Span, sym};
 
 use super::TYPE_COMPLEXITY;
 
 pub(super) fn check(cx: &LateContext<'_>, ty: &hir::Ty<'_>, type_complexity_threshold: u64) -> bool {
     let score = {
-        let mut visitor = TypeComplexityVisitor { score: 0, nest: 1 };
+        let mut visitor = TypeComplexityVisitor {
+            score: 0,
+            nest: 1,
+            type_alias_impl_trait_enabled: cx.tcx.features().enabled(sym::type_alias_impl_trait),
+        };
         visitor.visit_ty_unambig(ty);
         visitor.score
     };
@@ -33,6 +37,8 @@ struct TypeComplexityVisitor {
     score: u64,
     /// current nesting level
     nest: u64,
+    /// whether opaque `impl Trait` types can be named through `type_alias_impl_trait`
+    type_alias_impl_trait_enabled: bool,
 }
 
 impl<'tcx> Visitor<'tcx> for TypeComplexityVisitor {
@@ -42,11 +48,10 @@ impl<'tcx> Visitor<'tcx> for TypeComplexityVisitor {
     }
 
     fn visit_ty(&mut self, ty: &'tcx hir::Ty<'_, AmbigArg>) {
-        // Opaque types cannot be extracted into type aliases on stable. Ignore their
-        // bounds, but keep scoring surrounding type components that can be extracted.
-        if matches!(ty.kind, TyKind::OpaqueDef(..)) {
-            return;
-        }
+        // Opaque `impl Trait` types cannot be extracted into type aliases on stable. Skip
+        // their subtree only when `type_alias_impl_trait` is not enabled for this crate.
+        let skip_nested_type = matches!(ty.kind, TyKind::OpaqueDef(..)) && !self.type_alias_impl_trait_enabled;
+
         let (add_score, sub_nest) = match ty.kind {
             // &x and *x have only small overhead; don't mess with nesting level
             TyKind::Ptr(..) | TyKind::Ref(..) => (1, 0),
@@ -77,7 +82,9 @@ impl<'tcx> Visitor<'tcx> for TypeComplexityVisitor {
         };
         self.score += add_score;
         self.nest += sub_nest;
-        walk_ty(self, ty);
+        if !skip_nested_type {
+            walk_ty(self, ty);
+        }
         self.nest -= sub_nest;
     }
 }

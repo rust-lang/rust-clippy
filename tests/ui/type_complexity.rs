@@ -86,8 +86,6 @@ struct D {
     ),
 }
 
-fn main() {}
-
 // Should not warn, because factoring `impl Trait` into a type alias is not stable (#17195).
 fn issue_17195<I, J>(
     left: I,
@@ -107,7 +105,9 @@ fn complex_opaque_bound() -> impl Fn(Vec<Vec<Box<(u32, u32, u32, u32)>>>) {
 
 // The presence of an opaque type must not hide complexity in a sibling type that can be factored
 // out.
-#[expect(clippy::type_complexity)]
 fn complex_after_opaque() -> (impl Iterator<Item = u32>, Vec<Vec<Box<(u32, u32, u32, u32)>>>) {
+    //~^ ERROR: very complex type used. Consider factoring parts into `type` definitions
     (std::iter::empty(), vec![])
 }
+
+fn main() {}
