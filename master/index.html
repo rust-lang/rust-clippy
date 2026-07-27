@@ -10989,11 +10989,10 @@ somewhere), and make the code less readable.</p>
 };
 </code></pre>
 <p>Use instead:</p>
-<pre><code class="language-rust">// Missing field `z`
-Point {
+<pre><code class="language-rust">Point {
     x: 1,
     y: 1,
-    ..zero_point
+    z: 1
 };
 </code></pre>
 </div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+needless_update">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/needless_update.rs#L7">View Source</a></div></div></article><article id="neg_cmp_op_on_partial_ord"><input id="label-neg_cmp_op_on_partial_ord" type="checkbox"><label for="label-neg_cmp_op_on_partial_ord"><h2 class="lint-title"><div class="panel-title-name" id="lint-neg_cmp_op_on_partial_ord">neg_cmp_op_on_partial_ord
