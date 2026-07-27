@@ -101,14 +101,18 @@ macro_rules! conf_enum {
 pub struct DisallowedTraitUsage {
     /// The fully qualified path to the trait being disallowed (e.g. `"std::fmt::Debug"`).
     pub trait_path: String,
+
     /// The concrete types the trait is disallowed for (e.g. `"i32"`, `"std::path::PathBuf"`).
     pub types: Vec<DisallowedPathWithoutReplacement>,
+
     /// Traits whose implementors the trait is disallowed for (e.g. `"std::error::Error"`).
     pub implements: Vec<DisallowedPathWithoutReplacement>,
+
     /// Disallows the trait for every type, with the given reason.
     ///
     /// Mutually exclusive with `types` and `implements`.
     pub all_types: Option<String>,
+
     /// The span of this entry.
     ///
     /// Used for diagnostics.
