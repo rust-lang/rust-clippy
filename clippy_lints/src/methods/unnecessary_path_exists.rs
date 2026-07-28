@@ -1,6 +1,6 @@
 use super::UNNECESSARY_PATH_EXISTS;
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::res::MaybeDef;
+use clippy_utils::res::MaybeDef as _;
 use clippy_utils::visitors::for_each_expr_without_closures;
 use clippy_utils::{SpanlessEq, get_enclosing_block, get_parent_expr, higher, path_to_local_with_projections, sym};
 use rustc_hir::{BinOpKind, Expr, ExprKind, MatchSource, Node, PatKind, StmtKind};
