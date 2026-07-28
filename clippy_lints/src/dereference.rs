@@ -779,26 +779,28 @@ fn check_invoke_chain_danger<'tcx>(
 ) -> bool {
     while let Some(use_site) = expr_use_sites(cx.tcx, typeck, SyntaxContext::root(), expr).next() {
         let adjs = peel_derefs_adjustments(use_site.adjustments);
-        let auto_ref = if adjs.len() == 1 { adjs.first() } else { None }.is_some_and(|adj| {
+        let auto_ref = if let [adj] = adjs {
             matches!(
                 adj.kind,
                 Adjust::Deref(DerefAdjustKind::Overloaded(_)) | Adjust::Borrow(AutoBorrow::Ref(_))
             )
-        });
+        } else {
+            false
+        };
 
         match use_site.node {
             Node::Expr(use_expr) => match use_expr.kind {
-                ExprKind::Field(_, _) | ExprKind::Index(_, _, _) => {
+                ExprKind::Field(..) | ExprKind::Index(..) => {
                     if auto_ref {
                         return true;
                     }
                     expr = use_expr;
                 },
-                ExprKind::MethodCall(_, _, _, _) => {
+                ExprKind::MethodCall(..) => {
                     return auto_ref
                         && typeck.type_dependent_def_id(use_expr.hir_id).is_some_and(|fn_id| {
                             fn_id
-                                .get_attrs(&cx.tcx) // can not use private micro find_attr!()
+                                .get_attrs(&cx.tcx) // can not use private macro find_attr!()
                                 .iter()
                                 .any(|attr| matches!(attr, Attribute::Parsed(AttributeKind::RustcNoImplicitAutorefs)))
                         });
