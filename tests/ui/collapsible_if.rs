@@ -1,5 +1,9 @@
 #![allow(clippy::eq_op, clippy::needless_ifs)]
-#![expect(clippy::assertions_on_constants, clippy::redundant_pattern_matching)]
+#![expect(
+    clippy::assertions_on_constants,
+    clippy::constant_bool_expr,
+    clippy::redundant_pattern_matching
+)]
 
 #[rustfmt::skip]
 #[warn(clippy::collapsible_if)]
