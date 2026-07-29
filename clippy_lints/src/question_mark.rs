@@ -1,4 +1,5 @@
 use crate::manual_let_else::MANUAL_LET_ELSE;
+use crate::manual_map_err::MANUAL_MAP_ERR;
 use crate::question_mark_used::QUESTION_MARK_USED;
 use clippy_config::Conf;
 use clippy_config::types::MatchLintBehaviour;
@@ -52,7 +53,7 @@ declare_clippy_lint! {
     "checks for expressions that could be replaced by the `?` operator"
 }
 
-impl_lint_pass!(QuestionMark => [MANUAL_LET_ELSE, QUESTION_MARK]);
+impl_lint_pass!(QuestionMark => [MANUAL_LET_ELSE, MANUAL_MAP_ERR, QUESTION_MARK]);
 
 pub struct QuestionMark {
     pub(crate) msrv: Msrv,
@@ -599,7 +600,7 @@ fn check_if_let_some_or_err_and_early_return<'tcx>(cx: &LateContext<'tcx>, expr:
 }
 
 impl QuestionMark {
-    fn inside_try_block(&self) -> bool {
+    pub(crate) fn inside_try_block(&self) -> bool {
         self.try_block_depth_stack.last() > Some(&0)
     }
 }
@@ -663,6 +664,7 @@ impl<'tcx> LateLintPass<'tcx> for QuestionMark {
 
             if self.inferred_ret_closure_stack == 0 {
                 check_if_try_match(cx, expr);
+                self.check_manual_map_err(cx, expr);
             }
         }
     }

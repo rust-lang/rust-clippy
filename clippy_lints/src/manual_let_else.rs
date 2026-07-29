@@ -1,3 +1,4 @@
+use crate::manual_map_err::MANUAL_MAP_ERR;
 use crate::question_mark::{QUESTION_MARK, QuestionMark};
 use clippy_config::types::MatchLintBehaviour;
 use clippy_utils::diagnostics::span_lint_and_then;
@@ -58,6 +59,9 @@ impl<'tcx> QuestionMark {
             && let Some(if_let_or_match) = IfLetOrMatch::parse(cx, init)
             && !stmt.span.in_external_macro(cx.sess().source_map())
             && self.msrv.meets(cx, msrvs::LET_ELSE)
+            // `manual_map_err` suggests `?` for the same shape; let it own the statement rather
+            // than reporting it twice.
+            && (is_lint_allowed(cx, MANUAL_MAP_ERR, stmt.hir_id) || !self.manual_map_err_will_lint(cx, init))
         {
             match if_let_or_match {
                 IfLetOrMatch::IfLet(if_let_expr, let_pat, if_then, if_else, ..) => {
