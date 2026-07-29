@@ -1,5 +1,6 @@
 use clippy_config::Conf;
-use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_hir_and_then};
+use clippy_utils::consts::{ConstEvalCtxt, Constant};
+use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg, span_lint_hir_and_then};
 use clippy_utils::higher::has_let_expr;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeDef as _;
@@ -16,6 +17,34 @@ use rustc_session::impl_lint_pass;
 use rustc_span::def_id::LocalDefId;
 use rustc_span::{Span, Symbol, SyntaxContext};
 use std::fmt::Write as _;
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for boolean expressions that end up constant, always `true` or `false`.
+    ///
+    /// ### Why is this bad?
+    /// This is most likely a logic bug.
+    ///
+    /// ### Limitations
+    /// This lint only checks against literals and constant expressions since it cannot determine
+    /// if `a == bar() && a == foo()` will actually be different or not at runtime.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let a = 99;
+    /// if a != 100 || a != 101 { println!("Hello {a}"); } // Always true
+    /// if a == 100 && a == 101 { println!("Hello {a}"); } // Always false
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let a = 99;
+    /// println!("Hello {a}");
+    /// ```
+    #[clippy::version = "1.99.0"]
+    pub CONSTANT_BOOL_EXPR,
+    correctness,
+    "checks for boolean expressions that end up constant"
+}
 
 declare_clippy_lint! {
     /// ### What it does
@@ -77,7 +106,11 @@ declare_clippy_lint! {
     "boolean expressions that contain terminals which can be eliminated"
 }
 
-impl_lint_pass!(NonminimalBool => [NONMINIMAL_BOOL, OVERLY_COMPLEX_BOOL_EXPR]);
+impl_lint_pass!(NonminimalBool => [
+    CONSTANT_BOOL_EXPR,
+    NONMINIMAL_BOOL,
+    OVERLY_COMPLEX_BOOL_EXPR,
+]);
 
 // For each pairs, both orders are considered.
 const METHODS_WITH_NEGATION: [(Option<RustcVersion>, Symbol, Symbol); 3] = [
@@ -110,17 +143,18 @@ impl<'tcx> LateLintPass<'tcx> for NonminimalBool {
     }
 
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
-        match expr.kind {
+        if let ExprKind::Binary(op, left, right) = expr.kind {
+            check_for_constant_bool_expr(cx, expr, op.node, left, right);
+
             // This check the case where an element in a boolean comparison is inverted, like:
             //
             // ```
             // let a = true;
             // !a == false;
             // ```
-            ExprKind::Binary(op, left, right) if matches!(op.node, BinOpKind::Eq | BinOpKind::Ne) => {
+            if matches!(op.node, BinOpKind::Eq | BinOpKind::Ne) {
                 check_inverted_bool_in_condition(cx, expr.span, op.node, left, right);
-            },
-            _ => {},
+            }
         }
     }
 }
@@ -676,4 +710,110 @@ fn implements_ord(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
     cx.tcx
         .get_diagnostic_item(sym::Ord)
         .is_some_and(|id| implements_trait(cx, ty, id, &[]))
+}
+
+fn check_for_constant_bool_expr<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'_>,
+    op: BinOpKind,
+    left: &'tcx Expr<'_>,
+    right: &'tcx Expr<'_>,
+) {
+    match op {
+        BinOpKind::Or => detect_always_true_or(cx, expr, left, right),
+        BinOpKind::And => detect_always_false_and(cx, expr, left, right),
+        _ => (),
+    }
+}
+
+// `left_lhs != left_rhs || right_lhs != right_rhs`
+fn detect_always_true_or<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'_>,
+    left: &'tcx Expr<'_>,
+    right: &'tcx Expr<'_>,
+) {
+    let ExprKind::Binary(left_op, left_lhs, left_rhs) = left.kind else {
+        return;
+    };
+    let ExprKind::Binary(right_op, right_lhs, right_rhs) = right.kind else {
+        return;
+    };
+    if left_op.node != BinOpKind::Ne || right_op.node != BinOpKind::Ne {
+        return;
+    }
+
+    if detect_variants(cx, expr, left_lhs, right_lhs, left_rhs, right_rhs) {
+        span_lint(
+            cx,
+            CONSTANT_BOOL_EXPR,
+            expr.span,
+            "expression always evaluates to `true`",
+        );
+    }
+}
+
+// `left_lhs == left_rhs && right_lhs == right_rhs`
+fn detect_always_false_and<'tcx>(
+    cx: &LateContext<'tcx>,
+    e: &'tcx Expr<'_>,
+    left: &'tcx Expr<'_>,
+    right: &'tcx Expr<'_>,
+) {
+    let ExprKind::Binary(left_op, left_lhs, left_rhs) = left.kind else {
+        return;
+    };
+    let ExprKind::Binary(right_op, right_lhs, right_rhs) = right.kind else {
+        return;
+    };
+    if left_op.node != BinOpKind::Eq || right_op.node != BinOpKind::Eq {
+        return;
+    }
+
+    if detect_variants(cx, e, left_lhs, right_lhs, left_rhs, right_rhs) {
+        span_lint(cx, CONSTANT_BOOL_EXPR, e.span, "expression always evaluates to `false`");
+    }
+}
+
+fn detect_variants<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'_>,
+    left_lhs: &'tcx Expr<'_>,
+    right_lhs: &'tcx Expr<'_>,
+    left_rhs: &'tcx Expr<'_>,
+    right_rhs: &'tcx Expr<'_>,
+) -> bool {
+    let ctxt = expr.span.ctxt();
+
+    let detect_variant = |left_a, right_a, left_cmp: &Expr<'_>, right_cmp: &Expr<'_>| {
+        // If the `a` expression is not the same on both sides, there is no need to go further
+        if !eq_expr_value(cx, ctxt, left_a, right_a) {
+            return false;
+        }
+
+        let const_ctx = ConstEvalCtxt::new(cx);
+
+        // We try to look into constants and const blocks, but if that fails we fall back to handling
+        // literals only
+        if let Some(left_evaluated) = const_ctx.eval(left_cmp)
+            && let Some(right_evaluated) = const_ctx.eval(right_cmp)
+            && left_evaluated != Constant::Err
+            && right_evaluated != Constant::Err
+        {
+            left_evaluated != right_evaluated
+        } else {
+            matches!(left_cmp.kind, ExprKind::Lit(_))
+                && matches!(right_cmp.kind, ExprKind::Lit(_))
+                && !eq_expr_value(cx, ctxt, left_cmp, right_cmp)
+        }
+    };
+
+    // (a CMP_OP _) BIN_OP (a CMP_OP _)
+    detect_variant(left_lhs, right_lhs, left_rhs, right_rhs)
+        // (a CMP_OP _) BIN_OP (_ CMP_OP a)
+        || detect_variant(left_lhs, right_rhs, left_rhs, right_lhs)
+        // (_ CMP_OP a) BIN_OP (a CMP_OP _)
+        || detect_variant(left_rhs, right_lhs, left_lhs, right_rhs)
+        // (_ CMP_OP a) BIN_OP (_ CMP_OP a)
+        || detect_variant(left_rhs, right_rhs, left_lhs, right_lhs)
 }
