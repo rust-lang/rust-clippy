@@ -8,8 +8,8 @@ use rustc_span::{FileName, Span, SyntaxContext};
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for source files that have a large number of lines of code.
-    /// Blank lines and lines containing only comments are not counted.
+    /// Checks for source files that have a large number of lines.
+    /// Blank lines are not counted.
     ///
     /// ### Why restrict this?
     /// Large files are harder to navigate and understand. They often indicate
@@ -21,10 +21,15 @@ declare_clippy_lint! {
     /// The fix is to split it into smaller modules.
     ///
     /// ### Configuration
-    /// The maximum number of lines is configured with `too-many-lines-in-file-threshold`
-    /// (default: `1000`). Any `u32` value is valid, including `0` (which makes the lint
-    /// trigger on any file containing at least one line of code). Set it to `u32::MAX`
-    /// to effectively disable the lint.
+    /// The maximum number of lines (excluding blank lines, but including comment-only lines)
+    /// is configured with `too-many-lines-in-file-threshold` (default: `1000`).
+    ///
+    /// The maximum number of lines of code only (excluding blank lines and comment-only lines)
+    /// is configured separately with `too-many-code-lines-in-file-threshold`
+    /// (default: `u32::MAX`, i.e. effectively disabled).
+    ///
+    /// Both accept any `u32` value, including `0` (which makes the lint trigger on any file
+    /// containing at least one matching line).
     #[clippy::version = "1.97.0"]
     pub TOO_MANY_LINES_IN_FILE,
     restriction,
@@ -35,12 +40,14 @@ impl_lint_pass!(TooManyLinesInFile => [TOO_MANY_LINES_IN_FILE]);
 
 pub struct TooManyLinesInFile {
     threshold: u32,
+    code_threshold: u32,
 }
 
 impl TooManyLinesInFile {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
             threshold: conf.too_many_lines_in_file_threshold,
+            code_threshold: conf.too_many_code_lines_in_file_threshold,
         }
     }
 }
@@ -60,8 +67,10 @@ impl EarlyLintPass for TooManyLinesInFile {
             };
 
             let mut line_count: u32 = 0;
+            let mut code_line_count: u32 = 0;
             let mut in_comment = false;
             let mut threshold_exceeded_offset: Option<u32> = None;
+            let mut code_threshold_exceeded_offset: Option<u32> = None;
             let mut byte_offset: u32 = 0;
 
             for mut line in src.lines() {
@@ -69,6 +78,7 @@ impl EarlyLintPass for TooManyLinesInFile {
                 byte_offset = byte_offset
                     .saturating_add(u32::try_from(line.len()).unwrap_or(u32::MAX))
                     .saturating_add(1); // +1 for newline
+                let has_content = !line.trim().is_empty();
                 let mut code_in_line = false;
                 loop {
                     line = line.trim_start();
@@ -93,10 +103,16 @@ impl EarlyLintPass for TooManyLinesInFile {
                     }
                     break;
                 }
-                if code_in_line {
+                if has_content {
                     line_count += 1;
                     if line_count == self.threshold.saturating_add(1) {
                         threshold_exceeded_offset = Some(line_start_offset);
+                    }
+                }
+                if code_in_line {
+                    code_line_count += 1;
+                    if code_line_count == self.code_threshold.saturating_add(1) {
+                        code_threshold_exceeded_offset = Some(line_start_offset);
                     }
                 }
             }
@@ -109,6 +125,20 @@ impl EarlyLintPass for TooManyLinesInFile {
                     TOO_MANY_LINES_IN_FILE,
                     span,
                     format!("this file has too many lines ({line_count}/{})", self.threshold),
+                );
+            }
+
+            if code_line_count > self.code_threshold {
+                let start = file.start_pos + rustc_span::BytePos(code_threshold_exceeded_offset.unwrap_or(0));
+                let span = Span::new(start, start, SyntaxContext::root(), None);
+                span_lint(
+                    cx,
+                    TOO_MANY_LINES_IN_FILE,
+                    span,
+                    format!(
+                        "this file has too many lines of code ({code_line_count}/{})",
+                        self.code_threshold
+                    ),
                 );
             }
         }

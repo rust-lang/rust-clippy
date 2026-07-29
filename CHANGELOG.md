@@ -7743,6 +7743,7 @@ Released 2018-09-13
 [`suppress-restriction-lint-in-const`]: https://doc.rust-lang.org/clippy/lint_configuration.html#suppress-restriction-lint-in-const
 [`too-large-for-stack`]: https://doc.rust-lang.org/clippy/lint_configuration.html#too-large-for-stack
 [`too-many-arguments-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#too-many-arguments-threshold
+[`too-many-code-lines-in-file-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#too-many-code-lines-in-file-threshold
 [`too-many-lines-in-file-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#too-many-lines-in-file-threshold
 [`too-many-lines-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#too-many-lines-threshold
 [`trait-assoc-item-kinds-order`]: https://doc.rust-lang.org/clippy/lint_configuration.html#trait-assoc-item-kinds-order

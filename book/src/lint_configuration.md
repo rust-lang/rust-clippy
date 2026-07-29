@@ -1149,8 +1149,20 @@ The maximum number of argument a function or method can have
 * [`too_many_arguments`](https://rust-lang.github.io/rust-clippy/master/index.html#too_many_arguments)
 
 
+## `too-many-code-lines-in-file-threshold`
+The maximum number of lines of code (excluding blank lines and comment-only lines)
+a source file can have. Defaults to `u32::MAX`, which effectively disables this check.
+
+**Default Value:** `4294967295`
+
+---
+**Affected lints:**
+* [`too_many_lines_in_file`](https://rust-lang.github.io/rust-clippy/master/index.html#too_many_lines_in_file)
+
+
 ## `too-many-lines-in-file-threshold`
-The maximum number of lines a source file can have
+The maximum number of lines (excluding blank lines, but including comment-only lines)
+a source file can have
 
 **Default Value:** `1000`
 

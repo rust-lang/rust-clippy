@@ -912,7 +912,12 @@ define_Conf! {
     /// The maximum number of argument a function or method can have
     #[lints(too_many_arguments)]
     too_many_arguments_threshold: u64 = 7,
-    /// The maximum number of lines a source file can have
+    /// The maximum number of lines of code (excluding blank lines and comment-only lines)
+    /// a source file can have. Defaults to `u32::MAX`, which effectively disables this check.
+    #[lints(too_many_lines_in_file)]
+    too_many_code_lines_in_file_threshold: u32 = u32::MAX,
+    /// The maximum number of lines (excluding blank lines, but including comment-only lines)
+    /// a source file can have
     #[lints(too_many_lines_in_file)]
     too_many_lines_in_file_threshold: u32 = 1000,
     /// The maximum number of lines a function or method can have
