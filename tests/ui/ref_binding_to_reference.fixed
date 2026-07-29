@@ -1,6 +1,6 @@
 #![warn(clippy::ref_binding_to_reference)]
-#![expect(clippy::explicit_auto_deref)]
-#![allow(clippy::needless_borrowed_reference, clippy::collapsible_match)]
+#![expect(clippy::collapsible_match, clippy::explicit_auto_deref, clippy::never_loop)]
+#![allow(clippy::needless_borrowed_reference)]
 
 fn f1(_: &str) {}
 macro_rules! m2 {
@@ -172,6 +172,51 @@ mod issue17370 {
                 }
             },
             None => return,
+        };
+    }
+
+    fn break_if_let(x: String) {
+        let opt = Some(&x);
+
+        let _: &&String = loop {
+            if let Some(ref x) = opt {
+                break x;
+            } else {
+                return;
+            }
+        };
+    }
+
+    fn break_match(x: String) {
+        let opt = Some(&x);
+
+        let _: &&String = loop {
+            match opt {
+                Some(ref x) => break x,
+                None => return,
+            }
+        };
+    }
+
+    fn if_let_chain(x: String) {
+        let opt = Some(&x);
+
+        let _: &&String = if true && let Some(ref x) = opt {
+            x
+        } else {
+            return;
+        };
+    }
+
+    fn if_let_chain_block_tail(x: String) {
+        let opt = Some(&x);
+
+        let _: &&String = if true && let Some(ref x) = opt {
+            f1(x);
+            f1(*x);
+            x
+        } else {
+            return;
         };
     }
 }

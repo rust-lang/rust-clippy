@@ -8,6 +8,7 @@ use clippy_utils::ty::{
 use clippy_utils::{
     DefinedTy, ExprUseNode, get_expr_use_site, get_parent_expr, is_block_like, is_from_proc_macro, is_lint_allowed, sym,
 };
+use rustc_ast::BinOpKind;
 use rustc_ast::util::parser::ExprPrecedence;
 use rustc_data_structures::fx::FxIndexMap;
 use rustc_errors::Applicability;
@@ -317,8 +318,8 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                     },
                     RefOp::Method { mutbl, is_ufcs }
                         if !is_lint_allowed(cx, EXPLICIT_DEREF_METHODS, expr.hir_id)
-                        // Allow explicit deref in method chains. e.g. `foo.deref().bar()`
-                        && (is_ufcs || !is_in_method_chain(cx, expr)) =>
+                            // Allow explicit deref in method chains. e.g. `foo.deref().bar()`
+                            && (is_ufcs || !is_in_method_chain(cx, expr)) =>
                     {
                         let ty_changed_count = usize::from(!deref_method_same_type(expr_ty, typeck.expr_ty(sub_expr)));
                         self.state = Some((
@@ -403,37 +404,37 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                                         // If this trait impl is implemented on `&T`, then auto-borrowing won't work
                                         (impl_ty.is_ref()
                                         && implements_trait(
-                                        cx,
-                                        impl_ty,
-                                        trait_id,
-                                        &args[..cx.tcx.generics_of(trait_id).own_params.len() - 1],
-                                    ))
+                                            cx,
+                                            impl_ty,
+                                            trait_id,
+                                            &args[..cx.tcx.generics_of(trait_id).own_params.len() - 1],
+                                        ))
                                         // If there's an inherent method, or a method from another trait,
                                         // with the same name that's also implemented on this same type,
                                         // then removing the borrow might cause that method to be chosen
                                         // instead of the current one.
                                         || get_adt_inherent_method(cx, impl_ty, method_name).is_some()
                                         || cx.tcx.in_scope_traits(hir_id).is_some_and(|traits| {
-                                        traits
-                                            .iter()
-                                            .filter(|trait_| {
-                                                cx.tcx
-                                                    .non_blanket_impls_for_ty(trait_.def_id, impl_ty)
-                                                    .next()
-                                                    .is_some()
-                                                    || !cx
-                                                    .tcx
-                                                    .trait_impls_of(trait_.def_id)
-                                                    .blanket_impls()
-                                                    .is_empty()
-                                            })
-                                            .any(|trait_| {
-                                                cx.tcx
-                                                    .associated_items(trait_.def_id)
-                                                    .filter_by_name_unhygienic(method_name)
-                                                    .any(|item| item.tag() == AssocTag::Fn && item.def_id != fn_id)
-                                            })
-                                    })
+                                            traits
+                                                .iter()
+                                                .filter(|trait_| {
+                                                    cx.tcx
+                                                        .non_blanket_impls_for_ty(trait_.def_id, impl_ty)
+                                                        .next()
+                                                        .is_some()
+                                                        || !cx
+                                                            .tcx
+                                                            .trait_impls_of(trait_.def_id)
+                                                            .blanket_impls()
+                                                            .is_empty()
+                                                })
+                                                .any(|trait_| {
+                                                    cx.tcx
+                                                        .associated_items(trait_.def_id)
+                                                        .filter_by_name_unhygienic(method_name)
+                                                        .any(|item| item.tag() == AssocTag::Fn && item.def_id != fn_id)
+                                                })
+                                        })
                                     )
                                 {
                                     false
@@ -1025,9 +1026,8 @@ fn ty_contains_field(ty: Ty<'_>, name: Symbol) -> bool {
     }
 }
 
-/// Returns `true` if the expression is in tail position of a branch whose pattern bindings do not
-/// live past that branch. Replacing it with `&expr` would create a reference to a local that
-/// doesn't live long enough.
+// Returns true if the expression is in a position where replacing it with &expr would create a ref
+// to a pattern binding that doesn't live long enough
 fn is_in_pattern_branch_tail(tcx: TyCtxt<'_>, mut id: HirId) -> bool {
     loop {
         match tcx.parent_hir_node(id) {
@@ -1041,7 +1041,7 @@ fn is_in_pattern_branch_tail(tcx: TyCtxt<'_>, mut id: HirId) -> bool {
                 },
                 ExprKind::If(cond, then_expr, else_expr) => {
                     if then_expr.hir_id == id {
-                        if matches!(cond.kind, ExprKind::Let(_)) {
+                        if contains_let_expr(cond) {
                             return true;
                         }
                         // Bubble up for normal if branch
@@ -1054,11 +1054,30 @@ fn is_in_pattern_branch_tail(tcx: TyCtxt<'_>, mut id: HirId) -> bool {
                     }
                 },
 
+                // break x or break { x }
+                ExprKind::Break(_, Some(break_expr)) if break_expr.hir_id == id => {
+                    return true;
+                },
+
                 _ => return false,
             },
 
             _ => return false,
         }
+    }
+}
+
+fn contains_let_expr(cond: &Expr<'_>) -> bool {
+    match cond.kind {
+        ExprKind::Let(_) => true,
+        // let _ = if cond && Some(ref x) = opt {
+        //     x
+        // }
+        ExprKind::Binary(op, lhs, rhs) if matches!(op.node, BinOpKind::And) => {
+            contains_let_expr(lhs) || contains_let_expr(rhs)
+        },
+        ExprKind::DropTemps(expr) => contains_let_expr(expr),
+        _ => false,
     }
 }
 
@@ -1102,11 +1121,16 @@ impl<'tcx> Dereferencing<'tcx> {
                     pat.replacements.push((span, snip.into()));
                 },
                 Some(parent) if !parent.span.from_expansion() => {
-                    // Double reference might be needed at this point.
-                    if cx.precedence(parent) == ExprPrecedence::Unambiguous {
-                        // Parentheses would be needed here, don't lint.
+                    // If the expression is in the tail position of a match arm, suggesting
+                    // `&x` would create a reference to a local binding that doesn't live
+                    // long enough.
+                    if is_in_pattern_branch_tail(cx.tcx, e.hir_id)
+                        // If parentheses would be needed here, don't lint.
+                        || cx.precedence(parent) == ExprPrecedence::Unambiguous
+                    {
                         *outer_pat = None;
                     } else {
+                        // Double reference might be needed at this point.
                         pat.always_deref = false;
                         let snip = snippet_with_context(cx, e.span, parent.span.ctxt(), "..", &mut pat.app).0;
                         pat.replacements.push((e.span, format!("&{snip}")));
