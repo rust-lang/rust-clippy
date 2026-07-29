@@ -1,5 +1,5 @@
 error: argument with an underscore prefix which is unused
-  --> tests/ui/unused_underscore_prefixed_argument.rs:17:16
+  --> tests/ui/unused_underscore_prefixed_argument.rs:21:16
    |
 LL | fn foo(a: i32, _b: i32) {
    |                ^^^^^^^

@@ -14,6 +14,10 @@ unsafe fn shared_some_func(a: i32, _b: u32, _c: u32) {
 
 static SHARED_S: S = S { some_func: shared_some_func };
 
+extern "C" fn defined_with_c_abi(a: i32, _b: i32) {
+    println!("{a}");
+}
+
 fn foo(a: i32, _b: i32) {
     //~^ unused_underscore_prefixed_argument
     println!("{a}");
