@@ -1,7 +1,7 @@
-error: this file has too many lines (7/3)
-  --> tests/ui-toml/too_many_lines_in_file/too_many_lines_in_file.rs:5:1
+error: this file has too many lines of code (3/2)
+  --> tests/ui-toml/too_many_code_lines_in_file/too_many_code_lines_in_file.rs:8:1
    |
-LL | fn c() {}
+LL | fn main() {}
    | ^
    |
    = note: `-D clippy::too-many-lines-in-file` implied by `-D warnings`
