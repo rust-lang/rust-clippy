@@ -92,14 +92,14 @@ impl<T> MarkerBound<T> for MarkerBounds {}
 
 // Should not warn, because no individual type argument inside the opaque bounds is complex.
 fn many_simple_opaque_bound_type_arguments() -> impl MarkerBound<[u8; 0]>
-    + MarkerBound<[u8; 1]>
-    + MarkerBound<[u8; 2]>
-    + MarkerBound<[u8; 3]>
-    + MarkerBound<[u8; 4]>
-    + MarkerBound<[u8; 5]>
-    + MarkerBound<[u8; 6]>
-    + MarkerBound<[u8; 7]>
-    + MarkerBound<[u8; 8]> {
++ MarkerBound<[u8; 1]>
++ MarkerBound<[u8; 2]>
++ MarkerBound<[u8; 3]>
++ MarkerBound<[u8; 4]>
++ MarkerBound<[u8; 5]>
++ MarkerBound<[u8; 6]>
++ MarkerBound<[u8; 7]>
++ MarkerBound<[u8; 8]> {
     MarkerBounds
 }
 
