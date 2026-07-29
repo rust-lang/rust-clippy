@@ -7,7 +7,7 @@ use clippy_utils::{is_entrypoint_fn, is_trait_impl_item};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir::{Attribute, FieldDef, ImplItemKind, ItemKind, Node, Safety, TraitItemKind};
-use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, LintContext};
+use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, LintContext as _};
 use rustc_resolve::rustdoc::pulldown_cmark::Event::{
     Code, DisplayMath, End, FootnoteReference, HardBreak, Html, InlineHtml, InlineMath, Rule, SoftBreak, Start,
     TaskListMarker, Text,
@@ -1246,7 +1246,8 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
                     containers.pop();
                 }
                 if check_doc_markdown {
-                    if ticks_unbalanced && let Some(span) = fragments.span(cx, paragraph_range.clone()) {
+                    if ticks_unbalanced && let Some(span) = fragments.span(cx, paragraph_range.clone())
+                    .or_else(|| span_of_fragments(fragments.fragments)) {
                         span_lint_and_help(
                             cx,
                             DOC_MARKDOWN,
@@ -1259,13 +1260,7 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
                     } else {
                         for (text, range, assoc_code_level) in text_to_check.drain(..) {
                             markdown::check(
-                                cx,
-                                valid_idents,
-                                &text,
-                                &fragments,
-                                range,
-                                assoc_code_level,
-                                blockquote_level,
+                                cx, valid_idents, &text, &fragments, range, assoc_code_level, blockquote_level
                             );
                         }
                     }

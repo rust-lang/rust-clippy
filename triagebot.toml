@@ -95,12 +95,10 @@ message_on_reopen = "PR rust-clippy#{number} has been reopened."
 contributing_url = "https://github.com/rust-lang/rust-clippy/blob/master/CONTRIBUTING.md"
 users_on_vacation = [
     "matthiaskrgr",
-    "Manishearth",
     "Alexendoo",
     "y21",
     "blyxyas",
     "ada4a",
-    "dswij",
     "samueltardieu"
 ]
 

@@ -14,7 +14,7 @@ use rustc_lint::{EarlyContext, LateContext, LintContext};
 use rustc_middle::hir::place::ProjectionKind;
 use rustc_middle::mir::{FakeReadCause, Mutability};
 use rustc_middle::ty;
-use rustc_span::{BytePos, CharPos, Pos, Span, SyntaxContext};
+use rustc_span::{BytePos, CharPos, Pos as _, Span, SyntaxContext};
 use std::borrow::Cow;
 use std::fmt::{self, Display, Write as _};
 use std::ops::{Add, Neg, Not, Sub};
@@ -248,6 +248,7 @@ impl<'a> Sugg<'a> {
             | ast::ExprKind::Array(..)
             | ast::ExprKind::While(..)
             | ast::ExprKind::Await(..)
+            | ast::ExprKind::DirectConstArg(..)
             | ast::ExprKind::Err(_)
             | ast::ExprKind::Dummy
             | ast::ExprKind::UnsafeBinderCast(..) => Sugg::NonParen(snippet(expr.span)),

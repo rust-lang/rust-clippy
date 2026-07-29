@@ -6,13 +6,13 @@ use crate::types::{
     SourceItemOrderingTraitAssocItemKinds, SourceItemOrderingWithinModuleItemGroupings, TraitImplItemOrder,
 };
 use clippy_utils::msrvs::Msrv;
-use itertools::Itertools;
+use itertools::Itertools as _;
 use rustc_errors::Applicability;
 use rustc_session::Session;
 use rustc_span::edit_distance::edit_distance;
-use rustc_span::{BytePos, Pos, SourceFile, Span, SyntaxContext};
-use serde::de::{IgnoredAny, IntoDeserializer, MapAccess, Visitor};
-use serde::{Deserialize, Deserializer, Serialize};
+use rustc_span::{BytePos, Pos as _, SourceFile, Span, SyntaxContext};
+use serde::de::{IgnoredAny, IntoDeserializer as _, MapAccess, Visitor};
+use serde::{Deserialize, Deserializer as _, Serialize as _};
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::Range;
@@ -756,6 +756,9 @@ define_Conf! {
     /// The maximum number of bounds a trait can have to be linted
     #[lints(type_repetition_in_bounds)]
     max_trait_bounds: u64 = 3,
+    /// Whether to lint idents that have too few chars even when following trait declaration.
+    #[lints(min_ident_chars)]
+    min_ident_chars_lint_trait_impl: bool = false,
     /// Minimum chars an ident can have, anything below or equal to this will be linted.
     #[lints(min_ident_chars)]
     min_ident_chars_threshold: u64 = 1,
@@ -841,6 +844,7 @@ define_Conf! {
         missing_const_for_fn,
         needless_borrow,
         non_std_lazy_statics,
+        nonnull_unchecked_on_box_ptr,
         option_as_ref_deref,
         or_fun_call,
         ptr_as_ptr,
@@ -1178,7 +1182,7 @@ impl serde::de::Error for FieldError {
     fn unknown_field(field: &str, expected: &'static [&'static str]) -> Self {
         // List the available fields sorted and at least one per line, more if `CLIPPY_TERMINAL_WIDTH` is
         // set and allows it.
-        use fmt::Write;
+        use fmt::Write as _;
 
         let metadata = get_configuration_metadata();
         let deprecated = metadata

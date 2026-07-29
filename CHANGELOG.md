@@ -116,6 +116,11 @@ Current stable, released 2026-07-09
 * Fold all late lint passes into one statically-combined pass
   [#17124](https://github.com/rust-lang/rust-clippy/pull/17124)
 
+### New Lints
+
+* Added [`assert_is_empty`] to `pedantic`
+  [#17114](https://github.com/rust-lang/rust-clippy/issues/17114)
+
 ## Rust 1.96
 
 Current stable, released 2026-05-28
@@ -6747,6 +6752,7 @@ Released 2018-09-13
 [`as_pointer_underscore`]: https://rust-lang.github.io/rust-clippy/master/index.html#as_pointer_underscore
 [`as_ptr_cast_mut`]: https://rust-lang.github.io/rust-clippy/master/index.html#as_ptr_cast_mut
 [`as_underscore`]: https://rust-lang.github.io/rust-clippy/master/index.html#as_underscore
+[`assert_is_empty`]: https://rust-lang.github.io/rust-clippy/master/index.html#assert_is_empty
 [`assertions_on_constants`]: https://rust-lang.github.io/rust-clippy/master/index.html#assertions_on_constants
 [`assertions_on_result_states`]: https://rust-lang.github.io/rust-clippy/master/index.html#assertions_on_result_states
 [`assign_op_pattern`]: https://rust-lang.github.io/rust-clippy/master/index.html#assign_op_pattern
@@ -6763,6 +6769,7 @@ Released 2018-09-13
 [`blanket_clippy_restriction_lints`]: https://rust-lang.github.io/rust-clippy/master/index.html#blanket_clippy_restriction_lints
 [`block_in_if_condition_expr`]: https://rust-lang.github.io/rust-clippy/master/index.html#block_in_if_condition_expr
 [`block_in_if_condition_stmt`]: https://rust-lang.github.io/rust-clippy/master/index.html#block_in_if_condition_stmt
+[`block_scrutinee`]: https://rust-lang.github.io/rust-clippy/master/index.html#block_scrutinee
 [`blocks_in_conditions`]: https://rust-lang.github.io/rust-clippy/master/index.html#blocks_in_conditions
 [`blocks_in_if_conditions`]: https://rust-lang.github.io/rust-clippy/master/index.html#blocks_in_if_conditions
 [`bool_assert_comparison`]: https://rust-lang.github.io/rust-clippy/master/index.html#bool_assert_comparison
@@ -7279,6 +7286,7 @@ Released 2018-09-13
 [`non_std_lazy_statics`]: https://rust-lang.github.io/rust-clippy/master/index.html#non_std_lazy_statics
 [`non_zero_suggestions`]: https://rust-lang.github.io/rust-clippy/master/index.html#non_zero_suggestions
 [`nonminimal_bool`]: https://rust-lang.github.io/rust-clippy/master/index.html#nonminimal_bool
+[`nonnull_unchecked_on_box_ptr`]: https://rust-lang.github.io/rust-clippy/master/index.html#nonnull_unchecked_on_box_ptr
 [`nonsensical_open_options`]: https://rust-lang.github.io/rust-clippy/master/index.html#nonsensical_open_options
 [`nonstandard_macro_braces`]: https://rust-lang.github.io/rust-clippy/master/index.html#nonstandard_macro_braces
 [`not_unsafe_ptr_arg_deref`]: https://rust-lang.github.io/rust-clippy/master/index.html#not_unsafe_ptr_arg_deref
@@ -7719,6 +7727,7 @@ Released 2018-09-13
 [`max-struct-bools`]: https://doc.rust-lang.org/clippy/lint_configuration.html#max-struct-bools
 [`max-suggested-slice-pattern-length`]: https://doc.rust-lang.org/clippy/lint_configuration.html#max-suggested-slice-pattern-length
 [`max-trait-bounds`]: https://doc.rust-lang.org/clippy/lint_configuration.html#max-trait-bounds
+[`min-ident-chars-lint-trait-impl`]: https://doc.rust-lang.org/clippy/lint_configuration.html#min-ident-chars-lint-trait-impl
 [`min-ident-chars-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#min-ident-chars-threshold
 [`missing-docs-allow-unused`]: https://doc.rust-lang.org/clippy/lint_configuration.html#missing-docs-allow-unused
 [`missing-docs-in-crate-items`]: https://doc.rust-lang.org/clippy/lint_configuration.html#missing-docs-in-crate-items
