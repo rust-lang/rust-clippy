@@ -8,15 +8,7 @@ use rustc_span::{Span, sym};
 use super::TYPE_COMPLEXITY;
 
 pub(super) fn check(cx: &LateContext<'_>, ty: &hir::Ty<'_>, type_complexity_threshold: u64) -> bool {
-    let score = {
-        let mut visitor = TypeComplexityVisitor {
-            score: 0,
-            nest: 1,
-            type_alias_impl_trait_enabled: cx.tcx.features().enabled(sym::type_alias_impl_trait),
-        };
-        visitor.visit_ty_unambig(ty);
-        visitor.score
-    };
+    let score = type_complexity_score(ty, cx.tcx.features().enabled(sym::type_alias_impl_trait));
 
     if score > type_complexity_threshold {
         span_lint(
@@ -31,14 +23,43 @@ pub(super) fn check(cx: &LateContext<'_>, ty: &hir::Ty<'_>, type_complexity_thre
     }
 }
 
+fn type_complexity_score(ty: &hir::Ty<'_>, type_alias_impl_trait_enabled: bool) -> u64 {
+    let mut visitor = TypeComplexityVisitor::new(type_alias_impl_trait_enabled);
+    visitor.visit_ty_unambig(ty);
+    visitor.into_score()
+}
+
+fn ambig_type_complexity_score(ty: &hir::Ty<'_, AmbigArg>, type_alias_impl_trait_enabled: bool) -> u64 {
+    let mut visitor = TypeComplexityVisitor::new(type_alias_impl_trait_enabled);
+    visitor.visit_ty(ty);
+    visitor.into_score()
+}
+
 /// Walks a type and assigns a complexity score to it.
 struct TypeComplexityVisitor {
     /// total complexity score of the type
     score: u64,
+    /// highest complexity score found in stable opaque bounds that can be factored out separately
+    max_opaque_bound_score: u64,
     /// current nesting level
     nest: u64,
     /// whether opaque `impl Trait` types can be named through `type_alias_impl_trait`
     type_alias_impl_trait_enabled: bool,
+}
+
+impl TypeComplexityVisitor {
+    fn new(type_alias_impl_trait_enabled: bool) -> Self {
+        Self {
+            score: 0,
+            max_opaque_bound_score: 0,
+            nest: 1,
+            type_alias_impl_trait_enabled,
+        }
+    }
+
+    fn into_score(self) -> u64 {
+        self.score.max(self.max_opaque_bound_score)
+    }
 }
 
 impl<'tcx> Visitor<'tcx> for TypeComplexityVisitor {
@@ -78,11 +99,34 @@ impl<'tcx> Visitor<'tcx> for TypeComplexityVisitor {
         };
         self.score += add_score;
         self.nest += sub_nest;
-        // Opaque `impl Trait` types cannot be extracted into type aliases on stable. Skip
-        // their subtree only when `type_alias_impl_trait` is not enabled for this crate.
-        if self.type_alias_impl_trait_enabled || !matches!(ty.kind, TyKind::OpaqueDef(..)) {
+        if let TyKind::OpaqueDef(opaque_ty) = ty.kind
+            && !self.type_alias_impl_trait_enabled
+        {
+            let mut visitor = OpaqueBoundComplexityVisitor {
+                max_score: 0,
+                type_alias_impl_trait_enabled: self.type_alias_impl_trait_enabled,
+            };
+            for bound in opaque_ty.bounds {
+                visitor.visit_param_bound(bound);
+            }
+            self.max_opaque_bound_score = self.max_opaque_bound_score.max(visitor.max_score);
+        } else {
             walk_ty(self, ty);
         }
         self.nest -= sub_nest;
+    }
+}
+
+struct OpaqueBoundComplexityVisitor {
+    max_score: u64,
+    type_alias_impl_trait_enabled: bool,
+}
+
+impl<'tcx> Visitor<'tcx> for OpaqueBoundComplexityVisitor {
+    fn visit_ty(&mut self, ty: &'tcx hir::Ty<'_, AmbigArg>) {
+        self.max_score = self
+            .max_score
+            .max(ambig_type_complexity_score(ty, self.type_alias_impl_trait_enabled));
+        walk_ty(self, ty);
     }
 }
