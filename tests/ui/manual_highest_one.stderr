@@ -37,7 +37,6 @@ error: manually reimplementing `highest_one`
 LL |     let _ = u32::BITS - (1 + nz.leading_zeros());
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `nz.highest_one()`
 
-[clippy_lints/src/manual_highest_one.rs:145:63] nonzero_arm = "{\n        //~^ manual_highest_one\n        0\n    }"
 error: manually reimplementing `highest_one`
   --> tests/ui/manual_highest_one.rs:20:13
    |
@@ -58,7 +57,6 @@ LL +         0
 LL ~     });
    |
 
-[clippy_lints/src/manual_highest_one.rs:145:63] nonzero_arm = "{\n        //~^ manual_highest_one\n        1\n    }"
 error: manually reimplementing `highest_one`
   --> tests/ui/manual_highest_one.rs:26:13
    |
@@ -79,7 +77,6 @@ LL +         1
 LL ~     });
    |
 
-[clippy_lints/src/manual_highest_one.rs:145:63] nonzero_arm = "2"
 error: manually reimplementing `highest_one`
   --> tests/ui/manual_highest_one.rs:32:13
    |
@@ -92,7 +89,6 @@ LL | |         2
 LL | |     };
    | |_____^ help: try: `u.highest_one().unwrap_or(2)`
 
-[clippy_lints/src/manual_highest_one.rs:145:63] nonzero_arm = "3"
 error: manually reimplementing `highest_one`
   --> tests/ui/manual_highest_one.rs:38:13
    |

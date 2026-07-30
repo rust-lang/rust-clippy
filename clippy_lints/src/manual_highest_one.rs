@@ -2,7 +2,7 @@ use clippy_config::Conf;
 use clippy_utils::consts::integer_const;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::res::{HasHirId, MaybeDef, MaybeResPath};
+use clippy_utils::res::{HasHirId as _, MaybeDef as _, MaybeResPath as _};
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::{peel_blocks, sym};
 use rustc_ast::LitKind;
@@ -111,7 +111,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
 
             // if x == 0 { .. } else { .. }
             let (recv, nonzero_arm) = if bin_op.node == BinOpKind::Eq
-                && let Some(recv) = extract_recv_from_highest_one_equiv(cx, &peel_blocks(false_arm))
+                && let Some(recv) = extract_recv_from_highest_one_equiv(cx, peel_blocks(false_arm))
                 && let Some(var) = check_cond(cond_lhs, cond_rhs)
                 // check if `var` and `recv` are the same identifier
             && matches!((var.res_local_id(), recv.res_local_id()), (Some(l), Some(r)) if l == r)
@@ -121,7 +121,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
             } else
             // if x != 0 { .. } else { .. }
             if bin_op.node == BinOpKind::Ne
-                && let Some(recv) = extract_recv_from_highest_one_equiv(cx, &peel_blocks(true_arm))
+                && let Some(recv) = extract_recv_from_highest_one_equiv(cx, peel_blocks(true_arm))
                 && let Some(var) = check_cond(cond_lhs, cond_rhs)
                 // check if `var` and `recv` are the same identifier
             && matches!((var.res_local_id(), recv.res_local_id()), (Some(l), Some(r)) if l == r)
@@ -142,7 +142,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
                 expr.span,
                 "manually reimplementing `highest_one`",
                 "try",
-                format!("{recv}.highest_one().unwrap_or({})", dbg!(nonzero_arm)),
+                format!("{recv}.highest_one().unwrap_or({nonzero_arm})"),
                 app,
             );
         }
@@ -161,7 +161,7 @@ fn extract_recv_from_highest_one_equiv<'a>(cx: &LateContext<'a>, expr: &'a Expr<
                     // check literal value
                     && let ty = cx.typeck_results().expr_ty(recv)
                     && let Some(bits) = bit_width(cx, ty)
-                    && lit == u128::from(bits).wrapping_sub(1)
+                    && lit == bits.wrapping_sub(1)
             {
                 return Some(recv);
             }
@@ -227,11 +227,10 @@ fn check_lit_one_and_extract_recv_of_lz<'a>(expr1: &'a Expr<'a>, expr2: &'a Expr
     }
 }
 
-/// NonZero<PrimInt> or PrimInt
 fn bit_width(cx: &LateContext<'_>, ty: Ty<'_>) -> Option<u128> {
     match ty.kind() {
-        ty::Uint(uint_ty) => uint_ty.bit_width().map(|bits| bits as u128),
-        ty::Int(int_ty) => int_ty.bit_width().map(|bits| bits as u128),
+        ty::Uint(uint_ty) => uint_ty.bit_width().map(u128::from),
+        ty::Int(int_ty) => int_ty.bit_width().map(u128::from),
         ty::Adt(adt_def, args) if adt_def.is_diag_item(cx, sym::NonZero) => bit_width(cx, args[0].expect_ty()),
         _ => None,
     }
