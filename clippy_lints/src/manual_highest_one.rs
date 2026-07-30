@@ -29,12 +29,12 @@ declare_clippy_lint! {
     /// Use instead:
     /// ```no_run
     /// let x: u32 = 5;
-    /// let i = 31 - x.highest_one().unwrap();
+    /// let i = x.highest_one().unwrap();
     /// ```
     #[clippy::version = "1.99.0"]
     pub MANUAL_HIGHEST_ONE,
     nursery,
-    "default lint description"
+    "manually reimplementing `highest_one`"
 }
 
 impl_lint_pass!(ManualHighestOne => [MANUAL_HIGHEST_ONE]);
