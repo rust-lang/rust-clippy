@@ -530,6 +530,7 @@ Whether to also run the listed lints on private items.
 * [`missing_errors_doc`](https://rust-lang.github.io/rust-clippy/master/index.html#missing_errors_doc)
 * [`missing_panics_doc`](https://rust-lang.github.io/rust-clippy/master/index.html#missing_panics_doc)
 * [`missing_safety_doc`](https://rust-lang.github.io/rust-clippy/master/index.html#missing_safety_doc)
+* [`too_long_first_doc_paragraph`](https://rust-lang.github.io/rust-clippy/master/index.html#too_long_first_doc_paragraph)
 * [`unnecessary_safety_doc`](https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_safety_doc)
 
 
