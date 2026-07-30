@@ -1,0 +1,116 @@
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:10:13
+   |
+LL |     let _ = 31 - u.leading_zeros();
+   |             ^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
+   |
+   = note: `-D clippy::manual-highest-one` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_highest_one)]`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:11:13
+   |
+LL |     let _ = u32::BITS - 1 - u.leading_zeros();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:12:13
+   |
+LL |     let _ = u32::BITS - (1 + u.leading_zeros());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:15:13
+   |
+LL |     let _ = 31 - nz.leading_zeros();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^ help: try: `nz.highest_one()`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:16:13
+   |
+LL |     let _ = u32::BITS - 1 - nz.leading_zeros();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `nz.highest_one()`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:17:13
+   |
+LL |     let _ = u32::BITS - (1 + nz.leading_zeros());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `nz.highest_one()`
+
+[clippy_lints/src/manual_highest_one.rs:145:63] nonzero_arm = "{\n        //~^ manual_highest_one\n        0\n    }"
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:20:13
+   |
+LL |       let _ = if u == 0 {
+   |  _____________^
+LL | |
+LL | |         0
+LL | |     } else {
+LL | |         31 - u.leading_zeros()
+LL | |     };
+   | |_____^
+   |
+help: try
+   |
+LL ~     let _ = u.highest_one().unwrap_or({
+LL +
+LL +         0
+LL ~     });
+   |
+
+[clippy_lints/src/manual_highest_one.rs:145:63] nonzero_arm = "{\n        //~^ manual_highest_one\n        1\n    }"
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:26:13
+   |
+LL |       let _ = if 0 == u {
+   |  _____________^
+LL | |
+LL | |         1
+LL | |     } else {
+LL | |         31 - u.leading_zeros()
+LL | |     };
+   | |_____^
+   |
+help: try
+   |
+LL ~     let _ = u.highest_one().unwrap_or({
+LL +
+LL +         1
+LL ~     });
+   |
+
+[clippy_lints/src/manual_highest_one.rs:145:63] nonzero_arm = "2"
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:32:13
+   |
+LL |       let _ = if u != 0 {
+   |  _____________^
+LL | |
+LL | |         31 - u.leading_zeros()
+LL | |     } else {
+LL | |         2
+LL | |     };
+   | |_____^ help: try: `u.highest_one().unwrap_or(2)`
+
+[clippy_lints/src/manual_highest_one.rs:145:63] nonzero_arm = "3"
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:38:13
+   |
+LL |       let _ = if 0 != u {
+   |  _____________^
+LL | |
+LL | |         31 - u.leading_zeros()
+LL | |     } else {
+LL | |         let _ = "Rust is fast, memory-safe and productive.";
+LL | |         3
+LL | |     };
+   | |_____^ help: try: `u.highest_one().unwrap_or(3)`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:48:9
+   |
+LL |         31 - v.leading_zeros()
+   |         ^^^^^^^^^^^^^^^^^^^^^^ help: try: `v.highest_one().unwrap()`
+
+error: aborting due to 11 previous errors
+
