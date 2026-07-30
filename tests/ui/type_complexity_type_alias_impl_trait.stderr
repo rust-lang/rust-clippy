@@ -1,8 +1,15 @@
 error: very complex type used. Consider factoring parts into `type` definitions
-  --> tests/ui/type_complexity_type_alias_impl_trait.rs:4:30
+  --> tests/ui/type_complexity_type_alias_impl_trait.rs:8:49
    |
-LL | fn complex_opaque_bound() -> impl Fn(Vec<Vec<Box<(u32, u32, u32, u32)>>>) {
-   |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |   fn many_simple_opaque_bound_type_arguments() -> impl MarkerBound<[u8; 0]>
+   |  _________________________________________________^
+LL | |
+LL | | + MarkerBound<[u8; 1]>
+LL | | + MarkerBound<[u8; 2]>
+...  |
+LL | | + MarkerBound<[u8; 7]>
+LL | | + MarkerBound<[u8; 8]> {
+   | |______________________^
    |
    = note: `-D clippy::type-complexity` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::type_complexity)]`

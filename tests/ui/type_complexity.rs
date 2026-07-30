@@ -90,7 +90,7 @@ struct MarkerBounds;
 trait MarkerBound<T> {}
 impl<T> MarkerBound<T> for MarkerBounds {}
 
-// Should not warn, because no individual type argument inside the opaque bounds is complex.
+// Should not warn, because extracting impl trait bounds to where is not currently stable.
 fn many_simple_opaque_bound_type_arguments() -> impl MarkerBound<[u8; 0]>
 + MarkerBound<[u8; 1]>
 + MarkerBound<[u8; 2]>
