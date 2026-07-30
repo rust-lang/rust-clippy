@@ -351,7 +351,31 @@ LL +     println!("\x7b\x7b\x7d\x7d");
    |
 
 error: literal with an empty format string
-  --> tests/ui/print_literal.rs:136:21
+  --> tests/ui/print_literal.rs:134:20
+   |
+LL |     println!("{}", "\x7Ba");
+   |                    ^^^^^^^
+   |
+help: try
+   |
+LL -     println!("{}", "\x7Ba");
+LL +     println!("\x7B\x7Ba");
+   |
+
+error: literal with an empty format string
+  --> tests/ui/print_literal.rs:137:20
+   |
+LL |     println!("{}", "\x7B\x7Ba\x7D\x7D");
+   |                    ^^^^^^^^^^^^^^^^^^^
+   |
+help: try
+   |
+LL -     println!("{}", "\x7B\x7Ba\x7D\x7D");
+LL +     println!("\x7B\x7B\x7B\x7Ba\x7D\x7D\x7D\x7D");
+   |
+
+error: literal with an empty format string
+  --> tests/ui/print_literal.rs:142:21
    |
 LL |     println!(r"{}", r"\x7b \u{7b}");
    |                     ^^^^^^^^^^^^^^
@@ -363,7 +387,7 @@ LL +     println!(r"\x7b \u{{7b}}");
    |
 
 error: literal with an empty format string
-  --> tests/ui/print_literal.rs:138:21
+  --> tests/ui/print_literal.rs:144:21
    |
 LL |     println!(r"{}", "\\x7b \\u{7b}");
    |                     ^^^^^^^^^^^^^^^
@@ -375,7 +399,7 @@ LL +     println!(r"\x7b \u{{7b}}");
    |
 
 error: literal with an empty format string
-  --> tests/ui/print_literal.rs:140:20
+  --> tests/ui/print_literal.rs:146:20
    |
 LL |     println!("{}", r"\x7b \u{7b}");
    |                    ^^^^^^^^^^^^^^
@@ -386,5 +410,5 @@ LL -     println!("{}", r"\x7b \u{7b}");
 LL +     println!("\\x7b \\u{{7b}}");
    |
 
-error: aborting due to 31 previous errors
+error: aborting due to 33 previous errors
 

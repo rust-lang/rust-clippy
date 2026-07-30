@@ -130,6 +130,12 @@ fn issue_16478() {
     //~^ print_literal
     println!("{}", "\x7b\x7d");
     //~^ print_literal
+    // A single brace on its own
+    println!("{}", "\x7Ba");
+    //~^ print_literal
+    // Consecutive braces each get doubled
+    println!("{}", "\x7B\x7Ba\x7D\x7D");
+    //~^ print_literal
     // When the literal ends up in a raw format string, or comes from a raw string literal, there
     // are no escape sequences: `\x7b` and `\u{7b}` are literal text, so only the braces they
     // contain are doubled up
