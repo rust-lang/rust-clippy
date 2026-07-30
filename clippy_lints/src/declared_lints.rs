@@ -313,6 +313,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::manual_float_methods::MANUAL_IS_FINITE_INFO,
     crate::manual_float_methods::MANUAL_IS_INFINITE_INFO,
     crate::manual_hash_one::MANUAL_HASH_ONE_INFO,
+    crate::manual_highest_one::MANUAL_HIGHEST_ONE_INFO,
     crate::manual_ignore_case_cmp::MANUAL_IGNORE_CASE_CMP_INFO,
     crate::manual_ilog2::MANUAL_ILOG2_INFO,
     crate::manual_is_ascii_check::MANUAL_IS_ASCII_CHECK_INFO,
