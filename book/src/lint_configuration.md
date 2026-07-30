@@ -928,7 +928,7 @@ This option can be configured to "all", "none", or a list of specific grouping n
 
 
 ## `msrv`
-The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`
+The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`.
 
 **Default Value:** `current version`
 
