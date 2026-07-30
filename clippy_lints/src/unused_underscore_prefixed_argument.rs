@@ -2,8 +2,8 @@ use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::is_trait_impl_item;
 use clippy_utils::visitors::is_local_used;
 use rustc_abi::ExternAbi;
-use rustc_hir::def_id::LocalDefIdSet;
-use rustc_hir::{def::DefKind, def_id::LocalDefId};
+use rustc_hir::def::DefKind;
+use rustc_hir::def_id::{LocalDefId, LocalDefIdSet};
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::*;
 use rustc_lint::{LateContext, LateLintPass};
@@ -51,7 +51,10 @@ declare_clippy_lint! {
     pedantic,
     "function parameter prefixed with `_` that is never used"
 }
-impl_lint_pass!(UnusedUnderscorePrefixedArgument => [UNUSED_UNDERSCORE_PREFIXED_ARGUMENT]);
+
+impl_lint_pass!(UnusedUnderscorePrefixedArgument => [
+    UNUSED_UNDERSCORE_PREFIXED_ARGUMENT,
+]);
 
 struct Candidate {
     fn_def_id: LocalDefId,
