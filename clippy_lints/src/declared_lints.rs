@@ -813,6 +813,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::useless_concat::USELESS_CONCAT_INFO,
     crate::useless_conversion::USELESS_CONVERSION_INFO,
     crate::useless_vec::USELESS_VEC_INFO,
+    crate::vec_from_literal_array::VEC_FROM_LITERAL_ARRAY_INFO,
     crate::vec_init_then_push::VEC_INIT_THEN_PUSH_INFO,
     crate::visibility::NEEDLESS_PUB_SELF_INFO,
     crate::visibility::PUB_WITH_SHORTHAND_INFO,
