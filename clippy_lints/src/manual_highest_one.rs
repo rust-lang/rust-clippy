@@ -5,9 +5,7 @@ use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::{HasHirId as _, MaybeDef as _, MaybeResPath as _};
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::{peel_blocks, sym};
-use rustc_ast::LitKind;
 use rustc_data_structures::fx::FxHashSet;
-use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Block, Expr, ExprKind, HirId};
 use rustc_lint::{LateContext, LateLintPass};
@@ -100,9 +98,9 @@ impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
             && let ExprKind::Binary(bin_op, cond_lhs, cond_rhs) = cond.kind
         {
             let check_cond = |lhs, rhs| {
-                if Some(0) == extract_lit(lhs) {
+                if Some(0) == integer_const(cx, lhs, lhs.span.ctxt()) {
                     Some(rhs)
-                } else if Some(0) == extract_lit(rhs) {
+                } else if Some(0) == integer_const(cx, rhs, rhs.span.ctxt()) {
                     Some(lhs)
                 } else {
                     None
@@ -150,14 +148,17 @@ impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
 }
 
 /// Returns `x` of `BITS - 1 - x.leading_zeros()`-like expressions.
-fn extract_recv_from_highest_one_equiv<'a>(cx: &LateContext<'a>, expr: &'a Expr<'a>) -> Option<&'a Expr<'a>> {
+fn extract_recv_from_highest_one_equiv<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'tcx>,
+) -> Option<&'tcx Expr<'tcx>> {
     match expr.kind {
         // BITS - 1 - x.leading_zeros()
-        // BITS - 1 - nonzero.get().leading_zeros()
+        // BITS - 1 - nonzero.leading_zeros()
         ExprKind::Binary(bin_op, lhs, rhs) if bin_op.node == BinOpKind::Sub => {
             // literal - x.leading_zeros()
             if let Some(recv) = extract_recv_of_lz(rhs)
-                    && let Some(lit) = extract_lit(lhs)
+                    && let Some(lit) = integer_const(cx, lhs, lhs.span.ctxt())
                     // check literal value
                     && let ty = cx.typeck_results().expr_ty(recv)
                     && let Some(bits) = bit_width(cx, ty)
@@ -169,7 +170,7 @@ fn extract_recv_from_highest_one_equiv<'a>(cx: &LateContext<'a>, expr: &'a Expr<
             // (BITS - 1) - x.leading_zeros()
             if let ExprKind::Binary(bin_op, inner_lhs, inner_rhs) = lhs.kind
                     && bin_op.node == BinOpKind::Sub
-                    && let Some(recv) = check_lit_one_and_extract_recv_of_lz(inner_rhs, rhs)
+                    && let Some(recv) = check_one_and_extract_recv_of_lz(cx,inner_rhs, rhs)
                     // check BITS
                     && let ty = cx.typeck_results().expr_ty(recv)
                     && integer_const(cx, inner_lhs, expr.span.ctxt()) == bit_width(cx, ty)
@@ -180,7 +181,7 @@ fn extract_recv_from_highest_one_equiv<'a>(cx: &LateContext<'a>, expr: &'a Expr<
             // BITS - (1 + x.leading_zeros())
             if let ExprKind::Binary(bin_op, inner_lhs, inner_rhs) = rhs.kind
                     && bin_op.node == BinOpKind::Add
-                    && let Some(recv) = check_lit_one_and_extract_recv_of_lz(inner_lhs, inner_rhs)
+                    && let Some(recv) = check_one_and_extract_recv_of_lz(cx,inner_lhs, inner_rhs)
                     // check BITS
                     && let ty = cx.typeck_results().expr_ty(recv)
                     && integer_const(cx, lhs, expr.span.ctxt()) == bit_width(cx, ty)
@@ -193,7 +194,7 @@ fn extract_recv_from_highest_one_equiv<'a>(cx: &LateContext<'a>, expr: &'a Expr<
     None
 }
 
-fn extract_recv_of_lz<'a>(expr: &'a Expr<'a>) -> Option<&'a Expr<'a>> {
+fn extract_recv_of_lz<'tcx>(expr: &'tcx Expr<'tcx>) -> Option<&'tcx Expr<'tcx>> {
     if let ExprKind::MethodCall(method, recv, [], _) = expr.kind
         && method.ident.name == sym::leading_zeros
     {
@@ -203,23 +204,17 @@ fn extract_recv_of_lz<'a>(expr: &'a Expr<'a>) -> Option<&'a Expr<'a>> {
     }
 }
 
-fn extract_lit(expr: &Expr<'_>) -> Option<u128> {
-    if let ExprKind::Lit(lit) = expr.kind
-        && let LitKind::Int(Pu128(lit), _) = lit.node
-    {
-        Some(lit)
-    } else {
-        None
-    }
-}
-
-fn check_lit_one_and_extract_recv_of_lz<'a>(expr1: &'a Expr<'a>, expr2: &'a Expr<'a>) -> Option<&'a Expr<'a>> {
+fn check_one_and_extract_recv_of_lz<'tcx>(
+    cx: &LateContext<'_>,
+    expr1: &'tcx Expr<'tcx>,
+    expr2: &'tcx Expr<'tcx>,
+) -> Option<&'tcx Expr<'tcx>> {
     if let Some(recv) = extract_recv_of_lz(expr1)
-        && Some(1) == extract_lit(expr2)
+        && Some(1) == integer_const(cx, expr2, expr2.span.ctxt())
     {
         Some(recv)
     } else if let Some(recv) = extract_recv_of_lz(expr2)
-        && Some(1) == extract_lit(expr1)
+        && Some(1) == integer_const(cx, expr1, expr1.span.ctxt())
     {
         Some(recv)
     } else {
