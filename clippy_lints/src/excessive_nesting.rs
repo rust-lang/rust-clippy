@@ -1,18 +1,10 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_help;
-<<<<<<< HEAD
-use clippy_utils::source::snippet;
-use rustc_ast::node_id::NodeSet;
-use rustc_ast::visit::{Visitor, walk_block, walk_item};
-use rustc_ast::{Block, Crate, Inline, Item, ItemKind, ModKind, NodeId};
-use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _};
-=======
 use clippy_utils::is_from_proc_macro;
 use rustc_hir::intravisit::{Visitor, walk_block, walk_item};
 use rustc_hir::{Block, HirId, HirIdSet, Item, ItemKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::hir::nested_filter;
->>>>>>> b1128f65b (first pass)
 use rustc_session::impl_lint_pass;
 use rustc_span::Span;
 
@@ -151,10 +143,17 @@ impl<'tcx> Visitor<'tcx> for NestingVisitor<'_, 'tcx> {
     }
 
     fn visit_block(&mut self, block: &'tcx Block<'_>) {
-        if block.span.from_expansion()
-            || block.span.in_external_macro(self.cx.sess().source_map())
-            || is_from_proc_macro(self.cx, &block.hir_id)
-        {
+        // If it's a compiler desugaring (like `for`, `while`, or `async`),
+        // keep walking so we reach the inner user blocks!
+        if block.span.from_expansion() {
+            if block.span.desugaring_kind().is_some() {
+                walk_block(self, block);
+            }
+
+            return;
+        }
+
+        if is_from_proc_macro(self.cx, block) {
             return;
         }
 
