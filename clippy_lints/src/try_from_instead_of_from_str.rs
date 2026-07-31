@@ -1,4 +1,5 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_config::Conf;
+use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::paths::{PathNS, lookup_path};
 use clippy_utils::source::snippet_opt;
 use clippy_utils::sym;
@@ -6,9 +7,8 @@ use clippy_utils::ty::{implements_trait, ty_from_hir_ty};
 use rustc_errors::Applicability;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{BodyId, GenericArg, Impl, ImplItemKind, Item, ItemKind, LifetimeKind, TraitRef, Ty};
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
 use rustc_middle::ty::{self, Mutability};
-use rustc_session::declare_lint_pass;
 use rustc_span::symbol::kw;
 
 use core::ops::ControlFlow;
@@ -75,7 +75,19 @@ declare_clippy_lint! {
     "TryFrom<str> instead of FromStr"
 }
 
-declare_lint_pass!(TryFromInsteadOfFromStr => [TRY_FROM_INSTEAD_OF_FROM_STR]);
+impl_lint_pass!(TryFromInsteadOfFromStr => [TRY_FROM_INSTEAD_OF_FROM_STR]);
+
+pub struct TryFromInsteadOfFromStr {
+    avoid_breaking_exported_api: bool,
+}
+
+impl TryFromInsteadOfFromStr {
+    pub fn new(conf: &'static Conf) -> Self {
+        Self {
+            avoid_breaking_exported_api: conf.avoid_breaking_exported_api,
+        }
+    }
+}
 
 struct LifetimeVisitor {
     forbidden_lifetime: LocalDefId,
@@ -180,22 +192,36 @@ impl<'tcx> LateLintPass<'tcx> for TryFromInsteadOfFromStr {
             && let Some(generics) = snippet_opt(cx, imp.generics.span)
             && let Some(self_ty) = snippet_opt(cx, imp.self_ty.span)
         {
-            span_lint_and_sugg(
-                cx,
-                TRY_FROM_INSTEAD_OF_FROM_STR,
-                item.span,
-                "`TryFrom<str>` could be `FromStr`",
-                "replace with",
-                format!(
-                    "\
+            let suggestion = format!(
+                "\
 impl{generics} core::str::FromStr for {self_ty} {{
     type Err = {err_ty};
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {fn_body}
 }}"
-                ),
-                Applicability::MaybeIncorrect,
             );
+            if self.avoid_breaking_exported_api {
+                span_lint_and_then(
+                    cx,
+                    TRY_FROM_INSTEAD_OF_FROM_STR,
+                    item.span,
+                    "`TryFrom<str>` could be `FromStr`",
+                    |diag| {
+                        diag.span_suggestion(item.span, "replace with", suggestion, Applicability::Unspecified);
+                        diag.help("`FromStr` can also be implemented alongside `TryFrom` if you want to avoid breaking changes");
+                    },
+                );
+            } else {
+                span_lint_and_sugg(
+                    cx,
+                    TRY_FROM_INSTEAD_OF_FROM_STR,
+                    item.span,
+                    "`TryFrom<str>` could be `FromStr`",
+                    "replace with",
+                    suggestion,
+                    Applicability::MaybeIncorrect,
+                );
+            }
         }
     }
 }
