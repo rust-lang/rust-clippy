@@ -1,4 +1,6 @@
 #![warn(clippy::manual_highest_one)]
+// FIXME: remove this after this lint is fixed
+#![allow(clippy::mismatched_bit_width_type)]
 
 use std::num::NonZeroU32;
 
@@ -10,8 +12,12 @@ fn main() {
     let _ = u.highest_one().unwrap(); //~ manual_highest_one
     let _ = u.highest_one().unwrap(); //~ manual_highest_one
     let _ = u.highest_one().unwrap(); //~ manual_highest_one
+    let _ = u.highest_one().unwrap(); //~ manual_highest_one
+    let _ = u.highest_one().unwrap(); //~ manual_highest_one
 
     // nonzero: suggest `u.highest_one()`
+    let _ = nz.highest_one(); //~ manual_highest_one
+    let _ = nz.highest_one(); //~ manual_highest_one
     let _ = nz.highest_one(); //~ manual_highest_one
     let _ = nz.highest_one(); //~ manual_highest_one
     let _ = nz.highest_one(); //~ manual_highest_one

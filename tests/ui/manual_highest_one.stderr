@@ -1,5 +1,5 @@
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:10:13
+  --> tests/ui/manual_highest_one.rs:12:13
    |
 LL |     let _ = 31 - u.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
@@ -8,37 +8,61 @@ LL |     let _ = 31 - u.leading_zeros();
    = help: to override `-D warnings` add `#[allow(clippy::manual_highest_one)]`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:11:13
+  --> tests/ui/manual_highest_one.rs:13:13
    |
 LL |     let _ = u32::BITS - 1 - u.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:12:13
+  --> tests/ui/manual_highest_one.rs:14:13
+   |
+LL |     let _ = u32::BITS - u.leading_zeros() - 1;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:15:13
    |
 LL |     let _ = u32::BITS - (1 + u.leading_zeros());
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:15:13
+  --> tests/ui/manual_highest_one.rs:16:13
+   |
+LL |     let _ = u32::BITS - (u.leading_zeros() + 1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:19:13
    |
 LL |     let _ = 31 - nz.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^ help: try: `nz.highest_one()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:16:13
+  --> tests/ui/manual_highest_one.rs:20:13
    |
 LL |     let _ = u32::BITS - 1 - nz.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `nz.highest_one()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:17:13
+  --> tests/ui/manual_highest_one.rs:21:13
+   |
+LL |     let _ = u32::BITS - nz.leading_zeros() - 1;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `nz.highest_one()`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:22:13
    |
 LL |     let _ = u32::BITS - (1 + nz.leading_zeros());
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `nz.highest_one()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:20:13
+  --> tests/ui/manual_highest_one.rs:23:13
+   |
+LL |     let _ = u32::BITS - (nz.leading_zeros() + 1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `nz.highest_one()`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:26:13
    |
 LL |       let _ = if u == 0 {
    |  _____________^
@@ -58,7 +82,7 @@ LL ~     });
    |
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:26:13
+  --> tests/ui/manual_highest_one.rs:32:13
    |
 LL |       let _ = if 0 == u {
    |  _____________^
@@ -78,7 +102,7 @@ LL ~     });
    |
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:32:13
+  --> tests/ui/manual_highest_one.rs:38:13
    |
 LL |       let _ = if u != 0 {
    |  _____________^
@@ -90,7 +114,7 @@ LL | |     };
    | |_____^ help: try: `u.highest_one().unwrap_or(2)`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:38:13
+  --> tests/ui/manual_highest_one.rs:44:13
    |
 LL |       let _ = if 0 != u {
    |  _____________^
@@ -103,10 +127,10 @@ LL | |     };
    | |_____^ help: try: `u.highest_one().unwrap_or(3)`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:48:9
+  --> tests/ui/manual_highest_one.rs:54:9
    |
 LL |         31 - v.leading_zeros()
    |         ^^^^^^^^^^^^^^^^^^^^^^ help: try: `v.highest_one().unwrap()`
 
-error: aborting due to 11 previous errors
+error: aborting due to 15 previous errors
 
