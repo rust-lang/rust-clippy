@@ -1,8 +1,8 @@
 use clippy_config::Conf;
-use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::is_from_proc_macro;
 use rustc_hir::intravisit::{Visitor, walk_block, walk_item};
-use rustc_hir::{Block, HirId, HirIdSet, Item, ItemKind};
+use rustc_hir::{Block, HirId, Item, ItemKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::hir::nested_filter;
 use rustc_session::impl_lint_pass;
@@ -66,27 +66,12 @@ impl_lint_pass!(ExcessiveNesting => [EXCESSIVE_NESTING]);
 
 pub struct ExcessiveNesting {
     pub excessive_nesting_threshold: u64,
-    pub nodes: HirIdSet,
 }
 
 impl ExcessiveNesting {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
             excessive_nesting_threshold: conf.excessive_nesting_threshold,
-            nodes: HirIdSet::default(),
-        }
-    }
-
-    pub fn check_node_id(&self, cx: &LateContext<'_>, span: Span, node_id: HirId) {
-        if self.nodes.contains(&node_id) {
-            span_lint_and_help(
-                cx,
-                EXCESSIVE_NESTING,
-                span,
-                "this block is too nested",
-                None,
-                "try refactoring your code to minimize nesting",
-            );
         }
     }
 }
@@ -105,28 +90,29 @@ impl<'tcx> LateLintPass<'tcx> for ExcessiveNesting {
 
         cx.tcx.hir_walk_toplevel_module(&mut visitor);
     }
-
-    fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'tcx>) {
-        self.check_node_id(cx, item.span, item.hir_id());
-    }
-
-    fn check_block(&mut self, cx: &LateContext<'_>, block: &Block<'tcx>) {
-        self.check_node_id(cx, block.span, block.hir_id);
-    }
 }
 
 struct NestingVisitor<'conf, 'tcx> {
-    conf: &'conf mut ExcessiveNesting,
+    conf: &'conf ExcessiveNesting,
     cx: &'conf LateContext<'tcx>,
     nest_level: u64,
 }
 
 impl<'conf, 'tcx> NestingVisitor<'conf, 'tcx> {
-    fn check_indent(&mut self, span: Span, id: HirId) -> bool {
+    fn check_indent(&mut self, span: Span, hir_id: HirId) -> bool {
         if self.nest_level > self.conf.excessive_nesting_threshold
             && !span.in_external_macro(self.cx.sess().source_map())
         {
-            self.conf.nodes.insert(id);
+            span_lint_hir_and_then(
+                self.cx,
+                EXCESSIVE_NESTING,
+                hir_id,
+                span,
+                "this block is too nested",
+                |diag| {
+                    diag.help("try refactoring your code to minimize nesting");
+                },
+            );
 
             return true;
         }
