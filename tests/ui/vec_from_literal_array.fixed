@@ -1,0 +1,42 @@
+#![warn(clippy::vec_from_literal_array)]
+
+fn get_fixed_number() -> u32 {
+    5
+}
+
+fn double_number(n: u32) -> u32 {
+    n * 2
+}
+
+fn print_vec(v: Vec<u32>) {
+    println!("{v:?}");
+}
+
+macro_rules! get_macro_number {
+    () => {
+        14
+    };
+}
+
+macro_rules! double_macro_number {
+    ($n:literal) => {
+        $n * 2
+    };
+}
+
+fn main() {
+    let _v1: Vec<_> = vec![1, 2, 3];
+    //~^ vec_from_literal_array
+    let _v2: Vec<_> = vec![4, get_fixed_number(), 6];
+    //~^ vec_from_literal_array
+    let _v3: Vec<_> = vec![7, double_number(8), 9];
+    //~^ vec_from_literal_array
+    print_vec(
+        vec![10, 11, 12],
+        //~^ vec_from_literal_array
+    );
+    let _v4: Vec<_> = vec![13, get_macro_number!(), 15];
+    //~^ vec_from_literal_array
+    let _v5: Vec<_> = vec![16, double_macro_number!(17), 18];
+    //~^ vec_from_literal_array
+}
