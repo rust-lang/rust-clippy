@@ -33,6 +33,8 @@ use std::io::Write as _;
 use std::path::Path;
 use std::process::ExitCode;
 
+const CLIPPY_FIX_ARGS_MARKER: &str = "__CLIPPY_FIX__";
+
 /// If a command-line option matches `find_arg`, then apply the predicate `pred` on its value. If
 /// true, then return it. The parameter is assumed to be either `--arg=value` or `--arg value`.
 fn arg_value(args: &[String], find_arg: &str, pred: impl Fn(&str) -> bool) -> bool {
@@ -285,7 +287,7 @@ fn main() -> ExitCode {
             .unwrap_or_default()
             .split("__CLIPPY_HACKERY__")
             .filter_map(|s| match s {
-                "" => None,
+                "" | CLIPPY_FIX_ARGS_MARKER => None,
                 "--no-deps" => {
                     no_deps = true;
                     None
