@@ -192,6 +192,7 @@ mod large_stack_frames;
 mod legacy_numeric_constants;
 mod len_without_is_empty;
 mod len_zero;
+mod let_else_ok_or;
 mod let_if_seq;
 mod let_underscore;
 mod let_with_type_underscore;
@@ -872,6 +873,7 @@ rustc_lint::late_lint_methods!(
         RestWhenDestructuringStruct: rest_when_destructuring_struct::RestWhenDestructuringStruct = rest_when_destructuring_struct::RestWhenDestructuringStruct,
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
+        LetElseOkOr: let_else_ok_or::LetElseOkOr = let_else_ok_or::LetElseOkOr::new(tcx, conf),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
