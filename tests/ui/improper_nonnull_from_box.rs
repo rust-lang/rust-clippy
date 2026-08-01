@@ -1,4 +1,3 @@
-#![feature(box_vec_non_null)]
 #![warn(clippy::improper_nonnull_from_box)]
 
 use std::ptr::NonNull;

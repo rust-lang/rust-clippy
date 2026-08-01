@@ -1,5 +1,5 @@
 error: use of `NonNull::new_unchecked` with `Box::into_raw`
-  --> tests/ui/improper_nonnull_from_box.rs:42:17
+  --> tests/ui/improper_nonnull_from_box.rs:41:17
    |
 LL |           let _ = unsafe {
    |  _________________^
@@ -12,13 +12,13 @@ LL | |         };
    = help: to override `-D warnings` add `#[allow(clippy::improper_nonnull_from_box)]`
 
 error: use of `NonNull::from_mut` with `Box::leak`
-  --> tests/ui/improper_nonnull_from_box.rs:48:17
+  --> tests/ui/improper_nonnull_from_box.rs:47:17
    |
 LL |         let _ = NonNull::from_mut(Box::leak(one));
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::new_unchecked` with `Box::into_raw`
-  --> tests/ui/improper_nonnull_from_box.rs:52:17
+  --> tests/ui/improper_nonnull_from_box.rs:51:17
    |
 LL |           let _ = unsafe {
    |  _________________^
@@ -28,13 +28,13 @@ LL | |         };
    | |_________^ help: try: `Box::into_non_null(identity(one))`
 
 error: use of `NonNull::from_mut` with `Box::leak`
-  --> tests/ui/improper_nonnull_from_box.rs:58:17
+  --> tests/ui/improper_nonnull_from_box.rs:57:17
    |
 LL |         let _ = NonNull::from_mut(Box::leak(identity(one)));
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Box::into_non_null(identity(one))`
 
 error: use of `NonNull::new_unchecked` with `Box::into_raw`
-  --> tests/ui/improper_nonnull_from_box.rs:64:17
+  --> tests/ui/improper_nonnull_from_box.rs:63:17
    |
 LL |           let _ = unsafe {
    |  _________________^
@@ -44,13 +44,13 @@ LL | |         };
    | |_________^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::from_mut` with `Box::leak`
-  --> tests/ui/improper_nonnull_from_box.rs:70:17
+  --> tests/ui/improper_nonnull_from_box.rs:69:17
    |
 LL |         let _ = std::ptr::NonNull::from_mut(std::boxed::Box::leak(one));
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::new_unchecked` with `Box::into_raw`
-  --> tests/ui/improper_nonnull_from_box.rs:77:21
+  --> tests/ui/improper_nonnull_from_box.rs:76:21
    |
 LL |               let _ = unsafe {
    |  _____________________^
@@ -60,13 +60,13 @@ LL | |             };
    | |_____________^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::from_mut` with `Box::leak`
-  --> tests/ui/improper_nonnull_from_box.rs:83:21
+  --> tests/ui/improper_nonnull_from_box.rs:82:21
    |
 LL |             let _ = NonNull2::from_mut(Box2::leak(one));
    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::new_unchecked` with `Box::into_raw`
-  --> tests/ui/improper_nonnull_from_box.rs:91:21
+  --> tests/ui/improper_nonnull_from_box.rs:90:21
    |
 LL |               let _ = unsafe {
    |  _____________________^
@@ -76,13 +76,13 @@ LL | |             };
    | |_____________^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::from_mut` with `Box::leak`
-  --> tests/ui/improper_nonnull_from_box.rs:97:21
+  --> tests/ui/improper_nonnull_from_box.rs:96:21
    |
 LL |             let _ = NonNull2::from_mut(Box2::leak(one));
    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::new_unchecked` with `Box::into_raw`
-  --> tests/ui/improper_nonnull_from_box.rs:104:17
+  --> tests/ui/improper_nonnull_from_box.rs:103:17
    |
 LL |           let _ = unsafe {
    |  _________________^
@@ -92,13 +92,13 @@ LL | |         };
    | |_________^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::from_mut` with `Box::leak`
-  --> tests/ui/improper_nonnull_from_box.rs:110:17
+  --> tests/ui/improper_nonnull_from_box.rs:109:17
    |
 LL |         let _ = NonNull::from_mut(Box::leak(identity!(one)));
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::new_unchecked` with `Box::into_raw`
-  --> tests/ui/improper_nonnull_from_box.rs:114:27
+  --> tests/ui/improper_nonnull_from_box.rs:113:27
    |
 LL |           let _ = identity!(unsafe {
    |  ___________________________^
@@ -108,13 +108,13 @@ LL | |         });
    | |_________^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::from_mut` with `Box::leak`
-  --> tests/ui/improper_nonnull_from_box.rs:120:27
+  --> tests/ui/improper_nonnull_from_box.rs:119:27
    |
 LL |         let _ = identity!(NonNull::from_mut(Box::leak(one)));
    |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::new_unchecked` with `Box::into_raw`
-  --> tests/ui/improper_nonnull_from_box.rs:124:17
+  --> tests/ui/improper_nonnull_from_box.rs:123:17
    |
 LL |           let _ = unsafe {
    |  _________________^
@@ -124,13 +124,13 @@ LL | |         };
    | |_________^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::from_mut` with `Box::leak`
-  --> tests/ui/improper_nonnull_from_box.rs:130:27
+  --> tests/ui/improper_nonnull_from_box.rs:129:27
    |
 LL |         let _ = identity!(NonNull::from_mut(Box::leak(one)));
    |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::new_unchecked` with `Box::into_raw`
-  --> tests/ui/improper_nonnull_from_box.rs:134:17
+  --> tests/ui/improper_nonnull_from_box.rs:133:17
    |
 LL |           let _ = unsafe {
    |  _________________^
@@ -140,13 +140,13 @@ LL | |         };
    | |_________^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::from_mut` with `Box::leak`
-  --> tests/ui/improper_nonnull_from_box.rs:140:17
+  --> tests/ui/improper_nonnull_from_box.rs:139:17
    |
 LL |         let _ = NonNull::from_mut(identity!(Box::leak(one)));
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::new_unchecked` with `Box::into_raw`
-  --> tests/ui/improper_nonnull_from_box.rs:144:17
+  --> tests/ui/improper_nonnull_from_box.rs:143:17
    |
 LL |           let _ = unsafe {
    |  _________________^
@@ -156,13 +156,13 @@ LL | |         };
    | |_________^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::from_mut` with `Box::leak`
-  --> tests/ui/improper_nonnull_from_box.rs:150:17
+  --> tests/ui/improper_nonnull_from_box.rs:149:17
    |
 LL |         let _ = NonNull::from_mut(identity!(Box::leak(identity!(one))));
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::new_unchecked` with `Box::into_raw`
-  --> tests/ui/improper_nonnull_from_box.rs:154:17
+  --> tests/ui/improper_nonnull_from_box.rs:153:17
    |
 LL |           let _ = unsafe {
    |  _________________^
@@ -172,55 +172,55 @@ LL | |         };
    | |_________^ help: try: `Box::into_non_null(weird!(one))`
 
 error: use of `NonNull::from_mut` with `Box::leak`
-  --> tests/ui/improper_nonnull_from_box.rs:160:17
+  --> tests/ui/improper_nonnull_from_box.rs:159:17
    |
 LL |         let _ = NonNull::from_mut(Box::leak(weird!(one)));
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Box::into_non_null(weird!(one))`
 
 error: use of `NonNull::new_unchecked` with `Box::into_raw`
-  --> tests/ui/improper_nonnull_from_box.rs:167:13
+  --> tests/ui/improper_nonnull_from_box.rs:166:13
    |
 LL |             NonNull::new_unchecked(Box::into_raw(unsafe_identity(one)))
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Box::into_non_null(unsafe_identity(one))`
 
 error: use of `NonNull::new_unchecked` with `Box::into_raw`
-  --> tests/ui/improper_nonnull_from_box.rs:173:22
+  --> tests/ui/improper_nonnull_from_box.rs:172:22
    |
 LL |             identity(NonNull::new_unchecked(Box::into_raw(one)))
    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::new_unchecked` with `Box::into_raw`
-  --> tests/ui/improper_nonnull_from_box.rs:179:29
+  --> tests/ui/improper_nonnull_from_box.rs:178:29
    |
 LL |             unsafe_identity(NonNull::new_unchecked(Box::into_raw(one)))
    |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::new_unchecked` with `Box::into_raw`
-  --> tests/ui/improper_nonnull_from_box.rs:184:13
+  --> tests/ui/improper_nonnull_from_box.rs:183:13
    |
 LL |             NonNull::new_unchecked(Box::into_raw(Box::new(std::num::NonZeroI32::new_unchecked(1))))
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Box::into_non_null(Box::new(std::num::NonZeroI32::new_unchecked(1)))`
 
 error: use of `NonNull::new_unchecked` with `Box::into_raw`
-  --> tests/ui/improper_nonnull_from_box.rs:190:13
+  --> tests/ui/improper_nonnull_from_box.rs:189:13
    |
 LL |             NonNull::new_unchecked(Box::into_raw(one))
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::from_mut` with `Box::leak`
-  --> tests/ui/improper_nonnull_from_box.rs:232:13
+  --> tests/ui/improper_nonnull_from_box.rs:231:13
    |
 LL |     let _ = NonNull::from_mut(Box::leak(one));
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unsafe { NonNull::new_unchecked(Box::into_raw(one)) }`
 
 error: use of `NonNull::new_unchecked` with `Box::into_raw`
-  --> tests/ui/improper_nonnull_from_box.rs:239:13
+  --> tests/ui/improper_nonnull_from_box.rs:238:13
    |
 LL |     let _ = unsafe { NonNull::new_unchecked(Box::into_raw(one)) };
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::from_mut` with `Box::leak`
-  --> tests/ui/improper_nonnull_from_box.rs:243:13
+  --> tests/ui/improper_nonnull_from_box.rs:242:13
    |
 LL |     let _ = NonNull::from_mut(Box::leak(one));
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Box::into_non_null(one)`
