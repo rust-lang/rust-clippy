@@ -12,27 +12,31 @@ use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for unsafe usage of `NonNull::new_unchecked(Box::into_raw(x))` or semantically dangerous usage of `NonNull::from_mut(Box::leak(x))` and suggests calling `Box::into_non_null(x)` instead.
+    /// Checks for unsafe usage of `NonNull::new_unchecked(Box::into_raw(x))` or dangerous usage of `NonNull::from_mut(Box::leak(x))` and suggests calling `Box::into_non_null(x)` instead.
     ///
     /// ### Why is this bad?
-    /// First, `NonNull::new_unchecked` is an unsafe function, which we don't need to call at all. Second, at the time of writing, whether or not you can reconstruct the `Box` from the mutable reference returned by `Box::leak` is an [open question](https://doc.rust-lang.org/std/boxed/struct.Box.html#method.leak). Thus, this lint helps prevent future dangerous calls to `Box::from_non_null`.
+    /// First, `NonNull::new_unchecked` is an unsafe function, which we don't need to call at all. Second, at the time of writing, whether or not you are allowed to reconstruct the `Box` from the mutable reference returned by `Box::leak` is an [open question](https://doc.rust-lang.org/std/boxed/struct.Box.html#method.leak). Thus, this lint helps prevent future dangerous calls to `Box::from_non_null`.
     ///
     /// ### Example
     /// ```no_run
     /// use std::ptr::NonNull;
     /// let one = Box::new(1);
     /// let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(one)) };
+    /// let one = Box::new(1);
+    /// let ptr = NonNull::from_mut(Box::leak(one));
     /// ```
     /// Use instead:
     /// ```no_run
     /// use std::ptr::NonNull;
     /// let one = Box::new(1);
     /// let ptr = Box::into_non_null(one);
+    /// let one = Box::new(1);
+    /// let ptr = Box::into_non_null(one);
     /// ```
     #[clippy::version = "1.98.0"]
     pub IMPROPER_NONNULL_FROM_BOX,
     complexity,
-    "using `NonNull::new_unchecked` with `Box::into_raw`, while `Box::into_non_null` can be used instead"
+    "using `NonNull::new_unchecked` with `Box::into_raw` or `NonNull::from_mut` with `Box::leak`, while `Box::into_non_null` can be used instead"
 }
 
 impl_lint_pass!(ImproperNonnullFromBox => [IMPROPER_NONNULL_FROM_BOX]);
