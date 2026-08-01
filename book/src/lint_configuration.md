@@ -616,6 +616,49 @@ default configuration of Clippy. By default, any configuration will replace the 
 * [`disallowed_names`](https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_names)
 
 
+## `disallowed-trait-usage`
+The list of disallowed trait usages. Each entry names one trait and the types it may not
+be used on.
+
+**Fields:**
+- `trait` (required): the fully qualified path to the disallowed trait (e.g. `"std::fmt::Debug"`)
+- `types` (optional): concrete types the trait is disallowed for (e.g. `"i32"`, `"std::path::PathBuf"`)
+- `implements` (optional): traits whose implementors the trait is disallowed for
+- `all-types` (optional): disallows the trait for every type, with the given string as the reason
+
+The entries of `types` and `implements` are either a plain path or a table with the same
+fields as [`disallowed-types`](#disallowed-types), minus `replacement`.
+
+At least one of `types`, `implements` or `all-types` must be specified. `all-types` covers
+everything the other two can, so combining it with them warns.
+
+### Example
+```toml
+[[disallowed-trait-usage]]
+trait = "std::fmt::Debug"
+# Forbid `Debug` formatting of specific types:
+types = [
+    { path = "std::path::PathBuf", reason = "Use path.display() instead" },
+    "std::path::Path",
+]
+# Forbid `Debug` formatting of every type implementing these traits:
+implements = [
+    { path = "std::error::Error", reason = "Use Display for errors" },
+]
+
+# Forbid a trait outright:
+[[disallowed-trait-usage]]
+trait = "std::fmt::Pointer"
+all-types = "Do not print addresses"
+```
+
+**Default Value:** `[]`
+
+---
+**Affected lints:**
+* [`disallowed_trait_usage`](https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_trait_usage)
+
+
 ## `disallowed-types`
 The list of disallowed types, written as fully qualified paths.
 
