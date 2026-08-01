@@ -15,6 +15,8 @@ declare_clippy_lint! {
     /// ### Why is this bad?
     ///
     /// It is clearer and may be more performant to use the `vec!` macro.
+    /// Calling `.to_vec()` also requires that the array values be clonable;
+    /// `vec!` has no such requirement.
     ///
     /// ### Example
     /// ```no_run
