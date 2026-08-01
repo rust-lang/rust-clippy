@@ -1,5 +1,5 @@
 error: creating a vec with a literal array
-  --> tests/ui/vec_from_literal_array.rs:28:23
+  --> tests/ui/vec_from_literal_array.rs:38:23
    |
 LL |     let _v1: Vec<_> = [1, 2, 3].to_vec();
    |                       ^^^^^^^^^^^^^^^^^^ help: try: `vec![1, 2, 3]`
@@ -8,31 +8,31 @@ LL |     let _v1: Vec<_> = [1, 2, 3].to_vec();
    = help: to override `-D warnings` add `#[allow(clippy::vec_from_literal_array)]`
 
 error: creating a vec with a literal array
-  --> tests/ui/vec_from_literal_array.rs:30:23
+  --> tests/ui/vec_from_literal_array.rs:40:23
    |
 LL |     let _v2: Vec<_> = [4, get_fixed_number(), 6].to_vec();
    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `vec![4, get_fixed_number(), 6]`
 
 error: creating a vec with a literal array
-  --> tests/ui/vec_from_literal_array.rs:32:23
+  --> tests/ui/vec_from_literal_array.rs:42:23
    |
 LL |     let _v3: Vec<_> = [7, double_number(8), 9].to_vec();
    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `vec![7, double_number(8), 9]`
 
 error: creating a vec with a literal array
-  --> tests/ui/vec_from_literal_array.rs:35:9
+  --> tests/ui/vec_from_literal_array.rs:45:9
    |
 LL |         [10, 11, 12].to_vec(),
    |         ^^^^^^^^^^^^^^^^^^^^^ help: try: `vec![10, 11, 12]`
 
 error: creating a vec with a literal array
-  --> tests/ui/vec_from_literal_array.rs:38:23
+  --> tests/ui/vec_from_literal_array.rs:48:23
    |
 LL |     let _v4: Vec<_> = [13, get_macro_number!(), 15].to_vec();
    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `vec![13, get_macro_number!(), 15]`
 
 error: creating a vec with a literal array
-  --> tests/ui/vec_from_literal_array.rs:40:23
+  --> tests/ui/vec_from_literal_array.rs:50:23
    |
 LL |     let _v5: Vec<_> = [16, double_macro_number!(17), 18].to_vec();
    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `vec![16, double_macro_number!(17), 18]`

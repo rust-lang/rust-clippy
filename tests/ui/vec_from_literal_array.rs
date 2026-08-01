@@ -24,6 +24,16 @@ macro_rules! double_macro_number {
     };
 }
 
+mod with_extension_trait {
+    pub trait CustomVec {
+        fn to_vec(&self) -> Vec<u32> {
+            vec![1, 2, 3]
+        }
+    }
+
+    impl<T, const N: usize> CustomVec for [T; N] {}
+}
+
 fn main() {
     let _v1: Vec<_> = [1, 2, 3].to_vec();
     //~^ vec_from_literal_array
@@ -39,4 +49,9 @@ fn main() {
     //~^ vec_from_literal_array
     let _v5: Vec<_> = [16, double_macro_number!(17), 18].to_vec();
     //~^ vec_from_literal_array
+    // Should not trigger the lint - not the built-in to_vec() method
+    {
+        use with_extension_trait::CustomVec;
+        let _v6: Vec<u32> = ["a", "b", "c"].to_vec();
+    }
 }
