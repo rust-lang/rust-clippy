@@ -4,6 +4,7 @@ use clippy_utils::sym;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::ty::AssocContainer;
 use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
@@ -38,6 +39,13 @@ impl LateLintPass<'_> for VecFromLiteralArray {
             && let ExprKind::Array(_) = receiver.kind
             && args.is_empty()
         {
+            // Make sure that this to_vec() doesn't come from a trait
+            if let Some(method_def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)
+                && let assoc = cx.tcx.associated_item(method_def_id)
+                && assoc.container != AssocContainer::InherentImpl
+            {
+                return;
+            }
             let mut app = Applicability::MachineApplicable;
             let (recv, _) = snippet_with_context(cx, receiver.span, expr.span.ctxt(), "_", &mut app);
             span_lint_and_sugg(
