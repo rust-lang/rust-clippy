@@ -392,7 +392,7 @@ define_Conf! {
     arithmetic_side_effects_allowed_unary("arithmetic-side-effects-allowed-unary"): Vec<String>,
     /// The maximum allowed size for const arrays
     #[lints(large_const_arrays)]
-    array_size_threshold: u64 = 16 * 1024,
+    array_size_threshold("array-size-threshold"): u64 = 16 * 1024,
     /// Suppress lints whenever the suggested change would cause breakage for other crates.
     #[lints(
         box_collection,
@@ -750,7 +750,7 @@ define_Conf! {
     source_item_ordering("source-item-ordering"): SourceItemOrdering,
     /// The maximum allowed size for arrays on the stack
     #[lints(large_stack_arrays)]
-    stack_array_size_threshold: u64 = 16 * 1024,
+    stack_array_size_threshold("stack-array-size-threshold"): u64 = 16 * 1024,
     /// The maximum allowed stack size for functions in bytes
     #[lints(large_stack_frames)]
     stack_size_threshold("stack-size-threshold"): u64 = 512_000,
