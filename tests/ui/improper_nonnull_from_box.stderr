@@ -216,11 +216,15 @@ LL |     let _ = NonNull::from_mut(Box::leak(one));
 error: use of `NonNull::new_unchecked` with `Box::into_raw`
   --> tests/ui/improper_nonnull_from_box.rs:238:13
    |
-LL |     let _ = unsafe { NonNull::new_unchecked(Box::into_raw(one)) };
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Box::into_non_null(one)`
+LL |       let _ = unsafe {
+   |  _____________^
+LL | |
+LL | |         NonNull::new_unchecked(Box::into_raw(one))
+LL | |     };
+   | |_____^ help: try: `Box::into_non_null(one)`
 
 error: use of `NonNull::from_mut` with `Box::leak`
-  --> tests/ui/improper_nonnull_from_box.rs:242:13
+  --> tests/ui/improper_nonnull_from_box.rs:244:13
    |
 LL |     let _ = NonNull::from_mut(Box::leak(one));
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Box::into_non_null(one)`
