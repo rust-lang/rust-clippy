@@ -15,13 +15,13 @@ macro_rules! weird {
     }};
 }
 
-macro_rules! from_macro1 {
+macro_rules! nonnull_new_unchecked_box_into_raw {
     ($x:expr) => {
         unsafe { NonNull::new_unchecked(Box::into_raw($x)) }
     };
 }
 
-macro_rules! from_macro2 {
+macro_rules! nonnull_from_mut_box_leak {
     ($x:expr) => {
         NonNull::from_mut(Box::leak($x))
     };
@@ -215,10 +215,10 @@ fn no_lint() {
 
     fn macros() {
         let one = Box::new(1);
-        let _ = from_macro1!(one);
+        let _ = nonnull_new_unchecked_box_into_raw!(one);
 
         let one = Box::new(1);
-        let _ = from_macro2!(one);
+        let _ = nonnull_from_mut_box_leak!(one);
     }
 }
 
@@ -235,8 +235,10 @@ fn msrv_1_97() {
 #[clippy::msrv = "1.98"]
 fn msrv_1_98() {
     let one = Box::new(1);
-    let _ = unsafe { NonNull::new_unchecked(Box::into_raw(one)) };
-    //~^ improper_nonnull_from_box
+    let _ = unsafe {
+        //~^ improper_nonnull_from_box
+        NonNull::new_unchecked(Box::into_raw(one))
+    };
 
     let one = Box::new(1);
     let _ = NonNull::from_mut(Box::leak(one));
