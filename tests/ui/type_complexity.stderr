@@ -92,10 +92,10 @@ LL |     let _y: Vec<Vec<Box<(u32, u32, u32, u32)>>> = vec![];
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: very complex type used. Consider factoring parts into `type` definitions
-  --> tests/ui/type_complexity.rs:119:47
+  --> tests/ui/type_complexity.rs:119:48
    |
 LL | fn complex_aliasable_opaque_bound() -> impl Fn(Vec<Vec<Box<(u32, u32, u32, u32)>>>) {
-   |                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: very complex type used. Consider factoring parts into `type` definitions
   --> tests/ui/type_complexity.rs:126:58
