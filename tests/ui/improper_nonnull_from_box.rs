@@ -1,4 +1,4 @@
-#![warn(clippy::nonnull_unchecked_on_box_ptr)]
+#![warn(clippy::improper_nonnull_from_box)]
 
 use std::ptr::NonNull;
 
@@ -33,13 +33,13 @@ fn lint() {
     fn basic() {
         let one = Box::new(1);
         let _ = unsafe {
-            //~^ nonnull_unchecked_on_box_ptr
+            //~^ improper_nonnull_from_box
             NonNull::new_unchecked(Box::into_raw(one))
         };
 
         let one = Box::new(1);
         let _ = unsafe {
-            //~^ nonnull_unchecked_on_box_ptr
+            //~^ improper_nonnull_from_box
             NonNull::new_unchecked(Box::into_raw(identity(one)))
         };
     }
@@ -47,7 +47,7 @@ fn lint() {
     fn qualifiers() {
         let one = Box::new(1);
         let _ = unsafe {
-            //~^ nonnull_unchecked_on_box_ptr
+            //~^ improper_nonnull_from_box
             std::ptr::NonNull::new_unchecked(std::boxed::Box::into_raw(one))
         };
 
@@ -56,7 +56,7 @@ fn lint() {
             use NonNull as NonNull2;
             let one = Box::new(1);
             let _ = unsafe {
-                //~^ nonnull_unchecked_on_box_ptr
+                //~^ improper_nonnull_from_box
                 NonNull2::new_unchecked(Box2::into_raw(one))
             };
         }
@@ -66,7 +66,7 @@ fn lint() {
             type NonNull2<T> = NonNull<T>;
             let one = Box::new(1);
             let _ = unsafe {
-                //~^ nonnull_unchecked_on_box_ptr
+                //~^ improper_nonnull_from_box
                 NonNull2::new_unchecked(Box2::into_raw(one))
             };
         }
@@ -75,37 +75,37 @@ fn lint() {
     fn macros() {
         let one = Box::new(1);
         let _ = unsafe {
-            //~^ nonnull_unchecked_on_box_ptr
+            //~^ improper_nonnull_from_box
             NonNull::new_unchecked(Box::into_raw(identity!(one)))
         };
 
         let one = Box::new(1);
         let _ = identity!(unsafe {
-            //~^ nonnull_unchecked_on_box_ptr
+            //~^ improper_nonnull_from_box
             NonNull::new_unchecked(Box::into_raw(one))
         });
 
         let one = Box::new(1);
         let _ = unsafe {
-            //~^ nonnull_unchecked_on_box_ptr
+            //~^ improper_nonnull_from_box
             identity!(NonNull::new_unchecked(Box::into_raw(one)))
         };
 
         let one = Box::new(1);
         let _ = unsafe {
-            //~^ nonnull_unchecked_on_box_ptr
+            //~^ improper_nonnull_from_box
             NonNull::new_unchecked(identity!(Box::into_raw(one)))
         };
 
         let one = Box::new(1);
         let _ = unsafe {
-            //~^ nonnull_unchecked_on_box_ptr
+            //~^ improper_nonnull_from_box
             NonNull::new_unchecked(identity!(Box::into_raw(identity!(one))))
         };
 
         let one = Box::new(1);
         let _ = unsafe {
-            //~^ nonnull_unchecked_on_box_ptr
+            //~^ improper_nonnull_from_box
             NonNull::new_unchecked(Box::into_raw(weird!(one)))
         };
     }
@@ -114,30 +114,30 @@ fn lint() {
         let one = Box::new(1);
         let _ = unsafe {
             NonNull::new_unchecked(Box::into_raw(unsafe_identity(one)))
-            //~^ nonnull_unchecked_on_box_ptr
+            //~^ improper_nonnull_from_box
         };
 
         let one = Box::new(1);
         let _ = unsafe {
             identity(NonNull::new_unchecked(Box::into_raw(one)))
-            //~^ nonnull_unchecked_on_box_ptr
+            //~^ improper_nonnull_from_box
         };
 
         let one = Box::new(1);
         let _ = unsafe {
             unsafe_identity(NonNull::new_unchecked(Box::into_raw(one)))
-            //~^ nonnull_unchecked_on_box_ptr
+            //~^ improper_nonnull_from_box
         };
 
         let _ = unsafe {
             NonNull::new_unchecked(Box::into_raw(Box::new(std::num::NonZeroI32::new_unchecked(1))))
-            //~^ nonnull_unchecked_on_box_ptr
+            //~^ improper_nonnull_from_box
         };
 
         let _ = unsafe {
             let one = Box::new(1);
             NonNull::new_unchecked(Box::into_raw(one))
-            //~^ nonnull_unchecked_on_box_ptr
+            //~^ improper_nonnull_from_box
         };
     }
 }
@@ -178,7 +178,7 @@ fn msrv_1_25() {
 fn msrv_1_26() {
     let one = Box::new(1);
     let _ = unsafe {
-        //~^ nonnull_unchecked_on_box_ptr
+        //~^ improper_nonnull_from_box
         NonNull::new_unchecked(Box::into_raw(one))
     };
 }
@@ -187,7 +187,7 @@ fn msrv_1_26() {
 fn msrv_1_89() {
     let one = Box::new(1);
     let _ = unsafe {
-        //~^ nonnull_unchecked_on_box_ptr
+        //~^ improper_nonnull_from_box
         NonNull::new_unchecked(Box::into_raw(one))
     };
 }
