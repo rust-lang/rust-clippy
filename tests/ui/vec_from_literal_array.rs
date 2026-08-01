@@ -34,6 +34,12 @@ mod with_extension_trait {
     impl<T, const N: usize> CustomVec for [T; N] {}
 }
 
+macro_rules! get_array {
+    () => {
+        [1, 2, 3]
+    };
+}
+
 fn main() {
     let _v1: Vec<_> = [1, 2, 3].to_vec();
     //~^ vec_from_literal_array
@@ -54,4 +60,6 @@ fn main() {
         use with_extension_trait::CustomVec;
         let _v6: Vec<u32> = ["a", "b", "c"].to_vec();
     }
+    // Should not trigger the lint - array comes from a macro
+    let _v7: Vec<u32> = get_array!().to_vec();
 }

@@ -38,6 +38,7 @@ impl LateLintPass<'_> for VecFromLiteralArray {
             && method_name.ident.name == sym::to_vec
             && let ExprKind::Array(_) = receiver.kind
             && args.is_empty()
+            && !receiver.span.from_expansion()
         {
             // Make sure that this to_vec() doesn't come from a trait
             if let Some(method_def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)
