@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint;
 use rustc_abi::ExternAbi;
-use rustc_hir::intravisit::{InferKind, Visitor, VisitorExt as _, walk_ty};
+use rustc_hir::intravisit::{InferKind, Visitor, VisitorExt as _, walk_generic_args, walk_ty};
 use rustc_hir::{self as hir, AmbigArg, GenericParamKind, TyKind};
 use rustc_lint::LateContext;
 use rustc_span::{Span, sym};
@@ -173,5 +173,16 @@ impl<'tcx> Visitor<'tcx> for OpaqueBoundComplexityVisitor {
             self.max_score = complexity;
         }
         walk_ty(self, ty);
+    }
+
+    fn visit_generic_args(&mut self, generic_args: &'tcx hir::GenericArgs<'tcx>) {
+        if let Some((inputs, output)) = generic_args.paren_sugar_inputs_output() {
+            for input in inputs {
+                self.visit_ty_unambig(input);
+            }
+            self.visit_ty_unambig(output);
+        } else {
+            walk_generic_args(self, generic_args);
+        }
     }
 }
