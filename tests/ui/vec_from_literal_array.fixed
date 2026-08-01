@@ -40,6 +40,14 @@ macro_rules! get_array {
     };
 }
 
+struct HasToVec;
+
+impl HasToVec {
+    fn to_vec(&self) -> Vec<u32> {
+        vec![1, 2, 3]
+    }
+}
+
 fn main() {
     let _v1: Vec<_> = vec![1, 2, 3];
     //~^ vec_from_literal_array
@@ -62,4 +70,6 @@ fn main() {
     }
     // Should not trigger the lint - array comes from a macro
     let _v7: Vec<u32> = get_array!().to_vec();
+    // Should not trigger the lint - not called on an array literal
+    let _v8: Vec<u32> = HasToVec.to_vec();
 }
