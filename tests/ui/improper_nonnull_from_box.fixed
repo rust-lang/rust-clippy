@@ -1,4 +1,4 @@
-#![warn(clippy::nonnull_unchecked_on_box_ptr)]
+#![warn(clippy::improper_nonnull_from_box)]
 
 use std::ptr::NonNull;
 
@@ -81,30 +81,30 @@ fn lint() {
         let one = Box::new(1);
         let _ = unsafe {
             NonNull::from_mut(Box::leak(unsafe_identity(one)))
-            //~^ nonnull_unchecked_on_box_ptr
+            //~^ improper_nonnull_from_box
         };
 
         let one = Box::new(1);
         let _ = unsafe {
             identity(NonNull::from_mut(Box::leak(one)))
-            //~^ nonnull_unchecked_on_box_ptr
+            //~^ improper_nonnull_from_box
         };
 
         let one = Box::new(1);
         let _ = unsafe {
             unsafe_identity(NonNull::from_mut(Box::leak(one)))
-            //~^ nonnull_unchecked_on_box_ptr
+            //~^ improper_nonnull_from_box
         };
 
         let _ = unsafe {
             NonNull::from_mut(Box::leak(Box::new(std::num::NonZeroI32::new_unchecked(1))))
-            //~^ nonnull_unchecked_on_box_ptr
+            //~^ improper_nonnull_from_box
         };
 
         let _ = unsafe {
             let one = Box::new(1);
             NonNull::from_mut(Box::leak(one))
-            //~^ nonnull_unchecked_on_box_ptr
+            //~^ improper_nonnull_from_box
         };
     }
 }
