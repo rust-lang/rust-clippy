@@ -14,7 +14,7 @@ declare_clippy_lint! {
     ///
     /// ### Why is this bad?
     ///
-    /// It is clearer to use the `vec!` macro.
+    /// It is clearer and may be more performant to use the `vec!` macro.
     ///
     /// ### Example
     /// ```no_run
