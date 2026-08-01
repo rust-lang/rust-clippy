@@ -1,0 +1,5 @@
+disallowed-pub-api-types = [
+    "std::result::Result",
+    "std::option::Option",
+    "crate::InputOnly",
+]

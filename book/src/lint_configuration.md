@@ -616,6 +616,23 @@ default configuration of Clippy. By default, any configuration will replace the 
 * [`disallowed_names`](https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_names)
 
 
+## `disallowed-pub-api-types`
+The list of disallowed types in public APIs, written as fully qualified paths.
+
+**Fields:**
+- `path` (required): the fully qualified path to the type that should be disallowed
+- `reason` (optional): explanation why this type is disallowed
+- `replacement` (optional): suggested alternative type
+- `allow-invalid` (optional, `false` by default): when set to `true`, it will ignore this entry
+  if the path doesn't exist, instead of emitting an error
+
+**Default Value:** `[]`
+
+---
+**Affected lints:**
+* [`disallowed_pub_api_types`](https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_pub_api_types)
+
+
 ## `disallowed-types`
 The list of disallowed types, written as fully qualified paths.
 
