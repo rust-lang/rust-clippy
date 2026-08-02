@@ -22,20 +22,20 @@ fn main() {
     let u2 = 2_u32;
 
     // basic cases
-    let _ = u1.div_ceil(u2) * u2; //~ manual_next_multiple_of
-    let _ = u2 * u1.div_ceil(u2); //~ manual_next_multiple_of
-    let _ = u1 + (u2 - u1 % u2) % u2; //~ manual_next_multiple_of
-    let _ = (u2 - u1 % u2) % u2 + u1; //~ manual_next_multiple_of
+    let _ = u1.next_multiple_of(u2); //~ manual_next_multiple_of
+    let _ = u1.next_multiple_of(u2); //~ manual_next_multiple_of
+    let _ = u1.next_multiple_of(u2); //~ manual_next_multiple_of
+    let _ = u1.next_multiple_of(u2); //~ manual_next_multiple_of
 
     // special cases
     let _ = u1.div_ceil(f_val()) * f_val();
-    let _ = f_val().div_ceil(u2) * u2; //~ manual_next_multiple_of
+    let _ = f_val().next_multiple_of(u2); //~ manual_next_multiple_of
 
-    let _ = u1.div_ceil(identity!(u2)) * identity!(u2); //~ manual_next_multiple_of
-    let _ = identity!(u1).div_ceil(u2) * u2; //~ manual_next_multiple_of
+    let _ = u1.next_multiple_of(u2); //~ manual_next_multiple_of
+    let _ = u1.next_multiple_of(u2); //~ manual_next_multiple_of
 
     let _ = u1.div_ceil(may_have_side_effect!(u2)) * may_have_side_effect!(u2);
-    let _ = may_have_side_effect!(u1).div_ceil(u2) * u2; //~ manual_next_multiple_of
+    let _ = may_have_side_effect!(u1).next_multiple_of(u2); //~ manual_next_multiple_of
 
     // This lint ignore manual `div_ceil` implementation
     #[expect(clippy::manual_div_ceil)]
