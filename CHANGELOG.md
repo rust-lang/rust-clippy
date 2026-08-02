@@ -7127,6 +7127,7 @@ Released 2018-09-13
 [`manual_memcpy`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_memcpy
 [`manual_midpoint`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_midpoint
 [`manual_next_back`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_next_back
+[`manual_next_multiple_of`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_next_multiple_of
 [`manual_non_exhaustive`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_non_exhaustive
 [`manual_noop_waker`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_noop_waker
 [`manual_ok_err`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_ok_err
