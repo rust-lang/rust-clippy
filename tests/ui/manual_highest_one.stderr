@@ -1,5 +1,5 @@
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:12:13
+  --> tests/ui/manual_highest_one.rs:42:13
    |
 LL |     let _ = 31 - u.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
@@ -8,86 +8,92 @@ LL |     let _ = 31 - u.leading_zeros();
    = help: to override `-D warnings` add `#[allow(clippy::manual_highest_one)]`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:13:13
+  --> tests/ui/manual_highest_one.rs:43:13
    |
 LL |     let _ = u32::BITS - 1 - u.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:14:13
+  --> tests/ui/manual_highest_one.rs:44:13
    |
 LL |     let _ = u32::BITS - u.leading_zeros() - 1;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:15:13
+  --> tests/ui/manual_highest_one.rs:45:13
    |
 LL |     let _ = u32::BITS - (1 + u.leading_zeros());
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:16:13
+  --> tests/ui/manual_highest_one.rs:46:13
    |
 LL |     let _ = u32::BITS - (u.leading_zeros() + 1);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:19:13
+  --> tests/ui/manual_highest_one.rs:47:13
+   |
+LL |     let _ = u.bit_width() - 1;
+   |             ^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:52:13
    |
 LL |     let _ = 31 - nz.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^ help: try: `nz.highest_one()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:20:13
+  --> tests/ui/manual_highest_one.rs:53:13
    |
 LL |     let _ = u32::BITS - 1 - nz.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `nz.highest_one()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:21:13
+  --> tests/ui/manual_highest_one.rs:58:17
    |
-LL |     let _ = u32::BITS - nz.leading_zeros() - 1;
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `nz.highest_one()`
+LL |         let _ = u32::BITS - nz.leading_zeros() - 1;
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `nz.highest_one()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:22:13
+  --> tests/ui/manual_highest_one.rs:60:13
    |
 LL |     let _ = u32::BITS - (1 + nz.leading_zeros());
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `nz.highest_one()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:23:13
+  --> tests/ui/manual_highest_one.rs:61:13
    |
 LL |     let _ = u32::BITS - (nz.leading_zeros() + 1);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `nz.highest_one()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:26:13
+  --> tests/ui/manual_highest_one.rs:72:17
    |
-LL |       let _ = if u == 0 {
-   |  _____________^
+LL |           let _ = if u == 0 {
+   |  _________________^
 LL | |
-LL | |         0
-LL | |     } else {
-LL | |         31 - u.leading_zeros()
-LL | |     };
-   | |_____^
+LL | |             0
+LL | |         } else {
+LL | |             31 - u.leading_zeros()
+LL | |         };
+   | |_________^
    |
 help: try
    |
-LL ~     let _ = u.highest_one().unwrap_or({
+LL ~         let _ = u.highest_one().unwrap_or_else(|| {
 LL +
-LL +         0
-LL ~     });
+LL +             0
+LL ~         });
    |
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:32:13
+  --> tests/ui/manual_highest_one.rs:79:13
    |
 LL |       let _ = if 0 == u {
    |  _____________^
 LL | |
-LL | |         1
+LL | |         todo!()
 LL | |     } else {
 LL | |         31 - u.leading_zeros()
 LL | |     };
@@ -95,42 +101,137 @@ LL | |     };
    |
 help: try
    |
-LL ~     let _ = u.highest_one().unwrap_or({
+LL ~     let _ = u.highest_one().unwrap_or_else(|| {
 LL +
-LL +         1
+LL +         todo!()
 LL ~     });
    |
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:38:13
+  --> tests/ui/manual_highest_one.rs:85:13
    |
 LL |       let _ = if u != 0 {
    |  _____________^
 LL | |
 LL | |         31 - u.leading_zeros()
 LL | |     } else {
-LL | |         2
+LL | |         do_something(u);
+LL | |         1
 LL | |     };
-   | |_____^ help: try: `u.highest_one().unwrap_or(2)`
+   | |_____^
+   |
+help: try
+   |
+LL ~     let _ = u.highest_one().unwrap_or_else(|| {
+LL +         do_something(u);
+LL +         1
+LL ~     });
+   |
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:44:13
+  --> tests/ui/manual_highest_one.rs:92:13
    |
 LL |       let _ = if 0 != u {
    |  _____________^
 LL | |
 LL | |         31 - u.leading_zeros()
 LL | |     } else {
-LL | |         let _ = "Rust is fast, memory-safe and productive.";
-LL | |         3
+LL | |         do_something(u);
+LL | |         1
 LL | |     };
-   | |_____^ help: try: `u.highest_one().unwrap_or(3)`
+   | |_____^
+   |
+help: try
+   |
+LL ~     let _ = u.highest_one().unwrap_or_else(|| {
+LL +         do_something(u);
+LL +         1
+LL ~     });
+   |
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:54:9
+  --> tests/ui/manual_highest_one.rs:99:13
+   |
+LL |       let _ = if u > 0 {
+   |  _____________^
+LL | |
+LL | |         31 - u.leading_zeros()
+LL | |     } else {
+LL | |         do_something(u);
+LL | |         1
+LL | |     };
+   | |_____^
+   |
+help: try
+   |
+LL ~     let _ = u.highest_one().unwrap_or_else(|| {
+LL +         do_something(u);
+LL +         1
+LL ~     });
+   |
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:111:9
+   |
+LL |         31 - u.leading_zeros()
+   |         ^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:121:9
+   |
+LL |         31 - u.leading_zeros()
+   |         ^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:125:13
+   |
+LL |       let _ = match u {
+   |  _____________^
+LL | |
+LL | |         0 => {
+LL | |             do_something(u);
+...  |
+LL | |         _ => 31 - u.leading_zeros(),
+LL | |     };
+   | |_____^
+   |
+help: try
+   |
+LL ~     let _ = u.highest_one().unwrap_or_else(|| {
+LL +             do_something(u);
+LL +             todo!()
+LL ~         });
+   |
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:138:13
+   |
+LL |             31 - u.leading_zeros()
+   |             ^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:143:13
+   |
+LL |     let _ = identity!(31) - u.leading_zeros();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:144:13
+   |
+LL |     let _ = 31 - identity!(u).leading_zeros();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:145:13
+   |
+LL |     let _ = 31 - double!(u).leading_zeros();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `double!(u).highest_one().unwrap()`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:164:9
    |
 LL |         31 - v.leading_zeros()
    |         ^^^^^^^^^^^^^^^^^^^^^^ help: try: `v.highest_one().unwrap()`
 
-error: aborting due to 15 previous errors
+error: aborting due to 24 previous errors
 

@@ -146,6 +146,7 @@ generate! {
     back,
     binary_heap_pop_if,
     binaryheap_iter,
+    bit_width,
     bool_then,
     borrow,
     borrow_mut,

@@ -1,13 +1,13 @@
 use clippy_config::Conf;
-use clippy_utils::consts::integer_const;
+use clippy_utils::comparisons::{Rel, normalize_comparison};
+use clippy_utils::consts::{ConstEvalCtxt, Constant, integer_const, is_zero_integer_const};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::{HasHirId as _, MaybeDef as _, MaybeResPath as _};
 use clippy_utils::source::snippet_with_context;
-use clippy_utils::{peel_blocks, sym};
-use rustc_data_structures::fx::FxHashSet;
+use clippy_utils::sym;
 use rustc_errors::Applicability;
-use rustc_hir::{BinOpKind, Block, Expr, ExprKind, HirId};
+use rustc_hir::{BinOpKind, Expr, ExprKind, MatchSource, Node, PatKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
 use rustc_session::impl_lint_pass;
@@ -39,19 +39,16 @@ impl_lint_pass!(ManualHighestOne => [MANUAL_HIGHEST_ONE]);
 
 pub struct ManualHighestOne {
     msrv: Msrv,
-    already_linted: FxHashSet<HirId>,
 }
 
 impl ManualHighestOne {
     pub fn new(conf: &Conf) -> Self {
-        Self {
-            msrv: conf.msrv,
-            already_linted: FxHashSet::default(),
-        }
+        Self { msrv: conf.msrv }
     }
 }
 
 impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
+    #[expect(clippy::too_many_lines)]
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         let mid_ty = cx.typeck_results().expr_ty(expr);
 
@@ -59,26 +56,24 @@ impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
             return;
         }
 
-        if let Some(recv) = extract_recv_from_highest_one_equiv(cx, expr) {
-            if self.already_linted.contains(&expr.hir_id()) {
-                return;
-            }
+        let Some(recv) = extract_recv_from_highest_one_equiv(cx, expr) else {
+            return;
+        };
+        let h1_expr = expr;
 
-            let mut app = Applicability::MaybeIncorrect;
+        if cx.typeck_results().expr_ty(recv).is_diag_item(cx, sym::NonZero) {
+            let mut app = Applicability::MachineApplicable;
 
             let sugg = {
-                let (recv_str, _) = snippet_with_context(cx, recv.span, expr.span.ctxt(), "_", &mut app);
-                if cx.typeck_results().expr_ty(recv).is_diag_item(cx, sym::NonZero) {
-                    format!("{recv_str}.highest_one()")
-                } else {
-                    format!("{recv_str}.highest_one().unwrap()")
-                }
+                let (recv_str, _) = snippet_with_context(cx, recv.span, h1_expr.span.ctxt(), "..", &mut app);
+
+                format!("{recv_str}.highest_one()")
             };
 
             span_lint_and_sugg(
                 cx,
                 MANUAL_HIGHEST_ONE,
-                expr.span,
+                h1_expr.span,
                 "manually reimplementing `highest_one`",
                 "try",
                 sugg,
@@ -88,62 +83,137 @@ impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
             return;
         }
 
-        if let ExprKind::If(cond, true_arm, Some(else_block)) = expr.kind
-            && let ExprKind::Block(
-                Block {
-                    expr: Some(false_arm), ..
+        // Walk the node up
+        let mut hir_id = h1_expr.hir_id();
+        loop {
+            match cx.tcx.parent_hir_node(hir_id) {
+                Node::Arm(arm) => hir_id = arm.hir_id,
+                Node::Block(block) if block.stmts.is_empty() && block.expr.is_some_and(|e| e.hir_id == hir_id) => {
+                    hir_id = block.hir_id;
                 },
-                ..,
-            ) = else_block.kind
-            && let ExprKind::Binary(bin_op, cond_lhs, cond_rhs) = cond.kind
-        {
-            let check_cond = |lhs, rhs| {
-                if Some(0) == integer_const(cx, lhs, lhs.span.ctxt()) {
-                    Some(rhs)
-                } else if Some(0) == integer_const(cx, rhs, rhs.span.ctxt()) {
-                    Some(lhs)
-                } else {
-                    None
-                }
-            };
+                Node::Expr(expr) => match expr.kind {
+                    ExprKind::Block(..) => hir_id = expr.hir_id,
+                    // if rel {} else {}
+                    ExprKind::If(cond, then_block, Some(else_block))
+                        if matches!(else_block.kind, ExprKind::Block(..))
+                            && let ExprKind::Binary(bin_op, lhs, rhs) = cond.kind
+                            && let Some((rel, lhs, rhs)) = normalize_comparison(bin_op.node, lhs, rhs) =>
+                    {
+                        // extract `x` from `x ? 0` or `0 ? x`
+                        let var = if is_zero_integer_const(cx, lhs, cond.span.ctxt())
+                            && [Rel::Eq, Rel::Ne, Rel::Lt].contains(&rel)
+                        {
+                            rhs
+                        } else if is_zero_integer_const(cx, rhs, cond.span.ctxt()) && [Rel::Eq, Rel::Ne].contains(&rel)
+                        {
+                            lhs
+                        } else {
+                            break;
+                        };
+                        // `var` and `recv` must indicate the same entity
+                        if !matches!((var.res_local_id(), recv.res_local_id()), (Some(l), Some(r)) if l == r) {
+                            break;
+                        }
 
-            // if x == 0 { .. } else { .. }
-            let (recv, nonzero_arm) = if bin_op.node == BinOpKind::Eq
-                && let Some(recv) = extract_recv_from_highest_one_equiv(cx, peel_blocks(false_arm))
-                && let Some(var) = check_cond(cond_lhs, cond_rhs)
-                // check if `var` and `recv` are the same identifier
-            && matches!((var.res_local_id(), recv.res_local_id()), (Some(l), Some(r)) if l == r)
-            {
-                self.already_linted.insert(peel_blocks(false_arm).hir_id());
-                (recv, true_arm)
-            } else
-            // if x != 0 { .. } else { .. }
-            if bin_op.node == BinOpKind::Ne
-                && let Some(recv) = extract_recv_from_highest_one_equiv(cx, peel_blocks(true_arm))
-                && let Some(var) = check_cond(cond_lhs, cond_rhs)
-                // check if `var` and `recv` are the same identifier
-            && matches!((var.res_local_id(), recv.res_local_id()), (Some(l), Some(r)) if l == r)
-            {
-                self.already_linted.insert(peel_blocks(true_arm).hir_id());
-                (recv, *false_arm)
-            } else {
-                return;
-            };
+                        let recv_in_then_block =
+                            cx.tcx.hir_parent_iter(h1_expr.hir_id).any(|v| v.0 == then_block.hir_id);
+                        // if x == 0 {} else {}
+                        // if x != 0 {} else {}
+                        // if 0 < unsigned {} else {}
+                        if (rel == Rel::Eq) == recv_in_then_block {
+                            break;
+                        }
 
-            let mut app = Applicability::MaybeIncorrect;
-            let (recv, _) = snippet_with_context(cx, recv.span, expr.span.ctxt(), "_", &mut app);
-            let (nonzero_arm, _) = snippet_with_context(cx, nonzero_arm.span, expr.span.ctxt(), "_", &mut app);
+                        let mut app = Applicability::MaybeIncorrect;
 
-            span_lint_and_sugg(
-                cx,
-                MANUAL_HIGHEST_ONE,
-                expr.span,
-                "manually reimplementing `highest_one`",
-                "try",
-                format!("{recv}.highest_one().unwrap_or({nonzero_arm})"),
-                app,
-            );
+                        let sugg = {
+                            let (recv_str, _) =
+                                snippet_with_context(cx, recv.span, h1_expr.span.ctxt(), "..", &mut app);
+                            let (else_str, _) = if recv_in_then_block {
+                                snippet_with_context(cx, else_block.span, expr.span.ctxt(), "..", &mut app)
+                            } else {
+                                snippet_with_context(cx, then_block.span, expr.span.ctxt(), "..", &mut app)
+                            };
+
+                            format!("{recv_str}.highest_one().unwrap_or_else(|| {else_str})")
+                        };
+
+                        span_lint_and_sugg(
+                            cx,
+                            MANUAL_HIGHEST_ONE,
+                            expr.span,
+                            "manually reimplementing `highest_one`",
+                            "try",
+                            sugg,
+                            app,
+                        );
+
+                        return;
+                    },
+                    // match u {
+                    //     0 => do_something(),
+                    //     _ => u.highest_one_like(),
+                    // }
+                    ExprKind::Match(key, arms, MatchSource::Normal)
+                        if arms.len() == 2
+                    // `0` pattern
+                    && arms[0].guard.is_none()
+                    && let PatKind::Expr(pat_expr) = arms[0].pat.kind
+                    && !pat_expr.span.from_expansion()
+                    && ConstEvalCtxt::new(cx).eval_pat_expr(pat_expr) == Some(Constant::Int(0))
+                    // `_` pattern
+                    && arms[1].guard.is_none()
+                    && let PatKind::Wild = arms[1].pat.kind
+                    // && arms[1].body.hir_id == h1_expr.hir_id
+                    // same item
+                    && matches!((key.res_local_id(), recv.res_local_id()), (Some(l), Some(r)) if l == r) =>
+                    {
+                        let mut app = Applicability::MaybeIncorrect;
+
+                        let sugg = {
+                            let (recv_str, _) =
+                                snippet_with_context(cx, recv.span, h1_expr.span.ctxt(), "..", &mut app);
+                            let (else_str, _) =
+                                snippet_with_context(cx, arms[0].body.span, expr.span.ctxt(), "..", &mut app);
+
+                            format!("{recv_str}.highest_one().unwrap_or_else(|| {else_str})")
+                        };
+
+                        span_lint_and_sugg(
+                            cx,
+                            MANUAL_HIGHEST_ONE,
+                            expr.span,
+                            "manually reimplementing `highest_one`",
+                            "try",
+                            sugg,
+                            app,
+                        );
+
+                        return;
+                    },
+                    _ => break,
+                },
+                _ => break,
+            }
         }
+
+        let mut app = Applicability::MachineApplicable;
+
+        let sugg = {
+            let (recv_str, _) = snippet_with_context(cx, recv.span, h1_expr.span.ctxt(), "..", &mut app);
+
+            format!("{recv_str}.highest_one().unwrap()")
+        };
+
+        span_lint_and_sugg(
+            cx,
+            MANUAL_HIGHEST_ONE,
+            h1_expr.span,
+            "manually reimplementing `highest_one`",
+            "try",
+            sugg,
+            app,
+        );
     }
 }
 
@@ -153,13 +223,19 @@ fn extract_recv_from_highest_one_equiv<'tcx>(
     expr: &'tcx Expr<'tcx>,
 ) -> Option<&'tcx Expr<'tcx>> {
     match expr.kind {
-        // BITS - 1 - x.leading_zeros()
-        // BITS - 1 - nonzero.leading_zeros()
         ExprKind::Binary(bin_op, lhs, rhs) if bin_op.node == BinOpKind::Sub => {
-            // literal - x.leading_zeros()
+            // x.bit_width() - 1
+            if let ExprKind::MethodCall(method, recv, [], _) = lhs.kind
+                && method.ident.name == sym::bit_width
+                && integer_const(cx, rhs, expr.span.ctxt()) == Some(1)
+            {
+                return Some(recv);
+            }
+
+            // const - x.leading_zeros()
             if let Some(recv) = extract_recv_of_lz(rhs)
-                    && let Some(lit) = integer_const(cx, lhs, lhs.span.ctxt())
-                    // check literal value
+                    && let Some(lit) = integer_const(cx, lhs, expr.span.ctxt())
+                    // check constant
                     && let ty = cx.typeck_results().expr_ty(recv)
                     && let Some(bits) = bit_width(cx, ty)
                     && lit == bits.wrapping_sub(1)
@@ -170,7 +246,7 @@ fn extract_recv_from_highest_one_equiv<'tcx>(
             // (BITS - 1) - x.leading_zeros()
             if let ExprKind::Binary(bin_op, inner_lhs, inner_rhs) = lhs.kind
                     && bin_op.node == BinOpKind::Sub
-                    && let Some(recv) = check_one_and_extract_recv_of_lz(cx,inner_rhs, rhs)
+                    && let Some(recv) = check_one_and_extract_recv_of_lz(cx, expr,inner_rhs, rhs)
                     // check BITS
                     && let ty = cx.typeck_results().expr_ty(recv)
                     && integer_const(cx, inner_lhs, expr.span.ctxt()) == bit_width(cx, ty)
@@ -181,7 +257,7 @@ fn extract_recv_from_highest_one_equiv<'tcx>(
             // BITS - (1 + x.leading_zeros())
             if let ExprKind::Binary(bin_op, inner_lhs, inner_rhs) = rhs.kind
                     && bin_op.node == BinOpKind::Add
-                    && let Some(recv) = check_one_and_extract_recv_of_lz(cx,inner_lhs, inner_rhs)
+                    && let Some(recv) = check_one_and_extract_recv_of_lz(cx, expr,inner_lhs, inner_rhs)
                     // check BITS
                     && let ty = cx.typeck_results().expr_ty(recv)
                     && integer_const(cx, lhs, expr.span.ctxt()) == bit_width(cx, ty)
@@ -206,15 +282,16 @@ fn extract_recv_of_lz<'tcx>(expr: &'tcx Expr<'tcx>) -> Option<&'tcx Expr<'tcx>> 
 
 fn check_one_and_extract_recv_of_lz<'tcx>(
     cx: &LateContext<'_>,
+    h1_expr: &'tcx Expr<'tcx>,
     expr1: &'tcx Expr<'tcx>,
     expr2: &'tcx Expr<'tcx>,
 ) -> Option<&'tcx Expr<'tcx>> {
     if let Some(recv) = extract_recv_of_lz(expr1)
-        && Some(1) == integer_const(cx, expr2, expr2.span.ctxt())
+        && integer_const(cx, expr2, h1_expr.span.ctxt()) == Some(1)
     {
         Some(recv)
     } else if let Some(recv) = extract_recv_of_lz(expr2)
-        && Some(1) == integer_const(cx, expr1, expr1.span.ctxt())
+        && integer_const(cx, expr1, h1_expr.span.ctxt()) == Some(1)
     {
         Some(recv)
     } else {
