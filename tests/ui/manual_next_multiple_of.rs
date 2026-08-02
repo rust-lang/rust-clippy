@@ -29,7 +29,7 @@ fn main() {
     let _ = u1 + (identity!(u2) - u1 % identity!(u2)) % identity!(u2);
     let _ = identity!(u1) + (u2 - identity!(u1) % u2) % u2;
 
-    // This line ignore manual `div_ceil` implementation
+    // This lint ignore manual `div_ceil` implementation
     #[expect(clippy::manual_div_ceil)]
     let _ = (u1 + u2 - 1) / u2 * u2;
 }
