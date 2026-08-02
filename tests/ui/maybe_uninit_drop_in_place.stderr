@@ -1,0 +1,76 @@
+error: calling `ptr::drop_in_place` on a `MaybeUninit` is a no-op
+  --> tests/ui/maybe_uninit_drop_in_place.rs:10:9
+   |
+LL |         std::ptr::drop_in_place(&mut x);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `MaybeUninit<T>` does not implement `Drop`, so the wrapped `T` is not dropped
+   = help: if initialized, drop the inner `T` with `MaybeUninit::assume_init_drop`
+   = note: `-D clippy::maybe-uninit-drop-in-place` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::maybe_uninit_drop_in_place)]`
+
+error: calling `ptr::drop_in_place` on a `MaybeUninit` is a no-op
+  --> tests/ui/maybe_uninit_drop_in_place.rs:18:9
+   |
+LL |         std::ptr::drop_in_place(&mut x);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `MaybeUninit<T>` does not implement `Drop`, so the wrapped `T` is not dropped
+   = help: if initialized, drop the inner `T` with `MaybeUninit::assume_init_drop`
+
+error: calling `ptr::drop_in_place` on a `MaybeUninit` is a no-op
+  --> tests/ui/maybe_uninit_drop_in_place.rs:26:9
+   |
+LL |         std::ptr::drop_in_place(&mut x);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `MaybeUninit<T>` does not implement `Drop`, so the wrapped `T` is not dropped
+   = help: if initialized, drop the inner `T` with `MaybeUninit::assume_init_drop`
+
+error: calling `ptr::drop_in_place` on a `MaybeUninit` is a no-op
+  --> tests/ui/maybe_uninit_drop_in_place.rs:35:9
+   |
+LL |         std::ptr::drop_in_place(p);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `MaybeUninit<T>` does not implement `Drop`, so the wrapped `T` is not dropped
+   = help: if initialized, drop the inner `T` with `MaybeUninit::assume_init_drop`
+
+error: calling `ptr::drop_in_place` on a `MaybeUninit` is a no-op
+  --> tests/ui/maybe_uninit_drop_in_place.rs:44:9
+   |
+LL |         std::ptr::drop_in_place(p);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `MaybeUninit<T>` does not implement `Drop`, so the wrapped `T` is not dropped
+   = help: if initialized, drop the inner `T` with `MaybeUninit::assume_init_drop`
+
+error: calling `ptr::drop_in_place` on a `MaybeUninit` is a no-op
+  --> tests/ui/maybe_uninit_drop_in_place.rs:52:9
+   |
+LL |         std::ptr::drop_in_place(&mut x);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `MaybeUninit<T>` does not implement `Drop`, so the wrapped `T` is not dropped
+   = help: if initialized, drop the inner `T` with `MaybeUninit::assume_init_drop`
+
+error: calling `ptr::drop_in_place` on a `MaybeUninit` is a no-op
+  --> tests/ui/maybe_uninit_drop_in_place.rs:63:9
+   |
+LL |         std::ptr::drop_in_place(slice);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `MaybeUninit<T>` does not implement `Drop`, so the wrapped `T` is not dropped
+   = help: if initialized, drop the inner `T`s by casting the pointer to `*mut T` before forming the slice
+
+error: calling `ptr::drop_in_place` on a `MaybeUninit` is a no-op
+  --> tests/ui/maybe_uninit_drop_in_place.rs:71:9
+   |
+LL |         std::ptr::drop_in_place(&mut buf);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `MaybeUninit<T>` does not implement `Drop`, so the wrapped `T` is not dropped
+   = help: if initialized, drop the inner `T`s by casting the pointer to `*mut T` before forming the slice
+
+error: aborting due to 8 previous errors
+
