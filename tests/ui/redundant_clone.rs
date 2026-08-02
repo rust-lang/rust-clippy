@@ -291,3 +291,41 @@ mod issue13900 {
         }
     }
 }
+
+mod issue16096 {
+    // `algo` is declared inside the loop, so it is a fresh value on each iteration and the
+    // clone is redundant regardless of how the iteration ends.
+    fn try_from_bytes(bytes: &[u8]) -> Option<Vec<Vec<u8>>> {
+        let mut pipeline = Vec::new();
+        let mut index = 0;
+        while index < bytes.len() {
+            match bytes[index] {
+                0 => {
+                    let algo = vec![];
+                    pipeline.push(algo.clone());
+                    //~^ redundant_clone
+                },
+                1 => {
+                    let algo = vec![];
+                    pipeline.push(algo.clone());
+                    //~^ redundant_clone
+                    return Some(pipeline);
+                },
+                _ => {},
+            }
+            index += 1;
+        }
+
+        None
+    }
+
+    fn loop_body(n: usize) -> Vec<String> {
+        let mut out = Vec::new();
+        for _ in 0..n {
+            let s = String::new();
+            out.push(s.clone());
+            //~^ redundant_clone
+        }
+        out
+    }
+}

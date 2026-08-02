@@ -180,5 +180,41 @@ note: this value is dropped without further use
 LL |     foo(&x.clone(), move || {
    |          ^
 
-error: aborting due to 15 previous errors
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:305:39
+   |
+LL |                     pipeline.push(algo.clone());
+   |                                       ^^^^^^^^ help: remove this
+   |
+note: this value is dropped without further use
+  --> tests/ui/redundant_clone.rs:305:35
+   |
+LL |                     pipeline.push(algo.clone());
+   |                                   ^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:310:39
+   |
+LL |                     pipeline.push(algo.clone());
+   |                                       ^^^^^^^^ help: remove this
+   |
+note: this value is dropped without further use
+  --> tests/ui/redundant_clone.rs:310:35
+   |
+LL |                     pipeline.push(algo.clone());
+   |                                   ^^^^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:326:23
+   |
+LL |             out.push(s.clone());
+   |                       ^^^^^^^^ help: remove this
+   |
+note: this value is dropped without further use
+  --> tests/ui/redundant_clone.rs:326:22
+   |
+LL |             out.push(s.clone());
+   |                      ^
+
+error: aborting due to 18 previous errors
 

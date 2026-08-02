@@ -1,11 +1,14 @@
 use std::iter;
+use std::ops::Range;
 
 use rustc_data_structures::either::Either;
+use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::{Expr, HirId};
 use rustc_index::bit_set::DenseBitSet;
 use rustc_middle::mir::visit::{MutatingUseContext, NonMutatingUseContext, PlaceContext, Visitor};
 use rustc_middle::mir::{
-    BasicBlock, Body, InlineAsmOperand, Local, Location, Place, START_BLOCK, StatementKind, TerminatorKind, traversal,
+    BasicBlock, Body, InlineAsmOperand, Local, Location, Place, START_BLOCK, Statement, StatementKind, TerminatorKind,
+    traversal,
 };
 use rustc_middle::ty::TyCtxt;
 
@@ -29,33 +32,104 @@ pub fn visit_local_usage<const N: usize>(
     mir: &Body<'_>,
     location: Location,
 ) -> Option<[LocalUsage; N]> {
-    let init = [const {
-        LocalUsage {
-            local_use_locs: Vec::new(),
-            local_consume_or_mutate_locs: Vec::new(),
-        }
-    }; N];
+    let blocks = reachable_while_storage_live(&locals, mir, location)?;
 
-    traversal::Postorder::new(&mir.basic_blocks, location.block, None)
+    let mut v = V {
+        locals: &locals,
+        location,
+        results: [const {
+            LocalUsage {
+                local_use_locs: Vec::new(),
+                local_consume_or_mutate_locs: Vec::new(),
+            }
+        }; N],
+    };
+
+    for tbb in traversal::Postorder::new(&mir.basic_blocks, location.block, None)
         .collect::<Vec<_>>()
         .into_iter()
         .rev()
-        .try_fold(init, |usage, tbb| {
-            let tdata = &mir.basic_blocks[tbb];
+    {
+        if blocks.contains(tbb) {
+            v.visit_basic_block_data(tbb, &mir.basic_blocks[tbb]);
+        }
+    }
 
-            // Give up on loops
-            if tdata.terminator().successors().any(|s| s == location.block) {
-                return None;
-            }
+    Some(v.results)
+}
 
-            let mut v = V {
-                locals: &locals,
-                location,
-                results: usage,
-            };
-            v.visit_basic_block_data(tbb, tdata);
-            Some(v.results)
-        })
+/// The tracked values that are still live, as a set of idx of `locals`
+type Live = DenseBitSet<usize>;
+
+/// The [`Local`] whose value `stmt` kills, if any.
+fn killed_local(stmt: &Statement<'_>) -> Option<Local> {
+    match stmt.kind {
+        StatementKind::StorageDead(local) => Some(local),
+        _ => None,
+    }
+}
+
+/// Returns the blocks reachable from `location` in which `locals` still hold their values.
+///
+/// A path is walked until every local has been `StorageDead`-ed.
+/// No statement past that point can refer to the values being tracked.
+/// A local declared inside a loop is therefore distinct on each iteration.
+///
+/// Returns `None` if `location.block` is reachable again while some local is still live.
+/// The statements preceding `location` then run a second time and cannot be ordered against it.
+fn reachable_while_storage_live<const N: usize>(
+    locals: &[Local; N],
+    mir: &Body<'_>,
+    location: Location,
+) -> Option<DenseBitSet<BasicBlock>> {
+    let remove_killed = |bb: BasicBlock, range: Range<usize>, live: &mut Live| {
+        for slot in mir.basic_blocks[bb].statements[range]
+            .iter()
+            .filter_map(killed_local)
+            .filter_map(|killed| locals.iter().position(|&local| local == killed))
+        {
+            live.remove(slot);
+        }
+    };
+    let successors = |bb: BasicBlock, live: &Live| {
+        mir.basic_blocks[bb]
+            .terminator()
+            .successors()
+            .map(|succ| (succ, live.clone()))
+            .collect::<Vec<_>>()
+    };
+
+    let mut blocks = DenseBitSet::new_empty(mir.basic_blocks.len());
+    blocks.insert(location.block);
+
+    let mut seen = FxHashSet::default();
+    let mut worklist = Vec::new();
+    // `location.block` is the only block entered part-way through, so it is walked separately.
+    // Reaching it again in the loop below means a cycle closed around `location`.
+    let stmts = mir.basic_blocks[location.block].statements.len();
+    let after_location = (location.statement_index + 1).min(stmts);
+    let mut live = Live::new_filled(N);
+    remove_killed(location.block, after_location..stmts, &mut live);
+    if !live.is_empty() {
+        worklist.extend(successors(location.block, &live));
+    }
+
+    while let Some((bb, mut live)) = worklist.pop() {
+        if bb == location.block {
+            return None;
+        }
+        if !seen.insert((bb, live.clone())) {
+            continue;
+        }
+        blocks.insert(bb);
+
+        remove_killed(bb, 0..mir.basic_blocks[bb].statements.len(), &mut live);
+        if !live.is_empty() {
+            worklist.extend(successors(bb, &live));
+        }
+    }
+
+    Some(blocks)
 }
 
 struct V<'a, const N: usize> {
