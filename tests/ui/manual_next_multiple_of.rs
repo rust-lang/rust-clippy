@@ -16,9 +16,11 @@ fn main() {
 
     // basic cases
     let _ = u1.div_ceil(u2) * u2; //~ manual_next_multiple_of
+    let _ = u2 * u1.div_ceil(u2); //~ manual_next_multiple_of
     let _ = u1 + (u2 - u1 % u2) % u2; //~ manual_next_multiple_of
+    let _ = (u2 - u1 % u2) % u2 + u1; //~ manual_next_multiple_of
 
-    // special cases: function and macro may have side effect
+    // special cases: function and macro may have side effect, so must be ignored
     let _ = u1.div_ceil(f_val()) * f_val();
     let _ = u1 + (f_val() - u1 % f_val()) % f_val();
     let _ = f_val() + (u2 - f_val() % u2) % u2;
