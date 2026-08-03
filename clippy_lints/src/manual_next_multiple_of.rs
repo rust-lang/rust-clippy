@@ -11,22 +11,33 @@ use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks manual implementation of `next_multiple_of`.
     ///
     /// ### Why is this bad?
+    /// This makes code complex and less readable.
     ///
     /// ### Example
     /// ```no_run
-    /// // example code where clippy issues a warning
+    /// let a = 1_u32;
+    /// let b = 2_u32;
+    ///
+    /// let _ = a.div_ceil(b) * b;
+    /// let _ = a + (b - a % b) % b;
     /// ```
     /// Use instead:
     /// ```no_run
-    /// // example code which does not raise clippy warning
+    /// let a = 1_u32;
+    /// let b = 2_u32;
+    ///
+    /// let _ = a.next_multiple_of(b);
+    /// let _ = a.next_multiple_of(b);
     /// ```
     #[clippy::version = "1.99.0"]
     pub MANUAL_NEXT_MULTIPLE_OF,
     complexity,
-    "default lint description"
+    "manually reimplementing `next_multiple_of"
 }
+
 impl_lint_pass!(ManualNextMultipleOf => [MANUAL_NEXT_MULTIPLE_OF]);
 
 pub struct ManualNextMultipleOf {
@@ -45,6 +56,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualNextMultipleOf {
             return;
         }
 
+        // find expression equivalent to `a.next_multiple_of(b)`
         let (a, b) = match cx.typeck_results().expr_ty(expr).kind() {
             ty::Uint(_) => {
                 if let Some((a, b)) = match_arith_pattern(cx, expr) {
@@ -89,9 +101,7 @@ fn match_arith_pattern<'tcx>(
     expr: &'tcx Expr<'tcx>,
 ) -> Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
     // `x + y`
-    let Some((x1, y1)) = unpack_bin_op(expr, BinOpKind::Add) else {
-        return None;
-    };
+    let (x1, y1) = unpack_bin_op(expr, BinOpKind::Add)?;
 
     // `a + x % b`
     let (a, b, x2) = if let Some((lhs, rhs)) = unpack_bin_op(x1, BinOpKind::Rem) {
