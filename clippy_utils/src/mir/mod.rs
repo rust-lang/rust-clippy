@@ -8,7 +8,6 @@ use rustc_index::bit_set::DenseBitSet;
 use rustc_middle::mir::visit::{MutatingUseContext, NonMutatingUseContext, PlaceContext, Visitor};
 use rustc_middle::mir::{
     BasicBlock, Body, InlineAsmOperand, Local, Location, Place, START_BLOCK, Statement, StatementKind, TerminatorKind,
-    traversal,
 };
 use rustc_middle::ty::TyCtxt;
 
@@ -45,11 +44,7 @@ pub fn visit_local_usage<const N: usize>(
         }; N],
     };
 
-    for tbb in traversal::Postorder::new(&mir.basic_blocks, location.block, None)
-        .collect::<Vec<_>>()
-        .into_iter()
-        .rev()
-    {
+    for &tbb in mir.basic_blocks.reverse_postorder() {
         if blocks.contains(tbb) {
             v.visit_basic_block_data(tbb, &mir.basic_blocks[tbb]);
         }
