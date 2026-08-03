@@ -27,6 +27,11 @@ fn main() {
     let _ = u1 + (u2 - u1 % u2) % u2; //~ manual_next_multiple_of
     let _ = (u2 - u1 % u2) % u2 + u1; //~ manual_next_multiple_of
 
+    // checked ops
+    let _ = u1.div_ceil(u2).checked_mul(u2); //~ manual_next_multiple_of
+    let _ = u1.checked_add((u2 - u1 % u2) % u2); //~ manual_next_multiple_of
+    let _ = ((u2 - u1 % u2) % u2).checked_add(u1); //~ manual_next_multiple_of
+
     // power of two
     let _ = (u1 + 3) & !3; //~ manual_next_multiple_of
     let _ = (u1 + 7) & !7; //~ manual_next_multiple_of

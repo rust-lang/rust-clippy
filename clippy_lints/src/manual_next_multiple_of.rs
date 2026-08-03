@@ -2,6 +2,7 @@ use clippy_config::Conf;
 use clippy_utils::consts::integer_const;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{DIV_CEIL, Msrv, NEXT_MULTIPLE_OF};
+use clippy_utils::res::MaybeDef;
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::{eq_expr_value, sym};
 use rustc_errors::Applicability;
@@ -9,6 +10,7 @@ use rustc_hir::{BinOpKind, Expr, ExprKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_session::impl_lint_pass;
+use rustc_span::Symbol;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -58,16 +60,16 @@ impl<'tcx> LateLintPass<'tcx> for ManualNextMultipleOf {
         }
 
         // find expression equivalent to `a.next_multiple_of(b)`
-        let (a, b) = match cx.typeck_results().expr_ty(expr).kind() {
+        let (a, b, checked) = match cx.typeck_results().expr_ty(expr).kind() {
             ty::Uint(_) => {
                 if let Some((a, b)) = match_arith_pattern(cx, expr) {
-                    (a, b)
+                    (a, b, false)
                 } else if let Some((a, b)) = match_power_of_two_pattern(cx, expr) {
-                    (a, b)
+                    (a, b, false)
                 } else if self.msrv.meets(cx, DIV_CEIL)
                     && let Some((a, b)) = match_div_ceil_pattern(cx, expr)
                 {
-                    (a, b)
+                    (a, b, false)
                 } else {
                     return;
                 }
@@ -75,6 +77,27 @@ impl<'tcx> LateLintPass<'tcx> for ManualNextMultipleOf {
             ty::Int(_) => {
                 // unstable
                 return;
+            },
+            ty::Adt(def, generic_args)
+                if def.is_diag_item(&cx.tcx, sym::Option)
+                    && let Some(ty) = generic_args[0].as_type() =>
+            {
+                match ty.kind() {
+                    ty::Uint(_) => {
+                        if self.msrv.meets(cx, DIV_CEIL)
+                            && let Some((a, b)) = match_div_ceil_pattern_checked(cx, expr)
+                        {
+                            (a, b, true)
+                        } else {
+                            return;
+                        }
+                    },
+                    ty::Int(_) => {
+                        // unstable
+                        return;
+                    },
+                    _ => return,
+                }
             },
             _ => return,
         };
@@ -84,7 +107,11 @@ impl<'tcx> LateLintPass<'tcx> for ManualNextMultipleOf {
             let (a, _) = snippet_with_context(cx, a.span, expr.span.ctxt(), "..", &mut app);
             let (b, _) = snippet_with_context(cx, b.span, expr.span.ctxt(), "..", &mut app);
 
-            format!("{a}.next_multiple_of({b})")
+            if checked {
+                format!("{a}.checked_next_multiple_of({b})")
+            } else {
+                format!("{a}.next_multiple_of({b})")
+            }
         };
         span_lint_and_sugg(
             cx,
@@ -163,6 +190,54 @@ fn match_power_of_two_pattern<'tcx>(
     }
 }
 
+// Returns `(a, b)` of `a.div_ceil(b) * b`
+fn match_div_ceil_pattern<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'tcx>,
+) -> Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
+    if let Some((lhs, rhs)) = unpack_bin_op(expr, BinOpKind::Mul) {
+        if let Some((a, [b])) = unpack_method_call(lhs, sym::div_ceil)
+            && eq_expr_value(cx, expr.span.ctxt(), b, rhs)
+        {
+            Some((a, b))
+        } else if let Some((a, [b])) = unpack_method_call(rhs, sym::div_ceil)
+            && eq_expr_value(cx, expr.span.ctxt(), b, lhs)
+        {
+            Some((a, b))
+        } else {
+            None
+        }
+    } else {
+        None
+    }
+}
+
+// Returns `(a, b)` of `a.div_ceil(b).checked_mul(b)`
+fn match_div_ceil_pattern_checked<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'tcx>,
+) -> Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
+    // x.checked_mul(y)
+    let Some((x, [y])) = unpack_method_call(expr, sym::checked_mul) else {
+        return None;
+    };
+
+    // a.div_ceil(b).checked_mul(b)
+    if let Some((a, [b])) = unpack_method_call(x, sym::div_ceil)
+        && eq_expr_value(cx, expr.span.ctxt(), y, b)
+    {
+        Some((a, b))
+    } else
+    // b.checked_mul(a.div_ceil(b))
+    if let Some((a, [b])) = unpack_method_call(y, sym::div_ceil)
+        && eq_expr_value(cx, expr.span.ctxt(), x, b)
+    {
+        Some((a, b))
+    } else {
+        None
+    }
+}
+
 // Returns `(a, b)` of `a ? b`.
 fn unpack_bin_op<'tcx>(expr: &'tcx Expr<'tcx>, bin_op_kind: BinOpKind) -> Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
     if let ExprKind::Binary(bin_op, lhs, rhs) = expr.kind
@@ -185,37 +260,12 @@ fn unpack_un_op<'tcx>(expr: &'tcx Expr<'tcx>, un_op: UnOp) -> Option<&'tcx Expr<
     }
 }
 
-// Returns `(a, b)` of `a.div_ceil(b) * b`
-fn match_div_ceil_pattern<'tcx>(
-    cx: &LateContext<'tcx>,
-    expr: &'tcx Expr<'tcx>,
-) -> Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
-    if let ExprKind::Binary(bin_op, lhs, rhs) = expr.kind
-        && bin_op.node == BinOpKind::Mul
-    // && let Some((receiver, ))
+// Returns `(a, [b, ..])` of `a.method(b, ..)`.
+fn unpack_method_call<'tcx>(expr: &'tcx Expr<'tcx>, method: Symbol) -> Option<(&'tcx Expr<'tcx>, &'tcx [Expr<'tcx>])> {
+    if let ExprKind::MethodCall(path, receiver, args, _) = expr.kind
+        && path.ident.name == method
     {
-        if let Some((a, b)) = unpack_div_ceil(lhs)
-            && eq_expr_value(cx, expr.span.ctxt(), b, rhs)
-        {
-            Some((a, b))
-        } else if let Some((a, b)) = unpack_div_ceil(rhs)
-            && eq_expr_value(cx, expr.span.ctxt(), b, lhs)
-        {
-            Some((a, b))
-        } else {
-            None
-        }
-    } else {
-        None
-    }
-}
-
-// Returns `(a, b)` of `a.div_ceil(b)`.
-fn unpack_div_ceil<'tcx>(expr: &'tcx Expr<'tcx>) -> Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
-    if let ExprKind::MethodCall(path, receiver, [arg], _) = expr.kind
-        && path.ident.name == sym::div_ceil
-    {
-        Some((receiver, arg))
+        Some((receiver, args))
     } else {
         None
     }
