@@ -1,5 +1,6 @@
-// Evaluating an inline const block inside an item whose bounds can't be satisfied must not report
-// the evaluation failure, as the compiler never evaluates that body itself.
+// `Self` is unsized, so the `where Self: Sized` bound is unsatisfiable and rustc never evaluates
+// this body. Clippy must not force the evaluation itself: that would emit `error[E0080]` for code
+// which compiles fine. The lint below still fires, since the divisor stays unknown.
 #![feature(trivial_bounds)]
 #![warn(clippy::arithmetic_side_effects)]
 

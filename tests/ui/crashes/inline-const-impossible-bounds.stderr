@@ -1,5 +1,5 @@
 error: arithmetic operation that can potentially result in unexpected side-effects
-  --> tests/ui/crashes/inline-const-impossible-bounds.rs:13:26
+  --> tests/ui/crashes/inline-const-impossible-bounds.rs:14:26
    |
 LL |         f.saturating_div(const { size_of::<Self>() as u64 })
    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
