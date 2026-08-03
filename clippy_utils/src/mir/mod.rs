@@ -6,7 +6,7 @@ use rustc_index::IndexVec;
 use rustc_index::bit_set::DenseBitSet;
 use rustc_middle::mir::visit::{MutatingUseContext, NonMutatingUseContext, PlaceContext, Visitor};
 use rustc_middle::mir::{
-    BasicBlock, BasicBlockData, Body, InlineAsmOperand, Local, Location, Place, START_BLOCK, Statement, StatementKind,
+    BasicBlock, BasicBlockData, Body, InlineAsmOperand, Local, Location, Place, START_BLOCK, StatementKind,
     TerminatorKind,
 };
 use rustc_middle::ty::TyCtxt;
@@ -53,18 +53,9 @@ pub fn visit_local_usage<const N: usize>(
     Some(v.results)
 }
 
-/// The tracked values that are still live, as a set of idx of `locals`
-type Live = DenseBitSet<usize>;
-
-/// The [`Local`] whose value `stmt` kills, if any.
-fn killed_local(stmt: &Statement<'_>) -> Option<Local> {
-    match stmt.kind {
-        StatementKind::StorageDead(local) => Some(local),
-        _ => None,
-    }
-}
-
-/// Returns the blocks reachable from `location` in which `locals` still hold their values.
+/// Which `locals` still hold their values when each block is entered, as a bit mask of idx.
+/// A block which is unreachable from `location`, or only reachable once every local is dead, is
+/// left at zero.
 ///
 /// A path is walked until every local has been `StorageDead`-ed.
 /// No statement past that point can refer to the values being tracked.
@@ -76,12 +67,14 @@ fn reachable_while_storage_live<const N: usize>(
     locals: &[Local; N],
     mir: &Body<'_>,
     location: Location,
-) -> Option<DenseBitSet<BasicBlock>> {
+) -> Option<IndexVec<BasicBlock, u8>> {
+    const ENQUEUED_FLAG: u8 = 0b1000_0000;
+    const { assert!(N <= ENQUEUED_FLAG.trailing_zeros() as usize) }
+
     fn join(base: &mut u8, other: u8) -> bool {
         let new = *base | other;
         mem::replace(base, new) != new
     }
-    const ENQUEUED_FLAG: u8 = 0b1000_0000;
     fn enqueue(state: &mut u8) -> bool {
         let new = *state | ENQUEUED_FLAG;
         mem::replace(state, new) != new
@@ -90,15 +83,30 @@ fn reachable_while_storage_live<const N: usize>(
         *state &= !ENQUEUED_FLAG;
     }
 
+    // Kills every local which is `StorageDead`-ed by a statement of `bb_data` at or after `start`.
+    let apply_deaths = |bb_data: &BasicBlockData<'_>, start: usize, mut live: u8| {
+        // `start` is past the end when `location` points at the terminator.
+        for stmt in bb_data.statements.get(start..).unwrap_or_default() {
+            if let StatementKind::StorageDead(killed) = stmt.kind
+                && let Some(slot) = locals.iter().position(|&local| local == killed)
+            {
+                live &= !(1 << slot);
+            }
+        }
+        live
+    };
+
     let mut states = IndexVec::from_raw(vec![0; mir.basic_blocks.len()]);
     let mut queue = Vec::new();
-    let init = !(0u8 << N);
+    let init = !(!0u8 << N);
     states[location.block] = init;
 
+    // `location.block` is the only block entered part-way through, so it is walked separately.
+    // Reaching it again in the loop below means a cycle closed around `location`.
     let bb_data = &mir.basic_blocks[location.block];
     let result = apply_deaths(bb_data, location.statement_index + 1, init);
     if result != 0 {
-        for succ in mir.basic_blocks[location.block].terminator().successors() {
+        for succ in bb_data.terminator().successors() {
             if succ == location.block {
                 return None;
             }
