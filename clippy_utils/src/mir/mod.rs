@@ -1,13 +1,13 @@
-use std::iter;
-use std::ops::Range;
+use std::{iter, mem};
 
 use rustc_data_structures::either::Either;
-use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::{Expr, HirId};
+use rustc_index::IndexVec;
 use rustc_index::bit_set::DenseBitSet;
 use rustc_middle::mir::visit::{MutatingUseContext, NonMutatingUseContext, PlaceContext, Visitor};
 use rustc_middle::mir::{
-    BasicBlock, Body, InlineAsmOperand, Local, Location, Place, START_BLOCK, Statement, StatementKind, TerminatorKind,
+    BasicBlock, BasicBlockData, Body, InlineAsmOperand, Local, Location, Place, START_BLOCK, Statement, StatementKind,
+    TerminatorKind,
 };
 use rustc_middle::ty::TyCtxt;
 
@@ -31,7 +31,7 @@ pub fn visit_local_usage<const N: usize>(
     mir: &Body<'_>,
     location: Location,
 ) -> Option<[LocalUsage; N]> {
-    let blocks = reachable_while_storage_live(&locals, mir, location)?;
+    let live_on_entry = reachable_while_storage_live(&locals, mir, location)?;
 
     let mut v = V {
         locals: &locals,
@@ -45,7 +45,7 @@ pub fn visit_local_usage<const N: usize>(
     };
 
     for &tbb in mir.basic_blocks.reverse_postorder() {
-        if blocks.contains(tbb) {
+        if live_on_entry[tbb] != 0 {
             v.visit_basic_block_data(tbb, &mir.basic_blocks[tbb]);
         }
     }
@@ -77,54 +77,54 @@ fn reachable_while_storage_live<const N: usize>(
     mir: &Body<'_>,
     location: Location,
 ) -> Option<DenseBitSet<BasicBlock>> {
-    let remove_killed = |bb: BasicBlock, range: Range<usize>, live: &mut Live| {
-        for slot in mir.basic_blocks[bb].statements[range]
-            .iter()
-            .filter_map(killed_local)
-            .filter_map(|killed| locals.iter().position(|&local| local == killed))
-        {
-            live.remove(slot);
-        }
-    };
-    let successors = |bb: BasicBlock, live: &Live| {
-        mir.basic_blocks[bb]
-            .terminator()
-            .successors()
-            .map(|succ| (succ, live.clone()))
-            .collect::<Vec<_>>()
-    };
-
-    let mut blocks = DenseBitSet::new_empty(mir.basic_blocks.len());
-    blocks.insert(location.block);
-
-    let mut seen = FxHashSet::default();
-    let mut worklist = Vec::new();
-    // `location.block` is the only block entered part-way through, so it is walked separately.
-    // Reaching it again in the loop below means a cycle closed around `location`.
-    let stmts = mir.basic_blocks[location.block].statements.len();
-    let after_location = (location.statement_index + 1).min(stmts);
-    let mut live = Live::new_filled(N);
-    remove_killed(location.block, after_location..stmts, &mut live);
-    if !live.is_empty() {
-        worklist.extend(successors(location.block, &live));
+    fn join(base: &mut u8, other: u8) -> bool {
+        let new = *base | other;
+        mem::replace(base, new) != new
+    }
+    const ENQUEUED_FLAG: u8 = 0b1000_0000;
+    fn enqueue(state: &mut u8) -> bool {
+        let new = *state | ENQUEUED_FLAG;
+        mem::replace(state, new) != new
+    }
+    fn dequeue(state: &mut u8) {
+        *state &= !ENQUEUED_FLAG;
     }
 
-    while let Some((bb, mut live)) = worklist.pop() {
-        if bb == location.block {
-            return None;
-        }
-        if !seen.insert((bb, live.clone())) {
-            continue;
-        }
-        blocks.insert(bb);
+    let mut states = IndexVec::from_raw(vec![0; mir.basic_blocks.len()]);
+    let mut queue = Vec::new();
+    let init = !(0u8 << N);
+    states[location.block] = init;
 
-        remove_killed(bb, 0..mir.basic_blocks[bb].statements.len(), &mut live);
-        if !live.is_empty() {
-            worklist.extend(successors(bb, &live));
+    let bb_data = &mir.basic_blocks[location.block];
+    let result = apply_deaths(bb_data, location.statement_index + 1, init);
+    if result != 0 {
+        for succ in mir.basic_blocks[location.block].terminator().successors() {
+            if succ == location.block {
+                return None;
+            }
+            if join(&mut states[succ], result) && enqueue(&mut states[succ]) {
+                queue.push(succ);
+            }
         }
     }
 
-    Some(blocks)
+    while let Some(bb) = queue.pop() {
+        dequeue(&mut states[bb]);
+        let bb_data = &mir.basic_blocks[bb];
+        let result = apply_deaths(bb_data, 0, states[bb]);
+        if result != 0 {
+            for succ in bb_data.terminator().successors() {
+                if succ == location.block {
+                    return None;
+                }
+                if join(&mut states[succ], result) && enqueue(&mut states[succ]) {
+                    queue.push(succ);
+                }
+            }
+        }
+    }
+
+    Some(states)
 }
 
 struct V<'a, const N: usize> {
