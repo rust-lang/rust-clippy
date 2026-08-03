@@ -69,7 +69,6 @@ fn reachable_while_storage_live<const N: usize>(
     location: Location,
 ) -> Option<IndexVec<BasicBlock, u8>> {
     const ENQUEUED_FLAG: u8 = 0b1000_0000;
-    const { assert!(N <= ENQUEUED_FLAG.trailing_zeros() as usize) }
 
     fn join(base: &mut u8, other: u8) -> bool {
         let new = *base | other;
@@ -82,6 +81,8 @@ fn reachable_while_storage_live<const N: usize>(
     fn dequeue(state: &mut u8) {
         *state &= !ENQUEUED_FLAG;
     }
+
+    const { assert!(N <= ENQUEUED_FLAG.trailing_zeros() as usize) }
 
     // Kills every local which is `StorageDead`-ed by a statement of `bb_data` at or after `start`.
     let apply_deaths = |bb_data: &BasicBlockData<'_>, start: usize, mut live: u8| {
