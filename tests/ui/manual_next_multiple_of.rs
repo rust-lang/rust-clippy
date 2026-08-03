@@ -27,7 +27,11 @@ fn main() {
     let _ = u1 + (u2 - u1 % u2) % u2; //~ manual_next_multiple_of
     let _ = (u2 - u1 % u2) % u2 + u1; //~ manual_next_multiple_of
 
-    // special cases
+    // power of two
+    let _ = (u1 + 3) & !3; //~ manual_next_multiple_of
+    let _ = (u1 + 7) & !7; //~ manual_next_multiple_of
+
+    // function and macro
     let _ = u1.div_ceil(f_val()) * f_val();
     let _ = f_val().div_ceil(u2) * u2; //~ manual_next_multiple_of
 

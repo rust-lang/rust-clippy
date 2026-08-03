@@ -1,10 +1,11 @@
 use clippy_config::Conf;
+use clippy_utils::consts::integer_const;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{DIV_CEIL, Msrv, NEXT_MULTIPLE_OF};
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::{eq_expr_value, sym};
 use rustc_errors::Applicability;
-use rustc_hir::{BinOpKind, Expr, ExprKind};
+use rustc_hir::{BinOpKind, Expr, ExprKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_session::impl_lint_pass;
@@ -60,6 +61,8 @@ impl<'tcx> LateLintPass<'tcx> for ManualNextMultipleOf {
         let (a, b) = match cx.typeck_results().expr_ty(expr).kind() {
             ty::Uint(_) => {
                 if let Some((a, b)) = match_arith_pattern(cx, expr) {
+                    (a, b)
+                } else if let Some((a, b)) = match_power_of_two_pattern(cx, expr) {
                     (a, b)
                 } else if self.msrv.meets(cx, DIV_CEIL)
                     && let Some((a, b)) = match_div_ceil_pattern(cx, expr)
@@ -125,12 +128,58 @@ fn match_arith_pattern<'tcx>(
     }
 }
 
+// Returns `(a, b)` of `(a + b) & !b` where `b + 1` is a power of two
+fn match_power_of_two_pattern<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'tcx>,
+) -> Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
+    //  x & y
+    let (lhs, rhs) = unpack_bin_op(expr, BinOpKind::BitAnd)?;
+
+    // (a + b) & !c
+    let (a, b, c) = if let Some((a, b)) = unpack_bin_op(lhs, BinOpKind::Add)
+        && let Some(c) = unpack_un_op(rhs, UnOp::Not)
+    {
+        (a, b, c)
+    } else if let Some((a, b)) = unpack_bin_op(rhs, BinOpKind::Add)
+        && let Some(c) = unpack_un_op(lhs, UnOp::Not)
+    {
+        (a, b, c)
+    } else {
+        return None;
+    };
+
+    // `v = 2^k - 1`
+    if integer_const(cx, c, expr.span.ctxt()).is_some_and(|v| v & v.wrapping_add(1) == 0) {
+        if eq_expr_value(cx, expr.span.ctxt(), b, c) {
+            Some((a, c))
+        } else if eq_expr_value(cx, expr.span.ctxt(), a, c) {
+            Some((b, c))
+        } else {
+            None
+        }
+    } else {
+        None
+    }
+}
+
 // Returns `(a, b)` of `a ? b`.
 fn unpack_bin_op<'tcx>(expr: &'tcx Expr<'tcx>, bin_op_kind: BinOpKind) -> Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
     if let ExprKind::Binary(bin_op, lhs, rhs) = expr.kind
         && bin_op.node == bin_op_kind
     {
         Some((lhs, rhs))
+    } else {
+        None
+    }
+}
+
+// Returns `a` of `?a`.
+fn unpack_un_op<'tcx>(expr: &'tcx Expr<'tcx>, un_op: UnOp) -> Option<&'tcx Expr<'tcx>> {
+    if let ExprKind::Unary(op, expr) = expr.kind
+        && op == un_op
+    {
+        Some(expr)
     } else {
         None
     }
