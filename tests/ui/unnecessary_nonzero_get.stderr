@@ -1,0 +1,329 @@
+error: unnecessary `get` before `leading_zeros`
+  --> tests/ui/unnecessary_nonzero_get.rs:8:16
+   |
+LL |     let _ = nz.get().leading_zeros();
+   |                ^^^^^
+   |
+   = note: `-D clippy::unnecessary-nonzero-get` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_nonzero_get)]`
+help: remove this
+   |
+LL -     let _ = nz.get().leading_zeros();
+LL +     let _ = nz.leading_zeros();
+   |
+
+error: unnecessary `get` before `trailing_zeros`
+  --> tests/ui/unnecessary_nonzero_get.rs:10:16
+   |
+LL |     let _ = nz.get().trailing_zeros();
+   |                ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = nz.get().trailing_zeros();
+LL +     let _ = nz.trailing_zeros();
+   |
+
+error: unnecessary `get` before `is_power_of_two`
+  --> tests/ui/unnecessary_nonzero_get.rs:12:16
+   |
+LL |     let _ = nz.get().is_power_of_two();
+   |                ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = nz.get().is_power_of_two();
+LL +     let _ = nz.is_power_of_two();
+   |
+
+error: unnecessary `get` before `ilog2`
+  --> tests/ui/unnecessary_nonzero_get.rs:14:16
+   |
+LL |     let _ = nz.get().ilog2();
+   |                ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = nz.get().ilog2();
+LL +     let _ = nz.ilog2();
+   |
+
+error: unnecessary `get` before `ilog10`
+  --> tests/ui/unnecessary_nonzero_get.rs:16:16
+   |
+LL |     let _ = nz.get().ilog10();
+   |                ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = nz.get().ilog10();
+LL +     let _ = nz.ilog10();
+   |
+
+error: unnecessary `get` before `leading_zeros`
+  --> tests/ui/unnecessary_nonzero_get.rs:21:16
+   |
+LL |     let _ = nz.get().leading_zeros();
+   |                ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = nz.get().leading_zeros();
+LL +     let _ = nz.leading_zeros();
+   |
+
+error: unnecessary `get` before `trailing_zeros`
+  --> tests/ui/unnecessary_nonzero_get.rs:23:16
+   |
+LL |     let _ = nz.get().trailing_zeros();
+   |                ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = nz.get().trailing_zeros();
+LL +     let _ = nz.trailing_zeros();
+   |
+
+error: unnecessary `get` before `is_positive`
+  --> tests/ui/unnecessary_nonzero_get.rs:25:16
+   |
+LL |     let _ = nz.get().is_positive();
+   |                ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = nz.get().is_positive();
+LL +     let _ = nz.is_positive();
+   |
+
+error: unnecessary `get` before `is_negative`
+  --> tests/ui/unnecessary_nonzero_get.rs:27:16
+   |
+LL |     let _ = nz.get().is_negative();
+   |                ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = nz.get().is_negative();
+LL +     let _ = nz.is_negative();
+   |
+
+error: unnecessary `get` before `leading_zeros`
+  --> tests/ui/unnecessary_nonzero_get.rs:32:15
+   |
+LL |     let _ = a.get().leading_zeros();
+   |               ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = a.get().leading_zeros();
+LL +     let _ = a.leading_zeros();
+   |
+
+error: unnecessary `get` before `trailing_zeros`
+  --> tests/ui/unnecessary_nonzero_get.rs:34:15
+   |
+LL |     let _ = b.get().trailing_zeros();
+   |               ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = b.get().trailing_zeros();
+LL +     let _ = b.trailing_zeros();
+   |
+
+error: unnecessary `get` before `ilog2`
+  --> tests/ui/unnecessary_nonzero_get.rs:36:15
+   |
+LL |     let _ = c.get().ilog2();
+   |               ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = c.get().ilog2();
+LL +     let _ = c.ilog2();
+   |
+
+error: unnecessary `get` before `is_power_of_two`
+  --> tests/ui/unnecessary_nonzero_get.rs:38:15
+   |
+LL |     let _ = d.get().is_power_of_two();
+   |               ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = d.get().is_power_of_two();
+LL +     let _ = d.is_power_of_two();
+   |
+
+error: unnecessary `get` before `ilog10`
+  --> tests/ui/unnecessary_nonzero_get.rs:40:15
+   |
+LL |     let _ = e.get().ilog10();
+   |               ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = e.get().ilog10();
+LL +     let _ = e.ilog10();
+   |
+
+error: unnecessary `get` before `is_negative`
+  --> tests/ui/unnecessary_nonzero_get.rs:45:15
+   |
+LL |     let _ = f.get().is_negative();
+   |               ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = f.get().is_negative();
+LL +     let _ = f.is_negative();
+   |
+
+error: unnecessary `get` before `is_positive`
+  --> tests/ui/unnecessary_nonzero_get.rs:47:15
+   |
+LL |     let _ = g.get().is_positive();
+   |               ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = g.get().is_positive();
+LL +     let _ = g.is_positive();
+   |
+
+error: unnecessary `get` before `leading_zeros`
+  --> tests/ui/unnecessary_nonzero_get.rs:49:15
+   |
+LL |     let _ = h.get().leading_zeros();
+   |               ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = h.get().leading_zeros();
+LL +     let _ = h.leading_zeros();
+   |
+
+error: unnecessary `get` before `trailing_zeros`
+  --> tests/ui/unnecessary_nonzero_get.rs:51:15
+   |
+LL |     let _ = i.get().trailing_zeros();
+   |               ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = i.get().trailing_zeros();
+LL +     let _ = i.trailing_zeros();
+   |
+
+error: unnecessary `get` before `leading_zeros`
+  --> tests/ui/unnecessary_nonzero_get.rs:53:15
+   |
+LL |     let _ = j.get().leading_zeros();
+   |               ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = j.get().leading_zeros();
+LL +     let _ = j.leading_zeros();
+   |
+
+error: unnecessary `get` before `ilog2`
+  --> tests/ui/unnecessary_nonzero_get.rs:58:15
+   |
+LL |     let _ = a.get().ilog2();
+   |               ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = a.get().ilog2();
+LL +     let _ = a.ilog2();
+   |
+
+error: unnecessary `get` before `is_positive`
+  --> tests/ui/unnecessary_nonzero_get.rs:60:15
+   |
+LL |     let _ = b.get().is_positive();
+   |               ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = b.get().is_positive();
+LL +     let _ = b.is_positive();
+   |
+
+error: unnecessary `get` before `leading_zeros`
+  --> tests/ui/unnecessary_nonzero_get.rs:62:15
+   |
+LL |     let _ = r.get().leading_zeros();
+   |               ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = r.get().leading_zeros();
+LL +     let _ = r.leading_zeros();
+   |
+
+error: unnecessary `get` before `leading_zeros`
+  --> tests/ui/unnecessary_nonzero_get.rs:66:41
+   |
+LL |     let _ = NonZero::new(5u32).unwrap().get().leading_zeros();
+   |                                         ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = NonZero::new(5u32).unwrap().get().leading_zeros();
+LL +     let _ = NonZero::new(5u32).unwrap().leading_zeros();
+   |
+
+error: unnecessary `get` before `trailing_zeros`
+  --> tests/ui/unnecessary_nonzero_get.rs:68:17
+   |
+LL |     let _ = (a).get().trailing_zeros();
+   |                 ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = (a).get().trailing_zeros();
+LL +     let _ = (a).trailing_zeros();
+   |
+
+error: unnecessary `get` before `leading_zeros`
+  --> tests/ui/unnecessary_nonzero_get.rs:73:10
+   |
+LL |         .get()
+   |          ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = a
+LL -         .get()
+LL +     let _ = a
+   |
+
+error: unnecessary `get` before `leading_zeros`
+  --> tests/ui/unnecessary_nonzero_get.rs:141:16
+   |
+LL |     let _ = nz.get().leading_zeros();
+   |                ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = nz.get().leading_zeros();
+LL +     let _ = nz.leading_zeros();
+   |
+
+error: unnecessary `get` before `leading_zeros`
+  --> tests/ui/unnecessary_nonzero_get.rs:149:16
+   |
+LL |     let _ = nz.get().leading_zeros();
+   |                ^^^^^
+   |
+help: remove this
+   |
+LL -     let _ = nz.get().leading_zeros();
+LL +     let _ = nz.leading_zeros();
+   |
+
+error: aborting due to 27 previous errors
+

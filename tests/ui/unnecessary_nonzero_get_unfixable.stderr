@@ -1,0 +1,16 @@
+error: unnecessary `get` before `leading_zeros`
+  --> tests/ui/unnecessary_nonzero_get_unfixable.rs:11:40
+   |
+LL |     let _ = nz /* keep this comment */.get().leading_zeros();
+   |                                        ^^^^^
+   |
+   = note: `-D clippy::unnecessary-nonzero-get` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_nonzero_get)]`
+help: remove this
+   |
+LL -     let _ = nz /* keep this comment */.get().leading_zeros();
+LL +     let _ = nz.leading_zeros();
+   |
+
+error: aborting due to 1 previous error
+
