@@ -47,10 +47,10 @@ impl<'tcx> LateLintPass<'tcx> for ManualNextMultipleOf {
 
         let (a, b) = match cx.typeck_results().expr_ty(expr).kind() {
             ty::Uint(_) => {
-                if let Some((a, b)) = naive_pattern(cx, expr) {
+                if let Some((a, b)) = match_arith_pattern(cx, expr) {
                     (a, b)
                 } else if self.msrv.meets(cx, DIV_CEIL)
-                    && let Some((a, b)) = div_ceil_pattern(cx, expr)
+                    && let Some((a, b)) = match_div_ceil_pattern(cx, expr)
                 {
                     (a, b)
                 } else {
@@ -84,13 +84,16 @@ impl<'tcx> LateLintPass<'tcx> for ManualNextMultipleOf {
 }
 
 // Returns `(a, b)` of `a + (b - a % b) % b`
-fn naive_pattern<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
+fn match_arith_pattern<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'tcx>,
+) -> Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
     // `x + y`
     let Some((x1, y1)) = unpack_bin_op(expr, BinOpKind::Add) else {
         return None;
     };
 
-    // Extract `(a, b)` from `a + x % b`
+    // `a + x % b`
     let (a, b, x2) = if let Some((lhs, rhs)) = unpack_bin_op(x1, BinOpKind::Rem) {
         (y1, rhs, lhs)
     } else if let Some((lhs, rhs)) = unpack_bin_op(y1, BinOpKind::Rem) {
@@ -112,8 +115,19 @@ fn naive_pattern<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> Option
     }
 }
 
+// Returns `(a, b)` of `a ? b`.
+fn unpack_bin_op<'tcx>(expr: &'tcx Expr<'tcx>, bin_op_kind: BinOpKind) -> Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
+    if let ExprKind::Binary(bin_op, lhs, rhs) = expr.kind
+        && bin_op.node == bin_op_kind
+    {
+        Some((lhs, rhs))
+    } else {
+        None
+    }
+}
+
 // Returns `(a, b)` of `a.div_ceil(b) * b`
-fn div_ceil_pattern<'tcx>(
+fn match_div_ceil_pattern<'tcx>(
     cx: &LateContext<'tcx>,
     expr: &'tcx Expr<'tcx>,
 ) -> Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
@@ -143,17 +157,6 @@ fn unpack_div_ceil<'tcx>(expr: &'tcx Expr<'tcx>) -> Option<(&'tcx Expr<'tcx>, &'
         && path.ident.name == sym::div_ceil
     {
         Some((receiver, arg))
-    } else {
-        None
-    }
-}
-
-// Returns `(a, b)` of `a ? b`.
-fn unpack_bin_op<'tcx>(expr: &'tcx Expr<'tcx>, bin_op_kind: BinOpKind) -> Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
-    if let ExprKind::Binary(bin_op, lhs, rhs) = expr.kind
-        && bin_op.node == bin_op_kind
-    {
-        Some((lhs, rhs))
     } else {
         None
     }
