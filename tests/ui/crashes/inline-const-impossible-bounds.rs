@@ -3,10 +3,10 @@
 #![feature(trivial_bounds)]
 #![warn(clippy::arithmetic_side_effects)]
 
-struct TrickClippy(str);
+struct UnreachableConst(str);
 
-impl TrickClippy {
-    fn trick_clippy(f: u64) -> u64
+impl UnreachableConst {
+    fn unreachable(f: u64) -> u64
     where
         Self: Sized,
     {
