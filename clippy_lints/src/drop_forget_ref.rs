@@ -31,11 +31,13 @@ declare_clippy_lint! {
 declare_clippy_lint! {
     /// ### What it does
     ///
-    /// Checks for not executing `Drop` on a `Future`.
+    /// Checks for `mem::forget` being called on a `Future` causing `Drop` to be not executed.
     ///
     /// ### Why is this bad?
     ///
-    /// Futures use drop to be signalled that they were cancelled and should clean up their resources.
+    /// When dropped, Futures may execute important cleanup logic, e.g. to signal that they have
+    /// been cancelled to an executor/context/hardware/what-have-you if they have not completed.
+    /// `forget`-ing a Future prevents this cleanup from occurring.
     ///
     /// ### Example
     /// ```no_run
@@ -45,10 +47,10 @@ declare_clippy_lint! {
     /// ```no_run
     /// std::mem::drop(async {});
     /// ```
-    #[clippy::version = "1.97.0"]
+    #[clippy::version = "1.99.0"]
     pub FORGET_FUTURE,
     suspicious,
-    "`mem::forget` usage on `Future` types, likely to cause problems with cancelation"
+    "`mem::forget` usage on `Future` types prevents potential cleanup from being performed"
 }
 
 declare_clippy_lint! {
