@@ -319,5 +319,65 @@ LL -     if let _ = typeid!(U) { true } else { false }
 LL +     matches!(typeid!(U), _)
    |
 
-error: aborting due to 17 previous errors
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:309:9
+   |
+LL | /         match match_type {
+LL | |             MatchType::A(_str1) => true,
+LL | |             MatchType::B(_str1, _str2) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match match_type {
+LL -             MatchType::A(_str1) => true,
+LL -             MatchType::B(_str1, _str2) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(match_type, MatchType::A(_) | MatchType::B(_, _))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:326:9
+   |
+LL | /         match match_type {
+LL | |             MatchType::A(a) => true,
+LL | |             MatchType::B(b, c) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match match_type {
+LL -             MatchType::A(a) => true,
+LL -             MatchType::B(b, c) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(match_type, MatchType::A(_) | MatchType::B(_, _))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:341:9
+   |
+LL | /         match match_type2 {
+LL | |             MatchType2::A => true,
+LL | |             MatchType2::B => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match match_type2 {
+LL -             MatchType2::A => true,
+LL -             MatchType2::B => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(match_type2, MatchType2::A | MatchType2::B)
+   |
+
+error: aborting due to 20 previous errors
 
