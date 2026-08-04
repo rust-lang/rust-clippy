@@ -49,7 +49,6 @@ impl ManualHighestOne {
 }
 
 impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
-    #[expect(clippy::too_many_lines)]
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         let mid_ty = cx.typeck_results().expr_ty(expr);
 
