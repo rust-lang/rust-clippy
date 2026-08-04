@@ -103,6 +103,20 @@ fn macro_containing_slice_windows_literal_size(slice: &[u8]) {
     }
 }
 
+fn const_generic_param_computation<const T: usize>(slice: &[u8]) {
+    // would be invalid: `slice.array_windows::<{ T + 1 }>()`
+    for window in slice.windows(T + 1) {
+        println!("{}", window[0]);
+    }
+}
+
+fn const_generic_param_from_generic_fn_result<T>(slice: &[u8]) {
+    // would be invalid: `slice.array_windows::<{ std::mem::size_of::<T>() }>()`
+    for window in slice.windows(std::mem::size_of::<T>()) {
+        println!("{}", window[0]);
+    }
+}
+
 #[clippy::msrv = "1.93"]
 fn before_array_windows_stabilization(slice: &[u8]) {
     // would not compile at 1.93: `slice.array_windows::<2>()`
