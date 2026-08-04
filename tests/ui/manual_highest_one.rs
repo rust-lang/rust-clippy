@@ -130,13 +130,16 @@ fn main() {
         },
         _ => 31 - u.leading_zeros(),
     };
-    // This is not linted
     let _ = match u {
         0 => todo!(),
         _ => {
             may_change_state();
             31 - u.leading_zeros() //~ manual_highest_one
         },
+    };
+    let _ = match u {
+        0 => 31 - u.leading_zeros(), //~ manual_highest_one
+        _ => todo!(),
     };
 
     // --- Macro ---

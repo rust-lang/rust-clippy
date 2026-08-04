@@ -235,7 +235,7 @@ fn lint_match_pattern<'tcx>(
         // `_` pattern
         && arm2.guard.is_none()
         && let PatKind::Wild = arm2.pat.kind
-        // && arm2.body.hir_id == h1_expr.hir_id
+        && arm2.body.hir_id == h1_expr.hir_id
         // same item
         && eq_expr_value(cx, span.ctxt(), scrutinee, recv_of_h1)
     {

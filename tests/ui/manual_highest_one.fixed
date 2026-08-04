@@ -113,13 +113,16 @@ fn main() {
             do_something(u);
             todo!()
         });
-    // This is not linted
     let _ = match u {
         0 => todo!(),
         _ => {
             may_change_state();
             u.highest_one().unwrap() //~ manual_highest_one
         },
+    };
+    let _ = match u {
+        0 => u.highest_one().unwrap(), //~ manual_highest_one
+        _ => todo!(),
     };
 
     // --- Macro ---
