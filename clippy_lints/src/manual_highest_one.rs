@@ -106,9 +106,8 @@ impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
                     {
                         if lint_if_pattern(cx, expr.span, condition, then_block, else_block, h1_expr, recv) {
                             return;
-                        } else {
-                            break;
                         }
+                        break;
                     },
                     // match u {
                     //     0 => do_something(),
@@ -117,9 +116,8 @@ impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
                     ExprKind::Match(scrutinee, [arm1, arm2], MatchSource::Normal) => {
                         if lint_match_pattern(cx, expr.span, scrutinee, arm1, arm2, h1_expr, recv) {
                             return;
-                        } else {
-                            break;
                         }
+                        break;
                     },
                     _ => break,
                 },
