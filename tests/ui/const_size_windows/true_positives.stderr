@@ -128,5 +128,29 @@ LL |     for pair in vec.windows(2) {
    |
    = note: this allows array destructuring: `for [item_1, item_2] in vec.array_windows()`
 
-error: aborting due to 16 previous errors
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/true_positives.rs:153:23
+   |
+LL |     for pair in slice.windows(some_module::WINDOW_SIZE) {
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `array_windows::<{ some_module::WINDOW_SIZE }>()`
+   |
+   = note: this allows array destructuring: `for [item, ..] in slice.array_windows::<{ some_module::WINDOW_SIZE }>()`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/true_positives.rs:161:23
+   |
+LL |     for pair in slice.windows(2 + 2) {
+   |                       ^^^^^^^^^^^^^^ help: use: `array_windows::<{ 2 + 2 }>()`
+   |
+   = note: this allows array destructuring: `for [item, ..] in slice.array_windows::<{ 2 + 2 }>()`
+
+error: using `slice::windows` with a constant size instead of `slice::array_windows`
+  --> tests/ui/const_size_windows/true_positives.rs:169:25
+   |
+LL |     let windows = slice.windows(2).collect::<Vec<_>>();
+   |                         ^^^^^^^^^^ help: use: `array_windows::<2>()`
+   |
+   = note: this allows array destructuring: `for [left, right] in slice.array_windows()`
+
+error: aborting due to 19 previous errors
 

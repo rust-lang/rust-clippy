@@ -140,7 +140,36 @@ fn shadowed_destruct_variables() {
     // expected: `vec.array_windows::<2>()`
     for pair in vec.array_windows::<2>() {
         //~^ const_size_windows
-        let pair: &[u8] = pair;
+        println!("{} {}", pair[0], pair[1]);
+    }
+}
+
+pub mod some_module {
+    pub const WINDOW_SIZE: usize = 2;
+}
+
+fn windows_const_mod_path_size(slice: &[u8]) {
+    // expected: `slice.array_windows::<{ some_module::WINDOW_SIZE }>()`
+    for pair in slice.array_windows::<{ some_module::WINDOW_SIZE }>() {
+        //~^ const_size_windows
+        println!("{} {}", pair[0], pair[1]);
+    }
+}
+
+fn windows_const_computed_size(slice: &[u8]) {
+    // expected: `slice.array_windows::<{ 2 + 2 }>()`
+    for pair in slice.array_windows::<{ 2 + 2 }>() {
+        //~^ const_size_windows
+        println!("{} {}", pair[0], pair[1]);
+    }
+}
+
+fn collect_after_windows(slice: &[u8]) {
+    // expected: `slice.array_windows::<2>().collect::<Vec<_>>()`
+    let windows = slice.array_windows::<2>().collect::<Vec<_>>();
+    //~^ const_size_windows
+
+    for pair in windows {
         println!("{} {}", pair[0], pair[1]);
     }
 }
