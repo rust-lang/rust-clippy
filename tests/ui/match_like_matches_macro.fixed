@@ -273,6 +273,11 @@ mod issue17503 {
         //~^^^^^ match_like_matches_macro
     }
 
+    fn different_binding_names_2(match_type: MatchType) -> bool {
+        matches!(match_type, MatchType::A(_) | MatchType::B(_, _))
+        //~^^^^^ match_like_matches_macro
+    }
+
     enum MatchType2 {
         A,
         B,
@@ -281,6 +286,69 @@ mod issue17503 {
 
     fn matches2(match_type2: MatchType2) -> bool {
         matches!(match_type2, MatchType2::A | MatchType2::B)
+        //~^^^^^ match_like_matches_macro
+    }
+
+    fn tuple_binding_names(v: (Option<u8>, Option<u8>)) -> bool {
+        matches!(v, (Some(_), _) | (_, Some(_)))
+        //~^^^^^ match_like_matches_macro
+    }
+
+    // FIXME: Erasing bindings in struct shorthand patterns (`Foo { a, .. }`)
+    // requires rewriting them as `Foo { a: _, .. }`. Replacing only the binding
+    // span currently produces invalid syntax (`Foo { _, .. }`).
+    // ```rs
+    // struct TestBindingNames {
+    //     a: u8,
+    //     b: u8,
+    // }
+    // fn struct_binding_names(x: TestBindingNames) -> bool {
+    //     match x {
+    //         TestBindingNames { a, .. } => true,
+    //         TestBindingNames { b, .. } => true,
+    //         _ => false,
+    //     }
+    // }
+    // ```
+
+    enum NestedTupleInEnum {
+        A((u8, u8)),
+        B((u8, u8)),
+    }
+
+    fn nested_tuple(e: NestedTupleInEnum) -> bool {
+        matches!(e, NestedTupleInEnum::A((_, _)) | NestedTupleInEnum::B((_, _)))
+        //~^^^^^ match_like_matches_macro
+    }
+
+    enum Inner {
+        X(u8),
+    }
+
+    enum Outer {
+        A(Inner),
+        B(Inner),
+    }
+
+    fn nested_enum(o: Outer) -> bool {
+        matches!(o, Outer::A(Inner::X(_)) | Outer::B(Inner::X(_)))
+        //~^^^^^ match_like_matches_macro
+    }
+
+    // FIXME: Handle `@` bindings when removing bindings from suggestions.
+    // Replacing only the binding span creates invalid patterns like `_ @ 0`.
+    // ```rs
+    // fn at_binding(v: Option<u8>) -> bool {
+    //     match v {
+    //         Some(x @ 0) => true,
+    //         Some(y @ 1) => true,
+    //         _ => false,
+    //     }
+    // }
+    // ```
+
+    fn slice_binding(v: &[u8]) -> bool {
+        matches!(v, [_, ..] | [_, _])
         //~^^^^^ match_like_matches_macro
     }
 }
