@@ -131,27 +131,6 @@ LL ~     });
 error: manually reimplementing `highest_one`
   --> tests/ui/manual_highest_one.rs:92:13
    |
-LL |       let _ = if 0 != u {
-   |  _____________^
-LL | |
-LL | |         31 - u.leading_zeros()
-LL | |     } else {
-LL | |         do_something(u);
-LL | |         1
-LL | |     };
-   | |_____^
-   |
-help: try
-   |
-LL ~     let _ = u.highest_one().unwrap_or_else(|| {
-LL +         do_something(u);
-LL +         1
-LL ~     });
-   |
-
-error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:99:13
-   |
 LL |       let _ = if u > 0 {
    |  _____________^
 LL | |
@@ -171,16 +150,22 @@ LL ~     });
    |
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:111:9
+  --> tests/ui/manual_highest_one.rs:104:9
    |
 LL |         31 - u.leading_zeros()
    |         ^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:121:9
+  --> tests/ui/manual_highest_one.rs:114:9
    |
 LL |         31 - u.leading_zeros()
    |         ^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:119:9
+   |
+LL |         31 - i.leading_zeros()
+   |         ^^^^^^^^^^^^^^^^^^^^^^ help: try: `i.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
   --> tests/ui/manual_highest_one.rs:125:13

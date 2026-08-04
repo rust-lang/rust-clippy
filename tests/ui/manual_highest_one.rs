@@ -89,13 +89,6 @@ fn main() {
         do_something(u);
         1
     };
-    let _ = if 0 != u {
-        //~^ manual_highest_one
-        31 - u.leading_zeros()
-    } else {
-        do_something(u);
-        1
-    };
     let _ = if u > 0 {
         //~^ manual_highest_one
         31 - u.leading_zeros()
@@ -103,10 +96,10 @@ fn main() {
         do_something(u);
         1
     };
-    // This is not linted
     let _ = if u == 0 {
         todo!()
     } else {
+        // this arm may have side effect
         may_change_state();
         31 - u.leading_zeros() //~ manual_highest_one
     };
@@ -119,6 +112,13 @@ fn main() {
         todo!()
     } else {
         31 - u.leading_zeros() //~ manual_highest_one
+    };
+
+    let i = -1_i32;
+    let _ = if i > 0 {
+        31 - i.leading_zeros() //~ manual_highest_one
+    } else {
+        todo!()
     };
 
     // --- In match arm ---

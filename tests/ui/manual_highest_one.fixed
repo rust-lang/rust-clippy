@@ -86,14 +86,10 @@ fn main() {
         do_something(u);
         1
     });
-    let _ = u.highest_one().unwrap_or_else(|| {
-        do_something(u);
-        1
-    });
-    // This is not linted
     let _ = if u == 0 {
         todo!()
     } else {
+        // this arm may have side effect
         may_change_state();
         u.highest_one().unwrap() //~ manual_highest_one
     };
@@ -106,6 +102,13 @@ fn main() {
         todo!()
     } else {
         u.highest_one().unwrap() //~ manual_highest_one
+    };
+
+    let i = -1_i32;
+    let _ = if i > 0 {
+        i.highest_one().unwrap() //~ manual_highest_one
+    } else {
+        todo!()
     };
 
     // --- In match arm ---

@@ -159,12 +159,16 @@ fn lint_if_pattern<'tcx>(
         if let ExprKind::Binary(bin_op, lhs, rhs) = condition.kind
             && let Some((rel, lhs, rhs)) = normalize_comparison(bin_op.node, lhs, rhs)
         {
-            if is_zero_integer_const(cx, lhs, condition.span.ctxt())
-                && !lhs.span.from_expansion()
-                && matches!(rel, Rel::Eq | Rel::Ne | Rel::Lt)
-            {
+            // 0 == x, 0 != x, 0 < x
+            if is_zero_integer_const(cx, lhs, condition.span.ctxt()) && !lhs.span.from_expansion() && {
+                matches!(rel, Rel::Eq | Rel::Ne) || {
+                    matches!(rel, Rel::Lt) && matches!(cx.typeck_results().expr_ty(rhs).kind(), ty::Uint(..))
+                }
+            } {
                 (rel, rhs)
-            } else if is_zero_integer_const(cx, rhs, condition.span.ctxt())
+            } else
+            // x == 0, x != 0
+            if is_zero_integer_const(cx, rhs, condition.span.ctxt())
                 && !rhs.span.from_expansion()
                 && matches!(rel, Rel::Eq | Rel::Ne)
             {
