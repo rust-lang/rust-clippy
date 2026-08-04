@@ -314,6 +314,23 @@ mod issue17503 {
         //~^^^^^ match_like_matches_macro
     }
 
+    fn match_check_pass(match_type: MatchType) -> bool {
+        match match_type {
+            MatchType::A(_str1) => true,
+            MatchType::B(_str1, _str2) => false,
+            MatchType::C => true,
+        }
+    }
+
+    fn different_binding_names(match_type: MatchType) -> bool {
+        match match_type {
+            MatchType::A(a) => true,
+            MatchType::B(b, c) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
     enum MatchType2 {
         A,
         B,

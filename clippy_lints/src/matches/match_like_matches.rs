@@ -10,7 +10,7 @@ use rustc_errors::Applicability;
 use rustc_hir::{Arm, BorrowKind, Expr, ExprKind, Pat, PatKind, QPath};
 use rustc_lint::LateContext;
 use rustc_middle::ty;
-use rustc_span::Spanned;
+use rustc_span::{Span, Spanned};
 
 use super::MATCH_LIKE_MATCHES_MACRO;
 
@@ -160,17 +160,22 @@ pub(super) fn check_match<'tcx>(
                 .map(|arm| {
                     let mut s = snippet_with_applicability(cx, arm.pat.span, "..", &mut applicability).into_owned();
 
+                    // Only erase bindings when actually merging multiple arms into an or-pattern (#17503)
                     if !middle_arms.is_empty() {
-                        // Only erase bindings when actually merging multiple arms into an or-pattern (#17503)
+                        let mut binding_spans: Vec<Span> = Vec::new();
+
                         arm.pat.walk_always(|p| {
-                            if let PatKind::Binding(..) = p.kind {
-                                s = s.replacen(
-                                    &*snippet_with_applicability(cx, p.span, "_", &mut applicability),
-                                    "_",
-                                    1,
-                                );
+                            if let PatKind::Binding(_, _, ident, _) = p.kind {
+                                binding_spans.push(ident.span);
                             }
                         });
+
+                        for span in binding_spans.iter().rev() {
+                            let start = (span.lo() - arm.pat.span.lo()).0 as usize;
+                            let end = (span.hi() - arm.pat.span.lo()).0 as usize;
+
+                            s.replace_range(start..end, "_");
+                        }
                     }
 
                     s

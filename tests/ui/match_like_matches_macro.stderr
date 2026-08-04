@@ -340,7 +340,27 @@ LL +         matches!(match_type, MatchType::A(_) | MatchType::B(_, _))
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:324:9
+  --> tests/ui/match_like_matches_macro.rs:326:9
+   |
+LL | /         match match_type {
+LL | |             MatchType::A(a) => true,
+LL | |             MatchType::B(b, c) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match match_type {
+LL -             MatchType::A(a) => true,
+LL -             MatchType::B(b, c) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(match_type, MatchType::A(_) | MatchType::B(_, _))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:341:9
    |
 LL | /         match match_type2 {
 LL | |             MatchType2::A => true,
@@ -359,5 +379,5 @@ LL -         }
 LL +         matches!(match_type2, MatchType2::A | MatchType2::B)
    |
 
-error: aborting due to 19 previous errors
+error: aborting due to 20 previous errors
 
